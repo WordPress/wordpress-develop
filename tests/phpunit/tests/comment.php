@@ -386,13 +386,13 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_cancel_comment_reply_link
 	 *
-	 * @param string     $text          Text to display for cancel reply link.
+	 * @param string        $text       Text to display for cancel reply link.
 	 *                                  If empty, defaults to 'Click here to cancel reply'.
-	 * @param string|int $post          The post the comment thread is being displayed for.
+	 * @param string|int    $post       The post the comment thread is being displayed for.
 	 *                                  Accepts 'POST_ID', 'POST', or an integer post ID.
 	 * @param int|bool|null $replytocom A comment ID (int), whether to generate an approved (true) or unapproved (false) comment,
 	 *                                  or null not to create a comment.
-	 * @param string     $expected      The expected reply link.
+	 * @param string        $expected   The expected reply link.
 	 */
 	public function test_get_cancel_comment_reply_link( $text, $post, $replytocom, $expected ) {
 		if ( 'POST_ID' === $post ) {
