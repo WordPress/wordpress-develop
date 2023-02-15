@@ -1891,7 +1891,7 @@ p.auto-update-status {
 	border-color: transparent;
 }
 
-.contextual-help-tabs a {
+.contextual-help-tabs button {
 	display: block;
 	padding: 8px 5px 8px 12px;
 	line-height: 1.4;
@@ -1901,11 +1901,11 @@ p.auto-update-status {
 	border-left: none;
 }
 
-.contextual-help-tabs a:hover {
+.contextual-help-tabs button:hover {
 	color: #2c3338;
 }
 
-.contextual-help-tabs .active {
+.contextual-help-tabs [aria-selected=true] {
 	padding: 0;
 	margin: 0 -1px 0 0;
 	border-left: 3px solid #2271b1;

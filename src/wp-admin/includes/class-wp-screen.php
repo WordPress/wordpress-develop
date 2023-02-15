@@ -874,21 +874,21 @@ final class WP_Screen {
 				<div id="contextual-help-back"></div>
 				<div id="contextual-help-columns">
 					<div class="contextual-help-tabs">
-						<ul>
+						<ul role="tablist">
 						<?php
-						$class = ' class="active"';
+						$selected = 'true';
 						foreach ( $this->get_help_tabs() as $tab ) :
 							$link_id  = "tab-link-{$tab['id']}";
 							$panel_id = "tab-panel-{$tab['id']}";
 							?>
 
-							<li id="<?php echo esc_attr( $link_id ); ?>"<?php echo $class; ?>>
-								<a href="<?php echo esc_url( "#$panel_id" ); ?>" aria-controls="<?php echo esc_attr( $panel_id ); ?>">
+							<li id="<?php echo esc_attr( $link_id ); ?>">
+								<button aria-controls="<?php echo esc_attr( $panel_id ); ?>" role="tab" aria-selected="<?php echo $selected; ?>">
 									<?php echo esc_html( $tab['title'] ); ?>
-								</a>
+								</button>
 							</li>
 							<?php
-							$class = '';
+							$selected = 'false';
 						endforeach;
 						?>
 						</ul>
