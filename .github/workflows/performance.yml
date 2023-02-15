@@ -45,6 +45,7 @@ jobs:
   # - Install wordpress importer plugin and import dummy data.
   # - Update permalink structure.
   # - Run the Performance tests.
+  # - Print Performance tests results.
   # - Ensures version-controlled files are not modified or deleted.
   performance:
     runs-on: ubuntu-latest
@@ -118,6 +119,9 @@ jobs:
 
       - name: Run Performance tests
         run: npm run test:performance
+
+      - name: Print Performance tests results
+        run: "node ./tests/performance/results.js"
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
