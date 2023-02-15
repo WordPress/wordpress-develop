@@ -119,7 +119,7 @@ JS;
 		wp_register_script( 'defaults-no-args', '/defaults.js', array(), null );
 		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults-no-args', 'script_args' ) );
 
-		//test backward compatibility.
+		// Test backward compatibility.
 		$args = array(
 			'in_footer' => true,
 			'strategy'  => 'blocking',
