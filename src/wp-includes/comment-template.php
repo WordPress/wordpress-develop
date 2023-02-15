@@ -2015,13 +2015,15 @@ function get_comment_id_fields( $post = null ) {
  * This tag must be within the `<form>` section of the `comments.php` template.
  *
  * @since 2.7.0
+ * @since 6.2.0 Renamed `$post_id` to `$post` and added WP_Post support.
  *
  * @see get_comment_id_fields()
  *
- * @param int $post_id Optional. Post ID. Defaults to the current post ID.
+ * @param int|WP_Post $post Optional. The post the comment is being displayed for.
+ *                          Defaults to the current global post.
  */
-function comment_id_fields( $post_id = 0 ) {
-	echo get_comment_id_fields( $post_id );
+function comment_id_fields( $post = null ) {
+	echo get_comment_id_fields( $post );
 }
 
 /**
