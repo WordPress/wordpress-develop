@@ -5694,7 +5694,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 
 	$hash      = md5( $page_path . serialize( $post_type ) );
 	$cache_key = "get_page_by_path:$hash:$last_changed";
-	$cached    = wp_cache_get( $cache_key, 'posts' );
+	$cached    = wp_cache_get( $cache_key, 'queries' );
 	if ( false !== $cached ) {
 		// Special case: '0' is a bad `$page_path`.
 		if ( '0' === $cached || 0 === $cached ) {
@@ -5761,7 +5761,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	}
 
 	// We cache misses as well as hits.
-	wp_cache_set( $cache_key, $foundid, 'posts' );
+	wp_cache_set( $cache_key, $foundid, 'queries' );
 
 	if ( $foundid ) {
 		return get_post( $foundid, $output );
@@ -6002,7 +6002,7 @@ function get_pages( $args = array() ) {
 	$last_changed = wp_cache_get_last_changed( 'posts' );
 
 	$cache_key = "get_pages:$key:$last_changed";
-	$cache     = wp_cache_get( $cache_key, 'posts' );
+	$cache     = wp_cache_get( $cache_key, 'queries' );
 	if ( false !== $cache ) {
 		_prime_post_caches( $cache, false, false );
 
@@ -6167,7 +6167,7 @@ function get_pages( $args = array() ) {
 	$pages = $wpdb->get_results( $query );
 
 	if ( empty( $pages ) ) {
-		wp_cache_set( $cache_key, array(), 'posts' );
+		wp_cache_set( $cache_key, array(), 'queries' );
 
 		/** This filter is documented in wp-includes/post.php */
 		$pages = apply_filters( 'get_pages', array(), $parsed_args );
@@ -6210,7 +6210,7 @@ function get_pages( $args = array() ) {
 		$page_structure[] = $page->ID;
 	}
 
-	wp_cache_set( $cache_key, $page_structure, 'posts' );
+	wp_cache_set( $cache_key, $page_structure, 'queries' );
 
 	// Convert to WP_Post instances.
 	$pages = array_map( 'get_post', $pages );
