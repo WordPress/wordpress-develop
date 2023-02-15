@@ -2427,6 +2427,67 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57321
+	 *
+	 * @covers WP_Theme_JSON::remove_insecure_properties
+	 */
+	public function test_remove_insecure_properties_should_allow_indirect_properties() {
+		$actual = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'   => array(
+					'spacing' => array(
+						'blockGap' => '3em',
+					),
+					'blocks'  => array(
+						'core/social-links' => array(
+							'spacing' => array(
+								'blockGap' => array(
+									'left' => '2em',
+									'top'  => '1em',
+								),
+							),
+						),
+					),
+				),
+				'settings' => array(
+					'layout' => array(
+						'contentSize' => '800px',
+						'wideSize'    => '1000px',
+					),
+				),
+			)
+		);
+
+		$expected = array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'   => array(
+				'spacing' => array(
+					'blockGap' => '3em',
+				),
+				'blocks'  => array(
+					'core/social-links' => array(
+						'spacing' => array(
+							'blockGap' => array(
+								'left' => '2em',
+								'top'  => '1em',
+							),
+						),
+					),
+				),
+			),
+			'settings' => array(
+				'layout' => array(
+					'contentSize' => '800px',
+					'wideSize'    => '1000px',
+				),
+			),
+		);
+
+		$this->assertSameSetsWithIndex( $expected, $actual );
+	}
+
+	/**
 	 * @ticket 56467
 	 */
 	public function test_remove_invalid_element_pseudo_selectors() {
