@@ -111,8 +111,7 @@ JS;
 			'strategy'  => 'blocking',
 		);
 
-		$args = array();
-		wp_register_script( 'defaults', '/defaults.js', array(), null, $args );
+		wp_register_script( 'defaults', '/defaults.js', array(), null, array() );
 		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults', 'script_args' ) );
 
 		//test backward compatibility.
