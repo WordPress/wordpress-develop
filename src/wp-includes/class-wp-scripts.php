@@ -734,7 +734,7 @@ JS;
 	}
 
 	/**
-	 * Normalize the data inside $args parameter and support backward compatibility.
+	 * Normalize the data inside the $args parameter and support backward compatibility.
 	 *
 	 * @param string        $handle Name of the script.
 	 * @param array         $args     {
