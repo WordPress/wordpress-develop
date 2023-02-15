@@ -358,6 +358,7 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 
 	if ( $src || ! empty( $args ) ) {
 		$_handle = explode( '?', $handle );
+
 		if ( $src ) {
 			$wp_scripts->add( $_handle[0], $src, $deps, $ver );
 		}
