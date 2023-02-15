@@ -715,7 +715,7 @@ JS;
 	}
 
 	/**
-	 * The overrides the add_data function from WP_Dependencies, to support normalizing of $args.
+	 * This overrides the add_data method from WP_Dependencies, to support normalizing of $args.
 	 *
 	 * @param string $handle Name of the item. Should be unique.
 	 * @param string $key    The data key.
