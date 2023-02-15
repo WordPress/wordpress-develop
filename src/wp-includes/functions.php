@@ -7001,7 +7001,7 @@ function _get_non_cached_ids( $object_ids, $cache_key ) {
 	$object_ids     = array_filter(
 		$object_ids,
 		static function ( $object_id ) {
-			return filter_var( $int, FILTER_VALIDATE_INT );
+			return filter_var( $object_id, FILTER_VALIDATE_INT );
 		}
 	);
 	$non_cached_ids = array();
