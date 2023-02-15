@@ -10,7 +10,7 @@
  * Loads header template.
  *
  * Includes the header template for a theme or if a name is specified then a
- * specialised header will be included.
+ * specialized header will be included.
  *
  * For the parameter, if the file is called "header-special.php" then specify
  * "special".
@@ -19,7 +19,7 @@
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $name The name of the specialised header.
+ * @param string $name The name of the specialized header.
  * @param array  $args Optional. Additional arguments passed to the header template.
  *                     Default empty array.
  * @return void|false Void on success, false if the template does not exist.
@@ -54,7 +54,7 @@ function get_header( $name = null, $args = array() ) {
  * Loads footer template.
  *
  * Includes the footer template for a theme or if a name is specified then a
- * specialised footer will be included.
+ * specialized footer will be included.
  *
  * For the parameter, if the file is called "footer-special.php" then specify
  * "special".
@@ -63,7 +63,7 @@ function get_header( $name = null, $args = array() ) {
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $name The name of the specialised footer.
+ * @param string $name The name of the specialized footer.
  * @param array  $args Optional. Additional arguments passed to the footer template.
  *                     Default empty array.
  * @return void|false Void on success, false if the template does not exist.
@@ -98,7 +98,7 @@ function get_footer( $name = null, $args = array() ) {
  * Loads sidebar template.
  *
  * Includes the sidebar template for a theme or if a name is specified then a
- * specialised sidebar will be included.
+ * specialized sidebar will be included.
  *
  * For the parameter, if the file is called "sidebar-special.php" then specify
  * "special".
@@ -107,7 +107,7 @@ function get_footer( $name = null, $args = array() ) {
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $name The name of the specialised sidebar.
+ * @param string $name The name of the specialized sidebar.
  * @param array  $args Optional. Additional arguments passed to the sidebar template.
  *                     Default empty array.
  * @return void|false Void on success, false if the template does not exist.
@@ -145,7 +145,7 @@ function get_sidebar( $name = null, $args = array() ) {
  * in the theme.
  *
  * Includes the named template part for a theme or if a name is specified then a
- * specialised part will be included. If the theme contains no {slug}.php file
+ * specialized part will be included. If the theme contains no {slug}.php file
  * then no template will be included.
  *
  * The template is included using require, not require_once, so you may include the
@@ -159,7 +159,7 @@ function get_sidebar( $name = null, $args = array() ) {
  * @since 5.5.0 The `$args` parameter was added.
  *
  * @param string $slug The slug name for the generic template.
- * @param string $name The name of the specialised template.
+ * @param string $name The name of the specialized template.
  * @param array  $args Optional. Additional arguments passed to the template.
  *                     Default empty array.
  * @return void|false Void on success, false if the template does not exist.
@@ -322,7 +322,10 @@ function get_search_form( $args = array() ) {
 		if ( 'html5' === $format ) {
 			$form = '<form role="search" ' . $aria_label . 'method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">
 				<label>
-					<span class="screen-reader-text">' . _x( 'Search for:', 'label' ) . '</span>
+					<span class="screen-reader-text">' .
+					/* translators: Hidden accessibility text. */
+					_x( 'Search for:', 'label' ) .
+					'</span>
 					<input type="search" class="search-field" placeholder="' . esc_attr_x( 'Search &hellip;', 'placeholder' ) . '" value="' . get_search_query() . '" name="s" />
 				</label>
 				<input type="submit" class="search-submit" value="' . esc_attr_x( 'Search', 'submit button' ) . '" />
@@ -330,7 +333,10 @@ function get_search_form( $args = array() ) {
 		} else {
 			$form = '<form role="search" ' . $aria_label . 'method="get" id="searchform" class="searchform" action="' . esc_url( home_url( '/' ) ) . '">
 				<div>
-					<label class="screen-reader-text" for="s">' . _x( 'Search for:', 'label' ) . '</label>
+					<label class="screen-reader-text" for="s">' .
+					/* translators: Hidden accessibility text. */
+					_x( 'Search for:', 'label' ) .
+					'</label>
 					<input type="text" value="' . get_search_query() . '" name="s" id="s" />
 					<input type="submit" id="searchsubmit" value="' . esc_attr_x( 'Search', 'submit button' ) . '" />
 				</div>
@@ -595,7 +601,7 @@ function wp_login_form( $args = array() ) {
 		sprintf(
 			'<p class="login-password">
 				<label for="%1$s">%2$s</label>
-				<input type="password" name="pwd" id="%1$s" autocomplete="current-password" class="input" value="" size="20" />
+				<input type="password" name="pwd" id="%1$s" autocomplete="current-password" spellcheck="false" class="input" value="" size="20" />
 			</p>',
 			esc_attr( $args['id_password'] ),
 			esc_html( $args['label_password'] )
@@ -755,7 +761,7 @@ function bloginfo( $show = '' ) {
  * - 'admin_email' - Admin email (set in Settings > General)
  * - 'charset' - The "Encoding for pages and feeds"  (set in Settings > Reading)
  * - 'version' - The current WordPress version
- * - 'html_type' - The content-type (default: "text/html"). Themes and plugins
+ * - 'html_type' - The Content-Type (default: "text/html"). Themes and plugins
  *   can override the default value using the {@see 'pre_option_html_type'} filter
  * - 'text_direction' - The text direction determined by the site's language. is_rtl()
  *   should be used instead

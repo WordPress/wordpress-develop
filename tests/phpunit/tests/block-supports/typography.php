@@ -567,21 +567,18 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @ticket 56467
 	 * @ticket 57065
+	 * @ticket 57529
 	 *
 	 * @covers ::wp_register_typography_support
 	 *
 	 * @dataProvider data_generate_block_supports_font_size_fixtures
 	 *
-	 * @param string $font_size_value             The block supports custom font size value.
-	 * @param bool   $should_use_fluid_typography An override to switch fluid typography "on". Can be used for unit testing.
-	 * @param string $expected_output             Expected value of style property from wp_apply_typography_support().
+	 * @param string $font_size_value The block supports custom font size value.
+	 * @param string $theme_slug      A theme slug corresponding to an available test theme.
+	 * @param string $expected_output Expected value of style property from wp_apply_typography_support().
 	 */
-	public function test_should_covert_font_sizes_to_fluid_values( $font_size_value, $should_use_fluid_typography, $expected_output ) {
-		if ( $should_use_fluid_typography ) {
-			switch_theme( 'block-theme-child-with-fluid-typography' );
-		} else {
-			switch_theme( 'default' );
-		}
+	public function test_should_covert_font_sizes_to_fluid_values( $font_size_value, $theme_slug, $expected_output ) {
+		switch_theme( $theme_slug );
 
 		$this->test_block_name = 'test/font-size-fluid-value';
 		register_block_type(
@@ -623,15 +620,30 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 */
 	public function data_generate_block_supports_font_size_fixtures() {
 		return array(
-			'default_return_value'               => array(
-				'font_size_value'             => '50px',
-				'should_use_fluid_typography' => false,
-				'expected_output'             => 'font-size:50px;',
+			'returns value when fluid typography is not active' => array(
+				'font_size_value' => '15px',
+				'theme_slug'      => 'default',
+				'expected_output' => 'font-size:15px;',
 			),
-			'return_value_with_fluid_typography' => array(
-				'font_size_value'             => '50px',
-				'should_use_fluid_typography' => true,
-				'expected_output'             => 'font-size:clamp(37.5px, 2.344rem + ((1vw - 7.68px) * 1.502), 50px);',
+			'returns clamp value using default config' => array(
+				'font_size_value' => '15px',
+				'theme_slug'      => 'block-theme-child-with-fluid-typography',
+				'expected_output' => 'font-size:clamp(14px, 0.875rem + ((1vw - 7.68px) * 0.12), 15px);',
+			),
+			'returns value when font size <= default min font size bound' => array(
+				'font_size_value' => '13px',
+				'theme_slug'      => 'block-theme-child-with-fluid-typography',
+				'expected_output' => 'font-size:13px;',
+			),
+			'returns clamp value using custom fluid config' => array(
+				'font_size_value' => '17px',
+				'theme_slug'      => 'block-theme-child-with-fluid-typography-config',
+				'expected_output' => 'font-size:clamp(16px, 1rem + ((1vw - 7.68px) * 0.12), 17px);',
+			),
+			'returns value when font size <= custom min font size bound' => array(
+				'font_size_value' => '15px',
+				'theme_slug'      => 'block-theme-child-with-fluid-typography-config',
+				'expected_output' => 'font-size:15px;',
 			),
 		);
 	}
