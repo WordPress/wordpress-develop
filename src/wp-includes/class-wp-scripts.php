@@ -750,8 +750,8 @@ JS;
 			'in_footer' => false,
 			'strategy'  => 'blocking',
 		);
-		// handle backward compatibility for $in_footer
-		if ( 'boolean' === gettype( $args ) && $args ) {
+		// Handle backward compatibility for $in_footer.
+		if ( true === $args ) {
 			$args = array( 'in_footer' => true );
 		}
 		return wp_parse_args( $args, $default_args );
