@@ -1938,12 +1938,8 @@ function get_cancel_comment_reply_link( $text = '', $post = null ) {
 		$text = __( 'Click here to cancel reply.' );
 	}
 
-	$post = get_post( $post );
-	if ( ! $post ) {
-		return '';
-	}
-
-	$reply_to_id = _get_comment_reply_id( $post->ID );
+	$post        = get_post( $post );
+	$reply_to_id = $post ? _get_comment_reply_id( $post->ID ) : 0;
 	$style       = 0 !== $reply_to_id ? '' : ' style="display:none;"';
 	$link        = esc_html( remove_query_arg( array( 'replytocom', 'unapproved', 'moderation-hash' ) ) ) . '#respond';
 

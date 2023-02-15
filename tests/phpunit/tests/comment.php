@@ -445,7 +445,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'text'       => '',
 				'post'       => -99999,
 				'replytocom' => true,
-				'expected'   => '',
+				'expected'   => '<a rel="nofollow" id="cancel-comment-reply-link" href="#respond" style="display:none;">Click here to cancel reply.</a>',
 			),
 			'text as a custom string, a valid post, but no replytocom' => array(
 				'text'       => 'Leave a reply!',
