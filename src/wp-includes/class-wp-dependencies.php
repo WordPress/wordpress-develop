@@ -289,6 +289,7 @@ class WP_Dependencies {
 		if ( ! isset( $this->registered[ $handle ] ) ) {
 			return false;
 		}
+
 		return $this->registered[ $handle ]->add_data( $key, $value );
 	}
 
