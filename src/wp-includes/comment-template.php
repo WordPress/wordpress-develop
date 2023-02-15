@@ -2035,6 +2035,7 @@ function comment_id_fields( $post = null ) {
  *           comment. See https://core.trac.wordpress.org/changeset/36512.
  *
  * @since 2.7.0
+ * @since 6.2.0 Added the `$post` parameter.
  *
  * @global WP_Comment $comment Global comment object.
  *
@@ -2045,10 +2046,10 @@ function comment_id_fields( $post = null ) {
  *                                     being replied to.
  * @param bool         $link_to_parent Optional. Boolean to control making the author's name a link
  *                                     to their comment. Default true.
- * @param int          $post_id        Optional. The post ID the comment form is being displayed for.
- *                                     Default 0.
+ * @param int|WP_Post  $post           Optional. The post that the comment form is being displayed for.
+ *                                     Defaults to the current global post.
  */
-function comment_form_title( $no_reply_text = false, $reply_text = false, $link_to_parent = true, $post_id = 0 ) {
+function comment_form_title( $no_reply_text = false, $reply_text = false, $link_to_parent = true, $post = null ) {
 	global $comment;
 
 	if ( false === $no_reply_text ) {
@@ -2060,12 +2061,13 @@ function comment_form_title( $no_reply_text = false, $reply_text = false, $link_
 		$reply_text = __( 'Leave a Reply to %s' );
 	}
 
-	if ( 0 === $post_id ) {
+	$post = get_post( $post );
+	if ( ! $post ) {
 		echo $no_reply_text;
 		return;
 	}
 
-	$reply_to_id = _get_comment_reply_id( $post_id );
+	$reply_to_id = _get_comment_reply_id( $post->ID );
 
 	if ( 0 === $reply_to_id ) {
 		echo $no_reply_text;
