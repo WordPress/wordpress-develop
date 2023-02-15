@@ -2090,18 +2090,19 @@ function comment_form_title( $no_reply_text = false, $reply_text = false, $link_
  *
  * @access private
  *
- * @param int|WP_Post $post_id Post ID or WP_Post object. Default current post.
+ * @param int|WP_Post $post The post the comment is being displayed for.
+ *                          Defaults to the current global post.
  * @return int Comment's reply to ID.
  */
-function _get_comment_reply_id( $post_id ) {
+function _get_comment_reply_id( $post ) {
 	if ( ! isset( $_GET['replytocom'] ) || ! is_numeric( $_GET['replytocom'] ) ) {
 		return 0;
 	}
 
 	$reply_to_id = (int) $_GET['replytocom'];
 
-	if ( $post_id instanceof WP_Post ) {
-		$post_id = $post_id->ID;
+	if ( $post instanceof WP_Post ) {
+		$post = $post->ID;
 	}
 
 	/*
@@ -2110,9 +2111,12 @@ function _get_comment_reply_id( $post_id ) {
 	 * `comment_post_ID` does not match the given post ID.
 	 */
 	$comment = get_comment( $reply_to_id );
-	if ( ! $comment instanceof WP_Comment ||
-		 0 === (int) $comment->comment_approved ||
-		 $post_id !== (int) $comment->comment_post_ID ) {
+
+	if (
+		! $comment instanceof WP_Comment ||
+		0 === (int) $comment->comment_approved ||
+		$post !== (int) $comment->comment_post_ID
+	) {
 		return 0;
 	}
 
