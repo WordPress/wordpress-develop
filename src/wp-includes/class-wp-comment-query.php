@@ -463,7 +463,7 @@ class WP_Comment_Query {
 				'comment_ids'    => $comment_ids,
 				'found_comments' => $this->found_comments,
 			);
-			wp_cache_add( $cache_key, $cache_value, 'comment' );
+			wp_cache_add( $cache_key, $cache_value, 'queries' );
 		} else {
 			$comment_ids          = $cache_value['comment_ids'];
 			$this->found_comments = $cache_value['found_comments'];
