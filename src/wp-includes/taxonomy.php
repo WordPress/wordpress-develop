@@ -847,10 +847,10 @@ function get_objects_in_term( $term_ids, $taxonomies, $args = array() ) {
 
 	$last_changed = wp_cache_get_last_changed( 'terms' );
 	$cache_key    = 'get_objects_in_term:' . md5( $sql ) . ":$last_changed";
-	$cache        = wp_cache_get( $cache_key, 'queries' );
+	$cache        = wp_cache_get( $cache_key, 'term-queries' );
 	if ( false === $cache ) {
 		$object_ids = $wpdb->get_col( $sql );
-		wp_cache_set( $cache_key, $object_ids, 'queries' );
+		wp_cache_set( $cache_key, $object_ids, 'term-queries' );
 	} else {
 		$object_ids = (array) $cache;
 	}
