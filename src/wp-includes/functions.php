@@ -7005,6 +7005,11 @@ function _get_non_cached_ids( $object_ids, $cache_key ) {
 				return true;
 			}
 
+			// allow "16" but not "16.2" without using `filter_var()` / `ctype_digit()`
+			if ( is_string( $object_id ) && (string) $object_id === (string) (int) $object_id ) {
+				return true;
+			}
+
 			/* translators: %s: The type of the given object id. */
 			$message = sprintf( __( 'Object id must be integer, %s given.' ), gettype( $object_id ) );
 			_doing_it_wrong( '_get_non_cached_ids', $message, 'n.e.x.t' );
