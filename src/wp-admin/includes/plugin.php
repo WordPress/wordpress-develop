@@ -2035,7 +2035,12 @@ function get_admin_page_title() {
 		}
 	}
 
-	return $title;
+	if ( empty( $title ) ) {
+		$title = '';
+		return $title;
+	}
+
+	return '';
 }
 
 /**
