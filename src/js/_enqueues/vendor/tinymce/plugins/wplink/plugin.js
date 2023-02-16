@@ -165,7 +165,7 @@
 			var isEmail = emailRegex.test( href );
 			var isFtp = /^ftp:/i.test( href );
 
-			if ( ! isLink && ! isEmail && ! isFtp ) {
+			if ( ! ( isLink || isEmail || isFtp ) ) {
 				hasLinkError = true;
 				$link.attr( 'data-wplink-url-error', 'true' );
 				speak( editor.translate( 'Warning: the link has been inserted but may have errors. Please test it.' ), 'assertive' );
