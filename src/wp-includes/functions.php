@@ -7001,7 +7001,8 @@ function _get_non_cached_ids( $object_ids, $cache_key ) {
 	$object_ids     = array_filter(
 		$object_ids,
 		static function ( $object_id ) {
-			return filter_var( $object_id, FILTER_VALIDATE_INT );
+			// allow "16" but not "16.2" without using `filter_var()`
+			return (string) $object_id === (string) (int) $object_id; 
 		}
 	);
 	$non_cached_ids = array();
