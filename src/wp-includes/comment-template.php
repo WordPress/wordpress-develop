@@ -2091,12 +2091,8 @@ function comment_form_title( $no_reply_text = false, $reply_text = false, $link_
  * @return int Comment's reply to ID.
  */
 function _get_comment_reply_id( $post = null ) {
-```suggestion
- *                          Defaults to the current global post.
- * @return int Comment's reply to ID.
- */
-function _get_comment_reply_id( $post = null ) {
 	$post = get_post( $post );
+
 	if ( ! $post || ! isset( $_GET['replytocom'] ) || ! is_numeric( $_GET['replytocom'] ) ) {
 		return 0;
 	}
