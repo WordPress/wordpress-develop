@@ -318,8 +318,8 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 					$value = trim( $value );
 				}
 				$value = wp_unslash( $value );
+				update_option( $option, $value );
 			}
-			update_option( $option, $value );
 		}
 
 		/*
