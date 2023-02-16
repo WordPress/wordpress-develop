@@ -2,11 +2,19 @@
 
 const fs = require('fs');
 const testSuites = [
-    'front-end-classic-theme',
-    'front-end-block-theme',
+    'home-classic-theme',
+    'home-block-theme',
 ];
 
 console.log( '\n>> 🎉 Results 🎉 \n' );
+
+function median( array ) {
+	const mid = Math.floor( array.length / 2 ),
+		numbers = [ ...array ].sort( ( a, b ) => a - b );
+	return array.length % 2 !== 0
+		? numbers[ mid ]
+		: ( numbers[ mid - 1 ] + numbers[ mid ] ) / 2;
+}
 
 for ( const testSuite of testSuites ) {
     const resultsFilename = __dirname + '/specs/' + testSuite + '.test.results.json';
@@ -17,7 +25,15 @@ for ( const testSuite of testSuites ) {
         }
         const convertString = testSuite.charAt(0).toUpperCase() + testSuite.slice(1);
         console.log( convertString.replace(/[-]+/g, " ") + ':' );
+
         tableData = JSON.parse( data );
-        console.table( tableData );
+        const rawResults = [];
+
+        for (var key in tableData) {
+            if ( tableData.hasOwnProperty( key ) ) {
+                rawResults[key] = median( tableData[key] );
+            }
+        }
+        console.table( rawResults );
     });
 }
