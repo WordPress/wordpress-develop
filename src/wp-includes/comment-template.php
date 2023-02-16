@@ -2090,16 +2090,18 @@ function comment_form_title( $no_reply_text = false, $reply_text = false, $link_
  *                          Defaults to the current global post.
  * @return int Comment's reply to ID.
  */
-function _get_comment_reply_id( $post ) {
-	if ( ! isset( $_GET['replytocom'] ) || ! is_numeric( $_GET['replytocom'] ) ) {
+function _get_comment_reply_id( $post = null ) {
+```suggestion
+ *                          Defaults to the current global post.
+ * @return int Comment's reply to ID.
+ */
+function _get_comment_reply_id( $post = null ) {
+	$post = get_post( $post );
+	if ( ! $post || ! isset( $_GET['replytocom'] ) || ! is_numeric( $_GET['replytocom'] ) ) {
 		return 0;
 	}
 
 	$reply_to_id = (int) $_GET['replytocom'];
-
-	if ( $post instanceof WP_Post ) {
-		$post = $post->ID;
-	}
 
 	/*
 	 * Validate the comment.
@@ -2111,7 +2113,7 @@ function _get_comment_reply_id( $post ) {
 	if (
 		! $comment instanceof WP_Comment ||
 		0 === (int) $comment->comment_approved ||
-		$post !== (int) $comment->comment_post_ID
+		$post->ID !== (int) $comment->comment_post_ID
 	) {
 		return 0;
 	}
