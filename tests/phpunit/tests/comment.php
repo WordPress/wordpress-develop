@@ -732,7 +732,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @param int|bool|null $replytocom A comment ID (int), whether to generate an approved (true) or unapproved (false) comment,
 	 *                                  or null not to create a comment.
-	 * @param int|WP_Post   $post       Post ID or WP_Post object.
+	 * @param string|int    $post       The post the comment thread is being displayed for.
+	 *                                  Accepts 'POST_ID', 'POST', or an integer post ID.
 	 * @param int           $expected   The expected result.
 	 */
 	public function test_get_comment_reply_id( $replytocom, $post, $expected ) {
@@ -764,22 +765,22 @@ class Tests_Comment extends WP_UnitTestCase {
 		return array(
 			'no comment ID set ($_GET["replytocom"])'     => array(
 				'replytocom' => false,
-				'post'       => null,
+				'post'       => 0,
 				'expected'   => 0,
 			),
 			'a non-numeric comment ID'                    => array(
 				'replytocom' => 'three',
-				'post'       => null,
+				'post'       => 0,
 				'expected'   => 0,
 			),
 			'a non-existent comment ID'                   => array(
 				'replytocom' => -999999,
-				'post'       => null,
+				'post'       => 0,
 				'expected'   => 0,
 			),
 			'an unapproved comment'                       => array(
 				'replytocom' => false,
-				'post'       => null,
+				'post'       => 0,
 				'expected'   => 0,
 			),
 			'a post that does not match the parent'       => array(
