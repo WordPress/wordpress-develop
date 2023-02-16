@@ -3,6 +3,7 @@
  */
 import { basename, join } from 'path';
 import { writeFileSync } from 'fs';
+import { exec } from 'child_process';
 
 /**
  * WordPress dependencies
@@ -18,6 +19,7 @@ describe( 'Server Timing – Twenty Twenty One', () => {
 
 	beforeAll( async () => {
 		await activateTheme( 'twentytwentyone' );
+		await exec( 'npm run env:cli -- menu location assign all-pages primary' );
 	} );
 
 	afterAll( async () => {
