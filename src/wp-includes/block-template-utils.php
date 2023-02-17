@@ -295,15 +295,14 @@ function _get_block_template_file( $template_type, $slug ) {
  * @param string $template_type 'wp_template' or 'wp_template_part'.
  * @return array Template.
  */
-function _get_block_templates_files( $template_type, $slugs = array() ) {
+function _get_block_templates_files( $template_type, $query = array() ) {
 	if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
 		return null;
 	}
 
-	// TODO: TEST THIS WITH WP_TEMPLATE_PARTS.
-	if ( ! is_array( $slugs ) ) {
-		$slugs = array();
-	}
+	// Prepare metadata from $query.
+	$slugs = isset( $query['slug__in'] ) ? $query['slug__in'] : array();
+	$area  = isset( $query['area'] ) ? $query['area'] : null;
 
 	$themes         = array(
 		get_stylesheet() => get_stylesheet_directory(),
@@ -340,7 +339,10 @@ function _get_block_templates_files( $template_type, $slugs = array() ) {
 			);
 
 			if ( 'wp_template_part' === $template_type ) {
-				$template_files[] = _add_block_template_part_area_info( $new_template_item );
+				$candidate = _add_block_template_part_area_info( $new_template_item );
+				if ( ! isset( $area ) || ( isset( $area ) && $area === $candidate['area'] ) ) {
+					$template_files[] = $candidate;
+				}
 			}
 
 			if ( 'wp_template' === $template_type ) {
@@ -972,11 +974,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	}
 
 	if ( ! isset( $query['wp_id'] ) ) {
-		$slugs = array();
-		if ( isset( $query['slug__in'] ) ) {
-			$slugs = $query['slug__in'];
-		}
-		$template_files = _get_block_templates_files( $template_type, $slugs );
+		$template_files = _get_block_templates_files( $template_type, $query );
 		foreach ( $template_files as $template_file ) {
 			$template = _build_block_template_result_from_file( $template_file, $template_type );
 
@@ -996,10 +994,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 				wp_list_pluck( $query_result, 'id' ),
 				true
 			);
-			$fits_area_query =
-				! isset( $query['area'] ) || $template_file['area'] === $query['area'];
-			$should_include  = $is_not_custom && $fits_area_query;
-			if ( $should_include ) {
+			if ( $is_not_custom ) {
 				$query_result[] = $template;
 			}
 		}
