@@ -1170,11 +1170,10 @@ class WP_Posts_List_Table extends WP_List_Table {
 				wp_date( __( 'Y/m/d' ), get_post_time( 'U', true ) ),
 				/* translators: Post time format. See https://www.php.net/manual/datetime.format.php */
 				wp_date( __( 'g:i a' ), get_post_time( 'U', true ) ),
-
 			);
 
 			$time      = get_post_time( 'U', true );
-			$time_diff = current_time( 'U', true ) - $time;
+			$time_diff = time() - $time;
 		}
 
 		if ( 'publish' === $post->post_status ) {
