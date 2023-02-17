@@ -2085,6 +2085,10 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
 		$page_type = $admin_page_hooks[ $parent ];
 	}
 
+	if(empty($plugin_page)){
+		$plugin_page = $parent_page;
+	}
+
 	$plugin_name = preg_replace( '!\.php!', '', $plugin_page );
 
 	return $page_type . '_page_' . $plugin_name;
