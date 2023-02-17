@@ -28,7 +28,7 @@ For more information about Twenty Sixteen please go to https://wordpress.org/sup
 
 == Copyright ==
 
-Twenty Sixteen WordPress Theme, Copyright 2014-2022 WordPress.org
+Twenty Sixteen WordPress Theme, Copyright 2014-2023 WordPress.org
 Twenty Sixteen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -50,6 +50,21 @@ Source: https://github.com/aFarkas/html5shiv
 Genericons icon font, Copyright 2013-2017 Automattic.com
 License: GNU GPL, Version 2 (or later)
 Source: http://www.genericons.com
+
+Merriweather Font
+Copyright 2016 The Merriweather Project Authors (https://github.com/EbenSorkin/Merriweather), with Reserved Font Name "Merriweather".
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://fontsource.org/fonts/merriweather
+
+Montserrat Font
+Copyright 2011 The Montserrat Project Authors (https://github.com/JulietaUla/Montserrat)
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://fontsource.org/fonts/montserrat
+
+Inconsolata Font
+Copyright 2006 The Inconsolata Project Authors (https://github.com/cyrealtype/Inconsolata)
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://fontsource.org/fonts/inconsolata
 
 Image used in screenshot.png: A photo by Austin Schmid (https://unsplash.com/schmidy/), licensed under Creative Commons Zero(http://creativecommons.org/publicdomain/zero/1.0/)
 

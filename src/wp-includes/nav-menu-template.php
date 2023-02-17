@@ -198,8 +198,11 @@ function wp_nav_menu( $args = array() ) {
 	$sorted_menu_items        = array();
 	$menu_items_with_children = array();
 	foreach ( (array) $menu_items as $menu_item ) {
-		// Fix invalid `menu_item_parent`. See: https://core.trac.wordpress.org/ticket/56926.
-		if ( (int) $menu_item->ID === (int) $menu_item->menu_item_parent ) {
+		/*
+		 * Fix invalid `menu_item_parent`. See: https://core.trac.wordpress.org/ticket/56926.
+		 * Compare as strings. Plugins may change the ID to a string.
+		 */
+		if ( (string) $menu_item->ID === (string) $menu_item->menu_item_parent ) {
 			$menu_item->menu_item_parent = 0;
 		}
 
@@ -645,7 +648,7 @@ function _nav_menu_item_id_use_once( $id, $item ) {
  *
  * @see https://core.trac.wordpress.org/ticket/56926.
  *
- * @since 6.1.2
+ * @since 6.2.0
  *
  * @param string[]       $classes   Array of the CSS classes that are applied to the menu item's `<li>` element.
  * @param WP_Post        $menu_item The current menu item object.
