@@ -511,11 +511,12 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 			__METHOD__,
 			sprintf(
 			// translators: 1: The name of the non-existent class property.
-				__( 'The "%1$s" property isn\'t defined. Dynamic properties are deprecated in PHP 8.2 and above.' ),
+				__( 'The "%1$s" property is not defined. Dynamic properties are deprecated in PHP 8.2 and above.' ),
 				$name
 			),
 			'6.3.0'
 		);
+		return null;
 	}
 
 	/**
@@ -536,7 +537,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 			__METHOD__,
 			sprintf(
 			// translators: 1: The name of the non-existent class property.
-				__( 'The "%1$s" property isn\'t defined. Dynamic properties are deprecated in PHP 8.2 and above.' ),
+				__( 'The "%1$s" property is not defined. Dynamic properties are deprecated in PHP 8.2 and above.' ),
 				$name
 			),
 			'6.3.0'
