@@ -1169,7 +1169,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				/* translators: Post date format. See https://www.php.net/manual/datetime.format.php */
 				wp_date( __( 'Y/m/d' ), get_post_time( 'U', true ) ),
 				/* translators: Post time format. See https://www.php.net/manual/datetime.format.php */
-				wp_date( __( 'g:i a' ), get_post_time( 'U', true ) ),
+				wp_date( __( 'g:i a' ), get_post_time( 'U', true ) )
 			);
 
 			$time      = get_post_time( 'U', true );
