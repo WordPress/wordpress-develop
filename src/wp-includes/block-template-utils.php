@@ -301,8 +301,9 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 	}
 
 	// Prepare metadata from $query.
-	$slugs = isset( $query['slug__in'] ) ? $query['slug__in'] : array();
-	$area  = isset( $query['area'] ) ? $query['area'] : null;
+	$slugs     = isset( $query['slug__in'] ) ? $query['slug__in'] : array();
+	$area      = isset( $query['area'] ) ? $query['area'] : null;
+	$post_type = isset( $query['post_type'] ) ? $query['post_type'] : '';
 
 	$themes         = array(
 		get_stylesheet() => get_stylesheet_directory(),
@@ -339,6 +340,16 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 			);
 
 			if ( 'wp_template_part' === $template_type ) {
+				/*
+				 * Structure of a wp_template_part item:
+				 *
+				 * - slug
+				 * - path
+				 * - theme
+				 * - type
+				 * - area
+				 * - title (optional)
+				 */
 				$candidate = _add_block_template_part_area_info( $new_template_item );
 				if ( ! isset( $area ) || ( isset( $area ) && $area === $candidate['area'] ) ) {
 					$template_files[] = $candidate;
@@ -346,7 +357,23 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 			}
 
 			if ( 'wp_template' === $template_type ) {
-				$template_files[] = _add_block_template_info( $new_template_item );
+				/*
+				 * Structure of a wp_template item:
+				 *
+				 * - slug
+				 * - path
+				 * - theme
+				 * - type
+				 * - title (optional)
+				 * - postTypes (optional)
+				 */
+				$candidate = _add_block_template_info( $new_template_item );
+				if (
+					! $post_type ||
+					( $post_type && isset( $candidate['postTypes'] ) && in_array( $post_type, $candidate['postTypes'], true ) )
+				) {
+					$template_files[] = $candidate;
+				}
 			}
 		}
 	}
@@ -977,17 +1004,6 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 		$template_files = _get_block_templates_files( $template_type, $query );
 		foreach ( $template_files as $template_file ) {
 			$template = _build_block_template_result_from_file( $template_file, $template_type );
-
-			if ( $post_type && ! $template->is_custom ) {
-				continue;
-			}
-
-			if ( $post_type &&
-				isset( $template->post_types ) &&
-				! in_array( $post_type, $template->post_types, true )
-			) {
-				continue;
-			}
 
 			$is_not_custom   = false === array_search(
 				get_stylesheet() . '//' . $template_file['slug'],
