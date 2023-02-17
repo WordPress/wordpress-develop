@@ -295,9 +295,14 @@ function _get_block_template_file( $template_type, $slug ) {
  * @param string $template_type 'wp_template' or 'wp_template_part'.
  * @return array Template.
  */
-function _get_block_templates_files( $template_type ) {
+function _get_block_templates_files( $template_type, $slugs = array() ) {
 	if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
 		return null;
+	}
+
+	// TODO: TEST THIS WITH WP_TEMPLATE_PARTS.
+	if ( ! is_array( $slugs ) ) {
+		$slugs = array();
 	}
 
 	$themes         = array(
@@ -317,6 +322,16 @@ function _get_block_templates_files( $template_type ) {
 				// Subtract ending '.html'.
 				-5
 			);
+
+			/*
+			 * The consumers of this function may have provided a list of slugs,
+			 * which means they are interested in a subset of all the templates, and not all.
+			 * Skip this template if its slug doesn't match any of the list provided by the consumer.
+			 */
+			if ( ! empty( $slugs ) && ( false === array_search( $template_slug, $slugs, true ) ) ) {
+				continue;
+			}
+
 			$new_template_item = array(
 				'slug'  => $template_slug,
 				'path'  => $template_file,
@@ -957,7 +972,11 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	}
 
 	if ( ! isset( $query['wp_id'] ) ) {
-		$template_files = _get_block_templates_files( $template_type );
+		$slugs = array();
+		if ( isset( $query['slug__in'] ) ) {
+			$slugs = $query['slug__in'];
+		}
+		$template_files = _get_block_templates_files( $template_type, $slugs );
 		foreach ( $template_files as $template_file ) {
 			$template = _build_block_template_result_from_file( $template_file, $template_type );
 
@@ -977,11 +996,9 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 				wp_list_pluck( $query_result, 'id' ),
 				true
 			);
-			$fits_slug_query =
-				! isset( $query['slug__in'] ) || in_array( $template_file['slug'], $query['slug__in'], true );
 			$fits_area_query =
 				! isset( $query['area'] ) || $template_file['area'] === $query['area'];
-			$should_include  = $is_not_custom && $fits_slug_query && $fits_area_query;
+			$should_include  = $is_not_custom && $fits_area_query;
 			if ( $should_include ) {
 				$query_result[] = $template;
 			}
