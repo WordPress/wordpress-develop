@@ -17,7 +17,7 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	/**
 	 * @ticket 57593
 	 *
-	 * @dataProvider data_valid_ids_should_be_returned_as_is
+	 * @dataProvider data_valid_ids_should_be_returned_as_integers
 	 *
 	 * @param mixed $object_id The object id.
 	 */
@@ -30,7 +30,7 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_valid_ids_should_be_returned_as_is() {
+	public function data_valid_ids_should_be_returned_as_integers() {
 		return array(
 			'(int) 1'    => array( 1 ),
 			'(string) 1' => array( '1' ),
