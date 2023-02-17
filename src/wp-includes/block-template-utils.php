@@ -295,7 +295,7 @@ function _get_block_template_file( $template_type, $slug ) {
  * @param string $template_type 'wp_template' or 'wp_template_part'.
  * @return array Template.
  */
-function _get_block_templates_files( $template_type, $query = array() ) {
+function _get_block_templates_files( $template_type, $query = array(), $user_templates = array() ) {
 	if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
 		return null;
 	}
@@ -305,9 +305,10 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 	$area      = isset( $query['area'] ) ? $query['area'] : null;
 	$post_type = isset( $query['post_type'] ) ? $query['post_type'] : '';
 
+	$stylesheet     = get_stylesheet();
 	$themes         = array(
-		get_stylesheet() => get_stylesheet_directory(),
-		get_template()   => get_template_directory(),
+		$stylesheet    => get_stylesheet_directory(),
+		get_template() => get_template_directory(),
 	);
 	$template_files = array();
 	foreach ( $themes as $theme_slug => $theme_dir ) {
@@ -323,12 +324,13 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 				-5
 			);
 
-			/*
-			 * The consumers of this function may have provided a list of slugs,
-			 * which means they are interested in a subset of all the templates, and not all.
-			 * Skip this template if its slug doesn't match any of the list provided by the consumer.
-			 */
+			// Skip this item if its slug doesn't match any of the list provided by the consumer.
 			if ( ! empty( $slugs ) && ( false === array_search( $template_slug, $slugs, true ) ) ) {
+				continue;
+			}
+
+			// Skip this item if there's already an user-provided item with the same slug.
+			if ( false !== array_search( $stylesheet . '//' . $template_slug, $user_templates, true ) ) {
 				continue;
 			}
 
@@ -1001,18 +1003,10 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	}
 
 	if ( ! isset( $query['wp_id'] ) ) {
-		$template_files = _get_block_templates_files( $template_type, $query );
+		$user_templates = wp_list_pluck( $query_result, 'id' );
+		$template_files = _get_block_templates_files( $template_type, $query, $user_templates );
 		foreach ( $template_files as $template_file ) {
-			$template = _build_block_template_result_from_file( $template_file, $template_type );
-
-			$is_not_custom   = false === array_search(
-				get_stylesheet() . '//' . $template_file['slug'],
-				wp_list_pluck( $query_result, 'id' ),
-				true
-			);
-			if ( $is_not_custom ) {
-				$query_result[] = $template;
-			}
+			$query_result[] = _build_block_template_result_from_file( $template_file, $template_type );
 		}
 	}
 
