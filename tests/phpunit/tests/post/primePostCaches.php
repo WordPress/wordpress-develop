@@ -227,14 +227,36 @@ class Tests_Post_PrimePostCaches extends WP_UnitTestCase {
 		$this->assertSame( 0, $num_queries, 'Unexpected number of queries.' );
 	}
 
-	public function test_prime_post_caches_only_works_with_integers() {
-		$this->assertSame( array(), _get_non_cached_ids( array(), 'posts' ), 'Empty array is supported.' );
-		$this->assertSame( array(), _get_non_cached_ids( array( null ), 'posts' ), 'Non-integer is not supported.' );
-		$this->assertSame( array(), _get_non_cached_ids( array( false ), 'posts' ), 'Non-integer is not supported.' );
-		$this->assertSame( array(), _get_non_cached_ids( array( 1.0 ), 'posts' ), 'Non-integer is not supported.' );
-		$this->assertSame( array(), _get_non_cached_ids( array( '5.0' ), 'posts' ), 'Non-integer is not supported.' );
-
+	public function test_get_non_cached_ids_works_with_some_integers() {
 		$post_id = self::$posts[0];
+
+		$this->setExpectedIncorrectUsage( '_get_non_cached_ids' );
 		$this->assertSame( array( $post_id ), _get_non_cached_ids( array( $post_id, null ), 'posts' ), 'Object ids are filtered.' );
+	}
+
+	/**
+	 * @dataProvider data_test_get_non_cached_ids_throw_doing_it_wrong
+	 *
+	 * @param mixed $value The object id.
+	 */
+	public function test_get_non_cached_ids_throw_doing_it_wrong( $value ) {
+		$this->setExpectedIncorrectUsage( '_get_non_cached_ids' );
+		$this->assertSame( array(), _get_non_cached_ids( array( $value ), 'posts' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[] Test parameters {
+	 *     @type string $cap The object id.
+	 * }
+	 */
+	public function data_test_get_non_cached_ids_throw_doing_it_wrong() {
+		return array(
+			array( null ),
+			array( false ),
+			array( 1.0 ),
+			array( '5.0' ),
+		);
 	}
 }
