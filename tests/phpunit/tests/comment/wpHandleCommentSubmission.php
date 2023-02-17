@@ -894,13 +894,7 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 	 * @param int $approved Whether the parent comment is approved.
 	 */
 	public function test_should_only_allow_replying_to_an_approved_parent_comment( $approved ) {
-		$user = self::factory()->user->create_and_get(
-			array(
-				'user_url' => 'http://user.example.org',
-			)
-		);
-
-		wp_set_current_user( $user->ID );
+		wp_set_current_user( self::$editor_id );
 
 		$comment_parent = self::factory()->comment->create(
 			array(
@@ -958,13 +952,7 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 	 * @param bool $exists Whether the parent comment exists.
 	 */
 	public function test_should_only_allow_replying_to_an_existing_parent_comment( $exists ) {
-		$user = self::factory()->user->create_and_get(
-			array(
-				'user_url' => 'http://user.example.org',
-			)
-		);
-
-		wp_set_current_user( $user->ID );
+		wp_set_current_user( self::$editor_id );
 
 		$parent_comment = -99999;
 
