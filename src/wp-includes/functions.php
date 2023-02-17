@@ -7005,7 +7005,6 @@ function _get_non_cached_ids( $object_ids, $cache_key ) {
 				return true;
 			}
 
-			// allow "16" but not "16.2" without using `filter_var()` / `ctype_digit()`
 			/*
 			 * Accept integers as either an int or a string.
 			 *
