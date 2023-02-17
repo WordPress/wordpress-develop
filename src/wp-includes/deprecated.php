@@ -1150,13 +1150,13 @@ function comments_rss_link($link_text = 'Comments RSS') {
  * @see get_category_feed_link()
  *
  * @param bool $display
- * @param int $cat_ID
+ * @param int $cat_id
  * @return string
  */
-function get_category_rss_link($display = false, $cat_ID = 1) {
+function get_category_rss_link($display = false, $cat_id = 1) {
 	_deprecated_function( __FUNCTION__, '2.5.0', 'get_category_feed_link()' );
 
-	$link = get_category_feed_link($cat_ID, 'rss2');
+	$link = get_category_feed_link($cat_id, 'rss2');
 
 	if ( $display )
 		echo $link;
@@ -1225,20 +1225,20 @@ function gzip_compression() {
 }
 
 /**
- * Retrieve an array of comment data about comment $comment_ID.
+ * Retrieve an array of comment data about comment $comment_id.
  *
  * @since 0.71
  * @deprecated 2.7.0 Use get_comment()
  * @see get_comment()
  *
- * @param int $comment_ID The ID of the comment
+ * @param int $comment_id The ID of the comment
  * @param int $no_cache Whether to use the cache (cast to bool)
  * @param bool $include_unapproved Whether to include unapproved comments
  * @return array The comment data
  */
-function get_commentdata( $comment_ID, $no_cache = 0, $include_unapproved = false ) {
+function get_commentdata( $comment_id, $no_cache = 0, $include_unapproved = false ) {
 	_deprecated_function( __FUNCTION__, '2.7.0', 'get_comment()' );
-	return get_comment($comment_ID, ARRAY_A);
+	return get_comment($comment_id, ARRAY_A);
 }
 
 /**
@@ -1248,12 +1248,12 @@ function get_commentdata( $comment_ID, $no_cache = 0, $include_unapproved = fals
  * @deprecated 2.8.0 Use get_cat_name()
  * @see get_cat_name()
  *
- * @param int $cat_ID Category ID
+ * @param int $cat_id Category ID
  * @return string category name
  */
-function get_catname( $cat_ID ) {
+function get_catname( $cat_id ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_cat_name()' );
-	return get_cat_name( $cat_ID );
+	return get_cat_name( $cat_id );
 }
 
 /**
