@@ -7374,7 +7374,7 @@ function clean_post_cache( $post ) {
 		do_action( 'clean_page_cache', $post->ID );
 	}
 
-	wp_cache_set_posts_last_changed();
+	wp_cache_set( 'last_changed', microtime(), 'posts' );
 }
 
 /**
