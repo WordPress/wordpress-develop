@@ -22,7 +22,7 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	 * @param mixed $object_id The object id.
 	 */
 	public function test_valid_ids_should_be_returned_as_integers( $object_id ) {
-		$this->assertSame( array( (int) $object_id ), _get_non_cached_ids( array( $object_id ), 'posts' ), 'Object IDs should be returned as integers.' );
+		$this->assertSame( array( (int) $object_id ), _get_non_cached_ids( array( $object_id ), 'fake-group' ), 'Object IDs should be returned as integers.' );
 	}
 
 	/**
@@ -31,10 +31,9 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	 * @return array
 	 */
 	public function data_valid_ids_should_be_returned_as_is() {
-		// Valid ID that is not in the database and thus not cached.
 		return array(
-			'integer' => array( PHP_INT_MAX ),
-			'string'  => array( (string) PHP_INT_MAX ),
+			'(int) 1'    => array( 1 ),
+			'(string) 1' => array( '1' ),
 		);
 	}
 
@@ -42,10 +41,10 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	 * @ticket 57593
 	 */
 	public function test_mix_of_valid_and_invalid_ids_should_return_the_valid_ids_and_throw_a_notice() {
-		$post_id = PHP_INT_MAX; // Valid ID that is not in the database and thus not cached.
+		$post_id = 1;
 
 		$this->setExpectedIncorrectUsage( '_get_non_cached_ids' );
-		$this->assertSame( array( $post_id ), _get_non_cached_ids( array( $post_id, null ), 'posts' ), 'Valid object IDs should be returned.' );
+		$this->assertSame( array( $post_id ), _get_non_cached_ids( array( $post_id, null ), 'fake-group' ), 'Valid object IDs should be returned.' );
 	}
 
 	/**
@@ -57,7 +56,7 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	 */
 	public function test_invalid_cache_ids_should_throw_a_notice( $value ) {
 		$this->setExpectedIncorrectUsage( '_get_non_cached_ids' );
-		$this->assertSame( array(), _get_non_cached_ids( array( $value ), 'posts' ), 'Invalid object IDs should be dropped.' );
+		$this->assertSame( array(), _get_non_cached_ids( array( $value ), 'fake-group' ), 'Invalid object IDs should be dropped.' );
 	}
 
 	/**
