@@ -123,5 +123,18 @@ jobs:
       - name: Print Performance tests results
         run: "node ./tests/performance/results.js"
 
+      - uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
+        id: commit-timestamp
+        with:
+            github-token: ${{secrets.GITHUB_TOKEN}}
+            script: |
+                const commit_details = await github.rest.git.getCommit({owner: context.repo.owner, repo: context.repo.repo, commit_sha: context.sha});
+                return parseInt((new Date( commit_details.data.author.date ).getTime() / 1000).toFixed(0))
+      - name: Publish performance results
+        env:
+            COMMITTED_AT: ${{ steps.commit-timestamp.outputs.result }}
+            CODEHEALTH_PROJECT_TOKEN: ${{ secrets.CODEHEALTH_PROJECT_TOKEN }}
+        run: node ./tests/performance/log-results.js $CODEHEALTH_PROJECT_TOKEN trunk $GITHUB_SHA debd225d007f4e441ceec80fbd6fa96653f94737 $COMMITTED_AT
+
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
