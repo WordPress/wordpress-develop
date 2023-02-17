@@ -52,11 +52,11 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_invalid_cache_ids_should_throw_a_notice
 	 *
-	 * @param mixed $value The object id.
+	 * @param mixed $object_id The object id.
 	 */
-	public function test_invalid_cache_ids_should_throw_a_notice( $value ) {
+	public function test_invalid_cache_ids_should_throw_a_notice( $object_id ) {
 		$this->setExpectedIncorrectUsage( '_get_non_cached_ids' );
-		$this->assertSame( array(), _get_non_cached_ids( array( $value ), 'fake-group' ), 'Invalid object IDs should be dropped.' );
+		$this->assertSame( array(), _get_non_cached_ids( array( $object_id ), 'fake-group' ), 'Invalid object IDs should be dropped.' );
 	}
 
 	/**
