@@ -28,7 +28,7 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_valid_ids_should_be_returned_as_integers() {
 		return array(
