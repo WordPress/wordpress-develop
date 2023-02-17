@@ -2085,7 +2085,7 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
 		$page_type = $admin_page_hooks[ $parent ];
 	}
 
-	if(empty($plugin_page)){
+	if( empty( $plugin_page ) ){
 		$plugin_page = $parent_page;
 	}
 
