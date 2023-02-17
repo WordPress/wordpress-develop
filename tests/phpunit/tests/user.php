@@ -939,7 +939,7 @@ class Tests_User extends WP_UnitTestCase {
 	 */
 	public function test_wp_insert_user_should_reject_username_that_matches_existing_user_email() {
 		$existing_email = get_option( 'admin_email' );
-		$username       = wp_insert_user(
+		$u              = wp_insert_user(
 			array(
 				'user_login'    => $existing_email,
 				'user_email'    => 'whatever@example.com',
@@ -948,8 +948,8 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertWPError( $username );
-		$this->assertSame( 'existing_user_login_as_email', $username->get_error_code() );
+		$this->assertWPError( $u );
+		$this->assertSame( 'existing_user_login_as_email', $u->get_error_code() );
 	}
 
 	/**
