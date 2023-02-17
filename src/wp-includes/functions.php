@@ -6998,33 +6998,26 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
  * @return int[] Array of IDs not present in the cache.
  */
 function _get_non_cached_ids( $object_ids, $cache_key ) {
-	$object_ids     = array_filter(
-		$object_ids,
-		static function ( $object_id ) {
-			if ( is_int( $object_id ) ) {
-				return true;
-			}
-
-			/*
-			 * Accept integers as either an int or a string.
-			 *
-			 * This treats both `16` and `"16"` as valid for the purposes of the cache key. Other
-			 * numeric types and numeric strings are discarded, for example `16.3` and `"16.3"`.
-			 *
-			 * This could all be achieved with filter_var(), however the filter extension can be removed
-			 * in custom builds so WordPress is unable to rely on it.
-			 */
-			// phpcs:ignore WordPress.PHP.YodaConditions.NotYoda, false positive
-			if ( is_string( $object_id ) && (string) $object_id === (string) (int) $object_id ) {
-				return true;
-			}
-
-			/* translators: %s: The type of the given object id. */
-			$message = sprintf( __( 'Object id must be integer, %s given.' ), gettype( $object_id ) );
-			_doing_it_wrong( '_get_non_cached_ids', $message, 'n.e.x.t' );
-			return false;
+	$object_ids_filter = static function ( $object_id ) {
+		/*
+		 * This treats both `16` and `"16"` as valid for the purposes of the cache key. Other
+		 * numeric types and numeric strings are discarded, for example `16.3` and `"16.3"`.
+		 *
+		 * This could all be achieved with filter_var(), however the filter extension can be removed
+		 * in custom builds so WordPress is unable to rely on it.
+		 */
+		// phpcs:ignore WordPress.PHP.YodaConditions.NotYoda, false positive
+		if ( is_int( $object_id ) || ( is_string( $object_id ) && (string) $object_id === (string) (int) $object_id ) ) {
+			return true;
 		}
-	);
+
+		/* translators: %s: The type of the given object id. */
+		$message = sprintf( __( 'Object id must be integer, %s given.' ), gettype( $object_id ) );
+		_doing_it_wrong( '_get_non_cached_ids', $message, 'n.e.x.t' );
+
+		return false;
+	};
+	$object_ids     = array_filter( $object_ids, $object_ids_filter );
 	$non_cached_ids = array();
 	$cache_values   = wp_cache_get_multiple( $object_ids, $cache_key );
 
