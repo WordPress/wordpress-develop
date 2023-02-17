@@ -226,4 +226,15 @@ class Tests_Post_PrimePostCaches extends WP_UnitTestCase {
 
 		$this->assertSame( 0, $num_queries, 'Unexpected number of queries.' );
 	}
+
+	public function test_prime_post_caches_only_works_with_integers() {
+		$this->assertSame( array(), _get_non_cached_ids( array(), 'posts' ), 'Empty array is supported.' );
+		$this->assertSame( array(), _get_non_cached_ids( array( null ), 'posts' ), 'Non-integer is not supported.' );
+		$this->assertSame( array(), _get_non_cached_ids( array( false ), 'posts' ), 'Non-integer is not supported.' );
+		$this->assertSame( array(), _get_non_cached_ids( array( 1.0 ), 'posts' ), 'Non-integer is not supported.' );
+		$this->assertSame( array(), _get_non_cached_ids( array( '5.0' ), 'posts' ), 'Non-integer is not supported.' );
+
+		$post_id = self::$posts[0];
+		$this->assertSame( array( $post_id ), _get_non_cached_ids( array( $post_id, null ), 'posts' ), 'Object ids are filtered.' );
+	}
 }
