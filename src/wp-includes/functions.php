@@ -7006,6 +7006,15 @@ function _get_non_cached_ids( $object_ids, $cache_key ) {
 			}
 
 			// allow "16" but not "16.2" without using `filter_var()` / `ctype_digit()`
+			/*
+			 * Accept integers as either an int or a string.
+			 *
+			 * This treats both `16` and `"16"` as valid for the purposes of the cache key. Other
+			 * numeric types and numeric strings are discarded, for example `16.3` and `"16.3"`.
+			 *
+			 * This could all be achieved with filter_var(), however the filter extension can be removed
+			 * in custom builds so WordPress is unable to rely on it.
+			 */
 			if ( is_string( $object_id ) && (string) $object_id === (string) (int) $object_id ) {
 				return true;
 			}
