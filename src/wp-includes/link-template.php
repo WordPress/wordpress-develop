@@ -2579,11 +2579,11 @@ function get_previous_posts_page_link() {
 	global $paged;
 
 	if ( ! is_single() ) {
-		$nextpage = (int) $paged - 1;
-		if ( $nextpage < 1 ) {
-			$nextpage = 1;
+		$previouspage = (int) $paged - 1;
+		if ( $previouspage < 1 ) {
+			$previouspage = 1;
 		}
-		return get_pagenum_link( $nextpage );
+		return get_pagenum_link( $previouspage );
 	}
 }
 
