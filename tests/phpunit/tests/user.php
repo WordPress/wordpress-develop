@@ -898,6 +898,24 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57394
+	 */
+	public function test_wp_insert_user_should_reject_user_login_that_matches_existing_user_email() {
+		$existing_email = get_option( 'admin_email' );
+		$user_id        = wp_insert_user(
+			array(
+				'user_login'    => $existing_email,
+				'user_email'    => 'whatever@example.com',
+				'user_pass'     => 'whatever',
+				'user_nicename' => 'whatever',
+			)
+		);
+
+		$this->assertWPError( $user_id );
+		$this->assertSame( 'existing_user_email_as_login', $user_id->get_error_code() );
+	}
+
+	/**
 	 * @ticket 33793
 	 */
 	public function test_wp_insert_user_should_reject_user_nicename_over_50_characters() {
@@ -932,24 +950,6 @@ class Tests_User extends WP_UnitTestCase {
 		$user     = new WP_User( $u );
 		$expected = str_repeat( 'a', 50 );
 		$this->assertSame( $expected, $user->user_nicename );
-	}
-
-	/**
-	 * @ticket 57394
-	 */
-	public function test_wp_insert_user_should_reject_username_that_matches_existing_user_email() {
-		$existing_email = get_option( 'admin_email' );
-		$username       = wp_insert_user(
-			array(
-				'user_login'    => $existing_email,
-				'user_email'    => 'whatever@example.com',
-				'user_pass'     => 'whatever',
-				'user_nicename' => 'whatever',
-			)
-		);
-
-		$this->assertWPError( $username );
-		$this->assertSame( 'existing_user_login_as_email', $username->get_error_code() );
 	}
 
 	/**
