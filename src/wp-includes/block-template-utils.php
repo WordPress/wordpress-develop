@@ -290,10 +290,21 @@ function _get_block_template_file( $template_type, $slug ) {
  * Retrieves the template files from the theme.
  *
  * @since 5.9.0
+ * @since 6.3.0 Added the `$query` and `$user_templates` parameters.
  * @access private
  *
  * @param string $template_type 'wp_template' or 'wp_template_part'.
- * @return array Template.
+ * @param array  $query {
+ *     Arguments to retrieve templates. Optional, empty by default.
+ *
+ *     @type array  $slug__in  List of slugs to include.
+ *     @type int    $wp_id     Post ID of customized template.
+ *     @type string $area      A 'wp_template_part_area' taxonomy value to filter by (for wp_template_part template type only).
+ *     @type string $post_type Post type to get the templates for.
+ * }
+ * @param array $user_templates Array of user templates that match the search. Optional, empty by default.
+ *
+ * @return array Template
  */
 function _get_block_templates_files( $template_type, $query = array(), $user_templates = array() ) {
 	if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
