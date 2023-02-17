@@ -457,6 +457,7 @@ $default_actions = array(
 	'register',
 	'checkemail',
 	'confirmaction',
+	'confirmemail',
 	'login',
 	WP_Recovery_Mode_Link_Service::LOGIN_ACTION_ENTERED,
 );
@@ -1159,6 +1160,44 @@ switch ( $action ) {
 		$errors = apply_filters( 'wp_login_errors', $errors, $redirect_to );
 
 		login_header( __( 'Check your email' ), '', $errors );
+		login_footer();
+		break;
+
+	case 'confirmemail':
+		if ( ! isset( $_GET['id'], $_GET['hash'] ) ) {
+			wp_die( __( 'Missing or invalid key.' ) );
+		}
+
+		if ( ! is_user_logged_in() ) {
+			wp_safe_redirect( wp_login_url() );
+			exit;
+		}
+
+		$user_id   = wp_unslash( $_GET['id'] );
+		$email_key = wp_unslash( $_GET['hash'] );
+
+		if ( ! current_user_can( 'edit_user', $user_id ) ) {
+			wp_die( __( 'Missing or invalid key.' ) );
+		}
+
+		$updated = send_user_email_change_confirmation_process( $user_id, $email_key );
+		if ( ! $updated ) {
+			wp_die( __( 'Missing or invalid key.' ) );
+		}
+
+		/**
+		 * Fires an action hook when the account email has been confirmed by the user.
+		 *
+		 * @since x.x
+		 *
+		 * @param int $user_id User ID.
+		 */
+		do_action( 'user_email_confirmed', $user_id );
+
+		login_header(
+			__( 'Confirm your email' ),
+			'<p class="success">' . __( 'Your email has been confirmed.' ) . '</p>'
+		);
 		login_footer();
 		break;
 
