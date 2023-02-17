@@ -3617,7 +3617,7 @@ function clean_term_cache( $ids, $taxonomy = '', $clean_taxonomy = true ) {
 		do_action( 'clean_term_cache', $ids, $taxonomy, $clean_taxonomy );
 	}
 
-	wp_cache_set( 'last_changed', microtime(), 'terms' );
+	wp_cache_set_terms_last_changed();
 }
 
 /**
