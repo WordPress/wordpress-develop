@@ -359,7 +359,7 @@ function the_author_posts_link( $deprecated = '' ) {
  * @param string $author_nicename Optional. The author's nicename (slug). Default empty.
  * @return string The URL to the author's page.
  */
-function get_author_posts_url( $author_id, $author_nicename = '' ) {
+function get_author_posts_url( $author_id, $author_nicename = '', $original_url = '' ) {
 	global $wp_rewrite;
 
 	$author_id = (int) $author_id;
@@ -387,8 +387,9 @@ function get_author_posts_url( $author_id, $author_nicename = '' ) {
 	 * @param string $link            The URL to the author's page.
 	 * @param int    $author_id       The author's ID.
 	 * @param string $author_nicename The author's nice name.
+	 * @param string $original_url    The original URL for the author's page.
 	 */
-	$link = apply_filters( 'author_link', $link, $author_id, $author_nicename );
+	$link = apply_filters( 'author_link', $link, $author_id, $author_nicename, $original_url );
 
 	return $link;
 }
