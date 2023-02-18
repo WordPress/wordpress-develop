@@ -2858,7 +2858,7 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 	}
 
 	wp_cache_delete( $object_id, $taxonomy . '_relationships' );
-	wp_cache_delete( 'last_changed', 'terms' );
+	wp_cache_set_terms_last_changed();
 
 	/**
 	 * Fires after an object's terms have been set.
@@ -2956,7 +2956,7 @@ function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {
 		$deleted = $wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->term_relationships WHERE object_id = %d AND term_taxonomy_id IN ($in_tt_ids)", $object_id ) );
 
 		wp_cache_delete( $object_id, $taxonomy . '_relationships' );
-		wp_cache_delete( 'last_changed', 'terms' );
+		wp_cache_set_terms_last_changed();
 
 		/**
 		 * Fires immediately after an object-term relationship is deleted.
@@ -3542,7 +3542,7 @@ function clean_object_term_cache( $object_ids, $object_type ) {
 		wp_cache_delete_multiple( $object_ids, "{$taxonomy}_relationships" );
 	}
 
-	wp_cache_delete( 'last_changed', 'terms' );
+	wp_cache_set_terms_last_changed();
 
 	/**
 	 * Fires after the object term cache has been cleaned.
@@ -3630,7 +3630,7 @@ function clean_term_cache( $ids, $taxonomy = '', $clean_taxonomy = true ) {
 function clean_taxonomy_cache( $taxonomy ) {
 	wp_cache_delete( 'all_ids', $taxonomy );
 	wp_cache_delete( 'get', $taxonomy );
-	wp_cache_delete( 'last_changed', 'terms' );
+	wp_cache_set_terms_last_changed();
 
 	// Regenerate cached hierarchy.
 	delete_option( "{$taxonomy}_children" );
