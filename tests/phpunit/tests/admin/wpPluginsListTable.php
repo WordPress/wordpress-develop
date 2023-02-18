@@ -85,6 +85,8 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	 * the 'show_autoupdates' property to false for Must-Use and Drop-in
 	 * plugins.
 	 *
+	 * The 'ms-excluded' group is added as $this->show_autoupdates is already set to false for multisite.
+	 *
 	 * @ticket 54309
 	 * @group ms-excluded
 	 *
