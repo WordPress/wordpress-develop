@@ -6,7 +6,8 @@
 const fs = require( 'fs' );
 const path = require( 'path' );
 const https = require( 'https' );
-const [ token, branch, hash, timestamp ] = process.argv.slice( 2 );
+const [ token, branch, hash, timestamp, host ] = process.argv.slice( 2 );
+const { median } = require( './utils' );
 
 const resultsFiles = [
 	{
@@ -23,36 +24,39 @@ const performanceResults = resultsFiles.map( ( { file } ) =>
 	)
 );
 
-function median( array ) {
-	const mid = Math.floor( array.length / 2 ),
-		numbers = [ ...array ].sort( ( a, b ) => a - b );
-	return array.length % 2 !== 0
-		? numbers[ mid ]
-		: ( numbers[ mid - 1 ] + numbers[ mid ] ) / 2;
-}
+/**
+ * Gets the array or metrics.
+ *
+ * @return {array} Metrics.
+ */
+function getMedianMetrics() {
+    const rawResults = [];
 
-const rawResults = [];
-for (var keys in performanceResults) {
-    const rawKeys = [];
-    for (var key in performanceResults[keys]) {
-        rawKeys[key] = median( performanceResults[keys][key] );
+    for (var keys in performanceResults) {
+        const rawKeys = [];
+        for (var key in performanceResults[keys]) {
+            rawKeys[key] = median( performanceResults[keys][key] );
+        }
+        rawResults.push( rawKeys );
     }
-    rawResults.push( rawKeys );
+
+    return rawResults;
 }
+const getMedianMetricsResult = getMedianMetrics();
 
 const data = new TextEncoder().encode(
 	JSON.stringify( {
 		branch,
 		hash,
-        baseHash: '',
+		baseHash: '',
 		timestamp: parseInt( timestamp, 10 ),
-		metrics: resultsFiles,
-        baseMetrics: '',
+		metrics: getMedianMetricsResult,
+		baseMetrics: '',
 	} )
 );
 
 const options = {
-	hostname: 'codehealth.vercel.app',
+	hostname: host,
 	port: 443,
 	path: '/api/log?token=' + token,
 	method: 'POST',
