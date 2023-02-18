@@ -1153,7 +1153,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					echo '</td>';
 					break;
 				case 'auto-updates':
-					if ( ! ( $this->show_autoupdates || in_array( $status, array( 'mustuse', 'dropins' ), true ) ) ) {
+					if ( ! $this->show_autoupdates || in_array( $status, array( 'mustuse', 'dropins' ), true ) ) {
 						break;
 					}
 
