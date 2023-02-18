@@ -86,6 +86,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	 * plugins.
 	 *
 	 * @ticket 54309
+	 * @group ms-excluded
 	 *
 	 * @covers WP_Plugins_List_Table::__construct()
 	 *
