@@ -16,6 +16,15 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 57593
+	 */
+	public function test_uncached_valid_ids_should_be_unique() {
+		$object_id = 1;
+
+		$this->assertSame( array( $object_id ), _get_non_cached_ids( array( $object_id, $object_id, (string) $object_id ), 'fake-group' ), 'Duplicate object IDs should be removed.' );
+	}
+
+	/**
+	 * @ticket 57593
 	 *
 	 * @dataProvider data_valid_ids_should_be_returned_as_integers
 	 *
