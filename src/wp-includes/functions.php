@@ -7017,6 +7017,7 @@ function _get_non_cached_ids( $object_ids, $cache_key ) {
 
 		return false;
 	};
+
 	$object_ids     = array_filter( $object_ids, $object_ids_filter );
 	$non_cached_ids = array();
 	$cache_values   = wp_cache_get_multiple( $object_ids, $cache_key );
