@@ -1628,7 +1628,10 @@ function wp_default_styles( $styles ) {
 		current_theme_supports( 'wp-block-styles' ) &&
 		( ! is_array( $editor_styles ) || count( $editor_styles ) === 0 )
 	) {
-		// Include opinionated block styles if the theme supports block styles and no $editor_styles are declared, so the editor never appears broken.
+		/*
+		 * Include opinionated block styles if the theme supports block styles and
+		 * no $editor_styles are declared, so the editor never appears broken.
+		 */
 		$wp_edit_blocks_dependencies[] = 'wp-block-library-theme';
 	}
 
