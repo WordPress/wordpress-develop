@@ -1,14 +1,9 @@
 <?php
+
 /**
  * Test cases for the `do_enclose()` function.
  *
  * @package WordPress\UnitTests
- *
- * @since 5.3.0
- */
-
-/**
- * Tests_Functions_DoEnclose class.
  *
  * @since 5.3.0
  *
@@ -254,25 +249,25 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 *
 	 * @since 5.3.0
 	 *
-	 * @param bool   $false     False.
-	 * @param array  $arguments Request arguments.
-	 * @param string $url       Request URL.
-	 * @return array            Header.
+	 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request. Default false.
+	 * @param array                $parsed_args HTTP request arguments.
+	 * @param string               $url         The request URL.
+	 * @return array Response data.
 	 */
-	public function mock_http_request( $false, $arguments, $url ) {
+	public function mock_http_request( $response, $parsed_args, $url ) {
 
 		// Video and audio headers.
 		$fake_headers = array(
 			'mp4' => array(
 				'headers' => array(
-					'content-length' => 123,
-					'content-type'   => 'video/mp4',
+					'Content-Length' => 123,
+					'Content-Type'   => 'video/mp4',
 				),
 			),
 			'ogg' => array(
 				'headers' => array(
-					'content-length' => 321,
-					'content-type'   => 'audio/ogg',
+					'Content-Length' => 321,
+					'Content-Type'   => 'audio/ogg',
 				),
 			),
 		);
@@ -289,8 +284,8 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 		// Fallback header.
 		return array(
 			'headers' => array(
-				'content-length' => 0,
-				'content-type'   => '',
+				'Content-Length' => 0,
+				'Content-Type'   => '',
 			),
 		);
 	}

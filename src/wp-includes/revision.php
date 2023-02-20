@@ -200,6 +200,35 @@ function wp_save_post_revision( $post_id ) {
 
 	$revisions = wp_get_post_revisions( $post_id, array( 'order' => 'ASC' ) );
 
+	/**
+	 * Filters the revisions to be considered for deletion.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param WP_Post[]|int[] $revisions Array of revision objects or IDs,
+	 *                                   or an empty array if none.
+	 * @param int             $post_id   The ID of the post to save as a revision.
+	 */
+	$filtered_revisions = apply_filters(
+		'wp_save_post_revision_revisions_before_deletion',
+		$revisions,
+		$post_id
+	);
+
+	if ( is_array( $filtered_revisions ) ) {
+		$revisions = $filtered_revisions;
+	} else {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: The filter name. */
+				__( 'The "%s" filter should return an array.' ),
+				'wp_save_post_revision_revisions_before_deletion'
+			),
+			'6.2.0'
+		);
+	}
+
 	$delete = count( $revisions ) - $revisions_to_keep;
 
 	if ( $delete < 1 ) {
@@ -859,7 +888,7 @@ function _wp_upgrade_revisions_of_post( $post, $revisions ) {
 			return false;
 		}
 
-		if ( $locked > $now - 3600 ) {
+		if ( $locked > $now - HOUR_IN_SECONDS ) {
 			// Lock is not too old: some other process may be upgrading this post. Bail.
 			return false;
 		}
