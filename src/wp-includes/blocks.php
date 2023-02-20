@@ -114,7 +114,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 			substr_replace( $script_path, '.asset.php', - strlen( '.js' ) )
 		)
 	);
-	if ( false === $script_asset_path ) {
+	if ( empty( $script_asset_path ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
