@@ -1926,11 +1926,12 @@ function post_reply_link( $args = array(), $post = null ) {
  * Retrieves HTML content for cancel comment reply link.
  *
  * @since 2.7.0
+ * @since 6.2.0 Added the `$post` parameter.
  *
- * @param string      $text Optional. Text to display for cancel reply link. If empty,
- *                          defaults to 'Click here to cancel reply'. Default empty.
- * @param int|WP_Post $post Optional. The post the comment thread is being
- *                          displayed for. Defaults to the current global post.
+ * @param string           $text Optional. Text to display for cancel reply link. If empty,
+ *                               defaults to 'Click here to cancel reply'. Default empty.
+ * @param int|WP_Post|null $post Optional. The post the comment thread is being
+ *                               displayed for. Defaults to the current global post.
  * @return string
  */
 function get_cancel_comment_reply_link( $text = '', $post = null ) {
@@ -1975,8 +1976,8 @@ function cancel_comment_reply_link( $text = '' ) {
  * @since 3.0.0
  * @since 6.2.0 Renamed `$post_id` to `$post` and added WP_Post support.
  *
- * @param int|WP_Post $post Optional. The post the comment is being displayed for.
- *                          Defaults to the current global post.
+ * @param int|WP_Post|null $post Optional. The post the comment is being displayed for.
+ *                               Defaults to the current global post.
  * @return string Hidden input HTML for replying to comments.
  */
 function get_comment_id_fields( $post = null ) {
@@ -2015,8 +2016,8 @@ function get_comment_id_fields( $post = null ) {
  *
  * @see get_comment_id_fields()
  *
- * @param int|WP_Post $post Optional. The post the comment is being displayed for.
- *                          Defaults to the current global post.
+ * @param int|WP_Post|null $post Optional. The post the comment is being displayed for.
+ *                               Defaults to the current global post.
  */
 function comment_id_fields( $post = null ) {
 	echo get_comment_id_fields( $post );
@@ -2033,21 +2034,17 @@ function comment_id_fields( $post = null ) {
  * @since 2.7.0
  * @since 6.2.0 Added the `$post` parameter.
  *
- * @global WP_Comment $comment Global comment object.
- *
- * @param string|false $no_reply_text  Optional. Text to display when not replying to a comment.
- *                                     Default false.
- * @param string|false $reply_text     Optional. Text to display when replying to a comment.
- *                                     Default false. Accepts "%s" for the author of the comment
- *                                     being replied to.
- * @param bool         $link_to_parent Optional. Boolean to control making the author's name a link
- *                                     to their comment. Default true.
- * @param int|WP_Post  $post           Optional. The post that the comment form is being displayed for.
- *                                     Defaults to the current global post.
+ * @param string|false      $no_reply_text  Optional. Text to display when not replying to a comment.
+ *                                          Default false.
+ * @param string|false      $reply_text     Optional. Text to display when replying to a comment.
+ *                                          Default false. Accepts "%s" for the author of the comment
+ *                                          being replied to.
+ * @param bool              $link_to_parent Optional. Boolean to control making the author's name a link
+ *                                          to their comment. Default true.
+ * @param int|WP_Post|null  $post           Optional. The post that the comment form is being displayed for.
+ *                                          Defaults to the current global post.
  */
 function comment_form_title( $no_reply_text = false, $reply_text = false, $link_to_parent = true, $post = null ) {
-	global $comment;
-
 	if ( false === $no_reply_text ) {
 		$no_reply_text = __( 'Leave a Reply' );
 	}
