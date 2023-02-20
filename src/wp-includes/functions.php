@@ -27,12 +27,16 @@ require ABSPATH . WPINC . '/option.php';
  * @return string|int|false Integer if `$format` is 'U' or 'G', string otherwise.
  *                          False on failure.
  */
-function mysql2date( $format, $date, $translate = true ) {
+function mysql2date( $format, $date, $translate = true, $timezone = '' ) {
 	if ( empty( $date ) ) {
 		return false;
 	}
 
-	$datetime = date_create( $date, wp_timezone() );
+	if ( empty( $timezone ) ) {
+		$timezone = wp_timezone();
+	}
+
+	$datetime = date_create( $date, $timezone );
 
 	if ( false === $datetime ) {
 		return false;
