@@ -134,7 +134,7 @@ jobs:
         env:
             COMMITTED_AT: ${{ steps.commit-timestamp.outputs.result }}
             CODEHEALTH_PROJECT_TOKEN: ${{ secrets.CODEHEALTH_PROJECT_TOKEN }}
-            HOST_NAME: "codehealth.vercel.app"
+            HOST_NAME: "codehealth-test.vercel.app"
         run: node ./tests/performance/log-results.js $CODEHEALTH_PROJECT_TOKEN trunk $GITHUB_SHA $COMMITTED_AT $HOST_NAME
 
       - name: Ensure version-controlled files are not modified or deleted
