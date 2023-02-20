@@ -12,9 +12,11 @@ const { median } = require( './utils' );
 const resultsFiles = [
 	{
 		file: 'home-block-theme.test.results.json',
+		metricsPrefix: 'home-block-theme-',
 	},
 	{
 		file: 'home-classic-theme.test.results.json',
+		metricsPrefix: 'home-classic-theme-',
 	},
 ];
 
@@ -29,20 +31,22 @@ const performanceResults = resultsFiles.map( ( { file } ) =>
  *
  * @return {array} Metrics.
  */
-function getMedianMetrics() {
-    const rawResults = [];
-
-    for (var keys in performanceResults) {
-        const rawKeys = [];
-        for (var key in performanceResults[keys]) {
-            rawKeys[key] = median( performanceResults[keys][key] );
-        }
-        rawResults.push( rawKeys );
-    }
-
-    return rawResults;
-}
-const getMedianMetricsResult = getMedianMetrics();
+const metrics = resultsFiles.reduce(
+	( result, { metricsPrefix }, index ) => {
+		return {
+			...result,
+			...Object.fromEntries(
+				Object.entries(
+					performanceResults[ index ] ?? {}
+				).map( ( [ key, value ] ) => [
+					metricsPrefix + key,
+					median(value),
+				] )
+			),
+		};
+	},
+	{}
+);
 
 const data = new TextEncoder().encode(
 	JSON.stringify( {
@@ -50,8 +54,8 @@ const data = new TextEncoder().encode(
 		hash,
 		baseHash: '',
 		timestamp: parseInt( timestamp, 10 ),
-		metrics: getMedianMetricsResult,
-		baseMetrics: '',
+		metrics,
+		baseMetrics: [],
 	} )
 );
 
