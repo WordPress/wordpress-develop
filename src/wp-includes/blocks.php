@@ -118,7 +118,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
-				/* translators: 1: Field name, 2: Block name. */
+				/* translators: 1: Asset file location, 2: Field name, 3: Block name.  */
 				__( 'The asset file (%1$s) for the "%2$s" defined in "%3$s" block definition is missing.' ),
 				dirname( $metadata['file'] ) . '/' . substr_replace( $script_path, '.asset.php', - strlen( '.js' ) ),
 				$field_name,
