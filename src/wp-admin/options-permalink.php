@@ -64,7 +64,7 @@ if ( $is_nginx ) {
 	$help_sidebar_content .= '<p>' . __( '<a href="https://wordpress.org/documentation/article/nginx/">Documentation on Nginx configuration</a>.' ) . '</p>';
 }
 
-$help_sidebar_content .= '<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>';
+$help_sidebar_content .= '<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>';
 
 get_current_screen()->set_help_sidebar( $help_sidebar_content );
 unset( $help_sidebar_content );

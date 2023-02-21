@@ -80,7 +80,7 @@ get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 	'<p>' . __( '<a href="https://wordpress.org/documentation/article/create-a-network/">Documentation on Creating a Network</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/documentation/article/tools-network-screen/">Documentation on the Network Screen</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';

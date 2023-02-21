@@ -119,7 +119,7 @@ function twentyeleven_theme_options_help() {
 
 	$sidebar = '<p><strong>' . __( 'For more information:', 'twentyeleven' ) . '</strong></p>' .
 		'<p>' . __( '<a href="https://wordpress.org/documentation/article/appearance-customize-screen/" target="_blank">Documentation on Theme Options</a>', 'twentyeleven' ) . '</p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/" target="_blank">Support</a>', 'twentyeleven' ) . '</p>';
+		'<p>' . __( '<a href="https://wordpress.org/support/forums/" target="_blank">Support forums</a>', 'twentyeleven' ) . '</p>';
 
 	$screen = get_current_screen();
 
