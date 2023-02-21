@@ -529,6 +529,18 @@ class WP_HTML_Tag_Processor {
 	protected $lexical_updates = array();
 
 	/**
+	 * Attribute replacements to apply to input HTML document.
+	 *
+	 * Unlike more generic lexical updates, attribute updates are stored
+	 * in an associative array, where the keys are (lowercase-normalized)
+	 * attribute names, in order to avoid duplication.
+	 *
+	 * @since 6.3.0
+	 * @var WP_HTML_Text_Replacement[]
+	 */
+	private $attribute_updates = array();
+
+	/**
 	 * Tracks and limits `seek()` calls to prevent accidental infinite loops.
 	 *
 	 * @see seek
@@ -1237,15 +1249,16 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Applies attribute updates and cleans up once a tag is fully parsed.
+	 * Applies lexical updates and cleans up once a tag is fully parsed.
 	 *
 	 * @since 6.2.0
 	 *
 	 * @return void
 	 */
 	private function after_tag() {
-		$this->class_name_updates_to_attributes_updates();
-		$this->apply_attributes_updates();
+		$this->class_name_updates_to_attribute_updates();
+		$this->attribute_updates_to_lexical_updates();
+		$this->apply_lexical_updates();
 		$this->tag_name_starts_at = null;
 		$this->tag_name_length    = null;
 		$this->tag_ends_at        = null;
@@ -1254,17 +1267,17 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Converts class name updates into tag attributes updates
+	 * Converts class name updates into tag attribute updates
 	 * (they are accumulated in different data formats for performance).
 	 *
-	 * @see $lexical_updates
+	 * @see $attribute_updates
 	 * @see $classname_updates
 	 *
 	 * @since 6.2.0
 	 *
 	 * @return void
 	 */
-	private function class_name_updates_to_attributes_updates() {
+	private function class_name_updates_to_attribute_updates() {
 		if ( count( $this->classname_updates ) === 0 ) {
 			return;
 		}
@@ -1398,13 +1411,33 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Applies attribute updates to HTML document.
+	 * Converts attribute updates into lexical updates.
+	 *
+	 * This method is only meant to run right before the attribute updates are applied.
+	 * The behavior in all other cases is undefined.
+	 *
+	 * @return void
+	 * @since 6.3.0
+	 *
+	 * @see $attribute_updates
+	 * @see $lexical_updates
+	 */
+	private function attribute_updates_to_lexical_updates() {
+		foreach ( $this->attribute_updates as $update ) {
+			$this->lexical_updates[] = $update;
+		}
+		$this->attribute_updates = array();
+	}
+
+	/**
+	 * Applies lexical updates to HTML document.
 	 *
 	 * @since 6.2.0
+	 * @since 6.3.0 Invalidate any bookmarks whose targets are overwritten.
 	 *
 	 * @return void
 	 */
-	private function apply_attributes_updates() {
+	private function apply_lexical_updates() {
 		if ( ! count( $this->lexical_updates ) ) {
 			return;
 		}
@@ -1431,7 +1464,7 @@ class WP_HTML_Tag_Processor {
 		 * Adjust bookmark locations to account for how the text
 		 * replacements adjust offsets in the input document.
 		 */
-		foreach ( $this->bookmarks as $bookmark ) {
+		foreach ( $this->bookmarks as $bookmark_name => $bookmark ) {
 			/*
 			 * Each lexical update which appears before the bookmark's endpoints
 			 * might shift the offsets for those endpoints. Loop through each change
@@ -1442,20 +1475,22 @@ class WP_HTML_Tag_Processor {
 			$tail_delta = 0;
 
 			foreach ( $this->lexical_updates as $diff ) {
-				$update_head = $bookmark->start >= $diff->start;
-				$update_tail = $bookmark->end >= $diff->start;
-
-				if ( ! $update_head && ! $update_tail ) {
+				if ( $bookmark->start < $diff->start && $bookmark->end < $diff->start ) {
 					break;
+				}
+
+				if ( $bookmark->start >= $diff->start && $bookmark->end < $diff->end ) {
+					$this->release_bookmark( $bookmark_name );
+					continue 2;
 				}
 
 				$delta = strlen( $diff->text ) - ( $diff->end - $diff->start );
 
-				if ( $update_head ) {
+				if ( $bookmark->start >= $diff->start ) {
 					$head_delta += $delta;
 				}
 
-				if ( $update_tail ) {
+				if ( $bookmark->end >= $diff->end ) {
 					$tail_delta += $delta;
 				}
 			}
@@ -1465,6 +1500,18 @@ class WP_HTML_Tag_Processor {
 		}
 
 		$this->lexical_updates = array();
+	}
+
+	/**
+	 * Checks whether a bookmark with the given name exists.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $bookmark_name Name to identify a bookmark that potentially exists.
+	 * @return bool Whether that bookmark exists.
+	 */
+	public function has_bookmark( $bookmark_name ) {
+		return array_key_exists( $bookmark_name, $this->bookmarks );
 	}
 
 	/**
@@ -1512,8 +1559,8 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 *
-	 * @param WP_HTML_Text_Replacement $a First attribute update.
-	 * @param WP_HTML_Text_Replacement $b Second attribute update.
+	 * @param WP_HTML_Text_Replacement $a First lexical update.
+	 * @param WP_HTML_Text_Replacement $b Second lexical update.
 	 * @return int Comparison value for string order.
 	 */
 	private static function sort_start_ascending( $a, $b ) {
@@ -1549,11 +1596,11 @@ class WP_HTML_Tag_Processor {
 	 * @return string|boolean|null Value of enqueued update if present, otherwise false.
 	 */
 	private function get_enqueued_attribute_value( $comparable_name ) {
-		if ( ! isset( $this->lexical_updates[ $comparable_name ] ) ) {
+		if ( ! isset( $this->attribute_updates[ $comparable_name ] ) ) {
 			return false;
 		}
 
-		$enqueued_text = $this->lexical_updates[ $comparable_name ]->text;
+		$enqueued_text = $this->attribute_updates[ $comparable_name ]->text;
 
 		// Removed attributes erase the entire span.
 		if ( '' === $enqueued_text ) {
@@ -1626,7 +1673,7 @@ class WP_HTML_Tag_Processor {
 
 		/*
 		 * For every attribute other than `class` it's possible to perform a quick check if
-		 * there's an enqueued lexical update whose value takes priority over what's found in
+		 * there's an enqueued attribute update whose value takes priority over what's found in
 		 * the input document.
 		 *
 		 * The `class` attribute is special though because of the exposed helpers `add_class`
@@ -1636,7 +1683,7 @@ class WP_HTML_Tag_Processor {
 		 * into an attribute value update.
 		 */
 		if ( 'class' === $name ) {
-			$this->class_name_updates_to_attributes_updates();
+			$this->class_name_updates_to_attribute_updates();
 		}
 
 		// Return any enqueued attribute value updates if they exist.
@@ -1864,8 +1911,8 @@ class WP_HTML_Tag_Processor {
 			 *
 			 *    Result: <div id="new"/>
 			 */
-			$existing_attribute             = $this->attributes[ $comparable_name ];
-			$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
+			$existing_attribute               = $this->attributes[ $comparable_name ];
+			$this->attribute_updates[ $name ] = new WP_HTML_Text_Replacement(
 				$existing_attribute->start,
 				$existing_attribute->end,
 				$updated_attribute
@@ -1882,7 +1929,7 @@ class WP_HTML_Tag_Processor {
 			 *
 			 *    Result: <div id="new"/>
 			 */
-			$this->lexical_updates[ $comparable_name ] = new WP_HTML_Text_Replacement(
+			$this->attribute_updates[ $comparable_name ] = new WP_HTML_Text_Replacement(
 				$this->tag_name_starts_at + $this->tag_name_length,
 				$this->tag_name_starts_at + $this->tag_name_length,
 				' ' . $updated_attribute
@@ -1940,8 +1987,8 @@ class WP_HTML_Tag_Processor {
 		 * and when that attribute wasn't originally present.
 		 */
 		if ( ! isset( $this->attributes[ $name ] ) ) {
-			if ( isset( $this->lexical_updates[ $name ] ) ) {
-				unset( $this->lexical_updates[ $name ] );
+			if ( isset( $this->attribute_updates[ $name ] ) ) {
+				unset( $this->attribute_updates[ $name ] );
 			}
 			return false;
 		}
@@ -1957,7 +2004,7 @@ class WP_HTML_Tag_Processor {
 		 *
 		 *    Result: <div />
 		 */
-		$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
+		$this->attribute_updates[ $name ] = new WP_HTML_Text_Replacement(
 			$this->attributes[ $name ]->start,
 			$this->attributes[ $name ]->end,
 			''
@@ -2026,7 +2073,10 @@ class WP_HTML_Tag_Processor {
 	 * @return string The processed HTML.
 	 */
 	public function get_updated_html() {
-		$requires_no_updating = 0 === count( $this->classname_updates ) && 0 === count( $this->lexical_updates );
+		$requires_no_updating =
+			0 === count( $this->classname_updates ) &&
+			0 === count( $this->attribute_updates ) &&
+			0 === count( $this->lexical_updates );
 
 		/*
 		 * When there is nothing more to update and nothing has already been
@@ -2057,8 +2107,9 @@ class WP_HTML_Tag_Processor {
 		 *
 		 * Note: `apply_attributes_updates()` modifies `$this->output_buffer`.
 		 */
-		$this->class_name_updates_to_attributes_updates();
-		$this->apply_attributes_updates();
+		$this->class_name_updates_to_attribute_updates();
+		$this->attribute_updates_to_lexical_updates();
+		$this->apply_lexical_updates();
 
 		/*
 		 * 2. Replace the original HTML with the now-updated HTML so that it's possible to
