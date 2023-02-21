@@ -7832,7 +7832,7 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 						continue;
 					}
 
-					$term_ids[] = $term_id;
+					$term_ids[] = $term->term_id;
 				}
 			}
 		}
