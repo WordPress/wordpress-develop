@@ -2469,6 +2469,8 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 		'list-style',
 		'list-style-image',
+
+		'filter',
 	);
 
 	/*
