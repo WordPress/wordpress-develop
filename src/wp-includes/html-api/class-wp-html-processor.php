@@ -66,11 +66,17 @@ class WP_HTML_Token {
 			case self::MARKER:
 				return 'MARKER';
 			case self::TAG:
+				$attributes = '';
+				if($this->attributes) {
+					foreach( $this->attributes as $name => $value ) {
+						$attributes .= ' ' . $name . '="' . esc_attr( $value ) . '"';
+					}
+				}
 				return sprintf(
 					'%s%s%s',
 					$this->is_closer ? '/' : '',
 					$this->tag,
-					$this->attributes ? ' ' . implode( ' ', $this->attributes ) : ''
+					$attributes
 				);
 			case self::TEXT:
 				return '#text: ' . trim($this->value);
@@ -127,7 +133,7 @@ class WP_HTML_Node {
 	 */
 	public $children = array();
 	/**
-	 * @var string
+	 * @var WP_HTML_Token
 	 */
 	public $token;
 	public $depth = 1;
@@ -315,6 +321,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			$this->insert_text( $token );
 		}
 		else if ( $token->is_opener ) {
+			dbg( "Found {$token->tag} tag opener" );
 			// Should we care?
 			// if(self::is_rcdata_element($token->tag)) {
 			// $this->original_insertion_mode = $this->insertion_mode;
@@ -348,7 +355,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					// Ignore special rules for 'PRE' and 'LISTING'
 				case 'PRE':
 				case 'LISTING':
-					dbg( "Found {$token->tag} tag opener" );
+					/*
+					 * If the stack of open elements has a p element in button scope,
+					 * then close a p element.
+					 */
 					if ( $this->is_element_in_button_scope( 'P' ) ) {
 						$this->close_p_element();
 					}
@@ -481,7 +491,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case 'STRONG':
 				case 'TT':
 				case 'U':
-					dbg( "Found {$token->tag} tag opener" );
 					$this->reconstruct_active_formatting_elements();
 					$node = $this->insert_element( $token );
 					$this->push_active_formatting_element( $node );
@@ -621,6 +630,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					break;
 			}
 		} else {
+			dbg( "Found {$token->tag} tag closer" );
 			switch ( $token->tag ) {
 				case 'ADDRESS':
 				case 'ARTICLE':
@@ -670,12 +680,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->form_pointer = null;
 					break;
 				case 'P':
-					dbg( "Found {$token->tag} tag closer" );
+					/*
+					 * If the stack of open elements does not have a p element in button scope, 
+					 * then this is a parse error; insert an HTML element for a "p" start tag 
+					 * token with no attributes.
+					 */
 					if ( ! $this->is_element_in_button_scope( 'P' ) ) {
-						// Parse error, insert an HTML element for a "p" start tag token with no attributes.
 						$this->parse_error();
 						$this->insert_element( WP_HTML_Token::tag( 'P' ) );
 					}
+					// Close a p element.
 					$this->close_p_element();
 					break;
 				case 'LI':
@@ -783,9 +797,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		if ( $this->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
 			$bookmark = '__internal_' . ( $this->element_bookmark_idx++ );
 			$this->set_bookmark($bookmark);
+			$attributes = array();
+			$attrs = $this->get_attribute_names_with_prefix('');
+			if ($attrs) {
+				foreach ($attrs as $name) {
+					$attributes[$name] = $this->get_attribute($name);
+				}
+			}
 			$next_tag = WP_HTML_Token::tag(
 				$this->get_tag(),
-				array(),
+				$attributes,
 				! $this->is_tag_closer(),
 				$bookmark
 			);
@@ -852,7 +873,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					break;
 				}
 			}
-			dbg("AAA: Formatting element = {$formatting_element->token->tag}", 2);
 
 			// If there is no such element, then abort these steps and instead act as
 			// described in the "any other end tag" entry below.
@@ -860,6 +880,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				dbg("Skipping AAA: no formatting element found", 2);
 				return self::ANY_OTHER_END_TAG;
 			}
+			dbg("AAA: Formatting element = {$formatting_element->token->tag}", 2);
 
 			// If formatting element is not in the stack of open elements, then this is
 			// a parse error; remove the element from the list, and return.
@@ -921,7 +942,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			dbg("AAA: Common ancestor = {$common_ancestor->token->tag}", 2);
 
 			$this->print_open_elements('AAA: Open elements: ', 2);
-			$this->print_rafe_formats('AAA: Formatting elements: ', 2);
+			$this->print_active_formatting_elements('AAA: Formatting elements: ', 2);
 
 			// Let a bookmark note the position of formatting element in the list of
 			// active formatting elements relative to the elements on either side of it
@@ -1115,9 +1136,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 		dbg( "Popping until tag names: " . implode(', ', $tags), 1 );
 		$this->print_open_elements( "Open elements before: " );
-		while ( ! in_array( $this->current_node()->token->tag, $tags ) ) {
-			$this->pop_open_element();
-		}
+		do {
+			$popped = $this->pop_open_element();
+		} while (!in_array($popped->token->tag, $tags));
 		$this->print_open_elements( "Open elements after: " );
 	}
 
@@ -1217,7 +1238,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$this->active_formatting_elements[] = $node;
 	}
 
-	private function print_rafe_formats($msg, $indent=1) {
+	private function print_active_formatting_elements($msg, $indent=1) {
 		$formats = array_map( function( $node ) { 
 			return $node->token->tag ?: ($node->token->is_marker() ? 'M' : 'ERROR'); 
 		}, $this->active_formatting_elements);
@@ -1232,15 +1253,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	private function reconstruct_active_formatting_elements() {
-		$this->print_rafe_formats('RAFE: before');
+		$this->print_active_formatting_elements('AFE: before');
 		if ( empty( $this->active_formatting_elements ) ) {
-			dbg( "Skipping RAFE: empty list", 1 );
+			dbg( "Skipping AFE: empty list", 1 );
 			return;
 		}
 		$entry_idx          = count( $this->active_formatting_elements ) - 1;
 		$last_entry = $this->active_formatting_elements[ $entry_idx ];
 		if ( $last_entry->token->is_marker() || in_array( $last_entry, $this->open_elements, true ) ) {
-			dbg( "Skipping RAFE: marker or open element", 1 );
+			dbg( "Skipping AFE: marker or open element", 1 );
 			return;
 		}
 
@@ -1286,7 +1307,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				break;
 			}
 		}
-		$this->print_rafe_formats('RAFE: after');
+		$this->print_active_formatting_elements('AFE: after');
 	}
 
 	private function clear_active_formatting_elements_up_to_last_marker() {
@@ -1673,4 +1694,42 @@ Outputs the correct result:
       ├─ B
          └─ #text: 2
       └─ #text: 3
+*/
+
+
+$p = new WP_HTML_Processor( '<p><b class=x><b class=x><b><b class=x><b class=x><b>X
+<p>X
+<p><b><b class=x><b>X
+<p></b></b></b></b></b></b>X' );
+$p->parse();
+/*
+DOM after main loop:
+  HTML
+   ├─ P
+      └─ B class="x"
+         └─ B class="x"
+            └─ B
+               └─ B class="x"
+                  └─ B class="x"
+                     └─ B
+                        └─ #text: X
+   ├─ P
+      └─ B class="x"
+         └─ B
+            └─ B class="x"
+               └─ B class="x"
+                  └─ B
+                     └─ #text: X
+   ├─ P
+      └─ B class="x"
+         └─ B
+            └─ B class="x"
+               └─ B class="x"
+                  └─ B
+                     └─ B
+                        └─ B class="x"
+                           └─ B
+                              └─ #text: X
+   └─ P
+      └─ #text: X
 */
