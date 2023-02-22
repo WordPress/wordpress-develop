@@ -179,8 +179,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				break;
 			}
 			echo "TOKEN: $token\n";
-			$processed_token = $this->process_in_body_insertion_mode($token);
-			$this->last_token = $processed_token;
+			$this->last_token = $token;
+			// $processed_token = $this->process_in_body_insertion_mode($token);
+			// $this->last_token = $processed_token;
 		}
 		// @TODO:
 		// switch($this->insertion_mode) {
@@ -720,11 +721,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			&& $last->bookmark
 			&& $this->has_bookmark($last->bookmark)
 		) {
-			$this->buffered_tag = $next_tag;
-
 			$text_start = $this->bookmarks[$last->bookmark]->end + 1;
 			$text_end = $this->bookmarks[$bookmark]->start;
 			if ($text_start < $text_end) {
+				$this->buffered_tag = $next_tag;
 				$text = substr($this->html, $text_start, $text_end - $text_start);
 				return WP_HTML_Token::text($text);
 			}
