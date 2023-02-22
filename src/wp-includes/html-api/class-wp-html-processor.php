@@ -995,10 +995,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 	private function insert_node( WP_HTML_Node $node, $override_target = null ) {
 		$target = $override_target ?: $this->current_node();
-
-		// Appropriate place for inserting a node:
-		// For now skip foster parenting and always use the
-		// location after the last child of the target
+		/**
+		 * Appropriate place for inserting a node is always the end of the
+		 * target's children thanks to the assumptions this parser makes.
+		 */
 		$target->append_child($node);
 		dbg("Inserted element: {$node->token->tag} to parent {$target->token->tag}", 2);
 	}
