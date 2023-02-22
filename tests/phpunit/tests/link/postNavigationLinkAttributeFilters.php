@@ -18,8 +18,9 @@ class Tests_Link_PostNavigationLinkAttributeFilters extends WP_UnitTestCase {
 	 * @param WP_UnitTest_Factory $factory
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		$factory->post->create_many( 3 );
 		global $wp_query, $paged;
+
+		$factory->post->create_many( 3 );
 		$paged    = 2;
 		$wp_query = new WP_Query(
 			array(
