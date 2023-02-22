@@ -341,6 +341,9 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 
 		// Remove feed icon link from legacy RSS widget.
 		add_filter( 'rss_widget_feed_link', '__return_false' );
+
+		// Add support for the latest design tools in the editor.
+		add_theme_support( 'appearance-tools' );
 	}
 }
 add_action( 'after_setup_theme', 'twenty_twenty_one_setup' );

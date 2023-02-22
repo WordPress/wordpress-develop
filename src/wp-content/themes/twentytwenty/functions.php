@@ -145,6 +145,8 @@ function twentytwenty_theme_support() {
 	$loader = new TwentyTwenty_Script_Loader();
 	add_filter( 'script_loader_tag', array( $loader, 'filter_script_loader_tag' ), 10, 2 );
 
+	// Add support for the latest design tools in the editor.
+	add_theme_support( 'appearance-tools' );
 }
 
 add_action( 'after_setup_theme', 'twentytwenty_theme_support' );
