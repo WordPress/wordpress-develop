@@ -1503,8 +1503,6 @@ DOM after main loop:
          └─ #text: Amet
 */
 
-die();
-
 $p = new WP_HTML_Processor( '<div>1<span>2</div>3</span>4' );
 $p->parse();
 /*
@@ -1519,8 +1517,6 @@ Outputs:
 	│  └─ #text: 4
 	└─ #text: 5
 */
-
-die();
 
 $p = new WP_HTML_Processor( '<p>1<b>2<i>3</b>4</i>5</p>' );
 $p->parse();
