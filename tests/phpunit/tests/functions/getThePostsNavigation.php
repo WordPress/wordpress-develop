@@ -11,7 +11,7 @@
 class Tests_Functions_GetThePostsNavigation extends WP_UnitTestCase {
 
 	/**
-	 * Create posts for the tests.
+	 * Creates posts before any tests run.
 	 *
 	 * @param WP_UnitTest_Factory $factory
 	 */
