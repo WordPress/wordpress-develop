@@ -3,8 +3,9 @@
 /**
  * Tests get_the_posts_navigation function.
  *
- * @ticket 55751
  * @since 6.2.0
+ *
+ * @group link
  *
  * @covers ::get_the_posts_navigation
  */
