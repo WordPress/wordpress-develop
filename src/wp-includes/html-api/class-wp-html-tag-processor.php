@@ -724,7 +724,7 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		if ( ! array_key_exists( $name, $this->bookmarks ) && count( $this->bookmarks ) >= self::MAX_BOOKMARKS ) {
+		if ( ! array_key_exists( $name, $this->bookmarks ) && count( $this->bookmarks ) >= static::MAX_BOOKMARKS ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Too many bookmarks: cannot create any more.' ),
