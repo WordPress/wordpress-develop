@@ -1251,7 +1251,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * Data provider for tests which need to run once for each possible value of the fields argument.
 	 *
-	 * @return array Test data.
+	 * @return array[] Test data.
 	 */
 	public function data_fields() {
 		return array(
