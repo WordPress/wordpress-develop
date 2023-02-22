@@ -758,6 +758,58 @@ JS;
 	}
 
 	/**
+	 * Helper function to check if a script has an `after` inline dependency.
+	 */
+	private function has_after_inline_dependency( $handle ) {
+		return false !== $this->get_data( $handle, 'after' );
+	}
+
+	/**
+	 * Helper function to check if a script has an `before` inline dependency.
+	 */
+	private function has_before_inline_dependency( $handle ) {
+		return false !== $this->get_data( $handle, 'before' );
+	}
+
+	/**
+	 * Get the correct loading strategy for the script.
+	 *
+	 * @param string  $handle Handle name of the script.
+	 * @return string $strategy return the final strategy.
+	 */
+	private function get_eligible_loading_strategy( $handle = '' ) {
+		if ( ! isset( $this->registered[ $handle ] ) ) {
+			return 'blocking';
+		}
+
+		$script_args = $this->get_data( $handle, 'script_args' );
+
+		if ( empty( $this->registered[ $handle ]->deps ) ) {
+			if ( ! isset( $script_args['strategy'] ) ) {
+				return 'async';
+			}
+
+			// Script eligible for async but user has specific strategy requirement.
+			return $script_args['strategy'];
+		}
+
+		$deps_has_async = false;
+		foreach ( $this->registered[ $handle ]->deps as $dep_handle ) {
+			$dep_strategy = $this->get_eligible_loading_strategy( $dep_handle );
+			if ( 'async' === $dep_strategy ) {
+				$deps_has_async = true;
+				break;
+			}
+		}
+
+		if ( ! $deps_has_async && ! $this->has_before_inline_dependency( $handle ) ) {
+			return 'defer';
+		}
+
+		return 'blocking';
+	}
+
+	/**
 	 * Resets class properties.
 	 *
 	 * @since 2.8.0
