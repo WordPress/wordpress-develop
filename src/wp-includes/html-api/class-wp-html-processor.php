@@ -11,22 +11,68 @@ if ( ! class_exists( 'WP_HTML_Tag_Processor' ) ) {
 	}
 }
 
-// Could be just WP_HTML_Node actually
-class WP_HTML_Element {
-	const MARKER = -1;
+class WP_HTML_Token {
+	const MARKER = 1;
+	const TAG = 2;
+	const TEXT = 3;
+
+	public $type;
+
+	// For tag tokens
 	public $tag;
 	public $attributes;
 	public $is_closer;
 	public $is_opener;
-	public $tag_processor_bookmark;
-	public function __construct( $tag, $attributes = null, $is_opener = true ) {
-		$this->tag        = $tag;
-		$this->attributes = $attributes;
-		$this->is_opener  = $is_opener;
-		$this->is_closer  = ! $is_opener;
+	public $bookmark;
+
+	// For text tokens
+	public $value;
+	
+	static public function marker() {
+		return new WP_HTML_Token( self::MARKER );
 	}
 
-	public function equivalent( WP_HTML_Element $other ) {
+	static public function tag( $tag, $attributes = null, $is_opener = true, $bookmark = null ) {
+		$token = new WP_HTML_Token( self::TAG, $tag );
+		$token->tag        = $tag;
+		$token->attributes = $attributes;
+		$token->is_opener  = $is_opener;
+		$token->is_closer  = ! $is_opener;
+		$token->bookmark = $bookmark;
+		return $token;
+	}
+
+	static public function text( $text ) {
+		$token = new WP_HTML_Token( self::TEXT );
+		$token->value = $text;
+		return $token;
+	}
+
+	public function __construct( $type ) {
+		$this->type = $type;
+	}
+
+	public function __toString() {
+		switch ( $this->type ) {
+			case self::MARKER:
+				return 'MARKER';
+			case self::TAG:
+				return sprintf(
+					'<%s%s%s>',
+					$this->is_closer ? '/' : '',
+					$this->tag,
+					$this->attributes ? ' ' . implode( ' ', $this->attributes ) : ''
+				);
+			case self::TEXT:
+				return $this->value;
+		}
+	}
+
+	public function equivalent( WP_HTML_Token $other ) {
+		if ( ! $this->tag || ! $other->tag ) {
+			throw new Exception( 'Cannot compare non-tag tokens' );
+		}
+
 		if ( $this->is_closer !== $other->is_closer ) {
 			return false;
 		}
@@ -50,7 +96,15 @@ class WP_HTML_Element {
 	}
 
 	public function is_marker() {
-		return self::MARKER === $this->tag;
+		return self::MARKER === $this->type;
+	}
+
+	public function is_tag() {
+		return self::TAG === $this->type;
+	}
+
+	public function is_text() {
+		return self::TEXT === $this->type;
 	}
 }
 
@@ -78,13 +132,12 @@ class WP_HTML_Insertion_Mode {
  */
 class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
-	private $tag_processor;
 	/**
-	 * @var WP_HTML_Element[]
+	 * @var WP_HTML_Token[]
 	 */
 	private $open_elements = array();
 	/**
-	 * @var WP_HTML_Element[]
+	 * @var WP_HTML_Token[]
 	 */
 	private $active_formatting_elements = array();
 	private $root_node                  = null;
@@ -92,6 +145,20 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private $original_insertion_mode    = null;
 	private $insertion_mode             = null;
 
+	/*
+	 * WP_HTML_Tag_Processor skips over text nodes and only
+	 * processes tags.
+	 * 
+	 * WP_HTML_Processor needs to process text nodes as well.
+	 * 
+	 * Whenever the tag processor skips over text to move to
+	 * the next tag, the next_token() method emits that text 
+	 * as a token and stores the tag in $buffered_tag to be
+	 * returned the next time.
+	 */
+	private $buffered_tag = null;
+
+	private $last_token = null;
 	private $inserted_tokens = array();
 
 	private $head_pointer;
@@ -99,14 +166,22 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 	public function __construct( $html ) {
 		parent::__construct( $html );
-		$this->root_node     = new WP_HTML_Element( 'HTML' );
-		$this->context_node  = new WP_HTML_Element( 'DOCUMENT' );
+		$this->root_node     = WP_HTML_Token::tag( 'HTML' );
+		$this->context_node  = WP_HTML_Token::tag( 'DOCUMENT' );
 		$this->open_elements = array( $this->root_node );
 		$this->reset_insertion_mode();
 	}
 
-	public function parse_next() {
-		return $this->next_tag_in_body_insertion_mode();
+	public function main() {
+		for ($i = 0; $i < 10; $i++) {
+			$token = $this->next_token();
+			if(!$token) {
+				break;
+			}
+			echo "TOKEN: $token\n";
+			$processed_token = $this->process_in_body_insertion_mode($token);
+			$this->last_token = $processed_token;
+		}
 		// @TODO:
 		// switch($this->insertion_mode) {
 		// case WP_HTML_Insertion_Mode::INITIAL:
@@ -154,9 +229,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		// }
 	}
 
-	public function next_tag_in_body_insertion_mode() {
-		$token = $this->next_token();
-		if ( $token->is_opener ) {
+	public function process_in_body_insertion_mode(WP_HTML_Token $token) {
+		if ( $token->is_text() ) {
+			// ?
+		}
+		else if ( $token->is_opener ) {
 			// Should we care?
 			// if(self::is_rcdata_element($token->tag)) {
 			// $this->original_insertion_mode = $this->insertion_mode;
@@ -304,8 +381,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 					if ( $active_a ) {
 						$this->parse_error();
-						// @TODO:
-						// Run the adoption agency algorithm with the tag name "a".
+						$this->adoption_agency_algorithm( $token );
 					}
 
 					$this->reconstruct_active_formatting_elements();
@@ -342,7 +418,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case 'OBJECT':
 					$this->reconstruct_active_formatting_elements();
 					$this->insert_element( $token );
-					$this->active_formatting_elements[] = new WP_HTML_Element( WP_HTML_Element::MARKER );
+					$this->active_formatting_elements[] = WP_HTML_Token::marker();
 					break;
 				case 'TABLE':
 					$this->insert_element( $token );
@@ -515,7 +591,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					if ( ! $this->is_element_in_button_scope( 'P' ) ) {
 						// Parse error, insert an HTML element for a "p" start tag token with no attributes.
 						$this->parse_error();
-						$this->insert_element( new WP_HTML_Element( 'P', array() ) );
+						$this->insert_element( WP_HTML_Token::tag( 'P' ) );
 					}
 					$this->close_p_element();
 					break;
@@ -609,29 +685,56 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					break;
 			}
 		}
+		return $token;
 	}
 
 	private $element_bookmark_idx = 0;
 	private function next_token() {
+		if($this->buffered_tag){
+			$next_tag = $this->buffered_tag;
+			$this->buffered_tag = null;
+			return $next_tag;
+		}
+
 		if ( ! $this->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
 			return false;
 		}
 
-		$consumed_node = new WP_HTML_Element(
+		$bookmark = '__internal_' . ( $this->element_bookmark_idx++ );
+		$this->set_bookmark($bookmark);
+		$next_tag = WP_HTML_Token::tag(
 			$this->get_tag(),
 			array(),
-			! $this->is_tag_closer()
+			! $this->is_tag_closer(),
+			$bookmark
 		);
 
-		$consumed_node->tag_processor_bookmark = $this->set_bookmark(
-			'__internal_' . ( $this->element_bookmark_idx++ )
-		);
+		/*
+		 * If any text was found between the last tag and this one, 
+		 * save the next tag for later and return the text token.
+		 */
+		$last = $this->last_token;
+		if ( 
+			$last 
+			&& $last->is_tag()
+			&& $last->bookmark
+			&& $this->has_bookmark($last->bookmark)
+		) {
+			$this->buffered_tag = $next_tag;
 
-		return $consumed_node;
+			$text_start = $this->bookmarks[$last->bookmark]->end + 1;
+			$text_end = $this->bookmarks[$bookmark]->start;
+			if ($text_start < $text_end) {
+				$text = substr($this->html, $text_start, $text_end - $text_start);
+				return WP_HTML_Token::text($text);
+			}
+		}
+
+		return $next_tag;
 	}
 
 	const ANY_OTHER_END_TAG = 1;
-	private function adoption_agency_algorithm( WP_HTML_Element $token ) {
+	private function adoption_agency_algorithm( WP_HTML_Token $token ) {
 		$subject = $token->tag;
 		if (
 			$this->current_node()->tag === $subject
@@ -786,7 +889,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 *
 				 * Let node be the new element.
 				 */
-				$new_node            = new WP_HTML_Element( $node->tag, array() );
+				$new_node            = WP_HTML_Token::tag( $node->tag );
 				$node_formatting_idx = array_search( $node, $this->active_formatting_elements, true );
 				$this->active_formatting_elements[ $node_formatting_idx ] = $new_node;
 
@@ -815,7 +918,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			// Create an element for the token for which formatting element was created, in the HTML
 			// namespace, with furthest block as the intended parent.
-			$new_element = new WP_HTML_Element( $formatting_element->tag, array() );
+			$new_element = WP_HTML_Token::tag( $formatting_element->tag );
 
 			// Take all of the child nodes of furthest block and append them to the element created in
 			// the last step.
@@ -871,9 +974,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	private function ignore_token( $token ) {
-		if ( $token->tag_processor_bookmark ) {
-			$this->release_bookmark( $token->tag_processor_bookmark );
-			$token->tag_processor_bookmark = null;
+		if ( $token->bookmark ) {
+			$this->release_bookmark( $token->bookmark );
+			$token->bookmark = null;
 		}
 		return;
 	}
@@ -903,9 +1006,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 	private function pop_open_element() {
 		$popped = array_pop( $this->open_elements );
-		if ( $popped->tag_processor_bookmark ) {
-			$this->release_bookmark( $popped->tag_processor_bookmark );
-			$popped->tag_processor_bookmark = null;
+		if ( $popped->bookmark ) {
+			$this->release_bookmark( $popped->bookmark );
+			$popped->bookmark = null;
 		}
 		return $popped;
 	}
@@ -1020,7 +1123,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			// @TODO:
 			// Create: Insert an HTML element for the token for which the element entry
 			// was created, to obtain new element.
-			$new_element = new WP_HTML_Element( $entry->tag, $entry->attributes );
+			$new_element = WP_HTML_Token::tag( $entry->tag, $entry->attributes );
 
 			// Replace the entry for entry in the list with an entry for new element.
 			$index = array_search( $entry, $this->active_formatting_elements, true );
@@ -1362,9 +1465,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 }
 
 
-$p = new WP_HTML_Processor( '<p>Lorem<b>Ipsum</p>Dolor</b>Sit' );
+$p = new WP_HTML_Processor( '<p>Lorem<b>Ipsum<i></i></p>Dolor</b>Sit' );
 // The controller's schema is hardcoded, so tests would not be meaningful.
-$p->parse_next();
+$p->main();
 
 // $this->tag_processor->next_tag(
 //     array(

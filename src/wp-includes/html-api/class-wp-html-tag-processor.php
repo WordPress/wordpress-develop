@@ -274,7 +274,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var string
 	 */
-	private $html;
+	public $html;
 
 	/**
 	 * The last query passed to next_tag().
@@ -343,7 +343,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var int
 	 */
-	private $bytes_already_parsed = 0;
+	protected $bytes_already_parsed = 0;
 
 	/**
 	 * How many bytes from the input HTML document have already been
@@ -406,7 +406,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var int|null
 	 */
-	private $tag_ends_at;
+	protected $tag_ends_at;
 
 	/**
 	 * Whether the current tag is an opening tag, e.g. <div>, or a closing tag, e.g. </div>.
@@ -734,7 +734,7 @@ class WP_HTML_Tag_Processor {
 		}
 
 		$this->bookmarks[ $name ] = new WP_HTML_Span(
-			$this->tag_name_starts_at - 1,
+			$this->tag_name_starts_at - ($this->is_closing_tag ? 2 : 1),
 			$this->tag_ends_at
 		);
 
