@@ -7007,7 +7007,7 @@ function _get_non_cached_ids( $object_ids, $cache_key ) {
 		 * in custom builds so WordPress is unable to rely on it.
 		 */
 		if ( is_int( $object_id )
-			|| ( is_string( $object_id ) && (string) (int) $object_id === $object_id 
+			|| ( is_string( $object_id ) && (string) (int) $object_id === $object_id ) ) {
 			return true;
 		}
 
