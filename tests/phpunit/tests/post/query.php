@@ -748,7 +748,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 42469
 	 */
 	public function test_found_posts_should_be_integer_not_string() {
-		$post_id = self::factory()->post->create();
+		self::factory()->post->create();
 
 		$q = new WP_Query(
 			array(
@@ -763,7 +763,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 42469
 	 */
 	public function test_found_posts_should_be_integer_even_if_found_posts_filter_returns_string_value() {
-		$post_id = self::factory()->post->create();
+		self::factory()->post->create();
 
 		add_filter( 'found_posts', '__return_empty_string' );
 
