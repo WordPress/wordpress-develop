@@ -786,9 +786,9 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$q = new WP_Query();
 
-		$this->assertSame( 0, $q->post_count );
-		$this->assertSame( 0, $q->found_posts );
-		$this->assertSame( 0, $q->max_num_pages );
+		$this->assertSame( 0, $q->post_count, 'Post count is expected to be zero' );
+		$this->assertSame( 0, $q->found_posts, 'Total found posts is expected to be zero' );
+		$this->assertSame( 0, $q->max_num_pages, 'Number of pages is expected to be zero' );
 	}
 
 	/**
