@@ -64,6 +64,28 @@ class Tests_HtmlApi_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57787
+	 *
+	 * @covers WP_HTML_Tag_Processor::seek
+	 */
+	public function test_seeks_to_tag_closer_bookmark() {
+		$p = new WP_HTML_Tag_Processor( '<div>First</div><span>Second</span>' );
+		$p->next_tag( array( 'tag_closers' => 'visit' ) );
+		$p->set_bookmark( 'first' );
+		$p->next_tag( array( 'tag_closers' => 'visit' ) );
+		$p->set_bookmark( 'second' );
+
+		$p->seek( 'first' );
+		$p->seek( 'second' );
+
+		$this->assertSame(
+			'DIV',
+			$p->get_tag(),
+			'Did not seek to the intended bookmark location'
+		);
+	}
+
+	/**
 	 * WP_HTML_Tag_Processor used to test for the diffs affecting
 	 * the adjusted bookmark position while simultaneously adjusting
 	 * the bookmark in question. As a result, updating the bookmarks
