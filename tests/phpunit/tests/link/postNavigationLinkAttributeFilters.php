@@ -49,7 +49,9 @@ class Tests_Link_PostNavigationLinkAttributeFilters extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the 'previous_posts_link_attributes' filter is applied correctly.
+	 * Tests that the 'previous_posts_link_attributes' filter is applied correctly.
+	 *
+	 * @ticket 55751
 	 */
 	public function test_previous_posts_link_attributes() {
 		$expected = "data-attribute='previous'";
