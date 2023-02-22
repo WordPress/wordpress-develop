@@ -12,8 +12,8 @@ if ( ! class_exists( 'WP_HTML_Tag_Processor' ) ) {
 }
 
 function dbg( $message, $indent = 0 ) {
-	$show_debug = true;
-	// $show_debug = false;
+	// $show_debug = true;
+	$show_debug = false;
 	if( $show_debug ) {
 		$indent = str_repeat( ' ', $indent * 2 );
 		echo $indent . $message . "\n";
@@ -21,9 +21,9 @@ function dbg( $message, $indent = 0 ) {
 }
 
 class WP_HTML_Token {
-	const MARKER = 1;
-	const TAG = 2;
-	const TEXT = 3;
+	const MARKER = 'MARKER';
+	const TAG = 'TAG';
+	const TEXT = 'TEXT';
 
 	public $type;
 
@@ -67,13 +67,13 @@ class WP_HTML_Token {
 				return 'MARKER';
 			case self::TAG:
 				return sprintf(
-					'<%s%s%s>',
+					'%s%s%s',
 					$this->is_closer ? '/' : '',
 					$this->tag,
 					$this->attributes ? ' ' . implode( ' ', $this->attributes ) : ''
 				);
 			case self::TEXT:
-				return $this->value;
+				return '#text: ' . trim($this->value);
 		}
 	}
 
@@ -118,16 +118,32 @@ class WP_HTML_Token {
 }
 
 class WP_HTML_Node {
+	/**
+	 * @var WP_HTML_Node
+	 */
 	public $parent;
+	/**
+	 * @var WP_HTML_Node[]
+	 */
 	public $children = array();
+	/**
+	 * @var string
+	 */
 	public $token;
 	public $depth = 1;
 
 	// For the adoption agency algorithm:
 	public $intended_parent = null;
+	private $type;
+	private $value;
+	private $tag;
 
 	public function __construct( WP_HTML_Token $token ) {
 		$this->token = $token;
+		// Just for debugging convenience – remove eventually
+		$this->type = $token->type;
+		$this->value = $token->value;
+		$this->tag = $token->tag;
 	}
 
 	public function append_child( WP_HTML_Node $node ) {
@@ -147,14 +163,24 @@ class WP_HTML_Node {
 	}
 
 	public function __toString() {
-		$out = '';
-		$indent = str_repeat( ' ', $this->depth );
-		$out .= $indent . $this->token . "\n";
-		foreach ( $this->children as $child ) {
-			$out .= $child;
-		}
-		return $out;
+		return wp_html_node_to_ascii_tree( $this );
 	}
+}
+
+
+function wp_html_node_to_ascii_tree( WP_HTML_Node $node, $prefix = '', $is_last = false ) {
+    $ascii_tree = $prefix . ( $node->parent ? ($is_last ? '└─ ' : '├─ ') : '  ' ) . $node->token . "\n";
+
+    // Recursively process the children of the current node
+	$children = array_values($node->children);
+    $num_children = count( $children );
+    for ( $i = 0; $i < $num_children; $i++ ) {
+        $child_prefix = $prefix . ( $i == $num_children - 1 ? '   ' : '   ' );
+        $is_last_child = ( $i == $num_children - 1 );
+        $ascii_tree .= wp_html_node_to_ascii_tree( $children[ $i ], $child_prefix, $is_last_child );
+    }
+
+    return $ascii_tree;
 }
 
 class WP_HTML_Insertion_Mode {
@@ -224,7 +250,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	public function parse() {
 		echo("HTML before main loop:\n");
 		echo($this->html);
-		echo("\n\n");
+		echo("\n");
 		while ($token = $this->next_token()) {
 			$this->last_token = $token;
 			$processed_token = $this->process_in_body_insertion_mode($token);
@@ -233,6 +259,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		echo("\n");
 		echo("DOM after main loop:\n");
 		echo($this->root_node.'');
+		echo "\n\n";
 		// @TODO:
 		// switch($this->insertion_mode) {
 		// case WP_HTML_Insertion_Mode::INITIAL:
@@ -999,7 +1026,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			// Insert whatever last node ended up being in the previous step at the appropriate place
 			// for inserting a node, but using common ancestor as the override target.
-			$this->insert_element( $last_node, $common_ancestor );
+			$this->insert_node( $last_node, $common_ancestor );
 
 			// Create an element for the token for which formatting element was created, in the HTML
 			// namespace, with furthest block as the intended parent.
@@ -1034,30 +1061,28 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 	}
 
-	private function insert_element( $token_or_node, $override_target = null ) {
+	private function insert_element( WP_HTML_Token $token, $override_target = null ) {
 		// Create element for a token
 		// Skip reset algorithm for now
 		// Skip form-association for now
-		if($token_or_node instanceof WP_HTML_Token) {
-			$node = $this->create_element_for_token($token_or_node);
-		} else {
-			$node = $token_or_node;
-		}
+		$node = $this->create_element_for_token($token);
+		$this->insert_node($node, $override_target);
+		array_push($this->open_elements, $node);
+		return $node;
+	}
 
+	private function insert_node( WP_HTML_Node $node, $override_target = null ) {
 		$target = $override_target ?: $this->current_node();
 
 		// Appropriate place for inserting a node:
 		// For now skip foster parenting and always use the
 		// location after the last child of the target
 		$target->append_child($node);
-		array_push($this->open_elements, $node);
-		dbg("inserted element: {$node->token->tag} to parent {$target->token->tag}", 2);
-		return $node;
+		dbg("Inserted element: {$node->token->tag} to parent {$target->token->tag}", 2);
 	}
 
 	private function create_element_for_token( WP_HTML_Token $token ) {
-		$node = new WP_HTML_Node($token);
-		return $node;
+		return new WP_HTML_Node($token);
 	}
 
 	private function insert_text( WP_HTML_Token $token ) {
@@ -1622,10 +1647,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 }
 
 
-// $p = new WP_HTML_Processor( '<p>1<b>2<i>3</b>4</i>5</p>' );
-// $p->parse();
+$p = new WP_HTML_Processor( '<p>1<b>2<i>3</b>4</i>5</p>' );
+$p->parse();
 /*
-Should output:
+Outputs:
 	p
 	├─ #text: 1
 	├─ b
@@ -1640,11 +1665,12 @@ Should output:
 $p = new WP_HTML_Processor( '<b>1<p>2</b>3</p>' );
 $p->parse();
 /*
-Should output:
-b
-└─ #text: 1
-p
-├─ b
-│  └─ #text: 2
-└─ #text: 3
+Outputs the correct result:
+  HTML
+   ├─ B
+      └─ #text: 1
+   └─ P
+      ├─ B
+         └─ #text: 2
+      └─ #text: 3
 */
