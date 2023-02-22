@@ -1,12 +1,8 @@
 <?php
 /**
- * Test `_get_non_cached_ids()`.
+ * Test class for `_get_non_cached_ids()`.
  *
  * @package WordPress
- */
-
-/**
- * Test class for `_get_non_cached_ids()`.
  *
  * @group cache
  *
@@ -20,7 +16,11 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	public function test_uncached_valid_ids_should_be_unique() {
 		$object_id = 1;
 
-		$this->assertSame( array( $object_id ), _get_non_cached_ids( array( $object_id, $object_id, (string) $object_id ), 'fake-group' ), 'Duplicate object IDs should be removed.' );
+		$this->assertSame(
+			array( $object_id ),
+			_get_non_cached_ids( array( $object_id, $object_id, (string) $object_id ), 'fake-group' ),
+			'Duplicate object IDs should be removed.'
+		);
 	}
 
 	/**
@@ -31,7 +31,11 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	 * @param mixed $object_id The object id.
 	 */
 	public function test_valid_ids_should_be_returned_as_integers( $object_id ) {
-		$this->assertSame( array( (int) $object_id ), _get_non_cached_ids( array( $object_id ), 'fake-group' ), 'Object IDs should be returned as integers.' );
+		$this->assertSame(
+			array( (int) $object_id ),
+			_get_non_cached_ids( array( $object_id ), 'fake-group' ),
+			'Object IDs should be returned as integers.'
+		);
 	}
 
 	/**
@@ -53,7 +57,11 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 		$object_id = 1;
 
 		$this->setExpectedIncorrectUsage( '_get_non_cached_ids' );
-		$this->assertSame( array( $object_id ), _get_non_cached_ids( array( $object_id, null ), 'fake-group' ), 'Valid object IDs should be returned.' );
+		$this->assertSame(
+			array( $object_id ),
+			_get_non_cached_ids( array( $object_id, null ), 'fake-group' ),
+			'Valid object IDs should be returned.'
+		);
 	}
 
 	/**
@@ -65,7 +73,11 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	 */
 	public function test_invalid_cache_ids_should_throw_a_notice( $object_id ) {
 		$this->setExpectedIncorrectUsage( '_get_non_cached_ids' );
-		$this->assertSame( array(), _get_non_cached_ids( array( $object_id ), 'fake-group' ), 'Invalid object IDs should be dropped.' );
+		$this->assertSame(
+			array(),
+			_get_non_cached_ids( array( $object_id ), 'fake-group' )
+			'Invalid object IDs should be dropped.'
+		);
 	}
 
 	/**

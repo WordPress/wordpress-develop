@@ -7006,8 +7006,8 @@ function _get_non_cached_ids( $object_ids, $cache_key ) {
 		 * This could all be achieved with filter_var(), however the filter extension can be removed
 		 * in custom builds so WordPress is unable to rely on it.
 		 */
-		// phpcs:ignore WordPress.PHP.YodaConditions.NotYoda, false positive
-		if ( is_int( $object_id ) || ( is_string( $object_id ) && (string) $object_id === (string) (int) $object_id ) ) {
+		if ( is_int( $object_id )
+			|| ( is_string( $object_id ) && (string) (int) $object_id === $object_id 
 			return true;
 		}
 
