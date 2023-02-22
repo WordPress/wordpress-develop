@@ -9,7 +9,7 @@
  *
  * @covers ::get_the_posts_navigation
  */
-class Tests_Functions_GetThePostsNavigation extends WP_UnitTestCase {
+class Tests_Link_GetThePostsNavigation extends WP_UnitTestCase {
 
 	/**
 	 * Creates posts before any tests run.
