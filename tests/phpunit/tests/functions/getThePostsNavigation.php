@@ -20,7 +20,10 @@ class Tests_Functions_GetThePostsNavigation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Run tests on `get_the_posts_navigation()`.
+	 * Tests that get_the_posts_navigation() only includes the "Older posts" and "Newer" posts
+	 * links when appropriate.
+	 *
+	 * @ticket 55751
 	 *
 	 * @dataProvider data_get_the_posts_navigation
 	 *
