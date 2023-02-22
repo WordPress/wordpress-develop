@@ -1097,8 +1097,10 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		add_post_meta( $ids[3], 'field_2', 'bar' );
 		add_post_meta( $ids[4], 'field_2', 'bar' );
 
-		// This query results in a `GROUP BY wp_posts.ID` clause, which means the
-		// count query must count `DISTINCT wp_posts.ID` to eliminate duplicates.
+		/*
+		 * This query results in a `GROUP BY wp_posts.ID` clause, which means the
+		 * count query must count `DISTINCT wp_posts.ID` to eliminate duplicates.
+		 */
 		$q = new WP_Query(
 			array(
 				'fields'         => $fields,
@@ -1153,8 +1155,10 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			}
 		);
 
-		// This query results in a `GROUP BY wp_posts.post_author` clause, which means the
-		// count query must count `DISTINCT wp_posts.post_author` to eliminate duplicates.
+		/*
+		 * This query results in a `GROUP BY wp_posts.post_author` clause, which means the
+		 * count query must count `DISTINCT wp_posts.post_author` to eliminate duplicates.
+		 */
 		$q = new WP_Query(
 			array(
 				'fields'         => $fields,
@@ -1189,8 +1193,10 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		// Switch to another site.
 		switch_to_blog( $blog );
 
-		// Count the posts from the original site. This works because the SQL query
-		// and its table names has already been formed during the original query.
+		/*
+		 * Count the posts from the original site. This works because the SQL query
+		 * and its table names has already been formed during the original query.
+		 */
 		$post_count    = $q->post_count;
 		$found_posts   = $q->found_posts;
 		$max_num_pages = $q->max_num_pages;
