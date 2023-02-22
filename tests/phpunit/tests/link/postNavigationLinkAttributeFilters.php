@@ -32,7 +32,9 @@ class Tests_Link_PostNavigationLinkAttributeFilters extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the 'next_posts_link_attributes' filter is applied correctly.
+	 * Tests that the 'next_posts_link_attributes' filter is applied correctly.
+	 *
+	 * @ticket 55751
 	 */
 	public function test_next_posts_link_attribute() {
 		$expected = "data-attribute='next'";
