@@ -793,6 +793,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 *
 	 * @dataProvider data_fields
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
@@ -812,6 +813,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 *
 	 * @dataProvider data_fields
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
@@ -833,6 +835,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 *
 	 * @dataProvider data_fields
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
@@ -855,6 +858,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 *
 	 * @dataProvider data_fields
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
@@ -877,6 +881,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 *
 	 * @dataProvider data_fields
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
@@ -898,6 +903,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 *
 	 * @dataProvider data_fields
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
@@ -920,6 +926,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 *
 	 * @dataProvider data_fields
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
@@ -955,6 +962,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 *  - `post_type` not specified
 	 *
 	 * @ticket 47280
+	 *
 	 * @dataProvider data_fields
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
@@ -991,6 +999,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 *
 	 * @dataProvider data_fields
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
@@ -1019,6 +1028,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 *
 	 * @dataProvider data_fields
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
@@ -1046,6 +1056,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 *
 	 * @dataProvider data_fields
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
@@ -1081,6 +1092,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 *
 	 * @dataProvider data_fields
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
@@ -1124,6 +1136,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 *
 	 * @dataProvider data_fields
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
@@ -1175,6 +1188,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 47280
 	 * @group ms-required
+	 *
 	 * @dataProvider data_fields
 	 *
 	 * @param string $fields Value of the `fields` argument for `WP_Query`.
@@ -1211,6 +1225,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 *
 	 * @expectedDeprecated The posts_request filter
 	 */
 	public function test_posts_are_counted_with_select_found_rows_when_query_includes_sql_calc_found_rows() {
