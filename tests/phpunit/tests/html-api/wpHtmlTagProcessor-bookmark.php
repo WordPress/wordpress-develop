@@ -64,7 +64,7 @@ class Tests_HtmlApi_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 57787
 	 *
 	 * @covers WP_HTML_Tag_Processor::seek
 	 */
