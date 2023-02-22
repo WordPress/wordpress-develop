@@ -601,7 +601,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->close_p_element();
 					break;
 				case 'LI':
-					if ( $this->is_element_in_list_item_scope( 'LI' ) ) {
+					if ( ! $this->is_element_in_list_item_scope( 'LI' ) ) {
 						$this->parse_error();
 						return $this->ignore_token( $token );
 					}
@@ -610,7 +610,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					break;
 				case 'DD':
 				case 'DT':
-					if ( $this->is_element_in_scope( $token->tag ) ) {
+					if ( ! $this->is_element_in_scope( $token->tag ) ) {
 						$this->parse_error();
 						return $this->ignore_token( $token );
 					}
@@ -623,7 +623,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case 'H4':
 				case 'H5':
 				case 'H6':
-					if ( $this->is_element_in_scope( array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ) ) ) {
+					if ( ! $this->is_element_in_scope( array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ) ) ) {
 						$this->parse_error();
 						return $this->ignore_token( $token );
 					}
@@ -650,7 +650,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case 'APPLET':
 				case 'MARQUEE':
 				case 'OBJECT':
-					if ( $this->is_element_in_scope( $token->tag ) ) {
+					if ( ! $this->is_element_in_scope( $token->tag ) ) {
 						$this->parse_error();
 						return $this->ignore_token( $token );
 					}
