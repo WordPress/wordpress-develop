@@ -108,14 +108,20 @@ require_once ABSPATH . 'wp-admin/admin-header.php'; ?>
 <h1 id="add-new-user"><?php _e( 'Add New User' ); ?></h1>
 <?php
 if ( ! empty( $messages ) ) {
+	$i = 0;
 	foreach ( $messages as $msg ) {
-		echo '<div id="message" class="updated notice is-dismissible"><p>' . $msg . '</p></div>';
+		$append = '';
+		if ( 0 !== $i ) {
+			$append = '-' . (string) $i;
+		}
+		echo '<div id="message' . $append . '" class="notice notice-success is-dismissible"><p>' . $msg . '</p></div>';
+		$i++;
 	}
 }
 
 if ( isset( $add_user_errors ) && is_wp_error( $add_user_errors ) ) {
 	?>
-	<div class="error">
+	<div id="message" class="notice notice-error is-dismissible">
 		<?php
 		foreach ( $add_user_errors->get_error_messages() as $message ) {
 			echo "<p>$message</p>";
