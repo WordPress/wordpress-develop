@@ -1,10 +1,9 @@
 <?php
 
 /**
- * Test post navigation link attribute filters.
+ * Tests post navigation link attribute filters.
  *
  * @since 6.2.0
- * @ticket 55751
  *
  * @group link
  *
