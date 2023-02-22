@@ -72,9 +72,9 @@ class Tests_Functions_GetThePostsNavigation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider method for testing `get_the_posts_navigation()`.
+	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_get_the_posts_navigation() {
 		return array(
