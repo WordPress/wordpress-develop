@@ -75,7 +75,7 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 		$this->setExpectedIncorrectUsage( '_get_non_cached_ids' );
 		$this->assertSame(
 			array(),
-			_get_non_cached_ids( array( $object_id ), 'fake-group' )
+			_get_non_cached_ids( array( $object_id ), 'fake-group' ),
 			'Invalid object IDs should be dropped.'
 		);
 	}
