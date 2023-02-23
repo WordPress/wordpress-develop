@@ -11,7 +11,7 @@ if ( ! class_exists( 'WP_HTML_Tag_Processor' ) ) {
 	}
 }
 
-define('HTML_DEBUG_MODE', true);
+define('HTML_DEBUG_MODE', false);
 function dbg( $message, $indent = 0 ) {
 	if( HTML_DEBUG_MODE ) {
 		$indent = str_repeat( ' ', $indent * 2 );
@@ -441,7 +441,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					}
 
 					$this->reconstruct_active_formatting_elements();
-					$this->insert_element( $token );
+					$node = $this->insert_element( $token );
+					$this->push_active_formatting_element( $node );
 					break;
 				case 'B':
 				case 'BIG':
@@ -948,6 +949,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				// Set last node to node.
 				$last_node = $node;
 			}
+
+			// $this->reconstructed_html .= '<AA>';
+			// $this->reconstructed_html .= '<'.$common_ancestor->token->tag.'>';
+			// $this->reconstructed_html .= '<'.$last_node->token->tag.'>';
 
 			// Insert whatever last node ended up being in the previous step at the appropriate place
 			// for inserting a node, but using common ancestor as the override target.
@@ -1551,24 +1556,29 @@ DOM after main loop:
                   └─ #text: Amet
 */
 
-
-$p = new WP_HTML_Processor( '<b>1<p>2</b>3</p>' );
+$p = new WP_HTML_Processor( '<b>
+<div>
+   <div></div>
+   </b>
+ </div>
+</b>' );
 $p->parse();
-/*
-Outputs the correct result:
-  HTML
-   ├─ B
-      └─ #text: 1
-   └─ P
-      ├─ B
-         └─ #text: 2
-      └─ #text: 3
-*/
+// $p = new WP_HTML_Processor( '<b>1<p><div>2</b>3</p></div>' );
+// $p->parse();
+// /*
+// Outputs the correct result:
+// B
+// └─ #text: 1
+// P
+// ├─ B
+//    └─ #text: 2
+// └─ #text: 3
+// */
 echo "\n\n";
 echo $p->reconstructed_html;
 die();
 
-$p = new WP_HTML_Processor( '<p><b class=x><b class=x><b><b class=x><b class=x><b>X
+$p = new WP_HTML_Processor( '<p><b class=x><b class=x><b><b class=x><b class=x><b><b class=x><b class=x><b><b class=x><b class=x><b>X
 <p>X
 <p><b><b class=x><b>X
 <p></b></b></b></b></b></b>X' );
