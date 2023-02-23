@@ -862,8 +862,8 @@ JS;
 			}
 		}
 
-		// Handling defer strategy scenarios. Dependency will never be async. So only checking dependent.
-		if ( ! $this->all_dependents_are_deferrable( $handle ) ) {
+		// Handling defer strategy scenarios. Dependency will never be set async. So only checking dependent.
+		if ( $this->all_dependents_are_deferrable( $handle ) ) {
 			return 'defer';
 		}
 
