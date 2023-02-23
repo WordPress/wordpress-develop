@@ -149,7 +149,7 @@ class WP_HTML_Node {
 		$this->tag = $token->tag;
 	}
 
-	public function append_child( WP_HTML_Node $node ) {
+	public function append_child( WP_HTML_Node $node ) { 
 		if($node->parent) {
 			$node->parent->remove($node);
 		}
@@ -278,13 +278,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		// 	// $ignored_token->bookmark = null;
 		// }
 
-		$token = $this->next_token();
-		if(!$token){
-			return false;
-		}
-		$processed_token = $this->process_token($token);
-		$this->last_token = $processed_token;
-		return $processed_token;
+		$this->last_token = $ignored_token;
+		return $this->process_next_token();
 	}
 
 	public function process_token(WP_HTML_Token $token) {
@@ -1476,7 +1471,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 // die();
 
-$p = new WP_HTML_Processor( '<ul><li>1<li>2<li>3<li>Lorem<b>Ipsum<li>Dolor</ul>Sit<div>Amet' );
+$p = new WP_HTML_Processor( '<ul><li>1<li>2<li>3<li>Lorem<b>Ipsum<li>Dolor</ul></ul></ul><span></ul>Sit<span>Sit<span><div>Amet' );
 $p->parse();
 /*
 Outputs:
@@ -1498,9 +1493,13 @@ DOM after main loop:
          └─ B
             └─ #text: Dolor
    └─ B
-      ├─ #text: Sit
-      └─ DIV
-         └─ #text: Amet
+      └─ SPAN
+         ├─ #text: Sit
+         └─ SPAN
+            ├─ #text: Sit
+            └─ SPAN
+               └─ DIV
+                  └─ #text: Amet
 */
 
 $p = new WP_HTML_Processor( '<div>1<span>2</div>3</span>4' );
