@@ -6447,7 +6447,7 @@ body.page .main-navigation {
   border-color: #767676;
 }
 
-.entry .entry-content.has-white-border-color {
+.entry .entry-content .has-white-border-color {
   border-color: #fff;
 }
 
