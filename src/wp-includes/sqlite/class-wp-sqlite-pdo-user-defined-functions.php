@@ -1,4 +1,10 @@
 <?php
+/**
+ * Custom functions for the SQLite implementation.
+ *
+ * @package wp-sqlite-integration
+ * @since 1.0.0
+ */
 
 /**
  * This class defines user defined functions(UDFs) for PDO library.
@@ -8,20 +14,20 @@
  * Usage:
  *
  * <code>
- * new WP_PDO_SQLite_User_Defined_Functions(ref_to_pdo_obj);
+ * new WP_SQLite_PDO_User_Defined_Functions(ref_to_pdo_obj);
  * </code>
  *
  * This automatically enables ref_to_pdo_obj to replace the function in the SQL statement
  * to the ones defined here.
  */
-class WP_PDO_SQLite_User_Defined_Functions {
+class WP_SQLite_PDO_User_Defined_Functions {
 
 	/**
 	 * The class constructor
 	 *
 	 * Initializes the use defined functions to PDO object with PDO::sqliteCreateFunction().
 	 *
-	 * @param PDO $pdo
+	 * @param PDO $pdo The PDO object.
 	 */
 	public function __construct( $pdo ) {
 		if ( ! $pdo ) {
@@ -33,7 +39,7 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	}
 
 	/**
-	 * array to define MySQL function => function defined with PHP.
+	 * Array to define MySQL function => function defined with PHP.
 	 *
 	 * Replaced functions must be public.
 	 *
@@ -41,31 +47,28 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	 */
 	private $functions = array(
 		'month'          => 'month',
+		'monthnum'       => 'month',
 		'year'           => 'year',
 		'day'            => 'day',
+		'hour'           => 'hour',
+		'minute'         => 'minute',
+		'second'         => 'second',
+		'week'           => 'week',
+		'weekday'        => 'weekday',
+		'dayofweek'      => 'dayofweek',
+		'dayofmonth'     => 'dayofmonth',
 		'unix_timestamp' => 'unix_timestamp',
 		'now'            => 'now',
 		'char_length'    => 'char_length',
 		'md5'            => 'md5',
 		'curdate'        => 'curdate',
 		'rand'           => 'rand',
-		'substring'      => 'substring',
-		'dayofmonth'     => 'day',
-		'second'         => 'second',
-		'minute'         => 'minute',
-		'hour'           => 'hour',
-		'date_format'    => 'dateformat',
 		'from_unixtime'  => 'from_unixtime',
-		'date_add'       => 'date_add',
-		'date_sub'       => 'date_sub',
-		'adddate'        => 'date_add',
-		'subdate'        => 'date_sub',
 		'localtime'      => 'now',
 		'localtimestamp' => 'now',
 		'isnull'         => 'isnull',
 		'if'             => '_if',
-		'regexpp'        => 'regexp',
-		'concat'         => 'concat',
+		'regexp'         => 'regexp',
 		'field'          => 'field',
 		'log'            => 'log',
 		'least'          => 'least',
@@ -85,46 +88,13 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	);
 
 	/**
-	 * Method to extract the month value from the date.
-	 *
-	 * @param string representing the date formatted as 0000-00-00.
-	 *
-	 * @return string representing the number of the month between 1 and 12.
-	 */
-	public function month( $field ) {
-		return gmdate( 'n', strtotime( $field ) );
-	}
-
-	/**
-	 * Method to extract the year value from the date.
-	 *
-	 * @param string representing the date formatted as 0000-00-00.
-	 *
-	 * @return string representing the number of the year.
-	 */
-	public function year( $field ) {
-		return gmdate( 'Y', strtotime( $field ) );
-	}
-
-	/**
-	 * Method to extract the day value from the date.
-	 *
-	 * @param string representing the date formatted as 0000-00-00.
-	 *
-	 * @return string representing the number of the day of the month from 1 and 31.
-	 */
-	public function day( $field ) {
-		return gmdate( 'j', strtotime( $field ) );
-	}
-
-	/**
 	 * Method to return the unix timestamp.
 	 *
 	 * Used without an argument, it returns PHP time() function (total seconds passed
 	 * from '1970-01-01 00:00:00' GMT). Used with the argument, it changes the value
 	 * to the timestamp.
 	 *
-	 * @param string representing the date formatted as '0000-00-00 00:00:00'.
+	 * @param string $field Representing the date formatted as '0000-00-00 00:00:00'.
 	 *
 	 * @return number of unsigned integer
 	 */
@@ -133,50 +103,15 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	}
 
 	/**
-	 * Method to emulate MySQL SECOND() function.
-	 *
-	 * @param string representing the time formatted as '00:00:00'.
-	 *
-	 * @return number of unsigned integer
-	 */
-	public function second( $field ) {
-		return intval( gmdate( 's', strtotime( $field ) ) );
-	}
-
-	/**
-	 * Method to emulate MySQL MINUTE() function.
-	 *
-	 * @param string representing the time formatted as '00:00:00'.
-	 *
-	 * @return number of unsigned integer
-	 */
-	public function minute( $field ) {
-		return intval( gmdate( 'i', strtotime( $field ) ) );
-	}
-
-	/**
-	 * Method to emulate MySQL HOUR() function.
-	 *
-	 * @param string representing the time formatted as '00:00:00'.
-	 *
-	 * @return number
-	 */
-	public function hour( $time ) {
-		list($hours) = explode( ':', $time );
-
-		return intval( $hours );
-	}
-
-	/**
 	 * Method to emulate MySQL FROM_UNIXTIME() function.
 	 *
-	 * @param integer of unix timestamp
-	 * @param string to indicate the way of formatting(optional)
+	 * @param int    $field The unix timestamp.
+	 * @param string $format Indicate the way of formatting(optional).
 	 *
-	 * @return string formatted as '0000-00-00 00:00:00'.
+	 * @return string
 	 */
 	public function from_unixtime( $field, $format = null ) {
-		//convert to ISO time
+		// Convert to ISO time.
 		$date = gmdate( 'Y-m-d H:i:s', $field );
 
 		return is_null( $format ) ? $date : $this->dateformat( $date, $format );
@@ -203,7 +138,7 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	/**
 	 * Method to emulate MySQL CHAR_LENGTH() function.
 	 *
-	 * @param string
+	 * @param string $field The string to be measured.
 	 *
 	 * @return int unsigned integer for the length of the argument.
 	 */
@@ -214,7 +149,7 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	/**
 	 * Method to emulate MySQL MD5() function.
 	 *
-	 * @param string
+	 * @param string $field The string to be hashed.
 	 *
 	 * @return string of the md5 hash value of the argument.
 	 */
@@ -239,26 +174,10 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	}
 
 	/**
-	 * Method to emulate MySQL SUBSTRING() function.
-	 *
-	 * This function rewrites the function name to SQLite compatible substr(),
-	 * which can manipulate UTF-8 characters.
-	 *
-	 * @param string $text
-	 * @param integer $pos representing the start point.
-	 * @param integer $len representing the length of the substring(optional).
-	 *
-	 * @return string
-	 */
-	public function substring( $text, $pos, $len = null ) {
-		return "substr($text, $pos, $len)";
-	}
-
-	/**
 	 * Method to emulate MySQL DATEFORMAT() function.
 	 *
-	 * @param string date formatted as '0000-00-00' or datetime as '0000-00-00 00:00:00'.
-	 * @param string $format
+	 * @param string $date   Formatted as '0000-00-00' or datetime as '0000-00-00 00:00:00'.
+	 * @param string $format The string format.
 	 *
 	 * @return string formatted according to $format
 	 */
@@ -295,154 +214,223 @@ class WP_PDO_SQLite_User_Defined_Functions {
 			'%Y' => 'Y',
 			'%y' => 'y',
 		);
-		$t                      = strtotime( $date );
-		$format                 = strtr( $format, $mysql_php_date_formats );
-		$output                 = gmdate( $format, $t );
 
-		return $output;
+		$time   = strtotime( $date );
+		$format = strtr( $format, $mysql_php_date_formats );
+
+		return gmdate( $format, $time );
 	}
 
 	/**
-	 * Method to emulate MySQL DATE_ADD() function.
+	 * Method to extract the month value from the date.
 	 *
-	 * This function adds the time value of $interval expression to $date.
-	 * $interval is a single quoted strings rewritten by SQLiteQueryDriver::rewrite_query().
-	 * It is calculated in the private function derive_interval().
+	 * @param string $field Representing the date formatted as 0000-00-00.
 	 *
-	 * @param string $date representing the start date.
-	 * @param string $interval representing the expression of the time to add.
-	 *
-	 * @return string date formatted as '0000-00-00 00:00:00'.
-	 * @throws Exception
+	 * @return string Representing the number of the month between 1 and 12.
 	 */
-	public function date_add( $date, $interval ) {
-		$interval = $this->derive_interval( $interval );
-		switch ( strtolower( $date ) ) {
-			case 'curdate()':
-				$date_object = new DateTime( $this->curdate() );
-				$date_object->add( new DateInterval( $interval ) );
-				return $date_object->format( 'Y-m-d' );
-
-			case 'now()':
-				$date_object = new DateTime( $this->now() );
-				$date_object->add( new DateInterval( $interval ) );
-				return $date_object->format( 'Y-m-d H:i:s' );
-
-			default:
-				$date_object = new DateTime( $date );
-				$date_object->add( new DateInterval( $interval ) );
-				return $date_object->format( 'Y-m-d H:i:s' );
-		}
+	public function month( $field ) {
+		/*
+		 * From https://www.php.net/manual/en/datetime.format.php:
+		 *
+		 * n - Numeric representation of a month, without leading zeros.
+		 * 	   1 through 12
+		 */
+		return intval( gmdate( 'n', strtotime( $field ) ) );
 	}
 
 	/**
-	 * Method to emulate MySQL DATE_SUB() function.
+	 * Method to extract the year value from the date.
 	 *
-	 * This function subtracts the time value of $interval expression from $date.
-	 * $interval is a single quoted strings rewritten by SQLiteQueryDriver::rewrite_query().
-	 * It is calculated in the private function derive_interval().
+	 * @param string $field Representing the date formatted as 0000-00-00.
 	 *
-	 * @param string $date representing the start date.
-	 * @param string $interval representing the expression of the time to subtract.
-	 *
-	 * @return string date formatted as '0000-00-00 00:00:00'.
-	 * @throws Exception
+	 * @return string Representing the number of the year.
 	 */
-	public function date_sub( $date, $interval ) {
-		$interval = $this->derive_interval( $interval );
-		switch ( strtolower( $date ) ) {
-			case 'curdate()':
-				$date_object = new DateTime( $this->curdate() );
-				$date_object->sub( new DateInterval( $interval ) );
-				return $date_object->format( 'Y-m-d' );
-
-			case 'now()':
-				$date_object = new DateTime( $this->now() );
-				$date_object->sub( new DateInterval( $interval ) );
-				return $date_object->format( 'Y-m-d H:i:s' );
-
-			default:
-				$date_object = new DateTime( $date );
-				$date_object->sub( new DateInterval( $interval ) );
-				return $date_object->format( 'Y-m-d H:i:s' );
-		}
+	public function year( $field ) {
+		/*
+		 * From https://www.php.net/manual/en/datetime.format.php:
+		 *
+		 * Y - A full numeric representation of a year, 4 digits.
+		 */
+		return intval( gmdate( 'Y', strtotime( $field ) ) );
 	}
 
 	/**
-	 * Method to calculate the interval time between two dates value.
+	 * Method to extract the day value from the date.
 	 *
-	 * @access private
+	 * @param string $field Representing the date formatted as 0000-00-00.
 	 *
-	 * @param string $interval white space separated expression.
-	 *
-	 * @return string representing the time to add or substract.
+	 * @return string Representing the number of the day of the month from 1 and 31.
 	 */
-	private function derive_interval( $interval ) {
-		$interval = trim( substr( trim( $interval ), 8 ) );
-		$parts    = explode( ' ', $interval );
-		foreach ( $parts as $part ) {
-			if ( ! empty( $part ) ) {
-				$_parts[] = $part;
-			}
-		}
-		$type = strtolower( end( $_parts ) );
-		switch ( $type ) {
-			case 'second':
-				return 'PT' . $_parts[0] . 'S';
+	public function day( $field ) {
+		/*
+		 * From https://www.php.net/manual/en/datetime.format.php:
+		 *
+		 * j - Day of the month without leading zeros.
+		 *     1 to 31.
+		 */
+		return intval( gmdate( 'j', strtotime( $field ) ) );
+	}
 
-			case 'minute':
-				return 'PT' . $_parts[0] . 'M';
+	/**
+	 * Method to emulate MySQL SECOND() function.
+	 *
+	 * @see https://www.php.net/manual/en/datetime.format.php
+	 *
+	 * @param string $field Representing the time formatted as '00:00:00'.
+	 *
+	 * @return number Unsigned integer
+	 */
+	public function second( $field ) {
+		/*
+		 * From https://www.php.net/manual/en/datetime.format.php:
+		 *
+		 * s - Seconds, with leading zeros (00 to 59)
+		 */
+		return intval( gmdate( 's', strtotime( $field ) ) );
+	}
 
-			case 'hour':
-				return 'PT' . $_parts[0] . 'H';
+	/**
+	 * Method to emulate MySQL MINUTE() function.
+	 *
+	 * @param string $field Representing the time formatted as '00:00:00'.
+	 *
+	 * @return int
+	 */
+	public function minute( $field ) {
+		/*
+		 * From https://www.php.net/manual/en/datetime.format.php:
+		 *
+		 * i - Minutes with leading zeros.
+		 *     00 to 59.
+		 */
+		return intval( gmdate( 'i', strtotime( $field ) ) );
+	}
 
-			case 'day':
-				return 'P' . $_parts[0] . 'D';
+	/**
+	 * Method to emulate MySQL HOUR() function.
+	 *
+	 * Returns the hour for time, in 24-hour format, from 0 to 23.
+	 * Importantly, midnight is 0, not 24.
+	 *
+	 * @param string $time Representing the time formatted, like '14:08:12'.
+	 *
+	 * @return int
+	 */
+	public function hour( $time ) {
+		/*
+		 * From https://www.php.net/manual/en/datetime.format.php:
+		 *
+		 * H   24-hour format of an hour with leading zeros.
+		 *     00 through 23.
+		 */
+		return intval( gmdate( 'H', strtotime( $time ) ) );
+	}
 
-			case 'week':
-				return 'P' . $_parts[0] . 'W';
+	/**
+	 * Covers MySQL WEEK() function.
+	 *
+	 * Always assumes $mode = 1.
+	 *
+	 * @TODO: Support other modes.
+	 *
+	 * From https://dev.mysql.com/doc/refman/8.0/en/date-and-time-functions.html#function_week:
+	 *
+	 * > Returns the week number for date. The two-argument form of WEEK()
+	 * > enables you to specify whether the week starts on Sunday or Monday
+	 * > and whether the return value should be in the range from 0 to 53
+	 * > or from 1 to 53. If the mode argument is omitted, the value of the
+	 * > default_week_format system variable is used.
+	 * >
+	 * > The following table describes how the mode argument works:
+	 * >
+	 * > Mode   First day of week   Range   Week 1 is the first week …
+	 * > 0      Sunday              0-53    with a Sunday in this year
+	 * > 1      Monday              0-53    with 4 or more days this year
+	 * > 2      Sunday              1-53    with a Sunday in this year
+	 * > 3      Monday              1-53    with 4 or more days this year
+	 * > 4      Sunday              0-53    with 4 or more days this year
+	 * > 5      Monday              0-53    with a Monday in this year
+	 * > 6      Sunday              1-53    with 4 or more days this year
+	 * > 7      Monday              1-53    with a Monday in this year
+	 *
+	 * @param string $field Representing the date.
+	 * @param int    $mode  The mode argument.
+	 */
+	public function week( $field, $mode ) {
+		/*
+		 * From https://www.php.net/manual/en/datetime.format.php:
+		 *
+		 * W - ISO-8601 week number of year, weeks starting on Monday.
+		 *     Example: 42 (the 42nd week in the year)
+		 *
+		 * Week 1 is the first week with a Thursday in it.
+		 */
+		return intval( gmdate( 'W', strtotime( $field ) ) );
+	}
 
-			case 'month':
-				return 'P' . $_parts[0] . 'M';
+	/**
+	 * Simulates WEEKDAY() function in MySQL.
+	 *
+	 * Returns the day of the week as an integer.
+	 * The days of the week are numbered 0 to 6:
+	 * * 0 for Monday
+	 * * 1 for Tuesday
+	 * * 2 for Wednesday
+	 * * 3 for Thursday
+	 * * 4 for Friday
+	 * * 5 for Saturday
+	 * * 6 for Sunday
+	 *
+	 * @param string $field Representing the date.
+	 *
+	 * @return int
+	 */
+	public function weekday( $field ) {
+		/*
+		 * date('N') returns 1 (for Monday) through 7 (for Sunday)
+		 * That's one more than MySQL.
+		 * Let's subtract one to make it compatible.
+		 */
+		return intval( gmdate( 'N', strtotime( $field ) ) ) - 1;
+	}
 
-			case 'year':
-				return 'P' . $_parts[0] . 'Y';
+	/**
+	 * Method to emulate MySQL DAYOFMONTH() function.
+	 *
+	 * @see https://dev.mysql.com/doc/refman/8.0/en/date-and-time-functions.html#function_dayofmonth
+	 *
+	 * @param string $field Representing the date.
+	 *
+	 * @return int Returns the day of the month for date as a number in the range 1 to 31.
+	 */
+	public function dayofmonth( $field ) {
+		return intval( gmdate( 'j', strtotime( $field ) ) );
+	}
 
-			case 'minute_second':
-				list($minutes, $seconds) = explode( ':', $_parts[0] );
-				return 'PT' . $minutes . 'M' . $seconds . 'S';
-
-			case 'hour_second':
-				list($hours, $minutes, $seconds) = explode( ':', $_parts[0] );
-				return 'PT' . $hours . 'H' . $minutes . 'M' . $seconds . 'S';
-
-			case 'hour_minute':
-				list($hours, $minutes) = explode( ':', $_parts[0] );
-				return 'PT' . $hours . 'H' . $minutes . 'M';
-
-			case 'day_second':
-				$days                            = intval( $_parts[0] );
-				list($hours, $minutes, $seconds) = explode( ':', $_parts[1] );
-				return 'P' . $days . 'D' . 'T' . $hours . 'H' . $minutes . 'M' . $seconds . 'S';
-
-			case 'day_minute':
-				$days                  = intval( $_parts[0] );
-				list($hours, $minutes) = explode( ':', $parts[1] );
-				return 'P' . $days . 'D' . 'T' . $hours . 'H' . $minutes . 'M';
-
-			case 'day_hour':
-				$days  = intval( $_parts[0] );
-				$hours = intval( $_parts[1] );
-				return 'P' . $days . 'D' . 'T' . $hours . 'H';
-
-			case 'year_month':
-				list($years, $months) = explode( '-', $_parts[0] );
-				return 'P' . $years . 'Y' . $months . 'M';
-		}
+	/**
+	 * Method to emulate MySQL DAYOFWEEK() function.
+	 *
+	 * > Returns the weekday index for date (1 = Sunday, 2 = Monday, …, 7 = Saturday).
+	 * > These index values correspond to the ODBC standard. Returns NULL if date is NULL.
+	 *
+	 * @param string $field Representing the date.
+	 *
+	 * @return int Returns the weekday index for date (1 = Sunday, 2 = Monday, …, 7 = Saturday).
+	 */
+	public function dayofweek( $field ) {
+		/**
+		 * From https://www.php.net/manual/en/datetime.format.php:
+		 *
+		 * `w` – Numeric representation of the day of the week
+		 *     0 (for Sunday) through 6 (for Saturday)
+		 */
+		return intval( gmdate( 'w', strtotime( $field ) ) ) + 1;
 	}
 
 	/**
 	 * Method to emulate MySQL DATE() function.
+	 *
+	 * @see https://www.php.net/manual/en/datetime.format.php
 	 *
 	 * @param string $date formatted as unix time.
 	 *
@@ -457,7 +445,7 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	 *
 	 * This function returns true if the argument is null, and true if not.
 	 *
-	 * @param various types $field
+	 * @param mixed $field The field to be tested.
 	 *
 	 * @return boolean
 	 */
@@ -483,40 +471,37 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	/**
 	 * Method to emulate MySQL REGEXP() function.
 	 *
-	 * @param string $field haystack
-	 * @param string $pattern : regular expression to match.
+	 * @param string $pattern Regular expression to match.
+	 * @param string $field   Haystack.
 	 *
 	 * @return integer 1 if matched, 0 if not matched.
 	 */
-	public function regexp( $field, $pattern ) {
+	public function regexp( $pattern, $field ) {
+		/*
+		 * If the original query says REGEXP BINARY
+		 * the comparison is byte-by-byte and letter casing now
+		 * matters since lower- and upper-case letters have different
+		 * byte codes.
+		 *
+		 * The REGEXP function can't be easily made to accept two
+		 * parameters, so we'll have to use a hack to get around this.
+		 *
+		 * If the first character of the pattern is a null byte, we'll
+		 * remove it and make the comparison case-sensitive. This should
+		 * be reasonably safe since PHP does not allow null bytes in
+		 * regular expressions anyway.
+		 */
+		if ( "\x00" === $pattern[0] ) {
+			$pattern = substr( $pattern, 1 );
+			$flags   = '';
+		} else {
+			// Otherwise, the search is case-insensitive.
+			$flags = 'i';
+		}
 		$pattern = str_replace( '/', '\/', $pattern );
-		$pattern = '/' . $pattern . '/i';
+		$pattern = '/' . $pattern . '/' . $flags;
 
 		return preg_match( $pattern, $field );
-	}
-
-	/**
-	 * Method to emulate MySQL CONCAT() function.
-	 *
-	 * SQLite does have CONCAT() function, but it has a different syntax from MySQL.
-	 * So this function must be manipulated here.
-	 *
-	 * @param string
-	 *
-	 * @return NULL if the argument is null | string conatenated if the argument is given.
-	 */
-	public function concat() {
-		$return_value = '';
-		$args_num     = func_num_args();
-		$args_list    = func_get_args();
-		for ( $i = 0; $i < $args_num; $i++ ) {
-			if ( is_null( $args_list[ $i ] ) ) {
-				return null;
-			}
-			$return_value .= $args_list[ $i ];
-		}
-
-		return $return_value;
 	}
 
 	/**
@@ -526,23 +511,16 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	 * If the same value is found, it returns the position of that value. If not, it
 	 * returns 0.
 	 *
-	 * @param int...|float... variable number of string, integer or double
-	 *
-	 * @return int unsigned integer
+	 * @return int
 	 */
 	public function field() {
-		global $wpdb;
 		$num_args = func_num_args();
-		if ( $num_args < 2 or is_null( func_get_arg( 0 ) ) ) {
+		if ( $num_args < 2 || is_null( func_get_arg( 0 ) ) ) {
 			return 0;
 		}
 		$arg_list      = func_get_args();
-		$search_string = array_shift( $arg_list );
-		$str_to_check  = substr( $search_string, 0, strpos( $search_string, '.' ) );
-		$str_to_check  = str_replace( $wpdb->prefix, '', $str_to_check );
-		if ( $str_to_check && in_array( trim( $str_to_check ), $wpdb->tables, true ) ) {
-			return 0;
-		}
+		$search_string = strtolower( array_shift( $arg_list ) );
+
 		for ( $i = 0; $i < $num_args - 1; $i++ ) {
 			if ( strtolower( $arg_list[ $i ] ) === $search_string ) {
 				return $i + 1;
@@ -568,10 +546,7 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	 * Used without an argument, it returns false. This returned value will be
 	 * rewritten to 0, because SQLite doesn't understand true/false value.
 	 *
-	 * @param integer representing the base of the logarithm, which is optional.
-	 * @param double value to turn into logarithm.
-	 *
-	 * @return double | NULL
+	 * @return double|null
 	 */
 	public function log() {
 		$num_args = func_num_args();
@@ -620,8 +595,8 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	 *
 	 * This function is meaningless in SQLite, so we do nothing.
 	 *
-	 * @param string $name
-	 * @param integer $timeout
+	 * @param string  $name    Not used.
+	 * @param integer $timeout Not used.
 	 *
 	 * @return string
 	 */
@@ -634,7 +609,7 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	 *
 	 * This function is meaningless in SQLite, so we do nothing.
 	 *
-	 * @param string $name
+	 * @param string $name Not used.
 	 *
 	 * @return string
 	 */
@@ -648,27 +623,26 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	 * This is MySQL alias for upper() function. This function rewrites it
 	 * to SQLite compatible name upper().
 	 *
-	 * @param string
+	 * @param string $content String to be converted to uppercase.
 	 *
 	 * @return string SQLite compatible function name.
 	 */
-	public function ucase( $string ) {
-		return "upper($string)";
+	public function ucase( $content ) {
+		return "upper($content)";
 	}
 
 	/**
 	 * Method to emulate MySQL LCASE() function.
 	 *
-	 *
 	 * This is MySQL alias for lower() function. This function rewrites it
 	 * to SQLite compatible name lower().
 	 *
-	 * @param string
+	 * @param string $content String to be converted to lowercase.
 	 *
 	 * @return string SQLite compatible function name.
 	 */
-	public function lcase( $string ) {
-		return "lower($string)";
+	public function lcase( $content ) {
+		return "lower($content)";
 	}
 
 	/**
@@ -676,7 +650,7 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	 *
 	 * This function gets 4 or 8 bytes integer and turn it into the network address.
 	 *
-	 * @param unsigned long integer
+	 * @param integer $num Long integer.
 	 *
 	 * @return string
 	 */
@@ -689,7 +663,7 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	 *
 	 * This function gets the network address and turns it into integer.
 	 *
-	 * @param string
+	 * @param string $addr Network address.
 	 *
 	 * @return int long integer
 	 */
@@ -702,8 +676,8 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	 *
 	 * This function compares two dates value and returns the difference.
 	 *
-	 * @param string start
-	 * @param string end
+	 * @param string $start Start date.
+	 * @param string $end   End date.
 	 *
 	 * @return string
 	 */
@@ -722,9 +696,9 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	 * it returns 0. If mbstring extension is loaded, mb_strpos() function is
 	 * used.
 	 *
-	 * @param string needle
-	 * @param string haystack
-	 * @param integer position
+	 * @param string  $substr Needle.
+	 * @param string  $str    Haystack.
+	 * @param integer $pos    Position.
 	 *
 	 * @return integer
 	 */
@@ -746,8 +720,6 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	/**
 	 * Method to return GMT date in the string format.
 	 *
-	 * @param none
-	 *
 	 * @return string formatted GMT date 'dddd-mm-dd'
 	 */
 	public function utc_date() {
@@ -757,8 +729,6 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	/**
 	 * Method to return GMT time in the string format.
 	 *
-	 * @param none
-	 *
 	 * @return string formatted GMT time '00:00:00'
 	 */
 	public function utc_time() {
@@ -767,8 +737,6 @@ class WP_PDO_SQLite_User_Defined_Functions {
 
 	/**
 	 * Method to return GMT time stamp in the string format.
-	 *
-	 * @param none
 	 *
 	 * @return string formatted GMT timestamp 'yyyy-mm-dd 00:00:00'
 	 */
@@ -782,13 +750,9 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	 * This function only returns the current newest version number of MySQL,
 	 * because it is meaningless for SQLite database.
 	 *
-	 * @param none
-	 *
 	 * @return string representing the version number: major_version.minor_version
 	 */
 	public function version() {
-		//global $required_mysql_version;
-		//return $required_mysql_version;
 		return '5.5';
 	}
 }

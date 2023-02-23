@@ -1,4 +1,10 @@
 <?php
+/**
+ * Extend and replace the wpdb class.
+ *
+ * @package wp-sqlite-integration
+ * @since 1.0.0
+ */
 
 /**
  * This class extends wpdb and replaces it.
@@ -9,7 +15,10 @@ class WP_SQLite_DB extends wpdb {
 
 	/**
 	 * Database Handle
-	 * @var WP_PDO_Engine
+	 *
+	 * @access protected
+	 *
+	 * @var WP_SQLite_Translator
 	 */
 	protected $dbh;
 
@@ -20,6 +29,7 @@ class WP_SQLite_DB extends wpdb {
 	 */
 	public function __construct() {
 		parent::__construct( '', '', '', '' );
+		$this->charset = 'utf8mb4';
 	}
 
 	/**
@@ -29,11 +39,25 @@ class WP_SQLite_DB extends wpdb {
 	 *
 	 * @see wpdb::set_charset()
 	 *
-	 * @param resource $dbh The resource given by mysql_connect
-	 * @param string $charset Optional. The character set. Default null.
-	 * @param string $collate Optional. The collation. Default null.
+	 * @param resource $dbh The resource given by mysql_connect.
+	 * @param string   $charset Optional. The character set. Default null.
+	 * @param string   $collate Optional. The collation. Default null.
 	 */
 	public function set_charset( $dbh, $charset = null, $collate = null ) {
+	}
+
+	/**
+	 * Method to get the character set for the database.
+	 * Hardcoded to utf8mb4 for now.
+	 *
+	 * @param string $table  The table name.
+	 * @param string $column The column name.
+	 *
+	 * @return string The character set.
+	 */
+	public function get_col_charset( $table, $column ) {
+		// Hardcoded for now.
+		return 'utf8mb4';
 	}
 
 	/**
@@ -47,13 +71,23 @@ class WP_SQLite_DB extends wpdb {
 	}
 
 	/**
+	 * Closes the current database connection.
+	 * Noop in SQLite.
+	 *
+	 * @return bool True to indicate the connection was successfully closed.
+	 */
+	public function close() {
+		return true;
+	}
+
+	/**
 	 * Method to select the database connection.
 	 *
 	 * This overrides wpdb::select(), only to dummy out the MySQL function.
 	 *
 	 * @see wpdb::select()
 	 *
-	 * @param string $db MySQL database name
+	 * @param string        $db  MySQL database name. Not used.
 	 * @param resource|null $dbh Optional link identifier.
 	 */
 	public function select( $db, $dbh = null ) {
@@ -67,12 +101,12 @@ class WP_SQLite_DB extends wpdb {
 	 *
 	 * @see wpdb::_real_escape()
 	 *
-	 * @param  string $string to escape
+	 * @param string $str The string to escape.
 	 *
 	 * @return string escaped
 	 */
-	function _real_escape( $string ) {
-		return addslashes( $string );
+	function _real_escape( $str ) {
+		return addslashes( $str );
 	}
 
 	/**
@@ -99,11 +133,11 @@ class WP_SQLite_DB extends wpdb {
 	 *
 	 * @see wpdb::print_error()
 	 *
-	 * @global array $EZSQL_ERROR Stores error information of query and error string
+	 * @global array $EZSQL_ERROR Stores error information of query and error string.
 	 *
-	 * @param string $str The error to display
+	 * @param string $str The error to display.
 	 *
-	 * @return bool False if the showing of errors is disabled.
+	 * @return bool|void False if the showing of errors is disabled.
 	 */
 	public function print_error( $str = '' ) {
 		global $EZSQL_ERROR;
@@ -124,18 +158,14 @@ class WP_SQLite_DB extends wpdb {
 		wp_load_translations_early();
 
 		$caller = $this->get_caller();
-		if ( $caller ) {
-			$error_str = sprintf(
-				/* translators: 1: Database error message, 2: SQL query, 3: Caller. */
-				__( 'WordPress database error %1$s for query %2$s made by %3$s' ),
-				$str,
-				$this->last_query,
-				$caller
-			);
-		} else {
-			/* translators: 1: Database error message, 2: SQL query. */
-			$error_str = sprintf( __( 'WordPress database error %1$s for query %2$s' ), $str, $this->last_query );
-		}
+		$caller = $caller ? $caller : '(unknown)';
+
+		$error_str = sprintf(
+			'WordPress database error %1$s for query %2$s made by %3$s',
+			$str,
+			$this->last_query,
+			$caller
+		);
 
 		error_log( $error_str );
 
@@ -155,10 +185,11 @@ class WP_SQLite_DB extends wpdb {
 			$str   = htmlspecialchars( $str, ENT_QUOTES );
 			$query = htmlspecialchars( $this->last_query, ENT_QUOTES );
 
-			print "<div id='error'>
-		<p class='wpdberror'><strong>WordPress database error:</strong> [$str]<br />
-		<code>$query</code></p>
-		</div>";
+			printf(
+				'<div id="error"><p class="wpdberror">WordPress database error: [%1$s] %2$s</p></div>',
+				$str,
+				'<code>' . $query . '</code>'
+			);
 		}
 	}
 
@@ -187,18 +218,32 @@ class WP_SQLite_DB extends wpdb {
 	 *
 	 * @see wpdb::db_connect()
 	 *
-	 * @param bool $allow_bail
+	 * @param bool $allow_bail Not used.
+	 * @return void
 	 */
 	public function db_connect( $allow_bail = true ) {
+		if ( $this->dbh ) {
+			return;
+		}
 		$this->init_charset();
-		$this->dbh   = new WP_PDO_Engine();
-		$this->ready = true;
+
+		$pdo = null;
+		if ( isset( $GLOBALS['@pdo'] ) ) {
+			$pdo = $GLOBALS['@pdo'];
+		}
+		$this->dbh        = new WP_SQLite_Translator( $pdo );
+		$this->last_error = $this->dbh->get_error_message();
+		if ( $this->last_error ) {
+			return false;
+		}
+		$GLOBALS['@pdo'] = $this->dbh->get_pdo();
+		$this->ready     = true;
 	}
 
 	/**
 	 * Method to dummy out wpdb::check_connection()
 	 *
-	 * @param bool $allow_bail
+	 * @param bool $allow_bail Not used.
 	 *
 	 * @return bool
 	 */
@@ -214,7 +259,7 @@ class WP_SQLite_DB extends wpdb {
 	 *
 	 * @see wpdb::query()
 	 *
-	 * @param string $query Database query
+	 * @param string $query Database query.
 	 *
 	 * @return int|false Number of rows affected/selected or false on error
 	 */
@@ -225,11 +270,9 @@ class WP_SQLite_DB extends wpdb {
 
 		$query = apply_filters( 'query', $query );
 
-		$return_val = 0;
 		$this->flush();
 
-		$this->func_call = "\$db->query(\"$query\")";
-
+		$this->func_call  = "\$db->query(\"$query\")";
 		$this->last_query = $query;
 
 		if ( defined( 'SAVEQUERIES' ) && SAVEQUERIES ) {
@@ -245,18 +288,14 @@ class WP_SQLite_DB extends wpdb {
 
 		$this->last_error = $this->dbh->get_error_message();
 		if ( $this->last_error ) {
-			if ( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) {
-				// $this->suppress_errors();
-			} else {
-				$this->print_error( $this->last_error );
-
-				return false;
-			}
+			$this->print_error( $this->last_error );
+			return false;
 		}
 
-		if ( preg_match( '/^\\s*(create|alter|truncate|drop|optimize)\\s*/i', $query ) ) {
+		if ( preg_match( '/^\\s*(set|create|alter|truncate|drop|optimize)\\s*/i', $query ) ) {
 			return $this->dbh->get_return_value();
 		}
+
 		if ( preg_match( '/^\\s*(insert|delete|update|replace)\s/i', $query ) ) {
 			$this->rows_affected = $this->dbh->get_affected_rows();
 			if ( preg_match( '/^\s*(insert|replace)\s/i', $query ) ) {
@@ -264,6 +303,7 @@ class WP_SQLite_DB extends wpdb {
 			}
 			return $this->rows_affected;
 		}
+
 		$this->last_result = $this->dbh->get_query_results();
 		$this->num_rows    = $this->dbh->get_num_rows();
 		return $this->num_rows;
@@ -296,7 +336,7 @@ class WP_SQLite_DB extends wpdb {
 	 *                       'group_concat', 'subqueries', 'set_charset',
 	 *                       'utf8mb4', or 'utf8mb4_520'.
 	 *
-	 * @return int|false Whether the database feature is supported, false otherwise.
+	 * @return bool Whether the database feature is supported, false otherwise.
 	 */
 	public function has_cap( $db_cap ) {
 		return 'subqueries' === strtolower( $db_cap );
@@ -317,8 +357,6 @@ class WP_SQLite_DB extends wpdb {
 
 	/**
 	 * Retrieves full database server information.
-	 *
-	 * @since 5.5.0
 	 *
 	 * @return string|false Server info on success, false on failure.
 	 */

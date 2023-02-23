@@ -51,7 +51,12 @@ if ( ! function_exists( 'wp_install' ) ) :
 
 		wp_check_mysql_version();
 		wp_cache_flush();
-		make_db_current_silent();
+
+		if ( defined( 'DATABASE_TYPE' ) && 'sqlite' === DATABASE_TYPE ) {
+			sqlite_make_db_sqlite();
+		} else {
+			make_db_current_silent();
+		}
 		populate_options();
 		populate_roles();
 
@@ -3262,6 +3267,63 @@ function make_db_current( $tables = 'all' ) {
  */
 function make_db_current_silent( $tables = 'all' ) {
 	dbDelta( $tables );
+}
+
+
+/**
+ * Function to create tables according to the schemas of WordPress.
+ *
+ * This is executed only once while installation.
+ *
+ * @since 1.0.0
+ *
+ * @return boolean
+ */
+function sqlite_make_db_sqlite() {
+	include_once ABSPATH . 'wp-admin/includes/schema.php';
+
+	$table_schemas = wp_get_db_schema();
+	$queries       = explode( ';', $table_schemas );
+	try {
+		$pdo = new PDO( 'sqlite:' . FQDB, null, null, array( PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION ) ); // phpcs:ignore WordPress.DB.RestrictedClasses
+	} catch ( PDOException $err ) {
+		$err_data = $err->errorInfo; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		wp_die( $err_data[2], 'Database Error!' );
+	}
+
+	$translator = new WP_SQLite_Translator( $pdo, $GLOBALS['table_prefix'] );
+	$query      = null;
+
+	try {
+		$pdo->beginTransaction();
+		foreach ( $queries as $query ) {
+			$query = trim( $query );
+			if ( empty( $query ) ) {
+				continue;
+			}
+
+			$translation = $translator->translate( $query );
+			foreach ( $translation->queries as $query ) {
+				$stmt = $pdo->prepare( $query->sql );
+				$stmt->execute( $query->params );
+			}
+		}
+		$pdo->commit();
+	} catch ( PDOException $err ) {
+		$err_data = $err->errorInfo; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		$err_code = $err_data[1];
+		if ( 5 == $err_code || 6 == $err_code ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+			// If the database is locked, commit again.
+			$pdo->commit();
+		} else {
+			$pdo->rollBack();
+			wp_die( $err_data[2], 'Database Error!' );
+		}
+	}
+
+	$pdo = null;
+
+	return true;
 }
 
 /**
