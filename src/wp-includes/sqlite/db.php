@@ -6,13 +6,37 @@
  * @since 1.0.0
  */
 
-// Require the constants file.
-require_once dirname( dirname( __DIR__ ) ) . '/constants.php';
-
 // Bail early if DATABASE_TYPE is not defined as sqlite.
 if ( ! defined( 'DATABASE_TYPE' ) || 'sqlite' !== DATABASE_TYPE ) {
 	return;
 }
+
+/**
+ * FQDBDIR is a directory where the sqlite database file is placed.
+ * If DB_DIR is defined, it is used as FQDBDIR.
+ */
+if ( ! defined( 'FQDBDIR' ) ) {
+	if ( defined( 'DB_DIR' ) ) {
+		define( 'FQDBDIR', trailingslashit( DB_DIR ) );
+	} elseif ( defined( 'WP_CONTENT_DIR' ) ) {
+		define( 'FQDBDIR', WP_CONTENT_DIR . '/database/' );
+	} else {
+		define( 'FQDBDIR', ABSPATH . 'wp-content/database/' );
+	}
+}
+
+/**
+ * FQDB is a database file name. If DB_FILE is defined, it is used
+ * as FQDB.
+ */
+if ( ! defined( 'FQDB' ) ) {
+	if ( defined( 'DB_FILE' ) ) {
+		define( 'FQDB', FQDBDIR . DB_FILE );
+	} else {
+		define( 'FQDB', FQDBDIR . '.ht.sqlite' );
+	}
+}
+
 
 if ( ! extension_loaded( 'pdo' ) ) {
 	wp_die(
@@ -48,6 +72,5 @@ require_once __DIR__ . '/class-wp-sqlite-translator.php';
 require_once __DIR__ . '/class-wp-sqlite-token.php';
 require_once __DIR__ . '/class-wp-sqlite-pdo-user-defined-functions.php';
 require_once __DIR__ . '/class-wp-sqlite-db.php';
-require_once __DIR__ . '/install-functions.php';
 
 $GLOBALS['wpdb'] = new WP_SQLite_DB();
