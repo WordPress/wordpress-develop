@@ -746,10 +746,8 @@ JS;
 	 * @return array        Normalized $args array.
 	 */
 	private function get_normalized_script_args( $handle, $args = array() ) {
-		$default_args = array(
-			'in_footer' => false,
-			'strategy'  => 'blocking',
-		);
+		$default_args = array( 'in_footer' => false );
+
 		// Handle backward compatibility for $in_footer.
 		if ( true === $args ) {
 			$args = array( 'in_footer' => true );
@@ -758,17 +756,81 @@ JS;
 	}
 
 	/**
+	 * Get all of the scripts that depend on a script.
+	 *
+	 * @param string $handle The script handle.
+	 * @return array Array of script handles.
+	 */
+	private function get_dependents( $handle ) {
+		$dependents = array();
+
+		// Iterate over all registered scripts, finding ones that depend on the script.
+		foreach ( $this->registered as $registered_handle => $args ) {
+			if ( in_array( $handle, $args->deps, true ) ) {
+				$dependents[] = $registered_handle;
+			}
+		}
+		return $dependents;
+	}
+
+	/**
+	 * Get the strategy mentioned during script registration.
+	 *
+	 * @param string $handle The script handle.
+	 * @return string|bool Strategy in script registration, False if not strategy is mentioned..
+	 */
+	private function get_intended_strategy( $handle ) {
+		$script_args = $this->get_data( $handle, 'script_args' );
+		return isset( $script_args['strategy'] ) ? $script_args['strategy'] : false;
+	}
+
+	/**
 	 * Helper function to check if a script has an `after` inline dependency.
+	 *
+	 * @param string $handle Name of the item. Should be unique.
+	 * @return bool True on success, false on failure.
 	 */
 	private function has_after_inline_dependency( $handle ) {
 		return false !== $this->get_data( $handle, 'after' );
 	}
 
+
 	/**
-	 * Helper function to check if a script has an `before` inline dependency.
+	 * Check if all of a scripts dependents are deferrable which is required to maintain execution order.
+	 *
+	 * @param string $handle  The script handle.
+	 * @param array $visited An array of already visited script handles used to avoid looping recursion.
+	 * @return bool True if all dependents are deferrable, false otherwise.
 	 */
-	private function has_before_inline_dependency( $handle ) {
-		return false !== $this->get_data( $handle, 'before' );
+	private function all_dependents_are_deferrable( $handle, $visited = array() ) {
+		// If this node was already visited, this script can be deferred and the branch ends.
+		if ( in_array( $handle, $visited, true ) ) {
+			return true;
+		}
+		$visited[]  = $handle;
+		$dependents = $this->get_dependents( $handle );
+		// If there are no dependents remaining to consider, the script can be deferred and the branch ends.
+		if ( empty( $dependents ) ) {
+			return true;
+		}
+
+		// Consider each dependent and check if it is deferrable.
+		foreach ( $dependents as $dependent ) {
+			// If the dependent script is not using the defer strategy, no script in the chain is deferrable.
+			$script_args = $this->get_data( $handle, 'script_args' );
+			if ( empty( $script_args['strategy'] ) ) {
+				return false;
+			}
+			if ( 'defer' !== $script_args['strategy'] ) {
+				return false;
+			}
+
+			// Recursively check all dependent.
+			if ( ! $this->all_dependents_are_deferrable( $dependent, $visited ) ) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -778,31 +840,30 @@ JS;
 	 * @return string $strategy return the final strategy.
 	 */
 	private function get_eligible_loading_strategy( $handle = '' ) {
-		if ( ! isset( $this->registered[ $handle ] ) ) {
+
+		$intended_strategy = $this->get_intended_strategy( $handle );
+		/**
+		 * Handle known blocking strategy scenarios.
+		 *
+		 * Blocking if not a registered handle.
+		 * If the script has an 'after' inline dependency, then it can't be eligible for async or defer.
+		 */
+		if ( ! isset( $this->registered[ $handle ] ) ||
+			$this->has_after_inline_dependency( $handle ) ||
+			'blocking' === $intended_strategy
+			) {
 			return 'blocking';
 		}
 
-		$script_args = $this->get_data( $handle, 'script_args' );
-
-		if ( empty( $this->registered[ $handle ]->deps ) ) {
-			if ( ! isset( $script_args['strategy'] ) ) {
+		// Handling async strategy scenarios.
+		if ( empty( $this->registered[ $handle ]->deps ) && empty( $this->get_dependents( $handle ) ) ) {
+			if ( false !== $intended_strategy || 'async' === $intended_strategy ) {
 				return 'async';
 			}
-
-			// Script eligible for async but user has specific strategy requirement.
-			return $script_args['strategy'];
 		}
 
-		$deps_has_async = false;
-		foreach ( $this->registered[ $handle ]->deps as $dep_handle ) {
-			$dep_strategy = $this->get_eligible_loading_strategy( $dep_handle );
-			if ( 'async' === $dep_strategy ) {
-				$deps_has_async = true;
-				break;
-			}
-		}
-
-		if ( ! $deps_has_async && ! $this->has_before_inline_dependency( $handle ) ) {
+		// Handling defer strategy scenarios. Dependency will never be async. So only checking dependent.
+		if ( ! $this->all_dependents_are_deferrable( $handle ) ) {
 			return 'defer';
 		}
 
