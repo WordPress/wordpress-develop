@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_HTML_Tag_Processor
  */
-class Tests_HTML_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
+class Tests_HtmlApi_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56299
@@ -60,6 +60,28 @@ class Tests_HTML_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 			'<ul><li foo-1="bar-1">One</li><li foo-2="bar-2">Two</li><li>Three</li></ul>',
 			$p->get_updated_html(),
 			'Did not seek to the intended bookmark locations'
+		);
+	}
+
+	/**
+	 * @ticket 57787
+	 *
+	 * @covers WP_HTML_Tag_Processor::seek
+	 */
+	public function test_seeks_to_tag_closer_bookmark() {
+		$p = new WP_HTML_Tag_Processor( '<div>First</div><span>Second</span>' );
+		$p->next_tag( array( 'tag_closers' => 'visit' ) );
+		$p->set_bookmark( 'first' );
+		$p->next_tag( array( 'tag_closers' => 'visit' ) );
+		$p->set_bookmark( 'second' );
+
+		$p->seek( 'first' );
+		$p->seek( 'second' );
+
+		$this->assertSame(
+			'DIV',
+			$p->get_tag(),
+			'Did not seek to the intended bookmark location'
 		);
 	}
 
