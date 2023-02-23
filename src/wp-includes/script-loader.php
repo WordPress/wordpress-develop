@@ -231,12 +231,12 @@ function wp_convert_php_datetime_format_to_moment_js( $php_format ) {
 	$has_backslash    = false;
 	$moment_js_format = '';
 	$php_format_chars = str_split( $php_format );
-	foreach( $php_format_chars as $char ) {
-		if( $char === '\\' && ! $has_backslash ) { $has_backslash = true; continue; }
+	foreach ( $php_format_chars as $char ) {
+		if ( $char === '\\' && ! $has_backslash ) { $has_backslash = true; continue; }
 		$moment_js_format .= $has_backslash || ! isset( $format_map[ $char ] ) ? '[' . $char . ']' : $format_map[ $char ];
 		$has_backslash = false;
 	}
-	
+
 	return $moment_js_format;
 }
 
