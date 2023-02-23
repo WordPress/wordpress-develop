@@ -23,7 +23,9 @@ describe( 'Server Timing – Twenty Twenty One', () => {
 	} );
 
 	afterAll( async () => {
-		const resultsFilename = basename( __filename, '.js' ) + '.results.json';
+		const prefixArg = process.argv.find((arg) => arg.startsWith('--prefix'));
+		const fileNamePrefix = prefixArg ? `${prefixArg.split('=')[1]}-` : '';
+		const resultsFilename = fileNamePrefix + basename( __filename, '.js' ) + '.results.json';
 		writeFileSync(
 			join( __dirname, resultsFilename ),
 			JSON.stringify( results, null, 2 )

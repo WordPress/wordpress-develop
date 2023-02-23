@@ -119,8 +119,14 @@ jobs:
           mkdir ./build/wp-content/mu-plugins
           cp ./tests/performance/mu-plugins/server-timing.php ./build/wp-content/mu-plugins/server-timing.php
 
-      - name: Run Performance tests
+      - name: Run Performance tests (current commit)
         run: npm run test:performance
+
+      - name: Update the environment to 6.1.1
+        run: npm run env:cli -- update --version=6.1.1 --force
+
+      - name: Run Performance tests (6.1.1)
+        run: npm run test:performance -- --prefix=base
 
       - name: Print Performance tests results
         run: "node ./tests/performance/results.js"
@@ -140,7 +146,7 @@ jobs:
             CODEHEALTH_PROJECT_TOKEN: ${{ secrets.CODEHEALTH_PROJECT_TOKEN }}
             # TODO: We'll need to update this to point to the production dashboard once it's ready for us to start pushing data into it.
             HOST_NAME: "codehealth-test.vercel.app"
-        run: node ./tests/performance/log-results.js $CODEHEALTH_PROJECT_TOKEN trunk $GITHUB_SHA $COMMITTED_AT $HOST_NAME
+        run: node ./tests/performance/log-results.js $CODEHEALTH_PROJECT_TOKEN trunk $GITHUB_SHA 031cedc06d612c4a74f7b6d3e77d8145f2954a25 $COMMITTED_AT $HOST_NAME
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
