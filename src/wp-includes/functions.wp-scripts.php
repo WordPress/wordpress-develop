@@ -180,7 +180,9 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args
 	$wp_scripts = wp_scripts();
 
 	$registered = $wp_scripts->add( $handle, $src, $deps, $ver );
-	$wp_scripts->add_data( $handle, 'script_args', $args );
+	if ( ! empty( $args ) ) {
+		$wp_scripts->add_data( $handle, 'script_args', $args );
+	}
 	return $registered;
 }
 
@@ -362,8 +364,9 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 		if ( $src ) {
 			$wp_scripts->add( $_handle[0], $src, $deps, $ver );
 		}
-
-		$wp_scripts->add_data( $_handle[0], 'script_args', $args );
+		if ( ! empty( $args ) ) {
+			$wp_scripts->add_data( $_handle[0], 'script_args', $args );
+		}
 	}
 
 	$wp_scripts->enqueue( $handle );
