@@ -225,9 +225,9 @@ function wp_convert_php_datetime_format_to_moment_js( $php_format ) {
 		'T' => 'z',
 		'c' => 'YYYY-MM-DD[T]HH:mm:ssZ',
 		'r' => 'ddd, DD MMM YYYY HH:mm:ss ZZ',
-		'U' => 'X'
+		'U' => 'X',
 	);
-	
+
 	$has_backslash    = false;
 	$moment_js_format = '';
 	$php_format_chars = str_split( $php_format );
