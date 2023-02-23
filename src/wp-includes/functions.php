@@ -7023,7 +7023,7 @@ function _get_non_cached_ids( $object_ids, $cache_key ) {
 	if ( empty( $object_ids ) ) {
 		return array();
 	}
-	
+
 	$non_cached_ids = array();
 	$cache_values   = wp_cache_get_multiple( $object_ids, $cache_key );
 
