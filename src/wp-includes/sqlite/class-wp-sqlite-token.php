@@ -22,12 +22,12 @@ class WP_SQLite_Token {
 	 * determined because of the ambiguous context. Further analysis might be
 	 * required to detect its type.
 	 */
-	public const TYPE_NONE = 0;
+	const TYPE_NONE = 0;
 
 	/**
 	 * SQL specific keywords: SELECT, UPDATE, INSERT, etc.
 	 */
-	public const TYPE_KEYWORD = 1;
+	const TYPE_KEYWORD = 1;
 
 	/**
 	 * Any type of legal operator.
@@ -39,12 +39,12 @@ class WP_SQLite_Token {
 	 * SQL specific operators: . (e.g. .. WHERE database.table ..),
 	 *                         * (e.g. SELECT * FROM ..)
 	 */
-	public const TYPE_OPERATOR = 2;
+	const TYPE_OPERATOR = 2;
 
 	/**
 	 * Spaces, tabs, new lines, etc.
 	 */
-	public const TYPE_WHITESPACE = 3;
+	const TYPE_WHITESPACE = 3;
 
 	/**
 	 * Any type of legal comment.
@@ -64,35 +64,35 @@ class WP_SQLite_Token {
 	 *
 	 * Backslashes were added to respect PHP's comments syntax.
 	 */
-	public const TYPE_COMMENT = 4;
+	const TYPE_COMMENT = 4;
 
 	/**
 	 * Boolean values: true or false.
 	 */
-	public const TYPE_BOOL = 5;
+	const TYPE_BOOL = 5;
 
 	/**
 	 * Numbers: 4, 0x8, 15.16, 23e42, etc.
 	 */
-	public const TYPE_NUMBER = 6;
+	const TYPE_NUMBER = 6;
 
 	/**
 	 * Literal strings: 'string', "test".
 	 * Some of these strings are actually symbols.
 	 */
-	public const TYPE_STRING = 7;
+	const TYPE_STRING = 7;
 
 	/**
 	 * Database, table names, variables, etc.
 	 * For example: ```SELECT `foo`, `bar` FROM `database`.`table`;```.
 	 */
-	public const TYPE_SYMBOL = 8;
+	const TYPE_SYMBOL = 8;
 
 	/**
 	 * Delimits an unknown string.
 	 * For example: ```SELECT * FROM test;```, `test` is a delimiter.
 	 */
-	public const TYPE_DELIMITER = 9;
+	const TYPE_DELIMITER = 9;
 
 	/**
 	 * Labels in LOOP statement, ITERATE statement etc.
@@ -102,47 +102,47 @@ class WP_SQLite_Token {
 	 *  begin_label: REPEAT [statement_list] ... END REPEAT [end_label]
 	 *  begin_label: WHILE ... DO [statement_list] END WHILE [end_label].
 	 */
-	public const TYPE_LABEL = 10;
+	const TYPE_LABEL = 10;
 
 	// Flags that describe the tokens in more detail.
 	// All keywords must have flag 1 so `Context::isKeyword` method doesn't
 	// require strict comparison.
-	public const FLAG_KEYWORD_RESERVED  = 2;
-	public const FLAG_KEYWORD_COMPOSED  = 4;
-	public const FLAG_KEYWORD_DATA_TYPE = 8;
-	public const FLAG_KEYWORD_KEY       = 16;
-	public const FLAG_KEYWORD_FUNCTION  = 32;
+	const FLAG_KEYWORD_RESERVED  = 2;
+	const FLAG_KEYWORD_COMPOSED  = 4;
+	const FLAG_KEYWORD_DATA_TYPE = 8;
+	const FLAG_KEYWORD_KEY       = 16;
+	const FLAG_KEYWORD_FUNCTION  = 32;
 
 	// Numbers related flags.
-	public const FLAG_NUMBER_HEX         = 1;
-	public const FLAG_NUMBER_FLOAT       = 2;
-	public const FLAG_NUMBER_APPROXIMATE = 4;
-	public const FLAG_NUMBER_NEGATIVE    = 8;
-	public const FLAG_NUMBER_BINARY      = 16;
+	const FLAG_NUMBER_HEX         = 1;
+	const FLAG_NUMBER_FLOAT       = 2;
+	const FLAG_NUMBER_APPROXIMATE = 4;
+	const FLAG_NUMBER_NEGATIVE    = 8;
+	const FLAG_NUMBER_BINARY      = 16;
 
 	// Strings related flags.
-	public const FLAG_STRING_SINGLE_QUOTES = 1;
-	public const FLAG_STRING_DOUBLE_QUOTES = 2;
+	const FLAG_STRING_SINGLE_QUOTES = 1;
+	const FLAG_STRING_DOUBLE_QUOTES = 2;
 
 	// Comments related flags.
-	public const FLAG_COMMENT_BASH      = 1;
-	public const FLAG_COMMENT_C         = 2;
-	public const FLAG_COMMENT_SQL       = 4;
-	public const FLAG_COMMENT_MYSQL_CMD = 8;
+	const FLAG_COMMENT_BASH      = 1;
+	const FLAG_COMMENT_C         = 2;
+	const FLAG_COMMENT_SQL       = 4;
+	const FLAG_COMMENT_MYSQL_CMD = 8;
 
 	// Operators related flags.
-	public const FLAG_OPERATOR_ARITHMETIC = 1;
-	public const FLAG_OPERATOR_LOGICAL    = 2;
-	public const FLAG_OPERATOR_BITWISE    = 4;
-	public const FLAG_OPERATOR_ASSIGNMENT = 8;
-	public const FLAG_OPERATOR_SQL        = 16;
+	const FLAG_OPERATOR_ARITHMETIC = 1;
+	const FLAG_OPERATOR_LOGICAL    = 2;
+	const FLAG_OPERATOR_BITWISE    = 4;
+	const FLAG_OPERATOR_ASSIGNMENT = 8;
+	const FLAG_OPERATOR_SQL        = 16;
 
 	// Symbols related flags.
-	public const FLAG_SYMBOL_VARIABLE  = 1;
-	public const FLAG_SYMBOL_BACKTICK  = 2;
-	public const FLAG_SYMBOL_USER      = 4;
-	public const FLAG_SYMBOL_SYSTEM    = 8;
-	public const FLAG_SYMBOL_PARAMETER = 16;
+	const FLAG_SYMBOL_VARIABLE  = 1;
+	const FLAG_SYMBOL_BACKTICK  = 2;
+	const FLAG_SYMBOL_USER      = 4;
+	const FLAG_SYMBOL_SYSTEM    = 8;
+	const FLAG_SYMBOL_PARAMETER = 16;
 
 	/**
 	 * The token it its raw string representation.

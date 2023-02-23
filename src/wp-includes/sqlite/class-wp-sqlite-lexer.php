@@ -16,19 +16,19 @@ class WP_SQLite_Lexer {
 	/**
 	 * The maximum length of a keyword.
 	 */
-	public const KEYWORD_MAX_LENGTH = 30;
+	const KEYWORD_MAX_LENGTH = 30;
 
 	/**
 	 * The maximum length of a label.
 	 *
 	 * Ref: https://dev.mysql.com/doc/refman/5.7/en/statement-labels.html
 	 */
-	public const LABEL_MAX_LENGTH = 16;
+	const LABEL_MAX_LENGTH = 16;
 
 	/**
 	 * The maximum length of an operator.
 	 */
-	public const OPERATOR_MAX_LENGTH = 4;
+	const OPERATOR_MAX_LENGTH = 4;
 
 	/**
 	 * A list of methods that are used in lexing the SQL query.
@@ -1404,7 +1404,7 @@ class WP_SQLite_Lexer {
 	 * @link https://dev.mysql.com/doc/refman/en/sql-mode.html#sqlmode_ansi_quotes
 	 * @link https://mariadb.com/kb/en/sql-mode/#ansi_quotes
 	 */
-	public const SQL_MODE_ANSI_QUOTES = 2;
+	const SQL_MODE_ANSI_QUOTES = 2;
 
 	/**
 	 * The array of tokens.
