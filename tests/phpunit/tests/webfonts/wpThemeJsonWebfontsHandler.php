@@ -76,13 +76,14 @@ class Tests_Webfonts_wpThemeJsonWebfontsHandler extends WP_UnitTestCase {
 	/**
 	 * @ticket 55567
 	 * @ticket 46370
+	 * @ticket 57430
 	 */
 	public function test_font_face_generated_from_themejson() {
 		$this->setup_theme_and_test( 'webfonts-theme' );
 
 		$expected = <<<EOF
 <style id='wp-webfonts-inline-css' type='text/css'>
-@font-face{font-family:"Source Serif Pro";font-style:normal;font-weight:200 900;font-display:fallback;src:local("Source Serif Pro"), url('THEME_ROOT_URL/assets/fonts/SourceSerif4Variable-Roman.ttf.woff2') format('woff2');font-stretch:normal;}@font-face{font-family:"Source Serif Pro";font-style:italic;font-weight:200 900;font-display:fallback;src:local("Source Serif Pro"), url('THEME_ROOT_URL/assets/fonts/SourceSerif4Variable-Italic.ttf.woff2') format('woff2');font-stretch:normal;}
+@font-face{font-family:"Source Serif Pro";font-style:normal;font-weight:200 900;font-display:fallback;src:url('THEME_ROOT_URL/assets/fonts/SourceSerif4Variable-Roman.ttf.woff2') format('woff2');font-stretch:normal;}@font-face{font-family:"Source Serif Pro";font-style:italic;font-weight:200 900;font-display:fallback;src:url('THEME_ROOT_URL/assets/fonts/SourceSerif4Variable-Italic.ttf.woff2') format('woff2');font-stretch:normal;}
 </style>
 EOF;
 		$expected = str_replace( 'THEME_ROOT_URL', get_stylesheet_directory_uri(), $expected );

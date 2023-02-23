@@ -1,5 +1,5 @@
 <?php
-/**
+
 /**
  * Test WP_Theme class.
  *

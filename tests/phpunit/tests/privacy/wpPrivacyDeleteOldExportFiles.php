@@ -1,19 +1,13 @@
 <?php
 /**
- * Define a class to test `wp_privacy_delete_old_export_files()`.
+ * Test cases for the `wp_privacy_delete_old_export_files()` function.
  *
  * @package WordPress
  * @subpackage UnitTests
  * @since 4.9.6
- */
-
-/**
- * Test cases for `wp_privacy_delete_old_export_files()`.
  *
  * @group privacy
  * @covers ::wp_privacy_delete_old_export_files
- *
- * @since 4.9.6
  */
 class Tests_Privacy_wpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 	/**
