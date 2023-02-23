@@ -204,6 +204,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'page',
 				'per_page',
 				'search',
+				'search_columns',
 				'slug',
 				'status',
 				'sticky',
@@ -1525,6 +1526,38 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotContains( $id3, $ids );
 
 		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id3) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
+	}
+
+	/**
+	 * Tests that Rest Post controller supports search columns.
+	 *
+	 * @ticket 43867
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_get_items_with_custom_search_columns() {
+		$id1 = self::factory()->post->create(
+			array(
+				'post_title'   => 'Title contain foo and bar',
+				'post_content' => 'Content contain bar',
+				'post_excerpt' => 'Excerpt contain baz',
+			)
+		);
+		$id2 = self::factory()->post->create(
+			array(
+				'post_title'   => 'Title contain baz',
+				'post_content' => 'Content contain foo and bar',
+				'post_excerpt' => 'Excerpt contain foo, bar and baz',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'search', 'foo bar' );
+		$request->set_param( 'search_columns', array( 'post_title' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response should have a status code 200.' );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data, 'Response should contain one result.' );
+		$this->assertSame( $id1, $data[0]['id'], 'Result should match expected value.' );
 	}
 
 	/**
