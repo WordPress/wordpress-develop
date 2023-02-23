@@ -3705,7 +3705,7 @@ function _wp_theme_json_webfonts_handler() {
 function wp_enqueue_classic_theme_styles() {
 	if ( ! wp_theme_has_theme_json() ) {
 		$suffix = wp_scripts_get_suffix();
-		wp_register_style( 'classic-theme-styles', '/' . WPINC . "/css/classic-themes$suffix.css" );
+		wp_register_style( 'classic-theme-styles', '/' . WPINC . "/css/classic-themes$suffix.css", array(), '20230213' );
 		wp_enqueue_style( 'classic-theme-styles' );
 	}
 }
