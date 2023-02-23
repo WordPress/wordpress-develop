@@ -35,7 +35,7 @@ class SMTP
      *
      * @var string
      */
-    const VERSION = '6.6.0';
+    const VERSION = '6.7';
 
     /**
      * SMTP line break constant.
@@ -682,7 +682,6 @@ class SMTP
      */
     public function close()
     {
-        $this->setError('');
         $this->server_caps = null;
         $this->helo_rply = null;
         if (is_resource($this->smtp_conn)) {
@@ -1037,7 +1036,10 @@ class SMTP
             return false;
         }
 
-        $this->setError('');
+        //Don't clear the error store when using keepalive
+        if ($command !== 'RSET') {
+            $this->setError('');
+        }
 
         return true;
     }

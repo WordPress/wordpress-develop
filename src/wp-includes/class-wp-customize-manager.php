@@ -20,6 +20,7 @@
  *
  * @since 3.4.0
  */
+#[AllowDynamicProperties]
 final class WP_Customize_Manager {
 	/**
 	 * An instance of the theme being previewed.
@@ -2111,7 +2112,7 @@ final class WP_Customize_Manager {
 		$exported_setting_validities = array_map( array( $this, 'prepare_setting_validity_for_js' ), $setting_validities );
 
 		// Note that the REQUEST_URI is not passed into home_url() since this breaks subdirectory installations.
-		$self_url           = empty( $_SERVER['REQUEST_URI'] ) ? home_url( '/' ) : esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) );
+		$self_url           = empty( $_SERVER['REQUEST_URI'] ) ? home_url( '/' ) : sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ) );
 		$state_query_params = array(
 			'customize_theme',
 			'customize_changeset_uuid',
@@ -2133,7 +2134,7 @@ final class WP_Customize_Manager {
 			$allowed_hosts[] = $host;
 		}
 
-		$switched_locale = switch_to_locale( get_user_locale() );
+		$switched_locale = switch_to_user_locale( get_current_user_id() );
 		$l10n            = array(
 			'shiftClickToEdit'  => __( 'Shift-click to edit this element.' ),
 			'linkUnpreviewable' => __( 'This link is not live-previewable.' ),
@@ -2158,7 +2159,7 @@ final class WP_Customize_Manager {
 			),
 			'url'               => array(
 				'self'          => $self_url,
-				'allowed'       => array_map( 'esc_url_raw', $this->get_allowed_urls() ),
+				'allowed'       => array_map( 'sanitize_url', $this->get_allowed_urls() ),
 				'allowedHosts'  => array_unique( $allowed_hosts ),
 				'isCrossDomain' => $this->is_cross_domain(),
 			),
@@ -3427,12 +3428,12 @@ final class WP_Customize_Manager {
 	 * @since 4.7.0
 	 *
 	 * @param bool    $post_has_changed Whether the post has changed.
-	 * @param WP_Post $last_revision    The last revision post object.
+	 * @param WP_Post $latest_revision  The latest revision post object.
 	 * @param WP_Post $post             The post object.
 	 * @return bool Whether a revision should be made.
 	 */
-	public function _filter_revision_post_has_changed( $post_has_changed, $last_revision, $post ) {
-		unset( $last_revision );
+	public function _filter_revision_post_has_changed( $post_has_changed, $latest_revision, $post ) {
+		unset( $latest_revision );
 		if ( 'customize_changeset' === $post->post_type ) {
 			$post_has_changed = $this->store_changeset_revision;
 		}
@@ -4284,7 +4285,12 @@ final class WP_Customize_Manager {
 			<li class="notice notice-{{ data.type || 'info' }} {{ data.alt ? 'notice-alt' : '' }} {{ data.dismissible ? 'is-dismissible' : '' }} {{ data.containerClasses || '' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
 				<div class="notification-message">{{{ data.message || data.code }}}</div>
 				<# if ( data.dismissible ) { #>
-					<button type="button" class="notice-dismiss"><span class="screen-reader-text"><?php _e( 'Dismiss' ); ?></span></button>
+					<button type="button" class="notice-dismiss"><span class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Dismiss' );
+						?>
+					</span></button>
 				<# } #>
 			</li>
 		</script>
@@ -4351,10 +4357,20 @@ final class WP_Customize_Manager {
 			<p class="description customize-control-description"><?php esc_html_e( 'See how changes would look live on your website, and share the preview with people who can\'t access the Customizer.' ); ?></p>
 			<div class="customize-control-notifications-container"></div>
 			<div class="preview-link-wrapper">
-				<label for="{{ elementPrefix }}customize-preview-link-input" class="screen-reader-text"><?php esc_html_e( 'Preview Link' ); ?></label>
+				<label for="{{ elementPrefix }}customize-preview-link-input" class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					esc_html_e( 'Preview Link' );
+					?>
+				</label>
 				<a href="" target="">
 					<span class="preview-control-element" data-component="url"></span>
-					<span class="screen-reader-text"><?php _e( '(opens in a new tab)' ); ?></span>
+					<span class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( '(opens in a new tab)' );
+						?>
+					</span>
 				</a>
 				<input id="{{ elementPrefix }}customize-preview-link-input" readonly tabindex="-1" class="preview-control-element" data-component="input">
 				<button class="customize-copy-preview-link preview-control-element button button-secondary" data-component="button" data-copy-text="<?php esc_attr_e( 'Copy' ); ?>" data-copied-text="<?php esc_attr_e( 'Copied' ); ?>" ><?php esc_html_e( 'Copy' ); ?></button>
@@ -4574,7 +4590,7 @@ final class WP_Customize_Manager {
 	 * @param string $preview_url URL to be previewed.
 	 */
 	public function set_preview_url( $preview_url ) {
-		$preview_url       = esc_url_raw( $preview_url );
+		$preview_url       = sanitize_url( $preview_url );
 		$this->preview_url = wp_validate_redirect( $preview_url, home_url( '/' ) );
 	}
 
@@ -4662,7 +4678,7 @@ final class WP_Customize_Manager {
 	 * @param string $return_url URL for return link.
 	 */
 	public function set_return_url( $return_url ) {
-		$return_url       = esc_url_raw( $return_url );
+		$return_url       = sanitize_url( $return_url );
 		$return_url       = remove_query_arg( wp_removable_query_args(), $return_url );
 		$return_url       = wp_validate_redirect( $return_url );
 		$this->return_url = $return_url;
@@ -4685,27 +4701,27 @@ final class WP_Customize_Manager {
 
 		if ( $this->return_url ) {
 			$return_url = $this->return_url;
+
+			$return_url_basename = wp_basename( parse_url( $this->return_url, PHP_URL_PATH ) );
+			$return_url_query    = parse_url( $this->return_url, PHP_URL_QUERY );
+
+			if ( 'themes.php' === $return_url_basename && $return_url_query ) {
+				parse_str( $return_url_query, $query_vars );
+
+				/*
+				 * If the return URL is a page added by a theme to the Appearance menu via add_submenu_page(),
+				 * verify that it belongs to the active theme, otherwise fall back to the Themes screen.
+				 */
+				if ( isset( $query_vars['page'] ) && ! isset( $_registered_pages[ "appearance_page_{$query_vars['page']}" ] ) ) {
+					$return_url = admin_url( 'themes.php' );
+				}
+			}
 		} elseif ( $referer && ! in_array( wp_basename( parse_url( $referer, PHP_URL_PATH ) ), $excluded_referer_basenames, true ) ) {
 			$return_url = $referer;
 		} elseif ( $this->preview_url ) {
 			$return_url = $this->preview_url;
 		} else {
 			$return_url = home_url( '/' );
-		}
-
-		$return_url_basename = wp_basename( parse_url( $this->return_url, PHP_URL_PATH ) );
-		$return_url_query    = parse_url( $this->return_url, PHP_URL_QUERY );
-
-		if ( 'themes.php' === $return_url_basename && $return_url_query ) {
-			parse_str( $return_url_query, $query_vars );
-
-			/*
-			 * If the return URL is a page added by a theme to the Appearance menu via add_submenu_page(),
-			 * verify that it belongs to the active theme, otherwise fall back to the Themes screen.
-			 */
-			if ( isset( $query_vars['page'] ) && ! isset( $_registered_pages[ "appearance_page_{$query_vars['page']}" ] ) ) {
-				$return_url = admin_url( 'themes.php' );
-			}
 		}
 
 		return $return_url;
@@ -4894,15 +4910,15 @@ final class WP_Customize_Manager {
 				'_canInstall' => current_user_can( 'install_themes' ),
 			),
 			'url'                    => array(
-				'preview'       => esc_url_raw( $this->get_preview_url() ),
-				'return'        => esc_url_raw( $this->get_return_url() ),
-				'parent'        => esc_url_raw( admin_url() ),
-				'activated'     => esc_url_raw( home_url( '/' ) ),
-				'ajax'          => esc_url_raw( admin_url( 'admin-ajax.php', 'relative' ) ),
-				'allowed'       => array_map( 'esc_url_raw', $this->get_allowed_urls() ),
+				'preview'       => sanitize_url( $this->get_preview_url() ),
+				'return'        => sanitize_url( $this->get_return_url() ),
+				'parent'        => sanitize_url( admin_url() ),
+				'activated'     => sanitize_url( home_url( '/' ) ),
+				'ajax'          => sanitize_url( admin_url( 'admin-ajax.php', 'relative' ) ),
+				'allowed'       => array_map( 'sanitize_url', $this->get_allowed_urls() ),
 				'isCrossDomain' => $this->is_cross_domain(),
-				'home'          => esc_url_raw( home_url( '/' ) ),
-				'login'         => esc_url_raw( $login_url ),
+				'home'          => sanitize_url( home_url( '/' ) ),
+				'login'         => sanitize_url( $login_url ),
 			),
 			'browser'                => array(
 				'mobile' => wp_is_mobile(),
@@ -5673,9 +5689,9 @@ final class WP_Customize_Manager {
 		$section_description .= __( 'Add your own CSS code here to customize the appearance and layout of your site.' );
 		$section_description .= sprintf(
 			' <a href="%1$s" class="external-link" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span></a>',
-			esc_url( __( 'https://wordpress.org/support/article/css/' ) ),
+			esc_url( __( 'https://wordpress.org/documentation/article/css/' ) ),
 			__( 'Learn more about CSS' ),
-			/* translators: Accessibility text. */
+			/* translators: Hidden accessibility text. */
 			__( '(opens in a new tab)' )
 		);
 		$section_description .= '</p>';
@@ -5696,7 +5712,7 @@ final class WP_Customize_Manager {
 				'class="external-link" target="_blank"',
 				sprintf(
 					'<span class="screen-reader-text"> %s</span>',
-					/* translators: Accessibility text. */
+					/* translators: Hidden accessibility text. */
 					__( '(opens in a new tab)' )
 				)
 			);
@@ -5763,7 +5779,15 @@ final class WP_Customize_Manager {
 				}
 			}
 		}
-		return 0 !== count( get_pages( array( 'number' => 1 ) ) );
+
+		return 0 !== count(
+			get_pages(
+				array(
+					'number'       => 1,
+					'hierarchical' => 0,
+				)
+			)
+		);
 	}
 
 	/**
@@ -6006,7 +6030,7 @@ final class WP_Customize_Manager {
 				return new WP_Error( 'invalid_value', __( 'Invalid value for background size.' ) );
 			}
 		} elseif ( 'background_image' === $setting->id || 'background_image_thumb' === $setting->id ) {
-			$value = empty( $value ) ? '' : esc_url_raw( $value );
+			$value = empty( $value ) ? '' : sanitize_url( $value );
 		} else {
 			return new WP_Error( 'unrecognized_setting', __( 'Unrecognized background setting.' ) );
 		}
@@ -6079,7 +6103,7 @@ final class WP_Customize_Manager {
 	 * @return mixed
 	 */
 	public function _validate_external_header_video( $validity, $value ) {
-		$video = esc_url_raw( $value );
+		$video = sanitize_url( $value );
 		if ( $video ) {
 			if ( ! preg_match( '#^https?://(?:www\.)?(?:youtube\.com/watch|youtu\.be/)#', $video ) ) {
 				$validity->add( 'invalid_url', __( 'Please enter a valid YouTube URL.' ) );
@@ -6097,7 +6121,7 @@ final class WP_Customize_Manager {
 	 * @return string Sanitized URL.
 	 */
 	public function _sanitize_external_header_video( $value ) {
-		return esc_url_raw( trim( $value ) );
+		return sanitize_url( trim( $value ) );
 	}
 
 	/**

@@ -741,12 +741,12 @@ function list_authors($optioncount = false, $exclude_admin = true, $show_fullnam
  * @see wp_get_post_categories()
  *
  * @param int $blogid Not Used
- * @param int $post_ID
+ * @param int $post_id
  * @return array
  */
-function wp_get_post_cats($blogid = '1', $post_ID = 0) {
+function wp_get_post_cats($blogid = '1', $post_id = 0) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_get_post_categories()' );
-	return wp_get_post_categories($post_ID);
+	return wp_get_post_categories($post_id);
 }
 
 /**
@@ -758,13 +758,13 @@ function wp_get_post_cats($blogid = '1', $post_ID = 0) {
  * @see wp_set_post_categories()
  *
  * @param int $blogid Not used
- * @param int $post_ID
+ * @param int $post_id
  * @param array $post_categories
  * @return bool|mixed
  */
-function wp_set_post_cats($blogid = '1', $post_ID = 0, $post_categories = array()) {
+function wp_set_post_cats($blogid = '1', $post_id = 0, $post_categories = array()) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_set_post_categories()' );
-	return wp_set_post_categories($post_ID, $post_categories);
+	return wp_set_post_categories($post_id, $post_categories);
 }
 
 /**
@@ -1150,13 +1150,13 @@ function comments_rss_link($link_text = 'Comments RSS') {
  * @see get_category_feed_link()
  *
  * @param bool $display
- * @param int $cat_ID
+ * @param int $cat_id
  * @return string
  */
-function get_category_rss_link($display = false, $cat_ID = 1) {
+function get_category_rss_link($display = false, $cat_id = 1) {
 	_deprecated_function( __FUNCTION__, '2.5.0', 'get_category_feed_link()' );
 
-	$link = get_category_feed_link($cat_ID, 'rss2');
+	$link = get_category_feed_link($cat_id, 'rss2');
 
 	if ( $display )
 		echo $link;
@@ -1225,20 +1225,20 @@ function gzip_compression() {
 }
 
 /**
- * Retrieve an array of comment data about comment $comment_ID.
+ * Retrieve an array of comment data about comment $comment_id.
  *
  * @since 0.71
  * @deprecated 2.7.0 Use get_comment()
  * @see get_comment()
  *
- * @param int $comment_ID The ID of the comment
+ * @param int $comment_id The ID of the comment
  * @param int $no_cache Whether to use the cache (cast to bool)
  * @param bool $include_unapproved Whether to include unapproved comments
  * @return array The comment data
  */
-function get_commentdata( $comment_ID, $no_cache = 0, $include_unapproved = false ) {
+function get_commentdata( $comment_id, $no_cache = 0, $include_unapproved = false ) {
 	_deprecated_function( __FUNCTION__, '2.7.0', 'get_comment()' );
-	return get_comment($comment_ID, ARRAY_A);
+	return get_comment($comment_id, ARRAY_A);
 }
 
 /**
@@ -1248,12 +1248,12 @@ function get_commentdata( $comment_ID, $no_cache = 0, $include_unapproved = fals
  * @deprecated 2.8.0 Use get_cat_name()
  * @see get_cat_name()
  *
- * @param int $cat_ID Category ID
+ * @param int $cat_id Category ID
  * @return string category name
  */
-function get_catname( $cat_ID ) {
+function get_catname( $cat_id ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_cat_name()' );
-	return get_cat_name( $cat_ID );
+	return get_cat_name( $cat_id );
 }
 
 /**
@@ -2027,7 +2027,7 @@ function get_link( $bookmark_id, $output = OBJECT, $filter = 'raw' ) {
  * Checks and cleans a URL.
  *
  * A number of characters are removed from the URL. If the URL is for displaying
- * (the default behaviour) ampersands are also replaced. The 'clean_url' filter
+ * (the default behavior) ampersands are also replaced. The 'clean_url' filter
  * is applied to the returned cleaned URL.
  *
  * @since 1.2.0
@@ -2041,7 +2041,7 @@ function get_link( $bookmark_id, $output = OBJECT, $filter = 'raw' ) {
  */
 function clean_url( $url, $protocols = null, $context = 'display' ) {
 	if ( $context == 'db' )
-		_deprecated_function( 'clean_url( $context = \'db\' )', '3.0.0', 'esc_url_raw()' );
+		_deprecated_function( 'clean_url( $context = \'db\' )', '3.0.0', 'sanitize_url()' );
 	else
 		_deprecated_function( __FUNCTION__, '3.0.0', 'esc_url()' );
 	return esc_url( $url, $protocols, $context );
@@ -2530,7 +2530,7 @@ function is_term( $term, $taxonomy = '', $parent = 0 ) {
  * @return bool
  */
 function is_plugin_page() {
-	_deprecated_function( __FUNCTION__, '3.1.0'  );
+	_deprecated_function( __FUNCTION__, '3.1.0' );
 
 	global $plugin_page;
 
@@ -2553,7 +2553,7 @@ function is_plugin_page() {
  * @return bool Always return True
  */
 function update_category_cache() {
-	_deprecated_function( __FUNCTION__, '3.1.0'  );
+	_deprecated_function( __FUNCTION__, '3.1.0' );
 
 	return true;
 }
@@ -3631,13 +3631,13 @@ function wp_htmledit_pre($output) {
  * @deprecated 4.4.0 Use get_permalink()
  * @see get_permalink()
  *
- * @param int|WP_Post $post_id Optional. Post ID or WP_Post object. Default is global $post.
+ * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string|false
  */
-function post_permalink( $post_id = 0 ) {
+function post_permalink( $post = 0 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'get_permalink()' );
 
-	return get_permalink( $post_id );
+	return get_permalink( $post );
 }
 
 /**
@@ -3654,12 +3654,14 @@ function post_permalink( $post_id = 0 ) {
  * @param string|bool $file_path Optional. File path to write request to. Default false.
  * @param int         $red       Optional. The number of Redirects followed, Upon 5 being hit,
  *                               returns false. Default 1.
- * @return bool|string False on failure and string of headers if HEAD request.
+ * @return \WpOrg\Requests\Utility\CaseInsensitiveDictionary|false Headers on success, false on failure.
  */
 function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'WP_Http' );
 
-	@set_time_limit( 60 );
+	if ( function_exists( 'set_time_limit' ) ) {
+		@set_time_limit( 60 );
+	}
 
 	if ( $red > 5 )
 		return false;
@@ -4310,4 +4312,282 @@ function wp_skip_spacing_serialization( $block_type ) {
  */
 function wp_add_iframed_editor_assets_html() {
 	_deprecated_function( __FUNCTION__, '6.0.0' );
+}
+
+/**
+ * Retrieves thumbnail for an attachment.
+ * Note that this works only for the (very) old image metadata style where 'thumb' was set,
+ * and the 'sizes' array did not exist. This function returns false for the newer image metadata style
+ * despite that 'thumbnail' is present in the 'sizes' array.
+ *
+ * @since 2.1.0
+ * @deprecated 6.1.0
+ *
+ * @param int $post_id Optional. Attachment ID. Default is the ID of the global `$post`.
+ * @return string|false Thumbnail file path on success, false on failure.
+ */
+function wp_get_attachment_thumb_file( $post_id = 0 ) {
+	_deprecated_function( __FUNCTION__, '6.1.0' );
+
+	$post_id = (int) $post_id;
+	$post    = get_post( $post_id );
+
+	if ( ! $post ) {
+		return false;
+	}
+
+	// Use $post->ID rather than $post_id as get_post() may have used the global $post object.
+	$imagedata = wp_get_attachment_metadata( $post->ID );
+
+	if ( ! is_array( $imagedata ) ) {
+		return false;
+	}
+
+	$file = get_attached_file( $post->ID );
+
+	if ( ! empty( $imagedata['thumb'] ) ) {
+		$thumbfile = str_replace( wp_basename( $file ), $imagedata['thumb'], $file );
+		if ( file_exists( $thumbfile ) ) {
+			/**
+			 * Filters the attachment thumbnail file path.
+			 *
+			 * @since 2.1.0
+			 *
+			 * @param string $thumbfile File path to the attachment thumbnail.
+			 * @param int    $post_id   Attachment ID.
+			 */
+			return apply_filters( 'wp_get_attachment_thumb_file', $thumbfile, $post->ID );
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Gets the path to a translation file for loading a textdomain just in time.
+ *
+ * Caches the retrieved results internally.
+ *
+ * @since 4.7.0
+ * @deprecated 6.1.0
+ * @access private
+ *
+ * @see _load_textdomain_just_in_time()
+ *
+ * @param string $domain Text domain. Unique identifier for retrieving translated strings.
+ * @param bool   $reset  Whether to reset the internal cache. Used by the switch to locale functionality.
+ * @return string|false The path to the translation file or false if no translation file was found.
+ */
+function _get_path_to_translation( $domain, $reset = false ) {
+	_deprecated_function( __FUNCTION__, '6.1.0', 'WP_Textdomain_Registry' );
+
+	static $available_translations = array();
+
+	if ( true === $reset ) {
+		$available_translations = array();
+	}
+
+	if ( ! isset( $available_translations[ $domain ] ) ) {
+		$available_translations[ $domain ] = _get_path_to_translation_from_lang_dir( $domain );
+	}
+
+	return $available_translations[ $domain ];
+}
+
+/**
+ * Gets the path to a translation file in the languages directory for the current locale.
+ *
+ * Holds a cached list of available .mo files to improve performance.
+ *
+ * @since 4.7.0
+ * @deprecated 6.1.0
+ * @access private
+ *
+ * @see _get_path_to_translation()
+ *
+ * @param string $domain Text domain. Unique identifier for retrieving translated strings.
+ * @return string|false The path to the translation file or false if no translation file was found.
+ */
+function _get_path_to_translation_from_lang_dir( $domain ) {
+	_deprecated_function( __FUNCTION__, '6.1.0', 'WP_Textdomain_Registry' );
+
+	static $cached_mofiles = null;
+
+	if ( null === $cached_mofiles ) {
+		$cached_mofiles = array();
+
+		$locations = array(
+			WP_LANG_DIR . '/plugins',
+			WP_LANG_DIR . '/themes',
+		);
+
+		foreach ( $locations as $location ) {
+			$mofiles = glob( $location . '/*.mo' );
+			if ( $mofiles ) {
+				$cached_mofiles = array_merge( $cached_mofiles, $mofiles );
+			}
+		}
+	}
+
+	$locale = determine_locale();
+	$mofile = "{$domain}-{$locale}.mo";
+
+	$path = WP_LANG_DIR . '/plugins/' . $mofile;
+	if ( in_array( $path, $cached_mofiles, true ) ) {
+		return $path;
+	}
+
+	$path = WP_LANG_DIR . '/themes/' . $mofile;
+	if ( in_array( $path, $cached_mofiles, true ) ) {
+		return $path;
+	}
+
+	return false;
+}
+
+/**
+  * Allows multiple block styles.
+  *
+  * @since 5.9.0
+  * @deprecated 6.1.0
+  *
+  * @param array $metadata Metadata for registering a block type.
+  * @return array Metadata for registering a block type.
+  */
+  function _wp_multiple_block_styles( $metadata ) {
+	_deprecated_function( __FUNCTION__, '6.1.0' );
+	return $metadata;
+}
+
+/**
+ * Generates an inline style for a typography feature e.g. text decoration,
+ * text transform, and font style.
+ *
+ * @since 5.8.0
+ * @access private
+ * @deprecated 6.1.0 Use wp_style_engine_get_styles() introduced in 6.1.0.
+ *
+ * @see wp_style_engine_get_styles()
+ *
+ * @param array  $attributes   Block's attributes.
+ * @param string $feature      Key for the feature within the typography styles.
+ * @param string $css_property Slug for the CSS property the inline style sets.
+ * @return string CSS inline style.
+ */
+function wp_typography_get_css_variable_inline_style( $attributes, $feature, $css_property ) {
+	_deprecated_function( __FUNCTION__, '6.1.0', 'wp_style_engine_get_styles()' );
+
+	// Retrieve current attribute value or skip if not found.
+	$style_value = _wp_array_get( $attributes, array( 'style', 'typography', $feature ), false );
+	if ( ! $style_value ) {
+		return;
+	}
+
+	// If we don't have a preset CSS variable, we'll assume it's a regular CSS value.
+	if ( strpos( $style_value, "var:preset|{$css_property}|" ) === false ) {
+		return sprintf( '%s:%s;', $css_property, $style_value );
+	}
+
+	/*
+	 * We have a preset CSS variable as the style.
+	 * Get the style value from the string and return CSS style.
+	 */
+	$index_to_splice = strrpos( $style_value, '|' ) + 1;
+	$slug            = substr( $style_value, $index_to_splice );
+
+	// Return the actual CSS inline style e.g. `text-decoration:var(--wp--preset--text-decoration--underline);`.
+	return sprintf( '%s:var(--wp--preset--%s--%s);', $css_property, $css_property, $slug );
+}
+
+/**
+ * Determines whether global terms are enabled.
+ *
+ * @since 3.0.0
+ * @since 6.1.0 This function now always returns false.
+ * @deprecated 6.1.0
+ *
+ * @return bool Always returns false.
+ */
+function global_terms_enabled() {
+	_deprecated_function( __FUNCTION__, '6.1.0' );
+
+	return false;
+}
+
+/**
+ * Filter the SQL clauses of an attachment query to include filenames.
+ *
+ * @since 4.7.0
+ * @deprecated 6.0.3
+ * @access private
+ *
+ * @param array $clauses An array including WHERE, GROUP BY, JOIN, ORDER BY,
+ *                       DISTINCT, fields (SELECT), and LIMITS clauses.
+ * @return array The unmodified clauses.
+ */
+function _filter_query_attachment_filenames( $clauses ) {
+	_deprecated_function( __FUNCTION__, '6.0.3', 'add_filter( "wp_allow_query_attachment_by_filename", "__return_true" )' );
+	remove_filter( 'posts_clauses', __FUNCTION__ );
+	return $clauses;
+}
+
+/**
+ * Retrieves a page given its title.
+ *
+ * If more than one post uses the same title, the post with the smallest ID will be returned.
+ * Be careful: in case of more than one post having the same title, it will check the oldest
+ * publication date, not the smallest ID.
+ *
+ * Because this function uses the MySQL '=' comparison, $page_title will usually be matched
+ * as case-insensitive with default collation.
+ *
+ * @since 2.1.0
+ * @since 3.0.0 The `$post_type` parameter was added.
+ * @deprecated 6.2.0 Use WP_Query.
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string       $page_title Page title.
+ * @param string       $output     Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                                 correspond to a WP_Post object, an associative array, or a numeric array,
+ *                                 respectively. Default OBJECT.
+ * @param string|array $post_type  Optional. Post type or array of post types. Default 'page'.
+ * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
+ */
+function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
+	_deprecated_function( __FUNCTION__, '6.2.0', 'WP_Query' );
+	global $wpdb;
+
+	if ( is_array( $post_type ) ) {
+		$post_type           = esc_sql( $post_type );
+		$post_type_in_string = "'" . implode( "','", $post_type ) . "'";
+		$sql                 = $wpdb->prepare(
+			"
+			SELECT ID
+			FROM $wpdb->posts
+			WHERE post_title = %s
+			AND post_type IN ($post_type_in_string)
+		",
+			$page_title
+		);
+	} else {
+		$sql = $wpdb->prepare(
+			"
+			SELECT ID
+			FROM $wpdb->posts
+			WHERE post_title = %s
+			AND post_type = %s
+		",
+			$page_title,
+			$post_type
+		);
+	}
+
+	$page = $wpdb->get_var( $sql );
+
+	if ( $page ) {
+		return get_post( $page, $output );
+	}
+
+	return null;
 }

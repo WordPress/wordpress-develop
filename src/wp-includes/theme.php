@@ -733,11 +733,12 @@ function locale_stylesheet() {
  * @global array                $wp_theme_directories
  * @global WP_Customize_Manager $wp_customize
  * @global array                $sidebars_widgets
+ * @global array                $wp_registered_sidebars
  *
  * @param string $stylesheet Stylesheet name.
  */
 function switch_theme( $stylesheet ) {
-	global $wp_theme_directories, $wp_customize, $sidebars_widgets;
+	global $wp_theme_directories, $wp_customize, $sidebars_widgets, $wp_registered_sidebars;
 
 	$requirements = validate_theme_requirements( $stylesheet );
 	if ( is_wp_error( $requirements ) ) {
@@ -814,6 +815,11 @@ function switch_theme( $stylesheet ) {
 		}
 	}
 
+	// Stores classic sidebars for later use by block themes.
+	if ( $new_theme->is_block_theme() ) {
+		set_theme_mod( 'wp_classic_sidebars', $wp_registered_sidebars );
+	}
+
 	update_option( 'theme_switched', $old_theme->get_stylesheet() );
 
 	/**
@@ -861,7 +867,9 @@ function validate_current_theme() {
 		return true;
 	}
 
-	if ( ! file_exists( get_template_directory() . '/templates/index.html' )
+	if (
+		! file_exists( get_template_directory() . '/templates/index.html' )
+		&& ! file_exists( get_template_directory() . '/block-templates/index.html' ) // Deprecated path support since 5.9.0.
 		&& ! file_exists( get_template_directory() . '/index.php' )
 	) {
 		// Invalid.
@@ -989,18 +997,18 @@ function get_theme_mods() {
 /**
  * Retrieves theme modification value for the active theme.
  *
- * If the modification name does not exist and `$default` is a string, then the
+ * If the modification name does not exist and `$default_value` is a string, then the
  * default will be passed through the {@link https://www.php.net/sprintf sprintf()}
  * PHP function with the template directory URI as the first value and the
  * stylesheet directory URI as the second value.
  *
  * @since 2.1.0
  *
- * @param string $name    Theme modification name.
- * @param mixed  $default Optional. Theme modification default value. Default false.
+ * @param string $name          Theme modification name.
+ * @param mixed  $default_value Optional. Theme modification default value. Default false.
  * @return mixed Theme modification value.
  */
-function get_theme_mod( $name, $default = false ) {
+function get_theme_mod( $name, $default_value = false ) {
 	$mods = get_theme_mods();
 
 	if ( isset( $mods[ $name ] ) ) {
@@ -1018,17 +1026,17 @@ function get_theme_mod( $name, $default = false ) {
 		return apply_filters( "theme_mod_{$name}", $mods[ $name ] );
 	}
 
-	if ( is_string( $default ) ) {
+	if ( is_string( $default_value ) ) {
 		// Only run the replacement if an sprintf() string format pattern was found.
-		if ( preg_match( '#(?<!%)%(?:\d+\$?)?s#', $default ) ) {
+		if ( preg_match( '#(?<!%)%(?:\d+\$?)?s#', $default_value ) ) {
 			// Remove a single trailing percent sign.
-			$default = preg_replace( '#(?<!%)%$#', '', $default );
-			$default = sprintf( $default, get_template_directory_uri(), get_stylesheet_directory_uri() );
+			$default_value = preg_replace( '#(?<!%)%$#', '', $default_value );
+			$default_value = sprintf( $default_value, get_template_directory_uri(), get_stylesheet_directory_uri() );
 		}
 	}
 
 	/** This filter is documented in wp-includes/theme.php */
-	return apply_filters( "theme_mod_{$name}", $default );
+	return apply_filters( "theme_mod_{$name}", $default_value );
 }
 
 /**
@@ -1177,7 +1185,21 @@ function get_header_image() {
 		$url = get_random_header_image();
 	}
 
-	return esc_url_raw( set_url_scheme( $url ) );
+	/**
+	 * Filters the header image URL.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $url Header image URL.
+	 */
+	$url = apply_filters( 'get_header_image', $url );
+
+	if ( ! is_string( $url ) ) {
+		return false;
+	}
+
+	$url = trim( $url );
+	return sanitize_url( set_url_scheme( $url ) );
 }
 
 /**
@@ -1315,7 +1337,7 @@ function _get_random_header_data() {
 		}
 
 		if ( empty( $headers ) ) {
-			return new stdClass;
+			return new stdClass();
 		}
 
 		$_wp_random_header = (object) $headers[ array_rand( $headers ) ];
@@ -1426,7 +1448,7 @@ function get_uploaded_header_images() {
 	}
 
 	foreach ( (array) $headers as $header ) {
-		$url          = esc_url_raw( wp_get_attachment_url( $header->ID ) );
+		$url          = sanitize_url( wp_get_attachment_url( $header->ID ) );
 		$header_data  = wp_get_attachment_metadata( $header->ID );
 		$header_index = $header->ID;
 
@@ -1587,7 +1609,7 @@ function get_header_video_url() {
 		return false;
 	}
 
-	return esc_url_raw( set_url_scheme( $url ) );
+	return sanitize_url( set_url_scheme( $url ) );
 }
 
 /**
@@ -1804,7 +1826,7 @@ function _custom_background_cb() {
 	$style = $color ? "background-color: #$color;" : '';
 
 	if ( $background ) {
-		$image = ' background-image: url("' . esc_url_raw( $background ) . '");';
+		$image = ' background-image: url("' . sanitize_url( $background ) . '");';
 
 		// Background Position.
 		$position_x = get_theme_mod( 'background_position_x', get_theme_support( 'custom-background', 'default-position-x' ) );
@@ -2052,7 +2074,8 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 			}
 
 			// Trigger creation of a revision. This should be removed once #30854 is resolved.
-			if ( 0 === count( wp_get_post_revisions( $r ) ) ) {
+			$revisions = wp_get_latest_revision_id_and_total_count( $r );
+			if ( ! is_wp_error( $revisions ) && 0 === $revisions['count'] ) {
 				wp_save_post_revision( $r );
 			}
 		}
@@ -2144,7 +2167,7 @@ function get_editor_stylesheets() {
 		// Support externally referenced styles (like, say, fonts).
 		foreach ( $editor_styles as $key => $file ) {
 			if ( preg_match( '~^(https?:)?//~', $file ) ) {
-				$stylesheets[] = esc_url_raw( $file );
+				$stylesheets[] = sanitize_url( $file );
 				unset( $editor_styles[ $key ] );
 			}
 		}
@@ -2521,6 +2544,8 @@ function get_theme_starter_content() {
  * @since 2.9.0
  * @since 3.4.0 The `custom-header-uploads` feature was deprecated.
  * @since 3.6.0 The `html5` feature was added.
+ * @since 3.6.1 The `html5` feature requires an array of types to be passed. Defaults to
+ *              'comment-list', 'comment-form', 'search-form' for backward compatibility.
  * @since 3.9.0 The `html5` feature now also accepts 'gallery' and 'caption'.
  * @since 4.1.0 The `title-tag` feature was added.
  * @since 4.5.0 The `customize-selective-refresh-widgets` feature was added.
@@ -2533,8 +2558,9 @@ function get_theme_starter_content() {
  *              by adding it to the function signature.
  * @since 5.5.0 The `core-block-patterns` feature was added and is enabled by default.
  * @since 5.5.0 The `custom-logo` feature now also accepts 'unlink-homepage-logo'.
- * @since 5.6.0 The `post-formats` feature warns if no array is passed.
+ * @since 5.6.0 The `post-formats` feature warns if no array is passed as the second parameter.
  * @since 5.8.0 The `widgets-block-editor` feature enables the Widgets block editor.
+ * @since 6.0.0 The `html5` feature warns if no array is passed as the second parameter.
  *
  * @global array $_wp_theme_features
  *
@@ -3105,12 +3131,12 @@ function current_theme_supports( $feature, ...$args ) {
  *
  * @param string $feature The feature being checked. See add_theme_support() for the list
  *                        of possible values.
- * @param string $include Path to the file.
+ * @param string $file    Path to the file.
  * @return bool True if the active theme supports the supplied feature, false otherwise.
  */
-function require_if_theme_supports( $feature, $include ) {
+function require_if_theme_supports( $feature, $file ) {
 	if ( current_theme_supports( $feature ) ) {
-		require $include;
+		require $file;
 		return true;
 	}
 	return false;
@@ -3547,7 +3573,7 @@ function _wp_customize_publish_changeset( $new_status, $old_status, $changeset_p
 		remove_action( 'customize_register', array( $wp_customize, 'register_controls' ) );
 		$wp_customize->register_controls();
 
-		/** This filter is documented in /wp-includes/class-wp-customize-manager.php */
+		/** This filter is documented in wp-includes/class-wp-customize-manager.php */
 		do_action( 'customize_register', $wp_customize );
 	}
 	$wp_customize->_publish_changeset_values( $changeset_post->ID );
@@ -3799,6 +3825,7 @@ function _wp_keep_alive_customize_changeset_dependent_auto_drafts( $new_status, 
  * See {@see 'setup_theme'}.
  *
  * @since 5.5.0
+ * @since 6.0.1 The `block-templates` feature was added.
  */
 function create_initial_theme_features() {
 	register_theme_feature(
@@ -3812,6 +3839,20 @@ function create_initial_theme_features() {
 		'automatic-feed-links',
 		array(
 			'description'  => __( 'Whether posts and comments RSS feed links are added to head.' ),
+			'show_in_rest' => true,
+		)
+	);
+	register_theme_feature(
+		'block-templates',
+		array(
+			'description'  => __( 'Whether a theme uses block-based templates.' ),
+			'show_in_rest' => true,
+		)
+	);
+	register_theme_feature(
+		'block-template-parts',
+		array(
+			'description'  => __( 'Whether a theme uses block-based template parts.' ),
 			'show_in_rest' => true,
 		)
 	);
@@ -3999,6 +4040,13 @@ function create_initial_theme_features() {
 		)
 	);
 	register_theme_feature(
+		'disable-layout-styles',
+		array(
+			'description'  => __( 'Whether the theme disables generated layout styles.' ),
+			'show_in_rest' => true,
+		)
+	);
+	register_theme_feature(
 		'editor-color-palette',
 		array(
 			'type'         => 'array',
@@ -4176,6 +4224,21 @@ function wp_is_block_theme() {
 }
 
 /**
+ * Given an element name, returns a class name.
+ *
+ * Alias of WP_Theme_JSON::get_element_class_name.
+ *
+ * @since 6.1.0
+ *
+ * @param string $element The name of the element.
+ *
+ * @return string The name of the class.
+ */
+function wp_theme_get_element_class_name( $element ) {
+	return WP_Theme_JSON::get_element_class_name( $element );
+}
+
+/**
  * Adds default theme supports for block themes when the 'setup_theme' action fires.
  *
  * See {@see 'setup_theme'}.
@@ -4200,4 +4263,23 @@ function _add_default_theme_supports() {
 	add_theme_support( 'automatic-feed-links' );
 
 	add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+
+	/*
+	 * Remove the Customizer's Menus panel when block theme is active.
+	 */
+	add_filter(
+		'customize_panel_active',
+		static function ( $active, WP_Customize_Panel $panel ) {
+			if (
+				'nav_menus' === $panel->id &&
+				! current_theme_supports( 'menus' ) &&
+				! current_theme_supports( 'widgets' )
+			) {
+				$active = false;
+			}
+			return $active;
+		},
+		10,
+		2
+	);
 }

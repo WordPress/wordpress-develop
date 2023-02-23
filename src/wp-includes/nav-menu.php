@@ -143,7 +143,7 @@ function register_nav_menu( $location, $description ) {
  *
  * @global array $_wp_registered_nav_menus
  *
- * @return string[] Associative array of egistered navigation menu descriptions keyed
+ * @return string[] Associative array of registered navigation menu descriptions keyed
  *                  by their location. If none are registered, an empty array.
  */
 function get_registered_nav_menus() {
@@ -563,6 +563,11 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 
 	$menu_item_db_id = (int) $menu_item_db_id;
 
+	// Reset invalid `menu_item_parent`.
+	if ( (int) $args['menu-item-parent-id'] === $menu_item_db_id ) {
+		$args['menu-item-parent-id'] = 0;
+	}
+
 	update_post_meta( $menu_item_db_id, '_menu_item_type', sanitize_key( $args['menu-item-type'] ) );
 	update_post_meta( $menu_item_db_id, '_menu_item_menu_item_parent', (string) ( (int) $args['menu-item-parent-id'] ) );
 	update_post_meta( $menu_item_db_id, '_menu_item_object_id', (string) ( (int) $args['menu-item-object-id'] ) );
@@ -573,7 +578,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 	$args['menu-item-xfn']     = implode( ' ', array_map( 'sanitize_html_class', explode( ' ', $args['menu-item-xfn'] ) ) );
 	update_post_meta( $menu_item_db_id, '_menu_item_classes', $args['menu-item-classes'] );
 	update_post_meta( $menu_item_db_id, '_menu_item_xfn', $args['menu-item-xfn'] );
-	update_post_meta( $menu_item_db_id, '_menu_item_url', esc_url_raw( $args['menu-item-url'] ) );
+	update_post_meta( $menu_item_db_id, '_menu_item_url', sanitize_url( $args['menu-item-url'] ) );
 
 	if ( 0 == $menu_id ) {
 		update_post_meta( $menu_item_db_id, '_menu_item_orphaned', (string) time() );
@@ -691,21 +696,20 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		return false;
 	}
 
-	static $fetched = array();
-
 	if ( ! taxonomy_exists( 'nav_menu' ) ) {
 		return false;
 	}
 
 	$defaults = array(
-		'order'       => 'ASC',
-		'orderby'     => 'menu_order',
-		'post_type'   => 'nav_menu_item',
-		'post_status' => 'publish',
-		'output'      => ARRAY_A,
-		'output_key'  => 'menu_order',
-		'nopaging'    => true,
-		'tax_query'   => array(
+		'order'                  => 'ASC',
+		'orderby'                => 'menu_order',
+		'post_type'              => 'nav_menu_item',
+		'post_status'            => 'publish',
+		'output'                 => ARRAY_A,
+		'output_key'             => 'menu_order',
+		'nopaging'               => true,
+		'update_menu_item_cache' => true,
+		'tax_query'              => array(
 			array(
 				'taxonomy' => 'nav_menu',
 				'field'    => 'term_taxonomy_id',
@@ -718,33 +722,6 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		$items = get_posts( $args );
 	} else {
 		$items = array();
-	}
-
-	// Prime posts and terms caches.
-	if ( empty( $fetched[ $menu->term_id ] ) ) {
-		$fetched[ $menu->term_id ] = true;
-		$post_ids                  = array();
-		$term_ids                  = array();
-		foreach ( $items as $item ) {
-			$object_id = get_post_meta( $item->ID, '_menu_item_object_id', true );
-			$type      = get_post_meta( $item->ID, '_menu_item_type', true );
-
-			if ( 'post_type' === $type ) {
-				$post_ids[] = (int) $object_id;
-			} elseif ( 'taxonomy' === $type ) {
-				$term_ids[] = (int) $object_id;
-			}
-		}
-
-		if ( ! empty( $post_ids ) ) {
-			_prime_post_caches( $post_ids, false );
-		}
-		unset( $post_ids );
-
-		if ( ! empty( $term_ids ) ) {
-			_prime_term_caches( $term_ids );
-		}
-		unset( $term_ids );
 	}
 
 	$items = array_map( 'wp_setup_nav_menu_item', $items );
@@ -778,6 +755,41 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 	 * @param array  $args  An array of arguments used to retrieve menu item objects.
 	 */
 	return apply_filters( 'wp_get_nav_menu_items', $items, $menu, $args );
+}
+
+/**
+ * Updates post and term caches for all linked objects for a list of menu items.
+ *
+ * @since 6.1.0
+ *
+ * @param WP_Post[] $menu_items Array of menu item post objects.
+ */
+function update_menu_item_cache( $menu_items ) {
+	$post_ids = array();
+	$term_ids = array();
+
+	foreach ( $menu_items as $menu_item ) {
+		if ( 'nav_menu_item' !== $menu_item->post_type ) {
+			continue;
+		}
+
+		$object_id = get_post_meta( $menu_item->ID, '_menu_item_object_id', true );
+		$type      = get_post_meta( $menu_item->ID, '_menu_item_type', true );
+
+		if ( 'post_type' === $type ) {
+			$post_ids[] = (int) $object_id;
+		} elseif ( 'taxonomy' === $type ) {
+			$term_ids[] = (int) $object_id;
+		}
+	}
+
+	if ( ! empty( $post_ids ) ) {
+		_prime_post_caches( $post_ids, false );
+	}
+
+	if ( ! empty( $term_ids ) ) {
+		_prime_term_caches( $term_ids );
+	}
 }
 
 /**
@@ -1003,7 +1015,7 @@ function wp_get_associated_nav_menu_items( $object_id = 0, $object_type = 'post_
 	$object_id     = (int) $object_id;
 	$menu_item_ids = array();
 
-	$query      = new WP_Query;
+	$query      = new WP_Query();
 	$menu_items = $query->query(
 		array(
 			'meta_key'       => '_menu_item_object_id',
@@ -1265,4 +1277,32 @@ function wp_map_nav_menu_locations( $new_nav_menu_locations, $old_nav_menu_locat
 	} // End foreach ( $common_slug_groups as $slug_group ).
 
 	return $new_nav_menu_locations;
+}
+
+/**
+ * Prevents menu items from being their own parent.
+ *
+ * Resets menu_item_parent to 0 when the parent is set to the item itself.
+ * For use before saving `_menu_item_menu_item_parent` in nav-menus.php.
+ *
+ * @since 6.2.0
+ * @access private
+ *
+ * @param array $menu_item_data The menu item data array.
+ * @return array The menu item data with reset menu_item_parent.
+ */
+function _wp_reset_invalid_menu_item_parent( $menu_item_data ) {
+	if ( ! is_array( $menu_item_data ) ) {
+		return $menu_item_data;
+	}
+
+	if (
+		! empty( $menu_item_data['ID'] ) &&
+		! empty( $menu_item_data['menu_item_parent'] ) &&
+		(int) $menu_item_data['ID'] === (int) $menu_item_data['menu_item_parent']
+	) {
+		$menu_item_data['menu_item_parent'] = 0;
+	}
+
+	return $menu_item_data;
 }

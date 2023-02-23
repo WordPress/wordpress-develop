@@ -12,11 +12,11 @@ class Tests_Functions_wpListSort extends WP_UnitTestCase {
 	 * @dataProvider data_test_wp_list_sort
 	 *
 	 * @param string|array $orderby Either the field name to order by or an array
-	 *                              of multiple orderby fields as $orderby => $order.
+	 *                              of multiple orderby fields as `$orderby => $order`.
 	 * @param string       $order   Either 'ASC' or 'DESC'.
 	 */
-	public function test_wp_list_sort( $list, $orderby, $order, $expected ) {
-		$this->assertSame( $expected, wp_list_sort( $list, $orderby, $order ) );
+	public function test_wp_list_sort( $input_list, $orderby, $order, $expected ) {
+		$this->assertSame( $expected, wp_list_sort( $input_list, $orderby, $order ) );
 	}
 
 	public function data_test_wp_list_sort() {
@@ -337,11 +337,11 @@ class Tests_Functions_wpListSort extends WP_UnitTestCase {
 	 * @dataProvider data_test_wp_list_sort_preserve_keys
 	 *
 	 * @param string|array $orderby Either the field name to order by or an array
-	 *                              of multiple orderby fields as $orderby => $order.
+	 *                              of multiple orderby fields as `$orderby => $order`.
 	 * @param string       $order   Either 'ASC' or 'DESC'.
 	 */
-	public function test_wp_list_sort_preserve_keys( $list, $orderby, $order, $expected ) {
-		$this->assertSame( $expected, wp_list_sort( $list, $orderby, $order, true ) );
+	public function test_wp_list_sort_preserve_keys( $input_list, $orderby, $order, $expected ) {
+		$this->assertSame( $expected, wp_list_sort( $input_list, $orderby, $order, true ) );
 	}
 
 	public function data_test_wp_list_sort_preserve_keys() {

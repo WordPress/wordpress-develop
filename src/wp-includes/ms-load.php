@@ -297,7 +297,7 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 
 	// If the network is defined in wp-config.php, we can simply use that.
 	if ( defined( 'DOMAIN_CURRENT_SITE' ) && defined( 'PATH_CURRENT_SITE' ) ) {
-		$current_site         = new stdClass;
+		$current_site         = new stdClass();
 		$current_site->id     = defined( 'SITE_ID_CURRENT_SITE' ) ? SITE_ID_CURRENT_SITE : 1;
 		$current_site->domain = DOMAIN_CURRENT_SITE;
 		$current_site->path   = PATH_CURRENT_SITE;
@@ -387,7 +387,7 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 
 	// During activation of a new subdomain, the requested site does not yet exist.
 	if ( empty( $current_blog ) && wp_installing() ) {
-		$current_blog          = new stdClass;
+		$current_blog          = new stdClass();
 		$current_blog->blog_id = 1;
 		$blog_id               = 1;
 		$current_blog->public  = 1;
@@ -472,12 +472,12 @@ function ms_not_installed( $domain, $path ) {
 
 	$msg   = '<h1>' . $title . '</h1>';
 	$msg  .= '<p>' . __( 'If your site does not display, please contact the owner of this network.' ) . '';
-	$msg  .= ' ' . __( 'If you are the owner of this network please check that MySQL is running properly and all tables are error free.' ) . '</p>';
+	$msg  .= ' ' . __( 'If you are the owner of this network please check that your host&#8217;s database server is running properly and all tables are error free.' ) . '</p>';
 	$query = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->site ) );
 	if ( ! $wpdb->get_var( $query ) ) {
 		$msg .= '<p>' . sprintf(
 			/* translators: %s: Table name. */
-			__( '<strong>Database tables are missing.</strong> This means that MySQL is not running, WordPress was not installed properly, or someone deleted %s. You really should look at your database now.' ),
+			__( '<strong>Database tables are missing.</strong> This means that your host&#8217;s database server is not running, WordPress was not installed properly, or someone deleted %s. You really should look at your database now.' ),
 			'<code>' . $wpdb->site . '</code>'
 		) . '</p>';
 	} else {
@@ -493,7 +493,7 @@ function ms_not_installed( $domain, $path ) {
 	$msg .= sprintf(
 		/* translators: %s: Documentation URL. */
 		__( 'Read the <a href="%s" target="_blank">Debugging a WordPress Network</a> article. Some of the suggestions there may help you figure out what went wrong.' ),
-		__( 'https://wordpress.org/support/article/debugging-a-wordpress-network/' )
+		__( 'https://wordpress.org/documentation/article/debugging-a-wordpress-network/' )
 	);
 	$msg .= ' ' . __( 'If you are still stuck with this message, then check that your database contains the following tables:' ) . '</p><ul>';
 	foreach ( $wpdb->tables( 'global' ) as $t => $table ) {

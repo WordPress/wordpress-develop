@@ -12,9 +12,25 @@
 class Tests_REST_Server extends WP_Test_REST_TestCase {
 	protected static $icon_id;
 
+	/**
+	 * Called before setting up all tests.
+	 */
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		// Require files that need to load once.
+		require_once DIR_TESTROOT . '/includes/mock-invokable.php';
+	}
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		$filename      = DIR_TESTDATA . '/images/test-image-large.jpg';
 		self::$icon_id = $factory->attachment->create_upload_object( $filename );
+	}
+
+	public static function tear_down_after_class() {
+		wp_delete_attachment( self::$icon_id, true );
+
+		parent::tear_down_after_class();
 	}
 
 	public function set_up() {
@@ -33,16 +49,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		unset( $_REQUEST['_wpnonce'] );
 
 		parent::tear_down();
-	}
-
-	/**
-	 * Called before setting up all tests.
-	 */
-	public static function set_up_before_class() {
-		parent::set_up_before_class();
-
-		// Require files that need to load once.
-		require_once DIR_TESTROOT . '/includes/mock-invokable.php';
 	}
 
 	public function test_envelope() {
@@ -587,8 +593,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	public function test_json_error_with_status() {
 		$stub = $this->getMockBuilder( 'Spy_REST_Server' )
-					->setMethods( array( 'set_status' ) )
-					->getMock();
+			->setMethods( array( 'set_status' ) )
+			->getMock();
 
 		$stub->expects( $this->once() )
 			->method( 'set_status' )
@@ -916,11 +922,35 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$data   = array(
 			'untouched' => 'data',
 		);
-		$result = rest_get_server()->embed_links( $data );
+		$result = rest_get_server()->embed_links( $data, true );
 
-		$this->assertArrayNotHasKey( '_links', $data );
-		$this->assertArrayNotHasKey( '_embedded', $data );
-		$this->assertSame( 'data', $data['untouched'] );
+		$this->assertArrayNotHasKey( '_links', $result );
+		$this->assertArrayNotHasKey( '_embedded', $result );
+		$this->assertSame( 'data', $result['untouched'] );
+	}
+
+	/**
+	 * Ensure embed_links handles WP_Error objects returned by dispatch
+	 *
+	 * @ticket 56566
+	 */
+	public function test_link_embedding_returning_wp_error() {
+		$return_wp_error = function() {
+			return new WP_Error( 'some-error', 'This is not valid!' );
+		};
+		add_filter( 'rest_pre_dispatch', $return_wp_error );
+
+		$mock = new MockAction();
+		add_filter( 'rest_post_dispatch', array( $mock, 'filter' ) );
+
+		$response = new WP_REST_Response();
+		$response->add_link( 'author', rest_url( 'test' ), array( 'embeddable' => true ) );
+
+		$data = rest_get_server()->response_to_data( $response, true );
+
+		$this->assertArrayHasKey( '_links', $data );
+		$this->assertCount( 1, $mock->get_events() );
+		$this->assertSame( 'some-error', $data['_embedded']['author'][0]['code'] );
 	}
 
 	public function embedded_response_callback( $request ) {
@@ -1084,6 +1114,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		// Check site logo and icon.
 		$this->assertArrayHasKey( 'site_logo', $data );
 		$this->assertArrayHasKey( 'site_icon', $data );
+		$this->assertArrayHasKey( 'site_icon_url', $data );
 	}
 
 	/**
@@ -1239,7 +1270,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$result  = rest_get_server()->serve_request( '/' );
 		$headers = rest_get_server()->sent_headers;
 
-		$this->assertSame( '<' . esc_url_raw( $api_root ) . '>; rel="https://api.w.org/"', $headers['Link'] );
+		$this->assertSame( '<' . sanitize_url( $api_root ) . '>; rel="https://api.w.org/"', $headers['Link'] );
 	}
 
 	public function test_nocache_headers_on_authenticated_requests() {

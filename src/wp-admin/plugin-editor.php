@@ -140,9 +140,9 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/plugins-editor-screen/">Documentation on Editing Plugins</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/plugins-editor-screen/">Documentation on Editing Plugins</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://developer.wordpress.org/plugins/">Documentation on Writing Plugins</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 $settings = array(
@@ -167,10 +167,12 @@ if ( '.php' === substr( $real_file, strrpos( $real_file, '.' ) ) ) {
 
 	if ( ! empty( $functions ) ) {
 		$docs_select  = '<select name="docs-list" id="docs-list">';
-		$docs_select .= '<option value="">' . __( 'Function Name&hellip;' ) . '</option>';
+		$docs_select .= '<option value="">' . esc_html__( 'Function Name&hellip;' ) . '</option>';
+
 		foreach ( $functions as $function ) {
 			$docs_select .= '<option value="' . esc_attr( $function ) . '">' . esc_html( $function ) . '()</option>';
 		}
+
 		$docs_select .= '</select>';
 	}
 }
@@ -294,7 +296,7 @@ $content = esc_textarea( $content );
 			printf(
 				/* translators: %s: Documentation URL. */
 				__( 'You need to make this file writable before you can save your changes. See <a href="%s">Changing File Permissions</a> for more information.' ),
-				__( 'https://wordpress.org/support/article/changing-file-permissions/' )
+				__( 'https://wordpress.org/documentation/article/changing-file-permissions/' )
 			);
 			?>
 		</p>

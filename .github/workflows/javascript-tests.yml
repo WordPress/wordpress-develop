@@ -8,8 +8,9 @@ on:
       - '3.[89]'
       - '[4-9].[0-9]'
     tags:
-      - '3.[89]*'
-      - '[4-9].[0-9]*'
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
+      - '!3.7.[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -18,7 +19,7 @@ on:
     paths:
       # Any change to a JavaScript file should run tests.
       - '**.js'
-      # These files configure NPM. Changes could affect the outcome.
+      # These files configure npm. Changes could affect the outcome.
       - 'package*.json'
       # This file configures ESLint. Changes could affect the outcome.
       - '.eslintignore'
@@ -42,10 +43,9 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
-  # - Logs updated debug information.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Sets up Node.js.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs npm dependencies.
   # - Run the WordPress QUnit tests.
   # - Ensures version-controlled files are not modified or deleted.
   test-js:
@@ -56,17 +56,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
 
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-          git --version
-          svn --version
-
-      - name: Install NodeJS
-        uses: actions/setup-node@5b52f097d36d4b0b2f94ed6de710023fbb8b2236 # v3.1.0
+      - name: Set up Node.js
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -75,8 +68,10 @@ jobs:
         run: |
           npm --version
           node --version
+          git --version
+          svn --version
 
-      - name: Install Dependencies
+      - name: Install npm Dependencies
         run: npm ci
 
       - name: Run QUnit tests
@@ -97,3 +92,33 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-latest
+    needs: [ test-js, slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        needs.test-js.result == 'cancelled' || needs.test-js.result == 'failure'
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: '${{ github.run_id }}'
+              }
+            });

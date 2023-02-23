@@ -46,8 +46,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/settings-general-screen/">Documentation on General Settings</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/settings-general-screen/">Documentation on General Settings</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
@@ -66,9 +66,17 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <td><input name="blogname" type="text" id="blogname" value="<?php form_option( 'blogname' ); ?>" class="regular-text" /></td>
 </tr>
 
+<?php
+/* translators: Site tagline. */
+$sample_tagline = __( 'Just another WordPress site' );
+if ( is_multisite() ) {
+	/* translators: %s: Network title. */
+	$sample_tagline = sprintf( __( 'Just another %s site' ), get_network()->site_name );
+}
+?>
 <tr>
 <th scope="row"><label for="blogdescription"><?php _e( 'Tagline' ); ?></label></th>
-<td><input name="blogdescription" type="text" id="blogdescription" aria-describedby="tagline-description" value="<?php form_option( 'blogdescription' ); ?>" class="regular-text" />
+<td><input name="blogdescription" type="text" id="blogdescription" aria-describedby="tagline-description" value="<?php form_option( 'blogdescription' ); ?>" class="regular-text" placeholder="<?php echo $sample_tagline; ?>" />
 <p class="description" id="tagline-description"><?php _e( 'In a few words, explain what this site is about.' ); ?></p></td>
 </tr>
 
@@ -97,8 +105,8 @@ if ( ! is_multisite() ) {
 		<?php
 		printf(
 			/* translators: %s: Documentation URL. */
-			__( 'Enter the address here if you <a href="%s">want your site home page to be different from your WordPress installation directory</a>.' ),
-			__( 'https://wordpress.org/support/article/giving-wordpress-its-own-directory/' )
+			__( 'Enter the same address here unless you <a href="%s">want your site home page to be different from your WordPress installation directory</a>.' ),
+			__( 'https://wordpress.org/documentation/article/giving-wordpress-its-own-directory/' )
 		);
 		?>
 </p>
@@ -140,7 +148,12 @@ if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) :
 
 <tr>
 <th scope="row"><?php _e( 'Membership' ); ?></th>
-<td> <fieldset><legend class="screen-reader-text"><span><?php _e( 'Membership' ); ?></span></legend><label for="users_can_register">
+<td> <fieldset><legend class="screen-reader-text"><span>
+	<?php
+	/* translators: Hidden accessibility text. */
+	_e( 'Membership' );
+	?>
+</span></legend><label for="users_can_register">
 <input name="users_can_register" type="checkbox" id="users_can_register" value="1" <?php checked( '1', get_option( 'users_can_register' ) ); ?> />
 	<?php _e( 'Anyone can register' ); ?></label>
 </fieldset></td>
@@ -277,7 +290,7 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 	?>
 	<br />
 	<?php
-	if ( in_array( $tzstring, timezone_identifiers_list(), true ) ) {
+	if ( in_array( $tzstring, timezone_identifiers_list( DateTimeZone::ALL_WITH_BC ), true ) ) {
 		$transitions = timezone_transitions_get( timezone_open( $tzstring ), time() );
 
 		// 0 index is the state at current time, 1 index is the next transition, if any.
@@ -306,7 +319,12 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 <tr>
 <th scope="row"><?php _e( 'Date Format' ); ?></th>
 <td>
-	<fieldset><legend class="screen-reader-text"><span><?php _e( 'Date Format' ); ?></span></legend>
+	<fieldset><legend class="screen-reader-text"><span>
+		<?php
+		/* translators: Hidden accessibility text. */
+		_e( 'Date Format' );
+		?>
+	</span></legend>
 <?php
 	/**
 	 * Filters the default date formats.
@@ -331,8 +349,14 @@ foreach ( $date_formats as $format ) {
 
 	echo '<label><input type="radio" name="date_format" id="date_format_custom_radio" value="\c\u\s\t\o\m"';
 	checked( $custom );
-	echo '/> <span class="date-time-text date-time-custom-text">' . __( 'Custom:' ) . '<span class="screen-reader-text"> ' . __( 'enter a custom date format in the following field' ) . '</span></span></label>' .
-		'<label for="date_format_custom" class="screen-reader-text">' . __( 'Custom date format:' ) . '</label>' .
+	echo '/> <span class="date-time-text date-time-custom-text">' . __( 'Custom:' ) . '<span class="screen-reader-text"> ' .
+			/* translators: Hidden accessibility text. */
+			__( 'enter a custom date format in the following field' ) .
+		'</span></span></label>' .
+		'<label for="date_format_custom" class="screen-reader-text">' .
+			/* translators: Hidden accessibility text. */
+			__( 'Custom date format:' ) .
+		'</label>' .
 		'<input type="text" name="date_format_custom" id="date_format_custom" value="' . esc_attr( get_option( 'date_format' ) ) . '" class="small-text" />' .
 		'<br />' .
 		'<p><strong>' . __( 'Preview:' ) . '</strong> <span class="example">' . date_i18n( get_option( 'date_format' ) ) . '</span>' .
@@ -344,7 +368,12 @@ foreach ( $date_formats as $format ) {
 <tr>
 <th scope="row"><?php _e( 'Time Format' ); ?></th>
 <td>
-	<fieldset><legend class="screen-reader-text"><span><?php _e( 'Time Format' ); ?></span></legend>
+	<fieldset><legend class="screen-reader-text"><span>
+		<?php
+		/* translators: Hidden accessibility text. */
+		_e( 'Time Format' );
+		?>
+	</span></legend>
 <?php
 	/**
 	 * Filters the default time formats.
@@ -368,14 +397,20 @@ foreach ( $time_formats as $format ) {
 
 	echo '<label><input type="radio" name="time_format" id="time_format_custom_radio" value="\c\u\s\t\o\m"';
 	checked( $custom );
-	echo '/> <span class="date-time-text date-time-custom-text">' . __( 'Custom:' ) . '<span class="screen-reader-text"> ' . __( 'enter a custom time format in the following field' ) . '</span></span></label>' .
-		'<label for="time_format_custom" class="screen-reader-text">' . __( 'Custom time format:' ) . '</label>' .
+	echo '/> <span class="date-time-text date-time-custom-text">' . __( 'Custom:' ) . '<span class="screen-reader-text"> ' .
+			/* translators: Hidden accessibility text. */
+			__( 'enter a custom time format in the following field' ) .
+		'</span></span></label>' .
+		'<label for="time_format_custom" class="screen-reader-text">' .
+			/* translators: Hidden accessibility text. */
+			__( 'Custom time format:' ) .
+		'</label>' .
 		'<input type="text" name="time_format_custom" id="time_format_custom" value="' . esc_attr( get_option( 'time_format' ) ) . '" class="small-text" />' .
 		'<br />' .
 		'<p><strong>' . __( 'Preview:' ) . '</strong> <span class="example">' . date_i18n( get_option( 'time_format' ) ) . '</span>' .
 		"<span class='spinner'></span>\n" . '</p>';
 
-	echo "\t<p class='date-time-doc'>" . __( '<a href="https://wordpress.org/support/article/formatting-date-and-time/">Documentation on date and time formatting</a>.' ) . "</p>\n";
+	echo "\t<p class='date-time-doc'>" . __( '<a href="https://wordpress.org/documentation/article/customize-date-and-time-format/">Documentation on date and time formatting</a>.' ) . "</p>\n";
 ?>
 	</fieldset>
 </td>

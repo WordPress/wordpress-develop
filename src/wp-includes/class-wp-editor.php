@@ -8,6 +8,7 @@
  * Private, not included by default. See wp_editor() in wp-includes/general-template.php.
  */
 
+#[AllowDynamicProperties]
 final class _WP_Editors {
 	public static $mce_locale;
 
@@ -1450,7 +1451,7 @@ final class _WP_Editors {
 	 *
 	 * @param string $mce_locale The locale used for the editor.
 	 * @param bool   $json_only  Optional. Whether to include the JavaScript calls to tinymce.addI18n() and
-	 *                           tinymce.ScriptLoader.markDone().
+	 *                           tinymce.ScriptLoader.markDone(). Default false.
 	 * @return string Translation object, JSON encoded.
 	 */
 	public static function wp_mce_translation( $mce_locale = '', $json_only = false ) {
@@ -1750,7 +1751,12 @@ final class _WP_Editors {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param array $args Optional. Accepts 'pagenum' and 's' (search) arguments.
+	 * @param array $args {
+	 *     Optional. Array of link query arguments.
+	 *
+	 *     @type int    $pagenum Page number. Default 1.
+	 *     @type string $s       Search keywords.
+	 * }
 	 * @return array|false $results {
 	 *     An array of associative arrays of query results, false if there are none.
 	 *
@@ -1798,7 +1804,7 @@ final class _WP_Editors {
 		$query = apply_filters( 'wp_link_query_args', $query );
 
 		// Do main query.
-		$get_posts = new WP_Query;
+		$get_posts = new WP_Query();
 		$posts     = $get_posts->query( $query );
 
 		// Build results.
@@ -1865,7 +1871,12 @@ final class _WP_Editors {
 		<form id="wp-link" tabindex="-1">
 		<?php wp_nonce_field( 'internal-linking', '_ajax_linking_nonce', false ); ?>
 		<h1 id="link-modal-title"><?php _e( 'Insert/edit link' ); ?></h1>
-		<button type="button" id="wp-link-close"><span class="screen-reader-text"><?php _e( 'Close' ); ?></span></button>
+		<button type="button" id="wp-link-close"><span class="screen-reader-text">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Close' );
+			?>
+		</span></button>
 		<div id="link-selector">
 			<div id="link-options">
 				<p class="howto" id="wplink-enter-url"><?php _e( 'Enter the destination URL' ); ?></p>
@@ -1900,7 +1911,12 @@ final class _WP_Editors {
 				<div id="most-recent-results" class="query-results" tabindex="0">
 					<div class="query-notice" id="query-notice-message">
 						<em class="query-notice-default"><?php _e( 'No search term specified. Showing recent items.' ); ?></em>
-						<em class="query-notice-hint screen-reader-text"><?php _e( 'Search or use up and down arrow keys to select an item.' ); ?></em>
+						<em class="query-notice-hint screen-reader-text">
+							<?php
+							/* translators: Hidden accessibility text. */
+							_e( 'Search or use up and down arrow keys to select an item.' );
+							?>
+						</em>
 					</div>
 					<ul></ul>
 					<div class="river-waiting">

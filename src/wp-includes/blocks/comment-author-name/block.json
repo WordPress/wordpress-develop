@@ -18,14 +18,11 @@
 		},
 		"textAlign": {
 			"type": "string"
-		},
-		"fontSize": {
-			"type": "string",
-			"default": "small"
 		}
 	},
 	"usesContext": [ "commentId" ],
 	"supports": {
+		"anchor": true,
 		"html": false,
 		"spacing": {
 			"margin": true,
@@ -47,7 +44,11 @@
 			"__experimentalFontWeight": true,
 			"__experimentalFontStyle": true,
 			"__experimentalTextTransform": true,
-			"__experimentalLetterSpacing": true
+			"__experimentalTextDecoration": true,
+			"__experimentalLetterSpacing": true,
+			"__experimentalDefaultControls": {
+				"fontSize": true
+			}
 		}
 	}
 }

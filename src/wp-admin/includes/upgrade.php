@@ -159,24 +159,7 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 		/* translators: Default category slug. */
 		$cat_slug = sanitize_title( _x( 'Uncategorized', 'Default category slug' ) );
 
-		if ( global_terms_enabled() ) {
-			$cat_id = $wpdb->get_var( $wpdb->prepare( "SELECT cat_ID FROM {$wpdb->sitecategories} WHERE category_nicename = %s", $cat_slug ) );
-			if ( null == $cat_id ) {
-				$wpdb->insert(
-					$wpdb->sitecategories,
-					array(
-						'cat_ID'            => 0,
-						'cat_name'          => $cat_name,
-						'category_nicename' => $cat_slug,
-						'last_updated'      => current_time( 'mysql', true ),
-					)
-				);
-				$cat_id = $wpdb->insert_id;
-			}
-			update_option( 'default_category', $cat_id );
-		} else {
-			$cat_id = 1;
-		}
+		$cat_id = 1;
 
 		$wpdb->insert(
 			$wpdb->terms,
@@ -523,13 +506,13 @@ function wp_install_maybe_enable_pretty_permalinks() {
 
 		/*
 		 * Send a request to the site, and check whether
-		 * the 'x-pingback' header is returned as expected.
+		 * the 'X-Pingback' header is returned as expected.
 		 *
 		 * Uses wp_remote_get() instead of wp_remote_head() because web servers
 		 * can block head requests.
 		 */
 		$response          = wp_remote_get( $test_url, array( 'timeout' => 5 ) );
-		$x_pingback_header = wp_remote_retrieve_header( $response, 'x-pingback' );
+		$x_pingback_header = wp_remote_retrieve_header( $response, 'X-Pingback' );
 		$pretty_permalinks = $x_pingback_header && get_bloginfo( 'pingback_url' ) === $x_pingback_header;
 
 		if ( $pretty_permalinks ) {
@@ -2177,6 +2160,8 @@ function upgrade_530() {
  *
  * @ignore
  * @since 5.5.0
+ *
+ * @global int $wp_current_db_version The old (current) database version.
  */
 function upgrade_550() {
 	global $wp_current_db_version;
@@ -2215,6 +2200,9 @@ function upgrade_550() {
  *
  * @ignore
  * @since 5.6.0
+ *
+ * @global int  $wp_current_db_version The old (current) database version.
+ * @global wpdb $wpdb                  WordPress database abstraction object.
  */
 function upgrade_560() {
 	global $wp_current_db_version, $wpdb;
@@ -2629,7 +2617,7 @@ function maybe_convert_table_to_utf8mb4( $table ) {
  */
 function get_alloptions_110() {
 	global $wpdb;
-	$all_options = new stdClass;
+	$all_options = new stdClass();
 	$options     = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options" );
 	if ( $options ) {
 		foreach ( $options as $option ) {
@@ -2713,6 +2701,8 @@ function deslash( $content ) {
  * Useful for creating new tables and updating existing tables to a new structure.
  *
  * @since 1.5.0
+ * @since 6.1.0 Ignores display width for integer data types on MySQL 8.0.17 or later,
+ *              to match MySQL behavior. Note: This does not affect MariaDB.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -2789,8 +2779,12 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 
 	$text_fields = array( 'tinytext', 'text', 'mediumtext', 'longtext' );
 	$blob_fields = array( 'tinyblob', 'blob', 'mediumblob', 'longblob' );
+	$int_fields  = array( 'tinyint', 'smallint', 'mediumint', 'int', 'integer', 'bigint' );
 
-	$global_tables = $wpdb->tables( 'global' );
+	$global_tables  = $wpdb->tables( 'global' );
+	$db_version     = $wpdb->db_version();
+	$db_server_info = $wpdb->db_server_info();
+
 	foreach ( $cqueries as $table => $qry ) {
 		// Upgrade global tables only for the main site. Don't upgrade at all if conditions are not optimal.
 		if ( in_array( $table, $global_tables, true ) && ! wp_should_upgrade_global_tables() ) {
@@ -2891,27 +2885,29 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 					// Normalize columns.
 					foreach ( $index_columns as $id => &$index_column ) {
 						// Extract column name and number of indexed characters (sub_part).
+						// phpcs:disable Squiz.Strings.ConcatenationSpacing.PaddingFound -- don't remove regex indentation
 						preg_match(
 							'/'
-							. '`?'                      // Name can be escaped with a backtick.
-							. '(?P<column_name>'    // 1) Name of the column.
-							. '(?:[0-9a-zA-Z$_-]|[\xC2-\xDF][\x80-\xBF])+'
-							. ')'
-							. '`?'                      // Name can be escaped with a backtick.
-							. '(?:'                     // Optional sub part.
-							. '\s*'                 // Optional white space character between name and opening bracket.
-							. '\('                  // Opening bracket for the sub part.
-							. '\s*'             // Optional white space character after opening bracket.
-							. '(?P<sub_part>'
-							. '\d+'         // 2) Number of indexed characters.
-							. ')'
-							. '\s*'             // Optional white space character before closing bracket.
-							. '\)'                 // Closing bracket for the sub part.
-							. ')?'
+							.   '`?'                      // Name can be escaped with a backtick.
+							.       '(?P<column_name>'    // 1) Name of the column.
+							.           '(?:[0-9a-zA-Z$_-]|[\xC2-\xDF][\x80-\xBF])+'
+							.       ')'
+							.   '`?'                      // Name can be escaped with a backtick.
+							.   '(?:'                     // Optional sub part.
+							.       '\s*'                 // Optional white space character between name and opening bracket.
+							.       '\('                  // Opening bracket for the sub part.
+							.           '\s*'             // Optional white space character after opening bracket.
+							.           '(?P<sub_part>'
+							.               '\d+'         // 2) Number of indexed characters.
+							.           ')'
+							.           '\s*'             // Optional white space character before closing bracket.
+							.       '\)'                  // Closing bracket for the sub part.
+							.   ')?'
 							. '/',
 							$index_column,
 							$index_column_matches
 						);
+						// phpcs:enable
 
 						// Escape the column name with backticks.
 						$index_column = '`' . $index_column_matches['column_name'] . '`';
@@ -2946,6 +2942,19 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 			$tablefield_field_lowercased = strtolower( $tablefield->Field );
 			$tablefield_type_lowercased  = strtolower( $tablefield->Type );
 
+			$tablefield_type_without_parentheses = preg_replace(
+				'/'
+				. '(.+)'       // Field type, e.g. `int`.
+				. '\(\d*\)'    // Display width.
+				. '(.*)'       // Optional attributes, e.g. `unsigned`.
+				. '/',
+				'$1$2',
+				$tablefield_type_lowercased
+			);
+
+			// Get the type without attributes, e.g. `int`.
+			$tablefield_type_base = strtok( $tablefield_type_without_parentheses, ' ' );
+
 			// If the table field exists in the field array...
 			if ( array_key_exists( $tablefield_field_lowercased, $cfields ) ) {
 
@@ -2953,6 +2962,19 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 				preg_match( '|`?' . $tablefield->Field . '`? ([^ ]*( unsigned)?)|i', $cfields[ $tablefield_field_lowercased ], $matches );
 				$fieldtype            = $matches[1];
 				$fieldtype_lowercased = strtolower( $fieldtype );
+
+				$fieldtype_without_parentheses = preg_replace(
+					'/'
+					. '(.+)'       // Field type, e.g. `int`.
+					. '\(\d*\)'    // Display width.
+					. '(.*)'       // Optional attributes, e.g. `unsigned`.
+					. '/',
+					'$1$2',
+					$fieldtype_lowercased
+				);
+
+				// Get the type without attributes, e.g. `int`.
+				$fieldtype_base = strtok( $fieldtype_without_parentheses, ' ' );
 
 				// Is actual field type different from the field type in query?
 				if ( $tablefield->Type != $fieldtype ) {
@@ -2965,6 +2987,21 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 
 					if ( in_array( $fieldtype_lowercased, $blob_fields, true ) && in_array( $tablefield_type_lowercased, $blob_fields, true ) ) {
 						if ( array_search( $fieldtype_lowercased, $blob_fields, true ) < array_search( $tablefield_type_lowercased, $blob_fields, true ) ) {
+							$do_change = false;
+						}
+					}
+
+					if ( in_array( $fieldtype_base, $int_fields, true ) && in_array( $tablefield_type_base, $int_fields, true )
+						&& $fieldtype_without_parentheses === $tablefield_type_without_parentheses
+					) {
+						/*
+						 * MySQL 8.0.17 or later does not support display width for integer data types,
+						 * so if display width is the only difference, it can be safely ignored.
+						 * Note: This is specific to MySQL and does not affect MariaDB.
+						 */
+						if ( version_compare( $db_version, '8.0.17', '>=' )
+							&& ! str_contains( $db_server_info, 'MariaDB' )
+						) {
 							$do_change = false;
 						}
 					}
@@ -3487,33 +3524,6 @@ function pre_schema_upgrade() {
 		}
 	}
 }
-
-if ( ! function_exists( 'install_global_terms' ) ) :
-	/**
-	 * Install global terms.
-	 *
-	 * @since 3.0.0
-	 *
-	 * @global wpdb   $wpdb            WordPress database abstraction object.
-	 * @global string $charset_collate
-	 */
-	function install_global_terms() {
-		global $wpdb, $charset_collate;
-		$ms_queries = "
-CREATE TABLE $wpdb->sitecategories (
-  cat_ID bigint(20) NOT NULL auto_increment,
-  cat_name varchar(55) NOT NULL default '',
-  category_nicename varchar(200) NOT NULL default '',
-  last_updated timestamp NOT NULL,
-  PRIMARY KEY  (cat_ID),
-  KEY category_nicename (category_nicename),
-  KEY last_updated (last_updated)
-) $charset_collate;
-";
-		// Now create tables.
-		dbDelta( $ms_queries );
-	}
-endif;
 
 /**
  * Determine if global tables should be upgraded.

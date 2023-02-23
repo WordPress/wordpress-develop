@@ -8,7 +8,7 @@
  */
 
 /**
- * Determine if uploaded file exceeds space quota.
+ * Determines whether uploaded file exceeds space quota.
  *
  * @since 3.0.0
  *
@@ -53,7 +53,7 @@ function check_upload_size( $file ) {
 }
 
 /**
- * Delete a site.
+ * Deletes a site.
  *
  * @since 3.0.0
  * @since 5.1.0 Use wp_delete_site() internally to delete the site row from the database.
@@ -130,7 +130,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 }
 
 /**
- * Delete a user from the network and remove from all sites.
+ * Deletes a user from the network and remove from all sites.
  *
  * @since 3.0.0
  *
@@ -139,7 +139,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $id The user ID.
- * @return bool True if the user was deleted, otherwise false.
+ * @return bool True if the user was deleted, false otherwise.
  */
 function wpmu_delete_user( $id ) {
 	global $wpdb;
@@ -213,7 +213,7 @@ function wpmu_delete_user( $id ) {
 }
 
 /**
- * Check whether a site has used its allotted upload space.
+ * Checks whether a site has used its allotted upload space.
  *
  * @since MU (3.0.0)
  *
@@ -269,12 +269,12 @@ function display_space_usage() {
 }
 
 /**
- * Get the remaining upload space for this site.
+ * Gets the remaining upload space for this site.
  *
  * @since MU (3.0.0)
  *
- * @param int $size Current max size in bytes
- * @return int Max size in bytes
+ * @param int $size Current max size in bytes.
+ * @return int Max size in bytes.
  */
 function fix_import_form_size( $size ) {
 	if ( upload_is_user_over_quota( false ) ) {
@@ -305,7 +305,12 @@ function upload_space_setting( $id ) {
 		<th><label for="blog-upload-space-number"><?php _e( 'Site Upload Space Quota' ); ?></label></th>
 		<td>
 			<input type="number" step="1" min="0" style="width: 100px" name="option[blog_upload_space]" id="blog-upload-space-number" aria-describedby="blog-upload-space-desc" value="<?php echo $quota; ?>" />
-			<span id="blog-upload-space-desc"><span class="screen-reader-text"><?php _e( 'Size in megabytes' ); ?></span> <?php _e( 'MB (Leave blank for network default)' ); ?></span>
+			<span id="blog-upload-space-desc"><span class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Size in megabytes' );
+				?>
+			</span> <?php _e( 'MB (Leave blank for network default)' ); ?></span>
 		</td>
 	</tr>
 	<?php
@@ -541,29 +546,6 @@ function format_code_lang( $code = '' ) {
 	 */
 	$lang_codes = apply_filters( 'lang_codes', $lang_codes, $code );
 	return strtr( $code, $lang_codes );
-}
-
-/**
- * Synchronizes category and post tag slugs when global terms are enabled.
- *
- * @since 3.0.0
- *
- * @param WP_Term|array $term     The term.
- * @param string        $taxonomy The taxonomy for `$term`. Should be 'category' or 'post_tag', as these are
- *                                the only taxonomies which are processed by this function; anything else
- *                                will be returned untouched.
- * @return WP_Term|array Returns `$term`, after filtering the 'slug' field with `sanitize_title()`
- *                       if `$taxonomy` is 'category' or 'post_tag'.
- */
-function sync_category_tag_slugs( $term, $taxonomy ) {
-	if ( global_terms_enabled() && ( 'category' === $taxonomy || 'post_tag' === $taxonomy ) ) {
-		if ( is_object( $term ) ) {
-			$term->slug = sanitize_title( $term->name );
-		} else {
-			$term['slug'] = sanitize_title( $term['name'] );
-		}
-	}
-	return $term;
 }
 
 /**
@@ -806,7 +788,7 @@ function choose_primary_blog() {
 				update_user_meta( get_current_user_id(), 'primary_blog', $blog->userblog_id );
 			}
 		} else {
-			echo 'N/A';
+			_e( 'Not available' );
 		}
 		?>
 		</td>
@@ -816,7 +798,7 @@ function choose_primary_blog() {
 }
 
 /**
- * Whether or not we can edit this network from this page.
+ * Determines whether or not this network from this page can be edited.
  *
  * By default editing of network is restricted to the Network Admin for that `$network_id`.
  * This function allows for this to be overridden.
@@ -824,7 +806,7 @@ function choose_primary_blog() {
  * @since 3.1.0
  *
  * @param int $network_id The network ID to check.
- * @return bool True if network can be edited, otherwise false.
+ * @return bool True if network can be edited, false otherwise.
  */
 function can_edit_network( $network_id ) {
 	if ( get_current_network_id() === (int) $network_id ) {
@@ -845,7 +827,7 @@ function can_edit_network( $network_id ) {
 }
 
 /**
- * Thickbox image paths for Network Admin.
+ * Prints thickbox image paths for Network Admin.
  *
  * @since 3.1.0
  *
@@ -938,8 +920,11 @@ function confirm_delete_users( $users ) {
 					);
 
 					if ( is_array( $blog_users ) && ! empty( $blog_users ) ) {
-						$user_site      = "<a href='" . esc_url( get_home_url( $details->userblog_id ) ) . "'>{$details->blogname}</a>";
-						$user_dropdown  = '<label for="reassign_user" class="screen-reader-text">' . __( 'Select a user' ) . '</label>';
+						$user_site     = "<a href='" . esc_url( get_home_url( $details->userblog_id ) ) . "'>{$details->blogname}</a>";
+						$user_dropdown = '<label for="reassign_user" class="screen-reader-text">' .
+								/* translators: Hidden accessibility text. */
+								__( 'Select a user' ) .
+							'</label>';
 						$user_dropdown .= "<select name='blog[$user_id][$key]' id='reassign_user'>";
 						$user_list      = '';
 
@@ -1004,7 +989,7 @@ function confirm_delete_users( $users ) {
 }
 
 /**
- * Print JavaScript in the header on the Network Settings screen.
+ * Prints JavaScript in the header on the Network Settings screen.
  *
  * @since 4.1.0
  */
@@ -1169,6 +1154,6 @@ function get_site_screen_help_tab_args() {
  */
 function get_site_screen_help_sidebar_content() {
 	return '<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/article/network-admin-sites-screen/">Documentation on Site Management</a>' ) . '</p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support Forums</a>' ) . '</p>';
+		'<p>' . __( '<a href="https://wordpress.org/documentation/article/network-admin-sites-screen/">Documentation on Site Management</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support forums</a>' ) . '</p>';
 }

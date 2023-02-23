@@ -127,7 +127,7 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
  * @access private
  *
  * @param string $plugin_file Path to the main plugin file.
- * @param array  $plugin_data An array of plugin data. See `get_plugin_data()`.
+ * @param array  $plugin_data An array of plugin data. See get_plugin_data().
  * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
  *                            Default true.
  * @param bool   $translate   Optional. If the returned data should be translated. Default true.
@@ -269,7 +269,7 @@ function get_plugin_files( $plugin ) {
  * @since 1.5.0
  *
  * @param string $plugin_folder Optional. Relative path to single plugin folder.
- * @return array[] Array of arrays of plugin data, keyed by plugin file name. See `get_plugin_data()`.
+ * @return array[] Array of arrays of plugin data, keyed by plugin file name. See get_plugin_data().
  */
 function get_plugins( $plugin_folder = '' ) {
 
@@ -357,7 +357,7 @@ function get_plugins( $plugin_folder = '' ) {
  * WordPress only includes mu-plugin files in the base mu-plugins directory (wp-content/mu-plugins).
  *
  * @since 3.0.0
- * @return array[] Array of arrays of mu-plugin data, keyed by plugin file name. See `get_plugin_data()`.
+ * @return array[] Array of arrays of mu-plugin data, keyed by plugin file name. See get_plugin_data().
  */
 function get_mu_plugins() {
 	$wp_plugins   = array();
@@ -429,7 +429,7 @@ function _sort_uname_callback( $a, $b ) {
  * Checks the wp-content directory and retrieve all drop-ins with any plugin data.
  *
  * @since 3.0.0
- * @return array[] Array of arrays of dropin plugin data, keyed by plugin file name. See `get_plugin_data()`.
+ * @return array[] Array of arrays of dropin plugin data, keyed by plugin file name. See get_plugin_data().
  */
 function get_dropins() {
 	$dropins      = array();
@@ -1150,7 +1150,7 @@ function validate_plugin_requirements( $plugin ) {
 				/* translators: 1: Current WordPress version, 2: Current PHP version, 3: Plugin name, 4: Required WordPress version, 5: Required PHP version. */
 				_x( '<strong>Error:</strong> Current versions of WordPress (%1$s) and PHP (%2$s) do not meet minimum requirements for %3$s. The plugin requires WordPress %4$s and PHP %5$s.', 'plugin' ),
 				get_bloginfo( 'version' ),
-				phpversion(),
+				PHP_VERSION,
 				$plugin_headers['Name'],
 				$requirements['requires'],
 				$requirements['requires_php']
@@ -1162,7 +1162,7 @@ function validate_plugin_requirements( $plugin ) {
 			'<p>' . sprintf(
 				/* translators: 1: Current PHP version, 2: Plugin name, 3: Required PHP version. */
 				_x( '<strong>Error:</strong> Current PHP version (%1$s) does not meet minimum requirements for %2$s. The plugin requires PHP %3$s.', 'plugin' ),
-				phpversion(),
+				PHP_VERSION,
 				$plugin_headers['Name'],
 				$requirements['requires_php']
 			) . $php_update_message . '</p>'
@@ -1454,6 +1454,7 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 			// For negative or `0` positions, prepend the submenu.
 			array_unshift( $submenu[ $parent_slug ], $new_sub_menu );
 		} else {
+			$position = absint( $position );
 			// Grab all of the items before the insertion point.
 			$before_items = array_slice( $submenu[ $parent_slug ], 0, $position, true );
 			// Grab all of the items after the insertion point.

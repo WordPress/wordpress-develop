@@ -134,25 +134,29 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.2
 	 *
-	 * @param int $parent Supplied ID.
+	 * @param int $parent_post_id Supplied ID.
 	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
 	 */
-	protected function get_parent( $parent ) {
+	protected function get_parent( $parent_post_id ) {
 		$error = new WP_Error(
 			'rest_post_invalid_parent',
 			__( 'Invalid post parent ID.' ),
 			array( 'status' => 404 )
 		);
-		if ( (int) $parent <= 0 ) {
+
+		if ( (int) $parent_post_id <= 0 ) {
 			return $error;
 		}
 
-		$parent = get_post( (int) $parent );
-		if ( empty( $parent ) || empty( $parent->ID ) || $this->parent_post_type !== $parent->post_type ) {
+		$parent_post = get_post( (int) $parent_post_id );
+
+		if ( empty( $parent_post ) || empty( $parent_post->ID )
+			|| $this->parent_post_type !== $parent_post->post_type
+		) {
 			return $error;
 		}
 
-		return $parent;
+		return $parent_post;
 	}
 
 	/**
@@ -334,7 +338,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
 		$request_params = $request->get_query_params();
-		$base           = add_query_arg( urlencode_deep( $request_params ), rest_url( sprintf( '%s/%s/%d/%s', $this->namespace, $this->parent_base, $request['parent'], $this->rest_base ) ) );
+		$base_path      = rest_url( sprintf( '%s/%s/%d/%s', $this->namespace, $this->parent_base, $request['parent'], $this->rest_base ) );
+		$base           = add_query_arg( urlencode_deep( $request_params ), $base_path );
 
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
@@ -620,7 +625,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		$response = rest_ensure_response( $data );
 
 		if ( ! empty( $data['parent'] ) ) {
-			$response->add_link( 'parent', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->parent_base, $data['parent'] ) ) );
+			$response->add_link( 'parent', rest_url( rest_get_route_for_post( $data['parent'] ) ) );
 		}
 
 		/**

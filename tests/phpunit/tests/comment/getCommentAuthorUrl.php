@@ -2,6 +2,8 @@
 
 /**
  * @group comment
+ *
+ * @covers ::get_comment_author_url
  */
 class Tests_Comment_GetCommentAuthorUrl extends WP_UnitTestCase {
 	public function get_comment_author_url_filter( $url, $id, $comment ) {

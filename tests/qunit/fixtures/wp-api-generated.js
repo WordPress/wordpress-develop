@@ -7,7 +7,7 @@ var mockedApiResponse = {};
 
 mockedApiResponse.Schema = {
     "name": "Test Blog",
-    "description": "Just another WordPress site",
+    "description": "",
     "url": "http://example.org",
     "home": "http://example.org",
     "gmt_offset": "0",
@@ -393,6 +393,20 @@ mockedApiResponse.Schema = {
                                 "include_slugs",
                                 "title"
                             ],
+                            "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
                             "required": false
                         },
                         "slug": {
@@ -1752,6 +1766,20 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "slug": {
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
@@ -2833,6 +2861,20 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "slug": {
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
@@ -3541,6 +3583,20 @@ mockedApiResponse.Schema = {
                                 "title",
                                 "menu_order"
                             ],
+                            "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
                             "required": false
                         },
                         "slug": {
@@ -4339,6 +4395,20 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "slug": {
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
@@ -5035,7 +5105,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": true
                         },
                         "theme": {
@@ -5140,7 +5210,44 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w-]+)": {
+        "/wp/v2/templates/lookup": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "slug": {
+                            "description": "The slug of the template to get the fallback for",
+                            "type": "string",
+                            "required": true
+                        },
+                        "is_custom": {
+                            "description": "Indicates if a template is custom or part of the template hierarchy",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "template_prefix": {
+                            "description": "The template prefix for the created template. This is used to extract the main template type, e.g. in `taxonomy-books` extracts the `taxonomy`",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/templates/lookup"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5189,7 +5296,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": false
                         },
                         "theme": {
@@ -5503,7 +5610,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": false
                         },
                         "theme": {
@@ -5682,7 +5789,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": true
                         },
                         "theme": {
@@ -5792,7 +5899,44 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/template-parts/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w-]+)": {
+        "/wp/v2/template-parts/lookup": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "slug": {
+                            "description": "The slug of the template to get the fallback for",
+                            "type": "string",
+                            "required": true
+                        },
+                        "is_custom": {
+                            "description": "Indicates if a template is custom or part of the template hierarchy",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "template_prefix": {
+                            "description": "The template prefix for the created template. This is used to extract the main template type, e.g. in `taxonomy-books` extracts the `taxonomy`",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/template-parts/lookup"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/template-parts/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5841,7 +5985,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": false
                         },
                         "theme": {
@@ -6160,7 +6304,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": false
                         },
                         "theme": {
@@ -6414,6 +6558,20 @@ mockedApiResponse.Schema = {
                                 "include_slugs",
                                 "title"
                             ],
+                            "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
                             "required": false
                         },
                         "slug": {
@@ -9269,6 +9427,24 @@ mockedApiResponse.Schema = {
                                 "type": "string"
                             },
                             "required": false
+                        },
+                        "exclude": {
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "include": {
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
                         }
                     }
                 }
@@ -9625,6 +9801,21 @@ mockedApiResponse.Schema = {
                         },
                         "posts_per_page": {
                             "description": "Blog pages show at most.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "show_on_front": {
+                            "description": "What to show on the front page",
+                            "type": "string",
+                            "required": false
+                        },
+                        "page_on_front": {
+                            "description": "The ID of the page that should be displayed on the front page",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "page_for_posts": {
+                            "description": "The ID of the page that should display the latest posts",
                             "type": "integer",
                             "required": false
                         },
@@ -10368,6 +10559,21 @@ mockedApiResponse.Schema = {
                             "default": "view",
                             "required": false
                         },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 100,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
                         "search": {
                             "description": "Limit results to those matching a string.",
                             "type": "string",
@@ -10389,6 +10595,40 @@ mockedApiResponse.Schema = {
                         "slug": {
                             "description": "Limit results to those matching a pattern (slug).",
                             "type": "array",
+                            "required": false
+                        },
+                        "offset": {
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "order": {
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "required": false
+                        },
+                        "orderby": {
+                            "description": "Sort collection by post attribute.",
+                            "type": "string",
+                            "default": "date",
+                            "enum": [
+                                "author",
+                                "date",
+                                "id",
+                                "include",
+                                "modified",
+                                "parent",
+                                "relevance",
+                                "slug",
+                                "include_slugs",
+                                "title",
+                                "favorite_count"
+                            ],
                             "required": false
                         }
                     }
@@ -10600,6 +10840,27 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
+        "/wp-site-health/v1/tests/page-cache": {
+            "namespace": "wp-site-health/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/page-cache"
+                    }
+                ]
+            }
+        },
         "/wp-block-editor/v1": {
             "namespace": "wp-block-editor/v1",
             "methods": [
@@ -10745,7 +11006,8 @@ mockedApiResponse.Schema = {
         }
     },
     "site_logo": 0,
-    "site_icon": 0
+    "site_icon": 0,
+    "site_icon_url": ""
 };
 
 mockedApiResponse.oembed = {
@@ -11534,8 +11796,10 @@ mockedApiResponse.TypesCollection = {
     "post": {
         "description": "",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Posts",
         "slug": "post",
+        "icon": "dashicons-admin-post",
         "taxonomies": [
             "category",
             "post_tag"
@@ -11565,8 +11829,10 @@ mockedApiResponse.TypesCollection = {
     "page": {
         "description": "",
         "hierarchical": true,
+        "has_archive": false,
         "name": "Pages",
         "slug": "page",
+        "icon": "dashicons-admin-page",
         "taxonomies": [],
         "rest_base": "pages",
         "rest_namespace": "wp/v2",
@@ -11593,8 +11859,10 @@ mockedApiResponse.TypesCollection = {
     "attachment": {
         "description": "",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Media",
         "slug": "attachment",
+        "icon": "dashicons-admin-media",
         "taxonomies": [],
         "rest_base": "media",
         "rest_namespace": "wp/v2",
@@ -11621,8 +11889,10 @@ mockedApiResponse.TypesCollection = {
     "nav_menu_item": {
         "description": "",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Navigation Menu Items",
         "slug": "nav_menu_item",
+        "icon": null,
         "taxonomies": [
             "nav_menu"
         ],
@@ -11651,8 +11921,10 @@ mockedApiResponse.TypesCollection = {
     "wp_block": {
         "description": "",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Reusable blocks",
         "slug": "wp_block",
+        "icon": null,
         "taxonomies": [],
         "rest_base": "blocks",
         "rest_namespace": "wp/v2",
@@ -11679,8 +11951,10 @@ mockedApiResponse.TypesCollection = {
     "wp_template": {
         "description": "Templates to include in your theme.",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Templates",
         "slug": "wp_template",
+        "icon": null,
         "taxonomies": [],
         "rest_base": "templates",
         "rest_namespace": "wp/v2",
@@ -11707,8 +11981,10 @@ mockedApiResponse.TypesCollection = {
     "wp_template_part": {
         "description": "Template parts to include in your templates.",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Template Parts",
         "slug": "wp_template_part",
+        "icon": null,
         "taxonomies": [],
         "rest_base": "template-parts",
         "rest_namespace": "wp/v2",
@@ -11735,8 +12011,10 @@ mockedApiResponse.TypesCollection = {
     "wp_navigation": {
         "description": "Navigation menus that can be inserted into your site.",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Navigation Menus",
         "slug": "wp_navigation",
+        "icon": null,
         "taxonomies": [],
         "rest_base": "navigation",
         "rest_namespace": "wp/v2",
@@ -11765,8 +12043,10 @@ mockedApiResponse.TypesCollection = {
 mockedApiResponse.TypeModel = {
     "description": "",
     "hierarchical": false,
+    "has_archive": false,
     "name": "Posts",
     "slug": "post",
+    "icon": "dashicons-admin-post",
     "taxonomies": [
         "category",
         "post_tag"
@@ -12271,7 +12551,7 @@ mockedApiResponse.CommentModel = {
 
 mockedApiResponse.settings = {
     "title": "Test Blog",
-    "description": "Just another WordPress site",
+    "description": "",
     "url": "http://example.org",
     "email": "admin@example.org",
     "timezone": "",
@@ -12283,6 +12563,9 @@ mockedApiResponse.settings = {
     "default_category": 1,
     "default_post_format": "0",
     "posts_per_page": 10,
+    "show_on_front": "posts",
+    "page_on_front": 0,
+    "page_for_posts": 0,
     "default_ping_status": "open",
     "default_comment_status": "open",
     "site_logo": null,
