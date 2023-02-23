@@ -11,7 +11,7 @@ if ( ! class_exists( 'WP_HTML_Tag_Processor' ) ) {
 	}
 }
 
-define('HTML_DEBUG_MODE', false);
+define('HTML_DEBUG_MODE', true);
 function dbg( $message, $indent = 0 ) {
 	if( HTML_DEBUG_MODE ) {
 		$indent = str_repeat( ' ', $indent * 2 );
@@ -237,6 +237,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private $last_token = null;
 	private $inserted_tokens = array();
 
+	public $reconstructed_html = '';
+
 	const MAX_BOOKMARKS = 1000000;
 
 	public function __construct( $html ) {
@@ -253,6 +255,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		while ($this->process_next_token()) {
 			// ... twiddle thumbs ...
 		}
+
+		while ( count($this->open_elements) > 1 ) {
+			$this->pop_open_element();
+		}
+
 		echo("\n");
 		echo("DOM after main loop:\n");
 		echo($this->root_node.'');
@@ -979,6 +986,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	private function insert_element( WP_HTML_Token $token, $override_target = null ) {
+		// Text API:
+		$this->reconstructed_html .= '<'.$token->tag.'>';
+
+		// Object-oriented API:
+
 		// Create element for a token
 		// Skip reset algorithm for now
 		// Skip form-association for now
@@ -1003,6 +1015,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	private function insert_text( WP_HTML_Token $token ) {
+		// Text API:
+		$this->reconstructed_html .= $token->value;
+
+		// Object-oriented API:
 		$target = $this->current_node();
 		if(count($target->children)){
 			$last_child = end($target->children);
@@ -1038,6 +1054,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 	private function pop_open_element() {
 		$popped = array_pop( $this->open_elements );
+
+		// Text API:
+		$this->reconstructed_html .= '</'.$popped->token->tag.'>';
+
+		// Object-oriented API:
 		if ( $popped->token->bookmark ) {
 			$this->release_bookmark( $popped->token->bookmark );
 			$popped->token->bookmark = null;
@@ -1471,8 +1492,36 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 // die();
 
-$p = new WP_HTML_Processor( '<ul><li>1<li>2<li>3<li>Lorem<b>Ipsum<li>Dolor</ul></ul></ul><span></ul>Sit<span>Sit<span><div>Amet' );
-$p->parse();
+// $p = new WP_HTML_Processor( '<p>1<b>2<i>3</b>4</i>5</p>' );
+// $p->parse();
+/*
+Outputs:
+	p
+	├─ #text: 1
+	├─ b
+	│  ├─ #text: 2
+	│  └─ i
+	│     └─ #text: 3
+	├─ i
+	│  └─ #text: 4
+	└─ #text: 5
+*/
+// die();
+
+// $p = new WP_HTML_Processor( '<div>1<span>2</div>3</span>4' );
+// $p->parse();
+/*
+DOM after main loop:
+  HTML
+   ├─ DIV
+      ├─ #text: 1
+      └─ SPAN
+         └─ #text: 2
+   └─ #text: 34
+*/
+
+// $p = new WP_HTML_Processor( '<ul><li>1<li>2<li>3<li>Lorem<b>Ipsum<li>Dolor</ul></ul></ul><span></ul>Sit<span>Sit<span><div>Amet' );
+// $p->parse();
 /*
 Outputs:
 
@@ -1502,35 +1551,6 @@ DOM after main loop:
                   └─ #text: Amet
 */
 
-$p = new WP_HTML_Processor( '<div>1<span>2</div>3</span>4' );
-$p->parse();
-/*
-Outputs:
-	p
-	├─ #text: 1
-	├─ b
-	│  ├─ #text: 2
-	│  └─ i
-	│     └─ #text: 3
-	├─ i
-	│  └─ #text: 4
-	└─ #text: 5
-*/
-
-$p = new WP_HTML_Processor( '<p>1<b>2<i>3</b>4</i>5</p>' );
-$p->parse();
-/*
-Outputs:
-	p
-	├─ #text: 1
-	├─ b
-	│  ├─ #text: 2
-	│  └─ i
-	│     └─ #text: 3
-	├─ i
-	│  └─ #text: 4
-	└─ #text: 5
-*/
 
 $p = new WP_HTML_Processor( '<b>1<p>2</b>3</p>' );
 $p->parse();
@@ -1544,7 +1564,9 @@ Outputs the correct result:
          └─ #text: 2
       └─ #text: 3
 */
-
+echo "\n\n";
+echo $p->reconstructed_html;
+die();
 
 $p = new WP_HTML_Processor( '<p><b class=x><b class=x><b><b class=x><b class=x><b>X
 <p>X
