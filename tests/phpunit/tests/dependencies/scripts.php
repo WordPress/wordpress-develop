@@ -108,16 +108,24 @@ JS;
 		wp_enqueue_script( 'footer-async', '/footer-async.js', array(), null, $args );
 		$this->assertSame( $args, $wp_scripts->get_data( 'footer-async', 'script_args' ) );
 
+		// Test defaults.
 		$expected_args = array(
 			'in_footer' => false,
 			'strategy'  => 'blocking',
 		);
 
-		wp_register_script( 'defaults', '/defaults.js', array(), null, array() );
-		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults', 'script_args' ) );
+		wp_register_script( 'defaults-strategy', '/defaults.js', array(), null, array( 'in_footer' => false ) );
+		$this->assertSame( false, $wp_scripts->get_data( 'defaults', 'script_args' ) );
 
-		wp_register_script( 'defaults-no-args', '/defaults.js', array(), null );
-		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults-no-args', 'script_args' ) );
+		wp_register_script( 'defaults-in-footer', '/defaults.js', array(), null, array( 'strategy' => 'blocking' ) );
+		$this->assertSame( false, $wp_scripts->get_data( 'defaults', 'script_args' ) );
+
+		// scripts_args not set of args parameter is empty.
+		wp_register_script( 'empty-args-array', '/defaults.js', array(), null, array() );
+		$this->assertSame( false, $wp_scripts->get_data( 'defaults', 'script_args' ) );
+
+		wp_register_script( 'no-args', '/defaults.js', array(), null );
+		$this->assertSame( false, $wp_scripts->get_data( 'defaults-no-args', 'script_args' ) );
 
 		// Test backward compatibility.
 		$args = array(

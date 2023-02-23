@@ -339,7 +339,12 @@ function wp_print_file_editor_templates() {
 				<# } #>
 			<# } #>
 			<# if ( data.dismissible ) { #>
-				<button type="button" class="notice-dismiss"><span class="screen-reader-text"><?php _e( 'Dismiss' ); ?></span></button>
+				<button type="button" class="notice-dismiss"><span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Dismiss' );
+					?>
+				</span></button>
 			<# } #>
 		</div>
 	</script>
@@ -540,7 +545,9 @@ function wp_edit_theme_plugin_file( $args ) {
 		}
 
 		// Make sure PHP process doesn't die before loopback requests complete.
-		set_time_limit( 5 * MINUTE_IN_SECONDS );
+		if ( function_exists( 'set_time_limit' ) ) {
+			set_time_limit( 5 * MINUTE_IN_SECONDS );
+		}
 
 		// Time to wait for loopback requests to finish.
 		$timeout = 100; // 100 seconds.
@@ -1979,7 +1986,7 @@ function move_dir( $from, $to, $overwrite = false ) {
 			return new WP_Error( 'destination_already_exists_move_dir', __( 'The destination folder already exists.' ), $to );
 		} elseif ( ! $wp_filesystem->delete( $to, true ) ) {
 			// Can't overwrite if the destination couldn't be deleted.
-			return WP_Error( 'destination_not_deleted_move_dir', __( 'The destination directory already exists and could not be removed.' ) );
+			return new WP_Error( 'destination_not_deleted_move_dir', __( 'The destination directory already exists and could not be removed.' ) );
 		}
 	}
 
