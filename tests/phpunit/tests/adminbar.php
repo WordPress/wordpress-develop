@@ -754,4 +754,13 @@ class Tests_AdminBar extends WP_UnitTestCase {
 			'network-admin-o'      => 'manage_network_options',
 		);
 	}
+
+	public function test_proto_property_should_not_be_defined() {
+		$admin_bar = new WP_Admin_Bar();
+		$this->assertFalse( property_exists( $admin_bar, 'proto' ), 'Proto' );
+		$this->assertFalse( isset( $admin_bar->proto ) );
+		$this->expectWarning();
+		$this->expectWarningMessageMatches( '/Undefined property:.+WP_Admin_Bar::$proto/' );
+		$admin_bar->proto;
+	}
 }
