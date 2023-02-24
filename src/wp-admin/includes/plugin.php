@@ -2040,7 +2040,7 @@ function get_admin_page_title() {
 		return $title;
 	}
 
-	return '';
+	return $title;
 }
 
 /**
