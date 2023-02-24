@@ -756,11 +756,15 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	public function test_proto_property_should_not_be_defined() {
+		set_error_handler(static function ($errno, $errstr) {
+			throw new Exception($errstr, $errno);
+		}, E_WARNING);
 		$admin_bar = new WP_Admin_Bar();
 		$this->assertFalse( property_exists( $admin_bar, 'proto' ), 'Proto' );
 		$this->assertFalse( isset( $admin_bar->proto ) );
-		$this->expectWarning();
-		$this->expectWarningMessageMatches( '/Undefined property:.+WP_Admin_Bar::$proto/' );
+		$this->expectException(Exception::class);
+		$this->expectExceptionMessage( 'Undefined property.+WP_Admin_Bar::\$proto' );
 		$admin_bar->proto;
+		restore_error_handler();
 	}
 }
