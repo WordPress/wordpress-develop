@@ -390,8 +390,12 @@ class WP_Scripts extends WP_Dependencies {
 			return true;
 		}
 
+		$strategy = $this->get_eligible_loading_strategy( $handle );
+		if( '' !== $strategy ) {
+			$strategy = ' '.$strategy;
+		}
 		$tag  = $translations . $cond_before . $before_handle;
-		$tag .= sprintf( "<script%s src='%s' id='%s-js'></script>\n", $this->type_attr, $src, esc_attr( $handle ) );
+		$tag .= sprintf( "<script%s src='%s' id='%s-js'%s></script>\n", $this->type_attr, $src, esc_attr( $handle ), $strategy );
 		$tag .= $after_handle . $cond_after;
 
 		/**
@@ -817,7 +821,7 @@ JS;
 		// Consider each dependent and check if it is deferrable.
 		foreach ( $dependents as $dependent ) {
 			// If the dependent script is not using the defer strategy, no script in the chain is deferrable.
-			if ( 'defer' !== get_intended_strategy( $dependent ) ) {
+			if ( 'defer' !== $this->get_intended_strategy( $dependent ) ) {
 				return false;
 			}
 
