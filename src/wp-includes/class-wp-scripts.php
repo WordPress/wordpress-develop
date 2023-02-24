@@ -852,7 +852,7 @@ JS;
 			$this->has_after_inline_dependency( $handle ) ||
 			'blocking' === $intended_strategy
 			) {
-			return 'blocking';
+			return '';
 		}
 
 		// Handling async strategy scenarios.
@@ -867,7 +867,7 @@ JS;
 			return 'defer';
 		}
 
-		return 'blocking';
+		return '';
 	}
 
 	/**
