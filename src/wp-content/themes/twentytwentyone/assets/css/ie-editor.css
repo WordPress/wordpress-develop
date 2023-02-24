@@ -863,19 +863,6 @@ a:hover {
 	color: #fff;
 }
 
-.wp-block-group {
-	display: block;
-	clear: both;
-	display: flow-root;
-}
-
-.wp-block-group:before,
-.wp-block-group:after {
-	content: "";
-	display: block;
-	clear: both;
-}
-
 .wp-block-group.has-background {
 	padding: 30px;
 }
@@ -1461,13 +1448,13 @@ dt {
 	border: 3px solid #28303d;
 }
 
-.wp-block-navigation .wp-block-navigation__container {
-	background: #d1e4dd;
-	padding: 0;
+.wp-block-navigation [data-block] {
+	margin-top: revert;
+	margin-bottom: revert;
 }
 
-.wp-block-navigation .wp-block-navigation-link .wp-block-navigation-link__content {
-	padding: 13px;
+.wp-block-navigation .wp-block-navigation__container {
+	background: #d1e4dd;
 }
 
 .wp-block-navigation .wp-block-navigation-link .wp-block-navigation-link__label {

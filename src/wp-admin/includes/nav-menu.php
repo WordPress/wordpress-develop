@@ -461,6 +461,7 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 			'format'             => '',
 			'prev_text'          => '<span aria-label="' . esc_attr__( 'Previous page' ) . '">' . __( '&laquo;' ) . '</span>',
 			'next_text'          => '<span aria-label="' . esc_attr__( 'Next page' ) . '">' . __( '&raquo;' ) . '</span>',
+			/* translators: Hidden accessibility text. */
 			'before_page_number' => '<span class="screen-reader-text">' . __( 'Page' ) . '</span> ',
 			'total'              => $num_pages,
 			'current'            => $pagenum,
@@ -582,7 +583,12 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 			}
 			?>
 			<p class="quick-search-wrap">
-				<label for="quick-search-posttype-<?php echo $post_type_name; ?>" class="screen-reader-text"><?php _e( 'Search' ); ?></label>
+				<label for="quick-search-posttype-<?php echo $post_type_name; ?>" class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Search' );
+					?>
+				</label>
 				<input type="search"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?> class="quick-search" value="<?php echo $searched; ?>" name="quick-search-posttype-<?php echo $post_type_name; ?>" id="quick-search-posttype-<?php echo $post_type_name; ?>" />
 				<span class="spinner"></span>
 				<?php submit_button( __( 'Search' ), 'small quick-search-submit hide-if-js', 'submit', false, array( 'id' => 'submit-quick-search-posttype-' . $post_type_name ) ); ?>
@@ -757,6 +763,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 			'format'             => '',
 			'prev_text'          => '<span aria-label="' . esc_attr__( 'Previous page' ) . '">' . __( '&laquo;' ) . '</span>',
 			'next_text'          => '<span aria-label="' . esc_attr__( 'Next page' ) . '">' . __( '&raquo;' ) . '</span>',
+			/* translators: Hidden accessibility text. */
 			'before_page_number' => '<span class="screen-reader-text">' . __( 'Page' ) . '</span> ',
 			'total'              => $num_pages,
 			'current'            => $pagenum,
@@ -877,7 +884,12 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 			}
 			?>
 			<p class="quick-search-wrap">
-				<label for="quick-search-taxonomy-<?php echo $taxonomy_name; ?>" class="screen-reader-text"><?php _e( 'Search' ); ?></label>
+				<label for="quick-search-taxonomy-<?php echo $taxonomy_name; ?>" class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Search' );
+					?>
+				</label>
 				<input type="search" class="quick-search" value="<?php echo $searched; ?>" name="quick-search-taxonomy-<?php echo $taxonomy_name; ?>" id="quick-search-taxonomy-<?php echo $taxonomy_name; ?>" />
 				<span class="spinner"></span>
 				<?php submit_button( __( 'Search' ), 'small quick-search-submit hide-if-js', 'submit', false, array( 'id' => 'submit-quick-search-taxonomy-' . $taxonomy_name ) ); ?>
@@ -1140,13 +1152,13 @@ function _wp_delete_orphaned_draft_menu_items() {
 }
 
 /**
- * Saves nav menu items
+ * Saves nav menu items.
  *
  * @since 3.6.0
  *
  * @param int|string $nav_menu_selected_id    ID, slug, or name of the currently-selected menu.
  * @param string     $nav_menu_selected_title Title of the currently-selected menu.
- * @return array The menu updated message
+ * @return string[] The menu updated messages.
  */
 function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selected_title ) {
 	$unsorted_menu_items = wp_get_nav_menu_items(

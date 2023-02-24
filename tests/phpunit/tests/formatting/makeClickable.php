@@ -108,12 +108,12 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			'There was a spoon named www.wordpress.org) said Alice.',
 		);
 		$urls_expected = array(
-			'<a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>',
-			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>. Alice!',
-			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>, said Alice.',
-			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>; said Alice.',
-			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>: said Alice.',
-			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>) said Alice.',
+			"<a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>",
+			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>. Alice!",
+			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>, said Alice.",
+			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>; said Alice.",
+			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>: said Alice.",
+			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>) said Alice.",
 		);
 
 		foreach ( $urls_before as $key => $url ) {
@@ -135,12 +135,12 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			'There was a spoon named www.wordpress.org)',
 		);
 		$urls_expected = array(
-			'<a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>',
-			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>.',
-			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>,',
-			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>;',
-			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>:',
-			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>)',
+			"<a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>",
+			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>.",
+			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>,",
+			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>;",
+			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>:",
+			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>)",
 		);
 
 		foreach ( $urls_before as $key => $url ) {
@@ -217,7 +217,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			'In his famous speech “You and Your research” (here: http://www.cs.virginia.edu/~robins/YouAndYourResearch.html) Richard Hamming wrote about people getting more done with their doors closed...',
 		);
 		$urls_expected = array(
-			'Example: WordPress, test (some text), I love example.com (<a href="http://example.org" rel="nofollow">http://example.org</a>), it is brilliant',
+			'Example: WordPress, test (some text), I love example.com (<a href="http://example.org">http://example.org</a>), it is brilliant',
 			'Example: WordPress, test (some text), I love example.com (<a href="http://example.com" rel="nofollow">http://example.com</a>), it is brilliant',
 			'Some text followed by a bracketed link with a trailing elipsis (<a href="http://example.com" rel="nofollow">http://example.com</a>)...',
 			'In his famous speech “You and Your research” (here: <a href="http://www.cs.virginia.edu/~robins/YouAndYourResearch.html" rel="nofollow">http://www.cs.virginia.edu/~robins/YouAndYourResearch.html</a>) Richard Hamming wrote about people getting more done with their doors closed...',
@@ -421,6 +421,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48022
+	 * @ticket 56444
 	 * @dataProvider data_add_rel_ugc_in_comments
 	 */
 	public function test_add_rel_ugc_in_comments( $content, $expected ) {
@@ -438,14 +439,32 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	}
 
 	public function data_add_rel_ugc_in_comments() {
+
+		$home_url_http  = set_url_scheme( home_url(), 'http' );
+		$home_url_https = set_url_scheme( home_url(), 'https' );
+
 		return array(
+			// @ticket 48022
 			array(
 				'http://wordpress.org',
 				'<a href="http://wordpress.org" rel="nofollow ugc">http://wordpress.org</a>',
 			),
 			array(
 				'www.wordpress.org',
-				'<p><a href="http://www.wordpress.org" rel="nofollow ugc">http://www.wordpress.org</a>',
+				'<p><a href=\'http://www.wordpress.org\' rel="nofollow ugc">http://www.wordpress.org</a>',
+			),
+			// @ticket 56444
+			array(
+				'www.example.org',
+				'<p><a href=\'http://www.example.org\' rel="nofollow ugc">http://www.example.org</a>',
+			),
+			array(
+				$home_url_http,
+				'<a href="' . $home_url_http . '" rel="ugc">' . $home_url_http . '</a>',
+			),
+			array(
+				$home_url_https,
+				'<a href="' . $home_url_https . '" rel="ugc">' . $home_url_https . '</a>',
 			),
 		);
 	}

@@ -725,12 +725,14 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	 * Filters whether to override the .mo file loading.
 	 *
 	 * @since 2.9.0
+	 * @since 6.2.0 Added the `$locale` parameter.
 	 *
-	 * @param bool   $override Whether to override the .mo file loading. Default false.
-	 * @param string $domain   Text domain. Unique identifier for retrieving translated strings.
-	 * @param string $mofile   Path to the MO file.
+	 * @param bool        $override Whether to override the .mo file loading. Default false.
+	 * @param string      $domain   Text domain. Unique identifier for retrieving translated strings.
+	 * @param string      $mofile   Path to the MO file.
+	 * @param string|null $locale   Locale.
 	 */
-	$plugin_override = apply_filters( 'override_load_textdomain', false, $domain, $mofile );
+	$plugin_override = apply_filters( 'override_load_textdomain', false, $domain, $mofile, $locale );
 
 	if ( true === (bool) $plugin_override ) {
 		unset( $l10n_unloaded[ $domain ] );
@@ -1665,7 +1667,32 @@ function switch_to_locale( $locale ) {
 	/* @var WP_Locale_Switcher $wp_locale_switcher */
 	global $wp_locale_switcher;
 
+	if ( ! $wp_locale_switcher ) {
+		return false;
+	}
+
 	return $wp_locale_switcher->switch_to_locale( $locale );
+}
+
+/**
+ * Switches the translations according to the given user's locale.
+ *
+ * @since 6.2.0
+ *
+ * @global WP_Locale_Switcher $wp_locale_switcher WordPress locale switcher object.
+ *
+ * @param int $user_id User ID.
+ * @return bool True on success, false on failure.
+ */
+function switch_to_user_locale( $user_id ) {
+	/* @var WP_Locale_Switcher $wp_locale_switcher */
+	global $wp_locale_switcher;
+
+	if ( ! $wp_locale_switcher ) {
+		return false;
+	}
+
+	return $wp_locale_switcher->switch_to_user_locale( $user_id );
 }
 
 /**
@@ -1680,6 +1707,10 @@ function switch_to_locale( $locale ) {
 function restore_previous_locale() {
 	/* @var WP_Locale_Switcher $wp_locale_switcher */
 	global $wp_locale_switcher;
+
+	if ( ! $wp_locale_switcher ) {
+		return false;
+	}
 
 	return $wp_locale_switcher->restore_previous_locale();
 }
@@ -1696,6 +1727,10 @@ function restore_previous_locale() {
 function restore_current_locale() {
 	/* @var WP_Locale_Switcher $wp_locale_switcher */
 	global $wp_locale_switcher;
+
+	if ( ! $wp_locale_switcher ) {
+		return false;
+	}
 
 	return $wp_locale_switcher->restore_current_locale();
 }
@@ -1772,5 +1807,32 @@ function translate_settings_using_i18n_schema( $i18n_schema, $settings, $textdom
 function wp_get_list_item_separator() {
 	global $wp_locale;
 
+	if ( ! ( $wp_locale instanceof WP_Locale ) ) {
+		// Default value of WP_Locale::get_list_item_separator().
+		/* translators: Used between list items, there is a space after the comma. */
+		return __( ', ' );
+	}
+
 	return $wp_locale->get_list_item_separator();
+}
+
+/**
+ * Retrieves the word count type based on the locale.
+ *
+ * @since 6.2.0
+ *
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
+ *
+ * @return string Locale-specific word count type. Possible values are `characters_excluding_spaces`,
+ *                `characters_including_spaces`, or `words`. Defaults to `words`.
+ */
+function wp_get_word_count_type() {
+	global $wp_locale;
+
+	if ( ! ( $wp_locale instanceof WP_Locale ) ) {
+		// Default value of WP_Locale::get_word_count_type().
+		return 'words';
+	}
+
+	return $wp_locale->get_word_count_type();
 }

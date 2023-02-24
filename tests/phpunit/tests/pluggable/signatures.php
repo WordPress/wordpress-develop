@@ -15,21 +15,21 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 	 *
 	 * @dataProvider get_defined_pluggable_functions
 	 */
-	public function test_pluggable_function_signatures_match( $function ) {
+	public function test_pluggable_function_signatures_match( $function_name ) {
 
 		$signatures = $this->get_pluggable_function_signatures();
 
-		$this->assertTrue( function_exists( $function ) );
-		$this->assertArrayHasKey( $function, $signatures );
+		$this->assertTrue( function_exists( $function_name ) );
+		$this->assertArrayHasKey( $function_name, $signatures );
 
-		$function_ref = new ReflectionFunction( $function );
+		$function_ref = new ReflectionFunction( $function_name );
 		$param_refs   = $function_ref->getParameters();
 
-		$this->assertSame( count( $signatures[ $function ] ), count( $param_refs ) );
+		$this->assertSame( count( $signatures[ $function_name ] ), count( $param_refs ) );
 
 		$i = 0;
 
-		foreach ( $signatures[ $function ] as $name => $value ) {
+		foreach ( $signatures[ $function_name ] as $name => $value ) {
 
 			$param_ref = $param_refs[ $i ];
 			$msg       = 'Parameter: ' . $param_ref->getName();

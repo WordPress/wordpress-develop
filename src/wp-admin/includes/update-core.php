@@ -1053,7 +1053,9 @@ $_new_bundled_files = array(
 function update_core( $from, $to ) {
 	global $wp_filesystem, $_old_files, $_old_requests_files, $_new_bundled_files, $wpdb;
 
-	set_time_limit( 300 );
+	if ( function_exists( 'set_time_limit' ) ) {
+		set_time_limit( 300 );
+	}
 
 	/*
 	 * Merge the old Requests files and directories into the `$_old_files`.
@@ -1593,11 +1595,26 @@ function update_core( $from, $to ) {
  *
  * @global array              $_old_requests_files Requests files to be preloaded.
  * @global WP_Filesystem_Base $wp_filesystem       WordPress filesystem subclass.
+ * @global string             $wp_version          The WordPress version string.
  *
  * @param string $to Path to old WordPress installation.
  */
 function _preload_old_requests_classes_and_interfaces( $to ) {
-	global $_old_requests_files, $wp_filesystem;
+	global $_old_requests_files, $wp_filesystem, $wp_version;
+
+	/*
+	 * Requests was introduced in WordPress 4.6.
+	 *
+	 * Skip preloading if the website was previously using
+	 * an earlier version of WordPress.
+	 */
+	if ( version_compare( $wp_version, '4.6', '<' ) ) {
+		return;
+	}
+
+	if ( ! defined( 'REQUESTS_SILENCE_PSR0_DEPRECATIONS' ) ) {
+		define( 'REQUESTS_SILENCE_PSR0_DEPRECATIONS', true );
+	}
 
 	foreach ( $_old_requests_files as $name => $file ) {
 		// Skip files that aren't interfaces or classes.

@@ -156,7 +156,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 				'code' => 200,
 			),
 			'headers'  => array(
-				'content-disposition' => 'attachment; filename="filename-from-content-disposition-header.txt"',
+				'Content-Disposition' => 'attachment; filename="filename-from-content-disposition-header.txt"',
 			),
 		);
 	}
@@ -174,7 +174,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 				'code' => 200,
 			),
 			'headers'  => array(
-				'content-disposition' => 'attachment; filename="../../filename-from-content-disposition-header.txt"',
+				'Content-Disposition' => 'attachment; filename="../../filename-from-content-disposition-header.txt"',
 			),
 		);
 	}
@@ -192,7 +192,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 				'code' => 200,
 			),
 			'headers'  => array(
-				'content-disposition' => 'attachment; filename=filename-from-content-disposition-header.txt',
+				'Content-Disposition' => 'attachment; filename=filename-from-content-disposition-header.txt',
 			),
 		);
 	}
@@ -241,7 +241,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 				'code' => 200,
 			),
 			'headers'  => array(
-				'content-disposition' => 'filename="filename-from-content-disposition-header.txt"',
+				'Content-Disposition' => 'filename="filename-from-content-disposition-header.txt"',
 			),
 		);
 	}
@@ -259,7 +259,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 				'code' => 200,
 			),
 			'headers'  => array(
-				'content-disposition' => 'inline; filename="filename-from-content-disposition-header.txt"',
+				'Content-Disposition' => 'inline; filename="filename-from-content-disposition-header.txt"',
 			),
 		);
 	}
@@ -277,7 +277,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 				'code' => 200,
 			),
 			'headers'  => array(
-				'content-disposition' => 'form-data; name="file"; filename="filename-from-content-disposition-header.txt"',
+				'Content-Disposition' => 'form-data; name="file"; filename="filename-from-content-disposition-header.txt"',
 			),
 		);
 	}
