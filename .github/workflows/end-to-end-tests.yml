@@ -27,7 +27,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  LOCAL_DIR: 'build'
+  LOCAL_DIR: build
 
 jobs:
   # Runs the end-to-end test suite.
