@@ -301,6 +301,18 @@ final class WP_Hook implements Iterator, ArrayAccess {
 					$args[0] = $value;
 				}
 
+				if ( ! isset( $the_['function'] ) ) {
+					_doing_it_wrong( 'apply_filters()', 'callback value can not be empty', '6.x' );
+
+					continue;
+				}
+
+				if ( ! is_callable( $the_['function'] ) ) {
+					_doing_it_wrong( 'apply_filters()', 'filter callback value should be a valid callable function', '6.x' );
+
+					continue;
+				}
+
 				// Avoid the array_slice() if possible.
 				if ( 0 == $the_['accepted_args'] ) {
 					$value = call_user_func( $the_['function'] );
