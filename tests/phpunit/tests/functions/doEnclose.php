@@ -1,14 +1,9 @@
 <?php
+
 /**
  * Test cases for the `do_enclose()` function.
  *
  * @package WordPress\UnitTests
- *
- * @since 5.3.0
- */
-
-/**
- * Tests_Functions_DoEnclose class.
  *
  * @since 5.3.0
  *

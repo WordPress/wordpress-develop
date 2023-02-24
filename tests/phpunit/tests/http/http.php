@@ -9,6 +9,9 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	const FULL_TEST_URL = 'http://username:password@host.name:9090/path?arg1=value1&arg2=value2#anchor';
 
 	/**
+	 * @ticket 20434
+	 * @ticket 56231
+	 *
 	 * @dataProvider make_absolute_url_testcases
 	 *
 	 * @covers WP_Http::make_absolute_url
@@ -66,6 +69,13 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 			// Schemeless URL's (not valid in HTTP Headers, but may be used elsewhere).
 			array( '//example.com/sub/', 'https://example.net', 'https://example.com/sub/' ),
+
+			// URLs with fragments.
+			array( '/path#frag', 'http://example.org/', 'http://example.org/path#frag' ),
+			array( '/path/#frag', 'http://example.org/', 'http://example.org/path/#frag' ),
+			array( '/path#frag&ment=1', 'http://example.org/', 'http://example.org/path#frag&ment=1' ),
+			array( '/path?query=string#frag', 'http://example.org/', 'http://example.org/path?query=string#frag' ),
+			array( '/path?query=string%23frag', 'http://example.org/', 'http://example.org/path?query=string%23frag' ),
 		);
 	}
 

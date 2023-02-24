@@ -223,7 +223,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'parent'           => 'invalid_parent',
 			'ancestor'         => 'invalid_ancestor',
 			'supports'         => 'invalid_supports',
-			'styles'           => 'invalid_styles',
+			'styles'           => array(),
 			'render_callback'  => 'invalid_callback',
 			'textdomain'       => true,
 			'variations'       => 'invalid_variations',
