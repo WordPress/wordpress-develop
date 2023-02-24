@@ -817,7 +817,7 @@ JS;
 		// Consider each dependent and check if it is deferrable.
 		foreach ( $dependents as $dependent ) {
 			// If the dependent script is not using the defer strategy, no script in the chain is deferrable.
-			if ( 'defer' !== get_intended_strategy( $dependent ) ) {
+			if ( 'defer' !== $this->get_intended_strategy( $dependent ) ) {
 				return false;
 			}
 
