@@ -6791,7 +6791,7 @@ function is_empty_datetime( $datetime = '' ) {
 		return true;
 	}
 
-	return $datetime === '0000-00-00 00:00:00';
+	return '0000-00-00 00:00:00' === $datetime;
 }
 
 /**
