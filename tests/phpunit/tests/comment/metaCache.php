@@ -12,8 +12,6 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	 * @covers ::update_comment_meta
 	 */
 	public function test_update_comment_meta_cache_should_default_to_true() {
-		global $wpdb;
-
 		$p           = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$comment_ids = self::factory()->comment->create_post_comments( $p, 3 );
 
@@ -24,18 +22,21 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 		// Clear comment cache, just in case.
 		clean_comment_cache( $comment_ids );
 
-		$q = new WP_Comment_Query(
+		$num_queries = get_num_queries();
+		$q           = new WP_Comment_Query(
 			array(
 				'post_ID' => $p,
 			)
 		);
 
-		$num_queries = $wpdb->num_queries;
+		$this->assertSame( $num_queries + 2, get_num_queries() );
+
+		$num_queries = get_num_queries();
 		foreach ( $comment_ids as $cid ) {
 			get_comment_meta( $cid, 'foo', 'bar' );
 		}
 
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 	}
 
 	/**
@@ -44,8 +45,6 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	 * @covers ::update_comment_meta
 	 */
 	public function test_update_comment_meta_cache_true() {
-		global $wpdb;
-
 		$p           = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$comment_ids = self::factory()->comment->create_post_comments( $p, 3 );
 
@@ -56,19 +55,21 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 		// Clear comment cache, just in case.
 		clean_comment_cache( $comment_ids );
 
-		$q = new WP_Comment_Query(
+		$num_queries = get_num_queries();
+		$q           = new WP_Comment_Query(
 			array(
 				'post_ID'                   => $p,
 				'update_comment_meta_cache' => true,
 			)
 		);
+		$this->assertSame( $num_queries + 2, get_num_queries() );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		foreach ( $comment_ids as $cid ) {
 			get_comment_meta( $cid, 'foo', 'bar' );
 		}
 
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 	}
 
 	/**
