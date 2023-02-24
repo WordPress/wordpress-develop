@@ -110,15 +110,18 @@ JS;
 
 		// Test defaults.
 		$expected_args = array(
-			'in_footer' => false,
+			'in_footer' => true,
 			'strategy'  => 'blocking',
 		);
+		wp_register_script( 'defaults-strategy', '/defaults.js', array(), null, array( 'in_footer' => true ) );
+		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults-strategy', 'script_args' ) );
 
-		wp_register_script( 'defaults-strategy', '/defaults.js', array(), null, array( 'in_footer' => false ) );
-		$this->assertSame( false, $wp_scripts->get_data( 'defaults', 'script_args' ) );
-
-		wp_register_script( 'defaults-in-footer', '/defaults.js', array(), null, array( 'strategy' => 'blocking' ) );
-		$this->assertSame( false, $wp_scripts->get_data( 'defaults', 'script_args' ) );
+		$expected_args = array(
+			'in_footer' => false,
+			'strategy'  => 'async',
+		);
+		wp_register_script( 'defaults-in-footer', '/defaults.js', array(), null, array( 'strategy' => 'async' ) );
+		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults-in-footer', 'script_args' ) );
 
 		// scripts_args not set of args parameter is empty.
 		wp_register_script( 'empty-args-array', '/defaults.js', array(), null, array() );
