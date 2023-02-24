@@ -510,6 +510,22 @@ function update_comment_meta( $comment_id, $meta_key, $meta_value, $prev_value =
 	return update_metadata( 'comment', $comment_id, $meta_key, $meta_value, $prev_value );
 }
 
+
+/**
+ * Queues comments for metadata lazy-loading.
+ *
+ * @since 6.3.0
+ *
+ * @param int[] $comment_ids Array of comment ids.
+ */
+function wp_lazyload_comment_meta( array $comment_ids ) {
+	if ( ! $comment_ids ) {
+		return;
+	}
+	$lazyloader = wp_metadata_lazyloader();
+	$lazyloader->queue_objects( 'comment', $comment_ids );
+}
+
 /**
  * Queues comments for metadata lazy-loading.
  *
@@ -528,10 +544,7 @@ function wp_queue_comments_for_comment_meta_lazyload( $comments ) {
 		}
 	}
 
-	if ( $comment_ids ) {
-		$lazyloader = wp_metadata_lazyloader();
-		$lazyloader->queue_objects( 'comment', $comment_ids );
-	}
+	wp_lazyload_comment_meta( $comment_ids );
 }
 
 /**
@@ -3345,7 +3358,11 @@ function _prime_comment_caches( $comment_ids, $update_meta_cache = true ) {
 	if ( ! empty( $non_cached_ids ) ) {
 		$fresh_comments = $wpdb->get_results( sprintf( "SELECT $wpdb->comments.* FROM $wpdb->comments WHERE comment_ID IN (%s)", implode( ',', array_map( 'intval', $non_cached_ids ) ) ) );
 
-		update_comment_cache( $fresh_comments, $update_meta_cache );
+		update_comment_cache( $fresh_comments, false );
+	}
+
+	if ( $update_meta_cache ) {
+		wp_lazyload_comment_meta( $comment_ids );
 	}
 }
 
