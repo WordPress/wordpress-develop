@@ -35,7 +35,7 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 			get_comment_meta( $cid, 'foo', 'bar' );
 		}
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 	}
 
 	/**
@@ -68,7 +68,7 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 			get_comment_meta( $cid, 'foo', 'bar' );
 		}
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 	}
 
 	/**
