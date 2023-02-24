@@ -128,7 +128,7 @@ jobs:
         run: "node ./tests/performance/results.js"
 
       - name: Update the environment to 6.1.1
-        run: npm run env:cli -- core update --version=6.1.1 --force
+        run: npm run env:cli -- core update --version=6.1.1 --force --path=/var/www/build && npm run env:cli -- core version --path=/var/www/build
 
       - name: Run Performance tests (6.1.1)
         run: npm run test:performance -- --prefix=base
