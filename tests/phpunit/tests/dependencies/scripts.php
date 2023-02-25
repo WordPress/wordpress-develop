@@ -64,6 +64,82 @@ JS;
 	}
 
 	/**
+	 * Test old and new in_footer logic.
+	 */
+	public function test_old_and_new_in_footer_scripts() {
+		// Scripts in head.
+		wp_register_script( 'header-old', '/header-old.js', array(), null, false );
+		wp_register_script( 'header-new', '/header-new.js', array( 'header-old' ), null, array( 'in_footer' => false ) );
+		wp_enqueue_script( 'enqueue-header-old', '/enqueue-header-old.js', array( 'header-new' ), null, false );
+		wp_enqueue_script( 'enqueue-header-new', '/enqueue-header-new.js', array( 'enqueue-header-old' ), null, array( 'in_footer' => false ) );
+
+		// Scripts in footer.
+		wp_register_script( 'footer-old', '/footer-old.js', array(), null, true );
+		wp_register_script( 'footer-new', '/footer-new.js', array( 'footer-old' ), null, array( 'in_footer' => true ) );
+		wp_enqueue_script( 'enqueue-footer-old', '/enqueue-footer-old.js', array( 'footer-new' ), null, true );
+		wp_enqueue_script( 'enqueue-footer-new', '/enqueue-footer-new.js', array( 'enqueue-footer-old' ), null, array( 'in_footer' => true ) );
+
+		$header = get_echo( 'wp_print_head_scripts' );
+		$footer = get_echo( 'wp_print_scripts' );
+
+		$expected_header  = "<script type='text/javascript' src='/header-old.js' id='header-old-js'></script>\n";
+		$expected_header .= "<script type='text/javascript' src='/header-new.js' id='header-new-js'></script>\n";
+		$expected_header .= "<script type='text/javascript' src='/enqueue-header-old.js' id='enqueue-header-old-js'></script>\n";
+		$expected_header .= "<script type='text/javascript' src='/enqueue-header-new.js' id='enqueue-header-new-js'></script>\n";
+
+		$expected_footer  = "<script type='text/javascript' src='/footer-old.js' id='footer-old-js'></script>\n";
+		$expected_footer .= "<script type='text/javascript' src='/footer-new.js' id='footer-new-js'></script>\n";
+		$expected_footer .= "<script type='text/javascript' src='/enqueue-footer-old.js' id='enqueue-footer-old-js'></script>\n";
+		$expected_footer .= "<script type='text/javascript' src='/enqueue-footer-new.js' id='enqueue-footer-new-js'></script>\n";
+
+		$this->assertSame( $expected_header, $header );
+		$this->assertSame( $expected_footer, $footer );
+	}
+
+	/**
+	 * Test normalized script args.
+	 */
+	public function test_get_normalized_script_args() {
+		global $wp_scripts;
+		$args = array(
+			'in_footer' => true,
+			'strategy'  => 'async',
+		);
+		wp_enqueue_script( 'footer-async', '/footer-async.js', array(), null, $args );
+		$this->assertSame( $args, $wp_scripts->get_data( 'footer-async', 'script_args' ) );
+
+		// Test defaults.
+		$expected_args = array(
+			'in_footer' => true,
+			'strategy'  => 'blocking',
+		);
+		wp_register_script( 'defaults-strategy', '/defaults.js', array(), null, array( 'in_footer' => true ) );
+		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults-strategy', 'script_args' ) );
+
+		$expected_args = array(
+			'in_footer' => false,
+			'strategy'  => 'async',
+		);
+		wp_register_script( 'defaults-in-footer', '/defaults.js', array(), null, array( 'strategy' => 'async' ) );
+		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults-in-footer', 'script_args' ) );
+
+		// scripts_args not set of args parameter is empty.
+		wp_register_script( 'empty-args-array', '/defaults.js', array(), null, array() );
+		$this->assertSame( false, $wp_scripts->get_data( 'defaults', 'script_args' ) );
+
+		wp_register_script( 'no-args', '/defaults.js', array(), null );
+		$this->assertSame( false, $wp_scripts->get_data( 'defaults-no-args', 'script_args' ) );
+
+		// Test backward compatibility.
+		$args = array(
+			'in_footer' => true,
+			'strategy'  => 'blocking',
+		);
+		wp_enqueue_script( 'footer-old', '/footer-async.js', array(), null, true );
+		$this->assertSame( $args, $wp_scripts->get_data( 'footer-old', 'script_args' ) );
+	}
+
+	/**
 	 * @ticket 42804
 	 */
 	public function test_wp_enqueue_script_with_html5_support_does_not_contain_type_attribute() {
