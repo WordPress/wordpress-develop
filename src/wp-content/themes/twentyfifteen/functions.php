@@ -397,6 +397,21 @@ if ( ! function_exists( 'twentyfifteen_fonts_url' ) ) :
 endif;
 
 /**
+ * Define a special character set for fonts in the current language.
+ *
+ * @since Twenty Fifteen 3.4
+ *
+ * @return string Special font subset or 'no-subset'.
+ */
+function twentyfifteen_font_subset() {
+	/*
+	 * translators: To add an additional character subset specific to your language,
+	 * translate this to 'greek', 'cyrillic', 'devanagari' or 'vietnamese'. Do not translate into your own language.
+	 */
+	return _x( 'no-subset', 'Add new subset (greek, cyrillic, devanagari, vietnamese)', 'twentyfifteen' );
+}
+
+/**
  * JavaScript Detection.
  *
  * Adds a `js` class to the root `<html>` element when JavaScript is detected.
