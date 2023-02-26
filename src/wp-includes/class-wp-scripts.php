@@ -847,10 +847,11 @@ JS;
 		/**
 		 * Handle known blocking strategy scenarios.
 		 *
-		 * Blocking if not a registered handle.
-		 * If the script has an 'after' inline dependency, then it can't be eligible for async or defer.
+		 * blocking if not a registered handle.
+		 * blocking if explicitly set.
+		 * blocking if script args not set.
 		 */
-		if ( ! isset( $this->registered[ $handle ] ) || 'blocking' === $intended_strategy ) {
+		if ( ! isset( $this->registered[ $handle ] ) || 'blocking' === $intended_strategy || ! $intended_strategy ) {
 			return '';
 		}
 
