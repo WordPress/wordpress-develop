@@ -39,7 +39,7 @@ const baseResultsFiles = [
  * @param {Object[]} files
  * @returns An array of parsed objects from each file.
  */
-const parseResults = (files) => (
+const parseResults = ( files ) => (
 	files.map( ( { file } ) =>
 		JSON.parse(
 			fs.readFileSync( path.join( __dirname, '/specs/' + file ), 'utf8' )
@@ -52,8 +52,8 @@ const parseResults = (files) => (
  *
  * @return {Object[]} Metrics.
  */
-const formatResults = (files) => {
-	const parsedResults = parseResults(files);
+const formatResults = ( files ) => {
+	const parsedResults = parseResults( files );
 
 	return files.reduce(
 		( result, { metricsPrefix }, index ) => {
@@ -64,7 +64,7 @@ const formatResults = (files) => {
 						parsedResults[ index ] ?? {}
 					).map( ( [ key, value ] ) => [
 						metricsPrefix + key,
-						median(value),
+						median ( value ),
 					] )
 				),
 			};
@@ -79,8 +79,8 @@ const data = new TextEncoder().encode(
 		hash,
 		baseHash,
 		timestamp: parseInt( timestamp, 10 ),
-		metrics: formatResults(resultsFiles),
-		baseMetrics: formatResults(baseResultsFiles),
+		metrics: formatResults( resultsFiles ),
+		baseMetrics: formatResults( baseResultsFiles ),
 	} )
 );
 

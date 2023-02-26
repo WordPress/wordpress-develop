@@ -9,7 +9,7 @@ import { writeFileSync } from 'fs';
  */
 import { activateTheme, createURL } from '@wordpress/e2e-test-utils';
 
-describe( 'Server Timing – Twenty Twenty Three', () => {
+describe( 'Server Timing - Twenty Twenty Three', () => {
 	const results = {
 		wpBeforeTemplate: [],
 		wpTemplate: [],

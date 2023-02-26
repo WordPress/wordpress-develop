@@ -10,7 +10,7 @@ import { exec } from 'child_process';
  */
 import { activateTheme, createURL } from '@wordpress/e2e-test-utils';
 
-describe( 'Server Timing – Twenty Twenty One', () => {
+describe( 'Server Timing - Twenty Twenty One', () => {
 	const results = {
 		wpBeforeTemplate: [],
 		wpTemplate: [],

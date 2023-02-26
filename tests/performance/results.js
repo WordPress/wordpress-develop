@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
+/**
+ * External dependencies
+ */
+const fs = require( 'fs' );
 const { median } = require( './utils' );
+
 const testSuites = [
     'home-classic-theme',
     'home-block-theme',
@@ -16,15 +20,15 @@ for ( const testSuite of testSuites ) {
             console.log( "File read failed:", err );
             return;
         }
-        const convertString = testSuite.charAt(0).toUpperCase() + testSuite.slice(1);
-        console.log( convertString.replace(/[-]+/g, " ") + ':' );
+        const convertString = testSuite.charAt( 0 ).toUpperCase() + testSuite.slice( 1 );
+        console.log( convertString.replace( /[-]+/g, " " ) + ':' );
 
         tableData = JSON.parse( data );
         const rawResults = [];
 
-        for (var key in tableData) {
+        for ( var key in tableData ) {
             if ( tableData.hasOwnProperty( key ) ) {
-                rawResults[key] = median( tableData[key] );
+                rawResults[ key ] = median( tableData[ key ] );
             }
         }
         console.table( rawResults );
