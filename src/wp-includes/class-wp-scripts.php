@@ -811,6 +811,7 @@ JS;
 		}
 		$visited[]  = $handle;
 		$dependents = $this->get_dependents( $handle );
+
 		// If there are no dependents remaining to consider, the script can be deferred and the branch ends.
 		if ( empty( $dependents ) ) {
 			return true;
