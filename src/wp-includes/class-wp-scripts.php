@@ -843,9 +843,9 @@ JS;
 		/**
 		 * Handle known blocking strategy scenarios.
 		 *
-		 * blocking if explicitly set.
-		 * blocking if strategy not set.
 		 * blocking if not a registered handle.
+		 * blocking if explicitly set.
+		 * blocking if script args not set.
 		 */
 		if ( ! isset( $this->registered[ $handle ] ) || 'blocking' === $intended_strategy || ! $intended_strategy ) {
 			return '';
