@@ -66,12 +66,10 @@ JS;
 
 	/**
 	 * Test loading strategy.
-	 * 
+	 *
 	 * @ticket 99999
 	 */
 	public function test_loading_strategy() {
-		global $wp_scripts;
-
 		/**
 		 * Async strategy testing.
 		 */
@@ -150,19 +148,18 @@ JS;
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='/main-script-b1.js' id='main-script-b1-js'></script>\n";
 		$this->assertSame( $expected, $output );
-		
+
 		// strategy args not set.
 		wp_enqueue_script( 'main-script-b2', '/main-script-b2.js', array(), null, array() );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='/main-script-b2.js' id='main-script-b2-js'></script>\n";
 		$this->assertSame( $expected, $output );
-
 	}
 
 	/**
 	 * Test old and new in_footer logic.
-	 * 
-	 * @ticket 99991
+	 *
+	 * @ticket 99999
 	 */
 	public function test_old_and_new_in_footer_scripts() {
 		// Scripts in head.
@@ -200,7 +197,7 @@ JS;
 	public function test_get_normalized_script_args() {
 		global $wp_scripts;
 		$args = array(
-			'in_footer' => true
+			'in_footer' => true,
 		);
 		wp_enqueue_script( 'footer-async', '/footer-async.js', array(), null, $args );
 		$this->assertSame( $args, $wp_scripts->get_data( 'footer-async', 'script_args' ) );
