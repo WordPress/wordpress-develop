@@ -835,7 +835,7 @@ JS;
 	/**
 	 * Get the correct loading strategy for the script.
 	 *
-	 * @param string  $handle Handle name of the script.
+	 * @param string  $handle Name of the script.
 	 * @return string $strategy return the final strategy.
 	 */
 	private function get_eligible_loading_strategy( $handle = '' ) {
