@@ -793,7 +793,7 @@ JS;
 	 * @return bool True on success, false on failure.
 	 */
 	private function has_after_inline_dependency( $handle ) {
-		return false !== $this->get_data( $handle, 'after' );
+		return (bool) $this->get_data( $handle, 'after' );
 	}
 
 
