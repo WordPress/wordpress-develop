@@ -746,8 +746,10 @@ JS;
 	 * @return array        Normalized $args array.
 	 */
 	private function get_normalized_script_args( $handle, $args = array() ) {
-		$default_args = array( 'in_footer' => false );
-
+		$default_args = array(
+			'in_footer' => false,
+			'strategy'  => 'blocking',
+		);
 		// Handle backward compatibility for $in_footer.
 		if ( true === $args ) {
 			$args = array( 'in_footer' => true );
@@ -844,18 +846,13 @@ JS;
 		 * Blocking if not a registered handle.
 		 * If the script has an 'after' inline dependency, then it can't be eligible for async or defer.
 		 */
-		if ( ! isset( $this->registered[ $handle ] ) ||
-			$this->has_after_inline_dependency( $handle ) ||
-			'blocking' === $intended_strategy
-			) {
+		if ( ! isset( $this->registered[ $handle ] ) || 'blocking' === $intended_strategy ) {
 			return '';
 		}
 
 		// Handling async strategy scenarios.
-		if ( empty( $this->registered[ $handle ]->deps ) && empty( $this->get_dependents( $handle ) ) ) {
-			if ( false === $intended_strategy || 'async' === $intended_strategy ) {
-				return 'async';
-			}
+		if ( empty( $this->registered[ $handle ]->deps ) && empty( $this->get_dependents( $handle ) ) && 'async' === $intended_strategy ) {
+			return 'async';
 		}
 
 		// Handling defer strategy scenarios. Dependency will never be set async. So only checking dependent.
