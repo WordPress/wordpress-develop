@@ -840,7 +840,7 @@ JS;
 	private function get_eligible_loading_strategy( $handle = '' ) {
 
 		$intended_strategy = $this->get_intended_strategy( $handle );
-		/**
+		/*
 		 * Handle known blocking strategy scenarios.
 		 *
 		 * blocking if not a registered handle.
