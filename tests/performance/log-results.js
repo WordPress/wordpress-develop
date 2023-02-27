@@ -15,13 +15,13 @@ const testSuites = [
 	'home-classic-theme',
 ];
 
-// A list of files to parse result files.
+// A list of results to parse based on test suites.
 const testResults = testSuites.map(( key ) => ({
 	key,
 	file: `${ key }.test.results.json`,
 }));
 
-// A list of test result files.
+// A list of base results to parse based on test suites.
 const baseResults = testSuites.map(( key ) => ({
 	key,
 	file: `base-${ key }.test.results.json`,
