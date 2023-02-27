@@ -98,6 +98,8 @@ JS;
 
 	/**
 	 * Test normalized script args.
+	 *
+	 * @ticket 99999
 	 */
 	public function test_get_normalized_script_args() {
 		global $wp_scripts;
