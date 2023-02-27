@@ -755,7 +755,14 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_proto_property_should_not_be_defined() {
+	/**
+	 * This test ensures that WP_Admin_Bar::$proto is not defined
+	 * (including magic methods).
+	 *
+	 * @ticket 56876
+	 * @coversNothing
+	 */
+	public function test_proto_property_is_not_be_defined() {
 		set_error_handler(
 			static function ( $errno, $errstr ) {
 				throw new Exception( $errstr, $errno );
