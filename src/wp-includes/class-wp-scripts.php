@@ -822,7 +822,7 @@ JS;
 	}
 
 	/**
-	 * Get the correct loading strategy for the script.
+	 * Get the most eligible loading strategy for a script.
 	 *
 	 * @param string  $handle Name of the script.
 	 * @return string $strategy return the final strategy.
