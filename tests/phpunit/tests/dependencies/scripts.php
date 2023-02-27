@@ -63,7 +63,6 @@ JS;
 		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
 	}
 
-
 	/**
 	 * Test loading strategy.
 	 *
