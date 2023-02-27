@@ -137,7 +137,7 @@ jobs:
         run: npm run test:performance -- --prefix=base
 
       - name: Print Performance tests results (6.1.1)
-        run: "node ./tests/performance/baseResults.js"
+        run: "node ./tests/performance/results.js --prefix=base"
 
       - name: Set commit details
         uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0

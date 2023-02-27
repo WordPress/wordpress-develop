@@ -4,7 +4,8 @@
  * External dependencies
  */
 const fs = require( 'fs' );
-const { median } = require( './utils' );
+const { join } = require( 'path' );
+const { median, getResultsFilename } = require( './utils' );
 
 const testSuites = [
     'home-classic-theme',
@@ -14,8 +15,9 @@ const testSuites = [
 console.log( '\n>> 🎉 Results 🎉 \n' );
 
 for ( const testSuite of testSuites ) {
-    const resultsFilename = __dirname + '/specs/' + testSuite + '.test.results.json';
-    fs.readFile( resultsFilename, "utf8", ( err, data ) => {
+    const resultsFileName = getResultsFilename( testSuite + '.test' );
+    const resultsPath = join( __dirname, '/specs/', resultsFileName );
+    fs.readFile( resultsPath, "utf8", ( err, data ) => {
         if ( err ) {
             console.log( "File read failed:", err );
             return;
