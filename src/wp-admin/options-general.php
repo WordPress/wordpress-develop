@@ -40,7 +40,7 @@ if ( ! is_multisite() ) {
 			'<code>http://</code>',
 			'<code>https://</code>'
 		) . '</p>' .
-		'<p>' . __( 'If you want site visitors to be able to register themselves, check the membership box. If you want the site administrator to register every new user, leave the box unchecked. In both cases, you can set a default user role for all new users, whether they register themselves or a site admin registers them.' ) . '</p>';
+		'<p>' . __( 'If you want site visitors to be able to register themselves, check the membership box. If you want the site administrator to register every new user, leave the box unchecked. In either case, you can set a default user role for all new users.' ) . '</p>';
 }
 
 $options_help .= '<p>' . __( 'You can set the language, and WordPress will automatically download and install the translation files (available if your filesystem is writable).' ) . '</p>' .
