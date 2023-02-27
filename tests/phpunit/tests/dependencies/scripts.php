@@ -112,6 +112,13 @@ JS;
 
 		// Test defaults.
 		$expected_args = array(
+			'in_footer' => true,
+			'strategy'  => 'blocking',
+		);
+		wp_register_script( 'defaults-strategy', '/defaults.js', array(), null, array( 'in_footer' => true ) );
+		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults-strategy', 'script_args' ) );
+
+		$expected_args = array(
 			'in_footer' => false,
 			'strategy'  => 'async',
 		);
