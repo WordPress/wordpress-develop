@@ -392,7 +392,7 @@ class WP_Scripts extends WP_Dependencies {
 
 		$strategy = $this->get_eligible_loading_strategy( $handle );
 		if( '' !== $strategy ) {
-			$strategy = ' '.$strategy;
+			$strategy = ' ' . $strategy;
 		}
 		$tag  = $translations . $cond_before . $before_handle;
 		$tag .= sprintf( "<script%s src='%s' id='%s-js'%s></script>\n", $this->type_attr, $src, esc_attr( $handle ), $strategy );
