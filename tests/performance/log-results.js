@@ -9,26 +9,16 @@ const https = require( 'https' );
 const [ token, branch, hash, baseHash, timestamp, host ] = process.argv.slice( 2 );
 const { median } = require( './utils' );
 
-// Results files recorded for the current commit.
+// Results files recorded for the current and base commit.
 const resultsFiles = [
 	{
 		file: 'home-block-theme.test.results.json',
+		baseFile: 'base-home-block-theme.test.results.json',
 		metricsPrefix: 'home-block-theme-',
 	},
 	{
 		file: 'home-classic-theme.test.results.json',
-		metricsPrefix: 'home-classic-theme-',
-	},
-];
-
-// Results files recorded for the base commit.
-const baseResultsFiles = [
-	{
-		file: 'base-home-block-theme.test.results.json',
-		metricsPrefix: 'home-block-theme-',
-	},
-	{
-		file: 'base-home-classic-theme.test.results.json',
+		baseFile: 'base-home-classic-theme.test.results.json',
 		metricsPrefix: 'home-classic-theme-',
 	},
 ];
@@ -37,12 +27,13 @@ const baseResultsFiles = [
  * Parse test files into JSON objects.
  *
  * @param {Object[]} files
+ * @param {boolean} baseFile True if file is base file, otherwise false. Default false.
  * @returns An array of parsed objects from each file.
  */
-const parseResults = ( files ) => (
-	files.map( ( { file } ) =>
+const parseResults = ( files, isBaseFile ) => (
+	files.map( ( { file, baseFile } ) =>
 		JSON.parse(
-			fs.readFileSync( path.join( __dirname, '/specs/' + file ), 'utf8' )
+			fs.readFileSync( path.join( __dirname, '/specs/' + ( isBaseFile ? baseFile : file ) ), 'utf8' )
 		)
 	)
 );
@@ -50,10 +41,13 @@ const parseResults = ( files ) => (
 /**
  * Gets the array of metrics.
  *
+ * @param {Object[]} files
+ * @param {boolean} isBaseFile True if file is base file, otherwise false. Default false.
  * @return {Object[]} Metrics.
  */
-const formatResults = ( files ) => {
-	const parsedResults = parseResults( files );
+const formatResults = ( files, isBaseFile = false ) => {
+
+	const parsedResults = parseResults( files, isBaseFile );
 
 	return files.reduce(
 		( result, { metricsPrefix }, index ) => {
@@ -80,7 +74,7 @@ const data = new TextEncoder().encode(
 		baseHash,
 		timestamp: parseInt( timestamp, 10 ),
 		metrics: formatResults( resultsFiles ),
-		baseMetrics: formatResults( baseResultsFiles ),
+		baseMetrics: formatResults( baseResultsFiles, true ),
 	} )
 );
 

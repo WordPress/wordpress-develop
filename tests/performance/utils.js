@@ -13,6 +13,21 @@ function median( array ) {
 		: ( numbers[ mid - 1 ] + numbers[ mid ] ) / 2;
 }
 
+/**
+ * Gets the result file name.
+ *
+ * @param {string} File name.
+ *
+ * @return {string} Result file name.
+ */
+function getResultsFilename( fileName ) {
+	const prefixArg = process.argv.find( ( arg ) => arg.startsWith( '--prefix' ) );
+	const fileNamePrefix = prefixArg ? `${prefixArg.split( '=' )[1]}-` : '';
+	const resultsFilename = fileNamePrefix + fileName + '.results.json';
+	return resultsFilename;
+}
+
 module.exports = {
 	median,
+	getResultsFilename,
 };

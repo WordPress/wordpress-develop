@@ -1,8 +1,9 @@
 /**
  * External dependencies
  */
-import { basename, join } from 'path';
-import { writeFileSync } from 'fs';
+const { basename, join } = require( 'path' );
+const { writeFileSync } = require( 'fs' );
+const { getResultsFilename } = require( './../utils' );
 
 /**
  * WordPress dependencies
@@ -21,9 +22,7 @@ describe( 'Server Timing - Twenty Twenty Three', () => {
 	} );
 
 	afterAll( async () => {
-		const prefixArg = process.argv.find((arg) => arg.startsWith('--prefix'));
-		const fileNamePrefix = prefixArg ? `${prefixArg.split('=')[1]}-` : '';
-		const resultsFilename = fileNamePrefix + basename( __filename, '.js' ) + '.results.json';
+		const resultsFilename = getResultsFilename( basename( __filename, '.js' ) );
 		writeFileSync(
 			join( __dirname, resultsFilename ),
 			JSON.stringify( results, null, 2 )
