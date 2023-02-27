@@ -760,7 +760,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 			static function ( $errno, $errstr ) {
 				throw new Exception( $errstr, $errno );
 			},
-			E_WARNING
+			E_ALL
 		);
 		$admin_bar = new WP_Admin_Bar();
 		$this->assertFalse( property_exists( $admin_bar, 'proto' ), 'Proto' );
