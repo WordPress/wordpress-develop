@@ -65,6 +65,8 @@ JS;
 
 	/**
 	 * Test old and new in_footer logic.
+	 *
+	 * @ticket 99999
 	 */
 	public function test_old_and_new_in_footer_scripts() {
 		// Scripts in head.
