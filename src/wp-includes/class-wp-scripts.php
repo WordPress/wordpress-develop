@@ -776,7 +776,7 @@ JS;
 	}
 
 	/**
-	 * Get the strategy mentioned during script registration.
+	 * Get the strategy assigned during script registration.
 	 *
 	 * @param string $handle The script handle.
 	 * @return string|bool Strategy set during script registration. False if none was set.
