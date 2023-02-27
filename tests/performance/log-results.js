@@ -6,56 +6,72 @@
 const fs = require( 'fs' );
 const path = require( 'path' );
 const https = require( 'https' );
-const [ token, branch, hash, timestamp, host ] = process.argv.slice( 2 );
+const [ token, branch, hash, baseHash, timestamp, host ] = process.argv.slice( 2 );
 const { median } = require( './utils' );
 
-const resultsFiles = [
-	{
-		file: 'home-block-theme.test.results.json',
-		metricsPrefix: 'home-block-theme-',
-	},
-	{
-		file: 'home-classic-theme.test.results.json',
-		metricsPrefix: 'home-classic-theme-',
-	},
+// The list of test suites to log.
+const testSuites = [
+	'home-block-theme',
+	'home-classic-theme',
 ];
 
-const performanceResults = resultsFiles.map( ( { file } ) =>
+// A list of results to parse based on test suites.
+const testResults = testSuites.map(( key ) => ({
+	key,
+	file: `${ key }.test.results.json`,
+}));
+
+// A list of base results to parse based on test suites.
+const baseResults = testSuites.map(( key ) => ({
+	key,
+	file: `base-${ key }.test.results.json`,
+}));
+
+/**
+ * Parse test files into JSON objects.
+ *
+ * @param {string} fileName The name of the file.
+ * @returns An array of parsed objects from each file.
+ */
+const parseFile = ( fileName ) => (
 	JSON.parse(
-		fs.readFileSync( path.join( __dirname, '/specs/' + file ), 'utf8' )
+			fs.readFileSync( path.join( __dirname, '/specs/', fileName ), 'utf8' )
 	)
 );
 
 /**
- * Gets the array or metrics.
+ * Gets the array of metrics from a list of results.
  *
- * @return {array} Metrics.
+ * @param {Object[]} results A list of results to format.
+ * @return {Object[]} Metrics.
  */
-const metrics = resultsFiles.reduce(
-	( result, { metricsPrefix }, index ) => {
-		return {
-			...result,
-			...Object.fromEntries(
-				Object.entries(
-					performanceResults[ index ] ?? {}
-				).map( ( [ key, value ] ) => [
-					metricsPrefix + key,
-					median(value),
-				] )
-			),
-		};
-	},
-	{}
-);
+const formatResults = ( results ) => {
+	return results.reduce(
+		( result, { key, file } ) => {
+			return {
+				...result,
+				...Object.fromEntries(
+					Object.entries(
+						parseFile( file ) ?? {}
+					).map( ( [ metric, value ] ) => [
+						key + '-' + metric,
+						median ( value ),
+					] )
+				),
+			};
+		},
+		{}
+	);
+};
 
 const data = new TextEncoder().encode(
 	JSON.stringify( {
 		branch,
 		hash,
-		baseHash: '',
+		baseHash,
 		timestamp: parseInt( timestamp, 10 ),
-		metrics,
-		baseMetrics: [],
+		metrics: formatResults( testResults ),
+		baseMetrics: formatResults( baseResults ),
 	} )
 );
 

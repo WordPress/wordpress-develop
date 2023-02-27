@@ -44,8 +44,11 @@ jobs:
   # - Installs the Server Timing MU plugin.
   # - Install wordpress importer plugin and import dummy data.
   # - Update permalink structure.
-  # - Run the Performance tests.
+  # - Run the Performance tests (current commit).
   # - Print Performance tests results.
+  # - Update the environment to 6.1.1
+  # - Run Performance tests (6.1.1)
+  # - Print Performance tests results (6.1.1).
   # - Set commit details.
   # - Publish performance results.
   # - Ensures version-controlled files are not modified or deleted.
@@ -119,11 +122,22 @@ jobs:
           mkdir ./build/wp-content/mu-plugins
           cp ./tests/performance/mu-plugins/server-timing.php ./build/wp-content/mu-plugins/server-timing.php
 
-      - name: Run Performance tests
+      - name: Run Performance tests (current commit)
         run: npm run test:performance
 
       - name: Print Performance tests results
         run: "node ./tests/performance/results.js"
+
+      - name: Update the environment to 6.1.1
+        run: |
+          npm run env:cli -- core update --version=6.1.1 --force --path=/var/www/build
+          npm run env:cli -- core version --path=/var/www/build
+
+      - name: Run Performance tests (6.1.1)
+        run: npm run test:performance -- --prefix=base
+
+      - name: Print Performance tests results (6.1.1)
+        run: "node ./tests/performance/results.js --prefix=base"
 
       - name: Set commit details
         uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
@@ -140,7 +154,8 @@ jobs:
             CODEHEALTH_PROJECT_TOKEN: ${{ secrets.CODEHEALTH_PROJECT_TOKEN }}
             # TODO: We'll need to update this to point to the production dashboard once it's ready for us to start pushing data into it.
             HOST_NAME: "codehealth-test.vercel.app"
-        run: node ./tests/performance/log-results.js $CODEHEALTH_PROJECT_TOKEN trunk $GITHUB_SHA $COMMITTED_AT $HOST_NAME
+        # The base hash hard coded here is the commit to the WP 6.1.1 tag.
+        run: node ./tests/performance/log-results.js $CODEHEALTH_PROJECT_TOKEN trunk $GITHUB_SHA 031cedc06d612c4a74f7b6d3e77d8145f2954a25 $COMMITTED_AT $HOST_NAME
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code

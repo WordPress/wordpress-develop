@@ -1,16 +1,17 @@
 /**
  * External dependencies
  */
-import { basename, join } from 'path';
-import { writeFileSync } from 'fs';
-import { exec } from 'child_process';
+const { basename, join } = require( 'path' );
+const { writeFileSync } = require( 'fs' );
+const { exec } = require( 'child_process' );
+const { getResultsFilename } = require( './../utils' );
 
 /**
  * WordPress dependencies
  */
 import { activateTheme, createURL } from '@wordpress/e2e-test-utils';
 
-describe( 'Server Timing – Twenty Twenty One', () => {
+describe( 'Server Timing - Twenty Twenty One', () => {
 	const results = {
 		wpBeforeTemplate: [],
 		wpTemplate: [],
@@ -23,7 +24,7 @@ describe( 'Server Timing – Twenty Twenty One', () => {
 	} );
 
 	afterAll( async () => {
-		const resultsFilename = basename( __filename, '.js' ) + '.results.json';
+		const resultsFilename = getResultsFilename( basename( __filename, '.js' ) );
 		writeFileSync(
 			join( __dirname, resultsFilename ),
 			JSON.stringify( results, null, 2 )
