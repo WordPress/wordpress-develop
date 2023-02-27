@@ -779,8 +779,8 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
-	 * This test ensures that WP_Admin_Bar::$menu is defined as a
-	 * "regular" class property.
+	 * This test ensures that WP_Admin_Bar::$menu
+	 * is declared as a "regular" class property.
 	 *
 	 * @ticket 56876
 	 * @coversNothing
