@@ -813,7 +813,7 @@ JS;
 				return false;
 			}
 
-			// Recursively check all dependent.
+			// Recursively check all dependents.
 			if ( ! $this->all_dependents_are_deferrable( $dependent, $visited ) ) {
 				return false;
 			}
