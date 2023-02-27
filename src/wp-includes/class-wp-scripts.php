@@ -787,17 +787,6 @@ JS;
 	}
 
 	/**
-	 * Helper function to check if a script has an `after` inline dependency.
-	 *
-	 * @param string $handle Name of the item. Should be unique.
-	 * @return bool True on success, false on failure.
-	 */
-	private function has_after_inline_dependency( $handle ) {
-		return (bool) $this->get_data( $handle, 'after' );
-	}
-
-
-	/**
 	 * Check if all of a scripts dependents are deferrable which is required to maintain execution order.
 	 *
 	 * @param string $handle  The script handle.
