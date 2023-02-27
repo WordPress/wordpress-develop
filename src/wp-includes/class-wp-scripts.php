@@ -783,7 +783,7 @@ JS;
 	 * Get the strategy mentioned during script registration.
 	 *
 	 * @param string $handle The script handle.
-	 * @return string|bool Strategy in script registration, False if not strategy is mentioned..
+	 * @return string|bool Strategy set during script registration. False if none was set.
 	 */
 	private function get_intended_strategy( $handle ) {
 		$script_args = $this->get_data( $handle, 'script_args' );
@@ -797,7 +797,7 @@ JS;
 	 * @return bool True on success, false on failure.
 	 */
 	private function has_after_inline_dependency( $handle ) {
-		return false !== $this->get_data( $handle, 'after' );
+		return (bool) $this->get_data( $handle, 'after' );
 	}
 
 
@@ -815,6 +815,7 @@ JS;
 		}
 		$visited[]  = $handle;
 		$dependents = $this->get_dependents( $handle );
+
 		// If there are no dependents remaining to consider, the script can be deferred and the branch ends.
 		if ( empty( $dependents ) ) {
 			return true;
@@ -838,13 +839,13 @@ JS;
 	/**
 	 * Get the correct loading strategy for the script.
 	 *
-	 * @param string  $handle Handle name of the script.
+	 * @param string  $handle Name of the script.
 	 * @return string $strategy return the final strategy.
 	 */
 	private function get_eligible_loading_strategy( $handle = '' ) {
 
 		$intended_strategy = $this->get_intended_strategy( $handle );
-		/**
+		/*
 		 * Handle known blocking strategy scenarios.
 		 *
 		 * blocking if not a registered handle.
