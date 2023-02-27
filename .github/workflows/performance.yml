@@ -9,6 +9,11 @@ on:
     tags:
       - '[0-9]+.[0-9]'
       - '[0-9]+.[0-9].[0-9]+'
+  pull_request:
+    branches:
+      - trunk
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
@@ -46,7 +51,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   performance:
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
       - name: Configure environment variables
@@ -138,6 +143,7 @@ jobs:
                 return parseInt((new Date( commit_details.data.author.date ).getTime() / 1000).toFixed(0))
 
       - name: Publish performance results
+        if: github.event_name == 'push'
         env:
             COMMITTED_AT: ${{ steps.commit-timestamp.outputs.result }}
             CODEHEALTH_PROJECT_TOKEN: ${{ secrets.CODEHEALTH_PROJECT_TOKEN }}
