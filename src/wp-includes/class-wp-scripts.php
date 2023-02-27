@@ -780,7 +780,7 @@ JS;
 	}
 
 	/**
-	 * Get the strategy mentioned during script registration.
+	 * Get the strategy assigned during script registration.
 	 *
 	 * @param string $handle The script handle.
 	 * @return string|bool Strategy set during script registration. False if none was set.
@@ -794,15 +794,15 @@ JS;
 	 * Check if all of a scripts dependents are deferrable which is required to maintain execution order.
 	 *
 	 * @param string $handle  The script handle.
-	 * @param array $visited An array of already visited script handles used to avoid looping recursion.
+	 * @param array $checked An array of already checked script handles, used to avoid looping recursion.
 	 * @return bool True if all dependents are deferrable, false otherwise.
 	 */
-	private function all_dependents_are_deferrable( $handle, $visited = array() ) {
-		// If this node was already visited, this script can be deferred and the branch ends.
-		if ( in_array( $handle, $visited, true ) ) {
+	private function all_dependents_are_deferrable( $handle, $checked = array() ) {
+		// If this node was already checked, this script can be deferred and the branch ends.
+		if ( in_array( $handle, $checked, true ) ) {
 			return true;
 		}
-		$visited[]  = $handle;
+		$checked[]  = $handle;
 		$dependents = $this->get_dependents( $handle );
 
 		// If there are no dependents remaining to consider, the script can be deferred and the branch ends.
@@ -817,8 +817,8 @@ JS;
 				return false;
 			}
 
-			// Recursively check all dependent.
-			if ( ! $this->all_dependents_are_deferrable( $dependent, $visited ) ) {
+			// Recursively check all dependents.
+			if ( ! $this->all_dependents_are_deferrable( $dependent, $checked ) ) {
 				return false;
 			}
 		}
@@ -826,9 +826,9 @@ JS;
 	}
 
 	/**
-	 * Get the correct loading strategy for the script.
+	 * Get the most eligible loading strategy for a script.
 	 *
-	 * @param string  $handle Name of the script.
+	 * @param string  $handle The registered handle of the script.
 	 * @return string $strategy return the final strategy.
 	 */
 	private function get_eligible_loading_strategy( $handle = '' ) {
