@@ -193,18 +193,17 @@ JS;
 
 	/**
 	 * Test normalized script args.
+	 *
+	 * @ticket 99999
 	 */
 	public function test_get_normalized_script_args() {
 		global $wp_scripts;
-		$args          = array(
+		$args = array(
 			'in_footer' => true,
-		);
-		$expected_args = array(
-			'in_footer' => true,
-			'strategy'  => 'blocking',
+			'strategy'  => 'async',
 		);
 		wp_enqueue_script( 'footer-async', '/footer-async.js', array(), null, $args );
-		$this->assertSame( $expected_args, $wp_scripts->get_data( 'footer-async', 'script_args' ) );
+		$this->assertSame( $args, $wp_scripts->get_data( 'footer-async', 'script_args' ) );
 
 		// Test defaults.
 		$expected_args = array(
