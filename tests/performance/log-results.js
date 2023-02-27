@@ -74,7 +74,7 @@ const data = new TextEncoder().encode(
 		baseHash,
 		timestamp: parseInt( timestamp, 10 ),
 		metrics: formatResults( resultsFiles ),
-		baseMetrics: formatResults( baseResultsFiles, true ),
+		baseMetrics: formatResults( resultsFiles, true ),
 	} )
 );
 
