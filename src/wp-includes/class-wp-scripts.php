@@ -395,7 +395,13 @@ class WP_Scripts extends WP_Dependencies {
 			$strategy = ' ' . $strategy;
 		}
 		$tag  = $translations . $cond_before . $before_handle;
-		$tag .= sprintf( "<script%s src='%s' id='%s-js'%s></script>\n", $this->type_attr, $src, esc_attr( $handle ), $strategy );
+		$tag .= sprintf( 
+			"<script%1$s src='%2$s' id='%3$s-js'%4$s></script>\n",
+			$this->type_attr,
+			esc_url($src),
+			esc_attr( $handle ),
+			$strategy
+		);
 		$tag .= $after_handle . $cond_after;
 
 		/**
