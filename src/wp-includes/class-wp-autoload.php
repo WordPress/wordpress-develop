@@ -21,7 +21,7 @@ final class WP_Autoload {
 	 *
 	 * @var array
 	 */
-	private static $classes_paths = array(
+	const CLASSES_PATHS = array(
 		/* Classes in the wp-includes/ folder. */
 		'walker_categorydropdown'                     => 'wp-includes/class-walker-category-dropdown.php',
 		'walker_category'                             => 'wp-includes/class-walker-category.php',
@@ -411,11 +411,11 @@ final class WP_Autoload {
 		$class_name = strtolower( $class_name );
 
 		// Bail early if the class is not a WP class.
-		if ( ! isset( static::$classes_paths[ $class_name ] ) ) {
+		if ( ! isset( static::CLASSES_PATHS[ $class_name ] ) ) {
 			return false;
 		}
 
-		require_once ABSPATH . static::$classes_paths[ $class_name ];
+		require_once ABSPATH . static::CLASSES_PATHS[ $class_name ];
 		return true;
 	}
 }
