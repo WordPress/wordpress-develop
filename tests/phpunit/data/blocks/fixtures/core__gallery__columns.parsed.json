@@ -51,5 +51,12 @@
 			null,
 			"\n</figure>\n"
 		]
+	},
+	{
+		"blockName": null,
+		"attrs": {},
+		"innerBlocks": [],
+		"innerHTML": "\n",
+		"innerContent": [ "\n" ]
 	}
 ]
