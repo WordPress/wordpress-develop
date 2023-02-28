@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - trunk
-      - 'feature/**'
       - '3.[7-9]'
       - '[4-9].[0-9]'
     tags:
@@ -13,7 +12,6 @@ on:
   pull_request:
     branches:
       - trunk
-      - 'feature/**'
       - '3.[7-9]'
       - '[4-9].[0-9]'
 
@@ -54,7 +52,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   performance:
     runs-on: ubuntu-latest
-    if: ${{ github.repository == '10up/wordpress-develop' || github.event_name == 'push' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
       - name: Configure environment variables
@@ -149,11 +147,12 @@ jobs:
                 return parseInt((new Date( commit_details.data.author.date ).getTime() / 1000).toFixed(0))
 
       - name: Publish performance results
+        # Only publish results on pushes to trunk.
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
         env:
             COMMITTED_AT: ${{ steps.commit-timestamp.outputs.result }}
             CODEHEALTH_PROJECT_TOKEN: ${{ secrets.CODEHEALTH_PROJECT_TOKEN }}
-            # TODO: We'll need to update this to point to the production dashboard once it's ready for us to start pushing data into it.
-            HOST_NAME: "codehealth-test.vercel.app"
+            HOST_NAME: "codehealth.vercel.app"
         # The base hash hard coded here is the commit to the WP 6.1.1 tag.
         run: node ./tests/performance/log-results.js $CODEHEALTH_PROJECT_TOKEN trunk $GITHUB_SHA 031cedc06d612c4a74f7b6d3e77d8145f2954a25 $COMMITTED_AT $HOST_NAME
 
