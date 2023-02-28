@@ -1300,6 +1300,22 @@ EOF;
 				'css'      => 'aspect-ratio: 16 / 9;',
 				'expected' => 'aspect-ratio: 16 / 9',
 			),
+			array(
+				'css'      => 'aspect-ratio: expression( 16 / 9 );',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'aspect-ratio: calc( 16 / 9;',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'aspect-ratio: calc( 16 / 9 );',
+				'expected' => 'aspect-ratio: calc( 16 / 9 )',
+			),
+			array(
+				'css'      => 'aspect-ratio: url( https://wordpress.com/wp-content/uploads/aspect-ratio.jpg );',
+				'expected' => '',
+			),
 		);
 	}
 
