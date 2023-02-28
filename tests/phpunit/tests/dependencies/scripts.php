@@ -66,7 +66,7 @@ JS;
 	/**
 	 * Test loading strategy.
 	 *
-	 * @ticket 99999
+	 * @ticket 12009
 	 */
 	public function test_loading_strategy() {
 		/**
@@ -158,7 +158,7 @@ JS;
 	/**
 	 * Test old and new in_footer logic.
 	 *
-	 * @ticket 99999
+	 * @ticket 12009
 	 */
 	public function test_old_and_new_in_footer_scripts() {
 		// Scripts in head.
@@ -193,7 +193,7 @@ JS;
 	/**
 	 * Test normalized script args.
 	 *
-	 * @ticket 99999
+	 * @ticket 12009
 	 */
 	public function test_get_normalized_script_args() {
 		global $wp_scripts;
