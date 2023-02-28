@@ -160,7 +160,7 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 
 		/*
 		 * Enable support for Post Formats.
-		 * See https://wordpress.org/support/article/post-formats/
+		 * See https://wordpress.org/documentation/article/post-formats/
 		 */
 		add_theme_support(
 			'post-formats',
@@ -471,7 +471,7 @@ if ( ! function_exists( 'twentyfourteen_the_attached_image' ) ) :
 		// If there is more than 1 attachment in a gallery...
 		if ( count( $attachment_ids ) > 1 ) {
 			foreach ( $attachment_ids as $idx => $attachment_id ) {
-				if ( $attachment_id == $post->ID ) {
+				if ( $attachment_id === $post->ID ) {
 					$next_id = $attachment_ids[ ( $idx + 1 ) % count( $attachment_ids ) ];
 					break;
 				}
