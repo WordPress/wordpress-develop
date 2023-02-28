@@ -147,7 +147,8 @@ jobs:
                 return parseInt((new Date( commit_details.data.author.date ).getTime() / 1000).toFixed(0))
 
       - name: Publish performance results
-        if: github.event_name == 'push'
+        # Only publish results on pushes to trunk.
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
         env:
             COMMITTED_AT: ${{ steps.commit-timestamp.outputs.result }}
             CODEHEALTH_PROJECT_TOKEN: ${{ secrets.CODEHEALTH_PROJECT_TOKEN }}
