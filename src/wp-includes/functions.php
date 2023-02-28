@@ -7019,8 +7019,8 @@ function _get_non_cached_ids( $object_ids, $cache_key ) {
 /**
  * Returns an array of unique cache IDs that are either integers or
  * iterger-like strings. Both `16` and `"16"` are considered valid.
- * 
- * Other numeric types and numeric strings (`16.3` and `"16.3"`) are discarded
+ *
+ * Other numeric types and numeric strings (`16.3` and `"16.3"`) are discarded.
  *
  * @since n.e.x.t
  *
