@@ -64,9 +64,137 @@ JS;
 	}
 
 	/**
+	 * Test valid async loading strategy case.
+	 *
+	 * @ticket 12009
+	 */
+	public function test_loading_strategy_with_valid_async_registration() {
+		// No dependents, No dependencies then async.
+		wp_enqueue_script( 'main-script-a1', '/main-script-a1.js', array(), null, array( 'strategy' => 'async' ) );
+		$output   = get_echo( 'wp_print_scripts' );
+		$expected = "<script type='text/javascript' src='/main-script-a1.js' id='main-script-a1-js' async></script>\n";
+		$this->assertSame( $expected, $output );
+	}
+
+	/**
+	 * Test invalid async loading strategy cases.
+	 *
+	 * @ticket 12009
+	 */
+	public function test_loading_strategy_with_invalid_async_registration() {
+		// If any dependencies then it's not async. Since dependency is blocking(/defer) final strategy will be defer.
+		wp_enqueue_script( 'dependency-script-a2', '/dependency-script-a2.js', array(), null );
+		wp_enqueue_script( 'main-script-a2', '/main-script-a2.js', array( 'dependency-script-a2' ), null, array( 'strategy' => 'async' ) );
+		$output   = get_echo( 'wp_print_scripts' );
+		$expected = "<script type='text/javascript' src='/main-script-a2.js' id='main-script-a2-js' defer></script>";
+		$this->assertStringContainsString( $expected, $output, 'Expected defer.' );
+
+		// If any dependent then it's not async. Since dependent is not set to defer the final strategy will be blocking.
+		wp_enqueue_script( 'main-script-a3', '/main-script-a3.js', array(), null, array( 'strategy' => 'async' ) );
+		wp_enqueue_script( 'dependent-script-a3', '/dependent-script-a3.js', array( 'main-script-a3' ), null );
+		$output   = get_echo( 'wp_print_scripts' );
+		$expected = "<script type='text/javascript' src='/main-script-a3.js' id='main-script-a3-js'></script>";
+		$this->assertStringContainsString( $expected, $output, 'Expected blocking.' );
+	}
+
+	/**
+	 * Test valid defer loading strategy cases.
+	 *
+	 * @ticket 12009
+	 * @dataProvider data_loading_strategy_with_valid_defer_registration
+	 */
+	public function test_loading_strategy_with_valid_defer_registration( $expected, $output, $message ) {
+		$this->assertStringContainsString( $expected, $output, $message );
+	}
+
+	public function data_loading_strategy_with_valid_defer_registration() {
+		$data = array();
+
+		// No dependents, No dependencies and defer strategy.
+		wp_enqueue_script( 'main-script-d1', 'http://example.com/main-script-d1.js', array(), null, array( 'strategy' => 'defer' ) );
+		$output   = get_echo( 'wp_print_scripts' );
+		$expected = "<script type='text/javascript' src='http://example.com/main-script-d1.js' id='main-script-d1-js' defer></script>\n";
+		array_push( $data, array( $expected, $output, 'Expected defer, as there is no dependent or dependency' ) );
+
+		// Main script is defer and all dependencies are either defer/blocking.
+		wp_enqueue_script( 'dependency-script-d2-1', 'http://example.com/dependency-script-d2-1.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'dependency-script-d2-2', 'http://example.com/dependency-script-d2-2.js', array(), null, array( 'strategy' => 'blocking' ) );
+		wp_enqueue_script( 'dependency-script-d2-3', 'http://example.com/dependency-script-d2-3.js', array( 'dependency-script-d2-2' ), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'main-script-d2', 'http://example.com/main-script-d2.js', array( 'dependency-script-d2-1', 'dependency-script-d2-3' ), null, array( 'strategy' => 'defer' ) );
+		$output   = get_echo( 'wp_print_scripts' );
+		$expected = "<script type='text/javascript' src='http://example.com/main-script-d2.js' id='main-script-d2-js' defer></script>\n";
+		array_push( $data, array( $expected, $output, 'Expected defer, as all dependencies are either deferred or blocking' ) );
+
+		// Main script is defer and all dependent are defer.
+		wp_enqueue_script( 'main-script-d3', 'http://example.com/main-script-d3.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'dependent-script-d3-1', 'http://example.com/dependent-script-d3-1.js', array( 'main-script-d3' ), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'dependent-script-d3-2', 'http://example.com/dependent-script-d3-2.js', array( 'dependent-script-d3-1' ), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'dependent-script-d3-3', 'http://example.com/dependent-script-d3-3.js', array( 'dependent-script-d3-2' ), null, array( 'strategy' => 'defer' ) );
+		$output   = get_echo( 'wp_print_scripts' );
+		$expected = "<script type='text/javascript' src='http://example.com/main-script-d3.js' id='main-script-d3-js' defer></script>\n";
+		array_push( $data, array( $expected, $output, 'Expected defer, as all dependents have defer loading strategy' ) );
+
+		return $data;
+	}
+
+	/**
+	 * Test valid defer loading with async dependent.
+	 *
+	 * @ticket 12009
+	 */
+	public function test_defer_with_async_dependent() {
+		// case with one async dependent.
+		wp_enqueue_script( 'main-script-d4', '/main-script-d4.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'dependent-script-d4-1', '/dependent-script-d4-1.js', array( 'main-script-d4' ), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'dependent-script-d4-2', '/dependent-script-d4-2.js', array( 'dependent-script-d4-1' ), null, array( 'strategy' => 'async' ) );
+		wp_enqueue_script( 'dependent-script-d4-3', '/dependent-script-d4-3.js', array( 'dependent-script-d4-2' ), null, array( 'strategy' => 'defer' ) );
+		$output    = get_echo( 'wp_print_scripts' );
+		$expected  = "<script type='text/javascript' src='/main-script-d4.js' id='main-script-d4-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='/dependent-script-d4-1.js' id='dependent-script-d4-1-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='/dependent-script-d4-3.js' id='dependent-script-d4-3-js' defer></script>\n";
+
+		$this->assertSame( $expected, $output );
+	}
+
+	/**
+	 * Test invalid defer loading strategy case.
+	 *
+	 * @ticket 12009
+	 */
+	public function test_loading_strategy_with_invalid_defer_registration() {
+		// Main script is defer and all dependent are not defer. Then main script will have blocking(or no) strategy.
+		wp_enqueue_script( 'main-script-d4', '/main-script-d4.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'dependent-script-d4-1', '/dependent-script-d4-1.js', array( 'main-script-d4' ), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'dependent-script-d4-2', '/dependent-script-d4-2.js', array( 'dependent-script-d4-1' ), null, array( 'strategy' => 'blocking' ) );
+		wp_enqueue_script( 'dependent-script-d4-3', '/dependent-script-d4-3.js', array( 'dependent-script-d4-2' ), null, array( 'strategy' => 'defer' ) );
+		$output   = get_echo( 'wp_print_scripts' );
+		$expected = "<script type='text/javascript' src='/main-script-d4.js' id='main-script-d4-js'></script>\n";
+		$this->assertStringContainsString( $expected, $output );
+	}
+
+	/**
+	 * Test valid blocking loading strategy cases.
+	 *
+	 * @ticket 12009
+	 */
+	public function test_loading_strategy_with_valid_blocking_registration() {
+		wp_enqueue_script( 'main-script-b1', '/main-script-b1.js', array(), null, array( 'strategy' => 'blocking' ) );
+		$output   = get_echo( 'wp_print_scripts' );
+		$expected = "<script type='text/javascript' src='/main-script-b1.js' id='main-script-b1-js'></script>\n";
+		$this->assertSame( $expected, $output );
+
+		// strategy args not set.
+		wp_enqueue_script( 'main-script-b2', '/main-script-b2.js', array(), null, array() );
+		$output   = get_echo( 'wp_print_scripts' );
+		$expected = "<script type='text/javascript' src='/main-script-b2.js' id='main-script-b2-js'></script>\n";
+		$this->assertSame( $expected, $output );
+	}
+
+	/**
 	 * Test old and new in_footer logic.
 	 *
-	 * @ticket 99999
+	 * @ticket 12009
 	 */
 	public function test_old_and_new_in_footer_scripts() {
 		// Scripts in head.
@@ -101,7 +229,7 @@ JS;
 	/**
 	 * Test normalized script args.
 	 *
-	 * @ticket 99999
+	 * @ticket 12009
 	 */
 	public function test_get_normalized_script_args() {
 		global $wp_scripts;
