@@ -808,8 +808,8 @@ JS;
 
 		// Consider each dependent and check if it is deferrable.
 		foreach ( $dependents as $dependent ) {
-			// If the dependent script is not using the defer strategy, no script in the chain is deferrable.
-			if ( 'defer' !== $this->get_intended_strategy( $dependent ) ) {
+			// If the dependent script is not using the defer or async strategy, no script in the chain is deferrable.
+			if ( ! in_array( $this->get_intended_strategy( $dependent ), array( 'defer', 'async' ), true ) ) {
 				return false;
 			}
 
@@ -828,16 +828,18 @@ JS;
 	 * @return string $strategy return the final strategy.
 	 */
 	private function get_eligible_loading_strategy( $handle = '' ) {
+		if ( ! isset( $this->registered[ $handle ] ) ) {
+			return '';
+		}
 
 		$intended_strategy = $this->get_intended_strategy( $handle );
 		/*
 		 * Handle known blocking strategy scenarios.
 		 *
-		 * blocking if not a registered handle.
-		 * blocking if explicitly set.
 		 * blocking if script args not set.
+		 * blocking if explicitly set.
 		 */
-		if ( ! isset( $this->registered[ $handle ] ) || 'blocking' === $intended_strategy || ! $intended_strategy ) {
+		if ( ! $intended_strategy || 'blocking' === $intended_strategy ) {
 			return '';
 		}
 
@@ -846,7 +848,7 @@ JS;
 			return 'async';
 		}
 
-		// Handling defer strategy scenarios. Dependency will never be set async. So only checking dependent.
+		// Handling defer strategy scenarios.
 		if ( $this->all_dependents_are_deferrable( $handle ) ) {
 			return 'defer';
 		}
