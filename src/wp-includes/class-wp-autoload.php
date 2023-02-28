@@ -415,10 +415,9 @@ final class WP_Autoload {
 	public static function autoload_core( $class_name ) {
 		// Lowercase the classname to accomodate for WP classes written with wrong cases.
 		$class_name = strtolower( $class_name );
-		$paths      = static::CLASSES_PATHS;
 
 		// Bail early if the class is not a WP class.
-		if ( ! isset( $paths[ $class_name ] ) ) {
+		if ( ! array_key_exists( $class_name, static::CLASSES_PATHS ) ) {
 			return false;
 		}
 
