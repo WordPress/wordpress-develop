@@ -421,7 +421,7 @@ final class WP_Autoload {
 			return false;
 		}
 
-		require_once ABSPATH . $paths[ $class_name ];
+		require_once ABSPATH . static::CLASSES_PATHS[ $class_name ];
 		return true;
 	}
 }
