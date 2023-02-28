@@ -848,7 +848,16 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 	}
 
-	public function test_get_merged_data_returns_origin_proper(){
+	/**
+	 * Tests that get_merged_data returns the data merged up to the proper origin
+	 * and that the core values have the proper data.
+	 *
+	 * @ticket 57824
+	 *
+	 * @covers WP_Theme_JSON_Resolver::get_merged_data
+	 *
+	 */
+	public function test_get_merged_data_returns_origin_proper() {
 		// Make sure the theme has a theme.json
 		// though it doesn't have any data for styles.spacing.padding.
 		switch_theme( 'block-theme' );
@@ -858,10 +867,10 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( wp_get_theme(), true );
 		$config   = json_decode( $user_cpt['post_content'], true );
 		$config['styles']['spacing']['padding'] = array(
-				'top'    => '23px',
-				'left'   => '23px',
-				'bottom' => '23px',
-				'right'  => '23px',
+			'top'    => '23px',
+			'left'   => '23px',
+			'bottom' => '23px',
+			'right'  => '23px',
 		);
 		$user_cpt['post_content']                         = wp_json_encode( $config );
 		wp_update_post( $user_cpt, true, false );
