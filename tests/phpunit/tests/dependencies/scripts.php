@@ -103,8 +103,8 @@ JS;
 	 * @ticket 12009
 	 * @dataProvider data_loading_strategy_with_valid_defer_registration
 	 */
-	public function test_loading_strategy_with_valid_defer_registration( $expected, $output ) {
-		$this->assertStringContainsString( $expected, $output );
+	public function test_loading_strategy_with_valid_defer_registration( $expected, $output, $message ) {
+		$this->assertStringContainsString( $expected, $output, $message );
 	}
 
 	public function data_loading_strategy_with_valid_defer_registration() {
@@ -114,7 +114,7 @@ JS;
 		wp_enqueue_script( 'main-script-d1', 'http://example.com/main-script-d1.js', array(), null, array( 'strategy' => 'defer' ) );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='http://example.com/main-script-d1.js' id='main-script-d1-js' defer></script>\n";
-		array_push( $data, array( $expected, $output ) );
+		array_push( $data, array( $expected, $output, 'Expected defer, as there is no dependent or dependency' ) );
 
 		// Main script is defer and all dependencies are either defer/blocking.
 		wp_enqueue_script( 'dependency-script-d2-1', 'http://example.com/dependency-script-d2-1.js', array(), null, array( 'strategy' => 'defer' ) );
@@ -123,7 +123,7 @@ JS;
 		wp_enqueue_script( 'main-script-d2', 'http://example.com/main-script-d2.js', array( 'dependency-script-d2-1', 'dependency-script-d2-3' ), null, array( 'strategy' => 'defer' ) );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='http://example.com/main-script-d2.js' id='main-script-d2-js' defer></script>\n";
-		array_push( $data, array( $expected, $output ) );
+		array_push( $data, array( $expected, $output, 'Expected defer, as all dependencies are either deferred or blocking' ) );
 
 		// Main script is defer and all dependent are defer.
 		wp_enqueue_script( 'main-script-d3', 'http://example.com/main-script-d3.js', array(), null, array( 'strategy' => 'defer' ) );
@@ -132,7 +132,7 @@ JS;
 		wp_enqueue_script( 'dependent-script-d3-3', 'http://example.com/dependent-script-d3-3.js', array( 'dependent-script-d3-2' ), null, array( 'strategy' => 'defer' ) );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='http://example.com/main-script-d3.js' id='main-script-d3-js' defer></script>\n";
-		array_push( $data, array( $expected, $output ) );
+		array_push( $data, array( $expected, $output, 'Expected defer, as all dependents have defer loading strategy' ) );
 
 		return $data;
 	}
@@ -148,7 +148,7 @@ JS;
 		wp_enqueue_script( 'dependent-script-d4-1', '/dependent-script-d4-1.js', array( 'main-script-d4' ), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'dependent-script-d4-2', '/dependent-script-d4-2.js', array( 'dependent-script-d4-1' ), null, array( 'strategy' => 'async' ) );
 		wp_enqueue_script( 'dependent-script-d4-3', '/dependent-script-d4-3.js', array( 'dependent-script-d4-2' ), null, array( 'strategy' => 'defer' ) );
-		$output = get_echo( 'wp_print_scripts' );
+		$output    = get_echo( 'wp_print_scripts' );
 		$expected  = "<script type='text/javascript' src='/main-script-d4.js' id='main-script-d4-js' defer></script>\n";
 		$expected .= "<script type='text/javascript' src='/dependent-script-d4-1.js' id='dependent-script-d4-1-js' defer></script>\n";
 		$expected .= "<script type='text/javascript' src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer></script>\n";
