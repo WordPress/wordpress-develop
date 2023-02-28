@@ -1265,7 +1265,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 		if ( isset( $block->context['query']['sticky'] ) && ! empty( $block->context['query']['sticky'] ) ) {
 			$sticky = (array) get_option( 'sticky_posts' );
 			if ( 'only' === $block->context['query']['sticky'] ) {
-				$query['post__in'] = $sticky ? $sticky : [0];
+				$query['post__in'] = $sticky ? $sticky : array( 0 );
 			} else {
 				$query['post__not_in'] = array_merge( $query['post__not_in'], $sticky );
 			}
