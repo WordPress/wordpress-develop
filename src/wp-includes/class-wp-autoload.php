@@ -415,13 +415,14 @@ final class WP_Autoload {
 	public static function autoload_core( $class_name ) {
 		// Lowercase the classname to accomodate for WP classes written with wrong cases.
 		$class_name = strtolower( $class_name );
+		$paths      = static::CLASSES_PATHS;
 
 		// Bail early if the class is not a WP class.
-		if ( ! isset( static::CLASSES_PATHS[ $class_name ] ) ) {
+		if ( ! isset( $paths[ $class_name ] ) ) {
 			return false;
 		}
 
-		require_once ABSPATH . static::CLASSES_PATHS[ $class_name ];
+		require_once ABSPATH . $paths[ $class_name ];
 		return true;
 	}
 }
