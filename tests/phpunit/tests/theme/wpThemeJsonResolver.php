@@ -864,15 +864,15 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 		// Make sure the user defined some data for styles.spacing.padding.
 		wp_set_current_user( self::$administrator_id );
-		$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( wp_get_theme(), true );
-		$config   = json_decode( $user_cpt['post_content'], true );
+		$user_cpt                               = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( wp_get_theme(), true );
+		$config                                 = json_decode( $user_cpt['post_content'], true );
 		$config['styles']['spacing']['padding'] = array(
 			'top'    => '23px',
 			'left'   => '23px',
 			'bottom' => '23px',
 			'right'  => '23px',
 		);
-		$user_cpt['post_content']                         = wp_json_encode( $config );
+		$user_cpt['post_content']               = wp_json_encode( $config );
 		wp_update_post( $user_cpt, true, false );
 
 		// Query data from the user origin and then for the theme origin.
