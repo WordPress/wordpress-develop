@@ -296,7 +296,7 @@ class WP_SQLite_Query_Rewriter {
 	/**
 	 * Returns the last call stack element.
 	 *
-	 * @return WP_SQLite_Token|null
+	 * @return array|null
 	 */
 	public function last_call_stack_element() {
 		return count( $this->call_stack ) ? $this->call_stack[ count( $this->call_stack ) - 1 ] : null;
