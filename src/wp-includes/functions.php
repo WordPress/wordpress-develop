@@ -6998,27 +6998,7 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
  * @return int[] Array of IDs not present in the cache.
  */
 function _get_non_cached_ids( $object_ids, $cache_key ) {
-	$object_ids_filter = static function ( $object_id ) {
-		/*
-		 * This treats both `16` and `"16"` as valid for the purposes of the cache key. Other
-		 * numeric types and numeric strings are discarded, for example `16.3` and `"16.3"`.
-		 *
-		 * This could all be achieved with filter_var(), however the filter extension can be removed
-		 * in custom builds so WordPress is unable to rely on it.
-		 */
-		if ( is_int( $object_id )
-			|| ( is_string( $object_id ) && (string) (int) $object_id === $object_id ) ) {
-			return true;
-		}
-
-		/* translators: %s: The type of the given object id. */
-		$message = sprintf( __( 'Object id must be integer, %s given.' ), gettype( $object_id ) );
-		_doing_it_wrong( '_get_non_cached_ids', $message, 'n.e.x.t' );
-
-		return false;
-	};
-
-	$object_ids = array_unique( array_filter( $object_ids, $object_ids_filter ), SORT_NUMERIC );
+	$object_ids = _sanaitize_cache_ids( $object_ids );
 
 	if ( empty( $object_ids ) ) {
 		return array();
@@ -7034,6 +7014,35 @@ function _get_non_cached_ids( $object_ids, $cache_key ) {
 	}
 
 	return $non_cached_ids;
+}
+
+/**
+ * Returns an array of unique cache IDs that are either integers
+ * or iterger-like strings. Both `16` and `"16"` are considered
+ * valid, other numeric types and numeric strings are discarded,
+ * for example `16.3` and `"16.3"`.
+ *
+ * @since n.e.x.t
+ *
+ * @param mixed[]  $object_ids Array of IDs.
+ * @return array<int|string> Array of IDs not present in the cache.
+ */
+function _sanaitize_cache_ids( $object_ids ) {
+	$object_ids = array_filter( $object_ids, static function ( $object_id ) {
+		// Unfortunately filter_var() is considered an optional extension
+		if ( is_int( $object_id )
+			|| ( is_string( $object_id ) && (string) (int) $object_id === $object_id ) ) {
+			return true;
+		}
+
+		/* translators: %s: The type of the given object id. */
+		$message = sprintf( __( 'Object id must be integer, %s given.' ), gettype( $object_id ) );
+		_doing_it_wrong( '_get_non_cached_ids', $message, 'n.e.x.t' );
+
+		return false;
+	} );
+
+	return array_unique( $object_ids, SORT_NUMERIC );
 }
 
 /**
