@@ -384,11 +384,11 @@ final class WP_Autoload {
 	 */
 	public static function register_external_bundled() {
 		require_once ABSPATH . 'wp-includes/class-simplepie.php';
-		require_once ABSPATH . 'wp-includes/class-requests.php';
+		require_once ABSPATH . 'wp-includes/Requests/src/Autoload.php';
 		require_once ABSPATH . 'wp-includes/sodium_compat/autoload.php';
 
 		spl_autoload_register( 'wp_simplepie_autoload' );
-		spl_autoload_register( array( 'Requests', 'autoloader' ) );
+		spl_autoload_register( array( '\WpOrg\Requests\Autoload', 'load' ) );
 	}
 
 	/**
