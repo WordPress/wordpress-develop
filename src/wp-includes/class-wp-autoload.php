@@ -131,6 +131,12 @@ final class WP_Autoload {
 		'wp'                                          => 'wp-includes/class-wp.php',
 		'wpdb'                                        => 'wp-includes/class-wpdb.php', // Defines some constants.
 
+		/* Classes in the wp-includes/html-api/ folder. */
+		'wp_html_attribute_token'                     => 'wp-includes/html-api/class-wp-html-attribute-token.php',
+		'wp_html_span'                                => 'wp-includes/html-api/class-wp-html-span.php',
+		'wp_html_tag_processor'                       => 'wp-includes/html-api/class-wp-html-tag-processor.php',
+		'wp_html_text_replacement'                    => 'wp-includes/html-api/class-wp-html-text-replacement.php',
+
 		/* Classes in the wp-includes/customize/ folder. */
 		'wp_customize_background_image_control'       => 'wp-includes/customize/class-wp-customize-background-image-control.php',
 		'wp_customize_background_image_setting'       => 'wp-includes/customize/class-wp-customize-background-image-setting.php',
