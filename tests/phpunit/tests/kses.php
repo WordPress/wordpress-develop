@@ -1313,7 +1313,7 @@ EOF;
 				'expected' => 'aspect-ratio: calc( 16 / 9 )',
 			),
 			array(
-				'css'      => 'aspect-ratio: url( https://wordpress.com/wp-content/uploads/aspect-ratio.jpg );',
+				'css'      => 'aspect-ratio: url( https://wordpress.org/wp-content/uploads/aspect-ratio.jpg );',
 				'expected' => '',
 			),
 		);
