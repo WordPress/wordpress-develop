@@ -104,7 +104,7 @@ jobs:
       - name: Install WordPress
         run: npm run env:install
 
-      - name: Install wordpress importer plugin and import dummy data
+      - name: Install WordPress Importer plugin and import mock data
         run: |
           npm run env:cli -- plugin install wordpress-importer --activate
           curl -O https://raw.githubusercontent.com/WPTT/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml
