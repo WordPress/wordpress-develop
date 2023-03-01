@@ -151,10 +151,10 @@ jobs:
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
         env:
             COMMITTED_AT: ${{ steps.commit-timestamp.outputs.result }}
-            CODEHEALTH_PROJECT_TOKEN: ${{ secrets.CODEHEALTH_PROJECT_TOKEN }}
-            HOST_NAME: "codehealth.vercel.app"
+            CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
+            HOST_NAME: "codevitals.run"
         # The base hash hard coded here is the commit to the WP 6.1.1 tag.
-        run: node ./tests/performance/log-results.js $CODEHEALTH_PROJECT_TOKEN trunk $GITHUB_SHA 031cedc06d612c4a74f7b6d3e77d8145f2954a25 $COMMITTED_AT $HOST_NAME
+        run: node ./tests/performance/log-results.js $CODEVITALS_PROJECT_TOKEN trunk $GITHUB_SHA 031cedc06d612c4a74f7b6d3e77d8145f2954a25 $COMMITTED_AT $HOST_NAME
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
