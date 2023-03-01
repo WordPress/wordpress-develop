@@ -141,36 +141,36 @@ module.exports = function(grunt) {
 		clean: {
 			plugins: [BUILD_DIR + 'wp-content/plugins'],
 			themes: [BUILD_DIR + 'wp-content/themes'],
+
+			// Clean the files from /build and the JS, CSS, and Webpack files from /src.
 			files: buildFiles.concat( [
 				'!wp-config.php',
 			] ).map( function( file ) {
 				return setFilePath( BUILD_DIR, file );
-			} ),
+			} ).concat(
+				cssFiles.map( function( file ) {
+					return setFilePath( SOURCE_DIR, file );
+				} )
+			).concat(
+				jsFiles.map( function( file ) {
+					return setFilePath( SOURCE_DIR, file );
+				} )
+			).concat(
+				webpackFiles.map( function( file ) {
+					return setFilePath( SOURCE_DIR, file );
+				} )
+			),
 
-			// Always clean built JS and CSS files from /src. Also from /build when building there.
-			// The build:css, build:js, etc. tasks may be run independently,
-			// and should clean all old files to avoid errors.
+			// Clean built JS, CSS, and Webpack files from either /src or /build.
 			css: cssFiles.map( function( file ) {
-				return setFilePath( SOURCE_DIR, file );
-			} ).concat(
-				WORKING_DIR === BUILD_DIR ? cssFiles.map( function( file ) {
-					return setFilePath( BUILD_DIR, file );
-				} ) : []
-			),
+				return setFilePath( WORKING_DIR, file );
+			} ),
 			js: jsFiles.map( function( file ) {
-				return setFilePath( SOURCE_DIR, file );
-			} ).concat(
-				WORKING_DIR === BUILD_DIR ? jsFiles.map( function( file ) {
-					return setFilePath( BUILD_DIR, file );
-				} ) : []
-			),
+				return setFilePath( WORKING_DIR, file );
+			} ),
 			'webpack-assets': webpackFiles.map( function( file ) {
-				return setFilePath( SOURCE_DIR, file );
-			} ).concat(
-				WORKING_DIR === BUILD_DIR ? webpackFiles.map( function( file ) {
-					return setFilePath( BUILD_DIR, file );
-				} ) : []
-			),
+				return setFilePath( WORKING_DIR, file );
+			} ),
 			dynamic: {
 				dot: true,
 				expand: true,
