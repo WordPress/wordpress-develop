@@ -184,7 +184,7 @@
 		<exclude-pattern>/tests/phpunit/tests/multisite/site\.php</exclude-pattern>
 	</rule>
 
-	<!-- Allow non-snakecase vars & properties for block-related classes. -->
+	<!-- Allow non-snake-case vars & properties for block-related classes. -->
 	<rule ref="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase">
 		<exclude-pattern>/src/wp-includes/class-wp-block-parser\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
