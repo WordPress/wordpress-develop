@@ -191,9 +191,9 @@ function wp_default_packages_vendor( $scripts ) {
 
 /**
  * Convert a PHP datetime format to moment JS format
- * 
+ *
  * @since x.x.x
- * 
+ *
  * @param string php_format The php datetime format to convert (see https://www.php.net/manual/en/datetime.format.php)
  * @return string The converted momentJS format (see https://momentjs.com/docs/#/displaying/format/)
  */
