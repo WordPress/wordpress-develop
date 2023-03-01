@@ -21,12 +21,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__header">
 			<div class="about__header-title">
-				<h1 class="screen-reader-text">
+				<h1>
 					<?php
 					printf(
 						/* translators: %s: Version number. */
 						__( 'WordPress %s' ),
-						$display_version
+						str_replace( '.', '<span>.</span>', $display_version )
 					);
 					?>
 				</h1>

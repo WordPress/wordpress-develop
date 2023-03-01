@@ -634,17 +634,13 @@
 	text-align: center;
 }
 
-.about-php .about__header-title {
-	padding-top: 13rem;
-}
-
 .about__header-title h1 {
 	margin: 0 0 1rem;
 	padding: 0;
 	/* Fluid font size scales on browser size 960px - 1200px. */
 	font-size: clamp(3rem, 20vw - 9rem, 6rem);
 	line-height: 1;
-	font-weight: 400;
+	font-weight: 600;
 }
 
 .credits-php .about__header-title h1,
@@ -652,6 +648,10 @@
 .freedoms-php .about__header-title h1 {
 	/* Fluid font size scales on browser size 960px - 1200px. */
 	font-size: clamp(3rem, 10vw - 3rem, 4.5rem);
+}
+
+.about__header-title h1 span {
+	color: var(--accent-2);
 }
 
 .about__header-text {
@@ -723,16 +723,6 @@
 	.freedoms-php .about__header-title h1 {
 		/* Fluid font size scales on browser size 600px - 960px. */
 		font-size: clamp(3rem, 6.67vw - 0.5rem, 4.5rem);
-	}
-}
-
-@media screen and (max-width: 860px) {
-	.about__header {
-		background-size: contain;
-	}
-
-	.about-php .about__header-title {
-		padding-top: 5rem;
 	}
 }
 
