@@ -2,20 +2,8 @@
 /**
  * Tests the `WP_Upgrader` class.
  *
- * @package WordPress
- *
- * @since 6.1.0
- */
-
-/**
- * Tests_Admin_WpUpgrader class.
- *
  * @group admin
  * @group upgrade
- *
- * @coversDefaultClass WP_Upgrader
- *
- * @since 6.1.0
  */
 class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 
@@ -53,14 +41,6 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 
 		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
-
-		if ( ! defined( 'FS_CHMOD_DIR' ) ) {
-			define( 'FS_CHMOD_DIR', 0755 );
-		}
-
-		if ( ! defined( 'FS_CHMOD_FILE' ) ) {
-			define( 'FS_CHMOD_FILE', 0644 );
-		}
 	}
 
 	/**
@@ -101,7 +81,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::__construct
+	 * @covers WP_Upgrader::__construct
 	 */
 	public function test_constructor_should_create_skin_when_one_is_not_provided() {
 		$instance = new WP_Upgrader();
@@ -114,7 +94,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::init
+	 * @covers WP_Upgrader::init
 	 */
 	public function test_init_should_call_set_upgrader() {
 		self::$upgrader_skin_mock->expects( $this->once() )->method( 'set_upgrader' )->with( self::$instance );
@@ -126,8 +106,8 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::init
-	 * @covers ::generic_strings
+	 * @covers WP_Upgrader::init
+	 * @covers WP_Upgrader::generic_strings
 	 *
 	 * @dataProvider data_init_should_initialize_strings
 	 *
@@ -142,9 +122,9 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider: Provides keys to `test_generic_strings_should_initialize_strings()`.
+	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_init_should_initialize_strings() {
 		return array(
@@ -175,14 +155,13 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_should_flatten_dirlist
 	 *
-	 * @covers ::flatten_dirlist
+	 * @covers WP_Upgrader::flatten_dirlist
 	 *
 	 * @param array  $expected     The expected flattened dirlist.
 	 * @param array  $nested_files Array of files as returned by WP_Filesystem_Base::dirlist().
 	 * @param string $path         Optional. Relative path to prepend to child nodes. Default empty string.
 	 */
 	public function test_flatten_dirlist_should_flatten_the_provided_directory_list( $expected, $nested_files, $path = '' ) {
-		// `WP_Upgrader::flatten_dirlist()` has `protected` access.
 		$flatten_dirlist = new ReflectionMethod( self::$instance, 'flatten_dirlist' );
 		$flatten_dirlist->setAccessible( true );
 		$actual = $flatten_dirlist->invoke( self::$instance, $nested_files, $path );
@@ -192,10 +171,9 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider: Provides fake results from `WP_Filesystem_*::dirlist()`
-	 * for use in `WP_Upgrader::flatten_dirlist()`.
+	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_should_flatten_dirlist() {
 		return array(
@@ -581,7 +559,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::clear_destination
+	 * @covers WP_Upgrader::clear_destination
 	 */
 	public function test_clear_destination_should_return_early_when_the_destination_does_not_exist() {
 		self::$wp_filesystem_mock->expects( $this->never() )->method( 'is_writable' );
@@ -605,7 +583,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::clear_destination
+	 * @covers WP_Upgrader::clear_destination
 	 */
 	public function test_clear_destination_should_clear_the_destination_directory() {
 		$destination = DIR_TESTDATA . '/upgrade/';
@@ -629,11 +607,24 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 * Tests that `WP_Upgrader::clear_destination()` returns a WP_Error object
 	 * if files are not writable.
 	 *
+	 * This test runs in a separate process so that it can define
+	 * constants without impacting other tests.
+	 *
+	 * This test does not preserve global state to prevent the exception
+	 * "Serialization of 'Closure' is not allowed." when running in a
+	 * separate process.
+	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::clear_destination
+	 * @covers WP_Upgrader::clear_destination
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_clear_destination_should_return_wp_error_if_files_are_not_writable() {
+		define( 'FS_CHMOD_FILE', 0644 );
+		define( 'FS_CHMOD_DIR', 0755 );
+
 		self::$instance->generic_strings();
 
 		self::$wp_filesystem_mock->expects( $this->never() )->method( 'delete' );
@@ -695,7 +686,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::install_package
+	 * @covers WP_Upgrader::install_package
 	 *
 	 * @dataProvider data_install_package_invalid_paths
 	 *
@@ -737,7 +728,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::install_package
+	 * @covers WP_Upgrader::install_package
 	 *
 	 * @dataProvider data_install_package_invalid_paths
 	 *
@@ -774,9 +765,9 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider: Provides invalid paths for `WP_Upgrader::install_package()`.
+	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_install_package_invalid_paths() {
 		return array(
@@ -813,7 +804,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::install_package
+	 * @covers WP_Upgrader::install_package
 	 */
 	public function test_install_package_should_return_wp_error_when_pre_install_filter_returns_wp_error() {
 		self::$instance->generic_strings();
@@ -855,7 +846,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::install_package
+	 * @covers WP_Upgrader::install_package
 	 */
 	public function test_install_package_should_add_trailing_slash_to_source_and_subdirectory() {
 		self::$instance->generic_strings();
@@ -909,7 +900,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::install_package
+	 * @covers WP_Upgrader::install_package
 	 */
 	public function test_install_package_should_return_wp_error_when_no_source_files_exist() {
 		self::$instance->generic_strings();
@@ -950,7 +941,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::install_package
+	 * @covers WP_Upgrader::install_package
 	 */
 	public function test_install_package_should_add_trailing_slash_to_the_source_directory_of_single_file() {
 		self::$instance->generic_strings();
@@ -988,11 +979,23 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 * Tests that `WP_Upgrader::install_package()` applies
 	 * 'upgrader_clear_destination' filters with arguments.
 	 *
+	 * This test runs in a separate process so that it can define
+	 * constants without impacting other tests.
+	 *
+	 * This test does not preserve global state to prevent the exception
+	 * "Serialization of 'Closure' is not allowed." when running in a
+	 * separate process.
+	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::install_package
+	 * @covers WP_Upgrader::install_package
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_install_package_should_clear_destination_when_clear_destination_is_true() {
+		define( 'FS_CHMOD_FILE', 0644 );
+
 		self::$instance->generic_strings();
 
 		self::$upgrader_skin_mock
@@ -1070,16 +1073,28 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 * Tests that `WP_Upgrader::install_package()` makes the
 	 * remote destination safe when set to a protected directory.
 	 *
+	 * This test runs in a separate process so that it can define
+	 * constants without impacting other tests.
+	 *
+	 * This test does not preserve global state to prevent the exception
+	 * "Serialization of 'Closure' is not allowed." when running in a
+	 * separate process.
+	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::install_package
+	 * @covers WP_Upgrader::install_package
 	 *
 	 * @dataProvider data_install_package_should_make_remote_destination_safe_when_set_to_a_protected_directory
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 *
 	 * @param string $protected_directory The path to a protected directory.
 	 * @param string $expected            The expected safe remote destination.
 	 */
 	public function test_install_package_should_make_remote_destination_safe_when_set_to_a_protected_directory( $protected_directory, $expected ) {
+		define( 'FS_CHMOD_FILE', 0644 );
+
 		self::$instance->generic_strings();
 
 		self::$upgrader_skin_mock
@@ -1135,9 +1150,9 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider: Provides protected directories to `WP_Upgrader::install_package()`.
+	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_install_package_should_make_remote_destination_safe_when_set_to_a_protected_directory() {
 		return array(
@@ -1166,7 +1181,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::install_package
+	 * @covers WP_Upgrader::install_package
 	 */
 	public function test_install_package_should_abort_if_the_destination_directory_exists() {
 		self::$instance->generic_strings();
@@ -1230,11 +1245,23 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 * Tests that `WP_Upgrader::install_package()` returns a WP_Error
 	 * if the destination directory cannot be created.
 	 *
+	 * This test runs in a separate process so that it can define
+	 * constants without impacting other tests.
+	 *
+	 * This test does not preserve global state to prevent the exception
+	 * "Serialization of 'Closure' is not allowed." when running in a
+	 * separate process.
+	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::install_package
+	 * @covers WP_Upgrader::install_package
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_install_package_should_return_wp_error_if_destination_cannot_be_created() {
+		define( 'FS_CHMOD_DIR', 0755 );
+
 		self::$instance->generic_strings();
 
 		self::$upgrader_skin_mock
@@ -1304,7 +1331,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::run
+	 * @covers WP_Upgrader::run
 	 */
 	public function test_run_should_return_false_when_requesting_filesystem_credentials_fails() {
 		self::$upgrader_skin_mock
@@ -1324,7 +1351,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::maintenance_mode
+	 * @covers WP_Upgrader::maintenance_mode
 	 */
 	public function test_maintenance_mode_should_disable_maintenance_mode_if_maintenance_file_exists() {
 		self::$wp_filesystem_mock
@@ -1357,7 +1384,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::maintenance_mode
+	 * @covers WP_Upgrader::maintenance_mode
 	 */
 	public function test_maintenance_mode_should_not_disable_maintenance_mode_if_no_maintenance_file_exists() {
 		self::$upgrader_skin_mock->expects( $this->never() )->method( 'feedback' );
@@ -1381,11 +1408,23 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 * Tests that `WP_Upgrader::maintenance_mode()` creates
 	 * a `.maintenance` file with a boolean `$enable` argument.
 	 *
+	 * This test runs in a separate process so that it can define
+	 * constants without impacting other tests.
+	 *
+	 * This test does not preserve global state to prevent the exception
+	 * "Serialization of 'Closure' is not allowed." when running in a
+	 * separate process.
+	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::maintenance_mode
+	 * @covers WP_Upgrader::maintenance_mode
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_maintenance_mode_should_create_maintenance_file_with_boolean() {
+		define( 'FS_CHMOD_FILE', 0644 );
+
 		self::$wp_filesystem_mock
 				->expects( $this->once() )
 				->method( 'abspath' )
@@ -1418,7 +1457,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::release_lock
+	 * @covers WP_Upgrader::release_lock
 	 */
 	public function test_release_lock_should_remove_lock_option() {
 		update_option( 'lock.lock', 'content' );
@@ -1434,7 +1473,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::download_package
+	 * @covers WP_Upgrader::download_package
 	 */
 	public function test_download_package_should_exit_early_when_the_upgrader_pre_download_filter_returns_non_false() {
 		self::$upgrader_skin_mock->expects( $this->never() )->method( 'feedback' );
@@ -1457,7 +1496,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::download_package
+	 * @covers WP_Upgrader::download_package
 	 */
 	public function test_download_package_should_apply_upgrader_pre_download_filter_with_arguments() {
 		self::$upgrader_skin_mock->expects( $this->never() )->method( 'feedback' );
@@ -1504,7 +1543,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::download_package
+	 * @covers WP_Upgrader::download_package
 	 */
 	public function test_download_package_should_return_an_existing_file() {
 		$result = self::$instance->download_package( __FILE__ );
@@ -1518,7 +1557,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::download_package
+	 * @covers WP_Upgrader::download_package
 	 */
 	public function test_download_package_should_return_a_wp_error_object_for_an_empty_package() {
 		self::$instance->init();
@@ -1543,7 +1582,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::download_package
+	 * @covers WP_Upgrader::download_package
 	 */
 	public function test_download_package_should_return_a_file_with_the_package_name() {
 		add_filter(
@@ -1564,7 +1603,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @ticket 54245
 	 *
-	 * @covers ::download_package
+	 * @covers WP_Upgrader::download_package
 	 */
 	public function test_download_package_should_return_a_wp_error_object() {
 		self::$instance->generic_strings();
