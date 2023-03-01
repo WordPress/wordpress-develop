@@ -606,21 +606,21 @@
 	margin-bottom: var(--gap);
 	padding-top: 0;
 	color: var(--text-light);
-	background: var(--background) url('../images/about-header-about.svg?ver=6.1') no-repeat;
+	background: var(--background) url('../images/about-header-about.svg?ver=6.2') no-repeat;
 	background-size: cover;
 	background-position: center calc(50% - 36px);
 }
 
 .credits-php .about__header {
-	background-image: url('../images/about-header-credits.svg?ver=6.1');
+	background-image: url('../images/about-header-credits.svg?ver=6.2');
 }
 
 .freedoms-php .about__header {
-	background-image: url('../images/about-header-freedoms.svg?ver=6.1');
+	background-image: url('../images/about-header-freedoms.svg?ver=6.2');
 }
 
 .privacy-php .about__header {
-	background-image: url('../images/about-header-privacy.svg?ver=6.1');
+	background-image: url('../images/about-header-privacy.svg?ver=6.2');
 }
 
 .about__header-image {
