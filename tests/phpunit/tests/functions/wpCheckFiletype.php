@@ -31,7 +31,7 @@ class Test_wp_check_filetype extends WP_UnitTestCase {
 	 */
 	public function data_wp_check_filetype() {
 		return array(
-			'default'     => array(
+			'.jpg filename and default allowed'       => array(
 				'filename' => 'canola.jpg',
 				'mimes'    => null,
 				'expected' => array(
@@ -39,7 +39,7 @@ class Test_wp_check_filetype extends WP_UnitTestCase {
 					'type' => 'image/jpeg',
 				),
 			),
-			'short_mines' => array(
+			'.jpg filename and jpg|jpeg|jpe'          => array(
 				'filename' => 'canola.jpg',
 				'mimes'    => array(
 					'jpg|jpeg|jpe' => 'image/jpeg',
@@ -83,6 +83,7 @@ class Test_wp_check_filetype extends WP_UnitTestCase {
 					'type' => 'image/jpeg',
 				),
 			),
+			'.XXX filename and no matching MIME type' => array(
 				'filename' => 'canola.XXX',
 				'mimes'    => array(
 					'jpg|jpeg|jpe' => 'image/jpeg',
@@ -93,7 +94,7 @@ class Test_wp_check_filetype extends WP_UnitTestCase {
 					'type' => false,
 				),
 			),
-			'bad_mines'   => array(
+			'.jpg filename but only gif allowed'      => array(
 				'filename' => 'canola.jpg',
 				'mimes'    => array(
 					'gif' => 'image/gif',
