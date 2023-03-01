@@ -58,6 +58,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 5.3.0 Added the Twenty Twenty theme.
 	 * @since 5.6.0 Added the Twenty Twenty-One theme.
 	 * @since 5.9.0 Added the Twenty Twenty-Two theme.
+	 * @since 6.1.0 Added the Twenty Twenty-Three theme.
 	 * @var string[]
 	 */
 	private static $default_themes = array(
@@ -240,6 +241,9 @@ final class WP_Theme implements ArrayAccess {
 				wp_cache_add_non_persistent_groups( 'themes' );
 			}
 		}
+
+		// Handle a numeric theme directory as a string.
+		$theme_dir = (string) $theme_dir;
 
 		$this->theme_root = $theme_root;
 		$this->stylesheet = $theme_dir;
