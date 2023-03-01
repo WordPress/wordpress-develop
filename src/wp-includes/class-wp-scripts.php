@@ -390,8 +390,18 @@ class WP_Scripts extends WP_Dependencies {
 			return true;
 		}
 
+		$strategy = $this->get_eligible_loading_strategy( $handle );
+		if( '' !== $strategy ) {
+			$strategy = ' '.$strategy;
+		}
 		$tag  = $translations . $cond_before . $before_handle;
-		$tag .= sprintf( "<script%s src='%s' id='%s-js'></script>\n", $this->type_attr, $src, esc_attr( $handle ) );
+		$tag .= sprintf( 
+			"<script%s src='%s' id='%s-js'%s></script>\n", 
+			$this->type_attr, 
+			esc_url( $src ), 
+			esc_attr( $handle ), 
+			$strategy 
+		);
 		$tag .= $after_handle . $cond_after;
 
 		/**
@@ -755,6 +765,105 @@ JS;
 			$args = array( 'in_footer' => true );
 		}
 		return wp_parse_args( $args, $default_args );
+	}
+
+	/**
+	 * Get all of the scripts that depend on a script.
+	 *
+	 * @param string $handle The script handle.
+	 * @return array Array of script handles.
+	 */
+	private function get_dependents( $handle ) {
+		$dependents = array();
+
+		// Iterate over all registered scripts, finding ones that depend on the script.
+		foreach ( $this->registered as $registered_handle => $args ) {
+			if ( in_array( $handle, $args->deps, true ) ) {
+				$dependents[] = $registered_handle;
+			}
+		}
+		return $dependents;
+	}
+
+	/**
+	 * Get the strategy assigned during script registration.
+	 *
+	 * @param string $handle The script handle.
+	 * @return string|bool Strategy set during script registration. False if none was set.
+	 */
+	private function get_intended_strategy( $handle ) {
+		$script_args = $this->get_data( $handle, 'script_args' );
+		return isset( $script_args['strategy'] ) ? $script_args['strategy'] : false;
+	}
+
+	/**
+	 * Check if all of a scripts dependents are deferrable which is required to maintain execution order.
+	 *
+	 * @param string $handle  The script handle.
+	 * @param array $checked An array of already checked script handles, used to avoid looping recursion.
+	 * @return bool True if all dependents are deferrable, false otherwise.
+	 */
+	private function all_dependents_are_deferrable( $handle, $checked = array() ) {
+		// If this node was already checked, this script can be deferred and the branch ends.
+		if ( in_array( $handle, $checked, true ) ) {
+			return true;
+		}
+		$checked[]  = $handle;
+		$dependents = $this->get_dependents( $handle );
+
+		// If there are no dependents remaining to consider, the script can be deferred and the branch ends.
+		if ( empty( $dependents ) ) {
+			return true;
+		}
+
+		// Consider each dependent and check if it is deferrable.
+		foreach ( $dependents as $dependent ) {
+			// If the dependent script is not using the defer or async strategy, no script in the chain is deferrable.
+			if ( ! in_array( $this->get_intended_strategy( $dependent ), array( 'defer', 'async' ), true ) ) {
+				return false;
+			}
+
+			// Recursively check all dependents.
+			if ( ! $this->all_dependents_are_deferrable( $dependent, $checked ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Get the most eligible loading strategy for a script.
+	 *
+	 * @param string  $handle The registered handle of the script.
+	 * @return string $strategy return the final strategy.
+	 */
+	private function get_eligible_loading_strategy( $handle = '' ) {
+		if ( ! isset( $this->registered[ $handle ] ) ) {
+			return '';
+		}
+
+		$intended_strategy = $this->get_intended_strategy( $handle );
+		/*
+		 * Handle known blocking strategy scenarios.
+		 *
+		 * blocking if script args not set.
+		 * blocking if explicitly set.
+		 */
+		if ( ! $intended_strategy || 'blocking' === $intended_strategy ) {
+			return '';
+		}
+
+		// Handling async strategy scenarios.
+		if ( 'async' === $intended_strategy && empty( $this->registered[ $handle ]->deps ) && empty( $this->get_dependents( $handle ) ) ) {
+			return 'async';
+		}
+
+		// Handling defer strategy scenarios.
+		if ( $this->all_dependents_are_deferrable( $handle ) ) {
+			return 'defer';
+		}
+
+		return '';
 	}
 
 	/**
