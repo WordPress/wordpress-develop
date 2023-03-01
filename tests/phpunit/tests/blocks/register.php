@@ -376,32 +376,52 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that register_block_style_handle() loads RTL stylesheets when an RTL locale is set.
+	 *
 	 * @ticket 56797
+	 *
+	 * @covers ::register_block_style_handle
 	 */
-	public function test_success_register_block_style_handle_rtl() {
-
+	public function test_register_block_style_handle_should_load_rtl_stylesheets_for_rtl_text_direction() {
 		global $wp_locale;
-		$orig_text_dir = $wp_locale->text_direction;
-
-		$wp_locale->text_direction = 'rtl';
 
 		$metadata = array(
 			'file'  => DIR_TESTDATA . '/blocks/notice/block.json',
 			'name'  => 'unit-tests/test-block-rtl',
 			'style' => 'file:./block.css',
 		);
-		$result   = register_block_style_handle( $metadata, 'style' );
 
-		$this->assertSame( 'unit-tests-test-block-rtl-style', $result );
-		$this->assertSame( 'replace', wp_styles()->get_data( 'unit-tests-test-block-rtl-style', 'rtl' ) );
-		$this->assertSame( '', wp_styles()->get_data( 'unit-tests-test-block-rtl-style', 'suffix' ) );
-		$this->assertSame(
-			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block-rtl.css' ) ),
-			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-rtl-style', 'path' ) )
-		);
-
+		$orig_text_dir             = $wp_locale->text_direction;
+		$wp_locale->text_direction = 'rtl';
+		$handle                    = register_block_style_handle( $metadata, 'style' );
+		$extra_rtl                 = wp_styles()->get_data( 'unit-tests-test-block-rtl-style', 'rtl' );
+		$extra_suffix              = wp_styles()->get_data( 'unit-tests-test-block-rtl-style', 'suffix' );
+		$extra_path                = wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-rtl-style', 'path' ) );
 		$wp_locale->text_direction = $orig_text_dir;
 
+		$this->assertSame(
+			'unit-tests-test-block-rtl-style',
+			$handle,
+			'The handle does not match the expected handle.'
+		);
+
+		$this->assertSame(
+			'replace',
+			$extra_rtl,
+			'The extra "rtl" data was not "replace".'
+		);
+
+		$this->assertSame(
+			'',
+			$extra_suffix,
+			'The extra "suffix" data was not an empty string.'
+		);
+
+		$this->assertSame(
+			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block-rtl.css' ) ),
+			$extra_path,
+			'The "path" did not match the expected path.'
+		);
 	}
 
 	/**
