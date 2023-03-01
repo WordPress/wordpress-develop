@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests get_the_posts_navigation function.
+ * Tests the `get_the_posts_navigation()` function.
  *
  * @since 6.2.0
  *

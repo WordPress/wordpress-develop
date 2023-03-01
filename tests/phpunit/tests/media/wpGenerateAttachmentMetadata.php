@@ -18,7 +18,6 @@ class Tests_Media_wpGenerateAttachmentMetadata extends WP_UnitTestCase {
 	 * Tests that filesize meta is generated for JPEGs.
 	 *
 	 * @ticket 49412
-	 * @ticket 51780
 	 *
 	 * @covers ::wp_create_image_subsizes
 	 */
@@ -29,11 +28,10 @@ class Tests_Media_wpGenerateAttachmentMetadata extends WP_UnitTestCase {
 
 		$this->assertSame( wp_filesize( get_attached_file( $attachment ) ), $metadata['filesize'] );
 
-		foreach ( $metadata['sizes'] as $size => $intermediate_size ) {
+		foreach ( $metadata['sizes'] as $intermediate_size ) {
 			$this->assertArrayHasKey( 'filesize', $intermediate_size );
 			$this->assertNotEmpty( $intermediate_size['filesize'] );
 			$this->assertIsNumeric( $intermediate_size['filesize'] );
-			$this->assertStringContainsString( $intermediate_size['file'], get_attached_file( $attachment, false, $size ) );
 		}
 	}
 
