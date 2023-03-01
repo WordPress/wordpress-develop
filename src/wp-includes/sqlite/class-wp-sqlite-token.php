@@ -213,7 +213,7 @@ class WP_SQLite_Token {
 	 *
 	 * @return bool
 	 */
-	public function matches( $type = null, $flags = null, ?array $values = null ) {
+	public function matches( $type = null, $flags = null, $values = null ) {
 		if ( null === $type && null === $flags && ( null === $values || array() === $values ) ) {
 			return ! $this->is_semantically_void();
 		}
