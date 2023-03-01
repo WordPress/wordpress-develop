@@ -372,6 +372,36 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
 			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
 		);
+
+	}
+
+	/**
+	 * @ticket 56797
+	 */
+	public function test_success_register_block_style_handle_rtl() {
+
+		global $wp_locale;
+		$orig_text_dir = $wp_locale->text_direction;
+
+		$wp_locale->text_direction = 'rtl';
+
+		$metadata = array(
+			'file'  => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'  => 'unit-tests/test-block-rtl',
+			'style' => 'file:./block.css',
+		);
+		$result   = register_block_style_handle( $metadata, 'style' );
+
+		$this->assertSame( 'unit-tests-test-block-rtl-style', $result );
+		$this->assertSame( 'replace', wp_styles()->get_data( 'unit-tests-test-block-rtl-style', 'rtl' ) );
+		$this->assertSame( '', wp_styles()->get_data( 'unit-tests-test-block-rtl-style', 'suffix' ) );
+		$this->assertSame(
+			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block-rtl.css' ) ),
+			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-rtl-style', 'path' ) )
+		);
+
+		$wp_locale->text_direction = $orig_text_dir;
+
 	}
 
 	/**
