@@ -5329,8 +5329,6 @@ function wp_maybe_load_widgets() {
 		return;
 	}
 
-	require_once ABSPATH . WPINC . '/default-widgets.php';
-
 	add_action( '_admin_menu', 'wp_widgets_add_menu' );
 }
 
