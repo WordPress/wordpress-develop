@@ -47,6 +47,7 @@ class Test_Lazy_Load_Term_Meta extends WP_UnitTestCase {
 	public function test_wp_queue_posts_for_term_meta_lazyload() {
 		$filter = new MockAction();
 		add_filter( 'update_term_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+
 		new WP_Query(
 			array(
 				'post__in'            => self::$post_ids,

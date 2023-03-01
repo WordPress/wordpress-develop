@@ -199,7 +199,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		foreach ( $terms as $t ) {
 			add_term_meta( $t, 'foo', 'bar' );
 		}
-
+		$lazyloader = wp_metadata_lazyloader();
+		$lazyloader->reset_queue( 'term' );
 		$q = new WP_Query(
 			array(
 				'cache_results'          => true,

@@ -2779,7 +2779,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			$this->assertSame( 'bar', get_term_meta( $t, 'foo', true ) );
 		}
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 	}
 
 	/**
