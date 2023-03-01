@@ -36,7 +36,7 @@ if ( ! is_multisite() ) {
 		) . '</p>' .
 		'<p>' . sprintf(
 			/* translators: 1: http://, 2: https:// */
-			__( 'Both WordPress URLs and site URLs can start with either %1$s or %2$s. A URL starting with %2$s will also show a padlock next to the address in the browser address bar. Both of those things signal to visitors that your site meets some basic security requirements, which can build trust with your users and with search engines.' ),
+			__( 'Both WordPress URLs and site URLs can start with either %1$s or %2$s. A URL starting with %2$s requires an SSL certificate, so be sure that you have one before changing to %2$s. With %2$s, a padlock will appear next to the address in the browser address bar. Both %2$s and the padlock signal that your site meets some basic security requirements, which can build trust with your visitors and with search engines.' ),
 			'<code>http://</code>',
 			'<code>https://</code>'
 		) . '</p>' .
