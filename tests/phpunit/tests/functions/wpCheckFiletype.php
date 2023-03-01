@@ -1,13 +1,14 @@
 <?php
 
 /**
- * Test the wp_upload_bits function
+ * Tests for wp_check_filetype().
  *
- * @group Functions
- * @group Upload
+ * @group functions.php
+ * @group upload
+ *
  * @covers ::wp_check_filetype
  */
-class Test_wp_check_filetype extends WP_UnitTestCase {
+class Tests_Functions_WpCheckFiletype extends WP_UnitTestCase {
 
 	/**
 	 * Tests that wp_check_filetype() returns the correct extension and MIME type.
