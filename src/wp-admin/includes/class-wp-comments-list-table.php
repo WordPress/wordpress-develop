@@ -150,6 +150,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 			'orderby'   => $orderby,
 			'order'     => $order,
 			'post_type' => $post_type,
+			'update_comment_post_cache' => true,
 		);
 
 		/**
