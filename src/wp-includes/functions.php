@@ -882,7 +882,6 @@ function do_enclose( $content, $post ) {
 	global $wpdb;
 
 	// @todo Tidy this code and make the debug code optional.
-	require_once ABSPATH . WPINC . '/class-IXR.php';
 
 	$post = get_post( $post );
 	if ( ! $post ) {

@@ -57,7 +57,6 @@
 				<file>../../src/wp-admin/includes/ms-deprecated.php</file>
 
 				<file>../../src/wp-includes/atomlib.php</file>
-				<file>../../src/wp-includes/class-IXR.php</file>
 				<file>../../src/wp-includes/class-json.php</file>
 				<file>../../src/wp-includes/class-phpass.php</file>
 				<file>../../src/wp-includes/class-pop3.php</file>

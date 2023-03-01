@@ -3045,7 +3045,6 @@ function generic_ping( $post_id = 0 ) {
  * @param int|WP_Post $post    Post ID or object.
  */
 function pingback( $content, $post ) {
-	include_once ABSPATH . WPINC . '/class-IXR.php';
 
 	// Original code by Mort (http://mort.mine.nu:8080).
 	$post_links = array();
@@ -3211,7 +3210,6 @@ function trackback( $trackback_url, $title, $excerpt, $ID ) {
  * @param string $path Path to send the ping.
  */
 function weblog_ping( $server = '', $path = '' ) {
-	include_once ABSPATH . WPINC . '/class-IXR.php';
 
 	// Using a timeout of 3 seconds should be enough to cover slow servers.
 	$client             = new WP_HTTP_IXR_Client( $server, ( ( ! strlen( trim( $path ) ) || ( '/' === $path ) ) ? false : $path ) );
