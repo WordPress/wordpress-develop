@@ -191,8 +191,11 @@ function wp_default_packages_vendor( $scripts ) {
 
 /**
  * Convert a PHP datetime format to moment JS format
- * @param string php_format
- * @return string
+ * 
+ * @since x.x.x
+ * 
+ * @param string php_format The php datetime format to convert (see https://www.php.net/manual/en/datetime.format.php)
+ * @return string The converted momentJS format (see https://momentjs.com/docs/#/displaying/format/)
  */
 function wp_convert_php_datetime_format_to_moment_js( $php_format ) {
 	$format_map = array(
