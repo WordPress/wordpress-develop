@@ -4,16 +4,16 @@ on:
   push:
     branches:
       - trunk
-      - '3.[7-9]'
-      - '[4-9].[0-9]'
+      - '6.[1-9]'
+      - '[7-9].[0-9]'
     tags:
-      - '[0-9]+.[0-9]'
+      - '[6-9]+.[0-9]'
       - '[0-9]+.[0-9].[0-9]+'
   pull_request:
     branches:
       - trunk
-      - '3.[7-9]'
-      - '[4-9].[0-9]'
+      - '6.[1-9]'
+      - '[7-9].[0-9]'
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
