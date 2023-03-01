@@ -167,6 +167,10 @@
 	height: 100%;
 }
 
+.rtl .welcome-panel-header-image svg {
+	transform: scaleX(-1);
+}
+
 .welcome-panel-header * {
 	color: inherit;
 	position: relative;
