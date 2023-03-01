@@ -6,8 +6,6 @@
  * @see https://github.com/phpmyadmin/sql-parser
  */
 
-declare(strict_types=1);
-
 /**
  * Performs lexical analysis over a SQL statement and splits it in multiple tokens.
  */

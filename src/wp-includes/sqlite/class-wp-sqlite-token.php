@@ -6,8 +6,6 @@
  * @see https://github.com/phpmyadmin/sql-parser
  */
 
-declare(strict_types=1);
-
 /**
  * Defines a token along with a set of types and flags and utility functions.
  *
