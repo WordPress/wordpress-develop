@@ -53,7 +53,7 @@ if ( ! function_exists( 'wp_install' ) ) :
 		wp_cache_flush();
 
 		if ( defined( 'DATABASE_TYPE' ) && 'sqlite' === DATABASE_TYPE ) {
-			sqlite_make_db_sqlite();
+			sqlite_make_db_sqlite(); // phpcs:ignore PHPCompatibility.Extensions.RemovedExtensions.sqliteRemoved
 		} else {
 			make_db_current_silent();
 		}
