@@ -38,7 +38,39 @@ class Test_wp_check_filetype extends WP_UnitTestCase {
 					'type' => 'image/jpeg',
 				),
 			),
-			'badfile'     => array(
+			'.jpeg filename and jpg|jpeg|jpe'         => array(
+				'filename' => 'canola.jpeg',
+				'mimes'    => array(
+					'jpg|jpeg|jpe' => 'image/jpeg',
+					'gif'          => 'image/gif',
+				),
+				'expected' => array(
+					'ext'  => 'jpeg',
+					'type' => 'image/jpeg',
+				),
+			),
+			'.jpe filename and jpg|jpeg|jpe'          => array(
+				'filename' => 'canola.jpe',
+				'mimes'    => array(
+					'jpg|jpeg|jpe' => 'image/jpeg',
+					'gif'          => 'image/gif',
+				),
+				'expected' => array(
+					'ext'  => 'jpe',
+					'type' => 'image/jpeg',
+				),
+			),
+			'uppercase filename and jpg|jpeg|jpe'     => array(
+				'filename' => 'canola.JPG',
+				'mimes'    => array(
+					'jpg|jpeg|jpe' => 'image/jpeg',
+					'gif'          => 'image/gif',
+				),
+				'expected' => array(
+					'ext'  => 'JPG',
+					'type' => 'image/jpeg',
+				),
+			),
 				'filename' => 'canola.XXX',
 				'mines'    => array(
 					'jpg|jpeg|jpe' => 'image/jpeg',
