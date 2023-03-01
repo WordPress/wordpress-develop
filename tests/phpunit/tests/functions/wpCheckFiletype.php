@@ -10,18 +10,30 @@
 class Test_wp_check_filetype extends WP_UnitTestCase {
 
 	/**
+	 * Tests that wp_check_filetype() returns the correct extension and MIME type.
+	 *
 	 * @ticket 57151
-	 * @dataProvider wp_check_filetype_dataset
+	 *
+	 * @dataProvider data_wp_check_filetype
+	 *
+	 * @param string     $filename   The filename to check.
+	 * @param array|null $mimes      An array of MIME types, or null.
+	 * @param array      $expected   An array containing the expected extension and MIME type.
 	 */
-	function test_wp_check_filetypes( $filename, $mines, $expected ) {
-		$this->assertSame( $expected, wp_check_filetype( $filename, $mines ) );
+	public function test_wp_check_filetype( $filename, $mimes, $expected ) {
+		$this->assertSame( $expected, wp_check_filetype( $filename, $mimes ) );
 	}
 
-	function wp_check_filetype_dataset() {
+	/**
+	 * Data provider.
+	 *
+	 * @return[]
+	 */
+	public function data_wp_check_filetype() {
 		return array(
 			'default'     => array(
 				'filename' => 'canola.jpg',
-				'mines'    => null,
+				'mimes'    => null,
 				'expected' => array(
 					'ext'  => 'jpg',
 					'type' => 'image/jpeg',
@@ -29,7 +41,7 @@ class Test_wp_check_filetype extends WP_UnitTestCase {
 			),
 			'short_mines' => array(
 				'filename' => 'canola.jpg',
-				'mines'    => array(
+				'mimes'    => array(
 					'jpg|jpeg|jpe' => 'image/jpeg',
 					'gif'          => 'image/gif',
 				),
@@ -72,7 +84,7 @@ class Test_wp_check_filetype extends WP_UnitTestCase {
 				),
 			),
 				'filename' => 'canola.XXX',
-				'mines'    => array(
+				'mimes'    => array(
 					'jpg|jpeg|jpe' => 'image/jpeg',
 					'gif'          => 'image/gif',
 				),
@@ -83,7 +95,7 @@ class Test_wp_check_filetype extends WP_UnitTestCase {
 			),
 			'bad_mines'   => array(
 				'filename' => 'canola.jpg',
-				'mines'    => array(
+				'mimes'    => array(
 					'gif' => 'image/gif',
 				),
 				'expected' => array(
