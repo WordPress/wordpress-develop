@@ -6999,7 +6999,7 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
  */
 function _get_non_cached_ids( $object_ids, $cache_key ) {
 	$object_ids = array_filter( $object_ids, '_validate_cache_id' );
- 	$object_ids = array_unique( array_map( 'intval', $object_ids ), SORT_NUMERIC );
+	$object_ids = array_unique( array_map( 'intval', $object_ids ), SORT_NUMERIC );
 
 	if ( empty( $object_ids ) ) {
 		return array();
