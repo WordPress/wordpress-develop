@@ -36,7 +36,7 @@ add_action(
 
 				echo $output;
 			},
-			-9999
+			PHP_INT_MIN
 		);
 	},
 	PHP_INT_MAX

@@ -35,7 +35,7 @@ const baseResults = testSuites.map(( key ) => ({
  */
 const parseFile = ( fileName ) => (
 	JSON.parse(
-			fs.readFileSync( path.join( __dirname, '/specs/', fileName ), 'utf8' )
+		fs.readFileSync( path.join( __dirname, '/specs/', fileName ), 'utf8' )
 	)
 );
 

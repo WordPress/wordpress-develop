@@ -41,7 +41,7 @@ jobs:
   # - Logs Docker debug info.
   # - Installs WordPress.
   # - Installs the Server Timing MU plugin.
-  # - Install wordpress importer plugin and import dummy data.
+  # - Install WordPress Importer plugin and import mock data.
   # - Update permalink structure.
   # - Run the Performance tests (current commit).
   # - Print Performance tests results.
