@@ -571,7 +571,7 @@ class WP_oEmbed {
 		$args = apply_filters( 'oembed_remote_get_args', array(), $provider_url_with_args );
 
 		$response = wp_safe_remote_get( $provider_url_with_args, $args );
-		if ( 501 == wp_remote_retrieve_response_code( $response ) ) {
+		if ( 501 === wp_remote_retrieve_response_code( $response ) ) {
 			return new WP_Error( 'not-implemented' );
 		}
 		$body = wp_remote_retrieve_body( $response );
