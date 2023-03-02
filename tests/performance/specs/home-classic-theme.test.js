@@ -1,5 +1,5 @@
 /**
- * External dependencies
+ * External dependencies.
  */
 const { basename, join } = require( 'path' );
 const { writeFileSync } = require( 'fs' );
@@ -7,7 +7,7 @@ const { exec } = require( 'child_process' );
 const { getResultsFilename } = require( './../utils' );
 
 /**
- * WordPress dependencies
+ * WordPress dependencies.
  */
 import { activateTheme, createURL } from '@wordpress/e2e-test-utils';
 
