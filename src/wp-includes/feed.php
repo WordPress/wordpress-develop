@@ -786,10 +786,6 @@ function feed_content_type( $type = '' ) {
  * @return SimplePie|WP_Error SimplePie object on success or WP_Error object on failure.
  */
 function fetch_feed( $url ) {
-	if ( ! class_exists( 'SimplePie', false ) ) {
-		require_once ABSPATH . WPINC . '/class-simplepie.php';
-	}
-
 	$feed = new SimplePie();
 
 	$feed->set_sanitize_class( 'WP_SimplePie_Sanitize_KSES' );
