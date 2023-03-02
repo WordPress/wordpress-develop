@@ -210,14 +210,14 @@ class Walker_Category extends Walker {
 				);
 
 				foreach ( $_current_terms as $_current_term ) {
-					if ( $category->term_id == $_current_term->term_id ) {
+					if ( $category->term_id === $_current_term->term_id ) {
 						$css_classes[] = 'current-cat';
 						$link          = str_replace( '<a', '<a aria-current="page"', $link );
-					} elseif ( $category->term_id == $_current_term->parent ) {
+					} elseif ( $category->term_id === $_current_term->parent ) {
 						$css_classes[] = 'current-cat-parent';
 					}
 					while ( $_current_term->parent ) {
-						if ( $category->term_id == $_current_term->parent ) {
+						if ( $category->term_id === $_current_term->parent ) {
 							$css_classes[] = 'current-cat-ancestor';
 							break;
 						}
