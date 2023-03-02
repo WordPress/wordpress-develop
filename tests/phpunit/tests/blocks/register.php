@@ -465,8 +465,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the function returns the registered block when the `block.json`
-	 * is found in the fixtures directory.
+	 * Tests that the $args can properly override the block.json file.
 	 *
 	 * @ticket 56865
 	 */
