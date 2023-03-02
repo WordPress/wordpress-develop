@@ -432,9 +432,11 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test registering a block using arguments instead of a block.json file.
+	 * Tests registering a block using arguments instead of a block.json file.
 	 *
 	 * @ticket 56865
+	 *
+	 * @covers ::register_block_type_from_metadata
 	 */
 	public function test_register_block_type_from_metadata_with_arguments() {
 		$result = register_block_type_from_metadata(
