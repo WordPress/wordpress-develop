@@ -5,6 +5,10 @@ const jestE2EConfig = {
 	setupFilesAfterEnv: [
 		'<rootDir>/config/bootstrap.js',
 	],
+	globals: {
+		// Number of requests to run per test.
+		TEST_RUNS: 20,
+	}
 };
 
 module.exports = jestE2EConfig;

@@ -30,7 +30,7 @@ describe( 'Server Timing - Twenty Twenty Three', () => {
 	} );
 
 	it( 'Server Timing Metrics', async () => {
-		let i = 20;
+		let i = TEST_RUNS;
 		while ( i-- ) {
 			await page.goto( createURL( '/' ) );
 			const navigationTimingJson = await page.evaluate( () =>
