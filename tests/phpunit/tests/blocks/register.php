@@ -456,14 +456,18 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInstanceOf( 'WP_Block_Type', $result );
-		$this->assertSame( 2, $result->api_version );
-		$this->assertSame( 'tests/notice-from-array', $result->name );
-		$this->assertSame( 'Notice from array', $result->title );
-		$this->assertSame( 'common', $result->category );
-		$this->assertSame( 'star', $result->icon );
-		$this->assertSame( 'Shows warning, error or success notices… (registered from an array)', $result->description );
-		$this->assertSameSets( array( 'alert', 'message' ), $result->keywords );
+		$this->assertInstanceOf( 'WP_Block_Type', $result, 'The block was not registered' );
+		$this->assertSame( 2, $result->api_version, 'The API version is incorrect' );
+		$this->assertSame( 'tests/notice-from-array', $result->name, 'The block name is incorrect' );
+		$this->assertSame( 'Notice from array', $result->title, 'The block title is incorrect' );
+		$this->assertSame( 'common', $result->category, 'The block category is incorrect' );
+		$this->assertSame( 'star', $result->icon, 'The block icon is incorrect' );
+		$this->assertSame(
+			'Shows warning, error or success notices… (registered from an array)',
+			$result->description,
+			'The block description is incorrect'
+		);
+		$this->assertSameSets( array( 'alert', 'message' ), $result->keywords, 'The block keywords are incorrect' );
 	}
 
 	/**
@@ -483,17 +487,19 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInstanceOf( 'WP_Block_Type', $result );
-		$this->assertSame( 2, $result->api_version );
-		$this->assertSame( 'tests/notice-with-overrides', $result->name );
-		$this->assertSame( 'Overriden title', $result->title );
+		$this->assertInstanceOf( 'WP_Block_Type', $result, 'The block was not registered' );
+		$this->assertSame( 2, $result->api_version, 'The API version is incorrect' );
+		$this->assertSame( 'tests/notice-with-overrides', $result->name, 'The block name was not overriden' );
+		$this->assertSame( 'Overriden title', $result->title, 'The block title was not overriden' );
 		$this->assertSameSets(
 			array( 'tests-notice-editor-script' ),
-			$result->editor_script_handles
+			$result->editor_script_handles,
+			'The block editor script is incorrect'
 		);
 		$this->assertSameSets(
 			array( 'tests-notice-style-overriden' ),
-			$result->style_handles
+			$result->style_handles,
+			'The block style was not overriden'
 		);
 		$this->assertIsCallable( $result->render_callback );
 	}
