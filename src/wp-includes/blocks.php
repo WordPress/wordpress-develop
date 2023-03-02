@@ -413,7 +413,6 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			 * @param array    $attributes Block attributes.
 			 * @param string   $content    Block default content.
 			 * @param WP_Block $block      Block instance.
-			 *
 			 * @return string Returns the block content.
 			 */
 			$settings['render_callback'] = function( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
