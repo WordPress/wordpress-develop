@@ -116,7 +116,7 @@ jobs:
 
       - name: Update permalink structure
         run: |
-          npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/'
+          npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/' --path=/var/www/build
 
       - name: Install MU plugin
         run: |
