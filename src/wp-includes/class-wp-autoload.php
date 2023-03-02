@@ -309,6 +309,8 @@ final class WP_Autoload {
 		'custom_background'                           => 'wp-admin/includes/class-custom-background.php',
 		'custom_image_header'                         => 'wp-admin/includes/class-custom-image-header.php',
 		'file_upload_upgrader'                        => 'wp-admin/includes/class-file-upload-upgrader.php',
+		'ftp'                                         => 'wp-admin/includes/class-ftp.php',
+		'ftp_base'                                    => 'wp-admin/includes/class-ftp.php',
 		'ftp_pure'                                    => 'wp-admin/includes/class-ftp-pure.php',
 		'ftp_sockets'                                 => 'wp-admin/includes/class-ftp-sockets.php',
 		'language_pack_upgrader_skin'                 => 'wp-admin/includes/class-language-pack-upgrader-skin.php',
