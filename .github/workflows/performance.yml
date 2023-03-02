@@ -44,7 +44,8 @@ jobs:
   # - Logs Docker debug info.
   # - Installs WordPress.
   # - Installs the Server Timing MU plugin.
-  # - Install WordPress Importer plugin and import mock data.
+  # - Install WordPress Importer plugin.
+  # - Import mock data.
   # - Update permalink structure.
   # - Run the Performance tests (current commit).
   # - Print Performance tests results.
@@ -108,9 +109,11 @@ jobs:
       - name: Install WordPress
         run: npm run env:install
 
-      - name: Install WordPress Importer plugin and import mock data
+      - name: Install WordPress Importer plugin
+        run: npm run env:cli -- plugin install wordpress-importer --activate ${{ env.BUILD_PATH }}
+
+      - name: Import mock data
         run: |
-          npm run env:cli -- plugin install wordpress-importer --activate ${{ env.BUILD_PATH }}
           curl -O https://raw.githubusercontent.com/WPTT/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml
           npm run env:cli -- import themeunittestdata.wordpress.xml --authors=create ${{ env.BUILD_PATH }}
           rm themeunittestdata.wordpress.xml
