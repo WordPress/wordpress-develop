@@ -495,8 +495,6 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			array( 'tests-notice-style-overriden' ),
 			$result->style_handles
 		);
-
-		// @ticket 53148
 		$this->assertIsCallable( $result->render_callback );
 	}
 
