@@ -313,6 +313,7 @@ final class WP_Autoload {
 		'ftp_sockets'                                 => 'wp-admin/includes/class-ftp-sockets.php',
 		'language_pack_upgrader_skin'                 => 'wp-admin/includes/class-language-pack-upgrader-skin.php',
 		'language_pack_upgrader'                      => 'wp-admin/includes/class-language-pack-upgrader.php',
+		'pclzip'                                      => 'wp-admin/includes/class-pclzip.php',
 		'plugin_installer_skin'                       => 'wp-admin/includes/class-plugin-installer-skin.php',
 		'plugin_upgrader_skin'                        => 'wp-admin/includes/class-plugin-upgrader-skin.php',
 		'plugin_upgrader'                             => 'wp-admin/includes/class-plugin-upgrader.php',
