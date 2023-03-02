@@ -129,7 +129,7 @@ jobs:
       - name: Install MU plugin
         run: |
           mkdir ./${{ env.LOCAL_DIR }}/wp-content/mu-plugins
-          cp ./tests/performance/mu-plugins/server-timing.php ./${{ env.LOCAL_DIR }}/wp-content/mu-plugins/server-timing.php
+          cp ./tests/performance/wp-content/mu-plugins/server-timing.php ./${{ env.LOCAL_DIR }}/wp-content/mu-plugins/server-timing.php
 
       - name: Run performance tests (current commit)
         run: npm run test:performance
