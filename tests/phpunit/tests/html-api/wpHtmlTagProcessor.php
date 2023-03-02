@@ -474,7 +474,7 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 		$p = new WP_HTML_Tag_Processor( "<$tag_name>abc</$tag_name>" );
 
 		$p->next_tag();
-		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ), 'Did not find the tag closer.' ) );
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the tag closer' );
 		$this->assertTrue( $p->is_tag_closer(), 'Indicated a tag opener is a tag closer' );
 	}
 
