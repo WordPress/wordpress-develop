@@ -28,7 +28,7 @@ async function setupBrowser() {
 beforeAll( async () => {
 	enablePageDialogAccept();
 
-	//await setupBrowser();
+	await setBrowserViewport( 'large' );
 	await page.emulateMediaFeatures( [
 		{ name: 'prefers-reduced-motion', value: 'reduce' },
 	] );

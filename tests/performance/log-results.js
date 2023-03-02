@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * External dependencies
+ * External dependencies.
  */
 const fs = require( 'fs' );
 const path = require( 'path' );
@@ -35,7 +35,7 @@ const baseResults = testSuites.map(( key ) => ({
  */
 const parseFile = ( fileName ) => (
 	JSON.parse(
-			fs.readFileSync( path.join( __dirname, '/specs/', fileName ), 'utf8' )
+		fs.readFileSync( path.join( __dirname, '/specs/', fileName ), 'utf8' )
 	)
 );
 

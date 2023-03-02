@@ -1,5 +1,5 @@
 /**
- * External dependencies
+ * External dependencies.
  */
 const dotenv = require( 'dotenv' );
 const dotenv_expand = require( 'dotenv-expand' );

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * External dependencies
+ * External dependencies.
  */
 const fs = require( 'fs' );
 const { join } = require( 'path' );
