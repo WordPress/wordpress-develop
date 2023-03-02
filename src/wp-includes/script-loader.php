@@ -240,7 +240,11 @@ function wp_register_development_scripts( $scripts ) {
 	);
 
 	foreach ( $development_scripts as $script_name ) {
-		$assets = include ABSPATH . WPINC . '/assets/script-loader-' . $script_name . '.php';
+		$asset_path = ABSPATH . WPINC . '/assets/script-loader-' . $script_name . '.php';
+		if ( ! file_exists( $asset_path ) ) {
+			continue;
+		}
+		$assets = include $asset_path;
 		if ( ! is_array( $assets ) ) {
 			return;
 		}
