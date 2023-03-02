@@ -432,6 +432,72 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test registering a block using arguments instead of a block.json file.
+	 *
+	 * @ticket 56865
+	 */
+	public function test_register_block_type_from_metadata_with_arguments() {
+		$result = register_block_type_from_metadata(
+			'',
+			array(
+				'api_version' => 2,
+				'name'        => 'tests/notice-from-array',
+				'title'       => 'Notice from array',
+				'category'    => 'common',
+				'icon'        => 'star',
+				'description' => 'Shows warning, error or success notices… (registered from an array)',
+				'keywords'    => array(
+					'alert',
+					'message',
+				),
+				'textdomain'  => 'notice-from-array',
+			)
+		);
+
+		$this->assertInstanceOf( 'WP_Block_Type', $result );
+		$this->assertSame( 2, $result->api_version );
+		$this->assertSame( 'tests/notice-from-array', $result->name );
+		$this->assertSame( 'Notice from array', $result->title );
+		$this->assertSame( 'common', $result->category );
+		$this->assertSame( 'star', $result->icon );
+		$this->assertSame( 'Shows warning, error or success notices… (registered from an array)', $result->description );
+		$this->assertSameSets( array( 'alert', 'message' ), $result->keywords );
+	}
+
+	/**
+	 * Tests that the function returns the registered block when the `block.json`
+	 * is found in the fixtures directory.
+	 *
+	 * @ticket 56865
+	 */
+	public function test_block_registers_with_args_override() {
+		$result = register_block_type_from_metadata(
+			DIR_TESTDATA . '/blocks/notice',
+			array(
+				'name'  => 'tests/notice-with-overrides',
+				'title' => 'Overriden title',
+				'style' => array( 'tests-notice-style-overriden' ),
+			)
+		);
+
+		$this->assertInstanceOf( 'WP_Block_Type', $result );
+		$this->assertSame( 2, $result->api_version );
+		$this->assertSame( 'tests/notice-with-overrides', $result->name );
+		$this->assertSame( 'Overriden title', $result->title );
+		$this->assertSameSets(
+			array( 'tests-notice-editor-script' ),
+			$result->editor_script_handles
+		);
+		$this->assertSameSets(
+			array( 'tests-notice-style-overriden' ),
+			$result->style_handles
+		);
+
+		// @ticket 53148
+		$this->assertIsCallable( $result->render_callback );
+	}
+
+	/**
 	 * Tests that the function returns the registered block when the `block.json`
 	 * is found in the fixtures directory.
 	 *

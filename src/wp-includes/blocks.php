@@ -340,7 +340,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
 	}
 
-	if ( ! is_array( $metadata ) || empty( $metadata['name'] ) ) {
+	if ( ! is_array( $metadata ) || ( empty( $metadata['name'] ) && empty( $args['name'] ) ) ) {
 		return false;
 	}
 	$metadata['file'] = $metadata_file_exists ? wp_normalize_path( realpath( $metadata_file ) ) : null;
@@ -369,6 +369,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	$settings          = array();
 	$property_mappings = array(
 		'apiVersion'      => 'api_version',
+		'name'            => 'name',
 		'title'           => 'title',
 		'category'        => 'category',
 		'parent'          => 'parent',
@@ -431,6 +432,9 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'viewScript'   => 'view_script_handles',
 	);
 	foreach ( $script_fields as $metadata_field_name => $settings_field_name ) {
+		if ( ! empty( $settings[ $metadata_field_name ] ) ) {
+			$metadata[ $metadata_field_name ] = $settings[ $metadata_field_name ];
+		}
 		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
 			$scripts           = $metadata[ $metadata_field_name ];
 			$processed_scripts = array();
@@ -463,6 +467,9 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'style'       => 'style_handles',
 	);
 	foreach ( $style_fields as $metadata_field_name => $settings_field_name ) {
+		if ( ! empty( $settings[ $metadata_field_name ] ) ) {
+			$metadata[ $metadata_field_name ] = $settings[ $metadata_field_name ];
+		}
 		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
 			$styles           = $metadata[ $metadata_field_name ];
 			$processed_styles = array();
@@ -500,6 +507,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 */
 	$settings = apply_filters( 'block_type_metadata_settings', $settings, $metadata );
 
+	$metadata['name'] = ! empty( $settings['name'] ) ? $settings['name'] : $metadata['name'];
 	return WP_Block_Type_Registry::get_instance()->register(
 		$metadata['name'],
 		$settings
