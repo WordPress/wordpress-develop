@@ -12,6 +12,7 @@ on:
   pull_request:
     branches:
       - trunk
+      - 'feature/**'
       - '6.[1-9]'
       - '[7-9].[0-9]'
 
