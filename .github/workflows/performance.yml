@@ -29,7 +29,6 @@ env:
   # from differences caused by code changes between commits. The BASE_TAG value here
   # represents the current version being used for baseline measurements.
   BASE_TAG: '6.1.1'
-  BUILD_PATH: '--path=/var/www/build'
   LOCAL_DIR: build
 
 jobs:
@@ -115,22 +114,22 @@ jobs:
         run: npm run env:install
 
       - name: Install WordPress Importer plugin
-        run: npm run env:cli -- plugin install wordpress-importer --activate ${{ env.BUILD_PATH }}
+        run: npm run env:cli -- plugin install wordpress-importer --activate --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Import mock data
         run: |
           curl -O https://raw.githubusercontent.com/WPTT/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml
-          npm run env:cli -- import themeunittestdata.wordpress.xml --authors=create ${{ env.BUILD_PATH }}
+          npm run env:cli -- import themeunittestdata.wordpress.xml --authors=create --path=/var/www/${{ env.LOCAL_DIR }}
           rm themeunittestdata.wordpress.xml
 
       - name: Update permalink structure
         run: |
-          npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/' ${{ env.BUILD_PATH }}
+          npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/' --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Install MU plugin
         run: |
-          mkdir ./build/wp-content/mu-plugins
-          cp ./tests/performance/mu-plugins/server-timing.php ./build/wp-content/mu-plugins/server-timing.php
+          mkdir ./${{ env.LOCAL_DIR }}/wp-content/mu-plugins
+          cp ./tests/performance/mu-plugins/server-timing.php ./${{ env.LOCAL_DIR }}/wp-content/mu-plugins/server-timing.php
 
       - name: Run performance tests (current commit)
         run: npm run test:performance
@@ -140,8 +139,8 @@ jobs:
 
       - name: Set the environment to the baseline version
         run: |
-          npm run env:cli -- core update --version=${{ env.BASE_TAG }} --force ${{ env.BUILD_PATH }}
-          npm run env:cli -- core version ${{ env.BUILD_PATH }}
+          npm run env:cli -- core update --version=${{ env.BASE_TAG }} --force --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- core version --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Run baseline performance tests
         run: npm run test:performance -- --prefix=base
