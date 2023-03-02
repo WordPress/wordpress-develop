@@ -689,8 +689,8 @@ class WP_User_Query {
 		}
 
 		if ( $search ) {
-			$leading_wild  = ( ltrim( $search, '*' ) != $search );
-			$trailing_wild = ( rtrim( $search, '*' ) != $search );
+			$leading_wild  = ( ltrim( $search, '*' ) !== $search );
+			$trailing_wild = ( rtrim( $search, '*' ) !== $search );
 			if ( $leading_wild && $trailing_wild ) {
 				$wild = 'both';
 			} elseif ( $leading_wild ) {
@@ -986,7 +986,7 @@ class WP_User_Query {
 			$_orderby          = 'post_count';
 		} elseif ( 'ID' === $orderby || 'id' === $orderby ) {
 			$_orderby = 'ID';
-		} elseif ( 'meta_value' === $orderby || $this->get( 'meta_key' ) == $orderby ) {
+		} elseif ( 'meta_value' === $orderby || $this->get( 'meta_key' ) === $orderby ) {
 			$_orderby = "$wpdb->usermeta.meta_value";
 		} elseif ( 'meta_value_num' === $orderby ) {
 			$_orderby = "$wpdb->usermeta.meta_value+0";
