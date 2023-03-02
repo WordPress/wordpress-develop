@@ -15,7 +15,7 @@ on:
     branches:
       - trunk
       - 'feature/**'
-      - '6.[1-9]'
+      - '6.[2-9]'
       - '[7-9].[0-9]'
 
 # Cancels all previous workflow runs for pull requests that have not completed.
