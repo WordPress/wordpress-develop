@@ -1,5 +1,5 @@
 /**
- * WordPress dependencies.
+ * WordPress dependencies
  */
 import {
 	clearLocalStorage,
@@ -28,6 +28,7 @@ async function setupBrowser() {
 beforeAll( async () => {
 	enablePageDialogAccept();
 
+	await setBrowserViewport( 'large' );
 	await page.emulateMediaFeatures( [
 		{ name: 'prefers-reduced-motion', value: 'reduce' },
 	] );
