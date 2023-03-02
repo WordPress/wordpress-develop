@@ -33,9 +33,7 @@ class Tests_Auth extends WP_UnitTestCase {
 			)
 		);
 
-		self::$user_id = self::$_user->ID;
-
-		require_once ABSPATH . WPINC . '/class-phpass.php';
+		self::$user_id   = self::$_user->ID;
 		self::$wp_hasher = new PasswordHash( 8, true );
 	}
 
