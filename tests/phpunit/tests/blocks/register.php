@@ -470,6 +470,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * Tests that the $args can properly override the block.json file.
 	 *
 	 * @ticket 56865
+	 *
+	 * @covers ::register_block_type_from_metadata
 	 */
 	public function test_block_registers_with_args_override() {
 		$result = register_block_type_from_metadata(
