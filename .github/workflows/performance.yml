@@ -109,7 +109,7 @@ jobs:
 
       - name: Install WordPress Importer plugin and import mock data
         run: |
-          npm run env:cli -- plugin activate wordpress-importer --path=/var/www/build
+          npm run env:cli -- plugin install wordpress-importer --activate --path=/var/www/build
           curl -O https://raw.githubusercontent.com/WPTT/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml
           npm run env:cli -- import themeunittestdata.wordpress.xml --authors=create --path=/var/www/build
           rm themeunittestdata.wordpress.xml
