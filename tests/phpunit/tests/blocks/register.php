@@ -467,7 +467,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the $args can properly override the block.json file.
+	 * Tests that defined $args can properly override the block.json file.
 	 *
 	 * @ticket 56865
 	 *
