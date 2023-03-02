@@ -6998,7 +6998,8 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
  * @return int[] Array of IDs not present in the cache.
  */
 function _get_non_cached_ids( $object_ids, $cache_key ) {
-	$object_ids = _sanaitize_cache_ids( $object_ids );
+	$object_ids = array_filter( $object_ids, '_validate_cache_id' );
+ 	$object_ids = array_unique( array_map( 'intval', $object_ids ), SORT_NUMERIC );
 
 	if ( empty( $object_ids ) ) {
 		return array();
@@ -7017,35 +7018,27 @@ function _get_non_cached_ids( $object_ids, $cache_key ) {
 }
 
 /**
- * Returns an array of unique cache IDs that are either integers or
- * iterger-like strings. Both `16` and `"16"` are considered valid.
- *
- * Other numeric types and numeric strings (`16.3` and `"16.3"`) are discarded.
+ * Checks whether the given cache ID is either an integer or iterger-like strings.
+ * Both `16` and `"16"` are considered valid, other numeric types and numeric
+ * strings (`16.3` and `"16.3"`) are considered invalid.
  *
  * @since n.e.x.t
  *
- * @param mixed[] $object_ids Array of IDs.
- * @return int[] Array of valid cache IDs.
+ * @param mixed $object_id The cache id to validate.
+ * @return bool Whether the given $object_id is a valid cache id.
  */
-function _sanaitize_cache_ids( $object_ids ) {
-	$object_ids = array_filter(
-		$object_ids,
-		static function ( $object_id ) {
-			// Unfortunately filter_var() is considered an optional extension
-			if ( is_int( $object_id )
-				|| ( is_string( $object_id ) && (string) (int) $object_id === $object_id ) ) {
-				return true;
-			}
+function _validate_cache_id( $object_id ) {
+	// Unfortunately filter_var() is considered an optional extension
+	if ( is_int( $object_id )
+		|| ( is_string( $object_id ) && (string) (int) $object_id === $object_id ) ) {
+		return true;
+	}
 
-			/* translators: %s: The type of the given object id. */
-			$message = sprintf( __( 'Object id must be integer, %s given.' ), gettype( $object_id ) );
-			_doing_it_wrong( '_get_non_cached_ids', $message, 'n.e.x.t' );
+	/* translators: %s: The type of the given object id. */
+	$message = sprintf( __( 'Object id must be integer, %s given.' ), gettype( $object_id ) );
+	_doing_it_wrong( '_get_non_cached_ids', $message, 'n.e.x.t' );
 
-			return false;
-		}
-	);
-
-	return array_map( 'intval', array_unique( $object_ids, SORT_NUMERIC ) );
+	return false;
 }
 
 /**
