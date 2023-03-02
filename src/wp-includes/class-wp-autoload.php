@@ -24,6 +24,7 @@ final class WP_Autoload {
 	const CLASSES_PATHS = array(
 		/* Classes in the wp-includes/ folder. */
 		'passwordhash'                                => 'wp-includes/class-phpass.php',
+		'pop3'                                        => 'wp-includes/class-pop3.php',
 		'walker_categorydropdown'                     => 'wp-includes/class-walker-category-dropdown.php',
 		'walker_category'                             => 'wp-includes/class-walker-category.php',
 		'walker_comment'                              => 'wp-includes/class-walker-comment.php',
