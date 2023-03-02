@@ -1399,7 +1399,7 @@ class WP_Rewrite {
 		// Extra permastructs.
 		foreach ( $this->extra_permastructs as $permastructname => $struct ) {
 			if ( is_array( $struct ) ) {
-				if ( count( $struct ) == 2 ) {
+				if ( count( $struct ) === 2 ) {
 					$rules = $this->generate_rewrite_rules( $struct[0], $struct[1] );
 				} else {
 					$rules = $this->generate_rewrite_rules( $struct['struct'], $struct['ep_mask'], $struct['paged'], $struct['feed'], $struct['forcomments'], $struct['walk_dirs'], $struct['endpoints'] );
@@ -1660,10 +1660,10 @@ class WP_Rewrite {
 			$external = false;
 			$query    = add_query_arg( $query, 'index.php' );
 		} else {
-			$index = false === strpos( $query, '?' ) ? strlen( $query ) : strpos( $query, '?' );
-			$front = substr( $query, 0, $index );
+			$length = false === strpos( $query, '?' ) ? strlen( $query ) : strpos( $query, '?' );
+			$front  = substr( $query, 0, $length );
 
-			$external = $front != $this->index;
+			$external = $front !== $this->index;
 		}
 
 		// "external" = it doesn't correspond to index.php.
@@ -1794,7 +1794,7 @@ class WP_Rewrite {
 		if ( ! is_array( $args ) ) {
 			$args = array( 'with_front' => $args );
 		}
-		if ( func_num_args() == 4 ) {
+		if ( func_num_args() === 4 ) {
 			$args['ep_mask'] = func_get_arg( 3 );
 		}
 
@@ -1932,7 +1932,7 @@ class WP_Rewrite {
 	 * @param string $permalink_structure Permalink structure.
 	 */
 	public function set_permalink_structure( $permalink_structure ) {
-		if ( $permalink_structure != $this->permalink_structure ) {
+		if ( $permalink_structure !== $this->permalink_structure ) {
 			$old_permalink_structure = $this->permalink_structure;
 			update_option( 'permalink_structure', $permalink_structure );
 
