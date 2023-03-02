@@ -464,6 +464,36 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 	/**
 	 * @ticket 56299
 	 *
+	 * @dataProvider data_rcdata_and_script_tags
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 * @covers WP_HTML_Tag_Processor::is_tag_closer
+	 *
+	 * @param string $tag_name The name of the tag to test.
+	 */
+	public function test_next_tag_should_stop_on_rcdata_and_script_tag_closers_when_requested( $tag_name ) {
+		$p = new WP_HTML_Tag_Processor( "<$tag_name>abc</$tag_name>" );
+
+		$p->next_tag();
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ), 'Did not find the tag closer.' ) );
+		$this->assertTrue( $p->is_tag_closer(), 'Indicated a tag opener is a tag closer' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return string[][].
+	 */
+	public function data_rcdata_and_script_tags() {
+		return array(
+			array( 'script' ),
+			array( 'textarea' ),
+			array( 'title' ),
+		);
+	}
+
+	/**
+	 * @ticket 56299
+	 *
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_set_attribute_on_a_non_existing_tag_does_not_change_the_markup() {
