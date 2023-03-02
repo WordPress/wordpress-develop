@@ -201,6 +201,15 @@ final class WP_Autoload {
 		'gettext_translations'                        => 'wp-includes/pomo/translations.php',
 		'noop_translations'                           => 'wp-includes/pomo/translations.php',
 
+		/* Classes in the wp-includes/Text folder. */
+		'text_diff'                                   => 'wp-includes/Text/Diff.php',
+		'text_diff_engine_native'                     => 'wp-includes/Text/Diff/Engine/native.php',
+		'text_diff_engine_shell'                      => 'wp-includes/Text/Diff/Engine/shell.php',
+		'text_diff_engine_string'                     => 'wp-includes/Text/Diff/Engine/string.php',
+		'text_diff_engine_xdiff'                      => 'wp-includes/Text/Diff/Engine/xdiff.php',
+		'text_diff_renderer_inline'                   => 'wp-includes/Text/Diff/Renderer/inline.php',
+		'text_diff_renderer'                          => 'wp-includes/Text/Diff/Renderer.php',
+
 		/* Classes in the wp-includes/rest-api folder. */
 		'wp_rest_application_passwords_controller'    => 'wp-includes/rest-api/endpoints/class-wp-rest-application-passwords-controller.php',
 		'wp_rest_attachments_controller'              => 'wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php',

@@ -3052,10 +3052,6 @@ if ( ! function_exists( 'wp_text_diff' ) ) :
 		);
 		$args     = wp_parse_args( $args, $defaults );
 
-		if ( ! class_exists( 'WP_Text_Diff_Renderer_Table', false ) ) {
-			require ABSPATH . WPINC . '/wp-diff.php';
-		}
-
 		$left_string  = normalize_whitespace( $left_string );
 		$right_string = normalize_whitespace( $right_string );
 
