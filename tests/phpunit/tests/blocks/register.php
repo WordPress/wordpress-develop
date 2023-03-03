@@ -483,23 +483,23 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			array(
 				'name'  => 'tests/notice-with-overrides',
 				'title' => 'Overriden title',
-				'style' => array( 'tests-notice-style-overriden' ),
+				'style' => array( 'tests-notice-style-overridden' ),
 			)
 		);
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result, 'The block was not registered' );
 		$this->assertSame( 2, $result->api_version, 'The API version is incorrect' );
-		$this->assertSame( 'tests/notice-with-overrides', $result->name, 'The block name was not overriden' );
-		$this->assertSame( 'Overriden title', $result->title, 'The block title was not overriden' );
+		$this->assertSame( 'tests/notice-with-overrides', $result->name, 'The block name was not overridden' );
+		$this->assertSame( 'Overriden title', $result->title, 'The block title was not overridden' );
 		$this->assertSameSets(
 			array( 'tests-notice-editor-script' ),
 			$result->editor_script_handles,
 			'The block editor script is incorrect'
 		);
 		$this->assertSameSets(
-			array( 'tests-notice-style-overriden' ),
+			array( 'tests-notice-style-overridden' ),
 			$result->style_handles,
-			'The block style was not overriden'
+			'The block style was not overridden'
 		);
 		$this->assertIsCallable( $result->render_callback );
 	}
