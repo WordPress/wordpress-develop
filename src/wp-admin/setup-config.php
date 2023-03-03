@@ -279,7 +279,6 @@ switch ( $step ) {
 </form>
 <script>
 	window.selectDBType = function( el ) {
-		console.log( el );
 		var display = 'sqlite' === el.value ? 'none' : 'table-row';
 		document.getElementById( 'table-row-dbname' ).style.display = display;
 		document.getElementById( 'table-row-uname' ).style.display = display;
