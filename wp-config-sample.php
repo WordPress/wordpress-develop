@@ -19,6 +19,8 @@
  */
 
 // ** Database settings - You can get this info from your web host ** //
+define( 'DATABASE_TYPE', 'mysql' );
+
 /** The name of the database for WordPress */
 define( 'DB_NAME', 'database_name_here' );
 

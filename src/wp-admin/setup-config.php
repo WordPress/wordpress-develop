@@ -163,7 +163,7 @@ switch ( $step ) {
 		_e( 'Before getting started' );
 		?>
 </h1>
-<p><?php _e( 'Welcome to WordPress. Before getting started, you will need to know the following items.' ); ?></p>
+<p><?php _e( 'Welcome to WordPress. Before getting started, you will need to know whether you want to use a MySQL (default), or an SQLite database. If you choose to use MySQL, you will need to provide the following details:' ); ?></p>
 <ol>
 	<li><?php _e( 'Database name' ); ?></li>
 	<li><?php _e( 'Database username' ); ?></li>
@@ -221,17 +221,31 @@ switch ( $step ) {
 <form method="post" action="setup-config.php?step=2">
 	<p><?php _e( 'Below you should enter your database connection details. If you are not sure about these, contact your host.' ); ?></p>
 	<table class="form-table" role="presentation">
-		<tr>
+		<tr id="table-row-dbtype">
+			<th scope="row"><label for="dbtype"><?php _e( 'Database Engine' ); ?></label></th>
+			<td>
+				<div style="width:24ch;">
+					<input name="dbtype" id="dbtype-mysql" type="radio" value="mysql" aria-describedby="dbtype-desc" onclick="toggleDBType( this )" checked/>
+					<label for="dbtype-mysql"><?php _e( 'MySQL' ); ?></label>
+				</div>
+				<div style="width:24ch;">
+					<input name="dbtype" id="dbtype-sqlite" type="radio" value="sqlite" aria-describedby="dbtype-desc" onclick="toggleDBType( this )"/>
+					<label for="dbtype-sqlite"><?php _e( 'SQLite' ); ?></label>
+				</div>
+			</td>
+			<td id="dbtype-desc"><?php _e( 'The type of database to use. SQLite is more suitable to personal blogs and smaller sites, while MySQL will allow your site to scale and grow easier.' ); ?></td>
+		</tr>
+		<tr id="table-row-dbname">
 			<th scope="row"><label for="dbname"><?php _e( 'Database Name' ); ?></label></th>
 			<td><input name="dbname" id="dbname" type="text" aria-describedby="dbname-desc" size="25" placeholder="wordpress"<?php echo $autofocus; ?>/>
 			<p id="dbname-desc"><?php _e( 'The name of the database you want to use with WordPress.' ); ?></p></td>
 		</tr>
-		<tr>
+		<tr id="table-row-uname">
 			<th scope="row"><label for="uname"><?php _e( 'Username' ); ?></label></th>
 			<td><input name="uname" id="uname" type="text" aria-describedby="uname-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'username', 'example username' ), ENT_QUOTES ); ?>" />
 			<p id="uname-desc"><?php _e( 'Your database username.' ); ?></p></td>
 		</tr>
-		<tr>
+		<tr id="table-row-pwd">
 			<th scope="row"><label for="pwd"><?php _e( 'Password' ); ?></label></th>
 			<td>
 				<div class="wp-pwd">
@@ -244,7 +258,7 @@ switch ( $step ) {
 				<p id="pwd-desc"><?php _e( 'Your database password.' ); ?></p>
 			</td>
 		</tr>
-		<tr>
+		<tr id="table-row-dbhost">
 			<th scope="row"><label for="dbhost"><?php _e( 'Database Host' ); ?></label></th>
 			<td><input name="dbhost" id="dbhost" type="text" aria-describedby="dbhost-desc" size="25" value="localhost" />
 			<p id="dbhost-desc">
@@ -254,7 +268,7 @@ switch ( $step ) {
 			?>
 			</p></td>
 		</tr>
-		<tr>
+		<tr id="table-row-prefix">
 			<th scope="row"><label for="prefix"><?php _e( 'Table Prefix' ); ?></label></th>
 			<td><input name="prefix" id="prefix" type="text" aria-describedby="prefix-desc" value="wp_" size="25" />
 			<p id="prefix-desc"><?php _e( 'If you want to run multiple WordPress installations in a single database, change this.' ); ?></p></td>
@@ -267,6 +281,23 @@ switch ( $step ) {
 	<input type="hidden" name="language" value="<?php echo esc_attr( $language ); ?>" />
 	<p class="step"><input name="submit" type="submit" value="<?php echo htmlspecialchars( __( 'Submit' ), ENT_QUOTES ); ?>" class="button button-large" /></p>
 </form>
+<script>
+	window.toggleDBType = function( el ) {
+		if ( 'dbtype-sqlite' === el.id ) {
+			document.getElementById( 'table-row-dbname' ).style.display = 'none';
+			document.getElementById( 'table-row-uname' ).style.display = 'none';
+			document.getElementById( 'table-row-pwd' ).style.display = 'none';
+			document.getElementById( 'table-row-dbhost' ).style.display = 'none';
+			document.getElementById( 'table-row-prefix' ).style.display = 'none';
+		} else {
+			document.getElementById( 'table-row-dbname' ).style.display = 'table-row';
+			document.getElementById( 'table-row-uname' ).style.display = 'table-row';
+			document.getElementById( 'table-row-pwd' ).style.display = 'table-row';
+			document.getElementById( 'table-row-dbhost' ).style.display = 'table-row';
+			document.getElementById( 'table-row-prefix' ).style.display = 'table-row';
+		}
+	}
+</script>
 		<?php
 		wp_print_scripts( 'password-toggle' );
 		break;
@@ -275,6 +306,8 @@ switch ( $step ) {
 		load_default_textdomain( $language );
 		$GLOBALS['wp_locale'] = new WP_Locale();
 
+		$dbtype = trim( wp_unslash( $_POST['dbtype'] ) );
+		$dbtype = 'sqlite' === $dbtype ? 'sqlite' : 'mysql';
 		$dbname = trim( wp_unslash( $_POST['dbname'] ) );
 		$uname  = trim( wp_unslash( $_POST['uname'] ) );
 		$pwd    = trim( wp_unslash( $_POST['pwd'] ) );
@@ -306,37 +339,53 @@ switch ( $step ) {
 		}
 
 		// Test the DB connection.
-		/**#@+
-		 *
-		 * @ignore
-		 */
-		define( 'DB_NAME', $dbname );
-		define( 'DB_USER', $uname );
-		define( 'DB_PASSWORD', $pwd );
-		define( 'DB_HOST', $dbhost );
-		/**#@-*/
+		if ( 'mysql' === $dbtype ) {
+			/**#@+
+			 *
+			 * @ignore
+			 */
+			define( 'DATABASE_TYPE', $dbtype );
+			define( 'DB_NAME', $dbname );
+			define( 'DB_USER', $uname );
+			define( 'DB_PASSWORD', $pwd );
+			define( 'DB_HOST', $dbhost );
+			/**#@-*/
+		} else {
+			/**#@+
+			 *
+			 * @ignore
+			 */
+			define( 'DATABASE_TYPE', $dbtype );
+			define( 'DB_NAME', '' );
+			define( 'DB_USER', '' );
+			define( 'DB_PASSWORD', '' );
+			define( 'DB_HOST', '' );
+			/**#@-*/
+		}
 
 		// Re-construct $wpdb with these new values.
 		unset( $wpdb );
 		require_wp_db();
 
-		/*
-		* The wpdb constructor bails when WP_SETUP_CONFIG is set, so we must
-		* fire this manually. We'll fail here if the values are no good.
-		*/
-		$wpdb->db_connect();
+		if ( 'mysql' === $dbtype ) {
+			/*
+			* The wpdb constructor bails when WP_SETUP_CONFIG is set, so we must
+			* fire this manually. We'll fail here if the values are no good.
+			*/
+			$wpdb->db_connect();
 
-		if ( ! empty( $wpdb->error ) ) {
-			wp_die( $wpdb->error->get_error_message() . $tryagain_link );
-		}
+			if ( ! empty( $wpdb->error ) ) {
+				wp_die( $wpdb->error->get_error_message() . $tryagain_link );
+			}
 
-		$errors = $wpdb->suppress_errors();
-		$wpdb->query( "SELECT $prefix" );
-		$wpdb->suppress_errors( $errors );
+			$errors = $wpdb->suppress_errors();
+			$wpdb->query( "SELECT $prefix" );
+			$wpdb->suppress_errors( $errors );
 
-		if ( ! $wpdb->last_error ) {
-			// MySQL was able to parse the prefix as a value, which we don't want. Bail.
-			wp_die( __( '<strong>Error:</strong> "Table Prefix" is invalid.' ) );
+			if ( ! $wpdb->last_error ) {
+				// MySQL was able to parse the prefix as a value, which we don't want. Bail.
+				wp_die( __( '<strong>Error:</strong> "Table Prefix" is invalid.' ) );
+			}
 		}
 
 		// Generate keys and salts using secure CSPRNG; fallback to API if enabled; further fallback to original wp_generate_password().
@@ -385,6 +434,7 @@ switch ( $step ) {
 			$padding  = $match[2];
 
 			switch ( $constant ) {
+				case 'DATABASE_TYPE':
 				case 'DB_NAME':
 				case 'DB_USER':
 				case 'DB_PASSWORD':
