@@ -56,7 +56,13 @@ class WP_Widget_Text extends WP_Widget {
 		}
 		$this->registered = true;
 
-		wp_add_inline_script( 'text-widgets', sprintf( 'wp.textWidgets.idBases.push( %s );', wp_json_encode( $this->id_base ) ) );
+		$id_base = $this->id_base;
+		add_action(
+			'admin_print_scripts-widgets.php',
+			function () use ( $id_base ) {
+				wp_add_inline_script( 'text-widgets', sprintf( 'wp.textWidgets.idBases.push( %s );', wp_json_encode( $id_base ) ) );
+			}
+		);
 
 		if ( $this->is_preview() ) {
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_preview_scripts' ) );
