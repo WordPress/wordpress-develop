@@ -741,12 +741,12 @@ function list_authors($optioncount = false, $exclude_admin = true, $show_fullnam
  * @see wp_get_post_categories()
  *
  * @param int $blogid Not Used
- * @param int $post_ID
+ * @param int $post_id
  * @return array
  */
-function wp_get_post_cats($blogid = '1', $post_ID = 0) {
+function wp_get_post_cats($blogid = '1', $post_id = 0) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_get_post_categories()' );
-	return wp_get_post_categories($post_ID);
+	return wp_get_post_categories($post_id);
 }
 
 /**
@@ -758,13 +758,13 @@ function wp_get_post_cats($blogid = '1', $post_ID = 0) {
  * @see wp_set_post_categories()
  *
  * @param int $blogid Not used
- * @param int $post_ID
+ * @param int $post_id
  * @param array $post_categories
  * @return bool|mixed
  */
-function wp_set_post_cats($blogid = '1', $post_ID = 0, $post_categories = array()) {
+function wp_set_post_cats($blogid = '1', $post_id = 0, $post_categories = array()) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_set_post_categories()' );
-	return wp_set_post_categories($post_ID, $post_categories);
+	return wp_set_post_categories($post_id, $post_categories);
 }
 
 /**
@@ -1150,13 +1150,13 @@ function comments_rss_link($link_text = 'Comments RSS') {
  * @see get_category_feed_link()
  *
  * @param bool $display
- * @param int $cat_ID
+ * @param int $cat_id
  * @return string
  */
-function get_category_rss_link($display = false, $cat_ID = 1) {
+function get_category_rss_link($display = false, $cat_id = 1) {
 	_deprecated_function( __FUNCTION__, '2.5.0', 'get_category_feed_link()' );
 
-	$link = get_category_feed_link($cat_ID, 'rss2');
+	$link = get_category_feed_link($cat_id, 'rss2');
 
 	if ( $display )
 		echo $link;
@@ -1248,12 +1248,12 @@ function get_commentdata( $comment_id, $no_cache = 0, $include_unapproved = fals
  * @deprecated 2.8.0 Use get_cat_name()
  * @see get_cat_name()
  *
- * @param int $cat_ID Category ID
+ * @param int $cat_id Category ID
  * @return string category name
  */
-function get_catname( $cat_ID ) {
+function get_catname( $cat_id ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_cat_name()' );
-	return get_cat_name( $cat_ID );
+	return get_cat_name( $cat_id );
 }
 
 /**
@@ -4590,4 +4590,40 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 	}
 
 	return null;
+}
+
+/**
+ * Returns the correct template for the site's home page.
+ *
+ * @access private
+ * @since 6.0.0
+ * @deprecated 6.2.0 Site Editor's server-side redirect for missing postType and postId
+ *             		 query args is removed. Thus, this function is no longer used.
+ *
+ * @return array|null A template object, or null if none could be found.
+ */
+function _resolve_home_block_template() {
+	_deprecated_function( __FUNCTION__, '6.2.0' );
+
+	$show_on_front = get_option( 'show_on_front' );
+	$front_page_id = get_option( 'page_on_front' );
+
+	if ( 'page' === $show_on_front && $front_page_id ) {
+		return array(
+				'postType' => 'page',
+				'postId'   => $front_page_id,
+		);
+	}
+
+	$hierarchy = array( 'front-page', 'home', 'index' );
+	$template  = resolve_block_template( 'home', $hierarchy, '' );
+
+	if ( ! $template ) {
+		return null;
+	}
+
+	return array(
+			'postType' => 'wp_template',
+			'postId'   => $template->id,
+	);
 }
