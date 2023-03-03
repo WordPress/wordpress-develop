@@ -163,7 +163,13 @@ switch ( $step ) {
 		_e( 'Before getting started' );
 		?>
 </h1>
-<p><?php _e( 'Welcome to WordPress. Before getting started, you will need to know whether you want to use a MySQL (default), or an SQLite database. If you choose to use MySQL, you will need to provide the following details:' ); ?></p>
+<p>
+		<?php if ( class_exists( 'SQLite3' ) ) : ?>
+			<?php _e( 'Welcome to WordPress. Before getting started, you will need to know whether you want to use a MySQL (default), or an SQLite database. If you choose to use MySQL, you will need to provide the following details:' ); ?>
+		<?php else : ?>
+			<?php _e( 'Welcome to WordPress. Before getting started, you will need to know the following items.' ); ?>
+		<?php endif; ?>
+</p>
 <ol>
 	<li><?php _e( 'Database name' ); ?></li>
 	<li><?php _e( 'Database username' ); ?></li>
@@ -221,16 +227,18 @@ switch ( $step ) {
 <form method="post" action="setup-config.php?step=2">
 	<p><?php _e( 'Below you should enter your database connection details. If you are not sure about these, contact your host.' ); ?></p>
 	<table class="form-table" role="presentation">
-		<tr id="table-row-dbtype">
-			<th scope="row"><label for="dbtype"><?php _e( 'Database Engine' ); ?></label></th>
-			<td>
-				<select name="dbtype" id="dbtype" aria-describedby="dbtype-desc" onChange="window.selectDBType( this );" style="width:26ch;">
-					<option value="mysql" selected><?php _e( 'MySQL' ); ?></option>
-					<option value="sqlite"><?php _e( 'SQLite' ); ?></option>
-				</select>
-			</td>
-			<td id="dbtype-desc"><?php _e( 'The type of database to use. SQLite is more suitable to personal blogs and smaller sites, while MySQL will allow your site to scale and grow easier.' ); ?></td>
-		</tr>
+		<?php if ( class_exists( 'SQLite3' ) ) : ?>
+			<tr id="table-row-dbtype">
+				<th scope="row"><label for="dbtype"><?php _e( 'Database Engine' ); ?></label></th>
+				<td>
+					<select name="dbtype" id="dbtype" aria-describedby="dbtype-desc" onChange="window.selectDBType( this );" style="width:26ch;">
+						<option value="mysql" selected><?php _e( 'MySQL' ); ?></option>
+						<option value="sqlite"><?php _e( 'SQLite' ); ?></option>
+					</select>
+				</td>
+				<td id="dbtype-desc"><?php _e( 'The type of database to use. SQLite is more suitable to personal blogs and smaller sites, while MySQL will allow your site to scale and grow easier.' ); ?></td>
+			</tr>
+		<?php endif; ?>
 		<tr id="table-row-dbname">
 			<th scope="row"><label for="dbname"><?php _e( 'Database Name' ); ?></label></th>
 			<td><input name="dbname" id="dbname" type="text" aria-describedby="dbname-desc" size="25" placeholder="wordpress"<?php echo $autofocus; ?>/>
@@ -296,7 +304,8 @@ switch ( $step ) {
 		$GLOBALS['wp_locale'] = new WP_Locale();
 
 		$dbtype = trim( wp_unslash( $_POST['dbtype'] ) );
-		$dbtype = 'sqlite' === $dbtype ? 'sqlite' : 'mysql';
+		$dbtype = class_exists( 'SQLite3' ) && 'sqlite' === $dbtype ? 'sqlite' : 'mysql';
+
 		$dbname = trim( wp_unslash( $_POST['dbname'] ) );
 		$uname  = trim( wp_unslash( $_POST['uname'] ) );
 		$pwd    = trim( wp_unslash( $_POST['pwd'] ) );
