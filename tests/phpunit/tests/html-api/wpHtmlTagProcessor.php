@@ -459,6 +459,10 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 			'Did not stop at desired tag closer'
 		);
 		$this->assertTrue( $p->is_tag_closer(), 'Indicated a tag closer is a tag opener' );
+
+		$p = new WP_HTML_Tag_Processor( '<div>' );
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), "Did not find a tag opener when tag_closers was set to 'visit'" );
+		$this->assertFalse( $p->next_tag( array( 'tag_closers' => 'visit' ) ), "Found a closer where there wasn't one" );
 	}
 
 	/**
