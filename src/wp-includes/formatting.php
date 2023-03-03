@@ -2111,15 +2111,15 @@ function sanitize_file_name( $filename ) {
 /**
  * Sanitizes a username, stripping out unsafe characters.
  *
- * Removes tags, octets, entities, and if strict is enabled, will only keep
- * alphanumeric, _, space, ., -, @. After sanitizing, it passes the username,
- * raw username (the username in the parameter), and the value of $strict as
- * parameters for the {@see 'sanitize_user'} filter.
+ * Removes tags, percent-encoded characters, HTML entities, and if strict is enabled,
+ * will only keep alphanumeric, _, space, ., -, @. After sanitizing, it passes the username,
+ * raw username (the username in the parameter), and the value of $strict as parameters
+ * for the {@see 'sanitize_user'} filter.
  *
  * @since 2.0.0
  *
  * @param string $username The username to be sanitized.
- * @param bool   $strict   Optional. If set limits $username to specific characters.
+ * @param bool   $strict   Optional. If set to true, limits $username to specific characters.
  *                         Default false.
  * @return string The sanitized username, after passing through filters.
  */
@@ -2127,9 +2127,9 @@ function sanitize_user( $username, $strict = false ) {
 	$raw_username = $username;
 	$username     = wp_strip_all_tags( $username );
 	$username     = remove_accents( $username );
-	// Kill octets.
+	// Remove percent-encoded characters.
 	$username = preg_replace( '|%([a-fA-F0-9][a-fA-F0-9])|', '', $username );
-	// Kill entities.
+	// Remove HTML entities.
 	$username = preg_replace( '/&.+?;/', '', $username );
 
 	// If strict, reduce to ASCII for max portability.
@@ -2364,7 +2364,7 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 		$title = str_replace( '%c3%97', 'x', $title );
 	}
 
-	// Kill entities.
+	// Remove HTML entities.
 	$title = preg_replace( '/&.+?;/', '', $title );
 	$title = str_replace( '.', '-', $title );
 
@@ -2412,7 +2412,7 @@ function sanitize_sql_orderby( $orderby ) {
  * @return string The sanitized value.
  */
 function sanitize_html_class( $classname, $fallback = '' ) {
-	// Strip out any %-encoded octets.
+	// Strip out any percent-encoded characters.
 	$sanitized = preg_replace( '|%[a-fA-F0-9][a-fA-F0-9]|', '', $classname );
 
 	// Limit to A-Z, a-z, 0-9, '_', '-'.
@@ -2917,24 +2917,9 @@ function _make_url_clickable_cb( $matches ) {
 		return $matches[0];
 	}
 
-	if ( 'comment_text' === current_filter() ) {
-		$rel = 'nofollow ugc';
-	} else {
-		$rel = 'nofollow';
-	}
+	$rel_attr = _make_clickable_rel_attr( $url );
+	return $matches[1] . "<a href=\"$url\"$rel_attr>$url</a>" . $suffix;
 
-	/**
-	 * Filters the rel value that is added to URL matches converted to links.
-	 *
-	 * @since 5.3.0
-	 *
-	 * @param string $rel The rel value.
-	 * @param string $url The matched URL being converted to a link tag.
-	 */
-	$rel = apply_filters( 'make_clickable_rel', $rel, $url );
-	$rel = esc_attr( $rel );
-
-	return $matches[1] . "<a href=\"$url\" rel=\"$rel\">$url</a>" . $suffix;
 }
 
 /**
@@ -2965,17 +2950,8 @@ function _make_web_ftp_clickable_cb( $matches ) {
 		return $matches[0];
 	}
 
-	if ( 'comment_text' === current_filter() ) {
-		$rel = 'nofollow ugc';
-	} else {
-		$rel = 'nofollow';
-	}
-
-	/** This filter is documented in wp-includes/formatting.php */
-	$rel = apply_filters( 'make_clickable_rel', $rel, $dest );
-	$rel = esc_attr( $rel );
-
-	return $matches[1] . "<a href=\"$dest\" rel=\"$rel\">$dest</a>$ret";
+	$rel_attr = _make_clickable_rel_attr( $dest );
+	return $matches[1] . "<a href='{$dest}'{$rel_attr}>{$dest}</a>{$ret}";
 }
 
 /**
@@ -2992,6 +2968,48 @@ function _make_web_ftp_clickable_cb( $matches ) {
 function _make_email_clickable_cb( $matches ) {
 	$email = $matches[2] . '@' . $matches[3];
 	return $matches[1] . "<a href=\"mailto:$email\">$email</a>";
+}
+
+/**
+ * Helper function used to build the "rel" attribute for a URL when creating an anchor using make_clickable().
+ *
+ * @since 6.2.0
+ *
+ * @param string $url The URL.
+ * @return string The rel attribute for the anchor or an empty string if no rel attribute should be added.
+ */
+function _make_clickable_rel_attr( $url ) {
+
+	$rel_parts        = array();
+	$scheme           = strtolower( wp_parse_url( $url, PHP_URL_SCHEME ) );
+	$nofollow_schemes = array_intersect( wp_allowed_protocols(), array( 'https', 'http' ) );
+
+	// Apply "nofollow" to external links with qualifying URL schemes (mailto:, tel:, etc... shouldn't be followed).
+	if ( ! wp_is_internal_link( $url ) && in_array( $scheme, $nofollow_schemes, true ) ) {
+		$rel_parts[] = 'nofollow';
+	}
+
+	// Apply "ugc" when in comment context.
+	if ( 'comment_text' === current_filter() ) {
+		$rel_parts[] = 'ugc';
+	}
+
+	$rel = implode( ' ', $rel_parts );
+
+	/**
+	 * Filters the rel value that is added to URL matches converted to links.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param string $rel The rel value.
+	 * @param string $url The matched URL being converted to a link tag.
+	 */
+	$rel = apply_filters( 'make_clickable_rel', $rel, $url );
+
+	$rel_attr = $rel ? ' rel="' . esc_attr( $rel ) . '"' : '';
+
+	return $rel_attr;
+
 }
 
 /**
@@ -3137,12 +3155,8 @@ function wp_rel_callback( $matches, $rel ) {
 	$text = $matches[1];
 	$atts = wp_kses_hair( $matches[1], wp_allowed_protocols() );
 
-	if ( ! empty( $atts['href'] ) ) {
-		if ( in_array( strtolower( wp_parse_url( $atts['href']['value'], PHP_URL_SCHEME ) ), array( 'http', 'https' ), true ) ) {
-			if ( strtolower( wp_parse_url( $atts['href']['value'], PHP_URL_HOST ) ) === strtolower( wp_parse_url( home_url(), PHP_URL_HOST ) ) ) {
-				return "<a $text>";
-			}
-		}
+	if ( ! empty( $atts['href'] ) && wp_is_internal_link( $atts['href']['value'] ) ) {
+		$rel = trim( str_replace( 'nofollow', '', $rel ) );
 	}
 
 	if ( ! empty( $atts['rel'] ) ) {
@@ -3162,7 +3176,10 @@ function wp_rel_callback( $matches, $rel ) {
 		}
 		$text = trim( $html );
 	}
-	return "<a $text rel=\"" . esc_attr( $rel ) . '">';
+
+	$rel_attr = $rel ? ' rel="' . esc_attr( $rel ) . '"' : '';
+
+	return "<a {$text}{$rel_attr}>";
 }
 
 /**
@@ -4946,7 +4963,7 @@ function sanitize_option( $option, $value ) {
 				$error = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'A structure tag is required when using custom permalinks. <a href="%s">Learn more</a>' ),
-					__( 'https://wordpress.org/support/article/using-permalinks/#choosing-your-permalink-structure' )
+					__( 'https://wordpress.org/documentation/article/customize-permalinks/#choosing-your-permalink-structure' )
 				);
 			}
 			break;
@@ -5433,7 +5450,7 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
  * - Converts single `<` characters to entities
  * - Strips all tags
  * - Removes line breaks, tabs, and extra whitespace
- * - Strips octets
+ * - Strips percent-encoded characters
  *
  * @since 2.9.0
  *
@@ -5510,8 +5527,10 @@ function _sanitize_text_fields( $str, $keep_newlines = false ) {
 		// This will strip extra whitespace for us.
 		$filtered = wp_strip_all_tags( $filtered, false );
 
-		// Use HTML entities in a special case to make sure no later
-		// newline stripping stage could lead to a functional tag.
+		/*
+		 * Use HTML entities in a special case to make sure that
+		 * later newline stripping stages cannot lead to a functional tag.
+		 */
 		$filtered = str_replace( "<\n", "&lt;\n", $filtered );
 	}
 
@@ -5520,6 +5539,7 @@ function _sanitize_text_fields( $str, $keep_newlines = false ) {
 	}
 	$filtered = trim( $filtered );
 
+	// Remove percent-encoded characters.
 	$found = false;
 	while ( preg_match( '/%[a-f0-9]{2}/i', $filtered, $match ) ) {
 		$filtered = str_replace( $match[0], '', $filtered );
@@ -5527,7 +5547,7 @@ function _sanitize_text_fields( $str, $keep_newlines = false ) {
 	}
 
 	if ( $found ) {
-		// Strip out the whitespace that may now exist after removing the octets.
+		// Strip out the whitespace that may now exist after removing percent-encoded characters.
 		$filtered = trim( preg_replace( '/ +/', ' ', $filtered ) );
 	}
 

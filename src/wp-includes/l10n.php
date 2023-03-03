@@ -1807,6 +1807,12 @@ function translate_settings_using_i18n_schema( $i18n_schema, $settings, $textdom
 function wp_get_list_item_separator() {
 	global $wp_locale;
 
+	if ( ! ( $wp_locale instanceof WP_Locale ) ) {
+		// Default value of WP_Locale::get_list_item_separator().
+		/* translators: Used between list items, there is a space after the comma. */
+		return __( ', ' );
+	}
+
 	return $wp_locale->get_list_item_separator();
 }
 
@@ -1817,10 +1823,16 @@ function wp_get_list_item_separator() {
  *
  * @global WP_Locale $wp_locale WordPress date and time locale object.
  *
- * @return string Locale-specific word count type.
+ * @return string Locale-specific word count type. Possible values are `characters_excluding_spaces`,
+ *                `characters_including_spaces`, or `words`. Defaults to `words`.
  */
 function wp_get_word_count_type() {
 	global $wp_locale;
+
+	if ( ! ( $wp_locale instanceof WP_Locale ) ) {
+		// Default value of WP_Locale::get_word_count_type().
+		return 'words';
+	}
 
 	return $wp_locale->get_word_count_type();
 }

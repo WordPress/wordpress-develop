@@ -118,8 +118,8 @@ function twentyeleven_theme_options_help() {
 			'<p>' . __( 'Remember to click "Save Changes" to save any changes you have made to the theme options.', 'twentyeleven' ) . '</p>';
 
 	$sidebar = '<p><strong>' . __( 'For more information:', 'twentyeleven' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/article/appearance-customize-screen/" target="_blank">Documentation on Theme Options</a>', 'twentyeleven' ) . '</p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/" target="_blank">Support</a>', 'twentyeleven' ) . '</p>';
+		'<p>' . __( '<a href="https://wordpress.org/documentation/article/customizer/" target="_blank">Documentation on Theme Customization</a>', 'twentyeleven' ) . '</p>' .
+		'<p>' . __( '<a href="https://wordpress.org/support/forums/" target="_blank">Support forums</a>', 'twentyeleven' ) . '</p>';
 
 	$screen = get_current_screen();
 
@@ -446,7 +446,7 @@ function twentyeleven_print_link_color_style() {
 	$default_options = twentyeleven_get_default_theme_options();
 
 	// Don't do anything if the current link color is the default.
-	if ( $default_options['link_color'] == $link_color ) {
+	if ( $default_options['link_color'] === $link_color ) {
 		return;
 	}
 	?>

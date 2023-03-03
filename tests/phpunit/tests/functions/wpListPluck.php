@@ -11,7 +11,18 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	public $array_list  = array();
 
 	public function set_up() {
-		parent::set_up();
+		/*
+		 * This method deliberately does not call parent::set_up(). Why?
+		 *
+		 * The call stack for WP_UnitTestCase_Base::set_up() includes a call to
+		 * WP_List_Util::pluck(), which creates an inaccurate coverage report
+		 * for this method.
+		 *
+		 * To ensure that deprecation and incorrect usage notices continue to be
+		 * detectable, this method uses WP_UnitTestCase_Base::expectDeprecated().
+		 */
+		$this->expectDeprecated();
+
 		$this->array_list['foo'] = array(
 			'name'   => 'foo',
 			'id'     => 'f',
