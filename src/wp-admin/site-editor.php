@@ -28,25 +28,8 @@ if ( ! wp_is_block_theme() && ! $is_template_part_editor ) {
 	wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
 }
 
-/**
- * Do a server-side redirection if missing `postType` and `postId`
- * query args when visiting Site Editor.
- */
-$home_template = _resolve_home_block_template();
-if ( $home_template && empty( $_GET['postType'] ) && empty( $_GET['postId'] ) ) {
-	if ( ! empty( $_GET['styles'] ) ) {
-		$home_template['styles'] = sanitize_key( $_GET['styles'] );
-	}
-	$redirect_url = add_query_arg(
-		$home_template,
-		admin_url( 'site-editor.php' )
-	);
-	wp_safe_redirect( $redirect_url );
-	exit;
-}
-
 // Used in the HTML title tag.
-$title       = __( 'Editor (beta)' );
+$title       = _x( 'Editor', 'site editor title tag' );
 $parent_file = 'themes.php';
 
 // Flag that we're loading the block editor.
@@ -74,18 +57,9 @@ $custom_settings      = array(
 	'styles'                    => get_block_editor_theme_styles(),
 	'defaultTemplateTypes'      => $indexed_template_types,
 	'defaultTemplatePartAreas'  => get_allowed_block_template_part_areas(),
-	'supportsLayout'            => WP_Theme_JSON_Resolver::theme_has_support(),
+	'supportsLayout'            => wp_theme_has_theme_json(),
 	'supportsTemplatePartsMode' => ! wp_is_block_theme() && current_theme_supports( 'block-template-parts' ),
-	'__unstableHomeTemplate'    => $home_template,
 );
-
-/**
- * Home template resolution is not needed when block template parts are supported.
- * Set the value to `true` to satisfy the editor initialization guard clause.
- */
-if ( $custom_settings['supportsTemplatePartsMode'] ) {
-	$custom_settings['__unstableHomeTemplate'] = true;
-}
 
 // Add additional back-compat patterns registered by `current_screen` et al.
 $custom_settings['__experimentalAdditionalBlockPatterns']          = WP_Block_Patterns_Registry::get_instance()->get_all_registered( true );
@@ -146,7 +120,7 @@ wp_enqueue_style( 'wp-format-library' );
 wp_enqueue_media();
 
 if (
-	current_theme_supports( 'wp-block-styles' ) ||
+	current_theme_supports( 'wp-block-styles' ) &&
 	( ! is_array( $editor_styles ) || count( $editor_styles ) === 0 )
 ) {
 	wp_enqueue_style( 'wp-block-library-theme' );

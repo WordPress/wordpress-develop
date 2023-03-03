@@ -265,8 +265,8 @@ function core_upgrade_preamble() {
 		printf(
 			/* translators: 1: Documentation on WordPress backups, 2: Documentation on updating WordPress. */
 			__( '<strong>Important:</strong> Before updating, please <a href="%1$s">back up your database and files</a>. For help with updates, visit the <a href="%2$s">Updating WordPress</a> documentation page.' ),
-			__( 'https://wordpress.org/support/article/wordpress-backups/' ),
-			__( 'https://wordpress.org/support/article/updating-wordpress/' )
+			__( 'https://wordpress.org/documentation/article/wordpress-backups/' ),
+			__( 'https://wordpress.org/documentation/article/updating-wordpress/' )
 		);
 		echo '</p></div>';
 	} elseif ( $is_development_version ) {
@@ -574,7 +574,7 @@ function list_plugin_updates() {
 				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $plugin_file ); ?>" />
 				<label for="<?php echo $checkbox_id; ?>" class="screen-reader-text">
 					<?php
-					/* translators: %s: Plugin name. */
+					/* translators: Hidden accessibility text. %s: Plugin name. */
 					printf( __( 'Select %s' ), $plugin_data->Name );
 					?>
 				</label>
@@ -748,7 +748,7 @@ function list_theme_updates() {
 				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $stylesheet ); ?>" />
 				<label for="<?php echo $checkbox_id; ?>" class="screen-reader-text">
 					<?php
-					/* translators: %s: Theme name. */
+					/* translators: Hidden accessibility text. %s: Theme name. */
 					printf( __( 'Select %s' ), $theme->display( 'Name' ) );
 					?>
 				</label>
@@ -1008,14 +1008,14 @@ if ( ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type
 		)
 	);
 
-	$help_sidebar_autoupdates = '<p>' . __( '<a href="https://wordpress.org/support/article/plugins-themes-auto-updates/">Documentation on Auto-updates</a>' ) . '</p>';
+	$help_sidebar_autoupdates = '<p>' . __( '<a href="https://wordpress.org/documentation/article/plugins-themes-auto-updates/">Documentation on Auto-updates</a>' ) . '</p>';
 }
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/dashboard-updates-screen/">Documentation on Updating WordPress</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/dashboard-updates-screen/">Documentation on Updating WordPress</a>' ) . '</p>' .
 	$help_sidebar_autoupdates .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 if ( 'upgrade-core' === $action ) {
