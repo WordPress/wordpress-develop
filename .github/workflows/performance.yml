@@ -38,21 +38,21 @@ jobs:
   # Runs the performance test suite.
   #
   # Performs the following steps:
-  # - Sets environment variables.
-  # - Checks out the repository.
-  # - Sets up Node.js.
+  # - Configure environment variables.
+  # - Checkout repository.
+  # - Set up Node.js.
   # - Log debug information.
-  # - Installs npm dependencies.
-  # - Builds WordPress to run from the `build` directory.
-  # - Starts the WordPress Docker container.
-  # - Logs the running Docker containers.
-  # - Logs Docker debug info.
-  # - Installs WordPress.
-  # - Installs the Server Timing MU plugin.
+  # - Install npm dependencies.
+  # - Build WordPress.
+  # - Start Docker environment.
+  # - Log running Docker containers.
+  # - Docker debug information.
+  # - Install WordPress.
   # - Install WordPress Importer plugin.
   # - Import mock data.
   # - Update permalink structure.
-  # - Run the performance tests (current commit).
+  # - Install MU plugin.
+  # - Run performance tests (current commit).
   # - Print performance tests results.
   # - Set the environment to the baseline version.
   # - Run baseline performance tests.
@@ -60,7 +60,8 @@ jobs:
   # - Set the base sha.
   # - Set commit details.
   # - Publish performance results.
-  # - Ensures version-controlled files are not modified or deleted.
+  # - Ensure version-controlled files are not modified or deleted.
+  # - Dispatch workflow run.
   performance:
     name: Run performance tests
     runs-on: ubuntu-latest
