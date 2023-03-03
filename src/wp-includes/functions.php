@@ -7022,7 +7022,7 @@ function _get_non_cached_ids( $object_ids, $cache_key ) {
  * Both `16` and `"16"` are considered valid, other numeric types and numeric
  * strings (`16.3` and `"16.3"`) are considered invalid.
  *
- * @since n.e.x.t
+ * @since 6.3.0
  *
  * @param mixed $object_id The cache id to validate.
  * @return bool Whether the given $object_id is a valid cache id.
@@ -7036,7 +7036,7 @@ function _validate_cache_id( $object_id ) {
 
 	/* translators: %s: The type of the given object id. */
 	$message = sprintf( __( 'Object id must be integer, %s given.' ), gettype( $object_id ) );
-	_doing_it_wrong( '_get_non_cached_ids', $message, 'n.e.x.t' );
+	_doing_it_wrong( '_get_non_cached_ids', $message, '6.3.0' );
 
 	return false;
 }
