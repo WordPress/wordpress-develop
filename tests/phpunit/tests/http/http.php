@@ -9,6 +9,9 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	const FULL_TEST_URL = 'http://username:password@host.name:9090/path?arg1=value1&arg2=value2#anchor';
 
 	/**
+	 * @ticket 20434
+	 * @ticket 56231
+	 *
 	 * @dataProvider make_absolute_url_testcases
 	 *
 	 * @covers WP_Http::make_absolute_url
@@ -66,6 +69,13 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 			// Schemeless URL's (not valid in HTTP Headers, but may be used elsewhere).
 			array( '//example.com/sub/', 'https://example.net', 'https://example.com/sub/' ),
+
+			// URLs with fragments.
+			array( '/path#frag', 'http://example.org/', 'http://example.org/path#frag' ),
+			array( '/path/#frag', 'http://example.org/', 'http://example.org/path/#frag' ),
+			array( '/path#frag&ment=1', 'http://example.org/', 'http://example.org/path#frag&ment=1' ),
+			array( '/path?query=string#frag', 'http://example.org/', 'http://example.org/path?query=string#frag' ),
+			array( '/path?query=string%23frag', 'http://example.org/', 'http://example.org/path?query=string%23frag' ),
 		);
 	}
 
@@ -309,13 +319,13 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInstanceOf( 'Requests_Cookie_Jar', $cookie_jar );
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie\Jar', $cookie_jar );
 
 		foreach ( array_keys( $cookies ) as $cookie ) {
 			if ( 'foo' === $cookie ) {
 				$this->assertArrayNotHasKey( $cookie, $cookie_jar );
 			} else {
-				$this->assertInstanceOf( 'Requests_Cookie', $cookie_jar[ $cookie ] );
+				$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar[ $cookie ] );
 			}
 		}
 	}
@@ -566,5 +576,90 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 	public function callback_remove_safe_ports( $ports ) {
 		return array();
+	}
+
+	/**
+	 * Test HTTP Redirects with multiple Location headers specified.
+	 *
+	 * Ensure the WP_HTTP::handle_redirects() method handles multiple Location headers
+	 * and the HTTP request it makes uses the last Location header.
+	 *
+	 * @ticket 16890
+	 * @ticket 57306
+	 *
+	 * @covers WP_HTTP::handle_redirects
+	 */
+	public function test_multiple_location_headers() {
+		$pre_http_request_filter_has_run = false;
+		// Filter the response made by WP_HTTP::handle_redirects().
+		add_filter(
+			'pre_http_request',
+			function( $response, $parsed_args, $url ) use ( &$pre_http_request_filter_has_run ) {
+				$pre_http_request_filter_has_run = true;
+
+				// Assert the redirect URL is correct.
+				$this->assertSame(
+					$url,
+					'http://example.com/?multiple-location-headers=1&redirected=two'
+				);
+
+				if ( 'http://example.com/?multiple-location-headers=1&redirected=two' === $url ) {
+					$body = 'PASS';
+				} else {
+					$body = 'FAIL';
+				}
+
+				return array(
+					'headers'  => array(),
+					'body'     => $body,
+					'response' => array(
+						'code'    => 200,
+						'message' => 'OK',
+					),
+					'cookies'  => array(),
+					'filename' => null,
+				);
+			},
+			10,
+			3
+		);
+
+		$headers = array(
+			'server'       => 'nginx',
+			'date'         => 'Sun, 11 Dec 2022 23:11:22 GMT',
+			'content-type' => 'text/html; charset=utf-8',
+			'location'     => array(
+				'http://example.com/?multiple-location-headers=1&redirected=one',
+				'http://example.com/?multiple-location-headers=1&redirected=two',
+			),
+		);
+
+		// Test the tests: ensure multiple locations are passed to WP_HTTP::handle_redirects().
+		$this->assertIsArray( $headers['location'], 'Location header is expected to be an array.' );
+		$this->assertCount( 2, $headers['location'], 'Location header is expected to contain two values.' );
+
+		$args = array(
+			'timeout'      => 30,
+			'_redirection' => 3,
+			'redirection'  => 2,
+			'method'       => 'GET',
+		);
+
+		$redirect_response = WP_HTTP::handle_redirects(
+			'http://example.com/?multiple-location-headers=1',
+			$args,
+			array(
+				'headers'  => $headers,
+				'body'     => '',
+				'cookies'  => array(),
+				'filename' => null,
+				'response' => array(
+					'code'    => 302,
+					'message' => 'Found',
+				),
+			)
+		);
+		$this->assertSame( 'PASS', wp_remote_retrieve_body( $redirect_response ), 'Redirect response body is expected to be PASS.' );
+		$this->assertTrue( $pre_http_request_filter_has_run, 'The pre_http_request filter is expected to run.' );
 	}
 }

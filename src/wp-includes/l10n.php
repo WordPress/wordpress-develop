@@ -176,7 +176,7 @@ function determine_locale() {
  * *Note:* Don't use translate() directly, use __() or related functions.
  *
  * @since 2.2.0
- * @since 5.5.0 Introduced gettext-{$domain} filter.
+ * @since 5.5.0 Introduced `gettext-{$domain}` filter.
  *
  * @param string $text   Text to translate.
  * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
@@ -222,15 +222,15 @@ function translate( $text, $domain = 'default' ) {
  *
  * @since 2.8.0
  *
- * @param string $string A pipe-delimited string.
- * @return string Either $string or everything before the last pipe.
+ * @param string $text A pipe-delimited string.
+ * @return string Either $text or everything before the last pipe.
  */
-function before_last_bar( $string ) {
-	$last_bar = strrpos( $string, '|' );
+function before_last_bar( $text ) {
+	$last_bar = strrpos( $text, '|' );
 	if ( false === $last_bar ) {
-		return $string;
+		return $text;
 	} else {
-		return substr( $string, 0, $last_bar );
+		return substr( $text, 0, $last_bar );
 	}
 }
 
@@ -242,7 +242,7 @@ function before_last_bar( $string ) {
  * *Note:* Don't use translate_with_gettext_context() directly, use _x() or related functions.
  *
  * @since 2.8.0
- * @since 5.5.0 Introduced gettext_with_context-{$domain} filter.
+ * @since 5.5.0 Introduced `gettext_with_context-{$domain}` filter.
  *
  * @param string $text    Text to translate.
  * @param string $context Context information for the translators.
@@ -463,7 +463,7 @@ function esc_html_x( $text, $context, $domain = 'default' ) {
  *     printf( _n( '%s person', '%s people', $count, 'text-domain' ), number_format_i18n( $count ) );
  *
  * @since 2.8.0
- * @since 5.5.0 Introduced ngettext-{$domain} filter.
+ * @since 5.5.0 Introduced `ngettext-{$domain}` filter.
  *
  * @param string $single The text to be used if the number is singular.
  * @param string $plural The text to be used if the number is plural.
@@ -521,7 +521,7 @@ function _n( $single, $plural, $number, $domain = 'default' ) {
  *     printf( _nx( '%s group', '%s groups', $animals, 'group of animals', 'text-domain' ), number_format_i18n( $animals ) );
  *
  * @since 2.8.0
- * @since 5.5.0 Introduced ngettext_with_context-{$domain} filter.
+ * @since 5.5.0 Introduced `ngettext_with_context-{$domain}` filter.
  *
  * @param string $single  The text to be used if the number is singular.
  * @param string $plural  The text to be used if the number is plural.
@@ -725,12 +725,14 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	 * Filters whether to override the .mo file loading.
 	 *
 	 * @since 2.9.0
+	 * @since 6.2.0 Added the `$locale` parameter.
 	 *
-	 * @param bool   $override Whether to override the .mo file loading. Default false.
-	 * @param string $domain   Text domain. Unique identifier for retrieving translated strings.
-	 * @param string $mofile   Path to the MO file.
+	 * @param bool        $override Whether to override the .mo file loading. Default false.
+	 * @param string      $domain   Text domain. Unique identifier for retrieving translated strings.
+	 * @param string      $mofile   Path to the MO file.
+	 * @param string|null $locale   Locale.
 	 */
-	$plugin_override = apply_filters( 'override_load_textdomain', false, $domain, $mofile );
+	$plugin_override = apply_filters( 'override_load_textdomain', false, $domain, $mofile, $locale );
 
 	if ( true === (bool) $plugin_override ) {
 		unset( $l10n_unloaded[ $domain ] );
@@ -1022,9 +1024,9 @@ function load_theme_textdomain( $domain, $path = false ) {
 }
 
 /**
- * Loads the child themes translated strings.
+ * Loads the child theme's translated strings.
  *
- * If the current locale exists as a .mo file in the child themes
+ * If the current locale exists as a .mo file in the child theme's
  * root directory, it will be included in the translated strings by the $domain.
  *
  * The .mo files must be named based on the locale exactly.
@@ -1306,7 +1308,7 @@ function get_translations_for_domain( $domain ) {
 
 	static $noop_translations = null;
 	if ( null === $noop_translations ) {
-		$noop_translations = new NOOP_Translations;
+		$noop_translations = new NOOP_Translations();
 	}
 
 	return $noop_translations;
@@ -1361,7 +1363,8 @@ function translate_user_role( $name, $domain = 'default' ) {
  *
  * @param string $dir A directory to search for language files.
  *                    Default WP_LANG_DIR.
- * @return string[] An array of language codes or an empty array if no languages are present. Language codes are formed by stripping the .mo extension from the language file names.
+ * @return string[] An array of language codes or an empty array if no languages are present.
+ *                  Language codes are formed by stripping the .mo extension from the language file names.
  */
 function get_available_languages( $dir = null ) {
 	$languages = array();
@@ -1664,7 +1667,32 @@ function switch_to_locale( $locale ) {
 	/* @var WP_Locale_Switcher $wp_locale_switcher */
 	global $wp_locale_switcher;
 
+	if ( ! $wp_locale_switcher ) {
+		return false;
+	}
+
 	return $wp_locale_switcher->switch_to_locale( $locale );
+}
+
+/**
+ * Switches the translations according to the given user's locale.
+ *
+ * @since 6.2.0
+ *
+ * @global WP_Locale_Switcher $wp_locale_switcher WordPress locale switcher object.
+ *
+ * @param int $user_id User ID.
+ * @return bool True on success, false on failure.
+ */
+function switch_to_user_locale( $user_id ) {
+	/* @var WP_Locale_Switcher $wp_locale_switcher */
+	global $wp_locale_switcher;
+
+	if ( ! $wp_locale_switcher ) {
+		return false;
+	}
+
+	return $wp_locale_switcher->switch_to_user_locale( $user_id );
 }
 
 /**
@@ -1679,6 +1707,10 @@ function switch_to_locale( $locale ) {
 function restore_previous_locale() {
 	/* @var WP_Locale_Switcher $wp_locale_switcher */
 	global $wp_locale_switcher;
+
+	if ( ! $wp_locale_switcher ) {
+		return false;
+	}
 
 	return $wp_locale_switcher->restore_previous_locale();
 }
@@ -1695,6 +1727,10 @@ function restore_previous_locale() {
 function restore_current_locale() {
 	/* @var WP_Locale_Switcher $wp_locale_switcher */
 	global $wp_locale_switcher;
+
+	if ( ! $wp_locale_switcher ) {
+		return false;
+	}
 
 	return $wp_locale_switcher->restore_current_locale();
 }
@@ -1771,5 +1807,32 @@ function translate_settings_using_i18n_schema( $i18n_schema, $settings, $textdom
 function wp_get_list_item_separator() {
 	global $wp_locale;
 
+	if ( ! ( $wp_locale instanceof WP_Locale ) ) {
+		// Default value of WP_Locale::get_list_item_separator().
+		/* translators: Used between list items, there is a space after the comma. */
+		return __( ', ' );
+	}
+
 	return $wp_locale->get_list_item_separator();
+}
+
+/**
+ * Retrieves the word count type based on the locale.
+ *
+ * @since 6.2.0
+ *
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
+ *
+ * @return string Locale-specific word count type. Possible values are `characters_excluding_spaces`,
+ *                `characters_including_spaces`, or `words`. Defaults to `words`.
+ */
+function wp_get_word_count_type() {
+	global $wp_locale;
+
+	if ( ! ( $wp_locale instanceof WP_Locale ) ) {
+		// Default value of WP_Locale::get_word_count_type().
+		return 'words';
+	}
+
+	return $wp_locale->get_word_count_type();
 }

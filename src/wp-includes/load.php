@@ -149,23 +149,43 @@ function wp_check_php_mysql_versions() {
 		$protocol = wp_get_server_protocol();
 		header( sprintf( '%s 500 Internal Server Error', $protocol ), true, 500 );
 		header( 'Content-Type: text/html; charset=utf-8' );
-		printf( 'Your server is running PHP version %1$s but WordPress %2$s requires at least %3$s.', $php_version, $wp_version, $required_php_version );
+		printf(
+			'Your server is running PHP version %1$s but WordPress %2$s requires at least %3$s.',
+			$php_version,
+			$wp_version,
+			$required_php_version
+		);
 		exit( 1 );
 	}
 
-	if ( ! extension_loaded( 'mysql' ) && ! extension_loaded( 'mysqli' ) && ! extension_loaded( 'mysqlnd' )
+	if ( ! function_exists( 'mysqli_connect' ) && ! function_exists( 'mysql_connect' )
 		// This runs before default constants are defined, so we can't assume WP_CONTENT_DIR is set yet.
 		&& ( defined( 'WP_CONTENT_DIR' ) && ! file_exists( WP_CONTENT_DIR . '/db.php' )
 			|| ! file_exists( ABSPATH . 'wp-content/db.php' ) )
 	) {
 		require_once ABSPATH . WPINC . '/functions.php';
 		wp_load_translations_early();
+
+		$message = '<p>' . __( 'Your PHP installation appears to be missing the MySQL extension which is required by WordPress.' ) . "</p>\n";
+
+		$message .= '<p>' . sprintf(
+			/* translators: %s: mysqli. */
+			__( 'Please check that the %s PHP extension is installed and enabled.' ),
+			'<code>mysqli</code>'
+		) . "</p>\n";
+
+		$message .= '<p>' . sprintf(
+			/* translators: %s: Support forums URL. */
+			__( 'If you are unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress support forums</a>.' ),
+			__( 'https://wordpress.org/support/forums/' )
+		) . "</p>\n";
+
 		$args = array(
 			'exit' => false,
 			'code' => 'mysql_not_found',
 		);
 		wp_die(
-			__( 'Your PHP installation appears to be missing the MySQL extension which is required by WordPress.' ),
+			$message,
 			__( 'Requirements Not Met' ),
 			$args
 		);
@@ -753,7 +773,7 @@ function wp_start_object_cache() {
 			)
 		);
 
-		wp_cache_add_non_persistent_groups( array( 'counts', 'plugins' ) );
+		wp_cache_add_non_persistent_groups( array( 'counts', 'plugins', 'theme_json' ) );
 	}
 
 	$first_init = false;
@@ -1132,12 +1152,12 @@ function shutdown_action_hook() {
  * @since 2.7.0
  * @deprecated 3.2.0
  *
- * @param object $object The object to clone.
+ * @param object $input_object The object to clone.
  * @return object The cloned object.
  */
-function wp_clone( $object ) {
+function wp_clone( $input_object ) {
 	// Use parens for clone to accommodate PHP 4. See #17880.
-	return clone( $object );
+	return clone( $input_object );
 }
 
 /**
@@ -1321,10 +1341,11 @@ function get_current_network_id() {
  * @since 3.4.0
  * @access private
  *
- * @global WP_Locale $wp_locale WordPress date and time locale object.
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ * @global WP_Locale              $wp_locale              WordPress date and time locale object.
  */
 function wp_load_translations_early() {
-	global $wp_locale;
+	global $wp_textdomain_registry, $wp_locale;
 
 	static $loaded = false;
 	if ( $loaded ) {
@@ -1342,6 +1363,7 @@ function wp_load_translations_early() {
 	// Translation and localization.
 	require_once ABSPATH . WPINC . '/pomo/mo.php';
 	require_once ABSPATH . WPINC . '/l10n.php';
+	require_once ABSPATH . WPINC . '/class-wp-textdomain-registry.php';
 	require_once ABSPATH . WPINC . '/class-wp-locale.php';
 	require_once ABSPATH . WPINC . '/class-wp-locale-switcher.php';
 
@@ -1350,6 +1372,10 @@ function wp_load_translations_early() {
 
 	$locales   = array();
 	$locations = array();
+
+	if ( ! $wp_textdomain_registry instanceof WP_Textdomain_Registry ) {
+		$wp_textdomain_registry = new WP_Textdomain_Registry();
+	}
 
 	while ( true ) {
 		if ( defined( 'WPLANG' ) ) {
@@ -1392,9 +1418,9 @@ function wp_load_translations_early() {
 		foreach ( $locales as $locale ) {
 			foreach ( $locations as $location ) {
 				if ( file_exists( $location . '/' . $locale . '.mo' ) ) {
-					load_textdomain( 'default', $location . '/' . $locale . '.mo' );
+					load_textdomain( 'default', $location . '/' . $locale . '.mo', $locale );
 					if ( defined( 'WP_SETUP_CONFIG' ) && file_exists( $location . '/admin-' . $locale . '.mo' ) ) {
-						load_textdomain( 'default', $location . '/admin-' . $locale . '.mo' );
+						load_textdomain( 'default', $location . '/admin-' . $locale . '.mo', $locale );
 					}
 					break 2;
 				}

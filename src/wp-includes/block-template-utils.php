@@ -139,7 +139,7 @@ function get_default_block_template_types() {
 		),
 		'archive'        => array(
 			'title'       => _x( 'Archive', 'Template name' ),
-			'description' => __( 'Displays post categories, tags, and other archives.' ),
+			'description' => __( 'Displays posts by a category, tag, author, or date.' ),
 		),
 		'author'         => array(
 			'title'       => _x( 'Author', 'Template name' ),
@@ -347,11 +347,11 @@ function _get_block_templates_files( $template_type ) {
  * @return array Template item.
  */
 function _add_block_template_info( $template_item ) {
-	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
+	if ( ! wp_theme_has_theme_json() ) {
 		return $template_item;
 	}
 
-	$theme_data = WP_Theme_JSON_Resolver::get_theme_data()->get_custom_templates();
+	$theme_data = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_custom_templates();
 	if ( isset( $theme_data[ $template_item['slug'] ] ) ) {
 		$template_item['title']     = $theme_data[ $template_item['slug'] ]['title'];
 		$template_item['postTypes'] = $theme_data[ $template_item['slug'] ]['postTypes'];
@@ -370,8 +370,8 @@ function _add_block_template_info( $template_item ) {
  * @return array Template info.
  */
 function _add_block_template_part_area_info( $template_info ) {
-	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
-		$theme_data = WP_Theme_JSON_Resolver::get_theme_data()->get_template_parts();
+	if ( wp_theme_has_theme_json() ) {
+		$theme_data = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_template_parts();
 	}
 
 	if ( isset( $theme_data[ $template_info['slug'] ]['area'] ) ) {
@@ -437,7 +437,7 @@ function _inject_theme_attribute_in_block_template_content( $template_content ) 
 			'core/template-part' === $block['blockName'] &&
 			! isset( $block['attrs']['theme'] )
 		) {
-			$block['attrs']['theme'] = wp_get_theme()->get_stylesheet();
+			$block['attrs']['theme'] = get_stylesheet();
 			$has_updated_content     = true;
 		}
 	}
@@ -499,11 +499,11 @@ function _remove_theme_attribute_in_block_template_content( $template_content ) 
 function _build_block_template_result_from_file( $template_file, $template_type ) {
 	$default_template_types = get_default_block_template_types();
 	$template_content       = file_get_contents( $template_file['path'] );
-	$theme                  = wp_get_theme()->get_stylesheet();
+	$theme                  = get_stylesheet();
 
 	$template                 = new WP_Block_Template();
 	$template->id             = $theme . '//' . $template_file['slug'];
-	$template->theme          = $theme;
+	$template->theme          = ! empty( $template_file['theme'] ) ? $template_file['theme'] : $theme;
 	$template->content        = _inject_theme_attribute_in_block_template_content( $template_content );
 	$template->slug           = $template_file['slug'];
 	$template->source         = 'theme';
@@ -556,10 +556,11 @@ function _wp_build_title_and_description_for_single_post_type_block_template( $p
 		'no_found_rows'          => true,
 	);
 
-	$args  = array(
+	$args = array(
 		'name' => $slug,
 	);
-	$args  = wp_parse_args( $args, $default_args );
+	$args = wp_parse_args( $args, $default_args );
+
 	$posts_query = new WP_Query( $args );
 
 	if ( empty( $posts_query->posts ) ) {
@@ -591,7 +592,8 @@ function _wp_build_title_and_description_for_single_post_type_block_template( $p
 	$args = array(
 		'title' => $post_title,
 	);
-	$args                        = wp_parse_args( $args, $default_args );
+	$args = wp_parse_args( $args, $default_args );
+
 	$posts_with_same_title_query = new WP_Query( $args );
 
 	if ( count( $posts_with_same_title_query->posts ) > 1 ) {
@@ -630,14 +632,15 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
 
 	$term_query = new WP_Term_Query();
 
-	$args  = array(
+	$args = array(
 		'number' => 1,
 		'slug'   => $slug,
 	);
-	$args        = wp_parse_args( $args, $default_args );
+	$args = wp_parse_args( $args, $default_args );
+
 	$terms_query = $term_query->query( $args );
 
-	if ( empty( $terms_query->terms ) ) {
+	if ( empty( $terms_query ) ) {
 		$template->title = sprintf(
 			/* translators: Custom template title in the Site Editor, referencing a taxonomy term that was not found. 1: Taxonomy singular name, 2: Term slug. */
 			__( 'Not found: %1$s (%2$s)' ),
@@ -647,7 +650,7 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
 		return false;
 	}
 
-	$term_title = $terms_query->terms[0]->name;
+	$term_title = $terms_query[0]->name;
 
 	$template->title = sprintf(
 		/* translators: Custom template title in the Site Editor. 1: Taxonomy singular name, 2: Term title. */
@@ -668,10 +671,11 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
 		'number' => 2,
 		'name'   => $term_title,
 	);
-	$args                        = wp_parse_args( $args, $default_args );
+	$args = wp_parse_args( $args, $default_args );
+
 	$terms_with_same_title_query = $term_query->query( $args );
 
-	if ( count( $terms_with_same_title_query->terms ) > 1 ) {
+	if ( count( $terms_with_same_title_query ) > 1 ) {
 		$template->title = sprintf(
 			/* translators: Custom template title in the Site Editor. 1: Template title, 2: Term slug. */
 			__( '%1$s (%2$s)' ),
@@ -706,7 +710,7 @@ function _build_block_template_result_from_post( $post ) {
 
 	$theme          = $terms[0]->name;
 	$template_file  = _get_block_template_file( $post->post_type, $post->post_name );
-	$has_theme_file = wp_get_theme()->get_stylesheet() === $theme && null !== $template_file;
+	$has_theme_file = get_stylesheet() === $theme && null !== $template_file;
 
 	$origin           = get_post_meta( $post->ID, 'origin', true );
 	$is_wp_suggestion = get_post_meta( $post->ID, 'is_wp_suggestion', true );
@@ -903,7 +907,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 			array(
 				'taxonomy' => 'wp_theme',
 				'field'    => 'name',
-				'terms'    => wp_get_theme()->get_stylesheet(),
+				'terms'    => get_stylesheet(),
 			),
 		),
 	);
@@ -969,7 +973,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 			}
 
 			$is_not_custom   = false === array_search(
-				wp_get_theme()->get_stylesheet() . '//' . $template_file['slug'],
+				get_stylesheet() . '//' . $template_file['slug'],
 				wp_list_pluck( $query_result, 'id' ),
 				true
 			);
@@ -1110,7 +1114,7 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
 	}
 	list( $theme, $slug ) = $parts;
 
-	if ( wp_get_theme()->get_stylesheet() !== $theme ) {
+	if ( get_stylesheet() !== $theme ) {
 		/** This filter is documented in wp-includes/block-template-utils.php */
 		return apply_filters( 'get_block_file_template', null, $id, $template_type );
 	}
@@ -1196,9 +1200,13 @@ function wp_is_theme_directory_ignored( $path ) {
  * @since 5.9.0
  * @since 6.0.0 Adds the whole theme to the export archive.
  *
+ * @global string $wp_version The WordPress version string.
+ *
  * @return WP_Error|string Path of the ZIP file or error on failure.
  */
 function wp_generate_block_templates_export_file() {
+	global $wp_version;
+
 	if ( ! class_exists( 'ZipArchive' ) ) {
 		return new WP_Error( 'missing_zip_package', __( 'Zip Export not supported.' ) );
 	}
@@ -1266,7 +1274,6 @@ function wp_generate_block_templates_export_file() {
 	$theme_json_raw = $tree->get_data();
 	// If a version is defined, add a schema.
 	if ( $theme_json_raw['version'] ) {
-		global $wp_version;
 		$theme_json_version = 'wp/' . substr( $wp_version, 0, 3 );
 		$schema             = array( '$schema' => 'https://schemas.wp.org/' . $theme_json_version . '/theme.json' );
 		$theme_json_raw     = array_merge( $schema, $theme_json_raw );
@@ -1318,20 +1325,46 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 		return array( 'front-page', 'home', 'index' );
 	}
 
-	$template_hierarchy = array( $slug );
+	$matches = array();
 
+	$template_hierarchy = array( $slug );
 	// Most default templates don't have `$template_prefix` assigned.
-	if ( $template_prefix ) {
+	if ( ! empty( $template_prefix ) ) {
 		list( $type ) = explode( '-', $template_prefix );
-		// These checks are needed because the `$slug` above is always added.
+		// We need these checks because we always add the `$slug` above.
 		if ( ! in_array( $template_prefix, array( $slug, $type ), true ) ) {
 			$template_hierarchy[] = $template_prefix;
 		}
 		if ( $slug !== $type ) {
 			$template_hierarchy[] = $type;
 		}
-	}
+	} else if ( preg_match( '/^(author|category|archive|tag|page)-.+$/', $slug, $matches ) ) {
+		$template_hierarchy[] = $matches[1];
+	} else if ( preg_match( '/^(taxonomy|single)-(.+)$/', $slug, $matches ) ) {
+		$type           = $matches[1];
+		$slug_remaining = $matches[2];
 
+		$items = 'single' === $type ? get_post_types() : get_taxonomies();
+		foreach ( $items as $item ) {
+			if ( ! str_starts_with( $slug_remaining, $item ) ) {
+					continue;
+			}
+
+			// If $slug_remaining is equal to $post_type or $taxonomy we have
+			// the single-$post_type template or the taxonomy-$taxonomy template.
+			if ( $slug_remaining === $item ) {
+				$template_hierarchy[] = $type;
+				break;
+			}
+
+			// If $slug_remaining is single-$post_type-$slug template.
+			if ( strlen( $slug_remaining ) > strlen( $item ) + 1 ) {
+				$template_hierarchy[] = "$type-$item";
+				$template_hierarchy[] = $type;
+				break;
+			}
+		}
+	}
 	// Handle `archive` template.
 	if (
 		str_starts_with( $slug, 'author' ) ||
@@ -1346,7 +1379,6 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 	if ( 'attachment' === $slug ) {
 		$template_hierarchy[] = 'single';
 	}
-
 	// Handle `singular` template.
 	if (
 		str_starts_with( $slug, 'single' ) ||
@@ -1355,8 +1387,6 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 	) {
 		$template_hierarchy[] = 'singular';
 	}
-
 	$template_hierarchy[] = 'index';
-
 	return $template_hierarchy;
-};
+}

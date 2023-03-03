@@ -100,7 +100,7 @@ if ( have_posts() ) {
 				)
 			);
 			foreach ( $attachments as $k => $attachment ) {
-				if ( $attachment->ID == $post->ID ) {
+				if ( $attachment->ID === $post->ID ) {
 					break;
 				}
 			}
@@ -154,7 +154,8 @@ if ( have_posts() ) {
 						<div class="entry-caption">
 						<?php
 						if ( ! empty( $post->post_excerpt ) ) {
-							the_excerpt();}
+							the_excerpt();
+						}
 						?>
 </div>
 

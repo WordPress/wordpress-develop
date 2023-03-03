@@ -207,7 +207,11 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 		);
 
 		if ( 'horizontal' === $layout_orientation ) {
-			$justify_content_options += array( 'space-between' => 'space-between' );
+			$justify_content_options    += array( 'space-between' => 'space-between' );
+			$vertical_alignment_options += array( 'stretch' => 'stretch' );
+		} else {
+			$justify_content_options    += array( 'stretch' => 'stretch' );
+			$vertical_alignment_options += array( 'space-between' => 'space-between' );
 		}
 
 		if ( ! empty( $layout['flexWrap'] ) && 'nowrap' === $layout['flexWrap'] ) {
@@ -276,6 +280,12 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 					'declarations' => array( 'align-items' => 'flex-start' ),
 				);
 			}
+			if ( ! empty( $layout['verticalAlignment'] ) && array_key_exists( $layout['verticalAlignment'], $vertical_alignment_options ) ) {
+				$layout_styles[] = array(
+					'selector'     => $selector,
+					'declarations' => array( 'justify-content' => $vertical_alignment_options[ $layout['verticalAlignment'] ] ),
+				);
+			}
 		}
 	}
 
@@ -311,26 +321,69 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 function wp_render_layout_support_flag( $block_content, $block ) {
 	$block_type     = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
 	$support_layout = block_has_support( $block_type, array( '__experimentalLayout' ), false );
+	$has_child_layout = isset( $block['attrs']['style']['layout']['selfStretch'] );
 
-	if ( ! $support_layout ) {
+	if ( ! $support_layout && ! $has_child_layout ) {
 		return $block_content;
 	}
+	$outer_class_names = array();
 
-	$block_gap              = wp_get_global_settings( array( 'spacing', 'blockGap' ) );
-	$global_layout_settings = wp_get_global_settings( array( 'layout' ) );
-	$has_block_gap_support  = isset( $block_gap ) ? null !== $block_gap : false;
-	$default_block_layout   = _wp_array_get( $block_type->supports, array( '__experimentalLayout', 'default' ), array() );
-	$used_layout            = isset( $block['attrs']['layout'] ) ? $block['attrs']['layout'] : $default_block_layout;
+	if ( $has_child_layout && ( 'fixed' === $block['attrs']['style']['layout']['selfStretch'] || 'fill' === $block['attrs']['style']['layout']['selfStretch'] ) ) {
+		$container_content_class = wp_unique_id( 'wp-container-content-' );
 
-	if ( isset( $used_layout['inherit'] ) && $used_layout['inherit'] ) {
-		if ( ! $global_layout_settings ) {
-			return $block_content;
+		$child_layout_styles = array();
+
+		if ( 'fixed' === $block['attrs']['style']['layout']['selfStretch'] && isset( $block['attrs']['style']['layout']['flexSize'] ) ) {
+			$child_layout_styles[] = array(
+				'selector'     => ".$container_content_class",
+				'declarations' => array(
+					'flex-basis' => $block['attrs']['style']['layout']['flexSize'],
+					'box-sizing' => 'border-box',
+				),
+			);
+		} elseif ( 'fill' === $block['attrs']['style']['layout']['selfStretch'] ) {
+			$child_layout_styles[] = array(
+				'selector'     => ".$container_content_class",
+				'declarations' => array(
+					'flex-grow' => '1',
+				),
+			);
 		}
+
+		wp_style_engine_get_stylesheet_from_css_rules(
+			$child_layout_styles,
+			array(
+				'context'  => 'block-supports',
+				'prettify' => false,
+			)
+		);
+
+		$outer_class_names[] = $container_content_class;
+	}
+
+	// Return early if only child layout exists.
+	if ( ! $support_layout && ! empty( $outer_class_names ) ) {
+		$content = new WP_HTML_Tag_Processor( $block_content );
+		$content->next_tag();
+		$content->add_class( implode( ' ', $outer_class_names ) );
+		return (string) $content;
+	}
+
+	$global_settings               = wp_get_global_settings();
+	$block_gap                     = _wp_array_get( $global_settings, array( 'spacing', 'blockGap' ), null );
+	$has_block_gap_support         = isset( $block_gap );
+	$global_layout_settings        = _wp_array_get( $global_settings, array( 'layout' ), null );
+	$root_padding_aware_alignments = _wp_array_get( $global_settings, array( 'useRootPaddingAwareAlignments' ), false );
+
+	$default_block_layout = _wp_array_get( $block_type->supports, array( '__experimentalLayout', 'default' ), array() );
+	$used_layout          = isset( $block['attrs']['layout'] ) ? $block['attrs']['layout'] : $default_block_layout;
+
+	if ( isset( $used_layout['inherit'] ) && $used_layout['inherit'] && ! $global_layout_settings ) {
+		return $block_content;
 	}
 
 	$class_names        = array();
 	$layout_definitions = _wp_array_get( $global_layout_settings, array( 'definitions' ), array() );
-	$block_classname    = wp_get_block_default_classname( $block['blockName'] );
 	$container_class    = wp_unique_id( 'wp-container-' );
 	$layout_classname   = '';
 
@@ -340,7 +393,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	}
 
 	if (
-		wp_get_global_settings( array( 'useRootPaddingAwareAlignments' ) ) &&
+		$root_padding_aware_alignments &&
 		isset( $used_layout['type'] ) &&
 		'constrained' === $used_layout['type']
 	) {
@@ -406,7 +459,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		$should_skip_gap_serialization = wp_should_skip_block_supports_serialization( $block_type, 'spacing', 'blockGap' );
 
 		$style = wp_get_layout_style(
-			".$block_classname.$container_class",
+			".$container_class.$container_class",
 			$used_layout,
 			$has_block_gap_support,
 			$gap_value,
@@ -421,18 +474,49 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		}
 	}
 
-	/*
-	 * This assumes the hook only applies to blocks with a single wrapper.
-	 * A limitation of this hook is that nested inner blocks wrappers are not yet supported.
-	 */
-	$content = preg_replace(
-		'/' . preg_quote( 'class="', '/' ) . '/',
-		'class="' . esc_attr( implode( ' ', $class_names ) ) . ' ',
-		$block_content,
-		1
-	);
+	$content_with_outer_classnames = '';
 
-	return $content;
+	if ( ! empty( $outer_class_names ) ) {
+		$content_with_outer_classnames = new WP_HTML_Tag_Processor( $block_content );
+		$content_with_outer_classnames->next_tag();
+		foreach ( $outer_class_names as $outer_class_name ) {
+			$content_with_outer_classnames->add_class( $outer_class_name );
+		}
+
+		$content_with_outer_classnames = (string) $content_with_outer_classnames;
+	}
+
+	/**
+	* The first chunk of innerContent contains the block markup up until the inner blocks start.
+	* This targets the opening tag of the inner blocks wrapper, which is the last tag in that chunk.
+	*/
+	$inner_content_classnames = '';
+
+	if ( isset( $block['innerContent'][0] ) && 'string' === gettype( $block['innerContent'][0] ) && count( $block['innerContent'] ) > 1 ) {
+		$tags            = new WP_HTML_Tag_Processor( $block['innerContent'][0] );
+		$last_classnames = '';
+		while ( $tags->next_tag() ) {
+			$last_classnames = $tags->get_attribute( 'class' );
+		}
+
+		$inner_content_classnames = (string) $last_classnames;
+	}
+
+	$content = $content_with_outer_classnames ? new WP_HTML_Tag_Processor( $content_with_outer_classnames ) : new WP_HTML_Tag_Processor( $block_content );
+
+	if ( $inner_content_classnames ) {
+		$content->next_tag( array( 'class_name' => $inner_content_classnames ) );
+		foreach ( $class_names as $class_name ) {
+			$content->add_class( $class_name );
+		}
+	} else {
+		$content->next_tag();
+		foreach ( $class_names as $class_name ) {
+			$content->add_class( $class_name );
+		}
+	}
+
+	return (string) $content;
 }
 
 // Register the block support.
@@ -464,7 +548,7 @@ function wp_restore_group_inner_container( $block_content, $block ) {
 	);
 
 	if (
-		WP_Theme_JSON_Resolver::theme_has_support() ||
+		wp_theme_has_theme_json() ||
 		1 === preg_match( $group_with_inner_container_regex, $block_content ) ||
 		( isset( $block['attrs']['layout']['type'] ) && 'flex' === $block['attrs']['layout']['type'] )
 	) {
@@ -527,7 +611,7 @@ function wp_restore_image_outer_container( $block_content, $block ) {
 )/iUx";
 
 	if (
-		WP_Theme_JSON_Resolver::theme_has_support() ||
+		wp_theme_has_theme_json() ||
 		0 === preg_match( $image_with_align, $block_content, $matches )
 	) {
 		return $block_content;

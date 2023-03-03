@@ -5,14 +5,8 @@
  * @package WordPress\UnitTests
  *
  * @since 5.1.0
- */
-
-/**
- * Tests_Comment_IsAvatarCommentType class.
  *
  * @group comment
- *
- * @since 5.1.0
  *
  * @covers ::is_avatar_comment_type
  */

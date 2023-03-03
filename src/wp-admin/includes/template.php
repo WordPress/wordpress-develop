@@ -104,7 +104,7 @@ function wp_terms_checklist( $post_id = 0, $args = array() ) {
 	$parsed_args = wp_parse_args( $params, $defaults );
 
 	if ( empty( $parsed_args['walker'] ) || ! ( $parsed_args['walker'] instanceof Walker ) ) {
-		$walker = new Walker_Category_Checklist;
+		$walker = new Walker_Category_Checklist();
 	} else {
 		$walker = $parsed_args['walker'];
 	}
@@ -260,7 +260,7 @@ function wp_popular_terms_checklist( $taxonomy, $default_term = 0, $number = 10,
  *
  * @since 2.5.1
  *
- * @param int $link_id
+ * @param int $link_id Optional. The link ID. Default 0.
  */
 function wp_link_category_checklist( $link_id = 0 ) {
 	$default = 1;
@@ -402,10 +402,11 @@ function get_inline_data( $post ) {
  *
  * @global WP_List_Table $wp_list_table
  *
- * @param int    $position
- * @param bool   $checkbox
- * @param string $mode
- * @param bool   $table_row
+ * @param int    $position  Optional. The value of the 'position' input field. Default 1.
+ * @param bool   $checkbox  Optional. The value of the 'checkbox' input field. Default false.
+ * @param string $mode      Optional. If set to 'single', will use WP_Post_Comments_List_Table,
+ *                          otherwise WP_Comments_List_Table. Default 'single'.
+ * @param bool   $table_row Optional. Whether to use a table instead of a div element. Default true.
  */
 function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $table_row = true ) {
 	global $wp_list_table;
@@ -462,7 +463,12 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 	</legend>
 
 	<div id="replycontainer">
-	<label for="replycontent" class="screen-reader-text"><?php _e( 'Comment' ); ?></label>
+	<label for="replycontent" class="screen-reader-text">
+		<?php
+		/* translators: Hidden accessibility text. */
+		_e( 'Comment' );
+		?>
+	</label>
 	<?php
 	$quicktags_settings = array( 'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,close' );
 	wp_editor(
@@ -565,7 +571,7 @@ function wp_comment_trashnotice() {
  *
  * @since 1.2.0
  *
- * @param array $meta
+ * @param array[] $meta An array of meta data arrays keyed on 'meta_key' and 'meta_value'.
  */
 function list_meta( $meta ) {
 	// Exit if no meta.
@@ -609,9 +615,9 @@ function list_meta( $meta ) {
  *
  * @since 2.5.0
  *
- * @param array $entry
- * @param int   $count
- * @return string
+ * @param array $entry An array of meta data keyed on 'meta_key' and 'meta_value'.
+ * @param int   $count Reference to the row number.
+ * @return string A single row of public meta data.
  */
 function _list_meta_row( $entry, &$count ) {
 	static $update_nonce = '';
@@ -625,7 +631,7 @@ function _list_meta_row( $entry, &$count ) {
 	}
 
 	$r = '';
-	++ $count;
+	++$count;
 
 	if ( is_serialized( $entry['meta_value'] ) ) {
 		if ( is_serialized_string( $entry['meta_value'] ) ) {
@@ -645,7 +651,10 @@ function _list_meta_row( $entry, &$count ) {
 	$delete_nonce = wp_create_nonce( 'delete-meta_' . $entry['meta_id'] );
 
 	$r .= "\n\t<tr id='meta-{$entry['meta_id']}'>";
-	$r .= "\n\t\t<td class='left'><label class='screen-reader-text' for='meta-{$entry['meta_id']}-key'>" . __( 'Key' ) . "</label><input name='meta[{$entry['meta_id']}][key]' id='meta-{$entry['meta_id']}-key' type='text' size='20' value='{$entry['meta_key']}' />";
+	$r .= "\n\t\t<td class='left'><label class='screen-reader-text' for='meta-{$entry['meta_id']}-key'>" .
+		/* translators: Hidden accessibility text. */
+		__( 'Key' ) .
+	"</label><input name='meta[{$entry['meta_id']}][key]' id='meta-{$entry['meta_id']}-key' type='text' size='20' value='{$entry['meta_key']}' />";
 
 	$r .= "\n\t\t<div class='submit'>";
 	$r .= get_submit_button( __( 'Delete' ), 'deletemeta small', "deletemeta[{$entry['meta_id']}]", false, array( 'data-wp-lists' => "delete:the-list:meta-{$entry['meta_id']}::_ajax_nonce=$delete_nonce" ) );
@@ -655,7 +664,10 @@ function _list_meta_row( $entry, &$count ) {
 	$r .= wp_nonce_field( 'change-meta', '_ajax_nonce', false, false );
 	$r .= '</td>';
 
-	$r .= "\n\t\t<td><label class='screen-reader-text' for='meta-{$entry['meta_id']}-value'>" . __( 'Value' ) . "</label><textarea name='meta[{$entry['meta_id']}][value]' id='meta-{$entry['meta_id']}-value' rows='2' cols='30'>{$entry['meta_value']}</textarea></td>\n\t</tr>";
+	$r .= "\n\t\t<td><label class='screen-reader-text' for='meta-{$entry['meta_id']}-value'>" .
+		/* translators: Hidden accessibility text. */
+		__( 'Value' ) .
+	"</label><textarea name='meta[{$entry['meta_id']}][value]' id='meta-{$entry['meta_id']}-value' rows='2' cols='30'>{$entry['meta_value']}</textarea></td>\n\t</tr>";
 	return $r;
 }
 
@@ -819,7 +831,10 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 	$cur_hh = current_time( 'H' );
 	$cur_mn = current_time( 'i' );
 
-	$month = '<label><span class="screen-reader-text">' . __( 'Month' ) . '</span><select class="form-required" ' . ( $multi ? '' : 'id="mm" ' ) . 'name="mm"' . $tab_index_attribute . ">\n";
+	$month = '<label><span class="screen-reader-text">' .
+		/* translators: Hidden accessibility text. */
+		__( 'Month' ) .
+	'</span><select class="form-required" ' . ( $multi ? '' : 'id="mm" ' ) . 'name="mm"' . $tab_index_attribute . ">\n";
 	for ( $i = 1; $i < 13; $i = $i + 1 ) {
 		$monthnum  = zeroise( $i, 2 );
 		$monthtext = $wp_locale->get_month_abbrev( $wp_locale->get_month( $i ) );
@@ -829,10 +844,22 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 	}
 	$month .= '</select></label>';
 
-	$day    = '<label><span class="screen-reader-text">' . __( 'Day' ) . '</span><input type="text" ' . ( $multi ? '' : 'id="jj" ' ) . 'name="jj" value="' . $jj . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
-	$year   = '<label><span class="screen-reader-text">' . __( 'Year' ) . '</span><input type="text" ' . ( $multi ? '' : 'id="aa" ' ) . 'name="aa" value="' . $aa . '" size="4" maxlength="4"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
-	$hour   = '<label><span class="screen-reader-text">' . __( 'Hour' ) . '</span><input type="text" ' . ( $multi ? '' : 'id="hh" ' ) . 'name="hh" value="' . $hh . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
-	$minute = '<label><span class="screen-reader-text">' . __( 'Minute' ) . '</span><input type="text" ' . ( $multi ? '' : 'id="mn" ' ) . 'name="mn" value="' . $mn . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
+	$day = '<label><span class="screen-reader-text">' .
+		/* translators: Hidden accessibility text. */
+		__( 'Day' ) .
+	'</span><input type="text" ' . ( $multi ? '' : 'id="jj" ' ) . 'name="jj" value="' . $jj . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
+	$year = '<label><span class="screen-reader-text">' .
+		/* translators: Hidden accessibility text. */
+		__( 'Year' ) .
+	'</span><input type="text" ' . ( $multi ? '' : 'id="aa" ' ) . 'name="aa" value="' . $aa . '" size="4" maxlength="4"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
+	$hour = '<label><span class="screen-reader-text">' .
+		/* translators: Hidden accessibility text. */
+		__( 'Hour' ) .
+	'</span><input type="text" ' . ( $multi ? '' : 'id="hh" ' ) . 'name="hh" value="' . $hh . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
+	$minute = '<label><span class="screen-reader-text">' .
+		/* translators: Hidden accessibility text. */
+		__( 'Minute' ) .
+	'</span><input type="text" ' . ( $multi ? '' : 'id="mn" ' ) . 'name="mn" value="' . $mn . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
 
 	echo '<div class="timestamp-wrap">';
 	/* translators: 1: Month, 2: Day, 3: Year, 4: Hour, 5: Minute. */
@@ -1339,7 +1366,10 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 					echo '<h2 class="hndle">';
 					if ( 'dashboard_php_nag' === $box['id'] ) {
 						echo '<span aria-hidden="true" class="dashicons dashicons-warning"></span>';
-						echo '<span class="screen-reader-text">' . __( 'Warning:' ) . ' </span>';
+						echo '<span class="screen-reader-text">' .
+							/* translators: Hidden accessibility text. */
+							__( 'Warning:' ) .
+						' </span>';
 					}
 					echo $box['title'];
 					echo "</h2>\n";
@@ -1356,7 +1386,10 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 						echo '<div class="handle-actions hide-if-no-js">';
 
 						echo '<button type="button" class="handle-order-higher" aria-disabled="false" aria-describedby="' . $box['id'] . '-handle-order-higher-description">';
-						echo '<span class="screen-reader-text">' . __( 'Move up' ) . '</span>';
+						echo '<span class="screen-reader-text">' .
+							/* translators: Hidden accessibility text. */
+							__( 'Move up' ) .
+						'</span>';
 						echo '<span class="order-higher-indicator" aria-hidden="true"></span>';
 						echo '</button>';
 						echo '<span class="hidden" id="' . $box['id'] . '-handle-order-higher-description">' . sprintf(
@@ -1366,7 +1399,10 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 						) . '</span>';
 
 						echo '<button type="button" class="handle-order-lower" aria-disabled="false" aria-describedby="' . $box['id'] . '-handle-order-lower-description">';
-						echo '<span class="screen-reader-text">' . __( 'Move down' ) . '</span>';
+						echo '<span class="screen-reader-text">' .
+							/* translators: Hidden accessibility text. */
+							__( 'Move down' ) .
+						'</span>';
 						echo '<span class="order-lower-indicator" aria-hidden="true"></span>';
 						echo '</button>';
 						echo '<span class="hidden" id="' . $box['id'] . '-handle-order-lower-description">' . sprintf(
@@ -1377,7 +1413,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 
 						echo '<button type="button" class="handlediv" aria-expanded="true">';
 						echo '<span class="screen-reader-text">' . sprintf(
-							/* translators: %s: Meta box title. */
+							/* translators: %s: Hidden accessibility text. Meta box title. */
 							__( 'Toggle panel: %s' ),
 							$widget_title
 						) . '</span>';
@@ -1529,7 +1565,12 @@ function do_accordion_sections( $screen, $context, $data_object ) {
 					<li class="control-section accordion-section <?php echo $hidden_class; ?> <?php echo $open_class; ?> <?php echo esc_attr( $box['id'] ); ?>" id="<?php echo esc_attr( $box['id'] ); ?>">
 						<h3 class="accordion-section-title hndle" tabindex="0">
 							<?php echo esc_html( $box['title'] ); ?>
-							<span class="screen-reader-text"><?php _e( 'Press return or enter to open this section' ); ?></span>
+							<span class="screen-reader-text">
+								<?php
+								/* translators: Hidden accessibility text. */
+								_e( 'Press return or enter to open this section' );
+								?>
+							</span>
 						</h3>
 						<div class="accordion-section-content <?php postbox_classes( $box['id'], $page ); ?>">
 							<div class="inside">
@@ -1845,15 +1886,19 @@ function add_settings_error( $setting, $code, $message, $type = 'error' ) {
  *
  * @param string $setting  Optional. Slug title of a specific setting whose errors you want.
  * @param bool   $sanitize Optional. Whether to re-sanitize the setting value before returning errors.
- * @return array {
- *     Array of settings errors.
+ * @return array[] {
+ *     Array of settings error arrays.
  *
- *     @type string $setting Slug title of the setting to which this error applies.
- *     @type string $code    Slug-name to identify the error. Used as part of 'id' attribute in HTML output.
- *     @type string $message The formatted message text to display to the user (will be shown inside styled
- *                           `<div>` and `<p>` tags).
- *     @type string $type    Optional. Message type, controls HTML class. Possible values include 'error',
- *                           'success', 'warning', 'info'. Default 'error'.
+ *     @type array ...$0 {
+ *         Associative array of setting error data.
+ *
+ *         @type string $setting Slug title of the setting to which this error applies.
+ *         @type string $code    Slug-name to identify the error. Used as part of 'id' attribute in HTML output.
+ *         @type string $message The formatted message text to display to the user (will be shown inside styled
+ *                               `<div>` and `<p>` tags).
+ *         @type string $type    Optional. Message type, controls HTML class. Possible values include 'error',
+ *                               'success', 'warning', 'info'. Default 'error'.
+ *     }
  * }
  */
 function get_settings_errors( $setting = '', $sanitize = false ) {
@@ -1969,14 +2014,19 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
  *
  * @since 2.7.0
  *
- * @param string $found_action
+ * @param string $found_action Optional. The value of the 'found_action' input field. Default empty string.
  */
 function find_posts_div( $found_action = '' ) {
 	?>
 	<div id="find-posts" class="find-box" style="display: none;">
 		<div id="find-posts-head" class="find-box-head">
 			<?php _e( 'Attach to existing content' ); ?>
-			<button type="button" id="find-posts-close"><span class="screen-reader-text"><?php _e( 'Close media attachment panel' ); ?></span></button>
+			<button type="button" id="find-posts-close"><span class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Close media attachment panel' );
+				?>
+			</span></button>
 		</div>
 		<div class="find-box-inside">
 			<div class="find-box-search">
@@ -1985,7 +2035,12 @@ function find_posts_div( $found_action = '' ) {
 				<?php } ?>
 				<input type="hidden" name="affected" id="affected" value="" />
 				<?php wp_nonce_field( 'find-posts', '_ajax_nonce', false ); ?>
-				<label class="screen-reader-text" for="find-posts-input"><?php _e( 'Search' ); ?></label>
+				<label class="screen-reader-text" for="find-posts-input">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Search' );
+					?>
+				</label>
 				<input type="text" id="find-posts-input" name="ps" value="" />
 				<span class="spinner"></span>
 				<input type="button" id="find-posts-search" value="<?php esc_attr_e( 'Search' ); ?>" class="button" />
@@ -2695,11 +2750,11 @@ function wp_star_rating( $args = array() ) {
 	$empty_stars = 5 - $full_stars - $half_stars;
 
 	if ( $parsed_args['number'] ) {
-		/* translators: 1: The rating, 2: The number of ratings. */
+		/* translators: Hidden accessibility text. 1: The rating, 2: The number of ratings. */
 		$format = _n( '%1$s rating based on %2$s rating', '%1$s rating based on %2$s ratings', $parsed_args['number'] );
 		$title  = sprintf( $format, number_format_i18n( $rating, 1 ), number_format_i18n( $parsed_args['number'] ) );
 	} else {
-		/* translators: %s: The rating. */
+		/* translators: Hidden accessibility text. %s: The rating. */
 		$title = sprintf( __( '%s rating' ), number_format_i18n( $rating, 1 ) );
 	}
 

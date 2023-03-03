@@ -10,19 +10,19 @@ Tags: one-column, two-columns, right-sidebar, flexible-header, accessibility-rea
 
 Twenty Seventeen brings your site to life with header video and immersive featured images. With a focus on business sites, it features multiple sections on the front page as well as widgets, navigation and social menus, a logo, and more. Personalize its asymmetrical grid with a custom color scheme and showcase your multimedia content with post formats. Our default theme for 2017 works great in many languages, for any abilities, and on any device.
 
-For more information about Twenty Seventeen please go to https://wordpress.org/support/article/twenty-seventeen/.
+For more information about Twenty Seventeen please go to https://wordpress.org/documentation/article/twenty-seventeen/.
 
 == Installation ==
 
 1. In your admin panel, go to Appearance -> Themes and click the 'Add New' button.
 2. Type in Twenty Seventeen in the search form and press the 'Enter' key on your keyboard.
 3. Click on the 'Activate' button to use your new theme right away.
-4. Go to https://wordpress.org/support/article/twenty-seventeen/ for a guide on how to customize this theme.
+4. Go to https://wordpress.org/documentation/article/twenty-seventeen/ for a guide on how to customize this theme.
 5. Navigate to Appearance > Customize in your admin panel and customize to taste.
 
 == Copyright ==
 
-Twenty Seventeen WordPress Theme, Copyright 2016-2022 WordPress.org
+Twenty Seventeen WordPress Theme, Copyright 2016-2023 WordPress.org
 Twenty Seventeen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -52,6 +52,11 @@ Source: https://necolas.github.io/normalize.css/
 Font Awesome icons, Copyright Dave Gandy
 License: SIL Open Font License, version 1.1.
 Source: http://fontawesome.io/
+
+Libre Franklin Font
+Copyright 2020 The LibreFranklin Project Authors (https://github.com/impallari/Libre-Franklin)
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://fontsource.org/fonts/libre-franklin
 
 Bundled header image, Copyright Alvin Engler
 License: CC0 1.0 Universal (CC0 1.0)
