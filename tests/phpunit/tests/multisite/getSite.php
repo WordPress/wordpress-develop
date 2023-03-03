@@ -7,7 +7,7 @@ if ( is_multisite() ) :
 	 * @group ms-site
 	 * @group multisite
 	 */
-	class Tests_Multisite_Get_Site extends WP_UnitTestCase {
+	class Tests_Multisite_GetSite extends WP_UnitTestCase {
 		protected static $site_ids;
 
 		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {

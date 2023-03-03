@@ -17,6 +17,14 @@
 class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 	/**
+	 * Whether the controller supports batching.
+	 *
+	 * @since 5.9.0
+	 * @var false
+	 */
+	protected $allow_batch = false;
+
+	/**
 	 * Registers the routes for attachments.
 	 *
 	 * @since 5.3.0
@@ -89,7 +97,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		// Filter query clauses to include filenames.
 		if ( isset( $query_args['s'] ) ) {
-			add_filter( 'posts_clauses', '_filter_query_attachment_filenames' );
+			add_filter( 'wp_allow_query_attachment_by_filename', '__return_true' );
 		}
 
 		return $query_args;
@@ -707,12 +715,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Prepares a single attachment output for response.
 	 *
 	 * @since 4.7.0
+	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Post         $post    Attachment object.
+	 * @param WP_Post         $item    Attachment object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $post, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$post     = $item;
 		$response = parent::prepare_item_for_response( $post, $request );
 		$fields   = $this->get_fields_for_response( $request );
 		$data     = $response->get_data();
@@ -755,7 +766,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 			// Ensure empty details is an empty object.
 			if ( empty( $data['media_details'] ) ) {
-				$data['media_details'] = new stdClass;
+				$data['media_details'] = new stdClass();
 			} elseif ( ! empty( $data['media_details']['sizes'] ) ) {
 
 				foreach ( $data['media_details']['sizes'] as $size => &$size_data ) {
@@ -786,7 +797,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					);
 				}
 			} else {
-				$data['media_details']['sizes'] = new stdClass;
+				$data['media_details']['sizes'] = new stdClass();
 			}
 		}
 

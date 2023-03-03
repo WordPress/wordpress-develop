@@ -56,6 +56,8 @@ if ( class_exists( 'WP_Image_Editor' ) ) :
 			}
 		}
 		public function save( $destfilename = null, $mime_type = null ) {
+			// Set new mime-type and quality if converting the image.
+			$this->get_output_format( $destfilename, $mime_type );
 			return self::$save_return;
 		}
 		public function stream( $mime_type = null ) {

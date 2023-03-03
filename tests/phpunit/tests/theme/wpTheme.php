@@ -1,5 +1,5 @@
 <?php
-/**
+
 /**
  * Test WP_Theme class.
  *
@@ -9,8 +9,23 @@
  * @group themes
  */
 class Tests_Theme_wpTheme extends WP_UnitTestCase {
-	function setUp() {
-		parent::setUp();
+
+	/**
+	 * Theme root directory.
+	 *
+	 * @var string
+	 */
+	private $theme_root;
+
+	/**
+	 * Original theme directory.
+	 *
+	 * @var string
+	 */
+	private $orig_theme_dir;
+
+	public function set_up() {
+		parent::set_up();
 		$this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
 
 		$this->orig_theme_dir            = $GLOBALS['wp_theme_directories'];
@@ -24,18 +39,19 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	function tearDown() {
+	public function tear_down() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	// Replace the normal theme root directory with our premade test directory.
-	function _theme_root( $dir ) {
+	public function _theme_root( $dir ) {
 		return $this->theme_root;
 	}
-	function test_new_WP_Theme_top_level() {
+
+	public function test_new_WP_Theme_top_level() {
 		$theme = new WP_Theme( 'theme1', $this->theme_root );
 
 		// Meta.
@@ -54,7 +70,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$this->assertSame( 'theme1', $theme->get_template() );
 	}
 
-	function test_new_WP_Theme_subdir() {
+	public function test_new_WP_Theme_subdir() {
 		$theme = new WP_Theme( 'subdir/theme2', $this->theme_root );
 
 		// Meta.
@@ -76,7 +92,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	/**
 	 * @ticket 20313
 	 */
-	function test_new_WP_Theme_subdir_bad_root() {
+	public function test_new_WP_Theme_subdir_bad_root() {
 		// This is what get_theme_data() does when you pass it a style.css file for a theme in a subdirectory.
 		$theme = new WP_Theme( 'theme2', $this->theme_root . '/subdir' );
 
@@ -97,9 +113,23 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that WP_Theme::__construct() handles a numeric theme directory as a string.
+	 *
+	 * @ticket 54645
+	 *
+	 * @covers WP_Theme::__construct
+	 */
+	public function test_new_WP_Theme_numeric_theme_directory() {
+		$theme = new WP_Theme( 1234, $this->theme_root );
+
+		$this->assertSame( '1234', $theme->get_stylesheet(), 'The stylesheet property should be a string.' );
+		$this->assertSame( '1234', $theme->get_template(), 'The template property should be a string.' );
+	}
+
+	/**
 	 * @ticket 21749
 	 */
-	function test_wp_theme_uris_with_spaces() {
+	public function test_wp_theme_uris_with_spaces() {
 		$theme = new WP_Theme( 'theme with spaces', $this->theme_root . '/subdir' );
 		// Make sure subdir/ is considered part of the stylesheet, as we must avoid encoding /'s.
 		$this->assertSame( 'subdir/theme with spaces', $theme->get_stylesheet() );
@@ -116,7 +146,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	/**
 	 * @ticket 21969
 	 */
-	function test_theme_uris_with_spaces() {
+	public function test_theme_uris_with_spaces() {
 		$callback = array( $this, 'filter_theme_with_spaces' );
 		add_filter( 'stylesheet', $callback );
 		add_filter( 'template', $callback );
@@ -128,14 +158,14 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		remove_filter( 'template', $callback );
 	}
 
-	function filter_theme_with_spaces() {
+	public function filter_theme_with_spaces() {
 		return 'subdir/theme with spaces';
 	}
 
 	/**
 	 * @ticket 26873
 	 */
-	function test_display_method_on_get_method_failure() {
+	public function test_display_method_on_get_method_failure() {
 		$theme = new WP_Theme( 'nonexistent', $this->theme_root );
 		$this->assertSame( 'nonexistent', $theme->get( 'Name' ) );
 		$this->assertFalse( $theme->get( 'AuthorURI' ) );
@@ -146,7 +176,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	/**
 	 * @ticket 40820
 	 */
-	function test_child_theme_with_itself_as_parent_should_appear_as_broken() {
+	public function test_child_theme_with_itself_as_parent_should_appear_as_broken() {
 		$theme  = new WP_Theme( 'child-parent-itself', $this->theme_root );
 		$errors = $theme->errors();
 		$this->assertWPError( $errors );
@@ -160,7 +190,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 * @ticket 30594
 	 * @group ms-required
 	 */
-	function test_wp_theme_network_enable_single_theme() {
+	public function test_wp_theme_network_enable_single_theme() {
 		$theme                  = 'testtheme-1';
 		$current_allowed_themes = get_site_option( 'allowedthemes' );
 		WP_Theme::network_enable_theme( $theme );
@@ -177,7 +207,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 * @ticket 30594
 	 * @group ms-required
 	 */
-	function test_wp_theme_network_enable_multiple_themes() {
+	public function test_wp_theme_network_enable_multiple_themes() {
 		$themes                 = array( 'testtheme-2', 'testtheme-3' );
 		$current_allowed_themes = get_site_option( 'allowedthemes' );
 		WP_Theme::network_enable_theme( $themes );
@@ -200,7 +230,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 * @ticket 30594
 	 * @group ms-required
 	 */
-	function test_network_disable_single_theme() {
+	public function test_network_disable_single_theme() {
 		$current_allowed_themes = get_site_option( 'allowedthemes' );
 
 		$allowed_themes = array(
@@ -225,7 +255,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 * @ticket 30594
 	 * @group ms-required
 	 */
-	function test_network_disable_multiple_themes() {
+	public function test_network_disable_multiple_themes() {
 		$current_allowed_themes = get_site_option( 'allowedthemes' );
 
 		$allowed_themes = array(
@@ -243,5 +273,253 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		unset( $allowed_themes['existing-5'] );
 
 		$this->assertSameSetsWithIndex( $allowed_themes, $new_allowed_themes );
+	}
+
+	/**
+	 * @dataProvider data_is_block_theme
+	 * @ticket 54460
+	 *
+	 * @covers WP_Theme::is_block_theme
+	 *
+	 * @param string $theme_dir Directory of the theme to test.
+	 * @param bool   $expected  Expected result.
+	 */
+	public function test_is_block_theme( $theme_dir, $expected ) {
+		$theme = new WP_Theme( $theme_dir, $this->theme_root );
+		$this->assertSame( $expected, $theme->is_block_theme() );
+	}
+
+	/**
+	 * @ticket 57114
+	 *
+	 * @covers WP_Theme::is_block_theme
+	 *
+	 * @dataProvider data_is_block_theme
+	 */
+	public function test_is_block_theme_property( $theme_dir, $expected ) {
+		$theme = new WP_Theme( $theme_dir, $this->theme_root );
+		$theme->is_block_theme();
+		$reflection          = new ReflectionClass( $theme );
+		$reflection_property = $reflection->getProperty( 'block_theme' );
+		$reflection_property->setAccessible( true );
+
+		$this->assertSame( $expected, $reflection_property->getValue( $theme ) );
+	}
+
+	/**
+	 * @ticket 57114
+	 *
+	 * @covers WP_Theme::is_block_theme
+	 * @covers WP_Theme::cache_get
+	 */
+	public function test_is_block_theme_check_cache() {
+		$filter = new MockAction();
+		add_filter( 'theme_file_path', array( $filter, 'filter' ) );
+
+		$theme1 = new WP_Theme( 'block-theme', $this->theme_root );
+		// First run.
+		$this->assertTrue( $theme1->is_block_theme(), 'is_block_theme should return true on first run' );
+
+		$theme2 = new WP_Theme( 'block-theme', $this->theme_root );
+		// Second run.
+		$this->assertTrue( $theme2->is_block_theme(), 'is_block_theme should return true on second run' );
+		$this->assertCount( 0, $filter->get_events(), 'Should only be 0, as second run should be cached' );
+	}
+
+	/**
+	 * @ticket 57114
+	 *
+	 * @covers WP_Theme::is_block_theme
+	 * @covers WP_Theme::cache_delete
+	 */
+	public function test_is_block_theme_delete_cache() {
+		$filter = new MockAction();
+		add_filter( 'theme_file_path', array( $filter, 'filter' ) );
+
+		$theme = new WP_Theme( 'block-theme', $this->theme_root );
+		// First run.
+		$this->assertTrue( $theme->is_block_theme(), 'is_block_theme should return true on first run' );
+		// Clear cache.
+		$theme->cache_delete();
+		// Second run.
+		$this->assertTrue( $theme->is_block_theme(), 'is_block_theme should return true on second run' );
+		$this->assertCount( 2, $filter->get_events(), 'Should only be 4, as second run should not be cached' );
+	}
+
+	/**
+	 * Test get_files for an existing theme.
+	 *
+	 * @ticket 53599
+	 */
+	public function test_get_files_theme() {
+		$theme = new WP_Theme( 'theme1', $this->theme_root );
+		$files = $theme->get_files();
+
+		$this->assertIsArray( $files );
+		$this->assertCount( 3, $files );
+		$this->assertArrayHasKey( 'functions.php', $files );
+		$this->assertArrayHasKey( 'index.php', $files );
+		$this->assertArrayHasKey( 'style.css', $files );
+	}
+
+	/**
+	 * Test get_files for a non-existing theme.
+	 *
+	 * @ticket 53599
+	 */
+	public function test_get_files_nonexistent_theme() {
+		$theme = new WP_Theme( 'nonexistent', $this->theme_root );
+		$files = $theme->get_files();
+
+		$this->assertIsArray( $files );
+		$this->assertEmpty( $files );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_is_block_theme() {
+		return array(
+			'default - non-block theme' => array(
+				'theme_dir' => 'default',
+				'expected'  => false,
+			),
+			'parent block theme'        => array(
+				'theme_dir' => 'block-theme',
+				'expected'  => true,
+			),
+			'child block theme'         => array(
+				'theme_dir' => 'block-theme-child',
+				'expected'  => true,
+			),
+			'deprecated block theme'    => array(
+				'theme_dir' => 'block-theme-deprecated-path',
+				'expected'  => true,
+			),
+		);
+	}
+
+	/**
+	 * @dataProvider data_get_file_path
+	 * @ticket 54460
+	 *
+	 * @covers WP_Theme::get_file_path
+	 *
+	 * @param string $theme_dir Directory of the theme to test.
+	 * @param string $file      Given file name to test.
+	 * @param string $expected  Expected file path.
+	 */
+	public function test_get_file_path( $theme_dir, $file, $expected ) {
+		$theme = new WP_Theme( $theme_dir, $this->theme_root );
+
+		$this->assertStringEndsWith( $expected, $theme->get_file_path( $file ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_file_path() {
+		return array(
+			'no theme: no file given'              => array(
+				'theme_dir' => 'nonexistent',
+				'file'      => '',
+				'expected'  => '/nonexistent',
+			),
+			'parent theme: no file given'          => array(
+				'theme_dir' => 'block-theme',
+				'file'      => '',
+				'expected'  => '/block-theme',
+			),
+			'child theme: no file given'           => array(
+				'theme_dir' => 'block-theme-child',
+				'file'      => '',
+				'expected'  => '/block-theme-child',
+			),
+			'nonexistent theme: file given'        => array(
+				'theme_dir' => 'nonexistent',
+				'file'      => '/templates/page.html',
+				'expected'  => '/nonexistent/templates/page.html',
+			),
+			'parent theme: file exists'            => array(
+				'theme_dir' => 'block-theme',
+				'file'      => '/templates/page-home.html',
+				'expected'  => '/block-theme/templates/page-home.html',
+			),
+			'parent theme: deprecated file exists' => array(
+				'theme_dir' => 'block-theme-deprecated-path',
+				'file'      => '/block-templates/page-home.html',
+				'expected'  => '/block-theme-deprecated-path/block-templates/page-home.html',
+			),
+			'parent theme: file does not exist'    => array(
+				'theme_dir' => 'block-theme',
+				'file'      => '/templates/nonexistent.html',
+				'expected'  => '/block-theme/templates/nonexistent.html',
+			),
+			'child theme: file exists'             => array(
+				'theme_dir' => 'block-theme-child',
+				'file'      => '/templates/page-1.html',
+				'expected'  => '/block-theme-child/templates/page-1.html',
+			),
+			'child theme: file does not exist'     => array(
+				'theme_dir' => 'block-theme-child',
+				'file'      => '/templates/nonexistent.html',
+				'expected'  => '/block-theme/templates/nonexistent.html',
+			),
+			'child theme: file exists in parent, not in child' => array(
+				'theme_dir' => 'block-theme-child',
+				'file'      => '/templates/page.html',
+				'expected'  => '/block-theme/templates/page.html',
+			),
+		);
+	}
+
+	/**
+	 * Tests that the UpdateURI header is retrieved.
+	 *
+	 * @ticket 14179
+	 *
+	 * @covers WP_Theme::get
+	 */
+	public function test_theme_get_update_uri_header() {
+		$theme = new WP_Theme( 'update-uri-theme', $this->theme_root );
+
+		$this->assertTrue(
+			$theme->exists(),
+			'The update-uri-theme does not exist.'
+		);
+
+		$update_uri = $theme->get( 'UpdateURI' );
+
+		$this->assertIsString(
+			$update_uri,
+			'The UpdateURI header was not returned as a string.'
+		);
+
+		$this->assertSame(
+			'http://example.org/update-uri-theme/',
+			$update_uri,
+			'The UpdateURI header did not match the expected value.'
+		);
+	}
+
+	/**
+	 * Tests that WP_Theme::sanitize_header() strips tags from the UpdateURI header.
+	 *
+	 * @ticket 14179
+	 *
+	 * @covers WP_Theme::sanitize_header
+	 */
+	public function test_should_strip_tags_from_update_uri_header() {
+		$theme           = new WP_Theme( 'twentytwentytwo', $this->theme_root );
+		$sanitize_header = new ReflectionMethod( $theme, 'sanitize_header' );
+		$sanitize_header->setAccessible( true );
+
+		$actual = $sanitize_header->invoke( $theme, 'UpdateURI', '<?php?><a href="http://example.org">http://example.org</a>' );
+
+		$this->assertSame( 'http://example.org', $actual );
 	}
 }

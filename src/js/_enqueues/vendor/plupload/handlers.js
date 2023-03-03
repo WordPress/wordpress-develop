@@ -149,7 +149,7 @@ function prepareMediaItemInit( fileObj ) {
 	jQuery( '.filename.original', item ).replaceWith( jQuery( '.filename.new', item ) );
 
 	// Bind Ajax to the new Delete button.
-	jQuery( 'a.delete', item ).click( function(){
+	jQuery( 'a.delete', item ).on( 'click', function(){
 		// Tell the server to delete it. TODO: Handle exceptions.
 		jQuery.ajax({
 			url: ajaxurl,
@@ -167,7 +167,7 @@ function prepareMediaItemInit( fileObj ) {
 	});
 
 	// Bind Ajax to the new Undo button.
-	jQuery( 'a.undo', item ).click( function(){
+	jQuery( 'a.undo', item ).on( 'click', function(){
 		// Tell the server to untrash it. TODO: Handle exceptions.
 		jQuery.ajax({
 			url: ajaxurl,
@@ -399,7 +399,7 @@ jQuery( document ).ready( function( $ ) {
 	var tryAgainCount = {};
 	var tryAgain;
 
-	$( '.media-upload-form' ).bind( 'click.uploader', function( e ) {
+	$( '.media-upload-form' ).on( 'click.uploader', function( e ) {
 		var target = $( e.target ), tr, c;
 
 		if ( target.is( 'input[type="radio"]' ) ) { // Remember the last used image size and alignment.
@@ -557,7 +557,7 @@ jQuery( document ).ready( function( $ ) {
 	uploader_init = function() {
 		uploader = new plupload.Uploader( wpUploaderInit );
 
-		$( '#image_resize' ).bind( 'change', function() {
+		$( '#image_resize' ).on( 'change', function() {
 			var arg = $( this ).prop( 'checked' );
 
 			setResize( arg );
@@ -604,7 +604,12 @@ jQuery( document ).ready( function( $ ) {
 			plupload.each( files, function( file ) {
 				if ( file.type === 'image/heic' && up.settings.heic_upload_error ) {
 					// Show error but do not block uploading.
-					wpQueueError( pluploadL10n.unsupported_image )
+					wpQueueError( pluploadL10n.unsupported_image );
+				} else if ( file.type === 'image/webp' && up.settings.webp_upload_error ) {
+					// Disallow uploading of WebP images if the server cannot edit them.
+					wpQueueError( pluploadL10n.noneditable_image );
+					up.removeFile( file );
+					return;
 				}
 
 				fileQueued( file );

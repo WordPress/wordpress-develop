@@ -5,15 +5,20 @@
  */
 class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		if ( wp_using_ext_object_cache() ) {
-			$this->markTestSkipped( 'Not testable with an external object cache.' );
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
 		}
 	}
 
-	function test_the_basics() {
+	/**
+	 * @covers ::get_site_transient
+	 * @covers ::set_site_transient
+	 * @covers ::delete_site_transient
+	 */
+	public function test_the_basics() {
 		$key    = 'key1';
 		$value  = 'value1';
 		$value2 = 'value2';
@@ -29,7 +34,12 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 		$this->assertFalse( delete_site_transient( $key ) );
 	}
 
-	function test_serialized_data() {
+	/**
+	 * @covers ::get_site_transient
+	 * @covers ::set_site_transient
+	 * @covers ::delete_site_transient
+	 */
+	public function test_serialized_data() {
 		$key   = __FUNCTION__;
 		$value = array(
 			'foo' => true,
@@ -48,6 +58,9 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 	/**
 	 * @ticket 22846
 	 * @group ms-excluded
+	 *
+	 * @covers ::set_site_transient
+	 * @covers ::wp_load_alloptions
 	 */
 	public function test_set_site_transient_is_not_stored_as_autoload_option() {
 		$key = 'not_autoloaded';
@@ -56,6 +69,6 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
 		$options = wp_load_alloptions();
 
-		$this->assertFalse( isset( $options[ '_site_transient_' . $key ] ) );
+		$this->assertArrayNotHasKey( '_site_transient_' . $key, $options );
 	}
 }

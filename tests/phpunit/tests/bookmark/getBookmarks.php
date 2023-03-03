@@ -55,7 +55,7 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 		);
 
 		$this->assertEqualSets( $bookmarks, wp_list_pluck( $found2, 'link_id' ) );
-		$this->assertTrue( $num_queries < $wpdb->num_queries );
+		$this->assertGreaterThan( $num_queries, $wpdb->num_queries );
 	}
 
 	/**
@@ -82,7 +82,7 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 
 		// Equal sets != same order.
 		$this->assertEqualSets( $found1, $found2 );
-		$this->assertTrue( $num_queries < $wpdb->num_queries );
+		$this->assertGreaterThan( $num_queries, $wpdb->num_queries );
 	}
 
 	public function test_exclude_param_gets_properly_parsed_as_list() {
@@ -121,7 +121,7 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 		$this->assertEqualSets( $bookmarks, $found_ids );
 	}
 
-	public function test_category_param_propelry_gets_parsed_as_list() {
+	public function test_category_param_properly_gets_parsed_as_list() {
 		$bookmarks  = self::factory()->bookmark->create_many( 3 );
 		$categories = self::factory()->term->create_many(
 			3,

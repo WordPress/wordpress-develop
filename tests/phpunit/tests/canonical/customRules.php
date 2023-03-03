@@ -7,8 +7,8 @@
  */
 class Tests_Canonical_CustomRules extends WP_Canonical_UnitTestCase {
 
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		global $wp_rewrite;
 		// Add a custom Rewrite rule to test category redirections.
 		$wp_rewrite->add_rule( 'ccr/(.+?)/sort/(asc|desc)', 'index.php?category_name=$matches[1]&order=$matches[2]', 'top' ); // ccr = Custom_Cat_Rule.
@@ -18,11 +18,11 @@ class Tests_Canonical_CustomRules extends WP_Canonical_UnitTestCase {
 	/**
 	 * @dataProvider data
 	 */
-	function test( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
+	public function test( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );
 	}
 
-	function data() {
+	public function data() {
 		/*
 		 * Data format:
 		 * [0]: Test URL.

@@ -1,6 +1,37 @@
 <?php
 
 /**
+ * Sets a custom slug when creating auto-draft template parts.
+ *
+ * This is only needed for auto-drafts created by the regular WP editor.
+ * If this page is to be removed, this will not be necessary.
+ *
+ * @since 5.9.0
+ *
+ * @param int $post_id Post ID.
+ */
+function wp_set_unique_slug_on_create_template_part( $post_id ) {
+	$post = get_post( $post_id );
+	if ( 'auto-draft' !== $post->post_status ) {
+		return;
+	}
+
+	if ( ! $post->post_name ) {
+		wp_update_post(
+			array(
+				'ID'        => $post_id,
+				'post_name' => 'custom_slug_' . uniqid(),
+			)
+		);
+	}
+
+	$terms = get_the_terms( $post_id, 'wp_theme' );
+	if ( ! is_array( $terms ) || ! count( $terms ) ) {
+		wp_set_post_terms( $post_id, get_stylesheet(), 'wp_theme' );
+	}
+}
+
+/**
  * Generates a unique slug for templates.
  *
  * @access private
@@ -8,13 +39,13 @@
  *
  * @param string $override_slug The filtered value of the slug (starts as `null` from apply_filter).
  * @param string $slug          The original/un-filtered slug (post_name).
- * @param int    $post_ID       Post ID.
+ * @param int    $post_id       Post ID.
  * @param string $post_status   No uniqueness checks are made if the post is still draft or pending.
  * @param string $post_type     Post type.
  * @return string The original, desired slug.
  */
-function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID, $post_status, $post_type ) {
-	if ( 'wp_template' !== $post_type ) {
+function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_id, $post_status, $post_type ) {
+	if ( 'wp_template' !== $post_type && 'wp_template_part' !== $post_type ) {
 		return $override_slug;
 	}
 
@@ -22,14 +53,15 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID
 		$override_slug = $slug;
 	}
 
-	// Template slugs must be unique within the same theme.
-	// TODO - Figure out how to update this to work for a multi-theme
-	// environment.  Unfortunately using `get_the_terms` for the 'wp-theme'
-	// term does not work in the case of new entities since is too early in
-	// the process to have been saved to the entity.  So for now we use the
-	// currently activated theme for creation.
-	$theme = wp_get_theme()->get_stylesheet();
-	$terms = get_the_terms( $post_ID, 'wp_theme' );
+	/*
+	 * Template slugs must be unique within the same theme.
+	 * TODO - Figure out how to update this to work for a multi-theme environment.
+	 * Unfortunately using `get_the_terms()` for the 'wp-theme' term does not work
+	 * in the case of new entities since is too early in the process to have been saved
+	 * to the entity. So for now we use the currently activated theme for creation.
+	 */
+	$theme = get_stylesheet();
+	$terms = get_the_terms( $post_id, 'wp_theme' );
 	if ( $terms && ! is_wp_error( $terms ) ) {
 		$theme = $terms[0]->name;
 	}
@@ -39,7 +71,7 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID
 		'post_type'      => $post_type,
 		'posts_per_page' => 1,
 		'no_found_rows'  => true,
-		'post__not_in'   => array( $post_ID ),
+		'post__not_in'   => array( $post_id ),
 		'tax_query'      => array(
 			array(
 				'taxonomy' => 'wp_theme',
@@ -49,7 +81,7 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID
 		),
 	);
 	$check_query      = new WP_Query( $check_query_args );
-	$posts            = $check_query->get_posts();
+	$posts            = $check_query->posts;
 
 	if ( count( $posts ) > 0 ) {
 		$suffix = 2;
@@ -59,7 +91,7 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID
 			$query_args['post_name__in'] = array( $alt_post_name );
 			$query                       = new WP_Query( $query_args );
 			$suffix++;
-		} while ( count( $query->get_posts() ) > 0 );
+		} while ( count( $query->posts ) > 0 );
 		$override_slug = $alt_post_name;
 	}
 
@@ -67,17 +99,23 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID
 }
 
 /**
- * Print the skip-link script & styles.
+ * Prints the skip-link script & styles.
  *
  * @access private
  * @since 5.8.0
  *
- * @return void
+ * @global string $_wp_current_template_content
  */
 function the_block_template_skip_link() {
+	global $_wp_current_template_content;
 
-	// Early exit if not an FSE theme.
+	// Early exit if not a block theme.
 	if ( ! current_theme_supports( 'block-templates' ) ) {
+		return;
+	}
+
+	// Early exit if not a block template.
+	if ( ! $_wp_current_template_content ) {
 		return;
 	}
 	?>
@@ -126,7 +164,7 @@ function the_block_template_skip_link() {
 	<script>
 	( function() {
 		var skipLinkTarget = document.querySelector( 'main' ),
-			parentEl,
+			sibling,
 			skipLinkTargetID,
 			skipLink;
 
@@ -137,7 +175,12 @@ function the_block_template_skip_link() {
 
 		// Get the site wrapper.
 		// The skip-link will be injected in the beginning of it.
-		parentEl = document.querySelector( '.wp-site-blocks' ) || document.body,
+		sibling = document.querySelector( '.wp-site-blocks' );
+
+		// Early exit if the root element was not found.
+		if ( ! sibling ) {
+			return;
+		}
 
 		// Get the skip-link target's ID, and generate one if it doesn't exist.
 		skipLinkTargetID = skipLinkTarget.id;
@@ -150,14 +193,23 @@ function the_block_template_skip_link() {
 		skipLink = document.createElement( 'a' );
 		skipLink.classList.add( 'skip-link', 'screen-reader-text' );
 		skipLink.href = '#' + skipLinkTargetID;
-		skipLink.innerHTML = '<?php esc_html_e( 'Skip to content' ); ?>';
+		skipLink.innerHTML = '<?php /* translators: Hidden accessibility text. */ esc_html_e( 'Skip to content' ); ?>';
 
 		// Inject the skip link.
-		parentEl.insertAdjacentElement( 'afterbegin', skipLink );
+		sibling.parentElement.insertBefore( skipLink, sibling );
 	}() );
 	</script>
 	<?php
 }
 
-// By default, themes support block templates.
-add_theme_support( 'block-templates' );
+/**
+ * Enables the block templates (editor mode) for themes with theme.json by default.
+ *
+ * @access private
+ * @since 5.8.0
+ */
+function wp_enable_block_templates() {
+	if ( wp_is_block_theme() || wp_theme_has_theme_json() ) {
+		add_theme_support( 'block-templates' );
+	}
+}

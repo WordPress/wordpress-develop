@@ -119,16 +119,16 @@ class Tests_IsObjectInTerm extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 
-		$post_ID = self::factory()->post->create();
-		wp_set_object_terms( $post_ID, $t, 'wptests_tax' );
+		$post_id = self::factory()->post->create();
+		wp_set_object_terms( $post_id, $t, 'wptests_tax' );
 
 		$int_tax_name = $t . '_term_name';
 
-		$this->assertFalse( is_object_in_term( $post_ID, 'wptests_tax', $int_tax_name ) );
+		$this->assertFalse( is_object_in_term( $post_id, 'wptests_tax', $int_tax_name ) );
 
 		// Verify it works properly when the post is actually in the term.
-		wp_set_object_terms( $post_ID, array( $int_tax_name ), 'wptests_tax' );
-		$this->assertTrue( is_object_in_term( $post_ID, 'wptests_tax', $int_tax_name ) );
+		wp_set_object_terms( $post_id, array( $int_tax_name ), 'wptests_tax' );
+		$this->assertTrue( is_object_in_term( $post_id, 'wptests_tax', $int_tax_name ) );
 	}
 
 	/**
@@ -145,7 +145,7 @@ class Tests_IsObjectInTerm extends WP_UnitTestCase {
 
 		$num_queries = $wpdb->num_queries;
 		$this->assertTrue( is_object_in_term( $o, 'wptests_tax', $terms[0] ) );
-		$num_queries++;
+		$num_queries = $num_queries + 2;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
 		$this->assertFalse( is_object_in_term( $o, 'wptests_tax', $terms[1] ) );
@@ -166,14 +166,14 @@ class Tests_IsObjectInTerm extends WP_UnitTestCase {
 
 		$num_queries = $wpdb->num_queries;
 		$this->assertTrue( is_object_in_term( $o, 'wptests_tax', $terms[0] ) );
-		$num_queries++;
+		$num_queries = $num_queries + 2;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
 		wp_set_object_terms( $o, $terms[1], 'wptests_tax' );
 
 		$num_queries = $wpdb->num_queries;
 		$this->assertTrue( is_object_in_term( $o, 'wptests_tax', $terms[1] ) );
-		$num_queries++;
+		$num_queries = $num_queries + 2;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
 

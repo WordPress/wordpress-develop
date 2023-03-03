@@ -236,15 +236,17 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * Prepares a block type object for serialization.
 	 *
 	 * @since 5.5.0
+	 * @since 5.9.0 Renamed `$block_type` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Block_Type   $block_type Block type data.
-	 * @param WP_REST_Request $request    Full details about the request.
+	 * @param WP_Block_Type   $item    Block type data.
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Block type data.
 	 */
-	public function prepare_item_for_response( $block_type, $request ) {
-
-		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$block_type = $item;
+		$fields     = $this->get_fields_for_response( $request );
+		$data       = array();
 
 		if ( rest_is_field_included( 'attributes', $fields ) ) {
 			$data['attributes'] = $block_type->get_attributes();
@@ -254,32 +256,49 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 			$data['is_dynamic'] = $block_type->is_dynamic();
 		}
 
-		$schema       = $this->get_item_schema();
-		$extra_fields = array(
-			'api_version',
-			'name',
-			'title',
-			'description',
-			'icon',
-			'category',
-			'keywords',
-			'parent',
-			'provides_context',
-			'uses_context',
-			'supports',
-			'styles',
-			'textdomain',
-			'example',
+		$schema = $this->get_item_schema();
+		// Fields deprecated in WordPress 6.1, but left in the schema for backwards compatibility.
+		$deprecated_fields = array(
 			'editor_script',
 			'script',
+			'view_script',
 			'editor_style',
 			'style',
-			'variations',
+		);
+		$extra_fields      = array_merge(
+			array(
+				'api_version',
+				'name',
+				'title',
+				'description',
+				'icon',
+				'category',
+				'keywords',
+				'parent',
+				'ancestor',
+				'provides_context',
+				'uses_context',
+				'supports',
+				'styles',
+				'textdomain',
+				'example',
+				'editor_script_handles',
+				'script_handles',
+				'view_script_handles',
+				'editor_style_handles',
+				'style_handles',
+				'variations',
+			),
+			$deprecated_fields
 		);
 		foreach ( $extra_fields as $extra_field ) {
 			if ( rest_is_field_included( $extra_field, $fields ) ) {
 				if ( isset( $block_type->$extra_field ) ) {
 					$field = $block_type->$extra_field;
+					if ( in_array( $extra_field, $deprecated_fields, true ) && is_array( $field ) ) {
+						// Since the schema only allows strings or null (but no arrays), we return the first array item.
+						$field = ! empty( $field ) ? array_shift( $field ) : '';
+					}
 				} elseif ( array_key_exists( 'default', $schema['properties'][ $extra_field ] ) ) {
 					$field = $schema['properties'][ $extra_field ]['default'];
 				} else {
@@ -302,7 +321,9 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 
 		$response = rest_ensure_response( $data );
 
-		$response->add_links( $this->prepare_links( $block_type ) );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $block_type ) );
+		}
 
 		/**
 		 * Filters a block type returned from the REST API.
@@ -343,7 +364,11 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 
 		if ( $block_type->is_dynamic() ) {
 			$links['https://api.w.org/render-block'] = array(
-				'href' => add_query_arg( 'context', 'edit', rest_url( sprintf( '%s/%s/%s', 'wp/v2', 'block-renderer', $block_type->name ) ) ),
+				'href' => add_query_arg(
+					'context',
+					'edit',
+					rest_url( sprintf( '%s/%s/%s', 'wp/v2', 'block-renderer', $block_type->name ) )
+				),
 			);
 		}
 
@@ -427,41 +452,41 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 			'readonly'    => true,
 		);
 
-		$schema = array(
+		$this->schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'block-type',
 			'type'       => 'object',
 			'properties' => array(
-				'api_version'      => array(
+				'api_version'           => array(
 					'description' => __( 'Version of block API.' ),
 					'type'        => 'integer',
 					'default'     => 1,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'title'            => array(
+				'title'                 => array(
 					'description' => __( 'Title of block type.' ),
 					'type'        => 'string',
 					'default'     => '',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'name'             => array(
+				'name'                  => array(
 					'description' => __( 'Unique name identifying the block type.' ),
 					'type'        => 'string',
 					'default'     => '',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'description'      => array(
+				'description'           => array(
 					'description' => __( 'Description of block type.' ),
 					'type'        => 'string',
 					'default'     => '',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'icon'             => $icon_definition,
-				'attributes'       => array(
+				'icon'                  => $icon_definition,
+				'attributes'            => array(
 					'description'          => __( 'Block attributes.' ),
 					'type'                 => array( 'object', 'null' ),
 					'properties'           => array(),
@@ -472,7 +497,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'              => array( 'embed', 'view', 'edit' ),
 					'readonly'             => true,
 				),
-				'provides_context' => array(
+				'provides_context'      => array(
 					'description'          => __( 'Context provided by blocks of this type.' ),
 					'type'                 => 'object',
 					'properties'           => array(),
@@ -483,7 +508,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'              => array( 'embed', 'view', 'edit' ),
 					'readonly'             => true,
 				),
-				'uses_context'     => array(
+				'uses_context'          => array(
 					'description' => __( 'Context values inherited by blocks of this type.' ),
 					'type'        => 'array',
 					'default'     => array(),
@@ -493,7 +518,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'supports'         => array(
+				'supports'              => array(
 					'description' => __( 'Block supports.' ),
 					'type'        => 'object',
 					'default'     => array(),
@@ -501,43 +526,65 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'category'         => $category_definition,
-				'is_dynamic'       => array(
+				'category'              => $category_definition,
+				'is_dynamic'            => array(
 					'description' => __( 'Is the block dynamically rendered.' ),
 					'type'        => 'boolean',
 					'default'     => false,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'editor_script'    => array(
-					'description' => __( 'Editor script handle.' ),
-					'type'        => array( 'string', 'null' ),
-					'default'     => null,
+				'editor_script_handles' => array(
+					'description' => __( 'Editor script handles.' ),
+					'type'        => array( 'array' ),
+					'default'     => array(),
+					'items'       => array(
+						'type' => 'string',
+					),
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'script'           => array(
-					'description' => __( 'Public facing script handle.' ),
-					'type'        => array( 'string', 'null' ),
-					'default'     => null,
+				'script_handles'        => array(
+					'description' => __( 'Public facing and editor script handles.' ),
+					'type'        => array( 'array' ),
+					'default'     => array(),
+					'items'       => array(
+						'type' => 'string',
+					),
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'editor_style'     => array(
-					'description' => __( 'Editor style handle.' ),
-					'type'        => array( 'string', 'null' ),
-					'default'     => null,
+				'view_script_handles'   => array(
+					'description' => __( 'Public facing script handles.' ),
+					'type'        => array( 'array' ),
+					'default'     => array(),
+					'items'       => array(
+						'type' => 'string',
+					),
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'style'            => array(
-					'description' => __( 'Public facing style handle.' ),
-					'type'        => array( 'string', 'null' ),
-					'default'     => null,
+				'editor_style_handles'  => array(
+					'description' => __( 'Editor style handles.' ),
+					'type'        => array( 'array' ),
+					'default'     => array(),
+					'items'       => array(
+						'type' => 'string',
+					),
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'styles'           => array(
+				'style_handles'         => array(
+					'description' => __( 'Public facing and editor style handles.' ),
+					'type'        => array( 'array' ),
+					'default'     => array(),
+					'items'       => array(
+						'type' => 'string',
+					),
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
+				),
+				'styles'                => array(
 					'description' => __( 'Block style variations.' ),
 					'type'        => 'array',
 					'items'       => array(
@@ -566,7 +613,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'variations'       => array(
+				'variations'            => array(
 					'description' => __( 'Block variations.' ),
 					'type'        => 'array',
 					'items'       => array(
@@ -618,14 +665,14 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'default'     => null,
 				),
-				'textdomain'       => array(
+				'textdomain'            => array(
 					'description' => __( 'Public text domain.' ),
 					'type'        => array( 'string', 'null' ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'parent'           => array(
+				'parent'                => array(
 					'description' => __( 'Parent blocks.' ),
 					'type'        => array( 'array', 'null' ),
 					'items'       => array(
@@ -635,12 +682,60 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'keywords'         => $keywords_definition,
-				'example'          => $example_definition,
+				'ancestor'              => array(
+					'description' => __( 'Ancestor blocks.' ),
+					'type'        => array( 'array', 'null' ),
+					'items'       => array(
+						'type' => 'string',
+					),
+					'default'     => null,
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
+				),
+				'keywords'              => $keywords_definition,
+				'example'               => $example_definition,
 			),
 		);
 
-		$this->schema = $schema;
+		// Properties deprecated in WordPress 6.1, but left in the schema for backwards compatibility.
+		$deprecated_properties      = array(
+			'editor_script' => array(
+				'description' => __( 'Editor script handle. DEPRECATED: Use `editor_script_handles` instead.' ),
+				'type'        => array( 'string', 'null' ),
+				'default'     => null,
+				'context'     => array( 'embed', 'view', 'edit' ),
+				'readonly'    => true,
+			),
+			'script'        => array(
+				'description' => __( 'Public facing and editor script handle. DEPRECATED: Use `script_handles` instead.' ),
+				'type'        => array( 'string', 'null' ),
+				'default'     => null,
+				'context'     => array( 'embed', 'view', 'edit' ),
+				'readonly'    => true,
+			),
+			'view_script'   => array(
+				'description' => __( 'Public facing script handle. DEPRECATED: Use `view_script_handles` instead.' ),
+				'type'        => array( 'string', 'null' ),
+				'default'     => null,
+				'context'     => array( 'embed', 'view', 'edit' ),
+				'readonly'    => true,
+			),
+			'editor_style'  => array(
+				'description' => __( 'Editor style handle. DEPRECATED: Use `editor_style_handles` instead.' ),
+				'type'        => array( 'string', 'null' ),
+				'default'     => null,
+				'context'     => array( 'embed', 'view', 'edit' ),
+				'readonly'    => true,
+			),
+			'style'         => array(
+				'description' => __( 'Public facing and editor style handle. DEPRECATED: Use `style_handles` instead.' ),
+				'type'        => array( 'string', 'null' ),
+				'default'     => null,
+				'context'     => array( 'embed', 'view', 'edit' ),
+				'readonly'    => true,
+			),
+		);
+		$this->schema['properties'] = array_merge( $this->schema['properties'], $deprecated_properties );
 
 		return $this->add_additional_fields_schema( $this->schema );
 	}

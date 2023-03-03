@@ -5,15 +5,9 @@
  * @package WordPress
  * @subpackage UnitTests
  * @since 5.2.0
- */
-
-/**
- * Tests_Privacy_wpPrivacyProcessPersonalDataExportPage class.
  *
  * @group privacy
  * @covers ::wp_privacy_process_personal_data_export_page
- *
- * @since 5.2.0
  */
 class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCase {
 	/**
@@ -141,6 +135,13 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	public $_export_data_grouped_fetched_within_callback;
 
 	/**
+	 * Original error level.
+	 *
+	 * @var int
+	 */
+	private $orig_error_level;
+
+	/**
 	 * Create user request fixtures shared by test methods.
 	 *
 	 * @since 5.2.0
@@ -191,8 +192,8 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @since 5.2.0
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Avoid writing export files to disk. Using `WP_Filesystem_MockFS` is blocked by #44204.
 		remove_action( 'wp_privacy_personal_data_export_file', 'wp_privacy_generate_personal_data_export_file', 10 );
@@ -209,8 +210,8 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 		add_filter( 'wp_die_ajax_handler', array( $this, 'get_wp_die_handler' ), 1, 1 );
 
 		// Suppress warnings from "Cannot modify header information - headers already sent by".
-		$this->_error_level = error_reporting();
-		error_reporting( $this->_error_level & ~E_WARNING );
+		$this->orig_error_level = error_reporting();
+		error_reporting( $this->orig_error_level & ~E_WARNING );
 	}
 
 	/**
@@ -218,10 +219,10 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @since 5.2.0
 	 */
-	public function tearDown() {
-		error_reporting( $this->_error_level );
+	public function tear_down() {
+		error_reporting( $this->orig_error_level );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

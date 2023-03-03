@@ -4,18 +4,26 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class Tests_REST_Request extends WP_UnitTestCase {
 	public $request;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->request = new WP_REST_Request();
+	}
+
+	/**
+	 * Called before setting up all tests.
+	 */
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		// Require files that need to load once.
+		require_once DIR_TESTROOT . '/includes/mock-invokable.php';
 	}
 
 	public function test_header() {
@@ -193,7 +201,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 * @ticket 49404
 	 * @dataProvider alternate_json_content_type_provider
 	 *
-	 * @param string $content_type The content-type header.
+	 * @param string $content_type The Content-Type header.
 	 * @param string $source       The source value.
 	 * @param bool   $accept_json  The accept_json value.
 	 */
@@ -224,7 +232,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 * @ticket 49404
 	 * @dataProvider is_json_content_type_provider
 	 *
-	 * @param string $content_type The content-type header.
+	 * @param string $content_type The Content-Type header.
 	 * @param bool   $is_json      The is_json value.
 	 */
 	public function test_is_json_content_type( $content_type, $is_json ) {
@@ -232,7 +240,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		$this->request->set_header( 'Content-Type', $content_type );
 
-		// Check for JSON content-type.
+		// Check for JSON Content-Type.
 		$this->assertSame( $is_json, $this->request->is_json_content_type() );
 	}
 
@@ -351,7 +359,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		);
 
 		$this->request->set_method( 'PUT' );
-		$this->request->add_header( 'content-type', 'application/json' );
+		$this->request->add_header( 'Content-Type', 'application/json' );
 		$this->request->set_body( wp_json_encode( $data ) );
 
 		foreach ( $data as $key => $expected_value ) {
@@ -373,7 +381,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		);
 
 		$this->request->set_method( 'POST' );
-		$this->request->add_header( 'content-type', 'application/json' );
+		$this->request->add_header( 'Content-Type', 'application/json' );
 		$this->request->set_body( wp_json_encode( $data ) );
 
 		foreach ( $data as $key => $expected_value ) {
@@ -475,7 +483,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array(
 				'args' => array(
 					'failparam' => array(
-						'sanitize_callback' => function () {
+						'sanitize_callback' => static function () {
 							$error = new WP_Error( 'invalid', 'Invalid.' );
 							$error->add( 'invalid', 'Super Invalid.' );
 							$error->add( 'broken', 'Broken.' );
@@ -491,7 +499,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertWPError( $valid );
 		$data = $valid->get_error_data();
 
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertArrayHasKey( 'params', $data );
 		$this->assertArrayHasKey( 'failparam', $data['params'] );
 		$this->assertSame( 'Invalid. Super Invalid. Broken.', $data['params']['failparam'] );
@@ -510,7 +518,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array(
 				'args' => array(
 					'failparam' => array(
-						'sanitize_callback' => function () {
+						'sanitize_callback' => static function () {
 							return new WP_Error( 'invalid', 'Invalid.', 'mydata' );
 						},
 					),
@@ -616,8 +624,8 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		$data = $valid->get_error_data( 'rest_missing_callback_param' );
 
-		$this->assertTrue( in_array( 'someinteger', $data['params'], true ) );
-		$this->assertTrue( in_array( 'someotherinteger', $data['params'], true ) );
+		$this->assertContains( 'someinteger', $data['params'] );
+		$this->assertContains( 'someotherinteger', $data['params'] );
 	}
 
 	public function test_has_valid_params_validate_callback() {
@@ -738,7 +746,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array(
 				'args' => array(
 					'failparam' => array(
-						'validate_callback' => function () {
+						'validate_callback' => static function () {
 							$error = new WP_Error( 'invalid', 'Invalid.' );
 							$error->add( 'invalid', 'Super Invalid.' );
 							$error->add( 'broken', 'Broken.' );
@@ -754,7 +762,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertWPError( $valid );
 		$data = $valid->get_error_data();
 
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertArrayHasKey( 'params', $data );
 		$this->assertArrayHasKey( 'failparam', $data['params'] );
 		$this->assertSame( 'Invalid. Super Invalid. Broken.', $data['params']['failparam'] );
@@ -773,7 +781,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array(
 				'args' => array(
 					'failparam' => array(
-						'validate_callback' => function () {
+						'validate_callback' => static function () {
 							return new WP_Error( 'invalid', 'Invalid.', 'mydata' );
 						},
 					),
@@ -854,7 +862,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 	public function test_set_param_follows_parameter_order() {
 		$request = new WP_REST_Request();
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_method( 'POST' );
 		$request->set_body(
 			wp_json_encode(
@@ -882,7 +890,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 */
 	public function test_set_param_updates_param_in_json_and_query() {
 		$request = new WP_REST_Request();
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_method( 'POST' );
 		$request->set_body(
 			wp_json_encode(
@@ -909,7 +917,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 */
 	public function test_set_param_updates_param_if_already_exists_in_query() {
 		$request = new WP_REST_Request();
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_method( 'POST' );
 		$request->set_body(
 			wp_json_encode(
@@ -943,7 +951,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 */
 	public function test_set_param_to_null_updates_param_in_json_and_query() {
 		$request = new WP_REST_Request();
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_method( 'POST' );
 		$request->set_body(
 			wp_json_encode(
@@ -970,7 +978,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 */
 	public function test_set_param_from_null_updates_param_in_json_and_query_with_null() {
 		$request = new WP_REST_Request();
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_method( 'POST' );
 		$request->set_body(
 			wp_json_encode(
@@ -997,7 +1005,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 */
 	public function test_set_param_with_invalid_json() {
 		$request = new WP_REST_Request();
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_method( 'POST' );
 		$request->set_body( '' );
 		$request->set_param( 'param', 'value' );
@@ -1014,7 +1022,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$request->set_query_params( array( 'test' => 'value' ) );
 
 		$error    = new WP_Error( 'error_code', __( 'Error Message' ), array( 'status' => 400 ) );
-		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback = $this->createPartialMock( 'Mock_Invokable', array( '__invoke' ) );
 		$callback->expects( self::once() )->method( '__invoke' )->with( self::identicalTo( $request ) )->willReturn( $error );
 		$request->set_attributes(
 			array(
@@ -1038,7 +1046,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$request->set_query_params( array( 'test' => 'value' ) );
 
 		$error    = new WP_Error( 'error_code', __( 'Error Message' ), array( 'status' => 400 ) );
-		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback = $this->createPartialMock( 'Mock_Invokable', array( '__invoke' ) );
 		$callback->expects( self::once() )->method( '__invoke' )->with( self::identicalTo( $request ) )->willReturn( $error );
 		$request->set_attributes(
 			array(
@@ -1056,7 +1064,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$request = new WP_REST_Request();
 		$request->set_query_params( array( 'test' => 'value' ) );
 
-		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback = $this->createPartialMock( 'Mock_Invokable', array( '__invoke' ) );
 		$callback->expects( self::never() )->method( '__invoke' );
 		$request->set_attributes(
 			array(

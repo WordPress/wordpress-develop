@@ -24,19 +24,17 @@ function render_block_core_legacy_widget( $attributes ) {
 		return '';
 	}
 
-	if ( method_exists( $wp_widget_factory, 'get_widget_object' ) ) {
-		$widget_object = $wp_widget_factory->get_widget_object( $attributes['idBase'] );
-	} else {
-		$widget_object = gutenberg_get_widget_object( $attributes['idBase'] );
-	}
+	$id_base       = $attributes['idBase'];
+	$widget_key    = $wp_widget_factory->get_widget_key( $id_base );
+	$widget_object = $wp_widget_factory->get_widget_object( $id_base );
 
-	if ( ! $widget_object ) {
+	if ( ! $widget_key || ! $widget_object ) {
 		return '';
 	}
 
 	if ( isset( $attributes['instance']['encoded'], $attributes['instance']['hash'] ) ) {
 		$serialized_instance = base64_decode( $attributes['instance']['encoded'] );
-		if ( wp_hash( $serialized_instance ) !== $attributes['instance']['hash'] ) {
+		if ( ! hash_equals( wp_hash( $serialized_instance ), (string) $attributes['instance']['hash'] ) ) {
 			return '';
 		}
 		$instance = unserialize( $serialized_instance );
@@ -44,27 +42,36 @@ function render_block_core_legacy_widget( $attributes ) {
 		$instance = array();
 	}
 
+	$args = array(
+		'widget_id'   => $widget_object->id,
+		'widget_name' => $widget_object->name,
+	);
+
 	ob_start();
-	the_widget( get_class( $widget_object ), $instance );
+	the_widget( $widget_key, $instance, $args );
 	return ob_get_clean();
 }
 
 /**
- * On application init this does two things:
- *
- * - Registers the 'core/legacy-widget' block.
- * - Intercepts any request with legacy-widget-preview in the query param and,
- *   if set, renders a page containing a preview of the requested Legacy Widget
- *   block.
+ * Registers the 'core/legacy-widget' block.
  */
-function init_legacy_widget_block() {
+function register_block_core_legacy_widget() {
 	register_block_type_from_metadata(
 		__DIR__ . '/legacy-widget',
 		array(
 			'render_callback' => 'render_block_core_legacy_widget',
 		)
 	);
+}
 
+add_action( 'init', 'register_block_core_legacy_widget' );
+
+/**
+ * Intercepts any request with legacy-widget-preview in the query param and, if
+ * set, renders a page containing a preview of the requested Legacy Widget
+ * block.
+ */
+function handle_legacy_widget_preview_iframe() {
 	if ( empty( $_GET['legacy-widget-preview'] ) ) {
 		return;
 	}
@@ -86,9 +93,35 @@ function init_legacy_widget_block() {
 		<style>
 			/* Reset theme styles */
 			html, body, #page, #content {
-				background: #FFF !important;
 				padding: 0 !important;
 				margin: 0 !important;
+			}
+
+			/* Hide root level text nodes */
+			body {
+				font-size: 0 !important;
+			}
+
+			/* Hide non-widget elements */
+			body *:not(#page):not(#content):not(.widget):not(.widget *) {
+				display: none !important;
+				font-size: 0 !important;
+				height: 0 !important;
+				left: -9999px !important;
+				max-height: 0 !important;
+				max-width: 0 !important;
+				opacity: 0 !important;
+				pointer-events: none !important;
+				position: absolute !important;
+				top: -9999px !important;
+				transform: translate(-9999px, -9999px) !important;
+				visibility: hidden !important;
+				z-index: -999 !important;
+			}
+
+			/* Restore widget font-size */
+			.widget {
+				font-size: var(--global--font-size-base);
 			}
 		</style>
 	</head>
@@ -110,4 +143,7 @@ function init_legacy_widget_block() {
 	exit;
 }
 
-add_action( 'init', 'init_legacy_widget_block' );
+// Use admin_init instead of init to ensure get_current_screen function is already available.
+// This isn't strictly required, but enables better compatibility with existing plugins.
+// See: https://github.com/WordPress/gutenberg/issues/32624.
+add_action( 'admin_init', 'handle_legacy_widget_preview_iframe', 20 );

@@ -3,6 +3,7 @@
 /**
  * @group user
  * @group capabilities
+ * @covers ::map_meta_cap
  */
 class Tests_User_MapMetaCap extends WP_UnitTestCase {
 
@@ -41,14 +42,14 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 	/**
 	 * @ticket 13905
 	 */
-	function test_capability_type_post_with_invalid_id() {
+	public function test_capability_type_post_with_invalid_id() {
 		$this->assertSame(
 			array( 'do_not_allow' ),
 			map_meta_cap( 'edit_post', self::$user_id, self::$post_id + 1 )
 		);
 	}
 
-	function test_capability_type_post_with_no_extra_caps() {
+	public function test_capability_type_post_with_no_extra_caps() {
 
 		register_post_type(
 			self::$post_type,
@@ -88,7 +89,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		);
 	}
 
-	function test_custom_capability_type_with_map_meta_cap() {
+	public function test_custom_capability_type_with_map_meta_cap() {
 		register_post_type(
 			self::$post_type,
 			array(
@@ -127,7 +128,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		);
 	}
 
-	function test_capability_type_post_with_one_renamed_cap() {
+	public function test_capability_type_post_with_one_renamed_cap() {
 		register_post_type(
 			self::$post_type,
 			array(
@@ -168,7 +169,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		);
 	}
 
-	function test_capability_type_post_map_meta_cap_true_with_renamed_cap() {
+	public function test_capability_type_post_map_meta_cap_true_with_renamed_cap() {
 		register_post_type(
 			self::$post_type,
 			array(
@@ -213,7 +214,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		);
 	}
 
-	function test_capability_type_post_with_all_meta_caps_renamed() {
+	public function test_capability_type_post_with_all_meta_caps_renamed() {
 		register_post_type(
 			self::$post_type,
 			array(
@@ -258,7 +259,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		);
 	}
 
-	function test_capability_type_post_with_all_meta_caps_renamed_mapped() {
+	public function test_capability_type_post_with_all_meta_caps_renamed_mapped() {
 		register_post_type(
 			self::$post_type,
 			array(
@@ -307,7 +308,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 	/**
 	 * @ticket 30991
 	 */
-	function test_delete_posts_cap_without_map_meta_cap() {
+	public function test_delete_posts_cap_without_map_meta_cap() {
 		register_post_type(
 			self::$post_type,
 			array(
@@ -322,7 +323,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		$this->assertSame( 'delete_posts', $post_type_object->cap->delete_posts );
 	}
 
-	function test_unfiltered_html_cap() {
+	public function test_unfiltered_html_cap() {
 		if ( defined( 'DISALLOW_UNFILTERED_HTML' ) ) {
 			$this->assertFalse( DISALLOW_UNFILTERED_HTML );
 		}
@@ -338,7 +339,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 	/**
 	 * @ticket 20488
 	 */
-	function test_file_edit_caps_not_reliant_on_unfiltered_html_constant() {
+	public function test_file_edit_caps_not_reliant_on_unfiltered_html_constant() {
 		$this->assertFalse( defined( 'DISALLOW_FILE_MODS' ) );
 		$this->assertFalse( defined( 'DISALLOW_FILE_EDIT' ) );
 
@@ -356,7 +357,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 	 *
 	 * @ticket 27020
 	 */
-	function test_authorless_posts_capabilties() {
+	public function test_authorless_posts_capabilties() {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author' => 0,
@@ -376,7 +377,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 	 *
 	 * @ticket 37580
 	 */
-	function test_only_users_who_can_manage_options_can_delete_page_on_front() {
+	public function test_only_users_who_can_manage_options_can_delete_page_on_front() {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
@@ -396,7 +397,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 	 *
 	 * @ticket 37580
 	 */
-	function test_only_users_who_can_manage_options_can_delete_page_for_posts() {
+	public function test_only_users_who_can_manage_options_can_delete_page_for_posts() {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
@@ -409,5 +410,52 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		delete_option( 'page_for_posts' );
 
 		$this->assertSame( array( 'manage_options' ), $caps );
+	}
+
+	/**
+	 * @dataProvider data_meta_caps_throw_doing_it_wrong_without_required_argument_provided
+	 * @ticket 44591
+	 *
+	 * @param string $cap The meta capability requiring an argument.
+	 */
+	public function test_meta_caps_throw_doing_it_wrong_without_required_argument_provided( $cap ) {
+		$admin_user = self::$user_id;
+		$this->setExpectedIncorrectUsage( 'map_meta_cap' );
+		$this->assertContains( 'do_not_allow', map_meta_cap( $cap, $admin_user ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[] Test parameters {
+	 *     @type string $cap The meta capability requiring an argument.
+	 * }
+	 */
+	public function data_meta_caps_throw_doing_it_wrong_without_required_argument_provided() {
+		return array(
+			array( 'delete_post' ),
+			array( 'delete_page' ),
+			array( 'edit_post' ),
+			array( 'edit_page' ),
+			array( 'read_post' ),
+			array( 'read_page' ),
+			array( 'publish_post' ),
+			array( 'edit_post_meta' ),
+			array( 'delete_post_meta' ),
+			array( 'add_post_meta' ),
+			array( 'edit_comment_meta' ),
+			array( 'delete_comment_meta' ),
+			array( 'add_comment_meta' ),
+			array( 'edit_term_meta' ),
+			array( 'delete_term_meta' ),
+			array( 'add_term_meta' ),
+			array( 'edit_user_meta' ),
+			array( 'delete_user_meta' ),
+			array( 'add_user_meta' ),
+			array( 'edit_comment' ),
+			array( 'edit_term' ),
+			array( 'delete_term' ),
+			array( 'assign_term' ),
+		);
 	}
 }

@@ -10,6 +10,7 @@
 require_once __DIR__ . '/admin.php';
 require_once __DIR__ . '/includes/credits.php';
 
+// Used in the HTML title tag.
 $title = __( 'Credits' );
 
 list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
@@ -21,21 +22,20 @@ $credits = wp_credits();
 <div class="wrap about__container">
 
 	<div class="about__header">
-		<div class="about__header-image">
-			<img alt="<?php _e( 'Code is Poetry' ); ?>" src="<?php echo admin_url( 'images/about-badge.svg' ); ?>" />
+		<div class="about__header-title">
+			<h1>
+				<?php _e( 'Contributors' ); ?>
+			</h1>
 		</div>
 
-		<div class="about__header-container">
-			<div class="about__header-title">
-				<p>
-					<?php _e( 'WordPress' ); ?>
-					<?php echo $display_version; ?>
-				</p>
-			</div>
-
-			<div class="about__header-text">
-				<?php _e( 'Jazz up your stories in an editor that’s cleaner, crisper, and does more to get out of your way.' ); ?>
-			</div>
+		<div class="about__header-text">
+			<?php
+			printf(
+				/* translators: %s: Version number. */
+				__( 'WordPress %s was created by a worldwide team of passionate individuals' ),
+				$display_version
+			);
+			?>
 		</div>
 
 		<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
@@ -46,36 +46,28 @@ $credits = wp_credits();
 		</nav>
 	</div>
 
-	<div class="about__section is-feature">
-		<div class="column">
-			<h1><?php _e( 'Credits' ); ?></h1>
-
+	<div class="about__section has-1-column has-gutters">
+		<div class="column aligncenter">
 			<?php if ( ! $credits ) : ?>
 
 			<p>
 				<?php
 				printf(
-					/* translators: 1: https://wordpress.org/about/, 2: https://make.wordpress.org/ */
-					__( 'WordPress is created by a <a href="%1$s">worldwide team</a> of passionate individuals. <a href="%2$s">Get involved in WordPress</a>.' ),
-					__( 'https://wordpress.org/about/' ),
-					__( 'https://make.wordpress.org/' )
+					/* translators: 1: https://wordpress.org/about/ */
+					__( 'WordPress is created by a <a href="%1$s">worldwide team</a> of passionate individuals.' ),
+					__( 'https://wordpress.org/about/' )
 				);
 				?>
+				<br />
+				<a href="https://make.wordpress.org/"><?php _e( 'Get involved in WordPress.' ); ?></a>
 			</p>
 
 			<?php else : ?>
 
 			<p>
-				<?php _e( 'WordPress is created by a worldwide team of passionate individuals.' ); ?>
-			</p>
-			<p>
-				<?php
-				printf(
-					/* translators: %s: https://make.wordpress.org/ */
-					__( 'Want to see your name in lights on this page? <a href="%s">Get involved in WordPress</a>.' ),
-					__( 'https://make.wordpress.org/' )
-				);
-				?>
+				<?php _e( 'Want to see your name in lights on this page?' ); ?>
+				<br />
+				<a href="https://make.wordpress.org/"><?php _e( 'Get involved in WordPress.' ); ?></a>
 			</p>
 
 			<?php endif; ?>
@@ -90,10 +82,10 @@ if ( ! $credits ) {
 }
 ?>
 
-	<hr />
+	<hr class="is-large" />
 
 	<div class="about__section">
-		<div class="column has-subtle-background-color">
+		<div class="column is-edge-to-edge">
 			<?php wp_credits_section_title( $credits['groups']['core-developers'] ); ?>
 			<?php wp_credits_section_list( $credits, 'core-developers' ); ?>
 			<?php wp_credits_section_list( $credits, 'contributing-developers' ); ?>

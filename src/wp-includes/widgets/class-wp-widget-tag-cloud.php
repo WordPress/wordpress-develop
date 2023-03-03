@@ -53,6 +53,8 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 			}
 		}
 
+		$default_title = $title;
+
 		$show_count = ! empty( $instance['count'] );
 
 		$tag_cloud = wp_tag_cloud(
@@ -100,7 +102,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 			// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
 			$title      = trim( strip_tags( $title ) );
 			$aria_label = $title ? $title : $default_title;
-			echo '<nav role="navigation" aria-label="' . esc_attr( $aria_label ) . '">';
+			echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
 		}
 
 		echo '<div class="tagcloud">';

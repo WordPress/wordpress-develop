@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
@@ -36,8 +34,8 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		unregister_taxonomy( 'customtax' );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		register_meta(
 			'term',
@@ -194,13 +192,13 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
-		$wp_rest_server = new Spy_REST_Server;
+		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
 	}
 
 	protected function grant_write_permission() {
 		// Ensure we have write permission.
-		$user = $this->factory->user->create(
+		$user = self::factory()->user->create(
 			array(
 				'role' => 'editor',
 			)
@@ -237,7 +235,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		$data = $response->get_data();
 		$meta = (array) $data['meta'];
 		$this->assertArrayHasKey( 'test_multi', $meta );
-		$this->assertInternalType( 'array', $meta['test_multi'] );
+		$this->assertIsArray( $meta['test_multi'] );
 		$this->assertContains( 'value1', $meta['test_multi'] );
 
 		// Check after an update.
@@ -327,7 +325,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
-		$wp_rest_server = new Spy_REST_Server;
+		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
 
 		add_term_meta( self::$category_id, 'test_string', 42 );
@@ -342,15 +340,15 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = (array) $data['meta'];
 
 		$this->assertArrayHasKey( 'test_string', $meta );
-		$this->assertInternalType( 'string', $meta['test_string'] );
+		$this->assertIsString( $meta['test_string'] );
 		$this->assertSame( '42', $meta['test_string'] );
 
 		$this->assertArrayHasKey( 'test_number', $meta );
-		$this->assertInternalType( 'float', $meta['test_number'] );
+		$this->assertIsFloat( $meta['test_number'] );
 		$this->assertSame( 42.0, $meta['test_number'] );
 
 		$this->assertArrayHasKey( 'test_bool', $meta );
-		$this->assertInternalType( 'boolean', $meta['test_bool'] );
+		$this->assertIsBool( $meta['test_bool'] );
 		$this->assertTrue( $meta['test_bool'] );
 	}
 
@@ -838,8 +836,8 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = get_term_meta( self::$category_id, 'test_custom_schema_multi', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 2, $meta );
-		$this->assertContains( 2, $meta );
-		$this->assertContains( 8, $meta );
+		$this->assertContains( '2', $meta );
+		$this->assertContains( '8', $meta );
 	}
 
 	/**
@@ -1157,7 +1155,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		$data = $response->get_data();
 
 		$this->assertArrayHasKey( 'meta', $data );
-		$this->assertInternalType( 'array', $data['meta'] );
+		$this->assertIsArray( $data['meta'] );
 
 		if ( $in_taxonomy ) {
 			$expected_value = $meta_value;
@@ -1221,7 +1219,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 
 		$data = $response->get_data();
 		$this->assertArrayHasKey( 'meta', $data );
-		$this->assertInternalType( 'array', $data['meta'] );
+		$this->assertIsArray( $data['meta'] );
 
 		if ( $in_taxonomy ) {
 			$expected_value = $meta_value;

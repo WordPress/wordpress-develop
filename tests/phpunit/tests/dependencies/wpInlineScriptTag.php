@@ -80,7 +80,7 @@ JS;
 	public function test_print_script_tag_prints_get_inline_script_tag() {
 		add_filter(
 			'wp_inline_script_attributes',
-			function ( $attributes ) {
+			static function ( $attributes ) {
 				if ( isset( $attributes['id'] ) && 'utils-js-extra' === $attributes['id'] ) {
 					$attributes['async'] = true;
 				}

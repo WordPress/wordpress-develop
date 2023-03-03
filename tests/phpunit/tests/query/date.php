@@ -45,8 +45,8 @@ class Tests_Query_Date extends WP_UnitTestCase {
 		}
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		unset( $this->q );
 		$this->q = new WP_Query();
 	}
@@ -298,7 +298,7 @@ class Tests_Query_Date extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $expected, $posts );
+		$this->assertEqualSets( $expected, $posts );
 	}
 
 	public function test_simple_monthnum_expecting_results() {

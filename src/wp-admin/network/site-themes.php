@@ -166,6 +166,7 @@ if ( isset( $_GET['action'] ) && 'update-site' === $_GET['action'] ) {
 add_thickbox();
 add_screen_option( 'per_page' );
 
+// Used in the HTML title tag.
 /* translators: %s: Site title. */
 $title = sprintf( __( 'Edit Site: %s' ), esc_html( $details->blogname ) );
 
@@ -194,7 +195,7 @@ if ( isset( $_GET['enabled'] ) ) {
 		/* translators: %s: Number of themes. */
 		$message = _n( '%s theme enabled.', '%s themes enabled.', $enabled );
 	}
-	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $enabled ) ) . '</p></div>';
+	echo '<div id="message" class="notice notice-success is-dismissible"><p>' . sprintf( $message, number_format_i18n( $enabled ) ) . '</p></div>';
 } elseif ( isset( $_GET['disabled'] ) ) {
 	$disabled = absint( $_GET['disabled'] );
 	if ( 1 === $disabled ) {
@@ -203,9 +204,9 @@ if ( isset( $_GET['enabled'] ) ) {
 		/* translators: %s: Number of themes. */
 		$message = _n( '%s theme disabled.', '%s themes disabled.', $disabled );
 	}
-	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $disabled ) ) . '</p></div>';
+	echo '<div id="message" class="notice notice-success is-dismissible"><p>' . sprintf( $message, number_format_i18n( $disabled ) ) . '</p></div>';
 } elseif ( isset( $_GET['error'] ) && 'none' === $_GET['error'] ) {
-	echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'No theme selected.' ) . '</p></div>';
+	echo '<div id="message" class="notice notice-error is-dismissible"><p>' . __( 'No theme selected.' ) . '</p></div>';
 }
 ?>
 

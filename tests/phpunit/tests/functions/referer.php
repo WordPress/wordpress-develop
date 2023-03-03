@@ -9,20 +9,20 @@
  */
 class Tests_Functions_Referer extends WP_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$_SERVER['HTTP_REFERER']      = '';
 		$_SERVER['REQUEST_URI']       = '';
 		$_REQUEST['_wp_http_referer'] = '';
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		$_SERVER['HTTP_REFERER']      = '';
 		$_SERVER['REQUEST_URI']       = '';
 		$_REQUEST['_wp_http_referer'] = '';
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function _fake_subfolder_install() {

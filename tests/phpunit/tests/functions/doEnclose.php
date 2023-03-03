@@ -1,14 +1,9 @@
 <?php
+
 /**
  * Test cases for the `do_enclose()` function.
  *
  * @package WordPress\UnitTests
- *
- * @since 5.3.0
- */
-
-/**
- * Tests_Functions_DoEnclose class.
  *
  * @since 5.3.0
  *
@@ -23,13 +18,13 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 *
 	 * @since 5.3.0
 	 */
-	public function setUp() {
-		parent::setUp();
-		add_filter( 'pre_http_request', array( $this, 'fake_http_request' ), 10, 3 );
+	public function set_up() {
+		parent::set_up();
+		add_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10, 3 );
 	}
 
 	/**
-	 * Test the function with an explicit content input.
+	 * Tests the function with an explicit content input.
 	 *
 	 * @since 5.3.0
 	 *
@@ -45,7 +40,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test the function with an implicit content input.
+	 * Tests the function with an implicit content input.
 	 *
 	 * @since 5.3.0
 	 *
@@ -65,7 +60,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Dataprovider for `test_function_with_explicit_content_input()`
+	 * Data provider for `test_function_with_explicit_content_input()`
 	 * and `test_function_with_implicit_content_input()`.
 	 *
 	 * @since 5.3.0
@@ -250,37 +245,36 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Fake the HTTP request response.
+	 * Mock the HTTP request response.
 	 *
 	 * @since 5.3.0
 	 *
-	 * @param bool   $false     False.
-	 * @param array  $arguments Request arguments.
-	 * @param string $url       Request URL.
-	 *
-	 * @return array            Header.
+	 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request. Default false.
+	 * @param array                $parsed_args HTTP request arguments.
+	 * @param string               $url         The request URL.
+	 * @return array Response data.
 	 */
-	public function fake_http_request( $false, $arguments, $url ) {
+	public function mock_http_request( $response, $parsed_args, $url ) {
 
 		// Video and audio headers.
 		$fake_headers = array(
 			'mp4' => array(
 				'headers' => array(
-					'content-length' => 123,
-					'content-type'   => 'video/mp4',
+					'Content-Length' => 123,
+					'Content-Type'   => 'video/mp4',
 				),
 			),
 			'ogg' => array(
 				'headers' => array(
-					'content-length' => 321,
-					'content-type'   => 'audio/ogg',
+					'Content-Length' => 321,
+					'Content-Type'   => 'audio/ogg',
 				),
 			),
 		);
 
 		$path = parse_url( $url, PHP_URL_PATH );
 
-		if ( false !== $path ) {
+		if ( is_string( $path ) ) {
 			$extension = pathinfo( $path, PATHINFO_EXTENSION );
 			if ( isset( $fake_headers[ $extension ] ) ) {
 				return $fake_headers[ $extension ];
@@ -290,8 +284,8 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 		// Fallback header.
 		return array(
 			'headers' => array(
-				'content-length' => 0,
-				'content-type'   => '',
+				'Content-Length' => 0,
+				'Content-Type'   => '',
 			),
 		);
 	}

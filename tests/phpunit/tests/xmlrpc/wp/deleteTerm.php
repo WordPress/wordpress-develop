@@ -14,13 +14,13 @@ class Tests_XMLRPC_wp_deleteTerm extends WP_XMLRPC_UnitTestCase {
 		);
 	}
 
-	function test_invalid_username_password() {
+	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_deleteTerm( array( 1, 'username', 'password', 'category', 0 ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
 	}
 
-	function test_empty_taxonomy() {
+	public function test_empty_taxonomy() {
 		$this->make_user_by_role( 'subscriber' );
 
 		$result = $this->myxmlrpcserver->wp_deleteTerm( array( 1, 'subscriber', 'subscriber', '', 0 ) );
@@ -29,7 +29,7 @@ class Tests_XMLRPC_wp_deleteTerm extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
 	}
 
-	function test_invalid_taxonomy() {
+	public function test_invalid_taxonomy() {
 		$this->make_user_by_role( 'subscriber' );
 
 		$result = $this->myxmlrpcserver->wp_deleteTerm( array( 1, 'subscriber', 'subscriber', 'not_existing', 0 ) );
@@ -38,7 +38,7 @@ class Tests_XMLRPC_wp_deleteTerm extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
 	}
 
-	function test_incapable_user() {
+	public function test_incapable_user() {
 		$this->make_user_by_role( 'subscriber' );
 
 		$result = $this->myxmlrpcserver->wp_deleteTerm( array( 1, 'subscriber', 'subscriber', 'category', self::$term_id ) );
@@ -47,7 +47,7 @@ class Tests_XMLRPC_wp_deleteTerm extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( __( 'Sorry, you are not allowed to delete this term.' ), $result->message );
 	}
 
-	function test_empty_term() {
+	public function test_empty_term() {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->wp_deleteTerm( array( 1, 'editor', 'editor', 'category', '' ) );
@@ -56,7 +56,7 @@ class Tests_XMLRPC_wp_deleteTerm extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( __( 'Empty Term.' ), $result->message );
 	}
 
-	function test_invalid_term() {
+	public function test_invalid_term() {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->wp_deleteTerm( array( 1, 'editor', 'editor', 'category', 9999 ) );
@@ -65,11 +65,11 @@ class Tests_XMLRPC_wp_deleteTerm extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( __( 'Invalid term ID.' ), $result->message );
 	}
 
-	function test_term_deleted() {
+	public function test_term_deleted() {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->wp_deleteTerm( array( 1, 'editor', 'editor', 'category', self::$term_id ) );
 		$this->assertNotIXRError( $result );
-		$this->assertInternalType( 'boolean', $result );
+		$this->assertIsBool( $result );
 	}
 }

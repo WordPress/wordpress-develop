@@ -5,16 +5,12 @@
  * @package WordPress
  * @subpackage REST_API
  * @since 5.8.0
- */
-
-/**
- * Tests for WP_REST_Widget_Types_Controller.
  *
- * @since 5.8.0
+ * @covers WP_REST_Widget_Types_Controller
  *
  * @see WP_TEST_REST_Controller_Testcase
  * @group restapi
- * @covers WP_REST_Widget_Types_Controller
+ * @group widgets
  */
 class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testcase {
 
@@ -112,16 +108,33 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	 * @ticket 41683
 	 */
 	public function test_get_items() {
+		wp_widgets_init();
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/widget-types' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertGreaterThan( 1, count( $data ) );
-		$endpoint = new WP_REST_Widget_Types_Controller;
+		$endpoint = new WP_REST_Widget_Types_Controller();
 		foreach ( $data as $item ) {
 			$widget_type = $endpoint->get_widget( $item['name'] );
 			$this->check_widget_type_object( $widget_type, $item, $item['_links'] );
 		}
+	}
+
+	/**
+	 * @ticket 53303
+	 */
+	public function test_get_items_ordering() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/widget-types' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertGreaterThan( 1, count( $data ) );
+		$ids    = wp_list_pluck( $data, 'id' );
+		$sorted = $ids;
+		sort( $sorted );
+
+		$this->assertSame( $sorted, $ids );
 	}
 
 	/**
@@ -148,7 +161,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$data         = $response->get_data();
 		$text_widgets = array_filter(
 			$data,
-			function( $widget ) {
+			static function( $widget ) {
 				return 'text' === $widget['id'];
 			}
 		);
@@ -163,7 +176,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		wp_set_current_user( self::$admin_id );
 		$request     = new WP_REST_Request( 'GET', '/wp/v2/widget-types/' . $widget_name );
 		$response    = rest_get_server()->dispatch( $request );
-		$endpoint    = new WP_REST_Widget_Types_Controller;
+		$endpoint    = new WP_REST_Widget_Types_Controller();
 		$widget_type = $endpoint->get_widget( $widget_name );
 		$this->check_widget_type_object( $widget_type, $response->get_data(), $response->get_links() );
 	}
@@ -176,12 +189,12 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		wp_register_sidebar_widget(
 			$widget_id,
 			'WP legacy widget',
-			function() {}
+			static function() {}
 		);
 		wp_set_current_user( self::$admin_id );
 		$request     = new WP_REST_Request( 'GET', '/wp/v2/widget-types/' . $widget_id );
 		$response    = rest_get_server()->dispatch( $request );
-		$endpoint    = new WP_REST_Widget_Types_Controller;
+		$endpoint    = new WP_REST_Widget_Types_Controller();
 		$widget_type = $endpoint->get_widget( $widget_id );
 		$this->check_widget_type_object( $widget_type, $response->get_data(), $response->get_links() );
 	}
@@ -196,6 +209,27 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_widget_type_invalid', $response, 404 );
+	}
+
+	/**
+	 * @ticket 53407
+	 */
+	public function test_get_widgets_decodes_html_entities() {
+		wp_set_current_user( self::$admin_id );
+		$widget_id = 'archives';
+		wp_register_sidebar_widget(
+			$widget_id,
+			'&#8216;Legacy &#8209; Archive &#8209; Widget&#8217;',
+			static function() {},
+			array(
+				'description' => '&#8220;A great &amp; interesting archive of your site&#8217;s posts!&#8221;',
+			)
+		);
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/widget-types/archives' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( '‘Legacy ‑ Archive ‑ Widget’', $data['name'] );
+		$this->assertSame( '“A great & interesting archive of your site’s posts!”', $data['description'] );
 	}
 
 	/**
@@ -260,9 +294,9 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	 * @ticket 41683
 	 */
 	public function test_prepare_item() {
-		$endpoint    = new WP_REST_Widget_Types_Controller;
+		$endpoint    = new WP_REST_Widget_Types_Controller();
 		$widget_type = $endpoint->get_widget( 'calendar' );
-		$request     = new WP_REST_Request;
+		$request     = new WP_REST_Request();
 		$request->set_param( 'context', 'edit' );
 		$response = $endpoint->prepare_item_for_response( $widget_type, $request );
 		$this->check_widget_type_object( $widget_type, $response->get_data(), $response->get_links() );
@@ -307,7 +341,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$request  = new WP_REST_Request( 'POST', '/wp/v2/widget-types/search/encode' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals(
+		$this->assertSameIgnoreEOL(
 			"<p>\n" .
 			"\t\t\t<label for=\"widget-search--1-title\">Title:</label>\n" .
 			"\t\t\t<input class=\"widefat\" id=\"widget-search--1-title\" name=\"widget-search[-1][title]\" type=\"text\" value=\"\" />\n" .
@@ -328,7 +362,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			array(
 				'encoded' => base64_encode( serialize( array() ) ),
 				'hash'    => wp_hash( serialize( array() ) ),
-				'raw'     => new stdClass,
+				'raw'     => new stdClass(),
 			),
 			$data['instance']
 		);
@@ -343,7 +377,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$request->set_param( 'number', 8 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals(
+		$this->assertSameIgnoreEOL(
 			"<p>\n" .
 			"\t\t\t<label for=\"widget-search-8-title\">Title:</label>\n" .
 			"\t\t\t<input class=\"widefat\" id=\"widget-search-8-title\" name=\"widget-search[8][title]\" type=\"text\" value=\"\" />\n" .
@@ -364,7 +398,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			array(
 				'encoded' => base64_encode( serialize( array() ) ),
 				'hash'    => wp_hash( serialize( array() ) ),
-				'raw'     => new stdClass,
+				'raw'     => new stdClass(),
 			),
 			$data['instance']
 		);
@@ -385,7 +419,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals(
+		$this->assertSameIgnoreEOL(
 			"<p>\n" .
 			"\t\t\t<label for=\"widget-search--1-title\">Title:</label>\n" .
 			"\t\t\t<input class=\"widefat\" id=\"widget-search--1-title\" name=\"widget-search[-1][title]\" type=\"text\" value=\"Test title\" />\n" .
@@ -402,7 +436,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			"\t\t\t</form></div>",
 			$data['preview']
 		);
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'encoded' => base64_encode( serialize( array( 'title' => 'Test title' ) ) ),
 				'hash'    => wp_hash( serialize( array( 'title' => 'Test title' ) ) ),
@@ -421,7 +455,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$request->set_param( 'form_data', 'widget-search[-1][title]=Updated+title' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals(
+		$this->assertSameIgnoreEOL(
 			"<p>\n" .
 			"\t\t\t<label for=\"widget-search--1-title\">Title:</label>\n" .
 			"\t\t\t<input class=\"widefat\" id=\"widget-search--1-title\" name=\"widget-search[-1][title]\" type=\"text\" value=\"Updated title\" />\n" .
@@ -438,7 +472,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			"\t\t\t</form></div>",
 			$data['preview']
 		);
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'encoded' => base64_encode( serialize( array( 'title' => 'Updated title' ) ) ),
 				'hash'    => wp_hash( serialize( array( 'title' => 'Updated title' ) ) ),
@@ -465,7 +499,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals(
+		$this->assertSameIgnoreEOL(
 			"<p>\n" .
 			"\t\t\t<label for=\"widget-search--1-title\">Title:</label>\n" .
 			"\t\t\t<input class=\"widefat\" id=\"widget-search--1-title\" name=\"widget-search[-1][title]\" type=\"text\" value=\"Test title\" />\n" .
@@ -482,7 +516,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			"\t\t\t</form></div>",
 			$data['preview']
 		);
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'encoded' => base64_encode( serialize( array( 'title' => 'Test title' ) ) ),
 				'hash'    => wp_hash( serialize( array( 'title' => 'Test title' ) ) ),
@@ -492,19 +526,30 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$wp_widget_factory->widgets['WP_Widget_Search']->widget_options['show_instance_in_rest'] = true;
 	}
 
+	/**
+	 * The create_item() method does not exist for widget types.
+	 *
+	 * @doesNotPerformAssertions
+	 */
+	public function test_create_item() {
+		// Controller does not implement create_item().
+	}
 
 	/**
-	 * The test_create_item() method does not exist for widget types.
+	 * The update_item() method does not exist for widget types.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_create_item() {}
+	public function test_update_item() {
+		// Controller does not implement update_item().
+	}
 
 	/**
-	 * The test_update_item() method does not exist for widget types.
+	 * The delete_item() method does not exist for widget types.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_update_item() {}
-
-	/**
-	 * The test_delete_item() method does not exist for widget types.
-	 */
-	public function test_delete_item() {}
+	public function test_delete_item() {
+		// Controller does not implement delete_item().
+	}
 }

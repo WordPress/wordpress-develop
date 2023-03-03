@@ -1,0 +1,80 @@
+{
+	"version": 1,
+	"settings": {
+		"color": {
+			"palette": [
+				{
+					"slug": "light",
+					"name": "Light",
+					"color": "#f5f7f9"
+				},
+				{
+					"slug": "dark",
+					"name": "Dark",
+					"color": "#000"
+				}
+			],
+			"gradients": [
+				{
+					"name": "Custom gradient",
+					"gradient": "linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%)",
+					"slug": "custom-gradient"
+				}
+			],
+			"custom": false,
+			"customGradient": false
+		},
+		"typography": {
+			"fontSizes": [
+				{
+					"name": "Custom",
+					"slug": "custom",
+					"size": "100px"
+				}
+			],
+			"customFontSize": false,
+			"customLineHeight": true
+		},
+		"spacing": {
+			"units": [
+				"rem"
+			],
+			"customPadding": true
+		},
+		"blocks": {
+			"core/paragraph": {
+				"color": {
+					"palette": [
+						{
+							"slug": "light",
+							"name": "Light",
+							"color": "#f5f7f9"
+						}
+					]
+				}
+			}
+		}
+	},
+	"customTemplates": [
+		{
+			"name": "page-τεστ",
+			"title": "Homepage template"
+		},
+		{
+			"name": "page-测试",
+			"title": "Homepage template"
+		}
+	],
+	"templateParts": [
+		{
+			"name": "small-header-τεστ",
+			"title": "Small Header",
+			"area": "header"
+		},
+		{
+			"name": "small-header-测试",
+			"title": "Small Header",
+			"area": "header"
+		},
+	]
+}

@@ -116,7 +116,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'foo' );
 
-		$this->assertInternalType( 'array', $found );
+		$this->assertIsArray( $found );
 		$this->assertEquals( $t, $found['term_id'] );
 	}
 
@@ -180,7 +180,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'foo' );
 
-		$this->assertInternalType( 'array', $found );
+		$this->assertIsArray( $found );
 		$this->assertEquals( $t, $found['term_id'] );
 	}
 
@@ -198,7 +198,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'foo' );
 
-		$this->assertInternalType( 'array', $found );
+		$this->assertIsArray( $found );
 		$this->assertEquals( $t, $found['term_id'] );
 	}
 
@@ -216,7 +216,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'foo' );
 
-		$this->assertInternalType( 'array', $found );
+		$this->assertIsArray( $found );
 		$this->assertEquals( $t, $found['term_id'] );
 	}
 
@@ -234,7 +234,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'foo' );
 
-		$this->assertInternalType( 'string', $found );
+		$this->assertIsString( $found );
 		$this->assertEquals( $t, $found );
 	}
 
@@ -252,17 +252,17 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'foo' );
 
-		$this->assertInternalType( 'string', $found );
+		$this->assertIsString( $found );
 		$this->assertEquals( $t, $found );
 	}
 
-	function test_term_exists_known() {
+	public function test_term_exists_known() {
 		register_taxonomy( 'wptests_tax', 'post' );
 
 		// Insert a term.
-		$term = rand_str();
+		$term = __FUNCTION__;
 		$t    = wp_insert_term( $term, 'wptests_tax' );
-		$this->assertInternalType( 'array', $t );
+		$this->assertIsArray( $t );
 		$this->assertEquals( $t['term_id'], term_exists( $t['term_id'] ) );
 		$this->assertEquals( $t['term_id'], term_exists( $term ) );
 
@@ -271,7 +271,133 @@ class Tests_TermExists extends WP_UnitTestCase {
 		_unregister_taxonomy( 'wptests_tax' );
 	}
 
-	function test_term_exists_unknown() {
+	/**
+	 * @ticket 36949
+	 * @covers ::term_exists()
+	 */
+	public function test_term_lookup_by_id_and_update() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$slug = __FUNCTION__;
+		$t    = self::factory()->term->create(
+			array(
+				'slug'     => $slug,
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		$this->assertEquals( $t, term_exists( $t ) );
+		$this->assertTrue( wp_delete_term( $t, 'wptests_tax' ) );
+		$this->assertNull( term_exists( $t ) );
+
+		// Clean up.
+		_unregister_taxonomy( 'wptests_tax' );
+	}
+
+	/**
+	 * @ticket 36949
+	 * @covers ::term_exists()
+	 */
+	public function test_term_lookup_by_slug_and_update() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$slug = __FUNCTION__;
+		$t    = self::factory()->term->create(
+			array(
+				'slug'     => $slug,
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		$this->assertEquals( $t, term_exists( $slug ) );
+		$this->assertTrue( wp_delete_term( $t, 'wptests_tax' ) );
+		$this->assertNull( term_exists( $slug ) );
+
+		// Clean up.
+		_unregister_taxonomy( 'wptests_tax' );
+	}
+
+	/**
+	 * @ticket 36949
+	 * @covers ::term_exists()
+	 */
+	public function test_term_exists_caching() {
+		global $wpdb;
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$slug = __FUNCTION__;
+		$t    = self::factory()->term->create(
+			array(
+				'slug'     => $slug,
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		$this->assertEquals( $t, term_exists( $slug ) );
+		$num_queries = $wpdb->num_queries;
+		$this->assertEquals( $t, term_exists( $slug ) );
+		$this->assertSame( $num_queries, $wpdb->num_queries );
+
+		$this->assertTrue( wp_delete_term( $t, 'wptests_tax' ) );
+		$num_queries = $wpdb->num_queries;
+		$this->assertNull( term_exists( $slug ) );
+		$this->assertSame( $num_queries + 2, $wpdb->num_queries );
+
+		// Clean up.
+		_unregister_taxonomy( 'wptests_tax' );
+	}
+
+	/**
+	 * @ticket 36949
+	 * @covers ::term_exists()
+	 */
+	public function test_term_exists_caching_suspend_cache_invalidation() {
+		global $wpdb;
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		wp_suspend_cache_invalidation( true );
+		$slug = __FUNCTION__;
+		$t    = self::factory()->term->create(
+			array(
+				'slug'     => $slug,
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$this->assertEquals( $t, term_exists( $slug ) );
+		$num_queries = $wpdb->num_queries;
+		$this->assertEquals( $t, term_exists( $slug ) );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		wp_suspend_cache_invalidation( false );
+
+		// Clean up.
+		_unregister_taxonomy( 'wptests_tax' );
+	}
+
+	/**
+	 * @ticket 36949
+	 * @covers ::term_exists()
+	 */
+	public function test_term_exists_caching_by_int_suspend_cache_invalidation() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$slug = __FUNCTION__;
+		$t    = self::factory()->term->create(
+			array(
+				'slug'     => $slug,
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		// Warm cache in get_term() via term_exists().
+		term_exists( $t );
+		wp_suspend_cache_invalidation( true );
+		wp_delete_term( $t, 'wptests_tax' );
+		$this->assertNull( term_exists( $t ) );
+
+		// Reneable cache invalidation.
+		wp_suspend_cache_invalidation( false );
+		_unregister_taxonomy( 'wptests_tax' );
+	}
+
+	public function test_term_exists_unknown() {
 		$this->assertNull( term_exists( rand_str() ) );
 		$this->assertSame( 0, term_exists( 0 ) );
 		$this->assertNull( term_exists( '' ) );

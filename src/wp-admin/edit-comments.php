@@ -25,6 +25,11 @@ if ( $doaction ) {
 	check_admin_referer( 'bulk-comments' );
 
 	if ( 'delete_all' === $doaction && ! empty( $_REQUEST['pagegen_timestamp'] ) ) {
+		/**
+		 * @global wpdb $wpdb WordPress database abstraction object.
+		 */
+		global $wpdb;
+
 		$comment_status = wp_unslash( $_REQUEST['comment_status'] );
 		$delete_time    = wp_unslash( $_REQUEST['pagegen_timestamp'] );
 		$comment_ids    = $wpdb->get_col( $wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_approved = %s AND %s > comment_date_gmt", $comment_status, $delete_time ) );
@@ -135,10 +140,17 @@ $wp_list_table->prepare_items();
 wp_enqueue_script( 'admin-comments' );
 enqueue_comment_hotkeys_js();
 
+/**
+ * @global int $post_id
+ */
+global $post_id;
+
 if ( $post_id ) {
 	$comments_count      = wp_count_comments( $post_id );
 	$draft_or_post_title = wp_html_excerpt( _draft_or_post_title( $post_id ), 50, '&hellip;' );
+
 	if ( $comments_count->moderated > 0 ) {
+		// Used in the HTML title tag.
 		$title = sprintf(
 			/* translators: 1: Comments count, 2: Post title. */
 			__( 'Comments (%1$s) on &#8220;%2$s&#8221;' ),
@@ -146,6 +158,7 @@ if ( $post_id ) {
 			$draft_or_post_title
 		);
 	} else {
+		// Used in the HTML title tag.
 		$title = sprintf(
 			/* translators: %s: Post title. */
 			__( 'Comments on &#8220;%s&#8221;' ),
@@ -154,13 +167,16 @@ if ( $post_id ) {
 	}
 } else {
 	$comments_count = wp_count_comments();
+
 	if ( $comments_count->moderated > 0 ) {
+		// Used in the HTML title tag.
 		$title = sprintf(
 			/* translators: %s: Comments count. */
 			__( 'Comments (%s)' ),
 			number_format_i18n( $comments_count->moderated )
 		);
 	} else {
+		// Used in the HTML title tag.
 		$title = __( 'Comments' );
 	}
 }
@@ -191,10 +207,10 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/comments-screen/">Documentation on Comments</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/comment-spam/">Documentation on Comment Spam</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/keyboard-shortcuts/">Documentation on Keyboard Shortcuts</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/comments-screen/">Documentation on Comments</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/understand-comment-spam/">Documentation on Comment Spam</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/keyboard-shortcuts-classic-editor/#keyboard-shortcuts-for-comments">Documentation on Keyboard Shortcuts</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 get_current_screen()->set_screen_reader_content(
@@ -245,7 +261,7 @@ if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
 	printf(
 		/* translators: %s: Search query. */
 		__( 'Search results for: %s' ),
-		'<strong>' . wp_html_excerpt( esc_html( wp_unslash( $_REQUEST['s'] ) ), 50, '&hellip;' ) . '</strong>'
+		'<strong>' . esc_html( wp_unslash( $_REQUEST['s'] ) ) . '</strong>'
 	);
 	echo '</span>';
 }
@@ -329,7 +345,7 @@ if ( isset( $_REQUEST['approved'] ) || isset( $_REQUEST['deleted'] ) || isset( $
 			}
 		}
 
-		echo '<div id="moderated" class="updated notice is-dismissible"><p>' . implode( "<br/>\n", $messages ) . '</p></div>';
+		echo '<div id="moderated" class="updated notice is-dismissible"><p>' . implode( "<br />\n", $messages ) . '</p></div>';
 	}
 }
 ?>

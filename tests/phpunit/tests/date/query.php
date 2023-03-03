@@ -15,10 +15,20 @@ class Tests_Date_Query extends WP_UnitTestCase {
 	 */
 	public $q;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		unset( $this->q );
 		$this->q = new WP_Date_Query( array( 'm' => 2 ) );
+	}
+
+	/**
+	 * Cleans up.
+	 */
+	public function tear_down() {
+		// Reset the timezone option to the default value.
+		update_option( 'timezone_string', '' );
+
+		parent::tear_down();
 	}
 
 	public function test_construct_date_query_empty() {
@@ -561,7 +571,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 	 * @param bool         $default_to_max Flag to default missing values to max.
 	 */
 	public function test_build_mysql_datetime_with_custom_timezone( $datetime, $expected, $default_to_max = false ) {
-		update_option( 'timezone_string', 'Europe/Kiev' );
+		update_option( 'timezone_string', 'Europe/Helsinki' );
 
 		$q = new WP_Date_Query( array() );
 
@@ -583,7 +593,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 	 * @ticket 41782
 	 */
 	public function test_build_mysql_datetime_with_relative_date() {
-		update_option( 'timezone_string', 'Europe/Kiev' );
+		update_option( 'timezone_string', 'Europe/Helsinki' );
 
 		$q = new WP_Date_Query( array() );
 
@@ -610,7 +620,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		$found = $q->build_time_query( 'post_date', '=', 0, 10 );
 
-		$this->assertContains( '%H', $wpdb->remove_placeholder_escape( $found ) );
+		$this->assertStringContainsString( '%H', $wpdb->remove_placeholder_escape( $found ) );
 	}
 
 	public function test_build_time_query_compare_in() {
@@ -713,7 +723,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		// $compare value is floating point - use regex to account for
 		// varying precision on different PHP installations.
-		$this->assertRegExp( "/DATE_FORMAT\( post_date, '%H\.%i' \) = 5\.150*/", $wpdb->remove_placeholder_escape( $found ) );
+		$this->assertMatchesRegularExpression( "/DATE_FORMAT\( post_date, '%H\.%i' \) = 5\.150*/", $wpdb->remove_placeholder_escape( $found ) );
 	}
 
 	public function test_build_time_query_hour_minute_second() {
@@ -724,7 +734,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		// $compare value is floating point - use regex to account for
 		// varying precision on different PHP installations.
-		$this->assertRegExp( "/DATE_FORMAT\( post_date, '%H\.%i%s' \) = 5\.15350*/", $wpdb->remove_placeholder_escape( $found ) );
+		$this->assertMatchesRegularExpression( "/DATE_FORMAT\( post_date, '%H\.%i%s' \) = 5\.15350*/", $wpdb->remove_placeholder_escape( $found ) );
 	}
 
 	public function test_build_time_query_minute_second() {
@@ -735,7 +745,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		// $compare value is floating point - use regex to account for
 		// varying precision on different PHP installations.
-		$this->assertRegExp( "/DATE_FORMAT\( post_date, '0\.%i%s' \) = 0\.15350*/", $wpdb->remove_placeholder_escape( $found ) );
+		$this->assertMatchesRegularExpression( "/DATE_FORMAT\( post_date, '0\.%i%s' \) = 0\.15350*/", $wpdb->remove_placeholder_escape( $found ) );
 	}
 
 	/**
@@ -1134,5 +1144,143 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		// MySQL ignores the invalid clause.
 		$this->assertSame( array( $p1, $p2 ), $q->posts );
+	}
+
+	/**
+	 * @covers WP_Date_Query::get_sql
+	 */
+	public function test_relation_in_query_and() {
+		$date_query = array(
+			'relation' => 'AND',
+			array(
+				'before'    => array(
+					'year'  => 2021,
+					'month' => 9,
+					'day'   => 20,
+				),
+				'after'     => array(
+					'year'  => 2019,
+					'month' => 2,
+					'day'   => 25,
+				),
+				'inclusive' => true,
+			),
+			array(
+				'before'    => array(
+					'year'  => 2016,
+					'month' => 9,
+					'day'   => 11,
+				),
+				'after'     => array(
+					'year'  => 2014,
+					'month' => 5,
+					'day'   => 12,
+				),
+				'inclusive' => false,
+			),
+		);
+
+		$q = new WP_Date_Query( $date_query );
+
+		$sql = $q->get_sql();
+
+		$parts = mb_split( '\)\s+AND\s+\(', $sql );
+		$this->assertIsArray( $parts, 'SQL query cannot be split into multiple parts using operator AND.' );
+		$this->assertEquals( 2, count( $parts ), 'SQL query does not contain correct number of AND operators.' );
+
+		$this->assertStringNotContainsString( 'OR', $sql, 'SQL query contains conditions joined by operator OR.' );
+	}
+
+	/**
+	 * @covers WP_Date_Query::get_sql
+	 */
+	public function test_relation_in_query_or() {
+		$date_query = array(
+			'relation' => 'OR',
+			array(
+				'before'    => array(
+					'year'  => 2021,
+					'month' => 9,
+					'day'   => 20,
+				),
+				'after'     => array(
+					'year'  => 2019,
+					'month' => 2,
+					'day'   => 25,
+				),
+				'inclusive' => true,
+			),
+			array(
+				'before'    => array(
+					'year'  => 2016,
+					'month' => 9,
+					'day'   => 11,
+				),
+				'after'     => array(
+					'year'  => 2014,
+					'month' => 5,
+					'day'   => 12,
+				),
+				'inclusive' => false,
+			),
+		);
+
+		$q = new WP_Date_Query( $date_query );
+
+		$sql = $q->get_sql();
+
+		$this->assertStringContainsString( 'OR', $sql, 'SQL query does not contain conditions joined by operator OR.' );
+
+		$parts = mb_split( '\)\s+OR\s+\(', $sql );
+		$this->assertIsArray( $parts, 'SQL query cannot be split into multiple parts using operator OR.' );
+		$this->assertEquals( 2, count( $parts ), 'SQL query does not contain correct number of OR operators.' );
+
+		// Checking number of occurrences of AND while skipping the one at the beginning.
+		$this->assertSame( 2, substr_count( substr( $sql, 5 ), 'AND' ), 'SQL query does not contain expected number conditions joined by operator AND.' );
+	}
+
+	/**
+	 * @covers WP_Date_Query::get_sql
+	 */
+	public function test_relation_in_query_unsupported() {
+		$date_query = array(
+			'relation' => 'UNSUPPORTED',
+			array(
+				'before'    => array(
+					'year'  => 2021,
+					'month' => 9,
+					'day'   => 20,
+				),
+				'after'     => array(
+					'year'  => 2019,
+					'month' => 2,
+					'day'   => 25,
+				),
+				'inclusive' => true,
+			),
+			array(
+				'before'    => array(
+					'year'  => 2016,
+					'month' => 9,
+					'day'   => 11,
+				),
+				'after'     => array(
+					'year'  => 2014,
+					'month' => 5,
+					'day'   => 12,
+				),
+				'inclusive' => false,
+			),
+		);
+
+		$q = new WP_Date_Query( $date_query );
+
+		$sql = $q->get_sql();
+
+		$parts = mb_split( '\)\s+AND\s+\(', $sql );
+		$this->assertIsArray( $parts, 'SQL query cannot be split into multiple parts using operator AND.' );
+		$this->assertEquals( 2, count( $parts ), 'SQL query does not contain correct number of AND operators.' );
+
+		$this->assertStringNotContainsString( 'OR', $sql, 'SQL query contains conditions joined by operator OR.' );
 	}
 }
