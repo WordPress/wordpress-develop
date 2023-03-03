@@ -224,14 +224,10 @@ switch ( $step ) {
 		<tr id="table-row-dbtype">
 			<th scope="row"><label for="dbtype"><?php _e( 'Database Engine' ); ?></label></th>
 			<td>
-				<div style="width:24ch;">
-					<input name="dbtype" id="dbtype-mysql" type="radio" value="mysql" aria-describedby="dbtype-desc" onclick="toggleDBType( this )" checked/>
-					<label for="dbtype-mysql"><?php _e( 'MySQL' ); ?></label>
-				</div>
-				<div style="width:24ch;">
-					<input name="dbtype" id="dbtype-sqlite" type="radio" value="sqlite" aria-describedby="dbtype-desc" onclick="toggleDBType( this )"/>
-					<label for="dbtype-sqlite"><?php _e( 'SQLite' ); ?></label>
-				</div>
+				<select name="dbtype" id="dbtype" aria-describedby="dbtype-desc" onChange="window.selectDBType( this );" style="width:26ch;">
+					<option value="mysql" selected><?php _e( 'MySQL' ); ?></option>
+					<option value="sqlite"><?php _e( 'SQLite' ); ?></option>
+				</select>
 			</td>
 			<td id="dbtype-desc"><?php _e( 'The type of database to use. SQLite is more suitable to personal blogs and smaller sites, while MySQL will allow your site to scale and grow easier.' ); ?></td>
 		</tr>
@@ -282,20 +278,14 @@ switch ( $step ) {
 	<p class="step"><input name="submit" type="submit" value="<?php echo htmlspecialchars( __( 'Submit' ), ENT_QUOTES ); ?>" class="button button-large" /></p>
 </form>
 <script>
-	window.toggleDBType = function( el ) {
-		if ( 'dbtype-sqlite' === el.id ) {
-			document.getElementById( 'table-row-dbname' ).style.display = 'none';
-			document.getElementById( 'table-row-uname' ).style.display = 'none';
-			document.getElementById( 'table-row-pwd' ).style.display = 'none';
-			document.getElementById( 'table-row-dbhost' ).style.display = 'none';
-			document.getElementById( 'table-row-prefix' ).style.display = 'none';
-		} else {
-			document.getElementById( 'table-row-dbname' ).style.display = 'table-row';
-			document.getElementById( 'table-row-uname' ).style.display = 'table-row';
-			document.getElementById( 'table-row-pwd' ).style.display = 'table-row';
-			document.getElementById( 'table-row-dbhost' ).style.display = 'table-row';
-			document.getElementById( 'table-row-prefix' ).style.display = 'table-row';
-		}
+	window.selectDBType = function( el ) {
+		console.log( el );
+		var display = 'sqlite' === el.value ? 'none' : 'table-row';
+		document.getElementById( 'table-row-dbname' ).style.display = display;
+		document.getElementById( 'table-row-uname' ).style.display = display;
+		document.getElementById( 'table-row-pwd' ).style.display = display;
+		document.getElementById( 'table-row-dbhost' ).style.display = display;
+		document.getElementById( 'table-row-prefix' ).style.display = display;
 	}
 </script>
 		<?php
