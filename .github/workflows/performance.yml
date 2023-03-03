@@ -29,7 +29,8 @@ env:
   # and another against a consistent version that is used as a baseline measurement.
   # This is done to isolate variance in measurements caused by the GitHub runners
   # from differences caused by code changes between commits. The BASE_TAG value here
-  # represents the current version being used for baseline measurements.
+  # represents the version being used for baseline measurements. It should only be
+  # changed if we want to normalize results against a different baseline.
   BASE_TAG: '6.1.1'
   LOCAL_DIR: build
 
