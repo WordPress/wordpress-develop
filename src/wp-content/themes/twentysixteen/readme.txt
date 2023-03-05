@@ -1,6 +1,6 @@
 === Twenty Sixteen ===
 Contributors: wordpressdotorg
-Tested up to: 6.1
+Tested up to: 6.3
 Version: 2.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
