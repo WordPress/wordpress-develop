@@ -430,6 +430,7 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56299
+	 * @ticket 57852
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
 	 * @covers WP_HTML_Tag_Processor::is_tag_closer
