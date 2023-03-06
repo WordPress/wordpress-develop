@@ -370,7 +370,7 @@ function wp_add_global_styles_for_blocks() {
  * @since 6.3.0
  * @access private
  *
- * @param string $path Path to a property in theme.json.
+ * @param array $path An array of keys describing the path to a property in theme.json.
  * @return string Identified block name, or empty string if none found.
  */
 function wp_get_block_name_from_theme_json_path( $path ) {
@@ -389,7 +389,7 @@ function wp_get_block_name_from_theme_json_path( $path ) {
 	$result = array_values(
 		array_filter(
 			$path,
-			function ( $item ) {
+			static function ( $item ) {
 				if ( strpos( $item, 'core/' ) !== false ) {
 					return true;
 				}
