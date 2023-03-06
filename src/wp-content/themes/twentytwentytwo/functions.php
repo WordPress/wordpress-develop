@@ -9,7 +9,6 @@
  * @since Twenty Twenty-Two 1.0
  */
 
-
 if ( ! function_exists( 'twentytwentytwo_support' ) ) :
 
 	/**
@@ -63,5 +62,5 @@ endif;
 
 add_action( 'wp_enqueue_scripts', 'twentytwentytwo_styles' );
 
-// Add block patterns
+// Add block patterns.
 require get_template_directory() . '/inc/block-patterns.php';
