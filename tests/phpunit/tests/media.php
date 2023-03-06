@@ -3949,19 +3949,19 @@ EOF;
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $file );
-		$this->assertEquals(
+		$this->assertSame
 			array(),
 			$metadata['sizes']
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			'test-square-150.jpg',
 			basename( $metadata['file'] )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			'150',
 			$metadata['width']
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			'150',
 			$metadata['height']
 		);
