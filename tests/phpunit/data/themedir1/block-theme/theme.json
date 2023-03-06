@@ -73,6 +73,13 @@
 			"my/third-party-block": {
 				"color": {
 					"background": "hotpink"
+				},
+				"elements": {
+					"cite": {
+						"color": {
+							"text": "white"
+						}
+					}
 				}
 			}
 		},
