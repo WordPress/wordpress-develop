@@ -436,7 +436,7 @@ class WP_Scripts extends WP_Dependencies {
 	 *                         before the handle or after. Default 'after'.
 	 * @return bool True on success, false on failure.
 	 */
-	public function add_inline_script( $handle, $data, $position = 'after' ) {
+	public function add_inline_script( $handle, $data, $position = 'after', $standalone = false ) {
 		if ( ! $data ) {
 			return false;
 		}
@@ -447,6 +447,13 @@ class WP_Scripts extends WP_Dependencies {
 
 		$script   = (array) $this->get_data( $handle, $position );
 		$script[] = $data;
+
+		if ( ! $standalone ) {
+			$non_standalone_script_key = $position . '-non-standalone';
+			$non_standalone_script     = (array) $this->get_data( $handle, $non_standalone_script_key );
+			$non_standalone_script[]   = $data;
+			return $this->add_data( $handle, $non_standalone_script_key, $non_standalone_script );
+		}
 
 		return $this->add_data( $handle, $position, $script );
 	}
@@ -797,6 +804,20 @@ JS;
 	}
 
 	/**
+	 * Get the strategy assigned during script registration.
+	 *
+	 * @param string $handle The script handle.
+	 * @param string $position Position of the inline script.
+	 *
+	 * @return bool True if script present. False if empty.
+	 */
+	private function has_non_standalone_inline_script( $handle, $position ) {
+		$non_standalone_script_key = $position . '-non-standalone';
+		$non_standalone_script     = (array) $this->get_data( $handle, $non_standalone_script_key );
+		return !empty( $non_standalone_script );
+	}
+
+	/**
 	 * Check if all of a scripts dependents are deferrable which is required to maintain execution order.
 	 *
 	 * @param string $handle  The script handle.
@@ -818,6 +839,11 @@ JS;
 
 		// Consider each dependent and check if it is deferrable.
 		foreach ( $dependents as $dependent ) {
+			// Not defer if the dependent has a non-standalone 'before' inline script.
+			if ( has_non_standalone_inline_script( $dependent, 'before' ) ) {
+				return false;
+			}
+
 			// If the dependent script is not using the defer or async strategy, no script in the chain is deferrable.
 			if ( ! in_array( $this->get_intended_strategy( $dependent ), array( 'defer', 'async' ), true ) ) {
 				return false;
