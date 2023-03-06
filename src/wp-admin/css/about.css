@@ -220,74 +220,17 @@
 	grid-template-columns: 3fr 2fr;
 }
 
-.about__section.has-2-columns .is-section-header {
+.about__section .is-section-header {
 	grid-column-start: 1;
-	-ms-grid-column-span: 2;
-	grid-column-end: span 2;
-}
-
-.about__section.has-2-columns .column:nth-of-type(2n+1) {
-	grid-column-start: 1;
-}
-
-.about__section.has-2-columns .column:nth-of-type(2n) {
-	grid-column-start: 2;
+	grid-column-end: -1;
 }
 
 .about__section.has-3-columns {
 	grid-template-columns: repeat(3, 1fr);
 }
 
-.about__section.has-3-columns .is-section-header {
-	grid-column-start: 1;
-	-ms-grid-column-span: 3;
-	grid-column-end: span 3;
-}
-
-.about__section.has-3-columns .column:nth-of-type(3n+1) {
-	grid-column-start: 1;
-}
-
-.about__section.has-3-columns .column:nth-of-type(3n+2) {
-	grid-column-start: 2;
-}
-
-.about__section.has-3-columns .column:nth-of-type(3n) {
-	grid-column-start: 3;
-}
-
 .about__section.has-4-columns {
 	grid-template-columns: repeat(4, 1fr);
-}
-
-.about__section.has-4-columns .is-section-header {
-	grid-column-start: 1;
-	-ms-grid-column-span: 4;
-	grid-column-end: span 4;
-}
-
-.about__section.has-4-columns .column:nth-of-type(4n+1) {
-	grid-column-start: 1;
-}
-
-.about__section.has-4-columns .column:nth-of-type(4n+2) {
-	grid-column-start: 2;
-}
-
-.about__section.has-4-columns .column:nth-of-type(4n+3) {
-	grid-column-start: 3;
-}
-
-.about__section.has-4-columns .column:nth-of-type(4n) {
-	grid-column-start: 4;
-}
-
-/* Any columns following a section header need to be expicitly put into the second row, for IE support. */
-.about__section.has-2-columns .is-section-header ~ .column,
-.about__section.has-3-columns .is-section-header ~ .column,
-.about__section.has-4-columns .is-section-header ~ .column,
-.about__section.has-overlap-style .is-section-header ~ .column {
-	grid-row-start: 2;
 }
 
 .about__section.has-overlap-style {
@@ -300,13 +243,11 @@
 
 .about__section.has-overlap-style .column:nth-of-type(2n+1) {
 	grid-column-start: 2;
-	-ms-grid-column-span: 3;
 	grid-column-end: span 3;
 }
 
 .about__section.has-overlap-style .column:nth-of-type(2n) {
 	grid-column-start: 4;
-	-ms-grid-column-span: 3;
 	grid-column-end: span 3;
 }
 
@@ -354,29 +295,6 @@
 		grid-template-columns: repeat(2, 1fr);
 	}
 
-	.about__section.has-4-columns .column:nth-of-type(2n+1) {
-		grid-column-start: 1;
-	}
-
-	.about__section.has-4-columns .column:nth-of-type(2n) {
-		grid-column-start: 2;
-	}
-
-	.about__section.has-4-columns .column:nth-of-type(4n+3),
-	.about__section.has-4-columns .column:nth-of-type(4n) {
-		grid-row-start: 2;
-	}
-
-	.about__section.has-4-columns .is-section-header {
-		-ms-grid-column-span: 2;
-		grid-column-end: span 2;
-	}
-
-	.about__section.has-4-columns .is-section-header ~ .column:nth-of-type(4n+3),
-	.about__section.has-4-columns .is-section-header ~ .column:nth-of-type(4n) {
-		grid-row-start: 3;
-	}
-
 	.about__section.has-overlap-style {
 		grid-template-columns: 1fr;
 	}
@@ -384,10 +302,8 @@
 	/* At this size, the two columns fully overlap */
 	.about__section.has-overlap-style .column.column {
 		grid-column-start: 1;
-		-ms-grid-column-span: 1;
 		grid-column-end: 2;
 		grid-row-start: 1;
-		-ms-grid-row-span: 1;
 		grid-row-end: 2;
 	}
 }
