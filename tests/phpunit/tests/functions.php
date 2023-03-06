@@ -1391,11 +1391,15 @@ class Tests_Functions extends WP_UnitTestCase {
 			'proper_filename' => false,
 		);
 
-		add_filter( 'upload_mimes', array( $this, 'filter_mime_types_svg' ) );
-		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+		add_filter(
+			'upload_mimes',
+			static function( $mimes ) {
+				$mimes['svg'] = 'image/svg+xml';
+				return $mimes;
+			}
+		);
 
-		// Cleanup.
-		remove_filter( 'upload_mimes', array( $this, 'filter_mime_types_svg' ) );
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
 	}
 
 	/**
@@ -1404,40 +1408,36 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @requires extension fileinfo
 	 */
 	public function test_wp_check_filetype_and_ext_with_filtered_woff() {
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, this test is marked skipped on PHP 8.1+ as a recent change introduced
-			 * an inconsistency with how the mime-type for WOFF files are handled compared to older versions.
-			 *
-			 * See https://core.trac.wordpress.org/ticket/56817 for more details.
-			 */
-			$this->markTestSkipped( 'This test currently fails on PHP 8.1+ and requires further investigation.' );
-		}
-
 		$file     = DIR_TESTDATA . '/uploads/dashicons.woff';
 		$filename = 'dashicons.woff';
 
+		$woff_mime_type = 'application/font-woff';
+
+		/*
+		 * As of PHP 8.1.12, which includes libmagic/file update to version 5.42,
+		 * the expected mime type for WOFF files is 'font/woff'.
+		 *
+		 * See https://github.com/php/php-src/issues/8805.
+		 */
+		if ( PHP_VERSION_ID >= 80112 ) {
+			$woff_mime_type = 'font/woff';
+		}
+
 		$expected = array(
 			'ext'             => 'woff',
-			'type'            => 'application/font-woff',
+			'type'            => $woff_mime_type,
 			'proper_filename' => false,
 		);
 
-		add_filter( 'upload_mimes', array( $this, 'filter_mime_types_woff' ) );
+		add_filter(
+			'upload_mimes',
+			static function( $mimes ) use ( $woff_mime_type ) {
+				$mimes['woff'] = $woff_mime_type;
+				return $mimes;
+			}
+		);
+
 		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
-
-		// Cleanup.
-		remove_filter( 'upload_mimes', array( $this, 'filter_mime_types_woff' ) );
-	}
-
-	public function filter_mime_types_svg( $mimes ) {
-		$mimes['svg'] = 'image/svg+xml';
-		return $mimes;
-	}
-
-	public function filter_mime_types_woff( $mimes ) {
-		$mimes['woff'] = 'application/font-woff';
-		return $mimes;
 	}
 
 	/**
