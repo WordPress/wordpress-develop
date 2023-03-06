@@ -26,6 +26,10 @@ on:
         description: 'The Slack webhook URL for a failed build.'
         required: true
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 env:
   CURRENT_BRANCH: ${{ github.ref_name }}
 
@@ -151,7 +155,6 @@ jobs:
   failure:
     name: Failure notifications
     runs-on: ubuntu-latest
-    permissions: {}
     timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ inputs.calling_status == 'failure' || failure() }}
@@ -168,7 +171,6 @@ jobs:
   fixed:
     name: Fixed notifications
     runs-on: ubuntu-latest
-    permissions: {}
     timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ contains( fromJson( '["failure", "cancelled", "none"]' ), needs.prepare.outputs.previous_conclusion ) && inputs.calling_status == 'success' && success() }}
@@ -185,7 +187,6 @@ jobs:
   success:
     name: Success notifications
     runs-on: ubuntu-latest
-    permissions: {}
     timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ inputs.calling_status == 'success' && success() }}
@@ -202,7 +203,6 @@ jobs:
   cancelled:
     name: Cancelled notifications
     runs-on: ubuntu-latest
-    permissions: {}
     timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ inputs.calling_status == 'cancelled' || cancelled() }}
