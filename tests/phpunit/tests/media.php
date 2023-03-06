@@ -3949,7 +3949,7 @@ EOF;
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $file );
-		$this->assertSame
+		$this->assertSame(
 			array(),
 			$metadata['sizes']
 		);
