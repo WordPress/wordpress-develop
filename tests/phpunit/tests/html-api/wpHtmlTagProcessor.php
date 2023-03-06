@@ -471,8 +471,6 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
 	 * @covers WP_HTML_Tag_Processor::is_tag_closer
-	 *
-	 * @param string $tag_name The name of the tag to test.
 	 */
 	public function test_next_tag_should_stop_on_rcdata_and_script_tag_closers_when_requested() {
 		$p = new WP_HTML_Tag_Processor( '<script>abc</script>' );
