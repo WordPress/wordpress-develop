@@ -25,15 +25,65 @@
  */
 function wp_get_global_settings( $path = array(), $context = array() ) {
 	if ( ! empty( $context['block_name'] ) ) {
-		$path = array_merge( array( 'blocks', $context['block_name'] ), $path );
+		$new_path = array( 'blocks', $context['block_name'] );
+		foreach ( $path as $subpath ) {
+			$new_path[] = $subpath;
+		}
+		$path = $new_path;
 	}
 
+	/*
+	 * This is the default value when no origin is provided or when it is 'all'.
+	 *
+	 * The $origin is used as part of the cache key. Changes here need to account
+	 * for clearing the cache appropriately.
+	 */
 	$origin = 'custom';
-	if ( isset( $context['origin'] ) && 'base' === $context['origin'] ) {
+	if (
+		! wp_theme_has_theme_json() ||
+		( isset( $context['origin'] ) && 'base' === $context['origin'] )
+	) {
 		$origin = 'theme';
 	}
 
-	$settings = WP_Theme_JSON_Resolver::get_merged_data( $origin )->get_settings();
+	/*
+	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
+	 * See `wp_cache_add_non_persistent_groups` in src/wp-includes/load.php and other places.
+	 *
+	 * The rationale for this is to make sure derived data from theme.json
+	 * is always fresh from the potential modifications done via hooks
+	 * that can use dynamic data (modify the stylesheet depending on some option,
+	 * settings depending on user permissions, etc.).
+	 * See some of the existing hooks to modify theme.json behaviour:
+	 * https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
+	 *
+	 * A different alternative considered was to invalidate the cache upon certain
+	 * events such as options add/update/delete, user meta, etc.
+	 * It was judged not enough, hence this approach.
+	 * See https://github.com/WordPress/gutenberg/pull/45372
+	 */
+	$cache_group = 'theme_json';
+	$cache_key   = 'wp_get_global_settings_' . $origin;
+
+	/*
+	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme
+	 * developer's workflow.
+	 *
+	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
+	 */
+	$can_use_cached = ! WP_DEBUG;
+
+	$settings = false;
+	if ( $can_use_cached ) {
+		$settings = wp_cache_get( $cache_key, $cache_group );
+	}
+
+	if ( false === $settings ) {
+		$settings = WP_Theme_JSON_Resolver::get_merged_data( $origin )->get_settings();
+		if ( $can_use_cached ) {
+			wp_cache_set( $cache_key, $settings, $cache_group );
+		}
+	}
 
 	return _wp_array_get( $settings, $path, $settings );
 }
@@ -176,6 +226,60 @@ function wp_get_global_stylesheet( $types = array() ) {
 }
 
 /**
+ * Gets the global styles custom css from theme.json.
+ *
+ * @since 6.2.0
+ *
+ * @return string Stylesheet.
+ */
+function wp_get_global_styles_custom_css() {
+	if ( ! wp_theme_has_theme_json() ) {
+		return '';
+	}
+	/*
+	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme
+	 * developer's workflow.
+	 *
+	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
+	 */
+	$can_use_cached = ! WP_DEBUG;
+
+	/*
+	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
+	 * @see `wp_cache_add_non_persistent_groups()`.
+	 *
+	 * The rationale for this is to make sure derived data from theme.json
+	 * is always fresh from the potential modifications done via hooks
+	 * that can use dynamic data (modify the stylesheet depending on some option,
+	 * settings depending on user permissions, etc.).
+	 * See some of the existing hooks to modify theme.json behavior:
+	 * @see https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
+	 *
+	 * A different alternative considered was to invalidate the cache upon certain
+	 * events such as options add/update/delete, user meta, etc.
+	 * It was judged not enough, hence this approach.
+	 * @see https://github.com/WordPress/gutenberg/pull/45372
+	 */
+	$cache_key   = 'wp_get_global_styles_custom_css';
+	$cache_group = 'theme_json';
+	if ( $can_use_cached ) {
+		$cached = wp_cache_get( $cache_key, $cache_group );
+		if ( $cached ) {
+			return $cached;
+		}
+	}
+
+	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
+	$stylesheet = $tree->get_custom_css();
+
+	if ( $can_use_cached ) {
+		wp_cache_set( $cache_key, $stylesheet, $cache_group );
+	}
+
+	return $stylesheet;
+}
+
+/**
  * Returns a string containing the SVGs to be referenced as filters (duotone).
  *
  * @since 5.9.1
@@ -183,17 +287,17 @@ function wp_get_global_stylesheet( $types = array() ) {
  * @return string
  */
 function wp_get_global_styles_svg_filters() {
-	// Return cached value if it can be used and exists.
-	// It's cached by theme to make sure that theme switching clears the cache.
-	$can_use_cached = (
-		( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) &&
-		( ! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG ) &&
-		( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) &&
-		! is_admin()
-	);
-	$transient_name = 'global_styles_svg_filters_' . get_stylesheet();
+	/*
+	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme
+	 * developer's workflow.
+	 *
+	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
+	 */
+	$can_use_cached = ! WP_DEBUG;
+	$cache_group    = 'theme_json';
+	$cache_key      = 'wp_get_global_styles_svg_filters';
 	if ( $can_use_cached ) {
-		$cached = get_transient( $transient_name );
+		$cached = wp_cache_get( $cache_key, $cache_group );
 		if ( $cached ) {
 			return $cached;
 		}
@@ -210,8 +314,7 @@ function wp_get_global_styles_svg_filters() {
 	$svgs = $tree->get_svg_filters( $origins );
 
 	if ( $can_use_cached ) {
-		// Cache for a minute, same as wp_get_global_stylesheet.
-		set_transient( $transient_name, $svgs, MINUTE_IN_SECONDS );
+		wp_cache_set( $cache_key, $svgs, $cache_group );
 	}
 
 	return $svgs;
@@ -317,5 +420,9 @@ function wp_theme_has_theme_json() {
  */
 function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_global_stylesheet', 'theme_json' );
+	wp_cache_delete( 'wp_get_global_styles_svg_filters', 'theme_json' );
+	wp_cache_delete( 'wp_get_global_settings_custom', 'theme_json' );
+	wp_cache_delete( 'wp_get_global_settings_theme', 'theme_json' );
+	wp_cache_delete( 'wp_get_global_styles_custom_css', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
 }

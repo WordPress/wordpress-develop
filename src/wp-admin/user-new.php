@@ -110,7 +110,7 @@ if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 			 */
 			do_action( 'invite_user', $user_id, $role, $newuser_key );
 
-			$switched_locale = switch_to_locale( get_user_locale( $user_details ) );
+			$switched_locale = switch_to_user_locale( $user_id );
 
 			if ( '' !== get_option( 'blogname' ) ) {
 				$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
@@ -298,8 +298,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/users-add-new-screen/">Documentation on Adding New Users</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/users-add-new-screen/">Documentation on Adding New Users</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 wp_enqueue_script( 'wp-ajax-response' );

@@ -741,12 +741,12 @@ function list_authors($optioncount = false, $exclude_admin = true, $show_fullnam
  * @see wp_get_post_categories()
  *
  * @param int $blogid Not Used
- * @param int $post_ID
+ * @param int $post_id
  * @return array
  */
-function wp_get_post_cats($blogid = '1', $post_ID = 0) {
+function wp_get_post_cats($blogid = '1', $post_id = 0) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_get_post_categories()' );
-	return wp_get_post_categories($post_ID);
+	return wp_get_post_categories($post_id);
 }
 
 /**
@@ -758,13 +758,13 @@ function wp_get_post_cats($blogid = '1', $post_ID = 0) {
  * @see wp_set_post_categories()
  *
  * @param int $blogid Not used
- * @param int $post_ID
+ * @param int $post_id
  * @param array $post_categories
  * @return bool|mixed
  */
-function wp_set_post_cats($blogid = '1', $post_ID = 0, $post_categories = array()) {
+function wp_set_post_cats($blogid = '1', $post_id = 0, $post_categories = array()) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_set_post_categories()' );
-	return wp_set_post_categories($post_ID, $post_categories);
+	return wp_set_post_categories($post_id, $post_categories);
 }
 
 /**
@@ -1150,13 +1150,13 @@ function comments_rss_link($link_text = 'Comments RSS') {
  * @see get_category_feed_link()
  *
  * @param bool $display
- * @param int $cat_ID
+ * @param int $cat_id
  * @return string
  */
-function get_category_rss_link($display = false, $cat_ID = 1) {
+function get_category_rss_link($display = false, $cat_id = 1) {
 	_deprecated_function( __FUNCTION__, '2.5.0', 'get_category_feed_link()' );
 
-	$link = get_category_feed_link($cat_ID, 'rss2');
+	$link = get_category_feed_link($cat_id, 'rss2');
 
 	if ( $display )
 		echo $link;
@@ -1225,20 +1225,20 @@ function gzip_compression() {
 }
 
 /**
- * Retrieve an array of comment data about comment $comment_ID.
+ * Retrieve an array of comment data about comment $comment_id.
  *
  * @since 0.71
  * @deprecated 2.7.0 Use get_comment()
  * @see get_comment()
  *
- * @param int $comment_ID The ID of the comment
+ * @param int $comment_id The ID of the comment
  * @param int $no_cache Whether to use the cache (cast to bool)
  * @param bool $include_unapproved Whether to include unapproved comments
  * @return array The comment data
  */
-function get_commentdata( $comment_ID, $no_cache = 0, $include_unapproved = false ) {
+function get_commentdata( $comment_id, $no_cache = 0, $include_unapproved = false ) {
 	_deprecated_function( __FUNCTION__, '2.7.0', 'get_comment()' );
-	return get_comment($comment_ID, ARRAY_A);
+	return get_comment($comment_id, ARRAY_A);
 }
 
 /**
@@ -1248,12 +1248,12 @@ function get_commentdata( $comment_ID, $no_cache = 0, $include_unapproved = fals
  * @deprecated 2.8.0 Use get_cat_name()
  * @see get_cat_name()
  *
- * @param int $cat_ID Category ID
+ * @param int $cat_id Category ID
  * @return string category name
  */
-function get_catname( $cat_ID ) {
+function get_catname( $cat_id ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_cat_name()' );
-	return get_cat_name( $cat_ID );
+	return get_cat_name( $cat_id );
 }
 
 /**
@@ -3659,7 +3659,9 @@ function post_permalink( $post = 0 ) {
 function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'WP_Http' );
 
-	@set_time_limit( 60 );
+	if ( function_exists( 'set_time_limit' ) ) {
+		@set_time_limit( 60 );
+	}
 
 	if ( $red > 5 )
 		return false;
@@ -4527,4 +4529,101 @@ function _filter_query_attachment_filenames( $clauses ) {
 	_deprecated_function( __FUNCTION__, '6.0.3', 'add_filter( "wp_allow_query_attachment_by_filename", "__return_true" )' );
 	remove_filter( 'posts_clauses', __FUNCTION__ );
 	return $clauses;
+}
+
+/**
+ * Retrieves a page given its title.
+ *
+ * If more than one post uses the same title, the post with the smallest ID will be returned.
+ * Be careful: in case of more than one post having the same title, it will check the oldest
+ * publication date, not the smallest ID.
+ *
+ * Because this function uses the MySQL '=' comparison, $page_title will usually be matched
+ * as case-insensitive with default collation.
+ *
+ * @since 2.1.0
+ * @since 3.0.0 The `$post_type` parameter was added.
+ * @deprecated 6.2.0 Use WP_Query.
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string       $page_title Page title.
+ * @param string       $output     Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                                 correspond to a WP_Post object, an associative array, or a numeric array,
+ *                                 respectively. Default OBJECT.
+ * @param string|array $post_type  Optional. Post type or array of post types. Default 'page'.
+ * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
+ */
+function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
+	_deprecated_function( __FUNCTION__, '6.2.0', 'WP_Query' );
+	global $wpdb;
+
+	if ( is_array( $post_type ) ) {
+		$post_type           = esc_sql( $post_type );
+		$post_type_in_string = "'" . implode( "','", $post_type ) . "'";
+		$sql                 = $wpdb->prepare(
+			"
+			SELECT ID
+			FROM $wpdb->posts
+			WHERE post_title = %s
+			AND post_type IN ($post_type_in_string)
+		",
+			$page_title
+		);
+	} else {
+		$sql = $wpdb->prepare(
+			"
+			SELECT ID
+			FROM $wpdb->posts
+			WHERE post_title = %s
+			AND post_type = %s
+		",
+			$page_title,
+			$post_type
+		);
+	}
+
+	$page = $wpdb->get_var( $sql );
+
+	if ( $page ) {
+		return get_post( $page, $output );
+	}
+
+	return null;
+}
+
+/**
+ * Returns the correct template for the site's home page.
+ *
+ * @access private
+ * @since 6.0.0
+ * @deprecated 6.2.0 Site Editor's server-side redirect for missing postType and postId
+ *             		 query args is removed. Thus, this function is no longer used.
+ *
+ * @return array|null A template object, or null if none could be found.
+ */
+function _resolve_home_block_template() {
+	_deprecated_function( __FUNCTION__, '6.2.0' );
+
+	$show_on_front = get_option( 'show_on_front' );
+	$front_page_id = get_option( 'page_on_front' );
+
+	if ( 'page' === $show_on_front && $front_page_id ) {
+		return array(
+				'postType' => 'page',
+				'postId'   => $front_page_id,
+		);
+	}
+
+	$hierarchy = array( 'front-page', 'home', 'index' );
+	$template  = resolve_block_template( 'home', $hierarchy, '' );
+
+	if ( ! $template ) {
+		return null;
+	}
+
+	return array(
+			'postType' => 'wp_template',
+			'postId'   => $template->id,
+	);
 }

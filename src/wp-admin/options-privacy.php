@@ -18,6 +18,9 @@ if ( isset( $_GET['tab'] ) && 'policyguide' === $_GET['tab'] ) {
 	return;
 }
 
+// Used in the HTML title tag.
+$title = __( 'Privacy' );
+
 add_filter(
 	'admin_body_class',
 	static function( $body_class ) {
@@ -41,7 +44,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/settings-privacy-screen/">Documentation on Privacy Settings</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/settings-privacy-screen/">Documentation on Privacy Settings</a>' ) . '</p>'
 );
 
 if ( ! empty( $action ) ) {

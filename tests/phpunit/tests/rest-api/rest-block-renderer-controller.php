@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_REST_Block_Renderer_Controller tests.
+ * Unit tests covering WP_REST_Block_Renderer_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.0.0
- */
-
-/**
- * Tests for WP_REST_Block_Renderer_Controller.
- *
  * @since 5.0.0
  *
  * @covers WP_REST_Block_Renderer_Controller
@@ -501,7 +495,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$attributes       = array( 'some_string' => $string_attribute );
 		$request          = new WP_REST_Request( 'POST', self::$rest_api_route . self::$block_name );
 		$request->set_param( 'context', 'edit' );
-		$request->set_header( 'content-type', 'application/json' );
+		$request->set_header( 'Content-Type', 'application/json' );
 		$request->set_body( wp_json_encode( compact( 'attributes' ) ) );
 		$response = rest_get_server()->dispatch( $request );
 
