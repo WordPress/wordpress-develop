@@ -374,6 +374,18 @@ function wp_add_global_styles_for_blocks() {
  * @return string Identified block name, or empty string if none found.
  */
 function wp_get_block_name_from_theme_json_path( $path ) {
+	// Block name is expected to be the third item after 'styles' and 'blocks'.
+	if (
+		count( $path ) >= 3
+		&& 'styles' === $path[0]
+		&& 'blocks' === $path[1]
+		&& str_contains( $path[2], '/' )
+	) {
+		return $path[2];
+	}
+
+	// As fallback and for backward compatibility, allow any core block to be
+	// at any position.
 	$result = array_values(
 		array_filter(
 			$path,
