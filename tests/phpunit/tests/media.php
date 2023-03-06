@@ -3958,11 +3958,11 @@ EOF;
 			basename( $metadata['file'] )
 		);
 		$this->assertSame(
-			'150',
+			150,
 			$metadata['width']
 		);
 		$this->assertSame(
-			'150',
+			150,
 			$metadata['height']
 		);
 	}
