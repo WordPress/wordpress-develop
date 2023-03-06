@@ -475,7 +475,7 @@
 .about__container h3.is-smaller-heading {
 	margin-top: 0;
 	font-size: 1.125rem;
-	font-weight: 700;
+	font-weight: 600;
 	line-height: 1.6;
 }
 
@@ -548,6 +548,10 @@
 	margin-right: auto;
 }
 
+.about__container .about__image svg {
+	vertical-align: middle;
+}
+
 .about__container .about__image + h3 {
 	margin-top: 1.5em;
 }
@@ -557,7 +561,7 @@
 }
 
 .about__container hr {
-	margin: 0;
+	margin: 0 var(--gap);
 	height: var(--gap);
 	border: none;
 	border-top: 4px solid var(--accent-2);
@@ -585,6 +589,11 @@
 
 .about__section.is-feature {
 	font-size: 1.6em;
+}
+
+.about__section.has-3-columns,
+.about__section.has-4-columns {
+	font-size: 1rem;
 }
 
 @media screen and (max-width: 480px) {

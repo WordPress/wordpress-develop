@@ -153,21 +153,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<div class="about__image">
 					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%231d35b4' /%3E%3C/svg%3E" alt="" />
 				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Style Book' ); ?></h3>
+				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Style Book' ); ?></h3>
 				<p><?php _e( 'Use the new Style Book to get a complete overview of how every block in your site&#8217;s library looks. All in one place, all at a glance.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
 					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%231d35b4' /%3E%3C/svg%3E" alt="" />
 				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Copy and paste styles' ); ?></h3>
+				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Copy and paste styles' ); ?></h3>
 				<p><?php _e( 'Perfect the design on one type of block, then copy and paste those styles to other blocks to get just the look you want.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
 					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%231d35b4' /%3E%3C/svg%3E" alt="" />
 				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Custom CSS' ); ?></h3>
+				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Custom CSS' ); ?></h3>
 				<p><?php _e( 'Power up your site any way you wish. Add CSS to your site, or your blocks, for another level of control over your site&#8217;s look and feel.' ); ?></p>
 			</div>
 		</div>
@@ -180,7 +180,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						<path fill-rule="evenodd" clip-rule="evenodd" d="M19.138 20.765a6.012 6.012 0 0 1 3.614-.62l4.15-5.617 6.57 6.57-5.616 4.15a6.01 6.01 0 0 1-.772 3.886c-.252.427-.561.828-.927 1.195l-3.713-3.713-5.692 5.693h-1.06v-1.061l5.692-5.692-3.713-3.713a6.007 6.007 0 0 1 1.467-1.078Zm7.936-3.944 4.105 4.105-4.933 3.647.124.884c.122.87-.01 1.766-.394 2.57l-6.002-6.003a4.515 4.515 0 0 1 2.57-.394l.883.124 3.647-4.933Z" fill="#fff"/>
 					</svg>
 				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Sticky positioning' ); ?></h3>
+				<h3 class="is-smaller-heading" style="margin-top:0;margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Sticky positioning' ); ?></h3>
 				<p><?php _e( 'Choose to keep certain blocks fixed to the top of a page as visitors scroll.' ); ?></p>
 			</div>
 			<div class="column">
@@ -190,7 +190,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						<path fill-rule="evenodd" clip-rule="evenodd" d="M18 15h2v2h8v-2h2v2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H18a2 2 0 0 1-2-2V19a2 2 0 0 1 2-2v-2Zm12 3.5H18a.5.5 0 0 0-.5.5v1h13v-1a.5.5 0 0 0-.5-.5Zm.5 3h-13V31a.5.5 0 0 0 .5.5h12a.5.5 0 0 0 .5-.5v-9.5ZM23 23h2v2h-2v-2Zm-4 0v2h2v-2h-2Zm8 2v-2h2v2h-2Z" fill="#fff"/>
 					</svg>
 				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Importing widgets' ); ?></h3>
+				<h3 class="is-smaller-heading" style="margin-top:0;margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Importing widgets' ); ?></h3>
 				<p><?php _e( 'Options to import your favorite widgets from Classic themes to Block themes.' ); ?></p>
 			</div>
 			<div class="column">
@@ -200,7 +200,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						<path fill-rule="evenodd" clip-rule="evenodd" d="M17.681 27.075h4.076l.977 2.774h1.72L20.564 19h-1.69L15 29.849h1.705l.976-2.774Zm2.046-5.766 1.503 4.262h-3.006l1.503-4.262Zm6.755 8.064c.332.366.864.549 1.595.549.498 0 .963-.1 1.395-.3.443-.21.825-.586 1.147-1.13.01.377.11.71.299.998.2.288.603.432 1.212.432.366 0 .665-.056.898-.166.243-.111.482-.26.714-.449l-.166-.282c-.11.088-.222.166-.332.232a.697.697 0 0 1-.366.1c-.177 0-.299-.061-.365-.183-.067-.122-.1-.316-.1-.581v-4.586c0-.543-.044-1.002-.133-1.379a1.828 1.828 0 0 0-.548-.963 1.974 1.974 0 0 0-.88-.499c-.344-.11-.754-.166-1.23-.166-.51 0-.975.06-1.396.183-.41.122-.747.271-1.013.448a2.84 2.84 0 0 0-.598.532c-.144.188-.216.432-.216.731 0 .288.083.543.249.764.166.21.42.316.764.316.31 0 .565-.089.764-.266.21-.177.316-.42.316-.73a1.04 1.04 0 0 0-.25-.715 1.108 1.108 0 0 0-.597-.4c.166-.21.393-.348.681-.414.288-.078.56-.117.814-.117.3 0 .554.05.764.15.222.1.393.271.515.515.133.232.2.548.2.947v1.13c0 .254-.117.465-.35.63-.22.167-.509.317-.863.45-.343.121-.714.254-1.113.398-.388.133-.759.3-1.113.499a2.583 2.583 0 0 0-.848.73c-.221.3-.332.687-.332 1.164 0 .576.16 1.052.482 1.428Zm3.356-.481c-.277.155-.56.232-.848.232-.354 0-.647-.116-.88-.349-.233-.232-.349-.598-.349-1.096 0-.51.116-.908.349-1.196.233-.288.51-.515.83-.682.333-.177.654-.337.964-.481.322-.144.56-.333.715-.565v3.306c-.244.388-.504.665-.781.83Z" fill="#fff"/>
 					</svg>
 				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Local fonts in themes' ); ?></h3>
+				<h3 class="is-smaller-heading" style="margin-top:0;margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Local fonts in themes' ); ?></h3>
 				<p><?php _e( 'Default WordPress themes offer better privacy with Google Fonts included.' ); ?></p>
 			</div>
 		</div>
