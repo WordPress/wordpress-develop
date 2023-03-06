@@ -1,15 +1,9 @@
 <?php
 /**
- * Block rendering tests
+ * Tests for block rendering functions.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.0.0
- */
-
-/**
- * Tests for block rendering functions.
- *
  * @since 5.0.0
  *
  * @group blocks
