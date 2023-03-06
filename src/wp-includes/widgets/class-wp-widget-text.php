@@ -56,14 +56,6 @@ class WP_Widget_Text extends WP_Widget {
 		}
 		$this->registered = true;
 
-		$id_base = $this->id_base;
-		add_action(
-			'admin_print_scripts-widgets.php',
-			function () use ( $id_base ) {
-				wp_add_inline_script( 'text-widgets', sprintf( 'wp.textWidgets.idBases.push( %s );', wp_json_encode( $id_base ) ) );
-			}
-		);
-
 		if ( $this->is_preview() ) {
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_preview_scripts' ) );
 		}
@@ -71,6 +63,8 @@ class WP_Widget_Text extends WP_Widget {
 		// Note that the widgets component in the customizer will also do
 		// the 'admin_print_scripts-widgets.php' action in WP_Customize_Widgets::print_scripts().
 		add_action( 'admin_print_scripts-widgets.php', array( $this, 'enqueue_admin_scripts' ) );
+
+		add_action( 'admin_print_scripts-widgets.php', array( $this, 'enqueue_admin_scripts_after' ) );
 
 		// Note that the widgets component in the customizer will also do
 		// the 'admin_footer-widgets.php' action in WP_Customize_Widgets::print_footer_scripts().
@@ -443,6 +437,15 @@ class WP_Widget_Text extends WP_Widget {
 		wp_enqueue_media();
 		wp_enqueue_script( 'text-widgets' );
 		wp_add_inline_script( 'text-widgets', 'wp.textWidgets.init();', 'after' );
+	}
+
+	/**
+	 * Loads after the required scripts.
+	 *
+	 * @since 6.3.0
+	 */
+	public function enqueue_admin_scripts_after() {
+		wp_add_inline_script( 'text-widgets', sprintf( 'wp.textWidgets.idBases.push( %s );', wp_json_encode( $this->id_base ) ) );
 	}
 
 	/**

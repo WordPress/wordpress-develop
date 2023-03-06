@@ -69,17 +69,11 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 		}
 		$this->registered = true;
 
-		$id_base = $this->id_base;
-		add_action(
-			'admin_print_scripts-widgets.php',
-			function () use ( $id_base ) {
-				wp_add_inline_script( 'custom-html-widgets', sprintf( 'wp.customHtmlWidgets.idBases.push( %s );', wp_json_encode( $id_base ) ) );
-			}
-		);
-
 		// Note that the widgets component in the customizer will also do
 		// the 'admin_print_scripts-widgets.php' action in WP_Customize_Widgets::print_scripts().
 		add_action( 'admin_print_scripts-widgets.php', array( $this, 'enqueue_admin_scripts' ) );
+
+		add_action( 'admin_print_scripts-widgets.php', array( $this, 'enqueue_admin_scripts_after' ) );
 
 		// Note that the widgets component in the customizer will also do
 		// the 'admin_footer-widgets.php' action in WP_Customize_Widgets::print_footer_scripts().
@@ -239,6 +233,15 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 			),
 		);
 		wp_add_inline_script( 'custom-html-widgets', sprintf( 'jQuery.extend( wp.customHtmlWidgets.l10n, %s );', wp_json_encode( $l10n ) ), 'after' );
+	}
+
+	/**
+	 * Loads after the required scripts.
+	 *
+	 * @since 6.3.0
+	 */
+	public function enqueue_admin_scripts_after() {
+		wp_add_inline_script( 'custom-html-widgets', sprintf( 'wp.customHtmlWidgets.idBases.push( %s );', wp_json_encode( $this->id_base ) ) );
 	}
 
 	/**
