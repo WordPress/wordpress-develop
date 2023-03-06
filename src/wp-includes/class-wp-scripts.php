@@ -402,6 +402,7 @@ class WP_Scripts extends WP_Dependencies {
 			esc_attr( $handle ),
 			$strategy
 		);
+		// TODO: Handle onload logic for defer/async here.
 		$tag .= $after_handle . $cond_after;
 
 		/**
