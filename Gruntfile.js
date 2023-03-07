@@ -277,15 +277,16 @@ module.exports = function(grunt) {
 							'suggest*'
 						],
 						dest: WORKING_DIR + 'wp-includes/js/jquery/'
-					},
-					{
+					}
+				].concat(
+					// Copy tinymce.js only when building to /src.
+					WORKING_DIR === SOURCE_DIR ? {
 						expand: true,
 						cwd: SOURCE_DIR + 'js/_enqueues/vendor/tinymce/',
 						src: 'tinymce.js',
 						dest: SOURCE_DIR + 'wp-includes/js/tinymce/'
-					},
-
-				]
+					} : []
+				)
 			},
 			'admin-js': {
 				files: {
