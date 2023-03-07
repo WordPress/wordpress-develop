@@ -402,7 +402,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSame(
 			'unit-tests-test-block-rtl-style',
 			$handle,
-			'The handle does not match the expected handle.'
+			'The handle did not match the expected handle.'
 		);
 
 		$this->assertSame(
