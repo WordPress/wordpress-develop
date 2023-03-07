@@ -274,7 +274,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var string
 	 */
-	private $html;
+	protected $html;
 
 	/**
 	 * The last query passed to next_tag().
@@ -722,7 +722,7 @@ class WP_HTML_Tag_Processor {
 		}
 
 		$this->bookmarks[ $name ] = new WP_HTML_Span(
-			$this->tag_name_starts_at - 1,
+			$this->tag_name_starts_at - ( $this->is_closing_tag ? 2 : 1 ),
 			$this->tag_ends_at
 		);
 
@@ -775,7 +775,8 @@ class WP_HTML_Tag_Processor {
 				return false;
 			}
 
-			$at += 2;
+			$closer_potentially_starts_at = $at;
+			$at                          += 2;
 
 			/*
 			 * Find a case-insensitive match to the tag name.
@@ -818,7 +819,7 @@ class WP_HTML_Tag_Processor {
 			}
 
 			if ( '>' === $html[ $at ] || '/' === $html[ $at ] ) {
-				++$this->bytes_already_parsed;
+				$this->bytes_already_parsed = $closer_potentially_starts_at;
 				return true;
 			}
 		}
@@ -887,7 +888,8 @@ class WP_HTML_Tag_Processor {
 			}
 
 			if ( '/' === $html[ $at ] ) {
-				$is_closing = true;
+				$closer_potentially_starts_at = $at - 1;
+				$is_closing                   = true;
 				++$at;
 			} else {
 				$is_closing = false;
@@ -938,7 +940,7 @@ class WP_HTML_Tag_Processor {
 			}
 
 			if ( $is_closing ) {
-				$this->bytes_already_parsed = $at;
+				$this->bytes_already_parsed = $closer_potentially_starts_at;
 				if ( $this->bytes_already_parsed >= $doc_length ) {
 					return false;
 				}
@@ -948,7 +950,7 @@ class WP_HTML_Tag_Processor {
 				}
 
 				if ( '>' === $html[ $this->bytes_already_parsed ] ) {
-					++$this->bytes_already_parsed;
+					$this->bytes_already_parsed = $closer_potentially_starts_at;
 					return true;
 				}
 			}
@@ -1504,7 +1506,7 @@ class WP_HTML_Tag_Processor {
 		$this->bytes_already_parsed = $this->bookmarks[ $bookmark_name ]->start;
 		$this->bytes_already_copied = $this->bytes_already_parsed;
 		$this->output_buffer        = substr( $this->html, 0, $this->bytes_already_copied );
-		return $this->next_tag();
+		return $this->next_tag( array( 'tag_closers' => 'visit' ) );
 	}
 
 	/**

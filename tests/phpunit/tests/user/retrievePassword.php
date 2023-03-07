@@ -4,12 +4,6 @@
  *
  * @package WordPress
  * @since 6.0.0
- */
-
-/**
- * Test retrieve_password(), in wp-includes/user.php.
- *
- * @since 6.0.0
  *
  * @group user
  * @covers ::retrieve_password

@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class Tests_REST_Request extends WP_UnitTestCase {
