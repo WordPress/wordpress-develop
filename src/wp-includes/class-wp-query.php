@@ -4714,8 +4714,10 @@ class WP_Query {
 
 		$authordata = get_userdata( $post->post_author );
 
-		$currentday   = mysql2date( 'd.m.y', $post->post_date, false );
-		$currentmonth = mysql2date( 'm', $post->post_date, false );
+		$post_date = date_create( $post->post_date );
+
+		$currentday   = $post_date->format( 'd.m.y' );
+		$currentmonth = $post_date->format( 'm' );
 		$numpages     = 1;
 		$multipage    = 0;
 		$page         = $this->get( 'page' );
