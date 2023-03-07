@@ -1,7 +1,7 @@
 version: '3.1'
 
 services:
-  wordpress:
+  app:
     image: wordpress
     restart: always
     ports:
@@ -12,11 +12,11 @@ services:
       WORDPRESS_DB_PASSWORD: examplepass
       WORDPRESS_DB_NAME: exampledb
     volumes:
-      - ../src:/var/www/html
+      - ../..:/workspaces:cached
 
   db:
     image: mariadb
-    restart: always
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: exampledb
       MYSQL_USER: exampleuser
@@ -26,5 +26,4 @@ services:
       - db:/var/lib/mysql
 
 volumes:
-  wordpress:
   db:
