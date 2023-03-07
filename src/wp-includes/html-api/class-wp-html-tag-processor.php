@@ -62,7 +62,7 @@
  * |-----------------------------------------------------------|----------------------------------------------------------------------------|
  * | Find any tag.                                             | `$tags->next_tag();`                                                       |
  * | Find next image tag.                                      | `$tags->next_tag( array( 'tag_name' => 'img' ) );`                              |
- * | Find next image tag.                                      | `$tags->next_tag( 'img');`                                                      |
+ * | Find next image tag (without passing the array).          | `$tags->next_tag( 'img' );`                                                     |
  * | Find next tag containing the `fullwidth` CSS class.       | `$tags->next_tag( array( 'class_name' => 'fullwidth' ) );`                      |
  * | Find next image tag containing the `fullwidth` CSS class. | `$tags->next_tag( array( 'tag_name' => 'img', 'class_name' => 'fullwidth' ) );` |
  *
