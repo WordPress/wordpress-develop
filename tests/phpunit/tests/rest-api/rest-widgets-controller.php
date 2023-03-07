@@ -1,20 +1,16 @@
 <?php
 /**
- * Unit tests covering WP_REST_Widgets_Controller_Test functionality.
+ * Unit tests covering WP_REST_Widgets_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
  * @since 5.8.0
- */
-
-/**
- * Tests for REST API for Widgets.
  *
- * @since 5.8.0
+ * @covers WP_REST_Widgets_Controller
  *
  * @see WP_Test_REST_Controller_Testcase
  * @group restapi
- * @covers WP_REST_Widgets_Controller
+ * @group widgets
  */
 class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
