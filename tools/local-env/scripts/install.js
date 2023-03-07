@@ -6,10 +6,6 @@ const { renameSync, readFileSync, writeFileSync } = require( 'fs' );
 
 dotenvExpand.expand( dotenv.config() );
 
-if ( process.arch === 'arm64' ) {
-	process.env.LOCAL_DB_TYPE = `amd64/${process.env.LOCAL_DB_TYPE}`;
-}
-
 // Create wp-config.php.
 wp_cli( 'config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --path=/var/www/src --force' );
 
