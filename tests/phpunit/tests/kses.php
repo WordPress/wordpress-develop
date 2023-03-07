@@ -1283,6 +1283,39 @@ EOF;
 				'css'      => 'position: sticky;top: 0;left: 0;right: 0;bottom: 0;z-index: 10;',
 				'expected' => 'position: sticky;top: 0;left: 0;right: 0;bottom: 0;z-index: 10',
 			),
+			// `aspect-ratio` introduced in 6.2.
+			array(
+				'css'      => 'aspect-ratio: auto;',
+				'expected' => 'aspect-ratio: auto',
+			),
+			array(
+				'css'      => 'aspect-ratio: 0.5;',
+				'expected' => 'aspect-ratio: 0.5',
+			),
+			array(
+				'css'      => 'aspect-ratio: 1;',
+				'expected' => 'aspect-ratio: 1',
+			),
+			array(
+				'css'      => 'aspect-ratio: 16 / 9;',
+				'expected' => 'aspect-ratio: 16 / 9',
+			),
+			array(
+				'css'      => 'aspect-ratio: expression( 16 / 9 );',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'aspect-ratio: calc( 16 / 9;',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'aspect-ratio: calc( 16 / 9 );',
+				'expected' => 'aspect-ratio: calc( 16 / 9 )',
+			),
+			array(
+				'css'      => 'aspect-ratio: url( https://wordpress.org/wp-content/uploads/aspect-ratio.jpg );',
+				'expected' => '',
+			),
 		);
 	}
 

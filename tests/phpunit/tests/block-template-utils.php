@@ -1,12 +1,8 @@
 <?php
 /**
- * Tests_Block_Template_Utils class
+ * Tests for the Block Templates abstraction layer.
  *
  * @package WordPress
- */
-
-/**
- * Tests for the Block Templates abstraction layer.
  *
  * @group block-templates
  */

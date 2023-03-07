@@ -1,15 +1,9 @@
 <?php
 /**
- * Block registration tests
+ * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names(), and register_block_style().
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.0.0
- */
-
-/**
- * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names(), and register_block_style().
- *
  * @since 5.0.0
  *
  * @group blocks
