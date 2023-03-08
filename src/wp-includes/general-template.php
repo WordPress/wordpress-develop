@@ -2788,16 +2788,20 @@ function get_post_time( $format = 'U', $gmt = false, $post = null, $translate = 
  *                            Default 'date'.
  * @param string      $source Optional. Local or UTC time to use from database. Accepts 'local' or 'gmt'.
  *                            Default 'local'.
+ * @param DateTimeZone $wp_timezone  Optional. Timezone to output result in. Defaults to timezone
+ *                                from site settings.
  * @return DateTimeImmutable|false Time object on success, false on failure.
  */
-function get_post_datetime( $post = null, $field = 'date', $source = 'local' ) {
+function get_post_datetime( $post = null, $field = 'date', $source = 'local', $wp_timezone = null ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
 		return false;
 	}
 
-	$wp_timezone = wp_timezone();
+	if ( ! $wp_timezone ) {
+		$wp_timezone = wp_timezone();
+	}
 
 	if ( 'gmt' === $source ) {
 		$time     = ( 'modified' === $field ) ? $post->post_modified_gmt : $post->post_date_gmt;

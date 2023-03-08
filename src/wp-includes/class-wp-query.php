@@ -4726,7 +4726,7 @@ class WP_Query {
 			$this->timezone = wp_timezone();
 		}
 
-		$post_date = date_create( $post->post_date, $this->timezone );
+		$post_date = get_post_datetime( $post, 'date', 'local', $this->timezone );
 		if ( ! $post_date ) {
 			$currentday   = false;
 			$currentmonth = false;
