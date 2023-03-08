@@ -53,7 +53,7 @@ services:
   # The MySQL container.
   ##
   mysql:
-    image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-5.7}
+    image: amd64/${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-5.7}
 
     networks:
       - wpdevnet
