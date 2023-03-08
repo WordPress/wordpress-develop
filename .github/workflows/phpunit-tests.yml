@@ -118,7 +118,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: npm
 
-      - name: Install Dependencies
+      - name: Install npm dependencies
         run: npm ci
 
       # This date is used to ensure that the Composer cache is refreshed at least once every week.
