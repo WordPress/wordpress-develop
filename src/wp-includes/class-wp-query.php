@@ -461,6 +461,14 @@ class WP_Query {
 	 */
 	private $stopwords;
 
+	/**
+	 * Cache the current timezone.
+	 *
+	 * @since 6.3.0
+	 * @var DateTimeZone Timezone object.
+	 */
+	private $timezone;
+
 	private $compat_fields = array( 'query_vars_hash', 'query_vars_changed' );
 
 	private $compat_methods = array( 'init_query_flags', 'parse_tax_query' );
@@ -4714,7 +4722,11 @@ class WP_Query {
 
 		$authordata = get_userdata( $post->post_author );
 
-		$post_date = date_create( $post->post_date );
+		if ( ! isset( $this->timezone ) ) {
+			$this->timezone = wp_timezone();
+		}
+
+		$post_date = date_create( $post->post_date, $this->timezone );
 
 		$currentday   = $post_date->format( 'd.m.y' );
 		$currentmonth = $post_date->format( 'm' );
