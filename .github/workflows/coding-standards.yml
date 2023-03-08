@@ -21,7 +21,7 @@ on:
       # Any change to a PHP or JavaScript file should run checks.
       - '**.js'
       - '**.php'
-      # These files configure NPM. Changes could affect the outcome.
+      # These files configure npm. Changes could affect the outcome.
       - 'package*.json'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
@@ -98,7 +98,7 @@ jobs:
   # - Logs debug information about the GitHub Action runner.
   # - Installs NodeJS.
   # - Logs updated debug information.
-  # _ Installs NPM dependencies.
+  # _ Installs npm dependencies.
   # - Run the WordPress JSHint checks.
   jshint:
     name: JavaScript coding standards
@@ -119,7 +119,7 @@ jobs:
           git --version
           svn --version
 
-      - name: Install NodeJS
+      - name: Set up Node.js
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version-file: '.nvmrc'
