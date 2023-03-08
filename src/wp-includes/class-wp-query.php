@@ -4727,12 +4727,16 @@ class WP_Query {
 		}
 
 		$post_date = date_create( $post->post_date, $this->timezone );
-
-		$currentday   = $post_date->format( 'd.m.y' );
-		$currentmonth = $post_date->format( 'm' );
-		$numpages     = 1;
-		$multipage    = 0;
-		$page         = $this->get( 'page' );
+		if ( ! $post_date ) {
+			$currentday   = false;
+			$currentmonth = false;
+		} else {
+			$currentday   = $post_date->format( 'd.m.y' );
+			$currentmonth = $post_date->format( 'm' );
+		}
+		$numpages  = 1;
+		$multipage = 0;
+		$page      = $this->get( 'page' );
 		if ( ! $page ) {
 			$page = 1;
 		}
