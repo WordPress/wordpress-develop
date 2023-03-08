@@ -28,7 +28,7 @@ concurrency:
 
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
-  # Controls which NPM script to use for running PHPUnit tests. Options ar `php` and `php-composer`.
+  # Controls which npm script to use for running PHPUnit tests. Options ar `php` and `php-composer`.
   PHPUNIT_SCRIPT: php
   LOCAL_PHP_MEMCACHED: ${{ false }}
   SLOW_TESTS: 'external-http,media,restapi'
