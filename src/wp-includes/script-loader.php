@@ -291,7 +291,7 @@ function wp_default_packages_scripts( $scripts ) {
 		 */
 		$assets_path = ABSPATH . WPINC . '/assets/script-loader-packages.min.php';
 	}
-	$assets = include ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
+	$assets = include $asset_path;
 
 	foreach ( $assets as $file_name => $package_data ) {
 		$basename = str_replace( $suffix . '.js', '', basename( $file_name ) );
