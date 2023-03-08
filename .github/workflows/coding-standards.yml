@@ -104,14 +104,13 @@ jobs:
   failed-workflow:
     name: Failed workflow tasks
     runs-on: ubuntu-latest
-    needs: [ phpcs, jshint, slack-notifications ]
+    needs: [ jshint, slack-notifications ]
     if: |
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
       github.event_name != 'pull_request' &&
       github.run_attempt < 2 &&
       (
-        needs.phpcs.result == 'cancelled' || needs.phpcs.result == 'failure' ||
         needs.jshint.result == 'cancelled' || needs.jshint.result == 'failure'
       )
 
