@@ -781,6 +781,16 @@ class WP_Media_List_Table extends WP_List_Table {
 				}
 			}
 
+			if ( get_permalink( $post->ID ) ) {
+				$actions['view'] = sprintf(
+					'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
+					get_permalink( $post->ID ),
+					/* translators: %s: Attachment title. */
+					esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
+					__( 'View' )
+				);
+			}
+
 			if ( current_user_can( 'edit_post', $post->ID ) ) {
 				$actions['attach'] = sprintf(
 					'<a href="#the-list" onclick="findPosts.open( \'media[]\', \'%s\' ); return false;" class="hide-if-no-js aria-button-if-js" aria-label="%s">%s</a>',
@@ -832,27 +842,31 @@ class WP_Media_List_Table extends WP_List_Table {
 					);
 				}
 			}
+
+			if ( ! $this->is_trash ) {
+				if ( get_permalink( $post->ID ) ) {
+					$actions['view'] = sprintf(
+						'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
+						get_permalink( $post->ID ),
+						/* translators: %s: Attachment title. */
+						esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
+						__( 'View' )
+					);
+				}
+			}
 		}
 
-		if ( ! $this->is_trash ) {
-			if ( get_permalink( $post->ID ) ) {
-				$actions['view'] = sprintf(
-					'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
-					get_permalink( $post->ID ),
+		if ( wp_get_attachment_url( $post->ID ) ) {
+			if ( ! $this->is_trash ) {
+				$actions['copy'] = sprintf(
+					'<span class="copy-to-clipboard-container"><button type="button" class="button-link copy-attachment-url media-library" data-clipboard-text="%s" aria-label="%s">%s</button><span class="success hidden" aria-hidden="true">%s</span></span>',
+					esc_url( wp_get_attachment_url( $post->ID ) ),
 					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
-					__( 'View' )
+					esc_attr( sprintf( __( 'Copy &#8220;%s&#8221; URL to clipboard' ), $att_title ) ),
+					__( 'Copy URL' ),
+					__( 'Copied!' )
 				);
 			}
-
-			$actions['copy'] = sprintf(
-				'<span class="copy-to-clipboard-container"><button type="button" class="button-link copy-attachment-url media-library" data-clipboard-text="%s" aria-label="%s">%s</button><span class="success hidden" aria-hidden="true">%s</span></span>',
-				esc_url( wp_get_attachment_url( $post->ID ) ),
-				/* translators: %s: Attachment title. */
-				esc_attr( sprintf( __( 'Copy &#8220;%s&#8221; URL to clipboard' ), $att_title ) ),
-				__( 'Copy URL' ),
-				__( 'Copied!' )
-			);
 
 			$actions['download'] = sprintf(
 				'<a href="%s" aria-label="%s" download>%s</a>',
