@@ -175,7 +175,7 @@ function get_default_block_template_types() {
 		),
 		'404'            => array(
 			'title'       => _x( '404', 'Template name' ),
-			'description' => __( 'Displays when a visitor views a non-existant page, such as a dead link or a mistyped URL.' ),
+			'description' => __( 'Displays when a visitor views a non-existent page, such as a dead link or a mistyped URL.' ),
 		),
 	);
 
