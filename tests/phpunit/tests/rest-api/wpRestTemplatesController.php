@@ -1,13 +1,9 @@
 <?php
 /**
- * Unit tests covering the templates endpoint..
+ * Unit tests covering WP_REST_Templates_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
- * Tests for REST API for templates.
  *
  * @covers WP_REST_Templates_Controller
  *
@@ -300,7 +296,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'args'      => array(
 					'post_name'    => 'small-header-τεστ',
 					'post_title'   => 'Small Header τεστ Template',
-					'post_content' => file_get_contents( $theme_root_dir . '/block-theme-non-latin/parts/small-header-τεστ.html' ),
+					'post_content' => file_get_contents( $theme_root_dir . '/block-theme-non-latin/parts/small-header-test.html' ),
 					'post_excerpt' => 'Description of small header τεστ template.',
 				),
 			),
@@ -310,7 +306,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'args'      => array(
 					'post_name'    => 'page-τεστ',
 					'post_title'   => 'τεστ Page Template',
-					'post_content' => file_get_contents( $theme_root_dir . 'block-theme-non-latin/templates/page-τεστ.html' ),
+					'post_content' => file_get_contents( $theme_root_dir . 'block-theme-non-latin/templates/page-test.html' ),
 					'post_excerpt' => 'Description of page τεστ template.',
 				),
 			),
@@ -320,7 +316,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'args'      => array(
 					'post_name'    => 'small-header-测试',
 					'post_title'   => 'Small Header 测试 Template',
-					'post_content' => file_get_contents( $theme_root_dir . '/block-theme-non-latin/parts/small-header-测试.html' ),
+					'post_content' => file_get_contents( $theme_root_dir . '/block-theme-non-latin/parts/small-header-test.html' ),
 					'post_excerpt' => 'Description of small header 测试 template.',
 				),
 			),
@@ -330,7 +326,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'args'      => array(
 					'post_name'    => 'page-测试',
 					'post_title'   => '测试 Page Template',
-					'post_content' => file_get_contents( $theme_root_dir . 'block-theme-non-latin/templates/page-测试.html' ),
+					'post_content' => file_get_contents( $theme_root_dir . 'block-theme-non-latin/templates/page-test.html' ),
 					'post_excerpt' => 'Description of page 测试 template.',
 				),
 			),

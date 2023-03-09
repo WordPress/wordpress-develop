@@ -2043,7 +2043,7 @@ function wp_welcome_panel() {
 	<div class="welcome-panel-content">
 	<div class="welcome-panel-header">
 		<div class="welcome-panel-header-image">
-			<?php echo file_get_contents( dirname( __DIR__ ) . '/images/about-header-about.svg' ); ?>
+			<?php echo file_get_contents( dirname( __DIR__ ) . '/images/dashboard-background.svg' ); ?>
 		</div>
 		<h2><?php _e( 'Welcome to WordPress!' ); ?></h2>
 		<p>
@@ -2099,7 +2099,7 @@ function wp_welcome_panel() {
 			<?php else : ?>
 				<h3><?php _e( 'Discover a new way to build your site.' ); ?></h3>
 				<p><?php _e( 'There is a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ?></p>
-				<a href="<?php echo esc_url( __( 'https://wordpress.org/support/article/block-themes/' ) ); ?>"><?php _e( 'Learn about block themes' ); ?></a>
+				<a href="<?php echo esc_url( __( 'https://wordpress.org/documentation/article/block-themes/' ) ); ?>"><?php _e( 'Learn about block themes' ); ?></a>
 			<?php endif; ?>
 			</div>
 		</div>
