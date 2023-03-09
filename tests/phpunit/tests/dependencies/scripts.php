@@ -64,6 +64,39 @@ JS;
 	}
 
 	/**
+	 * Test non standalone before with defer.
+	 *
+	 * @ticket 12009
+	 */
+	public function test_wp_add_inline_script_non_standalone_before_with_defer() {
+		// Main script has some deferred dependency and has a before inline script.
+		wp_enqueue_script( 'dependency-script-i1-1', 'http://example.com/dependency-script-i1-1.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'dependency-script-i1-2', 'http://example.com/dependency-script-i1-2.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'dependency-script-i1-3', 'http://example.com/dependency-script-i1-3.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'main-script-i1-1', 'http://example.com/main-script-i1-1.js', array( 'dependency-script-i1-1', 'dependency-script-i1-2', 'dependency-script-i1-3' ), null, array( 'strategy' => 'defer' ) );
+		wp_add_inline_script( 'main-script-i1-1', 'console.log("before one");', 'before' );
+		$output   = get_echo( 'wp_print_scripts' );
+		$expected  = "<script type='text/javascript' src='http://example.com/dependency-script-i1-1.js' id='dependency-script-i1-1-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.com/dependency-script-i1-2.js' id='dependency-script-i1-2-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.com/dependency-script-i1-3.js' id='dependency-script-i1-3-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.com/main-script-i1-1.js' id='main-script-i1-1-js' defer></script>\n";
+		$this->assertSame( $output, $expected );
+
+		// Main script has some deferred dependency and has a before inline script.
+		wp_enqueue_script( 'dependency-script-i2-1', 'http://example.com/dependency-script-i2-1.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'dependency-script-i2-2', 'http://example.com/dependency-script-i2-2.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'dependency-script-i2-3', 'http://example.com/dependency-script-i2-3.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'main-script-i2-1', 'http://example.com/main-script-i2-1.js', array( 'dependency-script-i2-1', 'dependency-script-i2-2', 'dependency-script-i2-3' ), null, array( 'strategy' => 'defer' ) );
+		wp_add_inline_script( 'dependency-script-i2-2', 'console.log("before one");', 'before' );
+		$output   = get_echo( 'wp_print_scripts' );		
+		$expected  = "<script type='text/javascript' src='http://example.com/dependency-script-i2-1.js' id='dependency-script-i2-1-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.com/dependency-script-i2-2.js' id='dependency-script-i2-2-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.com/dependency-script-i2-3.js' id='dependency-script-i2-3-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.com/main-script-i2-1.js' id='main-script-i2-1-js' defer></script>\n";
+		$this->assertSame( $output, $expected );
+	}
+
+	/**
 	 * Test valid async loading strategy case.
 	 *
 	 * @ticket 12009
