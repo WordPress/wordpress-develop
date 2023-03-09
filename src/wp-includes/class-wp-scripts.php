@@ -453,7 +453,7 @@ class WP_Scripts extends WP_Dependencies {
 			$non_standalone_script_key = $position . '-non-standalone';
 			$non_standalone_script     = (array) $this->get_data( $handle, $non_standalone_script_key );
 			$non_standalone_script[]   = $data;
-			return $this->add_data( $handle, $non_standalone_script_key, $non_standalone_script );
+			$this->add_data( $handle, $non_standalone_script_key, $non_standalone_script );
 		}
 
 		return $this->add_data( $handle, $position, $script );
@@ -839,7 +839,7 @@ JS;
 		}
 
 		// Consider each dependent and check if it is deferrable.
-		foreach ( $dependents as $dependent ) {			
+		foreach ( $dependents as $dependent ) {
 			// If the dependent script is not using the defer or async strategy, no script in the chain is deferrable.
 			if ( ! in_array( $this->get_intended_strategy( $dependent ), array( 'defer', 'async' ), true ) ) {
 				return false;
@@ -855,7 +855,7 @@ JS;
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 
