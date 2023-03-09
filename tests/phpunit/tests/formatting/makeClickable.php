@@ -108,12 +108,12 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			'There was a spoon named www.wordpress.org) said Alice.',
 		);
 		$urls_expected = array(
-			"<a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>",
-			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>. Alice!",
-			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>, said Alice.",
-			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>; said Alice.",
-			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>: said Alice.",
-			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>) said Alice.",
+			'<a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>',
+			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>. Alice!',
+			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>, said Alice.',
+			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>; said Alice.',
+			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>: said Alice.',
+			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>) said Alice.',
 		);
 
 		foreach ( $urls_before as $key => $url ) {
@@ -135,12 +135,12 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			'There was a spoon named www.wordpress.org)',
 		);
 		$urls_expected = array(
-			"<a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>",
-			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>.",
-			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>,",
-			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>;",
-			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>:",
-			"There was a spoon named <a href='http://www.wordpress.org' rel=\"nofollow\">http://www.wordpress.org</a>)",
+			'<a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>',
+			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>.',
+			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>,',
+			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>;',
+			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>:',
+			'There was a spoon named <a href="http://www.wordpress.org" rel="nofollow">http://www.wordpress.org</a>)',
 		);
 
 		foreach ( $urls_before as $key => $url ) {
@@ -439,7 +439,6 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	}
 
 	public function data_add_rel_ugc_in_comments() {
-
 		$home_url_http  = set_url_scheme( home_url(), 'http' );
 		$home_url_https = set_url_scheme( home_url(), 'https' );
 
@@ -451,12 +450,12 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			),
 			array(
 				'www.wordpress.org',
-				'<p><a href=\'http://www.wordpress.org\' rel="nofollow ugc">http://www.wordpress.org</a>',
+				'<p><a href="http://www.wordpress.org" rel="nofollow ugc">http://www.wordpress.org</a>',
 			),
 			// @ticket 56444
 			array(
 				'www.example.org',
-				'<p><a href=\'http://www.example.org\' rel="nofollow ugc">http://www.example.org</a>',
+				'<p><a href="http://www.example.org" rel="nofollow ugc">http://www.example.org</a>',
 			),
 			array(
 				$home_url_http,
