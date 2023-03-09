@@ -157,8 +157,8 @@ function get_default_block_template_types() {
 			'title'       => _x( 'Date', 'Template name' ),
 			/* translators: %s: Example URL. */
 			'description' => sprintf(
-				__( 'Displays a post archive when a specific date is visited (e.g. %s).' ),
-				'<code>example.com/2023/</code>'
+				__( 'Displays a post archive when a specific date is visited (e.g., %s).' ),
+				__( 'example.com/2023/' )
 			),
 		),
 		'tag'            => array(
