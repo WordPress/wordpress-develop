@@ -181,7 +181,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3 class="is-smaller-heading" style="margin-top:0;margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Sticky positioning' ); ?></h3>
-				<p><?php _e( 'Choose to keep certain blocks fixed to the top of a page as visitors scroll.' ); ?></p>
+				<p><?php _e( 'Choose to keep top-level group blocks fixed to the top of a page as visitors scroll.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
@@ -201,7 +201,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3 class="is-smaller-heading" style="margin-top:0;margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Local fonts in themes' ); ?></h3>
-				<p><?php _e( 'Default WordPress themes offer better privacy with Google Fonts included.' ); ?></p>
+				<p><?php _e( 'Default WordPress themes offer better privacy with Google Fonts now included.' ); ?></p>
 			</div>
 		</div>
 
