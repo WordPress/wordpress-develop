@@ -67,33 +67,80 @@ JS;
 	 * Test non standalone before with defer.
 	 *
 	 * @ticket 12009
+	 * @dataProvider data_inline_script_with_non_standalone_before_with_defer
 	 */
-	public function test_wp_add_inline_script_non_standalone_before_with_defer() {
-		// Main script has some deferred dependency and has a before inline script.
-		wp_enqueue_script( 'dependency-script-i1-1', 'http://example.com/dependency-script-i1-1.js', array(), null, array( 'strategy' => 'defer' ) );
-		wp_enqueue_script( 'dependency-script-i1-2', 'http://example.com/dependency-script-i1-2.js', array(), null, array( 'strategy' => 'defer' ) );
-		wp_enqueue_script( 'dependency-script-i1-3', 'http://example.com/dependency-script-i1-3.js', array(), null, array( 'strategy' => 'defer' ) );
-		wp_enqueue_script( 'main-script-i1-1', 'http://example.com/main-script-i1-1.js', array( 'dependency-script-i1-1', 'dependency-script-i1-2', 'dependency-script-i1-3' ), null, array( 'strategy' => 'defer' ) );
-		wp_add_inline_script( 'main-script-i1-1', 'console.log("before one");', 'before' );
-		$output   = get_echo( 'wp_print_scripts' );
-		$expected  = "<script type='text/javascript' src='http://example.com/dependency-script-i1-1.js' id='dependency-script-i1-1-js'></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.com/dependency-script-i1-2.js' id='dependency-script-i1-2-js'></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.com/dependency-script-i1-3.js' id='dependency-script-i1-3-js'></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.com/main-script-i1-1.js' id='main-script-i1-1-js' defer></script>\n";
-		$this->assertSame( $output, $expected );
+	public function test_inline_script_with_non_standalone_before_with_defer( $expected, $output, $message ) {
+		$this->assertSame( $expected, $output, $message );
+	}
 
-		// Main script has some deferred dependency and has a before inline script.
-		wp_enqueue_script( 'dependency-script-i2-1', 'http://example.com/dependency-script-i2-1.js', array(), null, array( 'strategy' => 'defer' ) );
-		wp_enqueue_script( 'dependency-script-i2-2', 'http://example.com/dependency-script-i2-2.js', array(), null, array( 'strategy' => 'defer' ) );
-		wp_enqueue_script( 'dependency-script-i2-3', 'http://example.com/dependency-script-i2-3.js', array(), null, array( 'strategy' => 'defer' ) );
-		wp_enqueue_script( 'main-script-i2-1', 'http://example.com/main-script-i2-1.js', array( 'dependency-script-i2-1', 'dependency-script-i2-2', 'dependency-script-i2-3' ), null, array( 'strategy' => 'defer' ) );
-		wp_add_inline_script( 'dependency-script-i2-2', 'console.log("before one");', 'before' );
-		$output   = get_echo( 'wp_print_scripts' );		
-		$expected  = "<script type='text/javascript' src='http://example.com/dependency-script-i2-1.js' id='dependency-script-i2-1-js'></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.com/dependency-script-i2-2.js' id='dependency-script-i2-2-js'></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.com/dependency-script-i2-3.js' id='dependency-script-i2-3-js'></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.com/main-script-i2-1.js' id='main-script-i2-1-js' defer></script>\n";
-		$this->assertSame( $output, $expected );
+	public function data_inline_script_with_non_standalone_before_with_defer() {
+		$data = array();
+
+		// If the main script has a `before` inline script; all dependencies will be blocking.
+		wp_enqueue_script( 'ds-i1-1', 'http://example.org/ds-i1-1.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'ds-i1-2', 'http://example.org/ds-i1-2.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'ds-i1-3', 'http://example.org/ds-i1-3.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'ms-i1-1', 'http://example.org/ms-i1-1.js', array( 'ds-i1-1', 'ds-i1-2', 'ds-i1-3' ), null, array( 'strategy' => 'defer' ) );
+		wp_add_inline_script( 'ms-i1-1', 'console.log("before one");', 'before' );
+		$output   = get_echo( 'wp_print_scripts' );
+		$expected  = "<script type='text/javascript' src='http://example.org/ds-i1-1.js' id='ds-i1-1-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-i1-2.js' id='ds-i1-2-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-i1-3.js' id='ds-i1-3-js'></script>\n";
+		$expected .= "<script type='text/javascript' id='ms-i1-1-js-before'>\n";
+		$expected .= "console.log(\"before one\");\n";
+		$expected .= "</script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ms-i1-1.js' id='ms-i1-1-js' defer></script>\n";
+		array_push( $data, array( $expected, $output, 'All dependency in the chain should be blocking' ) );
+
+		// One of the dependency in the chain has a `before` inline script; all script above it will be blocking.
+		wp_enqueue_script( 'ds-i2-1', 'http://example.org/ds-i2-1.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'ds-i2-2', 'http://example.org/ds-i2-2.js', array( 'ds-i2-1' ), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'ds-i2-3', 'http://example.org/ds-i2-3.js', array( 'ds-i2-2' ), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'ms-i2-1', 'http://example.org/ms-i2-1.js', array( 'ds-i2-3' ), null, array( 'strategy' => 'defer' ) );
+		wp_add_inline_script( 'ds-i2-2', 'console.log("before one");', 'before' );
+		$output   = get_echo( 'wp_print_scripts' );
+		$expected  = "<script type='text/javascript' src='http://example.org/ds-i2-1.js' id='ds-i2-1-js'></script>\n";
+		$expected .= "<script type='text/javascript' id='ds-i2-2-js-before'>\n";
+		$expected .= "console.log(\"before one\");\n";
+		$expected .= "</script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-i2-2.js' id='ds-i2-2-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-i2-3.js' id='ds-i2-3-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ms-i2-1.js' id='ms-i2-1-js' defer></script>\n";
+		array_push( $data, array( $expected, $output, 'Scripts in the chain before the script having before must be blocking.' ) );
+
+		// Top most dependency in the chain has a `before` inline script; none of the script bellow it will be blocking.
+		wp_enqueue_script( 'ds-i3-1', 'http://example.org/ds-i3-1.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'ds-i3-2', 'http://example.org/ds-i3-2.js', array( 'ds-i3-1' ), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'ms-i3-1', 'http://example.org/ms-i3-1.js', array( 'ds-i3-2' ), null, array( 'strategy' => 'defer' ) );
+		wp_add_inline_script( 'ds-i3-1', 'console.log("before one");', 'before' );
+		$output   = get_echo( 'wp_print_scripts' );
+		$expected  = "<script type='text/javascript' id='ds-i3-1-js-before'>\n";
+		$expected .= "console.log(\"before one\");\n";
+		$expected .= "</script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-i3-1.js' id='ds-i3-1-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-i3-2.js' id='ds-i3-2-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ms-i3-1.js' id='ms-i3-1-js' defer></script>\n";
+		array_push( $data, array( $expected, $output, 'Top most has before inline script. All the script in the chain defer.' ) );
+
+		// If there are two dependencies chain; rules are applied to the scripts in the chain having a `before` inline script.
+		wp_enqueue_script( 'ch1-ds-i4-1', 'http://example.org/ch1-ds-i4-1.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'ch1-ds-i4-2', 'http://example.org/ch1-ds-i4-2.js', array( 'ch1-ds-i4-1' ), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'ch2-ds-i4-1', 'http://example.org/ch2-ds-i4-1.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'ch2-ds-i4-2', 'http://example.org/ch2-ds-i4-2.js', array( 'ch2-ds-i4-1' ), null, array( 'strategy' => 'defer' ) );
+		wp_add_inline_script( 'ch2-ds-i4-2', 'console.log("before one");', 'before' );
+		wp_enqueue_script( 'ms-i4-1', 'http://example.org/ms-i4-1.js', array( 'ch2-ds-i4-1', 'ch2-ds-i4-2' ), null, array( 'strategy' => 'defer' ) );
+		$output   = get_echo( 'wp_print_scripts' );
+		$expected  = "<script type='text/javascript' src='http://example.org/ch1-ds-i4-1.js' id='ch1-ds-i4-1-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ch1-ds-i4-2.js' id='ch1-ds-i4-2-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ch2-ds-i4-1.js' id='ch2-ds-i4-1-js'></script>\n";
+		$expected .= "<script type='text/javascript' id='ch2-ds-i4-2-js-before'>\n";
+		$expected .= "console.log(\"before one\");\n";
+		$expected .= "</script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ch2-ds-i4-2.js' id='ch2-ds-i4-2-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ms-i4-1.js' id='ms-i4-1-js' defer></script>\n";
+		array_push( $data, array( $expected, $output, 'Only top dependency script in chain two should be blocking.' ) );
+
+		return $data;
 	}
 
 	/**
