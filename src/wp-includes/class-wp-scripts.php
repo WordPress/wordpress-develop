@@ -814,8 +814,8 @@ JS;
 	 */
 	private function has_non_standalone_inline_script( $handle, $position ) {
 		$non_standalone_script_key = $position . '-non-standalone';
-		$non_standalone_script     = (array) $this->get_data( $handle, $non_standalone_script_key );
-		return !empty( $non_standalone_script );
+		$non_standalone_script     = $this->get_data( $handle, $non_standalone_script_key );
+		return ! empty( $non_standalone_script );
 	}
 
 	/**
@@ -839,14 +839,14 @@ JS;
 		}
 
 		// Consider each dependent and check if it is deferrable.
-		foreach ( $dependents as $dependent ) {
-			// Not defer if the dependent has a non-standalone 'before' inline script.
-			if ( has_non_standalone_inline_script( $dependent, 'before' ) ) {
+		foreach ( $dependents as $dependent ) {			
+			// If the dependent script is not using the defer or async strategy, no script in the chain is deferrable.
+			if ( ! in_array( $this->get_intended_strategy( $dependent ), array( 'defer', 'async' ), true ) ) {
 				return false;
 			}
 
-			// If the dependent script is not using the defer or async strategy, no script in the chain is deferrable.
-			if ( ! in_array( $this->get_intended_strategy( $dependent ), array( 'defer', 'async' ), true ) ) {
+			// If the dependent script has a before then non-standalone 'before' inline script then not defer.
+			if ( $this->has_non_standalone_inline_script( $dependent, 'before' ) ) {
 				return false;
 			}
 
@@ -855,6 +855,7 @@ JS;
 				return false;
 			}
 		}
+		
 		return true;
 	}
 
