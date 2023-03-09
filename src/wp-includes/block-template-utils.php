@@ -163,7 +163,7 @@ function get_default_block_template_types() {
 		),
 		'tag'            => array(
 			'title'       => _x( 'Tag', 'Template name' ),
-			'description' => __( 'Displays a post tag archive. This template will serve as a fallback when more specific template (e.g., Tag: Pizza) cannot be found.' ),
+			'description' => __( 'Displays a post tag archive. This template will serve as a fallback when a more specific template (e.g., Tag: Pizza) cannot be found.' ),
 		),
 		'attachment'     => array(
 			'title'       => __( 'Media' ),
