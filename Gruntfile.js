@@ -40,7 +40,6 @@ module.exports = function(grunt) {
 			'wp-includes/css/*.min.css',
 			'wp-includes/css/*-rtl*.css',
 			'wp-admin/css/colors/**/*.css',
-			'wp-includes/blocks/**/*.css',
 		],
 
 		// All built js files, in /src or /build.
@@ -55,6 +54,7 @@ module.exports = function(grunt) {
 		webpackFiles = [
 			'wp-includes/assets/*',
 			'wp-includes/css/dist',
+			'wp-includes/blocks/**/*.css',
 			'!wp-includes/assets/script-loader-packages.min.php',
 		],
 
