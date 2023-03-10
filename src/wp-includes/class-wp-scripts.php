@@ -303,7 +303,7 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$after_handle = '';
-		if ( '' !== $strategy ) {
+		if ( '' === $strategy ) {
 			$after_handle = $this->print_inline_script( $handle, 'after', false );
 
 			if ( $after_handle ) {
