@@ -12,9 +12,8 @@ jobs:
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
 
     steps:
-      - uses: bubkoo/welcome-action@8dbbac2540d155744c90e4e37da6b05ffc9c5e2c # v1.0.3
+      - uses: wow-actions/welcome@72817eb31cda1de60f51893d80e2e82ce57f7e76 # v1.3.0
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FIRST_PR_COMMENT: >
             Hi @{{ author }}! 👋
 
