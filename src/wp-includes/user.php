@@ -5029,7 +5029,7 @@ function wp_register_persisted_preferences_meta() {
 /**
  * Sets the last changed time for the 'users' cache group.
  *
- * @since 6.2.0
+ * @since 6.3.0
  */
 function wp_cache_set_users_last_changed() {
 	wp_cache_set( 'last_changed', microtime(), 'users' );
