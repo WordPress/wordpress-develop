@@ -188,6 +188,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$request->set_param( 'context', 'edit' );
 
+		// Assign terms to the freshly uploaded attachment.
+
+		$terms_update = $this->handle_terms( $attachment_id, $request );
+		if ( is_wp_error( $terms_update ) ) {
+			return $terms_update;
+		}
+
 		/**
 		 * Fires after a single attachment is completely created or updated via the REST API.
 		 *
