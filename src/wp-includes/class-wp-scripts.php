@@ -450,12 +450,11 @@ class WP_Scripts extends WP_Dependencies {
 		$script   = (array) $this->get_data( $handle, $position );
 		$script[] = $data;
 
-		if ( ! $standalone ) {
-			$non_standalone_script_key = $position . '-non-standalone';
-			$non_standalone_script     = (array) $this->get_data( $handle, $non_standalone_script_key );
-			$non_standalone_script[]   = $data;
-			$this->add_data( $handle, $non_standalone_script_key, $non_standalone_script );
-		}
+		// Keep a list of standalone and non-standalone before/after scripts.
+		$standalone_key      = $standalone ? $position . '-standalone' : $position . '-non-standalone';
+		$standalone_script   = (array) $this->get_data( $handle, $standalone_key );
+		$standalone_script[] = $data;
+		$this->add_data( $handle, $standalone_key, $standalone_script );
 
 		return $this->add_data( $handle, $position, $script );
 	}
