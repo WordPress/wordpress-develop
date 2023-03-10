@@ -246,6 +246,26 @@ class WP_Scripts extends WP_Dependencies {
 	}
 
 	/**
+	 * Prints a loader script if there is text/template registered script.
+	 *
+	 * @param bool   $display Optional. Whether to print the extra script
+	 *                        instead of just returning it. Default true.
+	 * @return bool|string Print loader script if `$display` is true, string otherwise.
+	 */
+	public function print_template_loader_script( $display ) {
+		$output = <<<JS
+let wpLoadAfterScripts = ( handle ) => {
+	let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
+	scripts.forEach( (script) => { script.setAttribute("type","text/javascript") })
+}
+JS;
+
+		$script = sprintf( "<script id='wp-executes-after-js'>%s</script>\n", $output );
+
+		return true;
+	}
+
+	/**
 	 * Processes a script dependency.
 	 *
 	 * @since 2.6.0
@@ -319,7 +339,12 @@ class WP_Scripts extends WP_Dependencies {
 			$after_non_standalone_handle = $this->print_inline_script( $handle, 'after-non-standalone', false );
 
 			if ( $after_non_standalone_handle ) {
-				$after_handle .= sprintf( "<script%s id='%s-js-after' type='text/template'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_non_standalone_handle );
+				$after_handle .= sprintf(
+					'<script%s id=\'%s-js-after\' type=\'text/template\' data-wp-executes-after=\'%2$s\'>\n%s\n</script>\n',
+					$this->type_attr,
+					esc_attr( $handle ),
+					$after_non_standalone_handle
+				);
 			}
 		}
 
@@ -410,10 +435,13 @@ class WP_Scripts extends WP_Dependencies {
 
 		if ( '' !== $strategy ) {
 			$strategy = ' ' . $strategy;
+			if ( ! empty( $after_non_standalone_handle ) ) {
+				$strategy .= ' onload=\'wpLoadAfterScripts(\"%3$s\")\'';
+			}
 		}
 		$tag  = $translations . $cond_before . $before_handle;
 		$tag .= sprintf(
-			"<script%s src='%s' id='%s-js'%s></script>\n",
+			'<script%s src=\'%1$s\' id=\'%2$s-js\'%3$s></script>\n',
 			$this->type_attr,
 			esc_url( $src ),
 			esc_attr( $handle ),
