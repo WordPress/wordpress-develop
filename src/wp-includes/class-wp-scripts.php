@@ -302,9 +302,7 @@ class WP_Scripts extends WP_Dependencies {
 			$before_handle = sprintf( "<script%s id='%s-js-before'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $before_handle );
 		}
 
-		$after_handle                = false;
-		$after_standalone_handle     = false;
-		$after_non_standalone_handle = false;
+		$after_handle = '';
 		if ( '' !== $strategy ) {
 			$after_handle = $this->print_inline_script( $handle, 'after', false );
 
@@ -315,17 +313,17 @@ class WP_Scripts extends WP_Dependencies {
 			$after_standalone_handle = $this->print_inline_script( $handle, 'after-standalone', false );
 
 			if ( $after_standalone_handle ) {
-				$after_standalone_handle = sprintf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_standalone_handle );
+				$after_handle .= sprintf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_standalone_handle );
 			}
 
 			$after_non_standalone_handle = $this->print_inline_script( $handle, 'after-non-standalone', false );
 
 			if ( $after_non_standalone_handle ) {
-				$after_non_standalone_handle = sprintf( "<script%s id='%s-js-after' type='text/template'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_non_standalone_handle );
+				$after_handle .= sprintf( "<script%s id='%s-js-after' type='text/template'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_non_standalone_handle );
 			}
 		}
 
-		if ( $before_handle || $after_handle || $after_standalone_handle || $after_non_standalone_handle ) {
+		if ( $before_handle || $after_handle ) {
 			$inline_script_tag = $cond_before . $before_handle . $after_handle . $cond_after;
 		} else {
 			$inline_script_tag = '';
@@ -421,7 +419,6 @@ class WP_Scripts extends WP_Dependencies {
 			esc_attr( $handle ),
 			$strategy
 		);
-		// TODO: Handle onload logic for defer/async here.
 		$tag .= $after_handle . $cond_after;
 
 		/**
@@ -501,7 +498,7 @@ class WP_Scripts extends WP_Dependencies {
 		$output = trim( implode( "\n", $output ), "\n" );
 
 		if ( $display ) {
-			if( 'after-non-standalone' === $position ) {
+			if ( 'after-non-standalone' === $position ) {
 				printf( "<script%s id='%s-js-%s' type='text/template'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), esc_attr( $position ), $output );
 			} else {
 				printf( "<script%s id='%s-js-%s'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), esc_attr( $position ), $output );
