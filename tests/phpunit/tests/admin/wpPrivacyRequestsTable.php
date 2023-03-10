@@ -5,15 +5,9 @@
  * @package WordPress\UnitTests
  *
  * @since 5.1.0
- */
-
-/**
- * Tests_Admin_wpPrivacyRequestsTable class.
  *
  * @group admin
  * @group privacy
- *
- * @since 5.1.0
  */
 class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 

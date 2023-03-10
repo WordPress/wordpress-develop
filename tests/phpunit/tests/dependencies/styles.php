@@ -405,9 +405,9 @@ CSS;
 	}
 
 	/**
-	 * Tests that visual block styles are enqueued in the editor even when there is not theme support for 'wp-block-styles'.
+	 * Tests that visual block styles are not be enqueued in the editor when there is not theme support for 'wp-block-styles'.
 	 *
-	 * Visual block styles should always be enqueued when editing to avoid the appearance of a broken editor.
+	 * @ticket 57561
 	 *
 	 * @covers ::wp_enqueue_style
 	 */
@@ -419,7 +419,7 @@ CSS;
 
 		$this->assertFalse( wp_style_is( 'wp-block-library-theme' ) );
 		wp_enqueue_style( 'wp-edit-blocks' );
-		$this->assertTrue( wp_style_is( 'wp-block-library-theme' ) );
+		$this->assertFalse( wp_style_is( 'wp-block-library-theme' ), "The 'wp-block-library-theme' style should not be in the queue after enqueuing 'wp-edit-blocks'" );
 	}
 
 	/**

@@ -331,7 +331,7 @@ function get_blog_permalink( $blog_id, $post_id ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $domain Website domain.
- * @param string $path   Optional. Not required for subdomain installations.
+ * @param string $path   Optional. Not required for subdomain installations. Default '/'.
  * @return int 0 if no blog found, otherwise the ID of the matching blog.
  */
 function get_blog_id_from_url( $domain, $path = '/' ) {
@@ -607,6 +607,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
  * @param string         $blogname   The blog name provided by the user. Must be unique.
  * @param string         $blog_title The blog title provided by the user.
  * @param WP_User|string $user       Optional. The user object to check against the new site name.
+ *                                   Default empty string.
  * @return array {
  *     Array of domain, path, blog name, blog title, user and error messages.
  *
@@ -955,7 +956,7 @@ function wpmu_signup_blog_notification( $domain, $path, $title, $user_login, $us
 	$message_headers = "From: \"{$from_name}\" <{$admin_email}>\n" . 'Content-Type: text/plain; charset="' . get_option( 'blog_charset' ) . "\"\n";
 
 	$user            = get_user_by( 'login', $user_login );
-	$switched_locale = switch_to_locale( get_user_locale( $user ) );
+	$switched_locale = $user && switch_to_user_locale( $user->ID );
 
 	$message = sprintf(
 		/**
@@ -1069,7 +1070,7 @@ function wpmu_signup_user_notification( $user_login, $user_email, $key, $meta = 
 	}
 
 	$user            = get_user_by( 'login', $user_login );
-	$switched_locale = switch_to_locale( get_user_locale( $user ) );
+	$switched_locale = $user && switch_to_user_locale( $user->ID );
 
 	// Send email with activation link.
 	$admin_email = get_site_option( 'admin_email' );
@@ -1355,6 +1356,7 @@ function wpmu_create_user( $user_name, $password, $email ) {
  *                           updated. Otherwise, keys and values will be used to set options for
  *                           the new site. Default empty array.
  * @param int    $network_id Optional. Network ID. Only relevant on multi-network installations.
+ *                           Default 1.
  * @return int|WP_Error Returns WP_Error object on failure, the new site ID on success.
  */
 function wpmu_create_blog( $domain, $path, $title, $user_id, $options = array(), $network_id = 1 ) {
@@ -1399,7 +1401,7 @@ function wpmu_create_blog( $domain, $path, $title, $user_id, $options = array(),
 		return $blog_id;
 	}
 
-	wp_cache_set( 'last_changed', microtime(), 'sites' );
+	wp_cache_set_sites_last_changed();
 
 	return $blog_id;
 }
@@ -1540,7 +1542,8 @@ Disable these notifications: %3$s'
  *
  * @param string $domain     The domain to be checked.
  * @param string $path       The path to be checked.
- * @param int    $network_id Optional. Network ID. Relevant only on multi-network installations.
+ * @param int    $network_id Optional. Network ID. Only relevant on multi-network installations.
+ *                           Default 1.
  * @return int|null The site ID if the site name exists, null otherwise.
  */
 function domain_exists( $domain, $path, $network_id = 1 ) {
@@ -1567,7 +1570,7 @@ function domain_exists( $domain, $path, $network_id = 1 ) {
 	 * @param int|null $result     The site ID if the site name exists, null otherwise.
 	 * @param string   $domain     Domain to be checked.
 	 * @param string   $path       Path to be checked.
-	 * @param int      $network_id Network ID. Relevant only on multi-network installations.
+	 * @param int      $network_id Network ID. Only relevant on multi-network installations.
 	 */
 	return apply_filters( 'domain_exists', $result, $domain, $path, $network_id );
 }
@@ -1611,7 +1614,7 @@ function wpmu_welcome_notification( $blog_id, $user_id, $password, $title, $meta
 
 	$user = get_userdata( $user_id );
 
-	$switched_locale = switch_to_locale( get_user_locale( $user ) );
+	$switched_locale = switch_to_user_locale( $user_id );
 
 	$welcome_email = get_site_option( 'welcome_email' );
 	if ( false == $welcome_email ) {
@@ -1735,7 +1738,7 @@ function wpmu_new_site_admin_notification( $site_id, $user_id ) {
 
 	if ( $network_admin ) {
 		// If the network admin email address corresponds to a user, switch to their locale.
-		$switched_locale = switch_to_locale( get_user_locale( $network_admin ) );
+		$switched_locale = switch_to_user_locale( $network_admin->ID );
 	} else {
 		// Otherwise switch to the locale of the current site.
 		$switched_locale = switch_to_locale( get_locale() );
@@ -1844,7 +1847,7 @@ function wpmu_welcome_user_notification( $user_id, $password, $meta = array() ) 
 
 	$user = get_userdata( $user_id );
 
-	$switched_locale = switch_to_locale( get_user_locale( $user ) );
+	$switched_locale = switch_to_user_locale( $user_id );
 
 	/**
 	 * Filters the content of the welcome email after user activation.
@@ -2727,7 +2730,7 @@ function update_network_option_new_admin_email( $old_value, $value ) {
 	);
 	update_site_option( 'network_admin_hash', $new_admin_email );
 
-	$switched_locale = switch_to_locale( get_user_locale() );
+	$switched_locale = switch_to_user_locale( get_current_user_id() );
 
 	/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
 	$email_text = __(
