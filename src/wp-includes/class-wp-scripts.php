@@ -302,20 +302,20 @@ class WP_Scripts extends WP_Dependencies {
 			$before_handle = sprintf( "<script%s id='%s-js-before'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $before_handle );
 		}
 
-		if( '' !== $strategy ) {
-			$after_handle  = $this->print_inline_script( $handle, 'after', false );
+		if ( '' !== $strategy ) {
+			$after_handle = $this->print_inline_script( $handle, 'after', false );
 
 			if ( $after_handle ) {
 				$after_handle = sprintf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_handle );
 			}
 		} else {
-			$after_standalone_handle  = $this->print_inline_script( $handle, 'after-standalone', false );
+			$after_standalone_handle = $this->print_inline_script( $handle, 'after-standalone', false );
 
 			if ( $after_standalone_handle ) {
 				$after_standalone_handle = sprintf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_standalone_handle );
 			}
 
-			$after_non_standalone_handle  = $this->print_inline_script( $handle, 'after-non-standalone', false );
+			$after_non_standalone_handle = $this->print_inline_script( $handle, 'after-non-standalone', false );
 
 			if ( $after_non_standalone_handle ) {
 				$after_non_standalone_handle = sprintf( "<script%s id='%s-js-after' type='text/template'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_non_standalone_handle );
