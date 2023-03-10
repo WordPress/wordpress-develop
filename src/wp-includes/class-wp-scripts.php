@@ -302,6 +302,9 @@ class WP_Scripts extends WP_Dependencies {
 			$before_handle = sprintf( "<script%s id='%s-js-before'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $before_handle );
 		}
 
+		$after_handle                = false;
+		$after_standalone_handle     = false;
+		$after_non_standalone_handle = false;
 		if ( '' !== $strategy ) {
 			$after_handle = $this->print_inline_script( $handle, 'after', false );
 
