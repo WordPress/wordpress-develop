@@ -294,18 +294,35 @@ class WP_Scripts extends WP_Dependencies {
 			$cond_after  = "<![endif]-->\n";
 		}
 
+		$strategy = $this->get_eligible_loading_strategy( $handle );
+
 		$before_handle = $this->print_inline_script( $handle, 'before', false );
-		$after_handle  = $this->print_inline_script( $handle, 'after', false );
 
 		if ( $before_handle ) {
 			$before_handle = sprintf( "<script%s id='%s-js-before'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $before_handle );
 		}
 
-		if ( $after_handle ) {
-			$after_handle = sprintf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_handle );
+		if( '' !== $strategy ) {
+			$after_handle  = $this->print_inline_script( $handle, 'after', false );
+
+			if ( $after_handle ) {
+				$after_handle = sprintf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_handle );
+			}
+		} else {
+			$after_standalone_handle  = $this->print_inline_script( $handle, 'after-standalone', false );
+
+			if ( $after_standalone_handle ) {
+				$after_standalone_handle = sprintf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_standalone_handle );
+			}
+
+			$after_non_standalone_handle  = $this->print_inline_script( $handle, 'after-non-standalone', false );
+
+			if ( $after_non_standalone_handle ) {
+				$after_non_standalone_handle = sprintf( "<script%s id='%s-js-after' type='text/template'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_non_standalone_handle );
+			}
 		}
 
-		if ( $before_handle || $after_handle ) {
+		if ( $before_handle || $after_handle || $after_standalone_handle || $after_non_standalone_handle ) {
 			$inline_script_tag = $cond_before . $before_handle . $after_handle . $cond_after;
 		} else {
 			$inline_script_tag = '';
@@ -390,7 +407,6 @@ class WP_Scripts extends WP_Dependencies {
 			return true;
 		}
 
-		$strategy = $this->get_eligible_loading_strategy( $handle );
 		if ( '' !== $strategy ) {
 			$strategy = ' ' . $strategy;
 		}
