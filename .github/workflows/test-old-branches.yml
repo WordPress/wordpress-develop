@@ -65,6 +65,10 @@ jobs:
           - branch: '5.8'
             workflow: 'end-to-end-tests.yml'
 
+          # Performance testing was introduced in 6.2.
+          - branch: '6.2'
+            workflow: 'performance.yml'
+
     # Run all branches monthly, but only the currently supported one twice per month.
     steps:
       - name: Dispatch workflow run
