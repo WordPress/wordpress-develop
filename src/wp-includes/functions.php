@@ -7709,7 +7709,7 @@ function wp_cache_set_last_changed( $group ) {
 	 *
 	 * @param string    $group          The cache group name.
 	 * @param int       $time           The new last changed time.
-	 * @param int|false $previous_value The previous last changed time.
+	 * @param int|false $previous_time  The previous last changed time.
 	 */
 	do_action( 'wp_cache_set_last_changed', $group, $time, $previous_time );
 
