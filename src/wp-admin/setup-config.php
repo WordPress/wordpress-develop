@@ -123,14 +123,17 @@ if ( ! empty( $_REQUEST['language'] ) ) {
 	$language = $GLOBALS['wp_local_package'];
 }
 
+$server_has_mysql  = function_exists( 'mysqli_connect' ) || function_exists( 'mysql_connect' );
+$server_has_sqlite = class_exists( 'SQLite3' );
 switch ( $step ) {
 	case -1:
 		if ( wp_can_install_language_pack() && empty( $language ) ) {
 			$languages = wp_get_available_translations();
 			if ( $languages ) {
+				$action_step = ! $server_has_mysql && $server_has_sqlite ? '2' : '0';
 				setup_config_display_header( 'language-chooser' );
 				echo '<h1 class="screen-reader-text">Select a default language</h1>';
-				echo '<form id="setup" method="post" action="?step=0">';
+				echo '<form id="setup" method="post" action="?step=' . $action_step . '">';
 				wp_install_language_form( $languages );
 				echo '</form>';
 				break;
@@ -164,7 +167,7 @@ switch ( $step ) {
 		?>
 </h1>
 <p>
-		<?php if ( class_exists( 'SQLite3' ) ) : ?>
+		<?php if ( $server_has_mysql && $server_has_sqlite ) : ?>
 			<?php _e( 'Welcome to WordPress. Before getting started, you will need to know whether you want to use a MySQL (default), or an SQLite database. If you choose to use MySQL, you will need to provide the following details:' ); ?>
 		<?php else : ?>
 			<?php _e( 'Welcome to WordPress. Before getting started, you will need to know the following items.' ); ?>
@@ -300,17 +303,24 @@ switch ( $step ) {
 		break;
 
 	case 2:
+		// If the server doesn't support MySQL, we skipped steps 0 & 1.
+		if ( ! $server_has_mysql && ! empty( $language ) ) {
+			wp_download_language_pack( $language );
+		}
 		load_default_textdomain( $language );
 		$GLOBALS['wp_locale'] = new WP_Locale();
 
 		$dbtype = trim( wp_unslash( $_POST['dbtype'] ) );
-		$dbtype = class_exists( 'SQLite3' ) && 'sqlite' === $dbtype ? 'sqlite' : 'mysql';
+		$dbtype = $server_has_sqlite && 'sqlite' === $dbtype ? 'sqlite' : 'mysql';
+		$dbtype = $server_has_mysql && ! $server_has_sqlite ? 'mysql' : $dbtype;
+		$dbtype = $server_has_sqlite && ! $server_has_mysql ? 'sqlite' : $dbtype;
 
 		$dbname = trim( wp_unslash( $_POST['dbname'] ) );
 		$uname  = trim( wp_unslash( $_POST['uname'] ) );
 		$pwd    = trim( wp_unslash( $_POST['pwd'] ) );
 		$dbhost = trim( wp_unslash( $_POST['dbhost'] ) );
 		$prefix = trim( wp_unslash( $_POST['prefix'] ) );
+		$prefix = empty( $prefix ) ? 'wp_' : $prefix;
 
 		$step_1  = 'setup-config.php?step=1';
 		$install = 'install.php';
@@ -553,6 +563,18 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 <p><?php _e( 'All right, sparky! You&#8217;ve made it through this part of the installation. WordPress can now communicate with your database. If you are ready, time now to&hellip;' ); ?></p>
 
 <p class="step"><a href="<?php echo $install; ?>" class="button button-large"><?php _e( 'Run the installation' ); ?></a></p>
+				<?php
+				/*
+				 * If the server doesn't have MySQL installed and we got this far,
+				 * this is a good indication that the server is using SQLite.
+				 * We can redirect to the next step, skipping the confirmation.
+				 * If the user's browser doesn't support JavaScript, they will see
+				 * the same confirmation page as everyone else.
+				 */
+				if ( ! $server_has_mysql ) :
+					echo '<script>window.location.href = "' . $install . '";</script>';
+				endif;
+				?>
 				<?php
 			else :
 				printf( '<p>%s</p>', $error_message );
