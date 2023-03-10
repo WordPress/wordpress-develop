@@ -91,7 +91,7 @@ class WP_Metadata_Lazyloader {
 			}
 		}
 
-		add_filter( $type_settings['filter'], $type_settings['callback'] );
+		add_filter( $type_settings['filter'], $type_settings['callback'], 10, 2 );
 
 		/**
 		 * Fires after objects are added to the metadata lazy-load queue.
@@ -133,15 +133,19 @@ class WP_Metadata_Lazyloader {
 	 * @since 4.5.0
 	 *
 	 * @param mixed $check The `$check` param passed from the 'get_term_metadata' hook.
+	 * @param int   $object_id ID of the object metadata is for.
 	 * @return mixed In order not to short-circuit `get_metadata()`. Generally, this is `null`, but it could be
 	 *               another value if filtered by a plugin.
 	 */
-	public function lazyload_term_meta( $check ) {
+	public function lazyload_term_meta( $check, $object_id ) {
 		if ( ! empty( $this->pending_objects['term'] ) ) {
-			update_termmeta_cache( array_keys( $this->pending_objects['term'] ) );
+			$object_ids = array_keys( $this->pending_objects['term'] );
+			if ( in_array( $object_id, $object_ids, true ) ) {
+				update_termmeta_cache( $object_ids );
 
-			// No need to run again for this set of terms.
-			$this->reset_queue( 'term' );
+				// No need to run again for this set of terms.
+				$this->reset_queue( 'term' );
+			}
 		}
 
 		return $check;
@@ -156,14 +160,18 @@ class WP_Metadata_Lazyloader {
 	 * @since 4.5.0
 	 *
 	 * @param mixed $check The `$check` param passed from the {@see 'get_comment_metadata'} hook.
+	 * @param int   $object_id ID of the object metadata is for.
 	 * @return mixed The original value of `$check`, so as not to short-circuit `get_comment_metadata()`.
 	 */
-	public function lazyload_comment_meta( $check ) {
+	public function lazyload_comment_meta( $check, $object_id ) {
 		if ( ! empty( $this->pending_objects['comment'] ) ) {
-			update_meta_cache( 'comment', array_keys( $this->pending_objects['comment'] ) );
+			$object_ids = array_keys( $this->pending_objects['comment'] );
+			if ( in_array( $object_id, $object_ids, true ) ) {
+				update_meta_cache( 'comment', $object_ids );
 
-			// No need to run again for this set of comments.
-			$this->reset_queue( 'comment' );
+				// No need to run again for this set of comments.
+				$this->reset_queue( 'comment' );
+			}
 		}
 
 		return $check;
