@@ -571,6 +571,7 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 						'usermeta',
 						'user_meta',
 						'userslugs',
+						'users-queries',
 					)
 				);
 			}
@@ -662,6 +663,7 @@ function restore_current_blog() {
 						'usermeta',
 						'user_meta',
 						'userslugs',
+						'users-queries',
 					)
 				);
 			}

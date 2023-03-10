@@ -410,6 +410,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 				'usermeta',
 				'user_meta',
 				'userslugs',
+				'users-queries',
 			)
 		);
 

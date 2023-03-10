@@ -141,7 +141,7 @@ class WP_User_Query {
 	 * @since 5.1.0 Introduced the 'meta_compare_key' parameter.
 	 * @since 5.3.0 Introduced the 'meta_type_key' parameter.
 	 * @since 5.9.0 Added 'capability', 'capability__in', and 'capability__not_in' parameters.
-	 * @since 6.2.0 Added 'cache_results' parameter.
+	 * @since 6.3.0 Added 'cache_results' parameter.
 	 *
 	 * @global wpdb     $wpdb     WordPress database abstraction object.
 	 * @global WP_Roles $wp_roles WordPress role management object.
@@ -826,8 +826,9 @@ class WP_User_Query {
 			";
 			$cache_value   = false;
 			$cache_key     = $this->generate_cache_key( $qv, $this->request );
+			$cache_group   = 'users-queries';
 			if ( $qv['cache_results'] ) {
-				$cache_value = wp_cache_get( $cache_key, 'users' );
+				$cache_value = wp_cache_get( $cache_key, $cache_group );
 			}
 			if ( false !== $cache_value ) {
 				$this->results     = $cache_value['user_data'];
@@ -862,7 +863,7 @@ class WP_User_Query {
 						'user_data'   => $this->results,
 						'total_users' => $this->total_users,
 					);
-					wp_cache_add( $cache_key, $cache_value, 'users' );
+					wp_cache_add( $cache_key, $cache_value, $cache_group );
 				}
 			}
 		}
@@ -1039,7 +1040,7 @@ class WP_User_Query {
 	/**
 	 * Generate cache key.
 	 *
-	 * @since 6.2.0
+	 * @since 6.3.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
