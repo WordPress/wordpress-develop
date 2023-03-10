@@ -441,7 +441,7 @@ JS;
 		}
 		$tag  = $translations . $cond_before . $before_handle;
 		$tag .= sprintf(
-			'<script%s src=\'%1$s\' id=\'%2$s-js\'%3$s></script>\n',
+			'<script%1$s src=\'%2$s\' id=\'%3$s-js\'%4$s></script>\n',
 			$this->type_attr,
 			esc_url( $src ),
 			esc_attr( $handle ),
