@@ -126,7 +126,6 @@ function wp_print_scripts( $handles = false ) {
  * @param string $position   Optional. Whether to add the inline script before the handle
  *                           or after. Default 'after'.
  * @param bool   $standalone Inline script opted to be standalone or not. Default false.
- *
  * @return bool True on success, false on failure.
  */
 function wp_add_inline_script( $handle, $data, $position = 'after', $standalone = false ) {
