@@ -146,7 +146,7 @@ function wp_add_inline_script( $handle, $data, $position = 'after', $standalone 
 		$data = trim( preg_replace( '#<script[^>]*>(.*)</script>#is', '$1', $data ) );
 	}
 
-	return wp_scripts()->add_inline_script( $handle, $data, $position );
+	return wp_scripts()->add_inline_script( $handle, $data, $position, $standalone );
 }
 
 /**
