@@ -61,7 +61,7 @@ window.wp = window.wp || {};
 				data,
 				function(r) {
 					r = wpAjax.parseAjaxResponse(r);
-					$('#commentsdiv .widefat').show();
+					$('#commentsdiv table.comments-box').show();
 					$( '#commentsdiv .spinner' ).removeClass( 'is-active' );
 
 					if ( 'object' == typeof r && r.responses[0] ) {
