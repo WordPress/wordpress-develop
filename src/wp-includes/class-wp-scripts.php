@@ -344,10 +344,11 @@ JS;
 
 			if ( $after_non_standalone_handle ) {
 				$after_handle .= sprintf(
-					'<script%s id=\'%s-js-after\' type=\'text/template\' data-wp-executes-after=\'%2$s\'>\n%s\n</script>\n',
+					'<script%1$s id=\'%2$s-js-after\' type=\'text/template\' data-wp-executes-after=\'%2$s\'>%4$s%3$s%4$s</script>%4$s',
 					$this->type_attr,
 					esc_attr( $handle ),
-					$after_non_standalone_handle
+					$after_non_standalone_handle,
+					PHP_EOL
 				);
 			}
 		}
@@ -532,11 +533,12 @@ JS;
 		if ( $display ) {
 			if ( 'after-non-standalone' === $position ) {
 				printf(
-					'<script%1$s id=\'%2$s-js-%3$s\' type=\'text/template\' data-wp-executes-after=\'%2$s\'>\n%4$s\n</script>\n',
+					'<script%1$s id=\'%2$s-js-%3$s\' type=\'text/template\' data-wp-executes-after=\'%2$s\'>%5$s%4$s%5$s</script>%5$s',
 					$this->type_attr,
 					esc_attr( $handle ),
 					esc_attr( $position ),
-					$output
+					$output,
+					PHP_EOL
 				);
 			} else {
 				printf( "<script%s id='%s-js-%s'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), esc_attr( $position ), $output );
