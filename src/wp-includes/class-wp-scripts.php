@@ -436,7 +436,7 @@ JS;
 		if ( '' !== $strategy ) {
 			$strategy = ' ' . $strategy;
 			if ( ! empty( $after_non_standalone_handle ) ) {
-				$strategy .=  sprintf( " onload='wpLoadAfterScripts(\"%s\")'", esc_attr( $handle ) );
+				$strategy .= sprintf( " onload='wpLoadAfterScripts(\"%s\")'", esc_attr( $handle ) );
 			}
 		}
 		$tag  = $translations . $cond_before . $before_handle;
