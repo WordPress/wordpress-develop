@@ -1594,7 +1594,7 @@ function unzip_file( $file, $to ) {
 	 * @param bool $ziparchive Whether to use ZipArchive. Default true.
 	 */
 	if ( class_exists( 'ZipArchive', false ) && apply_filters( 'unzip_file_use_ziparchive', true ) ) {
-		$result = _unzip_file_ziparchive( $file, $to, $needed_dirs );
+		$result = _unzip_file( $file, $to, $needed_dirs, 'ziparchive' );
 		if ( true === $result ) {
 			return $result;
 		} elseif ( is_wp_error( $result ) ) {
@@ -1604,7 +1604,7 @@ function unzip_file( $file, $to ) {
 		}
 	}
 	// Fall through to PclZip if ZipArchive is not available, or encountered an error opening the file.
-	return _unzip_file_pclzip( $file, $to, $needed_dirs );
+	return _unzip_file( $file, $to, $needed_dirs, 'pclzip' );
 }
 
 /**
