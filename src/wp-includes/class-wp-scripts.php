@@ -252,15 +252,19 @@ class WP_Scripts extends WP_Dependencies {
 	 *                        instead of just returning it. Default true.
 	 * @return bool|string Print loader script if `$display` is true, string otherwise.
 	 */
-	public function print_template_loader_script( $display ) {
+	public function print_template_loader_script( $display = true ) {
 		$output = <<<JS
 let wpLoadAfterScripts = ( handle ) => {
 	let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
 	scripts.forEach( (script) => { script.setAttribute("type","text/javascript") })
 }
 JS;
-
 		$script = sprintf( "<script id='wp-executes-after-js'>%s</script>\n", $output );
+		if ( $display ) {
+			echo $script;
+		} else {
+			return $script;
+		}
 
 		return true;
 	}
