@@ -436,12 +436,12 @@ JS;
 		if ( '' !== $strategy ) {
 			$strategy = ' ' . $strategy;
 			if ( ! empty( $after_non_standalone_handle ) ) {
-				$strategy .= ' onload=\'wpLoadAfterScripts(\"%3$s\")\'';
+				$strategy .=  sprintf( " onload='wpLoadAfterScripts(\"%s\")'", esc_attr( $handle ) );
 			}
 		}
 		$tag  = $translations . $cond_before . $before_handle;
 		$tag .= sprintf(
-			'<script%1$s src=\'%2$s\' id=\'%3$s-js\'%4$s></script>\n',
+			"<script%s src='%s' id='%s-js'%s></script>\n",
 			$this->type_attr,
 			esc_url( $src ),
 			esc_attr( $handle ),
