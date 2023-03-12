@@ -127,7 +127,7 @@ function get_home_path() {
  *
  * @since 2.6.0
  * @since 4.9.0 Added the `$exclusions` parameter.
- * @since 6.3.0 Added the `$skip_hidden` parameter.
+ * @since 6.3.0 Added the `$include_hidden` parameter.
  *
  * @param string   $folder         Optional. Full path to folder. Default empty.
  * @param int      $levels         Optional. Levels of folders to follow, Default 100 (PHP Loop limit).
