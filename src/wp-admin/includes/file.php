@@ -1722,7 +1722,7 @@ function _unzip_file( $file, $to, $needed_dirs = array(), $mode = 'ziparchive' )
 				continue;
 			}
 
-			// Don't extract invalid files:
+			// Don't extract invalid files.
 			if ( 0 !== validate_file( $info['name'] ) ) {
 				continue;
 			}
@@ -1836,7 +1836,7 @@ function _unzip_file( $file, $to, $needed_dirs = array(), $mode = 'ziparchive' )
 				continue;
 			}
 
-			// Don't extract invalid files:
+			// Don't extract invalid files.
 			if ( 0 !== validate_file( $info['name'] ) ) {
 				continue;
 			}
