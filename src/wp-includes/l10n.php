@@ -735,7 +735,11 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	 * @param string|null $locale Locale.
 	 */
 	$loaded = apply_filters( 'pre_load_textdomain', null, $domain, $mofile, $locale );
-	if ( null !== $loaded )
+	if ( null !== $loaded ) {
+		if ( true === $loaded ) {
+			unset( $l10n_unloaded[ $domain ] );
+		}
+
 		return $loaded;
 	}
 
