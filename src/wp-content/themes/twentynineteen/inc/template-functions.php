@@ -35,12 +35,12 @@ add_filter( 'body_class', 'twentynineteen_body_classes' );
 /**
  * Adds custom class to the array of posts classes.
  */
-function twentynineteen_post_classes( $classes, $css_class, $post_id ) {
+function twentynineteen_post_classes( $classes ) {
 	$classes[] = 'entry';
 
 	return $classes;
 }
-add_filter( 'post_class', 'twentynineteen_post_classes', 10, 3 );
+add_filter( 'post_class', 'twentynineteen_post_classes' );
 
 
 /**
@@ -163,7 +163,7 @@ add_filter( 'wp_nav_menu', 'twentynineteen_add_ellipses_to_nav', 10, 2 );
  *
  * @ref https://www.w3.org/WAI/tutorials/menus/flyout/
  */
-function twentynineteen_nav_menu_link_attributes( $atts, $item, $args, $depth ) {
+function twentynineteen_nav_menu_link_attributes( $atts, $item ) {
 
 	// Add [aria-haspopup] and [aria-expanded] to menu items that have children.
 	$item_has_children = in_array( 'menu-item-has-children', $item->classes, true );
@@ -174,7 +174,7 @@ function twentynineteen_nav_menu_link_attributes( $atts, $item, $args, $depth ) 
 
 	return $atts;
 }
-add_filter( 'nav_menu_link_attributes', 'twentynineteen_nav_menu_link_attributes', 10, 4 );
+add_filter( 'nav_menu_link_attributes', 'twentynineteen_nav_menu_link_attributes', 10, 2 );
 
 /**
  * Create a nav menu item to be displayed on mobile to navigate from submenu back to the parent.
