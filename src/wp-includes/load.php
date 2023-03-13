@@ -667,7 +667,7 @@ function require_wp_db() {
 
 	require_once ABSPATH . WPINC . '/class-wpdb.php';
 
-	if ( defined( 'DATABASE_TYPE' ) && 'sqlite' === DATABASE_TYPE ) {
+	if ( defined( 'DB_ENGINE' ) && 'sqlite' === DB_ENGINE ) {
 		require_once ABSPATH . WPINC . '/sqlite/db.php';
 	}
 

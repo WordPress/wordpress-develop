@@ -352,7 +352,7 @@ switch ( $step ) {
 			 *
 			 * @ignore
 			 */
-			define( 'DATABASE_TYPE', $dbtype );
+			define( 'DB_ENGINE', $dbtype );
 			define( 'DB_NAME', $dbname );
 			define( 'DB_USER', $uname );
 			define( 'DB_PASSWORD', $pwd );
@@ -363,7 +363,7 @@ switch ( $step ) {
 			 *
 			 * @ignore
 			 */
-			define( 'DATABASE_TYPE', $dbtype );
+			define( 'DB_ENGINE', $dbtype );
 			define( 'DB_NAME', '' );
 			define( 'DB_USER', '' );
 			define( 'DB_PASSWORD', '' );
@@ -442,7 +442,7 @@ switch ( $step ) {
 			$padding  = $match[2];
 
 			switch ( $constant ) {
-				case 'DATABASE_TYPE':
+				case 'DB_ENGINE':
 				case 'DB_NAME':
 				case 'DB_USER':
 				case 'DB_PASSWORD':

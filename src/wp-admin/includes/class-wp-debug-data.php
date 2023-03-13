@@ -278,10 +278,10 @@ class WP_Debug_Data {
 					'label' => 'WP_MAX_MEMORY_LIMIT',
 					'value' => WP_MAX_MEMORY_LIMIT,
 				),
-				'DATABASE_TYPE'       => array(
-					'label' => 'DATABASE_TYPE',
-					'value' => ( defined( 'DATABASE_TYPE' ) ? DATABASE_TYPE : __( 'Undefined' ) ),
-					'debug' => ( defined( 'DATABASE_TYPE' ) ? DATABASE_TYPE : 'undefined' ),
+				'DB_ENGINE'           => array(
+					'label' => 'DB_ENGINE',
+					'value' => ( defined( 'DB_ENGINE' ) ? DB_ENGINE : __( 'Undefined' ) ),
+					'debug' => ( defined( 'DB_ENGINE' ) ? DB_ENGINE : 'undefined' ),
 				),
 				'WP_DEBUG'            => array(
 					'label' => 'WP_DEBUG',
@@ -868,7 +868,7 @@ class WP_Debug_Data {
 			'value' => wp_date( 'c', $_SERVER['REQUEST_TIME'] ),
 		);
 
-		$database_type = defined( 'DATABASE_TYPE' ) && 'sqlite' === DATABASE_TYPE ? 'sqlite' : 'mysql';
+		$db_engine = defined( 'DB_ENGINE' ) && 'sqlite' === DB_ENGINE ? 'sqlite' : 'mysql';
 		$extension = null;
 		if ( 'mysql' === $database_type ) {
 		    // Populate the database debug fields.
@@ -882,12 +882,12 @@ class WP_Debug_Data {
 
 		$client_version = $wpdb->dbh->client_info;
 
-		$info['wp-database']['fields']['database_type'] = array(
-			'label' => __( 'Database type' ),
-			'value' => 'sqlite' === $database_type ? 'SQLite' : 'MySQL/MariaDB',
+		$info['wp-database']['fields']['db_engine'] = array(
+			'label' => __( 'Database engine' ),
+			'value' => 'sqlite' === $db_engine ? 'SQLite' : 'MySQL/MariaDB',
 		);
 
-		if ( 'mysql' === $database_type ) {
+		if ( 'mysql' === $db_engine ) {
 			$info['wp-database']['fields']['extension'] = array(
 				'label' => __( 'Extension' ),
 				'value' => $extension,
@@ -920,7 +920,7 @@ class WP_Debug_Data {
 				'value'   => $wpdb->dbname,
 				'private' => true,
 			);
-		} elseif ( 'sqlite' === $database_type ) {
+		} elseif ( 'sqlite' === $db_engine ) {
 			$info['wp-database']['fields']['database_version'] = array(
 				'label' => __( 'SQLite version' ),
 				'value' => class_exists( 'SQLite3' ) ? SQLite3::version()['versionString'] : null,
@@ -944,7 +944,7 @@ class WP_Debug_Data {
 			'private' => true,
 		);
 
-		if ( 'mysql' === $database_type ) {
+		if ( 'mysql' === $db_engine ) {
 			$info['wp-database']['fields']['database_charset'] = array(
 				'label'   => __( 'Database charset' ),
 				'value'   => $wpdb->charset,

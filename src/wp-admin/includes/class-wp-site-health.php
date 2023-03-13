@@ -209,7 +209,7 @@ class WP_Site_Health {
 		global $wpdb;
 
 		$mysql_server_type = $wpdb->db_server_info();
-		$this->is_sqlite   = defined( 'DATABASE_TYPE' ) && 'sqlite' === DATABASE_TYPE ? 'sqlite' : 'mysql';
+		$this->is_sqlite   = defined( 'DB_ENGINE' ) && 'sqlite' === DB_ENGINE ? 'sqlite' : 'mysql';
 
 		$this->mysql_server_version = $wpdb->get_var( 'SELECT VERSION()' );
 

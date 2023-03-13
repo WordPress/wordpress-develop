@@ -6,8 +6,8 @@
  * @since 1.0.0
  */
 
-// Bail early if DATABASE_TYPE is not defined as sqlite.
-if ( ! defined( 'DATABASE_TYPE' ) || 'sqlite' !== DATABASE_TYPE ) {
+// Bail early if DB_ENGINE is not defined as sqlite.
+if ( ! defined( 'DB_ENGINE' ) || 'sqlite' !== DB_ENGINE ) {
 	return;
 }
 

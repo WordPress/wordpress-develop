@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // @TODO: Remove this. It's only here so that the PR can be tested.
-define( 'DATABASE_TYPE', 'sqlite' );
+define( 'DB_ENGINE', 'sqlite' );
 
 /*
  * The error_reporting() function can be disabled in php.ini. On systems where that is the case,
