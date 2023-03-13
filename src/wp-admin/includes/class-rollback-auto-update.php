@@ -355,7 +355,7 @@ class WP_Rollback_Auto_Update {
 	 * @since 6.3.0
 	 */
 	private function send_update_result_email() {
-		add_filter( 'auto_plugin_theme_update_email', array( $this, 'update_failure_message' ), 10, 4 );
+		add_filter( 'auto_plugin_theme_update_email', array( $this, 'auto_update_rollback_message' ), 10, 4 );
 		$successful = array();
 		$failed     = array();
 
@@ -407,7 +407,7 @@ class WP_Rollback_Auto_Update {
 		$send_plugin_theme_email->setAccessible( true );
 		$send_plugin_theme_email->invoke( $automatic_upgrader, 'mixed', $successful, $failed );
 
-		remove_filter( 'auto_plugin_theme_update_email', array( $this, 'update_failure_message' ), 10 );
+		remove_filter( 'auto_plugin_theme_update_email', array( $this, 'auto_update_rollback_message' ), 10 );
 	}
 
 	/**
@@ -430,7 +430,7 @@ class WP_Rollback_Auto_Update {
 	 *
 	 * @return array
 	 */
-	public function update_failure_message( $email, $type, $successful_updates, $failed_updates ) {
+	public function auto_update_rollback_message( $email, $type, $successful_updates, $failed_updates ) {
 		if ( empty( $failed_updates ) ) {
 			return $email;
 		}
