@@ -32,7 +32,8 @@ function mysql2date( $format, $date, $translate = true ) {
 		return false;
 	}
 
-	$datetime = date_create( $date, wp_timezone() );
+	$timezone = wp_timezone();
+	$datetime = date_create( $date, $timezone );
 
 	if ( false === $datetime ) {
 		return false;
@@ -44,7 +45,7 @@ function mysql2date( $format, $date, $translate = true ) {
 	}
 
 	if ( $translate ) {
-		return wp_date( $format, $datetime->getTimestamp() );
+		return wp_date( $format, $datetime->getTimestamp(), $timezone );
 	}
 
 	return $datetime->format( $format );
@@ -1196,6 +1197,10 @@ function add_query_arg( ...$args ) {
 /**
  * Removes an item or items from a query string.
  *
+ * Important: The return value of remove_query_arg() is not escaped by default. Output should be
+ * late-escaped with esc_url() or similar to help prevent vulnerability to cross-site scripting
+ * (XSS) attacks.
+ *
  * @since 1.5.0
  *
  * @param string|string[] $key   Query key or keys to remove.
@@ -1948,13 +1953,16 @@ function wp_original_referer_field( $display = true, $jump_back_to = 'current' )
  * @return string|false Referer URL on success, false on failure.
  */
 function wp_get_referer() {
+	// Return early if called before wp_validate_redirect() is defined.
 	if ( ! function_exists( 'wp_validate_redirect' ) ) {
 		return false;
 	}
 
 	$ref = wp_get_raw_referer();
 
-	if ( $ref && wp_unslash( $_SERVER['REQUEST_URI'] ) !== $ref && home_url() . wp_unslash( $_SERVER['REQUEST_URI'] ) !== $ref ) {
+	if ( $ref && wp_unslash( $_SERVER['REQUEST_URI'] ) !== $ref
+		&& home_url() . wp_unslash( $_SERVER['REQUEST_URI'] ) !== $ref
+	) {
 		return wp_validate_redirect( $ref, false );
 	}
 
@@ -1988,7 +1996,12 @@ function wp_get_raw_referer() {
  * @return string|false Original referer URL on success, false on failure.
  */
 function wp_get_original_referer() {
-	if ( ! empty( $_REQUEST['_wp_original_http_referer'] ) && function_exists( 'wp_validate_redirect' ) ) {
+	// Return early if called before wp_validate_redirect() is defined.
+	if ( ! function_exists( 'wp_validate_redirect' ) ) {
+		return false;
+	}
+
+	if ( ! empty( $_REQUEST['_wp_original_http_referer'] ) ) {
 		return wp_validate_redirect( wp_unslash( $_REQUEST['_wp_original_http_referer'] ), false );
 	}
 

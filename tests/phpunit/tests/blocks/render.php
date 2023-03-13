@@ -227,6 +227,10 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 		$normalized_html = preg_replace( '/wp-block-gallery-\d+/', 'wp-block-gallery-1', $normalized_html );
 		$expected_html   = self::strip_r( file_get_contents( $server_html_path ) );
 
+		// Convert HTML to be white space insensitive.
+		$normalized_html = preg_replace( '/(\s+$)/m', '', $normalized_html );
+		$expected_html   = preg_replace( '/(\s+$)/m', '', $expected_html );
+
 		$this->assertSame(
 			$expected_html,
 			$normalized_html,
