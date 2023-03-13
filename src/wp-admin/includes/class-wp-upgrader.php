@@ -116,7 +116,7 @@ class WP_Upgrader {
 	 * Construct the upgrader with a skin.
 	 *
 	 * @since 2.8.0
-	 * @since 6.2.0 Added the WP_Rollback_Auto_Update::auto_update_check().
+	 * @since 6.3.0 Added the WP_Rollback_Auto_Update::auto_update_check().
 
 	 *
 	 * @param WP_Upgrader_Skin $skin The upgrader skin to use. Default is a WP_Upgrader_Skin
