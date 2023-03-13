@@ -166,15 +166,13 @@ class WP_Rollback_Auto_Update {
 		$this->update_is_safe = 200 === $code;
 
 		if ( str_contains( $body, 'wp-die-message' ) || 200 !== $code ) {
-			$error = new WP_Error(
-				'new_version_error',
+			throw new Exception(
 				sprintf(
 					/* translators: %s: The name of the plugin. */
 					__( 'The new version of %s contains an error' ),
 					get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin )['Name']
 				)
 			);
-			throw new Exception( $error->get_error_message() );
 		}
 	}
 
@@ -357,7 +355,7 @@ class WP_Rollback_Auto_Update {
 	 * @since 6.3.0
 	 */
 	private function send_update_result_email() {
-		add_filter( 'auto_plugin_theme_update_email', array( $this, 'props' ), 10, 4 );
+		add_filter( 'auto_plugin_theme_update_email', array( $this, 'update_failure_message' ), 10, 4 );
 		$successful = array();
 		$failed     = array();
 
@@ -409,11 +407,11 @@ class WP_Rollback_Auto_Update {
 		$send_plugin_theme_email->setAccessible( true );
 		$send_plugin_theme_email->invoke( $automatic_upgrader, 'mixed', $successful, $failed );
 
-		remove_filter( 'auto_plugin_theme_update_email', array( $this, 'props' ), 10 );
+		remove_filter( 'auto_plugin_theme_update_email', array( $this, 'update_failure_message' ), 10 );
 	}
 
 	/**
-	 * Credit where credit is due.
+	 * Add auto-update failure message to email.
 	 *
 	 * @since 6.3.0
 	 *
@@ -432,7 +430,7 @@ class WP_Rollback_Auto_Update {
 	 *
 	 * @return array
 	 */
-	public function props( $email, $type, $successful_updates, $failed_updates ) {
+	public function update_failure_message( $email, $type, $successful_updates, $failed_updates ) {
 		if ( empty( $failed_updates ) ) {
 			return $email;
 		}
