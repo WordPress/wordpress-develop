@@ -156,8 +156,8 @@ if ( 'grid' === $mode ) {
 
 	get_current_screen()->set_help_sidebar(
 		'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/article/media-library-screen/">Documentation on Media Library</a>' ) . '</p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+		'<p>' . __( '<a href="https://wordpress.org/documentation/article/media-library-screen/">Documentation on Media Library</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 	);
 
 	// Used in the HTML title tag.
@@ -219,6 +219,7 @@ if ( $doaction ) {
 	} elseif ( isset( $_REQUEST['ids'] ) ) {
 		$post_ids = explode( ',', $_REQUEST['ids'] );
 	}
+	$post_ids = array_map( 'intval', (array) $post_ids );
 
 	$location = 'upload.php';
 	$referer  = wp_get_referer();
@@ -241,7 +242,7 @@ if ( $doaction ) {
 			if ( empty( $post_ids ) ) {
 				break;
 			}
-			foreach ( (array) $post_ids as $post_id ) {
+			foreach ( $post_ids as $post_id ) {
 				if ( ! current_user_can( 'delete_post', $post_id ) ) {
 					wp_die( __( 'Sorry, you are not allowed to move this item to the Trash.' ) );
 				}
@@ -262,7 +263,7 @@ if ( $doaction ) {
 			if ( empty( $post_ids ) ) {
 				break;
 			}
-			foreach ( (array) $post_ids as $post_id ) {
+			foreach ( $post_ids as $post_id ) {
 				if ( ! current_user_can( 'delete_post', $post_id ) ) {
 					wp_die( __( 'Sorry, you are not allowed to restore this item from the Trash.' ) );
 				}
@@ -277,7 +278,7 @@ if ( $doaction ) {
 			if ( empty( $post_ids ) ) {
 				break;
 			}
-			foreach ( (array) $post_ids as $post_id_del ) {
+			foreach ( $post_ids as $post_id_del ) {
 				if ( ! current_user_can( 'delete_post', $post_id_del ) ) {
 					wp_die( __( 'Sorry, you are not allowed to delete this item.' ) );
 				}
@@ -332,7 +333,8 @@ get_current_screen()->add_help_tab(
 					'<li>' . __( '<strong>Edit</strong> takes you to a simple screen to edit that individual file&#8217;s metadata. You can also reach that screen by clicking on the media file name or thumbnail.' ) . '</li>' .
 					'<li>' . __( '<strong>Delete Permanently</strong> will delete the file from the media library (as well as from any posts to which it is currently attached).' ) . '</li>' .
 					'<li>' . __( '<strong>View</strong> will take you to a public display page for that file.' ) . '</li>' .
-					'<li>' . __( '<strong>Copy URL to clipboard</strong> copies the URL for the media file to your clipboard.' ) . '</li>' .
+					'<li>' . __( '<strong>Copy URL</strong> copies the URL for the media file to your clipboard.' ) . '</li>' .
+					'<li>' . __( '<strong>Download file</strong> downloads the original media file to your device.' ) . '</li>' .
 				'</ul>',
 	)
 );
@@ -347,8 +349,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/media-library-screen/">Documentation on Media Library</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/media-library-screen/">Documentation on Media Library</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 get_current_screen()->set_screen_reader_content(

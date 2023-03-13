@@ -14,6 +14,7 @@ wp-tests-config.php
 /tests/phpunit/data/plugins/wordpress-importer
 /tests/phpunit/data/.trac-ticket-cache*
 /tests/qunit/compiled.html
+/tests/performance/**/*.test.results.json
 /src/.wp-tests-version
 /node_modules
 /npm-debug.log
@@ -38,6 +39,7 @@ wp-tests-config.php
 /src/wp-includes/blocks/**/*.js.map
 /packagehash.txt
 /artifacts
+/setup.log
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir

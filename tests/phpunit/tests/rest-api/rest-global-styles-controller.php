@@ -4,10 +4,9 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @covers WP_REST_Global_Styles_Controller
+ *
  * @group restapi-global-styles
  * @group restapi
  */
@@ -486,6 +485,27 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$expected = array(
 			array(
 				'version'  => 2,
+				'title'    => 'variation-b',
+				'settings' => array(
+					'blocks' => array(
+						'core/post-title' => array(
+							'color' => array(
+								'palette' => array(
+									'theme' => array(
+										array(
+											'slug'  => 'light',
+											'name'  => 'Light',
+											'color' => '#f1f1f1',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			array(
+				'version'  => 2,
 				'title'    => 'Block theme variation',
 				'settings' => array(
 					'color' => array(
@@ -511,7 +531,11 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 				),
 			),
 		);
-		$this->assertSameSetsWithIndex( $data, $expected );
+
+		wp_recursive_ksort( $data );
+		wp_recursive_ksort( $expected );
+
+		$this->assertSameSets( $data, $expected );
 	}
 
 	/**
@@ -531,5 +555,44 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		} else {
 			$this->assertArrayHasKey( 'https://api.w.org/action-edit-css', $links );
 		}
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::update_item
+	 * @ticket 57536
+	 */
+	public function test_update_item_valid_styles_css() {
+		wp_set_current_user( self::$admin_id );
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$request->set_body_params(
+			array(
+				'styles' => array( 'css' => 'body { color: red; }' ),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( 'body { color: red; }', $data['styles']['css'] );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::update_item
+	 * @ticket 57536
+	 */
+	public function test_update_item_invalid_styles_css() {
+		wp_set_current_user( self::$admin_id );
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$request->set_body_params(
+			array(
+				'styles' => array( 'css' => '<p>test</p> body { color: red; }' ),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_custom_css_illegal_markup', $response, 400 );
 	}
 }

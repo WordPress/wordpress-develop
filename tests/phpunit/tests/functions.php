@@ -133,7 +133,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * Tests path_join().
 	 *
 	 * @ticket 55897
-	 * @dataProvider path_join_data_provider
+	 * @dataProvider data_path_join
 	 */
 	public function test_path_join( $base, $path, $expected ) {
 		$this->assertSame( $expected, path_join( $base, $path ) );
@@ -144,7 +144,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *
 	 * @return string[][]
 	 */
-	public function path_join_data_provider() {
+	public function data_path_join() {
 		return array(
 			// Absolute paths.
 			'absolute path should return path' => array(
@@ -258,7 +258,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( 'abcdefgh.png', wp_unique_filename( $testdir, 'abcdefg"h.png' ), 'File with quote failed' );
 
 		// Test crazy name (useful for regression tests).
-		$this->assertSame( '12af34567890@..^_qwerty-fghjkl-zx.png', wp_unique_filename( $testdir, '12%af34567890#~!@#$..%^&*()|_+qwerty  fgh`jkl zx<>?:"{}[]="\'/?.png' ), 'Failed crazy file name' );
+		$this->assertSame( '12af34567890@.^_qwerty-fghjkl-zx.png', wp_unique_filename( $testdir, '12%af34567890#~!@#$..%^&*()|_+qwerty  fgh`jkl zx<>?:"{}[]="\'/?.png' ), 'Failed crazy file name' );
 
 		// Test slashes in names.
 		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\fg.png' ), 'Slash not removed' );
@@ -1158,7 +1158,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36054
-	 * @dataProvider datetime_provider
+	 * @dataProvider data_mysql_to_rfc3339
 	 */
 	public function test_mysql_to_rfc3339( $expected, $actual ) {
 		$date_return = mysql_to_rfc3339( $actual );
@@ -1169,7 +1169,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertEquals( new DateTime( $expected ), new DateTime( $date_return ), 'The date is not the same after the call method' );
 	}
 
-	public function datetime_provider() {
+	public function data_mysql_to_rfc3339() {
 		return array(
 			array( '2016-03-15T18:54:46', '15-03-2016 18:54:46' ),
 			array( '2016-03-02T19:13:25', '2016-03-02 19:13:25' ),
@@ -1334,7 +1334,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40017
-	 * @dataProvider wp_get_image_mime
+	 * @dataProvider data_wp_get_image_mime
 	 */
 	public function test_wp_get_image_mime( $file, $expected ) {
 		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
@@ -1345,105 +1345,9 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 35725
-	 * @dataProvider data_wp_getimagesize
-	 */
-	public function test_wp_getimagesize( $file, $expected ) {
-		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
-			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
-		}
-
-		$result = wp_getimagesize( $file );
-
-		// The getimagesize() function varies in its response, so
-		// let's restrict comparison to expected keys only.
-		if ( is_array( $expected ) ) {
-			foreach ( $expected as $k => $v ) {
-				$this->assertArrayHasKey( $k, $result );
-				$this->assertSame( $expected[ $k ], $result[ $k ] );
-			}
-		} else {
-			$this->assertSame( $expected, $result );
-		}
-	}
-
-	/**
-	 * @ticket 39550
-	 * @dataProvider wp_check_filetype_and_ext_data
-	 * @requires extension fileinfo
-	 */
-	public function test_wp_check_filetype_and_ext( $file, $filename, $expected ) {
-		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
-	}
-
-	/**
-	 * @ticket 39550
-	 * @group ms-excluded
-	 * @requires extension fileinfo
-	 */
-	public function test_wp_check_filetype_and_ext_with_filtered_svg() {
-		$file     = DIR_TESTDATA . '/uploads/video-play.svg';
-		$filename = 'video-play.svg';
-
-		$expected = array(
-			'ext'             => 'svg',
-			'type'            => 'image/svg+xml',
-			'proper_filename' => false,
-		);
-
-		add_filter( 'upload_mimes', array( $this, 'filter_mime_types_svg' ) );
-		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
-
-		// Cleanup.
-		remove_filter( 'upload_mimes', array( $this, 'filter_mime_types_svg' ) );
-	}
-
-	/**
-	 * @ticket 39550
-	 * @group ms-excluded
-	 * @requires extension fileinfo
-	 */
-	public function test_wp_check_filetype_and_ext_with_filtered_woff() {
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, this test is marked skipped on PHP 8.1+ as a recent change introduced
-			 * an inconsistency with how the mime-type for WOFF files are handled compared to older versions.
-			 *
-			 * See https://core.trac.wordpress.org/ticket/56817 for more details.
-			 */
-			$this->markTestSkipped( 'This test currently fails on PHP 8.1+ and requires further investigation.' );
-		}
-
-		$file     = DIR_TESTDATA . '/uploads/dashicons.woff';
-		$filename = 'dashicons.woff';
-
-		$expected = array(
-			'ext'             => 'woff',
-			'type'            => 'application/font-woff',
-			'proper_filename' => false,
-		);
-
-		add_filter( 'upload_mimes', array( $this, 'filter_mime_types_woff' ) );
-		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
-
-		// Cleanup.
-		remove_filter( 'upload_mimes', array( $this, 'filter_mime_types_woff' ) );
-	}
-
-	public function filter_mime_types_svg( $mimes ) {
-		$mimes['svg'] = 'image/svg+xml';
-		return $mimes;
-	}
-
-	public function filter_mime_types_woff( $mimes ) {
-		$mimes['woff'] = 'application/font-woff';
-		return $mimes;
-	}
-
-	/**
 	 * Data provider for test_wp_get_image_mime().
 	 */
-	public function wp_get_image_mime() {
+	public function data_wp_get_image_mime() {
 		$data = array(
 			// Standard JPEG.
 			array(
@@ -1493,6 +1397,29 @@ class Tests_Functions extends WP_UnitTestCase {
 		);
 
 		return $data;
+	}
+
+	/**
+	 * @ticket 35725
+	 * @dataProvider data_wp_getimagesize
+	 */
+	public function test_wp_getimagesize( $file, $expected ) {
+		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
+			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
+		}
+
+		$result = wp_getimagesize( $file );
+
+		// The getimagesize() function varies in its response, so
+		// let's restrict comparison to expected keys only.
+		if ( is_array( $expected ) ) {
+			foreach ( $expected as $k => $v ) {
+				$this->assertArrayHasKey( $k, $result );
+				$this->assertSame( $expected[ $k ], $result[ $k ] );
+			}
+		} else {
+			$this->assertSame( $expected, $result );
+		}
 	}
 
 	/**
@@ -1598,7 +1525,16 @@ class Tests_Functions extends WP_UnitTestCase {
 		return $data;
 	}
 
-	public function wp_check_filetype_and_ext_data() {
+	/**
+	 * @ticket 39550
+	 * @dataProvider data_wp_check_filetype_and_ext
+	 * @requires extension fileinfo
+	 */
+	public function test_wp_check_filetype_and_ext( $file, $filename, $expected ) {
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+	}
+
+	public function data_wp_check_filetype_and_ext() {
 		$data = array(
 			// Standard image.
 			array(
@@ -1764,10 +1700,74 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 39550
+	 * @group ms-excluded
+	 * @requires extension fileinfo
+	 */
+	public function test_wp_check_filetype_and_ext_with_filtered_svg() {
+		$file     = DIR_TESTDATA . '/uploads/video-play.svg';
+		$filename = 'video-play.svg';
+
+		$expected = array(
+			'ext'             => 'svg',
+			'type'            => 'image/svg+xml',
+			'proper_filename' => false,
+		);
+
+		add_filter(
+			'upload_mimes',
+			static function( $mimes ) {
+				$mimes['svg'] = 'image/svg+xml';
+				return $mimes;
+			}
+		);
+
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+	}
+
+	/**
+	 * @ticket 39550
+	 * @group ms-excluded
+	 * @requires extension fileinfo
+	 */
+	public function test_wp_check_filetype_and_ext_with_filtered_woff() {
+		$file     = DIR_TESTDATA . '/uploads/dashicons.woff';
+		$filename = 'dashicons.woff';
+
+		$woff_mime_type = 'application/font-woff';
+
+		/*
+		 * As of PHP 8.1.12, which includes libmagic/file update to version 5.42,
+		 * the expected mime type for WOFF files is 'font/woff'.
+		 *
+		 * See https://github.com/php/php-src/issues/8805.
+		 */
+		if ( PHP_VERSION_ID >= 80112 ) {
+			$woff_mime_type = 'font/woff';
+		}
+
+		$expected = array(
+			'ext'             => 'woff',
+			'type'            => $woff_mime_type,
+			'proper_filename' => false,
+		);
+
+		add_filter(
+			'upload_mimes',
+			static function( $mimes ) use ( $woff_mime_type ) {
+				$mimes['woff'] = $woff_mime_type;
+				return $mimes;
+			}
+		);
+
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+	}
+
+	/**
 	 * Test file path validation
 	 *
 	 * @ticket 42016
-	 * @dataProvider data_test_validate_file()
+	 * @dataProvider data_test_validate_file
 	 *
 	 * @param string $file          File path.
 	 * @param array  $allowed_files List of allowed files.
@@ -1964,7 +1964,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Dataprovider for test_duration_format().
+	 * Data provider for test_duration_format().
 	 *
 	 * @return array {
 	 *     @type array {

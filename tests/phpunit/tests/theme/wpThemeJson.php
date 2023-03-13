@@ -15,6 +15,36 @@
 class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
+	 * Administrator ID.
+	 *
+	 * @var int
+	 */
+	private static $administrator_id;
+
+	/**
+	 * User ID.
+	 *
+	 * @var int
+	 */
+	private static $user_id;
+
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		static::$administrator_id = self::factory()->user->create(
+			array(
+				'role' => 'administrator',
+			)
+		);
+
+		if ( is_multisite() ) {
+			grant_super_admin( self::$administrator_id );
+		}
+
+		static::$user_id = self::factory()->user->create();
+	}
+
+	/**
 	 * @ticket 52991
 	 * @ticket 54336
 	 */
@@ -244,6 +274,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'dimensions' => array(
 				'minHeight' => true,
 			),
+			'position'   => array(
+				'sticky' => true,
+			),
 			'spacing'    => array(
 				'blockGap' => false,
 				'margin'   => true,
@@ -270,6 +303,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 					'dimensions' => array(
 						'minHeight' => true,
+					),
+					'position'   => array(
+						'sticky' => true,
 					),
 					'spacing'    => array(
 						'blockGap' => false,
@@ -584,7 +620,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$variables = "body{--wp--preset--color--grey: grey;--wp--preset--gradient--custom-gradient: linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%);--wp--preset--duotone--custom-duotone: url('#wp-duotone-custom-duotone');--wp--preset--font-family--small: 14px;--wp--preset--font-family--big: 41px;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}";
-		$styles    = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}.wp-element-button, .wp-block-button__link{box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.66);}.wp-block-group{background: var(--wp--preset--gradient--custom-gradient);border-radius: 10px;padding: 24px;}.wp-block-group a:where(:not(.wp-element-button)){color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a:where(:not(.wp-element-button)),h2 a:where(:not(.wp-element-button)),h3 a:where(:not(.wp-element-button)),h4 a:where(:not(.wp-element-button)),h5 a:where(:not(.wp-element-button)),h6 a:where(:not(.wp-element-button)){background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a:where(:not(.wp-element-button)){background-color: #777;color: #555;}.wp-block-image{margin-bottom: 30px;}.wp-block-image img, .wp-block-image .components-placeholder{filter: var(--wp--preset--duotone--custom-duotone);}.wp-block-image img, .wp-block-image .wp-block-image__crop-area{border-top-left-radius: 10px;border-bottom-right-radius: 1em;}';
+		$styles    = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}.wp-element-button, .wp-block-button__link{box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.66);}.wp-block-group{background: var(--wp--preset--gradient--custom-gradient);border-radius: 10px;padding: 24px;}.wp-block-group a:where(:not(.wp-element-button)){color: #111;}.wp-block-heading{color: #123456;}.wp-block-heading a:where(:not(.wp-element-button)){background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a:where(:not(.wp-element-button)){background-color: #777;color: #555;}.wp-block-image{margin-bottom: 30px;}.wp-block-image img, .wp-block-image .components-placeholder{filter: var(--wp--preset--duotone--custom-duotone);}.wp-block-image img, .wp-block-image .wp-block-image__crop-area{border-top-left-radius: 10px;border-bottom-right-radius: 1em;}';
 		$presets   = '.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}.has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}.has-custom-gradient-gradient-background{background: var(--wp--preset--gradient--custom-gradient) !important;}.has-small-font-family{font-family: var(--wp--preset--font-family--small) !important;}.has-big-font-family{font-family: var(--wp--preset--font-family--big) !important;}';
 		$all       = $variables . $styles . $presets;
 		$this->assertSame( $all, $theme_json->get_stylesheet() );
@@ -619,7 +655,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			'h1.has-white-color,h2.has-white-color,h3.has-white-color,h4.has-white-color,h5.has-white-color,h6.has-white-color{color: var(--wp--preset--color--white) !important;}h1.has-white-background-color,h2.has-white-background-color,h3.has-white-background-color,h4.has-white-background-color,h5.has-white-background-color,h6.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}h1.has-white-border-color,h2.has-white-border-color,h3.has-white-border-color,h4.has-white-border-color,h5.has-white-border-color,h6.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}',
+			'.wp-block-heading.has-white-color{color: var(--wp--preset--color--white) !important;}.wp-block-heading.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.wp-block-heading.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}',
 			$theme_json->get_stylesheet( array( 'presets' ) )
 		);
 	}
@@ -2388,6 +2424,67 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 57321
+	 *
+	 * @covers WP_Theme_JSON::remove_insecure_properties
+	 */
+	public function test_remove_insecure_properties_should_allow_indirect_properties() {
+		$actual = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'   => array(
+					'spacing' => array(
+						'blockGap' => '3em',
+					),
+					'blocks'  => array(
+						'core/social-links' => array(
+							'spacing' => array(
+								'blockGap' => array(
+									'left' => '2em',
+									'top'  => '1em',
+								),
+							),
+						),
+					),
+				),
+				'settings' => array(
+					'layout' => array(
+						'contentSize' => '800px',
+						'wideSize'    => '1000px',
+					),
+				),
+			)
+		);
+
+		$expected = array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'   => array(
+				'spacing' => array(
+					'blockGap' => '3em',
+				),
+				'blocks'  => array(
+					'core/social-links' => array(
+						'spacing' => array(
+							'blockGap' => array(
+								'left' => '2em',
+								'top'  => '1em',
+							),
+						),
+					),
+				),
+			),
+			'settings' => array(
+				'layout' => array(
+					'contentSize' => '800px',
+					'wideSize'    => '1000px',
+				),
+			),
+		);
+
+		$this->assertSameSetsWithIndex( $expected, $actual );
 	}
 
 	/**
@@ -4504,5 +4601,147 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$expected_styles = $global_styles . $element_styles;
 
 		$this->assertSame( $expected_styles, $theme_json->get_stylesheet() );
+	}
+
+	/**
+	 * @ticket 57536
+	 */
+	public function test_get_custom_css_handles_global_custom_css() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'css' => 'body { color:purple; }',
+				),
+			)
+		);
+		$custom_css = 'body { color:purple; }';
+		$this->assertSame( $custom_css, $theme_json->get_custom_css() );
+	}
+
+	/**
+	 * Tests that custom CSS is kept for users with correct capabilities and removed for others.
+	 *
+	 * @ticket 57536
+	 *
+	 * @dataProvider data_custom_css_for_user_caps
+	 *
+	 * @param string $user_property The property name for current user.
+	 * @param array  $expected      Expected results.
+	 */
+	public function test_custom_css_for_user_caps( $user_property, array $expected ) {
+		wp_set_current_user( static::${$user_property} );
+
+		$actual = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'css'    => 'body { color:purple; }',
+					'blocks' => array(
+						'core/separator' => array(
+							'color' => array(
+								'background' => 'blue',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertSameSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_custom_css_for_user_caps() {
+		return array(
+			'allows custom css for users with caps'     => array(
+				'user_property' => 'administrator_id',
+				'expected'      => array(
+					'version' => WP_Theme_JSON::LATEST_SCHEMA,
+					'styles'  => array(
+						'css'    => 'body { color:purple; }',
+						'blocks' => array(
+							'core/separator' => array(
+								'color' => array(
+									'background' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			),
+			'removes custom css for users without caps' => array(
+				'user_property' => 'user_id',
+				'expected'      => array(
+					'version' => WP_Theme_JSON::LATEST_SCHEMA,
+					'styles'  => array(
+						'blocks' => array(
+							'core/separator' => array(
+								'color' => array(
+									'background' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * @dataProvider data_process_blocks_custom_css
+	 *
+	 * @param array  $input    An array containing the selector and css to test.
+	 * @param string $expected Expected results.
+	 */
+	public function test_process_blocks_custom_css( $input, $expected ) {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(),
+			)
+		);
+		$reflection = new ReflectionMethod( $theme_json, 'process_blocks_custom_css' );
+		$reflection->setAccessible( true );
+
+		$this->assertSame( $expected, $reflection->invoke( $theme_json, $input['css'], $input['selector'] ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_process_blocks_custom_css() {
+		return array(
+			// Simple CSS without any child selectors.
+			'no child selectors'                => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => 'color: red; margin: auto;',
+				),
+				'expected' => '.foo{color: red; margin: auto;}',
+			),
+			// CSS with child selectors.
+			'with children'                     => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => 'color: red; margin: auto; & .bar{color: blue;}',
+				),
+				'expected' => '.foo{color: red; margin: auto;}.foo .bar{color: blue;}',
+			),
+			// CSS with child selectors and pseudo elements.
+			'with children and pseudo elements' => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => 'color: red; margin: auto; & .bar{color: blue;} &::before{color: green;}',
+				),
+				'expected' => '.foo{color: red; margin: auto;}.foo .bar{color: blue;}.foo::before{color: green;}',
+			),
+		);
 	}
 }
