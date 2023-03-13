@@ -139,7 +139,7 @@ class WP_Rollback_Auto_Update {
 	private function check_plugin_for_errors( $plugin ) {
 		global $wp_filesystem;
 
-		if ( file_exists( ABSPATH . '.maintenance' ) ) {
+		if ( $wp_filesystem->exists( ABSPATH . '.maintenance' ) ) {
 			$wp_filesystem->delete( ABSPATH . '.maintenance' );
 		}
 
