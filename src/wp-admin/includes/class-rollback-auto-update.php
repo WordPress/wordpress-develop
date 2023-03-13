@@ -242,7 +242,7 @@ class WP_Rollback_Auto_Update {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @return bool
+	 * @return bool Whether to skip for non-fatal errors or non-errors.
 	 */
 	private function non_fatal_errors() {
 		$last_error       = error_get_last();
