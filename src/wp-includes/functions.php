@@ -7705,7 +7705,7 @@ function wp_cache_set_last_changed( $group ) {
 	/**
 	 * Fires after a cache group `last_changed` time is updated.
 	 *
-	 * @since n.e.x.t.
+	 * @since n.e.x.t
 	 *
 	 * @param string    $group         The cache group name.
 	 * @param int       $time          The new last changed time.
