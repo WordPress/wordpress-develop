@@ -140,7 +140,7 @@ class WP_Rollback_Auto_Update {
 
 		if ( is_wp_error( $response ) ) {
 			// If it isn't possible to run the check, assume an error.
-			throw new \Exception( $response->get_error_message() );
+			throw new Exception( $response->get_error_message() );
 		}
 
 		$code           = wp_remote_retrieve_response_code( $response );
