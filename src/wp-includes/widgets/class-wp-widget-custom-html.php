@@ -233,14 +233,7 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 			),
 		);
 		wp_add_inline_script( 'custom-html-widgets', sprintf( 'jQuery.extend( wp.customHtmlWidgets.l10n, %s );', wp_json_encode( $l10n ) ), 'after' );
-	}
 
-	/**
-	 * Loads after the required scripts.
-	 *
-	 * @since 6.3.0
-	 */
-	public function enqueue_admin_scripts_after() {
 		wp_add_inline_script( 'custom-html-widgets', sprintf( 'wp.customHtmlWidgets.idBases.push( %s );', wp_json_encode( $this->id_base ) ) );
 	}
 
