@@ -245,8 +245,8 @@ class WP_Rollback_Auto_Update {
 	 * @return bool
 	 */
 	private function non_fatal_errors() {
-		$e                = error_get_last();
-		$non_fatal_errors = ( ! empty( $e ) && $this->error_types !== $e['type'] );
+		$last_error       = error_get_last();
+		$non_fatal_errors = ( ! empty( $last_error ) && $this->error_types !== $last_error['type'] );
 		$skip             = is_plugin_active( $this->handler_args['hook_extra']['plugin'] ) || $this->update_is_safe;
 		$skip             = $skip ? $skip : $non_fatal_errors;
 
