@@ -3121,6 +3121,9 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 		$real_mime = finfo_file( $finfo, $file );
 		finfo_close( $finfo );
 
+		// Info: finfo_file() return redudant mime type for Google docs.
+		$real_mime = $real_mime === $type . $type ? $type : $real_mime;
+
 		// fileinfo often misidentifies obscure files as one of these types.
 		$nonspecific_types = array(
 			'application/octet-stream',
