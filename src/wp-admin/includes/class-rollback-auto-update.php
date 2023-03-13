@@ -158,7 +158,7 @@ class WP_Rollback_Auto_Update {
 
 		if ( is_wp_error( $response ) ) {
 			// If it isn't possible to run the check, assume an error.
-			throw new \Exception( $response->get_error_message() );
+			throw new Exception( $response->get_error_message() );
 		}
 
 		$code           = wp_remote_retrieve_response_code( $response );
@@ -174,7 +174,7 @@ class WP_Rollback_Auto_Update {
 					get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin )['Name']
 				)
 			);
-			throw new \Exception( $error->get_error_message() );
+			throw new Exception( $error->get_error_message() );
 		}
 	}
 
@@ -275,21 +275,21 @@ class WP_Rollback_Auto_Update {
 		$rollback_updater = new WP_Upgrader();
 
 		// Set private $temp_restores variable.
-		$ref_temp_restores = new \ReflectionProperty( $rollback_updater, 'temp_restores' );
+		$ref_temp_restores = new ReflectionProperty( $rollback_updater, 'temp_restores' );
 		$ref_temp_restores->setAccessible( true );
 		$ref_temp_restores->setValue( $rollback_updater, $temp_backup );
 
 		// Set private $temp_backups variable.
-		$ref_temp_backups = new \ReflectionProperty( $rollback_updater, 'temp_backups' );
+		$ref_temp_backups = new ReflectionProperty( $rollback_updater, 'temp_backups' );
 		$ref_temp_backups->setAccessible( true );
 		$ref_temp_backups->setValue( $rollback_updater, $temp_backup );
 
 		// Call Rollback's restore_temp_backup().
-		$restore_temp_backup = new \ReflectionMethod( $rollback_updater, 'restore_temp_backup' );
+		$restore_temp_backup = new ReflectionMethod( $rollback_updater, 'restore_temp_backup' );
 		$restore_temp_backup->invoke( $rollback_updater );
 
 		// Call Rollback's delete_temp_backup().
-		$delete_temp_backup = new \ReflectionMethod( $rollback_updater, 'delete_temp_backup' );
+		$delete_temp_backup = new ReflectionMethod( $rollback_updater, 'delete_temp_backup' );
 		$delete_temp_backup->invoke( $rollback_updater );
 
 		error_log( $this->handler_args['hook_extra']['plugin'] . ' rolled back' );
@@ -405,7 +405,7 @@ class WP_Rollback_Auto_Update {
 		}
 
 		$automatic_upgrader      = new WP_Automatic_Updater();
-		$send_plugin_theme_email = new \ReflectionMethod( $automatic_upgrader, 'send_plugin_theme_email' );
+		$send_plugin_theme_email = new ReflectionMethod( $automatic_upgrader, 'send_plugin_theme_email' );
 		$send_plugin_theme_email->setAccessible( true );
 		$send_plugin_theme_email->invoke( $automatic_upgrader, 'mixed', $successful, $failed );
 	}
