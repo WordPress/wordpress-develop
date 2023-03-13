@@ -55,7 +55,7 @@ class WP_Rollback_Auto_Update {
 	 *
 	 * @var bool
 	 */
-	private $no_error = false;
+	private $update_is_safe = false;
 
 	/**
 	 * Stores error codes.
@@ -94,9 +94,9 @@ class WP_Rollback_Auto_Update {
 		 */
 		sleep( 2 );
 
-		$this->no_error     = false;
-		static::$current    = get_site_transient( 'update_plugins' );
-		$this->handler_args = array(
+		$this->update_is_safe = false;
+		static::$current      = get_site_transient( 'update_plugins' );
+		$this->handler_args   = array(
 			'handler_error' => '',
 			'result'        => $result,
 			'hook_extra'    => $hook_extra,
@@ -161,9 +161,9 @@ class WP_Rollback_Auto_Update {
 			throw new Exception( $response->get_error_message() );
 		}
 
-		$code           = wp_remote_retrieve_response_code( $response );
-		$body           = wp_remote_retrieve_body( $response );
-		$this->no_error = 200 === $code;
+		$code                 = wp_remote_retrieve_response_code( $response );
+		$body                 = wp_remote_retrieve_body( $response );
+		$this->update_is_safe = 200 === $code;
 
 		if ( str_contains( $body, 'wp-die-message' ) || 200 !== $code ) {
 			$error = new WP_Error(
@@ -247,7 +247,7 @@ class WP_Rollback_Auto_Update {
 	private function non_fatal_errors() {
 		$e                = error_get_last();
 		$non_fatal_errors = ( ! empty( $e ) && $this->error_types !== $e['type'] );
-		$skip             = is_plugin_active( $this->handler_args['hook_extra']['plugin'] ) || $this->no_error;
+		$skip             = is_plugin_active( $this->handler_args['hook_extra']['plugin'] ) || $this->update_is_safe;
 		$skip             = $skip ? $skip : $non_fatal_errors;
 
 		return $skip;
