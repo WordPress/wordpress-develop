@@ -73,8 +73,6 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 		// the 'admin_print_scripts-widgets.php' action in WP_Customize_Widgets::print_scripts().
 		add_action( 'admin_print_scripts-widgets.php', array( $this, 'enqueue_admin_scripts' ) );
 
-		add_action( 'admin_print_scripts-widgets.php', array( $this, 'enqueue_admin_scripts_after' ) );
-
 		// Note that the widgets component in the customizer will also do
 		// the 'admin_footer-widgets.php' action in WP_Customize_Widgets::print_footer_scripts().
 		add_action( 'admin_footer-widgets.php', array( 'WP_Widget_Custom_HTML', 'render_control_template_scripts' ) );
@@ -216,6 +214,8 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 		);
 
 		wp_enqueue_script( 'custom-html-widgets' );
+		wp_add_inline_script( 'custom-html-widgets', sprintf( 'wp.customHtmlWidgets.idBases.push( %s );', wp_json_encode( $this->id_base ) ) );
+
 		if ( empty( $settings ) ) {
 			$settings = array(
 				'disabled' => true,
@@ -233,8 +233,6 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 			),
 		);
 		wp_add_inline_script( 'custom-html-widgets', sprintf( 'jQuery.extend( wp.customHtmlWidgets.l10n, %s );', wp_json_encode( $l10n ) ), 'after' );
-
-		wp_add_inline_script( 'custom-html-widgets', sprintf( 'wp.customHtmlWidgets.idBases.push( %s );', wp_json_encode( $this->id_base ) ) );
 	}
 
 	/**
