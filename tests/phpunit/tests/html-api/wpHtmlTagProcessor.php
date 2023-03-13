@@ -430,6 +430,7 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56299
+	 * @ticket 57852
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
 	 * @covers WP_HTML_Tag_Processor::is_tag_closer
@@ -459,6 +460,45 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 			'Did not stop at desired tag closer'
 		);
 		$this->assertTrue( $p->is_tag_closer(), 'Indicated a tag closer is a tag opener' );
+
+		$p = new WP_HTML_Tag_Processor( '<div>' );
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), "Did not find a tag opener when tag_closers was set to 'visit'" );
+		$this->assertFalse( $p->next_tag( array( 'tag_closers' => 'visit' ) ), "Found a closer where there wasn't one" );
+	}
+
+	/**
+	 * @ticket 57852
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 * @covers WP_HTML_Tag_Processor::is_tag_closer
+	 */
+	public function test_next_tag_should_stop_on_rcdata_and_script_tag_closers_when_requested() {
+		$p = new WP_HTML_Tag_Processor( '<script>abc</script>' );
+
+		$p->next_tag();
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </script> tag closer' );
+		$this->assertTrue( $p->is_tag_closer(), 'Indicated a <script> tag opener is a tag closer' );
+
+		$p = new WP_HTML_Tag_Processor( 'abc</script>' );
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </script> tag closer when there was no tag opener' );
+
+		$p = new WP_HTML_Tag_Processor( '<textarea>abc</textarea>' );
+
+		$p->next_tag();
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </textarea> tag closer' );
+		$this->assertTrue( $p->is_tag_closer(), 'Indicated a <textarea> tag opener is a tag closer' );
+
+		$p = new WP_HTML_Tag_Processor( 'abc</textarea>' );
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </textarea> tag closer when there was no tag opener' );
+
+		$p = new WP_HTML_Tag_Processor( '<title>abc</title>' );
+
+		$p->next_tag();
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </title> tag closer' );
+		$this->assertTrue( $p->is_tag_closer(), 'Indicated a <title> tag opener is a tag closer' );
+
+		$p = new WP_HTML_Tag_Processor( 'abc</title>' );
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </title> tag closer when there was no tag opener' );
 	}
 
 	/**
