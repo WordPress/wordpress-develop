@@ -15,12 +15,16 @@ class WP_Rollback_Auto_Update {
 	/**
 	 * Stores handler parameters.
 	 *
+	 * @since 6.3.0
+	 *
 	 * @var array
 	 */
 	private $handler_args = array();
 
 	/**
 	 * Stores successfully updated plugins.
+	 *
+	 * @since 6.3.0
 	 *
 	 * @var array
 	 */
@@ -29,12 +33,16 @@ class WP_Rollback_Auto_Update {
 	/**
 	 * Stores fataling plugins.
 	 *
+	 * @since 6.3.0
+	 *
 	 * @var array
 	 */
 	private static $fatals = array();
 
 	/**
 	 * Stores `update_plugins` transient.
+	 *
+	 * @since 6.3.0
 	 *
 	 * @var stdClass
 	 */
@@ -43,6 +51,8 @@ class WP_Rollback_Auto_Update {
 	/**
 	 * Stores boolean for no error from check_plugin_for_errors().
 	 *
+	 * @since 6.3.0
+	 *
 	 * @var bool
 	 */
 	private $no_error = false;
@@ -50,12 +60,16 @@ class WP_Rollback_Auto_Update {
 	/**
 	 * Stores error codes.
 	 *
+	 * @since 6.3.0
+	 *
 	 * @var int
 	 */
 	public $error_types = E_ERROR | E_PARSE | E_COMPILE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR;
 
 	/**
 	 * Checks the validity of the updated plugin.
+	 *
+	 * @since 6.3.0
 	 *
 	 * @param array|WP_Error $result     Result from WP_Upgrader::install_package().
 	 * @param array          $hook_extra Extra arguments passed to hooked filters.
@@ -73,7 +87,7 @@ class WP_Rollback_Auto_Update {
 
 		error_log( $hook_extra['plugin'] . ' processing...' );
 
-		/**
+		/*
 		 * This possibly helps to avoid a potential race condition on servers that may start to
 		 * process the next plugin for auto-updating before the handler can pick up an error from
 		 * the previously processed plugin.
@@ -112,9 +126,13 @@ class WP_Rollback_Auto_Update {
 	 * If an error is found, the previously installed version will be reinstalled
 	 * and an email will be sent to the site administrator.
 	 *
+	 * @since 6.3.0
+	 *
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 *
 	 * @param string $plugin The plugin to check.
 	 *
-	 * @throws \Exception If errors are present.
+	 * @throws Exception If errors are present.
 	 *
 	 * @return void
 	 */
@@ -162,6 +180,8 @@ class WP_Rollback_Auto_Update {
 
 	/**
 	 * Initializes handlers.
+	 *
+	 * @since 6.3.0
 	 */
 	private function initialize_handlers() {
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler
@@ -171,6 +191,8 @@ class WP_Rollback_Auto_Update {
 
 	/**
 	 * Handles Errors.
+	 *
+	 * @since 6.3.0
 	 */
 	public function error_handler() {
 		$this->handler_args['handler_error'] = 'Error Caught';
@@ -179,6 +201,8 @@ class WP_Rollback_Auto_Update {
 
 	/**
 	 * Handles Exceptions.
+	 *
+	 * @since 6.3.0
 	 */
 	public function exception_handler() {
 		$this->handler_args['handler_error'] = 'Exception Caught';
@@ -187,6 +211,8 @@ class WP_Rollback_Auto_Update {
 
 	/**
 	 * Handles errors by running Rollback.
+	 *
+	 * @since 6.3.0
 	 *
 	 * @param bool $skip If false, assume fatal and process.
 	 *                   Default false.
@@ -199,7 +225,7 @@ class WP_Rollback_Auto_Update {
 
 		$this->cron_rollback();
 
-		/**
+		/*
 		 * This possibly helps to avoid a potential race condition on servers that may start to
 		 * process the next plugin for auto-updating before the handler can pick up an error from
 		 * the previously processed plugin.
@@ -212,7 +238,9 @@ class WP_Rollback_Auto_Update {
 	}
 
 	/**
-	 * Skip (exit handler() early) for non-fatal errors or non-errors.
+	 * Return whether to skip (exit handler() early) for non-fatal errors or non-errors.
+	 *
+	 * @since 6.3.0
 	 *
 	 * @return bool
 	 */
@@ -227,6 +255,8 @@ class WP_Rollback_Auto_Update {
 
 	/**
 	 * Rolls back during cron.
+	 *
+	 * @since 6.3.0
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 */
@@ -267,6 +297,8 @@ class WP_Rollback_Auto_Update {
 
 	/**
 	 * Restart update process for plugins that remain after a fatal.
+	 *
+	 * @since 6.3.0
 	 */
 	private function restart_updates() {
 		$remaining_auto_updates = $this->get_remaining_auto_updates();
@@ -283,6 +315,8 @@ class WP_Rollback_Auto_Update {
 
 	/**
 	 * Restart update process for core.
+	 *
+	 * @since 6.3.0
 	 */
 	private function restart_core_updates() {
 		$core_update = find_core_auto_update();
@@ -294,6 +328,8 @@ class WP_Rollback_Auto_Update {
 
 	/**
 	 * Get array of non-fataling auto-updates remaining.
+	 *
+	 * @since 6.3.0
 	 *
 	 * @return array
 	 */
@@ -317,6 +353,8 @@ class WP_Rollback_Auto_Update {
 
 	/**
 	 * Sends an email noting successful and failed updates.
+	 *
+	 * @since 6.3.0
 	 */
 	private function send_update_result_email() {
 		add_filter( 'auto_plugin_theme_update_email', array( $this, 'props' ), 10, 4 );
@@ -374,6 +412,8 @@ class WP_Rollback_Auto_Update {
 
 	/**
 	 * Credit where credit is due.
+	 *
+	 * @since 6.3.0
 	 *
 	 * @param array  $email {
 	 *     Array of email arguments that will be passed to wp_mail().
