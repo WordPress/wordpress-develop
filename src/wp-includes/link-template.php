@@ -521,6 +521,12 @@ function get_attachment_link( $post = null, $leavename = false ) {
 		$link = home_url( '/?attachment_id=' . $post->ID );
 	}
 
+	$redirect_to_file = '1' === get_option( 'wp_media_use_attachment_pages', '0' );
+
+	if ( $redirect_to_file ) {
+		$link = wp_get_attachment_url( $post->ID );
+	}
+
 	/**
 	 * Filters the permalink for an attachment.
 	 *

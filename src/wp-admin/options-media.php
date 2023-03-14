@@ -169,6 +169,18 @@ if ( isset( $GLOBALS['wp_settings']['media']['embeds'] ) ) :
 </table>
 <?php endif; ?>
 
+<h2 class="title"><?php _e( 'Other Options' ); ?></h2>
+<table class="form-table" role="presentation">
+<tr>
+<td class="td-full">
+<label for="wp_media_use_attachment_pages">
+<input name="wp_media_use_attachment_pages" type="checkbox" id="wp_media_use_attachment_pages" value="1"<?php checked( '1', get_option( 'wp_media_use_attachment_pages' ) ); ?> />
+	<?php _e( 'Use attachment pages' ); ?>
+</label>
+</td>
+</tr>
+</table>
+
 <?php do_settings_sections( 'media' ); ?>
 
 <?php submit_button(); ?>

@@ -556,6 +556,9 @@ function populate_options( array $options = array() ) {
 
 		// 5.8.0
 		'wp_force_deactivated_plugins'    => array(),
+
+		// 6.3.0
+		'wp_media_use_attachment_pages'   => '0',
 	);
 
 	// 3.3.0

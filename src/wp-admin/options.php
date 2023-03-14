@@ -135,6 +135,7 @@ $allowed_options            = array(
 		'image_default_size',
 		'image_default_align',
 		'image_default_link_type',
+		'wp_media_use_attachment_pages',
 	),
 	'reading'    => array(
 		'posts_per_page',
