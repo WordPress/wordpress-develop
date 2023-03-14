@@ -545,6 +545,10 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		}
 	}
 
+	if ( is_attachment() && '1' !== get_option( 'wp_media_use_attachment_pages' ) ) {
+		$redirect_url = wp_get_attachment_url( get_query_var( 'attachment_id' ) );
+	}
+
 	$redirect['query'] = preg_replace( '#^\??&*?#', '', $redirect['query'] );
 
 	// Tack on any additional query vars.
