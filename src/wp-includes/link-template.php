@@ -1476,7 +1476,7 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
 	}
 
 	if (  'wp_template' === $post->post_type || 'wp_template_part' === $post->post_type ) {
-		$slug = urlencode( wp_get_theme()->get_stylesheet() . '//' . $post->post_name );
+		$slug = urlencode( get_stylesheet() . '//' . $post->post_name );
 		$link = admin_url( sprintf( $post_type_object->_edit_link, $slug ) );
 	}
 
