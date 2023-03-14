@@ -121,6 +121,13 @@ class WP_Scripts extends WP_Dependencies {
 	 * @var array
 	 */
 	public $default_dirs;
+	
+	/**
+	 * True if there is any inline script that is meant to load later.
+	 *
+	 * @var bool
+	 */
+	public $has_load_later_inline = false;
 
 	/**
 	 * Holds a string which contains the type attribute for script tag.
@@ -326,6 +333,7 @@ class WP_Scripts extends WP_Dependencies {
 					$after_non_standalone_handle,
 					PHP_EOL
 				);
+				$this->has_load_later_inline = true;
 			}
 		}
 
