@@ -7,6 +7,7 @@
  * @group cache
  *
  * @covers ::_get_non_cached_ids
+ * @covers ::_validate_cache_id
  */
 class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 
@@ -28,7 +29,7 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_valid_ids_should_be_returned_as_integers
 	 *
-	 * @param mixed $object_id The object id.
+	 * @param mixed $object_id The object ID.
 	 */
 	public function test_valid_ids_should_be_returned_as_integers( $object_id ) {
 		$this->assertSame(
@@ -69,7 +70,7 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_invalid_cache_ids_should_throw_a_notice
 	 *
-	 * @param mixed $object_id The object id.
+	 * @param mixed $object_id The object ID.
 	 */
 	public function test_invalid_cache_ids_should_throw_a_notice( $object_id ) {
 		$this->setExpectedIncorrectUsage( '_get_non_cached_ids' );
