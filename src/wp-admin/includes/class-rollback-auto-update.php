@@ -85,8 +85,6 @@ class WP_Rollback_Auto_Update {
 			return $result;
 		}
 
-		error_log( $hook_extra['plugin'] . ' processing...' );
-
 		/*
 		 * This possibly helps to avoid a potential race condition on servers that may start to
 		 * process the next plugin for auto-updating before the handler can pick up an error from
@@ -115,7 +113,6 @@ class WP_Rollback_Auto_Update {
 
 		// Needs to run for both active and inactive plugins. Don't ask why, just accept it.
 		$this->check_plugin_for_errors( $hook_extra['plugin'] );
-		error_log( $hook_extra['plugin'] . ' auto updated.' );
 
 		return $result;
 	}
@@ -289,8 +286,6 @@ class WP_Rollback_Auto_Update {
 		// Call Rollback's delete_temp_backup().
 		$delete_temp_backup = new ReflectionMethod( $rollback_updater, 'delete_temp_backup' );
 		$delete_temp_backup->invoke( $rollback_updater );
-
-		error_log( $this->handler_args['hook_extra']['plugin'] . ' rolled back' );
 	}
 
 	/**
