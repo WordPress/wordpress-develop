@@ -776,9 +776,13 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 * @coversNothing
 	 */
 	public function test_menu_property_is_defined() {
-		$bar           = new WP_Admin_Bar();
-		$menu_property = new ReflectionProperty( $bar, 'menu' );
+		$admin_bar = new WP_Admin_Bar();
+		$this->assertTrue( property_exists( $admin_bar, 'menu' ), 'WP_Admin_Bar::$proto property should be defined.' );
+
+		$menu_property = new ReflectionProperty( WP_Admin_Bar::class, 'menu' );
 		$this->assertTrue( $menu_property->isPublic(), 'WP_Admin_Bar::$menu should be public.' );
-		$this->assertSame( array(), $bar->menu, 'WP_Admin_Bar::$menu should be equal to an empty array.' );
+
+		$this->assertTrue( isset( $admin_bar->menu ), 'WP_Admin_Bar::$menu should be set.' );
+		$this->assertSame( array(), $admin_bar->menu, 'WP_Admin_Bar::$menu should be equal to an empty array.' );
 	}
 }
