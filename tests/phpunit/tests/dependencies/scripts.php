@@ -63,6 +63,120 @@ JS;
 		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
 	}
 
+
+	/**
+	 * Test standalone and non standalone after script one a single main script.
+	 *
+	 * @ticket 12009
+	 */
+	public function test_non_standalone_and_standalone_after_script_combined() {
+		// If the main script with defer strategy has a `after` inline script; expected one with type='javascript' and other with type='module'.
+		wp_enqueue_script( 'ms-isinsa-1', 'http://example.org/ms-isinsa-1.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_add_inline_script( 'ms-isinsa-1', 'console.log("after one");', 'after', true );
+		wp_add_inline_script( 'ms-isinsa-1', 'console.log("after two");', 'after' );
+		$output    = get_echo( 'wp_print_scripts' );
+		$expected  = "<script type='text/javascript' src='http://example.org/ms-isinsa-1.js' id='ms-isinsa-1-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' id='ms-isinsa-1-js-after'>\n";
+		$expected .= "console.log(\"after one\");\n";
+		$expected .= "</script>\n";
+		$expected .= "<script type='text/javascript' id='ms-isinsa-1-js-after' type='text/template'>\n";
+		$expected .= "console.log(\"after two\");\n";
+		$expected .= "</script>\n";
+		$this->assertSame( $expected, $output );
+	}
+
+	/**
+	 * Test standalone after inline script.
+	 *
+	 * @ticket 12009
+	 * @dataProvider data_standalone_after_inline_script
+	 */
+	public function test_standalone_after_inline_script( $expected, $output, $message ) {
+		$this->assertSame( $expected, $output, $message );
+	}
+
+	public function data_standalone_after_inline_script() {
+		$data = array();
+
+		// If the main script with defer strategy has a `after` inline script; the inline script is not affected.
+		wp_enqueue_script( 'ms-isa-1', 'http://example.org/ms-isa-1.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_add_inline_script( 'ms-isa-1', 'console.log("after one");', 'after', true );
+		$output    = get_echo( 'wp_print_scripts' );
+		$expected  = "<script type='text/javascript' src='http://example.org/ms-isa-1.js' id='ms-isa-1-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' id='ms-isa-1-js-after'>\n";
+		$expected .= "console.log(\"after one\");\n";
+		$expected .= "</script>\n";
+		array_push( $data, array( $expected, $output, 'Expected no type attribute for inline script.' ) );
+
+		// If the main script with async strategy has a `after` inline script; the inline script is not affected.
+		wp_enqueue_script( 'ms-isa-2', 'http://example.org/ms-isa-2.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_add_inline_script( 'ms-isa-2', 'console.log("after one");', 'after', true );
+		$output    = get_echo( 'wp_print_scripts' );
+		$expected  = "<script type='text/javascript' src='http://example.org/ms-isa-2.js' id='ms-isa-2-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' id='ms-isa-2-js-after'>\n";
+		$expected .= "console.log(\"after one\");\n";
+		$expected .= "</script>\n";
+		array_push( $data, array( $expected, $output, 'Expected no type attribute for inline script.' ) );
+
+		return $data;
+	}
+
+	/**
+	 * Test non standalone after inline script.
+	 *
+	 * @ticket 12009
+	 * @dataProvider data_non_standalone_after_inline_script
+	 */
+	public function test_non_standalone_after_inline_script( $expected, $output, $message ) {
+		$this->assertSame( $expected, $output, $message );
+	}
+
+	public function data_non_standalone_after_inline_script() {
+		$data = array();
+
+		// If the main script with defer strategy has a `after` inline script; the inline script is inserted as type='module'.
+		wp_enqueue_script( 'ms-insa-1', 'http://example.org/ms-insa-1.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_add_inline_script( 'ms-insa-1', 'console.log("after one");', 'after' );
+		$output    = get_echo( 'wp_print_scripts' );
+		$expected  = "<script type='text/javascript' src='http://example.org/ms-insa-1.js' id='ms-insa-1-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' id='ms-insa-1-js-after' type='text/template'>\n";
+		$expected .= "console.log(\"after one\");\n";
+		$expected .= "</script>\n";
+		array_push( $data, array( $expected, $output, 'Expected type="text/template" for inline script.' ) );
+
+		// If the main script with async strategy has a `after` inline script; the inline script is inserted as type='module'.
+		wp_enqueue_script( 'ms-insa-2', 'http://example.org/ms-insa-2.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_add_inline_script( 'ms-insa-2', 'console.log("after one");', 'after' );
+		$output    = get_echo( 'wp_print_scripts' );
+		$expected  = "<script type='text/javascript' src='http://example.org/ms-insa-2.js' id='ms-insa-2-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' id='ms-insa-2-js-after' type='text/template'>\n";
+		$expected .= "console.log(\"after one\");\n";
+		$expected .= "</script>\n";
+		array_push( $data, array( $expected, $output, 'Expected type="text/template" for inline script.' ) );
+
+		// If the main script with blocking strategy has a `after` inline script; the inline script is inserted as type='javascript'.
+		wp_enqueue_script( 'ms-insa-3', 'http://example.org/ms-insa-3.js', array(), null, array( 'strategy' => 'blocking' ) );
+		wp_add_inline_script( 'ms-insa-3', 'console.log("after one");', 'after' );
+		$output    = get_echo( 'wp_print_scripts' );
+		$expected  = "<script type='text/javascript' src='http://example.org/ms-insa-3.js' id='ms-insa-3-js'></script>\n";
+		$expected .= "<script type='text/javascript' id='ms-insa-3-js-after'>\n";
+		$expected .= "console.log(\"after one\");\n";
+		$expected .= "</script>\n";
+		array_push( $data, array( $expected, $output, 'Expected no type attribute for inline script.' ) );
+
+		// If the main script with no strategy has a `after` inline script; the inline script is inserted as type='javascript'.
+		wp_enqueue_script( 'ms-insa-4', 'http://example.org/ms-insa-4.js', array(), null );
+		wp_add_inline_script( 'ms-insa-4', 'console.log("after one");', 'after' );
+		$output    = get_echo( 'wp_print_scripts' );
+		$expected  = "<script type='text/javascript' src='http://example.org/ms-insa-4.js' id='ms-insa-4-js'></script>\n";
+		$expected .= "<script type='text/javascript' id='ms-insa-4-js-after'>\n";
+		$expected .= "console.log(\"after one\");\n";
+		$expected .= "</script>\n";
+		array_push( $data, array( $expected, $output, 'Expected no type attribute for inline script.' ) );
+
+		return $data;
+	}
+
 	/**
 	 * Test non standalone before with defer.
 	 *
@@ -82,7 +196,7 @@ JS;
 		wp_enqueue_script( 'ds-i1-3', 'http://example.org/ds-i1-3.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ms-i1-1', 'http://example.org/ms-i1-1.js', array( 'ds-i1-1', 'ds-i1-2', 'ds-i1-3' ), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-i1-1', 'console.log("before one");', 'before' );
-		$output   = get_echo( 'wp_print_scripts' );
+		$output    = get_echo( 'wp_print_scripts' );
 		$expected  = "<script type='text/javascript' src='http://example.org/ds-i1-1.js' id='ds-i1-1-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.org/ds-i1-2.js' id='ds-i1-2-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.org/ds-i1-3.js' id='ds-i1-3-js'></script>\n";
@@ -98,7 +212,7 @@ JS;
 		wp_enqueue_script( 'ds-i2-3', 'http://example.org/ds-i2-3.js', array( 'ds-i2-2' ), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ms-i2-1', 'http://example.org/ms-i2-1.js', array( 'ds-i2-3' ), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ds-i2-2', 'console.log("before one");', 'before' );
-		$output   = get_echo( 'wp_print_scripts' );
+		$output    = get_echo( 'wp_print_scripts' );
 		$expected  = "<script type='text/javascript' src='http://example.org/ds-i2-1.js' id='ds-i2-1-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='ds-i2-2-js-before'>\n";
 		$expected .= "console.log(\"before one\");\n";
@@ -113,7 +227,7 @@ JS;
 		wp_enqueue_script( 'ds-i3-2', 'http://example.org/ds-i3-2.js', array( 'ds-i3-1' ), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ms-i3-1', 'http://example.org/ms-i3-1.js', array( 'ds-i3-2' ), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ds-i3-1', 'console.log("before one");', 'before' );
-		$output   = get_echo( 'wp_print_scripts' );
+		$output    = get_echo( 'wp_print_scripts' );
 		$expected  = "<script type='text/javascript' id='ds-i3-1-js-before'>\n";
 		$expected .= "console.log(\"before one\");\n";
 		$expected .= "</script>\n";
@@ -129,7 +243,7 @@ JS;
 		wp_enqueue_script( 'ch2-ds-i4-2', 'http://example.org/ch2-ds-i4-2.js', array( 'ch2-ds-i4-1' ), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ch2-ds-i4-2', 'console.log("before one");', 'before' );
 		wp_enqueue_script( 'ms-i4-1', 'http://example.org/ms-i4-1.js', array( 'ch2-ds-i4-1', 'ch2-ds-i4-2' ), null, array( 'strategy' => 'defer' ) );
-		$output   = get_echo( 'wp_print_scripts' );
+		$output    = get_echo( 'wp_print_scripts' );
 		$expected  = "<script type='text/javascript' src='http://example.org/ch1-ds-i4-1.js' id='ch1-ds-i4-1-js' defer></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.org/ch1-ds-i4-2.js' id='ch1-ds-i4-2-js' defer></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.org/ch2-ds-i4-1.js' id='ch2-ds-i4-1-js'></script>\n";
@@ -162,7 +276,7 @@ JS;
 		wp_enqueue_script( 'ds-is1-3', 'http://example.org/ds-is1-3.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ms-is1-1', 'http://example.org/ms-is1-1.js', array( 'ds-is1-1', 'ds-is1-2', 'ds-is1-3' ), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-is1-1', 'console.log("before one");', 'before', true );
-		$output   = get_echo( 'wp_print_scripts' );
+		$output    = get_echo( 'wp_print_scripts' );
 		$expected  = "<script type='text/javascript' src='http://example.org/ds-is1-1.js' id='ds-is1-1-js' defer></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.org/ds-is1-2.js' id='ds-is1-2-js' defer></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.org/ds-is1-3.js' id='ds-is1-3-js' defer></script>\n";
@@ -178,7 +292,7 @@ JS;
 		wp_enqueue_script( 'ds-is2-3', 'http://example.org/ds-is2-3.js', array( 'ds-is2-2' ), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ms-is2-1', 'http://example.org/ms-is2-1.js', array( 'ds-is2-3' ), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ds-is2-2', 'console.log("before one");', 'before', true );
-		$output   = get_echo( 'wp_print_scripts' );
+		$output    = get_echo( 'wp_print_scripts' );
 		$expected  = "<script type='text/javascript' src='http://example.org/ds-is2-1.js' id='ds-is2-1-js' defer></script>\n";
 		$expected .= "<script type='text/javascript' id='ds-is2-2-js-before'>\n";
 		$expected .= "console.log(\"before one\");\n";
