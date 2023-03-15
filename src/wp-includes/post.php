@@ -5675,7 +5675,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 
 	$hash      = md5( $page_path . serialize( $post_type ) );
 	$cache_key = "get_page_by_path:$hash:$last_changed";
-	$cached    = wp_cache_get( $cache_key, 'posts' );
+	$cached    = wp_cache_get( $cache_key, 'post-queries' );
 	if ( false !== $cached ) {
 		// Special case: '0' is a bad `$page_path`.
 		if ( '0' === $cached || 0 === $cached ) {
@@ -5742,7 +5742,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	}
 
 	// We cache misses as well as hits.
-	wp_cache_set( $cache_key, $foundid, 'posts' );
+	wp_cache_set( $cache_key, $foundid, 'post-queries' );
 
 	if ( $foundid ) {
 		return get_post( $foundid, $output );
@@ -7228,7 +7228,7 @@ function clean_post_cache( $post ) {
 		do_action( 'clean_page_cache', $post->ID );
 	}
 
-	wp_cache_set( 'last_changed', microtime(), 'posts' );
+	wp_cache_set_posts_last_changed();
 }
 
 /**

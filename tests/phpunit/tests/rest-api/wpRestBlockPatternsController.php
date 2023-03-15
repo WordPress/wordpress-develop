@@ -2,14 +2,8 @@
 /**
  * Unit tests covering WP_REST_Block_Patterns_Controller functionality.
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage REST_API
- * @since      6.0.0
- */
-
-/**
- * Tests for REST API for Block Patterns.
- *
  * @since 6.0.0
  *
  * @ticket 55505

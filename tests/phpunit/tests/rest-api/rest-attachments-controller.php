@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
