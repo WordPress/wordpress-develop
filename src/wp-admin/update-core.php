@@ -680,6 +680,13 @@ function list_theme_updates() {
 
 		$compat = '';
 
+		// Get the upgrade notice for the new theme version.
+		if ( isset( $theme->update['upgrade_notice'] ) ) {
+				$upgrade_notice = '<br/>' . strip_tags( $theme->update['upgrade_notice'] );
+		} else {
+			$upgrade_notice = '';
+		}
+
 		if ( ! $compatible_wp && ! $compatible_php ) {
 			$compat .= '<br />' . __( 'This update does not work with your versions of WordPress and PHP.' ) . '&nbsp;';
 			if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
@@ -765,7 +772,7 @@ function list_theme_updates() {
 				$theme->update['new_version']
 			);
 
-			echo ' ' . $compat;
+			echo ' ' . $compat . $upgrade_notice;
 
 			if ( in_array( $stylesheet, $auto_updates, true ) ) {
 				echo $auto_update_notice;
