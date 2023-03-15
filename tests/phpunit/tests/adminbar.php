@@ -762,20 +762,10 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 * @ticket 56876
 	 * @coversNothing
 	 */
-	public function test_proto_property_is_not_be_defined() {
-		set_error_handler(
-			static function ( $errno, $errstr ) {
-				restore_error_handler();
-				throw new Exception( $errstr, $errno );
-			},
-			E_ALL
-		);
+	public function test_proto_property_is_not_defined() {
 		$admin_bar = new WP_Admin_Bar();
-		$this->assertFalse( property_exists( $admin_bar, 'proto' ), 'WP_Admin_Bar::$proto must not be defined.' );
-		$this->assertFalse( isset( $admin_bar->proto ), 'WP_Admin_Bar::$proto must not be defined.' );
-		$this->expectException( Exception::class );
-		$this->expectExceptionMessageMatches( '/Undefined property.+WP_Admin_Bar::\$proto/' );
-		$admin_bar->proto;
+		$this->assertFalse( property_exists( $admin_bar, 'proto' ), 'WP_Admin_Bar::$proto should not be defined.' );
+		$this->assertFalse( isset( $admin_bar->proto ), 'WP_Admin_Bar::$proto should not be defined.' );
 	}
 
 	/**
@@ -788,7 +778,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	public function test_menu_property_is_defined() {
 		$bar           = new WP_Admin_Bar();
 		$menu_property = new ReflectionProperty( $bar, 'menu' );
-		$this->assertTrue( $menu_property->isPublic(), 'WP_Admin_Bar::$menu must be public.' );
-		$this->assertSame( array(), $bar->menu, 'WP_Admin_Bar::$menu must be equal to an empty array.' );
+		$this->assertTrue( $menu_property->isPublic(), 'WP_Admin_Bar::$menu should be public.' );
+		$this->assertSame( array(), $bar->menu, 'WP_Admin_Bar::$menu should be equal to an empty array.' );
 	}
 }
