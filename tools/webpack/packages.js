@@ -65,12 +65,13 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'lodash.js': 'lodash/lodash.js',
 		'wp-polyfill.js': '@wordpress/babel-preset-default/build/polyfill.js',
 		'wp-polyfill-fetch.js': 'whatwg-fetch/dist/fetch.umd.js',
-		'wp-polyfill-element-closest.js': 'element-closest/element-closest.js',
+		'wp-polyfill-element-closest.js': 'element-closest/browser.js',
 		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
 		'wp-polyfill-url.js': 'core-js-url-browser/url.js',
 		'wp-polyfill-dom-rect.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
 		'wp-polyfill-formdata.js': 'formdata-polyfill/FormData.js',
 		'wp-polyfill-object-fit.js': 'objectFitPolyfill/src/objectFitPolyfill.js',
+		'wp-polyfill-inert.js': 'wicg-inert/dist/inert.js',
 		'moment.js': 'moment/moment.js',
 		'react.js': 'react/umd/react.development.js',
 		'react-dom.js': 'react-dom/umd/react-dom.development.js',
@@ -80,9 +81,11 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	const minifiedVendors = {
 		'lodash.min.js': 'lodash/lodash.min.js',
 		'wp-polyfill.min.js': '@wordpress/babel-preset-default/build/polyfill.min.js',
+		'wp-polyfill-element-closest.min.js': 'element-closest/browser.js',
 		'wp-polyfill-formdata.min.js': 'formdata-polyfill/formdata.min.js',
 		'wp-polyfill-url.min.js': 'core-js-url-browser/url.min.js',
 		'wp-polyfill-object-fit.min.js': 'objectFitPolyfill/dist/objectFitPolyfill.min.js',
+		'wp-polyfill-inert.min.js': 'wicg-inert/dist/inert.min.js',
 		'moment.min.js': 'moment/min/moment.min.js',
 		'react.min.js': 'react/umd/react.production.min.js',
 		'react-dom.min.js': 'react-dom/umd/react-dom.production.min.js',
@@ -91,7 +94,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	const minifyVendors = {
 		'regenerator-runtime.min.js': 'regenerator-runtime/runtime.js',
 		'wp-polyfill-fetch.min.js': 'whatwg-fetch/dist/fetch.umd.js',
-		'wp-polyfill-element-closest.min.js': 'element-closest/element-closest.js',
 		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
 		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
 	};
@@ -150,6 +152,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			new DefinePlugin( {
 				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
 				'process.env.IS_GUTENBERG_PLUGIN': false,
+				// Inject the `IS_WORDPRESS_CORE` global, used for feature flagging.
+				'process.env.IS_WORDPRESS_CORE': true,
 				'process.env.FORCE_REDUCED_MOTION': JSON.stringify(
 					process.env.FORCE_REDUCED_MOTION
 				),

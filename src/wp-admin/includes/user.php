@@ -29,7 +29,7 @@ function add_user() {
  */
 function edit_user( $user_id = 0 ) {
 	$wp_roles = wp_roles();
-	$user     = new stdClass;
+	$user     = new stdClass();
 	$user_id  = (int) $user_id;
 	if ( $user_id ) {
 		$update           = true;
@@ -119,7 +119,13 @@ function edit_user( $user_id = 0 ) {
 		} elseif ( '' === $locale ) {
 			$locale = 'en_US';
 		} elseif ( ! in_array( $locale, get_available_languages(), true ) ) {
-			$locale = '';
+			if ( current_user_can( 'install_languages' ) && wp_can_install_language_pack() ) {
+				if ( ! wp_download_language_pack( $locale ) ) {
+					$locale = '';
+				}
+			} else {
+				$locale = '';
+			}
 		}
 
 		$user->locale = $locale;
@@ -606,6 +612,7 @@ Please click the following link to activate your user account:
  * Checks if the Authorize Application Password request is valid.
  *
  * @since 5.6.0
+ * @since 6.2.0 Allow insecure HTTP connections for the local environment.
  *
  * @param array   $request {
  *     The array of request data. All arguments are optional and may be empty.
@@ -619,12 +626,13 @@ Please click the following link to activate your user account:
  * @return true|WP_Error True if the request is valid, a WP_Error object contains errors if not.
  */
 function wp_is_authorize_application_password_request_valid( $request, $user ) {
-	$error = new WP_Error();
+	$error    = new WP_Error();
+	$is_local = 'local' === wp_get_environment_type();
 
 	if ( ! empty( $request['success_url'] ) ) {
 		$scheme = wp_parse_url( $request['success_url'], PHP_URL_SCHEME );
 
-		if ( 'http' === $scheme ) {
+		if ( 'http' === $scheme && ! $is_local ) {
 			$error->add(
 				'invalid_redirect_scheme',
 				__( 'The success URL must be served over a secure connection.' )
@@ -635,7 +643,7 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 	if ( ! empty( $request['reject_url'] ) ) {
 		$scheme = wp_parse_url( $request['reject_url'], PHP_URL_SCHEME );
 
-		if ( 'http' === $scheme ) {
+		if ( 'http' === $scheme && ! $is_local ) {
 			$error->add(
 				'invalid_redirect_scheme',
 				__( 'The rejection URL must be served over a secure connection.' )

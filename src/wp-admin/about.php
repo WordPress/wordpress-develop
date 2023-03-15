@@ -26,21 +26,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: Version number. */
 						__( 'WordPress %s' ),
-						$display_version
+						str_replace( '.', '<span>.</span>', $display_version )
 					);
 					?>
 				</h1>
 			</div>
 
 			<div class="about__header-text"></div>
-
-			<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
-				<a href="about.php" class="nav-tab nav-tab-active" aria-current="page"><?php _e( 'What&#8217;s New' ); ?></a>
-				<a href="credits.php" class="nav-tab"><?php _e( 'Credits' ); ?></a>
-				<a href="freedoms.php" class="nav-tab"><?php _e( 'Freedoms' ); ?></a>
-				<a href="privacy.php" class="nav-tab"><?php _e( 'Privacy' ); ?></a>
-			</nav>
 		</div>
+
+		<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
+			<a href="about.php" class="nav-tab nav-tab-active" aria-current="page"><?php _e( 'What&#8217;s New' ); ?></a>
+			<a href="credits.php" class="nav-tab"><?php _e( 'Credits' ); ?></a>
+			<a href="freedoms.php" class="nav-tab"><?php _e( 'Freedoms' ); ?></a>
+			<a href="privacy.php" class="nav-tab"><?php _e( 'Privacy' ); ?></a>
+		</nav>
 
 		<div class="about__section">
 			<div class="column">
@@ -53,27 +53,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					);
 					?>
 				</h2>
-				<p class="is-subheading">
-					<?php _e( 'This page highlights some of the most significant changes to the product since the May 2022 release of WordPress 6.0. You will also find resources for developers and anyone seeking a deeper understanding of WordPress.' ); ?>
-				</p>
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image" style="background-color:#353535;">
-					<img src="https://s.w.org/images/core/6.1/about-61-style-variations.webp" alt="" />
-				</div>
-			</div>
-			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'A new default theme powered by 10 distinct style variations' ); ?></h3>
-				<p>
+				<p class="is-subheading aligncenter">
 					<?php
 					printf(
-						/* translators: 1: Variation announcement post URL, 2: Accessibility-ready handbook page. */
-						__( 'Building on the foundational elements in the 5.9 and 6.0 releases for block themes and style variations, the new default theme, Twenty Twenty-Three, includes <a href="%1$s">10 different styles</a> and is &#147;<a href="%2$s">Accessibility Ready</a>&#148;.' ),
-						'https://make.wordpress.org/design/2022/09/07/tt3-default-theme-announcing-style-variation-selections/',
-						'https://make.wordpress.org/themes/handbook/review/accessibility/'
+						/* translators: 1: Count of enhancements, 2: Count of bug fixes. */
+						__( 'WordPress 6.2 includes more than %1$s enhancements and %2$s bug fixes. This page highlights the latest features since the November 2022 release of WordPress 6.1. From quick highlights to developer resources, there&#8217;s a lot to explore.' ),
+						292, // Enhancements.
+						394 // Bug fixes.
 					);
 					?>
 				</p>
@@ -81,413 +67,153 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<div class="about__section has-2-columns">
+			<div class="column">
+				<div class="about__image">
+					<img src="https://s.w.org/images/core/6.2/about-site-editor.png" alt="" />
+				</div>
+			</div>
 			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'A better creator experience with refined and additional templates' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: 1: Link to template options dev note, 2: Link to template creation dev note. */
-						__( '<a href="%1$s">New templates</a> include a custom template for posts and pages in the Site Editor. Search-and-replace tools speed up the design of <a href="%2$s">template parts</a>.' ),
-						'https://make.wordpress.org/core/2022/07/21/core-editor-improvement-deeper-customization-with-more-template-options/',
-						'https://make.wordpress.org/core/2022/08/25/core-editor-improvement-refining-the-template-creation-experience/'
-					);
-					?>
-				</p>
+				<h3><?php _e( 'Explore and edit your site from the Site Editor' ); ?></h3>
+				<p><?php _e( 'An updated interface gives you more control over your site editing experience. Browse through full previews of your templates and template parts, then jump into editing your site from wherever you choose.' ); ?></p>
+			</div>
+		</div>
+
+		<div class="about__section has-2-columns">
+			<div class="column is-vertically-aligned-center">
+				<h3><?php _e( 'Manage your menu in more ways with the Navigation block' ); ?></h3>
+				<p><?php _e( 'A new sidebar experience makes it easier to edit your site&#8217;s navigation. Add, remove, and reorder menu items faster—no matter how complex your menus are.' ); ?></p>
 			</div>
 			<div class="column">
-				<div class="about__image has-subtle-background-color">
-					<img src="https://s.w.org/images/core/6.1/about-61-templates.webp" alt="" />
+				<div class="about__image">
+					<img src="https://s.w.org/images/core/6.2/about-navigation.png" alt="" />
 				</div>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
 			<div class="column">
-				<div class="about__image has-subtle-background-color">
-					<img src="https://s.w.org/images/core/6.1/about-61-design-tools.webp" alt="" />
+				<div class="about__image">
+					<img src="https://s.w.org/images/core/6.2/about-block-inserter.png" alt="" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'More consistency and control across design tools' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to layout support refactor dev note. */
-						__( 'Upgrades to the <a href="%s">controls for design elements and blocks</a> make the layout and site-building process more consistent, complete, and intuitive.' ),
-						'https://make.wordpress.org/core/2022/10/11/roster-of-design-tools-per-block/'
-					);
-					?>
-				</p>
+				<h3><?php _e( 'Discover a smoother experience for the Block Inserter' ); ?></h3>
+				<p><?php _e( 'A refreshed design gives you more visibility and easier access to the content you need. Use the Media tab to drag and drop content from your existing Media Library quickly. Find patterns faster with a split view that lets you navigate categories and see previews all at once.' ); ?></p>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'Menus just got easier to create and manage' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to navigation block fallback dev note. */
-						__( '<a href="%s">New fallback options</a> in the navigation block mean you can edit the menu that’s open; no searching needed. Plus, the controls for choosing and working on menus have their own place in the block settings. The mobile menu system also gets an upgrade with new features, including different icon options, to make the menu yours.' ),
-						'https://make.wordpress.org/core/2022/09/27/navigation-block-fallback-behavior-in-wp-6-1-dev-note/'
-					);
-					?>
-				</p>
+				<h3><?php _e( 'Find the controls you want when you need them' ); ?></h3>
+				<p><?php _e( 'Your block settings sidebar is better organized with tabs for Settings and Styles. So the tools you need are easy to identify and access.' ); ?></p>
 			</div>
 			<div class="column">
-				<div class="about__image has-subtle-background-color">
-					<img src="https://s.w.org/images/core/6.1/about-61-navigation.webp" alt="" />
+				<div class="about__image">
+					<img src="https://s.w.org/images/core/6.2/about-split-controls.png" alt="" />
 				</div>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
 			<div class="column">
-				<div class="about__image has-accent-background-color">
-					<img src="https://s.w.org/images/core/6.1/about-61-document-settings.webp" alt="" />
+				<div class="about__image">
+					<img src="https://s.w.org/images/core/6.2/about-headers.png" alt="" />
 				</div>
-				<h3><?php _e( 'Improved layout and visualization of document settings' ); ?></h3>
-				<p><?php _e( 'A cleaner, better-organized display helps you easily view and manage important post and page settings, especially the template picker and scheduler.' ); ?></p>
+				<h3><?php _e( 'Build faster with headers and footers for block themes' ); ?></h3>
+				<p><?php _e( 'Discover a new collection of header and footer patterns to choose from. Use them with any block theme as a quick, high-quality starting point for your site&#8217;s templates.' ); ?></p>
 			</div>
 			<div class="column">
-				<div class="about__image has-accent-background-color">
-					<img src="https://s.w.org/images/core/6.1/about-61-lock.webp" alt="" />
+				<div class="about__image">
+					<img src="https://s.w.org/images/core/6.2/about-openverse.png" alt="" />
 				</div>
-				<h3><?php _e( 'One-click lock settings for all inner blocks' ); ?></h3>
-				<p><?php _e( 'When locking blocks, a new toggle lets you apply your lock settings to all the blocks in a containing block like the group, cover, and column blocks.' ); ?></p>
+				<h3><?php _e( 'Explore Openverse media right from the Editor' ); ?></h3>
+				<p><?php _e( 'Openverse&#8217;s library catalogs over 600 million free, openly licensed stock images and audio—and now it&#8217;s directly integrated into the Editor.' ); ?></p>
+			</div>
+		</div>
+
+		<div class="about__section has-2-columns">
+			<div class="column">
+				<div class="about__image">
+					<img src="https://s.w.org/images/core/6.2/about-distraction-free.png" alt="" />
+				</div>
+				<h3><?php _e( 'Focus on writing with Distraction Free mode' ); ?></h3>
+				<p><?php _e( 'For those times you want to be alone with your ideas. You can now hide all your panels and controls, leaving you free to bring your content to life.' ); ?></p>
+			</div>
+			<div class="column">
+				<div class="about__image">
+					<img src="https://s.w.org/images/core/6.2/about-out-of-beta.png" alt="" />
+				</div>
+				<h3><?php _e( 'Experience the Site Editor, now out of beta' ); ?></h3>
+				<p><?php _e( 'Stable and ready for you to dive in and explore: 6.2 is your personal invitation to discover what the next generation of WordPress—and Block themes—can do.' ); ?></p>
 			</div>
 		</div>
 
 		<div class="about__section has-3-columns">
 			<div class="column">
-				<div class="column about__image is-edge-to-edge has-accent-background-color">
-					<img src="https://s.w.org/images/core/6.1/about-61-sub-feature-1.webp" alt="" />
+				<div class="about__image">
+					<img src="https://s.w.org/images/core/6.2/about-style-book.png" alt="" />
 				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Improved block placeholders' ); ?></h3>
-				<p><?php _e( 'Various blocks have improved placeholders that reflect customization options to help you design your site and its content. For example, the Image block placeholder displays custom borders and duotone filters even before selecting an image.' ); ?></p>
+				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Style Book' ); ?></h3>
+				<p><?php _e( 'Use the new Style Book to get a complete overview of how every block in your site&#8217;s library looks. All in one place, all at a glance.' ); ?></p>
 			</div>
 			<div class="column">
-				<div class="column about__image is-edge-to-edge has-accent-background-color">
-					<img src="https://s.w.org/images/core/6.1/about-61-sub-feature-2.webp" alt="" />
+				<div class="about__image">
+					<img src="https://s.w.org/images/core/6.2/about-copy-paste.png" alt="" />
 				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Compose richer lists and quotes with inner blocks' ); ?></h3>
-				<p><?php _e( 'The List and Quote blocks now support inner blocks, allowing for more flexible and rich compositions like adding headings inside your Quote blocks.' ); ?></p>
+				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Copy and paste styles' ); ?></h3>
+				<p><?php _e( 'Perfect the design on one type of block, then copy and paste those styles to other blocks to get just the look you want.' ); ?></p>
 			</div>
 			<div class="column">
-				<div class="column about__image is-edge-to-edge has-accent-background-color">
-					<img src="https://s.w.org/images/core/6.1/about-61-sub-feature-3.webp" alt="" />
+				<div class="about__image">
+					<img src="https://s.w.org/images/core/6.2/about-custom-css.png" alt="" />
 				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'More responsive text with fluid typography' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to fluid typography demo. */
-						__( '<a href="%s">Fluid typography</a> lets you define font sizes that adapt for easy reading in any screen size.' ),
-						'https://make.wordpress.org/core/2022/10/03/fluid-font-sizes-in-wordpress-6-1/'
-					);
-					?>
-				</p>
+				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Custom CSS' ); ?></h3>
+				<p><?php _e( 'Power up your site any way you wish. Add CSS to your site, or your blocks, for another level of control over your site&#8217;s look and feel.' ); ?></p>
+			</div>
+		</div>
+
+		<div class="about__section has-3-columns">
+			<div class="column">
+				<div class="about__image">
+					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+						<rect width="48" height="48" rx="4" fill="#1D35B4"/>
+						<path fill-rule="evenodd" clip-rule="evenodd" d="M19.138 20.765a6.012 6.012 0 0 1 3.614-.62l4.15-5.617 6.57 6.57-5.616 4.15a6.01 6.01 0 0 1-.772 3.886c-.252.427-.561.828-.927 1.195l-3.713-3.713-5.692 5.693h-1.06v-1.061l5.692-5.692-3.713-3.713a6.007 6.007 0 0 1 1.467-1.078Zm7.936-3.944 4.105 4.105-4.933 3.647.124.884c.122.87-.01 1.766-.394 2.57l-6.002-6.003a4.515 4.515 0 0 1 2.57-.394l.883.124 3.647-4.933Z" fill="#fff"/>
+					</svg>
+				</div>
+				<h3 class="is-smaller-heading" style="margin-top:0;margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Sticky positioning' ); ?></h3>
+				<p><?php _e( 'Choose to keep top-level group blocks fixed to the top of a page as visitors scroll.' ); ?></p>
+			</div>
+			<div class="column">
+				<div class="about__image">
+					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+						<rect width="48" height="48" rx="4" fill="#1D35B4"/>
+						<path fill-rule="evenodd" clip-rule="evenodd" d="M18 15h2v2h8v-2h2v2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H18a2 2 0 0 1-2-2V19a2 2 0 0 1 2-2v-2Zm12 3.5H18a.5.5 0 0 0-.5.5v1h13v-1a.5.5 0 0 0-.5-.5Zm.5 3h-13V31a.5.5 0 0 0 .5.5h12a.5.5 0 0 0 .5-.5v-9.5ZM23 23h2v2h-2v-2Zm-4 0v2h2v-2h-2Zm8 2v-2h2v2h-2Z" fill="#fff"/>
+					</svg>
+				</div>
+				<h3 class="is-smaller-heading" style="margin-top:0;margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Importing widgets' ); ?></h3>
+				<p><?php _e( 'Options to import your favorite widgets from Classic themes to Block themes.' ); ?></p>
+			</div>
+			<div class="column">
+				<div class="about__image">
+					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+						<rect width="48" height="48" rx="4" fill="#1D35B4"/>
+						<path fill-rule="evenodd" clip-rule="evenodd" d="M17.681 27.075h4.076l.977 2.774h1.72L20.564 19h-1.69L15 29.849h1.705l.976-2.774Zm2.046-5.766 1.503 4.262h-3.006l1.503-4.262Zm6.755 8.064c.332.366.864.549 1.595.549.498 0 .963-.1 1.395-.3.443-.21.825-.586 1.147-1.13.01.377.11.71.299.998.2.288.603.432 1.212.432.366 0 .665-.056.898-.166.243-.111.482-.26.714-.449l-.166-.282c-.11.088-.222.166-.332.232a.697.697 0 0 1-.366.1c-.177 0-.299-.061-.365-.183-.067-.122-.1-.316-.1-.581v-4.586c0-.543-.044-1.002-.133-1.379a1.828 1.828 0 0 0-.548-.963 1.974 1.974 0 0 0-.88-.499c-.344-.11-.754-.166-1.23-.166-.51 0-.975.06-1.396.183-.41.122-.747.271-1.013.448a2.84 2.84 0 0 0-.598.532c-.144.188-.216.432-.216.731 0 .288.083.543.249.764.166.21.42.316.764.316.31 0 .565-.089.764-.266.21-.177.316-.42.316-.73a1.04 1.04 0 0 0-.25-.715 1.108 1.108 0 0 0-.597-.4c.166-.21.393-.348.681-.414.288-.078.56-.117.814-.117.3 0 .554.05.764.15.222.1.393.271.515.515.133.232.2.548.2.947v1.13c0 .254-.117.465-.35.63-.22.167-.509.317-.863.45-.343.121-.714.254-1.113.398-.388.133-.759.3-1.113.499a2.583 2.583 0 0 0-.848.73c-.221.3-.332.687-.332 1.164 0 .576.16 1.052.482 1.428Zm3.356-.481c-.277.155-.56.232-.848.232-.354 0-.647-.116-.88-.349-.233-.232-.349-.598-.349-1.096 0-.51.116-.908.349-1.196.233-.288.51-.515.83-.682.333-.177.654-.337.964-.481.322-.144.56-.333.715-.565v3.306c-.244.388-.504.665-.781.83Z" fill="#fff"/>
+					</svg>
+				</div>
+				<h3 class="is-smaller-heading" style="margin-top:0;margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Local fonts in themes' ); ?></h3>
+				<p><?php _e( 'Default WordPress themes offer better privacy with Google Fonts now included.' ); ?></p>
 			</div>
 		</div>
 
 		<hr />
 
-		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M29.25 18.75v2.5h1.5v-2.5h2.5v-1.5h-2.5v-2.5h-1.5v2.5h-2.5v1.5h2.5zm-6.5-1.5h-6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6h-1.5v6a.5.5 0 0 1-.5.5h-12a.5.5 0 0 1-.5-.5v-12a.5.5 0 0 1 .5-.5h6v-1.5z" fill="#fff"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Add starter patterns to any post type' ); ?></h3>
-				<p><?php _e( 'In WordPress 6.0, when you created a new page, you would see suggested patterns so you did not have to start with a blank page. In 6.1, you will also see the starter patterns modal when you create a new instance of any post type.' ); ?></p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M29.99 23.16a4.628 4.628 0 1 1-9.257 0 4.628 4.628 0 0 1 9.257 0zm1.5 0a6.128 6.128 0 0 1-10.252 4.535l-3.74 3.273-.988-1.13 3.75-3.28a6.128 6.128 0 1 1 11.23-3.397z" fill="#fff"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Find block themes faster' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to Block Themes on WordPress.org. */
-						__( 'The Themes Directory has <a href="%s">a filter for block themes</a>, and a pattern preview gives a better sense of what the theme might look like while exploring different themes and patterns.' ),
-						esc_url( __( 'https://wordpress.org/themes/tags/full-site-editing/' ) )
-					);
-					?>
-				</p>
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M22.29 16.836a1 1 0 0 1 .986-.836h1.306a1 1 0 0 1 .986.836l.244 1.466c.788.26 1.503.679 2.108 1.218l1.393-.522a1 1 0 0 1 1.217.437l.653 1.13a1 1 0 0 1-.23 1.273l-1.148.944a6.025 6.025 0 0 1 0 2.435l1.148.946a1 1 0 0 1 .23 1.272l-.652 1.13a1 1 0 0 1-1.217.437l-1.394-.522c-.605.54-1.32.958-2.108 1.218l-.244 1.466a1 1 0 0 1-.986.836h-1.306a1 1 0 0 1-.987-.836l-.244-1.466a5.994 5.994 0 0 1-2.108-1.218l-1.394.522a1 1 0 0 1-1.216-.436l-.653-1.131a1 1 0 0 1 .23-1.272l1.148-.946a6.028 6.028 0 0 1 0-2.435l-1.147-.944a1 1 0 0 1-.23-1.273l.652-1.13a1 1 0 0 1 1.217-.437l1.393.522a5.996 5.996 0 0 1 2.108-1.218l.244-1.466zM26.928 24a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" fill="#fff"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Keep your Site Editor settings for later' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to block editor preferences dev note. */
-						__( 'Site Editor settings are now <a href="%s">persistent for each user</a>. This means your settings will now be consistent across browsers and devices.' ),
-						'https://make.wordpress.org/core/2022/10/10/changes-to-block-editor-preferences-in-wordpress-6-1/'
-					);
-					?>
-				</p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M31 24a7 7 0 0 1-7 7V17a7 7 0 0 1 7 7zm-7-8a8 8 0 1 1 0 16 8 8 0 0 1 0-16z" fill="#fff"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'A streamlined style system' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link style engine dev note. */
-						__( 'The CSS rules for margin, padding, typography, colors, and borders within the <a href="%s">styles engine</a> are now all in one place, reducing time spent on layout-specific tasks and helps to generate semantic class names.' ),
-						'https://make.wordpress.org/core/2022/10/10/block-styles-generation-style-engine/'
-					);
-					?>
-				</p>
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path d="M24 18.285a1.58 1.58 0 0 1-1.159-.484 1.58 1.58 0 0 1-.484-1.159c0-.45.162-.836.484-1.158A1.58 1.58 0 0 1 24 15c.45 0 .836.161 1.159.484.322.322.483.708.483 1.158 0 .45-.16.837-.483 1.16a1.581 1.581 0 0 1-1.16.483zM21.592 33V21.008a44.174 44.174 0 0 1-2.958-.316 28.99 28.99 0 0 1-2.734-.517l.337-1.35c1.275.3 2.543.514 3.803.641 1.26.128 2.58.191 3.96.191s2.7-.063 3.96-.19a29.603 29.603 0 0 0 3.802-.642l.338 1.35c-.87.21-1.781.383-2.734.517-.952.136-1.939.24-2.959.316V33h-1.35v-5.85h-2.115V33h-1.35z" fill="#fff"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Improved admin and editor accessibility' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to accessibility improvements dev note. */
-						__( 'More than 40 improvements in accessibility include resolving focus loss problems in the editor, improving form labels and audible messages, making alternative text easier to edit, and fixing the sub-menu overlap in the expanded admin side navigation at smaller screen sizes and higher zoom levels. Learn more about <a href="%s">accessibility in WordPress</a>.' ),
-						'https://make.wordpress.org/core/2022/10/11/wordpress-6-1-accessibility-improvements/'
-					);
-					?>
-				</p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M23.019 25.517l-4.258 4.385-.718-.697 4.212-4.337-5.752-.025.005-1 5.826.025-3.997-4.116.717-.696 3.952 4.07-.03-5.623 1-.005.03 5.567 3.894-4.01.717.697-4.007 4.126 6.046.026-.005 1-5.942-.025 4.201 4.326-.717.697-4.174-4.298.032 6.048-1 .006-.032-6.14z" fill="#fff"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Other notes of interest' ); ?></h3>
-				<p><?php _e( '6.1 includes a new time-to-read feature showing content authors the approximate time-to-read values for pages, posts, and custom post types.' ); ?></p>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: "General Settings" admin page title, linked to the page if the user can edit options. */
-						__( 'The site tagline is empty by default in new sites but can be modified in %s.' ),
-						current_user_can( 'manage_options' ) ? '<a href="' . esc_url( admin_url( 'options-general.php' ) ) . '">' . __( 'General Settings' ) . '</a>' : __( 'General Settings' )
-					);
-					?>
-				</p>
-				<p><?php _e( 'A new modal design offers a background blur effect, making it easier to focus on the task at hand.' ); ?></p>
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<rect x="11" y="17" width="26" height="14" rx="7" fill="#fff"/>
-						<circle cx="18" cy="24" r="4" fill="#1E1E1E"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Updated interface options and features' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to styling elements dev note. */
-						__( 'Updates include <a href="%s">styling elements</a> like buttons, citations, and links globally; controlling hover, active, and focus states for links using theme.json (not available to control in the interface yet); and customizing outline support for blocks and elements, among other features.' ),
-						'https://make.wordpress.org/core/2022/10/10/styling-elements-in-block-themes/'
-					);
-					?>
-				</p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M18 16h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H18a2 2 0 0 1-2-2V18a2 2 0 0 1 2-2zm12 1.5H18a.5.5 0 0 0-.5.5v3h13v-3a.5.5 0 0 0-.5-.5zm.5 5H22v8h8a.5.5 0 0 0 .5-.5v-7.5zm-10 0h-3V30a.5.5 0 0 0 .5.5h2.5v-8z" fill="#fff"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Continued evolution of layout options' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to layout support refactor dev note. */
-						__( 'The default content dimensions provided by themes can now be overridden in the Styles Sidebar, giving site builders better control over full-width content. Developers have <a href="%s">fine-grained control over these controls</a>.' ),
-						'https://make.wordpress.org/core/2022/10/10/updated-editor-layout-support-in-6-1-after-refactor/'
-					);
-					?>
-				</p>
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path d="M27.7 17.2l5.6 5.6c.7.6.7 1.8-.1 2.5l-5.6 5.6c-.3.3-.8.5-1.2.5-.4 0-.9-.2-1.2-.5l-5.6-5.6c-.7-.7-.7-1.8 0-2.5l5.6-5.6c.7-.7 1.8-.7 2.5 0z" fill="#fff"/>
-						<path d="M22 17.5l-6.3 6.3c-.1.1-.1.3.1.3l6.3 6.3-1.1 1.1-6.3-6.2c-.7-.7-.7-1.8 0-2.5l6.3-6.3 1 1z" fill="#fff"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Block template parts in classic themes' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: 1: Link to block-based template parts in classic themes dev note, 2: Folder name. */
-						__( '<a href="%1$s">Block template parts can now be defined in classic themes</a> by adding the appropriate HTML files to the %2$s directory at the root of the theme.' ),
-						'https://make.wordpress.org/core/2022/10/04/block-based-template-parts-in-traditional-themes/',
-						'<code>parts</code>'
-					);
-					?>
-				</p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M31.349 23.579a3.18 3.18 0 0 1-6.262.796l-.007-.03-.01-.029-.734-2.166-.005.002a4.818 4.818 0 0 0-9.418 1.427 4.816 4.816 0 0 0 6.575 4.485l-.598-1.523a3.18 3.18 0 1 1 1.92-3.758l.012-.003.69 2.034a4.818 4.818 0 0 0 9.472-1.235 4.816 4.816 0 0 0-6.57-4.487l.596 1.524a3.18 3.18 0 0 1 4.34 2.963z" fill="#fff"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Expanded support for Query Loop blocks' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to query loop dev note. */
-						__( '<a href="%s">New filters</a> let Query Block variations support custom queries for more powerful variations and advanced hierarchical post types filtering options.' ),
-						'https://make.wordpress.org/core/2022/10/10/extending-the-query-loop-block/'
-					);
-					?>
-				</p>
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path d="M17.25 30.25L24 17.594l6.75 12.656h-13.5z" stroke="#fff" stroke-width="1.5"/>
-						<path d="M24 16v15h-8l8-15z" fill="#fff"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Filters for all your styles' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to theme.json filters dev note. */
-						__( '<a href="%s">Leverage filters</a> in the Styles sidebar to control settings at all four levels of your site—core, theme, user, or block, from less to more specific.' ),
-						'https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/'
-					);
-					?>
-				</p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M19.114 20.5H16V19h3.114a2.501 2.501 0 0 1 4.771 0H32v1.5h-8.114a2.501 2.501 0 0 1-4.771 0zM16 29h8.114a2.501 2.501 0 0 0 4.771 0H32v-1.5h-3.114a2.501 2.501 0 0 0-4.771 0H16V29z" fill="#fff"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Spacing presets for faster, consistent design' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to spacing presets dev note. */
-						__( 'Save time and help avoid hard-coding a values into a theme with <a href="%s">preset margin and padding values for multiple blocks</a>.' ),
-						'https://make.wordpress.org/core/2022/10/07/introduction-of-presets-across-padding-margin-and-block-gap/'
-					);
-					?>
-				</p>
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M17.517 20.75A7.268 7.268 0 0 1 22 17.03a8.142 8.142 0 0 0-1.19 1.875 10.763 10.763 0 0 0-.657 1.845h-2.636zm-.554 1.5a7.266 7.266 0 0 0 0 3.5h2.9a13.453 13.453 0 0 1 0-3.5h-2.9zm4.415 0c-.084.56-.128 1.145-.128 1.75s.044 1.19.128 1.75h5.244c.084-.56.128-1.145.128-1.75s-.044-1.19-.128-1.75h-5.244zm6.759 0a13.45 13.45 0 0 1 0 3.5h2.9a7.266 7.266 0 0 0 0-3.5h-2.9zm2.346-1.5h-2.636a10.759 10.759 0 0 0-.657-1.845A8.14 8.14 0 0 0 26 17.03a7.269 7.269 0 0 1 4.483 3.721zm-4.194 0h-4.578c.13-.43.283-.836.458-1.211.495-1.063 1.139-1.847 1.831-2.306.692.46 1.335 1.243 1.83 2.306.176.375.33.78.46 1.211zm-8.772 6.5h2.636c.18.693.416 1.344.7 1.938A8.08 8.08 0 0 0 22 30.97a7.268 7.268 0 0 1-4.483-3.721zm8.772 0h-4.578c.138.46.305.892.495 1.29.491 1.024 1.12 1.78 1.794 2.227.692-.46 1.336-1.243 1.83-2.306a9.02 9.02 0 0 0 .46-1.211zm.901 1.845c.266-.57.486-1.188.657-1.845h2.636A7.268 7.268 0 0 1 26 30.97a8.145 8.145 0 0 0 1.19-1.875zM15.25 24a8.75 8.75 0 1 1 17.5 0 8.75 8.75 0 0 1-17.5 0z" fill="#fff"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Performance highlights' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: 1: REST API performance dev note, 2: Multisite performance dev note, 3: code-formatted "WP_Query" linked to dev note, 4: Block registration performance dev note, 5: Site health checks dev note; 6: code-formatted "async", 7: Performance field guide. */
-						__( 'WordPress 6.1 resolved more than 25 tickets dedicated to enhancing performance. From the  <a href="%1$s">REST API</a> to <a href="%2$s">multisite</a>, %3$s to <a href="%4$s">core block registration</a>, and <a href="%5$s">new Site Health checks</a> to the addition of the %6$s attribute to images, there are performance improvements for every type of site. A full breakdown can be found in the <a href="%7$s">Performance Field Guide</a>.' ),
-						'https://make.wordpress.org/core/2022/10/10/performance-improvements-to-the-rest-api/',
-						'https://make.wordpress.org/core/2022/10/10/multisite-improvements-in-wordpress-6-1/',
-						'<a href="https://make.wordpress.org/core/2022/10/07/improvements-to-wp_query-performance-in-6-1/"><code>WP_Query</code></a>',
-						'https://make.wordpress.org/core/2022/10/07/improved-php-performance-for-core-blocks-registration/',
-						'https://make.wordpress.org/core/2022/10/06/new-cache-site-health-checks-in-wordpress-6-1/',
-						'<code>async</code>',
-						'https://make.wordpress.org/core/2022/10/11/performance-field-guide-for-wordpress-6-1/'
-					);
-					?>
-				</p>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to install Performance Lab plugin if permitted, otherwise link to plugin on WordPress.org. */
-						__( 'Be among the first to get the latest improvements by adding the <a href="%s">Performance Lab plugin</a> to your WordPress test site or sandbox.' ),
-						current_user_can( 'install_plugins' ) ? admin_url( 'plugin-install.php?s=slug%253Aperformance-lab&tab=search&type=term' ) : esc_url( __( 'https://wordpress.org/plugins/performance-lab/' ) )
-					);
-					?>
-				</p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M32.067 17.085l-3.245-3.14-10.621 10.726-1.303 4.412 4.528-1.252 10.64-10.746zM16 32.75h8v-1.5h-8v1.5z" fill="#fff"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Content-only editing support for container blocks' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to content locking dev note. */
-						__( 'Thanks to <a href="%s">content-only editing settings</a>, layouts can be locked within container blocks. In a content-only block, its children are invisible to the List View and entirely uneditable. So you control the layout while your writers can focus on the content.' ),
-						'https://make.wordpress.org/core/2022/10/11/content-locking-features-and-updates/'
-					);
-					?>
-				</p>
-				<p><?php _e( 'Combine it with block locking options for even more advanced control over your blocks.' ); ?></p>
-			</div>
-		</div>
-
-		<hr />
-
-		<div class="about__section has-2-columns is-wider-right">
+		<div class="about__section has-3-columns">
 			<div class="column about__image is-vertically-aligned-top">
-				<a href="https://youtu.be/1w9oywSa6Hw">
-					<img src="data:image/svg+xml,%3Csvg width='269' height='163' viewBox='0 0 269 163' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg clip-path='url(%23a)'%3E%3Crect width='269' height='163' rx='4' fill='%23FDFF85'/%3E%3Cpath d='M238.84 130.043a1 1 0 0 0-1.524.852v8.21a1 1 0 0 0 1.524.852l6.671-4.105a1 1 0 0 0 0-1.703l-6.671-4.106Z' fill='%231E1E1E'/%3E%3Crect x='226.25' y='120.25' width='29.5' height='29.5' rx='2.75' stroke='%231E1E1E' stroke-width='1.5'/%3E%3Cpath d='M99.597 127.44c-6.16 0-11.36-1.16-15.6-3.48-4.24-2.32-7.68-5.4-10.32-9.24-2.56-3.84-4.4-8.16-5.52-12.96A64.74 64.74 0 0 1 66.477 87c0-9.28 1.28-17.4 3.84-24.36 2.64-6.96 6.4-12.36 11.28-16.2 4.88-3.92 10.8-5.88 17.76-5.88 5.521 0 10.241 1.08 14.161 3.24s6.96 5.04 9.12 8.64c2.24 3.6 3.6 7.52 4.08 11.76h-11.88c-.72-4.16-2.44-7.36-5.16-9.6-2.72-2.24-6.2-3.36-10.44-3.36-5.84 0-10.68 2.76-14.52 8.28-3.76 5.44-5.76 13.84-6 25.2 1.92-3.52 4.88-6.52 8.88-9 4.08-2.48 8.76-3.72 14.04-3.72 4.72 0 9.12 1.12 13.2 3.36 4.16 2.24 7.52 5.4 10.08 9.48 2.64 4 3.96 8.76 3.96 14.28 0 4.88-1.2 9.48-3.6 13.8-2.4 4.32-5.8 7.84-10.2 10.56-4.32 2.64-9.48 3.96-15.48 3.96Zm-.72-11.04c3.361 0 6.361-.72 9.001-2.16 2.64-1.44 4.72-3.4 6.24-5.88 1.52-2.56 2.28-5.44 2.28-8.64 0-5.12-1.68-9.2-5.04-12.24-3.28-3.04-7.48-4.56-12.6-4.56-3.36 0-6.4.76-9.12 2.28-2.64 1.52-4.72 3.56-6.24 6.12-1.52 2.48-2.28 5.24-2.28 8.28 0 3.28.76 6.2 2.28 8.76 1.6 2.48 3.72 4.44 6.36 5.88 2.72 1.44 5.76 2.16 9.12 2.16Zm45.925 10.32c-2.4 0-4.4-.76-6-2.28-1.52-1.6-2.28-3.48-2.28-5.64 0-2.24.76-4.12 2.28-5.64 1.6-1.6 3.6-2.4 6-2.4s4.36.8 5.88 2.4c1.52 1.52 2.28 3.4 2.28 5.64 0 2.16-.76 4.04-2.28 5.64-1.52 1.52-3.48 2.28-5.88 2.28Zm26.814-.72V56.4l-13.56 3.12v-9.36l18.6-8.16h8.16v84h-13.2Z' fill='%231E1E1E'/%3E%3C/g%3E%3Cdefs%3E%3CclipPath id='a'%3E%3Crect width='269' height='163' rx='4' fill='%23fff'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E%0A" alt="<?php echo esc_attr( __( 'Exploring WordPress 6.1 video' ) ); ?>" />
+				<a href="https://youtu.be/1w9oywSa6Hw" style="display:block">
+					<img src="data:image/svg+xml,%3Csvg width='280' height='280' viewBox='0 0 280 280' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg clip-path='url(%23a)'%3E%3Cpath fill='%23fff' d='M0 0h280v280H0z'/%3E%3Cg clip-path='url(%23b)'%3E%3Cpath fill='%231D35B4' d='M0 0h294v294H0z'/%3E%3Cpath d='M481.83 466.968c41.746-43.822 74.081-94.951 96.101-151.939 21.264-55.026 32.042-113.169 32.042-172.787 0-59.618-10.778-117.76-32.042-172.786-22.02-57.002-54.355-108.117-96.101-151.94-41.747-43.823-90.454-77.765-144.742-100.88C284.669-305.686 229.28-317 172.487-317c-56.794 0-112.183 11.314-164.601 33.636-54.302 23.115-102.995 57.057-144.742 100.88-41.747 43.823-74.081 94.952-96.101 151.94C-254.222 24.48-265 82.624-265 142.256c0 59.632 10.778 117.761 32.043 172.787 22.02 57.001 54.354 108.116 96.101 151.939a457.117 457.117 0 0 0 9.518 9.686l56.277-59.075a376.997 376.997 0 0 1-9.558-9.658c-67.612-70.974-104.838-165.327-104.838-265.693 0-100.365 37.226-194.718 104.838-265.692 67.611-70.974 157.495-110.051 253.106-110.051 95.61 0 185.494 39.077 253.106 110.051C493.204-52.476 530.43 41.877 530.43 142.242c0 100.366-37.226 194.719-104.837 265.693l-318.159 333.98H32.438l355.65-373.336c57.589-60.453 89.314-140.834 89.314-226.323 0-85.488-31.711-165.87-89.314-226.323-57.589-60.453-134.162-93.755-215.601-93.755-81.44 0-158.012 33.288-215.602 93.755-57.589 60.467-89.313 140.835-89.313 226.323 0 85.489 31.711 165.87 89.313 226.323 3.129 3.284 6.337 6.471 9.585 9.616l56.317-59.117a236.726 236.726 0 0 1-9.665-9.546c-87.868-92.238-87.868-242.327 0-334.58 87.869-92.237 230.847-92.237 318.729 0 42.569 44.686 66.008 104.096 66.008 167.29 0 63.195-23.439 122.604-66.008 167.29l-411.9 432.383h-74.996L294.36 270.176c67.201-70.542 67.201-185.311 0-255.854C261.814-19.842 218.529-38.67 172.5-38.67c-46.029 0-89.314 18.815-121.86 52.993C18.094 48.487.157 93.924.157 142.242s17.923 93.755 50.483 127.92a176.57 176.57 0 0 0 9.73 9.463l56.569-59.381a95.934 95.934 0 0 1-10.049-9.129c-17.526-18.398-27.177-42.863-27.177-68.887 0-26.023 9.651-50.489 27.177-68.886 17.526-18.398 40.832-28.529 65.623-28.529 24.791 0 48.097 10.131 65.623 28.529 36.179 37.978 36.179 99.781 0 137.773l-503.109 528.128V825.4H610v-83.499H219.947l261.909-274.933h-.026Z' fill='%23213FD4'/%3E%3C/g%3E%3Cpath d='M237 173.237h-81.39v-4.11l1.098-.242H237v4.352ZM237 190.647h-81.39V195H237v-4.353ZM237 179.767h-81.39v4.352H237v-4.352Z' fill='%23fff'/%3E%3Cpath d='M216.676 96.287c-6.635-6.577-15.456-10.2-24.839-10.2-9.382 0-18.204 3.623-24.839 10.2-6.634 6.577-10.289 15.321-10.289 24.621 0 9.3 3.655 18.044 10.289 24.621.26.256.522.508.789.757l3.106-3.079a31.284 31.284 0 0 1-.79-.755c-5.806-5.754-9.003-13.406-9.003-21.544s3.198-15.789 9.003-21.544c5.805-5.755 13.524-8.924 21.734-8.924 8.21 0 15.929 3.169 21.735 8.924 5.806 5.755 9.002 13.406 9.002 21.544s-3.196 15.789-9.002 21.544l-26.97 26.733 3.106 3.078 26.969-26.733c6.635-6.576 10.29-15.321 10.29-24.621 0-9.3-3.655-18.044-10.29-24.621l-.001-.001Z' fill='%23fff'/%3E%3Cpath d='M208.914 103.982c-4.561-4.522-10.626-7.012-17.077-7.012-6.45 0-12.515 2.49-17.076 7.012-4.561 4.521-7.074 10.533-7.074 16.927 0 6.393 2.511 12.405 7.074 16.926.259.257.524.506.794.751l3.109-3.081a20.109 20.109 0 0 1-.798-.748c-7.704-7.636-7.704-20.063 0-27.699 7.704-7.637 20.241-7.637 27.945 0 7.704 7.636 7.704 20.063 0 27.699l-35.072 34.765 3.105 3.078 35.072-34.765c4.561-4.521 7.074-10.533 7.074-16.926 0-6.394-2.512-12.406-7.074-16.927h-.002Z' fill='%23fff'/%3E%3Cpath d='M201.151 111.675a13.15 13.15 0 0 0-9.315-3.824 13.144 13.144 0 0 0-9.314 3.824c-5.137 5.092-5.137 13.376 0 18.467.26.258.53.504.808.738l3.122-3.095a8.661 8.661 0 0 1-.826-13.031 8.765 8.765 0 0 1 6.21-2.55c2.346 0 4.551.906 6.21 2.55a8.661 8.661 0 0 1 0 12.311l-42.436 42.064 3.777 2.412 41.764-41.398c5.136-5.091 5.136-13.375 0-18.467v-.001Z' fill='%23fff'/%3E%3Cpath d='M138.677 195c-4.233 0-7.677-3.417-7.677-7.616 0-4.2 3.444-7.616 7.677-7.616s7.677 3.416 7.677 7.616c0 4.199-3.444 7.616-7.677 7.616Z' fill='%2333F078'/%3E%3Cpath d='m95.363 126.168-3.735 3.702a19.68 19.68 0 0 1 11.449 5.579c7.704 7.636 7.704 20.063 0 27.699-7.704 7.637-20.24 7.637-27.945 0-3.732-3.699-5.787-8.618-5.787-13.849 0-5.232 2.055-10.15 5.787-13.85L126.028 85h-6.21l-47.79 47.371c-4.561 4.521-7.074 10.533-7.074 16.927 0 6.393 2.512 12.405 7.074 16.926 4.56 4.522 10.626 7.012 17.076 7.012 6.45 0 12.516-2.49 17.077-7.012 4.561-4.521 7.074-10.533 7.074-16.926 0-6.394-2.512-12.406-7.074-16.927a24.055 24.055 0 0 0-10.82-6.203h.002Z' fill='%23fff'/%3E%3Cpath d='M124.234 149.299c0-9.301-3.655-18.045-10.289-24.621a35.277 35.277 0 0 0-10.049-6.967l-3.337 3.308a30.885 30.885 0 0 1 10.281 6.737c5.806 5.755 9.003 13.406 9.003 21.544s-3.197 15.788-9.003 21.544c-5.805 5.755-13.524 8.923-21.734 8.923-8.21 0-15.929-3.168-21.735-8.923-5.806-5.756-9.002-13.406-9.002-21.544s3.196-15.789 9.002-21.544L110.504 85h-6.21l-40.027 39.676c-6.635 6.577-10.29 15.321-10.29 24.622s3.655 18.044 10.289 24.622c6.634 6.576 15.456 10.199 24.838 10.199 9.383 0 18.205-3.623 24.841-10.199 6.634-6.577 10.289-15.321 10.289-24.621Z' fill='%23fff'/%3E%3Cpath d='M131.836 132.102c-2.32-5.67-5.727-10.757-10.128-15.12a46.043 46.043 0 0 0-9.669-7.342l-3.23 3.201a41.577 41.577 0 0 1 9.793 7.22c3.983 3.947 7.066 8.549 9.164 13.677a40.899 40.899 0 0 1 3.054 15.561 40.886 40.886 0 0 1-3.054 15.56c-2.098 5.127-5.181 9.73-9.164 13.678a41.479 41.479 0 0 1-13.798 9.083 41.902 41.902 0 0 1-15.698 3.027c-5.419 0-10.701-1.018-15.698-3.027a41.492 41.492 0 0 1-13.799-9.083c-3.983-3.948-7.066-8.55-9.164-13.678a40.9 40.9 0 0 1-3.054-15.56 40.905 40.905 0 0 1 3.054-15.561c2.098-5.127 5.181-9.73 9.164-13.677L94.979 85h-6.21l-32.266 31.982c-4.4 4.363-7.808 9.45-10.127 15.12A45.215 45.215 0 0 0 43 149.299c0 5.934 1.136 11.72 3.376 17.196 2.32 5.671 5.727 10.758 10.128 15.12a45.85 45.85 0 0 0 15.253 10.039 46.302 46.302 0 0 0 17.349 3.347 46.322 46.322 0 0 0 17.349-3.346 45.854 45.854 0 0 0 15.253-10.039c4.401-4.362 7.808-9.449 10.128-15.12a45.203 45.203 0 0 0 3.376-17.196 45.222 45.222 0 0 0-3.375-17.197l-.001-.001Z' fill='%23fff'/%3E%3C/g%3E%3Cdefs%3E%3CclipPath id='a'%3E%3Cpath fill='%23fff' d='M0 0h280v280H0z'/%3E%3C/clipPath%3E%3CclipPath id='b'%3E%3Cpath fill='%23fff' d='M0 0h294v294H0z'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E%0A" alt="<?php echo esc_attr( __( 'Exploring WordPress 6.2 video' ) ); ?>" />
 				</a>
 			</div>
-			<div class="column">
+			<div class="column is-vertically-aligned-center" style="grid-column-end:span 2">
 				<h3>
 					<?php
 					printf(
@@ -497,21 +223,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					);
 					?>
 				</h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: 6.1 overview video link. */
-						__( 'See WordPress 6.1 in action! <a href="%s">Watch a brief overview video</a> highlighting some of the major features debuting in WordPress 6.1.' ),
-						'https://youtu.be/1w9oywSa6Hw'
-					);
-					?>
-				</p>
-			</div>
-		</div>
-
-		<div class="about__section has-3-columns">
-			<div class="column" style="padding-top:0">
-				<p>
+				<p class="is-subheading">
 					<?php
 					printf(
 						/* translators: 1: Learn WordPress link. */
@@ -521,18 +233,34 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					?>
 				</p>
 			</div>
-			<div class="column" style="padding-top:0">
+		</div>
+
+		<div class="about__section has-2-columns">
+			<div class="column">
+				<div class="about__image">
+					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+						<rect width="48" height="48" rx="4" fill="#1D35B4"/>
+						<path d="M23 34v-4h-5l-2.293-2.293a1 1 0 0 1 0-1.414L18 24h5v-2h-7v-6h7v-2h2v2h5l2.293 2.293a1 1 0 0 1 0 1.414L30 22h-5v2h7v6h-7v4h-2Zm-5-14h11.175l.646-.646a.5.5 0 0 0 0-.708L29.175 18H18v2Zm.825 8H30v-2H18.825l-.646.646a.5.5 0 0 0 0 .708l.646.646Z" fill="#fff"/>
+					</svg>
+				</div>
 				<p>
 					<?php
 					printf(
 						/* translators: %s: WordPress Field Guide link. */
 						__( 'Check out the latest version of the <a href="%s">WordPress Field Guide</a>. It is overflowing with detailed developer notes to help you build with WordPress.' ),
-						__( 'https://make.wordpress.org/core/2022/10/12/wordpress-6-1-field-guide/' )
+						'#'
 					);
 					?>
 				</p>
 			</div>
-			<div class="column" style="padding-top:0">
+			<div class="column">
+				<div class="about__image">
+					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+						<rect width="48" height="48" rx="4" fill="#1D35B4"/>
+						<path d="M28 19.75h-8v1.5h8v-1.5ZM20 23h8v1.5h-8V23ZM26 26.25h-6v1.5h6v-1.5Z" fill="#fff"/>
+						<path fill-rule="evenodd" clip-rule="evenodd" d="M29 16H19a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V18a2 2 0 0 0-2-2Zm-10 1.5h10a.5.5 0 0 1 .5.5v12a.5.5 0 0 1-.5.5H19a.5.5 0 0 1-.5-.5V18a.5.5 0 0 1 .5-.5Z" fill="#fff"/>
+					</svg>
+				</div>
 				<p>
 					<?php
 					printf(
@@ -541,9 +269,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						sprintf(
 							/* translators: %s: WordPress version number. */
 							esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
-							'6-1'
+							'6-2'
 						),
-						'6.1'
+						'6.2'
 					);
 					?>
 				</p>
@@ -609,3 +337,9 @@ __( 'Important! Your version of WordPress (%1$s) is no longer supported, you wil
 
 /* translators: 1: WordPress version number, 2: Link to update WordPress */
 __( 'Important! Your version of WordPress (%1$s) will stop receiving security updates in the near future. To keep your site secure, please <a href="%2$s">update to the latest version of WordPress</a>.' );
+
+/* translators: %s: The major version of WordPress for this branch. */
+__( 'This is the final release of WordPress %s' );
+
+/* translators: The localized WordPress download URL. */
+__( 'https://wordpress.org/download/' );

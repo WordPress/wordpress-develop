@@ -346,8 +346,8 @@ add_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
 add_action( 'init', '_register_core_block_patterns_and_categories' );
 add_action( 'init', 'check_theme_switched', 99 );
 add_action( 'init', array( 'WP_Block_Supports', 'init' ), 22 );
-add_action( 'switch_theme', array( 'WP_Theme_JSON_Resolver', 'clean_cached_data' ) );
-add_action( 'start_previewing_theme', array( 'WP_Theme_JSON_Resolver', 'clean_cached_data' ) );
+add_action( 'switch_theme', 'wp_clean_theme_json_cache' );
+add_action( 'start_previewing_theme', 'wp_clean_theme_json_cache' );
 add_action( 'after_switch_theme', '_wp_menus_changed' );
 add_action( 'after_switch_theme', '_wp_sidebars_changed' );
 add_action( 'wp_print_styles', 'print_emoji_styles' );
@@ -577,6 +577,9 @@ add_filter( 'block_editor_settings_all', 'wp_add_editor_classic_theme_styles' );
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
 add_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
 
+// Global styles custom CSS.
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles_custom_css' );
+
 // Block supports, and other styles parsed and stored in the Style Engine.
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_stored_styles' );
 add_action( 'wp_footer', 'wp_enqueue_stored_styles', 1 );
@@ -617,11 +620,13 @@ add_filter( 'plupload_default_settings', 'wp_show_heic_upload_error' );
 
 // Nav menu.
 add_filter( 'nav_menu_item_id', '_nav_menu_item_id_use_once', 10, 2 );
+add_filter( 'nav_menu_css_class', 'wp_nav_menu_remove_menu_item_has_children_class', 10, 4 );
 
 // Widgets.
 add_action( 'after_setup_theme', 'wp_setup_widgets_block_editor', 1 );
 add_action( 'init', 'wp_widgets_init', 1 );
 add_action( 'change_locale', array( 'WP_Widget_Media', 'reset_default_labels' ) );
+add_action( 'widgets_init', '_wp_block_theme_register_classic_sidebars', 1 );
 
 // Admin Bar.
 // Don't remove. Wrong way to disable.

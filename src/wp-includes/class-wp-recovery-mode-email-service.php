@@ -116,12 +116,7 @@ final class WP_Recovery_Mode_Email_Service {
 		$url      = $this->link_service->generate_url();
 		$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
-		$switched_locale = false;
-
-		// The switch_to_locale() function is loaded before it can actually be used.
-		if ( function_exists( 'switch_to_locale' ) && isset( $GLOBALS['wp_locale_switcher'] ) ) {
-			$switched_locale = switch_to_locale( get_locale() );
-		}
+		$switched_locale = switch_to_locale( get_locale() );
 
 		if ( $extension ) {
 			$cause   = $this->get_cause( $extension );
@@ -158,7 +153,7 @@ final class WP_Recovery_Mode_Email_Service {
 		$message = __(
 			'Howdy!
 
-Since WordPress 5.2 there is a built-in feature that detects when a plugin or theme causes a fatal error on your site, and notifies you with this automated email.
+WordPress has a built-in feature that detects when a plugin or theme causes a fatal error on your site, and notifies you with this automated email.
 ###CAUSE###
 First, visit your website (###SITEURL###) and check for any visible issues. Next, visit the page where the error was caught (###PAGEURL###) and check for any visible issues.
 

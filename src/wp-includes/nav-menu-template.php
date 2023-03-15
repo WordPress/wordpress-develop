@@ -196,38 +196,32 @@ function wp_nav_menu( $args = array() ) {
 	_wp_menu_item_classes_by_context( $menu_items );
 
 	$sorted_menu_items        = array();
-	$menu_items_tree          = array();
 	$menu_items_with_children = array();
 	foreach ( (array) $menu_items as $menu_item ) {
-		$sorted_menu_items[ $menu_item->menu_order ] = $menu_item;
-		$menu_items_tree[ $menu_item->ID ]           = $menu_item->menu_item_parent;
-		if ( $menu_item->menu_item_parent ) {
-			$menu_items_with_children[ $menu_item->menu_item_parent ] = 1;
+		/*
+		 * Fix invalid `menu_item_parent`. See: https://core.trac.wordpress.org/ticket/56926.
+		 * Compare as strings. Plugins may change the ID to a string.
+		 */
+		if ( (string) $menu_item->ID === (string) $menu_item->menu_item_parent ) {
+			$menu_item->menu_item_parent = 0;
 		}
-	}
 
-	// Calculate the depth of each menu item with children.
-	foreach ( $menu_items_with_children as $menu_item_key => &$menu_item_depth ) {
-		$menu_item_parent = $menu_items_tree[ $menu_item_key ];
-		while ( $menu_item_parent ) {
-			$menu_item_depth  = $menu_item_depth + 1;
-			$menu_item_parent = $menu_items_tree[ $menu_item_parent ];
+		$sorted_menu_items[ $menu_item->menu_order ] = $menu_item;
+		if ( $menu_item->menu_item_parent ) {
+			$menu_items_with_children[ $menu_item->menu_item_parent ] = true;
 		}
 	}
 
 	// Add the menu-item-has-children class where applicable.
 	if ( $menu_items_with_children ) {
 		foreach ( $sorted_menu_items as &$menu_item ) {
-			if (
-				isset( $menu_items_with_children[ $menu_item->ID ] ) &&
-				( $args->depth <= 0 || $menu_items_with_children[ $menu_item->ID ] < $args->depth )
-			) {
+			if ( isset( $menu_items_with_children[ $menu_item->ID ] ) ) {
 				$menu_item->classes[] = 'menu-item-has-children';
 			}
 		}
 	}
 
-	unset( $menu_items_tree, $menu_items_with_children, $menu_items, $menu_item );
+	unset( $menu_items, $menu_item );
 
 	/**
 	 * Filters the sorted list of menu item objects before generating the menu's HTML.
@@ -617,7 +611,7 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
  * @return string The HTML list content for the menu items.
  */
 function walk_nav_menu_tree( $items, $depth, $args ) {
-	$walker = ( empty( $args->walker ) ) ? new Walker_Nav_Menu : $args->walker;
+	$walker = ( empty( $args->walker ) ) ? new Walker_Nav_Menu() : $args->walker;
 
 	return $walker->walk( $items, $depth, $args );
 }
@@ -642,4 +636,61 @@ function _nav_menu_item_id_use_once( $id, $item ) {
 	$_used_ids[] = $item->ID;
 
 	return $id;
+}
+
+/**
+ * Remove the `menu-item-has-children` class from bottom level menu items.
+ *
+ * This runs on the {@see 'nav_menu_css_class'} filter. The $args and $depth
+ * parameters were added after the filter was originally introduced in
+ * WordPress 3.0.0 so this needs to allow for cases in which the filter is
+ * called without them.
+ *
+ * @see https://core.trac.wordpress.org/ticket/56926.
+ *
+ * @since 6.2.0
+ *
+ * @param string[]       $classes   Array of the CSS classes that are applied to the menu item's `<li>` element.
+ * @param WP_Post        $menu_item The current menu item object.
+ * @param stdClass|false $args      An object of wp_nav_menu() arguments. Default false ($args unspecified when filter is called).
+ * @param int|false      $depth     Depth of menu item. Default false ($depth unspecified when filter is called).
+ * @return string[] Modified nav menu classes.
+ */
+function wp_nav_menu_remove_menu_item_has_children_class( $classes, $menu_item, $args = false, $depth = false ) {
+	/*
+	 * Account for the filter being called without the $args or $depth parameters.
+	 *
+	 * This occurs when a theme uses a custom walker calling the `nav_menu_css_class`
+	 * filter using the legacy formats prior to the introduction of the $args and
+	 * $depth parameters.
+	 *
+	 * As both of these parameters are required for this function to determine
+	 * both the current and maximum depth of the menu tree, the function does not
+	 * attempt to remove the `menu-item-has-children` class if these parameters
+	 * are not set.
+	 */
+	if ( false === $depth || false === $args ) {
+		return $classes;
+	}
+
+	// Max-depth is 1-based.
+	$max_depth = isset( $args->depth ) ? (int) $args->depth : 0;
+	// Depth is 0-based so needs to be increased by one.
+	$depth = $depth + 1;
+
+	// Complete menu tree is displayed.
+	if ( 0 === $max_depth ) {
+		return $classes;
+	}
+
+	/*
+	 * Remove the `menu-item-has-children` class from bottom level menu items.
+	 * -1 is used to display all menu items in one level so the class should
+	 * be removed from all menu items.
+	 */
+	if ( -1 === $max_depth || $depth >= $max_depth ) {
+		$classes = array_diff( $classes, array( 'menu-item-has-children' ) );
+	}
+
+	return $classes;
 }

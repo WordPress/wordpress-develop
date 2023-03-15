@@ -1,15 +1,9 @@
 <?php
 /**
- * Comment Template block rendering tests.
+ * Tests for the Comment Template block rendering.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 6.0.0
- */
-
-/**
- * Tests for the Comment Template block.
- *
  * @since 6.0.0
  *
  * @group blocks
@@ -87,7 +81,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	 * @ticket 55505
 	 * @covers ::build_comment_query_vars_from_block
 	 */
-	function test_build_comment_query_vars_from_block_with_context() {
+	public function test_build_comment_query_vars_from_block_with_context() {
 		$parsed_blocks = parse_blocks(
 			'<!-- wp:comment-template --><!-- wp:comment-author-name /--><!-- wp:comment-content /--><!-- /wp:comment-template -->'
 		);
@@ -118,7 +112,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	 * @ticket 55567
 	 * @covers ::build_comment_query_vars_from_block
 	 */
-	function test_build_comment_query_vars_from_block_with_context_no_pagination() {
+	public function test_build_comment_query_vars_from_block_with_context_no_pagination() {
 		update_option( 'page_comments', false );
 		$parsed_blocks = parse_blocks(
 			'<!-- wp:comment-template --><!-- wp:comment-author-name /--><!-- wp:comment-content /--><!-- /wp:comment-template -->'
@@ -148,7 +142,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	 * @ticket 55505
 	 * @covers ::build_comment_query_vars_from_block
 	 */
-	function test_build_comment_query_vars_from_block_no_context() {
+	public function test_build_comment_query_vars_from_block_no_context() {
 		$parsed_blocks = parse_blocks(
 			'<!-- wp:comment-template --><!-- wp:comment-author-name /--><!-- wp:comment-content /--><!-- /wp:comment-template -->'
 		);
@@ -178,7 +172,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	 * @ticket 55658
 	 * @covers ::build_comment_query_vars_from_block
 	 */
-	function test_build_comment_query_vars_from_block_pagination_with_no_comments() {
+	public function test_build_comment_query_vars_from_block_pagination_with_no_comments() {
 		$comments_per_page     = get_option( 'comments_per_page' );
 		$default_comments_page = get_option( 'default_comments_page' );
 
@@ -230,7 +224,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	 * @ticket 55505
 	 * @covers ::build_comment_query_vars_from_block
 	 */
-	function test_build_comment_query_vars_from_block_sets_cpage_var() {
+	public function test_build_comment_query_vars_from_block_sets_cpage_var() {
 
 		// This could be any number, we set a fixed one instead of a random for better performance.
 		$comment_query_max_num_pages = 5;
@@ -267,7 +261,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	 *
 	 * @ticket 55567
 	 */
-	function test_rendering_comment_template() {
+	public function test_rendering_comment_template() {
 		$parsed_blocks = parse_blocks(
 			'<!-- wp:comment-template --><!-- wp:comment-author-name /--><!-- wp:comment-content /--><!-- /wp:comment-template -->'
 		);
@@ -295,7 +289,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	 *
 	 * @ticket 55567
 	 */
-	function test_rendering_comment_template_nested() {
+	public function test_rendering_comment_template_nested() {
 		$first_level_ids = self::factory()->comment->create_post_comments(
 			self::$custom_post->ID,
 			2,
@@ -333,7 +327,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 
 		$top_level_ids = self::$comment_ids;
 		$expected      = str_replace(
-			array( "\n", "\t" ),
+			array( "\r\n", "\n", "\t" ),
 			'',
 			<<<END
 				<ol class="wp-block-comment-template">
@@ -387,7 +381,7 @@ END
 
 		$this->assertSame(
 			$expected,
-			str_replace( array( "\n", "\t" ), '', $block->render() )
+			str_replace( array( "\r\n", "\n", "\t" ), '', $block->render() )
 		);
 	}
 
@@ -396,7 +390,7 @@ END
 	 *
 	 * @ticket 55643
 	 */
-	function test_render_block_core_comment_content_converts_to_html() {
+	public function test_render_block_core_comment_content_converts_to_html() {
 		$comment_id  = self::$comment_ids[0];
 		$new_content = "Paragraph One\n\nP2L1\nP2L2\n\nhttps://example.com/";
 		self::factory()->comment->update_object(
@@ -430,7 +424,7 @@ END
 	 * @ticket 55634
 	 * @covers ::build_comment_query_vars_from_block
 	 */
-	function test_build_comment_query_vars_from_block_with_comment_preview() {
+	public function test_build_comment_query_vars_from_block_with_comment_preview() {
 		$parsed_blocks = parse_blocks(
 			'<!-- wp:comment-template --><!-- wp:comment-author-name /--><!-- wp:comment-content /--><!-- /wp:comment-template -->'
 		);
@@ -471,7 +465,7 @@ END
 	 *
 	 * @ticket 55643
 	 */
-	function test_rendering_comment_template_unmoderated_preview() {
+	public function test_rendering_comment_template_unmoderated_preview() {
 		$parsed_blocks = parse_blocks(
 			'<!-- wp:comment-template --><!-- wp:comment-author-name /--><!-- wp:comment-content /--><!-- /wp:comment-template -->'
 		);
