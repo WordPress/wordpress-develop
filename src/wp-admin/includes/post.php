@@ -669,7 +669,7 @@ function bulk_edit_posts( $post_data = null ) {
 			$post_data['post_date']     = current_time( 'mysql' );
 			$post_data['post_date_gmt'] = '';
 		}
-		
+
 		$post_id = wp_update_post( $post_data );
 		update_post_meta( $post_id, '_edit_last', get_current_user_id() );
 		$updated[] = $post_id;
