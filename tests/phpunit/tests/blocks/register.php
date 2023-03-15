@@ -516,6 +516,10 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		);
 		$this->assertSameSets( array( 'groupId' ), $result->uses_context );
 		$this->assertSame(
+			array( 'root' => '.editor-only.wp-block-notice' ),
+			$result->editor_selectors
+		);
+		$this->assertSame(
 			array( 'root' => '.wp-block-notice' ),
 			$result->selectors
 		);

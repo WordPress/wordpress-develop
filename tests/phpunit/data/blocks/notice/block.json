@@ -27,6 +27,9 @@
 			"type": "string"
 		}
 	},
+	"editorSelectors": {
+		"root": ".editor-only.wp-block-notice"
+	},
 	"selectors": {
 		"root": ".wp-block-notice"
 	},
