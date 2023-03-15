@@ -63,17 +63,76 @@ JS;
 		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
 	}
 
+
 	/**
-	 * Test non standalone after with defer.
+	 * Test standalone and non standalone after script one a single main script.
 	 *
 	 * @ticket 12009
-	 * @dataProvider data_non_standalone_after_inline_script_with_defer
 	 */
-	public function test_non_standalone_after_inline_script_with_defer( $expected, $output, $message ) {
+	public function test_non_standalone_and_standalone_after_script_combined() {
+
+		// If the main script with defer strategy has a `after` inline script; expected one with type='javascript' and other with type='module'.
+		wp_enqueue_script( 'ms-isinsa-1', 'http://example.org/ms-isinsa-1.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_add_inline_script( 'ms-isinsa-1', 'console.log("after one");', 'after', true );
+		wp_add_inline_script( 'ms-isinsa-1', 'console.log("after two");', 'after' );
+		$output    = get_echo( 'wp_print_scripts' );
+		$expected  = "<script type='text/javascript' src='http://example.org/ms-isinsa-1.js' id='ms-isinsa-1-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' id='ms-isinsa-1-js-after'>\n";
+		$expected .= "console.log(\"after one\");\n";
+		$expected .= "</script>\n";
+		$expected .= "<script type='text/javascript' id='ms-isinsa-1-js-after' type='text/template'>\n";
+		$expected .= "console.log(\"after two\");\n";
+		$expected .= "</script>\n";
+		$this->assertSame( $expected, $output );
+	}
+
+	/**
+	 * Test standalone after inline script.
+	 *
+	 * @ticket 12009
+	 * @dataProvider data_standalone_after_inline_script
+	 */
+	public function test_standalone_after_inline_script( $expected, $output, $message ) {
 		$this->assertSame( $expected, $output, $message );
 	}
 
-	public function data_non_standalone_after_inline_script_with_defer() {
+	public function data_standalone_after_inline_script() {
+		$data = array();
+
+		// If the main script with defer strategy has a `after` inline script; the inline script is not affected.
+		wp_enqueue_script( 'ms-isa-1', 'http://example.org/ms-isa-1.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_add_inline_script( 'ms-isa-1', 'console.log("after one");', 'after', true );
+		$output    = get_echo( 'wp_print_scripts' );
+		$expected  = "<script type='text/javascript' src='http://example.org/ms-isa-1.js' id='ms-isa-1-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' id='ms-isa-1-js-after'>\n";
+		$expected .= "console.log(\"after one\");\n";
+		$expected .= "</script>\n";
+		array_push( $data, array( $expected, $output, 'Expected no type attribute for inline script.' ) );
+
+		// If the main script with async strategy has a `after` inline script; the inline script is not affected.
+		wp_enqueue_script( 'ms-isa-2', 'http://example.org/ms-isa-2.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_add_inline_script( 'ms-isa-2', 'console.log("after one");', 'after', true );
+		$output    = get_echo( 'wp_print_scripts' );
+		$expected  = "<script type='text/javascript' src='http://example.org/ms-isa-2.js' id='ms-isa-2-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' id='ms-isa-2-js-after'>\n";
+		$expected .= "console.log(\"after one\");\n";
+		$expected .= "</script>\n";
+		array_push( $data, array( $expected, $output, 'Expected no type attribute for inline script.' ) );
+
+		return $data;
+	}
+
+	/**
+	 * Test non standalone after inline script.
+	 *
+	 * @ticket 12009
+	 * @dataProvider data_non_standalone_after_inline_script
+	 */
+	public function test_non_standalone_after_inline_script( $expected, $output, $message ) {
+		$this->assertSame( $expected, $output, $message );
+	}
+
+	public function data_non_standalone_after_inline_script() {
 		$data = array();
 
 		// If the main script with defer strategy has a `after` inline script; the inline script is inserted as type='module'.
@@ -104,7 +163,7 @@ JS;
 		$expected .= "<script type='text/javascript' id='ms-insa-3-js-after'>\n";
 		$expected .= "console.log(\"after one\");\n";
 		$expected .= "</script>\n";
-		array_push( $data, array( $expected, $output, 'Expected type="text/javascript" or no type for inline script.' ) );
+		array_push( $data, array( $expected, $output, 'Expected no type attribute for inline script.' ) );
 
 		// If the main script with no strategy has a `after` inline script; the inline script is inserted as type='javascript'.
 		wp_enqueue_script( 'ms-insa-4', 'http://example.org/ms-insa-4.js', array(), null );
@@ -114,7 +173,7 @@ JS;
 		$expected .= "<script type='text/javascript' id='ms-insa-4-js-after'>\n";
 		$expected .= "console.log(\"after one\");\n";
 		$expected .= "</script>\n";
-		array_push( $data, array( $expected, $output, 'Expected type="text/javascript" or no type for inline script.' ) );
+		array_push( $data, array( $expected, $output, 'Expected no type attribute for inline script.' ) );
 
 		return $data;
 	}
