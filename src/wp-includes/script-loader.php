@@ -1849,7 +1849,7 @@ function wp_just_in_time_script_localization() {
  */
 function wp_print_template_loader_script() {
 	$wp_scripts = wp_scripts();
-	if( $wp_scripts->has_load_later_inline ) {		
+	if ( $wp_scripts->maybe_has_delayed_inline_script() ) {
 		$output = <<<JS
 		let wpLoadAfterScripts = ( handle ) => {
 			let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
@@ -1861,8 +1861,7 @@ function wp_print_template_loader_script() {
 	JS;
 		printf( "<script id='wp-executes-after-js'>%s</script>\n", $output );
 	}
-	}
-
+}
 
 /**
  * Localizes the jQuery UI datepicker.
