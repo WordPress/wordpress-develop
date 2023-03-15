@@ -807,7 +807,7 @@ JS;
 	/**
 	 * Get the strategy assigned during script registration.
 	 *
-	 * @param string $handle The script handle.
+	 * @param string $handle   The script handle.
 	 * @param string $position Position of the inline script.
 	 *
 	 * @return bool True if script present. False if empty.
