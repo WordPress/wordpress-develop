@@ -8515,7 +8515,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  * Gets the properties of the given object.
  * Removes array element with null-byte key from the result.
  *
- * @since 6.2.0
+ * @since 6.3.0
  *
  * @param object $object An object instance.
  * @return array
