@@ -22,7 +22,8 @@ class WP_Admin_Bar {
 	 * Deprecated menu property.
 	 *
 	 * @since 3.1.0
-	 * @deprecated 3.3.0 Modify admin bar nodes with WP_Admin_Bar::get_node(), WP_Admin_Bar::add_node(), and WP_Admin_Bar::remove_node().
+	 * @deprecated 3.3.0 Modify admin bar nodes with WP_Admin_Bar::get_node(),
+	 *                   WP_Admin_Bar::add_node(), and WP_Admin_Bar::remove_node().
 	 * @var array
 	 */
 	public $menu = array();

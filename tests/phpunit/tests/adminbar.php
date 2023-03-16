@@ -756,8 +756,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
-	 * This test ensures that WP_Admin_Bar::$proto is not defined
-	 * (including magic methods).
+	 * This test ensures that WP_Admin_Bar::$proto is not defined (including magic methods).
 	 *
 	 * @ticket 56876
 	 * @coversNothing
@@ -769,8 +768,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
-	 * This test ensures that WP_Admin_Bar::$menu
-	 * is declared as a "regular" class property.
+	 * This test ensures that WP_Admin_Bar::$menu is declared as a "regular" class property.
 	 *
 	 * @ticket 56876
 	 * @coversNothing
