@@ -180,6 +180,7 @@ body.post-type-wp_navigation .inline-edit-status {
 	border: 1px solid #c3c4c7;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 	background: #fff;
+	border-radius: 8px;
 }
 
 #trackback_url {

@@ -1717,6 +1717,7 @@ p.auto-update-status {
 	border: 1px solid #c3c4c7;
 	border-top: none;
 	box-shadow: 0 0 0 transparent;
+	border-bottom-left-radius: 8px;
 }
 
 #screen-options-link-wrap,
@@ -1742,6 +1743,8 @@ p.auto-update-status {
 	line-height: 1.7;
 	box-shadow: 0 0 0 transparent;
 	transition: box-shadow 0.1s linear;
+	border-bottom-left-radius: 8px;
+	border-bottom-right-radius: 8px;
 }
 
 #screen-meta-links .show-settings:hover,
