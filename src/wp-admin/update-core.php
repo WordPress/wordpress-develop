@@ -772,11 +772,13 @@ function list_theme_updates() {
 				$theme->update['new_version']
 			);
 
-			echo ' ' . $compat . $upgrade_notice;
+			echo ' ' . $compat;
 
 			if ( in_array( $stylesheet, $auto_updates, true ) ) {
 				echo $auto_update_notice;
 			}
+
+			echo $upgrade_notice;
 			?>
 		</p></td>
 	</tr>
