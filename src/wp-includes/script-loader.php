@@ -1851,14 +1851,14 @@ function wp_print_template_loader_script() {
 	$wp_scripts = wp_scripts();
 	if ( $wp_scripts->maybe_has_delayed_inline_script() ) {
 		$output = <<<JS
-		let wpLoadAfterScripts = ( handle ) => {
-			let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
-			scripts.forEach( (script) => { 
-				script.setAttribute("type","text/javascript"); 
-				eval(script.innerHTML);
-			})
-		}
-	JS;
+let wpLoadAfterScripts = ( handle ) => {
+	let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
+	scripts.forEach( (script) => { 
+		script.setAttribute("type","text/javascript"); 
+		eval(script.innerHTML);
+	})
+}
+JS;
 		printf( "<script id='wp-executes-after-js'>\n%s\n</script>\n", $output );
 	}
 }
