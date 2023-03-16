@@ -545,8 +545,11 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		}
 	}
 
-	if ( is_attachment() && '1' !== get_option( 'wp_media_use_attachment_pages' ) ) {
-		$redirect_url = wp_get_attachment_url( get_query_var( 'attachment_id' ) );
+	if ( is_attachment() && ! has_theme_support( 'attachment-pages' ) ) {
+		$attachment_id = get_query_var( 'attachment_id' );
+		if ( current_user_can( 'read_post', $attachment_id ) ) {
+			$redirect_url = wp_get_attachment_url( $attachment_id );
+		}
 	}
 
 	$redirect['query'] = preg_replace( '#^\??&*?#', '', $redirect['query'] );

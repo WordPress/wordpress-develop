@@ -521,7 +521,7 @@ function get_attachment_link( $post = null, $leavename = false ) {
 		$link = home_url( '/?attachment_id=' . $post->ID );
 	}
 
-	$redirect_to_attachment_url = '1' !== get_option( 'wp_media_use_attachment_pages' );
+	$redirect_to_attachment_url = ! has_theme_support( 'attachment-pages' ) && current_user_can( 'read_post', $attachment_id );
 	if ( $redirect_to_attachment_url ) {
 		$link = wp_get_attachment_url( $post->ID );
 	}
