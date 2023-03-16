@@ -4718,7 +4718,7 @@ class WP_Query {
 		if ( ! empty( $post_date ) && '0000-00-00 00:00:00' !== $post_date ) {
 			$month = substr( $post_date, 5, 2 );
 			$day   = substr( $post_date, 8, 2 );
-			$year  = substr( $post_date, 0, 2 );
+			$year  = substr( $post_date, 2, 2 );
 
 			$currentday   = sprintf( '%s.%s.%s', $day, $month, $year );
 			$currentmonth = $month;
