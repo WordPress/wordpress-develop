@@ -169,6 +169,14 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		self::setup_custom_types();
+
+		add_theme_support( 'attachment-pages' );
+	}
+
+	public function tear_down() {
+		remove_theme_support( 'attachment-pages' );
+
+		parent::tear_down();
 	}
 
 	/**
