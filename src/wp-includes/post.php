@@ -705,8 +705,6 @@ function create_initial_post_types() {
 /**
  * Retrieves attached file path based on attachment ID.
  *
- * Will return intermediate size path if the `$size` parameter is provided.
- *
  * By default the path will go through the {@see 'get_attached_file'} filter, but
  * passing `true` to the `$unfiltered` argument will return the file path unfiltered.
  *
@@ -715,28 +713,14 @@ function create_initial_post_types() {
  * a mechanism for sending the attached filename through a filter.
  *
  * @since 2.0.0
- * @since 6.2.0 The `$size` parameter was added.
  *
- * @param int          $attachment_id Attachment ID.
- * @param bool         $unfiltered    Optional. Whether to skip the {@see 'get_attached_file'} filter.
- *                                    Default false.
- * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array
- *                                    of width and height values in pixels (in that order). Default empty string.
+ * @param int  $attachment_id Attachment ID.
+ * @param bool $unfiltered    Optional. Whether to skip the {@see 'get_attached_file'} filter.
+ *                            Default false.
  * @return string|false The file path to where the attached file should be, false otherwise.
  */
-function get_attached_file( $attachment_id, $unfiltered = false, $size = '' ) {
-
-	// Check for intermediate sizes first, otherwise fall back to the original attachment size.
-	if ( ! empty( $size ) ) {
-		$intermediate_image = image_get_intermediate_size( $attachment_id, $size );
-		if ( ! $intermediate_image || ! isset( $intermediate_image['path'] ) ) {
-			return false;
-		}
-
-		$file = $intermediate_image['path'];
-	} else {
-		$file = get_post_meta( $attachment_id, '_wp_attached_file', true );
-	}
+function get_attached_file( $attachment_id, $unfiltered = false ) {
+	$file = get_post_meta( $attachment_id, '_wp_attached_file', true );
 
 	// If the file is relative, prepend upload dir.
 	if ( $file && 0 !== strpos( $file, '/' ) && ! preg_match( '|^.:\\\|', $file ) ) {
@@ -754,14 +738,11 @@ function get_attached_file( $attachment_id, $unfiltered = false, $size = '' ) {
 	 * Filters the attached file based on the given ID.
 	 *
 	 * @since 2.1.0
-	 * @since 6.2.0 The `$size` parameter was added.
 	 *
 	 * @param string|false $file          The file path to where the attached file should be, false otherwise.
 	 * @param int          $attachment_id Attachment ID.
-	 * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array
-	 *                                    of width and height values in pixels (in that order). Default empty string.
 	 */
-	return apply_filters( 'get_attached_file', $file, $attachment_id, $size );
+	return apply_filters( 'get_attached_file', $file, $attachment_id );
 }
 
 /**
@@ -5694,7 +5675,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 
 	$hash      = md5( $page_path . serialize( $post_type ) );
 	$cache_key = "get_page_by_path:$hash:$last_changed";
-	$cached    = wp_cache_get( $cache_key, 'posts' );
+	$cached    = wp_cache_get( $cache_key, 'post-queries' );
 	if ( false !== $cached ) {
 		// Special case: '0' is a bad `$page_path`.
 		if ( '0' === $cached || 0 === $cached ) {
@@ -5761,7 +5742,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	}
 
 	// We cache misses as well as hits.
-	wp_cache_set( $cache_key, $foundid, 'posts' );
+	wp_cache_set( $cache_key, $foundid, 'post-queries' );
 
 	if ( $foundid ) {
 		return get_post( $foundid, $output );
@@ -6002,7 +5983,7 @@ function get_pages( $args = array() ) {
 	$last_changed = wp_cache_get_last_changed( 'posts' );
 
 	$cache_key = "get_pages:$key:$last_changed";
-	$cache     = wp_cache_get( $cache_key, 'posts' );
+	$cache     = wp_cache_get( $cache_key, 'post-queries' );
 	if ( false !== $cache ) {
 		_prime_post_caches( $cache, false, false );
 
@@ -6167,7 +6148,7 @@ function get_pages( $args = array() ) {
 	$pages = $wpdb->get_results( $query );
 
 	if ( empty( $pages ) ) {
-		wp_cache_set( $cache_key, array(), 'posts' );
+		wp_cache_set( $cache_key, array(), 'post-queries' );
 
 		/** This filter is documented in wp-includes/post.php */
 		$pages = apply_filters( 'get_pages', array(), $parsed_args );
@@ -6210,7 +6191,7 @@ function get_pages( $args = array() ) {
 		$page_structure[] = $page->ID;
 	}
 
-	wp_cache_set( $cache_key, $page_structure, 'posts' );
+	wp_cache_set( $cache_key, $page_structure, 'post-queries' );
 
 	// Convert to WP_Post instances.
 	$pages = array_map( 'get_post', $pages );
@@ -7374,7 +7355,7 @@ function clean_post_cache( $post ) {
 		do_action( 'clean_page_cache', $post->ID );
 	}
 
-	wp_cache_set( 'last_changed', microtime(), 'posts' );
+	wp_cache_set_posts_last_changed();
 }
 
 /**

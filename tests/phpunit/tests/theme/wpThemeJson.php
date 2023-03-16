@@ -4708,7 +4708,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$reflection = new ReflectionMethod( $theme_json, 'process_blocks_custom_css' );
 		$reflection->setAccessible( true );
 
-		$this->assertEquals( $expected, $reflection->invoke( $theme_json, $input['css'], $input['selector'] ) );
+		$this->assertSame( $expected, $reflection->invoke( $theme_json, $input['css'], $input['selector'] ) );
 	}
 
 	/**

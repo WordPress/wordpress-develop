@@ -2,14 +2,8 @@
 /**
  * Unit tests covering WP_Block_Pattern_Categories_Registry functionality.
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage REST_API
- * @since      6.0.0
- */
-
-/**
- * Tests for REST API for Block Pattern Categories Registry.
- *
  * @since 6.0.0
  *
  * @ticket 55505
