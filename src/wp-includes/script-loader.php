@@ -1859,7 +1859,7 @@ function wp_print_template_loader_script() {
 			})
 		}
 	JS;
-		printf( "<script id='wp-executes-after-js'>%s</script>\n", $output );
+		printf( "<script id='wp-executes-after-js'>\n%s\n</script>\n", $output );
 	}
 }
 
