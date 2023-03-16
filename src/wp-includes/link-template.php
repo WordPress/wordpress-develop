@@ -521,11 +521,6 @@ function get_attachment_link( $post = null, $leavename = false ) {
 		$link = home_url( '/?attachment_id=' . $post->ID );
 	}
 
-	$redirect_to_attachment_url = ! current_theme_supports( 'attachment-pages' ) && current_user_can( 'read_post', $post->ID );
-	if ( $redirect_to_attachment_url ) {
-		$link = wp_get_attachment_url( $post->ID );
-	}
-
 	/**
 	 * Filters the permalink for an attachment.
 	 *
