@@ -88,7 +88,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	/**
 	 * @ticket 28404
 	 *
-	 * @covers ::wp_enqueue_script
+	 * @covers ::wp_script_is
 	 */
 	public function test_wp_script_is_dep_enqueued() {
 		wp_enqueue_script( 'jquery-ui-accordion' );
