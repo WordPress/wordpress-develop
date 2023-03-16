@@ -645,3 +645,11 @@ function test_rest_expand_compact_links( $links ) {
 	}
 	return $links;
 }
+
+/**
+ * Removes all handles from $wp_script.
+ */
+function unregister_all_script_handles() {
+	global $wp_scripts;
+	$wp_scripts->registered = array();
+}
