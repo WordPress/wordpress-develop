@@ -1469,15 +1469,15 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
 		return;
 	}
 
-	if ( $post_type_object->_edit_link ) {
-		$link = admin_url( sprintf( $post_type_object->_edit_link . $action, $post->ID ) );
-	} else {
-		$link = '';
-	}
-
 	if (  'wp_template' === $post->post_type || 'wp_template_part' === $post->post_type ) {
 		$slug = urlencode( get_stylesheet() . '//' . $post->post_name );
 		$link = admin_url( sprintf( $post_type_object->_edit_link, $post->post_type, $slug ) );
+	} else {
+		if ( $post_type_object->_edit_link ) {
+			$link = sprintf( $post_type_object->_edit_link . $action, $post->ID );
+		} else {
+			$link = '';
+		}
 	}
 
 	/**
