@@ -2178,6 +2178,7 @@ function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {
  * of a block relevant for client registration.
  *
  * @since 5.0.0
+ * @since 6.3.0 Added `selectors` and `editor_selectors` fields.
  *
  * @return array An associative array of registered block data.
  */

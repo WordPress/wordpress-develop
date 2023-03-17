@@ -196,6 +196,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @ticket 57585
 	 */
 	public function test_get_item_invalid() {
 		$block_type = 'fake/invalid';
@@ -249,8 +250,8 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSameSets( array( 'invalid_keywords' ), $data['keywords'] );
 		$this->assertSameSets( array( 'invalid_parent' ), $data['parent'] );
 		$this->assertSameSets( array( 'invalid_ancestor' ), $data['ancestor'] );
-		$this->assertSameSets( array(), $data['editor_selectors'] );
-		$this->assertSameSets( array(), $data['selectors'] );
+		$this->assertSameSets( array(), $data['editor_selectors'], 'invalid editor_selectors defaults to empty array' );
+		$this->assertSameSets( array(), $data['selectors'], 'invalid selectors defaults to empty array' );
 		$this->assertSameSets( array(), $data['supports'] );
 		$this->assertSameSets( array(), $data['styles'] );
 		$this->assertNull( $data['example'] );
@@ -269,6 +270,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @ticket 57585
 	 */
 	public function test_get_item_defaults() {
 		$block_type = 'fake/false';
@@ -322,8 +324,8 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSameSets( array(), $data['keywords'] );
 		$this->assertSameSets( array(), $data['parent'] );
 		$this->assertSameSets( array(), $data['ancestor'] );
-		$this->assertSameSets( array(), $data['editor_selectors'] );
-		$this->assertSameSets( array(), $data['selectors'] );
+		$this->assertSameSets( array(), $data['editor_selectors'], 'editor_selectors defaults to empty array' );
+		$this->assertSameSets( array(), $data['selectors'], 'selectors defaults to empty array' );
 		$this->assertSameSets( array(), $data['supports'] );
 		$this->assertSameSets( array(), $data['styles'] );
 		$this->assertNull( $data['example'] );
@@ -542,6 +544,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @ticket 57585
 	 */
 	public function test_get_item_schema() {
 		wp_set_current_user( self::$admin_id );
@@ -559,8 +562,8 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'textdomain', $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'attributes', $properties );
-		$this->assertArrayHasKey( 'editor_selectors', $properties );
-		$this->assertArrayHasKey( 'selectors', $properties );
+		$this->assertArrayHasKey( 'editor_selectors', $properties, 'schema must contain editor_selectors' );
+		$this->assertArrayHasKey( 'selectors', $properties, 'schema must contain selectors' );
 		$this->assertArrayHasKey( 'supports', $properties );
 		$this->assertArrayHasKey( 'category', $properties );
 		$this->assertArrayHasKey( 'is_dynamic', $properties );
