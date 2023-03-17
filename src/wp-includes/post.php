@@ -7802,17 +7802,19 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 			$prime_term_ids = array_unique( $prime_term_ids );
 			// Do not prime term meta at this point, let the lazy loader take care of that.
 			_prime_term_caches( $prime_term_ids, false );
-
+			$cache_values = wp_cache_get_multiple( $prime_term_ids, 'terms' );
 			foreach ( $prime_taxonomy_ids as $taxonomy => $_term_ids ) {
 				foreach ( $_term_ids as $term_id ) {
 					if ( in_array( $term_id, $term_ids, true ) ) {
 						continue;
 					}
-					$term = get_term( $term_id, $taxonomy );
-					if ( is_wp_error( $term ) ) {
+					$term = isset( $cache_values[ $term_id ] ) ? $cache_values[ $term_id ] : false;
+					if ( ! is_object( $term ) ) {
 						continue;
 					}
-
+					if ( $term->taxonomy !== $taxonomy ) {
+						continue;
+					}
 					$term_ids[] = $term_id;
 				}
 			}
