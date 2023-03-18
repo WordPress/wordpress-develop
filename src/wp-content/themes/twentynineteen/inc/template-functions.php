@@ -34,6 +34,9 @@ add_filter( 'body_class', 'twentynineteen_body_classes' );
 
 /**
  * Adds custom class to the array of posts classes.
+ *
+ * @param array $classes A list of existing post class values.
+ * @return array The filtered post class list.
  */
 function twentynineteen_post_classes( $classes ) {
 	$classes[] = 'entry';
@@ -116,7 +119,7 @@ function twentynineteen_post_thumbnail_sizes_attr( $attr ) {
 
 	return $attr;
 }
-add_filter( 'wp_get_attachment_image_attributes', 'twentynineteen_post_thumbnail_sizes_attr', 10, 1 );
+add_filter( 'wp_get_attachment_image_attributes', 'twentynineteen_post_thumbnail_sizes_attr' );
 
 /**
  * Add an extra menu to our nav for our priority+ navigation to use
@@ -162,6 +165,18 @@ add_filter( 'wp_nav_menu', 'twentynineteen_add_ellipses_to_nav', 10, 2 );
  * for flyout and dropdown menus.
  *
  * @ref https://www.w3.org/WAI/tutorials/menus/flyout/
+ *
+ * @param array   $atts {
+ *     The HTML attributes applied to the menu item's `<a>` element, empty strings are ignored.
+ *
+ *     @type string $title        Title attribute.
+ *     @type string $target       Target attribute.
+ *     @type string $rel          The rel attribute.
+ *     @type string $href         The href attribute.
+ *     @type string $aria-current The aria-current attribute.
+ * }
+ * @param WP_Post $item The current menu item object.
+ * @return string[] Modified attributes.
  */
 function twentynineteen_nav_menu_link_attributes( $atts, $item ) {
 
