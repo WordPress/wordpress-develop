@@ -7,24 +7,31 @@
 class Tests_Formatting_LinksAddTarget extends WP_UnitTestCase {
 
 	/**
-	 * Validate the normalize_whitespace function
+	 * Tests the links_add_target() function.
 	 *
 	 * @dataProvider data_links_add_target
 	 */
-	public function test_links_add_target( $content, $target, $tags, $exp_str ) {
-		if ( true === is_null( $target ) ) {
-			$this->assertSame( $exp_str, links_add_target( $content ) );
-		} elseif ( true === is_null( $tags ) ) {
-			$this->assertSame( $exp_str, links_add_target( $content, $target ) );
+	public function test_links_add_target( $content, $target, $tags, $expected ) {
+		if ( is_null( $target ) ) {
+			$this->assertSame( $expected, links_add_target( $content ) );
+		} elseif ( is_null( $tags ) ) {
+			$this->assertSame( $expected, links_add_target( $content, $target ) );
 		} else {
-			$this->assertSame( $exp_str, links_add_target( $content, $target, $tags ) );
+			$this->assertSame( $expected, links_add_target( $content, $target, $tags ) );
 		}
 	}
 
 	/**
-	 * Test Content DataProvider
+	 * Data provider.
 	 *
-	 * array ( input_txt, converted_output_txt)
+	 * @return array {
+	 *     @type array {
+	 *         @type string $content  String to search for links in.
+	 *         @type string $target   The target to add to the links.
+	 *         @type string $tags     An array of tags to apply to.
+	 *         @type string $expected Expected output.
+	 *     }
+	 * }
 	 */
 	public function data_links_add_target() {
 		return array(

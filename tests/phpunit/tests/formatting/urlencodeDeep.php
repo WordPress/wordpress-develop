@@ -9,7 +9,19 @@
 class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 
 	/**
-	 * Data Provider
+	 * Tests the urlencode_deep() function pair by pair.
+	 *
+	 * @dataProvider data_urlencode_deep
+	 *
+	 * @param string $input
+	 * @param string $expected
+	 */
+	public function test_urlencode_deep_should_encode_individual_value( $input, $expected ) {
+		$this->assertSame( $expected, urlencode_deep( $input ) );
+	}
+
+	/**
+	 * Data provider.
 	 */
 	public function data_urlencode_deep() {
 		return array(
@@ -22,19 +34,7 @@ class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Validate the urlencode_deep function pair by pair
-	 *
-	 * @dataProvider data_urlencode_deep
-	 *
-	 * @param string $actual
-	 * @param string $expected
-	 */
-	public function test_urlencode_deep_should_encode_individual_value( $actual, $expected ) {
-		$this->assertSame( $expected, urlencode_deep( $actual ) );
-	}
-
-	/**
-	 * Test the whole array as input
+	 * Tests the whole array as input.
 	 */
 	public function test_urlencode_deep_should_encode_all_values_in_array() {
 		$data = $this->data_urlencode_deep();

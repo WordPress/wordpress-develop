@@ -9,29 +9,34 @@
 class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider data_convert_standard_smilies
+	 * Basic validation test to confirm that smilies are converted to image
+	 * when use_smilies = 1 and not when use_smilies = 0.
 	 *
-	 * Basic Validation Test to confirm that smilies are converted to image
-	 * when use_smilies = 1 and not when use_smilies = 0
+	 * @dataProvider data_convert_standard_smilies
 	 */
-	public function test_convert_standard_smilies( $in_txt, $converted_txt ) {
+	public function test_convert_standard_smilies( $input, $converted ) {
 		// Standard smilies, use_smilies: ON.
 		update_option( 'use_smilies', 1 );
 
 		smilies_init();
 
-		$this->assertSame( $converted_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $converted, convert_smilies( $input ) );
 
 		// Standard smilies, use_smilies: OFF.
 		update_option( 'use_smilies', 0 );
 
-		$this->assertSame( $in_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $input, convert_smilies( $input ) );
 	}
 
 	/**
-	 * Basic Test Content DataProvider
+	 * Data provider.
 	 *
-	 * array ( input_txt, converted_output_txt)
+	 * @return array {
+	 *     @type array {
+	 *         @type string $input     Input content.
+	 *         @type string $converted Converted output.
+	 *     }
+	 * }
 	 */
 	public function data_convert_standard_smilies() {
 		$includes_path = includes_url( 'images/smilies/' );
@@ -65,11 +70,11 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_convert_custom_smilies
+	 * Tests that custom smilies are converted to images when use_smilies = 1.
 	 *
-	 * Validate Custom Smilies are converted to images when use_smilies = 1
+	 * @dataProvider data_convert_custom_smilies
 	 */
-	public function test_convert_custom_smilies( $in_txt, $converted_txt ) {
+	public function test_convert_custom_smilies( $input, $converted ) {
 		global $wpsmiliestrans;
 
 		// Custom smilies, use_smilies: ON.
@@ -90,20 +95,25 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 
 		smilies_init();
 
-		$this->assertSame( $converted_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $converted, convert_smilies( $input ) );
 
 		// Standard smilies, use_smilies: OFF.
 		update_option( 'use_smilies', 0 );
 
-		$this->assertSame( $in_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $input, convert_smilies( $input ) );
 
 		$wpsmiliestrans = $trans_orig; // Reset original translations array.
 	}
 
 	/**
-	 * Custom Smilies Test Content DataProvider
+	 * Data provider.
 	 *
-	 * array ( input_txt, converted_output_txt)
+	 * @return array {
+	 *     @type array {
+	 *         @type string $input     Input content.
+	 *         @type string $converted Converted output.
+	 *     }
+	 * }
 	 */
 	public function data_convert_custom_smilies() {
 		$includes_path = includes_url( 'images/smilies/' );
@@ -125,8 +135,8 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Validate Conversion of Smilies is ignored in pre-determined tags
-	 * pre, code, script, style
+	 * Tests that conversion of smilies is ignored in pre-determined tags:
+	 * pre, code, script, style.
 	 *
 	 * @ticket 16448
 	 * @dataProvider data_ignore_smilies_in_tags
@@ -134,21 +144,27 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	public function test_ignore_smilies_in_tags( $element ) {
 		$includes_path = includes_url( 'images/smilies/' );
 
-		$in_str  = 'Do we ingore smilies ;-) in ' . $element . ' tags <' . $element . ' class="foo">My Content Here :?: </' . $element . '>';
-		$exp_str = "Do we ingore smilies \xf0\x9f\x98\x89 in $element tags <$element class=\"foo\">My Content Here :?: </$element>";
+		$input    = 'Do we ignore smilies ;-) in ' . $element . ' tags <' . $element . ' class="foo">My Content Here :?: </' . $element . '>';
+		$expected = "Do we ignore smilies \xf0\x9f\x98\x89 in $element tags <$element class=\"foo\">My Content Here :?: </$element>";
 
 		// Standard smilies, use_smilies: ON.
 		update_option( 'use_smilies', 1 );
 		smilies_init();
 
-		$this->assertSame( $exp_str, convert_smilies( $in_str ) );
+		$this->assertSame( $expected, convert_smilies( $input ) );
 
 		// Standard smilies, use_smilies: OFF.
 		update_option( 'use_smilies', 0 );
 	}
 
 	/**
-	 * DataProvider of HTML elements/tags that smilie matches should be ignored in
+	 * Data provider.
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @type string $element HTML tag name.
+	 *     }
+	 * }
 	 */
 	public function data_ignore_smilies_in_tags() {
 		return array(
@@ -161,27 +177,34 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Validate Combinations of Smilies separated by single space
-	 * are converted correctly
+	 * Tests that combinations of smilies separated by a single space
+	 * are converted correctly.
 	 *
 	 * @ticket 20124
 	 * @dataProvider data_smilies_combinations
 	 */
-	public function test_smilies_combinations( $in_txt, $converted_txt ) {
+	public function test_smilies_combinations( $input, $converted ) {
 		// Custom smilies, use_smilies: ON.
 		update_option( 'use_smilies', 1 );
 		smilies_init();
 
-		$this->assertSame( $converted_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $converted, convert_smilies( $input ) );
 
 		// Custom smilies, use_smilies: OFF.
 		update_option( 'use_smilies', 0 );
 
-		$this->assertSame( $in_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $input, convert_smilies( $input ) );
 	}
 
 	/**
-	 * DataProvider of Smilie Combinations
+	 * Data provider.
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @type string $input     Input content.
+	 *         @type string $converted Converted output.
+	 *     }
+	 * }
 	 */
 	public function data_smilies_combinations() {
 		$includes_path = includes_url( 'images/smilies/' );
@@ -215,13 +238,13 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Validate Smilies are converted for single smilie in
-	 * the $wpsmiliestrans global array
+	 * Tests that smilies are converted for single smilie in
+	 * the $wpsmiliestrans global array.
 	 *
 	 * @ticket 25303
 	 * @dataProvider data_single_smilies_in_wpsmiliestrans
 	 */
-	public function test_single_smilies_in_wpsmiliestrans( $in_txt, $converted_txt ) {
+	public function test_single_smilies_in_wpsmiliestrans( $input, $converted ) {
 		global $wpsmiliestrans;
 
 		// Standard smilies, use_smilies: ON.
@@ -239,18 +262,25 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 
 		smilies_init();
 
-		$this->assertSame( $converted_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $converted, convert_smilies( $input ) );
 
 		// Standard smilies, use_smilies: OFF.
 		update_option( 'use_smilies', 0 );
 
-		$this->assertSame( $in_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $input, convert_smilies( $input ) );
 
 		$wpsmiliestrans = $orig_trans; // Reset original translations array.
 	}
 
 	/**
-	 * DataProvider of Single Smilies input and converted output
+	 * Data provider.
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @type string $input     Input content.
+	 *         @type string $converted Converted output.
+	 *     }
+	 * }
 	 */
 	public function data_single_smilies_in_wpsmiliestrans() {
 		$includes_path = includes_url( 'images/smilies/' );
@@ -272,27 +302,37 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Check that $wp_smiliessearch pattern will match smilies
+	 * Tests that $wp_smiliessearch pattern will match smilies
 	 * between spaces, but never capture those spaces.
 	 *
-	 * Further check that spaces aren't randomly deleted
+	 * Further tests that spaces aren't randomly deleted
 	 * or added when replacing the text with an image.
 	 *
 	 * @ticket 22692
 	 * @dataProvider data_spaces_around_smilies
 	 */
-	public function test_spaces_around_smilies( $in_txt, $converted_txt ) {
+	public function test_spaces_around_smilies( $input, $converted ) {
 		// Standard smilies, use_smilies: ON.
 		update_option( 'use_smilies', 1 );
 
 		smilies_init();
 
-		$this->assertSame( $converted_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $converted, convert_smilies( $input ) );
 
 		// Standard smilies, use_smilies: OFF.
 		update_option( 'use_smilies', 0 );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @type string $input     Input content.
+	 *         @type string $converted Converted output.
+	 *     }
+	 * }
+	 */
 	public function data_spaces_around_smilies() {
 		$nbsp = "\xC2\xA0";
 

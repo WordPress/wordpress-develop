@@ -7,18 +7,23 @@
 class Tests_Formatting_NormalizeWhitespace extends WP_UnitTestCase {
 
 	/**
-	 * Validate the normalize_whitespace function
+	 * Tests the the normalize_whitespace() function.
 	 *
 	 * @dataProvider data_normalize_whitespace
 	 */
-	public function test_normalize_whitespace( $in_str, $exp_str ) {
-		$this->assertSame( $exp_str, normalize_whitespace( $in_str ) );
+	public function test_normalize_whitespace( $input, $expected ) {
+		$this->assertSame( $expected, normalize_whitespace( $input ) );
 	}
 
 	/**
-	 * WhitespaceTest Content DataProvider
+	 * Data provider.
 	 *
-	 * array( input_txt, converted_output_txt)
+	 * @return array {
+	 *     @type array {
+	 *         @type string $input    Input content.
+	 *         @type string $expected Expected output.
+	 *     }
+	 * }
 	 */
 	public function data_normalize_whitespace() {
 		return array(

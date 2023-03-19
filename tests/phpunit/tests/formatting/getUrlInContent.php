@@ -8,18 +8,23 @@
 class Tests_Formatting_GetUrlInContent extends WP_UnitTestCase {
 
 	/**
-	 * Validate the get_url_in_content function
+	 * Tests the get_url_in_content() function.
 	 *
 	 * @dataProvider data_get_url_in_content
 	 */
-	public function test_get_url_in_content( $in_str, $exp_str ) {
-		$this->assertSame( $exp_str, get_url_in_content( $in_str ) );
+	public function test_get_url_in_content( $input, $expected ) {
+		$this->assertSame( $expected, get_url_in_content( $input ) );
 	}
 
 	/**
-	 * URL Content Data Provider
+	 * Data provider.
 	 *
-	 * array ( input_txt, converted_output_txt )
+	 * @return array {
+	 *     @type array {
+	 *         @type string $input    Input content.
+	 *         @type string $expected Expected output.
+	 *     }
+	 * }
 	 */
 	public function data_get_url_in_content() {
 		return array(

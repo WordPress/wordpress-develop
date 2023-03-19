@@ -947,7 +947,7 @@ EOF;
 	}
 
 	/**
-	 * Data Provider for test_safecss_filter_attr().
+	 * Data provider for test_safecss_filter_attr().
 	 *
 	 * @return array {
 	 *     @type array {
@@ -1580,7 +1580,7 @@ EOF;
 	}
 
 	/**
-	 * Data Provider for test_safecss_filter_attr_filtered().
+	 * Data provider for test_safecss_filter_attr_filtered().
 	 *
 	 * @return array {
 	 *     @type array {
