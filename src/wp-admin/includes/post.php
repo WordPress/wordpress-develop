@@ -665,7 +665,7 @@ function bulk_edit_posts( $post_data = null ) {
 		unset( $post_data['tax_input']['post_format'] );
 
 		// Reset post date of scheduled post to be published.
-		if ( 'future' === $post->post_status && 'publish' === $post_data['post_status'] ) {
+		if ( in_array( $post->post_status, array( 'future', 'draft' ), true ) && 'publish' === $post_data['post_status'] ) {
 			$post_data['post_date']     = current_time( 'mysql' );
 			$post_data['post_date_gmt'] = '';
 		}
