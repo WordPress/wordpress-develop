@@ -9,11 +9,31 @@
 class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 
 	/**
+	 * @dataProvider data_convert_standard_smilies
+	 *
+	 * Basic Validation Test to confirm that smilies are converted to image
+	 * when use_smilies = 1 and not when use_smilies = 0
+	 */
+	public function test_convert_standard_smilies( $in_txt, $converted_txt ) {
+		// Standard smilies, use_smilies: ON.
+		update_option( 'use_smilies', 1 );
+
+		smilies_init();
+
+		$this->assertSame( $converted_txt, convert_smilies( $in_txt ) );
+
+		// Standard smilies, use_smilies: OFF.
+		update_option( 'use_smilies', 0 );
+
+		$this->assertSame( $in_txt, convert_smilies( $in_txt ) );
+	}
+
+	/**
 	 * Basic Test Content DataProvider
 	 *
 	 * array ( input_txt, converted_output_txt)
 	 */
-	public function get_smilies_input_output() {
+	public function data_convert_standard_smilies() {
 		$includes_path = includes_url( 'images/smilies/' );
 
 		return array(
@@ -45,51 +65,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider get_smilies_input_output
-	 *
-	 * Basic Validation Test to confirm that smilies are converted to image
-	 * when use_smilies = 1 and not when use_smilies = 0
-	 */
-	public function test_convert_standard_smilies( $in_txt, $converted_txt ) {
-		// Standard smilies, use_smilies: ON.
-		update_option( 'use_smilies', 1 );
-
-		smilies_init();
-
-		$this->assertSame( $converted_txt, convert_smilies( $in_txt ) );
-
-		// Standard smilies, use_smilies: OFF.
-		update_option( 'use_smilies', 0 );
-
-		$this->assertSame( $in_txt, convert_smilies( $in_txt ) );
-	}
-
-	/**
-	 * Custom Smilies Test Content DataProvider
-	 *
-	 * array ( input_txt, converted_output_txt)
-	 */
-	public function get_custom_smilies_input_output() {
-		$includes_path = includes_url( 'images/smilies/' );
-
-		return array(
-			array(
-				'Peter Brian Gabriel (born 13 February 1950) is a British singer, musician, and songwriter who rose to fame as the lead vocalist and flautist of the progressive rock group Genesis. :monkey:',
-				'Peter Brian Gabriel (born 13 February 1950) is a British singer, musician, and songwriter who rose to fame as the lead vocalist and flautist of the progressive rock group Genesis. <img src="' . $includes_path . 'icon_shock_the_monkey.gif" alt=":monkey:" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
-			),
-			array(
-				'Star Wars Jedi Knight :arrow: Jedi Academy is a first and third-person shooter action game set in the Star Wars universe. It was developed by Raven Software and published, distributed and marketed by LucasArts in North America and by Activision in the rest of the world. :nervou:',
-				'Star Wars Jedi Knight <img src="' . $includes_path . 'icon_arrow.gif" alt=":arrow:" class="wp-smiley" style="height: 1em; max-height: 1em;" /> Jedi Academy is a first and third-person shooter action game set in the Star Wars universe. It was developed by Raven Software and published, distributed and marketed by LucasArts in North America and by Activision in the rest of the world. <img src="' . $includes_path . 'icon_nervou.gif" alt=":nervou:" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
-			),
-			array(
-				':arrow: monkey: Lorem ipsum dolor sit amet enim. Etiam ullam :PP <br />corper. Suspendisse a pellentesque dui, non felis.<a> :arrow: :arrow</a>',
-				'<img src="' . $includes_path . 'icon_arrow.gif" alt=":arrow:" class="wp-smiley" style="height: 1em; max-height: 1em;" /> monkey: Lorem ipsum dolor sit amet enim. Etiam ullam <img src="' . $includes_path . 'icon_tongue.gif" alt=":PP" class="wp-smiley" style="height: 1em; max-height: 1em;" /> <br />corper. Suspendisse a pellentesque dui, non felis.<a> <img src="' . $includes_path . 'icon_arrow.gif" alt=":arrow:" class="wp-smiley" style="height: 1em; max-height: 1em;" /> :arrow</a>',
-			),
-		);
-	}
-
-	/**
-	 * @dataProvider get_custom_smilies_input_output
+	 * @dataProvider data_convert_custom_smilies
 	 *
 	 * Validate Custom Smilies are converted to images when use_smilies = 1
 	 */
@@ -124,17 +100,27 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 		$wpsmiliestrans = $trans_orig; // Reset original translations array.
 	}
 
-
 	/**
-	 * DataProvider of HTML elements/tags that smilie matches should be ignored in
+	 * Custom Smilies Test Content DataProvider
+	 *
+	 * array ( input_txt, converted_output_txt)
 	 */
-	public function get_smilies_ignore_tags() {
+	public function data_convert_custom_smilies() {
+		$includes_path = includes_url( 'images/smilies/' );
+
 		return array(
-			array( 'pre' ),
-			array( 'code' ),
-			array( 'script' ),
-			array( 'style' ),
-			array( 'textarea' ),
+			array(
+				'Peter Brian Gabriel (born 13 February 1950) is a British singer, musician, and songwriter who rose to fame as the lead vocalist and flautist of the progressive rock group Genesis. :monkey:',
+				'Peter Brian Gabriel (born 13 February 1950) is a British singer, musician, and songwriter who rose to fame as the lead vocalist and flautist of the progressive rock group Genesis. <img src="' . $includes_path . 'icon_shock_the_monkey.gif" alt=":monkey:" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+			),
+			array(
+				'Star Wars Jedi Knight :arrow: Jedi Academy is a first and third-person shooter action game set in the Star Wars universe. It was developed by Raven Software and published, distributed and marketed by LucasArts in North America and by Activision in the rest of the world. :nervou:',
+				'Star Wars Jedi Knight <img src="' . $includes_path . 'icon_arrow.gif" alt=":arrow:" class="wp-smiley" style="height: 1em; max-height: 1em;" /> Jedi Academy is a first and third-person shooter action game set in the Star Wars universe. It was developed by Raven Software and published, distributed and marketed by LucasArts in North America and by Activision in the rest of the world. <img src="' . $includes_path . 'icon_nervou.gif" alt=":nervou:" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+			),
+			array(
+				':arrow: monkey: Lorem ipsum dolor sit amet enim. Etiam ullam :PP <br />corper. Suspendisse a pellentesque dui, non felis.<a> :arrow: :arrow</a>',
+				'<img src="' . $includes_path . 'icon_arrow.gif" alt=":arrow:" class="wp-smiley" style="height: 1em; max-height: 1em;" /> monkey: Lorem ipsum dolor sit amet enim. Etiam ullam <img src="' . $includes_path . 'icon_tongue.gif" alt=":PP" class="wp-smiley" style="height: 1em; max-height: 1em;" /> <br />corper. Suspendisse a pellentesque dui, non felis.<a> <img src="' . $includes_path . 'icon_arrow.gif" alt=":arrow:" class="wp-smiley" style="height: 1em; max-height: 1em;" /> :arrow</a>',
+			),
 		);
 	}
 
@@ -143,7 +129,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	 * pre, code, script, style
 	 *
 	 * @ticket 16448
-	 * @dataProvider get_smilies_ignore_tags
+	 * @dataProvider data_ignore_smilies_in_tags
 	 */
 	public function test_ignore_smilies_in_tags( $element ) {
 		$includes_path = includes_url( 'images/smilies/' );
@@ -162,9 +148,42 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	}
 
 	/**
+	 * DataProvider of HTML elements/tags that smilie matches should be ignored in
+	 */
+	public function data_ignore_smilies_in_tags() {
+		return array(
+			array( 'pre' ),
+			array( 'code' ),
+			array( 'script' ),
+			array( 'style' ),
+			array( 'textarea' ),
+		);
+	}
+
+	/**
+	 * Validate Combinations of Smilies separated by single space
+	 * are converted correctly
+	 *
+	 * @ticket 20124
+	 * @dataProvider data_smilies_combinations
+	 */
+	public function test_smilies_combinations( $in_txt, $converted_txt ) {
+		// Custom smilies, use_smilies: ON.
+		update_option( 'use_smilies', 1 );
+		smilies_init();
+
+		$this->assertSame( $converted_txt, convert_smilies( $in_txt ) );
+
+		// Custom smilies, use_smilies: OFF.
+		update_option( 'use_smilies', 0 );
+
+		$this->assertSame( $in_txt, convert_smilies( $in_txt ) );
+	}
+
+	/**
 	 * DataProvider of Smilie Combinations
 	 */
-	public function get_smilies_combinations() {
+	public function data_smilies_combinations() {
 		$includes_path = includes_url( 'images/smilies/' );
 
 		return array(
@@ -196,53 +215,11 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Validate Combinations of Smilies separated by single space
-	 * are converted correctly
-	 *
-	 * @ticket 20124
-	 * @dataProvider get_smilies_combinations
-	 */
-	public function test_smilies_combinations( $in_txt, $converted_txt ) {
-		// Custom smilies, use_smilies: ON.
-		update_option( 'use_smilies', 1 );
-		smilies_init();
-
-		$this->assertSame( $converted_txt, convert_smilies( $in_txt ) );
-
-		// Custom smilies, use_smilies: OFF.
-		update_option( 'use_smilies', 0 );
-
-		$this->assertSame( $in_txt, convert_smilies( $in_txt ) );
-	}
-
-	/**
-	 * DataProvider of Single Smilies input and converted output
-	 */
-	public function get_single_smilies_input_output() {
-		$includes_path = includes_url( 'images/smilies/' );
-
-		return array(
-			array(
-				'8-O :-(',
-				'8-O :-(',
-			),
-			array(
-				'8O :) additional text here :)',
-				'8O <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" /> additional text here <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
-			),
-			array(
-				':) :) :) :)',
-				'<img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" /> <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" /> <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" /> <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
-			),
-		);
-	}
-
-	/**
 	 * Validate Smilies are converted for single smilie in
 	 * the $wpsmiliestrans global array
 	 *
 	 * @ticket 25303
-	 * @dataProvider get_single_smilies_input_output
+	 * @dataProvider data_single_smilies_in_wpsmiliestrans
 	 */
 	public function test_single_smilies_in_wpsmiliestrans( $in_txt, $converted_txt ) {
 		global $wpsmiliestrans;
@@ -272,7 +249,51 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 		$wpsmiliestrans = $orig_trans; // Reset original translations array.
 	}
 
-	public function get_spaces_around_smilies() {
+	/**
+	 * DataProvider of Single Smilies input and converted output
+	 */
+	public function data_single_smilies_in_wpsmiliestrans() {
+		$includes_path = includes_url( 'images/smilies/' );
+
+		return array(
+			array(
+				'8-O :-(',
+				'8-O :-(',
+			),
+			array(
+				'8O :) additional text here :)',
+				'8O <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" /> additional text here <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+			),
+			array(
+				':) :) :) :)',
+				'<img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" /> <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" /> <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" /> <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+			),
+		);
+	}
+
+	/**
+	 * Check that $wp_smiliessearch pattern will match smilies
+	 * between spaces, but never capture those spaces.
+	 *
+	 * Further check that spaces aren't randomly deleted
+	 * or added when replacing the text with an image.
+	 *
+	 * @ticket 22692
+	 * @dataProvider data_spaces_around_smilies
+	 */
+	public function test_spaces_around_smilies( $in_txt, $converted_txt ) {
+		// Standard smilies, use_smilies: ON.
+		update_option( 'use_smilies', 1 );
+
+		smilies_init();
+
+		$this->assertSame( $converted_txt, convert_smilies( $in_txt ) );
+
+		// Standard smilies, use_smilies: OFF.
+		update_option( 'use_smilies', 0 );
+	}
+
+	public function data_spaces_around_smilies() {
 		$nbsp = "\xC2\xA0";
 
 		return array(
@@ -289,28 +310,6 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 				"test {$nbsp}\xf0\x9f\x99\x82{$nbsp}smile",
 			),
 		);
-	}
-
-	/**
-	 * Check that $wp_smiliessearch pattern will match smilies
-	 * between spaces, but never capture those spaces.
-	 *
-	 * Further check that spaces aren't randomly deleted
-	 * or added when replacing the text with an image.
-	 *
-	 * @ticket 22692
-	 * @dataProvider get_spaces_around_smilies
-	 */
-	public function test_spaces_around_smilies( $in_txt, $converted_txt ) {
-		// Standard smilies, use_smilies: ON.
-		update_option( 'use_smilies', 1 );
-
-		smilies_init();
-
-		$this->assertSame( $converted_txt, convert_smilies( $in_txt ) );
-
-		// Standard smilies, use_smilies: OFF.
-		update_option( 'use_smilies', 0 );
 	}
 
 	/**

@@ -937,7 +937,7 @@ EOF;
 	 * @ticket 48376
 	 * @ticket 55966
 	 * @ticket 56122
-	 * @dataProvider data_test_safecss_filter_attr
+	 * @dataProvider data_safecss_filter_attr
 	 *
 	 * @param string $css      A string of CSS rules.
 	 * @param string $expected Expected string of CSS rules.
@@ -956,7 +956,7 @@ EOF;
 	 *     }
 	 * }
 	 */
-	public function data_test_safecss_filter_attr() {
+	public function data_safecss_filter_attr() {
 		return array(
 			// Empty input, empty output.
 			array(
@@ -1568,7 +1568,7 @@ EOF;
 	 *
 	 * @ticket 37134
 	 *
-	 * @dataProvider data_test_safecss_filter_attr_filtered
+	 * @dataProvider data_safecss_filter_attr_filtered
 	 *
 	 * @param string $css      A string of CSS rules.
 	 * @param string $expected Expected string of CSS rules.
@@ -1589,7 +1589,7 @@ EOF;
 	 *     }
 	 * }
 	 */
-	public function data_test_safecss_filter_attr_filtered() {
+	public function data_safecss_filter_attr_filtered() {
 		return array(
 
 			// A single attribute name, with a single value.

@@ -5,12 +5,22 @@
  * @covers ::normalize_whitespace
  */
 class Tests_Formatting_NormalizeWhitespace extends WP_UnitTestCase {
+
+	/**
+	 * Validate the normalize_whitespace function
+	 *
+	 * @dataProvider data_normalize_whitespace
+	 */
+	public function test_normalize_whitespace( $in_str, $exp_str ) {
+		$this->assertSame( $exp_str, normalize_whitespace( $in_str ) );
+	}
+
 	/**
 	 * WhitespaceTest Content DataProvider
 	 *
 	 * array( input_txt, converted_output_txt)
 	 */
-	public function get_input_output() {
+	public function data_normalize_whitespace() {
 		return array(
 			array(
 				'		',
@@ -41,14 +51,5 @@ class Tests_Formatting_NormalizeWhitespace extends WP_UnitTestCase {
 				'MY TEST CONTENT',
 			),
 		);
-	}
-
-	/**
-	 * Validate the normalize_whitespace function
-	 *
-	 * @dataProvider get_input_output
-	 */
-	public function test_normalize_whitespace( $in_str, $exp_str ) {
-		$this->assertSame( $exp_str, normalize_whitespace( $in_str ) );
 	}
 }

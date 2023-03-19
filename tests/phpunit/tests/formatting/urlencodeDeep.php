@@ -11,7 +11,7 @@ class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 	/**
 	 * Data Provider
 	 */
-	public function data_test_values() {
+	public function data_urlencode_deep() {
 		return array(
 			array( 'qwerty123456', 'qwerty123456' ),
 			array( '|!"£$%&/()=?', '%7C%21%22%C2%A3%24%25%26%2F%28%29%3D%3F' ),
@@ -24,7 +24,7 @@ class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 	/**
 	 * Validate the urlencode_deep function pair by pair
 	 *
-	 * @dataProvider data_test_values
+	 * @dataProvider data_urlencode_deep
 	 *
 	 * @param string $actual
 	 * @param string $expected
@@ -37,7 +37,7 @@ class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 	 * Test the whole array as input
 	 */
 	public function test_urlencode_deep_should_encode_all_values_in_array() {
-		$data = $this->data_test_values();
+		$data = $this->data_urlencode_deep();
 
 		$actual   = wp_list_pluck( $data, 0 );
 		$expected = wp_list_pluck( $data, 1 );

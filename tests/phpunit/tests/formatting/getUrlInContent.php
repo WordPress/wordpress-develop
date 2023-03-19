@@ -8,11 +8,20 @@
 class Tests_Formatting_GetUrlInContent extends WP_UnitTestCase {
 
 	/**
+	 * Validate the get_url_in_content function
+	 *
+	 * @dataProvider data_get_url_in_content
+	 */
+	public function test_get_url_in_content( $in_str, $exp_str ) {
+		$this->assertSame( $exp_str, get_url_in_content( $in_str ) );
+	}
+
+	/**
 	 * URL Content Data Provider
 	 *
 	 * array ( input_txt, converted_output_txt )
 	 */
-	public function get_input_output() {
+	public function data_get_url_in_content() {
 		return array(
 			array( // Empty content.
 				'',
@@ -39,14 +48,5 @@ class Tests_Formatting_GetUrlInContent extends WP_UnitTestCase {
 				'http://example.com/Mr%20WordPress%202',
 			),
 		);
-	}
-
-	/**
-	 * Validate the get_url_in_content function
-	 *
-	 * @dataProvider get_input_output
-	 */
-	public function test_get_url_in_content( $in_str, $exp_str ) {
-		$this->assertSame( $exp_str, get_url_in_content( $in_str ) );
 	}
 }

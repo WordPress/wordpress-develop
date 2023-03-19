@@ -5,12 +5,28 @@
  * @covers ::links_add_target
  */
 class Tests_Formatting_LinksAddTarget extends WP_UnitTestCase {
+
+	/**
+	 * Validate the normalize_whitespace function
+	 *
+	 * @dataProvider data_links_add_target
+	 */
+	public function test_links_add_target( $content, $target, $tags, $exp_str ) {
+		if ( true === is_null( $target ) ) {
+			$this->assertSame( $exp_str, links_add_target( $content ) );
+		} elseif ( true === is_null( $tags ) ) {
+			$this->assertSame( $exp_str, links_add_target( $content, $target ) );
+		} else {
+			$this->assertSame( $exp_str, links_add_target( $content, $target, $tags ) );
+		}
+	}
+
 	/**
 	 * Test Content DataProvider
 	 *
 	 * array ( input_txt, converted_output_txt)
 	 */
-	public function get_input_output() {
+	public function data_links_add_target() {
 		return array(
 			array(
 				'MY CONTENT <div> SOME ADDITIONAL TEXT <a href="XYZ" src="ABC">LINK</a> HERE </div> END TEXT',
@@ -91,20 +107,5 @@ class Tests_Formatting_LinksAddTarget extends WP_UnitTestCase {
 				'MY CONTENT <blockquote target="_self">SOME</blockquote> ADDITIONAL TEXT <b target="_blank">LINK</b> HERE END TEXT',
 			),
 		);
-	}
-
-	/**
-	 * Validate the normalize_whitespace function
-	 *
-	 * @dataProvider get_input_output
-	 */
-	public function test_normalize_whitespace( $content, $target, $tags, $exp_str ) {
-		if ( true === is_null( $target ) ) {
-			$this->assertSame( $exp_str, links_add_target( $content ) );
-		} elseif ( true === is_null( $tags ) ) {
-			$this->assertSame( $exp_str, links_add_target( $content, $target ) );
-		} else {
-			$this->assertSame( $exp_str, links_add_target( $content, $target, $tags ) );
-		}
 	}
 }
