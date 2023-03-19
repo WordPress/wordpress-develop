@@ -452,7 +452,7 @@ class WP_Comment_Query {
 		$last_changed = wp_cache_get_last_changed( 'comment' );
 
 		$cache_key   = "get_comments:$key:$last_changed";
-		$cache_value = wp_cache_get( $cache_key, 'comment' );
+		$cache_value = wp_cache_get( $cache_key, 'comment-queries' );
 		if ( false === $cache_value ) {
 			$comment_ids = $this->get_comment_ids();
 			if ( $comment_ids ) {
@@ -463,7 +463,7 @@ class WP_Comment_Query {
 				'comment_ids'    => $comment_ids,
 				'found_comments' => $this->found_comments,
 			);
-			wp_cache_add( $cache_key, $cache_value, 'comment' );
+			wp_cache_add( $cache_key, $cache_value, 'comment-queries' );
 		} else {
 			$comment_ids          = $cache_value['comment_ids'];
 			$this->found_comments = $cache_value['found_comments'];
@@ -584,8 +584,6 @@ class WP_Comment_Query {
 		if ( ! empty( $this->query_vars['include_unapproved'] ) ) {
 			$include_unapproved = wp_parse_list( $this->query_vars['include_unapproved'] );
 
-			$unapproved_ids    = array();
-			$unapproved_emails = array();
 			foreach ( $include_unapproved as $unapproved_identifier ) {
 				// Numeric values are assumed to be user IDs.
 				if ( is_numeric( $unapproved_identifier ) ) {
@@ -1013,14 +1011,10 @@ class WP_Comment_Query {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
 	 * @param WP_Comment[] $comments Array of top-level comments whose descendants should be filled in.
 	 * @return array
 	 */
 	protected function fill_descendants( $comments ) {
-		global $wpdb;
-
 		$levels = array(
 			0 => wp_list_pluck( $comments, 'comment_ID' ),
 		);
@@ -1038,7 +1032,7 @@ class WP_Comment_Query {
 			$_parent_ids         = $levels[ $level ];
 			foreach ( $_parent_ids as $parent_id ) {
 				$cache_key        = "get_comment_child_ids:$parent_id:$key:$last_changed";
-				$parent_child_ids = wp_cache_get( $cache_key, 'comment' );
+				$parent_child_ids = wp_cache_get( $cache_key, 'comment-queries' );
 				if ( false !== $parent_child_ids ) {
 					$child_ids = array_merge( $child_ids, $parent_child_ids );
 				} else {
@@ -1072,7 +1066,7 @@ class WP_Comment_Query {
 					$cache_key          = "get_comment_child_ids:$parent_id:$key:$last_changed";
 					$data[ $cache_key ] = $children;
 				}
-				wp_cache_set_multiple( $data, 'comment' );
+				wp_cache_set_multiple( $data, 'comment-queries' );
 			}
 
 			$level++;
