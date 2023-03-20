@@ -12,17 +12,6 @@ require_once __DIR__ . '/base.php';
 class Tests_Themes_WpEnqueueStoredStyles extends WP_Theme_UnitTestCase {
 
 	/**
-	 * Cleans up global scope.
-	 *
-	 * @global WP_Styles $wp_styles
-	 */
-	public function clean_up_global_scope() {
-		global $wp_styles;
-		parent::clean_up_global_scope();
-		$wp_styles = null;
-	}
-
-	/**
 	 * Tests that stored CSS is enqueued.
 	 *
 	 * @ticket 56467
