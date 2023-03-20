@@ -839,6 +839,7 @@ final class WP_Post_Type {
 			'search_items'             => array( __( 'Search Posts' ), __( 'Search Pages' ) ),
 			'not_found'                => array( __( 'No posts found.' ), __( 'No pages found.' ) ),
 			'not_found_in_trash'       => array( __( 'No posts found in Trash.' ), __( 'No pages found in Trash.' ) ),
+			'item_trashed'             => array( __( 'Post trashed.' ), __( 'Page trashed.' ) ),
 			'parent_item_colon'        => array( null, __( 'Parent Page:' ) ),
 			'all_items'                => array( __( 'All Posts' ), __( 'All Pages' ) ),
 			'archives'                 => array( __( 'Post Archives' ), __( 'Page Archives' ) ),
