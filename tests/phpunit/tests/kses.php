@@ -1316,6 +1316,11 @@ EOF;
 				'css'      => 'aspect-ratio: url( https://wordpress.org/wp-content/uploads/aspect-ratio.jpg );',
 				'expected' => '',
 			),
+			// URL support for `filter` introduced in 6.3.
+			array(
+				'css'      => 'filter: url( my-file.svg#svg-blur );',
+				'expected' => 'filter: url( my-file.svg#svg-blur )',
+			),
 		);
 	}
 
