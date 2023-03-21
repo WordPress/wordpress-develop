@@ -990,6 +990,7 @@ class WP_Object_Cache {
 
 			return true;
 		}
+
 		$expiration = $this->sanitize_expiration( $expiration );
 
 		// Save to Memcached.
