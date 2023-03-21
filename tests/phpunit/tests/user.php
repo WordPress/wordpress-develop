@@ -916,6 +916,69 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57967
+	 */
+	public function test_wp_update_user_should_allow_user_login_with_same_user_email() {
+		$user_email = str_repeat( 'a', 5 ) . '@example.com';
+
+		$user_id = wp_insert_user(
+			array(
+				'user_login'    => $user_email,
+				'user_email'    => $user_email,
+				'user_pass'     => 'whatever',
+				'user_nicename' => 'whatever',
+			)
+		);
+
+		$existing_id = wp_update_user(
+			array(
+				'ID'         => $user_id,
+				'first_name' => 'Bob',
+			)
+		);
+
+		$this->assertNotWPError( $existing_id );
+		$this->assertSame( $existing_id, $user_id );
+	}
+
+	/**
+	 * @ticket 57967
+	 */
+	public function test_wp_update_user_should_reject_user_login_that_matches_existing_user_email() {
+		$user_email_a = str_repeat( 'a', 5 ) . '@example.com';
+
+		$user_id_a = wp_insert_user(
+			array(
+				'user_login'    => $user_email_a,
+				'user_email'    => $user_email_a,
+				'user_pass'     => 'whatever',
+				'user_nicename' => 'whatever',
+			)
+		);
+
+		$user_email_b = str_repeat( 'b', 5 ) . '@example.com';
+
+		$user_id_b = wp_insert_user(
+			array(
+				'user_login'    => $user_email_b,
+				'user_email'    => $user_email_b,
+				'user_pass'     => 'whatever',
+				'user_nicename' => 'whatever',
+			)
+		);
+
+		$existing_id_b = wp_update_user(
+			array(
+				'ID'         => $user_id_b,
+				'user_login' => $user_email_a,
+			)
+		);
+
+		$this->assertWPError( $existing_id_b );
+		$this->assertSame( 'existing_user_email_as_login', $existing_id_b->get_error_code() );
+	}
+
+	/**
 	 * @ticket 33793
 	 */
 	public function test_wp_insert_user_should_reject_user_nicename_over_50_characters() {
