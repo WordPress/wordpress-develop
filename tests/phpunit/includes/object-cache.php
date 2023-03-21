@@ -977,20 +977,21 @@ class WP_Object_Cache {
 		}
 
 		$derived_key = $this->buildKey( $key, $group );
-		$expiration  = $this->sanitize_expiration( $expiration );
+
+		// Add does not set the value if the key exists; mimic that here.
+		if ( isset( $this->cache[ $derived_key ] ) ) {
+			return false;
+		}
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached.
 		if ( in_array( $group, $this->no_mc_groups, true ) ) {
-
-			// Add does not set the value if the key exists; mimic that here.
-			if ( isset( $this->cache[ $derived_key ] ) ) {
-				return false;
-			}
 
 			$this->add_to_internal_cache( $derived_key, $value );
 
 			return true;
 		}
+
+		$expiration = $this->sanitize_expiration( $expiration );
 
 		// Save to Memcached.
 		if ( $by_key ) {
