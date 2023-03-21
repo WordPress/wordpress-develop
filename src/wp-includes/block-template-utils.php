@@ -298,7 +298,6 @@ function _get_block_template_file( $template_type, $slug ) {
  *     Arguments to retrieve templates. Optional, empty by default.
  *
  *     @type array  $slug__in  List of slugs to include.
- *     @type int    $wp_id     Post ID of customized template.
  *     @type string $area      A 'wp_template_part_area' taxonomy value to filter by (for wp_template_part template type only).
  *     @type string $post_type Post type to get the templates for.
  * }
