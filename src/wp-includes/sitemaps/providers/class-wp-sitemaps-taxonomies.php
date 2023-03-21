@@ -113,7 +113,7 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 					'loc' => $term_link,
 				);
 
-				// Get last modified date from the latest post in this taxonomy.
+				// Get last modified date from the latest post using this term.
 				$post = new WP_Query(
 					array(
 						'post_type'              => 'any',
