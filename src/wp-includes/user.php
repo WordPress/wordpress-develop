@@ -2129,7 +2129,8 @@ function wp_insert_user( $userdata ) {
 	}
 
 	// Username must not match an existing user email.
-	if ( email_exists( $user_login ) ) {
+	$existing_user_id = email_exists( $user_login );
+	if ( $existing_user_id && ( ! $update || ( isset( $user_id ) && $existing_user_id !== $user_id ) ) ) {
 		return new WP_Error( 'existing_user_email_as_login', __( 'Sorry, that username is not available.' ) );
 	}
 
