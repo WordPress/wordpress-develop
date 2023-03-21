@@ -916,10 +916,13 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `wp_update_user()` allows updating a user when
+	 * the `user_login` and `user_email` are the same.
+	 *
 	 * @ticket 57967
 	 */
 	public function test_wp_update_user_should_allow_user_login_with_same_user_email() {
-		$user_email = str_repeat( 'a', 5 ) . '@example.com';
+		$user_email = 'ababa@example.com';
 
 		$user_id = wp_insert_user(
 			array(
@@ -937,15 +940,19 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotWPError( $existing_id );
-		$this->assertSame( $existing_id, $user_id );
+		$this->assertNotWPError( $existing_id, 'A WP_Error object was not returned.' );
+		$this->assertSame( $existing_id, $user_id, 'The user ID to be updated and the existing user ID do not match.' );
 	}
 
 	/**
+	 * Tests that `wp_update_user()` rejects a `user_login` that matches an existing `user_email`.
+	 *
 	 * @ticket 57967
+	 *
+	 * @covers ::wp_update_user
 	 */
 	public function test_wp_update_user_should_reject_user_login_that_matches_existing_user_email() {
-		$user_email_a = str_repeat( 'a', 5 ) . '@example.com';
+		$user_email_a = 'aaaaa@example.com';
 
 		$user_id_a = wp_insert_user(
 			array(
@@ -956,7 +963,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$user_email_b = str_repeat( 'b', 5 ) . '@example.com';
+		$user_email_b = 'bbbbb@example.com';
 
 		$user_id_b = wp_insert_user(
 			array(
@@ -974,8 +981,8 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertWPError( $existing_id_b );
-		$this->assertSame( 'existing_user_email_as_login', $existing_id_b->get_error_code() );
+		$this->assertWPError( $existing_id_b, 'A WP_Error object was not returned.' );
+		$this->assertSame( 'existing_user_email_as_login', $existing_id_b->get_error_code(), 'An unexpected error code was returned.' );
 	}
 
 	/**
