@@ -215,7 +215,7 @@ EXP;
 		$expected .= "<script type='text/javascript' id='ms-insa-4-js-after'>\n";
 		$expected .= "console.log(\"after one\");\n";
 		$expected .= "</script>\n";
-		array_push( $data, array( $expected, $output, 'No strategy; expected no type attribute for inline script.' ) );
+		array_push( $data, array( $expected, $output, 'No script strategy is present. Only the text/javascript type is expected for the inline script.' ) );
 
 		return $data;
 	}
