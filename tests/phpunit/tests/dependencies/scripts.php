@@ -204,7 +204,7 @@ EXP;
 		$expected .= "<script type='text/javascript' id='ms-insa-3-js-after'>\n";
 		$expected .= "console.log(\"after one\");\n";
 		$expected .= "</script>\n";
-		array_push( $data, array( $expected, $output, 'Main blocking; expected no type attribute for inline script.' ) );
+		array_push( $data, array( $expected, $output, 'The main script is blocking. Only the text/javascript type is expected for the inline script.' ) );
 
 		// If the main script with no strategy has a `after` inline script; the inline script is inserted as type='javascript'.
 		unregister_all_script_handles();
