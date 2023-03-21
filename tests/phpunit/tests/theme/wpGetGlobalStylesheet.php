@@ -139,18 +139,14 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_get_global_stylesheet() only includes font sizes
-	 * when themes do not use the "presets" types.
-	 *
 	 * @ticket 54782
 	 *
 	 * @dataProvider data_should_not_conditionally_include_font_sizes
 	 *
-	 * @param string $theme               The theme to switch to. Use 'default' for the default theme.
-	 * @param array  $types               Optional. Types of styles to load.
-	 *                                    Default empty array.
-	 * @param bool   $classic_has_presets Optional. Whether to apply presets for classic theme tests.
-	 *                                    Default false.
+	 * @param array  $expected            Expected CSS for each font size.
+	 * @param string $theme               The theme to switch to / use.
+	 * @param array  $types               Optional. Types of styles to load. Default empty array.
+	 * @param bool   $classic_has_presets Optional. Whether to apply presets for classic theme tests. Default false.
 	 */
 	public function test_should_not_conditionally_include_font_sizes( array $expected, $theme, array $types = array(), $classic_has_presets = false ) {
 		$this->maybe_switch_theme( $theme );
