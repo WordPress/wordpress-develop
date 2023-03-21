@@ -793,7 +793,7 @@ JS;
 	 *
 	 * @return bool True if script present. False if empty.
 	 */
-	public function maybe_has_delayed_inline_script() {
+	public function has_delayed_inline_script() {
 		foreach ( $this->registered as $handle => $script ) {
 			if ( in_array( $this->get_intended_strategy( $handle ), array( 'defer', 'async' ), true ) ) {
 				// non standalone after scripts of async or defer are usually delayed.
