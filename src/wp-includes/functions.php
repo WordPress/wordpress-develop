@@ -32,7 +32,8 @@ function mysql2date( $format, $date, $translate = true ) {
 		return false;
 	}
 
-	$datetime = date_create( $date, wp_timezone() );
+	$timezone = wp_timezone();
+	$datetime = date_create( $date, $timezone );
 
 	if ( false === $datetime ) {
 		return false;
@@ -44,7 +45,7 @@ function mysql2date( $format, $date, $translate = true ) {
 	}
 
 	if ( $translate ) {
-		return wp_date( $format, $datetime->getTimestamp() );
+		return wp_date( $format, $datetime->getTimestamp(), $timezone );
 	}
 
 	return $datetime->format( $format );
@@ -1196,6 +1197,10 @@ function add_query_arg( ...$args ) {
 /**
  * Removes an item or items from a query string.
  *
+ * Important: The return value of remove_query_arg() is not escaped by default. Output should be
+ * late-escaped with esc_url() or similar to help prevent vulnerability to cross-site scripting
+ * (XSS) attacks.
+ *
  * @since 1.5.0
  *
  * @param string|string[] $key   Query key or keys to remove.
@@ -1948,13 +1953,16 @@ function wp_original_referer_field( $display = true, $jump_back_to = 'current' )
  * @return string|false Referer URL on success, false on failure.
  */
 function wp_get_referer() {
+	// Return early if called before wp_validate_redirect() is defined.
 	if ( ! function_exists( 'wp_validate_redirect' ) ) {
 		return false;
 	}
 
 	$ref = wp_get_raw_referer();
 
-	if ( $ref && wp_unslash( $_SERVER['REQUEST_URI'] ) !== $ref && home_url() . wp_unslash( $_SERVER['REQUEST_URI'] ) !== $ref ) {
+	if ( $ref && wp_unslash( $_SERVER['REQUEST_URI'] ) !== $ref
+		&& home_url() . wp_unslash( $_SERVER['REQUEST_URI'] ) !== $ref
+	) {
 		return wp_validate_redirect( $ref, false );
 	}
 
@@ -1988,7 +1996,12 @@ function wp_get_raw_referer() {
  * @return string|false Original referer URL on success, false on failure.
  */
 function wp_get_original_referer() {
-	if ( ! empty( $_REQUEST['_wp_original_http_referer'] ) && function_exists( 'wp_validate_redirect' ) ) {
+	// Return early if called before wp_validate_redirect() is defined.
+	if ( ! function_exists( 'wp_validate_redirect' ) ) {
+		return false;
+	}
+
+	if ( ! empty( $_REQUEST['_wp_original_http_referer'] ) ) {
 		return wp_validate_redirect( wp_unslash( $_REQUEST['_wp_original_http_referer'] ), false );
 	}
 
@@ -6996,13 +7009,20 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
  * @since 3.4.0
  * @since 6.1.0 This function is no longer marked as "private".
  *
- * @param int[]  $object_ids Array of IDs.
- * @param string $cache_key  The cache bucket to check against.
+ * @param int[]  $object_ids  Array of IDs.
+ * @param string $cache_group The cache group to check against.
  * @return int[] Array of IDs not present in the cache.
  */
-function _get_non_cached_ids( $object_ids, $cache_key ) {
+function _get_non_cached_ids( $object_ids, $cache_group ) {
+	$object_ids = array_filter( $object_ids, '_validate_cache_id' );
+	$object_ids = array_unique( array_map( 'intval', $object_ids ), SORT_NUMERIC );
+
+	if ( empty( $object_ids ) ) {
+		return array();
+	}
+
 	$non_cached_ids = array();
-	$cache_values   = wp_cache_get_multiple( $object_ids, $cache_key );
+	$cache_values   = wp_cache_get_multiple( $object_ids, $cache_group );
 
 	foreach ( $cache_values as $id => $value ) {
 		if ( ! $value ) {
@@ -7011,6 +7031,34 @@ function _get_non_cached_ids( $object_ids, $cache_key ) {
 	}
 
 	return $non_cached_ids;
+}
+
+/**
+ * Checks whether the given cache ID is either an integer or an integer-like string.
+ *
+ * Both `16` and `"16"` are considered valid, other numeric types and numeric strings
+ * (`16.3` and `"16.3"`) are considered invalid.
+ *
+ * @since 6.3.0
+ *
+ * @param mixed $object_id The cache ID to validate.
+ * @return bool Whether the given $object_id is a valid cache ID.
+ */
+function _validate_cache_id( $object_id ) {
+	/*
+	 * filter_var() could be used here, but the `filter` PHP extension
+	 * is considered optional and may not be available.
+	 */
+	if ( is_int( $object_id )
+		|| ( is_string( $object_id ) && (string) (int) $object_id === $object_id ) ) {
+		return true;
+	}
+
+	/* translators: %s: The type of the given object ID. */
+	$message = sprintf( __( 'Object ID must be an integer, %s given.' ), gettype( $object_id ) );
+	_doing_it_wrong( '_get_non_cached_ids', $message, '6.3.0' );
+
+	return false;
 }
 
 /**
