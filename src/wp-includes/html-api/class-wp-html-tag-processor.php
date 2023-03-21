@@ -1072,7 +1072,7 @@ class WP_HTML_Tag_Processor {
 							continue 2;
 						}
 
-						$closer_at = $closer_at + 2;
+						$closer_at = $closer_at + 1;
 					}
 				}
 

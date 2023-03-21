@@ -1796,6 +1796,7 @@ HTML;
 			'Empty comment with four dashes'     => array( '<hr><!----><hr id=after>' ),
 			'Empty comment with four dashes, improperly closed' => array( '<hr><!----!><hr id=after>--><hr id=final>' ),
 			'Comment with four dashes, improperly closed twice' => array( '<hr><!----!><hr id=after>--!><hr id=final>' ),
+			'Comment with almost-closer inside'  => array( '<hr><!-- ---!><hr id=after>--!><hr id=final>' ),
 		);
 	}
 
