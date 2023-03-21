@@ -331,11 +331,13 @@ function create_initial_post_types() {
 		)
 	);
 
-	$template_edit_link = 'site-editor.php?' . build_query( array(
-		'postType' => '%s',
-		'postId'   => '%s',
-		'canvas'   => 'edit',
-	) );
+	$template_edit_link = 'site-editor.php?' . build_query(
+		array(
+			'postType' => '%s',
+			'postId'   => '%s',
+			'canvas'   => 'edit',
+		)
+	);
 
 	register_post_type(
 		'wp_template',
