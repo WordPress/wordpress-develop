@@ -290,30 +290,31 @@ function _get_block_template_file( $template_type, $slug ) {
  * Retrieves the template files from the theme.
  *
  * @since 5.9.0
- * @since 6.3.0 Added the `$query` and `$user_templates` parameters.
+ * @since 6.3.0 Added the `$query` parameter.
  * @access private
  *
  * @param string $template_type 'wp_template' or 'wp_template_part'.
  * @param array  $query {
  *     Arguments to retrieve templates. Optional, empty by default.
  *
- *     @type array  $slug__in  List of slugs to include.
- *     @type string $area      A 'wp_template_part_area' taxonomy value to filter by (for wp_template_part template type only).
- *     @type string $post_type Post type to get the templates for.
+ *     @type array  $slug__in      List of slugs to include.
+ *     @type array  $slug__not_in  List of slugs to skip.
+ *     @type string $area          A 'wp_template_part_area' taxonomy value to filter by (for wp_template_part template type only).
+ *     @type string $post_type     Post type to get the templates for.
  * }
- * @param array $user_templates Array of user templates that match the search. Optional, empty by default.
  *
  * @return array Template
  */
-function _get_block_templates_files( $template_type, $query = array(), $user_templates = array() ) {
+function _get_block_templates_files( $template_type, $query = array() ) {
 	if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
 		return null;
 	}
 
 	// Prepare metadata from $query.
-	$slugs     = isset( $query['slug__in'] ) ? $query['slug__in'] : array();
-	$area      = isset( $query['area'] ) ? $query['area'] : null;
-	$post_type = isset( $query['post_type'] ) ? $query['post_type'] : '';
+	$slugs_to_include = isset( $query['slug__in'] ) ? $query['slug__in'] : array();
+	$slugs_to_skip    = isset( $query['slug__not_in'] ) ? $query['slug__not_in'] : array();
+	$area             = isset( $query['area'] ) ? $query['area'] : null;
+	$post_type        = isset( $query['post_type'] ) ? $query['post_type'] : '';
 
 	$stylesheet = get_stylesheet();
 	$template   = get_template();
@@ -338,13 +339,13 @@ function _get_block_templates_files( $template_type, $query = array(), $user_tem
 				-5
 			);
 
-			// Skip this item if its slug doesn't match any of the list provided by the consumer.
-			if ( ! empty( $slugs ) && ( false === array_search( $template_slug, $slugs, true ) ) ) {
+			// Skip this item if its slug doesn't match any of the slugs to include.
+			if ( ! empty( $slugs_to_include ) && ( false === array_search( $template_slug, $slugs_to_include, true ) ) ) {
 				continue;
 			}
 
-			// Skip this item if there's already an user-provided item with the same slug.
-			if ( false !== array_search( $stylesheet . '//' . $template_slug, $user_templates, true ) ) {
+			// Skip this item if its slug matches any of the slugs to skip.
+			if ( ! empty( $slugs_to_skip ) && ( false !== array_search( $template_slug, $slugs_to_skip, true ) ) ) {
 				continue;
 			}
 
@@ -1017,8 +1018,12 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	}
 
 	if ( ! isset( $query['wp_id'] ) ) {
-		$user_templates = wp_list_pluck( $query_result, 'id' );
-		$template_files = _get_block_templates_files( $template_type, $query, $user_templates );
+		/*
+		 * If the query has found some use templates, those have priority
+		 * over the theme-provided ones, so we skip querying and building them.
+		 */
+		$query['slug__not_in'] = wp_list_pluck( $query_result, 'slug' );
+		$template_files        = _get_block_templates_files( $template_type, $query );
 		foreach ( $template_files as $template_file ) {
 			$query_result[] = _build_block_template_result_from_file( $template_file, $template_type );
 		}
