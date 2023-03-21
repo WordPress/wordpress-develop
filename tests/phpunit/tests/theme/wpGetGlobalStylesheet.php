@@ -213,11 +213,11 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 		$expected = '--wp--preset--font-size--custom: 100px;';
 
 		$stylesheet_for_default_theme = wp_get_global_stylesheet();
-		$this->assertStringNotContainsString( $expected, $stylesheet_for_default_theme, 'custom font size (100px) not present for default theme' );
+		$this->assertStringNotContainsString( $expected, $stylesheet_for_default_theme, 'Custom font size (100px) should not present for default theme' );
 
 		$this->maybe_switch_theme( 'block-theme' );
 		$stylesheet_for_block_theme = wp_get_global_stylesheet();
-		$this->assertStringContainsString( '--wp--preset--font-size--custom: 100px;', $stylesheet_for_block_theme, 'custom font size (100px) is present for block theme' );
+		$this->assertStringContainsString( $expected, $stylesheet_for_block_theme, 'Custom font size (100px) should be present for block theme' );
 	}
 
 	/**
