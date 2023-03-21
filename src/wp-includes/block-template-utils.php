@@ -316,11 +316,15 @@ function _get_block_templates_files( $template_type, $query = array(), $user_tem
 	$area      = isset( $query['area'] ) ? $query['area'] : null;
 	$post_type = isset( $query['post_type'] ) ? $query['post_type'] : '';
 
-	$stylesheet     = get_stylesheet();
-	$themes         = array(
-		$stylesheet    => get_stylesheet_directory(),
-		get_template() => get_template_directory(),
+	$stylesheet = get_stylesheet();
+	$template   = get_template();
+	$themes     = array(
+		$stylesheet => get_stylesheet_directory(),
 	);
+	// Add the parent theme if it's not the same as the current theme.
+	if ( $stylesheet !== $template ) {
+		$themes[ $template ] = get_template_directory();
+	}
 	$template_files = array();
 	foreach ( $themes as $theme_slug => $theme_dir ) {
 		$template_base_paths  = get_block_theme_folders( $theme_slug );
