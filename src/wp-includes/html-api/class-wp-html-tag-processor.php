@@ -1056,7 +1056,8 @@ class WP_HTML_Tag_Processor {
 					 *
 					 * See https://html.spec.whatwg.org/#parse-error-incorrectly-closed-comment
 					 */
-					while ( $closer_at < strlen( $html ) ) {
+					$closer_at--; // Pre-increment inside condition avoids risk of infinite looping.
+					while ( ++$closer_at < strlen( $html ) ) {
 						$closer_at = strpos( $html, '--', $closer_at );
 						if ( false === $closer_at ) {
 							return false;
@@ -1071,8 +1072,6 @@ class WP_HTML_Tag_Processor {
 							$at = $closer_at + 4;
 							continue 2;
 						}
-
-						$closer_at = $closer_at + 1;
 					}
 				}
 
