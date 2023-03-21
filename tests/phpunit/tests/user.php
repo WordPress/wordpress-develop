@@ -920,6 +920,8 @@ class Tests_User extends WP_UnitTestCase {
 	 * the `user_login` and `user_email` are the same.
 	 *
 	 * @ticket 57967
+	 *
+	 * @covers ::wp_update_user
 	 */
 	public function test_wp_update_user_should_allow_user_login_with_same_user_email() {
 		$user_email = 'ababa@example.com';
