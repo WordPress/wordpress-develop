@@ -1039,13 +1039,41 @@ class WP_HTML_Tag_Processor {
 					'-' === $html[ $at + 2 ] &&
 					'-' === $html[ $at + 3 ]
 				) {
-					$closer_at = strpos( $html, '-->', $at + 4 );
-					if ( false === $closer_at ) {
-						return false;
+					$closer_at = $at + 4;
+
+					/*
+					 * Abruptly-closed empty comments are a sequence of dashes followed by `>`.
+					 */
+					$span_of_dashes = strspn( $html, '-', $closer_at );
+					if ( '>' === $html[ $closer_at + $span_of_dashes ] ) {
+						$at = $closer_at + $span_of_dashes + 1;
+						continue;
 					}
 
-					$at = $closer_at + 3;
-					continue;
+					/*
+					 * Comments may be closed by either a --> or an invalid --!>.
+					 * The first occurrence closes the comment.
+					 *
+					 * See https://html.spec.whatwg.org/#parse-error-incorrectly-closed-comment
+					 */
+					while ( $closer_at < strlen( $html ) ) {
+						$closer_at = strpos( $html, '--', $closer_at );
+						if ( false === $closer_at ) {
+							return false;
+						}
+
+						if ( '>' === $html[ $closer_at + 2 ] ) {
+							$at = $closer_at + 3;
+							continue 2;
+						}
+
+						if ( '!' === $html[ $closer_at + 2 ] && '>' === $html[ $closer_at + 3 ] ) {
+							$at = $closer_at + 4;
+							continue 2;
+						}
+
+						$closer_at = $closer_at + 2;
+					}
 				}
 
 				/*
@@ -1105,11 +1133,37 @@ class WP_HTML_Tag_Processor {
 			}
 
 			/*
+			 * </> is a missing end tag name, which is ignored.
+			 *
+			 * See https://html.spec.whatwg.org/#parse-error-missing-end-tag-name
+			 */
+			if ( '>' === $html[ $at + 1 ] ) {
+				$at++;
+				continue;
+			}
+
+			/*
 			 * <? transitions to a bogus comment state – skip to the nearest >
-			 * https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
+			 * See https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
 			 */
 			if ( '?' === $html[ $at + 1 ] ) {
 				$closer_at = strpos( $html, '>', $at + 2 );
+				if ( false === $closer_at ) {
+					return false;
+				}
+
+				$at = $closer_at + 1;
+				continue;
+			}
+
+			/*
+			 * If a non-alpha starts the tag name in a tag closer it's a comment.
+			 * Find the first `>`, which closes the comment.
+			 *
+			 * See https://github.com/WordPress/wordpress-develop/pull/4256
+			 */
+			if ( $this->is_closing_tag ) {
+				$closer_at = strpos( $html, '>', $at + 3 );
 				if ( false === $closer_at ) {
 					return false;
 				}
