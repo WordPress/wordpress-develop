@@ -1665,6 +1665,48 @@ HTML;
 	}
 
 	/**
+	 * Invalid tag names are comments on tag closers.
+	 *
+	 * See https://html.spec.whatwg.org/#parse-error-invalid-first-character-of-tag-name
+	 *
+	 * @dataProvider data_next_tag_ignores_invalid_first_character_of_tag_name_comments
+	 *
+	 * @param $html_with_markers
+	 * @param $before_tag
+	 * @param $after_tag
+	 * @return void
+	 */
+	public function test_next_tag_ignores_invalid_first_character_of_tag_name_comments( $html_with_markers, $before_tag, $after_tag ) {
+		$p = new WP_HTML_Tag_Processor( $html_with_markers );
+		$p->next_tag( $before_tag );
+		$p->next_tag();
+
+		$this->assertSame( $after_tag, $p->get_tag() );
+	}
+
+	public function data_next_tag_ignores_invalid_first_character_of_tag_name_comments() {
+		return array(
+			'Invalid tag openers as normal text'           => array(
+				'<ul><li><div>I <3 when outflow > inflow</div><img></li></ul>',
+				'DIV',
+				'IMG',
+			),
+
+			'Invalid tag closers as comments'              => array(
+				'<ul><li><div>I </3 when <img> outflow <br> inflow</div></li></ul>',
+				'DIV',
+				'BR',
+			),
+
+			'Unexpected question mark instead of tag name' => array(
+				'<div><?xml-stylesheet type="text/css" href="style.css"?><hr>',
+				'DIV',
+				'HR',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
@@ -1713,6 +1755,47 @@ HTML;
 				'rcdata_then_div' => '<textarea class="d-md-none"></title></textarea><div></div>',
 				'rcdata_tag'      => 'TEXTAREA',
 			),
+		);
+	}
+
+	public function test_allows_incorrectly_closed_comments() {
+		$p = new WP_HTML_Tag_Processor( '<img id=before><!-- <img id=inside> --!><img id=after>--><img id=final>' );
+
+		$p->next_tag();
+		$this->assertSame( 'before', $p->get_attribute( 'id' ), 'Did not find starting tag.' );
+
+		$p->next_tag();
+		$this->assertSame( 'after', $p->get_attribute( 'id' ), 'Did not properly close improperly-closed comment.' );
+
+		$p->next_tag();
+		$this->assertSame( 'final', $p->get_attribute( 'id' ), 'Did not skip over unopened comment-closer.' );
+	}
+
+	/**
+	 * @dataProvider data_abruptly_closed_empty_comments
+	 *
+	 * @param $html
+	 * @return void
+	 */
+	public function test_closes_abrupt_closing_of_empty_comment( $html ) {
+		$p = new WP_HTML_Tag_Processor( $html );
+		$p->next_tag();
+		$p->next_tag();
+
+		$this->assertSame( 'after', $p->get_attribute( 'id' ), 'Did not find tag after closing abruptly-closed comment' );
+	}
+
+	public function data_abruptly_closed_empty_comments() {
+		return array(
+			'Empty comment with two dashes only' => array( '<hr><!--><hr id=after>' ),
+			'Empty comment with two dashes only, improperly closed' => array( '<hr><!--!><hr id=inside>--><hr id=after>' ),
+			'Comment with two dashes only, improperly closed twice' => array( '<hr><!--!><hr id=inside>--!><hr id=after>' ),
+			'Empty comment with three dashes'    => array( '<hr><!---><hr id=after>' ),
+			'Empty comment with three dashes, improperly closed' => array( '<hr><!---!><hr id=inside>--><hr id=after>' ),
+			'Comment with three dashes, improperly closed twice' => array( '<hr><!---!><hr id=inside>--!><hr id=after>' ),
+			'Empty comment with four dashes'     => array( '<hr><!----><hr id=after>' ),
+			'Empty comment with four dashes, improperly closed' => array( '<hr><!----!><hr id=after>--><hr id=final>' ),
+			'Comment with four dashes, improperly closed twice' => array( '<hr><!----!><hr id=after>--!><hr id=final>' ),
 		);
 	}
 
