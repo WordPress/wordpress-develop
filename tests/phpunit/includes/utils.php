@@ -651,5 +651,7 @@ function test_rest_expand_compact_links( $links ) {
  */
 function unregister_all_script_handles() {
 	global $wp_scripts;
-	$wp_scripts->registered = array();
+	foreach ( $wp_scripts->registered as $handle_name => $handle ) {
+		wp_deregister_script( $handle_name );
+	}
 }
