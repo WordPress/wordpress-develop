@@ -65,7 +65,7 @@ JS;
 
 
 	/**
-	 * Test standalone and non standalone after script one a single main script.
+	 * Test standalone and non standalone inline scripts in the 'after' position of a single main script.
 	 *
 	 * @ticket 12009
 	 */
