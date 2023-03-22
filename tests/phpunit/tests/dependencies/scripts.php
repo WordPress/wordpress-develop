@@ -86,7 +86,7 @@ JS;
 	}
 
 	/**
-	 * Test standalone after inline script.
+	 * Test `standalone` inline scripts in the `after` position.
 	 *
 	 * @ticket 12009
 	 * @dataProvider data_standalone_after_inline_script
