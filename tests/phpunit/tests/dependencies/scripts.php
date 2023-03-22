@@ -122,7 +122,7 @@ JS;
 	}
 
 	/**
-	 * Test non standalone after inline script.
+	 * Test non standalone inline scripts in the `after` position.
 	 *
 	 * @ticket 12009
 	 * @dataProvider data_non_standalone_after_inline_script
