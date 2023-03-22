@@ -108,7 +108,7 @@ JS;
 		$expected .= "<script type='text/javascript' src='http://example.org/ms-i2-1.js' id='ms-i2-1-js' defer></script>\n";
 		array_push( $data, array( $expected, $output, 'Scripts in the chain before the script having before must be blocking.' ) );
 
-		// Top most dependency in the chain has a `before` inline script; none of the script bellow it will be blocking.
+		// If the top most dependency in the chain has a `before` inline script, none of the scripts bellow it will be blocking.
 		wp_enqueue_script( 'ds-i3-1', 'http://example.org/ds-i3-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ds-i3-2', 'http://example.org/ds-i3-2.js', array( 'ds-i3-1' ), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ms-i3-1', 'http://example.org/ms-i3-1.js', array( 'ds-i3-2' ), null, array( 'strategy' => 'defer' ) );
