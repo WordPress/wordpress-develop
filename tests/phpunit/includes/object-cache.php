@@ -1654,16 +1654,19 @@ class WP_Object_Cache {
 	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
 	 * @param bool   $force Optional. Whether to force an update of the local cache
 	 *                      from the persistent cache. Default false.
+	 * @param array  $found Optional. Whether array of keys were found in the cache (passed by reference).
+	 *                      Disambiguates a return of false, a storable value. Default empty array.
 	 * @return array Array of return values, grouped by key. Each value is either
 	 *               the cache contents on success, or false on failure.
 	 */
-	public function getMultiple( $keys, $group = '', $force = false ) {
+	public function getMultiple( $keys, $group = '', $force = false, &$found = array() ) {
 		$values = array();
 
 		foreach ( $keys as $key ) {
 			$found          = null;
 			$value          = $this->get( $key, $group, $force, $found );
 			$values[ $key ] = $found ? $value : false;
+			$found[ $key ]  = $found ? true : false;
 		}
 
 		return $values;
