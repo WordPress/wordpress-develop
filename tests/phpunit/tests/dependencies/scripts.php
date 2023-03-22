@@ -108,7 +108,7 @@ JS;
 		$expected .= "</script>\n";
 		array_push( $data, array( $expected, $output, 'Expected no type attribute for inline script.' ) );
 
-		// If the main script with async strategy has a `after` inline script; the inline script is not affected.
+		// If a main script with an `async` strategy has an `after` inline script, the inline script should not be affected.
 		wp_enqueue_script( 'ms-isa-2', 'http://example.org/ms-isa-2.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-isa-2', 'console.log("after one");', 'after', true );
 		$output    = get_echo( 'wp_print_scripts' );
