@@ -3279,6 +3279,81 @@ EOF;
 	}
 
 	/**
+	 * @ticket 57086
+	 *
+	 * @dataProvider data_wp_get_attachment_image_decoding_attr
+	 *
+	 * @covers ::wp_get_attachment_image
+	 */
+	public function test_wp_get_attachment_image_decoding_attr( $decoding, $expected ) {
+		if ( 'no value' === $decoding ) {
+			$image = wp_get_attachment_image( self::$large_id, 'thumbnail', false, array() );
+		} else {
+			$image = wp_get_attachment_image( self::$large_id, 'thumbnail', false, array( 'decoding' => $decoding ) );
+		}
+
+		if ( 'no value' === $expected ) {
+			$this->assertStringNotContainsString( ' decoding=', $image );
+		} else {
+			$this->assertStringContainsString( ' decoding="' . esc_attr( $expected ) . '"', $image );
+		}
+	}
+
+	/**
+	 * Data provider for test_wp_get_attachment_image_decoding_attr().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_get_attachment_image_decoding_attr() {
+		return array(
+			'default'     => array(
+				'decoding' => 'no value',
+				'expected' => 'async',
+			),
+			'async'       => array(
+				'decoding' => 'async',
+				'expected' => 'async',
+			),
+			'sync'        => array(
+				'decoding' => 'sync',
+				'expected' => 'sync',
+			),
+			'auto'        => array(
+				'decoding' => 'auto',
+				'expected' => 'auto',
+			),
+			'empty'       => array(
+				'decoding' => '',
+				'expected' => 'no value',
+			),
+			'false'       => array(
+				'decoding' => false,
+				'expected' => 'no value',
+			),
+			'null'        => array(
+				'decoding' => null,
+				'expected' => 'no value',
+			),
+			'zero'        => array(
+				'decoding' => 0,
+				'expected' => 'no value',
+			),
+			'zero string' => array(
+				'decoding' => '0',
+				'expected' => 'no value',
+			),
+			'zero float'  => array(
+				'decoding' => 0.0,
+				'expected' => 'no value',
+			),
+			'invalid'     => array(
+				'decoding' => 'invalid',
+				'expected' => 'no value',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 44427
 	 * @ticket 50425
 	 * @ticket 50756
@@ -3472,7 +3547,13 @@ EOF;
 	}
 
 	/**
+	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute value.
+	 *
 	 * @ticket 53675
+	 * @ticket 56930
+	 *
+	 * @covers ::wp_get_loading_attr_default
+	 *
 	 * @dataProvider data_wp_get_loading_attr_default
 	 *
 	 * @param string $context
@@ -3513,6 +3594,10 @@ EOF;
 			// Yes, for all subsequent elements.
 			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 		}
+
+		// Exceptions: In the following contexts, images shouldn't be lazy-loaded by default.
+		$this->assertFalse( wp_get_loading_attr_default( 'template' ), 'Images run through the overall block template filter should not be lazy-loaded.' );
+		$this->assertFalse( wp_get_loading_attr_default( 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER ), 'Images in the footer block template part should not be lazy-loaded.' );
 	}
 
 	public function data_wp_get_loading_attr_default() {
@@ -3625,6 +3710,159 @@ EOF;
 		$this->assertSame( 3, $omit_threshold );
 	}
 
+	/**
+	 * Tests that wp_filter_content_tags() does not add loading="lazy" to the first
+	 * image in the loop when using a block theme.
+	 *
+	 * @ticket 56930
+	 *
+	 * @covers ::wp_filter_content_tags
+	 * @covers ::wp_get_loading_attr_default
+	 */
+	public function test_wp_filter_content_tags_does_not_lazy_load_first_image_in_block_theme() {
+		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
+
+		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
+		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
+
+		$img1      = get_image_tag( self::$large_id, '', '', '', 'large' );
+		$img2      = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$lazy_img2 = wp_img_tag_add_loading_attr( $img2, 'the_content' );
+
+		// Only the second image should be lazy-loaded.
+		$post_content     = $img1 . $img2;
+		$expected_content = wpautop( $img1 . $lazy_img2 );
+
+		// Update the post to test with so that it has the above post content.
+		wp_update_post(
+			array(
+				'ID'                    => self::$post_ids['publish'],
+				'post_content'          => $post_content,
+				'post_content_filtered' => $post_content,
+			)
+		);
+
+		$wp_query     = new WP_Query( array( 'p' => self::$post_ids['publish'] ) );
+		$wp_the_query = $wp_query;
+		$post         = get_post( self::$post_ids['publish'] );
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
+
+		$_wp_current_template_content = '<!-- wp:post-content /-->';
+
+		$html = get_the_block_template_html();
+		$this->assertSame( '<div class="wp-site-blocks"><div class="entry-content wp-block-post-content is-layout-flow">' . $expected_content . '</div></div>', $html );
+	}
+
+	/**
+	 * Tests that wp_filter_content_tags() does not add loading="lazy"
+	 * to the featured image when using a block theme.
+	 *
+	 * @ticket 56930
+	 *
+	 * @covers ::wp_filter_content_tags
+	 * @covers ::wp_get_loading_attr_default
+	 */
+	public function test_wp_filter_content_tags_does_not_lazy_load_first_featured_image_in_block_theme() {
+		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
+
+		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
+		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
+		add_filter(
+			'wp_get_attachment_image_attributes',
+			function( $attr ) {
+				unset( $attr['srcset'], $attr['sizes'], $attr['decoding'] );
+				return $attr;
+			}
+		);
+
+		$content_img      = get_image_tag( self::$large_id, '', '', '', 'large' );
+		$lazy_content_img = wp_img_tag_add_loading_attr( $content_img, 'the_content' );
+
+		// The featured image should not be lazy-loaded as it is the first image.
+		$featured_image_id = self::$large_id;
+		update_post_meta( self::$post_ids['publish'], '_thumbnail_id', $featured_image_id );
+		$expected_featured_image = '<figure class="wp-block-post-featured-image">' . get_the_post_thumbnail( self::$post_ids['publish'], 'post-thumbnail', array( 'loading' => false ) ) . '</figure>';
+
+		// The post content image should be lazy-loaded since the featured image appears above.
+		$post_content     = $content_img;
+		$expected_content = wpautop( $lazy_content_img );
+
+		// Update the post to test with so that it has the above post content.
+		wp_update_post(
+			array(
+				'ID'                    => self::$post_ids['publish'],
+				'post_content'          => $post_content,
+				'post_content_filtered' => $post_content,
+			)
+		);
+
+		$wp_query     = new WP_Query( array( 'p' => self::$post_ids['publish'] ) );
+		$wp_the_query = $wp_query;
+		$post         = get_post( self::$post_ids['publish'] );
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
+
+		$_wp_current_template_content = '<!-- wp:post-featured-image /--> <!-- wp:post-content /-->';
+
+		$html = get_the_block_template_html();
+		$this->assertSame( '<div class="wp-site-blocks">' . $expected_featured_image . ' <div class="entry-content wp-block-post-content is-layout-flow">' . $expected_content . '</div></div>', $html );
+	}
+
+	/**
+	 * Tests that wp_filter_content_tags() does not add loading="lazy" to images
+	 * in a "Header" template part.
+	 *
+	 * @ticket 56930
+	 *
+	 * @covers ::wp_filter_content_tags
+	 * @covers ::wp_get_loading_attr_default
+	 */
+	public function test_wp_filter_content_tags_does_not_lazy_load_images_in_header() {
+		global $_wp_current_template_content;
+
+		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
+		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
+
+		// Use a single image for each header and footer template parts.
+		$header_img = get_image_tag( self::$large_id, '', '', '', 'large' );
+		$footer_img = get_image_tag( self::$large_id, '', '', '', 'medium' );
+
+		// Create header and footer template parts.
+		$header_post_id = self::factory()->post->create(
+			array(
+				'post_type'    => 'wp_template_part',
+				'post_status'  => 'publish',
+				'post_name'    => 'header',
+				'post_content' => $header_img,
+			)
+		);
+		wp_set_post_terms( $header_post_id, WP_TEMPLATE_PART_AREA_HEADER, 'wp_template_part_area' );
+		wp_set_post_terms( $header_post_id, get_stylesheet(), 'wp_theme' );
+		$footer_post_id = self::factory()->post->create(
+			array(
+				'post_type'    => 'wp_template_part',
+				'post_status'  => 'publish',
+				'post_name'    => 'footer',
+				'post_content' => $footer_img,
+			)
+		);
+		wp_set_post_terms( $footer_post_id, WP_TEMPLATE_PART_AREA_FOOTER, 'wp_template_part_area' );
+		wp_set_post_terms( $footer_post_id, get_stylesheet(), 'wp_theme' );
+
+		$_wp_current_template_content = '<!-- wp:template-part {"slug":"header","theme":"' . get_stylesheet() . '","tagName":"header"} /--><!-- wp:template-part {"slug":"footer","theme":"' . get_stylesheet() . '","tagName":"footer"} /-->';
+
+		// Header image should not be lazy-loaded, footer image should be lazy-loaded.
+		$expected_template_content  = '<header class="wp-block-template-part">' . $header_img . '</header>';
+		$expected_template_content .= '<footer class="wp-block-template-part">' . wp_img_tag_add_loading_attr( $footer_img, 'force-lazy' ) . '</footer>';
+
+		$html = get_the_block_template_html();
+		$this->assertSame( '<div class="wp-site-blocks">' . $expected_template_content . '</div>', $html );
+	}
+
 	private function reset_content_media_count() {
 		// Get current value without increasing.
 		$content_media_count = wp_increase_content_media_count( 0 );
@@ -3693,6 +3931,46 @@ EOF;
 		foreach ( $sizes_to_compare as $size => $size_data ) {
 			$this->assertLessThan( $webp_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
 		}
+	}
+
+	/**
+	 * Test that an image size isn't generated if it matches the original image size.
+	 *
+	 * @ticket 57370
+	 */
+	public function test_wp_generate_attachment_metadata_doesnt_generate_sizes_for_150_square_image() {
+		$temp_dir = get_temp_dir();
+		$file     = $temp_dir . '/test-square-150.jpg';
+		copy( DIR_TESTDATA . '/images/test-square-150.jpg', $file );
+
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => $file,
+			)
+		);
+
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $file );
+		$this->assertSame(
+			array(),
+			$metadata['sizes'],
+			'The sizes should be an empty array'
+		);
+		$this->assertSame(
+			'test-square-150.jpg',
+			basename( $metadata['file'] ),
+			'The file basename should match the given filename'
+		);
+		$this->assertSame(
+			150,
+			$metadata['width'],
+			'The width should be 150 (integer)'
+		);
+		$this->assertSame(
+			150,
+			$metadata['height'],
+			'The height should be 150 (integer)'
+		);
 	}
 
 	/**

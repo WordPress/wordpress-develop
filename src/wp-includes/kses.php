@@ -1686,7 +1686,16 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
  * @return string Filtered content.
  */
 function wp_kses_bad_protocol( $content, $allowed_protocols ) {
-	$content    = wp_kses_no_null( $content );
+	$content = wp_kses_no_null( $content );
+
+	// Short-circuit if the string starts with `https://` or `http://`. Most common cases.
+	if (
+		( str_starts_with( $content, 'https://' ) && in_array( 'https', $allowed_protocols, true ) ) ||
+		( str_starts_with( $content, 'http://' ) && in_array( 'http', $allowed_protocols, true ) )
+	) {
+		return $content;
+	}
+
 	$iterations = 0;
 
 	do {
@@ -2268,6 +2277,9 @@ function kses_init() {
  *              nested `var()` values, and assigning values to CSS variables.
  *              Added support for `object-fit`, `gap`, `column-gap`, `row-gap`, and `flex-wrap`.
  *              Extended `margin-*` and `padding-*` support for logical properties.
+ * @since 6.2.0 Added support for `aspect-ratio`, `position`, `top`, `right`, `bottom`, `left`,
+ *              and `z-index` CSS properties.
+ * @since 6.3.0 Extended support for `filter` to accept a URL.
  *
  * @param string $css        A string of CSS rules.
  * @param string $deprecated Not used.
@@ -2429,6 +2441,14 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'overflow',
 			'vertical-align',
 
+			'position',
+			'top',
+			'right',
+			'bottom',
+			'left',
+			'z-index',
+			'aspect-ratio',
+
 			// Custom CSS properties.
 			'--*',
 		)
@@ -2447,6 +2467,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		'background-image',
 
 		'cursor',
+		'filter',
 
 		'list-style',
 		'list-style-image',

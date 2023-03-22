@@ -993,6 +993,7 @@ function wp_media_upload_handler() {
  * @since 5.3.0 The `$post_id` parameter was made optional.
  * @since 5.4.0 The original URL of the attachment is stored in the `_source_url`
  *              post meta value.
+ * @since 5.8.0 Added 'webp' to the default list of allowed file extensions.
  *
  * @param string $file        The URL of the image to download.
  * @param int    $post_id     Optional. The post ID the media is to be associated with.
@@ -1017,8 +1018,10 @@ function media_sideload_image( $file, $post_id = 0, $desc = null, $return_type =
 		 *  - `jpe`
 		 *  - `png`
 		 *  - `gif`
+		 *  - `webp`
 		 *
 		 * @since 5.6.0
+		 * @since 5.8.0 Added 'webp' to the default list of allowed file extensions.
 		 *
 		 * @param string[] $allowed_extensions Array of allowed file extensions.
 		 * @param string   $file               The URL of the image to download.
@@ -2258,7 +2261,12 @@ function media_upload_form( $errors = null ) {
 
 	?>
 	<p id="async-upload-wrap">
-		<label class="screen-reader-text" for="async-upload"><?php _e( 'Upload' ); ?></label>
+		<label class="screen-reader-text" for="async-upload">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Upload' );
+			?>
+		</label>
 		<input type="file" name="async-upload" id="async-upload" />
 		<?php submit_button( __( 'Upload' ), 'primary', 'html-upload', false ); ?>
 		<a href="#" onclick="try{top.tb_remove();}catch(e){}; return false;"><?php _e( 'Cancel' ); ?></a>
@@ -2726,7 +2734,12 @@ function media_upload_library_form( $errors ) {
 	<input type="hidden" name="context" value="<?php echo isset( $_GET['context'] ) ? esc_attr( $_GET['context'] ) : ''; ?>" />
 
 	<p id="media-search" class="search-box">
-		<label class="screen-reader-text" for="media-search-input"><?php _e( 'Search Media' ); ?>:</label>
+		<label class="screen-reader-text" for="media-search-input">
+			<?php
+			/* translators: Hidden accessibility text. */
+			echo __( 'Search Media' ) . ':';
+			?>
+		</label>
 		<input type="search" id="media-search-input" name="s" value="<?php the_search_query(); ?>" />
 		<?php submit_button( __( 'Search Media' ), '', '', false ); ?>
 	</p>
@@ -3219,7 +3232,7 @@ function edit_form_image_editor( $post ) {
 			'target="_blank" rel="noopener"',
 			sprintf(
 				'<span class="screen-reader-text"> %s</span>',
-				/* translators: Accessibility text. */
+				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
 			)
 		);
@@ -3332,6 +3345,9 @@ function attachment_submitbox_metadata() {
 			<button type="button" class="button copy-attachment-url edit-media" data-clipboard-target="#attachment_url"><?php _e( 'Copy URL to clipboard' ); ?></button>
 			<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
 		</span>
+	</div>
+	<div class="misc-pub-section misc-pub-download">
+		<a href="<?php echo esc_attr( $att_url ); ?>" download><?php _e( 'Download file' ); ?></a>
 	</div>
 	<div class="misc-pub-section misc-pub-filename">
 		<?php _e( 'File name:' ); ?> <strong><?php echo $filename; ?></strong>
@@ -3469,7 +3485,7 @@ function attachment_submitbox_metadata() {
 		<div class="misc-pub-section misc-pub-original-image word-wrap-break-word">
 			<?php _e( 'Original image:' ); ?>
 			<a href="<?php echo esc_url( wp_get_original_image_url( $attachment_id ) ); ?>">
-				<?php echo esc_html( wp_basename( wp_get_original_image_path( $attachment_id ) ) ); ?>
+				<strong><?php echo esc_html( wp_basename( wp_get_original_image_path( $attachment_id ) ) ); ?></strong>
 			</a>
 		</div>
 		<?php

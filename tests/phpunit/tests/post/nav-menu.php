@@ -298,7 +298,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$start_num_queries = get_num_queries();
 		wp_get_nav_menu_items( $this->menu_id );
 		$queries_made = get_num_queries() - $start_num_queries;
-		$this->assertSame( 7, $queries_made, 'Only does 7 database queries when running wp_get_nav_menu_items.' );
+		$this->assertSame( 6, $queries_made, 'Only does 6 database queries when running wp_get_nav_menu_items.' );
 
 		$args = $action->get_args();
 		$this->assertSameSets( $menu_nav_ids, $args[0][1], '_prime_post_caches() was not executed.' );
@@ -339,7 +339,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$start_num_queries = get_num_queries();
 		wp_get_nav_menu_items( $this->menu_id );
 		$queries_made = get_num_queries() - $start_num_queries;
-		$this->assertSame( 7, $queries_made, 'Only does 7 database queries when running wp_get_nav_menu_items.' );
+		$this->assertSame( 6, $queries_made, 'Only does 6 database queries when running wp_get_nav_menu_items.' );
 
 		$args = $action_terms->get_args();
 		$last = end( $args );
@@ -966,22 +966,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides IRI matching data for _wp_menu_item_classes_by_context() test.
-	 */
-	public function get_iri_current_menu_items() {
-		return array(
-			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82/' ) ),
-			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82' ) ),
-			array( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82/' ),
-			array( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82' ),
-			array( '/привет/' ),
-			array( '/привет' ),
-		);
-	}
-
-	/**
 	 * @ticket 43401
-	 * @dataProvider get_iri_current_menu_items
+	 * @dataProvider data_iri_current_menu_item
 	 */
 	public function test_iri_current_menu_item( $custom_link, $current = true ) {
 		wp_update_nav_menu_item(
@@ -1006,6 +992,20 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		} else {
 			$this->assertNotContains( 'current-menu-item', $classes );
 		}
+	}
+
+	/**
+	 * Provides IRI matching data for _wp_menu_item_classes_by_context() test.
+	 */
+	public function data_iri_current_menu_item() {
+		return array(
+			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82/' ) ),
+			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82' ) ),
+			array( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82/' ),
+			array( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82' ),
+			array( '/привет/' ),
+			array( '/привет' ),
+		);
 	}
 
 	/**
