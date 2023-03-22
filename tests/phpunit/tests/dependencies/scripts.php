@@ -70,7 +70,7 @@ JS;
 	 * @ticket 12009
 	 */
 	public function test_non_standalone_and_standalone_after_script_combined() {
-		// If the main script with defer strategy has a `after` inline script; expected one with type='javascript' and other with type='module'.
+		// If a main script containing a `defer` strategy has an `after` inline script, the expected script type is type='javascript', otherwise type='text/template'.
 		wp_enqueue_script( 'ms-isinsa-1', 'http://example.org/ms-isinsa-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-isinsa-1', 'console.log("after one");', 'after', true );
 		wp_add_inline_script( 'ms-isinsa-1', 'console.log("after two");', 'after' );
