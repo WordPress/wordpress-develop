@@ -1663,10 +1663,10 @@ class WP_Object_Cache {
 		$values = array();
 
 		foreach ( $keys as $key ) {
-			$found          = null;
-			$value          = $this->get( $key, $group, $force, $found );
-			$values[ $key ] = $found ? $value : false;
-			$found[ $key ]  = $found ? true : false;
+			$found_single   = null;
+			$value          = $this->get( $key, $group, $force, $found_single );
+			$values[ $key ] = $found_single ? $value : false;
+			$found[ $key ]  = $found_single ? true : false;
 		}
 
 		return $values;
