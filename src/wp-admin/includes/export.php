@@ -147,14 +147,16 @@ function export_wp( $args = array() ) {
 	// Get IDs for the attachments of each post, unless all content is already being exported.
 	if ( 'all' !== $args['content'] ) {
 		foreach ( array_chunk( $post_ids, 20 ) as $chunk ) {
-			$posts_in = esc_sql( implode( ',', array_map( 'absint', $chunk ) ) );
+			$posts_in     = array_map( 'absint', $chunk );
+			$placeholders = array_fill( 0, count( $posts_in ), '%d' );
 
+			// Prepare the SQL statement for attachment ids
 			$attachment_ids = $wpdb->get_col(
 				$wpdb->prepare(
 					"
 				SELECT ID
 				FROM $wpdb->posts
-				WHERE post_parent IN (%s) AND post_type = 'attachment'
+				WHERE post_parent IN (" . implode( ',', $placeholders ) . ") AND post_type = 'attachment'
 					",
 					$posts_in
 				)
@@ -165,7 +167,7 @@ function export_wp( $args = array() ) {
 					"
 				SELECT meta_value
 				FROM {$wpdb->postmeta}
-				WHERE {$wpdb->postmeta}.post_id IN (%s)
+				WHERE {$wpdb->postmeta}.post_id IN (" . implode( ',', $placeholders ) . ")
 				AND {$wpdb->postmeta}.meta_key = '_thumbnail_id'
 					",
 					$posts_in
