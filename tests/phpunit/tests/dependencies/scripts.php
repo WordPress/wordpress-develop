@@ -134,7 +134,7 @@ JS;
 	public function data_non_standalone_after_inline_script() {
 		$data = array();
 
-		// If the main script with defer strategy has a `after` inline script; the inline script is inserted as type='module'.
+		// If a main script with a `defer` loading strategy has an `after` inline script, the inline script should be rendered as type='module'.
 		wp_enqueue_script( 'ms-insa-1', 'http://example.org/ms-insa-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-insa-1', 'console.log("after one");', 'after' );
 		$output    = get_echo( 'wp_print_scripts' );
