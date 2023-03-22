@@ -613,7 +613,6 @@ a:hover {
 	letter-spacing: normal;
 	line-height: 1.3;
 	padding: 0;
-	max-width: inherit;
 	text-align: inherit;
 }
 @media only screen and (min-width: 652px) {
@@ -628,7 +627,6 @@ a:hover {
 	letter-spacing: normal;
 	line-height: 1.3;
 	padding: 0;
-	max-width: inherit;
 	text-align: inherit;
 }
 @media only screen and (min-width: 652px) {
@@ -863,19 +861,6 @@ a:hover {
 
 .wp-block-gallery figcaption a {
 	color: #fff;
-}
-
-.wp-block-group {
-	display: block;
-	clear: both;
-	display: flow-root;
-}
-
-.wp-block-group:before,
-.wp-block-group:after {
-	content: "";
-	display: block;
-	clear: both;
 }
 
 .wp-block-group.has-background {
@@ -1463,13 +1448,13 @@ dt {
 	border: 3px solid #28303d;
 }
 
-.wp-block-navigation .wp-block-navigation__container {
-	background: #d1e4dd;
-	padding: 0;
+.wp-block-navigation [data-block] {
+	margin-top: revert;
+	margin-bottom: revert;
 }
 
-.wp-block-navigation .wp-block-navigation-link .wp-block-navigation-link__content {
-	padding: 13px;
+.wp-block-navigation .wp-block-navigation__container {
+	background: #d1e4dd;
 }
 
 .wp-block-navigation .wp-block-navigation-link .wp-block-navigation-link__label {
@@ -1657,7 +1642,7 @@ pre.wp-block-preformatted {
 }
 
 .wp-block-quote .wp-block-quote__citation {
-	color: #28303d;
+	color: currentColor;
 	font-size: 1rem;
 	font-style: normal;
 }

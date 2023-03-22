@@ -6,6 +6,14 @@ class Tests_Shortcode extends WP_UnitTestCase {
 
 	protected $shortcodes = array( 'test-shortcode-tag', 'footag', 'bartag', 'baztag', 'dumptag', 'hyphen', 'hyphen-foo', 'hyphen-foo-bar', 'url', 'img' );
 
+	private $atts    = null;
+	private $content = null;
+	private $tagname = null;
+
+	private $filter_atts_out   = null;
+	private $filter_atts_pairs = null;
+	private $filter_atts_atts  = null;
+
 	public function set_up() {
 		parent::set_up();
 
@@ -13,10 +21,12 @@ class Tests_Shortcode extends WP_UnitTestCase {
 			add_shortcode( $shortcode, array( $this, 'shortcode_' . str_replace( '-', '_', $shortcode ) ) );
 		}
 
-		$this->atts    = null;
-		$this->content = null;
-		$this->tagname = null;
-
+		$this->atts              = null;
+		$this->content           = null;
+		$this->tagname           = null;
+		$this->filter_atts_out   = null;
+		$this->filter_atts_pairs = null;
+		$this->filter_atts_atts  = null;
 	}
 
 	public function tear_down() {
@@ -394,7 +404,19 @@ EOF;
 		$this->assertSame( $test_string, shortcode_unautop( wpautop( $test_string ) ) );
 	}
 
-	public function data_test_strip_shortcodes() {
+	/**
+	 * @ticket 10326
+	 *
+	 * @dataProvider data_strip_shortcodes
+	 *
+	 * @param string $expected  Expected output.
+	 * @param string $content   Content to run strip_shortcodes() on.
+	 */
+	public function test_strip_shortcodes( $expected, $content ) {
+		$this->assertSame( $expected, strip_shortcodes( $content ) );
+	}
+
+	public function data_strip_shortcodes() {
 		return array(
 			array( 'before', 'before[gallery]' ),
 			array( 'after', '[gallery]after' ),
@@ -407,18 +429,6 @@ EOF;
 			array( 'before  after', 'before [footag]content[/footag] after' ),
 			array( 'before  after', 'before [footag foo="123"]content[/footag] after' ),
 		);
-	}
-
-	/**
-	 * @ticket 10326
-	 *
-	 * @dataProvider data_test_strip_shortcodes
-	 *
-	 * @param string $expected  Expected output.
-	 * @param string $content   Content to run strip_shortcodes() on.
-	 */
-	public function test_strip_shortcodes( $expected, $content ) {
-		$this->assertSame( $expected, strip_shortcodes( $content ) );
 	}
 
 	/**
@@ -816,7 +826,7 @@ EOF;
 
 		// Pass arguments.
 		$arr = array(
-			'return' => 'p11',
+			'output' => 'p11',
 			'key'    => $str,
 			'atts'   => array(
 				'a' => 'b',
@@ -854,9 +864,9 @@ EOF;
 		return 'p11';
 	}
 
-	public function filter_pre_do_shortcode_tag_attr( $return, $key, $atts, $m ) {
+	public function filter_pre_do_shortcode_tag_attr( $output, $key, $atts, $m ) {
 		$arr = array(
-			'return' => $return,
+			'output' => $output,
 			'key'    => $key,
 			'atts'   => $atts,
 			'm'      => $m,
@@ -886,7 +896,7 @@ EOF;
 
 		// Pass arguments.
 		$arr = array(
-			'return' => 'foobar',
+			'output' => 'foobar',
 			'key'    => $str,
 			'atts'   => array(
 				'a' => 'b',
@@ -916,17 +926,17 @@ EOF;
 		return 'foo';
 	}
 
-	public function filter_do_shortcode_tag_replace( $return ) {
-		return str_replace( 'oo', 'ee', $return );
+	public function filter_do_shortcode_tag_replace( $output ) {
+		return str_replace( 'oo', 'ee', $output );
 	}
 
-	public function filter_do_shortcode_tag_generate( $return ) {
+	public function filter_do_shortcode_tag_generate( $output ) {
 		return 'foobar';
 	}
 
-	public function filter_do_shortcode_tag_attr( $return, $key, $atts, $m ) {
+	public function filter_do_shortcode_tag_attr( $output, $key, $atts, $m ) {
 		$arr = array(
-			'return' => $return,
+			'output' => $output,
 			'key'    => $key,
 			'atts'   => $atts,
 			'm'      => $m,

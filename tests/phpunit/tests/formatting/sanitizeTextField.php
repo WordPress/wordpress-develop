@@ -2,8 +2,29 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::sanitize_text_field
+ * @covers ::sanitize_textarea_field
  */
 class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
+
+	/**
+	 * @ticket 32257
+	 * @dataProvider data_sanitize_text_field
+	 */
+	public function test_sanitize_text_field( $str, $expected ) {
+		if ( is_array( $expected ) ) {
+			$expected_oneline   = $expected['oneline'];
+			$expected_multiline = $expected['multiline'];
+		} else {
+			$expected_oneline   = $expected;
+			$expected_multiline = $expected;
+		}
+		$this->assertSame( $expected_oneline, sanitize_text_field( $str ) );
+		$this->assertSameIgnoreEOL( $expected_multiline, sanitize_textarea_field( $str ) );
+
+	}
+
 	public function data_sanitize_text_field() {
 		return array(
 			array(
@@ -102,7 +123,7 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 				'',
 			),
 			array(
-				new WP_Query,
+				new WP_Query(),
 				'',
 			),
 			array(
@@ -122,22 +143,5 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 				'10.1',
 			),
 		);
-	}
-
-	/**
-	 * @ticket 32257
-	 * @dataProvider data_sanitize_text_field
-	 */
-	public function test_sanitize_text_field( $string, $expected ) {
-		if ( is_array( $expected ) ) {
-			$expected_oneline   = $expected['oneline'];
-			$expected_multiline = $expected['multiline'];
-		} else {
-			$expected_oneline   = $expected;
-			$expected_multiline = $expected;
-		}
-		$this->assertSame( $expected_oneline, sanitize_text_field( $string ) );
-		$this->assertSameIgnoreEOL( $expected_multiline, sanitize_textarea_field( $string ) );
-
 	}
 }

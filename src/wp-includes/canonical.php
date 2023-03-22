@@ -331,7 +331,9 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			$term_count = 0;
 
 			foreach ( $wp_query->tax_query->queried_terms as $tax_query ) {
-				$term_count += count( $tax_query['terms'] );
+				if ( isset( $tax_query['terms'] ) && is_countable( $tax_query['terms'] ) ) {
+					$term_count += count( $tax_query['terms'] );
+				}
 			}
 
 			$obj = $wp_query->get_queried_object();
@@ -734,7 +736,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		return;
 	}
 
-	// Hex encoded octets are case-insensitive.
+	// Hex-encoded octets are case-insensitive.
 	if ( false !== strpos( $requested_url, '%' ) ) {
 		if ( ! function_exists( 'lowercase_octets' ) ) {
 			/**
@@ -957,8 +959,9 @@ function redirect_guess_404_permalink() {
 			$where .= $wpdb->prepare( ' AND DAYOFMONTH(post_date) = %d', get_query_var( 'day' ) );
 		}
 
+		$publicly_viewable_statuses = array_filter( get_post_stati(), 'is_post_status_viewable' );
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$post_id = $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE $where AND post_status = 'publish'" );
+		$post_id = $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE $where AND post_status IN ('" . implode( "', '", esc_sql( $publicly_viewable_statuses ) ) . "')" );
 
 		if ( ! $post_id ) {
 			return false;

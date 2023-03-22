@@ -1,15 +1,9 @@
 <?php
 /**
- * Block context tests
+ * Tests for block context functions.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.5.0
- */
-
-/**
- * Tests for block context functions.
- *
  * @since 5.5.0
  *
  * @group blocks
@@ -36,7 +30,7 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 			'post_excerpt' => '',
 		);
 
-		$post = $this->factory()->post->create_and_get( $args );
+		$post = self::factory()->post->create_and_get( $args );
 		setup_postdata( $post );
 	}
 

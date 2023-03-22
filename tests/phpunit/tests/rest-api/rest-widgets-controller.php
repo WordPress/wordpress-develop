@@ -1,20 +1,16 @@
 <?php
 /**
- * Unit tests covering WP_REST_Widgets_Controller_Test functionality.
+ * Unit tests covering WP_REST_Widgets_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
  * @since 5.8.0
- */
-
-/**
- * Tests for REST API for Widgets.
  *
- * @since 5.8.0
+ * @covers WP_REST_Widgets_Controller
  *
  * @see WP_Test_REST_Controller_Testcase
  * @group restapi
- * @covers WP_REST_Widgets_Controller
+ * @group widgets
  */
 class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
@@ -214,9 +210,10 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * @ticket 41683
+	 * @doesNotPerformAssertions
 	 */
 	public function test_context_param() {
+		// Controller does not use get_context_param().
 	}
 
 	/**
@@ -411,12 +408,12 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function mocked_rss_response() {
 		$single_value_headers = array(
-			'content-type' => 'application/rss+xml; charset=UTF-8',
+			'Content-Type' => 'application/rss+xml; charset=UTF-8',
 			'link'         => '<https://wordpress.org/news/wp-json/>; rel="https://api.w.org/"',
 		);
 
 		return array(
-			'headers'  => new Requests_Utility_CaseInsensitiveDictionary( $single_value_headers ),
+			'headers'  => new WpOrg\Requests\Utility\CaseInsensitiveDictionary( $single_value_headers ),
 			'body'     => file_get_contents( DIR_TESTDATA . '/feed/wordpress-org-news.xml' ),
 			'response' => array(
 				'code'    => 200,
@@ -1508,9 +1505,12 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The test_prepare_item() method does not exist for sidebar.
+	 * The prepare_item() method does not exist for sidebar.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_prepare_item() {
+		// Controller does not implement prepare_item().
 	}
 
 	/**
@@ -1551,7 +1551,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 			if ( is_array( $item ) && isset( $item['_links'] ) ) {
 				unset( $data[ $count ]['_links'] );
 			}
-			$count ++;
+			$count++;
 		}
 
 		return $data;

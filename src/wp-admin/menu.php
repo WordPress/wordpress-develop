@@ -203,14 +203,14 @@ if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 	$submenu['themes.php'][5] = array( sprintf( __( 'Themes %s' ), $count ), $appearance_cap, 'themes.php' );
 
 if ( wp_is_block_theme() ) {
+	$submenu['themes.php'][6] = array( _x( 'Editor', 'site editor menu item' ), 'edit_theme_options', 'site-editor.php' );
+}
+
+if ( ! wp_is_block_theme() && current_theme_supports( 'block-template-parts' ) ) {
 	$submenu['themes.php'][6] = array(
-		sprintf(
-			/* translators: %s: "beta" label */
-			__( 'Editor %s' ),
-			'<span class="awaiting-mod">' . __( 'beta' ) . '</span>'
-		),
+		__( 'Template Parts' ),
 		'edit_theme_options',
-		'site-editor.php',
+		'site-editor.php?postType=wp_template_part&amp;path=/wp_template_part/all',
 	);
 }
 
@@ -219,7 +219,7 @@ $customize_url = add_query_arg( 'return', urlencode( remove_query_arg( wp_remova
 // Hide Customize link on block themes unless a plugin or theme
 // is using 'customize_register' to add a setting.
 if ( ! wp_is_block_theme() || has_action( 'customize_register' ) ) {
-	$position = wp_is_block_theme() ? 7 : 6;
+	$position = ( wp_is_block_theme() || current_theme_supports( 'block-template-parts' ) ) ? 7 : 6;
 
 	$submenu['themes.php'][ $position ] = array( __( 'Customize' ), 'customize', esc_url( $customize_url ), '', 'hide-if-no-customize' );
 }
@@ -342,11 +342,37 @@ if ( current_user_can( 'list_users' ) ) {
 	}
 }
 
+$site_health_count = '';
+if ( ! is_multisite() && current_user_can( 'view_site_health_checks' ) ) {
+	$get_issues = get_transient( 'health-check-site-status-result' );
+
+	$issue_counts = array();
+
+	if ( false !== $get_issues ) {
+		$issue_counts = json_decode( $get_issues, true );
+	}
+
+	if ( ! is_array( $issue_counts ) || ! $issue_counts ) {
+		$issue_counts = array(
+			'good'        => 0,
+			'recommended' => 0,
+			'critical'    => 0,
+		);
+	}
+
+	$site_health_count = sprintf(
+		'<span class="menu-counter site-health-counter count-%s"><span class="count">%s</span></span>',
+		$issue_counts['critical'],
+		number_format_i18n( $issue_counts['critical'] )
+	);
+}
+
 $menu[75]                     = array( __( 'Tools' ), 'edit_posts', 'tools.php', '', 'menu-top menu-icon-tools', 'menu-tools', 'dashicons-admin-tools' );
 	$submenu['tools.php'][5]  = array( __( 'Available Tools' ), 'edit_posts', 'tools.php' );
 	$submenu['tools.php'][10] = array( __( 'Import' ), 'import', 'import.php' );
 	$submenu['tools.php'][15] = array( __( 'Export' ), 'export', 'export.php' );
-	$submenu['tools.php'][20] = array( __( 'Site Health' ), 'view_site_health_checks', 'site-health.php' );
+	/* translators: %s: Number of critical Site Health checks. */
+	$submenu['tools.php'][20] = array( sprintf( __( 'Site Health %s' ), $site_health_count ), 'view_site_health_checks', 'site-health.php' );
 	$submenu['tools.php'][25] = array( __( 'Export Personal Data' ), 'export_others_personal_data', 'export-personal-data.php' );
 	$submenu['tools.php'][30] = array( __( 'Erase Personal Data' ), 'erase_others_personal_data', 'erase-personal-data.php' );
 if ( is_multisite() && ! is_main_site() ) {

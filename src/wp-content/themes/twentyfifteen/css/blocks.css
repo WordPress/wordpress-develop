@@ -395,6 +395,10 @@ p.has-drop-cap:not(:focus)::first-letter {
 	vertical-align: baseline;
 }
 
+.is-style-outline .wp-block-button__link {
+	border: 2px solid;
+}
+
 .entry-content .wp-block-button:not(.is-style-outline) .wp-block-button__link {
 	border: 0;
 }
@@ -468,7 +472,8 @@ p.has-drop-cap:not(:focus)::first-letter {
 	max-width: 100px;
 }
 
-.wp-block-separator.is-style-wide {
+.wp-block-separator.is-style-wide,
+.wp-block-separator.is-style-dots {
 	max-width: 100%;
 }
 

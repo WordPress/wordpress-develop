@@ -129,7 +129,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 				'<span aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
 				esc_url( $customize_url ),
 				__( 'Live Preview' ),
-				/* translators: %s: Theme name. */
+				/* translators: Hidden accessibility text. %s: Theme name. */
 				sprintf( __( 'Live Preview &#8220;%s&#8221;' ), $name )
 			);
 		}
@@ -139,7 +139,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			'<span aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
 			esc_url( $activate_link ),
 			__( 'Activate' ),
-			/* translators: %s: Theme name. */
+			/* translators: Hidden accessibility text. %s: Theme name. */
 			sprintf( _x( 'Activate &#8220;%s&#8221;', 'theme' ), $name )
 		);
 
@@ -301,7 +301,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			$error = sprintf(
 				/* translators: 1: Current PHP version, 2: Version required by the uploaded theme. */
 				__( 'The PHP version on your server is %1$s, however the uploaded theme requires %2$s.' ),
-				phpversion(),
+				PHP_VERSION,
 				$requires_php
 			);
 
@@ -328,13 +328,13 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 				$warning = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'You are uploading an older version of the active theme. You can continue to install the older version, but be sure to <a href="%s">back up your database and files</a> first.' ),
-					__( 'https://wordpress.org/support/article/wordpress-backups/' )
+					__( 'https://wordpress.org/documentation/article/wordpress-backups/' )
 				);
 			} else {
 				$warning = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'You are updating a theme. Be sure to <a href="%s">back up your database and files</a> first.' ),
-					__( 'https://wordpress.org/support/article/wordpress-backups/' )
+					__( 'https://wordpress.org/documentation/article/wordpress-backups/' )
 				);
 			}
 

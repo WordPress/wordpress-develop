@@ -14,6 +14,7 @@ wp-tests-config.php
 /tests/phpunit/data/plugins/wordpress-importer
 /tests/phpunit/data/.trac-ticket-cache*
 /tests/qunit/compiled.html
+/tests/performance/**/*.test.results.json
 /src/.wp-tests-version
 /node_modules
 /npm-debug.log
@@ -27,6 +28,8 @@ wp-tests-config.php
 /src/wp-admin/css/*-rtl.css
 /src/wp-admin/css/colors/*/*.css
 /src/wp-admin/js
+/src/wp-includes/assets/*
+!/src/wp-includes/assets/script-loader-packages.min.php
 /src/wp-includes/js
 /src/wp-includes/css/dist
 /src/wp-includes/css/*.min.css
@@ -36,6 +39,7 @@ wp-tests-config.php
 /src/wp-includes/blocks/**/*.js.map
 /packagehash.txt
 /artifacts
+/setup.log
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
@@ -55,6 +59,7 @@ wp-tests-config.php
 !/src/wp-content/themes/twentytwenty
 !/src/wp-content/themes/twentytwentyone
 !/src/wp-content/themes/twentytwentytwo
+!/src/wp-content/themes/twentytwentythree
 /src/wp-content/upgrade
 /src/wp-content/uploads
 /src/wp-content/advanced-cache.php

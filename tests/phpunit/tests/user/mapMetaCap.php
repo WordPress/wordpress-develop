@@ -3,6 +3,7 @@
 /**
  * @group user
  * @group capabilities
+ * @covers ::map_meta_cap
  */
 class Tests_User_MapMetaCap extends WP_UnitTestCase {
 
@@ -409,5 +410,52 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		delete_option( 'page_for_posts' );
 
 		$this->assertSame( array( 'manage_options' ), $caps );
+	}
+
+	/**
+	 * @dataProvider data_meta_caps_throw_doing_it_wrong_without_required_argument_provided
+	 * @ticket 44591
+	 *
+	 * @param string $cap The meta capability requiring an argument.
+	 */
+	public function test_meta_caps_throw_doing_it_wrong_without_required_argument_provided( $cap ) {
+		$admin_user = self::$user_id;
+		$this->setExpectedIncorrectUsage( 'map_meta_cap' );
+		$this->assertContains( 'do_not_allow', map_meta_cap( $cap, $admin_user ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[] Test parameters {
+	 *     @type string $cap The meta capability requiring an argument.
+	 * }
+	 */
+	public function data_meta_caps_throw_doing_it_wrong_without_required_argument_provided() {
+		return array(
+			array( 'delete_post' ),
+			array( 'delete_page' ),
+			array( 'edit_post' ),
+			array( 'edit_page' ),
+			array( 'read_post' ),
+			array( 'read_page' ),
+			array( 'publish_post' ),
+			array( 'edit_post_meta' ),
+			array( 'delete_post_meta' ),
+			array( 'add_post_meta' ),
+			array( 'edit_comment_meta' ),
+			array( 'delete_comment_meta' ),
+			array( 'add_comment_meta' ),
+			array( 'edit_term_meta' ),
+			array( 'delete_term_meta' ),
+			array( 'add_term_meta' ),
+			array( 'edit_user_meta' ),
+			array( 'delete_user_meta' ),
+			array( 'add_user_meta' ),
+			array( 'edit_comment' ),
+			array( 'edit_term' ),
+			array( 'delete_term' ),
+			array( 'assign_term' ),
+		);
 	}
 }

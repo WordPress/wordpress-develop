@@ -1,15 +1,9 @@
 <?php
 /**
- * Block editor tests
+ * Tests for the block editor methods.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.5.0
- */
-
-/**
- * Tests for the block editor methods.
- *
  * @since 5.5.0
  *
  * @group blocks
@@ -28,10 +22,10 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			'post_title' => 'Example',
 		);
 
-		$post = $this->factory()->post->create_and_get( $args );
+		$post = self::factory()->post->create_and_get( $args );
 
 		global $wp_rest_server;
-		$wp_rest_server = new Spy_REST_Server;
+		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
 	}
 
@@ -202,7 +196,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	public function test_get_default_block_editor_settings() {
 		$settings = get_default_block_editor_settings();
 
-		$this->assertCount( 18, $settings );
+		$this->assertCount( 19, $settings );
 		$this->assertFalse( $settings['alignWide'] );
 		$this->assertIsArray( $settings['allowedMimeTypes'] );
 		$this->assertTrue( $settings['allowedBlockTypes'] );
@@ -249,6 +243,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$this->assertFalse( $settings['disableCustomColors'] );
 		$this->assertFalse( $settings['disableCustomFontSizes'] );
 		$this->assertFalse( $settings['disableCustomGradients'] );
+		$this->assertFalse( $settings['disableLayoutStyles'] );
 		$this->assertFalse( $settings['enableCustomLineHeight'] );
 		$this->assertFalse( $settings['enableCustomSpacing'] );
 		$this->assertFalse( $settings['enableCustomUnits'] );
@@ -298,6 +293,31 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		);
 		$this->assertIsInt( $settings['maxUploadFileSize'] );
 		$this->assertTrue( $settings['__unstableGalleryWithImageBlocks'] );
+	}
+
+	/**
+	 * @ticket 56815
+	 */
+	public function test_get_default_block_editor_settings_max_upload_file_size() {
+		// Force the return value of wp_max_upload_size() to be 500.
+		add_filter(
+			'upload_size_limit',
+			function() {
+				return 500;
+			}
+		);
+
+		// Expect 0 when user is not allowed to upload (as wp_max_upload_size() should not be called).
+		$settings = get_default_block_editor_settings();
+		$this->assertSame( 0, $settings['maxUploadFileSize'] );
+
+		// Set up an administrator, as they can upload files.
+		$administrator = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $administrator );
+
+		// Expect the above 500 as the user is now allowed to upload.
+		$settings = get_default_block_editor_settings();
+		$this->assertSame( 500, $settings['maxUploadFileSize'] );
 	}
 
 	/**
@@ -540,6 +560,44 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		block_editor_rest_api_preload( $preload_paths, new WP_Block_Editor_Context() );
 		$haystack = implode( '', wp_scripts()->registered['wp-api-fetch']->extra['after'] );
 		$this->assertStringContainsString( $expected, $haystack );
+	}
+
+	/**
+	 * @ticket 57547
+	 *
+	 * @covers ::get_classic_theme_supports_block_editor_settings
+	 */
+	public function test_get_classic_theme_supports_block_editor_settings() {
+		$font_sizes = array(
+			array(
+				'name' => 'Small',
+				'size' => 12,
+				'slug' => 'small',
+			),
+			array(
+				'name' => 'Regular',
+				'size' => 16,
+				'slug' => 'regular',
+			),
+		);
+
+		add_theme_support( 'editor-font-sizes', $font_sizes );
+		$settings = get_classic_theme_supports_block_editor_settings();
+		remove_theme_support( 'editor-font-sizes' );
+
+		$this->assertFalse( $settings['disableCustomColors'], 'Value for array key "disableCustomColors" does not match expectations' );
+		$this->assertFalse( $settings['disableCustomFontSizes'], 'Value for array key "disableCustomFontSizes" does not match expectations' );
+		$this->assertFalse( $settings['disableCustomGradients'], 'Value for array key "disableCustomGradients" does not match expectations' );
+		$this->assertFalse( $settings['disableLayoutStyles'], 'Value for array key "disableLayoutStyles" does not match expectations' );
+		$this->assertFalse( $settings['enableCustomLineHeight'], 'Value for array key "enableCustomLineHeight" does not match expectations' );
+		$this->assertFalse( $settings['enableCustomSpacing'], 'Value for array key "enableCustomSpacing" does not match expectations' );
+		$this->assertFalse( $settings['enableCustomUnits'], 'Value for array key "enableCustomUnits" does not match expectations' );
+
+		$this->assertSame(
+			$font_sizes,
+			$settings['fontSizes'],
+			'Value for array key "fontSizes" does not match expectations'
+		);
 	}
 
 	/**

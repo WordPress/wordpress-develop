@@ -1,15 +1,9 @@
 <?php
 /**
- * Block supported style tests
+ * Test block supported styles.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.6.0
- */
-
-/**
- * Test block supported styles.
- *
  * @since 5.6.0
  *
  * @group blocks
@@ -220,7 +214,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 			'innerHTML'    => array(),
 		);
 
-		$expected_styles  = 'test: style; color: #000; background-color: #fff;';
+		$expected_styles  = 'test: style;color:#000;background-color:#fff;';
 		$expected_classes = 'foo-bar-class wp-block-example has-text-color has-background';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
@@ -283,7 +277,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example has-background';
-		$expected_styles  = 'test: style; background: some-gradient-style;';
+		$expected_styles  = 'test: style; background:some-gradient-style;';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -379,7 +373,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example';
-		$expected_styles  = 'test: style; font-size: 10px;';
+		$expected_styles  = 'test: style; font-size:10px;';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -436,7 +430,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example';
-		$expected_styles  = 'test: style; line-height: 10;';
+		$expected_styles  = 'test: style; line-height:10;';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -563,7 +557,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example has-text-color has-background alignwide';
-		$expected_styles  = 'test: style; color: #000; background-color: #fff; font-size: 10px; line-height: 20;';
+		$expected_styles  = 'test: style; color:#000; background-color:#fff; font-size:10px; line-height:20;';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -606,7 +600,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example';
-		$expected_styles  = 'test: style; font-size: 10px;';
+		$expected_styles  = 'test: style; font-size:10px;';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}

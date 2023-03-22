@@ -5,16 +5,10 @@
  * @package WordPress
  * @subpackage UnitTests
  * @since 4.9.8
- */
-
-/**
- * Tests_Privacy_wpPrivacySendRequestConfirmationNotification class.
  *
  * @group privacy
  * @group user
  * @covers ::_wp_privacy_send_request_confirmation_notification
- *
- * @since 4.9.8
  */
 class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_UnitTestCase {
 	/**
@@ -55,7 +49,7 @@ class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_Unit
 	 * @ticket 43967
 	 */
 	public function test_function_should_not_send_email_when_not_a_wp_user_request() {
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_type' => 'post',
 			)

@@ -5,15 +5,12 @@
  * @package WordPress
  * @subpackage REST_API
  * @since 5.8.0
- */
-
-/**
- * Tests for REST API for Widgets.
+ *
+ * @covers WP_REST_Sidebars_Controller
  *
  * @see WP_Test_REST_Controller_Testcase
  * @group restapi
  * @group widgets
- * @covers WP_REST_Sidebars_Controller
  */
 class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase {
 
@@ -573,9 +570,12 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * The test_create_item() method does not exist for sidebar.
+	 * The create_item() method does not exist for sidebar.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_create_item() {
+		// Controller does not implement create_item().
 	}
 
 	/**
@@ -858,6 +858,73 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * @ticket 57531
+	 * @covers WP_Test_REST_Sidebars_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_for_response_to_set_inactive_on_theme_switch() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sidebars/sidebar-1' );
+
+		// Set up the test.
+		wp_widgets_init();
+		$this->setup_widget(
+			'widget_rss',
+			1,
+			array(
+				'title' => 'RSS test',
+			)
+		);
+		$this->setup_widget(
+			'widget_text',
+			1,
+			array(
+				'text' => 'Custom text test',
+			)
+		);
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name' => 'Sidebar 1',
+			),
+			array( 'text-1', 'rss-1' )
+		);
+
+		// Validate the state before a theme switch.
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$data     = $this->remove_links( $data );
+
+		$this->assertSame( 'active', $data['status'] );
+		$this->assertFalse(
+			get_theme_mod( 'wp_classic_sidebars' ),
+			'wp_classic_sidebars theme mod should not exist before switching to block theme'
+		);
+
+		switch_theme( 'block-theme' );
+		wp_widgets_init();
+
+		// Validate the state after a theme switch.
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$data     = $this->remove_links( $data );
+
+		$this->assertSame(
+			'inactive',
+			$data['status'],
+			'Sidebar status should have changed to inactive'
+		);
+		$this->assertSame(
+			array( 'text-1', 'rss-1' ),
+			$data['widgets'],
+			'The text and rss widgets should still in sidebar-1'
+		);
+		$this->assertArrayHasKey(
+			'sidebar-1',
+			get_theme_mod( 'wp_classic_sidebars' ),
+			'sidebar-1 should be in "wp_classic_sidebars" theme mod'
+		);
+	}
+
+	/**
 	 * @ticket 41683
 	 */
 	public function test_update_item_no_permission() {
@@ -890,15 +957,21 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * The test_delete_item() method does not exist for sidebar.
+	 * The delete_item() method does not exist for sidebar.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_delete_item() {
+		// Controller does not implement delete_item().
 	}
 
 	/**
-	 * The test_prepare_item() method does not exist for sidebar.
+	 * The prepare_item() method does not exist for sidebar.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_prepare_item() {
+		// Controller does not implement prepare_item().
 	}
 
 	/**
@@ -940,7 +1013,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 			if ( isset( $item['_links'] ) ) {
 				unset( $data[ $count ]['_links'] );
 			}
-			$count ++;
+			$count++;
 		}
 
 		return $data;

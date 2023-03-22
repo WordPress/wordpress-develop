@@ -7,9 +7,22 @@
 class Tests_Formatting_Date extends WP_UnitTestCase {
 
 	/**
+	 * Cleans up.
+	 */
+	public function tear_down() {
+		// Reset changed options to their default value.
+		update_option( 'gmt_offset', 0 );
+		update_option( 'timezone_string', '' );
+
+		parent::tear_down();
+	}
+
+	/**
 	 * Unpatched, this test passes only when Europe/London is not observing DST.
 	 *
 	 * @ticket 20328
+	 *
+	 * @covers ::get_date_from_gmt
 	 */
 	public function test_get_date_from_gmt_outside_of_dst() {
 		update_option( 'timezone_string', 'Europe/London' );
@@ -22,6 +35,8 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 	 * Unpatched, this test passes only when Europe/London is observing DST.
 	 *
 	 * @ticket 20328
+	 *
+	 * @covers ::get_date_from_gmt
 	 */
 	public function test_get_date_from_gmt_during_dst() {
 		update_option( 'timezone_string', 'Europe/London' );
@@ -32,6 +47,8 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20328
+	 *
+	 * @covers ::get_gmt_from_date
 	 */
 	public function test_get_gmt_from_date_outside_of_dst() {
 		update_option( 'timezone_string', 'Europe/London' );
@@ -42,6 +59,8 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20328
+	 *
+	 * @covers ::get_gmt_from_date
 	 */
 	public function test_get_gmt_from_date_during_dst() {
 		update_option( 'timezone_string', 'Europe/London' );
@@ -52,6 +71,9 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34279
+	 *
+	 * @covers ::get_date_from_gmt
+	 *
 	 */
 	public function test_get_date_and_time_from_gmt_no_timezone() {
 		$local = '2012-01-01 12:34:56';
@@ -61,6 +83,8 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34279
+	 *
+	 * @covers ::get_gmt_from_date
 	 */
 	public function test_get_gmt_from_date_no_timezone() {
 		$gmt  = '2012-12-01 00:00:00';
@@ -70,6 +94,8 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34279
+	 *
+	 * @covers ::get_gmt_from_date
 	 */
 	public function test_get_gmt_from_date_short_date() {
 		update_option( 'timezone_string', 'Europe/London' );
@@ -80,6 +106,8 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34279
+	 *
+	 * @covers ::get_gmt_from_date
 	 */
 	public function test_get_gmt_from_date_string_date() {
 		update_option( 'timezone_string', 'Europe/London' );
@@ -90,6 +118,8 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34279
+	 *
+	 * @covers ::get_gmt_from_date
 	 */
 	public function test_get_gmt_from_date_string_date_no_timezone() {
 		$local = 'now';
@@ -100,9 +130,11 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 	/**
 	 * @ticket 31809
 	 *
-	 * @dataProvider timezone_provider
+	 * @dataProvider data_timezone_provider
+	 *
+	 * @covers ::get_gmt_from_date
 	 */
-	public function test_gmt_from_date_correct_time( $timezone_string, $gmt_offset ) {
+	public function test_get_gmt_from_date_correct_time( $timezone_string, $gmt_offset ) {
 		update_option( 'timezone_string', $timezone_string );
 		update_option( 'gmt_offset', $gmt_offset );
 
@@ -116,9 +148,11 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 	/**
 	 * @ticket 31809
 	 *
-	 * @dataProvider timezone_provider
+	 * @dataProvider data_timezone_provider
+	 *
+	 * @covers ::get_date_from_gmt
 	 */
-	public function test_date_from_gmt_correct_time( $timezone_string, $gmt_offset ) {
+	public function test_get_date_from_gmt_correct_time( $timezone_string, $gmt_offset ) {
 		update_option( 'timezone_string', $timezone_string );
 		update_option( 'gmt_offset', $gmt_offset );
 
@@ -132,7 +166,9 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 	/**
 	 * @ticket 31809
 	 *
-	 * @dataProvider timezone_provider
+	 * @dataProvider data_timezone_provider
+	 *
+	 * @covers ::iso8601_to_datetime
 	 */
 	public function test_is8601_to_datetime_correct_time( $timezone_string, $gmt_offset ) {
 		update_option( 'timezone_string', $timezone_string );
@@ -194,15 +230,20 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function timezone_provider() {
+	public function data_timezone_provider() {
 		return array(
 			array(
-				'timezone_string' => 'Europe/Kiev',
+				'timezone_string' => 'Europe/Helsinki',
 				'gmt_offset'      => 3,
 			),
 			array(
 				'timezone_string' => '',
 				'gmt_offset'      => 3,
+			),
+			// @ticket 56468.
+			'deprecated timezone string and no GMT offset set' => array(
+				'timezone_string' => 'America/Buenos_Aires',
+				'gmt_offset'      => 0,
 			),
 		);
 	}

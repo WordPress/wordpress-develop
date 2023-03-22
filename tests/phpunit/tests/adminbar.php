@@ -37,7 +37,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		register_post_type( 'content', array( 'show_in_admin_bar' => true ) );
 
-		$admin_bar = new WP_Admin_Bar;
+		$admin_bar = new WP_Admin_Bar();
 
 		wp_admin_bar_new_content_menu( $admin_bar );
 
@@ -54,7 +54,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	public function test_merging_existing_meta_values() {
 		wp_set_current_user( self::$editor_id );
 
-		$admin_bar = new WP_Admin_Bar;
+		$admin_bar = new WP_Admin_Bar();
 
 		$admin_bar->add_node(
 			array(
@@ -656,7 +656,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->go_to( home_url( "/?customize_changeset_uuid=$uuid" ) );
 		wp_set_current_user( self::$admin_id );
 
-		$this->factory()->post->create(
+		self::factory()->post->create(
 			array(
 				'post_type'   => 'customize_changeset',
 				'post_status' => 'auto-draft',
@@ -753,5 +753,34 @@ class Tests_AdminBar extends WP_UnitTestCase {
 			'network-admin-p'      => 'manage_network_plugins',
 			'network-admin-o'      => 'manage_network_options',
 		);
+	}
+
+	/**
+	 * This test ensures that WP_Admin_Bar::$proto is not defined (including magic methods).
+	 *
+	 * @ticket 56876
+	 * @coversNothing
+	 */
+	public function test_proto_property_is_not_defined() {
+		$admin_bar = new WP_Admin_Bar();
+		$this->assertFalse( property_exists( $admin_bar, 'proto' ), 'WP_Admin_Bar::$proto should not be defined.' );
+		$this->assertFalse( isset( $admin_bar->proto ), 'WP_Admin_Bar::$proto should not be defined.' );
+	}
+
+	/**
+	 * This test ensures that WP_Admin_Bar::$menu is declared as a "regular" class property.
+	 *
+	 * @ticket 56876
+	 * @coversNothing
+	 */
+	public function test_menu_property_is_defined() {
+		$admin_bar = new WP_Admin_Bar();
+		$this->assertTrue( property_exists( $admin_bar, 'menu' ), 'WP_Admin_Bar::$proto property should be defined.' );
+
+		$menu_property = new ReflectionProperty( WP_Admin_Bar::class, 'menu' );
+		$this->assertTrue( $menu_property->isPublic(), 'WP_Admin_Bar::$menu should be public.' );
+
+		$this->assertTrue( isset( $admin_bar->menu ), 'WP_Admin_Bar::$menu should be set.' );
+		$this->assertSame( array(), $admin_bar->menu, 'WP_Admin_Bar::$menu should be equal to an empty array.' );
 	}
 }

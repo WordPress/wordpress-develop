@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Testcase {
@@ -43,7 +41,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 	}
 
 	public function test_get_items_logged_in() {
-		$user_id = $this->factory->user->create( array( 'role' => 'author' ) );
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
 		wp_set_current_user( $user_id );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/statuses' );
@@ -72,7 +70,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 	}
 
 	public function test_get_item() {
-		$user_id = $this->factory->user->create( array( 'role' => 'author' ) );
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
 		wp_set_current_user( $user_id );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/statuses/publish' );
 		$request->set_param( 'context', 'edit' );
@@ -94,7 +92,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 	}
 
 	public function test_get_item_invalid_internal() {
-		$user_id = $this->factory->user->create();
+		$user_id = self::factory()->user->create();
 		wp_set_current_user( $user_id );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/statuses/inherit' );
@@ -125,8 +123,8 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 
 	public function test_prepare_item() {
 		$obj      = get_post_status_object( 'publish' );
-		$endpoint = new WP_REST_Post_Statuses_Controller;
-		$request  = new WP_REST_Request;
+		$endpoint = new WP_REST_Post_Statuses_Controller();
+		$request  = new WP_REST_Request();
 		$request->set_param( 'context', 'edit' );
 		$data = $endpoint->prepare_item_for_response( $obj, $request );
 		$this->check_post_status_obj( $obj, $data->get_data(), $data->get_links() );
@@ -134,8 +132,8 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 
 	public function test_prepare_item_limit_fields() {
 		$obj      = get_post_status_object( 'publish' );
-		$request  = new WP_REST_Request;
-		$endpoint = new WP_REST_Post_Statuses_Controller;
+		$request  = new WP_REST_Request();
+		$endpoint = new WP_REST_Post_Statuses_Controller();
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( '_fields', 'id,name' );
 		$response = $endpoint->prepare_item_for_response( $obj, $request );
@@ -200,7 +198,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$wp_rest_additional_fields = array();
 	}
 
-	public function additional_field_get_callback( $object ) {
+	public function additional_field_get_callback( $response_data ) {
 		return 123;
 	}
 

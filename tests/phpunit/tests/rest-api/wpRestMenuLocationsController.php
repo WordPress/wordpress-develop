@@ -1,14 +1,10 @@
 <?php
 /**
- * WP_REST_Menu_Locations_Controller tests.
+ * Unit tests covering WP_REST_Menu_Locations_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
  * @since 5.9.0
- */
-
-/**
- * Tests for REST API for Menu locations.
  *
  * @group restapi
  *
@@ -140,24 +136,40 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 	}
 
 	/**
-	 * The test_create_item() method does not exist for menu locations.
+	 * The create_item() method does not exist for menu locations.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_create_item() {}
+	public function test_create_item() {
+		// Controller does not implement create_item().
+	}
 
 	/**
-	 * The test_update_item() method does not exist for menu locations.
+	 * The update_item() method does not exist for menu locations.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_update_item() {}
+	public function test_update_item() {
+		// Controller does not implement update_item().
+	}
 
 	/**
-	 * The test_delete_item() method does not exist for menu locations.
+	 * The delete_item() method does not exist for menu locations.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_delete_item() {}
+	public function test_delete_item() {
+		// Controller does not implement delete_item().
+	}
 
 	/**
-	 * The test_prepare_item() method does not exist for menu locations.
+	 * The prepare_item() method does not exist for menu locations.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_prepare_item() {}
+	public function test_prepare_item() {
+		// Controller does not implement prepare_item().
+	}
 
 	/**
 	 * @ticket 40878

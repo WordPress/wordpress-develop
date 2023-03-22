@@ -3,7 +3,7 @@
 /**
  * @group user
  */
-class Tests_User_WpSetCurrentUser extends WP_UnitTestCase {
+class Tests_User_wpSetCurrentUser extends WP_UnitTestCase {
 	protected static $user_id;
 	protected static $user_id2;
 	protected static $user_ids = array();

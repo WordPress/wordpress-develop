@@ -126,7 +126,7 @@ get_current_screen()->add_help_tab(
 		'content' =>
 				'<p>' . __( 'You can use the plugin file editor to make changes to any of your plugins&#8217; individual PHP files. Be aware that if you make changes, plugins updates will overwrite your customizations.' ) . '</p>' .
 				'<p>' . __( 'Choose a plugin to edit from the dropdown menu and click the Select button. Click once on any file name to load it in the editor, and make your changes. Do not forget to save your changes (Update File) when you are finished.' ) . '</p>' .
-				'<p>' . __( 'The Documentation menu below the editor lists the PHP functions recognized in the plugin file. Clicking Look Up takes you to a web page about that particular function.' ) . '</p>' .
+				'<p>' . __( 'The documentation menu below the editor lists the PHP functions recognized in the plugin file. Clicking Look Up takes you to a web page about that particular function.' ) . '</p>' .
 				'<p id="editor-keyboard-trap-help-1">' . __( 'When using a keyboard to navigate:' ) . '</p>' .
 				'<ul>' .
 				'<li id="editor-keyboard-trap-help-2">' . __( 'In the editing area, the Tab key enters a tab character.' ) . '</li>' .
@@ -140,9 +140,9 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/plugins-editor-screen/">Documentation on Editing Plugins</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/plugins-editor-screen/">Documentation on Editing Plugins</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://developer.wordpress.org/plugins/">Documentation on Writing Plugins</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 $settings = array(
@@ -167,10 +167,12 @@ if ( '.php' === substr( $real_file, strrpos( $real_file, '.' ) ) ) {
 
 	if ( ! empty( $functions ) ) {
 		$docs_select  = '<select name="docs-list" id="docs-list">';
-		$docs_select .= '<option value="">' . __( 'Function Name&hellip;' ) . '</option>';
+		$docs_select .= '<option value="">' . esc_html__( 'Function Name&hellip;' ) . '</option>';
+
 		foreach ( $functions as $function ) {
 			$docs_select .= '<option value="' . esc_attr( $function ) . '">' . esc_html( $function ) . '()</option>';
 		}
+
 		$docs_select .= '</select>';
 	}
 }
@@ -294,7 +296,7 @@ $content = esc_textarea( $content );
 			printf(
 				/* translators: %s: Documentation URL. */
 				__( 'You need to make this file writable before you can save your changes. See <a href="%s">Changing File Permissions</a> for more information.' ),
-				__( 'https://wordpress.org/support/article/changing-file-permissions/' )
+				__( 'https://wordpress.org/documentation/article/changing-file-permissions/' )
 			);
 			?>
 		</p>

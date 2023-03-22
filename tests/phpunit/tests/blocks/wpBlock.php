@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_Block tests
+ * Tests for WP_Block.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.5.0
- */
-
-/**
- * Tests for WP_Block.
- *
  * @since 5.5.0
  *
  * @group blocks
@@ -82,8 +76,14 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$block        = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertInstanceOf( WP_Block_Type::class, $block->block_type );
-		$this->assertSame(
-			$block_type_settings['attributes'],
+		$this->assertSameSetsWithIndex(
+			array(
+				'defaulted' => array(
+					'type'    => 'number',
+					'default' => 10,
+				),
+				'lock'      => array( 'type' => 'object' ),
+			),
 			$block->block_type->attributes
 		);
 	}
@@ -431,6 +431,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'categoryIds' => array( 56 ),
 				'orderBy'     => 'title',
 				'tagIds'      => array( 3, 11, 10 ),
+				'parents'     => array( 1, 2 ),
 			),
 		);
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
@@ -439,12 +440,23 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->assertSame(
 			$query,
 			array(
-				'post_type'    => 'page',
-				'order'        => 'DESC',
-				'orderby'      => 'title',
-				'post__not_in' => array( 1, 2 ),
-				'category__in' => array( 56 ),
-				'tag__in'      => array( 3, 11, 10 ),
+				'post_type'       => 'page',
+				'order'           => 'DESC',
+				'orderby'         => 'title',
+				'post__not_in'    => array( 1, 2 ),
+				'tax_query'       => array(
+					array(
+						'taxonomy'         => 'category',
+						'terms'            => array( 56 ),
+						'include_children' => false,
+					),
+					array(
+						'taxonomy'         => 'post_tag',
+						'terms'            => array( 3, 11, 10 ),
+						'include_children' => false,
+					),
+				),
+				'post_parent__in' => array( 1, 2 ),
 			)
 		);
 	}
@@ -564,6 +576,47 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'post__not_in'   => array(),
 				'offset'         => 12,
 				'posts_per_page' => 5,
+			)
+		);
+	}
+
+	/**
+	 * @ticket 56467
+	 */
+	public function test_query_loop_block_query_vars_filter() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'postType' => 'page',
+				'orderBy'  => 'title',
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		add_filter(
+			'query_loop_block_query_vars',
+			static function( $query, $block, $page ) {
+				$query['post_type'] = 'book';
+				return $query;
+			},
+			10,
+			3
+		);
+
+		$query = build_query_vars_from_query_block( $block, 1 );
+		$this->assertSame(
+			$query,
+			array(
+				'post_type'    => 'book',
+				'order'        => 'DESC',
+				'orderby'      => 'title',
+				'post__not_in' => array(),
 			)
 		);
 	}

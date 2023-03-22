@@ -4,9 +4,7 @@
  *
  * @package    WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Controller_Testcase {
@@ -407,6 +405,32 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$request->set_body_params( array( 'name' => 'App' ) );
 		$response = rest_do_request( $request );
 		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 404 );
+	}
+
+	/**
+	 * @ticket 53224
+	 * @group ms-required
+	 */
+	public function test_create_item_for_super_admin_on_site_where_they_are_not_a_member() {
+		wp_set_current_user( self::$admin );
+
+		// Create a site where the Super Admin is not a member.
+		$blog_id = self::factory()->blog->create(
+			array(
+				'user_id' => self::$subscriber_id,
+			)
+		);
+
+		switch_to_blog( $blog_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users/me/application-passwords' );
+		$request->set_body_params( array( 'name' => 'App' ) );
+		$response = rest_do_request( $request );
+
+		restore_current_blog();
+
+		$this->assertNotWPError( $response );
+		$this->assertSame( 201, $response->get_status() );
 	}
 
 	/**
@@ -966,7 +990,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 		$actual = wp_is_application_passwords_supported();
 
-		// Revert to default behaviour so that other tests are not affected.
+		// Revert to default behavior so that other tests are not affected.
 		putenv( 'WP_ENVIRONMENT_TYPE' );
 
 		$this->assertTrue( $actual );
@@ -998,7 +1022,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$actual = wp_is_application_passwords_available();
 
 		if ( 'default' === $expected ) {
-			// Revert to default behaviour so that other tests are not affected.
+			// Revert to default behavior so that other tests are not affected.
 			putenv( 'WP_ENVIRONMENT_TYPE' );
 		}
 

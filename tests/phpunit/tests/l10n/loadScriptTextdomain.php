@@ -3,6 +3,8 @@
 /**
  * @group l10n
  * @group i18n
+ *
+ * @covers ::load_script_textdomain
  */
 class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 
@@ -12,7 +14,7 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 	 * @ticket 46387
 	 * @ticket 49145
 	 *
-	 * @dataProvider data_test_resolve_relative_path
+	 * @dataProvider data_resolve_relative_path
 	 */
 	public function test_resolve_relative_path( $translation_path, $handle, $src, $textdomain, $filter = array() ) {
 		if ( ! empty( $filter ) ) {
@@ -24,7 +26,7 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 		$this->assertSame( $expected, load_script_textdomain( $handle, $textdomain, DIR_TESTDATA . '/languages' ) );
 	}
 
-	public function data_test_resolve_relative_path() {
+	public function data_resolve_relative_path() {
 		return array(
 			// @ticket 45528
 			array(
@@ -128,5 +130,24 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 		}
 
 		return $relative;
+	}
+
+	/**
+	 * Tests that PHP 8.1 "passing null to non-nullable" deprecation notice
+	 * is not thrown when passing the default `$path` to untrailingslashit() in the function.
+	 *
+	 * The notice that we should not see:
+	 * `Deprecated: rtrim(): Passing null to parameter #1 ($string) of type string is deprecated`.
+	 *
+	 * @ticket 55967
+	 */
+	public function test_does_not_throw_deprecation_notice_for_rtrim_with_default_parameters() {
+		$handle = 'test-example-root';
+		$src    = '/wp-includes/js/script.js';
+
+		wp_enqueue_script( $handle, $src );
+
+		$expected = file_get_contents( DIR_TESTDATA . '/languages/en_US-813e104eb47e13dd4cc5af844c618754.json' );
+		$this->assertSame( $expected, load_script_textdomain( $handle ) );
 	}
 }

@@ -298,7 +298,7 @@ class Tests_Query_Date extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $expected, $posts );
+		$this->assertEqualSets( $expected, $posts );
 	}
 
 	public function test_simple_monthnum_expecting_results() {
