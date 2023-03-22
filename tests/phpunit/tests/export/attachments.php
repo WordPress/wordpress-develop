@@ -6,26 +6,30 @@
  * @ticket 17379
  */
 class Test_Export_Includes_Attachments extends WP_UnitTestCase {
-
-	public static $post;
-
-	public static $author;
+	protected static $post_1;
+	protected static $attachment_1;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$author = $factory->user->create( array( 'role' => 'editor' ) );
-
-		$args       = array(
-			'post_title'   => 'Test Post',
-			'post_content' => 'Test Content',
-			'post_status'  => 'publish',
-			'post_author'  => self::$author,
+		self::$post_1 = self::factory()->post->create_and_get(
+			array(
+				'post_title'  => 'Test Post 1',
+				'post_author' => $factory->user->create( array( 'role' => 'editor' ) ),
+			)
 		);
-		self::$post = self::factory()->post->create_and_get( $args );
 
-		$file          = DIR_TESTDATA . '/images/test-image.jpg';
-		$attachment_id = $factory->attachment->create_upload_object( $file );
+		$post_2 = self::factory()->post->create_and_get(
+			array(
+				'post_title'  => 'Test Post 2',
+				'post_author' => $factory->user->create( array( 'role' => 'editor' ) ),
+			)
+		);
 
-		set_post_thumbnail( self::$post->ID, $attachment_id );
+		$file = DIR_TESTDATA . '/images/test-image.jpg';
+
+		self::$attachment_1 = $factory->attachment->create_upload_object( $file );
+
+		set_post_thumbnail( self::$post_1->ID, self::$attachment_1 );
+		set_post_thumbnail( $post_2, $factory->attachment->create_upload_object( $file ) );
 	}
 
 	/**
@@ -47,13 +51,16 @@ class Test_Export_Includes_Attachments extends WP_UnitTestCase {
 		export_wp(
 			array(
 				'content' => 'post',
-				'author'  => self::$post->post_author,
+				'author'  => self::$post_1->post_author,
 			)
 		);
 		$xml = simplexml_load_string( ob_get_clean() );
 
 		$this->assertNotEmpty( $xml->channel->item->title );
-		$this->assertEquals( self::$post->post_title, (string) $xml->channel->item[0]->title );
-		$this->assertEquals( basename( get_attached_file( get_post_thumbnail_id( self::$post->ID ) ) ), (string) $xml->channel->item[1]->title );
+		$this->assertEquals( self::$post_1->ID, (int) $xml->channel->item[0]->children( 'wp', true )->post_id );
+		$this->assertEquals( self::$attachment_1, (int) $xml->channel->item[1]->children( 'wp', true )->post_id );
+
+		// Test that the post and attachment by the other author are not included by asserting that there are only two items.
+		$this->assertCount( 2, $xml->channel->item );
 	}
 }
