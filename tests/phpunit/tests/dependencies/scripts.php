@@ -156,7 +156,7 @@ JS;
 	public function data_standalone_inline_script() {
 		$data = array();
 
-		// If the main script has a `before` inline script; standalone doesn't effect any script.
+		// If the main script has a `before` inline script, `standalone` doesn't apply to any inline script associated with the main script.
 		wp_enqueue_script( 'ds-is1-1', 'http://example.org/ds-is1-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ds-is1-2', 'http://example.org/ds-is1-2.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ds-is1-3', 'http://example.org/ds-is1-3.js', array(), null, array( 'strategy' => 'defer' ) );
