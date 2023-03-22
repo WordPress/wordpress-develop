@@ -98,7 +98,7 @@ JS;
 	public function data_standalone_after_inline_script() {
 		$data = array();
 
-		// If the main script with defer strategy has a `after` inline script; the inline script is not affected.
+		// If the main script with a `defer` loading strategy has an `after` inline script, the inline script should not be affected.
 		wp_enqueue_script( 'ms-isa-1', 'http://example.org/ms-isa-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-isa-1', 'console.log("after one");', 'after', true );
 		$output    = get_echo( 'wp_print_scripts' );
