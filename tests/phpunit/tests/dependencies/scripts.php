@@ -122,7 +122,7 @@ JS;
 		$expected .= "<script type='text/javascript' src='http://example.org/ms-i3-1.js' id='ms-i3-1-js' defer></script>\n";
 		array_push( $data, array( $expected, $output, 'Top most has before inline script. All the script in the chain defer.' ) );
 
-		// If there are two dependencies chain; rules are applied to the scripts in the chain having a `before` inline script.
+		// If there are two dependency chains, rules are applied to the scripts in the chain that contain a `before` inline script.
 		wp_enqueue_script( 'ch1-ds-i4-1', 'http://example.org/ch1-ds-i4-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ch1-ds-i4-2', 'http://example.org/ch1-ds-i4-2.js', array( 'ch1-ds-i4-1' ), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ch2-ds-i4-1', 'http://example.org/ch2-ds-i4-1.js', array(), null, array( 'strategy' => 'defer' ) );
