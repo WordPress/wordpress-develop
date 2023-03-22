@@ -392,6 +392,7 @@ class WP_Object_Cache {
 	 * Retrieves multiple values from the cache in one call.
 	 *
 	 * @since 5.5.0
+	 * @since 6.3.0 Added the `$found` parameter.
 	 *
 	 * @param array  $keys  Array of keys under which the cache contents are stored.
 	 * @param string $group Optional. Where the cache contents are grouped. Default 'default'.
