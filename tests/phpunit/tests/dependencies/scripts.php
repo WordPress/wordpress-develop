@@ -63,14 +63,13 @@ JS;
 		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
 	}
 
-
 	/**
-	 * Test standalone and non standalone after script one a single main script.
+	 * Test standalone and non standalone inline scripts in the 'after' position of a single main script.
 	 *
 	 * @ticket 12009
 	 */
 	public function test_non_standalone_and_standalone_after_script_combined() {
-		// If a main script with a `defer` strategy has an `after` inline script, we expect one instance with type='javascript' and another with type='text/template'.
+		// If a main script containing a `defer` strategy has an `after` inline script, the expected script type is type='javascript', otherwise type='text/template'.
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-isinsa-1', 'http://example.org/ms-isinsa-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-isinsa-1', 'console.log("after one");', 'after', true );
@@ -99,7 +98,7 @@ EXP;
 	}
 
 	/**
-	 * Test standalone after inline script.
+	 * Test `standalone` inline scripts in the `after` position.
 	 *
 	 * @ticket 12009
 	 * @dataProvider data_standalone_after_inline_script
@@ -111,7 +110,7 @@ EXP;
 	public function data_standalone_after_inline_script() {
 		$data = array();
 
-		// If the main script with defer strategy has a `after` inline script; the inline script is not affected.
+		// If the main script with a `defer` loading strategy has an `after` inline script, the inline script should not be affected.
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-isa-1', 'http://example.org/ms-isa-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-isa-1', 'console.log("after one");', 'after', true );
@@ -137,7 +136,7 @@ EXP;
 	}
 
 	/**
-	 * Test non standalone after inline script.
+	 * Test non standalone inline scripts in the `after` position.
 	 *
 	 * @ticket 12009
 	 * @dataProvider data_non_standalone_after_inline_script
@@ -149,7 +148,7 @@ EXP;
 	public function data_non_standalone_after_inline_script() {
 		$data = array();
 
-		// If the main script with defer strategy has a `after` inline script; the inline script is inserted as type='module'.
+		// If a main script with a `defer` loading strategy has an `after` inline script, the inline script should be rendered as type='module'.
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-insa-1', 'http://example.org/ms-insa-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-insa-1', 'console.log("after one");', 'after' );
@@ -172,7 +171,7 @@ console.log("after one");
 EXP;
 		array_push( $data, array( $expected, $output, 'Main Deferred; expected type="text/template" for inline script.' ) );
 
-		// If the main script with async strategy has a `after` inline script; the inline script is inserted as type='module'.
+		// If a main script with an `async` loading strategy has an `after` inline script, the inline script should be rendered as type='module'.
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-insa-2', 'http://example.org/ms-insa-2.js', array(), null, array( 'strategy' => 'async' ) );
 		wp_add_inline_script( 'ms-insa-2', 'console.log("after one");', 'after' );
@@ -195,7 +194,7 @@ console.log("after one");
 EXP;
 		array_push( $data, array( $expected, $output, 'Main Async; expected type="text/template" for inline script.' ) );
 
-		// If the main script with blocking strategy has a `after` inline script; the inline script is inserted as type='javascript'.
+		// If a main script with a `blocking` strategy has an `after` inline script, the inline script should be rendered as type='javascript'.
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-insa-3', 'http://example.org/ms-insa-3.js', array(), null, array( 'strategy' => 'blocking' ) );
 		wp_add_inline_script( 'ms-insa-3', 'console.log("after one");', 'after' );
@@ -204,9 +203,9 @@ EXP;
 		$expected .= "<script type='text/javascript' id='ms-insa-3-js-after'>\n";
 		$expected .= "console.log(\"after one\");\n";
 		$expected .= "</script>\n";
-		array_push( $data, array( $expected, $output, 'The main script is blocking. Only the text/javascript type is expected for the inline script.' ) );
+		array_push( $data, array( $expected, $output, 'Expected no type attribute for inline script.' ) );
 
-		// If the main script with no strategy has a `after` inline script; the inline script is inserted as type='javascript'.
+		// If a main script with no loading strategy has an `after` inline script, the inline script should be rendered as type='javascript'.
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-insa-4', 'http://example.org/ms-insa-4.js', array(), null );
 		wp_add_inline_script( 'ms-insa-4', 'console.log("after one");', 'after' );
@@ -215,13 +214,13 @@ EXP;
 		$expected .= "<script type='text/javascript' id='ms-insa-4-js-after'>\n";
 		$expected .= "console.log(\"after one\");\n";
 		$expected .= "</script>\n";
-		array_push( $data, array( $expected, $output, 'No script strategy is present. Only the text/javascript type is expected for the inline script.' ) );
+		array_push( $data, array( $expected, $output, 'Expected no type attribute for inline script.' ) );
 
 		return $data;
 	}
 
 	/**
-	 * Test non standalone before with defer.
+	 * Test non standalone `before` inline scripts attached to deferred main scripts.
 	 *
 	 * @ticket 12009
 	 * @dataProvider data_non_standalone_before_inline_script_with_defer
@@ -233,7 +232,7 @@ EXP;
 	public function data_non_standalone_before_inline_script_with_defer() {
 		$data = array();
 
-		// If the main script has a `before` inline script; all dependencies will be blocking.
+		// If the main script has a `before` inline script, all dependencies will be blocking.
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ds-i1-1', 'http://example.org/ds-i1-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ds-i1-2', 'http://example.org/ds-i1-2.js', array(), null, array( 'strategy' => 'defer' ) );
@@ -250,7 +249,7 @@ EXP;
 		$expected .= "<script type='text/javascript' src='http://example.org/ms-i1-1.js' id='ms-i1-1-js' defer></script>\n";
 		array_push( $data, array( $expected, $output, 'All dependency in the chain should be blocking' ) );
 
-		// One of the dependency in the chain has a `before` inline script; all script above it will be blocking.
+		// If any of the dependencies in the chain have a `before` inline script, all scripts above it should be blocking.
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ds-i2-1', 'http://example.org/ds-i2-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ds-i2-2', 'http://example.org/ds-i2-2.js', array( 'ds-i2-1' ), null, array( 'strategy' => 'defer' ) );
@@ -267,7 +266,7 @@ EXP;
 		$expected .= "<script type='text/javascript' src='http://example.org/ms-i2-1.js' id='ms-i2-1-js' defer></script>\n";
 		array_push( $data, array( $expected, $output, 'Scripts in the chain before the script having before must be blocking.' ) );
 
-		// Top most dependency in the chain has a `before` inline script; none of the script bellow it will be blocking.
+		// If the top most dependency in the chain has a `before` inline script, none of the scripts bellow it will be blocking.
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ds-i3-1', 'http://example.org/ds-i3-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ds-i3-2', 'http://example.org/ds-i3-2.js', array( 'ds-i3-1' ), null, array( 'strategy' => 'defer' ) );
@@ -282,7 +281,7 @@ EXP;
 		$expected .= "<script type='text/javascript' src='http://example.org/ms-i3-1.js' id='ms-i3-1-js' defer></script>\n";
 		array_push( $data, array( $expected, $output, 'Top most has before inline script. All the script in the chain defer.' ) );
 
-		// If there are two dependencies chain; rules are applied to the scripts in the chain having a `before` inline script.
+		// If there are two dependency chains, rules are applied to the scripts in the chain that contain a `before` inline script.
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ch1-ds-i4-1', 'http://example.org/ch1-ds-i4-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ch1-ds-i4-2', 'http://example.org/ch1-ds-i4-2.js', array( 'ch1-ds-i4-1' ), null, array( 'strategy' => 'defer' ) );
@@ -317,7 +316,7 @@ EXP;
 	public function data_standalone_before_inline_script() {
 		$data = array();
 
-		// If the main script has a `before` inline script; standalone doesn't effect any script.
+		// If the main script has a `before` inline script, `standalone` doesn't apply to any inline script associated with the main script.
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ds-is1-1', 'http://example.org/ds-is1-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ds-is1-2', 'http://example.org/ds-is1-2.js', array(), null, array( 'strategy' => 'defer' ) );
@@ -334,7 +333,7 @@ EXP;
 		$expected .= "<script type='text/javascript' src='http://example.org/ms-is1-1.js' id='ms-is1-1-js' defer></script>\n";
 		array_push( $data, array( $expected, $output, 'All dependency in the chain should be blocking' ) );
 
-		// One of the dependency in the chain has a `before` inline script; standalone doesn't effect any script.
+		// If one of the dependencies in the chain has a `before` inline script associated with it, `standalone` doesn't apply to any inline script(s) associated with the main script.
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ds-is2-1', 'http://example.org/ds-is2-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ds-is2-2', 'http://example.org/ds-is2-2.js', array( 'ds-is2-1' ), null, array( 'strategy' => 'defer' ) );
