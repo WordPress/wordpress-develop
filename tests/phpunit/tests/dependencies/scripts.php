@@ -76,7 +76,7 @@ JS;
 	public function data_non_standalone_before_inline_script_with_defer() {
 		$data = array();
 
-		// If the main script has a `before` inline script; all dependencies will be blocking.
+		// If the main script has a `before` inline script, all dependencies will be blocking.
 		wp_enqueue_script( 'ds-i1-1', 'http://example.org/ds-i1-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ds-i1-2', 'http://example.org/ds-i1-2.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ds-i1-3', 'http://example.org/ds-i1-3.js', array(), null, array( 'strategy' => 'defer' ) );
