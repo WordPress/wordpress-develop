@@ -164,7 +164,7 @@ JS;
 		$expected .= "</script>\n";
 		array_push( $data, array( $expected, $output, 'Expected no type attribute for inline script.' ) );
 
-		// If the main script with no strategy has a `after` inline script; the inline script is inserted as type='javascript'.
+		// If a main script with no loading strategy has an `after` inline script, the inline script should be rendered as type='javascript'.
 		wp_enqueue_script( 'ms-insa-4', 'http://example.org/ms-insa-4.js', array(), null );
 		wp_add_inline_script( 'ms-insa-4', 'console.log("after one");', 'after' );
 		$output    = get_echo( 'wp_print_scripts' );
