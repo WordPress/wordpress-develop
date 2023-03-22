@@ -482,16 +482,18 @@ function wp_cache_get_multi_by_key( $server_key, $keys, $groups = '', &$cas_toke
  * @param string $group Optional. Where the cache contents are grouped. Default empty.
  * @param bool   $force Optional. Whether to force an update of the local cache
  *                      from the persistent cache. Default false.
+ * @param array  $found Optional. Whether array of keys were found in the cache (passed by reference).
+ *                      Disambiguates a return of false, a storable value. Default empty array.
  * @return array Array of return values, grouped by key. Each value is either
  *               the cache contents on success, or false on failure.
  */
-function wp_cache_get_multiple( $keys, $group = '', $force = false ) {
+function wp_cache_get_multiple( $keys, $group = '', $force = false, &$found = array() ) {
 	global $wp_object_cache;
 
 	// Prime multiple keys in a single Memcached call.
 	$wp_object_cache->getMulti( $keys, $group );
 
-	return $wp_object_cache->getMultiple( $keys, $group, $force );
+	return $wp_object_cache->getMultiple( $keys, $group, $force, $found );
 }
 
 /**
