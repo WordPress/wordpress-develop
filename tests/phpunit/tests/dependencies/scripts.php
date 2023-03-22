@@ -144,7 +144,7 @@ JS;
 		$expected .= "</script>\n";
 		array_push( $data, array( $expected, $output, 'Expected type="text/template" for inline script.' ) );
 
-		// If the main script with async strategy has a `after` inline script; the inline script is inserted as type='module'.
+		// If a main script with an `async` loading strategy has an `after` inline script, the inline script should be rendered as type='module'.
 		wp_enqueue_script( 'ms-insa-2', 'http://example.org/ms-insa-2.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-insa-2', 'console.log("after one");', 'after' );
 		$output    = get_echo( 'wp_print_scripts' );
