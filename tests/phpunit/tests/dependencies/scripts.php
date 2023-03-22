@@ -64,7 +64,7 @@ JS;
 	}
 
 	/**
-	 * Test non standalone before with defer.
+	 * Test non standalone `before` inline scripts attached to deferred main scripts.
 	 *
 	 * @ticket 12009
 	 * @dataProvider data_non_standalone_before_inline_script_with_defer
