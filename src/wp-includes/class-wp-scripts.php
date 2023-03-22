@@ -845,7 +845,7 @@ JS;
 				return false;
 			}
 
-			// If the dependent script has a before then non-standalone 'before' inline script then not defer.
+			// If the dependent script has a non-standalone inline script in the 'before' position associated with it, do not defer.
 			if ( $this->has_non_standalone_inline_script( $dependent, 'before' ) ) {
 				return false;
 			}
