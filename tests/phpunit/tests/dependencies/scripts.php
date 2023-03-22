@@ -172,7 +172,7 @@ JS;
 		$expected .= "<script type='text/javascript' src='http://example.org/ms-is1-1.js' id='ms-is1-1-js' defer></script>\n";
 		array_push( $data, array( $expected, $output, 'All dependency in the chain should be blocking' ) );
 
-		// One of the dependency in the chain has a `before` inline script; standalone doesn't effect any script.
+		// If one of the dependencies in the chain has a `before` inline script associated with it, `standalone` doesn't apply to any inline script(s) associated with the main script.
 		wp_enqueue_script( 'ds-is2-1', 'http://example.org/ds-is2-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ds-is2-2', 'http://example.org/ds-is2-2.js', array( 'ds-is2-1' ), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ds-is2-3', 'http://example.org/ds-is2-3.js', array( 'ds-is2-2' ), null, array( 'strategy' => 'defer' ) );
