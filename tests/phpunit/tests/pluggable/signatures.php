@@ -306,6 +306,7 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 						'keys',
 						'group' => '',
 						'force' => false,
+						'found' => array(),
 					),
 					'wp_cache_delete'                    => array(
 						'key',
