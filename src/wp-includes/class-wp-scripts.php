@@ -805,7 +805,7 @@ JS;
 	}
 
 	/**
-	 * Get the strategy assigned during script registration.
+	 * Check if a script has a non standalone inline script associated with it.
 	 *
 	 * @param string $handle   The script handle.
 	 * @param string $position Position of the inline script.
