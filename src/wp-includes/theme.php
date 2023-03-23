@@ -2649,7 +2649,6 @@ function get_theme_starter_content() {
  * @param string $feature The feature being added. Likely core values include:
  *                          - 'admin-bar'
  *                          - 'align-wide'
- *                          - 'attachment-pages'
  *                          - 'automatic-feed-links'
  *                          - 'core-block-patterns'
  *                          - 'custom-background'

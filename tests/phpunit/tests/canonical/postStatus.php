@@ -170,13 +170,12 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		parent::set_up();
 		self::setup_custom_types();
 
-		add_theme_support( 'attachment-pages' );
-	}
-
-	public function tear_down() {
-		remove_theme_support( 'attachment-pages' );
-
-		parent::tear_down();
+		add_filter(
+			'pre_option_wp_media_use_attachment_pages',
+			function( $value ) {
+				return '1';
+			}
+		);
 	}
 
 	/**

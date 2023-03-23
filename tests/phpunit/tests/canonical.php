@@ -14,13 +14,12 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		parent::set_up();
 		wp_set_current_user( self::$author_id );
 
-		add_theme_support( 'attachment-pages' );
-	}
-
-	public function tear_down() {
-		remove_theme_support( 'attachment-pages' );
-
-		parent::tear_down();
+		add_filter(
+			'pre_option_wp_media_use_attachment_pages',
+			function( $value ) {
+				return '1';
+			}
+		);
 	}
 
 	/**
