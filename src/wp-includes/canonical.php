@@ -545,7 +545,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		}
 	}
 
-	if ( is_attachment() && '0' === get_option( 'wp_media_use_attachment_pages' ) ) {
+	if ( is_attachment() && '0' === get_option( 'wp_attachment_pages_enabled' ) ) {
 		$attachment_id = get_query_var( 'attachment_id' );
 		if ( current_user_can( 'read_post', $attachment_id ) ) {
 			$redirect_url = wp_get_attachment_url( $attachment_id );

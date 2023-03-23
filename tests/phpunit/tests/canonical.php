@@ -15,7 +15,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		wp_set_current_user( self::$author_id );
 
 		add_filter(
-			'pre_option_wp_media_use_attachment_pages',
+			'pre_option_wp_attachment_pages_enabled',
 			function( $value ) {
 				return '1';
 			}

@@ -171,7 +171,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		self::setup_custom_types();
 
 		add_filter(
-			'pre_option_wp_media_use_attachment_pages',
+			'pre_option_wp_attachment_pages_enabled',
 			function( $value ) {
 				return '1';
 			}
