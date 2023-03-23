@@ -2642,7 +2642,6 @@ function get_theme_starter_content() {
  * @since 5.6.0 The `post-formats` feature warns if no array is passed as the second parameter.
  * @since 5.8.0 The `widgets-block-editor` feature enables the Widgets block editor.
  * @since 6.0.0 The `html5` feature warns if no array is passed as the second parameter.
- * @since 6.3.0 The `attachment-pages` feature was added.
  *
  * @global array $_wp_theme_features
  *
