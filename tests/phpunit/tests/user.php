@@ -916,6 +916,78 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `wp_update_user()` allows updating a user when
+	 * the `user_login` and `user_email` are the same.
+	 *
+	 * @ticket 57967
+	 *
+	 * @covers ::wp_update_user
+	 */
+	public function test_wp_update_user_should_allow_user_login_with_same_user_email() {
+		$user_email = 'ababa@example.com';
+
+		$user_id = wp_insert_user(
+			array(
+				'user_login'    => $user_email,
+				'user_email'    => $user_email,
+				'user_pass'     => 'whatever',
+				'user_nicename' => 'whatever',
+			)
+		);
+
+		$existing_id = wp_update_user(
+			array(
+				'ID'         => $user_id,
+				'first_name' => 'Bob',
+			)
+		);
+
+		$this->assertNotWPError( $existing_id, 'A WP_Error object was not returned.' );
+		$this->assertSame( $existing_id, $user_id, 'The user ID to be updated and the existing user ID do not match.' );
+	}
+
+	/**
+	 * Tests that `wp_update_user()` rejects a `user_login` that matches an existing `user_email`.
+	 *
+	 * @ticket 57967
+	 *
+	 * @covers ::wp_update_user
+	 */
+	public function test_wp_update_user_should_reject_user_login_that_matches_existing_user_email() {
+		$user_email_a = 'aaaaa@example.com';
+
+		$user_id_a = wp_insert_user(
+			array(
+				'user_login'    => $user_email_a,
+				'user_email'    => $user_email_a,
+				'user_pass'     => 'whatever',
+				'user_nicename' => 'whatever',
+			)
+		);
+
+		$user_email_b = 'bbbbb@example.com';
+
+		$user_id_b = wp_insert_user(
+			array(
+				'user_login'    => $user_email_b,
+				'user_email'    => $user_email_b,
+				'user_pass'     => 'whatever',
+				'user_nicename' => 'whatever',
+			)
+		);
+
+		$existing_id_b = wp_update_user(
+			array(
+				'ID'         => $user_id_b,
+				'user_login' => $user_email_a,
+			)
+		);
+
+		$this->assertWPError( $existing_id_b, 'A WP_Error object was not returned.' );
+		$this->assertSame( 'existing_user_email_as_login', $existing_id_b->get_error_code(), 'An unexpected error code was returned.' );
+	}
+
+	/**
 	 * @ticket 33793
 	 */
 	public function test_wp_insert_user_should_reject_user_nicename_over_50_characters() {
