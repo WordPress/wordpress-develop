@@ -107,6 +107,11 @@ EXP;
 		$this->assertSame( $expected, $output, $message );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
 	public function data_standalone_after_inline_script() {
 		$data = array();
 
@@ -145,6 +150,11 @@ EXP;
 		$this->assertSame( $expected, $output, $message );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
 	public function data_non_standalone_after_inline_script() {
 		$data = array();
 
@@ -229,6 +239,11 @@ EXP;
 		$this->assertSame( $expected, $output, $message );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
 	public function data_non_standalone_before_inline_script_with_defer() {
 		$data = array();
 
@@ -313,6 +328,11 @@ EXP;
 		$this->assertSame( $expected, $output, $message );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
 	public function data_standalone_before_inline_script() {
 		$data = array();
 
@@ -397,6 +417,11 @@ EXP;
 		$this->assertStringContainsString( $expected, $output, $message );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
 	public function data_loading_strategy_with_valid_defer_registration() {
 		$data = array();
 
