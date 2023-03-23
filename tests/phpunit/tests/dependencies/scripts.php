@@ -319,7 +319,7 @@ EXP;
 	}
 
 	/**
-	 * Test standalone tests.
+	 * Test standalone `before` scripts.
 	 *
 	 * @ticket 12009
 	 * @dataProvider data_standalone_before_inline_script
