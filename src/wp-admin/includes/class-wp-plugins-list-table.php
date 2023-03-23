@@ -292,7 +292,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			}
 		}
 
-		if ( strlen( $s ) ) {
+		if ( isset( $s ) && strlen( $s ) ) {
 			$status            = 'search';
 			$plugins['search'] = array_filter( $plugins['all'], array( $this, '_search_callback' ) );
 		}
