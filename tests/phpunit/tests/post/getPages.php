@@ -2,8 +2,9 @@
 
 /**
  * @group post
+ *
+ * @covers ::get_pages
  */
-
 class Tests_Post_GetPages extends WP_UnitTestCase {
 	/**
 	 * @ticket 23167
@@ -100,9 +101,31 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 43514
+	 */
+	public function test_get_pages_cache_empty() {
+		global $wpdb;
+
+		wp_cache_delete( 'last_changed', 'posts' );
+		$this->assertFalse( wp_cache_get( 'last_changed', 'posts' ) );
+
+		$num_queries = $wpdb->num_queries;
+
+		$pages = get_pages(); // Database gets queried.
+
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+
+		$num_queries = $wpdb->num_queries;
+
+		$pages = get_pages(); // Database should not get queried.
+
+		$this->assertSame( $num_queries, $wpdb->num_queries );
+	}
+
+	/**
 	 * @ticket 40669
 	 */
-	public function test_cache_should_be_invalidated_by_add_post_meta() {
+	public function test_get_pages_cache_should_be_invalidated_by_add_post_meta() {
 		$posts = self::factory()->post->create_many(
 			2,
 			array(
@@ -138,7 +161,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	/**
 	 * @ticket 40669
 	 */
-	public function test_cache_should_be_invalidated_by_update_post_meta() {
+	public function test_get_pages_cache_should_be_invalidated_by_update_post_meta() {
 		$posts = self::factory()->post->create_many(
 			2,
 			array(
@@ -173,63 +196,9 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 12821
-	 * @covers ::get_pages
-	 */
-	public function test_include_ignore_meta_key() {
-		$posts = self::factory()->post->create_many(
-			2,
-			array(
-				'post_type' => 'page',
-			)
-		);
-
-		$pages = get_pages(
-			array(
-				'include'    => $posts,
-				'meta_key'   => 'foo',
-				'meta_value' => 'bar',
-			)
-		);
-
-		$page_ids = wp_list_pluck( $pages, 'ID' );
-		$this->assertSameSets( $posts, $page_ids );
-	}
-
-	/**
-	 * @ticket 12821
-	 * @covers ::get_pages
-	 */
-	public function test_include_ignore_exclude() {
-		$includes = self::factory()->post->create_many(
-			2,
-			array(
-				'post_type' => 'page',
-			)
-		);
-
-		$excludes = self::factory()->post->create_many(
-			2,
-			array(
-				'post_type' => 'page',
-			)
-		);
-
-		$pages = get_pages(
-			array(
-				'include' => $includes,
-				'exclude' => $excludes,
-			)
-		);
-
-		$page_ids = wp_list_pluck( $pages, 'ID' );
-		$this->assertSameSets( $includes, $page_ids );
-	}
-
-	/**
 	 * @ticket 40669
 	 */
-	public function test_cache_should_be_invalidated_by_delete_post_meta() {
+	public function test_get_pages_cache_should_be_invalidated_by_delete_post_meta() {
 		$posts = self::factory()->post->create_many(
 			2,
 			array(
@@ -266,7 +235,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	/**
 	 * @ticket 40669
 	 */
-	public function test_cache_should_be_invalidated_by_delete_post_meta_by_key() {
+	public function test_get_pages_cache_should_be_invalidated_by_delete_post_meta_by_key() {
 		$posts = self::factory()->post->create_many(
 			2,
 			array(
@@ -361,6 +330,105 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 12821
+	 */
+	public function test_get_pages_include_ignores_meta_key() {
+		$posts = self::factory()->post->create_many(
+			2,
+			array(
+				'post_type' => 'page',
+			)
+		);
+
+		$pages = get_pages(
+			array(
+				'include'    => $posts,
+				'meta_key'   => 'foo',
+				'meta_value' => 'bar',
+			)
+		);
+
+		$page_ids = wp_list_pluck( $pages, 'ID' );
+		$this->assertSameSets( $posts, $page_ids );
+	}
+
+	/**
+	 * @ticket 12821
+	 */
+	public function test_get_pages_include_ignores_exclude() {
+		$includes = self::factory()->post->create_many(
+			2,
+			array(
+				'post_type' => 'page',
+			)
+		);
+
+		$excludes = self::factory()->post->create_many(
+			2,
+			array(
+				'post_type' => 'page',
+			)
+		);
+
+		$pages = get_pages(
+			array(
+				'include' => $includes,
+				'exclude' => $excludes,
+			)
+		);
+
+		$page_ids = wp_list_pluck( $pages, 'ID' );
+		$this->assertSameSets( $includes, $page_ids );
+	}
+
+	public function test_get_pages_exclude_tree() {
+		$post_id1 = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$post_id2 = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $post_id1,
+			)
+		);
+		$post_id3 = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$post_id4 = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $post_id3,
+			)
+		);
+
+		$all = get_pages();
+
+		$this->assertCount( 4, $all );
+
+		$exclude1 = get_pages( "exclude_tree=$post_id1" );
+		$this->assertCount( 2, $exclude1 );
+
+		$exclude2 = get_pages( array( 'exclude_tree' => $post_id1 ) );
+		$this->assertCount( 2, $exclude2 );
+
+		$exclude3 = get_pages( array( 'exclude_tree' => array( $post_id1 ) ) );
+		$this->assertCount( 2, $exclude3 );
+
+		$exclude4 = get_pages( array( 'exclude_tree' => array( $post_id1, $post_id2 ) ) );
+		$this->assertCount( 2, $exclude4 );
+
+		$exclude5 = get_pages( array( 'exclude_tree' => array( $post_id1, $post_id3 ) ) );
+		$this->assertCount( 0, $exclude5 );
+
+		$post_id5 = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$post_id6 = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $post_id5,
+			)
+		);
+
+		$exclude6 = get_pages( array( 'exclude_tree' => array( $post_id1, $post_id3 ) ) );
+		$this->assertCount( 2, $exclude6 );
+	}
+
+	/**
 	 * @ticket 9470
 	 */
 	public function test_get_pages_parent() {
@@ -432,7 +500,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	/**
 	 * @ticket 22208
 	 */
-	public function test_get_chidren_fields_ids() {
+	public function test_get_children_fields_ids() {
 		$post_id   = self::factory()->post->create();
 		$child_ids = self::factory()->post->create_many( 5, array( 'post_parent' => $post_id ) );
 
@@ -705,78 +773,8 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		_unregister_post_type( $type );
 	}
 
-	public function test_exclude_tree() {
-		$post_id1 = self::factory()->post->create( array( 'post_type' => 'page' ) );
-		$post_id2 = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_parent' => $post_id1,
-			)
-		);
-		$post_id3 = self::factory()->post->create( array( 'post_type' => 'page' ) );
-		$post_id4 = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_parent' => $post_id3,
-			)
-		);
-
-		$all = get_pages();
-
-		$this->assertCount( 4, $all );
-
-		$exclude1 = get_pages( "exclude_tree=$post_id1" );
-		$this->assertCount( 2, $exclude1 );
-
-		$exclude2 = get_pages( array( 'exclude_tree' => $post_id1 ) );
-		$this->assertCount( 2, $exclude2 );
-
-		$exclude3 = get_pages( array( 'exclude_tree' => array( $post_id1 ) ) );
-		$this->assertCount( 2, $exclude3 );
-
-		$exclude4 = get_pages( array( 'exclude_tree' => array( $post_id1, $post_id2 ) ) );
-		$this->assertCount( 2, $exclude4 );
-
-		$exclude5 = get_pages( array( 'exclude_tree' => array( $post_id1, $post_id3 ) ) );
-		$this->assertCount( 0, $exclude5 );
-
-		$post_id5 = self::factory()->post->create( array( 'post_type' => 'page' ) );
-		$post_id6 = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_parent' => $post_id5,
-			)
-		);
-
-		$exclude6 = get_pages( array( 'exclude_tree' => array( $post_id1, $post_id3 ) ) );
-		$this->assertCount( 2, $exclude6 );
-	}
-
-	/**
-	 * @ticket 43514
-	 */
-	public function test_get_pages_cache_empty() {
-		global $wpdb;
-
-		wp_cache_delete( 'last_changed', 'posts' );
-		$this->assertFalse( wp_cache_get( 'last_changed', 'posts' ) );
-
-		$num_queries = $wpdb->num_queries;
-
-		$pages = get_pages(); // Database gets queried.
-
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
-
-		$num_queries = $wpdb->num_queries;
-
-		$pages = get_pages(); // Database should not get queried.
-
-		$this->assertSame( $num_queries, $wpdb->num_queries );
-	}
-
 	/**
 	 * @ticket 12821
-	 * @covers ::get_pages
 	 */
 	public function test_get_pages_post_type() {
 		register_post_type( 'wptests_pt', array( 'hierarchical' => true ) );
@@ -789,38 +787,8 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$this->assertSameSets( $posts, wp_list_pluck( $pages, 'ID' ) );
 	}
 
-
 	/**
 	 * @ticket 12821
-	 * @covers ::get_pages
-	 */
-	public function test_get_pages_author() {
-		$author_1 = self::factory()->user->create(
-			array(
-				'user_login' => 'author1',
-				'role'       => 'author',
-			)
-		);
-		$posts    = self::factory()->post->create_many(
-			2,
-			array(
-				'post_type'   => 'page',
-				'post_author' => $author_1,
-			)
-		);
-		$pages    = get_pages(
-			array(
-				'authors' => $author_1,
-			)
-		);
-
-		$this->assertSameSets( $posts, wp_list_pluck( $pages, 'ID' ) );
-	}
-
-
-	/**
-	 * @ticket 12821
-	 * @covers ::get_pages
 	 */
 	public function test_get_pages_post_status() {
 		register_post_status(
@@ -848,7 +816,6 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 12821
-	 * @covers ::get_pages
 	 */
 	public function test_get_pages_offset() {
 		$posts = self::factory()->post->create_many( 4, array( 'post_type' => 'page' ) );
@@ -862,12 +829,36 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$this->assertSameSets( array( $posts[2], $posts[3] ), wp_list_pluck( $pages, 'ID' ) );
 	}
 
+	/**
+	 * @ticket 12821
+	 */
+	public function test_get_pages_author() {
+		$author_1 = self::factory()->user->create(
+			array(
+				'user_login' => 'author1',
+				'role'       => 'author',
+			)
+		);
+		$posts    = self::factory()->post->create_many(
+			2,
+			array(
+				'post_type'   => 'page',
+				'post_author' => $author_1,
+			)
+		);
+		$pages    = get_pages(
+			array(
+				'authors' => $author_1,
+			)
+		);
+
+		$this->assertSameSets( $posts, wp_list_pluck( $pages, 'ID' ) );
+	}
 
 	/**
 	 * @ticket 12821
-	 * @covers ::get_pages
 	 */
-	public function test_get_pages_authors() {
+	public function test_get_pages_multiple_authors() {
 		$author_1 = self::factory()->user->create(
 			array(
 				'user_login' => 'author1',
@@ -908,9 +899,8 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 12821
-	 * @covers ::get_pages
 	 */
-	public function test_get_pages_authors_names() {
+	public function test_get_pages_multiple_authors_by_user_login() {
 		$author_1 = self::factory()->user->create(
 			array(
 				'user_login' => 'author1',
@@ -951,40 +941,74 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 12821
-	 * @covers ::get_pages
 	 */
-	public function test_orderby() {
+	public function test_get_pages_orderby() {
 		global $wpdb;
 		// 'rand' is a valid value.
 		get_pages( array( 'sort_column' => 'rand' ) );
-		$this->assertStringContainsString( 'ORDER BY RAND()', $wpdb->last_query, 'Check order is random' );
+		$this->assertStringContainsString(
+			'ORDER BY RAND()',
+			$wpdb->last_query,
+			'Check that ORDER is random.'
+		);
 
 		// This isn't allowed.
 		get_pages( array( 'sort_order' => 'rand' ) );
-		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query, 'Check orderby is present' );
-		$this->assertStringNotContainsString( 'RAND()', $wpdb->last_query, 'Check order is random is not present' );
-		$this->assertStringContainsString( 'DESC', $wpdb->last_query, 'Check DESC is random is not present' );
+		$this->assertStringContainsString(
+			'ORDER BY',
+			$wpdb->last_query,
+			'Check that ORDER BY is present.'
+		);
+		$this->assertStringNotContainsString(
+			'RAND()',
+			$wpdb->last_query,
+			'Check that ORDER is not random.'
+		);
+		$this->assertStringContainsString(
+			'DESC',
+			$wpdb->last_query,
+			'Check that DESC is not present.'
+		);
 
 		// 'none' is a valid value.
 		get_pages( array( 'sort_column' => 'none' ) );
-		$this->assertStringNotContainsString( 'ORDER BY', $wpdb->last_query, 'Check orderby is not present' );
-		$this->assertStringNotContainsString( 'DESC', $wpdb->last_query, 'Check DESC is not present' );
-		$this->assertStringNotContainsString( 'ASC', $wpdb->last_query, 'Check ASC is not present' );
+		$this->assertStringNotContainsString(
+			'ORDER BY',
+			$wpdb->last_query,
+			'Check that ORDER BY is not present.'
+		);
+		$this->assertStringNotContainsString(
+			'DESC',
+			$wpdb->last_query,
+			'Check that DESC is not present.'
+		);
+		$this->assertStringNotContainsString(
+			'ASC',
+			$wpdb->last_query,
+			'Check that ASC is not present.'
+		);
 
 		// False is a valid value.
 		get_pages( array( 'sort_column' => false ) );
-		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query, 'Check orderby is present if sort_column equal false is passed.' );
+		$this->assertStringContainsString(
+			'ORDER BY',
+			$wpdb->last_query,
+			'Check that ORDER BY is present if sort_column is false.'
+		);
 
 		// Empty array() is a valid value.
 		get_pages( array( 'sort_column' => array() ) );
-		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query, 'Check orderby is present  if sort_column equals an empty array is passed.' );
+		$this->assertStringContainsString(
+			'ORDER BY',
+			$wpdb->last_query,
+			'Check that ORDER BY is present if sort_column is an empty array.'
+		);
 	}
 
 	/**
 	 * @ticket 12821
-	 * @covers ::get_pages
 	 */
-	public function test_order() {
+	public function test_get_pages_order() {
 		global $wpdb;
 
 		get_pages(
@@ -995,7 +1019,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$this->assertStringContainsString(
 			"ORDER BY $wpdb->posts.post_type ASC",
 			$wpdb->last_query,
-			'Check order is post type'
+			'Check that ORDER is post type.'
 		);
 
 		get_pages(
@@ -1007,7 +1031,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$this->assertStringContainsString(
 			"ORDER BY $wpdb->posts.post_title DESC",
 			$wpdb->last_query,
-			'Check order is default'
+			'Check that ORDER is default.'
 		);
 
 		get_pages(
@@ -1019,7 +1043,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$this->assertStringContainsString(
 			"ORDER BY $wpdb->posts.post_date ASC",
 			$wpdb->last_query,
-			'Check order is post date'
+			'Check that ORDER is post date.'
 		);
 	}
 }
