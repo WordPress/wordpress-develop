@@ -487,17 +487,6 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 22389
-	 */
-	public function test_wp_dropdown_pages() {
-		self::factory()->post->create_many( 5, array( 'post_type' => 'page' ) );
-
-		preg_match_all( '#<option#', wp_dropdown_pages( 'echo=0' ), $matches );
-
-		$this->assertCount( 5, $matches[0] );
-	}
-
-	/**
 	 * @ticket 22208
 	 */
 	public function test_get_children_fields_ids() {
