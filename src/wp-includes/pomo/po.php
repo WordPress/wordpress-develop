@@ -270,7 +270,7 @@ if ( ! class_exists( 'PO', false ) ) :
 		 */
 		public static function match_begin_and_end_newlines( $translation, $original ) {
 			if ( null === $translation ) {
-				return $translation;
+				return '';
 			}
 
 			$original_begin    = "\n" === substr( $original, 0, 1 );
