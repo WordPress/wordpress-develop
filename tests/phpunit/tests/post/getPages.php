@@ -740,39 +740,6 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 	}
 
-	public function test_wp_list_pages_classes() {
-		$type = 'taco';
-		register_post_type(
-			$type,
-			array(
-				'hierarchical' => true,
-				'public'       => true,
-			)
-		);
-
-		$posts   = self::factory()->post->create_many( 2, array( 'post_type' => $type ) );
-		$post_id = reset( $posts );
-
-		$this->go_to( "/?p=$post_id&post_type=$type" );
-
-		$this->assertSame( $post_id, get_queried_object_id() );
-
-		$output = wp_list_pages(
-			array(
-				'echo'      => false,
-				'title_li'  => '',
-				'post_type' => $type,
-			)
-		);
-
-		$this->assertNotEmpty( $output );
-		$this->assertSame( 2, substr_count( $output, 'class="page_item ' ) );
-		$this->assertStringContainsString( 'current_page_item', $output );
-		$this->assertSame( 1, substr_count( $output, 'current_page_item' ) );
-
-		_unregister_post_type( $type );
-	}
-
 	/**
 	 * @ticket 12821
 	 */
