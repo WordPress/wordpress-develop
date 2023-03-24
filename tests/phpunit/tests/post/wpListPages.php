@@ -449,6 +449,9 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_list_pages( $args ) );
 	}
 
+	/**
+	 * @ticket 17590
+	 */
 	public function test_wp_list_pages_classes_with_hierarchical_cpt() {
 		$args = array(
 			'echo'      => false,
