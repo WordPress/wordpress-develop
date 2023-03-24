@@ -274,6 +274,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	}
 
+	/**
+	 * Reset the lazy load meta queue.
+	 */
 	protected function reset_lazyload_queue() {
 		$lazyloader = wp_metadata_lazyloader();
 		$lazyloader->reset_queue( 'term' );
