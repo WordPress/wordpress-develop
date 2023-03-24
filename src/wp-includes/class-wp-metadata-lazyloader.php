@@ -144,12 +144,14 @@ class WP_Metadata_Lazyloader {
 	public function lazyload_meta_callback( $check, $object_id, $meta_key, $single, $meta_type ) {
 		if ( ! empty( $this->pending_objects[ $meta_type ] ) ) {
 			$object_ids = array_keys( $this->pending_objects[ $meta_type ] );
-			if ( in_array( $object_id, $object_ids, true ) ) {
-				update_meta_cache( $meta_type, $object_ids );
-
-				// No need to run again for this set of objects.
-				$this->reset_queue( $meta_type );
+			if ( $object_id && ! in_array( $object_id, $object_ids, true ) ) {
+				$object_ids[] = $object_id;
 			}
+
+			update_meta_cache( $meta_type, $object_ids );
+
+			// No need to run again for this set of objects.
+			$this->reset_queue( $meta_type );
 		}
 
 		return $check;
@@ -169,15 +171,8 @@ class WP_Metadata_Lazyloader {
 	 *               another value if filtered by a plugin.
 	 */
 	public function lazyload_term_meta( $check ) {
-		_deprecated_function( __METHOD__, '6.3.0' );
-		if ( ! empty( $this->pending_objects['term'] ) ) {
-			update_termmeta_cache( array_keys( $this->pending_objects['term'] ) );
-
-			// No need to run again for this set of terms.
-			$this->reset_queue( 'term' );
-		}
-
-		return $check;
+		_deprecated_function( __METHOD__, '6.3.0', 'WP_Metadata_Lazyloader::lazyload_meta_callback' );
+		return $this->lazyload_meta_callback( $check, 0, '', false, 'term' );
 	}
 
 	/**
@@ -193,14 +188,7 @@ class WP_Metadata_Lazyloader {
 	 * @return mixed The original value of `$check`, so as not to short-circuit `get_comment_metadata()`.
 	 */
 	public function lazyload_comment_meta( $check ) {
-		_deprecated_function( __METHOD__, '6.3.0' );
-		if ( ! empty( $this->pending_objects['comment'] ) ) {
-			update_meta_cache( 'comment', array_keys( $this->pending_objects['comment'] ) );
-
-			// No need to run again for this set of comments.
-			$this->reset_queue( 'comment' );
-		}
-
-		return $check;
+		_deprecated_function( __METHOD__, '6.3.0', 'WP_Metadata_Lazyloader::lazyload_meta_callback' );
+		return $this->lazyload_meta_callback( $check, 0, '', false, 'comment' );
 	}
 }
