@@ -18,7 +18,7 @@ class Tests_Compat_jsonEncodeDecode extends WP_UnitTestCase {
 		$this->setExpectedDeprecated( 'Services_JSON::strlen8' );
 		$this->setExpectedDeprecated( 'Services_JSON::substr8' );
 
-		require_once ABSPATH . WPINC . '/class-json.php';
+		require_once ABSPATH . WPINC . '/class-wp-autoload.php';
 		$json = new Services_JSON();
 
 		// Super basic test to verify Services_JSON is intact and working.

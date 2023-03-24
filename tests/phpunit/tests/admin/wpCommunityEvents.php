@@ -28,7 +28,7 @@ class Tests_Admin_wpCommunityEvents extends WP_UnitTestCase {
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
-		require_once ABSPATH . 'wp-admin/includes/class-wp-community-events.php';
+		require_once ABSPATH . WPINC . '/class-wp-autoload.php';
 	}
 
 	/**

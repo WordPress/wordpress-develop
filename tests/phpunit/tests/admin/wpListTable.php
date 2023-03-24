@@ -24,10 +24,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
-		static::$original_hook_suffix = $GLOBALS['hook_suffix'];
-
-		require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
-	}
+		require_once ABSPATH . WPINC . '/class-wp-autoload.php';
 
 	public function set_up() {
 		parent::set_up();

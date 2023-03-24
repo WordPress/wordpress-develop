@@ -25,6 +25,8 @@ final class WP_Autoload {
 		/* Classes in the wp-includes/ folder. */
 		'passwordhash'                                => 'wp-includes/class-phpass.php',
 		'pop3'                                        => 'wp-includes/class-pop3.php',
+		'services_json'                               => 'wp-includes/class-json.php',
+		'services_json_error'                         => 'wp-includes/class-json.php',
 		'walker_categorydropdown'                     => 'wp-includes/class-walker-category-dropdown.php',
 		'walker_category'                             => 'wp-includes/class-walker-category.php',
 		'walker_comment'                              => 'wp-includes/class-walker-comment.php',
