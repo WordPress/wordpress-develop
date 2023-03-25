@@ -263,10 +263,9 @@ if ( ! class_exists( 'PO', false ) ) :
 		/**
 		 * Match the beginning and ending new lines between original and translation.
 		 *
-		 * @param string|null $translation   Translation text, null if don't exist.
-		 * @return string     $original      Original text.
-		 *
-		 * @return string   Translation matching new lines in the beginning or ending from the original.
+		 * @param string|null $translation Translation text, null if don't exist.
+		 * @param string      $original    Original text.
+		 * @return string Translation matching new lines in the beginning or ending from the original.
 		 */
 		public static function match_begin_and_end_newlines( $translation, $original ) {
 			if ( null === $translation ) {
