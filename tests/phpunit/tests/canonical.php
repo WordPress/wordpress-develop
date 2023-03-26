@@ -14,12 +14,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		parent::set_up();
 		wp_set_current_user( self::$author_id );
 
-		add_filter(
-			'pre_option_wp_attachment_pages_enabled',
-			function( $value ) {
-				return '1';
-			}
-		);
+		add_filter( 'pre_option_wp_attachment_pages_enabled', '__return_true' );
 	}
 
 	/**

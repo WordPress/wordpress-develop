@@ -2321,7 +2321,7 @@ function upgrade_630() {
 		}
         
         // Enable attachment pages.
-		update_option( 'wp_media_use_attachment_pages', '1' );
+		update_option( 'wp_media_use_attachment_pages', 1 );
 	}
 }
 
