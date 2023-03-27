@@ -16,6 +16,7 @@ on:
       - trunk
       - '6.[2-9]'
       - '[7-9].[0-9]'
+  workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
