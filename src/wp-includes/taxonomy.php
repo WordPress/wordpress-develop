@@ -2200,7 +2200,11 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	}
 	$object_ids = array_map( 'intval', $object_ids );
 
-	$args = wp_parse_args( $args );
+	$defaults = [
+		'update_term_meta_cache' => false,
+	];
+
+	$args = wp_parse_args( $args, $defaults );
 
 	/**
 	 * Filters arguments for retrieving object terms.
