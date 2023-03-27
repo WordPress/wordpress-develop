@@ -614,8 +614,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10142
+	 * @ticket 57701: Updated test to reflect that wp_get_object_terms does not prime the cache.
 	 */
-	public function test_termmeta_cache_should_be_primed_by_default() {
+	public function test_termmeta_cache_should_not_be_primed_by_default() {
 		global $wpdb;
 
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -635,7 +636,8 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 			$this->assertSame( 'bar', get_term_meta( $t, 'foo', true ) );
 		}
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		// Here we had extra queries as the term meta cache was not primed by default.
+		$this->assertSame( $num_queries + 3, $wpdb->num_queries );
 	}
 
 	/**

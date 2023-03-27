@@ -195,8 +195,9 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36814
+	 * @ticket 57701: Updated test to reflect that wp_get_object_terms does not prime the cache.
 	 */
-	public function test_uncached_terms_should_be_primed_with_a_single_query() {
+	public function test_uncached_terms_should_not_be_primed_with_a_single_query_by_default() {
 		global $wpdb;
 
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -215,9 +216,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 
 		$this->assertSameSets( $terms, wp_list_pluck( $found, 'term_id' ) );
 
-		$num_queries++;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
-
 	}
 
 	/**
