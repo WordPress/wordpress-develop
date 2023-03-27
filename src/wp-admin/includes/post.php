@@ -191,7 +191,10 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 			return new WP_Error( 'invalid_date', __( 'Invalid date.' ) );
 		}
 
-		$post_data['post_date_gmt'] = get_gmt_from_date( $post_data['post_date'] );
+		if ( 'false' !== $post_data['edit_date'] && ! in_array( $post_data['post_status'], [ 'draft', 'pending', 'auto-draft'] ) ) {
+			$post_data['post_date_gmt'] = get_gmt_from_date( $post_data['post_date'] );
+		}
+
 	}
 
 	if ( isset( $post_data['post_category'] ) ) {
