@@ -358,10 +358,8 @@ class WP_Scripts extends WP_Dependencies {
 			 */
 			$srce = apply_filters( 'script_loader_src', $src, $handle );
 
-			// Get the most eligible loading strategy for said script handle.
 			// Used as a conditional to prevent script concatenation.
-			$strategy                    = $this->get_eligible_loading_strategy( $handle );
-			$is_deferred_or_async_handle = '' !== $strategy;
+			$is_deferred_or_async_handle = in_array( $strategy, array( 'defer', 'async' ), true );
 
 			if ( $this->in_default_dir( $srce ) && ( $before_handle || $after_handle || $translations_stop_concat || $is_deferred_or_async_handle ) ) {
 				$this->do_concat = false;
