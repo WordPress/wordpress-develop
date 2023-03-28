@@ -157,4 +157,36 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 		$this->assertSame( gmdate( $format ), $current_time_gmt, 'The dates should be equal [3]' );
 		$this->assertSame( $datetime->format( $format ), $current_time, 'The dates should be equal [4]' );
 	}
+
+	/**
+	 * @ticket 57998
+	 *
+	 * @dataProvider data_partial_hour_timezones_with_timestamp
+	 *
+	 * @param float $partial_hour Partial hour GMT offset to test.
+	 */
+	public function test_partial_hour_timezones_with_timestamp( $partial_hour ) {
+		update_option( 'gmt_offset', $partial_hour );
+
+		$expected = time() + (int) ( $partial_hour * HOUR_IN_SECONDS );
+
+		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
+		$this->assertSame( $expected, current_time( 'timestamp' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_partial_hour_timezones_with_timestamp() {
+		return array(
+			'+13:45' => array( 13.45 ), // New Zealand, Chatham Islands.
+			'+9:30'  => array( 9.5 ), // Australian Northern Territory.
+			'+05:30' => array( 5.5 ), // India and Sri Lanka.
+			'+05:45' => array( 5.45 ), // Nepal.
+			'-03:30' => array( -3.30 ), // Canada, Newfoundland.
+			'-09:30' => array( -9.30 ), // French Polynesia, Marquesas Islands.
+		);
+	}
 }
