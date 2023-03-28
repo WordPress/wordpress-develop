@@ -2194,7 +2194,6 @@ function get_block_editor_server_block_settings() {
 		'provides_context' => 'providesContext',
 		'uses_context'     => 'usesContext',
 		'selectors'        => 'selectors',
-		'editor_selectors' => 'editorSelectors',
 		'supports'         => 'supports',
 		'category'         => 'category',
 		'styles'           => 'styles',

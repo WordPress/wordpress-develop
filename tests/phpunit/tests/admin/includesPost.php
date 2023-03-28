@@ -822,12 +822,11 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	public function test_get_block_editor_server_block_settings() {
 		$name     = 'core/test';
 		$settings = array(
-			'icon'             => 'text',
-			'category'         => 'common',
-			'render_callback'  => 'foo',
-			'ancestor'         => array( 'core/test-ancestor' ),
-			'editor_selectors' => array( 'root' => '.editor-only.wp-block-test' ),
-			'selectors'        => array( 'root' => '.wp-block-test' ),
+			'icon'            => 'text',
+			'category'        => 'common',
+			'render_callback' => 'foo',
+			'ancestor'        => array( 'core/test-ancestor' ),
+			'selectors'       => array( 'root' => '.wp-block-test' ),
 		);
 
 		register_block_type( $name, $settings );
@@ -839,21 +838,20 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertArrayHasKey( $name, $blocks );
 		$this->assertSame(
 			array(
-				'apiVersion'      => 1,
-				'title'           => '',
-				'description'     => '',
-				'icon'            => 'text',
-				'attributes'      => array(
+				'apiVersion'  => 1,
+				'title'       => '',
+				'description' => '',
+				'icon'        => 'text',
+				'attributes'  => array(
 					'lock' => array( 'type' => 'object' ),
 				),
-				'usesContext'     => array(),
-				'editorSelectors' => array( 'root' => '.editor-only.wp-block-test' ),
-				'selectors'       => array( 'root' => '.wp-block-test' ),
-				'category'        => 'common',
-				'styles'          => array(),
-				'ancestor'        => array( 'core/test-ancestor' ),
-				'keywords'        => array(),
-				'variations'      => array(),
+				'usesContext' => array(),
+				'selectors'   => array( 'root' => '.wp-block-test' ),
+				'category'    => 'common',
+				'styles'      => array(),
+				'ancestor'    => array( 'core/test-ancestor' ),
+				'keywords'    => array(),
+				'variations'  => array(),
 			),
 			$blocks[ $name ]
 		);

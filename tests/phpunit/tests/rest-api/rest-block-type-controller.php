@@ -217,7 +217,6 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'example'          => 'invalid_example',
 			'parent'           => 'invalid_parent',
 			'ancestor'         => 'invalid_ancestor',
-			'editor_selectors' => 'invalid_editor_selectors',
 			'selectors'        => 'invalid_selectors',
 			'supports'         => 'invalid_supports',
 			'styles'           => array(),
@@ -250,7 +249,6 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSameSets( array( 'invalid_keywords' ), $data['keywords'] );
 		$this->assertSameSets( array( 'invalid_parent' ), $data['parent'] );
 		$this->assertSameSets( array( 'invalid_ancestor' ), $data['ancestor'] );
-		$this->assertSameSets( array(), $data['editor_selectors'], 'invalid editor_selectors defaults to empty array' );
 		$this->assertSameSets( array(), $data['selectors'], 'invalid selectors defaults to empty array' );
 		$this->assertSameSets( array(), $data['supports'] );
 		$this->assertSameSets( array(), $data['styles'] );
@@ -290,7 +288,6 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'keywords'         => false,
 			'parent'           => false,
 			'ancestor'         => false,
-			'editor_selectors' => false,
 			'selectors'        => false,
 			'supports'         => false,
 			'styles'           => false,
@@ -324,7 +321,6 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSameSets( array(), $data['keywords'] );
 		$this->assertSameSets( array(), $data['parent'] );
 		$this->assertSameSets( array(), $data['ancestor'] );
-		$this->assertSameSets( array(), $data['editor_selectors'], 'editor_selectors defaults to empty array' );
 		$this->assertSameSets( array(), $data['selectors'], 'selectors defaults to empty array' );
 		$this->assertSameSets( array(), $data['supports'] );
 		$this->assertSameSets( array(), $data['styles'] );
@@ -552,7 +548,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 30, $properties );
+		$this->assertCount( 29, $properties );
 		$this->assertArrayHasKey( 'api_version', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'icon', $properties );
@@ -562,7 +558,6 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'textdomain', $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'attributes', $properties );
-		$this->assertArrayHasKey( 'editor_selectors', $properties, 'schema must contain editor_selectors' );
 		$this->assertArrayHasKey( 'selectors', $properties, 'schema must contain selectors' );
 		$this->assertArrayHasKey( 'supports', $properties );
 		$this->assertArrayHasKey( 'category', $properties );

@@ -518,12 +518,6 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSameSets( array( 'groupId' ), $result->uses_context );
 		// @ticket 57585
 		$this->assertSame(
-			array( 'root' => '.editor-only.wp-block-notice' ),
-			$result->editor_selectors,
-			'Block type should contain editor selectors from metadata.'
-		);
-		// @ticket 57585
-		$this->assertSame(
 			array( 'root' => '.wp-block-notice' ),
 			$result->selectors,
 			'Block type should contain selectors from metadata.'
