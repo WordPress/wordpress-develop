@@ -90,9 +90,14 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40653
+	 * @ticket 57998
+	 *
+	 * @dataProvider data_timezones
+	 *
+	 * @param string $timezone The timezone to test.
 	 */
-	public function test_should_return_wp_timestamp() {
-		update_option( 'timezone_string', 'Europe/Helsinki' );
+	public function test_should_return_wp_timestamp( $timezone ) {
+		update_option( 'timezone_string', $timezone );
 
 		$timestamp = time();
 		$datetime  = new DateTime( '@' . $timestamp );
@@ -100,24 +105,29 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 		$wp_timestamp = $timestamp + $datetime->getOffset();
 
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.RequestedUTC
-		$this->assertEqualsWithDelta( $timestamp, current_time( 'timestamp', true ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( $timestamp, current_time( 'timestamp', true ), 2, 'When passing "timestamp", the date should be equal to time()' );
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.RequestedUTC
-		$this->assertEqualsWithDelta( $timestamp, current_time( 'U', true ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( $timestamp, current_time( 'U', true ), 2, 'When passing "U", the date should be equal to time()' );
 
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
-		$this->assertEqualsWithDelta( $wp_timestamp, current_time( 'timestamp' ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( $wp_timestamp, current_time( 'timestamp' ), 2, 'When passing "timestamp", the date should be equal to calculated timestamp' );
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
-		$this->assertEqualsWithDelta( $wp_timestamp, current_time( 'U' ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( $wp_timestamp, current_time( 'U' ), 2, 'When passing "U", the date should be equal to calculated timestamp' );
 
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
-		$this->assertIsInt( current_time( 'timestamp' ) );
+		$this->assertIsInt( current_time( 'timestamp' ), 'The returned timestamp should be an integer' );
 	}
 
 	/**
 	 * @ticket 40653
+	 * @ticket 57998
+	 *
+	 * @dataProvider data_timezones
+	 *
+	 * @param string $timezone The timezone to test.
 	 */
-	public function test_should_return_correct_local_time() {
-		update_option( 'timezone_string', 'Europe/Helsinki' );
+	public function test_should_return_correct_local_time( $timezone ) {
+		update_option( 'timezone_string', $timezone );
 
 		$timestamp      = time();
 		$datetime_local = new DateTime( '@' . $timestamp );
@@ -126,7 +136,20 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 		$datetime_utc->setTimezone( new DateTimeZone( 'UTC' ) );
 
 		$this->assertEqualsWithDelta( strtotime( $datetime_local->format( DATE_W3C ) ), strtotime( current_time( DATE_W3C ) ), 2, 'The dates should be equal' );
-		$this->assertEqualsWithDelta( strtotime( $datetime_utc->format( DATE_W3C ) ), strtotime( current_time( DATE_W3C, true ) ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( strtotime( $datetime_utc->format( DATE_W3C ) ), strtotime( current_time( DATE_W3C, true ) ), 2, 'When passing "timestamp", the dates should be equal' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_timezones() {
+		return array(
+			array( 'Europe/Helsinki' ),
+			array( 'Indian/Antananarivo' ),
+			array( 'Australia/Adelaide' ),
+		);
 	}
 
 	/**
