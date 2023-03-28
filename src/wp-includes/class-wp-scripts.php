@@ -294,15 +294,40 @@ class WP_Scripts extends WP_Dependencies {
 			$cond_after  = "<![endif]-->\n";
 		}
 
+		$strategy = $this->get_eligible_loading_strategy( $handle );
+
 		$before_handle = $this->print_inline_script( $handle, 'before', false );
-		$after_handle  = $this->print_inline_script( $handle, 'after', false );
 
 		if ( $before_handle ) {
 			$before_handle = sprintf( "<script%s id='%s-js-before'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $before_handle );
 		}
 
-		if ( $after_handle ) {
-			$after_handle = sprintf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_handle );
+		$after_handle = '';
+		if ( '' === $strategy ) {
+			$after_handle = $this->print_inline_script( $handle, 'after', false );
+
+			if ( $after_handle ) {
+				$after_handle = sprintf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_handle );
+			}
+		} else {
+			$after_standalone_handle = $this->print_inline_script( $handle, 'after-standalone', false );
+
+			if ( $after_standalone_handle ) {
+				$after_handle .= sprintf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_standalone_handle );
+			}
+
+			$after_non_standalone_handle = $this->print_inline_script( $handle, 'after-non-standalone', false );
+
+			if ( $after_non_standalone_handle ) {
+				$after_handle               .= sprintf(
+					'<script%1$s id=\'%2$s-js-after\' type=\'text/template\' data-wp-executes-after=\'%2$s\'>%4$s%3$s%4$s</script>%4$s',
+					$this->type_attr,
+					esc_attr( $handle ),
+					$after_non_standalone_handle,
+					PHP_EOL
+				);
+				$this->has_load_later_inline = true;
+			}
 		}
 
 		if ( $before_handle || $after_handle ) {
@@ -395,9 +420,11 @@ class WP_Scripts extends WP_Dependencies {
 			return true;
 		}
 
-		$strategy = $this->get_eligible_loading_strategy( $handle );
 		if ( '' !== $strategy ) {
 			$strategy = ' ' . $strategy;
+			if ( ! empty( $after_non_standalone_handle ) ) {
+				$strategy .= sprintf( " onload='wpLoadAfterScripts(\"%s\")'", esc_attr( $handle ) );
+			}
 		}
 		$tag  = $translations . $cond_before . $before_handle;
 		$tag .= sprintf(
@@ -434,14 +461,15 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @since 4.5.0
 	 *
-	 * @param string $handle   Name of the script to add the inline script to.
-	 *                         Must be lowercase.
-	 * @param string $data     String containing the JavaScript to be added.
-	 * @param string $position Optional. Whether to add the inline script
-	 *                         before the handle or after. Default 'after'.
+	 * @param string $handle     Name of the script to add the inline script to.
+	 *                           Must be lowercase.
+	 * @param string $data       String containing the JavaScript to be added.
+	 * @param string $position   Optional. Whether to add the inline script
+	 *                           before the handle or after. Default 'after'.
+	 * @param bool   $standalone Inline script opted to be standalone or not. Default false.
 	 * @return bool True on success, false on failure.
 	 */
-	public function add_inline_script( $handle, $data, $position = 'after' ) {
+	public function add_inline_script( $handle, $data, $position = 'after', $standalone = false ) {
 		if ( ! $data ) {
 			return false;
 		}
@@ -452,6 +480,12 @@ class WP_Scripts extends WP_Dependencies {
 
 		$script   = (array) $this->get_data( $handle, $position );
 		$script[] = $data;
+
+		// Maintain a list of standalone and non-standalone before/after scripts.
+		$standalone_key      = $standalone ? $position . '-standalone' : $position . '-non-standalone';
+		$standalone_script   = (array) $this->get_data( $handle, $standalone_key );
+		$standalone_script[] = $data;
+		$this->add_data( $handle, $standalone_key, $standalone_script );
 
 		return $this->add_data( $handle, $position, $script );
 	}
@@ -479,7 +513,18 @@ class WP_Scripts extends WP_Dependencies {
 		$output = trim( implode( "\n", $output ), "\n" );
 
 		if ( $display ) {
-			printf( "<script%s id='%s-js-%s'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), esc_attr( $position ), $output );
+			if ( 'after-non-standalone' === $position ) {
+				printf(
+					'<script%1$s id=\'%2$s-js-after\' type=\'text/template\' data-wp-executes-after=\'%2$s\'>%5$s%4$s%5$s</script>%5$s',
+					$this->type_attr,
+					esc_attr( $handle ),
+					esc_attr( $position ),
+					$output,
+					PHP_EOL
+				);
+			} else {
+				printf( "<script%s id='%s-js-%s'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), esc_attr( $position ), $output );
+			}
 		}
 
 		return $output;
@@ -749,6 +794,23 @@ JS;
 	}
 
 	/**
+	 * Checks all handles for any delayed inline scripts.
+	 *
+	 * @return bool True if script present. False if empty.
+	 */
+	public function has_delayed_inline_script() {
+		foreach ( $this->registered as $handle => $script ) {
+			if ( in_array( $this->get_intended_strategy( $handle ), array( 'defer', 'async' ), true ) ) {
+				// non standalone after scripts of async or defer are usually delayed.
+				if ( $this->has_non_standalone_inline_script( $handle, 'after' ) ) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Normalize the data inside the $args parameter and support backward compatibility.
 	 *
 	 * @param string        $handle Name of the script.
@@ -802,7 +864,21 @@ JS;
 	}
 
 	/**
-	 * Check if all of a scripts dependents are deferrable which is required to maintain execution order.
+	 * Check if a script has a non standalone inline script associated with it.
+	 *
+	 * @param string $handle   The script handle.
+	 * @param string $position Position of the inline script.
+	 *
+	 * @return bool True if script present. False if empty.
+	 */
+	private function has_non_standalone_inline_script( $handle, $position ) {
+		$non_standalone_script_key = $position . '-non-standalone';
+		$non_standalone_script     = $this->get_data( $handle, $non_standalone_script_key );
+		return ! empty( $non_standalone_script );
+	}
+
+	/**
+	 * Check if all of a scripts dependents are deferrable, which is required to maintain execution order.
 	 *
 	 * @param string $handle  The script handle.
 	 * @param array $checked An array of already checked script handles, used to avoid looping recursion.
@@ -828,11 +904,17 @@ JS;
 				return false;
 			}
 
+			// If the dependent script has a non-standalone inline script in the 'before' position associated with it, do not defer.
+			if ( $this->has_non_standalone_inline_script( $dependent, 'before' ) ) {
+				return false;
+			}
+
 			// Recursively check all dependents.
 			if ( ! $this->all_dependents_are_deferrable( $dependent, $checked ) ) {
 				return false;
 			}
 		}
+
 		return true;
 	}
 

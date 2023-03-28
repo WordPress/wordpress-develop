@@ -121,13 +121,14 @@ function wp_print_scripts( $handles = false ) {
  *
  * @see WP_Scripts::add_inline_script()
  *
- * @param string $handle   Name of the script to add the inline script to.
- * @param string $data     String containing the JavaScript to be added.
- * @param string $position Optional. Whether to add the inline script before the handle
- *                         or after. Default 'after'.
+ * @param string $handle     Name of the script to add the inline script to.
+ * @param string $data       String containing the JavaScript to be added.
+ * @param string $position   Optional. Whether to add the inline script before the handle
+ *                           or after. Default 'after'.
+ * @param bool   $standalone Inline script opted to be standalone or not. Default false.
  * @return bool True on success, false on failure.
  */
-function wp_add_inline_script( $handle, $data, $position = 'after' ) {
+function wp_add_inline_script( $handle, $data, $position = 'after', $standalone = false ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
 	if ( false !== stripos( $data, '</script>' ) ) {
@@ -144,7 +145,7 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
 		$data = trim( preg_replace( '#<script[^>]*>(.*)</script>#is', '$1', $data ) );
 	}
 
-	return wp_scripts()->add_inline_script( $handle, $data, $position );
+	return wp_scripts()->add_inline_script( $handle, $data, $position, $standalone );
 }
 
 /**
