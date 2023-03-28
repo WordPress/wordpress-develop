@@ -789,7 +789,7 @@ JS;
 	}
 
 	/**
-	 * Check all handles for any delayed inline scripts.
+	 * Checks all handles for any delayed inline scripts.
 	 *
 	 * @return bool True if script present. False if empty.
 	 */
