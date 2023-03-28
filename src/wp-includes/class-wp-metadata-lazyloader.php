@@ -177,17 +177,19 @@ class WP_Metadata_Lazyloader {
 	 *               another value if filtered by a plugin.
 	 */
 	public function lazyload_meta_callback( $check, $object_id, $meta_key, $single, $meta_type ) {
-		if ( ! empty( $this->pending_objects[ $meta_type ] ) ) {
-			$object_ids = array_keys( $this->pending_objects[ $meta_type ] );
-			if ( $object_id && ! in_array( $object_id, $object_ids, true ) ) {
-				$object_ids[] = $object_id;
-			}
-
-			update_meta_cache( $meta_type, $object_ids );
-
-			// No need to run again for this set of objects.
-			$this->reset_queue( $meta_type );
+		if ( empty( $this->pending_objects[ $meta_type ] ) ) {
+			return $check;
 		}
+
+		$object_ids = array_keys( $this->pending_objects[ $meta_type ] );
+		if ( $object_id && ! in_array( $object_id, $object_ids, true ) ) {
+			$object_ids[] = $object_id;
+		}
+
+		update_meta_cache( $meta_type, $object_ids );
+
+		// No need to run again for this set of objects.
+		$this->reset_queue( $meta_type );
 
 		return $check;
 	}
