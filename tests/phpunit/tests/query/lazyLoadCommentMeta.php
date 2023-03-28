@@ -10,6 +10,7 @@ class Tests_Lazy_Load_Comment_Meta extends WP_UnitTestCase {
 	 * @var int
 	 */
 	protected static $post_id;
+
 	/**
 	 * @var array
 	 */
@@ -20,7 +21,6 @@ class Tests_Lazy_Load_Comment_Meta extends WP_UnitTestCase {
 		self::$post_id     = $factory->post->create();
 		self::$comment_ids = $factory->comment->create_post_comments( self::$post_id, 11 );
 	}
-
 
 	/**
 	 * @ticket 57901
