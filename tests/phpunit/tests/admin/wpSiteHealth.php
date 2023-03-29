@@ -8,6 +8,15 @@
 class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 	/**
+	 * An instance of the class to test.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @var WP_Site_Health
+	 */
+	private $instance;
+
+	/**
 	 * Performs setup tasks for every test.
 	 *
 	 * @since 6.1.0
