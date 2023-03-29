@@ -3935,6 +3935,8 @@ EOF;
 
 	/**
 	 * Test that an image size isn't generated if it matches the original image size.
+	 *
+	 * @ticket 57370
 	 */
 	public function test_wp_generate_attachment_metadata_doesnt_generate_sizes_for_150_square_image() {
 		$temp_dir = get_temp_dir();
@@ -3949,21 +3951,25 @@ EOF;
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $file );
-		$this->assertEquals(
+		$this->assertSame(
 			array(),
-			$metadata['sizes']
+			$metadata['sizes'],
+			'The sizes should be an empty array'
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			'test-square-150.jpg',
-			basename( $metadata['file'] )
+			basename( $metadata['file'] ),
+			'The file basename should match the given filename'
 		);
-		$this->assertEquals(
-			'150',
-			$metadata['width']
+		$this->assertSame(
+			150,
+			$metadata['width'],
+			'The width should be 150 (integer)'
 		);
-		$this->assertEquals(
-			'150',
-			$metadata['height']
+		$this->assertSame(
+			150,
+			$metadata['height'],
+			'The height should be 150 (integer)'
 		);
 	}
 

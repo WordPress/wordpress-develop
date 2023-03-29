@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_REST_Block_Types_Controller tests.
+ * Unit tests covering WP_REST_Block_Types_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.5.0
- */
-
-/**
- * Tests for WP_REST_Block_Types_Controller.
- *
  * @since 5.5.0
  *
  * @covers WP_REST_Block_Types_Controller
