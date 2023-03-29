@@ -63,7 +63,7 @@ class WP_Metadata_Lazyloader {
 			),
 			'post' => array(
 				'filter'   => 'get_post_metadata',
-				'callback' => array( $this, 'lazyload_post_meta' ),
+				'callback' => array( $this, 'lazyload_meta_callback' ),
 			),
 		);
 	}
@@ -194,28 +194,6 @@ class WP_Metadata_Lazyloader {
 
 		// No need to run again for this set of objects.
 		$this->reset_queue( $meta_type );
-
-		return $check;
-	}
-
-	/**
-	 * Lazy-loads post meta for queued posts.
-	 *
-	 * This method is public so that it can be used as a filter callback. As a rule, there is no need to invoke it
-	 * directly, from either inside or outside the `WP_Query` object.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @param mixed $check The `$check` param passed from the {@see 'get_post_metadata'} hook.
-	 * @return mixed The original value of `$check`, so as not to short-circuit `get_post_metadata()`.
-	 */
-	public function lazyload_post_meta( $check ) {
-		if ( ! empty( $this->pending_objects['post'] ) ) {
-			update_meta_cache( 'post', array_keys( $this->pending_objects['post'] ) );
-
-			// No need to run again for this set of posts.
-			$this->reset_queue( 'post' );
-		}
 
 		return $check;
 	}
