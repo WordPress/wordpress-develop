@@ -971,6 +971,7 @@ class WP_HTML_Tag_Processor {
 	 * closing `>`; these are left for other methods.
 	 *
 	 * @since 6.2.0
+	 * @since 6.3.0 Passes over invalid-tag-closer-comments like "</3 this is a comment>".
 	 *
 	 * @return bool Whether a tag was found before the end of the document.
 	 */

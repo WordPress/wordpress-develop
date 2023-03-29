@@ -1669,39 +1669,38 @@ HTML;
 	 *
 	 * See https://html.spec.whatwg.org/#parse-error-invalid-first-character-of-tag-name
 	 *
+	 * @ticket 58007
 	 * @dataProvider data_next_tag_ignores_invalid_first_character_of_tag_name_comments
 	 *
-	 * @param $html_with_markers
-	 * @param $before_tag
-	 * @param $after_tag
-	 * @return void
+	 * @param string $html_with_markers HTML containing an invalid tag closer whose element before and element after contain the "start" and "end" CSS classes.
 	 */
-	public function test_next_tag_ignores_invalid_first_character_of_tag_name_comments( $html_with_markers, $before_tag, $after_tag ) {
+	public function test_next_tag_ignores_invalid_first_character_of_tag_name_comments( $html_with_markers ) {
 		$p = new WP_HTML_Tag_Processor( $html_with_markers );
-		$p->next_tag( $before_tag );
+		$p->next_tag( array( 'class_name' => 'start' ) );
 		$p->next_tag();
 
-		$this->assertSame( $after_tag, $p->get_tag() );
+		$this->assertSame( 'end', $p->get_attribute( 'class' ) );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @ticket 58007
+	 *
+	 * @return array[]
+	 */
 	public function data_next_tag_ignores_invalid_first_character_of_tag_name_comments() {
 		return array(
 			'Invalid tag openers as normal text'           => array(
-				'<ul><li><div>I <3 when outflow > inflow</div><img></li></ul>',
-				'DIV',
-				'IMG',
+				'<ul><li><div class=start>I <3 when outflow > inflow</div><img class=end></li></ul>',
 			),
 
 			'Invalid tag closers as comments'              => array(
-				'<ul><li><div>I </3 when <img> outflow <br> inflow</div></li></ul>',
-				'DIV',
-				'BR',
+				'<ul><li><div class=start>I </3 when <img> outflow <br class=end> inflow</div></li></ul>',
 			),
 
 			'Unexpected question mark instead of tag name' => array(
-				'<div><?xml-stylesheet type="text/css" href="style.css"?><hr>',
-				'DIV',
-				'HR',
+				'<div class=start><?xml-stylesheet type="text/css" href="style.css"?><hr class=end>',
 			),
 		);
 	}
@@ -1758,6 +1757,13 @@ HTML;
 		);
 	}
 
+	/**
+	 * Ensures that the invalid comment closing syntax "--!>" properly closes a comment.
+	 *
+	 * @ticket 58007
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 *
+	 */
 	public function test_allows_incorrectly_closed_comments() {
 		$p = new WP_HTML_Tag_Processor( '<img id=before><!-- <img id=inside> --!><img id=after>--><img id=final>' );
 
@@ -1772,19 +1778,29 @@ HTML;
 	}
 
 	/**
+	 * Ensures that abruptly-closed empty comments are properly closed.
+	 *
+	 * @ticket 58007
+	 * @covers WP_HTML_Tag_Processor::next_tag
 	 * @dataProvider data_abruptly_closed_empty_comments
 	 *
-	 * @param $html
-	 * @return void
+	 * @param string $html_with_after_marker HTML to test with "id=after" on element immediately following an abruptly closed comment.
 	 */
-	public function test_closes_abrupt_closing_of_empty_comment( $html ) {
-		$p = new WP_HTML_Tag_Processor( $html );
+	public function test_closes_abrupt_closing_of_empty_comment( $html_with_after_marker ) {
+		$p = new WP_HTML_Tag_Processor( $html_with_after_marker );
 		$p->next_tag();
 		$p->next_tag();
 
 		$this->assertSame( 'after', $p->get_attribute( 'id' ), 'Did not find tag after closing abruptly-closed comment' );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @ticket 58007
+	 *
+	 * @return array[]
+	 */
 	public function data_abruptly_closed_empty_comments() {
 		return array(
 			'Empty comment with two dashes only' => array( '<hr><!--><hr id=after>' ),
