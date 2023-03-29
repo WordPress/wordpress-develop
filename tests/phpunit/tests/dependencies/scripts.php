@@ -587,6 +587,32 @@ EXP;
 	}
 
 	/**
+	 * Test script concatenation with deferred main script.
+	 *
+	 * @ticket 12009
+	 */
+	public function test_concatenate_with_defer_strategy() {
+		global $wp_scripts;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( '/directory/' );
+
+		wp_register_script( 'one-concat-dep', '/directory/script.js' );
+		wp_register_script( 'two-concat-dep', '/directory/script.js' );
+		wp_register_script( 'three-concat-dep', '/directory/script.js' );
+		wp_enqueue_script( 'main-defer-script', '/main-script.js', array( 'one-concat-dep', 'two-concat-dep', 'three-concat-dep' ), null, array( 'strategy' => 'defer' ) );
+
+		wp_print_scripts();
+		$print_scripts = get_echo( '_print_scripts' );
+
+		$ver      = get_bloginfo( 'version' );
+		$expected = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep,two-concat-dep,three-concat-dep&amp;ver={$ver}'></script>\n";
+		$expected .= "<script type='text/javascript' src='/main-script.js' id='main-defer-script-js' defer></script>\n";
+
+		$this->assertSame( $expected, $print_scripts );
+	}
+
+	/**
 	 * @ticket 42804
 	 */
 	public function test_wp_enqueue_script_with_html5_support_does_not_contain_type_attribute() {
