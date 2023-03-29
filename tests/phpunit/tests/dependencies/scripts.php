@@ -605,9 +605,35 @@ EXP;
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
 
-		$ver      = get_bloginfo( 'version' );
-		$expected = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep,two-concat-dep,three-concat-dep&amp;ver={$ver}'></script>\n";
+		$ver       = get_bloginfo( 'version' );
+		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep,two-concat-dep,three-concat-dep&amp;ver={$ver}'></script>\n";
 		$expected .= "<script type='text/javascript' src='/main-script.js' id='main-defer-script-js' defer></script>\n";
+
+		$this->assertSame( $expected, $print_scripts );
+	}
+
+	/**
+	 * Test script concatenation with `async` main script.
+	 *
+	 * @ticket 12009
+	 */
+	public function test_concatenate_with_async_strategy() {
+		global $wp_scripts;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( '/directory/' );
+
+		wp_enqueue_script( 'one-concat-dep-1', '/directory/script.js' );
+		wp_enqueue_script( 'two-concat-dep-1', '/directory/script.js' );
+		wp_enqueue_script( 'three-concat-dep-1', '/directory/script.js' );
+		wp_enqueue_script( 'main-defer-script-1', '/main-script.js', array(), null, array( 'strategy' => 'async' ) );
+
+		wp_print_scripts();
+		$print_scripts = get_echo( '_print_scripts' );
+
+		$ver       = get_bloginfo( 'version' );
+		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep-1,two-concat-dep-1,three-concat-dep-1&amp;ver={$ver}'></script>\n";
+		$expected .= "<script type='text/javascript' src='/main-script.js' id='main-defer-script-1-js' async></script>\n";
 
 		$this->assertSame( $expected, $print_scripts );
 	}
