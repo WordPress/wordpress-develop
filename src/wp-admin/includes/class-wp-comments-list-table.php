@@ -165,7 +165,6 @@ class WP_Comments_List_Table extends WP_List_Table {
 		$_comments = get_comments( $args );
 
 		if ( is_array( $_comments ) ) {
-
 			$this->items       = array_slice( $_comments, 0, $comments_per_page );
 			$this->extra_items = array_slice( $_comments, $comments_per_page );
 
