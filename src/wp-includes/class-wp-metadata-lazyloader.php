@@ -131,7 +131,7 @@ class WP_Metadata_Lazyloader {
 	 * is no need to invoke it directly.
 	 *
 	 * @since 4.5.0
-	 * @deprecated 6.3.0
+	 * @deprecated 6.3.0 Use WP_Metadata_Lazyloader::lazyload_meta_callback() instead.
 	 *
 	 * @param mixed $check The `$check` param passed from the 'get_term_metadata' hook.
 	 * @return mixed In order not to short-circuit `get_metadata()`. Generally, this is `null`, but it could be
@@ -149,7 +149,7 @@ class WP_Metadata_Lazyloader {
 	 * directly, from either inside or outside the `WP_Query` object.
 	 *
 	 * @since 4.5.0
-	 * @deprecated 6.3.0
+	 * @deprecated 6.3.0 Use WP_Metadata_Lazyloader::lazyload_meta_callback() instead.
 	 *
 	 * @param mixed $check The `$check` param passed from the {@see 'get_comment_metadata'} hook.
 	 * @return mixed The original value of `$check`, so as not to short-circuit `get_comment_metadata()`.

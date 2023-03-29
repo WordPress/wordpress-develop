@@ -111,6 +111,7 @@ class Test_Lazy_Load_Term_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 57901
+	 *
 	 * @covers ::wp_queue_posts_for_term_meta_lazyload
 	 */
 	public function test_wp_queue_posts_for_term_meta_lazyload_insert_term() {
