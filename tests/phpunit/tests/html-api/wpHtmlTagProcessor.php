@@ -1800,6 +1800,7 @@ HTML;
 	 */
 	public function data_html_with_unclosed_comments() {
 		return array(
+			'Shortest open valid comment'      => array( '<!--' ),
 			'Basic truncated comment'          => array( '<!-- this ends --' ),
 			'Comment with closer look-alike'   => array( '<!-- this ends --x' ),
 			'Comment with closer look-alike 2' => array( '<!-- this ends --!x' ),

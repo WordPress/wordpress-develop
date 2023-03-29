@@ -1036,7 +1036,7 @@ class WP_HTML_Tag_Processor {
 				 * https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
 				 */
 				if (
-					strlen( $html ) > $at + 3 &&
+					strlen( $html ) > $at + 4 &&
 					'-' === $html[ $at + 2 ] &&
 					'-' === $html[ $at + 3 ]
 				) {
