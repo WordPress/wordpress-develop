@@ -1670,9 +1670,11 @@ HTML;
 	 * See https://html.spec.whatwg.org/#parse-error-invalid-first-character-of-tag-name
 	 *
 	 * @ticket 58007
+	 *
 	 * @dataProvider data_next_tag_ignores_invalid_first_character_of_tag_name_comments
 	 *
-	 * @param string $html_with_markers HTML containing an invalid tag closer whose element before and element after contain the "start" and "end" CSS classes.
+	 * @param string $html_with_markers HTML containing an invalid tag closer whose element before and
+	 *                                  element after contain the "start" and "end" CSS classes.
 	 */
 	public function test_next_tag_ignores_invalid_first_character_of_tag_name_comments( $html_with_markers ) {
 		$p = new WP_HTML_Tag_Processor( $html_with_markers );
@@ -1684,8 +1686,6 @@ HTML;
 
 	/**
 	 * Data provider.
-	 *
-	 * @ticket 58007
 	 *
 	 * @return array[]
 	 */

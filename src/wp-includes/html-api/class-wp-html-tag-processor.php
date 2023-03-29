@@ -971,7 +971,7 @@ class WP_HTML_Tag_Processor {
 	 * closing `>`; these are left for other methods.
 	 *
 	 * @since 6.2.0
-	 * @since 6.3.0 Passes over invalid-tag-closer-comments like "</3 this is a comment>".
+	 * @since 6.2.1 Passes over invalid-tag-closer-comments like "</3 this is a comment>".
 	 *
 	 * @return bool Whether a tag was found before the end of the document.
 	 */
@@ -1042,9 +1042,7 @@ class WP_HTML_Tag_Processor {
 				) {
 					$closer_at = $at + 4;
 
-					/*
-					 * Abruptly-closed empty comments are a sequence of dashes followed by `>`.
-					 */
+					// Abruptly-closed empty comments are a sequence of dashes followed by `>`.
 					$span_of_dashes = strspn( $html, '-', $closer_at );
 					if ( '>' === $html[ $closer_at + $span_of_dashes ] ) {
 						$at = $closer_at + $span_of_dashes + 1;
