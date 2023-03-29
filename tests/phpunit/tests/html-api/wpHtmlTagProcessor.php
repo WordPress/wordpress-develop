@@ -1778,9 +1778,41 @@ HTML;
 	}
 
 	/**
+	 * Ensures that unclosed and invalid comments don't trigger warnings or errors.
+	 *
+	 * @ticket 58007
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 * @dataProvider data_html_with_unclosed_comments
+	 *
+	 * @param string $html_ending_before_comment_close HTML with opened comments that aren't closed
+	 */
+	public function test_documents_may_end_with_unclosed_comment( $html_ending_before_comment_close ) {
+		$p = new WP_HTML_Tag_Processor( $html_ending_before_comment_close );
+
+		$this->assertFalse( $p->next_tag() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_html_with_unclosed_comments() {
+		return array(
+			'Basic truncated comment'          => array( '<!-- this ends --' ),
+			'Comment with closer look-alike'   => array( '<!-- this ends --x' ),
+			'Comment with closer look-alike 2' => array( '<!-- this ends --!x' ),
+			'Invalid tag-closer comment'       => array( '</(when will this madness end?)' ),
+			'Invalid tag-closer comment 2'     => array( '</(when will this madness end?)--' )
+		);
+	}
+
+	/**
 	 * Ensures that abruptly-closed empty comments are properly closed.
 	 *
 	 * @ticket 58007
+	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
 	 * @dataProvider data_abruptly_closed_empty_comments
 	 *
@@ -1796,8 +1828,6 @@ HTML;
 
 	/**
 	 * Data provider.
-	 *
-	 * @ticket 58007
 	 *
 	 * @return array[]
 	 */

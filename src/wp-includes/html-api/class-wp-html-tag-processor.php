@@ -1055,19 +1055,19 @@ class WP_HTML_Tag_Processor {
 					 *
 					 * See https://html.spec.whatwg.org/#parse-error-incorrectly-closed-comment
 					 */
-					$closer_at--; // Pre-increment inside condition avoids risk of infinite looping.
+					$closer_at--; // Pre-increment inside condition below reduces risk of accidental infinite looping.
 					while ( ++$closer_at < strlen( $html ) ) {
 						$closer_at = strpos( $html, '--', $closer_at );
 						if ( false === $closer_at ) {
 							return false;
 						}
 
-						if ( '>' === $html[ $closer_at + 2 ] ) {
+						if ( $closer_at + 2 < strlen( $html ) && '>' === $html[ $closer_at + 2 ] ) {
 							$at = $closer_at + 3;
 							continue 2;
 						}
 
-						if ( '!' === $html[ $closer_at + 2 ] && '>' === $html[ $closer_at + 3 ] ) {
+						if ( $closer_at + 3 < strlen( $html ) && '!' === $html[ $closer_at + 2 ] && '>' === $html[ $closer_at + 3 ] ) {
 							$at = $closer_at + 4;
 							continue 2;
 						}
