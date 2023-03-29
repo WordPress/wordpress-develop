@@ -16,7 +16,6 @@ class Tests_Post_Walker_Page extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
 		$this->walker = new Walker_Page();
 	}
 
