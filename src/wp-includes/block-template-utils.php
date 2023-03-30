@@ -340,7 +340,7 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 			);
 
 			// Skip this item if its slug doesn't match any of the slugs to include.
-			if ( ! empty( $slugs_to_include ) && ( false === array_search( $template_slug, $slugs_to_include, true ) ) ) {
+			if ( ! empty( $slugs_to_include ) && ! in_array( $template_slug, $slugs_to_include, true ) ) {
 				continue;
 			}
 
