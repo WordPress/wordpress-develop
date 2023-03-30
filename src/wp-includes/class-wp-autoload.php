@@ -27,7 +27,6 @@ final class WP_Autoload {
 		'pop3'                                        => 'wp-includes/class-pop3.php',
 		'services_json'                               => 'wp-includes/class-json.php',
 		'services_json_error'                         => 'wp-includes/class-json.php',
-		'simplepie'                                   => 'wp-includes/class-simplepie.php',
 		'walker_categorydropdown'                     => 'wp-includes/class-walker-category-dropdown.php',
 		'walker_category'                             => 'wp-includes/class-walker-category.php',
 		'walker_comment'                              => 'wp-includes/class-walker-comment.php',
