@@ -638,7 +638,7 @@ EXP;
 		wp_enqueue_script( 'one-concat-dep-1', $this->default_scripts_dir . 'script.js' );
 		wp_enqueue_script( 'two-concat-dep-1', $this->default_scripts_dir . 'script.js' );
 		wp_enqueue_script( 'three-concat-dep-1', $this->default_scripts_dir . 'script.js' );
-		wp_enqueue_script( 'main-defer-script-1', '/main-script.js', array(), null, array( 'strategy' => 'async' ) );
+		wp_enqueue_script( 'main-async-script-1', '/main-script.js', array(), null, array( 'strategy' => 'async' ) );
 
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
@@ -648,7 +648,7 @@ EXP;
 
 		$ver       = get_bloginfo( 'version' );
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep-1,two-concat-dep-1,three-concat-dep-1&amp;ver={$ver}'></script>\n";
-		$expected .= "<script type='text/javascript' src='/main-script.js' id='main-defer-script-1-js' async></script>\n";
+		$expected .= "<script type='text/javascript' src='/main-script.js' id='main-async-script-1-js' async></script>\n";
 
 		$this->assertSame( $expected, $print_scripts );
 	}
