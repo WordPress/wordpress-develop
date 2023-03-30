@@ -7,6 +7,8 @@
  * @since 2.7.0
  */
 
+require_once ABSPATH . WPINC . '/class-wp-autoload.php';
+
 if ( ! class_exists( 'WpOrg\Requests\Autoload' ) ) {
 	require ABSPATH . WPINC . '/Requests/src/Autoload.php';
 
