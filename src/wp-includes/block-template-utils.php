@@ -345,7 +345,7 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 			}
 
 			// Skip this item if its slug matches any of the slugs to skip.
-			if ( ! empty( $slugs_to_skip ) && ( false !== array_search( $template_slug, $slugs_to_skip, true ) ) ) {
+			if ( ! empty( $slugs_to_skip ) && in_array( $template_slug, $slugs_to_skip, true ) ) {
 				continue;
 			}
 
