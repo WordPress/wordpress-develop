@@ -984,7 +984,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 
 	if ( ! empty( $query['slug__in'] ) ) {
 		$wp_query_args['post_name__in']  = $query['slug__in'];
-		$wp_query_args['posts_per_page'] = count( $query['slug__in'] );
+		$wp_query_args['posts_per_page'] = count( array_unique( $query['slug__in'] ) );
 	}
 
 	// This is only needed for the regular templates/template parts post type listing and editor.
