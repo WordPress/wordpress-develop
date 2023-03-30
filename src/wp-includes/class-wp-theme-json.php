@@ -263,6 +263,36 @@ class WP_Theme_JSON {
 	);
 
 	/**
+	 * Indirect metadata for style properties that are not directly output.
+	 *
+	 * Each element maps from a CSS property name to an array of
+	 * paths to the value in theme.json & block attributes.
+	 *
+	 * Indirect properties are not output directly by `compute_style_properties`,
+	 * but are used elsewhere in the processing of global styles. The indirect
+	 * property is used to validate whether or not a style value is allowed.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @var array
+	 */
+	const INDIRECT_PROPERTIES_METADATA = array(
+		'gap'        => array(
+			array( 'spacing', 'blockGap' ),
+		),
+		'column-gap' => array(
+			array( 'spacing', 'blockGap', 'left' ),
+		),
+		'row-gap'    => array(
+			array( 'spacing', 'blockGap', 'top' ),
+		),
+		'max-width'  => array(
+			array( 'layout', 'contentSize' ),
+			array( 'layout', 'wideSize' ),
+		),
+	);
+
+	/**
 	 * Protected style properties.
 	 *
 	 * These style properties are only rendered if a setting enables it
@@ -304,7 +334,8 @@ class WP_Theme_JSON {
 	 *              and `typography`, and renamed others according to the new schema.
 	 * @since 6.0.0 Added `color.defaultDuotone`.
 	 * @since 6.1.0 Added `layout.definitions` and `useRootPaddingAwareAlignments`.
-	 * @since 6.2.0 Added `dimensions.minHeight`, 'shadow.presets', and 'shadow.defaultPresets'.
+	 * @since 6.2.0 Added `dimensions.minHeight`, 'shadow.presets', 'shadow.defaultPresets',
+	 *              `position.fixed` and `position.sticky`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -338,6 +369,10 @@ class WP_Theme_JSON {
 			'contentSize' => null,
 			'definitions' => null,
 			'wideSize'    => null,
+		),
+		'position'                      => array(
+			'fixed'  => null,
+			'sticky' => null,
 		),
 		'spacing'                       => array(
 			'customSpacingSize' => null,
@@ -513,7 +548,7 @@ class WP_Theme_JSON {
 	 * Options that settings.appearanceTools enables.
 	 *
 	 * @since 6.0.0
-	 * @since 6.2.0 Added `dimensions.minHeight`.
+	 * @since 6.2.0 Added `dimensions.minHeight` and `position.sticky`.
 	 * @var array
 	 */
 	const APPEARANCE_TOOLS_OPT_INS = array(
@@ -523,6 +558,7 @@ class WP_Theme_JSON {
 		array( 'border', 'width' ),
 		array( 'color', 'link' ),
 		array( 'dimensions', 'minHeight' ),
+		array( 'position', 'sticky' ),
 		array( 'spacing', 'blockGap' ),
 		array( 'spacing', 'margin' ),
 		array( 'spacing', 'padding' ),
@@ -943,9 +979,12 @@ class WP_Theme_JSON {
 	 *                       - `styles`: only the styles section in theme.json.
 	 *                       - `presets`: only the classes for the presets.
 	 * @param array $origins A list of origins to include. By default it includes VALID_ORIGINS.
+	 * @param array $options An array of options for now used for internal purposes only (may change without notice).
+	 *                       The options currently supported are 'scope' that makes sure all style are scoped to a given selector,
+	 *                       and root_selector which overwrites and forces a given selector to be used on the root node.
 	 * @return string The resulting stylesheet.
 	 */
-	public function get_stylesheet( $types = array( 'variables', 'styles', 'presets' ), $origins = null ) {
+	public function get_stylesheet( $types = array( 'variables', 'styles', 'presets' ), $origins = null, $options = array() ) {
 		if ( null === $origins ) {
 			$origins = static::VALID_ORIGINS;
 		}
@@ -966,6 +1005,27 @@ class WP_Theme_JSON {
 		$style_nodes     = static::get_style_nodes( $this->theme_json, $blocks_metadata );
 		$setting_nodes   = static::get_setting_nodes( $this->theme_json, $blocks_metadata );
 
+		$root_style_key    = array_search( static::ROOT_BLOCK_SELECTOR, array_column( $style_nodes, 'selector' ), true );
+		$root_settings_key = array_search( static::ROOT_BLOCK_SELECTOR, array_column( $setting_nodes, 'selector' ), true );
+
+		if ( ! empty( $options['scope'] ) ) {
+			foreach ( $setting_nodes as &$node ) {
+				$node['selector'] = static::scope_selector( $options['scope'], $node['selector'] );
+			}
+			foreach ( $style_nodes as &$node ) {
+				$node['selector'] = static::scope_selector( $options['scope'], $node['selector'] );
+			}
+		}
+
+		if ( ! empty( $options['root_selector'] ) ) {
+			if ( false !== $root_settings_key ) {
+				$setting_nodes[ $root_settings_key ]['selector'] = $options['root_selector'];
+			}
+			if ( false !== $root_style_key ) {
+				$setting_nodes[ $root_style_key ]['selector'] = $options['root_selector'];
+			}
+		}
+
 		$stylesheet = '';
 
 		if ( in_array( 'variables', $types, true ) ) {
@@ -973,23 +1033,30 @@ class WP_Theme_JSON {
 		}
 
 		if ( in_array( 'styles', $types, true ) ) {
-			$root_block_key = array_search( static::ROOT_BLOCK_SELECTOR, array_column( $style_nodes, 'selector' ), true );
-
-			if ( false !== $root_block_key ) {
-				$stylesheet .= $this->get_root_layout_rules( static::ROOT_BLOCK_SELECTOR, $style_nodes[ $root_block_key ] );
+			if ( false !== $root_style_key ) {
+				$stylesheet .= $this->get_root_layout_rules( $style_nodes[ $root_style_key ]['selector'], $style_nodes[ $root_style_key ] );
 			}
 			$stylesheet .= $this->get_block_classes( $style_nodes );
 		} elseif ( in_array( 'base-layout-styles', $types, true ) ) {
+			$root_selector    = static::ROOT_BLOCK_SELECTOR;
+			$columns_selector = '.wp-block-columns';
+			if ( ! empty( $options['scope'] ) ) {
+				$root_selector    = static::scope_selector( $options['scope'], $root_selector );
+				$columns_selector = static::scope_selector( $options['scope'], $columns_selector );
+			}
+			if ( ! empty( $options['root_selector'] ) ) {
+				$root_selector = $options['root_selector'];
+			}
 			// Base layout styles are provided as part of `styles`, so only output separately if explicitly requested.
 			// For backwards compatibility, the Columns block is explicitly included, to support a different default gap value.
 			$base_styles_nodes = array(
 				array(
 					'path'     => array( 'styles' ),
-					'selector' => static::ROOT_BLOCK_SELECTOR,
+					'selector' => $root_selector,
 				),
 				array(
 					'path'     => array( 'styles', 'blocks', 'core/columns' ),
-					'selector' => '.wp-block-columns',
+					'selector' => $columns_selector,
 					'name'     => 'core/columns',
 				),
 			);
@@ -1007,11 +1074,33 @@ class WP_Theme_JSON {
 	}
 
 	/**
+	 * Processes the CSS, to apply nesting.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param string $css      The CSS to process.
+	 * @param string $selector The selector to nest.
+	 * @return string The processed CSS.
+	 */
+	protected function process_blocks_custom_css( $css, $selector ) {
+		$processed_css = '';
+
+		// Split CSS nested rules.
+		$parts = explode( '&', $css );
+		foreach ( $parts as $part ) {
+			$processed_css .= ( ! str_contains( $part, '{' ) )
+				? trim( $selector ) . '{' . trim( $part ) . '}' // If the part doesn't contain braces, it applies to the root level.
+				: trim( $selector . $part ); // Prepend the selector, which effectively replaces the "&" character.
+		}
+		return $processed_css;
+	}
+
+	/**
 	 * Returns the global styles custom css.
 	 *
 	 * @since 6.2.0
 	 *
-	 * @return string
+	 * @return string The global styles custom CSS.
 	 */
 	public function get_custom_css() {
 		// Add the global styles root CSS.
@@ -1468,18 +1557,27 @@ class WP_Theme_JSON {
 	 * @param string $selector Original selector.
 	 * @return string Scoped selector.
 	 */
-	protected static function scope_selector( $scope, $selector ) {
+	public static function scope_selector( $scope, $selector ) {
 		$scopes    = explode( ',', $scope );
 		$selectors = explode( ',', $selector );
 
 		$selectors_scoped = array();
 		foreach ( $scopes as $outer ) {
 			foreach ( $selectors as $inner ) {
-				$selectors_scoped[] = trim( $outer ) . ' ' . trim( $inner );
+				$outer = trim( $outer );
+				$inner = trim( $inner );
+				if ( ! empty( $outer ) && ! empty( $inner ) ) {
+					$selectors_scoped[] = $outer . ' ' . $inner;
+				} elseif ( empty( $outer ) ) {
+					$selectors_scoped[] = $inner;
+				} elseif ( empty( $inner ) ) {
+					$selectors_scoped[] = $outer;
+				}
 			}
 		}
 
-		return implode( ', ', $selectors_scoped );
+		$result = implode( ', ', $selectors_scoped );
+		return $result;
 	}
 
 	/**
@@ -2881,6 +2979,10 @@ class WP_Theme_JSON {
 				}
 			}
 		}
+
+		// Ensure indirect properties not included in any `PRESETS_METADATA` value are allowed.
+		static::remove_indirect_properties( $input, $output );
+
 		return $output;
 	}
 
@@ -2909,6 +3011,10 @@ class WP_Theme_JSON {
 				}
 			}
 		}
+
+		// Ensure indirect properties not handled by `compute_style_properties` are allowed.
+		static::remove_indirect_properties( $input, $output );
+
 		return $output;
 	}
 
@@ -2925,6 +3031,29 @@ class WP_Theme_JSON {
 		$style_to_validate = $property_name . ': ' . $property_value;
 		$filtered          = esc_html( safecss_filter_attr( $style_to_validate ) );
 		return ! empty( trim( $filtered ) );
+	}
+
+	/**
+	 * Removes indirect properties from the given input node and
+	 * sets in the given output node.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param array $input  Node to process.
+	 * @param array $output The processed node. Passed by reference.
+	 */
+	private static function remove_indirect_properties( $input, &$output ) {
+		foreach ( static::INDIRECT_PROPERTIES_METADATA as $property => $paths ) {
+			foreach ( $paths as $path ) {
+				$value = _wp_array_get( $input, $path );
+				if (
+					is_string( $value ) &&
+					static::is_safe_css_declaration( $property, $value )
+				) {
+					_wp_array_set( $output, $path, $value );
+				}
+			}
+		}
 	}
 
 	/**

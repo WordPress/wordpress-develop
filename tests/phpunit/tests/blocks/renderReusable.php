@@ -1,15 +1,9 @@
 <?php
 /**
- * Reusable block rendering tests
+ * Tests for reusable block rendering.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.0.0
- */
-
-/**
- * Tests for reusable block rendering.
- *
  * @since 5.0.0
  *
  * @group blocks

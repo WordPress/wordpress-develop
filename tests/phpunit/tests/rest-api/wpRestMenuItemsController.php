@@ -1,14 +1,10 @@
 <?php
 /**
- * WP_REST_Menu_Items_Controller tests
+ * Unit tests covering WP_REST_Menu_Items_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
  * @since 5.9.0
- */
-
-/**
- * Tests for REST API for Menu items.
  *
  * @group restapi
  *
@@ -147,6 +143,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 		$this->assertArrayHasKey( 'page', $properties );
 		$this->assertArrayHasKey( 'per_page', $properties );
 		$this->assertArrayHasKey( 'search', $properties );
+		$this->assertArrayHasKey( 'search_columns', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'status', $properties );
 	}

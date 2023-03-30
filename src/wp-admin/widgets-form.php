@@ -68,8 +68,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/appearance-widgets-screen/">Documentation on Widgets</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/appearance-widgets-screen-classic-editor/">Documentation on Widgets</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 // These are the widgets grouped by sidebar.
@@ -423,7 +423,12 @@ do_action( 'widgets_admin_page' );
 	<div id="available-widgets" class="widgets-holder-wrap">
 		<div class="sidebar-name">
 			<button type="button" class="handlediv hide-if-no-js" aria-expanded="true">
-				<span class="screen-reader-text"><?php _e( 'Available Widgets' ); ?></span>
+				<span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Available Widgets' );
+					?>
+				</span>
 				<span class="toggle-indicator" aria-hidden="true"></span>
 			</button>
 			<h2><?php _e( 'Available Widgets' ); ?> <span id="removing-widget"><?php _ex( 'Deactivate', 'removing-widget' ); ?> <span></span></span></h2>

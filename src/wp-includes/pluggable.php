@@ -1070,17 +1070,19 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		 * Allows preventing auth cookies from actually being sent to the client.
 		 *
 		 * @since 4.7.4
-		 * @since 6.2.0 The `$user_id`, `$expire`, `$expiration`, and `$token` parameters were added.
+		 * @since 6.2.0 The `$expire`, `$expiration`, `$user_id`, `$scheme`, and `$token` parameters were added.
 		 *
 		 * @param bool   $send       Whether to send auth cookies to the client. Default true.
-		 * @param int    $user_id    User ID. Zero when clearing cookies.
 		 * @param int    $expire     The time the login grace period expires as a UNIX timestamp.
 		 *                           Default is 12 hours past the cookie's expiration time. Zero when clearing cookies.
 		 * @param int    $expiration The time when the logged-in authentication cookie expires as a UNIX timestamp.
 		 *                           Default is 14 days from now. Zero when clearing cookies.
+		 * @param int    $user_id    User ID. Zero when clearing cookies.
+		 * @param string $scheme     Authentication scheme. Values include 'auth' or 'secure_auth'.
+		 *                           Empty string when clearing cookies.
 		 * @param string $token      User's session token to use for this cookie. Empty string when clearing cookies.
 		 */
-		if ( ! apply_filters( 'send_auth_cookies', true, $user_id, $expire, $expiration, $token ) ) {
+		if ( ! apply_filters( 'send_auth_cookies', true, $expire, $expiration, $user_id, $scheme, $token ) ) {
 			return;
 		}
 
@@ -1108,7 +1110,7 @@ if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
 		do_action( 'clear_auth_cookie' );
 
 		/** This filter is documented in wp-includes/pluggable.php */
-		if ( ! apply_filters( 'send_auth_cookies', true, 0, 0, 0, '' ) ) {
+		if ( ! apply_filters( 'send_auth_cookies', true, 0, 0, 0, '', '' ) ) {
 			return;
 		}
 
@@ -1873,7 +1875,7 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 		 * @since 4.4.0
 		 *
 		 * @param bool $maybe_notify Whether to notify blog moderator.
-		 * @param int  $comment_ID   The id of the comment for the notification.
+		 * @param int  $comment_id   The ID of the comment for the notification.
 		 */
 		$maybe_notify = apply_filters( 'notify_moderator', $maybe_notify, $comment_id );
 
@@ -2415,14 +2417,16 @@ if ( ! function_exists( 'wp_salt' ) ) :
 		static $duplicated_keys;
 		if ( null === $duplicated_keys ) {
 			$duplicated_keys = array(
-				'put your unique phrase here'       => true,
-				/*
-				 * translators: This string should only be translated if wp-config-sample.php is localized.
-				 * You can check the localized release package or
-				 * https://i18n.svn.wordpress.org/<locale code>/branches/<wp version>/dist/wp-config-sample.php
-				 */
-				__( 'put your unique phrase here' ) => true,
+				'put your unique phrase here' => true,
 			);
+
+			/*
+			 * translators: This string should only be translated if wp-config-sample.php is localized.
+			 * You can check the localized release package or
+			 * https://i18n.svn.wordpress.org/<locale code>/branches/<wp version>/dist/wp-config-sample.php
+			 */
+			$duplicated_keys[ __( 'put your unique phrase here' ) ] = true;
+
 			foreach ( array( 'AUTH', 'SECURE_AUTH', 'LOGGED_IN', 'NONCE', 'SECRET' ) as $first ) {
 				foreach ( array( 'KEY', 'SALT' ) as $second ) {
 					if ( ! defined( "{$first}_{$second}" ) ) {
@@ -2587,7 +2591,7 @@ if ( ! function_exists( 'wp_generate_password' ) ) :
 	/**
 	 * Generates a random password drawn from the defined set of characters.
 	 *
-	 * Uses wp_rand() is used to create passwords with far less predictability
+	 * Uses wp_rand() to create passwords with far less predictability
 	 * than similar native PHP functions like `rand()` or `mt_rand()`.
 	 *
 	 * @since 2.5.0
@@ -2770,9 +2774,9 @@ if ( ! function_exists( 'get_avatar' ) ) :
 	 * @param mixed  $id_or_email   The Gravatar to retrieve. Accepts a user_id, gravatar md5 hash,
 	 *                              user email, WP_User object, WP_Post object, or WP_Comment object.
 	 * @param int    $size          Optional. Height and width of the avatar image file in pixels. Default 96.
-	 * @param string $default_value Optional. URL for the default image or a default type. Accepts '404'
-	 *                              (return a 404 instead of a default image), 'retro' (8bit), 'monsterid'
-	 *                              (monster), 'wavatar' (cartoon face), 'indenticon' (the "quilt"),
+	 * @param string $default_value URL for the default image or a default type. Accepts '404' (return
+	 *                              a 404 instead of a default image), 'retro' (8bit), 'RoboHash' (robohash),
+	 *                              'monsterid' (monster), 'wavatar' (cartoon face), 'indenticon' (the "quilt"),
 	 *                              'mystery', 'mm', or 'mysteryman' (The Oyster Man), 'blank' (transparent GIF),
 	 *                              or 'gravatar_default' (the Gravatar logo). Default is the value of the
 	 *                              'avatar_default' option, with a fallback of 'mystery'.

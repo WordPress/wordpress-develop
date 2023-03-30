@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_REST_Block_Types_Controller tests.
+ * Unit tests covering WP_REST_Block_Types_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.5.0
- */
-
-/**
- * Tests for WP_REST_Block_Types_Controller.
- *
  * @since 5.5.0
  *
  * @covers WP_REST_Block_Types_Controller
@@ -223,7 +217,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'parent'           => 'invalid_parent',
 			'ancestor'         => 'invalid_ancestor',
 			'supports'         => 'invalid_supports',
-			'styles'           => 'invalid_styles',
+			'styles'           => array(),
 			'render_callback'  => 'invalid_callback',
 			'textdomain'       => true,
 			'variations'       => 'invalid_variations',
