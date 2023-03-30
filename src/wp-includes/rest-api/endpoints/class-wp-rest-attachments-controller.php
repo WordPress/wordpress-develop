@@ -275,12 +275,20 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$attachment->post_mime_type = $type;
 		$attachment->guid           = $url;
 
+		// If the title was not set, use the filename extracted from the request header.
 		if ( empty( $attachment->post_title ) ) {
-			$upload = $files['file']['name'];
-			$ext    = pathinfo( $upload, PATHINFO_EXTENSION );
-			$title  = wp_basename( $upload, ".$ext" );
+			$content_disposition = $request->get_header( 'content_disposition' );
 
-			$attachment->post_title = sanitize_text_field( $title );
+			if ( ! empty( $content_disposition ) ) {
+				$lower_content_disposition = strtolower( $content_disposition );
+
+				if ( 0 === strpos( $lower_content_disposition, 'attachment; filename=' ) ) {
+					$tmpfname_disposition = explode( '.', substr( $content_disposition, 21 ) );
+					if ( ! empty( $tmpfname_disposition ) ) {
+						$attachment->post_title = $tmpfname_disposition[0];
+					}
+				}
+			}
 		}
 
 		// $post_parent is inherited from $attachment['post_parent'].
