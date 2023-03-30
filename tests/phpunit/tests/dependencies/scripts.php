@@ -597,7 +597,7 @@ EXP;
 	public function test_concatenate_with_defer_strategy() {
 		global $wp_scripts, $concatenate_scripts;
 
-		$old_value = $concatenate_scripts;
+		$old_value           = $concatenate_scripts;
 		$concatenate_scripts = true;
 
 		$wp_scripts->do_concat    = true;
@@ -629,7 +629,7 @@ EXP;
 	public function test_concatenate_with_async_strategy() {
 		global $wp_scripts, $concatenate_scripts;
 
-		$old_value = $concatenate_scripts;
+		$old_value           = $concatenate_scripts;
 		$concatenate_scripts = true;
 
 		$wp_scripts->do_concat    = true;
@@ -661,7 +661,7 @@ EXP;
 	public function test_concatenate_with_blocking_script_before_and_after_script_with_defer_strategy() {
 		global $wp_scripts, $concatenate_scripts;
 
-		$old_value = $concatenate_scripts;
+		$old_value           = $concatenate_scripts;
 		$concatenate_scripts = true;
 
 		$wp_scripts->do_concat    = true;
