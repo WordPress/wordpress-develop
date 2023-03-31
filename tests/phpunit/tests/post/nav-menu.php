@@ -16,6 +16,51 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 11095
+	 * @ticket 33974
+	 */
+	public function test_wp_page_menu_wp_nav_menu_fallback() {
+		$pages = self::factory()->post->create_many( 3, array( 'post_type' => 'page' ) );
+
+		// No menus + wp_nav_menu() falls back to wp_page_menu().
+		$menu = wp_nav_menu( array( 'echo' => false ) );
+
+		// After falling back, the 'before' argument should be set and output as '<ul>'.
+		$this->assertMatchesRegularExpression( '/<div class="menu"><ul>/', $menu );
+
+		// After falling back, the 'after' argument should be set and output as '</ul>'.
+		$this->assertMatchesRegularExpression( '/<\/ul><\/div>/', $menu );
+
+		// After falling back, the markup should include whitespace around <li>'s.
+		$this->assertMatchesRegularExpression( '/\s<li.*>|<\/li>\s/U', $menu );
+		$this->assertDoesNotMatchRegularExpression( '/><li.*>|<\/li></U', $menu );
+
+		// No menus + wp_nav_menu() falls back to wp_page_menu(), this time without a container.
+		$menu = wp_nav_menu(
+			array(
+				'echo'      => false,
+				'container' => false,
+			)
+		);
+
+		// After falling back, the empty 'container' argument should still return a container element.
+		$this->assertMatchesRegularExpression( '/<div class="menu">/', $menu );
+
+		// No menus + wp_nav_menu() falls back to wp_page_menu(), this time without white-space.
+		$menu = wp_nav_menu(
+			array(
+				'echo'         => false,
+				'item_spacing' => 'discard',
+			)
+		);
+
+		// After falling back, the markup should not include whitespace around <li>'s.
+		$this->assertDoesNotMatchRegularExpression( '/\s<li.*>|<\/li>\s/U', $menu );
+		$this->assertMatchesRegularExpression( '/><li.*>|<\/li></U', $menu );
+
+	}
+
+	/**
 	 * @ticket 32464
 	 */
 	public function test_wp_nav_menu_empty_container() {
@@ -716,7 +761,6 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
-
 
 	/**
 	 * @ticket 35272

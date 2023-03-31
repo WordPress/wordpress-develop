@@ -487,17 +487,6 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 22389
-	 */
-	public function test_wp_dropdown_pages() {
-		self::factory()->post->create_many( 5, array( 'post_type' => 'page' ) );
-
-		preg_match_all( '#<option#', wp_dropdown_pages( 'echo=0' ), $matches );
-
-		$this->assertCount( 5, $matches[0] );
-	}
-
-	/**
 	 * @ticket 22208
 	 */
 	public function test_get_children_fields_ids() {
@@ -738,39 +727,6 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$found_pages = wp_list_filter( $pages, array( 'post_parent' => $page_1 ) );
 		$this->assertSameSets( array( $page_3, $page_5 ), wp_list_pluck( $found_pages, 'ID' ) );
 
-	}
-
-	public function test_wp_list_pages_classes() {
-		$type = 'taco';
-		register_post_type(
-			$type,
-			array(
-				'hierarchical' => true,
-				'public'       => true,
-			)
-		);
-
-		$posts   = self::factory()->post->create_many( 2, array( 'post_type' => $type ) );
-		$post_id = reset( $posts );
-
-		$this->go_to( "/?p=$post_id&post_type=$type" );
-
-		$this->assertSame( $post_id, get_queried_object_id() );
-
-		$output = wp_list_pages(
-			array(
-				'echo'      => false,
-				'title_li'  => '',
-				'post_type' => $type,
-			)
-		);
-
-		$this->assertNotEmpty( $output );
-		$this->assertSame( 2, substr_count( $output, 'class="page_item ' ) );
-		$this->assertStringContainsString( 'current_page_item', $output );
-		$this->assertSame( 1, substr_count( $output, 'current_page_item' ) );
-
-		_unregister_post_type( $type );
 	}
 
 	/**
