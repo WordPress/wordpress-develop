@@ -77,7 +77,7 @@ JS;
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
 <script type='text/javascript' id='wp-executes-after-js'>
-function wpLoadAfterScripts() {
+function wpLoadAfterScripts( handle ) {
 	let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
 	scripts.forEach( (script) => { 
 		script.setAttribute("type","text/javascript"); 
@@ -153,7 +153,7 @@ EXP;
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
 <script type='text/javascript' id='wp-executes-after-js'>
-function wpLoadAfterScripts() {
+function wpLoadAfterScripts( handle ) {
 	let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
 	scripts.forEach( (script) => { 
 		script.setAttribute("type","text/javascript"); 
@@ -186,7 +186,7 @@ EXP;
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
 <script type='text/javascript' id='wp-executes-after-js'>
-function wpLoadAfterScripts() {
+function wpLoadAfterScripts( handle ) {
 	let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
 	scripts.forEach( (script) => { 
 		script.setAttribute("type","text/javascript"); 

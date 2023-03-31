@@ -1854,7 +1854,7 @@ function wp_print_template_loader_script() {
 	$wp_scripts = wp_scripts();
 	if ( $wp_scripts->has_delayed_inline_script() ) {
 		$output    = <<<JS
-function wpLoadAfterScripts() {
+function wpLoadAfterScripts( handle ) {
 	let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
 	scripts.forEach( (script) => { 
 		script.setAttribute("type","text/javascript"); 
