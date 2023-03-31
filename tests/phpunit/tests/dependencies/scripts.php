@@ -89,7 +89,7 @@ let wpLoadAfterScripts = ( handle ) => {
 <script type='text/javascript' id='ms-isinsa-1-js-after'>
 console.log("after one");
 </script>
-<script type='text/javascript' id='ms-isinsa-1-js-after' type='text/template' data-wp-executes-after='ms-isinsa-1'>
+<script type='text/template' id='ms-isinsa-1-js-after' data-wp-executes-after='ms-isinsa-1'>
 console.log("after two");
 </script>
 
@@ -174,7 +174,7 @@ let wpLoadAfterScripts = ( handle ) => {
 }
 </script>
 <script type='text/javascript' src='http://example.org/ms-insa-1.js' id='ms-insa-1-js' defer onload='wpLoadAfterScripts("ms-insa-1")'></script>
-<script type='text/javascript' id='ms-insa-1-js-after' type='text/template' data-wp-executes-after='ms-insa-1'>
+<script type='text/template' id='ms-insa-1-js-after' data-wp-executes-after='ms-insa-1'>
 console.log("after one");
 </script>
 
@@ -197,7 +197,7 @@ let wpLoadAfterScripts = ( handle ) => {
 }
 </script>
 <script type='text/javascript' src='http://example.org/ms-insa-2.js' id='ms-insa-2-js' async onload='wpLoadAfterScripts("ms-insa-2")'></script>
-<script type='text/javascript' id='ms-insa-2-js-after' type='text/template' data-wp-executes-after='ms-insa-2'>
+<script type='text/template' id='ms-insa-2-js-after' data-wp-executes-after='ms-insa-2'>
 console.log("after one");
 </script>
 
