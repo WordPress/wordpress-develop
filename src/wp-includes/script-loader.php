@@ -1846,6 +1846,9 @@ function wp_just_in_time_script_localization() {
 
 /**
  * Prints a loader script if there is text/template registered script.
+ * 
+ * When injected in DOM, this script converts any text/template script 
+ * associated with a handle to type/javascript and execute them.
  */
 function wp_print_template_loader_script() {
 	$wp_scripts = wp_scripts();
