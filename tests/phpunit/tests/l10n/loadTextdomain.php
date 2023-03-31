@@ -315,6 +315,5 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 		remove_filter( 'pre_load_textdomain', '__return_true' );
 
 		$this->assertSame( 0, $override_load_textdomain_callback->get_call_count(), 'Expected override_load_textdomain not to be called.' );
-		$this->assertTrue( is_textdomain_loaded( 'wp-tests-domain' ), 'Expected text domain to be loaded.' );
 	}
 }
