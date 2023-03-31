@@ -100,22 +100,12 @@ EXP;
 	/**
 	 * Test `standalone` inline scripts in the `after` position.
 	 *
+	 * If the main script with a `defer` loading strategy has an `after` inline script, 
+	 * the inline script should not be affected.
+	 * 
 	 * @ticket 12009
-	 * @dataProvider data_standalone_after_inline_script
 	 */
-	public function test_standalone_after_inline_script( $expected, $output, $message ) {
-		$this->assertSame( $expected, $output, $message );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array
-	 */
-	public function data_standalone_after_inline_script() {
-		$data = array();
-
-		// If the main script with a `defer` loading strategy has an `after` inline script, the inline script should not be affected.
+	public function test_standalone_defer_main_script_with_after_inline_script() {
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-isa-1', 'http://example.org/ms-isa-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-isa-1', 'console.log("after one");', 'after', true );
@@ -124,9 +114,18 @@ EXP;
 		$expected .= "<script type='text/javascript' id='ms-isa-1-js-after'>\n";
 		$expected .= "console.log(\"after one\");\n";
 		$expected .= "</script>\n";
-		array_push( $data, array( $expected, $output, 'Expected no type attribute for inline script.' ) );
+		$this->assertSame( $expected, $output );
+	}
 
-		// If the main script with async strategy has a `after` inline script; the inline script is not affected.
+	/**
+	 * Test `standalone` inline scripts in the `after` position.
+	 *
+	 * If the main script with async strategy has a `after` inline script, 
+	 * the inline script is not affected.
+	 * 
+	 * @ticket 12009
+	 */
+	public function test_standalone_async_main_script_with_after_inline_script() {
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-isa-2', 'http://example.org/ms-isa-2.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-isa-2', 'console.log("after one");', 'after', true );
@@ -135,9 +134,7 @@ EXP;
 		$expected .= "<script type='text/javascript' id='ms-isa-2-js-after'>\n";
 		$expected .= "console.log(\"after one\");\n";
 		$expected .= "</script>\n";
-		array_push( $data, array( $expected, $output, 'Expected no type attribute for inline script.' ) );
-
-		return $data;
+		$this->assertSame( $expected, $output );
 	}
 
 	/**
