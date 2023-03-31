@@ -1846,11 +1846,14 @@ function wp_just_in_time_script_localization() {
 
 /**
  * Prints a loader script if there is text/template registered script.
+ * 
+ * When injected in DOM, this script converts any text/template script 
+ * associated with a handle to type/javascript and execute them.
  */
 function wp_print_template_loader_script() {
 	$wp_scripts = wp_scripts();
 	if ( $wp_scripts->has_delayed_inline_script() ) {
-		$output = <<<JS
+		$output    = <<<JS
 let wpLoadAfterScripts = ( handle ) => {
 	let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
 	scripts.forEach( (script) => {
@@ -1859,7 +1862,8 @@ let wpLoadAfterScripts = ( handle ) => {
 	})
 }
 JS;
-		printf( "<script id='wp-executes-after-js'>\n%s\n</script>\n", $output );
+		$type_attr = current_theme_supports( 'html5', 'script' ) ? '' : " type='text/javascript'";
+		printf( "<script%s id='wp-executes-after-js'>\n%s\n</script>\n", $type_attr, $output );
 	}
 }
 
