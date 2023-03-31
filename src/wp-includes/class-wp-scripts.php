@@ -503,7 +503,10 @@ class WP_Scripts extends WP_Dependencies {
 
 		if ( $display ) {
 			if ( 'after-non-standalone' === $position ) {
-				printf( "<script%s id='%s-js-after' type='text/template'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), esc_attr( $position ), $output );
+				$initial_type_attr = $this->type_attr;
+				$this->type_attr   = " type='text/template'";
+				printf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $output );
+				$this->type_attr = $initial_type_attr;
 			} else {
 				printf( "<script%s id='%s-js-%s'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), esc_attr( $position ), $output );
 			}
