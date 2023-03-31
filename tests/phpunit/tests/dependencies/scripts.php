@@ -98,14 +98,14 @@ EXP;
 	}
 
 	/**
-	 * Test `standalone` inline scripts in the `after` position.
+	 * Test `standalone` inline scripts in the `after` position with deferred main script.
 	 *
-	 * If the main script with a `defer` loading strategy has an `after` inline script, 
+	 * If the main script with a `defer` loading strategy has an `after` inline script,
 	 * the inline script should not be affected.
-	 * 
+	 *
 	 * @ticket 12009
 	 */
-	public function test_standalone_defer_main_script_with_after_inline_script() {
+	public function test_standalone_after_inline_script_with_defer_main_script() {
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-isa-1', 'http://example.org/ms-isa-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-isa-1', 'console.log("after one");', 'after', true );
@@ -118,14 +118,14 @@ EXP;
 	}
 
 	/**
-	 * Test `standalone` inline scripts in the `after` position.
+	 * Test `standalone` inline scripts in the `after` position with async main script.
 	 *
-	 * If the main script with async strategy has a `after` inline script, 
-	 * the inline script is not affected.
-	 * 
+	 * If the main script with async strategy has a `after` inline script,
+	 * the inline script should not be affected.
+	 *
 	 * @ticket 12009
 	 */
-	public function test_standalone_async_main_script_with_after_inline_script() {
+	public function test_standalone_after_inline_script_with_async_main_script() {
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-isa-2', 'http://example.org/ms-isa-2.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-isa-2', 'console.log("after one");', 'after', true );
@@ -138,24 +138,15 @@ EXP;
 	}
 
 	/**
-	 * Test non standalone inline scripts in the `after` position.
+	 * Test non standalone inline scripts in the `after` position with deferred main script.
+	 *
+	 * If a main script with a `defer` loading strategy has an `after` inline script,
+	 * the inline script should be rendered as type='text/template'.
+	 * The common loader script should also be injected in this case.
 	 *
 	 * @ticket 12009
-	 * @dataProvider data_non_standalone_after_inline_script
 	 */
-	public function test_non_standalone_after_inline_script( $expected, $output, $message ) {
-		$this->assertSame( $expected, $output, $message );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array
-	 */
-	public function data_non_standalone_after_inline_script() {
-		$data = array();
-
-		// If a main script with a `defer` loading strategy has an `after` inline script, the inline script should be rendered as type='module'.
+	public function test_non_standalone_after_inline_script_with_defer_main_script() {
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-insa-1', 'http://example.org/ms-insa-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-insa-1', 'console.log("after one");', 'after' );
@@ -176,9 +167,19 @@ console.log("after one");
 </script>
 
 EXP;
-		array_push( $data, array( $expected, $output, 'Main Deferred; expected type="text/template" for inline script.' ) );
+		$this->assertSame( $expected, $output );
+	}
 
-		// If a main script with an `async` loading strategy has an `after` inline script, the inline script should be rendered as type='module'.
+	/**
+	 * Test non standalone inline scripts in the `after` position with async main script.
+	 *
+	 * If a main script with an `async` loading strategy has an `after` inline script,
+	 * the inline script should be rendered as type='text/template'.
+	 * The common loader script should also be injected in this case.
+	 *
+	 * @ticket 12009
+	 */
+	public function test_non_standalone_after_inline_script_with_async_main_script() {
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-insa-2', 'http://example.org/ms-insa-2.js', array(), null, array( 'strategy' => 'async' ) );
 		wp_add_inline_script( 'ms-insa-2', 'console.log("after one");', 'after' );
@@ -199,9 +200,18 @@ console.log("after one");
 </script>
 
 EXP;
-		array_push( $data, array( $expected, $output, 'Main Async; expected type="text/template" for inline script.' ) );
+		$this->assertSame( $expected, $output );
+	}
 
-		// If a main script with a `blocking` strategy has an `after` inline script, the inline script should be rendered as type='javascript'.
+	/**
+	 * Test non standalone inline scripts in the `after` position with blocking main script.
+	 *
+	 * If a main script with a `blocking` strategy has an `after` inline script,
+	 * the inline script should be rendered as type='text/javascript'.
+	 *
+	 * @ticket 12009
+	 */
+	public function test_non_standalone_after_inline_script_with_blocking_main_script() {
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-insa-3', 'http://example.org/ms-insa-3.js', array(), null, array( 'strategy' => 'blocking' ) );
 		wp_add_inline_script( 'ms-insa-3', 'console.log("after one");', 'after' );
@@ -210,9 +220,18 @@ EXP;
 		$expected .= "<script type='text/javascript' id='ms-insa-3-js-after'>\n";
 		$expected .= "console.log(\"after one\");\n";
 		$expected .= "</script>\n";
-		array_push( $data, array( $expected, $output, 'Expected no type attribute for inline script.' ) );
+		$this->assertSame( $expected, $output );
+	}
 
-		// If a main script with no loading strategy has an `after` inline script, the inline script should be rendered as type='javascript'.
+	/**
+	 * Test non standalone inline scripts in the `after` position with deferred main script.
+	 *
+	 * If a main script with no loading strategy has an `after` inline script,
+	 * the inline script should be rendered as type='text/javascript'.
+	 *
+	 * @ticket 12009
+	 */
+	public function test_non_standalone_after_inline_script_with_main_script_with_no_strategy() {
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-insa-4', 'http://example.org/ms-insa-4.js', array(), null );
 		wp_add_inline_script( 'ms-insa-4', 'console.log("after one");', 'after' );
@@ -221,9 +240,7 @@ EXP;
 		$expected .= "<script type='text/javascript' id='ms-insa-4-js-after'>\n";
 		$expected .= "console.log(\"after one\");\n";
 		$expected .= "</script>\n";
-		array_push( $data, array( $expected, $output, 'Expected no type attribute for inline script.' ) );
-
-		return $data;
+		$this->assertSame( $expected, $output );
 	}
 
 	/**
