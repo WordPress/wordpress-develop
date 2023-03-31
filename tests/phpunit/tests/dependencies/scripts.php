@@ -76,7 +76,7 @@ JS;
 		wp_add_inline_script( 'ms-isinsa-1', 'console.log("after two");', 'after' );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
-<script id='wp-executes-after-js'>
+<script type='text/javascript' id='wp-executes-after-js'>
 let wpLoadAfterScripts = ( handle ) => {
 	let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
 	scripts.forEach( (script) => { 
@@ -164,7 +164,7 @@ EXP;
 		wp_add_inline_script( 'ms-insa-1', 'console.log("after one");', 'after' );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
-<script id='wp-executes-after-js'>
+<script type='text/javascript' id='wp-executes-after-js'>
 let wpLoadAfterScripts = ( handle ) => {
 	let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
 	scripts.forEach( (script) => { 
@@ -187,7 +187,7 @@ EXP;
 		wp_add_inline_script( 'ms-insa-2', 'console.log("after one");', 'after' );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
-<script id='wp-executes-after-js'>
+<script type='text/javascript' id='wp-executes-after-js'>
 let wpLoadAfterScripts = ( handle ) => {
 	let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
 	scripts.forEach( (script) => { 
