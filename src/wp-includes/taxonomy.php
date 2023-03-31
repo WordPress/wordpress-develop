@@ -2242,7 +2242,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 		$terms_from_remaining_taxonomies = get_terms( $args );
 
 		// Array keys should be preserved for values of $fields that use term_id for keys.
-		if ( ! empty( $args['fields'] ) && 0 === strpos( $args['fields'], 'id=>' ) ) {
+		if ( ! empty( $args['fields'] ) && str_starts_with( $args['fields'], 'id=>' ) ) {
 			$terms = $terms + $terms_from_remaining_taxonomies;
 		} else {
 			$terms = array_merge( $terms, $terms_from_remaining_taxonomies );
@@ -3486,7 +3486,7 @@ function wp_update_term_count_now( $terms, $taxonomy ) {
 	} else {
 		$object_types = (array) $taxonomy->object_type;
 		foreach ( $object_types as &$object_type ) {
-			if ( 0 === strpos( $object_type, 'attachment:' ) ) {
+			if ( str_starts_with( $object_type, 'attachment:' ) ) {
 				list( $object_type ) = explode( ':', $object_type );
 			}
 		}

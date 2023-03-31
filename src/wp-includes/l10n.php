@@ -1084,7 +1084,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 
 	$src = $wp_scripts->registered[ $handle ]->src;
 
-	if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $wp_scripts->content_url && 0 === strpos( $src, $wp_scripts->content_url ) ) ) {
+	if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $wp_scripts->content_url && str_starts_with( $src, $wp_scripts->content_url ) ) ) {
 		$src = $wp_scripts->base_url . $src;
 	}
 
@@ -1373,8 +1373,8 @@ function get_available_languages( $dir = null ) {
 	if ( $lang_files ) {
 		foreach ( $lang_files as $lang_file ) {
 			$lang_file = basename( $lang_file, '.mo' );
-			if ( 0 !== strpos( $lang_file, 'continents-cities' ) && 0 !== strpos( $lang_file, 'ms-' ) &&
-				0 !== strpos( $lang_file, 'admin-' ) ) {
+			if ( ! str_starts_with( $lang_file, 'continents-cities' ) && ! str_starts_with( $lang_file, 'ms-' ) &&
+				! str_starts_with( $lang_file, 'admin-' ) ) {
 				$languages[] = $lang_file;
 			}
 		}

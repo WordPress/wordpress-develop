@@ -4315,7 +4315,7 @@ class PHPMailer
                     //Ignore URLs containing parent dir traversal (..)
                     && (strpos($url, '..') === false)
                     //Do not change urls that are already inline images
-                    && 0 !== strpos($url, 'cid:')
+                    && !str_starts_with($url, 'cid:')
                     //Do not change absolute URLs, including anonymous protocol
                     && !preg_match('#^[a-z][a-z0-9+.-]*:?//#i', $url)
                 ) {

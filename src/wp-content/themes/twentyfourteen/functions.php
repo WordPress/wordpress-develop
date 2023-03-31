@@ -331,7 +331,7 @@ endif;
  */
 function twentyfourteen_scripts() {
 	// Add Lato font, used in the main stylesheet.
-	$font_version = ( 0 === strpos( (string) twentyfourteen_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
+	$font_version = ( str_starts_with( (string) twentyfourteen_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentyfourteen-lato', twentyfourteen_font_url(), array(), $font_version );
 
 	// Add Genericons font, used in the main stylesheet.
@@ -381,7 +381,7 @@ add_action( 'wp_enqueue_scripts', 'twentyfourteen_scripts' );
  * @since Twenty Fourteen 1.0
  */
 function twentyfourteen_admin_fonts() {
-	$font_version = ( 0 === strpos( (string) twentyfourteen_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
+	$font_version = ( str_starts_with( (string) twentyfourteen_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentyfourteen-lato', twentyfourteen_font_url(), array(), $font_version );
 }
 add_action( 'admin_print_scripts-appearance_page_custom-header', 'twentyfourteen_admin_fonts' );
@@ -421,7 +421,7 @@ function twentyfourteen_block_editor_styles() {
 	// Block styles.
 	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20230206' );
 	// Add custom fonts.
-	$font_version = ( 0 === strpos( (string) twentyfourteen_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
+	$font_version = ( str_starts_with( (string) twentyfourteen_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentyfourteen-fonts', twentyfourteen_font_url(), array(), $font_version );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyfourteen_block_editor_styles' );

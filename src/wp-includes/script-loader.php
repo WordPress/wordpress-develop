@@ -184,7 +184,7 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 		$src = $scripts->registered[ $handle ]->src;
 		$ver = $scripts->registered[ $handle ]->ver;
 
-		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $scripts->content_url && 0 === strpos( $src, $scripts->content_url ) ) ) {
+		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $scripts->content_url && str_starts_with( $src, $scripts->content_url ) ) ) {
 			$src = $scripts->base_url . $src;
 		}
 
@@ -2946,7 +2946,7 @@ function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
 		// Loop through the URLs to find relative ones.
 		foreach ( $src_results[1] as $src_index => $src_result ) {
 			// Skip if this is an absolute URL.
-			if ( 0 === strpos( $src_result, 'http' ) || 0 === strpos( $src_result, '//' ) ) {
+			if ( str_starts_with( $src_result, 'http' ) || str_starts_with( $src_result, '//' ) ) {
 				continue;
 			}
 
