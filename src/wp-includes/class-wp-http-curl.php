@@ -328,8 +328,8 @@ class WP_Http_Curl {
 	/**
 	 * Grabs the headers of the cURL request.
 	 *
-	 * Each header is sent individually to this callback, so we append to the `$header` property
-	 * for temporary storage
+	 * Each header is sent individually to this callback and is appended to the `$header` property
+	 * for temporary storage.
 	 *
 	 * @since 3.2.0
 	 *
