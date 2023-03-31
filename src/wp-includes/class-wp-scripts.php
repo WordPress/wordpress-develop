@@ -329,8 +329,6 @@ class WP_Scripts extends WP_Dependencies {
 					PHP_EOL
 				);
 				$this->type_attr   = $initial_type_attr;
-
-				$this->has_load_later_inline = true;
 			}
 		}
 
