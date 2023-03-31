@@ -791,7 +791,7 @@ JS;
 	/**
 	 * Checks all handles for any delayed inline scripts.
 	 *
-	 * @return bool True if script present. False if empty.
+	 * @return bool True if the inline script present, otherwise false.
 	 */
 	public function has_delayed_inline_script() {
 		foreach ( $this->registered as $handle => $script ) {
