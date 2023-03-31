@@ -517,7 +517,7 @@ class WP_Scripts extends WP_Dependencies {
 				$initial_type_attr = $this->type_attr;
 				$this->type_attr   = " type='text/template'";
 				printf(
-					'<script%1$s id=\'%2$s-js-after\' type=\'text/template\' data-wp-executes-after=\'%2$s\'>%5$s%4$s%5$s</script>%5$s',
+					'<script%1$s id=\'%2$s-js-after\' data-wp-executes-after=\'%2$s\'>%5$s%4$s%5$s</script>%5$s',
 					$this->type_attr,
 					esc_attr( $handle ),
 					esc_attr( $position ),
