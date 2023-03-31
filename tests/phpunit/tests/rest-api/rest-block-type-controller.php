@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_REST_Block_Types_Controller tests.
+ * Unit tests covering WP_REST_Block_Types_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.5.0
- */
-
-/**
- * Tests for WP_REST_Block_Types_Controller.
- *
  * @since 5.5.0
  *
  * @covers WP_REST_Block_Types_Controller
@@ -223,7 +217,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'parent'           => 'invalid_parent',
 			'ancestor'         => 'invalid_ancestor',
 			'supports'         => 'invalid_supports',
-			'styles'           => 'invalid_styles',
+			'styles'           => array(),
 			'render_callback'  => 'invalid_callback',
 			'textdomain'       => true,
 			'variations'       => 'invalid_variations',
@@ -624,15 +618,15 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 47620
 	 */
 	public function test_prepare_item() {
-		$registry = new WP_Block_Type_Registry;
+		$registry = new WP_Block_Type_Registry();
 		$settings = array(
 			'icon'            => 'text',
 			'render_callback' => '__return_null',
 		);
 		$registry->register( 'fake/line', $settings );
 		$block_type = $registry->get_registered( 'fake/line' );
-		$endpoint   = new WP_REST_Block_Types_Controller;
-		$request    = new WP_REST_Request;
+		$endpoint   = new WP_REST_Block_Types_Controller();
+		$request    = new WP_REST_Request();
 		$request->set_param( 'context', 'edit' );
 		$response = $endpoint->prepare_item_for_response( $block_type, $request );
 		$this->check_block_type_object( $block_type, $response->get_data(), $response->get_links() );
@@ -642,15 +636,15 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 47620
 	 */
 	public function test_prepare_item_limit_fields() {
-		$registry = new WP_Block_Type_Registry;
+		$registry = new WP_Block_Type_Registry();
 		$settings = array(
 			'icon'            => 'text',
 			'render_callback' => '__return_null',
 		);
 		$registry->register( 'fake/line', $settings );
 		$block_type = $registry->get_registered( 'fake/line' );
-		$request    = new WP_REST_Request;
-		$endpoint   = new WP_REST_Block_Types_Controller;
+		$request    = new WP_REST_Request();
+		$endpoint   = new WP_REST_Block_Types_Controller();
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( '_fields', 'name' );
 		$response = $endpoint->prepare_item_for_response( $block_type, $request );

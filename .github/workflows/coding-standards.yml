@@ -64,10 +64,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@1a18b2267f80291a81ca1d33e7c851fe09e7dfc4 # v2.22.0
+        uses: shivammathur/setup-php@d30ad8b1843ace22e6698ab99bbafaa747b6bd0d # v2.24.0
         with:
           php-version: '7.4'
           coverage: none
@@ -80,9 +80,11 @@ jobs:
         run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> $GITHUB_OUTPUT
 
       - name: Cache PHPCS scan cache
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
+        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
         with:
-          path: .cache/phpcs.json
+          path: |
+            .cache/phpcs-src.json
+            .cache/phpcs-tests.json
           key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcs-cache-${{ hashFiles('**/composer.json', 'phpcs.xml.dist') }}
 
       # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
@@ -97,7 +99,7 @@ jobs:
 
       - name: Run PHPCS on all Core files
         id: phpcs-core
-        run: phpcs -n --report-full --report-checkstyle=./.cache/phpcs-report.xml
+        run: phpcs -n --report-full --cache=./.cache/phpcs-src.json --report-checkstyle=./.cache/phpcs-report.xml
 
       - name: Show PHPCS results in PR
         if: ${{ always() && steps.phpcs-core.outcome == 'failure' }}
@@ -105,7 +107,7 @@ jobs:
 
       - name: Check test suite files for warnings
         id: phpcs-tests
-        run: phpcs tests --report-full --report-checkstyle=./.cache/phpcs-tests-report.xml
+        run: phpcs tests --report-full --cache=./.cache/phpcs-tests.json --report-checkstyle=./.cache/phpcs-tests-report.xml
 
       - name: Show test suite scan results in PR
         if: ${{ always() && steps.phpcs-tests.outcome == 'failure' }}
@@ -135,10 +137,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
 
       - name: Set up Node.js
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -188,7 +190,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@100527700e8b29ca817ac0e0dfbfc5e8ff38edda # v6.3.2
+        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
         with:
           retries: 2
           retry-exempt-status-codes: 418

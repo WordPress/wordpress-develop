@@ -200,6 +200,20 @@ function wp_save_post_revision( $post_id ) {
 
 	$revisions = wp_get_post_revisions( $post_id, array( 'order' => 'ASC' ) );
 
+	/**
+	 * Filters the revisions to be considered for deletion.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param WP_Post[] $revisions Array of revisions, or an empty array if none.
+	 * @param int       $post_id   The ID of the post to save as a revision.
+	 */
+	$revisions = apply_filters(
+		'wp_save_post_revision_revisions_before_deletion',
+		$revisions,
+		$post_id
+	);
+
 	$delete = count( $revisions ) - $revisions_to_keep;
 
 	if ( $delete < 1 ) {
@@ -231,7 +245,7 @@ function wp_save_post_revision( $post_id ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $post_id The post ID.
- * @param int $user_id Optional. The post author ID.
+ * @param int $user_id Optional. The post author ID. Default 0.
  * @return WP_Post|false The autosaved data or false on failure or when no autosave exists.
  */
 function wp_get_post_autosave( $post_id, $user_id = 0 ) {
@@ -314,6 +328,7 @@ function wp_is_post_autosave( $post ) {
  *
  * @param int|WP_Post|array|null $post     Post ID, post object OR post array.
  * @param bool                   $autosave Optional. Whether the revision is an autosave or not.
+ *                                         Default false.
  * @return int|WP_Error WP_Error or 0 if error, new revision ID if success.
  */
 function _wp_put_post_revision( $post = null, $autosave = false ) {
@@ -362,7 +377,7 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
  * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
  *                            correspond to a WP_Post object, an associative array, or a numeric array,
  *                            respectively. Default OBJECT.
- * @param string      $filter Optional sanitization filter. See sanitize_post().
+ * @param string      $filter Optional sanitization filter. See sanitize_post(). Default 'raw'.
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  */
 function wp_get_post_revision( &$post, $output = OBJECT, $filter = 'raw' ) {
@@ -859,7 +874,7 @@ function _wp_upgrade_revisions_of_post( $post, $revisions ) {
 			return false;
 		}
 
-		if ( $locked > $now - 3600 ) {
+		if ( $locked > $now - HOUR_IN_SECONDS ) {
 			// Lock is not too old: some other process may be upgrading this post. Bail.
 			return false;
 		}

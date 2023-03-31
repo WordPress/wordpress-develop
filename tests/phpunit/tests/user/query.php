@@ -186,7 +186,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider orderby_should_convert_non_prefixed_keys_data
+	 * @dataProvider data_orderby_should_convert_non_prefixed_keys
 	 */
 	public function test_orderby_should_convert_non_prefixed_keys( $short_key, $full_key ) {
 		$q = new WP_User_Query(
@@ -198,7 +198,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertStringContainsString( "ORDER BY $full_key", $q->query_orderby );
 	}
 
-	public function orderby_should_convert_non_prefixed_keys_data() {
+	public function data_orderby_should_convert_non_prefixed_keys() {
 		return array(
 			array( 'nicename', 'user_nicename' ),
 			array( 'email', 'user_email' ),
@@ -2011,7 +2011,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function data_returning_field_subset_as_string() {
+	public function data_returning_field_subset_as_string() {
 		$data = array(
 			'id'            => array(
 				'fields'   => 'id',
@@ -2093,7 +2093,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function data_returning_field_subset_as_array() {
+	public function data_returning_field_subset_as_array() {
 		$data = array(
 			'id'                 => array(
 				'fields'   => array( 'id' ),

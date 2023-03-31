@@ -358,13 +358,20 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	}
 
 	/**
-	 * Moves a file.
+	 * Moves a file or directory.
+	 *
+	 * After moving files or directories, OPcache will need to be invalidated.
+	 *
+	 * If moving a directory fails, `copy_dir()` can be used for a recursive copy.
+	 *
+	 * Use `move_dir()` for moving directories with OPcache invalidation and a
+	 * fallback to `copy_dir()`.
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string $source      Path to the source file.
-	 * @param string $destination Path to the destination file.
-	 * @param bool   $overwrite   Optional. Whether to overwrite the destination file if it exists.
+	 * @param string $source      Path to the source file or directory.
+	 * @param string $destination Path to the destination file or directory.
+	 * @param bool   $overwrite   Optional. Whether to overwrite the destination if it exists.
 	 *                            Default false.
 	 * @return bool True on success, false on failure.
 	 */
@@ -412,11 +419,22 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * Checks if a file or directory exists.
 	 *
 	 * @since 2.5.0
+	 * @since 6.3.0 Returns false for an empty path.
 	 *
 	 * @param string $path Path to file or directory.
 	 * @return bool Whether $path exists or not.
 	 */
 	public function exists( $path ) {
+		/*
+		 * Check for empty path. If ftp_nlist() receives an empty path,
+		 * it checks the current working directory and may return true.
+		 *
+		 * See https://core.trac.wordpress.org/ticket/33058.
+		 */
+		if ( '' === $path ) {
+			return false;
+		}
+
 		$list = ftp_nlist( $this->link, $path );
 
 		if ( empty( $list ) && $this->is_dir( $path ) ) {
@@ -754,12 +772,13 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			$dirlist[ $entry['name'] ] = $entry;
 		}
 
-		$ret = array();
+		$path = trailingslashit( $path );
+		$ret  = array();
 
 		foreach ( (array) $dirlist as $struc ) {
 			if ( 'd' === $struc['type'] ) {
 				if ( $recursive ) {
-					$struc['files'] = $this->dirlist( $path . '/' . $struc['name'], $include_hidden, $recursive );
+					$struc['files'] = $this->dirlist( $path . $struc['name'], $include_hidden, $recursive );
 				} else {
 					$struc['files'] = array();
 				}

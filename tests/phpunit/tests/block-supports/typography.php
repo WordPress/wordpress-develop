@@ -23,7 +23,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		$this->test_block_name = null;
@@ -48,7 +48,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	/**
 	 * Unregisters block type after each test.
 	 */
-	function tear_down() {
+	public function tear_down() {
 		// Restores the original theme directory setup.
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		wp_clean_themes_cache();
@@ -68,7 +68,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_apply_typography_support
 	 */
-	function test_should_kebab_case_font_size_slug_with_numbers() {
+	public function test_should_kebab_case_font_size_slug_with_numbers() {
 		$this->test_block_name = 'test/font-size-slug-with-numbers';
 		register_block_type(
 			$this->test_block_name,
@@ -104,7 +104,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_apply_typography_support
 	 */
-	function test_should_generate_font_family_with_legacy_inline_styles_using_a_value() {
+	public function test_should_generate_font_family_with_legacy_inline_styles_using_a_value() {
 		$this->test_block_name = 'test/font-family-with-inline-styles-using-value';
 		register_block_type(
 			$this->test_block_name,
@@ -139,7 +139,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_apply_typography_support
 	 */
-	function test_should_skip_serialization_for_typography_block_supports() {
+	public function test_should_skip_serialization_for_typography_block_supports() {
 		$this->test_block_name = 'test/typography-with-skipped-serialization-block-supports';
 		register_block_type(
 			$this->test_block_name,
@@ -187,7 +187,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_apply_typography_support
 	 */
-	function test_should_skip_serialization_for_letter_spacing_block_supports() {
+	public function test_should_skip_serialization_for_letter_spacing_block_supports() {
 		$this->test_block_name = 'test/letter-spacing-with-individual-skipped-serialization-block-supports';
 		register_block_type(
 			$this->test_block_name,
@@ -225,7 +225,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_apply_typography_support
 	 */
-	function test_should_generate_css_var_for_font_family_with_legacy_inline_styles() {
+	public function test_should_generate_css_var_for_font_family_with_legacy_inline_styles() {
 		$this->test_block_name = 'test/font-family-with-inline-styles-using-css-var';
 		register_block_type(
 			$this->test_block_name,
@@ -260,7 +260,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_apply_typography_support
 	 */
-	function test_should_generate_classname_for_font_family() {
+	public function test_should_generate_classname_for_font_family() {
 		$this->test_block_name = 'test/font-family-with-class';
 		register_block_type(
 			$this->test_block_name,
@@ -308,7 +308,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * @param bool   $should_use_fluid_typography An override to switch fluid typography "on". Can be used for unit testing.
 	 * @param string $expected_output             Expected output.
 	 */
-	function test_wp_get_typography_font_size_value( $font_size_preset, $should_use_fluid_typography, $expected_output ) {
+	public function test_wp_get_typography_font_size_value( $font_size_preset, $should_use_fluid_typography, $expected_output ) {
 		$actual = wp_get_typography_font_size_value( $font_size_preset, $should_use_fluid_typography );
 
 		$this->assertSame( $expected_output, $actual );
@@ -567,21 +567,18 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @ticket 56467
 	 * @ticket 57065
+	 * @ticket 57529
 	 *
 	 * @covers ::wp_register_typography_support
 	 *
 	 * @dataProvider data_generate_block_supports_font_size_fixtures
 	 *
-	 * @param string $font_size_value             The block supports custom font size value.
-	 * @param bool   $should_use_fluid_typography An override to switch fluid typography "on". Can be used for unit testing.
-	 * @param string $expected_output             Expected value of style property from wp_apply_typography_support().
+	 * @param string $font_size_value The block supports custom font size value.
+	 * @param string $theme_slug      A theme slug corresponding to an available test theme.
+	 * @param string $expected_output Expected value of style property from wp_apply_typography_support().
 	 */
-	public function test_should_covert_font_sizes_to_fluid_values( $font_size_value, $should_use_fluid_typography, $expected_output ) {
-		if ( $should_use_fluid_typography ) {
-			switch_theme( 'block-theme-child-with-fluid-typography' );
-		} else {
-			switch_theme( 'default' );
-		}
+	public function test_should_covert_font_sizes_to_fluid_values( $font_size_value, $theme_slug, $expected_output ) {
+		switch_theme( $theme_slug );
 
 		$this->test_block_name = 'test/font-size-fluid-value';
 		register_block_type(
@@ -623,15 +620,30 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 */
 	public function data_generate_block_supports_font_size_fixtures() {
 		return array(
-			'default_return_value'               => array(
-				'font_size_value'             => '50px',
-				'should_use_fluid_typography' => false,
-				'expected_output'             => 'font-size:50px;',
+			'returns value when fluid typography is not active' => array(
+				'font_size_value' => '15px',
+				'theme_slug'      => 'default',
+				'expected_output' => 'font-size:15px;',
 			),
-			'return_value_with_fluid_typography' => array(
-				'font_size_value'             => '50px',
-				'should_use_fluid_typography' => true,
-				'expected_output'             => 'font-size:clamp(37.5px, 2.344rem + ((1vw - 7.68px) * 1.502), 50px);',
+			'returns clamp value using default config' => array(
+				'font_size_value' => '15px',
+				'theme_slug'      => 'block-theme-child-with-fluid-typography',
+				'expected_output' => 'font-size:clamp(14px, 0.875rem + ((1vw - 7.68px) * 0.12), 15px);',
+			),
+			'returns value when font size <= default min font size bound' => array(
+				'font_size_value' => '13px',
+				'theme_slug'      => 'block-theme-child-with-fluid-typography',
+				'expected_output' => 'font-size:13px;',
+			),
+			'returns clamp value using custom fluid config' => array(
+				'font_size_value' => '17px',
+				'theme_slug'      => 'block-theme-child-with-fluid-typography-config',
+				'expected_output' => 'font-size:clamp(16px, 1rem + ((1vw - 7.68px) * 0.12), 17px);',
+			),
+			'returns value when font size <= custom min font size bound' => array(
+				'font_size_value' => '15px',
+				'theme_slug'      => 'block-theme-child-with-fluid-typography-config',
+				'expected_output' => 'font-size:15px;',
 			),
 		);
 	}

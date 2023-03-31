@@ -16,6 +16,51 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 11095
+	 * @ticket 33974
+	 */
+	public function test_wp_page_menu_wp_nav_menu_fallback() {
+		$pages = self::factory()->post->create_many( 3, array( 'post_type' => 'page' ) );
+
+		// No menus + wp_nav_menu() falls back to wp_page_menu().
+		$menu = wp_nav_menu( array( 'echo' => false ) );
+
+		// After falling back, the 'before' argument should be set and output as '<ul>'.
+		$this->assertMatchesRegularExpression( '/<div class="menu"><ul>/', $menu );
+
+		// After falling back, the 'after' argument should be set and output as '</ul>'.
+		$this->assertMatchesRegularExpression( '/<\/ul><\/div>/', $menu );
+
+		// After falling back, the markup should include whitespace around <li>'s.
+		$this->assertMatchesRegularExpression( '/\s<li.*>|<\/li>\s/U', $menu );
+		$this->assertDoesNotMatchRegularExpression( '/><li.*>|<\/li></U', $menu );
+
+		// No menus + wp_nav_menu() falls back to wp_page_menu(), this time without a container.
+		$menu = wp_nav_menu(
+			array(
+				'echo'      => false,
+				'container' => false,
+			)
+		);
+
+		// After falling back, the empty 'container' argument should still return a container element.
+		$this->assertMatchesRegularExpression( '/<div class="menu">/', $menu );
+
+		// No menus + wp_nav_menu() falls back to wp_page_menu(), this time without white-space.
+		$menu = wp_nav_menu(
+			array(
+				'echo'         => false,
+				'item_spacing' => 'discard',
+			)
+		);
+
+		// After falling back, the markup should not include whitespace around <li>'s.
+		$this->assertDoesNotMatchRegularExpression( '/\s<li.*>|<\/li>\s/U', $menu );
+		$this->assertMatchesRegularExpression( '/><li.*>|<\/li></U', $menu );
+
+	}
+
+	/**
 	 * @ticket 32464
 	 */
 	public function test_wp_nav_menu_empty_container() {
@@ -298,7 +343,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$start_num_queries = get_num_queries();
 		wp_get_nav_menu_items( $this->menu_id );
 		$queries_made = get_num_queries() - $start_num_queries;
-		$this->assertSame( 7, $queries_made, 'Only does 7 database queries when running wp_get_nav_menu_items.' );
+		$this->assertSame( 6, $queries_made, 'Only does 6 database queries when running wp_get_nav_menu_items.' );
 
 		$args = $action->get_args();
 		$this->assertSameSets( $menu_nav_ids, $args[0][1], '_prime_post_caches() was not executed.' );
@@ -339,7 +384,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$start_num_queries = get_num_queries();
 		wp_get_nav_menu_items( $this->menu_id );
 		$queries_made = get_num_queries() - $start_num_queries;
-		$this->assertSame( 7, $queries_made, 'Only does 7 database queries when running wp_get_nav_menu_items.' );
+		$this->assertSame( 6, $queries_made, 'Only does 6 database queries when running wp_get_nav_menu_items.' );
 
 		$args = $action_terms->get_args();
 		$last = end( $args );
@@ -717,7 +762,6 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		return $ignored_1;
 	}
 
-
 	/**
 	 * @ticket 35272
 	 */
@@ -966,22 +1010,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides IRI matching data for _wp_menu_item_classes_by_context() test.
-	 */
-	public function get_iri_current_menu_items() {
-		return array(
-			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82/' ) ),
-			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82' ) ),
-			array( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82/' ),
-			array( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82' ),
-			array( '/привет/' ),
-			array( '/привет' ),
-		);
-	}
-
-	/**
 	 * @ticket 43401
-	 * @dataProvider get_iri_current_menu_items
+	 * @dataProvider data_iri_current_menu_item
 	 */
 	public function test_iri_current_menu_item( $custom_link, $current = true ) {
 		wp_update_nav_menu_item(
@@ -1006,6 +1036,20 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		} else {
 			$this->assertNotContains( 'current-menu-item', $classes );
 		}
+	}
+
+	/**
+	 * Provides IRI matching data for _wp_menu_item_classes_by_context() test.
+	 */
+	public function data_iri_current_menu_item() {
+		return array(
+			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82/' ) ),
+			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82' ) ),
+			array( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82/' ),
+			array( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82' ),
+			array( '/привет/' ),
+			array( '/привет' ),
+		);
 	}
 
 	/**

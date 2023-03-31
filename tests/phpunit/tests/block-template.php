@@ -1,12 +1,8 @@
 <?php
 /**
- * Tests_Block_Template class
+ * Tests for the block template loading algorithm.
  *
  * @package WordPress
- */
-
-/**
- * Tests for the block template loading algorithm.
  *
  * @group block-templates
  */
@@ -28,7 +24,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-	function test_page_home_block_template_takes_precedence_over_less_specific_block_templates() {
+	public function test_page_home_block_template_takes_precedence_over_less_specific_block_templates() {
 		global $_wp_current_template_content;
 		$type                   = 'page';
 		$templates              = array(
@@ -41,7 +37,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/templates/page-home.html', $_wp_current_template_content );
 	}
 
-	function test_page_block_template_takes_precedence() {
+	public function test_page_block_template_takes_precedence() {
 		global $_wp_current_template_content;
 		$type                   = 'page';
 		$templates              = array(
@@ -54,7 +50,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/templates/page.html', $_wp_current_template_content );
 	}
 
-	function test_block_template_takes_precedence_over_equally_specific_php_template() {
+	public function test_block_template_takes_precedence_over_equally_specific_php_template() {
 		global $_wp_current_template_content;
 		$type                   = 'index';
 		$templates              = array(
@@ -71,7 +67,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 *
 	 * Covers https://github.com/WordPress/gutenberg/pull/29026.
 	 */
-	function test_more_specific_php_template_takes_precedence_over_less_specific_block_template() {
+	public function test_more_specific_php_template_takes_precedence_over_less_specific_block_template() {
 		$page_id_template       = 'page-1.php';
 		$page_id_template_path  = get_stylesheet_directory() . '/' . $page_id_template;
 		$type                   = 'page';
@@ -93,7 +89,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * Covers https://core.trac.wordpress.org/ticket/54515.
 	 *
 	 */
-	function test_child_theme_php_template_takes_precedence_over_equally_specific_parent_theme_block_template() {
+	public function test_child_theme_php_template_takes_precedence_over_equally_specific_parent_theme_block_template() {
 		switch_theme( 'block-theme-child' );
 
 		$page_slug_template      = 'page-home.php';
@@ -108,7 +104,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$this->assertSame( $page_slug_template_path, $resolved_template_path );
 	}
 
-	function test_child_theme_block_template_takes_precedence_over_equally_specific_parent_theme_php_template() {
+	public function test_child_theme_block_template_takes_precedence_over_equally_specific_parent_theme_php_template() {
 		global $_wp_current_template_content;
 
 		switch_theme( 'block-theme-child' );
@@ -187,43 +183,5 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	public function test_template_remains_unchanged_if_templates_array_is_empty() {
 		$resolved_template_path = locate_block_template( '', 'search', array() );
 		$this->assertSame( '', $resolved_template_path );
-	}
-
-	/**
-	 * Covers: https://github.com/WordPress/gutenberg/pull/38817.
-	 *
-	 * @ticket 55505
-	 */
-	public function test_resolve_home_block_template_default_hierarchy() {
-		$template = _resolve_home_block_template();
-
-		$this->assertSame( 'wp_template', $template['postType'] );
-		$this->assertSame( get_stylesheet() . '//index', $template['postId'] );
-	}
-
-	/**
-	 * @ticket 55505
-	 */
-	public function test_resolve_home_block_template_static_homepage() {
-		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
-		update_option( 'show_on_front', 'page' );
-		update_option( 'page_on_front', $post_id );
-
-		$template = _resolve_home_block_template();
-
-		$this->assertSame( 'page', $template['postType'] );
-		$this->assertSame( $post_id, $template['postId'] );
-
-		delete_option( 'show_on_front', 'page' );
-	}
-
-	/**
-	 * @ticket 55505
-	 */
-	public function test_resolve_home_block_template_no_resolution() {
-		switch_theme( 'stylesheetonly' );
-		$template = _resolve_home_block_template();
-
-		$this->assertNull( $template );
 	}
 }

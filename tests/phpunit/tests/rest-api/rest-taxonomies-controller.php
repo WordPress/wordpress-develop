@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcase {
@@ -174,8 +172,8 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function test_prepare_item() {
 		$tax      = get_taxonomy( 'category' );
-		$endpoint = new WP_REST_Taxonomies_Controller;
-		$request  = new WP_REST_Request;
+		$endpoint = new WP_REST_Taxonomies_Controller();
+		$request  = new WP_REST_Request();
 		$request->set_param( 'context', 'edit' );
 		$response = $endpoint->prepare_item_for_response( $tax, $request );
 		$this->check_taxonomy_object( 'edit', $tax, $response->get_data(), $response->get_links() );
@@ -183,8 +181,8 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function test_prepare_item_limit_fields() {
 		$tax      = get_taxonomy( 'category' );
-		$request  = new WP_REST_Request;
-		$endpoint = new WP_REST_Taxonomies_Controller;
+		$request  = new WP_REST_Request();
+		$endpoint = new WP_REST_Taxonomies_Controller();
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( '_fields', 'id,name' );
 		$response = $endpoint->prepare_item_for_response( $tax, $request );

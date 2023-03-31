@@ -32,7 +32,7 @@ function _wp_ajax_menu_quick_search( $request = array() ) {
 	}
 
 	if ( 'markup' === $response_format ) {
-		$args['walker'] = new Walker_Nav_Menu_Checklist;
+		$args['walker'] = new Walker_Nav_Menu_Checklist();
 	}
 
 	if ( 'get-post-item' === $type ) {
@@ -429,14 +429,14 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 	}
 
 	// @todo Transient caching of these results with proper invalidation on updating of a post of this type.
-	$get_posts = new WP_Query;
+	$get_posts = new WP_Query();
 	$posts     = $get_posts->query( $args );
 
 	// Only suppress and insert when more than just suppression pages available.
 	if ( ! $get_posts->post_count ) {
 		if ( ! empty( $suppress_page_ids ) ) {
 			unset( $args['post__not_in'] );
-			$get_posts = new WP_Query;
+			$get_posts = new WP_Query();
 			$posts     = $get_posts->query( $args );
 		} else {
 			echo '<p>' . __( 'No items.' ) . '</p>';
@@ -461,6 +461,7 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 			'format'             => '',
 			'prev_text'          => '<span aria-label="' . esc_attr__( 'Previous page' ) . '">' . __( '&laquo;' ) . '</span>',
 			'next_text'          => '<span aria-label="' . esc_attr__( 'Next page' ) . '">' . __( '&raquo;' ) . '</span>',
+			/* translators: Hidden accessibility text. */
 			'before_page_number' => '<span class="screen-reader-text">' . __( 'Page' ) . '</span> ',
 			'total'              => $num_pages,
 			'current'            => $pagenum,
@@ -582,7 +583,12 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 			}
 			?>
 			<p class="quick-search-wrap">
-				<label for="quick-search-posttype-<?php echo $post_type_name; ?>" class="screen-reader-text"><?php _e( 'Search' ); ?></label>
+				<label for="quick-search-posttype-<?php echo $post_type_name; ?>" class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Search' );
+					?>
+				</label>
 				<input type="search"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?> class="quick-search" value="<?php echo $searched; ?>" name="quick-search-posttype-<?php echo $post_type_name; ?>" id="quick-search-posttype-<?php echo $post_type_name; ?>" />
 				<span class="spinner"></span>
 				<?php submit_button( __( 'Search' ), 'small quick-search-submit hide-if-js', 'submit', false, array( 'id' => 'submit-quick-search-posttype-' . $post_type_name ) ); ?>
@@ -757,6 +763,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 			'format'             => '',
 			'prev_text'          => '<span aria-label="' . esc_attr__( 'Previous page' ) . '">' . __( '&laquo;' ) . '</span>',
 			'next_text'          => '<span aria-label="' . esc_attr__( 'Next page' ) . '">' . __( '&raquo;' ) . '</span>',
+			/* translators: Hidden accessibility text. */
 			'before_page_number' => '<span class="screen-reader-text">' . __( 'Page' ) . '</span> ',
 			'total'              => $num_pages,
 			'current'            => $pagenum,
@@ -877,7 +884,12 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 			}
 			?>
 			<p class="quick-search-wrap">
-				<label for="quick-search-taxonomy-<?php echo $taxonomy_name; ?>" class="screen-reader-text"><?php _e( 'Search' ); ?></label>
+				<label for="quick-search-taxonomy-<?php echo $taxonomy_name; ?>" class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Search' );
+					?>
+				</label>
 				<input type="search" class="quick-search" value="<?php echo $searched; ?>" name="quick-search-taxonomy-<?php echo $taxonomy_name; ?>" id="quick-search-taxonomy-<?php echo $taxonomy_name; ?>" />
 				<span class="spinner"></span>
 				<?php submit_button( __( 'Search' ), 'small quick-search-submit hide-if-js', 'submit', false, array( 'id' => 'submit-quick-search-taxonomy-' . $taxonomy_name ) ); ?>
@@ -926,7 +938,7 @@ function wp_save_nav_menu_items( $menu_id = 0, $menu_data = array() ) {
 	$menu_id     = (int) $menu_id;
 	$items_saved = array();
 
-	if ( 0 == $menu_id || is_nav_menu( $menu_id ) ) {
+	if ( 0 === $menu_id || is_nav_menu( $menu_id ) ) {
 
 		// Loop through all the menu items' POST values.
 		foreach ( (array) $menu_data as $_possible_db_id => $_item_object_data ) {
@@ -952,7 +964,7 @@ function wp_save_nav_menu_items( $menu_id = 0, $menu_data = array() ) {
 			if (
 				empty( $_item_object_data['menu-item-db-id'] ) ||
 				( 0 > $_possible_db_id ) ||
-				$_possible_db_id != $_item_object_data['menu-item-db-id']
+				$_possible_db_id !== (int) $_item_object_data['menu-item-db-id']
 			) {
 				$_actual_db_id = 0;
 			} else {
@@ -1059,7 +1071,7 @@ function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
 		$walker_class_name = apply_filters( 'wp_edit_nav_menu_walker', 'Walker_Nav_Menu_Edit', $menu_id );
 
 		if ( class_exists( $walker_class_name ) ) {
-			$walker = new $walker_class_name;
+			$walker = new $walker_class_name();
 		} else {
 			return new WP_Error(
 				'menu_walker_not_exist',
@@ -1140,13 +1152,13 @@ function _wp_delete_orphaned_draft_menu_items() {
 }
 
 /**
- * Saves nav menu items
+ * Saves nav menu items.
  *
  * @since 3.6.0
  *
  * @param int|string $nav_menu_selected_id    ID, slug, or name of the currently-selected menu.
  * @param string     $nav_menu_selected_title Title of the currently-selected menu.
- * @return array The menu updated message
+ * @return string[] The menu updated messages.
  */
 function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selected_title ) {
 	$unsorted_menu_items = wp_get_nav_menu_items(
@@ -1199,7 +1211,11 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 				$args[ $field ] = isset( $_POST[ $field ][ $_key ] ) ? $_POST[ $field ][ $_key ] : '';
 			}
 
-			$menu_item_db_id = wp_update_nav_menu_item( $nav_menu_selected_id, ( $_POST['menu-item-db-id'][ $_key ] != $_key ? 0 : $_key ), $args );
+			$menu_item_db_id = wp_update_nav_menu_item(
+				$nav_menu_selected_id,
+				( (int) $_POST['menu-item-db-id'][ $_key ] !== $_key ? 0 : $_key ),
+				$args
+			);
 
 			if ( is_wp_error( $menu_item_db_id ) ) {
 				$messages[] = '<div id="message" class="error"><p>' . $menu_item_db_id->get_error_message() . '</p></div>';
@@ -1289,7 +1305,7 @@ function _wp_expand_nav_menu_post_data() {
 
 			// Build the new array value from leaf to trunk.
 			for ( $i = count( $array_bits ) - 1; $i >= 0; $i-- ) {
-				if ( count( $array_bits ) - 1 == $i ) {
+				if ( count( $array_bits ) - 1 === $i ) {
 					$new_post_data[ $array_bits[ $i ] ] = wp_slash( $post_input_data->value );
 				} else {
 					$new_post_data = array( $array_bits[ $i ] => $new_post_data );

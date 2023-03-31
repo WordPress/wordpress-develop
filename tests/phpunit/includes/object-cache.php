@@ -323,7 +323,12 @@ function wp_cache_flush( $delay = 0 ) {
  * @return bool True if the feature is supported, false otherwise.
  */
 function wp_cache_supports( $feature ) {
-	return false;
+	switch ( $feature ) {
+		case 'get_multiple':
+			return true;
+		default:
+			return false;
+	}
 }
 
 /**
@@ -482,6 +487,10 @@ function wp_cache_get_multi_by_key( $server_key, $keys, $groups = '', &$cas_toke
  */
 function wp_cache_get_multiple( $keys, $group = '', $force = false ) {
 	global $wp_object_cache;
+
+	// Prime multiple keys in a single Memcached call.
+	$wp_object_cache->getMulti( $keys, $group );
+
 	return $wp_object_cache->getMultiple( $keys, $group, $force );
 }
 
@@ -968,20 +977,21 @@ class WP_Object_Cache {
 		}
 
 		$derived_key = $this->buildKey( $key, $group );
-		$expiration  = $this->sanitize_expiration( $expiration );
+
+		// Add does not set the value if the key exists; mimic that here.
+		if ( isset( $this->cache[ $derived_key ] ) ) {
+			return false;
+		}
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached.
 		if ( in_array( $group, $this->no_mc_groups, true ) ) {
-
-			// Add does not set the value if the key exists; mimic that here.
-			if ( isset( $this->cache[ $derived_key ] ) ) {
-				return false;
-			}
 
 			$this->add_to_internal_cache( $derived_key, $value );
 
 			return true;
 		}
+
+		$expiration = $this->sanitize_expiration( $expiration );
 
 		// Save to Memcached.
 		if ( $by_key ) {
@@ -1171,7 +1181,6 @@ class WP_Object_Cache {
 	 */
 	public function cas( $cas_token, $key, $value, $group = 'default', $expiration = 0, $server_key = '', $by_key = false ) {
 		$derived_key = $this->buildKey( $key, $group );
-		$expiration  = $this->sanitize_expiration( $expiration );
 
 		/**
 		 * If group is a non-Memcached group, save to runtime cache, not Memcached. Note
@@ -1182,6 +1191,8 @@ class WP_Object_Cache {
 			$this->add_to_internal_cache( $derived_key, $value );
 			return true;
 		}
+
+		$expiration = $this->sanitize_expiration( $expiration );
 
 		// Save to Memcached.
 		if ( $by_key ) {
@@ -1896,7 +1907,6 @@ class WP_Object_Cache {
 	 */
 	public function replace( $key, $value, $group = 'default', $expiration = 0, $server_key = '', $by_key = false ) {
 		$derived_key = $this->buildKey( $key, $group );
-		$expiration  = $this->sanitize_expiration( $expiration );
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached.
 		if ( in_array( $group, $this->no_mc_groups, true ) ) {
@@ -1909,6 +1919,8 @@ class WP_Object_Cache {
 			$this->cache[ $derived_key ] = $value;
 			return true;
 		}
+
+		$expiration = $this->sanitize_expiration( $expiration );
 
 		// Save to Memcached.
 		if ( $by_key ) {
@@ -1961,13 +1973,14 @@ class WP_Object_Cache {
 	 */
 	public function set( $key, $value, $group = 'default', $expiration = 0, $server_key = '', $by_key = false ) {
 		$derived_key = $this->buildKey( $key, $group );
-		$expiration  = $this->sanitize_expiration( $expiration );
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached.
 		if ( in_array( $group, $this->no_mc_groups, true ) ) {
 			$this->add_to_internal_cache( $derived_key, $value );
 			return true;
 		}
+
+		$expiration = $this->sanitize_expiration( $expiration );
 
 		// Save to Memcached.
 		if ( $by_key ) {
@@ -2023,7 +2036,6 @@ class WP_Object_Cache {
 	public function setMulti( $items, $groups = 'default', $expiration = 0, $server_key = '', $by_key = false ) {
 		// Build final keys and replace $items keys with the new keys.
 		$derived_keys  = $this->buildKeys( array_keys( $items ), $groups );
-		$expiration    = $this->sanitize_expiration( $expiration );
 		$derived_items = array_combine( $derived_keys, $items );
 
 		// Do not add to memcached if in no_mc_groups.
@@ -2038,6 +2050,8 @@ class WP_Object_Cache {
 				unset( $derived_items[ $derived_key ] );
 			}
 		}
+
+		$expiration = $this->sanitize_expiration( $expiration );
 
 		// Save to memcached.
 		if ( $by_key ) {
@@ -2161,6 +2175,7 @@ class WP_Object_Cache {
 		if ( ! is_array( $keys ) ) {
 			$keys = (array) $keys;
 		}
+		$keys = array_values( $keys );
 
 		// If we have equal numbers of keys and groups, merge $keys[n] and $group[n].
 		if ( count( $keys ) === count( $groups ) ) {

@@ -1314,13 +1314,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		}
 	}
 
-	public function authorless_post_statuses() {
-		return array( array( 'draft' ), array( 'private' ), array( 'publish' ) );
-	}
-
 	/**
 	 * @ticket 27020
-	 * @dataProvider authorless_post_statuses
+	 * @dataProvider data_authorless_post
 	 */
 	public function test_authorless_post( $status ) {
 		// Make a post without an author.
@@ -1347,6 +1343,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( $contributor->has_cap( 'edit_post', $post ) );
 		$this->assertFalse( $contributor->has_cap( 'delete_post', $post ) );
 		$this->assertSame( 'publish' === $status, $contributor->has_cap( 'read_post', $post ) );
+	}
+
+	public function data_authorless_post() {
+		return array( array( 'draft' ), array( 'private' ), array( 'publish' ) );
 	}
 
 	/**
@@ -1707,7 +1707,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	public function nullify_current_user() {
-		// Prevents fatal errors in ::tearDown()'s and other uses of restore_current_blog().
+		// Prevents fatal errors in ::tear_down()'s and other uses of restore_current_blog().
 		$function_stack = wp_debug_backtrace_summary( null, 0, false );
 		if ( in_array( 'restore_current_blog', $function_stack, true ) ) {
 			return;
