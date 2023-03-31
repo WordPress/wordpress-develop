@@ -345,7 +345,7 @@ class WP_Http_Curl {
 	/**
 	 * Grabs the body of the cURL request.
 	 *
-	 * The contents of the document are passed in chunks, so we append to the `$body`
+	 * The contents of the document are passed in chunks and are appended to the `$body`
 	 * property for temporary storage. Returning a length shorter than the length of
 	 * `$data` passed in will cause cURL to abort the request with `CURLE_WRITE_ERROR`.
 	 *
