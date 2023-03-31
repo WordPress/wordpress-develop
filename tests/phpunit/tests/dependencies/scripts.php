@@ -333,31 +333,22 @@ EXP;
 	}
 
 	/**
-	 * Test standalone `before` scripts.
+	 * Test `standalone` inline scripts in the `before` position with deferred main script.
+	 *
+	 * If the main script has a `before` inline script, `standalone` doesn't apply to
+	 * any inline script associated with the main script.
 	 *
 	 * @ticket 12009
-	 * @dataProvider data_standalone_before_inline_script
 	 */
-	public function test_standalone_before_inline_script( $expected, $output, $message ) {
-		$this->assertSame( $expected, $output, $message );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array
-	 */
-	public function data_standalone_before_inline_script() {
-		$data = array();
-
-		// If the main script has a `before` inline script, `standalone` doesn't apply to any inline script associated with the main script.
+	public function test_standalone_before_inline_script_with_defer_main_script() {
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ds-is1-1', 'http://example.org/ds-is1-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ds-is1-2', 'http://example.org/ds-is1-2.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ds-is1-3', 'http://example.org/ds-is1-3.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ms-is1-1', 'http://example.org/ms-is1-1.js', array( 'ds-is1-1', 'ds-is1-2', 'ds-is1-3' ), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-is1-1', 'console.log("before one");', 'before', true );
-		$output    = get_echo( 'wp_print_scripts' );
+		$output = get_echo( 'wp_print_scripts' );
+
 		$expected  = "<script type='text/javascript' src='http://example.org/ds-is1-1.js' id='ds-is1-1-js' defer></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.org/ds-is1-2.js' id='ds-is1-2-js' defer></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.org/ds-is1-3.js' id='ds-is1-3-js' defer></script>\n";
@@ -365,16 +356,27 @@ EXP;
 		$expected .= "console.log(\"before one\");\n";
 		$expected .= "</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.org/ms-is1-1.js' id='ms-is1-1-js' defer></script>\n";
-		array_push( $data, array( $expected, $output, 'All dependency in the chain should be blocking' ) );
 
-		// If one of the dependencies in the chain has a `before` inline script associated with it, `standalone` doesn't apply to any inline script(s) associated with the main script.
+		$this->assertSame( $expected, $output );
+	}
+
+	/**
+	 * Test `standalone` inline scripts in the `before` position with defer main script.
+	 *
+	 * If one of the deferred dependencies in the chain has a `before` inline `standalone` script associated with it,
+	 * strategy of the dependencies above it remains unchanged.
+	 *
+	 * @ticket 12009
+	 */
+	public function test_standalone_before_inline_script_with_defer_dependency_script() {
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ds-is2-1', 'http://example.org/ds-is2-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ds-is2-2', 'http://example.org/ds-is2-2.js', array( 'ds-is2-1' ), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ds-is2-3', 'http://example.org/ds-is2-3.js', array( 'ds-is2-2' ), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'ms-is2-1', 'http://example.org/ms-is2-1.js', array( 'ds-is2-3' ), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ds-is2-2', 'console.log("before one");', 'before', true );
-		$output    = get_echo( 'wp_print_scripts' );
+		$output = get_echo( 'wp_print_scripts' );
+
 		$expected  = "<script type='text/javascript' src='http://example.org/ds-is2-1.js' id='ds-is2-1-js' defer></script>\n";
 		$expected .= "<script type='text/javascript' id='ds-is2-2-js-before'>\n";
 		$expected .= "console.log(\"before one\");\n";
@@ -382,9 +384,8 @@ EXP;
 		$expected .= "<script type='text/javascript' src='http://example.org/ds-is2-2.js' id='ds-is2-2-js' defer></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.org/ds-is2-3.js' id='ds-is2-3-js' defer></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.org/ms-is2-1.js' id='ms-is2-1-js' defer></script>\n";
-		array_push( $data, array( $expected, $output, 'Scripts in the chain before the script having before must be blocking.' ) );
 
-		return $data;
+		$this->assertSame( $expected, $output );
 	}
 
 	/**
