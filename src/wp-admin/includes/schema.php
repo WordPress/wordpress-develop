@@ -1102,7 +1102,7 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 		);
 		if ( is_wp_error( $page ) ) {
 			$errstr = $page->get_error_message();
-		} elseif ( 200 == wp_remote_retrieve_response_code( $page ) ) {
+		} elseif ( 200 === wp_remote_retrieve_response_code( $page ) ) {
 				$vhost_ok = true;
 		}
 
