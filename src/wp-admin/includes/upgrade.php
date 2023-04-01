@@ -1416,7 +1416,7 @@ function upgrade_230() {
 		$links = $wpdb->get_results( "SELECT link_id, link_category FROM $wpdb->links" );
 		if ( ! empty( $links ) ) {
 			foreach ( $links as $link ) {
-				if ( 0 == $link->link_category ) {
+				if ( 0 === $link->link_category ) {
 					continue;
 				}
 				if ( ! isset( $link_cat_id_map[ $link->link_category ] ) ) {
