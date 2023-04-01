@@ -1011,7 +1011,7 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 		return $errors;
 	}
 
-	if ( 1 == $network_id ) {
+	if ( 1 === $network_id ) {
 		$wpdb->insert(
 			$wpdb->site,
 			array(
