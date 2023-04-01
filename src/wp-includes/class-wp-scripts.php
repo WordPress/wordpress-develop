@@ -402,6 +402,7 @@ class WP_Scripts extends WP_Dependencies {
 			esc_attr( $handle ),
 			$strategy
 		);
+		// TODO: Handle onload logic for defer/async here.
 		$tag .= $after_handle . $cond_after;
 
 		/**
@@ -448,6 +449,12 @@ class WP_Scripts extends WP_Dependencies {
 
 		$script   = (array) $this->get_data( $handle, $position );
 		$script[] = $data;
+
+		// Maintain a list of standalone and non-standalone before/after scripts.
+		$standalone_key      = $standalone ? $position . '-standalone' : $position . '-non-standalone';
+		$standalone_script   = (array) $this->get_data( $handle, $standalone_key );
+		$standalone_script[] = $data;
+		$this->add_data( $handle, $standalone_key, $standalone_script );
 
 		return $this->add_data( $handle, $position, $script );
 	}
@@ -798,7 +805,21 @@ JS;
 	}
 
 	/**
-	 * Check if all of a scripts dependents are deferrable which is required to maintain execution order.
+	 * Check if a script has a non standalone inline script associated with it.
+	 *
+	 * @param string $handle   The script handle.
+	 * @param string $position Position of the inline script.
+	 *
+	 * @return bool True if script present. False if empty.
+	 */
+	private function has_non_standalone_inline_script( $handle, $position ) {
+		$non_standalone_script_key = $position . '-non-standalone';
+		$non_standalone_script     = $this->get_data( $handle, $non_standalone_script_key );
+		return ! empty( $non_standalone_script );
+	}
+
+	/**
+	 * Check if all of a scripts dependents are deferrable, which is required to maintain execution order.
 	 *
 	 * @param string $handle  The script handle.
 	 * @param array $checked An array of already checked script handles, used to avoid looping recursion.
@@ -824,11 +845,17 @@ JS;
 				return false;
 			}
 
+			// If the dependent script has a non-standalone inline script in the 'before' position associated with it, do not defer.
+			if ( $this->has_non_standalone_inline_script( $dependent, 'before' ) ) {
+				return false;
+			}
+
 			// Recursively check all dependents.
 			if ( ! $this->all_dependents_are_deferrable( $dependent, $checked ) ) {
 				return false;
 			}
 		}
+
 		return true;
 	}
 
