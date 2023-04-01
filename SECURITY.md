@@ -9,6 +9,7 @@ currently being supported with security updates.
 
 | Version | Supported |
 | ------- | --------- |
+| 6.2.x   | Yes       |
 | 6.1.x   | Yes       |
 | 6.0.x   | Yes       |
 | 5.9.x   | Yes       |

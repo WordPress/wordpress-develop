@@ -40,7 +40,7 @@
  * Example:
  * ```php
  *     $tags = new WP_HTML_Tag_Processor( $html );
- *     if ( $tags->next_tag( array( 'tag_name' => 'option' ) ) ) {
+ *     if ( $tags->next_tag( 'option' ) ) {
  *         $tags->set_attribute( 'selected', true );
  *     }
  * ```
@@ -58,10 +58,11 @@
  *     $tags->next_tag();
  * ```
  *
- * | Goal                                                      | Query                                                                      |
- * |-----------------------------------------------------------|----------------------------------------------------------------------------|
- * | Find any tag.                                             | `$tags->next_tag();`                                                       |
+ * | Goal                                                      | Query                                                                           |
+ * |-----------------------------------------------------------|---------------------------------------------------------------------------------|
+ * | Find any tag.                                             | `$tags->next_tag();`                                                            |
  * | Find next image tag.                                      | `$tags->next_tag( array( 'tag_name' => 'img' ) );`                              |
+ * | Find next image tag (without passing the array).          | `$tags->next_tag( 'img' );`                                                     |
  * | Find next tag containing the `fullwidth` CSS class.       | `$tags->next_tag( array( 'class_name' => 'fullwidth' ) );`                      |
  * | Find next image tag containing the `fullwidth` CSS class. | `$tags->next_tag( array( 'tag_name' => 'img', 'class_name' => 'fullwidth' ) );` |
  *
@@ -274,7 +275,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var string
 	 */
-	private $html;
+	protected $html;
 
 	/**
 	 * The last query passed to next_tag().
@@ -722,7 +723,7 @@ class WP_HTML_Tag_Processor {
 		}
 
 		$this->bookmarks[ $name ] = new WP_HTML_Span(
-			$this->tag_name_starts_at - 1,
+			$this->tag_name_starts_at - ( $this->is_closing_tag ? 2 : 1 ),
 			$this->tag_ends_at
 		);
 
@@ -775,7 +776,8 @@ class WP_HTML_Tag_Processor {
 				return false;
 			}
 
-			$at += 2;
+			$closer_potentially_starts_at = $at;
+			$at                          += 2;
 
 			/*
 			 * Find a case-insensitive match to the tag name.
@@ -818,7 +820,7 @@ class WP_HTML_Tag_Processor {
 			}
 
 			if ( '>' === $html[ $at ] || '/' === $html[ $at ] ) {
-				++$this->bytes_already_parsed;
+				$this->bytes_already_parsed = $closer_potentially_starts_at;
 				return true;
 			}
 		}
@@ -887,7 +889,8 @@ class WP_HTML_Tag_Processor {
 			}
 
 			if ( '/' === $html[ $at ] ) {
-				$is_closing = true;
+				$closer_potentially_starts_at = $at - 1;
+				$is_closing                   = true;
 				++$at;
 			} else {
 				$is_closing = false;
@@ -938,7 +941,7 @@ class WP_HTML_Tag_Processor {
 			}
 
 			if ( $is_closing ) {
-				$this->bytes_already_parsed = $at;
+				$this->bytes_already_parsed = $closer_potentially_starts_at;
 				if ( $this->bytes_already_parsed >= $doc_length ) {
 					return false;
 				}
@@ -948,7 +951,7 @@ class WP_HTML_Tag_Processor {
 				}
 
 				if ( '>' === $html[ $this->bytes_already_parsed ] ) {
-					++$this->bytes_already_parsed;
+					$this->bytes_already_parsed = $closer_potentially_starts_at;
 					return true;
 				}
 			}
@@ -1401,6 +1404,7 @@ class WP_HTML_Tag_Processor {
 	 * Applies attribute updates to HTML document.
 	 *
 	 * @since 6.2.0
+	 * @since 6.3.0 Invalidate any bookmarks whose targets are overwritten.
 	 *
 	 * @return void
 	 */
@@ -1431,7 +1435,7 @@ class WP_HTML_Tag_Processor {
 		 * Adjust bookmark locations to account for how the text
 		 * replacements adjust offsets in the input document.
 		 */
-		foreach ( $this->bookmarks as $bookmark ) {
+		foreach ( $this->bookmarks as $bookmark_name => $bookmark ) {
 			/*
 			 * Each lexical update which appears before the bookmark's endpoints
 			 * might shift the offsets for those endpoints. Loop through each change
@@ -1442,20 +1446,22 @@ class WP_HTML_Tag_Processor {
 			$tail_delta = 0;
 
 			foreach ( $this->lexical_updates as $diff ) {
-				$update_head = $bookmark->start >= $diff->start;
-				$update_tail = $bookmark->end >= $diff->start;
-
-				if ( ! $update_head && ! $update_tail ) {
+				if ( $bookmark->start < $diff->start && $bookmark->end < $diff->start ) {
 					break;
+				}
+
+				if ( $bookmark->start >= $diff->start && $bookmark->end < $diff->end ) {
+					$this->release_bookmark( $bookmark_name );
+					continue 2;
 				}
 
 				$delta = strlen( $diff->text ) - ( $diff->end - $diff->start );
 
-				if ( $update_head ) {
+				if ( $bookmark->start >= $diff->start ) {
 					$head_delta += $delta;
 				}
 
-				if ( $update_tail ) {
+				if ( $bookmark->end >= $diff->end ) {
 					$tail_delta += $delta;
 				}
 			}
@@ -1465,6 +1471,18 @@ class WP_HTML_Tag_Processor {
 		}
 
 		$this->lexical_updates = array();
+	}
+
+	/**
+	 * Checks whether a bookmark with the given name exists.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $bookmark_name Name to identify a bookmark that potentially exists.
+	 * @return bool Whether that bookmark exists.
+	 */
+	public function has_bookmark( $bookmark_name ) {
+		return array_key_exists( $bookmark_name, $this->bookmarks );
 	}
 
 	/**
@@ -1504,7 +1522,7 @@ class WP_HTML_Tag_Processor {
 		$this->bytes_already_parsed = $this->bookmarks[ $bookmark_name ]->start;
 		$this->bytes_already_copied = $this->bytes_already_parsed;
 		$this->output_buffer        = substr( $this->html, 0, $this->bytes_already_copied );
-		return $this->next_tag();
+		return $this->next_tag( array( 'tag_closers' => 'visit' ) );
 	}
 
 	/**
@@ -1608,7 +1626,7 @@ class WP_HTML_Tag_Processor {
 	 *     $p->get_attribute( 'enabled' ) === true;
 	 *     $p->get_attribute( 'aria-label' ) === null;
 	 *
-	 *     $p->next_tag( array() ) === false;
+	 *     $p->next_tag() === false;
 	 *     $p->get_attribute( 'class' ) === null;
 	 * ```
 	 *
@@ -1689,7 +1707,7 @@ class WP_HTML_Tag_Processor {
 	 *     $p->next_tag( array( 'class_name' => 'test' ) ) === true;
 	 *     $p->get_attribute_names_with_prefix( 'data-' ) === array( 'data-enabled', 'data-test-id' );
 	 *
-	 *     $p->next_tag( array() ) === false;
+	 *     $p->next_tag() === false;
 	 *     $p->get_attribute_names_with_prefix( 'data-' ) === null;
 	 * ```
 	 *
@@ -1720,10 +1738,10 @@ class WP_HTML_Tag_Processor {
 	 * Example:
 	 * ```php
 	 *     $p = new WP_HTML_Tag_Processor( '<DIV CLASS="test">Test</DIV>' );
-	 *     $p->next_tag( array() ) === true;
+	 *     $p->next_tag() === true;
 	 *     $p->get_tag() === 'DIV';
 	 *
-	 *     $p->next_tag( array() ) === false;
+	 *     $p->next_tag() === false;
 	 *     $p->get_tag() === null;
 	 * ```
 	 *

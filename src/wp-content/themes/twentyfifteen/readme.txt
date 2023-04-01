@@ -1,8 +1,8 @@
 === Twenty Fifteen ===
 Contributors: wordpressdotorg
 Requires at least: WordPress 4.1
-Tested up to: 6.1
-Version: 3.3
+Tested up to: 6.2
+Version: 3.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, two-columns, left-sidebar, accessibility-ready, custom-background, custom-colors, custom-header, custom-logo, custom-menu, editor-style, featured-images, microformats, post-formats, rtl-language-support, sticky-post, threaded-comments, translation-ready, block-patterns
@@ -18,14 +18,14 @@ Our 2015 default theme is clean, blog-focused, and designed for clarity. Twenty 
 * Post Formats
 * The GPL v2.0 or later license. :) Use it to make something cool.
 
-For more information about Twenty Fifteen please go to https://wordpress.org/support/article/twenty-fifteen/.
+For more information about Twenty Fifteen please go to https://wordpress.org/documentation/article/twenty-fifteen/.
 
 == Installation ==
 
 1. In your admin panel, go to Appearance -> Themes and click the 'Add New' button.
 2. Type in Twenty Fifteen in the search form and press the 'Enter' key on your keyboard.
 3. Click on the 'Activate' button to use your new theme right away.
-4. Go to https://wordpress.org/support/article/twenty-fifteen/ for a guide on how to customize this theme.
+4. Go to https://wordpress.org/documentation/article/twenty-fifteen/ for a guide on how to customize this theme.
 5. Navigate to Appearance > Customize in your admin panel and customize to taste.
 
 == Copyright ==
@@ -75,6 +75,11 @@ Source: https://stocksnap.io/photo/purple-yellow-ACF0693B9C
         https://stocksnap.io/photo/sunset-pier-77F43EA43C
 
 == Changelog ==
+
+= 3.4 =
+* Released: March 28, 2023
+
+https://codex.wordpress.org/Twenty_Fifteen_Theme_Changelog#Version_3.4
 
 = 3.3 =
 * Released: November 1, 2022
