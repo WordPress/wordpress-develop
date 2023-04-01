@@ -1487,9 +1487,16 @@ function status_header( $code, $description = '' ) {
  * @return array The associative array of header names and field values.
  */
 function wp_get_nocache_headers() {
+
+	$cache_control = 'no-cache, must-revalidate, max-age=0';
+
+	if ( is_admin() ) {
+		$cache_control .= ', private';
+	}
+
 	$headers = array(
 		'Expires'       => 'Wed, 11 Jan 1984 05:00:00 GMT',
-		'Cache-Control' => 'no-cache, must-revalidate, max-age=0',
+		'Cache-Control' => $cache_control,
 	);
 
 	if ( function_exists( 'apply_filters' ) ) {
