@@ -1490,7 +1490,7 @@ function wp_get_nocache_headers() {
 
 	$cache_control = 'no-cache, must-revalidate, max-age=0';
 
-	if ( is_admin() ) {
+	if ( is_user_logged_in() ) {
 		$cache_control .= ', private';
 	}
 
