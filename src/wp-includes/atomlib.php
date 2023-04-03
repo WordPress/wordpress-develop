@@ -248,7 +248,7 @@ class AtomParser {
 
             array_push($this->in_content, array($tag, $this->depth, "<". $with_prefix[1] ."{$xmlns_str}{$attrs_str}" . ">"));
 
-        } else if(in_array($tag, $this->ATOM_CONTENT_ELEMENTS) || in_array($tag, $this->ATOM_SIMPLE_ELEMENTS)) {
+        } elseif(in_array($tag, $this->ATOM_CONTENT_ELEMENTS) || in_array($tag, $this->ATOM_SIMPLE_ELEMENTS)) {
             $this->in_content = array();
             $this->is_xhtml = $attrs['type'] == 'xhtml';
             $this->is_html = $attrs['type'] == 'html' || $attrs['type'] == 'text/html';
@@ -260,9 +260,9 @@ class AtomParser {
             } else {
                 array_push($this->in_content, array($tag,$this->depth, $type));
             }
-        } else if($tag == 'link') {
+        } elseif($tag == 'link') {
             array_push($this->current->links, $attrs);
-        } else if($tag == 'category') {
+        } elseif($tag == 'category') {
             array_push($this->current->categories, $attrs);
         }
 
@@ -302,7 +302,7 @@ class AtomParser {
                     $this->current->$tag = join('',$newcontent);
                 }
                 $this->in_content = array();
-            } else if($this->in_content[$ccount-1][0] == $tag &&
+            } elseif($this->in_content[$ccount-1][0] == $tag &&
                 $this->in_content[$ccount-1][1] == $this->depth) {
                 $this->in_content[$ccount-1][2] = substr($this->in_content[$ccount-1][2],0,-1) . "/>";
             } else {
