@@ -1,15 +1,9 @@
 <?php
 /**
- * Block editor tests
+ * Tests for the block editor methods.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.5.0
- */
-
-/**
- * Tests for the block editor methods.
- *
  * @since 5.5.0
  *
  * @group blocks
