@@ -2944,30 +2944,28 @@ function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
 	return preg_replace_callback(
 		'#(url\s*\(\s*[\'"]?\s*)([^\'"\)]+)#',
 		static function ( $matches ) use ( $stylesheet_url ) {
-			list( $original, $prefix, $url ) = $matches;
+			list( , $prefix, $url ) = $matches;
 
-			// Skip if this is an absolute URL.
-			if ( str_starts_with( $url, 'http:' ) || str_starts_with( $url, 'https:' ) || str_starts_with( $url, '//' ) ) {
-				return $original;
+			if ( ! (
+				str_starts_with( $url, 'http:' )
+				||
+				str_starts_with( $url, 'https:' )
+				||
+				str_starts_with( $url, '//' )
+				||
+				str_starts_with( $url, '#' )
+				||
+				str_starts_with( $url, 'data:' )
+			) ) {
+				// Build the absolute URL.
+				$absolute_url = dirname( $stylesheet_url ) . '/' . $url;
+				$absolute_url = str_replace( '/./', '/', $absolute_url );
+
+				// Convert to URL related to the site root.
+				$url = wp_make_link_relative( $absolute_url );
 			}
 
-			// Skip if the URL is an HTML ID.
-			if ( str_starts_with( $url, '#' ) ) {
-				return $original;
-			}
-
-			// Skip if the URL is a data URI.
-			if ( str_starts_with( $url, 'data:' ) ) {
-				return $original;
-			}
-
-			// Build the absolute URL.
-			$absolute_url = dirname( $stylesheet_url ) . '/' . $url;
-			$absolute_url = str_replace( '/./', '/', $absolute_url );
-			// Convert to URL related to the site root.
-			$relative_url = wp_make_link_relative( $absolute_url );
-
-			return $prefix . $relative_url;
+			return $prefix . $url;
 		},
 		$css
 	);
