@@ -321,9 +321,16 @@ class WP_Scripts extends WP_Dependencies {
 			if ( $after_non_standalone_handle ) {
 				$initial_type_attr = $this->type_attr;
 				$this->type_attr   = " type='text/template'";
-				$after_handle     .= sprintf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_non_standalone_handle );
+				$after_handle     .= sprintf(
+					'<script%1$s id=\'%2$s-js-after\' data-wp-executes-after=\'%2$s\'>%4$s%3$s%4$s</script>%4$s',
+					$this->type_attr,
+					esc_attr( $handle ),
+					$after_non_standalone_handle,
+					PHP_EOL
+				);
 				$this->type_attr   = $initial_type_attr;
 
+				$this->has_load_later_inline = true;
 			}
 		}
 
@@ -414,6 +421,9 @@ class WP_Scripts extends WP_Dependencies {
 
 		if ( '' !== $strategy ) {
 			$strategy = ' ' . $strategy;
+			if ( ! empty( $after_non_standalone_handle ) ) {
+				$strategy .= sprintf( " onload='wpLoadAfterScripts(\"%s\")'", esc_attr( $handle ) );
+			}
 		}
 		$tag  = $translations . $cond_before . $before_handle;
 		$tag .= sprintf(
@@ -505,7 +515,14 @@ class WP_Scripts extends WP_Dependencies {
 			if ( 'after-non-standalone' === $position ) {
 				$initial_type_attr = $this->type_attr;
 				$this->type_attr   = " type='text/template'";
-				printf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $output );
+				printf(
+					'<script%1$s id=\'%2$s-js-after\' type=\'text/template\' data-wp-executes-after=\'%2$s\'>%5$s%4$s%5$s</script>%5$s',
+					$this->type_attr,
+					esc_attr( $handle ),
+					esc_attr( $position ),
+					$output,
+					PHP_EOL
+				);
 				$this->type_attr = $initial_type_attr;
 			} else {
 				printf( "<script%s id='%s-js-%s'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), esc_attr( $position ), $output );
@@ -776,6 +793,23 @@ JS;
 			return parent::add_data( $handle, $key, $args );
 		}
 		return parent::add_data( $handle, $key, $value );
+	}
+
+	/**
+	 * Checks all handles for any delayed inline scripts.
+	 *
+	 * @return bool True if the inline script present, otherwise false.
+	 */
+	public function has_delayed_inline_script() {
+		foreach ( $this->registered as $handle => $script ) {
+			// non standalone after scripts of async or defer are usually delayed.
+			if ( in_array( $this->get_intended_strategy( $handle ), array( 'defer', 'async' ), true ) &&
+				$this->has_non_standalone_inline_script( $handle, 'after' )
+			) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
