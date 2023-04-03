@@ -2947,7 +2947,7 @@ function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
 			list( $original, $prefix, $url ) = $matches;
 
 			// Skip if this is an absolute URL.
-			if ( 0 === strpos( $url, 'http' ) || 0 === strpos( $url, '//' ) ) {
+			if ( str_starts_with( $url, 'http' ) || str_starts_with( $url, '//' ) ) {
 				return $original;
 			}
 
