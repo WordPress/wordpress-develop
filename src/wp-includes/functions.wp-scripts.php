@@ -121,13 +121,14 @@ function wp_print_scripts( $handles = false ) {
  *
  * @see WP_Scripts::add_inline_script()
  *
- * @param string $handle   Name of the script to add the inline script to.
- * @param string $data     String containing the JavaScript to be added.
- * @param string $position Optional. Whether to add the inline script before the handle
- *                         or after. Default 'after'.
+ * @param string $handle     Name of the script to add the inline script to.
+ * @param string $data       String containing the JavaScript to be added.
+ * @param string $position   Optional. Whether to add the inline script before the handle
+ *                           or after. Default 'after'.
+ * @param bool   $standalone Inline script opted to be standalone or not. Default false.
  * @return bool True on success, false on failure.
  */
-function wp_add_inline_script( $handle, $data, $position = 'after' ) {
+function wp_add_inline_script( $handle, $data, $position = 'after', $standalone = false ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
 	if ( false !== stripos( $data, '</script>' ) ) {
@@ -144,7 +145,7 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
 		$data = trim( preg_replace( '#<script[^>]*>(.*)</script>#is', '$1', $data ) );
 	}
 
-	return wp_scripts()->add_inline_script( $handle, $data, $position );
+	return wp_scripts()->add_inline_script( $handle, $data, $position, $standalone );
 }
 
 /**
@@ -166,20 +167,23 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  *                                    as a query string for cache busting purposes. If version is set to false, a version
  *                                    number is automatically added equal to current installed WordPress version.
  *                                    If set to null, no version is added.
- * @param bool             $in_footer Optional. Whether to enqueue the script before `</body>` instead of in the `<head>`.
- *                                    Default 'false'.
+ * @param array             $args     {
+ *      Optional. An array of additional script strategies. Default empty array.
+ *
+ *      @type boolean   $in_footer    Optional. Default true.
+ *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
+ * }
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
-function wp_register_script( $handle, $src, $deps = array(), $ver = false, $in_footer = false ) {
+function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args = array() ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
 	$wp_scripts = wp_scripts();
 
 	$registered = $wp_scripts->add( $handle, $src, $deps, $ver );
-	if ( $in_footer ) {
-		$wp_scripts->add_data( $handle, 'group', 1 );
+	if ( ! empty( $args ) ) {
+		$wp_scripts->add_data( $handle, 'script_args', $args );
 	}
-
 	return $registered;
 }
 
@@ -340,23 +344,29 @@ function wp_deregister_script( $handle ) {
  *                                    as a query string for cache busting purposes. If version is set to false, a version
  *                                    number is automatically added equal to current installed WordPress version.
  *                                    If set to null, no version is added.
+ * @param array            $args      {
+ *      Optional. An array of additional script strategies. Default empty array.
+ *
+ *      @type boolean   $in_footer    Optional. Default true.
+ *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
+ * }
+ *
  * @param bool             $in_footer Optional. Whether to enqueue the script before `</body>` instead of in the `<head>`.
  *                                    Default 'false'.
  */
-function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $in_footer = false ) {
+function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $args = array() ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
 	$wp_scripts = wp_scripts();
 
-	if ( $src || $in_footer ) {
+	if ( $src || ! empty( $args ) ) {
 		$_handle = explode( '?', $handle );
 
 		if ( $src ) {
 			$wp_scripts->add( $_handle[0], $src, $deps, $ver );
 		}
-
-		if ( $in_footer ) {
-			$wp_scripts->add_data( $_handle[0], 'group', 1 );
+		if ( ! empty( $args ) ) {
+			$wp_scripts->add_data( $_handle[0], 'script_args', $args );
 		}
 	}
 
