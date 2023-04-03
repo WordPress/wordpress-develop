@@ -349,11 +349,11 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 				<div class="notice notice-error notice-alt notice-missing-attachment">
 					<p><?php echo $this->l10n['missing_attachment']; ?></p>
 				</div>
-			<# } else if ( data.error ) { #>
+			<# } elseif ( data.error ) { #>
 				<div class="notice notice-error notice-alt">
 					<p><?php _e( 'Unable to preview media due to an unknown error.' ); ?></p>
 				</div>
-			<# } else if ( data.url ) { #>
+			<# } elseif ( data.url ) { #>
 				<img class="attachment-thumb" src="{{ data.url }}" draggable="false" alt="{{ data.alt }}"
 					<# if ( ! data.alt && data.currentFilename ) { #>
 						aria-label="

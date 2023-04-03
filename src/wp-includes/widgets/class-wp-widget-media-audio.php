@@ -192,11 +192,11 @@ class WP_Widget_Media_Audio extends WP_Widget_Media {
 				<div class="notice notice-error notice-alt notice-missing-attachment">
 					<p><?php echo $this->l10n['missing_attachment']; ?></p>
 				</div>
-			<# } else if ( data.error ) { #>
+			<# } elseif ( data.error ) { #>
 				<div class="notice notice-error notice-alt">
 					<p><?php _e( 'Unable to preview media due to an unknown error.' ); ?></p>
 				</div>
-			<# } else if ( data.model && data.model.src ) { #>
+			<# } elseif ( data.model && data.model.src ) { #>
 				<?php wp_underscore_audio_template(); ?>
 			<# } #>
 		</script>
