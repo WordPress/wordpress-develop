@@ -803,11 +803,11 @@ JS;
 	 */
 	public function has_delayed_inline_script() {
 		foreach ( $this->registered as $handle => $script ) {
-			if ( in_array( $this->get_intended_strategy( $handle ), array( 'defer', 'async' ), true ) ) {
-				// non standalone after scripts of async or defer are usually delayed.
-				if ( $this->has_non_standalone_inline_script( $handle, 'after' ) ) {
-					return true;
-				}
+			// non standalone after scripts of async or defer are usually delayed.
+			if ( in_array( $this->get_intended_strategy( $handle ), array( 'defer', 'async' ), true ) &&
+				$this->has_non_standalone_inline_script( $handle, 'after' )
+			) {
+				return true;
 			}
 		}
 		return false;
