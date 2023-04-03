@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class Tests_REST_Server extends WP_Test_REST_TestCase {
@@ -49,6 +47,10 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		unset( $_REQUEST['_wpnonce'] );
 
 		parent::tear_down();
+	}
+
+	public function filter_wp_rest_server_class() {
+		return 'Spy_REST_Server';
 	}
 
 	public function test_envelope() {
@@ -1006,7 +1008,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @dataProvider _dp_response_to_data_embedding
+	 * @dataProvider data_response_to_data_embedding
 	 */
 	public function test_response_to_data_embedding( $expected, $embed ) {
 		$response = new WP_REST_Response();
@@ -1024,7 +1026,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		}
 	}
 
-	public function _dp_response_to_data_embedding() {
+	public function data_response_to_data_embedding() {
 		return array(
 			array(
 				array( 'author', 'wp:term', 'https://wordpress.org' ),
@@ -1461,10 +1463,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$result = rest_get_server()->serve_request( '/test/data\\with\\slashes' );
 		$this->assertSame( 'data\\with\\slashes', rest_get_server()->last_request->get_header( 'x_my_header' ) );
-	}
-
-	public function filter_wp_rest_server_class() {
-		return 'Spy_REST_Server';
 	}
 
 	/**
