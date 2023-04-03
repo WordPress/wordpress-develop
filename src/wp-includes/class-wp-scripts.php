@@ -329,8 +329,6 @@ class WP_Scripts extends WP_Dependencies {
 					PHP_EOL
 				);
 				$this->type_attr   = $initial_type_attr;
-
-				$this->has_load_later_inline = true;
 			}
 		}
 
@@ -362,7 +360,10 @@ class WP_Scripts extends WP_Dependencies {
 			 */
 			$srce = apply_filters( 'script_loader_src', $src, $handle );
 
-			if ( $this->in_default_dir( $srce ) && ( $before_handle || $after_handle || $translations_stop_concat ) ) {
+			// Used as a conditional to prevent script concatenation.
+			$is_deferred_or_async_handle = in_array( $strategy, array( 'defer', 'async' ), true );
+
+			if ( $this->in_default_dir( $srce ) && ( $before_handle || $after_handle || $translations_stop_concat || $is_deferred_or_async_handle ) ) {
 				$this->do_concat = false;
 
 				// Have to print the so-far concatenated scripts right away to maintain the right order.
@@ -516,7 +517,7 @@ class WP_Scripts extends WP_Dependencies {
 				$initial_type_attr = $this->type_attr;
 				$this->type_attr   = " type='text/template'";
 				printf(
-					'<script%1$s id=\'%2$s-js-after\' type=\'text/template\' data-wp-executes-after=\'%2$s\'>%5$s%4$s%5$s</script>%5$s',
+					'<script%1$s id=\'%2$s-js-after\' data-wp-executes-after=\'%2$s\'>%5$s%4$s%5$s</script>%5$s',
 					$this->type_attr,
 					esc_attr( $handle ),
 					esc_attr( $position ),
