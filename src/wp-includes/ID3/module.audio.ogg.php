@@ -605,7 +605,7 @@ $this->warning('Ogg Theora (v3) not fully supported in this version of getID3 ['
 				if ($info['audio']['dataformat'] == 'vorbis') {
 					$commentdataoffset += (strlen('vorbis') + 1);
 				}
-				else if ($info['audio']['dataformat'] == 'opus') {
+				elseif ($info['audio']['dataformat'] == 'opus') {
 					$commentdataoffset += strlen('OpusTags');
 				}
 
