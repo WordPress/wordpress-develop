@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_REST_Edit_Site_Export_Controller tests.
+ * Unit tests covering WP_REST_Edit_Site_Export_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.9.0
- */
-
-/**
- * Tests for WP_REST_Edit_Site_Export_Controller.
- *
  * @since 5.9.0
  *
  * @covers WP_REST_Edit_Site_Export_Controller

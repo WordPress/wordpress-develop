@@ -531,7 +531,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 41782
 	 *
-	 * @dataProvider mysql_datetime_input_provider
+	 * @dataProvider data_build_mysql_datetime
 	 *
 	 * @param array|string $datetime       Array or string date input.
 	 * @param string       $expected       Expected built result.
@@ -546,7 +546,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
 	}
 
-	public function mysql_datetime_input_provider() {
+	public function data_build_mysql_datetime() {
 		return array(
 			array( '2019-06-04T08:18:24+03:00', '2019-06-04 05:18:24' ),
 			array( '2019-06-04T05:18:24+00:00', '2019-06-04 05:18:24' ),
@@ -564,7 +564,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 41782
 	 *
-	 * @dataProvider mysql_datetime_input_provider_custom_timezone
+	 * @dataProvider data_build_mysql_datetime_with_custom_timezone
 	 *
 	 * @param array|string $datetime       Array or string date input.
 	 * @param string       $expected       Expected built result.
@@ -582,7 +582,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 	}
 
-	public function mysql_datetime_input_provider_custom_timezone() {
+	public function data_build_mysql_datetime_with_custom_timezone() {
 		return array(
 			array( '2019-06-04T08:18:24+03:00', '2019-06-04 08:18:24' ),
 			array( '2019-06-04T05:18:24+00:00', '2019-06-04 08:18:24' ),
@@ -1186,7 +1186,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		$parts = mb_split( '\)\s+AND\s+\(', $sql );
 		$this->assertIsArray( $parts, 'SQL query cannot be split into multiple parts using operator AND.' );
-		$this->assertEquals( 2, count( $parts ), 'SQL query does not contain correct number of AND operators.' );
+		$this->assertSame( 2, count( $parts ), 'SQL query does not contain correct number of AND operators.' );
 
 		$this->assertStringNotContainsString( 'OR', $sql, 'SQL query contains conditions joined by operator OR.' );
 	}
@@ -1233,7 +1233,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		$parts = mb_split( '\)\s+OR\s+\(', $sql );
 		$this->assertIsArray( $parts, 'SQL query cannot be split into multiple parts using operator OR.' );
-		$this->assertEquals( 2, count( $parts ), 'SQL query does not contain correct number of OR operators.' );
+		$this->assertSame( 2, count( $parts ), 'SQL query does not contain correct number of OR operators.' );
 
 		// Checking number of occurrences of AND while skipping the one at the beginning.
 		$this->assertSame( 2, substr_count( substr( $sql, 5 ), 'AND' ), 'SQL query does not contain expected number conditions joined by operator AND.' );
@@ -1279,7 +1279,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		$parts = mb_split( '\)\s+AND\s+\(', $sql );
 		$this->assertIsArray( $parts, 'SQL query cannot be split into multiple parts using operator AND.' );
-		$this->assertEquals( 2, count( $parts ), 'SQL query does not contain correct number of AND operators.' );
+		$this->assertSame( 2, count( $parts ), 'SQL query does not contain correct number of AND operators.' );
 
 		$this->assertStringNotContainsString( 'OR', $sql, 'SQL query contains conditions joined by operator OR.' );
 	}

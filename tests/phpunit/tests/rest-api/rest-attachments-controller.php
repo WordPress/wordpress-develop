@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
@@ -137,7 +135,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertCount( 3, $routes['/wp/v2/media/(?P<id>[\d]+)'] );
 	}
 
-	public static function disposition_provider() {
+	/**
+	 * @dataProvider data_parse_disposition
+	 */
+	public function test_parse_disposition( $header, $expected ) {
+		$header_list = array( $header );
+		$parsed      = WP_REST_Attachments_Controller::get_filename_from_disposition( $header_list );
+		$this->assertSame( $expected, $parsed );
+	}
+
+	public static function data_parse_disposition() {
 		return array(
 			// Types.
 			array( 'attachment; filename="foo.jpg"', 'foo.jpg' ),
@@ -167,15 +174,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			array( 'foo.jpg', null ),
 			array( 'unknown; notfilename="foo.jpg"', null ),
 		);
-	}
-
-	/**
-	 * @dataProvider disposition_provider
-	 */
-	public function test_parse_disposition( $header, $expected ) {
-		$header_list = array( $header );
-		$parsed      = WP_REST_Attachments_Controller::get_filename_from_disposition( $header_list );
-		$this->assertSame( $expected, $parsed );
 	}
 
 	public function test_context_param() {
@@ -1259,7 +1257,17 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( $expected_output['caption']['raw'], $post->post_excerpt );
 	}
 
-	public static function attachment_roundtrip_provider() {
+	/**
+	 * @dataProvider data_attachment_roundtrip_as_author
+	 * @requires function imagejpeg
+	 */
+	public function test_attachment_roundtrip_as_author( $raw, $expected ) {
+		wp_set_current_user( self::$author_id );
+		$this->assertFalse( current_user_can( 'unfiltered_html' ) );
+		$this->verify_attachment_roundtrip( $raw, $expected );
+	}
+
+	public static function data_attachment_roundtrip_as_author() {
 		return array(
 			array(
 				// Raw values.
@@ -1354,16 +1362,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				),
 			),
 		);
-	}
-
-	/**
-	 * @dataProvider attachment_roundtrip_provider
-	 * @requires function imagejpeg
-	 */
-	public function test_post_roundtrip_as_author( $raw, $expected ) {
-		wp_set_current_user( self::$author_id );
-		$this->assertFalse( current_user_can( 'unfiltered_html' ) );
-		$this->verify_attachment_roundtrip( $raw, $expected );
 	}
 
 	/**

@@ -1984,7 +1984,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	}
 	$cache_key = "adjacent_post:$key:$last_changed";
 
-	$result = wp_cache_get( $cache_key, 'posts' );
+	$result = wp_cache_get( $cache_key, 'post-queries' );
 	if ( false !== $result ) {
 		if ( $result ) {
 			$result = get_post( $result );
@@ -1997,7 +1997,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 		$result = '';
 	}
 
-	wp_cache_set( $cache_key, $result, 'posts' );
+	wp_cache_set( $cache_key, $result, 'post-queries' );
 
 	if ( $result ) {
 		$result = get_post( $result );
@@ -4679,6 +4679,7 @@ function the_privacy_policy_link( $before = '', $after = '' ) {
  * Returns the privacy policy link with formatting, when applicable.
  *
  * @since 4.9.6
+ * @since 6.2.0 Added 'privacy-policy' rel attribute.
  *
  * @param string $before Optional. Display before privacy policy link. Default empty.
  * @param string $after  Optional. Display after privacy policy link. Default empty.
@@ -4742,7 +4743,7 @@ function wp_internal_hosts() {
 		/**
 		 * Filters the array of URL hosts which are considered internal.
 		 *
-		 * @since 6.2.9
+		 * @since 6.2.0
 		 *
 		 * @param array $internal_hosts An array of internal URL hostnames.
 		 */
