@@ -90,17 +90,17 @@ class Text_Diff_Renderer_inline extends Text_Diff_Renderer {
      */
     var $_split_level = 'lines';
 
-    function _blockHeader($xbeg, $xlen, $ybeg, $ylen)
+    function _blockHeader( $xbeg, $xlen, $ybeg, $ylen )
     {
         return $this->_block_header;
     }
 
-    function _startBlock($header)
+    function _startBlock( $header )
     {
         return $header;
     }
 
-    function _lines($lines, $prefix = ' ', $encode = true)
+    function _lines( $lines, $prefix = ' ', $encode = true )
     {
         if ($encode) {
             array_walk($lines, array(&$this, '_encode'));
@@ -113,7 +113,7 @@ class Text_Diff_Renderer_inline extends Text_Diff_Renderer {
         }
     }
 
-    function _added($lines)
+    function _added( $lines )
     {
         array_walk($lines, array(&$this, '_encode'));
         $lines[0] = $this->_ins_prefix . $lines[0];
@@ -121,7 +121,7 @@ class Text_Diff_Renderer_inline extends Text_Diff_Renderer {
         return $this->_lines($lines, ' ', false);
     }
 
-    function _deleted($lines, $words = false)
+    function _deleted( $lines, $words = false )
     {
         array_walk($lines, array(&$this, '_encode'));
         $lines[0] = $this->_del_prefix . $lines[0];
@@ -129,7 +129,7 @@ class Text_Diff_Renderer_inline extends Text_Diff_Renderer {
         return $this->_lines($lines, ' ', false);
     }
 
-    function _changed($orig, $final)
+    function _changed( $orig, $final )
     {
         /* If we've already split on characters, just display. */
         if ($this->_split_level == 'characters') {
@@ -178,7 +178,7 @@ class Text_Diff_Renderer_inline extends Text_Diff_Renderer {
         return str_replace($nl, "\n", $renderer->render($diff)) . "\n";
     }
 
-    function _splitOnWords($string, $newlineEscape = "\n")
+    function _splitOnWords( $string, $newlineEscape = "\n" )
     {
         // Ignore \0; otherwise the while loop will never finish.
         $string = str_replace("\0", '', $string);
@@ -198,7 +198,7 @@ class Text_Diff_Renderer_inline extends Text_Diff_Renderer {
         return $words;
     }
 
-    function _encode(&$string)
+    function _encode( &$string )
     {
         $string = htmlspecialchars($string);
     }
