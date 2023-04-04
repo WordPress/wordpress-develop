@@ -142,14 +142,8 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 	// Translate fields.
 	if ( $translate ) {
 		$textdomain = $plugin_data['TextDomain'];
-		if ( $textdomain ) {
-			if ( ! is_textdomain_loaded( $textdomain ) ) {
-				if ( $plugin_data['DomainPath'] ) {
-					load_plugin_textdomain( $textdomain, false, dirname( $plugin_file ) . $plugin_data['DomainPath'] );
-				} else {
-					load_plugin_textdomain( $textdomain, false, dirname( $plugin_file ) );
-				}
-			}
+		if ( $textdomain && $plugin_data['DomainPath'] && ! is_textdomain_loaded( $textdomain ) ) {
+			load_plugin_textdomain( $textdomain, false, dirname( $plugin_file ) . $plugin_data['DomainPath'] );
 		} elseif ( 'hello.php' === basename( $plugin_file ) ) {
 			$textdomain = 'default';
 		}
