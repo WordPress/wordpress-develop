@@ -395,7 +395,7 @@ function wp_print_revision_templates() {
 			<div class="diff-title">
 				<# if ( 'from' === data.type ) { #>
 					<strong><?php _ex( 'From:', 'Followed by post revision info' ); ?></strong>
-				<# } else if ( 'to' === data.type ) { #>
+				<# } elseif ( 'to' === data.type ) { #>
 					<strong><?php _ex( 'To:', 'Followed by post revision info' ); ?></strong>
 				<# } #>
 				<div class="author-card<# if ( data.attributes.autosave ) { #> autosave<# } #>">
@@ -411,7 +411,7 @@ function wp_print_revision_templates() {
 						);
 						?>
 							</span>
-					<# } else if ( data.attributes.current ) { #>
+					<# } elseif ( data.attributes.current ) { #>
 						<span class="byline">
 						<?php
 						printf(

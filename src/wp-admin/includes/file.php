@@ -317,7 +317,7 @@ function wp_print_file_editor_templates() {
 					?>
 				</p>
 				<pre>{{ data.message }}</pre>
-			<# } else if ( 'file_not_writable' === data.code ) { #>
+			<# } elseif ( 'file_not_writable' === data.code ) { #>
 				<p>
 					<?php
 					printf(
