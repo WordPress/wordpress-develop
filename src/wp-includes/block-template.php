@@ -27,7 +27,7 @@ function _add_template_loader_filters() {
 
 	// Request to resolve a template.
 	if ( isset( $_GET['_wp-find-template'] ) ) {
-		add_filter( 'pre_get_posts', '_resolve_template_for_new_post' );
+		add_action( 'pre_get_posts', '_resolve_template_for_new_post' );
 	}
 }
 
@@ -43,7 +43,7 @@ function _add_template_loader_filters() {
  * @param string   $template  Path to the template. See locate_template().
  * @param string   $type      Sanitized filename without extension.
  * @param string[] $templates A list of template candidates, in descending order of priority.
- * @return string The path to the Full Site Editing template canvas file, or the fallback PHP template.
+ * @return string The path to the Site Editor template canvas file, or the fallback PHP template.
  */
 function locate_block_template( $template, $type, array $templates ) {
 	global $_wp_current_template_content;
@@ -145,7 +145,7 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 
 	// Find all potential templates 'wp_template' post matching the hierarchy.
 	$query     = array(
-		'theme'    => wp_get_theme()->get_stylesheet(),
+		'theme'    => get_stylesheet(),
 		'slug__in' => $slugs,
 	);
 	$templates = get_block_templates( $query );
@@ -241,7 +241,7 @@ function get_the_block_template_html() {
 	$content = wptexturize( $content );
 	$content = convert_smilies( $content );
 	$content = shortcode_unautop( $content );
-	$content = wp_filter_content_tags( $content );
+	$content = wp_filter_content_tags( $content, 'template' );
 	$content = do_shortcode( $content );
 	$content = str_replace( ']]>', ']]&gt;', $content );
 
@@ -334,36 +334,4 @@ function _resolve_template_for_new_post( $wp_query ) {
 	) {
 		$wp_query->set( 'post_status', 'auto-draft' );
 	}
-}
-
-/**
- * Returns the correct template for the site's home page.
- *
- * @access private
- * @since 6.0.0
- *
- * @return array|null A template object, or null if none could be found.
- */
-function _resolve_home_block_template() {
-	$show_on_front = get_option( 'show_on_front' );
-	$front_page_id = get_option( 'page_on_front' );
-
-	if ( 'page' === $show_on_front && $front_page_id ) {
-		return array(
-			'postType' => 'page',
-			'postId'   => $front_page_id,
-		);
-	}
-
-	$hierarchy = array( 'front-page', 'home', 'index' );
-	$template  = resolve_block_template( 'home', $hierarchy, '' );
-
-	if ( ! $template ) {
-		return null;
-	}
-
-	return array(
-		'postType' => 'wp_template',
-		'postId'   => $template->id,
-	);
 }

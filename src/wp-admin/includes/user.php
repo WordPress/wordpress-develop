@@ -29,7 +29,7 @@ function add_user() {
  */
 function edit_user( $user_id = 0 ) {
 	$wp_roles = wp_roles();
-	$user     = new stdClass;
+	$user     = new stdClass();
 	$user_id  = (int) $user_id;
 	if ( $user_id ) {
 		$update           = true;
@@ -119,7 +119,13 @@ function edit_user( $user_id = 0 ) {
 		} elseif ( '' === $locale ) {
 			$locale = 'en_US';
 		} elseif ( ! in_array( $locale, get_available_languages(), true ) ) {
-			$locale = '';
+			if ( current_user_can( 'install_languages' ) && wp_can_install_language_pack() ) {
+				if ( ! wp_download_language_pack( $locale ) ) {
+					$locale = '';
+				}
+			} else {
+				$locale = '';
+			}
 		}
 
 		$user->locale = $locale;
@@ -173,7 +179,7 @@ function edit_user( $user_id = 0 ) {
 	}
 
 	// Checking the password has been typed twice the same.
-	if ( ( $update || ! empty( $pass1 ) ) && $pass1 != $pass2 ) {
+	if ( ( $update || ! empty( $pass1 ) ) && $pass1 !== $pass2 ) {
 		$errors->add( 'pass', __( '<strong>Error:</strong> Passwords do not match. Please enter the same password in both password fields.' ), array( 'form-field' => 'pass1' ) );
 	}
 
@@ -196,14 +202,14 @@ function edit_user( $user_id = 0 ) {
 		$errors->add( 'invalid_username', __( '<strong>Error:</strong> Sorry, that username is not allowed.' ) );
 	}
 
-	/* checking email address */
+	// Checking email address.
 	if ( empty( $user->user_email ) ) {
 		$errors->add( 'empty_email', __( '<strong>Error:</strong> Please enter an email address.' ), array( 'form-field' => 'email' ) );
 	} elseif ( ! is_email( $user->user_email ) ) {
 		$errors->add( 'invalid_email', __( '<strong>Error:</strong> The email address is not correct.' ), array( 'form-field' => 'email' ) );
 	} else {
 		$owner_id = email_exists( $user->user_email );
-		if ( $owner_id && ( ! $update || ( $owner_id != $user->ID ) ) ) {
+		if ( $owner_id && ( ! $update || ( $owner_id !== $user->ID ) ) ) {
 			$errors->add( 'email_exists', __( '<strong>Error:</strong> This email is already registered. Please choose another one.' ), array( 'form-field' => 'email' ) );
 		}
 	}
@@ -479,7 +485,7 @@ function default_password_nag_handler( $errors = false ) {
 
 	// get_user_setting() = JS-saved UI setting. Else no-js-fallback code.
 	if ( 'hide' === get_user_setting( 'default_password_nag' )
-		|| isset( $_GET['default_password_nag'] ) && '0' == $_GET['default_password_nag']
+		|| isset( $_GET['default_password_nag'] ) && '0' === $_GET['default_password_nag']
 	) {
 		delete_user_setting( 'default_password_nag' );
 		update_user_meta( $user_ID, 'default_password_nag', false );
@@ -501,7 +507,7 @@ function default_password_nag_edit_user( $user_ID, $old_data ) {
 	$new_data = get_userdata( $user_ID );
 
 	// Remove the nag if the password has been changed.
-	if ( $new_data->user_pass != $old_data->user_pass ) {
+	if ( $new_data->user_pass !== $old_data->user_pass ) {
 		delete_user_setting( 'default_password_nag' );
 		update_user_meta( $user_ID, 'default_password_nag', false );
 	}
@@ -606,6 +612,7 @@ Please click the following link to activate your user account:
  * Checks if the Authorize Application Password request is valid.
  *
  * @since 5.6.0
+ * @since 6.2.0 Allow insecure HTTP connections for the local environment.
  *
  * @param array   $request {
  *     The array of request data. All arguments are optional and may be empty.
@@ -619,12 +626,13 @@ Please click the following link to activate your user account:
  * @return true|WP_Error True if the request is valid, a WP_Error object contains errors if not.
  */
 function wp_is_authorize_application_password_request_valid( $request, $user ) {
-	$error = new WP_Error();
+	$error    = new WP_Error();
+	$is_local = 'local' === wp_get_environment_type();
 
 	if ( ! empty( $request['success_url'] ) ) {
 		$scheme = wp_parse_url( $request['success_url'], PHP_URL_SCHEME );
 
-		if ( 'http' === $scheme ) {
+		if ( 'http' === $scheme && ! $is_local ) {
 			$error->add(
 				'invalid_redirect_scheme',
 				__( 'The success URL must be served over a secure connection.' )
@@ -635,7 +643,7 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 	if ( ! empty( $request['reject_url'] ) ) {
 		$scheme = wp_parse_url( $request['reject_url'], PHP_URL_SCHEME );
 
-		if ( 'http' === $scheme ) {
+		if ( 'http' === $scheme && ! $is_local ) {
 			$error->add(
 				'invalid_redirect_scheme',
 				__( 'The rejection URL must be served over a secure connection.' )

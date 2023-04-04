@@ -36,11 +36,11 @@ class Tests_User_WpRegisterPersistedPreferencesMeta extends WP_UnitTestCase {
 				'sanitize_callback' => null,
 				'auth_callback'     => '__return_true',
 				'show_in_rest'      => array(
-					'name'    => 'persisted_preferences',
-					'type'    => 'object',
-					'context' => array( 'edit' ),
-					'schema'  => array(
+					'name'   => 'persisted_preferences',
+					'type'   => 'object',
+					'schema' => array(
 						'type'                 => 'object',
+						'context'              => array( 'edit' ),
 						'properties'           => array(
 							'_modified' => array(
 								'description' => __( 'The date and time the preferences were updated.' ),

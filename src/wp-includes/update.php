@@ -44,7 +44,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	}
 
 	if ( ! is_object( $current ) ) {
-		$current                  = new stdClass;
+		$current                  = new stdClass();
 		$current->updates         = array();
 		$current->version_checked = $wp_version;
 	}
@@ -327,10 +327,10 @@ function wp_update_plugins( $extra_stats = array() ) {
 	$current = get_site_transient( 'update_plugins' );
 
 	if ( ! is_object( $current ) ) {
-		$current = new stdClass;
+		$current = new stdClass();
 	}
 
-	$updates               = new stdClass;
+	$updates               = new stdClass();
 	$updates->last_checked = time();
 	$updates->response     = array();
 	$updates->translations = array();
@@ -400,7 +400,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 	 * @since 3.7.0
 	 * @since 4.5.0 The default value of the `$locales` parameter changed to include all locales.
 	 *
-	 * @param array $locales Plugin locales. Default is all available locales of the site.
+	 * @param string[] $locales Plugin locales. Default is all available locales of the site.
 	 */
 	$locales = apply_filters( 'plugins_update_check_locales', $locales );
 	$locales = array_unique( $locales );
@@ -506,7 +506,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 		 * }
 		 * @param array       $plugin_data      Plugin headers.
 		 * @param string      $plugin_file      Plugin filename.
-		 * @param array       $locales          Installed locales to look up translations for.
+		 * @param string[]    $locales          Installed locales to look up translations for.
 		 */
 		$update = apply_filters( "update_plugins_{$hostname}", false, $plugin_data, $plugin_file, $locales );
 
@@ -595,7 +595,7 @@ function wp_update_themes( $extra_stats = array() ) {
 	$last_update = get_site_transient( 'update_themes' );
 
 	if ( ! is_object( $last_update ) ) {
-		$last_update = new stdClass;
+		$last_update = new stdClass();
 	}
 
 	$themes  = array();
@@ -682,7 +682,7 @@ function wp_update_themes( $extra_stats = array() ) {
 	 * @since 3.7.0
 	 * @since 4.5.0 The default value of the `$locales` parameter changed to include all locales.
 	 *
-	 * @param array $locales Theme locales. Default is all available locales of the site.
+	 * @param string[] $locales Theme locales. Default is all available locales of the site.
 	 */
 	$locales = apply_filters( 'themes_update_check_locales', $locales );
 	$locales = array_unique( $locales );
@@ -734,7 +734,7 @@ function wp_update_themes( $extra_stats = array() ) {
 		return;
 	}
 
-	$new_update               = new stdClass;
+	$new_update               = new stdClass();
 	$new_update->last_checked = time();
 	$new_update->checked      = $checked;
 
@@ -788,7 +788,7 @@ function wp_update_themes( $extra_stats = array() ) {
 		 * }
 		 * @param array       $theme_data       Theme headers.
 		 * @param string      $theme_stylesheet Theme stylesheet.
-		 * @param array       $locales          Installed locales to look up translations for.
+		 * @param string[]    $locales          Installed locales to look up translations for.
 		 */
 		$update = apply_filters( "update_themes_{$hostname}", false, $theme_data, $theme_stylesheet, $locales );
 
@@ -846,7 +846,7 @@ function wp_maybe_auto_update() {
 	include_once ABSPATH . 'wp-admin/includes/admin.php';
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
-	$upgrader = new WP_Automatic_Updater;
+	$upgrader = new WP_Automatic_Updater();
 	$upgrader->run();
 }
 

@@ -1,25 +1,33 @@
 === Twenty Twenty-Three ===
 Contributors: wordpressdotorg
-Requires at least: 5.9
-Tested up to: 6.1
-Requires PHP: 5.7
+Requires at least: 6.1
+Tested up to: 6.2
+Requires PHP: 5.6
+Stable tag: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 == Description ==
 
-Twenty Twenty-Three is a stripped-back and minimal base theme, and includes a diverse collection of style variations designed by members of the community.
+Twenty Twenty-Three is designed to take advantage of the new design tools introduced in WordPress 6.1. With a clean, blank base as a starting point, this default theme includes ten diverse style variations created by members of the WordPress community.
+
+Whether you want to build a complex or incredibly simple website, you can do it quickly and intuitively through the bundled styles or dive into creation and full customization yourself.
 
 == Changelog ==
+
+= 1.1 =
+* Released: March 28, 2023
+
+https://wordpress.org/documentation/article/twenty-twenty-three-changelog/#Version_1.1
 
 = 1.0 =
 * Released: November 1, 2022
 
-https://wordpress.org/support/article/twenty-twenty-three-changelog#Version_1.0
+https://wordpress.org/documentation/article/twenty-twenty-three-changelog/#Version_1.0
 
 == Copyright ==
 
-Twenty Twenty-Three WordPress Theme, (C) 2022 wordpressdotorg
+Twenty Twenty-Three WordPress Theme, (C) 2022-2023 WordPress.org
 Twenty Twenty-Three is distributed under the terms of the GNU GPL.
 
 This program is free software: you can redistribute it and/or modify

@@ -492,7 +492,12 @@ function wp_network_dashboard_right_now() {
 
 	<form action="<?php echo esc_url( network_admin_url( 'users.php' ) ); ?>" method="get">
 		<p>
-			<label class="screen-reader-text" for="search-users"><?php _e( 'Search Users' ); ?></label>
+			<label class="screen-reader-text" for="search-users">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Search Users' );
+				?>
+			</label>
 			<input type="search" name="s" value="" size="30" autocomplete="off" id="search-users" />
 			<?php submit_button( __( 'Search Users' ), '', false, false, array( 'id' => 'submit_users' ) ); ?>
 		</p>
@@ -500,7 +505,12 @@ function wp_network_dashboard_right_now() {
 
 	<form action="<?php echo esc_url( network_admin_url( 'sites.php' ) ); ?>" method="get">
 		<p>
-			<label class="screen-reader-text" for="search-sites"><?php _e( 'Search Sites' ); ?></label>
+			<label class="screen-reader-text" for="search-sites">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Search Sites' );
+				?>
+			</label>
 			<input type="search" name="s" value="" size="30" autocomplete="off" id="search-sites" />
 			<?php submit_button( __( 'Search Sites' ), '', false, false, array( 'id' => 'submit_sites' ) ); ?>
 		</p>
@@ -1096,7 +1106,10 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 		echo '</ul>';
 
 		if ( current_user_can( 'edit_posts' ) ) {
-			echo '<h3 class="screen-reader-text">' . __( 'View more comments' ) . '</h3>';
+			echo '<h3 class="screen-reader-text">' .
+				/* translators: Hidden accessibility text. */
+				__( 'View more comments' ) .
+			'</h3>';
 			_get_list_table( 'WP_Comments_List_Table' )->views();
 		}
 
@@ -1287,7 +1300,7 @@ function wp_dashboard_events_news() {
 				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 				'https://make.wordpress.org/community/meetups-landing-page',
 				__( 'Meetups' ),
-				/* translators: Accessibility text. */
+				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
 			);
 		?>
@@ -1299,7 +1312,7 @@ function wp_dashboard_events_news() {
 				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 				'https://central.wordcamp.org/schedule/',
 				__( 'WordCamps' ),
-				/* translators: Accessibility text. */
+				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
 			);
 		?>
@@ -1312,7 +1325,7 @@ function wp_dashboard_events_news() {
 				/* translators: If a Rosetta site exists (e.g. https://es.wordpress.org/news/), then use that. Otherwise, leave untranslated. */
 				esc_url( _x( 'https://wordpress.org/news/', 'Events and News dashboard widget' ) ),
 				__( 'News' ),
-				/* translators: Accessibility text. */
+				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
 			);
 		?>
@@ -1637,6 +1650,7 @@ function wp_dashboard_quota() {
 				'<a href="%1$s">%2$s <span class="screen-reader-text">(%3$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
 				$text,
+				/* translators: Hidden accessibility text. */
 				__( 'Manage Uploads' )
 			);
 			?>
@@ -1652,6 +1666,7 @@ function wp_dashboard_quota() {
 				'<a href="%1$s" class="musublink">%2$s <span class="screen-reader-text">(%3$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
 				$text,
+				/* translators: Hidden accessibility text. */
 				__( 'Manage Uploads' )
 			);
 			?>
@@ -1882,7 +1897,7 @@ function wp_dashboard_php_nag() {
 			'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 			esc_url( wp_get_update_php_url() ),
 			__( 'Learn more about updating PHP' ),
-			/* translators: Accessibility text. */
+			/* translators: Hidden accessibility text. */
 			__( '(opens in a new tab)' )
 		);
 		?>
@@ -1944,7 +1959,7 @@ function wp_dashboard_site_health() {
 	<div class="health-check-widget">
 		<div class="health-check-widget-title-section site-health-progress-wrapper loading hide-if-no-js">
 			<div class="site-health-progress">
-				<svg role="img" aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+				<svg aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
 					<circle r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
 					<circle id="bar" r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
 				</svg>
@@ -2028,7 +2043,7 @@ function wp_welcome_panel() {
 	<div class="welcome-panel-content">
 	<div class="welcome-panel-header">
 		<div class="welcome-panel-header-image">
-			<?php echo file_get_contents( dirname( __DIR__ ) . '/images/about-header-about.svg' ); ?>
+			<?php echo file_get_contents( dirname( __DIR__ ) . '/images/dashboard-background.svg' ); ?>
 		</div>
 		<h2><?php _e( 'Welcome to WordPress!' ); ?></h2>
 		<p>
@@ -2042,7 +2057,10 @@ function wp_welcome_panel() {
 	</div>
 	<div class="welcome-panel-column-container">
 		<div class="welcome-panel-column">
-			<div class="welcome-panel-icon-pages"></div>
+			<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+				<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
+				<path fill-rule="evenodd" clip-rule="evenodd" d="M32.0668 17.0854L28.8221 13.9454L18.2008 24.671L16.8983 29.0827L21.4257 27.8309L32.0668 17.0854ZM16 32.75H24V31.25H16V32.75Z" fill="white"/>
+			</svg>
 			<div class="welcome-panel-column-content">
 				<h3><?php _e( 'Author rich content with blocks and patterns' ); ?></h3>
 				<p><?php _e( 'Block patterns are pre-configured block layouts. Use them to get inspired or create new pages in a flash.' ); ?></p>
@@ -2050,7 +2068,10 @@ function wp_welcome_panel() {
 			</div>
 		</div>
 		<div class="welcome-panel-column">
-			<div class="welcome-panel-icon-layout"></div>
+			<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+				<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
+				<path fill-rule="evenodd" clip-rule="evenodd" d="M18 16h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H18a2 2 0 0 1-2-2V18a2 2 0 0 1 2-2zm12 1.5H18a.5.5 0 0 0-.5.5v3h13v-3a.5.5 0 0 0-.5-.5zm.5 5H22v8h8a.5.5 0 0 0 .5-.5v-7.5zm-10 0h-3V30a.5.5 0 0 0 .5.5h2.5v-8z" fill="#fff"/>
+			</svg>
 			<div class="welcome-panel-column-content">
 			<?php if ( $is_block_theme ) : ?>
 				<h3><?php _e( 'Customize your entire site with block themes' ); ?></h3>
@@ -2066,16 +2087,18 @@ function wp_welcome_panel() {
 			</div>
 		</div>
 		<div class="welcome-panel-column">
-			<div class="welcome-panel-icon-styles"></div>
+			<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+				<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
+				<path fill-rule="evenodd" clip-rule="evenodd" d="M31 24a7 7 0 0 1-7 7V17a7 7 0 0 1 7 7zm-7-8a8 8 0 1 1 0 16 8 8 0 0 1 0-16z" fill="#fff"/>
+			</svg>
 			<div class="welcome-panel-column-content">
 			<?php if ( $is_block_theme ) : ?>
 				<h3><?php _e( 'Switch up your site&#8217;s look & feel with Styles' ); ?></h3>
 				<p><?php _e( 'Tweak your site, or give it a whole new look! Get creative &#8212; how about a new color palette or font?' ); ?></p>
-				<a href="<?php echo esc_url( admin_url( 'site-editor.php?styles=open' ) ); ?>"><?php _e( 'Edit styles' ); ?></a>
 			<?php else : ?>
 				<h3><?php _e( 'Discover a new way to build your site.' ); ?></h3>
 				<p><?php _e( 'There is a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ?></p>
-				<a href="<?php echo esc_url( __( 'https://wordpress.org/support/article/block-themes/' ) ); ?>"><?php _e( 'Learn about block themes' ); ?></a>
+				<a href="<?php echo esc_url( __( 'https://wordpress.org/documentation/article/block-themes/' ) ); ?>"><?php _e( 'Learn about block themes' ); ?></a>
 			<?php endif; ?>
 			</div>
 		</div>

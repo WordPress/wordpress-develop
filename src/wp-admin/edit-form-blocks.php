@@ -203,7 +203,7 @@ $editor_settings = array(
 		'unlockNonce' => wp_create_nonce( 'update-post_' . $post->ID ),
 		'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
 	),
-	'supportsLayout'       => WP_Theme_JSON_Resolver::theme_has_support(),
+	'supportsLayout'       => wp_theme_has_theme_json(),
 	'supportsTemplateMode' => current_theme_supports( 'block-templates' ),
 
 	// Whether or not to load the 'postcustom' meta box is stored as a user meta
@@ -271,7 +271,7 @@ wp_enqueue_style( 'wp-edit-post' );
  */
 do_action( 'enqueue_block_editor_assets' );
 
-// In order to duplicate classic meta box behaviour, we need to run the classic meta box actions.
+// In order to duplicate classic meta box behavior, we need to run the classic meta box actions.
 require_once ABSPATH . 'wp-admin/includes/meta-boxes.php';
 register_and_do_post_meta_boxes( $post );
 

@@ -199,36 +199,8 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 	/**
 	 * @ticket 47577
 	 */
-	public function test_wp_is_local_html_output_via_wlwmanifest_link() {
-		remove_action( 'wp_head', 'rsd_link' );
-
-		// HTML includes WLW manifest link.
-		$head_tag = get_echo( 'wlwmanifest_link' );
-		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_local_html_output( $html ) );
-
-		// HTML includes modified WLW manifest link but same URL.
-		$head_tag = str_replace( ' />', '>', get_echo( 'wlwmanifest_link' ) );
-		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_local_html_output( $html ) );
-
-		// HTML includes WLW manifest link with alternative URL scheme.
-		$head_tag = get_echo( 'wlwmanifest_link' );
-		$head_tag = false !== strpos( $head_tag, 'https://' ) ? str_replace( 'https://', 'http://', $head_tag ) : str_replace( 'http://', 'https://', $head_tag );
-		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_local_html_output( $html ) );
-
-		// HTML does not include WLW manifest link.
-		$html = $this->get_sample_html_string();
-		$this->assertFalse( wp_is_local_html_output( $html ) );
-	}
-
-	/**
-	 * @ticket 47577
-	 */
 	public function test_wp_is_local_html_output_via_rest_link() {
 		remove_action( 'wp_head', 'rsd_link' );
-		remove_action( 'wp_head', 'wlwmanifest_link' );
 
 		// HTML includes REST API link.
 		$head_tag = get_echo( 'rest_output_link_wp_head' );
@@ -256,7 +228,6 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 	 */
 	public function test_wp_is_local_html_output_cannot_determine() {
 		remove_action( 'wp_head', 'rsd_link' );
-		remove_action( 'wp_head', 'wlwmanifest_link' );
 		remove_action( 'wp_head', 'rest_output_link_wp_head' );
 
 		// The HTML here doesn't matter because all hooks are removed.
@@ -264,37 +235,37 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		$this->assertNull( wp_is_local_html_output( $html ) );
 	}
 
-	public function record_request_url( $preempt, $parsed_args, $url ) {
+	public function record_request_url( $response, $parsed_args, $url ) {
 		$this->last_request_url = $url;
-		return $preempt;
+		return $response;
 	}
 
-	public function mock_success_with_sslverify( $preempt, $parsed_args ) {
+	public function mock_success_with_sslverify( $response, $parsed_args ) {
 		if ( ! empty( $parsed_args['sslverify'] ) ) {
 			return $this->mock_success();
 		}
-		return $preempt;
+		return $response;
 	}
 
-	public function mock_error_with_sslverify( $preempt, $parsed_args ) {
+	public function mock_error_with_sslverify( $response, $parsed_args ) {
 		if ( ! empty( $parsed_args['sslverify'] ) ) {
 			return $this->mock_error();
 		}
-		return $preempt;
+		return $response;
 	}
 
-	public function mock_success_without_sslverify( $preempt, $parsed_args ) {
+	public function mock_success_without_sslverify( $response, $parsed_args ) {
 		if ( empty( $parsed_args['sslverify'] ) ) {
 			return $this->mock_success();
 		}
-		return $preempt;
+		return $response;
 	}
 
-	public function mock_error_without_sslverify( $preempt, $parsed_args ) {
+	public function mock_error_without_sslverify( $response, $parsed_args ) {
 		if ( empty( $parsed_args['sslverify'] ) ) {
 			return $this->mock_error();
 		}
-		return $preempt;
+		return $response;
 	}
 
 	public function mock_not_found() {

@@ -110,7 +110,7 @@ if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 			 */
 			do_action( 'invite_user', $user_id, $role, $newuser_key );
 
-			$switched_locale = switch_to_locale( get_user_locale( $user_details ) );
+			$switched_locale = switch_to_user_locale( $user_id );
 
 			if ( '' !== get_option( 'blogname' ) ) {
 				$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
@@ -298,8 +298,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/users-add-new-screen/">Documentation on Adding New Users</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/users-add-new-screen/">Documentation on Adding New Users</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 wp_enqueue_script( 'wp-ajax-response' );
@@ -442,8 +442,8 @@ if ( is_multisite() && current_user_can( 'promote_users' ) ) {
 
 <table class="form-table" role="presentation">
 	<tr class="form-field form-required">
-		<th scope="row"><label for="adduser-email"><?php echo $label; ?></label></th>
-		<td><input name="email" type="<?php echo $type; ?>" id="adduser-email" class="wp-suggest-user" value="" /></td>
+		<th scope="row"><label for="adduser-email"><?php echo esc_html( $label ); ?></label></th>
+		<td><input name="email" type="<?php echo esc_attr( $type ); ?>" id="adduser-email" class="wp-suggest-user" value="" /></td>
 	</tr>
 	<tr class="form-field">
 		<th scope="row"><label for="adduser-role"><?php _e( 'Role' ); ?></label></th>
@@ -571,7 +571,7 @@ if ( current_user_can( 'create_users' ) ) {
 			<div class="wp-pwd">
 				<?php $initial_password = wp_generate_password( 24 ); ?>
 				<span class="password-input-wrapper">
-					<input type="password" name="pass1" id="pass1" class="regular-text" autocomplete="new-password" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result" />
+					<input type="password" name="pass1" id="pass1" class="regular-text" autocomplete="new-password" spellcheck="false" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result" />
 				</span>
 				<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 					<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
@@ -584,7 +584,7 @@ if ( current_user_can( 'create_users' ) ) {
 	<tr class="form-field form-required user-pass2-wrap hide-if-js">
 		<th scope="row"><label for="pass2"><?php _e( 'Repeat Password' ); ?> <span class="description"><?php _e( '(required)' ); ?></span></label></th>
 		<td>
-		<input name="pass2" type="password" id="pass2" autocomplete="new-password" aria-describedby="pass2-desc" />
+		<input type="password" name="pass2" id="pass2" autocomplete="new-password" spellcheck="false" aria-describedby="pass2-desc" />
 		<p class="description" id="pass2-desc"><?php _e( 'Type the password again.' ); ?></p>
 		</td>
 	</tr>

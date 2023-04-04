@@ -6,9 +6,9 @@
  * Note: The below @method notations are defined solely for the benefit of IDEs,
  * as a way to indicate expected return values from the given factory methods.
  *
- * @method int create( $args = array(), $generation_definitions = null )
- * @method WP_Term create_and_get( $args = array(), $generation_definitions = null )
- * @method int[] create_many( $count, $args = array(), $generation_definitions = null )
+ * @method int|WP_Error          create( $args = array(), $generation_definitions = null )
+ * @method WP_Term|WP_Error|null create_and_get( $args = array(), $generation_definitions = null )
+ * @method (int|WP_Error)[]      create_many( $count, $args = array(), $generation_definitions = null )
  */
 class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 
@@ -28,38 +28,54 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Creates a term object.
 	 *
-	 * @param array $args Array or string of arguments for inserting a term.
+	 * @since UT (3.7.0)
 	 *
-	 * @return array|WP_Error
+	 * @param array $args Array of arguments for inserting a term.
+	 *
+	 * @return int|WP_Error The term ID on success, WP_Error object on failure.
 	 */
 	public function create_object( $args ) {
 		$args         = array_merge( array( 'taxonomy' => $this->taxonomy ), $args );
 		$term_id_pair = wp_insert_term( $args['name'], $args['taxonomy'], $args );
+
 		if ( is_wp_error( $term_id_pair ) ) {
 			return $term_id_pair;
 		}
+
 		return $term_id_pair['term_id'];
 	}
 
 	/**
 	 * Updates the term.
 	 *
-	 * @param int|object   $term   The term to update.
-	 * @param array|string $fields The context in which to relate the term to the object.
+	 * @since UT (3.7.0)
+	 * @since 6.2.0 Returns a WP_Error object on failure.
 	 *
-	 * @return int The term ID.
+	 * @param int|object $term   The term to update.
+	 * @param array      $fields Array of arguments for updating a term.
+	 *
+	 * @return int|WP_Error The term ID on success, WP_Error object on failure.
 	 */
 	public function update_object( $term, $fields ) {
 		$fields = array_merge( array( 'taxonomy' => $this->taxonomy ), $fields );
+
 		if ( is_object( $term ) ) {
 			$taxonomy = $term->taxonomy;
 		}
+
 		$term_id_pair = wp_update_term( $term, $taxonomy, $fields );
+
+		if ( is_wp_error( $term_id_pair ) ) {
+			return $term_id_pair;
+		}
+
 		return $term_id_pair['term_id'];
 	}
 
 	/**
 	 * Attach terms to the given post.
+	 *
+	 * @since UT (3.7.0)
 	 *
 	 * @param int          $post_id  The post ID.
 	 * @param string|array $terms    An array of terms to set for the post, or a string of terms
@@ -79,6 +95,8 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Create a term and returns it as an object.
 	 *
+	 * @since 4.3.0
+	 *
 	 * @param array $args                   Array or string of arguments for inserting a term.
 	 * @param null  $generation_definitions The default values.
 	 *
@@ -92,11 +110,14 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 		}
 
 		$taxonomy = isset( $args['taxonomy'] ) ? $args['taxonomy'] : $this->taxonomy;
+
 		return get_term( $term_id, $taxonomy );
 	}
 
 	/**
 	 * Retrieves the term by a given ID.
+	 *
+	 * @since UT (3.7.0)
 	 *
 	 * @param int $term_id ID of the term to retrieve.
 	 *

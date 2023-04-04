@@ -866,4 +866,66 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		add_post_type_support( 'post', 'revisions' );
 	}
+
+	/**
+	 * Tests that wp_save_post_revision() respects the 'wp_save_post_revision_revisions_before_deletion' filter
+	 * when deleting revisions.
+	 *
+	 * This test should protect the original revision, send the rest to be checked against wp_revisions_to_keep(),
+	 * and result in two revisions: The latest revision, and the original.
+	 *
+	 * @ticket 57320
+	 *
+	 * @covers ::wp_save_post_revision
+	 */
+	public function test_wp_save_post_revision_should_respect_revisions_before_deletion_filter() {
+		$post_id = self::factory()->post->create( array( 'post_title' => 'Test 57320' ) );
+
+		add_filter(
+			'wp_revisions_to_keep',
+			static function() {
+				return 1;
+			}
+		);
+
+		add_filter(
+			'wp_save_post_revision_revisions_before_deletion',
+			static function ( $revisions ) {
+				// Ignore the first revision and return the rest for deletion.
+				return array_slice( $revisions, 1 );
+			}
+		);
+
+		for ( $update = 1; $update < 4; ++$update ) {
+			wp_update_post(
+				array(
+					'ID'         => $post_id,
+					'post_title' => 'Test 57320 Update ' . $update,
+				)
+			);
+		}
+
+		$actual = wp_get_post_revisions( $post_id );
+
+		$this->assertCount(
+			2,
+			$actual,
+			'There should be two revisions.'
+		);
+
+		$first  = reset( $actual );
+		$second = next( $actual );
+
+		$this->assertSame(
+			'Test 57320 Update 3',
+			$first->post_title,
+			'The title of the first revision was incorrect.'
+		);
+
+		$this->assertSame(
+			'Test 57320 Update 1',
+			$second->post_title,
+			'The title of the second revision was incorrect.'
+		);
+	}
 }

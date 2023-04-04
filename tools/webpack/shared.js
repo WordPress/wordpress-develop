@@ -57,20 +57,29 @@ const baseConfig = ( env ) => {
 };
 
 const stylesTransform = ( mode ) => ( content ) => {
-	if ( mode === 'production' ) {
-		return postcss( [
-			require( 'cssnano' )( {
-				preset: 'default',
-			} ),
-		] )
-			.process( content, { from: 'src/app.css', to: 'dest/app.css' } )
-			.then( ( result ) => result.css );
-	}
-	return content;
+	return postcss( [
+		require( 'cssnano' )( {
+			preset: mode === 'production' ? 'default' : [
+				'default',
+				{
+					discardComments: {
+						removeAll: ! content.includes( 'Copyright' ) && ! content.includes( 'License' ),
+					},
+					normalizeWhitespace: false,
+				},
+			],
+		} ),
+	] )
+		.process( content, { from: 'src/app.css', to: 'dest/app.css' } )
+		.then( ( result ) => result.css );
 };
+
+const normalizeJoin = ( ...paths ) => join( ...paths ).replace( /\\/g, '/' );
+
 
 module.exports = {
 	baseDir,
 	baseConfig,
+	normalizeJoin,
 	stylesTransform,
 };

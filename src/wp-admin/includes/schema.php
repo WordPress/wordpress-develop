@@ -1059,7 +1059,7 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 	 * created.
 	 */
 	if ( ! is_multisite() ) {
-		$current_site            = new stdClass;
+		$current_site            = new stdClass();
 		$current_site->domain    = $domain;
 		$current_site->path      = $path;
 		$current_site->site_name = ucfirst( $domain );
@@ -1076,6 +1076,16 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 		$current_site->blog_id = $wpdb->insert_id;
 		update_user_meta( $site_user->ID, 'source_domain', $domain );
 		update_user_meta( $site_user->ID, 'primary_blog', $current_site->blog_id );
+
+		// Unable to use update_network_option() while populating the network.
+		$wpdb->insert(
+			$wpdb->sitemeta,
+			array(
+				'site_id'    => $network_id,
+				'meta_key'   => 'main_site',
+				'meta_value' => $current_site->blog_id,
+			)
+		);
 
 		if ( $subdomain_install ) {
 			$wp_rewrite->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );

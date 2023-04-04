@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi-themes
  * @group restapi
  */
@@ -628,7 +626,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'theme_supports', $result[0] );
 		$this->assertArrayHasKey( 'editor-font-sizes', $result[0]['theme_supports'] );
-		$this->assertEquals( array( $tiny ), $result[0]['theme_supports']['editor-font-sizes'] );
+		$this->assertEqualSetsWithIndex( array( $tiny ), $result[0]['theme_supports']['editor-font-sizes'] );
 	}
 
 	/**

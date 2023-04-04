@@ -237,12 +237,14 @@
 
 				<!-- Test case parent classes outside of the "includes" folder. -->
 				<element value="Tests_Query_Conditionals"/>
+				<element value="WP_Block_Templates_UnitTestCase"/>
 				<element value="WP_Filesystem_UnitTestCase"/>
 				<element value="WP_HTTP_UnitTestCase"/>
 				<element value="WP_Image_UnitTestCase"/>
 				<element value="WP_Import_UnitTestCase"/>
 				<element value="WP_Test_Adjacent_Image_Link_TestCase"/>
 				<element value="WP_Tests_Image_Resize_UnitTestCase"/>
+				<element value="WP_Theme_UnitTestCase"/>
 
 				<!-- Mock classes. -->
 				<element value="Spy_REST_Server"/>

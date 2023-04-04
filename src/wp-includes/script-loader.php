@@ -20,16 +20,16 @@
 require ABSPATH . WPINC . '/class-wp-dependency.php';
 
 /** WordPress Dependencies Class */
-require ABSPATH . WPINC . '/class.wp-dependencies.php';
+require ABSPATH . WPINC . '/class-wp-dependencies.php';
 
 /** WordPress Scripts Class */
-require ABSPATH . WPINC . '/class.wp-scripts.php';
+require ABSPATH . WPINC . '/class-wp-scripts.php';
 
 /** WordPress Scripts Functions */
 require ABSPATH . WPINC . '/functions.wp-scripts.php';
 
 /** WordPress Styles Class */
-require ABSPATH . WPINC . '/class.wp-styles.php';
+require ABSPATH . WPINC . '/class-wp-styles.php';
 
 /** WordPress Styles Functions */
 require ABSPATH . WPINC . '/functions.wp-styles.php';
@@ -99,22 +99,24 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-dom-rect',
 		'wp-polyfill-element-closest',
 		'wp-polyfill-object-fit',
-		'wp-polyfill' => array( 'regenerator-runtime' ),
+		'wp-polyfill-inert',
+		'wp-polyfill' => array( 'wp-polyfill-inert', 'regenerator-runtime' ),
 	);
 
 	$vendor_scripts_versions = array(
-		'react'                       => '17.0.1',
-		'react-dom'                   => '17.0.1',
-		'regenerator-runtime'         => '0.13.9',
+		'react'                       => '18.2.0',
+		'react-dom'                   => '18.2.0',
+		'regenerator-runtime'         => '0.13.11',
 		'moment'                      => '2.29.4',
 		'lodash'                      => '4.17.19',
 		'wp-polyfill-fetch'           => '3.6.2',
 		'wp-polyfill-formdata'        => '4.0.10',
-		'wp-polyfill-node-contains'   => '4.0.0',
+		'wp-polyfill-node-contains'   => '4.6.0',
 		'wp-polyfill-url'             => '3.6.4',
-		'wp-polyfill-dom-rect'        => '4.0.0',
-		'wp-polyfill-element-closest' => '2.0.2',
+		'wp-polyfill-dom-rect'        => '4.6.0',
+		'wp-polyfill-element-closest' => '3.0.2',
 		'wp-polyfill-object-fit'      => '2.3.5',
+		'wp-polyfill-inert'           => '3.1.2',
 		'wp-polyfill'                 => '3.15.0',
 	);
 
@@ -169,7 +171,7 @@ function wp_default_packages_vendor( $scripts ) {
  * @since 5.0.0
  *
  * @param WP_Scripts $scripts WP_Scripts object.
- * @param array      $tests   Features to detect.
+ * @param string[]   $tests   Features to detect.
  * @return string Conditional polyfill inline script.
  */
 function wp_get_script_polyfill( $scripts, $tests ) {
@@ -190,7 +192,7 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 			$src = add_query_arg( 'ver', $ver, $src );
 		}
 
-		/** This filter is documented in wp-includes/class.wp-scripts.php */
+		/** This filter is documented in wp-includes/class-wp-scripts.php */
 		$src = esc_url( apply_filters( 'script_loader_src', $src, $handle ) );
 
 		if ( ! $src ) {
@@ -227,6 +229,7 @@ function wp_register_development_scripts( $scripts ) {
 	if (
 		! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG
 		|| empty( $scripts->registered['react'] )
+		|| defined( 'WP_RUN_CORE_TESTS' )
 	) {
 		return;
 	}
@@ -264,8 +267,7 @@ function wp_register_development_scripts( $scripts ) {
  * @param WP_Scripts $scripts WP_Scripts object.
  */
 function wp_default_packages_scripts( $scripts ) {
-	$suffix = wp_scripts_get_suffix();
-
+	$suffix = defined( 'WP_RUN_CORE_TESTS' ) ? '.min' : wp_scripts_get_suffix();
 	/*
 	 * Expects multidimensional array like:
 	 *
@@ -273,10 +275,10 @@ function wp_default_packages_scripts( $scripts ) {
 	 *     'annotations.js' => array('dependencies' => array(...), 'version' => '...'),
 	 *     'api-fetch.js' => array(...
 	 */
-	$assets = include ABSPATH . WPINC . '/assets/script-loader-packages.php';
+	$assets = include ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
 
-	foreach ( $assets as $package_name => $package_data ) {
-		$basename = basename( $package_name, '.js' );
+	foreach ( $assets as $file_name => $package_data ) {
+		$basename = str_replace( $suffix . '.js', '', basename( $file_name ) );
 		$handle   = 'wp-' . $basename;
 		$path     = "/wp-includes/js/dist/{$basename}{$suffix}.js";
 
@@ -380,6 +382,22 @@ function wp_default_packages_inline_scripts( $scripts ) {
 			} ) ();',
 			wp_json_encode( $preload_data ),
 			$user_id
+		)
+	);
+
+	// Backwards compatibility - configure the old wp-data persistence system.
+	$scripts->add_inline_script(
+		'wp-data',
+		implode(
+			"\n",
+			array(
+				'( function() {',
+				'	var userId = ' . get_current_user_ID() . ';',
+				'	var storageKey = "WP_DATA_USER_" + userId;',
+				'	wp.data',
+				'		.use( wp.data.plugins.persistence, { storageKey: storageKey } );',
+				'} )();',
+			)
 		)
 	);
 
@@ -740,7 +758,7 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'editor', "/wp-admin/js/editor$suffix.js", array( 'utils', 'jquery' ), false, 1 );
 
-	$scripts->add( 'clipboard', "/wp-includes/js/clipboard$suffix.js", array(), '2.0.10', 1 );
+	$scripts->add( 'clipboard', "/wp-includes/js/clipboard$suffix.js", array(), '2.0.11', 1 );
 
 	$scripts->add( 'wp-ajax-response', "/wp-includes/js/wp-ajax-response$suffix.js", array( 'jquery', 'wp-a11y' ), false, 1 );
 	did_action( 'init' ) && $scripts->localize(
@@ -804,9 +822,9 @@ function wp_default_scripts( $scripts ) {
 
 	// jQuery.
 	// The unminified jquery.js and jquery-migrate.js are included to facilitate debugging.
-	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.6.1' );
-	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.6.1' );
-	$scripts->add( 'jquery-migrate', "/wp-includes/js/jquery/jquery-migrate$suffix.js", array(), '3.3.2' );
+	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.6.4' );
+	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.6.3' );
+	$scripts->add( 'jquery-migrate', "/wp-includes/js/jquery/jquery-migrate$suffix.js", array(), '3.4.0' );
 
 	// Full jQuery UI.
 	// The build process in 1.12.1 has changed significantly.
@@ -996,8 +1014,8 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'imgareaselect', "/wp-includes/js/imgareaselect/jquery.imgareaselect$suffix.js", array( 'jquery' ), false, 1 );
 
-	$scripts->add( 'mediaelement', false, array( 'jquery', 'mediaelement-core', 'mediaelement-migrate' ), '4.2.16', 1 );
-	$scripts->add( 'mediaelement-core', "/wp-includes/js/mediaelement/mediaelement-and-player$suffix.js", array(), '4.2.16', 1 );
+	$scripts->add( 'mediaelement', false, array( 'jquery', 'mediaelement-core', 'mediaelement-migrate' ), '4.2.17', 1 );
+	$scripts->add( 'mediaelement-core', "/wp-includes/js/mediaelement/mediaelement-and-player$suffix.js", array(), '4.2.17', 1 );
 	$scripts->add( 'mediaelement-migrate', "/wp-includes/js/mediaelement/mediaelement-migrate$suffix.js", array(), false, 1 );
 
 	did_action( 'init' ) && $scripts->add_inline_script(
@@ -1087,12 +1105,16 @@ function wp_default_scripts( $scripts ) {
 		'before'
 	);
 
-	$scripts->add( 'mediaelement-vimeo', '/wp-includes/js/mediaelement/renderers/vimeo.min.js', array( 'mediaelement' ), '4.2.16', 1 );
+	$scripts->add( 'mediaelement-vimeo', '/wp-includes/js/mediaelement/renderers/vimeo.min.js', array( 'mediaelement' ), '4.2.17', 1 );
 	$scripts->add( 'wp-mediaelement', "/wp-includes/js/mediaelement/wp-mediaelement$suffix.js", array( 'mediaelement' ), false, 1 );
 	$mejs_settings = array(
-		'pluginPath'  => includes_url( 'js/mediaelement/', 'relative' ),
-		'classPrefix' => 'mejs-',
-		'stretching'  => 'responsive',
+		'pluginPath'            => includes_url( 'js/mediaelement/', 'relative' ),
+		'classPrefix'           => 'mejs-',
+		'stretching'            => 'responsive',
+		/** This filter is documented in wp-includes/media.php */
+		'audioShortcodeLibrary' => apply_filters( 'wp_audio_shortcode_library', 'mediaelement' ),
+		/** This filter is documented in wp-includes/media.php */
+		'videoShortcodeLibrary' => apply_filters( 'wp_video_shortcode_library', 'mediaelement' ),
 	);
 	did_action( 'init' ) && $scripts->localize(
 		'mediaelement',
@@ -1115,7 +1137,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'htmlhint', '/wp-includes/js/codemirror/htmlhint.js', array(), '0.9.14-xwp' );
 	$scripts->add( 'htmlhint-kses', '/wp-includes/js/codemirror/htmlhint-kses.js', array( 'htmlhint' ) );
 	$scripts->add( 'code-editor', "/wp-admin/js/code-editor$suffix.js", array( 'jquery', 'wp-codemirror', 'underscore' ) );
-	$scripts->add( 'wp-theme-plugin-editor', "/wp-admin/js/theme-plugin-editor$suffix.js", array( 'common', 'wp-util', 'wp-sanitize', 'jquery', 'jquery-ui-core', 'wp-a11y', 'underscore' ) );
+	$scripts->add( 'wp-theme-plugin-editor', "/wp-admin/js/theme-plugin-editor$suffix.js", array( 'common', 'wp-util', 'wp-sanitize', 'jquery', 'jquery-ui-core', 'wp-a11y', 'underscore' ), false, 1 );
 	$scripts->set_translations( 'wp-theme-plugin-editor' );
 
 	$scripts->add( 'wp-playlist', "/wp-includes/js/mediaelement/wp-playlist$suffix.js", array( 'wp-util', 'backbone', 'mediaelement' ), false, 1 );
@@ -1271,8 +1293,8 @@ function wp_default_scripts( $scripts ) {
 			'invalidValue'            => __( 'Invalid value.' ),
 			'blockThemeNotification'  => sprintf(
 				/* translators: 1: Link to Site Editor documentation on HelpHub, 2: HTML button. */
-				__( 'Hurray! Your theme supports Full Site Editing with blocks. <a href="%1$s">Tell me more</a>. %2$s' ),
-				__( 'https://wordpress.org/support/article/site-editor/' ),
+				__( 'Hurray! Your theme supports site editing with blocks. <a href="%1$s">Tell me more</a>. %2$s' ),
+				__( 'https://wordpress.org/documentation/article/site-editor/' ),
 				sprintf(
 					'<button type="button" data-action="%1$s" class="button switch-to-editor">%2$s</button>',
 					esc_url( admin_url( 'site-editor.php' ) ),
@@ -1550,7 +1572,7 @@ function wp_default_styles( $styles ) {
 	// External libraries and friends.
 	$styles->add( 'imgareaselect', '/wp-includes/js/imgareaselect/imgareaselect.css', array(), '0.9.8' );
 	$styles->add( 'wp-jquery-ui-dialog', "/wp-includes/css/jquery-ui-dialog$suffix.css", array( 'dashicons' ) );
-	$styles->add( 'mediaelement', '/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css', array(), '4.2.16' );
+	$styles->add( 'mediaelement', '/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css', array(), '4.2.17' );
 	$styles->add( 'wp-mediaelement', "/wp-includes/js/mediaelement/wp-mediaelement$suffix.css", array( 'mediaelement' ) );
 	$styles->add( 'thickbox', '/wp-includes/js/thickbox/thickbox.css', array( 'dashicons' ) );
 	$styles->add( 'wp-codemirror', '/wp-includes/js/codemirror/codemirror.min.css', array(), '5.29.1-alpha-ee20357' );
@@ -1591,6 +1613,12 @@ function wp_default_styles( $styles ) {
 		array()
 	);
 
+	$styles->add(
+		'wp-block-editor-content',
+		"/wp-includes/css/dist/block-editor/content$suffix.css",
+		array()
+	);
+
 	$wp_edit_blocks_dependencies = array(
 		'wp-components',
 		'wp-editor',
@@ -1599,15 +1627,22 @@ function wp_default_styles( $styles ) {
 		'wp-reset-editor-styles',
 		'wp-block-library',
 		'wp-reusable-blocks',
+		'wp-block-editor-content',
 	);
 
 	// Only load the default layout and margin styles for themes without theme.json file.
-	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
+	if ( ! wp_theme_has_theme_json() ) {
 		$wp_edit_blocks_dependencies[] = 'wp-editor-classic-layout-styles';
 	}
 
-	if ( ! is_array( $editor_styles ) || count( $editor_styles ) === 0 ) {
-		// Include opinionated block styles if no $editor_styles are declared, so the editor never appears broken.
+	if (
+		current_theme_supports( 'wp-block-styles' ) &&
+		( ! is_array( $editor_styles ) || count( $editor_styles ) === 0 )
+	) {
+		/*
+		 * Include opinionated block styles if the theme supports block styles and
+		 * no $editor_styles are declared, so the editor never appears broken.
+		 */
 		$wp_edit_blocks_dependencies[] = 'wp-block-library-theme';
 	}
 
@@ -1745,8 +1780,8 @@ function wp_default_styles( $styles ) {
  *
  * @since 2.3.1
  *
- * @param array $js_array JavaScript scripts array
- * @return array Reordered array, if needed.
+ * @param string[] $js_array JavaScript scripts array
+ * @return string[] Reordered array, if needed.
  */
 function wp_prototype_before_jquery( $js_array ) {
 	$prototype = array_search( 'prototype', $js_array, true );
@@ -1802,12 +1837,7 @@ function wp_just_in_time_script_localization() {
 		'word-count',
 		'wordCountL10n',
 		array(
-			/*
-			 * translators: If your word count is based on single characters (e.g. East Asian characters),
-			 * enter 'characters_excluding_spaces' or 'characters_including_spaces'. Otherwise, enter 'words'.
-			 * Do not translate into your own language.
-			 */
-			'type'       => _x( 'words', 'Word count type. Do not translate!' ),
+			'type'       => wp_get_word_count_type(),
 			'shortcodes' => ! empty( $GLOBALS['shortcode_tags'] ) ? array_keys( $GLOBALS['shortcode_tags'] ) : array(),
 		)
 	);
@@ -2409,14 +2439,11 @@ function wp_enqueue_global_styles() {
 	}
 
 	/*
-	 * If we are loading CSS for each block separately, then we can load the theme.json CSS conditionally.
+	 * If loading the CSS for each block separately, then load the theme.json CSS conditionally.
 	 * This removes the CSS from the global-styles stylesheet and adds it to the inline CSS for each block.
+	 * This filter must be registered before calling wp_get_global_stylesheet();
 	 */
-	if ( $separate_assets ) {
-		add_filter( 'theme_json_get_style_nodes', 'wp_filter_out_block_nodes' );
-		// Add each block as an inline css.
-		wp_add_global_styles_for_blocks();
-	}
+	add_filter( 'wp_theme_json_get_style_nodes', 'wp_filter_out_block_nodes' );
 
 	$stylesheet = wp_get_global_stylesheet();
 
@@ -2424,9 +2451,33 @@ function wp_enqueue_global_styles() {
 		return;
 	}
 
-	wp_register_style( 'global-styles', false, array(), true, true );
+	wp_register_style( 'global-styles', false );
 	wp_add_inline_style( 'global-styles', $stylesheet );
 	wp_enqueue_style( 'global-styles' );
+
+	// Add each block as an inline css.
+	wp_add_global_styles_for_blocks();
+}
+
+/**
+ * Enqueues the global styles custom css defined via theme.json.
+ *
+ * @since 6.2.0
+ */
+function wp_enqueue_global_styles_custom_css() {
+	if ( ! wp_is_block_theme() ) {
+		return;
+	}
+
+	// Don't enqueue Customizer's custom CSS separately.
+	remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
+
+	$custom_css  = wp_get_custom_css();
+	$custom_css .= wp_get_global_styles_custom_css();
+
+	if ( ! empty( $custom_css ) ) {
+		wp_add_inline_style( 'global-styles', $custom_css );
+	}
 }
 
 /**
@@ -2933,7 +2984,7 @@ function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
  * @since 5.9.0
  */
 function wp_enqueue_global_styles_css_custom_properties() {
-	wp_register_style( 'global-styles-css-custom-properties', false, array(), true, true );
+	wp_register_style( 'global-styles-css-custom-properties', false );
 	wp_add_inline_style( 'global-styles-css-custom-properties', wp_get_global_stylesheet( array( 'variables' ) ) );
 	wp_enqueue_style( 'global-styles-css-custom-properties' );
 }
@@ -3014,7 +3065,7 @@ function wp_enqueue_stored_styles( $options = array() ) {
 
 	// Combines Core styles.
 	if ( ! empty( $compiled_core_stylesheet ) ) {
-		wp_register_style( $style_tag_id, false, array(), true, true );
+		wp_register_style( $style_tag_id, false );
 		wp_add_inline_style( $style_tag_id, $compiled_core_stylesheet );
 		wp_enqueue_style( $style_tag_id );
 	}
@@ -3028,7 +3079,7 @@ function wp_enqueue_stored_styles( $options = array() ) {
 		$styles = wp_style_engine_get_stylesheet_from_context( $store_name, $options );
 		if ( ! empty( $styles ) ) {
 			$key = "wp-style-engine-$store_name";
-			wp_register_style( $key, false, array(), true, true );
+			wp_register_style( $key, false );
 			wp_add_inline_style( $key, $styles );
 			wp_enqueue_style( $key );
 		}
@@ -3171,6 +3222,10 @@ function wp_enqueue_block_style( $block_name, $args ) {
 function _wp_theme_json_webfonts_handler() {
 	// Block themes are unavailable during installation.
 	if ( wp_installing() ) {
+		return;
+	}
+
+	if ( ! wp_theme_has_theme_json() ) {
 		return;
 	}
 
@@ -3475,13 +3530,14 @@ function _wp_theme_json_webfonts_handler() {
 	 * Compiles the 'src' into valid CSS.
 	 *
 	 * @since 6.0.0
+	 * @since 6.2.0 Removed local() CSS.
 	 *
 	 * @param string $font_family Font family.
 	 * @param array  $value       Value to process.
 	 * @return string The CSS.
 	 */
 	$fn_compile_src = static function( $font_family, array $value ) {
-		$src = "local($font_family)";
+		$src = '';
 
 		foreach ( $value as $item ) {
 
@@ -3496,6 +3552,8 @@ function _wp_theme_json_webfonts_handler() {
 				? ", url({$item['url']})"
 				: ", url('{$item['url']}') format('{$item['format']}')";
 		}
+
+		$src = ltrim( $src, ', ' );
 
 		return $src;
 	};
@@ -3639,4 +3697,52 @@ function _wp_theme_json_webfonts_handler() {
 	add_action( 'wp_loaded', $fn_register_webfonts );
 	add_action( 'wp_enqueue_scripts', $fn_generate_and_enqueue_styles );
 	add_action( 'admin_init', $fn_generate_and_enqueue_editor_styles );
+}
+
+/**
+ * Loads classic theme styles on classic themes in the frontend.
+ *
+ * This is needed for backwards compatibility for button blocks specifically.
+ *
+ * @since 6.1.0
+ */
+function wp_enqueue_classic_theme_styles() {
+	if ( ! wp_theme_has_theme_json() ) {
+		$suffix = wp_scripts_get_suffix();
+		wp_register_style( 'classic-theme-styles', '/' . WPINC . "/css/classic-themes$suffix.css" );
+		wp_enqueue_style( 'classic-theme-styles' );
+	}
+}
+
+/**
+ * Loads classic theme styles on classic themes in the editor.
+ *
+ * This is needed for backwards compatibility for button blocks specifically.
+ *
+ * @since 6.1.0
+ *
+ * @param array $editor_settings The array of editor settings.
+ * @return array A filtered array of editor settings.
+ */
+function wp_add_editor_classic_theme_styles( $editor_settings ) {
+	if ( wp_theme_has_theme_json() ) {
+		return $editor_settings;
+	}
+
+	$suffix               = wp_scripts_get_suffix();
+	$classic_theme_styles = ABSPATH . WPINC . "/css/classic-themes$suffix.css";
+
+	// This follows the pattern of get_block_editor_theme_styles,
+	// but we can't use get_block_editor_theme_styles directly as it
+	// only handles external files or theme files.
+	$classic_theme_styles_settings = array(
+		'css'            => file_get_contents( $classic_theme_styles ),
+		'__unstableType' => 'core',
+		'isGlobalStyles' => false,
+	);
+
+	// Add these settings to the start of the array so that themes can override them.
+	array_unshift( $editor_settings['styles'], $classic_theme_styles_settings );
+
+	return $editor_settings;
 }

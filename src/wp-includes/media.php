@@ -1023,7 +1023,8 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
  *                                  will result in the attribute being omitted for the image.
  *                                  Defaults to 'lazy', depending on wp_lazy_loading_enabled().
  *     @type string       $decoding The 'decoding' attribute value. Possible values are
- *                                  'async' (default), 'sync', or 'auto'.
+ *                                  'async' (default), 'sync', or 'auto'. Passing false or an empty
+ *                                  string will result in the attribute being omitted.
  * }
  * @return string HTML img element or empty string on failure.
  */
@@ -1055,6 +1056,11 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		}
 
 		$attr = wp_parse_args( $attr, $default_attr );
+
+		// Omit the `decoding` attribute if the value is invalid according to the spec.
+		if ( empty( $attr['decoding'] ) || ! in_array( $attr['decoding'], array( 'async', 'sync', 'auto' ), true ) ) {
+			unset( $attr['decoding'] );
+		}
 
 		// If the default value of `lazy` for the `loading` attribute is overridden
 		// to omit the attribute for this image, ensure it is not included.
@@ -1544,7 +1550,7 @@ function wp_image_file_matches_image_meta( $image_location, $image_meta, $attach
 
 	// Ensure the $image_meta is valid.
 	if ( isset( $image_meta['file'] ) && strlen( $image_meta['file'] ) > 4 ) {
-		// Remove quiery args if image URI.
+		// Remove query args in image URI.
 		list( $image_location ) = explode( '?', $image_location );
 
 		// Check if the relative image path from the image meta is at the end of $image_location.
@@ -1962,6 +1968,12 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
  * @return string Converted `img` tag with `decoding` attribute added.
  */
 function wp_img_tag_add_decoding_attr( $image, $context ) {
+	// Only apply the decoding attribute to images that have a src attribute that
+	// starts with a double quote, ensuring escaped JSON is also excluded.
+	if ( false === strpos( $image, ' src="' ) ) {
+		return $image;
+	}
+
 	/**
 	 * Filters the `decoding` attribute value to add to an image. Default `async`.
 	 *
@@ -2626,10 +2638,14 @@ function wp_underscore_playlist_templates() {
 	<# } #>
 	<div class="wp-playlist-caption">
 		<span class="wp-playlist-item-meta wp-playlist-item-title">
-		<?php
-			/* translators: %s: Playlist item title. */
-			printf( _x( '&#8220;%s&#8221;', 'playlist item title' ), '{{ data.title }}' );
-		?>
+			<# if ( data.meta.album || data.meta.artist ) { #>
+				<?php
+				/* translators: %s: Playlist item title. */
+				printf( _x( '&#8220;%s&#8221;', 'playlist item title' ), '{{ data.title }}' );
+				?>
+			<# } else { #>
+				{{ data.title }}
+			<# } #>
 		</span>
 		<# if ( data.meta.album ) { #><span class="wp-playlist-item-meta wp-playlist-item-album">{{ data.meta.album }}</span><# } #>
 		<# if ( data.meta.artist ) { #><span class="wp-playlist-item-meta wp-playlist-item-artist">{{ data.meta.artist }}</span><# } #>
@@ -2642,14 +2658,16 @@ function wp_underscore_playlist_templates() {
 			<# if ( data.caption ) { #>
 				{{ data.caption }}
 			<# } else { #>
-				<span class="wp-playlist-item-title">
-				<?php
-					/* translators: %s: Playlist item title. */
-					printf( _x( '&#8220;%s&#8221;', 'playlist item title' ), '{{{ data.title }}}' );
-				?>
-				</span>
 				<# if ( data.artists && data.meta.artist ) { #>
-				<span class="wp-playlist-item-artist"> &mdash; {{ data.meta.artist }}</span>
+					<span class="wp-playlist-item-title">
+						<?php
+						/* translators: %s: Playlist item title. */
+						printf( _x( '&#8220;%s&#8221;', 'playlist item title' ), '{{{ data.title }}}' );
+						?>
+					</span>
+					<span class="wp-playlist-item-artist"> &mdash; {{ data.meta.artist }}</span>
+				<# } else { #>
+					<span class="wp-playlist-item-title">{{{ data.title }}}</span>
 				<# } #>
 			<# } #>
 		</a>
@@ -3838,6 +3856,7 @@ function wp_max_upload_size() {
 function wp_get_image_editor( $path, $args = array() ) {
 	$args['path'] = $path;
 
+	// If the mime type is not set in args, try to extract and set it from the file.
 	if ( ! isset( $args['mime_type'] ) ) {
 		$file_info = wp_check_filetype( $args['path'] );
 
@@ -3845,6 +3864,15 @@ function wp_get_image_editor( $path, $args = array() ) {
 		// figure out the file type, rather than forcing a failure based on extension.
 		if ( isset( $file_info ) && $file_info['type'] ) {
 			$args['mime_type'] = $file_info['type'];
+		}
+	}
+
+	// Check and set the output mime type mapped to the input type.
+	if ( isset( $args['mime_type'] ) ) {
+		/** This filter is documented in wp-includes/class-wp-image-editor.php */
+		$output_format = apply_filters( 'image_editor_output_format', array(), $path, $args['mime_type'] );
+		if ( isset( $output_format[ $args['mime_type'] ] ) ) {
+			$args['output_mime_type'] = $output_format[ $args['mime_type'] ];
 		}
 	}
 
@@ -3900,12 +3928,14 @@ function _wp_image_editor_choose( $args = array() ) {
 	 *                                'WP_Image_Editor_Imagick', 'WP_Image_Editor_GD'.
 	 */
 	$implementations = apply_filters( 'wp_image_editors', array( 'WP_Image_Editor_Imagick', 'WP_Image_Editor_GD' ) );
+	$supports_input  = false;
 
 	foreach ( $implementations as $implementation ) {
 		if ( ! call_user_func( array( $implementation, 'test' ), $args ) ) {
 			continue;
 		}
 
+		// Implementation should support the passed mime type.
 		if ( isset( $args['mime_type'] ) &&
 			! call_user_func(
 				array( $implementation, 'supports_mime_type' ),
@@ -3914,16 +3944,31 @@ function _wp_image_editor_choose( $args = array() ) {
 			continue;
 		}
 
+		// Implementation should support requested methods.
 		if ( isset( $args['methods'] ) &&
 			array_diff( $args['methods'], get_class_methods( $implementation ) ) ) {
 
 			continue;
 		}
 
+		// Implementation should ideally support the output mime type as well if set and different than the passed type.
+		if (
+			isset( $args['mime_type'] ) &&
+			isset( $args['output_mime_type'] ) &&
+			$args['mime_type'] !== $args['output_mime_type'] &&
+			! call_user_func( array( $implementation, 'supports_mime_type' ), $args['output_mime_type'] )
+		) {
+			// This implementation supports the imput type but not the output type.
+			// Keep looking to see if we can find an implementation that supports both.
+			$supports_input = $implementation;
+			continue;
+		}
+
+		// Favor the implementation that supports both input and output mime types.
 		return $implementation;
 	}
 
-	return false;
+	return $supports_input;
 }
 
 /**
@@ -5399,25 +5444,40 @@ function wp_get_webp_info( $filename ) {
  *                     that the `loading` attribute should be skipped.
  */
 function wp_get_loading_attr_default( $context ) {
-	// Only elements with 'the_content' or 'the_post_thumbnail' context have special handling.
-	if ( 'the_content' !== $context && 'the_post_thumbnail' !== $context ) {
-		return 'lazy';
-	}
-
-	// Only elements within the main query loop have special handling.
-	if ( is_admin() || ! in_the_loop() || ! is_main_query() ) {
-		return 'lazy';
-	}
-
-	// Increase the counter since this is a main query content element.
-	$content_media_count = wp_increase_content_media_count();
-
-	// If the count so far is below the threshold, return `false` so that the `loading` attribute is omitted.
-	if ( $content_media_count <= wp_omit_loading_attr_threshold() ) {
+	// Skip lazy-loading for the overall block template, as it is handled more granularly.
+	if ( 'template' === $context ) {
 		return false;
 	}
 
-	// For elements after the threshold, lazy-load them as usual.
+	// Do not lazy-load images in the header block template part, as they are likely above the fold.
+	$header_area = WP_TEMPLATE_PART_AREA_HEADER;
+	if ( "template_part_{$header_area}" === $context ) {
+		return false;
+	}
+
+	/*
+	 * The first elements in 'the_content' or 'the_post_thumbnail' should not be lazy-loaded,
+	 * as they are likely above the fold.
+	 */
+	if ( 'the_content' === $context || 'the_post_thumbnail' === $context ) {
+		// Only elements within the main query loop have special handling.
+		if ( is_admin() || ! in_the_loop() || ! is_main_query() ) {
+			return 'lazy';
+		}
+
+		// Increase the counter since this is a main query content element.
+		$content_media_count = wp_increase_content_media_count();
+
+		// If the count so far is below the threshold, return `false` so that the `loading` attribute is omitted.
+		if ( $content_media_count <= wp_omit_loading_attr_threshold() ) {
+			return false;
+		}
+
+		// For elements after the threshold, lazy-load them as usual.
+		return 'lazy';
+	}
+
+	// Lazy-load by default for any unknown context.
 	return 'lazy';
 }
 
