@@ -231,23 +231,23 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 				<div class="notice notice-error notice-alt notice-missing-attachment">
 					<p><?php echo $this->l10n['missing_attachment']; ?></p>
 				</div>
-			<# } elseif ( data.error && 'unsupported_file_type' === data.error ) { #>
+			<# } else if ( data.error && 'unsupported_file_type' === data.error ) { #>
 				<div class="notice notice-error notice-alt notice-missing-attachment">
 					<p><?php echo $this->l10n['unsupported_file_type']; ?></p>
 				</div>
-			<# } elseif ( data.error ) { #>
+			<# } else if ( data.error ) { #>
 				<div class="notice notice-error notice-alt">
 					<p><?php _e( 'Unable to preview media due to an unknown error.' ); ?></p>
 				</div>
-			<# } elseif ( data.is_oembed && data.model.poster ) { #>
+			<# } else if ( data.is_oembed && data.model.poster ) { #>
 				<a href="{{ data.model.src }}" target="_blank" class="media-widget-video-link">
 					<img src="{{ data.model.poster }}" />
 				</a>
-			<# } elseif ( data.is_oembed ) { #>
+			<# } else if ( data.is_oembed ) { #>
 				<a href="{{ data.model.src }}" target="_blank" class="media-widget-video-link no-poster">
 					<span class="dashicons dashicons-format-video"></span>
 				</a>
-			<# } elseif ( data.model.src ) { #>
+			<# } else if ( data.model.src ) { #>
 				<?php wp_underscore_video_template(); ?>
 			<# } #>
 		</script>
