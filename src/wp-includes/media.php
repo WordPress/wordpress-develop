@@ -5456,6 +5456,16 @@ function wp_get_loading_attr_default( $context ) {
 	}
 
 	/*
+	 * Skip featured images within post content as they need to be handled together with the other images within the
+	 * post content.
+	 * Without this clause, they would already be counted below which skews the number and can result in the first
+	 * post content image being lazy-loaded only because there are featured images elsewhere in the post content.
+	 */
+	if ( 'the_post_thumbnail' === $context && doing_filter( 'the_content' ) ) {
+		return false;
+	}
+
+	/*
 	 * The first elements in 'the_content' or 'the_post_thumbnail' should not be lazy-loaded,
 	 * as they are likely above the fold.
 	 */
