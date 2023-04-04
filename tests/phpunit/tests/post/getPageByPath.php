@@ -103,6 +103,101 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 		$this->assertSame( $p3, $found->ID );
 	}
 
+	/**
+	 * @ticket 56689
+	 *
+	 * @covers ::get_page_by_path
+	 */
+	public function test_should_match_nested_page_query_count() {
+		$p1 = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'foo',
+			)
+		);
+
+		$p2 = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'bar',
+				'post_parent' => $p1,
+			)
+		);
+
+		$p3 = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'baz',
+				'post_parent' => $p2,
+			)
+		);
+
+		$queries_before = get_num_queries();
+		$found          = get_page_by_path( 'foo/bar/baz' );
+		$queries_after  = get_num_queries();
+		$cached_post    = wp_cache_get( $p1, 'posts' );
+
+		$this->assertSame( 1, $queries_after - $queries_before, 'Only one query should run' );
+		$this->assertSame( $p3, $found->ID, 'Check to see if the result is correct' );
+		$this->assertIsObject( $cached_post, 'The cached post is not an object' );
+	}
+
+	/**
+	 * @ticket 56689
+	 *
+	 * @covers ::get_page_by_path
+	 */
+	public function test_should_match_nested_page_query_count_status() {
+		$p1 = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'foo',
+				'post_status' => 'draft',
+			)
+		);
+
+		$p2 = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'bar',
+				'post_parent' => $p1,
+			)
+		);
+
+		$p3 = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'baz',
+				'post_parent' => $p2,
+			)
+		);
+
+		$queries_before = get_num_queries();
+		$found          = get_page_by_path( 'foo/bar/baz' );
+		$queries_after  = get_num_queries();
+		$cached_post    = wp_cache_get( $p1, 'posts' );
+
+		$this->assertSame( 1, $queries_after - $queries_before, 'Only one query should run' );
+		$this->assertSame( $p3, $found->ID, 'Check to see if the result is correct' );
+		$this->assertIsObject( $cached_post, 'The cached post is not an object' );
+	}
+
+	/**
+	 * @ticket 56689
+	 *
+	 * @covers ::get_page_by_path
+	 */
+	public function test_should_return_null_for_invalid_path() {
+		$queries_before = get_num_queries();
+		$get_1          = get_page_by_path( 'should/return/null/for/an/invalid/path' );
+		$get_2          = get_page_by_path( 'should/return/null/for/an/invalid/path' );
+		$queries_after  = get_num_queries();
+
+		$this->assertNull( $get_1, 'Invalid path should return null.' );
+		$this->assertSame( 1, $queries_after - $queries_before, 'Only one query should run.' );
+		$this->assertSame( $get_1, $get_2, 'The cached result should be the same as the uncached result.' );
+	}
+
 	public function test_should_not_make_partial_match() {
 		$p1 = self::factory()->post->create(
 			array(

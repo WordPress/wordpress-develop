@@ -371,8 +371,9 @@ class WP_Http {
 		 * @since 2.8.0
 		 * @since 5.1.0 The `$url` parameter was added.
 		 *
-		 * @param bool   $ssl_verify Whether to verify the SSL connection. Default true.
-		 * @param string $url        The request URL.
+		 * @param bool|string $ssl_verify Boolean to control whether to verify the SSL connection
+		 *                                or path to an SSL certificate.
+		 * @param string      $url        The request URL.
 		 */
 		$options['verify'] = apply_filters( 'https_ssl_verify', $options['verify'], $url );
 
@@ -1010,6 +1011,11 @@ class WP_Http {
 		// Add the query string.
 		if ( ! empty( $relative_url_parts['query'] ) ) {
 			$path .= '?' . $relative_url_parts['query'];
+		}
+
+		// Add the fragment.
+		if ( ! empty( $relative_url_parts['fragment'] ) ) {
+			$path .= '#' . $relative_url_parts['fragment'];
 		}
 
 		return $absolute_path . '/' . ltrim( $path, '/' );

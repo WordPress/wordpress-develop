@@ -322,7 +322,10 @@ function get_search_form( $args = array() ) {
 		if ( 'html5' === $format ) {
 			$form = '<form role="search" ' . $aria_label . 'method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">
 				<label>
-					<span class="screen-reader-text">' . _x( 'Search for:', 'label' ) . '</span>
+					<span class="screen-reader-text">' .
+					/* translators: Hidden accessibility text. */
+					_x( 'Search for:', 'label' ) .
+					'</span>
 					<input type="search" class="search-field" placeholder="' . esc_attr_x( 'Search &hellip;', 'placeholder' ) . '" value="' . get_search_query() . '" name="s" />
 				</label>
 				<input type="submit" class="search-submit" value="' . esc_attr_x( 'Search', 'submit button' ) . '" />
@@ -330,7 +333,10 @@ function get_search_form( $args = array() ) {
 		} else {
 			$form = '<form role="search" ' . $aria_label . 'method="get" id="searchform" class="searchform" action="' . esc_url( home_url( '/' ) ) . '">
 				<div>
-					<label class="screen-reader-text" for="s">' . _x( 'Search for:', 'label' ) . '</label>
+					<label class="screen-reader-text" for="s">' .
+					/* translators: Hidden accessibility text. */
+					_x( 'Search for:', 'label' ) .
+					'</label>
 					<input type="text" value="' . get_search_query() . '" name="s" id="s" />
 					<input type="submit" id="searchsubmit" value="' . esc_attr_x( 'Search', 'submit button' ) . '" />
 				</div>
@@ -595,7 +601,7 @@ function wp_login_form( $args = array() ) {
 		sprintf(
 			'<p class="login-password">
 				<label for="%1$s">%2$s</label>
-				<input type="password" name="pwd" id="%1$s" autocomplete="current-password" class="input" value="" size="20" />
+				<input type="password" name="pwd" id="%1$s" autocomplete="current-password" spellcheck="false" class="input" value="" size="20" />
 			</p>',
 			esc_attr( $args['id_password'] ),
 			esc_html( $args['label_password'] )
@@ -646,7 +652,7 @@ function wp_lostpassword_url( $redirect = '' ) {
 	}
 
 	if ( is_multisite() ) {
-		$blog_details  = get_blog_details();
+		$blog_details  = get_site();
 		$wp_login_path = $blog_details->path . 'wp-login.php';
 	} else {
 		$wp_login_path = 'wp-login.php';
@@ -755,7 +761,7 @@ function bloginfo( $show = '' ) {
  * - 'admin_email' - Admin email (set in Settings > General)
  * - 'charset' - The "Encoding for pages and feeds"  (set in Settings > Reading)
  * - 'version' - The current WordPress version
- * - 'html_type' - The content-type (default: "text/html"). Themes and plugins
+ * - 'html_type' - The Content-Type (default: "text/html"). Themes and plugins
  *   can override the default value using the {@see 'pre_option_html_type'} filter
  * - 'text_direction' - The text direction determined by the site's language. is_rtl()
  *   should be used instead
@@ -2048,10 +2054,10 @@ function wp_get_archives( $args = '' ) {
 		$query   = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date), MONTH(post_date) ORDER BY post_date $order $limit";
 		$key     = md5( $query );
 		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'posts' );
+		$results = wp_cache_get( $key, 'post-queries' );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'posts' );
+			wp_cache_set( $key, $results, 'post-queries' );
 		}
 		if ( $results ) {
 			$after = $parsed_args['after'];
@@ -2073,10 +2079,10 @@ function wp_get_archives( $args = '' ) {
 		$query   = "SELECT YEAR(post_date) AS `year`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date) ORDER BY post_date $order $limit";
 		$key     = md5( $query );
 		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'posts' );
+		$results = wp_cache_get( $key, 'post-queries' );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'posts' );
+			wp_cache_set( $key, $results, 'post-queries' );
 		}
 		if ( $results ) {
 			$after = $parsed_args['after'];
@@ -2097,10 +2103,10 @@ function wp_get_archives( $args = '' ) {
 		$query   = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, DAYOFMONTH(post_date) AS `dayofmonth`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date), MONTH(post_date), DAYOFMONTH(post_date) ORDER BY post_date $order $limit";
 		$key     = md5( $query );
 		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'posts' );
+		$results = wp_cache_get( $key, 'post-queries' );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'posts' );
+			wp_cache_set( $key, $results, 'post-queries' );
 		}
 		if ( $results ) {
 			$after = $parsed_args['after'];
@@ -2123,10 +2129,10 @@ function wp_get_archives( $args = '' ) {
 		$query   = "SELECT DISTINCT $week AS `week`, YEAR( `post_date` ) AS `yr`, DATE_FORMAT( `post_date`, '%Y-%m-%d' ) AS `yyyymmdd`, count( `ID` ) AS `posts` FROM `$wpdb->posts` $join $where GROUP BY $week, YEAR( `post_date` ) ORDER BY `post_date` $order $limit";
 		$key     = md5( $query );
 		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'posts' );
+		$results = wp_cache_get( $key, 'post-queries' );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'posts' );
+			wp_cache_set( $key, $results, 'post-queries' );
 		}
 		$arc_w_last = '';
 		if ( $results ) {
@@ -2162,10 +2168,10 @@ function wp_get_archives( $args = '' ) {
 		$query   = "SELECT * FROM $wpdb->posts $join $where ORDER BY $orderby $limit";
 		$key     = md5( $query );
 		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'posts' );
+		$results = wp_cache_get( $key, 'post-queries' );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'posts' );
+			wp_cache_set( $key, $results, 'post-queries' );
 		}
 		if ( $results ) {
 			foreach ( (array) $results as $result ) {

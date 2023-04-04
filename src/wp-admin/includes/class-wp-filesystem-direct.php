@@ -316,7 +316,14 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	}
 
 	/**
-	 * Moves a file.
+	 * Moves a file or directory.
+	 *
+	 * After moving files or directories, OPcache will need to be invalidated.
+	 *
+	 * If moving a directory fails, `copy_dir()` can be used for a recursive copy.
+	 *
+	 * Use `move_dir()` for moving directories with OPcache invalidation and a
+	 * fallback to `copy_dir()`.
 	 *
 	 * @since 2.5.0
 	 *
@@ -331,12 +338,18 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 			return false;
 		}
 
+		if ( $overwrite && $this->exists( $destination ) && ! $this->delete( $destination, true ) ) {
+			// Can't overwrite if the destination couldn't be deleted.
+			return false;
+		}
+
 		// Try using rename first. if that fails (for example, source is read only) try copy.
 		if ( @rename( $source, $destination ) ) {
 			return true;
 		}
 
-		if ( $this->copy( $source, $destination, $overwrite ) && $this->exists( $destination ) ) {
+		// Backward compatibility: Only fall back to `::copy()` for single files.
+		if ( $this->is_file( $source ) && $this->copy( $source, $destination, $overwrite ) && $this->exists( $destination ) ) {
 			$this->delete( $source );
 
 			return true;
@@ -616,7 +629,8 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 			return false;
 		}
 
-		$ret = array();
+		$path = trailingslashit( $path );
+		$ret  = array();
 
 		while ( false !== ( $entry = $dir->read() ) ) {
 			$struc         = array();
@@ -634,20 +648,20 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 				continue;
 			}
 
-			$struc['perms']       = $this->gethchmod( $path . '/' . $entry );
+			$struc['perms']       = $this->gethchmod( $path . $entry );
 			$struc['permsn']      = $this->getnumchmodfromh( $struc['perms'] );
 			$struc['number']      = false;
-			$struc['owner']       = $this->owner( $path . '/' . $entry );
-			$struc['group']       = $this->group( $path . '/' . $entry );
-			$struc['size']        = $this->size( $path . '/' . $entry );
-			$struc['lastmodunix'] = $this->mtime( $path . '/' . $entry );
+			$struc['owner']       = $this->owner( $path . $entry );
+			$struc['group']       = $this->group( $path . $entry );
+			$struc['size']        = $this->size( $path . $entry );
+			$struc['lastmodunix'] = $this->mtime( $path . $entry );
 			$struc['lastmod']     = gmdate( 'M j', $struc['lastmodunix'] );
 			$struc['time']        = gmdate( 'h:i:s', $struc['lastmodunix'] );
-			$struc['type']        = $this->is_dir( $path . '/' . $entry ) ? 'd' : 'f';
+			$struc['type']        = $this->is_dir( $path . $entry ) ? 'd' : 'f';
 
 			if ( 'd' === $struc['type'] ) {
 				if ( $recursive ) {
-					$struc['files'] = $this->dirlist( $path . '/' . $struc['name'], $include_hidden, $recursive );
+					$struc['files'] = $this->dirlist( $path . $struc['name'], $include_hidden, $recursive );
 				} else {
 					$struc['files'] = array();
 				}
