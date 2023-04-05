@@ -922,7 +922,7 @@ function customize_themes_print_templates() {
 											wp_update_php_annotation( '</p><p><em>', '</em>' );
 										}
 										?>
-									<# } else if ( ! data.updateResponse.compatibleWP ) { #>
+									<# } elseif ( ! data.updateResponse.compatibleWP ) { #>
 										<?php
 										printf(
 											/* translators: %s: Theme name. */
@@ -937,7 +937,7 @@ function customize_themes_print_templates() {
 											);
 										}
 										?>
-									<# } else if ( ! data.updateResponse.compatiblePHP ) { #>
+									<# } elseif ( ! data.updateResponse.compatiblePHP ) { #>
 										<?php
 										printf(
 											/* translators: %s: Theme name. */
@@ -999,7 +999,7 @@ function customize_themes_print_templates() {
 									wp_update_php_annotation( '</p><p><em>', '</em>' );
 								}
 								?>
-							<# } else if ( ! data.compatibleWP ) { #>
+							<# } elseif ( ! data.compatibleWP ) { #>
 								<?php
 								_e( 'This theme does not work with your version of WordPress.' );
 								if ( current_user_can( 'update_core' ) ) {
@@ -1010,7 +1010,7 @@ function customize_themes_print_templates() {
 									);
 								}
 								?>
-							<# } else if ( ! data.compatiblePHP ) { #>
+							<# } elseif ( ! data.compatiblePHP ) { #>
 								<?php
 								_e( 'This theme does not work with your version of PHP.' );
 								if ( current_user_can( 'update_php' ) ) {
@@ -1024,7 +1024,7 @@ function customize_themes_print_templates() {
 								?>
 							<# } #>
 						</p></div>
-					<# } else if ( ! data.active && data.blockTheme ) { #>
+					<# } elseif ( ! data.active && data.blockTheme ) { #>
 						<div class="notice notice-error notice-alt notice-large"><p>
 						<?php
 							_e( 'This theme doesn\'t support Customizer.' );
@@ -1052,7 +1052,7 @@ function customize_themes_print_templates() {
 			<div class="theme-actions">
 				<# if ( data.active ) { #>
 					<button type="button" class="button button-primary customize-theme"><?php _e( 'Customize' ); ?></button>
-				<# } else if ( 'installed' === data.type ) { #>
+				<# } elseif ( 'installed' === data.type ) { #>
 					<?php if ( current_user_can( 'delete_themes' ) ) { ?>
 						<# if ( data.actions && data.actions['delete'] ) { #>
 							<a href="{{{ data.actions['delete'] }}}" data-slug="{{ data.id }}" class="button button-secondary delete-theme"><?php _e( 'Delete' ); ?></a>
