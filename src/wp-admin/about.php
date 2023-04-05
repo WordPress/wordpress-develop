@@ -53,7 +53,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					);
 					?>
 				</h2>
-				<p class="is-subheading aligncenter">
+				<p class="is-subheading">
 					<?php
 					printf(
 						/* translators: 1: Count of enhancements, 2: Count of bug fixes. */
