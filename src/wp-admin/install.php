@@ -182,7 +182,15 @@ function display_setup_form( $error = null ) {
 			<th scope="row"><?php has_action( 'blog_privacy_selector' ) ? _e( 'Site visibility' ) : _e( 'Search engine visibility' ); ?></th>
 			<td>
 				<fieldset>
-					<legend class="screen-reader-text"><span><?php has_action( 'blog_privacy_selector' ) ? _e( 'Site visibility' ) : _e( 'Search engine visibility' ); ?> </span></legend>
+					<legend class="screen-reader-text"><span>
+						<?php
+						has_action( 'blog_privacy_selector' )
+							/* translators: Hidden accessibility text. */
+							? _e( 'Site visibility' )
+							/* translators: Hidden accessibility text. */
+							: _e( 'Search engine visibility' );
+						?>
+					</span></legend>
 					<?php
 					if ( has_action( 'blog_privacy_selector' ) ) {
 						?>
@@ -236,7 +244,7 @@ $mysql_compat  = version_compare( $mysql_version, $required_mysql_version, '>=' 
 
 $version_url = sprintf(
 	/* translators: %s: WordPress version. */
-	esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
+	esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
 	sanitize_title( $wp_version )
 );
 

@@ -323,7 +323,7 @@ function wp_print_file_editor_templates() {
 					printf(
 						/* translators: %s: Documentation URL. */
 						__( 'You need to make this file writable before you can save your changes. See <a href="%s">Changing File Permissions</a> for more information.' ),
-						__( 'https://wordpress.org/support/article/changing-file-permissions/' )
+						__( 'https://wordpress.org/documentation/article/changing-file-permissions/' )
 					);
 					?>
 				</p>
@@ -339,7 +339,12 @@ function wp_print_file_editor_templates() {
 				<# } #>
 			<# } #>
 			<# if ( data.dismissible ) { #>
-				<button type="button" class="notice-dismiss"><span class="screen-reader-text"><?php _e( 'Dismiss' ); ?></span></button>
+				<button type="button" class="notice-dismiss"><span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Dismiss' );
+					?>
+				</span></button>
 			<# } #>
 		</div>
 	</script>
@@ -540,7 +545,9 @@ function wp_edit_theme_plugin_file( $args ) {
 		}
 
 		// Make sure PHP process doesn't die before loopback requests complete.
-		set_time_limit( 5 * MINUTE_IN_SECONDS );
+		if ( function_exists( 'set_time_limit' ) ) {
+			set_time_limit( 5 * MINUTE_IN_SECONDS );
+		}
 
 		// Time to wait for loopback requests to finish.
 		$timeout = 100; // 100 seconds.
@@ -1897,7 +1904,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 	$dirlist = $wp_filesystem->dirlist( $from );
 
 	if ( false === $dirlist ) {
-		return new WP_Error( 'dirlist_failed_copy_dir', __( 'Directory listing failed.' ), basename( $to ) );
+		return new WP_Error( 'dirlist_failed_copy_dir', __( 'Directory listing failed.' ), basename( $from ) );
 	}
 
 	$from = trailingslashit( $from );
@@ -1955,6 +1962,8 @@ function copy_dir( $from, $to, $skip_list = array() ) {
  *
  * Assumes that WP_Filesystem() has already been called and setup.
  *
+ * This function is not designed to merge directories, copy_dir() should be used instead.
+ *
  * @since 6.2.0
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
@@ -1969,17 +1978,19 @@ function move_dir( $from, $to, $overwrite = false ) {
 	global $wp_filesystem;
 
 	if ( trailingslashit( strtolower( $from ) ) === trailingslashit( strtolower( $to ) ) ) {
-		return new WP_Error(
-			'source_destination_same_move_dir',
-			__( 'The source and destination are the same.' )
-		);
+		return new WP_Error( 'source_destination_same_move_dir', __( 'The source and destination are the same.' ) );
 	}
 
-	if ( ! $overwrite && $wp_filesystem->exists( $to ) ) {
-		return new WP_Error( 'destination_already_exists_move_dir', __( 'The destination folder already exists.' ), $to );
+	if ( $wp_filesystem->exists( $to ) ) {
+		if ( ! $overwrite ) {
+			return new WP_Error( 'destination_already_exists_move_dir', __( 'The destination folder already exists.' ), $to );
+		} elseif ( ! $wp_filesystem->delete( $to, true ) ) {
+			// Can't overwrite if the destination couldn't be deleted.
+			return new WP_Error( 'destination_not_deleted_move_dir', __( 'The destination directory already exists and could not be removed.' ) );
+		}
 	}
 
-	if ( $wp_filesystem->move( $from, $to, $overwrite ) ) {
+	if ( $wp_filesystem->move( $from, $to ) ) {
 		/*
 		 * When using an environment with shared folders,
 		 * there is a delay in updating the filesystem's cache.
@@ -2113,7 +2124,7 @@ function WP_Filesystem( $args = false, $context = false, $allow_relaxed_file_own
  * The return value can be overridden by defining the `FS_METHOD` constant in `wp-config.php`,
  * or filtering via {@see 'filesystem_method'}.
  *
- * @link https://wordpress.org/support/article/editing-wp-config-php/#wordpress-upgrade-constants
+ * @link https://wordpress.org/documentation/article/editing-wp-config-php/#wordpress-upgrade-constants
  *
  * Plugins may define a custom transport handler, See WP_Filesystem().
  *

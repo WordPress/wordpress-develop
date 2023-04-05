@@ -4,10 +4,9 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @covers WP_REST_Global_Styles_Controller
+ *
  * @group restapi-global-styles
  * @group restapi
  */
@@ -486,6 +485,27 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$expected = array(
 			array(
 				'version'  => 2,
+				'title'    => 'variation-b',
+				'settings' => array(
+					'blocks' => array(
+						'core/post-title' => array(
+							'color' => array(
+								'palette' => array(
+									'theme' => array(
+										array(
+											'slug'  => 'light',
+											'name'  => 'Light',
+											'color' => '#f1f1f1',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			array(
+				'version'  => 2,
 				'title'    => 'Block theme variation',
 				'settings' => array(
 					'color' => array(
@@ -511,7 +531,11 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 				),
 			),
 		);
-		$this->assertSameSetsWithIndex( $data, $expected );
+
+		wp_recursive_ksort( $data );
+		wp_recursive_ksort( $expected );
+
+		$this->assertSameSets( $data, $expected );
 	}
 
 	/**

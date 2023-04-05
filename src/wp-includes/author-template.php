@@ -155,7 +155,7 @@ function the_modified_author() {
  * @global WP_User $authordata The current author's data.
  *
  * @param string    $field   Optional. The user field to retrieve. Default empty.
- * @param int|false $user_id Optional. User ID.
+ * @param int|false $user_id Optional. User ID. Defaults to the current post author.
  * @return string The author's field from the current author's DB object, otherwise an empty string.
  */
 function get_the_author_meta( $field = '', $user_id = false ) {
@@ -196,7 +196,7 @@ function get_the_author_meta( $field = '', $user_id = false ) {
  *
  * @param string    $field   Selects the field of the users record. See get_the_author_meta()
  *                           for the list of possible fields.
- * @param int|false $user_id Optional. User ID.
+ * @param int|false $user_id Optional. User ID. Defaults to the current post author.
  *
  * @see get_the_author_meta()
  */
@@ -481,14 +481,15 @@ function wp_list_authors( $args = '' ) {
 	$post_counts = apply_filters( 'pre_wp_list_authors_post_counts_query', false, $parsed_args );
 
 	if ( ! is_array( $post_counts ) ) {
-		$post_counts = $wpdb->get_results(
+		$post_counts       = array();
+		$post_counts_query = $wpdb->get_results(
 			"SELECT DISTINCT post_author, COUNT(ID) AS count
 			FROM $wpdb->posts
 			WHERE " . get_private_posts_cap_sql( 'post' ) . '
 			GROUP BY post_author'
 		);
 
-		foreach ( (array) $post_counts as $row ) {
+		foreach ( (array) $post_counts_query as $row ) {
 			$post_counts[ $row->post_author ] = $row->count;
 		}
 	}

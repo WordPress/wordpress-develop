@@ -60,6 +60,8 @@ if ( is_multisite() ) {
 	$help .= '<li>' . __( '<strong>Delete</strong> brings you to the Delete Users screen for confirmation, where you can permanently remove a user from your site and delete their content. You can also delete multiple users at once by using bulk actions.' ) . '</li>';
 }
 
+$help .= '<li>' . __( '<strong>View</strong> takes you to a public author archive which lists all the posts published by the user.' ) . '</li>';
+
 if ( current_user_can( 'edit_users' ) ) {
 	$help .= '<li>' . __( '<strong>Send password reset</strong> sends the user an email with a link to set a new password.' ) . '</li>';
 }
@@ -77,9 +79,9 @@ unset( $help );
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/users-screen/">Documentation on Managing Users</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/roles-and-capabilities/">Descriptions of Roles and Capabilities</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/users-screen/">Documentation on Managing Users</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/roles-and-capabilities/">Descriptions of Roles and Capabilities</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 get_current_screen()->set_screen_reader_content(
@@ -143,7 +145,7 @@ switch ( $wp_list_table->current_action() ) {
 			}
 
 			// The new role of the current user must also have the promote_users cap or be a multisite super admin.
-			if ( $id == $current_user->ID && ! $wp_roles->role_objects[ $role ]->has_cap( 'promote_users' )
+			if ( $id === $current_user->ID && ! $wp_roles->role_objects[ $role ]->has_cap( 'promote_users' )
 			&& ! ( is_multisite() && current_user_can( 'manage_network_users' ) ) ) {
 					$update = 'err_admin_role';
 					continue;
@@ -357,7 +359,7 @@ switch ( $wp_list_table->current_action() ) {
 				?>
 			<input type="hidden" name="delete_option" value="delete" />
 			<?php else : ?>
-				<?php if ( 1 == $go_delete ) : ?>
+				<?php if ( 1 === $go_delete ) : ?>
 			<fieldset><p><legend><?php _e( 'What should be done with content owned by this user?' ); ?></legend></p>
 		<?php else : ?>
 			<fieldset><p><legend><?php _e( 'What should be done with content owned by these users?' ); ?></legend></p>

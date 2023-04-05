@@ -56,8 +56,6 @@ class WP_Widget_Text extends WP_Widget {
 		}
 		$this->registered = true;
 
-		wp_add_inline_script( 'text-widgets', sprintf( 'wp.textWidgets.idBases.push( %s );', wp_json_encode( $this->id_base ) ) );
-
 		if ( $this->is_preview() ) {
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_preview_scripts' ) );
 		}
@@ -436,6 +434,7 @@ class WP_Widget_Text extends WP_Widget {
 		wp_enqueue_editor();
 		wp_enqueue_media();
 		wp_enqueue_script( 'text-widgets' );
+		wp_add_inline_script( 'text-widgets', sprintf( 'wp.textWidgets.idBases.push( %s );', wp_json_encode( $this->id_base ) ) );
 		wp_add_inline_script( 'text-widgets', 'wp.textWidgets.init();', 'after' );
 	}
 
@@ -561,7 +560,7 @@ class WP_Widget_Text extends WP_Widget {
 			<?php endif; ?>
 
 			<p>
-				<label for="{{ elementIdPrefix }}text" class="screen-reader-text"><?php esc_html_e( 'Content:' ); ?></label>
+				<label for="{{ elementIdPrefix }}text" class="screen-reader-text"><?php /* translators: Hidden accessibility text. */ esc_html_e( 'Content:' ); ?></label>
 				<textarea id="{{ elementIdPrefix }}text" class="widefat text wp-editor-area" style="height: 200px" rows="16" cols="20"></textarea>
 			</p>
 		</script>
