@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_HTML_Tag_Processor
  */
-class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
+class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 	const HTML_SIMPLE       = '<div id="first"><span id="second">Text</span></div>';
 	const HTML_WITH_CLASSES = '<div class="main with-border" id="first"><span class="not-main bold with-border" id="second">Text</span></div>';
 	const HTML_MALFORMED    = '<div><span class="d-md-none" Notifications</span><span class="d-none d-md-inline">Back to notifications</span></div>';
@@ -49,6 +49,56 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 
 		$this->assertTrue( $p->next_tag( 'div' ), 'Querying an existing tag did not return true' );
 		$this->assertSame( 'DIV', $p->get_tag(), 'Accessing an existing tag name did not return "div"' );
+	}
+
+	/**
+	 * @ticket 58009
+	 *
+	 * @covers WP_HTML_Tag_Processor::has_self_closing_flag
+	 *
+	 * @dataProvider data_has_self_closing_flag
+	 *
+	 * @param string $html Input HTML whose first tag might contain the self-closing flag `/`.
+	 * @param bool $flag_is_set Whether the input HTML's first tag contains the self-closing flag.
+	 */
+	public function test_has_self_closing_flag_matches_input_html( $html, $flag_is_set ) {
+		$p = new WP_HTML_Tag_Processor( $html );
+		$p->next_tag( array( 'tag_closers' => 'visit' ) );
+
+		if ( $flag_is_set ) {
+			$this->assertTrue( $p->has_self_closing_flag(), 'Did not find the self-closing tag when it was present.' );
+		} else {
+			$this->assertFalse( $p->has_self_closing_flag(), 'Found the self-closing tag when it was absent.' );
+		}
+	}
+
+	/**
+	 * Data provider. HTML tags which might have a self-closing flag, and an indicator if they do.
+	 *
+	 * @return array[]
+	 */
+	public function data_has_self_closing_flag() {
+		return array(
+			// These should not have a self-closer, and will leave an element un-closed if it's assumed they are self-closing.
+			'Self-closing flag on non-void HTML element' => array( '<div />', true ),
+			'No self-closing flag on non-void HTML element' => array( '<div>', false ),
+			// These should not have a self-closer, but are benign when used because the elements are void.
+			'Self-closing flag on void HTML element'     => array( '<img />', true ),
+			'No self-closing flag on void HTML element'  => array( '<img>', false ),
+			'Self-closing flag on void HTML element without spacing' => array( '<img/>', true ),
+			// These should not have a self-closer, but as part of a tag closer they are entirely ignored.
+			'Self-closing flag on tag closer'            => array( '</textarea />', true ),
+			'No self-closing flag on tag closer'         => array( '</textarea>', false ),
+			// These can and should have self-closers, and will leave an element un-closed if it's assumed they aren't self-closing.
+			'Self-closing flag on a foreign element'     => array( '<circle />', true ),
+			'No self-closing flag on a foreign element'  => array( '<circle>', false ),
+			// These involve syntax peculiarities.
+			'Self-closing flag after extra spaces'       => array( '<div      />', true ),
+			'Self-closing flag after attribute'          => array( '<div id=test/>', true ),
+			'Self-closing flag after quoted attribute'   => array( '<div id="test"/>', true ),
+			'Self-closing flag after boolean attribute'  => array( '<div enabled/>', true ),
+			'Boolean attribute that looks like a self-closer' => array( '<div / >', false ),
+		);
 	}
 
 	/**
@@ -430,6 +480,7 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56299
+	 * @ticket 57852
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
 	 * @covers WP_HTML_Tag_Processor::is_tag_closer
@@ -459,6 +510,45 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 			'Did not stop at desired tag closer'
 		);
 		$this->assertTrue( $p->is_tag_closer(), 'Indicated a tag closer is a tag opener' );
+
+		$p = new WP_HTML_Tag_Processor( '<div>' );
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), "Did not find a tag opener when tag_closers was set to 'visit'" );
+		$this->assertFalse( $p->next_tag( array( 'tag_closers' => 'visit' ) ), "Found a closer where there wasn't one" );
+	}
+
+	/**
+	 * @ticket 57852
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 * @covers WP_HTML_Tag_Processor::is_tag_closer
+	 */
+	public function test_next_tag_should_stop_on_rcdata_and_script_tag_closers_when_requested() {
+		$p = new WP_HTML_Tag_Processor( '<script>abc</script>' );
+
+		$p->next_tag();
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </script> tag closer' );
+		$this->assertTrue( $p->is_tag_closer(), 'Indicated a <script> tag opener is a tag closer' );
+
+		$p = new WP_HTML_Tag_Processor( 'abc</script>' );
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </script> tag closer when there was no tag opener' );
+
+		$p = new WP_HTML_Tag_Processor( '<textarea>abc</textarea>' );
+
+		$p->next_tag();
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </textarea> tag closer' );
+		$this->assertTrue( $p->is_tag_closer(), 'Indicated a <textarea> tag opener is a tag closer' );
+
+		$p = new WP_HTML_Tag_Processor( 'abc</textarea>' );
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </textarea> tag closer when there was no tag opener' );
+
+		$p = new WP_HTML_Tag_Processor( '<title>abc</title>' );
+
+		$p->next_tag();
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </title> tag closer' );
+		$this->assertTrue( $p->is_tag_closer(), 'Indicated a <title> tag opener is a tag closer' );
+
+		$p = new WP_HTML_Tag_Processor( 'abc</title>' );
+		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </title> tag closer when there was no tag opener' );
 	}
 
 	/**
