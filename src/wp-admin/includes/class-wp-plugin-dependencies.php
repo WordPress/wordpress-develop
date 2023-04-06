@@ -149,19 +149,20 @@ class WP_Plugin_Dependencies {
 			foreach ( $exploded as $slug ) {
 				$slug = trim( $slug );
 
+				/**
+				 * Filter $slug to allow for slug switching
+				 * possibly between non-premium and premium plugins.
+				 *
+				 * @param array
+				 */
+				$slug = apply_filters( 'wp_plugin_dependencies_slug', $slug );
+
 				// Match to dot org slug format.
 				if ( preg_match( '/^[a-z0-9\-\p{Cyrillic}\p{Arabic}\p{Han}\p{S}]+$/mu', $slug ) ) {
 					$sanitized_slugs[] = $slug;
 				}
 			}
 			$sanitized_slugs = array_unique( $sanitized_slugs );
-
-			/**
-			 * Filter slugs to allow for slug switching between non-premium and premium plugins.
-			 *
-			 * @param array
-			 */
-			$sanitized_slugs = apply_filters( 'wp_plugin_dependencies_slugs', $sanitized_slugs );
 
 			$this->plugins[ $key ]['RequiresPlugins'] = $sanitized_slugs;
 			$all_slugs                                = array_merge( $all_slugs, $sanitized_slugs );
