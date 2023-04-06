@@ -5,6 +5,9 @@
  * @requires function imagejpeg
  */
 class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
+
+	use WP_Test_RunsFileUploadTests;
+
 	protected static $post_id;
 
 	public $attachment_data;
@@ -19,11 +22,7 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 
 		add_theme_support( 'post-thumbnails' );
 
-		$filename = ( DIR_TESTDATA . '/images/waffles.jpg' );
-		$contents = file_get_contents( $filename );
-		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
-
-		$this->attachment_id   = $this->_make_attachment( $upload, self::$post_id );
+		$this->attachment_id   = $this->_upload_file_and_make_attachment( DIR_TESTDATA . '/images/waffles.jpg', self::$post_id );
 		$this->attachment_data = get_post( $this->attachment_id, ARRAY_A );
 
 		set_post_thumbnail( self::$post_id, $this->attachment_id );

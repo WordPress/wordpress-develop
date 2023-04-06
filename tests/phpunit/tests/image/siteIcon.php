@@ -8,6 +8,9 @@
 require_once ABSPATH . 'wp-admin/includes/class-wp-site-icon.php';
 
 class Tests_WP_Site_Icon extends WP_UnitTestCase {
+
+	use WP_Test_RunsFileUploadTests;
+
 	protected $wp_site_icon;
 
 	public $attachment_id = 0;
@@ -160,12 +163,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 			return $this->attachment_id;
 		}
 
-		$filename = DIR_TESTDATA . '/images/test-image.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-
-		$this->attachment_id = $this->_make_attachment( $upload );
+		$this->attachment_id = $this->_upload_file_and_make_attachment( DIR_TESTDATA . '/images/test-image.jpg' );
 		return $this->attachment_id;
 	}
 }

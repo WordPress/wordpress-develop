@@ -5,6 +5,9 @@
  * @group upload
  */
 class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
+
+	use WP_Test_RunsFileUploadTests;
+
 	public function tear_down() {
 		$this->remove_added_uploads();
 
@@ -13,13 +16,6 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		remove_image_size( 'false-width' );
 		remove_image_size( 'off-by-one' );
 		parent::tear_down();
-	}
-
-	public function _make_attachment( $file, $parent_post_id = 0 ) {
-		$contents = file_get_contents( $file );
-		$upload   = wp_upload_bits( wp_basename( $file ), null, $contents );
-
-		return parent::_make_attachment( $upload, $parent_post_id );
 	}
 
 	public function test_make_intermediate_size_no_size() {
@@ -96,7 +92,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'test-size', 330, 220, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = $this->_upload_file_and_make_attachment( $file );
 
 		// Look for a size by name.
 		$image = image_get_intermediate_size( $id, 'test-size' );
@@ -120,7 +116,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'false-width', 600, 220, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = $this->_upload_file_and_make_attachment( $file );
 
 		// Look for a size by array that exists.
 		// Note: Staying larger than 300px to miss default medium crop.
@@ -143,7 +139,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'false-width', 150, 220, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = $this->_upload_file_and_make_attachment( $file );
 
 		// Look for a size by array that doesn't exist.
 		// Note: Staying larger than 300px to miss default medium crop.
@@ -165,7 +161,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'false-width', 150, 220, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = $this->_upload_file_and_make_attachment( $file );
 
 		// Look for a size by array that doesn't exist.
 		// Note: Staying larger than 300px to miss default medium crop.
@@ -189,7 +185,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'false-height', $width, 100, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = $this->_upload_file_and_make_attachment( $file );
 
 		$original = wp_get_attachment_metadata( $id );
 		$image_w  = $width;
@@ -218,7 +214,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'false-height', 300, $height, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = $this->_upload_file_and_make_attachment( $file );
 
 		$original = wp_get_attachment_metadata( $id );
 		$image_h  = $height;
@@ -245,7 +241,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'off-by-one', $width, $height, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = $this->_upload_file_and_make_attachment( $file );
 
 		$original = wp_get_attachment_metadata( $id );
 		$image_h  = $height;
@@ -267,7 +263,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'test-size', 200, 100, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = $this->_upload_file_and_make_attachment( $file );
 
 		// Request a size by array that doesn't exist and is smaller than the 'thumbnail'.
 		$image = image_get_intermediate_size( $id, array( 50, 25 ) );
@@ -282,7 +278,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	 */
 	public function test_get_intermediate_size_with_small_size_array_fallback() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = $this->_upload_file_and_make_attachment( $file );
 
 		$original       = wp_get_attachment_metadata( $id );
 		$thumbnail_file = $original['sizes']['thumbnail']['file'];
