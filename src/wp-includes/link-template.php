@@ -1474,7 +1474,7 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
 		$link = admin_url( sprintf( $post_type_object->_edit_link, $post->post_type, $slug ) );
 	} else {
 		if ( $post_type_object->_edit_link ) {
-			$link = sprintf( $post_type_object->_edit_link . $action, $post->ID );
+			$link = admin_url( sprintf( $post_type_object->_edit_link . $action, $post->ID ) );
 		} else {
 			$link = '';
 		}
