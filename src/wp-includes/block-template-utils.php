@@ -921,20 +921,20 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 		$wp_query_args['tax_query']['relation'] = 'AND';
 	}
 
-	if ( isset( $query['slug__in'] ) ) {
-		$wp_query_args['post_name__in'] = $query['slug__in'];
-	}
-
 	// This is only needed for the regular templates/template parts post type listing and editor.
-	if ( isset( $query['wp_id'] ) ) {
-		$wp_query_args['p'] = $query['wp_id'];
-	} else {
+	if ( ! isset( $query['wp_id'] ) ) {
 		$wp_query_args['post_status'] = 'publish';
 	}
 
 	$template_query = new WP_Query( $wp_query_args );
 	$query_result   = array();
 	foreach ( $template_query->posts as $post ) {
+		if ( isset( $query['slug__in'] ) && ! in_array( $post->post_name, $query['slug__in'], true ) ) {
+			continue;
+		}
+		if ( isset( $query['wp_id'] ) &&  $post->ID !== $query['wp_id'] ) {
+			continue;
+		}
 		$template = _build_block_template_result_from_post( $post );
 
 		if ( is_wp_error( $template ) ) {
