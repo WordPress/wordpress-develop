@@ -862,8 +862,8 @@ function confirm_blog_signup( $domain, $path, $blog_title, $user_name = '', $use
 	<p><?php _e( 'But, before you can start using your site, <strong>you must activate it</strong>.' ); ?></p>
 	<p>
 	<?php
-	/* translators: %s: Email address. */
-	printf( __( 'Check your inbox at %s and click the link given.' ), '<strong>' . $user_email . '</strong>' );
+	/* translators: %s: The user email address. */
+	printf( __( 'Check your inbox at %s and click on the given link.' ), '<strong>' . $user_email . '</strong>' );
 	?>
 	</p>
 	<p><?php _e( 'If you do not activate your site within two days, you will have to sign up again.' ); ?></p>
