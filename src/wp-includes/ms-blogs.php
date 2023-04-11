@@ -52,7 +52,7 @@ function get_blogaddress_by_id( $blog_id ) {
 }
 
 /**
- * Gets a full blog URL, given a blog name.
+ * Gets a full site URL, given a site name.
  *
  * @since MU (3.0.0)
  *
