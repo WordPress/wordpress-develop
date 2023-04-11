@@ -9,4 +9,4 @@
  * @subpackage Administration
  */
 
-_deprecated_file( basename( __FILE__ ), '6.2.0', 'wp-admin/upload.php' );
+_deprecated_file( basename( __FILE__ ), '6.3.0', 'wp-admin/upload.php' );
