@@ -1980,19 +1980,19 @@ class SimplePie_Misc
 		{
 			return false;
 		}
-		else if ($codepoint <= 0x7f)
+		elseif ($codepoint <= 0x7f)
 		{
 			return chr($codepoint);
 		}
-		else if ($codepoint <= 0x7ff)
+		elseif ($codepoint <= 0x7ff)
 		{
 			return chr(0xc0 | ($codepoint >> 6)) . chr(0x80 | ($codepoint & 0x3f));
 		}
-		else if ($codepoint <= 0xffff)
+		elseif ($codepoint <= 0xffff)
 		{
 			return chr(0xe0 | ($codepoint >> 12)) . chr(0x80 | (($codepoint >> 6) & 0x3f)) . chr(0x80 | ($codepoint & 0x3f));
 		}
-		else if ($codepoint <= 0x10ffff)
+		elseif ($codepoint <= 0x10ffff)
 		{
 			return chr(0xf0 | ($codepoint >> 18)) . chr(0x80 | (($codepoint >> 12) & 0x3f)) . chr(0x80 | (($codepoint >> 6) & 0x3f)) . chr(0x80 | ($codepoint & 0x3f));
 		}
