@@ -764,7 +764,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		/*
 		 * Test that adding blogname starter content is ignored now that it is modified,
-		 * but updating a non-modified starter content blog description passes.
+		 * but updating a non-modified starter content site description passes.
 		 */
 		$previous_blogname        = $changeset_data['blogname']['value'];
 		$previous_blogdescription = $changeset_data['blogdescription']['value'];
