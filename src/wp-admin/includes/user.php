@@ -202,14 +202,14 @@ function edit_user( $user_id = 0 ) {
 		$errors->add( 'invalid_username', __( '<strong>Error:</strong> Sorry, that username is not allowed.' ) );
 	}
 
-	/* checking email address */
+	// Checking email address.
 	if ( empty( $user->user_email ) ) {
 		$errors->add( 'empty_email', __( '<strong>Error:</strong> Please enter an email address.' ), array( 'form-field' => 'email' ) );
 	} elseif ( ! is_email( $user->user_email ) ) {
 		$errors->add( 'invalid_email', __( '<strong>Error:</strong> The email address is not correct.' ), array( 'form-field' => 'email' ) );
 	} else {
 		$owner_id = email_exists( $user->user_email );
-		if ( $owner_id && ( ! $update || ( (int) $owner_id !== $user->ID ) ) ) {
+		if ( $owner_id && ( ! $update || ( $owner_id !== $user->ID ) ) ) {
 			$errors->add( 'email_exists', __( '<strong>Error:</strong> This email is already registered. Please choose another one.' ), array( 'form-field' => 'email' ) );
 		}
 	}
