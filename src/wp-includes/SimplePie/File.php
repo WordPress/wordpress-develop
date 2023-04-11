@@ -257,11 +257,11 @@ class SimplePie_File
 										{
 											$this->body = $decompressed;
 										}
-										else if (($decompressed = gzuncompress($this->body)) !== false)
+										elseif (($decompressed = gzuncompress($this->body)) !== false)
 										{
 											$this->body = $decompressed;
 										}
-										else if (function_exists('gzdecode') && ($decompressed = gzdecode($this->body)) !== false)
+										elseif (function_exists('gzdecode') && ($decompressed = gzdecode($this->body)) !== false)
 										{
 											$this->body = $decompressed;
 										}
