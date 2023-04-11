@@ -704,8 +704,8 @@ function confirm_user_signup( $user_name, $user_email ) {
 	<p><?php _e( 'But, before you can start using your new username, <strong>you must activate it</strong>.' ); ?></p>
 	<p>
 	<?php
-	/* translators: %s: Email address. */
-	printf( __( 'Check your inbox at %s and click the link given.' ), '<strong>' . $user_email . '</strong>' );
+	/* translators: %s: The user Email address. */
+	printf( __( 'Check your inbox at %s and click on the given link.' ), '<strong>' . $user_email . '</strong>' );
 	?>
 	</p>
 	<p><?php _e( 'If you do not activate your username within two days, you will have to sign up again.' ); ?></p>
