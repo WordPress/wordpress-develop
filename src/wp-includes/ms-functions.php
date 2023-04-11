@@ -2386,7 +2386,7 @@ function force_ssl_content( $force = '' ) {
  */
 function filter_SSL( $url ) {  // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	if ( ! is_string( $url ) ) {
-		return get_bloginfo( 'url' ); // Return home blog URL with proper scheme.
+		return get_bloginfo( 'url' ); // Return home site URL with proper scheme.
 	}
 
 	if ( force_ssl_content() && is_ssl() ) {
