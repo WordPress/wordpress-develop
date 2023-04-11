@@ -479,7 +479,7 @@ class SimplePie_Parser
 				if (in_array('h-card', $mf_item['type'])) $feed_author = $mf_item;
 				break;
 			}
-			else if (in_array('h-entry', $mf_item['children'][0]['type'])) {
+			elseif (in_array('h-entry', $mf_item['children'][0]['type'])) {
 				$entries = $mf_item['children'];
 				// In this case the parent of the h-entry list may be an h-card, so use
 				// it as the feed_author.
@@ -497,7 +497,7 @@ class SimplePie_Parser
 				$feed_author = $mf['items'][0]['properties']['author'][0];
 			}
 		}
-		else if (count($entries) === 0) {
+		elseif (count($entries) === 0) {
 			$entries = $mf['items'];
 		}
 		for ($i = 0; $i < count($entries); $i++) {
@@ -530,7 +530,7 @@ class SimplePie_Parser
 					if (!is_string($author)) {
 						$author = $this->parse_hcard($author);
 					}
-					else if (strpos($author, 'http') === 0) {
+					elseif (strpos($author, 'http') === 0) {
 						if (isset($author_cache[$author])) {
 							$author = $author_cache[$author];
 						}
@@ -585,7 +585,7 @@ class SimplePie_Parser
 						}
 						$description .= '<br><b>'.$count.' photos</b></p>';
 					}
-					else if ($count == 1) {
+					elseif ($count == 1) {
 						$description = '<p><img src="'.$photo_list[0].'"></p>';
 					}
 				}
@@ -603,7 +603,7 @@ class SimplePie_Parser
 						if (is_string($entry['properties']['in-reply-to'][0])) {
 							$in_reply_to = $entry['properties']['in-reply-to'][0];
 						}
-						else if (isset($entry['properties']['in-reply-to'][0]['value'])) {
+						elseif (isset($entry['properties']['in-reply-to'][0]['value'])) {
 							$in_reply_to = $entry['properties']['in-reply-to'][0]['value'];
 						}
 						if ($in_reply_to !== '') {
@@ -654,7 +654,7 @@ class SimplePie_Parser
 		if ($feed_title !== '') {
 			$feed_title = array(array('data' => htmlspecialchars($feed_title)));
 		}
-		else if ($position = strpos($data, '<title>')) {
+		elseif ($position = strpos($data, '<title>')) {
 			$start = $position < 200 ? 0 : $position - 200;
 			$check = substr($data, $start, 400);
 			$matches = array();
