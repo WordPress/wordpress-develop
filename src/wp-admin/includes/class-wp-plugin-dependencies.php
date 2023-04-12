@@ -439,6 +439,7 @@ class WP_Plugin_Dependencies {
 			$action_links[0] .= '<span class="screen-reader-text">' . __( 'Cannot install due to empty package' ) . '</span>';
 			$action_links[0]  = str_replace( 'install-now', 'button-disabled', $action_links[0] );
 		}
+
 		return $action_links;
 	}
 
