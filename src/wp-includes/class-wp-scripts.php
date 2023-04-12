@@ -871,6 +871,7 @@ JS;
 	 */
 	private function get_intended_strategy( $handle ) {
 		$script_args = $this->get_data( $handle, 'script_args' );
+
 		return isset( $script_args['strategy'] ) ? $script_args['strategy'] : false;
 	}
 
