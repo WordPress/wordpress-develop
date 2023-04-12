@@ -75,6 +75,7 @@ class WP_Plugin_Dependencies {
 			add_filter( 'plugins_api_result', array( $this, 'plugins_api_result' ), 10, 3 );
 			add_filter( 'plugin_install_description', array( $this, 'plugin_install_description' ), 10, 2 );
 			add_filter( 'plugin_install_action_links', array( $this, 'modify_plugin_install_action_links' ), 10, 2 );
+			add_filter( 'plugin_install_action_links', array( $this, 'empty_package_remove_install_button' ), 10, 2 );
 
 			add_action( 'admin_init', array( $this, 'modify_plugin_row' ), 15 );
 			add_action( 'admin_notices', array( $this, 'admin_notices' ) );
@@ -412,6 +413,28 @@ class WP_Plugin_Dependencies {
 			}
 		}
 
+		return $action_links;
+	}
+
+	/**
+	 * Make 'Install Now' but 'Cannot Install' for empty packages.
+	 *
+	 * @param array $action_links Array of plugin install action links.
+	 * @param array $plugin       Array of plugin data.
+	 * @return array
+	 */
+	public function empty_package_remove_install_button( $action_links, $plugin ) {
+		if ( 'dependencies' !== $_GET['tab'] || 'plugin-install' !== get_current_screen()->id
+			|| ! empty( $plugin['download_link'] ) || ! str_contains( $action_links[0], 'install-now' )
+		) {
+			return $action_links;
+		}
+		if ( str_contains( $action_links[0], 'install-now' ) ) {
+			$action_links[0]  = str_replace( __( 'Network Install' ), __( 'Install' ), $action_links[0] );
+			$action_links[0]  = str_replace( __( 'Install Now' ), _x( 'Cannot Install', 'plugin' ), $action_links[0] );
+			$action_links[0] .= '<span class="screen-reader-text">' . __( 'Cannot install due to empty package' ) . '</span>';
+			$action_links[0]  = str_replace( 'install-now', 'button-disabled', $action_links[0] );
+		}
 		return $action_links;
 	}
 
