@@ -424,8 +424,12 @@ class WP_Plugin_Dependencies {
 	 * @return array
 	 */
 	public function empty_package_remove_install_button( $action_links, $plugin ) {
-		if ( 'dependencies' !== $_GET['tab'] || 'plugin-install' !== get_current_screen()->id
-			|| ! empty( $plugin['download_link'] ) || ! str_contains( $action_links[0], 'install-now' )
+		$current_screen = get_current_screen();
+
+		if (
+			! $current_screen instanceof WP_Screen || 'plugin-install' !== $current_screen->id ||
+			! isset( $_GET['tab'] ) || 'dependencies' !== $_GET['tab'] ||
+			! empty( $plugin['download_link'] ) || ! str_contains( $action_links[0], 'install-now' )
 		) {
 			return $action_links;
 		}
