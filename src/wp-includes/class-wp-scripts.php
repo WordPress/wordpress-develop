@@ -944,6 +944,7 @@ JS;
 		}
 
 		$intended_strategy = $this->get_intended_strategy( $handle );
+
 		/*
 		 * Handle known blocking strategy scenarios.
 		 *
