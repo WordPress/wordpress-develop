@@ -826,7 +826,7 @@ JS;
 	 *      Optional. Additional script arguments. Default empty array.
 	 *
 	 *      @type boolean   $in_footer    Optional. Default false.
-	 *      @type string    $strategy     Optional. Values blocking|defer|async .Default 'blocking'.
+	 *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
 	 * }
 	 * @return array        Normalized $args array.
 	 */
