@@ -835,6 +835,7 @@ JS;
 			'in_footer' => false,
 			'strategy'  => 'blocking',
 		);
+
 		// Handle backward compatibility for $in_footer.
 		if ( true === $args ) {
 			$args = array( 'in_footer' => true );
