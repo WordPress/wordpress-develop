@@ -1807,7 +1807,7 @@ HTML;
 			'Comment with closer look-alike'   => array( '<!-- this ends --x' ),
 			'Comment with closer look-alike 2' => array( '<!-- this ends --!x' ),
 			'Invalid tag-closer comment'       => array( '</(when will this madness end?)' ),
-			'Invalid tag-closer comment 2'     => array( '</(when will this madness end?)--' )
+			'Invalid tag-closer comment 2'     => array( '</(when will this madness end?)--' ),
 		);
 	}
 
