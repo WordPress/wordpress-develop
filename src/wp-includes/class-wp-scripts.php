@@ -859,6 +859,7 @@ JS;
 				$dependents[] = $registered_handle;
 			}
 		}
+
 		return $dependents;
 	}
 
