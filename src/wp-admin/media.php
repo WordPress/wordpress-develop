@@ -33,10 +33,10 @@ switch ( $action ) {
 		}
 		$att_id = (int) $_GET['attachment_id'];
 
-		wp_redirect( admin_url( "upload.php?item={$att_id}&error=throw-depreciated-media.php" ) );
+		wp_redirect( admin_url( "upload.php?item={$att_id}&error=deprecated" ) );
 		exit;
 
 	default:
-		wp_redirect( admin_url( 'upload.php?error=throw-depreciated-media.php' ) );
+		wp_redirect( admin_url( 'upload.php?error=deprecated' ) );
 		exit;
 }
