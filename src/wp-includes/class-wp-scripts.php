@@ -899,6 +899,7 @@ JS;
 		if ( in_array( $handle, $checked, true ) ) {
 			return true;
 		}
+
 		$checked[]  = $handle;
 		$dependents = $this->get_dependents( $handle );
 
