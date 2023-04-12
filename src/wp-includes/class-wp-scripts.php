@@ -936,7 +936,7 @@ JS;
 	 * @param string  $handle The registered handle of the script.
 	 * @return string $strategy return the final strategy.
 	 */
-	private function get_eligible_loading_strategy( $handle = '' ) {
+	private function get_eligible_loading_strategy( $handle ) {
 		if ( ! isset( $this->registered[ $handle ] ) ) {
 			return '';
 		}
