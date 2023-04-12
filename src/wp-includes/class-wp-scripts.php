@@ -884,6 +884,7 @@ JS;
 	private function has_non_standalone_inline_script( $handle, $position ) {
 		$non_standalone_script_key = $position . '-non-standalone';
 		$non_standalone_script     = $this->get_data( $handle, $non_standalone_script_key );
+
 		return ! empty( $non_standalone_script );
 	}
 
