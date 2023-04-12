@@ -303,6 +303,7 @@ class WP_Scripts extends WP_Dependencies {
 		$strategy = $this->get_eligible_loading_strategy( $handle );
 
 		$after_handle = '';
+
 		if ( '' === $strategy ) {
 			$after_handle = $this->print_inline_script( $handle, 'after', false );
 
