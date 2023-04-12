@@ -808,7 +808,7 @@ JS;
 	 */
 	public function has_delayed_inline_script() {
 		foreach ( $this->registered as $handle => $script ) {
-			// non standalone after scripts of async or defer are usually delayed.
+			// Non standalone scripts in the after position, of type async or defer, are usually delayed.
 			if ( in_array( $this->get_intended_strategy( $handle ), array( 'defer', 'async' ), true ) &&
 				$this->has_non_standalone_inline_script( $handle, 'after' )
 			) {
