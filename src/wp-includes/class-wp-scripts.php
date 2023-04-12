@@ -471,7 +471,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * @param string $data       String containing the JavaScript to be added.
 	 * @param string $position   Optional. Whether to add the inline script
 	 *                           before the handle or after. Default 'after'.
-	 * @param bool   $standalone Inline script opted to be standalone or not. Default false.
+	 * @param bool   $standalone Optional. Inline script opted to be standalone or not. Default false.
 	 * @return bool True on success, false on failure.
 	 */
 	public function add_inline_script( $handle, $data, $position = 'after', $standalone = false ) {
