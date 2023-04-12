@@ -1864,6 +1864,7 @@ function wpLoadAfterScripts( handle ) {
 }
 JS;
 		$type_attr = current_theme_supports( 'html5', 'script' ) ? '' : " type='text/javascript'";
+
 		printf( "<script%s id='wp-executes-after-js'>\n%s\n</script>\n", $type_attr, $output );
 	}
 }
