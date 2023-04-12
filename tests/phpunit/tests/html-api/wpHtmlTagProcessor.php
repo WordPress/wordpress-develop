@@ -1667,9 +1667,9 @@ HTML;
 	/**
 	 * Invalid tag names are comments on tag closers.
 	 *
-	 * See https://html.spec.whatwg.org/#parse-error-invalid-first-character-of-tag-name
-	 *
 	 * @ticket 58007
+	 *
+	 * @link https://html.spec.whatwg.org/#parse-error-invalid-first-character-of-tag-name
 	 *
 	 * @dataProvider data_next_tag_ignores_invalid_first_character_of_tag_name_comments
 	 *
@@ -1761,6 +1761,7 @@ HTML;
 	 * Ensures that the invalid comment closing syntax "--!>" properly closes a comment.
 	 *
 	 * @ticket 58007
+	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
 	 *
 	 */
@@ -1783,6 +1784,7 @@ HTML;
 	 * @ticket 58007
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
+	 *
 	 * @dataProvider data_html_with_unclosed_comments
 	 *
 	 * @param string $html_ending_before_comment_close HTML with opened comments that aren't closed
@@ -1815,6 +1817,7 @@ HTML;
 	 * @ticket 58007
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
+	 *
 	 * @dataProvider data_abruptly_closed_empty_comments
 	 *
 	 * @param string $html_with_after_marker HTML to test with "id=after" on element immediately following an abruptly closed comment.
