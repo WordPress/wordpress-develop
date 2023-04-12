@@ -304,6 +304,7 @@ class WP_Scripts extends WP_Dependencies {
 
 		$after_handle = '';
 
+		// Eligible loading strategies will only be 'async', 'defer', or ''.
 		if ( '' === $strategy ) {
 			$after_handle = $this->print_inline_script( $handle, 'after', false );
 
