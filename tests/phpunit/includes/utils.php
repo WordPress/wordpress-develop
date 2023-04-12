@@ -647,7 +647,7 @@ function test_rest_expand_compact_links( $links ) {
 }
 
 /**
- * Removes all handles from $wp_script.
+ * Removes select handles from $wp_scripts.
  */
 function unregister_all_script_handles() {
 	global $wp_scripts;
