@@ -853,7 +853,7 @@ JS;
 	private function get_dependents( $handle ) {
 		$dependents = array();
 
-		// Iterate over all registered scripts, finding ones that depend on the script.
+		// Iterate over all registered scripts, finding dependents of the script passed to this method.
 		foreach ( $this->registered as $registered_handle => $args ) {
 			if ( in_array( $handle, $args->deps, true ) ) {
 				$dependents[] = $registered_handle;
