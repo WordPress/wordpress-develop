@@ -294,13 +294,13 @@ class WP_Scripts extends WP_Dependencies {
 			$cond_after  = "<![endif]-->\n";
 		}
 
-		$strategy = $this->get_eligible_loading_strategy( $handle );
-
 		$before_handle = $this->print_inline_script( $handle, 'before', false );
 
 		if ( $before_handle ) {
 			$before_handle = sprintf( "<script%s id='%s-js-before'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $before_handle );
 		}
+
+		$strategy = $this->get_eligible_loading_strategy( $handle );
 
 		$after_handle = '';
 		if ( '' === $strategy ) {
