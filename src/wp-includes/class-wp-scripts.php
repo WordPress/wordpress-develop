@@ -365,7 +365,10 @@ class WP_Scripts extends WP_Dependencies {
 			// Used as a conditional to prevent script concatenation.
 			$is_deferred_or_async_handle = in_array( $strategy, array( 'defer', 'async' ), true );
 
-			if ( $this->in_default_dir( $srce ) && ( $before_handle || $after_handle || $translations_stop_concat || $is_deferred_or_async_handle ) ) {
+			if (
+				$this->in_default_dir( $srce )
+				&& ( $before_handle || $after_handle || $translations_stop_concat || $is_deferred_or_async_handle )
+			) {
 				$this->do_concat = false;
 
 				// Have to print the so-far concatenated scripts right away to maintain the right order.
