@@ -845,7 +845,7 @@ JS;
 	}
 
 	/**
-	 * Get all of the scripts that depend on a script.
+	 * Get all dependents of a script.
 	 *
 	 * @param string $handle The script handle.
 	 * @return array Array of script handles.
