@@ -840,6 +840,7 @@ JS;
 		if ( true === $args ) {
 			$args = array( 'in_footer' => true );
 		}
+
 		return wp_parse_args( $args, $default_args );
 	}
 
