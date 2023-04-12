@@ -894,10 +894,10 @@ JS;
 	 * Check if all of a scripts dependents are deferrable, which is required to maintain execution order.
 	 *
 	 * @param string $handle  The script handle.
-	 * @param array  $checked An array of already checked script handles, used to avoid recursive loops.
+	 * @param array  $checked Optional. An array of already checked script handles, used to avoid recursive loops.
 	 * @return bool True if all dependents are deferrable, false otherwise.
 	 */
-	private function all_dependents_are_deferrable( $handle, $checked = array() ) {
+	private function has_only_deferrable_dependents( $handle, $checked = array() ) {
 		// If this node was already checked, this script can be deferred and the branch ends.
 		if ( in_array( $handle, $checked, true ) ) {
 			return true;
@@ -924,7 +924,7 @@ JS;
 			}
 
 			// Recursively check all dependents.
-			if ( ! $this->all_dependents_are_deferrable( $dependent, $checked ) ) {
+			if ( ! $this->has_only_deferrable_dependents( $dependent, $checked ) ) {
 				return false;
 			}
 		}
@@ -961,7 +961,7 @@ JS;
 		}
 
 		// Handling defer strategy scenarios.
-		if ( $this->all_dependents_are_deferrable( $handle ) ) {
+		if ( $this->has_only_deferrable_dependents( $handle ) ) {
 			return 'defer';
 		}
 
