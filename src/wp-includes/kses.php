@@ -799,7 +799,7 @@ function wp_kses_one_attr( $attr, $element ) {
 			$quote = $value[0];
 		}
 		if ( '"' === $quote || "'" === $quote ) {
-			if ( substr( $value, -1 ) != $quote ) {
+			if ( substr( $value, -1 ) !== $quote ) {
 				return '';
 			}
 			$value = substr( $value, 1, -1 );
@@ -1086,7 +1086,7 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 	// Allow HTML comments.
 	if ( '<!--' === substr( $content, 0, 4 ) ) {
 		$content = str_replace( array( '<!--', '-->' ), '', $content );
-		while ( ( $newstring = wp_kses( $content, $allowed_html, $allowed_protocols ) ) != $content ) {
+		while ( ( $newstring = wp_kses( $content, $allowed_html, $allowed_protocols ) ) !== $content ) {
 			$content = $newstring;
 		}
 		if ( '' === $content ) {
@@ -1330,7 +1330,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 
 	// Loop through the whole attribute list.
 
-	while ( strlen( $attr ) != 0 ) {
+	while ( strlen( $attr ) !== 0 ) {
 		$working = 0; // Was the last operation successful?
 
 		switch ( $mode ) {
@@ -1435,13 +1435,13 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 				break;
 		} // End switch.
 
-		if ( 0 == $working ) { // Not well-formed, remove and try again.
+		if ( 0 === $working ) { // Not well-formed, remove and try again.
 			$attr = wp_kses_html_error( $attr );
 			$mode = 0;
 		}
 	} // End while.
 
-	if ( 1 == $mode && false === array_key_exists( $attrname, $attrarr ) ) {
+	if ( 1 === $mode && false === array_key_exists( $attrname, $attrarr ) ) {
 		// Special case, for when the attribute list ends with a valueless
 		// attribute like "selected".
 		$attrarr[ $attrname ] = array(
@@ -1640,7 +1640,7 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
 			 * If the given value is an "n" or an "N", the attribute must have a value.
 			 */
 
-			if ( strtolower( $checkvalue ) != $vless ) {
+			if ( strtolower( $checkvalue ) !== $vless ) {
 				$ok = false;
 			}
 			break;
@@ -1701,9 +1701,9 @@ function wp_kses_bad_protocol( $content, $allowed_protocols ) {
 	do {
 		$original_content = $content;
 		$content          = wp_kses_bad_protocol_once( $content, $allowed_protocols );
-	} while ( $original_content != $content && ++$iterations < 6 );
+	} while ( $original_content !== $content && ++$iterations < 6 );
 
-	if ( $original_content != $content ) {
+	if ( $original_content !== $content ) {
 		return '';
 	}
 
@@ -1846,7 +1846,7 @@ function wp_kses_bad_protocol_once2( $scheme, $allowed_protocols ) {
 
 	$allowed = false;
 	foreach ( (array) $allowed_protocols as $one_protocol ) {
-		if ( strtolower( $one_protocol ) == $scheme ) {
+		if ( strtolower( $one_protocol ) === $scheme ) {
 			$allowed = true;
 			break;
 		}
@@ -2009,7 +2009,7 @@ function wp_kses_normalize_entities3( $matches ) {
  * @return bool Whether or not the codepoint is a valid Unicode codepoint.
  */
 function valid_unicode( $i ) {
-	return ( 0x9 == $i || 0xa == $i || 0xd == $i ||
+	return ( 0x9 === $i || 0xa === $i || 0xd === $i ||
 			( 0x20 <= $i && $i <= 0xd7ff ) ||
 			( 0xe000 <= $i && $i <= 0xfffd ) ||
 			( 0x10000 <= $i && $i <= 0x10ffff ) );
