@@ -414,7 +414,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 	}
 
 	// Now we assume something is wrong and fail to schedule.
-	if ( 0 == $interval ) {
+	if ( 0 === $interval ) {
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_schedule',
@@ -1235,7 +1235,7 @@ function _set_cron_array( $cron, $wp_error = false ) {
  * @return array An upgraded cron info array.
  */
 function _upgrade_cron_array( $cron ) {
-	if ( isset( $cron['version'] ) && 2 == $cron['version'] ) {
+	if ( isset( $cron['version'] ) && 2 === (int) $cron['version'] ) {
 		return $cron;
 	}
 
