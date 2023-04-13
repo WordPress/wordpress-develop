@@ -172,6 +172,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'author',
 			'author_uri',
 			'description',
+			'is_block_theme',
 			'name',
 			'requires_php',
 			'requires_wp',
@@ -208,6 +209,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'author',
 			'author_uri',
 			'description',
+			'is_block_theme',
 			'name',
 			'requires_php',
 			'requires_wp',
@@ -343,7 +345,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = self::perform_active_theme_request( 'OPTIONS' );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 15, $properties );
+		$this->assertCount( 16, $properties );
 
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['author']['properties'] );
@@ -356,6 +358,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['description']['properties'] );
 		$this->assertArrayHasKey( 'rendered', $properties['description']['properties'] );
+
+		$this->assertArrayHasKey( 'is_block_theme', $properties );
 
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['name']['properties'] );
@@ -469,6 +473,22 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'requires_wp', $result[0] );
 		$this->assertSame( '5.3', $result[0]['requires_wp'] );
+	}
+
+	public function test_theme_is_block_theme() {
+		switch_theme( 'block-theme' );
+
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+
+		$this->assertTrue( $result[0]['is_block_theme'] );
+	}
+
+	public function test_theme_is_not_block_theme() {
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+
+		$this->assertFalse( $result[0]['is_block_theme'] );
 	}
 
 	/**
@@ -1234,6 +1254,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'author',
 			'author_uri',
 			'description',
+			'is_block_theme',
 			'name',
 			'requires_php',
 			'requires_wp',
