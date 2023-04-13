@@ -451,8 +451,7 @@ class WP_Plugin_Dependencies {
 	public function empty_package_remove_install_button( $action_links, $plugin ) {
 		global $pagenow;
 
-		if (
-			'plugin-install.php' !== $pagenow
+		if ( 'plugin-install.php' !== $pagenow
 			|| ! isset( $_GET['tab'] ) || 'dependencies' !== $_GET['tab'] // phpcs:ignore WordPress.Security.NonceVerification
 			|| ! empty( $plugin['download_link'] ) || ! str_contains( $action_links[0], 'install-now' )
 		) {
@@ -841,10 +840,10 @@ class WP_Plugin_Dependencies {
 				'tested'            => '',
 				'requires_php'      => $args['RequiresPHP'],
 				'sections'          => array(
-					'description'  => $args['Description'] . '<br>' . $short_description,
+					'description'  => '<p>' . $args['Description'] . '</p>' . $short_description,
 					'installation' => __( 'Ask the plugin developer where to download and install this plugin dependency.' ),
 				),
-				'short_description' => $args['Description'] . '<br>' . $short_description,
+				'short_description' => '<p>' . $args['Description'] . '</p>' . $short_description,
 				'download_link'     => '',
 				'banners'           => array(),
 				'icons'             => array( 'default' => "https://s.w.org/plugins/geopattern-icon/{$slug}.svg" ),
