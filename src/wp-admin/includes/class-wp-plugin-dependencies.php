@@ -440,7 +440,7 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
-	 * Make 'Install Now' but 'Cannot Install' for empty packages.
+	 * Convert 'Install Now' into 'Cannot Install' for empty packages.
 	 *
 	 * @global $pagenow Current page.
 	 *
@@ -813,35 +813,46 @@ class WP_Plugin_Dependencies {
 	 * @return stdClass
 	 */
 	private function get_empty_plugins_api_response( $response, $args ) {
+		$slug = $args['slug'];
+		$args = array(
+			'Name'        => $args['slug'],
+			'Version'     => '',
+			'Author'      => '',
+			'Description' => '',
+			'RequiresWP'  => '',
+			'RequiresPHP' => '',
+			'PluginURI'   => '',
+		);
 		if ( is_wp_error( $response ) || property_exists( $response, 'error' )
 			|| ! property_exists( $response, 'slug' )
 			|| ! property_exists( $response, 'short_description' )
 		) {
 			$dependencies      = $this->get_dependency_filepaths();
-			$file              = $dependencies[ $args['slug'] ];
-			$args['name']      = $file ? $this->plugins[ $file ]['Name'] : $args['slug'];
+			$file              = $dependencies[ $slug ];
+			$args              = $file ? $this->plugins[ $file ] : $args;
 			$short_description = __( 'You will need to manually install this dependency. Please contact the plugin\'s developer and ask them to add plugin dependencies support and for information on how to install the this dependency.' );
 			$response          = array(
-				'name'              => $args['name'],
-				'slug'              => $args['slug'],
-				'version'           => '',
-				'author'            => __( 'Unknown' ),
+				'name'              => $args['Name'],
+				'slug'              => $slug,
+				'version'           => $args['Version'],
+				'author'            => $args['Author'],
 				'contributors'      => array(),
-				'requires'          => '',
+				'requires'          => $args['RequiresWP'],
 				'tested'            => '',
-				'requires_php'      => '',
+				'requires_php'      => $args['RequiresPHP'],
 				'sections'          => array(
-					'description'  => $short_description,
+					'description'  => $args['Description'] . '<br>' . $short_description,
 					'installation' => __( 'Ask the plugin developer where to download and install this plugin dependency.' ),
 				),
-				'short_description' => $short_description,
+				'short_description' => $args['Description'] . '<br>' . $short_description,
 				'download_link'     => '',
 				'banners'           => array(),
-				'icons'             => array( 'default' => "https://s.w.org/plugins/geopattern-icon/{$args['slug']}.svg" ),
+				'icons'             => array( 'default' => "https://s.w.org/plugins/geopattern-icon/{$slug}.svg" ),
 				'last_updated'      => '',
 				'num_ratings'       => 0,
 				'rating'            => 0,
 				'active_installs'   => 0,
+				'homepage'          => $args['PluginURI'],
 				'external'          => 'xxx',
 			);
 			$response          = (object) $response;
