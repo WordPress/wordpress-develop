@@ -206,7 +206,7 @@ class WP {
 				$requested_path = $pathinfo;
 			} else {
 				// If the request uri is the index, blank it out so that we don't try to match it against a rule.
-				if ( $req_uri == $wp_rewrite->index ) {
+				if ( $req_uri === $wp_rewrite->index ) {
 					$req_uri = '';
 				}
 				$requested_path = $req_uri;
@@ -227,7 +227,7 @@ class WP {
 			} else {
 				foreach ( (array) $rewrite as $match => $query ) {
 					// If the requested file is the anchor of the match, prepend it to the path info.
-					if ( ! empty( $requested_file ) && strpos( $match, $requested_file ) === 0 && $requested_file != $requested_path ) {
+					if ( ! empty( $requested_file ) && strpos( $match, $requested_file ) === 0 && $requested_file !== $requested_path ) {
 						$request_match = $requested_file . '/' . $requested_path;
 					}
 
@@ -268,7 +268,7 @@ class WP {
 				parse_str( $query, $perma_query_vars );
 
 				// If we're processing a 404 request, clear the error var since we found something.
-				if ( '404' == $error ) {
+				if ( '404' === $error ) {
 					unset( $error, $_GET['error'] );
 				}
 			}
@@ -502,8 +502,8 @@ class WP {
 			$wp_modified_timestamp = strtotime( $wp_last_modified );
 
 			if ( ( $client_last_modified && $client_etag ) ?
-					( ( $client_modified_timestamp >= $wp_modified_timestamp ) && ( $client_etag == $wp_etag ) ) :
-					( ( $client_modified_timestamp >= $wp_modified_timestamp ) || ( $client_etag == $wp_etag ) ) ) {
+					( ( $client_modified_timestamp >= $wp_modified_timestamp ) && ( $client_etag === $wp_etag ) ) :
+					( ( $client_modified_timestamp >= $wp_modified_timestamp ) || ( $client_etag === $wp_etag ) ) ) {
 				$status        = 304;
 				$exit_required = true;
 			}
@@ -572,7 +572,7 @@ class WP {
 	public function build_query_string() {
 		$this->query_string = '';
 		foreach ( (array) array_keys( $this->query_vars ) as $wpvar ) {
-			if ( '' != $this->query_vars[ $wpvar ] ) {
+			if ( '' !== $this->query_vars[ $wpvar ] ) {
 				$this->query_string .= ( strlen( $this->query_string ) < 1 ) ? '' : '&';
 				if ( ! is_scalar( $this->query_vars[ $wpvar ] ) ) { // Discard non-scalars.
 					continue;
