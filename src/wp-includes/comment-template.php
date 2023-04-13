@@ -535,7 +535,7 @@ function get_comment_class( $css_class = '', $comment_id = null, $post = null ) 
 	$comment_alt++;
 
 	// Alt for top-level comments.
-	if ( 1 == $comment_depth ) {
+	if ( 1 === $comment_depth ) {
 		if ( $comment_thread_alt % 2 ) {
 			$classes[] = 'thread-odd';
 			$classes[] = 'thread-alt';
@@ -782,7 +782,7 @@ function get_comment_link( $comment = null, $args = array() ) {
 
 		$cpage = $args['page'];
 
-		if ( '' == $cpage ) {
+		if ( '' === $cpage ) {
 			if ( ! empty( $in_comment_loop ) ) {
 				$cpage = get_query_var( 'cpage' );
 			} else {
@@ -961,7 +961,7 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 
 			$output = str_replace( '%', number_format_i18n( $number ), $more );
 		}
-	} elseif ( 0 == $number ) {
+	} elseif ( 0 === (int) $number ) {
 		$output = ( false === $zero ) ? __( 'No Comments' ) : $zero;
 	} else { // Must be one.
 		$output = ( false === $one ) ? __( '1 Comment' ) : $one;
@@ -1567,7 +1567,7 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 
 	$overridden_cpage = false;
 
-	if ( '' == get_query_var( 'cpage' ) && $wp_query->max_num_comment_pages > 1 ) {
+	if ( '' === get_query_var( 'cpage' ) && $wp_query->max_num_comment_pages > 1 ) {
 		set_query_var( 'cpage', 'newest' === get_option( 'default_comments_page' ) ? get_comment_pages_count() : 1 );
 		$overridden_cpage = true;
 	}
@@ -1633,7 +1633,7 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
 		$none = sprintf( __( 'Comments Off<span class="screen-reader-text"> on %s</span>' ), $post_title );
 	}
 
-	if ( 0 == $number && ! comments_open() && ! pings_open() ) {
+	if ( 0 === (int) $number && ! comments_open() && ! pings_open() ) {
 		echo '<span' . ( ( ! empty( $css_class ) ) ? ' class="' . esc_attr( $css_class ) . '"' : '' ) . '>' . $none . '</span>';
 		return;
 	}
@@ -1644,7 +1644,7 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
 	}
 
 	echo '<a href="';
-	if ( 0 == $number ) {
+	if ( 0 === (int) $number ) {
 		$respond_link = get_permalink() . '#respond';
 		/**
 		 * Filters the respond link when a post has no comments.
@@ -1723,7 +1723,7 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 
 	$args = wp_parse_args( $args, $defaults );
 
-	if ( 0 == $args['depth'] || $args['max_depth'] <= $args['depth'] ) {
+	if ( 0 === (int) $args['depth'] || $args['max_depth'] <= $args['depth'] ) {
 		return;
 	}
 
@@ -2228,7 +2228,9 @@ function wp_list_comments( $args = array(), $comments = null ) {
 			}
 
 			$current_per_page = get_query_var( 'comments_per_page' );
-			if ( $parsed_args['page'] != $current_cpage || $parsed_args['per_page'] != $current_per_page ) {
+			if ( (int) $parsed_args['page'] !== (int) $current_cpage
+				|| (int) $parsed_args['per_page'] !== (int) $current_per_page
+			) {
 				$comment_args = array(
 					'post_id' => get_the_ID(),
 					'orderby' => 'comment_date_gmt',
@@ -2287,7 +2289,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 					* When first page shows oldest comments, post permalink is the same as
 					* the comment permalink.
 					*/
-				} elseif ( 1 == $cpage ) {
+				} elseif ( 1 === (int) $cpage ) {
 					$parsed_args['cpage'] = '';
 				} else {
 					$parsed_args['cpage'] = $cpage;
@@ -2320,14 +2322,16 @@ function wp_list_comments( $args = array(), $comments = null ) {
 		if ( empty( $overridden_cpage ) ) {
 			$parsed_args['page'] = get_query_var( 'cpage' );
 		} else {
-			$threaded            = ( -1 != $parsed_args['max_depth'] );
+			$threaded            = ( -1 !== (int) $parsed_args['max_depth'] );
 			$parsed_args['page'] = ( 'newest' === get_option( 'default_comments_page' ) ) ? get_comment_pages_count( $_comments, $parsed_args['per_page'], $threaded ) : 1;
 			set_query_var( 'cpage', $parsed_args['page'] );
 		}
 	}
+
 	// Validation check.
-	$parsed_args['page'] = (int) $parsed_args['page'];
-	if ( 0 == $parsed_args['page'] && 0 != $parsed_args['per_page'] ) {
+	$parsed_args['page']     = (int) $parsed_args['page'];
+	$parsed_args['per_page'] = (int) $parsed_args['per_page'];
+	if ( 0 === $parsed_args['page'] && 0 !== $parsed_args['per_page'] ) {
 		$parsed_args['page'] = 1;
 	}
 
