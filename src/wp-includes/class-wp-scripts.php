@@ -870,9 +870,9 @@ JS;
 	 * @return bool True if strategy part of strategies.
 	 */
 	private function is_valid_strategy( $strategy ) {
-		$allow_strategies = array( 'blocking', 'defer', 'async' );
+		$allowed_strategies = array( 'blocking', 'defer', 'async' );
 
-		return in_array( $strategy, $allow_strategies, true );
+		return in_array( $strategy, $allowed_strategies, true );
 	}
 
 	/**
