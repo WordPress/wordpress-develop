@@ -2172,7 +2172,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertEquals( 0, wp_decode_value_from_db( 0, 'integer' ) );
 		$this->assertEquals( 0, wp_decode_value_from_db( '0', 'integer' ) );
 		$this->assertEquals( 1, wp_decode_value_from_db( 1, 'integer' ) );
-		$this->assertEquals( 1, wp_decode_value_from_db(  '1', 'integer' ) );
+		$this->assertEquals( 1, wp_decode_value_from_db( '1', 'integer' ) );
 	}
 
 	/**
