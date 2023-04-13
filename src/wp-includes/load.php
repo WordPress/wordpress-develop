@@ -56,7 +56,7 @@ function wp_fix_server_vars() {
 
 			// Some IIS + PHP configurations put the script-name in the path-info (no need to append it twice).
 			if ( isset( $_SERVER['PATH_INFO'] ) ) {
-				if ( $_SERVER['PATH_INFO'] == $_SERVER['SCRIPT_NAME'] ) {
+				if ( $_SERVER['PATH_INFO'] === $_SERVER['SCRIPT_NAME'] ) {
 					$_SERVER['REQUEST_URI'] = $_SERVER['PATH_INFO'];
 				} else {
 					$_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'] . $_SERVER['PATH_INFO'];
@@ -71,7 +71,7 @@ function wp_fix_server_vars() {
 	}
 
 	// Fix for PHP as CGI hosts that set SCRIPT_FILENAME to something ending in php.cgi for all requests.
-	if ( isset( $_SERVER['SCRIPT_FILENAME'] ) && ( strpos( $_SERVER['SCRIPT_FILENAME'], 'php.cgi' ) == strlen( $_SERVER['SCRIPT_FILENAME'] ) - 7 ) ) {
+	if ( isset( $_SERVER['SCRIPT_FILENAME'] ) && ( strpos( $_SERVER['SCRIPT_FILENAME'], 'php.cgi' ) === strlen( $_SERVER['SCRIPT_FILENAME'] ) - 7 ) ) {
 		$_SERVER['SCRIPT_FILENAME'] = $_SERVER['PATH_TRANSLATED'];
 	}
 
@@ -1478,10 +1478,10 @@ function is_ssl() {
 			return true;
 		}
 
-		if ( '1' == $_SERVER['HTTPS'] ) {
+		if ( '1' === (string) $_SERVER['HTTPS'] ) {
 			return true;
 		}
-	} elseif ( isset( $_SERVER['SERVER_PORT'] ) && ( '443' == $_SERVER['SERVER_PORT'] ) ) {
+	} elseif ( isset( $_SERVER['SERVER_PORT'] ) && ( '443' === $_SERVER['SERVER_PORT'] ) ) {
 		return true;
 	}
 	return false;
