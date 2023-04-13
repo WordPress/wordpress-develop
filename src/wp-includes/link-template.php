@@ -1469,10 +1469,22 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
 		return;
 	}
 
+	$link = '';
+
 	if ( $post_type_object->_edit_link ) {
-		$link = admin_url( sprintf( $post_type_object->_edit_link . $action, $post->ID ) );
-	} else {
-		$link = '';
+		if ( 'wp_template' === $post->post_type || 'wp_template_part' === $post->post_type ) {
+			$action          = '&canvas=edit';
+			$block_templates = get_block_templates(
+				array(),
+				$post->post_type
+			);
+			if ( count( $block_templates ) ) {
+				$template_post_id = $block_templates[0]->id;
+				$link             = admin_url( sprintf( $post_type_object->_edit_link . $action, $template_post_id ) );
+			}
+		} else {
+			$link = admin_url( sprintf( $post_type_object->_edit_link . $action, $post->ID ) );
+		}
 	}
 
 	/**
