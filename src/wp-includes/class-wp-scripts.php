@@ -864,6 +864,18 @@ JS;
 	}
 
 	/**
+	 * Check if the strategy is valid or not.
+	 *
+	 * @param string $strategy The script strategy.
+	 * @return bool True if strategy part of strategies.
+	 */
+	private function is_valid_strategy( $strategy ) {
+		$allow_strategies = array( 'blocking', 'defer', 'async' );
+
+		return in_array( $strategy, $allow_strategies, true );
+	}
+
+	/**
 	 * Get the strategy assigned during script registration.
 	 *
 	 * @param string $handle The script handle.
@@ -871,8 +883,21 @@ JS;
 	 */
 	private function get_intended_strategy( $handle ) {
 		$script_args = $this->get_data( $handle, 'script_args' );
+		$strategy    = isset( $script_args['strategy'] ) ? $script_args['strategy'] : false;
 
-		return isset( $script_args['strategy'] ) ? $script_args['strategy'] : false;
+		if ( $strategy && ! is_valid_strategy( $strategy ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: 1: $strategy, 2: $handle */
+					__( 'Invalid strategy `%1$s` set for `%2$s`, during script registration.' ),
+					$strategy,
+					$handle
+				),
+				'6.3.0'
+			);
+		}
+		return $strategy;
 	}
 
 	/**
