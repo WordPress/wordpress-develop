@@ -550,26 +550,32 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  * By default, an empty string is returned if `$single` is true, or an empty array
  * if it's false.
  *
+ * In most cases non-string scalar and null values will be converted and returned
+ * as string equivalents if the `$value_type` paramenter is not set. If it is set
+ * the values will be of the expected type.
+ *
  * @since 2.9.0
+ * @since 6.3.0 Introduced the `$value_type` parameter.
  *
  * @see get_metadata_raw()
  * @see get_metadata_default()
  *
- * @param string $meta_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
- *                          or any other object type with an associated meta table.
- * @param int    $object_id ID of the object metadata is for.
- * @param string $meta_key  Optional. Metadata key. If not specified, retrieve all metadata for
- *                          the specified object. Default empty string.
- * @param bool   $single    Optional. If true, return only the first value of the specified `$meta_key`.
- *                          This parameter has no effect if `$meta_key` is not specified. Default false.
+ * @param string $meta_type  Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
+ *                           or any other object type with an associated meta table.
+ * @param int    $object_id  ID of the object metadata is for.
+ * @param string $meta_key   Optional. Metadata key. If not specified, retrieve all metadata for
+ *                           the specified object. Default empty string.
+ * @param bool   $single     Optional. If true, return only the first value of the specified `$meta_key`.
+ *                           This parameter has no effect if `$meta_key` is not specified. Default false.
+ * @param string $value_type Optional. The expected data type of the value.
  * @return mixed An array of values if `$single` is false.
  *               The value of the meta field if `$single` is true.
  *               False for an invalid `$object_id` (non-numeric, zero, or negative value),
  *               or if `$meta_type` is not specified.
  *               An empty string if a valid but non-existing object ID is passed.
  */
-function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false ) {
-	$value = get_metadata_raw( $meta_type, $object_id, $meta_key, $single );
+function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false, $value_type = '' ) {
+	$value = get_metadata_raw( $meta_type, $object_id, $meta_key, $single, $value_type );
 	if ( ! is_null( $value ) ) {
 		return $value;
 	}
@@ -582,20 +588,21 @@ function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false )
  *
  * @since 5.5.0
  *
- * @param string $meta_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
- *                          or any other object type with an associated meta table.
- * @param int    $object_id ID of the object metadata is for.
- * @param string $meta_key  Optional. Metadata key. If not specified, retrieve all metadata for
- *                          the specified object. Default empty string.
- * @param bool   $single    Optional. If true, return only the first value of the specified `$meta_key`.
- *                          This parameter has no effect if `$meta_key` is not specified. Default false.
+ * @param string $meta_type  Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
+ *                           or any other object type with an associated meta table.
+ * @param int    $object_id  ID of the object metadata is for.
+ * @param string $meta_key   Optional. Metadata key. If not specified, retrieve all metadata for
+ *                           the specified object. Default empty string.
+ * @param bool   $single     Optional. If true, return only the first value of the specified `$meta_key`.
+ *                           This parameter has no effect if `$meta_key` is not specified. Default false.
+ * @param string $value_type Optional. The expected data type of the value.
  * @return mixed An array of values if `$single` is false.
  *               The value of the meta field if `$single` is true.
  *               False for an invalid `$object_id` (non-numeric, zero, or negative value),
  *               or if `$meta_type` is not specified.
  *               Null if the value does not exist.
  */
-function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = false ) {
+function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = false, $value_type = '' ) {
 	if ( ! $meta_type || ! is_numeric( $object_id ) ) {
 		return false;
 	}
@@ -656,9 +663,15 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 
 	if ( isset( $meta_cache[ $meta_key ] ) ) {
 		if ( $single ) {
-			return maybe_unserialize( $meta_cache[ $meta_key ][0] );
+			return wp_decode_value_from_db( $meta_cache[ $meta_key ][0], $value_type );
 		} else {
-			return array_map( 'maybe_unserialize', $meta_cache[ $meta_key ] );
+			$meta_values = $meta_cache[ $meta_key ];
+
+			foreach ( (array) $meta_values as $key => $meta_value ) {
+				$meta_values[ $key ] = wp_decode_value_from_db( $meta_value, $value_type );
+			}
+
+			return $meta_values;
 		}
 	}
 
@@ -769,9 +782,10 @@ function metadata_exists( $meta_type, $object_id, $meta_key ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string $meta_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
- *                          or any other object type with an associated meta table.
- * @param int    $meta_id   ID for a specific meta row.
+ * @param string $meta_type  Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
+ *                           or any other object type with an associated meta table.
+ * @param int    $meta_id    ID for a specific meta row.
+ * @param string $value_type Optional. The expected data type of the value.
  * @return stdClass|false {
  *     Metadata object, or boolean `false` if the metadata doesn't exist.
  *
@@ -785,7 +799,7 @@ function metadata_exists( $meta_type, $object_id, $meta_key ) {
  *     @type string $user_id    Optional. The object ID when the meta type is 'user'.
  * }
  */
-function get_metadata_by_mid( $meta_type, $meta_id ) {
+function get_metadata_by_mid( $meta_type, $meta_id, $value_type = '' ) {
 	global $wpdb;
 
 	if ( ! $meta_type || ! is_numeric( $meta_id ) || floor( $meta_id ) != $meta_id ) {
@@ -818,10 +832,11 @@ function get_metadata_by_mid( $meta_type, $meta_id ) {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param stdClass|null $value   The value to return.
-	 * @param int           $meta_id Meta ID.
+	 * @param stdClass|null $value      The value to return.
+	 * @param int           $meta_id    Meta ID.
+	 * @param string        $value_type The expected data type of the value.
 	 */
-	$check = apply_filters( "get_{$meta_type}_metadata_by_mid", null, $meta_id );
+	$check = apply_filters( "get_{$meta_type}_metadata_by_mid", null, $meta_id, $value_type );
 	if ( null !== $check ) {
 		return $check;
 	}
@@ -835,7 +850,7 @@ function get_metadata_by_mid( $meta_type, $meta_id ) {
 	}
 
 	if ( isset( $meta->meta_value ) ) {
-		$meta->meta_value = maybe_unserialize( $meta->meta_value );
+		$meta->meta_value = wp_decode_value_from_db( $meta->meta_value, $value_type );
 	}
 
 	return $meta;

@@ -2151,4 +2151,70 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSameSetsWithIndex( $theme_json, $expected_theme_json );
 	}
 
+	/**
+	 * @ticket 55942
+	 */
+	public function test_bool_wp_decode_value_from_db() {
+		$this->assertEquals( true, wp_decode_value_from_db( '1', 'boolean' ) );
+		$this->assertEquals( true, wp_decode_value_from_db( true, 'boolean' ) );
+		$this->assertEquals( true, wp_decode_value_from_db( 'string', 'boolean' ) );
+		$this->assertEquals( false, wp_decode_value_from_db( '0', 'boolean' ) );
+		$this->assertEquals( false, wp_decode_value_from_db( '', 'boolean' ) );
+		$this->assertEquals( false, wp_decode_value_from_db( false, 'boolean' ) );
+	}
+
+	/**
+	 * @ticket 55942
+	 */
+	public function test_int_wp_decode_value_from_db() {
+		$this->assertEquals( 42, wp_decode_value_from_db( 42, 'integer' ) );
+		$this->assertEquals( 42, wp_decode_value_from_db( '42', 'integer' ) );
+		$this->assertEquals( 0, wp_decode_value_from_db( 0, 'integer' ) );
+		$this->assertEquals( 0, wp_decode_value_from_db( '0', 'integer' ) );
+		$this->assertEquals( 1, wp_decode_value_from_db( 1, 'integer' ) );
+		$this->assertEquals( 1, wp_decode_value_from_db(  '1', 'integer' ) );
+	}
+
+	/**
+	 * @ticket 55942
+	 */
+	public function test_float_wp_decode_value_from_db() {
+		$this->assertEquals( 12.50, wp_decode_value_from_db( 12.50, 'float' ) );
+		$this->assertEquals( 12.50, wp_decode_value_from_db( '12.50', 'float' ) );
+		$this->assertEquals( 0, wp_decode_value_from_db( 0, 'float' ) );
+		$this->assertEquals( 1, wp_decode_value_from_db( 1, 'float' ) );
+	}
+
+	/**
+	 * @ticket 55942
+	 */
+	public function test_string_wp_decode_value_from_db() {
+		$this->assertEquals( 'test', wp_decode_value_from_db( 'test', 'string' ) );
+		$this->assertEquals( '12', wp_decode_value_from_db( 12, 'string' ) );
+		$this->assertEquals( '1', wp_decode_value_from_db( true, 'string' ) );
+		$this->assertEquals( '', wp_decode_value_from_db( false, 'string' ) );
+		$this->assertEquals( '12.435', wp_decode_value_from_db( 12.435, 'string' ) );
+	}
+
+	/**
+	 * @ticket 55942
+	 */
+	public function test_array_wp_decode_value_from_db() {
+		$this->assertEquals( array( 'test' => 'value' ), wp_decode_value_from_db( serialize( array( 'test' => 'value' ) ), 'array' ) );
+		$this->assertEquals( array( 'test' => 'value' ), wp_decode_value_from_db( serialize( (object) array( 'test' => 'value' ) ), 'array' ) );
+		$this->assertEquals( array( 'test' => 'value' ), wp_decode_value_from_db( array( 'test' => 'value' ), 'array' ) );
+		$this->assertEquals( array( 'test' => 'value' ), wp_decode_value_from_db( (object) array( 'test' => 'value' ), 'array' ) );
+	}
+
+	/**
+	 * @ticket 55942
+	 */
+	public function test_object_wp_decode_value_from_db() {
+		$obj       = new \stdClass();
+		$obj->test = 'value';
+		$this->assertEquals( $obj, wp_decode_value_from_db( serialize( $obj ), 'object' ) );
+		$this->assertEquals( $obj, wp_decode_value_from_db( serialize( (array) $obj ), 'object' ) );
+		$this->assertEquals( $obj, wp_decode_value_from_db( $obj, 'object' ) );
+		$this->assertEquals( $obj, wp_decode_value_from_db( (array) $obj, 'object' ) );
+	}
 }

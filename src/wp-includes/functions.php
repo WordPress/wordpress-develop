@@ -8509,3 +8509,69 @@ function is_php_version_compatible( $required ) {
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
 }
+
+/**
+ * Get supported types for meta and option values.
+ *
+ * This is a subset of the PHP data types that can be stored in the database.
+ *
+ * @since 6.3.0
+ *
+ * @return array List of supported value types.
+ */
+function wp_get_db_value_types() {
+	return array(
+		'boolean',
+		'integer',
+		'float',
+		'string',
+		'array',
+		'object',
+		'null', // TODO: needed?
+	);
+}
+
+/**
+ * Decode a value from the database.
+ *
+ * Convert the value from the database back to its original type.
+ *
+ * @since 6.3.0
+ *
+ * @param mixed  $value      Raw value from the database.
+ * @param string $value_type Optional. The expected value type.
+ * @return mixed The decoded value.
+ */
+function wp_decode_value_from_db( $value, $value_type = '' ) {
+	$origianl_value = $value;
+
+	if ( empty( $value_type ) ) {
+		$value = maybe_unserialize( $value );
+	} else {
+		$value_types = wp_get_db_value_types();
+
+		if ( in_array( $value_type, $value_types, true ) ) {
+			if ( 'array' === $value_type || 'object' === $value_type ) {
+				$value = maybe_unserialize( $value );
+			}
+
+			settype( $value, $value_type );
+		} else {
+			// Improper use.
+			/* translators: The function name that returns the supported types. */
+			$message = sprintf( __( 'Only types returned by %s are supported.' ), '<code>wp_get_db_value_types()</code>' );
+			_doing_it_wrong( 'wp_decode_value_from_db', $message );
+		}
+	}
+
+	/**
+	 * Filter the decoded value.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param mixed  $value          Decoded value.
+	 * @param mixed  $origianl_value Original value from the database.
+	 * @param string $value_type     The expected value type.
+	 */
+	return apply_filters( 'wp_decode_value_from_db', $value, $origianl_value, $value_type );
+}

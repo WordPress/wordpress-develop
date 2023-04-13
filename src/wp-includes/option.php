@@ -25,7 +25,8 @@
  * return the same array.
  *
  * In most cases non-string scalar and null values will be converted and returned
- * as string equivalents.
+ * as string equivalents if the `$value_type` paramenter is not set. If it is set
+ * the values will be of the expected type.
  *
  * Exceptions:
  *
@@ -35,8 +36,9 @@
  *    {@see 'default_option_$option'}, or {@see 'option_$option'}, the returned
  *    value may not match the expected type.
  * 3. When the option has just been saved in the database, and get_option()
- *    is used right after, non-string scalar and null values are not converted to
- *    string equivalents and the original type is returned.
+ *    is used right after without the `$value_type` paramenter, non-string scalar
+ *    and null values are not converted to string equivalents and are returned with
+ *    their original types.
  *
  * Examples:
  *
@@ -52,9 +54,14 @@
  *   - `'1'`   returns `string(1) "1"`
  *   - `null`  returns `string(0) ""`
  *
+ * When the `$value_type` parameter is used the returned value will be of the expected type.
+ * Retrieving the first option from the above example with
+ * `get_option( 'my_option_name', false, 'boolean' )` will return `boolean false`.
+ * Retrieving the second example will return `boolean true`. Retrieving the third example
+ * with `get_option( 'my_option_name', false, 'integer' )` will return `integer 0`, etc.
  * When adding options with non-scalar values like
  * `add_option( 'my_array', array( false, 'str', null ) )`, the returned value
- * will be identical to the original as it is serialized before saving
+ * will always be identical to the original as it is serialized before saving
  * it in the database:
  *
  *     array(3) {
@@ -64,18 +71,20 @@
  *     }
  *
  * @since 1.5.0
+ * @since 6.3.0 Introduced the `$value_type` parameter.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $option        Name of the option to retrieve. Expected to not be SQL-escaped.
  * @param mixed  $default_value Optional. Default value to return if the option does not exist.
+ * @param string $value_type    Optional. The expected data type of the value.
  * @return mixed Value of the option. A value of any type may be returned, including
  *               scalar (string, boolean, float, integer), null, array, object.
  *               Scalar and null values will be returned as strings as long as they originate
  *               from a database stored option value. If there is no option in the database,
  *               boolean `false` is returned.
  */
-function get_option( $option, $default_value = false ) {
+function get_option( $option, $default_value = false, $value_type = '' ) {
 	global $wpdb;
 
 	if ( is_scalar( $option ) ) {
@@ -106,7 +115,7 @@ function get_option( $option, $default_value = false ) {
 				$deprecated_keys[ $option ]
 			)
 		);
-		return get_option( $deprecated_keys[ $option ], $default_value );
+		return get_option( $deprecated_keys[ $option ], $default_value, $value_type );
 	}
 
 	/**
@@ -128,8 +137,9 @@ function get_option( $option, $default_value = false ) {
 	 * @param string $option        Option name.
 	 * @param mixed  $default_value The fallback value to return if the option does not exist.
 	 *                              Default false.
+	 * @param string $value_type    The expected data type of the value.
 	 */
-	$pre = apply_filters( "pre_option_{$option}", false, $option, $default_value );
+	$pre = apply_filters( "pre_option_{$option}", false, $option, $default_value, $value_type );
 
 	/**
 	 * Filters the value of all existing options before it is retrieved.
@@ -146,8 +156,9 @@ function get_option( $option, $default_value = false ) {
 	 * @param string $option        Name of the option.
 	 * @param mixed  $default_value The fallback value to return if the option does not exist.
 	 *                              Default false.
+	 * @param string $value_type    The expected data type of the value.
 	 */
-	$pre = apply_filters( 'pre_option', $pre, $option, $default_value );
+	$pre = apply_filters( 'pre_option', $pre, $option, $default_value, $value_type );
 
 	if ( false !== $pre ) {
 		return $pre;
@@ -184,8 +195,9 @@ function get_option( $option, $default_value = false ) {
 			 *                               in the database.
 			 * @param string $option         Option name.
 			 * @param bool   $passed_default Was `get_option()` passed a default value?
+			 * @param string $value_type     The expected data type of the value.
 			 */
-			return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default );
+			return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default, $value_type );
 		}
 
 		$alloptions = wp_load_alloptions();
@@ -211,7 +223,7 @@ function get_option( $option, $default_value = false ) {
 					wp_cache_set( 'notoptions', $notoptions, 'options' );
 
 					/** This filter is documented in wp-includes/option.php */
-					return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default );
+					return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default, $value_type );
 				}
 			}
 		}
@@ -224,7 +236,7 @@ function get_option( $option, $default_value = false ) {
 			$value = $row->option_value;
 		} else {
 			/** This filter is documented in wp-includes/option.php */
-			return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default );
+			return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default, $value_type );
 		}
 	}
 
@@ -237,6 +249,8 @@ function get_option( $option, $default_value = false ) {
 		$value = untrailingslashit( $value );
 	}
 
+	$value = wp_decode_value_from_db( $value, $value_type );
+
 	/**
 	 * Filters the value of an existing option.
 	 *
@@ -246,11 +260,12 @@ function get_option( $option, $default_value = false ) {
 	 * @since 3.0.0
 	 * @since 4.4.0 The `$option` parameter was added.
 	 *
-	 * @param mixed  $value  Value of the option. If stored serialized, it will be
-	 *                       unserialized prior to being returned.
-	 * @param string $option Option name.
+	 * @param mixed  $value      Value of the option. If stored serialized, it will be
+	 *                           unserialized prior to being returned.
+	 * @param string $option     Option name.
+	 * @param string $value_type The expected data type of the value.
 	 */
-	return apply_filters( "option_{$option}", maybe_unserialize( $value ), $option );
+	return apply_filters( "option_{$option}", $value, $option, $value_type );
 }
 
 /**
@@ -1412,9 +1427,10 @@ function update_site_option( $option, $value ) {
  * @param int    $network_id    ID of the network. Can be null to default to the current network ID.
  * @param string $option        Name of the option to retrieve. Expected to not be SQL-escaped.
  * @param mixed  $default_value Optional. Value to return if the option doesn't exist. Default false.
+ * @param string $value_type    Optional. The expected data type of the value.
  * @return mixed Value set for the option.
  */
-function get_network_option( $network_id, $option, $default_value = false ) {
+function get_network_option( $network_id, $option, $default_value = false, $value_type = '' ) {
 	global $wpdb;
 
 	if ( $network_id && ! is_numeric( $network_id ) ) {
@@ -1450,8 +1466,9 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	 * @param int    $network_id    ID of the network.
 	 * @param mixed  $default_value The fallback value to return if the option does not exist.
 	 *                              Default false.
+	 * @param string $value_type    The expected data type of the value.
 	 */
-	$pre = apply_filters( "pre_site_option_{$option}", false, $option, $network_id, $default_value );
+	$pre = apply_filters( "pre_site_option_{$option}", false, $option, $network_id, $default_value, $value_type );
 
 	if ( false !== $pre ) {
 		return $pre;
@@ -1476,8 +1493,9 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 		 *                              in the database.
 		 * @param string $option        Option name.
 		 * @param int    $network_id    ID of the network.
+		 * @param string $value_type    The expected data type of the value.
 		 */
-		return apply_filters( "default_site_option_{$option}", $default_value, $option, $network_id );
+		return apply_filters( "default_site_option_{$option}", $default_value, $option, $network_id, $value_type );
 	}
 
 	if ( ! is_multisite() ) {
@@ -1494,7 +1512,7 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 			// Has to be get_row() instead of get_var() because of funkiness with 0, false, null values.
 			if ( is_object( $row ) ) {
 				$value = $row->meta_value;
-				$value = maybe_unserialize( $value );
+				$value = wp_decode_value_from_db( $value, $value_type );
 				wp_cache_set( $cache_key, $value, 'site-options' );
 			} else {
 				if ( ! is_array( $notoptions ) ) {
@@ -1528,8 +1546,9 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	 * @param mixed  $value      Value of network option.
 	 * @param string $option     Option name.
 	 * @param int    $network_id ID of the network.
+	 * @param string $value_type The expected data type of the value.
 	 */
-	return apply_filters( "site_option_{$option}", $value, $option, $network_id );
+	return apply_filters( "site_option_{$option}", $value, $option, $network_id, $value_type );
 }
 
 /**
