@@ -428,7 +428,7 @@ class WP_Plugin_Dependencies {
 					$action_links[0]  = str_replace( __( 'Activate' ), _x( 'Cannot Activate', 'plugin' ), $action_links[0] );
 					$action_links[0] .= '<span class="screen-reader-text">' . __( 'Cannot activate due to unmet dependency' ) . '</span>';
 					$action_links[0]  = str_replace( 'activate-now', 'button-disabled', $action_links[0] );
-					if ( 'plugin-install.php' === $pagenow ) {
+					if ( 'plugin-install.php' !== $pagenow ) {
 						$action_links[] = $this->get_dependency_link();
 					}
 					break;
@@ -825,7 +825,7 @@ class WP_Plugin_Dependencies {
 				'name'              => $args['name'],
 				'slug'              => $args['slug'],
 				'version'           => '',
-				'author'            => '',
+				'author'            => __( 'Unknown' ),
 				'contributors'      => array(),
 				'requires'          => '',
 				'tested'            => '',
@@ -842,6 +842,7 @@ class WP_Plugin_Dependencies {
 				'num_ratings'       => 0,
 				'rating'            => 0,
 				'active_installs'   => 0,
+				'external'          => 'xxx',
 			);
 			$response          = (object) $response;
 		}
