@@ -787,8 +787,8 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 		);
 	}
 
-	if ( (int) $commentdata['user_id'] === (int) $post_author
-		|| ( isset( $user ) && $user->has_cap( 'moderate_comments' ) )
+	if ( isset( $user )
+		&& ( (int) $commentdata['user_id'] === (int) $post_author || $user->has_cap( 'moderate_comments' ) )
 	) {
 		// The author and the admins get respect.
 		$approved = 1;
