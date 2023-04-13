@@ -892,4 +892,4 @@ class WP_Plugin_Dependencies {
 	}
 }
 
-add_action( 'plugins_loaded', array( new WP_Plugin_Dependencies(), 'start' ) );
+( new WP_Plugin_Dependencies() )->start();
