@@ -81,12 +81,12 @@ class WP_Plugin_Dependencies {
 			add_action( 'admin_init', array( $this, 'modify_plugin_row' ), 15 );
 			add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 			add_action( 'network_admin_notices', array( $this, 'admin_notices' ) );
-
-			$required_headers = $this->parse_plugin_headers();
-			$this->slugs      = $this->sanitize_required_headers( $required_headers );
-			$this->get_dot_org_data();
-			$this->deactivate_unmet_dependencies();
 		}
+
+		$required_headers = $this->parse_plugin_headers();
+		$this->slugs      = $this->sanitize_required_headers( $required_headers );
+		$this->get_dot_org_data();
+		$this->deactivate_unmet_dependencies();
 	}
 
 	/**
@@ -688,6 +688,7 @@ class WP_Plugin_Dependencies {
 		foreach ( $this->requires_plugins as $file => $requires ) {
 			if ( in_array( dirname( $file ), $this->slugs, true )
 				&& in_array( $requires['RequiresPlugins'], $this->slugs, true )
+				&& isset( $this->plugin_data[ $requires['RequiresPlugins'] ]['name'] ) // Needed for WP-CLI.
 			) {
 				$slug                                   = $requires['RequiresPlugins'];
 				$circular_dependencies[ $slug ]['file'] = $file;
@@ -891,4 +892,4 @@ class WP_Plugin_Dependencies {
 	}
 }
 
-add_action( 'admin_init', array( new WP_Plugin_Dependencies(), 'start' ) );
+add_action( 'plugins_loaded', array( new WP_Plugin_Dependencies(), 'start' ) );
