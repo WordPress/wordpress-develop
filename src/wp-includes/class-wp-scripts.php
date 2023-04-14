@@ -864,10 +864,10 @@ JS;
 	}
 
 	/**
-	 * Check if the strategy is valid or not.
+	 * Determines if a scripts defined loading strategy is valid.
 	 *
-	 * @param string $strategy The script strategy.
-	 * @return bool True if strategy part of strategies.
+	 * @param string $strategy The defined script strategy.
+	 * @return bool True if the strategy is of an allowed type, false otherwise.
 	 */
 	private function is_valid_strategy( $strategy ) {
 		$allowed_strategies = array( 'blocking', 'defer', 'async' );
