@@ -1473,7 +1473,7 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
 
 	if ( $post_type_object->_edit_link ) {
 		if ( 'wp_template' === $post->post_type || 'wp_template_part' === $post->post_type ) {
-			$action          = '&canvas=edit';
+			$action          = 'display' === $context ? '&amp;canvas=edit' : '&canvas=edit';
 			$block_templates = get_block_templates(
 				array(),
 				$post->post_type
