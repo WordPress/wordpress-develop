@@ -294,15 +294,17 @@ class WP_Scripts extends WP_Dependencies {
 			$cond_after  = "<![endif]-->\n";
 		}
 
-		$strategy = $this->get_eligible_loading_strategy( $handle );
-
 		$before_handle = $this->print_inline_script( $handle, 'before', false );
 
 		if ( $before_handle ) {
 			$before_handle = sprintf( "<script%s id='%s-js-before'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $before_handle );
 		}
 
+		$strategy = $this->get_eligible_loading_strategy( $handle );
+
 		$after_handle = '';
+
+		// Eligible loading strategies will only be 'async', 'defer', or ''.
 		if ( '' === $strategy ) {
 			$after_handle = $this->print_inline_script( $handle, 'after', false );
 
@@ -363,7 +365,10 @@ class WP_Scripts extends WP_Dependencies {
 			// Used as a conditional to prevent script concatenation.
 			$is_deferred_or_async_handle = in_array( $strategy, array( 'defer', 'async' ), true );
 
-			if ( $this->in_default_dir( $srce ) && ( $before_handle || $after_handle || $translations_stop_concat || $is_deferred_or_async_handle ) ) {
+			if (
+				$this->in_default_dir( $srce )
+				&& ( $before_handle || $after_handle || $translations_stop_concat || $is_deferred_or_async_handle )
+			) {
 				$this->do_concat = false;
 
 				// Have to print the so-far concatenated scripts right away to maintain the right order.
@@ -466,7 +471,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * @param string $data       String containing the JavaScript to be added.
 	 * @param string $position   Optional. Whether to add the inline script
 	 *                           before the handle or after. Default 'after'.
-	 * @param bool   $standalone Inline script opted to be standalone or not. Default false.
+	 * @param bool   $standalone Optional. Inline script opted to be standalone or not. Default false.
 	 * @return bool True on success, false on failure.
 	 */
 	public function add_inline_script( $handle, $data, $position = 'after', $standalone = false ) {
@@ -803,7 +808,7 @@ JS;
 	 */
 	public function has_delayed_inline_script() {
 		foreach ( $this->registered as $handle => $script ) {
-			// non standalone after scripts of async or defer are usually delayed.
+			// Non standalone scripts in the after position, of type async or defer, are usually delayed.
 			if ( in_array( $this->get_intended_strategy( $handle ), array( 'defer', 'async' ), true ) &&
 				$this->has_non_standalone_inline_script( $handle, 'after' )
 			) {
@@ -820,8 +825,8 @@ JS;
 	 * @param array         $args     {
 	 *      Optional. Additional script arguments. Default empty array.
 	 *
-	 *      @type boolean   $in_footer    Optional. Default true.
-	 *      @type string    $strategy     Optional. Values blocking|defer|async .Default 'blocking'.
+	 *      @type boolean   $in_footer    Optional. Default false.
+	 *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
 	 * }
 	 * @return array        Normalized $args array.
 	 */
@@ -830,15 +835,17 @@ JS;
 			'in_footer' => false,
 			'strategy'  => 'blocking',
 		);
+
 		// Handle backward compatibility for $in_footer.
 		if ( true === $args ) {
 			$args = array( 'in_footer' => true );
 		}
+
 		return wp_parse_args( $args, $default_args );
 	}
 
 	/**
-	 * Get all of the scripts that depend on a script.
+	 * Get all dependents of a script.
 	 *
 	 * @param string $handle The script handle.
 	 * @return array Array of script handles.
@@ -846,12 +853,13 @@ JS;
 	private function get_dependents( $handle ) {
 		$dependents = array();
 
-		// Iterate over all registered scripts, finding ones that depend on the script.
+		// Iterate over all registered scripts, finding dependents of the script passed to this method.
 		foreach ( $this->registered as $registered_handle => $args ) {
 			if ( in_array( $handle, $args->deps, true ) ) {
 				$dependents[] = $registered_handle;
 			}
 		}
+
 		return $dependents;
 	}
 
@@ -863,6 +871,7 @@ JS;
 	 */
 	private function get_intended_strategy( $handle ) {
 		$script_args = $this->get_data( $handle, 'script_args' );
+
 		return isset( $script_args['strategy'] ) ? $script_args['strategy'] : false;
 	}
 
@@ -877,6 +886,7 @@ JS;
 	private function has_non_standalone_inline_script( $handle, $position ) {
 		$non_standalone_script_key = $position . '-non-standalone';
 		$non_standalone_script     = $this->get_data( $handle, $non_standalone_script_key );
+
 		return ! empty( $non_standalone_script );
 	}
 
@@ -884,18 +894,19 @@ JS;
 	 * Check if all of a scripts dependents are deferrable, which is required to maintain execution order.
 	 *
 	 * @param string $handle  The script handle.
-	 * @param array $checked An array of already checked script handles, used to avoid looping recursion.
+	 * @param array  $checked Optional. An array of already checked script handles, used to avoid recursive loops.
 	 * @return bool True if all dependents are deferrable, false otherwise.
 	 */
-	private function all_dependents_are_deferrable( $handle, $checked = array() ) {
+	private function has_only_deferrable_dependents( $handle, $checked = array() ) {
 		// If this node was already checked, this script can be deferred and the branch ends.
 		if ( in_array( $handle, $checked, true ) ) {
 			return true;
 		}
+
 		$checked[]  = $handle;
 		$dependents = $this->get_dependents( $handle );
 
-		// If there are no dependents remaining to consider, the script can be deferred and the branch ends.
+		// If there are no dependents remaining to consider, the script can be deferred.
 		if ( empty( $dependents ) ) {
 			return true;
 		}
@@ -913,7 +924,7 @@ JS;
 			}
 
 			// Recursively check all dependents.
-			if ( ! $this->all_dependents_are_deferrable( $dependent, $checked ) ) {
+			if ( ! $this->has_only_deferrable_dependents( $dependent, $checked ) ) {
 				return false;
 			}
 		}
@@ -922,17 +933,18 @@ JS;
 	}
 
 	/**
-	 * Get the most eligible loading strategy for a script.
+	 * Get the best eligible loading strategy for a script.
 	 *
 	 * @param string  $handle The registered handle of the script.
 	 * @return string $strategy return the final strategy.
 	 */
-	private function get_eligible_loading_strategy( $handle = '' ) {
+	private function get_eligible_loading_strategy( $handle ) {
 		if ( ! isset( $this->registered[ $handle ] ) ) {
 			return '';
 		}
 
 		$intended_strategy = $this->get_intended_strategy( $handle );
+
 		/*
 		 * Handle known blocking strategy scenarios.
 		 *
@@ -949,7 +961,7 @@ JS;
 		}
 
 		// Handling defer strategy scenarios.
-		if ( $this->all_dependents_are_deferrable( $handle ) ) {
+		if ( $this->has_only_deferrable_dependents( $handle ) ) {
 			return 'defer';
 		}
 

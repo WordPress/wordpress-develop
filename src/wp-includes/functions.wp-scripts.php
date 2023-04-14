@@ -125,7 +125,7 @@ function wp_print_scripts( $handles = false ) {
  * @param string $data       String containing the JavaScript to be added.
  * @param string $position   Optional. Whether to add the inline script before the handle
  *                           or after. Default 'after'.
- * @param bool   $standalone Inline script opted to be standalone or not. Default false.
+ * @param bool   $standalone Optional. Inline script opted to be standalone or not. Default false.
  * @return bool True on success, false on failure.
  */
 function wp_add_inline_script( $handle, $data, $position = 'after', $standalone = false ) {
@@ -170,7 +170,7 @@ function wp_add_inline_script( $handle, $data, $position = 'after', $standalone 
  * @param array             $args     {
  *      Optional. An array of additional script strategies. Default empty array.
  *
- *      @type boolean   $in_footer    Optional. Default true.
+ *      @type boolean   $in_footer    Optional. Default false.
  *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
  * }
  * @return bool Whether the script has been registered. True on success, false on failure.
@@ -347,7 +347,7 @@ function wp_deregister_script( $handle ) {
  * @param array            $args      {
  *      Optional. An array of additional script strategies. Default empty array.
  *
- *      @type boolean   $in_footer    Optional. Default true.
+ *      @type boolean   $in_footer    Optional. Default false.
  *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
  * }
  *
