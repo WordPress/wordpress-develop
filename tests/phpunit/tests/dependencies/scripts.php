@@ -631,7 +631,7 @@ EXP;
 	/**
 	 * Test script strategy doing it wrong.
 	 *
-	 * For invalid strategy used during script registration, default to blocking strategy.
+	 * For an invalid strategy defined during script registration, default to a blocking strategy.
 	 *
 	 * @ticket 12009
 	 */
