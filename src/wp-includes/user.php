@@ -1153,6 +1153,7 @@ function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
  * Retrieves user meta field for a user.
  *
  * @since 3.0.0
+ * @since 6.3.0 Introduced the `$value_type` parameter.
  *
  * @link https://developer.wordpress.org/reference/functions/get_user_meta/
  *

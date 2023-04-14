@@ -8511,9 +8511,10 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 }
 
 /**
- * Get supported types for meta and option values.
+ * Get supported data types for meta and option values.
  *
- * This is a subset of the PHP data types that can be stored in the database.
+ * This is a subset of the PHP data types that can be used for
+ * meta and option values.
  *
  * @since 6.3.0
  *
@@ -8527,7 +8528,6 @@ function wp_get_db_value_types() {
 		'string',
 		'array',
 		'object',
-		'null', // TODO: needed?
 	);
 }
 

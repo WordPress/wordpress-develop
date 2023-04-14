@@ -2476,6 +2476,7 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
  * Retrieves a post meta field for the given post ID.
  *
  * @since 1.5.0
+ * @since 6.3.0 Introduced the `$value_type` parameter.
  *
  * @param int    $post_id    Post ID.
  * @param string $key        Optional. The meta key to retrieve. By default,

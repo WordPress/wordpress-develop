@@ -1041,6 +1041,7 @@ function delete_site_meta( $site_id, $meta_key, $meta_value = '' ) {
  * Retrieves metadata for a site.
  *
  * @since 5.1.0
+ * @since 6.3.0 Introduced the `$value_type` parameter.
  *
  * @param int    $site_id    Site ID.
  * @param string $key        Optional. The meta key to retrieve. By default,

@@ -1419,6 +1419,7 @@ function update_site_option( $option, $value ) {
  * Retrieves a network's option value based on the option name.
  *
  * @since 4.4.0
+ * @since 6.3.0 Introduced the `$value_type` parameter.
  *
  * @see get_option()
  *

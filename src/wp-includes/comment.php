@@ -466,6 +466,7 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  * Retrieves comment meta field for a comment.
  *
  * @since 2.9.0
+ * @since 6.3.0 Introduced the `$value_type` parameter.
  *
  * @link https://developer.wordpress.org/reference/functions/get_comment_meta/
  *

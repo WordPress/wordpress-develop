@@ -587,6 +587,7 @@ function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false, 
  * Retrieves raw metadata value for the specified object.
  *
  * @since 5.5.0
+ * @since 6.3.0 Introduced the `$value_type` parameter.
  *
  * @param string $meta_type  Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
  *                           or any other object type with an associated meta table.
@@ -779,6 +780,7 @@ function metadata_exists( $meta_type, $object_id, $meta_key ) {
  * Retrieves metadata by meta ID.
  *
  * @since 3.3.0
+ * @since 6.3.0 Introduced the `$value_type` parameter.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *

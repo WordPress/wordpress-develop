@@ -1367,6 +1367,7 @@ function delete_term_meta( $term_id, $meta_key, $meta_value = '' ) {
  * Retrieves metadata for a term.
  *
  * @since 4.4.0
+ * @since 6.3.0 Introduced the `$value_type` parameter.
  *
  * @param int    $term_id    Term ID.
  * @param string $key        Optional. The meta key to retrieve. By default,
