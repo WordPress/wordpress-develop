@@ -896,8 +896,10 @@ JS;
 				),
 				'6.3.0'
 			);
+
 			return false;
 		}
+
 		return $strategy;
 	}
 
