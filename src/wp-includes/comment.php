@@ -475,13 +475,14 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  * @param bool   $single     Optional. Whether to return a single value.
  *                           This parameter has no effect if `$key` is not specified.
  *                           Default false.
+ * @param string $value_type Optional. The expected data type of the value.
  * @return mixed An array of values if `$single` is false.
  *               The value of meta data field if `$single` is true.
  *               False for an invalid `$comment_id` (non-numeric, zero, or negative value).
  *               An empty string if a valid but non-existing comment ID is passed.
  */
-function get_comment_meta( $comment_id, $key = '', $single = false ) {
-	return get_metadata( 'comment', $comment_id, $key, $single );
+function get_comment_meta( $comment_id, $key = '', $single = false, $value_type = '' ) {
+	return get_metadata( 'comment', $comment_id, $key, $single, $value_type );
 }
 
 /**
