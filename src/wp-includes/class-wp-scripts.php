@@ -890,7 +890,7 @@ JS;
 				__METHOD__,
 				sprintf(
 					/* translators: 1: $strategy, 2: $handle */
-					__( 'Invalid strategy `%1$s` set for `%2$s`, during script registration.' ),
+					__( 'Invalid strategy `%1$s` defined for `%2$s` during script registration.' ),
 					$strategy,
 					$handle
 				),
