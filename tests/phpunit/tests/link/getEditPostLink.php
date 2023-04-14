@@ -4,18 +4,22 @@
  * @covers ::get_edit_post_link
  */
 class Tests_Link_GetEditPostLink extends WP_UnitTestCase {
-
 	const TEST_THEME = 'block-theme';
-	private static $admin_user;
+
+	private static $admin_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		switch_theme( self::TEST_THEME );
 		// Create an admin user because get_edit_post_link() requires 'edit_post' capability.
-		self::$admin_user = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
+	public function set_up() {
+		parent::set_up();
+		wp_set_current_user( self::$admin_id );
+		switch_theme( self::TEST_THEME );
 	}
 
 	public function test_get_edit_post_link() {
-		wp_set_current_user( self::$admin_user );
 		$post                 = self::factory()->post->create_and_get(
 			array(
 				'post_type'   => 'post',
@@ -33,7 +37,6 @@ class Tests_Link_GetEditPostLink extends WP_UnitTestCase {
 	}
 
 	public function test_get_edit_post_link_for_wp_template_post_type() {
-		wp_set_current_user( self::$admin_user );
 		$template_post = self::factory()->post->create_and_get(
 			array(
 				'post_type'    => 'wp_template',
@@ -60,7 +63,6 @@ class Tests_Link_GetEditPostLink extends WP_UnitTestCase {
 	}
 
 	public function test_get_edit_post_link_for_wp_template_part_post_type() {
-		wp_set_current_user( self::$admin_user );
 		$template_part_post = self::factory()->post->create_and_get(
 			array(
 				'post_type'    => 'wp_template_part',
