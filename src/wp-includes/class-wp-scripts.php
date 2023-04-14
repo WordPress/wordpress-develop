@@ -885,7 +885,7 @@ JS;
 		$script_args = $this->get_data( $handle, 'script_args' );
 		$strategy    = isset( $script_args['strategy'] ) ? $script_args['strategy'] : false;
 
-		if ( $strategy && ! is_valid_strategy( $strategy ) ) {
+		if ( $strategy && ! $this->is_valid_strategy( $strategy ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
