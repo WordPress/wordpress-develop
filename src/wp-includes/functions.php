@@ -8543,7 +8543,7 @@ function wp_get_db_value_types() {
  * @return mixed The decoded value.
  */
 function wp_decode_value_from_db( $value, $value_type = '' ) {
-	$origianl_value = $value;
+	$original_value = $value;
 
 	if ( empty( $value_type ) ) {
 		$value = maybe_unserialize( $value );
@@ -8570,8 +8570,8 @@ function wp_decode_value_from_db( $value, $value_type = '' ) {
 	 * @since 6.3.0
 	 *
 	 * @param mixed  $value          Decoded value.
-	 * @param mixed  $origianl_value Original value from the database.
+	 * @param mixed  $original_value Original value from the database.
 	 * @param string $value_type     The expected value type.
 	 */
-	return apply_filters( 'wp_decode_value_from_db', $value, $origianl_value, $value_type );
+	return apply_filters( 'wp_decode_value_from_db', $value, $original_value, $value_type );
 }
