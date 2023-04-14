@@ -950,9 +950,25 @@ function confirm_delete_users( $users ) {
 							</li>
 							<li><label><input type="radio" id="delete_option0" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" checked="checked" />
 							<?php _e( 'Delete all content.' ); ?></label></li>
-							<li><label><input type="radio" id="delete_option1" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="reassign" />
-							<?php _e( 'Attribute all content to:' ); ?></label>
-							<?php echo $user_dropdown; ?></li>
+							<li>
+								<input type="radio" id="delete_option1" name="delete_option" value="reassign" />
+								<?php
+									echo '<label for="delete_option1">' . __( 'Attribute all content to:' ) . '</label> ';
+									$users = get_users( array( 'exclude' => $userids ) );
+									
+									usort($users, function($a, $b) {
+										$role_a = $a->roles[0];
+										$role_b = $b->roles[0];
+										return strcmp($role_a, $role_b);
+									});
+									
+									echo '<select name="reassign_user">';
+									foreach ( $users as $user ) {
+										echo '<option value="' . esc_attr( $user->ID ) . '"> User: ' . esc_html( $user->display_name ) . ' - rol: ' . esc_html( $user->roles[0] ) . '</option>';
+									}
+									echo '</select>';
+								?>
+							</li>
 						</ul>
 						<?php
 					}
