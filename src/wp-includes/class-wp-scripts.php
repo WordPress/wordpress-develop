@@ -879,8 +879,8 @@ JS;
 	/**
 	 * Check if the strategy passed is one of the delayed strategies.
 	 *
-	 * @param string $strategy The script handle.
-	 * @return string|bool Strategy set during script registration. False if none was set.
+	 * @param string $strategy The strategy to check.
+	 * @return bool True if #strategy is one of the delayed strategy.
 	 */
 	private function is_delayed_strategy( $strategy ) {
 		$delayed_strategies = array( 'defer', 'async' );
