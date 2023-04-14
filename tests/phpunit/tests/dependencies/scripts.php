@@ -629,6 +629,24 @@ EXP;
 	}
 
 	/**
+	 * Test invalid script strategy during registration.
+	 *
+	 * For invalid strategy we default back to blocking strategy.
+	 *
+	 * @ticket 12009
+	 */
+	public function test_invalid_script_strategy() {
+		wp_register_script( 'invalid-strategy', '/defaults.js', array(), null, array( 'strategy' => 'random-strategy' ) );
+		wp_enqueue_script( 'invalid-strategy' );
+
+		$output = get_echo( 'wp_print_scripts' );
+
+		$expected = "<script type='text/javascript' src='/defaults.js' id='invalid-strategy-js'></script>";
+
+		$this->assertSame( $expected, $output );
+	}
+
+	/**
 	 * Test script concatenation with deferred main script.
 	 *
 	 * @ticket 12009
