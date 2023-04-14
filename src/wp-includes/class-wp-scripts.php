@@ -880,7 +880,7 @@ JS;
 	 * Check if the strategy passed is one of the delayed strategies.
 	 *
 	 * @param string $strategy The strategy to check.
-	 * @return bool True if #strategy is one of the delayed strategy.
+	 * @return bool True if $strategy is one of the delayed strategy.
 	 */
 	private function is_delayed_strategy( $strategy ) {
 		$delayed_strategies = array( 'defer', 'async' );
