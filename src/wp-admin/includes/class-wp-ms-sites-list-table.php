@@ -702,19 +702,19 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		$actions['edit']    = '<a href="' . esc_url( network_admin_url( 'site-info.php?id=' . $blog['blog_id'] ) ) . '">' . __( 'Edit' ) . '</a>';
 		$actions['backend'] = "<a href='" . esc_url( get_admin_url( $blog['blog_id'] ) ) . "' class='edit'>" . __( 'Dashboard' ) . '</a>';
 		if ( get_network()->site_id != $blog['blog_id'] ) {
-			if ( '1' == $blog['deleted'] ) {
+			if ( '1' === $blog['deleted'] ) {
 				$actions['activate'] = '<a href="' . esc_url( wp_nonce_url( network_admin_url( 'sites.php?action=confirm&amp;action2=activateblog&amp;id=' . $blog['blog_id'] ), 'activateblog_' . $blog['blog_id'] ) ) . '">' . __( 'Activate' ) . '</a>';
 			} else {
 				$actions['deactivate'] = '<a href="' . esc_url( wp_nonce_url( network_admin_url( 'sites.php?action=confirm&amp;action2=deactivateblog&amp;id=' . $blog['blog_id'] ), 'deactivateblog_' . $blog['blog_id'] ) ) . '">' . __( 'Deactivate' ) . '</a>';
 			}
 
-			if ( '1' == $blog['archived'] ) {
+			if ( '1' === $blog['archived'] ) {
 				$actions['unarchive'] = '<a href="' . esc_url( wp_nonce_url( network_admin_url( 'sites.php?action=confirm&amp;action2=unarchiveblog&amp;id=' . $blog['blog_id'] ), 'unarchiveblog_' . $blog['blog_id'] ) ) . '">' . __( 'Unarchive' ) . '</a>';
 			} else {
 				$actions['archive'] = '<a href="' . esc_url( wp_nonce_url( network_admin_url( 'sites.php?action=confirm&amp;action2=archiveblog&amp;id=' . $blog['blog_id'] ), 'archiveblog_' . $blog['blog_id'] ) ) . '">' . _x( 'Archive', 'verb; site' ) . '</a>';
 			}
 
-			if ( '1' == $blog['spam'] ) {
+			if ( '1' === $blog['spam'] ) {
 				$actions['unspam'] = '<a href="' . esc_url( wp_nonce_url( network_admin_url( 'sites.php?action=confirm&amp;action2=unspamblog&amp;id=' . $blog['blog_id'] ), 'unspamblog_' . $blog['blog_id'] ) ) . '">' . _x( 'Not Spam', 'site' ) . '</a>';
 			} else {
 				$actions['spam'] = '<a href="' . esc_url( wp_nonce_url( network_admin_url( 'sites.php?action=confirm&amp;action2=spamblog&amp;id=' . $blog['blog_id'] ), 'spamblog_' . $blog['blog_id'] ) ) . '">' . _x( 'Spam', 'site' ) . '</a>';
