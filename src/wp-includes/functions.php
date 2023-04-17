@@ -73,7 +73,7 @@ function mysql2date( $format, $date, $translate = true ) {
 function current_time( $type, $gmt = 0 ) {
 	// Don't use non-GMT timestamp, unless you know the difference and really need to.
 	if ( 'timestamp' === $type || 'U' === $type ) {
-		return $gmt ? time() : time() + ( (int) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
+		return $gmt ? time() : time() + (int) ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 	}
 
 	if ( 'mysql' === $type ) {
@@ -882,7 +882,7 @@ function do_enclose( $content, $post ) {
 	global $wpdb;
 
 	// @todo Tidy this code and make the debug code optional.
-	include_once ABSPATH . WPINC . '/class-IXR.php';
+	require_once ABSPATH . WPINC . '/class-IXR.php';
 
 	$post = get_post( $post );
 	if ( ! $post ) {
@@ -4754,7 +4754,7 @@ function smilies_init() {
 	 */
 	$wpsmiliestrans = apply_filters( 'smilies', $wpsmiliestrans );
 
-	if ( count( $wpsmiliestrans ) == 0 ) {
+	if ( count( $wpsmiliestrans ) === 0 ) {
 		return;
 	}
 
