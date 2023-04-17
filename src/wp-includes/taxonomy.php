@@ -4019,7 +4019,7 @@ function _pad_term_counts( &$terms, $taxonomy ) {
  *
  * @since 4.6.0
  * @since 6.1.0 This function is no longer marked as "private".
- * @since 6.3.0 Use wp_lazyload_term_meta.
+ * @since 6.3.0 Use wp_lazyload_term_meta() for lazy-loading of term meta.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
