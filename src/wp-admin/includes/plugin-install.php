@@ -95,7 +95,7 @@
  *         @type bool $contributors      Whether to return the list of contributors. Default false.
  *     }
  * }
- * @return object|array|WP_Error array containingResponse object or array on success, WP_Error on failure. See the
+ * @return object|array|WP_Error Response object or array on success, WP_Error on failure. See the
  *         {@link https://developer.wordpress.org/reference/functions/plugins_api/ function reference article}
  *         for more information on the make-up of possible return values depending on the value of `$action`.
  */
