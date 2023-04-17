@@ -1072,11 +1072,12 @@ class WP_User_Query {
 			$blog_id = absint( $args['blog_id'] );
 		}
 		if ( ( $args['has_published_posts'] && $blog_id ) || in_array( 'post_count', $ordersby, true ) ) {
-			if ( get_current_blog_id() !== $blog_id ) {
+			$switch = get_current_blog_id() !== $blog_id;
+			if ( $switch ) {
 				switch_to_blog( $blog_id );
 			}
 			$last_changed .= wp_cache_get_last_changed( 'posts' );
-			if ( get_current_blog_id() !== $blog_id ) {
+			if ( $switch ) {
 				restore_current_blog();
 			}
 		}
