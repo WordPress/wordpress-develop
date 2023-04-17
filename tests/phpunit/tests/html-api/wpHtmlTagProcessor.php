@@ -52,6 +52,56 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58009
+	 *
+	 * @covers WP_HTML_Tag_Processor::has_self_closing_flag
+	 *
+	 * @dataProvider data_has_self_closing_flag
+	 *
+	 * @param string $html Input HTML whose first tag might contain the self-closing flag `/`.
+	 * @param bool $flag_is_set Whether the input HTML's first tag contains the self-closing flag.
+	 */
+	public function test_has_self_closing_flag_matches_input_html( $html, $flag_is_set ) {
+		$p = new WP_HTML_Tag_Processor( $html );
+		$p->next_tag( array( 'tag_closers' => 'visit' ) );
+
+		if ( $flag_is_set ) {
+			$this->assertTrue( $p->has_self_closing_flag(), 'Did not find the self-closing tag when it was present.' );
+		} else {
+			$this->assertFalse( $p->has_self_closing_flag(), 'Found the self-closing tag when it was absent.' );
+		}
+	}
+
+	/**
+	 * Data provider. HTML tags which might have a self-closing flag, and an indicator if they do.
+	 *
+	 * @return array[]
+	 */
+	public function data_has_self_closing_flag() {
+		return array(
+			// These should not have a self-closer, and will leave an element un-closed if it's assumed they are self-closing.
+			'Self-closing flag on non-void HTML element' => array( '<div />', true ),
+			'No self-closing flag on non-void HTML element' => array( '<div>', false ),
+			// These should not have a self-closer, but are benign when used because the elements are void.
+			'Self-closing flag on void HTML element'     => array( '<img />', true ),
+			'No self-closing flag on void HTML element'  => array( '<img>', false ),
+			'Self-closing flag on void HTML element without spacing' => array( '<img/>', true ),
+			// These should not have a self-closer, but as part of a tag closer they are entirely ignored.
+			'Self-closing flag on tag closer'            => array( '</textarea />', true ),
+			'No self-closing flag on tag closer'         => array( '</textarea>', false ),
+			// These can and should have self-closers, and will leave an element un-closed if it's assumed they aren't self-closing.
+			'Self-closing flag on a foreign element'     => array( '<circle />', true ),
+			'No self-closing flag on a foreign element'  => array( '<circle>', false ),
+			// These involve syntax peculiarities.
+			'Self-closing flag after extra spaces'       => array( '<div      />', true ),
+			'Self-closing flag after attribute'          => array( '<div id=test/>', true ),
+			'Self-closing flag after quoted attribute'   => array( '<div id="test"/>', true ),
+			'Self-closing flag after boolean attribute'  => array( '<div enabled/>', true ),
+			'Boolean attribute that looks like a self-closer' => array( '<div / >', false ),
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::get_attribute

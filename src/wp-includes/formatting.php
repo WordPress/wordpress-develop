@@ -898,7 +898,7 @@ function seems_utf8( $str ) {
 			return false; // Does not match any model.
 		}
 		for ( $j = 0; $j < $n; $j++ ) { // n bytes matching 10bbbbbb follow ?
-			if ( ( ++$i == $length ) || ( ( ord( $str[ $i ] ) & 0xC0 ) != 0x80 ) ) {
+			if ( ( ++$i === $length ) || ( ( ord( $str[ $i ] ) & 0xC0 ) != 0x80 ) ) {
 				return false;
 			}
 		}
@@ -1169,7 +1169,7 @@ function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = 
 			$unicode        .= $encoded_char;
 			$unicode_length += $encoded_char_length;
 		} else {
-			if ( count( $values ) == 0 ) {
+			if ( count( $values ) === 0 ) {
 				if ( $value < 224 ) {
 					$num_octets = 2;
 				} elseif ( $value < 240 ) {
@@ -1184,7 +1184,7 @@ function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = 
 			if ( $length && ( $unicode_length + ( $num_octets * 3 ) ) > $length ) {
 				break;
 			}
-			if ( count( $values ) == $num_octets ) {
+			if ( count( $values ) === $num_octets ) {
 				for ( $j = 0; $j < $num_octets; $j++ ) {
 					$unicode .= '%' . dechex( $values[ $j ] );
 				}
@@ -3391,7 +3391,7 @@ function wp_remove_targeted_link_rel_filters() {
 function translate_smiley( $matches ) {
 	global $wpsmiliestrans;
 
-	if ( count( $matches ) == 0 ) {
+	if ( count( $matches ) === 0 ) {
 		return '';
 	}
 
@@ -4524,13 +4524,15 @@ function sanitize_url( $url, $protocols = null ) {
  *
  * @since 1.2.2
  *
- * @param string $myHTML The text to be converted.
+ * @param string $text The text to be converted.
  * @return string Converted text.
  */
-function htmlentities2( $myHTML ) {
-	$translation_table              = get_html_translation_table( HTML_ENTITIES, ENT_QUOTES );
+function htmlentities2( $text ) {
+	$translation_table = get_html_translation_table( HTML_ENTITIES, ENT_QUOTES );
+
 	$translation_table[ chr( 38 ) ] = '&';
-	return preg_replace( '/&(?![A-Za-z]{0,4}\w{2,3};|#[0-9]{2,3};)/', '&amp;', strtr( $myHTML, $translation_table ) );
+
+	return preg_replace( '/&(?![A-Za-z]{0,4}\w{2,3};|#[0-9]{2,3};)/', '&amp;', strtr( $text, $translation_table ) );
 }
 
 /**
@@ -5136,7 +5138,7 @@ function wp_sprintf( $pattern, ...$args ) {
 	$arg_index = 0;
 	while ( $len > $start ) {
 		// Last character: append and break.
-		if ( strlen( $pattern ) - 1 == $start ) {
+		if ( strlen( $pattern ) - 1 === $start ) {
 			$result .= substr( $pattern, -1 );
 			break;
 		}
@@ -5242,7 +5244,7 @@ function wp_sprintf_l( $pattern, $args ) {
 
 	$args   = (array) $args;
 	$result = array_shift( $args );
-	if ( count( $args ) == 1 ) {
+	if ( count( $args ) === 1 ) {
 		$result .= $l['between_only_two'] . array_shift( $args );
 	}
 
@@ -5251,7 +5253,7 @@ function wp_sprintf_l( $pattern, $args ) {
 	while ( $i ) {
 		$arg = array_shift( $args );
 		$i--;
-		if ( 0 == $i ) {
+		if ( 0 === $i ) {
 			$result .= $l['between_last_two'] . $arg;
 		} else {
 			$result .= $l['between'] . $arg;
