@@ -1109,7 +1109,7 @@ function get_comment_time( $format = '', $gmt = false, $translate = true, $comme
  *                                   Default current comment.
  */
 function comment_time( $format = '', $comment_id = 0 ) {
-	echo get_comment_time( $format, $comment_id );
+	echo get_comment_time( $format, false, true, $comment_id );
 }
 
 /**
@@ -1941,7 +1941,7 @@ function get_cancel_comment_reply_link( $text = '', $post = null ) {
 	$post        = get_post( $post );
 	$reply_to_id = $post ? _get_comment_reply_id( $post->ID ) : 0;
 	$style       = 0 !== $reply_to_id ? '' : ' style="display:none;"';
-	$link        = esc_html( remove_query_arg( array( 'replytocom', 'unapproved', 'moderation-hash' ) ) ) . '#respond';
+	$link        = esc_url( remove_query_arg( array( 'replytocom', 'unapproved', 'moderation-hash' ) ) ) . '#respond';
 
 	$formatted_link = '<a rel="nofollow" id="cancel-comment-reply-link" href="' . $link . '"' . $style . '>' . $text . '</a>';
 

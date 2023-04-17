@@ -288,7 +288,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * Test wp_get_webp_info.
 	 *
 	 * @ticket 35725
-	 * @dataProvider _test_wp_get_webp_info
+	 * @dataProvider data_wp_get_webp_info
 	 *
 	 */
 	public function test_wp_get_webp_info( $file, $expected ) {
@@ -305,7 +305,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	/**
 	 * Data provider for test_wp_get_webp_info().
 	 */
-	public function _test_wp_get_webp_info() {
+	public function data_wp_get_webp_info() {
 		return array(
 			// Standard JPEG.
 			array(

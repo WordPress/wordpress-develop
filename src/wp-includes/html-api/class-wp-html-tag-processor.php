@@ -1404,6 +1404,7 @@ class WP_HTML_Tag_Processor {
 	 * Applies attribute updates to HTML document.
 	 *
 	 * @since 6.2.0
+	 * @since 6.3.0 Invalidate any bookmarks whose targets are overwritten.
 	 *
 	 * @return void
 	 */
@@ -1434,7 +1435,7 @@ class WP_HTML_Tag_Processor {
 		 * Adjust bookmark locations to account for how the text
 		 * replacements adjust offsets in the input document.
 		 */
-		foreach ( $this->bookmarks as $bookmark ) {
+		foreach ( $this->bookmarks as $bookmark_name => $bookmark ) {
 			/*
 			 * Each lexical update which appears before the bookmark's endpoints
 			 * might shift the offsets for those endpoints. Loop through each change
@@ -1445,20 +1446,22 @@ class WP_HTML_Tag_Processor {
 			$tail_delta = 0;
 
 			foreach ( $this->lexical_updates as $diff ) {
-				$update_head = $bookmark->start >= $diff->start;
-				$update_tail = $bookmark->end >= $diff->start;
-
-				if ( ! $update_head && ! $update_tail ) {
+				if ( $bookmark->start < $diff->start && $bookmark->end < $diff->start ) {
 					break;
+				}
+
+				if ( $bookmark->start >= $diff->start && $bookmark->end < $diff->end ) {
+					$this->release_bookmark( $bookmark_name );
+					continue 2;
 				}
 
 				$delta = strlen( $diff->text ) - ( $diff->end - $diff->start );
 
-				if ( $update_head ) {
+				if ( $bookmark->start >= $diff->start ) {
 					$head_delta += $delta;
 				}
 
-				if ( $update_tail ) {
+				if ( $bookmark->end >= $diff->end ) {
 					$tail_delta += $delta;
 				}
 			}
@@ -1468,6 +1471,18 @@ class WP_HTML_Tag_Processor {
 		}
 
 		$this->lexical_updates = array();
+	}
+
+	/**
+	 * Checks whether a bookmark with the given name exists.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $bookmark_name Name to identify a bookmark that potentially exists.
+	 * @return bool Whether that bookmark exists.
+	 */
+	public function has_bookmark( $bookmark_name ) {
+		return array_key_exists( $bookmark_name, $this->bookmarks );
 	}
 
 	/**
@@ -1742,6 +1757,31 @@ class WP_HTML_Tag_Processor {
 		$tag_name = substr( $this->html, $this->tag_name_starts_at, $this->tag_name_length );
 
 		return strtoupper( $tag_name );
+	}
+
+	/**
+	 * Indicates if the currently matched tag contains the self-closing flag.
+	 *
+	 * No HTML elements ought to have the self-closing flag and for those, the self-closing
+	 * flag will be ignored. For void elements this is benign because they "self close"
+	 * automatically. For non-void HTML elements though problems will appear if someone
+	 * intends to use a self-closing element in place of that element with an empty body.
+	 * For HTML foreign elements and custom elements the self-closing flag determines if
+	 * they self-close or not.
+	 *
+	 * This function does not determine if a tag is self-closing,
+	 * but only if the self-closing flag is present in the syntax.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @return bool Whether the currently matched tag contains the self-closing flag.
+	 */
+	public function has_self_closing_flag() {
+		if ( ! $this->tag_name_starts_at ) {
+			return false;
+		}
+
+		return '/' === $this->html[ $this->tag_ends_at - 1 ];
 	}
 
 	/**
