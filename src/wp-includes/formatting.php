@@ -898,7 +898,7 @@ function seems_utf8( $str ) {
 			return false; // Does not match any model.
 		}
 		for ( $j = 0; $j < $n; $j++ ) { // n bytes matching 10bbbbbb follow ?
-			if ( ( ++$i == $length ) || ( ( ord( $str[ $i ] ) & 0xC0 ) != 0x80 ) ) {
+			if ( ( ++$i === $length ) || ( ( ord( $str[ $i ] ) & 0xC0 ) != 0x80 ) ) {
 				return false;
 			}
 		}
@@ -4524,13 +4524,15 @@ function sanitize_url( $url, $protocols = null ) {
  *
  * @since 1.2.2
  *
- * @param string $myHTML The text to be converted.
+ * @param string $text The text to be converted.
  * @return string Converted text.
  */
-function htmlentities2( $myHTML ) {
-	$translation_table              = get_html_translation_table( HTML_ENTITIES, ENT_QUOTES );
+function htmlentities2( $text ) {
+	$translation_table = get_html_translation_table( HTML_ENTITIES, ENT_QUOTES );
+
 	$translation_table[ chr( 38 ) ] = '&';
-	return preg_replace( '/&(?![A-Za-z]{0,4}\w{2,3};|#[0-9]{2,3};)/', '&amp;', strtr( $myHTML, $translation_table ) );
+
+	return preg_replace( '/&(?![A-Za-z]{0,4}\w{2,3};|#[0-9]{2,3};)/', '&amp;', strtr( $text, $translation_table ) );
 }
 
 /**
@@ -5136,7 +5138,7 @@ function wp_sprintf( $pattern, ...$args ) {
 	$arg_index = 0;
 	while ( $len > $start ) {
 		// Last character: append and break.
-		if ( strlen( $pattern ) - 1 == $start ) {
+		if ( strlen( $pattern ) - 1 === $start ) {
 			$result .= substr( $pattern, -1 );
 			break;
 		}
