@@ -97,7 +97,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		$users_total2  = $query2->get_total();
 		$queries_after = get_num_queries();
 
-		$this->assertNotSame( $queries_before, $queries_after, 'Assert that queries are run' );
+		$this->assertNotSame( $queries_before, $queries_after, 'Assert that the number of queries is not equal' );
 		$this->assertNotSame( $users_total1, $users_total2, 'Assert that totals do not match' );
 		$this->assertSameSets( $users1, $users2, 'Results of the query are expected to match.' );
 	}
@@ -693,7 +693,6 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		$expected = array( (string) self::$author_ids[0], (string) self::$author_ids[1], (string) self::$author_ids[2] );
 
 		$this->assertSameSets( $expected, $q->get_results(), 'Asset that expected users return from different blog' );
-
 	}
 
 	/**

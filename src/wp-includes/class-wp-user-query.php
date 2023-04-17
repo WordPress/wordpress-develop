@@ -1046,7 +1046,6 @@ class WP_User_Query {
 	 *
 	 * @param array  $args Query arguments.
 	 * @param string $sql  SQL statement.
-	 *
 	 * @return string Cache key.
 	 */
 	protected function generate_cache_key( array $args, $sql ) {
