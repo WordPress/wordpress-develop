@@ -185,7 +185,7 @@ function twentytwelve_scripts_styles() {
 
 	$font_url = twentytwelve_get_font_url();
 	if ( ! empty( $font_url ) ) {
-		$font_version = ( str_starts_with( (string) twentytwelve_get_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
+		$font_version = ( 0 === strpos( (string) twentytwelve_get_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 		wp_enqueue_style( 'twentytwelve-fonts', esc_url_raw( $font_url ), array(), $font_version );
 	}
 
@@ -210,7 +210,7 @@ function twentytwelve_block_editor_styles() {
 	// Block styles.
 	wp_enqueue_style( 'twentytwelve-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20230213' );
 	// Add custom fonts.
-	$font_version = ( str_starts_with( (string) twentytwelve_get_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
+	$font_version = ( 0 === strpos( (string) twentytwelve_get_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentytwelve-fonts', twentytwelve_get_font_url(), array(), $font_version );
 }
 add_action( 'enqueue_block_editor_assets', 'twentytwelve_block_editor_styles' );

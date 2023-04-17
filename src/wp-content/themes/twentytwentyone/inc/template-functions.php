@@ -377,7 +377,7 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 
 		// If the block ends with *, try to match the first portion.
 		if ( '*' === $block_name[-1] ) {
-			$is_matching_block = str_starts_with( $block['blockName'], rtrim( $block_name, '*' ) );
+			$is_matching_block = 0 === strpos( $block['blockName'], rtrim( $block_name, '*' ) );
 		} else {
 			$is_matching_block = $block_name === $block['blockName'];
 		}
