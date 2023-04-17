@@ -94,12 +94,12 @@ $discussion = twentynineteen_get_discussion_data();
 					'prev_text' => sprintf(
 						'%1$s <span class="nav-prev-text">%2$s</span>',
 						$prev_icon,
-						/* translators: Comments navigation link text. The secondary-text element may be hidden. */
+						/* translators: Comments navigation link text. The secondary-text element is hidden on small screens. */
 						__( '<span class="primary-text">Previous</span> <span class="secondary-text">Comments</span>', 'twentynineteen' )
 					),
 					'next_text' => sprintf(
 						'<span class="nav-next-text">%1$s</span> %2$s',
-						/* translators: Comments navigation link text. The secondary-text element may be hidden. */
+						/* translators: Comments navigation link text. The secondary-text element is hidden on small screens. */
 						__( '<span class="primary-text">Next</span> <span class="secondary-text">Comments</span>', 'twentynineteen' ),
 						$next_icon
 					),
