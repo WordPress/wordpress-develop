@@ -404,7 +404,6 @@ function wp_load_core_site_options( $network_id = null ) {
 		$data[ $cache_key ] = $option->meta_value;
 	}
 	wp_cache_set_multiple( $data, 'site-options' );
-
 }
 
 /**
