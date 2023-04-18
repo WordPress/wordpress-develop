@@ -1663,12 +1663,10 @@ function wp_default_styles( $styles ) {
 			'wp-editor',
 			'wp-edit-blocks',
 			'wp-block-library',
-			'wp-nux',
 		),
 		'editor'               => array(
 			'wp-components',
 			'wp-block-editor',
-			'wp-nux',
 			'wp-reusable-blocks',
 		),
 		'format-library'       => array(),
@@ -3222,6 +3220,10 @@ function wp_enqueue_block_style( $block_name, $args ) {
 function _wp_theme_json_webfonts_handler() {
 	// Block themes are unavailable during installation.
 	if ( wp_installing() ) {
+		return;
+	}
+
+	if ( ! wp_theme_has_theme_json() ) {
 		return;
 	}
 

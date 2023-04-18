@@ -5732,7 +5732,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 				$p = $parent;
 			}
 
-			if ( 0 == $p->post_parent && count( $revparts ) == $count + 1 && $p->post_name == $revparts[ $count ] ) {
+			if ( 0 == $p->post_parent && count( $revparts ) === $count + 1 && $p->post_name == $revparts[ $count ] ) {
 				$foundid = $page->ID;
 				if ( $page->post_type == $post_type ) {
 					break;
@@ -6135,8 +6135,8 @@ function is_local_attachment( $url ) {
  * @see wp_insert_post()
  *
  * @param string|array $args             Arguments for inserting an attachment.
- * @param string|false $file             Optional. Filename.
- * @param int          $parent_post_id   Optional. Parent post ID.
+ * @param string|false $file             Optional. Filename. Default false.
+ * @param int          $parent_post_id   Optional. Parent post ID. Default 0.
  * @param bool         $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
  * @param bool         $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
