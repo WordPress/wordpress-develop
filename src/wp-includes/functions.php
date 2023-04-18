@@ -8532,9 +8532,9 @@ function wp_get_db_value_types() {
 }
 
 /**
- * Decode a value from the database.
+ * Decode a meta or option value after it was retrieved from the database.
  *
- * Convert the value from the database back to its original type.
+ * Unserialize the value if needed, and set it to the expected type.
  *
  * @since 6.3.0
  *

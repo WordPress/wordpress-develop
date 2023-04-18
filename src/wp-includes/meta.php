@@ -629,16 +629,18 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 	 *
 	 * @since 3.1.0
 	 * @since 5.5.0 Added the `$meta_type` parameter.
+	 * @since 6.3.0 Added the `$value_type` parameter.
 	 *
-	 * @param mixed  $value     The value to return, either a single metadata value or an array
-	 *                          of values depending on the value of `$single`. Default null.
-	 * @param int    $object_id ID of the object metadata is for.
-	 * @param string $meta_key  Metadata key.
-	 * @param bool   $single    Whether to return only the first value of the specified `$meta_key`.
-	 * @param string $meta_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
-	 *                          or any other object type with an associated meta table.
+	 * @param mixed  $value      The value to return, either a single metadata value or an array
+	 *                           of values depending on the value of `$single`. Default null.
+	 * @param int    $object_id  ID of the object metadata is for.
+	 * @param string $meta_key   Metadata key.
+	 * @param bool   $single     Whether to return only the first value of the specified `$meta_key`.
+	 * @param string $meta_type  Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
+	 *                           or any other object type with an associated meta table.
+	 * @param string $value_type Optional. The expected data type of the value.
 	 */
-	$check = apply_filters( "get_{$meta_type}_metadata", null, $object_id, $meta_key, $single, $meta_type );
+	$check = apply_filters( "get_{$meta_type}_metadata", null, $object_id, $meta_key, $single, $meta_type, $value_type );
 	if ( null !== $check ) {
 		if ( $single && is_array( $check ) ) {
 			return $check[0];
@@ -651,6 +653,7 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 
 	if ( ! $meta_cache ) {
 		$meta_cache = update_meta_cache( $meta_type, array( $object_id ) );
+
 		if ( isset( $meta_cache[ $object_id ] ) ) {
 			$meta_cache = $meta_cache[ $object_id ];
 		} else {

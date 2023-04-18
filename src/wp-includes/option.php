@@ -18,7 +18,8 @@
  * Not initializing an option and using boolean `false` as a return value
  * is a bad practice as it triggers an additional database query.
  *
- * The type of the returned value can be different from the type that was passed
+ * When the `$value_type` paramenter is not set the type
+ * of the returned value may be different from the type that was passed
  * when saving or updating the option. If the option value was serialized,
  * then it will be unserialized when it is returned. In this case the type will
  * be the same. For example, storing a non-scalar value like an array will
