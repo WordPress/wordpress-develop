@@ -977,7 +977,7 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 		$p->set_attribute( 'Data-Enabled', 'canary' );
 		$p->set_attribute( 'dATa-EnABled', 'canary' );
 
-		$this->assertSame(  '<div data-enabled="canary">', strtolower( $p->get_updated_html() ) );
+		$this->assertSame( '<div data-enabled="canary">', strtolower( $p->get_updated_html() ) );
 	}
 
 	/**
