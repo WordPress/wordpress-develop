@@ -1435,7 +1435,7 @@ function update_termmeta_cache( $term_ids ) {
  * @param array $term_ids List of term IDs.
  */
 function wp_lazyload_term_meta( array $term_ids ) {
-	if ( ! $term_ids ) {
+	if ( empty( $term_ids ) ) {
 		return;
 	}
 	$lazyloader = wp_metadata_lazyloader();
