@@ -131,6 +131,7 @@ EOF;
 		switch_theme( $theme_name );
 		do_action( 'after_setup_theme' );
 		wp_clean_theme_json_cache();
+		do_action( 'plugins_loaded' );
 		do_action( 'wp_loaded' );
 		do_action( 'wp_enqueue_scripts' );
 	}
