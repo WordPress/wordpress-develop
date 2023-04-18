@@ -1,24 +1,54 @@
 <?php
 /**
+ * Tests the `get_edit_post_link()` function.
+ *
+ * @since 6.3.0
+ *
  * @group link
+ *
  * @covers ::get_edit_post_link
  */
 class Tests_Link_GetEditPostLink extends WP_UnitTestCase {
+	/**
+	 * The name of the theme to use for the test.
+	 *
+	 * @since 6.3.0
+	 * @var string
+	 */
 	const TEST_THEME = 'block-theme';
 
+	/**
+	 * The id of the user to use for the test.
+	 *
+	 * @since 6.3.0
+	 * @var int
+	 */
 	private static $admin_id;
 
+	/**
+	 * Creates admin user before tests run.
+	 *
+	 * @param WP_UnitTest_Factory $factory
+	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Create an admin user because get_edit_post_link() requires 'edit_post' capability.
 		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
 	}
 
+	/**
+	 * Performs setup tasks for every test.
+	 *
+	 * @since 6.3.0
+	 */
 	public function set_up() {
 		parent::set_up();
 		wp_set_current_user( self::$admin_id );
 		switch_theme( self::TEST_THEME );
 	}
 
+	/**
+	 * Tests getting the edit post link for a post.
+	 */
 	public function test_get_edit_post_link() {
 		$post                 = self::factory()->post->create_and_get(
 			array(
@@ -36,6 +66,11 @@ class Tests_Link_GetEditPostLink extends WP_UnitTestCase {
 		$this->assertSame( $link_custom_context, get_edit_post_link( $post, 'something-else' ), 'Pass non-default value in second argument.' );
 	}
 
+	/**
+	 * Tests getting the edit post link for a template post type
+	 *
+	 * @ticket 57709
+	 */
 	public function test_get_edit_post_link_for_wp_template_post_type() {
 		$template_post = self::factory()->post->create_and_get(
 			array(
@@ -62,6 +97,11 @@ class Tests_Link_GetEditPostLink extends WP_UnitTestCase {
 		$this->assertSame( $link_custom_context, get_edit_post_link( $template_post, 'something-else' ), 'Pass non-default value in second argument.' );
 	}
 
+	/**
+	 * Tests getting the edit post link for a template part post type
+	 *
+	 * @ticket 57709
+	 */
 	public function test_get_edit_post_link_for_wp_template_part_post_type() {
 		$template_part_post = self::factory()->post->create_and_get(
 			array(
