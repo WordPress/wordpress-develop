@@ -481,6 +481,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 
+		$this->assertTrue( isset( $result[0]['is_block_theme'] ) );
 		$this->assertTrue( $result[0]['is_block_theme'] );
 	}
 
@@ -488,6 +489,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 
+		$this->assertTrue( isset( $result[0]['is_block_theme'] ) );
 		$this->assertFalse( $result[0]['is_block_theme'] );
 	}
 
