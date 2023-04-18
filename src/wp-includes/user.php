@@ -2461,7 +2461,7 @@ function wp_insert_user( $userdata ) {
 		do_action( 'profile_update', $user_id, $old_user_data, $userdata );
 
 		if ( $spam !== $old_user_data->spam ) {
-			if ( 1 === $spam ) {
+			if ( true === $spam ) {
 				/**
 				 * Fires after the user is marked as a SPAM user.
 				 *
