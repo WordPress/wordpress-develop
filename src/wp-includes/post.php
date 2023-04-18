@@ -7650,6 +7650,8 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 
 	$term_ids = array();
 	if ( $prime_post_terms ) {
+		$prime_term_ids     = array();
+		$prime_taxonomy_ids = array();
 		foreach ( $prime_post_terms as $taxonomy => $post_ids ) {
 			$cached_term_ids = wp_cache_get_multiple( $post_ids, "{$taxonomy}_relationships" );
 			if ( is_array( $cached_term_ids ) ) {
@@ -7658,11 +7660,33 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 					// Backward compatibility for if a plugin is putting objects into the cache, rather than IDs.
 					foreach ( $_term_ids as $term_id ) {
 						if ( is_numeric( $term_id ) ) {
-							$term_ids[] = (int) $term_id;
+							$prime_term_ids[]                  = (int) $term_id;
+							$prime_taxonomy_ids[ $taxonomy ][] = (int) $term_id;
 						} elseif ( isset( $term_id->term_id ) ) {
-							$term_ids[] = (int) $term_id->term_id;
+							$prime_taxonomy_ids[ $taxonomy ][] = (int) $term_id->term_id;
+							$prime_term_ids[]                  = (int) $term_id->term_id;
 						}
 					}
+				}
+			}
+		}
+
+		if ( $prime_term_ids ) {
+			$prime_term_ids = array_unique( $prime_term_ids );
+			// Do not prime term meta at this point, let the lazy loader take care of that.
+			_prime_term_caches( $prime_term_ids, false );
+
+			foreach ( $prime_taxonomy_ids as $taxonomy => $_term_ids ) {
+				foreach ( $_term_ids as $term_id ) {
+					if ( in_array( $term_id, $term_ids, true ) ) {
+						continue;
+					}
+					$term = get_term( $term_id, $taxonomy );
+					if ( is_wp_error( $term ) ) {
+						continue;
+					}
+
+					$term_ids[] = $term_id;
 				}
 			}
 		}
