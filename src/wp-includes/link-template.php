@@ -1473,10 +1473,9 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
 		$slug = urlencode( get_stylesheet() . '//' . $post->post_name );
 		$link = admin_url( sprintf( $post_type_object->_edit_link, $post->post_type, $slug ) );
 	} else {
+		$link = '';
 		if ( $post_type_object->_edit_link ) {
 			$link = admin_url( sprintf( $post_type_object->_edit_link . $action, $post->ID ) );
-		} else {
-			$link = '';
 		}
 	}
 
