@@ -1435,7 +1435,7 @@ function get_preview_post_link( $post = null, $query_args = array(), $preview_li
  * Retrieves the edit post link for post.
  *
  * Can be used within the WordPress loop or outside of it. Can be used with
- * pages, posts, attachments, and revisions.
+ * pages, posts, attachments, revisions, global styles, templates and template parts.
  *
  * @since 2.3.0
  *
