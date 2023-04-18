@@ -667,7 +667,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 			$this->assertSame( 'bar', get_term_meta( $t, 'foo', true ) );
 		}
 
-		$this->assertSame( $num_queries + 4, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 3, $wpdb->num_queries );
 	}
 
 	/**

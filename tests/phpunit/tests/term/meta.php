@@ -16,7 +16,6 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		register_taxonomy( 'wptests_tax', 'post' );
-		$this->reset_lazyload_queue();
 	}
 
 	public function test_add() {
