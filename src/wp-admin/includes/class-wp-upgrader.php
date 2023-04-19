@@ -969,14 +969,12 @@ class WP_Upgrader {
 	/**
 	 * Sends upgrade WP_Error data to WordPress.org.
 	 *
-	 * @since 6.2.0
+	 * @since 6.3.0
 	 *
 	 * @global string             $wp_version    The WordPress version string.
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 * @param  WP_Error           $result        WP_Error data from failed upgrade process.
 	 * @param  array              $args          Args.
-	 *
-	 * @return void
 	 */
 	protected function send_error_data( $result, $args = array() ) {
 		global $wp_version, $wp_filesystem;
