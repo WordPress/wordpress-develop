@@ -262,6 +262,10 @@ class WP_Block {
 			$post = $global_post;
 		}
 
+		if ( null !== $this->block_type ) {
+			wp_enqueue_style( 'wp-block-library' );
+		}
+
 		if ( ( ! empty( $this->block_type->script_handles ) ) ) {
 			foreach ( $this->block_type->script_handles as $script_handle ) {
 				wp_enqueue_script( $script_handle );
