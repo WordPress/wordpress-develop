@@ -460,8 +460,7 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 	 * Ensures that when seeking to an earlier spot in the document that
 	 * all previously-enqueued updates are applied as they ought to be.
 	 *
-	 * @TODO: Add ticket number.
-	 * @ticket XXXXXX
+	 * @ticket 58160
 	 */
 	public function test_get_updated_html_applies_updates_to_content_after_seeking_to_before_parsed_bytes() {
 		$p = new WP_HTML_Tag_Processor( '<div><img hidden></div>' );
