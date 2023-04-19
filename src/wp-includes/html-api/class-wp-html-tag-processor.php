@@ -1760,6 +1760,31 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Indicates if the currently matched tag contains the self-closing flag.
+	 *
+	 * No HTML elements ought to have the self-closing flag and for those, the self-closing
+	 * flag will be ignored. For void elements this is benign because they "self close"
+	 * automatically. For non-void HTML elements though problems will appear if someone
+	 * intends to use a self-closing element in place of that element with an empty body.
+	 * For HTML foreign elements and custom elements the self-closing flag determines if
+	 * they self-close or not.
+	 *
+	 * This function does not determine if a tag is self-closing,
+	 * but only if the self-closing flag is present in the syntax.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @return bool Whether the currently matched tag contains the self-closing flag.
+	 */
+	public function has_self_closing_flag() {
+		if ( ! $this->tag_name_starts_at ) {
+			return false;
+		}
+
+		return '/' === $this->html[ $this->tag_ends_at - 1 ];
+	}
+
+	/**
 	 * Indicates if the current tag token is a tag closer.
 	 *
 	 * Example:
@@ -1790,6 +1815,7 @@ class WP_HTML_Tag_Processor {
 	 * For string attributes, the value is escaped using the `esc_attr` function.
 	 *
 	 * @since 6.2.0
+	 * @since 6.2.1 Fix: Only create a single update for multiple calls with case-variant attribute names.
 	 *
 	 * @param string      $name  The attribute name to target.
 	 * @param string|bool $value The new attribute value.
@@ -1882,8 +1908,8 @@ class WP_HTML_Tag_Processor {
 			 *
 			 *    Result: <div id="new"/>
 			 */
-			$existing_attribute             = $this->attributes[ $comparable_name ];
-			$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
+			$existing_attribute = $this->attributes[ $comparable_name ];
+			$this->lexical_updates[ $comparable_name ] = new WP_HTML_Text_Replacement(
 				$existing_attribute->start,
 				$existing_attribute->end,
 				$updated_attribute
