@@ -471,7 +471,7 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 		$p->next_tag();
 		$p->set_bookmark( 'here' );
 
-		$p->next_tag( [ 'tag_closers' => 'visit' ] );
+		$p->next_tag( array( 'tag_closers' => 'visit' ) );
 		$p->seek( 'here' );
 
 		$this->assertSame( '<div wonky><img hidden></div>', $p->get_updated_html() );
