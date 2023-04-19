@@ -3,17 +3,20 @@
 require_once dirname( __DIR__ ) . '/class-wp-upgrader-testcase.php';
 
 /**
- * @covers Plugin_Upgrader::upgrade
+ * Test class for Plugin_Upgrader::upgrade().
  *
  * @group  upgrader
  * @group  plugin_upgrader
+ *
+ * @covers Plugin_Upgrader::upgrade
  */
 class Tests_Admin_Includes_PluginUpgrader_Upgrade extends WP_Upgrader_TestCase {
-
 	/**
-	 * @dataProvider data_should_not_send_error_data
+	 * Tests that Plugin_Upgrader::upgrade() does not send error data.
 	 *
-	 * @group        51928
+	 * @ticket 51928
+	 *
+	 * @dataProvider data_should_not_send_error_data
 	 *
 	 * @param array $plugin         Array of plugin information.
 	 * @param array $update_plugins Value for the "update_plugins" transient.
@@ -40,13 +43,25 @@ class Tests_Admin_Includes_PluginUpgrader_Upgrade extends WP_Upgrader_TestCase {
 		$actual_message = ob_get_clean();
 
 		// Validate the upgrade happened.
-		$this->assertTrue( $result );
-		$this->assertContainsAdminMessages( $expected['messages'], $actual_message );
+		$this->assertTrue( $result, 'The upgrade did not succeed.' );
+		$this->assertContainsAdminMessages(
+			$expected['messages'],
+			$actual_message,
+			'The actual messages did not match the expected messages.'
+		);
 
 		// Validate there's no error data.
-		$this->assertEmpty( $this->error_data );
+		$this->assertEmpty(
+			$this->error_data,
+			'The error data was not empty.'
+		);
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_should_not_send_error_data() {
 		$this->init_plugin_data_provider();
 
@@ -65,9 +80,11 @@ class Tests_Admin_Includes_PluginUpgrader_Upgrade extends WP_Upgrader_TestCase {
 	}
 
 	/**
-	 * @dataProvider data_should_send_error_data
+	 * Tests that Plugin_Upgrader::upgrade() sends error data.
 	 *
-	 * @group        51928
+	 * @ticket 51928
+	 *
+	 * @dataProvider data_should_send_error_data
 	 *
 	 * @param array $plugin         Array of plugin information.
 	 * @param array $update_plugins Value for the "update_plugins" transient.
@@ -89,13 +106,25 @@ class Tests_Admin_Includes_PluginUpgrader_Upgrade extends WP_Upgrader_TestCase {
 		$actual_message = ob_get_clean();
 
 		// Validate the upgrade did not happen.
-		$this->assertNull( $result );
-		$this->assertContainsAdminMessages( $expected['messages'], $actual_message );
+		$this->assertNull( $result, 'The upgrade was successful.' );
+		$this->assertContainsAdminMessages(
+			$expected['messages'],
+			$actual_message,
+			'The actual messages did not match the expected messages.'
+		);
 
 		// Validate the sent error data.
-		$this->assertContainsErrorDataStats( $expected['stats'] );
+		$this->assertContainsErrorDataStats(
+			$expected['stats'],
+			'Incorrect error data was returned.'
+		);
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_should_send_error_data() {
 		$this->init_plugin_data_provider();
 

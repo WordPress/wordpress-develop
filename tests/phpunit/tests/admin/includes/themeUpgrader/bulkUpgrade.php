@@ -3,18 +3,27 @@
 require_once dirname( __DIR__ ) . '/class-wp-upgrader-testcase.php';
 
 /**
- * @covers Theme_Upgrader::bulk_upgrade
+ * Test class for Theme_Upgrader::bulk_upgrade().
  *
- * @group  upgrader
- * @group  theme_upgrader
+ * @group upgrader
+ * @group theme_upgrader
+ *
+ * @covers Theme_Upgrader::bulk_upgrade
  */
 class Tests_Admin_Includes_ThemeUpgrader_BulkUpgrade extends WP_Upgrader_TestCase {
+	/**
+	 * Whether this is a theme upgrade.
+	 *
+	 * @var bool
+	 */
 	protected $is_theme = true;
 
 	/**
-	 * @dataProvider data_should_not_send_error_data
+	 * Tests that Theme_Upgrader::bulk_upgrade does not send error data.
 	 *
-	 * @group        51928
+	 * @ticket 51928
+	 *
+	 * @dataProvider data_should_not_send_error_data
 	 *
 	 * @param array $themes        Array of themes information.
 	 * @param array $update_themes Value for the "update_themes" transient.
@@ -42,13 +51,26 @@ class Tests_Admin_Includes_ThemeUpgrader_BulkUpgrade extends WP_Upgrader_TestCas
 
 		// Validate the upgrade happened.
 		$theme_name = $themes['themes'][0];
-		$this->assertSame( $expected['results'][ $theme_name ]['source'], $actual_results[ $theme_name ]['source'] );
-		$this->assertContainsAdminMessages( $expected['messages'], $actual_message );
+		$this->assertSame(
+			$expected['results'][ $theme_name ]['source'],
+			$actual_results[ $theme_name ]['source'],
+			'The expected results were not returned.'
+		);
+		$this->assertContainsAdminMessages(
+			$expected['messages'],
+			$actual_message,
+			'The actual messages did not match the expected messages.'
+		);
 
 		// Validate there's no error data.
-		$this->assertEmpty( $this->error_data );
+		$this->assertEmpty( $this->error_data, 'The error data was not empty.' );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_should_not_send_error_data() {
 		$this->init_theme_data_provider();
 
@@ -70,9 +92,11 @@ class Tests_Admin_Includes_ThemeUpgrader_BulkUpgrade extends WP_Upgrader_TestCas
 	}
 
 	/**
-	 * @dataProvider data_should_send_error_data
+	 * Tests that Theme_Upgrader::bulk_upgrade sends error data.
 	 *
-	 * @group        51928x
+	 * @ticket 51928
+	 *
+	 * @dataProvider data_should_send_error_data
 	 *
 	 * @param array $themes        Array of themes information.
 	 * @param array $update_themes Value for the "update_themes" transient.
@@ -94,13 +118,29 @@ class Tests_Admin_Includes_ThemeUpgrader_BulkUpgrade extends WP_Upgrader_TestCas
 		$actual_message = ob_get_clean();
 
 		// Validate the upgrade did not happen.
-		$this->assertSame( $expected['results'], $actual_results );
-		$this->assertContainsAdminMessages( $expected['messages'], $actual_message );
+		$this->assertSame(
+			$expected['results'],
+			$actual_results,
+			'The expected results were not returned.'
+		);
+		$this->assertContainsAdminMessages(
+			$expected['messages'],
+			$actual_message,
+			'The actual messages did not match the expected messages.'
+		);
 
 		// Validate the sent error data.
-		$this->assertContainsErrorDataStats( $expected['stats'] );
+		$this->assertContainsErrorDataStats(
+			$expected['stats'],
+			'Incorrect error data was returned.'
+		);
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_should_send_error_data() {
 		$this->init_theme_data_provider();
 

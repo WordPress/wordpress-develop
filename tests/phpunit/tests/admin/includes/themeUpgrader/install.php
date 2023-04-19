@@ -3,18 +3,27 @@
 require_once dirname( __DIR__ ) . '/class-wp-upgrader-testcase.php';
 
 /**
- * @covers Theme_Upgrader::install
+ * Test class for Theme_Upgrader::install().
  *
  * @group  upgrader
  * @group  theme_upgrader
+ *
+ * @covers Theme_Upgrader::install()
  */
 class Tests_Admin_Includes_ThemeUpgrader_Install extends WP_Upgrader_TestCase {
+	/**
+	 * Whether this is a theme install.
+	 *
+	 * @var bool
+	 */
 	protected $is_theme = true;
 
 	/**
-	 * @dataProvider data_should_not_send_error_data
+	 * Tests that Theme_Upgrader::install() does not send error data.
 	 *
-	 * @group        51928
+	 * @ticket 51928
+	 *
+	 * @dataProvider data_should_not_send_error_data
 	 *
 	 * @param array $theme    Array of theme information.
 	 * @param array $expected Array of expected admin output messages.
@@ -38,13 +47,25 @@ class Tests_Admin_Includes_ThemeUpgrader_Install extends WP_Upgrader_TestCase {
 		$actual_message = ob_get_clean();
 
 		// Validate the install happened.
-		$this->assertTrue( $actual );
-		$this->assertContainsAdminMessages( $expected['messages'], $actual_message );
+		$this->assertTrue( $actual, 'The installation did not succeed.' );
+		$this->assertContainsAdminMessages(
+			$expected['messages'],
+			$actual_message,
+			'The actual messages did not match the expected messages.'
+		);
 
 		// Validate there's no error data.
-		$this->assertEmpty( $this->error_data );
+		$this->assertEmpty(
+			$this->error_data,
+			'The error data was not empty.'
+		);
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_should_not_send_error_data() {
 		$this->init_theme_data_provider();
 
@@ -61,9 +82,11 @@ class Tests_Admin_Includes_ThemeUpgrader_Install extends WP_Upgrader_TestCase {
 	}
 
 	/**
-	 * @dataProvider data_should_send_error_data
+	 * Tests that Theme_Upgrader::install() does sends error data.
 	 *
-	 * @group        51928
+	 * @ticket 51928
+	 *
+	 * @dataProvider data_should_send_error_data
 	 *
 	 * @param array $theme    Array of theme information.
 	 * @param array $expected Array of expected messages and stats.
@@ -82,13 +105,25 @@ class Tests_Admin_Includes_ThemeUpgrader_Install extends WP_Upgrader_TestCase {
 		$actual_message = ob_get_clean();
 
 		// Validate the upgrade did not happen.
-		$this->assertNull( $result );
-		$this->assertContainsAdminMessages( $expected['messages'], $actual_message );
+		$this->assertNull( $result, 'The upgrade was successful.' );
+		$this->assertContainsAdminMessages(
+			$expected['messages'],
+			$actual_message,
+			'The actual messages did not match the expected messages.'
+		);
 
 		// Validate the sent error data.
-		$this->assertContainsErrorDataStats( $expected['stats'] );
+		$this->assertContainsErrorDataStats(
+			$expected['stats'],
+			'Incorrect error data was returned.'
+		);
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_should_send_error_data() {
 		$this->init_theme_data_provider();
 

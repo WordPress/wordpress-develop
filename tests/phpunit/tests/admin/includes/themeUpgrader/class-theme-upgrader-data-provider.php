@@ -1,19 +1,61 @@
 <?php
 
+/**
+ * Class for Theme_Upgrader data providers.
+ */
 class Theme_Upgrader_Data_Provider {
-	public  $theme_name = 'upgrader-test-theme';
-	public  $packages;
+	/**
+	 * Holds the theme name.
+	 *
+	 * @var string
+	 */
+	public $theme_name = 'upgrader-test-theme';
+
+	/**
+	 * Holds upgrade packages.
+	 *
+	 * @var array
+	 */
+	public $packages;
+
+	/**
+	 * Holds upgrade package versions.
+	 *
+	 * @var array
+	 */
 	private $package_versions;
-	public  $error_data_stats;
+
+	/**
+	 * Holds error data statistics.
+	 *
+	 * @var array
+	 */
+	public $error_data_stats;
+
+	/**
+	 * Holds a fake API result.
+	 *
+	 * @var stdClass
+	 */
 	private $update_themes;
+
+	/**
+	 * Holds successful results.
+	 *
+	 * @var array
+	 */
 	private $success_results;
 
+	/**
+	 * Initializes the data provider.
+	 */
 	public function init() {
-		$this->packages         = array(
+		$this->packages = array(
 			'old'          => DIR_TESTDATA . '/upgrader/upgrader-test-theme-1.0.zip',
 			'new'          => DIR_TESTDATA . '/upgrader/upgrader-test-theme-1.1.zip',
 			'doesnotexist' => DIR_TESTDATA . '/upgrader/upgrader-test-theme-99999.zip',
 		);
+
 		$this->package_versions = array(
 			'old'          => '1.0',
 			'new'          => '1.1',
@@ -48,7 +90,8 @@ class Theme_Upgrader_Data_Provider {
 				'error_data'       => null,
 			),
 		);
-		$this->update_themes    = (object) array(
+
+		$this->update_themes = (object) array(
 			'last_checked' => time(),
 			'checked'      => array(
 				'upgrader-test-theme' => '1.0',
@@ -64,7 +107,8 @@ class Theme_Upgrader_Data_Provider {
 				),
 			),
 		);
-		$this->success_results  = array(
+
+		$this->success_results = array(
 			'source'             => '', // added in the $this->get_upgrade_results method.
 			'source_files'       => array(
 				'functions.php',
@@ -79,6 +123,13 @@ class Theme_Upgrader_Data_Provider {
 		);
 	}
 
+	/**
+	 * Gets an 'update_themes' object.
+	 *
+	 * @param array $upgrade_package The package for the opgrade.
+	 *
+	 * @return stdClass The 'update_themes' object.
+	 */
 	public function get_update_themes( $upgrade_package ) {
 		$this->update_themes->response['upgrader-test-theme']['new_version'] = $this->package_versions[ $upgrade_package ];
 		$this->update_themes->response['upgrader-test-theme']['package']     = $this->packages[ $upgrade_package ];
@@ -86,6 +137,14 @@ class Theme_Upgrader_Data_Provider {
 		return $this->update_themes;
 	}
 
+	/**
+	 * Returns an array of feedback messages based on the result type.
+	 *
+	 * @param string $type    The result type.
+	 * @param string $package The package.
+	 *
+	 * @return string[] An array of feedback messages.
+	 */
 	public function get_messages( $type, $package = '' ) {
 		switch ( $type ) {
 			case 'success_install':
@@ -118,6 +177,13 @@ class Theme_Upgrader_Data_Provider {
 		}
 	}
 
+	/**
+	 * Returns the result of the upgrade.
+	 *
+	 * @param string $upgrade_version The upgrade version, such as 'old', 'new'.
+	 *
+	 * @return array The upgrade results.
+	 */
 	public function get_upgrade_results( $upgrade_version ) {
 		$this->success_results['source'] = WP_CONTENT_DIR . "/upgrade/upgrader-test-theme-{$this->package_versions[ $upgrade_version ]}/upgrader-test-theme/";
 

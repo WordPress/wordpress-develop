@@ -1,19 +1,70 @@
 <?php
 
+/**
+ * Test case class for WP_Upgrader.
+ */
 abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
+	/**
+	 * Holds error data.
+	 *
+	 * @var array
+	 */
 	protected $error_data = array();
-	protected $plugin     = array();
-	protected $theme      = array();
-	protected $is_theme   = false;
 
+	/**
+	 * Holds plugin data.
+	 *
+	 * @var array
+	 */
+	protected $plugin = array();
+
+	/**
+	 * Holds theme data.
+	 *
+	 * @var array
+	 */
+	protected $theme = array();
+
+	/**
+	 * Whether this is a theme.
+	 *
+	 * @var bool
+	 */
+	protected $is_theme = false;
+
+	/**
+	 * Holds the theme data provider.
+	 *
+	 * @var Theme_Upgrader_Data_Provider
+	 */
 	protected $theme_data_provider;
+
+	/**
+	 * Holds the plugin data provider.
+	 *
+	 * @var Theme_Upgrader_Data_Provider
+	 */
 	protected $plugin_data_provider;
 
-	protected static $filesystem;
+	/**
+	 * Holds the theme directory path.
+	 *
+	 * @var string
+	 */
 	protected static $theme_dir;
+
+	/**
+	 * Holds the original values of the
+	 * 'update_themes' and 'update_plugins' transients.
+	 *
+	 * @var array
+	 */
 	protected static $originals;
 
-	public static function setUpBeforeClass() {
+	/**
+	 * Sets up the `theme_dir` and `originals` properties before any tests run.
+	 */
+	public static function set_up_before_class() {
 		self::$theme_dir = WP_CONTENT_DIR . '/themes';
 
 		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
@@ -24,8 +75,11 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 		);
 	}
 
-	public static function tearDownAfterClass() {
-		parent::tearDownAfterClass();
+	/**
+	 * Resets the `originals` property after all tests have run.
+	 */
+	public static function tear_down_after_class() {
+		parent::tear_down_after_class();
 
 		foreach ( self::$originals as $transient => $value ) {
 			if ( ! empty( $value ) ) {
@@ -36,8 +90,11 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 		}
 	}
 
-	public function setUp() {
-		parent::setUp();
+	/**
+	 * Initializes various properties and removes callbacks before each test.
+	 */
+	public function set_up() {
+		parent::set_up();
 
 		$this->plugin     = array();
 		$this->theme      = array();
@@ -51,13 +108,19 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 		remove_action( 'upgrader_process_complete', 'wp_update_themes' );
 	}
 
-	public function tearDown() {
+	/**
+	 * Removes the test theme and plugin after each test.
+	 */
+	public function tear_down() {
 		$this->remove_test_theme();
 		$this->remove_test_plugin();
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
+	/**
+	 * Removes the test plugin.
+	 */
 	protected function remove_test_plugin() {
 		delete_site_transient( 'update_plugins' );
 		if ( file_exists( WP_PLUGIN_DIR . '/hello-dolly' ) ) {
@@ -66,6 +129,9 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Removes the test theme.
+	 */
 	protected function remove_test_theme() {
 		delete_site_transient( 'update_themes' );
 		if ( file_exists( WP_CONTENT_DIR . '/themes/upgrader-test-theme' ) ) {
@@ -74,6 +140,9 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Short-circuits the download from WordPress.org.
+	 */
 	protected function shortcircuit_w_org_download() {
 		add_filter(
 			'upgrader_pre_download',
@@ -97,6 +166,9 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Captures upgrade error data.
+	 */
 	protected function capture_error_data() {
 		add_filter(
 			'pre_http_request',
@@ -125,9 +197,11 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 			->setMethods( array( 'feedback' ) )
 			->getMock();
 
-		// Mocks the feedback method to prevent `show_message()` from running, i.e.
-		// to avoid it from flushing and ending all output buffers. Why?
-		// Avoids printing in the console and allows testing the feedback messages.
+		/*
+		 * Mocks the feedback method to prevent `show_message()` from running, i.e.
+		 * to avoid it from flushing and ending all output buffers. Why?
+		 * Avoids printing in the console and allows testing the feedback messages.
+		 */
 		$skin
 			->expects( $this->atLeastOnce() )
 			->method( 'feedback' )
@@ -194,25 +268,27 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 	 *
 	 * @param array  $expected Array of expected messages.
 	 * @param string $actual   Actual message to assertContains against.
+	 * @param string $message  Optional. A message explaining what has gone wrong. Default ''.
 	 */
-	protected function assertContainsAdminMessages( $expected, $actual ) {
+	protected function assertContainsAdminMessages( $expected, $actual, $message = '' ) {
 		$actual = trim( $actual, " \n\r\t\v\0" );
 
 		foreach ( $expected as $expected_message ) {
 			$expected_message = trim( $expected_message, " \n\r\t\v\0" );
-			$this->assertContains( $expected_message, $actual );
+			$this->assertStringContainsString( $expected_message, $actual, $message );
 		}
 	}
 
 	/**
 	 * Tests the error data contains the expected stats.
 	 *
-	 * @param array $expected Array of error data stats.
+	 * @param array  $expected Array of error data stats.
+	 * @param string $message  Optional. A message explaining what has gone wrong. Default ''.
 	 */
-	protected function assertContainsErrorDataStats( $expected ) {
+	protected function assertContainsErrorDataStats( $expected, $message = '' ) {
 		foreach ( $this->error_data as $index => $stats ) {
-			$this->assertContains( $expected[ $index ], $stats );
-			$this->assertGreaterThanOrEqual( 0, $stats['time_taken'] );
+			$this->assertContains( $expected[ $index ], $stats, $message );
+			$this->assertGreaterThanOrEqual( 0, $stats['time_taken'], $message );
 		}
 	}
 }
