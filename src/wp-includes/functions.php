@@ -8532,9 +8532,40 @@ function wp_get_db_value_types() {
 }
 
 /**
- * Decode a meta or option value after it was retrieved from the database.
+ * Set the type of a meta or option value that was retrieved from the database.
+ *
+ * If `$value_type` is empty, the value is returned unchanged. If `$value_type` is not one
+ * of the expected types, a user error is triggered and the value is returned unchanged.
+ *
+ * @since 6.3.0
+ *
+ * @param mixed  $value      Raw value from the database.
+ * @param string $value_type The expected value type.
+ * @return mixed The value with the requested type.
+ */
+function wp_settype_to_value_from_db( $value, $value_type ) {
+	if ( ! empty( $value_type ) ) {
+		$value_types = wp_get_db_value_types();
+
+		if ( in_array( $value_type, $value_types, true ) ) {
+			settype( $value, $value_type );
+		} else {
+			// Improper use.
+			/* translators: The function name that returns the supported types. */
+			$message = sprintf( __( 'Only types returned by %s are supported.' ), '<code>wp_get_db_value_types()</code>' );
+			_doing_it_wrong( 'wp_decode_value_from_db', $message );
+		}
+	}
+
+	return $value;
+}
+
+
+/**
+ * Decode a value after it was retrieved from the database.
  *
  * Unserialize the value if needed, and set it to the expected type.
+ * Intended for use with option and meta values.
  *
  * @since 6.3.0
  *
@@ -8548,20 +8579,11 @@ function wp_decode_value_from_db( $value, $value_type = '' ) {
 	if ( empty( $value_type ) ) {
 		$value = maybe_unserialize( $value );
 	} else {
-		$value_types = wp_get_db_value_types();
-
-		if ( in_array( $value_type, $value_types, true ) ) {
-			if ( 'array' === $value_type || 'object' === $value_type ) {
-				$value = maybe_unserialize( $value );
-			}
-
-			settype( $value, $value_type );
-		} else {
-			// Improper use.
-			/* translators: The function name that returns the supported types. */
-			$message = sprintf( __( 'Only types returned by %s are supported.' ), '<code>wp_get_db_value_types()</code>' );
-			_doing_it_wrong( 'wp_decode_value_from_db', $message );
+		if ( 'array' === $value_type || 'object' === $value_type ) {
+			$value = maybe_unserialize( $value );
 		}
+
+		$value = wp_settype_to_value_from_db( $value, $value_type );
 	}
 
 	/**

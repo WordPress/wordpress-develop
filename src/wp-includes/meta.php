@@ -638,14 +638,22 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 	 * @param bool   $single     Whether to return only the first value of the specified `$meta_key`.
 	 * @param string $meta_type  Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
 	 *                           or any other object type with an associated meta table.
-	 * @param string $value_type Optional. The expected data type of the value.
+	 * @param string $value_type The expected data type of the value.
 	 */
-	$check = apply_filters( "get_{$meta_type}_metadata", null, $object_id, $meta_key, $single, $meta_type, $value_type );
-	if ( null !== $check ) {
-		if ( $single && is_array( $check ) ) {
-			return $check[0];
+	$pre_meta = apply_filters( "get_{$meta_type}_metadata", null, $object_id, $meta_key, $single, $meta_type, $value_type );
+	if ( null !== $pre_meta ) {
+		if ( $single ) {
+			if ( is_array( $pre_meta ) ) {
+				$pre_meta = $pre_meta[0];
+			}
+			// Ensure the meta value is of the expected type after the filter.
+			return wp_settype_to_value_from_db( $pre_meta, $value_type );
 		} else {
-			return $check;
+			foreach ( (array) $pre_meta as $key => $meta_value ) {
+				$pre_meta[ $key ] = wp_settype_to_value_from_db( $meta_value, $value_type );
+			}
+
+			return $pre_meta;
 		}
 	}
 

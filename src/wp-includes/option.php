@@ -162,7 +162,8 @@ function get_option( $option, $default_value = false, $value_type = '' ) {
 	$pre = apply_filters( 'pre_option', $pre, $option, $default_value, $value_type );
 
 	if ( false !== $pre ) {
-		return $pre;
+		// Ensure the option value is of the expected type after the filters.
+		return wp_settype_to_value_from_db( $pre, $value_type );
 	}
 
 	if ( defined( 'WP_SETUP_CONFIG' ) ) {
