@@ -321,16 +321,12 @@ class WP_Scripts extends WP_Dependencies {
 			$after_non_standalone_handle = $this->print_inline_script( $handle, 'after-non-standalone', false );
 
 			if ( $after_non_standalone_handle ) {
-				$initial_type_attr = $this->type_attr;
-				$this->type_attr   = " type='text/template'";
-				$after_handle     .= sprintf(
-					'<script%1$s id=\'%2$s-js-after\' data-wp-executes-after=\'%2$s\'>%4$s%3$s%4$s</script>%4$s',
-					$this->type_attr,
+				$after_handle .= sprintf(
+					'<script type=\'text/template\' id=\'%1$s-js-after\' data-wp-executes-after=\'%1$s\'>%3$s%2$s%3$s</script>%3$s',
 					esc_attr( $handle ),
 					$after_non_standalone_handle,
 					PHP_EOL
 				);
-				$this->type_attr   = $initial_type_attr;
 			}
 		}
 
