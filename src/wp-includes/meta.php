@@ -649,8 +649,12 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 			// Ensure the meta value is of the expected type after the filter.
 			return wp_settype_to_value_from_db( $pre_meta, $value_type );
 		} else {
-			foreach ( (array) $pre_meta as $key => $meta_value ) {
-				$pre_meta[ $key ] = wp_settype_to_value_from_db( $meta_value, $value_type );
+			if ( is_array( $pre_meta ) ) {
+				foreach ( (array) $pre_meta as $key => $meta_value ) {
+					$pre_meta[ $key ] = wp_settype_to_value_from_db( $meta_value, $value_type );
+				}
+			} else {
+				$pre_meta = wp_settype_to_value_from_db( $pre_meta, $value_type );
 			}
 
 			return $pre_meta;
