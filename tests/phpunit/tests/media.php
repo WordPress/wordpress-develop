@@ -4016,7 +4016,7 @@ EOF;
 	 */
 	public function test_get_image_tag() {
 		$document = new \DOMDocument();
-		$img_tag  = get_image_tag( self::$large_id, 'foo', 'bar', 'center' );
+		$img_tag  = get_image_tag( self::$large_id, self::ALTERNATE_CAPTION, self::CAPTION, 'center' );
 		$document->loadHTML( $img_tag );
 		$document_img_tag = $document->getElementsByTagName( 'img' )->item( 0 );
 
@@ -4035,7 +4035,7 @@ EOF;
 	 */
 	public function test_get_image_tag_empty_src() {
 		$document = new \DOMDocument();
-		$img_tag  = get_image_tag( 0, 'foo', 'bar', 'center' );
+		$img_tag  = get_image_tag( 0, self::ALTERNATE_CAPTION, self::CAPTION, 'center' );
 		$document->loadHTML( $img_tag );
 		$document_img_tag = $document->getElementsByTagName( 'img' )->item( 0 );
 
