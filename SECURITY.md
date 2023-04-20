@@ -8,9 +8,6 @@ Full details of the WordPress Security Policy and the list of covered projects a
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
-
 | Version | Supported |
 | ------- | --------- |
 | 6.2.x   | Yes       |
