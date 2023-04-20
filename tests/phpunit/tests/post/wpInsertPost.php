@@ -1576,9 +1576,9 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( '0', get_the_title( $post_id ) );
-		$this->assertSame( '0', get_the_content( null, false, $post_id ) );
-		$this->assertSame( '0', get_the_excerpt( $post_id ) );
+		$this->assertSame( '0', get_the_title( $post_id ), 'Check post_title = "0"' );
+		$this->assertSame( '0', get_the_content( null, false, $post_id ), 'Check post_content = "0"' );
+		$this->assertSame( '0', get_the_excerpt( $post_id ), 'Check post_excerpt = "0"' );
 	}
 
 	/**
@@ -1596,9 +1596,9 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( '0', get_the_title( $post_id ) );
-		$this->assertSame( 'post_content', get_the_content( null, false, $post_id ) );
-		$this->assertSame( 'post_excerpt', get_the_excerpt( $post_id ) );
+		$this->assertSame( '0', get_the_title( $post_id ), 'Check post_title = "0"' );
+		$this->assertSame( 'post_content', get_the_content( null, false, $post_id ), 'Check post_content = "post_content"' );
+		$this->assertSame( 'post_excerpt', get_the_excerpt( $post_id ), 'Check post_excerpt = "post_excerpt"' );
 	}
 
 	/**
@@ -1616,9 +1616,9 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 'post_title', get_the_title( $post_id ) );
-		$this->assertSame( '0', get_the_content( null, false, $post_id ) );
-		$this->assertSame( 'post_excerpt', get_the_excerpt( $post_id ) );
+		$this->assertSame( 'post_title', get_the_title( $post_id ), 'Check post_title = "post_title"' );
+		$this->assertSame( '0', get_the_content( null, false, $post_id ), 'Check post_content = "0"' );
+		$this->assertSame( 'post_excerpt', get_the_excerpt( $post_id ), 'Check post_excerpt = "post_excerpt"' );
 	}
 
 	/**
@@ -1636,9 +1636,9 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 'post_title', get_the_title( $post_id ) );
-		$this->assertSame( 'post_content', get_the_content( null, false, $post_id ) );
-		$this->assertSame( '0', get_the_excerpt( $post_id ) );
+		$this->assertSame( 'post_title', get_the_title( $post_id ), 'Check post_title = "post_title"' );
+		$this->assertSame( 'post_content', get_the_content( null, false, $post_id ), 'Check post_content = "post_content"' );
+		$this->assertSame( '0', get_the_excerpt( $post_id ), 'Check post_excerpt = "0"' );
 	}
 
 	/**
@@ -1660,6 +1660,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEquals( $post->post_name, $post_2->post_name );
+		$this->assertNotEquals( $post->post_name, $post_2->post_name, 'Check post_name are different for 2 created posts with post_title "0"' );
 	}
 }
