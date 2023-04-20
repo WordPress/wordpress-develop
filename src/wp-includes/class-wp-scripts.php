@@ -325,6 +325,7 @@ class WP_Scripts extends WP_Dependencies {
 					$this->type_attr,
 					esc_attr( $handle ),
 					$after_standalone_handle
+				);
 			}
 
 			$after_non_standalone_handle = $this->print_inline_script( $handle, 'after-non-standalone', false );
