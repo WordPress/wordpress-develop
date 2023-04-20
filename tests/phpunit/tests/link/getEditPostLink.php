@@ -125,8 +125,8 @@ class Tests_Link_GetEditPostLink extends WP_UnitTestCase {
 		wp_set_post_terms( $template_part_post->ID, self::TEST_THEME, 'wp_theme' );
 
 		$post_type_object     = get_post_type_object( $template_part_post->post_type );
-		$link_default_context = admin_url( sprintf( $post_type_object->_edit_link . '&amp;canvas=edit', $template_part_post->post_type, get_stylesheet() . '//my_template_part' ) );
-		$link_custom_context  = admin_url( sprintf( $post_type_object->_edit_link . '&canvas=edit', $template_part_post->post_type, get_stylesheet() . '//my_template_part' ) );
+		$link_default_context = admin_url( sprintf( $post_type_object->_edit_link, $template_part_post->post_type, get_stylesheet() . '%2F%2Fmy_template_part' ) );
+		$link_custom_context  = admin_url( sprintf( $post_type_object->_edit_link, $template_part_post->post_type, get_stylesheet() . '%2F%2Fmy_template_part' ) );
 
 		$this->assertSame( $link_default_context, get_edit_post_link( $template_part_post ), 'Second argument `$context` has a default context of `"display"`.' );
 		$this->assertSame( $link_custom_context, get_edit_post_link( $template_part_post, 'something-else' ), 'Pass non-default value in second argument.' );
