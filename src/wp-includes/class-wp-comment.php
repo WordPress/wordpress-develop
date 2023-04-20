@@ -1,6 +1,6 @@
 <?php
 /**
- * Comment API: WP_Comment class
+ * Comments API: WP_Comment class.
  *
  * @package WordPress
  * @subpackage Comments
@@ -16,7 +16,7 @@
 final class WP_Comment {
 
 	/**
-	 * Comment ID.
+	 * Comments ID.
 	 *
 	 * A numeric string, for compatibility reasons.
 	 *
@@ -36,7 +36,7 @@ final class WP_Comment {
 	public $comment_post_ID = 0;
 
 	/**
-	 * Comment author name.
+	 * Comments author name.
 	 *
 	 * @since 4.4.0
 	 * @var string
@@ -44,7 +44,7 @@ final class WP_Comment {
 	public $comment_author = '';
 
 	/**
-	 * Comment author email address.
+	 * Comments author email address.
 	 *
 	 * @since 4.4.0
 	 * @var string
@@ -52,7 +52,7 @@ final class WP_Comment {
 	public $comment_author_email = '';
 
 	/**
-	 * Comment author URL.
+	 * Comments author URL.
 	 *
 	 * @since 4.4.0
 	 * @var string
@@ -60,7 +60,7 @@ final class WP_Comment {
 	public $comment_author_url = '';
 
 	/**
-	 * Comment author IP address (IPv4 format).
+	 * Comments author IP address (IPv4 format).
 	 *
 	 * @since 4.4.0
 	 * @var string
@@ -68,7 +68,7 @@ final class WP_Comment {
 	public $comment_author_IP = '';
 
 	/**
-	 * Comment date in YYYY-MM-DD HH:MM:SS format.
+	 * Comments date in YYYY-MM-DD HH:MM:SS format.
 	 *
 	 * @since 4.4.0
 	 * @var string
@@ -76,7 +76,7 @@ final class WP_Comment {
 	public $comment_date = '0000-00-00 00:00:00';
 
 	/**
-	 * Comment GMT date in YYYY-MM-DD HH::MM:SS format.
+	 * Comments GMT date in YYYY-MM-DD HH::MM:SS format.
 	 *
 	 * @since 4.4.0
 	 * @var string
@@ -84,7 +84,7 @@ final class WP_Comment {
 	public $comment_date_gmt = '0000-00-00 00:00:00';
 
 	/**
-	 * Comment content.
+	 * Comments content.
 	 *
 	 * @since 4.4.0
 	 * @var string
@@ -92,7 +92,7 @@ final class WP_Comment {
 	public $comment_content;
 
 	/**
-	 * Comment karma count.
+	 * Comments karma count.
 	 *
 	 * A numeric string, for compatibility reasons.
 	 *
@@ -102,7 +102,7 @@ final class WP_Comment {
 	public $comment_karma = 0;
 
 	/**
-	 * Comment approval status.
+	 * Comments approval status.
 	 *
 	 * @since 4.4.0
 	 * @var string
@@ -110,7 +110,7 @@ final class WP_Comment {
 	public $comment_approved = '1';
 
 	/**
-	 * Comment author HTTP user agent.
+	 * Comments author HTTP user agent.
 	 *
 	 * @since 4.4.0
 	 * @var string
@@ -118,7 +118,7 @@ final class WP_Comment {
 	public $comment_agent = '';
 
 	/**
-	 * Comment type.
+	 * Comments type.
 	 *
 	 * @since 4.4.0
 	 * @since 5.5.0 Default value changed to `comment`.
@@ -127,7 +127,7 @@ final class WP_Comment {
 	public $comment_type = 'comment';
 
 	/**
-	 * Parent comment ID.
+	 * Parent comments ID.
 	 *
 	 * A numeric string, for compatibility reasons.
 	 *
@@ -137,7 +137,7 @@ final class WP_Comment {
 	public $comment_parent = 0;
 
 	/**
-	 * Comment author ID.
+	 * Comments author ID.
 	 *
 	 * A numeric string, for compatibility reasons.
 	 *
@@ -147,7 +147,7 @@ final class WP_Comment {
 	public $user_id = 0;
 
 	/**
-	 * Comment children.
+	 * Comments children.
 	 *
 	 * @since 4.4.0
 	 * @var array
@@ -155,7 +155,7 @@ final class WP_Comment {
 	protected $children;
 
 	/**
-	 * Whether children have been populated for this comment object.
+	 * Determines whether children have been populated for this comment object.
 	 *
 	 * @since 4.4.0
 	 * @var bool
@@ -219,7 +219,7 @@ final class WP_Comment {
 	}
 
 	/**
-	 * Convert object to array.
+	 * Converts object to array.
 	 *
 	 * @since 4.4.0
 	 *
@@ -230,7 +230,7 @@ final class WP_Comment {
 	}
 
 	/**
-	 * Get the children of a comment.
+	 * Gets the children of a comment.
 	 *
 	 * @since 4.4.0
 	 *
@@ -302,7 +302,7 @@ final class WP_Comment {
 	}
 
 	/**
-	 * Add a child to the comment.
+	 * Adds a child to the comment.
 	 *
 	 * Used by `WP_Comment_Query` when bulk-filling descendants.
 	 *
@@ -315,7 +315,7 @@ final class WP_Comment {
 	}
 
 	/**
-	 * Get a child comment by ID.
+	 * Gets a child comment by ID.
 	 *
 	 * @since 4.4.0
 	 *
@@ -331,7 +331,7 @@ final class WP_Comment {
 	}
 
 	/**
-	 * Set the 'populated_children' flag.
+	 * Sets the 'populated_children' flag.
 	 *
 	 * This flag is important for ensuring that calling `get_children()` on a childless comment will not trigger
 	 * unneeded database queries.
@@ -345,7 +345,7 @@ final class WP_Comment {
 	}
 
 	/**
-	 * Check whether a non-public property is set.
+	 * Determines whether a non-public property is set.
 	 *
 	 * If `$name` matches a post field, the comment post will be loaded and the post's value checked.
 	 *
