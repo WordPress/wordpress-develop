@@ -309,23 +309,31 @@ class WP_Scripts extends WP_Dependencies {
 			$after_handle = $this->print_inline_script( $handle, 'after', false );
 
 			if ( $after_handle ) {
-				$after_handle = sprintf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_handle );
+				$after_handle = sprintf(
+					"<script%1\$s id='%2\$s-js-after'>\n%3\$s\n</script>\n",
+					$this->type_attr,
+					esc_attr( $handle ),
+					$after_handle
+				);
 			}
 		} else {
 			$after_standalone_handle = $this->print_inline_script( $handle, 'after-standalone', false );
 
 			if ( $after_standalone_handle ) {
-				$after_handle .= sprintf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_standalone_handle );
+				$after_handle .= sprintf(
+					"<script%1\$s id='%2\$s-js-after'>\n%3\$s\n</script>\n",
+					$this->type_attr,
+					esc_attr( $handle ),
+					$after_standalone_handle
 			}
 
 			$after_non_standalone_handle = $this->print_inline_script( $handle, 'after-non-standalone', false );
 
 			if ( $after_non_standalone_handle ) {
 				$after_handle .= sprintf(
-					'<script type=\'text/template\' id=\'%1$s-js-after\' data-wp-executes-after=\'%1$s\'>%3$s%2$s%3$s</script>%3$s',
+					"<script type='text/template' id='%1\$s-js-after' data-wp-executes-after='%1\$s'>\n%2\$s\n</script>\n",
 					esc_attr( $handle ),
-					$after_non_standalone_handle,
-					PHP_EOL
+					$after_non_standalone_handle
 				);
 			}
 		}
@@ -516,14 +524,20 @@ class WP_Scripts extends WP_Dependencies {
 		if ( $display ) {
 			if ( 'after-non-standalone' === $position ) {
 				printf(
-					'<script type=\'text/template\' id=\'%1$s-js-after\' data-wp-executes-after=\'%1$s\'>%4$s%3$s%4$s</script>%4$s',
+					"<script%1\$s id='%2\$s-js-after' data-wp-executes-after='%2\$s'>\n%4\$s\n</script>\n",
+					$this->type_attr,
 					esc_attr( $handle ),
 					esc_attr( $position ),
-					$output,
-					PHP_EOL
+					$output
 				);
 			} else {
-				printf( "<script%s id='%s-js-%s'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), esc_attr( $position ), $output );
+				printf(
+					"<script%1\$s id='%2\$s-js-%3\$s'>\n%4\$s\n</script>\n",
+					$this->type_attr,
+					esc_attr( $handle ),
+					esc_attr( $position ),
+					$output
+				);
 			}
 		}
 
