@@ -746,28 +746,48 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @return array
 	 */
 	private function _get_row_actions( $post, $att_title ) {
-		$actions = array();
+		$actions     = array();
+		$actions_raw = array();
+
+		$actions_raw['edit'] = array(
+			'string'     => sprintf(
+				'<a href="%s" aria-label="%s">%s</a>',
+				get_edit_post_link( $post->ID ),
+				/* translators: %s: Attachment title. */
+				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $att_title ) ),
+				__( 'Edit' )
+			),
+			'in_trash'   => false,
+			'capability' => 'edit_post',
+			'views'      => 'all',
+		);
+
+		foreach ( $actions_raw as $key => $action_data ) {
+			if ( 'edit' === $key ) {
+
+			}
+			if ( 'all' === $action_data['views'] || 'detached' === $action_data['views'] ) {
+				
+			}
+		}
+
+
+		$actions_trash = sprintf(
+			'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
+			wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-post_' . $post->ID ),
+			/* translators: %s: Attachment title. */
+			esc_attr( sprintf( __( 'Move &#8220;%s&#8221; to the Trash' ), $att_title ) ),
+			_x( 'Trash', 'verb' )
+		);
 
 		if ( $this->detached ) {
 			if ( current_user_can( 'edit_post', $post->ID ) ) {
-				$actions['edit'] = sprintf(
-					'<a href="%s" aria-label="%s">%s</a>',
-					get_edit_post_link( $post->ID ),
-					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $att_title ) ),
-					__( 'Edit' )
-				);
+				$actions['edit'] = $actions_edit;
 			}
 
 			if ( current_user_can( 'delete_post', $post->ID ) ) {
 				if ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) {
-					$actions['trash'] = sprintf(
-						'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
-						wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-post_' . $post->ID ),
-						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'Move &#8220;%s&#8221; to the Trash' ), $att_title ) ),
-						_x( 'Trash', 'verb' )
-					);
+					$actions['trash'] = $actions_trash;
 				} else {
 					$delete_ays        = ! MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '';
 					$actions['delete'] = sprintf(
