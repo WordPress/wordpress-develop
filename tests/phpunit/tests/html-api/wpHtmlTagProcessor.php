@@ -963,6 +963,24 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that when setting an attribute multiple times that only
+	 * one update flushes out into the updated HTML.
+	 *
+	 * @ticket 58146
+	 *
+	 * @covers WP_HTML_Tag_Processor::set_attribute
+	 */
+	public function test_set_attribute_with_case_variants_updates_only_the_original_first_copy() {
+		$p = new WP_HTML_Tag_Processor( '<div data-enabled="5">' );
+		$p->next_tag();
+		$p->set_attribute( 'DATA-ENABLED', 'canary' );
+		$p->set_attribute( 'Data-Enabled', 'canary' );
+		$p->set_attribute( 'dATa-EnABled', 'canary' );
+
+		$this->assertSame( '<div data-enabled="canary">', strtolower( $p->get_updated_html() ) );
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
