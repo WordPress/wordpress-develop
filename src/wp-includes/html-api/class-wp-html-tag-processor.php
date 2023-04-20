@@ -1036,11 +1036,15 @@ class WP_HTML_Tag_Processor {
 				 * https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
 				 */
 				if (
-					strlen( $html ) > $at + 4 &&
+					strlen( $html ) > $at + 3 &&
 					'-' === $html[ $at + 2 ] &&
 					'-' === $html[ $at + 3 ]
 				) {
 					$closer_at = $at + 4;
+					// If it's not possible to close the comment then there is nothing more to scan.
+					if ( strlen( $html ) <= $closer_at ) {
+						return false;
+					}
 
 					// Abruptly-closed empty comments are a sequence of dashes followed by `>`.
 					$span_of_dashes = strspn( $html, '-', $closer_at );
