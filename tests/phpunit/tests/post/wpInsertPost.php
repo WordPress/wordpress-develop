@@ -1570,7 +1570,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_title' => '0',
+				'post_title'   => '0',
 				'post_content' => '0',
 				'post_excerpt' => '0',
 			)
@@ -1590,7 +1590,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_title' => '0',
+				'post_title'   => '0',
 				'post_content' => 'post_content',
 				'post_excerpt' => 'post_excerpt',
 			)
@@ -1610,7 +1610,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_title' => 'post_title',
+				'post_title'   => 'post_title',
 				'post_content' => '0',
 				'post_excerpt' => 'post_excerpt',
 			)
@@ -1630,7 +1630,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_title' => 'post_title',
+				'post_title'   => 'post_title',
 				'post_content' => 'post_content',
 				'post_excerpt' => '0',
 			)
