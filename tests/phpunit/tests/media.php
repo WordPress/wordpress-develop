@@ -3975,6 +3975,8 @@ EOF;
 
 	/**
 	 * Test that the attachment URL is correctly returned or FALSE when not found.
+	 *
+	 * @ticket 58163
 	 */
 	public function test_wp_get_attachment_url() {
 		$this->assertFalse( wp_get_attachment_url( 0 ) );
@@ -3985,6 +3987,8 @@ EOF;
 
 	/**
 	 * Test that the attachment metadata is correctly returning an associative array or FALSE when not found.
+	 *
+	 * @ticket 58163
 	 */
 	public function test_wp_get_attachment_metadata() {
 		$this->assertFalse( wp_get_attachment_metadata( 0 ) );
@@ -3995,6 +3999,8 @@ EOF;
 
 	/**
 	 * Test that the image downsize is correctly returning a flat array or FALSE when not found.
+	 *
+	 * @ticket 58163
 	 */
 	public function test_image_downsize() {
 		$this->assertFalse( image_downsize( 0 ) );
@@ -4005,6 +4011,8 @@ EOF;
 
 	/**
 	 * Test that the image tag is correctly returning an HTML IMG tag with a populated src attribute.
+	 *
+	 * @ticket 58163
 	 */
 	public function test_get_image_tag() {
 		$document = new \DOMDocument();
@@ -4022,6 +4030,8 @@ EOF;
 	/**
 	 * Test that the image tag is returning an HTML IMG tag with an empty src attribute
 	 * whenever the attachment does not exist.
+	 *
+	 * @ticket 58163
 	 */
 	public function test_get_image_tag_empty_src() {
 		$document = new \DOMDocument();
@@ -4038,6 +4048,8 @@ EOF;
 
 	/**
 	 * Test that the intermediate size function is correctly returning an associative array or FALSE when not found.
+	 *
+	 * @ticket 58163
 	 */
 	public function test_image_get_intermediate_size() {
 		$this->assertFalse( image_get_intermediate_size( 0 ) );
@@ -4048,6 +4060,8 @@ EOF;
 
 	/**
 	 * Test that the attachment image src function is correctly returning a flat array or FALSE when not found.
+	 *
+	 * @ticket 58163
 	 */
 	public function test_wp_get_attachment_image_src() {
 		$this->assertFalse( wp_get_attachment_image_src( 0 ) );
