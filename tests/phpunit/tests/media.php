@@ -4018,13 +4018,13 @@ EOF;
 		$document = new \DOMDocument();
 		$img_tag  = get_image_tag( self::$large_id, 'foo', 'bar', 'center' );
 		$document->loadHTML( $img_tag );
-		$document_img = $document->getElementsByTagName( 'img' )->item( 0 );
+		$document_img_tag = $document->getElementsByTagName( 'img' )->item( 0 );
 
-		$this->assertNotNull( $document_img );
+		$this->assertNotNull( $document_img_tag );
 
-		$img_tag_src = $document_img->getAttribute( 'src' );
+		$src = $document_img_tag->attributes->getNamedItem( 'src' )->value;
 
-		$this->assertNotEmpty( $img_tag_src );
+		$this->assertNotEmpty( $src );
 	}
 
 	/**
@@ -4037,13 +4037,13 @@ EOF;
 		$document = new \DOMDocument();
 		$img_tag  = get_image_tag( 0, 'foo', 'bar', 'center' );
 		$document->loadHTML( $img_tag );
-		$document_img = $document->getElementsByTagName( 'img' )->item( 0 );
+		$document_img_tag = $document->getElementsByTagName( 'img' )->item( 0 );
 
-		$this->assertNotNull( $document_img );
+		$this->assertNotNull( $document_img_tag );
 
-		$img_tag_src = $document_img->getAttribute( 'src' );
+		$src = $document_img_tag->attributes->getNamedItem( 'src' )->value;
 
-		$this->assertEmpty( $img_tag_src );
+		$this->assertEmpty( $src );
 	}
 
 	/**
@@ -4080,13 +4080,13 @@ EOF;
 		$document = new \DOMDocument();
 		$img_tag  = wp_get_attachment_image( self::$large_id );
 		$document->loadHTML( $img_tag );
-		$document_img = $document->getElementsByTagName( 'img' )->item( 0 );
+		$document_img_tag = $document->getElementsByTagName( 'img' )->item( 0 );
 
-		$this->assertNotNull( $document_img );
+		$this->assertNotNull( $document_img_tag );
 
-		$img_tag_src = $document_img->getAttribute( 'src' );
+		$src = $document_img_tag->attributes->getNamedItem( 'src' )->value;
 
-		$this->assertNotEmpty( $img_tag_src );
+		$this->assertNotEmpty( $src );
 	}
 
 	/**
