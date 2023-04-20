@@ -6,6 +6,7 @@
  * @subpackage HTML-API
  */
 
+require_once __DIR__ . '../../../../../src/wp-includes/html-api/class-wp-directive-processor.php';
 /**
  * @group html-api
  *
@@ -454,6 +455,19 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 			$p->get_updated_html(),
 			'Casting WP_HTML_Tag_Processor to a string without performing any updates did not return the initial HTML snippet'
 		);
+	}
+
+	public function test_wrap_in_tag_wraps_balanced_tag_correctly_when_called_after_add_class() {
+		$tags = new WP_Directive_Processor( '<div>outside</div><section><div><img>inside</div></section>' );
+
+		$tags->next_tag();
+		$tags->add_class( 'foo' ); // Also try 'fooooooo'. This causes the assertion to fail differently.
+		// $tags->get_updated_html(); // This fixes the error.
+		$tags->next_tag( 'section' );
+		$tags->wrap_in_tag( 'TEMPLATE' );
+		$this->assertSame( '<div class="foo">outside</div><template><section><div><img>inside</div></section></template>', $tags->get_updated_html() );
+		$this->assertSame( 'SECTION', $tags->get_tag() );
+		$this->assertFalse( $tags->is_tag_closer() );
 	}
 
 	/**
