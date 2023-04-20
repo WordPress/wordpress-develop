@@ -1158,7 +1158,7 @@ class WP_HTML_Tag_Processor {
 			 * If a non-alpha starts the tag name in a tag closer it's a comment.
 			 * Find the first `>`, which closes the comment.
 			 *
-			 * See https://github.com/WordPress/wordpress-develop/pull/4256
+			 * See https://html.spec.whatwg.org/#parse-error-invalid-first-character-of-tag-name
 			 */
 			if ( $this->is_closing_tag ) {
 				$closer_at = strpos( $html, '>', $at + 3 );
