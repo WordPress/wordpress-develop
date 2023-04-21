@@ -872,6 +872,18 @@ JS;
 	}
 
 	/**
+	 * Determines if a script loading strategy is valid.
+	 *
+	 * @param string $strategy A script loading strategy.
+	 * @return bool True if the strategy is of an allowed type, false otherwise.
+	 */
+	private function is_valid_strategy( $strategy ) {
+		$allowed_strategies = array( 'blocking', 'defer', 'async' );
+
+		return in_array( $strategy, $allowed_strategies, true );
+	}
+
+	/**
 	 * Get the strategy assigned during script registration.
 	 *
 	 * @param string $handle The script handle.
@@ -879,8 +891,24 @@ JS;
 	 */
 	private function get_intended_strategy( $handle ) {
 		$script_args = $this->get_data( $handle, 'script_args' );
+		$strategy    = isset( $script_args['strategy'] ) ? $script_args['strategy'] : false;
 
-		return isset( $script_args['strategy'] ) ? $script_args['strategy'] : false;
+		if ( $strategy && ! $this->is_valid_strategy( $strategy ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: 1: $strategy, 2: $handle */
+					__( 'Invalid strategy `%1$s` defined for `%2$s` during script registration.' ),
+					$strategy,
+					$handle
+				),
+				'6.3.0'
+			);
+
+			return false;
+		}
+
+		return $strategy;
 	}
 
 	/**
