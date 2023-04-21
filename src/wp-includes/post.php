@@ -2493,6 +2493,21 @@ function get_post_meta( $post_id, $key = '', $single = false ) {
 }
 
 /**
+ * Queue post meta for lazy-loading.
+ *
+ * @since 6.3.0
+ *
+ * @param array $post_ids List of post IDs.
+ */
+function wp_lazyload_post_meta( array $post_ids ) {
+	if ( empty( $post_ids ) ) {
+		return;
+	}
+	$lazyloader = wp_metadata_lazyloader();
+	$lazyloader->queue_objects( 'post', $post_ids );
+}
+
+/**
  * Updates a post meta field based on the given post ID.
  *
  * Use the `$prev_value` parameter to differentiate between meta fields with the
@@ -7278,8 +7293,7 @@ function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = 
 	}
 
 	if ( $update_meta_cache ) {
-		$lazyloader = wp_metadata_lazyloader();
-		$lazyloader->queue_objects( 'post', $post_ids );
+		wp_lazyload_post_meta( $post_ids );
 	}
 }
 
@@ -7747,8 +7761,7 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 	}
 
 	if ( $update_meta_cache ) {
-		$lazyloader = wp_metadata_lazyloader();
-		$lazyloader->queue_objects( 'post', $ids );
+		wp_lazyload_post_meta( $ids );
 	}
 
 	if ( $update_term_cache ) {
