@@ -746,130 +746,133 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @return array
 	 */
 	private function _get_row_actions( $post, $att_title ) {
-		$actions = array();
+		$actions     = array();
+		$actions_raw = array();
 
-		if ( $this->detached ) {
-			if ( current_user_can( 'edit_post', $post->ID ) ) {
-				$actions['edit'] = sprintf(
-					'<a href="%s" aria-label="%s">%s</a>',
-					get_edit_post_link( $post->ID ),
-					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $att_title ) ),
-					__( 'Edit' )
-				);
-			}
+		$actions_raw['edit'] = sprintf(
+			'<a href="%s" aria-label="%s">%s</a>',
+			get_edit_post_link( $post->ID ),
+			/* translators: %s: Attachment title. */
+			esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $att_title ) ),
+			__( 'Edit' )
+		);
 
-			if ( current_user_can( 'delete_post', $post->ID ) ) {
-				if ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) {
-					$actions['trash'] = sprintf(
-						'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
-						wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-post_' . $post->ID ),
-						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'Move &#8220;%s&#8221; to the Trash' ), $att_title ) ),
-						_x( 'Trash', 'verb' )
-					);
-				} else {
-					$delete_ays        = ! MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '';
-					$actions['delete'] = sprintf(
-						'<a href="%s" class="submitdelete aria-button-if-js"%s aria-label="%s">%s</a>',
-						wp_nonce_url( "post.php?action=delete&amp;post=$post->ID", 'delete-post_' . $post->ID ),
-						$delete_ays,
-						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
-						__( 'Delete Permanently' )
-					);
-				}
-			}
+		$actions_raw['trash'] = sprintf(
+			'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
+			wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-post_' . $post->ID ),
+			/* translators: %s: Attachment title. */
+			esc_attr( sprintf( __( 'Move &#8220;%s&#8221; to the Trash' ), $att_title ) ),
+			_x( 'Trash', 'verb' )
+		);
 
-			if ( get_permalink( $post->ID ) ) {
-				$actions['view'] = sprintf(
-					'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
-					get_permalink( $post->ID ),
-					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
-					__( 'View' )
-				);
-			}
+		$actions_raw['untrash'] = sprintf(
+			'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
+			wp_nonce_url( "post.php?action=untrash&amp;post=$post->ID", 'untrash-post_' . $post->ID ),
+			/* translators: %s: Attachment title. */
+			esc_attr( sprintf( __( 'Restore &#8220;%s&#8221; from the Trash' ), $att_title ) ),
+			__( 'Restore' )
+		);
 
-			if ( current_user_can( 'edit_post', $post->ID ) ) {
-				$actions['attach'] = sprintf(
-					'<a href="#the-list" onclick="findPosts.open( \'media[]\', \'%s\' ); return false;" class="hide-if-no-js aria-button-if-js" aria-label="%s">%s</a>',
-					$post->ID,
-					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'Attach &#8220;%s&#8221; to existing content' ), $att_title ) ),
-					__( 'Attach' )
-				);
-			}
-		} else {
-			if ( current_user_can( 'edit_post', $post->ID ) && ! $this->is_trash ) {
-				$actions['edit'] = sprintf(
-					'<a href="%s" aria-label="%s">%s</a>',
-					get_edit_post_link( $post->ID ),
-					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $att_title ) ),
-					__( 'Edit' )
-				);
-			}
+		$delete_are_you_sure   = ! MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '';
+		$actions_raw['delete'] = sprintf(
+			'<a href="%s" class="submitdelete aria-button-if-js"%s aria-label="%s">%s</a>',
+			wp_nonce_url( "post.php?action=delete&amp;post=$post->ID", 'delete-post_' . $post->ID ),
+			$delete_are_you_sure,
+			/* translators: %s: Attachment title. */
+			esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
+			__( 'Delete Permanently' )
+		);
 
-			if ( current_user_can( 'delete_post', $post->ID ) ) {
-				if ( $this->is_trash ) {
-					$actions['untrash'] = sprintf(
-						'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
-						wp_nonce_url( "post.php?action=untrash&amp;post=$post->ID", 'untrash-post_' . $post->ID ),
-						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'Restore &#8220;%s&#8221; from the Trash' ), $att_title ) ),
-						__( 'Restore' )
-					);
-				} elseif ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) {
-					$actions['trash'] = sprintf(
-						'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
-						wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-post_' . $post->ID ),
-						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'Move &#8220;%s&#8221; to the Trash' ), $att_title ) ),
-						_x( 'Trash', 'verb' )
-					);
-				}
+		$actions_raw['view'] = sprintf(
+			'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
+			get_permalink( $post->ID ),
+			/* translators: %s: Attachment title. */
+			esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
+			__( 'View' )
+		);
 
-				if ( $this->is_trash || ! EMPTY_TRASH_DAYS || ! MEDIA_TRASH ) {
-					$delete_ays        = ( ! $this->is_trash && ! MEDIA_TRASH ) ? " onclick='return showNotice.warn();'" : '';
-					$actions['delete'] = sprintf(
-						'<a href="%s" class="submitdelete aria-button-if-js"%s aria-label="%s">%s</a>',
-						wp_nonce_url( "post.php?action=delete&amp;post=$post->ID", 'delete-post_' . $post->ID ),
-						$delete_ays,
-						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
-						__( 'Delete Permanently' )
-					);
-				}
-			}
+		$actions_raw['attach'] = sprintf(
+			'<a href="#the-list" onclick="findPosts.open( \'media[]\', \'%s\' ); return false;" class="hide-if-no-js aria-button-if-js" aria-label="%s">%s</a>',
+			$post->ID,
+			/* translators: %s: Attachment title. */
+			esc_attr( sprintf( __( 'Attach &#8220;%s&#8221; to existing content' ), $att_title ) ),
+			__( 'Attach' )
+		);
 
-			if ( ! $this->is_trash ) {
-				if ( get_permalink( $post->ID ) ) {
-					$actions['view'] = sprintf(
-						'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
-						get_permalink( $post->ID ),
-						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
-						__( 'View' )
-					);
-				}
+		$actions_raw['copy'] = sprintf(
+			'<span class="copy-to-clipboard-container"><button type="button" class="button-link copy-attachment-url media-library" data-clipboard-text="%s" aria-label="%s">%s</button><span class="success hidden" aria-hidden="true">%s</span></span>',
+			esc_url( wp_get_attachment_url( $post->ID ) ),
+			/* translators: %s: Attachment title. */
+			esc_attr( sprintf( __( 'Copy &#8220;%s&#8221; URL to clipboard' ), $att_title ) ),
+			__( 'Copy URL' ),
+			__( 'Copied!' )
+		);
 
-				$actions['copy'] = sprintf(
-					'<span class="copy-to-clipboard-container"><button type="button" class="button-link copy-attachment-url media-library" data-clipboard-text="%s" aria-label="%s">%s</button><span class="success hidden" aria-hidden="true">%s</span></span>',
-					esc_url( wp_get_attachment_url( $post->ID ) ),
-					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'Copy &#8220;%s&#8221; URL to clipboard' ), $att_title ) ),
-					__( 'Copy URL' ),
-					__( 'Copied!' )
-				);
+		$actions_raw['download'] = sprintf(
+			'<a href="%s" aria-label="%s" download>%s</a>',
+			esc_url( wp_get_attachment_url( $post->ID ) ),
+			/* translators: %s: Attachment title. */
+			esc_attr( sprintf( __( 'Download &#8220;%s&#8221;' ), $att_title ) ),
+			__( 'Download file' )
+		);
 
-				$actions['download'] = sprintf(
-					'<a href="%s" aria-label="%s" download>%s</a>',
-					esc_url( wp_get_attachment_url( $post->ID ) ),
-					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'Download &#8220;%s&#8221;' ), $att_title ) ),
-					__( 'Download file' )
-				);
+		foreach ( $actions_raw as $action_key_name => $action_link ) {
+			// Go thorough all items in their output order.
+			switch ( $action_key_name ) {
+				case 'edit':
+					if ( $this->is_trash || ! current_user_can( 'edit_post', $post->ID ) ) {
+						break;
+					}
+					$actions[ $action_key_name ] = $action_link;
+					break;
+
+				case 'untrash':
+				case 'trash':
+				case 'delete':
+					if ( ! current_user_can( 'delete_post', $post->ID ) ) {
+						break;
+					}
+
+					if ( $this->is_trash && 'untrash' === $action_key_name ) {
+						$actions[ $action_key_name ] = $action_link;
+						break;
+					}
+
+					if ( EMPTY_TRASH_DAYS && MEDIA_TRASH && ! $this->is_trash && 'trash' === $action_key_name ) {
+						$actions[ $action_key_name ] = $action_link;
+						break;
+					} else {
+						if ( 'delete' === $action_key_name ) {
+							$actions[ $action_key_name ] = $action_link;
+							break;
+						}
+					}
+					break;
+
+				case 'view':
+					if ( $this->is_trash || ! get_permalink( $post->ID ) ) {
+						break;
+					}
+					$actions[ $action_key_name ] = $action_link;
+					break;
+
+				case 'attach':
+					if ( ! $this->detached || ! current_user_can( 'edit_post', $post->ID ) ) {
+						break;
+					}
+					$actions[ $action_key_name ] = $action_link;
+					break;
+
+				case 'copy':
+				case 'download':
+					if ( $this->is_trash ) {
+						break;
+					}
+					$actions[ $action_key_name ] = $action_link;
+					break;
+
+				default:
+					break;
 			}
 		}
 
