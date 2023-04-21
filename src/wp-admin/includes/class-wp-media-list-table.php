@@ -827,25 +827,34 @@ class WP_Media_List_Table extends WP_List_Table {
 					break;
 
 				case 'untrash':
-				case 'trash':
-				case 'delete':
 					if ( ! current_user_can( 'delete_post', $post->ID ) ) {
 						break;
 					}
-
-					if ( $this->is_trash && 'untrash' === $action_key_name ) {
+					if ( $this->is_trash ) {
 						$actions[ $action_key_name ] = $action_link;
 						break;
 					}
+					break;
 
-					if ( EMPTY_TRASH_DAYS && MEDIA_TRASH && ! $this->is_trash && 'trash' === $action_key_name ) {
+				case 'trash':
+					if ( ! current_user_can( 'delete_post', $post->ID ) && ( ! EMPTY_TRASH_DAYS && ! MEDIA_TRASH ) ) {
+						break;
+					}
+
+					if ( ! $this->is_trash ) {
 						$actions[ $action_key_name ] = $action_link;
 						break;
-					} else {
-						if ( 'delete' === $action_key_name ) {
-							$actions[ $action_key_name ] = $action_link;
-							break;
-						}
+					}
+					break;
+
+				case 'delete':
+					if ( ! current_user_can( 'delete_post', $post->ID ) && ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) ) {
+						break;
+					}
+
+					if ( $this->is_trash ) {
+						$actions[ $action_key_name ] = $action_link;
+						break;
 					}
 					break;
 
