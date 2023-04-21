@@ -73,6 +73,44 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57801
+	 *
+	 * @covers ::update_comment_meta
+	 */
+	public function test_update_comment_meta_cache_true_multiple() {
+		$posts           = self::factory()->post->create_many( 3 );
+		$all_comment_ids = array();
+		foreach ( $posts as $p ) {
+			$comment_ids = self::factory()->comment->create_post_comments( $p, 3 );
+
+			foreach ( $comment_ids as $cid ) {
+				update_comment_meta( $cid, 'foo', 'bar' );
+				$all_comment_ids[] = $cid;
+			}
+
+			$num_queries = get_num_queries();
+			$q           = new WP_Comment_Query(
+				array(
+					'post_ID'                   => $p,
+					'update_comment_meta_cache' => true,
+				)
+			);
+			$this->assertSame( $num_queries + 1, get_num_queries(), 'Comment query should only add one query' );
+		}
+
+		$filter = new MockAction();
+		add_filter( 'update_comment_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+		$num_queries = get_num_queries();
+		get_comment_meta( $comment_ids[0], 'foo', 'bar' );
+
+		$this->assertSame( $num_queries + 1, get_num_queries(), 'Comment meta should be loaded in one database query' );
+		$args              = $filter->get_args();
+		$first             = reset( $args );
+		$prime_comment_ids = end( $first );
+		$this->assertSameSets( $prime_comment_ids, $all_comment_ids, 'All comment meta should be loaded all at once' );
+	}
+
+	/**
 	 * @ticket 16894
 	 *
 	 * @covers ::update_comment_meta
