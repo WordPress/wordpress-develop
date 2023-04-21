@@ -816,8 +816,8 @@ class WP_Media_List_Table extends WP_List_Table {
 			__( 'Download file' )
 		);
 
+		// Go thorough all items in their output order.
 		foreach ( $actions_raw as $action_key_name => $action_link ) {
-			// Go thorough all items in their output order.
 			switch ( $action_key_name ) {
 				case 'edit':
 					if ( $this->is_trash || ! current_user_can( 'edit_post', $post->ID ) ) {
@@ -873,8 +873,14 @@ class WP_Media_List_Table extends WP_List_Table {
 					break;
 
 				case 'copy':
+					if ( $this->is_trash || ! wp_get_attachment_url( $post->ID ) ) {
+						break;
+					}
+					$actions[ $action_key_name ] = $action_link;
+					break;
+
 				case 'download':
-					if ( $this->is_trash ) {
+					if ( ! wp_get_attachment_url( $post->ID ) ) {
 						break;
 					}
 					$actions[ $action_key_name ] = $action_link;
