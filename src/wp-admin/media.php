@@ -20,15 +20,8 @@ wp_reset_vars( array( 'action' ) );
 switch ( $action ) {
 	case 'editattachment':
 	case 'edit':
-		// Used in the HTML title tag.
-		$title = __( 'Edit Media' );
-
-		if ( empty( $errors ) ) {
-			$errors = null;
-		}
-
 		if ( empty( $_GET['attachment_id'] ) ) {
-			wp_redirect( admin_url( 'upload.php' ) );
+			wp_redirect( admin_url( 'upload.php?error=deprecated' ) );
 			exit;
 		}
 		$att_id = (int) $_GET['attachment_id'];
