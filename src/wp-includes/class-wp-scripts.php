@@ -368,7 +368,7 @@ class WP_Scripts extends WP_Dependencies {
 			$srce = apply_filters( 'script_loader_src', $src, $handle );
 
 			// Used as a conditional to prevent script concatenation.
-			$is_deferred_or_async_handle = in_array( $strategy, array( 'defer', 'async' ), true );
+			$is_deferred_or_async_handle = $this->is_non_blocking_strategy( $strategy );
 
 			if (
 				$this->in_default_dir( $srce )
@@ -816,7 +816,8 @@ JS;
 	public function has_delayed_inline_script() {
 		foreach ( $this->registered as $handle => $script ) {
 			// Non standalone scripts in the after position, of type async or defer, are usually delayed.
-			if ( in_array( $this->get_intended_strategy( $handle ), array( 'defer', 'async' ), true ) &&
+			$strategy = $this->get_intended_strategy( $handle );
+			if ( $this->is_non_blocking_strategy( $strategy ) &&
 				$this->has_non_standalone_inline_script( $handle, 'after' )
 			) {
 				return true;
@@ -883,6 +884,18 @@ JS;
 	}
 
 	/**
+	 * Check if the strategy passed is a non-blocking strategy.
+	 *
+	 * @param string $strategy The strategy to check.
+	 * @return bool True if $strategy is one of the delayed strategy.
+	 */
+	private function is_non_blocking_strategy( $strategy ) {
+		$delayed_strategies = array( 'defer', 'async' );
+
+		return in_array( $strategy, $delayed_strategies, true );
+	}
+
+	/**
 	 * Check if a script has a non standalone inline script associated with it.
 	 *
 	 * @param string $handle   The script handle.
@@ -921,7 +934,8 @@ JS;
 		// Consider each dependent and check if it is deferrable.
 		foreach ( $dependents as $dependent ) {
 			// If the dependent script is not using the defer or async strategy, no script in the chain is deferrable.
-			if ( ! in_array( $this->get_intended_strategy( $dependent ), array( 'defer', 'async' ), true ) ) {
+			$strategy = $this->get_intended_strategy( $dependent );
+			if ( ! $this->is_non_blocking_strategy( $strategy ) ) {
 				return false;
 			}
 
