@@ -1964,7 +1964,7 @@ class WP_HTML_Tag_Processor {
 			 *
 			 *    Result: <div id="new"/>
 			 */
-			$existing_attribute = $this->attributes[ $comparable_name ];
+			$existing_attribute                        = $this->attributes[ $comparable_name ];
 			$this->lexical_updates[ $comparable_name ] = new WP_HTML_Text_Replacement(
 				$existing_attribute->start,
 				$existing_attribute->end,
@@ -2142,6 +2142,8 @@ class WP_HTML_Tag_Processor {
 		 * to the end of the updated document and return.
 		 */
 		if ( $requires_no_updating && $this->bytes_already_copied > 0 ) {
+			$this->html                 = $this->output_buffer . substr( $this->html, $this->bytes_already_copied );
+			$this->bytes_already_copied = strlen( $this->output_buffer );
 			return $this->output_buffer . substr( $this->html, $this->bytes_already_copied );
 		}
 

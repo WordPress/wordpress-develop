@@ -457,6 +457,26 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that when seeking to an earlier spot in the document that
+	 * all previously-enqueued updates are applied as they ought to be.
+	 *
+	 * @ticket 58160
+	 */
+	public function test_get_updated_html_applies_updates_to_content_after_seeking_to_before_parsed_bytes() {
+		$p = new WP_HTML_Tag_Processor( '<div><img hidden></div>' );
+
+		$p->next_tag();
+		$p->set_attribute( 'wonky', true );
+		$p->next_tag();
+		$p->set_bookmark( 'here' );
+
+		$p->next_tag( array( 'tag_closers' => 'visit' ) );
+		$p->seek( 'here' );
+
+		$this->assertSame( '<div wonky><img hidden></div>', $p->get_updated_html() );
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
