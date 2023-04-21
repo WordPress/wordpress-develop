@@ -775,8 +775,8 @@ function wp_start_object_cache() {
 				'userlogins',
 				'usermeta',
 				'user_meta',
+				'user-queries',
 				'userslugs',
-				'users-queries',
 			)
 		);
 
