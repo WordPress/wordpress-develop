@@ -730,6 +730,8 @@ class WP_Term_Query {
 		 */
 		$clauses = apply_filters( 'terms_clauses', compact( $pieces ), $taxonomies, $args );
 
+		$fields_is_filtered = $fields !== $clauses['fields'];
+
 		$fields   = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
 		$join     = isset( $clauses['join'] ) ? $clauses['join'] : '';
 		$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
@@ -884,6 +886,8 @@ class WP_Term_Query {
 				$object->count   = $term->count;
 				$term_cache[]    = $object;
 			}
+		} elseif ( $fields_is_filtered ) {
+			$term_cache = $term_objects;
 		} else {
 			$term_cache = wp_list_pluck( $term_objects, 'term_id' );
 		}
