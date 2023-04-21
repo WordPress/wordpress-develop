@@ -18,7 +18,7 @@ class WP_Site_Health {
 	private $mysql_server_version        = '';
 	private $mysql_required_version      = '5.5';
 	private $mysql_recommended_version   = '5.7';
-	private $mariadb_recommended_version = '10.3';
+	private $mariadb_recommended_version = '10.4';
 
 	public $php_memory_limit;
 
@@ -1458,7 +1458,7 @@ class WP_Site_Health {
 			$result['actions'] = sprintf(
 				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				/* translators: Localized Support reference. */
-				esc_url( __( 'https://wordpress.org/support' ) ),
+				esc_url( __( 'https://wordpress.org/support/forums/' ) ),
 				__( 'Get help resolving this issue.' ),
 				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )

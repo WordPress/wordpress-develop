@@ -246,7 +246,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: WordPress Field Guide link. */
 						__( 'Check out the latest version of the <a href="%s">WordPress Field Guide</a>. It is overflowing with detailed developer notes to help you build with WordPress.' ),
-						'#'
+						__( 'https://make.wordpress.org/core/2023/03/09/wordpress-6-2-field-guide/' )
 					);
 					?>
 				</p>
@@ -266,7 +266,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						__( '<a href="%1$s">Read the WordPress %2$s Release Notes</a> for more information on the included enhancements and issues fixed, installation information, developer notes and resources, release contributors, and the list of file changes in this release.' ),
 						sprintf(
 							/* translators: %s: WordPress version number. */
-							esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
+							esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
 							'6-2'
 						),
 						'6.2'
