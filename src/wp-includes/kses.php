@@ -788,7 +788,7 @@ function wp_kses_one_attr( $attr, $element ) {
 	// Parse attribute name and value from input.
 	$split = preg_split( '/\s*=\s*/', $attr, 2 );
 	$name  = $split[0];
-	if ( count( $split ) == 2 ) {
+	if ( count( $split ) === 2 ) {
 		$value = $split[1];
 
 		// Remove quotes surrounding $value.
@@ -799,7 +799,7 @@ function wp_kses_one_attr( $attr, $element ) {
 			$quote = $value[0];
 		}
 		if ( '"' === $quote || "'" === $quote ) {
-			if ( substr( $value, -1 ) != $quote ) {
+			if ( substr( $value, -1 ) !== $quote ) {
 				return '';
 			}
 			$value = substr( $value, 1, -1 );
@@ -1330,7 +1330,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 
 	// Loop through the whole attribute list.
 
-	while ( strlen( $attr ) != 0 ) {
+	while ( strlen( $attr ) !== 0 ) {
 		$working = 0; // Was the last operation successful?
 
 		switch ( $mode ) {

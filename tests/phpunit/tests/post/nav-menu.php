@@ -304,6 +304,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		add_filter( 'update_term_metadata_cache', array( $action, 'filter' ), 10, 2 );
 
 		update_menu_item_cache( $query_result );
+		get_term_meta( $term_id );
 
 		$args = $action->get_args();
 		$last = end( $args );
@@ -383,12 +384,14 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 		$start_num_queries = get_num_queries();
 		wp_get_nav_menu_items( $this->menu_id );
+		get_term_meta( $term_ids[0] );
 		$queries_made = get_num_queries() - $start_num_queries;
 		$this->assertSame( 6, $queries_made, 'Only does 6 database queries when running wp_get_nav_menu_items.' );
 
-		$args = $action_terms->get_args();
-		$last = end( $args );
-		$this->assertSameSets( $term_ids, $last[1], '_prime_term_caches() was not executed.' );
+		$args       = $action_terms->get_args();
+		$first      = reset( $args );
+		$term_ids[] = $this->menu_id;
+		$this->assertSameSets( $term_ids, $first[1], '_prime_term_caches() was not executed.' );
 
 		$args = $action_posts->get_args();
 		$this->assertSameSets( $menu_nav_ids, $args[0][1], '_prime_post_caches() was not executed.' );
