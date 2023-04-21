@@ -1428,7 +1428,7 @@ function update_termmeta_cache( $term_ids ) {
 
 
 /**
- * Queues term id for lazy-loading of term meta.
+ * Queue term meta for lazy-loading.
  *
  * @since 6.3.0
  *
