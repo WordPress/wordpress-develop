@@ -485,6 +485,21 @@ function get_comment_meta( $comment_id, $key = '', $single = false ) {
 }
 
 /**
+ * Queue comment meta for lazy-loading.
+ *
+ * @since 6.3.0
+ *
+ * @param array $comment_ids List of comment IDs.
+ */
+function wp_lazyload_comment_meta( array $comment_ids ) {
+	if ( empty( $comment_ids ) ) {
+		return;
+	}
+	$lazyloader = wp_metadata_lazyloader();
+	$lazyloader->queue_objects( 'comment', $comment_ids );
+}
+
+/**
  * Updates comment meta field based on comment ID.
  *
  * Use the $prev_value parameter to differentiate between meta fields with the
@@ -528,10 +543,7 @@ function wp_queue_comments_for_comment_meta_lazyload( $comments ) {
 		}
 	}
 
-	if ( $comment_ids ) {
-		$lazyloader = wp_metadata_lazyloader();
-		$lazyloader->queue_objects( 'comment', $comment_ids );
-	}
+	wp_lazyload_comment_meta( $comment_ids );
 }
 
 /**
@@ -3349,8 +3361,7 @@ function _prime_comment_caches( $comment_ids, $update_meta_cache = true ) {
 	}
 
 	if ( $update_meta_cache ) {
-		$lazyloader = wp_metadata_lazyloader();
-		$lazyloader->queue_objects( 'comment', $comment_ids );
+		wp_lazyload_comment_meta( $comment_ids );
 	}
 }
 
