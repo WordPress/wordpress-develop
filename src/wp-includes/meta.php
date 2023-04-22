@@ -620,6 +620,10 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 	 * (post, comment, term, user, or any other type with an associated meta table).
 	 * Returning a non-null value will effectively short-circuit the function.
 	 *
+	 * The filter assumes that a numeric array is always returned similarly to the return value
+	 * from {@see 'update_meta_cache()'}. Returning `false` is also acceptable to signify
+	 * incorrect parameters.
+	 *
 	 * Possible filter names include:
 	 *
 	 *  - `get_post_metadata`
@@ -631,26 +635,32 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 	 * @since 5.5.0 Added the `$meta_type` parameter.
 	 * @since 6.3.0 Added the `$value_type` parameter.
 	 *
-	 * @param mixed  $value      The value to return, either a single metadata value or an array
-	 *                           of values depending on the value of `$single`. Default null.
+	 * @param mixed  $value      Numeric array of one or more meta values. Default null.
 	 * @param int    $object_id  ID of the object metadata is for.
 	 * @param string $meta_key   Metadata key.
 	 * @param bool   $single     Whether to return only the first value of the specified `$meta_key`.
+	 *                           If `true` only the first element of the filtered array is returned.
 	 * @param string $meta_type  Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
 	 *                           or any other object type with an associated meta table.
 	 * @param string $value_type The expected data type of the value.
 	 */
 	$pre_meta = apply_filters( "get_{$meta_type}_metadata", null, $object_id, $meta_key, $single, $meta_type, $value_type );
 	if ( null !== $pre_meta ) {
+		// `false` is an expected return value in some cases. See above.
+		if ( false === $pre_meta ) {
+			return $pre_meta;
+		}
+
 		if ( $single ) {
-			if ( is_array( $pre_meta ) ) {
+			// A numeric array is expected especiually if the meta value is also an array.
+			if ( is_array( $pre_meta ) && isset( $pre_meta[0] ) ) {
 				$pre_meta = $pre_meta[0];
 			}
 			// Ensure the meta value is of the expected type after the filter.
 			return wp_settype_to_value_from_db( $pre_meta, $value_type );
 		} else {
 			if ( is_array( $pre_meta ) ) {
-				foreach ( (array) $pre_meta as $key => $meta_value ) {
+				foreach ( $pre_meta as $key => $meta_value ) {
 					$pre_meta[ $key ] = wp_settype_to_value_from_db( $meta_value, $value_type );
 				}
 			} else {
@@ -853,9 +863,14 @@ function get_metadata_by_mid( $meta_type, $meta_id, $value_type = '' ) {
 	 * @param int           $meta_id    Meta ID.
 	 * @param string        $value_type The expected data type of the value.
 	 */
-	$check = apply_filters( "get_{$meta_type}_metadata_by_mid", null, $meta_id, $value_type );
-	if ( null !== $check ) {
-		return $check;
+	$pre_meta = apply_filters( "get_{$meta_type}_metadata_by_mid", null, $meta_id, $value_type );
+	if ( null !== $pre_meta ) {
+		// Ensure the returned meta value is of the expected type.
+		if ( is_object( $pre_meta ) && isset( $pre_meta->meta_value ) ) {
+			$pre_meta->meta_value = wp_settype_to_value_from_db( $pre_meta->meta_value, $value_type );
+		}
+
+		return $pre_meta;
 	}
 
 	$id_column = ( 'user' === $meta_type ) ? 'umeta_id' : 'meta_id';
