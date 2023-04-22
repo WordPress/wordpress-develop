@@ -758,7 +758,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $att_title ) ),
 				__( 'Edit' )
 			),
-			'condition' => ( ! $this->is_trash && current_user_can( 'edit_post', $post->ID ) )
+			'condition' => ( ! $this->is_trash && current_user_can( 'edit_post', $post->ID ) ),
 		);
 
 		$actions_raw['untrash'] = array(
@@ -769,7 +769,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				esc_attr( sprintf( __( 'Restore &#8220;%s&#8221; from the Trash' ), $att_title ) ),
 				__( 'Restore' )
 			),
-			'condition' => ( $this->is_trash && current_user_can( 'delete_post', $post->ID ) )
+			'condition' => ( $this->is_trash && current_user_can( 'delete_post', $post->ID ) ),
 		);
 
 		$actions_raw['trash'] = array(
@@ -780,7 +780,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				esc_attr( sprintf( __( 'Move &#8220;%s&#8221; to the Trash' ), $att_title ) ),
 				_x( 'Trash', 'verb' )
 			),
-			'condition' => ( ! $this->is_trash && current_user_can( 'delete_post', $post->ID ) && ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) )
+			'condition' => ( ! $this->is_trash && current_user_can( 'delete_post', $post->ID ) && ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) ),
 		);
 
 		$delete_are_you_sure   = ! MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '';
@@ -793,7 +793,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
 				__( 'Delete Permanently' )
 			),
-			'condition' => ( $this->is_trash && current_user_can( 'delete_post', $post->ID ) && ( ! EMPTY_TRASH_DAYS && ! MEDIA_TRASH ) )
+			'condition' => ( $this->is_trash && current_user_can( 'delete_post', $post->ID ) && ( ! EMPTY_TRASH_DAYS && ! MEDIA_TRASH ) ),
 		);
 
 		$actions_raw['view'] = array(
@@ -804,7 +804,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
 				__( 'View' )
 			),
-			'condition' => ( ! $this->is_trash && get_permalink( $post->ID ) )
+			'condition' => ( ! $this->is_trash && get_permalink( $post->ID ) ),
 		);
 
 		$actions_raw['attach'] = array(
@@ -815,7 +815,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				esc_attr( sprintf( __( 'Attach &#8220;%s&#8221; to existing content' ), $att_title ) ),
 				__( 'Attach' )
 			),
-			'condition' => ( $this->detached && current_user_can( 'edit_post', $post->ID ) )
+			'condition' => ( $this->detached && current_user_can( 'edit_post', $post->ID ) ),
 		);
 
 		$actions_raw['copy'] = array(
@@ -827,7 +827,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				__( 'Copy URL' ),
 				__( 'Copied!' )
 			),
-			'condition' => ( ! $this->is_trash && wp_get_attachment_url( $post->ID ) )
+			'condition' => ( ! $this->is_trash && wp_get_attachment_url( $post->ID ) ),
 		);
 
 		$actions_raw['download'] = array(
@@ -838,7 +838,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				esc_attr( sprintf( __( 'Download &#8220;%s&#8221;' ), $att_title ) ),
 				__( 'Download file' )
 			),
-			'condition' => ( wp_get_attachment_url( $post->ID ) ? true : false )
+			'condition' => ( wp_get_attachment_url( $post->ID ) ? true : false ),
 		);
 
 		foreach ( $actions_raw as $action_key_name => $action_link ) {
