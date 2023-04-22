@@ -854,7 +854,7 @@ class WP_Media_List_Table extends WP_List_Table {
 		 *
 		 * @param string[] $actions  An array of action links for each attachment.
 		 *                           Default 'Edit', 'Delete Permanently', 'View',
-		 *                           `Copy URL` and `Download file`.
+		 *                           'Copy URL' and 'Download file'.
 		 * @param WP_Post  $post     WP_Post object for the current attachment.
 		 * @param bool     $detached Whether the list table contains media not attached
 		 *                           to any posts. Default true.
