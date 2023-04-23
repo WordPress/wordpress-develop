@@ -3224,7 +3224,7 @@ class SimplePie
 	 */
 	public function __call($method, $args)
 	{
-		if ( ! str_contains( $method, 'subscribe_' ) )
+		if (strpos($method, 'subscribe_') === 0)
 		{
 			$level = defined('E_USER_DEPRECATED') ? E_USER_DEPRECATED : E_USER_WARNING;
 			trigger_error('subscribe_*() has been deprecated, implement the callback yourself', $level);
