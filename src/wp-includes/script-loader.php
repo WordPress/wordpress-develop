@@ -2940,6 +2940,7 @@ function wp_maybe_inline_styles() {
  */
 function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
 	$has_src_results = preg_match_all( '#url\s*\(\s*[\'"]?\s*([^\'"\)]+)#', $css, $src_results );
+
 	if ( $has_src_results ) {
 		// Loop through the URLs to find relative ones.
 		foreach ( $src_results[1] as $src_index => $src_result ) {
