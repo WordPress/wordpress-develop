@@ -571,6 +571,25 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </title> tag closer when there was no tag opener' );
 	}
 
+	public function test_internal_pointer_returns_to_original_spot_after_inserting_content_before_cursor() {
+		$tags = new WP_HTML_Tag_Processor( '<div>outside</div><section><div><img>inside</div></section>' );
+
+		$tags->next_tag();
+		// Also try 'fooooooo'. This causes the assertion to fail differently.
+		$tags->add_class( 'foooooooo' );
+		$tags->next_tag( 'section' );
+
+		// Return to this spot after moving ahead.
+		$tags->set_bookmark( 'here' );
+
+		// Move ahead.
+		$tags->next_tag( 'img' );
+		$tags->seek( 'here' );
+		$this->assertSame( '<div class="foooooooo">outside</div><section><div><img>inside</div></section>', $tags->get_updated_html() );
+		$this->assertSame( 'SECTION', $tags->get_tag() );
+		$this->assertFalse( $tags->is_tag_closer() );
+	}
+
 	/**
 	 * @ticket 56299
 	 *
