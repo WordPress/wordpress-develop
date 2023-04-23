@@ -3181,7 +3181,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 				$type = false;
 				$ext  = false;
 			}
-		} elseif ( 'application/csv' === $real_mime ) {
+		} elseif ( ( 'application/csv' === $real_mime ) || ( 'text/csv' === $real_mime ) ) {
 			// Special casing for CSV files.
 			if ( ! in_array(
 				$type,
