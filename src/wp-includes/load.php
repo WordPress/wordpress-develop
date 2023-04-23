@@ -773,7 +773,6 @@ function wp_start_object_cache() {
 				'users',
 				'useremail',
 				'userlogins',
-				'usermeta',
 				'user_meta',
 				'userslugs',
 				'users-queries',
