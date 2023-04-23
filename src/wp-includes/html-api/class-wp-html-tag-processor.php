@@ -2165,11 +2165,7 @@ class WP_HTML_Tag_Processor {
 		}
 
 		// Apply the updates, rewind to before the current tag, and reparse the attributes.
-		$content_up_to_opened_tag_name = $this->output_buffer . substr(
-			$this->html,
-			$this->bytes_already_copied,
-			$this->tag_name_starts_at + $this->tag_name_length - $this->bytes_already_copied
-		);
+		$start_of_current_tag = strlen( $this->output_buffer ) + ( $this->tag_name_starts_at - $this->bytes_already_copied ) - 1;
 
 		/*
 		 * 1. Apply the edits by flushing them to the output buffer and updating the copied byte count.
@@ -2177,7 +2173,7 @@ class WP_HTML_Tag_Processor {
 		 * Note: `apply_attributes_updates()` modifies `$this->output_buffer`.
 		 */
 		$this->class_name_updates_to_attributes_updates();
-		$tag_adjust = $this->apply_attributes_updates( strlen( $content_up_to_opened_tag_name ) - $this->tag_name_length - 1 );
+		$start_of_current_tag += $this->apply_attributes_updates( $start_of_current_tag );
 
 		/*
 		 * 2. Replace the original HTML with the now-updated HTML so that it's possible to
@@ -2200,8 +2196,8 @@ class WP_HTML_Tag_Processor {
 		 *                 ^  | back up by the length of the tag name plus the opening <
 		 *                 \<-/ back up by strlen("em") + 1 ==> 3
 		 */
-		$this->bytes_already_parsed = strlen( $content_up_to_opened_tag_name ) + $tag_adjust - $this->tag_name_length - 1;
-		$this->acccumulated_shift = 0;
+		$this->bytes_already_parsed = $start_of_current_tag;
+		$this->acccumulated_shift   = 0;
 		$this->next_tag();
 
 		return $this->html;
