@@ -196,6 +196,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @ticket 57585
 	 */
 	public function test_get_item_invalid() {
 		$block_type = 'fake/invalid';
@@ -216,6 +217,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'example'          => 'invalid_example',
 			'parent'           => 'invalid_parent',
 			'ancestor'         => 'invalid_ancestor',
+			'selectors'        => 'invalid_selectors',
 			'supports'         => 'invalid_supports',
 			'styles'           => array(),
 			'render_callback'  => 'invalid_callback',
@@ -247,6 +249,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSameSets( array( 'invalid_keywords' ), $data['keywords'] );
 		$this->assertSameSets( array( 'invalid_parent' ), $data['parent'] );
 		$this->assertSameSets( array( 'invalid_ancestor' ), $data['ancestor'] );
+		$this->assertSameSets( array(), $data['selectors'], 'invalid selectors defaults to empty array' );
 		$this->assertSameSets( array(), $data['supports'] );
 		$this->assertSameSets( array(), $data['styles'] );
 		$this->assertNull( $data['example'] );
@@ -265,6 +268,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @ticket 57585
 	 */
 	public function test_get_item_defaults() {
 		$block_type = 'fake/false';
@@ -284,6 +288,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'keywords'         => false,
 			'parent'           => false,
 			'ancestor'         => false,
+			'selectors'        => false,
 			'supports'         => false,
 			'styles'           => false,
 			'render_callback'  => false,
@@ -316,6 +321,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSameSets( array(), $data['keywords'] );
 		$this->assertSameSets( array(), $data['parent'] );
 		$this->assertSameSets( array(), $data['ancestor'] );
+		$this->assertSameSets( array(), $data['selectors'], 'selectors defaults to empty array' );
 		$this->assertSameSets( array(), $data['supports'] );
 		$this->assertSameSets( array(), $data['styles'] );
 		$this->assertNull( $data['example'] );
@@ -534,6 +540,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @ticket 57585
 	 */
 	public function test_get_item_schema() {
 		wp_set_current_user( self::$admin_id );
@@ -541,7 +548,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 28, $properties );
+		$this->assertCount( 29, $properties );
 		$this->assertArrayHasKey( 'api_version', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'icon', $properties );
@@ -551,6 +558,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'textdomain', $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'attributes', $properties );
+		$this->assertArrayHasKey( 'selectors', $properties, 'schema must contain selectors' );
 		$this->assertArrayHasKey( 'supports', $properties );
 		$this->assertArrayHasKey( 'category', $properties );
 		$this->assertArrayHasKey( 'is_dynamic', $properties );
