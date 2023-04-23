@@ -1469,16 +1469,18 @@ class WP_HTML_Tag_Processor {
 	 * Applies attribute updates to HTML document.
 	 *
 	 * @since 6.2.0
+	 * @since 6.2.1 Accumulates shift for internal cursor and passed pointer.
 	 * @since 6.3.0 Invalidate any bookmarks whose targets are overwritten.
 	 *
-	 * @return void
+	 * @param int $shift_this_point Pointer in document which might be shifted by updates.
+	 * @return int How many bytes the given pointer moved in response to the updates.
 	 */
-	private function apply_attributes_updates( $extra_adjust_before = 0) {
+	private function apply_attributes_updates( $shift_this_point = 0) {
 		if ( ! count( $this->lexical_updates ) ) {
-			return;
+			return 0;
 		}
 
-		$extra_adjust = 0;
+		$accumulated_shift_for_given_point = 0;
 
 		/*
 		 * Attribute updates can be enqueued in any order but updates
@@ -1494,12 +1496,15 @@ class WP_HTML_Tag_Processor {
 
 		foreach ( $this->lexical_updates as $diff ) {
 			$shift = strlen( $diff->text ) - ( $diff->end - $diff->start );
+
+			// Accumulate shift of the internal pointer across calls to this function.
 			if ( $diff->start <= $this->bytes_already_parsed ) {
 				$this->acccumulated_shift += $shift;
 			}
 
-			if ( $diff->start <= $extra_adjust_before ) {
-				$extra_adjust += $shift;
+			// Accumulate shift of the given pointer within this function call.
+			if ( $diff->start <= $shift_this_point ) {
+				$accumulated_shift_for_given_point += $shift;
 			}
 
 			$this->output_buffer       .= substr( $this->html, $this->bytes_already_copied, $diff->start - $this->bytes_already_copied );
@@ -1548,7 +1553,7 @@ class WP_HTML_Tag_Processor {
 
 		$this->lexical_updates = array();
 
-		return $extra_adjust;
+		return $accumulated_shift_for_given_point;
 	}
 
 	/**
@@ -2144,6 +2149,7 @@ class WP_HTML_Tag_Processor {
 	 * Returns the string representation of the HTML Tag Processor.
 	 *
 	 * @since 6.2.0
+	 * @since 6.2.1 Shifts the internal cursor based on updates made before this function call.
 	 *
 	 * @return string The processed HTML.
 	 */
