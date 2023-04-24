@@ -2128,7 +2128,7 @@ class WP_HTML_Tag_Processor {
 		 * 1. Apply the edits by flushing them to the output buffer and updating the copied byte count.
 		 */
 		$this->class_name_updates_to_attributes_updates();
-		$shift = $this->apply_attributes_updates( $before_tag_name );
+		$before_tag_name += $this->apply_attributes_updates( $before_tag_name );
 
 		/*
 		 * 2. Replace the original HTML with the now-updated HTML so that it's possible to
@@ -2149,12 +2149,10 @@ class WP_HTML_Tag_Processor {
 		 *                 ^  | back up by the length of the tag name plus the opening <
 		 *                 \<-/ back up by strlen("em") + 1 ==> 3
 		 */
-//		$this->bytes_already_parsed = $start_of_current_tag + $current_tag_shift;
 		$pointer = $this->bytes_already_parsed;
-		$this->bytes_already_parsed = $before_tag_name + $shift;
-		$this->next_tag();
+		$this->bytes_already_parsed = $before_tag_name;
+		$this->next_tag( $this->last_query );
 		$this->bytes_already_parsed = $pointer;
-//		$this->bytes_already_parsed = $before;
 
 		return $this->html;
 	}
