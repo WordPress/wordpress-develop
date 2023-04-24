@@ -1428,6 +1428,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.1 Accumulates shift for internal cursor and passed pointer.
 	 * @since 6.3.0 Invalidate any bookmarks whose targets are overwritten.
 	 *
+	 * @param int $shift_this_point Accumulate and return shift for this position.
 	 * @return int How many bytes the given pointer moved in response to the updates.
 	 */
 	private function apply_attributes_updates( $shift_this_point = 0) {
@@ -2121,23 +2122,20 @@ class WP_HTML_Tag_Processor {
 			return $this->html;
 		}
 
-		// Apply the updates, rewind to before the current tag, and reparse the attributes.
-		$before_tag_name = $this->tag_name_starts_at - 1;
+		/*
+		 * Keep track of the position right before the current tag. This will
+		 * be necessary for reparsing the current tag after updating the HTML.
+		 */
+		$before_current_tag = $this->tag_name_starts_at - 1;
 
 		/*
-		 * 1. Apply the edits by flushing them to the output buffer and updating the copied byte count.
+		 * 1. Apply the enqueued edits and update all the pointers to reflect those changes.
 		 */
 		$this->class_name_updates_to_attributes_updates();
-		$before_tag_name += $this->apply_attributes_updates( $before_tag_name );
+		$before_current_tag += $this->apply_attributes_updates( $before_current_tag );
 
 		/*
-		 * 2. Replace the original HTML with the now-updated HTML so that it's possible to
-		 *    seek to a previous location and have a consistent view of the updated document.
-		 */
-//		$this->html = $updated_html;
-
-		/*
-		 * 3. Point this tag processor at the original tag opener and consume it
+		 * 2. Rewind to before the current tag and reparse to get updated attributes.
 		 *
 		 * At this point the internal cursor points to the end of the tag name.
 		 * Rewind before the tag name starts so that it's as if the cursor didn't
@@ -2149,10 +2147,10 @@ class WP_HTML_Tag_Processor {
 		 *                 ^  | back up by the length of the tag name plus the opening <
 		 *                 \<-/ back up by strlen("em") + 1 ==> 3
 		 */
-		$pointer = $this->bytes_already_parsed;
-		$this->bytes_already_parsed = $before_tag_name;
+		$bytes_already_parsed = $this->bytes_already_parsed;
+		$this->bytes_already_parsed = $before_current_tag;
 		$this->next_tag( $this->last_query );
-		$this->bytes_already_parsed = $pointer;
+		$this->bytes_already_parsed = $bytes_already_parsed;
 
 		return $this->html;
 	}
