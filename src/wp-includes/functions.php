@@ -7704,6 +7704,8 @@ function wp_cache_set_last_changed( $group ) {
 
 	/**
 	 * Fires after a cache group `last_changed` time is updated.
+	 * This may occur multiple times per page load and registered
+	 * actions must be performant.
 	 *
 	 * @since 6.3.0
 	 *
