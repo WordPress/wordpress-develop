@@ -1548,7 +1548,7 @@ HTML;
 HTML;
 
 		$p = new WP_HTML_Tag_Processor( $input );
-		$this->assertTrue( $p->next_tag( 'div' ), 'Querying an existing tag did not return true' );
+		$this->assertTrue( $p->next_tag( 'div' ), 'Did not find first DIV tag in input.' );
 		$p->set_attribute( 'data-details', '{ "key": "value" }' );
 		$p->add_class( 'is-processed' );
 		$this->assertTrue(
@@ -1558,7 +1558,7 @@ HTML;
 					'class_name' => 'BtnGroup',
 				)
 			),
-			'Querying an existing tag did not return true'
+			'Did not find the first BtnGroup DIV tag'
 		);
 		$p->remove_class( 'BtnGroup' );
 		$p->add_class( 'button-group' );
@@ -1570,7 +1570,7 @@ HTML;
 					'class_name' => 'BtnGroup',
 				)
 			),
-			'Querying an existing tag did not return true'
+			'Did not find the second BtnGroup DIV tag'
 		);
 		$p->remove_class( 'BtnGroup' );
 		$p->add_class( 'button-group' );
@@ -1583,10 +1583,10 @@ HTML;
 					'match_offset' => 3,
 				)
 			),
-			'Querying an existing tag did not return true'
+			'Did not find third BUTTON tag with "btn" CSS class'
 		);
 		$p->remove_attribute( 'class' );
-		$this->assertFalse( $p->next_tag( 'non-existent' ), 'Querying a non-existing tag did not return false' );
+		$this->assertFalse( $p->next_tag( 'non-existent' ), "Found a {$p->get_tag()} tag when none should have been found." );
 		$p->set_attribute( 'class', 'test' );
 		$this->assertSame( $expected_output, $p->get_updated_html(), 'Calling get_updated_html after updating the attributes did not return the expected HTML' );
 	}
