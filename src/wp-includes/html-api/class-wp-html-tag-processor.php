@@ -2149,16 +2149,16 @@ class WP_HTML_Tag_Processor {
 		 */
 
 		// Store existing state so it can be restored after reparsing.
-		$bytes_already_parsed       = $this->bytes_already_parsed;
-		$this->bytes_already_parsed = $before_current_tag;
-		$query                      = $this->last_query;
+		$previous_parsed_byte_count = $this->bytes_already_parsed;
+		$previous_query             = $this->last_query;
 
 		// Reparse attributes.
+		$this->bytes_already_parsed = $before_current_tag;
 		$this->next_tag();
 
 		// Restore previous state.
-		$this->parse_query( $query );
-		$this->bytes_already_parsed = $bytes_already_parsed;
+		$this->bytes_already_parsed = $previous_parsed_byte_count;
+		$this->parse_query( $previous_query );
 
 		return $this->html;
 	}
