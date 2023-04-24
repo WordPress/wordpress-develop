@@ -2107,7 +2107,7 @@ class WP_HTML_Tag_Processor {
 	 * Returns the string representation of the HTML Tag Processor.
 	 *
 	 * @since 6.2.0
-	 * @since 6.2.1 Shifts the internal cursor based on updates made before this function call.
+	 * @since 6.2.1 Shifts the internal cursor corresponding to the applied updates.
 	 *
 	 * @return string The processed HTML.
 	 */
@@ -2147,9 +2147,17 @@ class WP_HTML_Tag_Processor {
 		 *                 ^  | back up by the length of the tag name plus the opening <
 		 *                 \<-/ back up by strlen("em") + 1 ==> 3
 		 */
-		$bytes_already_parsed = $this->bytes_already_parsed;
+
+		// Store existing state so it can be restored after reparsing.
+		$bytes_already_parsed       = $this->bytes_already_parsed;
 		$this->bytes_already_parsed = $before_current_tag;
-		$this->next_tag( $this->last_query );
+		$query                      = $this->last_query;
+
+		// Reparse attributes.
+		$this->next_tag();
+
+		// Restore previous state.
+		$this->parse_query( $query );
 		$this->bytes_already_parsed = $bytes_already_parsed;
 
 		return $this->html;
