@@ -1083,16 +1083,18 @@ class WP_Upgrader {
 		}
 
 		$dest_dir = $wp_filesystem->wp_content_dir() . 'temp-backup/';
+		$sub_dir  = $dest_dir . $args['dir'] . '/';
+
 		// Create the temp-backup directory if it does not exist.
-		if ( (
-				! $wp_filesystem->is_dir( $dest_dir )
-				&& ! $wp_filesystem->mkdir( $dest_dir )
-			) || (
-				! $wp_filesystem->is_dir( $dest_dir . $args['dir'] . '/' )
-				&& ! $wp_filesystem->mkdir( $dest_dir . $args['dir'] . '/' )
-			)
-		) {
-			return new WP_Error( 'fs_temp_backup_mkdir', $this->strings['temp_backup_mkdir_failed'] );
+		if ( ! $wp_filesystem->is_dir( $sub_dir ) ) {
+			if ( ! $wp_filesystem->is_dir( $dest_dir ) ) {
+				$wp_filesystem->mkdir( $dest_dir, FS_CHMOD_DIR );
+			}
+
+			if ( ! $wp_filesystem->mkdir( $sub_dir, FS_CHMOD_DIR ) ) {
+				// Couldn't make the backup directory.
+				return new WP_Error( 'fs_temp_backup_mkdir', $this->strings['temp_backup_mkdir_failed'] );
+			}
 		}
 
 		$src_dir = $wp_filesystem->find_folder( $args['src'] );
