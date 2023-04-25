@@ -941,6 +941,8 @@ JS;
 	/**
 	 * Check if a script has a non standalone inline script associated with it.
 	 *
+	 * @since 6.3.0
+	 *
 	 * @param string $handle   The script handle.
 	 * @param string $position Position of the inline script.
 	 *
