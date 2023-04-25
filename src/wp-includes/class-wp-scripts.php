@@ -897,6 +897,8 @@ JS;
 	/**
 	 * Get the strategy assigned during script registration.
 	 *
+	 * @since 6.3.0
+	 *
 	 * @param string $handle The script handle.
 	 * @return string Strategy set during script registration. Empty string if none was set.
 	 */
