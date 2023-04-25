@@ -711,7 +711,11 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		$is_block_theme         = $theme->is_block_theme();
 
 		if ( $is_block_theme && $can_edit_theme_options ) {
-			$customize_action = esc_url( admin_url( 'site-editor.php' ) );
+			$customize_action = admin_url( 'site-editor.php' );
+			if ( $current_theme !== $slug ) {
+				$customize_action = add_query_arg( 'theme_preview', $slug, $customize_action );
+			}
+			$customize_action = esc_url( $customize_action );
 		} elseif ( ! $is_block_theme && $can_customize && $can_edit_theme_options ) {
 			$customize_action = esc_url(
 				add_query_arg(
