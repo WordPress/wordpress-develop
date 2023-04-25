@@ -2817,7 +2817,7 @@ function get_post_datetime( $post = null, $field = 'date', $source = 'local' ) {
 		return false;
 	}
 
-	return $datetime->setTimezone( $wp_timezone );
+	return $datetime->setTimezone( $timezone );
 }
 
 /**
