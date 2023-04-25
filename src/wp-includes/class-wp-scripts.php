@@ -834,6 +834,8 @@ JS;
 	/**
 	 * Normalize the data inside the $args parameter and support backward compatibility.
 	 *
+	 * @since 6.3.0
+	 *
 	 * @param string        $handle Name of the script.
 	 * @param array         $args     {
 	 *      Optional. Additional script arguments. Default empty array.
