@@ -239,16 +239,15 @@ function get_comment_author_link( $comment_id = 0 ) {
 		 *
 		 * @since 6.2.0
 		 *
-		 * @param string[]   $rel_parts An array of strings representing the rel
-		 *                              tags which will be joined into the anchor's
-		 *                              rel attribute.
-		 * @param WP_Comment $comment   The comment object
+		 * @param string[]   $rel_parts An array of strings representing the rel tags
+		 *                              which will be joined into the anchor's rel attribute.
+		 * @param WP_Comment $comment   The comment object.
 		 */
 		$rel_parts = apply_filters( 'comment_author_link_rel', $rel_parts, $comment );
 
 		$rel = implode( ' ', $rel_parts );
 		$rel = esc_attr( $rel );
-		// empty space before rel necessary for later sprintf.
+		// Empty space before 'rel' is necessary for later sprintf().
 		$rel = ! empty( $rel ) ? sprintf( ' rel="%s"', $rel ) : '';
 
 		$return = sprintf(
@@ -1942,7 +1941,7 @@ function get_cancel_comment_reply_link( $text = '', $post = null ) {
 	$post        = get_post( $post );
 	$reply_to_id = $post ? _get_comment_reply_id( $post->ID ) : 0;
 	$style       = 0 !== $reply_to_id ? '' : ' style="display:none;"';
-	$link        = esc_html( remove_query_arg( array( 'replytocom', 'unapproved', 'moderation-hash' ) ) ) . '#respond';
+	$link        = esc_url( remove_query_arg( array( 'replytocom', 'unapproved', 'moderation-hash' ) ) ) . '#respond';
 
 	$formatted_link = '<a rel="nofollow" id="cancel-comment-reply-link" href="' . $link . '"' . $style . '>' . $text . '</a>';
 
