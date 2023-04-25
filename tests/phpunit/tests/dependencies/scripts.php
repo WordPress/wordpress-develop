@@ -84,7 +84,7 @@ function wpLoadAfterScripts( handle ) {
 	const scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
 	scripts.forEach( (script) => {
 		script.setAttribute("type","text/javascript");
-		eval(script.innerHTML);
+		eval(script.textContent);
 	})
 }
 </script>
