@@ -1003,6 +1003,8 @@ JS;
 	/**
 	 * Get the best eligible loading strategy for a script.
 	 *
+	 * @since 6.3.0
+	 *
 	 * @param string  $handle The registered handle of the script.
 	 * @return string $strategy return the final strategy.
 	 */
