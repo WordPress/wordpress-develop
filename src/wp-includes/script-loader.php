@@ -1856,7 +1856,7 @@ function wp_print_delayed_inline_script_loader() {
 	if ( $wp_scripts->has_delayed_inline_script() ) {
 		$output    = <<<JS
 function wpLoadAfterScripts( handle ) {
-	let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
+	const scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
 	scripts.forEach( (script) => {
 		script.setAttribute("type","text/javascript");
 		eval(script.innerHTML);
