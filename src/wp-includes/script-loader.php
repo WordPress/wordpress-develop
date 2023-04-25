@@ -1850,7 +1850,7 @@ function wp_just_in_time_script_localization() {
  * When added to the DOM, this script converts any text/template scripts
  * associated with a handle into type/javascript, and executes them.
  */
-function wp_print_template_loader_script() {
+function wp_print_delayed_inline_script_loader() {
 	$wp_scripts = wp_scripts();
 
 	if ( $wp_scripts->has_delayed_inline_script() ) {
