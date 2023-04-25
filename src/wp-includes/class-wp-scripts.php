@@ -862,6 +862,8 @@ JS;
 	/**
 	 * Get all dependents of a script.
 	 *
+	 * @since 6.3.0
+	 *
 	 * @param string $handle The script handle.
 	 * @return array Array of script handles.
 	 */
