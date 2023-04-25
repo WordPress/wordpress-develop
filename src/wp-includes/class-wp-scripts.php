@@ -958,6 +958,8 @@ JS;
 	/**
 	 * Check if all of a scripts dependents are deferrable, which is required to maintain execution order.
 	 *
+	 * @since 6.3.0
+	 *
 	 * @param string $handle  The script handle.
 	 * @param array  $checked Optional. An array of already checked script handles, used to avoid recursive loops.
 	 * @return bool True if all dependents are deferrable, false otherwise.
