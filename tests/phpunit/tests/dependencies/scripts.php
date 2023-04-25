@@ -79,7 +79,7 @@ JS;
 		wp_add_inline_script( 'ms-isinsa-1', 'console.log("after two");', 'after' );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
-<script type='text/javascript' id='wp-executes-after-js'>
+<script type="text/javascript" id="wp-executes-after-js">
 function wpLoadAfterScripts( handle ) {
 	const scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
 	scripts.forEach( (script) => {
@@ -188,16 +188,16 @@ EXP;
 		wp_add_inline_script( 'ms-insa-2', 'console.log("after one");', 'after' );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
-<script type='text/javascript' id='wp-executes-after-js'>
+<script type="text/javascript" id="wp-executes-after-js">
 function wpLoadAfterScripts( handle ) {
-	let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
+	const scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
 	scripts.forEach( (script) => {
 		script.setAttribute("type","text/javascript");
-		eval(script.innerHTML);
+		eval(script.textContent);
 	})
 }
 </script>
-<script type='text/javascript' src='http://example.org/ms-insa-2.js' id='ms-insa-2-js' async onload='wpLoadAfterScripts("ms-insa-2")'></script>
+<script type='text/javascript' src='http://example.org/ms-insa-2.js' id='ms-insa-2-js' async onload='wpLoadAfterScripts(&quot;ms-insa-2&quot;)'></script>
 <script type='text/template' id='ms-insa-2-js-after' data-wp-executes-after='ms-insa-2'>
 console.log("after one");
 </script>
