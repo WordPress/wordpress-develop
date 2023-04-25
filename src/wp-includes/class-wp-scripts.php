@@ -887,11 +887,11 @@ JS;
 	 * Get the strategy assigned during script registration.
 	 *
 	 * @param string $handle The script handle.
-	 * @return string|bool Strategy set during script registration. False if none was set.
+	 * @return string Strategy set during script registration. Empty string if none was set.
 	 */
 	private function get_intended_strategy( $handle ) {
 		$script_args = $this->get_data( $handle, 'script_args' );
-		$strategy    = isset( $script_args['strategy'] ) ? $script_args['strategy'] : false;
+		$strategy    = isset( $script_args['strategy'] ) ? $script_args['strategy'] : '';
 
 		if ( $strategy && ! $this->is_valid_strategy( $strategy ) ) {
 			_doing_it_wrong(
@@ -905,7 +905,7 @@ JS;
 				'6.3.0'
 			);
 
-			return false;
+			return '';
 		}
 
 		return $strategy;
@@ -1000,7 +1000,7 @@ JS;
 		 * blocking if script args not set.
 		 * blocking if explicitly set.
 		 */
-		if ( ! $intended_strategy || 'blocking' === $intended_strategy ) {
+		if ( '' === $intended_strategy || 'blocking' === $intended_strategy ) {
 			return '';
 		}
 
