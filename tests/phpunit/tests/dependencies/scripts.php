@@ -88,7 +88,7 @@ function wpLoadAfterScripts( handle ) {
 	})
 }
 </script>
-<script type='text/javascript' src='http://example.org/ms-isinsa-1.js' id='ms-isinsa-1-js' defer onload='wpLoadAfterScripts("ms-isinsa-1")'></script>
+<script type='text/javascript' src='http://example.org/ms-isinsa-1.js' id='ms-isinsa-1-js' defer onload='wpLoadAfterScripts(&quot;ms-isinsa-1&quot;)'></script>
 <script type='text/javascript' id='ms-isinsa-1-js-after'>
 console.log("after one");
 </script>
