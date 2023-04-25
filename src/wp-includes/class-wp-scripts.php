@@ -812,6 +812,8 @@ JS;
 	/**
 	 * Checks all handles for any delayed inline scripts.
 	 *
+	 * @since 6.3.0
+	 *
 	 * @return bool True if the inline script present, otherwise false.
 	 */
 	public function has_delayed_inline_script() {
