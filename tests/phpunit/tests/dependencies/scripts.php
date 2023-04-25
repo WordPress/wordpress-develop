@@ -81,7 +81,7 @@ JS;
 		$expected = <<<EXP
 <script type='text/javascript' id='wp-executes-after-js'>
 function wpLoadAfterScripts( handle ) {
-	let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
+	const scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
 	scripts.forEach( (script) => {
 		script.setAttribute("type","text/javascript");
 		eval(script.innerHTML);
