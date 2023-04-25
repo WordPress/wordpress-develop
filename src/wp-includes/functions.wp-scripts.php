@@ -336,6 +336,7 @@ function wp_deregister_script( $handle ) {
  * @see WP_Dependencies::enqueue()
  *
  * @since 2.1.0
+ * @since 6.3.0 The $in_footer parameter of type boolean was overloaded to be an $args parameter of type array.
  *
  * @param string           $handle    Name of the script. Should be unique.
  * @param string           $src       Full URL of the script, or path of the script relative to the WordPress root directory.
@@ -346,7 +347,7 @@ function wp_deregister_script( $handle ) {
  *                                    number is automatically added equal to current installed WordPress version.
  *                                    If set to null, no version is added.
  * @param array            $args      {
- *      Optional. An array of additional script strategies. Default empty array.
+ *      Optional. An array of additional script loading strategies. Default empty array.
  *
  *      @type boolean   $in_footer    Optional. Default false.
  *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
