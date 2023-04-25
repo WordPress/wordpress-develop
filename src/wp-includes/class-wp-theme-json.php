@@ -792,9 +792,6 @@ class WP_Theme_JSON {
 	 * @return string The new selector.
 	 */
 	protected static function append_to_selector( $selector, $to_append, $deprecated = 'right' ) {
-		if ( '' === $selector ) {
-			return $to_append;
-		}
 		$new_selectors = array();
 		$selectors     = explode( ',', $selector );
 		foreach ( $selectors as $sel ) {
@@ -817,9 +814,6 @@ class WP_Theme_JSON {
 	 * @return string The new selector.
 	 */
 	protected static function prepend_to_selector( $selector, $to_prepend ) {
-		if ( '' === $selector ) {
-			return $to_prepend;
-		}
 		$new_selectors = array();
 		$selectors     = explode( ',', $selector );
 		foreach ( $selectors as $sel ) {
@@ -1551,10 +1545,13 @@ class WP_Theme_JSON {
 			$slugs = static::get_settings_slugs( $settings, $preset_metadata, $origins );
 			foreach ( $preset_metadata['classes'] as $class => $property ) {
 				foreach ( $slugs as $slug ) {
-					$css_var     = static::replace_slug_in_string( $preset_metadata['css_vars'], $slug );
-					$class_name  = static::replace_slug_in_string( $class, $slug );
-					$stylesheet .= static::to_ruleset(
-						static::append_to_selector( $selector, $class_name ),
+					$css_var    = static::replace_slug_in_string( $preset_metadata['css_vars'], $slug );
+					$class_name = static::replace_slug_in_string( $class, $slug );
+
+					// $selector is often empty, so we can save ourselves the `append_to_selector()` call then.
+					$new_selector = '' === $selector ? $class_name : static::append_to_selector( $selector, $class_name );
+					$stylesheet  .= static::to_ruleset(
+						$new_selector,
 						array(
 							array(
 								'name'  => $property,
