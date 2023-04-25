@@ -433,7 +433,7 @@ class WP_Scripts extends WP_Dependencies {
 		if ( '' !== $strategy ) {
 			$strategy = ' ' . $strategy;
 			if ( ! empty( $after_non_standalone_handle ) ) {
-				$strategy .= sprintf( " onload='wpLoadAfterScripts(\"%s\")'", esc_attr( $handle ) );
+				$strategy .= sprintf( " onload='wpLoadAfterScripts(%s)'", esc_attr( wp_json_encode( $handle ) ) );
 			}
 		}
 		$tag  = $translations . $cond_before . $before_handle;
