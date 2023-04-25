@@ -1843,7 +1843,6 @@ function wp_just_in_time_script_localization() {
 	);
 }
 
-
 /**
  * Prints a loader script if there is text/template registered script.
  *
@@ -1863,9 +1862,10 @@ function wpLoadAfterScripts( handle ) {
 	})
 }
 JS;
-		$type_attr = current_theme_supports( 'html5', 'script' ) ? '' : " type='text/javascript'";
+		$type_attr         = current_theme_supports( 'html5', 'script' ) ? '' : 'text/javascript';
+		$script_type_array = '' === $type_attr ? array() : array( 'type' => $type_attr );
 
-		printf( "<script%s id='wp-executes-after-js'>\n%s\n</script>\n", $type_attr, $output );
+		wp_print_inline_script_tag( $output, array_merge( $script_type_array , array( 'id' => 'wp-executes-after-js' ) ) );
 	}
 }
 
