@@ -24,7 +24,7 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
 		$asset_handle_or_path,
 		strlen( $path_prefix )
 	);
-	if ( strpos( $path, './' ) === 0 ) {
+	if ( str_starts_with( $path, './' ) ) {
 		$path = substr( $path, 2 );
 	}
 	return $path;

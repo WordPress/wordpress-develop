@@ -7183,7 +7183,7 @@ function wp_auth_check_load() {
 function wp_auth_check_html() {
 	$login_url      = wp_login_url();
 	$current_domain = ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'];
-	$same_domain    = ( strpos( $login_url, $current_domain ) === 0 );
+	$same_domain    = str_starts_with( $login_url, $current_domain );
 
 	/**
 	 * Filters whether the authentication check originated at the same domain.
