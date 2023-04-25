@@ -263,7 +263,7 @@ function network_step1( $errors = false ) {
 		echo '<div class="error inline"><p><strong>' . __( 'Warning:' ) . '</strong> ' . __( 'Subdirectory networks may not be fully compatible with custom wp-content directories.' ) . '</p></div>';
 	}
 
-	$is_www = ( str_starts_with( $hostname, 'www.' ) );
+	$is_www = str_starts_with( $hostname, 'www.' );
 	if ( $is_www ) :
 		?>
 		<h3><?php esc_html_e( 'Server Address' ); ?></h3>
