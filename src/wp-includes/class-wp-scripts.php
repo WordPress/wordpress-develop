@@ -470,6 +470,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * Adds extra code to a registered script.
 	 *
 	 * @since 4.5.0
+	 * @since 6.3.0 Addition of $standalone boolean parameter.
 	 *
 	 * @param string $handle     Name of the script to add the inline script to.
 	 *                           Must be lowercase.
