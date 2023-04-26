@@ -155,16 +155,16 @@ EXP;
 		wp_add_inline_script( 'ms-insa-1', 'console.log("after one");', 'after' );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
-<script type='text/javascript' id='wp-executes-after-js'>
+<script type="text/javascript" id="wp-executes-after-js">
 function wpLoadAfterScripts( handle ) {
-	let scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
+	const scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
 	scripts.forEach( (script) => {
 		script.setAttribute("type","text/javascript");
-		eval(script.innerHTML);
+		eval(script.textContent);
 	})
 }
 </script>
-<script type='text/javascript' src='http://example.org/ms-insa-1.js' id='ms-insa-1-js' defer onload='wpLoadAfterScripts("ms-insa-1")'></script>
+<script type='text/javascript' src='http://example.org/ms-insa-1.js' id='ms-insa-1-js' defer onload='wpLoadAfterScripts(&quot;ms-insa-1&quot;)'></script>
 <script type='text/template' id='ms-insa-1-js-after' data-wp-executes-after='ms-insa-1'>
 console.log("after one");
 </script>
