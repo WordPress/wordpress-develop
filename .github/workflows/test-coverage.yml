@@ -31,6 +31,9 @@ env:
   LOCAL_PHP_XDEBUG_MODE: 'coverage'
   LOCAL_PHP_MEMCACHED: ${{ false }}
 
+permissions:
+  contents: read
+
 jobs:
   # Runs the PHPUnit tests for WordPress.
   #
@@ -167,6 +170,8 @@ jobs:
           fail_ci_if_error: true
 
   slack-notifications:
+    permissions:
+      contents: none
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ test-coverage-report ]
