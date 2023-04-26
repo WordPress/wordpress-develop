@@ -1106,7 +1106,7 @@ function wp_delete_all_temp_backups() {
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @return void|WP_Error
+ * @return void|WP_Error void on success, or a WP_Error object on failure.
  */
 function _wp_delete_all_temp_backups() {
 	global $wp_filesystem;
