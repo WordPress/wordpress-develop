@@ -232,10 +232,21 @@ function _filter_block_template_part_area( $type ) {
 function _get_block_templates_paths( $base_directory ) {
 	$path_list = array();
 	if ( file_exists( $base_directory ) ) {
-		$path_list = glob( trailingslashit( $base_directory ) . '*.html' );
+		$path_list = glob_recursive( trailingslashit( $base_directory ) . '*.html' );
 	}
 	return $path_list;
 }
+
+function glob_recursive( $pattern, $flags = 0 ) {
+	$files = glob( $pattern, $flags );
+
+	foreach ( glob( dirname( $pattern ) . '/*', GLOB_ONLYDIR | GLOB_NOSORT ) as $dir ) {
+		$files = array_merge( $files, glob_recursive( $dir . '/' . basename( $pattern ), $flags ) );
+	}
+
+	return $files;
+}
+
 
 /**
  * Retrieves the template file from the theme for a given slug.
