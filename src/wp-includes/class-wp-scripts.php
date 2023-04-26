@@ -309,34 +309,20 @@ class WP_Scripts extends WP_Dependencies {
 			$before_handle = sprintf( "<script%s id='%s-js-before'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $before_handle );
 		}
 
-		$strategy = $this->get_eligible_loading_strategy( $handle );
-
-		$after_handle = '';
-
 		// Eligible loading strategies will only be 'async', 'defer', or ''.
-		if ( '' === $strategy ) {
-			$after_handle = $this->print_inline_script( $handle, 'after', false );
+		$strategy     = $this->get_eligible_loading_strategy( $handle );
+		$after        = ( '' === $strategy )  ? 'after' : 'after-standalone';
+		$after_handle = $this->print_inline_script( $handle, $after, false );
 
-			if ( $after_handle ) {
-				$after_handle = sprintf(
-					"<script%1\$s id='%2\$s-js-after'>\n%3\$s\n</script>\n",
-					$this->type_attr,
-					esc_attr( $handle ),
-					$after_handle
-				);
-			}
-		} else {
-			$after_standalone_handle = $this->print_inline_script( $handle, 'after-standalone', false );
-
-			if ( $after_standalone_handle ) {
-				$after_handle .= sprintf(
-					"<script%1\$s id='%2\$s-js-after'>\n%3\$s\n</script>\n",
-					$this->type_attr,
-					esc_attr( $handle ),
-					$after_standalone_handle
-				);
-			}
-
+		if ( $after_handle ) {
+			$after_handle = sprintf(
+				"<script%1\$s id='%2\$s-js-after'>\n%3\$s\n</script>\n",
+				$this->type_attr,
+				esc_attr( $handle ),
+				$after_handle
+			);
+		}
+		if ( '' !== $strategy ) {
 			$after_non_standalone_handle = $this->print_inline_script( $handle, 'after-non-standalone', false );
 
 			if ( $after_non_standalone_handle ) {
