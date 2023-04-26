@@ -1011,6 +1011,20 @@ if ( ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type
 	$help_sidebar_autoupdates = '<p>' . __( '<a href="https://wordpress.org/documentation/article/plugins-themes-auto-updates/">Documentation on Auto-updates</a>' ) . '</p>';
 }
 
+if ( current_user_can( 'update_themes' ) || current_user_can( 'update_plugins' ) ) {
+	$rollback_help = '<p>' . __( 'Rollback is a feature that will create temporary backups of your plugin and theme. These backups are used to restore your plugin or theme back to its previous state if there is an error during the update process.' ) . '</p>';
+
+	$rollback_help .= '<p>' . __( 'On systems with fewer resources, this may lead to server timeouts or resource limits being reached. If you encounter an issue during the update process, please create a support forum ticket and reference <strong>Rollback</strong> in the issue title.' ) . '</p>';
+
+	get_current_screen()->add_help_tab(
+		array(
+			'id'      => 'rollback-plugins-themes',
+			'title'   => __( 'Rollback' ),
+			'content' => $rollback_help,
+		)
+	);
+}
+
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 	'<p>' . __( '<a href="https://wordpress.org/documentation/article/dashboard-updates-screen/">Documentation on Updating WordPress</a>' ) . '</p>' .
