@@ -134,7 +134,7 @@ class WP_Scripts extends WP_Dependencies {
 	private $type_attr = '';
 
 	/**
-	 * Holds a mapping of dependencies (as handles) for a given script handle.
+	 * Holds a mapping of dependents (as handles) for a given script handle.
 	 * Used to optimize recursive dependency tree checks.
 	 *
 	 * @since 6.3.0
