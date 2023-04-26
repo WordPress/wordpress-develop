@@ -1047,6 +1047,7 @@ if ( 'upgrade-core' === $action ) {
 	<div class="wrap">
 	<h1><?php _e( 'WordPress Updates' ); ?></h1>
 	<p><?php _e( 'Here you can find information about updates, set auto-updates and see what plugins or themes need updating.' ); ?></p>
+	<p><?php _e( 'If there seems to be very slow plugin or theme update times, or errors, please refer to the <strong>Rollback</strong> Help section above.' ); ?></p>
 
 	<?php
 	if ( $upgrade_error ) {
