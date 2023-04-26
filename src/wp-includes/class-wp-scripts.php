@@ -311,7 +311,7 @@ class WP_Scripts extends WP_Dependencies {
 
 		// Eligible loading strategies will only be 'async', 'defer', or ''.
 		$strategy     = $this->get_eligible_loading_strategy( $handle );
-		$after        = ( '' === $strategy )  ? 'after' : 'after-standalone';
+		$after        = ( '' === $strategy ) ? 'after' : 'after-standalone';
 		$after_handle = $this->print_inline_script( $handle, $after, false );
 
 		if ( $after_handle ) {
