@@ -134,6 +134,15 @@ class WP_Scripts extends WP_Dependencies {
 	private $type_attr = '';
 
 	/**
+	 * Holds a mapping of dependencies (as handles) for a given script handle.
+	 * Used to optimize recursive dependency tree checks.
+	 *
+	 * @since 6.3.0
+	 * @var array
+	 */
+	private $dependents_map = array();
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 2.6.0
@@ -868,6 +877,11 @@ JS;
 	 * @return array Array of script handles.
 	 */
 	private function get_dependents( $handle ) {
+		// Check if dependents map for the handle in question is present. If so, use it.
+		if ( array_key_exists( $handle, $this->dependents_map ) ) {
+			return $this->dependents_map[ $handle ];
+		}
+
 		$dependents = array();
 
 		// Iterate over all registered scripts, finding dependents of the script passed to this method.
@@ -876,6 +890,9 @@ JS;
 				$dependents[] = $registered_handle;
 			}
 		}
+
+		// Add the handles dependents to the map to ease future lookups.
+		$this->dependents_map[ $handle ] = $dependents;
 
 		return $dependents;
 	}
