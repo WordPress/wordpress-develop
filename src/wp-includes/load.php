@@ -164,8 +164,8 @@ function wp_check_php_mysql_versions() {
 
 	if ( ! function_exists( 'mysqli_connect' ) && ! function_exists( 'mysql_connect' )
 		// This runs before default constants are defined, so we can't assume WP_CONTENT_DIR is set yet.
-		&& ( defined( 'WP_CONTENT_DIR' ) && ! file_exists( WP_CONTENT_DIR . '/db.php' )
-			|| ! file_exists( ABSPATH . 'wp-content/db.php' ) )
+		&& ( ( ! defined( 'WP_CONTENT_DIR' ) || ! file_exists( WP_CONTENT_DIR . '/db.php' ) )
+			&& ! file_exists( ABSPATH . 'wp-content/db.php' ) )
 	) {
 		require_once ABSPATH . WPINC . '/functions.php';
 		wp_load_translations_early();
