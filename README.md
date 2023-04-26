@@ -54,7 +54,7 @@ npm run env:start
 npm run env:install
 ```
 
-Your WordPress site will accessible at http://localhost:8889. You can see or change configurations in the `.env` file located at the root of the project directory.
+Your WordPress site will be accessible at http://localhost:8889. You can see or change configurations in the `.env` file located at the root of the project directory.
 
 #### To watch for changes
 
