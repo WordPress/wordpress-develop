@@ -715,17 +715,16 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			if ( $current_theme !== $slug ) {
 				$customize_action = add_query_arg( 'theme_preview', $slug, $customize_action );
 			}
-			$customize_action = esc_url( $customize_action );
 		} elseif ( ! $is_block_theme && $can_customize && $can_edit_theme_options ) {
-			$customize_action = esc_url(
-				add_query_arg(
-					array(
-						'return' => urlencode( sanitize_url( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
-					),
-					wp_customize_url( $slug )
-				)
-			);
+			$customize_action = wp_customize_url( $slug );
 		}
+		$customize_action = add_query_arg(
+			array(
+				'return' => urlencode( sanitize_url( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
+			),
+			$customize_action
+		);
+		$customize_action = esc_url( $customize_action );
 
 		$update_requires_wp  = isset( $updates[ $slug ]['requires'] ) ? $updates[ $slug ]['requires'] : null;
 		$update_requires_php = isset( $updates[ $slug ]['requires_php'] ) ? $updates[ $slug ]['requires_php'] : null;
