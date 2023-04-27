@@ -501,7 +501,7 @@ class WP_Users_List_Table extends WP_List_Table {
 
 			// Add a link to send the user a reset password link by email if the user is allowed to get his password reset.
 			$allow = apply_filters( 'allow_password_reset', true, $user_object->ID );
-			if ( $allow === true 
+			if ( $allow === true
 				&& get_current_user_id() !== $user_object->ID
 				&& current_user_can( 'edit_user', $user_object->ID )
 			) {
