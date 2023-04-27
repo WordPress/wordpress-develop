@@ -1134,7 +1134,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 	} elseif ( ! isset( $src_url['host'] ) || ! isset( $site_url['host'] ) || $src_url['host'] === $site_url['host'] ) {
 		if ( ! isset( $site_url['path'] ) ) {
 			$relative = trim( $src_url['path'], '/' );
-		} elseif ( ( str_starts_with( $src_url['path'], trailingslashit( $site_url['path'] ) ) ) ) {
+		} elseif ( str_starts_with( $src_url['path'], trailingslashit( $site_url['path'] ) ) ) {
 			// Make the src relative to the WP root.
 			$relative = substr( $src_url['path'], strlen( $site_url['path'] ) );
 			$relative = trim( $relative, '/' );
