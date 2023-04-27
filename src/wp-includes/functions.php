@@ -7431,7 +7431,7 @@ function wp_delete_file_from_directory( $file, $directory ) {
 		$real_directory = wp_normalize_path( $real_directory );
 	}
 
-	if ( false === $real_file || false === $real_directory || strpos( $real_file, trailingslashit( $real_directory ) ) !== 0 ) {
+	if ( false === $real_file || false === $real_directory || ! str_starts_with( $real_file, trailingslashit( $real_directory ) ) ) {
 		return false;
 	}
 

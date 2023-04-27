@@ -648,7 +648,7 @@ class WP_REST_Server {
 			// Convert $rel URIs to their compact versions if they exist.
 			foreach ( $curies as $curie ) {
 				$href_prefix = substr( $curie['href'], 0, strpos( $curie['href'], '{rel}' ) );
-				if ( strpos( $rel, $href_prefix ) !== 0 ) {
+				if ( ! str_starts_with( $rel, $href_prefix ) ) {
 					continue;
 				}
 
