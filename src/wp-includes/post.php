@@ -6048,6 +6048,16 @@ function get_pages( $args = array() ) {
 		$query_args['posts_per_page'] = $number;
 	}
 
+	/**
+	 * Filters query arguments passed to WP_Query in get_pages.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param array     $query_args  Array of arguments passed to WP_Query.
+	 * @param array     $parsed_args Array of get_pages() arguments.
+	 */
+	$query_args = apply_filters( 'get_pages_query_args', $query_args, $parsed_args );
+
 	$query = new WP_Query( $query_args );
 	$pages = $query->get_posts();
 
@@ -6076,11 +6086,13 @@ function get_pages( $args = array() ) {
 	 * Filters the retrieved list of pages.
 	 *
 	 * @since 2.1.0
+	 * @since 6.3.0 The `$query_args` parameter was added.
 	 *
 	 * @param WP_Post[] $pages       Array of page objects.
 	 * @param array     $parsed_args Array of get_pages() arguments.
+	 * @param array     $query_args  Array of arguments passed to WP_Query.
 	 */
-	return apply_filters( 'get_pages', $pages, $parsed_args );
+	return apply_filters( 'get_pages', $pages, $parsed_args, $query_args );
 }
 
 //
