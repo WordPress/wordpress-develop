@@ -1856,12 +1856,16 @@ function wp_print_delayed_inline_script_loader() {
 
 	if ( $wp_scripts->has_delayed_inline_script() ) {
 		$output    = <<<JS
-function wpLoadAfterScripts( handle ) {
-	const scripts = document.querySelectorAll(`[type="text/template"][data-wp-executes-after="\${handle}"]`);
-	scripts.forEach( (script) => {
-		script.setAttribute("type","text/javascript");
-		eval(script.textContent);
-	})
+function wpLoadAfterScripts(handle) {
+	var scripts, newScript, i, len;
+    scripts = document.querySelectorAll(
+		'[type="text/template"][data-wp-executes-after="' + handle + '"]'
+	);
+	for (i = 0, len = scripts.length; i < len; i++) {
+		newScript = scripts[i].cloneNode(true);
+		newScript.type = "text/javascript";
+		scripts[i].parentNode.replaceChild(newScript, scripts[i]);
+	}
 }
 JS;
 		$type_attr         = current_theme_supports( 'html5', 'script' ) ? '' : 'text/javascript';
