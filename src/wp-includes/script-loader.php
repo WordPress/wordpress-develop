@@ -1858,7 +1858,7 @@ function wp_print_delayed_inline_script_loader() {
 		$output    = <<<JS
 function wpLoadAfterScripts(handle) {
 	var scripts, newScript, i, len;
-    scripts = document.querySelectorAll(
+	scripts = document.querySelectorAll(
 		'[type="text/template"][data-wp-executes-after="' + handle + '"]'
 	);
 	for (i = 0, len = scripts.length; i < len; i++) {
