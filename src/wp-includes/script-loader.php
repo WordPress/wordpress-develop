@@ -1856,15 +1856,15 @@ function wp_print_delayed_inline_script_loader() {
 
 	if ( $wp_scripts->has_delayed_inline_script() ) {
 		$output    = <<<JS
-function wpLoadAfterScripts(handle) {
+function wpLoadAfterScripts( handle ) {
 	var scripts, newScript, i, len;
 	scripts = document.querySelectorAll(
 		'[type="text/template"][data-wp-executes-after="' + handle + '"]'
 	);
-	for (i = 0, len = scripts.length; i < len; i++) {
-		newScript = scripts[i].cloneNode(true);
+	for ( i = 0, len = scripts.length; i < len; i++ ) {
+		newScript = scripts[ i ].cloneNode( true );
 		newScript.type = "text/javascript";
-		scripts[i].parentNode.replaceChild(newScript, scripts[i]);
+		scripts[ i ].parentNode.replaceChild( newScript, scripts[ i ] );
 	}
 }
 JS;

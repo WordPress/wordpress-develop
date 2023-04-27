@@ -80,15 +80,15 @@ JS;
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
 <script type="text/javascript" id="wp-executes-after-js">
-function wpLoadAfterScripts(handle) {
+function wpLoadAfterScripts( handle ) {
 	var scripts, newScript, i, len;
 	scripts = document.querySelectorAll(
 		'[type="text/template"][data-wp-executes-after="' + handle + '"]'
 	);
-	for (i = 0, len = scripts.length; i < len; i++) {
-		newScript = scripts[i].cloneNode(true);
+	for ( i = 0, len = scripts.length; i < len; i++ ) {
+		newScript = scripts[ i ].cloneNode( true );
 		newScript.type = "text/javascript";
-		scripts[i].parentNode.replaceChild(newScript, scripts[i]);
+		scripts[ i ].parentNode.replaceChild( newScript, scripts[ i ] );
 	}
 }
 </script>
@@ -160,15 +160,15 @@ EXP;
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
 <script type="text/javascript" id="wp-executes-after-js">
-function wpLoadAfterScripts(handle) {
+function wpLoadAfterScripts( handle ) {
 	var scripts, newScript, i, len;
 	scripts = document.querySelectorAll(
 		'[type="text/template"][data-wp-executes-after="' + handle + '"]'
 	);
-	for (i = 0, len = scripts.length; i < len; i++) {
-		newScript = scripts[i].cloneNode(true);
+	for ( i = 0, len = scripts.length; i < len; i++ ) {
+		newScript = scripts[ i ].cloneNode( true );
 		newScript.type = "text/javascript";
-		scripts[i].parentNode.replaceChild(newScript, scripts[i]);
+		scripts[ i ].parentNode.replaceChild( newScript, scripts[ i ] );
 	}
 }
 </script>
@@ -197,15 +197,15 @@ EXP;
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
 <script type="text/javascript" id="wp-executes-after-js">
-function wpLoadAfterScripts(handle) {
+function wpLoadAfterScripts( handle ) {
 	var scripts, newScript, i, len;
 	scripts = document.querySelectorAll(
 		'[type="text/template"][data-wp-executes-after="' + handle + '"]'
 	);
-	for (i = 0, len = scripts.length; i < len; i++) {
-		newScript = scripts[i].cloneNode(true);
+	for ( i = 0, len = scripts.length; i < len; i++ ) {
+		newScript = scripts[ i ].cloneNode( true );
 		newScript.type = "text/javascript";
-		scripts[i].parentNode.replaceChild(newScript, scripts[i]);
+		scripts[ i ].parentNode.replaceChild( newScript, scripts[ i ] );
 	}
 }
 </script>
