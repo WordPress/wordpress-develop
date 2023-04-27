@@ -5456,12 +5456,12 @@ function wp_get_loading_attr_default( $context ) {
 	}
 
 	/*
-	 * Skip featured images within post content as they need to be handled together with the other images within the
-	 * post content.
+	 * Skip programmatically created images within post content as they need to be handled together with the other
+	 * images within the post content.
 	 * Without this clause, they would already be counted below which skews the number and can result in the first
-	 * post content image being lazy-loaded only because there are featured images elsewhere in the post content.
+	 * post content image being lazy-loaded only because there are images elsewhere in the post content.
 	 */
-	if ( 'the_post_thumbnail' === $context && doing_filter( 'the_content' ) ) {
+	if ( ( 'the_post_thumbnail' === $context || 'wp_get_attachment_image' === $context ) && doing_filter( 'the_content' ) ) {
 		return false;
 	}
 
