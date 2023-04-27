@@ -351,9 +351,6 @@ function wp_deregister_script( $handle ) {
  *      @type boolean   $in_footer    Optional. Default false.
  *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
  * }
- *
- * @param bool             $in_footer Optional. Whether to enqueue the script before `</body>` instead of in the `<head>`.
- *                                    Default 'false'.
  */
 function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $args = array() ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
