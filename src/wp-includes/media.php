@@ -1050,9 +1050,18 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			'decoding' => 'async',
 		);
 
+		/**
+		 * Filters the context in which wp_get_attachment_image() is used.
+		 *
+		 * @since 6.3.0
+		 *
+		 * @param string $context The context. Default 'wp_get_attachment_image'.
+		 */
+		$context = apply_filters( 'wp_get_attachment_image_context', 'wp_get_attachment_image' );
+
 		// Add `loading` attribute.
-		if ( wp_lazy_loading_enabled( 'img', 'wp_get_attachment_image' ) ) {
-			$default_attr['loading'] = wp_get_loading_attr_default( 'wp_get_attachment_image' );
+		if ( wp_lazy_loading_enabled( 'img', $context ) ) {
+			$default_attr['loading'] = wp_get_loading_attr_default( $context );
 		}
 
 		$attr = wp_parse_args( $attr, $default_attr );
