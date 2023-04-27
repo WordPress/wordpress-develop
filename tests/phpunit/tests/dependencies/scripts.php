@@ -82,7 +82,7 @@ JS;
 <script type="text/javascript" id="wp-executes-after-js">
 function wpLoadAfterScripts(handle) {
 	var scripts, newScript, i, len;
-    scripts = document.querySelectorAll(
+	scripts = document.querySelectorAll(
 		'[type="text/template"][data-wp-executes-after="' + handle + '"]'
 	);
 	for (i = 0, len = scripts.length; i < len; i++) {
@@ -162,7 +162,7 @@ EXP;
 <script type="text/javascript" id="wp-executes-after-js">
 function wpLoadAfterScripts(handle) {
 	var scripts, newScript, i, len;
-    scripts = document.querySelectorAll(
+	scripts = document.querySelectorAll(
 		'[type="text/template"][data-wp-executes-after="' + handle + '"]'
 	);
 	for (i = 0, len = scripts.length; i < len; i++) {
@@ -199,7 +199,7 @@ EXP;
 <script type="text/javascript" id="wp-executes-after-js">
 function wpLoadAfterScripts(handle) {
 	var scripts, newScript, i, len;
-    scripts = document.querySelectorAll(
+	scripts = document.querySelectorAll(
 		'[type="text/template"][data-wp-executes-after="' + handle + '"]'
 	);
 	for (i = 0, len = scripts.length; i < len; i++) {
