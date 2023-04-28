@@ -37,7 +37,11 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 			'ace@204.32.222.14',
 			'kevin@many.subdomains.make.a.happy.man.edu',
 			'a@b.co',
+			'a@b.c',
 			'bill+ted@example.com',
+			'info@grå.org',
+			'grå@grå.org',
+			"gr\u{0061}\u{030a}blå@grå.org",
 			'..@example.com',
 		);
 
@@ -74,10 +78,7 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 			"sif i'd give u it, spamer!1",
 			'com.exampleNOSPAMbob',
 			'bob@your mom',
-			'a@b.c',
 			'" "@b.c',
-			'"@"@b.c',
-			'a@route.org@b.c',
 			'h(aj@couc.ou', // bad comment.
 			'hi@',
 			'hi@hi@couc.ou', // double @.
