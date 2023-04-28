@@ -3343,6 +3343,7 @@ function update_comment_cache( $comments, $update_meta_cache = true ) {
  *
  * @since 4.4.0
  * @since 6.1.0 This function is no longer marked as "private".
+ * @since 6.3.0 Use wp_lazyload_comment_meta() for lazy-loading of comment meta.
  *
  * @see update_comment_cache()
  * @global wpdb $wpdb WordPress database abstraction object.
