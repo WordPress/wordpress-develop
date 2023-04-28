@@ -8553,7 +8553,7 @@ function wp_settype_to_value_from_db( $value, $value_type ) {
 			// Improper use.
 			/* translators: The function name that returns the supported types. */
 			$message = sprintf( __( 'Only types returned by %s are supported.' ), '<code>wp_get_db_value_types()</code>' );
-			_doing_it_wrong( 'wp_decode_value_from_db', $message );
+			_doing_it_wrong( 'wp_settype_to_value_from_db', $message );
 		}
 	}
 
