@@ -460,7 +460,7 @@ if ( ! function_exists( 'str_starts_with' ) ) {
 			return true;
 		}
 
-		return 0 === strpos( $haystack, $needle );
+		return str_starts_with( $haystack, $needle );
 	}
 }
 
