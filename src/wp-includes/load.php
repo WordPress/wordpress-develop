@@ -80,7 +80,7 @@ function wp_fix_server_vars() {
 	}
 
 	// Fix for Dreamhost and other PHP as CGI hosts.
-	if ( isset( $_SERVER['SCRIPT_NAME'] ) && ( str_contains( $_SERVER['SCRIPT_NAME'], 'php.cgi' ) ) ) {
+	if ( isset( $_SERVER['SCRIPT_NAME'] ) && ( strpos( $_SERVER['SCRIPT_NAME'], 'php.cgi' ) !== false ) ) {
 		unset( $_SERVER['PATH_INFO'] );
 	}
 
@@ -1508,11 +1508,11 @@ function wp_convert_hr_to_bytes( $value ) {
 	$value = strtolower( trim( $value ) );
 	$bytes = (int) $value;
 
-	if ( str_contains( $value, 'g' ) ) {
+	if ( false !== strpos( $value, 'g' ) ) {
 		$bytes *= GB_IN_BYTES;
-	} elseif ( str_contains( $value, 'm' ) ) {
+	} elseif ( false !== strpos( $value, 'm' ) ) {
 		$bytes *= MB_IN_BYTES;
-	} elseif ( str_contains( $value, 'k' ) ) {
+	} elseif ( false !== strpos( $value, 'k' ) ) {
 		$bytes *= KB_IN_BYTES;
 	}
 
@@ -1791,7 +1791,7 @@ function wp_is_xml_request() {
 
 	if ( isset( $_SERVER['HTTP_ACCEPT'] ) ) {
 		foreach ( $accepted as $type ) {
-			if ( str_contains( $_SERVER['HTTP_ACCEPT'], $type ) ) {
+			if ( false !== strpos( $_SERVER['HTTP_ACCEPT'], $type ) ) {
 				return true;
 			}
 		}
