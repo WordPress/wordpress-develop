@@ -1373,8 +1373,8 @@ function get_available_languages( $dir = null ) {
 	if ( $lang_files ) {
 		foreach ( $lang_files as $lang_file ) {
 			$lang_file = basename( $lang_file, '.mo' );
-			if ( ! str_starts_with( $lang_file, 'continents-cities' ) && ! str_starts_with( $lang_file, 'ms-' ) &&
-				! str_starts_with( $lang_file, 'admin-' ) ) {
+			if ( 0 !== strpos( $lang_file, 'continents-cities' ) && 0 !== strpos( $lang_file, 'ms-' ) &&
+				0 !== strpos( $lang_file, 'admin-' ) ) {
 				$languages[] = $lang_file;
 			}
 		}

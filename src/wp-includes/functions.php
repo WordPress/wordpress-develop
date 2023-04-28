@@ -2413,7 +2413,7 @@ function _wp_upload_dir( $time = null ) {
 
 	if ( empty( $upload_path ) || 'wp-content/uploads' === $upload_path ) {
 		$dir = WP_CONTENT_DIR . '/uploads';
-	} elseif ( ! str_starts_with( $upload_path, ABSPATH ) ) {
+	} elseif ( 0 !== strpos( $upload_path, ABSPATH ) ) {
 		// $dir is absolute, $upload_path is (maybe) relative to ABSPATH.
 		$dir = path_join( ABSPATH, $upload_path );
 	} else {
