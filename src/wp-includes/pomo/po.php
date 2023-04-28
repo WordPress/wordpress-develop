@@ -187,7 +187,7 @@ if ( ! class_exists( 'PO', false ) ) :
 		public static function prepend_each_line( $input_string, $with ) {
 			$lines  = explode( "\n", $input_string );
 			$append = '';
-			if ( "\n" === substr( $input_string, -1 ) && '' === end( $lines ) ) {
+			if ( str_ends_with( $input_string, "\n" ) && '' === end( $lines ) ) {
 				/*
 				 * Last line might be empty because $input_string was terminated
 				 * with a newline, remove it from the $lines array,
@@ -265,10 +265,10 @@ if ( ! class_exists( 'PO', false ) ) :
 				return $translation;
 			}
 
-			$original_begin    = "\n" === substr( $original, 0, 1 );
-			$original_end      = "\n" === substr( $original, -1 );
-			$translation_begin = "\n" === substr( $translation, 0, 1 );
-			$translation_end   = "\n" === substr( $translation, -1 );
+			$original_begin    = str_starts_with( $original, "\n" );
+			$original_end      = str_ends_with( $original, "\n" );
+			$translation_begin = str_starts_with( $translation, "\n" );
+			$translation_end   = str_ends_with( $translation, "\n" );
 
 			if ( $original_begin ) {
 				if ( ! $translation_begin ) {
@@ -476,7 +476,7 @@ if ( ! class_exists( 'PO', false ) ) :
 				return true;
 			}
 			$line          = $use_last_line ? $last_line : fgets( $f );
-			$line          = ( "\r\n" === substr( $line, -2 ) ) ? rtrim( $line, "\r\n" ) . "\n" : $line;
+			$line          = ( str_ends_with( $line, "\r\n" ) ) ? rtrim( $line, "\r\n" ) . "\n" : $line;
 			$last_line     = $line;
 			$use_last_line = false;
 			return $line;
@@ -505,10 +505,10 @@ if ( ! class_exists( 'PO', false ) ) :
 		 * @return string
 		 */
 		public static function trim_quotes( $s ) {
-			if ( '"' === substr( $s, 0, 1 ) ) {
+			if ( str_starts_with( $s, '"' ) ) {
 				$s = substr( $s, 1 );
 			}
-			if ( '"' === substr( $s, -1, 1 ) ) {
+			if ( str_ends_with( $s, '"' ) ) {
 				$s = substr( $s, 0, -1 );
 			}
 			return $s;

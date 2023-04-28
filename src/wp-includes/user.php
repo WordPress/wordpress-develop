@@ -986,7 +986,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
 	$keys = array_keys( $keys );
 
 	foreach ( $keys as $key ) {
-		if ( 'capabilities' !== substr( $key, -12 ) ) {
+		if ( ! str_ends_with( $key, 'capabilities' ) ) {
 			continue;
 		}
 		if ( $wpdb->base_prefix && 0 !== strpos( $key, $wpdb->base_prefix ) ) {
