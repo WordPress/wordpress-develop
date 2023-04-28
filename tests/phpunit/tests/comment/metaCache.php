@@ -11,7 +11,7 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	 *
 	 * @covers ::update_comment_meta
 	 */
-	public function test_update_comment_meta_cache_should_default_to_true() {
+	public function test_update_comment_meta_cache_should_default_to_lazy_loading() {
 		$p           = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$comment_ids = self::factory()->comment->create_post_comments( $p, 3 );
 
@@ -29,14 +29,14 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( $num_queries + 2, get_num_queries() );
+		$this->assertSame( 2, get_num_queries() - $num_queries, 'Querying comments is expected to make two queries' );
 
 		$num_queries = get_num_queries();
 		foreach ( $comment_ids as $cid ) {
 			get_comment_meta( $cid, 'foo', 'bar' );
 		}
 
-		$this->assertSame( $num_queries + 1, get_num_queries() );
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'Comment meta is expected to be lazy loaded' );
 	}
 
 	/**
@@ -95,7 +95,7 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 					'update_comment_meta_cache' => true,
 				)
 			);
-			$this->assertSame( $num_queries + 1, get_num_queries(), 'Comment query should only add one query' );
+			$this->assertSame( 1, get_num_queries() - $num_queries, 'Comment query should only add one query' );
 		}
 
 		$filter = new MockAction();
@@ -103,7 +103,7 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 		get_comment_meta( $comment_ids[0], 'foo', 'bar' );
 
-		$this->assertSame( $num_queries + 1, get_num_queries(), 'Comment meta should be loaded in one database query' );
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'Comment meta should be loaded in one database query' );
 		$args              = $filter->get_args();
 		$first             = reset( $args );
 		$prime_comment_ids = end( $first );
