@@ -518,7 +518,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 			if ( ! empty( $addl_path )
 				&& $wp_rewrite->using_index_permalinks()
-			     && ! str_contains( $redirect['path'], '/' . $wp_rewrite->index . '/' )
+				&& ! str_contains( $redirect['path'], '/' . $wp_rewrite->index . '/' )
 			) {
 				$redirect['path'] = trailingslashit( $redirect['path'] ) . $wp_rewrite->index . '/';
 			}
