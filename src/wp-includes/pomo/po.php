@@ -187,7 +187,7 @@ if ( ! class_exists( 'PO', false ) ) :
 		public static function prepend_each_line( $input_string, $with ) {
 			$lines  = explode( "\n", $input_string );
 			$append = '';
-			if ( str_ends_with( $input_string, "\n" ) && '' === end( $lines ) ) {
+			if ( "\n" === substr( $input_string, -1 ) && '' === end( $lines ) ) {
 				/*
 				 * Last line might be empty because $input_string was terminated
 				 * with a newline, remove it from the $lines array,
@@ -265,10 +265,10 @@ if ( ! class_exists( 'PO', false ) ) :
 				return $translation;
 			}
 
-			$original_begin    = str_starts_with( $original, "\n" );
-			$original_end      = str_ends_with( $original, "\n" );
-			$translation_begin = str_starts_with( $translation, "\n" );
-			$translation_end   = str_ends_with( $translation, "\n" );
+			$original_begin    = "\n" === substr( $original, 0, 1 );
+			$original_end      = "\n" === substr( $original, -1 );
+			$translation_begin = "\n" === substr( $translation, 0, 1 );
+			$translation_end   = "\n" === substr( $translation, -1 );
 
 			if ( $original_begin ) {
 				if ( ! $translation_begin ) {
