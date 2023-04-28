@@ -6100,10 +6100,10 @@ function get_pages( $args = array() ) {
  * @return bool True on success, false on failure.
  */
 function is_local_attachment( $url ) {
-	if ( strpos( $url, home_url() ) === false ) {
+	if ( ! str_contains( $url, home_url() ) ) {
 		return false;
 	}
-	if ( strpos( $url, home_url( '/?attachment_id=' ) ) !== false ) {
+	if ( str_contains( $url, home_url( '/?attachment_id=' ) ) ) {
 		return true;
 	}
 
