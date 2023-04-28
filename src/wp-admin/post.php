@@ -55,8 +55,8 @@ if ( isset( $_POST['deletepost'] ) ) {
 
 $sendback = wp_get_referer();
 if ( ! $sendback ||
-	false !== strpos( $sendback, 'post.php' ) ||
-	false !== strpos( $sendback, 'post-new.php' ) ) {
+	str_contains( $sendback, 'post.php' ) ||
+	str_contains( $sendback, 'post-new.php' ) ) {
 	if ( 'attachment' === $post_type ) {
 		$sendback = admin_url( 'upload.php' );
 	} else {

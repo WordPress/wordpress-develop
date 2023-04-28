@@ -3847,7 +3847,7 @@ function wp_media_attach_action( $parent_id, $action = 'attach' ) {
 		$referer  = wp_get_referer();
 
 		if ( $referer ) {
-			if ( false !== strpos( $referer, 'upload.php' ) ) {
+			if ( str_contains( $referer, 'upload.php' ) ) {
 				$location = remove_query_arg( array( 'attached', 'detach' ), $referer );
 			}
 		}

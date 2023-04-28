@@ -390,7 +390,7 @@ function is_email_address_unsafe( $user_email ) {
 
 	$is_email_address_unsafe = false;
 
-	if ( $banned_names && is_array( $banned_names ) && false !== strpos( $user_email, '@', 1 ) ) {
+	if ( $banned_names && is_array( $banned_names ) && str_contains( $user_email, '@', 1 ) ) {
 		$banned_names     = array_map( 'strtolower', $banned_names );
 		$normalized_email = strtolower( $user_email );
 
@@ -1992,7 +1992,7 @@ function check_upload_mimes( $mimes ) {
 	$site_mimes = array();
 	foreach ( $site_exts as $ext ) {
 		foreach ( $mimes as $ext_pattern => $mime ) {
-			if ( '' !== $ext && false !== strpos( $ext_pattern, $ext ) ) {
+			if ( '' !== $ext && str_contains( $ext_pattern, $ext ) ) {
 				$site_mimes[ $ext_pattern ] = $mime;
 			}
 		}

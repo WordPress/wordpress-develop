@@ -32,7 +32,7 @@ function wp_credits( $version = '', $locale = '' ) {
 	$results = get_site_transient( 'wordpress_credits_' . $locale );
 
 	if ( ! is_array( $results )
-		|| false !== strpos( $version, '-' )
+		|| str_contains( $version, '-' )
 		|| ( isset( $results['data']['version'] ) && strpos( $version, $results['data']['version'] ) !== 0 )
 	) {
 		$url     = "http://api.wordpress.org/core/credits/1.1/?version={$version}&locale={$locale}";

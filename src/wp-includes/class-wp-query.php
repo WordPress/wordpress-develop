@@ -1006,7 +1006,7 @@ class WP_Query {
 			$this->is_admin = true;
 		}
 
-		if ( false !== strpos( $qv['feed'], 'comments-' ) ) {
+		if ( str_contains( $qv['feed'], 'comments-' ) ) {
 			$qv['feed']         = str_replace( 'comments-', '', $qv['feed'] );
 			$qv['withcomments'] = 1;
 		}
@@ -4747,7 +4747,7 @@ class WP_Query {
 		}
 
 		$content = $post->post_content;
-		if ( false !== strpos( $content, '<!--nextpage-->' ) ) {
+		if ( str_contains( $content, '<!--nextpage-->' ) ) {
 			$content = str_replace( "\n<!--nextpage-->\n", '<!--nextpage-->', $content );
 			$content = str_replace( "\n<!--nextpage-->", '<!--nextpage-->', $content );
 			$content = str_replace( "<!--nextpage-->\n", '<!--nextpage-->', $content );

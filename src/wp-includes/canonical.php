@@ -737,7 +737,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	}
 
 	// Hex-encoded octets are case-insensitive.
-	if ( false !== strpos( $requested_url, '%' ) ) {
+	if ( str_contains( $requested_url, '%' ) ) {
 		if ( ! function_exists( 'lowercase_octets' ) ) {
 			/**
 			 * Converts the first hex-encoded octet match to lowercase.

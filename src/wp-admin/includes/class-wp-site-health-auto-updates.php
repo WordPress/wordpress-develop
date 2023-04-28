@@ -332,7 +332,7 @@ class WP_Site_Health_Auto_Updates {
 		}
 
 		$checksums = get_core_checksums( $wp_version, 'en_US' );
-		$dev       = ( false !== strpos( $wp_version, '-' ) );
+		$dev       = ( str_contains( $wp_version, '-' ) );
 		// Get the last stable version's files and test against that.
 		if ( ! $checksums && $dev ) {
 			$checksums = get_core_checksums( (float) $wp_version - 0.1, 'en_US' );

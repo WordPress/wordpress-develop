@@ -970,7 +970,7 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 				$text = trim( strip_tags( $text ), '% ' );
 
 				// Replace '% Comments' with a proper plural form.
-				if ( $text && ! preg_match( '/[0-9]+/', $text ) && false !== strpos( $more, '%' ) ) {
+				if ( $text && ! preg_match( '/[0-9]+/', $text ) && str_contains( $more, '%' ) ) {
 					/* translators: %s: Number of comments. */
 					$new_text = _n( '%s Comment', '%s Comments', $comments_number );
 					$new_text = trim( sprintf( $new_text, '' ) );

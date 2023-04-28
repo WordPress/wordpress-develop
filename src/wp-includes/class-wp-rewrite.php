@@ -509,7 +509,7 @@ class WP_Rewrite {
 		$date_endian          = '';
 
 		foreach ( $endians as $endian ) {
-			if ( false !== strpos( $this->permalink_structure, $endian ) ) {
+			if ( str_contains( $this->permalink_structure, $endian ) ) {
 				$date_endian = $endian;
 				break;
 			}

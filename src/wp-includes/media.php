@@ -1159,7 +1159,7 @@ function _wp_get_attachment_relative_path( $file ) {
 		return '';
 	}
 
-	if ( false !== strpos( $dirname, 'wp-content/uploads' ) ) {
+	if ( str_contains( $dirname, 'wp-content/uploads' ) ) {
 		// Get the directory name relative to the upload directory (back compat for pre-2.7 uploads).
 		$dirname = substr( $dirname, strpos( $dirname, 'wp-content/uploads' ) + 18 );
 		$dirname = ltrim( $dirname, '/' );
@@ -1364,7 +1364,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 		}
 
 		// If the file name is part of the `src`, we've confirmed a match.
-		if ( ! $src_matched && false !== strpos( $image_src, $dirname . $image['file'] ) ) {
+		if ( ! $src_matched && str_contains( $image_src, $dirname . $image['file'] ) ) {
 			$src_matched = true;
 			$is_src      = true;
 		}
@@ -2088,7 +2088,7 @@ function wp_img_tag_add_srcset_and_sizes_attr( $image, $context, $attachment_id 
 function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
 	// Iframes with fallback content (see `wp_filter_oembed_result()`) should not be lazy-loaded because they are
 	// visually hidden initially.
-	if ( false !== strpos( $iframe, ' data-secret="' ) ) {
+	if ( str_contains( $iframe, ' data-secret="' ) ) {
 		return $iframe;
 	}
 
@@ -3474,7 +3474,7 @@ function wp_video_shortcode( $attr, $content = '' ) {
 	}
 
 	if ( ! empty( $content ) ) {
-		if ( false !== strpos( $content, "\n" ) ) {
+		if ( str_contains( $content, "\n" ) ) {
 			$content = str_replace( array( "\r\n", "\n", "\t" ), '', $content );
 		}
 		$html .= trim( $content );
@@ -3679,14 +3679,14 @@ function get_attachment_taxonomies( $attachment, $output = 'names' ) {
 
 	$objects = array( 'attachment' );
 
-	if ( false !== strpos( $filename, '.' ) ) {
+	if ( str_contains( $filename, '.' ) ) {
 		$objects[] = 'attachment:' . substr( $filename, strrpos( $filename, '.' ) + 1 );
 	}
 
 	if ( ! empty( $attachment->post_mime_type ) ) {
 		$objects[] = 'attachment:' . $attachment->post_mime_type;
 
-		if ( false !== strpos( $attachment->post_mime_type, '/' ) ) {
+		if ( str_contains( $attachment->post_mime_type, '/' ) ) {
 			foreach ( explode( '/', $attachment->post_mime_type ) as $token ) {
 				if ( ! empty( $token ) ) {
 					$objects[] = "attachment:$token";
@@ -3980,7 +3980,7 @@ function wp_plupload_default_settings() {
 	$wp_scripts = wp_scripts();
 
 	$data = $wp_scripts->get_data( 'wp-plupload', 'data' );
-	if ( $data && false !== strpos( $data, '_wpPluploadSettings' ) ) {
+	if ( $data && str_contains( $data, '_wpPluploadSettings' ) ) {
 		return;
 	}
 
@@ -4125,7 +4125,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 	}
 
 	$meta = wp_get_attachment_metadata( $attachment->ID );
-	if ( false !== strpos( $attachment->post_mime_type, '/' ) ) {
+	if ( str_contains( $attachment->post_mime_type, '/' ) ) {
 		list( $type, $subtype ) = explode( '/', $attachment->post_mime_type );
 	} else {
 		list( $type, $subtype ) = array( $attachment->post_mime_type, '' );

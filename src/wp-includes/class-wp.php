@@ -455,7 +455,7 @@ class WP {
 
 			// We're showing a feed, so WP is indeed the only thing that last changed.
 			if ( ! empty( $this->query_vars['withcomments'] )
-				|| false !== strpos( $this->query_vars['feed'], 'comments-' )
+				|| str_contains( $this->query_vars['feed'], 'comments-' )
 				|| ( empty( $this->query_vars['withoutcomments'] )
 					&& ( ! empty( $this->query_vars['p'] )
 						|| ! empty( $this->query_vars['name'] )
@@ -720,7 +720,7 @@ class WP {
 				// Check for paged content that exceeds the max number of pages.
 				if ( $post && ! empty( $this->query_vars['page'] ) ) {
 					// Check if content is actually intended to be paged.
-					if ( false !== strpos( $post->post_content, $next ) ) {
+					if ( str_contains( $post->post_content, $next ) ) {
 						$page          = trim( $this->query_vars['page'], '/' );
 						$content_found = (int) $page <= ( substr_count( $post->post_content, $next ) + 1 );
 					} else {
