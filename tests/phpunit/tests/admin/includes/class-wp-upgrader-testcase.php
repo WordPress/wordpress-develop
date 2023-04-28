@@ -240,7 +240,7 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 		require_once __DIR__ . '/themeUpgrader/class-theme-upgrader-data-provider.php';
 
 		if ( $this->theme_data_provider instanceof Theme_Upgrader_Data_Provider ) {
-			return;
+			//return;
 		}
 
 		$this->theme_data_provider = new Theme_Upgrader_Data_Provider();
@@ -256,7 +256,7 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 		require_once __DIR__ . '/pluginUpgrader/class-plugin-upgrader-data-provider.php';
 
 		if ( $this->plugin_data_provider instanceof Plugin_Upgrader_Data_Provider ) {
-			return;
+			//return;
 		}
 
 		$this->plugin_data_provider = new Plugin_Upgrader_Data_Provider();
