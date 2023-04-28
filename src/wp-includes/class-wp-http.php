@@ -721,7 +721,7 @@ class WP_Http {
 		 * In this case, determine the final HTTP header and parse from there.
 		 */
 		for ( $i = count( $headers ) - 1; $i >= 0; $i-- ) {
-			if ( ! empty( $headers[ $i ] ) && false === strpos( $headers[ $i ], ':' ) ) {
+			if ( ! empty( $headers[ $i ] ) && ! str_contains( $headers[ $i ], ':' ) ) {
 				$headers = array_splice( $headers, $i );
 				break;
 			}
@@ -734,7 +734,7 @@ class WP_Http {
 				continue;
 			}
 
-			if ( false === strpos( $tempheader, ':' ) ) {
+			if ( ! str_contains( $tempheader, ':' ) ) {
 				$stack   = explode( ' ', $tempheader, 3 );
 				$stack[] = '';
 				list( , $response['code'], $response['message']) = $stack;

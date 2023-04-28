@@ -1771,7 +1771,7 @@ function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 		$dirs,
 		static function( $dir ) {
 			// Skip any node_modules directories.
-			return false === strpos( $dir, 'node_modules' );
+			return ! str_contains( $dir, 'node_modules' );
 		}
 	);
 

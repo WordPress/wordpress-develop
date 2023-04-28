@@ -2165,7 +2165,7 @@ function maybe_redirect_404() {
  * @since MU (3.0.0)
  */
 function maybe_add_existing_user_to_blog() {
-	if ( false === strpos( $_SERVER['REQUEST_URI'], '/newbloguser/' ) ) {
+	if ( ! str_contains( $_SERVER['REQUEST_URI'], '/newbloguser/' ) ) {
 		return;
 	}
 

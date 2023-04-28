@@ -326,7 +326,7 @@ function wptexturize_primes( $haystack, $needle, $prime, $open_quote, $close_quo
 	$sentences = explode( $open_quote, $haystack );
 
 	foreach ( $sentences as $key => &$sentence ) {
-		if ( false === strpos( $sentence, $needle ) ) {
+		if ( ! str_contains( $sentence, $needle ) ) {
 			continue;
 		} elseif ( 0 !== $key && 0 === substr_count( $sentence, $close_quote ) ) {
 			$sentence = preg_replace( $quote_pattern, $flag, $sentence, -1, $count );
@@ -2051,7 +2051,7 @@ function sanitize_file_name( $filename ) {
 	$filename = preg_replace( '/[\r\n\t -]+/', '-', $filename );
 	$filename = trim( $filename, '.-_' );
 
-	if ( false === strpos( $filename, '.' ) ) {
+	if ( ! str_contains( $filename, '.' ) ) {
 		$mime_types = wp_get_mime_types();
 		$filetype   = wp_check_filetype( 'test.' . $filename, $mime_types );
 		if ( $filetype['ext'] === $filename ) {
@@ -5100,7 +5100,7 @@ function wp_pre_kses_less_than( $content ) {
  * @return string The text returned after esc_html if needed.
  */
 function wp_pre_kses_less_than_callback( $matches ) {
-	if ( false === strpos( $matches[0], '>' ) ) {
+	if ( ! str_contains( $matches[0], '>' ) ) {
 		return esc_html( $matches[0] );
 	}
 	return $matches[0];
@@ -5906,7 +5906,7 @@ function wp_encode_emoji( $content ) {
  * @return string The encoded content.
  */
 function wp_staticize_emoji( $text ) {
-	if ( false === strpos( $text, '&#x' ) ) {
+	if ( ! str_contains( $text, '&#x' ) ) {
 		if ( ( function_exists( 'mb_check_encoding' ) && mb_check_encoding( $text, 'ASCII' ) ) || ! preg_match( '/[^\x00-\x7F]/', $text ) ) {
 			// The text doesn't contain anything that might be emoji, so we can return early.
 			return $text;
@@ -5965,7 +5965,7 @@ function wp_staticize_emoji( $text ) {
 		// If it's not a tag and not in ignore block.
 		if ( '' === $ignore_block_element && strlen( $content ) > 0 && '<' !== $content[0] && false !== strpos( $content, '&#x' ) ) {
 			foreach ( $possible_emoji as $emojum => $emoji_char ) {
-				if ( false === strpos( $content, $emojum ) ) {
+				if ( ! str_contains( $content, $emojum ) ) {
 					continue;
 				}
 

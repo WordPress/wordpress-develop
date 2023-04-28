@@ -617,7 +617,7 @@ function has_block( $block_name, $post = null ) {
 	 * This matches behavior for WordPress 5.0.0 - 5.3.0 in matching blocks by
 	 * their serialized names.
 	 */
-	if ( false === strpos( $block_name, '/' ) ) {
+	if ( ! str_contains( $block_name, '/' ) ) {
 		$block_name = 'core/' . $block_name;
 	}
 

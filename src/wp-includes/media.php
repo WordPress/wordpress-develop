@@ -1839,17 +1839,17 @@ function wp_filter_content_tags( $content, $context = null ) {
 			$attachment_id  = $images[ $match[0] ];
 
 			// Add 'width' and 'height' attributes if applicable.
-			if ( $attachment_id > 0 && false === strpos( $filtered_image, ' width=' ) && false === strpos( $filtered_image, ' height=' ) ) {
+			if ( $attachment_id > 0 && ! str_contains( $filtered_image, ' width=' ) && ! str_contains( $filtered_image, ' height=' ) ) {
 				$filtered_image = wp_img_tag_add_width_and_height_attr( $filtered_image, $context, $attachment_id );
 			}
 
 			// Add 'srcset' and 'sizes' attributes if applicable.
-			if ( $attachment_id > 0 && false === strpos( $filtered_image, ' srcset=' ) ) {
+			if ( $attachment_id > 0 && ! str_contains( $filtered_image, ' srcset=' ) ) {
 				$filtered_image = wp_img_tag_add_srcset_and_sizes_attr( $filtered_image, $context, $attachment_id );
 			}
 
 			// Add 'loading' attribute if applicable.
-			if ( $add_img_loading_attr && false === strpos( $filtered_image, ' loading=' ) ) {
+			if ( $add_img_loading_attr && ! str_contains( $filtered_image, ' loading=' ) ) {
 				$filtered_image = wp_img_tag_add_loading_attr( $filtered_image, $context );
 			}
 
@@ -1885,7 +1885,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 			$filtered_iframe = $match[0];
 
 			// Add 'loading' attribute if applicable.
-			if ( $add_iframe_loading_attr && false === strpos( $filtered_iframe, ' loading=' ) ) {
+			if ( $add_iframe_loading_attr && ! str_contains( $filtered_iframe, ' loading=' ) ) {
 				$filtered_iframe = wp_iframe_tag_add_loading_attr( $filtered_iframe, $context );
 			}
 
@@ -1919,7 +1919,7 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 	$value = wp_get_loading_attr_default( $context );
 
 	// Images should have source and dimension attributes for the `loading` attribute to be added.
-	if ( false === strpos( $image, ' src="' ) || false === strpos( $image, ' width="' ) || false === strpos( $image, ' height="' ) ) {
+	if ( ! str_contains( $image, ' src="' ) || ! str_contains( $image, ' width="' ) || ! str_contains( $image, ' height="' ) ) {
 		return $image;
 	}
 
@@ -1970,7 +1970,7 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 function wp_img_tag_add_decoding_attr( $image, $context ) {
 	// Only apply the decoding attribute to images that have a src attribute that
 	// starts with a double quote, ensuring escaped JSON is also excluded.
-	if ( false === strpos( $image, ' src="' ) ) {
+	if ( ! str_contains( $image, ' src="' ) ) {
 		return $image;
 	}
 
@@ -2097,7 +2097,7 @@ function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
 	$value = wp_get_loading_attr_default( $context );
 
 	// Iframes should have source and dimension attributes for the `loading` attribute to be added.
-	if ( false === strpos( $iframe, ' src="' ) || false === strpos( $iframe, ' width="' ) || false === strpos( $iframe, ' height="' ) ) {
+	if ( ! str_contains( $iframe, ' src="' ) || ! str_contains( $iframe, ' width="' ) || ! str_contains( $iframe, ' height="' ) ) {
 		return $iframe;
 	}
 

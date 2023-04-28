@@ -97,7 +97,7 @@ switch ( $action ) {
 		$_POST['ping_status']    = get_default_comment_status( $post->post_type, 'pingback' );
 
 		// Wrap Quick Draft content in the Paragraph block.
-		if ( false === strpos( $_POST['content'], '<!-- wp:paragraph -->' ) ) {
+		if ( ! str_contains( $_POST['content'], '<!-- wp:paragraph -->' ) ) {
 			$_POST['content'] = sprintf(
 				'<!-- wp:paragraph -->%s<!-- /wp:paragraph -->',
 				str_replace( array( "\r\n", "\r", "\n" ), '<br />', $_POST['content'] )

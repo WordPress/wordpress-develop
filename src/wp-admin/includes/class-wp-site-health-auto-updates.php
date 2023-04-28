@@ -396,7 +396,7 @@ class WP_Site_Health_Auto_Updates {
 	public function test_accepts_dev_updates() {
 		require ABSPATH . WPINC . '/version.php'; // $wp_version; // x.y.z
 		// Only for dev versions.
-		if ( false === strpos( $wp_version, '-' ) ) {
+		if ( ! str_contains( $wp_version, '-' ) ) {
 			return false;
 		}
 

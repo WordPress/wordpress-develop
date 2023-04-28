@@ -3259,7 +3259,7 @@ function wp_match_mime_types( $wildcard_mime_types, $real_mime_types ) {
 
 			$patternses[][ $type ] = "^$regex$";
 
-			if ( false === strpos( $mime, '/' ) ) {
+			if ( ! str_contains( $mime, '/' ) ) {
 				$patternses[][ $type ] = "^$regex/";
 				$patternses[][ $type ] = $regex;
 			}
@@ -3316,7 +3316,7 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 			$mime_pattern = "$mime_group/$mime_subgroup";
 		} else {
 			$mime_pattern = preg_replace( '/[^-*.a-zA-Z0-9]/', '', $mime_type );
-			if ( false === strpos( $mime_pattern, '*' ) ) {
+			if ( ! str_contains( $mime_pattern, '*' ) ) {
 				$mime_pattern .= '/*';
 			}
 		}

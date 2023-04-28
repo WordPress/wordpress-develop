@@ -708,7 +708,7 @@ function is_serialized( $data, $strict = true ) {
 				if ( '"' !== substr( $data, -2, 1 ) ) {
 					return false;
 				}
-			} elseif ( false === strpos( $data, '"' ) ) {
+			} elseif ( ! str_contains( $data, '"' ) ) {
 				return false;
 			}
 			// Or else fall through.
@@ -5940,7 +5940,7 @@ function apache_mod_loaded( $mod, $default_value = false ) {
 
 	if ( empty( $loaded_mods )
 		&& function_exists( 'phpinfo' )
-		&& false === strpos( ini_get( 'disable_functions' ), 'phpinfo' )
+		 && ! str_contains( ini_get( 'disable_functions' ), 'phpinfo' )
 	) {
 		ob_start();
 		phpinfo( INFO_MODULES );

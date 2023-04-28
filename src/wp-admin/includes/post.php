@@ -1516,7 +1516,7 @@ function get_sample_permalink_html( $post, $new_title = null, $new_slug = null )
 	}
 
 	// Permalinks without a post/page name placeholder don't have anything to edit.
-	if ( false === strpos( $permalink, '%postname%' ) && false === strpos( $permalink, '%pagename%' ) ) {
+	if ( ! str_contains( $permalink, '%postname%' ) && ! str_contains( $permalink, '%pagename%' ) ) {
 		$return = '<strong>' . __( 'Permalink:' ) . "</strong>\n";
 
 		if ( false !== $view_link ) {
@@ -1756,7 +1756,7 @@ function _admin_notice_post_locked() {
 	}
 
 	$sendback = wp_get_referer();
-	if ( $locked && $sendback && false === strpos( $sendback, 'post.php' ) && false === strpos( $sendback, 'post-new.php' ) ) {
+	if ( $locked && $sendback && ! str_contains( $sendback, 'post.php' ) && ! str_contains( $sendback, 'post-new.php' ) ) {
 
 		$sendback_text = __( 'Go back' );
 	} else {
