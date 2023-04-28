@@ -1564,7 +1564,7 @@ class wpdb {
 			$type   = substr( $placeholder, -1 );
 
 			if ( 'f' === $type && true === $this->allow_unsafe_unquoted_parameters
-			     && str_ends_with( $split_query[ $key - 1 ], '%' )
+				&& str_ends_with( $split_query[ $key - 1 ], '%' )
 			) {
 
 				/*
