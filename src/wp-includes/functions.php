@@ -1158,10 +1158,10 @@ function add_query_arg( ...$args ) {
 		$protocol = '';
 	}
 
-	if ( strpos( $uri, '?' ) !== false ) {
+	if ( str_contains( $uri, '?' ) ) {
 		list( $base, $query ) = explode( '?', $uri, 2 );
 		$base                .= '?';
-	} elseif ( $protocol || strpos( $uri, '=' ) === false ) {
+	} elseif ( $protocol || ! str_contains( $uri, '=' ) ) {
 		$base  = $uri . '?';
 		$query = '';
 	} else {
@@ -4649,7 +4649,7 @@ function _mce_set_direction( $mce_init ) {
 		$mce_init['directionality'] = 'rtl';
 		$mce_init['rtl_ui']         = true;
 
-		if ( ! empty( $mce_init['plugins'] ) && strpos( $mce_init['plugins'], 'directionality' ) === false ) {
+		if ( ! empty( $mce_init['plugins'] ) && ! str_contains( $mce_init['plugins'], 'directionality' ) ) {
 			$mce_init['plugins'] .= ',directionality';
 		}
 
@@ -6076,7 +6076,7 @@ function wp_guess_url() {
 		$script_filename_dir = dirname( $_SERVER['SCRIPT_FILENAME'] );
 
 		// The request is for the admin.
-		if ( strpos( $_SERVER['REQUEST_URI'], 'wp-admin' ) !== false || strpos( $_SERVER['REQUEST_URI'], 'wp-login.php' ) !== false ) {
+		if ( strpos( $_SERVER['REQUEST_URI'], 'wp-admin' ) !== false || str_contains( $_SERVER['REQUEST_URI'], 'wp-login.php' ) ) {
 			$path = preg_replace( '#/(wp-admin/?.*|wp-login\.php.*)#i', '', $_SERVER['REQUEST_URI'] );
 
 			// The request is for a file in ABSPATH.
@@ -7076,9 +7076,9 @@ function _device_can_upload() {
 
 	$ua = $_SERVER['HTTP_USER_AGENT'];
 
-	if ( strpos( $ua, 'iPhone' ) !== false
-		|| strpos( $ua, 'iPad' ) !== false
-		|| strpos( $ua, 'iPod' ) !== false ) {
+	if ( str_contains( $ua, 'iPhone' )
+		 || str_contains( $ua, 'iPad' )
+		 || str_contains( $ua, 'iPod' ) ) {
 			return preg_match( '#OS ([\d_]+) like Mac OS X#', $ua, $version ) && version_compare( $version[1], '6', '>=' );
 	}
 
@@ -8437,8 +8437,8 @@ function clean_dirsize_cache( $path ) {
 	}
 
 	if (
-		strpos( $path, '/' ) === false &&
-		strpos( $path, '\\' ) === false
+		! str_contains( $path, '/' ) &&
+		! str_contains( $path, '\\' )
 	) {
 		unset( $directory_cache[ $path ] );
 		set_transient( 'dirsize_cache', $directory_cache );

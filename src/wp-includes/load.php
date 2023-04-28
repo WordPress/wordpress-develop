@@ -80,7 +80,7 @@ function wp_fix_server_vars() {
 	}
 
 	// Fix for Dreamhost and other PHP as CGI hosts.
-	if ( isset( $_SERVER['SCRIPT_NAME'] ) && ( strpos( $_SERVER['SCRIPT_NAME'], 'php.cgi' ) !== false ) ) {
+	if ( isset( $_SERVER['SCRIPT_NAME'] ) && ( str_contains( $_SERVER['SCRIPT_NAME'], 'php.cgi' ) ) ) {
 		unset( $_SERVER['PATH_INFO'] );
 	}
 

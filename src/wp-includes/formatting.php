@@ -453,7 +453,7 @@ function wpautop( $text, $br = true ) {
 	 * Pre tags shouldn't be touched by autop.
 	 * Replace pre tags with placeholders and bring them back after autop.
 	 */
-	if ( strpos( $text, '<pre' ) !== false ) {
+	if ( str_contains( $text, '<pre' ) ) {
 		$text_parts = explode( '</pre>', $text );
 		$last_part  = array_pop( $text_parts );
 		$text       = '';
@@ -498,7 +498,7 @@ function wpautop( $text, $br = true ) {
 	$text = wp_replace_in_html_tags( $text, array( "\n" => ' <!-- wpnl --> ' ) );
 
 	// Collapse line breaks before and after <option> elements so they don't get autop'd.
-	if ( strpos( $text, '<option' ) !== false ) {
+	if ( str_contains( $text, '<option' ) ) {
 		$text = preg_replace( '|\s*<option|', '<option', $text );
 		$text = preg_replace( '|</option>\s*|', '</option>', $text );
 	}
@@ -507,7 +507,7 @@ function wpautop( $text, $br = true ) {
 	 * Collapse line breaks inside <object> elements, before <param> and <embed> elements
 	 * so they don't get autop'd.
 	 */
-	if ( strpos( $text, '</object>' ) !== false ) {
+	if ( str_contains( $text, '</object>' ) ) {
 		$text = preg_replace( '|(<object[^>]*>)\s*|', '$1', $text );
 		$text = preg_replace( '|\s*</object>|', '</object>', $text );
 		$text = preg_replace( '%\s*(</?(?:param|embed)[^>]*>)\s*%', '$1', $text );
@@ -517,14 +517,14 @@ function wpautop( $text, $br = true ) {
 	 * Collapse line breaks inside <audio> and <video> elements,
 	 * before and after <source> and <track> elements.
 	 */
-	if ( strpos( $text, '<source' ) !== false || strpos( $text, '<track' ) !== false ) {
+	if ( str_contains( $text, '<source' ) || str_contains( $text, '<track' ) ) {
 		$text = preg_replace( '%([<\[](?:audio|video)[^>\]]*[>\]])\s*%', '$1', $text );
 		$text = preg_replace( '%\s*([<\[]/(?:audio|video)[>\]])%', '$1', $text );
 		$text = preg_replace( '%\s*(<(?:source|track)[^>]*>)\s*%', '$1', $text );
 	}
 
 	// Collapse line breaks before and after <figcaption> elements.
-	if ( strpos( $text, '<figcaption' ) !== false ) {
+	if ( str_contains( $text, '<figcaption' ) ) {
 		$text = preg_replace( '|\s*(<figcaption[^>]*>)|', '$1', $text );
 		$text = preg_replace( '|</figcaption>\s*|', '</figcaption>', $text );
 	}
