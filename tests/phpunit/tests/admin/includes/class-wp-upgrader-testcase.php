@@ -254,7 +254,7 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 	protected function init_plugin_data_provider() {
 		require_once __DIR__ . '/pluginUpgrader/class-plugin-upgrader-data-provider.php';
 
-		if (  ! $this->plugin_data_provider instanceof Plugin_Upgrader_Data_Provider ) {
+		if ( ! $this->plugin_data_provider instanceof Plugin_Upgrader_Data_Provider ) {
 			$this->plugin_data_provider = new Plugin_Upgrader_Data_Provider();
 		}
 
