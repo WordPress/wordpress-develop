@@ -17,7 +17,7 @@
  */
 function remove_block_asset_path_prefix( $asset_handle_or_path ) {
 	$path_prefix = 'file:';
-	if ( 0 !== strpos( $asset_handle_or_path, $path_prefix ) ) {
+	if ( ! str_starts_with( $asset_handle_or_path, $path_prefix ) ) {
 		return $asset_handle_or_path;
 	}
 	$path = substr(
