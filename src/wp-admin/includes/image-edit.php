@@ -252,6 +252,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 	</div>
 
 	<?php
+
 	if ( $edit_thumbnails_separately && $thumb && $sub_sizes ) {
 		$thumb_img = wp_constrain_dimensions( $thumb['width'], $thumb['height'], 160, 120 );
 
@@ -297,8 +298,8 @@ function wp_image_editor( $post_id, $msg = false ) {
 		</fieldset>
 		</div>
 		</div>
-
 	<?php } ?>
+
 	</div>
 	</div>
 	<div class="imgedit-wait" id="imgedit-wait-<?php echo $post_id; ?>"></div>
@@ -874,6 +875,9 @@ function wp_save_image( $post_id ) {
 	$fheight = ! empty( $_REQUEST['fheight'] ) ? (int) $_REQUEST['fheight'] : 0;
 	$target  = ! empty( $_REQUEST['target'] ) ? preg_replace( '/[^a-z0-9_-]+/i', '', $_REQUEST['target'] ) : '';
 	$scale   = ! empty( $_REQUEST['do'] ) && 'scale' === $_REQUEST['do'];
+
+	/** This filter is documented in wp-admin/includes/image-edit.php */
+	$edit_thumbnails_separately = (bool) apply_filters( 'image_edit_thumbnails_separately', false );
 
 	if ( $scale && $fwidth > 0 && $fheight > 0 ) {
 		$size = $img->get_size();
