@@ -771,6 +771,7 @@ function wp_start_object_cache() {
 				'site-transient',
 				'rss',
 				'users',
+				'user-queries',
 				'useremail',
 				'userlogins',
 				'usermeta',
