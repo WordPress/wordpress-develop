@@ -230,15 +230,26 @@ function _filter_block_template_part_area( $type ) {
  * @return string[] A list of paths to all template part files.
  */
 function _get_block_templates_paths( $base_directory ) {
-	$path_list = array();
+	static $path_list;
+
+	if ( ! isset( $path_list ) ) {
+		$path_list = array();
+	}
+	$key = md5( $base_directory );
+	if ( isset( $path_list[ $key ] ) ) {
+		return $path_list[ $key ];
+
+	}
+	$path_list[ $key ] = array();
+
 	if ( file_exists( $base_directory ) ) {
 		$nested_files      = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base_directory ) );
 		$nested_html_files = new RegexIterator( $nested_files, '/^.+\.html$/i', RecursiveRegexIterator::GET_MATCH );
 		foreach ( $nested_html_files as $path => $file ) {
-			$path_list[] = $path;
+			$path_list[ $key ][] = $path;
 		}
 	}
-	return $path_list;
+	return $path_list[ $key ];
 }
 
 /**
