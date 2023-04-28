@@ -232,16 +232,27 @@ function _filter_block_template_part_area( $type ) {
 function _get_block_templates_paths( $base_directory ) {
 	$path_list = array();
 	if ( file_exists( $base_directory ) ) {
-		$path_list = glob_recursive( trailingslashit( $base_directory ) . '*.html' );
+		$path_list = _glob_recursive( trailingslashit( $base_directory ) . '*.html' );
 	}
 	return $path_list;
 }
 
-function glob_recursive( $pattern, $flags = 0 ) {
+/**
+ * Wrapper around glob, to get files recursively in subdirectories.
+ *
+ * @since 6.3.0
+ * @access private
+ *
+ * @param string $pattern The pattern. No tilde expansion or parameter substitution is done.
+ * @param int $flags
+ * @return array|false an array containing the matched files/directories, an empty array if no file matched or false on error.
+ */
+function _glob_recursive( $pattern, $flags = 0 ) {
 	$files = glob( $pattern, $flags );
 
-	foreach ( glob( dirname( $pattern ) . '/*', GLOB_ONLYDIR | GLOB_NOSORT ) as $dir ) {
-		$files = array_merge( $files, glob_recursive( $dir . '/' . basename( $pattern ), $flags ) );
+	$sub_directories = glob( dirname( $pattern ) . '/*', GLOB_ONLYDIR | GLOB_NOSORT );
+	foreach ( $sub_directories as $dir ) {
+		$files = array_merge( $files, _glob_recursive( $dir . '/' . basename( $pattern ), $flags ) );
 	}
 
 	return $files;
