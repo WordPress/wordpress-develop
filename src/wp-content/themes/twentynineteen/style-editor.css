@@ -1078,8 +1078,8 @@ figcaption,
   word-break: break-word;
 }
 
-.wp-block-pullquote:not(.is-style-solid-color) .wp-block-pullquote__citation {
-  color: #767676;
+.wp-block-pullquote blockquote p {
+	color: inherit;
 }
 
 .wp-block-pullquote.is-style-solid-color blockquote {
