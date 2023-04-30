@@ -1474,7 +1474,8 @@ function get_network_option( $network_id, $option, $default_value = false, $valu
 	$pre = apply_filters( "pre_site_option_{$option}", false, $option, $network_id, $default_value, $value_type );
 
 	if ( false !== $pre ) {
-		return $pre;
+		// Ensure the option value is of the expected type after the filter.
+		return wp_settype_to_value_from_db( $pre, $value_type );
 	}
 
 	// Prevent non-existent options from triggering multiple queries.
@@ -1504,7 +1505,7 @@ function get_network_option( $network_id, $option, $default_value = false, $valu
 	if ( ! is_multisite() ) {
 		/** This filter is documented in wp-includes/option.php */
 		$default_value = apply_filters( 'default_site_option_' . $option, $default_value, $option, $network_id );
-		$value         = get_option( $option, $default_value );
+		$value         = get_option( $option, $default_value, $value_type );
 	} else {
 		$cache_key = "$network_id:$option";
 		$value     = wp_cache_get( $cache_key, 'site-options' );

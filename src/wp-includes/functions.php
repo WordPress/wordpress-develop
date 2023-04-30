@@ -8514,7 +8514,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  * Get supported data types for meta and option values.
  *
  * This is a subset of the PHP data types that can be used for
- * meta and option values.
+ * meta and option values. See the documentation for PHP's 'settype()'.
  *
  * @since 6.3.0
  *
@@ -8523,7 +8523,9 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 function wp_get_db_value_types() {
 	return array(
 		'boolean',
+		'bool',
 		'integer',
+		'int',
 		'float',
 		'string',
 		'array',
