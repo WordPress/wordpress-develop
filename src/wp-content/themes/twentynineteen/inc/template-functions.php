@@ -161,7 +161,7 @@ add_filter( 'wp_nav_menu', 'twentynineteen_add_ellipses_to_nav', 10, 2 );
 /**
  * WCAG 2.0 Attributes for Dropdown Menus
  *
- * Adjustments to menu attributes tot support WCAG 2.0 recommendations
+ * Adjustments to menu attributes to support WCAG 2.0 recommendations
  * for flyout and dropdown menus.
  *
  * @ref https://www.w3.org/WAI/tutorials/menus/flyout/
