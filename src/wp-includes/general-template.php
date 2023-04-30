@@ -956,7 +956,7 @@ function get_site_icon_url( $size = 512, $url = '', $blog_id = 0 ) {
 		$switched_blog = true;
 	}
 
-	$site_icon_id = get_option( 'site_icon' );
+	$site_icon_id = (int) get_option( 'site_icon' );
 
 	if ( $site_icon_id ) {
 		if ( $size >= 512 ) {
@@ -3369,19 +3369,6 @@ function rsd_link() {
 	printf(
 		'<link rel="EditURI" type="application/rsd+xml" title="RSD" href="%s" />' . "\n",
 		esc_url( site_url( 'xmlrpc.php?rsd', 'rpc' ) )
-	);
-}
-
-/**
- * Displays the link to the Windows Live Writer manifest file.
- *
- * @link https://msdn.microsoft.com/en-us/library/bb463265.aspx
- * @since 2.3.1
- */
-function wlwmanifest_link() {
-	printf(
-		'<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="%s" />' . "\n",
-		includes_url( 'wlwmanifest.xml' )
 	);
 }
 

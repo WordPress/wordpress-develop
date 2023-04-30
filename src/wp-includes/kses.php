@@ -788,7 +788,7 @@ function wp_kses_one_attr( $attr, $element ) {
 	// Parse attribute name and value from input.
 	$split = preg_split( '/\s*=\s*/', $attr, 2 );
 	$name  = $split[0];
-	if ( count( $split ) == 2 ) {
+	if ( count( $split ) === 2 ) {
 		$value = $split[1];
 
 		// Remove quotes surrounding $value.
@@ -799,7 +799,7 @@ function wp_kses_one_attr( $attr, $element ) {
 			$quote = $value[0];
 		}
 		if ( '"' === $quote || "'" === $quote ) {
-			if ( substr( $value, -1 ) != $quote ) {
+			if ( substr( $value, -1 ) !== $quote ) {
 				return '';
 			}
 			$value = substr( $value, 1, -1 );
@@ -1330,7 +1330,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 
 	// Loop through the whole attribute list.
 
-	while ( strlen( $attr ) != 0 ) {
+	while ( strlen( $attr ) !== 0 ) {
 		$working = 0; // Was the last operation successful?
 
 		switch ( $mode ) {
@@ -1640,7 +1640,7 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
 			 * If the given value is an "n" or an "N", the attribute must have a value.
 			 */
 
-			if ( strtolower( $checkvalue ) != $vless ) {
+			if ( strtolower( $checkvalue ) !== $vless ) {
 				$ok = false;
 			}
 			break;
@@ -1846,7 +1846,7 @@ function wp_kses_bad_protocol_once2( $scheme, $allowed_protocols ) {
 
 	$allowed = false;
 	foreach ( (array) $allowed_protocols as $one_protocol ) {
-		if ( strtolower( $one_protocol ) == $scheme ) {
+		if ( strtolower( $one_protocol ) === $scheme ) {
 			$allowed = true;
 			break;
 		}
@@ -2279,6 +2279,7 @@ function kses_init() {
  *              Extended `margin-*` and `padding-*` support for logical properties.
  * @since 6.2.0 Added support for `aspect-ratio`, `position`, `top`, `right`, `bottom`, `left`,
  *              and `z-index` CSS properties.
+ * @since 6.3.0 Extended support for `filter` to accept a URL.
  *
  * @param string $css        A string of CSS rules.
  * @param string $deprecated Not used.
@@ -2466,6 +2467,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		'background-image',
 
 		'cursor',
+		'filter',
 
 		'list-style',
 		'list-style-image',

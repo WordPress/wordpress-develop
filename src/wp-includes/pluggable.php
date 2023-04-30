@@ -432,7 +432,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 					$recipient_name = '';
 
 					if ( preg_match( '/(.*)<(.+)>/', $address, $matches ) ) {
-						if ( count( $matches ) == 3 ) {
+						if ( count( $matches ) === 3 ) {
 							$recipient_name = $matches[1];
 							$address        = $matches[2];
 						}
@@ -2359,7 +2359,7 @@ if ( ! function_exists( 'wp_create_nonce' ) ) :
 			$uid = apply_filters( 'nonce_user_logged_out', $uid, $action );
 		}
 
-		$token = wp_get_session_token( $action );
+		$token = wp_get_session_token();
 		$i     = wp_nonce_tick( $action );
 
 		return substr( wp_hash( $i . '|' . $action . '|' . $uid . '|' . $token, 'nonce' ), -12, 10 );
