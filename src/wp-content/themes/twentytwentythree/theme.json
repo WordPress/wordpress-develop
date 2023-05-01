@@ -26,6 +26,15 @@
 	"settings": {
 		"appearanceTools": true,
 		"color": {
+			"background": true,
+			"custom": true,
+			"customDuotone": true,
+			"customGradient": true,
+			"defaultDuotone": true,
+			"defaultGradients": true,
+			"defaultPalette": true,
+			"duotone": [],
+			"gradients": [],
 			"palette": [
 				{
 					"color": "#ffffff",
@@ -52,15 +61,194 @@
 					"name": "Tertiary",
 					"slug": "tertiary"
 				}
-			]
+			],
+			"text": true
 		},
 		"layout": {
-			"contentSize": "650px",
+			"contentSize": "620px",
+			"definitions": {
+				"constrained": {
+					"baseStyles": [
+						{
+							"rules": {
+								"float": "left",
+								"margin-inline-end": "2em",
+								"margin-inline-start": "0"
+							},
+							"selector": " > .alignleft"
+						},
+						{
+							"rules": {
+								"float": "right",
+								"margin-inline-end": "0",
+								"margin-inline-start": "2em"
+							},
+							"selector": " > .alignright"
+						},
+						{
+							"rules": {
+								"margin-left": "auto !important",
+								"margin-right": "auto !important"
+							},
+							"selector": " > .aligncenter"
+						},
+						{
+							"rules": {
+								"margin-left": "auto !important",
+								"margin-right": "auto !important",
+								"max-width": "var(--wp--style--global--content-size)"
+							},
+							"selector": " > :where(:not(.alignleft):not(.alignright):not(.alignfull))"
+						},
+						{
+							"rules": {
+								"max-width": "var(--wp--style--global--wide-size)"
+							},
+							"selector": " > .alignwide"
+						}
+					],
+					"className": "is-layout-constrained",
+					"name": "constrained",
+					"slug": "constrained",
+					"spacingStyles": [
+						{
+							"rules": {
+								"margin-block-start": "0"
+							},
+							"selector": " > :first-child:first-child"
+						},
+						{
+							"rules": {
+								"margin-block-end": "0"
+							},
+							"selector": " > :last-child:last-child"
+						},
+						{
+							"rules": {
+								"margin-block-end": "0",
+								"margin-block-start": null
+							},
+							"selector": " > *"
+						}
+					]
+				},
+				"default": {
+					"baseStyles": [
+						{
+							"rules": {
+								"float": "left",
+								"margin-inline-end": "2em",
+								"margin-inline-start": "0"
+							},
+							"selector": " > .alignleft"
+						},
+						{
+							"rules": {
+								"float": "right",
+								"margin-inline-end": "0",
+								"margin-inline-start": "2em"
+							},
+							"selector": " > .alignright"
+						},
+						{
+							"rules": {
+								"margin-left": "auto !important",
+								"margin-right": "auto !important"
+							},
+							"selector": " > .aligncenter"
+						}
+					],
+					"className": "is-layout-flow",
+					"name": "default",
+					"slug": "flow",
+					"spacingStyles": [
+						{
+							"rules": {
+								"margin-block-start": "0"
+							},
+							"selector": " > :first-child:first-child"
+						},
+						{
+							"rules": {
+								"margin-block-end": "0"
+							},
+							"selector": " > :last-child:last-child"
+						},
+						{
+							"rules": {
+								"margin-block-end": "0",
+								"margin-block-start": null
+							},
+							"selector": " > *"
+						}
+					]
+				},
+				"flex": {
+					"baseStyles": [
+						{
+							"rules": {
+								"align-items": "center",
+								"flex-wrap": "wrap"
+							},
+							"selector": ""
+						},
+						{
+							"rules": {
+								"margin": "0"
+							},
+							"selector": " > *"
+						}
+					],
+					"className": "is-layout-flex",
+					"displayMode": "flex",
+					"name": "flex",
+					"slug": "flex",
+					"spacingStyles": [
+						{
+							"rules": {
+								"gap": null
+							},
+							"selector": ""
+						}
+					]
+				},
+				"grid": {
+					"baseStyles": [
+						{
+							"rules": {
+								"margin": "0"
+							},
+							"selector": " > *"
+						}
+					],
+					"className": "is-layout-grid",
+					"displayMode": "grid",
+					"name": "grid",
+					"slug": "grid",
+					"spacingStyles": [
+						{
+							"rules": {
+								"gap": null
+							},
+							"selector": ""
+						}
+					]
+				}
+			},
 			"wideSize": "1200px"
 		},
+		"shadow": {
+			"defaultPresets": true,
+			"presets": []
+		},
 		"spacing": {
+			"customSpacingSize": true,
 			"spacingScale": {
-				"steps": 0
+				"increment": 1.5,
+				"mediumStep": 1.5,
+				"operator": "*",
+				"steps": 0,
+				"unit": "rem"
 			},
 			"spacingSizes": [
 				{
@@ -104,6 +292,7 @@
 			]
 		},
 		"typography": {
+			"customFontSize": true,
 			"dropCap": false,
 			"fluid": true,
 			"fontFamilies": [
@@ -250,6 +439,7 @@
 						"max": "1rem",
 						"min": "0.875rem"
 					},
+					"name": "Small",
 					"size": "1rem",
 					"slug": "small"
 				},
@@ -258,6 +448,7 @@
 						"max": "1.125rem",
 						"min": "1rem"
 					},
+					"name": "Medium",
 					"size": "1.125rem",
 					"slug": "medium"
 				},
@@ -266,11 +457,13 @@
 						"max": "1.875rem",
 						"min": "1.75rem"
 					},
+					"name": "Large",
 					"size": "1.75rem",
 					"slug": "large"
 				},
 				{
 					"fluid": false,
+					"name": "Extra Large",
 					"size": "2.25rem",
 					"slug": "x-large"
 				},
@@ -282,7 +475,12 @@
 					"size": "10rem",
 					"slug": "xx-large"
 				}
-			]
+			],
+			"fontStyle": true,
+			"fontWeight": true,
+			"letterSpacing": true,
+			"textDecoration": true,
+			"textTransform": true
 		},
 		"useRootPaddingAwareAlignments": true
 	},
