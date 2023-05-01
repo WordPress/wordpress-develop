@@ -967,7 +967,12 @@ function wp_get_active_and_valid_themes() {
 		}
 	}
 
-	return $themes;
+	/**
+	 * Filters the list of active and valid themes.
+	 *
+	 * @param string[] $themes Array of absolute paths to theme directories.
+	 */
+	return apply_filters( 'wp_get_active_and_valid_themes', $themes );
 }
 
 /**
