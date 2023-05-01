@@ -611,7 +611,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 *     @type string|false $owner       Owner name or ID.
 	 *     @type string|false $size        Size of file in bytes as a string.
 	 *     @type string|false $lastmodunix Last modified unix timestamp as a string.
-	 *     @type string|false $lastmod     Last modified month (3 letter) and day (without leading 0).
+	 *     @type string|false $lastmod     Last modified month (3 letters) and day (without leading 0).
 	 *     @type string|false $time        Last modified time.
 	 *     @type string       $type        Type of resource. 'f' for file, 'd' for directory, 'l' for link.
 	 *     @type array        $files       If a directory and `$recursive` is true, contains another array of files.
@@ -736,7 +736,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 *         @type string|false     $owner       Owner name or ID.
 	 *         @type int|string|false $size        Size of file in bytes. May be a numeric string.
 	 *         @type int|string|false $lastmodunix Last modified unix timestamp. May be a numeric string.
-	 *         @type string|false     $lastmod     Last modified month (3 letter) and day (without leading 0).
+	 *         @type string|false     $lastmod     Last modified month (3 letters) and day (without leading 0).
 	 *         @type string|false     $time        Last modified time.
 	 *         @type string           $type        Type of resource. 'f' for file, 'd' for directory, 'l' for link.
 	 *         @type array            $files       If a directory and `$recursive` is true, contains another array of files.
