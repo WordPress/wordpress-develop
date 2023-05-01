@@ -4,6 +4,27 @@
  * @group taxonomy
  */
 class Tests_Term_Query extends WP_UnitTestCase {
+
+	/**
+	 * Temporary storage for a term ID for tests using filter callbacks.
+	 *
+	 * Used in the following tests:
+	 * - `test_null_term_object_should_be_discarded()`
+	 * - `test_error_term_object_should_be_discarded()`
+	 *
+	 * @var int
+	 */
+	private $term_id;
+
+	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		unset( $this->term_id );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 37545
 	 */

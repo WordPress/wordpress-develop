@@ -7,9 +7,27 @@
 class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 	private $taxonomy = 'wptests_tax';
 
+	/**
+	 * Temporary storage for taxonomies for tests using filter callbacks.
+	 *
+	 * Used in the `test_taxonomies_passed_to_wp_get_object_terms_filter_should_be_quoted()` method.
+	 *
+	 * @var array
+	 */
+	private $taxonomies;
+
 	public function set_up() {
 		parent::set_up();
 		register_taxonomy( 'wptests_tax', 'post' );
+	}
+
+	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		unset( $this->taxonomies );
+
+		parent::tear_down();
 	}
 
 	public function test_get_object_terms_by_slug() {
@@ -446,6 +464,8 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		$wpdb->update( $wpdb->term_taxonomy, array( 'term_taxonomy_id' => 100004 ), array( 'term_taxonomy_id' => $term_1->term_taxonomy_id ) );
 		$wpdb->update( $wpdb->term_taxonomy, array( 'term_taxonomy_id' => 100006 ), array( 'term_taxonomy_id' => $term_2->term_taxonomy_id ) );
 		$wpdb->update( $wpdb->term_taxonomy, array( 'term_taxonomy_id' => 100005 ), array( 'term_taxonomy_id' => $term_3->term_taxonomy_id ) );
+
+		clean_term_cache( array( $t1, $t2, $t3 ), $this->taxonomy );
 
 		$set = wp_set_object_terms( $p, array( $t1, $t2, $t3 ), $this->taxonomy );
 

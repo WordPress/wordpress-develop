@@ -11,6 +11,7 @@ require_once __DIR__ . '/plural-forms.php';
 require_once __DIR__ . '/entry.php';
 
 if ( ! class_exists( 'Translations', false ) ) :
+	#[AllowDynamicProperties]
 	class Translations {
 		public $entries = array();
 		public $headers = array();
@@ -159,7 +160,6 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 * Merge $other in the current object.
 		 *
 		 * @param Object $other Another Translation object, whose translations will be merged in this one (passed by reference).
-		 * @return void
 		 */
 		public function merge_with( &$other ) {
 			foreach ( $other->entries as $entry ) {
@@ -182,6 +182,21 @@ if ( ! class_exists( 'Translations', false ) ) :
 	}
 
 	class Gettext_Translations extends Translations {
+
+		/**
+		 * Number of plural forms.
+		 *
+		 * @var int
+		 */
+		public $_nplurals;
+
+		/**
+		 * Callback to retrieve the plural form.
+		 *
+		 * @var callable
+		 */
+		public $_gettext_select_plural_form;
+
 		/**
 		 * The gettext implementation of select_plural_form.
 		 *
@@ -300,6 +315,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 	/**
 	 * Provides the same interface as Translations, but doesn't do anything
 	 */
+	#[AllowDynamicProperties]
 	class NOOP_Translations {
 		public $entries = array();
 		public $headers = array();

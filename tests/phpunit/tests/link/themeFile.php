@@ -144,8 +144,8 @@ class Tests_Link_ThemeFile extends WP_UnitTestCase {
 		$uri        = get_theme_file_uri( $file );
 		$parent_uri = get_parent_theme_file_uri( $file );
 
-		$this->assertSame( esc_url_raw( $uri ), $uri );
-		$this->assertSame( esc_url_raw( $parent_uri ), $parent_uri );
+		$this->assertSame( sanitize_url( $uri ), $uri );
+		$this->assertSame( sanitize_url( $parent_uri ), $parent_uri );
 	}
 
 	public function data_theme_files() {

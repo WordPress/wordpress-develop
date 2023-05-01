@@ -495,7 +495,7 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$GLOBALS['hook_suffix'] = $hook;
 
 		if ( 'post.php' === $hook ) {
-			$post_id      = $this->factory->post->create(
+			$post_id      = self::factory()->post->create(
 				array(
 					'post_type' => 'type_shows_in_rest',
 				)

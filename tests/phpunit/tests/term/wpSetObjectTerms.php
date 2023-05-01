@@ -133,9 +133,9 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 		$ids = self::$post_ids;
 
 		$terms = array(
-			rand_str(),
-			rand_str(),
-			rand_str(),
+			'term0',
+			'term1',
+			'term2',
 		);
 
 		foreach ( $ids as $id ) {
@@ -164,7 +164,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 
 	public function test_set_object_terms_invalid() {
 		// Bogus taxonomy.
-		$result = wp_set_object_terms( self::$post_ids[0], array( rand_str() ), rand_str() );
+		$result = wp_set_object_terms( self::$post_ids[0], array( 'foo' ), 'invalid-taxonomy' );
 		$this->assertWPError( $result );
 	}
 

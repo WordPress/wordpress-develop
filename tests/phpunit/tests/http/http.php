@@ -392,4 +392,179 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Test that wp_http_validate_url validates URLs.
+	 *
+	 * @ticket 54331
+	 *
+	 * @dataProvider data_wp_http_validate_url_should_validate
+	 *
+	 * @covers ::wp_http_validate_url
+	 *
+	 * @param string       $url            The URL to validate.
+	 * @param false|string $cb_safe_ports  The name of the callback to http_allowed_safe_ports or false if none.
+	 *                                     Default false.
+	 * @param bool         $external_host  Whether or not the host is external.
+	 *                                     Default false.
+	 */
+	public function test_wp_http_validate_url_should_validate( $url, $cb_safe_ports = false, $external_host = false ) {
+		if ( $external_host ) {
+			add_filter( 'http_request_host_is_external', '__return_true' );
+		}
+
+		if ( $cb_safe_ports ) {
+			add_filter( 'http_allowed_safe_ports', array( $this, $cb_safe_ports ) );
+		}
+
+		$this->assertSame( $url, wp_http_validate_url( $url ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_http_validate_url_should_validate() {
+		return array(
+			'no port specified'                 => array(
+				'url' => 'http://example.com/caniload.php',
+			),
+			'an external request when allowed'  => array(
+				'url'           => 'http://172.20.0.123/caniload.php',
+				'cb_safe_ports' => false,
+				'external_host' => true,
+			),
+			'a port considered safe by default' => array(
+				'url' => 'https://example.com:8080/caniload.php',
+			),
+			'a port considered safe by filter'  => array(
+				'url'           => 'https://example.com:81/caniload.php',
+				'cb_safe_ports' => 'callback_custom_safe_ports',
+			),
+		);
+	}
+
+	/**
+	 * Tests that wp_http_validate_url validates a url that uses an unsafe port
+	 * but which matches the host and port used by the site's home url.
+	 *
+	 * @ticket 54331
+	 *
+	 * @covers ::wp_http_validate_url
+	 */
+	public function test_wp_http_validate_url_should_validate_with_an_unsafe_port_when_the_host_and_port_match_the_home_url() {
+		$original_home    = get_option( 'home' );
+		$home_parsed      = parse_url( $original_home );
+		$home_scheme_host = implode( '://', array_slice( $home_parsed, 0, 2 ) );
+		$home_modified    = $home_scheme_host . ':83';
+
+		update_option( 'home', $home_modified );
+
+		$url = $home_modified . '/caniload.php';
+		$this->assertSame( $url, wp_http_validate_url( $url ) );
+
+		update_option( 'home', $original_home );
+	}
+
+	/**
+	 * Test that wp_http_validate_url does not validate invalid URLs.
+	 *
+	 * @ticket 54331
+	 *
+	 * @dataProvider data_wp_http_validate_url_should_not_validate
+	 *
+	 * @covers ::wp_http_validate_url
+	 *
+	 * @param string       $url            The URL to validate.
+	 * @param false|string $cb_safe_ports  The name of the callback to http_allowed_safe_ports or false if none.
+	 *                                     Default false.
+	 * @param bool         $external_host  Whether or not the host is external.
+	 *                                     Default false.
+	 */
+	public function test_wp_http_validate_url_should_not_validate( $url, $cb_safe_ports = false, $external_host = false ) {
+		if ( $external_host ) {
+			add_filter( 'http_request_host_is_external', '__return_true' );
+		}
+
+		if ( $cb_safe_ports ) {
+			add_filter( 'http_allowed_safe_ports', array( $this, $cb_safe_ports ) );
+		}
+
+		$this->assertFalse( wp_http_validate_url( $url ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_http_validate_url_should_not_validate() {
+		return array(
+			'url as false'                                 => array(
+				'url' => false,
+			),
+			'url as null'                                  => array(
+				'url' => null,
+			),
+			'url as int 0'                                 => array(
+				'url' => 0,
+			),
+			'url as string 0'                              => array(
+				'url' => '0',
+			),
+			'url as int 1'                                 => array(
+				'url' => 1,
+			),
+			'url as string 1'                              => array(
+				'url' => '1',
+			),
+			'url as array()'                               => array(
+				'url' => array(),
+			),
+			'an empty url'                                 => array(
+				'url' => '',
+			),
+			'a url with a non-http/https protocol'         => array(
+				'url' => 'ftp://example.com:81/caniload.php',
+			),
+			'a malformed url'                              => array(
+				'url' => 'http:///example.com:81/caniload.php',
+			),
+			'a host that cannot be parsed'                 => array(
+				'url' => 'http:example.com/caniload.php',
+			),
+			'login information'                            => array(
+				'url' => 'http://user:pass@example.com/caniload.php',
+			),
+			'a host with invalid characters'               => array(
+				'url' => 'http://[exam]ple.com/caniload.php',
+			),
+			'a host whose IPv4 address cannot be resolved' => array(
+				'url' => 'http://exampleeeee.com/caniload.php',
+			),
+			'an external request when not allowed'         => array(
+				'url'           => 'http://192.168.0.1/caniload.php',
+				'external_host' => false,
+			),
+			'a port not considered safe by default'        => array(
+				'url' => 'https://example.com:81/caniload.php',
+			),
+			'a port not considered safe by filter'         => array(
+				'url'           => 'https://example.com:82/caniload.php',
+				'cb_safe_ports' => 'callback_custom_safe_ports',
+			),
+			'all safe ports removed by filter'             => array(
+				'url'           => 'https://example.com:81/caniload.php',
+				'cb_safe_ports' => 'callback_remove_safe_ports',
+			),
+		);
+	}
+
+	public function callback_custom_safe_ports( $ports ) {
+		return array( 81, 444, 8081 );
+	}
+
+	public function callback_remove_safe_ports( $ports ) {
+		return array();
+	}
 }

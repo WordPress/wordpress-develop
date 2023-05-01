@@ -12,6 +12,7 @@
  *
  * @group privacy
  * @covers ::wp_privacy_generate_personal_data_export_file
+ * @requires extension zip
  *
  * @since 5.2.0
  */
@@ -44,6 +45,13 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	public static $exports_dir;
 
 	/**
+	 * Original error level.
+	 *
+	 * @var int
+	 */
+	private $orig_error_level;
+
+	/**
 	 * Create fixtures that are shared by multiple test cases.
 	 *
 	 * @since 5.2.0
@@ -68,10 +76,6 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 
 		$this->export_file_name = '';
 
-		if ( ! class_exists( 'ZipArchive' ) ) {
-			$this->markTestSkipped( 'The ZipArchive class is missing.' );
-		}
-
 		if ( ! $this->remove_exports_dir() ) {
 			$this->markTestSkipped( 'Existing exports directory could not be removed. Skipping test.' );
 		}
@@ -82,8 +86,8 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		add_action( 'wp_privacy_personal_data_export_file_created', array( $this, 'action_wp_privacy_personal_data_export_file_created' ) );
 
 		// Suppress warnings from "Cannot modify header information - headers already sent by".
-		$this->_error_level = error_reporting();
-		error_reporting( $this->_error_level & ~E_WARNING );
+		$this->orig_error_level = error_reporting();
+		error_reporting( $this->orig_error_level & ~E_WARNING );
 	}
 
 	/**
@@ -95,7 +99,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 */
 	public function tear_down() {
 		$this->remove_exports_dir();
-		error_reporting( $this->_error_level );
+		error_reporting( $this->orig_error_level );
 		parent::tear_down();
 	}
 

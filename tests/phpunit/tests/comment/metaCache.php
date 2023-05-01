@@ -1,11 +1,15 @@
 <?php
-
-class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
+/**
+ * @group comment
+ */
+class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	protected $i       = 0;
 	protected $queries = 0;
 
 	/**
 	 * @ticket 16894
+	 *
+	 * @covers ::update_comment_meta
 	 */
 	public function test_update_comment_meta_cache_should_default_to_true() {
 		global $wpdb;
@@ -36,6 +40,8 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 16894
+	 *
+	 * @covers ::update_comment_meta
 	 */
 	public function test_update_comment_meta_cache_true() {
 		global $wpdb;
@@ -67,6 +73,8 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 16894
+	 *
+	 * @covers ::update_comment_meta
 	 */
 	public function test_update_comment_meta_cache_false() {
 		global $wpdb;
@@ -95,6 +103,8 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 16894
+	 *
+	 * @covers ::get_comment_meta
 	 */
 	public function test_comment_meta_should_be_lazy_loaded_for_all_comments_in_comments_template() {
 		global $wpdb;
@@ -130,6 +140,8 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34047
+	 *
+	 * @covers ::get_comment_meta
 	 */
 	public function test_comment_meta_should_be_lazy_loaded_in_comment_feed_queries() {
 		global $wpdb;
@@ -178,6 +190,8 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34047
+	 *
+	 * @covers ::get_comment_meta
 	 */
 	public function test_comment_meta_should_be_lazy_loaded_in_single_post_comment_feed_queries() {
 		global $wpdb;
@@ -227,6 +241,8 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 44467
+	 *
+	 * @covers ::add_metadata
 	 */
 	public function test_add_metadata_sets_comments_last_changed() {
 		$comment_id = self::factory()->comment->create();
@@ -239,6 +255,8 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 44467
+	 *
+	 * @covers ::update_metadata
 	 */
 	public function test_update_metadata_sets_comments_last_changed() {
 		$comment_id = self::factory()->comment->create();
@@ -251,6 +269,8 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 44467
+	 *
+	 * @covers ::delete_metadata
 	 */
 	public function test_delete_metadata_sets_comments_last_changed() {
 		$comment_id = self::factory()->comment->create();

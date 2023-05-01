@@ -145,7 +145,7 @@ class Tests_IsObjectInTerm extends WP_UnitTestCase {
 
 		$num_queries = $wpdb->num_queries;
 		$this->assertTrue( is_object_in_term( $o, 'wptests_tax', $terms[0] ) );
-		$num_queries++;
+		$num_queries = $num_queries + 2;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
 		$this->assertFalse( is_object_in_term( $o, 'wptests_tax', $terms[1] ) );
@@ -166,14 +166,14 @@ class Tests_IsObjectInTerm extends WP_UnitTestCase {
 
 		$num_queries = $wpdb->num_queries;
 		$this->assertTrue( is_object_in_term( $o, 'wptests_tax', $terms[0] ) );
-		$num_queries++;
+		$num_queries = $num_queries + 2;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
 		wp_set_object_terms( $o, $terms[1], 'wptests_tax' );
 
 		$num_queries = $wpdb->num_queries;
 		$this->assertTrue( is_object_in_term( $o, 'wptests_tax', $terms[1] ) );
-		$num_queries++;
+		$num_queries = $num_queries + 2;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
 

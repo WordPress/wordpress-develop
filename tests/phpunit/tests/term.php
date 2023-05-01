@@ -51,14 +51,17 @@ class Tests_Term extends WP_UnitTestCase {
 	 */
 	public function test_is_term_type() {
 		// Insert a term.
-		$term = rand_str();
+		$term = 'term_new';
 		$t    = wp_insert_term( $term, $this->taxonomy );
 		$this->assertIsArray( $t );
 		$term_obj = get_term_by( 'name', $term, $this->taxonomy );
-		$this->assertEquals( $t['term_id'], term_exists( $term_obj->slug ) );
 
+		$exists = term_exists( $term_obj->slug );
 		// Clean up.
-		$this->assertTrue( wp_delete_term( $t['term_id'], $this->taxonomy ) );
+		$deleted = wp_delete_term( $t['term_id'], $this->taxonomy );
+
+		$this->assertEquals( $t['term_id'], $exists );
+		$this->assertTrue( $deleted );
 	}
 
 	/**
@@ -72,7 +75,7 @@ class Tests_Term extends WP_UnitTestCase {
 			)
 		);
 		// There are 5 posts, all Uncategorized.
-		$this->assertEquals( 1, $count );
+		$this->assertSame( '1', $count );
 	}
 
 	/**
@@ -83,14 +86,14 @@ class Tests_Term extends WP_UnitTestCase {
 
 		// Counts all terms (1 default category, 5 tags).
 		$count = wp_count_terms();
-		$this->assertEquals( 6, $count );
+		$this->assertSame( '6', $count );
 
 		// Counts only tags (5), with both current and legacy signature.
 		// Legacy usage should not trigger deprecated notice.
 		$count        = wp_count_terms( array( 'taxonomy' => 'post_tag' ) );
 		$legacy_count = wp_count_terms( 'post_tag' );
-		$this->assertEquals( 5, $count );
-		$this->assertEquals( $count, $legacy_count );
+		$this->assertSame( '5', $count );
+		$this->assertSame( $count, $legacy_count );
 	}
 
 	/**
@@ -120,7 +123,7 @@ class Tests_Term extends WP_UnitTestCase {
 		}
 
 		foreach ( $posts as $post_id ) {
-			$this->assertTrue( (bool) wp_delete_post( $post_id ) );
+			$this->assertInstanceOf( 'WP_Post', wp_delete_post( $post_id ) );
 		}
 	}
 
@@ -135,10 +138,10 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertIsArray( $t );
 		$t2 = wp_insert_term( $term, 'category', array( 'parent' => $t['term_id'] ) );
 		$this->assertIsArray( $t2 );
-		if ( function_exists( 'term_is_ancestor_of' ) ) {
-			$this->assertTrue( term_is_ancestor_of( $t['term_id'], $t2['term_id'], 'category' ) );
-			$this->assertFalse( term_is_ancestor_of( $t2['term_id'], $t['term_id'], 'category' ) );
-		}
+
+		$this->assertTrue( term_is_ancestor_of( $t['term_id'], $t2['term_id'], 'category' ) );
+		$this->assertFalse( term_is_ancestor_of( $t2['term_id'], $t['term_id'], 'category' ) );
+
 		$this->assertTrue( cat_is_ancestor_of( $t['term_id'], $t2['term_id'] ) );
 		$this->assertFalse( cat_is_ancestor_of( $t2['term_id'], $t['term_id'] ) );
 
@@ -156,7 +159,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertIsNumeric( $t );
 		$this->assertNotWPError( $t );
 		$this->assertGreaterThan( 0, $t );
-		$this->assertEquals( $initial_count + 1, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
+		$this->assertSame( (string) ( $initial_count + 1 ), wp_count_terms( array( 'taxonomy' => 'category' ) ) );
 
 		// Make sure the term exists.
 		$this->assertGreaterThan( 0, term_exists( $term ) );
@@ -166,7 +169,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertTrue( wp_delete_category( $t ) );
 		$this->assertNull( term_exists( $term ) );
 		$this->assertNull( term_exists( $t ) );
-		$this->assertEquals( $initial_count, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
+		$this->assertSame( $initial_count, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
 	}
 
 	/**
@@ -247,6 +250,51 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertSame( 1, sanitize_term_field( 'parent', 1, $term['term_id'], $this->taxonomy, 'raw' ) );
 		$this->assertSame( 0, sanitize_term_field( 'parent', -1, $term['term_id'], $this->taxonomy, 'raw' ) );
 		$this->assertSame( 0, sanitize_term_field( 'parent', '', $term['term_id'], $this->taxonomy, 'raw' ) );
+	}
+
+	/**
+	 * @ticket 53152
+	 * @dataProvider data_wp_set_term_objects_finds_term_name_with_special_characters
+	 *
+	 * @param string $name  A term name containing special characters.
+	 */
+	public function test_wp_set_term_objects_finds_term_name_with_special_characters( $name ) {
+		$post_id  = self::$post_ids[0];
+		$expected = wp_set_object_terms( $post_id, $name, 'category', false );
+		$actual   = wp_set_object_terms( $post_id, $name, 'category', false );
+		$this->assertEquals( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_set_term_objects_finds_term_name_with_special_characters() {
+		return array(
+			'ampersand'               => array( 'name' => 'Foo & Bar' ),
+			'ndash and mdash'         => array( 'name' => 'Foo – Bar' ),
+			'trademark'               => array( 'name' => 'Foo Bar™' ),
+			'copyright'               => array( 'name' => 'Foo Bar©' ),
+			'registered'              => array( 'name' => 'Foo Bar®' ),
+			'degree'                  => array( 'name' => 'Foo ° Bar' ),
+			'forward slash'           => array( 'name' => 'Fo/o Ba/r' ),
+			'back slash'              => array( 'name' => 'F\oo \Bar' ),
+			'multiply'                => array( 'name' => 'Foo × Bar' ),
+			'standalone diacritic'    => array( 'name' => 'Foo Bāáǎàr' ),
+			'acute accents'           => array( 'name' => 'ááa´aˊ' ),
+			'iexcel and iquest'       => array( 'name' => '¡Foo ¿Bar' ),
+			'angle quotes'            => array( 'name' => '‹Foo« »Bar›' ),
+			'curly quotes'            => array( 'name' => '“F‘o„o‚ „ ‟ ‛B“a’r”' ),
+			'bullet'                  => array( 'name' => 'Foo • Bar' ),
+			'unencoded percent'       => array( 'name' => 'Foo % Bar' ),
+			'encoded ampersand'       => array( 'name' => 'Foo &amp; Bar' ),
+			'encoded ndash and mdash' => array( 'name' => 'Foo &mdash; &ndash; Bar' ),
+			'encoded trademark'       => array( 'name' => 'Foo Bar &trade;' ),
+			'encoded copyright'       => array( 'name' => 'Foo Bar &copy;' ),
+			'encoded registered'      => array( 'name' => 'Foo Bar &reg;' ),
+			'encoded bullet'          => array( 'name' => 'Foo &bullet; Bar' ),
+		);
 	}
 
 	/**

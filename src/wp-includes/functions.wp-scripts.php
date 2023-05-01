@@ -159,14 +159,14 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  * @since 4.3.0 A return value was added.
  *
  * @param string           $handle    Name of the script. Should be unique.
- * @param string|bool      $src       Full URL of the script, or path of the script relative to the WordPress root directory.
+ * @param string|false     $src       Full URL of the script, or path of the script relative to the WordPress root directory.
  *                                    If source is set to false, script is an alias of other scripts it depends on.
  * @param string[]         $deps      Optional. An array of registered script handles this script depends on. Default empty array.
  * @param string|bool|null $ver       Optional. String specifying script version number, if it has one, which is added to the URL
  *                                    as a query string for cache busting purposes. If version is set to false, a version
  *                                    number is automatically added equal to current installed WordPress version.
  *                                    If set to null, no version is added.
- * @param bool             $in_footer Optional. Whether to enqueue the script before </body> instead of in the <head>.
+ * @param bool             $in_footer Optional. Whether to enqueue the script before `</body>` instead of in the `<head>`.
  *                                    Default 'false'.
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
@@ -237,7 +237,7 @@ function wp_localize_script( $handle, $object_name, $l10n ) {
  * @param string $path   Optional. The full file path to the directory containing translation files.
  * @return bool True if the text domain was successfully localized, false otherwise.
  */
-function wp_set_script_translations( $handle, $domain = 'default', $path = null ) {
+function wp_set_script_translations( $handle, $domain = 'default', $path = '' ) {
 	global $wp_scripts;
 
 	if ( ! ( $wp_scripts instanceof WP_Scripts ) ) {
@@ -258,7 +258,7 @@ function wp_set_script_translations( $handle, $domain = 'default', $path = null 
  *
  * @since 2.1.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  *
  * @param string $handle Name of the script to be removed.
  */
@@ -340,7 +340,7 @@ function wp_deregister_script( $handle ) {
  *                                    as a query string for cache busting purposes. If version is set to false, a version
  *                                    number is automatically added equal to current installed WordPress version.
  *                                    If set to null, no version is added.
- * @param bool             $in_footer Optional. Whether to enqueue the script before </body> instead of in the <head>.
+ * @param bool             $in_footer Optional. Whether to enqueue the script before `</body>` instead of in the `<head>`.
  *                                    Default 'false'.
  */
 function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $in_footer = false ) {

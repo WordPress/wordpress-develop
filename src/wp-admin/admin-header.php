@@ -18,11 +18,11 @@ if ( ! defined( 'WP_ADMIN' ) ) {
  * @global string    $hook_suffix
  * @global WP_Screen $current_screen     WordPress current screen object.
  * @global WP_Locale $wp_locale          WordPress date and time locale object.
- * @global string    $pagenow
+ * @global string    $pagenow            The filename of the current screen.
  * @global string    $update_title
  * @global int       $total_update_count
  * @global string    $parent_file
- * @global string    $typenow
+ * @global string    $typenow            The post type of the current screen.
  */
 global $title, $hook_suffix, $current_screen, $wp_locale, $pagenow,
 	$update_title, $total_update_count, $parent_file, $typenow;
@@ -97,7 +97,7 @@ wp_enqueue_script( 'svg-painter' );
 $admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
 ?>
 <script type="text/javascript">
-addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(document).ready(func);else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
+addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
 var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
 	pagenow = '<?php echo esc_js( $current_screen->id ); ?>',
 	typenow = '<?php echo esc_js( $current_screen->post_type ); ?>',

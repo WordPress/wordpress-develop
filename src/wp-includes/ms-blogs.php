@@ -75,7 +75,7 @@ function get_blogaddress_by_name( $blogname ) {
 }
 
 /**
- * Retrieves a sites ID given its (subdomain or directory) slug.
+ * Retrieves a site's ID given its (subdomain or directory) slug.
  *
  * @since MU (3.0.0)
  * @since 4.7.0 Converted to use `get_sites()`.
@@ -552,7 +552,27 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 			if ( is_array( $global_groups ) ) {
 				wp_cache_add_global_groups( $global_groups );
 			} else {
-				wp_cache_add_global_groups( array( 'users', 'userlogins', 'usermeta', 'user_meta', 'useremail', 'userslugs', 'site-transient', 'site-options', 'blog-lookup', 'blog-details', 'rss', 'global-posts', 'blog-id-cache', 'networks', 'sites', 'site-details', 'blog_meta' ) );
+				wp_cache_add_global_groups(
+					array(
+						'blog-details',
+						'blog-id-cache',
+						'blog-lookup',
+						'blog_meta',
+						'global-posts',
+						'networks',
+						'sites',
+						'site-details',
+						'site-options',
+						'site-transient',
+						'rss',
+						'users',
+						'useremail',
+						'userlogins',
+						'usermeta',
+						'user_meta',
+						'userslugs',
+					)
+				);
 			}
 
 			wp_cache_add_non_persistent_groups( array( 'counts', 'plugins' ) );
@@ -623,7 +643,27 @@ function restore_current_blog() {
 			if ( is_array( $global_groups ) ) {
 				wp_cache_add_global_groups( $global_groups );
 			} else {
-				wp_cache_add_global_groups( array( 'users', 'userlogins', 'usermeta', 'user_meta', 'useremail', 'userslugs', 'site-transient', 'site-options', 'blog-lookup', 'blog-details', 'rss', 'global-posts', 'blog-id-cache', 'networks', 'sites', 'site-details', 'blog_meta' ) );
+				wp_cache_add_global_groups(
+					array(
+						'blog-details',
+						'blog-id-cache',
+						'blog-lookup',
+						'blog_meta',
+						'global-posts',
+						'networks',
+						'sites',
+						'site-details',
+						'site-options',
+						'site-transient',
+						'rss',
+						'users',
+						'useremail',
+						'userlogins',
+						'usermeta',
+						'user_meta',
+						'userslugs',
+					)
+				);
 			}
 
 			wp_cache_add_non_persistent_groups( array( 'counts', 'plugins' ) );

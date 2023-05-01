@@ -18,7 +18,7 @@ class Tests_XMLRPC_wp_getComment extends WP_XMLRPC_UnitTestCase {
 			'comment_author'       => 'Test commenter',
 			'comment_author_url'   => 'http://example.com/',
 			'comment_author_email' => 'example@example.com',
-			'comment_content'      => rand_str( 100 ),
+			'comment_content'      => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
 		);
 		self::$parent_comment_id   = wp_insert_comment( self::$parent_comment_data );
 
@@ -28,7 +28,7 @@ class Tests_XMLRPC_wp_getComment extends WP_XMLRPC_UnitTestCase {
 			'comment_author_url'   => 'http://example.org/',
 			'comment_author_email' => 'example@example.org',
 			'comment_parent'       => self::$parent_comment_id,
-			'comment_content'      => rand_str( 100 ),
+			'comment_content'      => 'Duis non neque cursus, commodo massa in, bibendum nisl.',
 		);
 		self::$child_comment_id   = wp_insert_comment( self::$child_comment_data );
 	}

@@ -1,8 +1,9 @@
 {
+	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 2,
 	"name": "core/post-terms",
 	"title": "Post Terms",
-	"category": "design",
+	"category": "theme",
 	"description": "Post terms.",
 	"textdomain": "default",
 	"attributes": {
@@ -11,6 +12,18 @@
 		},
 		"textAlign": {
 			"type": "string"
+		},
+		"separator": {
+			"type": "string",
+			"default": ", "
+		},
+		"prefix": {
+			"type": "string",
+			"default": ""
+		},
+		"suffix": {
+			"type": "string",
+			"default": ""
 		}
 	},
 	"usesContext": [ "postId", "postType" ],
@@ -18,11 +31,26 @@
 		"html": false,
 		"color": {
 			"gradients": true,
-			"link": true
+			"link": true,
+			"__experimentalDefaultControls": {
+				"background": true,
+				"text": true,
+				"link": true
+			}
 		},
 		"typography": {
+			"fontSize": true,
 			"lineHeight": true,
-			"fontSize": true
+			"__experimentalFontFamily": true,
+			"__experimentalFontWeight": true,
+			"__experimentalFontStyle": true,
+			"__experimentalTextTransform": true,
+			"__experimentalTextDecoration": true,
+			"__experimentalLetterSpacing": true,
+			"__experimentalDefaultControls": {
+				"fontSize": true
+			}
 		}
-	}
+	},
+	"style": "wp-block-post-terms"
 }

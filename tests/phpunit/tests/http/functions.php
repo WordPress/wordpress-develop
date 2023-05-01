@@ -147,7 +147,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_cookie
 	 */
 	public function test_get_response_cookies_with_wp_http_cookie_object() {
-		$url = 'http://example.org';
+		$url = 'https://login.wordpress.org/wp-login.php';
 
 		$response = wp_remote_get(
 			$url,
@@ -183,7 +183,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_cookie
 	 */
 	public function test_get_response_cookies_with_name_value_array() {
-		$url = 'http://example.org';
+		$url = 'https://login.wordpress.org/wp-login.php';
 
 		$response = wp_remote_get(
 			$url,

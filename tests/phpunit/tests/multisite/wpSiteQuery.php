@@ -849,7 +849,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$number_of_queries = $wpdb->num_queries;
+			$number_of_queries = get_num_queries();
 
 			$query_2 = $q->query(
 				array(
@@ -861,6 +861,70 @@ if ( is_multisite() ) :
 				)
 			);
 			$this->assertSame( $number_of_queries + 1, $wpdb->num_queries );
+		}
+
+		/**
+		 * @ticket 55462
+		 */
+		public function test_wp_site_query_cache_with_same_fields_same_cache_fields() {
+			$q = new WP_Site_Query();
+
+			$query_1 = $q->query(
+				array(
+					'fields'                 => 'ids',
+					'network_id'             => self::$network_ids['wordpress.org/'],
+					'number'                 => 3,
+					'order'                  => 'ASC',
+					'update_site_cache'      => true,
+					'update_site_meta_cache' => true,
+				)
+			);
+
+			$number_of_queries = get_num_queries();
+
+			$query_2 = $q->query(
+				array(
+					'fields'                 => 'ids',
+					'network_id'             => self::$network_ids['wordpress.org/'],
+					'number'                 => 3,
+					'order'                  => 'ASC',
+					'update_site_cache'      => true,
+					'update_site_meta_cache' => true,
+				)
+			);
+			$this->assertSame( $number_of_queries, get_num_queries() );
+		}
+
+		/**
+		 * @ticket 55462
+		 */
+		public function test_wp_site_query_cache_with_same_fields_different_cache_fields() {
+			$q = new WP_Site_Query();
+
+			$query_1 = $q->query(
+				array(
+					'fields'                 => 'ids',
+					'network_id'             => self::$network_ids['wordpress.org/'],
+					'number'                 => 3,
+					'order'                  => 'ASC',
+					'update_site_cache'      => true,
+					'update_site_meta_cache' => true,
+				)
+			);
+
+			$number_of_queries = get_num_queries();
+
+			$query_2 = $q->query(
+				array(
+					'fields'                 => 'ids',
+					'network_id'             => self::$network_ids['wordpress.org/'],
+					'number'                 => 3,
+					'order'                  => 'ASC',
+					'update_site_cache'      => false,
+					'update_site_meta_cache' => false,
+				)
+			);
+			$this->assertSame( $number_of_queries, get_num_queries() );
 		}
 
 		/**
