@@ -605,7 +605,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 *         @type string           $name        Name of the file or directory.
 	 *         @type string           $perms       *nix representation of permissions.
 	 *         @type string           $permsn      Octal representation of permissions.
-     *         @type false            $number      File number. Always false in this context.
+	 *         @type false            $number      File number. Always false in this context.
 	 *         @type string|false     $owner       Owner name or ID.
 	 *         @type string|false     $group       File permissions group.
 	 *         @type int|string|false $size        Size of file in bytes. May be a numeric string.

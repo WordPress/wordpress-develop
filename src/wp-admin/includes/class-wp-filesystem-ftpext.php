@@ -608,7 +608,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 *     @type string       $name        Name of the file or directory.
 	 *     @type string       $perms       *nix representation of permissions.
 	 *     @type string       $permsn      Octal representation of permissions.
-     *     @type string|false $number      File number as a string.
+	 *     @type string|false $number      File number as a string.
 	 *     @type string|false $owner       Owner name or ID.
 	 *     @type string|false $group       File permissions group.
 	 *     @type string|false $size        Size of file in bytes as a string.
@@ -735,7 +735,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 *         @type string           $name        Name of the file or directory.
 	 *         @type string           $perms       *nix representation of permissions.
 	 *         @type string           $permsn      Octal representation of permissions.
-     *         @type int|string|false $number      File number. May be a numeric string.
+	 *         @type int|string|false $number      File number. May be a numeric string.
 	 *         @type string|false     $owner       Owner name or ID.
 	 *         @type string|false     $group       File permissions group.
 	 *         @type int|string|false $size        Size of file in bytes. May be a numeric string.
