@@ -242,11 +242,12 @@ function _get_block_templates_paths( $base_directory ) {
 	}
 	$path_list[ $key ] = array();
 
-	if ( file_exists( $base_directory ) ) {
-		$nested_files      = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base_directory ) );
-		$nested_html_files = new RegexIterator( $nested_files, '/^.+\.html$/i', RecursiveRegexIterator::GET_MATCH );
-		foreach ( $nested_html_files as $path => $file ) {
-			$path_list[ $key ][] = $path;
+	if ( is_dir( $base_directory ) ) {
+		$nested_files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base_directory ) );
+		foreach ( $nested_files as $path => $file ) {
+			if ( str_ends_with( $file->getFilename(), '.html' ) ) {
+				$path_list[ $key ][] = $path;
+			}
 		}
 	}
 	return $path_list[ $key ];
