@@ -608,9 +608,9 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 *     @type string       $name        Name of the file or directory.
 	 *     @type string       $perms       *nix representation of permissions.
 	 *     @type string       $permsn      Octal representation of permissions.
-         *         @type int|false        $number      File number.
-	 *         @type string|false     $owner       Owner name or ID.
-	 *         @type string|false     $group       File permissions group.
+     *     @type string|false $number      File number as a string.
+	 *     @type string|false $owner       Owner name or ID.
+	 *     @type string|false $group       File permissions group.
 	 *     @type string|false $size        Size of file in bytes as a string.
 	 *     @type string|false $lastmodunix Last modified unix timestamp as a string.
 	 *     @type string|false $lastmod     Last modified month (3 letters) and day (without leading 0).
@@ -735,7 +735,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 *         @type string           $name        Name of the file or directory.
 	 *         @type string           $perms       *nix representation of permissions.
 	 *         @type string           $permsn      Octal representation of permissions.
-         *         @type int|false        $number      File number.
+     *         @type int|string|false $number      File number. May be a numeric string.
 	 *         @type string|false     $owner       Owner name or ID.
 	 *         @type string|false     $group       File permissions group.
 	 *         @type int|string|false $size        Size of file in bytes. May be a numeric string.
