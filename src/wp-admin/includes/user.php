@@ -324,18 +324,21 @@ function get_users_drafts( $user_id ) {
 }
 
 /**
- * Remove user and optionally reassign posts and links to another user.
+ * Delete user and optionally reassign posts and links to another user.
  *
- * If the $reassign parameter is not assigned to a User ID, then all posts will
- * be deleted of that user. The action {@see 'delete_user'} that is passed the User ID
+ * Note that on a Multisite installation the user only gets removed from the site
+ * and does not get deleted from the database.
+ *
+ * If the `$reassign` parameter is not assigned to a user ID, then all posts will
+ * be deleted of that user. The action {@see 'delete_user'} that is passed the user ID
  * being deleted will be run after the posts are either reassigned or deleted.
- * The user meta will also be deleted that are for that User ID.
+ * The user meta will also be deleted that are for that user ID.
  *
  * @since 2.0.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int $id User ID.
+ * @param int $id       User ID.
  * @param int $reassign Optional. Reassign posts and links to new User ID.
  * @return bool True when finished.
  */
@@ -361,7 +364,10 @@ function wp_delete_user( $id, $reassign = null ) {
 	}
 
 	/**
-	 * Fires immediately before a user is deleted from the database.
+	 * Fires immediately before a user is deleted from the site.
+	 *
+	 * Note that on a Multisite installation the user only gets removed from the site
+	 * and does not get deleted from the database.
 	 *
 	 * @since 2.0.0
 	 * @since 5.5.0 Added the `$user` parameter.
@@ -440,7 +446,11 @@ function wp_delete_user( $id, $reassign = null ) {
 	clean_user_cache( $user );
 
 	/**
-	 * Fires immediately after a user is deleted from the database.
+	 * Fires immediately after a user is deleted from the site.
+	 *
+	 * Note that on a Multisite installation the user may not have been deleted from
+	 * the database depending on whether `wp_delete_user()` or `wpmu_delete_user()`
+	 * was called.
 	 *
 	 * @since 2.9.0
 	 * @since 5.5.0 Added the `$user` parameter.
@@ -525,15 +535,28 @@ function default_password_nag() {
 	if ( 'profile.php' === $pagenow || ! get_user_option( 'default_password_nag' ) ) {
 		return;
 	}
-
-	echo '<div class="error default-password-nag">';
-	echo '<p>';
-	echo '<strong>' . __( 'Notice:' ) . '</strong> ';
-	_e( 'You&rsquo;re using the auto-generated password for your account. Would you like to change it?' );
-	echo '</p><p>';
-	printf( '<a href="%s">' . __( 'Yes, take me to my profile page' ) . '</a> | ', get_edit_profile_url() . '#password' );
-	printf( '<a href="%s" id="default-password-nag-no">' . __( 'No thanks, do not remind me again' ) . '</a>', '?default_password_nag=0' );
-	echo '</p></div>';
+	?>
+	<div class="error default-password-nag">
+		<p>
+			<strong><?php _e( 'Notice:' ); ?></strong>
+			<?php _e( 'You&rsquo;re using the auto-generated password for your account. Would you like to change it?' ); ?>
+		</p>
+		<p>
+		<?php
+		printf(
+			'<a href="%1$s">%2$s</a> | ',
+			esc_url( get_edit_profile_url() . '#password' ),
+			__( 'Yes, take me to my profile page' )
+		);
+		printf(
+			'<a href="%1$s" id="default-password-nag-no">%2$s</a>',
+			'?default_password_nag=0',
+			__( 'No thanks, do not remind me again' )
+		);
+		?>
+		</p>
+	</div>
+	<?php
 }
 
 /**

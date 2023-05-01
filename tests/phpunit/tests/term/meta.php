@@ -116,9 +116,6 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 	public function test_term_meta_should_be_lazy_loaded_for_all_terms_in_wp_query_loop() {
 		global $wpdb;
 
-		// Clear any previous term IDs from the queue.
-		wp_metadata_lazyloader()->reset_queue( 'term' );
-
 		$p = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -199,7 +196,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		foreach ( $terms as $t ) {
 			add_term_meta( $t, 'foo', 'bar' );
 		}
-
+		$this->reset_lazyload_queue();
 		$q = new WP_Query(
 			array(
 				'cache_results'          => true,
