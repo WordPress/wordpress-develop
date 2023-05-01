@@ -602,7 +602,20 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
 	/**
 	 * @param string $line
-	 * @return array
+	 * @return array {
+	 *     Array of file information.
+	 *
+	 *     @type string       $name        Name of the file or directory.
+	 *     @type string       $perms       *nix representation of permissions.
+	 *     @type string       $permsn      Octal representation of permissions.
+	 *     @type string|false $owner       Owner name or ID.
+	 *     @type string|false $size        Size of file in bytes as a string.
+	 *     @type string|false $lastmodunix Last modified unix timestamp as a string.
+	 *     @type string|false $lastmod     Last modified month (3 letter) and day (without leading 0).
+	 *     @type string|false $time        Last modified time.
+	 *     @type string       $type        Type of resource. 'f' for file, 'd' for directory, 'l' for link.
+	 *     @type array        $files       If a directory and `$recursive` is true, contains another array of files.
+	 * }
 	 */
 	public function parselisting( $line ) {
 		static $is_windows = null;
@@ -712,18 +725,22 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @param bool   $recursive      Optional. Whether to recursively include file details in nested directories.
 	 *                               Default false.
 	 * @return array|false {
-	 *     Array of files. False if unable to list directory contents.
+	 *     Array of arrays containing file information. False if unable to list directory contents.
 	 *
-	 *     @type string $name        Name of the file or directory.
-	 *     @type string $perms       *nix representation of permissions.
-	 *     @type string $permsn      Octal representation of permissions.
-	 *     @type string $owner       Owner name or ID.
-	 *     @type int    $size        Size of file in bytes.
-	 *     @type int    $lastmodunix Last modified unix timestamp.
-	 *     @type mixed  $lastmod     Last modified month (3 letter) and day (without leading 0).
-	 *     @type int    $time        Last modified time.
-	 *     @type string $type        Type of resource. 'f' for file, 'd' for directory.
-	 *     @type mixed  $files       If a directory and `$recursive` is true, contains another array of files.
+	 *     @type array $0... {
+	 *         Array of file information. Note that some elements may not be available on all filesystems.
+	 *
+	 *         @type string           $name        Name of the file or directory.
+	 *         @type string           $perms       *nix representation of permissions.
+	 *         @type string           $permsn      Octal representation of permissions.
+	 *         @type string|false     $owner       Owner name or ID.
+	 *         @type int|string|false $size        Size of file in bytes. May be a numeric string.
+	 *         @type int|string|false $lastmodunix Last modified unix timestamp. May be a numeric string.
+	 *         @type string|false     $lastmod     Last modified month (3 letter) and day (without leading 0).
+	 *         @type string|false     $time        Last modified time.
+	 *         @type string           $type        Type of resource. 'f' for file, 'd' for directory, 'l' for link.
+	 *         @type array            $files       If a directory and `$recursive` is true, contains another array of files.
+	 *     }
 	 * }
 	 */
 	public function dirlist( $path = '.', $include_hidden = true, $recursive = false ) {
