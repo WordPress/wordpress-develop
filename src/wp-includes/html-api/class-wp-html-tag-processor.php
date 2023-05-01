@@ -443,7 +443,12 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var WP_HTML_Attribute_Token[]
 	 */
-	private $attributes = array();
+	private $parsed_attributes = array();
+
+	/**
+	 * @var WP_HTML_Attribute_Token|null
+	 */
+	private $attr_class = null;
 
 	/**
 	 * Which class names to add or remove from a tag.
@@ -1210,7 +1215,7 @@ class WP_HTML_Tag_Processor {
 		}
 
 		$attribute_start             = $this->bytes_already_parsed;
-		$attribute_name              = substr( $this->html, $attribute_start, $name_length );
+//		$attribute_name              = substr( $this->html, $attribute_start, $name_length );
 		$this->bytes_already_parsed += $name_length;
 		if ( $this->bytes_already_parsed >= strlen( $this->html ) ) {
 			return false;
@@ -1259,26 +1264,19 @@ class WP_HTML_Tag_Processor {
 			return true;
 		}
 
-		/*
-		 * > There must never be two or more attributes on
-		 * > the same start tag whose names are an ASCII
-		 * > case-insensitive match for each other.
-		 *     - HTML 5 spec
-		 *
-		 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
-		 */
-		$comparable_name = strtolower( $attribute_name );
+		$attribute_token = new WP_HTML_Attribute_Token(
+			$name_length,
+			$value_start,
+			$value_length,
+			$attribute_start,
+			$attribute_end,
+			! $has_value
+		);
 
-		// If an attribute is listed many times, only use the first declaration and ignore the rest.
-		if ( ! array_key_exists( $comparable_name, $this->attributes ) ) {
-			$this->attributes[ $comparable_name ] = new WP_HTML_Attribute_Token(
-				$attribute_name,
-				$value_start,
-				$value_length,
-				$attribute_start,
-				$attribute_end,
-				! $has_value
-			);
+		if ( 'class' === strtolower( substr( $this->html, $attribute_start, $name_length ) ) ) {
+			$this->attr_class = $attribute_token;
+		} else {
+			$this->parsed_attributes[] = $attribute_token;
 		}
 
 		return true;
@@ -1309,7 +1307,8 @@ class WP_HTML_Tag_Processor {
 		$this->tag_name_length    = null;
 		$this->tag_ends_at        = null;
 		$this->is_closing_tag     = null;
-		$this->attributes         = array();
+		$this->parsed_attributes  = array();
+		$this->attr_class         = null;
 	}
 
 	/**
@@ -1333,11 +1332,12 @@ class WP_HTML_Tag_Processor {
 			$existing_class = '';
 		}
 
-		if ( false === $existing_class && isset( $this->attributes['class'] ) ) {
+		$existing_class_attribute = $this->get_parsed_attribute( 'class' );
+		if ( false === $existing_class && null !== $existing_class_attribute ) {
 			$existing_class = substr(
 				$this->html,
-				$this->attributes['class']->value_starts_at,
-				$this->attributes['class']->value_length
+				$existing_class_attribute->value_starts_at,
+				$existing_class_attribute->value_length
 			);
 		}
 
@@ -1608,6 +1608,31 @@ class WP_HTML_Tag_Processor {
 		return $a->end - $b->end;
 	}
 
+	private function get_parsed_attribute( $comparable_name ) {
+		if ( 'class' === $comparable_name ) {
+			return $this->attr_class;
+		}
+
+		foreach ( $this->parsed_attributes as $attribute ) {
+			if ( strlen( $comparable_name ) !== $attribute->name_length ) {
+				continue;
+			}
+
+			for ( $i = 0; $i < $attribute->name_length; $i++ ) {
+				$c = $comparable_name[ $i ];
+				$d = $this->html[ $attribute->start + $i ];
+
+				if ( $c !== $d && strtolower( $c ) !== strtolower( $d ) ) {
+					continue 2;
+				}
+			}
+
+			return $attribute;
+		}
+
+		return null;
+	}
+
 	/**
 	 * Return the enqueued value for a given attribute, if one exists.
 	 *
@@ -1719,11 +1744,10 @@ class WP_HTML_Tag_Processor {
 			return $enqueued_value;
 		}
 
-		if ( ! isset( $this->attributes[ $comparable ] ) ) {
+		$attribute = $this->get_parsed_attribute( $comparable );
+		if ( null === $attribute ) {
 			return null;
 		}
-
-		$attribute = $this->attributes[ $comparable ];
 
 		/*
 		 * This flag distinguishes an attribute with no value
@@ -1777,12 +1801,29 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		$comparable = strtolower( $prefix );
-
 		$matches = array();
-		foreach ( array_keys( $this->attributes ) as $attr_name ) {
-			if ( str_starts_with( $attr_name, $comparable ) ) {
-				$matches[] = $attr_name;
+
+		if ( null !== $this->attr_class ) {
+			$matches[] = 'class';
+		}
+
+		foreach ( $this->parsed_attributes as $attribute ) {
+			if ( $attribute->name_length < strlen( $prefix ) ) {
+				continue;
+			}
+
+			for ( $i = 0; $i < strlen( $prefix ); $i++ ) {
+				$c = $prefix[ $i ];
+				$d = $this->html[ $attribute->start + $i ];
+
+				if ( $c !== $d && strtolower( $c ) !== strtolower( $d ) ) {
+					continue 2;
+				}
+			}
+
+			$attribute_name = strtolower( substr( $this->html, $attribute->start, $attribute->name_length ) );
+			if ( ! in_array( $attribute_name, $matches, true ) ) {
+				$matches[] = $attribute_name;
 			}
 		}
 		return $matches;
@@ -1952,7 +1993,8 @@ class WP_HTML_Tag_Processor {
 		 */
 		$comparable_name = strtolower( $name );
 
-		if ( isset( $this->attributes[ $comparable_name ] ) ) {
+		$existing_attribute = $this->get_parsed_attribute( $comparable_name );
+		if ( null !== $existing_attribute ) {
 			/*
 			 * Update an existing attribute.
 			 *
@@ -1964,7 +2006,6 @@ class WP_HTML_Tag_Processor {
 			 *
 			 *    Result: <div id="new"/>
 			 */
-			$existing_attribute                        = $this->attributes[ $comparable_name ];
 			$this->lexical_updates[ $comparable_name ] = new WP_HTML_Text_Replacement(
 				$existing_attribute->start,
 				$existing_attribute->end,
@@ -2039,7 +2080,7 @@ class WP_HTML_Tag_Processor {
 		 * after calling `set_attribute()` for the same attribute
 		 * and when that attribute wasn't originally present.
 		 */
-		if ( ! isset( $this->attributes[ $name ] ) ) {
+		if ( null === $this->get_parsed_attribute( $name ) ) {
 			if ( isset( $this->lexical_updates[ $name ] ) ) {
 				unset( $this->lexical_updates[ $name ] );
 			}
@@ -2057,11 +2098,34 @@ class WP_HTML_Tag_Processor {
 		 *
 		 *    Result: <div />
 		 */
-		$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
-			$this->attributes[ $name ]->start,
-			$this->attributes[ $name ]->end,
-			''
-		);
+		if ( null !== $this->attr_class ) {
+			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+				$this->attr_class->start,
+				$this->attr_class->end,
+				''
+			);
+		}
+
+		foreach ( $this->parsed_attributes as $attribute ) {
+			if ( $attribute->name_length !== strlen( $name ) ) {
+				continue;
+			}
+
+			for ( $i = 0; $i < $attribute->name_length; $i++ ) {
+				$c = $name[ $i ];
+				$d = $this->html[ $attribute->start + $i ];
+
+				if ( $c !== $d && $c !== strtolower( $d ) ) {
+					continue 2;
+				}
+			}
+
+			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+				$attribute->start,
+				$attribute->end,
+				''
+			);
+		}
 
 		return true;
 	}
@@ -2302,7 +2366,8 @@ class WP_HTML_Tag_Processor {
 
 		$needs_class_name = null !== $this->sought_class_name;
 
-		if ( $needs_class_name && ! isset( $this->attributes['class'] ) ) {
+		$existing_class_attribute = $this->get_parsed_attribute( 'class' );
+		if ( $needs_class_name && null === $existing_class_attribute ) {
 			return false;
 		}
 
@@ -2313,8 +2378,8 @@ class WP_HTML_Tag_Processor {
 		 * than was supplied to the search query, but requires more complicated searching.
 		 */
 		if ( $needs_class_name ) {
-			$class_start = $this->attributes['class']->value_starts_at;
-			$class_end   = $class_start + $this->attributes['class']->value_length;
+			$class_start = $existing_class_attribute->value_starts_at;
+			$class_end   = $class_start + $existing_class_attribute->value_length;
 			$class_at    = $class_start;
 
 			/*
