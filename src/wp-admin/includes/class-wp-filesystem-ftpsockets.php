@@ -631,13 +631,13 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 *         @type string           $name        Name of the file or directory.
 	 *         @type string           $perms       *nix representation of permissions.
 	 *         @type string           $permsn      Octal representation of permissions.
-	 *         @type int|string|false $number      File number. May be a numeric string.
-	 *         @type string|false     $owner       Owner name or ID.
-	 *         @type string|false     $group       File permissions group.
-	 *         @type int|string|false $size        Size of file in bytes. May be a numeric string.
-	 *         @type int|string|false $lastmodunix Last modified unix timestamp. May be a numeric string.
-	 *         @type string|false     $lastmod     Last modified month (3 letters) and day (without leading 0).
-	 *         @type string|false     $time        Last modified time.
+	 *         @type int|string|false $number      File number. May be a numeric string. False if not available.
+	 *         @type string|false     $owner       Owner name or ID, or false if not available.
+	 *         @type string|false     $group       File permissions group, or false if not available.
+	 *         @type int|string|false $size        Size of file in bytes. May be a numeric string. False if not available.
+	 *         @type int|string|false $lastmodunix Last modified unix timestamp. May be a numeric string. False if not available.
+	 *         @type string|false     $lastmod     Last modified month (3 letters) and day (without leading 0), or false if not available.
+	 *         @type string|false     $time        Last modified time, or false if not available.
 	 *         @type string           $type        Type of resource. 'f' for file, 'd' for directory, 'l' for link.
 	 *         @type array            $files       If a directory and `$recursive` is true, contains another array of files.
 	 *     }
