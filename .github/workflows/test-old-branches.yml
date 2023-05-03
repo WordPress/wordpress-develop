@@ -94,6 +94,9 @@ jobs:
   slack-notifications:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    permissions:
+      actions: read
+      contents: read
     needs: [ dispatch-workflows-for-old-branches ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
