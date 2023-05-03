@@ -1781,7 +1781,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * Data provider for file validation.
 	 *
 	 * @return array {
-	 *     @type array $0... {
+	 *     @type array ...$0 {
 	 *         @type string $0 File path.
 	 *         @type array  $1 List of allowed files.
 	 *         @type int    $2 Expected result.
@@ -1927,7 +1927,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * Data provider for stream URL validation.
 	 *
 	 * @return array {
-	 *     @type array $0... {
+	 *     @type array ...$0 {
 	 *         @type string $0 The resource path or URL.
 	 *         @type bool   $1 Expected result.
 	 *     }
