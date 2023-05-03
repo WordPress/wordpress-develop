@@ -11,6 +11,10 @@ on:
         required: true
         type: 'string'
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 jobs:
   # Attempts to rerun a workflow.
   #
@@ -20,6 +24,8 @@ jobs:
   failed-workflow:
     name: Rerun a workflow
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     timeout-minutes: 5
 
     steps:

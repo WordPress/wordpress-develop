@@ -4,10 +4,16 @@ on:
   pull_request_target:
     types: [ opened ]
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 jobs:
   # Comments on a pull request when the author is a new contributor.
   post-welcome-message:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     timeout-minutes: 5
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
 
