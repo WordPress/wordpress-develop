@@ -2012,7 +2012,18 @@ class WP_Site_Health {
 		$wp_content = $wp_filesystem->wp_content_dir();
 
 		if ( ! $wp_content ) {
-			return new WP_Error( 'fs_no_content_dir', __( 'Unable to locate WordPress content directory (wp-content).' ) );
+			$result['status']      = 'critical';
+			$result['label']       = sprintf(
+				/* translators: %s: wp-content */
+				__( 'Unable to locate WordPress content directory (%s).' ),
+				'<code>wp-content</code>'
+			);
+			$result['description'] = sprintf(
+				/* translators: %s: wp-content */
+				'<p>' . __( 'The %s directory cannot be located.' ) . '</p>',
+				'<code>wp-content</code>'
+			);
+			return $result;
 		}
 
 		$upgrade_dir_exists      = $wp_filesystem->is_dir( "$wp_content/upgrade" );
