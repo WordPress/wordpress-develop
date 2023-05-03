@@ -109,6 +109,14 @@ class WP_Query {
 	public $current_post = -1;
 
 	/**
+	 * Whether the caller is before the loop.
+	 *
+	 * @since 6.3.0
+	 * @var bool
+	 */
+	public $before_loop = true;
+
+	/**
 	 * Whether the loop has started and the caller is in the loop.
 	 *
 	 * @since 2.0.0
