@@ -56,9 +56,9 @@ class Tests_Functions_WpDecodeValueFromDb extends WP_UnitTestCase {
 			'float 1'       => array( 1, 'float', 1.0 ),
 			// string
 			'string "test"' => array( 'test', 'string', 'test' ),
-			'string 12'	    => array( 12, 'string', '12' ),
-			'string true'	=> array( true, 'string', '1' ),
-			'string false'	=> array( false, 'string', '' ),
+			'string 12'     => array( 12, 'string', '12' ),
+			'string true'   => array( true, 'string', '1' ),
+			'string false'  => array( false, 'string', '' ),
 			'string 12.435' => array( 12.435, 'string', '12.435' ),
 			// array
 			'serialized array'        => array( serialize( array( 'test' => 'value' ) ), 'array', array( 'test' => 'value' ) ),
