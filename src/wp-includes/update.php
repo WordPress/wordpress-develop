@@ -1078,7 +1078,7 @@ function wp_clean_update_cache() {
 }
 
 /**
- * Deletes all contents of the temp-backup directory.
+ * Schedules the removal of all contents in the temp-backup directory.
  *
  * @since 6.3.0
  */
@@ -1093,12 +1093,12 @@ function wp_delete_all_temp_backups() {
 		return;
 	}
 
-	// This action runs on shutdown to make sure there is no plugin updates currently running.
+	// This action runs on shutdown to make sure there are no plugin updates currently running.
 	add_action( 'shutdown', '_wp_delete_all_temp_backups' );
 }
 
 /**
- * Remove `temp-backup` directory.
+ * Deletes all contents in the temp-backup directory.
  *
  * @since 6.3.0
  *
@@ -1106,7 +1106,7 @@ function wp_delete_all_temp_backups() {
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @return void|WP_Error void on success, or a WP_Error object on failure.
+ * @return void|WP_Error Void on success, or a WP_Error object on failure.
  */
 function _wp_delete_all_temp_backups() {
 	global $wp_filesystem;

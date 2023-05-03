@@ -113,7 +113,7 @@ class WP_Upgrader {
 	public $update_current = 0;
 
 	/**
-	 * Store list of plugins/themes added to temp-backup directory.
+	 * Stores the list of plugins or themes added to temp-backup directory.
 	 *
 	 * Used by rollback functions.
 	 *
@@ -123,7 +123,7 @@ class WP_Upgrader {
 	private $temp_backups = array();
 
 	/**
-	 * Store list of plugins/themes needing to be restored from temp-backup directory.
+	 * Stores the list of plugins or themes to be restored from temp-backup directory.
 	 *
 	 * Used by rollback functions.
 	 *
@@ -169,7 +169,7 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Schedule cleanup of the temp-backup directory.
+	 * Schedules cleanup of the temp-backup directory.
 	 *
 	 * @since 6.3.0
 	 */
@@ -209,10 +209,10 @@ class WP_Upgrader {
 		/* translators: %s: temp-backup */
 		$this->strings['temp_backup_mkdir_failed'] = sprintf( __( 'Could not create the %s directory.' ), 'temp-backup' );
 		/* translators: %s: temp-backup */
-		$this->strings['temp_backup_move_failed'] = sprintf( __( 'Could not move old version to the %s directory.' ), 'temp-backup' );
-		/* translators: %s: The theme/plugin slug. */
-		$this->strings['temp_backup_restore_failed'] = __( 'Could not restore original version of %s.' );
-		/* translators: %s: The theme/plugin slug. */
+		$this->strings['temp_backup_move_failed'] = sprintf( __( 'Could not move the old version to the %s directory.' ), 'temp-backup' );
+		/* translators: %s: The plugin or theme slug. */
+		$this->strings['temp_backup_restore_failed'] = __( 'Could not restore the original version of %s.' );
+		/* translators: %s: The plugin or theme slug. */
 		$this->strings['temp_backup_delete_failed'] = __( 'Could not delete the temporary backup directory for %s.' );
 	}
 
@@ -587,9 +587,11 @@ class WP_Upgrader {
 
 		if ( ! empty( $args['hook_extra']['temp_backup'] ) ) {
 			$temp_backup = $this->move_to_temp_backup_dir( $args['hook_extra']['temp_backup'] );
+
 			if ( is_wp_error( $temp_backup ) ) {
 				return $temp_backup;
 			}
+
 			$this->temp_backups[] = $args['hook_extra']['temp_backup'];
 		}
 
@@ -886,6 +888,7 @@ class WP_Upgrader {
 		$result = apply_filters( 'upgrader_install_package_result', $result, $options['hook_extra'] );
 
 		$this->skin->set_result( $result );
+
 		if ( is_wp_error( $result ) ) {
 			if ( ! empty( $options['hook_extra']['temp_backup'] ) ) {
 				$this->temp_restores[] = $options['hook_extra']['temp_backup'];
@@ -1044,7 +1047,7 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Moves the plugin/theme being updated into a temp-backup directory.
+	 * Moves the plugin or theme being updated into a temp-backup directory.
 	 *
 	 * @since 6.3.0
 	 *
@@ -1053,12 +1056,12 @@ class WP_Upgrader {
 	 * @param string[] $args {
 	 *     Array of data for the temp-backup.
 	 *
-	 *     @type string $slug Plugin slug.
+	 *     @type string $slug Plugin or theme slug.
 	 *     @type string $src  File path to directory.
 	 *     @type string $dir  Directory name.
 	 * }
 	 *
-	 * @return bool|WP_Error true for success, false for early exit, otherwise WP_Error.
+	 * @return bool|WP_Error True on success, false on early exit, otherwise WP_Error.
 	 */
 	public function move_to_temp_backup_dir( $args ) {
 		global $wp_filesystem;
@@ -1092,7 +1095,7 @@ class WP_Upgrader {
 			}
 
 			if ( ! $wp_filesystem->mkdir( $sub_dir, FS_CHMOD_DIR ) ) {
-				// Couldn't make the backup directory.
+				// Could not create the backup directory.
 				return new WP_Error( 'fs_temp_backup_mkdir', $this->strings['temp_backup_mkdir_failed'] );
 			}
 		}
@@ -1109,23 +1112,23 @@ class WP_Upgrader {
 		// Move to the temp-backup directory.
 		$result = move_dir( $src, $dest, true );
 		if ( is_wp_error( $result ) ) {
-			return new \WP_Error( 'fs_temp_backup_move', $this->strings['temp_backup_move_failed'] );
+			return new WP_Error( 'fs_temp_backup_move', $this->strings['temp_backup_move_failed'] );
 		}
 
 		return true;
 	}
 
 	/**
-	 * Restores the plugin/theme from the temp-backup directory.
+	 * Restores the plugin or theme from the temp-backup directory.
 	 *
 	 * @since 6.3.0
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @return bool|WP_Error true for success, false for early exit, otherwise WP_Error.
+	 * @return bool|WP_Error True on success, false on early exit, otherwise WP_Error.
 	 */
 	public function restore_temp_backup() {
-		 global $wp_filesystem;
+		global $wp_filesystem;
 
 		$errors = new WP_Error();
 
@@ -1175,7 +1178,7 @@ class WP_Upgrader {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @return bool|WP_Error true for success, false for early exit, otherwise WP_Error.
+	 * @return bool|WP_Error True on success, false on early exit, otherwise WP_Error.
 	 */
 	public function delete_temp_backup() {
 		global $wp_filesystem;

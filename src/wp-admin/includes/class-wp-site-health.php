@@ -1974,7 +1974,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if plugin and theme updates temp-backup directories are writable or can be created.
+	 * Tests if plugin and theme updates temp-backup directories are writable or can be created.
 	 *
 	 * @since 6.3.0
 	 *
@@ -2009,13 +2009,14 @@ class WP_Site_Health {
 			require_once ABSPATH . '/wp-admin/includes/file.php';
 			WP_Filesystem();
 		}
+
 		$wp_content = $wp_filesystem->wp_content_dir();
 
 		if ( ! $wp_content ) {
 			$result['status']      = 'critical';
 			$result['label']       = sprintf(
 				/* translators: %s: wp-content */
-				__( 'Unable to locate WordPress content directory (%s).' ),
+				__( 'Unable to locate WordPress content directory (%s)' ),
 				'<code>wp-content</code>'
 			);
 			$result['description'] = sprintf(
