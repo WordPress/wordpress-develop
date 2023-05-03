@@ -5439,11 +5439,15 @@ function wp_get_webp_info( $filename ) {
  *
  * @since 5.9.0
  *
+ * @global WP_Query $wp_query WordPress Query object.
+ *
  * @param string $context Context for the element for which the `loading` attribute value is requested.
  * @return string|bool The default `loading` attribute value. Either 'lazy', 'eager', or a boolean `false`, to indicate
  *                     that the `loading` attribute should be skipped.
  */
 function wp_get_loading_attr_default( $context ) {
+	global $wp_query;
+
 	// Skip lazy-loading for the overall block template, as it is handled more granularly.
 	if ( 'template' === $context ) {
 		return false;
@@ -5453,6 +5457,19 @@ function wp_get_loading_attr_default( $context ) {
 	$header_area = WP_TEMPLATE_PART_AREA_HEADER;
 	if ( "template_part_{$header_area}" === $context ) {
 		return false;
+	}
+
+	//
+	if ( 'wp_get_attachment_image' === $context || 'the_post_thumbnail' === $context ) {
+		// Any image before loop should not lazy load.
+		if ( $wp_query->before_loop && is_main_query() && did_action( 'get_header' ) && ! doing_action( 'get_header' ) ) {
+			// If footer has alredy reached then it means the current template did not include any loop. Lazy-load image from this point.
+			if ( did_action( 'get_footer' ) || doing_action( 'get_footer' ) ) {
+				return 'lazy';
+			}
+
+			return false;
+		}
 	}
 
 	/*
