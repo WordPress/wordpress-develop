@@ -3,7 +3,7 @@
     "name": "WordPress Core Development",
     "dockerComposeFile": "docker-compose.yml",
     "service": "app",
-	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 
     // Features to add to the dev container. More info: https://containers.dev/features.
     "features": {
