@@ -3646,6 +3646,8 @@ class WP_Query {
 		$this->in_the_loop = true;
 
 		if ( -1 == $this->current_post ) { // Loop has just started.
+			$this->before_loop = false;
+
 			/**
 			 * Fires once the loop is started.
 			 *
@@ -3684,6 +3686,8 @@ class WP_Query {
 			// Do some cleaning up after the loop.
 			$this->rewind_posts();
 		} elseif ( 0 === $this->post_count ) {
+			$this->before_loop = false;
+
 			/**
 			 * Fires if no results are found in a post query.
 			 *
