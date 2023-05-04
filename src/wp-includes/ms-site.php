@@ -376,7 +376,7 @@ function wp_lazyload_site_meta( array $site_ids ) {
 		return;
 	}
 	$lazyloader = wp_metadata_lazyloader();
-	$lazyloader->queue_objects( 'site', $site_ids );
+	$lazyloader->queue_objects( 'blog', $site_ids );
 }
 
 /**
