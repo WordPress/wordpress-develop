@@ -5461,8 +5461,9 @@ function wp_get_loading_attr_default( $context ) {
 
 	// Conditionally skip lazy-loading on images before the loop.
 	if ( 'wp_get_attachment_image' === $context || 'the_post_thumbnail' === $context ) {
-		// Any image before header ends should not be lazy load.
+		// Only apply for main query but before the loop.
 		if ( $wp_query->before_loop && is_main_query() ) {
+			// Any image before header ends should not be lazy load.
 			$is_header_loaded = did_action( 'get_header' ) && ! doing_action( 'get_header' );
 			if ( ! $is_header_loaded ) {
 				return false;
