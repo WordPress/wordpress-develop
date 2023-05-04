@@ -1997,7 +1997,7 @@ class WP_Site_Health {
 				'color' => 'blue',
 			),
 			'description' => sprintf(
-				/* translators: %s: wp-content/temp-backup */
+				/* translators: %s: wp-content/upgrade-temp-backup */
 				'<p>' . __( 'The %s directory used to improve the stability of plugin and theme updates is writable.' ) . '</p>',
 				'<code>wp-content/upgrade-temp-backup</code>'
 			),
