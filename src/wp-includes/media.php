@@ -5434,7 +5434,7 @@ function wp_get_webp_info( $filename ) {
  *
  * Under the hood, the function uses {@see wp_increase_content_media_count()} every time it is called for an element
  * within the main content. If the element is the very first content element, the `loading` attribute will be omitted.
- * This default threshold of 1 content element to omit the `loading` attribute for can be customized using the
+ * This default threshold of 3 content element to omit the `loading` attribute for can be customized using the
  * {@see 'wp_omit_loading_attr_threshold'} filter.
  *
  * @since 5.9.0
@@ -5484,7 +5484,7 @@ function wp_get_loading_attr_default( $context ) {
 /**
  * Gets the threshold for how many of the first content media elements to not lazy-load.
  *
- * This function runs the {@see 'wp_omit_loading_attr_threshold'} filter, which uses a default threshold value of 1.
+ * This function runs the {@see 'wp_omit_loading_attr_threshold'} filter, which uses a default threshold value of 3.
  * The filter is only run once per page load, unless the `$force` parameter is used.
  *
  * @since 5.9.0
@@ -5506,9 +5506,9 @@ function wp_omit_loading_attr_threshold( $force = false ) {
 		 *
 		 * @since 5.9.0
 		 *
-		 * @param int $omit_threshold The number of media elements where the `loading` attribute will not be added. Default 1.
+		 * @param int $omit_threshold The number of media elements where the `loading` attribute will not be added. Default 3.
 		 */
-		$omit_threshold = apply_filters( 'wp_omit_loading_attr_threshold', 1 );
+		$omit_threshold = apply_filters( 'wp_omit_loading_attr_threshold', 3 );
 	}
 
 	return $omit_threshold;
