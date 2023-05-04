@@ -3711,13 +3711,13 @@ EOF;
 	}
 
 	/**
-	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute value.
+	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute value before loop.
 	 *
 	 * @ticket 58211
 	 *
 	 * @covers ::wp_get_loading_attr_default
 	 *
-	 * @dataProvider data_wp_get_loading_attr_default_before_loop
+	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
 	 *
 	 * @param string $context
 	 */
@@ -3755,7 +3755,47 @@ EOF;
 		}
 	}
 
-	public function data_wp_get_loading_attr_default_before_loop() {
+	/**
+	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute if no loop.
+	 *
+	 * @ticket 58211
+	 *
+	 * @covers ::wp_get_loading_attr_default
+	 *
+	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
+	 *
+	 * @param string $context
+	 */
+	public function test_wp_get_loading_attr_default_no_loop( $context ) {
+		global $wp_query, $wp_the_query;
+
+		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
+
+		// Set current query as main query.
+		$wp_the_query = $wp_query;
+
+		// Ensure header is called already.
+		do_action( 'get_header' );
+
+		// if footer called before loop.
+		add_action(
+			'get_footer',
+			function() use ( $context ) {
+				$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+			}
+		);
+		do_action( 'get_footer' );
+		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_get_loading_attr_default_before_and_no_loop() {
 		return array(
 			array( 'wp_get_attachment_image' ),
 			array( 'the_post_thumbnail' ),
