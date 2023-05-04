@@ -1054,7 +1054,7 @@ class WP_Upgrader {
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
 	 * @param string[] $args {
-	 *     Array of data for the upgrade-temp-backup.
+	 *     Array of data for temp_backup.
 	 *
 	 *     @type string $slug Plugin or theme slug.
 	 *     @type string $src  File path to directory.
