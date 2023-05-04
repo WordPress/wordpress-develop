@@ -989,7 +989,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
 		if ( 'capabilities' !== substr( $key, -12 ) ) {
 			continue;
 		}
-		if ( $wpdb->base_prefix && 0 !== strpos( $key, $wpdb->base_prefix ) ) {
+		if ( $wpdb->base_prefix && ! str_starts_with( $key, $wpdb->base_prefix ) ) {
 			continue;
 		}
 		$site_id = str_replace( array( $wpdb->base_prefix, '_capabilities' ), '', $key );
@@ -5023,5 +5023,5 @@ function wp_register_persisted_preferences_meta() {
  * @since 6.3.0
  */
 function wp_cache_set_users_last_changed() {
-	wp_cache_set( 'last_changed', microtime(), 'users' );
+	wp_cache_set_last_changed( 'users' );
 }
