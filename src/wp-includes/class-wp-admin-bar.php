@@ -455,7 +455,7 @@ class WP_Admin_Bar {
 		}
 
 		?>
-		<div id="wpadminbar" class="<?php echo $class; ?>">
+		<div id="wpadminbar" class="<?php echo esc_attr( $class ); ?>">
 			<?php if ( ! is_admin() && ! did_action( 'wp_body_open' ) ) { ?>
 				<a class="screen-reader-shortcut" href="#wp-toolbar" tabindex="1"><?php _e( 'Skip to toolbar' ); ?></a>
 			<?php } ?>
@@ -484,7 +484,7 @@ class WP_Admin_Bar {
 			return;
 		}
 
-		echo '<div id="' . esc_attr( 'wp-admin-bar-' . $node->id ) . '" class="ab-group-container">';
+		echo '<div id="' . esc_attr( trim( 'wp-admin-bar-' . (string) $node->id ) ) . '" class="ab-group-container">';
 		foreach ( $node->children as $group ) {
 			$this->_render_group( $group );
 		}
@@ -511,7 +511,7 @@ class WP_Admin_Bar {
 			$class = '';
 		}
 
-		echo "<ul id='" . esc_attr( 'wp-admin-bar-' . $node->id ) . "'$class>";
+		echo "<ul id='" . esc_attr( trim( 'wp-admin-bar-' . (string) $node->id ) ) . "'$class>";
 		foreach ( $node->children as $item ) {
 			$this->_render_item( $item );
 		}
@@ -558,7 +558,7 @@ class WP_Admin_Bar {
 			$menuclass = ' class="' . esc_attr( trim( $menuclass ) ) . '"';
 		}
 
-		echo "<li id='" . esc_attr( 'wp-admin-bar-' . $node->id ) . "'$menuclass>";
+		echo "<li id='" . esc_attr( trim( 'wp-admin-bar-' . (string) $node->id ) ) . "'$menuclass>";
 
 		if ( $has_link ) {
 			$attributes = array( 'onclick', 'target', 'title', 'rel', 'lang', 'dir' );
