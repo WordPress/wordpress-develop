@@ -1172,7 +1172,7 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Deletes an upgrade-temp-backup.
+	 * Deletes a temporary backup.
 	 *
 	 * @since 6.3.0
 	 *
