@@ -1047,7 +1047,7 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Moves the plugin or theme being updated into a upgrade-temp-backup directory.
+	 * Moves the plugin or theme being updated into an upgrade-temp-backup directory.
 	 *
 	 * @since 6.3.0
 	 *
@@ -1172,7 +1172,7 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Deletes a upgrade-temp-backup.
+	 * Deletes an upgrade-temp-backup.
 	 *
 	 * @since 6.3.0
 	 *

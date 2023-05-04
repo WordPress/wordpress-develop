@@ -1974,7 +1974,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Tests if plugin and theme updates upgrade-temp-backup directories are writable or can be created.
+	 * Tests if plugin and theme updates temporary backup directories are writable or can be created.
 	 *
 	 * @since 6.3.0
 	 *

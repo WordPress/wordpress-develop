@@ -1078,7 +1078,7 @@ function wp_clean_update_cache() {
 }
 
 /**
- * Schedules the removal of all contents in the upgrade-temp-backup directory.
+ * Schedules the removal of all contents in the temporary backup.directory.
  *
  * @since 6.3.0
  */
@@ -1098,7 +1098,7 @@ function wp_delete_all_temp_backups() {
 }
 
 /**
- * Deletes all contents in the upgrade-temp-backup directory.
+ * Deletes all contents in the temporary backup directory.
  *
  * @since 6.3.0
  *
