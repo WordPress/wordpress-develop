@@ -3624,15 +3624,15 @@ EOF;
 		add_filter(
 			'wp_omit_loading_attr_threshold',
 			function() {
-				return 3;
+				return 5;
 			}
 		);
 
 		while ( have_posts() ) {
 			the_post();
 
-			// Due to the filter, now the first three elements should not be lazy-loaded, i.e. return `false`.
-			for ( $i = 0; $i < 3; $i++ ) {
+			// Due to the filter, now the first five elements should not be lazy-loaded, i.e. return `false`.
+			for ( $i = 0; $i < 5; $i++ ) {
 				$this->assertFalse( wp_get_loading_attr_default( 'the_content' ) );
 			}
 
@@ -3692,24 +3692,24 @@ EOF;
 	public function test_wp_omit_loading_attr_threshold() {
 		$this->reset_omit_loading_attr_filter();
 
-		// Apply filter, ensure default value of 1.
+		// Apply filter, ensure default value of 3.
 		$omit_threshold = wp_omit_loading_attr_threshold();
-		$this->assertSame( 1, $omit_threshold );
+		$this->assertSame( 3, $omit_threshold );
 
-		// Add a filter that changes the value to 3. However, the filter is not applied a subsequent time in a single
-		// page load by default, so the value is still 1.
+		// Add a filter that changes the value to 1. However, the filter is not applied a subsequent time in a single
+		// page load by default, so the value is still 3.
 		add_filter(
 			'wp_omit_loading_attr_threshold',
 			function() {
-				return 3;
+				return 1;
 			}
 		);
 		$omit_threshold = wp_omit_loading_attr_threshold();
-		$this->assertSame( 1, $omit_threshold );
+		$this->assertSame( 3, $omit_threshold );
 
 		// Only by enforcing a fresh check, the filter gets re-applied.
 		$omit_threshold = wp_omit_loading_attr_threshold( true );
-		$this->assertSame( 3, $omit_threshold );
+		$this->assertSame( 1, $omit_threshold );
 	}
 
 	/**
