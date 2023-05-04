@@ -1974,7 +1974,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Tests if plugin and theme updates temporary backup directories are writable or can be created.
+	 * Tests if plugin and theme temporary backup directories are writable or can be created.
 	 *
 	 * @since 6.3.0
 	 *
@@ -1986,11 +1986,7 @@ class WP_Site_Health {
 		global $wp_filesystem;
 
 		$result = array(
-			'label'       => sprintf(
-				/* translators: %s: upgrade-temp-backup */
-				__( 'Plugin and theme update %s directory is writable' ),
-				'upgrade-temp-backup'
-			),
+			'label'       => __( 'Plugin and theme temporary backup directory is writable' ),
 			'status'      => 'good',
 			'badge'       => array(
 				'label' => __( 'Security' ),
@@ -2038,12 +2034,8 @@ class WP_Site_Health {
 		$themes_dir_is_writable  = $wp_filesystem->is_writable( "$wp_content/upgrade-temp-backup/themes" );
 
 		if ( $plugins_dir_exists && ! $plugins_dir_is_writable && $themes_dir_exists && ! $themes_dir_is_writable ) {
-			$result['status'] = 'critical';
-			$result['label']  = sprintf(
-				/* translators: %s: upgrade-temp-backup */
-				__( 'Plugins and themes %s directories exist but are not writable' ),
-				'upgrade-temp-backup'
-			);
+			$result['status']      = 'critical';
+			$result['label']       = __( 'Plugin and theme temporary backup directories exist but are not writable' );
 			$result['description'] = sprintf(
 				/* translators: 1: wp-content/upgrade-temp-backup/plugins, 2: wp-content/upgrade-temp-backup/themes. */
 				'<p>' . __( 'The %1$s and %2$s directories exist but are not writable. These directories are used to improve the stability of plugin updates. Please make sure the server has write permissions to these directories.' ) . '</p>',
@@ -2054,12 +2046,8 @@ class WP_Site_Health {
 		}
 
 		if ( $plugins_dir_exists && ! $plugins_dir_is_writable ) {
-			$result['status'] = 'critical';
-			$result['label']  = sprintf(
-				/* translators: %s: upgrade-temp-backup */
-				__( 'Plugins %s directory exists but is not writable' ),
-				'upgrade-temp-backup'
-			);
+			$result['status']      = 'critical';
+			$result['label']       = __( 'Plugin temporary backup directory exists but is not writable' );
 			$result['description'] = sprintf(
 				/* translators: %s: wp-content/upgrade-temp-backup/plugins */
 				'<p>' . __( 'The %s directory exists but is not writable. This directory is used to improve the stability of plugin updates. Please make sure the server has write permissions to this directory.' ) . '</p>',
@@ -2069,12 +2057,8 @@ class WP_Site_Health {
 		}
 
 		if ( $themes_dir_exists && ! $themes_dir_is_writable ) {
-			$result['status'] = 'critical';
-			$result['label']  = sprintf(
-				/* translators: %s: upgrade-temp-backup */
-				__( 'Themes %s directory exists but is not writable' ),
-				'upgrade-temp-backup'
-			);
+			$result['status']      = 'critical';
+			$result['label']       = __( 'Theme temporary backup directory exists but is not writable' );
 			$result['description'] = sprintf(
 				/* translators: %s: wp-content/upgrade-temp-backup/themes */
 				'<p>' . __( 'The %s directory exists but is not writable. This directory is used to improve the stability of theme updates. Please make sure the server has write permissions to this directory.' ) . '</p>',
@@ -2084,12 +2068,8 @@ class WP_Site_Health {
 		}
 
 		if ( ( ! $plugins_dir_exists || ! $themes_dir_exists ) && $backup_dir_exists && ! $backup_dir_is_writable ) {
-			$result['status'] = 'critical';
-			$result['label']  = sprintf(
-				/* translators: %s: upgrade-temp-backup */
-				__( 'The %s directory exists but is not writable' ),
-				'upgrade-temp-backup'
-			);
+			$result['status']      = 'critical';
+			$result['label']       = __( 'The temporary backup directory exists but is not writable' );
 			$result['description'] = sprintf(
 				/* translators: %s: wp-content/upgrade-temp-backup */
 				'<p>' . __( 'The %s directory exists but is not writable. This directory is used to improve the stability of plugin and theme updates. Please make sure the server has write permissions to this directory.' ) . '</p>',
@@ -2805,8 +2785,7 @@ class WP_Site_Health {
 					'test'  => 'plugin_theme_auto_updates',
 				),
 				'update_temp_backup_writable'  => array(
-					/* translators: %s: upgrade-temp-backup */
-					'label' => sprintf( __( 'Updates %s directory access' ), 'upgrade-temp-backup' ),
+					'label' => __( 'Plugin and theme temporary backup directory access' ),
 					'test'  => 'update_temp_backup_writable',
 				),
 				'available_updates_disk_space' => array(

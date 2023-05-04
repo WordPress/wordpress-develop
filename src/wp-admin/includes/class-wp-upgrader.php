@@ -113,9 +113,9 @@ class WP_Upgrader {
 	public $update_current = 0;
 
 	/**
-	 * Stores the list of plugins or themes added to upgrade-temp-backup directory.
+	 * Stores the list of plugins or themes added to temporary backup directory.
 	 *
-	 * Used by rollback functions.
+	 * Used by the rollback functions.
 	 *
 	 * @since 6.3.0
 	 * @var array
@@ -123,9 +123,9 @@ class WP_Upgrader {
 	private $temp_backups = array();
 
 	/**
-	 * Stores the list of plugins or themes to be restored from upgrade-temp-backup directory.
+	 * Stores the list of plugins or themes to be restored from temporary backup directory.
 	 *
-	 * Used by rollback functions.
+	 * Used by the rollback functions.
 	 *
 	 * @since 6.3.0
 	 * @var array
@@ -154,7 +154,7 @@ class WP_Upgrader {
 	 * This will set the relationship between the skin being used and this upgrader,
 	 * and also add the generic strings to `WP_Upgrader::$strings`.
 	 *
-	 * Additionally, it will schedule a weekly task to clean up the upgrade-temp-backup directory.
+	 * Additionally, it will schedule a weekly task to clean up the temporary backup directory.
 	 *
 	 * @since 2.8.0
 	 * @since 6.3.0 Added the `schedule_temp_backup_cleanup()` task.
@@ -169,7 +169,7 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Schedules cleanup of the upgrade-temp-backup directory.
+	 * Schedules the cleanup of the temporary backup directory.
 	 *
 	 * @since 6.3.0
 	 */
@@ -913,7 +913,7 @@ class WP_Upgrader {
 
 		$this->skin->after();
 
-		// Clean up the backup kept in the upgrade-temp-backup directory.
+		// Clean up the backup kept in the temporary backup directory.
 		if ( ! empty( $options['hook_extra']['temp_backup'] ) ) {
 			// Delete the backup on `shutdown` to avoid a PHP timeout.
 			add_action( 'shutdown', array( $this, 'delete_temp_backup' ), 100, 0 );
@@ -1047,18 +1047,18 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Moves the plugin or theme being updated into an upgrade-temp-backup directory.
+	 * Moves the plugin or theme being updated into a temporary backup directory.
 	 *
 	 * @since 6.3.0
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
 	 * @param string[] $args {
-	 *     Array of data for temporary backup.
+	 *     Array of data for the temporary backup.
 	 *
 	 *     @type string $slug Plugin or theme slug.
-	 *     @type string $src  File path to directory.
-	 *     @type string $dir  Directory name.
+	 *     @type string $src  Path to the root directory for plugins or themes.
+	 *     @type string $dir  Destination subdirectory name. Accepts 'plugins' or 'themes'.
 	 * }
 	 *
 	 * @return bool|WP_Error True on success, false on early exit, otherwise WP_Error.
@@ -1088,7 +1088,7 @@ class WP_Upgrader {
 		$dest_dir = $wp_filesystem->wp_content_dir() . 'upgrade-temp-backup/';
 		$sub_dir  = $dest_dir . $args['dir'] . '/';
 
-		// Create the upgrade-temp-backup directory if it does not exist.
+		// Create the temporary backup directory if it does not exist.
 		if ( ! $wp_filesystem->is_dir( $sub_dir ) ) {
 			if ( ! $wp_filesystem->is_dir( $dest_dir ) ) {
 				$wp_filesystem->mkdir( $dest_dir, FS_CHMOD_DIR );
@@ -1104,12 +1104,12 @@ class WP_Upgrader {
 		$src     = trailingslashit( $src_dir ) . $args['slug'];
 		$dest    = $dest_dir . trailingslashit( $args['dir'] ) . $args['slug'];
 
-		// Delete the upgrade-temp-backup directory if it already exists.
+		// Delete the temporary backup directory if it already exists.
 		if ( $wp_filesystem->is_dir( $dest ) ) {
 			$wp_filesystem->delete( $dest, true );
 		}
 
-		// Move to the upgrade-temp-backup directory.
+		// Move to the temporary backup directory.
 		$result = move_dir( $src, $dest, true );
 		if ( is_wp_error( $result ) ) {
 			return new WP_Error( 'fs_temp_backup_move', $this->strings['temp_backup_move_failed'] );
@@ -1119,7 +1119,7 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Restores the plugin or theme from the upgrade-temp-backup directory.
+	 * Restores the plugin or theme from temporary backup.
 	 *
 	 * @since 6.3.0
 	 *
