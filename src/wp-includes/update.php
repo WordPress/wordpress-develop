@@ -1078,7 +1078,7 @@ function wp_clean_update_cache() {
 }
 
 /**
- * Schedules the removal of all contents in the temporary backup.directory.
+ * Schedules the removal of all contents in the temporary backup directory.
  *
  * @since 6.3.0
  */
