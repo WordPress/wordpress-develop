@@ -196,6 +196,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 *
 	 * @ticket 54243
 	 * @ticket 54922
+	 * @ticket 58069
 	 *
 	 * @covers ::_wp_normalize_relative_css_links
 	 *
@@ -239,6 +240,14 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 			'Data URIs, shouldn\'t change'                 => array(
 				'css'      => 'img {mask-image: url(\'data:image/svg+xml;utf8,<svg></svg>\');}',
 				'expected' => 'img {mask-image: url(\'data:image/svg+xml;utf8,<svg></svg>\');}',
+			),
+			'URLs with path beginning with http'           => array(
+				'css'      => 'p {background:url( "http-is-awesome.png" );}',
+				'expected' => 'p {background:url( "/wp-content/themes/test/http-is-awesome.png" );}',
+			),
+			'URLs with path beginning with https'          => array(
+				'css'      => 'p {background:url( "https-is-more-awesome.png" );}',
+				'expected' => 'p {background:url( "/wp-content/themes/test/https-is-more-awesome.png" );}',
 			),
 		);
 	}

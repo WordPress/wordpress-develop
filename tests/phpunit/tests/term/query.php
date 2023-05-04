@@ -46,6 +46,46 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$this->assertSameSets( array( $term_2 ), $q->terms );
 	}
 
+	/**
+	 * @ticket 57645
+	 */
+	public function test_lazy_load_term_meta() {
+		$filter = new MockAction();
+		add_filter( 'update_term_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+		register_taxonomy( 'wptests_tax_1', 'post' );
+		register_taxonomy( 'wptests_tax_2', 'post' );
+
+		$term_1 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_1' ) );
+		$term_2 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_2' ) );
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax_1',
+				'fields'     => 'ids',
+				'hide_empty' => false,
+			)
+		);
+
+		$this->assertSameSets( array( $term_1 ), $q->terms );
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax_2',
+				'fields'     => 'ids',
+				'hide_empty' => false,
+			)
+		);
+
+		$this->assertSameSets( array( $term_2 ), $q->terms );
+
+		get_term_meta( $term_1 );
+
+		$args     = $filter->get_args();
+		$first    = reset( $args );
+		$term_ids = end( $first );
+		$this->assertSameSets( $term_ids, array( $term_1, $term_2 ) );
+	}
+
 	public function test_taxonomy_should_accept_taxonomy_array() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
 		register_taxonomy( 'wptests_tax_2', 'post' );

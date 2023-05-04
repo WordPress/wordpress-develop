@@ -26,6 +26,10 @@ on:
         description: 'The Slack webhook URL for a failed build.'
         required: true
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 env:
   CURRENT_BRANCH: ${{ github.ref_name }}
 
@@ -44,6 +48,9 @@ jobs:
   prepare:
     name: Prepare notifications
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
     timeout-minutes: 5
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.event != 'pull_request' }}
     outputs:
