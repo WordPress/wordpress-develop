@@ -1740,8 +1740,6 @@ class WP_HTML_Tag_Processor {
 	 * > case-insensitive match for each other.
 	 *     - HTML 5 spec
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
-	 *
 	 * Example:
 	 * ```php
 	 * $p = new WP_HTML_Tag_Processor( '<div data-ENABLED class="test" DATA-test-id="14">Test</div>' );
@@ -1753,6 +1751,8 @@ class WP_HTML_Tag_Processor {
 	 * ```
 	 *
 	 * @since 6.2.0
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
 	 *
 	 * @param string $prefix Prefix of requested attribute names.
 	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
@@ -1778,7 +1778,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * Example:
 	 * ```php
-	 * $p = new WP_HTML_Tag_Processor( '<DIV CLASS="test">Test</DIV>' );
+	 * $p = new WP_HTML_Tag_Processor( '<div class="test">Test</div>' );
 	 * $p->next_tag() === true;
 	 * $p->get_tag() === 'DIV';
 	 *
