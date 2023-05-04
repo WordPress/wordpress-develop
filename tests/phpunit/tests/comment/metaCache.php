@@ -40,6 +40,40 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57801
+	 *
+	 * @covers ::wp_lazyload_comment_meta
+	 */
+	public function test_update_comment_meta_cache_should_default_to_lazy_loading_fields_id() {
+		$p           = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$comment_ids = self::factory()->comment->create_post_comments( $p, 3 );
+
+		foreach ( $comment_ids as $cid ) {
+			update_comment_meta( $cid, 'foo', 'bar' );
+		}
+
+		// Clear comment cache, just in case.
+		clean_comment_cache( $comment_ids );
+
+		$num_queries = get_num_queries();
+		$q           = new WP_Comment_Query(
+			array(
+				'post_ID' => $p,
+				'fields'  => 'ids',
+			)
+		);
+
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'Querying comments is expected to make two queries' );
+
+		$num_queries = get_num_queries();
+		foreach ( $comment_ids as $cid ) {
+			get_comment_meta( $cid, 'foo', 'bar' );
+		}
+
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'Comment meta is expected to be lazy loaded' );
+	}
+
+	/**
 	 * @ticket 16894
 	 *
 	 * @covers ::update_comment_meta
