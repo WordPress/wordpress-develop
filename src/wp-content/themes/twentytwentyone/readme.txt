@@ -1,9 +1,9 @@
 === Twenty Twenty-One ===
 Contributors: wordpressdotorg
 Requires at least: 5.3
-Tested up to: 6.1
+Tested up to: 6.2
 Requires PHP: 5.6
-Stable tag: 1.7
+Stable tag: 1.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,45 +30,50 @@ No data is saved in the database or transferred.
 
 == Changelog ==
 
+= 1.8 =
+* Released: March 28, 2023
+
+https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version_1.8
+
 = 1.7 =
 * Released: November 1, 2022
 
-https://wordpress.org/support/article/twenty-twenty-one-changelog#Version_1.7
+https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version_1.7
 
 = 1.6 =
 * Released: May 24, 2022
 
-https://wordpress.org/support/article/twenty-twenty-one-changelog#Version_1.6
+https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version_1.6
 
 = 1.5 =
 * Released: January 25, 2022
 
-https://wordpress.org/support/article/twenty-twenty-one-changelog#Version_1.5
+https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version_1.5
 
 = 1.4 =
 * Released: July 20, 2021
 
-https://wordpress.org/support/article/twenty-twenty-one-changelog#Version_1.4
+https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version_1.4
 
 = 1.3 =
 * Released: April 14, 2021
 
-https://wordpress.org/support/article/twenty-twenty-one-changelog#Version_1.3
+https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version_1.3
 
 = 1.2 =
 * Released: March 9, 2021
 
-https://wordpress.org/support/article/twenty-twenty-one-changelog#Version_1.2
+https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version_1.2
 
 = 1.1 =
 * Released: December 22, 2020
 
-https://wordpress.org/support/article/twenty-twenty-one-changelog#Version_1.1
+https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version_1.1
 
 = 1.0 =
 * Released: December 8, 2020
 
-https://wordpress.org/support/article/twenty-twenty-one-changelog#Version_1.0
+https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version_1.0
 
 == Copyright ==
 

@@ -1,15 +1,9 @@
 <?php
 /**
- * Block supports tests for the layout.
+ * Tests for block supports related to layout.
  *
  * @package WordPress
  * @subpackage Block Supports
- * @since 6.0.0
- */
-
-/**
- * Tests for block supports related to layout.
- *
  * @since 6.0.0
  *
  * @group block-supports

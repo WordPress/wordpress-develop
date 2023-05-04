@@ -5,12 +5,6 @@
  * @package WordPress\UnitTests
  *
  * @since 4.9.6
- */
-
-/**
- * Class Tests_Functions_Anonymization.
- *
- * @since 4.9.6
  *
  * @group functions.php
  * @group privacy

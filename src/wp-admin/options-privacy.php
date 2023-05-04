@@ -14,7 +14,7 @@ if ( ! current_user_can( 'manage_privacy_options' ) ) {
 }
 
 if ( isset( $_GET['tab'] ) && 'policyguide' === $_GET['tab'] ) {
-	require_once dirname( __FILE__ ) . '/privacy-policy-guide.php';
+	require_once __DIR__ . '/privacy-policy-guide.php';
 	return;
 }
 
@@ -44,7 +44,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/settings-privacy-screen/">Documentation on Privacy Settings</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/settings-privacy-screen/">Documentation on Privacy Settings</a>' ) . '</p>'
 );
 
 if ( ! empty( $action ) ) {

@@ -91,17 +91,11 @@ if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 		__( 'Database repair results' ) .
 	'</h1>';
 
-	$optimize = 2 == $_GET['repair'];
+	$optimize = '2' === $_GET['repair'];
 	$okay     = true;
 	$problems = array();
 
 	$tables = $wpdb->tables();
-
-	// Sitecategories may not exist if global terms are disabled.
-	$query = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->sitecategories ) );
-	if ( is_multisite() && ! $wpdb->get_var( $query ) ) {
-		unset( $tables['sitecategories'] );
-	}
 
 	/**
 	 * Filters additional database tables to repair.

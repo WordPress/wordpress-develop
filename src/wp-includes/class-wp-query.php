@@ -752,7 +752,7 @@ class WP_Query {
 	 *                                                    return posts containing 'pillow' but not 'sofa'. The
 	 *                                                    character used for exclusion can be modified using the
 	 *                                                    the 'wp_query_search_exclusion_prefix' filter.
-	 *     @type array           $search_columns          Array of column names to be searched. Accepts 'post_title',
+	 *     @type string[]        $search_columns          Array of column names to be searched. Accepts 'post_title',
 	 *                                                    'post_excerpt' and 'post_content'. Default empty array.
 	 *     @type int             $second                  Second of the minute. Default empty. Accepts numbers 0-59.
 	 *     @type bool            $sentence                Whether to search by phrase. Default false.
@@ -2252,7 +2252,7 @@ class WP_Query {
 				}
 				if ( ! $post_type ) {
 					$post_type = 'any';
-				} elseif ( count( $post_type ) == 1 ) {
+				} elseif ( count( $post_type ) === 1 ) {
 					$post_type = $post_type[0];
 				}
 
@@ -2808,10 +2808,10 @@ class WP_Query {
 			$last_changed = wp_cache_get_last_changed( 'comment' ) . ':' . wp_cache_get_last_changed( 'posts' );
 
 			$cache_key   = "comment_feed:$key:$last_changed";
-			$comment_ids = wp_cache_get( $cache_key, 'comment' );
+			$comment_ids = wp_cache_get( $cache_key, 'comment-queries' );
 			if ( false === $comment_ids ) {
 				$comment_ids = $wpdb->get_col( $comments_request );
-				wp_cache_add( $cache_key, $comment_ids, 'comment' );
+				wp_cache_add( $cache_key, $comment_ids, 'comment-queries' );
 			}
 			_prime_comment_caches( $comment_ids, false );
 
@@ -3165,7 +3165,7 @@ class WP_Query {
 
 			$cache_found = false;
 			if ( null === $this->posts ) {
-				$cached_results = wp_cache_get( $cache_key, 'posts', false, $cache_found );
+				$cached_results = wp_cache_get( $cache_key, 'post-queries', false, $cache_found );
 
 				if ( $cached_results ) {
 					if ( 'ids' === $q['fields'] ) {
@@ -3220,7 +3220,7 @@ class WP_Query {
 					'max_num_pages' => $this->max_num_pages,
 				);
 
-				wp_cache_set( $cache_key, $cache_value, 'posts' );
+				wp_cache_set( $cache_key, $cache_value, 'post-queries' );
 			}
 
 			return $this->posts;
@@ -3253,7 +3253,7 @@ class WP_Query {
 					'max_num_pages' => $this->max_num_pages,
 				);
 
-				wp_cache_set( $cache_key, $cache_value, 'posts' );
+				wp_cache_set( $cache_key, $cache_value, 'post-queries' );
 			}
 
 			return $post_parents;
@@ -3328,7 +3328,7 @@ class WP_Query {
 				'max_num_pages' => $this->max_num_pages,
 			);
 
-			wp_cache_set( $cache_key, $cache_value, 'posts' );
+			wp_cache_set( $cache_key, $cache_value, 'post-queries' );
 		}
 
 		if ( ! $q['suppress_filters'] ) {
@@ -3367,10 +3367,10 @@ class WP_Query {
 			$comment_last_changed = wp_cache_get_last_changed( 'comment' );
 
 			$comment_cache_key = "comment_feed:$comment_key:$comment_last_changed";
-			$comment_ids       = wp_cache_get( $comment_cache_key, 'comment' );
+			$comment_ids       = wp_cache_get( $comment_cache_key, 'comment-queries' );
 			if ( false === $comment_ids ) {
 				$comment_ids = $wpdb->get_col( $comments_request );
-				wp_cache_add( $comment_cache_key, $comment_ids, 'comment' );
+				wp_cache_add( $comment_cache_key, $comment_ids, 'comment-queries' );
 			}
 			_prime_comment_caches( $comment_ids, false );
 
@@ -4714,11 +4714,22 @@ class WP_Query {
 
 		$authordata = get_userdata( $post->post_author );
 
-		$currentday   = mysql2date( 'd.m.y', $post->post_date, false );
-		$currentmonth = mysql2date( 'm', $post->post_date, false );
-		$numpages     = 1;
-		$multipage    = 0;
-		$page         = $this->get( 'page' );
+		$currentday   = false;
+		$currentmonth = false;
+
+		$post_date = $post->post_date;
+		if ( ! empty( $post_date ) && '0000-00-00 00:00:00' !== $post_date ) {
+			// Avoid using mysql2date for performance reasons.
+			$currentmonth = substr( $post_date, 5, 2 );
+			$day          = substr( $post_date, 8, 2 );
+			$year         = substr( $post_date, 2, 2 );
+
+			$currentday = sprintf( '%s.%s.%s', $day, $currentmonth, $year );
+		}
+
+		$numpages  = 1;
+		$multipage = 0;
+		$page      = $this->get( 'page' );
 		if ( ! $page ) {
 			$page = 1;
 		}
@@ -4746,7 +4757,7 @@ class WP_Query {
 			$content = str_replace( '<!-- /wp:nextpage -->', '', $content );
 
 			// Ignore nextpage at the beginning of the content.
-			if ( 0 === strpos( $content, '<!--nextpage-->' ) ) {
+			if ( str_starts_with( $content, '<!--nextpage-->' ) ) {
 				$content = substr( $content, 15 );
 			}
 

@@ -1,13 +1,9 @@
 <?php
 /**
- * Unit tests covering the templates endpoint..
+ * Unit tests covering WP_REST_Templates_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
- * Tests for REST API for templates.
  *
  * @covers WP_REST_Templates_Controller
  *
@@ -173,7 +169,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 54507
-	 * @dataProvider get_template_endpoint_urls
+	 * @dataProvider data_get_item_works_with_a_single_slash
 	 */
 	public function test_get_item_works_with_a_single_slash( $endpoint_url ) {
 		wp_set_current_user( self::$admin_id );
@@ -207,7 +203,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 	}
 
-	public function get_template_endpoint_urls() {
+	public function data_get_item_works_with_a_single_slash() {
 		return array(
 			array( '/wp/v2/templates/default/my_template' ),
 			array( '/wp/v2/templates/default//my_template' ),
@@ -300,7 +296,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'args'      => array(
 					'post_name'    => 'small-header-τεστ',
 					'post_title'   => 'Small Header τεστ Template',
-					'post_content' => file_get_contents( $theme_root_dir . '/block-theme-non-latin/parts/small-header-τεστ.html' ),
+					'post_content' => file_get_contents( $theme_root_dir . '/block-theme-non-latin/parts/small-header-test.html' ),
 					'post_excerpt' => 'Description of small header τεστ template.',
 				),
 			),
@@ -310,7 +306,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'args'      => array(
 					'post_name'    => 'page-τεστ',
 					'post_title'   => 'τεστ Page Template',
-					'post_content' => file_get_contents( $theme_root_dir . 'block-theme-non-latin/templates/page-τεστ.html' ),
+					'post_content' => file_get_contents( $theme_root_dir . 'block-theme-non-latin/templates/page-test.html' ),
 					'post_excerpt' => 'Description of page τεστ template.',
 				),
 			),
@@ -320,7 +316,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'args'      => array(
 					'post_name'    => 'small-header-测试',
 					'post_title'   => 'Small Header 测试 Template',
-					'post_content' => file_get_contents( $theme_root_dir . '/block-theme-non-latin/parts/small-header-测试.html' ),
+					'post_content' => file_get_contents( $theme_root_dir . '/block-theme-non-latin/parts/small-header-test.html' ),
 					'post_excerpt' => 'Description of small header 测试 template.',
 				),
 			),
@@ -330,7 +326,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'args'      => array(
 					'post_name'    => 'page-测试',
 					'post_title'   => '测试 Page Template',
-					'post_content' => file_get_contents( $theme_root_dir . 'block-theme-non-latin/templates/page-测试.html' ),
+					'post_content' => file_get_contents( $theme_root_dir . 'block-theme-non-latin/templates/page-test.html' ),
 					'post_excerpt' => 'Description of page 测试 template.',
 				),
 			),
@@ -379,7 +375,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 54507
-	 * @dataProvider get_template_ids_to_sanitize
+	 * @dataProvider data_sanitize_template_id
 	 */
 	public function test_sanitize_template_id( $input_id, $sanitized_id ) {
 		$endpoint = new WP_REST_Templates_Controller( 'wp_template' );
@@ -389,7 +385,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 	}
 
-	public function get_template_ids_to_sanitize() {
+	public function data_sanitize_template_id() {
 		return array(
 			array( 'tt1-blocks/index', 'tt1-blocks//index' ),
 			array( 'tt1-blocks//index', 'tt1-blocks//index' ),

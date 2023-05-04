@@ -6,9 +6,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  * @group restapi-jsclient
  */

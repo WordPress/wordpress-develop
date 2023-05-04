@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_REST_URL_Details_Controller tests.
+ * Unit tests covering WP_REST_URL_Details_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.9.0
- */
-
-/**
- * Tests for WP_REST_URL_Details_Controller.
- *
  * @since 5.9.0
  *
  * @covers WP_REST_URL_Details_Controller

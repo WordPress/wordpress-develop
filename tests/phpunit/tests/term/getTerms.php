@@ -2756,7 +2756,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 10142
 	 */
-	public function test_termmeta_cache_should_be_primed_by_default() {
+	public function test_termmeta_cache_should_be_lazy_loaded_by_default() {
 		global $wpdb;
 
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -2779,7 +2779,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			$this->assertSame( 'bar', get_term_meta( $t, 'foo', true ) );
 		}
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 	}
 
 	/**

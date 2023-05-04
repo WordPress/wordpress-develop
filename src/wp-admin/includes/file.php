@@ -323,7 +323,7 @@ function wp_print_file_editor_templates() {
 					printf(
 						/* translators: %s: Documentation URL. */
 						__( 'You need to make this file writable before you can save your changes. See <a href="%s">Changing File Permissions</a> for more information.' ),
-						__( 'https://wordpress.org/support/article/changing-file-permissions/' )
+						__( 'https://wordpress.org/documentation/article/changing-file-permissions/' )
 					);
 					?>
 				</p>
@@ -997,7 +997,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 		}
 
 		if ( false === $move_new_file ) {
-			if ( 0 === strpos( $uploads['basedir'], ABSPATH ) ) {
+			if ( str_starts_with( $uploads['basedir'], ABSPATH ) ) {
 				$error_path = str_replace( ABSPATH, '', $uploads['basedir'] ) . $uploads['subdir'];
 			} else {
 				$error_path = basename( $uploads['basedir'] ) . $uploads['subdir'];
@@ -1196,7 +1196,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 	if ( $content_disposition ) {
 		$content_disposition = strtolower( $content_disposition );
 
-		if ( 0 === strpos( $content_disposition, 'attachment; filename=' ) ) {
+		if ( str_starts_with( $content_disposition, 'attachment; filename=' ) ) {
 			$tmpfname_disposition = sanitize_file_name( substr( $content_disposition, 21 ) );
 		} else {
 			$tmpfname_disposition = '';
@@ -1904,7 +1904,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 	$dirlist = $wp_filesystem->dirlist( $from );
 
 	if ( false === $dirlist ) {
-		return new WP_Error( 'dirlist_failed_copy_dir', __( 'Directory listing failed.' ), basename( $to ) );
+		return new WP_Error( 'dirlist_failed_copy_dir', __( 'Directory listing failed.' ), basename( $from ) );
 	}
 
 	$from = trailingslashit( $from );
@@ -1937,7 +1937,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 			$sub_skip_list = array();
 
 			foreach ( $skip_list as $skip_item ) {
-				if ( 0 === strpos( $skip_item, $filename . '/' ) ) {
+				if ( str_starts_with( $skip_item, $filename . '/' ) ) {
 					$sub_skip_list[] = preg_replace( '!^' . preg_quote( $filename, '!' ) . '/!i', '', $skip_item );
 				}
 			}
@@ -2124,7 +2124,7 @@ function WP_Filesystem( $args = false, $context = false, $allow_relaxed_file_own
  * The return value can be overridden by defining the `FS_METHOD` constant in `wp-config.php`,
  * or filtering via {@see 'filesystem_method'}.
  *
- * @link https://wordpress.org/support/article/editing-wp-config-php/#wordpress-upgrade-constants
+ * @link https://wordpress.org/documentation/article/editing-wp-config-php/#wordpress-upgrade-constants
  *
  * Plugins may define a custom transport handler, See WP_Filesystem().
  *

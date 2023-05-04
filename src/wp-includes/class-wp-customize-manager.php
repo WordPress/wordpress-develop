@@ -1981,7 +1981,7 @@ final class WP_Customize_Manager {
 				&&
 				$parsed_allowed_url['host'] === $parsed_original_url['host']
 				&&
-				0 === strpos( $parsed_original_url['path'], $parsed_allowed_url['path'] )
+				str_starts_with( $parsed_original_url['path'], $parsed_allowed_url['path'] )
 			);
 			if ( $is_allowed ) {
 				break;
@@ -5689,7 +5689,7 @@ final class WP_Customize_Manager {
 		$section_description .= __( 'Add your own CSS code here to customize the appearance and layout of your site.' );
 		$section_description .= sprintf(
 			' <a href="%1$s" class="external-link" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span></a>',
-			esc_url( __( 'https://wordpress.org/support/article/css/' ) ),
+			esc_url( __( 'https://wordpress.org/documentation/article/css/' ) ),
 			__( 'Learn more about CSS' ),
 			/* translators: Hidden accessibility text. */
 			__( '(opens in a new tab)' )

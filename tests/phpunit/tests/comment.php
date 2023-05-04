@@ -161,7 +161,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$comment = get_comment( $comment_id );
-		$this->assertEquals( '<a href="http://example.localhost/something.html" rel="nofollow ugc">click</a>', $comment->comment_content, 'Comment: ' . $comment->comment_content );
+		$this->assertSame( '<a href="http://example.localhost/something.html" rel="nofollow ugc">click</a>', $comment->comment_content, 'Comment: ' . $comment->comment_content );
 		wp_set_current_user( 0 );
 	}
 
@@ -375,6 +375,430 @@ class Tests_Comment extends WP_UnitTestCase {
 		$found = get_approved_comments( 0 );
 
 		$this->assertSame( array(), $found );
+	}
+
+	/**
+	 * Tests that get_cancel_comment_reply_link() returns the expected value.
+	 *
+	 * @ticket 53962
+	 *
+	 * @dataProvider data_get_cancel_comment_reply_link
+	 *
+	 * @covers ::get_cancel_comment_reply_link
+	 *
+	 * @param string        $text       Text to display for cancel reply link.
+	 *                                  If empty, defaults to 'Click here to cancel reply'.
+	 * @param string|int    $post       The post the comment thread is being displayed for.
+	 *                                  Accepts 'POST_ID', 'POST', or an integer post ID.
+	 * @param int|bool|null $replytocom A comment ID (int), whether to generate an approved (true) or unapproved (false) comment,
+	 *                                  or null not to create a comment.
+	 * @param string        $expected   The expected reply link.
+	 */
+	public function test_get_cancel_comment_reply_link( $text, $post, $replytocom, $expected ) {
+		if ( 'POST_ID' === $post ) {
+			$post = self::$post_id;
+		} elseif ( 'POST' === $post ) {
+			$post = self::factory()->post->get_object_by_id( self::$post_id );
+		}
+
+		if ( null === $replytocom ) {
+			unset( $_GET['replytocom'] );
+		} else {
+			$_GET['replytocom'] = $this->create_comment_with_approval_status( $replytocom );
+		}
+
+		$this->assertSame( $expected, get_cancel_comment_reply_link( $text, $post ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_cancel_comment_reply_link() {
+		return array(
+			'text as empty string, a valid post ID and an approved comment'    => array(
+				'text'       => '',
+				'post'       => 'POST_ID',
+				'replytocom' => true,
+				'expected'   => '<a rel="nofollow" id="cancel-comment-reply-link" href="#respond">Click here to cancel reply.</a>',
+			),
+			'text as a custom string, a valid post ID and an approved comment' => array(
+				'text'       => 'Leave a reply!',
+				'post'       => 'POST_ID',
+				'replytocom' => true,
+				'expected'   => '<a rel="nofollow" id="cancel-comment-reply-link" href="#respond">Leave a reply!</a>',
+			),
+			'text as empty string, a valid WP_Post object and an approved comment' => array(
+				'text'       => '',
+				'post'       => 'POST',
+				'replytocom' => true,
+				'expected'   => '<a rel="nofollow" id="cancel-comment-reply-link" href="#respond">Click here to cancel reply.</a>',
+			),
+			'text as a custom string, a valid WP_Post object and an approved comment' => array(
+				'text'       => 'Leave a reply!',
+				'post'       => 'POST',
+				'replytocom' => true,
+				'expected'   => '<a rel="nofollow" id="cancel-comment-reply-link" href="#respond">Leave a reply!</a>',
+			),
+			'text as empty string, an invalid post and an approved comment'    => array(
+				'text'       => '',
+				'post'       => -99999,
+				'replytocom' => true,
+				'expected'   => '<a rel="nofollow" id="cancel-comment-reply-link" href="#respond" style="display:none;">Click here to cancel reply.</a>',
+			),
+			'text as a custom string, a valid post, but no replytocom' => array(
+				'text'       => 'Leave a reply!',
+				'post'       => 'POST',
+				'replytocom' => null,
+				'expected'   => '<a rel="nofollow" id="cancel-comment-reply-link" href="#respond" style="display:none;">Leave a reply!</a>',
+			),
+		);
+	}
+
+	/**
+	 * Tests that comment_form_title() outputs the author of an approved comment.
+	 *
+	 * @ticket 53962
+	 *
+	 * @covers ::comment_form_title
+	 */
+	public function test_should_output_the_author_of_an_approved_comment() {
+		// Must be set for `comment_form_title()`.
+		$_GET['replytocom'] = $this->create_comment_with_approval_status( true );
+
+		$comment = get_comment( $_GET['replytocom'] );
+		comment_form_title( false, false, false, self::$post_id );
+
+		$this->assertInstanceOf(
+			'WP_Comment',
+			$comment,
+			'The comment is not an instance of WP_Comment.'
+		);
+
+		$this->assertObjectHasAttribute(
+			'comment_author',
+			$comment,
+			'The comment object does not have a "comment_author" property.'
+		);
+
+		$this->assertIsString(
+			$comment->comment_author,
+			'The "comment_author" is not a string.'
+		);
+
+		$this->expectOutputString(
+			'Leave a Reply to ' . $comment->comment_author,
+			'The expected string was not output.'
+		);
+	}
+
+	/**
+	 * Tests that get_comment_id_fields() allows replying to an approved comment.
+	 *
+	 * @ticket 53962
+	 *
+	 * @dataProvider data_should_allow_reply_to_an_approved_comment
+	 *
+	 * @covers ::get_comment_id_fields
+	 *
+	 * @param string $comment_post The post of the comment.
+	 *                             Accepts 'POST', 'NEW_POST', 'POST_ID' and 'NEW_POST_ID'.
+	 */
+	public function test_should_allow_reply_to_an_approved_comment( $comment_post ) {
+		// Must be set for `get_comment_id_fields()`.
+		$_GET['replytocom'] = $this->create_comment_with_approval_status( true );
+
+		if ( 'POST_ID' === $comment_post ) {
+			$comment_post = self::$post_id;
+		} elseif ( 'POST' === $comment_post ) {
+			$comment_post = self::factory()->post->get_object_by_id( self::$post_id );
+		}
+
+		$expected  = "<input type='hidden' name='comment_post_ID' value='" . self::$post_id . "' id='comment_post_ID' />\n";
+		$expected .= "<input type='hidden' name='comment_parent' id='comment_parent' value='" . $_GET['replytocom'] . "' />\n";
+		$actual    = get_comment_id_fields( $comment_post );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_should_allow_reply_to_an_approved_comment() {
+		return array(
+			'a post ID'        => array( 'comment_post' => 'POST_ID' ),
+			'a WP_Post object' => array( 'comment_post' => 'POST' ),
+		);
+	}
+
+	/**
+	 * Tests that get_comment_id_fields() returns an empty string
+	 * when the post cannot be retrieved.
+	 *
+	 * @ticket 53962
+	 *
+	 * @dataProvider data_non_existent_posts
+	 *
+	 * @covers ::get_comment_id_fields
+	 *
+	 * @param bool  $replytocom   Whether to create an approved (true) or unapproved (false) comment.
+	 * @param int   $comment_post The post of the comment.
+	 *
+	 */
+	public function test_should_return_empty_string( $replytocom, $comment_post ) {
+		if ( is_bool( $replytocom ) ) {
+			$replytocom = $this->create_comment_with_approval_status( $replytocom );
+		}
+
+		// Must be set for `get_comment_id_fields()`.
+		$_GET['replytocom'] = $replytocom;
+
+		$actual = get_comment_id_fields( $comment_post );
+
+		$this->assertSame( '', $actual );
+	}
+
+	/**
+	 * Tests that comment_form_title() does not output the author.
+	 *
+	 * @ticket 53962
+	 *
+	 * @covers ::comment_form_title
+	 *
+	 * @dataProvider data_parent_comments
+	 * @dataProvider data_non_existent_posts
+	 *
+	 * @param bool   $replytocom   Whether to create an approved (true) or unapproved (false) comment.
+	 * @param string $comment_post The post of the comment.
+	 *                             Accepts 'POST', 'NEW_POST', 'POST_ID' and 'NEW_POST_ID'.
+	 */
+	public function test_should_not_output_the_author( $replytocom, $comment_post ) {
+		if ( is_bool( $replytocom ) ) {
+			$replytocom = $this->create_comment_with_approval_status( $replytocom );
+		}
+
+		// Must be set for `comment_form_title()`.
+		$_GET['replytocom'] = $replytocom;
+
+		if ( 'NEW_POST_ID' === $comment_post ) {
+			$comment_post = self::factory()->post->create();
+		} elseif ( 'NEW_POST' === $comment_post ) {
+			$comment_post = self::factory()->post->create_and_get();
+		} elseif ( 'POST_ID' === $comment_post ) {
+			$comment_post = self::$post_id;
+		} elseif ( 'POST' === $comment_post ) {
+			$comment_post = self::factory()->post->get_object_by_id( self::$post_id );
+		}
+
+		$comment_post_id = $comment_post instanceof WP_Post ? $comment_post->ID : $comment_post;
+
+		get_comment( $_GET['replytocom'] );
+
+		comment_form_title( false, false, false, $comment_post_id );
+
+		$this->expectOutputString( 'Leave a Reply' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_non_existent_posts() {
+		return array(
+			'an unapproved comment and a non-existent post ID' => array(
+				'replytocom'   => false,
+				'comment_post' => -99999,
+			),
+			'an approved comment and a non-existent post ID' => array(
+				'replytocom'   => true,
+				'comment_post' => -99999,
+			),
+		);
+	}
+
+	/**
+	 * Tests that get_comment_id_fields() does not allow replies when
+	 * the comment does not have a parent post.
+	 *
+	 * @ticket 53962
+	 *
+	 * @covers ::get_comment_id_fields
+	 *
+	 * @dataProvider data_parent_comments
+	 *
+	 * @param mixed  $replytocom   Whether to create an approved (true) or unapproved (false) comment,
+	 *                             or an invalid comment ID.
+	 * @param string $comment_post The post of the comment.
+	 *                             Accepts 'POST', 'NEW_POST', 'POST_ID' and 'NEW_POST_ID'.
+	 */
+	public function test_should_not_allow_reply( $replytocom, $comment_post ) {
+		if ( is_bool( $replytocom ) ) {
+			$replytocom = $this->create_comment_with_approval_status( $replytocom );
+		}
+
+		// Must be set for `get_comment_id_fields()`.
+		$_GET['replytocom'] = $replytocom;
+
+		if ( 'NEW_POST_ID' === $comment_post ) {
+			$comment_post = self::factory()->post->create();
+		} elseif ( 'NEW_POST' === $comment_post ) {
+			$comment_post = self::factory()->post->create_and_get();
+		} elseif ( 'POST_ID' === $comment_post ) {
+			$comment_post = self::$post_id;
+		} elseif ( 'POST' === $comment_post ) {
+			$comment_post = self::factory()->post->get_object_by_id( self::$post_id );
+		}
+
+		$comment_post_id = $comment_post instanceof WP_Post ? $comment_post->ID : $comment_post;
+
+		$expected  = "<input type='hidden' name='comment_post_ID' value='" . $comment_post_id . "' id='comment_post_ID' />\n";
+		$expected .= "<input type='hidden' name='comment_parent' id='comment_parent' value='0' />\n";
+		$actual    = get_comment_id_fields( $comment_post );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_parent_comments() {
+		return array(
+			'an unapproved parent comment (ID)'      => array(
+				'replytocom'   => false,
+				'comment_post' => 'POST_ID',
+			),
+			'an approved parent comment on another post (ID)' => array(
+				'replytocom'   => true,
+				'comment_post' => 'NEW_POST_ID',
+			),
+			'an unapproved parent comment on another post (ID)' => array(
+				'replytocom'   => false,
+				'comment_post' => 'NEW_POST_ID',
+			),
+			'a parent comment ID that cannot be cast to an integer' => array(
+				'replytocom'   => array( 'I cannot be cast to an integer.' ),
+				'comment_post' => 'POST_ID',
+			),
+			'an unapproved parent comment (WP_Post)' => array(
+				'replytocom'   => false,
+				'comment_post' => 'POST',
+			),
+			'an approved parent comment on another post (WP_Post)' => array(
+				'replytocom'   => true,
+				'comment_post' => 'NEW_POST',
+			),
+			'an unapproved parent comment on another post (WP_Post)' => array(
+				'replytocom'   => false,
+				'comment_post' => 'NEW_POST',
+			),
+			'a parent comment WP_Post that cannot be cast to an integer' => array(
+				'replytocom'   => array( 'I cannot be cast to an integer.' ),
+				'comment_post' => 'POST',
+			),
+		);
+	}
+
+	/**
+	 * Helper function to create a comment with an approval status.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param bool $approved Whether or not the comment is approved.
+	 * @return int The comment ID.
+	 */
+	public function create_comment_with_approval_status( $approved ) {
+		return self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => ( $approved ) ? '1' : '0',
+			)
+		);
+	}
+
+	/**
+	 * Tests that _get_comment_reply_id() returns the expected value.
+	 *
+	 * @ticket 53962
+	 *
+	 * @dataProvider data_get_comment_reply_id
+	 *
+	 * @covers ::_get_comment_reply_id
+	 *
+	 * @param int|bool|null $replytocom A comment ID (int), whether to generate an approved (true) or unapproved (false) comment,
+	 *                                  or null not to create a comment.
+	 * @param string|int    $post       The post the comment thread is being displayed for.
+	 *                                  Accepts 'POST_ID', 'POST', or an integer post ID.
+	 * @param int           $expected   The expected result.
+	 */
+	public function test_get_comment_reply_id( $replytocom, $post, $expected ) {
+		if ( false === $replytocom ) {
+			unset( $_GET['replytocom'] );
+		} else {
+			$_GET['replytocom'] = $this->create_comment_with_approval_status( (bool) $replytocom );
+		}
+
+		if ( 'POST_ID' === $post ) {
+			$post = self::$post_id;
+		} elseif ( 'POST' === $post ) {
+			$post = self::factory()->post->get_object_by_id( self::$post_id );
+		}
+
+		if ( 'replytocom' === $expected ) {
+			$expected = $_GET['replytocom'];
+		}
+
+		$this->assertSame( $expected, _get_comment_reply_id( $post ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_comment_reply_id() {
+		return array(
+			'no comment ID set ($_GET["replytocom"])'     => array(
+				'replytocom' => false,
+				'post'       => 0,
+				'expected'   => 0,
+			),
+			'a non-numeric comment ID'                    => array(
+				'replytocom' => 'three',
+				'post'       => 0,
+				'expected'   => 0,
+			),
+			'a non-existent comment ID'                   => array(
+				'replytocom' => -999999,
+				'post'       => 0,
+				'expected'   => 0,
+			),
+			'an unapproved comment'                       => array(
+				'replytocom' => false,
+				'post'       => 0,
+				'expected'   => 0,
+			),
+			'a post that does not match the parent'       => array(
+				'replytocom' => false,
+				'post'       => -999999,
+				'expected'   => 0,
+			),
+			'an approved comment and the correct post ID' => array(
+				'replytocom' => true,
+				'post'       => 'POST_ID',
+				'expected'   => 'replytocom',
+			),
+			'an approved comment and the correct WP_Post object' => array(
+				'replytocom' => true,
+				'post'       => 'POST',
+				'expected'   => 'replytocom',
+			),
+		);
 	}
 
 	/**

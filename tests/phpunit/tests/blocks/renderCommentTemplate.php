@@ -1,15 +1,9 @@
 <?php
 /**
- * Comment Template block rendering tests.
+ * Tests for the Comment Template block rendering.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 6.0.0
- */
-
-/**
- * Tests for the Comment Template block.
- *
  * @since 6.0.0
  *
  * @group blocks

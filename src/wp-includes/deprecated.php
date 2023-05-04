@@ -741,12 +741,12 @@ function list_authors($optioncount = false, $exclude_admin = true, $show_fullnam
  * @see wp_get_post_categories()
  *
  * @param int $blogid Not Used
- * @param int $post_ID
+ * @param int $post_id
  * @return array
  */
-function wp_get_post_cats($blogid = '1', $post_ID = 0) {
+function wp_get_post_cats($blogid = '1', $post_id = 0) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_get_post_categories()' );
-	return wp_get_post_categories($post_ID);
+	return wp_get_post_categories($post_id);
 }
 
 /**
@@ -758,13 +758,13 @@ function wp_get_post_cats($blogid = '1', $post_ID = 0) {
  * @see wp_set_post_categories()
  *
  * @param int $blogid Not used
- * @param int $post_ID
+ * @param int $post_id
  * @param array $post_categories
  * @return bool|mixed
  */
-function wp_set_post_cats($blogid = '1', $post_ID = 0, $post_categories = array()) {
+function wp_set_post_cats($blogid = '1', $post_id = 0, $post_categories = array()) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_set_post_categories()' );
-	return wp_set_post_categories($post_ID, $post_categories);
+	return wp_set_post_categories($post_id, $post_categories);
 }
 
 /**
@@ -947,7 +947,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmarks()' );
 
 	$order = 'ASC';
-	if ( substr($orderby, 0, 1) == '_' ) {
+	if ( substr($orderby, 0, 1) === '_' ) {
 		$order = 'DESC';
 		$orderby = substr($orderby, 1);
 	}
@@ -980,7 +980,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 		$title = $desc;
 
 		if ( $show_updated )
-			if (substr($row->link_updated_f, 0, 2) != '00')
+			if (substr($row->link_updated_f, 0, 2) !== '00')
 				$title .= ' ('.__('Last updated') . ' ' . gmdate(get_option('links_updated_date_format'), $row->link_updated_f + (get_option('gmt_offset') * HOUR_IN_SECONDS)) . ')';
 
 		if ( '' != $title )
@@ -1042,7 +1042,7 @@ function get_links_list($order = 'name') {
 
 	// Handle link category sorting.
 	$direction = 'ASC';
-	if ( '_' == substr($order,0,1) ) {
+	if ( '_' === substr($order,0,1) ) {
 		$direction = 'DESC';
 		$order = substr($order,1);
 	}
@@ -1739,7 +1739,7 @@ function make_url_footnote( $content ) {
 		$link_url = $matches[2][$i];
 		$link_text = $matches[4][$i];
 		$content = str_replace( $link_match, $link_text . ' ' . $link_number, $content );
-		$link_url = ( ( strtolower( substr( $link_url, 0, 7 ) ) != 'http://' ) && ( strtolower( substr( $link_url, 0, 8 ) ) != 'https://' ) ) ? get_option( 'home' ) . $link_url : $link_url;
+		$link_url = ( ( strtolower( substr( $link_url, 0, 7 ) ) !== 'http://' ) && ( strtolower( substr( $link_url, 0, 8 ) ) !== 'https://' ) ) ? get_option( 'home' ) . $link_url : $link_url;
 		$links_summary .= "\n" . $link_number . ' ' . $link_url;
 	}
 	$content  = strip_tags( $content );
@@ -2297,7 +2297,7 @@ function get_usermeta( $user_id, $meta_key = '' ) {
 
 	$metas = array_map('maybe_unserialize', $metas);
 
-	if ( count($metas) == 1 )
+	if ( count($metas) === 1 )
 		return $metas[0];
 	else
 		return $metas;
@@ -4590,4 +4590,52 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 	}
 
 	return null;
+}
+
+/**
+ * Returns the correct template for the site's home page.
+ *
+ * @access private
+ * @since 6.0.0
+ * @deprecated 6.2.0 Site Editor's server-side redirect for missing postType and postId
+ *             		 query args is removed. Thus, this function is no longer used.
+ *
+ * @return array|null A template object, or null if none could be found.
+ */
+function _resolve_home_block_template() {
+	_deprecated_function( __FUNCTION__, '6.2.0' );
+
+	$show_on_front = get_option( 'show_on_front' );
+	$front_page_id = get_option( 'page_on_front' );
+
+	if ( 'page' === $show_on_front && $front_page_id ) {
+		return array(
+				'postType' => 'page',
+				'postId'   => $front_page_id,
+		);
+	}
+
+	$hierarchy = array( 'front-page', 'home', 'index' );
+	$template  = resolve_block_template( 'home', $hierarchy, '' );
+
+	if ( ! $template ) {
+		return null;
+	}
+
+	return array(
+			'postType' => 'wp_template',
+			'postId'   => $template->id,
+	);
+}
+
+/**
+ * Displays the link to the Windows Live Writer manifest file.
+ *
+ * @link https://msdn.microsoft.com/en-us/library/bb463265.aspx
+ * @since 2.3.1
+ * @deprecated 6.3.0 WLW manifest is no longer in use and no longer included in core,
+ *                   so the output from this function is removed.
+ */
+function wlwmanifest_link() {
+	_deprecated_function( __FUNCTION__, '6.3.0' );
 }

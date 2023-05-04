@@ -195,9 +195,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$this->_restore_hooks();
 		wp_set_current_user( 0 );
 
-		$lazyloader = wp_metadata_lazyloader();
-		$lazyloader->reset_queue( 'term' );
-		$lazyloader->reset_queue( 'comment' );
+		$this->reset_lazyload_queue();
 	}
 
 	/**
@@ -274,6 +272,15 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			$this->markTestSkipped( 'HTTP timeout' );
 		}
 
+	}
+
+	/**
+	 * Reset the lazy load meta queue.
+	 */
+	protected function reset_lazyload_queue() {
+		$lazyloader = wp_metadata_lazyloader();
+		$lazyloader->reset_queue( 'term' );
+		$lazyloader->reset_queue( 'comment' );
 	}
 
 	/**
@@ -399,12 +406,15 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 				'blog_meta',
 				'global-posts',
 				'networks',
+				'network-queries',
 				'sites',
 				'site-details',
 				'site-options',
+				'site-queries',
 				'site-transient',
 				'rss',
 				'users',
+				'user-queries',
 				'useremail',
 				'userlogins',
 				'usermeta',

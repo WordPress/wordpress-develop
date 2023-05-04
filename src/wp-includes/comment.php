@@ -155,7 +155,13 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
  * @since 4.1.0 Refactored to leverage WP_Comment_Query over a direct query.
  *
  * @param int   $post_id The ID of the post.
- * @param array $args    Optional. See WP_Comment_Query::__construct() for information on accepted arguments.
+ * @param array $args    {
+ *     Optional. See WP_Comment_Query::__construct() for information on accepted arguments.
+ *
+ *     @type int    $status  Comment status to limit results by. Defaults to approved comments.
+ *     @type int    $post_id Limit results to those affiliated with a given post ID.
+ *     @type string $order   How to order retrieved comments. Default 'ASC'.
+ * }
  * @return WP_Comment[]|int[]|int The approved comments, or number of comments if `$count`
  *                                argument is true.
  */
@@ -236,7 +242,7 @@ function get_comment( $comment = null, $output = OBJECT ) {
  * @since 2.7.0
  *
  * @param string|array $args Optional. Array or string of arguments. See WP_Comment_Query::__construct()
- *                           for information on accepted arguments. Default empty.
+ *                           for information on accepted arguments. Default empty string.
  * @return WP_Comment[]|int[]|int List of comments or number of found comments if `$count` argument is true.
  */
 function get_comments( $args = '' ) {
@@ -449,7 +455,7 @@ function add_comment_meta( $comment_id, $meta_key, $meta_value, $unique = false 
  * @param string $meta_key   Metadata name.
  * @param mixed  $meta_value Optional. Metadata value. If provided,
  *                           rows will only be removed that match the value.
- *                           Must be serializable if non-scalar. Default empty.
+ *                           Must be serializable if non-scalar. Default empty string.
  * @return bool True on success, false on failure.
  */
 function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
@@ -465,7 +471,7 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  *
  * @param int    $comment_id Comment ID.
  * @param string $key        Optional. The meta key to retrieve. By default,
- *                           returns data for all keys.
+ *                           returns data for all keys. Default empty string.
  * @param bool   $single     Optional. Whether to return a single value.
  *                           This parameter has no effect if `$key` is not specified.
  *                           Default false.
@@ -495,7 +501,7 @@ function get_comment_meta( $comment_id, $key = '', $single = false ) {
  * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
  * @param mixed  $prev_value Optional. Previous value to check before updating.
  *                           If specified, only update existing metadata entries with
- *                           this value. Otherwise, update all entries. Default empty.
+ *                           this value. Otherwise, update all entries. Default empty string.
  * @return int|bool Meta ID if the key didn't exist, true on successful update,
  *                  false on failure or if the value passed to the function
  *                  is the same as the one that is already in the database.
@@ -985,8 +991,10 @@ function separate_comments( &$comments ) {
  * @global WP_Query $wp_query WordPress Query object.
  *
  * @param WP_Comment[] $comments Optional. Array of WP_Comment objects. Defaults to `$wp_query->comments`.
- * @param int          $per_page Optional. Comments per page.
- * @param bool         $threaded Optional. Control over flat or threaded comments.
+ * @param int          $per_page Optional. Comments per page. Defaults to the value of `comments_per_page`
+ *                               query var, option of the same name, or 1 (in that order).
+ * @param bool         $threaded Optional. Control over flat or threaded comments. Defaults to the value
+ *                               of `thread_comments` option.
  * @return int Number of comment pages.
  */
 function get_comment_pages_count( $comments = null, $per_page = null, $threaded = null ) {
@@ -2334,7 +2342,7 @@ function wp_new_comment_notify_moderator( $comment_id ) {
 	// Only send notifications for pending comments.
 	$maybe_notify = ( '0' == $comment->comment_approved );
 
-	/** This filter is documented in wp-includes/comment.php */
+	/** This filter is documented in wp-includes/pluggable.php */
 	$maybe_notify = apply_filters( 'notify_moderator', $maybe_notify, $comment_id );
 
 	if ( ! $maybe_notify ) {
@@ -2808,7 +2816,7 @@ function discover_pingback_server_uri( $url, $deprecated = '' ) {
 
 	// Do not search for a pingback server on our own uploads.
 	$uploads_dir = wp_get_upload_dir();
-	if ( 0 === strpos( $url, $uploads_dir['baseurl'] ) ) {
+	if ( str_starts_with( $url, $uploads_dir['baseurl'] ) ) {
 		return false;
 	}
 
@@ -3043,8 +3051,8 @@ function generic_ping( $post_id = 0 ) {
  * @param int|WP_Post $post    Post ID or object.
  */
 function pingback( $content, $post ) {
-	include_once ABSPATH . WPINC . '/class-IXR.php';
-	include_once ABSPATH . WPINC . '/class-wp-http-ixr-client.php';
+	require_once ABSPATH . WPINC . '/class-IXR.php';
+	require_once ABSPATH . WPINC . '/class-wp-http-ixr-client.php';
 
 	// Original code by Mort (http://mort.mine.nu:8080).
 	$post_links = array();
@@ -3210,8 +3218,8 @@ function trackback( $trackback_url, $title, $excerpt, $ID ) {
  * @param string $path Path to send the ping.
  */
 function weblog_ping( $server = '', $path = '' ) {
-	include_once ABSPATH . WPINC . '/class-IXR.php';
-	include_once ABSPATH . WPINC . '/class-wp-http-ixr-client.php';
+	require_once ABSPATH . WPINC . '/class-IXR.php';
+	require_once ABSPATH . WPINC . '/class-wp-http-ixr-client.php';
 
 	// Using a timeout of 3 seconds should be enough to cover slow servers.
 	$client             = new WP_HTTP_IXR_Client( $server, ( ( ! strlen( trim( $path ) ) || ( '/' === $path ) ) ? false : $path ) );
@@ -3285,7 +3293,7 @@ function clean_comment_cache( $ids ) {
 		do_action( 'clean_comment_cache', $id );
 	}
 
-	wp_cache_set( 'last_changed', microtime(), 'comment' );
+	wp_cache_set_comments_last_changed();
 }
 
 /**
@@ -3475,7 +3483,28 @@ function wp_handle_comment_submission( $comment_data ) {
 		$comment_content = trim( $comment_data['comment'] );
 	}
 	if ( isset( $comment_data['comment_parent'] ) ) {
-		$comment_parent = absint( $comment_data['comment_parent'] );
+		$comment_parent        = absint( $comment_data['comment_parent'] );
+		$comment_parent_object = get_comment( $comment_parent );
+
+		if (
+			0 !== $comment_parent &&
+			(
+				! $comment_parent_object instanceof WP_Comment ||
+				0 === (int) $comment_parent_object->comment_approved
+			)
+		) {
+			/**
+			 * Fires when a comment reply is attempted to an unapproved comment.
+			 *
+			 * @since 6.2.0
+			 *
+			 * @param int $comment_post_id Post ID.
+			 * @param int $comment_parent  Parent comment ID.
+			 */
+			do_action( 'comment_reply_to_unapproved_comment', $comment_post_id, $comment_parent );
+
+			return new WP_Error( 'comment_reply_to_unapproved_comment', __( 'Sorry, replies to unapproved comments are not allowed.' ), 403 );
+		}
 	}
 
 	$post = get_post( $comment_post_id );
@@ -3560,7 +3589,6 @@ function wp_handle_comment_submission( $comment_data ) {
 		return new WP_Error( 'comment_on_password_protected' );
 
 	} else {
-
 		/**
 		 * Fires before a comment is posted.
 		 *
@@ -3569,7 +3597,6 @@ function wp_handle_comment_submission( $comment_data ) {
 		 * @param int $comment_post_id Post ID.
 		 */
 		do_action( 'pre_comment_on_post', $comment_post_id );
-
 	}
 
 	// If the user is logged in.
@@ -3891,7 +3918,7 @@ function wp_comments_personal_data_eraser( $email_address, $page = 1 ) {
  * @since 5.0.0
  */
 function wp_cache_set_comments_last_changed() {
-	wp_cache_set( 'last_changed', microtime(), 'comment' );
+	wp_cache_set_last_changed( 'comment' );
 }
 
 /**
