@@ -196,6 +196,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 *
 	 * @ticket 54243
 	 * @ticket 54922
+	 * @ticket 58069
 	 *
 	 * @covers ::_wp_normalize_relative_css_links
 	 *
