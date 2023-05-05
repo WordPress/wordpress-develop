@@ -529,6 +529,9 @@ function update_comment_meta( $comment_id, $meta_key, $meta_value, $prev_value =
  * Queues comments for metadata lazy-loading.
  *
  * @since 4.5.0
+ * @since 6.3.0 Use wp_lazyload_comment_meta() for lazy-loading of comment meta.
+ *
+ * @see wp_lazyload_comment_meta()
  *
  * @param WP_Comment[] $comments Array of comment objects.
  */
