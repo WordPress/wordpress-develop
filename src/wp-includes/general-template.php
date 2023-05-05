@@ -4497,6 +4497,7 @@ function paginate_links( $args = '' ) {
 		'add_fragment'       => '',
 		'before_page_number' => '',
 		'after_page_number'  => '',
+		'links_aria_label'   => __( 'Page' ),
 	);
 
 	$args = wp_parse_args( $args, $defaults );
