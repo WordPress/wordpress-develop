@@ -5463,9 +5463,12 @@ function wp_get_loading_attr_default( $context ) {
 	if ( 'wp_get_attachment_image' === $context || 'the_post_thumbnail' === $context ) {
 		// Only apply for main query but before the loop.
 		if ( $wp_query->before_loop && is_main_query() ) {
-			// Any image before header ends should not be lazy load.
-			$is_header_loaded = did_action( 'get_header' ) && ! doing_action( 'get_header' );
-			if ( ! $is_header_loaded ) {
+			/*
+			 * Any image before the loop, but after the header has started should not be lazy-loaded,
+			 * except when the footer has already started which can happen when the current template
+			 * does not include any loop.
+			 */
+			if ( did_action( 'get_header' ) && ! did_action( 'get_footer' ) ) {
 				return false;
 			}
 
