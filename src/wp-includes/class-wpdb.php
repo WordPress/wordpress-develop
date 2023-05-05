@@ -1807,7 +1807,7 @@ class wpdb {
 		 *
 		 * @since 6.2.0
 		 *
-		 * @param boolean $suppress_error Whether to suppress the error.
+		 * @param bool    $suppress_error Whether to suppress the error.
 		 * @param string  $str            Error string.
 		 * @param string  $query          SQL query that resulted in error.
 		 */
