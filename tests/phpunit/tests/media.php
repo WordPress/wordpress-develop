@@ -3711,7 +3711,7 @@ EOF;
 	}
 
 	/**
-	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute value before loop.
+	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute value before loop but after get_header.
 	 *
 	 * @ticket 58211
 	 *
@@ -3734,25 +3734,13 @@ EOF;
 		// Set current query as main query.
 		$wp_the_query = $wp_query;
 
-		// For main query return false for any instance before end of get_header.
+		do_action( 'get_header' );		
 		$this->assertFalse( wp_get_loading_attr_default( $context ) );
-		add_action(
-			'get_header',
-			function() use ( $context ) {
-				$this->assertFalse( wp_get_loading_attr_default( $context ) );
-			}
-		);
-
-		do_action( 'get_header' );
-
-		// A test for before the loop but after get_header to check it returns the default, lazy-loading.
-		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 
 		while ( have_posts() ) {
 			the_post();
-			$this->assertFalse( wp_get_loading_attr_default( 'the_post_thumbnail' ) );
-			$this->assertSame( 'lazy', wp_get_loading_attr_default( 'wp_get_attachment_image' ) );
 		}
+		$this->assertSame( 'lazy', wp_get_loading_attr_default( 'wp_get_attachment_image' ) );
 	}
 
 	/**
