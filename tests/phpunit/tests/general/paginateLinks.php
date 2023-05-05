@@ -126,6 +126,7 @@ EXPECTED;
 				'prev_next' => true,
 				'end_size'  => 1,
 				'mid_size'  => 1,
+				'links_aria_label' => ''
 			)
 		);
 		// The links should be:
