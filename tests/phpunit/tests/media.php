@@ -3734,7 +3734,7 @@ EOF;
 		// Set current query as main query.
 		$wp_the_query = $wp_query;
 
-		do_action( 'get_header' );		
+		do_action( 'get_header' );
 		$this->assertFalse( wp_get_loading_attr_default( $context ) );
 
 		while ( have_posts() ) {
