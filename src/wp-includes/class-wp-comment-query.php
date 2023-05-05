@@ -584,8 +584,6 @@ class WP_Comment_Query {
 		if ( ! empty( $this->query_vars['include_unapproved'] ) ) {
 			$include_unapproved = wp_parse_list( $this->query_vars['include_unapproved'] );
 
-			$unapproved_ids    = array();
-			$unapproved_emails = array();
 			foreach ( $include_unapproved as $unapproved_identifier ) {
 				// Numeric values are assumed to be user IDs.
 				if ( is_numeric( $unapproved_identifier ) ) {
@@ -1013,14 +1011,10 @@ class WP_Comment_Query {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
 	 * @param WP_Comment[] $comments Array of top-level comments whose descendants should be filled in.
 	 * @return array
 	 */
 	protected function fill_descendants( $comments ) {
-		global $wpdb;
-
 		$levels = array(
 			0 => wp_list_pluck( $comments, 'comment_ID' ),
 		);
@@ -1036,13 +1030,19 @@ class WP_Comment_Query {
 			$child_ids           = array();
 			$uncached_parent_ids = array();
 			$_parent_ids         = $levels[ $level ];
-			foreach ( $_parent_ids as $parent_id ) {
-				$cache_key        = "get_comment_child_ids:$parent_id:$key:$last_changed";
-				$parent_child_ids = wp_cache_get( $cache_key, 'comment-queries' );
-				if ( false !== $parent_child_ids ) {
-					$child_ids = array_merge( $child_ids, $parent_child_ids );
-				} else {
-					$uncached_parent_ids[] = $parent_id;
+			if ( $_parent_ids ) {
+				$cache_keys = array();
+				foreach ( $_parent_ids as $parent_id ) {
+					$cache_keys[ $parent_id ] = "get_comment_child_ids:$parent_id:$key:$last_changed";
+				}
+				$cache_data = wp_cache_get_multiple( array_values( $cache_keys ), 'comment-queries' );
+				foreach ( $_parent_ids as $parent_id ) {
+					$parent_child_ids = $cache_data[ $cache_keys[ $parent_id ] ];
+					if ( false !== $parent_child_ids ) {
+						$child_ids = array_merge( $child_ids, $parent_child_ids );
+					} else {
+						$uncached_parent_ids[] = $parent_id;
+					}
 				}
 			}
 

@@ -937,7 +937,7 @@ EOF;
 	 * @ticket 48376
 	 * @ticket 55966
 	 * @ticket 56122
-	 * @dataProvider data_test_safecss_filter_attr
+	 * @dataProvider data_safecss_filter_attr
 	 *
 	 * @param string $css      A string of CSS rules.
 	 * @param string $expected Expected string of CSS rules.
@@ -947,7 +947,7 @@ EOF;
 	}
 
 	/**
-	 * Data Provider for test_safecss_filter_attr().
+	 * Data provider for test_safecss_filter_attr().
 	 *
 	 * @return array {
 	 *     @type array {
@@ -956,7 +956,7 @@ EOF;
 	 *     }
 	 * }
 	 */
-	public function data_test_safecss_filter_attr() {
+	public function data_safecss_filter_attr() {
 		return array(
 			// Empty input, empty output.
 			array(
@@ -1316,6 +1316,11 @@ EOF;
 				'css'      => 'aspect-ratio: url( https://wordpress.org/wp-content/uploads/aspect-ratio.jpg );',
 				'expected' => '',
 			),
+			// URL support for `filter` introduced in 6.3.
+			array(
+				'css'      => 'filter: url( my-file.svg#svg-blur );',
+				'expected' => 'filter: url( my-file.svg#svg-blur )',
+			),
 		);
 	}
 
@@ -1568,7 +1573,7 @@ EOF;
 	 *
 	 * @ticket 37134
 	 *
-	 * @dataProvider data_test_safecss_filter_attr_filtered
+	 * @dataProvider data_safecss_filter_attr_filtered
 	 *
 	 * @param string $css      A string of CSS rules.
 	 * @param string $expected Expected string of CSS rules.
@@ -1580,7 +1585,7 @@ EOF;
 	}
 
 	/**
-	 * Data Provider for test_safecss_filter_attr_filtered().
+	 * Data provider for test_safecss_filter_attr_filtered().
 	 *
 	 * @return array {
 	 *     @type array {
@@ -1589,7 +1594,7 @@ EOF;
 	 *     }
 	 * }
 	 */
-	public function data_test_safecss_filter_attr_filtered() {
+	public function data_safecss_filter_attr_filtered() {
 		return array(
 
 			// A single attribute name, with a single value.
