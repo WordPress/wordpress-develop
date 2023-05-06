@@ -1805,7 +1805,7 @@ class wpdb {
 		/**
 		 * Filters whether to suppress a query error.
 		 *
-		 * @since 6.2.0
+		 * @since 6.3.0
 		 *
 		 * @param bool    $suppress_error Whether to suppress the error.
 		 * @param string  $str            Error string.
@@ -1830,7 +1830,7 @@ class wpdb {
 		/**
 		 * Fires after a query error is sent to the error log.
 		 *
-		 * @since 6.2.0
+		 * @since 6.3.0
 		 *
 		 * @param string $error_str Localized error message. Potentially contains non-localized parts.
 		 */
