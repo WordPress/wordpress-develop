@@ -6053,8 +6053,8 @@ function get_pages( $args = array() ) {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param array     $query_args  Array of arguments passed to WP_Query.
-	 * @param array     $parsed_args Array of get_pages() arguments.
+	 * @param array $query_args  Array of arguments passed to WP_Query.
+	 * @param array $parsed_args Array of get_pages() arguments.
 	 */
 	$query_args = apply_filters( 'get_pages_query_args', $query_args, $parsed_args );
 
