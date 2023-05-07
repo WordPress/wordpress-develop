@@ -25,6 +25,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 env:
   # This workflow takes two sets of measurements — one for the current commit,
   # and another against a consistent version that is used as a baseline measurement.
@@ -66,6 +70,8 @@ jobs:
   performance:
     name: Run performance tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
@@ -191,6 +197,9 @@ jobs:
   slack-notifications:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    permissions:
+      actions: read
+      contents: read
     needs: [ performance ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
@@ -204,6 +213,8 @@ jobs:
   failed-workflow:
     name: Failed workflow tasks
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     needs: [ performance, slack-notifications ]
     if: |
       always() &&

@@ -51,7 +51,6 @@ class WP_Style_Engine_CSS_Rules_Store {
 	 * @since 6.1.0
 	 *
 	 * @param string $store_name The name of the store.
-	 *
 	 * @return WP_Style_Engine_CSS_Rules_Store|void
 	 */
 	public static function get_store( $store_name = 'default' ) {
@@ -81,8 +80,6 @@ class WP_Style_Engine_CSS_Rules_Store {
 	 * Clears all stores from static::$stores.
 	 *
 	 * @since 6.1.0
-	 *
-	 * @return void
 	 */
 	public static function remove_all_stores() {
 		static::$stores = array();
@@ -94,8 +91,6 @@ class WP_Style_Engine_CSS_Rules_Store {
 	 * @since 6.1.0
 	 *
 	 * @param string $name The store name.
-	 *
-	 * @return void
 	 */
 	public function set_name( $name ) {
 		$this->name = $name;
@@ -130,8 +125,7 @@ class WP_Style_Engine_CSS_Rules_Store {
 	 * @since 6.1.0
 	 *
 	 * @param string $selector The CSS selector.
-	 *
-	 * @return WP_Style_Engine_CSS_Rule|void Returns a WP_Style_Engine_CSS_Rule object, or null if the selector is empty.
+	 * @return WP_Style_Engine_CSS_Rule|void Returns a WP_Style_Engine_CSS_Rule object, or void if the selector is empty.
 	 */
 	public function add_rule( $selector ) {
 		$selector = trim( $selector );
@@ -155,8 +149,6 @@ class WP_Style_Engine_CSS_Rules_Store {
 	 * @since 6.1.0
 	 *
 	 * @param string $selector The CSS selector.
-	 *
-	 * @return void
 	 */
 	public function remove_rule( $selector ) {
 		unset( $this->rules[ $selector ] );
