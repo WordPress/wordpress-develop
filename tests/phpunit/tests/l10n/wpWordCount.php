@@ -20,7 +20,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_get_string_variations
 	 *
-	 * @param string $text  Text to count elements in.
+	 * @param string $text     Text to count elements in.
 	 * @param int    $expected Expected word count.
 	 */
 	public function test_wp_word_count_should_return_the_number_of_words( $text, $expected ) {
