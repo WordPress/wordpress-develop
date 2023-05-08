@@ -63,6 +63,34 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 56698
+	 */
+	public function test_wp_word_count_containing_non_array_shortcode_setting() {
+		$text     = 'one [shortcode] two';
+		$settings = array(
+			'shortcodes' => 'shortcode',
+		);
+
+		$this->assertSame( wp_word_count( $text, 'word', $settings ), 3 );
+		$this->assertSame( wp_word_count( $text, 'characters_excluding_spaces', $settings ), 17 );
+		$this->assertSame( wp_word_count( $text, 'characters_including_spaces', $settings ), 19 );
+	}
+
+	/**
+	 * @ticket 56698
+	 */
+	public function test_wp_word_count_containing_empty_array_shortcode_setting() {
+		$text     = 'one [shortcode] two';
+		$settings = array(
+			'shortcodes' => array(),
+		);
+
+		$this->assertSame( wp_word_count( $text, 'word', $settings ), 3 );
+		$this->assertSame( wp_word_count( $text, 'characters_excluding_spaces', $settings ), 17 );
+		$this->assertSame( wp_word_count( $text, 'characters_including_spaces', $settings ), 19 );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[]
@@ -163,6 +191,14 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 					'words'                       => 0,
 					'characters_excluding_spaces' => 0,
 					'characters_including_spaces' => 0,
+				),
+			),
+			'text containing a shortcode' => array(
+				'text'     => 'one [shortcode] two',
+				'expected' => array(
+					'words'                       => 2,
+					'characters_excluding_spaces' => 6,
+					'characters_including_spaces' => 8,
 				),
 			),
 		);
