@@ -96,6 +96,18 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 				'characters_excluding_spaces' => 5,
 				'characters_including_spaces' => 6,
 			),
+			'empty text'  => array(
+				'string'                      => '',
+				'words'                       => 0,
+				'characters_excluding_spaces' => 0,
+				'characters_including_spaces' => 0,
+			),
+			'text containing only whitespace'  => array(
+				'string'                      => "\t\r\n ",
+				'words'                       => 0,
+				'characters_excluding_spaces' => 0,
+				'characters_including_spaces' => 0,
+			),
 		);
 	}
 }
