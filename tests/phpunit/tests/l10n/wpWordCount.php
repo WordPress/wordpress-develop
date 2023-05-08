@@ -84,7 +84,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 				'characters_excluding_spaces' => 1,
 				'characters_including_spaces' => 1,
 			),
-			'HTML comment'   => array(
+			'text containing an HTML comment'   => array(
 				'string'                      => 'one<!-- comment -->two three',
 				'words'                       => 2,
 				'characters_excluding_spaces' => 11,
