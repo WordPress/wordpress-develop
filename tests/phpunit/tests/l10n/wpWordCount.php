@@ -72,7 +72,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 				'characters_excluding_spaces' => 14,
 				'characters_including_spaces' => 14,
 			),
-			'Shortcodes'     => array(
+			'text containing shortcodes'     => array(
 				'string'                      => 'one [shortcode attribute="value"]two[/shortcode]three',
 				'words'                       => 3,
 				'characters_excluding_spaces' => 11,
