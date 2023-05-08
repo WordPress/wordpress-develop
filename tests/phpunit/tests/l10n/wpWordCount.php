@@ -78,7 +78,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 				'characters_excluding_spaces' => 11,
 				'characters_including_spaces' => 12,
 			),
-			'Astrals'        => array(
+			'text containing astrals'        => array(
 				'string'                      => json_decode( '"\uD83D\uDCA9"' ),
 				'words'                       => 1,
 				'characters_excluding_spaces' => 1,
