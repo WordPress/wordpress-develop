@@ -36,7 +36,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 	 */
 	public function data_get_string_variations() {
 		return array(
-			'Basic test'     => array(
+			'text containing spaces'     => array(
 				'string'                      => 'one two three',
 				'words'                       => 3,
 				'characters_excluding_spaces' => 11,
