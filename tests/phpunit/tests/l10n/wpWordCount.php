@@ -54,7 +54,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 				'characters_excluding_spaces' => 11,
 				'characters_including_spaces' => 11,
 			),
-			'Encoded spaces' => array(
+			'text containing encoded spaces' => array(
 				'string'                      => 'one&nbsp;two&#160;three',
 				'words'                       => 3,
 				'characters_excluding_spaces' => 11,
