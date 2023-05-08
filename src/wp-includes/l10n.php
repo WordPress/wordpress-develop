@@ -1843,7 +1843,7 @@ function wp_get_word_count_type() {
  * @since 6.3.0
  *
  * @param string $text  Text to count elements in.
- * @param string $type The type of count. Accepts 'words', 'characters_excluding_spaces', or 'characters_including_spaces'.
+ * @param string $type  The type of count. Accepts 'words', 'characters_excluding_spaces', or 'characters_including_spaces'.
  * @param array  $settings {
  *     Optional. Array of arguments used to overrides for settings.
  *
