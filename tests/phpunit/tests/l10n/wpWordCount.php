@@ -36,61 +36,61 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 	 */
 	public function data_get_string_variations() {
 		return array(
-			'text containing spaces'     => array(
+			'text containing spaces'          => array(
 				'string'                      => 'one two three',
 				'words'                       => 3,
 				'characters_excluding_spaces' => 11,
 				'characters_including_spaces' => 13,
 			),
-			'text containing HTML tags'      => array(
+			'text containing HTML tags'       => array(
 				'string'                      => 'one <em class="test">two</em><br />three',
 				'words'                       => 3,
 				'characters_excluding_spaces' => 11,
 				'characters_including_spaces' => 12,
 			),
-			'text containing line breaks'    => array(
+			'text containing line breaks'     => array(
 				'string'                      => "one\ntwo\nthree",
 				'words'                       => 3,
 				'characters_excluding_spaces' => 11,
 				'characters_including_spaces' => 11,
 			),
-			'text containing encoded spaces' => array(
+			'text containing encoded spaces'  => array(
 				'string'                      => 'one&nbsp;two&#160;three',
 				'words'                       => 3,
 				'characters_excluding_spaces' => 11,
 				'characters_including_spaces' => 13,
 			),
-			'text containing punctuation'    => array(
+			'text containing punctuation'     => array(
 				'string'                      => "It's two three " . json_decode( '"\u2026"' ) . ' 4?',
 				'words'                       => 3,
 				'characters_excluding_spaces' => 15,
 				'characters_including_spaces' => 19,
 			),
-			'text containing an em dash'        => array(
+			'text containing an em dash'      => array(
 				'string'                      => 'one' . json_decode( '"\u2014"' ) . 'two--three',
 				'words'                       => 3,
 				'characters_excluding_spaces' => 14,
 				'characters_including_spaces' => 14,
 			),
-			'text containing shortcodes'     => array(
+			'text containing shortcodes'      => array(
 				'string'                      => 'one [shortcode attribute="value"]two[/shortcode]three',
 				'words'                       => 3,
 				'characters_excluding_spaces' => 11,
 				'characters_including_spaces' => 12,
 			),
-			'text containing astrals'        => array(
+			'text containing astrals'         => array(
 				'string'                      => json_decode( '"\uD83D\uDCA9"' ),
 				'words'                       => 1,
 				'characters_excluding_spaces' => 1,
 				'characters_including_spaces' => 1,
 			),
-			'text containing an HTML comment'   => array(
+			'text containing an HTML comment' => array(
 				'string'                      => 'one<!-- comment -->two three',
 				'words'                       => 2,
 				'characters_excluding_spaces' => 11,
 				'characters_including_spaces' => 12,
 			),
-			'text containing an HTML entity'    => array(
+			'text containing an HTML entity'  => array(
 				'string'                      => '&gt; test',
 				'words'                       => 1,
 				'characters_excluding_spaces' => 5,
