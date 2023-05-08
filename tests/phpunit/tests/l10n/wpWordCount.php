@@ -19,7 +19,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 	 * @param int    $characters_excluding_spaces Expected value if the count type is based on single character excluding spaces.
 	 * @param int    $characters_including_spaces Expected value if the count type is based on single character including spaces.
 	 */
-	public function test_word_count( $string, $words, $characters_excluding_spaces, $characters_including_spaces ) {
+	public function test_word_count( $text, $words, $characters_excluding_spaces, $characters_including_spaces ) {
 		$settings = array(
 			'shortcodes' => array( 'shortcode' ),
 		);
