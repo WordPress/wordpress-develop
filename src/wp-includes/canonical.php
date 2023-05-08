@@ -64,7 +64,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	}
 
 	// www.example.com vs. example.com
-	$user_home = parse_url( home_url('/') );
+	$user_home = parse_url( home_url( '/' ) );
 
 	if ( ! $requested_url ) {
 		// Build the URL in the address bar.
