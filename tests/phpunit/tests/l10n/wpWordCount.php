@@ -66,7 +66,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 				'characters_excluding_spaces' => 15,
 				'characters_including_spaces' => 19,
 			),
-			'Em dash'        => array(
+			'text containing an em dash'        => array(
 				'string'                      => 'one' . json_decode( '"\u2014"' ) . 'two--three',
 				'words'                       => 3,
 				'characters_excluding_spaces' => 14,
