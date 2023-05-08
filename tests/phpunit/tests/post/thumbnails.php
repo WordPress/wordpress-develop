@@ -166,6 +166,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 				'class' => 'attachment-post-thumbnail size-post-thumbnail wp-post-image',
 			)
 		);
+		$expected = str_replace( 'wp-post-image not-transparent', 'not-transparent wp-post-image', $expected );
 
 		$this->assertSame( $expected, get_the_post_thumbnail( self::$post ) );
 
@@ -194,6 +195,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 				'class' => 'attachment-post-thumbnail size-post-thumbnail wp-post-image',
 			)
 		);
+		$expected = str_replace( 'wp-post-image not-transparent', 'not-transparent wp-post-image', $expected );
 
 		$this->expectOutputString( $expected );
 		the_post_thumbnail();
