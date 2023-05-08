@@ -1838,7 +1838,7 @@ function wp_get_word_count_type() {
 }
 
 /**
- * Count words or characters in a provided text string.
+ * Counts words or characters in a provided text string.
  *
  * @since 6.3.0
  *
