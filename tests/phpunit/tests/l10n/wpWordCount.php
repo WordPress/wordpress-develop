@@ -193,7 +193,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 					'characters_including_spaces' => 0,
 				),
 			),
-			'text containing a shortcode' => array(
+			'text containing a shortcode'     => array(
 				'text'     => 'one [shortcode] two',
 				'expected' => array(
 					'words'                       => 2,
