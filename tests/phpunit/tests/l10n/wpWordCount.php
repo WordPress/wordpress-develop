@@ -42,7 +42,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 				'characters_excluding_spaces' => 11,
 				'characters_including_spaces' => 13,
 			),
-			'HTML tags'      => array(
+			'text containing HTML tags'      => array(
 				'string'                      => 'one <em class="test">two</em><br />three',
 				'words'                       => 3,
 				'characters_excluding_spaces' => 11,
