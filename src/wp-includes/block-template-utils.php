@@ -257,7 +257,7 @@ function _get_block_templates_paths( $base_directory ) {
  *    @type string $path      Template file path.
  *    @type string $theme     Theme slug.
  *    @type string $type      Template type.
- *    @type string $title     Template title. Optional.
+ *    @type string $title     Optional. Template title.
  *    @type string $area      Template area. Only for 'wp_template_part'.
  *    @type array  $postTypes List of post types that the template supports. Optional. Only for 'wp_template'.
  * }
