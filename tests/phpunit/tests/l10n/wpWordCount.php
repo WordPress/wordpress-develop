@@ -48,7 +48,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 				'characters_excluding_spaces' => 11,
 				'characters_including_spaces' => 12,
 			),
-			'Line breaks'    => array(
+			'text containing line breaks'    => array(
 				'string'                      => "one\ntwo\nthree",
 				'words'                       => 3,
 				'characters_excluding_spaces' => 11,
