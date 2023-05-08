@@ -1885,7 +1885,7 @@ function wp_word_count( $text, $type, $settings = array() ) {
 
 	$count = 0;
 
-	if ( ! $text ) {
+	if ( '' === trim( $text ) ) {
 		return $count;
 	}
 
