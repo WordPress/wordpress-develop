@@ -3719,7 +3719,7 @@ EOF;
 	 *
 	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
 	 *
-	 * @param string $context
+	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_attr_default_before_loop( $context ) {
 		global $wp_query, $wp_the_query;
