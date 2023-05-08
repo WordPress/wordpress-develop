@@ -32,7 +32,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_get_string_variations() {
 		return array(
