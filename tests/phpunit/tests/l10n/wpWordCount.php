@@ -52,6 +52,17 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 56698
+	 * @dataProvider data_get_string_variations
+	 *
+	 * @param string $text     Text to count elements in.
+	 * @param int    $expected Expected character count.
+	 */
+	public function test_wp_word_count_should_use_the_default_word_count_type( $text, $expected ) {
+		$this->assertSame( wp_word_count( $text, 'wrong_type', self::$settings ), $expected['words'] );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[]
