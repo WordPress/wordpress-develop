@@ -24,9 +24,9 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 			'shortcodes' => array( 'shortcode' ),
 		);
 
-		$this->assertEquals( wp_word_count( $string, 'words', $settings ), $words );
-		$this->assertEquals( wp_word_count( $string, 'characters_excluding_spaces', $settings ), $characters_excluding_spaces );
-		$this->assertEquals( wp_word_count( $string, 'characters_including_spaces', $settings ), $characters_including_spaces );
+		$this->assertEquals( wp_word_count( $text, 'words', $settings ), $words );
+		$this->assertEquals( wp_word_count( $text, 'characters_excluding_spaces', $settings ), $characters_excluding_spaces );
+		$this->assertEquals( wp_word_count( $text, 'characters_including_spaces', $settings ), $characters_including_spaces );
 	}
 
 	/**
