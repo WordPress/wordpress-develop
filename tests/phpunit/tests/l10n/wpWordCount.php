@@ -60,7 +60,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 				'characters_excluding_spaces' => 11,
 				'characters_including_spaces' => 13,
 			),
-			'Punctuation'    => array(
+			'text containing punctuation'    => array(
 				'string'                      => "It's two three " . json_decode( '"\u2026"' ) . ' 4?',
 				'words'                       => 3,
 				'characters_excluding_spaces' => 15,
