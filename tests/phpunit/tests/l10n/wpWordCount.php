@@ -14,7 +14,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_get_string_variations
 	 *
-	 * @param string $string                      String to count words.
+	 * @param string $text                        Text to count elements in.
 	 * @param int    $words                       Expected value if the count type is based on word.
 	 * @param int    $characters_excluding_spaces Expected value if the count type is based on single character excluding spaces.
 	 * @param int    $characters_including_spaces Expected value if the count type is based on single character including spaces.
