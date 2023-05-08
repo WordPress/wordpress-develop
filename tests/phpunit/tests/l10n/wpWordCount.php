@@ -90,7 +90,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 				'characters_excluding_spaces' => 11,
 				'characters_including_spaces' => 12,
 			),
-			'HTML entity'    => array(
+			'text containing an HTML entity'    => array(
 				'string'                      => '&gt; test',
 				'words'                       => 1,
 				'characters_excluding_spaces' => 5,
