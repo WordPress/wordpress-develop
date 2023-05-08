@@ -3781,7 +3781,7 @@ EOF;
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_wp_get_loading_attr_default_before_and_no_loop() {
 		return array(
