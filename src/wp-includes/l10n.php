@@ -1935,11 +1935,5 @@ function wp_word_count( $text, $type, $settings = array() ) {
 	}
 
 	// Match with the selected type regular expression to count the items.
-	preg_match_all( $settings[ $type . '_regexp' ], $text, $matches );
-
-	if ( $matches ) {
-		return count( $matches[0] );
-	}
-
-	return $count;
+	return (int) preg_match_all( $settings[ $type . '_regexp' ], $text );
 }
