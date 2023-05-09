@@ -24,7 +24,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 	 * @param int    $expected Expected word count.
 	 */
 	public function test_wp_word_count_should_return_the_number_of_words( $text, $expected ) {
-		$this->assertSame( wp_word_count( $text, 'words', self::$settings ), $expected['words'] );
+		$this->assertSame( $expected['words'], wp_word_count( $text, 'words', self::$settings ) );
 	}
 
 	/**
@@ -36,7 +36,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 	 * @param int    $expected Expected character count.
 	 */
 	public function test_wp_word_count_should_return_the_number_of_characters_excluding_spaces( $text, $expected ) {
-		$this->assertSame( wp_word_count( $text, 'characters_excluding_spaces', self::$settings ), $expected['characters_excluding_spaces'] );
+		$this->assertSame( $expected['characters_excluding_spaces'], wp_word_count( $text, 'characters_excluding_spaces', self::$settings ) );
 	}
 
 	/**
@@ -48,7 +48,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 	 * @param int    $expected Expected character count.
 	 */
 	public function test_wp_word_count_should_return_the_number_of_characters_including_spaces( $text, $expected ) {
-		$this->assertSame( wp_word_count( $text, 'characters_including_spaces', self::$settings ), $expected['characters_including_spaces'] );
+		$this->assertSame( $expected['characters_including_spaces'], wp_word_count( $text, 'characters_including_spaces', self::$settings ) );
 	}
 
 	/**
@@ -60,7 +60,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 	 * @param int    $expected Expected character count.
 	 */
 	public function test_wp_word_count_should_use_the_default_word_count_type( $text, $expected ) {
-		$this->assertSame( wp_word_count( $text, 'wrong_type', self::$settings ), $expected['words'] );
+		$this->assertSame( $expected['words'], wp_word_count( $text, 'wrong_type', self::$settings ) );
 	}
 
 	/**
@@ -72,9 +72,9 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 			'shortcodes' => 'shortcode',
 		);
 
-		$this->assertSame( wp_word_count( $text, 'word', $settings ), 3 );
-		$this->assertSame( wp_word_count( $text, 'characters_excluding_spaces', $settings ), 17 );
-		$this->assertSame( wp_word_count( $text, 'characters_including_spaces', $settings ), 19 );
+		$this->assertSame( 3, wp_word_count( $text, 'word', $settings ) );
+		$this->assertSame( 17, wp_word_count( $text, 'characters_excluding_spaces', $settings ) );
+		$this->assertSame( 19, wp_word_count( $text, 'characters_including_spaces', $settings ) );
 	}
 
 	/**
@@ -86,9 +86,9 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 			'shortcodes' => array(),
 		);
 
-		$this->assertSame( wp_word_count( $text, 'word', $settings ), 3 );
-		$this->assertSame( wp_word_count( $text, 'characters_excluding_spaces', $settings ), 17 );
-		$this->assertSame( wp_word_count( $text, 'characters_including_spaces', $settings ), 19 );
+		$this->assertSame( 3, wp_word_count( $text, 'word', $settings ) );
+		$this->assertSame( 17, wp_word_count( $text, 'characters_excluding_spaces', $settings ) );
+		$this->assertSame( 19, wp_word_count( $text, 'characters_including_spaces', $settings ) );
 	}
 
 	/**
