@@ -53,6 +53,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56698
+	 *
 	 * @dataProvider data_get_string_variations
 	 *
 	 * @param string $text     Text to count elements in.
