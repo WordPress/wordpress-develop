@@ -3974,6 +3974,122 @@ EOF;
 	}
 
 	/**
+	 * Test that the attachment URL is correctly returned or FALSE when not found.
+	 *
+	 * @ticket 58163
+	 */
+	public function test_wp_get_attachment_url() {
+		$this->assertFalse( wp_get_attachment_url( 0 ) );
+
+		$str = wp_get_attachment_url( self::$large_id );
+		$this->assertNotEmpty( $str );
+	}
+
+	/**
+	 * Test that the attachment metadata is correctly returning an associative array or FALSE when not found.
+	 *
+	 * @ticket 58163
+	 */
+	public function test_wp_get_attachment_metadata() {
+		$this->assertFalse( wp_get_attachment_metadata( 0 ) );
+
+		$arr = wp_get_attachment_metadata( self::$large_id );
+		$this->assertNotEmpty( $arr['filesize'] );
+	}
+
+	/**
+	 * Test that the image downsize is correctly returning a flat array or FALSE when not found.
+	 *
+	 * @ticket 58163
+	 */
+	public function test_image_downsize() {
+		$this->assertFalse( image_downsize( 0 ) );
+
+		$arr = image_downsize( self::$large_id );
+		$this->assertNotEmpty( $arr[1] );
+	}
+
+	/**
+	 * Test that the image tag is correctly returning an HTML IMG tag with a populated src attribute.
+	 *
+	 * @ticket 58163
+	 */
+	public function test_get_image_tag() {
+		$document = new \DOMDocument();
+		$img_tag  = get_image_tag( self::$large_id, self::ALTERNATE_CAPTION, self::CAPTION, 'center' );
+		$document->loadHTML( $img_tag );
+		$document_img_tag = $document->getElementsByTagName( 'img' )->item( 0 );
+
+		$this->assertNotNull( $document_img_tag );
+
+		$src = $document_img_tag->attributes->getNamedItem( 'src' )->value;
+
+		$this->assertNotEmpty( $src );
+	}
+
+	/**
+	 * Test that the image tag is returning an HTML IMG tag with an empty src attribute
+	 * whenever the attachment does not exist.
+	 *
+	 * @ticket 58163
+	 */
+	public function test_get_image_tag_empty_src() {
+		$document = new \DOMDocument();
+		$img_tag  = get_image_tag( 0, self::ALTERNATE_CAPTION, self::CAPTION, 'center' );
+		$document->loadHTML( $img_tag );
+		$document_img_tag = $document->getElementsByTagName( 'img' )->item( 0 );
+
+		$this->assertNotNull( $document_img_tag );
+
+		$src = $document_img_tag->attributes->getNamedItem( 'src' )->value;
+
+		$this->assertEmpty( $src );
+	}
+
+	/**
+	 * Test that the intermediate size function is correctly returning an associative array or FALSE when not found.
+	 *
+	 * @ticket 58163
+	 */
+	public function test_image_get_intermediate_size() {
+		$this->assertFalse( image_get_intermediate_size( 0 ) );
+
+		$arr = image_get_intermediate_size( self::$large_id );
+		$this->assertNotEmpty( $arr['file'] );
+	}
+
+	/**
+	 * Test that the attachment image src function is correctly returning a flat array or FALSE when not found.
+	 *
+	 * @ticket 58163
+	 */
+	public function test_wp_get_attachment_image_src() {
+		$this->assertFalse( wp_get_attachment_image_src( 0 ) );
+
+		$arr = wp_get_attachment_image_src( self::$large_id );
+		$this->assertNotEmpty( $arr[1] );
+	}
+
+	/**
+	 * Test that the attachment image is correctly returning an HTML IMG tag with a populated src attribute.
+	 * Otherwise, return an empty string if the attachment is not found.
+	 */
+	public function test_wp_get_attachment_image() {
+		$this->assertEmpty( wp_get_attachment_image( 0 ) );
+
+		$document = new \DOMDocument();
+		$img_tag  = wp_get_attachment_image( self::$large_id );
+		$document->loadHTML( $img_tag );
+		$document_img_tag = $document->getElementsByTagName( 'img' )->item( 0 );
+
+		$this->assertNotNull( $document_img_tag );
+
+		$src = $document_img_tag->attributes->getNamedItem( 'src' )->value;
+
+		$this->assertNotEmpty( $src );
+	}
+
+	/**
 	 * Add threshold to create a `-scaled` output image for testing.
 	 */
 	public function add_big_image_size_threshold() {
