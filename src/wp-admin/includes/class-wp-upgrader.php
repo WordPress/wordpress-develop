@@ -149,7 +149,7 @@ class WP_Upgrader {
 			$this->skin = $skin;
 		}
 
-		add_filter( 'upgrader_install_package_result', array( new WP_Rollback_Auto_Update(), 'auto_update_check' ), 15, 2 );
+		add_filter( 'upgrader_install_package_result', array( new WP_Rollback_Auto_Update(), 'auto_update_check' ), 15, 3 );
 	}
 
 	/**
@@ -888,8 +888,9 @@ class WP_Upgrader {
 		 *
 		 * @param array|WP_Error $result     Result from WP_Upgrader::install_package().
 		 * @param array          $hook_extra Extra arguments passed to hooked filters.
+		 * @param WP_Upgrader    $upgrader   The WP_Upgrader instance.
 		 */
-		$result = apply_filters( 'upgrader_install_package_result', $result, $options['hook_extra'] );
+		$result = apply_filters( 'upgrader_install_package_result', $result, $options['hook_extra'], $this );
 
 		$this->skin->set_result( $result );
 

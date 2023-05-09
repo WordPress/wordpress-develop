@@ -73,9 +73,10 @@ class WP_Rollback_Auto_Update {
 	 *
 	 * @param array|WP_Error $result     Result from WP_Upgrader::install_package().
 	 * @param array          $hook_extra Extra arguments passed to hooked filters.
+	 * @param WP_Upgrader    $upgrader   WP_Upgrader or child class instance.
 	 * @return array|WP_Error
 	 */
-	public function auto_update_check( $result, $hook_extra ) {
+	public function auto_update_check( $result, $hook_extra, $upgrader ) {
 		if ( is_wp_error( $result ) || ! wp_doing_cron() || ! isset( $hook_extra['plugin'] ) ) {
 			return $result;
 		}
@@ -112,7 +113,7 @@ class WP_Rollback_Auto_Update {
 		}
 
 		// Needs to run for both active and inactive plugins. Don't ask why, just accept it.
-		$this->check_plugin_for_errors( $hook_extra['plugin'] );
+		$this->check_plugin_for_errors( $hook_extra['plugin'], $upgrader );
 
 		return $result;
 	}
@@ -127,13 +128,14 @@ class WP_Rollback_Auto_Update {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param string $plugin The plugin to check.
+	 * @param string      $plugin The plugin to check.
+	 * @param WP_Upgrader $upgrader WP_Upgrader or child class instance.
 	 *
 	 * @throws Exception If errors are present.
 	 *
 	 * @return void
 	 */
-	private function check_plugin_for_errors( $plugin ) {
+	private function check_plugin_for_errors( $plugin, $upgrader ) {
 		global $wp_filesystem;
 
 		if ( $wp_filesystem->exists( ABSPATH . '.maintenance' ) ) {
@@ -163,6 +165,15 @@ class WP_Rollback_Auto_Update {
 		$this->update_is_safe = 200 === $code;
 
 		if ( str_contains( $body, 'wp-die-message' ) || 200 !== $code ) {
+			/*
+			 * If a plugin upgrade fails prior to a theme upgrade running, the plugin upgrader will have
+			 * hooked the 'Plugin_Upgrader::delete_old_plugin()' method to 'upgrader_clear_destination',
+			 * which will return a `WP_Error` object and prevent the process from continuing.
+			 *
+			 * To resolve this, the hook must be removed using the original plugin upgrader instance.
+			 */
+			remove_filter( 'upgrader_clear_destination', array( $upgrader, 'delete_old_plugin' ) );
+
 			throw new Exception(
 				sprintf(
 					/* translators: %s: The name of the plugin. */
