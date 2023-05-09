@@ -885,6 +885,7 @@ class WP_Upgrader {
 		 * Filters the result of WP_Upgrader::install_package().
 		 *
 		 * @since 5.7.0
+		 * @since 6.3.0 Added the `$this` parameter.
 		 *
 		 * @param array|WP_Error $result     Result from WP_Upgrader::install_package().
 		 * @param array          $hook_extra Extra arguments passed to hooked filters.
