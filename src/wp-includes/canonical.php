@@ -72,8 +72,10 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		if ( isset( $_SERVER['HTTP_HOST'] ) ) {
 			$requested_url .= $_SERVER['HTTP_HOST'];
 		} else {
-			// Fallback for http1.0 where requested host and port are unknown
-			// In this case correct redirect no-www <=> yes-www is not possible
+			/*
+			 * Fallback for HTTP/1.0 where the requested host and port are unknown.
+			 * In this case, correctly redirecting no-www <=> yes-www is not possible.
+			 */
 			$requested_url .= $user_home['host'];
 			if ( ! empty( $user_home['port'] ) ) {
 				$requested_url .= ':' . $user_home['port'];
