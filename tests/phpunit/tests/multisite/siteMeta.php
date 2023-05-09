@@ -320,7 +320,7 @@ if ( is_multisite() ) :
 			$args     = $filter->get_args();
 			$first    = reset( $args );
 			$site_ids = end( $first );
-			$this->assertSameSets( $site_ids, array( self::$site_id, self::$site_id2 ), 'This should have two site\'s meta' );
+			$this->assertSameSets( $site_ids, array( self::$site_id, self::$site_id2 ), 'This should have two sites meta' );
 		}
 
 		public function test_query_update_site_meta_cache_false() {
