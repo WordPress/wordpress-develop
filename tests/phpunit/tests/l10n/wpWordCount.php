@@ -52,7 +52,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 56698
+	 * @ticket 57987
 	 *
 	 * @dataProvider data_get_string_variations
 	 *
@@ -64,7 +64,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 56698
+	 * @ticket 57987
 	 */
 	public function test_wp_word_count_containing_non_array_shortcode_setting() {
 		$text     = 'one [shortcode] two';
@@ -78,7 +78,7 @@ class Tests_L10n_wpWordcount extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 56698
+	 * @ticket 57987
 	 */
 	public function test_wp_word_count_containing_empty_array_shortcode_setting() {
 		$text     = 'one [shortcode] two';
