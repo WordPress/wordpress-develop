@@ -253,12 +253,12 @@ function _get_block_templates_paths( $base_directory ) {
  *    Array with template metadata if $template_type is one of 'wp_template' or 'wp_template_part'.
  *    null otherwise.
  *
- *    @type string $slug      Template slug.
- *    @type string $path      Template file path.
- *    @type string $theme     Theme slug.
- *    @type string $type      Template type.
- *    @type string $title     Optional. Template title.
- *    @type string $area      Template area. Only for 'wp_template_part'.
+ *    @type string   $slug      Template slug.
+ *    @type string   $path      Template file path.
+ *    @type string   $theme     Theme slug.
+ *    @type string   $type      Template type.
+ *    @type string   $area      Template area. Only for 'wp_template_part'.
+ *    @type string   $title     Optional. Template title.
  *    @type string[] $postTypes Optional. List of post types that the template supports. Only for 'wp_template'.
  * }
  */
