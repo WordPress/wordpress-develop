@@ -102,10 +102,8 @@ class WP_Rollback_Auto_Update {
 		 */
 		sleep( 2 );
 
-		$this->update_is_safe    = false;
-		static::$current_plugins = get_site_transient( 'update_plugins' );
-		static::$current_themes  = get_site_transient( 'update_themes' );
-		$this->handler_args      = array(
+		$this->update_is_safe = false;
+		$this->handler_args   = array(
 			'handler_error' => '',
 			'result'        => $result,
 			'hook_extra'    => $hook_extra,
@@ -288,6 +286,7 @@ class WP_Rollback_Auto_Update {
 		);
 
 		include_once $wp_filesystem->wp_plugins_dir() . 'rollback-update-failure/wp-admin/includes/class-wp-upgrader.php';
+
 		$rollback_updater = new WP_Upgrader();
 
 		// Set private $temp_restores variable.
@@ -315,6 +314,9 @@ class WP_Rollback_Auto_Update {
 	 * @since 6.3.0
 	 */
 	private function restart_updates() {
+		static::$current_plugins = get_site_transient( 'update_plugins' );
+		static::$current_themes  = get_site_transient( 'update_themes' );
+
 		$skin                          = new Automatic_Upgrader_Skin();
 		$remaining_plugin_auto_updates = $this->get_remaining_plugin_auto_updates();
 		$remaining_theme_auto_updates  = $this->get_remaining_theme_auto_updates();
