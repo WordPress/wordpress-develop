@@ -46,7 +46,16 @@ class WP_Rollback_Auto_Update {
 	 *
 	 * @var stdClass
 	 */
-	private static $current;
+	private static $current_plugins;
+
+	/**
+	 * Stores `update_themes` transient.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @var stdClass
+	 */
+	private static $current_themes;
 
 	/**
 	 * Stores boolean for no error from check_plugin_for_errors().
@@ -93,9 +102,10 @@ class WP_Rollback_Auto_Update {
 		 */
 		sleep( 2 );
 
-		$this->update_is_safe = false;
-		static::$current      = get_site_transient( 'update_plugins' );
-		$this->handler_args   = array(
+		$this->update_is_safe    = false;
+		static::$current_plugins = get_site_transient( 'update_plugins' );
+		static::$current_themes  = get_site_transient( 'update_themes' );
+		$this->handler_args      = array(
 			'handler_error' => '',
 			'result'        => $result,
 			'hook_extra'    => $hook_extra,
@@ -305,15 +315,20 @@ class WP_Rollback_Auto_Update {
 	 * @since 6.3.0
 	 */
 	private function restart_updates() {
-		$remaining_auto_updates = $this->get_remaining_auto_updates();
+		$skin                          = new Automatic_Upgrader_Skin();
+		$remaining_plugin_auto_updates = $this->get_remaining_plugin_auto_updates();
+		$remaining_theme_auto_updates  = $this->get_remaining_theme_auto_updates();
 
-		if ( empty( $remaining_auto_updates ) ) {
-			return;
+		if ( ! empty( $remaining_plugin_auto_updates ) ) {
+			$plugin_upgrader = new Plugin_Upgrader( $skin );
+			$plugin_upgrader->bulk_upgrade( $remaining_plugin_auto_updates );
 		}
 
-		$skin     = new Automatic_Upgrader_Skin();
-		$upgrader = new Plugin_Upgrader( $skin );
-		$upgrader->bulk_upgrade( $remaining_auto_updates );
+		if ( ! empty( $remaining_theme_auto_updates ) ) {
+			$theme_upgrader = new Theme_Upgrader( $skin );
+			$theme_upgrader->bulk_upgrade( $remaining_theme_auto_updates );
+		}
+
 		remove_action( 'shutdown', array( new WP_Upgrader(), 'delete_temp_backup' ), 100 );
 	}
 
@@ -331,23 +346,48 @@ class WP_Rollback_Auto_Update {
 	}
 
 	/**
-	 * Get array of non-fataling auto-updates remaining.
+	 * Get array of non-fataling plugin auto-updates remaining.
 	 *
 	 * @since 6.3.0
 	 *
 	 * @return array
 	 */
-	private function get_remaining_auto_updates() {
+	private function get_remaining_plugin_auto_updates() {
 		if ( empty( $this->handler_args ) ) {
 			return array();
 		}
 
 		// Get array of plugins set for auto-updating.
 		$auto_updates    = (array) get_site_option( 'auto_update_plugins', array() );
-		$current_plugins = array_keys( static::$current->response );
+		$current_plugins = array_keys( static::$current_plugins->response );
 
 		// Get all auto-updating plugins that have updates available.
 		$current_auto_updates = array_intersect( $auto_updates, $current_plugins );
+
+		// Get array of non-fatal auto-updates remaining.
+		$remaining_auto_updates = array_diff( $current_auto_updates, self::$processed, self::$fatals );
+
+		return $remaining_auto_updates;
+	}
+
+	/**
+	 * Get array of non-fataling theme auto-updates remaining.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @return array
+	 */
+	private function get_remaining_theme_auto_updates() {
+		if ( empty( $this->handler_args ) ) {
+			return array();
+		}
+
+		// Get array of themes set for auto-updating.
+		$auto_updates   = (array) get_site_option( 'auto_update_themes', array() );
+		$current_themes = array_keys( static::$current_themes->response );
+
+		// Get all auto-updating plugins that have updates available.
+		$current_auto_updates = array_intersect( $auto_updates, $current_themes );
 
 		// Get array of non-fatal auto-updates remaining.
 		$remaining_auto_updates = array_diff( $current_auto_updates, self::$processed, self::$fatals );
@@ -371,8 +411,8 @@ class WP_Rollback_Auto_Update {
 		 */
 		$plugins = get_plugins();
 
-		foreach ( static::$current->response as $k => $update ) {
-			$item = static::$current->response[ $k ];
+		foreach ( static::$current_plugins->response as $k => $update ) {
+			$item = static::$current_plugins->response[ $k ];
 			$name = $plugins[ $update->plugin ]['Name'];
 
 			/*
@@ -380,12 +420,12 @@ class WP_Rollback_Auto_Update {
 			 * at this stage of an auto-update when not implementing this
 			 * feature directly in Core.
 			 */
-			$current_version = static::$current->checked[ $update->plugin ];
+			$current_version = static::$current_plugins->checked[ $update->plugin ];
 
 			/*
 			 * The `current_version` property does not exist yet. Add it.
 			 *
-			 * `static::$current->response[ $k ]` is an instance of `stdClass`,
+			 * `static::$current_plugins->response[ $k ]` is an instance of `stdClass`,
 			 * so this should not fall victim to PHP 8.2's deprecation of
 			 * dynamic properties.
 			 */
