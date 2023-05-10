@@ -92,4 +92,49 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 		$this->assertSame( 'Post content', wp_trim_excerpt( null, $post ) );
 		$this->assertSame( 'Post content', wp_trim_excerpt( false, $post ) );
 	}
+
+	/**
+	 * @ticket 56588
+	 * @covers ::wp_trim_excerpt
+	 */
+	public function test_wp_trim_excerpt_avoids_parsing_content_tags() {
+		$post = self::factory()->post->create();
+
+		/*
+		 * Record that during 'the_content' filter run by wp_trim_excerpt() the
+		 * wp_filter_content_tags() callback is not used.
+		 */
+		$has_filter = true;
+		add_filter(
+			'the_content',
+			function( $content ) use ( &$has_filter ) {
+				$has_filter = has_filter( 'the_content', 'wp_filter_content_tags' );
+				return $content;
+			}
+		);
+
+		wp_trim_excerpt( '', $post );
+
+		// Assert that the filter callback was unhooked while running 'the_content'.
+		$this->assertFalse( $has_filter, 'wp_filter_content_tags() was not unhooked in wp_trim_excerpt()' );
+
+		// Assert that the filter callback was restored after running 'the_content'.
+		$this->assertSame( 10, has_filter( 'the_content', 'wp_filter_content_tags' ), 'wp_filter_content_tags() was not restored in wp_trim_excerpt()' );
+	}
+
+	/**
+	 * @ticket 56588
+	 * @covers ::wp_trim_excerpt
+	 */
+	public function test_wp_trim_excerpt_restores_wp_filter_content_tags_only_if_enabled() {
+		$post = self::factory()->post->create();
+
+		// Remove wp_filter_content_tags() from 'the_content' filter generally.
+		remove_filter( 'the_content', 'wp_filter_content_tags' );
+
+		wp_trim_excerpt( '', $post );
+
+		// Assert that the filter callback was not restored after running 'the_content'.
+		$this->assertFalse( has_filter( 'the_content', 'wp_filter_content_tags' ) );
+	}
 }
