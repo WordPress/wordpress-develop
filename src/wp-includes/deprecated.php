@@ -947,7 +947,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmarks()' );
 
 	$order = 'ASC';
-	if ( substr($orderby, 0, 1) == '_' ) {
+	if ( substr($orderby, 0, 1) === '_' ) {
 		$order = 'DESC';
 		$orderby = substr($orderby, 1);
 	}
@@ -980,7 +980,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 		$title = $desc;
 
 		if ( $show_updated )
-			if (substr($row->link_updated_f, 0, 2) != '00')
+			if (substr($row->link_updated_f, 0, 2) !== '00')
 				$title .= ' ('.__('Last updated') . ' ' . gmdate(get_option('links_updated_date_format'), $row->link_updated_f + (get_option('gmt_offset') * HOUR_IN_SECONDS)) . ')';
 
 		if ( '' != $title )
@@ -1042,7 +1042,7 @@ function get_links_list($order = 'name') {
 
 	// Handle link category sorting.
 	$direction = 'ASC';
-	if ( '_' == substr($order,0,1) ) {
+	if ( '_' === substr($order,0,1) ) {
 		$direction = 'DESC';
 		$order = substr($order,1);
 	}
@@ -1739,7 +1739,7 @@ function make_url_footnote( $content ) {
 		$link_url = $matches[2][$i];
 		$link_text = $matches[4][$i];
 		$content = str_replace( $link_match, $link_text . ' ' . $link_number, $content );
-		$link_url = ( ( strtolower( substr( $link_url, 0, 7 ) ) != 'http://' ) && ( strtolower( substr( $link_url, 0, 8 ) ) != 'https://' ) ) ? get_option( 'home' ) . $link_url : $link_url;
+		$link_url = ( ( strtolower( substr( $link_url, 0, 7 ) ) !== 'http://' ) && ( strtolower( substr( $link_url, 0, 8 ) ) !== 'https://' ) ) ? get_option( 'home' ) . $link_url : $link_url;
 		$links_summary .= "\n" . $link_number . ' ' . $link_url;
 	}
 	$content  = strip_tags( $content );
@@ -3935,11 +3935,11 @@ function get_shortcut_link() {
 }
 
 /**
-* Ajax handler for saving a post from Press This.
-*
-* @since 4.2.0
-* @deprecated 4.9.0
-*/
+ * Ajax handler for saving a post from Press This.
+ *
+ * @since 4.2.0
+ * @deprecated 4.9.0
+ */
 function wp_ajax_press_this_save_post() {
 	_deprecated_function( __FUNCTION__, '4.9.0' );
 	if ( is_plugin_active( 'press-this/press-this-plugin.php' ) ) {
@@ -3952,11 +3952,11 @@ function wp_ajax_press_this_save_post() {
 }
 
 /**
-* Ajax handler for creating new category from Press This.
-*
-* @since 4.2.0
-* @deprecated 4.9.0
-*/
+ * Ajax handler for creating new category from Press This.
+ *
+ * @since 4.2.0
+ * @deprecated 4.9.0
+ */
 function wp_ajax_press_this_add_category() {
 	_deprecated_function( __FUNCTION__, '4.9.0' );
 	if ( is_plugin_active( 'press-this/press-this-plugin.php' ) ) {
@@ -4446,15 +4446,15 @@ function _get_path_to_translation_from_lang_dir( $domain ) {
 }
 
 /**
-  * Allows multiple block styles.
-  *
-  * @since 5.9.0
-  * @deprecated 6.1.0
-  *
-  * @param array $metadata Metadata for registering a block type.
-  * @return array Metadata for registering a block type.
-  */
-  function _wp_multiple_block_styles( $metadata ) {
+ * Allows multiple block styles.
+ *
+ * @since 5.9.0
+ * @deprecated 6.1.0
+ *
+ * @param array $metadata Metadata for registering a block type.
+ * @return array Metadata for registering a block type.
+ */
+function _wp_multiple_block_styles( $metadata ) {
 	_deprecated_function( __FUNCTION__, '6.1.0' );
 	return $metadata;
 }
@@ -4598,7 +4598,7 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
  * @access private
  * @since 6.0.0
  * @deprecated 6.2.0 Site Editor's server-side redirect for missing postType and postId
- *             		 query args is removed. Thus, this function is no longer used.
+ *                   query args is removed. Thus, this function is no longer used.
  *
  * @return array|null A template object, or null if none could be found.
  */

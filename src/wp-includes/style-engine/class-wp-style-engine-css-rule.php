@@ -1,8 +1,6 @@
 <?php
 /**
- * WP_Style_Engine_CSS_Rule
- *
- * An object for CSS rules.
+ * Style Engine: WP_Style_Engine_CSS_Rule class
  *
  * @package WordPress
  * @subpackage StyleEngine
@@ -10,9 +8,9 @@
  */
 
 /**
- * Class WP_Style_Engine_CSS_Rule.
+ * Core class used for style engine CSS rules.
  *
- * Holds, sanitizes, processes and prints CSS declarations for the style engine.
+ * Holds, sanitizes, processes, and prints CSS declarations for the style engine.
  *
  * @since 6.1.0
  */
@@ -43,7 +41,7 @@ class WP_Style_Engine_CSS_Rule {
 	 * @since 6.1.0
 	 *
 	 * @param string                                    $selector     The CSS selector.
-	 * @param string[]|WP_Style_Engine_CSS_Declarations $declarations An associative array of CSS definitions, e.g., array( "$property" => "$value", "$property" => "$value" ),
+	 * @param string[]|WP_Style_Engine_CSS_Declarations $declarations An associative array of CSS definitions, e.g., `array( "$property" => "$value", "$property" => "$value" )`,
 	 *                                                                or a WP_Style_Engine_CSS_Declarations object.
 	 */
 	public function __construct( $selector = '', $declarations = array() ) {
@@ -57,7 +55,6 @@ class WP_Style_Engine_CSS_Rule {
 	 * @since 6.1.0
 	 *
 	 * @param string $selector The CSS selector.
-	 *
 	 * @return WP_Style_Engine_CSS_Rule Returns the object to allow chaining of methods.
 	 */
 	public function set_selector( $selector ) {
@@ -72,7 +69,6 @@ class WP_Style_Engine_CSS_Rule {
 	 *
 	 * @param array|WP_Style_Engine_CSS_Declarations $declarations An array of declarations (property => value pairs),
 	 *                                                             or a WP_Style_Engine_CSS_Declarations object.
-	 *
 	 * @return WP_Style_Engine_CSS_Rule Returns the object to allow chaining of methods.
 	 */
 	public function add_declarations( $declarations ) {
@@ -118,9 +114,8 @@ class WP_Style_Engine_CSS_Rule {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param bool   $should_prettify Whether to add spacing, new lines and indents.
-	 * @param number $indent_count    The number of tab indents to apply to the rule. Applies if `prettify` is `true`.
-	 *
+	 * @param bool $should_prettify Whether to add spacing, new lines and indents.
+	 * @param int  $indent_count    The number of tab indents to apply to the rule. Applies if `prettify` is `true`.
 	 * @return string
 	 */
 	public function get_css( $should_prettify = false, $indent_count = 0 ) {

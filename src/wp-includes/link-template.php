@@ -3636,7 +3636,7 @@ function plugins_url( $path = '', $plugin = '' ) {
 	$plugin        = wp_normalize_path( $plugin );
 	$mu_plugin_dir = wp_normalize_path( WPMU_PLUGIN_DIR );
 
-	if ( ! empty( $plugin ) && 0 === strpos( $plugin, $mu_plugin_dir ) ) {
+	if ( ! empty( $plugin ) && str_starts_with( $plugin, $mu_plugin_dir ) ) {
 		$url = WPMU_PLUGIN_URL;
 	} else {
 		$url = WP_PLUGIN_URL;
@@ -4722,7 +4722,7 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
 /**
  * Returns an array of URL hosts which are considered to be internal hosts.
  *
- * By default the list of internal hosts is comproside of the PHP_URL_HOST of
+ * By default the list of internal hosts is comprised of the host name of
  * the site's home_url() (as parsed by wp_parse_url()).
  *
  * This list is used when determining if a specificed URL is a link to a page on
@@ -4745,7 +4745,7 @@ function wp_internal_hosts() {
 		 *
 		 * @since 6.2.0
 		 *
-		 * @param array $internal_hosts An array of internal URL hostnames.
+		 * @param string[] $internal_hosts An array of internal URL hostnames.
 		 */
 		$internal_hosts = apply_filters(
 			'wp_internal_hosts',

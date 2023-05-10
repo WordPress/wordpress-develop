@@ -1059,7 +1059,7 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
  *     @type int|string $max_depth If greater than 1, comment page will be determined
  *                                 for the top-level parent `$comment_id`.
  *                                 Defaults to the value of the 'thread_comments_depth' option.
- * } *
+ * }
  * @return int|null Comment page number or null on error.
  */
 function get_page_of_comment( $comment_id, $args = array() ) {
@@ -2816,7 +2816,7 @@ function discover_pingback_server_uri( $url, $deprecated = '' ) {
 
 	// Do not search for a pingback server on our own uploads.
 	$uploads_dir = wp_get_upload_dir();
-	if ( 0 === strpos( $url, $uploads_dir['baseurl'] ) ) {
+	if ( str_starts_with( $url, $uploads_dir['baseurl'] ) ) {
 		return false;
 	}
 
@@ -3918,7 +3918,7 @@ function wp_comments_personal_data_eraser( $email_address, $page = 1 ) {
  * @since 5.0.0
  */
 function wp_cache_set_comments_last_changed() {
-	wp_cache_set( 'last_changed', microtime(), 'comment' );
+	wp_cache_set_last_changed( 'comment' );
 }
 
 /**
