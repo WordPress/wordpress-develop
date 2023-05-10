@@ -1120,6 +1120,8 @@ final class WP_Screen {
 		</p>
 		<?php
 
+		echo ('<div class="metabox-prefs-container">');
+
 		meta_box_prefs( $this );
 
 		if ( 'dashboard' === $this->id && has_action( 'welcome_panel' ) && current_user_can( 'edit_theme_options' ) ) {
@@ -1137,6 +1139,9 @@ final class WP_Screen {
 			echo _x( 'Welcome', 'Welcome panel' ) . "</label>\n";
 		}
 		?>
+
+			</div>
+
 		</fieldset>
 		<?php
 	}

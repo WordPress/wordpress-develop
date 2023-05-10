@@ -3780,6 +3780,18 @@ img {
 		overflow-x: hidden;
 	}
 
+	.metabox-prefs-container
+	{
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+	}
+
+	.metabox-prefs-container > *
+	{
+		display: inline-block;
+		padding: 5px;
+	}
+
 	body * {
 		-webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
 	}
