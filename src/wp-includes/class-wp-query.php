@@ -4819,6 +4819,7 @@ class WP_Query {
 			$args['update_menu_item_cache'],
 			$args['suppress_filters']
 		);
+		ksort($args);
 
 		$placeholder = $wpdb->placeholder_escape();
 		array_walk_recursive(
