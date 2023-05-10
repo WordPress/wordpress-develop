@@ -823,7 +823,7 @@ function wp_default_scripts( $scripts ) {
 	// jQuery.
 	// The unminified jquery.js and jquery-migrate.js are included to facilitate debugging.
 	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.6.4' );
-	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.6.3' );
+	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.6.4' );
 	$scripts->add( 'jquery-migrate', "/wp-includes/js/jquery/jquery-migrate$suffix.js", array(), '3.4.0' );
 
 	// Full jQuery UI.
@@ -3021,8 +3021,6 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
  *     @type bool $optimize Whether to optimize the CSS output, e.g., combine rules. Default is `false`.
  *     @type bool $prettify Whether to add new lines and indents to output. Default is the test of whether the global constant `SCRIPT_DEBUG` is defined.
  * }
- *
- * @return void
  */
 function wp_enqueue_stored_styles( $options = array() ) {
 	$is_block_theme   = wp_is_block_theme();

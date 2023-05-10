@@ -289,6 +289,7 @@ function create_initial_post_types() {
 				'new_item'                 => __( 'New Reusable block' ),
 				'edit_item'                => __( 'Edit Reusable block' ),
 				'view_item'                => __( 'View Reusable block' ),
+				'view_items'               => __( 'View Reusable blocks' ),
 				'all_items'                => __( 'All Reusable blocks' ),
 				'search_items'             => __( 'Search Reusable blocks' ),
 				'not_found'                => __( 'No reusable blocks found.' ),
@@ -1224,7 +1225,7 @@ function get_page_statuses() {
  * @since 4.9.6
  * @access private
  *
- * @return array
+ * @return string[] Array of privacy request status labels keyed by their status.
  */
 function _wp_privacy_statuses() {
 	return array(
