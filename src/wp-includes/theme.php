@@ -457,7 +457,7 @@ function search_theme_directories( $force = false ) {
 	 * to use in get_theme_root().
 	 */
 	foreach ( $wp_theme_directories as $theme_root ) {
-		if ( 0 === strpos( $theme_root, WP_CONTENT_DIR ) ) {
+		if ( str_starts_with( $theme_root, WP_CONTENT_DIR ) ) {
 			$relative_theme_roots[ str_replace( WP_CONTENT_DIR, '', $theme_root ) ] = $theme_root;
 		} else {
 			$relative_theme_roots[ $theme_root ] = $theme_root;
@@ -634,11 +634,11 @@ function get_theme_root_uri( $stylesheet_or_template = '', $theme_root = '' ) {
 	if ( $stylesheet_or_template && $theme_root ) {
 		if ( in_array( $theme_root, (array) $wp_theme_directories, true ) ) {
 			// Absolute path. Make an educated guess. YMMV -- but note the filter below.
-			if ( 0 === strpos( $theme_root, WP_CONTENT_DIR ) ) {
+			if ( str_starts_with( $theme_root, WP_CONTENT_DIR ) ) {
 				$theme_root_uri = content_url( str_replace( WP_CONTENT_DIR, '', $theme_root ) );
-			} elseif ( 0 === strpos( $theme_root, ABSPATH ) ) {
+			} elseif ( str_starts_with( $theme_root, ABSPATH ) ) {
 				$theme_root_uri = site_url( str_replace( ABSPATH, '', $theme_root ) );
-			} elseif ( 0 === strpos( $theme_root, WP_PLUGIN_DIR ) || 0 === strpos( $theme_root, WPMU_PLUGIN_DIR ) ) {
+			} elseif ( str_starts_with( $theme_root, WP_PLUGIN_DIR ) || str_starts_with( $theme_root, WPMU_PLUGIN_DIR ) ) {
 				$theme_root_uri = plugins_url( basename( $theme_root ), $theme_root );
 			} else {
 				$theme_root_uri = $theme_root;
@@ -824,6 +824,8 @@ function switch_theme( $stylesheet ) {
 
 	/**
 	 * Fires after the theme is switched.
+	 *
+	 * See {@see 'after_switch_theme'}.
 	 *
 	 * @since 1.5.0
 	 * @since 4.5.0 Introduced the `$old_theme` parameter.
@@ -3386,12 +3388,13 @@ function check_theme_switched() {
 
 		if ( $old_theme->exists() ) {
 			/**
-			 * Fires on the first WP load after a theme switch if the old theme still exists.
+			 * Fires on the next WP load after the theme has been switched.
 			 *
-			 * This action fires multiple times and the parameters differs
-			 * according to the context, if the old theme exists or not.
-			 * If the old theme is missing, the parameter will be the slug
+			 * The parameters differ according to whether the old theme exists or not.
+			 * If the old theme is missing, the old name will instead be the slug
 			 * of the old theme.
+			 *
+			 * See {@see 'switch_theme'}.
 			 *
 			 * @since 3.3.0
 			 *
