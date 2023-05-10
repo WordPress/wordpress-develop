@@ -313,6 +313,16 @@ function wp_cache_flush( $delay = 0 ) {
 }
 
 /**
+ * Removes all cache items from the in-memory runtime cache.
+ *
+ * @return bool True on success, false on failure.
+ */
+function wp_cache_flush_runtime() {
+	global $wp_object_cache;
+	return $wp_object_cache->flush_runtime();
+}
+
+/**
  * Determines whether the object cache implementation supports a particular feature.
  *
  * @since 6.1.0
@@ -330,16 +340,6 @@ function wp_cache_supports( $feature ) {
 		default:
 			return false;
 	}
-}
-
-/**
- * Removes all cache items from the in-memory runtime cache.
- *
- * @return bool True on success, false on failure.
- */
-function wp_cache_flush_runtime() {
-	global $wp_object_cache;
-	return $wp_object_cache->flush_runtime();
 }
 
 /**
