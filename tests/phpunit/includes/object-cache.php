@@ -325,10 +325,21 @@ function wp_cache_flush( $delay = 0 ) {
 function wp_cache_supports( $feature ) {
 	switch ( $feature ) {
 		case 'get_multiple':
+		case 'flush_runtime':
 			return true;
 		default:
 			return false;
 	}
+}
+
+/**
+ * Removes all cache items from the in-memory runtime cache.
+ *
+ * @return bool True on success, false on failure.
+ */
+function wp_cache_flush_runtime() {
+	global $wp_object_cache;
+	return $wp_object_cache->flush_runtime();
 }
 
 /**
@@ -1410,6 +1421,17 @@ class WP_Object_Cache {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Clears the in-memory cache of all data leaving the external cache untouched.
+	 *
+	 * @return bool Always returns true.
+	 */
+	public function flush_runtime() {
+		$this->cache = array();
+
+		return true;
 	}
 
 	/**
