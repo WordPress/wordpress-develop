@@ -363,7 +363,6 @@ function _prime_site_caches( $ids, $update_meta_cache = true ) {
 	}
 }
 
-
 /**
  * Queue site meta for lazy-loading.
  *
