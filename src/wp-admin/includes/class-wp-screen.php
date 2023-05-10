@@ -1120,7 +1120,7 @@ final class WP_Screen {
 		</p>
 		<?php
 
-		echo ('<div class="metabox-prefs-container">');
+		echo ( '<div class="metabox-prefs-container">' );
 
 		meta_box_prefs( $this );
 
