@@ -220,8 +220,6 @@ if ( is_multisite() ) :
 		}
 
 		public function test_update_site_meta_cache() {
-			global $wpdb;
-
 			if ( ! is_site_meta_supported() ) {
 				$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
 			}
@@ -229,14 +227,12 @@ if ( is_multisite() ) :
 			update_site_meta( self::$site_id, 'foo', 'bar' );
 			update_sitemeta_cache( array( self::$site_id ) );
 
-			$num_queries = $wpdb->num_queries;
+			$num_queries = get_num_queries();
 			get_site_meta( self::$site_id, 'foo', true );
-			$this->assertSame( $num_queries, $wpdb->num_queries );
+			$this->assertSame( $num_queries, get_num_queries() );
 		}
 
 		public function test_query_update_site_meta_cache_true() {
-			global $wpdb;
-
 			if ( ! is_site_meta_supported() ) {
 				$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
 			}
@@ -250,14 +246,12 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$num_queries = $wpdb->num_queries;
+			$num_queries = get_num_queries();
 			get_site_meta( self::$site_id, 'foo', true );
-			$this->assertSame( $num_queries, $wpdb->num_queries );
+			$this->assertSame( $num_queries, get_num_queries() );
 		}
 
 		public function test_query_update_site_meta_cache_false() {
-			global $wpdb;
-
 			if ( ! is_site_meta_supported() ) {
 				$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
 			}
@@ -271,9 +265,9 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$num_queries = $wpdb->num_queries;
+			$num_queries = get_num_queries();
 			get_site_meta( self::$site_id, 'foo', true );
-			$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+			$this->assertSame( $num_queries + 1, get_num_queries() );
 		}
 
 		/**
