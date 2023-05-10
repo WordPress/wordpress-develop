@@ -450,6 +450,38 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 58212
+	 * @covers ::_wp_post_thumbnail_context_filter_add
+	 * @covers ::_wp_post_thumbnail_context_filter_remove
+	 * @covers ::_wp_post_thumbnail_context_filter
+	 */
+	public function test_get_the_post_thumbnail_uses_correct_context() {
+		$last_context = '';
+		add_filter(
+			'wp_get_attachment_image_context',
+			function( $context ) use ( &$last_context ) {
+				$last_context = $context;
+				return $context;
+			},
+			11
+		);
+
+		set_post_thumbnail( self::$post, self::$attachment_id );
+
+		// Assert that before changing the context via filter it's the regular context.
+		wp_get_attachment_image( self::$attachment_id );
+		$this->assertSame( 'wp_get_attachment_image', $last_context, 'Incorrect context for wp_get_attachment_image() before calling get_the_post_thumbnail()' );
+
+		// Assert that get_the_post_thumbnail() triggers a temporary filter to override the context.
+		get_the_post_thumbnail( self::$post );
+		$this->assertSame( 'the_post_thumbnail', $last_context, 'Incorrect context for get_the_post_thumbnail()' );
+
+		// Assert that the regular context is used again following the temporary filter being removed.
+		wp_get_attachment_image( self::$attachment_id );
+		$this->assertSame( 'wp_get_attachment_image', $last_context, 'Incorrect context for wp_get_attachment_image() after calling get_the_post_thumbnail()' );
+	}
+
 	public function filter_post_thumbnail_size( $size, $post_id ) {
 		if ( is_array( $this->current_size_filter_data ) && isset( $this->current_size_filter_data[ $post_id ] ) ) {
 			return $this->current_size_filter_data[ $post_id ];

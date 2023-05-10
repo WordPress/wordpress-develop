@@ -3974,6 +3974,54 @@ EOF;
 	}
 
 	/**
+	 * @ticket 58212
+	 * @covers ::wp_get_attachment_image()
+	 */
+	public function test_wp_get_attachment_image_context_filter_default() {
+		$last_context = '';
+		add_filter(
+			'wp_get_attachment_image_context',
+			function( $context ) use ( &$last_context ) {
+				$last_context = $context;
+				return $context;
+			},
+			11
+		);
+
+		wp_get_attachment_image( self::$large_id );
+		$this->assertSame( 'wp_get_attachment_image', $last_context );
+	}
+
+	/**
+	 * @ticket 58212
+	 * @covers ::wp_get_attachment_image()
+	 */
+	public function test_wp_get_attachment_image_context_filter_value_is_passed_correctly() {
+		// Add a filter that modifies the context.
+		add_filter(
+			'wp_get_attachment_image_context',
+			function() {
+				return 'my_custom_context';
+			}
+		);
+
+		// Record context in 'wp_lazy_loading_enabled' filter to ensure the modified context is passed.
+		$last_context = '';
+		add_filter(
+			'wp_lazy_loading_enabled',
+			function( $default, $tag_name, $context ) use ( &$last_context ) {
+				$last_context = $context;
+				return $default;
+			},
+			10,
+			3
+		);
+
+		wp_get_attachment_image( self::$large_id );
+		$this->assertSame( 'my_custom_context', $last_context );
+	}
+
+	/**
 	 * Add threshold to create a `-scaled` output image for testing.
 	 */
 	public function add_big_image_size_threshold() {
