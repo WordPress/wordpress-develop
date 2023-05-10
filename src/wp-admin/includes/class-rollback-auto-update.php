@@ -246,6 +246,9 @@ class WP_Rollback_Auto_Update {
 		 */
 		sleep( 2 );
 
+		static::$current_plugins = get_site_transient( 'update_plugins' );
+		static::$current_themes  = get_site_transient( 'update_themes' );
+
 		$this->restart_updates();
 		$this->restart_core_updates();
 		$this->send_update_result_email();
@@ -314,12 +317,9 @@ class WP_Rollback_Auto_Update {
 	 * @since 6.3.0
 	 */
 	private function restart_updates() {
-		static::$current_plugins = get_site_transient( 'update_plugins' );
-		static::$current_themes  = get_site_transient( 'update_themes' );
-
-		$skin                          = new Automatic_Upgrader_Skin();
 		$remaining_plugin_auto_updates = $this->get_remaining_plugin_auto_updates();
 		$remaining_theme_auto_updates  = $this->get_remaining_theme_auto_updates();
+		$skin                          = new Automatic_Upgrader_Skin();
 
 		if ( ! empty( $remaining_plugin_auto_updates ) ) {
 			$plugin_upgrader = new Plugin_Upgrader( $skin );
