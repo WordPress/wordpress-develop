@@ -1,8 +1,6 @@
 <?php
 /**
- * WP_Style_Engine_Processor
- *
- * Compiles styles from stores or collection of CSS rules.
+ * Style Engine: WP_Style_Engine_Processor class
  *
  * @package WordPress
  * @subpackage StyleEngine
@@ -10,9 +8,7 @@
  */
 
 /**
- * Class WP_Style_Engine_Processor.
- *
- * Compiles styles from stores or collection of CSS rules.
+ * Core class used to compile styles from stores or collection of CSS rules.
  *
  * @since 6.1.0
  */
@@ -126,8 +122,6 @@ class WP_Style_Engine_Processor {
 	 * Combines selectors from the rules store when they have the same styles.
 	 *
 	 * @since 6.1.0
-	 *
-	 * @return void
 	 */
 	private function combine_rules_selectors() {
 		// Build an array of selectors along with the JSON-ified styles to make comparisons easier.

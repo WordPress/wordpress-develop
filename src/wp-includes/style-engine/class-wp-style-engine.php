@@ -1,8 +1,6 @@
 <?php
 /**
- * StyleEngine: WP_Style_Engine class
- *
- * This is the main class integrating all other WP_Style_Engine_* classes.
+ * Style Engine: WP_Style_Engine class
  *
  * @package WordPress
  * @subpackage StyleEngine
@@ -10,7 +8,7 @@
  */
 
 /**
- * Class WP_Style_Engine.
+ * The main class integrating all other WP_Style_Engine_* classes.
  *
  * The Style Engine aims to provide a consistent API for rendering styling for blocks across both client-side and server-side applications.
  *
@@ -288,7 +286,6 @@ final class WP_Style_Engine {
 	 * @param string   $store_name       A valid store key.
 	 * @param string   $css_selector     When a selector is passed, the function will return a full CSS rule `$selector { ...rules }`, otherwise a concatenated string of properties and values.
 	 * @param string[] $css_declarations An associative array of CSS definitions, e.g., `array( "$property" => "$value", "$property" => "$value" )`.
-	 * @return void
 	 */
 	public static function store_css_rule( $store_name, $css_selector, $css_declarations ) {
 		if ( empty( $store_name ) || empty( $css_selector ) || empty( $css_declarations ) ) {
