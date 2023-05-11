@@ -29,8 +29,14 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 			)
 		);
 
-
 		$this->assertSame( 2, get_num_queries() - $num_queries, 'Querying comments is expected to make two queries' );
+
+		$num_queries = get_num_queries();
+		foreach ( $comment_ids as $cid ) {
+			get_comment_meta( $cid, 'foo', 'bar' );
+		}
+
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'Querying comments is expected to make two queries' );
 	}
 
 	/**
@@ -191,13 +197,11 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 				// First request will hit the database.
 				$num_queries = get_num_queries();
 				get_comment_meta( $comment_ids[0], 'sauce' );
-
 				$this->assertSame( 1, get_num_queries() - $num_queries );
 
 				// Second and third requests should be in cache.
 				get_comment_meta( $comment_ids[1], 'sauce' );
 				get_comment_meta( $comment_ids[2], 'sauce' );
-
 				$this->assertSame( 1, get_num_queries() - $num_queries );
 			}
 		}
