@@ -649,7 +649,7 @@ function get_comment_excerpt( $comment_id = 0 ) {
 	if ( ! post_password_required( $comment->comment_post_ID ) ) {
 		$comment_text = strip_tags( str_replace( array( "\n", "\r" ), ' ', $comment->comment_content ) );
 	} else {
-		$comment_text = __( 'Password protected' );
+		$comment_text = (string) __( 'Password protected' );
 	}
 
 	/* translators: Maximum number of words used in a comment excerpt. */
@@ -955,7 +955,7 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 		if ( false === $more ) {
 			$comments_number_text = sprintf(
 				/* translators: %s: Number of comments. */
-				_n( '%s Comment', '%s Comments', $comments_number ),
+					(string) _n( '%s Comment', '%s Comments', $comments_number ),
 				number_format_i18n( $comments_number )
 			);
 		} else {
@@ -972,7 +972,7 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 				// Replace '% Comments' with a proper plural form.
 				if ( $text && ! preg_match( '/[0-9]+/', $text ) && false !== strpos( $more, '%' ) ) {
 					/* translators: %s: Number of comments. */
-					$new_text = _n( '%s Comment', '%s Comments', $comments_number );
+					$new_text = (string) _n( '%s Comment', '%s Comments', $comments_number );
 					$new_text = trim( sprintf( $new_text, '' ) );
 
 					$more = str_replace( $text, $new_text, $more );
@@ -985,9 +985,9 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 			$comments_number_text = str_replace( '%', number_format_i18n( $comments_number ), $more );
 		}
 	} elseif ( 0 == $comments_number ) {
-		$comments_number_text = ( false === $zero ) ? __( 'No Comments' ) : $zero;
+		$comments_number_text = ( false === $zero ) ? (string) __( 'No Comments' ) : $zero;
 	} else { // Must be one.
-		$comments_number_text = ( false === $one ) ? __( '1 Comment' ) : $one;
+		$comments_number_text = ( false === $one ) ? (string) __( '1 Comment' ) : $one;
 	}
 
 	/**
@@ -1001,7 +1001,7 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 	 *                                     is equal to 0, 1, or 1+.
 	 * @param int    $comments_number      The number of post comments.
 	 */
-	return apply_filters( 'comments_number', $comments_number_text, $comments_number );
+	return apply_filters( 'comments_number', (string) $comments_number_text, $comments_number );
 }
 
 /**

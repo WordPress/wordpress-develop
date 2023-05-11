@@ -463,23 +463,23 @@ function number_format_i18n( $number, $decimals = 0 ) {
 function size_format( $bytes, $decimals = 0 ) {
 	$quant = array(
 		/* translators: Unit symbol for yottabyte. */
-		_x( 'YB', 'unit symbol' ) => YB_IN_BYTES,
+		(string) _x( 'YB', 'unit symbol' ) => YB_IN_BYTES,
 		/* translators: Unit symbol for zettabyte. */
-		_x( 'ZB', 'unit symbol' ) => ZB_IN_BYTES,
+		(string) _x( 'ZB', 'unit symbol' ) => ZB_IN_BYTES,
 		/* translators: Unit symbol for exabyte. */
-		_x( 'EB', 'unit symbol' ) => EB_IN_BYTES,
+		(string) _x( 'EB', 'unit symbol' ) => EB_IN_BYTES,
 		/* translators: Unit symbol for petabyte. */
-		_x( 'PB', 'unit symbol' ) => PB_IN_BYTES,
+		(string) _x( 'PB', 'unit symbol' ) => PB_IN_BYTES,
 		/* translators: Unit symbol for terabyte. */
-		_x( 'TB', 'unit symbol' ) => TB_IN_BYTES,
+		(string) _x( 'TB', 'unit symbol' ) => TB_IN_BYTES,
 		/* translators: Unit symbol for gigabyte. */
-		_x( 'GB', 'unit symbol' ) => GB_IN_BYTES,
+		(string) _x( 'GB', 'unit symbol' ) => GB_IN_BYTES,
 		/* translators: Unit symbol for megabyte. */
-		_x( 'MB', 'unit symbol' ) => MB_IN_BYTES,
+		(string) _x( 'MB', 'unit symbol' ) => MB_IN_BYTES,
 		/* translators: Unit symbol for kilobyte. */
-		_x( 'KB', 'unit symbol' ) => KB_IN_BYTES,
+		(string) _x( 'KB', 'unit symbol' ) => KB_IN_BYTES,
 		/* translators: Unit symbol for byte. */
-		_x( 'B', 'unit symbol' )  => 1,
+		(string) _x( 'B', 'unit symbol' )  => 1,
 	);
 
 	if ( 0 === $bytes ) {

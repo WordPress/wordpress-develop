@@ -82,7 +82,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$cron_health = $this->instance->get_test_scheduled_events();
 
 		$this->assertSame( 'critical', $cron_health['status'] );
-		$this->assertSame( __( 'It was not possible to check your scheduled events' ), $cron_health['label'] );
+		$this->assertSame( (string) __( 'It was not possible to check your scheduled events' ), (string) $cron_health['label'] );
 		$this->assertWPError( $this->instance->has_late_cron() );
 		$this->assertWPError( $this->instance->has_missed_cron() );
 	}
@@ -112,7 +112,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$cron_health = $this->instance->get_test_scheduled_events();
 
 		$this->assertSame( $expected_status, $cron_health['status'] );
-		$this->assertSame( $expected_label, $cron_health['label'] );
+		$this->assertSame( (string) $expected_label, (string) $cron_health['label'] );
 		$this->assertSame( $expected_late, $this->instance->has_late_cron() );
 		$this->assertSame( $expected_missed, $this->instance->has_missed_cron() );
 	}
@@ -177,7 +177,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	public function test_get_page_cache( $responses, $expected_status, $expected_label, $good_basic_auth = null, $delay_the_response = false ) {
 		$expected_props = array(
 			'badge'  => array(
-				'label' => __( 'Performance' ),
+				'label' => (string) __( 'Performance' ),
 				'color' => 'blue',
 			),
 			'test'   => 'page_cache',

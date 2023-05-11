@@ -920,11 +920,11 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$item_value = $setting->value();
 		$this->assertArrayHasKey( 'type_label', $item_value );
 		$nav_menu_item = $setting->value_as_wp_post_nav_menu_item();
-		$this->assertSame( 'Custom Link', $nav_menu_item->type_label );
-		$this->assertSame( $item_value['type_label'], $nav_menu_item->type_label );
+		$this->assertSame( 'Custom Link', (string) $nav_menu_item->type_label );
+		$this->assertSame( $item_value['type_label'], (string) $nav_menu_item->type_label );
 		add_filter( 'wp_setup_nav_menu_item', array( $this, 'filter_type_label' ) );
 		$nav_menu_item = $setting->value_as_wp_post_nav_menu_item();
-		$this->assertSame( 'Custom Label', $nav_menu_item->type_label );
+		$this->assertSame( 'Custom Label', (string) $nav_menu_item->type_label );
 
 		$this->assertObjectNotHasAttribute( 'nav_menu_term_id', $nav_menu_item );
 		$this->assertObjectNotHasAttribute( 'status', $nav_menu_item );

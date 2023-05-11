@@ -214,7 +214,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 				$classes .= ' hidden';
 			}
 
-			printf( '<td class="%s" data-colname="%s">', esc_attr( $classes ), esc_attr( wp_strip_all_tags( $display_name ) ) );
+			printf( '<td class="%s" data-colname="%s">', esc_attr( $classes ), esc_attr( wp_strip_all_tags( (string) $display_name ) ) );
 
 			switch ( $column_name ) {
 				case 'name':
