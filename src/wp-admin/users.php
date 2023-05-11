@@ -371,8 +371,7 @@ switch ( $wp_list_table->current_action() ) {
 				<?php
 				echo '<label for="delete_option1">' . __( 'Attribute all content to:' ) . '</label> ';
 				$users = get_users( array( 'exclude' => $userids ) );
-				usort( $users, function( $a, $b ) 
-				{
+				usort( $users, function( $a, $b ) {
 					$role_a = $a->roles[0];
 					$role_b = $b->roles[0];
 					return strcmp( $role_a, $role_b );
