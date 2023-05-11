@@ -1,11 +1,16 @@
 <?php
+/**
+ * Translation proxy class.
+ *
+ * @package WordPress
+ * @subpackage L10n
+ * @since 6.3.0
+ */
 
 /**
- * L10n: WP_Translation_Proxy class.
+ * Class WP_Translation_Proxy.
  *
- * @package    WordPress
- * @subpackage L10n
- * @since      6.3.0
+ * @since 6.3.0
  */
 final class WP_Translation_Proxy extends WP_String_Proxy {
 

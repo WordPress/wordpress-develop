@@ -1,17 +1,22 @@
 <?php
+/**
+ * String proxy class.
+ *
+ * @package WordPress
+ * @subpackage L10n
+ * @since 6.3.0
+ */
 
 /**
- * L10n: WP_String_Proxy class.
+ * Class WP_String_Proxy.
  *
  * Implements `JsonSerializable` interface so that it gets converted to a
  * translated string on `json_encode()`.
  *
  * Implements the `ArrayAccess` interface so that you can directly access
- * individual characters in the translated string
+ * individual characters in the translated string.
  *
- * @package    WordPress
- * @subpackage L10n
- * @since      6.3.0
+ * @since 6.3.0
  */
 abstract class WP_String_Proxy implements JsonSerializable, ArrayAccess {
 

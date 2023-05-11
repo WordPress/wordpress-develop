@@ -1,11 +1,16 @@
 <?php
+/**
+ * HTML escaping proxy class.
+ *
+ * @package WordPress
+ * @subpackage L10n
+ * @since 6.3.0
+ */
 
 /**
- * L10n: WP_Escape_HTML_Proxy class.
+ * Class WP_Escape_HTML_Proxy.
  *
- * @package    WordPress
- * @subpackage L10n
- * @since      6.3.0
+ * @since 6.3.0
  */
 final class WP_Escape_HTML_Proxy extends WP_String_Proxy {
 

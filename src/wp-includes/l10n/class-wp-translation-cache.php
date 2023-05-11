@@ -1,11 +1,16 @@
 <?php
+/**
+ * Translation cache class.
+ *
+ * @package WordPress
+ * @subpackage L10n
+ * @since 6.3.0
+ */
 
 /**
- * L10n: WP_Translation_Cache class.
+ * Class WP_Translation_Cache.
  *
- * @package    WordPress
- * @subpackage L10n
- * @since      6.3.0
+ * @since 6.3.0
  */
 class WP_Translation_Cache {
 
@@ -45,7 +50,9 @@ class WP_Translation_Cache {
 	 * @since 6.3.0
 	 */
 	public function __construct() {
-		$this->original_locale = $this->current_locale = determine_locale();
+		$locale                = determine_locale();
+		$this->original_locale = $locale;
+		$this->current_locale  = $locale;
 	}
 
 	/**

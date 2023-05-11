@@ -1,11 +1,16 @@
 <?php
+/**
+ * Plural translation proxy class.
+ *
+ * @package WordPress
+ * @subpackage L10n
+ * @since 6.3.0
+ */
 
 /**
- * L10n: WP_Plural_Translation_Proxy class.
+ * Class WP_Plural_Translation_Proxy.
  *
- * @package    WordPress
- * @subpackage L10n
- * @since      6.3.0
+ * @since 6.3.0
  */
 final class WP_Plural_Translation_Proxy extends WP_String_Proxy {
 

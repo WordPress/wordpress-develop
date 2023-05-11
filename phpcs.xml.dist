@@ -189,6 +189,7 @@
 		 (such as calling the low-level translate() function). -->
 	<rule ref="WordPress.WP.I18n">
 		<exclude-pattern>/src/wp-includes/l10n\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/l10n/*</exclude-pattern>
 		<exclude-pattern>/tests/phpunit/tests/l10n\.php</exclude-pattern>
 		<exclude-pattern>/tests/phpunit/tests/l10n/loadTextdomainJustInTime\.php</exclude-pattern>
 	</rule>
