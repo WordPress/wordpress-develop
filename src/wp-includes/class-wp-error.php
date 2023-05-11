@@ -63,9 +63,9 @@ class WP_Error {
 			return;
 		}
 
-        if ( $message instanceof WP_String_Proxy ) {
+		if ( $message instanceof WP_String_Proxy ) {
             $message = (string) $message;
-        }
+		}
 
 		$this->add( $code, $message, $data );
 	}

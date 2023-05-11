@@ -955,7 +955,7 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 		if ( false === $more ) {
 			$comments_number_text = sprintf(
 				/* translators: %s: Number of comments. */
-					(string) _n( '%s Comment', '%s Comments', $comments_number ),
+				(string) _n( '%s Comment', '%s Comments', $comments_number ),
 				number_format_i18n( $comments_number )
 			);
 		} else {
