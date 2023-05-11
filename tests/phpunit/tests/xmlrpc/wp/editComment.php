@@ -60,7 +60,7 @@ class Tests_XMLRPC_wp_editComment extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_editComment( array( 1, 'author', 'author', $comment_id, array( 'status' => 'hold' ) ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
-		$this->assertSame( __( 'Sorry, you are not allowed to moderate or edit this comment.' ), $result->message );
+		$this->assertSame( (string) __( 'Sorry, you are not allowed to moderate or edit this comment.' ), $result->message );
 	}
 
 	public function test_trash_comment() {

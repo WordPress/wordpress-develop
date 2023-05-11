@@ -27,7 +27,7 @@ class Tests_XMLRPC_wp_newTerm extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_newTerm( array( 1, 'editor', 'editor', array( 'taxonomy' => '' ) ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
-		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
+		$this->assertSame( (string) __( 'Invalid taxonomy.' ), $result->message );
 	}
 
 	public function test_invalid_taxonomy() {
@@ -36,7 +36,7 @@ class Tests_XMLRPC_wp_newTerm extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_newTerm( array( 1, 'editor', 'editor', array( 'taxonomy' => 'not_existing' ) ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
-		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
+		$this->assertSame( (string) __( 'Invalid taxonomy.' ), $result->message );
 	}
 
 	public function test_incapable_user() {
@@ -45,7 +45,7 @@ class Tests_XMLRPC_wp_newTerm extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_newTerm( array( 1, 'subscriber', 'subscriber', array( 'taxonomy' => 'category' ) ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 401, $result->code );
-		$this->assertSame( __( 'Sorry, you are not allowed to create terms in this taxonomy.' ), $result->message );
+		$this->assertSame( (string) __( 'Sorry, you are not allowed to create terms in this taxonomy.' ), $result->message );
 	}
 
 	public function test_empty_term() {
@@ -64,7 +64,7 @@ class Tests_XMLRPC_wp_newTerm extends WP_XMLRPC_UnitTestCase {
 		);
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
-		$this->assertSame( __( 'The term name cannot be empty.' ), $result->message );
+		$this->assertSame( (string) __( 'The term name cannot be empty.' ), $result->message );
 	}
 
 	public function test_parent_for_nonhierarchical() {
@@ -84,7 +84,7 @@ class Tests_XMLRPC_wp_newTerm extends WP_XMLRPC_UnitTestCase {
 		);
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
-		$this->assertSame( __( 'This taxonomy is not hierarchical.' ), $result->message );
+		$this->assertSame( (string) __( 'This taxonomy is not hierarchical.' ), $result->message );
 	}
 
 	public function test_parent_invalid() {
@@ -123,7 +123,7 @@ class Tests_XMLRPC_wp_newTerm extends WP_XMLRPC_UnitTestCase {
 		);
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
-		$this->assertSame( __( 'Parent term does not exist.' ), $result->message );
+		$this->assertSame( (string) __( 'Parent term does not exist.' ), $result->message );
 	}
 
 

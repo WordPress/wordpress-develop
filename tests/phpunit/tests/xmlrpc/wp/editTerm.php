@@ -38,7 +38,7 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_editTerm( array( 1, 'subscriber', 'subscriber', '', array( 'taxonomy' => '' ) ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
-		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
+		$this->assertSame( (string) __( 'Invalid taxonomy.' ), $result->message );
 	}
 
 	public function test_invalid_taxonomy() {
@@ -47,7 +47,7 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_editTerm( array( 1, 'subscriber', 'subscriber', self::$parent_term, array( 'taxonomy' => 'not_existing' ) ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
-		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
+		$this->assertSame( (string) __( 'Invalid taxonomy.' ), $result->message );
 	}
 
 	public function test_incapable_user() {
@@ -56,7 +56,7 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_editTerm( array( 1, 'subscriber', 'subscriber', self::$parent_term, array( 'taxonomy' => 'category' ) ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 401, $result->code );
-		$this->assertSame( __( 'Sorry, you are not allowed to edit this term.' ), $result->message );
+		$this->assertSame( (string) __( 'Sorry, you are not allowed to edit this term.' ), $result->message );
 	}
 
 	public function test_term_not_exists() {
@@ -65,7 +65,7 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_editTerm( array( 1, 'editor', 'editor', 9999, array( 'taxonomy' => 'category' ) ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 404, $result->code );
-		$this->assertSame( __( 'Invalid term ID.' ), $result->message );
+		$this->assertSame( (string) __( 'Invalid term ID.' ), $result->message );
 	}
 
 	public function test_empty_term() {
@@ -74,7 +74,7 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_editTerm( array( 1, 'editor', 'editor', '', array( 'taxonomy' => 'category' ) ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 500, $result->code );
-		$this->assertSame( __( 'Empty Term.' ), $result->message );
+		$this->assertSame( (string) __( 'Empty Term.' ), $result->message );
 	}
 
 	public function test_empty_term_name() {
@@ -94,7 +94,7 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 		);
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
-		$this->assertSame( __( 'The term name cannot be empty.' ), $result->message );
+		$this->assertSame( (string) __( 'The term name cannot be empty.' ), $result->message );
 	}
 
 	public function test_parent_for_nonhierarchical() {
@@ -114,7 +114,7 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 		);
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
-		$this->assertSame( __( 'Cannot set parent term, taxonomy is not hierarchical.' ), $result->message );
+		$this->assertSame( (string) __( 'Cannot set parent term, taxonomy is not hierarchical.' ), $result->message );
 	}
 
 	public function test_parent_empty() {
@@ -199,7 +199,7 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 		);
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
-		$this->assertSame( __( 'Parent term does not exist.' ), $result->message );
+		$this->assertSame( (string) __( 'Parent term does not exist.' ), $result->message );
 	}
 
 	public function test_parent_duplicate_slug() {

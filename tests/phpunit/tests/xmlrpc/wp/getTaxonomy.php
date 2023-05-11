@@ -17,7 +17,7 @@ class Tests_XMLRPC_wp_getTaxonomy extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getTaxonomy( array( 1, 'editor', 'editor', '' ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
-		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
+		$this->assertSame( (string) __( 'Invalid taxonomy.' ), $result->message );
 	}
 
 	public function test_invalid_taxonomy() {
@@ -26,7 +26,7 @@ class Tests_XMLRPC_wp_getTaxonomy extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getTaxonomy( array( 1, 'editor', 'editor', 'not_existing' ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
-		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
+		$this->assertSame( (string) __( 'Invalid taxonomy.' ), $result->message );
 	}
 
 	public function test_incapable_user() {
@@ -35,7 +35,7 @@ class Tests_XMLRPC_wp_getTaxonomy extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getTaxonomy( array( 1, 'subscriber', 'subscriber', 'category' ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 401, $result->code );
-		$this->assertSame( __( 'Sorry, you are not allowed to assign terms in this taxonomy.' ), $result->message );
+		$this->assertSame( (string) __( 'Sorry, you are not allowed to assign terms in this taxonomy.' ), $result->message );
 	}
 
 	public function test_taxonomy_validated() {

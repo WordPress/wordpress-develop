@@ -1894,7 +1894,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Contains 'Community Events Location'.
-		$this->assertSame( 'Community Events Location', $actual['data'][1]['group_label'] );
+		$this->assertSame( 'Community Events Location', (string) $actual['data'][1]['group_label'] );
 
 		// Contains location IP.
 		$this->assertSame( 'IP', $actual['data'][1]['data'][0]['name'] );
@@ -1923,7 +1923,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Contains 'Community Events Location'.
-		$this->assertSame( 'Community Events Location', $actual['data'][1]['group_label'] );
+		$this->assertSame( 'Community Events Location', (string) $actual['data'][1]['group_label'] );
 
 		// Contains location city.
 		$this->assertSame( 'City', $actual['data'][1]['data'][0]['name'] );
@@ -1967,7 +1967,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Contains Session Tokens.
-		$this->assertSame( 'Session Tokens', $actual['data'][1]['group_label'] );
+		$this->assertSame( 'Session Tokens', (string) $actual['data'][1]['group_label'] );
 
 		// Contains Expiration.
 		$this->assertSame( 'Expiration', $actual['data'][1]['data'][0]['name'] );

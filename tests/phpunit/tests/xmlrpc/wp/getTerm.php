@@ -27,7 +27,7 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getTerm( array( 1, 'editor', 'editor', '', 0 ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
-		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
+		$this->assertSame( (string) __( 'Invalid taxonomy.' ), $result->message );
 	}
 
 	public function test_invalid_taxonomy() {
@@ -36,7 +36,7 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getTerm( array( 1, 'editor', 'editor', 'not_existing', 0 ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
-		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
+		$this->assertSame( (string) __( 'Invalid taxonomy.' ), $result->message );
 	}
 
 	public function test_incapable_user() {
@@ -45,7 +45,7 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getTerm( array( 1, 'subscriber', 'subscriber', 'category', self::$term_id ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 401, $result->code );
-		$this->assertSame( __( 'Sorry, you are not allowed to assign this term.' ), $result->message );
+		$this->assertSame( (string) __( 'Sorry, you are not allowed to assign this term.' ), $result->message );
 	}
 
 
@@ -55,7 +55,7 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getTerm( array( 1, 'editor', 'editor', 'category', '' ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 500, $result->code );
-		$this->assertSame( __( 'Empty Term.' ), $result->message );
+		$this->assertSame( (string) __( 'Empty Term.' ), $result->message );
 	}
 
 	public function test_invalid_term() {
@@ -64,7 +64,7 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getTerm( array( 1, 'editor', 'editor', 'category', 9999 ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 404, $result->code );
-		$this->assertSame( __( 'Invalid term ID.' ), $result->message );
+		$this->assertSame( (string) __( 'Invalid term ID.' ), $result->message );
 	}
 
 	public function test_valid_term() {

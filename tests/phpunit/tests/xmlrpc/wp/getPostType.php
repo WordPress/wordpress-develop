@@ -60,7 +60,7 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 
 		// Check data types.
 		$this->assertIsString( $result['name'] );
-		$this->assertIsString( $result['label'] );
+		$this->assertInstanceOf( WP_String_Proxy::class, $result['label'] );
 		$this->assertIsBool( $result['hierarchical'] );
 		$this->assertIsBool( $result['public'] );
 		$this->assertIsBool( $result['_builtin'] );
