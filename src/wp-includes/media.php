@@ -5471,11 +5471,6 @@ function wp_get_loading_attr_default( $context ) {
 			if ( did_action( 'get_header' ) && ! did_action( 'get_footer' ) ) {
 				return false;
 			}
-
-			// If footer has alredy reached then it means the current template did not include any loop. Lazy-load image from this point.
-			if ( did_action( 'get_footer' ) ) {
-				return 'lazy';
-			}
 		}
 	}
 
