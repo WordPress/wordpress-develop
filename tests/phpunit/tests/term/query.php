@@ -456,8 +456,6 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	 * @group cache
 	 */
 	public function test_count_query_should_be_cached() {
-		global $wpdb;
-
 		register_taxonomy( 'wptests_tax_1', 'post' );
 
 		$terms = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax_1' ) );
@@ -472,7 +470,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$count = $query->get_terms();
 		$this->assertEquals( 2, $count );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		$query = new WP_Term_Query(
 			array(
@@ -483,7 +481,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		);
 		$count = $query->get_terms();
 		$this->assertEquals( 2, $count );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**
@@ -803,11 +801,9 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	 * @ticket 41246
 	 */
 	public function test_terms_pre_query_filter_should_bypass_database_query() {
-		global $wpdb;
-
 		add_filter( 'terms_pre_query', array( __CLASS__, 'filter_terms_pre_query' ), 10, 2 );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		$q       = new WP_Term_Query();
 		$results = $q->query(
@@ -819,7 +815,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		remove_filter( 'terms_pre_query', array( __CLASS__, 'filter_terms_pre_query' ), 10, 2 );
 
 		// Make sure no queries were executed.
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 
 		// We manually inserted a non-existing term and overrode the results with it.
 		$this->assertSame( array( 555 ), $q->terms );
