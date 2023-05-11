@@ -3644,10 +3644,9 @@ class WP_Query {
 		}
 
 		$this->in_the_loop = true;
+		$this->before_loop = false;
 
 		if ( -1 == $this->current_post ) { // Loop has just started.
-			$this->before_loop = false;
-
 			/**
 			 * Fires once the loop is started.
 			 *
