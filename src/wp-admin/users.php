@@ -371,14 +371,15 @@ switch ( $wp_list_table->current_action() ) {
 				<?php
 				echo '<label for="delete_option1">' . __( 'Attribute all content to:' ) . '</label> ';
 				$users = get_users( array( 'exclude' => $userids ) );
-				usort( $users, function( $a, $b ) {
-				    $role_a = $a->roles[0];
-				    $role_b = $b->roles[0];
-				    return strcmp( $role_a, $role_b );
+				usort( $users, function( $a, $b )
+				{
+					$role_a = $a->roles[0];
+					$role_b = $b->roles[0];
+					return strcmp( $role_a, $role_b );
 				});
 				echo '<select name="reassign_user">';
 				foreach ( $users as $user ) {
-				    echo '<option value="' . esc_attr( $user->ID ) . '"> User: ' . esc_html( $user->display_name ) . ' - role: ' . esc_html( $user->roles[0] ) . '</option>';
+					echo '<option value="' . esc_attr( $user->ID ) . '"> User: ' . esc_html( $user->display_name ) . ' - role: ' . esc_html( $user->roles[0] ) . '</option>';
 				}
 				echo '</select>';
 				?>
