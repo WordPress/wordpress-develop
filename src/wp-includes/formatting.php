@@ -898,7 +898,7 @@ function seems_utf8( $str ) {
 			return false; // Does not match any model.
 		}
 		for ( $j = 0; $j < $n; $j++ ) { // n bytes matching 10bbbbbb follow ?
-			if ( ( ++$i == $length ) || ( ( ord( $str[ $i ] ) & 0xC0 ) != 0x80 ) ) {
+			if ( ( ++$i === $length ) || ( ( ord( $str[ $i ] ) & 0xC0 ) != 0x80 ) ) {
 				return false;
 			}
 		}
@@ -3029,13 +3029,26 @@ function make_clickable( $text ) {
 	$nested_code_pre = 0; // Keep track of how many levels link is nested inside <pre> or <code>.
 	foreach ( $textarr as $piece ) {
 
-		if ( preg_match( '|^<code[\s>]|i', $piece ) || preg_match( '|^<pre[\s>]|i', $piece ) || preg_match( '|^<script[\s>]|i', $piece ) || preg_match( '|^<style[\s>]|i', $piece ) ) {
+		if ( preg_match( '|^<code[\s>]|i', $piece )
+			|| preg_match( '|^<pre[\s>]|i', $piece )
+			|| preg_match( '|^<script[\s>]|i', $piece )
+			|| preg_match( '|^<style[\s>]|i', $piece )
+		) {
 			$nested_code_pre++;
-		} elseif ( $nested_code_pre && ( '</code>' === strtolower( $piece ) || '</pre>' === strtolower( $piece ) || '</script>' === strtolower( $piece ) || '</style>' === strtolower( $piece ) ) ) {
+		} elseif ( $nested_code_pre
+			&& ( '</code>' === strtolower( $piece )
+				|| '</pre>' === strtolower( $piece )
+				|| '</script>' === strtolower( $piece )
+				|| '</style>' === strtolower( $piece )
+			)
+		) {
 			$nested_code_pre--;
 		}
 
-		if ( $nested_code_pre || empty( $piece ) || ( '<' === $piece[0] && ! preg_match( '|^<\s*[\w]{1,20}+://|', $piece ) ) ) {
+		if ( $nested_code_pre
+			|| empty( $piece )
+			|| ( '<' === $piece[0] && ! preg_match( '|^<\s*[\w]{1,20}+://|', $piece ) )
+		) {
 			$r .= $piece;
 			continue;
 		}
@@ -4463,7 +4476,7 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 			$protocols = wp_allowed_protocols();
 		}
 		$good_protocol_url = wp_kses_bad_protocol( $url, $protocols );
-		if ( strtolower( $good_protocol_url ) != strtolower( $url ) ) {
+		if ( strtolower( $good_protocol_url ) !== strtolower( $url ) ) {
 			return '';
 		}
 	}
@@ -4524,13 +4537,15 @@ function sanitize_url( $url, $protocols = null ) {
  *
  * @since 1.2.2
  *
- * @param string $myHTML The text to be converted.
+ * @param string $text The text to be converted.
  * @return string Converted text.
  */
-function htmlentities2( $myHTML ) {
-	$translation_table              = get_html_translation_table( HTML_ENTITIES, ENT_QUOTES );
+function htmlentities2( $text ) {
+	$translation_table = get_html_translation_table( HTML_ENTITIES, ENT_QUOTES );
+
 	$translation_table[ chr( 38 ) ] = '&';
-	return preg_replace( '/&(?![A-Za-z]{0,4}\w{2,3};|#[0-9]{2,3};)/', '&amp;', strtr( $myHTML, $translation_table ) );
+
+	return preg_replace( '/&(?![A-Za-z]{0,4}\w{2,3};|#[0-9]{2,3};)/', '&amp;', strtr( $text, $translation_table ) );
 }
 
 /**
@@ -5136,7 +5151,7 @@ function wp_sprintf( $pattern, ...$args ) {
 	$arg_index = 0;
 	while ( $len > $start ) {
 		// Last character: append and break.
-		if ( strlen( $pattern ) - 1 == $start ) {
+		if ( strlen( $pattern ) - 1 === $start ) {
 			$result .= substr( $pattern, -1 );
 			break;
 		}
