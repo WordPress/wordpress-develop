@@ -93,7 +93,7 @@ EOD;
 		$this->assertSame( '<blockquote class="wp-embedded-content"><a href=""></a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"></iframe>', $actual );
 	}
 
-	public function _data_oembed_test_strings() {
+	public function data_wp_filter_pre_oembed_custom_result() {
 		return array(
 			array(
 				'<blockquote></blockquote><iframe title=""></iframe>',
@@ -115,7 +115,7 @@ EOD;
 	}
 
 	/**
-	 * @dataProvider _data_oembed_test_strings
+	 * @dataProvider data_wp_filter_pre_oembed_custom_result
 	 */
 	public function test_wp_filter_pre_oembed_custom_result( $html, $expected ) {
 		$data   = (object) array(

@@ -729,7 +729,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	public function test_get_theme_data_theme_supports_overrides_theme_json() {
 		// Test that get_theme_data() returns a WP_Theme_JSON object.
 		$theme_json_resolver = new WP_Theme_JSON_Resolver();
-		$theme_data          = $theme_json_resolver->get_theme_data();
+		$theme_json_resolver->get_merged_data();
+		$theme_data = $theme_json_resolver->get_theme_data();
 		$this->assertInstanceOf( 'WP_Theme_JSON', $theme_data, 'Theme data should be an instance of WP_Theme_JSON.' );
 
 		// Test that wp_theme_json_data_theme filter has been called.

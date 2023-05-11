@@ -184,7 +184,7 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 		$src = $scripts->registered[ $handle ]->src;
 		$ver = $scripts->registered[ $handle ]->ver;
 
-		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $scripts->content_url && 0 === strpos( $src, $scripts->content_url ) ) ) {
+		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $scripts->content_url && str_starts_with( $src, $scripts->content_url ) ) ) {
 			$src = $scripts->base_url . $src;
 		}
 
@@ -823,7 +823,7 @@ function wp_default_scripts( $scripts ) {
 	// jQuery.
 	// The unminified jquery.js and jquery-migrate.js are included to facilitate debugging.
 	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.6.4' );
-	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.6.3' );
+	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.6.4' );
 	$scripts->add( 'jquery-migrate', "/wp-includes/js/jquery/jquery-migrate$suffix.js", array(), '3.4.0' );
 
 	// Full jQuery UI.
@@ -1108,9 +1108,9 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'mediaelement-vimeo', '/wp-includes/js/mediaelement/renderers/vimeo.min.js', array( 'mediaelement' ), '4.2.17', 1 );
 	$scripts->add( 'wp-mediaelement', "/wp-includes/js/mediaelement/wp-mediaelement$suffix.js", array( 'mediaelement' ), false, 1 );
 	$mejs_settings = array(
-		'pluginPath'  => includes_url( 'js/mediaelement/', 'relative' ),
-		'classPrefix' => 'mejs-',
-		'stretching'  => 'responsive',
+		'pluginPath'            => includes_url( 'js/mediaelement/', 'relative' ),
+		'classPrefix'           => 'mejs-',
+		'stretching'            => 'responsive',
 		/** This filter is documented in wp-includes/media.php */
 		'audioShortcodeLibrary' => apply_filters( 'wp_audio_shortcode_library', 'mediaelement' ),
 		/** This filter is documented in wp-includes/media.php */
@@ -1663,12 +1663,10 @@ function wp_default_styles( $styles ) {
 			'wp-editor',
 			'wp-edit-blocks',
 			'wp-block-library',
-			'wp-nux',
 		),
 		'editor'               => array(
 			'wp-components',
 			'wp-block-editor',
-			'wp-nux',
 			'wp-reusable-blocks',
 		),
 		'format-library'       => array(),
@@ -2941,41 +2939,33 @@ function wp_maybe_inline_styles() {
  * @return string The CSS with URLs made relative to the WordPress installation.
  */
 function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
-	$has_src_results = preg_match_all( '#url\s*\(\s*[\'"]?\s*([^\'"\)]+)#', $css, $src_results );
-	if ( $has_src_results ) {
-		// Loop through the URLs to find relative ones.
-		foreach ( $src_results[1] as $src_index => $src_result ) {
-			// Skip if this is an absolute URL.
-			if ( 0 === strpos( $src_result, 'http' ) || 0 === strpos( $src_result, '//' ) ) {
-				continue;
-			}
+	return preg_replace_callback(
+		'#(url\s*\(\s*[\'"]?\s*)([^\'"\)]+)#',
+		static function ( $matches ) use ( $stylesheet_url ) {
+			list( , $prefix, $url ) = $matches;
 
-			// Skip if the URL is an HTML ID.
-			if ( str_starts_with( $src_result, '#' ) ) {
-				continue;
-			}
-
-			// Skip if the URL is a data URI.
-			if ( str_starts_with( $src_result, 'data:' ) ) {
-				continue;
+			// Short-circuit if the URL does not require normalization.
+			if (
+				str_starts_with( $url, 'http:' ) ||
+				str_starts_with( $url, 'https:' ) ||
+				str_starts_with( $url, '//' ) ||
+				str_starts_with( $url, '#' ) ||
+				str_starts_with( $url, 'data:' )
+			) {
+				return $matches[0];
 			}
 
 			// Build the absolute URL.
-			$absolute_url = dirname( $stylesheet_url ) . '/' . $src_result;
+			$absolute_url = dirname( $stylesheet_url ) . '/' . $url;
 			$absolute_url = str_replace( '/./', '/', $absolute_url );
+
 			// Convert to URL related to the site root.
-			$relative_url = wp_make_link_relative( $absolute_url );
+			$url = wp_make_link_relative( $absolute_url );
 
-			// Replace the URL in the CSS.
-			$css = str_replace(
-				$src_results[0][ $src_index ],
-				str_replace( $src_result, $relative_url, $src_results[0][ $src_index ] ),
-				$css
-			);
-		}
-	}
-
-	return $css;
+			return $prefix . $url;
+		},
+		$css
+	);
 }
 
 /**
@@ -3031,8 +3021,6 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
  *     @type bool $optimize Whether to optimize the CSS output, e.g., combine rules. Default is `false`.
  *     @type bool $prettify Whether to add new lines and indents to output. Default is the test of whether the global constant `SCRIPT_DEBUG` is defined.
  * }
- *
- * @return void
  */
 function wp_enqueue_stored_styles( $options = array() ) {
 	$is_block_theme   = wp_is_block_theme();
@@ -3222,6 +3210,10 @@ function wp_enqueue_block_style( $block_name, $args ) {
 function _wp_theme_json_webfonts_handler() {
 	// Block themes are unavailable during installation.
 	if ( wp_installing() ) {
+		return;
+	}
+
+	if ( ! wp_theme_has_theme_json() ) {
 		return;
 	}
 
