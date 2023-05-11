@@ -1203,7 +1203,7 @@ function wp_default_scripts( $scripts ) {
 			'linkSelected'   => __( 'Link selected.' ),
 			'linkInserted'   => __( 'Link inserted.' ),
 			/* translators: Minimum input length in characters to start searching posts in the "Insert/edit link" modal. */
-			'minInputLength' => (int) _x( '3', 'minimum input length for searching post links' ),
+			'minInputLength' => (int) (string) _x( '3', 'minimum input length for searching post links' ),
 		)
 	);
 

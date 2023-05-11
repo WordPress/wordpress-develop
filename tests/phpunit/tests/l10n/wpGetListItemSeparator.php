@@ -23,6 +23,6 @@ class Tests_L10n_wpGetListItemSeparator extends WP_UnitTestCase {
 
 		$wp_locale = $original_locale;
 
-		$this->assertSame( __( ', ' ), $actual );
+		$this->assertSame( (string) __( ', ' ), $actual );
 	}
 }

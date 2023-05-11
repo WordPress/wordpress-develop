@@ -25,9 +25,9 @@ class Tests_L10n extends WP_UnitTestCase {
 		$nooped_plural = _n_noop( '%s post', '%s posts', $text_domain );
 
 		$this->assertSame( 'text-domain', $nooped_plural['domain'] );
-		$this->assertSame( '%s posts', translate_nooped_plural( $nooped_plural, 0, $text_domain ) );
-		$this->assertSame( '%s post', translate_nooped_plural( $nooped_plural, 1, $text_domain ) );
-		$this->assertSame( '%s posts', translate_nooped_plural( $nooped_plural, 2, $text_domain ) );
+		$this->assertSame( '%s posts', (string) translate_nooped_plural( $nooped_plural, 0, $text_domain ) );
+		$this->assertSame( '%s post', (string) translate_nooped_plural( $nooped_plural, 1, $text_domain ) );
+		$this->assertSame( '%s posts', (string) translate_nooped_plural( $nooped_plural, 2, $text_domain ) );
 	}
 
 	/**
@@ -41,9 +41,9 @@ class Tests_L10n extends WP_UnitTestCase {
 
 		$this->assertSame( 'text-domain', $nooped_plural['domain'] );
 		$this->assertSame( 'my-context', $nooped_plural['context'] );
-		$this->assertSame( '%s posts', translate_nooped_plural( $nooped_plural, 0, $text_domain ) );
-		$this->assertSame( '%s post', translate_nooped_plural( $nooped_plural, 1, $text_domain ) );
-		$this->assertSame( '%s posts', translate_nooped_plural( $nooped_plural, 2, $text_domain ) );
+		$this->assertSame( '%s posts', (string) translate_nooped_plural( $nooped_plural, 0, $text_domain ) );
+		$this->assertSame( '%s post', (string) translate_nooped_plural( $nooped_plural, 1, $text_domain ) );
+		$this->assertSame( '%s posts', (string) translate_nooped_plural( $nooped_plural, 2, $text_domain ) );
 	}
 
 	/**

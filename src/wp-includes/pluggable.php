@@ -2425,7 +2425,7 @@ if ( ! function_exists( 'wp_salt' ) ) :
 			 * You can check the localized release package or
 			 * https://i18n.svn.wordpress.org/<locale code>/branches/<wp version>/dist/wp-config-sample.php
 			 */
-			$duplicated_keys[ __( 'put your unique phrase here' ) ] = true;
+			$duplicated_keys[ (string) __( 'put your unique phrase here' ) ] = true;
 
 			foreach ( array( 'AUTH', 'SECURE_AUTH', 'LOGGED_IN', 'NONCE', 'SECRET' ) as $first ) {
 				foreach ( array( 'KEY', 'SALT' ) as $second ) {

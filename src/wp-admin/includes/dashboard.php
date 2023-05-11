@@ -654,7 +654,7 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 	echo '<ul>';
 
 	/* translators: Maximum number of words used in a preview of a draft on the dashboard. */
-	$draft_length = (int) _x( '10', 'draft_length' );
+	$draft_length = (int) (string) _x( '10', 'draft_length' );
 
 	$drafts = array_slice( $drafts, 0, 3 );
 	foreach ( $drafts as $draft ) {

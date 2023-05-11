@@ -194,6 +194,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		remove_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 		$this->_restore_hooks();
 		wp_set_current_user( 0 );
+		wp_translation_cache()->clear();
 
 		$this->reset_lazyload_queue();
 	}
@@ -442,6 +443,39 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Resolve proxies in arrays to be tested.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param mixed  $value Reference to the array value to be checked.
+	 * @param string $key   Index key of the array value to be checked.
+	 */
+	protected static function resolve_proxies( &$value, $key ) {
+		if ( is_array( $value ) ) {
+			array_walk( $value, 'WP_UnitTestCase_Base::resolve_proxies' );
+		}
+
+		$value = self::resolve_proxy( $value );
+	}
+
+	/**
+	 * Resolve an individual proxy.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param $value
+	 *
+	 * @return string
+	 */
+	protected static function resolve_proxy( $value ) {
+		if ( $value instanceof WP_String_Proxy ) {
+			return (string) $value;
+		}
+
+		return $value;
 	}
 
 	/**

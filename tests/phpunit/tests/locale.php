@@ -52,13 +52,13 @@ class Tests_Locale extends WP_UnitTestCase {
 	 * @covers WP_Locale::get_weekday
 	 */
 	public function test_get_weekday() {
-		$this->assertSame( __( 'Sunday' ), $this->locale->get_weekday( 0 ) );
-		$this->assertSame( __( 'Monday' ), $this->locale->get_weekday( 1 ) );
-		$this->assertSame( __( 'Tuesday' ), $this->locale->get_weekday( 2 ) );
-		$this->assertSame( __( 'Wednesday' ), $this->locale->get_weekday( 3 ) );
-		$this->assertSame( __( 'Thursday' ), $this->locale->get_weekday( 4 ) );
-		$this->assertSame( __( 'Friday' ), $this->locale->get_weekday( 5 ) );
-		$this->assertSame( __( 'Saturday' ), $this->locale->get_weekday( 6 ) );
+		$this->assertSame( (string) __( 'Sunday' ), $this->locale->get_weekday( 0 ) );
+		$this->assertSame( (string) __( 'Monday' ), $this->locale->get_weekday( 1 ) );
+		$this->assertSame( (string) __( 'Tuesday' ), $this->locale->get_weekday( 2 ) );
+		$this->assertSame( (string) __( 'Wednesday' ), $this->locale->get_weekday( 3 ) );
+		$this->assertSame( (string) __( 'Thursday' ), $this->locale->get_weekday( 4 ) );
+		$this->assertSame( (string) __( 'Friday' ), $this->locale->get_weekday( 5 ) );
+		$this->assertSame( (string) __( 'Saturday' ), $this->locale->get_weekday( 6 ) );
 	}
 
 	/**
@@ -78,87 +78,87 @@ class Tests_Locale extends WP_UnitTestCase {
 	 * @covers WP_Locale::get_weekday_initial
 	 */
 	public function test_get_weekday_initial() {
-		$this->assertSame( __( 'S' ), $this->locale->get_weekday_initial( __( 'Sunday' ) ) );
-		$this->assertSame( __( 'M' ), $this->locale->get_weekday_initial( __( 'Monday' ) ) );
-		$this->assertSame( __( 'T' ), $this->locale->get_weekday_initial( __( 'Tuesday' ) ) );
-		$this->assertSame( __( 'W' ), $this->locale->get_weekday_initial( __( 'Wednesday' ) ) );
-		$this->assertSame( __( 'T' ), $this->locale->get_weekday_initial( __( 'Thursday' ) ) );
-		$this->assertSame( __( 'F' ), $this->locale->get_weekday_initial( __( 'Friday' ) ) );
-		$this->assertSame( __( 'S' ), $this->locale->get_weekday_initial( __( 'Saturday' ) ) );
+		$this->assertSame( (string) __( 'S' ), $this->locale->get_weekday_initial( __( 'Sunday' ) ) );
+		$this->assertSame( (string) __( 'M' ), $this->locale->get_weekday_initial( __( 'Monday' ) ) );
+		$this->assertSame( (string) __( 'T' ), $this->locale->get_weekday_initial( __( 'Tuesday' ) ) );
+		$this->assertSame( (string) __( 'W' ), $this->locale->get_weekday_initial( __( 'Wednesday' ) ) );
+		$this->assertSame( (string) __( 'T' ), $this->locale->get_weekday_initial( __( 'Thursday' ) ) );
+		$this->assertSame( (string) __( 'F' ), $this->locale->get_weekday_initial( __( 'Friday' ) ) );
+		$this->assertSame( (string) __( 'S' ), $this->locale->get_weekday_initial( __( 'Saturday' ) ) );
 	}
 
 	/**
 	 * @covers WP_Locale::get_weekday_abbrev
 	 */
 	public function test_get_weekday_abbrev() {
-		$this->assertSame( __( 'Sun' ), $this->locale->get_weekday_abbrev( __( 'Sunday' ) ) );
-		$this->assertSame( __( 'Mon' ), $this->locale->get_weekday_abbrev( __( 'Monday' ) ) );
-		$this->assertSame( __( 'Tue' ), $this->locale->get_weekday_abbrev( __( 'Tuesday' ) ) );
-		$this->assertSame( __( 'Wed' ), $this->locale->get_weekday_abbrev( __( 'Wednesday' ) ) );
-		$this->assertSame( __( 'Thu' ), $this->locale->get_weekday_abbrev( __( 'Thursday' ) ) );
-		$this->assertSame( __( 'Fri' ), $this->locale->get_weekday_abbrev( __( 'Friday' ) ) );
-		$this->assertSame( __( 'Sat' ), $this->locale->get_weekday_abbrev( __( 'Saturday' ) ) );
+		$this->assertSame( (string) __( 'Sun' ), $this->locale->get_weekday_abbrev( __( 'Sunday' ) ) );
+		$this->assertSame( (string) __( 'Mon' ), $this->locale->get_weekday_abbrev( __( 'Monday' ) ) );
+		$this->assertSame( (string) __( 'Tue' ), $this->locale->get_weekday_abbrev( __( 'Tuesday' ) ) );
+		$this->assertSame( (string) __( 'Wed' ), $this->locale->get_weekday_abbrev( __( 'Wednesday' ) ) );
+		$this->assertSame( (string) __( 'Thu' ), $this->locale->get_weekday_abbrev( __( 'Thursday' ) ) );
+		$this->assertSame( (string) __( 'Fri' ), $this->locale->get_weekday_abbrev( __( 'Friday' ) ) );
+		$this->assertSame( (string) __( 'Sat' ), $this->locale->get_weekday_abbrev( __( 'Saturday' ) ) );
 	}
 
 	/**
 	 * @covers WP_Locale::get_month
 	 */
 	public function test_get_month() {
-		$this->assertSame( __( 'January' ), $this->locale->get_month( 1 ) );
-		$this->assertSame( __( 'February' ), $this->locale->get_month( 2 ) );
-		$this->assertSame( __( 'March' ), $this->locale->get_month( 3 ) );
-		$this->assertSame( __( 'April' ), $this->locale->get_month( 4 ) );
-		$this->assertSame( __( 'May' ), $this->locale->get_month( 5 ) );
-		$this->assertSame( __( 'June' ), $this->locale->get_month( 6 ) );
-		$this->assertSame( __( 'July' ), $this->locale->get_month( 7 ) );
-		$this->assertSame( __( 'August' ), $this->locale->get_month( 8 ) );
-		$this->assertSame( __( 'September' ), $this->locale->get_month( 9 ) );
-		$this->assertSame( __( 'October' ), $this->locale->get_month( 10 ) );
-		$this->assertSame( __( 'November' ), $this->locale->get_month( 11 ) );
-		$this->assertSame( __( 'December' ), $this->locale->get_month( 12 ) );
+		$this->assertSame( (string) __( 'January' ), $this->locale->get_month( 1 ) );
+		$this->assertSame( (string) __( 'February' ), $this->locale->get_month( 2 ) );
+		$this->assertSame( (string) __( 'March' ), $this->locale->get_month( 3 ) );
+		$this->assertSame( (string) __( 'April' ), $this->locale->get_month( 4 ) );
+		$this->assertSame( (string) __( 'May' ), $this->locale->get_month( 5 ) );
+		$this->assertSame( (string) __( 'June' ), $this->locale->get_month( 6 ) );
+		$this->assertSame( (string) __( 'July' ), $this->locale->get_month( 7 ) );
+		$this->assertSame( (string) __( 'August' ), $this->locale->get_month( 8 ) );
+		$this->assertSame( (string) __( 'September' ), $this->locale->get_month( 9 ) );
+		$this->assertSame( (string) __( 'October' ), $this->locale->get_month( 10 ) );
+		$this->assertSame( (string) __( 'November' ), $this->locale->get_month( 11 ) );
+		$this->assertSame( (string) __( 'December' ), $this->locale->get_month( 12 ) );
 	}
 
 	/**
 	 * @covers WP_Locale::get_month
 	 */
 	public function test_get_month_leading_zero() {
-		$this->assertSame( __( 'January' ), $this->locale->get_month( '01' ) );
-		$this->assertSame( __( 'February' ), $this->locale->get_month( '02' ) );
-		$this->assertSame( __( 'March' ), $this->locale->get_month( '03' ) );
-		$this->assertSame( __( 'April' ), $this->locale->get_month( '04' ) );
-		$this->assertSame( __( 'May' ), $this->locale->get_month( '05' ) );
-		$this->assertSame( __( 'June' ), $this->locale->get_month( '06' ) );
-		$this->assertSame( __( 'July' ), $this->locale->get_month( '07' ) );
-		$this->assertSame( __( 'August' ), $this->locale->get_month( '08' ) );
-		$this->assertSame( __( 'September' ), $this->locale->get_month( '09' ) );
+		$this->assertSame( (string) __( 'January' ), $this->locale->get_month( '01' ) );
+		$this->assertSame( (string) __( 'February' ), $this->locale->get_month( '02' ) );
+		$this->assertSame( (string) __( 'March' ), $this->locale->get_month( '03' ) );
+		$this->assertSame( (string) __( 'April' ), $this->locale->get_month( '04' ) );
+		$this->assertSame( (string) __( 'May' ), $this->locale->get_month( '05' ) );
+		$this->assertSame( (string) __( 'June' ), $this->locale->get_month( '06' ) );
+		$this->assertSame( (string) __( 'July' ), $this->locale->get_month( '07' ) );
+		$this->assertSame( (string) __( 'August' ), $this->locale->get_month( '08' ) );
+		$this->assertSame( (string) __( 'September' ), $this->locale->get_month( '09' ) );
 	}
 
 	/**
 	 * @covers WP_Locale::get_month_abbrev
 	 */
 	public function test_get_month_abbrev() {
-		$this->assertSame( __( 'Jan' ), $this->locale->get_month_abbrev( __( 'January' ) ) );
-		$this->assertSame( __( 'Feb' ), $this->locale->get_month_abbrev( __( 'February' ) ) );
-		$this->assertSame( __( 'Mar' ), $this->locale->get_month_abbrev( __( 'March' ) ) );
-		$this->assertSame( __( 'Apr' ), $this->locale->get_month_abbrev( __( 'April' ) ) );
-		$this->assertSame( __( 'May' ), $this->locale->get_month_abbrev( __( 'May' ) ) );
-		$this->assertSame( __( 'Jun' ), $this->locale->get_month_abbrev( __( 'June' ) ) );
-		$this->assertSame( __( 'Jul' ), $this->locale->get_month_abbrev( __( 'July' ) ) );
-		$this->assertSame( __( 'Aug' ), $this->locale->get_month_abbrev( __( 'August' ) ) );
-		$this->assertSame( __( 'Sep' ), $this->locale->get_month_abbrev( __( 'September' ) ) );
-		$this->assertSame( __( 'Oct' ), $this->locale->get_month_abbrev( __( 'October' ) ) );
-		$this->assertSame( __( 'Nov' ), $this->locale->get_month_abbrev( __( 'November' ) ) );
-		$this->assertSame( __( 'Dec' ), $this->locale->get_month_abbrev( __( 'December' ) ) );
+		$this->assertSame( (string) __( 'Jan' ), $this->locale->get_month_abbrev( __( 'January' ) ) );
+		$this->assertSame( (string) __( 'Feb' ), $this->locale->get_month_abbrev( __( 'February' ) ) );
+		$this->assertSame( (string) __( 'Mar' ), $this->locale->get_month_abbrev( __( 'March' ) ) );
+		$this->assertSame( (string) __( 'Apr' ), $this->locale->get_month_abbrev( __( 'April' ) ) );
+		$this->assertSame( (string) __( 'May' ), $this->locale->get_month_abbrev( __( 'May' ) ) );
+		$this->assertSame( (string) __( 'Jun' ), $this->locale->get_month_abbrev( __( 'June' ) ) );
+		$this->assertSame( (string) __( 'Jul' ), $this->locale->get_month_abbrev( __( 'July' ) ) );
+		$this->assertSame( (string) __( 'Aug' ), $this->locale->get_month_abbrev( __( 'August' ) ) );
+		$this->assertSame( (string) __( 'Sep' ), $this->locale->get_month_abbrev( __( 'September' ) ) );
+		$this->assertSame( (string) __( 'Oct' ), $this->locale->get_month_abbrev( __( 'October' ) ) );
+		$this->assertSame( (string) __( 'Nov' ), $this->locale->get_month_abbrev( __( 'November' ) ) );
+		$this->assertSame( (string) __( 'Dec' ), $this->locale->get_month_abbrev( __( 'December' ) ) );
 	}
 
 	/**
 	 * @covers WP_Locale::get_meridiem
 	 */
 	public function test_get_meridiem() {
-		$this->assertSame( __( 'am' ), $this->locale->get_meridiem( 'am' ) );
-		$this->assertSame( __( 'AM' ), $this->locale->get_meridiem( 'AM' ) );
-		$this->assertSame( __( 'pm' ), $this->locale->get_meridiem( 'pm' ) );
-		$this->assertSame( __( 'PM' ), $this->locale->get_meridiem( 'PM' ) );
+		$this->assertSame( (string) __( 'am' ), $this->locale->get_meridiem( 'am' ) );
+		$this->assertSame( (string) __( 'AM' ), $this->locale->get_meridiem( 'AM' ) );
+		$this->assertSame( (string) __( 'pm' ), $this->locale->get_meridiem( 'pm' ) );
+		$this->assertSame( (string) __( 'PM' ), $this->locale->get_meridiem( 'PM' ) );
 	}
 
 	/**

@@ -390,7 +390,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$results = $menus->search_available_items_query(
 			array(
 				'pagenum' => 1,
-				's'       => $title,
+				's'       => (string) $title,
 			)
 		);
 		$this->assertCount( 1, $results );

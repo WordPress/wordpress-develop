@@ -1754,7 +1754,11 @@ class wpdb {
 			} elseif ( is_int( $value ) || is_float( $value ) ) {
 				$args_escaped[] = $value;
 			} else {
-				if ( ! is_scalar( $value ) && ! is_null( $value ) ) {
+				if (
+					! is_scalar( $value ) &&
+					! is_null( $value ) &&
+					! $value instanceof WP_String_Proxy
+				) {
 					wp_load_translations_early();
 					_doing_it_wrong(
 						'wpdb::prepare',

@@ -1372,6 +1372,12 @@ function wp_load_translations_early() {
 	require_once ABSPATH . WPINC . '/class-wp-textdomain-registry.php';
 	require_once ABSPATH . WPINC . '/class-wp-locale.php';
 	require_once ABSPATH . WPINC . '/class-wp-locale-switcher.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-cache.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-string-proxy.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-proxy.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-plural-translation-proxy.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-escape-attribute-proxy.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-escape-html-proxy.php';
 
 	// General libraries.
 	require_once ABSPATH . WPINC . '/plugin.php';

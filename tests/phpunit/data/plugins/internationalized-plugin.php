@@ -8,5 +8,5 @@ Text Domain: internationalized-plugin
 */
 
 function i18n_plugin_test() {
-	return __( 'This is a dummy plugin', 'internationalized-plugin' );
+	return (string) __( 'This is a dummy plugin', 'internationalized-plugin' );
 }

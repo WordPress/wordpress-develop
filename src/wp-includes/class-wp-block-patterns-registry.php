@@ -92,7 +92,7 @@ final class WP_Block_Patterns_Registry {
 			return false;
 		}
 
-		if ( ! isset( $pattern_properties['title'] ) || ! is_string( $pattern_properties['title'] ) ) {
+		if ( ! isset( $pattern_properties['title'] ) || ( ! is_string( $pattern_properties['title'] ) && ! $pattern_properties['title'] instanceof WP_String_Proxy ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Pattern title must be a string.' ),
@@ -101,7 +101,7 @@ final class WP_Block_Patterns_Registry {
 			return false;
 		}
 
-		if ( ! isset( $pattern_properties['content'] ) || ! is_string( $pattern_properties['content'] ) ) {
+		if ( ! isset( $pattern_properties['content'] ) || ( ! is_string( $pattern_properties['content'] ) && ! $pattern_properties['content'] instanceof WP_String_Proxy ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Pattern content must be a string.' ),

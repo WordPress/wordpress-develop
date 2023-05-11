@@ -653,7 +653,7 @@ function get_comment_excerpt( $comment_id = 0 ) {
 	}
 
 	/* translators: Maximum number of words used in a comment excerpt. */
-	$comment_excerpt_length = (int) _x( '20', 'comment_excerpt_length' );
+	$comment_excerpt_length = (int) (string) _x( '20', 'comment_excerpt_length' );
 
 	/**
 	 * Filters the maximum number of words used in the comment excerpt.
@@ -964,7 +964,7 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 			 * translators: If comment number in your language requires declension,
 			 * translate this to 'on'. Do not translate into your own language.
 			 */
-			if ( 'on' === _x( 'off', 'Comment number declension: on or off' ) ) {
+			if ( 'on' === (string) _x( 'off', 'Comment number declension: on or off' ) ) {
 				$text = preg_replace( '#<span class="screen-reader-text">.+?</span>#', '', $more );
 				$text = preg_replace( '/&.+?;/', '', $text ); // Remove HTML entities.
 				$text = trim( strip_tags( $text ), '% ' );

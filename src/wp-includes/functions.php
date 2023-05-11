@@ -343,7 +343,7 @@ function wp_maybe_decline_date( $date, $format = '' ) {
 	 * translators: If months in your language require a genitive case,
 	 * translate this to 'on'. Do not translate into your own language.
 	 */
-	if ( 'on' === _x( 'off', 'decline months names: on or off' ) ) {
+	if ( 'on' === (string) _x( 'off', 'decline months names: on or off' ) ) {
 
 		$months          = $wp_locale->month;
 		$months_genitive = $wp_locale->month_genitive;
@@ -3667,6 +3667,10 @@ function wp_die( $message = '', $title = '', $args = array() ) {
 	} elseif ( is_int( $title ) ) {
 		$args  = array( 'response' => $title );
 		$title = '';
+	}
+
+	if ( $message instanceof WP_String_Proxy ) {
+		$message = (string) $message;
 	}
 
 	if ( wp_doing_ajax() ) {

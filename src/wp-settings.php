@@ -152,6 +152,12 @@ if ( SHORTINIT ) {
 
 // Load the L10n library.
 require_once ABSPATH . WPINC . '/l10n.php';
+require_once( ABSPATH . WPINC . '/l10n/class-wp-translation-cache.php' );
+require_once( ABSPATH . WPINC . '/l10n/class-wp-string-proxy.php' );
+require_once( ABSPATH . WPINC . '/l10n/class-wp-translation-proxy.php' );
+require_once( ABSPATH . WPINC . '/l10n/class-wp-plural-translation-proxy.php' );
+require_once( ABSPATH . WPINC . '/l10n/class-wp-escape-attribute-proxy.php' );
+require_once( ABSPATH . WPINC . '/l10n/class-wp-escape-html-proxy.php' );
 require_once ABSPATH . WPINC . '/class-wp-textdomain-registry.php';
 require_once ABSPATH . WPINC . '/class-wp-locale.php';
 require_once ABSPATH . WPINC . '/class-wp-locale-switcher.php';
