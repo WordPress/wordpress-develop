@@ -487,6 +487,21 @@ function get_comment_meta( $comment_id, $key = '', $single = false, $value_type 
 }
 
 /**
+ * Queue comment meta for lazy-loading.
+ *
+ * @since 6.3.0
+ *
+ * @param array $comment_ids List of comment IDs.
+ */
+function wp_lazyload_comment_meta( array $comment_ids ) {
+	if ( empty( $comment_ids ) ) {
+		return;
+	}
+	$lazyloader = wp_metadata_lazyloader();
+	$lazyloader->queue_objects( 'comment', $comment_ids );
+}
+
+/**
  * Updates comment meta field based on comment ID.
  *
  * Use the $prev_value parameter to differentiate between meta fields with the
@@ -516,6 +531,9 @@ function update_comment_meta( $comment_id, $meta_key, $meta_value, $prev_value =
  * Queues comments for metadata lazy-loading.
  *
  * @since 4.5.0
+ * @since 6.3.0 Use wp_lazyload_comment_meta() for lazy-loading of comment meta.
+ *
+ * @see wp_lazyload_comment_meta()
  *
  * @param WP_Comment[] $comments Array of comment objects.
  */
@@ -530,10 +548,7 @@ function wp_queue_comments_for_comment_meta_lazyload( $comments ) {
 		}
 	}
 
-	if ( $comment_ids ) {
-		$lazyloader = wp_metadata_lazyloader();
-		$lazyloader->queue_objects( 'comment', $comment_ids );
-	}
+	wp_lazyload_comment_meta( $comment_ids );
 }
 
 /**
@@ -1061,7 +1076,7 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
  *     @type int|string $max_depth If greater than 1, comment page will be determined
  *                                 for the top-level parent `$comment_id`.
  *                                 Defaults to the value of the 'thread_comments_depth' option.
- * } *
+ * }
  * @return int|null Comment page number or null on error.
  */
 function get_page_of_comment( $comment_id, $args = array() ) {
@@ -3333,6 +3348,7 @@ function update_comment_cache( $comments, $update_meta_cache = true ) {
  *
  * @since 4.4.0
  * @since 6.1.0 This function is no longer marked as "private".
+ * @since 6.3.0 Use wp_lazyload_comment_meta() for lazy-loading of comment meta.
  *
  * @see update_comment_cache()
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -3347,7 +3363,11 @@ function _prime_comment_caches( $comment_ids, $update_meta_cache = true ) {
 	if ( ! empty( $non_cached_ids ) ) {
 		$fresh_comments = $wpdb->get_results( sprintf( "SELECT $wpdb->comments.* FROM $wpdb->comments WHERE comment_ID IN (%s)", implode( ',', array_map( 'intval', $non_cached_ids ) ) ) );
 
-		update_comment_cache( $fresh_comments, $update_meta_cache );
+		update_comment_cache( $fresh_comments, false );
+	}
+
+	if ( $update_meta_cache ) {
+		wp_lazyload_comment_meta( $comment_ids );
 	}
 }
 
