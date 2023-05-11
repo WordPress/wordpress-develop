@@ -75,20 +75,20 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 		$this->assertIsArray( $result['supports'] );
 
 		// Check label data types.
-		$this->assertIsString( $result['labels']['name'] );
-		$this->assertIsString( $result['labels']['singular_name'] );
-		$this->assertIsString( $result['labels']['add_new'] );
-		$this->assertIsString( $result['labels']['add_new_item'] );
-		$this->assertIsString( $result['labels']['edit_item'] );
-		$this->assertIsString( $result['labels']['new_item'] );
-		$this->assertIsString( $result['labels']['view_item'] );
-		$this->assertIsString( $result['labels']['search_items'] );
-		$this->assertIsString( $result['labels']['not_found'] );
-		$this->assertIsString( $result['labels']['not_found_in_trash'] );
-		$this->assertIsString( $result['labels']['parent_item_colon'] );
-		$this->assertIsString( $result['labels']['all_items'] );
-		$this->assertIsString( $result['labels']['menu_name'] );
-		$this->assertIsString( $result['labels']['name_admin_bar'] );
+		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['name'] );
+		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['singular_name'] );
+		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['add_new'] );
+		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['add_new_item'] );
+		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['edit_item'] );
+		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['new_item'] );
+		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['view_item'] );
+		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['search_items'] );
+		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['not_found'] );
+		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['not_found_in_trash'] );
+		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['parent_item_colon'] );
+		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['all_items'] );
+		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['menu_name'] );
+		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['name_admin_bar'] );
 
 		// Check cap data types.
 		$this->assertIsString( $result['cap']['edit_post'] );

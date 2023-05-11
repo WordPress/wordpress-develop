@@ -474,6 +474,7 @@ function esc_html_x( $text, $context, $domain = 'default' ) {
  *
  * @since 2.8.0
  * @since 5.5.0 Introduced `ngettext-{$domain}` filter.
+ * @since 6.3.0 Returns a lazily-translating proxy object.
  *
  * @param string $single The text to be used if the number is singular.
  * @param string $plural The text to be used if the number is plural.

@@ -342,7 +342,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 
 		$value['name'] = '    '; // Blank spaces.
 		$sanitized     = $setting->sanitize( $value );
-		$this->assertSame( '(unnamed)', $sanitized['name'] );
+		$this->assertSame( '(unnamed)', (string) $sanitized['name'] );
 	}
 
 	/**

@@ -921,7 +921,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'type_label', $item_value );
 		$nav_menu_item = $setting->value_as_wp_post_nav_menu_item();
 		$this->assertSame( 'Custom Link', (string) $nav_menu_item->type_label );
-		$this->assertSame( $item_value['type_label'], (string) $nav_menu_item->type_label );
+		$this->assertSame( (string) $item_value['type_label'], (string) $nav_menu_item->type_label );
 		add_filter( 'wp_setup_nav_menu_item', array( $this, 'filter_type_label' ) );
 		$nav_menu_item = $setting->value_as_wp_post_nav_menu_item();
 		$this->assertSame( 'Custom Label', (string) $nav_menu_item->type_label );
@@ -1181,7 +1181,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item->original_title );
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item->title );
 		$this->assertArrayHasKey( 'type_label', $item_value );
-		$this->assertSame( __( 'Post Type Archive' ), $item_value['type_label'] );
+		$this->assertSame( (string) __( 'Post Type Archive' ), $item_value['type_label'] );
 		$this->assertSame( $item->type_label, $item_value['type_label'] );
 
 		// Post Type Archive: staged nav menu item.
@@ -1207,7 +1207,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item->original_title );
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item->title );
 		$this->assertArrayHasKey( 'type_label', $item_value );
-		$this->assertSame( __( 'Post Type Archive' ), $item_value['type_label'] );
+		$this->assertSame( (string) __( 'Post Type Archive' ), $item_value['type_label'] );
 		$this->assertSame( $item->type_label, $item_value['type_label'] );
 	}
 

@@ -4776,6 +4776,7 @@ function get_the_taxonomies( $post = 0, $args = array() ) {
 			$taxonomies[ $taxonomy ] = wp_sprintf( (string) $t['template'], (string) $t['label'], $links, $terms );
 		}
 	}
+
 	return $taxonomies;
 }
 

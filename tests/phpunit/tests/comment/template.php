@@ -82,17 +82,17 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 		$permalink = get_permalink( $post_id );
 		$this->go_to( $permalink );
 
-		$this->assertSame( __( 'No Comments' ), get_comments_number_text() );
+		$this->assertSame( (string) __( 'No Comments' ), get_comments_number_text() );
 
 		self::factory()->comment->create_post_comments( $post_id, 1 );
 		$this->go_to( $permalink );
 
-		$this->assertSame( __( '1 Comment' ), get_comments_number_text() );
+		$this->assertSame( (string) __( '1 Comment' ), get_comments_number_text() );
 
 		self::factory()->comment->create_post_comments( $post_id, 1 );
 		$this->go_to( $permalink );
 
-		$this->assertSame( sprintf( _n( '%s Comment', '%s Comments', 2 ), '2' ), get_comments_number_text() );
+		$this->assertSame( sprintf( (string) _n( '%s Comment', '%s Comments', 2 ), '2' ), get_comments_number_text() );
 
 	}
 

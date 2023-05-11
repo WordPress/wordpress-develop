@@ -74,7 +74,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		add_filter( 'pre_http_request', array( $this, 'mock_success_without_sslverify' ), 10, 2 );
 		wp_update_https_detection_errors();
 		$this->assertSame(
-			array( 'ssl_verification_failed' => array( __( 'SSL verification failed.' ) ) ),
+			array( 'ssl_verification_failed' => array( (string) __( 'SSL verification failed.' ) ) ),
 			get_option( 'https_detection_errors' )
 		);
 
@@ -84,7 +84,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		add_filter( 'pre_http_request', array( $this, 'mock_error_without_sslverify' ), 10, 2 );
 		wp_update_https_detection_errors();
 		$this->assertSame(
-			array( 'https_request_failed' => array( __( 'HTTPS request failed.' ) ) ),
+			array( 'https_request_failed' => array( (string) __( 'HTTPS request failed.' ) ) ),
 			get_option( 'https_detection_errors' )
 		);
 

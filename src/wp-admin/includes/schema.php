@@ -598,6 +598,10 @@ function populate_options( array $options = array() ) {
 			$value = serialize( $value );
 		}
 
+		if ( $value instanceof WP_String_Proxy ) {
+			$value = (string) $value;
+		}
+
 		if ( ! empty( $insert ) ) {
 			$insert .= ', ';
 		}

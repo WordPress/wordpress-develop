@@ -86,6 +86,10 @@ function get_option( $option, $default_value = false ) {
 		return false;
 	}
 
+	if ( $default_value instanceof WP_String_Proxy ) {
+		$default_value = (string) $default_value;
+	}
+
 	/*
 	 * Until a proper _deprecated_option() function can be introduced,
 	 * redirect requests to deprecated keys to the new, correct ones.

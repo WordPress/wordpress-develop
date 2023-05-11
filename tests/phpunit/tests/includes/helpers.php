@@ -310,7 +310,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 		list( $message, $title, $args ) = _wp_die_process_input( $input['message'], $input['title'], $input['args'] );
 
 		$this->assertSame( $expected['message'], $message );
-		$this->assertSame( $expected['title'], $title );
+		$this->assertSame( $expected['title'], (string) $title );
 
 		// Only check arguments that are explicitly asked for.
 		$this->assertSameSets( $expected['args'], array_intersect_key( $args, $expected['args'] ) );
