@@ -2304,6 +2304,12 @@ HTML
 
 	public function test_handles_binary_data_when_mbstring_func_overloading_active() {
 		ini_set( 'mbstring.func_overload', 7 );
+
+		$func_overload = ini_get( 'mbstring.func_overload' );
+		if ( false === $func_overload ) {
+			return;
+		}
+
 		$this->assertSame( 7, ini_get( 'mbstring.func_overload' ) );
 
 		$p = new WP_HTML_Tag_Processor( '<a title="🅰 is not א" class="take me away">Test</a>"' );
