@@ -2703,13 +2703,6 @@
 		padding: 3px 6px;
 	}
 
-	.wp-admin .media-frame select {
-		min-height: 40px;
-		font-size: 16px;
-		line-height: 1.625;
-		padding: 5px 24px 5px 8px;
-	}
-
 	.image-details .column-image {
 		width: 30%;
 		left: 70%;
@@ -2840,6 +2833,13 @@
 	.attachment-details .copy-to-clipboard-container .success {
 		font-size: 14px;
 		line-height: 2.71428571;
+	}
+
+	.wp-admin .media-frame select {
+		min-height: 40px;
+		font-size: 16px;
+		line-height: 1.625;
+		padding: 5px 24px 5px 8px;
 	}
 }
 
