@@ -198,8 +198,6 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 	 * @ticket 57701: Updated test to reflect that wp_get_object_terms does not prime the cache.
 	 */
 	public function test_uncached_terms_should_not_be_primed_with_a_single_query_by_default() {
-		global $wpdb;
-
 		register_taxonomy( 'wptests_tax', 'post' );
 
 		$terms = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
@@ -211,13 +209,13 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		// Clean cache for two of the terms.
 		clean_term_cache( array( $terms[0], $terms[1] ), 'wptests_tax', false );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$found       = get_the_terms( self::$post_ids[0], 'wptests_tax' );
 
 		$this->assertSameSets( $terms, wp_list_pluck( $found, 'term_id' ) );
 
 		// Two extra queries are expected as the cache is not primed and hence terms need to be queried.
-		$this->assertSame( $num_queries + 2, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 2, get_num_queries() );
 	}
 
 	/**

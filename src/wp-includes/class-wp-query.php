@@ -2813,7 +2813,7 @@ class WP_Query {
 				$comment_ids = $wpdb->get_col( $comments_request );
 				wp_cache_add( $cache_key, $comment_ids, 'comment-queries' );
 			}
-			_prime_comment_caches( $comment_ids, false );
+			_prime_comment_caches( $comment_ids );
 
 			// Convert to WP_Comment.
 			/** @var WP_Comment[] */
@@ -3372,7 +3372,7 @@ class WP_Query {
 				$comment_ids = $wpdb->get_col( $comments_request );
 				wp_cache_add( $comment_cache_key, $comment_ids, 'comment-queries' );
 			}
-			_prime_comment_caches( $comment_ids, false );
+			_prime_comment_caches( $comment_ids );
 
 			// Convert to WP_Comment.
 			/** @var WP_Comment[] */
@@ -3485,11 +3485,6 @@ class WP_Query {
 					$sticky_offset++;
 				}
 			}
-		}
-
-		// If comments have been fetched as part of the query, make sure comment meta lazy-loading is set up.
-		if ( ! empty( $this->comments ) ) {
-			wp_queue_comments_for_comment_meta_lazyload( $this->comments );
 		}
 
 		if ( ! $q['suppress_filters'] ) {
@@ -4757,7 +4752,7 @@ class WP_Query {
 			$content = str_replace( '<!-- /wp:nextpage -->', '', $content );
 
 			// Ignore nextpage at the beginning of the content.
-			if ( 0 === strpos( $content, '<!--nextpage-->' ) ) {
+			if ( str_starts_with( $content, '<!--nextpage-->' ) ) {
 				$content = substr( $content, 15 );
 			}
 
