@@ -3620,7 +3620,7 @@ EOF;
 		$this->reset_content_media_count();
 		$this->reset_omit_loading_attr_filter();
 
-		// Use the filter to alter the threshold for not lazy-loading to the first three elements.
+		// Use the filter to alter the threshold for not lazy-loading to the first five elements.
 		add_filter(
 			'wp_omit_loading_attr_threshold',
 			function() {
@@ -3727,6 +3727,12 @@ EOF;
 		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
+		add_filter(
+			'wp_omit_loading_attr_threshold',
+			function() {
+				return 1;
+			}
+		);
 
 		$img1      = get_image_tag( self::$large_id, '', '', '', 'large' );
 		$img2      = get_image_tag( self::$large_id, '', '', '', 'medium' );
@@ -3777,6 +3783,12 @@ EOF;
 			function( $attr ) {
 				unset( $attr['srcset'], $attr['sizes'], $attr['decoding'] );
 				return $attr;
+			}
+		);
+		add_filter(
+			'wp_omit_loading_attr_threshold',
+			function() {
+				return 1;
 			}
 		);
 
