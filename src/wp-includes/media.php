@@ -5505,6 +5505,7 @@ function wp_omit_loading_attr_threshold( $force = false ) {
 		 * for only the very first content media element.
 		 *
 		 * @since 5.9.0
+		 * @since 6.3.0 The default threshold was changed from 1 to 3.
 		 *
 		 * @param int $omit_threshold The number of media elements where the `loading` attribute will not be added. Default 3.
 		 */
