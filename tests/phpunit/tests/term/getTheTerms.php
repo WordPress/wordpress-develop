@@ -195,7 +195,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36814
-	 * @ticket 57701: Updated test to reflect that wp_get_object_terms does not prime the cache.
+	 * @ticket 57701
 	 */
 	public function test_uncached_terms_should_not_be_primed_with_a_single_query_by_default() {
 		register_taxonomy( 'wptests_tax', 'post' );

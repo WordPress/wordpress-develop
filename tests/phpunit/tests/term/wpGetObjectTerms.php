@@ -614,9 +614,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10142
-	 * @ticket 57701: Updated test to reflect that wp_get_object_terms does not prime the cache.
+	 * @ticket 57701
 	 */
-	public function test_termmeta_cache_should_be_lazy_loaded_by_default() {
+	public function test_termmeta_cache_should_not_be_lazy_loaded_by_default() {
 		register_taxonomy( 'wptests_tax', 'post' );
 		$terms = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
 		add_term_meta( $terms[0], 'foo', 'bar' );
@@ -635,7 +635,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		}
 
 		// Here we had extra queries as the term meta cache was not primed by default.
-		$this->assertSame(  3, get_num_queries() - $num_queries );
+		$this->assertSame( 3, get_num_queries() - $num_queries );
 	}
 
 	/**
