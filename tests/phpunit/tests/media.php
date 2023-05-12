@@ -3711,7 +3711,7 @@ EOF;
 	}
 
 	/**
-	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute value before loop but after get_header.
+	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute value before loop but after get_header if not main query.
 	 *
 	 * @ticket 58211
 	 *
@@ -3721,21 +3721,66 @@ EOF;
 	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
-	public function test_wp_get_loading_attr_default_before_loop( $context ) {
+	public function test_wp_get_loading_attr_default_before_loop_if_not_main_query( $context ) {
 		global $wp_query, $wp_the_query;
 
 		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$this->reset_content_media_count();
 		$this->reset_omit_loading_attr_filter();
 
+		do_action( 'get_header' );
+
 		// Lazy if not main query.
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+	}
+
+	/**
+	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute value before loop but after get_header for main query.
+	 *
+	 * @ticket 58211
+	 *
+	 * @covers ::wp_get_loading_attr_default
+	 *
+	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
+	 *
+	 * @param string $context Context for the element for which the `loading` attribute value is requested.
+	 */
+	public function test_wp_get_loading_attr_default_before_loop_if_main_query( $context ) {
+		global $wp_query, $wp_the_query;
+
+		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
 
 		// Set current query as main query.
 		$wp_the_query = $wp_query;
 
 		do_action( 'get_header' );
 		$this->assertFalse( wp_get_loading_attr_default( $context ) );
+	}
+
+	/**
+	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute value after get_header and after loop.
+	 *
+	 * @ticket 58211
+	 *
+	 * @covers ::wp_get_loading_attr_default
+	 *
+	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
+	 *
+	 * @param string $context Context for the element for which the `loading` attribute value is requested.
+	 */
+	public function test_wp_get_loading_attr_default_after_loop( $context ) {
+		global $wp_query, $wp_the_query;
+
+		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
+
+		// Set current query as main query.
+		$wp_the_query = $wp_query;
+
+		do_action( 'get_header' );
 
 		while ( have_posts() ) {
 			the_post();
@@ -3764,10 +3809,8 @@ EOF;
 		// Set current query as main query.
 		$wp_the_query = $wp_query;
 
-		// Ensure header is called.
+		// Ensure header and footer is called.
 		do_action( 'get_header' );
-
-		// Ensure footer is called.
 		do_action( 'get_footer' );
 
 		// Load lazy if the there is no loop and footer was called.
