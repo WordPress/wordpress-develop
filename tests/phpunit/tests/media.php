@@ -3764,17 +3764,13 @@ EOF;
 		// Set current query as main query.
 		$wp_the_query = $wp_query;
 
-		// Ensure header is called already.
+		// Ensure header is called.
 		do_action( 'get_header' );
 
-		// if footer called before loop.
-		add_action(
-			'get_footer',
-			function() use ( $context ) {
-				$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
-			}
-		);
+		// Ensure footer is called.
 		do_action( 'get_footer' );
+
+		// Load lazy if the there is no loop and footer was called.
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 	}
 
