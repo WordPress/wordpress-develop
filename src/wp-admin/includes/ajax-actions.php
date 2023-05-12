@@ -188,7 +188,11 @@ function wp_ajax_wp_compression_test() {
 	}
 
 	if ( ini_get( 'zlib.output_compression' ) || 'ob_gzhandler' === ini_get( 'output_handler' ) ) {
-		update_site_option( 'can_compress_scripts', 0 );
+		if ( is_multisite() ) {
+			update_site_option( 'can_compress_scripts', 0 );
+		} else {
+			update_option( 'can_compress_scripts', 0 );
+		}
 		wp_die( 0 );
 	}
 
@@ -222,10 +226,18 @@ function wp_ajax_wp_compression_test() {
 			wp_die();
 		} elseif ( 'no' === $_GET['test'] ) {
 			check_ajax_referer( 'update_can_compress_scripts' );
-			update_site_option( 'can_compress_scripts', 0 );
+			if ( is_multisite() ) {
+				update_site_option( 'can_compress_scripts', 0 );
+			} else {
+				update_option( 'can_compress_scripts', 0 );
+			}
 		} elseif ( 'yes' === $_GET['test'] ) {
 			check_ajax_referer( 'update_can_compress_scripts' );
-			update_site_option( 'can_compress_scripts', 1 );
+			if ( is_multisite() ) {
+				update_site_option( 'can_compress_scripts', 1 );
+			} else {
+				update_option( 'can_compress_scripts', 1 );
+			}
 		}
 	}
 
