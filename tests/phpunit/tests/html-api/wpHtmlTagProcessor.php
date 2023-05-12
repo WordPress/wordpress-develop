@@ -2309,9 +2309,9 @@ HTML
 		$p->next_tag();
 
 		$this->assertSame( "🅰 is not א", $p->get_attribute( 'title' ) );
-	
+
 		$p->remove_attribute( 'title' );
 		$p->remove_class( 'me' );
-		$this->assertSame( '<a class="take  away">Test</a>', $p->get_updated_html() );
+		$this->assertSame( '<a  class="take  away">Test</a>', $p->get_updated_html() );
 	}
 }
