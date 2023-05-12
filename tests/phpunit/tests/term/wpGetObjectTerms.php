@@ -635,7 +635,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		}
 
 		// Here we had extra queries as the term meta cache was not primed by default.
-		$this->assertSame( $num_queries + 1, get_num_queries() );
+		$this->assertSame( $num_queries + 3, get_num_queries() );
 	}
 
 	/**
