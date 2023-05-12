@@ -1,8 +1,6 @@
 <?php
 /**
- * WP_Style_Engine_CSS_Declarations
- *
- * Holds, sanitizes and prints CSS rules declarations
+ * Style Engine: WP_Style_Engine_CSS_Declarations class
  *
  * @package WordPress
  * @subpackage StyleEngine
@@ -10,9 +8,9 @@
  */
 
 /**
- * Class WP_Style_Engine_CSS_Declarations.
+ * Core class used for style engine CSS declarations.
  *
- * Holds, sanitizes, processes and prints CSS declarations for the style engine.
+ * Holds, sanitizes, processes, and prints CSS declarations for the style engine.
  *
  * @since 6.1.0
  */
@@ -24,7 +22,7 @@ class WP_Style_Engine_CSS_Declarations {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @var array
+	 * @var string[]
 	 */
 	protected $declarations = array();
 
@@ -36,7 +34,7 @@ class WP_Style_Engine_CSS_Declarations {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param string[] $declarations An associative array of CSS definitions, e.g., array( "$property" => "$value", "$property" => "$value" ).
+	 * @param string[] $declarations An associative array of CSS definitions, e.g., `array( "$property" => "$value", "$property" => "$value" )`.
 	 */
 	public function __construct( $declarations = array() ) {
 		$this->add_declarations( $declarations );
@@ -49,7 +47,6 @@ class WP_Style_Engine_CSS_Declarations {
 	 *
 	 * @param string $property The CSS property.
 	 * @param string $value    The CSS value.
-	 *
 	 * @return WP_Style_Engine_CSS_Declarations Returns the object to allow chaining methods.
 	 */
 	public function add_declaration( $property, $value ) {
@@ -78,7 +75,6 @@ class WP_Style_Engine_CSS_Declarations {
 	 * @since 6.1.0
 	 *
 	 * @param string $property The CSS property.
-	 *
 	 * @return WP_Style_Engine_CSS_Declarations Returns the object to allow chaining methods.
 	 */
 	public function remove_declaration( $property ) {
@@ -91,8 +87,7 @@ class WP_Style_Engine_CSS_Declarations {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param array $declarations An array of declarations.
-	 *
+	 * @param string[] $declarations An array of declarations.
 	 * @return WP_Style_Engine_CSS_Declarations Returns the object to allow chaining methods.
 	 */
 	public function add_declarations( $declarations ) {
@@ -107,8 +102,7 @@ class WP_Style_Engine_CSS_Declarations {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param array $properties An array of properties.
-	 *
+	 * @param string[] $properties An array of properties.
 	 * @return WP_Style_Engine_CSS_Declarations Returns the object to allow chaining methods.
 	 */
 	public function remove_declarations( $properties = array() ) {
@@ -123,7 +117,7 @@ class WP_Style_Engine_CSS_Declarations {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @return array
+	 * @return string[] The declarations array.
 	 */
 	public function get_declarations() {
 		return $this->declarations;
@@ -137,7 +131,6 @@ class WP_Style_Engine_CSS_Declarations {
 	 * @param string $property The CSS property.
 	 * @param string $value    The value to be filtered.
 	 * @param string $spacer   The spacer between the colon and the value. Defaults to an empty string.
-	 *
 	 * @return string The filtered declaration or an empty string.
 	 */
 	protected static function filter_declaration( $property, $value, $spacer = '' ) {
@@ -153,9 +146,8 @@ class WP_Style_Engine_CSS_Declarations {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param bool   $should_prettify Whether to add spacing, new lines and indents.
-	 * @param number $indent_count    The number of tab indents to apply to the rule. Applies if `prettify` is `true`.
-	 *
+	 * @param bool $should_prettify Whether to add spacing, new lines and indents.
+	 * @param int  $indent_count    The number of tab indents to apply to the rule. Applies if `prettify` is `true`.
 	 * @return string The CSS declarations.
 	 */
 	public function get_declarations_string( $should_prettify = false, $indent_count = 0 ) {
@@ -181,7 +173,6 @@ class WP_Style_Engine_CSS_Declarations {
 	 * @since 6.1.0
 	 *
 	 * @param string $property The CSS property.
-	 *
 	 * @return string The sanitized property name.
 	 */
 	protected function sanitize_property( $property ) {
