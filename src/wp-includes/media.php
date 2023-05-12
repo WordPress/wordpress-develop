@@ -5434,7 +5434,7 @@ function wp_get_webp_info( $filename ) {
  *
  * Under the hood, the function uses {@see wp_increase_content_media_count()} every time it is called for an element
  * within the main content. If the element is the very first content element, the `loading` attribute will be omitted.
- * This default threshold of 3 content element to omit the `loading` attribute for can be customized using the
+ * This default threshold of 3 content elements to omit the `loading` attribute for can be customized using the
  * {@see 'wp_omit_loading_attr_threshold'} filter.
  *
  * @since 5.9.0
