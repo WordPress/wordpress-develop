@@ -215,7 +215,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		$this->assertSameSets( $terms, wp_list_pluck( $found, 'term_id' ) );
 
 		// Two extra queries are expected as the cache is not primed and hence terms need to be queried.
-		$this->assertSame( $num_queries + 1, get_num_queries() );
+		$this->assertSame( 1, get_num_queries() - $num_queries );
 	}
 
 	/**
