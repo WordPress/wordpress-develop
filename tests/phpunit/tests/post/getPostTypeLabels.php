@@ -25,7 +25,7 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 'Pages', $labels->name );
+		$this->assertSame( 'Pages', (string) $labels->name );
 	}
 
 	public function test_existing_labels_are_not_overridden() {

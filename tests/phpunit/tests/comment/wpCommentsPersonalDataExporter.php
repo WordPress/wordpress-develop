@@ -46,7 +46,7 @@ class Tests_Comment_wpCommentsPersonalDataExporter extends WP_UnitTestCase {
 
 		// Exported group.
 		$this->assertSame( 'comments', $actual['data'][0]['group_id'] );
-		$this->assertSame( 'Comments', $actual['data'][0]['group_label'] );
+		$this->assertSame( 'Comments', (string) $actual['data'][0]['group_label'] );
 
 		// Exported comment properties.
 		$this->assertSame( $expected['comment_author'], $actual['data'][0]['data'][0]['value'] );

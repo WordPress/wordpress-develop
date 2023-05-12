@@ -414,7 +414,7 @@ https://w.org</a>',
 
 		// Test that if author is not found, we return "(no author)" as `display_name`.
 		// The previously used test post contains no author, so we can reuse it.
-		$this->assertSame( '(no author)', $prepped['authorName'] );
+		$this->assertSame( '(no author)', (string) $prepped['authorName'] );
 
 		// Test that if author has HTML entities in display_name, they're decoded correctly.
 		$html_entity_author = self::factory()->user->create(

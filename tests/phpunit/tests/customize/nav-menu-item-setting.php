@@ -1181,7 +1181,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item->original_title );
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item->title );
 		$this->assertArrayHasKey( 'type_label', $item_value );
-		$this->assertSame( (string) __( 'Post Type Archive' ), $item_value['type_label'] );
+		$this->assertSame( (string) __( 'Post Type Archive' ), (string) $item_value['type_label'] );
 		$this->assertSame( $item->type_label, $item_value['type_label'] );
 
 		// Post Type Archive: staged nav menu item.

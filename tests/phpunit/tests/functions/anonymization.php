@@ -280,7 +280,7 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 */
 	public function test_anonymize_text() {
 		$text = __( 'Four score and seven years ago' );
-		$this->assertSame( '[deleted]', wp_privacy_anonymize_data( 'text', $text ) );
+		$this->assertSame( '[deleted]', (string) wp_privacy_anonymize_data( 'text', $text ) );
 	}
 
 	/**
@@ -288,7 +288,7 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 */
 	public function test_anonymize_long_text() {
 		$text = __( 'Four score and seven years ago' );
-		$this->assertSame( 'This content was deleted by the author.', wp_privacy_anonymize_data( 'longtext', $text ) );
+		$this->assertSame( 'This content was deleted by the author.', (string) wp_privacy_anonymize_data( 'longtext', $text ) );
 	}
 
 	/**

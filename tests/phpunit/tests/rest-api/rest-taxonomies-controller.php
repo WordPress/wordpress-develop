@@ -51,10 +51,10 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$data       = $response->get_data();
 		$taxonomies = $this->get_public_taxonomies( get_taxonomies( '', 'objects' ) );
 		$this->assertSame( count( $taxonomies ), count( $data ) );
-		$this->assertSame( 'Categories', $data['category']['name'] );
+		$this->assertSame( 'Categories', (string) $data['category']['name'] );
 		$this->assertSame( 'category', $data['category']['slug'] );
 		$this->assertTrue( $data['category']['hierarchical'] );
-		$this->assertSame( 'Tags', $data['post_tag']['name'] );
+		$this->assertSame( 'Tags', (string) $data['post_tag']['name'] );
 		$this->assertSame( 'post_tag', $data['post_tag']['slug'] );
 		$this->assertFalse( $data['post_tag']['hierarchical'] );
 		$this->assertSame( 'tags', $data['post_tag']['rest_base'] );
@@ -70,10 +70,10 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		unset( $taxonomies['nav_menu'] ); // Menus are not editable by contributors.
 		$taxonomies = $this->get_public_taxonomies( $taxonomies );
 		$this->assertSame( count( $taxonomies ), count( $data ) );
-		$this->assertSame( 'Categories', $data['category']['name'] );
+		$this->assertSame( 'Categories', (string) $data['category']['name'] );
 		$this->assertSame( 'category', $data['category']['slug'] );
 		$this->assertTrue( $data['category']['hierarchical'] );
-		$this->assertSame( 'Tags', $data['post_tag']['name'] );
+		$this->assertSame( 'Tags', (string) $data['post_tag']['name'] );
 		$this->assertSame( 'post_tag', $data['post_tag']['slug'] );
 		$this->assertFalse( $data['post_tag']['hierarchical'] );
 		$this->assertSame( 'tags', $data['post_tag']['rest_base'] );

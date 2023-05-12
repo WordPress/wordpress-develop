@@ -625,7 +625,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 		$this->assertSame( $this->menu_item_id, $new_data['id'] );
 		$this->assertSame( $params['title'], $new_data['title']['raw'] );
 		$this->assertSame( $params['description'], $new_data['description'] );
-		$this->assertSame( $params['type_label'], $new_data['type_label'] );
+		$this->assertSame( $params['type_label'], (string) $new_data['type_label'] );
 		$this->assertSame( $params['xfn'], $new_data['xfn'] );
 		$post      = get_post( $this->menu_item_id );
 		$menu_item = wp_setup_nav_menu_item( $post );

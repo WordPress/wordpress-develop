@@ -1116,7 +1116,7 @@ class Tests_DB extends WP_UnitTestCase {
 		global $wpdb;
 
 		$this->assertFalse( self::$_wpdb->process_fields( $wpdb->posts, $data, null ) );
-		$this->assertSame( $this->get_db_error_value_too_long( $errored_fields ), self::$_wpdb->last_error );
+		$this->assertSame( $this->get_db_error_value_too_long( $errored_fields ), (string) self::$_wpdb->last_error );
 	}
 
 	/**
@@ -1261,7 +1261,7 @@ class Tests_DB extends WP_UnitTestCase {
 
 		$this->assertSame(
 			'WordPress database error: Could not perform query because it contains invalid data.',
-			$wpdb->last_error
+			(string) $wpdb->last_error
 		);
 	}
 

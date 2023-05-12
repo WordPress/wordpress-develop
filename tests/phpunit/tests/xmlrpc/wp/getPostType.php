@@ -88,7 +88,7 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['parent_item_colon'] );
 		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['all_items'] );
 		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['menu_name'] );
-		$this->assertInstanceOf( WP_String_Proxy::class, $result['labels']['name_admin_bar'] );
+		$this->assertIsString( $result['labels']['name_admin_bar'] );
 
 		// Check cap data types.
 		$this->assertIsString( $result['cap']['edit_post'] );
