@@ -400,7 +400,7 @@ function populate_options( array $options = array() ) {
 	 * use https://3v4l.org/6YQAt#v5.6.20 and replace the "BR" (Brazil) in the code line with the
 	 * country code for which you want to look up the supported timezone names.
 	 */
-	$offset_or_tz = _x( '0', 'default GMT offset or timezone string' );
+	$offset_or_tz = (string) _x( '0', 'default GMT offset or timezone string' );
 	if ( is_numeric( $offset_or_tz ) ) {
 		$gmt_offset = $offset_or_tz;
 	} elseif ( $offset_or_tz && in_array( $offset_or_tz, timezone_identifiers_list( DateTimeZone::ALL_WITH_BC ), true ) ) {

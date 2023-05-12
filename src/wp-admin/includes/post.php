@@ -2136,7 +2136,7 @@ function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {
 	 * commas before parsing the list.
 	 */
 	if ( ! is_array( $terms ) ) {
-		$comma = _x( ',', 'tag delimiter' );
+		$comma = (string) _x( ',', 'tag delimiter' );
 		if ( ',' !== $comma ) {
 			$terms = str_replace( $comma, ',', $terms );
 		}

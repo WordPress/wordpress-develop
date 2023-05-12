@@ -1926,19 +1926,19 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( 'Community Events Location', (string) $actual['data'][1]['group_label'] );
 
 		// Contains location city.
-		$this->assertSame( 'City', $actual['data'][1]['data'][0]['name'] );
+		$this->assertSame( 'City', (string) $actual['data'][1]['data'][0]['name'] );
 		$this->assertSame( 'Cincinnati', $actual['data'][1]['data'][0]['value'] );
 
 		// Contains location country.
-		$this->assertSame( 'Country', $actual['data'][1]['data'][1]['name'] );
+		$this->assertSame( 'Country', (string) $actual['data'][1]['data'][1]['name'] );
 		$this->assertSame( 'US', $actual['data'][1]['data'][1]['value'] );
 
 		// Contains location latitude.
-		$this->assertSame( 'Latitude', $actual['data'][1]['data'][2]['name'] );
+		$this->assertSame( 'Latitude', (string) $actual['data'][1]['data'][2]['name'] );
 		$this->assertSame( '39.1271100', $actual['data'][1]['data'][2]['value'] );
 
 		// Contains location longitude.
-		$this->assertSame( 'Longitude', $actual['data'][1]['data'][3]['name'] );
+		$this->assertSame( 'Longitude', (string) $actual['data'][1]['data'][3]['name'] );
 		$this->assertSame( '-84.5143900', $actual['data'][1]['data'][3]['value'] );
 
 	}
@@ -1974,7 +1974,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( 'January 31, 2020 09:13 AM', $actual['data'][1]['data'][0]['value'] );
 
 		// Contains IP.
-		$this->assertSame( 'IP', (string)$actual['data'][1]['data'][1]['name'] );
+		$this->assertSame( 'IP', (string) $actual['data'][1]['data'][1]['name'] );
 		$this->assertSame( '0.0.0.0', $actual['data'][1]['data'][1]['value'] );
 
 		// Contains IP.

@@ -281,7 +281,7 @@ if ( ! function_exists( 'twentythirteen_fonts_url' ) ) :
 		 * translators: If there are characters in your language that are not supported
 		 * by Bitter, translate this to 'off'. Do not translate into your own language.
 		 */
-		$bitter = _x( 'on', 'Bitter font: on or off', 'twentythirteen' );
+		$bitter = (string) _x( 'on', 'Bitter font: on or off', 'twentythirteen' );
 
 		if ( 'off' !== $source_sans_pro || 'off' !== $bitter ) {
 			$font_families = array();

@@ -376,7 +376,7 @@ if ( ! function_exists( 'twentyfifteen_fonts_url' ) ) :
 		 * translators: If there are characters in your language that are not supported
 		 * by Noto Sans, translate this to 'off'. Do not translate into your own language.
 		 */
-		if ( 'off' !== _x( 'on', 'Noto Sans font: on or off', 'twentyfifteen' ) ) {
+		if ( 'off' !== (string) _x( 'on', 'Noto Sans font: on or off', 'twentyfifteen' ) ) {
 			$fonts[] = 'noto-sans';
 		}
 
@@ -384,7 +384,7 @@ if ( ! function_exists( 'twentyfifteen_fonts_url' ) ) :
 		 * translators: If there are characters in your language that are not supported
 		 * by Noto Serif, translate this to 'off'. Do not translate into your own language.
 		 */
-		if ( 'off' !== _x( 'on', 'Noto Serif font: on or off', 'twentyfifteen' ) ) {
+		if ( 'off' !== (string) _x( 'on', 'Noto Serif font: on or off', 'twentyfifteen' ) ) {
 			$fonts[] = 'noto-serif';
 		}
 
@@ -392,7 +392,7 @@ if ( ! function_exists( 'twentyfifteen_fonts_url' ) ) :
 		 * translators: If there are characters in your language that are not supported
 		 * by Inconsolata, translate this to 'off'. Do not translate into your own language.
 		 */
-		if ( 'off' !== _x( 'on', 'Inconsolata font: on or off', 'twentyfifteen' ) ) {
+		if ( 'off' !== (string) _x( 'on', 'Inconsolata font: on or off', 'twentyfifteen' ) ) {
 			$fonts[] = 'inconsolata';
 		}
 

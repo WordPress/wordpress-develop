@@ -1502,14 +1502,14 @@ function wp_default_styles( $styles ) {
 	 * translators: If there are characters in your language that are not supported
 	 * by Open Sans, translate this to 'off'. Do not translate into your own language.
 	 */
-	if ( 'off' !== _x( 'on', 'Open Sans font: on or off' ) ) {
+	if ( 'off' !== (string) _x( 'on', 'Open Sans font: on or off' ) ) {
 		$subsets = 'latin,latin-ext';
 
 		/*
 		 * translators: To add an additional Open Sans character subset specific to your language,
 		 * translate this to 'greek', 'cyrillic' or 'vietnamese'. Do not translate into your own language.
 		 */
-		$subset = _x( 'no-subset', 'Open Sans font: add new subset (greek, cyrillic, vietnamese)' );
+		$subset = (string) _x( 'no-subset', 'Open Sans font: add new subset (greek, cyrillic, vietnamese)' );
 
 		if ( 'cyrillic' === $subset ) {
 			$subsets .= ',cyrillic,cyrillic-ext';
@@ -1592,7 +1592,7 @@ function wp_default_styles( $styles ) {
 	 * to load that is supported by your language. Do not translate.
 	 * Set to 'off' to disable loading.
 	 */
-	$font_family = _x( 'Noto Serif:400,400i,700,700i', 'Google Font Name and Variants' );
+	$font_family = (string) _x( 'Noto Serif:400,400i,700,700i', 'Google Font Name and Variants' );
 	if ( 'off' !== $font_family ) {
 		$fonts_url = 'https://fonts.googleapis.com/css?family=' . urlencode( $font_family );
 	}

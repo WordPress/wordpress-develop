@@ -5469,6 +5469,10 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
 		return '';
 	}
 
+	if ( $text instanceof WP_String_Proxy ) {
+		$text = (string) $text;
+	}
+
 	if ( ! is_scalar( $text ) ) {
 		/*
 		 * To maintain consistency with pre-PHP 8 error levels,

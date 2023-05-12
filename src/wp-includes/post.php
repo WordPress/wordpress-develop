@@ -5258,7 +5258,7 @@ function wp_set_post_terms( $post_id = 0, $terms = '', $taxonomy = 'post_tag', $
 	}
 
 	if ( ! is_array( $terms ) ) {
-		$comma = _x( ',', 'tag delimiter' );
+		$comma = (string) _x( ',', 'tag delimiter' );
 		if ( ',' !== $comma ) {
 			$terms = str_replace( $comma, ',', $terms );
 		}
