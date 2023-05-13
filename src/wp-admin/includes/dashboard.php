@@ -266,7 +266,7 @@ function wp_dashboard() {
 		$columns_css = " columns-$columns";
 	}
 	?>
-<div id="dashboard-widgets" class="metabox-holder<?php echo $columns_css; ?>">
+<div id="dashboard-widgets" class="metabox-holder<?php echo esc_attr( $columns_css ); ?>">
 	<div id="postbox-container-1" class="postbox-container">
 	<?php do_meta_boxes( $screen->id, 'normal', '' ); ?>
 	</div>
