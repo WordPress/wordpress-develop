@@ -2348,7 +2348,7 @@ EOF;
 
 		add_filter(
 			'wp_content_img_tag',
-			function( $filtered_image ) {
+			static function( $filtered_image ) {
 				return "<span>$filtered_image</span>";
 			}
 		);
@@ -2372,7 +2372,7 @@ EOF;
 
 		add_filter(
 			'wp_content_img_tag',
-			function( $filtered_image ) {
+			static function( $filtered_image ) {
 				return "<span>$filtered_image</span>";
 			}
 		);
@@ -3621,7 +3621,7 @@ EOF;
 		// Use the filter to alter the threshold for not lazy-loading to the first three elements.
 		add_filter(
 			'wp_omit_loading_attr_threshold',
-			function() {
+			static function() {
 				return 3;
 			}
 		);
@@ -3657,7 +3657,7 @@ EOF;
 		// Use a threshold of 2.
 		add_filter(
 			'wp_omit_loading_attr_threshold',
-			function() {
+			static function() {
 				return 2;
 			}
 		);
@@ -3698,7 +3698,7 @@ EOF;
 		// page load by default, so the value is still 1.
 		add_filter(
 			'wp_omit_loading_attr_threshold',
-			function() {
+			static function() {
 				return 3;
 			}
 		);
@@ -3772,7 +3772,7 @@ EOF;
 		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 		add_filter(
 			'wp_get_attachment_image_attributes',
-			function( $attr ) {
+			static function( $attr ) {
 				unset( $attr['srcset'], $attr['sizes'], $attr['decoding'] );
 				return $attr;
 			}
