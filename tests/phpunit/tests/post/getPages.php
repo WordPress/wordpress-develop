@@ -10,8 +10,6 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	 * @ticket 23167
 	 */
 	public function test_get_pages_cache() {
-		global $wpdb;
-
 		self::factory()->post->create_many( 3, array( 'post_type' => 'page' ) );
 		wp_cache_delete( 'last_changed', 'posts' );
 		$this->assertFalse( wp_cache_get( 'last_changed', 'posts' ) );
@@ -20,7 +18,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$this->assertCount( 3, $pages );
 		$time1 = wp_cache_get( 'last_changed', 'posts' );
 		$this->assertNotEmpty( $time1 );
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -29,7 +27,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$pages = get_pages();
 		$this->assertCount( 3, $pages );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -39,18 +37,18 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$pages = get_pages( array( 'number' => 2 ) );
 		$this->assertCount( 2, $pages );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		// Again. num_queries and last_changed should remain the same.
 		$pages = get_pages( array( 'number' => 2 ) );
 		$this->assertCount( 2, $pages );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -59,7 +57,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$pages = get_pages();
 		$this->assertCount( 3, $pages );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -68,13 +66,13 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		clean_post_cache( $pages[0]->ID );
 		$this->assertNotEquals( $time1, $time2 = wp_cache_get( 'last_changed', 'posts' ) );
 		get_post( $pages[0]->ID );
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		// last_changed bumped so num_queries should increment.
 		$pages = get_pages( array( 'number' => 2 ) );
 		$this->assertCount( 2, $pages );
 		$this->assertSame( $time2, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -87,14 +85,14 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$new_changed_float = $this->_microtime_to_float( wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertGreaterThan( $old_changed_float, $new_changed_float );
 
-		$num_queries  = $wpdb->num_queries;
+		$num_queries  = get_num_queries();
 		$last_changed = wp_cache_get( 'last_changed', 'posts' );
 
 		// num_queries should bump after wp_delete_post() bumps last_changed.
 		$pages = get_pages();
 		$this->assertCount( 2, $pages );
 		$this->assertSame( $last_changed, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -104,22 +102,20 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	 * @ticket 43514
 	 */
 	public function test_get_pages_cache_empty() {
-		global $wpdb;
-
 		wp_cache_delete( 'last_changed', 'posts' );
 		$this->assertFalse( wp_cache_get( 'last_changed', 'posts' ) );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		$pages = get_pages(); // Database gets queried.
 
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		$pages = get_pages(); // Database should not get queried.
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**
