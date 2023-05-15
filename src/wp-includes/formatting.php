@@ -3919,11 +3919,7 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		 * within the excerpt are stripped out. Modifying the tags here
 		 * is wasteful and can lead to bugs in the image counting logic.
 		 */
-		$filter_removed = false;
-		if ( has_filter( 'the_content', 'wp_filter_content_tags' ) ) {
-			remove_filter( 'the_content', 'wp_filter_content_tags' );
-			$filter_removed = true;
-		}
+		$filter_removed = remove_filter( 'the_content', 'wp_filter_content_tags' );
 
 		/** This filter is documented in wp-includes/post-template.php */
 		$text = apply_filters( 'the_content', $text );
