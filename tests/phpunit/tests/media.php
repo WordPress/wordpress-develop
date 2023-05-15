@@ -3878,7 +3878,7 @@ EOF;
 		// Overwrite post content with an image.
 		add_filter(
 			'the_content',
-			function() {
+			static function() {
 				// Replace content with an image tag, i.e. the 'wp_get_attachment_image' context is used while running 'the_content' filter.
 				return wp_get_attachment_image( self::$large_id, 'large', false );
 			},
@@ -3898,7 +3898,7 @@ EOF;
 		$content = '';
 		while ( have_posts() ) {
 			the_post();
-			$content = apply_filters( 'the_content', get_the_content() );
+			$content = get_echo( 'the_content' );
 		}
 
 		// Ensure that parsed content has the image without lazy-loading.
