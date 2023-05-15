@@ -2187,6 +2187,7 @@ function _wp_post_thumbnail_class_filter_remove( $attr ) {
  *
  * @ignore
  * @since 6.3.0
+ * @access private
  *
  * @param string $context The context for rendering an attachment image.
  * @return string Modified context set to 'the_post_thumbnail'.
@@ -2201,6 +2202,7 @@ function _wp_post_thumbnail_context_filter( $context ) {
  *
  * @ignore
  * @since 6.3.0
+ * @access private
  */
 function _wp_post_thumbnail_context_filter_add() {
 	add_filter( 'wp_get_attachment_image_context', '_wp_post_thumbnail_context_filter' );
@@ -2212,6 +2214,7 @@ function _wp_post_thumbnail_context_filter_add() {
  *
  * @ignore
  * @since 6.3.0
+ * @access private
  */
 function _wp_post_thumbnail_context_filter_remove() {
 	remove_filter( 'wp_get_attachment_image_context', '_wp_post_thumbnail_context_filter' );
