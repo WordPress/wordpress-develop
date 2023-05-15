@@ -123,6 +123,14 @@ final class WP_Theme implements ArrayAccess {
 	private $block_theme;
 
 	/**
+	 * Theme has block templates.
+	 *
+	 * @since 6.3.0
+	 * @var bool
+	 */
+	private $has_block_templates;
+
+	/**
 	 * Header name from the theme's style.css after being translated.
 	 *
 	 * Cached due to sorting functions running over the translated name.
@@ -262,7 +270,7 @@ final class WP_Theme implements ArrayAccess {
 		$cache = $this->cache_get( 'theme' );
 
 		if ( is_array( $cache ) ) {
-			foreach ( array( 'block_theme', 'errors', 'headers', 'template' ) as $key ) {
+			foreach ( array( 'block_theme', 'has_block_templates', 'errors', 'headers', 'template' ) as $key ) {
 				if ( isset( $cache[ $key ] ) ) {
 					$this->$key = $cache[ $key ];
 				}
@@ -287,16 +295,18 @@ final class WP_Theme implements ArrayAccess {
 			} else {
 				$this->errors = new WP_Error( 'theme_no_stylesheet', __( 'Stylesheet is missing.' ) );
 			}
-			$this->template    = $this->stylesheet;
-			$this->block_theme = false;
+			$this->template            = $this->stylesheet;
+			$this->block_theme         = false;
+			$this->has_block_templates = false;
 			$this->cache_add(
 				'theme',
 				array(
-					'block_theme' => $this->block_theme,
-					'headers'     => $this->headers,
-					'errors'      => $this->errors,
-					'stylesheet'  => $this->stylesheet,
-					'template'    => $this->template,
+					'block_theme'         => $this->block_theme,
+					'has_block_templates' => $this->has_block_templates,
+					'headers'             => $this->headers,
+					'errors'              => $this->errors,
+					'stylesheet'          => $this->stylesheet,
+					'template'            => $this->template,
 				)
 			);
 			if ( ! file_exists( $this->theme_root ) ) { // Don't cache this one.
@@ -304,18 +314,20 @@ final class WP_Theme implements ArrayAccess {
 			}
 			return;
 		} elseif ( ! is_readable( $this->theme_root . '/' . $theme_file ) ) {
-			$this->headers['Name'] = $this->stylesheet;
-			$this->errors          = new WP_Error( 'theme_stylesheet_not_readable', __( 'Stylesheet is not readable.' ) );
-			$this->template        = $this->stylesheet;
-			$this->block_theme     = false;
+			$this->headers['Name']     = $this->stylesheet;
+			$this->errors              = new WP_Error( 'theme_stylesheet_not_readable', __( 'Stylesheet is not readable.' ) );
+			$this->template            = $this->stylesheet;
+			$this->block_theme         = false;
+			$this->has_block_templates = false;
 			$this->cache_add(
 				'theme',
 				array(
-					'block_theme' => $this->block_theme,
-					'headers'     => $this->headers,
-					'errors'      => $this->errors,
-					'stylesheet'  => $this->stylesheet,
-					'template'    => $this->template,
+					'block_theme'         => $this->block_theme,
+					'has_block_templates' => $this->has_block_templates,
+					'headers'             => $this->headers,
+					'errors'              => $this->errors,
+					'stylesheet'          => $this->stylesheet,
+					'template'            => $this->template,
 				)
 			);
 			return;
@@ -343,10 +355,11 @@ final class WP_Theme implements ArrayAccess {
 			$this->cache_add(
 				'theme',
 				array(
-					'block_theme' => $this->is_block_theme(),
-					'headers'     => $this->headers,
-					'errors'      => $this->errors,
-					'stylesheet'  => $this->stylesheet,
+					'block_theme'         => $this->is_block_theme(),
+					'has_block_templates' => $this->has_block_templates(),
+					'headers'             => $this->headers,
+					'errors'              => $this->errors,
+					'stylesheet'          => $this->stylesheet,
 				)
 			);
 
@@ -380,11 +393,12 @@ final class WP_Theme implements ArrayAccess {
 				$this->cache_add(
 					'theme',
 					array(
-						'block_theme' => $this->is_block_theme(),
-						'headers'     => $this->headers,
-						'errors'      => $this->errors,
-						'stylesheet'  => $this->stylesheet,
-						'template'    => $this->template,
+						'block_theme'         => $this->is_block_theme(),
+						'has_block_templates' => $this->has_block_templates(),
+						'headers'             => $this->headers,
+						'errors'              => $this->errors,
+						'stylesheet'          => $this->stylesheet,
+						'template'            => $this->template,
 					)
 				);
 				return;
@@ -417,11 +431,12 @@ final class WP_Theme implements ArrayAccess {
 				$this->cache_add(
 					'theme',
 					array(
-						'block_theme' => $this->is_block_theme(),
-						'headers'     => $this->headers,
-						'errors'      => $this->errors,
-						'stylesheet'  => $this->stylesheet,
-						'template'    => $this->template,
+						'block_theme'         => $this->is_block_theme(),
+						'has_block_templates' => $this->has_block_templates(),
+						'headers'             => $this->headers,
+						'errors'              => $this->errors,
+						'stylesheet'          => $this->stylesheet,
+						'template'            => $this->template,
 					)
 				);
 				$this->parent = new WP_Theme( $this->template, $this->theme_root, $this );
@@ -445,11 +460,12 @@ final class WP_Theme implements ArrayAccess {
 				$_child->cache_add(
 					'theme',
 					array(
-						'block_theme' => $_child->is_block_theme(),
-						'headers'     => $_child->headers,
-						'errors'      => $_child->errors,
-						'stylesheet'  => $_child->stylesheet,
-						'template'    => $_child->template,
+						'block_theme'         => $_child->is_block_theme(),
+						'has_block_templates' => $_child->has_block_templates(),
+						'headers'             => $_child->headers,
+						'errors'              => $_child->errors,
+						'stylesheet'          => $_child->stylesheet,
+						'template'            => $_child->template,
 					)
 				);
 				// The two themes actually reference each other with the Template header.
@@ -465,11 +481,12 @@ final class WP_Theme implements ArrayAccess {
 					$this->cache_add(
 						'theme',
 						array(
-							'block_theme' => $this->is_block_theme(),
-							'headers'     => $this->headers,
-							'errors'      => $this->errors,
-							'stylesheet'  => $this->stylesheet,
-							'template'    => $this->template,
+							'block_theme'         => $this->is_block_theme(),
+							'has_block_templates' => $this->has_block_templates(),
+							'headers'             => $this->headers,
+							'errors'              => $this->errors,
+							'stylesheet'          => $this->stylesheet,
+							'template'            => $this->template,
 						)
 					);
 				}
@@ -486,11 +503,12 @@ final class WP_Theme implements ArrayAccess {
 		// We're good. If we didn't retrieve from cache, set it.
 		if ( ! is_array( $cache ) ) {
 			$cache = array(
-				'block_theme' => $this->is_block_theme(),
-				'headers'     => $this->headers,
-				'errors'      => $this->errors,
-				'stylesheet'  => $this->stylesheet,
-				'template'    => $this->template,
+				'block_theme'         => $this->is_block_theme(),
+				'has_block_templates' => $this->has_block_templates(),
+				'headers'             => $this->headers,
+				'errors'              => $this->errors,
+				'stylesheet'          => $this->stylesheet,
+				'template'            => $this->template,
 			);
 			// If the parent theme is in another root, we'll want to cache this. Avoids an entire branch of filesystem calls above.
 			if ( isset( $theme_root_template ) ) {
@@ -777,15 +795,16 @@ final class WP_Theme implements ArrayAccess {
 		foreach ( array( 'theme', 'screenshot', 'headers', 'post_templates' ) as $key ) {
 			wp_cache_delete( $key . '-' . $this->cache_hash, 'themes' );
 		}
-		$this->template          = null;
-		$this->textdomain_loaded = null;
-		$this->theme_root_uri    = null;
-		$this->parent            = null;
-		$this->errors            = null;
-		$this->headers_sanitized = null;
-		$this->name_translated   = null;
-		$this->block_theme       = null;
-		$this->headers           = array();
+		$this->template           = null;
+		$this->textdomain_loaded  = null;
+		$this->theme_root_uri     = null;
+		$this->parent             = null;
+		$this->errors             = null;
+		$this->headers_sanitized  = null;
+		$this->name_translated    = null;
+		$this->block_theme        = null;
+		$this->has_block_template = null;
+		$this->headers            = array();
 		$this->__construct( $this->stylesheet, $this->theme_root );
 	}
 
@@ -1504,6 +1523,36 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		return false;
+	}
+
+
+	/**
+	 * Returns whether this theme has block template directories.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @return bool
+	 */
+	public function has_block_templates() {
+		if ( isset( $this->has_block_templates ) ) {
+			return $this->has_block_templates;
+		}
+
+		$paths_to_index_block_template = array(
+			$this->get_file_path( '/block-templates' ),
+			$this->get_file_path( '/block-template-parts' ),
+		);
+
+		$this->has_block_templates = false;
+
+		foreach ( $paths_to_index_block_template as $path_to_index_block_template ) {
+			if ( is_file( $path_to_index_block_template ) && is_readable( $path_to_index_block_template ) ) {
+				$this->has_block_templates = true;
+				break;
+			}
+		}
+
+		return $this->has_block_templates;
 	}
 
 	/**

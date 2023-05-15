@@ -37,11 +37,9 @@ if ( ! defined( 'WP_TEMPLATE_PART_AREA_UNCATEGORIZED' ) ) {
  * }
  */
 function get_block_theme_folders( $theme_stylesheet = null ) {
-	$theme_name = null === $theme_stylesheet ? get_stylesheet() : $theme_stylesheet;
-	$root_dir   = get_theme_root( $theme_name );
-	$theme_dir  = "$root_dir/$theme_name";
+	$theme = wp_get_theme( $theme_stylesheet );
 
-	if ( file_exists( $theme_dir . '/block-templates' ) || file_exists( $theme_dir . '/block-template-parts' ) ) {
+	if ( $theme->has_block_templates() ) {
 		return array(
 			'wp_template'      => 'block-templates',
 			'wp_template_part' => 'block-template-parts',
