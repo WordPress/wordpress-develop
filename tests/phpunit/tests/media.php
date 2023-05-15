@@ -3981,7 +3981,7 @@ EOF;
 		$last_context = '';
 		add_filter(
 			'wp_get_attachment_image_context',
-			function( $context ) use ( &$last_context ) {
+			static function( $context ) use ( &$last_context ) {
 				$last_context = $context;
 				return $context;
 			},
@@ -4000,7 +4000,7 @@ EOF;
 		// Add a filter that modifies the context.
 		add_filter(
 			'wp_get_attachment_image_context',
-			function() {
+			static function() {
 				return 'my_custom_context';
 			}
 		);
@@ -4009,7 +4009,7 @@ EOF;
 		$last_context = '';
 		add_filter(
 			'wp_lazy_loading_enabled',
-			function( $default, $tag_name, $context ) use ( &$last_context ) {
+			static function( $default, $tag_name, $context ) use ( &$last_context ) {
 				$last_context = $context;
 				return $default;
 			},
