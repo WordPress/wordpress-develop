@@ -497,6 +497,10 @@ EXP;
 	 * Test valid async loading strategy case.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_valid_async_registration() {
 		// No dependents, No dependencies then async.
