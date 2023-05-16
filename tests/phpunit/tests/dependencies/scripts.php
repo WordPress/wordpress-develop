@@ -696,6 +696,7 @@ EXP;
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_normalized_script_args
 	 * @covers ::wp_enqueue_script
+	 * @covers ::wp_register_script
 	 */
 	public function test_get_normalized_script_args() {
 		global $wp_scripts;
