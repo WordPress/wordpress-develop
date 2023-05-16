@@ -342,6 +342,4 @@
 		<exclude-pattern>/src/wp-content/themes/twentyfourteen/inc/widgets\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-content/themes/twentyfourteen/inc/featured-content\.php</exclude-pattern>
 	</rule>
-
-	<rule ref="SlevomatCodingStandard.Functions.StaticClosure" />
 </ruleset>
