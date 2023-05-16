@@ -1546,7 +1546,7 @@ final class WP_Theme implements ArrayAccess {
 		$this->has_block_templates = false;
 
 		foreach ( $paths_to_index_block_template as $path_to_index_block_template ) {
-			if ( is_file( $path_to_index_block_template ) && is_readable( $path_to_index_block_template ) ) {
+			if ( is_dir( $path_to_index_block_template ) ) {
 				$this->has_block_templates = true;
 				break;
 			}
