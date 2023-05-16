@@ -653,6 +653,10 @@ EXP;
 	 * Test old and new in_footer logic.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::get_normalized_script_args
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_old_and_new_in_footer_scripts() {
 		// Scripts in head.
