@@ -631,6 +631,10 @@ EXP;
 	 * Test valid blocking loading strategy cases.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_valid_blocking_registration() {
 		wp_enqueue_script( 'main-script-b1', '/main-script-b1.js', array(), null, array( 'strategy' => 'blocking' ) );
