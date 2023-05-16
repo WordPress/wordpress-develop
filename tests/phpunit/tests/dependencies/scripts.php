@@ -394,11 +394,16 @@ EXP;
 	}
 
 	/**
-	 * Test non standalone `before` inline scripts attached to one the chain, of the two all scripts `defer` chains.
+	 * Test non-standalone `before` inline scripts attached to one the chain, of the two all scripts `defer` chains.
 	 *
 	 * If there are two dependency chains, rules are applied to the scripts in the chain that contain a `before` inline script.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::print_inline_script
+	 * @covers ::wp_add_inline_script
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_non_standalone_before_inline_script_on_multiple_defer_script_chain() {
 		unregister_all_script_handles();
