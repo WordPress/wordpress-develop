@@ -363,12 +363,17 @@ EXP;
 	}
 
 	/**
-	 * Test non standalone `before` inline scripts attached to top most dependency in a all scripts `defer` chain.
+	 * Test non-standalone `before` inline scripts attached to top most dependency in an all scripts `defer` chain.
 	 *
 	 * If the top most dependency in the chain has a `before` inline script,
 	 * none of the scripts bellow it will be blocking.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::print_inline_script
+	 * @covers ::wp_add_inline_script
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_non_standalone_before_inline_script_on_top_most_dependency_script() {
 		unregister_all_script_handles();
