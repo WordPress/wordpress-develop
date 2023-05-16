@@ -525,6 +525,7 @@ class WP_Query {
 		$this->post_count   = 0;
 		$this->current_post = -1;
 		$this->in_the_loop  = false;
+		$this->before_loop  = true;
 		unset( $this->request );
 		unset( $this->post );
 		unset( $this->comments );
