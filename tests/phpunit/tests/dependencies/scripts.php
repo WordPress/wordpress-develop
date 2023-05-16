@@ -119,6 +119,7 @@ EXP;
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::print_inline_script
 	 * @covers ::wp_print_delayed_inline_script_loader
+	 * @covers ::wp_add_inline_script
 	 */
 	public function test_standalone_after_inline_script_with_defer_main_script() {
 		unregister_all_script_handles();
@@ -139,6 +140,11 @@ EXP;
 	 * the inline script should not be affected.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::print_inline_script
+	 * @covers ::wp_print_delayed_inline_script_loader
+	 * @covers ::wp_add_inline_script
 	 */
 	public function test_standalone_after_inline_script_with_async_main_script() {
 		unregister_all_script_handles();
