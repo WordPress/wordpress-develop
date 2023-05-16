@@ -327,7 +327,7 @@ EXP;
 		$expected .= "</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.org/ms-i1-1.js' id='ms-i1-1-js' defer></script>\n";
 
-		$this->assertSame( $expected, $output );
+		$this->assertSame( $expected, $output, 'Inline scripts in the "before" position, that are non-standalone and attached to a deferred main script, are failing to print/execute.' );
 	}
 
 	/**
