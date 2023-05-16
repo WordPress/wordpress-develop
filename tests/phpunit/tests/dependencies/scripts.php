@@ -251,6 +251,11 @@ EXP;
 	 * the inline script should be rendered as type='text/javascript'.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::print_inline_script
+	 * @covers ::wp_add_inline_script
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_non_standalone_after_inline_script_with_blocking_main_script() {
 		unregister_all_script_handles();
