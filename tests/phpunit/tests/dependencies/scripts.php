@@ -467,6 +467,11 @@ EXP;
 	 * strategy of the dependencies above it remains unchanged.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::print_inline_script
+	 * @covers ::wp_add_inline_script
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_standalone_before_inline_script_with_defer_dependency_script() {
 		unregister_all_script_handles();
