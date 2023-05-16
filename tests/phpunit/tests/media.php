@@ -3585,10 +3585,10 @@ EOF;
 			// and in the main query, and do not increase the content media count.
 			$this->assertSame( 'lazy', wp_get_loading_attr_default( 'wp_get_attachment_image' ) );
 
-			// Return `false` if in the loop and in the main query for first three element.
-			for ( $i = 0; $i < 3; $i++ ) {
-				$this->assertFalse( wp_get_loading_attr_default( $context ) );
-			}
+			// Return `false` in the main query for first three element.
+			$this->assertFalse( wp_get_loading_attr_default( $context ), 'Expected first image to not be lazy-loaded.' );
+			$this->assertFalse( wp_get_loading_attr_default( $context ), 'Expected second image to not be lazy-loaded.' );
+			$this->assertFalse( wp_get_loading_attr_default( $context ), 'Expected third image to not be lazy-loaded.' );
 
 			// Return 'lazy' if in the loop and in the main query for any subsequent elements.
 			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
