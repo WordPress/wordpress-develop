@@ -268,7 +268,7 @@ EXP;
 		$expected .= "console.log(\"after one\");\n";
 		$expected .= "</script>\n";
 
-		$this->assertSame( $expected, $output );
+		$this->assertSame( $expected, $output, 'Inline scripts in the "after" position, that are non-standalone and attached to a blocking main script, are failing to print/execute.' );
 	}
 
 	/**
