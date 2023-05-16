@@ -803,6 +803,10 @@ EXP;
 	 * Test script concatenation with `async` main script.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers ::wp_enqueue_script
+	 * @covers ::wp_register_script
 	 */
 	public function test_concatenate_with_async_strategy() {
 		global $wp_scripts, $concatenate_scripts;
