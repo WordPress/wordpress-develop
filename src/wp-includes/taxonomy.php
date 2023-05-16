@@ -959,6 +959,8 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 	// Ensure for filters that this is not empty.
 	$taxonomy = $_term->taxonomy;
 
+	$_old_term = $_term;
+
 	/**
 	 * Filters a taxonomy term object.
 	 *
@@ -997,8 +999,10 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 		return $_term;
 	}
 
-	// Sanitize term, according to the specified filter.
-	$_term->filter( $filter );
+	if ( $_old_term === $_term && 'raw' !== $filter ) {
+		// Sanitize term, according to the specified filter.
+		$_term->filter( $filter );
+	}
 
 	if ( ARRAY_A === $output ) {
 		return $_term->to_array();
