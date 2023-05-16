@@ -241,7 +241,7 @@ console.log("after one");
 </script>
 
 EXP;
-		$this->assertSame( $expected, $output );
+		$this->assertSame( $expected, $output, 'Inline scripts in the "after" position, that are non-standalone and attached to an async main script, are failing to print/execute.' );
 	}
 
 	/**
