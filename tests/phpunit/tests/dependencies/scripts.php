@@ -105,7 +105,7 @@ console.log("after two");
 </script>
 
 EXP;
-		$this->assertSame( $expected, $output, __( 'Inline scripts in the "after" position, both standalone and non standalone, are failing to print/execute or printing/executing in the incorrect order.' ) );
+		$this->assertSame( $expected, $output, 'Inline scripts in the "after" position, both standalone and non standalone, are failing to print/execute or printing/executing in the incorrect order.' );
 	}
 
 	/**
