@@ -394,7 +394,7 @@ EXP;
 	}
 
 	/**
-	 * Test non-standalone `before` inline scripts attached to one the chain, of the two all scripts `defer` chains.
+	 * Test non-standalone `before` inline scripts attached to one of two in the chain of an all scripts `defer` chain.
 	 *
 	 * If there are two dependency chains, rules are applied to the scripts in the chain that contain a `before` inline script.
 	 *
@@ -424,7 +424,7 @@ EXP;
 		$expected .= "<script type='text/javascript' src='http://example.org/ch2-ds-i4-2.js' id='ch2-ds-i4-2-js' defer></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.org/ms-i4-1.js' id='ms-i4-1-js' defer></script>\n";
 
-		$this->assertSame( $expected, $output );
+		$this->assertSame( $expected, $output, 'Inline scripts in the "before" position, that are non-standalone and attached to one of two dependencies in an all scrips deferred chain, are failing to print/execute.' );
 	}
 
 	/**
