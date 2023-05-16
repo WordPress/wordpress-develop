@@ -507,7 +507,7 @@ EXP;
 		wp_enqueue_script( 'main-script-a1', '/main-script-a1.js', array(), null, array( 'strategy' => 'async' ) );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='/main-script-a1.js' id='main-script-a1-js' async></script>\n";
-		$this->assertSame( $expected, $output );
+		$this->assertSame( $expected, $output, 'Scripts enqueued with an async loading strategy are failing to have the async attribute applied to the script handle when being printed.' );
 	}
 
 	/**
