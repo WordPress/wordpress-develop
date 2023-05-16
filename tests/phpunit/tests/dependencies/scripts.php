@@ -839,6 +839,10 @@ EXP;
 	 * Test script concatenation with blocking scripts before and after a `defer` script.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers ::wp_enqueue_script
+	 * @covers ::wp_register_script
 	 */
 	public function test_concatenate_with_blocking_script_before_and_after_script_with_defer_strategy() {
 		global $wp_scripts, $concatenate_scripts;
