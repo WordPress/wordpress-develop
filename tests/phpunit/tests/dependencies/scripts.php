@@ -148,10 +148,10 @@ EXP;
 	 */
 	public function test_standalone_after_inline_script_with_async_main_script() {
 		unregister_all_script_handles();
-		wp_enqueue_script( 'ms-isa-2', 'http://example.org/ms-isa-2.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'ms-isa-2', 'http://example.org/ms-isa-2.js', array(), null, array( 'strategy' => 'async' ) );
 		wp_add_inline_script( 'ms-isa-2', 'console.log("after one");', 'after', true );
 		$output    = get_echo( 'wp_print_scripts' );
-		$expected  = "<script type='text/javascript' src='http://example.org/ms-isa-2.js' id='ms-isa-2-js' defer></script>\n";
+		$expected  = "<script type='text/javascript' src='http://example.org/ms-isa-2.js' id='ms-isa-2-js' async></script>\n";
 		$expected .= "<script type='text/javascript' id='ms-isa-2-js-after'>\n";
 		$expected .= "console.log(\"after one\");\n";
 		$expected .= "</script>\n";
