@@ -390,7 +390,7 @@ EXP;
 		$expected .= "<script type='text/javascript' src='http://example.org/ds-i3-2.js' id='ds-i3-2-js' defer></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.org/ms-i3-1.js' id='ms-i3-1-js' defer></script>\n";
 
-		$this->assertSame( $expected, $output );
+		$this->assertSame( $expected, $output, 'Inline scripts in the "before" position, that are non-standalone and attached to the top most dependency in an all dependencies deferred chain, are failing to print/execute.' );
 	}
 
 	/**
