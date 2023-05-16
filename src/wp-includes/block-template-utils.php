@@ -231,7 +231,7 @@ function _filter_block_template_part_area( $type ) {
  */
 function _get_block_templates_paths( $base_directory ) {
 	$path_list = array();
-	if ( file_exists( $base_directory ) ) {
+	if ( is_dir( $base_directory ) ) {
 		$nested_files      = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base_directory ) );
 		$nested_html_files = new RegexIterator( $nested_files, '/^.+\.html$/i', RecursiveRegexIterator::GET_MATCH );
 		foreach ( $nested_html_files as $path => $file ) {
