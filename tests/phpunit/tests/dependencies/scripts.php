@@ -159,13 +159,19 @@ EXP;
 	}
 
 	/**
-	 * Test non standalone inline scripts in the `after` position with deferred main script.
+	 * Test non-standalone inline scripts in the `after` position with deferred main script.
 	 *
 	 * If a main script with a `defer` loading strategy has an `after` inline script,
 	 * the inline script should be rendered as type='text/template'.
 	 * The common loader script should also be injected in this case.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::print_inline_script
+	 * @covers ::wp_print_delayed_inline_script_loader
+	 * @covers ::wp_add_inline_script
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_non_standalone_after_inline_script_with_defer_main_script() {
 		unregister_all_script_handles();
