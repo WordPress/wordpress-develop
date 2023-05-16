@@ -1311,6 +1311,8 @@ function get_translations_for_domain( $domain ) {
 		$noop_translations = new NOOP_Translations();
 	}
 
+	$l10n[ $domain ] = &$noop_translations;
+
 	return $noop_translations;
 }
 
@@ -1326,7 +1328,7 @@ function get_translations_for_domain( $domain ) {
  */
 function is_textdomain_loaded( $domain ) {
 	global $l10n;
-	return isset( $l10n[ $domain ] );
+	return isset( $l10n[ $domain ] ) && ! $l10n[ $domain ] instanceof NOOP_Translations;
 }
 
 /**
