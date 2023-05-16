@@ -611,6 +611,10 @@ EXP;
 	 * Test invalid defer loading strategy case.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_invalid_defer_registration() {
 		// Main script is defer and all dependent are not defer. Then main script will have blocking(or no) strategy.
