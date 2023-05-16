@@ -540,6 +540,9 @@ EXP;
 	 *
 	 * @ticket 12009
 	 * @dataProvider data_loading_strategy_with_valid_defer_registration
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_valid_defer_registration( $expected, $output, $message ) {
 		$this->assertStringContainsString( $expected, $output, $message );
