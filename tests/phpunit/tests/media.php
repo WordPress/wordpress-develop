@@ -3621,12 +3621,7 @@ EOF;
 		$this->reset_omit_loading_attr_filter();
 
 		// Use the filter to alter the threshold for not lazy-loading to the first five elements.
-		add_filter(
-			'wp_omit_loading_attr_threshold',
-			function() {
-				return 5;
-			}
-		);
+		$this->force_omit_loading_attr_threshold( 5 );
 
 		while ( have_posts() ) {
 			the_post();
@@ -3657,12 +3652,7 @@ EOF;
 		$lazy_iframe2 = wp_iframe_tag_add_loading_attr( $iframe2, 'the_content' );
 
 		// Use a threshold of 2.
-		add_filter(
-			'wp_omit_loading_attr_threshold',
-			function() {
-				return 2;
-			}
-		);
+		$this->force_omit_loading_attr_threshold( 2 );
 
 		// Following the threshold of 2, the first two content media elements should not be lazy-loaded.
 		$content_unfiltered = $img1 . $iframe1 . $img2 . $img3 . $iframe2;
@@ -3698,12 +3688,8 @@ EOF;
 
 		// Add a filter that changes the value to 1. However, the filter is not applied a subsequent time in a single
 		// page load by default, so the value is still 3.
-		add_filter(
-			'wp_omit_loading_attr_threshold',
-			function() {
-				return 1;
-			}
-		);
+		$this->force_omit_loading_attr_threshold( 1 );
+
 		$omit_threshold = wp_omit_loading_attr_threshold();
 		$this->assertSame( 3, $omit_threshold );
 
@@ -3727,12 +3713,7 @@ EOF;
 		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
-		add_filter(
-			'wp_omit_loading_attr_threshold',
-			function() {
-				return 1;
-			}
-		);
+		$this->force_omit_loading_attr_threshold( 1 );
 
 		$img1      = get_image_tag( self::$large_id, '', '', '', 'large' );
 		$img2      = get_image_tag( self::$large_id, '', '', '', 'medium' );
@@ -3785,12 +3766,7 @@ EOF;
 				return $attr;
 			}
 		);
-		add_filter(
-			'wp_omit_loading_attr_threshold',
-			function() {
-				return 1;
-			}
-		);
+		$this->force_omit_loading_attr_threshold( 1 );
 
 		$content_img      = get_image_tag( self::$large_id, '', '', '', 'large' );
 		$lazy_content_img = wp_img_tag_add_loading_attr( $content_img, 'the_content' );
@@ -4026,6 +4002,19 @@ EOF;
 		}
 	}
 
+	/**
+	 * Change the omit loading attribute threshold value.
+	 *
+	 * @param int $threshold Threshold value to change.
+	 */
+	public function force_omit_loading_attr_threshold( $threshold ) {
+		add_filter(
+			'wp_omit_loading_attr_threshold',
+			static function() use ( $threshold ) {
+				return $threshold;
+			}
+		);
+	}
 }
 
 /**
