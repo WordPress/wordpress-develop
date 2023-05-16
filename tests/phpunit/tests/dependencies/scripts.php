@@ -272,12 +272,17 @@ EXP;
 	}
 
 	/**
-	 * Test non standalone inline scripts in the `after` position with deferred main script.
+	 * Test non-standalone inline scripts in the `after` position with deferred main script.
 	 *
 	 * If a main script with no loading strategy has an `after` inline script,
 	 * the inline script should be rendered as type='text/javascript'.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::print_inline_script
+	 * @covers ::wp_add_inline_script
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_non_standalone_after_inline_script_with_main_script_with_no_strategy() {
 		unregister_all_script_handles();
