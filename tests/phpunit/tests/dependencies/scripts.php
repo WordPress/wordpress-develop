@@ -155,7 +155,7 @@ EXP;
 		$expected .= "<script type='text/javascript' id='ms-isa-2-js-after'>\n";
 		$expected .= "console.log(\"after one\");\n";
 		$expected .= "</script>\n";
-		$this->assertSame( $expected, $output );
+		$this->assertSame( $expected, $output, 'Inline scripts in the "after" position, that are standalone and attached to an async main script, are failing to print/execute.' );
 	}
 
 	/**
