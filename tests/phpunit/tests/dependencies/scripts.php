@@ -587,6 +587,10 @@ EXP;
 	 * Test valid defer loading with async dependent.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_defer_with_async_dependent() {
 		// case with one async dependent.
