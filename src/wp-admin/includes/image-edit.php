@@ -297,6 +297,17 @@ function wp_image_editor( $post_id, $msg = false ) {
 			if ( ! is_array( $edit_custom_sizes ) ) {
 				$edit_custom_sizes = get_intermediate_image_sizes();
 			}
+
+			/** This filter is documented in wp-admin/includes/media.php */
+			$image_size_names = apply_filters(
+				'image_size_names_choose',
+				array(
+					'medium'       => __( 'Medium' ),
+					'medium_large' => __( 'Medium Large' ),
+					'large'        => __( 'Large' ),
+				)
+			);
+
 			foreach ( array_unique( $edit_custom_sizes ) as $key => $size ) {
 				if ( array_key_exists( $size, $meta['sizes'] ) ) {
 					if ( 'thumbnail' === $size ) {
@@ -305,7 +316,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 					?>
 					<span class="imgedit-label">
 						<input type="radio" id="imgedit-target-custom<?php echo esc_attr( $key ); ?>" name="imgedit-target-<?php echo $post_id; ?>" value="<?php echo esc_attr( $size ); ?>" />
-						<label for="imgedit-target-custom<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $size ); ?></label>
+						<label for="imgedit-target-custom<?php echo esc_attr( $key ); ?>"><?php echo esc_html( isset( $image_size_names[ $size ] ) ? $image_size_names[ $size ] : $size ); ?></label>
 					</span>
 					<?php
 				}
