@@ -2379,7 +2379,7 @@ class WP_Theme_JSON {
 		$pseudo_matches = array_values(
 			array_filter(
 				$element_pseudo_allowed,
-				static function( $pseudo_selector ) use ( $selector ) {
+				function( $pseudo_selector ) use ( $selector ) {
 					return str_contains( $selector, $pseudo_selector );
 				}
 			)
