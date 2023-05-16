@@ -104,6 +104,7 @@ VideoDetails = MediaDetails.extend({
 
 			wp.ajax.send( 'set-attachment-thumbnail', {
 				data : {
+					_ajax_nonce: wp.media.view.settings.nonce.setAttachmentThumbnail,
 					urls: urls,
 					thumbnail_id: attachment.get( 'id' )
 				}
