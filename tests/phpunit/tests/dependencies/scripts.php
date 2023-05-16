@@ -434,6 +434,11 @@ EXP;
 	 * any inline script associated with the main script.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::print_inline_script
+	 * @covers ::wp_add_inline_script
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_standalone_before_inline_script_with_defer_main_script() {
 		unregister_all_script_handles();
