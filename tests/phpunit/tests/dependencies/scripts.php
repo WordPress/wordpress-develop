@@ -74,6 +74,8 @@ JS;
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::print_inline_script
 	 * @covers ::wp_print_delayed_inline_script_loader
+	 * @covers ::wp_add_inline_script
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_non_standalone_and_standalone_after_script_combined() {
 		// If a main script containing a `defer` strategy has an `after` inline script, the expected script type is type='javascript', otherwise type='text/template'.
@@ -120,6 +122,7 @@ EXP;
 	 * @covers WP_Scripts::print_inline_script
 	 * @covers ::wp_print_delayed_inline_script_loader
 	 * @covers ::wp_add_inline_script
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_standalone_after_inline_script_with_defer_main_script() {
 		unregister_all_script_handles();
@@ -145,6 +148,7 @@ EXP;
 	 * @covers WP_Scripts::print_inline_script
 	 * @covers ::wp_print_delayed_inline_script_loader
 	 * @covers ::wp_add_inline_script
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_standalone_after_inline_script_with_async_main_script() {
 		unregister_all_script_handles();
@@ -500,6 +504,7 @@ EXP;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::get_normalized_script_args
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_valid_async_registration() {
@@ -517,6 +522,7 @@ EXP;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::get_normalized_script_args
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_invalid_async_registration() {
@@ -543,6 +549,7 @@ EXP;
 	 * @dataProvider data_loading_strategy_with_valid_defer_registration
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::get_normalized_script_args
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_valid_defer_registration( $expected, $output, $message ) {
@@ -591,6 +598,7 @@ EXP;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::get_normalized_script_args
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_defer_with_async_dependent() {
@@ -615,6 +623,7 @@ EXP;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::get_normalized_script_args
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_invalid_defer_registration() {
@@ -635,6 +644,7 @@ EXP;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::get_normalized_script_args
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_valid_blocking_registration() {
@@ -748,6 +758,8 @@ EXP;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_normalized_script_args
+	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::is_valid_strategy
 	 * @covers ::wp_enqueue_script
 	 * @covers ::wp_register_script
 	 */
