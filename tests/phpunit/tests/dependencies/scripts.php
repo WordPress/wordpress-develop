@@ -514,6 +514,10 @@ EXP;
 	 * Test invalid async loading strategy cases.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_invalid_async_registration() {
 		// If any dependencies then it's not async. Since dependency is blocking(/defer) final strategy will be defer.
