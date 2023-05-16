@@ -451,13 +451,124 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `_wp_post_thumbnail_context_filter()` returns 'the_post_thumbnail'.
+	 *
 	 * @ticket 58212
-	 * @covers ::_wp_post_thumbnail_context_filter_add
-	 * @covers ::_wp_post_thumbnail_context_filter_remove
-	 * @covers ::_wp_post_thumbnail_context_filter
+	 *
+	 * @covers::_wp_post_thumbnail_context_filter
 	 */
-	public function test_get_the_post_thumbnail_uses_correct_context() {
+	public function test_wp_post_thumbnail_context_filter_should_return_the_post_thumbnail() {
+		$this->assertSame( 'the_post_thumbnail', _wp_post_thumbnail_context_filter( 'wp_get_attachment_image' ) );
+	}
+
+	/**
+	 * Tests that `::_wp_post_thumbnail_context_filter_add` adds a filter to override the context
+	 * used in `wp_get_attachment_image()`.
+	 *
+	 * @ticket 58212
+	 *
+	 * @covers ::_wp_post_thumbnail_context_filter_add
+	 */
+	public function test_wp_post_thumbnail_context_filter_add_should_add_the_filter() {
 		$last_context = '';
+		$this->track_last_attachment_image_context( $last_context );
+
+		_wp_post_thumbnail_context_filter_add();
+		wp_get_attachment_image( self::$attachment_id );
+
+		$this->assertSame( 'the_post_thumbnail', $last_context );
+	}
+
+	/**
+	 * Tests that `_wp_post_thumbnail_context_filter_remove()` removes a filter to override the context
+	 * used in `wp_get_attachment_image()`.
+	 *
+	 * @ticket 58212
+	 *
+	 * @covers ::_wp_post_thumbnail_context_filter_remove
+	 */
+	public function test_wp_post_thumbnail_context_filter_remove_should_remove_the_filter() {
+		$last_context = '';
+		$this->track_last_attachment_image_context( $last_context );
+
+		_wp_post_thumbnail_context_filter_add();
+		wp_get_attachment_image( self::$attachment_id );
+
+		// Verify that the filter has been added before testing that it has been removed.
+		$this->assertSame(
+			'the_post_thumbnail',
+			$last_context,
+			'The filter was not added.'
+		);
+
+		_wp_post_thumbnail_context_filter_remove();
+
+		// The context should no longer be modified by the filter.
+		wp_get_attachment_image( self::$attachment_id );
+
+		$this->assertSame(
+			'wp_get_attachment_image',
+			$last_context,
+			'The filter was not removed.'
+		);
+	}
+
+	/**
+	 * Tests that `get_the_post_thumbnail()` uses the 'the_post_thumbnail' context.
+	 *
+	 * @ticket 58212
+	 *
+	 * @covers ::get_the_post_thumbnail
+	 */
+	public function test_get_the_post_thumbnail_should_use_the_post_thumbnail_context() {
+		$last_context = '';
+		$this->track_last_attachment_image_context( $last_context );
+
+		set_post_thumbnail( self::$post, self::$attachment_id );
+		get_the_post_thumbnail( self::$post );
+
+		$this->assertSame( 'the_post_thumbnail', $last_context );
+	}
+
+	/**
+	 * Tests that `get_the_post_thumbnail()` restores the context afterwards.
+	 *
+	 * @ticket 58212
+	 *
+	 * @covers ::get_the_post_thumbnail
+	 */
+	public function test_get_the_post_thumbnail_should_remove_the_post_thumbnail_context_afterwards() {
+		$last_context = '';
+		$this->track_last_attachment_image_context( $last_context );
+
+		set_post_thumbnail( self::$post, self::$attachment_id );
+		get_the_post_thumbnail( self::$post );
+
+		// Verify that the context was overridden before testing that it has been restored.
+		$this->assertSame(
+			'the_post_thumbnail',
+			$last_context,
+			'The context was not overridden.'
+		);
+
+		// The context should no longer be overridden.
+		wp_get_attachment_image( self::$attachment_id );
+
+		$this->assertSame(
+			'wp_get_attachment_image',
+			$last_context,
+			'The context was not restored.'
+		);
+	}
+
+	/**
+	 * Helper method to keep track of the last context returned by the 'wp_get_attachment_image_context' filter.
+	 *
+	 * The method parameter is passed by reference and therefore will always contain the last context value.
+	 *
+	 * @param mixed $last_context Variable to track last context. Passed by reference.
+	 */
+	private function track_last_attachment_image_context( &$last_context ) {
 		add_filter(
 			'wp_get_attachment_image_context',
 			static function( $context ) use ( &$last_context ) {
@@ -466,20 +577,6 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 			},
 			11
 		);
-
-		set_post_thumbnail( self::$post, self::$attachment_id );
-
-		// Assert that before changing the context via filter it's the regular context.
-		wp_get_attachment_image( self::$attachment_id );
-		$this->assertSame( 'wp_get_attachment_image', $last_context, 'Incorrect context for wp_get_attachment_image() before calling get_the_post_thumbnail()' );
-
-		// Assert that get_the_post_thumbnail() triggers a temporary filter to override the context.
-		get_the_post_thumbnail( self::$post );
-		$this->assertSame( 'the_post_thumbnail', $last_context, 'Incorrect context for get_the_post_thumbnail()' );
-
-		// Assert that the regular context is used again following the temporary filter being removed.
-		wp_get_attachment_image( self::$attachment_id );
-		$this->assertSame( 'wp_get_attachment_image', $last_context, 'Incorrect context for wp_get_attachment_image() after calling get_the_post_thumbnail()' );
 	}
 
 	public function filter_post_thumbnail_size( $size, $post_id ) {
