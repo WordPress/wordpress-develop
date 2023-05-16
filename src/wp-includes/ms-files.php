@@ -18,7 +18,7 @@ if ( ! is_multisite() ) {
 
 ms_file_constants();
 
-if ( '1' == $current_blog->archived || '1' == $current_blog->spam || '1' == $current_blog->deleted ) {
+if ( '1' === $current_blog->archived || '1' === $current_blog->spam || '1' === $current_blog->deleted ) {
 	status_header( 404 );
 	die( '404 &#8212; File not found.' );
 }
@@ -75,8 +75,8 @@ $client_modified_timestamp = $client_last_modified ? strtotime( $client_last_mod
 $modified_timestamp = strtotime( $last_modified );
 
 if ( ( $client_last_modified && $client_etag )
-	? ( ( $client_modified_timestamp >= $modified_timestamp ) && ( $client_etag == $etag ) )
-	: ( ( $client_modified_timestamp >= $modified_timestamp ) || ( $client_etag == $etag ) )
+	? ( ( $client_modified_timestamp >= $modified_timestamp ) && ( $client_etag === $etag ) )
+	: ( ( $client_modified_timestamp >= $modified_timestamp ) || ( $client_etag === $etag ) )
 	) {
 	status_header( 304 );
 	exit;
