@@ -761,7 +761,7 @@ EXP;
 
 		$expected = "<script type='text/javascript' src='/defaults.js' id='invalid-strategy-js'></script>\n";
 
-		$this->assertSame( $expected, $output );
+		$this->assertSame( $expected, $output, 'Expected a blocking script strategy (default, no loading attributes printed) if an invalid loading strategy was assigned during script registration/enqueue.' );
 	}
 
 	/**
