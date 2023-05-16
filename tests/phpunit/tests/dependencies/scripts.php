@@ -744,6 +744,11 @@ EXP;
 	 * For an invalid strategy defined during script registration, default to a blocking strategy.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::get_normalized_script_args
+	 * @covers ::wp_enqueue_script
+	 * @covers ::wp_register_script
 	 */
 	public function test_script_strategy_doing_it_wrong() {
 		$this->setExpectedIncorrectUsage( 'WP_Scripts::get_intended_strategy' );
