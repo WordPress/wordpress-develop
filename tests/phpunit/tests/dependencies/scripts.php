@@ -706,7 +706,7 @@ EXP;
 			'strategy'  => 'async',
 		);
 		wp_enqueue_script( 'footer-async', '/footer-async.js', array(), null, $args );
-		$this->assertSame( $args, $wp_scripts->get_data( 'footer-async', 'script_args' ) );
+		$this->assertSame( $args, $wp_scripts->get_data( 'footer-async', 'script_args' ), 'Scripts args assigned to the $args parameter (such as the in_footer or strategy keys) are not being normalized correctly, the incorrect data shape is being returned.' );
 
 		// Test defaults.
 		$expected_args = array(
@@ -714,21 +714,21 @@ EXP;
 			'strategy'  => 'blocking',
 		);
 		wp_register_script( 'defaults-strategy', '/defaults.js', array(), null, array( 'in_footer' => true ) );
-		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults-strategy', 'script_args' ) );
+		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults-strategy', 'script_args' ), 'Scripts args assigned to the $args parameter (such as the in_footer key) are not being normalized correctly, the incorrect data shape is being returned.' );
 
 		$expected_args = array(
 			'in_footer' => false,
 			'strategy'  => 'async',
 		);
 		wp_register_script( 'defaults-in-footer', '/defaults.js', array(), null, array( 'strategy' => 'async' ) );
-		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults-in-footer', 'script_args' ) );
+		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults-in-footer', 'script_args' ), 'Scripts args assigned to the $args parameter (such as the strategy key) are not being normalized correctly, the incorrect data shape is being returned.' );
 
 		// scripts_args not set of args parameter is empty.
 		wp_register_script( 'empty-args-array', '/defaults.js', array(), null, array() );
-		$this->assertSame( false, $wp_scripts->get_data( 'defaults', 'script_args' ) );
+		$this->assertSame( false, $wp_scripts->get_data( 'defaults', 'script_args' ), 'Scripts args are not being normalized correctly when passing an empty array to the $args parameter, the incorrect data shape is being returned.' );
 
 		wp_register_script( 'no-args', '/defaults.js', array(), null );
-		$this->assertSame( false, $wp_scripts->get_data( 'defaults-no-args', 'script_args' ) );
+		$this->assertSame( false, $wp_scripts->get_data( 'defaults-no-args', 'script_args' ), 'Scripts args are not being normalized correctly when passing no $args parameter, the incorrect data shape is being returned.' );
 
 		// Test backward compatibility.
 		$expected_args = array(
@@ -736,7 +736,7 @@ EXP;
 			'strategy'  => 'blocking',
 		);
 		wp_enqueue_script( 'footer-old', '/footer-async.js', array(), null, true );
-		$this->assertSame( $expected_args, $wp_scripts->get_data( 'footer-old', 'script_args' ) );
+		$this->assertSame( $expected_args, $wp_scripts->get_data( 'footer-old', 'script_args' ), 'Scripts args assigned to the $args parameter (such as the in_footer or strategy keys) are not being normalized correctly, the incorrect data shape is being returned.' );
 	}
 
 	/**
