@@ -525,14 +525,14 @@ EXP;
 		wp_enqueue_script( 'main-script-a2', '/main-script-a2.js', array( 'dependency-script-a2' ), null, array( 'strategy' => 'async' ) );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='/main-script-a2.js' id='main-script-a2-js' defer></script>";
-		$this->assertStringContainsString( $expected, $output, 'Expected defer.' );
+		$this->assertStringContainsString( $expected, $output, 'Scripts registered as async but that have dependencies are expected to be deferred.' );
 
 		// If any dependent then it's not async. Since dependent is not set to defer the final strategy will be blocking.
 		wp_enqueue_script( 'main-script-a3', '/main-script-a3.js', array(), null, array( 'strategy' => 'async' ) );
 		wp_enqueue_script( 'dependent-script-a3', '/dependent-script-a3.js', array( 'main-script-a3' ), null );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='/main-script-a3.js' id='main-script-a3-js'></script>";
-		$this->assertStringContainsString( $expected, $output, 'Expected blocking.' );
+		$this->assertStringContainsString( $expected, $output, 'Scripts registered as async but that have dependents that are blocking are expected to be blocking themselves.' );
 	}
 
 	/**
