@@ -67,9 +67,13 @@ JS;
 	}
 
 	/**
-	 * Test standalone and non standalone inline scripts in the 'after' position of a single main script.
+	 * Test standalone and non-standalone inline scripts in the 'after' position of a single main script.
 	 *
 	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::print_inline_script
+	 * @covers ::wp_print_delayed_inline_script_loader
 	 */
 	public function test_non_standalone_and_standalone_after_script_combined() {
 		// If a main script containing a `defer` strategy has an `after` inline script, the expected script type is type='javascript', otherwise type='text/template'.
