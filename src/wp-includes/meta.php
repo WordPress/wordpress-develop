@@ -1215,7 +1215,7 @@ function wp_metadata_lazyloader() {
 
 	if ( null === $wp_metadata_lazyloader ) {
 		if ( ! class_exists( 'WP_Metadata_Lazyloader' ) ) {
-			require ABSPATH . WPINC . '/class-wp-metadata-lazyloader.php';
+			require_once ABSPATH . WPINC . '/class-wp-metadata-lazyloader.php';
 		}
 		$wp_metadata_lazyloader = new WP_Metadata_Lazyloader();
 	}
