@@ -795,16 +795,16 @@ final class WP_Theme implements ArrayAccess {
 		foreach ( array( 'theme', 'screenshot', 'headers', 'post_templates' ) as $key ) {
 			wp_cache_delete( $key . '-' . $this->cache_hash, 'themes' );
 		}
-		$this->template           = null;
-		$this->textdomain_loaded  = null;
-		$this->theme_root_uri     = null;
-		$this->parent             = null;
-		$this->errors             = null;
-		$this->headers_sanitized  = null;
-		$this->name_translated    = null;
-		$this->block_theme        = null;
-		$this->has_block_template = null;
-		$this->headers            = array();
+		$this->template            = null;
+		$this->textdomain_loaded   = null;
+		$this->theme_root_uri      = null;
+		$this->parent              = null;
+		$this->errors              = null;
+		$this->headers_sanitized   = null;
+		$this->name_translated     = null;
+		$this->block_theme         = null;
+		$this->has_block_templates = null;
+		$this->headers             = array();
 		$this->__construct( $this->stylesheet, $this->theme_root );
 	}
 
