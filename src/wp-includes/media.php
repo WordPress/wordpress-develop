@@ -5462,7 +5462,7 @@ function wp_get_loading_attr_default( $context ) {
 	 * Without this clause, they would already be counted below which skews the number and can result in the first
 	 * post content image being lazy-loaded only because there are images elsewhere in the post content.
 	 */
-	static $special_content_contexts = array(
+	$special_content_contexts = array(
 		'the_post_thumbnail'      => true,
 		'wp_get_attachment_image' => true,
 	);
