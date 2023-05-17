@@ -3964,6 +3964,62 @@ EOF;
 	}
 
 	/**
+	 * Tests that `wp_get_attachment_image()` uses the correct default context.
+	 *
+	 * @ticket 58212
+	 *
+	 * @covers ::wp_get_attachment_image()
+	 */
+	public function test_wp_get_attachment_image_context_filter_default() {
+		$last_context = '';
+		$this->track_last_attachment_image_context( $last_context );
+
+		wp_get_attachment_image( self::$large_id );
+		$this->assertSame( 'wp_get_attachment_image', $last_context );
+	}
+
+	/**
+	 * Tests that `wp_get_attachment_image()` allows overriding the context via filter.
+	 *
+	 * @ticket 58212
+	 *
+	 * @covers ::wp_get_attachment_image()
+	 */
+	public function test_wp_get_attachment_image_context_filter_value_is_passed_correctly() {
+		$last_context = '';
+		$this->track_last_attachment_image_context( $last_context );
+
+		// Add a filter that modifies the context.
+		add_filter(
+			'wp_get_attachment_image_context',
+			static function() {
+				return 'my_custom_context';
+			}
+		);
+
+		wp_get_attachment_image( self::$large_id );
+		$this->assertSame( 'my_custom_context', $last_context );
+	}
+
+	/**
+	 * Helper method to keep track of the last context returned by the 'wp_get_attachment_image_context' filter.
+	 *
+	 * The method parameter is passed by reference and therefore will always contain the last context value.
+	 *
+	 * @param mixed $last_context Variable to track last context. Passed by reference.
+	 */
+	private function track_last_attachment_image_context( &$last_context ) {
+		add_filter(
+			'wp_get_attachment_image_context',
+			static function( $context ) use ( &$last_context ) {
+				$last_context = $context;
+				return $context;
+			},
+			11
+		);
+	}
+
+	/**
 	 * Add threshold to create a `-scaled` output image for testing.
 	 */
 	public function add_big_image_size_threshold() {
