@@ -62,7 +62,7 @@ class MagpieRSS {
 
 		# Check if PHP xml isn't compiled
 		#
-		if ( ! function_exists('xml_parser_create') ) {
+		if ( ! function_exists( 'xml_parser_create' ) ) {
 			return trigger_error( "PHP's XML extension is not available. Please contact your hosting provider to enable PHP's XML extension." );
 		}
 
@@ -74,9 +74,7 @@ class MagpieRSS {
 		# set up handlers
 		#
 		xml_set_object( $this->parser, $this );
-		xml_set_element_handler($this->parser,
-				'feed_start_element', 'feed_end_element' );
-
+		xml_set_element_handler( $this->parser, 'feed_start_element', 'feed_end_element' );
 		xml_set_character_data_handler( $this->parser, 'feed_cdata' );
 
 		$status = xml_parse( $this->parser, $source );
@@ -85,8 +83,8 @@ class MagpieRSS {
 			$errorcode = xml_get_error_code( $this->parser );
 			if ( $errorcode != XML_ERROR_NONE ) {
 				$xml_error = xml_error_string( $errorcode );
-				$error_line = xml_get_current_line_number($this->parser);
-				$error_col = xml_get_current_column_number($this->parser);
+				$error_line = xml_get_current_line_number( $this->parser );
+				$error_col = xml_get_current_column_number( $this->parser );
 				$errormsg = "$xml_error at line $error_line, column $error_col";
 
 				$this->error( $errormsg );
@@ -106,14 +104,14 @@ class MagpieRSS {
 		self::__construct( $source );
 	}
 
-	function feed_start_element($p, $element, &$attrs) {
-		$el = $element = strtolower($element);
-		$attrs = array_change_key_case($attrs, CASE_LOWER);
+	function feed_start_element( $p, $element, &$attrs ) {
+		$el = $element = strtolower( $element );
+		$attrs = array_change_key_case( $attrs, CASE_LOWER );
 
 		// check for a namespace, and split if found
 		$ns	= false;
 		if ( strpos( $element, ':' ) ) {
-			list($ns, $el) = explode( ':', $element, 2);
+			list( $ns, $el ) = explode( ':', $element, 2 );
 		}
 		if ( $ns and $ns != 'rdf' ) {
 			$this->current_namespace = $ns;
@@ -143,10 +141,10 @@ class MagpieRSS {
 		{
 			$this->inchannel = true;
 		}
-		elseif ($el == 'item' or $el == 'entry' )
+		elseif ( $el == 'item' or $el == 'entry' )
 		{
 			$this->initem = true;
-			if ( isset($attrs['rdf:about']) ) {
+			if ( isset( $attrs['rdf:about'] ) ) {
 				$this->current_item['about'] = $attrs['rdf:about'];
 			}
 		}
@@ -170,10 +168,10 @@ class MagpieRSS {
 		}
 
 		# handle atom content constructs
-		elseif ( $this->feed_type == ATOM and in_array($el, $this->_CONTENT_CONSTRUCTS) )
+		elseif ( $this->feed_type == ATOM and in_array( $el, $this->_CONTENT_CONSTRUCTS ) )
 		{
 			// avoid clashing w/ RSS mod_content
-			if ($el == 'content' ) {
+			if ( $el == 'content' ) {
 				$el = 'atom_content';
 			}
 
@@ -182,13 +180,13 @@ class MagpieRSS {
 		}
 
 		// if inside an Atom content construct (e.g. content or summary) field treat tags as text
-		elseif ($this->feed_type == ATOM and $this->incontent )
+		elseif ( $this->feed_type == ATOM and $this->incontent )
 		{
 			// if tags are inlined, then flatten
 			$attrs_str = join(' ',
-					array_map(array('MagpieRSS', 'map_attrs'),
-					array_keys($attrs),
-					array_values($attrs) ) );
+					array_map( array('MagpieRSS', 'map_attrs' ),
+					array_keys( $attrs ),
+					array_values( $attrs ) ) );
 
 			$this->append_content( "<$element $attrs_str>"  );
 
@@ -199,9 +197,9 @@ class MagpieRSS {
 		// Magpie treats link elements of type rel='alternate'
 		// as being equivalent to RSS's simple link element.
 		//
-		elseif ($this->feed_type == ATOM and $el == 'link' )
+		elseif ( $this->feed_type == ATOM and $el == 'link' )
 		{
-			if ( isset($attrs['rel']) and $attrs['rel'] == 'alternate' )
+			if ( isset( $attrs['rel'] ) and $attrs['rel'] == 'alternate' )
 			{
 				$link_el = 'link';
 			}
@@ -209,28 +207,28 @@ class MagpieRSS {
 				$link_el = 'link_' . $attrs['rel'];
 			}
 
-			$this->append($link_el, $attrs['href']);
+			$this->append( $link_el, $attrs['href'] );
 		}
 		// set stack[0] to current element
 		else {
-			array_unshift($this->stack, $el);
+			array_unshift( $this->stack, $el );
 		}
 	}
 
-	function feed_cdata ($p, $text) {
+	function feed_cdata ( $p, $text ) {
 
-		if ($this->feed_type == ATOM and $this->incontent)
+		if ( $this->feed_type == ATOM and $this->incontent )
 		{
 			$this->append_content( $text );
 		}
 		else {
-			$current_el = join('_', array_reverse($this->stack));
-			$this->append($current_el, $text);
+			$current_el = join( '_', array_reverse( $this->stack ) );
+			$this->append( $current_el, $text );
 		}
 	}
 
-	function feed_end_element ($p, $el) {
-		$el = strtolower($el);
+	function feed_end_element ( $p, $el ) {
+		$el = strtolower( $el );
 
 		if ( $el == 'item' or $el == 'entry' )
 		{
@@ -238,31 +236,31 @@ class MagpieRSS {
 			$this->current_item = array();
 			$this->initem = false;
 		}
-		elseif ($this->feed_type == RSS and $this->current_namespace == '' and $el == 'textinput' )
+		elseif ( $this->feed_type == RSS and $this->current_namespace == '' and $el == 'textinput' )
 		{
 			$this->intextinput = false;
 		}
-		elseif ($this->feed_type == RSS and $this->current_namespace == '' and $el == 'image' )
+		elseif ( $this->feed_type == RSS and $this->current_namespace == '' and $el == 'image' )
 		{
 			$this->inimage = false;
 		}
-		elseif ($this->feed_type == ATOM and in_array($el, $this->_CONTENT_CONSTRUCTS) )
+		elseif ( $this->feed_type == ATOM and in_array( $el, $this->_CONTENT_CONSTRUCTS ) )
 		{
 			$this->incontent = false;
 		}
-		elseif ($el == 'channel' or $el == 'feed' )
+		elseif ( $el == 'channel' or $el == 'feed' )
 		{
 			$this->inchannel = false;
 		}
-		elseif ($this->feed_type == ATOM and $this->incontent  ) {
+		elseif ( $this->feed_type == ATOM and $this->incontent ) {
 			// balance tags properly
 			// note: This may not actually be necessary
 			if ( $this->stack[0] == $el )
 			{
-				$this->append_content("</$el>");
+				$this->append_content( "</$el>" );
 			}
 			else {
-				$this->append_content("<$el />");
+				$this->append_content( "<$el />" );
 			}
 
 			array_shift( $this->stack );
@@ -274,14 +272,14 @@ class MagpieRSS {
 		$this->current_namespace = false;
 	}
 
-	function concat (&$str1, $str2="") {
-		if (!isset($str1) ) {
-			$str1="";
+	function concat ( &$str1, $str2 = "" ) {
+		if ( ! isset( $str1 ) ) {
+			$str1 = "";
 		}
 		$str1 .= $str2;
 	}
 
-	function append_content($text) {
+	function append_content( $text ) {
 		if ( $this->initem ) {
 			$this->concat( $this->current_item[ $this->incontent ], $text );
 		}
@@ -291,45 +289,37 @@ class MagpieRSS {
 	}
 
 	// smart append - field and namespace aware
-	function append($el, $text) {
-		if (!$el) {
+	function append( $el, $text ) {
+		if ( !$el ) {
 			return;
 		}
 		if ( $this->current_namespace )
 		{
 			if ( $this->initem ) {
-				$this->concat(
-					$this->current_item[ $this->current_namespace ][ $el ], $text);
+				$this->concat( $this->current_item[ $this->current_namespace ][ $el ], $text );
 			}
-			elseif ($this->inchannel) {
-				$this->concat(
-					$this->channel[ $this->current_namespace][ $el ], $text );
+			elseif ( $this->inchannel ) {
+				$this->concat( $this->channel[ $this->current_namespace][ $el ], $text );
 			}
-			elseif ($this->intextinput) {
-				$this->concat(
-					$this->textinput[ $this->current_namespace][ $el ], $text );
+			elseif ( $this->intextinput ) {
+				$this->concat( $this->textinput[ $this->current_namespace][ $el ], $text );
 			}
-			elseif ($this->inimage) {
-				$this->concat(
-					$this->image[ $this->current_namespace ][ $el ], $text );
+			elseif ( $this->inimage ) {
+				$this->concat( $this->image[ $this->current_namespace ][ $el ], $text );
 			}
 		}
 		else {
 			if ( $this->initem ) {
-				$this->concat(
-					$this->current_item[ $el ], $text);
+				$this->concat( $this->current_item[ $el ], $text );
 			}
-			elseif ($this->intextinput) {
-				$this->concat(
-					$this->textinput[ $el ], $text );
+			elseif ( $this->intextinput ) {
+				$this->concat( $this->textinput[ $el ], $text );
 			}
-			elseif ($this->inimage) {
-				$this->concat(
-					$this->image[ $el ], $text );
+			elseif ( $this->inimage ) {
+				$this->concat( $this->image[ $el ], $text );
 			}
-			elseif ($this->inchannel) {
-				$this->concat(
-					$this->channel[ $el ], $text );
+			elseif ( $this->inchannel ) {
+				$this->concat( $this->channel[ $el ], $text );
 			}
 
 		}
@@ -339,24 +329,28 @@ class MagpieRSS {
 		// if atom populate rss fields
 		if ( $this->is_atom() ) {
 			$this->channel['description'] = $this->channel['tagline'];
-			for ( $i = 0; $i < count($this->items); $i++) {
+			for ( $i = 0; $i < count( $this->items ); $i++ ) {
 				$item = $this->items[$i];
-				if ( isset($item['summary']) )
+				if ( isset( $item['summary'] ) ) {
 					$item['description'] = $item['summary'];
-				if ( isset($item['atom_content']))
+				}
+				if ( isset( $item['atom_content'] ) ){
 					$item['content']['encoded'] = $item['atom_content'];
+				}
 
 				$this->items[$i] = $item;
 			}
 		}
 		elseif ( $this->is_rss() ) {
 			$this->channel['tagline'] = $this->channel['description'];
-			for ( $i = 0; $i < count($this->items); $i++) {
+			for ( $i = 0; $i < count( $this->items ); $i++ ) {
 				$item = $this->items[$i];
-				if ( isset($item['description']))
+				if ( isset( $item['description'] ) ) {
 					$item['summary'] = $item['description'];
-				if ( isset($item['content']['encoded'] ) )
+				}
+				if ( isset( $item['content']['encoded'] ) ) {
 					$item['atom_content'] = $item['content']['encoded'];
+				}
 
 				$this->items[$i] = $item;
 			}
@@ -381,21 +375,21 @@ class MagpieRSS {
 		}
 	}
 
-	function map_attrs($k, $v) {
+	function map_attrs( $k, $v ) {
 		return "$k=\"$v\"";
 	}
 
 	function error( $errormsg, $lvl = E_USER_WARNING ) {
 		if ( MAGPIE_DEBUG ) {
-			trigger_error( $errormsg, $lvl);
+			trigger_error( $errormsg, $lvl );
 		} else {
-			error_log( $errormsg, 0);
+			error_log( $errormsg, 0 );
 		}
 	}
 
 }
 
-if ( !function_exists('fetch_rss') ) :
+if ( ! function_exists( 'fetch_rss' ) ) :
 /**
  * Build Magpie object based on RSS from URL.
  *
@@ -406,17 +400,17 @@ if ( !function_exists('fetch_rss') ) :
  * @param string $url URL to retrieve feed.
  * @return MagpieRSS|false MagpieRSS object on success, false on failure.
  */
-function fetch_rss ($url) {
+function fetch_rss ( $url ) {
 	// initialize constants
 	init();
 
-	if ( !isset($url) ) {
+	if ( ! isset( $url ) ) {
 		// error("fetch_rss called without a url");
 		return false;
 	}
 
 	// if cache is disabled
-	if ( !MAGPIE_CACHE_ON ) {
+	if ( ! MAGPIE_CACHE_ON ) {
 		// fetch file, and parse it
 		$resp = _fetch_remote_file( $url );
 		if ( is_success( $resp->status ) ) {
@@ -437,8 +431,8 @@ function fetch_rss ($url) {
 
 		$cache = new RSSCache( MAGPIE_CACHE_DIR, MAGPIE_CACHE_AGE );
 
-		if (MAGPIE_DEBUG and $cache->ERROR) {
-			debug($cache->ERROR, E_USER_WARNING);
+		if ( MAGPIE_DEBUG and $cache->ERROR ) {
+			debug( $cache->ERROR, E_USER_WARNING );
 		}
 
 		$cache_status 	 = 0;		// response of check_cache
@@ -446,7 +440,7 @@ function fetch_rss ($url) {
 		$rss 			 = 0;		// parsed RSS object
 		$errormsg		 = 0;		// errors, if any
 
-		if (!$cache->ERROR) {
+		if ( ! $cache->ERROR ) {
 			// return cache HIT, MISS, or STALE
 			$cache_status = $cache->check_cache( $url );
 		}
@@ -454,11 +448,11 @@ function fetch_rss ($url) {
 		// if object cached, and cache is fresh, return cached obj
 		if ( $cache_status == 'HIT' ) {
 			$rss = $cache->get( $url );
-			if ( isset($rss) and $rss ) {
+			if ( isset( $rss ) and $rss ) {
 				$rss->from_cache = 1;
-				if ( MAGPIE_DEBUG > 1) {
-				debug("MagpieRSS: Cache HIT", E_USER_NOTICE);
-			}
+				if ( MAGPIE_DEBUG > 1 ) {
+					debug( "MagpieRSS: Cache HIT", E_USER_NOTICE );
+				}
 				return $rss;
 			}
 		}
@@ -468,7 +462,7 @@ function fetch_rss ($url) {
 		// set up headers
 		if ( $cache_status == 'STALE' ) {
 			$rss = $cache->get( $url );
-			if ( isset($rss->etag) and $rss->last_modified ) {
+			if ( isset( $rss->etag ) and $rss->last_modified ) {
 				$request_headers['If-None-Match'] = $rss->etag;
 				$request_headers['If-Last-Modified'] = $rss->last_modified;
 			}
@@ -476,21 +470,21 @@ function fetch_rss ($url) {
 
 		$resp = _fetch_remote_file( $url, $request_headers );
 
-		if (isset($resp) and $resp) {
-			if ($resp->status == '304' ) {
+		if ( isset( $resp ) and $resp ) {
+			if ( $resp->status == '304' ) {
 				// we have the most current copy
-				if ( MAGPIE_DEBUG > 1) {
-					debug("Got 304 for $url");
+				if ( MAGPIE_DEBUG > 1 ) {
+					debug( "Got 304 for $url" );
 				}
 				// reset cache on 304 (at minutillo insistent prodding)
-				$cache->set($url, $rss);
+				$cache->set( $url, $rss );
 				return $rss;
 			}
 			elseif ( is_success( $resp->status ) ) {
 				$rss = _response_to_rss( $resp );
 				if ( $rss ) {
-					if (MAGPIE_DEBUG > 1) {
-						debug("Fetch successful");
+					if ( MAGPIE_DEBUG > 1 ) {
+						debug( "Fetch successful" );
 					}
 					// add object to cache
 					$cache->set( $url, $rss );
@@ -502,7 +496,7 @@ function fetch_rss ($url) {
 				if ( $resp->error ) {
 					# compensate for Snoopy's annoying habit to tacking
 					# on '\n'
-					$http_error = substr($resp->error, 0, -2);
+					$http_error = substr( $resp->error, 0, -2 );
 					$errormsg .= "(HTTP Error: $http_error)";
 				}
 				else {
@@ -517,9 +511,9 @@ function fetch_rss ($url) {
 		// else fetch failed
 
 		// attempt to return cached object
-		if ($rss) {
+		if ( $rss ) {
 			if ( MAGPIE_DEBUG ) {
-				debug("Returning STALE object for $url");
+				debug( "Returning STALE object for $url" );
 			}
 			return $rss;
 		}
@@ -544,10 +538,10 @@ endif;
  * @param array $headers Optional. Headers to send to the URL. Default empty string.
  * @return Snoopy style response
  */
-function _fetch_remote_file($url, $headers = "" ) {
+function _fetch_remote_file( $url, $headers = "" ) {
 	$resp = wp_safe_remote_request( $url, array( 'headers' => $headers, 'timeout' => MAGPIE_FETCH_TIME_OUT ) );
-	if ( is_wp_error($resp) ) {
-		$error = array_shift($resp->errors);
+	if ( is_wp_error( $resp ) ) {
+		$error = array_shift( $resp->errors );
 
 		$resp = new stdClass;
 		$resp->status = 500;
@@ -560,7 +554,7 @@ function _fetch_remote_file($url, $headers = "" ) {
 	// Also note, WP_HTTP lowercases all keys, Snoopy did not.
 	$return_headers = array();
 	foreach ( wp_remote_retrieve_headers( $resp ) as $key => $value ) {
-		if ( !is_array($value) ) {
+		if ( ! is_array( $value ) ) {
 			$return_headers[] = "$key: $value";
 		} else {
 			foreach ( $value as $v )
@@ -587,19 +581,18 @@ function _fetch_remote_file($url, $headers = "" ) {
  * @param array $resp
  * @return MagpieRSS|bool
  */
-function _response_to_rss ($resp) {
+function _response_to_rss ( $resp ) {
 	$rss = new MagpieRSS( $resp->results );
 
 	// if RSS parsed successfully
-	if ( $rss && (!isset($rss->ERROR) || !$rss->ERROR) ) {
+	if ( $rss && ( ! isset( $rss->ERROR ) || ! $rss->ERROR ) ) {
 
 		// find Etag, and Last-Modified
-		foreach ( (array) $resp->headers as $h) {
+		foreach ( (array) $resp->headers as $h ) {
 			// 2003-03-02 - Nicola Asuni (www.tecnick.com) - fixed bug "Undefined offset: 1"
-			if (strpos($h, ": ")) {
-				list($field, $val) = explode(": ", $h, 2);
-			}
-			else {
+			if ( strpos( $h, ": " ) ) {
+				list( $field, $val ) = explode( ": ", $h, 2 );
+			} else {
 				$field = $h;
 				$val = "";
 			}
@@ -618,7 +611,7 @@ function _response_to_rss ($resp) {
 	else {
 		$errormsg = "Failed to parse RSS file.";
 
-		if ($rss) {
+		if ( $rss ) {
 			$errormsg .= " (" . $rss->ERROR . ")";
 		}
 		// error($errormsg);
@@ -635,77 +628,75 @@ function _response_to_rss ($resp) {
  * @subpackage MagpieRSS
  */
 function init () {
-	if ( defined('MAGPIE_INITALIZED') ) {
+	if ( defined( 'MAGPIE_INITALIZED' ) ) {
 		return;
-	}
-	else {
-		define('MAGPIE_INITALIZED', 1);
-	}
-
-	if ( !defined('MAGPIE_CACHE_ON') ) {
-		define('MAGPIE_CACHE_ON', 1);
+	} else {
+		define( 'MAGPIE_INITALIZED', 1 );
 	}
 
-	if ( !defined('MAGPIE_CACHE_DIR') ) {
-		define('MAGPIE_CACHE_DIR', './cache');
+	if ( ! defined( 'MAGPIE_CACHE_ON' ) ) {
+		define( 'MAGPIE_CACHE_ON', 1 );
 	}
 
-	if ( !defined('MAGPIE_CACHE_AGE') ) {
-		define('MAGPIE_CACHE_AGE', 60*60); // one hour
+	if ( ! defined( 'MAGPIE_CACHE_DIR' ) ) {
+		define( 'MAGPIE_CACHE_DIR', './cache' );
 	}
 
-	if ( !defined('MAGPIE_CACHE_FRESH_ONLY') ) {
-		define('MAGPIE_CACHE_FRESH_ONLY', 0);
+	if ( ! defined( 'MAGPIE_CACHE_AGE' ) ) {
+		define( 'MAGPIE_CACHE_AGE', 60*60 ); // one hour
 	}
 
-		if ( !defined('MAGPIE_DEBUG') ) {
-		define('MAGPIE_DEBUG', 0);
+	if ( ! defined( 'MAGPIE_CACHE_FRESH_ONLY' ) ) {
+		define( 'MAGPIE_CACHE_FRESH_ONLY', 0 );
 	}
 
-	if ( !defined('MAGPIE_USER_AGENT') ) {
+		if ( ! defined( 'MAGPIE_DEBUG' ) ) {
+		define( 'MAGPIE_DEBUG', 0 );
+	}
+
+	if ( ! defined( 'MAGPIE_USER_AGENT' ) ) {
 		$ua = 'WordPress/' . $GLOBALS['wp_version'];
 
 		if ( MAGPIE_CACHE_ON ) {
 			$ua = $ua . ')';
-		}
-		else {
+		} else {
 			$ua = $ua . '; No cache)';
 		}
 
-		define('MAGPIE_USER_AGENT', $ua);
+		define( 'MAGPIE_USER_AGENT', $ua );
 	}
 
-	if ( !defined('MAGPIE_FETCH_TIME_OUT') ) {
-		define('MAGPIE_FETCH_TIME_OUT', 2);	// 2 second timeout
+	if ( ! defined( 'MAGPIE_FETCH_TIME_OUT' ) ) {
+		define( 'MAGPIE_FETCH_TIME_OUT', 2 );	// 2 second timeout
 	}
 
 	// use gzip encoding to fetch rss files if supported?
-	if ( !defined('MAGPIE_USE_GZIP') ) {
-		define('MAGPIE_USE_GZIP', true);
+	if ( ! defined( 'MAGPIE_USE_GZIP' ) ) {
+		define( 'MAGPIE_USE_GZIP', true );
 	}
 }
 
-function is_info ($sc) {
+function is_info ( $sc ) {
 	return $sc >= 100 && $sc < 200;
 }
 
-function is_success ($sc) {
+function is_success ( $sc ) {
 	return $sc >= 200 && $sc < 300;
 }
 
-function is_redirect ($sc) {
+function is_redirect ( $sc ) {
 	return $sc >= 300 && $sc < 400;
 }
 
-function is_error ($sc) {
+function is_error ( $sc ) {
 	return $sc >= 400 && $sc < 600;
 }
 
-function is_client_error ($sc) {
+function is_client_error ( $sc ) {
 	return $sc >= 400 && $sc < 500;
 }
 
-function is_server_error ($sc) {
+function is_server_error ( $sc ) {
 	return $sc >= 500 && $sc < 600;
 }
 
@@ -741,10 +732,10 @@ class RSSCache {
 	Input:		url from which the rss file was fetched
 	Output:		true on success
 \*=======================================================================*/
-	function set ($url, $rss) {
+	function set ( $url, $rss ) {
 		$cache_option = 'rss_' . $this->file_name( $url );
 
-		set_transient($cache_option, $rss, $this->MAX_AGE);
+		set_transient( $cache_option, $rss, $this->MAX_AGE );
 
 		return $cache_option;
 	}
@@ -755,14 +746,12 @@ class RSSCache {
 	Input:		url from which the rss file was fetched
 	Output:		cached object on HIT, false on MISS
 \*=======================================================================*/
-	function get ($url) {
+	function get ( $url ) {
 		$this->ERROR = "";
 		$cache_option = 'rss_' . $this->file_name( $url );
 
 		if ( ! $rss = get_transient( $cache_option ) ) {
-			$this->debug(
-				"Cache does not contain: $url (cache option: $cache_option)"
-			);
+			$this->debug( "Cache does not contain: $url (cache option: $cache_option)" );
 			return 0;
 		}
 
@@ -780,7 +769,7 @@ class RSSCache {
 		$this->ERROR = "";
 		$cache_option = 'rss_' . $this->file_name( $url );
 
-		if ( get_transient($cache_option) ) {
+		if ( get_transient( $cache_option ) ) {
 			// object exists and is current
 				return 'HIT';
 		} else {
@@ -809,7 +798,7 @@ class RSSCache {
 	Input:		url from which the rss file was fetched
 	Output:		a file name
 \*=======================================================================*/
-	function file_name ($url) {
+	function file_name ( $url ) {
 		return md5( $url );
 	}
 
@@ -817,40 +806,39 @@ class RSSCache {
 	Function:	error
 	Purpose:	register error
 \*=======================================================================*/
-	function error ($errormsg, $lvl=E_USER_WARNING) {
+	function error ( $errormsg, $lvl = E_USER_WARNING ) {
 		$this->ERROR = $errormsg;
 		if ( MAGPIE_DEBUG ) {
-			trigger_error( $errormsg, $lvl);
+			trigger_error( $errormsg, $lvl );
 		}
 		else {
-			error_log( $errormsg, 0);
+			error_log( $errormsg, 0 );
 		}
 	}
-			function debug ($debugmsg, $lvl=E_USER_NOTICE) {
+	function debug ( $debugmsg, $lvl = E_USER_NOTICE ) {
 		if ( MAGPIE_DEBUG ) {
-			$this->error("MagpieRSS [debug] $debugmsg", $lvl);
+			$this->error( "MagpieRSS [debug] $debugmsg", $lvl );
 		}
 	}
 }
 
-if ( !function_exists('parse_w3cdtf') ) :
+if ( ! function_exists( 'parse_w3cdtf' ) ) :
 function parse_w3cdtf ( $date_str ) {
 
 	# regex to match W3C date/time formats
 	$pat = "/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(:(\d{2}))?(?:([-+])(\d{2}):?(\d{2})|(Z))?/";
 
 	if ( preg_match( $pat, $date_str, $match ) ) {
-		list( $year, $month, $day, $hours, $minutes, $seconds) =
-			array( $match[1], $match[2], $match[3], $match[4], $match[5], $match[7]);
+		list( $year, $month, $day, $hours, $minutes, $seconds ) =
+			array( $match[1], $match[2], $match[3], $match[4], $match[5], $match[7] );
 
 		# calc epoch for current date assuming GMT
-		$epoch = gmmktime( $hours, $minutes, $seconds, $month, $day, $year);
+		$epoch = gmmktime( $hours, $minutes, $seconds, $month, $day, $year );
 
 		$offset = 0;
 		if ( $match[11] == 'Z' ) {
 			# zulu time, aka GMT
-		}
-		else {
+		} else {
 			list( $tz_mod, $tz_hour, $tz_min ) =
 				array( $match[8], $match[9], $match[10]);
 
@@ -870,14 +858,13 @@ function parse_w3cdtf ( $date_str ) {
 		}
 		$epoch = $epoch + $offset;
 		return $epoch;
-	}
-	else {
+	} else {
 		return -1;
 	}
 }
 endif;
 
-if ( !function_exists('wp_rss') ) :
+if ( ! function_exists( 'wp_rss' ) ) :
 /**
  * Display all RSS items in a HTML ordered list.
  *
@@ -912,7 +899,7 @@ function wp_rss( $url, $num_items = -1 ) {
 }
 endif;
 
-if ( !function_exists('get_rss') ) :
+if ( ! function_exists( 'get_rss' ) ) :
 /**
  * Display RSS items in HTML list items.
  *
@@ -929,7 +916,7 @@ if ( !function_exists('get_rss') ) :
  * @param int $num_items Optional. Number of items to display, default is all.
  * @return bool False on failure.
  */
-function get_rss ($url, $num_items = 5) { // Like get posts, but for RSS
+function get_rss ( $url, $num_items = 5 ) { // Like get posts, but for RSS
 	$rss = fetch_rss($url);
 	if ( $rss ) {
 		$rss->items = array_slice($rss->items, 0, $num_items);
