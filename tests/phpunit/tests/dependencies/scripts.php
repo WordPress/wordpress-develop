@@ -80,17 +80,29 @@ JS;
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
 <script type="text/javascript" id="wp-executes-after-js">
-function wpLoadAfterScripts( handle ) {
-	var scripts, newScript, i, len;
-	scripts = document.querySelectorAll(
-		'[type="text/template"][data-wp-executes-after="' + handle + '"]'
-	);
-	for ( i = 0, len = scripts.length; i < len; i++ ) {
-		newScript = scripts[ i ].cloneNode( true );
-		newScript.type = "text/javascript";
-		scripts[ i ].parentNode.replaceChild( newScript, scripts[ i ] );
-	}
-}
+(function () {
+  // Capture the nonce of the currentScript so we can use it when evaluating after inline scripts.
+  var nonce = document.currentScript.nonce;
+
+  window.wpLoadAfterScripts = function wpLoadAfterScripts(handle) {
+    var scripts, newScript, i, len;
+    scripts = document.querySelectorAll(
+      '[type="text/template"][data-wp-executes-after="' + handle + '"]'
+    );
+    for (i = 0, len = scripts.length; i < len; i++) {
+      if (nonce && nonce !== scripts[i].nonce) {
+        console.error(
+          "CSP nonce check failed for after inline script. Execution aborted.",
+          scripts[i]
+        );
+        continue;
+      }
+      newScript = scripts[i].cloneNode(true);
+      newScript.type = "text/javascript";
+      scripts[i].parentNode.replaceChild(newScript, scripts[i]);
+    }
+  };
+})();
 </script>
 <script type='text/javascript' src='http://example.org/ms-isinsa-1.js' id='ms-isinsa-1-js' defer onload='wpLoadAfterScripts(&quot;ms-isinsa-1&quot;)'></script>
 <script type='text/javascript' id='ms-isinsa-1-js-after'>
@@ -160,17 +172,29 @@ EXP;
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
 <script type="text/javascript" id="wp-executes-after-js">
-function wpLoadAfterScripts( handle ) {
-	var scripts, newScript, i, len;
-	scripts = document.querySelectorAll(
-		'[type="text/template"][data-wp-executes-after="' + handle + '"]'
-	);
-	for ( i = 0, len = scripts.length; i < len; i++ ) {
-		newScript = scripts[ i ].cloneNode( true );
-		newScript.type = "text/javascript";
-		scripts[ i ].parentNode.replaceChild( newScript, scripts[ i ] );
-	}
-}
+(function () {
+  // Capture the nonce of the currentScript so we can use it when evaluating after inline scripts.
+  var nonce = document.currentScript.nonce;
+
+  window.wpLoadAfterScripts = function wpLoadAfterScripts(handle) {
+    var scripts, newScript, i, len;
+    scripts = document.querySelectorAll(
+      '[type="text/template"][data-wp-executes-after="' + handle + '"]'
+    );
+    for (i = 0, len = scripts.length; i < len; i++) {
+      if (nonce && nonce !== scripts[i].nonce) {
+        console.error(
+          "CSP nonce check failed for after inline script. Execution aborted.",
+          scripts[i]
+        );
+        continue;
+      }
+      newScript = scripts[i].cloneNode(true);
+      newScript.type = "text/javascript";
+      scripts[i].parentNode.replaceChild(newScript, scripts[i]);
+    }
+  };
+})();
 </script>
 <script type='text/javascript' src='http://example.org/ms-insa-1.js' id='ms-insa-1-js' defer onload='wpLoadAfterScripts(&quot;ms-insa-1&quot;)'></script>
 <script type='text/template' id='ms-insa-1-js-after' data-wp-executes-after='ms-insa-1'>
@@ -197,17 +221,29 @@ EXP;
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
 <script type="text/javascript" id="wp-executes-after-js">
-function wpLoadAfterScripts( handle ) {
-	var scripts, newScript, i, len;
-	scripts = document.querySelectorAll(
-		'[type="text/template"][data-wp-executes-after="' + handle + '"]'
-	);
-	for ( i = 0, len = scripts.length; i < len; i++ ) {
-		newScript = scripts[ i ].cloneNode( true );
-		newScript.type = "text/javascript";
-		scripts[ i ].parentNode.replaceChild( newScript, scripts[ i ] );
-	}
-}
+(function () {
+  // Capture the nonce of the currentScript so we can use it when evaluating after inline scripts.
+  var nonce = document.currentScript.nonce;
+
+  window.wpLoadAfterScripts = function wpLoadAfterScripts(handle) {
+    var scripts, newScript, i, len;
+    scripts = document.querySelectorAll(
+      '[type="text/template"][data-wp-executes-after="' + handle + '"]'
+    );
+    for (i = 0, len = scripts.length; i < len; i++) {
+      if (nonce && nonce !== scripts[i].nonce) {
+        console.error(
+          "CSP nonce check failed for after inline script. Execution aborted.",
+          scripts[i]
+        );
+        continue;
+      }
+      newScript = scripts[i].cloneNode(true);
+      newScript.type = "text/javascript";
+      scripts[i].parentNode.replaceChild(newScript, scripts[i]);
+    }
+  };
+})();
 </script>
 <script type='text/javascript' src='http://example.org/ms-insa-2.js' id='ms-insa-2-js' async onload='wpLoadAfterScripts(&quot;ms-insa-2&quot;)'></script>
 <script type='text/template' id='ms-insa-2-js-after' data-wp-executes-after='ms-insa-2'>
