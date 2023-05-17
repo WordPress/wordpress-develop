@@ -3705,8 +3705,6 @@ EOF;
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_attr_default_before_loop_if_not_main_query( $context ) {
-		global $wp_query, $wp_the_query;
-
 		$this->get_new_wp_query_and_reset_variables();
 
 		do_action( 'get_header' );
