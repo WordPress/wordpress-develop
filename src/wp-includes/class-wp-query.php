@@ -2261,7 +2261,7 @@ class WP_Query {
 				}
 				if ( ! $post_type ) {
 					$post_type = 'any';
-				} elseif ( count( $post_type ) == 1 ) {
+				} elseif ( count( $post_type ) === 1 ) {
 					$post_type = $post_type[0];
 				}
 
@@ -4769,7 +4769,7 @@ class WP_Query {
 			$content = str_replace( '<!-- /wp:nextpage -->', '', $content );
 
 			// Ignore nextpage at the beginning of the content.
-			if ( 0 === strpos( $content, '<!--nextpage-->' ) ) {
+			if ( str_starts_with( $content, '<!--nextpage-->' ) ) {
 				$content = substr( $content, 15 );
 			}
 

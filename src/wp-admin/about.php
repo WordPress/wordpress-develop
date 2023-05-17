@@ -44,7 +44,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section">
 			<div class="column">
-				<h2 class="aligncenter">
+				<h2>
 					<?php
 					printf(
 						/* translators: %s: Version number. */
@@ -53,7 +53,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					);
 					?>
 				</h2>
-				<p class="is-subheading aligncenter">
+				<p class="is-subheading">
 					<?php
 					printf(
 						/* translators: 1: Count of enhancements, 2: Count of bug fixes. */
@@ -266,7 +266,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						__( '<a href="%1$s">Read the WordPress %2$s Release Notes</a> for more information on the included enhancements and issues fixed, installation information, developer notes and resources, release contributors, and the list of file changes in this release.' ),
 						sprintf(
 							/* translators: %s: WordPress version number. */
-							esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
+							esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
 							'6-2'
 						),
 						'6.2'
