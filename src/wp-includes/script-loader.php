@@ -1856,17 +1856,29 @@ function wp_print_delayed_inline_script_loader() {
 
 	if ( $wp_scripts->has_delayed_inline_script() ) {
 		$output    = <<<JS
-function wpLoadAfterScripts( handle ) {
-	var scripts, newScript, i, len;
-	scripts = document.querySelectorAll(
-		'[type="text/template"][data-wp-executes-after="' + handle + '"]'
-	);
-	for ( i = 0, len = scripts.length; i < len; i++ ) {
-		newScript = scripts[ i ].cloneNode( true );
-		newScript.type = "text/javascript";
-		scripts[ i ].parentNode.replaceChild( newScript, scripts[ i ] );
-	}
-}
+(function () {
+  // Capture the nonce of the currentScript so we can use it when evaluating after inline scripts.
+  var nonce = document.currentScript.nonce;
+
+  window.wpLoadAfterScripts = function wpLoadAfterScripts(handle) {
+    var scripts, newScript, i, len;
+    scripts = document.querySelectorAll(
+      '[type="text/template"][data-wp-executes-after="' + handle + '"]'
+    );
+    for (i = 0, len = scripts.length; i < len; i++) {
+      if (nonce && nonce !== scripts[i].nonce) {
+        console.error(
+          "CSP nonce check failed for after inline script. Execution aborted.",
+          scripts[i]
+        );
+        continue;
+      }
+      newScript = scripts[i].cloneNode(true);
+      newScript.type = "text/javascript";
+      scripts[i].parentNode.replaceChild(newScript, scripts[i]);
+    }
+  };
+})();
 JS;
 		$type_attr         = current_theme_supports( 'html5', 'script' ) ? '' : 'text/javascript';
 		$script_type_array = '' === $type_attr ? array() : array( 'type' => $type_attr );
