@@ -3780,14 +3780,12 @@ img {
 		overflow-x: hidden;
 	}
 
-	.metabox-prefs-container
-	{
+	.metabox-prefs-container {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 	}
 
-	.metabox-prefs-container > *
-	{
+	.metabox-prefs-container > * {
 		display: inline-block;
 		padding: 5px;
 	}
