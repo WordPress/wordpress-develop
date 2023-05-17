@@ -3568,9 +3568,7 @@ EOF;
 		// Return 'lazy' if not in the loop or the main query.
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 
-		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
+		$this->get_new_wp_query_and_reset_variables();
 
 		while ( have_posts() ) {
 			the_post();
@@ -3613,10 +3611,8 @@ EOF;
 	public function test_wp_omit_loading_attr_threshold_filter() {
 		global $wp_query, $wp_the_query;
 
-		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
+		$this->get_new_wp_query_and_reset_variables();
 		$wp_the_query = $wp_query;
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		// Use the filter to alter the threshold for not lazy-loading to the first three elements.
 		add_filter(
@@ -3667,10 +3663,9 @@ EOF;
 		$content_expected   = $img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2;
 		$content_expected   = wp_img_tag_add_decoding_attr( $content_expected, 'the_content' );
 
-		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
+		$this->get_new_wp_query_and_reset_variables();
+
 		$wp_the_query = $wp_query;
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		while ( have_posts() ) {
 			the_post();
@@ -3724,9 +3719,7 @@ EOF;
 	public function test_wp_get_loading_attr_default_before_loop_if_not_main_query( $context ) {
 		global $wp_query, $wp_the_query;
 
-		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
+		$this->get_new_wp_query_and_reset_variables();
 
 		do_action( 'get_header' );
 
@@ -3748,9 +3741,7 @@ EOF;
 	public function test_wp_get_loading_attr_default_before_loop_in_main_query_but_header_not_called( $context ) {
 		global $wp_query, $wp_the_query;
 
-		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
+		$this->get_new_wp_query_and_reset_variables();
 
 		// Set current query as main query.
 		$wp_the_query = $wp_query;
@@ -3773,9 +3764,7 @@ EOF;
 	public function test_wp_get_loading_attr_default_before_loop_if_main_query( $context ) {
 		global $wp_query, $wp_the_query;
 
-		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
+		$this->get_new_wp_query_and_reset_variables();
 
 		// Set current query as main query.
 		$wp_the_query = $wp_query;
@@ -3798,9 +3787,7 @@ EOF;
 	public function test_wp_get_loading_attr_default_after_loop( $context ) {
 		global $wp_query, $wp_the_query;
 
-		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
+		$this->get_new_wp_query_and_reset_variables();
 
 		// Set current query as main query.
 		$wp_the_query = $wp_query;
@@ -3827,9 +3814,7 @@ EOF;
 	public function test_wp_get_loading_attr_default_no_loop( $context ) {
 		global $wp_query, $wp_the_query;
 
-		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
+		$this->get_new_wp_query_and_reset_variables();
 
 		// Set current query as main query.
 		$wp_the_query = $wp_query;
@@ -4156,6 +4141,17 @@ EOF;
 		}
 	}
 
+	/**
+	 * Update global wp_query with new query.
+	 * And, reset content media count and remove omit loading attribute filters.
+	 */
+	public function get_new_wp_query_and_reset_variables() {
+		global $wp_query;
+
+		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
+	}
 }
 
 /**
