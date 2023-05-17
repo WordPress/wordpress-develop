@@ -5460,9 +5460,12 @@ function wp_get_loading_attr_default( $context ) {
 	}
 
 	// Conditionally skip lazy-loading on images before the loop.
-	$special_content_contexts = array( 'wp_get_attachment_image', 'the_post_thumbnail' );
+	static $special_content_contexts = array(
+		'wp_get_attachment_image' => true,
+		'the_post_thumbnail'      => true,
+	);
 	if (
-		in_array( $context, $special_content_contexts, true )
+		isset( $special_content_contexts[ $context ] )
 		// Only apply for main query but before the loop.
 		&& $wp_query->before_loop && is_main_query()
 		/*
@@ -5479,8 +5482,11 @@ function wp_get_loading_attr_default( $context ) {
 	 * The first elements in 'the_content' or 'the_post_thumbnail' should not be lazy-loaded,
 	 * as they are likely above the fold.
 	 */
-	$content_contexts = array( 'the_content', 'the_post_thumbnail' );
-	if ( in_array( $context, $content_contexts, true ) ) {
+	static $content_contexts = array(
+		'the_content'        => true,
+		'the_post_thumbnail' => true,
+	);
+	if ( isset( $content_contexts[ $context ] ) ) {
 		// Only elements within the main query loop have special handling.
 		if ( is_admin() || ! in_the_loop() || ! is_main_query() ) {
 			return 'lazy';
