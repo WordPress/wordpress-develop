@@ -3895,6 +3895,59 @@ EOF;
 		$this->assertSame( $expected_content, $content );
 	}
 
+	/**
+	 * Tests that wp_get_loading_attr_default() returns 'lazy' for special contexts when they're used outside of 'the_content' filter.
+	 *
+	 * @ticket 58089
+	 *
+	 * @covers ::wp_get_loading_attr_default
+	 *
+	 * @dataProvider data_special_contexts_for_the_content
+	 *
+	 * @param string $context Context for the element for which the `loading` attribute value is requested.
+	 */
+	public function test_wp_get_loading_attr_default_should_return_lazy_for_special_contexts_outside_of_the_content( $context ) {
+		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+	}
+
+	/**
+	 * Tests that wp_get_loading_attr_default() returns false for special contexts when they're used within 'the_content' filter.
+	 *
+	 * @ticket 58089
+	 *
+	 * @covers ::wp_get_loading_attr_default
+	 *
+	 * @dataProvider data_special_contexts_for_the_content
+	 *
+	 * @param string $context Context for the element for which the `loading` attribute value is requested.
+	 */
+	public function test_wp_get_loading_attr_default_should_return_false_for_special_contexts_within_the_content( $context ) {
+		remove_all_filters( 'the_content' );
+
+		$result = null;
+		add_filter(
+			'the_content',
+			function( $content ) use ( &$result, $context ) {
+				$result = wp_get_loading_attr_default( $context );
+				return $content;
+			}
+		);
+		apply_filters( 'the_content', '' );
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_special_contexts_for_the_content() {
+		return array(
+			'the_post_thumbnail'      => array( 'context' => 'the_post_thumbnail' ),
+			'wp_get_attachment_image' => array( 'context' => 'wp_get_attachment_image' ),
+		);
+	}
+
 	private function reset_content_media_count() {
 		// Get current value without increasing.
 		$content_media_count = wp_increase_content_media_count( 0 );
