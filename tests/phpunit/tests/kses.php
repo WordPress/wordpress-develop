@@ -1923,7 +1923,7 @@ HTML;
 		);
 
 		return array_map(
-			function ( $datum ) {
+			static function ( $datum ) {
 				$datum[] = array(
 					'p' => array(
 						'dir' => array(
