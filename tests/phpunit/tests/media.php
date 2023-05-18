@@ -2348,7 +2348,7 @@ EOF;
 
 		add_filter(
 			'wp_content_img_tag',
-			function( $filtered_image ) {
+			static function( $filtered_image ) {
 				return "<span>$filtered_image</span>";
 			}
 		);
@@ -2372,7 +2372,7 @@ EOF;
 
 		add_filter(
 			'wp_content_img_tag',
-			function( $filtered_image ) {
+			static function( $filtered_image ) {
 				return "<span>$filtered_image</span>";
 			}
 		);
@@ -3888,7 +3888,7 @@ EOF;
 		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 		add_filter(
 			'wp_get_attachment_image_attributes',
-			function( $attr ) {
+			static function( $attr ) {
 				unset( $attr['srcset'], $attr['sizes'], $attr['decoding'] );
 				return $attr;
 			}
@@ -3978,6 +3978,101 @@ EOF;
 
 		$html = get_the_block_template_html();
 		$this->assertSame( '<div class="wp-site-blocks">' . $expected_template_content . '</div>', $html );
+	}
+
+	/**
+	 * @ticket 58089
+	 *
+	 * @covers ::wp_filter_content_tags
+	 * @covers ::wp_get_loading_attr_default
+	 */
+	public function test_wp_filter_content_tags_does_not_lazy_load_special_images_within_the_content() {
+		global $wp_query, $wp_the_query;
+
+		// Force no lazy-loading on the image tag expected in the content.
+		$expected_content = wpautop( wp_get_attachment_image( self::$large_id, 'large', false, array( 'loading' => false ) ) );
+
+		// Overwrite post content with an image.
+		add_filter(
+			'the_content',
+			static function() {
+				// Replace content with an image tag, i.e. the 'wp_get_attachment_image' context is used while running 'the_content' filter.
+				return wp_get_attachment_image( self::$large_id, 'large', false );
+			},
+			9 // Run before wp_filter_content_tags().
+		);
+
+		/*
+		 * We have to run a main query loop so that the first 'the_content' context image is not
+		 * lazy-loaded.
+		 * Without the fix from 58089, the image would still be lazy-loaded since the check for the
+		 * separately invoked 'wp_get_attachment_image' context would lead to that.
+		 */
+		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
+		$wp_the_query = $wp_query;
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
+		$content = '';
+		while ( have_posts() ) {
+			the_post();
+			$content = get_echo( 'the_content' );
+		}
+
+		// Ensure that parsed content has the image without lazy-loading.
+		$this->assertSame( $expected_content, $content );
+	}
+
+	/**
+	 * Tests that wp_get_loading_attr_default() returns 'lazy' for special contexts when they're used outside of 'the_content' filter.
+	 *
+	 * @ticket 58089
+	 *
+	 * @covers ::wp_get_loading_attr_default
+	 *
+	 * @dataProvider data_special_contexts_for_the_content
+	 *
+	 * @param string $context Context for the element for which the `loading` attribute value is requested.
+	 */
+	public function test_wp_get_loading_attr_default_should_return_lazy_for_special_contexts_outside_of_the_content( $context ) {
+		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+	}
+
+	/**
+	 * Tests that wp_get_loading_attr_default() returns false for special contexts when they're used within 'the_content' filter.
+	 *
+	 * @ticket 58089
+	 *
+	 * @covers ::wp_get_loading_attr_default
+	 *
+	 * @dataProvider data_special_contexts_for_the_content
+	 *
+	 * @param string $context Context for the element for which the `loading` attribute value is requested.
+	 */
+	public function test_wp_get_loading_attr_default_should_return_false_for_special_contexts_within_the_content( $context ) {
+		remove_all_filters( 'the_content' );
+
+		$result = null;
+		add_filter(
+			'the_content',
+			function( $content ) use ( &$result, $context ) {
+				$result = wp_get_loading_attr_default( $context );
+				return $content;
+			}
+		);
+		apply_filters( 'the_content', '' );
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_special_contexts_for_the_content() {
+		return array(
+			'the_post_thumbnail'      => array( 'context' => 'the_post_thumbnail' ),
+			'wp_get_attachment_image' => array( 'context' => 'wp_get_attachment_image' ),
+		);
 	}
 
 	private function reset_content_media_count() {
@@ -4087,6 +4182,62 @@ EOF;
 			150,
 			$metadata['height'],
 			'The height should be 150 (integer)'
+		);
+	}
+
+	/**
+	 * Tests that `wp_get_attachment_image()` uses the correct default context.
+	 *
+	 * @ticket 58212
+	 *
+	 * @covers ::wp_get_attachment_image()
+	 */
+	public function test_wp_get_attachment_image_context_filter_default() {
+		$last_context = '';
+		$this->track_last_attachment_image_context( $last_context );
+
+		wp_get_attachment_image( self::$large_id );
+		$this->assertSame( 'wp_get_attachment_image', $last_context );
+	}
+
+	/**
+	 * Tests that `wp_get_attachment_image()` allows overriding the context via filter.
+	 *
+	 * @ticket 58212
+	 *
+	 * @covers ::wp_get_attachment_image()
+	 */
+	public function test_wp_get_attachment_image_context_filter_value_is_passed_correctly() {
+		$last_context = '';
+		$this->track_last_attachment_image_context( $last_context );
+
+		// Add a filter that modifies the context.
+		add_filter(
+			'wp_get_attachment_image_context',
+			static function() {
+				return 'my_custom_context';
+			}
+		);
+
+		wp_get_attachment_image( self::$large_id );
+		$this->assertSame( 'my_custom_context', $last_context );
+	}
+
+	/**
+	 * Helper method to keep track of the last context returned by the 'wp_get_attachment_image_context' filter.
+	 *
+	 * The method parameter is passed by reference and therefore will always contain the last context value.
+	 *
+	 * @param mixed $last_context Variable to track last context. Passed by reference.
+	 */
+	private function track_last_attachment_image_context( &$last_context ) {
+		add_filter(
+			'wp_get_attachment_image_context',
+			static function( $context ) use ( &$last_context ) {
+				$last_context = $context;
+				return $context;
+			},
+			11
 		);
 	}
 
