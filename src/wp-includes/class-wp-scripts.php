@@ -330,15 +330,6 @@ class WP_Scripts extends WP_Dependencies {
 					esc_attr( $handle ),
 					$after_non_standalone_script
 				);
-
-				// TODO: This won't work reliably for async.
-				$after_script .= wp_get_inline_script_tag(
-					sprintf(
-						'document.getElementById(%s).addEventListener("load", function(){wpLoadAfterScripts(%s)})',
-						wp_json_encode( "{$handle}-js" ),
-						wp_json_encode( "{$handle}" )
-					)
-				);
 			}
 		}
 

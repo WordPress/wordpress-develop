@@ -1855,15 +1855,33 @@ function wp_print_delayed_inline_script_loader() {
 	$wp_scripts = wp_scripts();
 
 	if ( $wp_scripts->has_delayed_inline_script() ) {
-		$output    = <<<JS
+		$output            = <<<JS
 (function () {
-  // Capture the nonce of the currentScript so we can use it when evaluating after inline scripts.
   var nonce = document.currentScript.nonce;
 
-  window.wpLoadAfterScripts = function wpLoadAfterScripts(handle) {
-    var scripts, newScript, i, len;
+  /**
+   * Load event handler.
+   *
+   * @param {Event} event Event.
+   */
+  function onScriptLoad(event) {
+    var i, len, newScript, matches, scripts;
+    if (
+      !(
+        event.target instanceof HTMLScriptElement ||
+        event.target.async ||
+        event.target.defer ||
+        event.target.id
+      )
+    ) {
+      return;
+    }
+    matches = event.target.id.match(/^(.+)-js$/);
+    if (!matches) {
+      return;
+    }
     scripts = document.querySelectorAll(
-      '[type="text/template"][data-wp-executes-after="' + handle + '"]'
+      '[type="text/template"][data-wp-executes-after="' + matches[1] + '"]'
     );
     for (i = 0, len = scripts.length; i < len; i++) {
       if (nonce && nonce !== scripts[i].nonce) {
@@ -1877,7 +1895,16 @@ function wp_print_delayed_inline_script_loader() {
       newScript.type = "text/javascript";
       scripts[i].parentNode.replaceChild(newScript, scripts[i]);
     }
-  };
+  }
+  document.addEventListener("load", onScriptLoad, true);
+
+  window.addEventListener(
+    "load",
+    () => {
+      document.removeEventListener("load", onScriptLoad, true);
+    },
+    { once: true }
+  );
 })();
 JS;
 		$type_attr         = current_theme_supports( 'html5', 'script' ) ? '' : 'text/javascript';
