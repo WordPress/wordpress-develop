@@ -2297,7 +2297,6 @@ function upgrade_600() {
 	}
 }
 
-
 /**
  * Executes changes made in WordPress 6.3.0.
  *
