@@ -4947,14 +4947,19 @@ function _wp_array_get( $input_array, $path, $default_value = null ) {
 	}
 
 	foreach ( $path as $path_element ) {
-		if (
-			! is_array( $input_array ) ||
-			( ! is_string( $path_element ) && ! is_integer( $path_element ) && ! is_null( $path_element ) ) ||
-			! array_key_exists( $path_element, $input_array )
-		) {
+		if ( ! is_array( $input_array ) ) {
 			return $default_value;
 		}
-		$input_array = $input_array[ $path_element ];
+
+		if ( ( is_string( $path_element )
+				|| is_integer( $path_element )
+				|| null === $path_element
+			) && array_key_exists( $path_element, $input_array )
+		) {
+			$input_array = $input_array[ $path_element ];
+			continue;
+		}
+		return $default_value;
 	}
 
 	return $input_array;
