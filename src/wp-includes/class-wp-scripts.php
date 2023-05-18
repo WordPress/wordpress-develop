@@ -326,7 +326,7 @@ class WP_Scripts extends WP_Dependencies {
 
 			if ( $after_non_standalone_script ) {
 				$after_script .= sprintf(
-					"<script type='text/template' id='%1\$s-js-after' data-wp-executes-after='%1\$s'>\n%2\$s\n</script>\n",
+					"<script id='%1\$s-js-after' type='text/template' data-wp-executes-after='%1\$s'>\n%2\$s\n</script>\n",
 					esc_attr( $handle ),
 					$after_non_standalone_script
 				);
