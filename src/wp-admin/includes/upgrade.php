@@ -2312,9 +2312,10 @@ function upgrade_630() {
 	if ( $wp_current_db_version < 55752 ) {
 		if ( ! is_multisite() ) {
 			// Replace non-autoload option can_compress_scripts with autoload option, see #55270
-			$can_compress_scripts = get_option( 'can_compress_scripts' ) ? 1 : 0;
-			delete_option( 'can_compress_scripts' );
-			add_option( 'can_compress_scripts', $can_compress_scripts );
+			$can_compress_scripts = get_option( 'can_compress_scripts', false );
+			if ( false !== $can_compress_scripts ) {
+				update_option( 'can_compress_scripts', $can_compress_scripts, 'yes' );
+			}
 		}
 	}
 }
