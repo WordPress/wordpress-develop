@@ -1791,10 +1791,21 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 *
+	 * @global string $HTTP_RAW_POST_DATA Raw post data.
+	 *
 	 * @return string Raw request data.
 	 */
 	public static function get_raw_data() {
-		return file_get_contents( 'php://input' );
+		// phpcs:disable PHPCompatibility.Variables.RemovedPredefinedGlobalVariables.http_raw_post_dataDeprecatedRemoved
+		global $HTTP_RAW_POST_DATA;
+
+		// $HTTP_RAW_POST_DATA was deprecated in PHP 5.6 and removed in PHP 7.0.
+		if ( ! isset( $HTTP_RAW_POST_DATA ) ) {
+			$HTTP_RAW_POST_DATA = file_get_contents( 'php://input' );
+		}
+
+		return $HTTP_RAW_POST_DATA;
+		// phpcs:enable
 	}
 
 	/**
