@@ -1004,10 +1004,6 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	/**
 	 * Tests non-existent '$orderby' fields.
 	 *
-	 * In PHP < 7.0.0, the sorting behavior is different, which Core does not
-	 * currently handle. Until this is fixed, or the minimum PHP version is
-	 * raised to PHP 7.0.0+, these tests will be skipped on PHP < 7.0.0.
-	 *
 	 * @ticket 55300
 	 *
 	 * @dataProvider data_wp_list_util_sort_php_7_or_greater
@@ -1025,10 +1021,6 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 * @param bool   $preserve_keys Optional. Whether to preserve keys. Default false.
 	 */
 	public function test_wp_list_util_sort_php_7_or_greater( $expected, $target_array, $orderby = array(), $order = 'ASC', $preserve_keys = false ) {
-		if ( version_compare( PHP_VERSION, '7.0.0', '<' ) ) {
-			$this->markTestSkipped( 'This test can only run on PHP 7.0 or greater due to an unstable sort order.' );
-		}
-
 		$util   = new WP_List_Util( $target_array );
 		$actual = $util->sort( $orderby, $order, $preserve_keys );
 
