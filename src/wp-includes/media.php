@@ -1050,9 +1050,18 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			'decoding' => 'async',
 		);
 
+		/**
+		 * Filters the context in which wp_get_attachment_image() is used.
+		 *
+		 * @since 6.3.0
+		 *
+		 * @param string $context The context. Default 'wp_get_attachment_image'.
+		 */
+		$context = apply_filters( 'wp_get_attachment_image_context', 'wp_get_attachment_image' );
+
 		// Add `loading` attribute.
-		if ( wp_lazy_loading_enabled( 'img', 'wp_get_attachment_image' ) ) {
-			$default_attr['loading'] = wp_get_loading_attr_default( 'wp_get_attachment_image' );
+		if ( wp_lazy_loading_enabled( 'img', $context ) ) {
+			$default_attr['loading'] = wp_get_loading_attr_default( $context );
 		}
 
 		$attr = wp_parse_args( $attr, $default_attr );
@@ -2168,6 +2177,47 @@ function _wp_post_thumbnail_class_filter_add( $attr ) {
  */
 function _wp_post_thumbnail_class_filter_remove( $attr ) {
 	remove_filter( 'wp_get_attachment_image_attributes', '_wp_post_thumbnail_class_filter' );
+}
+
+/**
+ * Overrides the context used in {@see wp_get_attachment_image()}. Internal use only.
+ *
+ * Uses the {@see 'begin_fetch_post_thumbnail_html'} and {@see 'end_fetch_post_thumbnail_html'}
+ * action hooks to dynamically add/remove itself so as to only filter post thumbnails.
+ *
+ * @ignore
+ * @since 6.3.0
+ * @access private
+ *
+ * @param string $context The context for rendering an attachment image.
+ * @return string Modified context set to 'the_post_thumbnail'.
+ */
+function _wp_post_thumbnail_context_filter( $context ) {
+	return 'the_post_thumbnail';
+}
+
+/**
+ * Adds the '_wp_post_thumbnail_context_filter' callback to the 'wp_get_attachment_image_context'
+ * filter hook. Internal use only.
+ *
+ * @ignore
+ * @since 6.3.0
+ * @access private
+ */
+function _wp_post_thumbnail_context_filter_add() {
+	add_filter( 'wp_get_attachment_image_context', '_wp_post_thumbnail_context_filter' );
+}
+
+/**
+ * Removes the '_wp_post_thumbnail_context_filter' callback from the 'wp_get_attachment_image_context'
+ * filter hook. Internal use only.
+ *
+ * @ignore
+ * @since 6.3.0
+ * @access private
+ */
+function _wp_post_thumbnail_context_filter_remove() {
+	remove_filter( 'wp_get_attachment_image_context', '_wp_post_thumbnail_context_filter' );
 }
 
 add_shortcode( 'wp_caption', 'img_caption_shortcode' );
@@ -4528,7 +4578,8 @@ function wp_enqueue_media( $args = array() ) {
 		/** This filter is documented in wp-admin/includes/media.php */
 		'captions'          => ! apply_filters( 'disable_captions', '' ),
 		'nonce'             => array(
-			'sendToEditor' => wp_create_nonce( 'media-send-to-editor' ),
+			'sendToEditor'           => wp_create_nonce( 'media-send-to-editor' ),
+			'setAttachmentThumbnail' => wp_create_nonce( 'set-attachment-thumbnail' ),
 		),
 		'post'              => array(
 			'id' => 0,
@@ -5434,7 +5485,7 @@ function wp_get_webp_info( $filename ) {
  *
  * Under the hood, the function uses {@see wp_increase_content_media_count()} every time it is called for an element
  * within the main content. If the element is the very first content element, the `loading` attribute will be omitted.
- * This default threshold of 1 content element to omit the `loading` attribute for can be customized using the
+ * This default threshold of 3 content elements to omit the `loading` attribute for can be customized using the
  * {@see 'wp_omit_loading_attr_threshold'} filter.
  *
  * @since 5.9.0
@@ -5452,6 +5503,16 @@ function wp_get_loading_attr_default( $context ) {
 	// Do not lazy-load images in the header block template part, as they are likely above the fold.
 	$header_area = WP_TEMPLATE_PART_AREA_HEADER;
 	if ( "template_part_{$header_area}" === $context ) {
+		return false;
+	}
+
+	/*
+	 * Skip programmatically created images within post content as they need to be handled together with the other
+	 * images within the post content.
+	 * Without this clause, they would already be counted below which skews the number and can result in the first
+	 * post content image being lazy-loaded only because there are images elsewhere in the post content.
+	 */
+	if ( ( 'the_post_thumbnail' === $context || 'wp_get_attachment_image' === $context ) && doing_filter( 'the_content' ) ) {
 		return false;
 	}
 
@@ -5484,7 +5545,7 @@ function wp_get_loading_attr_default( $context ) {
 /**
  * Gets the threshold for how many of the first content media elements to not lazy-load.
  *
- * This function runs the {@see 'wp_omit_loading_attr_threshold'} filter, which uses a default threshold value of 1.
+ * This function runs the {@see 'wp_omit_loading_attr_threshold'} filter, which uses a default threshold value of 3.
  * The filter is only run once per page load, unless the `$force` parameter is used.
  *
  * @since 5.9.0
@@ -5505,10 +5566,11 @@ function wp_omit_loading_attr_threshold( $force = false ) {
 		 * for only the very first content media element.
 		 *
 		 * @since 5.9.0
+		 * @since 6.3.0 The default threshold was changed from 1 to 3.
 		 *
-		 * @param int $omit_threshold The number of media elements where the `loading` attribute will not be added. Default 1.
+		 * @param int $omit_threshold The number of media elements where the `loading` attribute will not be added. Default 3.
 		 */
-		$omit_threshold = apply_filters( 'wp_omit_loading_attr_threshold', 1 );
+		$omit_threshold = apply_filters( 'wp_omit_loading_attr_threshold', 3 );
 	}
 
 	return $omit_threshold;
