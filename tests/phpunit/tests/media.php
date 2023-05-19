@@ -4305,7 +4305,6 @@ EOF;
 		$this->reset_content_media_count();
 		$this->reset_omit_loading_attr_filter();
 	}
-
 }
 
 /**
