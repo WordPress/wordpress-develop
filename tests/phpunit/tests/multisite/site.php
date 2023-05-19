@@ -560,7 +560,71 @@ if ( is_multisite() ) :
 			restore_current_blog();
 		}
 
-		public function test_switch_upload_dir() {
+		/**
+		 * Test wp_upload_dir() output when WP_UPLOAD_URL is explicitly defined in wp-config.php
+		 */
+		public function test_defined_wp_content_url() {
+			/*
+			 * Global constants can't be mocked in PHPUnit, so this can only run with the expected
+			 * values already set in `wp-tests-config.php`. Unfortunately, that means it won't run in
+			 * automated workflows, but it's still useful when testing locally.
+			 *
+			 * It may be possible to enable automated workflows by mocking `define()`, or by setting up
+			 * addition automated flows that initialize the tests with different values for the constants.
+			 * At the moment, though, neither of those seem to provide enough benefit to justify the time
+			 * investment.
+			 *
+			 * @link https://theaveragedev.com/mocking-constants-in-tests/
+			 */
+			if ( defined( 'WP_DYNAMIC_CONTENT_URL' ) && WP_DYNAMIC_CONTENT_URL ) {
+				$this->markTestSkipped( 'Test requires setting `WP_CONTENT_URL` constant explicitly in `wp-tests-config.php` to expected values.' );
+			}
+
+			$this->assertTrue( is_main_site() );
+
+			$date = date_format( date_create( 'now' ), 'Y/m' );
+
+			$info = wp_upload_dir();
+			$this->assertSame( WP_CONTENT_URL . '/uploads/' . $date, $info['url'] );
+			$this->assertSame( ABSPATH . 'wp-content/uploads/' . $date, $info['path'] );
+			$this->assertSame( '/' . $date, $info['subdir'] );
+			$this->assertFalse( $info['error'] );
+
+			$date = date_format( date_create( 'now' ), 'Y/m' );
+			$this->assertFalse( defined( 'WP_DYNAMIC_CONTENT_URL' ) );
+
+			$blog_id = self::factory()->blog->create();
+
+			switch_to_blog( $blog_id );
+			$info = wp_upload_dir();
+			$this->assertSame( WP_CONTENT_URL . '/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['url'] );
+			$this->assertSame( ABSPATH . 'wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['path'] );
+			$this->assertSame( '/' . $date, $info['subdir'] );
+			$this->assertFalse( $info['error'] );
+			restore_current_blog();
+
+		}
+
+		/**
+		 * Test wp_upload_dir() output when WP_UPLOAD_URL is defined dynamically in default-constants.php
+		 */
+		public function test_dynamic_wp_content_url() {
+			/*
+			 * Global constants can't be mocked in PHPUnit, so this can only run with the expected
+			 * values already set in `wp-tests-config.php`. Unfortunately, that means it won't run in
+			 * automated workflows, but it's still useful when testing locally.
+			 *
+			 * It may be possible to enable automated workflows by mocking `define()`, or by setting up
+			 * addition automated flows that initialize the tests with different values for the constants.
+			 * At the moment, though, neither of those seem to provide enough benefit to justify the time
+			 * investment.
+			 *
+			 * @link https://theaveragedev.com/mocking-constants-in-tests/
+			 */
+			if ( ! defined( 'WP_DYNAMIC_CONTENT_URL' ) || ! WP_DYNAMIC_CONTENT_URL ) {
+				$this->markTestSkipped( 'Test requires not setting `WP_CONTENT_URL` constant explicitly in `wp-tests-config.php`.' );
+			}
+
 			$this->assertTrue( is_main_site() );
 
 			$site = get_current_site();
@@ -572,21 +636,33 @@ if ( is_multisite() ) :
 			$this->assertSame( '/' . $date, $info['subdir'] );
 			$this->assertFalse( $info['error'] );
 
-			$blog_id = self::factory()->blog->create();
+			$blog_ids = array(
+				'subdirectory' => array(
+					'domain' => WP_TESTS_DOMAIN,
+					'path'   => '/foo/',
+				),
+				'subdomain' => array(
+					'domain' => 'foo' . WP_TESTS_DOMAIN,
+					'path'   => '/',
+				),
+				'domain' => array(
+					'domain' => 'wordpress.org',
+					'path'   => '/',
+				)
+			);
 
-			switch_to_blog( $blog_id );
-			$info = wp_upload_dir();
-			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['url'] );
-			$this->assertSame( ABSPATH . 'wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['path'] );
-			$this->assertSame( '/' . $date, $info['subdir'] );
-			$this->assertFalse( $info['error'] );
-			restore_current_blog();
+			foreach( $blog_ids as $blog_id ) {
+				$blog_id = self::factory()->blog->create( $blog_id );
 
-			$info = wp_upload_dir();
-			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . $date, $info['url'] );
-			$this->assertSame( ABSPATH . 'wp-content/uploads/' . $date, $info['path'] );
-			$this->assertSame( '/' . $date, $info['subdir'] );
-			$this->assertFalse( $info['error'] );
+				switch_to_blog( $blog_id );
+				$site = get_site( $blog_id );
+				$info = wp_upload_dir();
+				$this->assertSame( 'http://' . $site->domain . $site->path .  'wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['url'] );
+				$this->assertSame( ABSPATH . 'wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['path'] );
+				$this->assertSame( '/' . $date, $info['subdir'] );
+				$this->assertFalse( $info['error'] );
+				restore_current_blog();
+			}
 		}
 
 		/**

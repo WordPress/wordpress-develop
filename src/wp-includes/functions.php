@@ -2419,11 +2419,10 @@ function _wp_upload_dir( $time = null ) {
 	} else {
 		$dir = $upload_path;
 	}
-
 	$url = get_option( 'upload_url_path' );
 	if ( ! $url ) {
 		if ( empty( $upload_path ) || ( 'wp-content/uploads' === $upload_path ) || ( $upload_path == $dir ) ) {
-			$url = WP_CONTENT_URL . '/uploads';
+			$url = content_url() . '/uploads';
 		} else {
 			$url = trailingslashit( $siteurl ) . $upload_path;
 		}
