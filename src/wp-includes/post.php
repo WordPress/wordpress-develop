@@ -6098,13 +6098,12 @@ function get_pages( $args = array() ) {
 	 * Filters the retrieved list of pages.
 	 *
 	 * @since 2.1.0
-	 * @since 6.3.0 The `$query_args` parameter was added.
 	 *
 	 * @param WP_Post[] $pages       Array of page objects.
 	 * @param array     $parsed_args Array of get_pages() arguments.
 	 * @param array     $query_args  Array of arguments passed to WP_Query.
 	 */
-	return apply_filters( 'get_pages', $pages, $parsed_args, $query_args );
+	return apply_filters( 'get_pages', $pages, $parsed_args );
 }
 
 //
