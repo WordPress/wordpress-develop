@@ -94,9 +94,11 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `wp_trim_excerpt()` unhooks `wp_filter_content_tags()` from 'the_content' filter.
+	 *
 	 * @ticket 56588
 	 */
-	public function test_wp_trim_excerpt_avoids_parsing_content_tags() {
+	public function test_wp_trim_excerpt_unhooks_wp_filter_content_tags() {
 		$post = self::factory()->post->create();
 
 		/*
@@ -114,17 +116,28 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 
 		wp_trim_excerpt( '', $post );
 
-		// Assert that the filter callback was unhooked while running 'the_content'.
 		$this->assertFalse( $has_filter, 'wp_filter_content_tags() was not unhooked in wp_trim_excerpt()' );
+	}
 
-		// Assert that the filter callback was restored after running 'the_content'.
+	/**
+	 * Tests that `wp_trim_excerpt()` doesn't permanently unhook `wp_filter_content_tags()` from 'the_content' filter.
+	 *
+	 * @ticket 56588
+	 */
+	public function test_wp_trim_excerpt_should_not_permanently_unhook_wp_filter_content_tags() {
+		$post = self::factory()->post->create();
+
+		wp_trim_excerpt( '', $post );
+
 		$this->assertSame( 10, has_filter( 'the_content', 'wp_filter_content_tags' ), 'wp_filter_content_tags() was not restored in wp_trim_excerpt()' );
 	}
 
 	/**
+	 * Tests that `wp_trim_excerpt()` doesn't restore `wp_filter_content_tags()` if it was previously unhooked.
+	 *
 	 * @ticket 56588
 	 */
-	public function test_wp_trim_excerpt_restores_wp_filter_content_tags_only_if_enabled() {
+	public function test_wp_trim_excerpt_does_not_restore_wp_filter_content_tags_if_previously_unhooked() {
 		$post = self::factory()->post->create();
 
 		// Remove wp_filter_content_tags() from 'the_content' filter generally.
