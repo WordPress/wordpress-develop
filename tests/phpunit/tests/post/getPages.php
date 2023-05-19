@@ -327,6 +327,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 12821
+	 * @covers ::get_pages
 	 */
 	public function test_get_pages_test_filter() {
 		register_post_type( 'wptests_pt', array( 'hierarchical' => true ) );
