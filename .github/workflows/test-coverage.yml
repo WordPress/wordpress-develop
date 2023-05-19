@@ -24,6 +24,10 @@ on:
   # Allow manually triggering the workflow.
   workflow_dispatch:
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
   LOCAL_PHP: '7.4-fpm'
@@ -56,6 +60,8 @@ jobs:
   test-coverage-report:
     name: ${{ matrix.multisite && 'Multisite' || 'Single site' }} report
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     timeout-minutes: 120
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     strategy:
@@ -169,6 +175,9 @@ jobs:
   slack-notifications:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    permissions:
+      actions: read
+      contents: read
     needs: [ test-coverage-report ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
@@ -182,6 +191,8 @@ jobs:
   failed-workflow:
     name: Failed workflow tasks
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     needs: [ test-coverage-report, slack-notifications ]
     if: |
       always() &&

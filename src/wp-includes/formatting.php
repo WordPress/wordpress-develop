@@ -2434,6 +2434,29 @@ function sanitize_html_class( $classname, $fallback = '' ) {
 }
 
 /**
+ * Strips out all characters not allowed in a locale name.
+ *
+ * @since 6.2.1
+ *
+ * @param string $locale_name The locale name to be sanitized.
+ * @return string The sanitized value.
+ */
+function sanitize_locale_name( $locale_name ) {
+	// Limit to A-Z, a-z, 0-9, '_', '-'.
+	$sanitized = preg_replace( '/[^A-Za-z0-9_-]/', '', $locale_name );
+
+	/**
+	 * Filters a sanitized locale name string.
+	 *
+	 * @since 6.2.1
+	 *
+	 * @param string $sanitized   The sanitized locale name.
+	 * @param string $locale_name The locale name before sanitization.
+	 */
+	return apply_filters( 'sanitize_locale_name', $sanitized, $locale_name );
+}
+
+/**
  * Converts lone & characters into `&#038;` (a.k.a. `&amp;`)
  *
  * @since 0.71
@@ -3029,13 +3052,26 @@ function make_clickable( $text ) {
 	$nested_code_pre = 0; // Keep track of how many levels link is nested inside <pre> or <code>.
 	foreach ( $textarr as $piece ) {
 
-		if ( preg_match( '|^<code[\s>]|i', $piece ) || preg_match( '|^<pre[\s>]|i', $piece ) || preg_match( '|^<script[\s>]|i', $piece ) || preg_match( '|^<style[\s>]|i', $piece ) ) {
+		if ( preg_match( '|^<code[\s>]|i', $piece )
+			|| preg_match( '|^<pre[\s>]|i', $piece )
+			|| preg_match( '|^<script[\s>]|i', $piece )
+			|| preg_match( '|^<style[\s>]|i', $piece )
+		) {
 			$nested_code_pre++;
-		} elseif ( $nested_code_pre && ( '</code>' === strtolower( $piece ) || '</pre>' === strtolower( $piece ) || '</script>' === strtolower( $piece ) || '</style>' === strtolower( $piece ) ) ) {
+		} elseif ( $nested_code_pre
+			&& ( '</code>' === strtolower( $piece )
+				|| '</pre>' === strtolower( $piece )
+				|| '</script>' === strtolower( $piece )
+				|| '</style>' === strtolower( $piece )
+			)
+		) {
 			$nested_code_pre--;
 		}
 
-		if ( $nested_code_pre || empty( $piece ) || ( '<' === $piece[0] && ! preg_match( '|^<\s*[\w]{1,20}+://|', $piece ) ) ) {
+		if ( $nested_code_pre
+			|| empty( $piece )
+			|| ( '<' === $piece[0] && ! preg_match( '|^<\s*[\w]{1,20}+://|', $piece ) )
+		) {
 			$r .= $piece;
 			continue;
 		}
@@ -4463,7 +4499,7 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 			$protocols = wp_allowed_protocols();
 		}
 		$good_protocol_url = wp_kses_bad_protocol( $url, $protocols );
-		if ( strtolower( $good_protocol_url ) != strtolower( $url ) ) {
+		if ( strtolower( $good_protocol_url ) !== strtolower( $url ) ) {
 			return '';
 		}
 	}

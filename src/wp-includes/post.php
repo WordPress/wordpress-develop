@@ -289,6 +289,7 @@ function create_initial_post_types() {
 				'new_item'                 => __( 'New Reusable block' ),
 				'edit_item'                => __( 'Edit Reusable block' ),
 				'view_item'                => __( 'View Reusable block' ),
+				'view_items'               => __( 'View Reusable blocks' ),
 				'all_items'                => __( 'All Reusable blocks' ),
 				'search_items'             => __( 'Search Reusable blocks' ),
 				'not_found'                => __( 'No reusable blocks found.' ),
@@ -331,6 +332,14 @@ function create_initial_post_types() {
 		)
 	);
 
+	$template_edit_link = 'site-editor.php?' . build_query(
+		array(
+			'postType' => '%s',
+			'postId'   => '%s',
+			'canvas'   => 'edit',
+		)
+	);
+
 	register_post_type(
 		'wp_template',
 		array(
@@ -357,6 +366,7 @@ function create_initial_post_types() {
 			'description'           => __( 'Templates to include in your theme.' ),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'            => $template_edit_link, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
 			'show_ui'               => false,
 			'show_in_menu'          => false,
@@ -417,6 +427,7 @@ function create_initial_post_types() {
 			'description'           => __( 'Template parts to include in your templates.' ),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'            => $template_edit_link, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
 			'show_ui'               => false,
 			'show_in_menu'          => false,
@@ -457,6 +468,7 @@ function create_initial_post_types() {
 			'description'  => __( 'Global styles to include in themes.' ),
 			'public'       => false,
 			'_builtin'     => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'   => '/site-editor.php?canvas=edit', /* internal use only. don't use this when registering your own post type. */
 			'show_ui'      => false,
 			'show_in_rest' => false,
 			'rewrite'      => false,
@@ -723,7 +735,7 @@ function get_attached_file( $attachment_id, $unfiltered = false ) {
 	$file = get_post_meta( $attachment_id, '_wp_attached_file', true );
 
 	// If the file is relative, prepend upload dir.
-	if ( $file && 0 !== strpos( $file, '/' ) && ! preg_match( '|^.:\\\|', $file ) ) {
+	if ( $file && ! str_starts_with( $file, '/' ) && ! preg_match( '|^.:\\\|', $file ) ) {
 		$uploads = wp_get_upload_dir();
 		if ( false === $uploads['error'] ) {
 			$file = $uploads['basedir'] . "/$file";
@@ -795,7 +807,7 @@ function _wp_relative_upload_path( $path ) {
 	$new_path = $path;
 
 	$uploads = wp_get_upload_dir();
-	if ( 0 === strpos( $new_path, $uploads['basedir'] ) ) {
+	if ( str_starts_with( $new_path, $uploads['basedir'] ) ) {
 			$new_path = str_replace( $uploads['basedir'], '', $new_path );
 			$new_path = ltrim( $new_path, '/' );
 	}
@@ -1224,7 +1236,7 @@ function get_page_statuses() {
  * @since 4.9.6
  * @access private
  *
- * @return array
+ * @return string[] Array of privacy request status labels keyed by their status.
  */
 function _wp_privacy_statuses() {
 	return array(
@@ -4194,7 +4206,10 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		// On updates, we need to check to see if it's using the old, fixed sanitization context.
 		$check_name = sanitize_title( $post_name, '', 'old-save' );
 
-		if ( $update && strtolower( urlencode( $post_name ) ) == $check_name && get_post_field( 'post_name', $post_id ) == $check_name ) {
+		if ( $update
+			&& strtolower( urlencode( $post_name ) ) === $check_name
+			&& get_post_field( 'post_name', $post_id ) === $check_name
+		) {
 			$post_name = $check_name;
 		} else { // New post, or slug has changed.
 			$post_name = sanitize_title( $post_name );
@@ -6136,7 +6151,7 @@ function is_local_attachment( $url ) {
  *
  * @param string|array $args             Arguments for inserting an attachment.
  * @param string|false $file             Optional. Filename. Default false.
- * @param int          $parent_post_id   Optional. Parent post ID. Default 0.
+ * @param int          $parent_post_id   Optional. Parent post ID or 0 for no parent. Default 0.
  * @param bool         $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
  * @param bool         $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
@@ -6480,7 +6495,7 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 		$uploads = wp_get_upload_dir();
 		if ( $uploads && false === $uploads['error'] ) {
 			// Check that the upload base exists in the file location.
-			if ( 0 === strpos( $file, $uploads['basedir'] ) ) {
+			if ( str_starts_with( $file, $uploads['basedir'] ) ) {
 				// Replace file location with url location.
 				$url = str_replace( $uploads['basedir'], $uploads['baseurl'], $file );
 			} elseif ( false !== strpos( $file, 'wp-content/uploads' ) ) {
@@ -6609,7 +6624,7 @@ function wp_attachment_is( $type, $post = null ) {
 		return false;
 	}
 
-	if ( 0 === strpos( $post->post_mime_type, $type . '/' ) ) {
+	if ( str_starts_with( $post->post_mime_type, $type . '/' ) ) {
 		return true;
 	}
 
@@ -7650,8 +7665,6 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 
 	$term_ids = array();
 	if ( $prime_post_terms ) {
-		$prime_term_ids     = array();
-		$prime_taxonomy_ids = array();
 		foreach ( $prime_post_terms as $taxonomy => $post_ids ) {
 			$cached_term_ids = wp_cache_get_multiple( $post_ids, "{$taxonomy}_relationships" );
 			if ( is_array( $cached_term_ids ) ) {
@@ -7660,42 +7673,18 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 					// Backward compatibility for if a plugin is putting objects into the cache, rather than IDs.
 					foreach ( $_term_ids as $term_id ) {
 						if ( is_numeric( $term_id ) ) {
-							$prime_term_ids[]                  = (int) $term_id;
-							$prime_taxonomy_ids[ $taxonomy ][] = (int) $term_id;
+							$term_ids[] = (int) $term_id;
 						} elseif ( isset( $term_id->term_id ) ) {
-							$prime_taxonomy_ids[ $taxonomy ][] = (int) $term_id->term_id;
-							$prime_term_ids[]                  = (int) $term_id->term_id;
+							$term_ids[] = (int) $term_id->term_id;
 						}
 					}
 				}
 			}
 		}
-
-		if ( $prime_term_ids ) {
-			$prime_term_ids = array_unique( $prime_term_ids );
-			// Do not prime term meta at this point, let the lazy loader take care of that.
-			_prime_term_caches( $prime_term_ids, false );
-
-			foreach ( $prime_taxonomy_ids as $taxonomy => $_term_ids ) {
-				foreach ( $_term_ids as $term_id ) {
-					if ( in_array( $term_id, $term_ids, true ) ) {
-						continue;
-					}
-					$term = get_term( $term_id, $taxonomy );
-					if ( is_wp_error( $term ) ) {
-						continue;
-					}
-
-					$term_ids[] = $term_id;
-				}
-			}
-		}
+		$term_ids = array_unique( $term_ids );
 	}
 
-	if ( $term_ids ) {
-		$lazyloader = wp_metadata_lazyloader();
-		$lazyloader->queue_objects( 'term', $term_ids );
-	}
+	wp_lazyload_term_meta( $term_ids );
 }
 
 /**
@@ -7828,7 +7817,7 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
  * @since 5.0.0
  */
 function wp_cache_set_posts_last_changed() {
-	wp_cache_set( 'last_changed', microtime(), 'posts' );
+	wp_cache_set_last_changed( 'posts' );
 }
 
 /**
