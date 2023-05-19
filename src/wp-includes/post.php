@@ -6031,7 +6031,7 @@ function get_pages( $args = array() ) {
 					}
 					$post_author = $post_author->ID;
 				}
-				$query_args['author__in'][] = $post_author;
+				$query_args['author__in'][] = (int) $post_author;
 			}
 		}
 	}

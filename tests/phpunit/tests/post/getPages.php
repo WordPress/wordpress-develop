@@ -331,25 +331,133 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	public function test_get_pages_test_filter() {
 		register_post_type( 'wptests_pt', array( 'hierarchical' => true ) );
 
-		$posts = self::factory()->post->create_many(
+		$posts             = self::factory()->post->create_many(
 			2,
 			array(
 				'post_type' => 'wptests_pt',
 			)
 		);
+		$query_args_values = array();
 
 		// Filter the query to return the wptests_pt post type.
 		add_filter(
 			'get_pages_query_args',
-			static function( $query_args ) {
+			static function( $query_args ) use ( &$query_args_values ) {
 				$query_args['post_type'] = 'wptests_pt';
+				$query_args_values       = $query_args;
 				return $query_args;
 			}
 		);
 
 		$pages    = get_pages();
 		$page_ids = wp_list_pluck( $pages, 'ID' );
-		$this->assertSameSets( $posts, $page_ids );
+		$this->assertSameSets( $posts, $page_ids, 'The return post ids should match the post type wptests_pt.' );
+
+		$default_args = array(
+			'orderby'                => array( 'post_title' => 'ASC' ),
+			'order'                  => 'ASC',
+			'post__not_in'           => array(),
+			'meta_key'               => '',
+			'meta_value'             => '',
+			'posts_per_page'         => -1,
+			'offset'                 => 0,
+			'post_type'              => 'wptests_pt',
+			'post_status'            => array( 'publish' ),
+			'update_post_term_cache' => false,
+			'update_post_meta_cache' => false,
+			'ignore_sticky_posts'    => true,
+			'no_found_rows'          => true,
+		);
+
+		$this->assertSameSets( $default_args, $query_args_values, 'Query arguments should match expected values' );
+	}
+
+	/**
+	 * @ticket 12821
+	 * @covers ::get_pages
+	 * @dataProvider data_get_pages_args
+	 */
+	public function test_get_pages_args_test_filter( $args, $expected_query_args ) {
+		$filter = new MockAction();
+		add_filter( 'get_pages_query_args', array( $filter, 'filter' ), 10, 2 );
+
+		get_pages( $args );
+
+		$filter_args = $filter->get_args();
+
+		$default_args = array(
+			'orderby'                => array( 'post_title' => 'ASC' ),
+			'order'                  => 'ASC',
+			'post__not_in'           => array(),
+			'meta_key'               => '',
+			'meta_value'             => '',
+			'posts_per_page'         => -1,
+			'offset'                 => 0,
+			'post_type'              => 'page',
+			'post_status'            => array( 'publish' ),
+			'update_post_term_cache' => false,
+			'update_post_meta_cache' => false,
+			'ignore_sticky_posts'    => true,
+			'no_found_rows'          => true,
+		);
+
+		$parsed_args = wp_parse_args( $expected_query_args, $default_args );
+
+		$this->assertSameSets( $filter_args[0][0], $parsed_args );
+	}
+
+	public function data_get_pages_args() {
+		return array(
+			'default'            => array(
+				'args'                => array(),
+				'expected_query_args' => array(),
+			),
+			'exclude'            => array(
+				'args'                => array( 'exclude' => array( 1, 2, 4 ) ),
+				'expected_query_args' => array( 'post__not_in' => array( 1, 2, 4 ) ),
+			),
+			'post status'        => array(
+				'args'                => array( 'post_status' => 'draft' ),
+				'expected_query_args' => array( 'post_status' => array( 'draft' ) ),
+			),
+			'number'             => array(
+				'args'                => array( 'number' => 99 ),
+				'expected_query_args' => array( 'posts_per_page' => 99 ),
+			),
+			'meta query'         => array(
+				'args'                => array(
+					'meta_key'   => 'foo',
+					'meta_value' => 'bar',
+				),
+				'expected_query_args' => array(
+					'meta_key'   => 'foo',
+					'meta_value' => 'bar',
+				),
+			),
+			'post parent number' => array(
+				'args'                => array( 'parent' => 5 ),
+				'expected_query_args' => array( 'post_parent' => 5 ),
+			),
+			'post parent array'  => array(
+				'args'                => array( 'parent' => array( 5 ) ),
+				'expected_query_args' => array( 'post_parent__in' => array( 5 ) ),
+			),
+			'offset'             => array(
+				'args'                => array( 'offset' => 2 ),
+				'expected_query_args' => array( 'offset' => 2 ),
+			),
+			'authors'            => array(
+				'args'                => array( 'authors' => 2 ),
+				'expected_query_args' => array( 'author__in' => array( 2 ) ),
+			),
+			'sort order'         => array(
+				'args'                => array( 'sort_order' => 'DESC' ),
+				'expected_query_args' => array(
+					'order'   => 'DESC',
+					'orderby' => array( 'post_title' => 'DESC' ),
+				),
+			),
+		);
 	}
 
 	/**
