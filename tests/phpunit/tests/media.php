@@ -4018,7 +4018,7 @@ EOF;
 		$post_content .= '<p>Some text.</p>';
 		$post_content .= '<img src="example2.jpg" width="800" height="600">';
 
-		$post_id = self::factory()->post->create(
+		$post_id           = self::factory()->post->create(
 			array(
 				'post_content' => $post_content,
 				'post_excerpt' => '',
