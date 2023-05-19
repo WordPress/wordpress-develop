@@ -814,7 +814,11 @@ function unregister_taxonomy_for_object_type( $taxonomy, $object_type ) {
  *
  * @param int|int[]       $term_ids   Term ID or array of term IDs of terms that will be used.
  * @param string|string[] $taxonomies String of taxonomy name or Array of string values of taxonomy names.
- * @param array|string    $args       Change the order of the object IDs, either ASC or DESC.
+ * @param array|string    $args       {
+ *     Change the order of the object IDs.
+ *
+ *     @type string $order Order to retrieve terms. Accepts 'ASC' or 'DESC'. Default 'ASC'.
+ * }
  * @return string[]|WP_Error An array of object IDs as numeric strings on success,
  *                           WP_Error if the taxonomy does not exist.
  */
@@ -2188,6 +2192,8 @@ function wp_delete_category( $cat_id ) {
  * @since 4.4.0 Introduced `$meta_query` and `$update_term_meta_cache` arguments. When `$fields` is 'all' or
  *              'all_with_object_id', an array of `WP_Term` objects will be returned.
  * @since 4.7.0 Refactored to use WP_Term_Query, and to support any WP_Term_Query arguments.
+ * @since 6.3.0 Passing `update_term_meta_cache` argument value false by default resulting in get_terms() to not
+ *              prime the term meta cache.
  *
  * @param int|int[]       $object_ids The ID(s) of the object(s) to retrieve.
  * @param string|string[] $taxonomies The taxonomy names to retrieve terms from.
@@ -2216,7 +2222,11 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	}
 	$object_ids = array_map( 'intval', $object_ids );
 
-	$args = wp_parse_args( $args );
+	$defaults = array(
+		'update_term_meta_cache' => false,
+	);
+
+	$args = wp_parse_args( $args, $defaults );
 
 	/**
 	 * Filters arguments for retrieving object terms.
@@ -2258,7 +2268,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 		$terms_from_remaining_taxonomies = get_terms( $args );
 
 		// Array keys should be preserved for values of $fields that use term_id for keys.
-		if ( ! empty( $args['fields'] ) && 0 === strpos( $args['fields'], 'id=>' ) ) {
+		if ( ! empty( $args['fields'] ) && str_starts_with( $args['fields'], 'id=>' ) ) {
 			$terms = $terms + $terms_from_remaining_taxonomies;
 		} else {
 			$terms = array_merge( $terms, $terms_from_remaining_taxonomies );
@@ -3502,7 +3512,7 @@ function wp_update_term_count_now( $terms, $taxonomy ) {
 	} else {
 		$object_types = (array) $taxonomy->object_type;
 		foreach ( $object_types as &$object_type ) {
-			if ( 0 === strpos( $object_type, 'attachment:' ) ) {
+			if ( str_starts_with( $object_type, 'attachment:' ) ) {
 				list( $object_type ) = explode( ':', $object_type );
 			}
 		}
@@ -5034,7 +5044,7 @@ function is_term_publicly_viewable( $term ) {
  * @since 5.0.0
  */
 function wp_cache_set_terms_last_changed() {
-	wp_cache_set( 'last_changed', microtime(), 'terms' );
+	wp_cache_set_last_changed( 'terms' );
 }
 
 /**
