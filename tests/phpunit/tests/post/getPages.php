@@ -331,29 +331,33 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	public function test_get_pages_test_filter() {
 		register_post_type( 'wptests_pt', array( 'hierarchical' => true ) );
 
-		$posts             = self::factory()->post->create_many(
+		$posts              = self::factory()->post->create_many(
 			2,
 			array(
 				'post_type' => 'wptests_pt',
 			)
 		);
-		$query_args_values = array();
+		$query_args_values  = array();
+		$parsed_args_values = array();
 
 		// Filter the query to return the wptests_pt post type.
 		add_filter(
 			'get_pages_query_args',
-			static function( $query_args ) use ( &$query_args_values ) {
+			static function( $query_args, $parsed_args ) use ( &$query_args_values, &$parsed_args_values ) {
 				$query_args['post_type'] = 'wptests_pt';
 				$query_args_values       = $query_args;
+				$parsed_args_values      = $parsed_args;
 				return $query_args;
-			}
+			},
+			10,
+			2
 		);
 
 		$pages    = get_pages();
 		$page_ids = wp_list_pluck( $pages, 'ID' );
 		$this->assertSameSets( $posts, $page_ids, 'The return post ids should match the post type wptests_pt.' );
 
-		$default_args = array(
+		$query_args = array(
 			'orderby'                => array( 'post_title' => 'ASC' ),
 			'order'                  => 'ASC',
 			'post__not_in'           => array(),
@@ -369,7 +373,27 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 			'no_found_rows'          => true,
 		);
 
-		$this->assertSameSets( $default_args, $query_args_values, 'Query arguments should match expected values' );
+		$this->assertSameSets( $query_args, $query_args_values, 'Query arguments should match expected values' );
+
+		$parsed_args = array(
+			'child_of'     => 0,
+			'sort_order'   => 'ASC',
+			'sort_column'  => 'post_title',
+			'hierarchical' => 1,
+			'exclude'      => array(),
+			'include'      => array(),
+			'meta_key'     => '',
+			'meta_value'   => '',
+			'authors'      => '',
+			'parent'       => -1,
+			'exclude_tree' => array(),
+			'number'       => '',
+			'offset'       => 0,
+			'post_type'    => 'page',
+			'post_status'  => 'publish',
+		);
+
+		$this->assertSameSets( $parsed_args, $parsed_args_values, 'Parsed arguments should match expected values' );
 	}
 
 	/**
@@ -381,7 +405,9 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$filter = new MockAction();
 		add_filter( 'get_pages_query_args', array( $filter, 'filter' ), 10, 2 );
 
-		get_pages( $args );
+		$results = get_pages( $args );
+
+		$this->assertIsArray( $results, 'get_pages should result an array' );
 
 		$filter_args = $filter->get_args();
 
@@ -401,9 +427,30 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 			'no_found_rows'          => true,
 		);
 
-		$parsed_args = wp_parse_args( $expected_query_args, $default_args );
+		$query_args = wp_parse_args( $expected_query_args, $default_args );
 
-		$this->assertSameSets( $filter_args[0][0], $parsed_args );
+		$this->assertSameSets( $query_args, $filter_args[0][0], 'Unexpected $query_args for get_pages_query_args filter' );
+
+		$defaults = array(
+			'child_of'     => 0,
+			'sort_order'   => 'ASC',
+			'sort_column'  => 'post_title',
+			'hierarchical' => 1,
+			'exclude'      => array(),
+			'include'      => array(),
+			'meta_key'     => '',
+			'meta_value'   => '',
+			'authors'      => '',
+			'parent'       => -1,
+			'exclude_tree' => array(),
+			'number'       => '',
+			'offset'       => 0,
+			'post_type'    => 'page',
+			'post_status'  => 'publish',
+		);
+
+		$parsed_args = wp_parse_args( $args, $defaults );
+		$this->assertSameSets( $parsed_args, $filter_args[0][1], 'Unexpected $parsed_args for get_pages_query_args filter' );
 	}
 
 	public function data_get_pages_args() {
