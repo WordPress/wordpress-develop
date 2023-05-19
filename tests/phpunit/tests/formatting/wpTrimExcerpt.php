@@ -95,7 +95,6 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56588
-	 * @covers ::wp_trim_excerpt
 	 */
 	public function test_wp_trim_excerpt_avoids_parsing_content_tags() {
 		$post = self::factory()->post->create();
@@ -124,7 +123,6 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56588
-	 * @covers ::wp_trim_excerpt
 	 */
 	public function test_wp_trim_excerpt_restores_wp_filter_content_tags_only_if_enabled() {
 		$post = self::factory()->post->create();
