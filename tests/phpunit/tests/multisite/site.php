@@ -641,23 +641,23 @@ if ( is_multisite() ) :
 					'domain' => WP_TESTS_DOMAIN,
 					'path'   => '/foo/',
 				),
-				'subdomain' => array(
+				'subdomain'    => array(
 					'domain' => 'foo' . WP_TESTS_DOMAIN,
 					'path'   => '/',
 				),
-				'domain' => array(
+				'domain'       => array(
 					'domain' => 'wordpress.org',
 					'path'   => '/',
-				)
+				),
 			);
 
-			foreach( $blog_ids as $blog_id ) {
+			foreach ( $blog_ids as $blog_id ) {
 				$blog_id = self::factory()->blog->create( $blog_id );
 
 				switch_to_blog( $blog_id );
 				$site = get_site( $blog_id );
 				$info = wp_upload_dir();
-				$this->assertSame( 'http://' . $site->domain . $site->path .  'wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['url'] );
+				$this->assertSame( 'http://' . $site->domain . $site->path . 'wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['url'] );
 				$this->assertSame( ABSPATH . 'wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['path'] );
 				$this->assertSame( '/' . $date, $info['subdir'] );
 				$this->assertFalse( $info['error'] );
@@ -2275,6 +2275,7 @@ if ( is_multisite() ) :
 
 		/**
 		 * Gets the ID of the next site that will get inserted
+		 *
 		 * @return int
 		 */
 		protected function _get_next_site_id() {
