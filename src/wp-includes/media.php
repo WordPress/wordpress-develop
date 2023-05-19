@@ -1023,7 +1023,8 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
  *                                  will result in the attribute being omitted for the image.
  *                                  Defaults to 'lazy', depending on wp_lazy_loading_enabled().
  *     @type string       $decoding The 'decoding' attribute value. Possible values are
- *                                  'async' (default), 'sync', or 'auto'.
+ *                                  'async' (default), 'sync', or 'auto'. Passing false or an empty
+ *                                  string will result in the attribute being omitted.
  * }
  * @return string HTML img element or empty string on failure.
  */
@@ -1049,12 +1050,26 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			'decoding' => 'async',
 		);
 
+		/**
+		 * Filters the context in which wp_get_attachment_image() is used.
+		 *
+		 * @since 6.3.0
+		 *
+		 * @param string $context The context. Default 'wp_get_attachment_image'.
+		 */
+		$context = apply_filters( 'wp_get_attachment_image_context', 'wp_get_attachment_image' );
+
 		// Add `loading` attribute.
-		if ( wp_lazy_loading_enabled( 'img', 'wp_get_attachment_image' ) ) {
-			$default_attr['loading'] = wp_get_loading_attr_default( 'wp_get_attachment_image' );
+		if ( wp_lazy_loading_enabled( 'img', $context ) ) {
+			$default_attr['loading'] = wp_get_loading_attr_default( $context );
 		}
 
 		$attr = wp_parse_args( $attr, $default_attr );
+
+		// Omit the `decoding` attribute if the value is invalid according to the spec.
+		if ( empty( $attr['decoding'] ) || ! in_array( $attr['decoding'], array( 'async', 'sync', 'auto' ), true ) ) {
+			unset( $attr['decoding'] );
+		}
 
 		// If the default value of `lazy` for the `loading` attribute is overridden
 		// to omit the attribute for this image, ensure it is not included.
@@ -2164,6 +2179,47 @@ function _wp_post_thumbnail_class_filter_remove( $attr ) {
 	remove_filter( 'wp_get_attachment_image_attributes', '_wp_post_thumbnail_class_filter' );
 }
 
+/**
+ * Overrides the context used in {@see wp_get_attachment_image()}. Internal use only.
+ *
+ * Uses the {@see 'begin_fetch_post_thumbnail_html'} and {@see 'end_fetch_post_thumbnail_html'}
+ * action hooks to dynamically add/remove itself so as to only filter post thumbnails.
+ *
+ * @ignore
+ * @since 6.3.0
+ * @access private
+ *
+ * @param string $context The context for rendering an attachment image.
+ * @return string Modified context set to 'the_post_thumbnail'.
+ */
+function _wp_post_thumbnail_context_filter( $context ) {
+	return 'the_post_thumbnail';
+}
+
+/**
+ * Adds the '_wp_post_thumbnail_context_filter' callback to the 'wp_get_attachment_image_context'
+ * filter hook. Internal use only.
+ *
+ * @ignore
+ * @since 6.3.0
+ * @access private
+ */
+function _wp_post_thumbnail_context_filter_add() {
+	add_filter( 'wp_get_attachment_image_context', '_wp_post_thumbnail_context_filter' );
+}
+
+/**
+ * Removes the '_wp_post_thumbnail_context_filter' callback from the 'wp_get_attachment_image_context'
+ * filter hook. Internal use only.
+ *
+ * @ignore
+ * @since 6.3.0
+ * @access private
+ */
+function _wp_post_thumbnail_context_filter_remove() {
+	remove_filter( 'wp_get_attachment_image_context', '_wp_post_thumbnail_context_filter' );
+}
+
 add_shortcode( 'wp_caption', 'img_caption_shortcode' );
 add_shortcode( 'caption', 'img_caption_shortcode' );
 
@@ -2632,10 +2688,14 @@ function wp_underscore_playlist_templates() {
 	<# } #>
 	<div class="wp-playlist-caption">
 		<span class="wp-playlist-item-meta wp-playlist-item-title">
-		<?php
-			/* translators: %s: Playlist item title. */
-			printf( _x( '&#8220;%s&#8221;', 'playlist item title' ), '{{ data.title }}' );
-		?>
+			<# if ( data.meta.album || data.meta.artist ) { #>
+				<?php
+				/* translators: %s: Playlist item title. */
+				printf( _x( '&#8220;%s&#8221;', 'playlist item title' ), '{{ data.title }}' );
+				?>
+			<# } else { #>
+				{{ data.title }}
+			<# } #>
 		</span>
 		<# if ( data.meta.album ) { #><span class="wp-playlist-item-meta wp-playlist-item-album">{{ data.meta.album }}</span><# } #>
 		<# if ( data.meta.artist ) { #><span class="wp-playlist-item-meta wp-playlist-item-artist">{{ data.meta.artist }}</span><# } #>
@@ -2648,14 +2708,16 @@ function wp_underscore_playlist_templates() {
 			<# if ( data.caption ) { #>
 				{{ data.caption }}
 			<# } else { #>
-				<span class="wp-playlist-item-title">
-				<?php
-					/* translators: %s: Playlist item title. */
-					printf( _x( '&#8220;%s&#8221;', 'playlist item title' ), '{{{ data.title }}}' );
-				?>
-				</span>
 				<# if ( data.artists && data.meta.artist ) { #>
-				<span class="wp-playlist-item-artist"> &mdash; {{ data.meta.artist }}</span>
+					<span class="wp-playlist-item-title">
+						<?php
+						/* translators: %s: Playlist item title. */
+						printf( _x( '&#8220;%s&#8221;', 'playlist item title' ), '{{{ data.title }}}' );
+						?>
+					</span>
+					<span class="wp-playlist-item-artist"> &mdash; {{ data.meta.artist }}</span>
+				<# } else { #>
+					<span class="wp-playlist-item-title">{{{ data.title }}}</span>
 				<# } #>
 			<# } #>
 		</a>
@@ -3718,7 +3780,7 @@ function get_taxonomies_for_attachments( $output = 'names' ) {
 
 	foreach ( get_taxonomies( array(), 'objects' ) as $taxonomy ) {
 		foreach ( $taxonomy->object_type as $object_type ) {
-			if ( 'attachment' === $object_type || 0 === strpos( $object_type, 'attachment:' ) ) {
+			if ( 'attachment' === $object_type || str_starts_with( $object_type, 'attachment:' ) ) {
 				if ( 'names' === $output ) {
 					$taxonomies[] = $taxonomy->name;
 				} else {
@@ -3736,8 +3798,8 @@ function get_taxonomies_for_attachments( $output = 'names' ) {
  * Determines whether the value is an acceptable type for GD image functions.
  *
  * In PHP 8.0, the GD extension uses GdImage objects for its data structures.
- * This function checks if the passed value is either a resource of type `gd`
- * or a GdImage object instance. Any other type will return false.
+ * This function checks if the passed value is either a GdImage object instance
+ * or a resource of type `gd`. Any other type will return false.
  *
  * @since 5.6.0
  *
@@ -3746,8 +3808,8 @@ function get_taxonomies_for_attachments( $output = 'names' ) {
  *              false otherwise.
  */
 function is_gd_image( $image ) {
-	if ( is_resource( $image ) && 'gd' === get_resource_type( $image )
-		|| is_object( $image ) && $image instanceof GdImage
+	if ( $image instanceof GdImage
+		|| is_resource( $image ) && 'gd' === get_resource_type( $image )
 	) {
 		return true;
 	}
@@ -4516,7 +4578,8 @@ function wp_enqueue_media( $args = array() ) {
 		/** This filter is documented in wp-admin/includes/media.php */
 		'captions'          => ! apply_filters( 'disable_captions', '' ),
 		'nonce'             => array(
-			'sendToEditor' => wp_create_nonce( 'media-send-to-editor' ),
+			'sendToEditor'           => wp_create_nonce( 'media-send-to-editor' ),
+			'setAttachmentThumbnail' => wp_create_nonce( 'set-attachment-thumbnail' ),
 		),
 		'post'              => array(
 			'id' => 0,
@@ -5108,7 +5171,7 @@ function attachment_url_to_postid( $url ) {
 		$path = str_replace( $image_path['scheme'], $site_url['scheme'], $path );
 	}
 
-	if ( 0 === strpos( $path, $dir['baseurl'] . '/' ) ) {
+	if ( str_starts_with( $path, $dir['baseurl'] . '/' ) ) {
 		$path = substr( $path, strlen( $dir['baseurl'] . '/' ) );
 	}
 
@@ -5422,7 +5485,7 @@ function wp_get_webp_info( $filename ) {
  *
  * Under the hood, the function uses {@see wp_increase_content_media_count()} every time it is called for an element
  * within the main content. If the element is the very first content element, the `loading` attribute will be omitted.
- * This default threshold of 1 content element to omit the `loading` attribute for can be customized using the
+ * This default threshold of 3 content elements to omit the `loading` attribute for can be customized using the
  * {@see 'wp_omit_loading_attr_threshold'} filter.
  *
  * @since 5.9.0
@@ -5432,32 +5495,57 @@ function wp_get_webp_info( $filename ) {
  *                     that the `loading` attribute should be skipped.
  */
 function wp_get_loading_attr_default( $context ) {
-	// Only elements with 'the_content' or 'the_post_thumbnail' context have special handling.
-	if ( 'the_content' !== $context && 'the_post_thumbnail' !== $context ) {
-		return 'lazy';
-	}
-
-	// Only elements within the main query loop have special handling.
-	if ( is_admin() || ! in_the_loop() || ! is_main_query() ) {
-		return 'lazy';
-	}
-
-	// Increase the counter since this is a main query content element.
-	$content_media_count = wp_increase_content_media_count();
-
-	// If the count so far is below the threshold, return `false` so that the `loading` attribute is omitted.
-	if ( $content_media_count <= wp_omit_loading_attr_threshold() ) {
+	// Skip lazy-loading for the overall block template, as it is handled more granularly.
+	if ( 'template' === $context ) {
 		return false;
 	}
 
-	// For elements after the threshold, lazy-load them as usual.
+	// Do not lazy-load images in the header block template part, as they are likely above the fold.
+	$header_area = WP_TEMPLATE_PART_AREA_HEADER;
+	if ( "template_part_{$header_area}" === $context ) {
+		return false;
+	}
+
+	/*
+	 * Skip programmatically created images within post content as they need to be handled together with the other
+	 * images within the post content.
+	 * Without this clause, they would already be counted below which skews the number and can result in the first
+	 * post content image being lazy-loaded only because there are images elsewhere in the post content.
+	 */
+	if ( ( 'the_post_thumbnail' === $context || 'wp_get_attachment_image' === $context ) && doing_filter( 'the_content' ) ) {
+		return false;
+	}
+
+	/*
+	 * The first elements in 'the_content' or 'the_post_thumbnail' should not be lazy-loaded,
+	 * as they are likely above the fold.
+	 */
+	if ( 'the_content' === $context || 'the_post_thumbnail' === $context ) {
+		// Only elements within the main query loop have special handling.
+		if ( is_admin() || ! in_the_loop() || ! is_main_query() ) {
+			return 'lazy';
+		}
+
+		// Increase the counter since this is a main query content element.
+		$content_media_count = wp_increase_content_media_count();
+
+		// If the count so far is below the threshold, return `false` so that the `loading` attribute is omitted.
+		if ( $content_media_count <= wp_omit_loading_attr_threshold() ) {
+			return false;
+		}
+
+		// For elements after the threshold, lazy-load them as usual.
+		return 'lazy';
+	}
+
+	// Lazy-load by default for any unknown context.
 	return 'lazy';
 }
 
 /**
  * Gets the threshold for how many of the first content media elements to not lazy-load.
  *
- * This function runs the {@see 'wp_omit_loading_attr_threshold'} filter, which uses a default threshold value of 1.
+ * This function runs the {@see 'wp_omit_loading_attr_threshold'} filter, which uses a default threshold value of 3.
  * The filter is only run once per page load, unless the `$force` parameter is used.
  *
  * @since 5.9.0
@@ -5478,10 +5566,11 @@ function wp_omit_loading_attr_threshold( $force = false ) {
 		 * for only the very first content media element.
 		 *
 		 * @since 5.9.0
+		 * @since 6.3.0 The default threshold was changed from 1 to 3.
 		 *
-		 * @param int $omit_threshold The number of media elements where the `loading` attribute will not be added. Default 1.
+		 * @param int $omit_threshold The number of media elements where the `loading` attribute will not be added. Default 3.
 		 */
-		$omit_threshold = apply_filters( 'wp_omit_loading_attr_threshold', 1 );
+		$omit_threshold = apply_filters( 'wp_omit_loading_attr_threshold', 3 );
 	}
 
 	return $omit_threshold;

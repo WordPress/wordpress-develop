@@ -457,7 +457,7 @@ function search_theme_directories( $force = false ) {
 	 * to use in get_theme_root().
 	 */
 	foreach ( $wp_theme_directories as $theme_root ) {
-		if ( 0 === strpos( $theme_root, WP_CONTENT_DIR ) ) {
+		if ( str_starts_with( $theme_root, WP_CONTENT_DIR ) ) {
 			$relative_theme_roots[ str_replace( WP_CONTENT_DIR, '', $theme_root ) ] = $theme_root;
 		} else {
 			$relative_theme_roots[ $theme_root ] = $theme_root;
@@ -634,11 +634,11 @@ function get_theme_root_uri( $stylesheet_or_template = '', $theme_root = '' ) {
 	if ( $stylesheet_or_template && $theme_root ) {
 		if ( in_array( $theme_root, (array) $wp_theme_directories, true ) ) {
 			// Absolute path. Make an educated guess. YMMV -- but note the filter below.
-			if ( 0 === strpos( $theme_root, WP_CONTENT_DIR ) ) {
+			if ( str_starts_with( $theme_root, WP_CONTENT_DIR ) ) {
 				$theme_root_uri = content_url( str_replace( WP_CONTENT_DIR, '', $theme_root ) );
-			} elseif ( 0 === strpos( $theme_root, ABSPATH ) ) {
+			} elseif ( str_starts_with( $theme_root, ABSPATH ) ) {
 				$theme_root_uri = site_url( str_replace( ABSPATH, '', $theme_root ) );
-			} elseif ( 0 === strpos( $theme_root, WP_PLUGIN_DIR ) || 0 === strpos( $theme_root, WPMU_PLUGIN_DIR ) ) {
+			} elseif ( str_starts_with( $theme_root, WP_PLUGIN_DIR ) || str_starts_with( $theme_root, WPMU_PLUGIN_DIR ) ) {
 				$theme_root_uri = plugins_url( basename( $theme_root ), $theme_root );
 			} else {
 				$theme_root_uri = $theme_root;
@@ -733,11 +733,12 @@ function locale_stylesheet() {
  * @global array                $wp_theme_directories
  * @global WP_Customize_Manager $wp_customize
  * @global array                $sidebars_widgets
+ * @global array                $wp_registered_sidebars
  *
  * @param string $stylesheet Stylesheet name.
  */
 function switch_theme( $stylesheet ) {
-	global $wp_theme_directories, $wp_customize, $sidebars_widgets;
+	global $wp_theme_directories, $wp_customize, $sidebars_widgets, $wp_registered_sidebars;
 
 	$requirements = validate_theme_requirements( $stylesheet );
 	if ( is_wp_error( $requirements ) ) {
@@ -814,10 +815,17 @@ function switch_theme( $stylesheet ) {
 		}
 	}
 
+	// Stores classic sidebars for later use by block themes.
+	if ( $new_theme->is_block_theme() ) {
+		set_theme_mod( 'wp_classic_sidebars', $wp_registered_sidebars );
+	}
+
 	update_option( 'theme_switched', $old_theme->get_stylesheet() );
 
 	/**
 	 * Fires after the theme is switched.
+	 *
+	 * See {@see 'after_switch_theme'}.
 	 *
 	 * @since 1.5.0
 	 * @since 4.5.0 Introduced the `$old_theme` parameter.
@@ -3380,12 +3388,13 @@ function check_theme_switched() {
 
 		if ( $old_theme->exists() ) {
 			/**
-			 * Fires on the first WP load after a theme switch if the old theme still exists.
+			 * Fires on the next WP load after the theme has been switched.
 			 *
-			 * This action fires multiple times and the parameters differs
-			 * according to the context, if the old theme exists or not.
-			 * If the old theme is missing, the parameter will be the slug
+			 * The parameters differ according to whether the old theme exists or not.
+			 * If the old theme is missing, the old name will instead be the slug
 			 * of the old theme.
+			 *
+			 * See {@see 'switch_theme'}.
 			 *
 			 * @since 3.3.0
 			 *
@@ -3619,7 +3628,7 @@ function _wp_customize_changeset_filter_insert_post_data( $post_data, $supplied_
 function _wp_customize_loader_settings() {
 	$admin_origin = parse_url( admin_url() );
 	$home_origin  = parse_url( home_url() );
-	$cross_domain = ( strtolower( $admin_origin['host'] ) != strtolower( $home_origin['host'] ) );
+	$cross_domain = ( strtolower( $admin_origin['host'] ) !== strtolower( $home_origin['host'] ) );
 
 	$browser = array(
 		'mobile' => wp_is_mobile(),
@@ -3684,7 +3693,7 @@ function wp_customize_url( $stylesheet = '' ) {
 function wp_customize_support_script() {
 	$admin_origin = parse_url( admin_url() );
 	$home_origin  = parse_url( home_url() );
-	$cross_domain = ( strtolower( $admin_origin['host'] ) != strtolower( $home_origin['host'] ) );
+	$cross_domain = ( strtolower( $admin_origin['host'] ) !== strtolower( $home_origin['host'] ) );
 	$type_attr    = current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"';
 	?>
 	<script<?php echo $type_attr; ?>>

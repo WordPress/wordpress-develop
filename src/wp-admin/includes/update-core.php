@@ -863,6 +863,9 @@ $_old_files = array(
 	'wp-includes/blocks/comments-query-loop/editor-rtl.css',
 	'wp-includes/blocks/comments-query-loop/editor-rtl.min.css',
 	'wp-includes/blocks/comments-query-loop',
+	// 6.3
+	'wp-includes/images/wlw',
+	'wp-includes/wlwmanifest.xml',
 );
 
 /**
@@ -1053,7 +1056,9 @@ $_new_bundled_files = array(
 function update_core( $from, $to ) {
 	global $wp_filesystem, $_old_files, $_old_requests_files, $_new_bundled_files, $wpdb;
 
-	set_time_limit( 300 );
+	if ( function_exists( 'set_time_limit' ) ) {
+		set_time_limit( 300 );
+	}
 
 	/*
 	 * Merge the old Requests files and directories into the `$_old_files`.
@@ -1406,7 +1411,7 @@ function update_core( $from, $to ) {
 		}
 
 		// Check if the language directory exists first.
-		if ( ! @is_dir( $lang_dir ) && 0 === strpos( $lang_dir, ABSPATH ) ) {
+		if ( ! @is_dir( $lang_dir ) && str_starts_with( $lang_dir, ABSPATH ) ) {
 			// If it's within the ABSPATH we can handle it here, otherwise they're out of luck.
 			$wp_filesystem->mkdir( $to . str_replace( ABSPATH, '', $lang_dir ), FS_CHMOD_DIR );
 			clearstatcache(); // For FTP, need to clear the stat cache.
@@ -1491,7 +1496,10 @@ function update_core( $from, $to ) {
 					$wp_filesystem->mkdir( $dest . $filename, FS_CHMOD_DIR );
 					$_result = copy_dir( $from . $distro . 'wp-content/' . $file, $dest . $filename );
 
-					// If a error occurs partway through this final step, keep the error flowing through, but keep process going.
+					/*
+					 * If an error occurs partway through this final step,
+					 * keep the error flowing through, but keep the process going.
+					 */
 					if ( is_wp_error( $_result ) ) {
 						if ( ! is_wp_error( $result ) ) {
 							$result = new WP_Error();
@@ -1593,11 +1601,26 @@ function update_core( $from, $to ) {
  *
  * @global array              $_old_requests_files Requests files to be preloaded.
  * @global WP_Filesystem_Base $wp_filesystem       WordPress filesystem subclass.
+ * @global string             $wp_version          The WordPress version string.
  *
  * @param string $to Path to old WordPress installation.
  */
 function _preload_old_requests_classes_and_interfaces( $to ) {
-	global $_old_requests_files, $wp_filesystem;
+	global $_old_requests_files, $wp_filesystem, $wp_version;
+
+	/*
+	 * Requests was introduced in WordPress 4.6.
+	 *
+	 * Skip preloading if the website was previously using
+	 * an earlier version of WordPress.
+	 */
+	if ( version_compare( $wp_version, '4.6', '<' ) ) {
+		return;
+	}
+
+	if ( ! defined( 'REQUESTS_SILENCE_PSR0_DEPRECATIONS' ) ) {
+		define( 'REQUESTS_SILENCE_PSR0_DEPRECATIONS', true );
+	}
 
 	foreach ( $_old_requests_files as $name => $file ) {
 		// Skip files that aren't interfaces or classes.

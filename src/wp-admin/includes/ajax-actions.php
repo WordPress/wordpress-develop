@@ -245,7 +245,7 @@ function wp_ajax_imgedit_preview() {
 
 	check_ajax_referer( "image_editor-$post_id" );
 
-	include_once ABSPATH . 'wp-admin/includes/image-edit.php';
+	require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
 	if ( ! stream_preview_image( $post_id ) ) {
 		wp_die( -1 );
@@ -2034,19 +2034,19 @@ function wp_ajax_inline_save() {
 		wp_die();
 	}
 
-	$post_ID = (int) $_POST['post_ID'];
+	$post_id = (int) $_POST['post_ID'];
 
 	if ( 'page' === $_POST['post_type'] ) {
-		if ( ! current_user_can( 'edit_page', $post_ID ) ) {
+		if ( ! current_user_can( 'edit_page', $post_id ) ) {
 			wp_die( __( 'Sorry, you are not allowed to edit this page.' ) );
 		}
 	} else {
-		if ( ! current_user_can( 'edit_post', $post_ID ) ) {
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
 			wp_die( __( 'Sorry, you are not allowed to edit this post.' ) );
 		}
 	}
 
-	$last = wp_check_post_lock( $post_ID );
+	$last = wp_check_post_lock( $post_id );
 	if ( $last ) {
 		$last_user      = get_userdata( $last );
 		$last_user_name = $last_user ? $last_user->display_name : __( 'Someone' );
@@ -2065,7 +2065,7 @@ function wp_ajax_inline_save() {
 
 	$data = &$_POST;
 
-	$post = get_post( $post_ID, ARRAY_A );
+	$post = get_post( $post_id, ARRAY_A );
 
 	// Since it's coming from the database.
 	$post = wp_slash( $post );
@@ -2532,7 +2532,7 @@ function wp_ajax_upload_attachment() {
 	check_ajax_referer( 'media-form' );
 	/*
 	 * This function does not use wp_send_json_success() / wp_send_json_error()
-	 * as the html4 Plupload handler requires a text/html content-type for older IE.
+	 * as the html4 Plupload handler requires a text/html Content-Type for older IE.
 	 * See https://core.trac.wordpress.org/ticket/31037
 	 */
 
@@ -2649,7 +2649,7 @@ function wp_ajax_image_editor() {
 	}
 
 	check_ajax_referer( "image_editor-$attachment_id" );
-	include_once ABSPATH . 'wp-admin/includes/image-edit.php';
+	require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
 	$msg = false;
 
@@ -2699,30 +2699,30 @@ function wp_ajax_image_editor() {
 function wp_ajax_set_post_thumbnail() {
 	$json = ! empty( $_REQUEST['json'] ); // New-style request.
 
-	$post_ID = (int) $_POST['post_id'];
-	if ( ! current_user_can( 'edit_post', $post_ID ) ) {
+	$post_id = (int) $_POST['post_id'];
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
 		wp_die( -1 );
 	}
 
 	$thumbnail_id = (int) $_POST['thumbnail_id'];
 
 	if ( $json ) {
-		check_ajax_referer( "update-post_$post_ID" );
+		check_ajax_referer( "update-post_$post_id" );
 	} else {
-		check_ajax_referer( "set_post_thumbnail-$post_ID" );
+		check_ajax_referer( "set_post_thumbnail-$post_id" );
 	}
 
 	if ( '-1' == $thumbnail_id ) {
-		if ( delete_post_thumbnail( $post_ID ) ) {
-			$return = _wp_post_thumbnail_html( null, $post_ID );
+		if ( delete_post_thumbnail( $post_id ) ) {
+			$return = _wp_post_thumbnail_html( null, $post_id );
 			$json ? wp_send_json_success( $return ) : wp_die( $return );
 		} else {
 			wp_die( 0 );
 		}
 	}
 
-	if ( set_post_thumbnail( $post_ID, $thumbnail_id ) ) {
-		$return = _wp_post_thumbnail_html( $thumbnail_id, $post_ID );
+	if ( set_post_thumbnail( $post_id, $thumbnail_id ) ) {
+		$return = _wp_post_thumbnail_html( $thumbnail_id, $post_id );
 		$json ? wp_send_json_success( $return ) : wp_die( $return );
 	}
 
@@ -2735,11 +2735,11 @@ function wp_ajax_set_post_thumbnail() {
  * @since 4.6.0
  */
 function wp_ajax_get_post_thumbnail_html() {
-	$post_ID = (int) $_POST['post_id'];
+	$post_id = (int) $_POST['post_id'];
 
-	check_ajax_referer( "update-post_$post_ID" );
+	check_ajax_referer( "update-post_$post_id" );
 
-	if ( ! current_user_can( 'edit_post', $post_ID ) ) {
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
 		wp_die( -1 );
 	}
 
@@ -2750,7 +2750,7 @@ function wp_ajax_get_post_thumbnail_html() {
 		$thumbnail_id = null;
 	}
 
-	$return = _wp_post_thumbnail_html( $thumbnail_id, $post_ID );
+	$return = _wp_post_thumbnail_html( $thumbnail_id, $post_id );
 	wp_send_json_success( $return );
 }
 
@@ -2768,6 +2768,10 @@ function wp_ajax_set_attachment_thumbnail() {
 
 	$thumbnail_id = (int) $_POST['thumbnail_id'];
 	if ( empty( $thumbnail_id ) ) {
+		wp_send_json_error();
+	}
+
+	if ( false === check_ajax_referer( 'set-attachment-thumbnail', '_ajax_nonce', false ) ) {
 		wp_send_json_error();
 	}
 
@@ -3517,7 +3521,10 @@ function wp_ajax_get_revision_diffs() {
 	}
 
 	$return = array();
-	set_time_limit( 0 );
+
+	if ( function_exists( 'set_time_limit' ) ) {
+		set_time_limit( 0 );
+	}
 
 	foreach ( $_REQUEST['compare'] as $compare_key ) {
 		list( $compare_from, $compare_to ) = explode( ':', $compare_key ); // from:to
@@ -3746,7 +3753,7 @@ function wp_ajax_parse_embed() {
 		$wp_embed->usecache = false;
 	}
 
-	if ( is_ssl() && 0 === strpos( $url, 'http://' ) ) {
+	if ( is_ssl() && str_starts_with( $url, 'http://' ) ) {
 		// Admin is ssl and the user pasted non-ssl URL.
 		// Check if the provider supports ssl embeds and use that for the preview.
 		$ssl_shortcode = preg_replace( '%^(\\[embed[^\\]]*\\])http://%i', '$1https://', $shortcode );
@@ -4154,7 +4161,7 @@ function wp_ajax_install_theme() {
 	}
 
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-	include_once ABSPATH . 'wp-admin/includes/theme.php';
+	require_once ABSPATH . 'wp-admin/includes/theme.php';
 
 	$api = themes_api(
 		'theme_information',
@@ -4399,7 +4406,7 @@ function wp_ajax_delete_theme() {
 		wp_send_json_error( $status );
 	}
 
-	include_once ABSPATH . 'wp-admin/includes/theme.php';
+	require_once ABSPATH . 'wp-admin/includes/theme.php';
 
 	$result = delete_theme( $stylesheet );
 
@@ -4447,7 +4454,7 @@ function wp_ajax_install_plugin() {
 	}
 
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-	include_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+	require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 
 	$api = plugins_api(
 		'plugin_information',

@@ -303,7 +303,7 @@ function update_nag() {
 
 	$version_url = sprintf(
 		/* translators: %s: WordPress version. */
-		esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
+		esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
 		sanitize_title( $cur->current )
 	);
 
@@ -924,7 +924,12 @@ function wp_print_admin_notice_templates() {
 							printf( __( '%s updates failed.' ), '{{ data.errors }}' );
 							?>
 						<# } #>
-						<span class="screen-reader-text"><?php _e( 'Show more details' ); ?></span>
+						<span class="screen-reader-text">
+							<?php
+							/* translators: Hidden accessibility text. */
+							_e( 'Show more details' );
+							?>
+						</span>
 						<span class="toggle-indicator" aria-hidden="true"></span>
 					</button>
 				<# } #>

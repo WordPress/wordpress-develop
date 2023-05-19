@@ -1,15 +1,9 @@
 <?php
 /**
- * Block registration tests
+ * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names(), and register_block_style().
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.0.0
- */
-
-/**
- * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names(), and register_block_style().
- *
  * @since 5.0.0
  *
  * @group blocks
@@ -375,6 +369,58 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that register_block_style_handle() loads RTL stylesheets when an RTL locale is set.
+	 *
+	 * @ticket 56325
+	 * @ticket 56797
+	 *
+	 * @covers ::register_block_style_handle
+	 */
+	public function test_register_block_style_handle_should_load_rtl_stylesheets_for_rtl_text_direction() {
+		global $wp_locale;
+
+		$metadata = array(
+			'file'  => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'  => 'unit-tests/test-block-rtl',
+			'style' => 'file:./block.css',
+		);
+
+		$orig_text_dir             = $wp_locale->text_direction;
+		$wp_locale->text_direction = 'rtl';
+
+		$handle       = register_block_style_handle( $metadata, 'style' );
+		$extra_rtl    = wp_styles()->get_data( 'unit-tests-test-block-rtl-style', 'rtl' );
+		$extra_suffix = wp_styles()->get_data( 'unit-tests-test-block-rtl-style', 'suffix' );
+		$extra_path   = wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-rtl-style', 'path' ) );
+
+		$wp_locale->text_direction = $orig_text_dir;
+
+		$this->assertSame(
+			'unit-tests-test-block-rtl-style',
+			$handle,
+			'The handle did not match the expected handle.'
+		);
+
+		$this->assertSame(
+			'replace',
+			$extra_rtl,
+			'The extra "rtl" data was not "replace".'
+		);
+
+		$this->assertSame(
+			'',
+			$extra_suffix,
+			'The extra "suffix" data was not an empty string.'
+		);
+
+		$this->assertSame(
+			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block-rtl.css' ) ),
+			$extra_path,
+			'The "path" did not match the expected path.'
+		);
+	}
+
+	/**
 	 * @ticket 56664
 	 */
 	public function test_register_nonexistent_stylesheet() {
@@ -437,6 +483,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 *
 	 * @ticket 50263
 	 * @ticket 50328
+	 * @ticket 57585
 	 */
 	public function test_block_registers_with_metadata_fixture() {
 		$result = register_block_type_from_metadata(
@@ -469,6 +516,12 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			$result->provides_context
 		);
 		$this->assertSameSets( array( 'groupId' ), $result->uses_context );
+		// @ticket 57585
+		$this->assertSame(
+			array( 'root' => '.wp-block-notice' ),
+			$result->selectors,
+			'Block type should contain selectors from metadata.'
+		);
 		$this->assertSame(
 			array(
 				'align'             => true,

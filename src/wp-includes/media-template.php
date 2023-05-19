@@ -163,7 +163,7 @@ function wp_print_media_templates() {
 		'target="_blank" rel="noopener"',
 		sprintf(
 			'<span class="screen-reader-text"> %s</span>',
-			/* translators: Accessibility text. */
+			/* translators: Hidden accessibility text. */
 			__( '(opens in a new tab)' )
 		)
 	);
@@ -184,7 +184,7 @@ function wp_print_media_templates() {
 		</div>
 		<h2 class="media-frame-actions-heading screen-reader-text">
 		<?php
-			/* translators: Accessibility text. */
+			/* translators: Hidden accessibility text. */
 			_e( 'Selected media actions' );
 		?>
 		</h2>
@@ -196,7 +196,12 @@ function wp_print_media_templates() {
 	<script type="text/html" id="tmpl-media-modal">
 		<div tabindex="0" class="<?php echo $class; ?>" role="dialog" aria-labelledby="media-frame-title">
 			<# if ( data.hasCloseButton ) { #>
-				<button type="button" class="media-modal-close"><span class="media-modal-icon"><span class="screen-reader-text"><?php _e( 'Close dialog' ); ?></span></span></button>
+				<button type="button" class="media-modal-close"><span class="media-modal-icon"><span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Close dialog' );
+					?>
+				</span></span></button>
 			<# } #>
 			<div class="media-modal-content" role="document"></div>
 		</div>
@@ -221,7 +226,12 @@ function wp_print_media_templates() {
 	<script type="text/html" id="tmpl-uploader-inline">
 		<# var messageClass = data.message ? 'has-upload-message' : 'no-upload-message'; #>
 		<# if ( data.canClose ) { #>
-		<button class="close dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Close uploader' ); ?></span></button>
+		<button class="close dashicons dashicons-no"><span class="screen-reader-text">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Close uploader' );
+			?>
+		</span></button>
 		<# } #>
 		<div class="uploader-inline-content {{ messageClass }}">
 		<# if ( data.message ) { #>
@@ -310,10 +320,20 @@ function wp_print_media_templates() {
 	<?php // Template for the view switchers, used for example in the Media Grid. ?>
 	<script type="text/html" id="tmpl-media-library-view-switcher">
 		<a href="<?php echo esc_url( add_query_arg( 'mode', 'list', admin_url( 'upload.php' ) ) ); ?>" class="view-list">
-			<span class="screen-reader-text"><?php _e( 'List view' ); ?></span>
+			<span class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'List view' );
+				?>
+			</span>
 		</a>
 		<a href="<?php echo esc_url( add_query_arg( 'mode', 'grid', admin_url( 'upload.php' ) ) ); ?>" class="view-grid current" aria-current="page">
-			<span class="screen-reader-text"><?php _e( 'Grid view' ); ?></span>
+			<span class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Grid view' );
+				?>
+			</span>
 		</a>
 	</script>
 
@@ -342,8 +362,8 @@ function wp_print_media_templates() {
 	<?php // Template for the Attachment Details layout in the media browser. ?>
 	<script type="text/html" id="tmpl-edit-attachment-frame">
 		<div class="edit-media-header">
-			<button class="left dashicons"<# if ( ! data.hasPrevious ) { #> disabled<# } #>><span class="screen-reader-text"><?php _e( 'Edit previous media item' ); ?></span></button>
-			<button class="right dashicons"<# if ( ! data.hasNext ) { #> disabled<# } #>><span class="screen-reader-text"><?php _e( 'Edit next media item' ); ?></span></button>
+			<button class="left dashicons"<# if ( ! data.hasPrevious ) { #> disabled<# } #>><span class="screen-reader-text"><?php /* translators: Hidden accessibility text. */ _e( 'Edit previous media item' ); ?></span></button>
+			<button class="right dashicons"<# if ( ! data.hasNext ) { #> disabled<# } #>><span class="screen-reader-text"><?php /* translators: Hidden accessibility text. */ _e( 'Edit next media item' ); ?></span></button>
 			<button type="button" class="media-modal-close"><span class="media-modal-icon"><span class="screen-reader-text"><?php _e( 'Close dialog' ); ?></span></span></button>
 		</div>
 		<div class="media-frame-title"></div>
@@ -353,14 +373,14 @@ function wp_print_media_templates() {
 	<?php // Template for the Attachment Details two columns layout. ?>
 	<script type="text/html" id="tmpl-attachment-details-two-column">
 		<div class="attachment-media-view {{ data.orientation }}">
-			<h2 class="screen-reader-text"><?php _e( 'Attachment Preview' ); ?></h2>
+			<h2 class="screen-reader-text"><?php /* translators: Hidden accessibility text. */ _e( 'Attachment Preview' ); ?></h2>
 			<div class="thumbnail thumbnail-{{ data.type }}">
 				<# if ( data.uploading ) { #>
 					<div class="media-progress-bar"><div></div></div>
-				<# } else if ( data.sizes && data.sizes.large ) { #>
-					<img class="details-image" src="{{ data.sizes.large.url }}" draggable="false" alt="" />
 				<# } else if ( data.sizes && data.sizes.full ) { #>
 					<img class="details-image" src="{{ data.sizes.full.url }}" draggable="false" alt="" />
+				<# } else if ( data.sizes && data.sizes.large ) { #>
+					<img class="details-image" src="{{ data.sizes.large.url }}" draggable="false" alt="" />
 				<# } else if ( -1 === jQuery.inArray( data.type, [ 'audio', 'video' ] ) ) { #>
 					<img class="details-image icon" src="{{ data.icon }}" draggable="false" alt="" />
 				<# } #>
@@ -404,7 +424,12 @@ function wp_print_media_templates() {
 				<span class="saved"><?php esc_html_e( 'Saved.' ); ?></span>
 			</span>
 			<div class="details">
-				<h2 class="screen-reader-text"><?php _e( 'Details' ); ?></h2>
+				<h2 class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Details' );
+					?>
+				</h2>
 				<div class="uploaded"><strong><?php _e( 'Uploaded on:' ); ?></strong> {{ data.dateFormatted }}</div>
 				<div class="uploaded-by">
 					<strong><?php _e( 'Uploaded by:' ); ?></strong>
@@ -439,7 +464,7 @@ function wp_print_media_templates() {
 
 					<# if ( data.originalImageURL && data.originalImageName ) { #>
 						<div class="word-wrap-break-word">
-							<?php _e( 'Original image:' ); ?>
+							<strong><?php _e( 'Original image:' ); ?></strong>
 							<a href="{{ data.originalImageURL }}">{{data.originalImageName}}</a>
 						</div>
 					<# } #>
@@ -529,6 +554,10 @@ function wp_print_media_templates() {
 					<# } #>
 					<a href="{{ data.editLink }}"><?php _e( 'Edit more details' ); ?></a>
 				<# } #>
+				<# if ( data.can.save && data.link ) { #>
+					<span class="links-separator">|</span>
+					<a href="{{ data.url }}" download><?php _e( 'Download file' ); ?></a>
+				<# } #>
 				<# if ( ! data.uploading && data.can.remove ) { #>
 					<# if ( data.link || data.can.save ) { #>
 						<span class="links-separator">|</span>
@@ -573,11 +602,21 @@ function wp_print_media_templates() {
 				<# } #>
 			</div>
 			<# if ( data.buttons.close ) { #>
-				<button type="button" class="button-link attachment-close media-modal-icon"><span class="screen-reader-text"><?php _e( 'Remove' ); ?></span></button>
+				<button type="button" class="button-link attachment-close media-modal-icon"><span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Remove' );
+					?>
+				</span></button>
 			<# } #>
 		</div>
 		<# if ( data.buttons.check ) { #>
-			<button type="button" class="check" tabindex="-1"><span class="media-modal-icon"></span><span class="screen-reader-text"><?php _e( 'Deselect' ); ?></span></button>
+			<button type="button" class="check" tabindex="-1"><span class="media-modal-icon"></span><span class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Deselect' );
+				?>
+			</span></button>
 		<# } #>
 		<#
 		var maybeReadOnly = data.can.save || data.allowLocalEdits ? '' : 'readonly';

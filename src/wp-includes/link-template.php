@@ -1435,7 +1435,7 @@ function get_preview_post_link( $post = null, $query_args = array(), $preview_li
  * Retrieves the edit post link for post.
  *
  * Can be used within the WordPress loop or outside of it. Can be used with
- * pages, posts, attachments, and revisions.
+ * pages, posts, attachments, revisions, global styles, templates, and template parts.
  *
  * @since 2.3.0
  *
@@ -1469,10 +1469,13 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
 		return;
 	}
 
-	if ( $post_type_object->_edit_link ) {
+	$link = '';
+
+	if ( 'wp_template' === $post->post_type || 'wp_template_part' === $post->post_type ) {
+		$slug = urlencode( get_stylesheet() . '//' . $post->post_name );
+		$link = admin_url( sprintf( $post_type_object->_edit_link, $post->post_type, $slug ) );
+	} elseif ( $post_type_object->_edit_link ) {
 		$link = admin_url( sprintf( $post_type_object->_edit_link . $action, $post->ID ) );
-	} else {
-		$link = '';
 	}
 
 	/**
@@ -1984,7 +1987,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	}
 	$cache_key = "adjacent_post:$key:$last_changed";
 
-	$result = wp_cache_get( $cache_key, 'posts' );
+	$result = wp_cache_get( $cache_key, 'post-queries' );
 	if ( false !== $result ) {
 		if ( $result ) {
 			$result = get_post( $result );
@@ -1997,7 +2000,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 		$result = '';
 	}
 
-	wp_cache_set( $cache_key, $result, 'posts' );
+	wp_cache_set( $cache_key, $result, 'post-queries' );
 
 	if ( $result ) {
 		$result = get_post( $result );
@@ -2481,9 +2484,11 @@ function get_next_posts_page_link( $max_page = 0 ) {
 		if ( ! $paged ) {
 			$paged = 1;
 		}
-		$nextpage = (int) $paged + 1;
-		if ( ! $max_page || $max_page >= $nextpage ) {
-			return get_pagenum_link( $nextpage );
+
+		$next_page = (int) $paged + 1;
+
+		if ( ! $max_page || $max_page >= $next_page ) {
+			return get_pagenum_link( $next_page );
 		}
 	}
 }
@@ -2530,13 +2535,13 @@ function get_next_posts_link( $label = null, $max_page = 0 ) {
 		$paged = 1;
 	}
 
-	$nextpage = (int) $paged + 1;
+	$next_page = (int) $paged + 1;
 
 	if ( null === $label ) {
 		$label = __( 'Next Page &raquo;' );
 	}
 
-	if ( ! is_single() && ( $nextpage <= $max_page ) ) {
+	if ( ! is_single() && ( $next_page <= $max_page ) ) {
 		/**
 		 * Filters the anchor tag attributes for the next posts page link.
 		 *
@@ -2546,7 +2551,12 @@ function get_next_posts_link( $label = null, $max_page = 0 ) {
 		 */
 		$attr = apply_filters( 'next_posts_link_attributes', '' );
 
-		return '<a href="' . next_posts( $max_page, false ) . "\" $attr>" . preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label ) . '</a>';
+		return sprintf(
+			'<a href="%1$s" %2$s>%3$s</a>',
+			next_posts( $max_page, false ),
+			$attr,
+			preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label )
+		);
 	}
 }
 
@@ -2579,11 +2589,13 @@ function get_previous_posts_page_link() {
 	global $paged;
 
 	if ( ! is_single() ) {
-		$nextpage = (int) $paged - 1;
-		if ( $nextpage < 1 ) {
-			$nextpage = 1;
+		$previous_page = (int) $paged - 1;
+
+		if ( $previous_page < 1 ) {
+			$previous_page = 1;
 		}
-		return get_pagenum_link( $nextpage );
+
+		return get_pagenum_link( $previous_page );
 	}
 }
 
@@ -2631,7 +2643,13 @@ function get_previous_posts_link( $label = null ) {
 		 * @param string $attributes Attributes for the anchor tag.
 		 */
 		$attr = apply_filters( 'previous_posts_link_attributes', '' );
-		return '<a href="' . previous_posts( false ) . "\" $attr>" . preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label ) . '</a>';
+
+		return sprintf(
+			'<a href="%1$s" %2$s>%3$s</a>',
+			previous_posts( false ),
+			$attr,
+			preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label )
+		);
 	}
 }
 
@@ -2974,7 +2992,7 @@ function the_posts_pagination( $args = array() ) {
  */
 function _navigation_markup( $links, $css_class = 'posts-navigation', $screen_reader_text = '', $aria_label = '' ) {
 	if ( empty( $screen_reader_text ) ) {
-		$screen_reader_text = __( 'Posts navigation' );
+		$screen_reader_text = /* translators: Hidden accessibility text. */ __( 'Posts navigation' );
 	}
 	if ( empty( $aria_label ) ) {
 		$aria_label = $screen_reader_text;
@@ -3079,7 +3097,7 @@ function get_next_comments_link( $label = '', $max_page = 0 ) {
 		$page = 1;
 	}
 
-	$nextpage = (int) $page + 1;
+	$next_page = (int) $page + 1;
 
 	if ( empty( $max_page ) ) {
 		$max_page = $wp_query->max_num_comment_pages;
@@ -3089,7 +3107,7 @@ function get_next_comments_link( $label = '', $max_page = 0 ) {
 		$max_page = get_comment_pages_count();
 	}
 
-	if ( $nextpage > $max_page ) {
+	if ( $next_page > $max_page ) {
 		return;
 	}
 
@@ -3104,7 +3122,14 @@ function get_next_comments_link( $label = '', $max_page = 0 ) {
 	 *
 	 * @param string $attributes Attributes for the anchor tag.
 	 */
-	return '<a href="' . esc_url( get_comments_pagenum_link( $nextpage, $max_page ) ) . '" ' . apply_filters( 'next_comments_link_attributes', '' ) . '>' . preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label ) . '</a>';
+	$attr = apply_filters( 'next_comments_link_attributes', '' );
+
+	return sprintf(
+		'<a href="%1$s" %2$s>%3$s</a>',
+		esc_url( get_comments_pagenum_link( $next_page, $max_page ) ),
+		$attr,
+		preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label )
+	);
 }
 
 /**
@@ -3138,7 +3163,7 @@ function get_previous_comments_link( $label = '' ) {
 		return;
 	}
 
-	$prevpage = (int) $page - 1;
+	$previous_page = (int) $page - 1;
 
 	if ( empty( $label ) ) {
 		$label = __( '&laquo; Older Comments' );
@@ -3151,7 +3176,14 @@ function get_previous_comments_link( $label = '' ) {
 	 *
 	 * @param string $attributes Attributes for the anchor tag.
 	 */
-	return '<a href="' . esc_url( get_comments_pagenum_link( $prevpage ) ) . '" ' . apply_filters( 'previous_comments_link_attributes', '' ) . '>' . preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label ) . '</a>';
+	$attr = apply_filters( 'previous_comments_link_attributes', '' );
+
+	return sprintf(
+		'<a href="%1$s" %2$s>%3$s</a>',
+		esc_url( get_comments_pagenum_link( $previous_page ) ),
+		$attr,
+		preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label )
+	);
 }
 
 /**
@@ -3607,7 +3639,7 @@ function plugins_url( $path = '', $plugin = '' ) {
 	$plugin        = wp_normalize_path( $plugin );
 	$mu_plugin_dir = wp_normalize_path( WPMU_PLUGIN_DIR );
 
-	if ( ! empty( $plugin ) && 0 === strpos( $plugin, $mu_plugin_dir ) ) {
+	if ( ! empty( $plugin ) && str_starts_with( $plugin, $mu_plugin_dir ) ) {
 		$url = WPMU_PLUGIN_URL;
 	} else {
 		$url = WP_PLUGIN_URL;
@@ -4223,10 +4255,10 @@ function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
  *
  *     @type int    $size           Height and width of the avatar in pixels. Default 96.
  *     @type string $default        URL for the default image or a default type. Accepts '404' (return
- *                                  a 404 instead of a default image), 'retro' (8bit), 'monsterid' (monster),
- *                                  'wavatar' (cartoon face), 'indenticon' (the "quilt"), 'mystery', 'mm',
- *                                  or 'mysteryman' (The Oyster Man), 'blank' (transparent GIF), or
- *                                  'gravatar_default' (the Gravatar logo). Default is the value of the
+ *                                  a 404 instead of a default image), 'retro' (8bit), 'RoboHash' (robohash),
+ *                                  'monsterid' (monster), 'wavatar' (cartoon face), 'indenticon' (the "quilt"),
+ *                                  'mystery', 'mm', or 'mysteryman' (The Oyster Man), 'blank' (transparent GIF),
+ *                                  or 'gravatar_default' (the Gravatar logo). Default is the value of the
  *                                  'avatar_default' option, with a fallback of 'mystery'.
  *     @type bool   $force_default  Whether to always show the default image, never the Gravatar. Default false.
  *     @type string $rating         What rating to display avatars up to. Accepts 'G', 'PG', 'R', 'X', and are
@@ -4650,6 +4682,7 @@ function the_privacy_policy_link( $before = '', $after = '' ) {
  * Returns the privacy policy link with formatting, when applicable.
  *
  * @since 4.9.6
+ * @since 6.2.0 Added 'privacy-policy' rel attribute.
  *
  * @param string $before Optional. Display before privacy policy link. Default empty.
  * @param string $after  Optional. Display after privacy policy link. Default empty.
@@ -4664,7 +4697,7 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
 
 	if ( $privacy_policy_url && $page_title ) {
 		$link = sprintf(
-			'<a class="privacy-policy-link" href="%s">%s</a>',
+			'<a class="privacy-policy-link" href="%s" rel="privacy-policy">%s</a>',
 			esc_url( $privacy_policy_url ),
 			esc_html( $page_title )
 		);
@@ -4687,4 +4720,64 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
 	}
 
 	return '';
+}
+
+/**
+ * Returns an array of URL hosts which are considered to be internal hosts.
+ *
+ * By default the list of internal hosts is comprised of the host name of
+ * the site's home_url() (as parsed by wp_parse_url()).
+ *
+ * This list is used when determining if a specificed URL is a link to a page on
+ * the site itself or a link offsite (to an external host). This is used, for
+ * example, when determining if the "nofollow" attribute should be applied to a
+ * link.
+ *
+ * @see wp_is_internal_link
+ *
+ * @since 6.2.0
+ *
+ * @return string[] An array of URL hosts.
+ */
+function wp_internal_hosts() {
+	static $internal_hosts;
+
+	if ( empty( $internal_hosts ) ) {
+		/**
+		 * Filters the array of URL hosts which are considered internal.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param string[] $internal_hosts An array of internal URL hostnames.
+		 */
+		$internal_hosts = apply_filters(
+			'wp_internal_hosts',
+			array(
+				wp_parse_url( home_url(), PHP_URL_HOST ),
+			)
+		);
+		$internal_hosts = array_unique(
+			array_map( 'strtolower', (array) $internal_hosts )
+		);
+	}
+
+	return $internal_hosts;
+}
+
+/**
+ * Determines whether or not the specified URL is of a host included in the internal hosts list.
+ *
+ * @see wp_internal_hosts()
+ *
+ * @since 6.2.0
+ *
+ * @param string $link The URL to test.
+ * @return bool Returns true for internal URLs and false for all other URLs.
+ */
+function wp_is_internal_link( $link ) {
+	$link = strtolower( $link );
+	if ( in_array( wp_parse_url( $link, PHP_URL_SCHEME ), wp_allowed_protocols(), true ) ) {
+		return in_array( wp_parse_url( $link, PHP_URL_HOST ), wp_internal_hosts(), true );
+	}
+	return false;
 }

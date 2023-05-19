@@ -73,7 +73,7 @@ class Tests_Block_Supports_Elements extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			$result,
-			'<p class="wp-elements-1 has-dark-gray-background-color has-background">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>'
+			'<p class="has-dark-gray-background-color has-background wp-elements-1">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>'
 		);
 	}
 
@@ -103,7 +103,7 @@ class Tests_Block_Supports_Elements extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			$result,
-			'<p id="anchor" class="wp-elements-1">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>'
+			'<p class="wp-elements-1" id="anchor">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>'
 		);
 	}
 }

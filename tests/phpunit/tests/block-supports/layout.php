@@ -1,15 +1,9 @@
 <?php
 /**
- * Block supports tests for the layout.
+ * Tests for block supports related to layout.
  *
  * @package WordPress
  * @subpackage Block Supports
- * @since 6.0.0
- */
-
-/**
- * Tests for block supports related to layout.
- *
  * @since 6.0.0
  *
  * @group block-supports
@@ -172,5 +166,89 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 		$expected      = '<figure class="wp-block-image alignright size-full is-style-round my-custom-classname"><img src="/my-image.jpg"/></figure>';
 
 		$this->assertSame( $expected, wp_restore_image_outer_container( $block_content, $block ) );
+	}
+
+	/**
+	 * @ticket 57584
+	 *
+	 * @dataProvider data_layout_support_flag_renders_classnames_on_wrapper
+	 *
+	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @param array  $args            Dataset to test.
+	 * @param string $expected_output The expected output.
+	 */
+	public function test_layout_support_flag_renders_classnames_on_wrapper( $args, $expected_output ) {
+		$actual_output = wp_render_layout_support_flag( $args['block_content'], $args['block'] );
+		$this->assertSame( $expected_output, $actual_output );
+	}
+
+	/**
+	 * Data provider for test_layout_support_flag_renders_classnames_on_wrapper.
+	 *
+	 * @return array
+	 */
+	public function data_layout_support_flag_renders_classnames_on_wrapper() {
+		return array(
+			'single wrapper block layout with flow type'   => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'default',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"></div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group is-layout-flow"></div>',
+			),
+			'single wrapper block layout with constrained type' => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'constrained',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"></div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group is-layout-constrained"></div>',
+			),
+			'multiple wrapper block layout with flow type' => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"><div class="wp-block-group__inner-wrapper"></div></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'default',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"><div class="wp-block-group__inner-wrapper"></div></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"><div class="wp-block-group__inner-wrapper">',
+							' ',
+							' </div></div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group"><div class="wp-block-group__inner-wrapper is-layout-flow"></div></div>',
+			),
+		);
 	}
 }

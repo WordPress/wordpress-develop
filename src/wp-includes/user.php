@@ -26,13 +26,24 @@
  *
  * @global string $auth_secure_cookie
  *
- * @param array       $credentials   Optional. User info in order to sign on.
+ * @param array       $credentials {
+ *     Optional. User info in order to sign on.
+ *
+ *     @type string $user_login    Username.
+ *     @type string $user_password User password.
+ *     @type bool   $remember      Whether to 'remember' the user. Increases the time
+ *                                 that the cookie will be kept. Default false.
+ * }
  * @param string|bool $secure_cookie Optional. Whether to use secure cookie.
  * @return WP_User|WP_Error WP_User on success, WP_Error on failure.
  */
 function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	if ( empty( $credentials ) ) {
-		$credentials = array(); // Back-compat for plugins passing an empty string.
+		$credentials = array(
+			'user_login'    => '',
+			'user_password' => '',
+			'remember'      => false,
+		);
 
 		if ( ! empty( $_POST['log'] ) ) {
 			$credentials['user_login'] = wp_unslash( $_POST['log'] );
@@ -978,7 +989,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
 		if ( 'capabilities' !== substr( $key, -12 ) ) {
 			continue;
 		}
-		if ( $wpdb->base_prefix && 0 !== strpos( $key, $wpdb->base_prefix ) ) {
+		if ( $wpdb->base_prefix && ! str_starts_with( $key, $wpdb->base_prefix ) ) {
 			continue;
 		}
 		$site_id = str_replace( array( $wpdb->base_prefix, '_capabilities' ), '', $key );
@@ -993,9 +1004,8 @@ function get_blogs_of_user( $user_id, $all = false ) {
 
 	if ( ! empty( $site_ids ) ) {
 		$args = array(
-			'number'                 => '',
-			'site__in'               => $site_ids,
-			'update_site_meta_cache' => false,
+			'number'   => '',
+			'site__in' => $site_ids,
 		);
 		if ( ! $all ) {
 			$args['archived'] = 0;
@@ -1896,6 +1906,7 @@ function clean_user_cache( $user ) {
 	}
 
 	wp_cache_delete( $user->ID, 'user_meta' );
+	wp_cache_set_users_last_changed();
 
 	/**
 	 * Fires immediately after the given user's cache is cleaned.
@@ -2578,7 +2589,7 @@ function wp_update_user( $userdata ) {
 
 	$switched_locale = false;
 	if ( ! empty( $send_password_change_email ) || ! empty( $send_email_change_email ) ) {
-		$switched_locale = switch_to_locale( get_user_locale( $user_id ) );
+		$switched_locale = switch_to_user_locale( $user_id );
 	}
 
 	if ( ! empty( $send_password_change_email ) ) {
@@ -3139,7 +3150,7 @@ function retrieve_password( $user_login = null ) {
 	// Localize password reset message content for user.
 	$locale = get_user_locale( $user_data );
 
-	$switched_locale = switch_to_locale( $locale );
+	$switched_locale = switch_to_user_locale( $user_data->ID );
 
 	if ( is_multisite() ) {
 		$site_name = get_network()->site_name;
@@ -3257,7 +3268,7 @@ function retrieve_password( $user_login = null ) {
 			sprintf(
 				/* translators: %s: Documentation URL. */
 				__( '<strong>Error:</strong> The email could not be sent. Your site may not be correctly configured to send emails. <a href="%s">Get support for resetting your password</a>.' ),
-				esc_url( __( 'https://wordpress.org/support/article/resetting-your-password/' ) )
+				esc_url( __( 'https://wordpress.org/documentation/article/reset-your-password/' ) )
 			)
 		);
 		return $errors;
@@ -3329,7 +3340,6 @@ function register_new_user( $user_login, $user_email ) {
 		$sanitized_user_login = '';
 	} elseif ( username_exists( $sanitized_user_login ) ) {
 		$errors->add( 'username_exists', __( '<strong>Error:</strong> This username is already registered. Please choose another one.' ) );
-
 	} else {
 		/** This filter is documented in wp-includes/user.php */
 		$illegal_user_logins = (array) apply_filters( 'illegal_user_logins', array() );
@@ -3716,7 +3726,7 @@ All at ###SITENAME###
 		$content = apply_filters( 'new_user_email_content', $email_text, $new_user_email );
 
 		$content = str_replace( '###USERNAME###', $current_user->user_login, $content );
-		$content = str_replace( '###ADMIN_URL###', esc_url( admin_url( 'profile.php?newuseremail=' . $hash ) ), $content );
+		$content = str_replace( '###ADMIN_URL###', esc_url( self_admin_url( 'profile.php?newuseremail=' . $hash ) ), $content );
 		$content = str_replace( '###EMAIL###', $_POST['email'], $content );
 		$content = str_replace( '###SITENAME###', $sitename, $content );
 		$content = str_replace( '###SITEURL###', home_url(), $content );
@@ -4244,12 +4254,10 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 
 	// Localize message content for user; fallback to site default for visitors.
 	if ( ! empty( $request->user_id ) ) {
-		$locale = get_user_locale( $request->user_id );
+		$switched_locale = switch_to_user_locale( $request->user_id );
 	} else {
-		$locale = get_locale();
+		$switched_locale = switch_to_locale( get_locale() );
 	}
-
-	$switched_locale = switch_to_locale( $locale );
 
 	/**
 	 * Filters the recipient of the data erasure fulfillment notification.
@@ -4655,12 +4663,10 @@ function wp_send_user_request( $request_id ) {
 
 	// Localize message content for user; fallback to site default for visitors.
 	if ( ! empty( $request->user_id ) ) {
-		$locale = get_user_locale( $request->user_id );
+		$switched_locale = switch_to_user_locale( $request->user_id );
 	} else {
-		$locale = get_locale();
+		$switched_locale = switch_to_locale( get_locale() );
 	}
-
-	$switched_locale = switch_to_locale( $locale );
 
 	$email_data = array(
 		'request'     => $request,
@@ -5009,4 +5015,13 @@ function wp_register_persisted_preferences_meta() {
 			),
 		)
 	);
+}
+
+/**
+ * Sets the last changed time for the 'users' cache group.
+ *
+ * @since 6.3.0
+ */
+function wp_cache_set_users_last_changed() {
+	wp_cache_set_last_changed( 'users' );
 }

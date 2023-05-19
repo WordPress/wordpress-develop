@@ -254,6 +254,9 @@ function image_add_caption( $html, $id, $caption, $title, $align, $url, $size, $
  *
  * @access private
  * @since 3.4.0
+ *
+ * @param array $matches Single regex match.
+ * @return string Cleaned up HTML for caption.
  */
 function _cleanup_image_add_caption( $matches ) {
 	// Remove any line breaks from inside the tags.
@@ -385,7 +388,7 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 		}
 
 		// Use image exif/iptc data for title and caption defaults if possible.
-	} elseif ( 0 === strpos( $type, 'image/' ) ) {
+	} elseif ( str_starts_with( $type, 'image/' ) ) {
 		$image_meta = wp_read_image_metadata( $file );
 
 		if ( $image_meta ) {
@@ -534,8 +537,8 @@ function wp_iframe( $content_func, ...$args ) {
 	wp_enqueue_style( 'colors' );
 	// Check callback name for 'media'.
 	if (
-		( is_array( $content_func ) && ! empty( $content_func[1] ) && 0 === strpos( (string) $content_func[1], 'media' ) ) ||
-		( ! is_array( $content_func ) && 0 === strpos( $content_func, 'media' ) )
+		( is_array( $content_func ) && ! empty( $content_func[1] ) && str_starts_with( (string) $content_func[1], 'media' ) ) ||
+		( ! is_array( $content_func ) && str_starts_with( $content_func, 'media' ) )
 	) {
 		wp_enqueue_style( 'deprecated-media' );
 	}
@@ -2261,7 +2264,12 @@ function media_upload_form( $errors = null ) {
 
 	?>
 	<p id="async-upload-wrap">
-		<label class="screen-reader-text" for="async-upload"><?php _e( 'Upload' ); ?></label>
+		<label class="screen-reader-text" for="async-upload">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Upload' );
+			?>
+		</label>
 		<input type="file" name="async-upload" id="async-upload" />
 		<?php submit_button( __( 'Upload' ), 'primary', 'html-upload', false ); ?>
 		<a href="#" onclick="try{top.tb_remove();}catch(e){}; return false;"><?php _e( 'Cancel' ); ?></a>
@@ -2729,7 +2737,12 @@ function media_upload_library_form( $errors ) {
 	<input type="hidden" name="context" value="<?php echo isset( $_GET['context'] ) ? esc_attr( $_GET['context'] ) : ''; ?>" />
 
 	<p id="media-search" class="search-box">
-		<label class="screen-reader-text" for="media-search-input"><?php _e( 'Search Media' ); ?>:</label>
+		<label class="screen-reader-text" for="media-search-input">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Search Media:' );
+			?>
+		</label>
 		<input type="search" id="media-search-input" name="s" value="<?php the_search_query(); ?>" />
 		<?php submit_button( __( 'Search Media' ), '', '', false ); ?>
 	</p>
@@ -3222,7 +3235,7 @@ function edit_form_image_editor( $post ) {
 			'target="_blank" rel="noopener"',
 			sprintf(
 				'<span class="screen-reader-text"> %s</span>',
-				/* translators: Accessibility text. */
+				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
 			)
 		);
@@ -3335,6 +3348,9 @@ function attachment_submitbox_metadata() {
 			<button type="button" class="button copy-attachment-url edit-media" data-clipboard-target="#attachment_url"><?php _e( 'Copy URL to clipboard' ); ?></button>
 			<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
 		</span>
+	</div>
+	<div class="misc-pub-section misc-pub-download">
+		<a href="<?php echo esc_attr( $att_url ); ?>" download><?php _e( 'Download file' ); ?></a>
 	</div>
 	<div class="misc-pub-section misc-pub-filename">
 		<?php _e( 'File name:' ); ?> <strong><?php echo $filename; ?></strong>
@@ -3472,7 +3488,7 @@ function attachment_submitbox_metadata() {
 		<div class="misc-pub-section misc-pub-original-image word-wrap-break-word">
 			<?php _e( 'Original image:' ); ?>
 			<a href="<?php echo esc_url( wp_get_original_image_url( $attachment_id ) ); ?>">
-				<?php echo esc_html( wp_basename( wp_get_original_image_path( $attachment_id ) ) ); ?>
+				<strong><?php echo esc_html( wp_basename( wp_get_original_image_path( $attachment_id ) ) ); ?></strong>
 			</a>
 		</div>
 		<?php
@@ -3494,7 +3510,7 @@ function wp_add_id3_tag_data( &$metadata, $data ) {
 				if ( 'length' !== $key && ! empty( $list ) ) {
 					$metadata[ $key ] = wp_kses_post( reset( $list ) );
 					// Fix bug in byte stream analysis.
-					if ( 'terms_of_use' === $key && 0 === strpos( $metadata[ $key ], 'yright notice.' ) ) {
+					if ( 'terms_of_use' === $key && str_starts_with( $metadata[ $key ], 'yright notice.' ) ) {
 						$metadata[ $key ] = 'Cop' . $metadata[ $key ];
 					}
 				}

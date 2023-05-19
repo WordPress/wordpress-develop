@@ -741,12 +741,12 @@ function list_authors($optioncount = false, $exclude_admin = true, $show_fullnam
  * @see wp_get_post_categories()
  *
  * @param int $blogid Not Used
- * @param int $post_ID
+ * @param int $post_id
  * @return array
  */
-function wp_get_post_cats($blogid = '1', $post_ID = 0) {
+function wp_get_post_cats($blogid = '1', $post_id = 0) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_get_post_categories()' );
-	return wp_get_post_categories($post_ID);
+	return wp_get_post_categories($post_id);
 }
 
 /**
@@ -758,13 +758,13 @@ function wp_get_post_cats($blogid = '1', $post_ID = 0) {
  * @see wp_set_post_categories()
  *
  * @param int $blogid Not used
- * @param int $post_ID
+ * @param int $post_id
  * @param array $post_categories
  * @return bool|mixed
  */
-function wp_set_post_cats($blogid = '1', $post_ID = 0, $post_categories = array()) {
+function wp_set_post_cats($blogid = '1', $post_id = 0, $post_categories = array()) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_set_post_categories()' );
-	return wp_set_post_categories($post_ID, $post_categories);
+	return wp_set_post_categories($post_id, $post_categories);
 }
 
 /**
@@ -947,7 +947,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmarks()' );
 
 	$order = 'ASC';
-	if ( substr($orderby, 0, 1) == '_' ) {
+	if ( substr($orderby, 0, 1) === '_' ) {
 		$order = 'DESC';
 		$orderby = substr($orderby, 1);
 	}
@@ -980,7 +980,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 		$title = $desc;
 
 		if ( $show_updated )
-			if (substr($row->link_updated_f, 0, 2) != '00')
+			if (substr($row->link_updated_f, 0, 2) !== '00')
 				$title .= ' ('.__('Last updated') . ' ' . gmdate(get_option('links_updated_date_format'), $row->link_updated_f + (get_option('gmt_offset') * HOUR_IN_SECONDS)) . ')';
 
 		if ( '' != $title )
@@ -1042,7 +1042,7 @@ function get_links_list($order = 'name') {
 
 	// Handle link category sorting.
 	$direction = 'ASC';
-	if ( '_' == substr($order,0,1) ) {
+	if ( '_' === substr($order,0,1) ) {
 		$direction = 'DESC';
 		$order = substr($order,1);
 	}
@@ -1150,13 +1150,13 @@ function comments_rss_link($link_text = 'Comments RSS') {
  * @see get_category_feed_link()
  *
  * @param bool $display
- * @param int $cat_ID
+ * @param int $cat_id
  * @return string
  */
-function get_category_rss_link($display = false, $cat_ID = 1) {
+function get_category_rss_link($display = false, $cat_id = 1) {
 	_deprecated_function( __FUNCTION__, '2.5.0', 'get_category_feed_link()' );
 
-	$link = get_category_feed_link($cat_ID, 'rss2');
+	$link = get_category_feed_link($cat_id, 'rss2');
 
 	if ( $display )
 		echo $link;
@@ -1225,20 +1225,20 @@ function gzip_compression() {
 }
 
 /**
- * Retrieve an array of comment data about comment $comment_ID.
+ * Retrieve an array of comment data about comment $comment_id.
  *
  * @since 0.71
  * @deprecated 2.7.0 Use get_comment()
  * @see get_comment()
  *
- * @param int $comment_ID The ID of the comment
+ * @param int $comment_id The ID of the comment
  * @param int $no_cache Whether to use the cache (cast to bool)
  * @param bool $include_unapproved Whether to include unapproved comments
  * @return array The comment data
  */
-function get_commentdata( $comment_ID, $no_cache = 0, $include_unapproved = false ) {
+function get_commentdata( $comment_id, $no_cache = 0, $include_unapproved = false ) {
 	_deprecated_function( __FUNCTION__, '2.7.0', 'get_comment()' );
-	return get_comment($comment_ID, ARRAY_A);
+	return get_comment($comment_id, ARRAY_A);
 }
 
 /**
@@ -1248,12 +1248,12 @@ function get_commentdata( $comment_ID, $no_cache = 0, $include_unapproved = fals
  * @deprecated 2.8.0 Use get_cat_name()
  * @see get_cat_name()
  *
- * @param int $cat_ID Category ID
+ * @param int $cat_id Category ID
  * @return string category name
  */
-function get_catname( $cat_ID ) {
+function get_catname( $cat_id ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_cat_name()' );
-	return get_cat_name( $cat_ID );
+	return get_cat_name( $cat_id );
 }
 
 /**
@@ -1739,7 +1739,7 @@ function make_url_footnote( $content ) {
 		$link_url = $matches[2][$i];
 		$link_text = $matches[4][$i];
 		$content = str_replace( $link_match, $link_text . ' ' . $link_number, $content );
-		$link_url = ( ( strtolower( substr( $link_url, 0, 7 ) ) != 'http://' ) && ( strtolower( substr( $link_url, 0, 8 ) ) != 'https://' ) ) ? get_option( 'home' ) . $link_url : $link_url;
+		$link_url = ( ( strtolower( substr( $link_url, 0, 7 ) ) !== 'http://' ) && ( strtolower( substr( $link_url, 0, 8 ) ) !== 'https://' ) ) ? get_option( 'home' ) . $link_url : $link_url;
 		$links_summary .= "\n" . $link_number . ' ' . $link_url;
 	}
 	$content  = strip_tags( $content );
@@ -2297,7 +2297,7 @@ function get_usermeta( $user_id, $meta_key = '' ) {
 
 	$metas = array_map('maybe_unserialize', $metas);
 
-	if ( count($metas) == 1 )
+	if ( count($metas) === 1 )
 		return $metas[0];
 	else
 		return $metas;
@@ -3659,7 +3659,9 @@ function post_permalink( $post = 0 ) {
 function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'WP_Http' );
 
-	@set_time_limit( 60 );
+	if ( function_exists( 'set_time_limit' ) ) {
+		@set_time_limit( 60 );
+	}
 
 	if ( $red > 5 )
 		return false;
@@ -3914,7 +3916,7 @@ function _sort_nav_menu_items( $a, $b ) {
  *
  * @since 2.6.0
  * @deprecated 4.9.0
- *
+ * @return string
  */
 function get_shortcut_link() {
 	_deprecated_function( __FUNCTION__, '4.9.0' );
@@ -3933,11 +3935,11 @@ function get_shortcut_link() {
 }
 
 /**
-* Ajax handler for saving a post from Press This.
-*
-* @since 4.2.0
-* @deprecated 4.9.0
-*/
+ * Ajax handler for saving a post from Press This.
+ *
+ * @since 4.2.0
+ * @deprecated 4.9.0
+ */
 function wp_ajax_press_this_save_post() {
 	_deprecated_function( __FUNCTION__, '4.9.0' );
 	if ( is_plugin_active( 'press-this/press-this-plugin.php' ) ) {
@@ -3950,11 +3952,11 @@ function wp_ajax_press_this_save_post() {
 }
 
 /**
-* Ajax handler for creating new category from Press This.
-*
-* @since 4.2.0
-* @deprecated 4.9.0
-*/
+ * Ajax handler for creating new category from Press This.
+ *
+ * @since 4.2.0
+ * @deprecated 4.9.0
+ */
 function wp_ajax_press_this_add_category() {
 	_deprecated_function( __FUNCTION__, '4.9.0' );
 	if ( is_plugin_active( 'press-this/press-this-plugin.php' ) ) {
@@ -4444,15 +4446,15 @@ function _get_path_to_translation_from_lang_dir( $domain ) {
 }
 
 /**
-  * Allows multiple block styles.
-  *
-  * @since 5.9.0
-  * @deprecated 6.1.0
-  *
-  * @param array $metadata Metadata for registering a block type.
-  * @return array Metadata for registering a block type.
-  */
-  function _wp_multiple_block_styles( $metadata ) {
+ * Allows multiple block styles.
+ *
+ * @since 5.9.0
+ * @deprecated 6.1.0
+ *
+ * @param array $metadata Metadata for registering a block type.
+ * @return array Metadata for registering a block type.
+ */
+function _wp_multiple_block_styles( $metadata ) {
 	_deprecated_function( __FUNCTION__, '6.1.0' );
 	return $metadata;
 }
@@ -4527,4 +4529,113 @@ function _filter_query_attachment_filenames( $clauses ) {
 	_deprecated_function( __FUNCTION__, '6.0.3', 'add_filter( "wp_allow_query_attachment_by_filename", "__return_true" )' );
 	remove_filter( 'posts_clauses', __FUNCTION__ );
 	return $clauses;
+}
+
+/**
+ * Retrieves a page given its title.
+ *
+ * If more than one post uses the same title, the post with the smallest ID will be returned.
+ * Be careful: in case of more than one post having the same title, it will check the oldest
+ * publication date, not the smallest ID.
+ *
+ * Because this function uses the MySQL '=' comparison, $page_title will usually be matched
+ * as case-insensitive with default collation.
+ *
+ * @since 2.1.0
+ * @since 3.0.0 The `$post_type` parameter was added.
+ * @deprecated 6.2.0 Use WP_Query.
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string       $page_title Page title.
+ * @param string       $output     Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                                 correspond to a WP_Post object, an associative array, or a numeric array,
+ *                                 respectively. Default OBJECT.
+ * @param string|array $post_type  Optional. Post type or array of post types. Default 'page'.
+ * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
+ */
+function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
+	_deprecated_function( __FUNCTION__, '6.2.0', 'WP_Query' );
+	global $wpdb;
+
+	if ( is_array( $post_type ) ) {
+		$post_type           = esc_sql( $post_type );
+		$post_type_in_string = "'" . implode( "','", $post_type ) . "'";
+		$sql                 = $wpdb->prepare(
+			"
+			SELECT ID
+			FROM $wpdb->posts
+			WHERE post_title = %s
+			AND post_type IN ($post_type_in_string)
+		",
+			$page_title
+		);
+	} else {
+		$sql = $wpdb->prepare(
+			"
+			SELECT ID
+			FROM $wpdb->posts
+			WHERE post_title = %s
+			AND post_type = %s
+		",
+			$page_title,
+			$post_type
+		);
+	}
+
+	$page = $wpdb->get_var( $sql );
+
+	if ( $page ) {
+		return get_post( $page, $output );
+	}
+
+	return null;
+}
+
+/**
+ * Returns the correct template for the site's home page.
+ *
+ * @access private
+ * @since 6.0.0
+ * @deprecated 6.2.0 Site Editor's server-side redirect for missing postType and postId
+ *                   query args is removed. Thus, this function is no longer used.
+ *
+ * @return array|null A template object, or null if none could be found.
+ */
+function _resolve_home_block_template() {
+	_deprecated_function( __FUNCTION__, '6.2.0' );
+
+	$show_on_front = get_option( 'show_on_front' );
+	$front_page_id = get_option( 'page_on_front' );
+
+	if ( 'page' === $show_on_front && $front_page_id ) {
+		return array(
+				'postType' => 'page',
+				'postId'   => $front_page_id,
+		);
+	}
+
+	$hierarchy = array( 'front-page', 'home', 'index' );
+	$template  = resolve_block_template( 'home', $hierarchy, '' );
+
+	if ( ! $template ) {
+		return null;
+	}
+
+	return array(
+			'postType' => 'wp_template',
+			'postId'   => $template->id,
+	);
+}
+
+/**
+ * Displays the link to the Windows Live Writer manifest file.
+ *
+ * @link https://msdn.microsoft.com/en-us/library/bb463265.aspx
+ * @since 2.3.1
+ * @deprecated 6.3.0 WLW manifest is no longer in use and no longer included in core,
+ *                   so the output from this function is removed.
+ */
+function wlwmanifest_link() {
+	_deprecated_function( __FUNCTION__, '6.3.0' );
 }

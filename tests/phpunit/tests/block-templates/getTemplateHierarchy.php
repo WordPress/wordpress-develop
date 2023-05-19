@@ -8,6 +8,26 @@ require_once __DIR__ . '/base.php';
  */
 class Tests_Block_Templates_GetTemplate_Hierarchy extends WP_Block_Templates_UnitTestCase {
 
+	public function set_up() {
+		parent::set_up();
+		register_post_type(
+			'custom_book',
+			array(
+				'public'       => true,
+				'show_in_rest' => true,
+			)
+		);
+		register_taxonomy( 'book_type', 'custom_book' );
+		register_taxonomy( 'books', 'custom_book' );
+	}
+
+	public function tear_down() {
+		unregister_post_type( 'custom_book' );
+		unregister_taxonomy( 'book_type' );
+		unregister_taxonomy( 'books' );
+		parent::tear_down();
+	}
+
 	/**
 	 * @dataProvider data_get_template_hierarchy
 	 *
@@ -83,12 +103,24 @@ class Tests_Block_Templates_GetTemplate_Hierarchy extends WP_Block_Templates_Uni
 				'args'     => array( 'category-fruits', false, 'category' ),
 				'expected' => array( 'category-fruits', 'category', 'archive', 'index' ),
 			),
+			'single word categories no prefix'         => array(
+				'args'     => array( 'category-fruits', false ),
+				'expected' => array( 'category-fruits', 'category', 'archive', 'index' ),
+			),
 			'multi word categories'                    => array(
 				'args'     => array( 'category-fruits-yellow', false, 'category' ),
 				'expected' => array( 'category-fruits-yellow', 'category', 'archive', 'index' ),
 			),
+			'multi word categories no prefix'          => array(
+				'args'     => array( 'category-fruits-yellow', false ),
+				'expected' => array( 'category-fruits-yellow', 'category', 'archive', 'index' ),
+			),
 			'single word taxonomy and term'            => array(
 				'args'     => array( 'taxonomy-books-action', false, 'taxonomy-books' ),
+				'expected' => array( 'taxonomy-books-action', 'taxonomy-books', 'taxonomy', 'archive', 'index' ),
+			),
+			'single word taxonomy and term no prefix'  => array(
+				'args'     => array( 'taxonomy-books-action', false ),
 				'expected' => array( 'taxonomy-books-action', 'taxonomy-books', 'taxonomy', 'archive', 'index' ),
 			),
 			'single word taxonomy and multi word term' => array(
@@ -118,6 +150,46 @@ class Tests_Block_Templates_GetTemplate_Hierarchy extends WP_Block_Templates_Uni
 			'authors'                                  => array(
 				'args'     => array( 'author-rigas', false, 'author' ),
 				'expected' => array( 'author-rigas', 'author', 'archive', 'index' ),
+			),
+			'multiple word taxonomy no prefix'         => array(
+				'args'     => array( 'taxonomy-book_type-adventure', false ),
+				'expected' => array( 'taxonomy-book_type-adventure', 'taxonomy-book_type', 'taxonomy', 'archive', 'index' ),
+			),
+			'single post type no prefix'               => array(
+				'args'     => array( 'single-custom_book', false ),
+				'expected' => array(
+					'single-custom_book',
+					'single',
+					'singular',
+					'index',
+				),
+			),
+			'single post and post type no prefix'      => array(
+				'args'     => array( 'single-custom_book-book-1', false ),
+				'expected' => array(
+					'single-custom_book-book-1',
+					'single-custom_book',
+					'single',
+					'singular',
+					'index',
+				),
+			),
+			'page no prefix'                           => array(
+				'args'     => array( 'page-hi', false ),
+				'expected' => array(
+					'page-hi',
+					'page',
+					'singular',
+					'index',
+				),
+			),
+			'post type archive no prefix'              => array(
+				'args'     => array( 'archive-book', false ),
+				'expected' => array(
+					'archive-book',
+					'archive',
+					'index',
+				),
 			),
 		);
 	}
