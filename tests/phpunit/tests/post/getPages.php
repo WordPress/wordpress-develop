@@ -328,6 +328,33 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	/**
 	 * @ticket 12821
 	 */
+	public function test_get_pages_test_filter() {
+		register_post_type( 'wptests_pt', array( 'hierarchical' => true ) );
+
+		$posts = self::factory()->post->create_many(
+			2,
+			array(
+				'post_type' => 'wptests_pt',
+			)
+		);
+
+		// Filter the query to return the wptests_pt post type.
+		add_filter(
+			'get_pages_query_args',
+			static function( $query_args ) {
+				$query_args['post_type'] = 'wptests_pt';
+				return $query_args;
+			}
+		);
+
+		$pages    = get_pages();
+		$page_ids = wp_list_pluck( $pages, 'ID' );
+		$this->assertSameSets( $posts, $page_ids );
+	}
+
+	/**
+	 * @ticket 12821
+	 */
 	public function test_get_pages_include_ignores_meta_key() {
 		$posts = self::factory()->post->create_many(
 			2,
