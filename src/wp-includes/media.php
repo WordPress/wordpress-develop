@@ -5514,11 +5514,11 @@ function wp_get_loading_attr_default( $context ) {
 	// Special handling for programmatically created image tags.
 	if ( ( 'the_post_thumbnail' === $context || 'wp_get_attachment_image' === $context ) ) {
 		/*
-		* Skip programmatically created images within post content as they need to be handled together with the other
-		* images within the post content.
-		* Without this clause, they would already be counted below which skews the number and can result in the first
-		* post content image being lazy-loaded only because there are images elsewhere in the post content.
-		*/
+		 * Skip programmatically created images within post content as they need to be handled together with the other
+		 * images within the post content.
+		 * Without this clause, they would already be counted below which skews the number and can result in the first
+		 * post content image being lazy-loaded only because there are images elsewhere in the post content.
+		 */
 		if ( doing_filter( 'the_content' ) ) {
 			return false;
 		}
@@ -5528,10 +5528,10 @@ function wp_get_loading_attr_default( $context ) {
 			// Only apply for main query but before the loop.
 			$wp_query->before_loop && $wp_query->is_main_query()
 			/*
-			* Any image before the loop, but after the header has started should not be lazy-loaded,
-			* except when the footer has already started which can happen when the current template
-			* does not include any loop.
-			*/
+			 * Any image before the loop, but after the header has started should not be lazy-loaded,
+			 * except when the footer has already started which can happen when the current template
+			 * does not include any loop.
+			 */
 			&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
 		) {
 			return false;
