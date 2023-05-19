@@ -6101,7 +6101,6 @@ function get_pages( $args = array() ) {
 	 *
 	 * @param WP_Post[] $pages       Array of page objects.
 	 * @param array     $parsed_args Array of get_pages() arguments.
-	 * @param array     $query_args  Array of arguments passed to WP_Query.
 	 */
 	return apply_filters( 'get_pages', $pages, $parsed_args );
 }
