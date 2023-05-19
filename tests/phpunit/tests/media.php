@@ -3783,7 +3783,7 @@ EOF;
 		while ( have_posts() ) {
 			the_post();
 		}
-		$this->assertSame( 'lazy', wp_get_loading_attr_default( 'wp_get_attachment_image' ) );
+		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 	}
 
 	/**
