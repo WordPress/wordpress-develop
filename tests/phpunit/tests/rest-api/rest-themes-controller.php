@@ -1384,7 +1384,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'wp/v2',
 			sprintf( '/themes/(?P<stylesheet>%s)//test', WP_REST_Themes_Controller::PATTERN ),
 			array(
-				'callback'            => function ( WP_REST_Request $request ) {
+				'callback'            => static function ( WP_REST_Request $request ) {
 					return $request['stylesheet'];
 				},
 				'permission_callback' => '__return_true',

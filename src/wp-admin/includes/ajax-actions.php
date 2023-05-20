@@ -2771,6 +2771,10 @@ function wp_ajax_set_attachment_thumbnail() {
 		wp_send_json_error();
 	}
 
+	if ( false === check_ajax_referer( 'set-attachment-thumbnail', '_ajax_nonce', false ) ) {
+		wp_send_json_error();
+	}
+
 	$post_ids = array();
 	// For each URL, try to find its corresponding post ID.
 	foreach ( $_POST['urls'] as $url ) {
@@ -3749,7 +3753,7 @@ function wp_ajax_parse_embed() {
 		$wp_embed->usecache = false;
 	}
 
-	if ( is_ssl() && 0 === strpos( $url, 'http://' ) ) {
+	if ( is_ssl() && str_starts_with( $url, 'http://' ) ) {
 		// Admin is ssl and the user pasted non-ssl URL.
 		// Check if the provider supports ssl embeds and use that for the preview.
 		$ssl_shortcode = preg_replace( '%^(\\[embed[^\\]]*\\])http://%i', '$1https://', $shortcode );
