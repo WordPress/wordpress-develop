@@ -3559,7 +3559,7 @@ EOF;
 	 * @param string $context
 	 */
 	public function test_wp_get_loading_attr_default( $context ) {
-		global $wp_query, $wp_the_query;
+		global $wp_query;
 
 		// Return 'lazy' by default.
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( 'test' ) );
@@ -3568,7 +3568,9 @@ EOF;
 		// Return 'lazy' if not in the loop or the main query.
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 
-		$this->get_new_wp_query_and_reset_variables();
+		$wp_query = $this->get_new_wp_query_for_published_post();
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
 
 		while ( have_posts() ) {
 			the_post();
@@ -3577,7 +3579,7 @@ EOF;
 			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 
 			// Set as main query.
-			$wp_the_query = $wp_query;
+			$this->set_main_query( $wp_query );
 
 			// For contexts other than for the main content, still return 'lazy' even in the loop
 			// and in the main query, and do not increase the content media count.
@@ -3611,10 +3613,10 @@ EOF;
 	 * @ticket 53675
 	 */
 	public function test_wp_omit_loading_attr_threshold_filter() {
-		global $wp_query, $wp_the_query;
-
-		$this->get_new_wp_query_and_reset_variables();
-		$wp_the_query = $wp_query;
+		$query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $query );
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
 
 		// Use the filter to alter the threshold for not lazy-loading to the first five elements.
 		$this->force_omit_loading_attr_threshold( 5 );
@@ -3636,8 +3638,6 @@ EOF;
 	 * @ticket 53675
 	 */
 	public function test_wp_filter_content_tags_with_wp_get_loading_attr_default() {
-		global $wp_query, $wp_the_query;
-
 		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );
 		$iframe1      = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$img2         = get_image_tag( self::$large_id, '', '', '', 'medium' );
@@ -3655,9 +3655,10 @@ EOF;
 		$content_expected   = $img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2;
 		$content_expected   = wp_img_tag_add_decoding_attr( $content_expected, 'the_content' );
 
-		$this->get_new_wp_query_and_reset_variables();
-
-		$wp_the_query = $wp_query;
+		$query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $query );
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
 
 		while ( have_posts() ) {
 			the_post();
@@ -3705,7 +3706,9 @@ EOF;
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_attr_default_before_loop_if_not_main_query( $context ) {
-		$this->get_new_wp_query_and_reset_variables();
+		$query = $this->get_new_wp_query_for_published_post();
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
 
 		do_action( 'get_header' );
 
@@ -3725,12 +3728,10 @@ EOF;
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_attr_default_before_loop_in_main_query_but_header_not_called( $context ) {
-		global $wp_query, $wp_the_query;
-
-		$this->get_new_wp_query_and_reset_variables();
-
-		// Set current query as main query.
-		$wp_the_query = $wp_query;
+		$query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $query );
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
 
 		// Lazy if header not called.
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
@@ -3748,12 +3749,10 @@ EOF;
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_attr_default_before_loop_if_main_query( $context ) {
-		global $wp_query, $wp_the_query;
-
-		$this->get_new_wp_query_and_reset_variables();
-
-		// Set current query as main query.
-		$wp_the_query = $wp_query;
+		$query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $query );
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
 
 		do_action( 'get_header' );
 		$this->assertFalse( wp_get_loading_attr_default( $context ) );
@@ -3771,12 +3770,10 @@ EOF;
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_attr_default_after_loop( $context ) {
-		global $wp_query, $wp_the_query;
-
-		$this->get_new_wp_query_and_reset_variables();
-
-		// Set current query as main query.
-		$wp_the_query = $wp_query;
+		$query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $query );
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
 
 		do_action( 'get_header' );
 
@@ -3798,12 +3795,10 @@ EOF;
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_attr_default_no_loop( $context ) {
-		global $wp_query, $wp_the_query;
-
-		$this->get_new_wp_query_and_reset_variables();
-
-		// Set current query as main query.
-		$wp_the_query = $wp_query;
+		$query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $query );
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
 
 		// Ensure header and footer is called.
 		do_action( 'get_header' );
@@ -4144,15 +4139,29 @@ EOF;
 	}
 
 	/**
-	 * Update global wp_query with new query.
-	 * And, reset content media count and remove omit loading attribute filters.
+	 * Returns a new WP_Query.
+	 *
+	 * @global WP_Query $wp_query WordPress Query object.
+	 *
+	 * @return WP_Query a new query.
 	 */
-	public function get_new_wp_query_and_reset_variables() {
+	public function get_new_wp_query_for_published_post() {
 		global $wp_query;
 
+		// New query to $wp_query. update global for the loop.
 		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
+
+		return $wp_query;
+	}
+
+	/**
+	 * Sets a query as main query.
+	 *
+	 * @param WP_Query $query query to be set as main query.
+	 */
+	public function set_main_query( $query ) {
+		global $wp_the_query;
+		$wp_the_query = $query;
 	}
 
 }
