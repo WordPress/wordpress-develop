@@ -1222,11 +1222,13 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures the count is correct when the query includes an `SQL_CALC_FOUND_ROWS` modifier.
+	 *
 	 * @ticket 47280
 	 *
 	 * @expectedDeprecated The posts_request filter
 	 */
-	public function test_posts_are_counted_with_select_found_rows_when_query_includes_sql_calc_found_rows() {
+	public function test_posts_are_counted_with_select_found_rows_when_query_includes_sql_calc_found_rows_modifier() {
 		// Create five published posts.
 		self::factory()->post->create_many( 5 );
 		// Create ten draft posts.
@@ -1261,7 +1263,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		);
 
 		// These results should now reflect the results for draft posts, as set by the filter.
-		$this->assertStringContainsString( 'SELECT FOUND_ROWS()', $q->count_request );
+		$this->assertStringContainsString( 'SELECT FOUND_ROWS()', $q->count_request, self::get_count_message( $q ) );
 		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
 		$this->assertSame( 10, $q->found_posts, self::get_count_message( $q ) );
 		$this->assertEquals( 5, $q->max_num_pages, self::get_count_message( $q ) );
@@ -1293,10 +1295,12 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @return string The formatted message.
 	 */
 	protected static function get_count_message( WP_Query $query ) {
+		global $wpdb;
+
 		return sprintf(
-			"Request SQL:\n\n%s\n\nCount SQL:\n\n%s\n",
-			self::format_sql( $query->request ),
-			self::format_sql( $query->count_request )
+			"Request SQL:\n%s\nCount SQL:\n\n%s\n",
+			self::format_sql( $wpdb->remove_placeholder_escape( $query->request ) ),
+			self::format_sql( $wpdb->remove_placeholder_escape( $query->count_request ) )
 		);
 	}
 
