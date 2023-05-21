@@ -961,7 +961,8 @@ class WP_Comment_Query {
 		$this->sql_clauses['select']  = "SELECT $found_rows $fields";
 		$this->sql_clauses['from']    = "FROM $wpdb->comments $join";
 		$this->sql_clauses['groupby'] = $groupby;
-		$this->sql_clauses['orderby'] = $orderby;
+		if ( !$this->query_vars['count'] )
+			$this->sql_clauses['orderby'] = $orderby;
 		$this->sql_clauses['limits']  = $limits;
 
 		$this->request = "
