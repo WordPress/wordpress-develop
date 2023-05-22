@@ -168,10 +168,12 @@ function wp_add_inline_script( $handle, $data, $position = 'after', $standalone 
  *                                    as a query string for cache busting purposes. If version is set to false, a version
  *                                    number is automatically added equal to current installed WordPress version.
  *                                    If set to null, no version is added.
- * @param array             $args     {
+ * @param array|bool       $args     {
  *      Optional. An array of additional script loading strategies. Default empty array.
+ *      Otherwise, it may be a boolean in which case it determines whether the script is printed in the footer. Default false.
  *
  *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
+ *      @type bool      $in_footer    Optional. Whether to print the script in the footer. Default 'false'.
  * }
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
@@ -345,11 +347,12 @@ function wp_deregister_script( $handle ) {
  *                                    as a query string for cache busting purposes. If version is set to false, a version
  *                                    number is automatically added equal to current installed WordPress version.
  *                                    If set to null, no version is added.
- * @param array            $args      {
+ * @param array|bool       $args     {
  *      Optional. An array of additional script loading strategies. Default empty array.
+ *      Otherwise, it may be a boolean in which case it determines whether the script is printed in the footer. Default false.
  *
- *      @type boolean   $in_footer    Optional. Default false.
  *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
+ *      @type bool      $in_footer    Optional. Whether to print the script in the footer. Default 'false'.
  * }
  */
 function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $args = array() ) {
