@@ -904,7 +904,7 @@ class Tests_Query extends WP_UnitTestCase {
 	 * @ticket 58211
 	 */
 	public function test_before_loop_value_set_true_before_the_loop() {
-		// get a new query with 3 published posts.
+		// Get a new query with 3 posts.
 		$query = $this->get_new_wp_query_with_posts( 3 );
 
 		$this->assertTrue( $query->before_loop );
@@ -916,7 +916,7 @@ class Tests_Query extends WP_UnitTestCase {
 	 * @ticket 58211
 	 */
 	public function test_before_loop_value_set_to_false_in_loop_with_post() {
-		// get a new query with 2 posts.
+		// Get a new query with 2 posts.
 		$query = $this->get_new_wp_query_with_posts( 2 );
 
 		while ( $query->have_posts() ) {
@@ -934,16 +934,19 @@ class Tests_Query extends WP_UnitTestCase {
 	 * @ticket 58211
 	 */
 	public function test_before_loop_set_false_after_loop_with_no_post() {
-		global $wp_query;
+		// New query without any posts in the result.
+		$query = new WP_Query(
+			array(
+				'category_name' => 'non-existent-category',
+			)
+		);
 
-		// get a new query with no post.
-		$query = $this->get_new_wp_query_with_posts( 0 );
-
-		// Try to loop.
+		// There will not be any posts, so the loop will never actually enter.
 		while ( $query->have_posts() ) {
+			$query->the_post();
 		}
 
-		// set before_loop to false if there was no post in the loop.
+		// Still, this should be false as there are no results and entering the loop was attempted.
 		$this->assertFalse( $query->before_loop );
 	}
 
