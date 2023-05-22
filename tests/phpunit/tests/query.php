@@ -919,7 +919,7 @@ class Tests_Query extends WP_UnitTestCase {
 	 * @covers WP_Query::before_loop
 	 */
 	public function test_before_loop_value_set_to_false_in_loop_with_post() {
-		// set a new query in $wp_query with just 2 posts
+		// get a new query with 2 posts.
 		$query = $this->get_new_wp_query_with_posts( 2 );
 
 		while ( $query->have_posts() ) {
@@ -941,7 +941,7 @@ class Tests_Query extends WP_UnitTestCase {
 	public function before_loop_set_false_after_loop_with_no_post() {
 		global $wp_query;
 
-		// set a new query in $wp_query with just no post.
+		// get a new query with no post.
 		$query = $this->get_new_wp_query_with_posts( 0 );
 
 		// Try to loop
