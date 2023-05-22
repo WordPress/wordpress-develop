@@ -565,8 +565,9 @@ class WP_REST_Server {
 	 * }
 	 */
 	public function response_to_data( $response, $embed ) {
-		$data  = $response->get_data();
-		$links = self::get_compact_response_links( $response );
+		$data              = $response->get_data();
+		$links             = self::get_compact_response_links( $response );
+		$is_link_requested = false;
 
 		if ( ! empty( $_GET['_fields'] ) ) {
 
