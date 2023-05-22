@@ -1539,8 +1539,8 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		$paths_to_block_template_directories = array(
-			$this->theme_root . '/' . $this->template . '/block-templates',
 			$this->theme_root . '/' . $this->template . '/block-template-parts',
+			$this->theme_root . '/' . $this->template . '/block-templates',
 		);
 
 		$this->has_block_templates = false;
@@ -1568,8 +1568,8 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		$paths_to_index_block_template = array(
-			$this->get_file_path( '/block-templates/index.html' ),
 			$this->get_file_path( '/templates/index.html' ),
+			$this->get_file_path( '/block-templates/index.html' ),
 		);
 
 		$this->block_theme = false;
@@ -1577,6 +1577,9 @@ final class WP_Theme implements ArrayAccess {
 		foreach ( $paths_to_index_block_template as $path_to_index_block_template ) {
 			if ( is_file( $path_to_index_block_template ) && is_readable( $path_to_index_block_template ) ) {
 				$this->block_theme = true;
+				if ( str_starts_with( $path_to_index_block_template, $this->theme_root . '/' . $this->template . '/block-templates' ) ) {
+					$this->has_block_templates = true;
+				}
 				break;
 			}
 		}
