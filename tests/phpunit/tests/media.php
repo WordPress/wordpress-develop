@@ -4306,6 +4306,8 @@ EOF;
 	/**
 	 * Sets a query as main query.
 	 *
+	 * @global WP_Query $wp_the_query WordPress Query object.
+	 *
 	 * @param WP_Query $query query to be set as main query.
 	 */
 	public function set_main_query( $query ) {
