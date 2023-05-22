@@ -914,8 +914,6 @@ class Tests_Query extends WP_UnitTestCase {
 	 * Test $before_loop value is set to false when the loop starts.
 	 *
 	 * @ticket 58211
-	 *
-	 * @covers WP_Query::before_loop
 	 */
 	public function test_before_loop_value_set_to_false_in_loop_with_post() {
 		// get a new query with 2 posts.
