@@ -181,15 +181,6 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args
 	if ( ! is_array( $args ) ) {
 		$args = array(
 			'in_footer' => $args,
-			'strategy'  => 'blocking',
-		);
-	} else {
-		$args = wp_parse_args(
-			$args,
-			array(
-				'in_footer' => false,
-				'strategy'  => 'blocking',
-			)
 		);
 	}
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
@@ -382,14 +373,6 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 		if ( ! is_array( $args ) ) {
 			$args = array(
 				'in_footer' => $args,
-			);
-		} else {
-			$args = wp_parse_args(
-				$args,
-				array(
-					'in_footer' => false,
-					'strategy'  => 'blocking',
-				)
 			);
 		}
 

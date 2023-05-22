@@ -849,12 +849,14 @@ JS;
 	 * @since 6.3.0
 	 *
 	 * @param string $handle The script handle.
-	 * @return string Strategy set during script registration. Empty string if none was set.
+	 * @return string Strategy set during script registration. Empty string if none was set or it was invalid.
 	 */
 	private function get_intended_strategy( $handle ) {
 		$strategy = $this->get_data( $handle, 'strategy' );
 
-		if ( $strategy && ! $this->is_valid_strategy( $strategy ) ) {
+		if ( ! $strategy ) {
+			$strategy = '';
+		} elseif ( ! $this->is_valid_strategy( $strategy ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
@@ -866,7 +868,7 @@ JS;
 				'6.3.0'
 			);
 
-			return '';
+			$strategy = '';
 		}
 
 		return $strategy;
