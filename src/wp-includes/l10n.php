@@ -838,6 +838,12 @@ function unload_textdomain( $domain, $reloadable = false ) {
 	do_action( 'unload_textdomain', $domain, $reloadable );
 
 	if ( isset( $l10n[ $domain ] ) ) {
+		if ( $l10n[ $domain ] instanceof NOOP_Translations ) {
+			unset( $l10n[ $domain ] );
+
+			return false;
+		}
+
 		unset( $l10n[ $domain ] );
 
 		if ( ! $reloadable ) {
