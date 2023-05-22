@@ -2,7 +2,7 @@
 
 add_action(
 	'template_redirect',
-	function() {
+	static function() {
 
 		global $timestart;
 
@@ -15,7 +15,7 @@ add_action(
 
 		add_action(
 			'shutdown',
-			function() use ( $server_timing_values, $template_start ) {
+			static function() use ( $server_timing_values, $template_start ) {
 
 				global $timestart;
 
