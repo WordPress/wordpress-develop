@@ -61,7 +61,11 @@ class Tests_User_GetTheAuthorMeta extends WP_UnitTestCase {
 		$this->assertSame( '', get_the_author_meta( 'does_not_exist' ) );
 	}
 
-	public function test_get_the_author_meta_no_authordata() {
+	/**
+	 * @ticket 20529
+	 * @ticket 58157
+	 */
+	public function test_get_the_author_meta_should_return_empty_string_if_authordata_is_not_set() {
 		unset( $GLOBALS['authordata'] );
 
 		$this->assertSame( '', get_the_author_meta( 'id' ) );

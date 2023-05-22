@@ -302,7 +302,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		// Force the return value of wp_max_upload_size() to be 500.
 		add_filter(
 			'upload_size_limit',
-			function() {
+			static function() {
 				return 500;
 			}
 		);
