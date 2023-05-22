@@ -180,7 +180,7 @@ function wp_add_inline_script( $handle, $data, $position = 'after', $standalone 
 function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args = array() ) {
 	if ( ! is_array( $args ) ) {
 		$args = array(
-			'in_footer' => $args,
+			'in_footer' => (bool) $args,
 		);
 	}
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
@@ -372,7 +372,7 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 		$_handle = explode( '?', $handle );
 		if ( ! is_array( $args ) ) {
 			$args = array(
-				'in_footer' => $args,
+				'in_footer' => (bool) $args,
 			);
 		}
 
