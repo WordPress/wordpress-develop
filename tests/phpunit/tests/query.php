@@ -902,8 +902,6 @@ class Tests_Query extends WP_UnitTestCase {
 	 * Test if $before_loop is true before loop.
 	 *
 	 * @ticket 58211
-	 *
-	 * @covers WP_Query::before_loop
 	 */
 	public function test_before_loop_value_set_true_before_the_loop() {
 		// get a new query with 3 published posts.
