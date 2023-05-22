@@ -914,6 +914,8 @@ class Tests_Query extends WP_UnitTestCase {
 	 * Test $before_loop value is set to false when the loop starts.
 	 *
 	 * @ticket 58211
+	 *
+	 * @covers WP_Query::the_post
 	 */
 	public function test_before_loop_value_set_to_false_in_loop_with_post() {
 		// Get a new query with 2 posts.
@@ -932,6 +934,8 @@ class Tests_Query extends WP_UnitTestCase {
 	 * Test $before_loop value is set to false when there is no post in the loop.
 	 *
 	 * @ticket 58211
+	 *
+	 * @covers WP_Query::have_posts
 	 */
 	public function test_before_loop_set_false_after_loop_with_no_post() {
 		// New query without any posts in the result.
