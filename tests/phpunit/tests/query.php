@@ -945,7 +945,7 @@ class Tests_Query extends WP_UnitTestCase {
 		// get a new query with no post.
 		$query = $this->get_new_wp_query_with_posts( 0 );
 
-		// Try to loop
+		// Try to loop.
 		while ( $query->have_posts() ) {
 		}
 
