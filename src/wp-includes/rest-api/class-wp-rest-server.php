@@ -577,7 +577,6 @@ class WP_REST_Server {
 				$is_link_requested = implode( ',', $is_link_requested );
 			}
 
-			$is_link_requested = sanitize_text_field( wp_unslash( $is_link_requested ) );
 			$is_link_requested = false !== strpos( $is_link_requested, '_links' );
 		}
 
