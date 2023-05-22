@@ -643,7 +643,8 @@ EXP;
 			'strategy'  => 'async',
 		);
 		wp_enqueue_script( 'footer-async', '/footer-async.js', array(), null, $args );
-		$this->assertSame( $args, $wp_scripts->get_data( 'footer-async', 'script_args' ) );
+		$this->assertSame( $args['in_footer'], (bool) $wp_scripts->get_data( 'footer-async', 'group' ) );
+		$this->assertSame( $args['strategy'], $wp_scripts->get_data( 'footer-async', 'strategy' ) );
 
 		// Test defaults.
 		$expected_args = array(
@@ -651,29 +652,30 @@ EXP;
 			'strategy'  => 'blocking',
 		);
 		wp_register_script( 'defaults-strategy', '/defaults.js', array(), null, array( 'in_footer' => true ) );
-		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults-strategy', 'script_args' ) );
+		$this->assertSame( $expected_args['in_footer'], (bool) $wp_scripts->get_data( 'defaults-strategy', 'group' ) );
+		$this->assertSame( $expected_args['strategy'], $wp_scripts->get_data( 'defaults-strategy', 'strategy' ) );
 
 		$expected_args = array(
 			'in_footer' => false,
 			'strategy'  => 'async',
 		);
 		wp_register_script( 'defaults-in-footer', '/defaults.js', array(), null, array( 'strategy' => 'async' ) );
-		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults-in-footer', 'script_args' ) );
+		$this->assertSame( $expected_args['in_footer'], (bool) $wp_scripts->get_data( 'defaults-in-footer', 'group' ) );
+		$this->assertSame( $expected_args['strategy'], $wp_scripts->get_data( 'defaults-in-footer', 'strategy' ) );
 
 		// scripts_args not set of args parameter is empty.
 		wp_register_script( 'empty-args-array', '/defaults.js', array(), null, array() );
-		$this->assertSame( false, $wp_scripts->get_data( 'defaults', 'script_args' ) );
+		$this->assertSame( false, $wp_scripts->get_data( 'empty-args-array', 'group' ) );
+		$this->assertSame( 'blocking', $wp_scripts->get_data( 'empty-args-array', 'strategy' ) );
 
 		wp_register_script( 'no-args', '/defaults.js', array(), null );
-		$this->assertSame( false, $wp_scripts->get_data( 'defaults-no-args', 'script_args' ) );
+		$this->assertSame( false, $wp_scripts->get_data( 'no-args', 'group' ) );
+		$this->assertSame( 'blocking', $wp_scripts->get_data( 'no-args', 'strategy' ) );
 
 		// Test backward compatibility.
-		$expected_args = array(
-			'in_footer' => true,
-			'strategy'  => 'blocking',
-		);
 		wp_enqueue_script( 'footer-old', '/footer-async.js', array(), null, true );
-		$this->assertSame( $expected_args, $wp_scripts->get_data( 'footer-old', 'script_args' ) );
+		$this->assertSame( 1, $wp_scripts->get_data( 'footer-old', 'group' ) );
+		$this->assertSame( false, $wp_scripts->get_data( 'footer-old', 'strategy' ) );
 	}
 
 	/**

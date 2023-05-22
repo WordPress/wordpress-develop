@@ -781,27 +781,6 @@ JS;
 	}
 
 	/**
-	 * This overrides the add_data method from WP_Dependencies, to support normalizing of $args.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @param string $handle Name of the item. Should be unique.
-	 * @param string $key    The data key.
-	 * @param mixed  $value  The data value.
-	 * @return bool True on success, false on failure.
-	 */
-	public function add_data( $handle, $key, $value ) {
-		if ( 'script_args' === $key ) {
-			$args = $this->get_normalized_script_args( $handle, $value );
-			if ( $args['in_footer'] ) {
-				parent::add_data( $handle, 'group', 1 );
-			}
-			return parent::add_data( $handle, $key, $args );
-		}
-		return parent::add_data( $handle, $key, $value );
-	}
-
-	/**
 	 * Checks all handles for any delayed inline scripts.
 	 *
 	 * @since 6.3.0
@@ -819,34 +798,6 @@ JS;
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * Normalize the data inside the $args parameter and support backward compatibility.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @param string        $handle Name of the script.
-	 * @param array         $args     {
-	 *      Optional. Additional script arguments. Default empty array.
-	 *
-	 *      @type boolean   $in_footer    Optional. Default false.
-	 *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
-	 * }
-	 * @return array        Normalized $args array.
-	 */
-	private function get_normalized_script_args( $handle, $args = array() ) {
-		$default_args = array(
-			'in_footer' => false,
-			'strategy'  => 'blocking',
-		);
-
-		// Handle backward compatibility for $in_footer.
-		if ( true === $args ) {
-			$args = array( 'in_footer' => true );
-		}
-
-		return wp_parse_args( $args, $default_args );
 	}
 
 	/**
@@ -901,8 +852,7 @@ JS;
 	 * @return string Strategy set during script registration. Empty string if none was set.
 	 */
 	private function get_intended_strategy( $handle ) {
-		$script_args = $this->get_data( $handle, 'script_args' );
-		$strategy    = isset( $script_args['strategy'] ) ? $script_args['strategy'] : '';
+		$strategy = $this->get_data( $handle, 'strategy' );
 
 		if ( $strategy && ! $this->is_valid_strategy( $strategy ) ) {
 			_doing_it_wrong(
