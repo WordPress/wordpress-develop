@@ -568,7 +568,17 @@ class WP_REST_Server {
 		$data  = $response->get_data();
 		$links = self::get_compact_response_links( $response );
 
-		if ( ! empty( $links ) ) {
+		if ( ! empty( $_GET['_fields'] ) ) {
+
+			$is_link_requested = $_GET['_fields'];
+
+			if ( is_array( $is_link_requested ) ) $is_link_requested = implode( ',', $is_link_requested );
+
+			$is_link_requested = sanitize_text_field( wp_unslash( $is_link_requested ) );
+			$is_link_requested = false !== strpos( $is_link_requested, '_links' );
+		}
+
+		if ( ! empty( $links ) && $is_link_requested ) {
 			// Convert links to part of the data.
 			$data['_links'] = $links;
 		}
