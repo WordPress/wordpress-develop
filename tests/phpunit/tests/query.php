@@ -897,4 +897,69 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertFalse( $q->is_tax() );
 		$this->assertFalse( $q->is_tag( 'non-existent-tag' ) );
 	}
+
+	/**
+	 * Test if $before_loop is true before loop.
+	 *
+	 * @ticket 58211
+	 * @covers WP_Query::before_loop
+	 */
+	public function test_before_loop_value_set_true_before_the_loop() {
+		// get a new query with 3 published posts.
+		$query = $this->get_new_wp_query_with_posts( 3 );
+
+		$this->assertTrue( $query->before_loop );
+	}
+
+	/**
+	 * Test $before_loop value is set to false when the loop starts.
+	 *
+	 * @ticket 58211
+	 *
+	 * @covers WP_Query::before_loop
+	 */
+	public function test_before_loop_value_set_to_false_in_loop_with_post() {
+		// set a new query in $wp_query with just 2 posts
+		$query = $this->get_new_wp_query_with_posts( 2 );
+
+		while ( $query->have_posts() ) {
+			//$before_loop should be set false as soon as first the_post is called.
+			$query->the_post();
+
+			$this->assertFalse( $query->before_loop );
+			break;
+		}
+	}
+
+	/**
+	 * Test $before_loop value is set to false when there is no post in the loop.
+	 *
+	 * @ticket 58211
+	 *
+	 * @covers WP_Query::before_loop
+	 */
+	public function before_loop_set_false_after_loop_with_no_post() {
+		global $wp_query;
+
+		// set a new query in $wp_query with just no post.
+		$query = $this->get_new_wp_query_with_posts( 0 );
+
+		// Try to loop
+		while ( $query->have_posts() ) {
+		}
+
+		// set before_loop to false if there was no post in the loop.
+		$this->assertFalse( $query->before_loop );
+	}
+
+	/**
+	 * Get a new query with a given number of posts.
+	 *
+	 * @param int $no_of_posts Number of posts to be added in the query.
+	 */
+	public function get_new_wp_query_with_posts( $no_of_posts ) {
+		$post_ids = self::factory()->post->create_many( $no_of_posts );
+		$query    = new WP_Query( array( 'post__in' => array( $post_ids[0] ) ) );
+		return $query;
+	}
 }
