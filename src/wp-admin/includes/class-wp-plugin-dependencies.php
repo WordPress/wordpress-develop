@@ -13,7 +13,7 @@
  * It is designed to add plugin dependencies as designated in the
  * `Requires Plugins` header to a new view in the plugins install page.
  */
-class WP_Plugin_Dependencies {
+final class WP_Plugin_Dependencies {
 
 	/**
 	 * Holds 'get_plugins()'.
@@ -42,6 +42,13 @@ class WP_Plugin_Dependencies {
 	 * @var array
 	 */
 	protected $requires_plugins;
+
+	/**
+	 * Holds 'plugin_api()' data for uninstalled plugin dependencies.
+	 *
+	 * @var array
+	 */
+	protected $plugin_api_data;
 
 	/**
 	 * Holds plugin directory names to compare with cache.
@@ -74,11 +81,13 @@ class WP_Plugin_Dependencies {
 		if ( is_admin() ) {
 			add_filter( 'plugins_api_result', array( $this, 'plugins_api_result' ), 10, 3 );
 			add_filter( 'plugins_api_result', array( $this, 'empty_plugins_api_result' ), 10, 3 );
-			add_filter( 'plugin_install_description', array( $this, 'plugin_install_description' ), 10, 2 );
+			add_filter( 'plugin_install_description', array( $this, 'plugin_install_description_installed' ), 10, 2 );
+			add_filter( 'plugin_install_description', array( $this, 'plugin_install_description_uninstalled' ), 10, 2 );
 			add_filter( 'plugin_install_action_links', array( $this, 'modify_plugin_install_action_links' ), 10, 2 );
 			add_filter( 'plugin_install_action_links', array( $this, 'empty_package_remove_install_button' ), 10, 2 );
 
 			add_action( 'admin_init', array( $this, 'modify_plugin_row' ), 15 );
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
 			add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 			add_action( 'network_admin_notices', array( $this, 'admin_notices' ) );
 		}
@@ -87,6 +96,27 @@ class WP_Plugin_Dependencies {
 		$this->slugs      = $this->sanitize_required_headers( $required_headers );
 		$this->get_dot_org_data();
 		$this->deactivate_unmet_dependencies();
+	}
+
+	/**
+	 * Enqueues styles for plugin dependencies on the "Add New" plugins screen.
+	 *
+	 * @global string $wp_version The WordPress version string.
+	 * @global string $pagenow    The filename of the current screen.
+	 *
+	 * @return void
+	 */
+	public function enqueue_styles() {
+		global $wp_version, $pagenow;
+
+		if ( 'plugin-install.php' === $pagenow ) {
+			wp_enqueue_style(
+				'wp-plugin-dependencies',
+				plugins_url( 'wp-admin/css/wp-plugin-dependencies.css', 'wp-plugin-dependencies/plugin.php' ),
+				array(),
+				$wp_version
+			);
+		}
 	}
 
 	/**
@@ -472,8 +502,8 @@ class WP_Plugin_Dependencies {
 	 * @param array  $plugin      Array of plugin data.
 	 * @return string
 	 */
-	public function plugin_install_description( $description, $plugin ) {
-		$required = null;
+	public function plugin_install_description_installed( $description, $plugin ) {
+		$required = '';
 		if ( in_array( $plugin['slug'], array_keys( $this->plugin_data ), true ) ) {
 			$dependents  = $this->get_dependency_sources( $plugin );
 			$required    = '<strong>' . __( 'Required by:' ) . '</strong> ' . $dependents;
@@ -483,6 +513,7 @@ class WP_Plugin_Dependencies {
 		if ( ! isset( $this->plugin_dirnames[ $plugin['slug'] ] ) ) {
 			return $description;
 		}
+
 		$file = $this->plugin_dirnames[ $plugin['slug'] ];
 		if ( in_array( $file, array_keys( $this->requires_plugins ), true ) ) {
 			$require_names = $this->get_requires_plugins_names( $file );
@@ -491,6 +522,120 @@ class WP_Plugin_Dependencies {
 		}
 
 		return $description;
+	}
+
+	/**
+	 * Add 'Require Plugins: ...' to plugin install cards when dependent plugin not installed.
+	 *
+	 * @param string $description Short description of plugin.
+	 * @param array  $plugin      Array of plugin data.
+	 * @return string
+	 */
+	public function plugin_install_description_uninstalled( $description, $plugin ) {
+		if ( str_contains( $description, 'Required by:' ) || str_contains( $description, 'Requires:' ) ) {
+			return $description;
+		}
+		if ( empty( $plugin['requires_plugins'] ) ) {
+			return $description;
+		}
+
+		$this->plugin_api_data = (array) get_site_transient( 'wp_plugin_dependencies_plugin_api_data' );
+		foreach ( $plugin['requires_plugins'] as $slug ) {
+			// Don't hit plugins API if data exists.
+			if ( array_key_exists( $slug, (array) $this->plugin_api_data ) ) {
+				continue;
+			}
+
+			$this->slugs[] = $slug;
+			if ( ! function_exists( 'plugins_api' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+			}
+			$args     = array(
+				'slug'   => $slug,
+				'fields' => array(
+					'short_description' => true,
+					'icons'             => true,
+				),
+			);
+			$response = plugins_api( 'plugin_information', $args );
+
+			if ( is_wp_error( $response ) ) {
+				continue;
+			}
+
+			$this->plugin_api_data[ $response->slug ] = (array) $response;
+			ksort( $this->plugin_api_data );
+			unset( $this->plugin_api_data[0] );
+			set_site_transient( 'wp_plugin_dependencies_plugin_api_data', $this->plugin_api_data, WEEK_IN_SECONDS );
+		}
+
+		$required_names = array();
+		foreach ( $plugin['requires_plugins'] as $slug ) {
+			$plugin_data = $this->plugin_api_data[ $slug ];
+			$url         = network_admin_url( 'plugin-install.php' );
+			$url         = add_query_arg(
+				array(
+					'tab'       => 'plugin-information',
+					'plugin'    => $plugin_data['slug'],
+					'TB_iframe' => 'true',
+					'width'     => '600',
+					'height'    => '550',
+				),
+				$url
+			);
+
+			// Check if plugin dependency is installed and active.
+			$plugin_is_active = 'plugin-dependency-incompatible';
+			$active_plugins   = get_option( 'active_plugins' );
+			foreach ( $active_plugins as $plugin_file ) {
+				if ( str_contains( $plugin_file, '/' ) && explode( '/', $plugin_file )[0] === $slug ) {
+					$plugin_is_active = 'plugin-dependency-compatible';
+					break;
+				}
+			}
+
+			if ( isset( $plugin_data['name'] ) && ! empty( $plugin_data['version'] ) ) {
+				$plugin_dependency_name = sprintf(
+					'<span class="plugin-dependency-name %1$s">%2$s</span>',
+					esc_attr( $plugin_is_active ),
+					esc_html( $plugin_data['name'] )
+				);
+
+				$more_details_link = sprintf(
+					'<a href="%1$s" class="thickbox open-plugin-details-modal" aria-label="%2$s" data-title="%3$s">%4$s</a>',
+					esc_url( $url ),
+					/* translators: %s: Plugin name. */
+					esc_attr( sprintf( __( 'More information about %s' ), $plugin_data['name'] ) ),
+					esc_attr( $plugin_data['name'] ),
+					__( 'More details' )
+				);
+
+				$requires_php = isset( $plugin_data['requires_php'] ) ? $plugin_data['requires_php'] : '';
+				$requires_wp  = isset( $plugin_data['requires'] ) ? $plugin_data['requires'] : '';
+
+				$compatible_php = is_php_version_compatible( $requires_php );
+				$compatible_wp  = is_wp_version_compatible( $requires_wp );
+
+				$button = wp_get_plugin_action_button( $plugin_data['name'], $plugin_data, $compatible_php, $compatible_wp );
+
+				$required_names[] = '<div class="plugin-dependency plugin-card-' . esc_attr( $slug ) . '">' . $plugin_dependency_name . ' ' . $button . ' ' . $more_details_link . '</div>';
+			} else {
+				$required_names[] = $slug;
+			}
+		}
+
+		$requires  = '<strong>' . __( 'Additional plugins are required' ) . '</strong><br>';
+		$requires .= __( 'The following plugins must also be installed and activated. This plugin will be deactivated if any of the required plugins is deactivated or deleted.' ) . '<br>';
+
+		$required_names_count = count( $required_names );
+		for ( $i = 0; $i < $required_names_count; ++$i ) {
+			$requires .= $required_names[ $i ];
+			if ( $i !== $required_names_count ) {
+				$requires . '<br>';
+			}
+		}
+
+		return $description . '<div class="plugin-dependencies"><p class="plugin-dependencies-explainer-text">' . $requires . '</p></div>';
 	}
 
 	/**
