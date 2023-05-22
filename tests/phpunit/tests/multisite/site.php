@@ -2170,14 +2170,12 @@ if ( is_multisite() ) :
 		 * @ticket 42251
 		 */
 		public function test_get_site_not_found_cache() {
-			global $wpdb;
-
 			$new_site_id = $this->_get_next_site_id();
 			$this->assertNull( get_site( $new_site_id ) );
 
-			$num_queries = $wpdb->num_queries;
+			$num_queries = get_num_queries();
 			$this->assertNull( get_site( $new_site_id ) );
-			$this->assertSame( $num_queries, $wpdb->num_queries );
+			$this->assertSame( $num_queries, get_num_queries() );
 		}
 
 		/**

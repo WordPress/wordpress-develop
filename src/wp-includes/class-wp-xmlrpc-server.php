@@ -4243,7 +4243,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		// If no specific options where asked for, return all of them.
-		if ( count( $options ) == 0 ) {
+		if ( count( $options ) === 0 ) {
 			$options = array_keys( $this->blog_options );
 		}
 
@@ -5662,7 +5662,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			if ( $enclosures ) {
 				foreach ( $enclosures as $enc ) {
 					// This method used to omit the trailing new line. #23219
-					if ( rtrim( $enc, "\n" ) == rtrim( $encstring, "\n" ) ) {
+					if ( rtrim( $enc, "\n" ) === rtrim( $encstring, "\n" ) ) {
 						$found = true;
 						break;
 					}

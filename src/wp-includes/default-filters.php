@@ -115,6 +115,14 @@ add_action( 'added_post_meta', 'wp_cache_set_posts_last_changed' );
 add_action( 'updated_post_meta', 'wp_cache_set_posts_last_changed' );
 add_action( 'deleted_post_meta', 'wp_cache_set_posts_last_changed' );
 
+// User meta.
+add_action( 'added_user_meta', 'wp_cache_set_users_last_changed' );
+add_action( 'updated_user_meta', 'wp_cache_set_users_last_changed' );
+add_action( 'deleted_user_meta', 'wp_cache_set_users_last_changed' );
+add_action( 'add_user_role', 'wp_cache_set_users_last_changed' );
+add_action( 'set_user_role', 'wp_cache_set_users_last_changed' );
+add_action( 'remove_user_role', 'wp_cache_set_users_last_changed' );
+
 // Term meta.
 add_action( 'added_term_meta', 'wp_cache_set_terms_last_changed' );
 add_action( 'updated_term_meta', 'wp_cache_set_terms_last_changed' );
@@ -436,9 +444,11 @@ add_action( 'delete_term', '_wp_delete_tax_menu_item', 10, 3 );
 add_action( 'transition_post_status', '_wp_auto_add_pages_to_menu', 10, 3 );
 add_action( 'delete_post', '_wp_delete_customize_changeset_dependent_auto_drafts' );
 
-// Post Thumbnail CSS class filtering.
+// Post Thumbnail specific image filtering.
 add_action( 'begin_fetch_post_thumbnail_html', '_wp_post_thumbnail_class_filter_add' );
 add_action( 'end_fetch_post_thumbnail_html', '_wp_post_thumbnail_class_filter_remove' );
+add_action( 'begin_fetch_post_thumbnail_html', '_wp_post_thumbnail_context_filter_add' );
+add_action( 'end_fetch_post_thumbnail_html', '_wp_post_thumbnail_context_filter_remove' );
 
 // Redirect old slugs.
 add_action( 'template_redirect', 'wp_old_slug_redirect' );
@@ -561,7 +571,6 @@ add_action( 'admin_enqueue_scripts', 'wp_localize_jquery_ui_datepicker', 1000 );
 add_action( 'admin_enqueue_scripts', 'wp_common_block_scripts_and_styles' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_registered_block_scripts_and_styles' );
 add_action( 'enqueue_block_assets', 'enqueue_block_styles_assets', 30 );
-add_action( 'enqueue_block_editor_assets', 'wp_enqueue_registered_block_scripts_and_styles' );
 add_action( 'enqueue_block_editor_assets', 'enqueue_editor_block_styles_assets' );
 add_action( 'enqueue_block_editor_assets', 'wp_enqueue_editor_block_directory_assets' );
 add_action( 'enqueue_block_editor_assets', 'wp_enqueue_editor_format_library_assets' );

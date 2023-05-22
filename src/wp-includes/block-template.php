@@ -145,7 +145,6 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 
 	// Find all potential templates 'wp_template' post matching the hierarchy.
 	$query     = array(
-		'theme'    => get_stylesheet(),
 		'slug__in' => $slugs,
 	);
 	$templates = get_block_templates( $query );
@@ -166,7 +165,7 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 
 	// Is the active theme a child theme, and is the PHP fallback template part of it?
 	if (
-		strpos( $fallback_template, $theme_base_path ) === 0 &&
+		str_starts_with( $fallback_template, $theme_base_path ) &&
 		strpos( $fallback_template, $parent_theme_base_path ) === false
 	) {
 		$fallback_template_slug = substr(
@@ -237,12 +236,12 @@ function get_the_block_template_html() {
 
 	$content = $wp_embed->run_shortcode( $_wp_current_template_content );
 	$content = $wp_embed->autoembed( $content );
+	$content = shortcode_unautop( $content );
+	$content = do_shortcode( $content );
 	$content = do_blocks( $content );
 	$content = wptexturize( $content );
 	$content = convert_smilies( $content );
-	$content = shortcode_unautop( $content );
 	$content = wp_filter_content_tags( $content, 'template' );
-	$content = do_shortcode( $content );
 	$content = str_replace( ']]>', ']]&gt;', $content );
 
 	// Wrap block template in .wp-site-blocks to allow for specific descendant styles

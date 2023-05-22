@@ -228,7 +228,7 @@ function add_menu_classes( $menu ) {
 			continue;
 		}
 
-		if ( 0 === strpos( $top[2], 'separator' ) && false !== $last_order ) { // If separator.
+		if ( str_starts_with( $top[2], 'separator' ) && false !== $last_order ) { // If separator.
 			$first_item             = true;
 			$classes                = $menu[ $last_order ][4];
 			$menu[ $last_order ][4] = add_cssclass( 'menu-top-last', $classes );
@@ -241,7 +241,7 @@ function add_menu_classes( $menu ) {
 			$first_item        = false;
 		}
 
-		if ( $i == $items_count ) { // Last item.
+		if ( $i === $items_count ) { // Last item.
 			$classes           = $menu[ $order ][4];
 			$menu[ $order ][4] = add_cssclass( 'menu-top-last', $classes );
 		}

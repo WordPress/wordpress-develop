@@ -483,6 +483,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 *
 	 * @ticket 50263
 	 * @ticket 50328
+	 * @ticket 57585
 	 */
 	public function test_block_registers_with_metadata_fixture() {
 		$result = register_block_type_from_metadata(
@@ -515,6 +516,12 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			$result->provides_context
 		);
 		$this->assertSameSets( array( 'groupId' ), $result->uses_context );
+		// @ticket 57585
+		$this->assertSame(
+			array( 'root' => '.wp-block-notice' ),
+			$result->selectors,
+			'Block type should contain selectors from metadata.'
+		);
 		$this->assertSame(
 			array(
 				'align'             => true,
