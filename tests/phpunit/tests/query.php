@@ -933,7 +933,7 @@ class Tests_Query extends WP_UnitTestCase {
 	 *
 	 * @ticket 58211
 	 */
-	public function before_loop_set_false_after_loop_with_no_post() {
+	public function test_before_loop_set_false_after_loop_with_no_post() {
 		global $wp_query;
 
 		// get a new query with no post.
@@ -954,7 +954,7 @@ class Tests_Query extends WP_UnitTestCase {
 	 */
 	public function get_new_wp_query_with_posts( $no_of_posts ) {
 		$post_ids = self::factory()->post->create_many( $no_of_posts );
-		$query    = new WP_Query( array( 'post__in' => array( $post_ids[0] ) ) );
+		$query    = new WP_Query( array( 'post__in' => $post_ids ) );
 		return $query;
 	}
 }
