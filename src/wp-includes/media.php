@@ -3804,7 +3804,7 @@ function get_taxonomies_for_attachments( $output = 'names' ) {
  * @since 5.6.0
  *
  * @param resource|GdImage|false $image A value to check the type for.
- * @return bool True if $image is either a GD image resource or GdImage instance,
+ * @return bool True if `$image` is either a GD image resource or a GdImage instance,
  *              false otherwise.
  */
 function is_gd_image( $image ) {
@@ -3818,7 +3818,7 @@ function is_gd_image( $image ) {
 }
 
 /**
- * Creates new GD image resource with transparency support.
+ * Creates a new GD image resource with transparency support.
  *
  * @todo Deprecate if possible.
  *
@@ -4861,7 +4861,7 @@ function get_attached_media( $type, $post = 0 ) {
 }
 
 /**
- * Checks the HTML content for a audio, video, object, embed, or iframe tags.
+ * Checks the HTML content for an audio, video, object, embed, or iframe tags.
  *
  * @since 3.6.0
  *
