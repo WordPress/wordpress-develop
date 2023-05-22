@@ -3559,8 +3559,6 @@ EOF;
 	 * @param string $context
 	 */
 	public function test_wp_get_loading_attr_default( $context ) {
-		global $wp_query;
-
 		// Return 'lazy' by default.
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( 'test' ) );
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( 'wp_get_attachment_image' ) );
@@ -3568,7 +3566,7 @@ EOF;
 		// Return 'lazy' if not in the loop or the main query.
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 
-		$wp_query = $this->get_new_wp_query_for_published_post();
+		$query = $this->get_new_wp_query_for_published_post();
 		$this->reset_content_media_count();
 		$this->reset_omit_loading_attr_filter();
 
@@ -3579,7 +3577,7 @@ EOF;
 			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 
 			// Set as main query.
-			$this->set_main_query( $wp_query );
+			$this->set_main_query( $query );
 
 			// For contexts other than for the main content, still return 'lazy' even in the loop
 			// and in the main query, and do not increase the content media count.
