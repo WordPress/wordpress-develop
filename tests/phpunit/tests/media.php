@@ -3704,7 +3704,9 @@ EOF;
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_attr_default_before_loop_if_not_main_query( $context ) {
-		$query = $this->get_new_wp_query_for_published_post();
+		global $wp_query;
+
+		$wp_query = $this->get_new_wp_query_for_published_post();
 		$this->reset_content_media_count();
 		$this->reset_omit_loading_attr_filter();
 
@@ -3726,8 +3728,10 @@ EOF;
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_attr_default_before_loop_in_main_query_but_header_not_called( $context ) {
-		$query = $this->get_new_wp_query_for_published_post();
-		$this->set_main_query( $query );
+		global $wp_query;
+
+		$wp_query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $wp_query );
 		$this->reset_content_media_count();
 		$this->reset_omit_loading_attr_filter();
 
@@ -3747,8 +3751,10 @@ EOF;
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_attr_default_before_loop_if_main_query( $context ) {
-		$query = $this->get_new_wp_query_for_published_post();
-		$this->set_main_query( $query );
+		global $wp_query;
+
+		$wp_query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $wp_query );
 		$this->reset_content_media_count();
 		$this->reset_omit_loading_attr_filter();
 
@@ -3768,8 +3774,10 @@ EOF;
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_attr_default_after_loop( $context ) {
-		$query = $this->get_new_wp_query_for_published_post();
-		$this->set_main_query( $query );
+		global $wp_query;
+
+		$wp_query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $wp_query );
 		$this->reset_content_media_count();
 		$this->reset_omit_loading_attr_filter();
 
@@ -3793,8 +3801,10 @@ EOF;
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_attr_default_no_loop( $context ) {
-		$query = $this->get_new_wp_query_for_published_post();
-		$this->set_main_query( $query );
+		global $wp_query;
+
+		$wp_query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $wp_query );
 		$this->reset_content_media_count();
 		$this->reset_omit_loading_attr_filter();
 
