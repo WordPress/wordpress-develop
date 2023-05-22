@@ -932,8 +932,6 @@ class Tests_Query extends WP_UnitTestCase {
 	 * Test $before_loop value is set to false when there is no post in the loop.
 	 *
 	 * @ticket 58211
-	 *
-	 * @covers WP_Query::before_loop
 	 */
 	public function before_loop_set_false_after_loop_with_no_post() {
 		global $wp_query;
