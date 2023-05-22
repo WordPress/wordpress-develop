@@ -923,7 +923,7 @@ class Tests_Query extends WP_UnitTestCase {
 		$query = $this->get_new_wp_query_with_posts( 2 );
 
 		while ( $query->have_posts() ) {
-			//$before_loop should be set false as soon as first the_post is called.
+			//$before_loop should be set false as soon as the_post is called for the first time.
 			$query->the_post();
 
 			$this->assertFalse( $query->before_loop );
