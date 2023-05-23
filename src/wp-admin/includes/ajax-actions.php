@@ -188,10 +188,11 @@ function wp_ajax_wp_compression_test() {
 	}
 
 	if ( ini_get( 'zlib.output_compression' ) || 'ob_gzhandler' === ini_get( 'output_handler' ) ) {
+		// Use `update_option()` on single site to mark the option for autoloading.
 		if ( is_multisite() ) {
 			update_site_option( 'can_compress_scripts', 0 );
 		} else {
-			update_option( 'can_compress_scripts', 0 );
+			update_option( 'can_compress_scripts', 0, 'yes' );
 		}
 		wp_die( 0 );
 	}
@@ -226,17 +227,19 @@ function wp_ajax_wp_compression_test() {
 			wp_die();
 		} elseif ( 'no' === $_GET['test'] ) {
 			check_ajax_referer( 'update_can_compress_scripts' );
+			// Use `update_option()` on single site to mark the option for autoloading.
 			if ( is_multisite() ) {
 				update_site_option( 'can_compress_scripts', 0 );
 			} else {
-				update_option( 'can_compress_scripts', 0 );
+				update_option( 'can_compress_scripts', 0, 'yes' );
 			}
 		} elseif ( 'yes' === $_GET['test'] ) {
 			check_ajax_referer( 'update_can_compress_scripts' );
+			// Use `update_option()` on single site to mark the option for autoloading.
 			if ( is_multisite() ) {
 				update_site_option( 'can_compress_scripts', 1 );
 			} else {
-				update_option( 'can_compress_scripts', 1 );
+				update_option( 'can_compress_scripts', 1, 'yes' );
 			}
 		}
 	}
