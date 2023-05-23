@@ -75,6 +75,16 @@ CAP;
 		parent::tear_down_after_class();
 	}
 
+	/**
+	 * Ensures that the static content media count and related filter are reset between tests.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
+	}
+
 	public function test_img_caption_shortcode_added() {
 		global $shortcode_tags;
 		$this->assertSame( 'img_caption_shortcode', $shortcode_tags['caption'] );
@@ -3567,8 +3577,6 @@ EOF;
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 
 		$query = $this->get_new_wp_query_for_published_post();
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		while ( have_posts() ) {
 			the_post();
@@ -3613,8 +3621,6 @@ EOF;
 	public function test_wp_omit_loading_attr_threshold_filter() {
 		$query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $query );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		// Use the filter to alter the threshold for not lazy-loading to the first five elements.
 		$this->force_omit_loading_attr_threshold( 5 );
@@ -3655,8 +3661,6 @@ EOF;
 
 		$query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $query );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		while ( have_posts() ) {
 			the_post();
@@ -3707,8 +3711,6 @@ EOF;
 		global $wp_query;
 
 		$wp_query = $this->get_new_wp_query_for_published_post();
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		do_action( 'get_header' );
 
@@ -3732,8 +3734,6 @@ EOF;
 
 		$wp_query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $wp_query );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		// Lazy if header not called.
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
@@ -3755,8 +3755,6 @@ EOF;
 
 		$wp_query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $wp_query );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		do_action( 'get_header' );
 		$this->assertFalse( wp_get_loading_attr_default( $context ) );
@@ -3778,8 +3776,6 @@ EOF;
 
 		$wp_query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $wp_query );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		do_action( 'get_header' );
 
@@ -3805,8 +3801,6 @@ EOF;
 
 		$wp_query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $wp_query );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		// Ensure header and footer is called.
 		do_action( 'get_header' );
@@ -3865,8 +3859,6 @@ EOF;
 		$wp_query     = new WP_Query( array( 'p' => self::$post_ids['publish'] ) );
 		$wp_the_query = $wp_query;
 		$post         = get_post( self::$post_ids['publish'] );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		$_wp_current_template_content = '<!-- wp:post-content /-->';
 
@@ -3922,8 +3914,6 @@ EOF;
 		$wp_query     = new WP_Query( array( 'p' => self::$post_ids['publish'] ) );
 		$wp_the_query = $wp_query;
 		$post         = get_post( self::$post_ids['publish'] );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		$_wp_current_template_content = '<!-- wp:post-featured-image /--> <!-- wp:post-content /-->';
 
@@ -4013,8 +4003,7 @@ EOF;
 		 */
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$wp_the_query = $wp_query;
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
+
 		$content = '';
 		while ( have_posts() ) {
 			the_post();
@@ -4076,6 +4065,98 @@ EOF;
 			'the_post_thumbnail'      => array( 'context' => 'the_post_thumbnail' ),
 			'wp_get_attachment_image' => array( 'context' => 'wp_get_attachment_image' ),
 		);
+	}
+
+	/**
+	 * Tests that the content media count is not affected by `the_excerpt()` calls for posts that contain images.
+	 *
+	 * @ticket 56588
+	 *
+	 * @covers ::wp_trim_excerpt
+	 */
+	public function test_the_excerpt_does_not_affect_content_media_count() {
+		global $wp_query, $wp_the_query;
+
+		/*
+		 * Use the filter to alter the threshold for not lazy-loading to the first 2 elements,
+		 * then use a post that contains exactly 2 images.
+		 */
+		$this->force_omit_loading_attr_threshold( 2 );
+		$post_content  = '<img src="example.jpg" width="800" height="600">';
+		$post_content .= '<p>Some text.</p>';
+		$post_content .= '<img src="example2.jpg" width="800" height="600">';
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_content' => $post_content,
+				'post_excerpt' => '',
+			)
+		);
+
+		$wp_query     = new WP_Query( array( 'post__in' => array( $post_id ) ) );
+		$wp_the_query = $wp_query;
+
+		while ( have_posts() ) {
+			the_post();
+
+			// Call `the_excerpt()` without generating output.
+			get_echo( 'the_excerpt' );
+		}
+
+		// The only way to access the value is by calling this function without increasing the value.
+		$content_media_count = wp_increase_content_media_count( 0 );
+
+		// Assert that the media count was not increased even though there are 3 images in the post's content.
+		$this->assertSame( 0, $content_media_count );
+	}
+
+	/**
+	 * Tests that the lazy-loading result is not affected by `the_excerpt()` calls for posts that
+	 * contain images.
+	 *
+	 * Printing the excerpt for a post that contains images in its content prior to its featured image should result in
+	 * that featured image not being lazy-loaded, since the images in the post content aren't displayed in the excerpt.
+	 *
+	 * @ticket 56588
+	 *
+	 * @covers ::wp_trim_excerpt
+	 */
+	public function test_the_excerpt_does_not_affect_omit_lazy_loading_logic() {
+		global $wp_query, $wp_the_query;
+
+		/*
+		 * Use the filter to alter the threshold for not lazy-loading to the first 2 elements,
+		 * then use a post that contains exactly 2 images.
+		 */
+		$this->force_omit_loading_attr_threshold( 2 );
+		$post_content  = '<img src="example.jpg" width="800" height="600">';
+		$post_content .= '<p>Some text.</p>';
+		$post_content .= '<img src="example2.jpg" width="800" height="600">';
+
+		$post_id           = self::factory()->post->create(
+			array(
+				'post_content' => $post_content,
+				'post_excerpt' => '',
+			)
+		);
+		$featured_image_id = self::$large_id;
+		update_post_meta( $post_id, '_thumbnail_id', $featured_image_id );
+
+		$expected_image_tag = get_the_post_thumbnail( $post_id, 'post-thumbnail', array( 'loading' => false ) );
+
+		$wp_query     = new WP_Query( array( 'post__in' => array( $post_id ) ) );
+		$wp_the_query = $wp_query;
+
+		$output = '';
+		while ( have_posts() ) {
+			the_post();
+
+			// Print excerpt first, then the featured image.
+			$output .= get_echo( 'the_excerpt' );
+			$output .= get_echo( 'the_post_thumbnail' );
+		}
+
+		$this->assertStringContainsString( $expected_image_tag, $output );
 	}
 
 	private function reset_content_media_count() {
