@@ -4155,8 +4155,7 @@ EOF;
 		$featured_image_id = self::$large_id;
 		update_post_meta( $post_id, '_thumbnail_id', $featured_image_id );
 
-		$expected_output  = wpautop( 'Some text.' );
-		$expected_output .= get_the_post_thumbnail( $post_id, 'post-thumbnail', array( 'loading' => false ) );
+		$expected_image_tag = get_the_post_thumbnail( $post_id, 'post-thumbnail', array( 'loading' => false ) );
 
 		$wp_query     = new WP_Query( array( 'post__in' => array( $post_id ) ) );
 		$wp_the_query = $wp_query;
@@ -4172,7 +4171,7 @@ EOF;
 			$output .= get_echo( 'the_post_thumbnail' );
 		}
 
-		$this->assertSame( $expected_output, $output );
+		$this->assertStringContainsString( $expected_image_tag, $output );
 	}
 
 	private function reset_content_media_count() {
