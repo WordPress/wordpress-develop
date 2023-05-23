@@ -500,7 +500,7 @@ class WP_REST_Server {
 
 			// Embed links inside the request.
 			$embed  = isset( $_GET['_embed'] ) ? rest_parse_embed_param( $_GET['_embed'] ) : false;
-			$result = $this->response_to_data( $result, $embed );
+			$result = $this->response_to_data( $result, $embed, $request );
 
 			/**
 			 * Filters the REST API response.
@@ -564,24 +564,25 @@ class WP_REST_Server {
 	 *     @type array $_embedded Embedded objects.
 	 * }
 	 */
-	public function response_to_data( $response, $embed ) {
-		$data              = $response->get_data();
-		$links             = self::get_compact_response_links( $response );
-		$is_link_requested = false;
+	public function response_to_data( $response, $embed, $request = null ) {
+		$data  = $response->get_data();
+		$links = self::get_compact_response_links( $response );
 
-		if ( ! empty( $_GET['_fields'] ) ) {
+		if ( null !== $request && ! empty( $request['_fields'] ) && ! empty( $links ) ) {
 
-			$is_link_requested = $_GET['_fields'];
+			$is_link_requested = $request['_fields'];
 
 			if ( is_array( $is_link_requested ) ) {
 				$is_link_requested = implode( ',', $is_link_requested );
 			}
 
 			$is_link_requested = false !== strpos( $is_link_requested, '_links' );
-		}
 
-		if ( ! empty( $links ) && $is_link_requested ) {
-			// Convert links to part of the data.
+			if ( $is_link_requested ) {
+				$data['_links'] = $links;
+			}
+		} elseif ( ! empty( $links ) ) {
+
 			$data['_links'] = $links;
 		}
 
