@@ -4083,7 +4083,6 @@ EOF;
 	 *
 	 * @ticket 56588
 	 *
-	 * @covers ::the_excerpt
 	 * @covers ::wp_trim_excerpt
 	 */
 	public function test_the_excerpt_does_not_affect_content_media_count() {
@@ -4133,7 +4132,6 @@ EOF;
 	 *
 	 * @ticket 56588
 	 *
-	 * @covers ::the_excerpt
 	 * @covers ::wp_trim_excerpt
 	 */
 	public function test_the_excerpt_does_not_affect_omit_lazy_loading_logic() {
