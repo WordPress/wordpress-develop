@@ -23,9 +23,9 @@ class Tests_Lazy_Load_Comment_Meta extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 57901
+	 * @ticket 58301
 	 *
-	 * @covers ::wp_queue_comments_for_comment_meta_lazyload
+	 * @covers ::wp_lazyload_comment_meta
 	 */
 	public function test_wp_queue_comments_for_comment_meta_lazyload() {
 		$filter = new MockAction();
@@ -41,9 +41,9 @@ class Tests_Lazy_Load_Comment_Meta extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 57901
+	 * @ticket 58301
 	 *
-	 * @covers ::wp_queue_comments_for_comment_meta_lazyload
+	 * @covers ::wp_lazyload_comment_meta
 	 */
 	public function test_wp_queue_comments_for_comment_meta_lazyload_new_comment() {
 		$filter = new MockAction();
