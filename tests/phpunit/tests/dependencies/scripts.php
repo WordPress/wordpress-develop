@@ -645,7 +645,7 @@ EXP;
 			'strategy'  => 'async',
 		);
 		wp_enqueue_script( 'footer-async', '/footer-async.js', array(), null, $args );
-		$this->assertSame( $args['in_footer'], (bool) $wp_scripts->get_data( 'footer-async', 'group' ) );
+		$this->assertSame( 1, $wp_scripts->get_data( 'footer-async', 'group' ) );
 		$this->assertSame( $args['strategy'], $wp_scripts->get_data( 'footer-async', 'strategy' ) );
 
 		// Passing in_footer=true via array.
