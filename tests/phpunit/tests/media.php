@@ -75,6 +75,16 @@ CAP;
 		parent::tear_down_after_class();
 	}
 
+	/**
+	 * Ensures that the static content media count and related filter are reset between tests.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
+	}
+
 	public function test_img_caption_shortcode_added() {
 		global $shortcode_tags;
 		$this->assertSame( 'img_caption_shortcode', $shortcode_tags['caption'] );
@@ -3567,8 +3577,6 @@ EOF;
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 
 		$query = $this->get_new_wp_query_for_published_post();
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		while ( have_posts() ) {
 			the_post();
@@ -3613,8 +3621,6 @@ EOF;
 	public function test_wp_omit_loading_attr_threshold_filter() {
 		$query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $query );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		// Use the filter to alter the threshold for not lazy-loading to the first five elements.
 		$this->force_omit_loading_attr_threshold( 5 );
@@ -3655,8 +3661,6 @@ EOF;
 
 		$query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $query );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		while ( have_posts() ) {
 			the_post();
@@ -3707,8 +3711,6 @@ EOF;
 		global $wp_query;
 
 		$wp_query = $this->get_new_wp_query_for_published_post();
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		do_action( 'get_header' );
 
@@ -3732,8 +3734,6 @@ EOF;
 
 		$wp_query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $wp_query );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		// Lazy if header not called.
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
@@ -3755,8 +3755,6 @@ EOF;
 
 		$wp_query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $wp_query );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		do_action( 'get_header' );
 		$this->assertFalse( wp_get_loading_attr_default( $context ) );
@@ -3778,8 +3776,6 @@ EOF;
 
 		$wp_query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $wp_query );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		do_action( 'get_header' );
 
@@ -3805,8 +3801,6 @@ EOF;
 
 		$wp_query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $wp_query );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		// Ensure header and footer is called.
 		do_action( 'get_header' );
@@ -3865,8 +3859,6 @@ EOF;
 		$wp_query     = new WP_Query( array( 'p' => self::$post_ids['publish'] ) );
 		$wp_the_query = $wp_query;
 		$post         = get_post( self::$post_ids['publish'] );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		$_wp_current_template_content = '<!-- wp:post-content /-->';
 
@@ -3922,8 +3914,6 @@ EOF;
 		$wp_query     = new WP_Query( array( 'p' => self::$post_ids['publish'] ) );
 		$wp_the_query = $wp_query;
 		$post         = get_post( self::$post_ids['publish'] );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		$_wp_current_template_content = '<!-- wp:post-featured-image /--> <!-- wp:post-content /-->';
 
@@ -4013,8 +4003,7 @@ EOF;
 		 */
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$wp_the_query = $wp_query;
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
+
 		$content = '';
 		while ( have_posts() ) {
 			the_post();
@@ -4106,8 +4095,6 @@ EOF;
 
 		$wp_query     = new WP_Query( array( 'post__in' => array( $post_id ) ) );
 		$wp_the_query = $wp_query;
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		while ( have_posts() ) {
 			the_post();
@@ -4159,8 +4146,6 @@ EOF;
 
 		$wp_query     = new WP_Query( array( 'post__in' => array( $post_id ) ) );
 		$wp_the_query = $wp_query;
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		$output = '';
 		while ( have_posts() ) {
