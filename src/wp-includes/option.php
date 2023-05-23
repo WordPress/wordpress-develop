@@ -545,7 +545,7 @@ function update_option( $option, $value, $autoload = null ) {
 		wp_cache_set( 'notoptions', $notoptions, 'options' );
 	}
 
-	if ( ! wp_installing() ) {
+	if ( ! wp_installing() && null === $autoload ) {
 		$alloptions = wp_load_alloptions( true );
 		if ( isset( $alloptions[ $option ] ) ) {
 			$alloptions[ $option ] = $serialized_value;
@@ -553,6 +553,22 @@ function update_option( $option, $value, $autoload = null ) {
 		} else {
 			wp_cache_set( $option, $serialized_value, 'options' );
 		}
+	} elseif ( ! wp_installing() && 'yes' === $update_args['autoload'] ) {
+		// delete it before we force the cache
+		wp_cache_delete( $option, 'options' );
+
+		$alloptions = wp_load_alloptions( true );
+		$alloptions[ $option ] = $serialized_value;
+		wp_cache_set( 'alloptions', $alloptions, 'options' );
+	} elseif ( ! wp_installing() ) {
+		// not autoloaded
+		$alloptions = wp_load_alloptions( true );
+		if ( isset( $alloptions[ $option ] ) ) {
+			unset( $alloptions[ $option ] );
+			wp_cache_set( 'alloptions', $alloptions, 'options' );
+		}
+
+		wp_cache_set( $option, $serialized_value, 'options' );
 	}
 
 	/**
