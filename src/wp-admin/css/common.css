@@ -3779,17 +3779,7 @@ img {
 		min-width: 240px;
 		overflow-x: hidden;
 	}
-
-	.metabox-prefs-container {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-	}
-
-	.metabox-prefs-container > * {
-		display: inline-block;
-		padding: 5px;
-	}
-
+	
 	body * {
 		-webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
 	}
@@ -4081,6 +4071,18 @@ img {
 	.wp-filter .search-form.search-plugins {
 		/* This element is a flex item. */
 		min-width: 100%;
+	}
+}
+
+/* Small mobile devices */
+@media screen and (max-width: 480px) {
+	.metabox-prefs-container {
+		display: grid;
+	}
+
+	.metabox-prefs-container > * {
+		display: inline-block;
+		padding: 2px;
 	}
 }
 
