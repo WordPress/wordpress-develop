@@ -530,12 +530,14 @@ function update_comment_meta( $comment_id, $meta_key, $meta_value, $prev_value =
  *
  * @since 4.5.0
  * @since 6.3.0 Use wp_lazyload_comment_meta() for lazy-loading of comment meta.
+ * @deprecated 6.3.0 Use wp_lazyload_comment_meta() instead.
  *
  * @see wp_lazyload_comment_meta()
  *
  * @param WP_Comment[] $comments Array of comment objects.
  */
 function wp_queue_comments_for_comment_meta_lazyload( $comments ) {
+	_deprecated_function( __FUNCTION__, '6.3.0', 'wp_lazyload_comment_meta' );
 	// Don't use `wp_list_pluck()` to avoid by-reference manipulation.
 	$comment_ids = array();
 	if ( is_array( $comments ) ) {
