@@ -659,7 +659,10 @@ function rss2_site_icon() {
  */
 function get_self_link() {
 	$host = parse_url( home_url() );
-	$url  = 'http://';
+	$url  = '';
+	if ( isset( $host['scheme'] ) ) {
+		$url .= "{$host['scheme']}://";
+	}
 	$url .= $host['host'];
 	if ( isset( $host['port'] ) ) {
 		$url .= ":{$host['port']}";
