@@ -64,8 +64,12 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 		 * If you're building a theme based on Twenty Fourteen, use a find and
 		 * replace to change 'twentyfourteen' to the name of your theme in all
 		 * template files.
+		 * Manual loading of text domain is not required after the introduction of 
+		 * just in time loading for translations in WordPress version 4.6.
 		 */
-		load_theme_textdomain( 'twentyfourteen' );
+		if ( version_compare( $GLOBALS['wp_version'], '4.6', '<' ) ) {
+			load_theme_textdomain( 'twentyfourteen' );
+		}
 
 		/*
 		 * This theme styles the visual editor to resemble the theme style.

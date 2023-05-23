@@ -75,8 +75,13 @@ function twentythirteen_setup() {
 	 * If you're building a theme based on Twenty Thirteen, use a find and
 	 * replace to change 'twentythirteen' to the name of your theme in all
 	 * template files.
+	 * Manual loading of text domain is not required after the introduction of 
+	 * just in time loading for translations in WordPress version 4.6.
 	 */
-	load_theme_textdomain( 'twentythirteen' );
+	if ( version_compare( $GLOBALS['wp_version'], '4.6', '<' ) ) {
+		load_theme_textdomain( 'twentythirteen' );
+	}
+	
 
 	/*
 	 * This theme styles the visual editor to resemble the theme style,
