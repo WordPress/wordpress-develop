@@ -316,13 +316,13 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 */
 	protected $custom_type_data_previewed;
 
-	private function custom_type_getter( $name, $default = null ) {
+	private function custom_type_getter( $name, $default_value = null ) {
 		if ( did_action( "customize_preview_{$name}" ) && array_key_exists( $name, $this->custom_type_data_previewed ) ) {
 			$value = $this->custom_type_data_previewed[ $name ];
 		} elseif ( array_key_exists( $name, $this->custom_type_data_saved ) ) {
 			$value = $this->custom_type_data_saved[ $name ];
 		} else {
-			$value = $default;
+			$value = $default_value;
 		}
 		return $value;
 	}
@@ -334,17 +334,17 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	/**
 	 * Filter for `customize_value_{$id_base}`.
 	 *
-	 * @param mixed $default
+	 * @param mixed $default_value
 	 * @param WP_Customize_Setting $setting
 	 *
 	 * @return mixed|null
 	 */
-	public function custom_type_value_filter( $default, $setting = null ) {
+	public function custom_type_value_filter( $default_value, $setting = null ) {
 		$name = preg_replace( '/^customize_value_/', '', current_filter() );
 		$this->assertInstanceOf( 'WP_Customize_Setting', $setting );
 		$id_data = $setting->id_data();
 		$this->assertSame( $name, $id_data['base'] );
-		return $this->custom_type_getter( $name, $default );
+		return $this->custom_type_getter( $name, $default_value );
 	}
 
 	/**

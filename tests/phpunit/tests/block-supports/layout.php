@@ -1,15 +1,9 @@
 <?php
 /**
- * Block supports tests for the layout.
+ * Tests for block supports related to layout.
  *
  * @package WordPress
  * @subpackage Block Supports
- * @since 6.0.0
- */
-
-/**
- * Tests for block supports related to layout.
- *
  * @since 6.0.0
  *
  * @group block-supports
@@ -32,7 +26,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		$this->theme_root     = realpath( DIR_TESTDATA . '/themedir1' );
 		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
@@ -50,7 +44,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 
 		// Clear up the filters to modify the theme root.
@@ -63,14 +57,14 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-	function filter_set_theme_root() {
+	public function filter_set_theme_root() {
 		return $this->theme_root;
 	}
 
 	/**
 	 * @ticket 55505
 	 */
-	function test_outer_container_not_restored_for_non_aligned_image_block_with_non_themejson_theme() {
+	public function test_outer_container_not_restored_for_non_aligned_image_block_with_non_themejson_theme() {
 		// The "default" theme doesn't have theme.json support.
 		switch_theme( 'default' );
 		$block         = array(
@@ -86,7 +80,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_outer_container_restored_for_aligned_image_block_with_non_themejson_theme() {
+	public function test_outer_container_restored_for_aligned_image_block_with_non_themejson_theme() {
 		// The "default" theme doesn't have theme.json support.
 		switch_theme( 'default' );
 		$block         = array(
@@ -107,7 +101,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 	 * @param string $block_image_html The block image HTML passed to `wp_restore_image_outer_container`.
 	 * @param string $expected         The expected block image HTML.
 	 */
-	function test_additional_styles_moved_to_restored_outer_container_for_aligned_image_block_with_non_themejson_theme( $block_image_html, $expected ) {
+	public function test_additional_styles_moved_to_restored_outer_container_for_aligned_image_block_with_non_themejson_theme( $block_image_html, $expected ) {
 		// The "default" theme doesn't have theme.json support.
 		switch_theme( 'default' );
 		$block = array(
@@ -160,7 +154,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_outer_container_not_restored_for_aligned_image_block_with_themejson_theme() {
+	public function test_outer_container_not_restored_for_aligned_image_block_with_themejson_theme() {
 		switch_theme( 'block-theme' );
 		$block         = array(
 			'blockName' => 'core/image',
@@ -172,5 +166,89 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 		$expected      = '<figure class="wp-block-image alignright size-full is-style-round my-custom-classname"><img src="/my-image.jpg"/></figure>';
 
 		$this->assertSame( $expected, wp_restore_image_outer_container( $block_content, $block ) );
+	}
+
+	/**
+	 * @ticket 57584
+	 *
+	 * @dataProvider data_layout_support_flag_renders_classnames_on_wrapper
+	 *
+	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @param array  $args            Dataset to test.
+	 * @param string $expected_output The expected output.
+	 */
+	public function test_layout_support_flag_renders_classnames_on_wrapper( $args, $expected_output ) {
+		$actual_output = wp_render_layout_support_flag( $args['block_content'], $args['block'] );
+		$this->assertSame( $expected_output, $actual_output );
+	}
+
+	/**
+	 * Data provider for test_layout_support_flag_renders_classnames_on_wrapper.
+	 *
+	 * @return array
+	 */
+	public function data_layout_support_flag_renders_classnames_on_wrapper() {
+		return array(
+			'single wrapper block layout with flow type'   => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'default',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"></div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group is-layout-flow"></div>',
+			),
+			'single wrapper block layout with constrained type' => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'constrained',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"></div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group is-layout-constrained"></div>',
+			),
+			'multiple wrapper block layout with flow type' => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"><div class="wp-block-group__inner-wrapper"></div></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'default',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"><div class="wp-block-group__inner-wrapper"></div></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"><div class="wp-block-group__inner-wrapper">',
+							' ',
+							' </div></div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group"><div class="wp-block-group__inner-wrapper is-layout-flow"></div></div>',
+			),
+		);
 	}
 }

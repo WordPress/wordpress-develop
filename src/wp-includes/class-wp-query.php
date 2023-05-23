@@ -109,6 +109,14 @@ class WP_Query {
 	public $current_post = -1;
 
 	/**
+	 * Whether the caller is before the loop.
+	 *
+	 * @since 6.3.0
+	 * @var bool
+	 */
+	public $before_loop = true;
+
+	/**
 	 * Whether the loop has started and the caller is in the loop.
 	 *
 	 * @since 2.0.0
@@ -517,6 +525,7 @@ class WP_Query {
 		$this->post_count   = 0;
 		$this->current_post = -1;
 		$this->in_the_loop  = false;
+		$this->before_loop  = true;
 		unset( $this->request );
 		unset( $this->post );
 		unset( $this->comments );
@@ -610,6 +619,7 @@ class WP_Query {
 			'post_parent__not_in',
 			'author__in',
 			'author__not_in',
+			'search_columns',
 		);
 
 		foreach ( $array_keys as $key ) {
@@ -637,6 +647,7 @@ class WP_Query {
 	 * @since 5.1.0 Introduced the `$meta_compare_key` parameter.
 	 * @since 5.3.0 Introduced the `$meta_type_key` parameter.
 	 * @since 6.1.0 Introduced the `$update_menu_item_cache` parameter.
+	 * @since 6.2.0 Introduced the `$search_columns` parameter.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or string of Query parameters.
@@ -750,6 +761,8 @@ class WP_Query {
 	 *                                                    return posts containing 'pillow' but not 'sofa'. The
 	 *                                                    character used for exclusion can be modified using the
 	 *                                                    the 'wp_query_search_exclusion_prefix' filter.
+	 *     @type string[]        $search_columns          Array of column names to be searched. Accepts 'post_title',
+	 *                                                    'post_excerpt' and 'post_content'. Default empty array.
 	 *     @type int             $second                  Second of the minute. Default empty. Accepts numbers 0-59.
 	 *     @type bool            $sentence                Whether to search by phrase. Default false.
 	 *     @type bool            $suppress_filters        Whether to suppress filters. Default false.
@@ -1410,6 +1423,32 @@ class WP_Query {
 		$searchand                 = '';
 		$q['search_orderby_title'] = array();
 
+		$default_search_columns = array( 'post_title', 'post_excerpt', 'post_content' );
+		$search_columns         = ! empty( $q['search_columns'] ) ? $q['search_columns'] : $default_search_columns;
+		if ( ! is_array( $search_columns ) ) {
+			$search_columns = array( $search_columns );
+		}
+
+		/**
+		 * Filters the columns to search in a WP_Query search.
+		 *
+		 * The supported columns are `post_title`, `post_excerpt` and `post_content`.
+		 * They are all included by default.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param string[] $search_columns Array of column names to be searched.
+		 * @param string   $search         Text being searched.
+		 * @param WP_Query $query          The current WP_Query instance.
+		 */
+		$search_columns = (array) apply_filters( 'post_search_columns', $search_columns, $q['s'], $this );
+
+		// Use only supported search columns.
+		$search_columns = array_intersect( $search_columns, $default_search_columns );
+		if ( empty( $search_columns ) ) {
+			$search_columns = $default_search_columns;
+		}
+
 		/**
 		 * Filters the prefix that indicates that a search term should be excluded from results.
 		 *
@@ -1439,11 +1478,17 @@ class WP_Query {
 
 			$like = $n . $wpdb->esc_like( $term ) . $n;
 
-			if ( ! empty( $this->allow_query_attachment_by_filename ) ) {
-				$search .= $wpdb->prepare( "{$searchand}(({$wpdb->posts}.post_title $like_op %s) $andor_op ({$wpdb->posts}.post_excerpt $like_op %s) $andor_op ({$wpdb->posts}.post_content $like_op %s) $andor_op (sq1.meta_value $like_op %s))", $like, $like, $like, $like );
-			} else {
-				$search .= $wpdb->prepare( "{$searchand}(({$wpdb->posts}.post_title $like_op %s) $andor_op ({$wpdb->posts}.post_excerpt $like_op %s) $andor_op ({$wpdb->posts}.post_content $like_op %s))", $like, $like, $like );
+			$search_columns_parts = array();
+			foreach ( $search_columns as $search_column ) {
+				$search_columns_parts[ $search_column ] = $wpdb->prepare( "({$wpdb->posts}.$search_column $like_op %s)", $like );
 			}
+
+			if ( ! empty( $this->allow_query_attachment_by_filename ) ) {
+				$search_columns_parts['attachment'] = $wpdb->prepare( "(sq1.meta_value $like_op %s)", $like );
+			}
+
+			$search .= "$searchand(" . implode( " $andor_op ", $search_columns_parts ) . ')';
+
 			$searchand = ' AND ';
 		}
 
@@ -1779,7 +1824,8 @@ class WP_Query {
 	 * @since 3.9.0 The `$default_value` argument was introduced.
 	 *
 	 * @param string $query_var     Query variable key.
-	 * @param mixed  $default_value Optional. Value to return if the query variable is not set. Default empty string.
+	 * @param mixed  $default_value Optional. Value to return if the query variable is not set.
+	 *                              Default empty string.
 	 * @return mixed Contents of the query variable.
 	 */
 	public function get( $query_var, $default_value = '' ) {
@@ -1911,6 +1957,8 @@ class WP_Query {
 
 		if ( ! isset( $q['lazy_load_term_meta'] ) ) {
 			$q['lazy_load_term_meta'] = $q['update_post_term_cache'];
+		} elseif ( $q['lazy_load_term_meta'] ) { // Lazy loading term meta only works if term caches are primed.
+			$q['update_post_term_cache'] = true;
 		}
 
 		if ( ! isset( $q['update_post_meta_cache'] ) ) {
@@ -2213,7 +2261,7 @@ class WP_Query {
 				}
 				if ( ! $post_type ) {
 					$post_type = 'any';
-				} elseif ( count( $post_type ) == 1 ) {
+				} elseif ( count( $post_type ) === 1 ) {
 					$post_type = $post_type[0];
 				}
 
@@ -2769,12 +2817,12 @@ class WP_Query {
 			$last_changed = wp_cache_get_last_changed( 'comment' ) . ':' . wp_cache_get_last_changed( 'posts' );
 
 			$cache_key   = "comment_feed:$key:$last_changed";
-			$comment_ids = wp_cache_get( $cache_key, 'comment' );
+			$comment_ids = wp_cache_get( $cache_key, 'comment-queries' );
 			if ( false === $comment_ids ) {
 				$comment_ids = $wpdb->get_col( $comments_request );
-				wp_cache_add( $cache_key, $comment_ids, 'comment' );
+				wp_cache_add( $cache_key, $comment_ids, 'comment-queries' );
 			}
-			_prime_comment_caches( $comment_ids, false );
+			_prime_comment_caches( $comment_ids );
 
 			// Convert to WP_Comment.
 			/** @var WP_Comment[] */
@@ -3103,15 +3151,30 @@ class WP_Query {
 		 * cannot be cached. Note the space before `RAND` in the string
 		 * search, that to ensure against a collision with another
 		 * function.
+		 *
+		 * If `$fields` has been modified by the `posts_fields`,
+		 * `posts_fields_request`, `post_clauses` or `posts_clauses_request`
+		 * filters, then caching is disabled to prevent caching collisions.
 		 */
 		$id_query_is_cacheable = ! str_contains( strtoupper( $orderby ), ' RAND(' );
+
+		$cacheable_field_values = array(
+			"{$wpdb->posts}.*",
+			"{$wpdb->posts}.ID, {$wpdb->posts}.post_parent",
+			"{$wpdb->posts}.ID",
+		);
+
+		if ( ! in_array( $fields, $cacheable_field_values, true ) ) {
+			$id_query_is_cacheable = false;
+		}
+
 		if ( $q['cache_results'] && $id_query_is_cacheable ) {
 			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
 			$cache_key   = $this->generate_cache_key( $q, $new_request );
 
 			$cache_found = false;
 			if ( null === $this->posts ) {
-				$cached_results = wp_cache_get( $cache_key, 'posts', false, $cache_found );
+				$cached_results = wp_cache_get( $cache_key, 'post-queries', false, $cache_found );
 
 				if ( $cached_results ) {
 					if ( 'ids' === $q['fields'] ) {
@@ -3166,7 +3229,7 @@ class WP_Query {
 					'max_num_pages' => $this->max_num_pages,
 				);
 
-				wp_cache_set( $cache_key, $cache_value, 'posts' );
+				wp_cache_set( $cache_key, $cache_value, 'post-queries' );
 			}
 
 			return $this->posts;
@@ -3199,7 +3262,7 @@ class WP_Query {
 					'max_num_pages' => $this->max_num_pages,
 				);
 
-				wp_cache_set( $cache_key, $cache_value, 'posts' );
+				wp_cache_set( $cache_key, $cache_value, 'post-queries' );
 			}
 
 			return $post_parents;
@@ -3274,7 +3337,7 @@ class WP_Query {
 				'max_num_pages' => $this->max_num_pages,
 			);
 
-			wp_cache_set( $cache_key, $cache_value, 'posts' );
+			wp_cache_set( $cache_key, $cache_value, 'post-queries' );
 		}
 
 		if ( ! $q['suppress_filters'] ) {
@@ -3313,12 +3376,12 @@ class WP_Query {
 			$comment_last_changed = wp_cache_get_last_changed( 'comment' );
 
 			$comment_cache_key = "comment_feed:$comment_key:$comment_last_changed";
-			$comment_ids       = wp_cache_get( $comment_cache_key, 'comment' );
+			$comment_ids       = wp_cache_get( $comment_cache_key, 'comment-queries' );
 			if ( false === $comment_ids ) {
 				$comment_ids = $wpdb->get_col( $comments_request );
-				wp_cache_add( $comment_cache_key, $comment_ids, 'comment' );
+				wp_cache_add( $comment_cache_key, $comment_ids, 'comment-queries' );
 			}
-			_prime_comment_caches( $comment_ids, false );
+			_prime_comment_caches( $comment_ids );
 
 			// Convert to WP_Comment.
 			/** @var WP_Comment[] */
@@ -3433,11 +3496,6 @@ class WP_Query {
 			}
 		}
 
-		// If comments have been fetched as part of the query, make sure comment meta lazy-loading is set up.
-		if ( ! empty( $this->comments ) ) {
-			wp_queue_comments_for_comment_meta_lazyload( $this->comments );
-		}
-
 		if ( ! $q['suppress_filters'] ) {
 			/**
 			 * Filters the array of retrieved posts after they've been fetched and
@@ -3460,8 +3518,7 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 
 			if ( $q['cache_results'] ) {
-				$post_ids = wp_list_pluck( $this->posts, 'ID' );
-				_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 			}
 
 			/** @var WP_Post */
@@ -3571,10 +3628,19 @@ class WP_Query {
 		global $post;
 
 		if ( ! $this->in_the_loop ) {
-			update_post_author_caches( $this->posts );
+			// Only prime the post cache for queries limited to the ID field.
+			$post_ids = array_filter( $this->posts, 'is_numeric' );
+			// Exclude any falsey values, such as 0.
+			$post_ids = array_filter( $post_ids );
+			if ( $post_ids ) {
+				_prime_post_caches( $post_ids, $this->query_vars['update_post_term_cache'], $this->query_vars['update_post_meta_cache'] );
+			}
+			$post_objects = array_map( 'get_post', $this->posts );
+			update_post_author_caches( $post_objects );
 		}
 
 		$this->in_the_loop = true;
+		$this->before_loop = false;
 
 		if ( -1 == $this->current_post ) { // Loop has just started.
 			/**
@@ -3615,6 +3681,8 @@ class WP_Query {
 			// Do some cleaning up after the loop.
 			$this->rewind_posts();
 		} elseif ( 0 === $this->post_count ) {
+			$this->before_loop = false;
+
 			/**
 			 * Fires if no results are found in a post query.
 			 *
@@ -4653,11 +4721,22 @@ class WP_Query {
 
 		$authordata = get_userdata( $post->post_author );
 
-		$currentday   = mysql2date( 'd.m.y', $post->post_date, false );
-		$currentmonth = mysql2date( 'm', $post->post_date, false );
-		$numpages     = 1;
-		$multipage    = 0;
-		$page         = $this->get( 'page' );
+		$currentday   = false;
+		$currentmonth = false;
+
+		$post_date = $post->post_date;
+		if ( ! empty( $post_date ) && '0000-00-00 00:00:00' !== $post_date ) {
+			// Avoid using mysql2date for performance reasons.
+			$currentmonth = substr( $post_date, 5, 2 );
+			$day          = substr( $post_date, 8, 2 );
+			$year         = substr( $post_date, 2, 2 );
+
+			$currentday = sprintf( '%s.%s.%s', $day, $currentmonth, $year );
+		}
+
+		$numpages  = 1;
+		$multipage = 0;
+		$page      = $this->get( 'page' );
 		if ( ! $page ) {
 			$page = 1;
 		}
@@ -4685,7 +4764,7 @@ class WP_Query {
 			$content = str_replace( '<!-- /wp:nextpage -->', '', $content );
 
 			// Ignore nextpage at the beginning of the content.
-			if ( 0 === strpos( $content, '<!--nextpage-->' ) ) {
+			if ( str_starts_with( $content, '<!--nextpage-->' ) ) {
 				$content = substr( $content, 15 );
 			}
 
@@ -4759,7 +4838,7 @@ class WP_Query {
 			 * $value is passed by reference to allow it to be modified.
 			 * array_walk_recursive() does not return an array.
 			 */
-			function ( &$value ) use ( $wpdb, $placeholder ) {
+			static function ( &$value ) use ( $wpdb, $placeholder ) {
 				if ( is_string( $value ) && str_contains( $value, $placeholder ) ) {
 					$value = $wpdb->remove_placeholder_escape( $value );
 				}

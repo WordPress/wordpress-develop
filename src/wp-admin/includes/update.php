@@ -93,7 +93,7 @@ function find_core_auto_update() {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
 	$auto_update = false;
-	$upgrader    = new WP_Automatic_Updater;
+	$upgrader    = new WP_Automatic_Updater();
 	foreach ( $updates->updates as $update ) {
 		if ( 'autoupdate' !== $update->response ) {
 			continue;
@@ -235,7 +235,7 @@ function core_update_footer( $msg = '' ) {
 
 	$cur = get_preferred_from_update_core();
 	if ( ! is_object( $cur ) ) {
-		$cur = new stdClass;
+		$cur = new stdClass();
 	}
 
 	if ( ! isset( $cur->current ) ) {
@@ -303,7 +303,7 @@ function update_nag() {
 
 	$version_url = sprintf(
 		/* translators: %s: WordPress version. */
-		esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
+		esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
 		sanitize_title( $cur->current )
 	);
 
@@ -924,7 +924,12 @@ function wp_print_admin_notice_templates() {
 							printf( __( '%s updates failed.' ), '{{ data.errors }}' );
 							?>
 						<# } #>
-						<span class="screen-reader-text"><?php _e( 'Show more details' ); ?></span>
+						<span class="screen-reader-text">
+							<?php
+							/* translators: Hidden accessibility text. */
+							_e( 'Show more details' );
+							?>
+						</span>
 						<span class="toggle-indicator" aria-hidden="true"></span>
 					</button>
 				<# } #>

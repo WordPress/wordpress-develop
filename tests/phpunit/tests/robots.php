@@ -1,12 +1,8 @@
 <?php
 /**
- * Robots functions tests.
+ * Tests for robots template functions and filters.
  *
  * @package WordPress
- */
-
-/**
- * Tests for robots template functions and filters.
  *
  * @group robots
  */

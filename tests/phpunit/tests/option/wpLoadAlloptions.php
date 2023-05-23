@@ -34,10 +34,9 @@ class Tests_Option_wpLoadAlloptions extends WP_UnitTestCase {
 	 * @covers ::wp_load_alloptions
 	 */
 	public function test_if_alloptions_are_retrieved_from_cache() {
-		global $wpdb;
-		$before = $wpdb->num_queries;
+		$before = get_num_queries();
 		wp_load_alloptions();
-		$after = $wpdb->num_queries;
+		$after = get_num_queries();
 
 		// Database has not been hit.
 		$this->assertSame( $before, $after );
@@ -49,14 +48,12 @@ class Tests_Option_wpLoadAlloptions extends WP_UnitTestCase {
 	 * @covers ::wp_load_alloptions
 	 */
 	public function test_if_alloptions_are_retrieved_from_database() {
-		global $wpdb;
-
 		// Delete the existing cache first.
 		wp_cache_delete( 'alloptions', 'options' );
 
-		$before = $wpdb->num_queries;
+		$before = get_num_queries();
 		wp_load_alloptions();
-		$after = $wpdb->num_queries;
+		$after = get_num_queries();
 
 		// Database has been hit.
 		$this->assertSame( $before + 1, $after );
@@ -119,5 +116,32 @@ class Tests_Option_wpLoadAlloptions extends WP_UnitTestCase {
 	public function return_pre_cache_filter( $alloptions ) {
 		$this->alloptions = $alloptions;
 		return $this->alloptions;
+	}
+
+	/**
+	 * Tests that `$alloptions` can be filtered with a custom value, short circuiting `wp_load_alloptions()`.
+	 *
+	 * @ticket 56045
+	 *
+	 * @covers ::wp_load_alloptions
+	 */
+	public function test_filter_pre_wp_load_alloptions_filter_is_called() {
+		$filter = new MockAction();
+
+		add_filter( 'pre_wp_load_alloptions', array( &$filter, 'filter' ) );
+
+		wp_load_alloptions();
+
+		$this->assertSame(
+			1,
+			$filter->get_call_count(),
+			'The filter was not called 1 time.'
+		);
+
+		$this->assertSame(
+			array( 'pre_wp_load_alloptions' ),
+			$filter->get_hook_names(),
+			'The hook name was incorrect.'
+		);
 	}
 }

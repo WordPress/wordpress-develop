@@ -202,7 +202,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		add_filter(
 			'pre_http_request',
-			function ( $r, $parsed_args ) use ( &$responses, &$is_unauthorized, $good_basic_auth, $delay_the_response, $threshold ) {
+			function ( $response, $parsed_args ) use ( &$responses, &$is_unauthorized, $good_basic_auth, $delay_the_response, $threshold ) {
 
 				$expected_response = array_shift( $responses );
 
@@ -421,7 +421,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		// Set thresholds so high they should never be exceeded.
 		add_filter(
 			'site_status_persistent_object_cache_thresholds',
-			function() {
+			static function() {
 				return array(
 					'alloptions_count' => PHP_INT_MAX,
 					'alloptions_bytes' => PHP_INT_MAX,
@@ -472,7 +472,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	public function test_object_cache_thresholds( $threshold, $count ) {
 		add_filter(
 			'site_status_persistent_object_cache_thresholds',
-			function ( $thresholds ) use ( $threshold, $count ) {
+			static function ( $thresholds ) use ( $threshold, $count ) {
 				return array_merge( $thresholds, array( $threshold => $count ) );
 			}
 		);

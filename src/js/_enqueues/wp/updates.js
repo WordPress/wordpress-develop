@@ -5,7 +5,7 @@
  * @output wp-admin/js/updates.js
  */
 
-/* global pagenow */
+/* global pagenow, _wpThemeSettings */
 
 /**
  * @param {jQuery}  $                                        jQuery object.
@@ -1614,6 +1614,14 @@
 			} );
 		}
 
+		// DecrementCount from update count.
+		if ( 'themes' === pagenow ) {
+		    var theme = _.find( _wpThemeSettings.themes, { id: response.slug } );
+		    if ( theme.hasUpdate ) {
+		        wp.updates.decrementCount( 'theme' );
+		    }
+		}
+
 		wp.a11y.speak( _x( 'Deleted!', 'theme' ) );
 
 		$document.trigger( 'wp-theme-delete-success', response );
@@ -2654,7 +2662,7 @@
 					sprintf(
 						/* translators: %s: Search query. */
 						__( 'Search results for: %s' ),
-						'<strong>' + _.escape( data.s ) + '</strong>'
+						'<strong>' + _.escape( decodeURIComponent( data.s ) ) + '</strong>'
 					) ),
 					$oldSubTitle = $( '.wrap .subtitle' );
 

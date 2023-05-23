@@ -11,7 +11,7 @@
 	var __ = wp.i18n.__;
 
 	/**
-	 * Contains all the methods to initialise and control the image editor.
+	 * Contains all the methods to initialize and control the image editor.
 	 *
 	 * @namespace imageEdit
 	 */
@@ -435,7 +435,7 @@
 	 *
 	 * @return {boolean|void} Executes a post request that refreshes the page
 	 *                        when the action is performed.
-	 *                        Returns false if a invalid action is given,
+	 *                        Returns false if an invalid action is given,
 	 *                        or when the action cannot be performed.
 	 */
 	action : function(postid, nonce, action) {
@@ -636,7 +636,7 @@
 				btn.removeClass( 'button-activated' );
 				spin.removeClass( 'is-active' );
 			} );
-			// Initialise the Image Editor now that everything is ready.
+			// Initialize the Image Editor now that everything is ready.
 			imageEdit.init( postid );
 		} );
 

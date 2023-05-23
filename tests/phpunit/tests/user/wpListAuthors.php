@@ -146,6 +146,31 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Ensures the 'optioncount' parameter does not throw an error when there are authors without posts.
+	 *
+	 * @ticket 57011
+	 */
+	public function test_wp_list_authors_optioncount_should_not_error_for_empty_authors() {
+		/*
+		 * The main purpose of this test is to ensure that the error below is not thrown:
+		 *
+		 * Error: Object of class stdClass could not be converted to string
+		 *
+		 * In place of direct testing we ensure `wp_list_authors()` returns a list of authors
+		 * at least one of which is empty.
+		 */
+		$actual = wp_list_authors(
+			array(
+				'optioncount'   => true,
+				'hide_empty'    => false,
+				'exclude_admin' => false,
+				'echo'          => false,
+			)
+		);
+		$this->assertStringContainsString( '(0)', $actual );
+	}
+
 	public function test_wp_list_authors_exclude_admin() {
 		self::factory()->post->create(
 			array(

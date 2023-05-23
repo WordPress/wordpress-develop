@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  * @group pattern-directory
  */
@@ -31,6 +29,15 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	private static $controller;
 
 	/**
+	 * List of URLs captured.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @var string[]
+	 */
+	protected static $http_request_urls;
+
+	/**
 	 * Set up class test fixtures.
 	 *
 	 * @since 5.8.0
@@ -44,7 +51,28 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 			)
 		);
 
+		self::$http_request_urls = array();
+
 		static::$controller = new WP_REST_Pattern_Directory_Controller();
+	}
+
+	/**
+	 * Tear down after class.
+	 *
+	 * @since 6.2.0
+	 */
+	public static function wpTearDownAfterClass() {
+		self::delete_user( self::$contributor_id );
+	}
+
+	/**
+	 * Clear the captured request URLs after each test.
+	 *
+	 * @since 6.2.0
+	 */
+	public function tear_down() {
+		self::$http_request_urls = array();
+		parent::tear_down();
 	}
 
 	/**
@@ -311,6 +339,176 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	}
 
 	/**
+	 * Tests if the provided query args are passed through to the wp.org API.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @ticket 57501
+	 *
+	 * @covers WP_REST_Pattern_Directory_Controller::get_items
+	 *
+	 * @dataProvider data_get_items_query_args
+	 *
+	 * @param string $param    Query parameter name (ex, page).
+	 * @param mixed  $value    Query value to test.
+	 * @param bool   $is_error Whether this value should error or not.
+	 * @param mixed  $expected Expected value (or expected error code).
+	 */
+	public function test_get_items_query_args( $param, $value, $is_error, $expected ) {
+		wp_set_current_user( self::$contributor_id );
+		add_filter( 'pre_http_request', array( $this, 'mock_request_to_apiwporg_url' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pattern-directory/patterns' );
+		if ( $value ) {
+			$request->set_query_params( array( $param => $value ) );
+		}
+
+		$response = rest_do_request( $request );
+		$data     = $response->get_data();
+		if ( $is_error ) {
+			$this->assertSame( $expected, $data['code'], 'Response error code does not match' );
+			$this->assertStringContainsString( $param, $data['message'], 'Response error message does not match' );
+		} else {
+			$this->assertCount( 1, self::$http_request_urls, 'The number of HTTP Request URLs is not 1' );
+			$this->assertStringContainsString( $param . '=' . $expected, self::$http_request_urls[0], 'The param and/or value do not match' );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * return array[]
+	 */
+	public function data_get_items_query_args() {
+		return array(
+			'per_page default'   => array(
+				'param'    => 'per_page',
+				'value'    => false,
+				'is_error' => false,
+				'expected' => 100,
+			),
+			'per_page custom-1'  => array(
+				'param'    => 'per_page',
+				'value'    => 5,
+				'is_error' => false,
+				'expected' => 5,
+			),
+			'per_page custom-2'  => array(
+				'param'    => 'per_page',
+				'value'    => 50,
+				'is_error' => false,
+				'expected' => 50,
+			),
+			'per_page invalid-1' => array(
+				'param'    => 'per_page',
+				'value'    => 200,
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+			'per_page invalid-2' => array(
+				'param'    => 'per_page',
+				'value'    => 'abc',
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+
+			'page default'       => array(
+				'param'    => 'page',
+				'value'    => false,
+				'is_error' => false,
+				'expected' => 1,
+			),
+			'page custom'        => array(
+				'param'    => 'page',
+				'value'    => 5,
+				'is_error' => false,
+				'expected' => 5,
+			),
+			'page invalid'       => array(
+				'param'    => 'page',
+				'value'    => 'abc',
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+
+			'offset custom'      => array(
+				'param'    => 'offset',
+				'value'    => 5,
+				'is_error' => false,
+				'expected' => 5,
+			),
+			'offset invalid-1'   => array(
+				'param'    => 'offset',
+				'value'    => 'abc',
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+
+			'order default'      => array(
+				'param'    => 'order',
+				'value'    => false,
+				'is_error' => false,
+				'expected' => 'desc',
+			),
+			'order custom'       => array(
+				'param'    => 'order',
+				'value'    => 'asc',
+				'is_error' => false,
+				'expected' => 'asc',
+			),
+			'order invalid-1'    => array(
+				'param'    => 'order',
+				'value'    => 10,
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+			'order invalid-2'    => array(
+				'param'    => 'order',
+				'value'    => 'fake',
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+
+			'orderby default'    => array(
+				'param'    => 'orderby',
+				'value'    => false,
+				'is_error' => false,
+				'expected' => 'date',
+			),
+			'orderby custom-1'   => array(
+				'param'    => 'orderby',
+				'value'    => 'title',
+				'is_error' => false,
+				'expected' => 'title',
+			),
+			'orderby custom-2'   => array(
+				'param'    => 'orderby',
+				'value'    => 'date',
+				'is_error' => false,
+				'expected' => 'date',
+			),
+			'orderby custom-3'   => array(
+				'param'    => 'orderby',
+				'value'    => 'favorite_count',
+				'is_error' => false,
+				'expected' => 'favorite_count',
+			),
+			'orderby invalid-1'  => array(
+				'param'    => 'orderby',
+				'value'    => 10,
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+			'orderby invalid-2'  => array(
+				'param'    => 'orderby',
+				'value'    => 'fake',
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+		);
+	}
+
+	/**
 	 * @doesNotPerformAssertions
 	 */
 	public function test_get_item() {
@@ -522,10 +720,10 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	private static function mock_successful_response( $action, $expects_results ) {
 		add_filter(
 			'pre_http_request',
-			static function ( $preempt, $args, $url ) use ( $action, $expects_results ) {
+			static function ( $response, $parsed_args, $url ) use ( $action, $expects_results ) {
 
 				if ( 'api.wordpress.org' !== wp_parse_url( $url, PHP_URL_HOST ) ) {
-					return $preempt;
+					return $response;
 				}
 
 				$response = array(
@@ -556,7 +754,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	private static function prevent_requests_to_host( $blocked_host = 'api.wordpress.org' ) {
 		add_filter(
 			'pre_http_request',
-			static function ( $return, $args, $url ) use ( $blocked_host ) {
+			static function ( $response, $parsed_args, $url ) use ( $blocked_host ) {
 
 				if ( wp_parse_url( $url, PHP_URL_HOST ) === $blocked_host ) {
 					return new WP_Error(
@@ -567,10 +765,39 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 
 				}
 
-				return $return;
+				return $response;
 			},
 			10,
 			3
 		);
+	}
+
+	/**
+	 * Mock the request to wp.org URL to capture the URLs.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @return array faux/mocked response.
+	 */
+	public function mock_request_to_apiwporg_url( $response, $args, $url ) {
+		if ( 'api.wordpress.org' !== wp_parse_url( $url, PHP_URL_HOST ) ) {
+			return $response;
+		}
+
+		self::$http_request_urls[] = $url;
+
+		// Return a response to prevent external API request.
+		$response = array(
+			'headers'  => array(),
+			'response' => array(
+				'code'    => 200,
+				'message' => 'OK',
+			),
+			'body'     => '[]',
+			'cookies'  => array(),
+			'filename' => null,
+		);
+
+		return $response;
 	}
 }

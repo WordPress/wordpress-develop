@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
@@ -204,6 +202,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'page',
 				'per_page',
 				'search',
+				'search_columns',
 				'slug',
 				'status',
 				'sticky',
@@ -1528,7 +1527,40 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
+	 * Tests that Rest Post controller supports search columns.
+	 *
+	 * @ticket 43867
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_get_items_with_custom_search_columns() {
+		$id1 = self::factory()->post->create(
+			array(
+				'post_title'   => 'Title contain foo and bar',
+				'post_content' => 'Content contain bar',
+				'post_excerpt' => 'Excerpt contain baz',
+			)
+		);
+		$id2 = self::factory()->post->create(
+			array(
+				'post_title'   => 'Title contain baz',
+				'post_content' => 'Content contain foo and bar',
+				'post_excerpt' => 'Excerpt contain foo, bar and baz',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'search', 'foo bar' );
+		$request->set_param( 'search_columns', array( 'post_title' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response should have a status code 200.' );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data, 'Response should contain one result.' );
+		$this->assertSame( $id1, $data[0]['id'], 'Result should match expected value.' );
+	}
+
+	/**
 	 * @ticket 55592
+	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 * @covers ::update_post_thumbnail_cache
 	 */
@@ -1566,6 +1598,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	/**
 	 * @ticket 55593
+	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 * @covers ::update_post_parent_caches
 	 */
@@ -2324,7 +2357,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->check_create_post_response( $response );
 	}
 
-	public function post_dates_provider() {
+	public function data_post_dates() {
 		$all_statuses = array(
 			'draft',
 			'publish',
@@ -2395,7 +2428,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * @dataProvider post_dates_provider
+	 * @dataProvider data_post_dates
 	 */
 	public function test_create_post_date( $status, $params, $results ) {
 		wp_set_current_user( self::$editor_id );
@@ -3444,7 +3477,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * @dataProvider post_dates_provider
+	 * @dataProvider data_post_dates
 	 */
 	public function test_update_post_date( $status, $params, $results ) {
 		wp_set_current_user( self::$editor_id );
@@ -3999,7 +4032,17 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( $expected_output['excerpt']['raw'], $post->post_excerpt );
 	}
 
-	public static function post_roundtrip_provider() {
+	/**
+	 * @dataProvider data_post_roundtrip_as_author
+	 */
+	public function test_post_roundtrip_as_author( $raw, $expected ) {
+		wp_set_current_user( self::$author_id );
+
+		$this->assertFalse( current_user_can( 'unfiltered_html' ) );
+		$this->verify_post_roundtrip( $raw, $expected );
+	}
+
+	public static function data_post_roundtrip_as_author() {
 		return array(
 			array(
 				// Raw values.
@@ -4094,16 +4137,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				),
 			),
 		);
-	}
-
-	/**
-	 * @dataProvider post_roundtrip_provider
-	 */
-	public function test_post_roundtrip_as_author( $raw, $expected ) {
-		wp_set_current_user( self::$author_id );
-
-		$this->assertFalse( current_user_can( 'unfiltered_html' ) );
-		$this->verify_post_roundtrip( $raw, $expected );
 	}
 
 	public function test_post_roundtrip_as_editor_unfiltered_html() {
@@ -4584,15 +4617,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$wp_rest_additional_fields = array();
 	}
 
-	public function additional_field_get_callback( $object ) {
-		return get_post_meta( $object['id'], 'my_custom_int', true );
+	public function additional_field_get_callback( $response_data, $field_name ) {
+		return get_post_meta( $response_data['id'], $field_name, true );
 	}
 
-	public function additional_field_update_callback( $value, $post ) {
+	public function additional_field_update_callback( $value, $post, $field_name ) {
 		if ( 'returnError' === $value ) {
 			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
 		}
-		update_post_meta( $post->ID, 'my_custom_int', $value );
+		update_post_meta( $post->ID, $field_name, $value );
 	}
 
 	public function test_publish_action_ldo_registered() {

@@ -60,17 +60,15 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	}
 
 	public function test_passing_term_object_should_skip_database_query_when_filter_property_is_empty() {
-		global $wpdb;
-
 		$term = self::factory()->term->create_and_get( array( 'taxonomy' => 'wptests_tax' ) );
 		clean_term_cache( $term->term_id, 'wptests_tax' );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		unset( $term->filter );
 		$term_a = get_term( $term, 'wptests_tax' );
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	public function test_passing_term_string_that_casts_to_int_0_should_return_null() {
@@ -82,18 +80,16 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	}
 
 	public function test_cache_should_be_populated_by_successful_fetch() {
-		global $wpdb;
-
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		clean_term_cache( $t, 'wptests_tax' );
 
 		// Prime cache.
 		$term_a      = get_term( $t, 'wptests_tax' );
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		// Second call shouldn't require a database query.
 		$term_b = get_term( $t, 'wptests_tax' );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertEquals( $term_a, $term_b );
 	}
 
@@ -196,19 +192,17 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	 * @ticket 34533
 	 */
 	public function test_shared_term_in_cache_should_be_ignored_when_specifying_a_different_taxonomy() {
-		global $wpdb;
-
 		$terms = $this->generate_shared_terms();
 
 		// Prime cache for 'wptests_tax'.
 		get_term( $terms[0]['term_id'], 'wptests_tax' );
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		// Database should be hit again.
 		$found = get_term( $terms[1]['term_id'], 'wptests_tax_2' );
 		$num_queries++;
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertInstanceOf( 'WP_Term', $found );
 		$this->assertSame( 'wptests_tax_2', $found->taxonomy );
 	}

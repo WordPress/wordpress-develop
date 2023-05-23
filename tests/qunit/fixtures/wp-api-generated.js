@@ -395,6 +395,20 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "slug": {
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
@@ -1752,6 +1766,20 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "slug": {
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
@@ -2833,6 +2861,20 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "slug": {
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
@@ -3541,6 +3583,20 @@ mockedApiResponse.Schema = {
                                 "title",
                                 "menu_order"
                             ],
+                            "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
                             "required": false
                         },
                         "slug": {
@@ -4339,6 +4395,20 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "slug": {
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
@@ -5035,7 +5105,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": true
                         },
                         "theme": {
@@ -5177,7 +5247,7 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w-]+)": {
+        "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5226,7 +5296,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": false
                         },
                         "theme": {
@@ -5540,7 +5610,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": false
                         },
                         "theme": {
@@ -5719,7 +5789,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": true
                         },
                         "theme": {
@@ -5866,7 +5936,7 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/template-parts/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w-]+)": {
+        "/wp/v2/template-parts/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5915,7 +5985,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": false
                         },
                         "theme": {
@@ -6234,7 +6304,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": false
                         },
                         "theme": {
@@ -6488,6 +6558,20 @@ mockedApiResponse.Schema = {
                                 "include_slugs",
                                 "title"
                             ],
+                            "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
                             "required": false
                         },
                         "slug": {
@@ -10475,6 +10559,21 @@ mockedApiResponse.Schema = {
                             "default": "view",
                             "required": false
                         },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 100,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
                         "search": {
                             "description": "Limit results to those matching a string.",
                             "type": "string",
@@ -10496,6 +10595,40 @@ mockedApiResponse.Schema = {
                         "slug": {
                             "description": "Limit results to those matching a pattern (slug).",
                             "type": "array",
+                            "required": false
+                        },
+                        "offset": {
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "order": {
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "required": false
+                        },
+                        "orderby": {
+                            "description": "Sort collection by post attribute.",
+                            "type": "string",
+                            "default": "date",
+                            "enum": [
+                                "author",
+                                "date",
+                                "id",
+                                "include",
+                                "modified",
+                                "parent",
+                                "relevance",
+                                "slug",
+                                "include_slugs",
+                                "title",
+                                "favorite_count"
+                            ],
                             "required": false
                         }
                     }

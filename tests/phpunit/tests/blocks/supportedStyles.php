@@ -1,15 +1,9 @@
 <?php
 /**
- * Block supported style tests
+ * Test block supported styles.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.6.0
- */
-
-/**
- * Test block supported styles.
- *
  * @since 5.6.0
  *
  * @group blocks

@@ -4,9 +4,7 @@
  *
  * @package    WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group  restapi
  * @group  app_password
  */

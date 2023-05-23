@@ -398,6 +398,8 @@ if ( is_multisite() ) :
 			// The file on the main site should still exist. The file on the deleted site should not.
 			$this->assertFileExists( $file1['file'] );
 			$this->assertFileDoesNotExist( $file2['file'] );
+
+			unlink( $file1['file'] );
 		}
 
 		public function test_wpmu_update_blogs_date() {
@@ -438,18 +440,6 @@ if ( is_multisite() ) :
 
 			// When the cache is refreshed, it should now equal the site data.
 			$this->assertEquals( $blog, wp_cache_get( $blog_id, 'blog-details' ) );
-		}
-
-		/**
-		 * @ticket 27952
-		 */
-		public function test_posts_count() {
-			self::factory()->post->create();
-			$post2 = self::factory()->post->create();
-			$this->assertSame( 2, get_site()->post_count );
-
-			wp_delete_post( $post2 );
-			$this->assertSame( 1, get_site()->post_count );
 		}
 
 		/**
@@ -699,10 +689,10 @@ if ( is_multisite() ) :
 		}
 
 		/**
-		 * Tests returning the appropriate response for a invalid id given.
+		 * Tests returning an empty string for a non-existing ID.
 		 */
 		public function test_get_blogaddress_by_id_with_invalid_id() {
-			$blogaddress = get_blogaddress_by_id( 42 );
+			$blogaddress = get_blogaddress_by_id( PHP_INT_MAX );
 			$this->assertSame( '', $blogaddress );
 		}
 
@@ -2135,8 +2125,10 @@ if ( is_multisite() ) :
 
 			$blog_id = wpmu_create_blog( 'testsite1.example.org', '/test', 'test', 1, array( 'public' => 1 ), 2 );
 
-			// Should not hit blog_details cache initialised in $this->populate_options_callback tirggered during
-			// populate_options callback's call of get_blog_details.
+			/*
+			 * Should not hit blog_details cache initialized in $this->populate_options_callback triggered during
+			 * populate_options callback's call of get_blog_details.
+			 */
 			$this->assertSame( 'http://testsite1.example.org/test', get_blog_details( $blog_id )->siteurl );
 			$this->assertSame( 'http://testsite1.example.org/test', get_site( $blog_id )->siteurl );
 
@@ -2178,14 +2170,12 @@ if ( is_multisite() ) :
 		 * @ticket 42251
 		 */
 		public function test_get_site_not_found_cache() {
-			global $wpdb;
-
 			$new_site_id = $this->_get_next_site_id();
 			$this->assertNull( get_site( $new_site_id ) );
 
-			$num_queries = $wpdb->num_queries;
+			$num_queries = get_num_queries();
 			$this->assertNull( get_site( $new_site_id ) );
-			$this->assertSame( $num_queries, $wpdb->num_queries );
+			$this->assertSame( $num_queries, get_num_queries() );
 		}
 
 		/**

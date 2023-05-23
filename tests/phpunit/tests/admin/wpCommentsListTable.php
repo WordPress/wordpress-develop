@@ -10,7 +10,7 @@ class Tests_Admin_wpCommentsListTable extends WP_UnitTestCase {
 	 */
 	protected $table;
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		$this->table = _get_list_table( 'WP_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
 	}

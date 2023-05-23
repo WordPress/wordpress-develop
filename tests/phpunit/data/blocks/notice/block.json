@@ -27,6 +27,9 @@
 			"type": "string"
 		}
 	},
+	"selectors": {
+		"root": ".wp-block-notice"
+	},
 	"supports": {
 		"align": true,
 		"lightBlockWrapper": true

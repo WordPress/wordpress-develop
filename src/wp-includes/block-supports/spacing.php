@@ -1,7 +1,7 @@
 <?php
 /**
  * Spacing block support flag.
-
+ *
  * For backwards compatibility, this remains separate to the dimensions.php
  * block support despite both belonging under a single panel in the editor.
  *
@@ -33,7 +33,7 @@ function wp_register_spacing_support( $block_type ) {
 }
 
 /**
- * Add CSS classes for block spacing to the incoming attributes array.
+ * Adds CSS classes for block spacing to the incoming attributes array.
  * This will be applied to the block markup in the front-end.
  *
  * @since 5.8.0

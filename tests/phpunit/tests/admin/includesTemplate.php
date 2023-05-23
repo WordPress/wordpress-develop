@@ -222,7 +222,7 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 	 * @ticket 44941
 	 * @covers ::settings_errors
 	 * @global array $wp_settings_errors
-	 * @dataProvider settings_errors_css_classes_provider
+	 * @dataProvider data_settings_errors_css_classes
 	 */
 	public function test_settings_errors_css_classes( $type, $expected ) {
 		global $wp_settings_errors;
@@ -241,7 +241,7 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'notice-notice-', $output );
 	}
 
-	public function settings_errors_css_classes_provider() {
+	public function data_settings_errors_css_classes() {
 		return array(
 			array( 'error', 'notice-error' ),
 			array( 'success', 'notice-success' ),

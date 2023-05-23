@@ -534,7 +534,12 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$displayed_post_format = isset( $_GET['post_format'] ) ? $_GET['post_format'] : '';
 		?>
-		<label for="filter-by-format" class="screen-reader-text"><?php _e( 'Filter by post format' ); ?></label>
+		<label for="filter-by-format" class="screen-reader-text">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Filter by post format' );
+			?>
+		</label>
 		<select name="post_format" id="filter-by-format">
 			<option<?php selected( $displayed_post_format, '' ); ?> value=""><?php _e( 'All formats' ); ?></option>
 			<?php
@@ -646,7 +651,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		$post_type = $this->screen->post_type;
@@ -704,6 +709,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$posts_columns['comments'] = sprintf(
 				'<span class="vers comment-grey-bubble" title="%1$s" aria-hidden="true"></span><span class="screen-reader-text">%2$s</span>',
 				esc_attr__( 'Comments' ),
+				/* translators: Hidden accessibility text. */
 				__( 'Comments' )
 			);
 		}
@@ -1018,7 +1024,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				<span class="screen-reader-text">
 				<?php
 				printf(
-					/* translators: %s: Post title. */
+					/* translators: Hidden accessibility text. %s: Post title. */
 					__( '&#8220;%s&#8221; is locked' ),
 					_draft_or_post_title()
 				);
@@ -1265,7 +1271,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$taxonomy = 'category';
 		} elseif ( 'tags' === $column_name ) {
 			$taxonomy = 'post_tag';
-		} elseif ( 0 === strpos( $column_name, 'taxonomy-' ) ) {
+		} elseif ( str_starts_with( $column_name, 'taxonomy-' ) ) {
 			$taxonomy = substr( $column_name, 9 );
 		} else {
 			$taxonomy = false;

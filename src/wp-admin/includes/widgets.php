@@ -67,6 +67,8 @@ function wp_list_widgets() {
  * @since 3.1.0
  * @access private
  *
+ * @param array $a First array.
+ * @param array $b Second array.
  * @return int
  */
 function _sort_name_callback( $a, $b ) {
@@ -245,13 +247,13 @@ function wp_widget_control( $sidebar_args ) {
 		<button type="button" class="widget-action hide-if-no-js" aria-expanded="false">
 			<span class="screen-reader-text edit">
 				<?php
-				/* translators: %s: Widget title. */
+				/* translators: Hidden accessibility text. %s: Widget title. */
 				printf( __( 'Edit widget: %s' ), $widget_title );
 				?>
 			</span>
 			<span class="screen-reader-text add">
 				<?php
-				/* translators: %s: Widget title. */
+				/* translators: Hidden accessibility text. %s: Widget title. */
 				printf( __( 'Add widget: %s' ), $widget_title );
 				?>
 			</span>

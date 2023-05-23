@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
@@ -247,7 +245,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
-		$wp_rest_server = new Spy_REST_Server;
+		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
 	}
 
@@ -380,7 +378,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
-		$wp_rest_server = new Spy_REST_Server;
+		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
 
 		add_post_meta( self::$post_id, 'test_string', 42 );
@@ -2055,7 +2053,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	/**
 	 * @ticket 43392
 	 * @ticket 48363
-	 * @dataProvider _dp_meta_values_are_not_set_to_null_in_response_if_type_safely_serializable
+	 * @dataProvider data_meta_values_are_not_set_to_null_in_response_if_type_safely_serializable
 	 */
 	public function test_meta_values_are_not_set_to_null_in_response_if_type_safely_serializable( $type, $stored, $expected ) {
 		register_post_meta(
@@ -2076,7 +2074,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertSame( $expected, $response->get_data()['meta']['safe'] );
 	}
 
-	public function _dp_meta_values_are_not_set_to_null_in_response_if_type_safely_serializable() {
+	public function data_meta_values_are_not_set_to_null_in_response_if_type_safely_serializable() {
 		return array(
 			array( 'boolean', 'true', true ),
 			array( 'boolean', 'false', false ),

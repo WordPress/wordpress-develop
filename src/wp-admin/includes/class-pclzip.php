@@ -632,9 +632,9 @@
   //                newer_exist : the file was not extracted because a newer file exists
   //                path_creation_fail : the file is not extracted because the folder
   //                                     does not exist and can not be created
-  //                write_error : the file was not extracted because there was a
+  //                write_error : the file was not extracted because there was an
   //                              error while writing the file
-  //                read_error : the file was not extracted because there was a error
+  //                read_error : the file was not extracted because there was an error
   //                             while reading the file
   //                invalid_header : the file was not extracted because of an archive
   //                                 format error (bad file header)
@@ -1170,8 +1170,8 @@
     // ----- Reset the error handler
     $this->privErrorReset();
 
-    // ----- Look if the $p_archive is a PclZip object
-    if (is_object($p_archive) && $p_archive instanceof pclzip)
+    // ----- Look if the $p_archive is an instantiated PclZip object
+    if ($p_archive instanceof pclzip)
     {
 
       // ----- Duplicate the archive
@@ -1234,8 +1234,8 @@
       return(0);
     }
 
-    // ----- Look if the $p_archive_to_add is a PclZip object
-    if (is_object($p_archive_to_add) && $p_archive_to_add instanceof pclzip)
+    // ----- Look if the $p_archive_to_add is an instantiated PclZip object
+    if ($p_archive_to_add instanceof pclzip)
     {
 
       // ----- Merge the archive

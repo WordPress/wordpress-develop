@@ -32,6 +32,40 @@ module.exports = function(grunt) {
 			'wp-content/plugins/akismet/**',
 			'!wp-content/themes/twenty*/node_modules/**',
 		],
+
+		// All built CSS files, in /src or /build.
+		cssFiles = [
+			'wp-admin/css/*.min.css',
+			'wp-admin/css/*-rtl*.css',
+			'wp-includes/css/*.min.css',
+			'wp-includes/css/*-rtl*.css',
+			'wp-admin/css/colors/**/*.css',
+		],
+
+		// All built js files, in /src or /build.
+		jsFiles = [
+			'wp-admin/js/',
+			'wp-includes/js/',
+			'wp-includes/blocks/**/*.js',
+			'wp-includes/blocks/**/*.js.map',
+		],
+
+		// All files built by Webpack, in /src or /build.
+		webpackFiles = [
+			'wp-includes/assets/*',
+			'wp-includes/css/dist',
+			'wp-includes/blocks/**/*.css',
+			'!wp-includes/assets/script-loader-packages.min.php',
+		],
+
+		// Prepend `dir` to `file`, and keep `!` in place.
+		setFilePath = function( dir, file ) {
+			if ( '!' === file.charAt( 0 ) ) {
+				return '!' + dir + file.substring( 1 );
+			}
+
+			return dir + file;
+		},
 		changedFiles = {
 			php: []
 		};
@@ -50,8 +84,12 @@ module.exports = function(grunt) {
 
 	// Load tasks.
 	require('matchdep').filterDev(['grunt-*', '!grunt-legacy-util']).forEach( grunt.loadNpmTasks );
+
 	// Load legacy utils.
 	grunt.util = require('grunt-legacy-util');
+
+	// Load PostCSS tasks.
+	grunt.loadNpmTasks('@lodder/grunt-postcss');
 
 	// Project configuration.
 	grunt.initConfig({
@@ -103,30 +141,36 @@ module.exports = function(grunt) {
 		clean: {
 			plugins: [BUILD_DIR + 'wp-content/plugins'],
 			themes: [BUILD_DIR + 'wp-content/themes'],
+
+			// Clean the files from /build and the JS, CSS, and Webpack files from /src.
 			files: buildFiles.concat( [
 				'!wp-config.php',
 			] ).map( function( file ) {
-				if ( '!' === file.charAt( 0 ) ) {
-					return '!' + BUILD_DIR + file.substring( 1 );
-				}
-				return BUILD_DIR + file;
+				return setFilePath( BUILD_DIR, file );
+			} ).concat(
+				cssFiles.map( function( file ) {
+					return setFilePath( SOURCE_DIR, file );
+				} )
+			).concat(
+				jsFiles.map( function( file ) {
+					return setFilePath( SOURCE_DIR, file );
+				} )
+			).concat(
+				webpackFiles.map( function( file ) {
+					return setFilePath( SOURCE_DIR, file );
+				} )
+			),
+
+			// Clean built JS, CSS, and Webpack files from either /src or /build.
+			css: cssFiles.map( function( file ) {
+				return setFilePath( WORKING_DIR, file );
 			} ),
-			css: [
-				WORKING_DIR + 'wp-admin/css/*.min.css',
-				WORKING_DIR + 'wp-admin/css/*-rtl*.css',
-				WORKING_DIR + 'wp-includes/css/*.min.css',
-				WORKING_DIR + 'wp-includes/css/*-rtl*.css',
-				WORKING_DIR + 'wp-admin/css/colors/**/*.css'
-			],
-			js: [
-				WORKING_DIR + 'wp-admin/js/',
-				WORKING_DIR + 'wp-includes/js/'
-			],
-			'webpack-assets': [
-				WORKING_DIR + 'wp-includes/assets/*',
-				WORKING_DIR + 'wp-includes/css/dist/',
-				'!' + WORKING_DIR + 'wp-includes/assets/script-loader-packages.min.php'
-			],
+			js: jsFiles.map( function( file ) {
+				return setFilePath( WORKING_DIR, file );
+			} ),
+			'webpack-assets': webpackFiles.map( function( file ) {
+				return setFilePath( WORKING_DIR, file );
+			} ),
 			dynamic: {
 				dot: true,
 				expand: true,
@@ -189,13 +233,13 @@ module.exports = function(grunt) {
 
 						// Renamed to avoid conflict with jQuery hoverIntent.min.js (after minifying).
 						[ WORKING_DIR + 'wp-includes/js/hoverintent-js.min.js' ]: [ './node_modules/hoverintent/dist/hoverintent.min.js' ],
+
 						[ WORKING_DIR + 'wp-includes/js/imagesloaded.min.js' ]: [ './node_modules/imagesloaded/imagesloaded.pkgd.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.js' ]: [ './node_modules/jquery/dist/jquery.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.min.js' ]: [ './node_modules/jquery/dist/jquery.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js' ]: [ './node_modules/jquery-form/src/jquery.form.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.color.min.js' ]: [ './node_modules/jquery-color/dist/jquery.color.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
-						[ WORKING_DIR + 'wp-includes/js/twemoji.js' ]: [ './node_modules/twemoji/dist/twemoji.js' ],
 						[ WORKING_DIR + 'wp-includes/js/underscore.js' ]: [ './node_modules/underscore/underscore.js' ],
 					}
 				]
@@ -233,15 +277,16 @@ module.exports = function(grunt) {
 							'suggest*'
 						],
 						dest: WORKING_DIR + 'wp-includes/js/jquery/'
-					},
-					{
+					}
+				].concat(
+					// Copy tinymce.js only when building to /src.
+					WORKING_DIR === SOURCE_DIR ? {
 						expand: true,
 						cwd: SOURCE_DIR + 'js/_enqueues/vendor/tinymce/',
 						src: 'tinymce.js',
 						dest: SOURCE_DIR + 'wp-includes/js/tinymce/'
-					},
-
-				]
+					} : []
+				)
 			},
 			'admin-js': {
 				files: {

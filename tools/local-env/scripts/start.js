@@ -4,6 +4,17 @@ const { execSync } = require( 'child_process' );
 
 dotenvExpand.expand( dotenv.config() );
 
+// Check if the Docker service is running.
+try {
+	execSync( 'docker info' );
+} catch ( e ) {
+	if ( e.message.startsWith( 'Command failed: docker info' ) ) {
+		throw new Error( 'Could not retrieve Docker system info. Is the Docker service running?' );
+	}
+
+	throw e;
+}
+
 // Start the local-env containers.
 const containers = ( process.env.LOCAL_PHP_MEMCACHED === 'true' )
 	? 'wordpress-develop memcached'

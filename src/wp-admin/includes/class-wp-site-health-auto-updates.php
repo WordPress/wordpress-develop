@@ -277,10 +277,10 @@ class WP_Site_Health_Auto_Updates {
 	public function test_check_wp_filesystem_method() {
 		// Make sure the `request_filesystem_credentials()` function is available during our REST API call.
 		if ( ! function_exists( 'request_filesystem_credentials' ) ) {
-			require_once ABSPATH . '/wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
 
-		$skin    = new Automatic_Upgrader_Skin;
+		$skin    = new Automatic_Upgrader_Skin();
 		$success = $skin->request_filesystem_credentials( false, ABSPATH );
 
 		if ( ! $success ) {
@@ -313,7 +313,7 @@ class WP_Site_Health_Auto_Updates {
 
 		require ABSPATH . WPINC . '/version.php'; // $wp_version; // x.y.z
 
-		$skin    = new Automatic_Upgrader_Skin;
+		$skin    = new Automatic_Upgrader_Skin();
 		$success = $skin->request_filesystem_credentials( false, ABSPATH );
 
 		if ( ! $success ) {
@@ -328,7 +328,7 @@ class WP_Site_Health_Auto_Updates {
 
 		// Make sure the `get_core_checksums()` function is available during our REST API call.
 		if ( ! function_exists( 'get_core_checksums' ) ) {
-			require_once ABSPATH . '/wp-admin/includes/update.php';
+			require_once ABSPATH . 'wp-admin/includes/update.php';
 		}
 
 		$checksums = get_core_checksums( $wp_version, 'en_US' );

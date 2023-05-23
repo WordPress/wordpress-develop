@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_Block tests
+ * Tests for WP_Block.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.5.0
- */
-
-/**
- * Tests for WP_Block.
- *
  * @since 5.5.0
  *
  * @group blocks
@@ -604,13 +598,18 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 			),
 		);
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
-		function filterQuery( $query, $block, $page ) {
-			$query['post_type'] = 'book';
-			return $query;
-		}
-		add_filter( 'query_loop_block_query_vars', 'filterQuery', 10, 3 );
+
+		add_filter(
+			'query_loop_block_query_vars',
+			static function( $query, $block, $page ) {
+				$query['post_type'] = 'book';
+				return $query;
+			},
+			10,
+			3
+		);
+
 		$query = build_query_vars_from_query_block( $block, 1 );
-		remove_filter( 'query_loop_block_query_vars', 'filterQuery' );
 		$this->assertSame(
 			$query,
 			array(
@@ -694,7 +693,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->registry->register(
 			'core/outer',
 			array(
-				'render_callback' => function( $block_attributes, $content ) {
+				'render_callback' => static function( $block_attributes, $content ) {
 					return $content;
 				},
 			)
@@ -703,7 +702,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->registry->register(
 			'core/inner',
 			array(
-				'render_callback' => function() {
+				'render_callback' => static function() {
 					return 'b';
 				},
 			)

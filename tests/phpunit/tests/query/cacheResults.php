@@ -1210,4 +1210,133 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			array( 'id=>parent', 'id=>parent' ),
 		);
 	}
+
+	/**
+	 * Ensure starting the loop warms the author cache.
+	 *
+	 * @since 6.1.1
+	 * @ticket 56948
+	 *
+	 * @covers WP_Query::the_post
+	 *
+	 * @dataProvider data_author_cache_warmed_by_the_loop
+	 *
+	 * @param string $fields Query fields.
+	 */
+	public function test_author_cache_warmed_by_the_loop( $fields ) {
+		// Update post author for the parent post.
+		self::factory()->post->update_object( self::$pages[0], array( 'post_author' => self::$author_id ) );
+
+		self::factory()->post->create(
+			array(
+				'post_author' => self::$author_id,
+				'post_parent' => self::$pages[0],
+				'post_type'   => 'page',
+			)
+		);
+
+		$query_1 = new WP_Query(
+			array(
+				'post_type'              => 'page',
+				'fields'                 => $fields,
+				'author'                 => self::$author_id,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		// Start the loop.
+		$start_loop_queries = get_num_queries();
+		$query_1->the_post();
+		$num_loop_queries = get_num_queries() - $start_loop_queries;
+		/*
+		 * Two expected queries:
+		 * 1: User meta data,
+		 * 2: User data.
+		 */
+		$this->assertSame( 2, $num_loop_queries, 'Unexpected number of queries while initializing the loop.' );
+
+		$start_author_queries = get_num_queries();
+		get_user_by( 'ID', self::$author_id );
+		$num_author_queries = get_num_queries() - $start_author_queries;
+		$this->assertSame( 0, $num_author_queries, 'Author cache is not warmed by the loop.' );
+	}
+
+	/**
+	 * Data provider for test_author_cache_warmed_by_the_loop
+	 *
+	 * @return array[]
+	 */
+	public function data_author_cache_warmed_by_the_loop() {
+		return array(
+			'fields: empty' => array( '' ),
+			'fields: all'   => array( 'all' ),
+			'fields: ids'   => array( 'ids' ),
+			/*
+			 * `id=>parent` is untested pending the resolution of an existing bug.
+			 * See https://core.trac.wordpress.org/ticket/56992
+			 */
+		);
+	}
+
+	/**
+	 * Ensure lazy loading term meta queries all term meta in a single query.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @ticket 57163
+	 * @ticket 22176
+	 */
+	public function test_get_post_meta_lazy_loads_all_term_meta_data() {
+		$query = new WP_Query();
+
+		$t2 = $this->factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'slug'     => 'bar',
+				'name'     => 'Bar',
+			)
+		);
+
+		wp_set_post_terms( self::$posts[0], $t2, 'category', true );
+		// Clean data added to cache by factory and setting terms.
+		clean_term_cache( array( self::$t1, $t2 ), 'category' );
+		clean_post_cache( self::$posts[0] );
+
+		$num_queries_start = get_num_queries();
+		$query_posts       = $query->query(
+			array(
+				'lazy_load_term_meta' => true,
+				'no_found_rows'       => true,
+			)
+		);
+		$num_queries       = get_num_queries() - $num_queries_start;
+
+		/*
+		 * Four expected queries:
+		 * 1: Post IDs
+		 * 2: Post data
+		 * 3: Post meta data.
+		 * 4: Post term data.
+		 */
+		$this->assertSame( 4, $num_queries, 'Unexpected number of queries while querying posts.' );
+		$this->assertNotEmpty( $query_posts, 'Query posts is empty.' );
+
+		$num_queries_start = get_num_queries();
+		get_term_meta( self::$t1 );
+		$num_queries = get_num_queries() - $num_queries_start;
+
+		/*
+		 * One expected query:
+		 * 1: Term meta data.
+		 */
+		$this->assertSame( 1, $num_queries, 'Unexpected number of queries during first query of term meta.' );
+
+		$num_queries_start = get_num_queries();
+		get_term_meta( $t2 );
+		$num_queries = get_num_queries() - $num_queries_start;
+
+		// No additional queries expected.
+		$this->assertSame( 0, $num_queries, 'Unexpected number of queries during second query of term meta.' );
+	}
 }

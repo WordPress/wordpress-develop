@@ -297,7 +297,7 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 
 	// If the network is defined in wp-config.php, we can simply use that.
 	if ( defined( 'DOMAIN_CURRENT_SITE' ) && defined( 'PATH_CURRENT_SITE' ) ) {
-		$current_site         = new stdClass;
+		$current_site         = new stdClass();
 		$current_site->id     = defined( 'SITE_ID_CURRENT_SITE' ) ? SITE_ID_CURRENT_SITE : 1;
 		$current_site->domain = DOMAIN_CURRENT_SITE;
 		$current_site->path   = PATH_CURRENT_SITE;
@@ -387,7 +387,7 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 
 	// During activation of a new subdomain, the requested site does not yet exist.
 	if ( empty( $current_blog ) && wp_installing() ) {
-		$current_blog          = new stdClass;
+		$current_blog          = new stdClass();
 		$current_blog->blog_id = 1;
 		$blog_id               = 1;
 		$current_blog->public  = 1;
@@ -493,7 +493,7 @@ function ms_not_installed( $domain, $path ) {
 	$msg .= sprintf(
 		/* translators: %s: Documentation URL. */
 		__( 'Read the <a href="%s" target="_blank">Debugging a WordPress Network</a> article. Some of the suggestions there may help you figure out what went wrong.' ),
-		__( 'https://wordpress.org/support/article/debugging-a-wordpress-network/' )
+		__( 'https://wordpress.org/documentation/article/debugging-a-wordpress-network/' )
 	);
 	$msg .= ' ' . __( 'If you are still stuck with this message, then check that your database contains the following tables:' ) . '</p><ul>';
 	foreach ( $wpdb->tables( 'global' ) as $t => $table ) {

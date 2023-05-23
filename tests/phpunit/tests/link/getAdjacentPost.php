@@ -350,4 +350,82 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$excluded_terms[] = $this->exclude_term;
 		return $excluded_terms;
 	}
+
+	/**
+	 * @ticket 41131
+	 */
+	public function test_get_adjacent_post_cache() {
+		// Need some sample posts to test adjacency.
+		$post_one = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'First',
+				'post_date'  => '2012-01-01 12:00:00',
+			)
+		);
+
+		$post_two = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'Second',
+				'post_date'  => '2012-02-01 12:00:00',
+			)
+		);
+
+		$post_three = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'Third',
+				'post_date'  => '2012-03-01 12:00:00',
+			)
+		);
+
+		$post_four = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'Fourth',
+				'post_date'  => '2012-04-01 12:00:00',
+			)
+		);
+
+		// Assign some terms.
+		wp_set_object_terms( $post_one->ID, 'WordPress', 'category', false );
+		wp_set_object_terms( $post_three->ID, 'WordPress', 'category', false );
+
+		wp_set_object_terms( $post_two->ID, 'plugins', 'post_tag', false );
+		wp_set_object_terms( $post_four->ID, 'plugins', 'post_tag', false );
+
+		// Test normal post adjacency.
+		$this->go_to( get_permalink( $post_two->ID ) );
+
+		// Test getting the right result.
+		$first_run = get_adjacent_post( false, '', true );
+		$this->assertEquals( $post_one, $first_run, 'Did not get first post when on second post' );
+		$this->assertNotEquals( $post_two, $first_run, 'Got second post when on second post' );
+
+		// Query count to test caching.
+		$num_queries = get_num_queries();
+		$second_run  = get_adjacent_post( false, '', true );
+		$this->assertNotEquals( $post_two, $second_run, 'Got second post when on second post on second run' );
+		$this->assertEquals( $post_one, $second_run, 'Did not get first post when on second post on second run' );
+		$this->assertSame( $num_queries, get_num_queries() );
+
+		// Test creating new post busts cache.
+		$post_five   = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'Five',
+				'post_date'  => '2012-04-01 12:00:00',
+			)
+		);
+		$num_queries = get_num_queries();
+
+		$this->assertEquals( $post_one, get_adjacent_post( false, '', true ), 'Did not get first post after new post is added' );
+		$this->assertSame( get_num_queries() - $num_queries, 1, 'Number of queries run was not one after new post is added' );
+
+		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ), 'Did not get forth post after new post is added' );
+		$num_queries = get_num_queries();
+		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ), 'Did not get forth post after new post is added' );
+		$this->assertSame( $num_queries, get_num_queries() );
+		wp_set_object_terms( $post_four->ID, 'themes', 'post_tag', false );
+
+		$num_queries = get_num_queries();
+		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ), 'Result of function call is wrong after after adding new term' );
+		$this->assertSame( get_num_queries() - $num_queries, 2, 'Number of queries run was not two after adding new term' );
+	}
 }

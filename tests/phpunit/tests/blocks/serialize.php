@@ -1,14 +1,9 @@
 <?php
 /**
- * Block serialization tests
+ * Tests for block serialization functions.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.3.3
- */
-
-/**
- * Tests for block serialization functions.
  *
  * @since 5.3.3
  *

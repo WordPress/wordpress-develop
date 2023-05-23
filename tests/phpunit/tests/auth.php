@@ -101,6 +101,22 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests hooking into wp_set_password().
+	 *
+	 * @ticket 57436
+	 *
+	 * @covers ::wp_set_password
+	 */
+	public function test_wp_set_password_action() {
+		$action = new MockAction();
+
+		add_action( 'wp_set_password', array( $action, 'action' ) );
+		wp_set_password( 'A simple password', self::$user_id );
+
+		$this->assertSame( 1, $action->get_call_count() );
+	}
+
+	/**
 	 * Test wp_hash_password trims whitespace
 	 *
 	 * This is similar to test_password_trimming but tests the "lower level"
@@ -426,6 +442,25 @@ class Tests_Auth extends WP_UnitTestCase {
 		$_POST['log'] = $user_args['user_email'];
 		$_POST['pwd'] = $user_args['user_pass'];
 		$this->assertInstanceOf( 'WP_User', wp_signon() );
+	}
+
+	/**
+	 * Tests that PHP 8.1 "passing null to non-nullable" deprecation notices
+	 * are not thrown when `user_login` and `user_password` parameters are empty.
+	 *
+	 * The notices that we should not see:
+	 * `Deprecated: preg_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated`.
+	 * `Deprecated: trim(): Passing null to parameter #1 ($string) of type string is deprecated`.
+	 *
+	 * @ticket 56850
+	 */
+	public function test_wp_signon_does_not_throw_deprecation_notices_with_default_parameters() {
+		$error = wp_signon();
+		$this->assertWPError( $error, 'The result should be an instance of WP_Error.' );
+
+		$error_codes = $error->get_error_codes();
+		$this->assertContains( 'empty_username', $error_codes, 'The "empty_username" error code should be present.' );
+		$this->assertContains( 'empty_password', $error_codes, 'The "empty_password" error code should be present.' );
 	}
 
 	/**

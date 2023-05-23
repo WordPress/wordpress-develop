@@ -1,15 +1,9 @@
 <?php
 /**
- * Block context tests
+ * Tests for block context functions.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.5.0
- */
-
-/**
- * Tests for block context functions.
- *
  * @since 5.5.0
  *
  * @group blocks

@@ -487,7 +487,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 4575
 	 *
-	 * @dataProvider data_test_get_feed_build_date
+	 * @dataProvider data_get_feed_build_date
 	 */
 	public function test_get_feed_build_date( $url, $element ) {
 		$this->go_to( $url );
@@ -501,7 +501,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	}
 
 
-	public function data_test_get_feed_build_date() {
+	public function data_get_feed_build_date() {
 		return array(
 			array( '/?feed=rss2', 'rss' ),
 			array( '/?feed=commentsrss2', 'rss' ),

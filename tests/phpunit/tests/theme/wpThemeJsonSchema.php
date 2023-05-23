@@ -19,7 +19,7 @@ class Tests_Theme_wpThemeJsonSchema extends WP_UnitTestCase {
 	/**
 	 * @ticket 54336
 	 */
-	function test_migrate_v1_to_v2() {
+	public function test_migrate_v1_to_v2() {
 		$theme_json_v1 = array(
 			'version'  => 1,
 			'settings' => array(

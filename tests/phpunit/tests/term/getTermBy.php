@@ -111,8 +111,6 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	 * @ticket 14162
 	 */
 	public function test_should_prime_term_cache() {
-		global $wpdb;
-
 		register_taxonomy( 'wptests_tax', 'post' );
 		$t = self::factory()->term->create(
 			array(
@@ -123,18 +121,18 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 
 		clean_term_cache( $t, 'wptests_tax' );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$found       = get_term_by( 'slug', 'foo', 'wptests_tax' );
 		$num_queries = $num_queries + 2;
 
 		$this->assertInstanceOf( 'WP_Term', $found );
 		$this->assertSame( $t, $found->term_id );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 
 		// Calls to `get_term()` should now hit cache.
 		$found2 = get_term( $t );
 		$this->assertSame( $t, $found->term_id );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**

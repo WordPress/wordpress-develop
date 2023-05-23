@@ -27,6 +27,8 @@ class WP_Automatic_Updater {
 	 * Determines whether the entire automatic updater is disabled.
 	 *
 	 * @since 3.7.0
+	 *
+	 * @return bool True if the automatic updater is disabled, false otherwise.
 	 */
 	public function is_disabled() {
 		// Background updates are disabled if you don't want file changes.
@@ -54,6 +56,54 @@ class WP_Automatic_Updater {
 		 * @param bool $disabled Whether the updater should be disabled.
 		 */
 		return apply_filters( 'automatic_updater_disabled', $disabled );
+	}
+
+	/**
+	 * Checks whether access to a given directory is allowed.
+	 *
+	 * This is used when detecting version control checkouts. Takes into account
+	 * the PHP `open_basedir` restrictions, so that WordPress does not try to access
+	 * directories it is not allowed to.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param string $dir The directory to check.
+	 * @return bool True if access to the directory is allowed, false otherwise.
+	 */
+	public function is_allowed_dir( $dir ) {
+		if ( is_string( $dir ) ) {
+			$dir = trim( $dir );
+		}
+
+		if ( ! is_string( $dir ) || '' === $dir ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: The "$dir" argument. */
+					__( 'The "%s" argument must be a non-empty string.' ),
+					'$dir'
+				),
+				'6.2.0'
+			);
+
+			return false;
+		}
+
+		$open_basedir = ini_get( 'open_basedir' );
+
+		if ( empty( $open_basedir ) ) {
+			return true;
+		}
+
+		$open_basedir_list = explode( PATH_SEPARATOR, $open_basedir );
+
+		foreach ( $open_basedir_list as $basedir ) {
+			if ( '' !== trim( $basedir ) && str_starts_with( $dir, $basedir ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -102,7 +152,11 @@ class WP_Automatic_Updater {
 		// Search all directories we've found for evidence of version control.
 		foreach ( $vcs_dirs as $vcs_dir ) {
 			foreach ( $check_dirs as $check_dir ) {
-				$checkout = @is_dir( rtrim( $check_dir, '\\/' ) . "/$vcs_dir" );
+				if ( ! $this->is_allowed_dir( $check_dir ) ) {
+					continue;
+				}
+
+				$checkout = is_dir( rtrim( $check_dir, '\\/' ) . "/$vcs_dir" );
 				if ( $checkout ) {
 					break 2;
 				}
@@ -139,7 +193,7 @@ class WP_Automatic_Updater {
 	 */
 	public function should_update( $type, $item, $context ) {
 		// Used to see if WP_Filesystem is set up to allow unattended updates.
-		$skin = new Automatic_Upgrader_Skin;
+		$skin = new Automatic_Upgrader_Skin();
 
 		if ( $this->is_disabled() ) {
 			return false;
@@ -305,7 +359,7 @@ class WP_Automatic_Updater {
 	 * @return null|WP_Error
 	 */
 	public function update( $type, $item ) {
-		$skin = new Automatic_Upgrader_Skin;
+		$skin = new Automatic_Upgrader_Skin();
 
 		switch ( $type ) {
 			case 'core':
@@ -1112,7 +1166,7 @@ class WP_Automatic_Updater {
 						$body_message .= sprintf(
 							/* translators: 1: Plugin name, 2: Current version number, 3: New version number, 4: Plugin URL. */
 							__( '- %1$s (from version %2$s to %3$s)%4$s' ),
-							$item->name,
+							html_entity_decode( $item->name ),
 							$item->item->current_version,
 							$item->item->new_version,
 							$item_url
@@ -1121,7 +1175,7 @@ class WP_Automatic_Updater {
 						$body_message .= sprintf(
 							/* translators: 1: Plugin name, 2: Version number, 3: Plugin URL. */
 							__( '- %1$s version %2$s%3$s' ),
-							$item->name,
+							html_entity_decode( $item->name ),
 							$item->item->new_version,
 							$item_url
 						);
@@ -1144,7 +1198,7 @@ class WP_Automatic_Updater {
 						$body[] = sprintf(
 							/* translators: 1: Theme name, 2: Current version number, 3: New version number. */
 							__( '- %1$s (from version %2$s to %3$s)' ),
-							$item->name,
+							html_entity_decode( $item->name ),
 							$item->item->current_version,
 							$item->item->new_version
 						);
@@ -1152,7 +1206,7 @@ class WP_Automatic_Updater {
 						$body[] = sprintf(
 							/* translators: 1: Theme name, 2: Version number. */
 							__( '- %1$s version %2$s' ),
-							$item->name,
+							html_entity_decode( $item->name ),
 							$item->item->new_version
 						);
 					}
@@ -1184,7 +1238,7 @@ class WP_Automatic_Updater {
 						$body_message .= sprintf(
 							/* translators: 1: Plugin name, 2: Current version number, 3: New version number, 4: Plugin URL. */
 							__( '- %1$s (from version %2$s to %3$s)%4$s' ),
-							$item->name,
+							html_entity_decode( $item->name ),
 							$item->item->current_version,
 							$item->item->new_version,
 							$item_url
@@ -1193,7 +1247,7 @@ class WP_Automatic_Updater {
 						$body_message .= sprintf(
 							/* translators: 1: Plugin name, 2: Version number, 3: Plugin URL. */
 							__( '- %1$s version %2$s%3$s' ),
-							$item->name,
+							html_entity_decode( $item->name ),
 							$item->item->new_version,
 							$item_url
 						);
@@ -1215,7 +1269,7 @@ class WP_Automatic_Updater {
 						$body[] = sprintf(
 							/* translators: 1: Theme name, 2: Current version number, 3: New version number. */
 							__( '- %1$s (from version %2$s to %3$s)' ),
-							$item->name,
+							html_entity_decode( $item->name ),
 							$item->item->current_version,
 							$item->item->new_version
 						);
@@ -1223,7 +1277,7 @@ class WP_Automatic_Updater {
 						$body[] = sprintf(
 							/* translators: 1: Theme name, 2: Version number. */
 							__( '- %1$s version %2$s' ),
-							$item->name,
+							html_entity_decode( $item->name ),
 							$item->item->new_version
 						);
 					}

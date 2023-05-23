@@ -17,14 +17,14 @@
  */
 function remove_block_asset_path_prefix( $asset_handle_or_path ) {
 	$path_prefix = 'file:';
-	if ( 0 !== strpos( $asset_handle_or_path, $path_prefix ) ) {
+	if ( ! str_starts_with( $asset_handle_or_path, $path_prefix ) ) {
 		return $asset_handle_or_path;
 	}
 	$path = substr(
 		$asset_handle_or_path,
 		strlen( $path_prefix )
 	);
-	if ( strpos( $path, './' ) === 0 ) {
+	if ( str_starts_with( $path, './' ) ) {
 		$path = substr( $path, 2 );
 	}
 	return $path;
@@ -44,12 +44,12 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
  * @return string Generated asset name for the block's field.
  */
 function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
-	if ( 0 === strpos( $block_name, 'core/' ) ) {
+	if ( str_starts_with( $block_name, 'core/' ) ) {
 		$asset_handle = str_replace( 'core/', 'wp-block-', $block_name );
-		if ( 0 === strpos( $field_name, 'editor' ) ) {
+		if ( str_starts_with( $field_name, 'editor' ) ) {
 			$asset_handle .= '-editor';
 		}
-		if ( 0 === strpos( $field_name, 'view' ) ) {
+		if ( str_starts_with( $field_name, 'view' ) ) {
 			$asset_handle .= '-view';
 		}
 		if ( $index > 0 ) {
@@ -107,19 +107,19 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		return $script_handle;
 	}
 
-	$script_handle     = generate_block_asset_handle( $metadata['name'], $field_name, $index );
-	$script_asset_path = wp_normalize_path(
-		realpath(
-			dirname( $metadata['file'] ) . '/' .
-			substr_replace( $script_path, '.asset.php', - strlen( '.js' ) )
-		)
+	$script_asset_raw_path = dirname( $metadata['file'] ) . '/' . substr_replace( $script_path, '.asset.php', - strlen( '.js' ) );
+	$script_handle         = generate_block_asset_handle( $metadata['name'], $field_name, $index );
+	$script_asset_path     = wp_normalize_path(
+		realpath( $script_asset_raw_path )
 	);
-	if ( ! file_exists( $script_asset_path ) ) {
+
+	if ( empty( $script_asset_path ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
-				/* translators: 1: Field name, 2: Block name. */
-				__( 'The asset file for the "%1$s" defined in "%2$s" block definition is missing.' ),
+				/* translators: 1: Asset file location, 2: Field name, 3: Block name.  */
+				__( 'The asset file (%1$s) for the "%2$s" defined in "%3$s" block definition is missing.' ),
+				$script_asset_raw_path,
 				$field_name,
 				$metadata['name']
 			),
@@ -137,8 +137,8 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	$theme_path_norm  = wp_normalize_path( get_theme_file_path() );
 	$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $script_path ) );
 
-	$is_core_block  = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
-	$is_theme_block = 0 === strpos( $script_path_norm, $theme_path_norm );
+	$is_core_block  = isset( $metadata['file'] ) && str_starts_with( $metadata['file'], $wpinc_path_norm );
+	$is_theme_block = str_starts_with( $script_path_norm, $theme_path_norm );
 
 	$script_uri = plugins_url( $script_path, $metadata['file'] );
 	if ( $is_core_block ) {
@@ -191,7 +191,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
 	}
 
-	$is_core_block = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
+	$is_core_block = isset( $metadata['file'] ) && str_starts_with( $metadata['file'], $wpinc_path_norm );
 	// Skip registering individual styles for each core block when a bundled version provided.
 	if ( $is_core_block && ! wp_should_load_separate_core_block_assets() ) {
 		return false;
@@ -260,7 +260,11 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	if ( $has_style_file ) {
 		wp_style_add_data( $style_handle, 'path', $style_path_norm );
 
-		$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $style_path_norm );
+		if ( $is_core_block ) {
+			$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $style_path_norm );
+		} else {
+			$rtl_file = str_replace( '.css', '-rtl.css', $style_path_norm );
+		}
 
 		if ( is_rtl() && file_exists( $rtl_file ) ) {
 			wp_style_add_data( $style_handle, 'rtl', 'replace' );
@@ -296,6 +300,7 @@ function get_block_metadata_i18n_schema() {
  * @since 5.7.0 Added support for `textdomain` field and i18n handling for all translatable fields.
  * @since 5.9.0 Added support for `variations` and `viewScript` fields.
  * @since 6.1.0 Added support for `render` field.
+ * @since 6.3.0 Added `selectors` field.
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
@@ -314,7 +319,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 */
 	static $core_blocks_meta;
 	if ( ! $core_blocks_meta ) {
-		$core_blocks_meta = include_once ABSPATH . WPINC . '/blocks/blocks-json.php';
+		$core_blocks_meta = require_once ABSPATH . WPINC . '/blocks/blocks-json.php';
 	}
 
 	$metadata_file = ( ! str_ends_with( $file_or_folder, 'block.json' ) ) ?
@@ -354,7 +359,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	$metadata = apply_filters( 'block_type_metadata', $metadata );
 
 	// Add `style` and `editor_style` for core blocks if missing.
-	if ( ! empty( $metadata['name'] ) && 0 === strpos( $metadata['name'], 'core/' ) ) {
+	if ( ! empty( $metadata['name'] ) && str_starts_with( $metadata['name'], 'core/' ) ) {
 		$block_name = str_replace( 'core/', '', $metadata['name'] );
 
 		if ( ! isset( $metadata['style'] ) ) {
@@ -378,6 +383,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'attributes'      => 'attributes',
 		'providesContext' => 'provides_context',
 		'usesContext'     => 'uses_context',
+		'selectors'       => 'selectors',
 		'supports'        => 'supports',
 		'styles'          => 'styles',
 		'variations'      => 'variations',
@@ -479,7 +485,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			 *
 			 * @return string Returns the block content.
 			 */
-			$settings['render_callback'] = function( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+			$settings['render_callback'] = static function( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 				ob_start();
 				require $template_path;
 				return ob_get_clean();
@@ -692,7 +698,7 @@ function serialize_block_attributes( $block_attributes ) {
  * @return string Block name to use for serialization.
  */
 function strip_core_block_namespace( $block_name = null ) {
-	if ( is_string( $block_name ) && 0 === strpos( $block_name, 'core/' ) ) {
+	if ( is_string( $block_name ) && str_starts_with( $block_name, 'core/' ) ) {
 		return substr( $block_name, 5 );
 	}
 
@@ -794,6 +800,10 @@ function serialize_blocks( $blocks ) {
 function filter_block_content( $text, $allowed_html = 'post', $allowed_protocols = array() ) {
 	$result = '';
 
+	if ( false !== strpos( $text, '<!--' ) && false !== strpos( $text, '--->' ) ) {
+		$text = preg_replace_callback( '%<!--(.*?)--->%', '_filter_block_content_callback', $text );
+	}
+
 	$blocks = parse_blocks( $text );
 	foreach ( $blocks as $block ) {
 		$block   = filter_block_kses( $block, $allowed_html, $allowed_protocols );
@@ -801,6 +811,19 @@ function filter_block_content( $text, $allowed_html = 'post', $allowed_protocols
 	}
 
 	return $result;
+}
+
+/**
+ * Callback used for regular expression replacement in filter_block_content().
+ *
+ * @private
+ * @since 6.2.1
+ *
+ * @param array $matches Array of preg_replace_callback matches.
+ * @return string Replacement string.
+ */
+function _filter_block_content_callback( $matches ) {
+	return '<!--' . rtrim( $matches[1], '-' ) . '-->';
 }
 
 /**
@@ -1167,15 +1190,15 @@ function unregister_block_style( $block_name, $block_style_name ) {
  *
  * @since 5.8.0
  *
- * @param WP_Block_Type $block_type Block type to check for support.
- * @param array         $feature    Path to a specific feature to check support for.
- * @param mixed         $default    Optional. Fallback value for feature support. Default false.
+ * @param WP_Block_Type $block_type    Block type to check for support.
+ * @param array         $feature       Path to a specific feature to check support for.
+ * @param mixed         $default_value Optional. Fallback value for feature support. Default false.
  * @return bool Whether the feature is supported.
  */
-function block_has_support( $block_type, $feature, $default = false ) {
-	$block_support = $default;
+function block_has_support( $block_type, $feature, $default_value = false ) {
+	$block_support = $default_value;
 	if ( $block_type && property_exists( $block_type, 'supports' ) ) {
-		$block_support = _wp_array_get( $block_type->supports, $feature, $default );
+		$block_support = _wp_array_get( $block_type->supports, $feature, $default_value );
 	}
 
 	return true === $block_support || is_array( $block_support );
@@ -1265,7 +1288,15 @@ function build_query_vars_from_query_block( $block, $page ) {
 		if ( isset( $block->context['query']['sticky'] ) && ! empty( $block->context['query']['sticky'] ) ) {
 			$sticky = get_option( 'sticky_posts' );
 			if ( 'only' === $block->context['query']['sticky'] ) {
-				$query['post__in'] = $sticky;
+				/*
+				 * Passing an empty array to post__in will return have_posts() as true (and all posts will be returned).
+				 * Logic should be used before hand to determine if WP_Query should be used in the event that the array
+				 * being passed to post__in is empty.
+				 *
+				 * @see https://core.trac.wordpress.org/ticket/28099
+				 */
+				$query['post__in']            = ! empty( $sticky ) ? $sticky : array( 0 );
+				$query['ignore_sticky_posts'] = 1;
 			} else {
 				$query['post__not_in'] = array_merge( $query['post__not_in'], $sticky );
 			}
