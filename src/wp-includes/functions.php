@@ -4951,13 +4951,25 @@ function _wp_array_get( $input_array, $path, $default_value = null ) {
 			return $default_value;
 		}
 
-		if ( ( is_string( $path_element )
-				|| is_integer( $path_element )
-				|| null === $path_element
-			) && array_key_exists( $path_element, $input_array )
+		if ( is_string( $path_element )
+			|| is_integer( $path_element )
+			|| null === $path_element
 		) {
-			$input_array = $input_array[ $path_element ];
-			continue;
+			/*
+			 * Check if the path element exists in the input array.
+			 * We check with `isset()` first as it is a lot faster
+			 * than `array_key_exists()`.
+			 * If `isset()` returns false, we check with `array_key_exists()`
+			 * which also checks for `null` values.
+			 */
+			if ( isset( $input_array[ $path_element ] ) ) {
+				$input_array = $input_array[ $path_element ];
+				continue;
+			}
+			if ( array_key_exists( $path_element, $input_array ) ) {
+				$input_array = $input_array[ $path_element ];
+				continue;
+			}
 		}
 		return $default_value;
 	}
