@@ -1555,11 +1555,11 @@ function get_sample_permalink_html( $post, $new_title = null, $new_slug = null )
 	 * @since 2.9.0
 	 * @since 4.4.0 Added `$post` parameter.
 	 *
-	 * @param string  $return    Sample permalink HTML markup.
-	 * @param int     $post_id   Post ID.
-	 * @param string  $new_title New sample permalink title.
-	 * @param string  $new_slug  New sample permalink slug.
-	 * @param WP_Post $post      Post object.
+	 * @param string      $return    Sample permalink HTML markup.
+	 * @param int         $post_id   Post ID.
+	 * @param string|null $new_title New sample permalink title.
+	 * @param string|null $new_slug  New sample permalink slug.
+	 * @param WP_Post     $post      Post object.
 	 */
 	$return = apply_filters( 'get_sample_permalink_html', $return, $post->ID, $new_title, $new_slug, $post );
 
@@ -2178,6 +2178,7 @@ function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {
  * of a block relevant for client registration.
  *
  * @since 5.0.0
+ * @since 6.3.0 Added `selectors` field.
  *
  * @return array An associative array of registered block data.
  */
@@ -2192,6 +2193,7 @@ function get_block_editor_server_block_settings() {
 		'attributes'       => 'attributes',
 		'provides_context' => 'providesContext',
 		'uses_context'     => 'usesContext',
+		'selectors'        => 'selectors',
 		'supports'         => 'supports',
 		'category'         => 'category',
 		'styles'           => 'styles',
@@ -2436,7 +2438,7 @@ function the_block_editor_meta_box_post_form_hidden_fields( $post ) {
 	$classic_elements = wp_html_split( $classic_output );
 	$hidden_inputs    = '';
 	foreach ( $classic_elements as $element ) {
-		if ( 0 !== strpos( $element, '<input ' ) ) {
+		if ( ! str_starts_with( $element, '<input ' ) ) {
 			continue;
 		}
 
