@@ -658,17 +658,25 @@ function rss2_site_icon() {
  * @return string Correct link for the atom:self element.
  */
 function get_self_link() {
-	$host = parse_url( home_url() );
-	$url  = '';
+	$host   = parse_url( home_url() );
+	$scheme = 'http://';
 	if ( isset( $host['scheme'] ) ) {
-		$url .= "{$host['scheme']}://";
+		$scheme = "{$host['scheme']}://";
 	}
-	$url .= $host['host'];
+	$port = '';
 	if ( isset( $host['port'] ) ) {
-		$url .= ":{$host['port']}";
+		$port = ":{$host['port']}";
 	}
-	$url .= wp_unslash( $_SERVER['REQUEST_URI'] );
-	return set_url_scheme( $url );
+	$request_uri = wp_unslash( $_SERVER['REQUEST_URI'] );
+	return set_url_scheme(
+		sprintf(
+			'%1$s%2$s%3$s%4$s',
+			$scheme,
+			$host['host'],
+			$port,
+			$request_uri
+		)
+	);
 }
 
 /**
