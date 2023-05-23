@@ -2313,7 +2313,8 @@ function upgrade_630() {
 			// Replace non-autoload option can_compress_scripts with autoload option, see #55270
 			$can_compress_scripts = get_option( 'can_compress_scripts', false );
 			if ( false !== $can_compress_scripts ) {
-				update_option( 'can_compress_scripts', $can_compress_scripts, 'yes' );
+				delete_option( 'can_compress_scripts' );
+				add_option( 'can_compress_scripts', $can_compress_scripts, 'yes' );
 			}
 		}
 	}
