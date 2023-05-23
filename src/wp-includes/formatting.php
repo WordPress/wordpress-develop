@@ -3948,7 +3948,11 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		$text = apply_filters( 'the_content', $text );
 		$text = str_replace( ']]>', ']]&gt;', $text );
 
-		// Only restore the filter callback if it was removed above.
+		/**
+		 * Only restore the filter callback if it was removed above. The logic
+		 * to unhook and restore only applies on the default priority of 10,
+		 * which is generally used for the filter callback in WordPress core.
+		 */
 		if ( $filter_removed ) {
 			add_filter( 'the_content', 'wp_filter_content_tags' );
 		}
