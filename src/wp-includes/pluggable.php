@@ -2815,6 +2815,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			'class'         => null,
 			'force_display' => false,
 			'loading'       => null,
+			'fetchpriority' => null,
 			'extra_attr'    => '',
 			'decoding'      => 'async',
 		);
