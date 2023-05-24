@@ -86,26 +86,32 @@ if ( $doaction ) {
 				wp_set_comment_status( $comment_id, 'approve' );
 				$approved++;
 				break;
+
 			case 'unapprove':
 				wp_set_comment_status( $comment_id, 'hold' );
 				$unapproved++;
 				break;
+
 			case 'spam':
 				wp_spam_comment( $comment_id );
 				$spammed++;
 				break;
+
 			case 'unspam':
 				wp_unspam_comment( $comment_id );
 				$unspammed++;
 				break;
+
 			case 'trash':
 				wp_trash_comment( $comment_id );
 				$trashed++;
 				break;
+
 			case 'untrash':
 				wp_untrash_comment( $comment_id );
 				$untrashed++;
 				break;
+
 			case 'delete':
 				wp_delete_comment( $comment_id );
 				$deleted++;
@@ -149,7 +155,8 @@ if ( $doaction ) {
 
 	wp_safe_redirect( $redirect_to );
 	exit;
-} elseif ( ! empty( $_GET['_wp_http_referer'] ) ) {
+}
+if ( ! empty( $_GET['_wp_http_referer'] ) ) {
 	wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
 	exit;
 }
@@ -296,6 +303,7 @@ if ( isset( $_REQUEST['error'] ) ) {
 		case 1:
 			$error_msg = __( 'Invalid comment ID.' );
 			break;
+
 		case 2:
 			$error_msg = __( 'Sorry, you are not allowed to edit comments on this post.' );
 			break;
@@ -393,6 +401,7 @@ if ( isset( $_REQUEST['approved'] )
 							__( 'Edit comment' )
 						);
 						break;
+
 					case 'trash':
 						$messages[] = __( 'This comment is already in the Trash.' ) . sprintf(
 							' <a href="%1$s">%2$s</a>',
@@ -400,6 +409,7 @@ if ( isset( $_REQUEST['approved'] )
 							__( 'View Trash' )
 						);
 						break;
+
 					case 'spam':
 						$messages[] = __( 'This comment is already marked as spam.' ) . sprintf(
 							' <a href="%1$s">%2$s</a>',
