@@ -58,11 +58,9 @@ get_current_screen()->set_help_sidebar(
 
 wp_reset_vars( array( 'action', 'error', 'file', 'theme' ) );
 
-if ( $theme ) {
-	$stylesheet = $theme;
-} else {
-	$stylesheet = get_stylesheet();
-}
+$stylesheet = ( $theme )
+	? $theme
+	: get_stylesheet();
 
 $theme = wp_get_theme( $stylesheet );
 
@@ -84,11 +82,13 @@ foreach ( $file_types as $type ) {
 		case 'php':
 			$allowed_files += $theme->get_files( 'php', -1 );
 			break;
+
 		case 'css':
 			$style_files                = $theme->get_files( 'css', -1 );
 			$allowed_files['style.css'] = $style_files['style.css'];
 			$allowed_files             += $style_files;
 			break;
+
 		default:
 			$allowed_files += $theme->get_files( $type, -1 );
 			break;
