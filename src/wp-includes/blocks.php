@@ -205,6 +205,10 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		$style_handle = $style_handle[ $index ];
 	}
 
+	if ( wp_style_is( $style_handle, 'registered' ) ) {
+		return $style_handle;
+	}
+
 	$style_path      = remove_block_asset_path_prefix( $style_handle );
 	$is_style_handle = $style_handle === $style_path;
 	// Allow only passing style handles for core blocks.
@@ -331,8 +335,9 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	}
 
 	// Try to get metadata from the static cache for core blocks.
-	$metadata = false;
-	if ( str_starts_with( $file_or_folder, ABSPATH . WPINC ) ) {
+	$metadata      = false;
+	$is_core_block = str_starts_with( $file_or_folder, ABSPATH . WPINC );
+	if ( $is_core_block ) {
 		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
 		if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
 			$metadata = $core_blocks_meta[ $core_block_name ];
@@ -361,12 +366,24 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	// Add `style` and `editor_style` for core blocks if missing.
 	if ( ! empty( $metadata['name'] ) && str_starts_with( $metadata['name'], 'core/' ) ) {
 		$block_name = str_replace( 'core/', '', $metadata['name'] );
-
+		$version    = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 		if ( ! isset( $metadata['style'] ) ) {
 			$metadata['style'] = "wp-block-$block_name";
+			wp_register_style(
+				$metadata['style'],
+				false,
+				array(),
+				$version
+			);
 		}
 		if ( ! isset( $metadata['editorStyle'] ) ) {
 			$metadata['editorStyle'] = "wp-block-{$block_name}-editor";
+			wp_register_style(
+				$metadata['editorStyle'],
+				false,
+				array(),
+				$version
+			);
 		}
 	}
 
