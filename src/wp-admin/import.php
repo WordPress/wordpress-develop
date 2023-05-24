@@ -33,11 +33,10 @@ get_current_screen()->set_help_sidebar(
 	'<p>' . __( '<a href="https://wordpress.org/support/forums">Support</a>' ) . '</p>'
 );
 
+$popular_importers = array();
 if ( current_user_can( 'install_plugins' ) ) {
 	// List of popular importer plugins from the WordPress.org API.
 	$popular_importers = wp_get_popular_importers();
-} else {
-	$popular_importers = array();
 }
 
 // Detect and redirect invalid importers like 'movabletype', which is registered as 'mt'.
