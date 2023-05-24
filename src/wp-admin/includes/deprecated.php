@@ -1588,3 +1588,29 @@ function image_attachment_fields_to_save( $post, $attachment ) {
 
 	return $post;
 }
+
+/**
+ * Queues comments for metadata lazy-loading.
+ *
+ * @since 4.5.0
+ * @since 6.3.0 Use wp_lazyload_comment_meta() for lazy-loading of comment meta.
+ * @deprecated 6.3.0 Use wp_lazyload_comment_meta() instead.
+ *
+ * @see wp_lazyload_comment_meta()
+ *
+ * @param WP_Comment[] $comments Array of comment objects.
+ */
+function wp_queue_comments_for_comment_meta_lazyload( $comments ) {
+	_deprecated_function( __FUNCTION__, '6.3.0', 'wp_lazyload_comment_meta' );
+	// Don't use `wp_list_pluck()` to avoid by-reference manipulation.
+	$comment_ids = array();
+	if ( is_array( $comments ) ) {
+		foreach ( $comments as $comment ) {
+			if ( $comment instanceof WP_Comment ) {
+				$comment_ids[] = $comment->comment_ID;
+			}
+		}
+	}
+
+	wp_lazyload_comment_meta( $comment_ids );
+}
