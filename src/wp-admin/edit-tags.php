@@ -43,15 +43,14 @@ $pagenum       = $wp_list_table->get_pagenum();
 
 $title = $tax->labels->name;
 
+$parent_file  = 'edit.php';
+$submenu_file = "edit-tags.php?taxonomy=$taxonomy";
 if ( 'post' !== $post_type ) {
 	$parent_file  = ( 'attachment' === $post_type ) ? 'upload.php' : "edit.php?post_type=$post_type";
 	$submenu_file = "edit-tags.php?taxonomy=$taxonomy&amp;post_type=$post_type";
 } elseif ( 'link_category' === $tax->name ) {
 	$parent_file  = 'link-manager.php';
 	$submenu_file = 'edit-tags.php?taxonomy=link_category';
-} else {
-	$parent_file  = 'edit.php';
-	$submenu_file = "edit-tags.php?taxonomy=$taxonomy";
 }
 
 add_screen_option(
@@ -100,7 +99,6 @@ switch ( $wp_list_table->current_action() ) {
 				$referer
 			);
 		}
-
 		break;
 
 	case 'delete':
@@ -194,6 +192,7 @@ switch ( $wp_list_table->current_action() ) {
 			);
 		}
 		break;
+
 	default:
 		if ( ! $wp_list_table->current_action() || ! isset( $_REQUEST['delete_tags'] ) ) {
 			break;
