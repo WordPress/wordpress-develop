@@ -36,6 +36,7 @@ if ( isset( $_GET['dt'] ) ) {
 	}
 }
 
+$comment = null;
 if ( isset( $_REQUEST['c'] ) ) {
 	$comment_id = absint( $_REQUEST['c'] );
 	$comment    = get_comment( $comment_id );
@@ -46,8 +47,6 @@ if ( isset( $_REQUEST['c'] ) ) {
 			__( 'You cannot edit this comment because the associated post is in the Trash. Please restore the post first, then try again.' )
 		);
 	}
-} else {
-	$comment = null;
 }
 
 switch ( $action ) {
@@ -133,14 +132,17 @@ switch ( $action ) {
 				$caution_msg = __( 'You are about to mark the following comment as spam:' );
 				$button      = _x( 'Mark as spam', 'comment' );
 				break;
+
 			case 'trash':
 				$caution_msg = __( 'You are about to move the following comment to the Trash:' );
 				$button      = __( 'Move to Trash' );
 				break;
+
 			case 'delete':
 				$caution_msg = __( 'You are about to delete the following comment:' );
 				$button      = __( 'Permanently delete comment' );
 				break;
+
 			default:
 				$caution_msg = __( 'You are about to approve the following comment:' );
 				$button      = __( 'Approve comment' );
@@ -153,14 +155,16 @@ switch ( $action ) {
 				case '1':
 					$message = __( 'This comment is currently approved.' );
 					break;
+
 				case 'spam':
 					$message = __( 'This comment is currently marked as spam.' );
 					break;
+
 				case 'trash':
 					$message = __( 'This comment is currently in the Trash.' );
 					break;
 			}
-			if ( $message ) {
+			if ( '' !== $message ) {
 				echo '<div id="message" class="notice notice-info"><p>' . $message . '</p></div>';
 			}
 		}
@@ -299,6 +303,7 @@ switch ( $action ) {
 				wp_delete_comment( $comment );
 				$redir = add_query_arg( array( 'deleted' => '1' ), $redir );
 				break;
+
 			case 'trashcomment':
 				wp_trash_comment( $comment );
 				$redir = add_query_arg(
@@ -309,10 +314,12 @@ switch ( $action ) {
 					$redir
 				);
 				break;
+
 			case 'untrashcomment':
 				wp_untrash_comment( $comment );
 				$redir = add_query_arg( array( 'untrashed' => '1' ), $redir );
 				break;
+
 			case 'spamcomment':
 				wp_spam_comment( $comment );
 				$redir = add_query_arg(
@@ -323,14 +330,17 @@ switch ( $action ) {
 					$redir
 				);
 				break;
+
 			case 'unspamcomment':
 				wp_unspam_comment( $comment );
 				$redir = add_query_arg( array( 'unspammed' => '1' ), $redir );
 				break;
+
 			case 'approvecomment':
 				wp_set_comment_status( $comment, 'approve' );
 				$redir = add_query_arg( array( 'approved' => 1 ), $redir );
 				break;
+
 			case 'unapprovecomment':
 				wp_set_comment_status( $comment, 'hold' );
 				$redir = add_query_arg( array( 'unapproved' => 1 ), $redir );
