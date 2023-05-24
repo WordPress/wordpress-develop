@@ -5565,6 +5565,116 @@ function wp_get_loading_attr_default( $context ) {
 }
 
 /**
+ * Get loading optimization attributes.
+ *
+ * @since 6.3.0
+ *
+ * @param string $tag_name The tag name.
+ * @param array[] $attr Array of the attributes for the tag.
+ * @param string $context Context for the element for which the loading optimization attribute is requested.
+ *
+ * @return array[] loading optimization attributes.
+ */
+function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
+	global $wp_query;
+
+	// All three parameters are required.
+	if ( empty( $tag_name ) || empty( $attr ) || empty( $context ) ) {
+		return array();
+	}
+
+	// Image tag must have a minimum of width and height.
+	if ( 'img' === $tag_name && ( ! isset( $attr['width'] ) || ! isset( $attr['height'] ) ) ) {
+		return array();
+	}
+
+	$img_size = $attr['width'] * $attr['height'];
+
+	// Skip lazy-loading for the overall block template, as it is handled more granularly.
+	if ( 'template' === $context ) {
+		// TO CHECK:
+		return array();
+	}
+
+	// If the count has already reached or exceeded the threshold, all of the images after can be lazy-loaded.
+	$content_media_count = wp_increase_content_media_count( 0 );
+	if ( wp_omit_loading_attr_threshold() < $content_media_count ) {
+		return array( 'loading' => 'lazy' );
+	}
+
+	// Do not lazy-load images in the header block template part, as they are likely above the fold.
+	// For classic themes, this is handled in the condition below using the 'get_header' action.
+	$header_area = WP_TEMPLATE_PART_AREA_HEADER;
+	if ( "template_part_{$header_area}" === $context ) {
+		if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size && 1 === wp_increase_content_media_count() ) {
+			return array( 'fetchpriority' => 'high' );
+		}
+		return array();
+	}
+
+	// Special handling for programmatically created image tags.
+	if ( ( 'the_post_thumbnail' === $context || 'wp_get_attachment_image' === $context ) ) {
+		/*
+		 * Skip programmatically created images within post content as they need to be handled together with the other
+		 * images within the post content.
+		 * Without this clause, they would already be counted below which skews the number and can result in the first
+		 * post content image being lazy-loaded only because there are images elsewhere in the post content.
+		 */
+		if ( doing_filter( 'the_content' ) ) {
+			if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size && 1 === wp_increase_content_media_count() ) {
+				return array( 'fetchpriority' => 'high' );
+			}
+			return array();
+		}
+
+		// Conditionally skip lazy-loading on images before the loop.
+		if (
+			// Only apply for main query but before the loop.
+			$wp_query->before_loop && $wp_query->is_main_query()
+			/*
+			 * Any image before the loop, but after the header has started should not be lazy-loaded,
+			 * except when the footer has already started which can happen when the current template
+			 * does not include any loop.
+			 */
+			&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
+		) {
+			if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size && 1 === wp_increase_content_media_count() ) {
+				return array( 'fetchpriority' => 'high' );
+			}
+			return array();
+		}
+	}
+
+	/*
+	 * The first elements in 'the_content' or 'the_post_thumbnail' should not be lazy-loaded,
+	 * as they are likely above the fold.
+	 */
+	if ( 'the_content' === $context || 'the_post_thumbnail' === $context ) {
+		// Only elements within the main query loop have special handling.
+		if ( is_admin() || ! in_the_loop() || ! is_main_query() ) {
+			return array( 'loading' => 'lazy' );
+		}
+
+		if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size ) {
+			// Increase the counter since this is a main query content element.
+			$content_media_count = wp_increase_content_media_count();
+		}
+
+		// If the count so far is below the threshold, `loading` attribute is omitted.
+		// If the count is 1 then we consider it as the LCP element and then set it's fetchpriority attribute to high.
+		if ( $content_media_count <= wp_omit_loading_attr_threshold() ) {
+			if ( 1 == $content_media_count ) {
+				return array( 'fetchpriority' => 'high' );
+			}
+			return array();
+		}
+	}
+
+	// Lazy-load by default for any unknown context.
+	return array( 'loading' => 'lazy' );
+}
+
+/**
  * Gets the threshold for how many of the first content media elements to not lazy-load.
  *
  * This function runs the {@see 'wp_omit_loading_attr_threshold'} filter, which uses a default threshold value of 3.
