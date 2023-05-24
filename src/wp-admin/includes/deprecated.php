@@ -1595,7 +1595,7 @@ function image_attachment_fields_to_save( $post, $attachment ) {
  * @since 3.1.0
  */
 function wp_ajax_wp_compression_test() {
-	_deprecated_function( __FUNCTION__, '6.3.0');
+	_deprecated_function( __FUNCTION__, '6.3.0' );
 	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_die( -1 );
 	}
@@ -1656,7 +1656,7 @@ function wp_ajax_wp_compression_test() {
  * @since 2.8.0
  */
 function compression_test() {
-	_deprecated_function( __FUNCTION__, '6.3.0');
+	_deprecated_function( __FUNCTION__, '6.3.0' );
 	?>
 	<script type="text/javascript">
 		var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ) ); ?>;
