@@ -1588,3 +1588,124 @@ function image_attachment_fields_to_save( $post, $attachment ) {
 
 	return $post;
 }
+
+/**
+ * Ajax handler for compression testing.
+ *
+ * @since 3.1.0
+ */
+function wp_ajax_wp_compression_test() {
+	_deprecated_function( __FUNCTION__, '6.3.0');
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( -1 );
+	}
+
+	if ( ini_get( 'zlib.output_compression' ) || 'ob_gzhandler' === ini_get( 'output_handler' ) ) {
+		update_site_option( 'can_compress_scripts', 0 );
+		wp_die( 0 );
+	}
+
+	if ( isset( $_GET['test'] ) ) {
+		header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );
+		header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s' ) . ' GMT' );
+		header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+		header( 'Content-Type: application/javascript; charset=UTF-8' );
+		$force_gzip = ( defined( 'ENFORCE_GZIP' ) && ENFORCE_GZIP );
+		$test_str   = '"wpCompressionTest Lorem ipsum dolor sit amet consectetuer mollis sapien urna ut a. Eu nonummy condimentum fringilla tempor pretium platea vel nibh netus Maecenas. Hac molestie amet justo quis pellentesque est ultrices interdum nibh Morbi. Cras mattis pretium Phasellus ante ipsum ipsum ut sociis Suspendisse Lorem. Ante et non molestie. Porta urna Vestibulum egestas id congue nibh eu risus gravida sit. Ac augue auctor Ut et non a elit massa id sodales. Elit eu Nulla at nibh adipiscing mattis lacus mauris at tempus. Netus nibh quis suscipit nec feugiat eget sed lorem et urna. Pellentesque lacus at ut massa consectetuer ligula ut auctor semper Pellentesque. Ut metus massa nibh quam Curabitur molestie nec mauris congue. Volutpat molestie elit justo facilisis neque ac risus Ut nascetur tristique. Vitae sit lorem tellus et quis Phasellus lacus tincidunt nunc Fusce. Pharetra wisi Suspendisse mus sagittis libero lacinia Integer consequat ac Phasellus. Et urna ac cursus tortor aliquam Aliquam amet tellus volutpat Vestibulum. Justo interdum condimentum In augue congue tellus sollicitudin Quisque quis nibh."';
+
+		if ( 1 == $_GET['test'] ) {
+			echo $test_str;
+			wp_die();
+		} elseif ( 2 == $_GET['test'] ) {
+			if ( ! isset( $_SERVER['HTTP_ACCEPT_ENCODING'] ) ) {
+				wp_die( -1 );
+			}
+
+			if ( false !== stripos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'deflate' ) && function_exists( 'gzdeflate' ) && ! $force_gzip ) {
+				header( 'Content-Encoding: deflate' );
+				$out = gzdeflate( $test_str, 1 );
+			} elseif ( false !== stripos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip' ) && function_exists( 'gzencode' ) ) {
+				header( 'Content-Encoding: gzip' );
+				$out = gzencode( $test_str, 1 );
+			} else {
+				wp_die( -1 );
+			}
+
+			echo $out;
+			wp_die();
+		} elseif ( 'no' === $_GET['test'] ) {
+			check_ajax_referer( 'update_can_compress_scripts' );
+			update_site_option( 'can_compress_scripts', 0 );
+		} elseif ( 'yes' === $_GET['test'] ) {
+			check_ajax_referer( 'update_can_compress_scripts' );
+			update_site_option( 'can_compress_scripts', 1 );
+		}
+	}
+
+	wp_die( 0 );
+}
+
+/**
+ * Tests support for compressing JavaScript from PHP.
+ *
+ * Outputs JavaScript that tests if compression from PHP works as expected
+ * and sets an option with the result. Has no effect when the current user
+ * is not an administrator. To run the test again the option 'can_compress_scripts'
+ * has to be deleted.
+ *
+ * @since 2.8.0
+ */
+function compression_test() {
+	_deprecated_function( __FUNCTION__, '6.3.0');
+	?>
+	<script type="text/javascript">
+		var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ) ); ?>;
+		var testCompression = {
+			get : function(test) {
+				var x;
+				if ( window.XMLHttpRequest ) {
+					x = new XMLHttpRequest();
+				} else {
+					try{x=new ActiveXObject('Msxml2.XMLHTTP');}catch(e){try{x=new ActiveXObject('Microsoft.XMLHTTP');}catch(e){};}
+				}
+
+				if (x) {
+					x.onreadystatechange = function() {
+						var r, h;
+						if ( x.readyState == 4 ) {
+							r = x.responseText.substr(0, 18);
+							h = x.getResponseHeader('Content-Encoding');
+							testCompression.check(r, h, test);
+						}
+					};
+
+					x.open('GET', ajaxurl + '?action=wp-compression-test&test='+test+'&_ajax_nonce='+compressionNonce+'&'+(new Date()).getTime(), true);
+					x.send('');
+				}
+			},
+
+			check : function(r, h, test) {
+				if ( ! r && ! test )
+					this.get(1);
+
+				if ( 1 == test ) {
+					if ( h && ( h.match(/deflate/i) || h.match(/gzip/i) ) )
+						this.get('no');
+					else
+						this.get(2);
+
+					return;
+				}
+
+				if ( 2 == test ) {
+					if ( '"wpCompressionTest' === r )
+						this.get('yes');
+					else
+						this.get('no');
+				}
+			}
+		};
+		testCompression.check();
+	</script>
+	<?php
+}
