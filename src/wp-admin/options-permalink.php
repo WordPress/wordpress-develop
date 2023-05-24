@@ -147,13 +147,9 @@ if ( isset( $_POST['permalink_structure'] ) || isset( $_POST['category_base'] ) 
 }
 
 if ( $iis7_permalinks ) {
-	if ( ( ! file_exists( $home_path . 'web.config' )
+	$writable = ( ( ! file_exists( $home_path . 'web.config' )
 		&& win_is_writable( $home_path ) ) || win_is_writable( $home_path . 'web.config' )
-	) {
-		$writable = true;
-	} else {
-		$writable = false;
-	}
+	);
 } elseif ( $is_nginx ) {
 	$writable = false;
 } else {
