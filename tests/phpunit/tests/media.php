@@ -3872,6 +3872,8 @@ EOF;
 	 *
 	 * @ticket 56930
 	 *
+	 * @since 6.3.0 Apply fetchpriority="high" on the LCP image.
+	 *
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_get_loading_attr_default
 	 */
@@ -3896,7 +3898,14 @@ EOF;
 		// The featured image should not be lazy-loaded as it is the first image.
 		$featured_image_id = self::$large_id;
 		update_post_meta( self::$post_ids['publish'], '_thumbnail_id', $featured_image_id );
-		$expected_featured_image = '<figure class="wp-block-post-featured-image">' . get_the_post_thumbnail( self::$post_ids['publish'], 'post-thumbnail', array( 'loading' => false ) ) . '</figure>';
+		$expected_featured_image = '<figure class="wp-block-post-featured-image">' . get_the_post_thumbnail(
+			self::$post_ids['publish'],
+			'post-thumbnail',
+			array(
+				'loading'       => false,
+				'fetchpriority' => 'high',
+			)
+		) . '</figure>';
 
 		// The post content image should be lazy-loaded since the featured image appears above.
 		$post_content     = $content_img;
@@ -3983,7 +3992,17 @@ EOF;
 		global $wp_query, $wp_the_query;
 
 		// Force no lazy-loading on the image tag expected in the content.
-		$expected_content = wpautop( wp_get_attachment_image( self::$large_id, 'large', false, array( 'loading' => false ) ) );
+		$expected_content = wpautop(
+			wp_get_attachment_image(
+				self::$large_id,
+				'large',
+				false,
+				array(
+					'loading'       => false,
+					'fetchpriority' => 'high',
+				)
+			)
+		);
 
 		// Overwrite post content with an image.
 		add_filter(
@@ -4119,6 +4138,8 @@ EOF;
 	 *
 	 * @ticket 56588
 	 *
+	 * @since 6.3.0 Apply fetchpriority="high" on the LCP image.
+	 *
 	 * @covers ::wp_trim_excerpt
 	 */
 	public function test_the_excerpt_does_not_affect_omit_lazy_loading_logic() {
@@ -4142,7 +4163,14 @@ EOF;
 		$featured_image_id = self::$large_id;
 		update_post_meta( $post_id, '_thumbnail_id', $featured_image_id );
 
-		$expected_image_tag = get_the_post_thumbnail( $post_id, 'post-thumbnail', array( 'loading' => false ) );
+		$expected_image_tag = get_the_post_thumbnail(
+			$post_id,
+			'post-thumbnail',
+			array(
+				'loading'       => false,
+				'fetchpriority' => 'high',
+			)
+		);
 
 		$wp_query     = new WP_Query( array( 'post__in' => array( $post_id ) ) );
 		$wp_the_query = $wp_query;
