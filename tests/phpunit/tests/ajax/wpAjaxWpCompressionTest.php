@@ -15,6 +15,7 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  * @group ajax
  *
  * @covers ::wp_ajax_wp_compression_test
+ * @expectedDeprecated wp_ajax_wp_compression_test
  */
 class Tests_Ajax_wpAjaxWpCompressionTest extends WP_Ajax_UnitTestCase {
 
