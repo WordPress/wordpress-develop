@@ -100,14 +100,11 @@ if ( $thumbnail_support ) {
 // Add the local autosave notice HTML.
 add_action( 'admin_footer', '_local_storage_notice' );
 
+$permalink = (string) get_permalink( $post->ID );
+
 /*
  * @todo Document the $messages array(s).
  */
-$permalink = get_permalink( $post->ID );
-if ( ! $permalink ) {
-	$permalink = '';
-}
-
 $messages = array();
 
 $preview_post_link_html   = '';
@@ -565,9 +562,7 @@ do_action( 'edit_form_top', $post );
 endif;
 	?>
 </div>
-	<?php
-	wp_nonce_field( 'samplepermalink', 'samplepermalinknonce', false );
-	?>
+	<?php wp_nonce_field( 'samplepermalink', 'samplepermalinknonce', false ); ?>
 </div><!-- /titlediv -->
 	<?php
 }
@@ -677,7 +672,6 @@ if ( 'page' === $post_type ) {
 	do_action( 'submitpost_box', $post );
 }
 
-
 do_meta_boxes( $post_type, 'side', $post );
 
 ?>
@@ -706,7 +700,6 @@ if ( 'page' === $post_type ) {
 	 */
 	do_action( 'edit_form_advanced', $post );
 }
-
 
 do_meta_boxes( null, 'advanced', $post );
 
