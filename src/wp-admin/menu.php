@@ -34,14 +34,13 @@ if ( ! is_multisite() || current_user_can( 'update_core' ) ) {
 }
 
 if ( ! is_multisite() ) {
+	$cap = 'update_languages';
 	if ( current_user_can( 'update_core' ) ) {
 		$cap = 'update_core';
 	} elseif ( current_user_can( 'update_plugins' ) ) {
 		$cap = 'update_plugins';
 	} elseif ( current_user_can( 'update_themes' ) ) {
 		$cap = 'update_themes';
-	} else {
-		$cap = 'update_languages';
 	}
 	$submenu['index.php'][10] = array(
 		sprintf(
