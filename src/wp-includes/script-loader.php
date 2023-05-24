@@ -2916,6 +2916,10 @@ function wp_maybe_inline_styles() {
 				break;
 			}
 
+			if ( ! $wp_styles->registered[ $style['handle'] ]->src ) {
+				break;
+			}
+
 			// Get the styles if we don't already have them.
 			$style['css'] = file_get_contents( $style['path'] );
 
