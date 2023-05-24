@@ -61,9 +61,8 @@ if ( $action ) {
 					$redirect = self_admin_url( 'plugins.php?error=true&charsout=' . strlen( $result->get_error_data() ) . '&plugin=' . urlencode( $plugin ) . "&plugin_status=$status&paged=$page&s=$s" );
 					wp_redirect( add_query_arg( '_error_nonce', wp_create_nonce( 'plugin-activation-error_' . $plugin ), $redirect ) );
 					exit;
-				} else {
-					wp_die( $result );
 				}
+				wp_die( $result );
 			}
 
 			if ( ! is_network_admin() ) {
@@ -79,12 +78,14 @@ if ( $action ) {
 			if ( isset( $_GET['from'] ) && 'import' === $_GET['from'] ) {
 				// Overrides the ?error=true one above and redirects to the Imports page, stripping the -importer suffix.
 				wp_redirect( self_admin_url( 'import.php?import=' . str_replace( '-importer', '', dirname( $plugin ) ) ) );
-			} elseif ( isset( $_GET['from'] ) && 'press-this' === $_GET['from'] ) {
-				wp_redirect( self_admin_url( 'press-this.php' ) );
-			} else {
-				// Overrides the ?error=true one above.
-				wp_redirect( self_admin_url( "plugins.php?activate=true&plugin_status=$status&paged=$page&s=$s" ) );
+				exit;
 			}
+			if ( isset( $_GET['from'] ) && 'press-this' === $_GET['from'] ) {
+				wp_redirect( self_admin_url( 'press-this.php' ) );
+				exit;
+			}
+			// Overrides the ?error=true one above.
+			wp_redirect( self_admin_url( "plugins.php?activate=true&plugin_status=$status&paged=$page&s=$s" ) );
 			exit;
 
 		case 'activate-selected':
@@ -123,11 +124,9 @@ if ( $action ) {
 
 			activate_plugins( $plugins, self_admin_url( 'plugins.php?error=true' ), is_network_admin() );
 
-			if ( ! is_network_admin() ) {
-				$recent = (array) get_option( 'recently_activated' );
-			} else {
-				$recent = (array) get_site_option( 'recently_activated' );
-			}
+			$recent = ( is_network_admin() )
+				? (array) get_site_option( 'recently_activated' )
+				: (array) get_option( 'recently_activated' );
 
 			foreach ( $plugins as $plugin ) {
 				unset( $recent[ $plugin ] );
@@ -145,12 +144,11 @@ if ( $action ) {
 		case 'update-selected':
 			check_admin_referer( 'bulk-plugins' );
 
+			$plugins = array();
 			if ( isset( $_GET['plugins'] ) ) {
 				$plugins = explode( ',', wp_unslash( $_GET['plugins'] ) );
 			} elseif ( isset( $_POST['checked'] ) ) {
 				$plugins = (array) wp_unslash( $_POST['checked'] );
-			} else {
-				$plugins = array();
 			}
 
 			// Used in the HTML title tag.
@@ -405,24 +403,24 @@ if ( $action ) {
 
 				require_once ABSPATH . 'wp-admin/admin-footer.php';
 				exit;
-			} else {
-				$plugins_to_delete = count( $plugins );
 			} // End if verify-delete.
 
-			$delete_result = delete_plugins( $plugins );
+			$plugins_to_delete = count( $plugins );
+			$delete_result     = delete_plugins( $plugins );
 
 			// Store the result in a cache rather than a URL param due to object type & length.
 			set_transient( 'plugins_delete_result_' . $user_ID, $delete_result );
 			wp_redirect( self_admin_url( "plugins.php?deleted=$plugins_to_delete&plugin_status=$status&paged=$page&s=$s" ) );
 			exit;
+
 		case 'clear-recent-list':
 			if ( ! is_network_admin() ) {
 				update_option( 'recently_activated', array() );
 			} else {
 				update_site_option( 'recently_activated', array() );
 			}
-
 			break;
+
 		case 'resume':
 			if ( is_multisite() ) {
 				return;
@@ -442,6 +440,7 @@ if ( $action ) {
 
 			wp_redirect( self_admin_url( "plugins.php?resume=true&plugin_status=$status&paged=$page&s=$s" ) );
 			exit;
+
 		case 'enable-auto-update':
 		case 'disable-auto-update':
 		case 'enable-auto-update-selected':
@@ -514,6 +513,7 @@ if ( $action ) {
 
 			wp_redirect( $redirect );
 			exit;
+
 		default:
 			if ( isset( $_POST['checked'] ) ) {
 				check_admin_referer( 'bulk-plugins' );
