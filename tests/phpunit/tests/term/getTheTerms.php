@@ -195,8 +195,9 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36814
+	 * @ticket 57701
 	 */
-	public function test_uncached_terms_should_be_primed_with_a_single_query() {
+	public function test_uncached_terms_should_not_be_primed_with_a_single_query_by_default() {
 		register_taxonomy( 'wptests_tax', 'post' );
 
 		$terms = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
@@ -213,9 +214,8 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 
 		$this->assertSameSets( $terms, wp_list_pluck( $found, 'term_id' ) );
 
-		$num_queries++;
-		$this->assertSame( $num_queries, get_num_queries() );
-
+		// Two extra queries are expected as the cache is not primed and hence terms need to be queried.
+		$this->assertSame( 1, get_num_queries() - $num_queries );
 	}
 
 	/**
