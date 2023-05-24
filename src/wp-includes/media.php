@@ -1061,7 +1061,17 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 
 		// Add loading optimization attribute. Only compute the default if both `loading` and `fetchpriority` is not present.
 		if ( ! isset( $attr['loading'] ) && ! isset( $attr['fetchpriority'] ) ) {
-			$default_attr = array_merge( $default_attr, wp_get_loading_optimization_attributes( 'img', array( $width, $height ), $context ) );
+			$default_attr = array_merge(
+				$default_attr,
+				wp_get_loading_optimization_attributes(
+					'img',
+					array(
+						'width'  => $width,
+						'height' => $height,
+					),
+					$context
+				)
+			);
 		}
 
 		$attr = wp_parse_args( $attr, $default_attr );
