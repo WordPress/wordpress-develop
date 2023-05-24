@@ -33,7 +33,8 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 		switch_theme( $theme->get_stylesheet() );
 		wp_redirect( admin_url( 'themes.php?activated=true' ) );
 		exit;
-	} elseif ( 'resume' === $_GET['action'] ) {
+	}
+	if ( 'resume' === $_GET['action'] ) {
 		check_admin_referer( 'resume-theme_' . $_GET['stylesheet'] );
 		$theme = wp_get_theme( $_GET['stylesheet'] );
 
@@ -53,7 +54,8 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 
 		wp_redirect( admin_url( 'themes.php?resumed=true' ) );
 		exit;
-	} elseif ( 'delete' === $_GET['action'] ) {
+	}
+	if ( 'delete' === $_GET['action'] ) {
 		check_admin_referer( 'delete-theme_' . $_GET['stylesheet'] );
 		$theme = wp_get_theme( $_GET['stylesheet'] );
 
@@ -76,12 +78,13 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 		$active = wp_get_theme();
 		if ( $active->get( 'Template' ) === $_GET['stylesheet'] ) {
 			wp_redirect( admin_url( 'themes.php?delete-active-child=true' ) );
-		} else {
-			delete_theme( $_GET['stylesheet'] );
-			wp_redirect( admin_url( 'themes.php?deleted=true' ) );
+			exit;
 		}
+		delete_theme( $_GET['stylesheet'] );
+		wp_redirect( admin_url( 'themes.php?deleted=true' ) );
 		exit;
-	} elseif ( 'enable-auto-update' === $_GET['action'] ) {
+	}
+	if ( 'enable-auto-update' === $_GET['action'] ) {
 		if ( ! ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) ) {
 			wp_die( __( 'Sorry, you are not allowed to enable themes automatic updates.' ) );
 		}
@@ -101,7 +104,8 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 		wp_redirect( admin_url( 'themes.php?enabled-auto-update=true' ) );
 
 		exit;
-	} elseif ( 'disable-auto-update' === $_GET['action'] ) {
+	}
+	if ( 'disable-auto-update' === $_GET['action'] ) {
 		if ( ! ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) ) {
 			wp_die( __( 'Sorry, you are not allowed to disable themes automatic updates.' ) );
 		}
@@ -210,11 +214,10 @@ get_current_screen()->set_help_sidebar(
 	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
-if ( current_user_can( 'switch_themes' ) ) {
-	$themes = wp_prepare_themes_for_js();
-} else {
-	$themes = wp_prepare_themes_for_js( array( wp_get_theme() ) );
-}
+$themes = ( current_user_can( 'switch_themes' ) )
+	? wp_prepare_themes_for_js()
+	: wp_prepare_themes_for_js( array( wp_get_theme() ) );
+
 wp_reset_vars( array( 'theme', 'search' ) );
 
 wp_localize_script(
@@ -323,8 +326,8 @@ if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 		}
 
 		// 0 = name, 1 = capability, 2 = file.
-		if ( 0 === strcmp( $self, $item[2] ) && empty( $parent_file )
-			|| $parent_file && $item[2] === $parent_file
+		if ( ( 0 === strcmp( $self, $item[2] ) && empty( $parent_file ) )
+			|| ( $parent_file && $item[2] === $parent_file )
 		) {
 			$class = ' current';
 		}
@@ -531,13 +534,13 @@ foreach ( $themes as $theme ) :
 	</div>
 
 	<div class="theme-id-container">
-		<?php if ( $theme['active'] ) { ?>
+		<?php if ( $theme['active'] ) : ?>
 			<h2 class="theme-name" id="<?php echo esc_attr( $aria_name ); ?>">
 				<span><?php _ex( 'Active:', 'theme' ); ?></span> <?php echo $theme['name']; ?>
 			</h2>
-		<?php } else { ?>
+		<?php else : ?>
 			<h2 class="theme-name" id="<?php echo esc_attr( $aria_name ); ?>"><?php echo $theme['name']; ?></h2>
-		<?php } ?>
+		<?php endif; ?>
 
 		<div class="theme-actions">
 		<?php if ( $theme['active'] ) { ?>
