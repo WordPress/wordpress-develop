@@ -58,8 +58,8 @@ if ( ! function_exists( 'twentyfifteen_setup' ) ) :
 		 * Translations can be filed at WordPress.org. See: https://translate.wordpress.org/projects/wp-themes/twentyfifteen
 		 * If you're building a theme based on twentyfifteen, use a find and replace
 		 * to change 'twentyfifteen' to the name of your theme in all the template files.
-		 * 
-		 * Manual loading of text domain is not required after the introduction of 
+		 *
+		 * Manual loading of text domain is not required after the introduction of
 		 * just in time translation loading in WordPress version 4.6.
 		 * @ticket 58318
 		 */

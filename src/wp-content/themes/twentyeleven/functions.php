@@ -79,8 +79,8 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 		 * If you're building a theme based on Twenty Eleven, use
 		 * a find and replace to change 'twentyeleven' to the name
 		 * of your theme in all the template files.
-		 * 
-		 * Manual loading of text domain is not required after the introduction of 
+		 *
+		 * Manual loading of text domain is not required after the introduction of
 		 * just in time translation loading in WordPress version 4.6.
 		 * @ticket 58318
 		 */

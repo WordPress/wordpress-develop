@@ -128,8 +128,8 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 		/*
 		 * Make theme available for translation.
 		 * Translations can be filed in the /languages/ directory.
-		 * 
-		 * Manual loading of text domain is not required after the introduction of 
+		 *
+		 * Manual loading of text domain is not required after the introduction of
 		 * just in time translation loading in WordPress version 4.6.
 		 * @ticket 58318
 		 */
