@@ -1059,9 +1059,9 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		 */
 		$context = apply_filters( 'wp_get_attachment_image_context', 'wp_get_attachment_image' );
 
-		// Add `loading` attribute.
-		if ( wp_lazy_loading_enabled( 'img', $context ) ) {
-			$default_attr['loading'] = wp_get_loading_attr_default( $context );
+		// Add loading optimization attribute. Only compute the default if both `loading` and `fetchpriority` is not present.
+		if ( ! isset( $attr['loading'] ) && ! isset( $attr['fetchpriority'] ) ) {
+			$default_attr = array_merge( $default_attr, wp_get_loading_optimization_attributes( 'img', array( $width, $height ), $context ) );
 		}
 
 		$attr = wp_parse_args( $attr, $default_attr );
@@ -1075,6 +1075,12 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		// to omit the attribute for this image, ensure it is not included.
 		if ( array_key_exists( 'loading', $attr ) && ! $attr['loading'] ) {
 			unset( $attr['loading'] );
+		}
+
+		// If the default value of `high` for the `fetchpriority` attribute is overridden
+		// to omit the attribute for this image, ensure it is not included.
+		if ( array_key_exists( 'fetchpriority', $attr ) && ! $attr['fetchpriority'] ) {
+			unset( $attr['fetchpriority'] );
 		}
 
 		// Generate 'srcset' and 'sizes' if not already present.
