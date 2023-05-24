@@ -550,10 +550,9 @@ function list_plugin_updates() {
 		}
 
 		// Get the upgrade notice for the new plugin version.
+		$upgrade_notice = '';
 		if ( isset( $plugin_data->update->upgrade_notice ) ) {
 			$upgrade_notice = '<br />' . strip_tags( $plugin_data->update->upgrade_notice );
-		} else {
-			$upgrade_notice = '';
 		}
 
 		$details_url = self_admin_url( 'plugin-install.php?tab=plugin-information&plugin=' . $plugin_data->update->slug . '&section=changelog&TB_iframe=true&width=640&height=662' );
@@ -830,10 +829,9 @@ function do_core_upgrade( $reinstall = false ) {
 
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
+	$url = 'update-core.php?action=do-core-upgrade';
 	if ( $reinstall ) {
 		$url = 'update-core.php?action=do-core-reinstall';
-	} else {
-		$url = 'update-core.php?action=do-core-upgrade';
 	}
 	$url = wp_nonce_url( $url, 'upgrade-core' );
 
@@ -1106,10 +1104,9 @@ if ( 'upgrade-core' === $action ) {
 	}
 
 	require_once ABSPATH . 'wp-admin/admin-header.php';
+	$reinstall = false;
 	if ( 'do-core-reinstall' === $action ) {
 		$reinstall = true;
-	} else {
-		$reinstall = false;
 	}
 
 	if ( isset( $_POST['upgrade'] ) ) {
@@ -1259,15 +1256,15 @@ if ( 'upgrade-core' === $action ) {
 
 	wp_redirect( $redirect_url );
 	exit;
-} else {
-	/**
-	 * Fires for each custom update action on the WordPress Updates screen.
-	 *
-	 * The dynamic portion of the hook name, `$action`, refers to the
-	 * passed update action. The hook fires in lieu of all available
-	 * default update actions.
-	 *
-	 * @since 3.2.0
-	 */
-	do_action( "update-core-custom_{$action}" );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 }
+
+/**
+ * Fires for each custom update action on the WordPress Updates screen.
+ *
+ * The dynamic portion of the hook name, `$action`, refers to the
+ * passed update action. The hook fires in lieu of all available
+ * default update actions.
+ *
+ * @since 3.2.0
+ */
+do_action( "update-core-custom_{$action}" );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
