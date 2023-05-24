@@ -211,8 +211,8 @@ if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
 	return;
-} else {
-	?>
+}
+?>
 
 <div class="notice notice-error hide-if-js">
 	<p><?php _e( 'The Site Health check requires JavaScript.' ); ?></p>
@@ -306,6 +306,5 @@ if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 	</div>
 </script>
 
-	<?php
-}
+<?php
 require_once ABSPATH . 'wp-admin/admin-footer.php';
