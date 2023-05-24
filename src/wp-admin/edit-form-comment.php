@@ -116,9 +116,11 @@ switch ( $comment->comment_approved ) {
 	case '1':
 		_e( 'Approved' );
 		break;
+
 	case '0':
 		_e( 'Pending' );
 		break;
+
 	case 'spam':
 		_e( 'Spam' );
 		break;
