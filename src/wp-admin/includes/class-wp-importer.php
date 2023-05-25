@@ -29,8 +29,9 @@ class WP_Importer {
 		// Grab all posts in chunks.
 		do {
 			$meta_key = $importer_name . '_' . $blog_id . '_permalink';
-			$sql      = $wpdb->prepare( "SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = %s LIMIT %d,%d", $meta_key, $offset, $limit );
-			$results  = $wpdb->get_results( $sql );
+			$results  = $wpdb->get_results(
+				$wpdb->prepare( "SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = %s LIMIT %d,%d", $meta_key, $offset, $limit )
+			);
 
 			// Increment offset.
 			$offset = ( $limit + $offset );
@@ -62,9 +63,10 @@ class WP_Importer {
 
 		// Get count of permalinks.
 		$meta_key = $importer_name . '_' . $blog_id . '_permalink';
-		$sql      = $wpdb->prepare( "SELECT COUNT( post_id ) AS cnt FROM $wpdb->postmeta WHERE meta_key = %s", $meta_key );
 
-		$result = $wpdb->get_results( $sql );
+		$result = $wpdb->get_results(
+			$wpdb->prepare( "SELECT COUNT( post_id ) AS cnt FROM $wpdb->postmeta WHERE meta_key = %s", $meta_key )
+		);
 
 		if ( ! empty( $result ) ) {
 			$count = (int) $result[0]->cnt;
@@ -91,8 +93,9 @@ class WP_Importer {
 
 		// Grab all comments in chunks.
 		do {
-			$sql     = $wpdb->prepare( "SELECT comment_ID, comment_agent FROM $wpdb->comments LIMIT %d,%d", $offset, $limit );
-			$results = $wpdb->get_results( $sql );
+			$results = $wpdb->get_results(
+				$wpdb->prepare( "SELECT comment_ID, comment_agent FROM $wpdb->comments LIMIT %d,%d", $offset, $limit )
+			);
 
 			// Increment offset.
 			$offset = ( $limit + $offset );
@@ -161,11 +164,9 @@ class WP_Importer {
 	 * @return int|void
 	 */
 	public function set_user( $user_id ) {
-		if ( is_numeric( $user_id ) ) {
-			$user_id = (int) $user_id;
-		} else {
-			$user_id = (int) username_exists( $user_id );
-		}
+		$user_id = is_numeric( $user_id )
+			? (int) $user_id
+			: (int) username_exists( $user_id );
 
 		if ( ! $user_id || ! wp_set_current_user( $user_id ) ) {
 			fwrite( STDERR, "Error: can not find user\n" );
@@ -291,10 +292,9 @@ function get_cli_args( $param, $required = false ) {
 			$parts = explode( '=', $match[1] );
 			$key   = preg_replace( '/[^a-z0-9]+/', '', $parts[0] );
 
+			$out[ $key ] = true;
 			if ( isset( $parts[1] ) ) {
 				$out[ $key ] = $parts[1];
-			} else {
-				$out[ $key ] = true;
 			}
 
 			$last_arg = $key;
