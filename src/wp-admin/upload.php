@@ -290,6 +290,7 @@ if ( $doaction ) {
 				$location
 			);
 			break;
+
 		case 'untrash':
 			if ( empty( $post_ids ) ) {
 				break;
@@ -305,6 +306,7 @@ if ( $doaction ) {
 			}
 			$location = add_query_arg( 'untrashed', count( $post_ids ), $location );
 			break;
+
 		case 'delete':
 			if ( empty( $post_ids ) ) {
 				break;
@@ -320,6 +322,7 @@ if ( $doaction ) {
 			}
 			$location = add_query_arg( 'deleted', count( $post_ids ), $location );
 			break;
+
 		default:
 			$screen = get_current_screen()->id;
 
