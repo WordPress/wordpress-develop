@@ -92,14 +92,13 @@ get_current_screen()->set_screen_reader_content(
 	)
 );
 
+$redirect = 'users.php';
+$referer  = '';
 if ( empty( $_REQUEST ) ) {
 	$referer = '<input type="hidden" name="wp_http_referer" value="' . esc_attr( wp_unslash( $_SERVER['REQUEST_URI'] ) ) . '" />';
 } elseif ( isset( $_REQUEST['wp_http_referer'] ) ) {
 	$redirect = remove_query_arg( array( 'wp_http_referer', 'updated', 'delete_count' ), wp_unslash( $_REQUEST['wp_http_referer'] ) );
 	$referer  = '<input type="hidden" name="wp_http_referer" value="' . esc_attr( $redirect ) . '" />';
-} else {
-	$redirect = 'users.php';
-	$referer  = '';
 }
 
 $update = '';
@@ -208,6 +207,7 @@ switch ( $wp_list_table->current_action() ) {
 				case 'delete':
 					wp_delete_user( $id );
 					break;
+
 				case 'reassign':
 					wp_delete_user( $id, $_REQUEST['reassign_user'] );
 					break;
@@ -452,11 +452,9 @@ switch ( $wp_list_table->current_action() ) {
 			$error = new WP_Error( 'edit_users', __( 'Sorry, you are not allowed to remove users.' ) );
 		}
 
-		if ( empty( $_REQUEST['users'] ) ) {
-			$userids = array( (int) $_REQUEST['user'] );
-		} else {
-			$userids = $_REQUEST['users'];
-		}
+		$userids = ( empty( $_REQUEST['users'] ) )
+			? array( (int) $_REQUEST['user'] )
+			: $_REQUEST['users'];
 
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 		?>
@@ -543,6 +541,7 @@ switch ( $wp_list_table->current_action() ) {
 					}
 					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $delete_count ) ) . '</p></div>';
 					break;
+
 				case 'add':
 					$message = __( 'New user created.' );
 
@@ -563,6 +562,7 @@ switch ( $wp_list_table->current_action() ) {
 
 					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . $message . '</p></div>';
 					break;
+
 				case 'resetpassword':
 					$reset_count = isset( $_GET['reset_count'] ) ? (int) $_GET['reset_count'] : 0;
 					if ( 1 === $reset_count ) {
@@ -573,20 +573,25 @@ switch ( $wp_list_table->current_action() ) {
 					}
 					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $reset_count ) ) . '</p></div>';
 					break;
+
 				case 'promote':
 					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . __( 'Changed roles.' ) . '</p></div>';
 					break;
+
 				case 'err_admin_role':
 					$messages[] = '<div id="message" class="error notice is-dismissible"><p>' . __( 'The current user&#8217;s role must have user editing capabilities.' ) . '</p></div>';
 					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . __( 'Other user roles have been changed.' ) . '</p></div>';
 					break;
+
 				case 'err_admin_del':
 					$messages[] = '<div id="message" class="error notice is-dismissible"><p>' . __( 'You cannot delete the current user.' ) . '</p></div>';
 					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . __( 'Other users have been deleted.' ) . '</p></div>';
 					break;
+
 				case 'remove':
 					$messages[] = '<div id="message" class="updated notice is-dismissible fade"><p>' . __( 'User removed from this site.' ) . '</p></div>';
 					break;
+
 				case 'err_admin_remove':
 					$messages[] = '<div id="message" class="error notice is-dismissible"><p>' . __( 'You cannot remove the current user.' ) . '</p></div>';
 					$messages[] = '<div id="message" class="updated notice is-dismissible fade"><p>' . __( 'Other users have been removed.' ) . '</p></div>';
