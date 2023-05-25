@@ -71,11 +71,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 		}
 
 		// Set defaults:
-		if ( empty( $opt['port'] ) ) {
-			$this->options['port'] = 22;
-		} else {
-			$this->options['port'] = $opt['port'];
-		}
+		$this->options['port'] = ( empty( $opt['port'] ) ) ? 22 : $opt['port'];
 
 		if ( empty( $opt['hostname'] ) ) {
 			$this->errors->add( 'empty_hostname', __( 'SSH2 hostname is required' ) );
@@ -117,11 +113,9 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * @return bool True on success, false on failure.
 	 */
 	public function connect() {
-		if ( ! $this->keys ) {
-			$this->link = @ssh2_connect( $this->options['hostname'], $this->options['port'] );
-		} else {
-			$this->link = @ssh2_connect( $this->options['hostname'], $this->options['port'], $this->options['hostkey'] );
-		}
+		$this->link = ( ! $this->keys )
+			? @ssh2_connect( $this->options['hostname'], $this->options['port'] )
+			: @ssh2_connect( $this->options['hostname'], $this->options['port'], $this->options['hostkey'] );
 
 		if ( ! $this->link ) {
 			$this->errors->add(
@@ -235,9 +229,8 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 
 			if ( $returnbool ) {
 				return ( false === $data ) ? false : '' !== trim( $data );
-			} else {
-				return $data;
 			}
+			return $data;
 		}
 
 		return false;
@@ -302,10 +295,9 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 		$cwd = ssh2_sftp_realpath( $this->sftp_link, '.' );
 
 		if ( $cwd ) {
-			$cwd = trailingslashit( trim( $cwd ) );
+			return trailingslashit( trim( $cwd ) );
 		}
-
-		return $cwd;
+		return false;
 	}
 
 	/**
@@ -766,11 +758,10 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * }
 	 */
 	public function dirlist( $path, $include_hidden = true, $recursive = false ) {
+		$limit_file = false;
 		if ( $this->is_file( $path ) ) {
 			$limit_file = basename( $path );
 			$path       = dirname( $path );
-		} else {
-			$limit_file = false;
 		}
 
 		if ( ! $this->is_dir( $path ) || ! $this->is_readable( $path ) ) {
@@ -814,10 +805,9 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			$struc['type']        = $this->is_dir( $path . $entry ) ? 'd' : 'f';
 
 			if ( 'd' === $struc['type'] ) {
+				$struc['files'] = array();
 				if ( $recursive ) {
 					$struc['files'] = $this->dirlist( $path . $struc['name'], $include_hidden, $recursive );
-				} else {
-					$struc['files'] = array();
 				}
 			}
 
