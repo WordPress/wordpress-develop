@@ -1720,11 +1720,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @ticket 44169
 	 */
 	public function test_users_pre_query_filter_should_bypass_database_query() {
-		global $wpdb;
-
 		add_filter( 'users_pre_query', array( __CLASS__, 'filter_users_pre_query' ), 10, 2 );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$q           = new WP_User_Query(
 			array(
 				'fields' => 'ID',
@@ -1734,7 +1732,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		remove_filter( 'users_pre_query', array( __CLASS__, 'filter_users_pre_query' ), 10, 2 );
 
 		// Make sure no queries were executed.
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 
 		// We manually inserted a non-existing user and overrode the results with it.
 		$this->assertSame( array( 555 ), $q->results );

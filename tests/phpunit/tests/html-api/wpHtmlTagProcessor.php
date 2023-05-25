@@ -457,6 +457,26 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that when seeking to an earlier spot in the document that
+	 * all previously-enqueued updates are applied as they ought to be.
+	 *
+	 * @ticket 58160
+	 */
+	public function test_get_updated_html_applies_updates_to_content_after_seeking_to_before_parsed_bytes() {
+		$p = new WP_HTML_Tag_Processor( '<div><img hidden></div>' );
+
+		$p->next_tag();
+		$p->set_attribute( 'wonky', true );
+		$p->next_tag();
+		$p->set_bookmark( 'here' );
+
+		$p->next_tag( array( 'tag_closers' => 'visit' ) );
+		$p->seek( 'here' );
+
+		$this->assertSame( '<div wonky><img hidden></div>', $p->get_updated_html() );
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
@@ -549,6 +569,32 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 
 		$p = new WP_HTML_Tag_Processor( 'abc</title>' );
 		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </title> tag closer when there was no tag opener' );
+	}
+
+	/**
+	 * Verifies that updates to a document before calls to `get_updated_html()` don't
+	 * lead to the Tag Processor jumping to the wrong tag after the updates.
+	 *
+	 * @ticket 58179
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_updated_html
+	 */
+	public function test_internal_pointer_returns_to_original_spot_after_inserting_content_before_cursor() {
+		$tags = new WP_HTML_Tag_Processor( '<div>outside</div><section><div><img>inside</div></section>' );
+
+		$tags->next_tag();
+		$tags->add_class( 'foo' );
+		$tags->next_tag( 'section' );
+
+		// Return to this spot after moving ahead.
+		$tags->set_bookmark( 'here' );
+
+		// Move ahead.
+		$tags->next_tag( 'img' );
+		$tags->seek( 'here' );
+		$this->assertSame( '<div class="foo">outside</div><section><div><img>inside</div></section>', $tags->get_updated_html() );
+		$this->assertSame( 'SECTION', $tags->get_tag() );
+		$this->assertFalse( $tags->is_tag_closer() );
 	}
 
 	/**
@@ -1502,7 +1548,7 @@ HTML;
 HTML;
 
 		$p = new WP_HTML_Tag_Processor( $input );
-		$this->assertTrue( $p->next_tag( 'div' ), 'Querying an existing tag did not return true' );
+		$this->assertTrue( $p->next_tag( 'div' ), 'Did not find first DIV tag in input.' );
 		$p->set_attribute( 'data-details', '{ "key": "value" }' );
 		$p->add_class( 'is-processed' );
 		$this->assertTrue(
@@ -1512,7 +1558,7 @@ HTML;
 					'class_name' => 'BtnGroup',
 				)
 			),
-			'Querying an existing tag did not return true'
+			'Did not find the first BtnGroup DIV tag'
 		);
 		$p->remove_class( 'BtnGroup' );
 		$p->add_class( 'button-group' );
@@ -1524,7 +1570,7 @@ HTML;
 					'class_name' => 'BtnGroup',
 				)
 			),
-			'Querying an existing tag did not return true'
+			'Did not find the second BtnGroup DIV tag'
 		);
 		$p->remove_class( 'BtnGroup' );
 		$p->add_class( 'button-group' );
@@ -1537,10 +1583,10 @@ HTML;
 					'match_offset' => 3,
 				)
 			),
-			'Querying an existing tag did not return true'
+			'Did not find third BUTTON tag with "btn" CSS class'
 		);
 		$p->remove_attribute( 'class' );
-		$this->assertFalse( $p->next_tag( 'non-existent' ), 'Querying a non-existing tag did not return false' );
+		$this->assertFalse( $p->next_tag( 'non-existent' ), "Found a {$p->get_tag()} tag when none should have been found." );
 		$p->set_attribute( 'class', 'test' );
 		$this->assertSame( $expected_output, $p->get_updated_html(), 'Calling get_updated_html after updating the attributes did not return the expected HTML' );
 	}

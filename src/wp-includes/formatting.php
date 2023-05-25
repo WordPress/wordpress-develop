@@ -1440,6 +1440,8 @@ function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = 
  *
  * |   Code   | Glyph | Replacement |                Description                |
  * | -------- | ----- | ----------- | ----------------------------------------- |
+ * | U+018F   | Ə     | E           | Latin capital letter Ə                    |
+ * | U+0259   | ǝ     | e           | Latin small letter ǝ                      |
  * | U+0218   | Ș     | S           | Latin capital letter S with comma below   |
  * | U+0219   | ș     | s           | Latin small letter s with comma below     |
  * | U+021A   | Ț     | T           | Latin capital letter T with comma below   |
@@ -1805,6 +1807,8 @@ function remove_accents( $text, $locale = '' ) {
 			'ž' => 'z',
 			'ſ' => 's',
 			// Decompositions for Latin Extended-B.
+			'Ə' => 'E',
+			'ǝ' => 'e',
 			'Ș' => 'S',
 			'ș' => 's',
 			'Ț' => 'T',
@@ -2434,6 +2438,29 @@ function sanitize_html_class( $classname, $fallback = '' ) {
 }
 
 /**
+ * Strips out all characters not allowed in a locale name.
+ *
+ * @since 6.2.1
+ *
+ * @param string $locale_name The locale name to be sanitized.
+ * @return string The sanitized value.
+ */
+function sanitize_locale_name( $locale_name ) {
+	// Limit to A-Z, a-z, 0-9, '_', '-'.
+	$sanitized = preg_replace( '/[^A-Za-z0-9_-]/', '', $locale_name );
+
+	/**
+	 * Filters a sanitized locale name string.
+	 *
+	 * @since 6.2.1
+	 *
+	 * @param string $sanitized   The sanitized locale name.
+	 * @param string $locale_name The locale name before sanitization.
+	 */
+	return apply_filters( 'sanitize_locale_name', $sanitized, $locale_name );
+}
+
+/**
  * Converts lone & characters into `&#038;` (a.k.a. `&amp;`)
  *
  * @since 0.71
@@ -3029,13 +3056,26 @@ function make_clickable( $text ) {
 	$nested_code_pre = 0; // Keep track of how many levels link is nested inside <pre> or <code>.
 	foreach ( $textarr as $piece ) {
 
-		if ( preg_match( '|^<code[\s>]|i', $piece ) || preg_match( '|^<pre[\s>]|i', $piece ) || preg_match( '|^<script[\s>]|i', $piece ) || preg_match( '|^<style[\s>]|i', $piece ) ) {
+		if ( preg_match( '|^<code[\s>]|i', $piece )
+			|| preg_match( '|^<pre[\s>]|i', $piece )
+			|| preg_match( '|^<script[\s>]|i', $piece )
+			|| preg_match( '|^<style[\s>]|i', $piece )
+		) {
 			$nested_code_pre++;
-		} elseif ( $nested_code_pre && ( '</code>' === strtolower( $piece ) || '</pre>' === strtolower( $piece ) || '</script>' === strtolower( $piece ) || '</style>' === strtolower( $piece ) ) ) {
+		} elseif ( $nested_code_pre
+			&& ( '</code>' === strtolower( $piece )
+				|| '</pre>' === strtolower( $piece )
+				|| '</script>' === strtolower( $piece )
+				|| '</style>' === strtolower( $piece )
+			)
+		) {
 			$nested_code_pre--;
 		}
 
-		if ( $nested_code_pre || empty( $piece ) || ( '<' === $piece[0] && ! preg_match( '|^<\s*[\w]{1,20}+://|', $piece ) ) ) {
+		if ( $nested_code_pre
+			|| empty( $piece )
+			|| ( '<' === $piece[0] && ! preg_match( '|^<\s*[\w]{1,20}+://|', $piece ) )
+		) {
 			$r .= $piece;
 			continue;
 		}
@@ -3795,7 +3835,7 @@ function sanitize_email( $email ) {
 /**
  * Determines the difference between two timestamps.
  *
- * The difference is returned in a human readable format such as "1 hour",
+ * The difference is returned in a human-readable format such as "1 hour",
  * "5 mins", "2 days".
  *
  * @since 1.5.0
@@ -3803,7 +3843,7 @@ function sanitize_email( $email ) {
  *
  * @param int $from Unix timestamp from which the difference begins.
  * @param int $to   Optional. Unix timestamp to end the time difference. Default becomes time() if not set.
- * @return string Human readable time difference.
+ * @return string Human-readable time difference.
  */
 function human_time_diff( $from, $to = 0 ) {
 	if ( empty( $to ) ) {
@@ -3864,11 +3904,11 @@ function human_time_diff( $from, $to = 0 ) {
 	}
 
 	/**
-	 * Filters the human readable difference between two timestamps.
+	 * Filters the human-readable difference between two timestamps.
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param string $since The difference in human readable text.
+	 * @param string $since The difference in human-readable text.
 	 * @param int    $diff  The difference in seconds.
 	 * @param int    $from  Unix timestamp from which the difference begins.
 	 * @param int    $to    Unix timestamp to end the time difference.
@@ -3881,7 +3921,7 @@ function human_time_diff( $from, $to = 0 ) {
  *
  * Returns a maximum of 55 words with an ellipsis appended if necessary.
  *
- * The 55 word limit can be modified by plugins/themes using the {@see 'excerpt_length'} filter
+ * The 55-word limit can be modified by plugins/themes using the {@see 'excerpt_length'} filter
  * The ' [&hellip;]' string can be modified by plugins/themes using the {@see 'excerpt_more'} filter
  *
  * @since 1.5.0
@@ -3901,9 +3941,25 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		$text = strip_shortcodes( $text );
 		$text = excerpt_remove_blocks( $text );
 
+		/*
+		 * Temporarily unhook wp_filter_content_tags() since any tags
+		 * within the excerpt are stripped out. Modifying the tags here
+		 * is wasteful and can lead to bugs in the image counting logic.
+		 */
+		$filter_removed = remove_filter( 'the_content', 'wp_filter_content_tags' );
+
 		/** This filter is documented in wp-includes/post-template.php */
 		$text = apply_filters( 'the_content', $text );
 		$text = str_replace( ']]>', ']]&gt;', $text );
+
+		/**
+		 * Only restore the filter callback if it was removed above. The logic
+		 * to unhook and restore only applies on the default priority of 10,
+		 * which is generally used for the filter callback in WordPress core.
+		 */
+		if ( $filter_removed ) {
+			add_filter( 'the_content', 'wp_filter_content_tags' );
+		}
 
 		/* translators: Maximum number of words used in a post excerpt. */
 		$excerpt_length = (int) _x( '55', 'excerpt_length' );
@@ -4318,7 +4374,7 @@ function format_for_editor( $text, $default_editor = null ) {
 /**
  * Performs a deep string replace operation to ensure the values in $search are no longer present.
  *
- * Repeats the replacement operation until it no longer replaces anything so as to remove "nested" values
+ * Repeats the replacement operation until it no longer replaces anything to remove "nested" values
  * e.g. $subject = '%0%0%0DDD', $search ='%0D', $result ='' rather than the '%0%0DD' that
  * str_replace would return
  *
@@ -4350,7 +4406,7 @@ function _deep_replace( $search, $subject ) {
  *
  * NOTE: Since 4.8.3, '%' characters will be replaced with a placeholder string,
  * this prevents certain SQLi attacks from taking place. This change in behavior
- * may cause issues for code that expects the return value of esc_sql() to be useable
+ * may cause issues for code that expects the return value of esc_sql() to be usable
  * for other purposes.
  *
  * @since 2.8.0
@@ -4463,7 +4519,7 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 			$protocols = wp_allowed_protocols();
 		}
 		$good_protocol_url = wp_kses_bad_protocol( $url, $protocols );
-		if ( strtolower( $good_protocol_url ) != strtolower( $url ) ) {
+		if ( strtolower( $good_protocol_url ) !== strtolower( $url ) ) {
 			return '';
 		}
 	}
@@ -5119,7 +5175,7 @@ function wp_pre_kses_block_attributes( $content, $allowed_html, $allowed_protoco
 }
 
 /**
- * WordPress implementation of PHP sprintf() with filters.
+ * WordPress' implementation of PHP sprintf() with filters.
  *
  * @since 2.5.0
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
@@ -5297,8 +5353,8 @@ function wp_html_excerpt( $str, $count, $more = null ) {
 /**
  * Adds a base URL to relative links in passed content.
  *
- * By default it supports the 'src' and 'href' attributes. However this can be
- * changed via the 3rd param.
+ * By default, this function supports the 'src' and 'href' attributes.
+ * However, this can be modified via the `$attrs` parameter.
  *
  * @since 2.7.0
  *
@@ -5341,8 +5397,8 @@ function _links_add_base( $m ) {
 /**
  * Adds a target attribute to all links in passed content.
  *
- * This function by default only applies to `<a>` tags, however this can be
- * modified by the `$tags` parameter.
+ * By default, this function only applies to `<a>` tags.
+ * However, this can be modified via the `$tags` parameter.
  *
  * *NOTE:* Any current target attribute will be stripped and replaced.
  *
