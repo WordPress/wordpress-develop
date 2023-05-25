@@ -1593,6 +1593,8 @@ function image_attachment_fields_to_save( $post, $attachment ) {
  * Ajax handler for compression testing.
  *
  * @since 3.1.0
+ *
+ * @deprecated 6.3.0
  */
 function wp_ajax_wp_compression_test() {
 	_deprecated_function( __FUNCTION__, '6.3.0' );
@@ -1654,6 +1656,8 @@ function wp_ajax_wp_compression_test() {
  * has to be deleted.
  *
  * @since 2.8.0
+ *
+ * @deprecated 6.3.0
  */
 function compression_test() {
 	_deprecated_function( __FUNCTION__, '6.3.0' );
