@@ -52,11 +52,10 @@ class WP_Debug_Data {
 
 		if ( is_array( $core_updates ) ) {
 			foreach ( $core_updates as $core => $update ) {
+				$core_update_needed = '';
 				if ( 'upgrade' === $update->response ) {
 					/* translators: %s: Latest WordPress version number. */
 					$core_update_needed = ' ' . sprintf( __( '(Latest version: %s)' ), $update->version );
-				} else {
-					$core_update_needed = '';
 				}
 			}
 		}
@@ -409,14 +408,12 @@ class WP_Debug_Data {
 		// WordPress features requiring processing.
 		$wp_dotorg = wp_remote_get( 'https://wordpress.org', array( 'timeout' => 10 ) );
 
-		if ( ! is_wp_error( $wp_dotorg ) ) {
-			$info['wp-core']['fields']['dotorg_communication'] = array(
+		$info['wp-core']['fields']['dotorg_communication'] = ( ! is_wp_error( $wp_dotorg ) )
+			? array(
 				'label' => __( 'Communication with WordPress.org' ),
 				'value' => __( 'WordPress.org is reachable' ),
 				'debug' => 'true',
-			);
-		} else {
-			$info['wp-core']['fields']['dotorg_communication'] = array(
+			) : array(
 				'label' => __( 'Communication with WordPress.org' ),
 				'value' => sprintf(
 					/* translators: 1: The IP address WordPress.org resolves to. 2: The error returned by the lookup. */
@@ -426,7 +423,6 @@ class WP_Debug_Data {
 				),
 				'debug' => $wp_dotorg->get_error_message(),
 			);
-		}
 
 		// Remove accordion for Directories and Sizes if in Multisite.
 		if ( ! $is_multisite ) {
@@ -614,10 +610,9 @@ class WP_Debug_Data {
 		}
 
 		// Get GD information, if available.
+		$gd = false;
 		if ( function_exists( 'gd_info' ) ) {
 			$gd = gd_info();
-		} else {
-			$gd = false;
 		}
 
 		$info['wp-media']['fields']['gd_version'] = array(
@@ -657,11 +652,10 @@ class WP_Debug_Data {
 		if ( function_exists( 'exec' ) ) {
 			$gs = exec( 'gs --version' );
 
+			$gs_debug = $gs;
 			if ( empty( $gs ) ) {
 				$gs       = $not_available;
 				$gs_debug = 'not available';
-			} else {
-				$gs_debug = $gs;
 			}
 		} else {
 			$gs       = __( 'Unable to determine if Ghostscript is installed' );
@@ -675,10 +669,9 @@ class WP_Debug_Data {
 		);
 
 		// Populate the server debug fields.
+		$server_architecture = 'unknown';
 		if ( function_exists( 'php_uname' ) ) {
 			$server_architecture = sprintf( '%s %s %s', php_uname( 's' ), php_uname( 'r' ), php_uname( 'm' ) );
-		} else {
-			$server_architecture = 'unknown';
 		}
 
 		$php_version_debug = PHP_VERSION;
@@ -695,10 +688,9 @@ class WP_Debug_Data {
 			$php_version_debug .= ' 64bit';
 		}
 
+		$php_sapi = 'unknown';
 		if ( function_exists( 'php_sapi_name' ) ) {
 			$php_sapi = php_sapi_name();
-		} else {
-			$php_sapi = 'unknown';
 		}
 
 		$info['wp-server']['fields']['server_architecture'] = array(
@@ -824,13 +816,11 @@ class WP_Debug_Data {
 			$filtered_htaccess_content = trim( preg_replace( '/\# BEGIN WordPress[\s\S]+?# END WordPress/si', '', $htaccess_content ) );
 			$filtered_htaccess_content = ! empty( $filtered_htaccess_content );
 
-			if ( $filtered_htaccess_content ) {
+			$htaccess_rules_string = ( $filtered_htaccess_content )
 				/* translators: %s: .htaccess */
-				$htaccess_rules_string = sprintf( __( 'Custom rules have been added to your %s file.' ), '.htaccess' );
-			} else {
+				? sprintf( __( 'Custom rules have been added to your %s file.' ), '.htaccess' )
 				/* translators: %s: .htaccess */
-				$htaccess_rules_string = sprintf( __( 'Your %s file contains only core WordPress features.' ), '.htaccess' );
-			}
+				: sprintf( __( 'Your %s file contains only core WordPress features.' ), '.htaccess' );
 
 			$info['wp-server']['fields']['htaccess_extra_rules'] = array(
 				'label' => __( '.htaccess rules' ),
@@ -840,28 +830,23 @@ class WP_Debug_Data {
 		}
 
 		// Populate the database debug fields.
+		$extension = null; // Unknown sql extension. Used as a fallback.
 		if ( is_resource( $wpdb->dbh ) ) {
 			// Old mysql extension.
 			$extension = 'mysql';
 		} elseif ( is_object( $wpdb->dbh ) ) {
 			// mysqli or PDO.
 			$extension = get_class( $wpdb->dbh );
-		} else {
-			// Unknown sql extension.
-			$extension = null;
 		}
 
 		$server = $wpdb->get_var( 'SELECT VERSION()' );
 
+		$client_version = null;
 		if ( isset( $wpdb->use_mysqli ) && $wpdb->use_mysqli ) {
 			$client_version = $wpdb->dbh->client_info;
-		} else {
 			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_client_info,PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved
-			if ( preg_match( '|[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}|', mysql_get_client_info(), $matches ) ) {
-				$client_version = $matches[0];
-			} else {
-				$client_version = null;
-			}
+		} elseif ( preg_match( '|[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}|', mysql_get_client_info(), $matches ) ) {
+			$client_version = $matches[0];
 		}
 
 		$info['wp-database']['fields']['extension'] = array(
@@ -1031,17 +1016,13 @@ class WP_Debug_Data {
 
 				$auto_update_forced = wp_is_auto_update_forced_for_item( 'plugin', null, (object) $item );
 
-				if ( ! is_null( $auto_update_forced ) ) {
-					$enabled = $auto_update_forced;
-				} else {
-					$enabled = in_array( $plugin_path, $auto_updates, true );
-				}
+				$enabled = ! is_null( $auto_update_forced )
+					? $auto_update_forced
+					: in_array( $plugin_path, $auto_updates, true );
 
-				if ( $enabled ) {
-					$auto_updates_string = __( 'Auto-updates enabled' );
-				} else {
-					$auto_updates_string = __( 'Auto-updates disabled' );
-				}
+				$auto_updates_string = ( $enabled )
+					? __( 'Auto-updates enabled' )
+					: __( 'Auto-updates disabled' );
 
 				/**
 				 * Filters the text string of the auto-updates setting for each plugin in the Site Health debug data.
@@ -1258,17 +1239,13 @@ class WP_Debug_Data {
 
 				$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, (object) $item );
 
-				if ( ! is_null( $auto_update_forced ) ) {
-					$enabled = $auto_update_forced;
-				} else {
-					$enabled = in_array( $parent_theme->stylesheet, $auto_updates, true );
-				}
+				$enabled = ! is_null( $auto_update_forced )
+					? $auto_update_forced
+					: in_array( $parent_theme->stylesheet, $auto_updates, true );
 
-				if ( $enabled ) {
-					$parent_theme_auto_update_string = __( 'Enabled' );
-				} else {
-					$parent_theme_auto_update_string = __( 'Disabled' );
-				}
+				$parent_theme_auto_update_string = ( $enabled )
+					? __( 'Enabled' )
+					: __( 'Disabled' );
 
 				/** This filter is documented in wp-admin/includes/class-wp-debug-data.php */
 				$parent_theme_auto_update_string = apply_filters( 'theme_auto_update_debug_string', $auto_updates_string, $parent_theme, $enabled );
@@ -1346,17 +1323,14 @@ class WP_Debug_Data {
 
 				$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, (object) $item );
 
-				if ( ! is_null( $auto_update_forced ) ) {
-					$enabled = $auto_update_forced;
-				} else {
+				$enabled = $auto_update_forced;
+				if ( null === $auto_update_forced ) {
 					$enabled = in_array( $theme_slug, $auto_updates, true );
 				}
 
-				if ( $enabled ) {
-					$auto_updates_string = __( 'Auto-updates enabled' );
-				} else {
-					$auto_updates_string = __( 'Auto-updates disabled' );
-				}
+				$auto_updates_string = ( $enabled )
+					? __( 'Auto-updates enabled' )
+					: __( 'Auto-updates disabled' );
 
 				/**
 				 * Filters the text string of the auto-updates setting for each theme in the Site Health debug data.
@@ -1456,9 +1430,7 @@ class WP_Debug_Data {
 		 *     }
 		 * }
 		 */
-		$info = apply_filters( 'debug_information', $info );
-
-		return $info;
+		return apply_filters( 'debug_information', $info );
 	}
 
 	/**
@@ -1517,12 +1489,11 @@ class WP_Debug_Data {
 					continue;
 				}
 
-				if ( 'debug' === $data_type && isset( $field['debug'] ) ) {
-					$debug_data = $field['debug'];
-				} else {
-					$debug_data = $field['value'];
-				}
+				$debug_data = ( 'debug' === $data_type && isset( $field['debug'] ) )
+					? $field['debug']
+					: $field['value'];
 
+				$value = $debug_data;
 				// Can be array, one level deep only.
 				if ( is_array( $debug_data ) ) {
 					$value = '';
@@ -1534,15 +1505,11 @@ class WP_Debug_Data {
 					$value = $debug_data ? 'true' : 'false';
 				} elseif ( empty( $debug_data ) && '0' !== $debug_data ) {
 					$value = 'undefined';
-				} else {
-					$value = $debug_data;
 				}
 
-				if ( 'debug' === $data_type ) {
-					$label = $field_name;
-				} else {
-					$label = $field['label'];
-				}
+				$label = ( 'debug' === $data_type )
+					? $field_name
+					: $field['label'];
 
 				$return .= sprintf( "%s: %s\n", $label, $value );
 			}
@@ -1636,11 +1603,9 @@ class WP_Debug_Data {
 			);
 
 			if ( microtime( true ) - WP_START_TIMESTAMP < $max_execution_time ) {
-				if ( 'wordpress_size' === $name ) {
-					$dir_size = recurse_dirsize( $path, $exclude, $max_execution_time );
-				} else {
-					$dir_size = recurse_dirsize( $path, null, $max_execution_time );
-				}
+				$dir_size = ( 'wordpress_size' === $name )
+					? recurse_dirsize( $path, $exclude, $max_execution_time )
+					: recurse_dirsize( $path, null, $max_execution_time );
 			}
 
 			if ( false === $dir_size ) {
