@@ -135,8 +135,8 @@ class Walker {
 			return;
 		}
 
-		$id_field = $this->db_fields['id'];
-		$id       = $element->$id_field;
+		$id_field = is_array($this->db_fields) ? $this->db_fields['id'] : $this->db_fields;
+		$id       = !is_array($element->$id_field) ? $element->$id_field : $id_field;
 
 		// Display this element.
 		$this->has_children = ! empty( $children_elements[ $id ] );
