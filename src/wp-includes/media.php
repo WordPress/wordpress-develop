@@ -5637,8 +5637,8 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	}
 
 	// Skip lazy-loading for the overall block template, as it is handled more granularly.
+	// The skip is also applicable for fetchpriority.
 	if ( 'template' === $context ) {
-		// TO CHECK:
 		return $loading_attrs;
 	}
 
@@ -5651,12 +5651,21 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 
 	$img_size = $attr['width'] * $attr['height'];
 
+	// To keep a track of LCP image.
+	static $possible_lcp_candidate = true;
+
 	// Do not lazy-load images in the header block template part, as they are likely above the fold.
 	// For classic themes, this is handled in the condition below using the 'get_header' action.
 	$header_area = WP_TEMPLATE_PART_AREA_HEADER;
 	if ( "template_part_{$header_area}" === $context ) {
-		if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size && 1 === wp_increase_content_media_count() ) {
-			$loading_attrs['fetchpriority'] = 'high';
+		if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size ) {
+			// Large images in header must increase the media count.
+			wp_increase_content_media_count();
+
+			if ( $possible_lcp_candidate ) {
+				$loading_attrs['fetchpriority'] = 'high';
+				$possible_lcp_candidate         = false;
+			}
 		}
 		return $loading_attrs;
 	}
@@ -5670,8 +5679,12 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		 * post content image being lazy-loaded only because there are images elsewhere in the post content.
 		 */
 		if ( doing_filter( 'the_content' ) ) {
-			if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size && 1 === wp_increase_content_media_count() ) {
-				$loading_attrs['fetchpriority'] = 'high';
+			if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size ) {
+				wp_increase_content_media_count();
+				if ( $possible_lcp_candidate ) {
+					$loading_attrs['fetchpriority'] = 'high';
+					$possible_lcp_candidate         = false;
+				}
 			}
 			return $loading_attrs;
 		}
@@ -5687,8 +5700,13 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			 */
 			&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
 		) {
-			if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size && 1 === wp_increase_content_media_count() ) {
-				$loading_attrs['fetchpriority'] = 'high';
+			if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size ) {
+				wp_increase_content_media_count();
+
+				if ( $possible_lcp_candidate ) {
+					$loading_attrs['fetchpriority'] = 'high';
+					$possible_lcp_candidate         = false;
+				}
 			}
 			return $loading_attrs;
 		}
@@ -5705,16 +5723,14 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			return $loading_attrs;
 		}
 
-		if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size ) {
-			// Increase the counter since this is a main query content element.
-			$content_media_count = wp_increase_content_media_count();
-		}
+		// Increase the counter since this is a main query content element.
+		$content_media_count = wp_increase_content_media_count();
 
-		// If the count so far is below the threshold, `loading` attribute is omitted.
-		// If the count is 1 then we consider it as the LCP element and then set it's fetchpriority attribute to high.
+		// If the count so far is below the threshold, `loading` attribute is omitted. However, t
 		if ( $content_media_count <= wp_omit_loading_attr_threshold() ) {
-			if ( 1 == $content_media_count ) {
+			if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size && $possible_lcp_candidate ) {
 				$loading_attrs['fetchpriority'] = 'high';
+				$possible_lcp_candidate         = false;
 			}
 			return $loading_attrs;
 		}
