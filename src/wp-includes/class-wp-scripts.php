@@ -147,9 +147,9 @@ class WP_Scripts extends WP_Dependencies {
 	 * Used by methods that validate loading strategies.
 	 *
 	 * @since 6.3.0
-	 * @var array
+	 * @var string[]
 	 */
-	public $allowed_strategies = array( 'blocking', 'defer', 'async' );
+	private $allowed_strategies = array( 'blocking', 'defer', 'async' );
 
 	/**
 	 * Constructor.
