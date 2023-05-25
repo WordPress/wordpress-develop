@@ -115,6 +115,7 @@ class WP_Privacy_Data_Export_Requests_List_Table extends WP_Privacy_Requests_Tab
 			case 'request-pending':
 				esc_html_e( 'Waiting for confirmation' );
 				break;
+
 			case 'request-confirmed':
 				/** This filter is documented in wp-admin/includes/ajax-actions.php */
 				$exporters       = apply_filters( 'wp_privacy_personal_data_exporters', array() );
@@ -138,9 +139,11 @@ class WP_Privacy_Data_Export_Requests_List_Table extends WP_Privacy_Requests_Tab
 
 				echo '</div>';
 				break;
+
 			case 'request-failed':
 				echo '<button type="submit" class="button-link" name="privacy_action_email_retry[' . $item->ID . ']" id="privacy_action_email_retry[' . $item->ID . ']">' . __( 'Retry' ) . '</button>';
 				break;
+
 			case 'request-completed':
 				echo '<a href="' . esc_url(
 					wp_nonce_url(
