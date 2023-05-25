@@ -793,7 +793,7 @@ JS;
 	public function has_delayed_inline_script() {
 		foreach ( $this->registered as $handle => $script ) {
 			// Non-standalone scripts in the after position, of type async or defer, are usually delayed.
-			$strategy = $this->get_intended_strategy( $handle );
+			$strategy = $this->get_data( $handle, 'strategy' );
 			if (
 				$this->is_non_blocking_strategy( $strategy )
 				&& $this->has_non_standalone_inline_script( $handle, 'after' )
@@ -802,6 +802,33 @@ JS;
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * This overrides the add_data method from WP_Dependencies, to support normalizing of $args.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $handle Name of the item. Should be unique.
+	 * @param string $key    The data key.
+	 * @param mixed  $value  The data value.
+	 * @return bool True on success, false on failure.
+	 */
+	public function add_data( $handle, $key, $value ) {
+		if ( 'strategy' === $key && ! $this->is_valid_strategy( $value ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: 1: $strategy, 2: $handle */
+					__( 'Invalid strategy `%1$s` defined for `%2$s` during script registration.' ),
+					$value,
+					$handle
+				),
+				'6.3.0'
+			);
+			return false;
+		}
+		return parent::add_data( $handle, $key, $value );
 	}
 
 	/**
@@ -847,37 +874,6 @@ JS;
 			$this->allowed_strategies,
 			true
 		);
-	}
-
-	/**
-	 * Gets the strategy assigned during script registration.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @param string $handle The script handle.
-	 * @return string Strategy set during script registration. Empty string if none was set or it was invalid.
-	 */
-	private function get_intended_strategy( $handle ) {
-		$strategy = $this->get_data( $handle, 'strategy' );
-
-		if ( ! $strategy ) {
-			$strategy = '';
-		} elseif ( ! $this->is_valid_strategy( $strategy ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				sprintf(
-					/* translators: 1: $strategy, 2: $handle */
-					__( 'Invalid strategy `%1$s` defined for `%2$s` during script registration.' ),
-					$strategy,
-					$handle
-				),
-				'6.3.0'
-			);
-
-			$strategy = '';
-		}
-
-		return $strategy;
 	}
 
 	/**
@@ -936,7 +932,7 @@ JS;
 		// Consider each dependent and check if it is deferrable.
 		foreach ( $dependents as $dependent ) {
 			// If the dependent script is not using the defer or async strategy, no script in the chain is deferrable.
-			$strategy = $this->get_intended_strategy( $dependent );
+			$strategy = $this->get_data( $dependent, 'strategy' );
 			if ( ! $this->is_non_blocking_strategy( $strategy ) ) {
 				return false;
 			}
@@ -968,7 +964,7 @@ JS;
 			return '';
 		}
 
-		$intended_strategy = $this->get_intended_strategy( $handle );
+		$intended_strategy = $this->get_data( $handle, 'strategy' );
 
 		/*
 		 * Handle known blocking strategy scenarios.
@@ -976,7 +972,7 @@ JS;
 		 * 1. When the 'strategy' script argument was not set.
 		 * 2. When the 'strategy' script argument was explicitly set to 'blocking'.
 		 */
-		if ( '' === $intended_strategy || 'blocking' === $intended_strategy ) {
+		if ( empty( $intended_strategy ) || 'blocking' === $intended_strategy ) {
 			return '';
 		}
 

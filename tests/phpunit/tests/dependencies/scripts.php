@@ -763,7 +763,7 @@ EXP;
 	 * @ticket 12009
 	 */
 	public function test_script_strategy_doing_it_wrong() {
-		$this->setExpectedIncorrectUsage( 'WP_Scripts::get_intended_strategy' );
+		$this->setExpectedIncorrectUsage( 'WP_Scripts::add_data' );
 
 		wp_register_script( 'invalid-strategy', '/defaults.js', array(), null, array( 'strategy' => 'random-strategy' ) );
 		wp_enqueue_script( 'invalid-strategy' );
