@@ -1593,10 +1593,7 @@ function image_attachment_fields_to_save( $post, $attachment ) {
  * Queues comments for metadata lazy-loading.
  *
  * @since 4.5.0
- * @since 6.3.0 Use wp_lazyload_comment_meta() for lazy-loading of comment meta.
  * @deprecated 6.3.0 Use wp_lazyload_comment_meta() instead.
- *
- * @see wp_lazyload_comment_meta()
  *
  * @param WP_Comment[] $comments Array of comment objects.
  */
