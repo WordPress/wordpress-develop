@@ -19,14 +19,14 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 		);
 	}
 
-	public function tear_down()	{
+	public function tear_down() {
 		unset( $_SERVER['CONTENT_TYPE'], $_GET['_locale'], $_COOKIE['wp_lang'], $GLOBALS['pagenow'] );
 
 		parent::tear_down();
 	}
 
 	public function test_short_circuit_empty() {
-		add_filter( 'pre_determine_locale',	'__return_false' );
+		add_filter( 'pre_determine_locale', '__return_false' );
 		$this->assertNotFalse( determine_locale() );
 	}
 
