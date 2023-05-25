@@ -44,16 +44,14 @@ if ( IS_PROFILE_PAGE ) {
 	$title = __( 'Edit User %s' );
 }
 
+$submenu_file = 'profile.php';
 if ( current_user_can( 'edit_users' ) && ! IS_PROFILE_PAGE ) {
 	$submenu_file = 'users.php';
-} else {
-	$submenu_file = 'profile.php';
 }
 
+$parent_file = 'profile.php';
 if ( current_user_can( 'edit_users' ) && ! is_user_admin() ) {
 	$parent_file = 'users.php';
-} else {
-	$parent_file = 'profile.php';
 }
 
 $profile_help = '<p>' . __( 'Your profile contains information about you (your &#8220;account&#8221;) as well as some personal options related to using WordPress.' ) . '</p>' .
@@ -117,9 +115,8 @@ if ( IS_PROFILE_PAGE && isset( $_GET['newuseremail'] ) && $current_user->ID ) {
 		delete_user_meta( $current_user->ID, '_new_email' );
 		wp_redirect( add_query_arg( array( 'updated' => 'true' ), self_admin_url( 'profile.php' ) ) );
 		die();
-	} else {
-		wp_redirect( add_query_arg( array( 'error' => 'new-email' ), self_admin_url( 'profile.php' ) ) );
 	}
+	wp_redirect( add_query_arg( array( 'error' => 'new-email' ), self_admin_url( 'profile.php' ) ) );
 } elseif ( IS_PROFILE_PAGE && ! empty( $_GET['dismiss'] ) && $current_user->ID . '_new_email' === $_GET['dismiss'] ) {
 	check_admin_referer( 'dismiss-' . $current_user->ID . '_new_email' );
 	delete_user_meta( $current_user->ID, '_new_email' );
@@ -593,14 +590,13 @@ switch ( $action ) {
 								<?php echo get_avatar( $user_id ); ?>
 								<p class="description">
 									<?php
+									$description = '';
 									if ( IS_PROFILE_PAGE ) {
 										$description = sprintf(
-											/* translators: %s: Gravatar URL. */
+										/* translators: %s: Gravatar URL. */
 											__( '<a href="%s">You can change your profile picture on Gravatar</a>.' ),
 											__( 'https://en.gravatar.com/' )
 										);
-									} else {
-										$description = '';
 									}
 
 									/**
