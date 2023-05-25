@@ -850,7 +850,7 @@ JS;
 	 * @since 6.3.0
 	 *
 	 * @param string $handle The script handle.
-	 * @return array Array of script handles.
+	 * @return string[] Script handles.
 	 */
 	private function get_dependents( $handle ) {
 		// Check if dependents map for the handle in question is present. If so, use it.
