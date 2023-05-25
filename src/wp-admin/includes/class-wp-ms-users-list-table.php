@@ -136,34 +136,34 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		$super_admins = get_super_admins();
 		$total_admins = count( $super_admins );
 
-		$role_links        = array();
-		$role_links['all'] = array(
-			'url'     => network_admin_url( 'users.php' ),
-			'label'   => sprintf(
-				/* translators: Number of users. */
-				_nx(
-					'All <span class="count">(%s)</span>',
-					'All <span class="count">(%s)</span>',
-					$total_users,
-					'users'
+		$role_links = array(
+			'all'   => array(
+				'url'     => network_admin_url( 'users.php' ),
+				'label'   => sprintf(
+					/* translators: Number of users. */
+					_nx(
+						'All <span class="count">(%s)</span>',
+						'All <span class="count">(%s)</span>',
+						$total_users,
+						'users'
+					),
+					number_format_i18n( $total_users )
 				),
-				number_format_i18n( $total_users )
+				'current' => 'super' !== $role,
 			),
-			'current' => 'super' !== $role,
-		);
-
-		$role_links['super'] = array(
-			'url'     => network_admin_url( 'users.php?role=super' ),
-			'label'   => sprintf(
-				/* translators: Number of users. */
-				_n(
-					'Super Admin <span class="count">(%s)</span>',
-					'Super Admins <span class="count">(%s)</span>',
-					$total_admins
+			'super' => array(
+				'url'     => network_admin_url( 'users.php?role=super' ),
+				'label'   => sprintf(
+					/* translators: Number of users. */
+					_n(
+						'Super Admin <span class="count">(%s)</span>',
+						'Super Admins <span class="count">(%s)</span>',
+						$total_admins
+					),
+					number_format_i18n( $total_admins )
 				),
-				number_format_i18n( $total_admins )
+				'current' => 'super' === $role,
 			),
-			'current' => 'super' === $role,
 		);
 
 		return $this->get_views_links( $role_links );
