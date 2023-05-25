@@ -147,9 +147,9 @@ class WP_Scripts extends WP_Dependencies {
 	 * Used by methods that validate loading strategies.
 	 *
 	 * @since 6.3.0
-	 * @var array
+	 * @var string[]
 	 */
-	public $allowed_strategies = array( 'blocking', 'defer', 'async' );
+	private $allowed_strategies = array( 'blocking', 'defer', 'async' );
 
 	/**
 	 * Constructor.
@@ -961,7 +961,7 @@ JS;
 	 * @since 6.3.0
 	 *
 	 * @param string  $handle The script handle.
-	 * @return string $strategy return the final strategy.
+	 * @return string $strategy The best eligible loading strategy.
 	 */
 	private function get_eligible_loading_strategy( $handle ) {
 		if ( ! isset( $this->registered[ $handle ] ) ) {
@@ -973,14 +973,14 @@ JS;
 		/*
 		 * Handle known blocking strategy scenarios.
 		 *
-		 * blocking if script args not set.
-		 * blocking if explicitly set.
+		 * 1. When the 'strategy' script argument was not set.
+		 * 2. When the 'strategy' script argument was explicitly set to 'blocking'.
 		 */
 		if ( '' === $intended_strategy || 'blocking' === $intended_strategy ) {
 			return '';
 		}
 
-		// Handling async strategy scenarios.
+		// Handle async strategy scenarios.
 		if ( 'async' === $intended_strategy && empty( $this->registered[ $handle ]->deps ) && empty( $this->get_dependents( $handle ) ) ) {
 			return 'async';
 		}
