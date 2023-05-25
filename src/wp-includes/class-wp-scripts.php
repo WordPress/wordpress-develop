@@ -1028,7 +1028,7 @@ JS;
 			return '';
 		}
 
-		// Handling async strategy scenarios.
+		// Handle async strategy scenarios.
 		if ( 'async' === $intended_strategy && empty( $this->registered[ $handle ]->deps ) && empty( $this->get_dependents( $handle ) ) ) {
 			return 'async';
 		}
