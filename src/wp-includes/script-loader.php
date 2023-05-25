@@ -2872,19 +2872,16 @@ function wp_maybe_inline_styles() {
 
 	// Build an array of styles that have a path defined.
 	foreach ( $wp_styles->queue as $handle ) {
+		$src  = $wp_styles->registered[ $handle ]->src;
 		$path = wp_styles()->get_data( $handle, 'path' );
-		if ( $path ) {
-			$size = wp_styles()->get_data( $handle, 'size' );
-			if ( false === $size ) {
-				$size = wp_filesize( $path );
-				wp_styles()->add_data( $handle, 'size', $size );
-			}
+		if ( $path && $src ) {
+			$size = wp_filesize( $path );
 			if ( ! $size ) {
 				continue;
 			}
 			$styles[] = array(
 				'handle' => $handle,
-				'src'    => $wp_styles->registered[ $handle ]->src,
+				'src'    => $src,
 				'path'   => $path,
 				'size'   => $size,
 			);
@@ -2913,10 +2910,6 @@ function wp_maybe_inline_styles() {
 
 			// Size check. Since styles are ordered by size, we can break the loop.
 			if ( $total_inline_size + $style['size'] > $total_inline_limit ) {
-				break;
-			}
-
-			if ( ! $wp_styles->registered[ $style['handle'] ]->src ) {
 				break;
 			}
 
