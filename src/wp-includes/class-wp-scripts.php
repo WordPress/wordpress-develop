@@ -845,7 +845,7 @@ JS;
 	}
 
 	/**
-	 * Get all dependents of a script.
+	 * Gets all dependents of a script.
 	 *
 	 * @since 6.3.0
 	 *
