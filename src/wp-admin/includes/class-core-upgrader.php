@@ -90,9 +90,9 @@ class Core_Upgrader extends WP_Upgrader {
 		$wp_dir = trailingslashit( $wp_filesystem->abspath() );
 
 		$partial = true;
-		if ( $parsed_args['do_rollback'] ) {
-			$partial = false;
-		} elseif ( $parsed_args['pre_check_md5'] && ! $this->check_files() ) {
+		if ( $parsed_args['do_rollback']
+			|| $parsed_args['pre_check_md5'] && ! $this->check_files()
+		) {
 			$partial = false;
 		}
 
@@ -102,6 +102,7 @@ class Core_Upgrader extends WP_Upgrader {
 		 * the new_bundled zip. Don't though if the constant is set to skip bundled items.
 		 * If the API returns a no_content zip, go with it. Finally, default to the full zip.
 		 */
+		$to_download = 'full';
 		if ( $parsed_args['do_rollback'] && $current->packages->rollback ) {
 			$to_download = 'rollback';
 		} elseif ( $current->packages->partial && 'reinstall' !== $current->response && $wp_version === $current->partial_version && $partial ) {
@@ -111,8 +112,6 @@ class Core_Upgrader extends WP_Upgrader {
 			$to_download = 'new_bundled';
 		} elseif ( $current->packages->no_content ) {
 			$to_download = 'no_content';
-		} else {
-			$to_download = 'full';
 		}
 
 		// Lock to prevent multiple Core Updates occurring.
@@ -181,11 +180,10 @@ class Core_Upgrader extends WP_Upgrader {
 				 * mkdir_failed__copy_dir, copy_failed__copy_dir_retry, and disk_full.
 				 * do_rollback allows for update_core() to trigger a rollback if needed.
 				 */
-				if ( false !== strpos( $error_code, 'do_rollback' ) ) {
-					$try_rollback = true;
-				} elseif ( false !== strpos( $error_code, '__copy_dir' ) ) {
-					$try_rollback = true;
-				} elseif ( 'disk_full' === $error_code ) {
+				if ( false !== strpos( $error_code, 'do_rollback' )
+					|| false !== strpos( $error_code, '__copy_dir' )
+					|| 'disk_full' === $error_code
+				) {
 					$try_rollback = true;
 				}
 			}
