@@ -375,7 +375,7 @@ function wp_print_media_templates() {
 		<div class="attachment-media-view {{ data.orientation }}">
 			<?php
 			if ( isset( $_GET['error'] ) && 'deprecated' === $_GET['error'] ) {
-				echo '<div id="message" class="error notice"><p>' . __( 'The Edit Media screen is deprecated as of WordPress 6.3. Please use the Media Library instead' ) . '</p></div>';
+				echo '<div id="message" class="error notice"><p>' . __( 'The Edit Media screen is deprecated as of WordPress 6.3. Please use the Media Library instead.' ) . '</p></div>';
 			}
 			?>
 			<h2 class="screen-reader-text"><?php /* translators: Hidden accessibility text. */ _e( 'Attachment Preview' ); ?></h2>
