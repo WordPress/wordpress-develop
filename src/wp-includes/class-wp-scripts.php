@@ -303,38 +303,38 @@ class WP_Scripts extends WP_Dependencies {
 			$cond_after  = "<![endif]-->\n";
 		}
 
-		$before_handle = $this->print_inline_script( $handle, 'before', false );
+		$before_script = $this->print_inline_script( $handle, 'before', false );
 
-		if ( $before_handle ) {
-			$before_handle = sprintf( "<script%s id='%s-js-before'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $before_handle );
+		if ( $before_script ) {
+			$before_script = sprintf( "<script%s id='%s-js-before'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $before_script );
 		}
 
 		$strategy     = $this->get_eligible_loading_strategy( $handle );
 		$after        = ( 'defer' === $strategy || 'async' === $strategy ) ? 'after-standalone' : 'after';
-		$after_handle = $this->print_inline_script( $handle, $after, false );
+		$after_script = $this->print_inline_script( $handle, $after, false );
 
-		if ( $after_handle ) {
-			$after_handle = sprintf(
+		if ( $after_script ) {
+			$after_script = sprintf(
 				"<script%1\$s id='%2\$s-js-after'>\n%3\$s\n</script>\n",
 				$this->type_attr,
 				esc_attr( $handle ),
-				$after_handle
+				$after_script
 			);
 		}
 		if ( 'defer' === $strategy || 'async' === $strategy ) {
-			$after_non_standalone_handle = $this->print_inline_script( $handle, 'after-non-standalone', false );
+			$after_non_standalone_script = $this->print_inline_script( $handle, 'after-non-standalone', false );
 
-			if ( $after_non_standalone_handle ) {
-				$after_handle .= sprintf(
-					"<script type='text/template' id='%1\$s-js-after' data-wp-executes-after='%1\$s'>\n%2\$s\n</script>\n",
+			if ( $after_non_standalone_script ) {
+				$after_script .= sprintf(
+					"<script id='%1\$s-js-after' type='text/template' data-wp-executes-after='%1\$s'>\n%2\$s\n</script>\n",
 					esc_attr( $handle ),
-					$after_non_standalone_handle
+					$after_non_standalone_script
 				);
 			}
 		}
 
-		if ( $before_handle || $after_handle ) {
-			$inline_script_tag = $cond_before . $before_handle . $after_handle . $cond_after;
+		if ( $before_script || $after_script ) {
+			$inline_script_tag = $cond_before . $before_script . $after_script . $cond_after;
 		} else {
 			$inline_script_tag = '';
 		}
@@ -362,11 +362,11 @@ class WP_Scripts extends WP_Dependencies {
 			$srce = apply_filters( 'script_loader_src', $src, $handle );
 
 			// Used as a conditional to prevent script concatenation.
-			$is_deferred_or_async_handle = $this->is_non_blocking_strategy( $strategy );
+			$is_deferred_or_async = $this->is_non_blocking_strategy( $strategy );
 
 			if (
 				$this->in_default_dir( $srce )
-				&& ( $before_handle || $after_handle || $translations_stop_concat || $is_deferred_or_async_handle )
+				&& ( $before_script || $after_script || $translations_stop_concat || $is_deferred_or_async )
 			) {
 				$this->do_concat = false;
 
@@ -424,21 +424,15 @@ class WP_Scripts extends WP_Dependencies {
 			return true;
 		}
 
-		if ( '' !== $strategy ) {
-			$strategy = ' ' . $strategy;
-			if ( ! empty( $after_non_standalone_handle ) ) {
-				$strategy .= sprintf( " onload='wpLoadAfterScripts(%s)'", esc_attr( wp_json_encode( $handle ) ) );
-			}
-		}
-		$tag  = $translations . $cond_before . $before_handle;
+		$tag  = $translations . $cond_before . $before_script;
 		$tag .= sprintf(
 			"<script%s src='%s' id='%s-js'%s></script>\n",
 			$this->type_attr,
 			esc_url( $src ),
 			esc_attr( $handle ),
-			$strategy
+			$strategy ? " {$strategy}" : ''
 		);
-		$tag .= $after_handle . $cond_after;
+		$tag .= $after_script . $cond_after;
 
 		/**
 		 * Filters the HTML script tag of an enqueued script.
