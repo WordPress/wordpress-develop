@@ -1004,11 +1004,11 @@ JS;
 	}
 
 	/**
-	 * Get the best eligible loading strategy for a script.
+	 * Gets the best eligible loading strategy for a script.
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string  $handle The registered handle of the script.
+	 * @param string  $handle The script handle.
 	 * @return string $strategy return the final strategy.
 	 */
 	private function get_eligible_loading_strategy( $handle ) {
