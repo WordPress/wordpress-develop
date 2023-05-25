@@ -194,6 +194,22 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 		$this->assertSame( 'de_DE', determine_locale() );
 	}
 
+	public function test_wp_login_get_param_on_login_page_empty_string() {
+		add_filter(
+			'locale',
+			static function() {
+				return 'siteLocale';
+			}
+		);
+
+		wp_set_current_user( self::$user_id );
+
+		$GLOBALS['pagenow'] = 'wp-login.php';
+		$_GET['wp_lang']    = '';
+
+		$this->assertSame( 'siteLocale', determine_locale() );
+	}
+
 	public function test_wp_login_cookie_not_on_login_page() {
 		add_filter(
 			'locale',
@@ -222,5 +238,21 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 		$_COOKIE['wp_lang'] = 'de_DE';
 
 		$this->assertSame( 'de_DE', determine_locale() );
+	}
+
+	public function test_wp_login_cookie_on_login_page_empty_string() {
+		add_filter(
+			'locale',
+			static function() {
+				return 'siteLocale';
+			}
+		);
+
+		wp_set_current_user( self::$user_id );
+
+		$GLOBALS['pagenow'] = 'wp-login.php';
+		$_COOKIE['wp_lang'] = '';
+
+		$this->assertSame( 'siteLocale', determine_locale() );
 	}
 }

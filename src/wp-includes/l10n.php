@@ -147,9 +147,9 @@ function determine_locale() {
 
 	if ( isset( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) {
 		if ( ! empty( $_GET['wp_lang'] ) ) {
-			$determined_locale = sanitize_locale_name( $_GET['wp_lang'] ) ?: $determined_locale;
+			$determined_locale = sanitize_locale_name( $_GET['wp_lang'] );
 		} elseif ( ! empty( $_COOKIE['wp_lang'] ) ) {
-			$determined_locale = sanitize_locale_name( $_COOKIE['wp_lang'] ) ?: $determined_locale;
+			$determined_locale = sanitize_locale_name( $_COOKIE['wp_lang'] );
 		}
 	}
 
