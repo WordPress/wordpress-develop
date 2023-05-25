@@ -929,12 +929,12 @@ JS;
 	}
 
 	/**
-	 * Check if the strategy passed is a non-blocking strategy.
+	 * Checks if the strategy passed is a non-blocking strategy.
 	 *
 	 * @since 6.3.0
 	 *
 	 * @param string $strategy The strategy to check.
-	 * @return bool True if $strategy is one of the delayed strategy.
+	 * @return bool True if $strategy is one of the delayed strategies, otherwise false.
 	 */
 	private function is_non_blocking_strategy( $strategy ) {
 		$delayed_strategies = array( 'defer', 'async' );
