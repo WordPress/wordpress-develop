@@ -659,9 +659,9 @@ function rss2_site_icon() {
  */
 function get_self_link() {
 	$host = parse_url( home_url() );
-	$url  = isset( $host['scheme'] ) ? "{$host['scheme']}://" : "http://";
+	$url  = isset( $host['scheme'] ) ? "{$host['scheme']}://" : 'http://';
 	$url .= $host['host'];
-	$url .= isset( $host['port'] ) ? ":{$host['port']}" : "";
+	$url .= isset( $host['port'] ) ? ":{$host['port']}" : '';
 	$url .= wp_unslash( $_SERVER['REQUEST_URI'] );
 
 	return set_url_scheme( $url );
