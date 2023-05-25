@@ -1889,7 +1889,6 @@ themes.view.Installer = themes.view.Appearance.extend({
 	applyFilters: function( event ) {
 		var name,
 			tags = this.filtersChecked(),
-			request = { tag: tags },
 			filteringBy = $( '.filtered-by .tags' );
 
 		if ( event ) {
