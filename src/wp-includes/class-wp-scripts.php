@@ -804,10 +804,11 @@ JS;
 	 */
 	public function has_delayed_inline_script() {
 		foreach ( $this->registered as $handle => $script ) {
-			// Non standalone scripts in the after position, of type async or defer, are usually delayed.
+			// Non-standalone scripts in the after position, of type async or defer, are usually delayed.
 			$strategy = $this->get_intended_strategy( $handle );
-			if ( $this->is_non_blocking_strategy( $strategy ) &&
-				$this->has_non_standalone_inline_script( $handle, 'after' )
+			if (
+				$this->is_non_blocking_strategy( $strategy )
+				&& $this->has_non_standalone_inline_script( $handle, 'after' )
 			) {
 				return true;
 			}
