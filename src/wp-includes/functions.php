@@ -4495,7 +4495,6 @@ function wp_send_json_error( $data = null, $status_code = null, $options = 0 ) {
 					$error_data = $data->get_error_data( $code );
 					if ( ! empty( $error_data['status'] ) ) {
 						$status_code = $error_data['status'];
-						$result[]    = $error_data;
 					}
 				}
 			}
