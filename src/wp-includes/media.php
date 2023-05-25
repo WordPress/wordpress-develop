@@ -1809,7 +1809,6 @@ function wp_filter_content_tags( $content, $context = null ) {
 		$context = current_filter();
 	}
 
-	$add_img_loading_attr    = wp_lazy_loading_enabled( 'img', $context );
 	$add_iframe_loading_attr = wp_lazy_loading_enabled( 'iframe', $context );
 
 	if ( ! preg_match_all( '/<(img|iframe)\s[^>]+>/', $content, $matches, PREG_SET_ORDER ) ) {
@@ -1873,10 +1872,8 @@ function wp_filter_content_tags( $content, $context = null ) {
 				$filtered_image = wp_img_tag_add_srcset_and_sizes_attr( $filtered_image, $context, $attachment_id );
 			}
 
-			// Add 'loading' attribute if applicable.
-			if ( $add_img_loading_attr && false === strpos( $filtered_image, ' loading=' ) ) {
-				$filtered_image = wp_img_tag_add_loading_attr( $filtered_image, $context );
-			}
+			// Add loading optimization attributes if applicable.
+			$filtered_image = wp_img_tag_add_loading_optimization_attrs( $filtered_image, $context );
 
 			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
 			if ( ! str_contains( $filtered_image, ' decoding=' ) ) {
@@ -1969,6 +1966,39 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 		}
 
 		return str_replace( '<img', '<img loading="' . esc_attr( $value ) . '"', $image );
+	}
+
+	return $image;
+}
+
+/**
+ * Adds optimization attributes to an `img` HTML tag.
+ *
+ * @since 6.3.0
+ *
+ * @param string $image   The HTML `img` tag where the attribute should be added.
+ * @param string $context Additional context to pass to the filters.
+ *
+ * @return string Converted `img` tag with optimization attributes added.
+ */
+function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
+	$width              = preg_match( '/ width="([0-9]+)"/', $image, $match_width ) ? (int) $match_width[1] : '';
+	$height             = preg_match( '/ height="([0-9]+)"/', $image, $match_height ) ? (int) $match_height[1] : '';
+	$optimization_attrs = wp_get_loading_optimization_attributes(
+		'img',
+		array(
+			'width'  => $width,
+			'height' => $height,
+		),
+		$context
+	);
+
+	if ( false === strpos( $image, ' loading=' ) && isset( $optimization_attrs['loading'] ) ) {
+		$image = str_replace( '<img', '<img loading="' . esc_attr( $optimization_attrs['loading'] ) . '"', $image );
+	}
+
+	if ( false === strpos( $image, ' fetchpriority=' ) && isset( $optimization_attrs['fetchpriority'] ) ) {
+		$image = str_replace( '<img', '<img fetchpriority="' . esc_attr( $optimization_attrs['fetchpriority'] ) . '"', $image );
 	}
 
 	return $image;
