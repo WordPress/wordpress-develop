@@ -1021,8 +1021,8 @@ JS;
 		/*
 		 * Handle known blocking strategy scenarios.
 		 *
-		 * blocking if script args not set.
-		 * blocking if explicitly set.
+		 * 1. When the 'strategy' script argument was not set.
+		 * 2. When the 'strategy' script argument was explicitly set to 'blocking'.
 		 */
 		if ( '' === $intended_strategy || 'blocking' === $intended_strategy ) {
 			return '';
