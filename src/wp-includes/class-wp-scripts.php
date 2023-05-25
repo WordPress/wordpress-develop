@@ -784,27 +784,6 @@ JS;
 	}
 
 	/**
-	 * Checks all handles for any delayed inline scripts.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @return bool True if the inline script present, otherwise false.
-	 */
-	public function has_delayed_inline_script() {
-		foreach ( $this->registered as $handle => $script ) {
-			// Non-standalone scripts in the after position, of type async or defer, are usually delayed.
-			$strategy = $this->get_data( $handle, 'strategy' );
-			if (
-				$this->is_non_blocking_strategy( $strategy )
-				&& $this->has_non_standalone_inline_script( $handle, 'after' )
-			) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * This overrides the add_data method from WP_Dependencies, to support normalizing of $args.
 	 *
 	 * @since 6.3.0
@@ -829,6 +808,27 @@ JS;
 			return false;
 		}
 		return parent::add_data( $handle, $key, $value );
+	}
+
+	/**
+	 * Checks all handles for any delayed inline scripts.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @return bool True if the inline script present, otherwise false.
+	 */
+	public function has_delayed_inline_script() {
+		foreach ( $this->registered as $handle => $script ) {
+			// Non-standalone scripts in the after position, of type async or defer, are usually delayed.
+			$strategy = $this->get_data( $handle, 'strategy' );
+			if (
+				$this->is_non_blocking_strategy( $strategy )
+				&& $this->has_non_standalone_inline_script( $handle, 'after' )
+			) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
