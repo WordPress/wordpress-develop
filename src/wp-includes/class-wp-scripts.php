@@ -943,17 +943,16 @@ JS;
 	}
 
 	/**
-	 * Check if a script has a non standalone inline script associated with it.
+	 * Checks if a script has a non-standalone inline script associated with it.
 	 *
 	 * @since 6.3.0
 	 *
 	 * @param string $handle   The script handle.
 	 * @param string $position Position of the inline script.
-	 *
-	 * @return bool True if script present. False if empty.
+	 * @return bool True if a script is present, otherwise false.
 	 */
 	private function has_non_standalone_inline_script( $handle, $position ) {
-		$non_standalone_script_key = $position . '-non-standalone';
+		$non_standalone_script_key = "{$position}-non-standalone";
 		$non_standalone_script     = $this->get_data( $handle, $non_standalone_script_key );
 
 		return ! empty( $non_standalone_script );
