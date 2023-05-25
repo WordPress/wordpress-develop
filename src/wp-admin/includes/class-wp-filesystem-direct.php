@@ -353,9 +353,8 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 			$this->delete( $source );
 
 			return true;
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	/**
@@ -401,7 +400,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 		}
 
 		if ( file_exists( $file ) && ! @rmdir( $file ) ) {
-			$retval = false;
+			return false;
 		}
 
 		return $retval;
@@ -670,10 +669,9 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 			$struc['type']        = $this->is_dir( $path . $entry ) ? 'd' : 'f';
 
 			if ( 'd' === $struc['type'] ) {
+				$struc['files'] = array();
 				if ( $recursive ) {
 					$struc['files'] = $this->dirlist( $path . $struc['name'], $include_hidden, $recursive );
-				} else {
-					$struc['files'] = array();
 				}
 			}
 
