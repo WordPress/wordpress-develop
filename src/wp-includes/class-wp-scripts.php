@@ -874,12 +874,12 @@ JS;
 	}
 
 	/**
-	 * Determines if a script loading strategy is valid.
+	 * Determines whether a script loading strategy is valid.
 	 *
 	 * @since 6.3.0
 	 *
 	 * @param string $strategy A script loading strategy.
-	 * @return bool True if the strategy is of an allowed type, false otherwise.
+	 * @return bool Whether the strategy is of an allowed type.
 	 */
 	private function is_valid_strategy( $strategy ) {
 		$allowed_strategies = array( 'blocking', 'defer', 'async' );
