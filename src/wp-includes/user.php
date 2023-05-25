@@ -989,7 +989,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
 		if ( ! str_ends_with( $key, 'capabilities' ) ) {
 			continue;
 		}
-		if ( $wpdb->base_prefix && 0 !== strpos( $key, $wpdb->base_prefix ) ) {
+		if ( $wpdb->base_prefix && ! str_starts_with( $key, $wpdb->base_prefix ) ) {
 			continue;
 		}
 		$site_id = str_replace( array( $wpdb->base_prefix, '_capabilities' ), '', $key );
@@ -1004,9 +1004,8 @@ function get_blogs_of_user( $user_id, $all = false ) {
 
 	if ( ! empty( $site_ids ) ) {
 		$args = array(
-			'number'                 => '',
-			'site__in'               => $site_ids,
-			'update_site_meta_cache' => false,
+			'number'   => '',
+			'site__in' => $site_ids,
 		);
 		if ( ! $all ) {
 			$args['archived'] = 0;
@@ -3546,12 +3545,10 @@ function wp_get_users_with_no_role( $site_id = null ) {
 	$regex = preg_replace( '/[^a-zA-Z_\|-]/', '', $regex );
 	$users = $wpdb->get_col(
 		$wpdb->prepare(
-			"
-		SELECT user_id
-		FROM $wpdb->usermeta
-		WHERE meta_key = '{$prefix}capabilities'
-		AND meta_value NOT REGEXP %s
-	",
+			"SELECT user_id
+			FROM $wpdb->usermeta
+			WHERE meta_key = '{$prefix}capabilities'
+			AND meta_value NOT REGEXP %s",
 			$regex
 		)
 	);
@@ -5024,5 +5021,5 @@ function wp_register_persisted_preferences_meta() {
  * @since 6.3.0
  */
 function wp_cache_set_users_last_changed() {
-	wp_cache_set( 'last_changed', microtime(), 'users' );
+	wp_cache_set_last_changed( 'users' );
 }

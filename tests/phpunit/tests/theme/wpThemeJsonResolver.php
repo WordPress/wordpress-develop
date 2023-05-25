@@ -600,7 +600,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$global_styles_query_count = 0;
 		add_filter(
 			'query',
-			function( $query ) use ( &$global_styles_query_count ) {
+			static function( $query ) use ( &$global_styles_query_count ) {
 				if ( preg_match( '#post_type = \'wp_global_styles\'#', $query ) ) {
 					$global_styles_query_count++;
 				}
@@ -953,7 +953,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @ticket 57545
 	 *
 	 * @covers WP_Theme_JSON_Resolver::get_style_variations
-	 **/
+	 */
 	public function test_get_style_variations_returns_all_variations() {
 		// Switch to a child theme.
 		switch_theme( 'block-theme-child' );
