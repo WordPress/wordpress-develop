@@ -512,4 +512,41 @@ END
 			'Should not include any unapproved comments after removing filter'
 		);
 	}
+
+	public function test_rendering_comment_template_sets_comment_id_context() {
+		$parsed_comment_author_name_block = parse_blocks( '<!-- wp:comment-author-name /-->' )[0];
+		$comment_author_name_block        = new WP_Block(
+			$parsed_comment_author_name_block,
+			array(
+				'commentId' => self::$comment_ids[0],
+			)
+		);
+		$comment_author_name_block_markup = $comment_author_name_block->render();
+
+		$render_block_callback = static function( $block_content, $block ) use ( $parsed_comment_author_name_block ) {
+			// Insert a Comment Author Name block (which requires `commentId`
+			// block context to work) after the Comment Content block.
+			if ( 'core/comment-content' !== $block['blockName'] ) {
+				return $block_content;
+			}
+
+			$inserted_content = render_block( $parsed_comment_author_name_block );
+			return $inserted_content . $block_content;
+		};
+
+		add_filter( 'render_block', $render_block_callback, 10, 3 );
+		$parsed_blocks = parse_blocks(
+			'<!-- wp:comment-template --><!-- wp:comment-content /--><!-- /wp:comment-template -->'
+		);
+		$block         = new WP_Block(
+			$parsed_blocks[0],
+			array(
+				'postId' => self::$custom_post->ID,
+			)
+		);
+		$markup        = $block->render();
+		remove_filter( 'render_block', $render_block_callback );
+
+		$this->assertStringContainsString( $comment_author_name_block_markup, $markup );
+	}
 }
