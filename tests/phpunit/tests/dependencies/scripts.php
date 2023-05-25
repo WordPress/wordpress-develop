@@ -336,7 +336,7 @@ EXP;
 	}
 
 	/**
-	 * Test non standalone inline scripts in the `after` position with blocking main script.
+	 * Test non-standalone inline scripts in the `after` position with blocking main script.
 	 *
 	 * If a main script with a `blocking` strategy has an `after` inline script,
 	 * the inline script should be rendered as type='text/javascript'.
@@ -345,7 +345,7 @@ EXP;
 	 */
 	public function test_non_standalone_after_inline_script_with_blocking_main_script() {
 		unregister_all_script_handles();
-		wp_enqueue_script( 'ms-insa-3', 'http://example.org/ms-insa-3.js', array(), null, array( 'strategy' => 'blocking' ) );
+		wp_enqueue_script( 'ms-insa-3', 'http://example.org/ms-insa-3.js', array(), null );
 		wp_add_inline_script( 'ms-insa-3', 'console.log("after one");', 'after' );
 		$output = get_echo( 'wp_print_scripts' );
 
@@ -380,7 +380,7 @@ EXP;
 	}
 
 	/**
-	 * Test non standalone `before` inline scripts attached to deferred main scripts.
+	 * Test non-standalone `before` inline scripts attached to deferred main scripts.
 	 *
 	 * If the main script has a `before` inline script, all dependencies will be blocking.
 	 *
@@ -563,7 +563,8 @@ EXP;
 	 * @ticket 12009
 	 */
 	public function test_loading_strategy_with_invalid_async_registration() {
-		// If any dependencies then it's not async. Since dependency is blocking(/defer) final strategy will be defer.
+		// If any dependencies then it's not async. Since dependency is blocking(/defer) final strategy will be 'defer'.
+		// TODO: This doesn't seem to make sense. A script can be async and have a blocking dependency. No need to convert to defer.
 		wp_enqueue_script( 'dependency-script-a2', '/dependency-script-a2.js', array(), null );
 		wp_enqueue_script( 'main-script-a2', '/main-script-a2.js', array( 'dependency-script-a2' ), null, array( 'strategy' => 'async' ) );
 		$output   = get_echo( 'wp_print_scripts' );
@@ -604,7 +605,7 @@ EXP;
 
 		// Main script is defer and all dependencies are either defer/blocking.
 		wp_enqueue_script( 'dependency-script-d2-1', 'http://example.com/dependency-script-d2-1.js', array(), null, array( 'strategy' => 'defer' ) );
-		wp_enqueue_script( 'dependency-script-d2-2', 'http://example.com/dependency-script-d2-2.js', array(), null, array( 'strategy' => 'blocking' ) );
+		wp_enqueue_script( 'dependency-script-d2-2', 'http://example.com/dependency-script-d2-2.js', array(), null );
 		wp_enqueue_script( 'dependency-script-d2-3', 'http://example.com/dependency-script-d2-3.js', array( 'dependency-script-d2-2' ), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'main-script-d2', 'http://example.com/main-script-d2.js', array( 'dependency-script-d2-1', 'dependency-script-d2-3' ), null, array( 'strategy' => 'defer' ) );
 		$output   = get_echo( 'wp_print_scripts' );
@@ -652,7 +653,7 @@ EXP;
 		// Main script is defer and all dependent are not defer. Then main script will have blocking(or no) strategy.
 		wp_enqueue_script( 'main-script-d4', '/main-script-d4.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'dependent-script-d4-1', '/dependent-script-d4-1.js', array( 'main-script-d4' ), null, array( 'strategy' => 'defer' ) );
-		wp_enqueue_script( 'dependent-script-d4-2', '/dependent-script-d4-2.js', array( 'dependent-script-d4-1' ), null, array( 'strategy' => 'blocking' ) );
+		wp_enqueue_script( 'dependent-script-d4-2', '/dependent-script-d4-2.js', array( 'dependent-script-d4-1' ), null );
 		wp_enqueue_script( 'dependent-script-d4-3', '/dependent-script-d4-3.js', array( 'dependent-script-d4-2' ), null, array( 'strategy' => 'defer' ) );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='/main-script-d4.js' id='main-script-d4-js'></script>\n";
@@ -665,7 +666,7 @@ EXP;
 	 * @ticket 12009
 	 */
 	public function test_loading_strategy_with_valid_blocking_registration() {
-		wp_enqueue_script( 'main-script-b1', '/main-script-b1.js', array(), null, array( 'strategy' => 'blocking' ) );
+		wp_enqueue_script( 'main-script-b1', '/main-script-b1.js', array(), null );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='/main-script-b1.js' id='main-script-b1-js'></script>\n";
 		$this->assertSame( $expected, $output );
