@@ -879,7 +879,7 @@ JS;
 	 * @since 6.3.0
 	 *
 	 * @param string $strategy A script loading strategy.
-	 * @return bool Whether the strategy is of an allowed type.
+	 * @return bool True if the strategy is valid, false otherwise.
 	 */
 	private function is_valid_strategy( $strategy ) {
 		$allowed_strategies = array( 'blocking', 'defer', 'async' );
