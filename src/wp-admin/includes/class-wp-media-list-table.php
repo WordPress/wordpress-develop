@@ -344,12 +344,11 @@ class WP_Media_List_Table extends WP_List_Table {
 		$taxonomies = array_filter( $taxonomies, 'taxonomy_exists' );
 
 		foreach ( $taxonomies as $taxonomy ) {
+			$column_key = 'taxonomy-' . $taxonomy;
 			if ( 'category' === $taxonomy ) {
 				$column_key = 'categories';
 			} elseif ( 'post_tag' === $taxonomy ) {
 				$column_key = 'tags';
-			} else {
-				$column_key = 'taxonomy-' . $taxonomy;
 			}
 
 			$posts_columns[ $column_key ] = get_taxonomy( $taxonomy )->labels->name;
@@ -562,10 +561,9 @@ class WP_Media_List_Table extends WP_List_Table {
 	public function column_parent( $post ) {
 		$user_can_edit = current_user_can( 'edit_post', $post->ID );
 
+		$parent = false;
 		if ( $post->post_parent > 0 ) {
 			$parent = get_post( $post->post_parent );
-		} else {
-			$parent = false;
 		}
 
 		if ( $parent ) {
@@ -624,11 +622,9 @@ class WP_Media_List_Table extends WP_List_Table {
 	public function column_comments( $post ) {
 		echo '<div class="post-com-count-wrapper">';
 
-		if ( isset( $this->comment_pending_count[ $post->ID ] ) ) {
-			$pending_comments = $this->comment_pending_count[ $post->ID ];
-		} else {
-			$pending_comments = get_pending_comments_num( $post->ID );
-		}
+		$pending_comments = ( isset( $this->comment_pending_count[ $post->ID ] ) )
+			? $this->comment_pending_count[ $post->ID ]
+			: get_pending_comments_num( $post->ID );
 
 		$this->comments_bubble( $post->ID, $pending_comments );
 
@@ -648,14 +644,13 @@ class WP_Media_List_Table extends WP_List_Table {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
 
+		$taxonomy = false;
 		if ( 'categories' === $column_name ) {
 			$taxonomy = 'category';
 		} elseif ( 'tags' === $column_name ) {
 			$taxonomy = 'post_tag';
 		} elseif ( str_starts_with( $column_name, 'taxonomy-' ) ) {
 			$taxonomy = substr( $column_name, 9 );
-		} else {
-			$taxonomy = false;
 		}
 
 		if ( $taxonomy ) {
