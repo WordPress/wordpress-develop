@@ -128,49 +128,48 @@ class WP_Community_Events {
 
 		if ( is_wp_error( $response_error ) ) {
 			return $response_error;
-		} else {
-			$expiration = false;
-
-			if ( isset( $response_body['ttl'] ) ) {
-				$expiration = $response_body['ttl'];
-				unset( $response_body['ttl'] );
-			}
-
-			/*
-			 * The IP in the response is usually the same as the one that was sent
-			 * in the request, but in some cases it is different. In those cases,
-			 * it's important to reset it back to the IP from the request.
-			 *
-			 * For example, if the IP sent in the request is private (e.g., 192.168.1.100),
-			 * then the API will ignore that and use the corresponding public IP instead,
-			 * and the public IP will get returned. If the public IP were saved, though,
-			 * then get_cached_events() would always return `false`, because the transient
-			 * would be generated based on the public IP when saving the cache, but generated
-			 * based on the private IP when retrieving the cache.
-			 */
-			if ( ! empty( $response_body['location']['ip'] ) ) {
-				$response_body['location']['ip'] = $request_args['body']['ip'];
-			}
-
-			/*
-			 * The API doesn't return a description for latitude/longitude requests,
-			 * but the description is already saved in the user location, so that
-			 * one can be used instead.
-			 */
-			if ( $this->coordinates_match( $request_args['body'], $response_body['location'] ) && empty( $response_body['location']['description'] ) ) {
-				$response_body['location']['description'] = $this->user_location['description'];
-			}
-
-			/*
-			 * Store the raw response, because events will expire before the cache does.
-			 * The response will need to be processed every page load.
-			 */
-			$this->cache_events( $response_body, $expiration );
-
-			$response_body['events'] = $this->trim_events( $response_body['events'] );
-
-			return $response_body;
 		}
+		$expiration = false;
+
+		if ( isset( $response_body['ttl'] ) ) {
+			$expiration = $response_body['ttl'];
+			unset( $response_body['ttl'] );
+		}
+
+		/*
+		 * The IP in the response is usually the same as the one that was sent
+		 * in the request, but in some cases it is different. In those cases,
+		 * it's important to reset it back to the IP from the request.
+		 *
+		 * For example, if the IP sent in the request is private (e.g., 192.168.1.100),
+		 * then the API will ignore that and use the corresponding public IP instead,
+		 * and the public IP will get returned. If the public IP were saved, though,
+		 * then get_cached_events() would always return `false`, because the transient
+		 * would be generated based on the public IP when saving the cache, but generated
+		 * based on the private IP when retrieving the cache.
+		 */
+		if ( ! empty( $response_body['location']['ip'] ) ) {
+			$response_body['location']['ip'] = $request_args['body']['ip'];
+		}
+
+		/*
+		 * The API doesn't return a description for latitude/longitude requests,
+		 * but the description is already saved in the user location, so that
+		 * one can be used instead.
+		 */
+		if ( $this->coordinates_match( $request_args['body'], $response_body['location'] ) && empty( $response_body['location']['description'] ) ) {
+			$response_body['location']['description'] = $this->user_location['description'];
+		}
+
+		/*
+		 * Store the raw response, because events will expire before the cache does.
+		 * The response will need to be processed every page load.
+		 */
+		$this->cache_events( $response_body, $expiration );
+
+		$response_body['events'] = $this->trim_events( $response_body['events'] );
+
+		return $response_body;
 	}
 
 	/**
@@ -310,15 +309,13 @@ class WP_Community_Events {
 	 * @return string|false Transient key on success, false on failure.
 	 */
 	protected function get_events_transient_key( $location ) {
-		$key = false;
-
 		if ( isset( $location['ip'] ) ) {
-			$key = 'community-events-' . md5( $location['ip'] );
-		} elseif ( isset( $location['latitude'], $location['longitude'] ) ) {
-			$key = 'community-events-' . md5( $location['latitude'] . $location['longitude'] );
+			return 'community-events-' . md5( $location['ip'] );
 		}
-
-		return $key;
+		if ( isset( $location['latitude'], $location['longitude'] ) ) {
+			return 'community-events-' . md5( $location['latitude'] . $location['longitude'] );
+		}
+		return false;
 	}
 
 	/**
@@ -331,15 +328,13 @@ class WP_Community_Events {
 	 * @return bool true if events were cached; false if not.
 	 */
 	protected function cache_events( $events, $expiration = false ) {
-		$set              = false;
 		$transient_key    = $this->get_events_transient_key( $events['location'] );
 		$cache_expiration = $expiration ? absint( $expiration ) : HOUR_IN_SECONDS * 12;
 
 		if ( $transient_key ) {
-			$set = set_site_transient( $transient_key, $events, $cache_expiration );
+			return set_site_transient( $transient_key, $events, $cache_expiration );
 		}
-
-		return $set;
+		return false;
 	}
 
 	/**
@@ -410,8 +405,8 @@ class WP_Community_Events {
 						$start_month = date_i18n( _x( 'F', 'upcoming events month format' ), $timestamp );
 						$end_month   = date_i18n( _x( 'F', 'upcoming events month format' ), $end_timestamp );
 
-						if ( $start_month === $end_month ) {
-							$formatted_date = sprintf(
+						$formatted_date = ( $start_month === $end_month )
+							? sprintf(
 								/* translators: Date string for upcoming events. 1: Month, 2: Starting day, 3: Ending day, 4: Year. */
 								__( '%1$s %2$d–%3$d, %4$d' ),
 								$start_month,
@@ -420,9 +415,7 @@ class WP_Community_Events {
 								date_i18n( _x( 'j', 'upcoming events day format' ), $end_timestamp ),
 								/* translators: Upcoming events year format. See https://www.php.net/manual/datetime.format.php */
 								date_i18n( _x( 'Y', 'upcoming events year format' ), $timestamp )
-							);
-						} else {
-							$formatted_date = sprintf(
+							) : sprintf(
 								/* translators: Date string for upcoming events. 1: Starting month, 2: Starting day, 3: Ending month, 4: Ending day, 5: Year. */
 								__( '%1$s %2$d – %3$s %4$d, %5$d' ),
 								$start_month,
@@ -431,7 +424,6 @@ class WP_Community_Events {
 								date_i18n( _x( 'j', 'upcoming events day format' ), $end_timestamp ),
 								date_i18n( _x( 'Y', 'upcoming events year format' ), $timestamp )
 							);
-						}
 
 						$formatted_date = wp_maybe_decline_date( $formatted_date, 'F j, Y' );
 					}
