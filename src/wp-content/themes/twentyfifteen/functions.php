@@ -61,6 +61,7 @@ if ( ! function_exists( 'twentyfifteen_setup' ) ) :
 		 *
 		 * Manual loading of text domain is not required after the introduction of
 		 * just in time translation loading in WordPress version 4.6.
+		 *
 		 * @ticket 58318
 		 */
 
