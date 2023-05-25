@@ -899,7 +899,7 @@ JS;
 	}
 
 	/**
-	 * Get the strategy assigned during script registration.
+	 * Gets the strategy assigned during script registration.
 	 *
 	 * @since 6.3.0
 	 *
