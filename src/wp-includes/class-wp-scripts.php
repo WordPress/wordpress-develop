@@ -143,6 +143,15 @@ class WP_Scripts extends WP_Dependencies {
 	private $dependents_map = array();
 
 	/**
+	 * Holds a reference to the allowed script loading strategies.
+	 * Used by methods that validate loading strategies.
+	 *
+	 * @since 6.3.0
+	 * @var array
+	 */
+	public $allowed_strategies = array( 'blocking', 'defer', 'async' );
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 2.6.0
@@ -882,9 +891,11 @@ JS;
 	 * @return bool True if the strategy is valid, false otherwise.
 	 */
 	private function is_valid_strategy( $strategy ) {
-		$allowed_strategies = array( 'blocking', 'defer', 'async' );
-
-		return in_array( $strategy, $allowed_strategies, true );
+		return in_array(
+			$strategy,
+			$this->allowed_strategies,
+			true
+		);
 	}
 
 	/**
