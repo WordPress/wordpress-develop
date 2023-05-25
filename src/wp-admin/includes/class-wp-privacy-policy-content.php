@@ -103,6 +103,7 @@ final class WP_Privacy_Policy_Content {
 		sort( $old );
 		sort( $new );
 
+		$state = 'not-changed';
 		// The == operator (equal, not identical) was used intentionally.
 		// See https://www.php.net/manual/en/language.operators.array.php
 		if ( $new != $old ) {
@@ -110,8 +111,6 @@ final class WP_Privacy_Policy_Content {
 			// Show a notice on the relevant screens to inform the admin.
 			add_action( 'admin_notices', array( 'WP_Privacy_Policy_Content', 'policy_text_changed_notice' ) );
 			$state = 'changed';
-		} else {
-			$state = 'not-changed';
 		}
 
 		// Cache the result for use before `admin_init` (see above).
