@@ -3891,6 +3891,9 @@ EOF;
 			}
 		);
 		$this->force_omit_loading_attr_threshold( 1 );
+		// Reset the media counting variable.
+		$this->reset_content_media_count();
+		wp_maybe_fetchpriority_high_media( true );
 
 		$content_img      = get_image_tag( self::$large_id, '', '', '', 'large' );
 		$lazy_content_img = wp_img_tag_add_loading_attr( $content_img, 'the_content' );
@@ -3946,6 +3949,10 @@ EOF;
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 
+		// Reset media counting variables.
+		$this->reset_content_media_count();
+		wp_maybe_fetchpriority_high_media( true );
+
 		// Use a single image for each header and footer template parts.
 		$header_img = get_image_tag( self::$large_id, '', '', '', 'large' );
 		/*
@@ -3997,6 +4004,10 @@ EOF;
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_special_images_within_the_content() {
 		global $wp_query, $wp_the_query;
+
+		// Reset counting variables.
+		$this->reset_content_media_count();
+		wp_maybe_fetchpriority_high_media( true );
 
 		// Force no lazy-loading on the image tag expected in the content.
 		$expected_content = wpautop(
@@ -4157,6 +4168,11 @@ EOF;
 		 * then use a post that contains exactly 2 images.
 		 */
 		$this->force_omit_loading_attr_threshold( 2 );
+
+		// Reset the variable.
+		$this->reset_content_media_count();
+		wp_maybe_fetchpriority_high_media( true );
+
 		$post_content  = '<img src="example.jpg" width="800" height="600">';
 		$post_content .= '<p>Some text.</p>';
 		$post_content .= '<img src="example2.jpg" width="800" height="600">';
