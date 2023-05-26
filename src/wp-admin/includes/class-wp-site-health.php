@@ -286,56 +286,58 @@ class WP_Site_Health {
 				esc_url( admin_url( 'update-core.php?force-check=1' ) ),
 				__( 'Check for updates manually' )
 			);
-		} else {
-			foreach ( $core_updates as $core => $update ) {
-				if ( 'upgrade' === $update->response ) {
-					$current_version = explode( '.', $core_current_version );
-					$new_version     = explode( '.', $update->version );
 
-					$current_major = $current_version[0] . '.' . $current_version[1];
-					$new_major     = $new_version[0] . '.' . $new_version[1];
+			return $result;
+		}
 
-					$result['label'] = sprintf(
-						/* translators: %s: The latest version of WordPress available. */
-						__( 'WordPress update available (%s)' ),
-						$update->version
-					);
+		foreach ( $core_updates as $core => $update ) {
+			if ( 'upgrade' === $update->response ) {
+				$current_version = explode( '.', $core_current_version );
+				$new_version     = explode( '.', $update->version );
 
-					$result['actions'] = sprintf(
-						'<a href="%s">%s</a>',
-						esc_url( admin_url( 'update-core.php' ) ),
-						__( 'Install the latest version of WordPress' )
-					);
+				$current_major = $current_version[0] . '.' . $current_version[1];
+				$new_major     = $new_version[0] . '.' . $new_version[1];
 
-					if ( $current_major !== $new_major ) {
-						// This is a major version mismatch.
-						$result['status']      = 'recommended';
-						$result['description'] = sprintf(
-							'<p>%s</p>',
-							__( 'A new version of WordPress is available.' )
-						);
-					} else {
-						// This is a minor version, sometimes considered more critical.
-						$result['status']         = 'critical';
-						$result['badge']['label'] = __( 'Security' );
-						$result['description']    = sprintf(
-							'<p>%s</p>',
-							__( 'A new minor update is available for your site. Because minor updates often address security, it&#8217;s important to install them.' )
-						);
-					}
-				} else {
-					$result['status'] = 'good';
-					$result['label']  = sprintf(
-						/* translators: %s: The current version of WordPress installed on this site. */
-						__( 'Your version of WordPress (%s) is up to date' ),
-						$core_current_version
-					);
+				$result['label'] = sprintf(
+					/* translators: %s: The latest version of WordPress available. */
+					__( 'WordPress update available (%s)' ),
+					$update->version
+				);
 
+				$result['actions'] = sprintf(
+					'<a href="%s">%s</a>',
+					esc_url( admin_url( 'update-core.php' ) ),
+					__( 'Install the latest version of WordPress' )
+				);
+
+				if ( $current_major !== $new_major ) {
+					// This is a major version mismatch.
+					$result['status']      = 'recommended';
 					$result['description'] = sprintf(
 						'<p>%s</p>',
-						__( 'You are currently running the latest version of WordPress available, keep it up!' )
+						__( 'A new version of WordPress is available.' )
+					);
+				} else {
+					// This is a minor version, sometimes considered more critical.
+					$result['status']         = 'critical';
+					$result['badge']['label'] = __( 'Security' );
+					$result['description']    = sprintf(
+						'<p>%s</p>',
+						__( 'A new minor update is available for your site. Because minor updates often address security, it&#8217;s important to install them.' )
 					);
 				}
+			} else {
+				$result['status'] = 'good';
+				$result['label']  = sprintf(
+					/* translators: %s: The current version of WordPress installed on this site. */
+					__( 'Your version of WordPress (%s) is up to date' ),
+					$core_current_version
+				);
+
+				$result['description'] = sprintf(
+					'<p>%s</p>',
+					__( 'You are currently running the latest version of WordPress available, keep it up!' )
+				);
 			}
 		}
 
@@ -533,10 +535,8 @@ class WP_Site_Health {
 		if ( $default_theme ) {
 			$has_default_theme = true;
 
-			if (
-				$active_theme->get_stylesheet() === $default_theme->get_stylesheet()
-			||
-				is_child_theme() && $active_theme->get_template() === $default_theme->get_template()
+			if ( $active_theme->get_stylesheet() === $default_theme->get_stylesheet()
+				|| ( is_child_theme() && $active_theme->get_template() === $default_theme->get_template() )
 			) {
 				$using_default_theme = true;
 			}
@@ -841,23 +841,12 @@ class WP_Site_Health {
 	 */
 	private function test_php_extension_availability( $extension_name = null, $function_name = null, $constant_name = null, $class_name = null ) {
 		// If no extension or function is passed, claim to fail testing, as we have nothing to test against.
-		if ( ! $extension_name && ! $function_name && ! $constant_name && ! $class_name ) {
-			return false;
-		}
-
-		if ( $extension_name && ! extension_loaded( $extension_name ) ) {
-			return false;
-		}
-
-		if ( $function_name && ! function_exists( $function_name ) ) {
-			return false;
-		}
-
-		if ( $constant_name && ! defined( $constant_name ) ) {
-			return false;
-		}
-
-		if ( $class_name && ! class_exists( $class_name ) ) {
+		if ( ( ! $extension_name && ! $function_name && ! $constant_name && ! $class_name )
+			|| ( $extension_name && ! extension_loaded( $extension_name ) )
+			|| ( $function_name && ! function_exists( $function_name ) )
+			|| ( $constant_name && ! defined( $constant_name ) )
+			|| ( $class_name && ! class_exists( $class_name ) )
+		) {
 			return false;
 		}
 
@@ -1037,11 +1026,10 @@ class WP_Site_Health {
 				 * If that other function has a failure, mark this module as required for usual operations.
 				 * If that other function hasn't failed, skip this test as it's only a fallback.
 				 */
-				if ( isset( $failures[ $module['fallback_for'] ] ) ) {
-					$module['required'] = true;
-				} else {
+				if ( ! isset( $failures[ $module['fallback_for'] ] ) ) {
 					continue;
 				}
+				$module['required'] = true;
 			}
 
 			if ( ! $this->test_php_extension_availability( $extension_name, $function_name, $constant_name, $class_name )
@@ -1383,22 +1371,20 @@ class WP_Site_Health {
 					)
 				);
 			}
-		} else {
-			if ( version_compare( $mysql_client_version, '5.5.3', '<' ) ) {
-				$result['status'] = 'recommended';
+		} elseif ( version_compare( $mysql_client_version, '5.5.3', '<' ) ) {
+			$result['status'] = 'recommended';
 
-				$result['label'] = __( 'utf8mb4 requires a newer client library' );
+			$result['label'] = __( 'utf8mb4 requires a newer client library' );
 
-				$result['description'] .= sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: 1: Name of the library, 2: Number of version. */
-						__( 'WordPress&#8217; utf8mb4 support requires MySQL client library (%1$s) version %2$s or newer. Please contact your server administrator.' ),
-						'libmysql',
-						'5.5.3'
-					)
-				);
-			}
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				sprintf(
+					/* translators: 1: Name of the library, 2: Number of version. */
+					__( 'WordPress&#8217; utf8mb4 support requires MySQL client library (%1$s) version %2$s or newer. Please contact your server administrator.' ),
+					'libmysql',
+					'5.5.3'
+				)
+			);
 		}
 
 		return $result;
@@ -1427,15 +1413,14 @@ class WP_Site_Health {
 			'test'        => 'dotorg_communication',
 		);
 
-		$wp_dotorg = wp_remote_get(
+		$wp_dotorg        = wp_remote_get(
 			'https://api.wordpress.org',
 			array(
 				'timeout' => 10,
 			)
 		);
-		if ( ! is_wp_error( $wp_dotorg ) ) {
-			$result['status'] = 'good';
-		} else {
+		$result['status'] = 'good';
+		if ( is_wp_error( $wp_dotorg ) ) {
 			$result['status'] = 'critical';
 
 			$result['label'] = __( 'Could not reach WordPress.org' );
@@ -1591,17 +1576,15 @@ class WP_Site_Health {
 			$result['label']  = __( 'Your website does not use HTTPS' );
 
 			if ( wp_is_site_url_using_https() ) {
-				if ( is_ssl() ) {
-					$result['description'] = sprintf(
+				$result['description'] = ( is_ssl() )
+					? sprintf(
 						'<p>%s</p>',
 						sprintf(
 							/* translators: %s: URL to Settings > General > Site Address. */
 							__( 'You are accessing this website using HTTPS, but your <a href="%s">Site Address</a> is not set up to use HTTPS by default.' ),
 							esc_url( admin_url( 'options-general.php' ) . '#home' )
 						)
-					);
-				} else {
-					$result['description'] = sprintf(
+					) : sprintf(
 						'<p>%s</p>',
 						sprintf(
 							/* translators: %s: URL to Settings > General > Site Address. */
@@ -1609,10 +1592,9 @@ class WP_Site_Health {
 							esc_url( admin_url( 'options-general.php' ) . '#home' )
 						)
 					);
-				}
 			} else {
-				if ( is_ssl() ) {
-					$result['description'] = sprintf(
+				$result['description'] = ( is_ssl() )
+					? sprintf(
 						'<p>%s</p>',
 						sprintf(
 							/* translators: 1: URL to Settings > General > WordPress Address, 2: URL to Settings > General > Site Address. */
@@ -1620,9 +1602,7 @@ class WP_Site_Health {
 							esc_url( admin_url( 'options-general.php' ) . '#siteurl' ),
 							esc_url( admin_url( 'options-general.php' ) . '#home' )
 						)
-					);
-				} else {
-					$result['description'] = sprintf(
+					) : sprintf(
 						'<p>%s</p>',
 						sprintf(
 							/* translators: 1: URL to Settings > General > WordPress Address, 2: URL to Settings > General > Site Address. */
@@ -1631,7 +1611,6 @@ class WP_Site_Health {
 							esc_url( admin_url( 'options-general.php' ) . '#home' )
 						)
 					);
-				}
 			}
 
 			if ( wp_is_https_supported() ) {
@@ -1655,39 +1634,33 @@ class WP_Site_Health {
 					$default_direct_update_url = add_query_arg( 'action', 'update_https', wp_nonce_url( admin_url( 'site-health.php' ), 'wp_update_https' ) );
 					$direct_update_url         = wp_get_direct_update_https_url();
 
-					if ( ! empty( $direct_update_url ) ) {
-						$result['actions'] = sprintf(
+					$result['actions'] = ( ! empty( $direct_update_url ) )
+						? sprintf(
 							'<p class="button-container"><a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 							esc_url( $direct_update_url ),
 							__( 'Update your site to use HTTPS' ),
 							/* translators: Hidden accessibility text. */
 							__( '(opens in a new tab)' )
-						);
-					} else {
-						$result['actions'] = sprintf(
+						) : sprintf(
 							'<p class="button-container"><a class="button button-primary" href="%1$s">%2$s</a></p>',
 							esc_url( $default_direct_update_url ),
 							__( 'Update your site to use HTTPS' )
 						);
-					}
 				}
 			} else {
 				// If host-specific "Update HTTPS" URL is provided, include a link.
-				$update_url = wp_get_update_https_url();
-				if ( $update_url !== $default_update_url ) {
-					$result['description'] .= sprintf(
+				$update_url            = wp_get_update_https_url();
+				$result['description'] = ( $update_url !== $default_update_url )
+					? sprintf(
 						'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 						esc_url( $update_url ),
 						__( 'Talk to your web host about supporting HTTPS for your website.' ),
 						/* translators: Hidden accessibility text. */
 						__( '(opens in a new tab)' )
-					);
-				} else {
-					$result['description'] .= sprintf(
+					) : sprintf(
 						'<p>%s</p>',
 						__( 'Talk to your web host about supporting HTTPS for your website.' )
 					);
-				}
 			}
 		}
 
@@ -2544,15 +2517,15 @@ class WP_Site_Health {
 			case 'recommended':
 				$result['label'] = __( 'Page cache is not detected but the server response time is OK' );
 				break;
+
 			case 'good':
 				$result['label'] = __( 'Page cache is detected and the server response time is good' );
 				break;
+
 			default:
-				if ( empty( $page_cache_detail['headers'] ) && ! $page_cache_detail['advanced_cache_present'] ) {
-					$result['label'] = __( 'Page cache is not detected and the server response time is slow' );
-				} else {
-					$result['label'] = __( 'Page cache is detected but the server response time is still slow' );
-				}
+				$result['label'] = ( empty( $page_cache_detail['headers'] ) && ! $page_cache_detail['advanced_cache_present'] )
+					? __( 'Page cache is not detected and the server response time is slow' )
+					: __( 'Page cache is detected but the server response time is still slow' );
 		}
 
 		$page_cache_test_summary = array();
@@ -2562,21 +2535,19 @@ class WP_Site_Health {
 		} else {
 
 			$threshold = $this->get_good_response_time_threshold();
-			if ( $page_cache_detail['response_time'] < $threshold ) {
-				$page_cache_test_summary[] = '<span class="dashicons dashicons-yes-alt"></span> ' . sprintf(
+
+			$page_cache_test_summary[] = ( $page_cache_detail['response_time'] < $threshold )
+				? '<span class="dashicons dashicons-yes-alt"></span> ' . sprintf(
 					/* translators: 1: The response time in milliseconds, 2: The recommended threshold in milliseconds. */
 					__( 'Median server response time was %1$s milliseconds. This is less than the recommended %2$s milliseconds threshold.' ),
 					number_format_i18n( $page_cache_detail['response_time'] ),
 					number_format_i18n( $threshold )
-				);
-			} else {
-				$page_cache_test_summary[] = '<span class="dashicons dashicons-warning"></span> ' . sprintf(
+				) : '<span class="dashicons dashicons-warning"></span> ' . sprintf(
 					/* translators: 1: The response time in milliseconds, 2: The recommended threshold in milliseconds. */
 					__( 'Median server response time was %1$s milliseconds. It should be less than the recommended %2$s milliseconds threshold.' ),
 					number_format_i18n( $page_cache_detail['response_time'] ),
 					number_format_i18n( $threshold )
 				);
-			}
 
 			if ( empty( $page_cache_detail['headers'] ) ) {
 				$page_cache_test_summary[] = '<span class="dashicons dashicons-warning"></span> ' . __( 'No client caching response headers were detected.' );
@@ -3260,17 +3231,15 @@ class WP_Site_Health {
 
 			if ( is_string( $test['test'] ) ) {
 				// Check if this test has a REST API endpoint.
-				if ( isset( $test['has_rest'] ) && $test['has_rest'] ) {
-					$result_fetch = wp_remote_get(
+				$result_fetch = ( isset( $test['has_rest'] ) && $test['has_rest'] )
+					? wp_remote_get(
 						$test['test'],
 						array(
 							'body' => array(
 								'_wpnonce' => wp_create_nonce( 'wp_rest' ),
 							),
 						)
-					);
-				} else {
-					$result_fetch = wp_remote_post(
+					) : wp_remote_post(
 						admin_url( 'admin-ajax.php' ),
 						array(
 							'body' => array(
@@ -3279,22 +3248,18 @@ class WP_Site_Health {
 							),
 						)
 					);
-				}
 
+				$result = false;
 				if ( ! is_wp_error( $result_fetch ) && 200 === wp_remote_retrieve_response_code( $result_fetch ) ) {
 					$result = json_decode( wp_remote_retrieve_body( $result_fetch ), true );
-				} else {
-					$result = false;
 				}
 
-				if ( is_array( $result ) ) {
-					$results[] = $result;
-				} else {
-					$results[] = array(
+				$results[] = ( is_array( $result ) )
+					? $result
+					: array(
 						'status' => 'recommended',
 						'label'  => __( 'A test is unavailable' ),
 					);
-				}
 			}
 		}
 
@@ -3482,11 +3447,9 @@ class WP_Site_Health {
 		// Page cache is detected if there are response headers or a page cache plugin is present.
 		$has_page_caching = ( count( $headers ) > 0 || $page_cache_detail['advanced_cache_present'] );
 
-		if ( $page_speed && $page_speed < $this->get_good_response_time_threshold() ) {
-			$result = $has_page_caching ? 'good' : 'recommended';
-		} else {
-			$result = 'critical';
-		}
+		$result = ( $page_speed && $page_speed < $this->get_good_response_time_threshold() )
+			? $has_page_caching ? 'good' : 'recommended'
+			: 'critical';
 
 		return array(
 			'status'                 => $result,
@@ -3569,11 +3532,9 @@ class WP_Site_Health {
 
 		$alloptions = wp_load_alloptions();
 
-		if ( $thresholds['alloptions_count'] < count( $alloptions ) ) {
-			return true;
-		}
-
-		if ( $thresholds['alloptions_bytes'] < strlen( serialize( $alloptions ) ) ) {
+		if ( $thresholds['alloptions_count'] < count( $alloptions )
+			|| $thresholds['alloptions_bytes'] < strlen( serialize( $alloptions ) )
+		) {
 			return true;
 		}
 
@@ -3638,5 +3599,4 @@ class WP_Site_Health {
 		 */
 		return apply_filters( 'site_status_available_object_cache_services', $services );
 	}
-
 }
