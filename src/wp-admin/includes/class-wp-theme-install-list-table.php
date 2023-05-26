@@ -98,9 +98,11 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 					case 'tag':
 						$args['tag'] = array_map( 'sanitize_key', $search_terms );
 						break;
+
 					case 'term':
 						$args['search'] = $search_string;
 						break;
+
 					case 'author':
 						$args['author'] = $search_string;
 						break;
@@ -318,6 +320,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 					__( 'Update' )
 				);
 				break;
+
 			case 'newer_installed':
 			case 'latest_installed':
 				$actions[] = sprintf(
@@ -326,7 +329,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 					_x( 'Installed', 'theme' )
 				);
 				break;
-			case 'install':
+
 			default:
 				$actions[] = sprintf(
 					'<a class="install-now" href="%s" title="%s">%s</a>',
@@ -477,6 +480,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 					__( 'Update' )
 				);
 				break;
+
 			case 'newer_installed':
 			case 'latest_installed':
 				printf(
@@ -485,7 +489,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 					_x( 'Installed', 'theme' )
 				);
 				break;
-			case 'install':
+
 			default:
 				printf(
 					'<a class="theme-install button button-primary" href="%s">%s</a>',
@@ -556,12 +560,11 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 
 		$installed_theme = wp_get_theme( $theme->slug );
 		if ( $installed_theme->exists() ) {
+			$status = 'update_available';
 			if ( version_compare( $installed_theme->get( 'Version' ), $theme->version, '=' ) ) {
 				$status = 'latest_installed';
 			} elseif ( version_compare( $installed_theme->get( 'Version' ), $theme->version, '>' ) ) {
 				$status = 'newer_installed';
-			} else {
-				$status = 'update_available';
 			}
 		}
 
