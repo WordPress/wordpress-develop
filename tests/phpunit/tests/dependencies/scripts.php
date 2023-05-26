@@ -756,23 +756,66 @@ EXP;
 	}
 
 	/**
-	 * Test script strategy doing it wrong.
+	 * Test script strategy doing it wrong when calling wp_register_script().
 	 *
 	 * For an invalid strategy defined during script registration, default to a blocking strategy.
 	 *
+	 * @covers WP_Scripts::add_data
+	 * @covers ::wp_register_script
 	 * @ticket 12009
 	 */
-	public function test_script_strategy_doing_it_wrong() {
+	public function test_script_strategy_doing_it_wrong_via_register() {
 		$this->setExpectedIncorrectUsage( 'WP_Scripts::add_data' );
 
 		wp_register_script( 'invalid-strategy', '/defaults.js', array(), null, array( 'strategy' => 'random-strategy' ) );
 		wp_enqueue_script( 'invalid-strategy' );
 
-		$output = get_echo( 'wp_print_scripts' );
+		$this->assertSame(
+			"<script type='text/javascript' src='/defaults.js' id='invalid-strategy-js'></script>\n",
+			get_echo( 'wp_print_scripts' )
+		);
+	}
 
-		$expected = "<script type='text/javascript' src='/defaults.js' id='invalid-strategy-js'></script>\n";
+	/**
+	 * Test script strategy doing it wrong when calling wp_script_add_data().
+	 *
+	 * For an invalid strategy defined during script registration, default to a blocking strategy.
+	 *
+	 * @covers WP_Scripts::add_data
+	 * @covers ::wp_register_script
+	 * @ticket 12009
+	 */
+	public function test_script_strategy_doing_it_wrong_via_add_data() {
+		$this->setExpectedIncorrectUsage( 'WP_Scripts::add_data' );
 
-		$this->assertSame( $expected, $output );
+		wp_register_script( 'invalid-strategy', '/defaults.js', array(), null );
+		wp_script_add_data( 'invalid-strategy', 'strategy', 'random-strategy' );
+		wp_enqueue_script( 'invalid-strategy' );
+
+		$this->assertSame(
+			"<script type='text/javascript' src='/defaults.js' id='invalid-strategy-js'></script>\n",
+			get_echo( 'wp_print_scripts' )
+		);
+	}
+
+	/**
+	 * Test script strategy doing it wrong when calling wp_register_script().
+	 *
+	 * For an invalid strategy defined during script registration, default to a blocking strategy.
+	 *
+	 * @covers WP_Scripts::add_data
+	 * @covers ::wp_enqueue_script
+	 * @ticket 12009
+	 */
+	public function test_script_strategy_doing_it_wrong_via_enqueue() {
+		$this->setExpectedIncorrectUsage( 'WP_Scripts::add_data' );
+
+		wp_enqueue_script( 'invalid-strategy', '/defaults.js', array(), null, array( 'strategy' => 'random-strategy' ) );
+
+		$this->assertSame(
+			"<script type='text/javascript' src='/defaults.js' id='invalid-strategy-js'></script>\n",
+			get_echo( 'wp_print_scripts' )
+		);
 	}
 
 	/**
