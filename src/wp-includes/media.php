@@ -5600,6 +5600,7 @@ function wp_get_webp_info( $filename ) {
  * {@see 'wp_omit_loading_attr_threshold'} filter.
  *
  * @since 5.9.0
+ * @deprecated 6.3.0 Use {@see 'wp_get_loading_optimization_attributes'} instead.
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
@@ -5790,7 +5791,8 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 
 		// If the count so far is below the threshold, `loading` attribute is omitted.
 		if ( $content_media_count <= wp_omit_loading_attr_threshold() ) {
-			if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size && wp_maybe_fetchpriority_high_media() ) {
+			// The first largest image will still get ftchpriority='high'.
+			if ( wp_maybe_fetchpriority_high_media() && WP_LCP_MIN_IMAGE_SIZE <= $img_size ) {
 				$loading_attrs['fetchpriority'] = 'high';
 				wp_maybe_fetchpriority_high_media( false );
 			}
