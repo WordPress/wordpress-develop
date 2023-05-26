@@ -1440,6 +1440,8 @@ function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = 
  *
  * |   Code   | Glyph | Replacement |                Description                |
  * | -------- | ----- | ----------- | ----------------------------------------- |
+ * | U+018F   | Ə     | E           | Latin capital letter Ə                    |
+ * | U+0259   | ǝ     | e           | Latin small letter ǝ                      |
  * | U+0218   | Ș     | S           | Latin capital letter S with comma below   |
  * | U+0219   | ș     | s           | Latin small letter s with comma below     |
  * | U+021A   | Ț     | T           | Latin capital letter T with comma below   |
@@ -1805,6 +1807,8 @@ function remove_accents( $text, $locale = '' ) {
 			'ž' => 'z',
 			'ſ' => 's',
 			// Decompositions for Latin Extended-B.
+			'Ə' => 'E',
+			'ǝ' => 'e',
 			'Ș' => 'S',
 			'ș' => 's',
 			'Ț' => 'T',
@@ -3937,9 +3941,25 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		$text = strip_shortcodes( $text );
 		$text = excerpt_remove_blocks( $text );
 
+		/*
+		 * Temporarily unhook wp_filter_content_tags() since any tags
+		 * within the excerpt are stripped out. Modifying the tags here
+		 * is wasteful and can lead to bugs in the image counting logic.
+		 */
+		$filter_removed = remove_filter( 'the_content', 'wp_filter_content_tags' );
+
 		/** This filter is documented in wp-includes/post-template.php */
 		$text = apply_filters( 'the_content', $text );
 		$text = str_replace( ']]>', ']]&gt;', $text );
+
+		/**
+		 * Only restore the filter callback if it was removed above. The logic
+		 * to unhook and restore only applies on the default priority of 10,
+		 * which is generally used for the filter callback in WordPress core.
+		 */
+		if ( $filter_removed ) {
+			add_filter( 'the_content', 'wp_filter_content_tags' );
+		}
 
 		/* translators: Maximum number of words used in a post excerpt. */
 		$excerpt_length = (int) _x( '55', 'excerpt_length' );
