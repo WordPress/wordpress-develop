@@ -116,7 +116,7 @@ final class WP_Recovery_Mode_Email_Service {
 		$url      = $this->link_service->generate_url();
 		$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
-		$switched_locale = switch_to_locale( get_locale() );
+		$switched_locale = switch_to_locale( get_admin_locale() );
 
 		if ( $extension ) {
 			$cause   = $this->get_cause( $extension );

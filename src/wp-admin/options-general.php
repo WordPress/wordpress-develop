@@ -219,6 +219,37 @@ if ( ! empty( $languages ) || ! empty( $translations ) ) {
 			?>
 		</td>
 	</tr>
+	<tr>
+		<th scope="row"><label for="admin_locale"><?php _e( 'Admin Language' ); ?><span class="dashicons dashicons-translation" aria-hidden="true"></span></label></th>
+		<td>
+			<?php
+			$admin_locale = get_admin_locale();
+			if ( ! in_array( $admin_locale, $languages, true ) ) {
+				$admin_locale = '';
+			}
+
+			wp_dropdown_languages(
+					array(
+							'name'                        => 'admin_locale',
+							'id'                          => 'admin_locale',
+							'selected'                    => $admin_locale,
+							'languages'                   => $languages,
+							'translations'                => $translations,
+							'show_available_translations' => current_user_can( 'install_languages' ) && wp_can_install_language_pack(),
+					)
+			);
+			?>
+		<p class="description" id="admin-locale-description">
+			<?php
+			/* translators: %s: link to profile edit screen. */
+			printf(
+				__( 'Used in the admin and for sending notifications to the administration email address. <a href="%s">You can override it in your profile</a>.' ),
+				self_admin_url( 'profile.php' )
+			);
+			?>
+		</p>
+		</td>
+	</tr>
 	<?php
 }
 ?>

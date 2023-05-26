@@ -1707,7 +1707,7 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 			$emails = array_flip( $emails );
 		}
 
-		$switched_locale = switch_to_locale( get_locale() );
+		$switched_locale = switch_to_locale( get_admin_locale() );
 
 		$comment_author_domain = '';
 		if ( WP_Http::is_ip_address( $comment->comment_author_IP ) ) {
@@ -1894,7 +1894,7 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 			}
 		}
 
-		$switched_locale = switch_to_locale( get_locale() );
+		$switched_locale = switch_to_locale( get_admin_locale() );
 
 		$comment_author_domain = '';
 		if ( WP_Http::is_ip_address( $comment->comment_author_IP ) ) {
@@ -2130,7 +2130,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		$send_notification_to_admin = apply_filters( 'wp_send_new_user_notification_to_admin', true, $user );
 
 		if ( 'user' !== $notify && true === $send_notification_to_admin ) {
-			$switched_locale = switch_to_locale( get_locale() );
+			$switched_locale = switch_to_locale( get_admin_locale() );
 
 			/* translators: %s: Site title. */
 			$message = sprintf( __( 'New user registration on your site %s:' ), $blogname ) . "\r\n\r\n";
