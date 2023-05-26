@@ -143,13 +143,13 @@ class WP_Scripts extends WP_Dependencies {
 	private $dependents_map = array();
 
 	/**
-	 * Holds a reference to the allowed script loading strategies.
+	 * Holds a reference to the delayed (non-blocking) script loading strategies.
 	 * Used by methods that validate loading strategies.
 	 *
 	 * @since 6.3.0
 	 * @var string[]
 	 */
-	private $allowed_strategies = array( 'blocking', 'defer', 'async' );
+	private $delayed_strategies = array( 'defer', 'async' );
 
 	/**
 	 * Constructor.
@@ -371,7 +371,7 @@ class WP_Scripts extends WP_Dependencies {
 			$srce = apply_filters( 'script_loader_src', $src, $handle );
 
 			// Used as a conditional to prevent script concatenation.
-			$is_deferred_or_async = $this->is_non_blocking_strategy( $strategy );
+			$is_deferred_or_async = $this->is_delayed_strategy( $strategy );
 
 			if (
 				$this->in_default_dir( $srce )
@@ -794,7 +794,7 @@ JS;
 	 * @return bool True on success, false on failure.
 	 */
 	public function add_data( $handle, $key, $value ) {
-		if ( 'strategy' === $key && ! $this->is_valid_strategy( $value ) ) {
+		if ( 'strategy' === $key && ! empty( $value ) && ! $this->is_delayed_strategy( $value ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
@@ -822,7 +822,7 @@ JS;
 			// Non-standalone scripts in the after position, of type async or defer, are usually delayed.
 			$strategy = $this->get_data( $handle, 'strategy' );
 			if (
-				$this->is_non_blocking_strategy( $strategy )
+				$this->is_delayed_strategy( $strategy )
 				&& $this->has_non_standalone_inline_script( $handle, 'after' )
 			) {
 				return true;
@@ -861,33 +861,19 @@ JS;
 	}
 
 	/**
-	 * Determines whether a script loading strategy is valid.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @param string $strategy A script loading strategy.
-	 * @return bool True if the strategy is valid, false otherwise.
-	 */
-	private function is_valid_strategy( $strategy ) {
-		return in_array(
-			$strategy,
-			$this->allowed_strategies,
-			true
-		);
-	}
-
-	/**
-	 * Checks if the strategy passed is a non-blocking strategy.
+	 * Checks if the strategy passed is a valid delayed (non-blocking) strategy.
 	 *
 	 * @since 6.3.0
 	 *
 	 * @param string $strategy The strategy to check.
 	 * @return bool True if $strategy is one of the delayed strategies, otherwise false.
 	 */
-	private function is_non_blocking_strategy( $strategy ) {
-		$delayed_strategies = array( 'defer', 'async' );
-
-		return in_array( $strategy, $delayed_strategies, true );
+	private function is_delayed_strategy( $strategy ) {
+		return in_array(
+			$strategy,
+			$this->delayed_strategies,
+			true
+		);
 	}
 
 	/**
@@ -933,7 +919,7 @@ JS;
 		foreach ( $dependents as $dependent ) {
 			// If the dependent script is not using the defer or async strategy, no script in the chain is deferrable.
 			$strategy = $this->get_data( $dependent, 'strategy' );
-			if ( ! $this->is_non_blocking_strategy( $strategy ) ) {
+			if ( ! $this->is_delayed_strategy( $strategy ) ) {
 				return false;
 			}
 
@@ -966,22 +952,18 @@ JS;
 
 		$intended_strategy = $this->get_data( $handle, 'strategy' );
 
-		/*
-		 * Handle known blocking strategy scenarios.
-		 *
-		 * 1. When the 'strategy' script argument was not set.
-		 * 2. When the 'strategy' script argument was explicitly set to 'blocking'.
-		 */
-		if ( empty( $intended_strategy ) || 'blocking' === $intended_strategy ) {
+		// Handle known blocking strategy scenarios.
+		if ( empty( $intended_strategy ) ) {
 			return '';
 		}
 
 		// Handle async strategy scenarios.
+		// TODO: This needs to be updated to allow non-empty deps, but only if they are all async.
 		if ( 'async' === $intended_strategy && empty( $this->registered[ $handle ]->deps ) && empty( $this->get_dependents( $handle ) ) ) {
 			return 'async';
 		}
 
-		// Handling defer strategy scenarios.
+		// Handling defer strategy scenarios. (The intended strategy could actually be 'async' here.)
 		if ( $this->has_only_deferrable_dependents( $handle ) ) {
 			return 'defer';
 		}

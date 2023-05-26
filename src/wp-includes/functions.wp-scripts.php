@@ -172,7 +172,7 @@ function wp_add_inline_script( $handle, $data, $position = 'after', $standalone 
  *      Optional. An array of additional script loading strategies. Default empty array.
  *      Otherwise, it may be a boolean in which case it determines whether the script is printed in the footer. Default false.
  *
- *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
+ *      @type string    $strategy     Optional. If provided, may be either 'defer' or 'async'.
  *      @type bool      $in_footer    Optional. Whether to print the script in the footer. Default 'false'.
  * }
  * @return bool Whether the script has been registered. True on success, false on failure.
@@ -359,7 +359,7 @@ function wp_deregister_script( $handle ) {
  *      Optional. An array of additional script loading strategies. Default empty array.
  *      Otherwise, it may be a boolean in which case it determines whether the script is printed in the footer. Default false.
  *
- *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
+ *      @type string    $strategy     Optional. If provided, may be either 'defer' or 'async'.
  *      @type bool      $in_footer    Optional. Whether to print the script in the footer. Default 'false'.
  * }
  */
