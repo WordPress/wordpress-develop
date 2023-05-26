@@ -265,12 +265,11 @@ final class WP_Screen {
 				$in_admin = 'site';
 			}
 		} else {
+			$in_admin = 'site';
 			if ( defined( 'WP_NETWORK_ADMIN' ) && WP_NETWORK_ADMIN ) {
 				$in_admin = 'network';
 			} elseif ( defined( 'WP_USER_ADMIN' ) && WP_USER_ADMIN ) {
 				$in_admin = 'user';
-			} else {
-				$in_admin = 'site';
 			}
 		}
 
@@ -295,12 +294,12 @@ final class WP_Screen {
 				case 'post':
 					if ( isset( $_GET['post'] ) && isset( $_POST['post_ID'] ) && (int) $_GET['post'] !== (int) $_POST['post_ID'] ) {
 						wp_die( __( 'A post ID mismatch has been detected.' ), __( 'Sorry, you are not allowed to edit this item.' ), 400 );
-					} elseif ( isset( $_GET['post'] ) ) {
+					}
+					$post_id = 0;
+					if ( isset( $_GET['post'] ) ) {
 						$post_id = (int) $_GET['post'];
 					} elseif ( isset( $_POST['post_ID'] ) ) {
 						$post_id = (int) $_POST['post_ID'];
-					} else {
-						$post_id = 0;
 					}
 
 					if ( $post_id ) {
@@ -317,12 +316,14 @@ final class WP_Screen {
 						}
 					}
 					break;
+
 				case 'edit-tags':
 				case 'term':
 					if ( null === $post_type && is_object_in_taxonomy( 'post', $taxonomy ? $taxonomy : 'post_tag' ) ) {
 						$post_type = 'post';
 					}
 					break;
+
 				case 'upload':
 					$post_type = 'attachment';
 					break;
@@ -342,12 +343,14 @@ final class WP_Screen {
 
 				$id = $post_type;
 				break;
+
 			case 'edit':
 				if ( null === $post_type ) {
 					$post_type = 'post';
 				}
 				$id .= '-' . $post_type;
 				break;
+
 			case 'edit-tags':
 			case 'term':
 				if ( null === $taxonomy ) {
@@ -545,7 +548,7 @@ final class WP_Screen {
 	 * @param string       $option Option name.
 	 * @param string|false $key    Optional. Specific array key for when the option is an array.
 	 *                             Default false.
-	 * @return string The option value if set, null otherwise.
+	 * @return string|null The option value if set, null otherwise.
 	 */
 	public function get_option( $option, $key = false ) {
 		if ( ! isset( $this->_options[ $option ] ) ) {
