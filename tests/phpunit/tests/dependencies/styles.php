@@ -517,4 +517,98 @@ CSS;
 			$GLOBALS['wp_styles']->registered['wp-block-library']->src
 		);
 	}
+
+	/**
+	 * @ticket 58394
+	 *
+	 * @covers ::wp_maybe_inline_styles
+	 */
+	public function test_wp_maybe_inline_styles() {
+		wp_register_style( 'test-handle', '/' . WPINC . '/css/classic-themes.css' );
+		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/classic-themes.css' );
+
+		wp_enqueue_style( 'test-handle' );
+
+		wp_maybe_inline_styles();
+
+		$this->assertFalse( $GLOBALS['wp_styles']->registered['test-handle']->src, 'Source of style should be reset to false' );
+		$this->assertNotEmpty( $GLOBALS['wp_styles']->registered['test-handle']->extra['after'], 'Source of style should set to after property' );
+	}
+
+	/**
+	 * @ticket 58394
+	 *
+	 * @covers ::wp_maybe_inline_styles
+	 */
+	public function test_wp_maybe_inline_styles_multiple_runs() {
+		$filter = new MockAction();
+		add_filter( 'pre_wp_filesize', array( $filter, 'filter' ) );
+		wp_register_style( 'test-handle', '/' . WPINC . '/css/classic-themes.css' );
+		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/classic-themes.css' );
+
+		wp_enqueue_style( 'test-handle' );
+
+		wp_maybe_inline_styles();
+
+		$this->assertFalse( $GLOBALS['wp_styles']->registered['test-handle']->src, 'Source of style should be reset to false' );
+		$this->assertNotEmpty( $GLOBALS['wp_styles']->registered['test-handle']->extra['after'], 'Source of style should set to after property' );
+
+		wp_maybe_inline_styles();
+
+		$this->assertSame( 1, $filter->get_call_count(), 'wp_filesize should only be called once' );
+	}
+
+	/**
+	 * @ticket 58394
+	 *
+	 * @covers ::wp_maybe_inline_styles
+	 */
+	public function test_wp_maybe_inline_styles_invalid() {
+		$filter = new MockAction();
+		add_filter( 'pre_wp_filesize', array( $filter, 'filter' ) );
+		$url = '/' . WPINC . '/css/invalid.css';
+		wp_register_style( 'test-handle', $url );
+		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/invalid.css' );
+
+		wp_enqueue_style( 'test-handle' );
+
+		wp_maybe_inline_styles();
+
+		$this->assertStringContainsString( $GLOBALS['wp_styles']->registered['test-handle']->src, $url, 'Source should not change' );
+		$this->assertArrayNotHasKey( 'after', $GLOBALS['wp_styles']->registered['test-handle']->extra, 'Source of style not should set to after property' );
+		$this->assertSame( 1, $filter->get_call_count(), 'wp_filesize should only be called once' );
+	}
+
+	/**
+	 * @ticket 58394
+	 *
+	 * @covers ::wp_maybe_inline_styles
+	 */
+	public function test_wp_maybe_inline_styles_no_src() {
+		wp_register_style( 'test-handle', false );
+		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/classic-themes.css' );
+
+		wp_enqueue_style( 'test-handle' );
+
+		wp_maybe_inline_styles();
+
+		$this->assertFalse( $GLOBALS['wp_styles']->registered['test-handle']->src, 'Source of style should be reset to false' );
+		$this->assertArrayNotHasKey( 'after', $GLOBALS['wp_styles']->registered['test-handle']->extra, 'Source of style not should set to after property' );
+	}
+
+	/**
+	 * @ticket 58394
+	 *
+	 * @covers ::wp_maybe_inline_styles
+	 */
+	public function test_wp_maybe_inline_styles_no_path() {
+		$url = '/' . WPINC . '/css/classic-themes.css';
+		wp_register_style( 'test-handle', $url );
+
+		wp_enqueue_style( 'test-handle' );
+
+		wp_maybe_inline_styles();
+
+		$this->assertStringContainsString( $GLOBALS['wp_styles']->registered['test-handle']->src, $url );
+	}
 }
