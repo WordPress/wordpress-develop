@@ -186,6 +186,7 @@ if ( ! is_multisite() && defined( 'WPLANG' ) && '' !== WPLANG && 'en_US' !== WPL
 	$languages[] = WPLANG;
 }
 if ( ! empty( $languages ) || ! empty( $translations ) ) {
+	$show_available_translations = current_user_can('install_languages') && wp_can_install_language_pack();
 	?>
 	<tr>
 		<th scope="row"><label for="WPLANG"><?php _e( 'Site Language' ); ?><span class="dashicons dashicons-translation" aria-hidden="true"></span></label></th>
@@ -203,7 +204,7 @@ if ( ! empty( $languages ) || ! empty( $translations ) ) {
 					'selected'                    => $locale,
 					'languages'                   => $languages,
 					'translations'                => $translations,
-					'show_available_translations' => current_user_can( 'install_languages' ) && wp_can_install_language_pack(),
+					'show_available_translations' => $show_available_translations,
 				)
 			);
 
@@ -235,7 +236,7 @@ if ( ! empty( $languages ) || ! empty( $translations ) ) {
 							'selected'                    => $admin_locale,
 							'languages'                   => $languages,
 							'translations'                => $translations,
-							'show_available_translations' => current_user_can( 'install_languages' ) && wp_can_install_language_pack(),
+							'show_available_translations' => $show_available_translations,
 					)
 			);
 			?>

@@ -2224,6 +2224,19 @@ function register_initial_settings() {
 	);
 
 	register_setting(
+		'general',
+		'admin_locale',
+		array(
+			'show_in_rest' => array(
+				'name' => 'language',
+			),
+			'type'         => 'string',
+			'description'  => __( 'WordPress admin locale code.' ),
+			'default'      => 'en_US',
+		)
+	);
+
+	register_setting(
 		'writing',
 		'use_smilies',
 		array(
