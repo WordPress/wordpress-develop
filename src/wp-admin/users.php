@@ -250,7 +250,7 @@ switch ( $wp_list_table->current_action() ) {
 
 			// Send the password reset link.
 			$user = get_userdata( $id );
-			if ( retrieve_password( $user->user_login ) ) {
+			if ( ! is_wp_error( retrieve_password( $user->user_login ) ) ) {
 				++$reset_count;
 			}
 		}
@@ -565,13 +565,14 @@ switch ( $wp_list_table->current_action() ) {
 					break;
 				case 'resetpassword':
 					$reset_count = isset( $_GET['reset_count'] ) ? (int) $_GET['reset_count'] : 0;
+					$notice_type = $reset_count >= 1 ? 'updated' : 'error';
 					if ( 1 === $reset_count ) {
 						$message = __( 'Password reset link sent.' );
 					} else {
 						/* translators: %s: Number of users. */
 						$message = _n( 'Password reset links sent to %s user.', 'Password reset links sent to %s users.', $reset_count );
 					}
-					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $reset_count ) ) . '</p></div>';
+					$messages[] = '<div id="message" class="notice is-dismissible ' . esc_attr( $notice_type ) . '"><p>' . sprintf( $message, number_format_i18n( $reset_count ) ) . '</p></div>';
 					break;
 				case 'promote':
 					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . __( 'Changed roles.' ) . '</p></div>';
