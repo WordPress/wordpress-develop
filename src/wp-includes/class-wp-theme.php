@@ -363,8 +363,7 @@ final class WP_Theme implements ArrayAccess {
 			$theme_path     = $this->theme_root . '/' . $this->stylesheet;
 
 			if (
-				! file_exists( $theme_path . '/templates/index.html' )
-				&& ! file_exists( $theme_path . '/block-templates/index.html' ) // Deprecated path support since 5.9.0.
+				! $this->is_block_theme()
 				&& ! file_exists( $theme_path . '/index.php' )
 			) {
 				$error_message = sprintf(
