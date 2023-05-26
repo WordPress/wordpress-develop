@@ -91,6 +91,9 @@ module.exports = function(grunt) {
 	// Load PostCSS tasks.
 	grunt.loadNpmTasks('@lodder/grunt-postcss');
 
+	// Load babel tasks.
+	grunt.loadNpmTasks('grunt-babel');
+
 	// Project configuration.
 	grunt.initConfig({
 		postcss: {
@@ -234,7 +237,6 @@ module.exports = function(grunt) {
 						// Renamed to avoid conflict with jQuery hoverIntent.min.js (after minifying).
 						[ WORKING_DIR + 'wp-includes/js/hoverintent-js.min.js' ]: [ './node_modules/hoverintent/dist/hoverintent.min.js' ],
 
-						[ WORKING_DIR + 'wp-includes/js/imagesloaded.min.js' ]: [ './node_modules/imagesloaded/imagesloaded.pkgd.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.js' ]: [ './node_modules/jquery/dist/jquery.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.min.js' ]: [ './node_modules/jquery/dist/jquery.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js' ]: [ './node_modules/jquery-form/src/jquery.form.js' ],
@@ -803,6 +805,10 @@ module.exports = function(grunt) {
 				src: WORKING_DIR + 'wp-includes/js/dist/vendor/moment.js',
 				dest: WORKING_DIR + 'wp-includes/js/dist/vendor/moment.min.js'
 			},
+			imagesloaded: {
+				src: WORKING_DIR + 'wp-includes/js/imagesloaded.min.js',
+				dest: WORKING_DIR + 'wp-includes/js/imagesloaded.min.js'
+			},
 			dynamic: {
 				expand: true,
 				cwd: WORKING_DIR,
@@ -844,6 +850,18 @@ module.exports = function(grunt) {
 				],
 				dest: WORKING_DIR + 'wp-includes/js/wp-emoji-release.min.js'
 			}
+		},
+		babel: {
+			options: {
+				presets: ['@babel/preset-env'],
+				targets: '> 0.25%, not dead'
+			},
+			imagesloaded: {
+				files: {
+					[ WORKING_DIR + 'wp-includes/js/imagesloaded.min.js' ]: './node_modules/imagesloaded/imagesloaded.js'
+				}
+			}
+
 		},
 		patch:{
 			options: {
@@ -1475,7 +1493,8 @@ module.exports = function(grunt) {
 		'uglify:jquery-ui',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
-		'uglify:moment'
+		'uglify:moment',
+		'uglify:imagesloaded'
 	] );
 
 	grunt.registerTask( 'build:webpack', [
@@ -1487,6 +1506,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'build:js', [
 		'clean:js',
 		'build:webpack',
+		'babel:imagesloaded',
 		'copy:js',
 		'file_append',
 		'uglify:all',
