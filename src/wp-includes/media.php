@@ -5716,9 +5716,6 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 
 	$img_size = $attr['width'] * $attr['height'];
 
-	// To keep a track of LCP image.
-	static $possible_lcp_candidate = true;
-
 	// Do not lazy-load images in the header block template part, as they are likely above the fold.
 	// For classic themes, this is handled in the condition below using the 'get_header' action.
 	$header_area = WP_TEMPLATE_PART_AREA_HEADER;
@@ -5727,9 +5724,10 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			// Large images in header must increase the media count.
 			wp_increase_content_media_count();
 
-			if ( $possible_lcp_candidate ) {
+			// First large images is assigned fetchpriority='high'
+			if ( wp_maybe_fetchpriority_high_media() ) {
 				$loading_attrs['fetchpriority'] = 'high';
-				$possible_lcp_candidate         = false;
+				wp_maybe_fetchpriority_high_media( false );
 			}
 		}
 		return $loading_attrs;
@@ -5746,9 +5744,9 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		if ( doing_filter( 'the_content' ) ) {
 			if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size ) {
 				wp_increase_content_media_count();
-				if ( $possible_lcp_candidate ) {
+				if ( wp_maybe_fetchpriority_high_media() ) {
 					$loading_attrs['fetchpriority'] = 'high';
-					$possible_lcp_candidate         = false;
+					wp_maybe_fetchpriority_high_media( false );
 				}
 			}
 			return $loading_attrs;
@@ -5767,10 +5765,9 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		) {
 			if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size ) {
 				wp_increase_content_media_count();
-
-				if ( $possible_lcp_candidate ) {
+				if ( wp_maybe_fetchpriority_high_media() ) {
 					$loading_attrs['fetchpriority'] = 'high';
-					$possible_lcp_candidate         = false;
+					wp_maybe_fetchpriority_high_media( false );
 				}
 			}
 			return $loading_attrs;
@@ -5791,11 +5788,11 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		// Increase the counter since this is a main query content element.
 		$content_media_count = wp_increase_content_media_count();
 
-		// If the count so far is below the threshold, `loading` attribute is omitted. However, t
+		// If the count so far is below the threshold, `loading` attribute is omitted.
 		if ( $content_media_count <= wp_omit_loading_attr_threshold() ) {
-			if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size && $possible_lcp_candidate ) {
+			if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size && wp_maybe_fetchpriority_high_media() ) {
 				$loading_attrs['fetchpriority'] = 'high';
-				$possible_lcp_candidate         = false;
+				wp_maybe_fetchpriority_high_media( false );
 			}
 			return $loading_attrs;
 		}
@@ -5855,4 +5852,22 @@ function wp_increase_content_media_count( $amount = 1 ) {
 	$content_media_count += $amount;
 
 	return $content_media_count;
+}
+
+/**
+ * If the media is a possible candidate for fetchpriority='high'.
+ *
+ * @since 6.3.0
+ * @access private
+ *
+ * @param bool $value Optional. Used to change the static variable. Default null.
+ * @return bool $maybe_fetchpriority_high_media Return true if no other LCP candidate image found yet else false.
+ */
+function wp_maybe_fetchpriority_high_media( $value = null ) {
+	static $maybe_fetchpriority_high_media = true;
+
+	if ( isset( $value ) && is_bool( $value ) ) {
+		$maybe_fetchpriority_high_media = $value;
+	}
+	return $maybe_fetchpriority_high_media;
 }
