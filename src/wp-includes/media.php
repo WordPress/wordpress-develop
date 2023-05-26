@@ -2048,10 +2048,17 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 			__( 'An image cannot be lazy-loaded and assigned fetchpriority="high" at the same time.' ),
 			'6.3.0'
 		);
-		return false;
+		return $image;
 	}
 
-	if ( false === strpos( $image, ' loading=' ) && isset( $optimization_attrs['loading'] ) && $optimization_attrs['loading'] ) {
+	// Retained for backward compatibility.
+	$add_img_loading_att = wp_lazy_loading_enabled( 'img', $context );
+
+	if (
+		$add_img_loading_att &&
+		false === strpos( $image, ' loading=' ) &&
+		isset( $optimization_attrs['loading'] ) && $optimization_attrs['loading']
+	) {
 		$image = str_replace( '<img', '<img loading="' . esc_attr( $optimization_attrs['loading'] ) . '"', $image );
 	}
 
