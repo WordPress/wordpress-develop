@@ -816,6 +816,7 @@ EXP;
 	 *
 	 * @covers WP_Scripts::add_data
 	 * @covers ::wp_register_script
+	 * @covers ::wp_enqueue_script
 	 * @ticket 12009
 	 */
 	public function test_script_strategy_doing_it_wrong_via_register() {
@@ -836,7 +837,9 @@ EXP;
 	 * For an invalid strategy defined during script registration, default to a blocking strategy.
 	 *
 	 * @covers WP_Scripts::add_data
+	 * @covers ::wp_script_add_data
 	 * @covers ::wp_register_script
+	 * @covers ::wp_enqueue_script
 	 * @ticket 12009
 	 */
 	public function test_script_strategy_doing_it_wrong_via_add_data() {
