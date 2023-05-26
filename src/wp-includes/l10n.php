@@ -137,20 +137,21 @@ function determine_locale() {
 	}
 
 	if (
+		isset( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] &&
+		( ! empty( $_GET['wp_lang'] ) || ! empty( $_COOKIE['wp_lang'] ) )
+	) {
+		if ( ! empty( $_GET['wp_lang'] ) ) {
+			$determined_locale = sanitize_locale_name( $_GET['wp_lang'] );
+		} else {
+			$determined_locale = sanitize_locale_name( $_COOKIE['wp_lang'] );
+		}
+	} else if (
 		( isset( $_GET['_locale'] ) && 'user' === $_GET['_locale'] && wp_is_json_request() ) ||
 		is_admin()
 	) {
 		$determined_locale = get_user_locale();
 	} else {
 		$determined_locale = get_locale();
-	}
-
-	if ( isset( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) {
-		if ( ! empty( $_GET['wp_lang'] ) ) {
-			$determined_locale = sanitize_locale_name( $_GET['wp_lang'] );
-		} elseif ( ! empty( $_COOKIE['wp_lang'] ) ) {
-			$determined_locale = sanitize_locale_name( $_COOKIE['wp_lang'] );
-		}
 	}
 
 	/**
