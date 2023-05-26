@@ -856,7 +856,7 @@ EXP;
 	}
 
 	/**
-	 * Test script strategy doing it wrong when calling wp_register_script().
+	 * Test script strategy doing it wrong when calling wp_enqueue_script().
 	 *
 	 * For an invalid strategy defined during script registration, default to a blocking strategy.
 	 *
