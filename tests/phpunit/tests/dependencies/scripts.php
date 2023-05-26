@@ -713,46 +713,100 @@ EXP;
 	}
 
 	/**
-	 * Test normalized script args.
+	 * Data provider for test_setting_in_footer_and_strategy.
 	 *
-	 * @ticket 12009
+	 * @return array[]
 	 */
-	public function test_get_normalized_script_args() {
-		global $wp_scripts;
+	public function get_data_for_test_setting_in_footer_and_strategy() {
+		return array(
+			// Passing in_footer and strategy via args array.
+			'async_footer_in_args_array'    => array(
+				'set_up'   => static function ( $handle ) {
+					$args = array(
+						'in_footer' => true,
+						'strategy'  => 'async',
+					);
+					wp_enqueue_script( $handle, '/footer-async.js', array(), null, $args );
+				},
+				'group'    => 1,
+				'strategy' => 'async',
+			),
 
-		// Passing in_footer and strategy via args array.
-		$args = array(
-			'in_footer' => true,
-			'strategy'  => 'async',
+			// Passing in_footer=true but no strategy.
+			'blocking_footer_in_args_array' => array(
+				'set_up'   => static function ( $handle ) {
+					wp_register_script( $handle, '/defaults.js', array(), null, array( 'in_footer' => true ) );
+				},
+				'group'    => 1,
+				'strategy' => false,
+			),
+
+			// Passing async strategy in script args array.
+			'async_in_args_array'           => array(
+				'set_up'   => static function ( $handle ) {
+					wp_register_script( $handle, '/defaults.js', array(), null, array( 'strategy' => 'async' ) );
+				},
+				'group'    => false,
+				'strategy' => 'async',
+			),
+
+			// Passing empty array as 5th arg.
+			'empty_args_array'              => array(
+				'set_up'   => static function ( $handle ) {
+					wp_register_script( $handle, '/defaults.js', array(), null, array() );
+				},
+				'group'    => false,
+				'strategy' => false,
+			),
+
+			// Passing no value as 5th arg.
+			'undefined_args_param'          => array(
+				'set_up'   => static function ( $handle ) {
+					wp_register_script( $handle, '/defaults.js', array(), null );
+				},
+				'group'    => false,
+				'strategy' => false,
+			),
+
+			// Test backward compatibility, passing $in_footer=true as 5th arg.
+			'passing_bool_as_args_param'    => array(
+				'set_up'   => static function ( $handle ) {
+					wp_enqueue_script( $handle, '/footer-async.js', array(), null, true );
+				},
+				'group'    => 1,
+				'strategy' => false,
+			),
+
+			// Test backward compatibility, passing $in_footer=true as 5th arg and setting strategy via wp_script_add_data().
+			'bool_as_args_and_add_data'     => array(
+				'set_up'   => static function ( $handle ) {
+					wp_register_script( $handle, '/footer-async.js', array(), null, true );
+					wp_script_add_data( $handle, 'strategy', 'defer' );
+				},
+				'group'    => 1,
+				'strategy' => 'defer',
+			),
 		);
-		wp_enqueue_script( 'footer-async', '/footer-async.js', array(), null, $args );
-		$this->assertSame( 1, $wp_scripts->get_data( 'footer-async', 'group' ) );
-		$this->assertSame( $args['strategy'], $wp_scripts->get_data( 'footer-async', 'strategy' ) );
+	}
 
-		// Passing in_footer=true via array.
-		wp_register_script( 'defaults-strategy', '/defaults.js', array(), null, array( 'in_footer' => true ) );
-		$this->assertSame( 1, $wp_scripts->get_data( 'defaults-strategy', 'group' ) );
-		$this->assertFalse( $wp_scripts->get_data( 'defaults-strategy', 'strategy' ) );
-
-		// Passing async strategy.
-		wp_register_script( 'defaults-in-footer', '/defaults.js', array(), null, array( 'strategy' => 'async' ) );
-		$this->assertFalse( $wp_scripts->get_data( 'defaults-in-footer', 'group' ) );
-		$this->assertSame( 'async', $wp_scripts->get_data( 'defaults-in-footer', 'strategy' ) );
-
-		// Passing empty array as 5th arg.
-		wp_register_script( 'empty-args-array', '/defaults.js', array(), null, array() );
-		$this->assertFalse( $wp_scripts->get_data( 'empty-args-array', 'group' ) );
-		$this->assertFalse( $wp_scripts->get_data( 'empty-args-array', 'strategy' ) );
-
-		// Test passing no 5th arg at all.
-		wp_register_script( 'no-args', '/defaults.js', array(), null );
-		$this->assertFalse( $wp_scripts->get_data( 'no-args', 'group' ) );
-		$this->assertFalse( $wp_scripts->get_data( 'no-args', 'strategy' ) );
-
-		// Test backward compatibility, passing $in_footer=true as 5th arg.
-		wp_enqueue_script( 'footer-old', '/footer-async.js', array(), null, true );
-		$this->assertSame( 1, $wp_scripts->get_data( 'footer-old', 'group' ) );
-		$this->assertFalse( $wp_scripts->get_data( 'footer-old', 'strategy' ) );
+	/**
+	 * Test setting in_footer and strategy.
+	 *
+	 * @dataProvider get_data_for_test_setting_in_footer_and_strategy
+	 * @ticket 12009
+	 * @covers ::wp_register_script
+	 * @covers ::wp_enqueue_script
+	 * @covers ::wp_script_add_data
+	 *
+	 * @param callable     $set_up            Set up.
+	 * @param int|false    $expected_group    Expected group.
+	 * @param string|false $expected_strategy Expected strategy.
+	 */
+	public function test_setting_in_footer_and_strategy( $set_up, $expected_group, $expected_strategy ) {
+		$handle = 'foo';
+		$set_up( $handle );
+		$this->assertSame( $expected_group, wp_scripts()->get_data( $handle, 'group' ) );
+		$this->assertSame( $expected_strategy, wp_scripts()->get_data( $handle, 'strategy' ) );
 	}
 
 	/**
