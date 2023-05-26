@@ -178,7 +178,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 
 		$this->assertSame( 'siteLocale', determine_locale() );
 	}
-	
+
 	public function test_wp_login_get_param_on_login_page() {
 		add_filter(
 			'locale',
