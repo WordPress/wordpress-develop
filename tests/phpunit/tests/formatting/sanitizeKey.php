@@ -2,6 +2,7 @@
 
 /**
  * @group formatting
+ *
  * @covers ::sanitize_key
  */
 class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {

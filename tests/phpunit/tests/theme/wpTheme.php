@@ -1,5 +1,5 @@
 <?php
-/**
+
 /**
  * Test WP_Theme class.
  *
@@ -9,6 +9,20 @@
  * @group themes
  */
 class Tests_Theme_wpTheme extends WP_UnitTestCase {
+
+	/**
+	 * Theme root directory.
+	 *
+	 * @var string
+	 */
+	private $theme_root;
+
+	/**
+	 * Original theme directory.
+	 *
+	 * @var string
+	 */
+	private $orig_theme_dir;
 
 	public function set_up() {
 		parent::set_up();
@@ -96,6 +110,20 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		// Important.
 		$this->assertSame( 'subdir/theme2', $theme->get_stylesheet() );
 		$this->assertSame( 'subdir/theme2', $theme->get_template() );
+	}
+
+	/**
+	 * Tests that WP_Theme::__construct() handles a numeric theme directory as a string.
+	 *
+	 * @ticket 54645
+	 *
+	 * @covers WP_Theme::__construct
+	 */
+	public function test_new_WP_Theme_numeric_theme_directory() {
+		$theme = new WP_Theme( 1234, $this->theme_root );
+
+		$this->assertSame( '1234', $theme->get_stylesheet(), 'The stylesheet property should be a string.' );
+		$this->assertSame( '1234', $theme->get_template(), 'The template property should be a string.' );
 	}
 
 	/**
@@ -262,6 +290,63 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57114
+	 *
+	 * @covers WP_Theme::is_block_theme
+	 *
+	 * @dataProvider data_is_block_theme
+	 */
+	public function test_is_block_theme_property( $theme_dir, $expected ) {
+		$theme = new WP_Theme( $theme_dir, $this->theme_root );
+		$theme->is_block_theme();
+		$reflection          = new ReflectionClass( $theme );
+		$reflection_property = $reflection->getProperty( 'block_theme' );
+		$reflection_property->setAccessible( true );
+
+		$this->assertSame( $expected, $reflection_property->getValue( $theme ) );
+	}
+
+	/**
+	 * @ticket 57114
+	 *
+	 * @covers WP_Theme::is_block_theme
+	 * @covers WP_Theme::cache_get
+	 */
+	public function test_is_block_theme_check_cache() {
+		$filter = new MockAction();
+		add_filter( 'theme_file_path', array( $filter, 'filter' ) );
+
+		$theme1 = new WP_Theme( 'block-theme', $this->theme_root );
+		// First run.
+		$this->assertTrue( $theme1->is_block_theme(), 'is_block_theme should return true on first run' );
+
+		$theme2 = new WP_Theme( 'block-theme', $this->theme_root );
+		// Second run.
+		$this->assertTrue( $theme2->is_block_theme(), 'is_block_theme should return true on second run' );
+		$this->assertCount( 0, $filter->get_events(), 'Should only be 0, as second run should be cached' );
+	}
+
+	/**
+	 * @ticket 57114
+	 *
+	 * @covers WP_Theme::is_block_theme
+	 * @covers WP_Theme::cache_delete
+	 */
+	public function test_is_block_theme_delete_cache() {
+		$filter = new MockAction();
+		add_filter( 'theme_file_path', array( $filter, 'filter' ) );
+
+		$theme = new WP_Theme( 'block-theme', $this->theme_root );
+		// First run.
+		$this->assertTrue( $theme->is_block_theme(), 'is_block_theme should return true on first run' );
+		// Clear cache.
+		$theme->cache_delete();
+		// Second run.
+		$this->assertTrue( $theme->is_block_theme(), 'is_block_theme should return true on second run' );
+		$this->assertCount( 2, $filter->get_events(), 'Should only be 4, as second run should not be cached' );
+	}
+
+	/**
 	 * Test get_files for an existing theme.
 	 *
 	 * @ticket 53599
@@ -390,5 +475,51 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 				'expected'  => '/block-theme/templates/page.html',
 			),
 		);
+	}
+
+	/**
+	 * Tests that the UpdateURI header is retrieved.
+	 *
+	 * @ticket 14179
+	 *
+	 * @covers WP_Theme::get
+	 */
+	public function test_theme_get_update_uri_header() {
+		$theme = new WP_Theme( 'update-uri-theme', $this->theme_root );
+
+		$this->assertTrue(
+			$theme->exists(),
+			'The update-uri-theme does not exist.'
+		);
+
+		$update_uri = $theme->get( 'UpdateURI' );
+
+		$this->assertIsString(
+			$update_uri,
+			'The UpdateURI header was not returned as a string.'
+		);
+
+		$this->assertSame(
+			'http://example.org/update-uri-theme/',
+			$update_uri,
+			'The UpdateURI header did not match the expected value.'
+		);
+	}
+
+	/**
+	 * Tests that WP_Theme::sanitize_header() strips tags from the UpdateURI header.
+	 *
+	 * @ticket 14179
+	 *
+	 * @covers WP_Theme::sanitize_header
+	 */
+	public function test_should_strip_tags_from_update_uri_header() {
+		$theme           = new WP_Theme( 'twentytwentytwo', $this->theme_root );
+		$sanitize_header = new ReflectionMethod( $theme, 'sanitize_header' );
+		$sanitize_header->setAccessible( true );
+
+		$actual = $sanitize_header->invoke( $theme, 'UpdateURI', '<?php?><a href="http://example.org">http://example.org</a>' );
+
+		$this->assertSame( 'http://example.org', $actual );
 	}
 }

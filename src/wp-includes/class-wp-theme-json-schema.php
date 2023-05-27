@@ -17,6 +17,7 @@
  * @since 5.9.0
  * @access private
  */
+#[AllowDynamicProperties]
 class WP_Theme_JSON_Schema {
 
 	/**
@@ -137,8 +138,6 @@ class WP_Theme_JSON_Schema {
 	 *
 	 * @param array $settings Reference to the current settings array.
 	 * @param array $path Path to the property to be removed.
-	 *
-	 * @return void
 	 */
 	private static function unset_setting_by_path( &$settings, $path ) {
 		$tmp_settings = &$settings; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable

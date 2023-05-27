@@ -35,7 +35,7 @@ module.exports = function( env = { environment: 'production', buildTarget: false
 				'@pmmmwh/react-refresh-webpack-plugin/client/ReactRefreshEntry.js',
 			},
 			plugins: [ new DependencyExtractionWebpackPlugin( {
-				outputFilename: '../../../assets/script-loader-[name].php',
+				outputFilename: `../../../assets/script-loader-[name]${ suffix }.php`,
 			} ) ],
 		},
 		{
@@ -53,7 +53,7 @@ module.exports = function( env = { environment: 'production', buildTarget: false
 			plugins: [
 				new DependencyExtractionWebpackPlugin( {
 					useDefaults: false,
-					outputFilename: '../../../assets/script-loader-[name].php'
+					outputFilename: `../../../assets/script-loader-[name]${ suffix }.php`
 				} ),
 			],
 		},

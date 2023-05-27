@@ -18,6 +18,7 @@
  *
  * @since 2.8.0
  */
+#[AllowDynamicProperties]
 class WP_Http_Cookie {
 
 	/**
@@ -135,7 +136,7 @@ class WP_Http_Cookie {
 			foreach ( $pairs as $pair ) {
 				$pair = rtrim( $pair );
 
-				// Handle the cookie ending in ; which results in a empty final pair.
+				// Handle the cookie ending in ; which results in an empty final pair.
 				if ( empty( $pair ) ) {
 					continue;
 				}

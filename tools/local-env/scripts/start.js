@@ -4,12 +4,22 @@ const { execSync } = require( 'child_process' );
 
 dotenvExpand.expand( dotenv.config() );
 
-if ( process.arch === 'arm64' ) {
-	process.env.LOCAL_DB_TYPE = `amd64/${process.env.LOCAL_DB_TYPE}`;
+// Check if the Docker service is running.
+try {
+	execSync( 'docker info' );
+} catch ( e ) {
+	if ( e.message.startsWith( 'Command failed: docker info' ) ) {
+		throw new Error( 'Could not retrieve Docker system info. Is the Docker service running?' );
+	}
+
+	throw e;
 }
 
 // Start the local-env containers.
-execSync( 'docker-compose up -d wordpress-develop', { stdio: 'inherit' } );
+const containers = ( process.env.LOCAL_PHP_MEMCACHED === 'true' )
+	? 'wordpress-develop memcached'
+	: 'wordpress-develop';
+execSync( `docker-compose up -d ${containers}`, { stdio: 'inherit' } );
 
 // If Docker Toolbox is being used, we need to manually forward LOCAL_PORT to the Docker VM.
 if ( process.env.DOCKER_TOOLBOX_INSTALL_PATH ) {

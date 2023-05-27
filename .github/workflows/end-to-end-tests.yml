@@ -8,8 +8,10 @@ on:
       - '5.[3-9]'
       - '[6-9].[0-9]'
     tags:
-      - '5.[3-9]*'
-      - '[6-9].[0-9]*'
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
+      - '![34].[0-9].[0-9]+'
+      - '!5.[0-2].[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -24,6 +26,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 env:
   LOCAL_DIR: build
 
@@ -33,12 +39,11 @@ jobs:
   # Performs the following steps:
   # - Sets environment variables.
   # - Checks out the repository.
+  # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
-  # - Installs NodeJS.
-  # _ Installs NPM dependencies.
+  # - Installs npm dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Starts the WordPress Docker container.
-  # - Logs general debug information.
   # - Logs the running Docker containers.
   # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container).
   # - Install WordPress within the Docker container.
@@ -47,6 +52,8 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
@@ -57,7 +64,13 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
 
       - name: Log debug information
         run: |
@@ -66,17 +79,9 @@ jobs:
           curl --version
           git --version
           svn --version
-          php --version
-          php -i
           locale -a
 
-      - name: Install NodeJS
-        uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd # v3.3.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Install Dependencies
+      - name: Install npm Dependencies
         run: npm ci
 
       - name: Build WordPress
@@ -85,14 +90,6 @@ jobs:
       - name: Start Docker environment
         run: |
           npm run env:start
-
-      - name: General debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
-          svn --version
 
       - name: Log running Docker containers
         run: docker ps -a
@@ -119,6 +116,9 @@ jobs:
   slack-notifications:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    permissions:
+      actions: read
+      contents: read
     needs: [ e2e-tests ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
@@ -128,3 +128,35 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    needs: [ e2e-tests, slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        needs.e2e-tests.result == 'cancelled' || needs.e2e-tests.result == 'failure'
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: '${{ github.run_id }}'
+              }
+            });

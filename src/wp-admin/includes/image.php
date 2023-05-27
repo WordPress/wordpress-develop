@@ -475,7 +475,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 }
 
 /**
- * Generate attachment meta data and create image sub-sizes for images.
+ * Generates attachment meta data and create image sub-sizes for images.
  *
  * @since 2.1.0
  * @since 6.0.0 The `$filesize` value was added to the returned array.
@@ -659,7 +659,7 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 }
 
 /**
- * Convert a fraction string to a decimal.
+ * Converts a fraction string to a decimal.
  *
  * @since 2.5.0
  *
@@ -700,7 +700,7 @@ function wp_exif_frac2dec( $str ) {
 }
 
 /**
- * Convert the exif date format to a unix timestamp.
+ * Converts the exif date format to a unix timestamp.
  *
  * @since 2.5.0
  *
@@ -715,7 +715,7 @@ function wp_exif_date2ts( $str ) {
 }
 
 /**
- * Get extended image metadata, exif or iptc as available.
+ * Gets extended image metadata, exif or iptc as available.
  *
  * Retrieves the EXIF metadata aperture, credit, camera, caption, copyright, iso
  * created_timestamp, focal_length, shutter_speed, and title.
@@ -949,7 +949,7 @@ function wp_read_image_metadata( $file ) {
 }
 
 /**
- * Validate that file is an image.
+ * Validates that file is an image.
  *
  * @since 2.5.0
  *
@@ -962,7 +962,7 @@ function file_is_valid_image( $path ) {
 }
 
 /**
- * Validate that file is suitable for displaying within a web page.
+ * Validates that file is suitable for displaying within a web page.
  *
  * @since 2.5.0
  *
@@ -993,7 +993,7 @@ function file_is_displayable_image( $path ) {
 }
 
 /**
- * Load an image resource for editing.
+ * Loads an image resource for editing.
  *
  * @since 2.9.0
  *
@@ -1054,7 +1054,7 @@ function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
 }
 
 /**
- * Retrieve the path or URL of an attachment's attached file.
+ * Retrieves the path or URL of an attachment's attached file.
  *
  * If the attached file is not present on the local filesystem (usually due to replication plugins),
  * then the URL of the file is returned if `allow_url_fopen` is supported.
@@ -1122,7 +1122,7 @@ function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {
 }
 
 /**
- * Copy an existing image file.
+ * Copies an existing image file.
  *
  * @since 3.4.0
  * @access private

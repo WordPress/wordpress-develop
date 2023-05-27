@@ -579,4 +579,59 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 		$this->go_to( get_the_permalink( self::$post_with_comment_id ) );
 		$this->assertNotEmpty( get_echo( 'feed_links_extra' ) );
 	}
+
+	/**
+	 * @dataProvider data_feed_links_extra_should_output_nothing_when_filters_return_false
+	 *
+	 * @ticket 55904
+	 *
+	 * @param string $type   The name of the test class property containing the object ID.
+	 * @param string $filter The name of the filter to set to false.
+	 */
+	public function test_feed_links_extra_should_output_nothing_when_filters_return_false( $type, $filter ) {
+		$permalink = $this->helper_get_the_permalink( $type );
+		$this->go_to( $permalink );
+
+		add_filter( $filter, '__return_false' );
+
+		$this->assertEmpty( get_echo( 'feed_links_extra' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_feed_links_extra_should_output_nothing_when_filters_return_false() {
+		return array(
+			'a post with a comment' => array(
+				'type'   => 'post_with_comment',
+				'filter' => 'feed_links_extra_show_post_comments_feed',
+			),
+			'a custom post type'    => array(
+				'type'   => 'post_type',
+				'filter' => 'feed_links_extra_show_post_type_archive_feed',
+			),
+			'a category'            => array(
+				'type'   => 'category',
+				'filter' => 'feed_links_extra_show_category_feed',
+			),
+			'a tag'                 => array(
+				'type'   => 'tag',
+				'filter' => 'feed_links_extra_show_tag_feed',
+			),
+			'a taxonomy'            => array(
+				'type'   => 'tax',
+				'filter' => 'feed_links_extra_show_tax_feed',
+			),
+			'an author'             => array(
+				'type'   => 'author',
+				'filter' => 'feed_links_extra_show_author_feed',
+			),
+			'search results'        => array(
+				'type'   => 'search',
+				'filter' => 'feed_links_extra_show_search_feed',
+			),
+		);
+	}
 }

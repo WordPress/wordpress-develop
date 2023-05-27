@@ -457,7 +457,7 @@ function search_theme_directories( $force = false ) {
 	 * to use in get_theme_root().
 	 */
 	foreach ( $wp_theme_directories as $theme_root ) {
-		if ( 0 === strpos( $theme_root, WP_CONTENT_DIR ) ) {
+		if ( str_starts_with( $theme_root, WP_CONTENT_DIR ) ) {
 			$relative_theme_roots[ str_replace( WP_CONTENT_DIR, '', $theme_root ) ] = $theme_root;
 		} else {
 			$relative_theme_roots[ $theme_root ] = $theme_root;
@@ -634,11 +634,11 @@ function get_theme_root_uri( $stylesheet_or_template = '', $theme_root = '' ) {
 	if ( $stylesheet_or_template && $theme_root ) {
 		if ( in_array( $theme_root, (array) $wp_theme_directories, true ) ) {
 			// Absolute path. Make an educated guess. YMMV -- but note the filter below.
-			if ( 0 === strpos( $theme_root, WP_CONTENT_DIR ) ) {
+			if ( str_starts_with( $theme_root, WP_CONTENT_DIR ) ) {
 				$theme_root_uri = content_url( str_replace( WP_CONTENT_DIR, '', $theme_root ) );
-			} elseif ( 0 === strpos( $theme_root, ABSPATH ) ) {
+			} elseif ( str_starts_with( $theme_root, ABSPATH ) ) {
 				$theme_root_uri = site_url( str_replace( ABSPATH, '', $theme_root ) );
-			} elseif ( 0 === strpos( $theme_root, WP_PLUGIN_DIR ) || 0 === strpos( $theme_root, WPMU_PLUGIN_DIR ) ) {
+			} elseif ( str_starts_with( $theme_root, WP_PLUGIN_DIR ) || str_starts_with( $theme_root, WPMU_PLUGIN_DIR ) ) {
 				$theme_root_uri = plugins_url( basename( $theme_root ), $theme_root );
 			} else {
 				$theme_root_uri = $theme_root;
@@ -733,11 +733,12 @@ function locale_stylesheet() {
  * @global array                $wp_theme_directories
  * @global WP_Customize_Manager $wp_customize
  * @global array                $sidebars_widgets
+ * @global array                $wp_registered_sidebars
  *
  * @param string $stylesheet Stylesheet name.
  */
 function switch_theme( $stylesheet ) {
-	global $wp_theme_directories, $wp_customize, $sidebars_widgets;
+	global $wp_theme_directories, $wp_customize, $sidebars_widgets, $wp_registered_sidebars;
 
 	$requirements = validate_theme_requirements( $stylesheet );
 	if ( is_wp_error( $requirements ) ) {
@@ -814,10 +815,17 @@ function switch_theme( $stylesheet ) {
 		}
 	}
 
+	// Stores classic sidebars for later use by block themes.
+	if ( $new_theme->is_block_theme() ) {
+		set_theme_mod( 'wp_classic_sidebars', $wp_registered_sidebars );
+	}
+
 	update_option( 'theme_switched', $old_theme->get_stylesheet() );
 
 	/**
 	 * Fires after the theme is switched.
+	 *
+	 * See {@see 'after_switch_theme'}.
 	 *
 	 * @since 1.5.0
 	 * @since 4.5.0 Introduced the `$old_theme` parameter.
@@ -991,18 +999,18 @@ function get_theme_mods() {
 /**
  * Retrieves theme modification value for the active theme.
  *
- * If the modification name does not exist and `$default` is a string, then the
+ * If the modification name does not exist and `$default_value` is a string, then the
  * default will be passed through the {@link https://www.php.net/sprintf sprintf()}
  * PHP function with the template directory URI as the first value and the
  * stylesheet directory URI as the second value.
  *
  * @since 2.1.0
  *
- * @param string $name    Theme modification name.
- * @param mixed  $default Optional. Theme modification default value. Default false.
+ * @param string $name          Theme modification name.
+ * @param mixed  $default_value Optional. Theme modification default value. Default false.
  * @return mixed Theme modification value.
  */
-function get_theme_mod( $name, $default = false ) {
+function get_theme_mod( $name, $default_value = false ) {
 	$mods = get_theme_mods();
 
 	if ( isset( $mods[ $name ] ) ) {
@@ -1020,17 +1028,17 @@ function get_theme_mod( $name, $default = false ) {
 		return apply_filters( "theme_mod_{$name}", $mods[ $name ] );
 	}
 
-	if ( is_string( $default ) ) {
+	if ( is_string( $default_value ) ) {
 		// Only run the replacement if an sprintf() string format pattern was found.
-		if ( preg_match( '#(?<!%)%(?:\d+\$?)?s#', $default ) ) {
+		if ( preg_match( '#(?<!%)%(?:\d+\$?)?s#', $default_value ) ) {
 			// Remove a single trailing percent sign.
-			$default = preg_replace( '#(?<!%)%$#', '', $default );
-			$default = sprintf( $default, get_template_directory_uri(), get_stylesheet_directory_uri() );
+			$default_value = preg_replace( '#(?<!%)%$#', '', $default_value );
+			$default_value = sprintf( $default_value, get_template_directory_uri(), get_stylesheet_directory_uri() );
 		}
 	}
 
 	/** This filter is documented in wp-includes/theme.php */
-	return apply_filters( "theme_mod_{$name}", $default );
+	return apply_filters( "theme_mod_{$name}", $default_value );
 }
 
 /**
@@ -1179,6 +1187,20 @@ function get_header_image() {
 		$url = get_random_header_image();
 	}
 
+	/**
+	 * Filters the header image URL.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $url Header image URL.
+	 */
+	$url = apply_filters( 'get_header_image', $url );
+
+	if ( ! is_string( $url ) ) {
+		return false;
+	}
+
+	$url = trim( $url );
 	return sanitize_url( set_url_scheme( $url ) );
 }
 
@@ -1317,7 +1339,7 @@ function _get_random_header_data() {
 		}
 
 		if ( empty( $headers ) ) {
-			return new stdClass;
+			return new stdClass();
 		}
 
 		$_wp_random_header = (object) $headers[ array_rand( $headers ) ];
@@ -2054,7 +2076,8 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 			}
 
 			// Trigger creation of a revision. This should be removed once #30854 is resolved.
-			if ( 0 === count( wp_get_post_revisions( $r ) ) ) {
+			$revisions = wp_get_latest_revision_id_and_total_count( $r );
+			if ( ! is_wp_error( $revisions ) && 0 === $revisions['count'] ) {
 				wp_save_post_revision( $r );
 			}
 		}
@@ -3110,12 +3133,12 @@ function current_theme_supports( $feature, ...$args ) {
  *
  * @param string $feature The feature being checked. See add_theme_support() for the list
  *                        of possible values.
- * @param string $include Path to the file.
+ * @param string $file    Path to the file.
  * @return bool True if the active theme supports the supplied feature, false otherwise.
  */
-function require_if_theme_supports( $feature, $include ) {
+function require_if_theme_supports( $feature, $file ) {
 	if ( current_theme_supports( $feature ) ) {
-		require $include;
+		require $file;
 		return true;
 	}
 	return false;
@@ -3365,12 +3388,13 @@ function check_theme_switched() {
 
 		if ( $old_theme->exists() ) {
 			/**
-			 * Fires on the first WP load after a theme switch if the old theme still exists.
+			 * Fires on the next WP load after the theme has been switched.
 			 *
-			 * This action fires multiple times and the parameters differs
-			 * according to the context, if the old theme exists or not.
-			 * If the old theme is missing, the parameter will be the slug
+			 * The parameters differ according to whether the old theme exists or not.
+			 * If the old theme is missing, the old name will instead be the slug
 			 * of the old theme.
+			 *
+			 * See {@see 'switch_theme'}.
 			 *
 			 * @since 3.3.0
 			 *
@@ -3552,7 +3576,7 @@ function _wp_customize_publish_changeset( $new_status, $old_status, $changeset_p
 		remove_action( 'customize_register', array( $wp_customize, 'register_controls' ) );
 		$wp_customize->register_controls();
 
-		/** This filter is documented in /wp-includes/class-wp-customize-manager.php */
+		/** This filter is documented in wp-includes/class-wp-customize-manager.php */
 		do_action( 'customize_register', $wp_customize );
 	}
 	$wp_customize->_publish_changeset_values( $changeset_post->ID );
@@ -3604,7 +3628,7 @@ function _wp_customize_changeset_filter_insert_post_data( $post_data, $supplied_
 function _wp_customize_loader_settings() {
 	$admin_origin = parse_url( admin_url() );
 	$home_origin  = parse_url( home_url() );
-	$cross_domain = ( strtolower( $admin_origin['host'] ) != strtolower( $home_origin['host'] ) );
+	$cross_domain = ( strtolower( $admin_origin['host'] ) !== strtolower( $home_origin['host'] ) );
 
 	$browser = array(
 		'mobile' => wp_is_mobile(),
@@ -3669,7 +3693,7 @@ function wp_customize_url( $stylesheet = '' ) {
 function wp_customize_support_script() {
 	$admin_origin = parse_url( admin_url() );
 	$home_origin  = parse_url( home_url() );
-	$cross_domain = ( strtolower( $admin_origin['host'] ) != strtolower( $home_origin['host'] ) );
+	$cross_domain = ( strtolower( $admin_origin['host'] ) !== strtolower( $home_origin['host'] ) );
 	$type_attr    = current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"';
 	?>
 	<script<?php echo $type_attr; ?>>
@@ -3825,6 +3849,13 @@ function create_initial_theme_features() {
 		'block-templates',
 		array(
 			'description'  => __( 'Whether a theme uses block-based templates.' ),
+			'show_in_rest' => true,
+		)
+	);
+	register_theme_feature(
+		'block-template-parts',
+		array(
+			'description'  => __( 'Whether a theme uses block-based template parts.' ),
 			'show_in_rest' => true,
 		)
 	);
@@ -4012,6 +4043,13 @@ function create_initial_theme_features() {
 		)
 	);
 	register_theme_feature(
+		'disable-layout-styles',
+		array(
+			'description'  => __( 'Whether the theme disables generated layout styles.' ),
+			'show_in_rest' => true,
+		)
+	);
+	register_theme_feature(
 		'editor-color-palette',
 		array(
 			'type'         => 'array',
@@ -4189,6 +4227,21 @@ function wp_is_block_theme() {
 }
 
 /**
+ * Given an element name, returns a class name.
+ *
+ * Alias of WP_Theme_JSON::get_element_class_name.
+ *
+ * @since 6.1.0
+ *
+ * @param string $element The name of the element.
+ *
+ * @return string The name of the class.
+ */
+function wp_theme_get_element_class_name( $element ) {
+	return WP_Theme_JSON::get_element_class_name( $element );
+}
+
+/**
  * Adds default theme supports for block themes when the 'setup_theme' action fires.
  *
  * See {@see 'setup_theme'}.
@@ -4213,4 +4266,23 @@ function _add_default_theme_supports() {
 	add_theme_support( 'automatic-feed-links' );
 
 	add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+
+	/*
+	 * Remove the Customizer's Menus panel when block theme is active.
+	 */
+	add_filter(
+		'customize_panel_active',
+		static function ( $active, WP_Customize_Panel $panel ) {
+			if (
+				'nav_menus' === $panel->id &&
+				! current_theme_supports( 'menus' ) &&
+				! current_theme_supports( 'widgets' )
+			) {
+				$active = false;
+			}
+			return $active;
+		},
+		10,
+		2
+	);
 }

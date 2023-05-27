@@ -4,8 +4,8 @@ Theme URI: https://wordpress.org/themes/twentyeleven/
 Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: The 2011 theme for WordPress is sophisticated, lightweight, and adaptable. Make it yours with a custom menu, header image, and background -- then go further with available theme options for light or dark color scheme, custom link colors, and three layout choices. Twenty Eleven comes equipped with a Showcase page template that transforms your front page into a showcase to show off your best content, widget support galore (sidebar, three footer areas, and a Showcase page widget area), and a custom "Ephemera" widget to display your Aside, Link, Quote, or Status posts. Included are styles for print and for the admin editor, support for featured images (as custom header images on posts and pages and as large images on featured "sticky" posts), and special styles for six different post formats.
-Version: 4.1
-Tested up to: 6.0
+Version: 4.3
+Tested up to: 6.2
 Requires PHP: 5.2.4
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -1628,6 +1628,11 @@ section.feature-image.large img {
 	width: 14px;
 	height: 14px;
 }
+.feature-slider a .feature-slider-tooltip {
+	display: block;
+	width: 14px;
+	height: 14px;
+}
 .feature-slider a.active {
 	background: #1982d1;
 	-webkit-box-shadow: inset 1px 1px 5px rgba(0,0,0,0.4), inset 0 0 2px rgba(255,255,255,0.8);
@@ -2240,7 +2245,10 @@ a.comment-reply-link > span {
 	font-size: 22px;
 	font-weight: bold;
 }
-#respond .comment-form label .required {
+#respond .comment-form-author .required,
+#respond .comment-form-email .required,
+#respond .comment-form-url .required,
+#respond .comment-form-comment .required {
 	float: right;
 	margin-left: 4px;
 }
@@ -2615,10 +2623,6 @@ p.comment-form-comment {
 	/* Use the available space in the smaller comment form */
 	#respond input[type="text"] {
 		width: 95%;
-	}
-	#respond .comment-form-author .required,
-	#respond .comment-form-email .required {
-		left: 95%;
 	}
 	#content .gallery-columns-3 .gallery-item {
 		width: 31%;

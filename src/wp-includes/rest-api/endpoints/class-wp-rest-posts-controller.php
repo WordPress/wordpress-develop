@@ -167,7 +167,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Override the result of the post password check for REST requested posts.
+	 * Overrides the result of the post password check for REST requested posts.
 	 *
 	 * Allow users to read the content of password protected posts if they have
 	 * previously passed a permission check or if they have the `edit_post` capability
@@ -249,6 +249,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'parent'         => 'post_parent__in',
 			'parent_exclude' => 'post_parent__not_in',
 			'search'         => 's',
+			'search_columns' => 'search_columns',
 			'slug'           => 'post_name__in',
 			'status'         => 'post_status',
 		);
@@ -418,7 +419,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
 		$request_params = $request->get_query_params();
-		$base           = add_query_arg( urlencode_deep( $request_params ), rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ) );
+		$collection_url = rest_url( rest_get_route_for_post_type_items( $this->post_type ) );
+		$base           = add_query_arg( urlencode_deep( $request_params ), $collection_url );
 
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
@@ -441,7 +443,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Get the post, if the ID is valid.
+	 * Gets the post, if the ID is valid.
 	 *
 	 * @since 4.7.2
 	 *
@@ -653,6 +655,24 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$prepared_post->post_type = $this->post_type;
 
+		if ( ! empty( $prepared_post->post_name )
+			&& ! empty( $prepared_post->post_status )
+			&& in_array( $prepared_post->post_status, array( 'draft', 'pending' ), true )
+		) {
+			/*
+			 * `wp_unique_post_slug()` returns the same slug for 'draft' or 'pending' posts.
+			 *
+			 * To ensure that a unique slug is generated, pass the post data with the 'publish' status.
+			 */
+			$prepared_post->post_name = wp_unique_post_slug(
+				$prepared_post->post_name,
+				$prepared_post->id,
+				'publish',
+				$prepared_post->post_type,
+				$prepared_post->post_parent
+			);
+		}
+
 		$post_id = wp_insert_post( wp_slash( (array) $prepared_post ), true, false );
 
 		if ( is_wp_error( $post_id ) ) {
@@ -757,7 +777,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$response = rest_ensure_response( $response );
 
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $post_id ) ) );
+		$response->header( 'Location', rest_url( rest_get_route_for_post( $post ) ) );
 
 		return $response;
 	}
@@ -832,6 +852,28 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( is_wp_error( $post ) ) {
 			return $post;
+		}
+
+		if ( ! empty( $post->post_status ) ) {
+			$post_status = $post->post_status;
+		} else {
+			$post_status = $post_before->post_status;
+		}
+
+		/*
+		 * `wp_unique_post_slug()` returns the same slug for 'draft' or 'pending' posts.
+		 *
+		 * To ensure that a unique slug is generated, pass the post data with the 'publish' status.
+		 */
+		if ( ! empty( $post->post_name ) && in_array( $post_status, array( 'draft', 'pending' ), true ) ) {
+			$post_parent     = ! empty( $post->post_parent ) ? $post->post_parent : 0;
+			$post->post_name = wp_unique_post_slug(
+				$post->post_name,
+				$post->ID,
+				'publish',
+				$post->post_type,
+				$post_parent
+			);
 		}
 
 		// Convert the post object to an array, otherwise wp_update_post() will expect non-escaped input.
@@ -1454,7 +1496,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Check whether the template is valid for the given post.
+	 * Checks whether the template is valid for the given post.
 	 *
 	 * @since 4.9.0
 	 *
@@ -1756,7 +1798,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			 * with the site's timezone offset applied.
 			 */
 			if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
-				$post_modified_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $post->post_modified ) - ( get_option( 'gmt_offset' ) * 3600 ) );
+				$post_modified_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $post->post_modified ) - ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) );
 			} else {
 				$post_modified_gmt = $post->post_modified_gmt;
 			}
@@ -1933,16 +1975,18 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$links = $this->prepare_links( $post );
-		$response->add_links( $links );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$links = $this->prepare_links( $post );
+			$response->add_links( $links );
 
-		if ( ! empty( $links['self']['href'] ) ) {
-			$actions = $this->get_available_actions( $post, $request );
+			if ( ! empty( $links['self']['href'] ) ) {
+				$actions = $this->get_available_actions( $post, $request );
 
-			$self = $links['self']['href'];
+				$self = $links['self']['href'];
 
-			foreach ( $actions as $rel ) {
-				$response->add_link( $rel, $self );
+				foreach ( $actions as $rel ) {
+					$response->add_link( $rel, $self );
+				}
 			}
 		}
 
@@ -1990,15 +2034,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return array Links for the given post.
 	 */
 	protected function prepare_links( $post ) {
-		$base = sprintf( '%s/%s', $this->namespace, $this->rest_base );
-
 		// Entity meta.
 		$links = array(
 			'self'       => array(
-				'href' => rest_url( trailingslashit( $base ) . $post->ID ),
+				'href' => rest_url( rest_get_route_for_post( $post->ID ) ),
 			),
 			'collection' => array(
-				'href' => rest_url( $base ),
+				'href' => rest_url( rest_get_route_for_post_type_items( $this->post_type ) ),
 			),
 			'about'      => array(
 				'href' => rest_url( 'wp/v2/types/' . $this->post_type ),
@@ -2024,20 +2066,19 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( in_array( $post->post_type, array( 'post', 'page' ), true ) || post_type_supports( $post->post_type, 'revisions' ) ) {
-			$revisions       = wp_get_post_revisions( $post->ID, array( 'fields' => 'ids' ) );
-			$revisions_count = count( $revisions );
+			$revisions       = wp_get_latest_revision_id_and_total_count( $post->ID );
+			$revisions_count = ! is_wp_error( $revisions ) ? $revisions['count'] : 0;
+			$revisions_base  = sprintf( '/%s/%s/%d/revisions', $this->namespace, $this->rest_base, $post->ID );
 
 			$links['version-history'] = array(
-				'href'  => rest_url( trailingslashit( $base ) . $post->ID . '/revisions' ),
+				'href'  => rest_url( $revisions_base ),
 				'count' => $revisions_count,
 			);
 
 			if ( $revisions_count > 0 ) {
-				$last_revision = array_shift( $revisions );
-
 				$links['predecessor-version'] = array(
-					'href' => rest_url( trailingslashit( $base ) . $post->ID . '/revisions/' . $last_revision ),
-					'id'   => $last_revision,
+					'href' => rest_url( $revisions_base . '/' . $revisions['latest_id'] ),
+					'id'   => $revisions['latest_id'],
 				);
 			}
 		}
@@ -2101,7 +2142,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Get the link relations available for the post and current user.
+	 * Gets the link relations available for the post and current user.
 	 *
 	 * @since 4.9.8
 	 *
@@ -2589,7 +2630,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Retrieve Link Description Objects that should be added to the Schema for the posts collection.
+	 * Retrieves Link Description Objects that should be added to the Schema for the posts collection.
 	 *
 	 * @since 4.9.8
 	 *
@@ -2851,13 +2892,22 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$query_params['slug'] = array(
-			'description'       => __( 'Limit result set to posts with one or more specific slugs.' ),
-			'type'              => 'array',
-			'items'             => array(
+		$query_params['search_columns'] = array(
+			'default'     => array(),
+			'description' => __( 'Array of column names to be searched.' ),
+			'type'        => 'array',
+			'items'       => array(
+				'enum' => array( 'post_title', 'post_content', 'post_excerpt' ),
 				'type' => 'string',
 			),
-			'sanitize_callback' => 'wp_parse_slug_list',
+		);
+
+		$query_params['slug'] = array(
+			'description' => __( 'Limit result set to posts with one or more specific slugs.' ),
+			'type'        => 'array',
+			'items'       => array(
+				'type' => 'string',
+			),
 		);
 
 		$query_params['status'] = array(

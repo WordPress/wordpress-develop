@@ -266,8 +266,8 @@ function twentynineteen_scripts() {
 	wp_style_add_data( 'twentynineteen-style', 'rtl', 'replace' );
 
 	if ( has_nav_menu( 'menu-1' ) ) {
-		wp_enqueue_script( 'twentynineteen-priority-menu', get_theme_file_uri( '/js/priority-menu.js' ), array(), '20181214', true );
-		wp_enqueue_script( 'twentynineteen-touch-navigation', get_theme_file_uri( '/js/touch-keyboard-navigation.js' ), array(), '20181231', true );
+		wp_enqueue_script( 'twentynineteen-priority-menu', get_theme_file_uri( '/js/priority-menu.js' ), array(), '20200129', true );
+		wp_enqueue_script( 'twentynineteen-touch-navigation', get_theme_file_uri( '/js/touch-keyboard-navigation.js' ), array(), '20221101', true );
 	}
 
 	wp_enqueue_style( 'twentynineteen-print-style', get_template_directory_uri() . '/print.css', array(), wp_get_theme()->get( 'Version' ), 'print' );
@@ -284,6 +284,9 @@ add_action( 'wp_enqueue_scripts', 'twentynineteen_scripts' );
  * This does not enqueue the script because it is tiny and because it is only for IE11,
  * thus it does not warrant having an entire dedicated blocking script being loaded.
  *
+ * @since Twenty Nineteen 1.0
+ * @deprecated Twenty Nineteen 2.6 Removed from wp_print_footer_scripts action.
+ *
  * @link https://git.io/vWdr2
  */
 function twentynineteen_skip_link_focus_fix() {
@@ -294,7 +297,6 @@ function twentynineteen_skip_link_focus_fix() {
 	</script>
 	<?php
 }
-add_action( 'wp_print_footer_scripts', 'twentynineteen_skip_link_focus_fix' );
 
 /**
  * Enqueue supplemental block editor styles.

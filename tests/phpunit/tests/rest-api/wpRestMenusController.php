@@ -1,14 +1,10 @@
 <?php
 /**
- * WP_REST_Menus_Controller tests
+ * Unit tests covering WP_REST_Menus_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
  * @since 5.9.0
- */
-
-/**
- * Tests for REST API for Menus.
  *
  * @group restapi
  *
@@ -85,7 +81,7 @@ class Tests_REST_WpRestMenusController extends WP_Test_REST_Controller_Testcase 
 			'taxonomy'    => 'nav_menu',
 		);
 
-		$this->menu_id = $this->factory->term->create( $orig_args );
+		$this->menu_id = self::factory()->term->create( $orig_args );
 
 		register_meta(
 			'term',
@@ -133,7 +129,7 @@ class Tests_REST_WpRestMenusController extends WP_Test_REST_Controller_Testcase 
 		$this->assertSameSets( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
 		// Single.
-		$tag1     = $this->factory->tag->create( array( 'name' => 'Season 5' ) );
+		$tag1     = self::factory()->tag->create( array( 'name' => 'Season 5' ) );
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/menus/' . $tag1 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();

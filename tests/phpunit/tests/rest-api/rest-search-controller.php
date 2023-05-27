@@ -1,13 +1,9 @@
 <?php
 /**
- * WP_REST_Search_Controller tests
+ * Unit tests covering WP_REST_Search_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- */
-
-/**
- * Tests for WP_REST_Search_Controller.
  *
  * @group restapi
  */
@@ -443,7 +439,6 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			array(
 				'id',
 				'title',
-				'_links',
 			),
 			array_keys( $data[0] )
 		);
@@ -818,6 +813,80 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 
 		return $request;
+	}
+
+	/**
+	 * @ticket 56546
+	 */
+	public function test_get_items_search_posts_include_ids() {
+		$response = $this->do_request_with_params(
+			array(
+				'include' => array_slice( self::$my_title_post_ids, 1, 2 ),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array( self::$my_title_post_ids[1], self::$my_title_post_ids[2] ),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * @ticket 56546
+	 */
+	public function test_get_items_search_posts_exclude_ids() {
+		$response = $this->do_request_with_params(
+			array(
+				'exclude' => self::$my_title_page_ids,
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array_merge(
+				self::$my_title_post_ids,
+				self::$my_content_post_ids
+			),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * @ticket 56546
+	 */
+	public function test_get_items_search_terms_include_ids() {
+		$response = $this->do_request_with_params(
+			array(
+				'include' => self::$my_tag_id,
+				'type'    => 'term',
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array( self::$my_tag_id ),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * @ticket 56546
+	 */
+	public function test_get_items_search_terms_exclude_ids() {
+		$response = $this->do_request_with_params(
+			array(
+				// "1" is the default category.
+				'exclude' => array( 1, self::$my_tag_id ),
+				'type'    => 'term',
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array( self::$my_category_id ),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
 	}
 
 }

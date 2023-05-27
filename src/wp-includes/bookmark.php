@@ -71,7 +71,7 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
  *
  * @param string $field    The name of the data field to return.
  * @param int    $bookmark The bookmark ID to get field.
- * @param string $context  Optional. The context of how the field will be used.
+ * @param string $context  Optional. The context of how the field will be used. Default 'display'.
  * @return string|WP_Error
  */
 function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
@@ -307,7 +307,7 @@ function get_bookmarks( $args = '' ) {
 	$query .= " $exclusions $inclusions $search";
 	$query .= " ORDER BY $orderby $order";
 	if ( -1 != $parsed_args['limit'] ) {
-		$query .= ' LIMIT ' . $parsed_args['limit'];
+		$query .= ' LIMIT ' . absint( $parsed_args['limit'] );
 	}
 
 	$results = $wpdb->get_results( $query );

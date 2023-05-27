@@ -2,6 +2,8 @@
 
 /**
  * @group comment
+ *
+ * @covers ::get_comment_reply_link
  */
 class Tests_Comment_GetCommentReplyLink extends WP_UnitTestCase {
 	/**

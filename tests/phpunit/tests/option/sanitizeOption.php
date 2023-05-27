@@ -6,13 +6,21 @@
 class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 
 	/**
+	 * @dataProvider data_sanitize_option
+	 *
+	 * @covers ::sanitize_option
+	 */
+	public function test_sanitize_option( $option_name, $sanitized, $original ) {
+		$this->assertSame( $sanitized, sanitize_option( $option_name, $original ) );
+	}
+	/**
 	 * Data provider to test all of the sanitize_option() case
 	 *
 	 * Inner array params: $option_name, $sanitized, $original
 	 *
 	 * @return array
 	 */
-	public function sanitize_option_provider() {
+	public function data_sanitize_option() {
 		return array(
 			array( 'admin_email', 'mail@example.com', 'mail@example.com' ),
 			array( 'admin_email', get_option( 'admin_email' ), 'invalid' ),
@@ -69,6 +77,12 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			array( 'timezone_string', 0, 0 ),
 			array( 'timezone_string', 'Europe/London', 'Europe/London' ),
 			array( 'timezone_string', get_option( 'timezone_string' ), 'invalid' ),
+			// @ticket 56468
+			'deprecated timezone string is accepted as valid' => array(
+				'option_name' => 'timezone_string',
+				'sanitized'   => 'America/Buenos_Aires',
+				'original'    => 'America/Buenos_Aires',
+			),
 			array( 'permalink_structure', '', '' ),
 			array( 'permalink_structure', '/%year%/%20%postname%', '/%year%/ %postname%' ),
 			array( 'default_role', 'subscriber', 'subscriber' ),
@@ -80,13 +94,15 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider sanitize_option_provider
+	 * @dataProvider data_sanitize_option_upload_path
+	 *
+	 * @covers ::sanitize_option
 	 */
-	public function test_sanitize_option( $option_name, $sanitized, $original ) {
-		$this->assertSame( $sanitized, sanitize_option( $option_name, $original ) );
+	public function test_sanitize_option_upload_path( $provided, $expected ) {
+		$this->assertSame( $expected, sanitize_option( 'upload_path', $provided ) );
 	}
 
-	public function upload_path_provider() {
+	public function data_sanitize_option_upload_path() {
 		return array(
 			array( '<a href="http://www.example.com">Link</a>', 'Link' ),
 			array( '<scr' . 'ipt>url</scr' . 'ipt>', 'url' ),
@@ -96,14 +112,9 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider upload_path_provider
-	 */
-	public function test_sanitize_option_upload_path( $provided, $expected ) {
-		$this->assertSame( $expected, sanitize_option( 'upload_path', $provided ) );
-	}
-
-	/**
 	 * @ticket 36122
+	 *
+	 * @covers ::sanitize_option
 	 */
 	public function test_emoji_in_blogname_and_description() {
 		global $wpdb;
@@ -121,9 +132,12 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider permalink_structure_provider
+	 * @dataProvider data_sanitize_option_permalink_structure
+	 *
+	 * @covers ::sanitize_option
+	 * @covers ::get_settings_errors
 	 */
-	public function test_sanitize_permalink_structure( $provided, $expected, $valid ) {
+	public function test_sanitize_option_permalink_structure( $provided, $expected, $valid ) {
 		global $wp_settings_errors;
 
 		$old_wp_settings_errors = (array) $wp_settings_errors;
@@ -144,7 +158,7 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 		$this->assertEquals( $expected, $actual );
 	}
 
-	public function permalink_structure_provider() {
+	public function data_sanitize_option_permalink_structure() {
 		return array(
 			array( '', '', true ),
 			array( '%postname', false, false ),

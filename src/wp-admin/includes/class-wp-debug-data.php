@@ -7,6 +7,7 @@
  * @since 5.2.0
  */
 
+#[AllowDynamicProperties]
 class WP_Debug_Data {
 	/**
 	 * Calls all core functions to check for updates.
@@ -28,12 +29,13 @@ class WP_Debug_Data {
 	 * @since 5.5.0 Added pretty permalinks support information.
 	 *
 	 * @throws ImagickException
-	 * @global wpdb $wpdb WordPress database abstraction object.
+	 * @global wpdb  $wpdb               WordPress database abstraction object.
+	 * @global array $_wp_theme_features
 	 *
 	 * @return array The debug data for the site.
 	 */
 	public static function debug_data() {
-		global $wpdb;
+		global $wpdb, $_wp_theme_features;
 
 		// Save few function calls.
 		$upload_dir             = wp_upload_dir();
@@ -235,7 +237,7 @@ class WP_Debug_Data {
 		}
 
 		// Check WP_ENVIRONMENT_TYPE.
-		if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
+		if ( defined( 'WP_ENVIRONMENT_TYPE' ) && WP_ENVIRONMENT_TYPE ) {
 			$wp_environment_type = WP_ENVIRONMENT_TYPE;
 		} else {
 			$wp_environment_type = __( 'Undefined' );
@@ -579,6 +581,7 @@ class WP_Debug_Data {
 				'map'    => ( defined( 'imagick::RESOURCETYPE_MAP' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MAP ) ) : $not_available ),
 				'memory' => ( defined( 'imagick::RESOURCETYPE_MEMORY' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MEMORY ) ) : $not_available ),
 				'thread' => ( defined( 'imagick::RESOURCETYPE_THREAD' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_THREAD ) : $not_available ),
+				'time'   => ( defined( 'imagick::RESOURCETYPE_TIME' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_TIME ) : $not_available ),
 			);
 
 			$limits_debug = array(
@@ -588,6 +591,7 @@ class WP_Debug_Data {
 				'imagick::RESOURCETYPE_MAP'    => ( defined( 'imagick::RESOURCETYPE_MAP' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MAP ) ) : 'not available' ),
 				'imagick::RESOURCETYPE_MEMORY' => ( defined( 'imagick::RESOURCETYPE_MEMORY' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MEMORY ) ) : 'not available' ),
 				'imagick::RESOURCETYPE_THREAD' => ( defined( 'imagick::RESOURCETYPE_THREAD' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_THREAD ) : 'not available' ),
+				'imagick::RESOURCETYPE_TIME'   => ( defined( 'imagick::RESOURCETYPE_TIME' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_TIME ) : 'not available' ),
 			);
 
 			$info['wp-media']['fields']['imagick_limits'] = array(
@@ -1063,7 +1067,6 @@ class WP_Debug_Data {
 		}
 
 		// Populate the section for the currently active theme.
-		global $_wp_theme_features;
 		$theme_features = array();
 
 		if ( ! empty( $_wp_theme_features ) ) {
@@ -1394,7 +1397,7 @@ class WP_Debug_Data {
 		}
 
 		/**
-		 * Add to or modify the debug information shown on the Tools -> Site Health -> Info screen.
+		 * Filters the debug information shown on the Tools -> Site Health -> Info screen.
 		 *
 		 * Plugin or themes may wish to introduce their own debug information without creating
 		 * additional admin pages. They can utilize this filter to introduce their own sections
@@ -1484,7 +1487,7 @@ class WP_Debug_Data {
 	}
 
 	/**
-	 * Format the information gathered for debugging, in a manner suitable for copying to a forum or support ticket.
+	 * Formats the information gathered for debugging, in a manner suitable for copying to a forum or support ticket.
 	 *
 	 * @since 5.2.0
 	 *
@@ -1553,9 +1556,11 @@ class WP_Debug_Data {
 	}
 
 	/**
-	 * Fetch the total size of all the database tables for the active database user.
+	 * Fetches the total size of all the database tables for the active database user.
 	 *
 	 * @since 5.2.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @return int The size of the database, in bytes.
 	 */
@@ -1574,7 +1579,7 @@ class WP_Debug_Data {
 	}
 
 	/**
-	 * Fetch the sizes of the WordPress directories: `wordpress` (ABSPATH), `plugins`, `themes`, and `uploads`.
+	 * Fetches the sizes of the WordPress directories: `wordpress` (ABSPATH), `plugins`, `themes`, and `uploads`.
 	 * Intended to supplement the array returned by `WP_Debug_Data::debug_data()`.
 	 *
 	 * @since 5.2.0
@@ -1597,7 +1602,7 @@ class WP_Debug_Data {
 		// The max_execution_time defaults to 0 when PHP runs from cli.
 		// We still want to limit it below.
 		if ( empty( $max_execution_time ) ) {
-			$max_execution_time = 30;
+			$max_execution_time = 30; // 30 seconds.
 		}
 
 		if ( $max_execution_time > 20 ) {

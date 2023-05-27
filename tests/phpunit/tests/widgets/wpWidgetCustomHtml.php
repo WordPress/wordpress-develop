@@ -67,7 +67,6 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 		$this->assertSame( 10, has_action( 'admin_print_scripts-widgets.php', array( $widget, 'enqueue_admin_scripts' ) ) );
 		$this->assertSame( 10, has_action( 'admin_footer-widgets.php', array( 'WP_Widget_Custom_HTML', 'render_control_template_scripts' ) ) );
 		$this->assertSame( 10, has_action( 'admin_head-widgets.php', array( 'WP_Widget_Custom_HTML', 'add_help_text' ) ) );
-		$this->assertContains( 'wp.customHtmlWidgets.idBases.push( "custom_html" );', wp_scripts()->registered['custom-html-widgets']->extra['after'] );
 	}
 
 	/**
@@ -172,7 +171,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 		);
 
 		wp_set_current_user(
-			$this->factory()->user->create(
+			self::factory()->user->create(
 				array(
 					'role' => 'administrator',
 				)
@@ -241,7 +240,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 	 * @covers WP_Widget_Custom_HTML::enqueue_admin_scripts
 	 */
 	public function test_enqueue_admin_scripts_when_logged_in_and_syntax_highlighting_on() {
-		$user = $this->factory()->user->create();
+		$user = self::factory()->user->create();
 		wp_set_current_user( $user );
 		wp_get_current_user()->syntax_highlighting = 'true';
 		set_current_screen( 'widgets.php' );
@@ -262,7 +261,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 	 * @covers WP_Widget_Custom_HTML::enqueue_admin_scripts
 	 */
 	public function test_enqueue_admin_scripts_when_logged_in_and_syntax_highlighting_off() {
-		$user = $this->factory()->user->create();
+		$user = self::factory()->user->create();
 		wp_set_current_user( $user );
 		update_user_meta( $user, 'syntax_highlighting', 'false' );
 		set_current_screen( 'widgets.php' );

@@ -671,7 +671,7 @@ input[type="text"].ui-autocomplete-loading,
 input[type="email"].ui-autocomplete-loading {
 	background-image: url(../images/loading.gif);
 	background-repeat: no-repeat;
-	background-position: right center;
+	background-position: right 5px center;
 	visibility: visible;
 }
 
@@ -776,6 +776,12 @@ ul#add-to-blog-users {
 
 .form-table p.timezone-info {
 	margin: 1em 0;
+	display: flex;
+	flex-direction: column;
+}
+
+#local-time {
+	margin-top: 0.5em;
 }
 
 .form-table td fieldset label {
@@ -1063,7 +1069,9 @@ table.form-table td .updated p {
 }
 
 .settings-php .language-install-spinner,
-.options-general-php .language-install-spinner {
+.options-general-php .language-install-spinner,
+.user-edit-php .language-install-spinner,
+.profile-php .language-install-spinner {
 	display: inline-block;
 	float: none;
 	margin: -3px 5px 0;
@@ -1074,9 +1082,18 @@ table.form-table td .updated p {
 	margin-top: 8px;
 }
 
+.form-table.permalink-structure .available-structure-tags ul {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 8px 0 0;
+}
+
 .form-table.permalink-structure .available-structure-tags li {
-	float: left;
-	margin-right: 5px;
+	margin: 6px 5px 0 0;
+}
+
+.form-table.permalink-structure .available-structure-tags li:last-child {
+	margin-right: 0;
 }
 
 .form-table.permalink-structure .structure-selection .row {
@@ -1140,6 +1157,11 @@ table.form-table td .updated p {
 #search-users,
 #search-sites {
 	max-width: 60%;
+}
+
+.configuration-rules-label {
+	font-weight: 600;
+	margin-bottom: 4px;
 }
 
 /*------------------------------------------------------------------------------
@@ -1651,13 +1673,6 @@ table.form-table td .updated p {
 
 	.form-table fieldset label {
 		display: block;
-	}
-
-	#utc-time,
-	#local-time {
-		display: block;
-		float: none;
-		margin-top: 0.5em;
 	}
 
 	.form-field #domain {

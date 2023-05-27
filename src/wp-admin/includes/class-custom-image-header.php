@@ -11,6 +11,7 @@
  *
  * @since 2.1.0
  */
+#[AllowDynamicProperties]
 class Custom_Image_Header {
 
 	/**
@@ -134,7 +135,7 @@ class Custom_Image_Header {
 		get_current_screen()->set_help_sidebar(
 			'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 			'<p>' . __( '<a href="https://codex.wordpress.org/Appearance_Header_Screen">Documentation on Custom Header</a>' ) . '</p>' .
-			'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+			'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 		);
 	}
 
@@ -331,7 +332,7 @@ class Custom_Image_Header {
 			if ( ! empty( $header['attachment_id'] ) ) {
 				$width = ' width="230"';
 			}
-			echo '<img src="' . set_url_scheme( $header_thumbnail ) . '" alt="' . esc_attr( $header_alt_text ) . '"' . $width . ' /></label>';
+			echo '<img src="' . esc_url( set_url_scheme( $header_thumbnail ) ) . '" alt="' . esc_attr( $header_alt_text ) . '"' . $width . ' /></label>';
 			echo '</div>';
 		}
 

@@ -1,15 +1,9 @@
 <?php
 /**
- * Block rendering tests
+ * Tests for block rendering functions.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.0.0
- */
-
-/**
- * Tests for block rendering functions.
- *
  * @since 5.0.0
  *
  * @group blocks
@@ -46,6 +40,9 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 		}
 		if ( $registry->is_registered( 'core/dynamic' ) ) {
 			$registry->unregister( 'core/dynamic' );
+		}
+		if ( $registry->is_registered( 'tests/notice' ) ) {
+			$registry->unregister( 'tests/notice' );
 		}
 
 		parent::tear_down();
@@ -230,12 +227,29 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 		$normalized_html = preg_replace( '/wp-block-gallery-\d+/', 'wp-block-gallery-1', $normalized_html );
 		$expected_html   = self::strip_r( file_get_contents( $server_html_path ) );
 
+		// Convert HTML to be white space insensitive.
+		$normalized_html = preg_replace( '/(\s+$)/m', '', $normalized_html );
+		$expected_html   = preg_replace( '/(\s+$)/m', '', $expected_html );
+
 		$this->assertSame(
 			$expected_html,
 			$normalized_html,
 			"File '$html_path' does not match expected value"
 		);
 	}
+
+	/**
+	 * @ticket 53148
+	 */
+	public function test_render_field_in_block_json() {
+		$result = register_block_type(
+			DIR_TESTDATA . '/blocks/notice'
+		);
+
+		$actual_content = do_blocks( '<!-- wp:tests/notice {"message":"Hello from the test"} --><!-- /wp:tests/notice -->' );
+		$this->assertSame( '<p class="wp-block-tests-notice">Hello from the test</p>', trim( $actual_content ) );
+	}
+
 
 	/**
 	 * @ticket 45109

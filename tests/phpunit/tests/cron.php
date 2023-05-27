@@ -130,7 +130,8 @@ class Tests_Cron extends WP_UnitTestCase {
 		delete_option( 'cron' );
 
 		// Verify that the cause of the error is in place.
-		$this->assertFalse( _get_cron_array(), '_get_cron_array() does not return false' );
+		$this->assertIsArray( _get_cron_array(), '_get_cron_array() does not return an array.' );
+		$this->assertEmpty( _get_cron_array(), '_get_cron_array() does not return an empty array.' );
 
 		$hook      = __FUNCTION__;
 		$timestamp = strtotime( '+10 minutes' );
@@ -151,7 +152,8 @@ class Tests_Cron extends WP_UnitTestCase {
 		delete_option( 'cron' );
 
 		// Verify that the cause of the error is in place.
-		$this->assertFalse( _get_cron_array(), '_get_cron_array() does not return false' );
+		$this->assertIsArray( _get_cron_array(), '_get_cron_array() does not return an array.' );
+		$this->assertEmpty( _get_cron_array(), '_get_cron_array() does not return an empty array.' );
 
 		$hook      = __FUNCTION__;
 		$timestamp = strtotime( '+10 minutes' );
@@ -454,7 +456,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * Filter the scheduling of events to use the preflight array.
 	 */
-	public function filter_pre_schedule_event_filter( $null, $event ) {
+	public function filter_pre_schedule_event_filter( $result, $event ) {
 		$key = md5( serialize( $event->args ) );
 
 		$this->preflight_cron_array[ $event->timestamp ][ $event->hook ][ $key ] = array(
@@ -463,6 +465,7 @@ class Tests_Cron extends WP_UnitTestCase {
 			'args'     => $event->args,
 		);
 		uksort( $this->preflight_cron_array, 'strnatcasecmp' );
+
 		return true;
 	}
 

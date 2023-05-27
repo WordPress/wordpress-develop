@@ -20,6 +20,7 @@
  *
  * @since 3.4.0
  */
+#[AllowDynamicProperties]
 final class WP_Customize_Manager {
 	/**
 	 * An instance of the theme being previewed.
@@ -1980,7 +1981,7 @@ final class WP_Customize_Manager {
 				&&
 				$parsed_allowed_url['host'] === $parsed_original_url['host']
 				&&
-				0 === strpos( $parsed_original_url['path'], $parsed_allowed_url['path'] )
+				str_starts_with( $parsed_original_url['path'], $parsed_allowed_url['path'] )
 			);
 			if ( $is_allowed ) {
 				break;
@@ -2133,7 +2134,7 @@ final class WP_Customize_Manager {
 			$allowed_hosts[] = $host;
 		}
 
-		$switched_locale = switch_to_locale( get_user_locale() );
+		$switched_locale = switch_to_user_locale( get_current_user_id() );
 		$l10n            = array(
 			'shiftClickToEdit'  => __( 'Shift-click to edit this element.' ),
 			'linkUnpreviewable' => __( 'This link is not live-previewable.' ),
@@ -3427,12 +3428,12 @@ final class WP_Customize_Manager {
 	 * @since 4.7.0
 	 *
 	 * @param bool    $post_has_changed Whether the post has changed.
-	 * @param WP_Post $last_revision    The last revision post object.
+	 * @param WP_Post $latest_revision  The latest revision post object.
 	 * @param WP_Post $post             The post object.
 	 * @return bool Whether a revision should be made.
 	 */
-	public function _filter_revision_post_has_changed( $post_has_changed, $last_revision, $post ) {
-		unset( $last_revision );
+	public function _filter_revision_post_has_changed( $post_has_changed, $latest_revision, $post ) {
+		unset( $latest_revision );
 		if ( 'customize_changeset' === $post->post_type ) {
 			$post_has_changed = $this->store_changeset_revision;
 		}
@@ -4284,7 +4285,12 @@ final class WP_Customize_Manager {
 			<li class="notice notice-{{ data.type || 'info' }} {{ data.alt ? 'notice-alt' : '' }} {{ data.dismissible ? 'is-dismissible' : '' }} {{ data.containerClasses || '' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
 				<div class="notification-message">{{{ data.message || data.code }}}</div>
 				<# if ( data.dismissible ) { #>
-					<button type="button" class="notice-dismiss"><span class="screen-reader-text"><?php _e( 'Dismiss' ); ?></span></button>
+					<button type="button" class="notice-dismiss"><span class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Dismiss' );
+						?>
+					</span></button>
 				<# } #>
 			</li>
 		</script>
@@ -4351,10 +4357,20 @@ final class WP_Customize_Manager {
 			<p class="description customize-control-description"><?php esc_html_e( 'See how changes would look live on your website, and share the preview with people who can\'t access the Customizer.' ); ?></p>
 			<div class="customize-control-notifications-container"></div>
 			<div class="preview-link-wrapper">
-				<label for="{{ elementPrefix }}customize-preview-link-input" class="screen-reader-text"><?php esc_html_e( 'Preview Link' ); ?></label>
+				<label for="{{ elementPrefix }}customize-preview-link-input" class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					esc_html_e( 'Preview Link' );
+					?>
+				</label>
 				<a href="" target="">
 					<span class="preview-control-element" data-component="url"></span>
-					<span class="screen-reader-text"><?php _e( '(opens in a new tab)' ); ?></span>
+					<span class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( '(opens in a new tab)' );
+						?>
+					</span>
 				</a>
 				<input id="{{ elementPrefix }}customize-preview-link-input" readonly tabindex="-1" class="preview-control-element" data-component="input">
 				<button class="customize-copy-preview-link preview-control-element button button-secondary" data-component="button" data-copy-text="<?php esc_attr_e( 'Copy' ); ?>" data-copied-text="<?php esc_attr_e( 'Copied' ); ?>" ><?php esc_html_e( 'Copy' ); ?></button>
@@ -4685,27 +4701,27 @@ final class WP_Customize_Manager {
 
 		if ( $this->return_url ) {
 			$return_url = $this->return_url;
+
+			$return_url_basename = wp_basename( parse_url( $this->return_url, PHP_URL_PATH ) );
+			$return_url_query    = parse_url( $this->return_url, PHP_URL_QUERY );
+
+			if ( 'themes.php' === $return_url_basename && $return_url_query ) {
+				parse_str( $return_url_query, $query_vars );
+
+				/*
+				 * If the return URL is a page added by a theme to the Appearance menu via add_submenu_page(),
+				 * verify that it belongs to the active theme, otherwise fall back to the Themes screen.
+				 */
+				if ( isset( $query_vars['page'] ) && ! isset( $_registered_pages[ "appearance_page_{$query_vars['page']}" ] ) ) {
+					$return_url = admin_url( 'themes.php' );
+				}
+			}
 		} elseif ( $referer && ! in_array( wp_basename( parse_url( $referer, PHP_URL_PATH ) ), $excluded_referer_basenames, true ) ) {
 			$return_url = $referer;
 		} elseif ( $this->preview_url ) {
 			$return_url = $this->preview_url;
 		} else {
 			$return_url = home_url( '/' );
-		}
-
-		$return_url_basename = wp_basename( parse_url( $this->return_url, PHP_URL_PATH ) );
-		$return_url_query    = parse_url( $this->return_url, PHP_URL_QUERY );
-
-		if ( 'themes.php' === $return_url_basename && $return_url_query ) {
-			parse_str( $return_url_query, $query_vars );
-
-			/*
-			 * If the return URL is a page added by a theme to the Appearance menu via add_submenu_page(),
-			 * verify that it belongs to the active theme, otherwise fall back to the Themes screen.
-			 */
-			if ( isset( $query_vars['page'] ) && ! isset( $_registered_pages[ "appearance_page_{$query_vars['page']}" ] ) ) {
-				$return_url = admin_url( 'themes.php' );
-			}
 		}
 
 		return $return_url;
@@ -5673,9 +5689,9 @@ final class WP_Customize_Manager {
 		$section_description .= __( 'Add your own CSS code here to customize the appearance and layout of your site.' );
 		$section_description .= sprintf(
 			' <a href="%1$s" class="external-link" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span></a>',
-			esc_url( __( 'https://wordpress.org/support/article/css/' ) ),
+			esc_url( __( 'https://wordpress.org/documentation/article/css/' ) ),
 			__( 'Learn more about CSS' ),
-			/* translators: Accessibility text. */
+			/* translators: Hidden accessibility text. */
 			__( '(opens in a new tab)' )
 		);
 		$section_description .= '</p>';
@@ -5696,7 +5712,7 @@ final class WP_Customize_Manager {
 				'class="external-link" target="_blank"',
 				sprintf(
 					'<span class="screen-reader-text"> %s</span>',
-					/* translators: Accessibility text. */
+					/* translators: Hidden accessibility text. */
 					__( '(opens in a new tab)' )
 				)
 			);
@@ -5763,7 +5779,15 @@ final class WP_Customize_Manager {
 				}
 			}
 		}
-		return 0 !== count( get_pages( array( 'number' => 1 ) ) );
+
+		return 0 !== count(
+			get_pages(
+				array(
+					'number'       => 1,
+					'hierarchical' => 0,
+				)
+			)
+		);
 	}
 
 	/**

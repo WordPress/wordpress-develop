@@ -350,8 +350,8 @@ class PHPMailer
     public $Password = '';
 
     /**
-     * SMTP auth type.
-     * Options are CRAM-MD5, LOGIN, PLAIN, XOAUTH2, attempted in that order if not specified.
+     * SMTP authentication type. Options are CRAM-MD5, LOGIN, PLAIN, XOAUTH2.
+     * If not specified, the first one from that list that the server supports will be selected.
      *
      * @var string
      */
@@ -750,7 +750,7 @@ class PHPMailer
      *
      * @var string
      */
-    const VERSION = '6.6.3';
+    const VERSION = '6.8.0';
 
     /**
      * Error severity: message only, continue processing.
@@ -858,7 +858,7 @@ class PHPMailer
     private function mailPassthru($to, $subject, $body, $header, $params)
     {
         //Check overloading of mail function to avoid double-encoding
-        if (ini_get('mbstring.func_overload') & 1) { // phpcs:ignore PHPCompatibility.IniDirectives.RemovedIniDirectives.mbstring_func_overloadDeprecated
+        if ((int)ini_get('mbstring.func_overload') & 1) { // phpcs:ignore PHPCompatibility.IniDirectives.RemovedIniDirectives.mbstring_func_overloadDeprecated
             $subject = $this->secureHeader($subject);
         } else {
             $subject = $this->encodeHeader($this->secureHeader($subject));
@@ -1096,7 +1096,7 @@ class PHPMailer
 
             return false;
         }
-        if ($name !== null) {
+        if ($name !== null && is_string($name)) {
             $name = trim(preg_replace('/[\r\n]+/', '', $name)); //Strip breaks and trim
         } else {
             $name = '';
@@ -1122,6 +1122,22 @@ class PHPMailer
 
         //Immediately add standard addresses without IDN.
         return call_user_func_array([$this, 'addAnAddress'], $params);
+    }
+
+    /**
+     * Set the boundaries to use for delimiting MIME parts.
+     * If you override this, ensure you set all 3 boundaries to unique values.
+     * The default boundaries include a "=_" sequence which cannot occur in quoted-printable bodies,
+     * as suggested by https://www.rfc-editor.org/rfc/rfc2045#section-6.7
+     *
+     * @return void
+     */
+    public function setBoundaries()
+    {
+        $this->uniqueid = $this->generateId();
+        $this->boundary[1] = 'b1=_' . $this->uniqueid;
+        $this->boundary[2] = 'b2=_' . $this->uniqueid;
+        $this->boundary[3] = 'b3=_' . $this->uniqueid;
     }
 
     /**
@@ -1288,7 +1304,7 @@ class PHPMailer
      */
     public function setFrom($address, $name = '', $auto = true)
     {
-        $address = trim($address);
+        $address = trim((string)$address);
         $name = trim(preg_replace('/[\r\n]+/', '', $name)); //Strip breaks and trim
         //Don't validate now addresses with IDN. Will be done in send().
         $pos = strrpos($address, '@');
@@ -1673,11 +1689,11 @@ class PHPMailer
                     return $this->mailSend($this->MIMEHeader, $this->MIMEBody);
             }
         } catch (Exception $exc) {
-            if ($this->Mailer === 'smtp' && $this->SMTPKeepAlive == true) {
-                $this->smtp->reset();
-            }
             $this->setError($exc->getMessage());
             $this->edebug($exc->getMessage());
+            if ($this->Mailer === 'smtp' && $this->SMTPKeepAlive == true && $this->smtp->connected()) {
+                $this->smtp->reset();
+            }
             if ($this->exceptions) {
                 throw $exc;
             }
@@ -1865,7 +1881,7 @@ class PHPMailer
         if (!static::isPermittedPath($path)) {
             return false;
         }
-        $readable = file_exists($path);
+        $readable = is_file($path);
         //If not a UNC path (expected to start with \\), check read permission, see #2069
         if (strpos($path, '\\\\') !== 0) {
             $readable = $readable && is_readable($path);
@@ -1893,7 +1909,14 @@ class PHPMailer
         foreach ($this->to as $toaddr) {
             $toArr[] = $this->addrFormat($toaddr);
         }
-        $to = implode(', ', $toArr);
+        $to = trim(implode(', ', $toArr));
+
+        //If there are no To-addresses (e.g. when sending only to BCC-addresses)
+        //the following should be added to get a correct DKIM-signature.
+        //Compare with $this->preSend()
+        if ($to === '') {
+            $to = 'undisclosed-recipients:;';
+        }
 
         $params = null;
         //This sets the SMTP envelope sender which gets turned into a return-path header by the receiver
@@ -2096,6 +2119,9 @@ class PHPMailer
         $this->smtp->setDebugLevel($this->SMTPDebug);
         $this->smtp->setDebugOutput($this->Debugoutput);
         $this->smtp->setVerp($this->do_verp);
+        if ($this->Host === null) {
+            $this->Host = 'localhost';
+        }
         $hosts = explode(';', $this->Host);
         $lastexception = null;
 
@@ -2399,7 +2425,7 @@ class PHPMailer
      */
     public function addrFormat($addr)
     {
-        if (empty($addr[1])) { //No name provided
+        if (!isset($addr[1]) || ($addr[1] === '')) { //No name provided
             return $this->secureHeader($addr[0]);
         }
 
@@ -2786,10 +2812,7 @@ class PHPMailer
     {
         $body = '';
         //Create unique IDs and preset boundaries
-        $this->uniqueid = $this->generateId();
-        $this->boundary[1] = 'b1_' . $this->uniqueid;
-        $this->boundary[2] = 'b2_' . $this->uniqueid;
-        $this->boundary[3] = 'b3_' . $this->uniqueid;
+        $this->setBoundaries();
 
         if ($this->sign_key_file) {
             $body .= $this->getMailMIME() . static::$LE;
@@ -2825,7 +2848,7 @@ class PHPMailer
             $altBodyEncoding = static::ENCODING_QUOTED_PRINTABLE;
         }
         //Use this as a preamble in all multipart message types
-        $mimepre = 'This is a multi-part message in MIME format.' . static::$LE . static::$LE;
+        $mimepre = '';
         switch ($this->message_type) {
             case 'inline':
                 $body .= $mimepre;
@@ -3059,6 +3082,18 @@ class PHPMailer
         }
 
         return $body;
+    }
+
+    /**
+     * Get the boundaries that this message will use
+     * @return array
+     */
+    public function getBoundaries()
+    {
+        if (empty($this->boundary)) {
+            $this->setBoundaries();
+        }
+        return $this->boundary;
     }
 
     /**
@@ -4178,6 +4213,7 @@ class PHPMailer
      * @param string      $name  Custom header name
      * @param string|null $value Header value
      *
+     * @return bool True if a header was set successfully
      * @throws Exception
      */
     public function addCustomHeader($name, $value = null)
@@ -4472,6 +4508,7 @@ class PHPMailer
             'ics' => 'text/calendar',
             'xml' => 'text/xml',
             'xsl' => 'text/xml',
+            'csv' => 'text/csv',
             'wmv' => 'video/x-ms-wmv',
             'mpeg' => 'video/mpeg',
             'mpe' => 'video/mpeg',
@@ -4626,15 +4663,27 @@ class PHPMailer
     }
 
     /**
-     * Remove trailing breaks from a string.
+     * Remove trailing whitespace from a string.
+     *
+     * @param string $text
+     *
+     * @return string The text to remove whitespace from
+     */
+    public static function stripTrailingWSP($text)
+    {
+        return rtrim($text, " \r\n\t");
+    }
+
+    /**
+     * Strip trailing line breaks from a string.
      *
      * @param string $text
      *
      * @return string The text to remove breaks from
      */
-    public static function stripTrailingWSP($text)
+    public static function stripTrailingBreaks($text)
     {
-        return rtrim($text, " \r\n\t");
+        return rtrim($text, "\r\n");
     }
 
     /**
@@ -4800,7 +4849,7 @@ class PHPMailer
         $body = static::normalizeBreaks($body, self::CRLF);
 
         //Reduce multiple trailing line breaks to a single one
-        return static::stripTrailingWSP($body) . self::CRLF;
+        return static::stripTrailingBreaks($body) . self::CRLF;
     }
 
     /**

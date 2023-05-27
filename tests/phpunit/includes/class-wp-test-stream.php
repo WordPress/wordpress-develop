@@ -31,6 +31,15 @@ class WP_Test_Stream {
 	public $data_ref;
 
 	/**
+	 * The current context.
+	 *
+	 * @link https://www.php.net/manual/en/class.streamwrapper.php
+	 *
+	 * @var resource|null
+	 */
+	public $context;
+
+	/**
 	 * Initializes internal state for reading the given URL.
 	 *
 	 * @param string $url A URL of the form "protocol://bucket/path".
@@ -174,7 +183,7 @@ class WP_Test_Stream {
 	 *
 	 * @see streamWrapper::stream_metadata
 	 */
-	public function stream_metadata( $path, $option, $var ) {
+	public function stream_metadata( $path, $option, $value ) {
 		$this->open( $path );
 		if ( STREAM_META_TOUCH === $option ) {
 			if ( ! isset( $this->data_ref ) ) {

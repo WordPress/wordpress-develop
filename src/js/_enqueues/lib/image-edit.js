@@ -11,7 +11,7 @@
 	var __ = wp.i18n.__;
 
 	/**
-	 * Contains all the methods to initialise and control the image editor.
+	 * Contains all the methods to initialize and control the image editor.
 	 *
 	 * @namespace imageEdit
 	 */
@@ -226,7 +226,8 @@
 	 */
 	scaleChanged : function( postid, x, el ) {
 		var w = $('#imgedit-scale-width-' + postid), h = $('#imgedit-scale-height-' + postid),
-		warn = $('#imgedit-scale-warn-' + postid), w1 = '', h1 = '';
+		warn = $('#imgedit-scale-warn-' + postid), w1 = '', h1 = '',
+		scaleBtn = $('#imgedit-scale-button');
 
 		if ( false === this.validateNumeric( el ) ) {
 			return;
@@ -242,8 +243,10 @@
 
 		if ( ( h1 && h1 > this.hold.oh ) || ( w1 && w1 > this.hold.ow ) ) {
 			warn.css('visibility', 'visible');
+			scaleBtn.prop('disabled', true);
 		} else {
 			warn.css('visibility', 'hidden');
+			scaleBtn.prop('disabled', false);
 		}
 	},
 
@@ -435,7 +438,7 @@
 	 *
 	 * @return {boolean|void} Executes a post request that refreshes the page
 	 *                        when the action is performed.
-	 *                        Returns false if a invalid action is given,
+	 *                        Returns false if an invalid action is given,
 	 *                        or when the action cannot be performed.
 	 */
 	action : function(postid, nonce, action) {
@@ -636,7 +639,7 @@
 				btn.removeClass( 'button-activated' );
 				spin.removeClass( 'is-active' );
 			} );
-			// Initialise the Image Editor now that everything is ready.
+			// Initialize the Image Editor now that everything is ready.
 			imageEdit.init( postid );
 		} );
 

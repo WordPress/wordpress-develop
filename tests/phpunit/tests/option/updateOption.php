@@ -6,6 +6,10 @@
 class Tests_Option_UpdateOption extends WP_UnitTestCase {
 	/**
 	 * @ticket 31047
+	 *
+	 * @covers ::add_filter
+	 * @covers ::update_option
+	 * @covers ::remove_filter
 	 */
 	public function test_should_respect_default_option_filter_when_option_does_not_yet_exist_in_database() {
 		add_filter( 'default_option_doesnotexist', array( $this, '__return_foo' ) );
@@ -18,9 +22,12 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 26394
+	 *
+	 * @covers ::update_option
+	 * @covers ::wp_load_alloptions
+	 * @covers ::get_option
 	 */
 	public function test_should_set_autoload_yes_for_nonexistent_option_when_autoload_param_is_missing() {
-		global $wpdb;
 		$this->flush_cache();
 		update_option( 'test_update_option_default', 'value' );
 		$this->flush_cache();
@@ -28,9 +35,9 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 		// Populate the alloptions cache, which includes autoload=yes options.
 		wp_load_alloptions();
 
-		$before = $wpdb->num_queries;
+		$before = get_num_queries();
 		$value  = get_option( 'test_update_option_default' );
-		$after  = $wpdb->num_queries;
+		$after  = get_num_queries();
 
 		$this->assertSame( $before, $after );
 		$this->assertSame( $value, 'value' );
@@ -38,9 +45,12 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 26394
+	 *
+	 * @covers ::update_option
+	 * @covers ::wp_load_alloptions
+	 * @covers ::get_option
 	 */
 	public function test_should_set_autoload_yes_for_nonexistent_option_when_autoload_param_is_yes() {
-		global $wpdb;
 		$this->flush_cache();
 		update_option( 'test_update_option_default', 'value', 'yes' );
 		$this->flush_cache();
@@ -48,9 +58,9 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 		// Populate the alloptions cache, which includes autoload=yes options.
 		wp_load_alloptions();
 
-		$before = $wpdb->num_queries;
+		$before = get_num_queries();
 		$value  = get_option( 'test_update_option_default' );
-		$after  = $wpdb->num_queries;
+		$after  = get_num_queries();
 
 		$this->assertSame( $before, $after );
 		$this->assertSame( $value, 'value' );
@@ -58,9 +68,12 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 26394
+	 *
+	 * @covers ::update_option
+	 * @covers ::wp_load_alloptions
+	 * @covers ::get_option
 	 */
 	public function test_should_set_autoload_no_for_nonexistent_option_when_autoload_param_is_no() {
-		global $wpdb;
 		$this->flush_cache();
 		update_option( 'test_update_option_default', 'value', 'no' );
 		$this->flush_cache();
@@ -68,9 +81,9 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 		// Populate the alloptions cache, which does not include autoload=no options.
 		wp_load_alloptions();
 
-		$before = $wpdb->num_queries;
+		$before = get_num_queries();
 		$value  = get_option( 'test_update_option_default' );
-		$after  = $wpdb->num_queries;
+		$after  = get_num_queries();
 
 		// Database has been hit.
 		$this->assertSame( $before + 1, $after );
@@ -79,9 +92,12 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 26394
+	 *
+	 * @covers ::update_option
+	 * @covers ::wp_load_alloptions
+	 * @covers ::get_option
 	 */
 	public function test_should_set_autoload_no_for_nonexistent_option_when_autoload_param_is_false() {
-		global $wpdb;
 		$this->flush_cache();
 		update_option( 'test_update_option_default', 'value', false );
 		$this->flush_cache();
@@ -89,9 +105,9 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 		// Populate the alloptions cache, which does not include autoload=no options.
 		wp_load_alloptions();
 
-		$before = $wpdb->num_queries;
+		$before = get_num_queries();
 		$value  = get_option( 'test_update_option_default' );
-		$after  = $wpdb->num_queries;
+		$after  = get_num_queries();
 
 		// Database has been hit.
 		$this->assertSame( $before + 1, $after );
@@ -100,9 +116,12 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 26394
+	 *
+	 * @covers ::update_option
+	 * @covers ::wp_load_alloptions
+	 * @covers ::get_option
 	 */
 	public function test_autoload_should_be_updated_for_existing_option_when_value_is_changed() {
-		global $wpdb;
 		add_option( 'foo', 'bar', '', 'no' );
 		$updated = update_option( 'foo', 'bar2', true );
 		$this->assertTrue( $updated );
@@ -112,18 +131,21 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 		// Populate the alloptions cache, which includes autoload=yes options.
 		wp_load_alloptions();
 
-		$before = $wpdb->num_queries;
+		$before = get_num_queries();
 		$value  = get_option( 'foo' );
 
-		$this->assertSame( $before, $wpdb->num_queries );
+		$this->assertSame( $before, get_num_queries() );
 		$this->assertSame( $value, 'bar2' );
 	}
 
 	/**
 	 * @ticket 26394
+	 *
+	 * @covers ::update_option
+	 * @covers ::wp_load_alloptions
+	 * @covers ::get_option
 	 */
 	public function test_autoload_should_not_be_updated_for_existing_option_when_value_is_unchanged() {
-		global $wpdb;
 		add_option( 'foo', 'bar', '', 'yes' );
 		$updated = update_option( 'foo', 'bar', false );
 		$this->assertFalse( $updated );
@@ -133,19 +155,22 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 		// Populate the alloptions cache, which includes autoload=yes options.
 		wp_load_alloptions();
 
-		$before = $wpdb->num_queries;
+		$before = get_num_queries();
 		$value  = get_option( 'foo' );
 
 		// 'foo' should still be autoload=yes, so we should see no additional querios.
-		$this->assertSame( $before, $wpdb->num_queries );
+		$this->assertSame( $before, get_num_queries() );
 		$this->assertSame( $value, 'bar' );
 	}
 
 	/**
 	 * @ticket 26394
+	 *
+	 * @covers ::update_option
+	 * @covers ::wp_load_alloptions
+	 * @covers ::get_option
 	 */
 	public function test_autoload_should_not_be_updated_for_existing_option_when_value_is_changed_but_no_value_of_autoload_is_provided() {
-		global $wpdb;
 		add_option( 'foo', 'bar', '', 'yes' );
 
 		// Don't pass a value for `$autoload`.
@@ -157,16 +182,20 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 		// Populate the alloptions cache, which includes autoload=yes options.
 		wp_load_alloptions();
 
-		$before = $wpdb->num_queries;
+		$before = get_num_queries();
 		$value  = get_option( 'foo' );
 
-		// 'foo' should still be autoload=yes, so we should see no additional querios.
-		$this->assertSame( $before, $wpdb->num_queries );
+		// 'foo' should still be autoload=yes, so we should see no additional queries.
+		$this->assertSame( $before, get_num_queries() );
 		$this->assertSame( $value, 'bar2' );
 	}
 
 	/**
 	 * @ticket 38903
+	 *
+	 * @covers ::add_option
+	 * @covers ::get_num_queries
+	 * @covers ::update_option
 	 */
 	public function test_update_option_array_with_object() {
 		$array_w_object = array(

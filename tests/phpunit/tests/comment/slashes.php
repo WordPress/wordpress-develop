@@ -37,6 +37,8 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the extended model function that expects slashed data.
+	 *
+	 * @covers ::wp_new_comment
 	 */
 	public function test_wp_new_comment() {
 		$post_id = self::$post_id;
@@ -76,6 +78,8 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the controller function that expects slashed data.
+	 *
+	 * @covers ::edit_comment
 	 */
 	public function test_edit_comment() {
 		$post_id    = self::$post_id;
@@ -122,6 +126,8 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data.
+	 *
+	 * @covers ::wp_insert_comment
 	 */
 	public function test_wp_insert_comment() {
 		$post_id = self::$post_id;
@@ -153,6 +159,8 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data.
+	 *
+	 * @covers ::wp_update_comment
 	 */
 	public function test_wp_update_comment() {
 		$post_id    = self::$post_id;

@@ -14,6 +14,7 @@
  *
  * @see WP_Site_Query::__construct() for accepted arguments.
  */
+#[AllowDynamicProperties]
 class WP_Site_Query {
 
 	/**
@@ -357,7 +358,7 @@ class WP_Site_Query {
 		$last_changed = wp_cache_get_last_changed( 'sites' );
 
 		$cache_key   = "get_sites:$key:$last_changed";
-		$cache_value = wp_cache_get( $cache_key, 'sites' );
+		$cache_value = wp_cache_get( $cache_key, 'site-queries' );
 
 		if ( false === $cache_value ) {
 			$site_ids = $this->get_site_ids();
@@ -369,7 +370,7 @@ class WP_Site_Query {
 				'site_ids'    => $site_ids,
 				'found_sites' => $this->found_sites,
 			);
-			wp_cache_add( $cache_key, $cache_value, 'sites' );
+			wp_cache_add( $cache_key, $cache_value, 'site-queries' );
 		} else {
 			$site_ids          = $cache_value['site_ids'];
 			$this->found_sites = $cache_value['found_sites'];
@@ -387,6 +388,10 @@ class WP_Site_Query {
 
 		$site_ids = array_map( 'intval', $site_ids );
 
+		if ( $this->query_vars['update_site_meta_cache'] ) {
+			wp_lazyload_site_meta( $site_ids );
+		}
+
 		if ( 'ids' === $this->query_vars['fields'] ) {
 			$this->sites = $site_ids;
 
@@ -395,7 +400,7 @@ class WP_Site_Query {
 
 		// Prime site network caches.
 		if ( $this->query_vars['update_site_cache'] ) {
-			_prime_site_caches( $site_ids, $this->query_vars['update_site_meta_cache'] );
+			_prime_site_caches( $site_ids, false );
 		}
 
 		// Fetch full site objects from the primed cache.

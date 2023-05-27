@@ -1,88 +1,94 @@
 <?php
 /**
- * Tests_Block_Template_Utils class
+ * Tests for the Block Templates abstraction layer.
  *
  * @package WordPress
- */
-
-/**
- * Tests for the Block Templates abstraction layer.
  *
  * @group block-templates
  */
 class Tests_Block_Template_Utils extends WP_UnitTestCase {
-	private static $post;
-	private static $template_part_post;
-	private static $test_theme = 'block-theme';
 
-	public static function wpSetUpBeforeClass() {
-		// Set up a template post corresponding to a different theme.
-		// We do this to ensure resolution and slug creation works as expected,
-		// even with another post of that same name present for another theme.
-		$args       = array(
-			'post_type'    => 'wp_template',
-			'post_name'    => 'my_template',
-			'post_title'   => 'My Template',
-			'post_content' => 'Content',
-			'post_excerpt' => 'Description of my template',
-			'tax_input'    => array(
-				'wp_theme' => array(
-					'this-theme-should-not-resolve',
+	const TEST_THEME = 'block-theme';
+
+	private static $template_post;
+	private static $template_part_post;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		/*
+		 * Set up a template post corresponding to a different theme.
+		 * We do this to ensure resolution and slug creation works as expected,
+		 * even with another post of that same name present for another theme.
+		 */
+		self::$template_post = $factory->post->create_and_get(
+			array(
+				'post_type'    => 'wp_template',
+				'post_name'    => 'my_template',
+				'post_title'   => 'My Template',
+				'post_content' => 'Content',
+				'post_excerpt' => 'Description of my template',
+				'tax_input'    => array(
+					'wp_theme' => array(
+						'this-theme-should-not-resolve',
+					),
 				),
-			),
+			)
 		);
-		self::$post = self::factory()->post->create_and_get( $args );
-		wp_set_post_terms( self::$post->ID, 'this-theme-should-not-resolve', 'wp_theme' );
+
+		wp_set_post_terms( self::$template_post->ID, 'this-theme-should-not-resolve', 'wp_theme' );
 
 		// Set up template post.
-		$args       = array(
-			'post_type'    => 'wp_template',
-			'post_name'    => 'my_template',
-			'post_title'   => 'My Template',
-			'post_content' => 'Content',
-			'post_excerpt' => 'Description of my template',
-			'tax_input'    => array(
-				'wp_theme' => array(
-					self::$test_theme,
+		self::$template_post = $factory->post->create_and_get(
+			array(
+				'post_type'    => 'wp_template',
+				'post_name'    => 'my_template',
+				'post_title'   => 'My Template',
+				'post_content' => 'Content',
+				'post_excerpt' => 'Description of my template',
+				'tax_input'    => array(
+					'wp_theme' => array(
+						self::TEST_THEME,
+					),
 				),
-			),
+			)
 		);
-		self::$post = self::factory()->post->create_and_get( $args );
-		wp_set_post_terms( self::$post->ID, self::$test_theme, 'wp_theme' );
+
+		wp_set_post_terms( self::$template_post->ID, self::TEST_THEME, 'wp_theme' );
 
 		// Set up template part post.
-		$template_part_args       = array(
-			'post_type'    => 'wp_template_part',
-			'post_name'    => 'my_template_part',
-			'post_title'   => 'My Template Part',
-			'post_content' => 'Content',
-			'post_excerpt' => 'Description of my template part',
-			'tax_input'    => array(
-				'wp_theme'              => array(
-					self::$test_theme,
+		self::$template_part_post = $factory->post->create_and_get(
+			array(
+				'post_type'    => 'wp_template_part',
+				'post_name'    => 'my_template_part',
+				'post_title'   => 'My Template Part',
+				'post_content' => 'Content',
+				'post_excerpt' => 'Description of my template part',
+				'tax_input'    => array(
+					'wp_theme'              => array(
+						self::TEST_THEME,
+					),
+					'wp_template_part_area' => array(
+						WP_TEMPLATE_PART_AREA_HEADER,
+					),
 				),
-				'wp_template_part_area' => array(
-					WP_TEMPLATE_PART_AREA_HEADER,
-				),
-			),
+			)
 		);
-		self::$template_part_post = self::factory()->post->create_and_get( $template_part_args );
+
 		wp_set_post_terms( self::$template_part_post->ID, WP_TEMPLATE_PART_AREA_HEADER, 'wp_template_part_area' );
-		wp_set_post_terms( self::$template_part_post->ID, self::$test_theme, 'wp_theme' );
+		wp_set_post_terms( self::$template_part_post->ID, self::TEST_THEME, 'wp_theme' );
+	}
+
+	public static function wpTearDownAfterClass() {
+		wp_delete_post( self::$template_post->ID );
 	}
 
 	public function set_up() {
 		parent::set_up();
-		switch_theme( self::$test_theme );
-	}
-
-	public static function wpTearDownAfterClass() {
-		wp_delete_post( self::$post->ID );
+		switch_theme( self::TEST_THEME );
 	}
 
 	public function test_build_block_template_result_from_post() {
 		$template = _build_block_template_result_from_post(
-			self::$post,
+			self::$template_post,
 			'wp_template'
 		);
 
@@ -113,7 +119,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( WP_TEMPLATE_PART_AREA_HEADER, $template_part->area );
 	}
 
-	function test_build_block_template_result_from_file() {
+	public function test_build_block_template_result_from_file() {
 		$template = _build_block_template_result_from_file(
 			array(
 				'slug' => 'single',
@@ -127,8 +133,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( 'single', $template->slug );
 		$this->assertSame( 'publish', $template->status );
 		$this->assertSame( 'theme', $template->source );
-		$this->assertSame( 'Single Post', $template->title );
-		$this->assertSame( 'Displays a single post.', $template->description );
+		$this->assertSame( 'Single', $template->title );
+		$this->assertSame( 'Displays single posts on your website unless a custom template has been applied to that post or a dedicated template exists.', $template->description );
 		$this->assertSame( 'wp_template', $template->type );
 
 		// Test template parts.
@@ -151,7 +157,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( WP_TEMPLATE_PART_AREA_HEADER, $template_part->area );
 	}
 
-	function test_inject_theme_attribute_in_block_template_content() {
+	public function test_inject_theme_attribute_in_block_template_content() {
 		$theme                           = get_stylesheet();
 		$content_without_theme_attribute = '<!-- wp:template-part {"slug":"header","align":"full", "tagName":"header","className":"site-header"} /-->';
 		$template_content                = _inject_theme_attribute_in_block_template_content(
@@ -197,11 +203,11 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_remove_theme_attribute_in_block_template_content
 	 */
-	function test_remove_theme_attribute_in_block_template_content( $template_content, $expected ) {
-		$this->assertEquals( $expected, _remove_theme_attribute_in_block_template_content( $template_content ) );
+	public function test_remove_theme_attribute_in_block_template_content( $template_content, $expected ) {
+		$this->assertSame( $expected, _remove_theme_attribute_in_block_template_content( $template_content ) );
 	}
 
-	function data_remove_theme_attribute_in_block_template_content() {
+	public function data_remove_theme_attribute_in_block_template_content() {
 		return array(
 			array(
 				'<!-- wp:template-part {"slug":"header","theme":"tt1-blocks","align":"full","tagName":"header","className":"site-header"} /-->',
@@ -227,7 +233,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	/**
 	 * Should retrieve the template from the theme files.
 	 */
-	function test_get_block_template_from_file() {
+	public function test_get_block_template_from_file() {
 		$id       = get_stylesheet() . '//' . 'index';
 		$template = get_block_template( $id, 'wp_template' );
 		$this->assertSame( $id, $template->id );
@@ -275,56 +281,9 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should retrieve block templates (file and CPT)
-	 */
-	public function test_get_block_templates() {
-		function get_template_ids( $templates ) {
-			return array_map(
-				static function( $template ) {
-					return $template->id;
-				},
-				$templates
-			);
-		}
-
-		// All results.
-		$templates    = get_block_templates( array(), 'wp_template' );
-		$template_ids = get_template_ids( $templates );
-
-		// Avoid testing the entire array because the theme might add/remove templates.
-		$this->assertContains( get_stylesheet() . '//' . 'my_template', $template_ids );
-
-		// The result might change in a block theme.
-		// $this->assertContains( get_stylesheet() . '//' . 'index', $template_ids );
-
-		// Filter by slug.
-		$templates    = get_block_templates( array( 'slug__in' => array( 'my_template' ) ), 'wp_template' );
-		$template_ids = get_template_ids( $templates );
-		$this->assertSame( array( get_stylesheet() . '//' . 'my_template' ), $template_ids );
-
-		// Filter by CPT ID.
-		$templates    = get_block_templates( array( 'wp_id' => self::$post->ID ), 'wp_template' );
-		$template_ids = get_template_ids( $templates );
-		$this->assertSame( array( get_stylesheet() . '//' . 'my_template' ), $template_ids );
-
-		// Filter template part by area.
-		// Requires a block theme.
-		/*$templates    = get_block_templates( array( 'area' => WP_TEMPLATE_PART_AREA_HEADER ), 'wp_template_part' );
-		$template_ids = get_template_ids( $templates );
-		$this->assertSame(
-			array(
-				get_stylesheet() . '//' . 'my_template_part',
-				get_stylesheet() . '//' . 'header',
-			),
-			$template_ids
-		);
-		*/
-	}
-
-	/**
 	 * Should flatten nested blocks
 	 */
-	function test_flatten_blocks() {
+	public function test_flatten_blocks() {
 		$content_template_part_inside_group = '<!-- wp:group --><!-- wp:template-part {"slug":"header"} /--><!-- /wp:group -->';
 		$blocks                             = parse_blocks( $content_template_part_inside_group );
 		$actual                             = _flatten_blocks( $blocks );
@@ -350,7 +309,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * @ticket 54448
 	 * @requires extension zip
 	 */
-	function test_wp_generate_block_templates_export_file() {
+	public function test_wp_generate_block_templates_export_file() {
 		$filename = wp_generate_block_templates_export_file();
 		$this->assertFileExists( $filename, 'zip file is created at the specified path' );
 		$this->assertTrue( filesize( $filename ) > 0, 'zip file is larger than 0 bytes' );

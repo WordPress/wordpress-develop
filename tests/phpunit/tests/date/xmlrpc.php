@@ -9,22 +9,22 @@
 class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 
 	/**
+	 * Cleans up.
+	 */
+	public function tear_down() {
+		// Reset the timezone option to the default value.
+		update_option( 'timezone_string', '' );
+
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 30429
 	 *
 	 * @covers wp_xmlrpc_server::mw_newPost
 	 */
 	public function test_date_new_post() {
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
-
-		$timezone = 'Europe/Kiev';
+		$timezone = 'Europe/Helsinki';
 		update_option( 'timezone_string', $timezone );
 
 		$datetime    = new DateTimeImmutable( 'now', new DateTimeZone( $timezone ) );
@@ -144,7 +144,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 	 * @covers wp_xmlrpc_server::mw_editPost
 	 */
 	public function test_date_edit_post() {
-		$timezone = 'Europe/Kiev';
+		$timezone = 'Europe/Helsinki';
 		update_option( 'timezone_string', $timezone );
 
 		$datetime    = new DateTimeImmutable( 'now', new DateTimeZone( $timezone ) );
@@ -213,7 +213,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 	 * @covers wp_xmlrpc_server::wp_editComment
 	 */
 	public function test_date_edit_comment() {
-		$timezone = 'Europe/Kiev';
+		$timezone = 'Europe/Helsinki';
 		update_option( 'timezone_string', $timezone );
 
 		$datetime    = new DateTimeImmutable( 'now', new DateTimeZone( $timezone ) );
@@ -221,7 +221,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 		$datetimeutc = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
 
 		$this->make_user_by_role( 'administrator' );
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 
 		$comment_data = array(
 			'comment_post_ID'      => $post_id,
