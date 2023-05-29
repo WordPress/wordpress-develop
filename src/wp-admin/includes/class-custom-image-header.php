@@ -71,7 +71,7 @@ class Custom_Image_Header {
 	 * @since 2.1.0
 	 */
 	public function init() {
-		$page = add_theme_page( _x( 'Header', 'Header image' ), _x( 'Header', 'Header image' ), 'edit_theme_options', 'custom-header', array( $this, 'admin_page' ) );
+		$page = add_theme_page( _x( 'Header', 'header image' ), _x( 'Header', 'header image' ), 'edit_theme_options', 'custom-header', array( $this, 'admin_page' ) );
 
 		if ( ! $page ) {
 			return;

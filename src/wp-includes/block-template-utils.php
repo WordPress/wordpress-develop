@@ -74,7 +74,7 @@ function get_allowed_block_template_part_areas() {
 		),
 		array(
 			'area'        => WP_TEMPLATE_PART_AREA_HEADER,
-			'label'       => _x( 'Header', 'Header template' ),
+			'label'       => _x( 'Header', 'header template' ),
 			'description' => __(
 				'The Header template defines a page area that typically contains a title, logo, and main navigation.'
 			),

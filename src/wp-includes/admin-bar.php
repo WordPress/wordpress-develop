@@ -1066,7 +1066,7 @@ function wp_admin_bar_appearance_menu( $wp_admin_bar ) {
 			array(
 				'parent' => 'appearance',
 				'id'     => 'header',
-				'title'  => _x( 'Header', 'Header image' ),
+				'title'  => _x( 'Header', 'header image' ),
 				'href'   => admin_url( 'themes.php?page=custom-header' ),
 				'meta'   => array(
 					'class' => 'hide-if-customize',
