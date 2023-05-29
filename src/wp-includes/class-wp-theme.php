@@ -331,6 +331,8 @@ final class WP_Theme implements ArrayAccess {
 			}
 		}
 
+		$is_block_theme = $this->is_block_theme();
+
 		if ( ! $this->template && $this->stylesheet === $this->headers['Template'] ) {
 			$this->errors = new WP_Error(
 				'theme_child_invalid',
@@ -343,7 +345,7 @@ final class WP_Theme implements ArrayAccess {
 			$this->cache_add(
 				'theme',
 				array(
-					'block_theme' => $this->is_block_theme(),
+					'block_theme' => $is_block_theme,
 					'headers'     => $this->headers,
 					'errors'      => $this->errors,
 					'stylesheet'  => $this->stylesheet,
@@ -363,7 +365,7 @@ final class WP_Theme implements ArrayAccess {
 			$theme_path     = $this->theme_root . '/' . $this->stylesheet;
 
 			if (
-				! $this->is_block_theme()
+				! $is_block_theme
 				&& ! file_exists( $theme_path . '/index.php' )
 			) {
 				$error_message = sprintf(
@@ -379,7 +381,7 @@ final class WP_Theme implements ArrayAccess {
 				$this->cache_add(
 					'theme',
 					array(
-						'block_theme' => $this->is_block_theme(),
+						'block_theme' => $is_block_theme,
 						'headers'     => $this->headers,
 						'errors'      => $this->errors,
 						'stylesheet'  => $this->stylesheet,
@@ -416,7 +418,7 @@ final class WP_Theme implements ArrayAccess {
 				$this->cache_add(
 					'theme',
 					array(
-						'block_theme' => $this->is_block_theme(),
+						'block_theme' => $is_block_theme,
 						'headers'     => $this->headers,
 						'errors'      => $this->errors,
 						'stylesheet'  => $this->stylesheet,
@@ -464,7 +466,7 @@ final class WP_Theme implements ArrayAccess {
 					$this->cache_add(
 						'theme',
 						array(
-							'block_theme' => $this->is_block_theme(),
+							'block_theme' => $is_block_theme,
 							'headers'     => $this->headers,
 							'errors'      => $this->errors,
 							'stylesheet'  => $this->stylesheet,
@@ -485,7 +487,7 @@ final class WP_Theme implements ArrayAccess {
 		// We're good. If we didn't retrieve from cache, set it.
 		if ( ! is_array( $cache ) ) {
 			$cache = array(
-				'block_theme' => $this->is_block_theme(),
+				'block_theme' => $is_block_theme,
 				'headers'     => $this->headers,
 				'errors'      => $this->errors,
 				'stylesheet'  => $this->stylesheet,
