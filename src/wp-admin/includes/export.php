@@ -112,11 +112,9 @@ function export_wp( $args = array() ) {
 		$where = $wpdb->prepare( "{$wpdb->posts}.post_type IN (" . implode( ',', $esses ) . ')', $post_types );
 	}
 
-	if ( $args['status'] && ( 'post' === $args['content'] || 'page' === $args['content'] ) ) {
-		$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_status = %s", $args['status'] );
-	} else {
-		$where .= " AND {$wpdb->posts}.post_status != 'auto-draft'";
-	}
+	$where .= ( $args['status'] && ( 'post' === $args['content'] || 'page' === $args['content'] ) )
+		? $wpdb->prepare( " AND {$wpdb->posts}.post_status = %s", $args['status'] )
+		: " AND {$wpdb->posts}.post_status != 'auto-draft'";
 
 	$join = '';
 	if ( $args['category'] && 'post' === $args['content'] ) {
@@ -217,10 +215,9 @@ function export_wp( $args = array() ) {
 		if ( is_multisite() ) {
 			// Multisite: the base URL.
 			return network_home_url();
-		} else {
-			// WordPress (single site): the blog URL.
-			return get_bloginfo_rss( 'url' );
 		}
+		// WordPress (single site): the blog URL.
+		return get_bloginfo_rss( 'url' );
 	}
 
 	/**
@@ -358,11 +355,10 @@ function export_wp( $args = array() ) {
 	function wxr_authors_list( array $post_ids = null ) {
 		global $wpdb;
 
+		$and = '';
 		if ( ! empty( $post_ids ) ) {
 			$post_ids = array_map( 'absint', $post_ids );
 			$and      = 'AND ID IN ( ' . implode( ', ', $post_ids ) . ')';
-		} else {
-			$and = '';
 		}
 
 		$authors = array();
@@ -435,10 +431,9 @@ function export_wp( $args = array() ) {
 	 * @return bool
 	 */
 	function wxr_filter_postmeta( $return_me, $meta_key ) {
-		if ( '_edit_lock' === $meta_key ) {
-			$return_me = true;
-		}
-		return $return_me;
+		return ( '_edit_lock' === $meta_key )
+			? true
+			: (bool) $return_me;
 	}
 	add_filter( 'wxr_export_skip_postmeta', 'wxr_filter_postmeta', 10, 2 );
 
