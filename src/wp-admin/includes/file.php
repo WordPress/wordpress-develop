@@ -85,7 +85,8 @@ function get_file_description( $file ) {
 
 	if ( isset( $wp_file_descriptions[ basename( $file ) ] ) && '.' === $dirname ) {
 		return $wp_file_descriptions[ basename( $file ) ];
-	} elseif ( file_exists( $file_path ) && is_file( $file_path ) ) {
+	}
+	if ( file_exists( $file_path ) && is_file( $file_path ) ) {
 		$template_data = implode( '', file( $file_path ) );
 
 		if ( preg_match( '|Template Name:(.*)$|mi', $template_data, $name ) ) {
@@ -108,13 +109,12 @@ function get_home_path() {
 	$home    = set_url_scheme( get_option( 'home' ), 'http' );
 	$siteurl = set_url_scheme( get_option( 'siteurl' ), 'http' );
 
+	$home_path = ABSPATH;
 	if ( ! empty( $home ) && 0 !== strcasecmp( $home, $siteurl ) ) {
 		$wp_path_rel_to_home = str_ireplace( $home, '', $siteurl ); /* $siteurl - $home */
 		$pos                 = strripos( str_replace( '\\', '/', $_SERVER['SCRIPT_FILENAME'] ), trailingslashit( $wp_path_rel_to_home ) );
 		$home_path           = substr( $_SERVER['SCRIPT_FILENAME'], 0, $pos );
 		$home_path           = trailingslashit( $home_path );
-	} else {
-		$home_path = ABSPATH;
 	}
 
 	return str_replace( '\\', '/', $home_path );
@@ -232,9 +232,7 @@ function wp_get_plugin_file_editable_extensions( $plugin ) {
 	 * @param string[] $default_types An array of editable plugin file extensions.
 	 * @param string   $plugin        Path to the plugin file relative to the plugins directory.
 	 */
-	$file_types = (array) apply_filters( 'editable_extensions', $default_types, $plugin );
-
-	return $file_types;
+	return (array) apply_filters( 'editable_extensions', $default_types, $plugin );
 }
 
 /**
@@ -460,11 +458,13 @@ function wp_edit_theme_plugin_file( $args ) {
 				case 'php':
 					$allowed_files = array_merge( $allowed_files, $theme->get_files( 'php', -1 ) );
 					break;
+
 				case 'css':
 					$style_files                = $theme->get_files( 'css', -1 );
 					$allowed_files['style.css'] = $style_files['style.css'];
 					$allowed_files              = array_merge( $allowed_files, $style_files );
 					break;
+
 				default:
 					$allowed_files = array_merge( $allowed_files, $theme->get_files( $type, -1 ) );
 					break;
@@ -858,11 +858,10 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	 * This may not have originally been intended to be overridable,
 	 * but historically has been.
 	 */
-	if ( isset( $overrides['upload_error_strings'] ) ) {
-		$upload_error_strings = $overrides['upload_error_strings'];
-	} else {
+	$upload_error_strings = ( isset( $overrides['upload_error_strings'] ) )
+		? $overrides['upload_error_strings']
 		// Courtesy of php.net, the strings that describe the error indicated in $_FILES[{form field}]['error'].
-		$upload_error_strings = array(
+		: array(
 			false,
 			sprintf(
 				/* translators: 1: upload_max_filesize, 2: php.ini */
@@ -882,7 +881,6 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 			__( 'Failed to write file to disk.' ),
 			__( 'File upload stopped by extension.' ),
 		);
-	}
 
 	// All tests are on by default. Most can be turned off by $overrides[{test_name}] = false;
 	$test_form = isset( $overrides['test_form'] ) ? $overrides['test_form'] : true;
@@ -911,21 +909,20 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	$test_file_size = 'wp_handle_upload' === $action ? $file['size'] : filesize( $file['tmp_name'] );
 	// A non-empty file will pass this test.
 	if ( $test_size && ! ( $test_file_size > 0 ) ) {
-		if ( is_multisite() ) {
-			$error_msg = __( 'File is empty. Please upload something more substantial.' );
-		} else {
-			$error_msg = sprintf(
-				/* translators: 1: php.ini, 2: post_max_size, 3: upload_max_filesize */
+		$error_msg = ( is_multisite() )
+			? __( 'File is empty. Please upload something more substantial.' )
+			: sprintf(
+					/* translators: 1: php.ini, 2: post_max_size, 3: upload_max_filesize */
 				__( 'File is empty. Please upload something more substantial. This error could also be caused by uploads being disabled in your %1$s file or by %2$s being defined as smaller than %3$s in %1$s.' ),
 				'php.ini',
 				'post_max_size',
 				'upload_max_filesize'
 			);
-		}
 
 		return call_user_func_array( $upload_error_handler, array( &$file, $error_msg ) );
 	}
 
+	$type = '';
 	// A correct MIME type will pass this test. Override $mimes or use the upload_mimes filter.
 	if ( $test_type ) {
 		$wp_filetype     = wp_check_filetype_and_ext( $file['tmp_name'], $file['name'], $mimes );
@@ -945,8 +942,6 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 		if ( ! $type ) {
 			$type = $file['type'];
 		}
-	} else {
-		$type = '';
 	}
 
 	/*
@@ -997,11 +992,9 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 		}
 
 		if ( false === $move_new_file ) {
-			if ( str_starts_with( $uploads['basedir'], ABSPATH ) ) {
-				$error_path = str_replace( ABSPATH, '', $uploads['basedir'] ) . $uploads['subdir'];
-			} else {
-				$error_path = basename( $uploads['basedir'] ) . $uploads['subdir'];
-			}
+			$error_path = ( str_starts_with( $uploads['basedir'], ABSPATH ) )
+				? str_replace( ABSPATH, '', $uploads['basedir'] ) . $uploads['subdir']
+				: basename( $uploads['basedir'] ) . $uploads['subdir'];
 
 			return $upload_error_handler(
 				$file,
@@ -1196,10 +1189,9 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 	if ( $content_disposition ) {
 		$content_disposition = strtolower( $content_disposition );
 
+		$tmpfname_disposition = '';
 		if ( str_starts_with( $content_disposition, 'attachment; filename=' ) ) {
 			$tmpfname_disposition = sanitize_file_name( substr( $content_disposition, 21 ) );
-		} else {
-			$tmpfname_disposition = '';
 		}
 
 		// Potential file name must be valid string.
@@ -1597,10 +1589,9 @@ function unzip_file( $file, $to ) {
 		$result = _unzip_file_ziparchive( $file, $to, $needed_dirs );
 		if ( true === $result ) {
 			return $result;
-		} elseif ( is_wp_error( $result ) ) {
-			if ( 'incompatible_archive' !== $result->get_error_code() ) {
-				return $result;
-			}
+		}
+		if ( is_wp_error( $result ) && 'incompatible_archive' !== $result->get_error_code() ) {
+			return $result;
 		}
 	}
 	// Fall through to PclZip if ZipArchive is not available, or encountered an error opening the file.
@@ -1659,13 +1650,11 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 
 		$dirname = dirname( $info['name'] );
 
-		if ( '/' === substr( $info['name'], -1 ) ) {
+		$needed_dirs[] = ( '/' === substr( $info['name'], -1 ) )
 			// Directory.
-			$needed_dirs[] = $to . untrailingslashit( $info['name'] );
-		} elseif ( '.' !== $dirname ) {
+			? $to . untrailingslashit( $info['name'] )
 			// Path to a file.
-			$needed_dirs[] = $to . untrailingslashit( $dirname );
-		}
+			: $to . untrailingslashit( $dirname );
 	}
 
 	/*
@@ -1927,10 +1916,8 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 
 			wp_opcache_invalidate( $to . $filename );
 		} elseif ( 'd' === $fileinfo['type'] ) {
-			if ( ! $wp_filesystem->is_dir( $to . $filename ) ) {
-				if ( ! $wp_filesystem->mkdir( $to . $filename, FS_CHMOD_DIR ) ) {
-					return new WP_Error( 'mkdir_failed_copy_dir', __( 'Could not create directory.' ), $to . $filename );
-				}
+			if ( ! $wp_filesystem->is_dir( $to . $filename ) && ! $wp_filesystem->mkdir( $to . $filename, FS_CHMOD_DIR ) ) {
+				return new WP_Error( 'mkdir_failed_copy_dir', __( 'Could not create directory.' ), $to . $filename );
 			}
 
 			// Generate the $sub_skip_list for the subdirectory as a sub-set of the existing $skip_list.
@@ -1984,7 +1971,8 @@ function move_dir( $from, $to, $overwrite = false ) {
 	if ( $wp_filesystem->exists( $to ) ) {
 		if ( ! $overwrite ) {
 			return new WP_Error( 'destination_already_exists_move_dir', __( 'The destination folder already exists.' ), $to );
-		} elseif ( ! $wp_filesystem->delete( $to, true ) ) {
+		}
+		if ( ! $wp_filesystem->delete( $to, true ) ) {
 			// Can't overwrite if the destination couldn't be deleted.
 			return new WP_Error( 'destination_not_deleted_move_dir', __( 'The destination directory already exists and could not be removed.' ) );
 		}
@@ -2010,10 +1998,8 @@ function move_dir( $from, $to, $overwrite = false ) {
 	}
 
 	// Fall back to a recursive copy.
-	if ( ! $wp_filesystem->is_dir( $to ) ) {
-		if ( ! $wp_filesystem->mkdir( $to, FS_CHMOD_DIR ) ) {
-			return new WP_Error( 'mkdir_failed_move_dir', __( 'Could not create directory.' ), $to );
-		}
+	if ( ! $wp_filesystem->is_dir( $to ) && ! $wp_filesystem->mkdir( $to, FS_CHMOD_DIR ) ) {
+		return new WP_Error( 'mkdir_failed_move_dir', __( 'Could not create directory.' ), $to );
 	}
 
 	$result = copy_dir( $from, $to, array( basename( $to ) ) );
@@ -2482,14 +2468,14 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 <legend><?php _e( 'Connection Type' ); ?></legend>
 	<?php
 	$disabled = disabled( ( defined( 'FTP_SSL' ) && FTP_SSL ) || ( defined( 'FTP_SSH' ) && FTP_SSH ), true, false );
-	foreach ( $types as $name => $text ) :
+	foreach ( $types as $name => $text ) {
 		?>
 	<label for="<?php echo esc_attr( $name ); ?>">
 		<input type="radio" name="connection_type" id="<?php echo esc_attr( $name ); ?>" value="<?php echo esc_attr( $name ); ?>" <?php checked( $name, $connection_type ); ?> <?php echo $disabled; ?> />
 		<?php echo $text; ?>
 	</label>
 		<?php
-	endforeach;
+	};
 	?>
 </fieldset>
 	<?php
