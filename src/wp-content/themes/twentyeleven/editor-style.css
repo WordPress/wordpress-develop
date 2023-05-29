@@ -15,10 +15,15 @@ body {
 h1,h2,h3,h4,h5,h6 {
 	clear: both;
 }
-h1,
-h2 {
+h1{
 	color: #000;
 	font-size: 15px;
+	font-weight: bold;
+	margin: 0 0 .8125em;
+}
+h2{
+	color: #000;
+	font-size: 13px;
 	font-weight: bold;
 	margin: 0 0 .8125em;
 }
