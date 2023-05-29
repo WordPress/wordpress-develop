@@ -63,7 +63,7 @@ if ( $charset ) {
 
 // No valid uses for UTF-7.
 if ( false !== strpos( $charset, 'UTF-7' ) ) {
-	die;
+	wp_die();
 }
 
 // For international trackbacks.
