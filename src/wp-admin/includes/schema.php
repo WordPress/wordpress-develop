@@ -983,6 +983,8 @@ endif;
 function populate_network( $network_id = 1, $domain = '', $email = '', $site_name = '', $path = '/', $subdomain_install = false ) {
 	global $wpdb, $current_site, $wp_rewrite;
 
+	$network_id = (int) $network_id;
+
 	$errors = new WP_Error();
 	if ( '' === $domain ) {
 		$errors->add( 'empty_domain', __( 'You must provide a domain name.' ) );
@@ -994,11 +996,13 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 	// Check for network collision.
 	$network_exists = false;
 	if ( is_multisite() ) {
-		if ( get_network( (int) $network_id ) ) {
+		if ( get_network( $network_id ) ) {
 			$errors->add( 'siteid_exists', __( 'The network already exists.' ) );
 		}
 	} else {
-		if ( (int) $network_id === (int) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $wpdb->site WHERE id = %d", $network_id ) ) ) {
+		if ( $network_id === (int) $wpdb->get_var(
+			$wpdb->prepare( "SELECT id FROM $wpdb->site WHERE id = %d", $network_id )
+		) ) {
 			$errors->add( 'siteid_exists', __( 'The network already exists.' ) );
 		}
 	}
@@ -1011,7 +1015,7 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 		return $errors;
 	}
 
-	if ( 1 === (int) $network_id ) {
+	if ( 1 === $network_id ) {
 		$wpdb->insert(
 			$wpdb->site,
 			array(
@@ -1040,7 +1044,17 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 		)
 	);
 
-	$site_user = get_userdata( (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s AND site_id = %d", 'admin_user_id', $network_id ) ) );
+	$site_user = get_userdata(
+		(int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT meta_value
+				FROM $wpdb->sitemeta
+				WHERE meta_key = %s AND site_id = %d",
+				'admin_user_id',
+				$network_id
+			)
+		)
+	);
 
 	/*
 	 * When upgrading from single to multisite, assume the current site will
