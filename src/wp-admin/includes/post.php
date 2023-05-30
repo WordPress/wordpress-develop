@@ -1532,10 +1532,9 @@ function get_sample_permalink_html( $post, $new_title = null, $new_slug = null )
 			$return .= '<span id="change-permalinks"><a href="options-permalink.php" class="button button-small">' . __( 'Change Permalink Structure' ) . "</a></span>\n";
 		}
 	} else {
+		$post_name_abridged = $post_name;
 		if ( mb_strlen( $post_name ) > 34 ) {
 			$post_name_abridged = mb_substr( $post_name, 0, 16 ) . '&hellip;' . mb_substr( $post_name, -16 );
-		} else {
-			$post_name_abridged = $post_name;
 		}
 
 		$post_name_html = '<span id="editable-post-name">' . esc_html( $post_name_abridged ) . '</span>';
@@ -1733,6 +1732,7 @@ function _admin_notice_post_locked() {
 		$user = get_userdata( $user_id );
 	}
 
+	$locked = false;
 	if ( $user ) {
 		/**
 		 * Filters whether to show the post locked dialog.
@@ -1750,8 +1750,6 @@ function _admin_notice_post_locked() {
 		}
 
 		$locked = true;
-	} else {
-		$locked = false;
 	}
 
 	$sendback = wp_get_referer();
@@ -2049,11 +2047,11 @@ function wp_autosave( $post_data ) {
 	) {
 		// Drafts and auto-drafts are just overwritten by autosave for the same user if the post is not locked.
 		return edit_post( wp_slash( $post_data ) );
-	} else {
-		// Non-drafts or other users' drafts are not overwritten.
-		// The autosave is stored in a special post revision for each user.
-		return wp_create_post_autosave( wp_slash( $post_data ) );
 	}
+
+	// Non-drafts or other users' drafts are not overwritten.
+	// The autosave is stored in a special post revision for each user.
+	return wp_create_post_autosave( wp_slash( $post_data ) );
 }
 
 /**
@@ -2072,9 +2070,11 @@ function redirect_post( $post_id = '' ) {
 				case 'pending':
 					$message = 8;
 					break;
+
 				case 'future':
 					$message = 9;
 					break;
+
 				default:
 					$message = 6;
 			}
@@ -2159,14 +2159,9 @@ function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {
 			)
 		);
 
-		if ( ! empty( $_term ) ) {
-			$clean_terms[] = (int) $_term[0];
-		} else {
-			// No existing term was found, so pass the string. A new term will be created.
-			$clean_terms[] = $term;
-		}
+		// If no existing term was found, so pass the string. A new term will be created.
+		$clean_terms[] = ( ! empty( $_term ) ) ? (int) $_term[0] : $term;
 	}
-
 	return $clean_terms;
 }
 
