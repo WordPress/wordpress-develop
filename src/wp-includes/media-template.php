@@ -498,7 +498,7 @@ function wp_print_media_templates() {
 			</div>
 
 			<div class="settings">
-				<# console.log(data); var maybeReadOnly = data.can.save || data.allowLocalEdits ? '' : 'readonly'; #>
+				<# var maybeReadOnly = data.can.save || data.allowLocalEdits ? '' : 'readonly'; #>
 				<# if ( 'image' === data.type ) { #>
 					<span class="setting alt-text has-description" data-setting="alt">
 						<label for="attachment-details-two-column-alt-text" class="name"><?php _e( 'Alternative Text' ); ?></label>
