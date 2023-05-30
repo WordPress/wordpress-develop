@@ -306,6 +306,8 @@ class WP_Scripts extends WP_Dependencies {
 		$cond_before = '';
 		$cond_after  = '';
 		$conditional = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
+		$strategy    = $this->get_eligible_loading_strategy( $handle );
+		$is_delayed  = $this->is_delayed_strategy( $strategy );
 
 		if ( $conditional ) {
 			$cond_before = "<!--[if {$conditional}]>\n";
@@ -315,30 +317,35 @@ class WP_Scripts extends WP_Dependencies {
 		$before_script = $this->print_inline_script( $handle, 'before', false );
 
 		if ( $before_script ) {
-			$before_script = sprintf( "<script%s id='%s-js-before'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $before_script );
-		}
-
-		$strategy     = $this->get_eligible_loading_strategy( $handle );
-		$after        = ( 'defer' === $strategy || 'async' === $strategy ) ? 'after-standalone' : 'after';
-		$after_script = $this->print_inline_script( $handle, $after, false );
-
-		if ( $after_script ) {
-			$after_script = sprintf(
-				"<script%1\$s id='%2\$s-js-after'>\n%3\$s\n</script>\n",
-				$this->type_attr,
-				esc_attr( $handle ),
-				$after_script
-			);
-		}
-		if ( 'defer' === $strategy || 'async' === $strategy ) {
-			$after_non_standalone_script = $this->print_inline_script( $handle, 'after-non-standalone', false );
-
-			if ( $after_non_standalone_script ) {
-				$after_script .= sprintf(
-					"<script id='%1\$s-js-after' type='text/template' data-wp-executes-after='%1\$s'>\n%2\$s\n</script>\n",
-					esc_attr( $handle ),
-					$after_non_standalone_script
+			$id = "{$handle}-js-before";
+			if ( $is_delayed ) {
+				$before_script = wp_get_inline_script_tag(
+					$before_script,
+					array(
+						'id'           => $id,
+						'type'         => 'text/template',
+						'data-wp-deps' => implode( ',', $obj->deps ), // TODO: Handle case where a dep has a src which is false.
+					)
 				);
+			} else {
+				$before_script = wp_get_inline_script_tag( $before_script, compact( 'id' ) );
+			}
+		}
+
+		$after_script = $this->print_inline_script( $handle, 'after', false );
+		if ( $after_script ) {
+			$id = "{$handle}-js-after";
+			if ( $is_delayed ) {
+				$after_script = wp_get_inline_script_tag(
+					$after_script,
+					array(
+						'id'           => $id,
+						'type'         => 'text/template',
+						'data-wp-deps' => implode( ',', array_merge( $obj->deps, array( $handle ) ) ), // TODO: Handle case where a dep has a src which is false.
+					)
+				);
+			} else {
+				$after_script = wp_get_inline_script_tag( $after_script, compact( 'id' ) );
 			}
 		}
 
@@ -467,17 +474,15 @@ class WP_Scripts extends WP_Dependencies {
 	 * Adds extra code to a registered script.
 	 *
 	 * @since 4.5.0
-	 * @since 6.3.0 Added `$standalone` boolean parameter.
 	 *
-	 * @param string $handle     Name of the script to add the inline script to.
-	 *                           Must be lowercase.
-	 * @param string $data       String containing the JavaScript to be added.
-	 * @param string $position   Optional. Whether to add the inline script
-	 *                           before the handle or after. Default 'after'.
-	 * @param bool   $standalone Optional. Inline script opted to be standalone or not. Default false.
+	 * @param string $handle   Name of the script to add the inline script to.
+	 *                         Must be lowercase.
+	 * @param string $data     String containing the JavaScript to be added.
+	 * @param string $position Optional. Whether to add the inline script
+	 *                         before the handle or after. Default 'after'.
 	 * @return bool True on success, false on failure.
 	 */
-	public function add_inline_script( $handle, $data, $position = 'after', $standalone = false ) {
+	public function add_inline_script( $handle, $data, $position = 'after' ) {
 		if ( ! $data ) {
 			return false;
 		}
@@ -488,12 +493,6 @@ class WP_Scripts extends WP_Dependencies {
 
 		$script   = (array) $this->get_data( $handle, $position );
 		$script[] = $data;
-
-		// Maintain a list of standalone and non-standalone before/after scripts.
-		$standalone_key      = $standalone ? $position . '-standalone' : $position . '-non-standalone';
-		$standalone_script   = (array) $this->get_data( $handle, $standalone_key );
-		$standalone_script[] = $data;
-		$this->add_data( $handle, $standalone_key, $standalone_script );
 
 		return $this->add_data( $handle, $position, $script );
 	}
@@ -521,19 +520,24 @@ class WP_Scripts extends WP_Dependencies {
 		$output = trim( implode( "\n", $output ), "\n" );
 
 		if ( $display ) {
-			if ( 'after-non-standalone' === $position ) {
-				$script_output = "<script%1\$s id='%2\$s-js-after' data-wp-executes-after='%2\$s'>\n%4\$s\n</script>\n";
+			$strategy = $this->get_eligible_loading_strategy( $handle );
+			if ( $this->is_delayed_strategy( $strategy ) ) {
+				printf(
+					"<script%1\$s id='%2\$s-js-after' type='text/template' data-wp-executes-after='%2\$s'>\n%4\$s\n</script>\n",
+					$this->type_attr,
+					esc_attr( $handle ),
+					esc_attr( $position ),
+					$output
+				);
 			} else {
-				$script_output = "<script%1\$s id='%2\$s-js-%3\$s'>\n%4\$s\n</script>\n";
+				printf(
+					"<script%1\$s id='%2\$s-js-%3\$s'>\n%4\$s\n</script>\n",
+					$this->type_attr,
+					esc_attr( $handle ),
+					esc_attr( $position ),
+					$output
+				);
 			}
-
-			printf(
-				$script_output,
-				$this->type_attr,
-				esc_attr( $handle ),
-				esc_attr( $position ),
-				$output
-			);
 		}
 
 		return $output;
@@ -819,12 +823,12 @@ JS;
 	 */
 	public function has_delayed_inline_script() {
 		foreach ( $this->registered as $handle => $script ) {
-			// Non-standalone scripts in the after position, of type async or defer, are usually delayed.
-			$strategy = $this->get_data( $handle, 'strategy' );
-			if (
-				$this->is_delayed_strategy( $strategy )
-				&& $this->has_non_standalone_inline_script( $handle, 'after' )
-			) {
+			if ( ! $this->get_data( $handle, 'before' ) && ! $this->get_data( $handle, 'after' ) ) {
+				continue;
+			}
+
+			$strategy = $this->get_eligible_loading_strategy( $handle );
+			if ( $this->is_delayed_strategy( $strategy ) ) {
 				return true;
 			}
 		}
@@ -877,31 +881,16 @@ JS;
 	}
 
 	/**
-	 * Checks if a script has a non-standalone inline script associated with it.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @param string $handle   The script handle.
-	 * @param string $position Position of the inline script.
-	 * @return bool True if a script is present, otherwise false.
-	 */
-	private function has_non_standalone_inline_script( $handle, $position ) {
-		$non_standalone_script_key = "{$position}-non-standalone";
-		$non_standalone_script     = $this->get_data( $handle, $non_standalone_script_key );
-
-		return ! empty( $non_standalone_script );
-	}
-
-	/**
 	 * Checks if all of a scripts dependents are deferrable, which is required to maintain execution order.
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string   $handle  The script handle.
-	 * @param string[] $checked Optional. An array of already checked script handles, used to avoid recursive loops.
+	 * @param string   $handle     The script handle.
+	 * @param bool     $async_only Whether to limit to async strategy only.
+	 * @param string[] $checked    Optional. An array of already checked script handles, used to avoid recursive loops.
 	 * @return bool True if all dependents are deferrable, false otherwise.
 	 */
-	private function has_only_deferrable_dependents( $handle, $checked = array() ) {
+	private function has_only_delayed_dependents( $handle, $async_only = false, $checked = array() ) {
 		// If this node was already checked, this script can be deferred and the branch ends.
 		if ( in_array( $handle, $checked, true ) ) {
 			return true;
@@ -919,17 +908,16 @@ JS;
 		foreach ( $dependents as $dependent ) {
 			// If the dependent script is not using the defer or async strategy, no script in the chain is deferrable.
 			$strategy = $this->get_data( $dependent, 'strategy' );
-			if ( ! $this->is_delayed_strategy( $strategy ) ) {
-				return false;
-			}
-
-			// If the dependent script has a non-standalone inline script in the 'before' position associated with it, do not defer.
-			if ( $this->has_non_standalone_inline_script( $dependent, 'before' ) ) {
+			if ( $async_only ) {
+				if ( 'async' !== $strategy ) {
+					return false;
+				}
+			} elseif ( ! $this->is_delayed_strategy( $strategy ) ) {
 				return false;
 			}
 
 			// Recursively check all dependents.
-			if ( ! $this->has_only_deferrable_dependents( $dependent, $checked ) ) {
+			if ( ! $this->has_only_delayed_dependents( $dependent, $async_only, $checked ) ) {
 				return false;
 			}
 		}
@@ -957,14 +945,13 @@ JS;
 			return '';
 		}
 
-		// Handle async strategy scenarios.
-		// TODO: This needs to be updated to allow non-empty deps, but only if they are all async.
-		if ( 'async' === $intended_strategy && empty( $this->registered[ $handle ]->deps ) && empty( $this->get_dependents( $handle ) ) ) {
+		// Handle async strategy scenario.
+		if ( 'async' === $intended_strategy && $this->has_only_delayed_dependents( $handle, 'async' ) ) {
 			return 'async';
 		}
 
 		// Handling defer strategy scenarios. (The intended strategy could actually be 'async' here.)
-		if ( $this->has_only_deferrable_dependents( $handle ) ) {
+		if ( $this->has_only_delayed_dependents( $handle ) ) {
 			return 'defer';
 		}
 
