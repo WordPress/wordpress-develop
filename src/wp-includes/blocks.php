@@ -188,7 +188,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 
 	static $wpinc_path_norm = '';
 	if ( ! $wpinc_path_norm ) {
-		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
+		$wpinc_path_norm = ABSPATH . WPINC;
 	}
 
 	$is_core_block = isset( $metadata['file'] ) && str_starts_with( $metadata['file'], $wpinc_path_norm );
@@ -222,8 +222,8 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		$style_path = "style$suffix.css";
 	}
 
-	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
-	$has_style_file  = '' !== $style_path_norm;
+	$style_path_norm = dirname( $metadata['file'] ) . '/' . $style_path;
+	$has_style_file  = file_exists( $style_path_norm );
 
 	if ( $has_style_file ) {
 		$style_uri = plugins_url( $style_path, $metadata['file'] );
@@ -347,7 +347,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	if ( ! is_array( $metadata ) || empty( $metadata['name'] ) ) {
 		return false;
 	}
-	$metadata['file'] = wp_normalize_path( realpath( $metadata_file ) );
+	$metadata['file'] = $metadata_file;
 
 	/**
 	 * Filters the metadata provided for registering a block type.
