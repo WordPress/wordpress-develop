@@ -498,7 +498,7 @@ function wp_print_media_templates() {
 			</div>
 
 			<div class="settings">
-				<# var maybeReadOnly = data.can.save || data.allowLocalEdits ? '' : 'readonly'; #>
+				<# console.log(data); var maybeReadOnly = data.can.save || data.allowLocalEdits ? '' : 'readonly'; #>
 				<# if ( 'image' === data.type ) { #>
 					<span class="setting alt-text has-description" data-setting="alt">
 						<label for="attachment-details-two-column-alt-text" class="name"><?php _e( 'Alternative Text' ); ?></label>
@@ -509,7 +509,7 @@ function wp_print_media_templates() {
 				<?php if ( post_type_supports( 'attachment', 'title' ) ) : ?>
 				<span class="setting" data-setting="title">
 					<label for="attachment-details-two-column-title" class="name"><?php _e( 'Title' ); ?></label>
-					<textarea id="attachment-details-two-column-title" aria-describedby="title-description" {{ maybeReadOnly }}>{{ data.title.replace( /[\r\n]+/gm, "" ) }}</textarea>
+					<textarea id="attachment-details-two-column-title" aria-describedby="title-description" {{ maybeReadOnly }}>{{ data.title }}</textarea>
 				</span>
 				<?php endif; ?>
 				<# if ( 'audio' === data.type ) { #>
