@@ -720,4 +720,7 @@ add_filter( 'render_block', 'wp_render_typography_support', 10, 2 );
 // User preferences.
 add_action( 'init', 'wp_register_persisted_preferences_meta' );
 
+// Behaviors
+add_filter( 'block_editor_settings_all', 'wp_add_behaviors' );
+
 unset( $filter, $action );

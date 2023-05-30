@@ -1,5 +1,12 @@
 {
 	"version": 2,
+	"behaviors": {
+		"blocks": {
+			"core/image": {
+				"lightbox": false
+			}
+		}
+	},
 	"settings": {
 		"appearanceTools": false,
 		"useRootPaddingAwareAlignments": false,
@@ -413,6 +420,11 @@
 					"radius": true,
 					"style": true,
 					"width": true
+				}
+			},
+			"core/image": {
+				"behaviors": {
+					"lightbox": true
 				}
 			}
 		}

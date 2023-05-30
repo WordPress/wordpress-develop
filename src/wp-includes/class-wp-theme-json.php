@@ -321,6 +321,7 @@ class WP_Theme_JSON {
 		'templateParts',
 		'title',
 		'version',
+		'behaviors',
 	);
 
 	/**
@@ -398,6 +399,7 @@ class WP_Theme_JSON {
 			'textDecoration' => null,
 			'textTransform'  => null,
 		),
+		'behaviors'                     => null,
 	);
 
 	/**
