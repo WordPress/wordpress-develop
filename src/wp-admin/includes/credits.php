@@ -138,10 +138,12 @@ function wp_credits_section_list( $credits = array(), $slug = '' ) {
 			array_walk( $group_data['data'], '_wp_credits_add_profile_link', $credits_data['profiles'] );
 			echo '<p class="wp-credits-list">' . wp_sprintf( '%l.', $group_data['data'] ) . "</p>\n\n";
 			break;
+
 		case 'libraries':
 			array_walk( $group_data['data'], '_wp_credits_build_object_link' );
 			echo '<p class="wp-credits-list">' . wp_sprintf( '%l.', $group_data['data'] ) . "</p>\n\n";
 			break;
+
 		default:
 			$compact = 'compact' === $group_data['type'];
 			$classes = 'wp-people-group ' . ( $compact ? 'compact' : '' );
@@ -161,6 +163,5 @@ function wp_credits_section_list( $credits = array(), $slug = '' ) {
 				echo "</li>\n";
 			}
 			echo "</ul>\n";
-			break;
 	}
 }

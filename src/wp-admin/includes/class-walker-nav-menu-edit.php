@@ -166,16 +166,14 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 							?>
 						</span>
 						<?php
-						if ( isset( $_GET['edit-menu-item'] ) && $item_id === $_GET['edit-menu-item'] ) {
-							$edit_url = admin_url( 'nav-menus.php' );
-						} else {
-							$edit_url = add_query_arg(
+						$edit_url = ( isset( $_GET['edit-menu-item'] ) && $item_id === $_GET['edit-menu-item'] )
+							? admin_url( 'nav-menus.php' )
+							: add_query_arg(
 								array(
 									'edit-menu-item' => $item_id,
 								),
 								remove_query_arg( $removed_args, admin_url( 'nav-menus.php#menu-item-settings-' . $item_id ) )
 							);
-						}
 
 						printf(
 							'<a class="item-edit" id="edit-%s" href="%s" aria-label="%s"><span class="screen-reader-text">%s</span></a>',
@@ -319,5 +317,4 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 		<?php
 		$output .= ob_get_clean();
 	}
-
 }

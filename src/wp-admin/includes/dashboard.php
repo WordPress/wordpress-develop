@@ -31,11 +31,11 @@ function wp_dashboard_setup() {
 	if ( $check_browser && $check_browser['upgrade'] ) {
 		add_filter( 'postbox_classes_dashboard_dashboard_browser_nag', 'dashboard_browser_nag_class' );
 
-		if ( $check_browser['insecure'] ) {
-			wp_add_dashboard_widget( 'dashboard_browser_nag', __( 'You are using an insecure browser!' ), 'wp_dashboard_browser_nag' );
-		} else {
-			wp_add_dashboard_widget( 'dashboard_browser_nag', __( 'Your browser is out of date!' ), 'wp_dashboard_browser_nag' );
-		}
+		wp_add_dashboard_widget(
+			'dashboard_browser_nag',
+			$check_browser['insecure'] ? __( 'You are using an insecure browser!' ) : __( 'Your browser is out of date!' ),
+			'wp_dashboard_browser_nag'
+		);
 	}
 
 	// PHP Version.
@@ -46,11 +46,11 @@ function wp_dashboard_setup() {
 		if ( isset( $check_php['is_acceptable'] ) && ! $check_php['is_acceptable'] ) {
 			add_filter( 'postbox_classes_dashboard_dashboard_php_nag', 'dashboard_php_nag_class' );
 
-			if ( $check_php['is_lower_than_future_minimum'] ) {
-				wp_add_dashboard_widget( 'dashboard_php_nag', __( 'PHP Update Required' ), 'wp_dashboard_php_nag' );
-			} else {
-				wp_add_dashboard_widget( 'dashboard_php_nag', __( 'PHP Update Recommended' ), 'wp_dashboard_php_nag' );
-			}
+			wp_add_dashboard_widget(
+				'dashboard_php_nag',
+				$check_php['is_lower_than_future_minimum'] ? __( 'PHP Update Required' ) : __( 'PHP Update Recommended' ),
+				'wp_dashboard_php_nag'
+			);
 		}
 	}
 
@@ -308,13 +308,11 @@ function wp_dashboard_right_now() {
 		$num_posts = wp_count_posts( $post_type );
 
 		if ( $num_posts && $num_posts->publish ) {
-			if ( 'post' === $post_type ) {
+			$text = ( 'post' === $post_type )
 				/* translators: %s: Number of posts. */
-				$text = _n( '%s Post', '%s Posts', $num_posts->publish );
-			} else {
+				? _n( '%s Post', '%s Posts', $num_posts->publish )
 				/* translators: %s: Number of pages. */
-				$text = _n( '%s Page', '%s Pages', $num_posts->publish );
-			}
+				: _n( '%s Page', '%s Pages', $num_posts->publish );
 
 			$text             = sprintf( $text, number_format_i18n( $num_posts->publish ) );
 			$post_type_object = get_post_type_object( $post_type );
@@ -698,12 +696,11 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 	$GLOBALS['comment'] = clone $comment;
 
+	$comment_post_link = '';
 	if ( $comment->comment_post_ID > 0 ) {
 		$comment_post_title = _draft_or_post_title( $comment->comment_post_ID );
 		$comment_post_url   = get_the_permalink( $comment->comment_post_ID );
 		$comment_post_link  = '<a href="' . esc_url( $comment_post_url ) . '">' . $comment_post_title . '</a>';
-	} else {
-		$comment_post_link = '';
 	}
 
 	$actions_string = '';
@@ -812,12 +809,11 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 		foreach ( $actions as $action => $link ) {
 			++$i;
 
+			$separator = ' | ';
 			if ( ( ( 'approve' === $action || 'unapprove' === $action ) && 2 === $i )
 				|| 1 === $i
 			) {
 				$separator = '';
-			} else {
-				$separator = ' | ';
 			}
 
 			// Reply and quickedit need a hide-if-no-js span.
@@ -876,9 +872,11 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 					case 'pingback':
 						$type = __( 'Pingback' );
 						break;
+
 					case 'trackback':
 						$type = __( 'Trackback' );
 						break;
+
 					default:
 						$type = ucwords( $comment->comment_type );
 				}
@@ -997,56 +995,52 @@ function wp_dashboard_recent_posts( $args ) {
 
 	$posts = new WP_Query( $query_args );
 
-	if ( $posts->have_posts() ) {
-
-		echo '<div id="' . $args['id'] . '" class="activity-block">';
-
-		echo '<h3>' . $args['title'] . '</h3>';
-
-		echo '<ul>';
-
-		$today    = current_time( 'Y-m-d' );
-		$tomorrow = current_datetime()->modify( '+1 day' )->format( 'Y-m-d' );
-		$year     = current_time( 'Y' );
-
-		while ( $posts->have_posts() ) {
-			$posts->the_post();
-
-			$time = get_the_time( 'U' );
-
-			if ( gmdate( 'Y-m-d', $time ) === $today ) {
-				$relative = __( 'Today' );
-			} elseif ( gmdate( 'Y-m-d', $time ) === $tomorrow ) {
-				$relative = __( 'Tomorrow' );
-			} elseif ( gmdate( 'Y', $time ) !== $year ) {
-				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
-				$relative = date_i18n( __( 'M jS Y' ), $time );
-			} else {
-				/* translators: Date and time format for recent posts on the dashboard, see https://www.php.net/manual/datetime.format.php */
-				$relative = date_i18n( __( 'M jS' ), $time );
-			}
-
-			// Use the post edit link for those who can edit, the permalink otherwise.
-			$recent_post_link = current_user_can( 'edit_post', get_the_ID() ) ? get_edit_post_link() : get_permalink();
-
-			$draft_or_post_title = _draft_or_post_title();
-			printf(
-				'<li><span>%1$s</span> <a href="%2$s" aria-label="%3$s">%4$s</a></li>',
-				/* translators: 1: Relative date, 2: Time. */
-				sprintf( _x( '%1$s, %2$s', 'dashboard' ), $relative, get_the_time() ),
-				$recent_post_link,
-				/* translators: %s: Post title. */
-				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $draft_or_post_title ) ),
-				$draft_or_post_title
-			);
-		}
-
-		echo '</ul>';
-		echo '</div>';
-
-	} else {
+	if ( ! $posts->have_posts() ) {
 		return false;
 	}
+
+	echo '<div id="' . $args['id'] . '" class="activity-block">';
+	echo '<h3>' . $args['title'] . '</h3>';
+	echo '<ul>';
+
+	$today    = current_time( 'Y-m-d' );
+	$tomorrow = current_datetime()->modify( '+1 day' )->format( 'Y-m-d' );
+	$year     = current_time( 'Y' );
+
+	while ( $posts->have_posts() ) {
+		$posts->the_post();
+
+		$time = get_the_time( 'U' );
+
+		if ( gmdate( 'Y-m-d', $time ) === $today ) {
+			$relative = __( 'Today' );
+		} elseif ( gmdate( 'Y-m-d', $time ) === $tomorrow ) {
+			$relative = __( 'Tomorrow' );
+		} elseif ( gmdate( 'Y', $time ) !== $year ) {
+			/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
+			$relative = date_i18n( __( 'M jS Y' ), $time );
+		} else {
+			/* translators: Date and time format for recent posts on the dashboard, see https://www.php.net/manual/datetime.format.php */
+			$relative = date_i18n( __( 'M jS' ), $time );
+		}
+
+		// Use the post edit link for those who can edit, the permalink otherwise.
+		$recent_post_link = current_user_can( 'edit_post', get_the_ID() ) ? get_edit_post_link() : get_permalink();
+
+		$draft_or_post_title = _draft_or_post_title();
+		printf(
+			'<li><span>%1$s</span> <a href="%2$s" aria-label="%3$s">%4$s</a></li>',
+			/* translators: 1: Relative date, 2: Time. */
+			sprintf( _x( '%1$s, %2$s', 'dashboard' ), $relative, get_the_time() ),
+			$recent_post_link,
+			/* translators: %s: Post title. */
+			esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $draft_or_post_title ) ),
+			$draft_or_post_title
+		);
+	}
+
+	echo '</ul>';
+	echo '</div>';
 
 	wp_reset_postdata();
 
@@ -1095,31 +1089,32 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 		$comments_query['number']  = $total_items * 10;
 	}
 
-	if ( $comments ) {
-		echo '<div id="latest-comments" class="activity-block table-view-list">';
-		echo '<h3>' . __( 'Recent Comments' ) . '</h3>';
-
-		echo '<ul id="the-comment-list" data-wp-lists="list:comment">';
-		foreach ( $comments as $comment ) {
-			_wp_dashboard_recent_comments_row( $comment );
-		}
-		echo '</ul>';
-
-		if ( current_user_can( 'edit_posts' ) ) {
-			echo '<h3 class="screen-reader-text">' .
-				/* translators: Hidden accessibility text. */
-				__( 'View more comments' ) .
-			'</h3>';
-			_get_list_table( 'WP_Comments_List_Table' )->views();
-		}
-
-		wp_comment_reply( -1, false, 'dashboard', false );
-		wp_comment_trashnotice();
-
-		echo '</div>';
-	} else {
+	if ( ! $comments ) {
 		return false;
 	}
+
+	echo '<div id="latest-comments" class="activity-block table-view-list">';
+	echo '<h3>' . __( 'Recent Comments' ) . '</h3>';
+
+	echo '<ul id="the-comment-list" data-wp-lists="list:comment">';
+	foreach ( $comments as $comment ) {
+		_wp_dashboard_recent_comments_row( $comment );
+	}
+	echo '</ul>';
+
+	if ( current_user_can( 'edit_posts' ) ) {
+		echo '<h3 class="screen-reader-text">' .
+			/* translators: Hidden accessibility text. */
+			__( 'View more comments' ) .
+		'</h3>';
+		_get_list_table( 'WP_Comments_List_Table' )->views();
+	}
+
+	wp_comment_reply( -1, false, 'dashboard', false );
+	wp_comment_trashnotice();
+
+	echo '</div>';
+
 	return true;
 }
 
@@ -1625,12 +1620,7 @@ function wp_dashboard_quota() {
 	$quota = get_space_allowed();
 	$used  = get_space_used();
 
-	if ( $used > $quota ) {
-		$percentused = '100';
-	} else {
-		$percentused = ( $used / $quota ) * 100;
-	}
-
+	$percentused = ( $used > $quota ) ? '100' : ( $used / $quota ) * 100;
 	$used_class  = ( $percentused >= 70 ) ? ' warning' : '';
 	$used        = round( $used, 2 );
 	$percentused = number_format( $percentused );
@@ -1848,19 +1838,17 @@ function wp_dashboard_php_nag() {
 	if ( isset( $response['is_secure'] ) && ! $response['is_secure'] ) {
 		// The `is_secure` array key name doesn't actually imply this is a secure version of PHP. It only means it receives security updates.
 
-		if ( $response['is_lower_than_future_minimum'] ) {
-			$message = sprintf(
+		$message = ( $response['is_lower_than_future_minimum'] )
+			? sprintf(
 				/* translators: %s: The server PHP version. */
 				__( 'Your site is running on an outdated version of PHP (%s), which does not receive security updates and soon will not be supported by WordPress. Ensure that PHP is updated on your server as soon as possible. Otherwise you will not be able to upgrade WordPress.' ),
 				PHP_VERSION
-			);
-		} else {
-			$message = sprintf(
+			) : sprintf(
 				/* translators: %s: The server PHP version. */
 				__( 'Your site is running on an outdated version of PHP (%s), which does not receive security updates. It should be updated.' ),
 				PHP_VERSION
 			);
-		}
+
 	} elseif ( $response['is_lower_than_future_minimum'] ) {
 		$message = sprintf(
 			/* translators: %s: The server PHP version. */

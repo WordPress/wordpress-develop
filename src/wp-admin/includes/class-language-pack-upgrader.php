@@ -90,15 +90,13 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		}
 
 		// Re-use the automatic upgrader skin if the parent upgrader is using it.
-		if ( $upgrader && $upgrader->skin instanceof Automatic_Upgrader_Skin ) {
-			$skin = $upgrader->skin;
-		} else {
-			$skin = new Language_Pack_Upgrader_Skin(
+		$skin = ( $upgrader && $upgrader->skin instanceof Automatic_Upgrader_Skin )
+			? $upgrader->skin
+			: new Language_Pack_Upgrader_Skin(
 				array(
 					'skip_header_footer' => true,
 				)
 			);
-		}
 
 		$lp_upgrader = new Language_Pack_Upgrader( $skin );
 		$lp_upgrader->bulk_upgrade( $language_updates );
@@ -219,10 +217,10 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		 * as we then may need to create a /plugins or /themes directory inside of it.
 		 */
 		$remote_destination = $wp_filesystem->find_folder( WP_LANG_DIR );
-		if ( ! $wp_filesystem->exists( $remote_destination ) ) {
-			if ( ! $wp_filesystem->mkdir( $remote_destination, FS_CHMOD_DIR ) ) {
-				return new WP_Error( 'mkdir_failed_lang_dir', $this->strings['mkdir_failed'], $remote_destination );
-			}
+		if ( ! $wp_filesystem->exists( $remote_destination )
+			&& ! $wp_filesystem->mkdir( $remote_destination, FS_CHMOD_DIR )
+		) {
+			return new WP_Error( 'mkdir_failed_lang_dir', $this->strings['mkdir_failed'], $remote_destination );
 		}
 
 		$language_updates_results = array();
@@ -378,6 +376,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 					return $theme->Get( 'Name' );
 				}
 				break;
+
 			case 'plugin':
 				$plugin_data = get_plugins( '/' . $update->slug );
 				$plugin_data = reset( $plugin_data );

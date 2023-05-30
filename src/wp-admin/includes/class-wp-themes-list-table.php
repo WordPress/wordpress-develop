@@ -104,7 +104,8 @@ class WP_Themes_List_Table extends WP_List_Table {
 				);
 
 				return;
-			} elseif ( current_user_can( 'manage_network_themes' ) ) {
+			}
+			if ( current_user_can( 'manage_network_themes' ) ) {
 				printf(
 					/* translators: %s: URL to Themes tab on Edit Site screen. */
 					__( 'You only have one theme enabled for this site right now. Visit the Network Admin to <a href="%s">enable</a> more themes.' ),
@@ -319,11 +320,9 @@ class WP_Themes_List_Table extends WP_List_Table {
 				}
 			}
 
-			if ( false !== stripos( $theme->get_stylesheet(), $word ) ) {
-				continue;
-			}
-
-			if ( false !== stripos( $theme->get_template(), $word ) ) {
+			if ( false !== stripos( $theme->get_stylesheet(), $word )
+				|| false !== stripos( $theme->get_template(), $word )
+			) {
 				continue;
 			}
 

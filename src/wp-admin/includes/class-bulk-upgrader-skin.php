@@ -101,11 +101,9 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 		if ( is_wp_error( $errors ) ) {
 			$messages = array();
 			foreach ( $errors->get_error_messages() as $emessage ) {
-				if ( $errors->get_error_data() && is_string( $errors->get_error_data() ) ) {
-					$messages[] = $emessage . ' ' . esc_html( strip_tags( $errors->get_error_data() ) );
-				} else {
-					$messages[] = $emessage;
-				}
+				$messages[] = ( $errors->get_error_data() && is_string( $errors->get_error_data() ) )
+					? $emessage . ' ' . esc_html( strip_tags( $errors->get_error_data() ) )
+					: $emessage;
 			}
 			$this->error = implode( ', ', $messages );
 		}

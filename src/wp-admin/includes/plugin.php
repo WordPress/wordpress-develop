@@ -144,11 +144,10 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 		$textdomain = $plugin_data['TextDomain'];
 		if ( $textdomain ) {
 			if ( ! is_textdomain_loaded( $textdomain ) ) {
-				if ( $plugin_data['DomainPath'] ) {
-					load_plugin_textdomain( $textdomain, false, dirname( $plugin_file ) . $plugin_data['DomainPath'] );
-				} else {
-					load_plugin_textdomain( $textdomain, false, dirname( $plugin_file ) );
-				}
+				$domain_path = ( $plugin_data['DomainPath'] )
+					? dirname( $plugin_file ) . $plugin_data['DomainPath']
+					: dirname( $plugin_file );
+				load_plugin_textdomain( $textdomain, false, $domain_path );
 			}
 		} elseif ( 'hello.php' === basename( $plugin_file ) ) {
 			$textdomain = 'default';
@@ -971,11 +970,9 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 
 		// If plugin is in its own directory, recursively delete the directory.
 		// Base check on if plugin includes directory separator AND that it's not the root plugin folder.
-		if ( strpos( $plugin_file, '/' ) && $this_plugin_dir !== $plugins_dir ) {
-			$deleted = $wp_filesystem->delete( $this_plugin_dir, true );
-		} else {
-			$deleted = $wp_filesystem->delete( $plugins_dir . $plugin_file );
-		}
+		$deleted = ( strpos( $plugin_file, '/' ) && $this_plugin_dir !== $plugins_dir )
+			? $wp_filesystem->delete( $this_plugin_dir, true )
+			: $wp_filesystem->delete( $plugins_dir . $plugin_file );
 
 		/**
 		 * Fires immediately after a plugin deletion attempt.
@@ -1028,13 +1025,11 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 	}
 
 	if ( ! empty( $errors ) ) {
-		if ( 1 === count( $errors ) ) {
+		$message = ( 1 === count( $errors ) )
 			/* translators: %s: Plugin filename. */
-			$message = __( 'Could not fully remove the plugin %s.' );
-		} else {
+			? __( 'Could not fully remove the plugin %s.' )
 			/* translators: %s: Comma-separated list of plugin filenames. */
-			$message = __( 'Could not fully remove the plugins %s.' );
-		}
+			: __( 'Could not fully remove the plugins %s.' );
 
 		return new WP_Error( 'could_not_remove_plugin', sprintf( $message, implode( ', ', $errors ) ) );
 	}
@@ -1156,7 +1151,8 @@ function validate_plugin_requirements( $plugin ) {
 				$requirements['requires_php']
 			) . $php_update_message . '</p>'
 		);
-	} elseif ( ! $compatible_php ) {
+	}
+	if ( ! $compatible_php ) {
 		return new WP_Error(
 			'plugin_php_incompatible',
 			'<p>' . sprintf(
@@ -1167,7 +1163,8 @@ function validate_plugin_requirements( $plugin ) {
 				$requirements['requires_php']
 			) . $php_update_message . '</p>'
 		);
-	} elseif ( ! $compatible_wp ) {
+	}
+	if ( ! $compatible_wp ) {
 		return new WP_Error(
 			'plugin_wp_incompatible',
 			'<p>' . sprintf(
@@ -1195,11 +1192,9 @@ function is_uninstallable_plugin( $plugin ) {
 	$file = plugin_basename( $plugin );
 
 	$uninstallable_plugins = (array) get_option( 'uninstall_plugins' );
-	if ( isset( $uninstallable_plugins[ $file ] ) || file_exists( WP_PLUGIN_DIR . '/' . dirname( $file ) . '/uninstall.php' ) ) {
-		return true;
-	}
-
-	return false;
+	return ( isset( $uninstallable_plugins[ $file ] )
+		|| file_exists( WP_PLUGIN_DIR . '/' . dirname( $file ) . '/uninstall.php' )
+	);
 }
 
 /**
@@ -1607,10 +1602,9 @@ function add_plugins_page( $page_title, $menu_title, $capability, $menu_slug, $c
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
 function add_users_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
+	$parent = 'profile.php';
 	if ( current_user_can( 'edit_users' ) ) {
 		$parent = 'users.php';
-	} else {
-		$parent = 'profile.php';
 	}
 	return add_submenu_page( $parent, $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
 }
@@ -1837,16 +1831,13 @@ function remove_submenu_page( $menu_slug, $submenu_slug ) {
 function menu_page_url( $menu_slug, $display = true ) {
 	global $_parent_pages;
 
+	$url = '';
 	if ( isset( $_parent_pages[ $menu_slug ] ) ) {
 		$parent_slug = $_parent_pages[ $menu_slug ];
 
-		if ( $parent_slug && ! isset( $_parent_pages[ $parent_slug ] ) ) {
-			$url = admin_url( add_query_arg( 'page', $menu_slug, $parent_slug ) );
-		} else {
-			$url = admin_url( 'admin.php?page=' . $menu_slug );
-		}
-	} else {
-		$url = '';
+		$url = ( $parent_slug && ! isset( $_parent_pages[ $parent_slug ] ) )
+			? admin_url( add_query_arg( 'page', $menu_slug, $parent_slug ) )
+			: admin_url( 'admin.php?page=' . $menu_slug );
 	}
 
 	$url = esc_url( $url );
@@ -1934,12 +1925,14 @@ function get_admin_page_parent( $parent_page = '' ) {
 			if ( ! empty( $typenow ) && "$pagenow?post_type=$typenow" === $submenu_array[2] ) {
 				$parent_file = $parent_page;
 				return $parent_page;
-			} elseif ( empty( $typenow ) && $pagenow === $submenu_array[2]
+			}
+			if ( empty( $typenow ) && $pagenow === $submenu_array[2]
 				&& ( empty( $parent_file ) || false === strpos( $parent_file, '?' ) )
 			) {
 				$parent_file = $parent_page;
 				return $parent_page;
-			} elseif ( isset( $plugin_page ) && $plugin_page === $submenu_array[2] ) {
+			}
+			if ( isset( $plugin_page ) && $plugin_page === $submenu_array[2] ) {
 				$parent_file = $parent_page;
 				return $parent_page;
 			}
@@ -1984,7 +1977,8 @@ function get_admin_page_title() {
 				if ( $menu_array[2] === $pagenow ) {
 					$title = $menu_array[3];
 					return $menu_array[3];
-				} elseif ( isset( $plugin_page ) && $plugin_page === $menu_array[2] && $hook === $menu_array[5] ) {
+				}
+				if ( isset( $plugin_page ) && $plugin_page === $menu_array[2] && $hook === $menu_array[5] ) {
 					$title = $menu_array[3];
 					return $menu_array[3];
 				}
@@ -2002,10 +1996,11 @@ function get_admin_page_title() {
 						|| $plugin_page === $parent
 						|| $plugin_page === $hook
 						|| 'admin.php' === $pagenow && $parent1 !== $submenu_array[2]
-						|| ! empty( $typenow ) && "$pagenow?post_type=$typenow" === $parent )
-					) {
-						$title = $submenu_array[3];
-						return $submenu_array[3];
+						|| ! empty( $typenow ) && "$pagenow?post_type=$typenow" === $parent
+					)
+				) {
+					$title = $submenu_array[3];
+					return $submenu_array[3];
 				}
 
 				if ( $submenu_array[2] !== $pagenow || isset( $_GET['page'] ) ) { // Not the current page.
@@ -2015,10 +2010,9 @@ function get_admin_page_title() {
 				if ( isset( $submenu_array[3] ) ) {
 					$title = $submenu_array[3];
 					return $submenu_array[3];
-				} else {
-					$title = $submenu_array[0];
-					return $title;
 				}
+				$title = $submenu_array[0];
+				return $title;
 			}
 		}
 		if ( empty( $title ) ) {
@@ -2028,8 +2022,8 @@ function get_admin_page_title() {
 					&& 'admin.php' === $pagenow
 					&& $parent1 === $menu_array[2]
 				) {
-						$title = $menu_array[3];
-						return $menu_array[3];
+					$title = $menu_array[3];
+					return $menu_array[3];
 				}
 			}
 		}
@@ -2052,9 +2046,8 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
 	$hook = get_plugin_page_hookname( $plugin_page, $parent_page );
 	if ( has_action( $hook ) ) {
 		return $hook;
-	} else {
-		return null;
 	}
+	return null;
 }
 
 /**
@@ -2076,11 +2069,10 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
 
 	$page_type = 'admin';
 	if ( empty( $parent_page ) || 'admin.php' === $parent_page || isset( $admin_page_hooks[ $plugin_page ] ) ) {
-		if ( isset( $admin_page_hooks[ $plugin_page ] ) ) {
-			$page_type = 'toplevel';
-		} elseif ( isset( $admin_page_hooks[ $parent ] ) ) {
-			$page_type = $admin_page_hooks[ $parent ];
-		}
+		$page_type = ( isset( $admin_page_hooks[ $plugin_page ] ) )
+			? 'toplevel'
+			: $admin_page_hooks[ $parent ];
+
 	} elseif ( isset( $admin_page_hooks[ $parent ] ) ) {
 		$page_type = $admin_page_hooks[ $parent ];
 	}
@@ -2161,7 +2153,8 @@ function user_can_access_admin_page() {
 		foreach ( $submenu[ $parent ] as $submenu_array ) {
 			if ( isset( $plugin_page ) && $submenu_array[2] === $plugin_page ) {
 				return current_user_can( $submenu_array[1] );
-			} elseif ( $submenu_array[2] === $pagenow ) {
+			}
+			if ( $submenu_array[2] === $pagenow ) {
 				return current_user_can( $submenu_array[1] );
 			}
 		}
@@ -2352,7 +2345,8 @@ function wp_add_privacy_policy_content( $plugin_name, $policy_text ) {
 			'4.9.7'
 		);
 		return;
-	} elseif ( ! doing_action( 'admin_init' ) && ! did_action( 'admin_init' ) ) {
+	}
+	if ( ! doing_action( 'admin_init' ) && ! did_action( 'admin_init' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -2547,17 +2541,15 @@ function deactivated_plugins_notice() {
 	$deactivated_plugins = array_merge( $blog_deactivated_plugins, $site_deactivated_plugins );
 
 	foreach ( $deactivated_plugins as $plugin ) {
-		if ( ! empty( $plugin['version_compatible'] ) && ! empty( $plugin['version_deactivated'] ) ) {
-			$explanation = sprintf(
+		$explanation = ( ! empty( $plugin['version_compatible'] ) && ! empty( $plugin['version_deactivated'] ) )
+			? sprintf(
 				/* translators: 1: Name of deactivated plugin, 2: Plugin version deactivated, 3: Current WP version, 4: Compatible plugin version. */
 				__( '%1$s %2$s was deactivated due to incompatibility with WordPress %3$s, please upgrade to %1$s %4$s or later.' ),
 				$plugin['plugin_name'],
 				$plugin['version_deactivated'],
 				$GLOBALS['wp_version'],
 				$plugin['version_compatible']
-			);
-		} else {
-			$explanation = sprintf(
+			) : sprintf(
 				/* translators: 1: Name of deactivated plugin, 2: Plugin version deactivated, 3: Current WP version. */
 				__( '%1$s %2$s was deactivated due to incompatibility with WordPress %3$s.' ),
 				$plugin['plugin_name'],
@@ -2565,7 +2557,6 @@ function deactivated_plugins_notice() {
 				$GLOBALS['wp_version'],
 				$plugin['version_compatible']
 			);
-		}
 
 		printf(
 			'<div class="notice notice-warning"><p><strong>%s</strong><br>%s</p><p><a href="%s">%s</a></p></div>',

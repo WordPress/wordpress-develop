@@ -69,15 +69,11 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	 * @return bool True if the error should be hidden, false otherwise.
 	 */
 	public function hide_process_failed( $wp_error ) {
-		if (
+		return (
 			'upload' === $this->type &&
 			'' === $this->overwrite &&
 			$wp_error->get_error_code() === 'folder_exists'
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 
 	/**

@@ -114,11 +114,13 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 
 	$current_network = get_network();
 	// Blog name.
+	echo '<label for="blogname">';
 	if ( ! is_subdomain_install() ) {
-		echo '<label for="blogname">' . __( 'Site Name (subdirectory only):' ) . '</label>';
+		_e( 'Site Name (subdirectory only):' );
 	} else {
-		echo '<label for="blogname">' . __( 'Site Domain (subdomain only):' ) . '</label>';
+		_e( 'Site Domain (subdomain only):' );
 	}
+	echo '</label>';
 
 	$errmsg_blogname      = $errors->get_error_message( 'blogname' );
 	$errmsg_blogname_aria = '';
@@ -195,10 +197,10 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 			?>
 		</p>
 		<?php
-		endif; // Languages.
+	endif; // Languages.
 
-		$blog_public_on_checked  = '';
-		$blog_public_off_checked = '';
+	$blog_public_on_checked  = '';
+	$blog_public_off_checked = '';
 	if ( isset( $_POST['blog_public'] ) && '0' === $_POST['blog_public'] ) {
 		$blog_public_off_checked = 'checked="checked"';
 	} else {

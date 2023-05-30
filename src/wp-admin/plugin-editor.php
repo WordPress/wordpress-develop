@@ -108,14 +108,13 @@ $editable_extensions = wp_get_plugin_file_editable_extensions( $plugin );
 
 if ( ! is_file( $real_file ) ) {
 	wp_die( sprintf( '<p>%s</p>', __( 'File does not exist! Please double check the name and try again.' ) ) );
-} else {
-	// Get the extension of the file.
-	if ( preg_match( '/\.([^.]+)$/', $real_file, $matches ) ) {
-		$ext = strtolower( $matches[1] );
-		// If extension is not in the acceptable list, skip it.
-		if ( ! in_array( $ext, $editable_extensions, true ) ) {
-			wp_die( sprintf( '<p>%s</p>', __( 'Files of this type are not editable.' ) ) );
-		}
+}
+// Get the extension of the file.
+if ( preg_match( '/\.([^.]+)$/', $real_file, $matches ) ) {
+	$ext = strtolower( $matches[1] );
+	// If extension is not in the acceptable list, skip it.
+	if ( ! in_array( $ext, $editable_extensions, true ) ) {
+		wp_die( sprintf( '<p>%s</p>', __( 'Files of this type are not editable.' ) ) );
 	}
 }
 
@@ -224,10 +223,9 @@ $content = esc_textarea( $content );
 		<?php
 		foreach ( $plugins as $plugin_key => $a_plugin ) {
 			$plugin_name = $a_plugin['Name'];
+			$selected    = '';
 			if ( $plugin_key === $plugin ) {
 				$selected = " selected='selected'";
-			} else {
-				$selected = '';
 			}
 			$plugin_name = esc_attr( $plugin_name );
 			$plugin_key  = esc_attr( $plugin_key );

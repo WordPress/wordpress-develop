@@ -246,9 +246,8 @@ function upload_is_user_over_quota( $display_message = true ) {
 			);
 		}
 		return true;
-	} else {
-		return false;
 	}
+	return false;
 }
 
 /**
@@ -616,11 +615,7 @@ function _access_denied_splash() {
  * @return bool True if the user has proper permissions, false if they do not.
  */
 function check_import_new_users( $permission ) {
-	if ( ! current_user_can( 'manage_network_users' ) ) {
-		return false;
-	}
-
-	return true;
+	return ( current_user_can( 'manage_network_users' ) );
 }
 // See "import_allow_fetch_attachments" and "import_attachment_size_limit" filters too.
 
@@ -814,11 +809,7 @@ function choose_primary_blog() {
  * @return bool True if network can be edited, false otherwise.
  */
 function can_edit_network( $network_id ) {
-	if ( get_current_network_id() === (int) $network_id ) {
-		$result = true;
-	} else {
-		$result = false;
-	}
+	$result = ( get_current_network_id() === (int) $network_id );
 
 	/**
 	 * Filters whether this network can be edited from this page.

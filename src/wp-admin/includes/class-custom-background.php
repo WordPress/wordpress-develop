@@ -141,10 +141,9 @@ class Custom_Background {
 		if ( isset( $_POST['background-preset'] ) ) {
 			check_admin_referer( 'custom-background' );
 
+			$preset = 'default';
 			if ( in_array( $_POST['background-preset'], array( 'default', 'fill', 'fit', 'repeat', 'custom' ), true ) ) {
 				$preset = $_POST['background-preset'];
-			} else {
-				$preset = 'default';
 			}
 
 			set_theme_mod( 'background_preset', $preset );
@@ -155,16 +154,14 @@ class Custom_Background {
 
 			$position = explode( ' ', $_POST['background-position'] );
 
+			$position_x = 'left';
 			if ( in_array( $position[0], array( 'left', 'center', 'right' ), true ) ) {
 				$position_x = $position[0];
-			} else {
-				$position_x = 'left';
 			}
 
+			$position_y = 'top';
 			if ( in_array( $position[1], array( 'top', 'center', 'bottom' ), true ) ) {
 				$position_y = $position[1];
-			} else {
-				$position_y = 'top';
 			}
 
 			set_theme_mod( 'background_position_x', $position_x );
@@ -174,10 +171,9 @@ class Custom_Background {
 		if ( isset( $_POST['background-size'] ) ) {
 			check_admin_referer( 'custom-background' );
 
+			$size = 'auto';
 			if ( in_array( $_POST['background-size'], array( 'auto', 'contain', 'cover' ), true ) ) {
 				$size = $_POST['background-size'];
-			} else {
-				$size = 'auto';
 			}
 
 			set_theme_mod( 'background_size', $size );
@@ -212,11 +208,10 @@ class Custom_Background {
 
 			$color = preg_replace( '/[^0-9a-fA-F]/', '', $_POST['background-color'] );
 
-			if ( strlen( $color ) === 6 || strlen( $color ) === 3 ) {
-				set_theme_mod( 'background_color', $color );
-			} else {
-				set_theme_mod( 'background_color', '' );
+			if ( strlen( $color ) !== 6 && strlen( $color ) !== 3 ) {
+				$color = '';
 			}
+			set_theme_mod( 'background_color', $color );
 		}
 
 		$this->updated = true;

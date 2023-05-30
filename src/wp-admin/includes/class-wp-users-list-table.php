@@ -67,9 +67,8 @@ class WP_Users_List_Table extends WP_List_Table {
 	public function ajax_user_can() {
 		if ( $this->is_site_users ) {
 			return current_user_can( 'manage_sites' );
-		} else {
-			return current_user_can( 'list_users' );
 		}
+		return current_user_can( 'list_users' );
 	}
 
 	/**
@@ -92,22 +91,16 @@ class WP_Users_List_Table extends WP_List_Table {
 
 		$paged = $this->get_pagenum();
 
+		$args = array(
+			'number' => $users_per_page,
+			'offset' => ( $paged - 1 ) * $users_per_page,
+			'search' => $usersearch,
+			'fields' => 'all_with_meta',
+		);
 		if ( 'none' === $role ) {
-			$args = array(
-				'number'  => $users_per_page,
-				'offset'  => ( $paged - 1 ) * $users_per_page,
-				'include' => wp_get_users_with_no_role( $this->site_id ),
-				'search'  => $usersearch,
-				'fields'  => 'all_with_meta',
-			);
+			$args['include'] = wp_get_users_with_no_role( $this->site_id );
 		} else {
-			$args = array(
-				'number' => $users_per_page,
-				'offset' => ( $paged - 1 ) * $users_per_page,
-				'role'   => $role,
-				'search' => $usersearch,
-				'fields' => 'all_with_meta',
-			);
+			$args['role'] = $role;
 		}
 
 		if ( '' !== $args['search'] ) {
@@ -178,11 +171,9 @@ class WP_Users_List_Table extends WP_List_Table {
 
 		$count_users = ! wp_is_large_user_count();
 
-		if ( $this->is_site_users ) {
-			$url = 'site-users.php?id=' . $this->site_id;
-		} else {
-			$url = 'users.php';
-		}
+		$url = ( $this->is_site_users )
+			? 'site-users.php?id=' . $this->site_id
+			: 'users.php';
 
 		$role_links  = array();
 		$avail_roles = array();
@@ -275,10 +266,8 @@ class WP_Users_List_Table extends WP_List_Table {
 			if ( current_user_can( 'remove_users' ) ) {
 				$actions['remove'] = __( 'Remove' );
 			}
-		} else {
-			if ( current_user_can( 'delete_users' ) ) {
-				$actions['delete'] = __( 'Delete' );
-			}
+		} elseif ( current_user_can( 'delete_users' ) ) {
+			$actions['delete'] = __( 'Delete' );
 		}
 
 		// Add a password reset link to the bulk actions dropdown.
@@ -437,11 +426,9 @@ class WP_Users_List_Table extends WP_List_Table {
 		$user_object->filter = 'display';
 		$email               = $user_object->user_email;
 
-		if ( $this->is_site_users ) {
-			$url = "site-users.php?id={$this->site_id}&amp;";
-		} else {
-			$url = 'users.php?';
-		}
+		$url = ( $this->is_site_users )
+			? "site-users.php?id={$this->site_id}&amp;"
+			: 'users.php?';
 
 		$user_roles = $this->get_role_list( $user_object );
 
@@ -569,6 +556,7 @@ class WP_Users_List_Table extends WP_List_Table {
 					case 'username':
 						$row .= "$avatar $edit";
 						break;
+
 					case 'name':
 						if ( $user_object->first_name && $user_object->last_name ) {
 							$row .= sprintf(
@@ -589,15 +577,18 @@ class WP_Users_List_Table extends WP_List_Table {
 							);
 						}
 						break;
+
 					case 'email':
 						$row .= "<a href='" . esc_url( "mailto:$email" ) . "'>$email</a>";
 						break;
+
 					case 'role':
 						$row .= esc_html( $roles_list );
 						break;
+
 					case 'posts':
-						if ( $numposts > 0 ) {
-							$row .= sprintf(
+						$row .= ( $numposts > 0 )
+							? sprintf(
 								'<a href="%s" class="edit"><span aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
 								"edit.php?author={$user_object->ID}",
 								$numposts,
@@ -606,11 +597,9 @@ class WP_Users_List_Table extends WP_List_Table {
 									_n( '%s post by this author', '%s posts by this author', $numposts ),
 									number_format_i18n( $numposts )
 								)
-							);
-						} else {
-							$row .= 0;
-						}
+							) : 0;
 						break;
+
 					default:
 						/**
 						 * Filters the display output of custom columns in the Users list table.
@@ -679,5 +668,4 @@ class WP_Users_List_Table extends WP_List_Table {
 		 */
 		return apply_filters( 'get_role_list', $role_list, $user_object );
 	}
-
 }

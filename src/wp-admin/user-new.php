@@ -197,11 +197,10 @@ Please click the following link to confirm the invite:
 		if ( is_wp_error( $user_id ) ) {
 			$add_user_errors = $user_id;
 		} else {
-			if ( current_user_can( 'list_users' ) ) {
-				$redirect = 'users.php?update=add&id=' . $user_id;
-			} else {
-				$redirect = add_query_arg( 'update', 'add', 'user-new.php' );
-			}
+			$redirect = ( current_user_can( 'list_users' ) )
+				? 'users.php?update=add&id=' . $user_id
+				: add_query_arg( 'update', 'add', 'user-new.php' );
+
 			wp_redirect( $redirect );
 			die();
 		}
@@ -335,9 +334,11 @@ if ( isset( $_GET['update'] ) ) {
 			case 'newuserconfirmation':
 				$messages[] = __( 'Invitation email sent to new user. A confirmation link must be clicked before their account is created.' );
 				break;
+
 			case 'add':
 				$messages[] = __( 'Invitation email sent to user. A confirmation link must be clicked for them to be added to your site.' );
 				break;
+
 			case 'addnoconfirmation':
 				$message = __( 'User has been added to your site.' );
 
@@ -347,18 +348,23 @@ if ( isset( $_GET['update'] ) ) {
 
 				$messages[] = $message;
 				break;
+
 			case 'addexisting':
 				$messages[] = __( 'That user is already a member of this site.' );
 				break;
+
 			case 'could_not_add':
 				$add_user_errors = new WP_Error( 'could_not_add', __( 'That user could not be added to this site.' ) );
 				break;
+
 			case 'created_could_not_add':
 				$add_user_errors = new WP_Error( 'created_could_not_add', __( 'User has been created, but could not be added to this site.' ) );
 				break;
+
 			case 'does_not_exist':
 				$add_user_errors = new WP_Error( 'does_not_exist', __( 'The requested user does not exist.' ) );
 				break;
+
 			case 'enter_email':
 				$add_user_errors = new WP_Error( 'enter_email', __( 'Please enter a valid email address.' ) );
 				break;
@@ -452,7 +458,7 @@ if ( is_multisite() && current_user_can( 'promote_users' ) ) {
 			</select>
 		</td>
 	</tr>
-	<?php if ( current_user_can( 'manage_network_users' ) ) { ?>
+	<?php if ( current_user_can( 'manage_network_users' ) ) : ?>
 	<tr>
 		<th scope="row"><?php _e( 'Skip Confirmation Email' ); ?></th>
 		<td>
@@ -460,7 +466,7 @@ if ( is_multisite() && current_user_can( 'promote_users' ) ) {
 			<label for="adduser-noconfirmation"><?php _e( 'Add the user without sending an email that requires their confirmation.' ); ?></label>
 		</td>
 	</tr>
-	<?php } ?>
+	<?php endif; ?>
 </table>
 	<?php
 	/**

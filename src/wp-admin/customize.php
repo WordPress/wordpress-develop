@@ -130,10 +130,10 @@ _wp_admin_html_begin();
 
 $body_class = 'wp-core-ui wp-customizer js';
 
-if ( wp_is_mobile() ) :
+if ( wp_is_mobile() ) {
 	$body_class .= ' mobile';
 	add_filter( 'admin_viewport_meta', '_customizer_mobile_viewport_meta' );
-endif;
+}
 
 if ( $wp_customize->is_ios() ) {
 	$body_class .= ' ios';

@@ -76,18 +76,15 @@ class Automatic_Upgrader_Skin extends WP_Upgrader_Skin {
 			$string = $feedback->get_error_message();
 		} elseif ( is_array( $feedback ) ) {
 			return;
-		} else {
-			$string = $feedback;
 		}
+		$string = $feedback;
 
 		if ( ! empty( $this->upgrader->strings[ $string ] ) ) {
 			$string = $this->upgrader->strings[ $string ];
 		}
 
-		if ( strpos( $string, '%' ) !== false ) {
-			if ( ! empty( $args ) ) {
-				$string = vsprintf( $string, $args );
-			}
+		if ( strpos( $string, '%' ) !== false && ! empty( $args ) ) {
+			$string = vsprintf( $string, $args );
 		}
 
 		$string = trim( $string );

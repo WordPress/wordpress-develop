@@ -488,10 +488,9 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @return string|false The full path to the main plugin file, or false.
 	 */
 	public function plugin_info() {
-		if ( ! is_array( $this->result ) ) {
-			return false;
-		}
-		if ( empty( $this->result['destination_name'] ) ) {
+		if ( ! is_array( $this->result )
+			|| empty( $this->result['destination_name'] )
+		) {
 			return false;
 		}
 
@@ -653,11 +652,9 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 		// If plugin is in its own directory, recursively delete the directory.
 		// Base check on if plugin includes directory separator AND that it's not the root plugin folder.
-		if ( strpos( $plugin, '/' ) && $this_plugin_dir !== $plugins_dir ) {
-			$deleted = $wp_filesystem->delete( $this_plugin_dir, true );
-		} else {
-			$deleted = $wp_filesystem->delete( $plugins_dir . $plugin );
-		}
+		$deleted = ( strpos( $plugin, '/' ) && $this_plugin_dir !== $plugins_dir )
+			? $wp_filesystem->delete( $this_plugin_dir, true )
+			: $wp_filesystem->delete( $plugins_dir . $plugin );
 
 		if ( ! $deleted ) {
 			return new WP_Error( 'remove_old_failed', $this->strings['remove_old_failed'] );

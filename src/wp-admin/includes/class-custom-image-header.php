@@ -544,12 +544,10 @@ class Custom_Image_Header {
 				$custom_header = get_custom_header();
 				$header_image  = get_header_image();
 
+				$header_image_style = '';
 				if ( $header_image ) {
 					$header_image_style = 'background-image:url(' . esc_url( $header_image ) . ');';
-				} else {
-					$header_image_style = '';
 				}
-
 				if ( $custom_header->width ) {
 					$header_image_style .= 'max-width:' . $custom_header->width . 'px;';
 				}
@@ -559,10 +557,9 @@ class Custom_Image_Header {
 				?>
 	<div id="headimg" style="<?php echo $header_image_style; ?>">
 				<?php
+				$style = ' style="display:none;"';
 				if ( display_header_text() ) {
 					$style = ' style="color:#' . get_header_textcolor() . ';"';
-				} else {
-					$style = ' style="display:none;"';
 				}
 				?>
 		<h1><a id="name" class="displaying-header-text" <?php echo $style; ?> onclick="return false;" href="<?php bloginfo( 'url' ); ?>" tabindex="-1"><?php bloginfo( 'name' ); ?></a></h1>
@@ -1191,11 +1188,10 @@ endif;
 			$header_image_data = $uploaded[ $choice ];
 		} else {
 			$this->process_default_headers();
-			if ( isset( $this->default_headers[ $choice ] ) ) {
-				$header_image_data = $this->default_headers[ $choice ];
-			} else {
+			if ( ! isset( $this->default_headers[ $choice ] ) ) {
 				return;
 			}
+			$header_image_data = $this->default_headers[ $choice ];
 		}
 
 		set_theme_mod( 'header_image', sanitize_url( $header_image_data['url'] ) );
@@ -1273,20 +1269,18 @@ endif;
 		}
 		$max_width = max( $max_width, $theme_width );
 
+		$dst['dst_height'] = $theme_height;
 		if ( $has_flex_height && ( ! $has_flex_width || $width > $max_width ) ) {
 			$dst['dst_height'] = absint( $height * ( $max_width / $width ) );
 		} elseif ( $has_flex_height && $has_flex_width ) {
 			$dst['dst_height'] = $height;
-		} else {
-			$dst['dst_height'] = $theme_height;
 		}
 
+		$dst['dst_width'] = $theme_width;
 		if ( $has_flex_width && ( ! $has_flex_height || $width > $max_width ) ) {
 			$dst['dst_width'] = absint( $width * ( $max_width / $width ) );
 		} elseif ( $has_flex_width && $has_flex_height ) {
 			$dst['dst_width'] = $width;
-		} else {
-			$dst['dst_width'] = $theme_width;
 		}
 
 		return $dst;

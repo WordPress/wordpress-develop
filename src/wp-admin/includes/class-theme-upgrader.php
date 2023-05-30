@@ -730,10 +730,10 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		$theme      = $theme['theme'];
 		$themes_dir = trailingslashit( $wp_filesystem->wp_themes_dir( $theme ) );
-		if ( $wp_filesystem->exists( $themes_dir . $theme ) ) {
-			if ( ! $wp_filesystem->delete( $themes_dir . $theme, true ) ) {
-				return false;
-			}
+		if ( $wp_filesystem->exists( $themes_dir . $theme )
+			&& ! $wp_filesystem->delete( $themes_dir . $theme, true )
+		) {
+			return false;
 		}
 
 		return true;
@@ -752,11 +752,10 @@ class Theme_Upgrader extends WP_Upgrader {
 	 */
 	public function theme_info( $theme = null ) {
 		if ( empty( $theme ) ) {
-			if ( ! empty( $this->result['destination_name'] ) ) {
-				$theme = $this->result['destination_name'];
-			} else {
+			if ( empty( $this->result['destination_name'] ) ) {
 				return false;
 			}
+			$theme = $this->result['destination_name'];
 		}
 
 		$theme = wp_get_theme( $theme );
@@ -764,5 +763,4 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		return $theme;
 	}
-
 }

@@ -22,11 +22,10 @@ function wp_image_editor( $post_id, $msg = false ) {
 	$sub_sizes = isset( $meta['sizes'] ) && is_array( $meta['sizes'] );
 	$note      = '';
 
-	if ( isset( $meta['width'], $meta['height'] ) ) {
-		$big = max( $meta['width'], $meta['height'] );
-	} else {
+	if ( ! isset( $meta['width'], $meta['height'] ) ) {
 		die( __( 'Image data does not exist. Please re-upload the image.' ) );
 	}
+	$big = max( $meta['width'], $meta['height'] );
 
 	$sizer = $big > 400 ? 400 / $big : 1;
 
@@ -356,40 +355,43 @@ function wp_stream_image( $image, $mime_type, $attachment_id ) {
 		}
 
 		return true;
-	} else {
-		/* translators: 1: $image, 2: WP_Image_Editor */
-		_deprecated_argument( __FUNCTION__, '3.5.0', sprintf( __( '%1$s needs to be a %2$s object.' ), '$image', 'WP_Image_Editor' ) );
+	}
+	/* translators: 1: $image, 2: WP_Image_Editor */
+	_deprecated_argument( __FUNCTION__, '3.5.0', sprintf( __( '%1$s needs to be a %2$s object.' ), '$image', 'WP_Image_Editor' ) );
 
-		/**
-		 * Filters the GD image resource to be streamed to the browser.
-		 *
-		 * @since 2.9.0
-		 * @deprecated 3.5.0 Use {@see 'image_editor_save_pre'} instead.
-		 *
-		 * @param resource|GdImage $image         Image resource to be streamed.
-		 * @param int              $attachment_id The attachment post ID.
-		 */
-		$image = apply_filters_deprecated( 'image_save_pre', array( $image, $attachment_id ), '3.5.0', 'image_editor_save_pre' );
+	/**
+	* Filters the GD image resource to be streamed to the browser.
+	*
+	* @since 2.9.0
+	* @deprecated 3.5.0 Use {@see 'image_editor_save_pre'} instead.
+	*
+	* @param resource|GdImage $image         Image resource to be streamed.
+	* @param int              $attachment_id The attachment post ID.
+	*/
+	$image = apply_filters_deprecated( 'image_save_pre', array( $image, $attachment_id ), '3.5.0', 'image_editor_save_pre' );
 
-		switch ( $mime_type ) {
-			case 'image/jpeg':
-				header( 'Content-Type: image/jpeg' );
-				return imagejpeg( $image, null, 90 );
-			case 'image/png':
-				header( 'Content-Type: image/png' );
-				return imagepng( $image );
-			case 'image/gif':
-				header( 'Content-Type: image/gif' );
-				return imagegif( $image );
-			case 'image/webp':
-				if ( function_exists( 'imagewebp' ) ) {
-					header( 'Content-Type: image/webp' );
-					return imagewebp( $image, null, 90 );
-				}
-				return false;
-			default:
-				return false;
-		}
+	switch ( $mime_type ) {
+		case 'image/jpeg':
+			header( 'Content-Type: image/jpeg' );
+			return imagejpeg( $image, null, 90 );
+
+		case 'image/png':
+			header( 'Content-Type: image/png' );
+			return imagepng( $image );
+
+		case 'image/gif':
+			header( 'Content-Type: image/gif' );
+			return imagegif( $image );
+
+		case 'image/webp':
+			if ( function_exists( 'imagewebp' ) ) {
+				header( 'Content-Type: image/webp' );
+				return imagewebp( $image, null, 90 );
+			}
+			return false;
+
+		default:
+			return false;
 	}
 }
 
@@ -445,55 +447,59 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 		}
 
 		return $image->save( $filename, $mime_type );
-	} else {
-		/* translators: 1: $image, 2: WP_Image_Editor */
-		_deprecated_argument( __FUNCTION__, '3.5.0', sprintf( __( '%1$s needs to be a %2$s object.' ), '$image', 'WP_Image_Editor' ) );
+	}
 
-		/** This filter is documented in wp-admin/includes/image-edit.php */
-		$image = apply_filters_deprecated( 'image_save_pre', array( $image, $post_id ), '3.5.0', 'image_editor_save_pre' );
+	/* translators: 1: $image, 2: WP_Image_Editor */
+	_deprecated_argument( __FUNCTION__, '3.5.0', sprintf( __( '%1$s needs to be a %2$s object.' ), '$image', 'WP_Image_Editor' ) );
 
-		/**
-		 * Filters whether to skip saving the image file.
-		 *
-		 * Returning a non-null value will short-circuit the save method,
-		 * returning that value instead.
-		 *
-		 * @since 2.9.0
-		 * @deprecated 3.5.0 Use {@see 'wp_save_image_editor_file'} instead.
-		 *
-		 * @param bool|null        $override  Value to return instead of saving. Default null.
-		 * @param string           $filename  Name of the file to be saved.
-		 * @param resource|GdImage $image     Image resource or GdImage instance.
-		 * @param string           $mime_type The mime type of the image.
-		 * @param int              $post_id   Attachment post ID.
-		 */
-		$saved = apply_filters_deprecated(
-			'wp_save_image_file',
-			array( null, $filename, $image, $mime_type, $post_id ),
-			'3.5.0',
-			'wp_save_image_editor_file'
-		);
+	/** This filter is documented in wp-admin/includes/image-edit.php */
+	$image = apply_filters_deprecated( 'image_save_pre', array( $image, $post_id ), '3.5.0', 'image_editor_save_pre' );
 
-		if ( null !== $saved ) {
-			return $saved;
-		}
+	/**
+	 * Filters whether to skip saving the image file.
+	 *
+	 * Returning a non-null value will short-circuit the save method,
+	 * returning that value instead.
+	 *
+	 * @since 2.9.0
+	 * @deprecated 3.5.0 Use {@see 'wp_save_image_editor_file'} instead.
+	 *
+	 * @param bool|null        $override  Value to return instead of saving. Default null.
+	 * @param string           $filename  Name of the file to be saved.
+	 * @param resource|GdImage $image     Image resource or GdImage instance.
+	 * @param string           $mime_type The mime type of the image.
+	 * @param int              $post_id   Attachment post ID.
+	 */
+	$saved = apply_filters_deprecated(
+		'wp_save_image_file',
+		array( null, $filename, $image, $mime_type, $post_id ),
+		'3.5.0',
+		'wp_save_image_editor_file'
+	);
 
-		switch ( $mime_type ) {
-			case 'image/jpeg':
-				/** This filter is documented in wp-includes/class-wp-image-editor.php */
-				return imagejpeg( $image, $filename, apply_filters( 'jpeg_quality', 90, 'edit_image' ) );
-			case 'image/png':
-				return imagepng( $image, $filename );
-			case 'image/gif':
-				return imagegif( $image, $filename );
-			case 'image/webp':
-				if ( function_exists( 'imagewebp' ) ) {
-					return imagewebp( $image, $filename );
-				}
-				return false;
-			default:
-				return false;
-		}
+	if ( null !== $saved ) {
+		return $saved;
+	}
+
+	switch ( $mime_type ) {
+		case 'image/jpeg':
+			/** This filter is documented in wp-includes/class-wp-image-editor.php */
+			return imagejpeg( $image, $filename, apply_filters( 'jpeg_quality', 90, 'edit_image' ) );
+
+		case 'image/png':
+			return imagepng( $image, $filename );
+
+		case 'image/gif':
+			return imagegif( $image, $filename );
+
+		case 'image/webp':
+			if ( function_exists( 'imagewebp' ) ) {
+				return imagewebp( $image, $filename );
+			}
+			return false;
+
+		default:
+			return false;
 	}
 }
 
@@ -648,6 +654,7 @@ function image_edit_apply_changes( $image, $changes ) {
 						$filtered[ $i ]->angle += $changes[ $j ]->angle;
 						$combined               = true;
 						break;
+
 					case 'flip':
 						$filtered[ $i ]->axis ^= $changes[ $j ]->axis;
 						$combined              = true;
@@ -699,6 +706,7 @@ function image_edit_apply_changes( $image, $changes ) {
 					}
 				}
 				break;
+
 			case 'flip':
 				if ( 0 != $operation->axis ) {
 					if ( $image instanceof WP_Image_Editor ) {
@@ -708,6 +716,7 @@ function image_edit_apply_changes( $image, $changes ) {
 					}
 				}
 				break;
+
 			case 'crop':
 				$sel = $operation->sel;
 
@@ -895,18 +904,18 @@ function wp_save_image( $post_id ) {
 	$scale   = ! empty( $_REQUEST['do'] ) && 'scale' === $_REQUEST['do'];
 
 	if ( $scale ) {
-		$size = $img->get_size();
-		$sX   = $size['width'];
-		$sY   = $size['height'];
+		$size   = $img->get_size();
+		$size_x = $size['width'];
+		$size_y = $size['height'];
 
-		if ( $sX < $fwidth || $sY < $fheight ) {
+		if ( $size_x < $fwidth || $size_y < $fheight ) {
 			$return->error = esc_js( __( 'Images cannot be scaled to a size larger than the original.' ) );
 			return $return;
 		}
 
 		if ( $fwidth > 0 && $fheight > 0 ) {
 			// Check if it has roughly the same w / h ratio.
-			$diff = round( $sX / $sY, 2 ) - round( $fwidth / $fheight, 2 );
+			$diff = round( $size_x / $size_y, 2 ) - round( $fwidth / $fheight, 2 );
 			if ( -0.1 < $diff && $diff < 0.1 ) {
 				// Scale the full size image.
 				if ( $img->resize( $fwidth, $fheight ) ) {
@@ -953,10 +962,9 @@ function wp_save_image( $post_id ) {
 	if ( defined( 'IMAGE_EDIT_OVERWRITE' ) && IMAGE_EDIT_OVERWRITE &&
 		isset( $backup_sizes['full-orig'] ) && $backup_sizes['full-orig']['file'] != $basename ) {
 
+		$new_path = $path;
 		if ( 'thumbnail' === $target ) {
 			$new_path = "{$dirname}/{$filename}-temp.{$ext}";
-		} else {
-			$new_path = $path;
 		}
 	} else {
 		while ( true ) {
@@ -979,13 +987,12 @@ function wp_save_image( $post_id ) {
 	}
 
 	if ( 'nothumb' === $target || 'all' === $target || 'full' === $target || $scaled ) {
-		$tag = false;
+		$tag = 'full-orig';
 		if ( isset( $backup_sizes['full-orig'] ) ) {
+			$tag = false;
 			if ( ( ! defined( 'IMAGE_EDIT_OVERWRITE' ) || ! IMAGE_EDIT_OVERWRITE ) && $backup_sizes['full-orig']['file'] !== $basename ) {
 				$tag = "full-$suffix";
 			}
-		} else {
-			$tag = 'full-orig';
 		}
 
 		if ( $tag ) {

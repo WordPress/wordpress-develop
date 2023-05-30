@@ -23,11 +23,7 @@ require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 delete_site_transient( 'update_core' );
 
-if ( isset( $_GET['step'] ) ) {
-	$step = $_GET['step'];
-} else {
-	$step = 0;
-}
+$step = ( isset( $_GET['step'] ) ) ? $_GET['step'] : 0;
 
 // Do it. No output.
 if ( 'upgrade_db' === $step ) {
@@ -143,6 +139,7 @@ else :
 <p class="step"><a class="button button-large button-primary" href="upgrade.php?step=1&amp;backto=<?php echo $goback; ?>"><?php _e( 'Update WordPress Database' ); ?></a></p>
 			<?php
 			break;
+
 		case 1:
 			wp_upgrade();
 
@@ -155,7 +152,7 @@ else :
 	<p class="step"><a class="button button-large" href="<?php echo $backto; ?>"><?php _e( 'Continue' ); ?></a></p>
 			<?php
 			break;
-endswitch;
+	endswitch;
 endif;
 ?>
 </body>

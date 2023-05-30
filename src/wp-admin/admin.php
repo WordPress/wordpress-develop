@@ -138,16 +138,14 @@ if ( isset( $_GET['page'] ) ) {
 	$plugin_page = plugin_basename( $plugin_page );
 }
 
+$typenow = '';
 if ( isset( $_REQUEST['post_type'] ) && post_type_exists( $_REQUEST['post_type'] ) ) {
 	$typenow = $_REQUEST['post_type'];
-} else {
-	$typenow = '';
 }
 
+$taxnow = '';
 if ( isset( $_REQUEST['taxonomy'] ) && taxonomy_exists( $_REQUEST['taxonomy'] ) ) {
 	$taxnow = $_REQUEST['taxonomy'];
-} else {
-	$taxnow = '';
 }
 
 if ( WP_NETWORK_ADMIN ) {
@@ -175,10 +173,9 @@ if ( current_user_can( 'manage_options' ) ) {
 do_action( 'admin_init' );
 
 if ( isset( $plugin_page ) ) {
+	$the_parent = $pagenow;
 	if ( ! empty( $typenow ) ) {
-		$the_parent = $pagenow . '?post_type=' . $typenow;
-	} else {
-		$the_parent = $pagenow;
+		$the_parent .= '?post_type=' . $typenow;
 	}
 
 	$page_hook = get_plugin_page_hook( $plugin_page, $the_parent );
@@ -187,11 +184,10 @@ if ( isset( $plugin_page ) ) {
 
 		// Back-compat for plugins using add_management_page().
 		if ( empty( $page_hook ) && 'edit.php' === $pagenow && get_plugin_page_hook( $plugin_page, 'tools.php' ) ) {
+			$query_string = 'page=' . $plugin_page;
 			// There could be plugin specific params on the URL, so we need the whole query string.
 			if ( ! empty( $_SERVER['QUERY_STRING'] ) ) {
 				$query_string = $_SERVER['QUERY_STRING'];
-			} else {
-				$query_string = 'page=' . $plugin_page;
 			}
 			wp_redirect( admin_url( 'tools.php?' . $query_string ) );
 			exit;
@@ -297,7 +293,8 @@ if ( isset( $plugin_page ) ) {
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
 
 	exit;
-} elseif ( isset( $_GET['import'] ) ) {
+}
+if ( isset( $_GET['import'] ) ) {
 
 	$importer = $_GET['import'];
 
@@ -369,40 +366,40 @@ if ( isset( $plugin_page ) ) {
 	flush_rewrite_rules( false );
 
 	exit;
-} else {
-	/**
-	 * Fires before a particular screen is loaded.
-	 *
-	 * The load-* hook fires in a number of contexts. This hook is for core screens.
-	 *
-	 * The dynamic portion of the hook name, `$pagenow`, is a global variable
-	 * referring to the filename of the current screen, such as 'admin.php',
-	 * 'post-new.php' etc. A complete hook for the latter would be
-	 * 'load-post-new.php'.
-	 *
-	 * @since 2.1.0
-	 */
-	do_action( "load-{$pagenow}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+}
 
-	/*
-	 * The following hooks are fired to ensure backward compatibility.
-	 * In all other cases, 'load-' . $pagenow should be used instead.
-	 */
-	if ( 'page' === $typenow ) {
-		if ( 'post-new.php' === $pagenow ) {
-			do_action( 'load-page-new.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-		} elseif ( 'post.php' === $pagenow ) {
-			do_action( 'load-page.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-		}
-	} elseif ( 'edit-tags.php' === $pagenow ) {
-		if ( 'category' === $taxnow ) {
-			do_action( 'load-categories.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-		} elseif ( 'link_category' === $taxnow ) {
-			do_action( 'load-edit-link-categories.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-		}
-	} elseif ( 'term.php' === $pagenow ) {
-		do_action( 'load-edit-tags.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+/**
+ * Fires before a particular screen is loaded.
+ *
+ * The load-* hook fires in a number of contexts. This hook is for core screens.
+ *
+ * The dynamic portion of the hook name, `$pagenow`, is a global variable
+ * referring to the filename of the current screen, such as 'admin.php',
+ * 'post-new.php' etc. A complete hook for the latter would be
+ * 'load-post-new.php'.
+ *
+ * @since 2.1.0
+ */
+do_action( "load-{$pagenow}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+
+/*
+ * The following hooks are fired to ensure backward compatibility.
+ * In all other cases, 'load-' . $pagenow should be used instead.
+ */
+if ( 'page' === $typenow ) {
+	if ( 'post-new.php' === $pagenow ) {
+		do_action( 'load-page-new.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+	} elseif ( 'post.php' === $pagenow ) {
+		do_action( 'load-page.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	}
+} elseif ( 'edit-tags.php' === $pagenow ) {
+	if ( 'category' === $taxnow ) {
+		do_action( 'load-categories.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+	} elseif ( 'link_category' === $taxnow ) {
+		do_action( 'load-edit-link-categories.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+	}
+} elseif ( 'term.php' === $pagenow ) {
+	do_action( 'load-edit-tags.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 }
 
 if ( ! empty( $_REQUEST['action'] ) ) {

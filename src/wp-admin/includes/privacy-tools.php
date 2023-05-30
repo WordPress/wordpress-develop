@@ -27,7 +27,8 @@ function _wp_privacy_resend_request( $request_id ) {
 
 	if ( is_wp_error( $result ) ) {
 		return $result;
-	} elseif ( ! $result ) {
+	}
+	if ( ! $result ) {
 		return new WP_Error( 'privacy_request_error', __( 'Unable to initiate confirmation for personal data request.' ) );
 	}
 
@@ -95,93 +96,91 @@ function _wp_personal_data_handle_actions() {
 	} elseif ( isset( $_POST['action'] ) ) {
 		$action = ! empty( $_POST['action'] ) ? sanitize_key( wp_unslash( $_POST['action'] ) ) : '';
 
-		switch ( $action ) {
-			case 'add_export_personal_data_request':
-			case 'add_remove_personal_data_request':
-				check_admin_referer( 'personal-data-request' );
+		if ( 'add_export_personal_data_request' === $action || 'add_remove_personal_data_request' === $action ) {
+			check_admin_referer( 'personal-data-request' );
 
-				if ( ! isset( $_POST['type_of_action'], $_POST['username_or_email_for_privacy_request'] ) ) {
+			if ( ! isset( $_POST['type_of_action'], $_POST['username_or_email_for_privacy_request'] ) ) {
+				add_settings_error(
+					'action_type',
+					'action_type',
+					__( 'Invalid personal data action.' ),
+					'error'
+				);
+			}
+			$action_type               = sanitize_text_field( wp_unslash( $_POST['type_of_action'] ) );
+			$username_or_email_address = sanitize_text_field( wp_unslash( $_POST['username_or_email_for_privacy_request'] ) );
+			$email_address             = '';
+			$status                    = 'pending';
+
+			if ( ! isset( $_POST['send_confirmation_email'] ) ) {
+				$status = 'confirmed';
+			}
+
+			if ( ! in_array( $action_type, _wp_privacy_action_request_types(), true ) ) {
+				add_settings_error(
+					'action_type',
+					'action_type',
+					__( 'Invalid personal data action.' ),
+					'error'
+				);
+			}
+
+			if ( ! is_email( $username_or_email_address ) ) {
+				$user = get_user_by( 'login', $username_or_email_address );
+				if ( ! $user instanceof WP_User ) {
 					add_settings_error(
-						'action_type',
-						'action_type',
-						__( 'Invalid personal data action.' ),
+						'username_or_email_for_privacy_request',
+						'username_or_email_for_privacy_request',
+						__( 'Unable to add this request. A valid email address or username must be supplied.' ),
 						'error'
 					);
-				}
-				$action_type               = sanitize_text_field( wp_unslash( $_POST['type_of_action'] ) );
-				$username_or_email_address = sanitize_text_field( wp_unslash( $_POST['username_or_email_for_privacy_request'] ) );
-				$email_address             = '';
-				$status                    = 'pending';
-
-				if ( ! isset( $_POST['send_confirmation_email'] ) ) {
-					$status = 'confirmed';
-				}
-
-				if ( ! in_array( $action_type, _wp_privacy_action_request_types(), true ) ) {
-					add_settings_error(
-						'action_type',
-						'action_type',
-						__( 'Invalid personal data action.' ),
-						'error'
-					);
-				}
-
-				if ( ! is_email( $username_or_email_address ) ) {
-					$user = get_user_by( 'login', $username_or_email_address );
-					if ( ! $user instanceof WP_User ) {
-						add_settings_error(
-							'username_or_email_for_privacy_request',
-							'username_or_email_for_privacy_request',
-							__( 'Unable to add this request. A valid email address or username must be supplied.' ),
-							'error'
-						);
-					} else {
-						$email_address = $user->user_email;
-					}
 				} else {
-					$email_address = $username_or_email_address;
+					$email_address = $user->user_email;
 				}
+			} else {
+				$email_address = $username_or_email_address;
+			}
 
-				if ( empty( $email_address ) ) {
-					break;
-				}
+			if ( empty( $email_address ) ) {
+				return;
+			}
 
-				$request_id = wp_create_user_request( $email_address, $action_type, array(), $status );
-				$message    = '';
+			$request_id = wp_create_user_request( $email_address, $action_type, array(), $status );
+			$message    = '';
 
-				if ( is_wp_error( $request_id ) ) {
-					$message = $request_id->get_error_message();
-				} elseif ( ! $request_id ) {
-					$message = __( 'Unable to initiate confirmation request.' );
-				}
+			if ( is_wp_error( $request_id ) ) {
+				$message = $request_id->get_error_message();
+			} elseif ( ! $request_id ) {
+				$message = __( 'Unable to initiate confirmation request.' );
+			}
 
-				if ( $message ) {
-					add_settings_error(
-						'username_or_email_for_privacy_request',
-						'username_or_email_for_privacy_request',
-						$message,
-						'error'
-					);
-					break;
-				}
+			if ( $message ) {
+				add_settings_error(
+					'username_or_email_for_privacy_request',
+					'username_or_email_for_privacy_request',
+					$message,
+					'error'
+				);
+				return;
+			}
 
-				if ( 'pending' === $status ) {
-					wp_send_user_request( $request_id );
+			if ( 'pending' === $status ) {
+				wp_send_user_request( $request_id );
 
-					$message = __( 'Confirmation request initiated successfully.' );
-				} elseif ( 'confirmed' === $status ) {
-					$message = __( 'Request added successfully.' );
-				}
+				$message = __( 'Confirmation request initiated successfully.' );
+			} elseif ( 'confirmed' === $status ) {
+				$message = __( 'Request added successfully.' );
+			}
 
-				if ( $message ) {
-					add_settings_error(
-						'username_or_email_for_privacy_request',
-						'username_or_email_for_privacy_request',
-						$message,
-						'success'
-					);
-					break;
-				}
+			if ( $message ) {
+				add_settings_error(
+					'username_or_email_for_privacy_request',
+					'username_or_email_for_privacy_request',
+					$message,
+					'success'
+				);
+				return;
+			}
 		}
 	}
 }
@@ -594,11 +593,9 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 	}
 
 	// Localize message content for user; fallback to site default for visitors.
-	if ( ! empty( $request->user_id ) ) {
-		$switched_locale = switch_to_user_locale( $request->user_id );
-	} else {
-		$switched_locale = switch_to_locale( get_locale() );
-	}
+	$switched_locale = ( ! empty( $request->user_id ) )
+		? switch_to_user_locale( $request->user_id )
+		: switch_to_locale( get_locale() );
 
 	/** This filter is documented in wp-includes/functions.php */
 	$expiration      = apply_filters( 'wp_privacy_export_expiration', 3 * DAY_IN_SECONDS );
@@ -770,19 +767,11 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
 	 * If the exporter response is malformed, don't attempt to consume it - let it
 	 * pass through to generate a warning to the user by default Ajax processing.
 	 */
-	if ( ! is_array( $response ) ) {
-		return $response;
-	}
-
-	if ( ! array_key_exists( 'done', $response ) ) {
-		return $response;
-	}
-
-	if ( ! array_key_exists( 'data', $response ) ) {
-		return $response;
-	}
-
-	if ( ! is_array( $response['data'] ) ) {
+	if ( ! is_array( $response )
+		|| ! array_key_exists( 'done', $response )
+		|| ! array_key_exists( 'data', $response )
+		|| ! is_array( $response['data'] )
+	) {
 		return $response;
 	}
 
@@ -917,23 +906,12 @@ function wp_privacy_process_personal_data_erasure_page( $response, $eraser_index
 	 * pass through, so that the default Ajax processing will generate a warning
 	 * to the user.
 	 */
-	if ( ! is_array( $response ) ) {
-		return $response;
-	}
-
-	if ( ! array_key_exists( 'done', $response ) ) {
-		return $response;
-	}
-
-	if ( ! array_key_exists( 'items_removed', $response ) ) {
-		return $response;
-	}
-
-	if ( ! array_key_exists( 'items_retained', $response ) ) {
-		return $response;
-	}
-
-	if ( ! array_key_exists( 'messages', $response ) ) {
+	if ( ! is_array( $response )
+		|| ! array_key_exists( 'done', $response )
+		|| ! array_key_exists( 'items_removed', $response )
+		|| ! array_key_exists( 'items_retained', $response )
+		|| ! array_key_exists( 'messages', $response )
+	) {
 		return $response;
 	}
 

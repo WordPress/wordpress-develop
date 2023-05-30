@@ -114,19 +114,15 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		$doing_ajax = wp_doing_ajax();
 
-		if ( isset( $_REQUEST['number'] ) ) {
-			$number = (int) $_REQUEST['number'];
-		} else {
-			$number = $comments_per_page + min( 8, $comments_per_page ); // Grab a few extra.
-		}
+		$number = isset( $_REQUEST['number'] )
+			? (int) $_REQUEST['number']
+			: $comments_per_page + min( 8, $comments_per_page ); // Grab a few extra.
 
 		$page = $this->get_pagenum();
 
-		if ( isset( $_REQUEST['start'] ) ) {
-			$start = $_REQUEST['start'];
-		} else {
-			$start = ( $page - 1 ) * $comments_per_page;
-		}
+		$start = isset( $_REQUEST['start'] )
+			? $_REQUEST['start']
+			: ( $page - 1 ) * $comments_per_page;
 
 		if ( $doing_ajax && isset( $_REQUEST['offset'] ) ) {
 			$start += $_REQUEST['offset'];
@@ -665,11 +661,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 	protected function handle_row_actions( $item, $column_name, $primary ) {
 		global $comment_status;
 
-		if ( $primary !== $column_name ) {
-			return '';
-		}
-
-		if ( ! $this->user_can ) {
+		if ( $primary !== $column_name
+			|| ! $this->user_can
+		) {
 			return '';
 		}
 
@@ -839,12 +833,11 @@ class WP_Comments_List_Table extends WP_List_Table {
 		foreach ( $actions as $action => $link ) {
 			++$i;
 
+			$separator = ' | ';
 			if ( ( ( 'approve' === $action || 'unapprove' === $action ) && 2 === $i )
 				|| 1 === $i
 			) {
 				$separator = '';
-			} else {
-				$separator = ' | ';
 			}
 
 			// Reply and quickedit need a hide-if-no-js span when not added with Ajax.
@@ -853,11 +846,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 			} elseif ( ( 'untrash' === $action && 'trash' === $the_comment_status )
 				|| ( 'unspam' === $action && 'spam' === $the_comment_status )
 			) {
-				if ( '1' === get_comment_meta( $comment->comment_ID, '_wp_trash_meta_status', true ) ) {
-					$action .= ' approve';
-				} else {
-					$action .= ' unapprove';
-				}
+				$action .= ( '1' === get_comment_meta( $comment->comment_ID, '_wp_trash_meta_status', true ) )
+					? ' approve'
+					: ' unapprove';
 			}
 
 			$output .= "<span class='$action'>{$separator}{$link}</span>";

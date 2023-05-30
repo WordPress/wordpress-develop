@@ -238,7 +238,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		if ( empty( $vars ) ) {
 			return true;
-		} elseif ( 1 === count( $vars ) && ! empty( $vars['post_type'] ) ) {
+		}
+		if ( 1 === count( $vars ) && ! empty( $vars['post_type'] ) ) {
 			return $this->screen->post_type === $vars['post_type'];
 		}
 
@@ -690,12 +691,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$taxonomies = array_filter( $taxonomies, 'taxonomy_exists' );
 
 		foreach ( $taxonomies as $taxonomy ) {
+			$column_key = 'taxonomy-' . $taxonomy;
 			if ( 'category' === $taxonomy ) {
 				$column_key = 'categories';
 			} elseif ( 'post_tag' === $taxonomy ) {
 				$column_key = 'tags';
-			} else {
-				$column_key = 'taxonomy-' . $taxonomy;
 			}
 
 			$posts_columns[ $column_key ] = get_taxonomy( $taxonomy )->labels->name;
@@ -1070,7 +1070,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				while ( $find_main_page > 0 ) {
 					$parent = get_post( $find_main_page );
 
-					if ( is_null( $parent ) ) {
+					if ( null === $parent ) {
 						break;
 					}
 
@@ -1088,16 +1088,15 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$can_edit_post = current_user_can( 'edit_post', $post->ID );
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
-			$lock_holder = wp_check_post_lock( $post->ID );
+			$lock_holder   = wp_check_post_lock( $post->ID );
+			$locked_avatar = '';
+			$locked_text   = '';
 
 			if ( $lock_holder ) {
 				$lock_holder   = get_userdata( $lock_holder );
 				$locked_avatar = get_avatar( $lock_holder->ID, 18 );
 				/* translators: %s: User's display name. */
 				$locked_text = esc_html( sprintf( __( '%s is currently editing' ), $lock_holder->display_name ) );
-			} else {
-				$locked_avatar = '';
-				$locked_text   = '';
 			}
 
 			echo '<div class="locked-info"><span class="locked-avatar">' . $locked_avatar . '</span> <span class="locked-text">' . $locked_text . "</span></div>\n";
@@ -1179,11 +1178,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 		if ( 'publish' === $post->post_status ) {
 			$status = __( 'Published' );
 		} elseif ( 'future' === $post->post_status ) {
-			if ( $time_diff > 0 ) {
-				$status = '<strong class="error-message">' . __( 'Missed schedule' ) . '</strong>';
-			} else {
-				$status = __( 'Scheduled' );
-			}
+			$status = ( $time_diff > 0 )
+				? '<strong class="error-message">' . __( 'Missed schedule' ) . '</strong>'
+				: __( 'Scheduled' );
 		} else {
 			$status = __( 'Last Modified' );
 		}
@@ -1267,14 +1264,13 @@ class WP_Posts_List_Table extends WP_List_Table {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
 
+		$taxonomy = false;
 		if ( 'categories' === $column_name ) {
 			$taxonomy = 'category';
 		} elseif ( 'tags' === $column_name ) {
 			$taxonomy = 'post_tag';
 		} elseif ( str_starts_with( $column_name, 'taxonomy-' ) ) {
 			$taxonomy = substr( $column_name, 9 );
-		} else {
-			$taxonomy = false;
 		}
 
 		if ( $taxonomy ) {

@@ -69,7 +69,6 @@ switch ( $action ) {
 		} elseif ( isset( $_REQUEST['menu-item'] ) ) {
 			wp_save_nav_menu_items( $nav_menu_selected_id, $_REQUEST['menu-item'] );
 		}
-
 		break;
 
 	case 'move-down-menu-item':
@@ -109,10 +108,9 @@ switch ( $action ) {
 						&& ( empty( $next_item_data['menu_item_parent'] )
 							|| (int) $next_item_data['menu_item_parent'] !== (int) $menu_item_data['menu_item_parent'] )
 					) {
+						$parent_db_id = 0;
 						if ( in_array( (int) $menu_item_data['menu_item_parent'], $orders_to_dbids, true ) ) {
 							$parent_db_id = (int) $menu_item_data['menu_item_parent'];
-						} else {
-							$parent_db_id = 0;
 						}
 
 						$parent_object = wp_setup_nav_menu_item( get_post( $parent_db_id ) );
@@ -156,7 +154,6 @@ switch ( $action ) {
 				}
 			}
 		}
-
 		break;
 
 	case 'move-up-menu-item':
@@ -200,10 +197,9 @@ switch ( $action ) {
 						&& isset( $orders_to_dbids[ $dbids_to_orders[ $menu_item_id ] - 1 ] )
 						&& ( (int) $menu_item_data['menu_item_parent'] === $orders_to_dbids[ $dbids_to_orders[ $menu_item_id ] - 1 ] )
 					) {
+						$parent_db_id = 0;
 						if ( in_array( (int) $menu_item_data['menu_item_parent'], $orders_to_dbids, true ) ) {
 							$parent_db_id = (int) $menu_item_data['menu_item_parent'];
-						} else {
-							$parent_db_id = 0;
 						}
 
 						$parent_object = wp_setup_nav_menu_item( get_post( $parent_db_id ) );
@@ -230,10 +226,9 @@ switch ( $action ) {
 							) {
 								$_possible_parent_id = (int) get_post_meta( $orders_to_dbids[ $dbids_to_orders[ $parent_db_id ] - 1 ], '_menu_item_menu_item_parent', true );
 
+								$menu_item_data['menu_item_parent'] = 0;
 								if ( in_array( $_possible_parent_id, array_keys( $dbids_to_orders ), true ) ) {
 									$menu_item_data['menu_item_parent'] = $_possible_parent_id;
-								} else {
-									$menu_item_data['menu_item_parent'] = 0;
 								}
 
 								// Else there isn't something before the parent.
@@ -272,7 +267,6 @@ switch ( $action ) {
 				}
 			}
 		}
-
 		break;
 
 	case 'delete-menu-item':
@@ -283,7 +277,6 @@ switch ( $action ) {
 		if ( is_nav_menu_item( $menu_item_id ) && wp_delete_post( $menu_item_id, true ) ) {
 			$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . __( 'The menu item has been successfully deleted.' ) . '</p></div>';
 		}
-
 		break;
 
 	case 'delete':
@@ -306,7 +299,6 @@ switch ( $action ) {
 		} else {
 			$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . __( 'The menu has been successfully deleted.' ) . '</p></div>';
 		}
-
 		break;
 
 	case 'delete_menus':
@@ -328,7 +320,6 @@ switch ( $action ) {
 		if ( empty( $deletion_error ) ) {
 			$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . __( 'Selected menus have been successfully deleted.' ) . '</p></div>';
 		}
-
 		break;
 
 	case 'update':
@@ -449,7 +440,6 @@ switch ( $action ) {
 				}
 			}
 		}
-
 		break;
 
 	case 'locations':
@@ -470,7 +460,6 @@ switch ( $action ) {
 
 			$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . __( 'Menu locations updated.' ) . '</p></div>';
 		}
-
 		break;
 }
 
@@ -489,13 +478,11 @@ $page_count = wp_count_posts( 'page' );
  * If we have one theme location, and zero menus, we take them right
  * into editing their first menu.
  */
-if ( 1 === count( get_registered_nav_menus() ) && ! $add_new_screen
-	&& empty( $nav_menus ) && ! empty( $page_count->publish )
-) {
-	$one_theme_location_no_menus = true;
-} else {
-	$one_theme_location_no_menus = false;
-}
+$one_theme_location_no_menus = ( 1 === count( get_registered_nav_menus() )
+	&& ! $add_new_screen
+	&& empty( $nav_menus )
+	&& ! empty( $page_count->publish )
+);
 
 $nav_menus_l10n = array(
 	'oneThemeLocationNoMenus' => $one_theme_location_no_menus,

@@ -12,7 +12,8 @@ if ( isset( $_GET['page'] ) && ! empty( $_POST ) ) {
 	if ( 'export_personal_data' === $_GET['page'] ) {
 		require_once ABSPATH . 'wp-admin/export-personal-data.php';
 		return;
-	} elseif ( 'remove_personal_data' === $_GET['page'] ) {
+	}
+	if ( 'remove_personal_data' === $_GET['page'] ) {
 		require_once ABSPATH . 'wp-admin/erase-personal-data.php';
 		return;
 	}
@@ -23,13 +24,15 @@ if ( isset( $_GET['wp-privacy-policy-guide'] ) ) {
 	require_once dirname( __DIR__ ) . '/wp-load.php';
 	wp_redirect( admin_url( 'options-privacy.php?tab=policyguide' ), 301 );
 	exit;
-} elseif ( isset( $_GET['page'] ) ) {
+}
+if ( isset( $_GET['page'] ) ) {
 	// These were also moved to files in WP 5.3.
 	if ( 'export_personal_data' === $_GET['page'] ) {
 		require_once dirname( __DIR__ ) . '/wp-load.php';
 		wp_redirect( admin_url( 'export-personal-data.php' ), 301 );
 		exit;
-	} elseif ( 'remove_personal_data' === $_GET['page'] ) {
+	}
+	if ( 'remove_personal_data' === $_GET['page'] ) {
 		require_once dirname( __DIR__ ) . '/wp-load.php';
 		wp_redirect( admin_url( 'erase-personal-data.php' ), 301 );
 		exit;

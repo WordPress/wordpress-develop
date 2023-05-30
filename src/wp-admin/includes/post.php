@@ -33,15 +33,13 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 	if ( $update && ! current_user_can( 'edit_post', $post_data['ID'] ) ) {
 		if ( 'page' === $post_data['post_type'] ) {
 			return new WP_Error( 'edit_others_pages', __( 'Sorry, you are not allowed to edit pages as this user.' ) );
-		} else {
-			return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to edit posts as this user.' ) );
 		}
+		return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to edit posts as this user.' ) );
 	} elseif ( ! $update && ! current_user_can( $ptype->cap->create_posts ) ) {
 		if ( 'page' === $post_data['post_type'] ) {
 			return new WP_Error( 'edit_others_pages', __( 'Sorry, you are not allowed to create pages as this user.' ) );
-		} else {
-			return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to create posts as this user.' ) );
 		}
+		return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to create posts as this user.' ) );
 	}
 
 	if ( isset( $post_data['content'] ) ) {
@@ -65,11 +63,9 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 	if ( ! empty( $post_data['post_author_override'] ) ) {
 		$post_data['post_author'] = (int) $post_data['post_author_override'];
 	} else {
-		if ( ! empty( $post_data['post_author'] ) ) {
-			$post_data['post_author'] = (int) $post_data['post_author'];
-		} else {
-			$post_data['post_author'] = (int) $post_data['user_ID'];
-		}
+		$post_data['post_author'] = ( ! empty( $post_data['post_author'] ) )
+			? (int) $post_data['post_author']
+			: (int) $post_data['user_ID'];
 	}
 
 	if ( isset( $post_data['user_ID'] ) && ( $post_data['post_author'] != $post_data['user_ID'] )
@@ -78,16 +74,13 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 		if ( $update ) {
 			if ( 'page' === $post_data['post_type'] ) {
 				return new WP_Error( 'edit_others_pages', __( 'Sorry, you are not allowed to edit pages as this user.' ) );
-			} else {
-				return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to edit posts as this user.' ) );
 			}
-		} else {
-			if ( 'page' === $post_data['post_type'] ) {
-				return new WP_Error( 'edit_others_pages', __( 'Sorry, you are not allowed to create pages as this user.' ) );
-			} else {
-				return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to create posts as this user.' ) );
-			}
+			return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to edit posts as this user.' ) );
 		}
+		if ( 'page' === $post_data['post_type'] ) {
+			return new WP_Error( 'edit_others_pages', __( 'Sorry, you are not allowed to create pages as this user.' ) );
+		}
+		return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to create posts as this user.' ) );
 	}
 
 	if ( ! empty( $post_data['post_status'] ) ) {
@@ -122,10 +115,9 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 		$post_data['post_status'] = 'pending';
 	}
 
+	$post_id = false;
 	if ( isset( $post_data['ID'] ) ) {
 		$post_id = $post_data['ID'];
-	} else {
-		$post_id = false;
 	}
 	$previous_status = $post_id ? get_post_field( 'post_status', $post_id ) : false;
 
@@ -270,9 +262,8 @@ function edit_post( $post_data = null ) {
 	if ( ! current_user_can( 'edit_post', $post_id ) ) {
 		if ( 'page' === $post_data['post_type'] ) {
 			wp_die( __( 'Sorry, you are not allowed to edit this page.' ) );
-		} else {
-			wp_die( __( 'Sorry, you are not allowed to edit this post.' ) );
 		}
+		wp_die( __( 'Sorry, you are not allowed to edit this post.' ) );
 	}
 
 	if ( post_type_supports( $ptype->name, 'revisions' ) ) {
@@ -296,9 +287,11 @@ function edit_post( $post_data = null ) {
 			case 'public':
 				$post_data['post_password'] = '';
 				break;
+
 			case 'password':
 				unset( $post_data['sticky'] );
 				break;
+
 			case 'private':
 				$post_data['post_status']   = 'private';
 				$post_data['post_password'] = '';
@@ -1505,12 +1498,10 @@ function get_sample_permalink_html( $post, $new_title = null, $new_slug = null )
 			$view_link      = get_preview_post_link( $post );
 			$preview_target = " target='wp-preview-{$post->ID}'";
 		} else {
-			if ( 'publish' === $post->post_status || 'attachment' === $post->post_type ) {
-				$view_link = get_permalink( $post );
-			} else {
+			$view_link = ( 'publish' === $post->post_status || 'attachment' === $post->post_type )
+				? get_permalink( $post )
 				// Allow non-published (private, future) to be viewed at a pretty permalink, in case $post->post_name is set.
-				$view_link = str_replace( array( '%pagename%', '%postname%' ), $post->post_name, $permalink );
-			}
+				: str_replace( array( '%pagename%', '%postname%' ), $post->post_name, $permalink );
 		}
 	}
 
@@ -1532,10 +1523,9 @@ function get_sample_permalink_html( $post, $new_title = null, $new_slug = null )
 			$return .= '<span id="change-permalinks"><a href="options-permalink.php" class="button button-small">' . __( 'Change Permalink Structure' ) . "</a></span>\n";
 		}
 	} else {
+		$post_name_abridged = $post_name;
 		if ( mb_strlen( $post_name ) > 34 ) {
 			$post_name_abridged = mb_substr( $post_name, 0, 16 ) . '&hellip;' . mb_substr( $post_name, -16 );
-		} else {
-			$post_name_abridged = $post_name;
 		}
 
 		$post_name_html = '<span id="editable-post-name">' . esc_html( $post_name_abridged ) . '</span>';
@@ -1733,6 +1723,7 @@ function _admin_notice_post_locked() {
 		$user = get_userdata( $user_id );
 	}
 
+	$locked = false;
 	if ( $user ) {
 		/**
 		 * Filters whether to show the post locked dialog.
@@ -1750,8 +1741,6 @@ function _admin_notice_post_locked() {
 		}
 
 		$locked = true;
-	} else {
-		$locked = false;
 	}
 
 	$sendback = wp_get_referer();
@@ -2049,11 +2038,11 @@ function wp_autosave( $post_data ) {
 	) {
 		// Drafts and auto-drafts are just overwritten by autosave for the same user if the post is not locked.
 		return edit_post( wp_slash( $post_data ) );
-	} else {
-		// Non-drafts or other users' drafts are not overwritten.
-		// The autosave is stored in a special post revision for each user.
-		return wp_create_post_autosave( wp_slash( $post_data ) );
 	}
+
+	// Non-drafts or other users' drafts are not overwritten.
+	// The autosave is stored in a special post revision for each user.
+	return wp_create_post_autosave( wp_slash( $post_data ) );
 }
 
 /**
@@ -2072,9 +2061,11 @@ function redirect_post( $post_id = '' ) {
 				case 'pending':
 					$message = 8;
 					break;
+
 				case 'future':
 					$message = 9;
 					break;
+
 				default:
 					$message = 6;
 			}
@@ -2159,14 +2150,9 @@ function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {
 			)
 		);
 
-		if ( ! empty( $_term ) ) {
-			$clean_terms[] = (int) $_term[0];
-		} else {
-			// No existing term was found, so pass the string. A new term will be created.
-			$clean_terms[] = $term;
-		}
+		// If no existing term was found, so pass the string. A new term will be created.
+		$clean_terms[] = ( ! empty( $_term ) ) ? (int) $_term[0] : $term;
 	}
-
 	return $clean_terms;
 }
 

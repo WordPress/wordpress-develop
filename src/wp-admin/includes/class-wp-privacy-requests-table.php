@@ -116,14 +116,14 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 			return $counts;
 		}
 
-		$query = "
-			SELECT post_status, COUNT( * ) AS num_posts
-			FROM {$wpdb->posts}
-			WHERE post_type = %s
-			AND post_name = %s
-			GROUP BY post_status";
-
-		$results = (array) $wpdb->get_results( $wpdb->prepare( $query, $this->post_type, $this->request_type ), ARRAY_A );
+		$results = (array) $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT post_status, COUNT( * ) AS num_posts FROM {$wpdb->posts} WHERE post_type = %s AND post_name = %s GROUP BY post_status",
+				$this->post_type,
+				$this->request_type
+			),
+			ARRAY_A
+		);
 		$counts  = array_fill_keys( get_post_stati(), 0 );
 
 		foreach ( $results as $row ) {
@@ -240,9 +240,9 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 
 					if ( $resend && ! is_wp_error( $resend ) ) {
 						$count++;
-					} else {
-						$failures++;
+						continue;
 					}
+					$failures++;
 				}
 
 				if ( $failures ) {
@@ -278,7 +278,6 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 						'success'
 					);
 				}
-
 				break;
 
 			case 'complete':
@@ -310,9 +309,9 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 				foreach ( $request_ids as $request_id ) {
 					if ( wp_delete_post( $request_id, true ) ) {
 						$count++;
-					} else {
-						$failures++;
+						continue;
 					}
+					$failures++;
 				}
 
 				if ( $failures ) {
@@ -348,7 +347,6 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 						'success'
 					);
 				}
-
 				break;
 		}
 	}
@@ -440,6 +438,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 			case 'request-confirmed':
 				$timestamp = $item->confirmed_timestamp;
 				break;
+
 			case 'request-completed':
 				$timestamp = $item->completed_timestamp;
 				break;

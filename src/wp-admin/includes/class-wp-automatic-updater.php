@@ -277,12 +277,10 @@ class WP_Automatic_Updater {
 		if ( 'core' === $type ) {
 			global $wpdb;
 
-			$php_compat = version_compare( PHP_VERSION, $item->php_version, '>=' );
-			if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
-				$mysql_compat = true;
-			} else {
-				$mysql_compat = version_compare( $wpdb->db_version(), $item->mysql_version, '>=' );
-			}
+			$php_compat   = version_compare( PHP_VERSION, $item->php_version, '>=' );
+			$mysql_compat = ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) )
+				? true
+				: version_compare( $wpdb->db_version(), $item->mysql_version, '>=' );
 
 			if ( ! $php_compat || ! $mysql_compat ) {
 				return false;
@@ -290,10 +288,11 @@ class WP_Automatic_Updater {
 		}
 
 		// If updating a plugin or theme, ensure the minimum PHP version requirements are satisfied.
-		if ( in_array( $type, array( 'plugin', 'theme' ), true ) ) {
-			if ( ! empty( $item->requires_php ) && version_compare( PHP_VERSION, $item->requires_php, '<' ) ) {
-				return false;
-			}
+		if ( in_array( $type, array( 'plugin', 'theme' ), true )
+			&& ! empty( $item->requires_php )
+			&& version_compare( PHP_VERSION, $item->requires_php, '<' )
+		) {
+			return false;
 		}
 
 		return true;
@@ -368,14 +367,17 @@ class WP_Automatic_Updater {
 				$upgrader = new Core_Upgrader( $skin );
 				$context  = ABSPATH;
 				break;
+
 			case 'plugin':
 				$upgrader = new Plugin_Upgrader( $skin );
 				$context  = WP_PLUGIN_DIR; // We don't support custom Plugin directories, or updates for WPMU_PLUGIN_DIR.
 				break;
+
 			case 'theme':
 				$upgrader = new Theme_Upgrader( $skin );
 				$context  = get_theme_root( $item->theme );
 				break;
+
 			case 'translation':
 				$upgrader = new Language_Pack_Upgrader( $skin );
 				$context  = WP_CONTENT_DIR; // WP_LANG_DIR;
@@ -407,6 +409,7 @@ class WP_Automatic_Updater {
 				/* translators: %s: WordPress version. */
 				$item_name = sprintf( __( 'WordPress %s' ), $item->version );
 				break;
+
 			case 'theme':
 				$upgrader_item = $item->theme;
 				$theme         = wp_get_theme( $upgrader_item );
@@ -419,6 +422,7 @@ class WP_Automatic_Updater {
 				/* translators: %s: Theme name. */
 				$skin->feedback( __( 'Updating theme: %s' ), $item_name );
 				break;
+
 			case 'plugin':
 				$upgrader_item = $item->plugin;
 				$plugin_data   = get_plugin_data( $context . '/' . $upgrader_item );
@@ -431,6 +435,7 @@ class WP_Automatic_Updater {
 				/* translators: %s: Plugin name. */
 				$skin->feedback( __( 'Updating plugin: %s' ), $item_name );
 				break;
+
 			case 'translation':
 				$language_item_name = $upgrader->get_name_for_update( $item );
 				/* translators: %s: Project name (plugin, theme, or WordPress). */
@@ -499,15 +504,11 @@ class WP_Automatic_Updater {
 	 * @since 3.7.0
 	 */
 	public function run() {
-		if ( $this->is_disabled() ) {
-			return;
-		}
-
-		if ( ! is_main_network() || ! is_main_site() ) {
-			return;
-		}
-
-		if ( ! WP_Upgrader::create_lock( 'auto_updater' ) ) {
+		if ( $this->is_disabled()
+			|| ! is_main_network()
+			|| ! is_main_site()
+			|| ! WP_Upgrader::create_lock( 'auto_updater' )
+		) {
 			return;
 		}
 
@@ -741,13 +742,9 @@ class WP_Automatic_Updater {
 			$next_user_core_update = $core_update;
 		}
 
-		if ( 'upgrade' === $next_user_core_update->response
+		$newer_version_available = ( 'upgrade' === $next_user_core_update->response
 			&& version_compare( $next_user_core_update->version, $core_update->version, '>' )
-		) {
-			$newer_version_available = true;
-		} else {
-			$newer_version_available = false;
-		}
+		);
 
 		/**
 		 * Filters whether to send an email following an automatic background core update.
@@ -841,21 +838,18 @@ class WP_Automatic_Updater {
 				break;
 
 			case 'critical':
-				if ( $newer_version_available ) {
-					$body .= sprintf(
+				$body .= ( $newer_version_available )
+					? sprintf(
 						/* translators: 1: Home URL, 2: WordPress version. */
 						__( 'Your site at %1$s experienced a critical failure while trying to update WordPress to version %2$s.' ),
 						home_url(),
 						$core_update->current
-					);
-				} else {
-					$body .= sprintf(
+					) : sprintf(
 						/* translators: 1: Home URL, 2: WordPress latest version. */
 						__( 'Your site at %1$s experienced a critical failure while trying to update to the latest version of WordPress, %2$s.' ),
 						home_url(),
 						$core_update->current
 					);
-				}
 
 				$body .= "\n\n" . __( "This means your site may be offline or broken. Don't panic; this can be fixed." );
 
@@ -904,11 +898,9 @@ class WP_Automatic_Updater {
 
 			// If we had a rollback and we're still critical, then the rollback failed too.
 			// Loop through all errors (the main WP_Error, the update result, the rollback result) for code, data, etc.
-			if ( 'rollback_was_required' === $result->get_error_code() ) {
-				$errors = array( $result, $result->get_error_data()->update, $result->get_error_data()->rollback );
-			} else {
-				$errors = array( $result );
-			}
+			$errors = ( 'rollback_was_required' === $result->get_error_code() )
+				? array( $result, $result->get_error_data()->update, $result->get_error_data()->rollback )
+				: array( $result );
 
 			foreach ( $errors as $error ) {
 				if ( ! is_wp_error( $error ) ) {
@@ -993,9 +985,9 @@ class WP_Automatic_Updater {
 				foreach ( $update_results['plugin'] as $update_result ) {
 					if ( true === $update_result->result ) {
 						$successful_updates['plugin'][] = $update_result;
-					} else {
-						$failed_updates['plugin'][] = $update_result;
+						continue;
 					}
+					$failed_updates['plugin'][] = $update_result;
 				}
 			}
 		}
@@ -1016,9 +1008,9 @@ class WP_Automatic_Updater {
 				foreach ( $update_results['theme'] as $update_result ) {
 					if ( true === $update_result->result ) {
 						$successful_updates['theme'][] = $update_result;
-					} else {
-						$failed_updates['theme'][] = $update_result;
+						continue;
 					}
+					$failed_updates['theme'][] = $update_result;
 				}
 			}
 		}
@@ -1112,8 +1104,8 @@ class WP_Automatic_Updater {
 						home_url()
 					);
 				}
-
 				break;
+
 			case 'fail':
 			case 'mixed':
 				if ( $failed_plugins && $failed_themes ) {
@@ -1141,7 +1133,6 @@ class WP_Automatic_Updater {
 						home_url()
 					);
 				}
-
 				break;
 		}
 
@@ -1194,22 +1185,19 @@ class WP_Automatic_Updater {
 				$body[] = __( 'These themes failed to update:' );
 
 				foreach ( $failed_updates['theme'] as $item ) {
-					if ( $item->item->current_version ) {
-						$body[] = sprintf(
+					$body[] = ( $item->item->current_version )
+						? sprintf(
 							/* translators: 1: Theme name, 2: Current version number, 3: New version number. */
 							__( '- %1$s (from version %2$s to %3$s)' ),
 							html_entity_decode( $item->name ),
 							$item->item->current_version,
 							$item->item->new_version
-						);
-					} else {
-						$body[] = sprintf(
+						) : sprintf(
 							/* translators: 1: Theme name, 2: Version number. */
 							__( '- %1$s version %2$s' ),
 							html_entity_decode( $item->name ),
 							$item->item->new_version
 						);
-					}
 
 					$past_failure_emails[ $item->item->theme ] = $item->item->new_version;
 				}
@@ -1234,24 +1222,22 @@ class WP_Automatic_Updater {
 						$item_url = ' : ' . esc_url( $item->item->url );
 					}
 
-					if ( $item->item->current_version ) {
-						$body_message .= sprintf(
+					$body_message .= ( $item->item->current_version )
+						? sprintf(
 							/* translators: 1: Plugin name, 2: Current version number, 3: New version number, 4: Plugin URL. */
 							__( '- %1$s (from version %2$s to %3$s)%4$s' ),
 							html_entity_decode( $item->name ),
 							$item->item->current_version,
 							$item->item->new_version,
 							$item_url
-						);
-					} else {
-						$body_message .= sprintf(
+						) : sprintf(
 							/* translators: 1: Plugin name, 2: Version number, 3: Plugin URL. */
 							__( '- %1$s version %2$s%3$s' ),
 							html_entity_decode( $item->name ),
 							$item->item->new_version,
 							$item_url
 						);
-					}
+
 					$body[] = $body_message;
 
 					unset( $past_failure_emails[ $item->item->plugin ] );
@@ -1265,22 +1251,19 @@ class WP_Automatic_Updater {
 				$body[] = __( 'These themes are now up to date:' );
 
 				foreach ( $successful_updates['theme'] as $item ) {
-					if ( $item->item->current_version ) {
-						$body[] = sprintf(
+					$body[] = ( $item->item->current_version )
+						? sprintf(
 							/* translators: 1: Theme name, 2: Current version number, 3: New version number. */
 							__( '- %1$s (from version %2$s to %3$s)' ),
 							html_entity_decode( $item->name ),
 							$item->item->current_version,
 							$item->item->new_version
-						);
-					} else {
-						$body[] = sprintf(
+						) : sprintf(
 							/* translators: 1: Theme name, 2: Version number. */
 							__( '- %1$s version %2$s' ),
 							html_entity_decode( $item->name ),
 							$item->item->new_version
 						);
-					}
 
 					unset( $past_failure_emails[ $item->item->theme ] );
 				}
@@ -1312,11 +1295,9 @@ class WP_Automatic_Updater {
 		$body[] = __( 'https://wordpress.org/support/forums/' );
 		$body[] = "\n" . __( 'The WordPress Team' );
 
-		if ( '' !== get_option( 'blogname' ) ) {
-			$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-		} else {
-			$site_title = parse_url( home_url(), PHP_URL_HOST );
-		}
+		$site_title = ( '' !== get_option( 'blogname' ) )
+			? wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES )
+			: parse_url( home_url(), PHP_URL_HOST );
 
 		$body    = implode( "\n", $body );
 		$to      = get_site_option( 'admin_email' );
@@ -1429,11 +1410,9 @@ class WP_Automatic_Updater {
 			$body[] = '';
 		}
 
-		if ( '' !== get_bloginfo( 'name' ) ) {
-			$site_title = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
-		} else {
-			$site_title = parse_url( home_url(), PHP_URL_HOST );
-		}
+		$site_title = ( '' !== get_bloginfo( 'name' ) )
+			? wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES )
+			: parse_url( home_url(), PHP_URL_HOST );
 
 		if ( $failures ) {
 			$body[] = trim(

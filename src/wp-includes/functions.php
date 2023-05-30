@@ -741,17 +741,20 @@ function is_serialized_string( $data ) {
 	$data = trim( $data );
 	if ( strlen( $data ) < 4 ) {
 		return false;
-	} elseif ( ':' !== $data[1] ) {
-		return false;
-	} elseif ( ';' !== substr( $data, -1 ) ) {
-		return false;
-	} elseif ( 's' !== $data[0] ) {
-		return false;
-	} elseif ( '"' !== substr( $data, -2, 1 ) ) {
-		return false;
-	} else {
-		return true;
 	}
+	if ( ':' !== $data[1] ) {
+		return false;
+	}
+	if ( ';' !== substr( $data, -1 ) ) {
+		return false;
+	}
+	if ( 's' !== $data[0] ) {
+		return false;
+	}
+	if ( '"' !== substr( $data, -2, 1 ) ) {
+		return false;
+	}
+	return true;
 }
 
 /**
@@ -770,11 +773,9 @@ function is_serialized_string( $data ) {
 function xmlrpc_getposttitle( $content ) {
 	global $post_default_title;
 	if ( preg_match( '/<title>(.+?)<\/title>/is', $content, $matchtitle ) ) {
-		$post_title = $matchtitle[1];
-	} else {
-		$post_title = $post_default_title;
+		return $matchtitle[1];
 	}
-	return $post_title;
+	return $post_default_title;
 }
 
 /**
@@ -795,11 +796,9 @@ function xmlrpc_getpostcategory( $content ) {
 	global $post_default_category;
 	if ( preg_match( '/<category>(.+?)<\/category>/is', $content, $matchcat ) ) {
 		$post_category = trim( $matchcat[1], ',' );
-		$post_category = explode( ',', $post_category );
-	} else {
-		$post_category = $post_default_category;
+		return explode( ',', $post_category );
 	}
-	return $post_category;
+	return $post_default_category;
 }
 
 /**
@@ -1013,9 +1012,8 @@ function is_new_day() {
 
 	if ( $currentday !== $previousday ) {
 		return 1;
-	} else {
-		return 0;
 	}
+	return 0;
 }
 
 /**
@@ -1069,7 +1067,8 @@ function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urle
 		}
 		if ( null === $v ) {
 			continue;
-		} elseif ( false === $v ) {
+		}
+		if ( false === $v ) {
 			$v = '0';
 		}
 
@@ -1428,9 +1427,8 @@ function get_status_header_desc( $code ) {
 
 	if ( isset( $wp_header_to_desc[ $code ] ) ) {
 		return $wp_header_to_desc[ $code ];
-	} else {
-		return '';
 	}
+	return '';
 }
 
 /**
@@ -1541,11 +1539,11 @@ function nocache_headers() {
  * @since 2.1.0
  */
 function cache_javascript_headers() {
-	$expiresOffset = 10 * DAY_IN_SECONDS;
+	$expires_offset = 10 * DAY_IN_SECONDS;
 
 	header( 'Content-Type: text/javascript; charset=' . get_bloginfo( 'charset' ) );
 	header( 'Vary: Accept-Encoding' ); // Handle proxies.
-	header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + $expiresOffset ) . ' GMT' );
+	header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + $expires_offset ) . ' GMT' );
 }
 
 /**
@@ -1981,7 +1979,8 @@ function wp_get_referer() {
 function wp_get_raw_referer() {
 	if ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
 		return wp_unslash( $_REQUEST['_wp_http_referer'] );
-	} elseif ( ! empty( $_SERVER['HTTP_REFERER'] ) ) {
+	}
+	if ( ! empty( $_SERVER['HTTP_REFERER'] ) ) {
 		return wp_unslash( $_SERVER['HTTP_REFERER'] );
 	}
 
@@ -2059,11 +2058,10 @@ function wp_mkdir_p( $target ) {
 	}
 
 	// Get the permission bits.
-	$stat = @stat( $target_parent );
+	$stat      = @stat( $target_parent );
+	$dir_perms = 0777;
 	if ( $stat ) {
 		$dir_perms = $stat['mode'] & 0007777;
-	} else {
-		$dir_perms = 0777;
 	}
 
 	if ( @mkdir( $target, $dir_perms, true ) ) {
@@ -2244,9 +2242,8 @@ function get_temp_dir() {
 function wp_is_writable( $path ) {
 	if ( 'WIN' === strtoupper( substr( PHP_OS, 0, 3 ) ) ) {
 		return win_is_writable( $path );
-	} else {
-		return @is_writable( $path );
 	}
+	return @is_writable( $path );
 }
 
 /**
@@ -2269,7 +2266,8 @@ function win_is_writable( $path ) {
 	if ( '/' === $path[ strlen( $path ) - 1 ] ) {
 		// If it looks like a directory, check a random file within the directory.
 		return win_is_writable( $path . uniqid( mt_rand() ) . '.tmp' );
-	} elseif ( is_dir( $path ) ) {
+	}
+	if ( is_dir( $path ) ) {
 		// If it's a directory (and not a file), check a random file within the directory.
 		return win_is_writable( $path . '/' . uniqid( mt_rand() ) . '.tmp' );
 	}
@@ -2411,13 +2409,12 @@ function _wp_upload_dir( $time = null ) {
 	$siteurl     = get_option( 'siteurl' );
 	$upload_path = trim( get_option( 'upload_path' ) );
 
+	$dir = $upload_path;
 	if ( empty( $upload_path ) || 'wp-content/uploads' === $upload_path ) {
 		$dir = WP_CONTENT_DIR . '/uploads';
 	} elseif ( ! str_starts_with( $upload_path, ABSPATH ) ) {
 		// $dir is absolute, $upload_path is (maybe) relative to ABSPATH.
 		$dir = path_join( ABSPATH, $upload_path );
-	} else {
-		$dir = $upload_path;
 	}
 
 	$url = get_option( 'upload_url_path' );
@@ -2475,10 +2472,9 @@ function _wp_upload_dir( $time = null ) {
 			 * rewriting in multisite, the resulting URL is /files. (#WP22702 for background.)
 			 */
 
+			$dir = ABSPATH . UPLOADS;
 			if ( defined( 'BLOGUPLOADDIR' ) ) {
 				$dir = untrailingslashit( BLOGUPLOADDIR );
-			} else {
-				$dir = ABSPATH . UPLOADS;
 			}
 			$url = trailingslashit( $siteurl ) . 'files';
 		}
@@ -3273,6 +3269,7 @@ function wp_get_image_mime( $file ) {
 	 * we assume the file could not be validated.
 	 */
 	try {
+		$mime = false;
 		if ( is_callable( 'exif_imagetype' ) ) {
 			$imagetype = exif_imagetype( $file );
 			$mime      = ( $imagetype ) ? image_type_to_mime_type( $imagetype ) : false;
@@ -3289,8 +3286,6 @@ function wp_get_image_mime( $file ) {
 			}
 
 			$mime = ( isset( $imagesize['mime'] ) ) ? $imagesize['mime'] : false;
-		} else {
-			$mime = false;
 		}
 
 		if ( false !== $mime ) {
@@ -4301,46 +4296,43 @@ function _wp_json_sanity_check( $data, $depth ) {
 	if ( is_array( $data ) ) {
 		$output = array();
 		foreach ( $data as $id => $el ) {
+			$clean_id = $id;
 			// Don't forget to sanitize the ID!
 			if ( is_string( $id ) ) {
 				$clean_id = _wp_json_convert_string( $id );
-			} else {
-				$clean_id = $id;
 			}
 
+			$output[ $clean_id ] = $el;
 			// Check the element type, so that we're only recursing if we really have to.
 			if ( is_array( $el ) || is_object( $el ) ) {
 				$output[ $clean_id ] = _wp_json_sanity_check( $el, $depth - 1 );
 			} elseif ( is_string( $el ) ) {
 				$output[ $clean_id ] = _wp_json_convert_string( $el );
-			} else {
-				$output[ $clean_id ] = $el;
 			}
 		}
-	} elseif ( is_object( $data ) ) {
+		return $output;
+	}
+	if ( is_object( $data ) ) {
 		$output = new stdClass();
 		foreach ( $data as $id => $el ) {
+			$clean_id = $id;
 			if ( is_string( $id ) ) {
 				$clean_id = _wp_json_convert_string( $id );
-			} else {
-				$clean_id = $id;
 			}
 
+			$output->$clean_id = $el;
 			if ( is_array( $el ) || is_object( $el ) ) {
 				$output->$clean_id = _wp_json_sanity_check( $el, $depth - 1 );
 			} elseif ( is_string( $el ) ) {
 				$output->$clean_id = _wp_json_convert_string( $el );
-			} else {
-				$output->$clean_id = $el;
 			}
 		}
-	} elseif ( is_string( $data ) ) {
-		return _wp_json_convert_string( $data );
-	} else {
-		return $data;
+		return $output;
 	}
-
-	return $output;
+	if ( is_string( $data ) ) {
+		return _wp_json_convert_string( $data );
+	}
+	return $data;
 }
 
 /**
@@ -4365,12 +4357,10 @@ function _wp_json_convert_string( $input_string ) {
 		$encoding = mb_detect_encoding( $input_string, mb_detect_order(), true );
 		if ( $encoding ) {
 			return mb_convert_encoding( $input_string, 'UTF-8', $encoding );
-		} else {
-			return mb_convert_encoding( $input_string, 'UTF-8', 'UTF-8' );
 		}
-	} else {
-		return wp_check_invalid_utf8( $input_string, true );
+		return mb_convert_encoding( $input_string, 'UTF-8', 'UTF-8' );
 	}
+	return wp_check_invalid_utf8( $input_string, true );
 }
 
 /**
@@ -4435,9 +4425,8 @@ function wp_send_json( $response, $status_code = null, $options = 0 ) {
 				'response' => null,
 			)
 		);
-	} else {
-		die;
 	}
+	die;
 }
 
 /**
@@ -4482,6 +4471,7 @@ function wp_send_json_error( $data = null, $status_code = null, $options = 0 ) {
 	$response = array( 'success' => false );
 
 	if ( isset( $data ) ) {
+		$response['data'] = $data;
 		if ( is_wp_error( $data ) ) {
 			$result = array();
 			foreach ( $data->errors as $code => $messages ) {
@@ -4494,8 +4484,6 @@ function wp_send_json_error( $data = null, $status_code = null, $options = 0 ) {
 			}
 
 			$response['data'] = $result;
-		} else {
-			$response['data'] = $data;
 		}
 	}
 
@@ -6567,10 +6555,9 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 		14,
 	);
 	foreach ( $offset_range as $offset ) {
+		$offset_name = (string) $offset;
 		if ( 0 <= $offset ) {
 			$offset_name = '+' . $offset;
-		} else {
-			$offset_name = (string) $offset;
 		}
 
 		$offset_value = $offset_name;
@@ -6698,18 +6685,16 @@ function get_file_data( $file, $default_headers, $context = '' ) {
 	 * @param array $extra_context_headers Empty array by default.
 	 */
 	$extra_headers = $context ? apply_filters( "extra_{$context}_headers", array() ) : array();
+	$all_headers   = $default_headers;
 	if ( $extra_headers ) {
 		$extra_headers = array_combine( $extra_headers, $extra_headers ); // Keys equal values.
 		$all_headers   = array_merge( $extra_headers, (array) $default_headers );
-	} else {
-		$all_headers = $default_headers;
 	}
 
 	foreach ( $all_headers as $field => $regex ) {
+		$all_headers[ $field ] = '';
 		if ( preg_match( '/^(?:[ \t]*<\?php)?[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $file_data, $match ) && $match[1] ) {
 			$all_headers[ $field ] = _cleanup_header_comment( $match[1] );
-		} else {
-			$all_headers[ $field ] = '';
 		}
 	}
 
@@ -6959,7 +6944,7 @@ function wp_allowed_protocols() {
 		 *
 		 * @param string[] $protocols Array of allowed protocols e.g. 'http', 'ftp', 'tel', and more.
 		 */
-		$protocols = array_unique( (array) apply_filters( 'kses_allowed_protocols', $protocols ) );
+		return array_unique( (array) apply_filters( 'kses_allowed_protocols', $protocols ) );
 	}
 
 	return $protocols;
@@ -7019,9 +7004,8 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
 	}
 	if ( $pretty ) {
 		return implode( ', ', array_reverse( $caller ) );
-	} else {
-		return $caller;
 	}
+	return $caller;
 }
 
 /**
@@ -7307,12 +7291,10 @@ function get_tag_regex( $tag ) {
  */
 function _canonical_charset( $charset ) {
 	if ( 'utf-8' === strtolower( $charset ) || 'utf8' === strtolower( $charset ) ) {
-
 		return 'UTF-8';
 	}
 
 	if ( 'iso-8859-1' === strtolower( $charset ) || 'iso8859-1' === strtolower( $charset ) ) {
-
 		return 'ISO-8859-1';
 	}
 
@@ -7347,12 +7329,11 @@ function mbstring_binary_safe_encoding( $reset = false ) {
 	static $overloaded = null;
 
 	if ( is_null( $overloaded ) ) {
+		$overloaded = false;
 		if ( function_exists( 'mb_internal_encoding' )
 			&& ( (int) ini_get( 'mbstring.func_overload' ) & 2 ) // phpcs:ignore PHPCompatibility.IniDirectives.RemovedIniDirectives.mbstring_func_overloadDeprecated
 		) {
 			$overloaded = true;
-		} else {
-			$overloaded = false;
 		}
 	}
 
@@ -7608,15 +7589,13 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 	if ( -1 === $filtered_limit_int || ( $filtered_limit_int > $wp_max_limit_int && $filtered_limit_int > $current_limit_int ) ) {
 		if ( false !== ini_set( 'memory_limit', $filtered_limit ) ) {
 			return $filtered_limit;
-		} else {
-			return false;
 		}
+		return false;
 	} elseif ( -1 === $wp_max_limit_int || $wp_max_limit_int > $current_limit_int ) {
 		if ( false !== ini_set( 'memory_limit', $wp_max_limit ) ) {
 			return $wp_max_limit;
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	return false;
@@ -7659,14 +7638,13 @@ function wp_is_uuid( $uuid, $version = null ) {
 		return false;
 	}
 
+	$regex = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/';
 	if ( is_numeric( $version ) ) {
 		if ( 4 !== (int) $version ) {
 			_doing_it_wrong( __FUNCTION__, __( 'Only UUID V4 is supported at this time.' ), '4.9.0' );
 			return false;
 		}
 		$regex = '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/';
-	} else {
-		$regex = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/';
 	}
 
 	return (bool) preg_match( $regex, $uuid );
@@ -8328,12 +8306,9 @@ function get_dirsize( $directory, $max_execution_time = null ) {
 	// Exclude individual site directories from the total when checking the main site of a network,
 	// as they are subdirectories and should not be counted.
 	if ( is_multisite() && is_main_site() ) {
-		$size = recurse_dirsize( $directory, $directory . '/sites', $max_execution_time );
-	} else {
-		$size = recurse_dirsize( $directory, null, $max_execution_time );
+		return recurse_dirsize( $directory, $directory . '/sites', $max_execution_time );
 	}
-
-	return $size;
+	return recurse_dirsize( $directory, null, $max_execution_time );
 }
 
 /**

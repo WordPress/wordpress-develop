@@ -164,9 +164,11 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 					case 'tag':
 						$args['tag'] = sanitize_title_with_dashes( $term );
 						break;
+
 					case 'term':
 						$args['search'] = $term;
 						break;
+
 					case 'author':
 						$args['author'] = $term;
 						break;
@@ -180,6 +182,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			case 'beta':
 				$args['browse'] = $tab;
 				break;
+
 			case 'recommended':
 				$args['browse'] = $tab;
 				// Include the list of installed plugins so we can get relevant results.
@@ -450,9 +453,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 		if ( 'DESC' === $this->order ) {
 			return ( $a < $b ) ? 1 : -1;
-		} else {
-			return ( $a < $b ) ? -1 : 1;
 		}
+		return ( $a < $b ) ? -1 : 1;
 	}
 
 	public function display_rows() {
@@ -490,13 +492,12 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 			// Display the group heading if there is one.
 			if ( isset( $plugin['group'] ) && $plugin['group'] !== $group ) {
+				$group_name = $plugin['group'];
 				if ( isset( $this->groups[ $plugin['group'] ] ) ) {
 					$group_name = $this->groups[ $plugin['group'] ];
 					if ( isset( $plugins_group_titles[ $group_name ] ) ) {
 						$group_name = $plugins_group_titles[ $group_name ];
 					}
-				} else {
-					$group_name = $plugin['group'];
 				}
 
 				// Starting a new group, close off the divs of the last one.
@@ -552,8 +553,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				switch ( $status['status'] ) {
 					case 'install':
 						if ( $status['url'] ) {
-							if ( $compatible_php && $compatible_wp ) {
-								$action_links[] = sprintf(
+							$action_links[] = ( $compatible_php && $compatible_wp )
+								? sprintf(
 									'<a class="install-now button" data-slug="%s" href="%s" aria-label="%s" data-name="%s">%s</a>',
 									esc_attr( $plugin['slug'] ),
 									esc_url( $status['url'] ),
@@ -561,20 +562,17 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 									esc_attr( sprintf( _x( 'Install %s now', 'plugin' ), $name ) ),
 									esc_attr( $name ),
 									__( 'Install Now' )
-								);
-							} else {
-								$action_links[] = sprintf(
+								) : sprintf(
 									'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
 									_x( 'Cannot Install', 'plugin' )
 								);
-							}
 						}
 						break;
 
 					case 'update_available':
 						if ( $status['url'] ) {
-							if ( $compatible_php && $compatible_wp ) {
-								$action_links[] = sprintf(
+							$action_links[] = ( $compatible_php && $compatible_wp )
+								? sprintf(
 									'<a class="update-now button aria-button-if-js" data-plugin="%s" data-slug="%s" href="%s" aria-label="%s" data-name="%s">%s</a>',
 									esc_attr( $status['file'] ),
 									esc_attr( $plugin['slug'] ),
@@ -583,13 +581,10 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 									esc_attr( sprintf( _x( 'Update %s now', 'plugin' ), $name ) ),
 									esc_attr( $name ),
 									__( 'Update Now' )
-								);
-							} else {
-								$action_links[] = sprintf(
+								) : sprintf(
 									'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
 									_x( 'Cannot Update', 'plugin' )
 								);
-							}
 						}
 						break;
 

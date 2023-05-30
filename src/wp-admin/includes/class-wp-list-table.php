@@ -535,6 +535,7 @@ class WP_List_Table {
 	 *                      This is designated as optional for backward compatibility.
 	 */
 	protected function bulk_actions( $which = '' ) {
+		$two = '2';
 		if ( is_null( $this->_actions ) ) {
 			$this->_actions = $this->get_bulk_actions();
 
@@ -552,8 +553,6 @@ class WP_List_Table {
 			$this->_actions = apply_filters( "bulk_actions-{$this->screen->id}", $this->_actions ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 			$two = '';
-		} else {
-			$two = '2';
 		}
 
 		if ( empty( $this->_actions ) ) {
@@ -1012,17 +1011,15 @@ class WP_List_Table {
 			);
 		}
 
-		if ( $disable_prev ) {
-			$page_links[] = '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&lsaquo;</span>';
-		} else {
-			$page_links[] = sprintf(
+		$page_links[] = ( $disable_prev )
+			? '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&lsaquo;</span>'
+			: sprintf(
 				"<a class='prev-page button' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url( add_query_arg( 'paged', max( 1, $current - 1 ), $current_url ) ),
 				/* translators: Hidden accessibility text. */
 				__( 'Previous page' ),
 				'&lsaquo;'
 			);
-		}
 
 		if ( 'bottom' === $which ) {
 			$html_current_page  = $current;
@@ -1049,29 +1046,25 @@ class WP_List_Table {
 			$html_total_pages
 		) . $total_pages_after;
 
-		if ( $disable_next ) {
-			$page_links[] = '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&rsaquo;</span>';
-		} else {
-			$page_links[] = sprintf(
+		$page_links[] = ( $disable_next )
+			? '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&rsaquo;</span>'
+			: sprintf(
 				"<a class='next-page button' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url( add_query_arg( 'paged', min( $total_pages, $current + 1 ), $current_url ) ),
 				/* translators: Hidden accessibility text. */
 				__( 'Next page' ),
 				'&rsaquo;'
 			);
-		}
 
-		if ( $disable_last ) {
-			$page_links[] = '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&raquo;</span>';
-		} else {
-			$page_links[] = sprintf(
+		$page_links[] = ( $disable_last )
+			? '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&raquo;</span>'
+			: sprintf(
 				"<a class='last-page button' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url( add_query_arg( 'paged', $total_pages, $current_url ) ),
 				/* translators: Hidden accessibility text. */
 				__( 'Last page' ),
 				'&raquo;'
 			);
-		}
 
 		$pagination_links_class = 'pagination-links';
 		if ( ! empty( $infinite_scroll ) ) {
@@ -1079,10 +1072,9 @@ class WP_List_Table {
 		}
 		$output .= "\n<span class='$pagination_links_class'>" . implode( "\n", $page_links ) . '</span>';
 
+		$page_class = ' no-pages';
 		if ( $total_pages ) {
 			$page_class = $total_pages < 2 ? ' one-page' : '';
-		} else {
-			$page_class = ' no-pages';
 		}
 		$this->_pagination = "<div class='tablenav-pages{$page_class}'>$output</div>";
 
@@ -1290,17 +1282,8 @@ class WP_List_Table {
 		$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 		$current_url = remove_query_arg( 'paged', $current_url );
 
-		if ( isset( $_GET['orderby'] ) ) {
-			$current_orderby = $_GET['orderby'];
-		} else {
-			$current_orderby = '';
-		}
-
-		if ( isset( $_GET['order'] ) && 'desc' === $_GET['order'] ) {
-			$current_order = 'desc';
-		} else {
-			$current_order = 'asc';
-		}
+		$current_orderby = ( isset( $_GET['orderby'] ) ) ? $_GET['orderby'] : '';
+		$current_order   = ( isset( $_GET['order'] ) && 'desc' === $_GET['order'] ) ? 'desc' : 'asc';
 
 		if ( ! empty( $columns['cb'] ) ) {
 			static $cb_counter = 1;

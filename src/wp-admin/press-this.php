@@ -75,13 +75,12 @@ function wp_load_press_this() {
 			__( 'Installation Required' ),
 			200
 		);
-	} else {
-		wp_die(
-			__( 'Press This is not available. Please contact your site administrator.' ),
-			__( 'Installation Required' ),
-			200
-		);
 	}
+	wp_die(
+		__( 'Press This is not available. Please contact your site administrator.' ),
+		__( 'Installation Required' ),
+		200
+	);
 }
 
 wp_load_press_this();

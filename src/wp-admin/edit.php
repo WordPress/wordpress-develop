@@ -22,10 +22,8 @@ if ( ! in_array( $typenow, get_post_types( array( 'show_ui' => true ) ), true ) 
 	wp_die( __( 'Sorry, you are not allowed to edit posts in this post type.' ) );
 }
 
-if ( 'attachment' === $typenow ) {
-	if ( wp_redirect( admin_url( 'upload.php' ) ) ) {
-		exit;
-	}
+if ( 'attachment' === $typenow && wp_redirect( admin_url( 'upload.php' ) ) ) {
+	exit;
 }
 
 /**
@@ -61,14 +59,13 @@ foreach ( array( 'p', 'attachment_id', 'page_id' ) as $_redirect ) {
 }
 unset( $_redirect );
 
+$parent_file   = 'edit.php';
+$submenu_file  = 'edit.php';
+$post_new_file = 'post-new.php';
 if ( 'post' !== $post_type ) {
-	$parent_file   = "edit.php?post_type=$post_type";
-	$submenu_file  = "edit.php?post_type=$post_type";
-	$post_new_file = "post-new.php?post_type=$post_type";
-} else {
-	$parent_file   = 'edit.php';
-	$submenu_file  = 'edit.php';
-	$post_new_file = 'post-new.php';
+	$parent_file   .= "?post_type=$post_type";
+	$submenu_file  .= "?post_type=$post_type";
+	$post_new_file .= "?post_type=$post_type";
 }
 
 $doaction = $wp_list_table->current_action();
@@ -144,6 +141,7 @@ if ( $doaction ) {
 				$sendback
 			);
 			break;
+
 		case 'untrash':
 			$untrashed = 0;
 
@@ -167,6 +165,7 @@ if ( $doaction ) {
 			remove_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10 );
 
 			break;
+
 		case 'delete':
 			$deleted = 0;
 			foreach ( (array) $post_ids as $post_id ) {
@@ -189,6 +188,7 @@ if ( $doaction ) {
 			}
 			$sendback = add_query_arg( 'deleted', $deleted, $sendback );
 			break;
+
 		case 'edit':
 			if ( isset( $_REQUEST['bulk_edit'] ) ) {
 				$done = bulk_edit_posts( $_REQUEST );
@@ -201,6 +201,7 @@ if ( $doaction ) {
 				}
 			}
 			break;
+
 		default:
 			$screen = get_current_screen()->id;
 
@@ -227,7 +228,8 @@ if ( $doaction ) {
 
 	wp_redirect( $sendback );
 	exit;
-} elseif ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
+}
+if ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
 	wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
 	exit;
 }

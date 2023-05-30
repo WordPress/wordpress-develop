@@ -27,12 +27,11 @@ function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $s
 	if ( is_numeric( $src ) ) { // Handle int as attachment ID.
 		$src_file = get_attached_file( $src );
 
+		$src = $src_file;
 		if ( ! file_exists( $src_file ) ) {
 			// If the file doesn't exist, attempt a URL fopen on the src link.
 			// This can occur with certain file replication plugins.
 			$src = _load_image_to_edit_path( $src, 'full' );
-		} else {
-			$src = $src_file;
 		}
 	}
 
@@ -160,12 +159,11 @@ function wp_update_image_subsizes( $attachment_id ) {
 
 	if ( empty( $image_meta ) || ! is_array( $image_meta ) ) {
 		// Previously failed upload?
-		// If there is an uploaded file, make all sub-sizes and generate all of the attachment meta.
-		if ( ! empty( $image_file ) ) {
-			$image_meta = wp_create_image_subsizes( $image_file, $attachment_id );
-		} else {
+		if ( empty( $image_file ) ) {
 			return new WP_Error( 'invalid_attachment', __( 'The attached file cannot be found.' ) );
 		}
+		// If there is an uploaded file, make all sub-sizes and generate all of the attachment meta.
+		$image_meta = wp_create_image_subsizes( $image_file, $attachment_id );
 	} else {
 		$missing_sizes = wp_get_missing_image_subsizes( $attachment_id );
 
@@ -535,9 +533,11 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 				case 'image/gif':
 					$ext = '.gif';
 					break;
+
 				case 'image/png':
 					$ext = '.png';
 					break;
+
 				case 'image/webp':
 					$ext = '.webp';
 					break;
@@ -677,11 +677,9 @@ function wp_exif_frac2dec( $str ) {
 
 	// Fractions passed as a string must contain a single `/`.
 	if ( substr_count( $str, '/' ) !== 1 ) {
-		if ( is_numeric( $str ) ) {
-			return (float) $str;
-		}
-
-		return 0;
+		return ( is_numeric( $str ) )
+			? (float) $str
+			: 0;
 	}
 
 	list( $numerator, $denominator ) = explode( '/', $str );
@@ -769,14 +767,10 @@ function wp_read_image_metadata( $file ) {
 
 		if ( ! empty( $info['APP13'] ) ) {
 			// Don't silence errors when in debug mode, unless running unit tests.
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG
-				&& ! defined( 'WP_RUN_CORE_TESTS' )
-			) {
-				$iptc = iptcparse( $info['APP13'] );
-			} else {
+			$iptc = ( defined( 'WP_DEBUG' ) && WP_DEBUG && ! defined( 'WP_RUN_CORE_TESTS' ) )
+				? iptcparse( $info['APP13'] )
 				// phpcs:ignore WordPress.PHP.NoSilencedErrors -- Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
-				$iptc = @iptcparse( $info['APP13'] );
-			}
+				: @iptcparse( $info['APP13'] );
 
 			if ( ! is_array( $iptc ) ) {
 				$iptc = array();
@@ -842,14 +836,10 @@ function wp_read_image_metadata( $file ) {
 
 	if ( is_callable( 'exif_read_data' ) && in_array( $image_type, $exif_image_types, true ) ) {
 		// Don't silence errors when in debug mode, unless running unit tests.
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG
-			&& ! defined( 'WP_RUN_CORE_TESTS' )
-		) {
-			$exif = exif_read_data( $file );
-		} else {
+		$exif = ( defined( 'WP_DEBUG' ) && WP_DEBUG && ! defined( 'WP_RUN_CORE_TESTS' ) )
+			? exif_read_data( $file )
 			// phpcs:ignore WordPress.PHP.NoSilencedErrors -- Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
-			$exif = @exif_read_data( $file );
-		}
+			: @exif_read_data( $file );
 
 		if ( ! is_array( $exif ) ) {
 			$exif = array();
@@ -945,7 +935,6 @@ function wp_read_image_metadata( $file ) {
 	 * @param array  $exif       EXIF data.
 	 */
 	return apply_filters( 'wp_read_image_metadata', $meta, $file, $image_type, $iptc, $exif );
-
 }
 
 /**
@@ -957,8 +946,7 @@ function wp_read_image_metadata( $file ) {
  * @return bool True if valid image, false if not valid image.
  */
 function file_is_valid_image( $path ) {
-	$size = wp_getimagesize( $path );
-	return ! empty( $size );
+	return ! empty( wp_getimagesize( $path ) );
 }
 
 /**
@@ -972,14 +960,10 @@ function file_is_valid_image( $path ) {
 function file_is_displayable_image( $path ) {
 	$displayable_image_types = array( IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP, IMAGETYPE_ICO, IMAGETYPE_WEBP );
 
-	$info = wp_getimagesize( $path );
-	if ( empty( $info ) ) {
-		$result = false;
-	} elseif ( ! in_array( $info[2], $displayable_image_types, true ) ) {
-		$result = false;
-	} else {
-		$result = true;
-	}
+	$info   = wp_getimagesize( $path );
+	$result = ( ! empty( $info )
+		&& in_array( $info[2], $displayable_image_types, true )
+	);
 
 	/**
 	 * Filters whether the current image is displayable in the browser.
@@ -1014,18 +998,22 @@ function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
 		case 'image/jpeg':
 			$image = imagecreatefromjpeg( $filepath );
 			break;
+
 		case 'image/png':
 			$image = imagecreatefrompng( $filepath );
 			break;
+
 		case 'image/gif':
 			$image = imagecreatefromgif( $filepath );
 			break;
+
 		case 'image/webp':
 			$image = false;
 			if ( function_exists( 'imagecreatefromwebp' ) ) {
 				$image = imagecreatefromwebp( $filepath );
 			}
 			break;
+
 		default:
 			$image = false;
 			break;
@@ -1149,11 +1137,9 @@ function _copy_image_file( $attachment_id ) {
 		wp_mkdir_p( dirname( $dst_file ) );
 
 		if ( ! copy( $src_file, $dst_file ) ) {
-			$dst_file = false;
+			return false;
 		}
-	} else {
-		$dst_file = false;
+		return $dst_file;
 	}
-
-	return $dst_file;
+	return false;
 }

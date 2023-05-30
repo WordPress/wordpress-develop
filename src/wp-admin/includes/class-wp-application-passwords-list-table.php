@@ -220,16 +220,20 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 				case 'name':
 					echo '{{ data.name }}';
 					break;
+
 				case 'created':
 					// JSON encoding automatically doubles backslashes to ensure they don't get lost when printing the inline JS.
 					echo '<# print( wp.date.dateI18n( ' . wp_json_encode( __( 'F j, Y' ) ) . ', data.created ) ) #>';
 					break;
+
 				case 'last_used':
 					echo '<# print( data.last_used !== null ? wp.date.dateI18n( ' . wp_json_encode( __( 'F j, Y' ) ) . ", data.last_used ) : '—' ) #>";
 					break;
+
 				case 'last_ip':
 					echo "{{ data.last_ip || '—' }}";
 					break;
+
 				case 'revoke':
 					printf(
 						'<button type="button" class="button delete" aria-label="%1$s">%2$s</button>',
@@ -238,6 +242,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 						esc_html__( 'Revoke' )
 					);
 					break;
+
 				default:
 					/**
 					 * Fires in the JavaScript row template for each custom column in the Application Passwords list table.

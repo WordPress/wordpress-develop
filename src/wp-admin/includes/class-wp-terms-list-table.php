@@ -236,9 +236,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 		}
 
 		if ( is_taxonomy_hierarchical( $taxonomy ) && ! isset( $this->callback_args['orderby'] ) ) {
-			if ( ! empty( $this->callback_args['search'] ) ) {// Ignore children on searches.
-				$children = array();
-			} else {
+			$children = array();
+			if ( empty( $this->callback_args['search'] ) ) {// Ignore children on searches.
 				$children = _get_term_hierarchy( $taxonomy );
 			}
 
@@ -333,11 +332,10 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 		$this->level = $level;
 
+		$level = 'level-0';
 		if ( $tag->parent ) {
 			$count = count( get_ancestors( $tag->term_id, $taxonomy, 'taxonomy' ) );
 			$level = 'level-' . $count;
-		} else {
-			$level = 'level-0';
 		}
 
 		echo '<tr id="tag-' . $tag->term_id . '" class="' . $level . '">';
@@ -546,12 +544,11 @@ class WP_Terms_List_Table extends WP_List_Table {
 	public function column_description( $tag ) {
 		if ( $tag->description ) {
 			return $tag->description;
-		} else {
-			return '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' .
-				/* translators: Hidden accessibility text. */
-				__( 'No description' ) .
-			'</span>';
 		}
+		return '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' .
+			/* translators: Hidden accessibility text. */
+			__( 'No description' ) .
+		'</span>';
 	}
 
 	/**
@@ -577,14 +574,12 @@ class WP_Terms_List_Table extends WP_List_Table {
 			return $count;
 		}
 
-		if ( $tax->query_var ) {
-			$args = array( $tax->query_var => $tag->slug );
-		} else {
-			$args = array(
+		$args = ( $tax->query_var )
+			? array( $tax->query_var => $tag->slug )
+			: array(
 				'taxonomy' => $tax->name,
 				'term'     => $tag->slug,
 			);
-		}
 
 		if ( 'post' !== $this->screen->post_type ) {
 			$args['post_type'] = $this->screen->post_type;
@@ -605,7 +600,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 		$count = number_format_i18n( $tag->count );
 
 		if ( $count ) {
-			$count = "<a href='link-manager.php?cat_id=$tag->term_id'>$count</a>";
+			return "<a href='link-manager.php?cat_id=$tag->term_id'>$count</a>";
 		}
 
 		return $count;
