@@ -621,7 +621,6 @@ EXP;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
-	 * @covers WP_Scripts::get_normalized_script_args
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_valid_async_registration() {
@@ -639,7 +638,6 @@ EXP;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
-	 * @covers WP_Scripts::get_normalized_script_args
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_invalid_async_registration() {
@@ -667,7 +665,6 @@ EXP;
 	 * @dataProvider data_loading_strategy_with_valid_defer_registration
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
-	 * @covers WP_Scripts::get_normalized_script_args
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_valid_defer_registration( $expected, $output, $message ) {
@@ -716,7 +713,6 @@ EXP;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
-	 * @covers WP_Scripts::get_normalized_script_args
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_defer_with_async_dependent() {
@@ -741,7 +737,6 @@ EXP;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
-	 * @covers WP_Scripts::get_normalized_script_args
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_invalid_defer_registration() {
@@ -762,7 +757,6 @@ EXP;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
-	 * @covers WP_Scripts::get_normalized_script_args
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_valid_blocking_registration() {
@@ -784,7 +778,6 @@ EXP;
 	 * @ticket 12009
 	 *
 	 * @covers WP_Scripts::do_item
-	 * @covers WP_Scripts::get_normalized_script_args
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_old_and_new_in_footer_scripts() {
