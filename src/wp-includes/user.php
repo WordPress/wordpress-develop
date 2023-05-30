@@ -2730,7 +2730,7 @@ All at ###SITENAME###
 				$remember = true;
 			}
 
-			wp_set_auth_cookie( $user_id, $remember );
+			wp_set_auth_cookie( $user_id, $remember, '', wp_get_session_token() );
 		}
 	}
 
