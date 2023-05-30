@@ -1907,10 +1907,7 @@ function wp_print_delayed_inline_script_loader() {
   );
 })();
 JS;
-		$type_attr         = current_theme_supports( 'html5', 'script' ) ? '' : 'text/javascript';
-		$script_type_array = '' === $type_attr ? array() : array( 'type' => $type_attr );
-
-		wp_print_inline_script_tag( $output, array_merge( $script_type_array, array( 'id' => 'wp-executes-after-js' ) ) );
+		wp_print_inline_script_tag( $output, array( 'id' => 'wp-executes-after-js' ) );
 	}
 }
 
