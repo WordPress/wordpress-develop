@@ -1067,7 +1067,17 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 			)
 		);
 		$current_site->blog_id = $wpdb->insert_id;
-		$site_user = get_userdata( (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s AND site_id = %d", 'admin_user_id', $network_id ) ) );
+		$site_user = get_userdata(
+			(int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT meta_value
+					FROM $wpdb->sitemeta
+					WHERE meta_key = %s AND site_id = %d",
+					'admin_user_id',
+					$network_id
+				)
+			)
+		);
 		update_user_meta( $site_user->ID, 'source_domain', $domain );
 		update_user_meta( $site_user->ID, 'primary_blog', $current_site->blog_id );
 
