@@ -85,7 +85,7 @@ JS;
 		wp_add_inline_script( 'ms-isinsa-1', 'console.log("after two");', 'after' );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
-<script type="text/javascript" id="wp-executes-after-js">
+<script id="wp-executes-after-js" type="text/javascript">
 (function () {
   var nonce = document.currentScript.nonce;
 
@@ -222,7 +222,7 @@ EXP;
 		wp_add_inline_script( 'ms-insa-1', 'console.log("after one");', 'after' );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
-<script type="text/javascript" id="wp-executes-after-js">
+<script id="wp-executes-after-js" type="text/javascript">
 (function () {
   var nonce = document.currentScript.nonce;
 
@@ -304,7 +304,7 @@ EXP;
 		wp_add_inline_script( 'ms-insa-2', 'console.log("after one");', 'after' );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
-<script type="text/javascript" id="wp-executes-after-js">
+<script id="wp-executes-after-js" type="text/javascript">
 (function () {
   var nonce = document.currentScript.nonce;
 
