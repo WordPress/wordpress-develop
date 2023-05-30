@@ -66,12 +66,10 @@ function post_submit_meta_box( $post, $args = array() ) {
 			?>
 			<div id="preview-action">
 				<?php
-				$preview_link = esc_url( get_preview_post_link( $post ) );
-				if ( 'publish' === $post->post_status ) {
-					$preview_button_text = __( 'Preview Changes' );
-				} else {
-					$preview_button_text = __( 'Preview' );
-				}
+				$preview_link        = esc_url( get_preview_post_link( $post ) );
+				$preview_button_text = ( 'publish' === $post->post_status )
+					? __( 'Preview Changes' )
+					: __( 'Preview' );
 
 				$preview_button = sprintf(
 					'%1$s<span class="screen-reader-text"> %2$s</span>',
@@ -108,15 +106,19 @@ function post_submit_meta_box( $post, $args = array() ) {
 					case 'private':
 						_e( 'Privately Published' );
 						break;
+
 					case 'publish':
 						_e( 'Published' );
 						break;
+
 					case 'future':
 						_e( 'Scheduled' );
 						break;
+
 					case 'pending':
 						_e( 'Pending Review' );
 						break;
+
 					case 'draft':
 					case 'auto-draft':
 						_e( 'Draft' );
@@ -362,11 +364,9 @@ function post_submit_meta_box( $post, $args = array() ) {
 	<div id="delete-action">
 		<?php
 		if ( current_user_can( 'delete_post', $post_id ) ) {
-			if ( ! EMPTY_TRASH_DAYS ) {
-				$delete_text = __( 'Delete permanently' );
-			} else {
-				$delete_text = __( 'Move to Trash' );
-			}
+			$delete_text = ( ! EMPTY_TRASH_DAYS )
+				? __( 'Delete permanently' )
+				: __( 'Move to Trash' );
 			?>
 			<a class="submitdelete deletion" href="<?php echo get_delete_post_link( $post_id ); ?>"><?php echo $delete_text; ?></a>
 			<?php
@@ -562,11 +562,10 @@ endif;
  */
 function post_tags_meta_box( $post, $box ) {
 	$defaults = array( 'taxonomy' => 'post_tag' );
-	if ( ! isset( $box['args'] ) || ! is_array( $box['args'] ) ) {
-		$args = array();
-	} else {
-		$args = $box['args'];
-	}
+	$args     = ( ! isset( $box['args'] ) || ! is_array( $box['args'] ) )
+		? array()
+		: $box['args'];
+
 	$parsed_args           = wp_parse_args( $args, $defaults );
 	$tax_name              = esc_attr( $parsed_args['taxonomy'] );
 	$taxonomy              = get_taxonomy( $parsed_args['taxonomy'] );
@@ -625,11 +624,10 @@ function post_tags_meta_box( $post, $box ) {
  */
 function post_categories_meta_box( $post, $box ) {
 	$defaults = array( 'taxonomy' => 'category' );
-	if ( ! isset( $box['args'] ) || ! is_array( $box['args'] ) ) {
-		$args = array();
-	} else {
-		$args = $box['args'];
-	}
+	$args     = ( ! isset( $box['args'] ) || ! is_array( $box['args'] ) )
+		? array()
+		: $box['args'];
+
 	$parsed_args = wp_parse_args( $args, $defaults );
 	$tax_name    = esc_attr( $parsed_args['taxonomy'] );
 	$taxonomy    = get_taxonomy( $parsed_args['taxonomy'] );
@@ -1601,11 +1599,9 @@ function register_and_do_post_meta_boxes( $post ) {
 
 		$label = $taxonomy->labels->name;
 
-		if ( ! is_taxonomy_hierarchical( $tax_name ) ) {
-			$tax_meta_box_id = 'tagsdiv-' . $tax_name;
-		} else {
-			$tax_meta_box_id = $tax_name . 'div';
-		}
+		$tax_meta_box_id = ( ! is_taxonomy_hierarchical( $tax_name ) )
+			? 'tagsdiv-' . $tax_name
+			: $tax_name . 'div';
 
 		add_meta_box(
 			$tax_meta_box_id,
