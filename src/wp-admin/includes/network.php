@@ -19,8 +19,9 @@
 function network_domain_check() {
 	global $wpdb;
 
-	$sql = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->site ) );
-	if ( $wpdb->get_var( $sql ) ) {
+	if ( $wpdb->get_var(
+		$wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->site ) )
+	) ) {
 		return $wpdb->get_var( "SELECT domain FROM $wpdb->site ORDER BY id ASC LIMIT 1" );
 	}
 	return false;
@@ -34,7 +35,10 @@ function network_domain_check() {
  */
 function allow_subdomain_install() {
 	$domain = preg_replace( '|https?://([^/]+)|', '$1', get_option( 'home' ) );
-	if ( parse_url( get_option( 'home' ), PHP_URL_PATH ) || 'localhost' === $domain || preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $domain ) ) {
+	if ( parse_url( get_option( 'home' ), PHP_URL_PATH )
+		|| 'localhost' === $domain
+		|| preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $domain )
+	) {
 		return false;
 	}
 
@@ -70,11 +74,7 @@ function allow_subdirectory_install() {
 	}
 
 	$post = $wpdb->get_row( "SELECT ID FROM $wpdb->posts WHERE post_date < DATE_SUB(NOW(), INTERVAL 1 MONTH) AND post_status = 'publish'" );
-	if ( empty( $post ) ) {
-		return true;
-	}
-
-	return false;
+	return empty( $post );
 }
 
 /**
@@ -91,7 +91,7 @@ function get_clean_basedomain() {
 	$domain = preg_replace( '|https?://|', '', get_option( 'siteurl' ) );
 	$slash  = strpos( $domain, '/' );
 	if ( $slash ) {
-		$domain = substr( $domain, 0, $slash );
+		return substr( $domain, 0, $slash );
 	}
 	return $domain;
 }
@@ -165,18 +165,14 @@ function network_step1( $errors = false ) {
 		$error_codes = $errors->get_error_codes();
 	}
 
-	if ( ! empty( $_POST['sitename'] ) && ! in_array( 'empty_sitename', $error_codes, true ) ) {
-		$site_name = $_POST['sitename'];
-	} else {
+	$site_name = ( ! empty( $_POST['sitename'] ) && ! in_array( 'empty_sitename', $error_codes, true ) )
+		? $_POST['sitename']
 		/* translators: %s: Default network title. */
-		$site_name = sprintf( __( '%s Sites' ), get_option( 'blogname' ) );
-	}
+		: sprintf( __( '%s Sites' ), get_option( 'blogname' ) );
 
-	if ( ! empty( $_POST['email'] ) && ! in_array( 'invalid_email', $error_codes, true ) ) {
-		$admin_email = $_POST['email'];
-	} else {
-		$admin_email = get_option( 'admin_email' );
-	}
+	$admin_email = ( ! empty( $_POST['email'] ) && ! in_array( 'invalid_email', $error_codes, true ) )
+		? $_POST['email']
+		: get_option( 'admin_email' );
 	?>
 	<p><?php _e( 'Welcome to the Network installation process!' ); ?></p>
 	<p><?php _e( 'Fill in the information below and you&#8217;ll be on your way to creating a network of WordPress sites. Configuration files will be created in the next step.' ); ?></p>
@@ -410,10 +406,9 @@ function network_step2( $errors = false ) {
 	}
 
 	if ( $_POST ) {
+		$subdomain_install = false;
 		if ( allow_subdomain_install() ) {
 			$subdomain_install = allow_subdirectory_install() ? ! empty( $_POST['subdomain_install'] ) : true;
-		} else {
-			$subdomain_install = false;
 		}
 	} else {
 		if ( is_multisite() ) {
