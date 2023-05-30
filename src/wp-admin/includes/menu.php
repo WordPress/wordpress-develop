@@ -50,11 +50,10 @@ foreach ( $menu as $menu_page ) {
 		$hook_args = substr( $menu_page[2], $pos + 1 );
 		wp_parse_str( $hook_args, $hook_args );
 		// Set the hook name to be the post type.
-		if ( isset( $hook_args['post_type'] ) ) {
-			$hook_name = $hook_args['post_type'];
-		} else {
-			$hook_name = basename( $hook_name, '.php' );
-		}
+		$hook_name = ( isset( $hook_args['post_type'] ) )
+			? $hook_args['post_type']
+			: basename( $hook_name, '.php' );
+
 		unset( $hook_args );
 	} else {
 		$hook_name = basename( $menu_page[2], '.php' );
@@ -308,16 +307,17 @@ if ( apply_filters( 'custom_menu_order', false ) ) {
 		$b = $b[2];
 		if ( isset( $menu_order[ $a ] ) && ! isset( $menu_order[ $b ] ) ) {
 			return -1;
-		} elseif ( ! isset( $menu_order[ $a ] ) && isset( $menu_order[ $b ] ) ) {
+		}
+		if ( ! isset( $menu_order[ $a ] ) && isset( $menu_order[ $b ] ) ) {
 			return 1;
-		} elseif ( isset( $menu_order[ $a ] ) && isset( $menu_order[ $b ] ) ) {
+		}
+		if ( isset( $menu_order[ $a ] ) && isset( $menu_order[ $b ] ) ) {
 			if ( $menu_order[ $a ] == $menu_order[ $b ] ) {
 				return 0;
 			}
 			return ( $menu_order[ $a ] < $menu_order[ $b ] ) ? -1 : 1;
-		} else {
-			return ( $default_menu_order[ $a ] <= $default_menu_order[ $b ] ) ? -1 : 1;
 		}
+		return ( $default_menu_order[ $a ] <= $default_menu_order[ $b ] ) ? -1 : 1;
 	}
 
 	usort( $menu, 'sort_menu' );
