@@ -2319,8 +2319,8 @@ function upgrade_630() {
 				add_option( 'can_compress_scripts', $can_compress_scripts, '', 'yes' );
 			}
 		}
-        
-        // Enable attachment pages.
+
+		// Enable attachment pages.
 		update_option( 'wp_media_use_attachment_pages', 1 );
 	}
 }
