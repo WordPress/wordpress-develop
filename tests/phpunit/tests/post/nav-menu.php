@@ -1216,7 +1216,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-status'    => 'publish',
 			)
 		);
-		$post         = get_post( $menu_item_id );
+
+		$post = get_post( $menu_item_id );
 		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
 
 		$menu_item_id = wp_update_nav_menu_item(
@@ -1230,7 +1231,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-post-date-gmt' => $post_date_gmt,
 			)
 		);
-		$post         = get_post( $menu_item_id );
+
+		$post = get_post( $menu_item_id );
 		$this->assertSame( get_date_from_gmt( $post_date_gmt ), $post->post_date );
 
 		$menu_item_id = wp_update_nav_menu_item(
@@ -1244,7 +1246,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-post-date-gmt' => $invalid_date,
 			)
 		);
-		$post         = get_post( $menu_item_id );
+
+		$post = get_post( $menu_item_id );
 		$this->assertSame( '1970-01-01 00:00:00', $post->post_date );
 
 		$menu_item_id = wp_update_nav_menu_item(
@@ -1258,7 +1261,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-post-date' => $post_date,
 			)
 		);
-		$post         = get_post( $menu_item_id );
+
+		$post = get_post( $menu_item_id );
 		$this->assertSame( $post_date, $post->post_date );
 
 		$menu_item_id = wp_update_nav_menu_item(
@@ -1273,7 +1277,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-post-date-gmt' => $post_date_gmt,
 			)
 		);
-		$post         = get_post( $menu_item_id );
+
+		$post = get_post( $menu_item_id );
 		$this->assertSame( $post_date, $post->post_date );
 
 		$menu_item_id = wp_update_nav_menu_item(
@@ -1288,7 +1293,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-post-date-gmt' => $invalid_date,
 			)
 		);
-		$post         = get_post( $menu_item_id );
+
+		$post = get_post( $menu_item_id );
 		$this->assertSame( $post_date, $post->post_date );
 
 		$menu_item_id = wp_update_nav_menu_item(
@@ -1302,7 +1308,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-post-date' => $invalid_date,
 			)
 		);
-		$post         = get_post( $menu_item_id );
+
+		$post = get_post( $menu_item_id );
 		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
 
 		$menu_item_id = wp_update_nav_menu_item(
@@ -1317,7 +1324,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-post-date-gmt' => $post_date_gmt,
 			)
 		);
-		$post         = get_post( $menu_item_id );
+
+		$post = get_post( $menu_item_id );
 		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
 
 		$menu_item_id = wp_update_nav_menu_item(
@@ -1332,7 +1340,36 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-post-date-gmt' => $invalid_date,
 			)
 		);
-		$post         = get_post( $menu_item_id );
+
+		$post = get_post( $menu_item_id );
 		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
 	}
+
+	/**
+	 * @ticket 56577
+	 */
+	public function test_nav_menu_item_short_circuit_filter() {
+		// Create a nav menu item.
+		$menu_item_args = array(
+			'menu-item-type'   => 'custom',
+			'menu-item-title'  => 'Wordpress.org',
+			'menu-item-url'    => 'http://wordpress.org',
+			'menu-item-status' => 'publish',
+		);
+
+		$custom_item_id = wp_update_nav_menu_item( 0, 0, $menu_item_args );
+
+		$pre_setup_callback = function() {
+			return '--empty nav menu item--';
+		};
+
+		add_filter( 'pre_wp_setup_nav_menu_item', $pre_setup_callback );
+
+		// Confirm the short-circuit.
+		$custom_item = wp_setup_nav_menu_item( get_post( $custom_item_id ) );
+		$this->assertSame( '--empty nav menu item--', $custom_item );
+
+		remove_filter( 'pre_wp_setup_nav_menu_item', $pre_setup_callback );
+	}
+
 }
