@@ -592,6 +592,31 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 56577
+	 */
+	public function test_wp_setup_nav_menu_item_short_circuit_filter() {
+		$post_id = self::factory()->post->create();
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'post',
+				'menu-item-object-id' => $post_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$filter = new MockAction();
+		add_filter( 'pre_wp_setup_nav_menu_item', array( &$filter, 'filter' ) );
+
+		wp_setup_nav_menu_item( get_post( $menu_item_id ) );
+
+		$this->assertSame( 1, $filter->get_call_count() );
+	}
+
+	/**
 	 * @ticket 35206
 	 */
 	public function test_wp_nav_menu_whitespace_options() {
@@ -1344,32 +1369,4 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$post = get_post( $menu_item_id );
 		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
 	}
-
-	/**
-	 * @ticket 56577
-	 */
-	public function test_nav_menu_item_short_circuit_filter() {
-		// Create a nav menu item.
-		$menu_item_args = array(
-			'menu-item-type'   => 'custom',
-			'menu-item-title'  => 'Wordpress.org',
-			'menu-item-url'    => 'http://wordpress.org',
-			'menu-item-status' => 'publish',
-		);
-
-		$custom_item_id = wp_update_nav_menu_item( 0, 0, $menu_item_args );
-
-		$pre_setup_callback = function() {
-			return '--empty nav menu item--';
-		};
-
-		add_filter( 'pre_wp_setup_nav_menu_item', $pre_setup_callback );
-
-		// Confirm the short-circuit.
-		$custom_item = wp_setup_nav_menu_item( get_post( $custom_item_id ) );
-		$this->assertSame( '--empty nav menu item--', $custom_item );
-
-		remove_filter( 'pre_wp_setup_nav_menu_item', $pre_setup_callback );
-	}
-
 }
