@@ -197,7 +197,8 @@ Any changes to the directives between these markers will be overwritten.'
 		if ( ! $found_marker && false !== strpos( $line, $start_marker ) ) {
 			$found_marker = true;
 			continue;
-		} elseif ( ! $found_end_marker && false !== strpos( $line, $end_marker ) ) {
+		}
+		if ( ! $found_end_marker && false !== strpos( $line, $end_marker ) ) {
 			$found_end_marker = true;
 			continue;
 		}
@@ -320,9 +321,8 @@ function iis7_save_url_rewrite_rules() {
 
 		if ( ! empty( $rule ) ) {
 			return iis7_add_rewrite_rule( $web_config_file, $rule );
-		} else {
-			return iis7_delete_rewrite_rule( $web_config_file );
 		}
+		return iis7_delete_rewrite_rule( $web_config_file );
 	}
 
 	return false;
@@ -1525,11 +1525,9 @@ All at ###SITENAME###
 	$content      = str_replace( '###SITENAME###', wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), $content );
 	$content      = str_replace( '###SITEURL###', home_url(), $content );
 
-	if ( '' !== get_option( 'blogname' ) ) {
-		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-	} else {
-		$site_title = parse_url( home_url(), PHP_URL_HOST );
-	}
+	$site_title = ( '' !== get_option( 'blogname' ) )
+		? wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES )
+		: parse_url( home_url(), PHP_URL_HOST );
 
 	wp_mail(
 		$value,
@@ -1560,7 +1558,7 @@ All at ###SITENAME###
 function _wp_privacy_settings_filter_draft_page_titles( $title, $page ) {
 	if ( 'draft' === $page->post_status && 'privacy' === get_current_screen()->id ) {
 		/* translators: %s: Page title. */
-		$title = sprintf( __( '%s (Draft)' ), $title );
+		return sprintf( __( '%s (Draft)' ), $title );
 	}
 
 	return $title;
