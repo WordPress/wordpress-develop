@@ -118,6 +118,7 @@ function wp_print_scripts( $handles = false ) {
  * they were added, i.e. the latter added code can redeclare the previous.
  *
  * @since 4.5.0
+ * @since 6.3.0 Added `$standalone` boolean parameter.
  *
  * @see WP_Scripts::add_inline_script()
  *
