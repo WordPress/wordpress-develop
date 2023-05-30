@@ -509,7 +509,7 @@ function wp_print_media_templates() {
 				<?php if ( post_type_supports( 'attachment', 'title' ) ) : ?>
 				<span class="setting" data-setting="title">
 					<label for="attachment-details-two-column-title" class="name"><?php _e( 'Title' ); ?></label>
-					<textarea id="attachment-details-two-column-title" aria-describedby="title-text-description" {{ maybeReadOnly }}>{{ data.title }}</textarea>
+					<textarea id="attachment-details-two-column-alt-title" aria-describedby="alt-title-description" {{ maybeReadOnly }}>{{ data.title.replace( /[\r\n]+/gm, "" ) }}</textarea>
 				</span>
 				<?php endif; ?>
 				<# if ( 'audio' === data.type ) { #>
