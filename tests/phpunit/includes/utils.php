@@ -652,9 +652,7 @@ function test_rest_expand_compact_links( $links ) {
 function unregister_all_script_handles() {
 	global $wp_scripts;
 
-	/**
-	 * Do not deregister following library through this function.
-	 */
+	// Do not deregister following libraries through this function.
 	$libraries = array(
 		'jquery',
 		'jquery-core',
