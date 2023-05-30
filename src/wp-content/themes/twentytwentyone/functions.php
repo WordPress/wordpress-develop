@@ -425,7 +425,7 @@ function twenty_twenty_one_scripts() {
 		get_template_directory_uri() . '/assets/js/polyfills.js',
 		array(),
 		wp_get_theme()->get( 'Version' ),
-		array( 'in_footer' => true )
+		true
 	);
 
 	// Register the IE11 polyfill loader.
@@ -434,7 +434,7 @@ function twenty_twenty_one_scripts() {
 		null,
 		array(),
 		wp_get_theme()->get( 'Version' ),
-		array( 'in_footer' => true )
+		true
 	);
 	wp_add_inline_script(
 		'twenty-twenty-one-ie11-polyfills',

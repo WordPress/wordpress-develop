@@ -86,23 +86,62 @@ JS;
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
 <script type="text/javascript" id="wp-executes-after-js">
-function wpLoadAfterScripts( handle ) {
-	var scripts, newScript, i, len;
-	scripts = document.querySelectorAll(
-		'[type="text/template"][data-wp-executes-after="' + handle + '"]'
-	);
-	for ( i = 0, len = scripts.length; i < len; i++ ) {
-		newScript = scripts[ i ].cloneNode( true );
-		newScript.type = "text/javascript";
-		scripts[ i ].parentNode.replaceChild( newScript, scripts[ i ] );
-	}
-}
+(function () {
+  var nonce = document.currentScript.nonce;
+
+  /**
+   * Load event handler.
+   *
+   * @param {Event} event Event.
+   */
+  function onScriptLoad(event) {
+    var i, len, newScript, matches, scripts;
+    if (
+      !(
+        event.target instanceof HTMLScriptElement ||
+        event.target.async ||
+        event.target.defer ||
+        event.target.id
+      )
+    ) {
+      return;
+    }
+    matches = event.target.id.match(/^(.+)-js$/);
+    if (!matches) {
+      return;
+    }
+    scripts = document.querySelectorAll(
+      '[type="text/template"][data-wp-executes-after="' + matches[1] + '"]'
+    );
+    for (i = 0, len = scripts.length; i < len; i++) {
+      if (nonce && nonce !== scripts[i].nonce) {
+        console.error(
+          "CSP nonce check failed for after inline script. Execution aborted.",
+          scripts[i]
+        );
+        continue;
+      }
+      newScript = scripts[i].cloneNode(true);
+      newScript.type = "text/javascript";
+      scripts[i].parentNode.replaceChild(newScript, scripts[i]);
+    }
+  }
+  document.addEventListener("load", onScriptLoad, true);
+
+  window.addEventListener(
+    "load",
+    () => {
+      document.removeEventListener("load", onScriptLoad, true);
+    },
+    { once: true }
+  );
+})();
 </script>
-<script type='text/javascript' src='http://example.org/ms-isinsa-1.js' id='ms-isinsa-1-js' defer onload='wpLoadAfterScripts(&quot;ms-isinsa-1&quot;)'></script>
+<script type='text/javascript' src='http://example.org/ms-isinsa-1.js' id='ms-isinsa-1-js' defer></script>
 <script type='text/javascript' id='ms-isinsa-1-js-after'>
 console.log("after one");
 </script>
-<script type='text/template' id='ms-isinsa-1-js-after' data-wp-executes-after='ms-isinsa-1'>
+<script id='ms-isinsa-1-js-after' type='text/template' data-wp-executes-after='ms-isinsa-1'>
 console.log("after two");
 </script>
 
@@ -184,20 +223,59 @@ EXP;
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
 <script type="text/javascript" id="wp-executes-after-js">
-function wpLoadAfterScripts( handle ) {
-	var scripts, newScript, i, len;
-	scripts = document.querySelectorAll(
-		'[type="text/template"][data-wp-executes-after="' + handle + '"]'
-	);
-	for ( i = 0, len = scripts.length; i < len; i++ ) {
-		newScript = scripts[ i ].cloneNode( true );
-		newScript.type = "text/javascript";
-		scripts[ i ].parentNode.replaceChild( newScript, scripts[ i ] );
-	}
-}
+(function () {
+  var nonce = document.currentScript.nonce;
+
+  /**
+   * Load event handler.
+   *
+   * @param {Event} event Event.
+   */
+  function onScriptLoad(event) {
+    var i, len, newScript, matches, scripts;
+    if (
+      !(
+        event.target instanceof HTMLScriptElement ||
+        event.target.async ||
+        event.target.defer ||
+        event.target.id
+      )
+    ) {
+      return;
+    }
+    matches = event.target.id.match(/^(.+)-js$/);
+    if (!matches) {
+      return;
+    }
+    scripts = document.querySelectorAll(
+      '[type="text/template"][data-wp-executes-after="' + matches[1] + '"]'
+    );
+    for (i = 0, len = scripts.length; i < len; i++) {
+      if (nonce && nonce !== scripts[i].nonce) {
+        console.error(
+          "CSP nonce check failed for after inline script. Execution aborted.",
+          scripts[i]
+        );
+        continue;
+      }
+      newScript = scripts[i].cloneNode(true);
+      newScript.type = "text/javascript";
+      scripts[i].parentNode.replaceChild(newScript, scripts[i]);
+    }
+  }
+  document.addEventListener("load", onScriptLoad, true);
+
+  window.addEventListener(
+    "load",
+    () => {
+      document.removeEventListener("load", onScriptLoad, true);
+    },
+    { once: true }
+  );
+})();
 </script>
-<script type='text/javascript' src='http://example.org/ms-insa-1.js' id='ms-insa-1-js' defer onload='wpLoadAfterScripts(&quot;ms-insa-1&quot;)'></script>
-<script type='text/template' id='ms-insa-1-js-after' data-wp-executes-after='ms-insa-1'>
+<script type='text/javascript' src='http://example.org/ms-insa-1.js' id='ms-insa-1-js' defer></script>
+<script id='ms-insa-1-js-after' type='text/template' data-wp-executes-after='ms-insa-1'>
 console.log("after one");
 </script>
 
@@ -227,20 +305,59 @@ EXP;
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<EXP
 <script type="text/javascript" id="wp-executes-after-js">
-function wpLoadAfterScripts( handle ) {
-	var scripts, newScript, i, len;
-	scripts = document.querySelectorAll(
-		'[type="text/template"][data-wp-executes-after="' + handle + '"]'
-	);
-	for ( i = 0, len = scripts.length; i < len; i++ ) {
-		newScript = scripts[ i ].cloneNode( true );
-		newScript.type = "text/javascript";
-		scripts[ i ].parentNode.replaceChild( newScript, scripts[ i ] );
-	}
-}
+(function () {
+  var nonce = document.currentScript.nonce;
+
+  /**
+   * Load event handler.
+   *
+   * @param {Event} event Event.
+   */
+  function onScriptLoad(event) {
+    var i, len, newScript, matches, scripts;
+    if (
+      !(
+        event.target instanceof HTMLScriptElement ||
+        event.target.async ||
+        event.target.defer ||
+        event.target.id
+      )
+    ) {
+      return;
+    }
+    matches = event.target.id.match(/^(.+)-js$/);
+    if (!matches) {
+      return;
+    }
+    scripts = document.querySelectorAll(
+      '[type="text/template"][data-wp-executes-after="' + matches[1] + '"]'
+    );
+    for (i = 0, len = scripts.length; i < len; i++) {
+      if (nonce && nonce !== scripts[i].nonce) {
+        console.error(
+          "CSP nonce check failed for after inline script. Execution aborted.",
+          scripts[i]
+        );
+        continue;
+      }
+      newScript = scripts[i].cloneNode(true);
+      newScript.type = "text/javascript";
+      scripts[i].parentNode.replaceChild(newScript, scripts[i]);
+    }
+  }
+  document.addEventListener("load", onScriptLoad, true);
+
+  window.addEventListener(
+    "load",
+    () => {
+      document.removeEventListener("load", onScriptLoad, true);
+    },
+    { once: true }
+  );
+})();
 </script>
-<script type='text/javascript' src='http://example.org/ms-insa-2.js' id='ms-insa-2-js' async onload='wpLoadAfterScripts(&quot;ms-insa-2&quot;)'></script>
-<script type='text/template' id='ms-insa-2-js-after' data-wp-executes-after='ms-insa-2'>
+<script type='text/javascript' src='http://example.org/ms-insa-2.js' id='ms-insa-2-js' async></script>
+<script id='ms-insa-2-js-after' type='text/template' data-wp-executes-after='ms-insa-2'>
 console.log("after one");
 </script>
 

@@ -153,8 +153,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		$script_handle,
 		$script_uri,
 		$script_dependencies,
-		isset( $script_asset['version'] ) ? $script_asset['version'] : false,
-		array( 'in_footer' => false )
+		isset( $script_asset['version'] ) ? $script_asset['version'] : false
 	);
 	if ( ! $result ) {
 		return false;
