@@ -2842,7 +2842,12 @@ if ( ! function_exists( 'get_avatar' ) ) :
 		 *
 		 * @since 6.3
 		 */
-		$args = array_merge( $args, wp_get_loading_optimization_attributes( 'img', $args, 'get_avatar' ) );
+		$loading_optimization_attr = wp_get_loading_optimization_attributes( 'img', $args, 'get_avatar' );
+		if ( ! wp_lazy_loading_enabled( 'img', 'get_avatar' ) && isset( $loading_optimization_attr['loading'] ) ) {
+			unset( $loading_optimization_attr['loading'] );
+		}
+
+		$args = array_merge( $args, $loading_optimization_attr );
 
 		if ( is_object( $id_or_email ) && isset( $id_or_email->comment_ID ) ) {
 			$id_or_email = get_comment( $id_or_email );
