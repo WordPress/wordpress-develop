@@ -1984,14 +1984,18 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 	$image_elm = new WP_HTML_Tag_Processor( $image );
 	$image_elm->next_tag();
-	$width = $image_elm->get_attribute('width');
-	$height = $image_elm->get_attribute('height');
+	$width         = $image_elm->get_attribute( 'width' );
+	$height        = $image_elm->get_attribute( 'height' );
+	$loading       = $image_elm->get_attribute( 'loading' );
+	$fetchpriority = $image_elm->get_attribute( 'fetchpriority' );
 
 	$optimization_attrs = wp_get_loading_optimization_attributes(
 		'img',
 		array(
-			'width'  => $width,
-			'height' => $height,
+			'width'         => $width,
+			'height'        => $height,
+			'loading'       => $loading,
+			'fetchpriority' => $fetchpriority,
 		),
 		$context
 	);
