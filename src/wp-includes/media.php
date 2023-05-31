@@ -1984,92 +1984,78 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 	$image_elm = new WP_HTML_Tag_Processor( $image );
 	$image_elm->next_tag();
-	$width         = $image_elm->get_attribute( 'width' );
-	$height        = $image_elm->get_attribute( 'height' );
-	$loading       = $image_elm->get_attribute( 'loading' );
-	$fetchpriority = $image_elm->get_attribute( 'fetchpriority' );
+	$width             = $image_elm->get_attribute( 'width' );
+	$height            = $image_elm->get_attribute( 'height' );
+	$loading_val       = $image_elm->get_attribute( 'loading' );
+	$fetchpriority_val = $image_elm->get_attribute( 'fetchpriority' );
+
+	// Bail early if both the priority attributes are already present.
+	if ( ! empty( $loading_val ) && ! empty( $fetchpriority_val ) ) {
+		return $image;
+	}
 
 	$optimization_attrs = wp_get_loading_optimization_attributes(
 		'img',
 		array(
 			'width'         => $width,
 			'height'        => $height,
-			'loading'       => $loading,
-			'fetchpriority' => $fetchpriority,
+			'loading'       => $loading_val,
+			'fetchpriority' => $fetchpriority_val,
 		),
 		$context
 	);
 
-	/**
-	 * Filters the loading optimization attributes to be added to an image.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @param string|bool $optimization_attrs   Attribute and it's values obtained from `wp_get_loading_optimization_attributes` function.
-	 * @param string      $image   The HTML `img` tag to be filtered.
-	 * @param string      $context Additional context about how the function was called or where the img tag is.
-	 */
-	$optimization_attrs = apply_filters( 'wp_img_tag_add_loading_optimization_attrs', $optimization_attrs, $image, $context );
+	// Retained for backward compatibility.
+	$loading_attrs_enabled = wp_lazy_loading_enabled( 'img', $context );
 
-	/**
-	 * Filters the `loading` attribute value to add to an image. Default `lazy`.
-	 * This filter is added in for backward compatibility.
-	 *
-	 * Returning `false` or an empty string will not add the attribute.
-	 * Returning `true` will add the default value.
-	 * `true` and `false` usage supported for backward compatibility.
-	 *
-	 * @param string|bool $optimization_attrs['loading'] Current value for `loading` attribute for the image.
-	 * @param string      $image   The HTML `img` tag to be filtered.
-	 * @param string      $context Additional context about how the function was called or where the img tag is.
-	 */
-	$optimization_attrs['loading'] = apply_filters(
-		'wp_img_tag_add_loading_attr',
-		isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false,
-		$image,
-		$context
-	);
+	if ( empty( $loading_val ) && $loading_attrs_enabled ) {
+		/**
+		 * Filters the `loading` attribute value to add to an image. Default `lazy`.
+		 * This filter is added in for backward compatibility.
+		 *
+		 * Returning `false` or an empty string will not add the attribute.
+		 * Returning `true` will add the default value.
+		 * `true` and `false` usage supported for backward compatibility.
+		 *
+		 * @param string|bool $optimization_attrs['loading'] Current value for `loading` attribute for the image.
+		 * @param string      $image   The HTML `img` tag to be filtered.
+		 * @param string      $context Additional context about how the function was called or where the img tag is.
+		 */
+		$filtered_loading_attr = apply_filters(
+			'wp_img_tag_add_loading_attr',
+			isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false,
+			$image,
+			$context
+		);
 
-	/**
-	 * Validate the values after filtering.
-	 */
-	if ( isset( $optimization_attrs['loading'] ) && $optimization_attrs['loading'] ) {
-		if ( ! in_array( $optimization_attrs['loading'], array( 'lazy', 'eager' ), true ) ) {
-			$optimization_attrs['loading'] = 'lazy';
+		/**
+		 * Validate the values after filtering.
+		 */
+		if ( isset( $optimization_attrs['loading'] ) && ! $filtered_loading_attr ) {
+			// unset loading attributes if $filtered_loading_attr is set to false.
+			unset( $optimization_attrs['loading'] );
+		} elseif ( in_array( $filtered_loading_attr, array( 'lazy', 'eager' ), true ) ) {
+			$optimization_attrs['loading'] = $filtered_loading_attr;
 		}
-	}
-	if ( isset( $optimization_attrs['fetchpriority'] ) ) {
-		if ( ! in_array( $optimization_attrs['loading'], array( 'high', 'low', 'auto' ), true ) ) {
-			// For invalid values unset the attribute.
-			unset( $optimization_attrs['fetchpriority'] );
-		}
-	}
 
-	// Lazy-loading and fetchpriority='high' can't coexist at same time.
-	if (
+		// fetchpriority='high' and loading='lazy' should be mutually exclusive.
+		if (
 		isset( $optimization_attrs['loading'] ) && isset( $optimization_attrs['fetchpriority'] ) &&
 		'lazy' === $optimization_attrs['loading'] && 'high' === $optimization_attrs['fetchpriority']
-	) {
-		_doing_it_wrong(
-			__METHOD__,
-			__( 'An image cannot be lazy-loaded and assigned fetchpriority="high" at the same time.' ),
-			'6.3.0'
-		);
-		return $image;
+		) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'An image cannot be lazy-loaded and assigned fetchpriority="high" at the same time.' ),
+				'6.3.0'
+			);
+		}
+
+		if ( ! empty( $optimization_attrs['loading'] ) ) {
+			$image = str_replace( '<img', '<img loading="' . esc_attr( $optimization_attrs['loading'] ) . '"', $image );
+		}
 	}
 
-	// Retained for backward compatibility.
-	$add_img_loading_att = wp_lazy_loading_enabled( 'img', $context );
-
-	if (
-		$add_img_loading_att &&
-		false === strpos( $image, ' loading=' ) &&
-		isset( $optimization_attrs['loading'] ) && $optimization_attrs['loading']
-	) {
-		$image = str_replace( '<img', '<img loading="' . esc_attr( $optimization_attrs['loading'] ) . '"', $image );
-	}
-
-	if ( false === strpos( $image, ' fetchpriority=' ) && ! empty( $optimization_attrs['fetchpriority'] ) ) {
+	if ( empty( $fetchpriority_val ) && ! empty( $optimization_attrs['fetchpriority'] ) ) {
 		$image = str_replace( '<img', '<img fetchpriority="' . esc_attr( $optimization_attrs['fetchpriority'] ) . '"', $image );
 	}
 
