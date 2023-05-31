@@ -533,7 +533,7 @@ class WP_Scripts extends WP_Dependencies {
 			$deps[] = $handle;
 		}
 
-		$id = "{$handle}-{$position}";
+		$id = "{$handle}-js-{$position}";
 		if ( count( $deps ) > 0 && $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $handle ) ) ) {
 			return wp_get_inline_script_tag(
 				$js,
