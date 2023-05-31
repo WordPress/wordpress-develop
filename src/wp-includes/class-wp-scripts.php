@@ -541,7 +541,7 @@ class WP_Scripts extends WP_Dependencies {
 				$js,
 				array(
 					'id'           => $id,
-					'type'         => 'text/template',
+					'type'         => 'text/template', // TODO: Consider text/plain instead.
 					'data-wp-deps' => implode( ',', $deps ),
 				)
 			);

@@ -1881,7 +1881,7 @@ function wp_print_delayed_inline_script_loader() {
       return;
     }
     scripts = document.querySelectorAll(
-      '[type="text/template"][data-wp-executes-after="' + matches[1] + '"]'
+      '[type="text/template"][data-wp-executes-after="' + matches[1] + '"]' // TODO: Consider text/plain instead.
     );
     for (i = 0, len = scripts.length; i < len; i++) {
       if (nonce && nonce !== scripts[i].nonce) {
