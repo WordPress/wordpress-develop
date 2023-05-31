@@ -5685,13 +5685,25 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 
 	$loading_attrs = array();
 
-	// All three parameters are required.
-	if ( empty( $tag_name ) || empty( $attr ) || empty( $context ) ) {
+	// For now this function only supports images.
+	if ( 'img' === $tag_name ) {
 		return $loading_attrs;
 	}
 
-	// Image tag must have a minimum of width and height.
-	if ( 'img' === $tag_name && ( ! isset( $attr['width'] ) || ! isset( $attr['height'] ) ) ) {
+	// For any resources, width and height must be provided, to avoid layout shifts.
+	if ( ! isset( $attr['width'] ) || ! isset( $attr['height'] ) ) {
+		return $loading_attrs;
+	}
+
+	// If the lazy-loading attribute already present then don't add `fetchpriority="high"`.
+	if ( isset( $attr['loading'] ) && 'lazy' === $attr['loading'] ) {
+		$loading_attrs['loading'] = 'lazy';
+		return $loading_attrs;
+	}
+
+	// If a 'fetchpriority' attribute with value 'high' is already provided, do not add `loading="lazy"`.
+	if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority'] ) {
+		$loading_attrs['fetchpriority'] = 'high';
 		return $loading_attrs;
 	}
 
@@ -5701,30 +5713,11 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		return $loading_attrs;
 	}
 
-	// If the count has already reached or exceeded the threshold, all of the images after can be lazy-loaded.
-	$content_media_count = wp_increase_content_media_count( 0 );
-	if ( wp_omit_loading_attr_threshold() < $content_media_count ) {
-		$loading_attrs['loading'] = 'lazy';
-		return $loading_attrs;
-	}
-
-	$img_size = $attr['width'] * $attr['height'];
-
 	// Do not lazy-load images in the header block template part, as they are likely above the fold.
 	// For classic themes, this is handled in the condition below using the 'get_header' action.
 	$header_area = WP_TEMPLATE_PART_AREA_HEADER;
 	if ( "template_part_{$header_area}" === $context ) {
-		if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size ) {
-			// Large images in header must increase the media count.
-			wp_increase_content_media_count();
-
-			// First large images is assigned fetchpriority='high'
-			if ( wp_maybe_fetchpriority_high_media() ) {
-				$loading_attrs['fetchpriority'] = 'high';
-				wp_maybe_fetchpriority_high_media( false );
-			}
-		}
-		return $loading_attrs;
+		return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
 	}
 
 	// Special handling for programmatically created image tags.
@@ -5736,14 +5729,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		 * post content image being lazy-loaded only because there are images elsewhere in the post content.
 		 */
 		if ( doing_filter( 'the_content' ) ) {
-			if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size ) {
-				wp_increase_content_media_count();
-				if ( wp_maybe_fetchpriority_high_media() ) {
-					$loading_attrs['fetchpriority'] = 'high';
-					wp_maybe_fetchpriority_high_media( false );
-				}
-			}
-			return $loading_attrs;
+			return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
 		}
 
 		// Conditionally skip lazy-loading on images before the loop.
@@ -5757,14 +5743,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			 */
 			&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
 		) {
-			if ( WP_LCP_MIN_IMAGE_SIZE <= $img_size ) {
-				wp_increase_content_media_count();
-				if ( wp_maybe_fetchpriority_high_media() ) {
-					$loading_attrs['fetchpriority'] = 'high';
-					wp_maybe_fetchpriority_high_media( false );
-				}
-			}
-			return $loading_attrs;
+			return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
 		}
 	}
 
@@ -5785,11 +5764,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		// If the count so far is below the threshold, `loading` attribute is omitted.
 		if ( $content_media_count <= wp_omit_loading_attr_threshold() ) {
 			// The first largest image will still get ftchpriority='high'.
-			if ( wp_maybe_fetchpriority_high_media() && WP_LCP_MIN_IMAGE_SIZE <= $img_size ) {
-				$loading_attrs['fetchpriority'] = 'high';
-				wp_maybe_fetchpriority_high_media( false );
-			}
-			return $loading_attrs;
+			return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
 		}
 	}
 
@@ -5850,7 +5825,7 @@ function wp_increase_content_media_count( $amount = 1 ) {
 }
 
 /**
- * If the media is a possible candidate for fetchpriority='high'.
+ * Add fetchpriority='high' to $loading_attrs if applicable.
  *
  * @since 6.3.0
  * @access private
@@ -5858,11 +5833,30 @@ function wp_increase_content_media_count( $amount = 1 ) {
  * @param bool $value Optional. Used to change the static variable. Default null.
  * @return bool $maybe_fetchpriority_high_media Return true if no other LCP candidate image found yet else false.
  */
-function wp_maybe_fetchpriority_high_media( $value = null ) {
-	static $maybe_fetchpriority_high_media = true;
+function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ) {
+	$img_size                   = $attr['width'] * $attr['height'];
+	$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 5000 );
+	if ( $wp_min_priority_img_pixels <= $img_size && wp_high_priority_element_flag() ) {
+		$loading_attrs['fetchpriority'] = 'high';
+		wp_high_priority_element_flag( false );
+	}
+	return $loading_attrs;
+}
+
+/**
+ * A flag that indicates if a media is a possible candidate for fetchpriority='high'.
+ *
+ * @since 6.3.0
+ * @access private
+ *
+ * @param bool $value Optional. Used to change the static variable. Default null.
+ * @return bool $high_priority_element Return true if element is of higer priority else false.
+ */
+function wp_high_priority_element_flag( $value = null ) {
+	static $high_priority_element = true;
 
 	if ( isset( $value ) && is_bool( $value ) ) {
-		$maybe_fetchpriority_high_media = $value;
+		$high_priority_element = $value;
 	}
-	return $maybe_fetchpriority_high_media;
+	return $high_priority_element;
 }

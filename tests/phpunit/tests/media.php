@@ -3893,7 +3893,7 @@ EOF;
 		$this->force_omit_loading_attr_threshold( 1 );
 		// Reset the media counting variable.
 		$this->reset_content_media_count();
-		wp_maybe_fetchpriority_high_media( true );
+		wp_high_priority_element_flag( true );
 
 		$content_img      = get_image_tag( self::$large_id, '', '', '', 'large' );
 		$lazy_content_img = wp_img_tag_add_loading_attr( $content_img, 'the_content' );
@@ -3951,7 +3951,7 @@ EOF;
 
 		// Reset media counting variables.
 		$this->reset_content_media_count();
-		wp_maybe_fetchpriority_high_media( true );
+		wp_high_priority_element_flag( true );
 
 		// Use a single image for each header and footer template parts.
 		$header_img = get_image_tag( self::$large_id, '', '', '', 'large' );
@@ -4007,7 +4007,7 @@ EOF;
 
 		// Reset counting variables.
 		$this->reset_content_media_count();
-		wp_maybe_fetchpriority_high_media( true );
+		wp_high_priority_element_flag( true );
 
 		// Force no lazy-loading on the image tag expected in the content.
 		$expected_content = wpautop(
@@ -4171,7 +4171,7 @@ EOF;
 
 		// Reset the variable.
 		$this->reset_content_media_count();
-		wp_maybe_fetchpriority_high_media( true );
+		wp_high_priority_element_flag( true );
 
 		$post_content  = '<img src="example.jpg" width="800" height="600">';
 		$post_content .= '<p>Some text.</p>';
