@@ -59,7 +59,7 @@
 	 * @param {Event} event Event.
 	 */
 	function onScriptLoad(event) {
-		var matches, scripts, handle, script;
+		var matches, handle, script;
 		if (
 			!(
 				event.target instanceof HTMLScriptElement ||
@@ -88,10 +88,11 @@
 		}
 
 		// Next, run all pending inline before scripts for all dependents for which all dependencies have loaded.
-		scripts = document.querySelectorAll(
-			'script:not([src])[type="text/template"][data-wp-deps][id$="-js-before"]:not([data-wp-done])'
+		runReadyInlineScripts(
+			document.querySelectorAll(
+				'script:not([src])[type="text/template"][data-wp-deps][id$="-js-before"]:not([data-wp-done])'
+			)
 		);
-		runReadyInlineScripts(scripts);
 	}
 	document.addEventListener("load", onScriptLoad, true);
 
