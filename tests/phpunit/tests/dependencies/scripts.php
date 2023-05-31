@@ -2494,7 +2494,7 @@ EXP;
 		wp_set_script_translations( 'common' );
 
 		$print_scripts = get_echo(
-			function() {
+			static function() {
 				wp_print_scripts();
 				_print_scripts();
 			}
