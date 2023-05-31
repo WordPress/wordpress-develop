@@ -1855,7 +1855,7 @@ function wp_print_delayed_inline_script_loader() {
 	$wp_scripts = wp_scripts();
 
 	if ( $wp_scripts->has_delayed_inline_script() ) {
-		$output            = <<<JS
+		$output = <<<JS
 (function () {
   var nonce = document.currentScript.nonce;
 
@@ -1865,7 +1865,7 @@ function wp_print_delayed_inline_script_loader() {
    * @param {Event} event Event.
    */
   function onScriptLoad(event) {
-    var i, len, newScript, matches, scripts;
+    var i, len, newScript, matches, scripts, handle;
     if (
       !(
         event.target instanceof HTMLScriptElement ||
@@ -1880,8 +1880,10 @@ function wp_print_delayed_inline_script_loader() {
     if (!matches) {
       return;
     }
+    handle = matches[1];
     scripts = document.querySelectorAll(
-      '[type="text/template"][data-wp-executes-after="' + matches[1] + '"]' // TODO: Consider text/plain instead.
+      // TODO: Handle multiple deps.
+      '[type="text/template"][data-wp-deps="' + handle + '"]' // TODO: Consider text/plain instead.
     );
     for (i = 0, len = scripts.length; i < len; i++) {
       if (nonce && nonce !== scripts[i].nonce) {
