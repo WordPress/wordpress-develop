@@ -1075,7 +1075,10 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		);
 
 		// Remove `loading` optimization attribute if not enabled.
-		if ( ! wp_lazy_loading_enabled( 'img', $context ) && isset( $loading_optimization_attr['loading'] ) ) {
+		if ( ( ! wp_lazy_loading_enabled( 'img', $context ) && isset( $loading_optimization_attr['loading'] ) ) ||
+			// If `$attr['loading']` set to `false` then remove loading attribute.
+			( isset( $attr['loading'] ) && ! $attr['loading'] )
+		) {
 			unset( $loading_optimization_attr['loading'] );
 		}
 
@@ -1089,13 +1092,12 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 
 		// If the default value of `lazy` for the `loading` attribute is overridden
 		// to omit the attribute for this image, ensure it is not included.
-		if ( array_key_exists( 'loading', $attr ) && ! $attr['loading'] ) {
+		if ( isset( $attr['loading'] ) && ! $attr['loading'] ) {
 			unset( $attr['loading'] );
 		}
 
-		// If the default value of `high` for the `fetchpriority` attribute is overridden
-		// to omit the attribute for this image, ensure it is not included.
-		if ( array_key_exists( 'fetchpriority', $attr ) && ! $attr['fetchpriority'] ) {
+		// If `fetchpriority` attribute is overridden and set to false.
+		if ( isset( $attr['fetchpriority'] ) && ! $attr['fetchpriority'] ) {
 			unset( $attr['fetchpriority'] );
 		}
 
