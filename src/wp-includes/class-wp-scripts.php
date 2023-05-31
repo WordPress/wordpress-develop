@@ -950,7 +950,7 @@ JS;
 		}
 
 		// Handle async strategy scenario.
-		if ( 'async' === $intended_strategy && $this->has_only_delayed_dependents( $handle, 'async' ) ) {
+		if ( 'async' === $intended_strategy && $this->has_only_delayed_dependents( $handle, true ) ) {
 			return 'async';
 		}
 
