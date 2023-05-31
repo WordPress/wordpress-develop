@@ -1075,8 +1075,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		);
 
 		// Remove `loading` optimization attribute if not enabled.
-		if ( 
-			( ! wp_lazy_loading_enabled( 'img', $context ) && isset( $loading_optimization_attr['loading'] ) ) ||
+		if ( ( isset( $loading_optimization_attr['loading'] ) && ! wp_lazy_loading_enabled( 'img', $context ) ) ||
 			// If `$attr['loading']` set to `false` then remove loading attribute.
 			( isset( $attr['loading'] ) && ! $attr['loading'] )
 		) {

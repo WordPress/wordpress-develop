@@ -2843,7 +2843,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 		 * @since 6.3
 		 */
 		$loading_optimization_attr = wp_get_loading_optimization_attributes( 'img', $args, 'get_avatar' );
-		if ( ! wp_lazy_loading_enabled( 'img', 'get_avatar' ) && isset( $loading_optimization_attr['loading'] ) ) {
+		if ( isset( $loading_optimization_attr['loading'] ) && ! wp_lazy_loading_enabled( 'img', 'get_avatar' ) ) {
 			unset( $loading_optimization_attr['loading'] );
 		}
 
