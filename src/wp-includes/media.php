@@ -1982,8 +1982,11 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
  * @return string Converted `img` tag with optimization attributes added.
  */
 function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
-	$width              = preg_match( '/ width="([0-9]+)"/', $image, $match_width ) ? (int) $match_width[1] : '';
-	$height             = preg_match( '/ height="([0-9]+)"/', $image, $match_height ) ? (int) $match_height[1] : '';
+	$image_elm = new WP_HTML_Tag_Processor( $image );
+	$image_elm->next_tag();
+	$width = $image_elm->get_attribute('width');
+	$height = $image_elm->get_attribute('height');
+
 	$optimization_attrs = wp_get_loading_optimization_attributes(
 		'img',
 		array(
