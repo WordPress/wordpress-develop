@@ -6,7 +6,7 @@
 
 (function (window, document) {
 	var nonce = document.currentScript.nonce,
-		done = new Set();
+		doneDependencies = new Set();
 
 	/**
 	 * Determines whether a script was loaded.
@@ -15,7 +15,7 @@
 	 * @returns {boolean} Whether dependency was done.
 	 */
 	function isDependencyDone(dep) {
-		return done.has(dep);
+		return doneDependencies.has(dep);
 	}
 
 	/**
@@ -77,7 +77,7 @@
 			return;
 		}
 		handle = matches[1];
-		done.add(handle);
+		doneDependencies.add(handle);
 
 		// First, run all inline after scripts which are associated with this handle.
 		script = document.querySelector(
