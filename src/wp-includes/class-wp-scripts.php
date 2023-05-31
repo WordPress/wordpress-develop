@@ -527,22 +527,21 @@ class WP_Scripts extends WP_Dependencies {
 			return '';
 		}
 
-		// TODO: Handle case where a dep has a src which is false. But what if false?
+		// TODO: Handle case where a dep has a src which is false.
+		$id   = "{$handle}-js-{$position}";
 		$deps = $this->registered[ $handle ]->deps;
-		if ( 'after' === $position ) {
-			$deps[] = $handle;
-		}
-
-		$id = "{$handle}-js-{$position}";
-		if ( count( $deps ) > 0 && $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $handle ) ) ) {
-			return wp_get_inline_script_tag(
-				$js,
-				array(
-					'id'           => $id,
-					'type'         => 'text/template', // TODO: Consider text/plain instead.
-					'data-wp-deps' => implode( ',', $deps ),
-				)
+		if (
+			( $deps || 'after' === $position ) &&
+			$this->is_delayed_strategy( $this->get_eligible_loading_strategy( $handle ) )
+		) {
+			$attributes = array(
+				'id'   => $id,
+				'type' => 'text/template', // TODO: Consider text/plain instead.
 			);
+			if ( $deps ) {
+				$attributes['data-wp-deps'] = implode( ',', $deps );
+			}
+			return wp_get_inline_script_tag( $js, $attributes );
 		} else {
 			return wp_get_inline_script_tag( $js, compact( 'id' ) );
 		}
