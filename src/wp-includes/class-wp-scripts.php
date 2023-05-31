@@ -303,51 +303,18 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$src         = $obj->src;
+		$strategy    = $this->get_eligible_loading_strategy( $handle );
 		$cond_before = '';
 		$cond_after  = '';
 		$conditional = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
-		$strategy    = $this->get_eligible_loading_strategy( $handle );
-		$is_delayed  = $this->is_delayed_strategy( $strategy );
 
 		if ( $conditional ) {
 			$cond_before = "<!--[if {$conditional}]>\n";
 			$cond_after  = "<![endif]-->\n";
 		}
 
-		$before_script = $this->print_inline_script( $handle, 'before', false );
-
-		if ( $before_script ) {
-			$id = "{$handle}-js-before";
-			if ( $is_delayed ) {
-				$before_script = wp_get_inline_script_tag(
-					$before_script,
-					array(
-						'id'           => $id,
-						'type'         => 'text/template',
-						'data-wp-deps' => implode( ',', $obj->deps ), // TODO: Handle case where a dep has a src which is false.
-					)
-				);
-			} else {
-				$before_script = wp_get_inline_script_tag( $before_script, compact( 'id' ) );
-			}
-		}
-
-		$after_script = $this->print_inline_script( $handle, 'after', false );
-		if ( $after_script ) {
-			$id = "{$handle}-js-after";
-			if ( $is_delayed ) {
-				$after_script = wp_get_inline_script_tag(
-					$after_script,
-					array(
-						'id'           => $id,
-						'type'         => 'text/template',
-						'data-wp-deps' => implode( ',', array_merge( $obj->deps, array( $handle ) ) ), // TODO: Handle case where a dep has a src which is false.
-					)
-				);
-			} else {
-				$after_script = wp_get_inline_script_tag( $after_script, compact( 'id' ) );
-			}
-		}
+		$before_script = $this->get_inline_script_tag( $handle, 'before' );
+		$after_script  = $this->get_inline_script_tag( $handle, 'after' );
 
 		if ( $before_script || $after_script ) {
 			$inline_script_tag = $cond_before . $before_script . $after_script . $cond_after;
@@ -378,11 +345,9 @@ class WP_Scripts extends WP_Dependencies {
 			$srce = apply_filters( 'script_loader_src', $src, $handle );
 
 			// Used as a conditional to prevent script concatenation.
-			$is_deferred_or_async = $this->is_delayed_strategy( $strategy );
-
 			if (
 				$this->in_default_dir( $srce )
-				&& ( $before_script || $after_script || $translations_stop_concat || $is_deferred_or_async )
+				&& ( $before_script || $after_script || $translations_stop_concat || $this->is_delayed_strategy( $strategy ) )
 			) {
 				$this->do_concat = false;
 
@@ -501,6 +466,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * Prints inline scripts registered for a specific handle.
 	 *
 	 * @since 4.5.0
+	 * @deprecated 6.3.0 Use methods get_inline_script_tag() or get_inline_script_data() instead.
 	 *
 	 * @param string $handle   Name of the script to add the inline script to.
 	 *                         Must be lowercase.
@@ -511,36 +477,77 @@ class WP_Scripts extends WP_Dependencies {
 	 * @return string|false Script on success, false otherwise.
 	 */
 	public function print_inline_script( $handle, $position = 'after', $display = true ) {
-		$output = $this->get_data( $handle, $position );
-
+		// TODO: Add _deprecated_function() call. There are only 11 plugins that call this function, and they almost all pass $display=false. See https://wpdirectory.net/search/01H1QQF0S8RPH5AQR6YMTV0RHV.
+		if ( $display ) {
+			$output = $this->get_inline_script_tag( $handle, $position );
+			echo $output;
+		} else {
+			$output = $this->get_inline_script_data( $handle, $position );
+		}
 		if ( empty( $output ) ) {
 			return false;
 		}
+		return $output;
+	}
 
-		$output = trim( implode( "\n", $output ), "\n" );
-
-		if ( $display ) {
-			$strategy = $this->get_eligible_loading_strategy( $handle );
-			if ( $this->is_delayed_strategy( $strategy ) ) {
-				printf(
-					"<script%1\$s id='%2\$s-js-after' type='text/template' data-wp-executes-after='%2\$s'>\n%4\$s\n</script>\n",
-					$this->type_attr,
-					esc_attr( $handle ),
-					esc_attr( $position ),
-					$output
-				);
-			} else {
-				printf(
-					"<script%1\$s id='%2\$s-js-%3\$s'>\n%4\$s\n</script>\n",
-					$this->type_attr,
-					esc_attr( $handle ),
-					esc_attr( $position ),
-					$output
-				);
-			}
+	/**
+	 * Gets data for inline scripts registered for a specific handle.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $handle   Name of the script to add the inline script to.
+	 *                         Must be lowercase.
+	 * @param string $position Optional. Whether to add the inline script
+	 *                         before the handle or after. Default 'after'.
+	 * @return string Inline script, which may be empty string.
+	 */
+	public function get_inline_script_data( $handle, $position ) {
+		$data = $this->get_data( $handle, $position );
+		if ( empty( $data ) || ! is_array( $data ) ) {
+			return '';
 		}
 
-		return $output;
+		return trim( implode( "\n", $data ), "\n" );
+	}
+
+	/**
+	 * Gets tags for inline scripts registered for a specific handle.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $handle   Name of the script to add the inline script to.
+	 *                         Must be lowercase.
+	 * @param string $position Optional. Whether to add the inline script
+	 *                         before the handle or after. Default 'after'.
+	 * @return string Inline script, which may be empty string.
+	 */
+	public function get_inline_script_tag( $handle, $position ) {
+		$js = $this->get_inline_script_data( $handle, $position );
+		if ( empty( $js ) ) {
+			return '';
+		}
+
+		$strategy = $this->get_eligible_loading_strategy( $handle );
+
+		$id = "{$handle}-{$position}";
+		if ( $this->is_delayed_strategy( $strategy ) ) {
+			// TODO: Handle case where a dep has a src which is false. But what if false?
+			$deps = $this->registered[ $handle ]->deps;
+			if ( 'after' === $position ) {
+				$deps[] = $handle;
+			}
+
+			return wp_get_inline_script_tag(
+				$js,
+				array(
+					'id'           => $id,
+					'type'         => 'text/template',
+					'data-wp-deps' => implode( ',', $deps ),
+				)
+			);
+		} else {
+			return wp_get_inline_script_tag( $js, compact( 'id' ) );
+		}
 	}
 
 	/**
