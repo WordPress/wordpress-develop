@@ -1061,22 +1061,26 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 
 		$attr = wp_parse_args( $attr, $default_attr );
 
-		// Add loading optimization attributes if not available.
-		$attr = array_merge(
-			$attr,
-			wp_get_loading_optimization_attributes(
-				'img',
-				// $attr doesn't contain width and height by default.
-				array_merge(
-					array(
-						'width'  => $width,
-						'height' => $height,
-					),
-					$attr
+		$loading_optimization_attr = wp_get_loading_optimization_attributes(
+			'img',
+			// $attr doesn't contain width and height by default.
+			array_merge(
+				array(
+					'width'  => $width,
+					'height' => $height,
 				),
-				$context
-			)
+				$attr
+			),
+			$context
 		);
+
+		// Remove `loading` optimization attribute if not enabled.
+		if ( ! wp_lazy_loading_enabled( 'img', $context ) && isset( $loading_optimization_attr['loading'] ) ) {
+			unset( $loading_optimization_attr['loading'] );
+		}
+
+		// Add loading optimization attributes if not available.
+		$attr = array_merge( $attr, $loading_optimization_attr );
 
 		// Omit the `decoding` attribute if the value is invalid according to the spec.
 		if ( empty( $attr['decoding'] ) || ! in_array( $attr['decoding'], array( 'async', 'sync', 'auto' ), true ) ) {
