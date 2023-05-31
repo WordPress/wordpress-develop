@@ -885,14 +885,14 @@ JS;
 	}
 
 	/**
-	 * Checks if all of a scripts dependents are deferrable, which is required to maintain execution order.
+	 * Checks if all of a scripts dependents are delayed, which is required to maintain execution order.
 	 *
 	 * @since 6.3.0
 	 *
 	 * @param string   $handle     The script handle.
 	 * @param bool     $async_only Whether to limit to async strategy only.
 	 * @param string[] $checked    Optional. An array of already checked script handles, used to avoid recursive loops.
-	 * @return bool True if all dependents are deferrable, false otherwise.
+	 * @return bool True if all dependents are delayed, false otherwise.
 	 */
 	private function has_only_delayed_dependents( $handle, $async_only = false, $checked = array() ) {
 		// If this node was already checked, this script can be deferred and the branch ends.
@@ -908,9 +908,9 @@ JS;
 			return true;
 		}
 
-		// Consider each dependent and check if it is deferrable.
+		// Consider each dependent and check if it is delayed.
 		foreach ( $dependents as $dependent ) {
-			// If the dependent script is not using the defer or async strategy, no script in the chain is deferrable.
+			// If the dependent script is not using the defer or async strategy, no script in the chain is delayed.
 			$strategy = $this->get_data( $dependent, 'strategy' );
 			if ( $async_only ) {
 				if ( 'async' !== $strategy ) {
