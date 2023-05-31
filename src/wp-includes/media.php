@@ -5843,6 +5843,11 @@ function wp_increase_content_media_count( $amount = 1 ) {
  * @return array[] $loading_attrs Updated loading attributes for the element.
  */
 function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ) {
+	if ( ( isset( $loading_attrs['loading'] ) && 'lazy' === $loading_attrs['loading'] ) ||
+		! empty( $loading_attrs['fetchpriority'] )
+	) {
+		return $loading_attrs;
+	}
 	$img_size                   = $attr['width'] * $attr['height'];
 	$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 5000 );
 	if ( $wp_min_priority_img_pixels <= $img_size && wp_high_priority_element_flag() ) {
