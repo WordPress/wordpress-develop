@@ -9,6 +9,16 @@
 		done = new Set();
 
 	/**
+	 * Determines whether a script was loaded.
+	 *
+	 * @param {string} dep Dependency handle.
+	 * @returns {boolean} Whether dependency was done.
+	 */
+	function isDependencyDone(dep) {
+		return done.has(dep);
+	}
+
+	/**
 	 * Runs an inline script.
 	 *
 	 * @param {HTMLScriptElement} script Script to run.
@@ -26,16 +36,6 @@
 		newScript = script.cloneNode(true);
 		newScript.type = "text/javascript";
 		script.parentNode.replaceChild(newScript, script);
-	}
-
-	/**
-	 * Determines whether a script was loaded.
-	 *
-	 * @param {string} dep Dependency handle.
-	 * @returns {boolean} Whether dependency was done.
-	 */
-	function isDependencyDone(dep) {
-		return done.has(dep);
 	}
 
 	/**
