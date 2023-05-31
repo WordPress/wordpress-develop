@@ -50,7 +50,7 @@
 
 	window.addEventListener(
 		"load",
-		() => {
+		function() {
 			document.removeEventListener("load", onScriptLoad, true);
 		},
 		{ once: true }
