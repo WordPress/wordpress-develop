@@ -527,16 +527,14 @@ class WP_Scripts extends WP_Dependencies {
 			return '';
 		}
 
-		$strategy = $this->get_eligible_loading_strategy( $handle );
+		// TODO: Handle case where a dep has a src which is false. But what if false?
+		$deps = $this->registered[ $handle ]->deps;
+		if ( 'after' === $position ) {
+			$deps[] = $handle;
+		}
 
 		$id = "{$handle}-{$position}";
-		if ( $this->is_delayed_strategy( $strategy ) ) {
-			// TODO: Handle case where a dep has a src which is false. But what if false?
-			$deps = $this->registered[ $handle ]->deps;
-			if ( 'after' === $position ) {
-				$deps[] = $handle;
-			}
-
+		if ( count( $deps ) > 0 && $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $handle ) ) ) {
 			return wp_get_inline_script_tag(
 				$js,
 				array(
