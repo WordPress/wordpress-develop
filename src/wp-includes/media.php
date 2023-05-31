@@ -5610,6 +5610,7 @@ function wp_get_webp_info( $filename ) {
  *                     that the `loading` attribute should be skipped.
  */
 function wp_get_loading_attr_default( $context ) {
+	_deprecated_function( __FUNCTION__, '6.3.0', 'wp_get_loading_optimization_attributes' );
 	global $wp_query;
 
 	// Skip lazy-loading for the overall block template, as it is handled more granularly.
@@ -5843,9 +5844,8 @@ function wp_increase_content_media_count( $amount = 1 ) {
  * @return array[] $loading_attrs Updated loading attributes for the element.
  */
 function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ) {
-	if ( ( isset( $loading_attrs['loading'] ) && 'lazy' === $loading_attrs['loading'] ) ||
-		! empty( $loading_attrs['fetchpriority'] )
-	) {
+	if ( ! empty( $attr['fetchpriority'] ) ) {
+		$loading_attrs['fetchpriority'] = $attr['fetchpriority'];
 		return $loading_attrs;
 	}
 	$img_size                   = $attr['width'] * $attr['height'];
