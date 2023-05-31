@@ -120,15 +120,6 @@ function wp_initial_constants() {
 		define( 'MEDIA_TRASH', false );
 	}
 
-	/**
-	 * Minimum size for a LCP candidate image. Size measusred in width x height.
-	 *
-	 * @since 6.3
-	 */
-	if ( ! defined( 'WP_LCP_MIN_IMAGE_SIZE' ) ) {
-		define( 'WP_LCP_MIN_IMAGE_SIZE', 50000 );
-	}
-
 	if ( ! defined( 'SHORTINIT' ) ) {
 		define( 'SHORTINIT', false );
 	}
