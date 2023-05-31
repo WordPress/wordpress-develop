@@ -13,9 +13,9 @@
 	 *
 	 * @param {HTMLScriptElement} script Script to run.
 	 */
-	function runInlineScript( script ) {
+	function runInlineScript(script) {
 		var newScript;
-		script.dataset.wpDone = '1';
+		script.dataset.wpDone = "1";
 		if (nonce && nonce !== script.nonce) {
 			console.error(
 				"CSP nonce check failed for after inline script. Execution aborted.",
@@ -41,13 +41,13 @@
 	/**
 	 * Runs the supplied inline scripts if all of their dependencies have been done.
 	 *
-	 * @param {NodeList<HTMLScriptElement>} scripts Scripts to run if ready,
+	 * @param {NodeList<HTMLScriptElement>} scripts Scripts to run if ready.
 	 */
 	function runReadyInlineScripts(scripts) {
 		var i, len, deps;
 		for (i = 0, len = scripts.length; i < len; i++) {
 			deps = scripts[i].dataset.wpDeps.split(/,/);
-			if ( deps.every(isDependencyDone) ) {
+			if (deps.every(isDependencyDone)) {
 				runInlineScript(scripts[i]);
 			}
 		}
@@ -59,7 +59,7 @@
 	 * @param {Event} event Event.
 	 */
 	function onScriptLoad(event) {
-		var matches, scripts, handle, script, currentNode;
+		var matches, scripts, handle, script;
 		if (
 			!(
 				event.target instanceof HTMLScriptElement ||
@@ -77,23 +77,17 @@
 			return;
 		}
 		handle = matches[1];
-		done.add( handle );
-
-		currentNode = event.target;
+		done.add(handle);
 
 		// First, run all inline after scripts which are associated with this handle.
 		script = document.querySelector(
 			'script:not([src])[type="text/template"][id="' + handle + '-js-after"]'
 		);
-		if ( script instanceof HTMLScriptElement ) {
+		if (script instanceof HTMLScriptElement) {
 			runInlineScript(script);
-			currentNode = script; // @todo We cannot rely on this because currentNode may be in the <head> and the next before script could be in the footer.
 		}
 
 		// Next, run all pending inline before scripts for all dependents for which all dependencies have loaded.
-		// TODO: We can iterate over the following siblings
-		// If currentNode.parentNode === document.head, we'll need to look for following siblings as well as all nodes in body.
-		// If currentNode.parentNode === document.body, we only need to look at the following siblings.
 		scripts = document.querySelectorAll(
 			'script:not([src])[type="text/template"][data-wp-deps][id$="-js-before"]:not([data-wp-done])'
 		);
@@ -103,7 +97,7 @@
 
 	window.addEventListener(
 		"load",
-		function() {
+		function () {
 			document.removeEventListener("load", onScriptLoad, true);
 		},
 		{ once: true }
