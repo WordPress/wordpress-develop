@@ -1059,22 +1059,24 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		 */
 		$context = apply_filters( 'wp_get_attachment_image_context', 'wp_get_attachment_image' );
 
-		// Add loading optimization attribute. Only compute the default if both `loading` and `fetchpriority` is not present.
-		if ( ! isset( $attr['loading'] ) && ! isset( $attr['fetchpriority'] ) ) {
-			$default_attr = array_merge(
-				$default_attr,
-				wp_get_loading_optimization_attributes(
-					'img',
+		$attr = wp_parse_args( $attr, $default_attr );
+
+		// Add loading optimization attributes if not available.
+		$attr = array_merge(
+			$attr,
+			wp_get_loading_optimization_attributes(
+				'img',
+				// $attr doesn't contain width and height by default.
+				array_merge(
 					array(
 						'width'  => $width,
 						'height' => $height,
 					),
-					$context
-				)
-			);
-		}
-
-		$attr = wp_parse_args( $attr, $default_attr );
+					$attr
+				),
+				$context
+			)
+		);
 
 		// Omit the `decoding` attribute if the value is invalid according to the spec.
 		if ( empty( $attr['decoding'] ) || ! in_array( $attr['decoding'], array( 'async', 'sync', 'auto' ), true ) ) {
@@ -5686,7 +5688,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	$loading_attrs = array();
 
 	// For now this function only supports images.
-	if ( 'img' === $tag_name ) {
+	if ( 'img' !== $tag_name ) {
 		return $loading_attrs;
 	}
 
@@ -5830,8 +5832,9 @@ function wp_increase_content_media_count( $amount = 1 ) {
  * @since 6.3.0
  * @access private
  *
- * @param bool $value Optional. Used to change the static variable. Default null.
- * @return bool $maybe_fetchpriority_high_media Return true if no other LCP candidate image found yet else false.
+ * @param array[] $loading_attrs Array of the loading attributes for the element.
+ * @param array[] $attr Array of the attributes for the element.
+ * @return array[] $loading_attrs Updated loading attributes for the element.
  */
 function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ) {
 	$img_size                   = $attr['width'] * $attr['height'];
