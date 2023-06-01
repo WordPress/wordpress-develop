@@ -530,10 +530,8 @@ class WP_Scripts extends WP_Dependencies {
 		// TODO: Handle case where a dep has a src which is false.
 		$id   = "{$handle}-js-{$position}";
 		$deps = $this->registered[ $handle ]->deps;
-		if (
-			( $deps || 'after' === $position ) &&
-			$this->is_delayed_strategy( $this->get_eligible_loading_strategy( $handle ) )
-		) {
+
+		if ( $this->should_delay_inline_script( $handle, $position ) ) {
 			$attributes = array(
 				'id'   => $id,
 				'type' => 'text/template', // TODO: Consider text/plain instead.
@@ -545,6 +543,59 @@ class WP_Scripts extends WP_Dependencies {
 		} else {
 			return wp_get_inline_script_tag( $js, compact( 'id' ) );
 		}
+	}
+
+	/**
+	 * Determines whether an inline script should be delayed.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $handle   Name of the script to add the inline script to.
+	 *                         Must be lowercase.
+	 * @param string $position Optional. Whether to add the inline script
+	 *                         before the handle or after. Default 'after'.
+	 *
+	 * @return bool Whether to delay.
+	 */
+	private function should_delay_inline_script( $handle, $position ) {
+		// Never delay the inline script if the script is blocking.
+		if ( ! $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $handle ) ) ) {
+			return false;
+		}
+
+		// After inline scripts must always be delayed for non-blocking scripts.
+		if ( 'after' === $position ) {
+			return true;
+		}
+
+		// From now on, we're only considering before inline scripts.
+		$deps = $this->registered[ $handle ]->deps;
+
+		/*
+		 * If there are no dependencies, the before script must not delay since there will not be a load event on a
+		 * preceding script for which an event handler can run the before inline script.
+		 */
+		if ( empty( $deps ) ) {
+			return false;
+		}
+
+		$has_blocking_dependency = false;
+		foreach ( $this->registered[ $handle ]->deps as $dep ) {
+			if ( ! $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $dep ) ) ) {
+				$has_blocking_dependency = true;
+				break;
+			}
+		}
+
+		/*
+		 * If there is a blocking dependency, do not delay because it may have an inline after script which will need
+		 * to run after the load event has transpired.
+		 */
+		if ( $has_blocking_dependency ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**

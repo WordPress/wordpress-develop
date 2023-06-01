@@ -60,14 +60,7 @@
 	 */
 	function onScriptLoad(event) {
 		var matches, handle, script;
-		if (
-			!(
-				event.target instanceof HTMLScriptElement ||
-				event.target.async ||
-				event.target.defer ||
-				event.target.id
-			)
-		) {
+		if (!(event.target instanceof HTMLScriptElement || event.target.id)) {
 			return;
 		}
 
@@ -78,6 +71,14 @@
 		}
 		handle = matches[1];
 		doneDependencies.add(handle);
+
+		/*
+		 * Return now if blocking because we cannot run delayed inline scripts because if we do, we could accidentally
+		 * run the before inline script for a dependent _before_ the after script of this blocking script is evaluated.
+		 */
+		if (!(event.target.async || event.target.defer)) {
+			return;
+		}
 
 		// First, run all inline after scripts which are associated with this handle.
 		script = document.querySelector(
@@ -94,6 +95,7 @@
 			)
 		);
 	}
+
 	document.addEventListener("load", onScriptLoad, true);
 
 	window.addEventListener(
