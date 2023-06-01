@@ -2286,6 +2286,9 @@ EOF;
 	 *
 	 * @ticket 34898
 	 * @ticket 33641
+	 *
+	 * @expectedDeprecated wp_img_tag_add_loading_attr
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_srcset_sizes_wrong() {
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
@@ -2300,6 +2303,9 @@ EOF;
 
 	/**
 	 * @ticket 33641
+	 *
+	 * @expectedDeprecated wp_img_tag_add_loading_attr
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_srcset_sizes_with_preexisting_srcset() {
 		// Generate HTML and add a dummy srcset attribute.
@@ -2327,6 +2333,8 @@ EOF;
 	/**
 	 * @ticket 55510
 	 * @covers ::wp_filter_content_tags
+	 *
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_handles_duplicate_img_and_iframe_tags_once() {
 		$img     = get_image_tag( self::$large_id, '', '', '', 'large' );
@@ -2439,6 +2447,9 @@ EOF;
 	 * @ticket 35045
 	 * @ticket 33641
 	 * @requires function imagejpeg
+	 *
+	 * @expectedDeprecated wp_img_tag_add_loading_attr
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_schemes() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -2991,6 +3002,9 @@ EOF;
 	 * @ticket 50367
 	 * @ticket 50756
 	 * @requires function imagejpeg
+	 *
+	 * @expectedDeprecated wp_img_tag_add_loading_attr
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_loading_lazy() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -3069,6 +3083,9 @@ EOF;
 	/**
 	 * @ticket 44427
 	 * @ticket 50756
+	 *
+	 * @expectedDeprecated wp_img_tag_add_loading_attr
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_loading_lazy_opted_in() {
 		$img         = get_image_tag( self::$large_id, '', '', '', 'medium' );
@@ -3127,6 +3144,9 @@ EOF;
 	/**
 	 * @ticket 44427
 	 * @ticket 50367
+	 *
+	 * @expectedDeprecated wp_img_tag_add_loading_attr
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_img_tag_add_loading_attr() {
 		$img = '<img src="example.png" alt=" width="300" height="225" />';
@@ -3138,6 +3158,9 @@ EOF;
 	/**
 	 * @ticket 44427
 	 * @ticket 50367
+	 *
+	 * @expectedDeprecated wp_img_tag_add_loading_attr
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_img_tag_add_loading_attr_without_src() {
 		$img = '<img alt=" width="300" height="225" />';
@@ -3149,6 +3172,9 @@ EOF;
 	/**
 	 * @ticket 44427
 	 * @ticket 50367
+	 *
+	 * @expectedDeprecated wp_img_tag_add_loading_attr
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_img_tag_add_loading_attr_with_single_quotes() {
 		$img = "<img src='example.png' alt=' width='300' height='225' />";
@@ -3196,6 +3222,8 @@ EOF;
 
 	/**
 	 * @ticket 50756
+	 *
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_iframe_tag_add_loading_attr() {
 		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
@@ -3206,6 +3234,8 @@ EOF;
 
 	/**
 	 * @ticket 50756
+	 *
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_iframe_tag_add_loading_attr_without_src() {
 		$iframe = '<iframe width="640" height="360"></iframe>';
@@ -3216,6 +3246,8 @@ EOF;
 
 	/**
 	 * @ticket 50756
+	 *
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_iframe_tag_add_loading_attr_with_single_quotes() {
 		$iframe = "<iframe src='https://www.example.com' width='640' height='360'></iframe>";
@@ -3230,6 +3262,8 @@ EOF;
 
 	/**
 	 * @ticket 50756
+	 *
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_iframe_tag_add_loading_attr_opt_out() {
 		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
@@ -3564,6 +3598,8 @@ EOF;
 	 *
 	 * @covers ::wp_get_loading_attr_default
 	 *
+	 * @expectedDeprecated wp_get_loading_attr_default
+	 *
 	 * @dataProvider data_wp_get_loading_attr_default
 	 *
 	 * @param string $context
@@ -3617,6 +3653,8 @@ EOF;
 
 	/**
 	 * @ticket 53675
+	 *
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_omit_loading_attr_threshold_filter() {
 		$query = $this->get_new_wp_query_for_published_post();
@@ -3705,6 +3743,8 @@ EOF;
 	 *
 	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
 	 *
+	 * @expectedDeprecated wp_get_loading_attr_default
+	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_attr_default_before_loop_if_not_main_query( $context ) {
@@ -3727,6 +3767,8 @@ EOF;
 	 *
 	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
 	 *
+	 * @expectedDeprecated wp_get_loading_attr_default
+	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_attr_default_before_loop_in_main_query_but_header_not_called( $context ) {
@@ -3748,6 +3790,8 @@ EOF;
 	 *
 	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
 	 *
+	 * @expectedDeprecated wp_get_loading_attr_default
+	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_attr_default_before_loop_if_main_query( $context ) {
@@ -3768,6 +3812,8 @@ EOF;
 	 * @covers ::wp_get_loading_attr_default
 	 *
 	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
+	 *
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
@@ -3793,6 +3839,8 @@ EOF;
 	 * @covers ::wp_get_loading_attr_default
 	 *
 	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
+	 *
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
@@ -3830,6 +3878,9 @@ EOF;
 	 *
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_get_loading_attr_default
+	 *
+	 * @expectedDeprecated wp_get_loading_attr_default
+	 * @expectedDeprecated wp_img_tag_add_loading_attr
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_first_image_in_block_theme() {
 		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
@@ -3876,6 +3927,9 @@ EOF;
 	 *
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_get_loading_attr_default
+	 *
+	 * @expectedDeprecated wp_get_loading_attr_default
+	 * @expectedDeprecated wp_img_tag_add_loading_attr
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_first_featured_image_in_block_theme() {
 		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
@@ -3941,6 +3995,9 @@ EOF;
 	 *
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_get_loading_attr_default
+	 *
+	 * @expectedDeprecated wp_img_tag_add_loading_attr
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_images_in_header() {
 		global $_wp_current_template_content;
@@ -4058,6 +4115,8 @@ EOF;
 	 *
 	 * @covers ::wp_get_loading_attr_default
 	 *
+	 * @expectedDeprecated wp_get_loading_attr_default
+	 *
 	 * @dataProvider data_special_contexts_for_the_content
 	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
@@ -4072,6 +4131,8 @@ EOF;
 	 * @ticket 58089
 	 *
 	 * @covers ::wp_get_loading_attr_default
+	 *
+	 * @expectedDeprecated wp_get_loading_attr_default
 	 *
 	 * @dataProvider data_special_contexts_for_the_content
 	 *
