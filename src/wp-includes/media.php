@@ -5681,7 +5681,7 @@ function wp_get_loading_attr_default( $context ) {
 }
 
 /**
- * Get loading optimization attributes.
+ * Gets loading optimization attributes.
  *
  * @since 6.3.0
  *
