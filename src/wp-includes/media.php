@@ -1804,7 +1804,7 @@ function wp_lazy_loading_enabled( $tag_name, $context ) {
  *
  * @see wp_img_tag_add_width_and_height_attr()
  * @see wp_img_tag_add_srcset_and_sizes_attr()
- * @see wp_img_tag_add_loading_attr()
+ * @see wp_img_tag_add_loading_optimization_attrs()
  * @see wp_iframe_tag_add_loading_attr()
  *
  * @param string $content The HTML content to be filtered.
@@ -1938,12 +1938,14 @@ function wp_filter_content_tags( $content, $context = null ) {
  * Adds `loading` attribute to an `img` HTML tag.
  *
  * @since 5.5.0
+ * @deprecated 6.3.0 Use {@see 'wp_img_tag_add_loading_optimization_attrs'} instead.
  *
  * @param string $image   The HTML `img` tag where the attribute should be added.
  * @param string $context Additional context to pass to the filters.
  * @return string Converted `img` tag with `loading` attribute added.
  */
 function wp_img_tag_add_loading_attr( $image, $context ) {
+	_deprecated_function( __FUNCTION__, '6.3.0', 'wp_img_tag_add_loading_optimization_attrs' );
 	// Get loading attribute value to use. This must occur before the conditional check below so that even images that
 	// are ineligible for being lazy-loaded are considered.
 	$value = wp_get_loading_attr_default( $context );
