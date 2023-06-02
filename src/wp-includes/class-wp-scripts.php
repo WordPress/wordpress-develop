@@ -344,7 +344,6 @@ class WP_Scripts extends WP_Dependencies {
 			 */
 			$srce = apply_filters( 'script_loader_src', $src, $handle );
 
-			// Used as a conditional to prevent script concatenation.
 			if (
 				$this->in_default_dir( $srce )
 				&& ( $before_script || $after_script || $translations_stop_concat || $this->is_delayed_strategy( $strategy ) )
