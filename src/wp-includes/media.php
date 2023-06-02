@@ -2053,7 +2053,11 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'An image cannot be lazy-loaded and assigned fetchpriority="high" at the same time.' ),
+				sprintf(
+					/* translators: %s: fetchpriority="high". */
+					__( 'An image cannot be lazy-loaded and assigned %s at the same time.' ),
+					'<code>fetchpriority="high"</code>'
+				),
 				'6.3.0'
 			);
 		}
