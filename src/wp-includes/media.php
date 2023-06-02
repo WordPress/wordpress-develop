@@ -5717,7 +5717,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		return $loading_attrs;
 	}
 
-	// If a 'fetchpriority' attribute with value 'high' is already provided, do not add `loading="lazy"`.
+	// An image with `fetchpriority="high"` cannot be assigned `loading="lazy"` at the same time.
 	if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority'] ) {
 		$loading_attrs['fetchpriority'] = 'high';
 		return $loading_attrs;
