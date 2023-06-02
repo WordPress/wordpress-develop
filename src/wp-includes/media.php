@@ -2074,7 +2074,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		$image_elm->set_attribute( 'fetchpriority', esc_attr( $optimization_attrs['fetchpriority'] ) );
 	}
 
-	return $image;
+	return $image_elm->get_updated_html();
 }
 
 /**
