@@ -2040,7 +2040,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 
 		// Validate the values after filtering.
 		if ( isset( $optimization_attrs['loading'] ) && ! $filtered_loading_attr ) {
-			// unset loading attributes if $filtered_loading_attr is set to false.
+			// Unset `loading` attributes if `$filtered_loading_attr` is set to `false`.
 			unset( $optimization_attrs['loading'] );
 		} elseif ( in_array( $filtered_loading_attr, array( 'lazy', 'eager' ), true ) ) {
 			$optimization_attrs['loading'] = $filtered_loading_attr;
