@@ -784,6 +784,7 @@ class WP_Site_Health {
 			);
 
 			$result['status']         = 'critical';
+			$result['badge']['color'] = 'red';
 			$result['badge']['label'] = __( 'Requirements' );
 
 			return $result;
@@ -817,9 +818,9 @@ class WP_Site_Health {
 			);
 		}
 
-		$result['label']  = $message;
-		$result['status'] = 'critical';
-
+		$result['label']          = $message;
+		$result['status']         = 'critical';
+		$result['badge']['color'] = 'red';
 		$result['badge']['label'] = __( 'Security' );
 
 		return $result;
