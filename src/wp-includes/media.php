@@ -5867,7 +5867,7 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ) {
 }
 
 /**
- * A flag that indicates if a media is a possible candidate for fetchpriority='high'.
+ * Accesses a flag that indicates if an element is a possible candidate for `fetchpriority='high'`.
  *
  * @since 6.3.0
  * @access private
