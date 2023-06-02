@@ -318,9 +318,9 @@ class WP_Scripts extends WP_Dependencies {
 			$before_script = sprintf( "<script%s id='%s-js-before'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $before_script );
 		}
 
-		$intended_strategy    = $this->get_data( $handle, 'strategy' );
+		$intended_strategy    = (string) $this->get_data( $handle, 'strategy' );
 		$strategy             = $this->get_eligible_loading_strategy( $handle );
-		$strategy_has_changed = false !== $intended_strategy && '' !== $strategy && $intended_strategy !== $strategy;
+		$strategy_has_changed = $intended_strategy !== $strategy;
 		$strategy_data_attr   = $strategy_has_changed ? $intended_strategy : $strategy;
 		$after                = ( 'defer' === $strategy || 'async' === $strategy ) ? 'after-standalone' : 'after';
 		$after_script         = $this->print_inline_script( $handle, $after, false );
