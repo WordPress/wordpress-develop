@@ -1993,7 +1993,10 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
  */
 function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 	$image_elm = new WP_HTML_Tag_Processor( $image );
-	$image_elm->next_tag();
+	if ( ! $image_elm->next_tag() ) {
+		return $image;
+	}
+
 	$width             = $image_elm->get_attribute( 'width' );
 	$height            = $image_elm->get_attribute( 'height' );
 	$loading_val       = $image_elm->get_attribute( 'loading' );
