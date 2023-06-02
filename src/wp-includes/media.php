@@ -2071,7 +2071,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 	}
 
 	if ( empty( $fetchpriority_val ) && ! empty( $optimization_attrs['fetchpriority'] ) ) {
-		$image = str_replace( '<img', '<img fetchpriority="' . esc_attr( $optimization_attrs['fetchpriority'] ) . '"', $image );
+		$image_elm->set_attribute( 'fetchpriority', esc_attr( $optimization_attrs['fetchpriority'] ) );
 	}
 
 	return $image;
