@@ -852,18 +852,32 @@ JS;
 	 * @return bool True on success, false on failure.
 	 */
 	public function add_data( $handle, $key, $value ) {
-		if ( 'strategy' === $key && ! empty( $value ) && ! $this->is_delayed_strategy( $value ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				sprintf(
+		if ( 'strategy' === $key ) {
+			if ( ! empty( $value ) && ! $this->is_delayed_strategy( $value ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
 					/* translators: 1: $strategy, 2: $handle */
-					__( 'Invalid strategy `%1$s` defined for `%2$s` during script registration.' ),
-					$value,
-					$handle
-				),
-				'6.3.0'
-			);
-			return false;
+						__( 'Invalid strategy `%1$s` defined for `%2$s` during script registration.' ),
+						$value,
+						$handle
+					),
+					'6.3.0'
+				);
+				return false;
+			} elseif ( empty( $this->registered[ $handle ]->src ) && $this->is_delayed_strategy( $value ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: $strategy, 2: $handle */
+						__( 'Cannot supply a strategy `%1$s` for script `%2$s` since it is a dependency bundle.' ),
+						$value,
+						$handle
+					),
+					'6.3.0'
+				);
+				return false;
+			}
 		}
 		return parent::add_data( $handle, $key, $value );
 	}
@@ -994,8 +1008,13 @@ JS;
 
 		$intended_strategy = $this->get_data( $handle, 'strategy' );
 
-		// Handle known blocking strategy scenarios.
-		if ( empty( $intended_strategy ) ) {
+		/*
+		 * Handle known blocking strategy scenarios.
+		 * - An empty strategy is synonymous with blocking.
+		 * - A script bundle (where $src is false) must always be blocking since the after inline script cannot be
+		 *   delayed as there is no external script tag and thus no load event at which the inline script can be run.
+		 */
+		if ( empty( $intended_strategy ) || empty( $this->registered[ $handle ]->src ) ) {
 			return '';
 		}
 
