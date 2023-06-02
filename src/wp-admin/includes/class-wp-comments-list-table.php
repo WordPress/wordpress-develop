@@ -140,16 +140,17 @@ class WP_Comments_List_Table extends WP_List_Table {
 		);
 
 		$args = array(
-			'status'    => isset( $status_map[ $comment_status ] ) ? $status_map[ $comment_status ] : $comment_status,
-			'search'    => $search,
-			'user_id'   => $user_id,
-			'offset'    => $start,
-			'number'    => $number,
-			'post_id'   => $post_id,
-			'type'      => $comment_type,
-			'orderby'   => $orderby,
-			'order'     => $order,
-			'post_type' => $post_type,
+			'status'                    => isset( $status_map[ $comment_status ] ) ? $status_map[ $comment_status ] : $comment_status,
+			'search'                    => $search,
+			'user_id'                   => $user_id,
+			'offset'                    => $start,
+			'number'                    => $number,
+			'post_id'                   => $post_id,
+			'type'                      => $comment_type,
+			'orderby'                   => $orderby,
+			'order'                     => $order,
+			'post_type'                 => $post_type,
+			'update_comment_post_cache' => true,
 		);
 
 		/**
@@ -164,8 +165,6 @@ class WP_Comments_List_Table extends WP_List_Table {
 		$_comments = get_comments( $args );
 
 		if ( is_array( $_comments ) ) {
-			update_comment_cache( $_comments );
-
 			$this->items       = array_slice( $_comments, 0, $comments_per_page );
 			$this->extra_items = array_slice( $_comments, $comments_per_page );
 
@@ -457,7 +456,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	/**
 	 * @global int $post_id
 	 *
-	 * @return array
+	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		global $post_id;

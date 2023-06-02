@@ -432,7 +432,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 					$recipient_name = '';
 
 					if ( preg_match( '/(.*)<(.+)>/', $address, $matches ) ) {
-						if ( count( $matches ) == 3 ) {
+						if ( count( $matches ) === 3 ) {
 							$recipient_name = $matches[1];
 							$address        = $matches[2];
 						}
@@ -1187,7 +1187,7 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 
 		// If https is required and request is http, redirect.
 		if ( $secure && ! is_ssl() && false !== strpos( $_SERVER['REQUEST_URI'], 'wp-admin' ) ) {
-			if ( 0 === strpos( $_SERVER['REQUEST_URI'], 'http' ) ) {
+			if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
 				wp_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
 				exit;
 			} else {
@@ -1218,7 +1218,7 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 
 			// If the user wants ssl but the session is not ssl, redirect.
 			if ( ! $secure && get_user_option( 'use_ssl', $user_id ) && false !== strpos( $_SERVER['REQUEST_URI'], 'wp-admin' ) ) {
-				if ( 0 === strpos( $_SERVER['REQUEST_URI'], 'http' ) ) {
+				if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
 					wp_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
 					exit;
 				} else {
@@ -1281,7 +1281,7 @@ if ( ! function_exists( 'check_admin_referer' ) ) :
 		 */
 		do_action( 'check_admin_referer', $action, $result );
 
-		if ( ! $result && ! ( -1 === $action && strpos( $referer, $adminurl ) === 0 ) ) {
+		if ( ! $result && ! ( -1 === $action && str_starts_with( $referer, $adminurl ) ) ) {
 			wp_nonce_ays( $action );
 			die();
 		}
@@ -1875,7 +1875,7 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 		 * @since 4.4.0
 		 *
 		 * @param bool $maybe_notify Whether to notify blog moderator.
-		 * @param int  $comment_ID   The id of the comment for the notification.
+		 * @param int  $comment_id   The ID of the comment for the notification.
 		 */
 		$maybe_notify = apply_filters( 'notify_moderator', $maybe_notify, $comment_id );
 
@@ -2359,7 +2359,7 @@ if ( ! function_exists( 'wp_create_nonce' ) ) :
 			$uid = apply_filters( 'nonce_user_logged_out', $uid, $action );
 		}
 
-		$token = wp_get_session_token( $action );
+		$token = wp_get_session_token();
 		$i     = wp_nonce_tick( $action );
 
 		return substr( wp_hash( $i . '|' . $action . '|' . $uid . '|' . $token, 'nonce' ), -12, 10 );
@@ -2417,14 +2417,16 @@ if ( ! function_exists( 'wp_salt' ) ) :
 		static $duplicated_keys;
 		if ( null === $duplicated_keys ) {
 			$duplicated_keys = array(
-				'put your unique phrase here'       => true,
-				/*
-				 * translators: This string should only be translated if wp-config-sample.php is localized.
-				 * You can check the localized release package or
-				 * https://i18n.svn.wordpress.org/<locale code>/branches/<wp version>/dist/wp-config-sample.php
-				 */
-				__( 'put your unique phrase here' ) => true,
+				'put your unique phrase here' => true,
 			);
+
+			/*
+			 * translators: This string should only be translated if wp-config-sample.php is localized.
+			 * You can check the localized release package or
+			 * https://i18n.svn.wordpress.org/<locale code>/branches/<wp version>/dist/wp-config-sample.php
+			 */
+			$duplicated_keys[ __( 'put your unique phrase here' ) ] = true;
+
 			foreach ( array( 'AUTH', 'SECURE_AUTH', 'LOGGED_IN', 'NONCE', 'SECRET' ) as $first ) {
 				foreach ( array( 'KEY', 'SALT' ) as $second ) {
 					if ( ! defined( "{$first}_{$second}" ) ) {
@@ -2589,7 +2591,7 @@ if ( ! function_exists( 'wp_generate_password' ) ) :
 	/**
 	 * Generates a random password drawn from the defined set of characters.
 	 *
-	 * Uses wp_rand() is used to create passwords with far less predictability
+	 * Uses wp_rand() to create passwords with far less predictability
 	 * than similar native PHP functions like `rand()` or `mt_rand()`.
 	 *
 	 * @since 2.5.0

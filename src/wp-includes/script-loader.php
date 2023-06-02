@@ -184,7 +184,7 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 		$src = $scripts->registered[ $handle ]->src;
 		$ver = $scripts->registered[ $handle ]->ver;
 
-		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $scripts->content_url && 0 === strpos( $src, $scripts->content_url ) ) ) {
+		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $scripts->content_url && str_starts_with( $src, $scripts->content_url ) ) ) {
 			$src = $scripts->base_url . $src;
 		}
 
@@ -822,8 +822,8 @@ function wp_default_scripts( $scripts ) {
 
 	// jQuery.
 	// The unminified jquery.js and jquery-migrate.js are included to facilitate debugging.
-	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.6.3' );
-	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.6.3' );
+	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.7.0' );
+	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.7.0' );
 	$scripts->add( 'jquery-migrate', "/wp-includes/js/jquery/jquery-migrate$suffix.js", array(), '3.4.0' );
 
 	// Full jQuery UI.
@@ -1108,9 +1108,9 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'mediaelement-vimeo', '/wp-includes/js/mediaelement/renderers/vimeo.min.js', array( 'mediaelement' ), '4.2.17', 1 );
 	$scripts->add( 'wp-mediaelement', "/wp-includes/js/mediaelement/wp-mediaelement$suffix.js", array( 'mediaelement' ), false, 1 );
 	$mejs_settings = array(
-		'pluginPath'  => includes_url( 'js/mediaelement/', 'relative' ),
-		'classPrefix' => 'mejs-',
-		'stretching'  => 'responsive',
+		'pluginPath'            => includes_url( 'js/mediaelement/', 'relative' ),
+		'classPrefix'           => 'mejs-',
+		'stretching'            => 'responsive',
 		/** This filter is documented in wp-includes/media.php */
 		'audioShortcodeLibrary' => apply_filters( 'wp_audio_shortcode_library', 'mediaelement' ),
 		/** This filter is documented in wp-includes/media.php */
@@ -1137,7 +1137,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'htmlhint', '/wp-includes/js/codemirror/htmlhint.js', array(), '0.9.14-xwp' );
 	$scripts->add( 'htmlhint-kses', '/wp-includes/js/codemirror/htmlhint-kses.js', array( 'htmlhint' ) );
 	$scripts->add( 'code-editor', "/wp-admin/js/code-editor$suffix.js", array( 'jquery', 'wp-codemirror', 'underscore' ) );
-	$scripts->add( 'wp-theme-plugin-editor', "/wp-admin/js/theme-plugin-editor$suffix.js", array( 'common', 'wp-util', 'wp-sanitize', 'jquery', 'jquery-ui-core', 'wp-a11y', 'underscore' ) );
+	$scripts->add( 'wp-theme-plugin-editor', "/wp-admin/js/theme-plugin-editor$suffix.js", array( 'common', 'wp-util', 'wp-sanitize', 'jquery', 'jquery-ui-core', 'wp-a11y', 'underscore' ), false, 1 );
 	$scripts->set_translations( 'wp-theme-plugin-editor' );
 
 	$scripts->add( 'wp-playlist', "/wp-includes/js/mediaelement/wp-playlist$suffix.js", array( 'wp-util', 'backbone', 'mediaelement' ), false, 1 );
@@ -1294,7 +1294,7 @@ function wp_default_scripts( $scripts ) {
 			'blockThemeNotification'  => sprintf(
 				/* translators: 1: Link to Site Editor documentation on HelpHub, 2: HTML button. */
 				__( 'Hurray! Your theme supports site editing with blocks. <a href="%1$s">Tell me more</a>. %2$s' ),
-				__( 'https://wordpress.org/support/article/site-editor/' ),
+				__( 'https://wordpress.org/documentation/article/site-editor/' ),
 				sprintf(
 					'<button type="button" data-action="%1$s" class="button switch-to-editor">%2$s</button>',
 					esc_url( admin_url( 'site-editor.php' ) ),
@@ -1635,8 +1635,14 @@ function wp_default_styles( $styles ) {
 		$wp_edit_blocks_dependencies[] = 'wp-editor-classic-layout-styles';
 	}
 
-	if ( ! is_array( $editor_styles ) || count( $editor_styles ) === 0 ) {
-		// Include opinionated block styles if no $editor_styles are declared, so the editor never appears broken.
+	if (
+		current_theme_supports( 'wp-block-styles' ) &&
+		( ! is_array( $editor_styles ) || count( $editor_styles ) === 0 )
+	) {
+		/*
+		 * Include opinionated block styles if the theme supports block styles and
+		 * no $editor_styles are declared, so the editor never appears broken.
+		 */
 		$wp_edit_blocks_dependencies[] = 'wp-block-library-theme';
 	}
 
@@ -1657,12 +1663,10 @@ function wp_default_styles( $styles ) {
 			'wp-editor',
 			'wp-edit-blocks',
 			'wp-block-library',
-			'wp-nux',
 		),
 		'editor'               => array(
 			'wp-components',
 			'wp-block-editor',
-			'wp-nux',
 			'wp-reusable-blocks',
 		),
 		'format-library'       => array(),
@@ -2401,7 +2405,7 @@ function wp_common_block_scripts_and_styles() {
 function wp_filter_out_block_nodes( $nodes ) {
 	return array_filter(
 		$nodes,
-		function( $node ) {
+		static function( $node ) {
 			return ! in_array( 'blocks', $node['path'], true );
 		},
 		ARRAY_FILTER_USE_BOTH
@@ -2445,7 +2449,7 @@ function wp_enqueue_global_styles() {
 		return;
 	}
 
-	wp_register_style( 'global-styles', false, array(), true, true );
+	wp_register_style( 'global-styles', false );
 	wp_add_inline_style( 'global-styles', $stylesheet );
 	wp_enqueue_style( 'global-styles' );
 
@@ -2631,7 +2635,7 @@ function enqueue_block_styles_assets() {
 				if ( wp_should_load_separate_core_block_assets() ) {
 					add_filter(
 						'render_block',
-						function( $html, $block ) use ( $block_name, $style_properties ) {
+						static function( $html, $block ) use ( $block_name, $style_properties ) {
 							if ( $block['blockName'] === $block_name ) {
 								wp_enqueue_style( $style_properties['style_handle'] );
 							}
@@ -2935,41 +2939,33 @@ function wp_maybe_inline_styles() {
  * @return string The CSS with URLs made relative to the WordPress installation.
  */
 function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
-	$has_src_results = preg_match_all( '#url\s*\(\s*[\'"]?\s*([^\'"\)]+)#', $css, $src_results );
-	if ( $has_src_results ) {
-		// Loop through the URLs to find relative ones.
-		foreach ( $src_results[1] as $src_index => $src_result ) {
-			// Skip if this is an absolute URL.
-			if ( 0 === strpos( $src_result, 'http' ) || 0 === strpos( $src_result, '//' ) ) {
-				continue;
-			}
+	return preg_replace_callback(
+		'#(url\s*\(\s*[\'"]?\s*)([^\'"\)]+)#',
+		static function ( $matches ) use ( $stylesheet_url ) {
+			list( , $prefix, $url ) = $matches;
 
-			// Skip if the URL is an HTML ID.
-			if ( str_starts_with( $src_result, '#' ) ) {
-				continue;
-			}
-
-			// Skip if the URL is a data URI.
-			if ( str_starts_with( $src_result, 'data:' ) ) {
-				continue;
+			// Short-circuit if the URL does not require normalization.
+			if (
+				str_starts_with( $url, 'http:' ) ||
+				str_starts_with( $url, 'https:' ) ||
+				str_starts_with( $url, '//' ) ||
+				str_starts_with( $url, '#' ) ||
+				str_starts_with( $url, 'data:' )
+			) {
+				return $matches[0];
 			}
 
 			// Build the absolute URL.
-			$absolute_url = dirname( $stylesheet_url ) . '/' . $src_result;
+			$absolute_url = dirname( $stylesheet_url ) . '/' . $url;
 			$absolute_url = str_replace( '/./', '/', $absolute_url );
+
 			// Convert to URL related to the site root.
-			$relative_url = wp_make_link_relative( $absolute_url );
+			$url = wp_make_link_relative( $absolute_url );
 
-			// Replace the URL in the CSS.
-			$css = str_replace(
-				$src_results[0][ $src_index ],
-				str_replace( $src_result, $relative_url, $src_results[0][ $src_index ] ),
-				$css
-			);
-		}
-	}
-
-	return $css;
+			return $prefix . $url;
+		},
+		$css
+	);
 }
 
 /**
@@ -2978,7 +2974,7 @@ function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
  * @since 5.9.0
  */
 function wp_enqueue_global_styles_css_custom_properties() {
-	wp_register_style( 'global-styles-css-custom-properties', false, array(), true, true );
+	wp_register_style( 'global-styles-css-custom-properties', false );
 	wp_add_inline_style( 'global-styles-css-custom-properties', wp_get_global_stylesheet( array( 'variables' ) ) );
 	wp_enqueue_style( 'global-styles-css-custom-properties' );
 }
@@ -3020,13 +3016,14 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
  * @since 6.1.0
  *
  * @param array $options {
- *     Optional. An array of options to pass to wp_style_engine_get_stylesheet_from_context(). Default empty array.
+ *     Optional. An array of options to pass to wp_style_engine_get_stylesheet_from_context().
+ *     Default empty array.
  *
- *     @type bool $optimize Whether to optimize the CSS output, e.g., combine rules. Default is `false`.
- *     @type bool $prettify Whether to add new lines and indents to output. Default is the test of whether the global constant `SCRIPT_DEBUG` is defined.
+ *     @type bool $optimize Whether to optimize the CSS output, e.g., combine rules.
+ *                          Default true.
+ *     @type bool $prettify Whether to add new lines and indents to output.
+ *                          Default to whether the `SCRIPT_DEBUG` constant is defined.
  * }
- *
- * @return void
  */
 function wp_enqueue_stored_styles( $options = array() ) {
 	$is_block_theme   = wp_is_block_theme();
@@ -3059,7 +3056,7 @@ function wp_enqueue_stored_styles( $options = array() ) {
 
 	// Combines Core styles.
 	if ( ! empty( $compiled_core_stylesheet ) ) {
-		wp_register_style( $style_tag_id, false, array(), true, true );
+		wp_register_style( $style_tag_id, false );
 		wp_add_inline_style( $style_tag_id, $compiled_core_stylesheet );
 		wp_enqueue_style( $style_tag_id );
 	}
@@ -3073,7 +3070,7 @@ function wp_enqueue_stored_styles( $options = array() ) {
 		$styles = wp_style_engine_get_stylesheet_from_context( $store_name, $options );
 		if ( ! empty( $styles ) ) {
 			$key = "wp-style-engine-$store_name";
-			wp_register_style( $key, false, array(), true, true );
+			wp_register_style( $key, false );
 			wp_add_inline_style( $key, $styles );
 			wp_enqueue_style( $key );
 		}
@@ -3090,7 +3087,15 @@ function wp_enqueue_stored_styles( $options = array() ) {
  * @since 5.9.0
  *
  * @param string $block_name The block-name, including namespace.
- * @param array  $args       An array of arguments [handle,src,deps,ver,media].
+ * @param array  $args       {
+ *     An array of arguments. See wp_register_style() for full information about each argument.
+ *
+ *     @type string           $handle The handle for the stylesheet.
+ *     @type string|false     $src    The source URL of the stylesheet.
+ *     @type string[]         $deps   Array of registered stylesheet handles this stylesheet depends on.
+ *     @type string|bool|null $ver    Stylesheet version number.
+ *     @type string           $media  The media for which this stylesheet has been defined.
+ * }
  */
 function wp_enqueue_block_style( $block_name, $args ) {
 	$args = wp_parse_args(
@@ -3216,6 +3221,10 @@ function wp_enqueue_block_style( $block_name, $args ) {
 function _wp_theme_json_webfonts_handler() {
 	// Block themes are unavailable during installation.
 	if ( wp_installing() ) {
+		return;
+	}
+
+	if ( ! wp_theme_has_theme_json() ) {
 		return;
 	}
 
@@ -3520,13 +3529,14 @@ function _wp_theme_json_webfonts_handler() {
 	 * Compiles the 'src' into valid CSS.
 	 *
 	 * @since 6.0.0
+	 * @since 6.2.0 Removed local() CSS.
 	 *
 	 * @param string $font_family Font family.
 	 * @param array  $value       Value to process.
 	 * @return string The CSS.
 	 */
 	$fn_compile_src = static function( $font_family, array $value ) {
-		$src = "local($font_family)";
+		$src = '';
 
 		foreach ( $value as $item ) {
 
@@ -3541,6 +3551,8 @@ function _wp_theme_json_webfonts_handler() {
 				? ", url({$item['url']})"
 				: ", url('{$item['url']}') format('{$item['format']}')";
 		}
+
+		$src = ltrim( $src, ', ' );
 
 		return $src;
 	};
@@ -3696,7 +3708,7 @@ function _wp_theme_json_webfonts_handler() {
 function wp_enqueue_classic_theme_styles() {
 	if ( ! wp_theme_has_theme_json() ) {
 		$suffix = wp_scripts_get_suffix();
-		wp_register_style( 'classic-theme-styles', '/' . WPINC . "/css/classic-themes$suffix.css", array(), true );
+		wp_register_style( 'classic-theme-styles', '/' . WPINC . "/css/classic-themes$suffix.css" );
 		wp_enqueue_style( 'classic-theme-styles' );
 	}
 }

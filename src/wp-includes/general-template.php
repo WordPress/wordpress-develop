@@ -158,10 +158,10 @@ function get_sidebar( $name = null, $args = array() ) {
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $slug The slug name for the generic template.
- * @param string $name The name of the specialized template.
- * @param array  $args Optional. Additional arguments passed to the template.
- *                     Default empty array.
+ * @param string      $slug The slug name for the generic template.
+ * @param string|null $name Optional. The name of the specialized template.
+ * @param array       $args Optional. Additional arguments passed to the template.
+ *                          Default empty array.
  * @return void|false Void on success, false if the template does not exist.
  */
 function get_template_part( $slug, $name = null, $args = array() ) {
@@ -175,7 +175,8 @@ function get_template_part( $slug, $name = null, $args = array() ) {
 	 * @since 5.5.0 The `$args` parameter was added.
 	 *
 	 * @param string      $slug The slug name for the generic template.
-	 * @param string|null $name The name of the specialized template.
+	 * @param string|null $name The name of the specialized template or null if
+	 *                          there is none.
 	 * @param array       $args Additional arguments passed to the template.
 	 */
 	do_action( "get_template_part_{$slug}", $slug, $name, $args );
@@ -195,7 +196,8 @@ function get_template_part( $slug, $name = null, $args = array() ) {
 	 * @since 5.5.0 The `$args` parameter was added.
 	 *
 	 * @param string   $slug      The slug name for the generic template.
-	 * @param string   $name      The name of the specialized template.
+	 * @param string   $name      The name of the specialized template or an empty
+	 *                            string if there is none.
 	 * @param string[] $templates Array of template files to search for, in order.
 	 * @param array    $args      Additional arguments passed to the template.
 	 */
@@ -652,7 +654,7 @@ function wp_lostpassword_url( $redirect = '' ) {
 	}
 
 	if ( is_multisite() ) {
-		$blog_details  = get_blog_details();
+		$blog_details  = get_site();
 		$wp_login_path = $blog_details->path . 'wp-login.php';
 	} else {
 		$wp_login_path = 'wp-login.php';
@@ -956,7 +958,7 @@ function get_site_icon_url( $size = 512, $url = '', $blog_id = 0 ) {
 		$switched_blog = true;
 	}
 
-	$site_icon_id = get_option( 'site_icon' );
+	$site_icon_id = (int) get_option( 'site_icon' );
 
 	if ( $site_icon_id ) {
 		if ( $size >= 512 ) {
@@ -2054,10 +2056,10 @@ function wp_get_archives( $args = '' ) {
 		$query   = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date), MONTH(post_date) ORDER BY post_date $order $limit";
 		$key     = md5( $query );
 		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'posts' );
+		$results = wp_cache_get( $key, 'post-queries' );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'posts' );
+			wp_cache_set( $key, $results, 'post-queries' );
 		}
 		if ( $results ) {
 			$after = $parsed_args['after'];
@@ -2079,10 +2081,10 @@ function wp_get_archives( $args = '' ) {
 		$query   = "SELECT YEAR(post_date) AS `year`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date) ORDER BY post_date $order $limit";
 		$key     = md5( $query );
 		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'posts' );
+		$results = wp_cache_get( $key, 'post-queries' );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'posts' );
+			wp_cache_set( $key, $results, 'post-queries' );
 		}
 		if ( $results ) {
 			$after = $parsed_args['after'];
@@ -2103,10 +2105,10 @@ function wp_get_archives( $args = '' ) {
 		$query   = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, DAYOFMONTH(post_date) AS `dayofmonth`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date), MONTH(post_date), DAYOFMONTH(post_date) ORDER BY post_date $order $limit";
 		$key     = md5( $query );
 		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'posts' );
+		$results = wp_cache_get( $key, 'post-queries' );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'posts' );
+			wp_cache_set( $key, $results, 'post-queries' );
 		}
 		if ( $results ) {
 			$after = $parsed_args['after'];
@@ -2129,10 +2131,10 @@ function wp_get_archives( $args = '' ) {
 		$query   = "SELECT DISTINCT $week AS `week`, YEAR( `post_date` ) AS `yr`, DATE_FORMAT( `post_date`, '%Y-%m-%d' ) AS `yyyymmdd`, count( `ID` ) AS `posts` FROM `$wpdb->posts` $join $where GROUP BY $week, YEAR( `post_date` ) ORDER BY `post_date` $order $limit";
 		$key     = md5( $query );
 		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'posts' );
+		$results = wp_cache_get( $key, 'post-queries' );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'posts' );
+			wp_cache_set( $key, $results, 'post-queries' );
 		}
 		$arc_w_last = '';
 		if ( $results ) {
@@ -2168,10 +2170,10 @@ function wp_get_archives( $args = '' ) {
 		$query   = "SELECT * FROM $wpdb->posts $join $where ORDER BY $orderby $limit";
 		$key     = md5( $query );
 		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'posts' );
+		$results = wp_cache_get( $key, 'post-queries' );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'posts' );
+			wp_cache_set( $key, $results, 'post-queries' );
 		}
 		if ( $results ) {
 			foreach ( (array) $results as $result ) {
@@ -2298,16 +2300,16 @@ function get_calendar( $initial = true, $display = true ) {
 		FROM $wpdb->posts
 		WHERE post_date < '$thisyear-$thismonth-01'
 		AND post_type = 'post' AND post_status = 'publish'
-			ORDER BY post_date DESC
-			LIMIT 1"
+		ORDER BY post_date DESC
+		LIMIT 1"
 	);
 	$next     = $wpdb->get_row(
 		"SELECT MONTH(post_date) AS month, YEAR(post_date) AS year
 		FROM $wpdb->posts
 		WHERE post_date > '$thisyear-$thismonth-{$last_day} 23:59:59'
 		AND post_type = 'post' AND post_status = 'publish'
-			ORDER BY post_date ASC
-			LIMIT 1"
+		ORDER BY post_date ASC
+		LIMIT 1"
 	);
 
 	/* translators: Calendar caption: 1: Month name, 2: 4-digit year. */
@@ -3369,19 +3371,6 @@ function rsd_link() {
 	printf(
 		'<link rel="EditURI" type="application/rsd+xml" title="RSD" href="%s" />' . "\n",
 		esc_url( site_url( 'xmlrpc.php?rsd', 'rpc' ) )
-	);
-}
-
-/**
- * Displays the link to the Windows Live Writer manifest file.
- *
- * @link https://msdn.microsoft.com/en-us/library/bb463265.aspx
- * @since 2.3.1
- */
-function wlwmanifest_link() {
-	printf(
-		'<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="%s" />' . "\n",
-		includes_url( 'wlwmanifest.xml' )
 	);
 }
 
@@ -4873,7 +4862,7 @@ function wp_admin_css_uri( $file = 'wp-admin' ) {
  */
 function wp_admin_css( $file = 'wp-admin', $force_echo = false ) {
 	// For backward compatibility.
-	$handle = 0 === strpos( $file, 'css/' ) ? substr( $file, 4 ) : $file;
+	$handle = str_starts_with( $file, 'css/' ) ? substr( $file, 4 ) : $file;
 
 	if ( wp_styles()->query( $handle ) ) {
 		if ( $force_echo || did_action( 'wp_print_styles' ) ) {

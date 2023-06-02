@@ -820,6 +820,24 @@ function update_menu_item_cache( $menu_items ) {
  * @return object The menu item with standard menu item properties.
  */
 function wp_setup_nav_menu_item( $menu_item ) {
+
+	/**
+	 * Filters whether to short-circuit the wp_setup_nav_menu_item() output.
+	 *
+	 * Returning a non-null value from the filter will short-circuit wp_setup_nav_menu_item(),
+	 * returning that value instead.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param object|null $modified_menu_item Modified menu item. Default null.
+	 * @param object      $menu_item          The menu item to modify.
+	 */
+	$pre_menu_item = apply_filters( 'pre_wp_setup_nav_menu_item', null, $menu_item );
+
+	if ( null !== $pre_menu_item ) {
+		return $pre_menu_item;
+	}
+
 	if ( isset( $menu_item->post_type ) ) {
 		if ( 'nav_menu_item' === $menu_item->post_type ) {
 			$menu_item->db_id            = (int) $menu_item->ID;
@@ -1285,7 +1303,7 @@ function wp_map_nav_menu_locations( $new_nav_menu_locations, $old_nav_menu_locat
  * Resets menu_item_parent to 0 when the parent is set to the item itself.
  * For use before saving `_menu_item_menu_item_parent` in nav-menus.php.
  *
- * @since 6.1.2
+ * @since 6.2.0
  * @access private
  *
  * @param array $menu_item_data The menu item data array.

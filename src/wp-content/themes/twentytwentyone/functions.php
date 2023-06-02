@@ -340,7 +340,7 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 		add_theme_support( 'custom-units' );
 
 		// Remove feed icon link from legacy RSS widget.
-		add_filter( 'rss_widget_feed_link', '__return_false' );
+		add_filter( 'rss_widget_feed_link', '__return_empty_string' );
 	}
 }
 add_action( 'after_setup_theme', 'twenty_twenty_one_setup' );
@@ -489,6 +489,7 @@ add_action( 'enqueue_block_editor_assets', 'twentytwentyone_block_editor_script'
  * thus it does not warrant having an entire dedicated blocking script being loaded.
  *
  * @since Twenty Twenty-One 1.0
+ * @deprecated Twenty Twenty-One 1.9 Removed from wp_print_footer_scripts action.
  *
  * @link https://git.io/vWdr2
  */
@@ -508,7 +509,6 @@ function twenty_twenty_one_skip_link_focus_fix() {
 		<?php
 	}
 }
-add_action( 'wp_print_footer_scripts', 'twenty_twenty_one_skip_link_focus_fix' );
 
 /**
  * Enqueue non-latin language styles.

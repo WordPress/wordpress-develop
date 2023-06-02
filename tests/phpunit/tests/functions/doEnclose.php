@@ -1,14 +1,9 @@
 <?php
+
 /**
  * Test cases for the `do_enclose()` function.
  *
  * @package WordPress\UnitTests
- *
- * @since 5.3.0
- */
-
-/**
- * Tests_Functions_DoEnclose class.
  *
  * @since 5.3.0
  *
@@ -33,7 +28,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 *
 	 * @since 5.3.0
 	 *
-	 * @dataProvider data_test_do_enclose
+	 * @dataProvider data_do_enclose
 	 */
 	public function test_function_with_explicit_content_input( $content, $expected ) {
 		$post_id = self::factory()->post->create();
@@ -49,7 +44,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 *
 	 * @since 5.3.0
 	 *
-	 * @dataProvider data_test_do_enclose
+	 * @dataProvider data_do_enclose
 	 */
 	public function test_function_with_implicit_content_input( $content, $expected ) {
 		$post_id = self::factory()->post->create(
@@ -77,7 +72,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_test_do_enclose() {
+	public function data_do_enclose() {
 		return array(
 			'null'                  => array(
 				'content'  => null,
@@ -149,7 +144,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 * @since 5.3.0
 	 */
 	public function test_function_should_delete_enclosed_link_when_no_longer_in_post_content() {
-		$data = $this->data_test_do_enclose();
+		$data = $this->data_do_enclose();
 
 		// Create a post with a single movie link.
 		$post_id = self::factory()->post->create(
@@ -183,7 +178,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 * @since 5.3.0
 	 */
 	public function test_function_should_support_post_object_input() {
-		$data = $this->data_test_do_enclose();
+		$data = $this->data_do_enclose();
 
 		$post_object = self::factory()->post->create_and_get(
 			array(
@@ -203,7 +198,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 * @since 5.3.0
 	 */
 	public function test_function_enclosure_links_should_be_filterable() {
-		$data = $this->data_test_do_enclose();
+		$data = $this->data_do_enclose();
 
 		$post_id = self::factory()->post->create(
 			array(

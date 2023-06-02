@@ -160,7 +160,7 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 
 		/*
 		 * Enable support for Post Formats.
-		 * See https://wordpress.org/support/article/post-formats/
+		 * See https://wordpress.org/documentation/article/post-formats/
 		 */
 		add_theme_support(
 			'post-formats',
@@ -338,10 +338,10 @@ function twentyfourteen_scripts() {
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
 
 	// Load our main stylesheet.
-	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri(), array(), '20221101' );
+	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri(), array(), '20230328' );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentyfourteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfourteen-style' ), '20210622' );
+	wp_enqueue_style( 'twentyfourteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfourteen-style' ), '20230206' );
 
 	// Load the Internet Explorer specific stylesheet.
 	wp_enqueue_style( 'twentyfourteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentyfourteen-style' ), '20140711' );
@@ -371,7 +371,7 @@ function twentyfourteen_scripts() {
 		);
 	}
 
-	wp_enqueue_script( 'twentyfourteen-script', get_template_directory_uri() . '/js/functions.js', array( 'jquery' ), '20210122', true );
+	wp_enqueue_script( 'twentyfourteen-script', get_template_directory_uri() . '/js/functions.js', array( 'jquery' ), '20230526', true );
 }
 add_action( 'wp_enqueue_scripts', 'twentyfourteen_scripts' );
 
@@ -419,7 +419,7 @@ function twentyfourteen_resource_hints( $urls, $relation_type ) {
  */
 function twentyfourteen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20210216' );
+	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20230206' );
 	// Add custom fonts.
 	$font_version = ( 0 === strpos( (string) twentyfourteen_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentyfourteen-fonts', twentyfourteen_font_url(), array(), $font_version );
@@ -471,7 +471,7 @@ if ( ! function_exists( 'twentyfourteen_the_attached_image' ) ) :
 		// If there is more than 1 attachment in a gallery...
 		if ( count( $attachment_ids ) > 1 ) {
 			foreach ( $attachment_ids as $idx => $attachment_id ) {
-				if ( $attachment_id == $post->ID ) {
+				if ( $attachment_id === $post->ID ) {
 					$next_id = $attachment_ids[ ( $idx + 1 ) % count( $attachment_ids ) ];
 					break;
 				}
@@ -721,6 +721,8 @@ if ( ! class_exists( 'Featured_Content' ) && 'plugins.php' !== $GLOBALS['pagenow
  *
  * Enables installing Twenty Fourteen in WordPress versions before 4.0.0 when the
  * `is_customize_preview` function was introduced.
+ *
+ * @global WP_Customize_Manager $wp_customize Customizer object.
  */
 if ( ! function_exists( 'is_customize_preview' ) ) :
 	function is_customize_preview() {

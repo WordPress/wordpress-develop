@@ -271,7 +271,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @ticket 41039
 	 */
 	public function test_fresh_site_flag_clearing() {
-		global $wp_customize, $wpdb;
+		global $wp_customize;
 
 		// Make sure fresh site flag is cleared when publishing a changeset.
 		update_option( 'fresh_site', '1' );
@@ -283,9 +283,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		wp_load_alloptions();
 
 		// Make sure no DB write is done when publishing and a site is already non-fresh.
-		$query_count = $wpdb->num_queries;
+		$query_count = get_num_queries();
 		do_action( 'customize_save_after', $wp_customize );
-		$this->assertSame( $query_count, $wpdb->num_queries );
+		$this->assertSame( $query_count, get_num_queries() );
 	}
 
 	/**
