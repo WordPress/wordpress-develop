@@ -5690,9 +5690,9 @@ function wp_get_loading_attr_default( $context ) {
  *
  * @since 6.3.0
  *
- * @param string $tag_name The tag name.
- * @param array[] $attr Array of the attributes for the tag.
- * @param string $context Context for the element for which the loading optimization attribute is requested.
+ * @param string  $tag_name The tag name.
+ * @param array[] $attr     Array of the attributes for the tag.
+ * @param string  $context  Context for the element for which the loading optimization attribute is requested.
  *
  * @return array[] Loading optimization attributes.
  */
