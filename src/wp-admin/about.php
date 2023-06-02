@@ -44,7 +44,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section">
 			<div class="column">
-				<h2 class="aligncenter">
+				<h2>
 					<?php
 					printf(
 						/* translators: %s: Version number. */
@@ -53,7 +53,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					);
 					?>
 				</h2>
-				<p class="is-subheading aligncenter">
+				<p class="is-subheading">
 					<?php
 					printf(
 						/* translators: 1: Count of enhancements, 2: Count of bug fixes. */
@@ -279,12 +279,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<hr class="is-large" />
 
 		<div class="return-to-dashboard">
-			<?php if ( current_user_can( 'update_core' ) && isset( $_GET['updated'] ) ) : ?>
-				<a href="<?php echo esc_url( self_admin_url( 'update-core.php' ) ); ?>">
-					<?php is_multisite() ? _e( 'Go to Updates' ) : _e( 'Go to Dashboard &rarr; Updates' ); ?>
-				</a> |
-			<?php endif; ?>
-			<a href="<?php echo esc_url( self_admin_url() ); ?>"><?php is_blog_admin() ? _e( 'Go to Dashboard &rarr; Home' ) : _e( 'Go to Dashboard' ); ?></a>
+			<?php
+			if ( isset( $_GET['updated'] ) && current_user_can( 'update_core' ) ) {
+				printf(
+					'<a href="%1$s">%2$s</a> | ',
+					esc_url( self_admin_url( 'update-core.php' ) ),
+					is_multisite() ? __( 'Go to Updates' ) : __( 'Go to Dashboard &rarr; Updates' )
+				);
+			}
+
+			printf(
+				'<a href="%1$s">%2$s</a>',
+				esc_url( self_admin_url() ),
+				is_blog_admin() ? __( 'Go to Dashboard &rarr; Home' ) : __( 'Go to Dashboard' )
+			);
+			?>
 		</div>
 	</div>
 
