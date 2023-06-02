@@ -137,7 +137,7 @@ JS;
   );
 })();
 </script>
-<script type='text/javascript' src='http://example.org/ms-isinsa-1.js' id='ms-isinsa-1-js' defer></script>
+<script type='text/javascript' src='http://example.org/ms-isinsa-1.js' id='ms-isinsa-1-js' defer data-wp-strategy='defer'></script>
 <script type='text/javascript' id='ms-isinsa-1-js-after'>
 console.log("after one");
 </script>
@@ -168,7 +168,7 @@ EXP;
 		wp_enqueue_script( 'ms-isa-1', 'http://example.org/ms-isa-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-isa-1', 'console.log("after one");', 'after', true );
 		$output    = get_echo( 'wp_print_scripts' );
-		$expected  = "<script type='text/javascript' src='http://example.org/ms-isa-1.js' id='ms-isa-1-js' defer></script>\n";
+		$expected  = "<script type='text/javascript' src='http://example.org/ms-isa-1.js' id='ms-isa-1-js' defer data-wp-strategy='defer'></script>\n";
 		$expected .= "<script type='text/javascript' id='ms-isa-1-js-after'>\n";
 		$expected .= "console.log(\"after one\");\n";
 		$expected .= "</script>\n";
@@ -194,7 +194,7 @@ EXP;
 		wp_enqueue_script( 'ms-isa-2', 'http://example.org/ms-isa-2.js', array(), null, array( 'strategy' => 'async' ) );
 		wp_add_inline_script( 'ms-isa-2', 'console.log("after one");', 'after', true );
 		$output    = get_echo( 'wp_print_scripts' );
-		$expected  = "<script type='text/javascript' src='http://example.org/ms-isa-2.js' id='ms-isa-2-js' async></script>\n";
+		$expected  = "<script type='text/javascript' src='http://example.org/ms-isa-2.js' id='ms-isa-2-js' async data-wp-strategy='async'></script>\n";
 		$expected .= "<script type='text/javascript' id='ms-isa-2-js-after'>\n";
 		$expected .= "console.log(\"after one\");\n";
 		$expected .= "</script>\n";
@@ -274,7 +274,7 @@ EXP;
   );
 })();
 </script>
-<script type='text/javascript' src='http://example.org/ms-insa-1.js' id='ms-insa-1-js' defer></script>
+<script type='text/javascript' src='http://example.org/ms-insa-1.js' id='ms-insa-1-js' defer data-wp-strategy='defer'></script>
 <script id='ms-insa-1-js-after' type='text/template' data-wp-executes-after='ms-insa-1'>
 console.log("after one");
 </script>
@@ -356,7 +356,7 @@ EXP;
   );
 })();
 </script>
-<script type='text/javascript' src='http://example.org/ms-insa-2.js' id='ms-insa-2-js' async></script>
+<script type='text/javascript' src='http://example.org/ms-insa-2.js' id='ms-insa-2-js' async data-wp-strategy='async'></script>
 <script id='ms-insa-2-js-after' type='text/template' data-wp-executes-after='ms-insa-2'>
 console.log("after one");
 </script>
@@ -446,7 +446,7 @@ EXP;
 		$expected .= "<script type='text/javascript' id='ms-i1-1-js-before'>\n";
 		$expected .= "console.log(\"before one\");\n";
 		$expected .= "</script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ms-i1-1.js' id='ms-i1-1-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ms-i1-1.js' id='ms-i1-1-js' defer data-wp-strategy='defer'></script>\n";
 
 		$this->assertSame( $expected, $output, 'Inline scripts in the "before" position, that are non-standalone and attached to a deferred main script, are failing to print/execute.' );
 	}
@@ -476,9 +476,9 @@ EXP;
 		$expected .= "<script type='text/javascript' id='ds-i2-2-js-before'>\n";
 		$expected .= "console.log(\"before one\");\n";
 		$expected .= "</script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ds-i2-2.js' id='ds-i2-2-js' defer></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ds-i2-3.js' id='ds-i2-3-js' defer></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ms-i2-1.js' id='ms-i2-1-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-i2-2.js' id='ds-i2-2-js' defer data-wp-strategy='defer'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-i2-3.js' id='ds-i2-3-js' defer data-wp-strategy='defer'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ms-i2-1.js' id='ms-i2-1-js' defer data-wp-strategy='defer'></script>\n";
 
 		$this->assertSame( $expected, $output, 'Inline scripts in the "before" position, that are non-standalone and attached to a deferred main scripts dependency chain, are failing to print/execute.' );
 	}
@@ -507,9 +507,9 @@ EXP;
 		$expected  = "<script type='text/javascript' id='ds-i3-1-js-before'>\n";
 		$expected .= "console.log(\"before one\");\n";
 		$expected .= "</script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ds-i3-1.js' id='ds-i3-1-js' defer></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ds-i3-2.js' id='ds-i3-2-js' defer></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ms-i3-1.js' id='ms-i3-1-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-i3-1.js' id='ds-i3-1-js' defer data-wp-strategy='defer'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-i3-2.js' id='ds-i3-2-js' defer data-wp-strategy='defer'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ms-i3-1.js' id='ms-i3-1-js' defer data-wp-strategy='defer'></script>\n";
 
 		$this->assertSame( $expected, $output, 'Inline scripts in the "before" position, that are non-standalone and attached to the top most dependency in an all dependencies deferred chain, are failing to print/execute.' );
 	}
@@ -536,14 +536,14 @@ EXP;
 		wp_enqueue_script( 'ms-i4-1', 'http://example.org/ms-i4-1.js', array( 'ch2-ds-i4-1', 'ch2-ds-i4-2' ), null, array( 'strategy' => 'defer' ) );
 		$output = get_echo( 'wp_print_scripts' );
 
-		$expected  = "<script type='text/javascript' src='http://example.org/ch1-ds-i4-1.js' id='ch1-ds-i4-1-js' defer></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ch1-ds-i4-2.js' id='ch1-ds-i4-2-js' defer></script>\n";
+		$expected  = "<script type='text/javascript' src='http://example.org/ch1-ds-i4-1.js' id='ch1-ds-i4-1-js' defer data-wp-strategy='defer'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ch1-ds-i4-2.js' id='ch1-ds-i4-2-js' defer data-wp-strategy='defer'></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.org/ch2-ds-i4-1.js' id='ch2-ds-i4-1-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='ch2-ds-i4-2-js-before'>\n";
 		$expected .= "console.log(\"before one\");\n";
 		$expected .= "</script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ch2-ds-i4-2.js' id='ch2-ds-i4-2-js' defer></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ms-i4-1.js' id='ms-i4-1-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ch2-ds-i4-2.js' id='ch2-ds-i4-2-js' defer data-wp-strategy='defer'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ms-i4-1.js' id='ms-i4-1-js' defer data-wp-strategy='defer'></script>\n";
 
 		$this->assertSame( $expected, $output, 'Inline scripts in the "before" position, that are non-standalone and attached to one of two dependencies in an all scrips deferred chain, are failing to print/execute.' );
 	}
@@ -570,13 +570,13 @@ EXP;
 		wp_add_inline_script( 'ms-is1-1', 'console.log("before one");', 'before', true );
 		$output = get_echo( 'wp_print_scripts' );
 
-		$expected  = "<script type='text/javascript' src='http://example.org/ds-is1-1.js' id='ds-is1-1-js' defer></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ds-is1-2.js' id='ds-is1-2-js' defer></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ds-is1-3.js' id='ds-is1-3-js' defer></script>\n";
+		$expected  = "<script type='text/javascript' src='http://example.org/ds-is1-1.js' id='ds-is1-1-js' defer data-wp-strategy='defer'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-is1-2.js' id='ds-is1-2-js' defer data-wp-strategy='defer'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-is1-3.js' id='ds-is1-3-js' defer data-wp-strategy='defer'></script>\n";
 		$expected .= "<script type='text/javascript' id='ms-is1-1-js-before'>\n";
 		$expected .= "console.log(\"before one\");\n";
 		$expected .= "</script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ms-is1-1.js' id='ms-is1-1-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ms-is1-1.js' id='ms-is1-1-js' defer data-wp-strategy='defer'></script>\n";
 
 		$this->assertSame( $expected, $output, 'Inline scripts in the "before" position, that are standalone and attached to a deferred main script, are failing to print/execute.' );
 	}
@@ -603,13 +603,13 @@ EXP;
 		wp_add_inline_script( 'ds-is2-2', 'console.log("before one");', 'before', true );
 		$output = get_echo( 'wp_print_scripts' );
 
-		$expected  = "<script type='text/javascript' src='http://example.org/ds-is2-1.js' id='ds-is2-1-js' defer></script>\n";
+		$expected  = "<script type='text/javascript' src='http://example.org/ds-is2-1.js' id='ds-is2-1-js' defer data-wp-strategy='defer'></script>\n";
 		$expected .= "<script type='text/javascript' id='ds-is2-2-js-before'>\n";
 		$expected .= "console.log(\"before one\");\n";
 		$expected .= "</script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ds-is2-2.js' id='ds-is2-2-js' defer></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ds-is2-3.js' id='ds-is2-3-js' defer></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ms-is2-1.js' id='ms-is2-1-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-is2-2.js' id='ds-is2-2-js' defer data-wp-strategy='defer'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-is2-3.js' id='ds-is2-3-js' defer data-wp-strategy='defer'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ms-is2-1.js' id='ms-is2-1-js' defer data-wp-strategy='defer'></script>\n";
 
 		$this->assertSame( $expected, $output, 'Inline scripts in the "before" position, that are standalone and attached to a deferred main script, are failing to print/execute.' );
 	}
@@ -627,7 +627,7 @@ EXP;
 		// No dependents, No dependencies then async.
 		wp_enqueue_script( 'main-script-a1', '/main-script-a1.js', array(), null, array( 'strategy' => 'async' ) );
 		$output   = get_echo( 'wp_print_scripts' );
-		$expected = "<script type='text/javascript' src='/main-script-a1.js' id='main-script-a1-js' async></script>\n";
+		$expected = "<script type='text/javascript' src='/main-script-a1.js' id='main-script-a1-js' async data-wp-strategy='async'></script>\n";
 		$this->assertSame( $expected, $output, 'Scripts enqueued with an async loading strategy are failing to have the async attribute applied to the script handle when being printed.' );
 	}
 
@@ -646,7 +646,7 @@ EXP;
 		wp_enqueue_script( 'dependency-script-a2', '/dependency-script-a2.js', array(), null );
 		wp_enqueue_script( 'main-script-a2', '/main-script-a2.js', array( 'dependency-script-a2' ), null, array( 'strategy' => 'async' ) );
 		$output   = get_echo( 'wp_print_scripts' );
-		$expected = "<script type='text/javascript' src='/main-script-a2.js' id='main-script-a2-js' defer></script>";
+		$expected = "<script type='text/javascript' src='/main-script-a2.js' id='main-script-a2-js' defer data-wp-strategy='async'></script>";
 		$this->assertStringContainsString( $expected, $output, 'Scripts registered as async but that have dependencies are expected to be deferred.' );
 
 		// If any dependent then it's not async. Since dependent is not set to defer the final strategy will be blocking.
@@ -682,7 +682,7 @@ EXP;
 		// No dependents, No dependencies and defer strategy.
 		wp_enqueue_script( 'main-script-d1', 'http://example.com/main-script-d1.js', array(), null, array( 'strategy' => 'defer' ) );
 		$output   = get_echo( 'wp_print_scripts' );
-		$expected = "<script type='text/javascript' src='http://example.com/main-script-d1.js' id='main-script-d1-js' defer></script>\n";
+		$expected = "<script type='text/javascript' src='http://example.com/main-script-d1.js' id='main-script-d1-js' defer data-wp-strategy='defer'></script>\n";
 		array_push( $data, array( $expected, $output, 'Expected defer, as there is no dependent or dependency' ) );
 
 		// Main script is defer and all dependencies are either defer/blocking.
@@ -691,7 +691,7 @@ EXP;
 		wp_enqueue_script( 'dependency-script-d2-3', 'http://example.com/dependency-script-d2-3.js', array( 'dependency-script-d2-2' ), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'main-script-d2', 'http://example.com/main-script-d2.js', array( 'dependency-script-d2-1', 'dependency-script-d2-3' ), null, array( 'strategy' => 'defer' ) );
 		$output   = get_echo( 'wp_print_scripts' );
-		$expected = "<script type='text/javascript' src='http://example.com/main-script-d2.js' id='main-script-d2-js' defer></script>\n";
+		$expected = "<script type='text/javascript' src='http://example.com/main-script-d2.js' id='main-script-d2-js' defer data-wp-strategy='defer'></script>\n";
 		array_push( $data, array( $expected, $output, 'Expected defer, as all dependencies are either deferred or blocking' ) );
 
 		// Main script is defer and all dependent are defer.
@@ -700,7 +700,7 @@ EXP;
 		wp_enqueue_script( 'dependent-script-d3-2', 'http://example.com/dependent-script-d3-2.js', array( 'dependent-script-d3-1' ), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'dependent-script-d3-3', 'http://example.com/dependent-script-d3-3.js', array( 'dependent-script-d3-2' ), null, array( 'strategy' => 'defer' ) );
 		$output   = get_echo( 'wp_print_scripts' );
-		$expected = "<script type='text/javascript' src='http://example.com/main-script-d3.js' id='main-script-d3-js' defer></script>\n";
+		$expected = "<script type='text/javascript' src='http://example.com/main-script-d3.js' id='main-script-d3-js' defer data-wp-strategy='defer'></script>\n";
 		array_push( $data, array( $expected, $output, 'Expected defer, as all dependents have defer loading strategy' ) );
 
 		return $data;
@@ -722,10 +722,10 @@ EXP;
 		wp_enqueue_script( 'dependent-script-d4-2', '/dependent-script-d4-2.js', array( 'dependent-script-d4-1' ), null, array( 'strategy' => 'async' ) );
 		wp_enqueue_script( 'dependent-script-d4-3', '/dependent-script-d4-3.js', array( 'dependent-script-d4-2' ), null, array( 'strategy' => 'defer' ) );
 		$output    = get_echo( 'wp_print_scripts' );
-		$expected  = "<script type='text/javascript' src='/main-script-d4.js' id='main-script-d4-js' defer></script>\n";
-		$expected .= "<script type='text/javascript' src='/dependent-script-d4-1.js' id='dependent-script-d4-1-js' defer></script>\n";
-		$expected .= "<script type='text/javascript' src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer></script>\n";
-		$expected .= "<script type='text/javascript' src='/dependent-script-d4-3.js' id='dependent-script-d4-3-js' defer></script>\n";
+		$expected  = "<script type='text/javascript' src='/main-script-d4.js' id='main-script-d4-js' defer data-wp-strategy='defer'></script>\n";
+		$expected .= "<script type='text/javascript' src='/dependent-script-d4-1.js' id='dependent-script-d4-1-js' defer data-wp-strategy='defer'></script>\n";
+		$expected .= "<script type='text/javascript' src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer data-wp-strategy='async'></script>\n";
+		$expected .= "<script type='text/javascript' src='/dependent-script-d4-3.js' id='dependent-script-d4-3-js' defer data-wp-strategy='defer'></script>\n";
 
 		$this->assertSame( $expected, $output, 'Scripts registered as defer but that have dependents that are async are expected to have said dependents deferred.' );
 	}
@@ -1004,7 +1004,7 @@ EXP;
 
 		$ver       = get_bloginfo( 'version' );
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep,two-concat-dep,three-concat-dep&amp;ver={$ver}'></script>\n";
-		$expected .= "<script type='text/javascript' src='/main-script.js' id='main-defer-script-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='/main-script.js' id='main-defer-script-js' defer data-wp-strategy='defer'></script>\n";
 
 		$this->assertSame( $expected, $print_scripts, 'Scripts are being incorrectly concatenated when a main script is registered with a "defer" loading strategy. Deferred scripts should not be part of the script concat loading query.' );
 	}
@@ -1040,7 +1040,7 @@ EXP;
 
 		$ver       = get_bloginfo( 'version' );
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep-1,two-concat-dep-1,three-concat-dep-1&amp;ver={$ver}'></script>\n";
-		$expected .= "<script type='text/javascript' src='/main-script.js' id='main-async-script-1-js' async></script>\n";
+		$expected .= "<script type='text/javascript' src='/main-script.js' id='main-async-script-1-js' async data-wp-strategy='async'></script>\n";
 
 		$this->assertSame( $expected, $print_scripts, 'Scripts are being incorrectly concatenated when a main script is registered with an "async" loading strategy. Async scripts should not be part of the script concat loading query.' );
 	}
@@ -1079,7 +1079,7 @@ EXP;
 
 		$ver       = get_bloginfo( 'version' );
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep-2,two-concat-dep-2,three-concat-dep-2,four-concat-dep-2,five-concat-dep-2,six-concat-dep-2&amp;ver={$ver}'></script>\n";
-		$expected .= "<script type='text/javascript' src='/main-script.js' id='deferred-script-2-js' defer></script>\n";
+		$expected .= "<script type='text/javascript' src='/main-script.js' id='deferred-script-2-js' defer data-wp-strategy='defer'></script>\n";
 
 		$this->assertSame( $expected, $print_scripts, 'Scripts are being incorrectly concatenated when a main script is registered as deferred after other blocking scripts are registered. Deferred scripts should not be part of the script concat loader query string. ' );
 	}
