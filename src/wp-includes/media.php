@@ -5723,8 +5723,10 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		return $loading_attrs;
 	}
 
-	// Skip lazy-loading for the overall block template, as it is handled more granularly.
-	// The skip is also applicable for fetchpriority.
+	/*
+	 * Skip lazy-loading for the overall block template, as it is handled more granularly.
+	 * The skip is also applicable for `fetchpriority`.
+	 */
 	if ( 'template' === $context ) {
 		return $loading_attrs;
 	}
