@@ -457,6 +457,26 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that when seeking to an earlier spot in the document that
+	 * all previously-enqueued updates are applied as they ought to be.
+	 *
+	 * @ticket 58160
+	 */
+	public function test_get_updated_html_applies_updates_to_content_after_seeking_to_before_parsed_bytes() {
+		$p = new WP_HTML_Tag_Processor( '<div><img hidden></div>' );
+
+		$p->next_tag();
+		$p->set_attribute( 'wonky', true );
+		$p->next_tag();
+		$p->set_bookmark( 'here' );
+
+		$p->next_tag( array( 'tag_closers' => 'visit' ) );
+		$p->seek( 'here' );
+
+		$this->assertSame( '<div wonky><img hidden></div>', $p->get_updated_html() );
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
@@ -549,6 +569,32 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 
 		$p = new WP_HTML_Tag_Processor( 'abc</title>' );
 		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </title> tag closer when there was no tag opener' );
+	}
+
+	/**
+	 * Verifies that updates to a document before calls to `get_updated_html()` don't
+	 * lead to the Tag Processor jumping to the wrong tag after the updates.
+	 *
+	 * @ticket 58179
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_updated_html
+	 */
+	public function test_internal_pointer_returns_to_original_spot_after_inserting_content_before_cursor() {
+		$tags = new WP_HTML_Tag_Processor( '<div>outside</div><section><div><img>inside</div></section>' );
+
+		$tags->next_tag();
+		$tags->add_class( 'foo' );
+		$tags->next_tag( 'section' );
+
+		// Return to this spot after moving ahead.
+		$tags->set_bookmark( 'here' );
+
+		// Move ahead.
+		$tags->next_tag( 'img' );
+		$tags->seek( 'here' );
+		$this->assertSame( '<div class="foo">outside</div><section><div><img>inside</div></section>', $tags->get_updated_html() );
+		$this->assertSame( 'SECTION', $tags->get_tag() );
+		$this->assertFalse( $tags->is_tag_closer() );
 	}
 
 	/**
@@ -960,6 +1006,24 @@ class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
 			$p->get_updated_html(),
 			'Existing attribute was not updated'
 		);
+	}
+
+	/**
+	 * Ensures that when setting an attribute multiple times that only
+	 * one update flushes out into the updated HTML.
+	 *
+	 * @ticket 58146
+	 *
+	 * @covers WP_HTML_Tag_Processor::set_attribute
+	 */
+	public function test_set_attribute_with_case_variants_updates_only_the_original_first_copy() {
+		$p = new WP_HTML_Tag_Processor( '<div data-enabled="5">' );
+		$p->next_tag();
+		$p->set_attribute( 'DATA-ENABLED', 'canary' );
+		$p->set_attribute( 'Data-Enabled', 'canary' );
+		$p->set_attribute( 'dATa-EnABled', 'canary' );
+
+		$this->assertSame( '<div data-enabled="canary">', strtolower( $p->get_updated_html() ) );
 	}
 
 	/**
@@ -1484,7 +1548,7 @@ HTML;
 HTML;
 
 		$p = new WP_HTML_Tag_Processor( $input );
-		$this->assertTrue( $p->next_tag( 'div' ), 'Querying an existing tag did not return true' );
+		$this->assertTrue( $p->next_tag( 'div' ), 'Did not find first DIV tag in input.' );
 		$p->set_attribute( 'data-details', '{ "key": "value" }' );
 		$p->add_class( 'is-processed' );
 		$this->assertTrue(
@@ -1494,7 +1558,7 @@ HTML;
 					'class_name' => 'BtnGroup',
 				)
 			),
-			'Querying an existing tag did not return true'
+			'Did not find the first BtnGroup DIV tag'
 		);
 		$p->remove_class( 'BtnGroup' );
 		$p->add_class( 'button-group' );
@@ -1506,7 +1570,7 @@ HTML;
 					'class_name' => 'BtnGroup',
 				)
 			),
-			'Querying an existing tag did not return true'
+			'Did not find the second BtnGroup DIV tag'
 		);
 		$p->remove_class( 'BtnGroup' );
 		$p->add_class( 'button-group' );
@@ -1519,10 +1583,10 @@ HTML;
 					'match_offset' => 3,
 				)
 			),
-			'Querying an existing tag did not return true'
+			'Did not find third BUTTON tag with "btn" CSS class'
 		);
 		$p->remove_attribute( 'class' );
-		$this->assertFalse( $p->next_tag( 'non-existent' ), 'Querying a non-existing tag did not return false' );
+		$this->assertFalse( $p->next_tag( 'non-existent' ), "Found a {$p->get_tag()} tag when none should have been found." );
 		$p->set_attribute( 'class', 'test' );
 		$this->assertSame( $expected_output, $p->get_updated_html(), 'Calling get_updated_html after updating the attributes did not return the expected HTML' );
 	}
@@ -1715,6 +1779,47 @@ HTML;
 	}
 
 	/**
+	 * Invalid tag names are comments on tag closers.
+	 *
+	 * @ticket 58007
+	 *
+	 * @link https://html.spec.whatwg.org/#parse-error-invalid-first-character-of-tag-name
+	 *
+	 * @dataProvider data_next_tag_ignores_invalid_first_character_of_tag_name_comments
+	 *
+	 * @param string $html_with_markers HTML containing an invalid tag closer whose element before and
+	 *                                  element after contain the "start" and "end" CSS classes.
+	 */
+	public function test_next_tag_ignores_invalid_first_character_of_tag_name_comments( $html_with_markers ) {
+		$p = new WP_HTML_Tag_Processor( $html_with_markers );
+		$p->next_tag( array( 'class_name' => 'start' ) );
+		$p->next_tag();
+
+		$this->assertSame( 'end', $p->get_attribute( 'class' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_next_tag_ignores_invalid_first_character_of_tag_name_comments() {
+		return array(
+			'Invalid tag openers as normal text'           => array(
+				'<ul><li><div class=start>I <3 when outflow > inflow</div><img class=end></li></ul>',
+			),
+
+			'Invalid tag closers as comments'              => array(
+				'<ul><li><div class=start>I </3 when <img> outflow <br class=end> inflow</div></li></ul>',
+			),
+
+			'Unexpected question mark instead of tag name' => array(
+				'<div class=start><?xml-stylesheet type="text/css" href="style.css"?><hr class=end>',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
@@ -1763,6 +1868,99 @@ HTML;
 				'rcdata_then_div' => '<textarea class="d-md-none"></title></textarea><div></div>',
 				'rcdata_tag'      => 'TEXTAREA',
 			),
+		);
+	}
+
+	/**
+	 * Ensures that the invalid comment closing syntax "--!>" properly closes a comment.
+	 *
+	 * @ticket 58007
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 *
+	 */
+	public function test_allows_incorrectly_closed_comments() {
+		$p = new WP_HTML_Tag_Processor( '<img id=before><!-- <img id=inside> --!><img id=after>--><img id=final>' );
+
+		$p->next_tag();
+		$this->assertSame( 'before', $p->get_attribute( 'id' ), 'Did not find starting tag.' );
+
+		$p->next_tag();
+		$this->assertSame( 'after', $p->get_attribute( 'id' ), 'Did not properly close improperly-closed comment.' );
+
+		$p->next_tag();
+		$this->assertSame( 'final', $p->get_attribute( 'id' ), 'Did not skip over unopened comment-closer.' );
+	}
+
+	/**
+	 * Ensures that unclosed and invalid comments don't trigger warnings or errors.
+	 *
+	 * @ticket 58007
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 *
+	 * @dataProvider data_html_with_unclosed_comments
+	 *
+	 * @param string $html_ending_before_comment_close HTML with opened comments that aren't closed
+	 */
+	public function test_documents_may_end_with_unclosed_comment( $html_ending_before_comment_close ) {
+		$p = new WP_HTML_Tag_Processor( $html_ending_before_comment_close );
+
+		$this->assertFalse( $p->next_tag() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_html_with_unclosed_comments() {
+		return array(
+			'Shortest open valid comment'      => array( '<!--' ),
+			'Basic truncated comment'          => array( '<!-- this ends --' ),
+			'Comment with closer look-alike'   => array( '<!-- this ends --x' ),
+			'Comment with closer look-alike 2' => array( '<!-- this ends --!x' ),
+			'Invalid tag-closer comment'       => array( '</(when will this madness end?)' ),
+			'Invalid tag-closer comment 2'     => array( '</(when will this madness end?)--' ),
+		);
+	}
+
+	/**
+	 * Ensures that abruptly-closed empty comments are properly closed.
+	 *
+	 * @ticket 58007
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 *
+	 * @dataProvider data_abruptly_closed_empty_comments
+	 *
+	 * @param string $html_with_after_marker HTML to test with "id=after" on element immediately following an abruptly closed comment.
+	 */
+	public function test_closes_abrupt_closing_of_empty_comment( $html_with_after_marker ) {
+		$p = new WP_HTML_Tag_Processor( $html_with_after_marker );
+		$p->next_tag();
+		$p->next_tag();
+
+		$this->assertSame( 'after', $p->get_attribute( 'id' ), 'Did not find tag after closing abruptly-closed comment' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_abruptly_closed_empty_comments() {
+		return array(
+			'Empty comment with two dashes only' => array( '<hr><!--><hr id=after>' ),
+			'Empty comment with two dashes only, improperly closed' => array( '<hr><!--!><hr id=inside>--><hr id=after>' ),
+			'Comment with two dashes only, improperly closed twice' => array( '<hr><!--!><hr id=inside>--!><hr id=after>' ),
+			'Empty comment with three dashes'    => array( '<hr><!---><hr id=after>' ),
+			'Empty comment with three dashes, improperly closed' => array( '<hr><!---!><hr id=inside>--><hr id=after>' ),
+			'Comment with three dashes, improperly closed twice' => array( '<hr><!---!><hr id=inside>--!><hr id=after>' ),
+			'Empty comment with four dashes'     => array( '<hr><!----><hr id=after>' ),
+			'Empty comment with four dashes, improperly closed' => array( '<hr><!----!><hr id=after>--><hr id=final>' ),
+			'Comment with four dashes, improperly closed twice' => array( '<hr><!----!><hr id=after>--!><hr id=final>' ),
+			'Comment with almost-closer inside'  => array( '<hr><!-- ---!><hr id=after>--!><hr id=final>' ),
 		);
 	}
 
