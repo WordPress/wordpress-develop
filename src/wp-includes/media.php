@@ -2066,7 +2066,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		}
 
 		if ( ! empty( $optimization_attrs['loading'] ) ) {
-			$image = str_replace( '<img', '<img loading="' . esc_attr( $optimization_attrs['loading'] ) . '"', $image );
+			$image_elm->set_attribute( 'loading',  esc_attr( $optimization_attrs['loading'] ) );
 		}
 	}
 
