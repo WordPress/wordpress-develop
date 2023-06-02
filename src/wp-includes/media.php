@@ -2048,7 +2048,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 
 		// fetchpriority='high' and loading='lazy' should be mutually exclusive.
 		if (
-		isset( $optimization_attrs['loading'] ) && isset( $optimization_attrs['fetchpriority'] ) &&
+		isset( $optimization_attrs['loading'], $optimization_attrs['fetchpriority'] ) &&
 		'lazy' === $optimization_attrs['loading'] && 'high' === $optimization_attrs['fetchpriority']
 		) {
 			_doing_it_wrong(
