@@ -2038,9 +2038,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 			$context
 		);
 
-		/**
-		 * Validate the values after filtering.
-		 */
+		// Validate the values after filtering.
 		if ( isset( $optimization_attrs['loading'] ) && ! $filtered_loading_attr ) {
 			// unset loading attributes if $filtered_loading_attr is set to false.
 			unset( $optimization_attrs['loading'] );
