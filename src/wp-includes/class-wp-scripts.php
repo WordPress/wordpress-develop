@@ -318,9 +318,12 @@ class WP_Scripts extends WP_Dependencies {
 			$before_script = sprintf( "<script%s id='%s-js-before'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $before_script );
 		}
 
-		$strategy     = $this->get_eligible_loading_strategy( $handle );
-		$after        = ( 'defer' === $strategy || 'async' === $strategy ) ? 'after-standalone' : 'after';
-		$after_script = $this->print_inline_script( $handle, $after, false );
+		$intended_strategy    = $this->get_data( $handle, 'strategy' );
+		$strategy             = $this->get_eligible_loading_strategy( $handle );
+		$strategy_has_changed = false !== $intended_strategy && '' !== $strategy && $intended_strategy !== $strategy;
+		$strategy_data_attr   = $strategy_has_changed ? $intended_strategy : $strategy;
+		$after                = ( 'defer' === $strategy || 'async' === $strategy ) ? 'after-standalone' : 'after';
+		$after_script         = $this->print_inline_script( $handle, $after, false );
 
 		if ( $after_script ) {
 			$after_script = sprintf(
@@ -435,11 +438,12 @@ class WP_Scripts extends WP_Dependencies {
 
 		$tag  = $translations . $cond_before . $before_script;
 		$tag .= sprintf(
-			"<script%s src='%s' id='%s-js'%s></script>\n",
+			"<script%s src='%s' id='%s-js'%s%s></script>\n",
 			$this->type_attr,
 			esc_url( $src ),
 			esc_attr( $handle ),
-			$strategy ? " {$strategy}" : ''
+			$strategy ? " {$strategy}" : '',
+			$strategy_data_attr ? " data-wp-strategy='{$strategy_data_attr}'" : ''
 		);
 		$tag .= $after_script . $cond_after;
 
