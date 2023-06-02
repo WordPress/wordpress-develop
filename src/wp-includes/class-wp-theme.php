@@ -361,10 +361,10 @@ final class WP_Theme implements ArrayAccess {
 		if ( ! $this->template ) {
 			$this->template = $this->stylesheet;
 			$theme_path     = $this->theme_root . '/' . $this->stylesheet;
-			$is_block_theme = $this->is_block_theme();
+			$this->is_block_theme();
 
 			if (
-				! $is_block_theme
+				! $this->block_theme
 				&& ! file_exists( $theme_path . '/index.php' )
 			) {
 				$error_message = sprintf(
@@ -380,7 +380,7 @@ final class WP_Theme implements ArrayAccess {
 				$this->cache_add(
 					'theme',
 					array(
-						'block_theme' => $is_block_theme,
+						'block_theme' => $this->block_theme,
 						'headers'     => $this->headers,
 						'errors'      => $this->errors,
 						'stylesheet'  => $this->stylesheet,
