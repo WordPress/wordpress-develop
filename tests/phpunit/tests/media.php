@@ -3948,7 +3948,6 @@ EOF;
 		$this->force_omit_loading_attr_threshold( 1 );
 		// Reset the media counting variable.
 		$this->reset_content_media_count();
-		wp_high_priority_element_flag( true );
 
 		$content_img      = get_image_tag( self::$large_id, '', '', '', 'large' );
 		$lazy_content_img = wp_img_tag_add_loading_attr( $content_img, 'the_content' );
@@ -3977,7 +3976,7 @@ EOF;
 				'post_content_filtered' => $post_content,
 			)
 		);
-
+		wp_high_priority_element_flag( true );
 		$wp_query     = new WP_Query( array( 'p' => self::$post_ids['publish'] ) );
 		$wp_the_query = $wp_query;
 		$post         = get_post( self::$post_ids['publish'] );
@@ -4065,7 +4064,6 @@ EOF;
 
 		// Reset counting variables.
 		$this->reset_content_media_count();
-		wp_high_priority_element_flag( true );
 
 		// Force no lazy-loading on the image tag expected in the content.
 		$expected_content = wpautop(
@@ -4080,15 +4078,17 @@ EOF;
 			)
 		);
 
-		// Overwrite post content with an image.
-		add_filter(
-			'the_content',
-			static function() {
-				// Replace content with an image tag, i.e. the 'wp_get_attachment_image' context is used while running 'the_content' filter.
-				return wp_get_attachment_image( self::$large_id, 'large', false );
-			},
-			9 // Run before wp_filter_content_tags().
-		);
+				// Overwrite post content with an image.
+				add_filter(
+					'the_content',
+					static function() {
+						// Replace content with an image tag, i.e. the 'wp_get_attachment_image' context is used while running 'the_content' filter.
+						return wp_get_attachment_image( self::$large_id, 'large', false );
+					},
+					9 // Run before wp_filter_content_tags().
+				);
+
+		wp_high_priority_element_flag( true );
 
 		/*
 		 * We have to run a main query loop so that the first 'the_content' context image is not
