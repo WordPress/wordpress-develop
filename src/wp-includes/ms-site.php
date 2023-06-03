@@ -832,22 +832,10 @@ function wp_uninitialize_site( $site_id ) {
 	 * @param int      $site_id The ID of the site to drop tables for.
 	 */
 	$drop_tables = apply_filters( 'wpmu_drop_tables', $tables, $site->id );
-// var_dump( $drop_tables );
+
 	foreach ( (array) $drop_tables as $table ) {
-//var_dump( $table );
-		$result = $wpdb->query( "DROP TABLE IF EXISTS `$table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-//var_dump( $result );
+		$wpdb->query( "DROP TABLE IF EXISTS `$table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
-
-
-// $mytables=$wpdb->get_results("SHOW TABLES");
-// foreach ($mytables as $mytable)
-// {
-// 	foreach ($mytable as $t) 
-// 	{       
-// 		echo $t . "<br>";
-// 	}
-// }
 
 	/**
 	 * Filters the upload base directory to delete when the site is deleted.
