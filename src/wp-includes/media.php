@@ -5634,7 +5634,7 @@ function wp_get_loading_attr_default( $context ) {
 	}
 
 	// Special handling for programmatically created image tags.
-	if ( ( 'the_post_thumbnail' === $context || 'wp_get_attachment_image' === $context ) ) {
+	if ( 'the_post_thumbnail' === $context || 'wp_get_attachment_image' === $context ) {
 		/*
 		 * Skip programmatically created images within post content as they need to be handled together with the other
 		 * images within the post content.
@@ -5730,6 +5730,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
 	}
 
+	// An image with `fetchpriority="high"` cannot be assigned `loading="lazy"` at the same time.
 	if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority'] ) {
 		return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
 	}
@@ -5750,7 +5751,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	}
 
 	// Special handling for programmatically created image tags.
-	if ( ( 'the_post_thumbnail' === $context || 'wp_get_attachment_image' === $context ) ) {
+	if ( 'the_post_thumbnail' === $context || 'wp_get_attachment_image' === $context ) {
 		/*
 		 * Skip programmatically created images within post content as they need to be handled together with the other
 		 * images within the post content.
