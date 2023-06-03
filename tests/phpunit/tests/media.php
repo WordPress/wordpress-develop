@@ -4234,7 +4234,6 @@ EOF;
 
 		// Reset the variable.
 		$this->reset_content_media_count();
-		wp_high_priority_element_flag( true );
 
 		$post_content  = '<img src="example.jpg" width="800" height="600">';
 		$post_content .= '<p>Some text.</p>';
@@ -4258,6 +4257,7 @@ EOF;
 			)
 		);
 
+		wp_high_priority_element_flag( true );
 		$wp_query     = new WP_Query( array( 'post__in' => array( $post_id ) ) );
 		$wp_the_query = $wp_query;
 
