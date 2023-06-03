@@ -832,10 +832,22 @@ function wp_uninitialize_site( $site_id ) {
 	 * @param int      $site_id The ID of the site to drop tables for.
 	 */
 	$drop_tables = apply_filters( 'wpmu_drop_tables', $tables, $site->id );
-
+// var_dump( $drop_tables );
 	foreach ( (array) $drop_tables as $table ) {
-		$wpdb->query( "DROP TABLE IF EXISTS `$table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+//var_dump( $table );
+		$result = $wpdb->query( "DROP TABLE IF EXISTS `$table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+//var_dump( $result );
 	}
+
+
+// $mytables=$wpdb->get_results("SHOW TABLES");
+// foreach ($mytables as $mytable)
+// {
+// 	foreach ($mytable as $t) 
+// 	{       
+// 		echo $t . "<br>";
+// 	}
+// }
 
 	/**
 	 * Filters the upload base directory to delete when the site is deleted.
@@ -906,15 +918,14 @@ function wp_is_site_initialized( $site_id ) {
 	}
 
 	$suppress = $wpdb->suppress_errors();
-	$result   = (bool) $wpdb->get_results( "DESCRIBE {$wpdb->posts}" );
+	$result   = $wpdb->get_results( "DESCRIBE {$wpdb->get_blog_prefix()}posts" );
 	$wpdb->suppress_errors( $suppress );
 
 	if ( $switch ) {
 		restore_current_blog();
 		add_action( 'switch_blog', 'wp_switch_roles_and_user', 1, 2 );
 	}
-
-	return $result;
+	return (bool) $result;
 }
 
 /**
