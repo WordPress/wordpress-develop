@@ -2055,7 +2055,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		'lazy' === $optimization_attrs['loading'] && 'high' === $optimization_attrs['fetchpriority']
 		) {
 			_doing_it_wrong(
-				__METHOD__,
+				__FUNCTION__,
 				sprintf(
 					/* translators: %s: fetchpriority="high". */
 					__( 'An image cannot be lazy-loaded and assigned %s at the same time.' ),
