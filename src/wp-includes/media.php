@@ -4186,7 +4186,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 	$response = array(
 		'id'            => $attachment->ID,
-		'title'			=> trim( preg_replace( '/\s\s+/', ' ', wp_strip_all_tags( $attachment->post_title, true ) ) ),
+		'title'			=> str_replace( array( '\r\n', '\r', '\n' ), '', $attachment->post_title ),
 		'filename'      => wp_basename( get_attached_file( $attachment->ID ) ),
 		'url'           => $attachment_url,
 		'link'          => get_attachment_link( $attachment->ID ),
