@@ -2045,14 +2045,10 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		if ( isset( $optimization_attrs['loading'] ) && ! $filtered_loading_attr ) {
 			// Unset `loading` attributes if `$filtered_loading_attr` is set to `false`.
 			unset( $optimization_attrs['loading'] );
-		} elseif ( in_array( $filtered_loading_attr, array( 'lazy', 'eager' ), true ) ) {
-			$optimization_attrs['loading'] = $filtered_loading_attr;
-		}
-
-		// fetchpriority='high' and loading='lazy' should be mutually exclusive.
-		if (
-		isset( $optimization_attrs['loading'], $optimization_attrs['fetchpriority'] ) &&
-		'lazy' === $optimization_attrs['loading'] && 'high' === $optimization_attrs['fetchpriority']
+		} elseif (
+			$filtered_loading_attr !== ( isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false ) &&
+			// fetchpriority='high' and loading='lazy' should be mutually exclusive.
+			'lazy' === $filtered_loading_attr && 'high' === $optimization_attrs['fetchpriority']
 		) {
 			_doing_it_wrong(
 				__FUNCTION__,
@@ -2063,6 +2059,11 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 				),
 				'6.3.0'
 			);
+
+			// The filtered value will still be respected.
+			$optimization_attrs['loading'] = $filtered_loading_attr;
+		} elseif ( in_array( $filtered_loading_attr, array( 'lazy', 'eager' ), true ) ) {
+			$optimization_attrs['loading'] = $filtered_loading_attr;
 		}
 
 		if ( ! empty( $optimization_attrs['loading'] ) ) {
@@ -5711,23 +5712,22 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		return $loading_attrs;
 	}
 
-	if ( isset( $attr['loading'], $attr['fetchpriority'] ) && 'lazy' === $attr['loading'] && 'high' === $attr['fetchpriority'] ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			sprintf(
-				/* translators: %s: fetchpriority="high". */
-				__( 'An image cannot be lazy-loaded and assigned %s at the same time.' ),
-				'<code>fetchpriority="high"</code>'
-			),
-			'6.3.0'
-		);
-		return $loading_attrs;
-	}
-
-	// If the lazy-loading attribute already present then don't add `fetchpriority="high"`.
 	if ( isset( $attr['loading'] ) && 'lazy' === $attr['loading'] ) {
+		if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority']
+		) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: %s: fetchpriority="high". */
+					__( 'An image cannot be lazy-loaded and assigned %s at the same time.' ),
+					'<code>fetchpriority="high"</code>'
+				),
+				'6.3.0'
+			);
+		}
+
 		$loading_attrs['loading'] = 'lazy';
-		return $loading_attrs;
+		return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
 	}
 
 	// An image with `fetchpriority="high"` cannot be assigned `loading="lazy"` at the same time.
@@ -5867,12 +5867,32 @@ function wp_increase_content_media_count( $amount = 1 ) {
  */
 function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ) {
 	if ( ! empty( $attr['fetchpriority'] ) ) {
+		// Any existing value will be set as it is.
 		$loading_attrs['fetchpriority'] = $attr['fetchpriority'];
+		if ( 'high' === $attr['fetchpriority'] ) {
+			wp_high_priority_element_flag( false );
+		}
 		return $loading_attrs;
 	}
-	$img_size                   = $attr['width'] * $attr['height'];
-	$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 5000 );
-	if ( $wp_min_priority_img_pixels <= $img_size && wp_high_priority_element_flag() ) {
+
+	// Lazy-loading and `fetchpriority="high"` are mutually exclusive.
+	if ( isset( $loading_attrs['loading'] ) && 'lazy' === $loading_attrs['loading'] ) {
+		return $loading_attrs;
+	}
+
+	if ( ! wp_high_priority_element_flag() ) {
+		return $loading_attrs;
+	}
+
+	/*
+	 * Filters the minimum square-pixels threshold for an image to be eligible as the high-priority image.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param int $threshold Minimum square-pixels threshold. Default 50000.
+	 */
+	$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 50000 );
+	if ( $wp_min_priority_img_pixels <= $attr['width'] * $attr['height'] ) {
 		$loading_attrs['fetchpriority'] = 'high';
 		wp_high_priority_element_flag( false );
 	}
