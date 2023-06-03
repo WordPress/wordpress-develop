@@ -2066,7 +2066,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		}
 
 		if ( ! empty( $optimization_attrs['loading'] ) ) {
-			$image_elm->set_attribute( 'loading',  esc_attr( $optimization_attrs['loading'] ) );
+			$image_elm->set_attribute( 'loading', esc_attr( $optimization_attrs['loading'] ) );
 		}
 	}
 
@@ -5711,6 +5711,19 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		return $loading_attrs;
 	}
 
+	if ( isset( $attr['loading'], $attr['fetchpriority'] ) && 'lazy' === $attr['loading'] && 'high' === $attr['fetchpriority'] ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: fetchpriority="high". */
+				__( 'An image cannot be lazy-loaded and assigned %s at the same time.' ),
+				'<code>fetchpriority="high"</code>'
+			),
+			'6.3.0'
+		);
+		return $loading_attrs;
+	}
+
 	// If the lazy-loading attribute already present then don't add `fetchpriority="high"`.
 	if ( isset( $attr['loading'] ) && 'lazy' === $attr['loading'] ) {
 		$loading_attrs['loading'] = 'lazy';
@@ -5878,7 +5891,7 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ) {
 function wp_high_priority_element_flag( $value = null ) {
 	static $high_priority_element = true;
 
-	if ( isset( $value ) && is_bool( $value ) ) {
+	if ( is_bool( $value ) ) {
 		$high_priority_element = $value;
 	}
 	return $high_priority_element;
