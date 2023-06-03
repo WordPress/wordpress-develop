@@ -5730,10 +5730,8 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
 	}
 
-	// An image with `fetchpriority="high"` cannot be assigned `loading="lazy"` at the same time.
 	if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority'] ) {
-		$loading_attrs['fetchpriority'] = 'high';
-		return $loading_attrs;
+		return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
 	}
 
 	/*
@@ -5866,12 +5864,9 @@ function wp_increase_content_media_count( $amount = 1 ) {
  * @return array[] $loading_attrs Updated loading attributes for the element.
  */
 function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ) {
-	if ( ! empty( $attr['fetchpriority'] ) ) {
-		// Any existing value will be set as it is.
-		$loading_attrs['fetchpriority'] = $attr['fetchpriority'];
-		if ( 'high' === $attr['fetchpriority'] ) {
-			wp_high_priority_element_flag( false );
-		}
+	if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority'] ) {
+		$loading_attrs['fetchpriority'] = 'high';
+		wp_high_priority_element_flag( false );
 		return $loading_attrs;
 	}
 
