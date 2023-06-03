@@ -2055,7 +2055,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		'lazy' === $optimization_attrs['loading'] && 'high' === $optimization_attrs['fetchpriority']
 		) {
 			_doing_it_wrong(
-				__METHOD__,
+				__FUNCTION__,
 				sprintf(
 					/* translators: %s: fetchpriority="high". */
 					__( 'An image cannot be lazy-loaded and assigned %s at the same time.' ),
@@ -5862,7 +5862,7 @@ function wp_increase_content_media_count( $amount = 1 ) {
  * @access private
  *
  * @param array[] $loading_attrs Array of the loading attributes for the element.
- * @param array[] $attr Array of the attributes for the element.
+ * @param array[] $attr          Array of the attributes for the element.
  * @return array[] $loading_attrs Updated loading attributes for the element.
  */
 function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ) {
@@ -5886,7 +5886,7 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ) {
  * @access private
  *
  * @param bool $value Optional. Used to change the static variable. Default null.
- * @return bool $high_priority_element Return true if element is of higer priority else false.
+ * @return bool Returns true if high-priority element was marked already, otherwise false.
  */
 function wp_high_priority_element_flag( $value = null ) {
 	static $high_priority_element = true;
