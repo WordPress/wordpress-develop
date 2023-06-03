@@ -2046,7 +2046,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 			// Unset `loading` attributes if `$filtered_loading_attr` is set to `false`.
 			unset( $optimization_attrs['loading'] );
 		} elseif (
-			$filtered_loading_attr !== ( isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false ) &&
+			( isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false ) !== $filtered_loading_attr &&
 			// fetchpriority='high' and loading='lazy' should be mutually exclusive.
 			'lazy' === $filtered_loading_attr && 'high' === $optimization_attrs['fetchpriority']
 		) {
