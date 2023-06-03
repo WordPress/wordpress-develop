@@ -5873,7 +5873,7 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ) {
  * @access private
  *
  * @param bool $value Optional. Used to change the static variable. Default null.
- * @return bool $high_priority_element Return true if element is of higer priority else false.
+ * @return bool Returns true if high-priority element was marked already, otherwise false.
  */
 function wp_high_priority_element_flag( $value = null ) {
 	static $high_priority_element = true;
