@@ -5794,7 +5794,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 
 		// If the count so far is below the threshold, `loading` attribute is omitted.
 		if ( $content_media_count <= wp_omit_loading_attr_threshold() ) {
-			// The first largest image will still get ftchpriority='high'.
+			// The first largest image will still get `fetchpriority='high'`.
 			return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
 		}
 	}
