@@ -5849,7 +5849,7 @@ function wp_increase_content_media_count( $amount = 1 ) {
  * @access private
  *
  * @param array[] $loading_attrs Array of the loading attributes for the element.
- * @param array[] $attr Array of the attributes for the element.
+ * @param array[] $attr          Array of the attributes for the element.
  * @return array[] $loading_attrs Updated loading attributes for the element.
  */
 function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ) {
