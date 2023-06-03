@@ -2066,15 +2066,15 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		}
 
 		if ( ! empty( $optimization_attrs['loading'] ) ) {
-			$image = str_replace( '<img', '<img loading="' . esc_attr( $optimization_attrs['loading'] ) . '"', $image );
+			$image_elm->set_attribute( 'loading',  esc_attr( $optimization_attrs['loading'] ) );
 		}
 	}
 
 	if ( empty( $fetchpriority_val ) && ! empty( $optimization_attrs['fetchpriority'] ) ) {
-		$image = str_replace( '<img', '<img fetchpriority="' . esc_attr( $optimization_attrs['fetchpriority'] ) . '"', $image );
+		$image_elm->set_attribute( 'fetchpriority', esc_attr( $optimization_attrs['fetchpriority'] ) );
 	}
 
-	return $image;
+	return $image_elm->get_updated_html();
 }
 
 /**
@@ -5690,11 +5690,11 @@ function wp_get_loading_attr_default( $context ) {
  *
  * @since 6.3.0
  *
- * @param string $tag_name The tag name.
- * @param array[] $attr Array of the attributes for the tag.
- * @param string $context Context for the element for which the loading optimization attribute is requested.
+ * @param string  $tag_name The tag name.
+ * @param array[] $attr     Array of the attributes for the tag.
+ * @param string  $context  Context for the element for which the loading optimization attribute is requested.
  *
- * @return array[] loading optimization attributes.
+ * @return array[] Loading optimization attributes.
  */
 function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	global $wp_query;
@@ -5717,14 +5717,16 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		return $loading_attrs;
 	}
 
-	// If a 'fetchpriority' attribute with value 'high' is already provided, do not add `loading="lazy"`.
+	// An image with `fetchpriority="high"` cannot be assigned `loading="lazy"` at the same time.
 	if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority'] ) {
 		$loading_attrs['fetchpriority'] = 'high';
 		return $loading_attrs;
 	}
 
-	// Skip lazy-loading for the overall block template, as it is handled more granularly.
-	// The skip is also applicable for fetchpriority.
+	/*
+	 * Skip lazy-loading for the overall block template, as it is handled more granularly.
+	 * The skip is also applicable for `fetchpriority`.
+	 */
 	if ( 'template' === $context ) {
 		return $loading_attrs;
 	}
@@ -5865,7 +5867,7 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ) {
 }
 
 /**
- * A flag that indicates if a media is a possible candidate for fetchpriority='high'.
+ * Accesses a flag that indicates if an element is a possible candidate for `fetchpriority='high'`.
  *
  * @since 6.3.0
  * @access private
