@@ -3922,6 +3922,7 @@ EOF;
 	 * to the featured image when using a block theme.
 	 *
 	 * @ticket 56930
+	 * @ticket 58235
 	 *
 	 * @since 6.3.0 Apply fetchpriority="high" on the LCP image.
 	 *
@@ -4216,6 +4217,7 @@ EOF;
 	 * that featured image not being lazy-loaded, since the images in the post content aren't displayed in the excerpt.
 	 *
 	 * @ticket 56588
+	 * @ticket 58235
 	 *
 	 * @since 6.3.0 Apply fetchpriority="high" on the LCP image.
 	 *
