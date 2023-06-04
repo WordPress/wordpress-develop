@@ -4,6 +4,11 @@ require_once ABSPATH . 'wp-admin/includes/admin.php';
 require_once ABSPATH . WPINC . '/class-IXR.php';
 require_once ABSPATH . WPINC . '/class-wp-xmlrpc-server.php';
 
+if ( ! is_dir( ABSPATH . 'wp-content/uploads' ) ) {
+	//Create the default uploads folder if not present
+	mkdir( ABSPATH . 'wp-content/uploads' );
+}
+
 /**
  * @group xmlrpc
  */
