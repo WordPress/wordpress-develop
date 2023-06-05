@@ -2139,8 +2139,7 @@ JS;
 				$attributes[ $attribute_name ] = $p->get_attribute( $attribute_name );
 				$p->remove_attribute( $attribute_name );
 			}
-			//print_r($attributes);
-			$p->get_updated_html(); // Commit the changes.
+			$p->get_updated_html(); // This seems to be required to "commit" the changes, otherwise re-adding them below will result in no change.
 			foreach ( $attributes as $attribute_name => $attribute_value ) {
 				$p->set_attribute( $attribute_name, $attribute_value );
 			}
