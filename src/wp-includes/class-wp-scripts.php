@@ -578,12 +578,17 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		/*
-		 * Prevent delaying inlining before scripts for dependency bundles (where src is false) since there may not
-		 * be any load event at which we can evaluate the inline script for the dependent. Note that such a bundle
-		 * may only consist of inline script(s).
+		 * If there is a blocking dependency, do not delay because it may have an inline after script which will need
+		 * to run after the dependency's load event has fired. A blocking script's load event happens between the
+		 * execution of its inline before script and its inline after script. Delayed inline scripts get executed during
+		 * the load event of a script and only when it is delayed (defer and async). In particular, a delayed script's
+		 * load event will first run its inline after scripts and then it will proceed to run the inline before scripts
+		 * for all of its dependents. It cannot run the inline before script for itself since the script has already
+		 * loaded at that point. Therefore, the inline before scripts for any delayed script must never be delayed if
+		 * it has blocking dependencies.
 		 */
 		foreach ( $deps as $dep ) {
-			if ( empty( $this->registered[ $dep ]->src ) ) {
+			if ( ! $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $dep ) ) ) {
 				return false;
 			}
 		}
