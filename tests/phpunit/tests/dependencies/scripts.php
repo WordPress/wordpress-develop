@@ -139,7 +139,7 @@ JS;
 			)
 		);
 
-		$this->assertSame( $expected, $output, 'Inline scripts in the "after" position, that are non-standalone and attached to a blocking main script, are failing to print/execute.' );
+		$this->assertSame( $expected, $output, 'Inline scripts in the "after" position, that are attached to a blocking main script, are failing to print/execute.' );
 	}
 
 	/**
@@ -187,7 +187,7 @@ JS;
 		);
 		$expected .= "<script type='text/javascript' src='http://example.org/ms-i1-1.js' id='ms-i1-1-js' {$strategy}></script>\n";
 
-		$this->assertSame( $expected, $output, 'Inline scripts in the "before" position, that are non-standalone and attached to a deferred main script, are failing to print/execute.' );
+		$this->assertSame( $expected, $output, 'Inline scripts in the "before" position, that are attached to a deferred main script, are failing to print/execute.' );
 	}
 
 	/**
