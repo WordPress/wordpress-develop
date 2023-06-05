@@ -345,8 +345,10 @@ class WP_Theme_JSON_Resolver {
 				isset( $block_type->supports['spacing']['blockGap']['__experimentalDefault'] ) &&
 				null === _wp_array_get( $config, array( 'styles', 'blocks', $block_name, 'spacing', 'blockGap' ), null )
 			) {
-				// Ensure an empty placeholder value exists for the block, if it provides a default blockGap value.
-				// The real blockGap value to be used will be determined when the styles are rendered for output.
+				/*
+				 * Ensure an empty placeholder value exists for the block, if it provides a default blockGap value.
+				 * The real blockGap value to be used will be determined when the styles are rendered for output.
+				 */
 				$config['styles']['blocks'][ $block_name ]['spacing']['blockGap'] = null;
 			}
 		}
@@ -499,8 +501,10 @@ class WP_Theme_JSON_Resolver {
 				return new WP_Theme_JSON( $config, 'custom' );
 			}
 
-			// Very important to verify that the flag isGlobalStylesUserThemeJSON is true.
-			// If it's not true then the content was not escaped and is not safe.
+			/*
+			 * Very important to verify that the flag isGlobalStylesUserThemeJSON is true.
+			 * If it's not true then the content was not escaped and is not safe.
+			 */
 			if (
 				is_array( $decoded_data ) &&
 				isset( $decoded_data['isGlobalStylesUserThemeJSON'] ) &&
