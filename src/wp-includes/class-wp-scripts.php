@@ -500,7 +500,7 @@ class WP_Scripts extends WP_Dependencies {
 	 *                         before the handle or after. Default 'after'.
 	 * @return string Inline script, which may be empty string.
 	 */
-	public function get_inline_script_data( $handle, $position ) {
+	public function get_inline_script_data( $handle, $position = 'after' ) {
 		$data = $this->get_data( $handle, $position );
 		if ( empty( $data ) || ! is_array( $data ) ) {
 			return '';
@@ -520,7 +520,7 @@ class WP_Scripts extends WP_Dependencies {
 	 *                         before the handle or after. Default 'after'.
 	 * @return string Inline script, which may be empty string.
 	 */
-	public function get_inline_script_tag( $handle, $position ) {
+	public function get_inline_script_tag( $handle, $position, $position = 'after' ) {
 		$js = $this->get_inline_script_data( $handle, $position );
 		if ( empty( $js ) ) {
 			return '';
