@@ -822,8 +822,8 @@ function wp_default_scripts( $scripts ) {
 
 	// jQuery.
 	// The unminified jquery.js and jquery-migrate.js are included to facilitate debugging.
-	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.6.4' );
-	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.6.4' );
+	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.7.0' );
+	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.7.0' );
 	$scripts->add( 'jquery-migrate', "/wp-includes/js/jquery/jquery-migrate$suffix.js", array(), '3.4.0' );
 
 	// Full jQuery UI.
@@ -3087,7 +3087,15 @@ function wp_enqueue_stored_styles( $options = array() ) {
  * @since 5.9.0
  *
  * @param string $block_name The block-name, including namespace.
- * @param array  $args       An array of arguments [handle,src,deps,ver,media].
+ * @param array  $args       {
+ *     An array of arguments. See wp_register_style() for full information about each argument.
+ *
+ *     @type string           $handle The handle for the stylesheet.
+ *     @type string|false     $src    The source URL of the stylesheet.
+ *     @type string[]         $deps   Array of registered stylesheet handles this stylesheet depends on.
+ *     @type string|bool|null $ver    Stylesheet version number.
+ *     @type string           $media  The media for which this stylesheet has been defined.
+ * }
  */
 function wp_enqueue_block_style( $block_name, $args ) {
 	$args = wp_parse_args(
