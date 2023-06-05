@@ -526,7 +526,6 @@ class WP_Scripts extends WP_Dependencies {
 			return '';
 		}
 
-		// TODO: Handle case where a dep has a src which is false.
 		$id   = "{$handle}-js-{$position}";
 		$deps = $this->registered[ $handle ]->deps;
 
