@@ -82,7 +82,7 @@
 
 		// First, run all inline after scripts which are associated with this handle.
 		script = document.querySelector(
-			'script:not([src])[type="text/template"][id="' + handle + '-js-after"]'
+			'script:not([src])[type="text/plain"][id="' + handle + '-js-after"]'
 		);
 		if (script instanceof HTMLScriptElement) {
 			runInlineScript(script);
@@ -91,7 +91,7 @@
 		// Next, run all pending inline before scripts for all dependents for which all dependencies have loaded.
 		runReadyInlineScripts(
 			document.querySelectorAll(
-				'script:not([src])[type="text/template"][data-wp-deps][id$="-js-before"]:not([data-wp-done])'
+				'script:not([src])[type="text/plain"][data-wp-deps][id$="-js-before"]:not([data-wp-done])'
 			)
 		);
 	}

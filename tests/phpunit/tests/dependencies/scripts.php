@@ -78,7 +78,7 @@ JS;
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_non_standalone_and_standalone_after_script_combined() {
-		// If a main script containing a `defer` strategy has an `after` inline script, the expected script type is type='javascript', otherwise type='text/template'.
+		// If a main script containing a `defer` strategy has an `after` inline script, the expected script type is type='javascript', otherwise type='text/plain'.
 		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-isinsa-1', 'http://example.org/ms-isinsa-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_add_inline_script( 'ms-isinsa-1', 'console.log("after one");', 'after', true );
@@ -111,7 +111,7 @@ JS;
       return;
     }
     scripts = document.querySelectorAll(
-      '[type="text/template"][data-wp-executes-after="' + matches[1] + '"]'
+      '[type="text/plain"][data-wp-executes-after="' + matches[1] + '"]'
     );
     for (i = 0, len = scripts.length; i < len; i++) {
       if (nonce && nonce !== scripts[i].nonce) {
@@ -141,7 +141,7 @@ JS;
 <script type='text/javascript' id='ms-isinsa-1-js-after'>
 console.log("after one");
 </script>
-<script id='ms-isinsa-1-js-after' type='text/template' data-wp-executes-after='ms-isinsa-1'>
+<script id='ms-isinsa-1-js-after' type='text/plain' data-wp-executes-after='ms-isinsa-1'>
 console.log("after two");
 </script>
 
@@ -205,7 +205,7 @@ EXP;
 	 * Test non-standalone inline scripts in the `after` position with deferred main script.
 	 *
 	 * If a main script with a `defer` loading strategy has an `after` inline script,
-	 * the inline script should be rendered as type='text/template'.
+	 * the inline script should be rendered as type='text/plain'.
 	 * The common loader script should also be injected in this case.
 	 *
 	 * @ticket 12009
@@ -248,7 +248,7 @@ EXP;
       return;
     }
     scripts = document.querySelectorAll(
-      '[type="text/template"][data-wp-executes-after="' + matches[1] + '"]'
+      '[type="text/plain"][data-wp-executes-after="' + matches[1] + '"]'
     );
     for (i = 0, len = scripts.length; i < len; i++) {
       if (nonce && nonce !== scripts[i].nonce) {
@@ -275,7 +275,7 @@ EXP;
 })();
 </script>
 <script type='text/javascript' src='http://example.org/ms-insa-1.js' id='ms-insa-1-js' defer></script>
-<script id='ms-insa-1-js-after' type='text/template' data-wp-executes-after='ms-insa-1'>
+<script id='ms-insa-1-js-after' type='text/plain' data-wp-executes-after='ms-insa-1'>
 console.log("after one");
 </script>
 
@@ -287,7 +287,7 @@ EXP;
 	 * Test non-standalone inline scripts in the `after` position with async main script.
 	 *
 	 * If a main script with an `async` loading strategy has an `after` inline script,
-	 * the inline script should be rendered as type='text/template'.
+	 * the inline script should be rendered as type='text/plain'.
 	 * The common loader script should also be injected in this case.
 	 *
 	 * @ticket 12009
@@ -330,7 +330,7 @@ EXP;
       return;
     }
     scripts = document.querySelectorAll(
-      '[type="text/template"][data-wp-executes-after="' + matches[1] + '"]'
+      '[type="text/plain"][data-wp-executes-after="' + matches[1] + '"]'
     );
     for (i = 0, len = scripts.length; i < len; i++) {
       if (nonce && nonce !== scripts[i].nonce) {
@@ -357,7 +357,7 @@ EXP;
 })();
 </script>
 <script type='text/javascript' src='http://example.org/ms-insa-2.js' id='ms-insa-2-js' async></script>
-<script id='ms-insa-2-js-after' type='text/template' data-wp-executes-after='ms-insa-2'>
+<script id='ms-insa-2-js-after' type='text/plain' data-wp-executes-after='ms-insa-2'>
 console.log("after one");
 </script>
 

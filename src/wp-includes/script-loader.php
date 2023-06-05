@@ -1844,9 +1844,9 @@ function wp_just_in_time_script_localization() {
 }
 
 /**
- * Prints a loader script if there is text/template registered script.
+ * Prints a loader script if there is text/plain registered script.
  *
- * When added to the DOM, this script converts any text/template scripts
+ * When added to the DOM, this script converts any text/plain scripts
  * associated with a handle into type/javascript, and executes them.
  *
  * @since 6.3.0

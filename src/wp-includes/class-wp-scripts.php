@@ -532,7 +532,7 @@ class WP_Scripts extends WP_Dependencies {
 		if ( $this->should_delay_inline_script( $handle, $position ) ) {
 			$attributes = array(
 				'id'   => $id,
-				'type' => 'text/template', // TODO: Consider text/plain instead.
+				'type' => 'text/plain',
 			);
 			if ( $deps ) {
 				$attributes['data-wp-deps'] = implode( ',', $deps );
