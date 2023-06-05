@@ -361,10 +361,9 @@ final class WP_Theme implements ArrayAccess {
 		if ( ! $this->template ) {
 			$this->template = $this->stylesheet;
 			$theme_path     = $this->theme_root . '/' . $this->stylesheet;
-			$this->is_block_theme();
 
 			if (
-				! $this->block_theme
+				! $this->is_block_theme()
 				&& ! file_exists( $theme_path . '/index.php' )
 			) {
 				$error_message = sprintf(
