@@ -532,10 +532,15 @@ CSS;
 		wp_maybe_inline_styles();
 
 		$this->assertFalse( $GLOBALS['wp_styles']->registered['test-handle']->src, 'Source of style should be reset to false' );
-		$this->assertNotEmpty( $GLOBALS['wp_styles']->registered['test-handle']->extra['after'], 'Source of style should set to after property' );
+
+		$css = file_get_contents( ABSPATH . WPINC . '/css/classic-themes.css' );
+		$this->assertSameSets( $GLOBALS['wp_styles']->registered['test-handle']->extra['after'], array( $css ), 'Source of style should set to after property' );
 	}
 
 	/**
+	 * wp_filesize should be only be called once, as on the second run of wp_maybe_inline_styles,
+	 * src will be set to false and filesize will not be requested.
+	 *
 	 * @ticket 58394
 	 *
 	 * @covers ::wp_maybe_inline_styles
@@ -549,13 +554,9 @@ CSS;
 		wp_enqueue_style( 'test-handle' );
 
 		wp_maybe_inline_styles();
-
-		$this->assertFalse( $GLOBALS['wp_styles']->registered['test-handle']->src, 'Source of style should be reset to false' );
-		$this->assertNotEmpty( $GLOBALS['wp_styles']->registered['test-handle']->extra['after'], 'Source of style should set to after property' );
-
 		wp_maybe_inline_styles();
 
-		$this->assertSame( 1, $filter->get_call_count(), 'wp_filesize should only be called once' );
+		$this->assertSame( 1, $filter->get_call_count() );
 	}
 
 	/**
@@ -574,7 +575,7 @@ CSS;
 
 		wp_maybe_inline_styles();
 
-		$this->assertStringContainsString( $GLOBALS['wp_styles']->registered['test-handle']->src, $url, 'Source should not change' );
+		$this->assertSame( $GLOBALS['wp_styles']->registered['test-handle']->src, $url, 'Source should not change' );
 		$this->assertArrayNotHasKey( 'after', $GLOBALS['wp_styles']->registered['test-handle']->extra, 'Source of style not should set to after property' );
 		$this->assertSame( 1, $filter->get_call_count(), 'wp_filesize should only be called once' );
 	}
@@ -592,7 +593,7 @@ CSS;
 
 		wp_maybe_inline_styles();
 
-		$this->assertFalse( $GLOBALS['wp_styles']->registered['test-handle']->src, 'Source of style should be reset to false' );
+		$this->assertFalse( $GLOBALS['wp_styles']->registered['test-handle']->src, 'Source of style should remain false' );
 		$this->assertArrayNotHasKey( 'after', $GLOBALS['wp_styles']->registered['test-handle']->extra, 'Source of style not should set to after property' );
 	}
 
@@ -609,6 +610,6 @@ CSS;
 
 		wp_maybe_inline_styles();
 
-		$this->assertStringContainsString( $GLOBALS['wp_styles']->registered['test-handle']->src, $url );
+		$this->assertSame( $GLOBALS['wp_styles']->registered['test-handle']->src, $url );
 	}
 }
