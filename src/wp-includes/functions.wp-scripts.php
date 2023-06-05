@@ -168,9 +168,12 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  *                                    If set to null, no version is added.
  * @param bool             $in_footer Optional. Whether to enqueue the script before `</body>` instead of in the `<head>`.
  *                                    Default 'false'.
+ * @param array            $attr      Optional.  Accepts an array of key value pairs.
+ *                                    Supports a `strategy` key with potential values of 'blocking', 'async' or 'defer'.
+ * @since 6.2.0 Added the `$attr` parameter.
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
-function wp_register_script( $handle, $src, $deps = array(), $ver = false, $in_footer = false ) {
+function wp_register_script( $handle, $src, $deps = array(), $ver = false, $in_footer = false, $attr = false ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
 	$wp_scripts = wp_scripts();
@@ -331,6 +334,7 @@ function wp_deregister_script( $handle ) {
  * @see WP_Dependencies::enqueue()
  *
  * @since 2.1.0
+ * @since 6.2.0 Added the `$attr` parameter.
  *
  * @param string           $handle    Name of the script. Should be unique.
  * @param string           $src       Full URL of the script, or path of the script relative to the WordPress root directory.
@@ -342,8 +346,10 @@ function wp_deregister_script( $handle ) {
  *                                    If set to null, no version is added.
  * @param bool             $in_footer Optional. Whether to enqueue the script before `</body>` instead of in the `<head>`.
  *                                    Default 'false'.
+ * @param array            $attr      Optional.  Accepts an array of key value pairs.
+ *                                    Supports a `strategy` key with potential values of 'blocking', 'async' or 'defer'.
  */
-function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $in_footer = false ) {
+function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $in_footer = false, $attr = false ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
 	$wp_scripts = wp_scripts();
@@ -355,11 +361,14 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 			$wp_scripts->add( $_handle[0], $src, $deps, $ver );
 		}
 
-		if ( $in_footer ) {
+		if ( true === $in_footer ) {
 			$wp_scripts->add_data( $_handle[0], 'group', 1 );
 		}
 	}
 
+	if ( is_array( $attr ) && ! empty( $attr['strategy'] ) ) {
+		$wp_scripts->add_data( $_handle[0], 'strategy', $attr['strategy'] );
+	}
 	$wp_scripts->enqueue( $handle );
 }
 

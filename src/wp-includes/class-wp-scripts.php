@@ -289,6 +289,49 @@ class WP_Scripts extends WP_Dependencies {
 		$cond_after  = '';
 		$conditional = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
 
+		// Check if the script uses a loading strategy and determine which attributes to add.
+		$extra_atts = '';
+		$strategy   = $this->_get_strategy( $handle );
+		switch ( $strategy ) {
+			case 'defer':
+				// Scripts can only use defer (aka. "deferrable") if all scripts that depend on them ("dependents") are also deferrable.
+				if (
+					! $this->_has_after_inline_dependency( $handle ) &&
+					$this->_all_dependents_are_deferrable( $handle )
+				) {
+					$extra_atts .= ' defer';
+				}
+				break;
+			case 'async':
+				// Scripts can only use async if no other scripts depend on them.
+				if (
+					! $this->_has_after_inline_dependency( $handle ) &&
+					empty( $this->_get_dependents( $handle ) )
+				) {
+					$extra_atts .= ' async';
+				}
+				break;
+			case 'blocking':
+			default:
+				// No extra attributes are added by default
+		}
+
+		/**
+		 * Custom strategies can be added using the filter.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param array[string] $strategies[ $strategy_name ] {
+		 *    Indexed array of custom strategies.
+		 *    @type function $callback The callback function to use for the strategy.
+		 * }
+		 * @param WP_Scripts $this The WP_Scripts object.
+		 */
+		$custom_strategies = apply_filters( 'custom_strategies', array(), $this );
+		if ( isset( $custom_strategies[ $strategy ] ) && is_function( $custom_strategies[ $strategy ]['callback'] ) ) {
+			$extra_atts .= ' ' . $custom_strategies[ $strategy ]['callback']( $this );
+		}
+
 		if ( $conditional ) {
 			$cond_before = "<!--[if {$conditional}]>\n";
 			$cond_after  = "<![endif]-->\n";
@@ -391,7 +434,7 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$tag  = $translations . $cond_before . $before_handle;
-		$tag .= sprintf( "<script%s src='%s' id='%s-js'></script>\n", $this->type_attr, $src, esc_attr( $handle ) );
+		$tag .= sprintf( "<script%s src='%s' id='%s-js'%s></script>\n", $this->type_attr, $src, esc_attr( $handle ), $extra_atts );
 		$tag .= $after_handle . $cond_after;
 
 		/**
@@ -412,6 +455,106 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Check if all of a scripts dependents are deferrable which is required to maintain execution order.
+	 *
+	 * Recursively iterate through all registered scripts and for each script that depends on the passed script, check
+	 * that it is deferrable, meaning it uses the defer strategy and so do any scripts that depend on it.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param string $handle  The script handle.
+	 * @param array  $visited An array of already visited script handles used to avoid looping recursion.
+	 * @return bool True if all dependents are deferrable, false otherwise.
+	 */
+	private function _all_dependents_are_deferrable( $handle, $visited = array() ) {
+		// If this node was already visited, this script can be deferred and the branch ends.
+		if ( in_array( $handle, $visited, true ) ) {
+			return true;
+		}
+		$visited[]  = $handle;
+		$dependents = $this->_get_dependents( $handle );
+		// If there are no dependents remaining to consider, the script can be deferred and the branch ends.
+		if ( empty( $dependents ) ) {
+			return true;
+		}
+
+		// Consider each dependent and check if it is deferrable.
+		foreach ( $dependents as $dependent ) {
+			// If the dependent script is not using the defer strategy, no script in the chain is deferrable.
+			if ( ! $this->uses_defer_strategy( $dependent ) ) {
+				return false;
+			}
+
+			// If the script has an 'after' inline dependency, no script in the chain is deferrable.
+			if ( $this->_has_after_inline_dependency( $dependent ) ) {
+				return false;
+			}
+
+			// Recursively check any dependents of the dependent script. If any dependent script is not deferrable,
+			// no script in the chain is deferrable.
+			if ( ! $this->_all_dependents_are_deferrable( $dependent, $visited ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Helper function to check if a script has an `after` inline dependency.
+	 */
+	private function _has_after_inline_dependency( $handle ) {
+		return false !== $this->get_data( $handle, 'after' );
+	}
+
+	/**
+	 * Get all of the scripts that depend on a script.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param string $handle The script handle.
+	 * @return array Array of script handles.
+	 */
+	private function _get_dependents( $handle ) {
+		$dependents = array();
+
+		// Iterate over all registered scripts, finding ones that depend on the script.
+		foreach ( $this->registered as $registered_handle => $args ) {
+			if ( in_array( $handle, $args->deps, true ) ) {
+				$dependents[] = $registered_handle;
+			}
+		}
+
+		return $dependents;
+	}
+
+	/**
+	 * Check if a script uses a strategy of 'defer'.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param string $handle The script handle.
+	 * @return bool Whether the script uses a `defer` strategy.
+	 */
+	public function uses_defer_strategy( $handle ) {
+		$obj      = $this->registered[ $handle ];
+		$strategy = $this->_get_strategy( $handle );
+		return 'defer' === $strategy;
+	}
+
+	/**
+	 * Get a scripts strategy, or false if no strategy is set.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param string $handle The script handle.
+	 * @return string|false The script strategy. False if not set.
+	 */
+	private function _get_strategy( $handle ) {
+		$obj = $this->registered[ $handle ];
+		return isset( $obj->extra['strategy'] ) ? $obj->extra['strategy'] : false;
 	}
 
 	/**
