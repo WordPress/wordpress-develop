@@ -577,20 +577,15 @@ class WP_Scripts extends WP_Dependencies {
 			return false;
 		}
 
-		$has_blocking_dependency = false;
-		foreach ( $this->registered[ $handle ]->deps as $dep ) {
-			if ( ! $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $dep ) ) ) {
-				$has_blocking_dependency = true;
-				break;
-			}
-		}
-
 		/*
-		 * If there is a blocking dependency, do not delay because it may have an inline after script which will need
-		 * to run after the load event has transpired.
+		 * Prevent delaying inlining before scripts for dependency bundles (where src is false) since there may not
+		 * be any load event at which we can evaluate the inline script for the dependent. Note that such a bundle
+		 * may only consist of inline script(s).
 		 */
-		if ( $has_blocking_dependency ) {
-			return false;
+		foreach ( $this->registered[ $handle ]->deps as $dep ) {
+			if ( empty( $this->registered[ $dep ]->src ) ) {
+				return false;
+			}
 		}
 
 		return true;
