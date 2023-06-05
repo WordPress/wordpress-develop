@@ -582,7 +582,7 @@ class WP_Scripts extends WP_Dependencies {
 		 * be any load event at which we can evaluate the inline script for the dependent. Note that such a bundle
 		 * may only consist of inline script(s).
 		 */
-		foreach ( $this->registered[ $handle ]->deps as $dep ) {
+		foreach ( $deps as $dep ) {
 			if ( empty( $this->registered[ $dep ]->src ) ) {
 				return false;
 			}
