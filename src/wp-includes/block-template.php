@@ -37,7 +37,9 @@ function _add_template_loader_filters() {
  * Internally, this communicates the block content that needs to be used by the template canvas through a global variable.
  *
  * @since 5.8.0
+ * @since 6.3.0 Set $_wp_current_template global.
  *
+ * @global string $_wp_current_template
  * @global string $_wp_current_template_content
  *
  * @param string   $template  Path to the template. See locate_template().
@@ -46,6 +48,7 @@ function _add_template_loader_filters() {
  * @return string The path to the Site Editor template canvas file, or the fallback PHP template.
  */
 function locate_block_template( $template, $type, array $templates ) {
+	global $_wp_current_template;
 	global $_wp_current_template_content;
 
 	if ( ! current_theme_supports( 'block-templates' ) ) {
@@ -86,6 +89,7 @@ function locate_block_template( $template, $type, array $templates ) {
 				$block_template->title
 			);
 		} elseif ( ! empty( $block_template->content ) ) {
+			$_wp_current_template         = $block_template;
 			$_wp_current_template_content = $block_template->content;
 		}
 		if ( isset( $_GET['_wp-find-template'] ) ) {
@@ -210,6 +214,24 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
  */
 function _block_template_render_title_tag() {
 	echo '<title>' . wp_get_document_title() . '</title>' . "\n";
+}
+
+/**
+ * Returns the current block template.
+ *
+ * Returns a block template object specifying the current block template,
+ * or null if no block theme is being used.
+ *
+ * @since 6.3.0
+ *
+ * @return WP_Block_Template|null Template.
+ */
+function get_current_block_template() {
+	global $_wp_current_template;
+	if ( ! $_wp_current_template ) {
+		return null;
+	}
+	return $_wp_current_template;
 }
 
 /**
