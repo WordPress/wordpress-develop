@@ -884,18 +884,19 @@ JS;
 	 * Checks all handles for any delayed inline scripts.
 	 *
 	 * @since 6.3.0
+	 * @see WP_Scripts::should_delay_inline_script()
 	 *
 	 * @return bool True if the inline script present, otherwise false.
 	 */
 	public function has_delayed_inline_script() {
 		foreach ( $this->registered as $handle => $script ) {
-			if ( ! $this->get_data( $handle, 'before' ) && ! $this->get_data( $handle, 'after' ) ) {
-				continue;
-			}
-
-			$strategy = $this->get_eligible_loading_strategy( $handle );
-			if ( $this->is_delayed_strategy( $strategy ) ) {
-				return true;
+			foreach ( array( 'before', 'after' ) as $position ) {
+				if (
+					$this->get_data( $handle, $position ) &&
+					$this->should_delay_inline_script( $handle, $position )
+				) {
+					return true;
+				}
 			}
 		}
 		return false;

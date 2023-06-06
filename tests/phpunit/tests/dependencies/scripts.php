@@ -618,6 +618,34 @@ scriptEventLog.push( "async-dependent-of-defer: after inline" )
 </script>
 HTML,
 			),
+			'defer-with-before-inline-script'              => array(
+				'set_up'          => function () {
+					// Note this should NOT result in no delayed-inline-script-loader script being added.
+					$handle = 'defer-with-before-inline';
+					$this->enqueue_test_script( $handle, 'defer', array() );
+					$this->add_test_inline_script( $handle, 'before' );
+				},
+				'expected_markup' => <<<HTML
+<script id="defer-with-before-inline-js-before" type="text/javascript">
+scriptEventLog.push( "defer-with-before-inline: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-with-before-inline:%20script' id='defer-with-before-inline-js' defer></script>
+HTML,
+			),
+			'defer-with-after-inline-script'               => array(
+				'set_up'          => function () {
+					// Note this SHOULD result in delayed-inline-script-loader script being added.
+					$handle = 'defer-with-after-inline';
+					$this->enqueue_test_script( $handle, 'defer', array() );
+					$this->add_test_inline_script( $handle, 'after' );
+				},
+				'expected_markup' => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-with-after-inline:%20script' id='defer-with-after-inline-js' defer></script>
+<script id="defer-with-after-inline-js-after" type="text/plain">
+scriptEventLog.push( "defer-with-after-inline: after inline" )
+</script>
+HTML,
+			),
 		);
 	}
 
@@ -629,6 +657,7 @@ HTML,
 	 * @covers ::wp_print_scripts()
 	 * @covers WP_Scripts::should_delay_inline_script
 	 * @covers WP_Scripts::get_inline_script_tag
+	 * @covers WP_Scripts::has_delayed_inline_script
 	 *
 	 * @dataProvider data_provider_to_test_various_strategy_dependency_chains
 	 * @param callable $set_up          Set up.
