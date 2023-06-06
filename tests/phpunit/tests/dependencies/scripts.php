@@ -318,7 +318,7 @@ scriptEventLog.push( "defer-dependency-with-blocking-preceding-dependency: befor
 <script id="defer-dependency-with-blocking-preceding-dependency-js-after" type="text/plain">
 scriptEventLog.push( "defer-dependency-with-blocking-preceding-dependency: after inline" )
 </script>
-<script id="defer-dependent-of-blocking-and-defer-dependencies-js-before" type="text/javascript">
+<script id="defer-dependent-of-blocking-and-defer-dependencies-js-before" type="text/plain" data-wp-deps="blocking-dependency-with-defer-following-dependency,defer-dependency-with-blocking-preceding-dependency">
 scriptEventLog.push( "defer-dependent-of-blocking-and-defer-dependencies: before inline" )
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-blocking-and-defer-dependencies:%20script' id='defer-dependent-of-blocking-and-defer-dependencies-js' defer></script>
@@ -356,7 +356,7 @@ scriptEventLog.push( "blocking-dependency-with-defer-preceding-dependency: befor
 <script id="blocking-dependency-with-defer-preceding-dependency-js-after" type="text/javascript">
 scriptEventLog.push( "blocking-dependency-with-defer-preceding-dependency: after inline" )
 </script>
-<script id="defer-dependent-of-defer-and-blocking-dependencies-js-before" type="text/javascript">
+<script id="defer-dependent-of-defer-and-blocking-dependencies-js-before" type="text/plain" data-wp-deps="defer-dependency-with-blocking-following-dependency,blocking-dependency-with-defer-preceding-dependency">
 scriptEventLog.push( "defer-dependent-of-defer-and-blocking-dependencies: before inline" )
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-defer-and-blocking-dependencies:%20script' id='defer-dependent-of-defer-and-blocking-dependencies-js' defer></script>

@@ -578,22 +578,22 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		/*
-		 * If there is a blocking dependency, do not delay because it may have an inline after script which will need
-		 * to run after the dependency's load event has fired. A blocking script's load event happens between the
-		 * execution of its inline before script and its inline after script. Delayed inline scripts get executed during
-		 * the load event of a script and only when it is delayed (defer and async). In particular, a delayed script's
-		 * load event will first run its inline after scripts and then it will proceed to run the inline before scripts
-		 * for all of its dependents. It cannot run the inline before script for itself since the script has already
-		 * loaded at that point. Therefore, the inline before scripts for any delayed script must never be delayed if
-		 * it has blocking dependencies.
+		 * Only delay a before inline script if there is a delayed dependency. When this dependency loads, the load
+		 * event will fire and the logic in delayed-inline-script-loader.js will run any inline before scripts for which
+		 * all dependencies have been run. Importantly, if there are no dependencies, the before inline script must not
+		 * be delayed because there will be no such preceding load event at which the before inline scripts can be run.
+		 * Additionally, if there are only blocking dependencies then the before inline script cannot be delayed because
+		 * a blocking dependency may have an after script which must execute after the load event, meaning the load
+		 * event cannot be used to run the before scripts of delayed dependents since it would be running before the
+		 * dependency's after inline script.
 		 */
 		foreach ( $deps as $dep ) {
-			if ( ! $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $dep ) ) ) {
-				return false;
+			if ( $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $dep ) ) ) {
+				return true;
 			}
 		}
 
-		return true;
+		return false;
 	}
 
 	/**
