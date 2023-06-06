@@ -516,14 +516,14 @@ HTML,
 			),
 			'defer-dependent-with-blocking-and-defer-dependencies' => array(
 				'set_up'          => function () {
-					$dependency_handle1 = 'blocking-dependency-with-defer-following-dependency';
-					$dependency_handle2 = 'defer-dependency-with-blocking-preceding-dependency';
-					$dependency_handle3 = 'defer-dependent-of-blocking-and-defer-dependencies';
-					$this->enqueue_test_script( $dependency_handle1, 'blocking', array() );
-					$this->enqueue_test_script( $dependency_handle2, 'defer', array() );
-					$this->enqueue_test_script( $dependency_handle3, 'defer', array( $dependency_handle1, $dependency_handle2 ) );
+					$handle1 = 'blocking-dependency-with-defer-following-dependency';
+					$handle2 = 'defer-dependency-with-blocking-preceding-dependency';
+					$handle3 = 'defer-dependent-of-blocking-and-defer-dependencies';
+					$this->enqueue_test_script( $handle1, 'blocking', array() );
+					$this->enqueue_test_script( $handle2, 'defer', array() );
+					$this->enqueue_test_script( $handle3, 'defer', array( $handle1, $handle2 ) );
 
-					foreach ( array( $dependency_handle1, $dependency_handle2, $dependency_handle3 ) as $dep ) {
+					foreach ( array( $handle1, $handle2, $handle3 ) as $dep ) {
 						$this->add_test_inline_script( $dep, 'before' );
 						$this->add_test_inline_script( $dep, 'after' );
 					}
@@ -554,14 +554,14 @@ HTML,
 			),
 			'defer-dependent-with-defer-and-blocking-dependencies' => array(
 				'set_up'          => function () {
-					$dependency_handle1 = 'defer-dependency-with-blocking-following-dependency';
-					$dependency_handle2 = 'blocking-dependency-with-defer-preceding-dependency';
-					$dependency_handle3 = 'defer-dependent-of-defer-and-blocking-dependencies';
-					$this->enqueue_test_script( $dependency_handle1, 'defer', array() );
-					$this->enqueue_test_script( $dependency_handle2, 'blocking', array() );
-					$this->enqueue_test_script( $dependency_handle3, 'defer', array( $dependency_handle1, $dependency_handle2 ) );
+					$handle1 = 'defer-dependency-with-blocking-following-dependency';
+					$handle2 = 'blocking-dependency-with-defer-preceding-dependency';
+					$handle3 = 'defer-dependent-of-defer-and-blocking-dependencies';
+					$this->enqueue_test_script( $handle1, 'defer', array() );
+					$this->enqueue_test_script( $handle2, 'blocking', array() );
+					$this->enqueue_test_script( $handle3, 'defer', array( $handle1, $handle2 ) );
 
-					foreach ( array( $dependency_handle1, $dependency_handle2, $dependency_handle3 ) as $dep ) {
+					foreach ( array( $handle1, $handle2, $handle3 ) as $dep ) {
 						$this->add_test_inline_script( $dep, 'before' );
 						$this->add_test_inline_script( $dep, 'after' );
 					}
