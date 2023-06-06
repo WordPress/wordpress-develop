@@ -382,7 +382,7 @@ scriptEventLog.push( "blocking-dependent-of-async: after inline" )
 </script>
 HTML,
 			),
-			'defer-with-async-dependency'                   => array(
+			'defer-with-async-dependency'                  => array(
 				'set_up'          => function () {
 					$handle1 = 'async-with-defer-dependent';
 					$handle2 = 'defer-dependent-of-async';
@@ -1847,6 +1847,96 @@ HTML,
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script4.js?ver={$ver}' id='four-js'></script>\n";
 
 		$this->assertEqualMarkup( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * Data provider to test get_inline_script_data and get_inline_script_tag.
+	 *
+	 * @return array[]
+	 */
+	public function data_provider_to_test_get_inline_script() {
+		return array(
+			'before-blocking' => array(
+				'position'       => 'before',
+				'inline_scripts' => array(
+					'/*before foo 1*/',
+				),
+				'delayed'        => false,
+				'expected_data'  => '/*before foo 1*/',
+				'expected_tag'   => "<script id='foo-js-before' type='text/javascript'>\n/*before foo 1*/\n</script>\n",
+			),
+			'after-blocking'  => array(
+				'position'       => 'after',
+				'inline_scripts' => array(
+					'/*after foo 1*/',
+					'/*after foo 2*/',
+				),
+				'delayed'        => false,
+				'expected_data'  => "/*after foo 1*/\n/*after foo 2*/",
+				'expected_tag'   => "<script id='foo-js-after' type='text/javascript'>\n/*after foo 1*/\n/*after foo 2*/\n</script>\n",
+			),
+			'before-delayed'  => array(
+				'position'       => 'before',
+				'inline_scripts' => array(
+					'/*before foo 1*/',
+				),
+				'delayed'        => true,
+				'expected_data'  => '/*before foo 1*/',
+				'expected_tag'   => "<script id='foo-js-before' type='text/plain' data-wp-deps='dep'>\n/*before foo 1*/\n</script>\n",
+			),
+			'after-delayed'   => array(
+				'position'       => 'after',
+				'inline_scripts' => array(
+					'/*after foo 1*/',
+					'/*after foo 2*/',
+				),
+				'delayed'        => true,
+				'expected_data'  => "/*after foo 1*/\n/*after foo 2*/",
+				'expected_tag'   => "<script id='foo-js-after' type='text/plain' data-wp-deps='dep'>\n/*after foo 1*/\n/*after foo 2*/\n</script>\n",
+			),
+		);
+	}
+
+	/**
+	 * Test getting inline scripts.
+	 *
+	 * @covers WP_Scripts::get_inline_script_data
+	 * @covers WP_Scripts::get_inline_script_tag
+	 *
+	 * @dataProvider data_provider_to_test_get_inline_script
+	 * @param string   $position       Position.
+	 * @param string[] $inline_scripts Inline scripts.
+	 * @param bool     $delayed        Delayed.
+	 * @param string   $expected_data  Expected data.
+	 * @param string   $expected_tag   Expected tag.
+	 */
+	public function test_get_inline_script( $position, $inline_scripts, $delayed, $expected_data, $expected_tag ) {
+		global $wp_scripts;
+
+		$deps = array();
+		if ( $delayed ) {
+			$wp_scripts->add( 'dep', 'https://example.com/dependency.js', array(), false ); // TODO: Cannot pass strategy to $args e.g. array( 'strategy' => 'defer' )
+			$wp_scripts->add_data( 'dep', 'strategy', 'defer' );
+			$deps[] = 'dep';
+		}
+
+		$handle = 'foo';
+		$wp_scripts->add( $handle, 'https://example.com/foo.js', $deps );
+		if ( $delayed ) {
+			$wp_scripts->add_data( $handle, 'strategy', 'defer' );
+		}
+		$this->assertSame( '', $wp_scripts->get_inline_script_data( $handle ) );
+		$this->assertSame( '', $wp_scripts->get_inline_script_tag( $handle ) );
+
+		foreach ( $inline_scripts as $inline_script ) {
+			$wp_scripts->add_inline_script( $handle, $inline_script, $position );
+		}
+
+		$this->assertSame( $expected_data, $wp_scripts->get_inline_script_data( $handle, $position ) );
+		$this->assertEqualMarkup(
+			$expected_tag,
+			$wp_scripts->get_inline_script_tag( $handle, $position )
+		);
 	}
 
 	/**
