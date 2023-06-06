@@ -564,7 +564,7 @@ CSS;
 	 *
 	 * @covers ::wp_maybe_inline_styles
 	 */
-	public function test_wp_maybe_inline_styles_invalid() {
+	public function test_test_wp_maybe_inline_styles_missing_file() {
 		$filter = new MockAction();
 		add_filter( 'pre_wp_filesize', array( $filter, 'filter' ) );
 		$url = '/' . WPINC . '/css/invalid.css';
