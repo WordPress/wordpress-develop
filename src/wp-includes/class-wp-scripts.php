@@ -548,10 +548,9 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string $handle   Name of the script to add the inline script to.
+	 * @param string $handle   Name of the script for which the check should be run against.
 	 *                         Must be lowercase.
-	 * @param string $position Optional. Whether to add the inline script
-	 *                         before the handle or after. Default 'after'.
+	 * @param string $position Position, either 'before' or 'after'.
 	 *
 	 * @return bool Whether to delay.
 	 */
