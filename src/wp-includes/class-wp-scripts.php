@@ -947,7 +947,7 @@ JS;
 	}
 
 	/**
-	 * Checks if all of a scripts dependents are delayed, which is required to maintain execution order.
+	 * Checks if all of a script's dependents are delayed, which is required to maintain execution order.
 	 *
 	 * @since 6.3.0
 	 *
