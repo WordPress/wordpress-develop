@@ -516,8 +516,8 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @param string $handle   Name of the script to get associated inline script tag for.
 	 *                         Must be lowercase.
-	 * @param string $position Optional. Whether to add the inline script
-	 *                         before the handle or after. Default 'after'.
+	 * @param string $position Optional. Whether to get tag for inline
+	 *                         scripts in the before or after position. Default 'after'.
 	 * @return string Inline script, which may be empty string.
 	 */
 	public function get_inline_script_tag( $handle, $position = 'after' ) {
