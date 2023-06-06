@@ -476,7 +476,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * @return string|false Script on success, false otherwise.
 	 */
 	public function print_inline_script( $handle, $position = 'after', $display = true ) {
-		// TODO: Add _deprecated_function() call. There are only 11 plugins that call this function, and they almost all pass $display=false. See https://wpdirectory.net/search/01H1QQF0S8RPH5AQR6YMTV0RHV.
+		_deprecated_function( __FUNCTION__, '6.3.0', 'WP_Scripts::get_inline_script_data() or WP_Scripts::get_inline_script_tag()' );
 		if ( $display ) {
 			$output = $this->get_inline_script_tag( $handle, $position );
 			echo $output;

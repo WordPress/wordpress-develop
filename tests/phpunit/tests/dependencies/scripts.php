@@ -87,7 +87,7 @@ JS;
 	 * @ticket 12009
 	 *
 	 * @covers WP_Scripts::do_item
-	 * @covers WP_Scripts::print_inline_script
+	 * @covers WP_Scripts::get_inline_script_tag
 	 * @covers ::wp_print_delayed_inline_script_loader
 	 * @covers ::wp_add_inline_script
 	 * @covers ::wp_enqueue_script
@@ -121,7 +121,7 @@ JS;
 	 * @ticket 12009
 	 *
 	 * @covers WP_Scripts::do_item
-	 * @covers WP_Scripts::print_inline_script
+	 * @covers WP_Scripts::get_inline_script_tag
 	 * @covers ::wp_add_inline_script
 	 * @covers ::wp_enqueue_script
 	 */
@@ -150,7 +150,7 @@ JS;
 	 * @ticket 12009
 	 *
 	 * @covers WP_Scripts::do_item
-	 * @covers WP_Scripts::print_inline_script
+	 * @covers WP_Scripts::get_inline_script_tag
 	 * @covers ::wp_add_inline_script
 	 * @covers ::wp_enqueue_script
 	 *
@@ -627,6 +627,8 @@ HTML,
 	 * @covers ::wp_enqueue_script()
 	 * @covers ::wp_add_inline_script()
 	 * @covers ::wp_print_scripts()
+	 * @covers WP_Scripts::should_delay_inline_script
+	 * @covers WP_Scripts::get_inline_script_tag
 	 *
 	 * @dataProvider data_provider_to_test_various_strategy_dependency_chains
 	 * @param callable $set_up          Set up.
