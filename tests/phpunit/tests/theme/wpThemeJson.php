@@ -1971,30 +1971,30 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'version' => WP_Theme_JSON::LATEST_SCHEMA,
 			'styles'  => array(
 				'color'    => array(
-					'text' => 'var:preset|color|dark-red',
+					'text' => 'var(--wp--preset--color--dark-red)',
 				),
 				'elements' => array(
 					'link' => array(
 						'color' => array(
-							'text'       => 'var:preset|color|dark-pink',
-							'background' => 'var:preset|color|dark-red',
+							'text'       => 'var(--wp--preset--color--dark-pink)',
+							'background' => 'var(--wp--preset--color--dark-red)',
 						),
 					),
 				),
 				'blocks'   => array(
 					'core/image' => array(
 						'filter' => array(
-							'duotone' => 'var:preset|duotone|blue-red',
+							'duotone' => 'var(--wp--preset--duotone--blue-red)',
 						),
 					),
 					'core/group' => array(
 						'color'    => array(
-							'text' => 'var:preset|color|dark-gray',
+							'text' => 'var(--wp--preset--color--dark-gray)',
 						),
 						'elements' => array(
 							'link' => array(
 								'color' => array(
-									'text' => 'var:preset|color|dark-pink',
+									'text' => 'var(--wp--preset--color--dark-pink)',
 								),
 							),
 						),
