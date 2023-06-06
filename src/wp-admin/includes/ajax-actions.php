@@ -3992,7 +3992,7 @@ function wp_ajax_crop_image() {
 
 			// Skip creating a new attachment if the attachment is a Site Icon.
 			if (
-				(get_post_meta( $attachment_id, '_wp_attachment_context', true ) == $context) ||
+				( get_post_meta( $attachment_id, '_wp_attachment_context', true ) == $context ) ||
 				( $data['width'] === $metadata['width'] && $data['height'] === $metadata['height'] )
 			) {
 
