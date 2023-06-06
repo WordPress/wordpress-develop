@@ -494,7 +494,7 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string $handle   Name of the script to add the inline script to.
+	 * @param string $handle   Name of the script to get data for.
 	 *                         Must be lowercase.
 	 * @param string $position Optional. Whether to add the inline script
 	 *                         before the handle or after. Default 'after'.
@@ -514,7 +514,7 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string $handle   Name of the script to add the inline script to.
+	 * @param string $handle   Name of the script to get associated inline script tag for.
 	 *                         Must be lowercase.
 	 * @param string $position Optional. Whether to add the inline script
 	 *                         before the handle or after. Default 'after'.
