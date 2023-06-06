@@ -71,7 +71,7 @@ JS;
 	 *
 	 * @return array[] Delayed strategies.
 	 */
-	public function get_delayed_strategies() {
+	public function data_provider_delayed_strategies() {
 		return array(
 			'defer' => array( 'defer' ),
 			'async' => array( 'async' ),
@@ -92,7 +92,7 @@ JS;
 	 * @covers ::wp_add_inline_script
 	 * @covers ::wp_enqueue_script
 	 *
-	 * @dataProvider get_delayed_strategies
+	 * @dataProvider data_provider_delayed_strategies
 	 * @param string $strategy Strategy.
 	 */
 	public function test_after_inline_script_with_delayed_main_script( $strategy ) {
@@ -154,7 +154,7 @@ JS;
 	 * @covers ::wp_add_inline_script
 	 * @covers ::wp_enqueue_script
 	 *
-	 * @dataProvider get_delayed_strategies
+	 * @dataProvider data_provider_delayed_strategies
 	 * @param string $strategy
 	 */
 	public function test_before_inline_scripts_with_delayed_main_script( $strategy ) {
@@ -216,7 +216,7 @@ JS;
 	 * @covers WP_Scripts::get_eligible_loading_strategy
 	 * @covers ::wp_enqueue_script
 	 *
-	 * @dataProvider get_delayed_strategies
+	 * @dataProvider data_provider_delayed_strategies
 	 * @param string $strategy Strategy.
 	 */
 	public function test_delayed_dependent_with_blocking_dependency( $strategy ) {
@@ -236,7 +236,7 @@ JS;
 	 * @covers WP_Scripts::get_eligible_loading_strategy
 	 * @covers ::wp_enqueue_script
 	 *
-	 * @dataProvider get_delayed_strategies
+	 * @dataProvider data_provider_delayed_strategies
 	 * @param string $strategy Strategy.
 	 */
 	public function test_blocking_dependent_with_delayed_dependency( $strategy ) {
@@ -245,6 +245,144 @@ JS;
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='/main-script-a3.js' id='main-script-a3-js'></script>";
 		$this->assertStringContainsString( $expected, $output, 'Blocking dependents must force delayed dependencies to become blocking.' );
+	}
+
+	/**
+	 * Enqueue test script with before/after inline scripts.
+	 *
+	 * @param string   $handle    Dependency handle to enqueue.
+	 * @param string   $strategy  Strategy to use for dependency.
+	 * @param string[] $deps      Dependencies for the script.
+	 * @param bool     $in_footer Whether to print the script in the footer.
+	 */
+	protected function enqueue_test_script( $handle, $strategy, $deps = array(), $in_footer = false ) {
+		wp_enqueue_script(
+			$handle,
+			add_query_arg(
+				array(
+					'script_event_log' => "$handle: script",
+				),
+				'https://example.com/external.js'
+			),
+			$deps,
+			null
+		);
+		if ( 'blocking' !== $strategy ) {
+			wp_script_add_data( $handle, 'strategy', $strategy );
+		}
+	}
+
+	/**
+	 * Adds test inline script.
+	 *
+	 * @param string $handle   Dependency handle to enqueue.
+	 * @param string $position Position.
+	 */
+	protected function add_test_inline_script( $handle, $position ) {
+		wp_add_inline_script( $handle, sprintf( 'scriptEventLog.push( %s )', wp_json_encode( "{$handle}: {$position} inline" ) ), $position );
+	}
+
+	/**
+	 * Data provider to test delayed dependent with dependencies of varying strategies.
+	 *
+	 * @return array[]
+	 */
+	public function data_provider_to_test_delayed_dependent_with_dependencies_of_varying_strategies() {
+		return array(
+			'defer-dependent-with-blocking-and-defer-dependencies' => array(
+				'set_up'          => function () {
+					$dependency_handle1 = 'blocking-dependency-with-defer-following-dependency';
+					$dependency_handle2 = 'defer-dependency-with-blocking-preceding-dependency';
+					$dependency_handle3 = 'defer-dependent-of-blocking-and-defer-dependencies';
+					$this->enqueue_test_script( $dependency_handle1, 'blocking', array() );
+					$this->enqueue_test_script( $dependency_handle2, 'defer', array() );
+					$this->enqueue_test_script( $dependency_handle3, 'defer', array( $dependency_handle1, $dependency_handle2 ) );
+
+					foreach ( array( $dependency_handle1, $dependency_handle2, $dependency_handle3 ) as $dep ) {
+						$this->add_test_inline_script( $dep, 'before' );
+						$this->add_test_inline_script( $dep, 'after' );
+					}
+				},
+				'expected_markup' => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="blocking-dependency-with-defer-following-dependency-js-before" type="text/javascript">
+scriptEventLog.push( "blocking-dependency-with-defer-following-dependency: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=blocking-dependency-with-defer-following-dependency:%20script' id='blocking-dependency-with-defer-following-dependency-js'></script>
+<script id="blocking-dependency-with-defer-following-dependency-js-after" type="text/javascript">
+scriptEventLog.push( "blocking-dependency-with-defer-following-dependency: after inline" )
+</script>
+<script id="defer-dependency-with-blocking-preceding-dependency-js-before" type="text/javascript">
+scriptEventLog.push( "defer-dependency-with-blocking-preceding-dependency: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependency-with-blocking-preceding-dependency:%20script' id='defer-dependency-with-blocking-preceding-dependency-js' defer></script>
+<script id="defer-dependency-with-blocking-preceding-dependency-js-after" type="text/plain">
+scriptEventLog.push( "defer-dependency-with-blocking-preceding-dependency: after inline" )
+</script>
+<script id="defer-dependent-of-blocking-and-defer-dependencies-js-before" type="text/javascript">
+scriptEventLog.push( "defer-dependent-of-blocking-and-defer-dependencies: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-blocking-and-defer-dependencies:%20script' id='defer-dependent-of-blocking-and-defer-dependencies-js' defer></script>
+<script id="defer-dependent-of-blocking-and-defer-dependencies-js-after" type="text/plain" data-wp-deps="blocking-dependency-with-defer-following-dependency,defer-dependency-with-blocking-preceding-dependency">
+scriptEventLog.push( "defer-dependent-of-blocking-and-defer-dependencies: after inline" )
+</script>
+HTML,
+			),
+			'defer-dependent-with-defer-and-blocking-dependencies' => array(
+				'set_up'          => function () {
+					$dependency_handle1 = 'defer-dependency-with-blocking-following-dependency';
+					$dependency_handle2 = 'blocking-dependency-with-defer-preceding-dependency';
+					$dependency_handle3 = 'defer-dependent-of-defer-and-blocking-dependencies';
+					$this->enqueue_test_script( $dependency_handle1, 'defer', array() );
+					$this->enqueue_test_script( $dependency_handle2, 'blocking', array() );
+					$this->enqueue_test_script( $dependency_handle3, 'defer', array( $dependency_handle1, $dependency_handle2 ) );
+
+					foreach ( array( $dependency_handle1, $dependency_handle2, $dependency_handle3 ) as $dep ) {
+						$this->add_test_inline_script( $dep, 'before' );
+						$this->add_test_inline_script( $dep, 'after' );
+					}
+				},
+				'expected_markup' => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="defer-dependency-with-blocking-following-dependency-js-before" type="text/javascript">
+scriptEventLog.push( "defer-dependency-with-blocking-following-dependency: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependency-with-blocking-following-dependency:%20script' id='defer-dependency-with-blocking-following-dependency-js' defer></script>
+<script id="defer-dependency-with-blocking-following-dependency-js-after" type="text/plain">
+scriptEventLog.push( "defer-dependency-with-blocking-following-dependency: after inline" )
+</script>
+<script id="blocking-dependency-with-defer-preceding-dependency-js-before" type="text/javascript">
+scriptEventLog.push( "blocking-dependency-with-defer-preceding-dependency: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=blocking-dependency-with-defer-preceding-dependency:%20script' id='blocking-dependency-with-defer-preceding-dependency-js'></script>
+<script id="blocking-dependency-with-defer-preceding-dependency-js-after" type="text/javascript">
+scriptEventLog.push( "blocking-dependency-with-defer-preceding-dependency: after inline" )
+</script>
+<script id="defer-dependent-of-defer-and-blocking-dependencies-js-before" type="text/javascript">
+scriptEventLog.push( "defer-dependent-of-defer-and-blocking-dependencies: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-defer-and-blocking-dependencies:%20script' id='defer-dependent-of-defer-and-blocking-dependencies-js' defer></script>
+<script id="defer-dependent-of-defer-and-blocking-dependencies-js-after" type="text/plain" data-wp-deps="defer-dependency-with-blocking-following-dependency,blocking-dependency-with-defer-preceding-dependency">
+scriptEventLog.push( "defer-dependent-of-defer-and-blocking-dependencies: after inline" )
+</script>
+HTML,
+			),
+		);
+	}
+
+	/**
+	 * Test delayed dependent with dependencies of varying strategies.
+	 *
+	 * @covers ::wp_enqueue_script()
+	 * @covers ::wp_add_inline_script()
+	 * @covers ::wp_print_scripts()
+	 *
+	 * @dataProvider data_provider_to_test_delayed_dependent_with_dependencies_of_varying_strategies
+	 * @param callable $set_up          Set up.
+	 * @param string   $expected_markup Expected markup.
+	 */
+	public function test_delayed_dependent_with_dependencies_of_varying_strategies( $set_up, $expected_markup ) {
+		$set_up();
+		$actual_markup = get_echo( 'wp_print_scripts' );
+		$this->assertEqualMarkup( trim( $expected_markup ), trim( $actual_markup ), "Actual markup:\n{$actual_markup}" );
 	}
 
 	/**
@@ -1370,8 +1508,8 @@ JS;
 		);
 
 		$this->assertSameIgnoreEOL(
-			$this->normalizeMarkup( $expected ),
-			$this->normalizeMarkup( $print_scripts )
+			$this->normalize_markup( $expected ),
+			$this->normalize_markup( $print_scripts )
 		);
 	}
 
@@ -2122,7 +2260,7 @@ JS;
 	 * @param string $markup Markup.
 	 * @return string Normalized markup.
 	 */
-	protected function normalizeMarkup( $markup ) {
+	protected function normalize_markup( $markup ) {
 		$p = new WP_HTML_Tag_Processor( $markup );
 		while ( $p->next_tag() ) {
 			if ( $p->is_tag_closer() ) {
@@ -2151,7 +2289,7 @@ JS;
 		$normalized = preg_replace_callback(
 			'#(<!--\[[^\]]+?\]>)(.+?)(<!\[endif\]-->)#s',
 			function ( $matches ) {
-				return $matches[1] . $this->normalizeMarkup( $matches[2] ) . $matches[3];
+				return $matches[1] . $this->normalize_markup( $matches[2] ) . $matches[3];
 			},
 			$normalized
 		);
@@ -2168,8 +2306,8 @@ JS;
 	 */
 	protected function assertEqualMarkup( $expected, $actual, $message = '' ) {
 		$this->assertSame(
-			$this->normalizeMarkup( $expected ),
-			$this->normalizeMarkup( $actual ),
+			$this->normalize_markup( $expected ),
+			$this->normalize_markup( $actual ),
 			$message
 		);
 	}
