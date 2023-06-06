@@ -1931,6 +1931,8 @@ HTML,
 	 *
 	 * @covers WP_Scripts::get_inline_script_data
 	 * @covers WP_Scripts::get_inline_script_tag
+	 * @covers WP_Scripts::print_inline_script
+	 * @expectedDeprecated WP_Scripts::print_inline_script
 	 *
 	 * @dataProvider data_provider_to_test_get_inline_script
 	 * @param string   $position       Position.
@@ -1954,18 +1956,29 @@ HTML,
 		if ( $delayed ) {
 			$wp_scripts->add_data( $handle, 'strategy', 'defer' );
 		}
-		$this->assertSame( '', $wp_scripts->get_inline_script_data( $handle ) );
-		$this->assertSame( '', $wp_scripts->get_inline_script_tag( $handle ) );
+
+		$this->assertSame( '', $wp_scripts->get_inline_script_data( $handle, $position ) );
+		$this->assertSame( '', $wp_scripts->get_inline_script_tag( $handle, $position ) );
+		$this->assertFalse( $wp_scripts->print_inline_script( $handle, $position, false ) );
+		ob_start();
+		$output = $wp_scripts->print_inline_script( $handle, $position, true );
+		$this->assertSame( '', ob_get_clean() );
+		$this->assertFalse( $output );
 
 		foreach ( $inline_scripts as $inline_script ) {
 			$wp_scripts->add_inline_script( $handle, $inline_script, $position );
 		}
 
 		$this->assertSame( $expected_data, $wp_scripts->get_inline_script_data( $handle, $position ) );
+		$this->assertSame( $expected_data, $wp_scripts->print_inline_script( $handle, $position, false ) );
 		$this->assertEqualMarkup(
 			$expected_tag,
 			$wp_scripts->get_inline_script_tag( $handle, $position )
 		);
+		ob_start();
+		$output = $wp_scripts->print_inline_script( $handle, $position, true );
+		$this->assertEqualMarkup( $expected_tag, ob_get_clean() );
+		$this->assertEqualMarkup( $expected_tag, $output );
 	}
 
 	/**

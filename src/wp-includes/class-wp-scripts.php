@@ -476,7 +476,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * @return string|false Script on success, false otherwise.
 	 */
 	public function print_inline_script( $handle, $position = 'after', $display = true ) {
-		_deprecated_function( __FUNCTION__, '6.3.0', 'WP_Scripts::get_inline_script_data() or WP_Scripts::get_inline_script_tag()' );
+		_deprecated_function( __METHOD__, '6.3.0', 'WP_Scripts::get_inline_script_data() or WP_Scripts::get_inline_script_tag()' );
 		if ( $display ) {
 			$output = $this->get_inline_script_tag( $handle, $position );
 			echo $output;
