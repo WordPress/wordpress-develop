@@ -868,7 +868,7 @@ JS;
 					__METHOD__,
 					sprintf(
 						/* translators: 1: $strategy, 2: $handle */
-						__( 'Cannot supply a strategy `%1$s` for script `%2$s` since it is a dependency bundle.' ),
+						__( 'Cannot supply a strategy `%1$s` for script `%2$s` because it does not have a `src` value.' ),
 						$value,
 						$handle
 					),
