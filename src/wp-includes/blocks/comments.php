@@ -32,7 +32,6 @@ function render_block_core_comments( $attributes, $content, $block ) {
 	$comment_args = array(
 		'post_id' => $post_id,
 		'count'   => true,
-		'orderby' => 'none',
 		'status'  => 'approve',
 	);
 	// Return early if there are no comments and comments are closed.
