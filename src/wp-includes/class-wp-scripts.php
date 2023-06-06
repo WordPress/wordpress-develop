@@ -467,7 +467,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * @since 4.5.0
 	 * @deprecated 6.3.0 Use methods get_inline_script_tag() or get_inline_script_data() instead.
 	 *
-	 * @param string $handle   Name of the script to add the inline script to.
+	 * @param string $handle   Name of the script to print inline scripts for.
 	 *                         Must be lowercase.
 	 * @param string $position Optional. Whether to add the inline script
 	 *                         before the handle or after. Default 'after'.
