@@ -64,7 +64,6 @@
 			return;
 		}
 
-		// TODO: Consider adding a data attribute which specifically contains the handle.
 		matches = event.target.id.match(/^(.+)-js$/);
 		if (!matches) {
 			return;
