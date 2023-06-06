@@ -283,12 +283,237 @@ JS;
 	}
 
 	/**
-	 * Data provider to test delayed dependent with dependencies of varying strategies.
+	 * Data provider to test various strategy dependency chains.
 	 *
 	 * @return array[]
 	 */
-	public function data_provider_to_test_delayed_dependent_with_dependencies_of_varying_strategies() {
+	public function data_provider_to_test_various_strategy_dependency_chains() {
 		return array(
+			'async-dependent-with-one-blocking-dependency' => array(
+				'set_up'          => function () {
+					$handle1 = 'blocking-not-async-without-dependency';
+					$handle2 = 'async-with-blocking-dependency';
+					$this->enqueue_test_script( $handle1, 'blocking', array() );
+					$this->enqueue_test_script( $handle2, 'async', array( $handle1 ) );
+					foreach ( array( $handle1, $handle2 ) as $handle ) {
+						$this->add_test_inline_script( $handle, 'before' );
+						$this->add_test_inline_script( $handle, 'after' );
+					}
+				},
+				'expected_markup' => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="blocking-not-async-without-dependency-js-before" type="text/javascript">
+scriptEventLog.push( "blocking-not-async-without-dependency: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=blocking-not-async-without-dependency:%20script' id='blocking-not-async-without-dependency-js'></script>
+<script id="blocking-not-async-without-dependency-js-after" type="text/javascript">
+scriptEventLog.push( "blocking-not-async-without-dependency: after inline" )
+</script>
+<script id="async-with-blocking-dependency-js-before" type="text/javascript">
+scriptEventLog.push( "async-with-blocking-dependency: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=async-with-blocking-dependency:%20script' id='async-with-blocking-dependency-js' async></script>
+<script id="async-with-blocking-dependency-js-after" type="text/plain" data-wp-deps="blocking-not-async-without-dependency">
+scriptEventLog.push( "async-with-blocking-dependency: after inline" )
+</script>
+HTML,
+			),
+			'async-with-async-dependencies'                => array(
+				'set_up'          => function () {
+					$handle1 = 'async-no-dependency';
+					$handle2 = 'async-one-async-dependency';
+					$handle3 = 'async-two-async-dependencies';
+					$this->enqueue_test_script( $handle1, 'async', array() );
+					$this->enqueue_test_script( $handle2, 'async', array( $handle1 ) );
+					$this->enqueue_test_script( $handle3, 'async', array( $handle1, $handle2 ) );
+					foreach ( array( $handle1, $handle2, $handle3 ) as $handle ) {
+						$this->add_test_inline_script( $handle, 'before' );
+						$this->add_test_inline_script( $handle, 'after' );
+					}
+				},
+				'expected_markup' => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="async-no-dependency-js-before" type="text/javascript">
+scriptEventLog.push( "async-no-dependency: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=async-no-dependency:%20script' id='async-no-dependency-js' async></script>
+<script id="async-no-dependency-js-after" type="text/plain">
+scriptEventLog.push( "async-no-dependency: after inline" )
+</script>
+<script id="async-one-async-dependency-js-before" type="text/plain" data-wp-deps="async-no-dependency">
+scriptEventLog.push( "async-one-async-dependency: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=async-one-async-dependency:%20script' id='async-one-async-dependency-js' async></script>
+<script id="async-one-async-dependency-js-after" type="text/plain" data-wp-deps="async-no-dependency">
+scriptEventLog.push( "async-one-async-dependency: after inline" )
+</script>
+<script id="async-two-async-dependencies-js-before" type="text/plain" data-wp-deps="async-no-dependency,async-one-async-dependency">
+scriptEventLog.push( "async-two-async-dependencies: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=async-two-async-dependencies:%20script' id='async-two-async-dependencies-js' async></script>
+<script id="async-two-async-dependencies-js-after" type="text/plain" data-wp-deps="async-no-dependency,async-one-async-dependency">
+scriptEventLog.push( "async-two-async-dependencies: after inline" )
+</script>
+HTML,
+			),
+			'async-with-blocking-dependency'               => array(
+				'set_up'          => function () {
+					$handle1 = 'async-with-blocking-dependent';
+					$handle2 = 'blocking-dependent-of-async';
+					$this->enqueue_test_script( $handle1, 'async', array() );
+					$this->enqueue_test_script( $handle2, 'blocking', array( $handle1 ) );
+					foreach ( array( $handle1, $handle2 ) as $handle ) {
+						$this->add_test_inline_script( $handle, 'before' );
+						$this->add_test_inline_script( $handle, 'after' );
+					}
+				},
+				'expected_markup' => <<<HTML
+<script id="async-with-blocking-dependent-js-before" type="text/javascript">
+scriptEventLog.push( "async-with-blocking-dependent: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=async-with-blocking-dependent:%20script' id='async-with-blocking-dependent-js'></script>
+<script id="async-with-blocking-dependent-js-after" type="text/javascript">
+scriptEventLog.push( "async-with-blocking-dependent: after inline" )
+</script>
+<script id="blocking-dependent-of-async-js-before" type="text/javascript">
+scriptEventLog.push( "blocking-dependent-of-async: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=blocking-dependent-of-async:%20script' id='blocking-dependent-of-async-js'></script>
+<script id="blocking-dependent-of-async-js-after" type="text/javascript">
+scriptEventLog.push( "blocking-dependent-of-async: after inline" )
+</script>
+HTML,
+			),
+			'defer-with-async-dependency'                   => array(
+				'set_up'          => function () {
+					$handle1 = 'async-with-defer-dependent';
+					$handle2 = 'defer-dependent-of-async';
+					$this->enqueue_test_script( $handle1, 'async', array() );
+					$this->enqueue_test_script( $handle2, 'defer', array( $handle1 ) );
+					foreach ( array( $handle1, $handle2 ) as $handle ) {
+						$this->add_test_inline_script( $handle, 'before' );
+						$this->add_test_inline_script( $handle, 'after' );
+					}
+				},
+				'expected_markup' => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="async-with-defer-dependent-js-before" type="text/javascript">
+scriptEventLog.push( "async-with-defer-dependent: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=async-with-defer-dependent:%20script' id='async-with-defer-dependent-js' defer></script>
+<script id="async-with-defer-dependent-js-after" type="text/plain">
+scriptEventLog.push( "async-with-defer-dependent: after inline" )
+</script>
+<script id="defer-dependent-of-async-js-before" type="text/plain" data-wp-deps="async-with-defer-dependent">
+scriptEventLog.push( "defer-dependent-of-async: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-async:%20script' id='defer-dependent-of-async-js' defer></script>
+<script id="defer-dependent-of-async-js-after" type="text/plain" data-wp-deps="async-with-defer-dependent">
+scriptEventLog.push( "defer-dependent-of-async: after inline" )
+</script>
+HTML,
+			),
+			'blocking-bundle-of-none-with-inline-scripts-and-defer-dependent' => array(
+				'set_up'          => function () {
+					$handle1 = 'blocking-bundle-of-none';
+					$handle2 = 'defer-dependent-of-blocking-bundle-of-none';
+
+					// Note that jQuery is registered like this.
+					wp_register_script( $handle1, false, array(), null );
+					$this->add_test_inline_script( $handle1, 'before' );
+					$this->add_test_inline_script( $handle1, 'after' );
+
+					// Note: the before script for this will be blocking because the dependency is blocking.
+					$this->enqueue_test_script( $handle2, 'defer', array( $handle1 ) );
+					$this->add_test_inline_script( $handle2, 'before' );
+					$this->add_test_inline_script( $handle2, 'after' );
+				},
+				'expected_markup' => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="blocking-bundle-of-none-js-before" type="text/javascript">
+scriptEventLog.push( "blocking-bundle-of-none: before inline" )
+</script>
+<script id="blocking-bundle-of-none-js-after" type="text/javascript">
+scriptEventLog.push( "blocking-bundle-of-none: after inline" )
+</script>
+<script id="defer-dependent-of-blocking-bundle-of-none-js-before" type="text/javascript">
+scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-none: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-blocking-bundle-of-none:%20script' id='defer-dependent-of-blocking-bundle-of-none-js' defer></script>
+<script id="defer-dependent-of-blocking-bundle-of-none-js-after" type="text/plain" data-wp-deps="blocking-bundle-of-none">
+scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-none: after inline" )
+</script>
+HTML,
+			),
+			'blocking-bundle-of-two-with-defer-dependent'  => array(
+				'set_up'          => function () {
+					$handle1 = 'blocking-bundle-of-two';
+					$handle2 = 'blocking-bundle-member-one';
+					$handle3 = 'blocking-bundle-member-two';
+					$handle4 = 'defer-dependent-of-blocking-bundle-of-two';
+
+					wp_register_script( $handle1, false, array(), null );
+					$this->enqueue_test_script( $handle2, 'blocking', array( $handle1 ) );
+					$this->enqueue_test_script( $handle3, 'blocking', array( $handle1 ) );
+					$this->enqueue_test_script( $handle4, 'defer', array( $handle1 ) );
+
+					foreach ( array( $handle2, $handle3, $handle4 ) as $handle ) {
+						$this->add_test_inline_script( $handle, 'before' );
+						$this->add_test_inline_script( $handle, 'after' );
+					}
+				},
+				'expected_markup' => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="blocking-bundle-member-one-js-before" type="text/javascript">
+scriptEventLog.push( "blocking-bundle-member-one: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=blocking-bundle-member-one:%20script' id='blocking-bundle-member-one-js'></script>
+<script id="blocking-bundle-member-one-js-after" type="text/javascript">
+scriptEventLog.push( "blocking-bundle-member-one: after inline" )
+</script>
+<script id="blocking-bundle-member-two-js-before" type="text/javascript">
+scriptEventLog.push( "blocking-bundle-member-two: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=blocking-bundle-member-two:%20script' id='blocking-bundle-member-two-js'></script>
+<script id="blocking-bundle-member-two-js-after" type="text/javascript">
+scriptEventLog.push( "blocking-bundle-member-two: after inline" )
+</script>
+<script id="defer-dependent-of-blocking-bundle-of-two-js-before" type="text/javascript">
+scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-two: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-blocking-bundle-of-two:%20script' id='defer-dependent-of-blocking-bundle-of-two-js' defer></script>
+<script id="defer-dependent-of-blocking-bundle-of-two-js-after" type="text/plain" data-wp-deps="blocking-bundle-of-two">
+scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-two: after inline" )
+</script>
+HTML,
+			),
+			'defer-bundle-of-none-with-inline-scripts-and-defer-dependents' => array(
+				'set_up'          => function () {
+					$handle1 = 'defer-bundle-of-none';
+					$handle2 = 'defer-dependent-of-defer-bundle-of-none';
+
+					// The eligible loading strategy for this will be forced to be blocking when rendered since $src = false.
+					wp_register_script( $handle1, false, array(), null );
+					wp_scripts()->registered[ $handle1 ]->extra['strategy'] = 'defer'; // Bypass wp_script_add_data() which should no-op with _doing_it_wrong() because of $src=false.
+					$this->add_test_inline_script( $handle1, 'before' );
+					$this->add_test_inline_script( $handle1, 'after' );
+
+					// Note: the before script for this will be blocking because the dependency is blocking.
+					$this->enqueue_test_script( $handle2, 'defer', array( $handle1 ) );
+					$this->add_test_inline_script( $handle2, 'before' );
+					$this->add_test_inline_script( $handle2, 'after' );
+				},
+				'expected_markup' => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="defer-bundle-of-none-js-before" type="text/javascript">
+scriptEventLog.push( "defer-bundle-of-none: before inline" )
+</script>
+<script id="defer-bundle-of-none-js-after" type="text/javascript">
+scriptEventLog.push( "defer-bundle-of-none: after inline" )
+</script>
+<script id="defer-dependent-of-defer-bundle-of-none-js-before" type="text/javascript">
+scriptEventLog.push( "defer-dependent-of-defer-bundle-of-none: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-defer-bundle-of-none:%20script' id='defer-dependent-of-defer-bundle-of-none-js' defer></script>
+<script id="defer-dependent-of-defer-bundle-of-none-js-after" type="text/plain" data-wp-deps="defer-bundle-of-none">
+scriptEventLog.push( "defer-dependent-of-defer-bundle-of-none: after inline" )
+</script>
+HTML,
+			),
 			'defer-dependent-with-blocking-and-defer-dependencies' => array(
 				'set_up'          => function () {
 					$dependency_handle1 = 'blocking-dependency-with-defer-following-dependency';
@@ -365,21 +590,49 @@ scriptEventLog.push( "defer-dependent-of-defer-and-blocking-dependencies: after 
 </script>
 HTML,
 			),
+			'async-with-defer-dependency'                  => array(
+				'set_up'          => function () {
+					$handle1 = 'defer-with-async-dependent';
+					$handle2 = 'async-dependent-of-defer';
+					$this->enqueue_test_script( $handle1, 'defer', array() );
+					$this->enqueue_test_script( $handle2, 'async', array( $handle1 ) );
+					foreach ( array( $handle1, $handle2 ) as $handle ) {
+						$this->add_test_inline_script( $handle, 'before' );
+						$this->add_test_inline_script( $handle, 'after' );
+					}
+				},
+				'expected_markup' => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="defer-with-async-dependent-js-before" type="text/javascript">
+scriptEventLog.push( "defer-with-async-dependent: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-with-async-dependent:%20script' id='defer-with-async-dependent-js' defer></script>
+<script id="defer-with-async-dependent-js-after" type="text/plain">
+scriptEventLog.push( "defer-with-async-dependent: after inline" )
+</script>
+<script id="async-dependent-of-defer-js-before" type="text/plain" data-wp-deps="defer-with-async-dependent">
+scriptEventLog.push( "async-dependent-of-defer: before inline" )
+</script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=async-dependent-of-defer:%20script' id='async-dependent-of-defer-js' async></script>
+<script id="async-dependent-of-defer-js-after" type="text/plain" data-wp-deps="defer-with-async-dependent">
+scriptEventLog.push( "async-dependent-of-defer: after inline" )
+</script>
+HTML,
+			),
 		);
 	}
 
 	/**
-	 * Test delayed dependent with dependencies of varying strategies.
+	 * Test various strategy dependency chains.
 	 *
 	 * @covers ::wp_enqueue_script()
 	 * @covers ::wp_add_inline_script()
 	 * @covers ::wp_print_scripts()
 	 *
-	 * @dataProvider data_provider_to_test_delayed_dependent_with_dependencies_of_varying_strategies
+	 * @dataProvider data_provider_to_test_various_strategy_dependency_chains
 	 * @param callable $set_up          Set up.
 	 * @param string   $expected_markup Expected markup.
 	 */
-	public function test_delayed_dependent_with_dependencies_of_varying_strategies( $set_up, $expected_markup ) {
+	public function test_various_strategy_dependency_chains( $set_up, $expected_markup ) {
 		$set_up();
 		$actual_markup = get_echo( 'wp_print_scripts' );
 		$this->assertEqualMarkup( trim( $expected_markup ), trim( $actual_markup ), "Actual markup:\n{$actual_markup}" );
