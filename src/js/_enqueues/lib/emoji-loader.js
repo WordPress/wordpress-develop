@@ -1,14 +1,16 @@
 /**
  * @output wp-includes/js/wp-emoji-loader.js
  */
-
-( function( window, document, settings ) {
-	var src, ready, ii, tests, sessionSupports,
+( async function( window, document, settings ) {
+	var src, ready, ii, tests, sessionSupports, canvas,
 		sessionStorageKey = 'wpEmojiSettingsSupports', sessionUpdated = false;
 
-	// Create a canvas element for testing native browser support of emoji.
-	var canvas = document.createElement( 'canvas' );
-	var context = canvas.getContext && canvas.getContext( '2d' );
+	// Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
+	var resolveDomReady;
+	var domReadyPromise = new Promise(function ( resolve ) {
+		resolveDomReady = resolve;
+	});
+	document.addEventListener( 'DOMContentLoaded', resolveDomReady );
 
 	/**
 	 * Checks if two sets of Emoji characters render the same visually.
@@ -17,23 +19,28 @@
 	 *
 	 * @private
 	 *
+	 * @param {HTMLCanvasElement|OffscreenCanvas} canvas Canvas.
 	 * @param {string} set1 Set of Emoji to test.
 	 * @param {string} set2 Set of Emoji to test.
 	 *
 	 * @return {boolean} True if the two sets render the same.
 	 */
-	function emojiSetsRenderIdentically( set1, set2 ) {
+	function emojiSetsRenderIdentically( canvas, set1, set2 ) {
+		var context = canvas.getContext('2d');
+
 		// Cleanup from previous test.
 		context.clearRect( 0, 0, canvas.width, canvas.height );
 		context.fillText( set1, 0, 0 );
-		var rendered1 = canvas.toDataURL();
+		var rendered1 = context.getImageData( 0, 0, canvas.width, canvas.height ).data;
 
 		// Cleanup from previous test.
 		context.clearRect( 0, 0, canvas.width, canvas.height );
 		context.fillText( set2, 0, 0 );
-		var rendered2 = canvas.toDataURL();
+		var rendered2 = context.getImageData( 0, 0, canvas.width, canvas.height ).data;
 
-		return rendered1 === rendered2;
+		return rendered1.every( function ( pixel, index ) {
+			return pixel === rendered2[ index ];
+		} );
 	}
 
 	/**
@@ -43,22 +50,25 @@
 	 *
 	 * @private
 	 *
+	 * @param {HTMLCanvasElement|OffscreenCanvas} canvas Canvas.
 	 * @param {string} type Whether to test for support of "flag" or "emoji".
 	 *
 	 * @return {boolean} True if the browser can render emoji, false if it cannot.
 	 */
 	function browserSupportsEmoji( type ) {
-		var isIdentical;
-
-		if ( ! context || ! context.fillText ) {
-			return false;
-		}
+		var isIdentical, canvas, context;
 
 		/*
 		 * Chrome on OS X added native emoji rendering in M41. Unfortunately,
 		 * it doesn't work when the font is bolder than 500 weight. So, we
 		 * check for bold rendering support to avoid invisible emoji in Chrome.
 		 */
+		if ( typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope ) {
+			canvas = new OffscreenCanvas( 300, 150 ); // Dimensions are default for HTMLCanvasElement.
+		} else {
+			canvas = document.createElement( 'canvas' );
+		}
+		context = canvas.getContext( '2d' );
 		context.textBaseline = 'top';
 		context.font = '600 32px Arial';
 
@@ -71,6 +81,7 @@
 				 * the browser doesn't render it correctly (white flag emoji + transgender symbol).
 				 */
 				isIdentical = emojiSetsRenderIdentically(
+					canvas,
 					'\uD83C\uDFF3\uFE0F\u200D\u26A7\uFE0F', // as a zero-width joiner sequence
 					'\uD83C\uDFF3\uFE0F\u200B\u26A7\uFE0F'  // separated by a zero-width space
 				);
@@ -87,6 +98,7 @@
 				 * the browser doesn't render it correctly ([U] + [N]).
 				 */
 				isIdentical = emojiSetsRenderIdentically(
+					canvas,
 					'\uD83C\uDDFA\uD83C\uDDF3',       // as the sequence of two code points
 					'\uD83C\uDDFA\u200B\uD83C\uDDF3'  // as the two code points separated by a zero-width space
 				);
@@ -103,6 +115,7 @@
 				 * the browser doesn't render it correctly (black flag emoji + [G] + [B] + [E] + [N] + [G]).
 				 */
 				isIdentical = emojiSetsRenderIdentically(
+					canvas,
 					// as the flag sequence
 					'\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F',
 					// with each code point separated by a zero-width space
@@ -130,6 +143,7 @@
 				 * sequence come from older emoji standards.
 				 */
 				isIdentical = emojiSetsRenderIdentically(
+					canvas,
 					'\uD83E\uDEF1\uD83C\uDFFB\u200D\uD83E\uDEF2\uD83C\uDFFF', // as the zero-width joiner sequence
 					'\uD83E\uDEF1\uD83C\uDFFB\u200B\uD83E\uDEF2\uD83C\uDFFF'  // separated by a zero-width space
 				);
@@ -138,6 +152,43 @@
 		}
 
 		return false;
+	}
+
+	/**
+	 * Determines if the browser properly renders Emoji that Twemoji can supplement.
+	 *
+	 * This is a wrapper for browserSupportsEmoji() which attempts to offload the work to a worker to free up the main
+	 * thread.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @private
+	 *
+	 * @param {string} type Whether to test for support of "flag" or "emoji".
+	 *
+	 * @return {boolean} True if the browser can render emoji, false if it cannot.
+	 */
+	async function browserSupportsEmojiOptimized( type ) {
+		if ( typeof OffscreenCanvas !== 'undefined' ) {
+			var resolveWorker;
+			var workerPromise = new Promise(
+				function ( resolve ) {
+					resolveWorker = resolve;
+				}
+			);
+
+			var blob = new Blob(
+				[ emojiSetsRenderIdentically.toString() + browserSupportsEmoji.toString() + 'postMessage(browserSupportsEmoji( ' + JSON.stringify( type ) + ' ) )' ],
+				{ type: 'text/javascript' }
+			);
+			var worker = new Worker( URL.createObjectURL( blob ) );
+			worker.onmessage = function(event) {
+				resolveWorker( event.data );
+			};
+			return await workerPromise;
+		} else {
+			return browserSupportsEmoji( type );
+		}
 	}
 
 	/**
@@ -183,7 +234,7 @@
 	 */
 	for( ii = 0; ii < tests.length; ii++ ) {
 		if ( ! ( tests[ ii ] in sessionSupports ) ) {
-			sessionSupports[ tests[ ii ] ] = browserSupportsEmoji( tests[ ii ] );
+			sessionSupports[ tests[ ii ] ] = await browserSupportsEmojiOptimized( tests[ ii ] );
 			settings.supports[ tests[ ii ] ] = sessionSupports[ tests[ ii ] ];
 			sessionUpdated = true;
 		}
@@ -212,24 +263,8 @@
 
 	// When the browser can not render everything we need to load a polyfill.
 	if ( ! settings.supports.everything ) {
-		ready = function() {
-			settings.readyCallback();
-		};
-
-		/*
-		 * Cross-browser version of adding a dom ready event.
-		 */
-		if ( document.addEventListener ) {
-			document.addEventListener( 'DOMContentLoaded', ready, false );
-			window.addEventListener( 'load', ready, false );
-		} else {
-			window.attachEvent( 'onload', ready );
-			document.attachEvent( 'onreadystatechange', function() {
-				if ( 'complete' === document.readyState ) {
-					settings.readyCallback();
-				}
-			} );
-		}
+		await domReadyPromise;
+		settings.readyCallback();
 
 		src = settings.source || {};
 
