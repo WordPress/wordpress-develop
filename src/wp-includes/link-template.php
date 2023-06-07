@@ -1435,7 +1435,7 @@ function get_preview_post_link( $post = null, $query_args = array(), $preview_li
  * Retrieves the edit post link for post.
  *
  * Can be used within the WordPress loop or outside of it. Can be used with
- * pages, posts, attachments, and revisions.
+ * pages, posts, attachments, revisions, global styles, templates, and template parts.
  *
  * @since 2.3.0
  *
@@ -1469,10 +1469,13 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
 		return;
 	}
 
-	if ( $post_type_object->_edit_link ) {
+	$link = '';
+
+	if ( 'wp_template' === $post->post_type || 'wp_template_part' === $post->post_type ) {
+		$slug = urlencode( get_stylesheet() . '//' . $post->post_name );
+		$link = admin_url( sprintf( $post_type_object->_edit_link, $post->post_type, $slug ) );
+	} elseif ( $post_type_object->_edit_link ) {
 		$link = admin_url( sprintf( $post_type_object->_edit_link . $action, $post->ID ) );
-	} else {
-		$link = '';
 	}
 
 	/**
@@ -3021,7 +3024,7 @@ function _navigation_markup( $links, $css_class = 'posts-navigation', $screen_re
 	 */
 	$template = apply_filters( 'navigation_markup_template', $template, $css_class );
 
-	return sprintf( $template, sanitize_html_class( $css_class ), esc_html( $screen_reader_text ), $links, esc_html( $aria_label ) );
+	return sprintf( $template, sanitize_html_class( $css_class ), esc_html( $screen_reader_text ), $links, esc_attr( $aria_label ) );
 }
 
 /**

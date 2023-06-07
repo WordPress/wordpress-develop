@@ -1004,9 +1004,8 @@ function get_blogs_of_user( $user_id, $all = false ) {
 
 	if ( ! empty( $site_ids ) ) {
 		$args = array(
-			'number'                 => '',
-			'site__in'               => $site_ids,
-			'update_site_meta_cache' => false,
+			'number'   => '',
+			'site__in' => $site_ids,
 		);
 		if ( ! $all ) {
 			$args['archived'] = 0;
@@ -3546,12 +3545,10 @@ function wp_get_users_with_no_role( $site_id = null ) {
 	$regex = preg_replace( '/[^a-zA-Z_\|-]/', '', $regex );
 	$users = $wpdb->get_col(
 		$wpdb->prepare(
-			"
-		SELECT user_id
-		FROM $wpdb->usermeta
-		WHERE meta_key = '{$prefix}capabilities'
-		AND meta_value NOT REGEXP %s
-	",
+			"SELECT user_id
+			FROM $wpdb->usermeta
+			WHERE meta_key = '{$prefix}capabilities'
+			AND meta_value NOT REGEXP %s",
 			$regex
 		)
 	);

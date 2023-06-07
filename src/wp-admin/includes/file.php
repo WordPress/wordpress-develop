@@ -310,7 +310,7 @@ function wp_print_file_editor_templates() {
 					<?php
 					printf(
 						/* translators: 1: Line number, 2: File path. */
-						__( 'Your PHP code changes were rolled back due to an error on line %1$s of file %2$s. Please fix and try saving again.' ),
+						__( 'Your PHP code changes were not applied due to an error on line %1$s of file %2$s. Please fix and try saving again.' ),
 						'{{ data.line }}',
 						'{{ data.file }}'
 					);
@@ -890,7 +890,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 
 	// If you override this, you must provide $ext and $type!!
 	$test_type = isset( $overrides['test_type'] ) ? $overrides['test_type'] : true;
-	$mimes     = isset( $overrides['mimes'] ) ? $overrides['mimes'] : false;
+	$mimes     = isset( $overrides['mimes'] ) ? $overrides['mimes'] : null;
 
 	// A correct form post will pass this test.
 	if ( $test_form && ( ! isset( $_POST['action'] ) || $_POST['action'] !== $action ) ) {
@@ -1377,7 +1377,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 		);
 	}
 
-	// Check for a edge-case affecting PHP Maths abilities.
+	// Check for an edge-case affecting PHP Maths abilities.
 	if (
 		! extension_loaded( 'sodium' ) &&
 		in_array( PHP_VERSION_ID, array( 70200, 70201, 70202 ), true ) &&
@@ -2685,7 +2685,7 @@ function wp_opcache_invalidate_directory( $dir ) {
 	 *                        with sub-directories represented as nested arrays.
 	 * @param string $path    Absolute path to the directory.
 	 */
-	$invalidate_directory = function( $dirlist, $path ) use ( &$invalidate_directory ) {
+	$invalidate_directory = static function( $dirlist, $path ) use ( &$invalidate_directory ) {
 		$path = trailingslashit( $path );
 
 		foreach ( $dirlist as $name => $details ) {
