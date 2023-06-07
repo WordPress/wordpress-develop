@@ -736,6 +736,12 @@ form#tags-filter {
 	margin-top: 5px;
 }
 
+/* Additional margin when there is a PHP notice */
+.privacy-settings.php-error #wpbody-content,
+.site-health.php-error #wpbody-content {
+	margin-top: 2em;
+}
+
 /* Emulates .wrap h1 styling */
 .privacy-settings-header h1,
 .health-check-header h1 {

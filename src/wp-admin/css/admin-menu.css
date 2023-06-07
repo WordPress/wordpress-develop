@@ -326,7 +326,7 @@ div.wp-menu-image:before {
 }
 
 /* Sticky admin menu */
-.sticky-menu #adminmenuwrap {
+.sticky-menu:not(.php-error) #adminmenuwrap {
 	position: fixed;
 }
 
