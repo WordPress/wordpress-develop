@@ -97,6 +97,15 @@ function wp_initial_constants() {
 		define( 'WP_DEBUG_LOG', false );
 	}
 
+	/*
+	 * Add define( 'WP_DEVELOPMENT_MODE', 'core' ) or define( 'WP_DEVELOPMENT_MODE', 'plugin' ) or
+	 * define( 'WP_DEVELOPMENT_MODE', 'theme' ) to wp-config.php to signify development mode for WordPress core, a
+	 * plugin, or a theme respectively.
+	 */
+	if ( ! defined( 'WP_DEVELOPMENT_MODE' ) ) {
+		define( 'WP_DEVELOPMENT_MODE', defined( 'WP_RUN_CORE_TESTS' ) ? 'core' : '' );
+	}
+
 	if ( ! defined( 'WP_CACHE' ) ) {
 		define( 'WP_CACHE', false );
 	}
