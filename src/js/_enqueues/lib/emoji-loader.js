@@ -20,33 +20,32 @@
 	 *
 	 * @private
 	 *
-	 * @param {HTMLCanvasElement|OffscreenCanvas} canvas Canvas.
+	 * @param {CanvasRenderingContext2D} context 2D Context.
 	 * @param {string} set1 Set of Emoji to test.
 	 * @param {string} set2 Set of Emoji to test.
 	 *
 	 * @return {boolean} True if the two sets render the same.
 	 */
-	function emojiSetsRenderIdentically( canvas, set1, set2 ) {
-		var context = canvas.getContext('2d');
+	function emojiSetsRenderIdentically( context, set1, set2 ) {
 
 		// Cleanup from previous test.
-		context.clearRect( 0, 0, canvas.width, canvas.height );
+		context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
 		context.fillText( set1, 0, 0 );
 		var rendered1 = context.getImageData(
 			0,
 			0,
-			canvas.width,
-			canvas.height
+			context.canvas.width,
+			context.canvas.height
 		).data;
 
 		// Cleanup from previous test.
-		context.clearRect( 0, 0, canvas.width, canvas.height );
+		context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
 		context.fillText( set2, 0, 0 );
 		var rendered2 = context.getImageData(
 			0,
 			0,
-			canvas.width,
-			canvas.height
+			context.canvas.width,
+			context.canvas.height
 		).data;
 
 		return rendered1.every(function (pixel, index) {
@@ -82,7 +81,7 @@
 		} else {
 			canvas = document.createElement("canvas");
 		}
-		context = canvas.getContext( '2d' );
+		context = canvas.getContext('2d', { willReadFrequently: true });
 		context.textBaseline = 'top';
 		context.font = '600 32px Arial';
 
@@ -95,7 +94,7 @@
 				 * the browser doesn't render it correctly (white flag emoji + transgender symbol).
 				 */
 				isIdentical = emojiSetsRenderIdentically(
-					canvas,
+					context,
 					'\uD83C\uDFF3\uFE0F\u200D\u26A7\uFE0F', // as a zero-width joiner sequence
 					'\uD83C\uDFF3\uFE0F\u200B\u26A7\uFE0F'  // separated by a zero-width space
 				);
@@ -112,7 +111,7 @@
 				 * the browser doesn't render it correctly ([U] + [N]).
 				 */
 				isIdentical = emojiSetsRenderIdentically(
-					canvas,
+					context,
 					'\uD83C\uDDFA\uD83C\uDDF3',       // as the sequence of two code points
 					'\uD83C\uDDFA\u200B\uD83C\uDDF3'  // as the two code points separated by a zero-width space
 				);
@@ -129,7 +128,7 @@
 				 * the browser doesn't render it correctly (black flag emoji + [G] + [B] + [E] + [N] + [G]).
 				 */
 				isIdentical = emojiSetsRenderIdentically(
-					canvas,
+					context,
 					// as the flag sequence
 					'\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F',
 					// with each code point separated by a zero-width space
@@ -157,7 +156,7 @@
 				 * sequence come from older emoji standards.
 				 */
 				isIdentical = emojiSetsRenderIdentically(
-					canvas,
+					context,
 					'\uD83E\uDEF1\uD83C\uDFFB\u200D\uD83E\uDEF2\uD83C\uDFFF', // as the zero-width joiner sequence
 					'\uD83E\uDEF1\uD83C\uDFFB\u200B\uD83E\uDEF2\uD83C\uDFFF'  // separated by a zero-width space
 				);
