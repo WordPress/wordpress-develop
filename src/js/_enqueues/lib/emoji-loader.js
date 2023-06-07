@@ -7,7 +7,7 @@
 
 	// Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
 	var domReadyPromise = new Promise(function ( resolve ) {
-		document.addEventListener( 'DOMContentLoaded', resolve );
+		document.addEventListener( 'DOMContentLoaded', resolve, { once: true } );
 	});
 
 	/**
