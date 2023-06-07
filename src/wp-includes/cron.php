@@ -847,7 +847,7 @@ function spawn_cron( $gmt_time = 0 ) {
 	 */
 	$lock = get_transient( 'doing_cron' );
 
-	if ( $lock > $gmt_time + 10 * MINUTE_IN_SECONDS ) {
+	if ( $lock > $gmt_time + 10 * MINUTE_IN_SECONDS || ! is_int($lock) ) {
 		$lock = 0;
 	}
 
