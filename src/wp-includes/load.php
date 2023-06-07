@@ -970,6 +970,11 @@ function wp_get_active_and_valid_themes() {
 	/**
 	 * Filters the list of paths for active and valid themes.
 	 *
+	 * This filter is designed for non-web runtimes, such as CLI.
+	 * It makes it possible to prevent a given theme from being loaded.
+	 *
+	 * @since 6.3.0
+	 *
 	 * @param string[] $themes Array of absolute paths to theme directories.
 	 */
 	return apply_filters( 'wp_get_active_and_valid_themes', $themes );
