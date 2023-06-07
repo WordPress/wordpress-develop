@@ -144,9 +144,11 @@ if ( 'grid' === $mode ) {
 	// Remove the error parameter added by deprecation of wp-admin/media.php.
 	add_filter(
 		'removable_query_args',
-		function( $query_args ) {
-				return array( 'error' );
-		}
+		function() {
+			return array( 'error' );
+		},
+		10,
+		0
 	);
 
 	$q = $_GET;
