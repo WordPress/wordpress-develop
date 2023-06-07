@@ -4493,6 +4493,10 @@ ul.footer-social li {
 	margin-top: 3rem;
 }
 
+.header-footer-group .wp-block-button:not(.is-style-outline) .wp-block-button__link {
+	color: #fff;
+}
+
 /* Footer Bottom ----------------------------- */
 
 #site-footer {
