@@ -2,12 +2,15 @@
  * @output wp-includes/js/wp-emoji-loader.js
  */
 ( async function( window, document, settings ) {
-	var src, ready, ii, tests, sessionSupports, canvas,
-		sessionStorageKey = 'wpEmojiSettingsSupports', sessionUpdated = false;
+	var src, ii, tests;
+
+	let sessionSupports;
+	let sessionUpdated = false;
+	const sessionStorageKey = "wpEmojiSettingsSupports";
 
 	// Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
-	var domReadyPromise = new Promise(function ( resolve ) {
-		document.addEventListener( 'DOMContentLoaded', resolve, { once: true } );
+	const domReadyPromise = new Promise(function (resolve) {
+		document.addEventListener("DOMContentLoaded", resolve, { once: true });
 	});
 
 	/**
@@ -29,16 +32,26 @@
 		// Cleanup from previous test.
 		context.clearRect( 0, 0, canvas.width, canvas.height );
 		context.fillText( set1, 0, 0 );
-		var rendered1 = context.getImageData( 0, 0, canvas.width, canvas.height ).data;
+		var rendered1 = context.getImageData(
+			0,
+			0,
+			canvas.width,
+			canvas.height
+		).data;
 
 		// Cleanup from previous test.
 		context.clearRect( 0, 0, canvas.width, canvas.height );
 		context.fillText( set2, 0, 0 );
-		var rendered2 = context.getImageData( 0, 0, canvas.width, canvas.height ).data;
+		var rendered2 = context.getImageData(
+			0,
+			0,
+			canvas.width,
+			canvas.height
+		).data;
 
-		return rendered1.every( function ( pixel, index ) {
-			return pixel === rendered2[ index ];
-		} );
+		return rendered1.every(function (pixel, index) {
+			return pixel === rendered2[index];
+		});
 	}
 
 	/**
@@ -48,7 +61,6 @@
 	 *
 	 * @private
 	 *
-	 * @param {HTMLCanvasElement|OffscreenCanvas} canvas Canvas.
 	 * @param {string} type Whether to test for support of "flag" or "emoji".
 	 *
 	 * @return {boolean} True if the browser can render emoji, false if it cannot.
@@ -61,10 +73,13 @@
 		 * it doesn't work when the font is bolder than 500 weight. So, we
 		 * check for bold rendering support to avoid invisible emoji in Chrome.
 		 */
-		if ( typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope ) {
-			canvas = new OffscreenCanvas( 300, 150 ); // Dimensions are default for HTMLCanvasElement.
+		if (
+			typeof WorkerGlobalScope !== "undefined" &&
+			self instanceof WorkerGlobalScope
+		) {
+			canvas = new OffscreenCanvas(300, 150); // Dimensions are default for HTMLCanvasElement.
 		} else {
-			canvas = document.createElement( 'canvas' );
+			canvas = document.createElement("canvas");
 		}
 		context = canvas.getContext( '2d' );
 		context.textBaseline = 'top';
@@ -164,21 +179,19 @@
 	 *
 	 * @param {string} type Whether to test for support of "flag" or "emoji".
 	 *
-	 * @return {boolean} True if the browser can render emoji, false if it cannot.
+	 * @return {Promise<bool>} True if the browser can render emoji, false if it cannot.
 	 */
 	async function browserSupportsEmojiOptimized(type) {
 		if (typeof OffscreenCanvas !== "undefined") {
-			var blob = new Blob(
+			const blob = new Blob(
 				[
 					emojiSetsRenderIdentically.toString() +
 						browserSupportsEmoji.toString() +
-						"postMessage(browserSupportsEmoji( " +
-						JSON.stringify(type) +
-						" ) )",
+						`postMessage(browserSupportsEmoji(${JSON.stringify(type)}))`,
 				],
 				{ type: "text/javascript" }
 			);
-			var worker = new Worker(URL.createObjectURL(blob));
+			const worker = new Worker(URL.createObjectURL(blob));
 			return await new Promise(function (resolve) {
 				worker.onmessage = function (event) {
 					resolve(event.data);
@@ -215,11 +228,14 @@
 	};
 
 	// Initialize sessionSupports from sessionStorage if available. This avoids expensive calls to browserSupportsEmoji().
-	if ( typeof sessionStorage !== 'undefined' && sessionStorageKey in sessionStorage ) {
+	if (
+		typeof sessionStorage !== "undefined" &&
+		sessionStorageKey in sessionStorage
+	) {
 		try {
-			sessionSupports = JSON.parse( sessionStorage.getItem( sessionStorageKey ) );
-			Object.assign( settings.supports, sessionSupports );
-		} catch ( e ) {
+			sessionSupports = JSON.parse(sessionStorage.getItem(sessionStorageKey));
+			Object.assign(settings.supports, sessionSupports);
+		} catch (e) {
 			sessionSupports = {};
 		}
 	} else {
@@ -231,9 +247,11 @@
 	 * support settings accordingly.
 	 */
 	for( ii = 0; ii < tests.length; ii++ ) {
-		if ( ! ( tests[ ii ] in sessionSupports ) ) {
-			sessionSupports[ tests[ ii ] ] = await browserSupportsEmojiOptimized( tests[ ii ] );
-			settings.supports[ tests[ ii ] ] = sessionSupports[ tests[ ii ] ];
+		if (!(tests[ii] in sessionSupports)) {
+			sessionSupports[tests[ii]] = await browserSupportsEmojiOptimized(
+				tests[ii]
+			);
+			settings.supports[tests[ii]] = sessionSupports[tests[ii]];
 			sessionUpdated = true;
 		}
 
@@ -245,10 +263,13 @@
 	}
 
 	// If the sessionSupports was touched, persist the new object in sessionStorage.
-	if ( sessionUpdated && typeof sessionStorage !== 'undefined' ) {
+	if (sessionUpdated && typeof sessionStorage !== "undefined") {
 		try {
-			sessionStorage.setItem( sessionStorageKey, JSON.stringify( sessionSupports ) );
-		} catch ( e ) {}
+			sessionStorage.setItem(
+				sessionStorageKey,
+				JSON.stringify(sessionSupports)
+			);
+		} catch (e) {}
 	}
 
 	settings.supports.everythingExceptFlag = settings.supports.everythingExceptFlag && ! settings.supports.flag;
