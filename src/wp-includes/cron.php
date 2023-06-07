@@ -845,9 +845,9 @@ function spawn_cron( $gmt_time = 0 ) {
 	 * Multiple processes on multiple web servers can run this code concurrently,
 	 * this lock attempts to make spawning as atomic as possible.
 	 */
-	$lock = get_transient( 'doing_cron' );
+	$lock = (int) get_transient( 'doing_cron' );
 
-	if ( $lock > $gmt_time + 10 * MINUTE_IN_SECONDS || ! is_int($lock) ) {
+	if ( $lock > $gmt_time + 10 * MINUTE_IN_SECONDS ) {
 		$lock = 0;
 	}
 
