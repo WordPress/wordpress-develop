@@ -968,7 +968,7 @@ function wp_get_active_and_valid_themes() {
 	}
 
 	/**
-	 * Filters the list of active and valid themes.
+	 * Filters the list of paths for active and valid themes.
 	 *
 	 * @param string[] $themes Array of absolute paths to theme directories.
 	 */
