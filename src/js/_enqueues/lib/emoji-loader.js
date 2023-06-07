@@ -3,7 +3,8 @@
  */
 
 ( function( window, document, settings ) {
-	var src, ready, ii, tests;
+	var src, ready, ii, tests, sessionSupports,
+		sessionStorageKey = 'wpEmojiSettingsSupports', sessionUpdated = false;
 
 	// Create a canvas element for testing native browser support of emoji.
 	var canvas = document.createElement( 'canvas' );
@@ -164,18 +165,41 @@
 		everythingExceptFlag: true
 	};
 
+	// Initialize sessionSupports from sessionStorage if available. This avoids expensive calls to browserSupportsEmoji().
+	if ( typeof sessionStorage !== 'undefined' && sessionStorageKey in sessionStorage ) {
+		try {
+			sessionSupports = JSON.parse( sessionStorage.getItem( sessionStorageKey ) );
+			Object.assign( settings.supports, sessionSupports );
+		} catch ( e ) {
+			sessionSupports = {};
+		}
+	} else {
+		sessionSupports = {};
+	}
+
 	/*
 	 * Tests the browser support for flag emojis and other emojis, and adjusts the
 	 * support settings accordingly.
 	 */
 	for( ii = 0; ii < tests.length; ii++ ) {
-		settings.supports[ tests[ ii ] ] = browserSupportsEmoji( tests[ ii ] );
+		if ( ! ( tests[ ii ] in sessionSupports ) ) {
+			sessionSupports[ tests[ ii ] ] = browserSupportsEmoji( tests[ ii ] );
+			settings.supports[ tests[ ii ] ] = sessionSupports[ tests[ ii ] ];
+			sessionUpdated = true;
+		}
 
 		settings.supports.everything = settings.supports.everything && settings.supports[ tests[ ii ] ];
 
 		if ( 'flag' !== tests[ ii ] ) {
 			settings.supports.everythingExceptFlag = settings.supports.everythingExceptFlag && settings.supports[ tests[ ii ] ];
 		}
+	}
+
+	// If the sessionSupports was touched, persist the new object in sessionStorage.
+	if ( sessionUpdated && typeof sessionStorage !== 'undefined' ) {
+		try {
+			sessionStorage.setItem( sessionStorageKey, JSON.stringify( sessionSupports ) );
+		} catch ( e ) {}
 	}
 
 	settings.supports.everythingExceptFlag = settings.supports.everythingExceptFlag && ! settings.supports.flag;
