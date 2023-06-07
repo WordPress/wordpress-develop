@@ -252,7 +252,6 @@ $phpmailer = new MockPHPMailer( true );
 if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
 	define( 'WP_DEFAULT_THEME', 'default' );
 }
-define( 'WP_USE_THEMES', true );
 $wp_theme_directories = array();
 
 if ( file_exists( DIR_TESTDATA . '/themedir1' ) ) {
