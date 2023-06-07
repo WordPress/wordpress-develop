@@ -173,15 +173,13 @@
 				{ type: 'text/javascript' }
 			);
 			var worker = new Worker( URL.createObjectURL( blob ) );
-			var workerPromise = new Promise(
+			return await new Promise(
 				function ( resolve ) {
 					worker.onmessage = function(event) {
 						resolve( event.data );
 					};
 				}
 			);
-
-			return await workerPromise;
 		} else {
 			return browserSupportsEmoji( type );
 		}
