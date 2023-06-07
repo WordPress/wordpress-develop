@@ -75,7 +75,8 @@
 		 */
 		if (
 			typeof WorkerGlobalScope !== "undefined" &&
-			self instanceof WorkerGlobalScope
+			self instanceof WorkerGlobalScope &&
+			typeof OffscreenCanvas !== "undefined"
 		) {
 			canvas = new OffscreenCanvas(300, 150); // Dimensions are default for HTMLCanvasElement.
 		} else {
