@@ -9,7 +9,7 @@
 class Tests_Load_WpGetActiveAndValidThemes extends WP_UnitTestCase {
 
 	/**
-	 * @ticket 19898
+	 * @ticket 57928
 	 */
 	public function test_wp_get_active_and_valid_themes() {
 		// Defaults to TEMPLATEPATH (and potentially STYLESHEETPATH).
