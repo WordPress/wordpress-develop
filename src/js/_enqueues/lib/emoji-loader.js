@@ -166,22 +166,26 @@
 	 *
 	 * @return {boolean} True if the browser can render emoji, false if it cannot.
 	 */
-	async function browserSupportsEmojiOptimized( type ) {
-		if ( typeof OffscreenCanvas !== 'undefined' ) {
+	async function browserSupportsEmojiOptimized(type) {
+		if (typeof OffscreenCanvas !== "undefined") {
 			var blob = new Blob(
-				[ emojiSetsRenderIdentically.toString() + browserSupportsEmoji.toString() + 'postMessage(browserSupportsEmoji( ' + JSON.stringify( type ) + ' ) )' ],
-				{ type: 'text/javascript' }
+				[
+					emojiSetsRenderIdentically.toString() +
+						browserSupportsEmoji.toString() +
+						"postMessage(browserSupportsEmoji( " +
+						JSON.stringify(type) +
+						" ) )",
+				],
+				{ type: "text/javascript" }
 			);
-			var worker = new Worker( URL.createObjectURL( blob ) );
-			return await new Promise(
-				function ( resolve ) {
-					worker.onmessage = function(event) {
-						resolve( event.data );
-					};
-				}
-			);
+			var worker = new Worker(URL.createObjectURL(blob));
+			return await new Promise(function (resolve) {
+				worker.onmessage = function (event) {
+					resolve(event.data);
+				};
+			});
 		} else {
-			return browserSupportsEmoji( type );
+			return browserSupportsEmoji(type);
 		}
 	}
 
