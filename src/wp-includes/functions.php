@@ -3012,9 +3012,9 @@ function wp_get_default_extension_for_mime_type( $mime_type ) {
  *
  * @since 2.0.4
  *
- * @param string   $filename File name or path.
- * @param string[] $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
- *                           Defaults to the result of get_allowed_mime_types().
+ * @param string        $filename File name or path.
+ * @param string[]|null $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
+ *                                Defaults to the result of get_allowed_mime_types().
  * @return array {
  *     Values for the extension and mime type.
  *
@@ -3053,11 +3053,11 @@ function wp_check_filetype( $filename, $mimes = null ) {
  *
  * @since 3.0.0
  *
- * @param string   $file     Full path to the file.
- * @param string   $filename The name of the file (may differ from $file due to $file being
- *                           in a tmp directory).
- * @param string[] $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
- *                           Defaults to the result of get_allowed_mime_types().
+ * @param string        $file     Full path to the file.
+ * @param string        $filename The name of the file (may differ from $file due to $file being
+ *                                in a tmp directory).
+ * @param string[]|null $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
+ *                                Defaults to the result of get_allowed_mime_types().
  * @return array {
  *     Values for the extension, mime type, and corrected filename.
  *
@@ -3239,18 +3239,19 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 	 * @since 3.0.0
 	 * @since 5.1.0 The $real_mime parameter was added.
 	 *
-	 * @param array        $wp_check_filetype_and_ext {
+	 * @param array         $wp_check_filetype_and_ext {
 	 *     Values for the extension, mime type, and corrected filename.
 	 *
 	 *     @type string|false $ext             File extension, or false if the file doesn't match a mime type.
 	 *     @type string|false $type            File mime type, or false if the file doesn't match a mime type.
 	 *     @type string|false $proper_filename File name with its correct extension, or false if it cannot be determined.
 	 * }
-	 * @param string       $file                      Full path to the file.
-	 * @param string       $filename                  The name of the file (may differ from $file due to
-	 *                                                $file being in a tmp directory).
-	 * @param string[]     $mimes                     Array of mime types keyed by their file extension regex.
-	 * @param string|false $real_mime                 The actual mime type or false if the type cannot be determined.
+	 * @param string        $file                      Full path to the file.
+	 * @param string        $filename                  The name of the file (may differ from $file due to
+	 *                                                 $file being in a tmp directory).
+	 * @param string[]|null $mimes                     Array of mime types keyed by their file extension regex, or null if
+	 *                                                 none were provided.
+	 * @param string|false  $real_mime                 The actual mime type or false if the type cannot be determined.
 	 */
 	return apply_filters( 'wp_check_filetype_and_ext', compact( 'ext', 'type', 'proper_filename' ), $file, $filename, $mimes, $real_mime );
 }
@@ -4947,14 +4948,35 @@ function _wp_array_get( $input_array, $path, $default_value = null ) {
 	}
 
 	foreach ( $path as $path_element ) {
-		if (
-			! is_array( $input_array ) ||
-			( ! is_string( $path_element ) && ! is_integer( $path_element ) && ! is_null( $path_element ) ) ||
-			! array_key_exists( $path_element, $input_array )
-		) {
+		if ( ! is_array( $input_array ) ) {
 			return $default_value;
 		}
-		$input_array = $input_array[ $path_element ];
+
+		if ( is_string( $path_element )
+			|| is_integer( $path_element )
+			|| null === $path_element
+		) {
+			/*
+			 * Check if the path element exists in the input array.
+			 * We check with `isset()` first, as it is a lot faster
+			 * than `array_key_exists()`.
+			 */
+			if ( isset( $input_array[ $path_element ] ) ) {
+				$input_array = $input_array[ $path_element ];
+				continue;
+			}
+
+			/*
+			 * If `isset()` returns false, we check with `array_key_exists()`,
+			 * which also checks for `null` values.
+			 */
+			if ( array_key_exists( $path_element, $input_array ) ) {
+				$input_array = $input_array[ $path_element ];
+				continue;
+			}
+		}
+
+		return $default_value;
 	}
 
 	return $input_array;
@@ -7502,7 +7524,7 @@ function mysql_to_rfc3339( $date_string ) {
  * @since 4.6.0
  *
  * @param string $context Optional. Context in which the function is called. Accepts either 'admin',
- *                        'image', or an arbitrary other context. If an arbitrary context is passed,
+ *                        'image', 'cron', or an arbitrary other context. If an arbitrary context is passed,
  *                        the similarly arbitrary {@see '$context_memory_limit'} filter will be
  *                        invoked. Default 'admin'.
  * @return int|string|false The limit that was set or false on failure.
@@ -7554,7 +7576,7 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			 * @since 3.5.0
 			 * @since 4.6.0 The default now takes the original `memory_limit` into account.
 			 *
-			 * @param int|string $filtered_limit Maximum memory limit to allocate for images.
+			 * @param int|string $filtered_limit Maximum memory limit to allocate for image processing.
 			 *                                   Default `WP_MAX_MEMORY_LIMIT` or the original
 			 *                                   php.ini `memory_limit`, whichever is higher.
 			 *                                   Accepts an integer (bytes), or a shorthand string
@@ -7563,9 +7585,24 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			$filtered_limit = apply_filters( 'image_memory_limit', $filtered_limit );
 			break;
 
+		case 'cron':
+			/**
+			 * Filters the memory limit allocated for WP-Cron event processing.
+			 *
+			 * @since 6.3.0
+			 *
+			 * @param int|string $filtered_limit Maximum memory limit to allocate for WP-Cron.
+			 *                                   Default `WP_MAX_MEMORY_LIMIT` or the original
+			 *                                   php.ini `memory_limit`, whichever is higher.
+			 *                                   Accepts an integer (bytes), or a shorthand string
+			 *                                   notation, such as '256M'.
+			 */
+			$filtered_limit = apply_filters( 'cron_memory_limit', $filtered_limit );
+			break;
+
 		default:
 			/**
-			 * Filters the memory limit allocated for arbitrary contexts.
+			 * Filters the memory limit allocated for an arbitrary context.
 			 *
 			 * The dynamic portion of the hook name, `$context`, refers to an arbitrary
 			 * context passed on calling the function. This allows for plugins to define
@@ -7573,8 +7610,8 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			 *
 			 * @since 4.6.0
 			 *
-			 * @param int|string $filtered_limit Maximum memory limit to allocate for images.
-			 *                                   Default '256M' or the original php.ini `memory_limit`,
+			 * @param int|string $filtered_limit Maximum memory limit to allocate for this context.
+			 *                                   Default WP_MAX_MEMORY_LIMIT` or the original php.ini `memory_limit`,
 			 *                                   whichever is higher. Accepts an integer (bytes), or a
 			 *                                   shorthand string notation, such as '256M'.
 			 */
