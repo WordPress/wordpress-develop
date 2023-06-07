@@ -6,11 +6,9 @@
 		sessionStorageKey = 'wpEmojiSettingsSupports', sessionUpdated = false;
 
 	// Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
-	var resolveDomReady;
 	var domReadyPromise = new Promise(function ( resolve ) {
-		resolveDomReady = resolve;
+		document.addEventListener( 'DOMContentLoaded', resolve );
 	});
-	document.addEventListener( 'DOMContentLoaded', resolveDomReady );
 
 	/**
 	 * Checks if two sets of Emoji characters render the same visually.
@@ -170,21 +168,19 @@
 	 */
 	async function browserSupportsEmojiOptimized( type ) {
 		if ( typeof OffscreenCanvas !== 'undefined' ) {
-			var resolveWorker;
-			var workerPromise = new Promise(
-				function ( resolve ) {
-					resolveWorker = resolve;
-				}
-			);
-
 			var blob = new Blob(
 				[ emojiSetsRenderIdentically.toString() + browserSupportsEmoji.toString() + 'postMessage(browserSupportsEmoji( ' + JSON.stringify( type ) + ' ) )' ],
 				{ type: 'text/javascript' }
 			);
 			var worker = new Worker( URL.createObjectURL( blob ) );
-			worker.onmessage = function(event) {
-				resolveWorker( event.data );
-			};
+			var workerPromise = new Promise(
+				function ( resolve ) {
+					worker.onmessage = function(event) {
+						resolve( event.data );
+					};
+				}
+			);
+
 			return await workerPromise;
 		} else {
 			return browserSupportsEmoji( type );
