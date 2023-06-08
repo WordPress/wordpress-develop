@@ -3468,7 +3468,7 @@ function wp_defer_term_counting( $defer = null ) {
 function wp_update_term_count( $terms, $taxonomy, $do_deferred = false ) {
 	static $_deferred = array();
 
-	$current_blog_id = get_current_blog_id()
+	$current_blog_id = get_current_blog_id();
 
 	if ( $do_deferred ) {
 		foreach ( (array) array_keys( $_deferred ) as $blog_id ) {
