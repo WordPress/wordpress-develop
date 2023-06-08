@@ -315,7 +315,15 @@ scriptEventLog.push( "async-with-blocking-dependency: before inline" )
 <script id="async-with-blocking-dependency-js-after" type="text/plain" data-wp-deps="blocking-not-async-without-dependency">
 scriptEventLog.push( "async-with-blocking-dependency: after inline" )
 </script>
-HTML,
+HTML
+				,
+				/*
+				 * Note: The above comma must be on its own line in PHP<7.3 and not after the `HTML` identifier
+				 * terminating the heredoc. Otherwise, a syntax error is raised with the line number being wildly wrong:
+				 *
+				 * PHP Parse error:  syntax error, unexpected '' (T_ENCAPSED_AND_WHITESPACE), expecting '-' or identifier (T_STRING) or variable (T_VARIABLE) or number (T_NUM_STRING)
+				 */
+				// Note: This comma must not be on the same line as the HTML terminating the heredoc on the previous line or else PHP
 			),
 			'async-with-async-dependencies'                => array(
 				'set_up'          => function () {
@@ -352,7 +360,8 @@ scriptEventLog.push( "async-two-async-dependencies: before inline" )
 <script id="async-two-async-dependencies-js-after" type="text/plain" data-wp-deps="async-no-dependency,async-one-async-dependency">
 scriptEventLog.push( "async-two-async-dependencies: after inline" )
 </script>
-HTML,
+HTML
+				,
 			),
 			'async-with-blocking-dependency'               => array(
 				'set_up'          => function () {
@@ -380,7 +389,8 @@ scriptEventLog.push( "blocking-dependent-of-async: before inline" )
 <script id="blocking-dependent-of-async-js-after" type="text/javascript">
 scriptEventLog.push( "blocking-dependent-of-async: after inline" )
 </script>
-HTML,
+HTML
+				,
 			),
 			'defer-with-async-dependency'                  => array(
 				'set_up'          => function () {
@@ -408,7 +418,8 @@ scriptEventLog.push( "defer-dependent-of-async: before inline" )
 <script id="defer-dependent-of-async-js-after" type="text/plain" data-wp-deps="async-with-defer-dependent">
 scriptEventLog.push( "defer-dependent-of-async: after inline" )
 </script>
-HTML,
+HTML
+				,
 			),
 			'blocking-bundle-of-none-with-inline-scripts-and-defer-dependent' => array(
 				'set_up'          => function () {
@@ -439,7 +450,8 @@ scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-none: before inline"
 <script id="defer-dependent-of-blocking-bundle-of-none-js-after" type="text/plain" data-wp-deps="blocking-bundle-of-none">
 scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-none: after inline" )
 </script>
-HTML,
+HTML
+				,
 			),
 			'blocking-bundle-of-two-with-defer-dependent'  => array(
 				'set_up'          => function () {
@@ -480,7 +492,8 @@ scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-two: before inline" 
 <script id="defer-dependent-of-blocking-bundle-of-two-js-after" type="text/plain" data-wp-deps="blocking-bundle-of-two">
 scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-two: after inline" )
 </script>
-HTML,
+HTML
+				,
 			),
 			'defer-bundle-of-none-with-inline-scripts-and-defer-dependents' => array(
 				'set_up'          => function () {
@@ -512,7 +525,8 @@ scriptEventLog.push( "defer-dependent-of-defer-bundle-of-none: before inline" )
 <script id="defer-dependent-of-defer-bundle-of-none-js-after" type="text/plain" data-wp-deps="defer-bundle-of-none">
 scriptEventLog.push( "defer-dependent-of-defer-bundle-of-none: after inline" )
 </script>
-HTML,
+HTML
+				,
 			),
 			'defer-dependent-with-blocking-and-defer-dependencies' => array(
 				'set_up'          => function () {
@@ -550,7 +564,8 @@ scriptEventLog.push( "defer-dependent-of-blocking-and-defer-dependencies: before
 <script id="defer-dependent-of-blocking-and-defer-dependencies-js-after" type="text/plain" data-wp-deps="blocking-dependency-with-defer-following-dependency,defer-dependency-with-blocking-preceding-dependency">
 scriptEventLog.push( "defer-dependent-of-blocking-and-defer-dependencies: after inline" )
 </script>
-HTML,
+HTML
+				,
 			),
 			'defer-dependent-with-defer-and-blocking-dependencies' => array(
 				'set_up'          => function () {
@@ -588,7 +603,8 @@ scriptEventLog.push( "defer-dependent-of-defer-and-blocking-dependencies: before
 <script id="defer-dependent-of-defer-and-blocking-dependencies-js-after" type="text/plain" data-wp-deps="defer-dependency-with-blocking-following-dependency,blocking-dependency-with-defer-preceding-dependency">
 scriptEventLog.push( "defer-dependent-of-defer-and-blocking-dependencies: after inline" )
 </script>
-HTML,
+HTML
+				,
 			),
 			'async-with-defer-dependency'                  => array(
 				'set_up'          => function () {
@@ -616,7 +632,8 @@ scriptEventLog.push( "async-dependent-of-defer: before inline" )
 <script id="async-dependent-of-defer-js-after" type="text/plain" data-wp-deps="defer-with-async-dependent">
 scriptEventLog.push( "async-dependent-of-defer: after inline" )
 </script>
-HTML,
+HTML
+				,
 			),
 			'defer-with-before-inline-script'              => array(
 				'set_up'          => function () {
@@ -630,7 +647,8 @@ HTML,
 scriptEventLog.push( "defer-with-before-inline: before inline" )
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-with-before-inline:%20script' id='defer-with-before-inline-js' defer></script>
-HTML,
+HTML
+				,
 			),
 			'defer-with-after-inline-script'               => array(
 				'set_up'          => function () {
@@ -644,7 +662,8 @@ HTML,
 <script id="defer-with-after-inline-js-after" type="text/plain">
 scriptEventLog.push( "defer-with-after-inline: after inline" )
 </script>
-HTML,
+HTML
+				,
 			),
 		);
 	}
