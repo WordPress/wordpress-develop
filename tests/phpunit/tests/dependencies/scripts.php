@@ -2633,8 +2633,28 @@ HTML,
 	 * @return string Script tag.
 	 */
 	protected function get_delayed_inline_script_loader_script_tag() {
+		/*
+		 * Ensure the built delayed inline script loader file exists
+		 * when the test suite is run from the 'src' directory.
+		 *
+		 * Note this should no longer be needed as of https://core.trac.wordpress.org/ticket/57844.
+		 */
+		$build_path = ABSPATH . WPINC . '/js/wp-delayed-inline-script-loader' . wp_scripts_get_suffix() . '.js';
+
+		if ( ! file_exists( $build_path ) ) {
+			$src_path = ABSPATH . 'js/_enqueues/lib/delayed-inline-script-loader.js';
+
+			$file_contents = file_get_contents( $src_path );
+
+			self::touch( $build_path );
+			file_put_contents(
+				$build_path,
+				$file_contents
+			);
+		}
+
 		return wp_get_inline_script_tag(
-			file_get_contents( ABSPATH . WPINC . '/js/wp-delayed-inline-script-loader' . wp_scripts_get_suffix() . '.js' ),
+			file_get_contents( $build_path ),
 			array( 'id' => 'wp-delayed-inline-script-loader' )
 		);
 	}
