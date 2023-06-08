@@ -1483,18 +1483,24 @@ function status_header( $code, $description = '' ) {
  * is handled by different browsers
  *
  * @since 2.8.0
+ * @since x.y.z The `Cache-Control` header for logged in users now includes the
+ *              `no-store` and `private` directives.
  *
  * @return array The associative array of header names and field values.
  */
 function wp_get_nocache_headers() {
+	$cache_control = ( function_exists( 'is_user_logged_in' ) && is_user_logged_in() )
+		? 'no-cache, must-revalidate, max-age=0, no-store, private'
+		: 'no-cache, must-revalidate, max-age=0';
+
 	$headers = array(
 		'Expires'       => 'Wed, 11 Jan 1984 05:00:00 GMT',
-		'Cache-Control' => 'no-cache, must-revalidate, max-age=0',
+		'Cache-Control' => $cache_control,
 	);
 
 	if ( function_exists( 'apply_filters' ) ) {
 		/**
-		 * Filters the cache-controlling headers.
+		 * Filters the cache-controlling headers that are used to prevent caching.
 		 *
 		 * @since 2.8.0
 		 *
