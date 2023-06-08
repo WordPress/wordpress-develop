@@ -62,6 +62,33 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 26381
+	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_save_image
+	 */
+	public function testCropImageIntoLargerOne() {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$filename = DIR_TESTDATA . '/images/canola.jpg';
+		$contents = file_get_contents( $filename );
+
+		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
+		$id     = $this->_make_attachment( $upload );
+
+		$_REQUEST['action']  = 'image-editor';
+		$_REQUEST['postid']  = $id;
+		$_REQUEST['do']      = 'scale';
+		$_REQUEST['fwidth']  = 700;
+		$_REQUEST['fheight'] = 500;
+
+		$ret = wp_save_image( $id );
+
+		$this->assertObjectHasAttribute( 'error', $ret );
+		$this->assertEquals( 'Images cannot be scaled to a size larger than the original.', $ret->error );
+	}
+
+	/**
 	 * @ticket 32171
 	 * @requires function imagejpeg
 	 *
