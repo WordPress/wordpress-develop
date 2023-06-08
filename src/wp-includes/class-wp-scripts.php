@@ -973,6 +973,11 @@ JS;
 
 		// Consider each dependent and check if it is delayed.
 		foreach ( $dependents as $dependent ) {
+			// If the dependent script has no src, ignore it for consideration.
+			if ( empty( $this->registered[ $dependent ]->src ) ) {
+				continue;
+			}
+
 			// If the dependent script is not using the defer or async strategy, no script in the chain is delayed.
 			$strategy = $this->get_data( $dependent, 'strategy' );
 			if ( $async_only ) {
