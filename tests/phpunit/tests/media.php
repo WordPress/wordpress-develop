@@ -75,6 +75,16 @@ CAP;
 		parent::tear_down_after_class();
 	}
 
+	/**
+	 * Ensures that the static content media count and related filter are reset between tests.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
+	}
+
 	public function test_img_caption_shortcode_added() {
 		global $shortcode_tags;
 		$this->assertSame( 'img_caption_shortcode', $shortcode_tags['caption'] );
@@ -3559,8 +3569,6 @@ EOF;
 	 * @param string $context
 	 */
 	public function test_wp_get_loading_attr_default( $context ) {
-		global $wp_query, $wp_the_query;
-
 		// Return 'lazy' by default.
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( 'test' ) );
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( 'wp_get_attachment_image' ) );
@@ -3568,9 +3576,7 @@ EOF;
 		// Return 'lazy' if not in the loop or the main query.
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 
-		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
+		$query = $this->get_new_wp_query_for_published_post();
 
 		while ( have_posts() ) {
 			the_post();
@@ -3579,7 +3585,7 @@ EOF;
 			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 
 			// Set as main query.
-			$wp_the_query = $wp_query;
+			$this->set_main_query( $query );
 
 			// For contexts other than for the main content, still return 'lazy' even in the loop
 			// and in the main query, and do not increase the content media count.
@@ -3613,12 +3619,8 @@ EOF;
 	 * @ticket 53675
 	 */
 	public function test_wp_omit_loading_attr_threshold_filter() {
-		global $wp_query, $wp_the_query;
-
-		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
-		$wp_the_query = $wp_query;
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
+		$query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $query );
 
 		// Use the filter to alter the threshold for not lazy-loading to the first five elements.
 		$this->force_omit_loading_attr_threshold( 5 );
@@ -3640,8 +3642,6 @@ EOF;
 	 * @ticket 53675
 	 */
 	public function test_wp_filter_content_tags_with_wp_get_loading_attr_default() {
-		global $wp_query, $wp_the_query;
-
 		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );
 		$iframe1      = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$img2         = get_image_tag( self::$large_id, '', '', '', 'medium' );
@@ -3659,10 +3659,8 @@ EOF;
 		$content_expected   = $img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2;
 		$content_expected   = wp_img_tag_add_decoding_attr( $content_expected, 'the_content' );
 
-		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
-		$wp_the_query = $wp_query;
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
+		$query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $query );
 
 		while ( have_posts() ) {
 			the_post();
@@ -3696,6 +3694,132 @@ EOF;
 		// Only by enforcing a fresh check, the filter gets re-applied.
 		$omit_threshold = wp_omit_loading_attr_threshold( true );
 		$this->assertSame( 1, $omit_threshold );
+	}
+
+	/**
+	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute value before loop but after get_header if not main query.
+	 *
+	 * @ticket 58211
+	 *
+	 * @covers ::wp_get_loading_attr_default
+	 *
+	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
+	 *
+	 * @param string $context Context for the element for which the `loading` attribute value is requested.
+	 */
+	public function test_wp_get_loading_attr_default_before_loop_if_not_main_query( $context ) {
+		global $wp_query;
+
+		$wp_query = $this->get_new_wp_query_for_published_post();
+
+		do_action( 'get_header' );
+
+		// Lazy if not main query.
+		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+	}
+
+	/**
+	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute value before loop but after get_header in main query but header was not called.
+	 *
+	 * @ticket 58211
+	 *
+	 * @covers ::wp_get_loading_attr_default
+	 *
+	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
+	 *
+	 * @param string $context Context for the element for which the `loading` attribute value is requested.
+	 */
+	public function test_wp_get_loading_attr_default_before_loop_in_main_query_but_header_not_called( $context ) {
+		global $wp_query;
+
+		$wp_query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $wp_query );
+
+		// Lazy if header not called.
+		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+	}
+
+	/**
+	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute value before loop but after get_header for main query.
+	 *
+	 * @ticket 58211
+	 *
+	 * @covers ::wp_get_loading_attr_default
+	 *
+	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
+	 *
+	 * @param string $context Context for the element for which the `loading` attribute value is requested.
+	 */
+	public function test_wp_get_loading_attr_default_before_loop_if_main_query( $context ) {
+		global $wp_query;
+
+		$wp_query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $wp_query );
+
+		do_action( 'get_header' );
+		$this->assertFalse( wp_get_loading_attr_default( $context ) );
+	}
+
+	/**
+	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute value after get_header and after loop.
+	 *
+	 * @ticket 58211
+	 *
+	 * @covers ::wp_get_loading_attr_default
+	 *
+	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
+	 *
+	 * @param string $context Context for the element for which the `loading` attribute value is requested.
+	 */
+	public function test_wp_get_loading_attr_default_after_loop( $context ) {
+		global $wp_query;
+
+		$wp_query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $wp_query );
+
+		do_action( 'get_header' );
+
+		while ( have_posts() ) {
+			the_post();
+		}
+		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+	}
+
+	/**
+	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute if no loop.
+	 *
+	 * @ticket 58211
+	 *
+	 * @covers ::wp_get_loading_attr_default
+	 *
+	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
+	 *
+	 * @param string $context Context for the element for which the `loading` attribute value is requested.
+	 */
+	public function test_wp_get_loading_attr_default_no_loop( $context ) {
+		global $wp_query;
+
+		$wp_query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $wp_query );
+
+		// Ensure header and footer is called.
+		do_action( 'get_header' );
+		do_action( 'get_footer' );
+
+		// Load lazy if the there is no loop and footer was called.
+		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_get_loading_attr_default_before_and_no_loop() {
+		return array(
+			array( 'wp_get_attachment_image' ),
+			array( 'the_post_thumbnail' ),
+		);
 	}
 
 	/**
@@ -3735,8 +3859,6 @@ EOF;
 		$wp_query     = new WP_Query( array( 'p' => self::$post_ids['publish'] ) );
 		$wp_the_query = $wp_query;
 		$post         = get_post( self::$post_ids['publish'] );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		$_wp_current_template_content = '<!-- wp:post-content /-->';
 
@@ -3792,8 +3914,6 @@ EOF;
 		$wp_query     = new WP_Query( array( 'p' => self::$post_ids['publish'] ) );
 		$wp_the_query = $wp_query;
 		$post         = get_post( self::$post_ids['publish'] );
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
 
 		$_wp_current_template_content = '<!-- wp:post-featured-image /--> <!-- wp:post-content /-->';
 
@@ -3883,8 +4003,7 @@ EOF;
 		 */
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$wp_the_query = $wp_query;
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
+
 		$content = '';
 		while ( have_posts() ) {
 			the_post();
@@ -3946,6 +4065,98 @@ EOF;
 			'the_post_thumbnail'      => array( 'context' => 'the_post_thumbnail' ),
 			'wp_get_attachment_image' => array( 'context' => 'wp_get_attachment_image' ),
 		);
+	}
+
+	/**
+	 * Tests that the content media count is not affected by `the_excerpt()` calls for posts that contain images.
+	 *
+	 * @ticket 56588
+	 *
+	 * @covers ::wp_trim_excerpt
+	 */
+	public function test_the_excerpt_does_not_affect_content_media_count() {
+		global $wp_query, $wp_the_query;
+
+		/*
+		 * Use the filter to alter the threshold for not lazy-loading to the first 2 elements,
+		 * then use a post that contains exactly 2 images.
+		 */
+		$this->force_omit_loading_attr_threshold( 2 );
+		$post_content  = '<img src="example.jpg" width="800" height="600">';
+		$post_content .= '<p>Some text.</p>';
+		$post_content .= '<img src="example2.jpg" width="800" height="600">';
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_content' => $post_content,
+				'post_excerpt' => '',
+			)
+		);
+
+		$wp_query     = new WP_Query( array( 'post__in' => array( $post_id ) ) );
+		$wp_the_query = $wp_query;
+
+		while ( have_posts() ) {
+			the_post();
+
+			// Call `the_excerpt()` without generating output.
+			get_echo( 'the_excerpt' );
+		}
+
+		// The only way to access the value is by calling this function without increasing the value.
+		$content_media_count = wp_increase_content_media_count( 0 );
+
+		// Assert that the media count was not increased even though there are 3 images in the post's content.
+		$this->assertSame( 0, $content_media_count );
+	}
+
+	/**
+	 * Tests that the lazy-loading result is not affected by `the_excerpt()` calls for posts that
+	 * contain images.
+	 *
+	 * Printing the excerpt for a post that contains images in its content prior to its featured image should result in
+	 * that featured image not being lazy-loaded, since the images in the post content aren't displayed in the excerpt.
+	 *
+	 * @ticket 56588
+	 *
+	 * @covers ::wp_trim_excerpt
+	 */
+	public function test_the_excerpt_does_not_affect_omit_lazy_loading_logic() {
+		global $wp_query, $wp_the_query;
+
+		/*
+		 * Use the filter to alter the threshold for not lazy-loading to the first 2 elements,
+		 * then use a post that contains exactly 2 images.
+		 */
+		$this->force_omit_loading_attr_threshold( 2 );
+		$post_content  = '<img src="example.jpg" width="800" height="600">';
+		$post_content .= '<p>Some text.</p>';
+		$post_content .= '<img src="example2.jpg" width="800" height="600">';
+
+		$post_id           = self::factory()->post->create(
+			array(
+				'post_content' => $post_content,
+				'post_excerpt' => '',
+			)
+		);
+		$featured_image_id = self::$large_id;
+		update_post_meta( $post_id, '_thumbnail_id', $featured_image_id );
+
+		$expected_image_tag = get_the_post_thumbnail( $post_id, 'post-thumbnail', array( 'loading' => false ) );
+
+		$wp_query     = new WP_Query( array( 'post__in' => array( $post_id ) ) );
+		$wp_the_query = $wp_query;
+
+		$output = '';
+		while ( have_posts() ) {
+			the_post();
+
+			// Print excerpt first, then the featured image.
+			$output .= get_echo( 'the_excerpt' );
+			$output .= get_echo( 'the_post_thumbnail' );
+		}
+
+		$this->assertStringContainsString( $expected_image_tag, $output );
 	}
 
 	private function reset_content_media_count() {
@@ -4165,6 +4376,34 @@ EOF;
 				return $threshold;
 			}
 		);
+	}
+
+	/**
+	 * Returns a new WP_Query.
+	 *
+	 * @global WP_Query $wp_query WordPress Query object.
+	 *
+	 * @return WP_Query a new query.
+	 */
+	public function get_new_wp_query_for_published_post() {
+		global $wp_query;
+
+		// New query to $wp_query. update global for the loop.
+		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
+
+		return $wp_query;
+	}
+
+	/**
+	 * Sets a query as main query.
+	 *
+	 * @global WP_Query $wp_the_query WordPress Query object.
+	 *
+	 * @param WP_Query $query query to be set as main query.
+	 */
+	public function set_main_query( $query ) {
+		global $wp_the_query;
+		$wp_the_query = $query;
 	}
 }
 
