@@ -179,9 +179,9 @@ function determine_locale() {
  *                       Default 'default'.
  * @return string Translated text.
  */
-function translate( $text, $domain = 'default' ) {
+function translate( $text, $domain = 'default', $return_singular = true ) {
 	$translations = get_translations_for_domain( $domain );
-	$translation  = $translations->translate( $text );
+	$translation  = $translations->translate( $text, null, $return_singular );
 
 	/**
 	 * Filters text with its translation.
@@ -293,6 +293,20 @@ function translate_with_gettext_context( $text, $context, $domain = 'default' ) 
  */
 function __( $text, $domain = 'default' ) {
 	return translate( $text, $domain );
+}
+
+/**
+ * Retrieves the translation of $text.
+ *
+ * If there is no translation, or the text domain isn't loaded, null is returned.
+ *
+ * @param string $text   Text to translate.
+ * @param string $domain Text domain. Unique identifier for retrieving translated strings.
+ *
+ * @return string|null Translated text or null, if no translation exists.
+ */
+function __i18n_exists( $text, $domain = 'default' ) {
+	return translate( $text, $domain, false );
 }
 
 /**
@@ -1304,6 +1318,7 @@ function _load_textdomain_just_in_time( $domain ) {
  */
 function get_translations_for_domain( $domain ) {
 	global $l10n;
+	//var_dump( $l10n );
 	if ( isset( $l10n[ $domain ] ) || ( _load_textdomain_just_in_time( $domain ) && isset( $l10n[ $domain ] ) ) ) {
 		return $l10n[ $domain ];
 	}
