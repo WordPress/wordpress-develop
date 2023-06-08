@@ -518,8 +518,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 			foreach ( $comment_types as $type => $label ) {
 				if ( get_comments(
 					array(
-						'number' => 1,
-						'type'   => $type,
+						'number'  => 1,
+						'orderby' => 'none',
+						'type'    => $type,
 					)
 				) ) {
 					printf(
