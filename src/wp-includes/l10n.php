@@ -165,6 +165,20 @@ function determine_locale() {
 }
 
 /**
+ * Return true if translation for $text on $domain is available.
+ *
+ * @since ?.?.?
+ *
+ * @param string $text
+ * @param string $domain
+ *
+ * @return boolean Wether $text is translated or not.
+ */
+function is_translated( $text, $domain = 'default' ) {
+	return (bool) translate( $text, $domain, false );
+}
+
+/**
  * Retrieves the translation of $text.
  *
  * If there is no translation, or the text domain isn't loaded, the original text is returned.
