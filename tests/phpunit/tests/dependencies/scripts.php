@@ -2712,9 +2712,15 @@ HTML,
 	 * @param string $message  Message.
 	 */
 	protected function assertEqualMarkup( $expected, $actual, $message = '' ) {
-		$this->assertSame(
-			$this->normalize_markup( $expected ),
-			$this->normalize_markup( $actual ),
+		$expected_dom = new DOMDocument();
+		$actual_dom   = new DOMDocument();
+
+		$expected_dom->loadHTML( $expected );
+		$actual_dom->loadHTML( $actual );
+
+		$this->assertEquals(
+			$expected_dom,
+			$actual_dom,
 			$message
 		);
 	}
