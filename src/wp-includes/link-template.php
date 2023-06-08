@@ -382,10 +382,15 @@ function get_post_permalink( $post = 0, $leavename = false, $sample = false ) {
  * @param bool        $leavename Optional. Whether to keep the page name. Default false.
  * @param bool        $sample    Optional. Whether it should be treated as a sample permalink.
  *                               Default false.
- * @return string The page permalink.
+ * @return string The page permalink on success, empty string on failure.
  */
 function get_page_link( $post = false, $leavename = false, $sample = false ) {
 	$post = get_post( $post );
+
+	if ( !$post ) {
+		_doing_it_wrong( 'get_page_link', __( 'Invalid Post ID or object' ), '6.3.0' );
+		return '';
+	}
 
 	if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) == $post->ID ) {
 		$link = home_url( '/' );
