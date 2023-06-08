@@ -2144,7 +2144,7 @@ function sanitize_user( $username, $strict = false ) {
 		/**
 		 * Filters the regexp of characters which are allowed in a username in strict mode.
 		 *
-		 * @param string[] $allowed_chars Regexp pattern for matching allowed characters.
+		 * @param string   $allowed_chars Regexp pattern for matching allowed characters.
 		 * @param string   $raw_username  The original username to be sanitized.
 		 */
 		$allowed_chars = apply_filters( 'sanitize_user_allowed_chars_regexp', $allowed_chars, $raw_username );
