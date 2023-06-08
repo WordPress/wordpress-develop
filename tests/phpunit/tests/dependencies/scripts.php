@@ -323,7 +323,6 @@ HTML
 				 *
 				 * PHP Parse error:  syntax error, unexpected '' (T_ENCAPSED_AND_WHITESPACE), expecting '-' or identifier (T_STRING) or variable (T_VARIABLE) or number (T_NUM_STRING)
 				 */
-				// Note: This comma must not be on the same line as the HTML terminating the heredoc on the previous line or else PHP
 			),
 			'async-with-async-dependencies'                => array(
 				'set_up'          => function () {
