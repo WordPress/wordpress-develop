@@ -25,16 +25,16 @@
 	 */
 	function runInlineScript(script) {
 		var newScript;
-		script.dataset.wpDone = "1";
+		script.dataset.wpDone = '1';
 		if (nonce && nonce !== script.nonce) {
 			console.error(
-				"CSP nonce check failed for after inline script. Execution aborted.",
+				'CSP nonce check failed for after inline script. Execution aborted.',
 				script
 			);
 			return;
 		}
 		newScript = script.cloneNode(true);
-		newScript.type = "text/javascript";
+		newScript.type = 'text/javascript';
 		script.parentNode.replaceChild(newScript, script);
 	}
 
@@ -95,12 +95,12 @@
 		);
 	}
 
-	document.addEventListener("load", onScriptLoad, true);
+	document.addEventListener('load', onScriptLoad, true);
 
 	window.addEventListener(
-		"load",
+		'load',
 		function () {
-			document.removeEventListener("load", onScriptLoad, true);
+			document.removeEventListener('load', onScriptLoad, true);
 		},
 		{ once: true }
 	);
