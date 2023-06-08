@@ -2316,6 +2316,11 @@ function upgrade_630() {
 				delete_option( 'can_compress_scripts' );
 				add_option( 'can_compress_scripts', $can_compress_scripts, 'yes' );
 			}
+
+			global $wpdb;
+			$wpdb->hide_errors();
+			$wpdb->query( "ALTER TABLE $wpdb->comments ADD INDEX `comment_type` (`comment_type`)" );
+			$wpdb->show_errors();
 		}
 	}
 }
@@ -2469,6 +2474,13 @@ function upgrade_network() {
 		$network_id = get_main_network_id();
 		delete_network_option( $network_id, 'site_meta_supported' );
 		is_site_meta_supported();
+	}
+
+	// 6.3.0
+	if ( $wp_current_db_version < 55853 ) {
+		$wpdb->hide_errors();
+		$wpdb->query( "ALTER TABLE $wpdb->comments ADD INDEX `comment_type` (`comment_type`)" );
+		$wpdb->show_errors();
 	}
 }
 
