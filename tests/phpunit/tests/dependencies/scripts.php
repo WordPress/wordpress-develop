@@ -2682,7 +2682,7 @@ HTML
 	 */
 	protected function parse_markup_fragment( $markup ) {
 		$dom = new DOMDocument();
-		@$dom->loadHTML(
+		$dom->loadHTML(
 			"<!DOCTYPE html><html><head><meta charset=utf8></head><body>{$markup}</body></html>"
 		);
 		return $dom->getElementsByTagName( 'body' )->item( 0 );
