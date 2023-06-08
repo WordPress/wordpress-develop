@@ -1489,7 +1489,7 @@ function status_header( $code, $description = '' ) {
 function wp_get_nocache_headers() {
 	$headers = array(
 		'Expires'       => 'Wed, 11 Jan 1984 05:00:00 GMT',
-		'Cache-Control' => 'no-cache, must-revalidate, max-age=0',
+		'Cache-Control' => 'no-cache, no-store, must-revalidate, max-age=0',
 	);
 
 	if ( function_exists( 'apply_filters' ) ) {
