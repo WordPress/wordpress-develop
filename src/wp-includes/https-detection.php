@@ -151,6 +151,13 @@ function wp_update_https_detection_errors() {
 		}
 	}
 
+	// If https is working, reduce the `wp_https_detection` cron check frequency to weekly.
+	$scheduled = wp_get_scheduled_event( 'wp_https_detection' );
+	if ( false === $support_errors->errors && 'weekly' !== $scheduled->schedule ) {
+		wp_unschedule_event( $scheduled->timestamp, $scheduled->schedule, 'wp_https_detection' );
+		wp_schedule_event( time(), 'weekly', 'wp_https_detection' );
+	}
+
 	update_option( 'https_detection_errors', $support_errors->errors );
 }
 
