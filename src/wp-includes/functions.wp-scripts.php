@@ -118,18 +118,16 @@ function wp_print_scripts( $handles = false ) {
  * they were added, i.e. the latter added code can redeclare the previous.
  *
  * @since 4.5.0
- * @since 6.3.0 Added `$standalone` boolean parameter.
  *
  * @see WP_Scripts::add_inline_script()
  *
- * @param string $handle     Name of the script to add the inline script to.
- * @param string $data       String containing the JavaScript to be added.
- * @param string $position   Optional. Whether to add the inline script before the handle
- *                           or after. Default 'after'.
- * @param bool   $standalone Optional. Whether the inline script is standalone. Default false.
+ * @param string $handle   Name of the script to add the inline script to.
+ * @param string $data     String containing the JavaScript to be added.
+ * @param string $position Optional. Whether to add the inline script before the handle
+ *                         or after. Default 'after'.
  * @return bool True on success, false on failure.
  */
-function wp_add_inline_script( $handle, $data, $position = 'after', $standalone = false ) {
+function wp_add_inline_script( $handle, $data, $position = 'after' ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
 	if ( false !== stripos( $data, '</script>' ) ) {
@@ -146,7 +144,7 @@ function wp_add_inline_script( $handle, $data, $position = 'after', $standalone 
 		$data = trim( preg_replace( '#<script[^>]*>(.*)</script>#is', '$1', $data ) );
 	}
 
-	return wp_scripts()->add_inline_script( $handle, $data, $position, $standalone );
+	return wp_scripts()->add_inline_script( $handle, $data, $position );
 }
 
 /**
