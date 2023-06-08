@@ -167,14 +167,12 @@ function determine_locale() {
 /**
  * Return true if translation for $text on $domain is available.
  *
- * @since ?.?.?
- *
  * @param string $text
  * @param string $domain
  *
  * @return boolean Wether $text is translated or not.
  */
-function is_translated( $text, $domain = 'default' ) {
+function has_translation( $text, $domain = 'default' ) {
 	return (bool) translate( $text, $domain, false );
 }
 
@@ -187,7 +185,6 @@ function is_translated( $text, $domain = 'default' ) {
  *
  * @since 2.2.0
  * @since 5.5.0 Introduced `gettext-{$domain}` filter.
- * @since ?.?.? Introduced $return_singular parameter.
  *
  * @param string $text            Text to translate.
  * @param string $domain          Optional. Text domain. Unique identifier for retrieving translated strings.
@@ -303,36 +300,15 @@ function translate_with_gettext_context( $text, $context, $domain = 'default' ) 
  *
  * @since 2.1.0
  *
- * @param string $text   Text to translate.
- * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
- *                       Default 'default'.
+ * @param string $text            Text to translate.
+ * @param string $domain          Optional. Text domain. Unique identifier for retrieving translated strings.
+ *                                Default 'default'.
+ * @param bool   $return_singular Optional. Whether to return the singular form of the translation.
  * @return string Translated text.
  */
-function __( $text, $domain = 'default' ) {
-	return translate( $text, $domain );
+function __( $text, $domain = 'default', $return_singular = true ) {
+	return translate( $text, $domain, $return_singular );
 }
-
-/**
- * Retrieves the translation of $text.
- *
- * If there is no translation, or the text domain isn't loaded, null is returned.
- *
- * @param string $text   Text to translate.
- * @param string $domain Text domain. Unique identifier for retrieving translated strings.
- *
- * @return string|null Translated text or null, if no translation exists.
- */
-function __i18n_exists( $text, $domain = 'default' ) {
-	return translate( $text, $domain, false );
-}
-
-__no_def();
-__no_default();
-__exists();
-__nf();
-__nof();
-__nofallback();
-no_default__();
 
 /**
  * Retrieves the translation of $text and escapes it for safe use in an attribute.
