@@ -95,6 +95,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 		/**
 		 * @param string $singular
 		 * @param string $context
+		 * @param bool   $return_singular
 		 * @return string
 		 */
 		public function translate( $singular, $context = null, $return_singular = true ) {
@@ -107,12 +108,14 @@ if ( ! class_exists( 'Translations', false ) ) :
 			$translated = $this->translate_entry( $entry );
 
 			if ( $translated && ! empty( $translated->translations ) ) {
+				// We got a translation, return it.
 				return $translated->translations[0];
 			} else if ( $return_singular ) {
+				// We got no translation but want $singular to be returned as a fallback.
 				return $singular;
 			}
-			return 'yadda';
-;			//return ( $translated && ! empty( $translated->translations ) ) ? $translated->translations[0] : 'yaddayadda';
+			// No translation found, no $singular fallback wanted.
+			return null;
 		}
 
 		/**

@@ -173,10 +173,13 @@ function determine_locale() {
  *
  * @since 2.2.0
  * @since 5.5.0 Introduced `gettext-{$domain}` filter.
+ * @since ?.?.? Introduced $return_singular parameter.
  *
- * @param string $text   Text to translate.
- * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
- *                       Default 'default'.
+ * @param string $text            Text to translate.
+ * @param string $domain          Optional. Text domain. Unique identifier for retrieving translated strings.
+ *                                Default 'default'.
+ * @param bool   $return_singular Optional. Whether to return the singular form of the translation.
+ *
  * @return string Translated text.
  */
 function translate( $text, $domain = 'default', $return_singular = true ) {
@@ -308,6 +311,14 @@ function __( $text, $domain = 'default' ) {
 function __i18n_exists( $text, $domain = 'default' ) {
 	return translate( $text, $domain, false );
 }
+
+__no_def();
+__no_default();
+__exists();
+__nf();
+__nof();
+__nofallback();
+no_default__();
 
 /**
  * Retrieves the translation of $text and escapes it for safe use in an attribute.
