@@ -387,7 +387,7 @@ function get_post_permalink( $post = 0, $leavename = false, $sample = false ) {
 function get_page_link( $post = false, $leavename = false, $sample = false ) {
 	$post = get_post( $post );
 
-	if ( !$post ) {
+	if ( ! $post ) {
 		_doing_it_wrong( 'get_page_link', __( 'Invalid Post ID or object' ), '6.3.0' );
 		return '';
 	}
