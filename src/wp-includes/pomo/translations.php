@@ -97,7 +97,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 * @param string $context
 		 * @return string
 		 */
-		public function translate( $singular, $context = null ) {
+		public function translate( $singular, $context = null, $return_singular = true ) {
 			$entry      = new Translation_Entry(
 				array(
 					'singular' => $singular,
@@ -105,7 +105,14 @@ if ( ! class_exists( 'Translations', false ) ) :
 				)
 			);
 			$translated = $this->translate_entry( $entry );
-			return ( $translated && ! empty( $translated->translations ) ) ? $translated->translations[0] : $singular;
+
+			if ( $translated && ! empty( $translated->translations ) ) {
+				return $translated->translations[0];
+			} else if ( $return_singular ) {
+				return $singular;
+			}
+			return 'yadda';
+;			//return ( $translated && ! empty( $translated->translations ) ) ? $translated->translations[0] : 'yaddayadda';
 		}
 
 		/**
