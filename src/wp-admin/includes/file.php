@@ -164,7 +164,7 @@ function list_files( $folder = '', $levels = 100, $exclusions = array(), $includ
 			}
 
 			if ( is_dir( $folder . $file ) ) {
-				$files2 = list_files( $folder . $file, $levels - 1 );
+				$files2 = list_files( $folder . $file, $levels - 1, array(), $include_hidden );
 				if ( $files2 ) {
 					$files = array_merge( $files, $files2 );
 				} else {
