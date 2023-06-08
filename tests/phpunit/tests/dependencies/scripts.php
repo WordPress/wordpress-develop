@@ -1791,10 +1791,7 @@ HTML,
 			$print_scripts         // Printed scripts.
 		);
 
-		$this->assertSameIgnoreEOL(
-			$this->normalize_markup( $expected ),
-			$this->normalize_markup( $print_scripts )
-		);
+		$this->assertEqualMarkup( $expected, $print_scripts );
 	}
 
 	/**
@@ -2660,48 +2657,17 @@ HTML,
 	}
 
 	/**
-	 * Normalize markup using WP_HTML_Tag_Processor.
-	 *
-	 * Attributes are sorted alphabetically and values are made to use double quotes instead of single quotes.
+	 * Parse an HTML markup fragment.
 	 *
 	 * @param string $markup Markup.
-	 * @return string Normalized markup.
+	 * @return DOMElement Body element wrapping supplied markup fragment.
 	 */
-	protected function normalize_markup( $markup ) {
-		$p = new WP_HTML_Tag_Processor( $markup );
-		while ( $p->next_tag() ) {
-			if ( $p->is_tag_closer() ) {
-				continue;
-			}
-			$attribute_names = $p->get_attribute_names_with_prefix( '' );
-			sort( $attribute_names );
-			$attributes = array();
-			foreach ( $attribute_names as $attribute_name ) {
-				// For some reason these are considered attributes.
-				if ( '<' === $attribute_name || strtoupper( $attribute_name ) === $p->get_tag() ) {
-					continue;
-				}
-				$attributes[ $attribute_name ] = $p->get_attribute( $attribute_name );
-				$p->remove_attribute( $attribute_name );
-			}
-			$p->get_updated_html(); // This seems to be required to "commit" the changes, otherwise re-adding them below will result in no change.
-			foreach ( $attributes as $attribute_name => $attribute_value ) {
-				$p->set_attribute( $attribute_name, $attribute_value );
-			}
-		}
-
-		$normalized = $p->get_updated_html();
-
-		// Normalize inside of IE conditional comments which the HTML tag processor rightfully skips over.
-		$normalized = preg_replace_callback(
-			'#(<!--\[[^\]]+?\]>)(.+?)(<!\[endif\]-->)#s',
-			function ( $matches ) {
-				return $matches[1] . $this->normalize_markup( $matches[2] ) . $matches[3];
-			},
-			$normalized
+	protected function parse_markup_fragment( $markup ) {
+		$dom = new DOMDocument();
+		@$dom->loadHTML(
+			"<!DOCTYPE html><html><head><meta charset=utf8></head><body>{$markup}</body></html>"
 		);
-
-		return $normalized;
+		return $dom->getElementsByTagName( 'body' )->item( 0 );
 	}
 
 	/**
@@ -2712,9 +2678,9 @@ HTML,
 	 * @param string $message  Message.
 	 */
 	protected function assertEqualMarkup( $expected, $actual, $message = '' ) {
-		$this->assertSame(
-			$this->normalize_markup( $expected ),
-			$this->normalize_markup( $actual ),
+		$this->assertEquals(
+			$this->parse_markup_fragment( $expected ),
+			$this->parse_markup_fragment( $actual ),
 			$message
 		);
 	}
