@@ -168,8 +168,10 @@ final class WP_Site {
 		if ( false === $_site ) {
 			$_site = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->blogs} WHERE blog_id = %d LIMIT 1", $site_id ) );
 
-			if ( empty( $_site ) || is_wp_error( $_site ) ) {
+			if ( null === $_site ) {
 				$_site = -1;
+			} elseif ( empty( $_site ) || is_wp_error( $_site ) ) {
+				return false;
 			}
 
 			wp_cache_add( $site_id, $_site, 'sites' );
