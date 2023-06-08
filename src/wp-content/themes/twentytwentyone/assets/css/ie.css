@@ -3655,6 +3655,11 @@ pre.wp-block-preformatted {
 	color: currentColor;
 	border-color: currentColor;
 	position: relative;
+	font-weight: 700;
+	font-style: normal;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	letter-spacing: normal;
+	line-height: 1.3;
 
 	/**
    * Block Options
@@ -3673,12 +3678,12 @@ pre.wp-block-preformatted {
 }
 
 .wp-block-pullquote p {
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-family: inherit;
 	font-size: inherit;
-	font-style: normal;
+	font-style: inherit;
 	font-weight: inherit;
-	letter-spacing: normal;
-	line-height: 1.3;
+	letter-spacing: inherit;
+	line-height: inherit;
 	margin: 0;
 }
 
