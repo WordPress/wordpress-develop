@@ -36,6 +36,43 @@ env:
   SLOW_TESTS: 'external-http,media,restapi'
 
 jobs:
+  create-artifact:
+    name: Build WordPress artifact
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+
+      - name: Install npm Dependencies
+        run: npm ci
+
+      - name: Build WordPress in /src
+        run: npm run build:dev
+
+      - name: Archive WordPress build artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          if-no-files-found: error
+          name: wordpress-src-built
+          path: src
+
   # Runs the PHPUnit tests for WordPress.
   #
   # Performs the following steps:
@@ -56,6 +93,7 @@ jobs:
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
   test-php:
+    needs: create-artifact
     name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.split_slow && ' slow tests' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     permissions:
@@ -137,6 +175,12 @@ jobs:
         uses: ramsey/composer-install@83af392bf5f031813d25e6fe4cd626cdba9a2df6 # v2.2.0
         with:
           custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
+
+      - name: Download Build artifact.
+        uses: actions/download-artifact@v3
+        with:
+          name: wordpress-src-built
+          path: src
 
       - name: Install npm dependencies
         run: npm ci
