@@ -2883,10 +2883,11 @@ function get_password_reset_key( $user ) {
 	 */
 	do_action( 'retrieve_password', $user->user_login );
 
-	if ( ! wp_is_password_reset_allowed_for_user( $user ) ) {
+	$password_reset_allowed = wp_is_password_reset_allowed_for_user( $user );
+	if ( ! $password_reset_allowed ) {
 		return new WP_Error( 'no_password_reset', __( 'Password reset is not allowed for this user' ) );
-	} elseif ( is_wp_error( $allow ) ) {
-		return $allow;
+	} elseif ( is_wp_error( $password_reset_allowed ) ) {
+		return $password_reset_allowed;
 	}
 
 	// Generate something random for a password reset key.
