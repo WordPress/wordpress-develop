@@ -1405,8 +1405,8 @@ HTML
 		$expected_header .= "<script type='text/javascript' src='/child-head.js' id='child-head-js'></script>\n";
 		$expected_footer  = "<script type='text/javascript' src='/parent.js' id='parent-js'></script>\n";
 
-		$this->assertSame( $expected_header, $header );
-		$this->assertSame( $expected_footer, $footer );
+		$this->assertSame( $expected_header, $header, 'Expected same header markup.' );
+		$this->assertSame( $expected_footer, $footer, 'Expected same footer markup.' );
 	}
 
 	/**
@@ -1426,8 +1426,8 @@ HTML
 		$expected_footer  = "<script type='text/javascript' src='/child-footer.js' id='child-footer-js'></script>\n";
 		$expected_footer .= "<script type='text/javascript' src='/parent.js' id='parent-js'></script>\n";
 
-		$this->assertSame( $expected_header, $header );
-		$this->assertSame( $expected_footer, $footer );
+		$this->assertSame( $expected_header, $header, 'Expected same header markup.' );
+		$this->assertSame( $expected_footer, $footer, 'Expected same footer markup.' );
 	}
 
 	/**
@@ -1457,8 +1457,8 @@ HTML
 		$expected_footer .= "<script type='text/javascript' src='/child2-footer.js' id='child2-footer-js'></script>\n";
 		$expected_footer .= "<script type='text/javascript' src='/parent-footer.js' id='parent-footer-js'></script>\n";
 
-		$this->assertSame( $expected_header, $header );
-		$this->assertSame( $expected_footer, $footer );
+		$this->assertSame( $expected_header, $header, 'Expected same header markup.' );
+		$this->assertSame( $expected_footer, $footer, 'Expected same footer markup.' );
 	}
 
 	/**
