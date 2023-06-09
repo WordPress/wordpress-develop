@@ -971,10 +971,10 @@ HTML
 	 * @covers ::wp_register_script
 	 * @covers ::wp_enqueue_script
 	 * @ticket 12009
+	 *
+	 * @expectedIncorrectUsage WP_Scripts::add_data
 	 */
 	public function test_script_strategy_doing_it_wrong_via_register() {
-		$this->setExpectedIncorrectUsage( 'WP_Scripts::add_data' );
-
 		wp_register_script( 'invalid-strategy', '/defaults.js', array(), null, array( 'strategy' => 'random-strategy' ) );
 		wp_enqueue_script( 'invalid-strategy' );
 
@@ -994,10 +994,10 @@ HTML
 	 * @covers ::wp_register_script
 	 * @covers ::wp_enqueue_script
 	 * @ticket 12009
+	 *
+	 * @expectedIncorrectUsage WP_Scripts::add_data
 	 */
 	public function test_script_strategy_doing_it_wrong_via_add_data() {
-		$this->setExpectedIncorrectUsage( 'WP_Scripts::add_data' );
-
 		wp_register_script( 'invalid-strategy', '/defaults.js', array(), null );
 		wp_script_add_data( 'invalid-strategy', 'strategy', 'random-strategy' );
 		wp_enqueue_script( 'invalid-strategy' );
@@ -1016,10 +1016,10 @@ HTML
 	 * @covers WP_Scripts::add_data
 	 * @covers ::wp_enqueue_script
 	 * @ticket 12009
+	 *
+	 * @expectedIncorrectUsage WP_Scripts::add_data
 	 */
 	public function test_script_strategy_doing_it_wrong_via_enqueue() {
-		$this->setExpectedIncorrectUsage( 'WP_Scripts::add_data' );
-
 		wp_enqueue_script( 'invalid-strategy', '/defaults.js', array(), null, array( 'strategy' => 'random-strategy' ) );
 
 		$this->assertSame(
