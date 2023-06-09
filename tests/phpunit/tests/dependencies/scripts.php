@@ -110,10 +110,9 @@ JS;
 		/**
 		 * Add inline after script.
 		 *
-		 * @param bool $in_footer In footer.
+		 * @param string $handle Handle.
 		 */
-		$add_inline_script = static function ( $in_footer ) {
-			$handle = $in_footer ? 'foo-footer' : 'foo-head';
+		$add_inline_script = static function ( $handle ) {
 			wp_add_inline_script(
 				$handle,
 				"/*{$handle}-after*/"
@@ -139,7 +138,7 @@ HTML
 			'delayed_inline_script_in_head_only'   => array(
 				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
 					$enqueue_script( false );
-					$add_inline_script( false );
+					$add_inline_script( 'foo-head' );
 				},
 				'expected_head'   => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
 <script id="foo-head-js" src="https://example.com/foo-head.js" type="text/javascript" defer></script>
@@ -154,7 +153,7 @@ HTML
 			'delayed_inline_script_in_footer_only' => array(
 				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
 					$enqueue_script( true );
-					$add_inline_script( true );
+					$add_inline_script( 'foo-footer' );
 				},
 				'expected_head'   => $this->get_delayed_inline_script_loader_script_tag(), // TODO: This script is getting output even though it isn't needed yet.
 				'expected_torso'  => '',
@@ -169,7 +168,7 @@ HTML,
 				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
 					foreach ( array( false, true ) as $in_footer ) {
 						$enqueue_script( $in_footer );
-						$add_inline_script( $in_footer );
+						$add_inline_script( $in_footer ? 'foo-footer' : 'foo-head' );
 					}
 				},
 				'expected_head'   => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
@@ -187,6 +186,26 @@ HTML
 </script>
 HTML
 				,
+			),
+			'delayed_inline_script_enqueued_in_torso_for_footer' => array(
+				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
+					add_action(
+						'test_torso',
+						static function () use ( $enqueue_script, $add_inline_script ) {
+							$enqueue_script( true );
+							$add_inline_script( 'foo-footer' );
+						}
+					);
+				},
+				'expected_head'   => '',
+				'expected_torso'  => '',
+				'expected_footer' => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="foo-footer-js" src="https://example.com/foo-footer.js" type="text/javascript" defer></script>
+<script id="foo-footer-js-after" type="text/plain">
+/*foo-footer-after*/
+</script>
+HTML
+			,
 			),
 			// TODO: Add test where wp_print_scripts() is manually called in between wp_print_head_scripts() and wp_print_footer_scripts().
 		);
@@ -222,7 +241,7 @@ HTML
 		$actual_torso  = get_echo( 'do_action', array( 'test_torso' ) );
 		$actual_footer = get_echo( 'do_action', array( 'test_footer' ) );
 
-		$delayed_script_count = substr_count( $actual_head . $expected_torso . $actual_footer, $this->get_delayed_inline_script_loader_script_tag() );
+		$delayed_script_count = substr_count( $actual_head . $actual_torso . $actual_footer, $this->get_delayed_inline_script_loader_script_tag() );
 		if ( wp_scripts()->has_delayed_inline_script() ) {
 			$this->assertSame( 1, $delayed_script_count, 'Expected delayed inline script to occur exactly once.' );
 		} else {
