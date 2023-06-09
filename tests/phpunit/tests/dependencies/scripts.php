@@ -207,7 +207,27 @@ HTML
 HTML
 			,
 			),
-			// TODO: Add test where wp_print_scripts() is manually called in between wp_print_head_scripts() and wp_print_footer_scripts().
+			'delayed_inline_printed_in_torso'      => array(
+				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
+					add_action(
+						'test_torso',
+						static function () use ( $enqueue_script, $add_inline_script ) {
+							wp_register_script( 'foo-torso', 'https://example.com/foo-torso.js', array(), null, array( 'strategy' => 'defer' ) );
+							$add_inline_script( 'foo-torso' );
+							wp_print_scripts( array( 'foo-torso' ) );
+						}
+					);
+				},
+				'expected_head'   => '',
+				'expected_torso'  => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="foo-torso-js" src="https://example.com/foo-torso.js" type="text/javascript" defer></script>
+<script id="foo-torso-js-after" type="text/plain">
+/*foo-torso-after*/
+</script>
+HTML
+				,
+				'expected_footer' => '',
+			),
 		);
 	}
 
