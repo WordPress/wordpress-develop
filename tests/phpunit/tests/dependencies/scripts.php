@@ -834,41 +834,57 @@ HTML
 	}
 
 	/**
-	 * Test old and new in_footer logic.
+	 * Test that scripts registered for the head do indeed end up there.
 	 *
 	 * @ticket 12009
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers ::wp_enqueue_script
+	 * @covers ::wp_register_script
 	 */
-	public function test_old_and_new_in_footer_scripts() {
-		// Scripts in head.
+	public function test_scripts_targeting_head() {
 		wp_register_script( 'header-old', '/header-old.js', array(), null, false );
 		wp_register_script( 'header-new', '/header-new.js', array( 'header-old' ), null, array( 'in_footer' => false ) );
 		wp_enqueue_script( 'enqueue-header-old', '/enqueue-header-old.js', array( 'header-new' ), null, false );
 		wp_enqueue_script( 'enqueue-header-new', '/enqueue-header-new.js', array( 'enqueue-header-old' ), null, array( 'in_footer' => false ) );
 
-		// Scripts in footer.
-		wp_register_script( 'footer-old', '/footer-old.js', array(), null, true );
-		wp_register_script( 'footer-new', '/footer-new.js', array( 'footer-old' ), null, array( 'in_footer' => true ) );
-		wp_enqueue_script( 'enqueue-footer-old', '/enqueue-footer-old.js', array( 'footer-new' ), null, true );
-		wp_enqueue_script( 'enqueue-footer-new', '/enqueue-footer-new.js', array( 'enqueue-footer-old' ), null, array( 'in_footer' => true ) );
-
-		$header = get_echo( 'wp_print_head_scripts' );
-		$footer = get_echo( 'wp_print_scripts' );
+		$actual_header = get_echo( 'wp_print_head_scripts' );
+		$actual_footer = get_echo( 'wp_print_scripts' );
 
 		$expected_header  = "<script type='text/javascript' src='/header-old.js' id='header-old-js'></script>\n";
 		$expected_header .= "<script type='text/javascript' src='/header-new.js' id='header-new-js'></script>\n";
 		$expected_header .= "<script type='text/javascript' src='/enqueue-header-old.js' id='enqueue-header-old-js'></script>\n";
 		$expected_header .= "<script type='text/javascript' src='/enqueue-header-new.js' id='enqueue-header-new-js'></script>\n";
 
+		$this->assertSame( $expected_header, $actual_header, 'Scripts registered/enqueued using the older $in_footer parameter or the newer $args parameter should have the same outcome.' );
+		$this->assertEmpty( $actual_footer, 'Expected footer to be empty since all scripts were for head.' );
+	}
+
+	/**
+	 * Test that scripts registered for the footer do indeed end up there.
+	 *
+	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers ::wp_enqueue_script
+	 * @covers ::wp_register_script
+	 */
+	public function test_scripts_targeting_footer() {
+		wp_register_script( 'footer-old', '/footer-old.js', array(), null, true );
+		wp_register_script( 'footer-new', '/footer-new.js', array( 'footer-old' ), null, array( 'in_footer' => true ) );
+		wp_enqueue_script( 'enqueue-footer-old', '/enqueue-footer-old.js', array( 'footer-new' ), null, true );
+		wp_enqueue_script( 'enqueue-footer-new', '/enqueue-footer-new.js', array( 'enqueue-footer-old' ), null, array( 'in_footer' => true ) );
+
+		$actual_header = get_echo( 'wp_print_head_scripts' );
+		$actual_footer = get_echo( 'wp_print_scripts' );
+
 		$expected_footer  = "<script type='text/javascript' src='/footer-old.js' id='footer-old-js'></script>\n";
 		$expected_footer .= "<script type='text/javascript' src='/footer-new.js' id='footer-new-js'></script>\n";
 		$expected_footer .= "<script type='text/javascript' src='/enqueue-footer-old.js' id='enqueue-footer-old-js'></script>\n";
 		$expected_footer .= "<script type='text/javascript' src='/enqueue-footer-new.js' id='enqueue-footer-new-js'></script>\n";
 
-		$this->assertSame( $expected_header, $header, 'Scripts registered/enqueued using the older $in_footer parameter or the newer $args parameter should have the same outcome.' );
-		$this->assertSame( $expected_footer, $footer, 'Scripts registered/enqueued using the older $in_footer parameter or the newer $args parameter should have the same outcome.' );
+		$this->assertEmpty( $actual_header, 'Expected header to be empty since all scripts targeted footer.' );
+		$this->assertSame( $expected_footer, $actual_footer, 'Scripts registered/enqueued using the older $in_footer parameter or the newer $args parameter should have the same outcome.' );
 	}
 
 	/**
