@@ -12495,9 +12495,9 @@ mockedApiResponse.CommentsCollection = [
         "status": "approved",
         "type": "comment",
         "author_avatar_urls": {
-            "24": "http://2.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=24&d=mm&r=g",
-            "48": "http://2.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=48&d=mm&r=g",
-            "96": "http://2.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=96&d=mm&r=g"
+            "24": "http://0.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=24&d=mm&r=g",
+            "48": "http://0.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=48&d=mm&r=g",
+            "96": "http://0.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=96&d=mm&r=g"
         },
         "meta": {
             "meta_key": "meta_value"
@@ -12540,9 +12540,9 @@ mockedApiResponse.CommentModel = {
     "status": "approved",
     "type": "comment",
     "author_avatar_urls": {
-        "24": "http://2.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=24&d=mm&r=g",
-        "48": "http://2.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=48&d=mm&r=g",
-        "96": "http://2.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=96&d=mm&r=g"
+        "24": "http://0.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=24&d=mm&r=g",
+        "48": "http://0.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=48&d=mm&r=g",
+        "96": "http://0.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=96&d=mm&r=g"
     },
     "meta": {
         "meta_key": "meta_value"
