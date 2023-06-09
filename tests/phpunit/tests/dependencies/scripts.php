@@ -14,7 +14,11 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 
 	protected $wp_scripts_print_translations_output;
 
-	// Stores a string reference to a default scripts directory name, utilised by certain tests.
+	/**
+	 * Stores a string reference to a default scripts directory name, utilised by certain tests.
+	 *
+	 * @var string
+	 */
 	protected $default_scripts_dir = '/directory/';
 
 	public function set_up() {
@@ -725,7 +729,7 @@ HTML
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_loading_strategy_with_valid_defer_registration() {
 		$data = array();
