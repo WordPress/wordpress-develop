@@ -84,6 +84,141 @@ JS;
 	}
 
 	/**
+	 * Data provider for test_print_delayed_inline_script_loader_timing.
+	 *
+	 * @return array[]
+	 */
+	public function data_to_test_print_delayed_inline_script_loader_timing() {
+		/**
+		 * Enqueue script with defer strategy.
+		 *
+		 * @param bool $in_footer In footer.
+		 */
+		$enqueue_script    = static function ( $in_footer = false ) {
+			wp_enqueue_script(
+				$in_footer ? 'foo-foot' : 'foo-head',
+				sprintf( 'https://example.com/%s.js', $in_footer ? 'foo-foot' : 'foo-head' ),
+				array(),
+				null,
+				array(
+					'in_footer' => $in_footer,
+					'strategy'  => 'defer',
+				)
+			);
+		};
+
+		/**
+		 * Add inline after script.
+		 *
+		 * @param bool $in_footer In footer.
+		 */
+		$add_inline_script = static function ( $in_footer ) {
+			$handle = $in_footer ? 'foo-foot' : 'foo-head';
+			wp_add_inline_script(
+				$handle,
+				"/*{$handle}-after*/"
+			);
+		};
+
+		return array(
+			'no_delayed_inline_scripts'            => array(
+				'set_up'        => static function () use ( $enqueue_script ) {
+					$enqueue_script( false );
+					$enqueue_script( true );
+				},
+				'expected_head' => <<<HTML
+<script id="foo-head-js" src="https://example.com/foo-head.js" type="text/javascript" defer></script>
+HTML
+				,
+				'expected_foot' => <<<HTML
+<script id="foo-foot-js" src="https://example.com/foo-foot.js" type="text/javascript" defer></script>
+HTML
+				,
+			),
+			'delayed_inline_script_in_head_only'   => array(
+				'set_up'        => static function () use ( $enqueue_script, $add_inline_script ) {
+					$enqueue_script( false );
+					$add_inline_script( false );
+				},
+				'expected_head' => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="foo-head-js" src="https://example.com/foo-head.js" type="text/javascript" defer></script>
+<script id="foo-head-js-after" type="text/plain">
+/*foo-head-after*/
+</script>
+HTML
+				,
+				'expected_foot' => '',
+			),
+			'delayed_inline_script_in_footer_only' => array(
+				'set_up'        => static function () use ( $enqueue_script, $add_inline_script ) {
+					$enqueue_script( true );
+					$add_inline_script( true );
+				},
+				'expected_head' => $this->get_delayed_inline_script_loader_script_tag(), // TODO: This script is getting output even though it isn't needed yet.
+				'expected_foot' => <<<HTML
+<script id="foo-foot-js" src="https://example.com/foo-foot.js" type="text/javascript" defer></script>
+<script id="foo-foot-js-after" type="text/plain">
+/*foo-foot-after*/
+</script>
+HTML,
+			),
+			'delayed_inline_script_in_both_head_and_footer' => array(
+				'set_up'        => static function () use ( $enqueue_script, $add_inline_script ) {
+					foreach ( array( false, true ) as $in_footer ) {
+						$enqueue_script( $in_footer );
+						$add_inline_script( $in_footer );
+					}
+				},
+				'expected_head' => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="foo-head-js" src="https://example.com/foo-head.js" type="text/javascript" defer></script>
+<script id="foo-head-js-after" type="text/plain">
+/*foo-head-after*/
+</script>
+HTML
+				,
+				'expected_foot' => <<<HTML
+<script id="foo-foot-js" src="https://example.com/foo-foot.js" type="text/javascript" defer></script>
+<script id="foo-foot-js-after" type="text/plain">
+/*foo-foot-after*/
+</script>
+HTML
+				,
+			),
+			// TODO: Add test where wp_print_scripts() is manually called in between wp_print_head_scripts() and wp_print_footer_scripts().
+		);
+	}
+
+	/**
+	 * Tests that wp_print_delayed_inline_script_loader() is output before the first delayed inline script and not
+	 * duplicated in header and footer.
+	 *
+	 * @covers ::wp_print_delayed_inline_script_loader
+	 *
+	 * @dataProvider data_to_test_print_delayed_inline_script_loader_timing
+	 * @param callable $set_up        Set up.
+	 * @param string   $expected_head Expected head.
+	 * @param string   $expected_foot Expected foot.
+	 */
+	public function test_print_delayed_inline_script_loader_timing( $set_up, $expected_head, $expected_foot ) {
+		$set_up();
+
+		$actual_head = get_echo( 'wp_print_head_scripts' );
+		$actual_foot = get_echo( 'wp_print_footer_scripts' );
+
+		$delayed_script_count = substr_count( $actual_head . $actual_foot, $this->get_delayed_inline_script_loader_script_tag() );
+		if ( wp_scripts()->has_delayed_inline_script() ) {
+			$this->assertSame( 1, $delayed_script_count, 'Expected delayed inline script to occur exactly once.' );
+		} else {
+			$this->assertSame( 0, $delayed_script_count, 'Expected delayed inline script to not occur since no delayed inline scripts.' );
+		}
+
+		$this->assertLessThanOrEqual( 1, $delayed_script_count, 'Expected delayed-inline-script-loader to occur at most once.' );
+
+		$this->assertEqualMarkup( $actual_head, $expected_head, 'Expected head to match.' );
+		$this->assertEqualMarkup( $actual_foot, $expected_foot, 'Expected foot to match.' );
+	}
+
+	/**
 	 * Test inline scripts in the `after` position with delayed main script.
 	 *
 	 * If the main script with delayed loading strategy has an `after` inline script,
@@ -2716,7 +2851,18 @@ HTML
 		$dom->loadHTML(
 			"<!DOCTYPE html><html><head><meta charset=utf8></head><body>{$markup}</body></html>"
 		);
-		return $dom->getElementsByTagName( 'body' )->item( 0 );
+
+		/** @var DOMElement $body */
+		$body = $dom->getElementsByTagName( 'body' )->item( 0 );
+
+		// Trim whitespace nodes added before/after which can be added when parsing.
+		foreach ( array( $body->firstChild, $body->lastChild ) as $node ) {
+			if ( $node instanceof DOMText && '' === trim( $node->data ) ) {
+				$body->removeChild( $node );
+			}
+		}
+
+		return $body;
 	}
 
 	/**
