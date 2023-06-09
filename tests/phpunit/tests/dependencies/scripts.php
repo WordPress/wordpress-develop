@@ -1054,7 +1054,7 @@ HTML
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
 
-		// reset global before asserting.
+		// Reset global before asserting.
 		$concatenate_scripts = $old_value;
 
 		$ver       = get_bloginfo( 'version' );
@@ -1090,7 +1090,7 @@ HTML
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
 
-		// reset global before asserting.
+		// Reset global before asserting.
 		$concatenate_scripts = $old_value;
 
 		$ver       = get_bloginfo( 'version' );
@@ -1129,7 +1129,7 @@ HTML
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
 
-		// reset global before asserting.
+		// Reset global before asserting.
 		$concatenate_scripts = $old_value;
 
 		$ver       = get_bloginfo( 'version' );
