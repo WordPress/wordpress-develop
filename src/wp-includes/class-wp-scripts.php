@@ -978,6 +978,11 @@ JS;
 				continue;
 			}
 
+			// If the dependency is not enqueued, ignore it for consideration.
+			if ( ! $this->query( $dependent, 'enqueued' ) ) {
+				continue;
+			}
+
 			// If the dependent script is not using the defer or async strategy, no script in the chain is delayed.
 			$strategy = $this->get_data( $dependent, 'strategy' );
 			if ( $async_only ) {

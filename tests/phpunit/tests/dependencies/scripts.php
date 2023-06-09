@@ -248,6 +248,27 @@ JS;
 	}
 
 	/**
+	 * Test delayed dependency with non enqueued blocking dependent.
+	 *
+	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers ::wp_enqueue_script
+	 *
+	 * @dataProvider data_provider_delayed_strategies
+	 * @param string $strategy Strategy.
+	 */
+	public function test_delayed_dependent_with_blocking_dependency_not_enqueued( $strategy ) {
+		wp_enqueue_script( 'main-script-a4', '/main-script-a4.js', array(), null, compact( 'strategy' ) );
+		// This dependent is registered but not enqueued, so it should not factor into the eligible loading strategy.
+		wp_register_script( 'dependent-script-a4', '/dependent-script-a4.js', array( 'main-script-a4' ), null );
+		$output   = get_echo( 'wp_print_scripts' );
+		$expected = "<script type='text/javascript' src='/main-script-a4.js' id='main-script-a4-js' {$strategy}></script>";
+		$this->assertStringContainsString( $expected, $output, 'Only enqueued dependents should affect the eligible strategy.' );
+	}
+
+	/**
 	 * Enqueue test script with before/after inline scripts.
 	 *
 	 * @param string   $handle    Dependency handle to enqueue.
