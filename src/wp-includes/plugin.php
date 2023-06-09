@@ -167,7 +167,7 @@ function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
  *
  * @param string $hook_name The name of the filter hook.
  * @param mixed  $value     The value to filter.
- * @param mixed  ...$args   Additional parameters to pass to the callback functions.
+ * @param mixed  ...$args   Optional. Additional parameters to pass to the callback functions.
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters( $hook_name, $value, ...$args ) {
@@ -707,6 +707,7 @@ function did_action( $hook_name ) {
  * @param string $version     The version of WordPress that deprecated the hook.
  * @param string $replacement Optional. The hook that should have been used. Default empty.
  * @param string $message     Optional. A message regarding the change. Default empty.
+ * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters_deprecated( $hook_name, $args, $version, $replacement = '', $message = '' ) {
 	if ( ! has_filter( $hook_name ) ) {

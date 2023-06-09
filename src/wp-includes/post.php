@@ -289,6 +289,7 @@ function create_initial_post_types() {
 				'new_item'                 => __( 'New Reusable block' ),
 				'edit_item'                => __( 'Edit Reusable block' ),
 				'view_item'                => __( 'View Reusable block' ),
+				'view_items'               => __( 'View Reusable blocks' ),
 				'all_items'                => __( 'All Reusable blocks' ),
 				'search_items'             => __( 'Search Reusable blocks' ),
 				'not_found'                => __( 'No reusable blocks found.' ),
@@ -331,6 +332,14 @@ function create_initial_post_types() {
 		)
 	);
 
+	$template_edit_link = 'site-editor.php?' . build_query(
+		array(
+			'postType' => '%s',
+			'postId'   => '%s',
+			'canvas'   => 'edit',
+		)
+	);
+
 	register_post_type(
 		'wp_template',
 		array(
@@ -357,6 +366,7 @@ function create_initial_post_types() {
 			'description'           => __( 'Templates to include in your theme.' ),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'            => $template_edit_link, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
 			'show_ui'               => false,
 			'show_in_menu'          => false,
@@ -417,6 +427,7 @@ function create_initial_post_types() {
 			'description'           => __( 'Template parts to include in your templates.' ),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'            => $template_edit_link, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
 			'show_ui'               => false,
 			'show_in_menu'          => false,
@@ -457,6 +468,7 @@ function create_initial_post_types() {
 			'description'  => __( 'Global styles to include in themes.' ),
 			'public'       => false,
 			'_builtin'     => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'   => '/site-editor.php?canvas=edit', /* internal use only. don't use this when registering your own post type. */
 			'show_ui'      => false,
 			'show_in_rest' => false,
 			'rewrite'      => false,
@@ -1224,7 +1236,7 @@ function get_page_statuses() {
  * @since 4.9.6
  * @access private
  *
- * @return array
+ * @return string[] Array of privacy request status labels keyed by their status.
  */
 function _wp_privacy_statuses() {
 	return array(
@@ -6019,7 +6031,7 @@ function get_pages( $args = array() ) {
 					}
 					$post_author = $post_author->ID;
 				}
-				$query_args['author__in'][] = $post_author;
+				$query_args['author__in'][] = (int) $post_author;
 			}
 		}
 	}
@@ -6047,6 +6059,16 @@ function get_pages( $args = array() ) {
 	if ( ! empty( $number ) ) {
 		$query_args['posts_per_page'] = $number;
 	}
+
+	/**
+	 * Filters query arguments passed to WP_Query in get_pages.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param array $query_args  Array of arguments passed to WP_Query.
+	 * @param array $parsed_args Array of get_pages() arguments.
+	 */
+	$query_args = apply_filters( 'get_pages_query_args', $query_args, $parsed_args );
 
 	$query = new WP_Query( $query_args );
 	$pages = $query->get_posts();

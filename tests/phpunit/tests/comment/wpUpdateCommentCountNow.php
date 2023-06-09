@@ -14,16 +14,14 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 	}
 
 	public function test_regular_post_updates_comment_count() {
-		global $wpdb;
-
 		$post_id = self::factory()->post->create();
 
 		self::factory()->comment->create_post_comments( $post_id, 1 );
 		$this->assertSame( '1', get_comments_number( $post_id ) );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
-		$this->assertSame( $num_queries + 2, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 2, get_num_queries() );
 
 		$this->assertSame( '1', get_comments_number( $post_id ) );
 	}
@@ -38,10 +36,10 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 		self::factory()->comment->create_post_comments( $post_id, 1 );
 		$this->assertSame( '100', get_comments_number( $post_id ) );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
 		// Only one query is made instead of two.
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 
 		$this->assertSame( '100', get_comments_number( $post_id ) );
 
