@@ -612,4 +612,22 @@ CSS;
 
 		$this->assertSame( $GLOBALS['wp_styles']->registered['test-handle']->src, $url );
 	}
+
+	/**
+	 * @ticket 58394
+	 *
+	 * @covers ::wp_maybe_inline_styles
+	 */
+	public function test_wp_maybe_inline_styles_deregistering() {
+		$url = '/' . WPINC . '/css/classic-themes.css';
+		wp_register_style( 'test-handle', $url );
+
+		wp_enqueue_style( 'test-handle' );
+
+		wp_dequeue_style( 'test-handle' );
+
+		wp_maybe_inline_styles();
+
+		$this->assertSame( $GLOBALS['wp_styles']->registered['test-handle']->src, $url );
+	}
 }
