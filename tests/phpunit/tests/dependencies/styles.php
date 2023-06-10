@@ -618,16 +618,19 @@ CSS;
 	 *
 	 * @covers ::wp_maybe_inline_styles
 	 */
-	public function test_wp_maybe_inline_styles_deregistering() {
-		$url = '/' . WPINC . '/css/classic-themes.css';
-		wp_register_style( 'test-handle', $url );
+	public function test_wp_maybe_inline_styles_dequeue_styles() {
+		$url_1 = '/' . WPINC . '/css/classic-themes.css';
+		$url_2 = '/' . WPINC . '/css/admin-bar.css';
+		wp_register_style( 'test-handle-1', $url_1 );
 
-		wp_enqueue_style( 'test-handle' );
+		wp_enqueue_style( 'test-handle-1' );
+		wp_enqueue_style( 'test-handle-2' );
 
-		wp_dequeue_style( 'test-handle' );
+		wp_dequeue_style( 'test-handle-2' );
 
 		wp_maybe_inline_styles();
 
-		$this->assertSame( $GLOBALS['wp_styles']->registered['test-handle']->src, $url );
+		$this->assertSame( $GLOBALS['wp_styles']->registered['test-handle-1']->src, $url_1 );
+		$this->assertFalse( $GLOBALS['wp_styles']->registered['test-handle-2']->src, $url_2 );
 	}
 }
