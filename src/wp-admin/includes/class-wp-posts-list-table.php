@@ -917,8 +917,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Displays the nested hierarchy of sub-pages
-	 * together with paging support when given a top level page ID.
+	 * Displays the nested hierarchy of sub-pages together with paging
+	 * support, based on a top level page ID.
 	 *
 	 * @since 3.1.0 (Standalone function exists since 2.6.0)
 	 * @since 4.2.0 Added the `$to_display` parameter.

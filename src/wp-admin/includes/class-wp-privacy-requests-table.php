@@ -527,7 +527,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Returns the markup for the Next steps column. Overridden by children.
+	 * Returns the markup for the next steps column. Overridden by children.
 	 *
 	 * @since 4.9.6
 	 *
