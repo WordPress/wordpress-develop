@@ -2,9 +2,10 @@
 
 /**
  * @group post
+ *
  * @covers ::wp_trash_post
  */
-class Tests_Post_wpTrashPost extends WP_UnitTestCase {
+class Tests_Post_WpTrashPost extends WP_UnitTestCase {
 	/**
 	 * @var WP_Post
 	 */
@@ -21,7 +22,11 @@ class Tests_Post_wpTrashPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_trash_post() returns a WP_Post object
+	 * and sets the correct post meta to trash a post.
+	 *
 	 * @ticket 58392
+	 *
 	 * @covers ::wp_trash_post
 	 */
 	public function test_trash_post() {
@@ -48,7 +53,11 @@ class Tests_Post_wpTrashPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_trash_post() applies 'pre_trash_post' filters
+	 * and passes the expected values to callbacks.
+	 *
 	 * @ticket 58392
+	 *
 	 * @covers ::wp_trash_post
 	 */
 	public function test_pre_trash_post_hook() {
@@ -71,7 +80,11 @@ class Tests_Post_wpTrashPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_trash_post() triggers the 'wp_trash_post' action
+	 * and passes the expected values to callbacks.
+	 *
 	 * @ticket 58392
+	 *
 	 * @covers ::wp_trash_post
 	 */
 	public function test_wp_trash_post_hook() {
@@ -91,7 +104,11 @@ class Tests_Post_wpTrashPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_trash_post() triggers the 'trashed_post' action
+	 * and passes the expected values to callbacks.
+	 *
 	 * @ticket 58392
+	 *
 	 * @covers ::wp_trash_post
 	 */
 	public function test_trashed_post_hook() {
