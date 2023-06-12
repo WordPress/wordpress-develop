@@ -4012,11 +4012,7 @@ EOF;
 
 		// Use a single image for each header and footer template parts.
 		$header_img = get_image_tag( self::$large_id, '', '', '', 'large' );
-		/*
-		 * Since header_img is qualified candidate for LCP, fetchpriority high is applied to it.
-		 *
-		 * @since 6.3.0
-		 */
+		// Since header_img is qualified candidate for LCP, fetchpriority high is applied to it.
 		$header_img = str_replace( '<img', '<img fetchpriority="high"', $header_img );
 
 		$footer_img = get_image_tag( self::$large_id, '', '', '', 'medium' );
@@ -4217,6 +4213,7 @@ EOF;
 	 * that featured image not being lazy-loaded, since the images in the post content aren't displayed in the excerpt.
 	 *
 	 * @ticket 56588
+	 * @ticket 58235
 	 * @ticket 58235
 	 *
 	 * @since 6.3.0 Apply fetchpriority="high" on the LCP image.
