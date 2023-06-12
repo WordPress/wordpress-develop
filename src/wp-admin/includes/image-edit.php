@@ -92,7 +92,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 					<?php echo $note_no_rotate; ?>
 				</div>
 			</div>
- 		</div>
+		</div>
 		<div class="imgedit-submit imgedit-menu">
 			<button type="button" id="image-undo-<?php echo $post_id; ?>" onclick="imageEdit.undo(<?php echo "$post_id, '$nonce'"; ?>, this)" class="imgedit-undo button disabled" disabled><?php esc_html_e( 'Undo' ); ?></button>
 			<button type="button" id="image-redo-<?php echo $post_id; ?>" onclick="imageEdit.redo(<?php echo "$post_id, '$nonce'"; ?>, this)" class="imgedit-redo button disabled" disabled><?php esc_html_e( 'Redo' ); ?></button>
@@ -344,7 +344,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 
 	</div>
 	<div class="imgedit-wait" id="imgedit-wait-<?php echo $post_id; ?>"></div>
- 	<div class="hidden" id="imgedit-leaving-<?php echo $post_id; ?>"><?php _e( "There are unsaved changes that will be lost. 'OK' to continue, 'Cancel' to return to the Image Editor." ); ?></div>
+	<div class="hidden" id="imgedit-leaving-<?php echo $post_id; ?>"><?php _e( "There are unsaved changes that will be lost. 'OK' to continue, 'Cancel' to return to the Image Editor." ); ?></div>
 
 	</div>
 	<div class="imgedit-wait" id="imgedit-wait-<?php echo $post_id; ?>"></div>
