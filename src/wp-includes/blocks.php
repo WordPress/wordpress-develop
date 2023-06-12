@@ -222,7 +222,8 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		$style_path = "style$suffix.css";
 	}
 
-	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
+	$style_path      = dirname( $metadata['file'] ) . '/' . $style_path;
+	$style_path_norm = file_exists( $style_path ) ? wp_normalize_path( realpath( $style_path ) ) : '';
 	$has_style_file  = '' !== $style_path_norm;
 
 	if ( $has_style_file ) {
@@ -331,7 +332,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	}
 
 	// Try to get metadata from the static cache for core blocks.
-	$metadata = false;
+	$metadata      = false;
 	$is_core_block = str_starts_with( $file_or_folder, ABSPATH . WPINC );
 	if ( $is_core_block ) {
 		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
@@ -367,11 +368,11 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 
 		if ( ! isset( $metadata['style'] ) ) {
 			$metadata['style'] = "wp-block-$block_name";
-			$default_styles[] = 'style';
+			$default_styles[]  = 'style';
 		}
 		if ( ! isset( $metadata['editorStyle'] ) ) {
 			$metadata['editorStyle'] = "wp-block-{$block_name}-editor";
-			$default_styles[] = 'editorStyle';
+			$default_styles[]        = 'editorStyle';
 		}
 	}
 
@@ -444,16 +445,13 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'style'       => 'style_handles',
 	);
 	$version      = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
-
 	foreach ( $style_fields as $metadata_field_name => $settings_field_name ) {
 		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
 			$styles           = $metadata[ $metadata_field_name ];
 			$processed_styles = array();
 			if ( is_array( $styles ) ) {
 				for ( $index = 0; $index < count( $styles ); $index++ ) {
-
-var_dump($is_core_block && in_array( $metadata_field_name, $default_styles, true));
-					if( $is_core_block && in_array( $metadata_field_name, $default_styles, true)){
+					if ( $is_core_block && in_array( $metadata_field_name, $default_styles, true ) ) {
 						$style_handle = generate_block_asset_handle( $metadata['name'], $metadata_field_name, $index );
 						$result       = wp_register_style(
 							$style_handle,
@@ -473,8 +471,7 @@ var_dump($is_core_block && in_array( $metadata_field_name, $default_styles, true
 					}
 				}
 			} else {
-				var_dump($is_core_block && in_array( $metadata_field_name, $default_styles, true), $metadata_field_name, $default_styles);
-				if( $is_core_block && in_array( $metadata_field_name, $default_styles, true)){
+				if ( $is_core_block && in_array( $metadata_field_name, $default_styles, true ) ) {
 					$style_handle = generate_block_asset_handle( $metadata['name'], $metadata_field_name );
 					$result       = wp_register_style(
 						$style_handle,
