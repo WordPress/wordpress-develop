@@ -182,6 +182,7 @@ class Walker_Category extends Walker {
 			} else {
 				$link .= "<img src='" . esc_url( $args['feed_image'] ) . "'$alt" . ' />';
 			}
+
 			$link .= '</a>';
 
 			if ( empty( $args['feed_image'] ) ) {
@@ -192,6 +193,7 @@ class Walker_Category extends Walker {
 		if ( ! empty( $args['show_count'] ) ) {
 			$link .= ' (' . number_format_i18n( $category->count ) . ')';
 		}
+
 		if ( 'list' === $args['style'] ) {
 			$output     .= "\t<li";
 			$css_classes = array(
@@ -216,11 +218,13 @@ class Walker_Category extends Walker {
 					} elseif ( $category->term_id === $_current_term->parent ) {
 						$css_classes[] = 'current-cat-parent';
 					}
+
 					while ( $_current_term->parent ) {
 						if ( $category->term_id === $_current_term->parent ) {
 							$css_classes[] = 'current-cat-ancestor';
 							break;
 						}
+
 						$_current_term = get_term( $_current_term->parent, $category->taxonomy );
 					}
 				}

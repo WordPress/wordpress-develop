@@ -149,6 +149,7 @@ function get_category_by_path( $category_path, $full_match = true, $output = OBJ
 	foreach ( $categories as $category ) {
 		$path        = '/' . $leaf_path;
 		$curcategory = $category;
+
 		while ( ( 0 !== $curcategory->parent ) && ( $curcategory->parent !== $curcategory->term_id ) ) {
 			$curcategory = get_term( $curcategory->parent, 'category' );
 

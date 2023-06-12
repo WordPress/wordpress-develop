@@ -126,8 +126,13 @@ class WP_Http_Streams {
 			)
 		);
 
-		$timeout         = (int) floor( $parsed_args['timeout'] );
-		$utimeout        = $timeout === (int) $parsed_args['timeout'] ? 0 : 1000000 * $parsed_args['timeout'] % 1000000;
+		$timeout  = (int) floor( $parsed_args['timeout'] );
+		$utimeout = 0;
+
+		if ( $timeout !== (int) $parsed_args['timeout'] ) {
+			$utimeout = 1000000 * $parsed_args['timeout'] % 1000000;
+		}
+
 		$connect_timeout = max( $timeout, 1 );
 
 		// Store error number.
