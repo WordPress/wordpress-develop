@@ -300,7 +300,7 @@ function twentyeleven_scripts_styles() {
 	wp_dequeue_style( 'classic-theme-styles' );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentyeleven-block-style', get_template_directory_uri() . '/blocks.css', array(), '20220927' );
+	wp_enqueue_style( 'twentyeleven-block-style', get_template_directory_uri() . '/blocks.css', array(), '20230122' );
 }
 add_action( 'wp_enqueue_scripts', 'twentyeleven_scripts_styles' );
 
@@ -325,7 +325,7 @@ if ( ! function_exists( 'twentyeleven_header_style' ) ) :
 		$text_color = get_header_textcolor();
 
 		// If no custom options for text are set, let's bail.
-		if ( HEADER_TEXTCOLOR == $text_color ) {
+		if ( HEADER_TEXTCOLOR === $text_color ) {
 			return;
 		}
 
@@ -389,7 +389,7 @@ if ( ! function_exists( 'twentyeleven_admin_header_style' ) ) :
 	}
 		<?php
 		// If the user has set a custom color for the text, use that.
-		if ( get_header_textcolor() != HEADER_TEXTCOLOR ) :
+		if ( get_header_textcolor() !== HEADER_TEXTCOLOR ) :
 			?>
 	#site-title a,
 	#site-description {
@@ -727,7 +727,7 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 					<?php
 					$avatar_size = 68;
 
-					if ( '0' != $comment->comment_parent ) {
+					if ( '0' !== $comment->comment_parent ) {
 						$avatar_size = 39;
 					}
 
@@ -759,7 +759,7 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 					}
 					?>
 
-					<?php if ( '0' == $comment->comment_approved ) : ?>
+					<?php if ( '0' === $comment->comment_approved ) : ?>
 					<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
 					<br />
 					<?php endif; ?>

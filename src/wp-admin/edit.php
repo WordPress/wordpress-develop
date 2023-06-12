@@ -294,8 +294,8 @@ if ( 'post' === $post_type ) {
 
 	get_current_screen()->set_help_sidebar(
 		'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/article/posts-screen/">Documentation on Managing Posts</a>' ) . '</p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+		'<p>' . __( '<a href="https://wordpress.org/documentation/article/posts-screen/">Documentation on Managing Posts</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 	);
 
 } elseif ( 'page' === $post_type ) {
@@ -319,8 +319,8 @@ if ( 'post' === $post_type ) {
 
 	get_current_screen()->set_help_sidebar(
 		'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/article/pages-screen/">Documentation on Managing Pages</a>' ) . '</p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+		'<p>' . __( '<a href="https://wordpress.org/documentation/article/pages-screen/">Documentation on Managing Pages</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 	);
 
 }
@@ -442,8 +442,13 @@ foreach ( $bulk_counts as $message => $count ) {
 	}
 
 	if ( 'trashed' === $message && isset( $_REQUEST['ids'] ) ) {
-		$ids        = preg_replace( '/[^0-9,]/', '', $_REQUEST['ids'] );
-		$messages[] = '<a href="' . esc_url( wp_nonce_url( "edit.php?post_type=$post_type&doaction=undo&action=untrash&ids=$ids", 'bulk-posts' ) ) . '">' . __( 'Undo' ) . '</a>';
+		$ids = preg_replace( '/[^0-9,]/', '', $_REQUEST['ids'] );
+
+		$messages[] = sprintf(
+			'<a href="%1$s">%2$s</a>',
+			esc_url( wp_nonce_url( "edit.php?post_type=$post_type&doaction=undo&action=untrash&ids=$ids", 'bulk-posts' ) ),
+			__( 'Undo' )
+		);
 	}
 
 	if ( 'untrashed' === $message && isset( $_REQUEST['ids'] ) ) {
@@ -460,7 +465,10 @@ foreach ( $bulk_counts as $message => $count ) {
 }
 
 if ( $messages ) {
-	echo '<div id="message" class="updated notice is-dismissible"><p>' . implode( ' ', $messages ) . '</p></div>';
+	printf(
+		'<div id="message" class="updated notice is-dismissible"><p>%s</p></div>',
+		implode( ' ', $messages )
+	);
 }
 unset( $messages );
 

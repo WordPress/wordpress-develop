@@ -30,12 +30,12 @@ class Core_Upgrader extends WP_Upgrader {
 		$this->strings['locked']     = __( 'Another update is currently in progress.' );
 		$this->strings['no_package'] = __( 'Update package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package']   = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code">%s</span>' );
+		$this->strings['downloading_package']   = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code pre">%s</span>' );
 		$this->strings['unpack_package']        = __( 'Unpacking the update&#8230;' );
 		$this->strings['copy_failed']           = __( 'Could not copy files.' );
 		$this->strings['copy_failed_space']     = __( 'Could not copy files. You may have run out of disk space.' );
-		$this->strings['start_rollback']        = __( 'Attempting to roll back to previous version.' );
-		$this->strings['rollback_was_required'] = __( 'Due to an error during updating, WordPress has rolled back to your previous version.' );
+		$this->strings['start_rollback']        = __( 'Attempting to restore the previous version.' );
+		$this->strings['rollback_was_required'] = __( 'Due to an error during updating, WordPress has been restored to your previous version.' );
 	}
 
 	/**

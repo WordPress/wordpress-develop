@@ -214,7 +214,7 @@ function twentythirteen_setup() {
 
 	/*
 	 * This theme supports all available post formats by default.
-	 * See https://wordpress.org/support/article/post-formats/
+	 * See https://wordpress.org/documentation/article/post-formats/
 	 */
 	add_theme_support(
 		'post-formats',
@@ -314,7 +314,7 @@ function twentythirteen_scripts_styles() {
 	}
 
 	// Loads JavaScript file with functionality specific to Twenty Thirteen.
-	wp_enqueue_script( 'twentythirteen-script', get_template_directory_uri() . '/js/functions.js', array( 'jquery' ), '20210122', true );
+	wp_enqueue_script( 'twentythirteen-script', get_template_directory_uri() . '/js/functions.js', array( 'jquery' ), '20230526', true );
 
 	// Remove default styles for button block.
 	wp_dequeue_style( 'classic-theme-styles' );
@@ -327,10 +327,10 @@ function twentythirteen_scripts_styles() {
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
 
 	// Loads our main stylesheet.
-	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20221101' );
+	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20230328' );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentythirteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentythirteen-style' ), '20210622' );
+	wp_enqueue_style( 'twentythirteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentythirteen-style' ), '20230122' );
 
 	// Loads the Internet Explorer specific stylesheet.
 	wp_enqueue_style( 'twentythirteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentythirteen-style' ), '20150214' );
@@ -385,6 +385,9 @@ add_action( 'enqueue_block_editor_assets', 'twentythirteen_block_editor_styles' 
  * in head of document, based on current view.
  *
  * @since Twenty Thirteen 1.0
+ *
+ * @global int $paged WordPress archive pagination page count.
+ * @global int $page  WordPress paginated post page count.
  *
  * @param string $title Default title text for current view.
  * @param string $sep   Optional separator.
@@ -655,7 +658,7 @@ if ( ! function_exists( 'twentythirteen_the_attached_image' ) ) :
 		// If there is more than 1 attachment in a gallery...
 		if ( count( $attachment_ids ) > 1 ) {
 			foreach ( $attachment_ids as $idx => $attachment_id ) {
-				if ( $attachment_id == $post->ID ) {
+				if ( $attachment_id === $post->ID ) {
 					$next_id = $attachment_ids[ ( $idx + 1 ) % count( $attachment_ids ) ];
 					break;
 				}
@@ -754,6 +757,8 @@ add_filter( 'body_class', 'twentythirteen_body_class' );
  * Adjust content_width value for video post formats and attachment templates.
  *
  * @since Twenty Thirteen 1.0
+ *
+ * @global int $content_width Content width.
  */
 function twentythirteen_content_width() {
 	global $content_width;

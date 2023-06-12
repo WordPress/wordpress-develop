@@ -4,7 +4,7 @@
  *
  * Used internally by the WP_Embed class, but is designed to be generic.
  *
- * @link https://wordpress.org/support/article/embeds/
+ * @link https://wordpress.org/documentation/article/embeds/
  * @link http://oembed.com/
  *
  * @package WordPress
@@ -105,6 +105,7 @@ class WP_oEmbed {
 			'#https?://www\.someecards\.com/usercards/viewcard/.+#i' => array( 'https://www.someecards.com/v2/oembed/', true ),
 			'#https?://some\.ly\/.+#i'                     => array( 'https://www.someecards.com/v2/oembed/', true ),
 			'#https?://(www\.)?tiktok\.com/.*/video/.*#i'  => array( 'https://www.tiktok.com/oembed', true ),
+			'#https?://(www\.)?tiktok\.com/@.*#i'          => array( 'https://www.tiktok.com/oembed', true ),
 			'#https?://([a-z]{2}|www)\.pinterest\.com(\.(au|mx))?/.*#i' => array( 'https://www.pinterest.com/oembed.json', true ),
 			'#https?://(www\.)?wolframcloud\.com/obj/.+#i' => array( 'https://www.wolframcloud.com/oembed', true ),
 			'#https?://pca\.st/.+#i'                       => array( 'https://pca.st/oembed.json', true ),
@@ -514,7 +515,7 @@ class WP_oEmbed {
 	}
 
 	/**
-	 * Connects to a oEmbed provider and returns the result.
+	 * Connects to an oEmbed provider and returns the result.
 	 *
 	 * @since 2.9.0
 	 *

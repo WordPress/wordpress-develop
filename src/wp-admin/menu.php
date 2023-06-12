@@ -130,7 +130,7 @@ foreach ( array_merge( $builtin, $types ) as $ptype ) {
 	$menu_icon = 'dashicons-admin-post';
 	if ( is_string( $ptype_obj->menu_icon ) ) {
 		// Special handling for data:image/svg+xml and Dashicons.
-		if ( 0 === strpos( $ptype_obj->menu_icon, 'data:image/svg+xml;base64,' ) || 0 === strpos( $ptype_obj->menu_icon, 'dashicons-' ) ) {
+		if ( str_starts_with( $ptype_obj->menu_icon, 'data:image/svg+xml;base64,' ) || str_starts_with( $ptype_obj->menu_icon, 'dashicons-' ) ) {
 			$menu_icon = $ptype_obj->menu_icon;
 		} else {
 			$menu_icon = esc_url( $ptype_obj->menu_icon );
@@ -210,7 +210,7 @@ if ( ! wp_is_block_theme() && current_theme_supports( 'block-template-parts' ) )
 	$submenu['themes.php'][6] = array(
 		__( 'Template Parts' ),
 		'edit_theme_options',
-		'site-editor.php?postType=wp_template_part',
+		'site-editor.php?postType=wp_template_part&amp;path=/wp_template_part/all',
 	);
 }
 
@@ -230,12 +230,12 @@ if ( current_theme_supports( 'menus' ) || current_theme_supports( 'widgets' ) ) 
 
 if ( current_theme_supports( 'custom-header' ) && current_user_can( 'customize' ) ) {
 	$customize_header_url      = add_query_arg( array( 'autofocus' => array( 'control' => 'header_image' ) ), $customize_url );
-	$submenu['themes.php'][15] = array( __( 'Header' ), $appearance_cap, esc_url( $customize_header_url ), '', 'hide-if-no-customize' );
+	$submenu['themes.php'][15] = array( _x( 'Header', 'custom image header' ), $appearance_cap, esc_url( $customize_header_url ), '', 'hide-if-no-customize' );
 }
 
 if ( current_theme_supports( 'custom-background' ) && current_user_can( 'customize' ) ) {
 	$customize_background_url  = add_query_arg( array( 'autofocus' => array( 'control' => 'background_image' ) ), $customize_url );
-	$submenu['themes.php'][20] = array( __( 'Background' ), $appearance_cap, esc_url( $customize_background_url ), '', 'hide-if-no-customize' );
+	$submenu['themes.php'][20] = array( _x( 'Background', 'custom background' ), $appearance_cap, esc_url( $customize_background_url ), '', 'hide-if-no-customize' );
 }
 
 unset( $customize_url );

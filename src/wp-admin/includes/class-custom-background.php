@@ -63,7 +63,14 @@ class Custom_Background {
 	 * @since 3.0.0
 	 */
 	public function init() {
-		$page = add_theme_page( __( 'Background' ), __( 'Background' ), 'edit_theme_options', 'custom-background', array( $this, 'admin_page' ) );
+		$page = add_theme_page(
+			_x( 'Background', 'custom background' ),
+			_x( 'Background', 'custom background' ),
+			'edit_theme_options',
+			'custom-background',
+			array( $this, 'admin_page' )
+		);
+
 		if ( ! $page ) {
 			return;
 		}
@@ -98,7 +105,7 @@ class Custom_Background {
 		get_current_screen()->set_help_sidebar(
 			'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 			'<p>' . __( '<a href="https://codex.wordpress.org/Appearance_Background_Screen">Documentation on Custom Background</a>' ) . '</p>' .
-			'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+			'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 		);
 
 		wp_enqueue_media();

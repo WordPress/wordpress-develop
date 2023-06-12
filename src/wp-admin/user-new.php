@@ -298,8 +298,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/users-add-new-screen/">Documentation on Adding New Users</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/users-add-new-screen/">Documentation on Adding New Users</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 wp_enqueue_script( 'wp-ajax-response' );
@@ -566,7 +566,7 @@ if ( current_user_can( 'create_users' ) ) {
 			</label>
 		</th>
 		<td>
-			<input class="hidden" value=" " /><!-- #24364 workaround -->
+			<input type="hidden" value=" " /><!-- #24364 workaround -->
 			<button type="button" class="button wp-generate-pw hide-if-no-js"><?php _e( 'Generate password' ); ?></button>
 			<div class="wp-pwd">
 				<?php $initial_password = wp_generate_password( 24 ); ?>

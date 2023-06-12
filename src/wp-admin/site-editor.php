@@ -28,23 +28,6 @@ if ( ! wp_is_block_theme() && ! $is_template_part_editor ) {
 	wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
 }
 
-/**
- * Do a server-side redirection if missing `postType` and `postId`
- * query args when visiting Site Editor.
- */
-$home_template = _resolve_home_block_template();
-if ( $home_template && empty( $_GET['postType'] ) && empty( $_GET['postId'] ) ) {
-	if ( ! empty( $_GET['styles'] ) ) {
-		$home_template['styles'] = sanitize_key( $_GET['styles'] );
-	}
-	$redirect_url = add_query_arg(
-		$home_template,
-		admin_url( 'site-editor.php' )
-	);
-	wp_safe_redirect( $redirect_url );
-	exit;
-}
-
 // Used in the HTML title tag.
 $title       = _x( 'Editor', 'site editor title tag' );
 $parent_file = 'themes.php';
@@ -137,7 +120,7 @@ wp_enqueue_style( 'wp-format-library' );
 wp_enqueue_media();
 
 if (
-	current_theme_supports( 'wp-block-styles' ) ||
+	current_theme_supports( 'wp-block-styles' ) &&
 	( ! is_array( $editor_styles ) || count( $editor_styles ) === 0 )
 ) {
 	wp_enqueue_style( 'wp-block-library-theme' );

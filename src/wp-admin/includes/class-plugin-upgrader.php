@@ -57,7 +57,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 		$this->strings['up_to_date'] = __( 'The plugin is at the latest version.' );
 		$this->strings['no_package'] = __( 'Update package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package']  = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code">%s</span>' );
+		$this->strings['downloading_package']  = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code pre">%s</span>' );
 		$this->strings['unpack_package']       = __( 'Unpacking the update&#8230;' );
 		$this->strings['remove_old']           = __( 'Removing the old version of the plugin&#8230;' );
 		$this->strings['remove_old_failed']    = __( 'Could not remove the old plugin.' );
@@ -74,7 +74,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	public function install_strings() {
 		$this->strings['no_package'] = __( 'Installation package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code">%s</span>' );
+		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code pre">%s</span>' );
 		$this->strings['unpack_package']      = __( 'Unpacking the package&#8230;' );
 		$this->strings['installing_package']  = __( 'Installing the plugin&#8230;' );
 		$this->strings['remove_old']          = __( 'Removing the current plugin&#8230;' );
@@ -226,14 +226,19 @@ class Plugin_Upgrader extends WP_Upgrader {
 				'clear_destination' => true,
 				'clear_working'     => true,
 				'hook_extra'        => array(
-					'plugin' => $plugin,
-					'type'   => 'plugin',
-					'action' => 'update',
+					'plugin'      => $plugin,
+					'type'        => 'plugin',
+					'action'      => 'update',
+					'temp_backup' => array(
+						'slug' => dirname( $plugin ),
+						'src'  => WP_PLUGIN_DIR,
+						'dir'  => 'plugins',
+					),
 				),
 			)
 		);
 
-		// Cleanup our hooks, in case something else does a upgrade on this connection.
+		// Cleanup our hooks, in case something else does an upgrade on this connection.
 		remove_action( 'upgrader_process_complete', 'wp_clean_plugins_cache', 9 );
 		remove_filter( 'upgrader_pre_install', array( $this, 'deactivate_plugin_before_upgrade' ) );
 		remove_filter( 'upgrader_pre_install', array( $this, 'active_before' ) );
@@ -342,7 +347,12 @@ class Plugin_Upgrader extends WP_Upgrader {
 					'clear_working'     => true,
 					'is_multi'          => true,
 					'hook_extra'        => array(
-						'plugin' => $plugin,
+						'plugin'      => $plugin,
+						'temp_backup' => array(
+							'slug' => dirname( $plugin ),
+							'src'  => WP_PLUGIN_DIR,
+							'dir'  => 'plugins',
+						),
 					),
 				)
 			);
@@ -376,7 +386,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 		$this->skin->footer();
 
-		// Cleanup our hooks, in case something else does a upgrade on this connection.
+		// Cleanup our hooks, in case something else does an upgrade on this connection.
 		remove_filter( 'upgrader_clear_destination', array( $this, 'delete_old_plugin' ) );
 
 		// Ensure any future auto-update failures trigger a failure email by removing

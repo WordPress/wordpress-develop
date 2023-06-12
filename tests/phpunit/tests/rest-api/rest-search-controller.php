@@ -1,13 +1,9 @@
 <?php
 /**
- * WP_REST_Search_Controller tests
+ * Unit tests covering WP_REST_Search_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- */
-
-/**
- * Tests for WP_REST_Search_Controller.
  *
  * @group restapi
  */

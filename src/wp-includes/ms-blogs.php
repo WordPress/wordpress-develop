@@ -120,7 +120,7 @@ function get_id_from_blogname( $slug ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|string|array $fields  Optional. A blog ID, a blog slug, or an array of fields to query against.
- *                                  If not specified the current blog ID is used.
+ *                                  Defaults to the current blog ID.
  * @param bool             $get_all Whether to retrieve all details or only the details in the blogs table.
  *                                  Default is true.
  * @return WP_Site|false Blog details on success. False on failure.
@@ -397,7 +397,7 @@ function get_blog_option( $id, $option, $default_value = false ) {
  *
  * @param int    $id     A blog ID. Can be null to refer to the current blog.
  * @param string $option Name of option to add. Expected to not be SQL-escaped.
- * @param mixed  $value  Optional. Option value, can be anything. Expected to not be SQL-escaped.
+ * @param mixed  $value  Option value, can be anything. Expected to not be SQL-escaped.
  * @return bool True if the option was added, false otherwise.
  */
 function add_blog_option( $id, $option, $value ) {
@@ -419,7 +419,7 @@ function add_blog_option( $id, $option, $value ) {
 }
 
 /**
- * Removes option by name for a given blog ID. Prevents removal of protected WordPress options.
+ * Removes an option by name for a given blog ID. Prevents removal of protected WordPress options.
  *
  * @since MU (3.0.0)
  *
@@ -560,12 +560,15 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 						'blog_meta',
 						'global-posts',
 						'networks',
+						'network-queries',
 						'sites',
 						'site-details',
 						'site-options',
+						'site-queries',
 						'site-transient',
 						'rss',
 						'users',
+						'user-queries',
 						'useremail',
 						'userlogins',
 						'usermeta',
@@ -651,12 +654,15 @@ function restore_current_blog() {
 						'blog_meta',
 						'global-posts',
 						'networks',
+						'network-queries',
 						'sites',
 						'site-details',
 						'site-options',
+						'site-queries',
 						'site-transient',
 						'rss',
 						'users',
+						'user-queries',
 						'useremail',
 						'userlogins',
 						'usermeta',
@@ -877,12 +883,12 @@ function _update_blog_date_on_post_delete( $post_id ) {
  * Handler for updating the current site's posts count when a post is deleted.
  *
  * @since 4.0.0
+ * @since 6.2.0 Added the `$post` parameter.
  *
- * @param int $post_id Post ID.
+ * @param int     $post_id Post ID.
+ * @param WP_Post $post    Post object.
  */
-function _update_posts_count_on_delete( $post_id ) {
-	$post = get_post( $post_id );
-
+function _update_posts_count_on_delete( $post_id, $post ) {
 	if ( ! $post || 'publish' !== $post->post_status || 'post' !== $post->post_type ) {
 		return;
 	}

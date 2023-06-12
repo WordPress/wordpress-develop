@@ -578,7 +578,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @param arrray|string|null $last_result The value to assign to `$wpdb->last_result`.
 	 * @param int|string         $column      The column index to retrieve.
 	 *
-	 * @dataProvider data_test_get_col
+	 * @dataProvider data_get_col
 	 *
 	 * @ticket 45299
 	 */
@@ -612,7 +612,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *     @type arrray|string|null $last_result The value to assign to `$wpdb->last_result`.
 	 *     @type int|string         $column      The column index to retrieve.
 	 */
-	public function data_test_get_col() {
+	public function data_get_col() {
 		global $wpdb;
 
 		return array(
@@ -2239,7 +2239,7 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider parse_db_host_data_provider
+	 * @dataProvider data_parse_db_host
 	 * @ticket 41722
 	 * @ticket 54877
 	 */
@@ -2260,7 +2260,7 @@ class Tests_DB extends WP_UnitTestCase {
 		}
 	}
 
-	public function parse_db_host_data_provider() {
+	public function data_parse_db_host() {
 		return array(
 			array(
 				'',    // DB_HOST.

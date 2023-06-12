@@ -132,30 +132,26 @@ function determine_locale() {
 	 */
 	$determined_locale = apply_filters( 'pre_determine_locale', null );
 
-	if ( ! empty( $determined_locale ) && is_string( $determined_locale ) ) {
+	if ( $determined_locale && is_string( $determined_locale ) ) {
 		return $determined_locale;
 	}
 
-	$determined_locale = get_locale();
-
-	if ( is_admin() ) {
+	if (
+		isset( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] &&
+		( ! empty( $_GET['wp_lang'] ) || ! empty( $_COOKIE['wp_lang'] ) )
+	) {
+		if ( ! empty( $_GET['wp_lang'] ) ) {
+			$determined_locale = sanitize_locale_name( $_GET['wp_lang'] );
+		} else {
+			$determined_locale = sanitize_locale_name( $_COOKIE['wp_lang'] );
+		}
+	} else if (
+		( isset( $_GET['_locale'] ) && 'user' === $_GET['_locale'] && wp_is_json_request() ) ||
+		is_admin()
+	) {
 		$determined_locale = get_user_locale();
-	}
-
-	if ( isset( $_GET['_locale'] ) && 'user' === $_GET['_locale'] && wp_is_json_request() ) {
-		$determined_locale = get_user_locale();
-	}
-
-	$wp_lang = '';
-
-	if ( ! empty( $_GET['wp_lang'] ) ) {
-		$wp_lang = sanitize_text_field( $_GET['wp_lang'] );
-	} elseif ( ! empty( $_COOKIE['wp_lang'] ) ) {
-		$wp_lang = sanitize_text_field( $_COOKIE['wp_lang'] );
-	}
-
-	if ( ! empty( $wp_lang ) && ! empty( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) {
-		$determined_locale = $wp_lang;
+	} else {
+		$determined_locale = get_locale();
 	}
 
 	/**
@@ -838,6 +834,12 @@ function unload_textdomain( $domain, $reloadable = false ) {
 	do_action( 'unload_textdomain', $domain, $reloadable );
 
 	if ( isset( $l10n[ $domain ] ) ) {
+		if ( $l10n[ $domain ] instanceof NOOP_Translations ) {
+			unset( $l10n[ $domain ] );
+
+			return false;
+		}
+
 		unset( $l10n[ $domain ] );
 
 		if ( ! $reloadable ) {
@@ -1084,7 +1086,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 
 	$src = $wp_scripts->registered[ $handle ]->src;
 
-	if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $wp_scripts->content_url && 0 === strpos( $src, $wp_scripts->content_url ) ) ) {
+	if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $wp_scripts->content_url && str_starts_with( $src, $wp_scripts->content_url ) ) ) {
 		$src = $wp_scripts->base_url . $src;
 	}
 
@@ -1098,7 +1100,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 
 	// If the host is the same or it's a relative URL.
 	if (
-		( ! isset( $content_url['path'] ) || strpos( $src_url['path'], $content_url['path'] ) === 0 ) &&
+		( ! isset( $content_url['path'] ) || str_starts_with( $src_url['path'], $content_url['path'] ) ) &&
 		( ! isset( $src_url['host'] ) || ! isset( $content_url['host'] ) || $src_url['host'] === $content_url['host'] )
 	) {
 		// Make the src relative the specific plugin or theme.
@@ -1115,7 +1117,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 		$relative = array_slice( $relative, 2 ); // Remove plugins/<plugin name> or themes/<theme name>.
 		$relative = implode( '/', $relative );
 	} elseif (
-		( ! isset( $plugins_url['path'] ) || strpos( $src_url['path'], $plugins_url['path'] ) === 0 ) &&
+		( ! isset( $plugins_url['path'] ) || str_starts_with( $src_url['path'], $plugins_url['path'] ) ) &&
 		( ! isset( $src_url['host'] ) || ! isset( $plugins_url['host'] ) || $src_url['host'] === $plugins_url['host'] )
 	) {
 		// Make the src relative the specific plugin.
@@ -1134,7 +1136,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 	} elseif ( ! isset( $src_url['host'] ) || ! isset( $site_url['host'] ) || $src_url['host'] === $site_url['host'] ) {
 		if ( ! isset( $site_url['path'] ) ) {
 			$relative = trim( $src_url['path'], '/' );
-		} elseif ( ( strpos( $src_url['path'], trailingslashit( $site_url['path'] ) ) === 0 ) ) {
+		} elseif ( str_starts_with( $src_url['path'], trailingslashit( $site_url['path'] ) ) ) {
 			// Make the src relative to the WP root.
 			$relative = substr( $src_url['path'], strlen( $site_url['path'] ) );
 			$relative = trim( $relative, '/' );
@@ -1311,6 +1313,8 @@ function get_translations_for_domain( $domain ) {
 		$noop_translations = new NOOP_Translations();
 	}
 
+	$l10n[ $domain ] = &$noop_translations;
+
 	return $noop_translations;
 }
 
@@ -1326,7 +1330,7 @@ function get_translations_for_domain( $domain ) {
  */
 function is_textdomain_loaded( $domain ) {
 	global $l10n;
-	return isset( $l10n[ $domain ] );
+	return isset( $l10n[ $domain ] ) && ! $l10n[ $domain ] instanceof NOOP_Translations;
 }
 
 /**
@@ -1373,8 +1377,8 @@ function get_available_languages( $dir = null ) {
 	if ( $lang_files ) {
 		foreach ( $lang_files as $lang_file ) {
 			$lang_file = basename( $lang_file, '.mo' );
-			if ( 0 !== strpos( $lang_file, 'continents-cities' ) && 0 !== strpos( $lang_file, 'ms-' ) &&
-				0 !== strpos( $lang_file, 'admin-' ) ) {
+			if ( ! str_starts_with( $lang_file, 'continents-cities' ) && ! str_starts_with( $lang_file, 'ms-' ) &&
+				! str_starts_with( $lang_file, 'admin-' ) ) {
 				$languages[] = $lang_file;
 			}
 		}
@@ -1807,6 +1811,12 @@ function translate_settings_using_i18n_schema( $i18n_schema, $settings, $textdom
 function wp_get_list_item_separator() {
 	global $wp_locale;
 
+	if ( ! ( $wp_locale instanceof WP_Locale ) ) {
+		// Default value of WP_Locale::get_list_item_separator().
+		/* translators: Used between list items, there is a space after the comma. */
+		return __( ', ' );
+	}
+
 	return $wp_locale->get_list_item_separator();
 }
 
@@ -1817,10 +1827,16 @@ function wp_get_list_item_separator() {
  *
  * @global WP_Locale $wp_locale WordPress date and time locale object.
  *
- * @return string Locale-specific word count type.
+ * @return string Locale-specific word count type. Possible values are `characters_excluding_spaces`,
+ *                `characters_including_spaces`, or `words`. Defaults to `words`.
  */
 function wp_get_word_count_type() {
 	global $wp_locale;
+
+	if ( ! ( $wp_locale instanceof WP_Locale ) ) {
+		// Default value of WP_Locale::get_word_count_type().
+		return 'words';
+	}
 
 	return $wp_locale->get_word_count_type();
 }
