@@ -204,6 +204,7 @@ JS;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::has_only_delayed_dependents
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_valid_async_registration() {
@@ -221,6 +222,7 @@ JS;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::has_only_delayed_dependents
 	 * @covers ::wp_enqueue_script
 	 *
 	 * @dataProvider data_provider_delayed_strategies
@@ -242,6 +244,7 @@ JS;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::has_only_delayed_dependents
 	 * @covers ::wp_enqueue_script
 	 *
 	 * @dataProvider data_provider_delayed_strategies
@@ -262,6 +265,7 @@ JS;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::has_only_delayed_dependents
 	 * @covers ::wp_enqueue_script
 	 *
 	 * @dataProvider data_provider_delayed_strategies
@@ -274,6 +278,128 @@ JS;
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='/main-script-a4.js' id='main-script-a4-js' {$strategy}></script>";
 		$this->assertStringContainsString( $expected, $output, 'Only enqueued dependents should affect the eligible strategy.' );
+	}
+
+	/**
+	 * Data provider for test_has_only_delayed_dependents.
+	 *
+	 * @return array
+	 */
+	public function get_data_to_test_has_only_delayed_dependents() {
+		return array(
+			'no_dependents'                        => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => true,
+			),
+			'one_delayed_dependent'                => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'bar' ), null, array( 'strategy' => 'defer' ) );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => true,
+			),
+			'one_blocking_dependent'               => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => false,
+			),
+			'one_blocking_dependent_not_enqueued'  => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
+					wp_register_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => true, // Because bar was not enqueued, only foo was.
+			),
+			'two_delayed_dependents'               => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script( 'baz', 'https://example.com/baz.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => true,
+			),
+			'recursion_not_delayed'                => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array( 'foo' ), null );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => false,
+			),
+			'recursion_yes_delayed'                => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => true,
+			),
+			'recursion_triple_level'               => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array( 'baz' ), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script( 'baz', 'https://example.com/bar.js', array( 'bar' ), null, array( 'strategy' => 'defer' ) );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => true,
+			),
+			'async_only_with_defer_dependency'     => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array( 'baz' ), null, array( 'strategy' => 'async' ) );
+					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
+					return 'foo';
+				},
+				'async_only' => true,
+				'expected'   => false,
+			),
+			'async_not_only_with_defer_dependency' => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array( 'baz' ), null, array( 'strategy' => 'async' ) );
+					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
+					return 'foo';
+				},
+				'expected'   => true,
+				'async_only' => false,
+			),
+		);
+	}
+
+	/**
+	 * Test that has_only_delayed_dependents works as expected.
+	 *
+	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::has_only_delayed_dependents
+	 * @covers WP_Scripts::get_dependents
+	 *
+	 * @dataProvider get_data_to_test_has_only_delayed_dependents
+	 *
+	 * @param callable $set_up     Set up.
+	 * @param bool     $async_only Async only.
+	 * @param bool     $expected   Expected return value.
+	 */
+	public function test_has_only_delayed_dependents( $set_up, $async_only, $expected ) {
+		$handle = $set_up();
+
+		$wp_scripts_reflection       = new ReflectionClass( WP_Scripts::class );
+		$has_only_delayed_dependents = $wp_scripts_reflection->getMethod( 'has_only_delayed_dependents' );
+		$has_only_delayed_dependents->setAccessible( true );
+		$this->assertSame( $expected, $has_only_delayed_dependents->invokeArgs( wp_scripts(), array( $handle, $async_only ) ), 'Expected return value of WP_Scripts::has_only_delayed_dependents to match.' );
 	}
 
 	/**
@@ -802,6 +928,7 @@ HTML
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::has_only_delayed_dependents
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_invalid_defer_registration() {
@@ -822,6 +949,7 @@ HTML
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::has_only_delayed_dependents
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_valid_blocking_registration() {
