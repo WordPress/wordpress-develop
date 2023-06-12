@@ -4214,6 +4214,7 @@ EOF;
 	 *
 	 * @ticket 56588
 	 * @ticket 58235
+	 * @ticket 58235
 	 *
 	 * @since 6.3.0 Apply fetchpriority="high" on the LCP image.
 	 *
