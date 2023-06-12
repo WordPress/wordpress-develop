@@ -1842,22 +1842,18 @@ function wp_just_in_time_script_localization() {
 }
 
 /**
- * Prints a loader script if there is text/plain registered script.
+ * Prints a script to load delayed inline scripts.
  *
- * When added to the DOM, this script converts any text/plain scripts
- * associated with a handle into type/javascript, and executes them.
+ * When a script dependency has attached inline scripts, the execution
+ * of the inline scripts needs to be delayed in order to preserve the
+ * execution order with the script along with any dependency/dependent
+ * scripts. When there are delayed inline scripts needing to be printed
+ * this function will print the loader script once.
  *
  * @since 6.3.0
  */
 function wp_print_delayed_inline_script_loader() {
-	$wp_scripts = wp_scripts();
-
-	if ( $wp_scripts->has_delayed_inline_script() ) {
-		wp_print_inline_script_tag(
-			file_get_contents( ABSPATH . WPINC . '/js/wp-delayed-inline-script-loader' . wp_scripts_get_suffix() . '.js' ),
-			array( 'id' => 'wp-delayed-inline-script-loader' )
-		);
-	}
+	wp_scripts()->print_delayed_inline_script_loader();
 }
 
 /**

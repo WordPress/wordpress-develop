@@ -76,6 +76,15 @@ class WP_Scripts extends WP_Dependencies {
 	public $do_concat = false;
 
 	/**
+	 * Whether the delayed inline script loader has been printed.
+	 *
+	 * @since 6.3.0
+	 * @see WP_Scripts::print_delayed_inline_script_loader()
+	 * @var bool
+	 */
+	public $printed_delayed_inline_script_loader = false;
+
+	/**
 	 * Holds HTML markup of scripts and additional data if concatenation
 	 * is enabled.
 	 *
@@ -540,6 +549,27 @@ class WP_Scripts extends WP_Dependencies {
 			return wp_get_inline_script_tag( $js, $attributes );
 		} else {
 			return wp_get_inline_script_tag( $js, compact( 'id' ) );
+		}
+	}
+
+	/**
+	 * Prints a script to load delayed inline scripts.
+	 *
+	 * When a script dependency has attached inline scripts, the execution
+	 * of the inline scripts needs to be delayed in order to preserve the
+	 * execution order with the script along with any dependency/dependent
+	 * scripts. When there are delayed inline scripts needing to be printed
+	 * this function will print the loader script once.
+	 *
+	 * @since 6.3.0
+	 */
+	function print_delayed_inline_script_loader() {
+		if ( ! $this->printed_delayed_inline_script_loader && $this->has_delayed_inline_script() ) {
+			wp_print_inline_script_tag(
+				file_get_contents( ABSPATH . WPINC . '/js/wp-delayed-inline-script-loader' . wp_scripts_get_suffix() . '.js' ),
+				array( 'id' => 'wp-delayed-inline-script-loader' )
+			);
+			$this->printed_delayed_inline_script_loader = true;
 		}
 	}
 
