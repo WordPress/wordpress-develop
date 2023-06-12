@@ -54,9 +54,9 @@ $trackback_url = isset( $_POST['url'] ) ? $_POST['url'] : '';
 $charset       = isset( $_POST['charset'] ) ? $_POST['charset'] : '';
 
 // These three are stripslashed here so they can be properly escaped after mb_convert_encoding().
-$title     = isset( $_POST['title'] ) ? wp_unslash( $_POST['title'] ) : '';
-$excerpt   = isset( $_POST['excerpt'] ) ? wp_unslash( $_POST['excerpt'] ) : '';
-$blog_name = isset( $_POST['blog_name'] ) ? wp_unslash( $_POST['blog_name'] ) : '';
+$title     = isset( $_POST['title'] ) ? wp_unslash( sanitize_text_field( $_POST['title'] ) ) : '';
+$excerpt   = isset( $_POST['excerpt'] ) ? wp_unslash( sanitize_textarea_field( $_POST['excerpt'] ) ) : '';
+$blog_name = isset( $_POST['blog_name'] ) ? wp_unslash( sanitize_text_field( $_POST['blog_name'] ) ) : '';
 
 if ( $charset ) {
 	$charset = str_replace( array( ',', ' ' ), '', strtoupper( trim( $charset ) ) );
