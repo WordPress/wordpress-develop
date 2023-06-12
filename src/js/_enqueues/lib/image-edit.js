@@ -9,6 +9,7 @@
 
 (function($) {
 	var __ = wp.i18n.__;
+	var sprintf = wp.i18n.sprintf;
 
 	/**
 	 * Contains all the methods to initialize and control the image editor.
