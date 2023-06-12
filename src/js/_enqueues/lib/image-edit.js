@@ -217,6 +217,92 @@
 	},
 
 	/**
+	 * Shows or hides image menu popup.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @memberof imageEdit
+	 *
+	 * @param {HTMLElement} el The activated control element.
+	 *
+	 * @return {boolean} Always returns false.
+	 */
+	togglePopup : function(el) {
+		var $el = $( el );
+		var $targetEl = $( el ).attr( 'aria-controls' );
+		var $target = $( '#' + $targetEl );
+		$el
+			.attr( 'aria-expanded', 'false' === $el.attr( 'aria-expanded' ) ? 'true' : 'false' );
+		$target
+			.toggleClass( 'imgedit-popup-menu-open' ).slideToggle( 'fast' );
+		// Move focus to first item in menu.
+		$target.find( 'button' ).first().trigger( 'focus' );
+
+		return false;
+	},
+
+	/**
+	 * Navigate popup menu by arrow keys.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @memberof imageEdit
+	 *
+	 * @param {HTMLElement} el The current element.
+	 *
+	 * @return {boolean} Always returns false.
+	 */
+	browsePopup : function(el) {
+		var $el = $( el );
+		var $collection = $( el ).parent( '.imgedit-popup-menu' ).find( 'button' );
+		var $index = $collection.index( $el );
+		var $prev = $index - 1;
+		var $next = $index + 1;
+		var $last = $collection.length;
+		if ( $prev < 0 ) {
+			$prev = $last - 1;
+		}
+		if ( $next === $last ) {
+			$next = 0;
+		}
+		var $target = false;
+		if ( event.keyCode === 40 ) {
+			$target = $collection.get( $next );
+		} else if ( event.keyCode === 38 ) {
+			$target = $collection.get( $prev );
+		}
+		if ( $target ) {
+			$target.focus();
+			event.preventDefault();
+		}
+
+		return false;
+	},
+
+	/**
+	 * Close popup menu and reset focus on feature activation.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @memberof imageEdit
+	 *
+	 * @param {HTMLElement} el The current element.
+	 *
+	 * @return {boolean} Always returns false.
+	 */
+	closePopup : function(el) {
+		var $parent = $(el).parent( '.imgedit-popup-menu' );
+		var $controlledID = $parent.attr( 'id' );
+		var $target = $( 'button[aria-controls="' + $controlledID + '"]' );
+		$target
+			.attr( 'aria-expanded', 'false' ).trigger( 'focus' );
+		$parent
+			.toggleClass( 'imgedit-popup-menu-open' ).slideToggle( 'fast' );
+
+		return false;
+	},
+
+	/**
 	 * Shows or hides the image edit help box.
 	 *
 	 * @since 2.9.0
@@ -478,8 +564,19 @@
 				} else {
 					$('button.imgedit-submit-btn', '#imgedit-panel-' + postid).prop('disabled', true);
 				}
+				var actionType = 'updated';
+				historyObj = JSON.parse( event.data.history );
+				if ( historyObj[historyObj.length - 1].hasOwnProperty( 'r' ) ) {
+					actionType = 'rotated';
+				}
+				if ( historyObj[historyObj.length - 1].hasOwnProperty( 'f' ) ) {
+					actionType = 'flipped';
+				}
+				// translators: Image editing action verb in past tense.
+				var successMessage = sprintf( __( 'Image %s.' ), actionType );
 
 				t.toggleEditor(postid, 0);
+				wp.a11y.speak( successMessage, 'assertive' );
 			})
 			.on( 'error', function() {
 				var errorMessage = __( 'Could not load the preview image. Please reload the page and try again.' );
@@ -1036,7 +1133,7 @@
 		if ( $(t).hasClass('disabled') ) {
 			return false;
 		}
-
+		this.closePopup(t);
 		this.addStep({ 'r': { 'r': angle, 'fw': this.hold.h, 'fh': this.hold.w }}, postid, nonce);
 	},
 
@@ -1058,7 +1155,7 @@
 		if ( $(t).hasClass('disabled') ) {
 			return false;
 		}
-
+		this.closePopup(t);
 		this.addStep({ 'f': { 'f': axis, 'fw': this.hold.w, 'fh': this.hold.h }}, postid, nonce);
 	},
 

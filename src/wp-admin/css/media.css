@@ -1132,9 +1132,34 @@ border color while dragging a file over the uploader drop area */
 	padding: .5em 0 0;
 }
 
+.imgedit-popup-menu,
 .imgedit-help {
 	display: none;
 	padding-bottom: 8px;
+}
+
+.imgedit-panel-tools > .imgedit-menu {
+	display: flex;
+	column-gap: 4px;
+	align-items: start;
+}
+
+.imgedit-popup-menu {
+	width: fit-content;
+	position: absolute;
+	z-index: 10;
+	left: calc( 100% + 4px );
+	top: -3px;
+}
+
+.image-editor .imgedit-menu .imgedit-popup-menu button {
+	display: block;
+	margin: 2px 0;
+	width: 100%;
+}
+
+.imgedit-rotate-menu-container {
+	position: relative;
 }
 
 .imgedit-help.imgedit-restore {
