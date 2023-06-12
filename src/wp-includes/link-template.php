@@ -4464,7 +4464,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 		}
 
 		if ( $email ) {
-			$email_hash = md5( strtolower( trim( $email ) ) );
+			$email_hash = hash( 'sha256', strtolower( trim( $email ) ) );
 		}
 	}
 
