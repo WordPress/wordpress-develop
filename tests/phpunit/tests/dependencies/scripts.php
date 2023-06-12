@@ -98,6 +98,7 @@ JS;
 	 * @covers ::wp_enqueue_script
 	 *
 	 * @dataProvider data_provider_delayed_strategies
+	 *
 	 * @param string $strategy Strategy.
 	 */
 	public function test_after_inline_script_with_delayed_main_script( $strategy ) {
@@ -160,6 +161,7 @@ JS;
 	 * @covers ::wp_enqueue_script
 	 *
 	 * @dataProvider data_provider_delayed_strategies
+	 *
 	 * @param string $strategy
 	 */
 	public function test_before_inline_scripts_with_delayed_main_script( $strategy ) {
@@ -222,6 +224,7 @@ JS;
 	 * @covers ::wp_enqueue_script
 	 *
 	 * @dataProvider data_provider_delayed_strategies
+	 *
 	 * @param string $strategy Strategy.
 	 */
 	public function test_delayed_dependent_with_blocking_dependency( $strategy ) {
@@ -704,6 +707,7 @@ HTML
 	 * @covers WP_Scripts::has_delayed_inline_script
 	 *
 	 * @dataProvider data_provider_to_test_various_strategy_dependency_chains
+	 *
 	 * @param callable $set_up          Set up.
 	 * @param string   $expected_markup Expected markup.
 	 */
@@ -967,11 +971,13 @@ HTML
 	/**
 	 * Test setting in_footer and strategy.
 	 *
-	 * @dataProvider get_data_for_test_setting_in_footer_and_strategy
 	 * @ticket 12009
+	 *
 	 * @covers ::wp_register_script
 	 * @covers ::wp_enqueue_script
 	 * @covers ::wp_script_add_data
+	 *
+	 * @dataProvider get_data_for_test_setting_in_footer_and_strategy
 	 *
 	 * @param callable     $set_up            Set up.
 	 * @param int|false    $expected_group    Expected group.
@@ -989,10 +995,11 @@ HTML
 	 *
 	 * For an invalid strategy defined during script registration, default to a blocking strategy.
 	 *
+	 * @ticket 12009
+	 *
 	 * @covers WP_Scripts::add_data
 	 * @covers ::wp_register_script
 	 * @covers ::wp_enqueue_script
-	 * @ticket 12009
 	 *
 	 * @expectedIncorrectUsage WP_Scripts::add_data
 	 */
@@ -1011,11 +1018,12 @@ HTML
 	 *
 	 * For an invalid strategy defined during script registration, default to a blocking strategy.
 	 *
+	 * @ticket 12009
+	 *
 	 * @covers WP_Scripts::add_data
 	 * @covers ::wp_script_add_data
 	 * @covers ::wp_register_script
 	 * @covers ::wp_enqueue_script
-	 * @ticket 12009
 	 *
 	 * @expectedIncorrectUsage WP_Scripts::add_data
 	 */
@@ -1035,9 +1043,10 @@ HTML
 	 *
 	 * For an invalid strategy defined during script registration, default to a blocking strategy.
 	 *
+	 * @ticket 12009
+	 *
 	 * @covers WP_Scripts::add_data
 	 * @covers ::wp_enqueue_script
-	 * @ticket 12009
 	 *
 	 * @expectedIncorrectUsage WP_Scripts::add_data
 	 */
@@ -1178,8 +1187,9 @@ HTML
 	/**
 	 * Test the different protocol references in wp_enqueue_script
 	 *
-	 * @global WP_Scripts $wp_scripts
 	 * @ticket 16560
+	 *
+	 * @global WP_Scripts $wp_scripts
 	 */
 	public function test_protocols() {
 		// Init.
@@ -1979,9 +1989,11 @@ HTML
 	 * @covers WP_Scripts::get_inline_script_data
 	 * @covers WP_Scripts::get_inline_script_tag
 	 * @covers WP_Scripts::print_inline_script
+	 *
 	 * @expectedDeprecated WP_Scripts::print_inline_script
 	 *
 	 * @dataProvider data_provider_to_test_get_inline_script
+	 *
 	 * @param string   $position       Position.
 	 * @param string[] $inline_scripts Inline scripts.
 	 * @param bool     $delayed        Delayed.
@@ -2229,6 +2241,7 @@ HTML
 	 * Testing `wp_enqueue_code_editor` with file path.
 	 *
 	 * @ticket 41871
+	 *
 	 * @covers ::wp_enqueue_code_editor
 	 */
 	public function test_wp_enqueue_code_editor_when_php_file_will_be_passed() {
@@ -2316,6 +2329,7 @@ HTML
 	 * Testing `wp_enqueue_code_editor` with `compact`.
 	 *
 	 * @ticket 41871
+	 *
 	 * @covers ::wp_enqueue_code_editor
 	 */
 	public function test_wp_enqueue_code_editor_when_generated_array_by_compact_will_be_passed() {
@@ -2399,6 +2413,7 @@ HTML
 	 * Testing `wp_enqueue_code_editor` with `array_merge`.
 	 *
 	 * @ticket 41871
+	 *
 	 * @covers ::wp_enqueue_code_editor
 	 */
 	public function test_wp_enqueue_code_editor_when_generated_array_by_array_merge_will_be_passed() {
@@ -2496,6 +2511,7 @@ HTML
 	 * Testing `wp_enqueue_code_editor` with `array`.
 	 *
 	 * @ticket 41871
+	 *
 	 * @covers ::wp_enqueue_code_editor
 	 */
 	public function test_wp_enqueue_code_editor_when_simple_array_will_be_passed() {
@@ -2588,6 +2604,7 @@ HTML
 
 	/**
 	 * @ticket 52534
+	 *
 	 * @covers ::wp_localize_script
 	 *
 	 * @dataProvider data_wp_localize_script_data_formats
@@ -2642,6 +2659,7 @@ HTML
 
 	/**
 	 * @ticket 55628
+	 *
 	 * @covers ::wp_set_script_translations
 	 */
 	public function test_wp_external_wp_i18n_print_order() {
