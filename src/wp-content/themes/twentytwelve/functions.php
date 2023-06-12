@@ -194,6 +194,7 @@ function twentytwelve_scripts_styles() {
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentytwelve-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentytwelve-style' ), '20230213' );
+	wp_style_add_data( 'twentytwelve-block-style', 'path', get_template_directory() . '/css/blocks.css' );
 
 	// Loads the Internet Explorer specific stylesheet.
 	wp_enqueue_style( 'twentytwelve-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentytwelve-style' ), '20150214' );
