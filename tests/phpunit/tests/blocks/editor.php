@@ -1,15 +1,9 @@
 <?php
 /**
- * Block editor tests
+ * Tests for the block editor methods.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.5.0
- */
-
-/**
- * Tests for the block editor methods.
- *
  * @since 5.5.0
  *
  * @group blocks
@@ -308,7 +302,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		// Force the return value of wp_max_upload_size() to be 500.
 		add_filter(
 			'upload_size_limit',
-			function() {
+			static function() {
 				return 500;
 			}
 		);

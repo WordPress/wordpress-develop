@@ -419,7 +419,7 @@ function add_blog_option( $id, $option, $value ) {
 }
 
 /**
- * Removes option by name for a given blog ID. Prevents removal of protected WordPress options.
+ * Removes an option by name for a given blog ID. Prevents removal of protected WordPress options.
  *
  * @since MU (3.0.0)
  *
@@ -560,12 +560,15 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 						'blog_meta',
 						'global-posts',
 						'networks',
+						'network-queries',
 						'sites',
 						'site-details',
 						'site-options',
+						'site-queries',
 						'site-transient',
 						'rss',
 						'users',
+						'user-queries',
 						'useremail',
 						'userlogins',
 						'usermeta',
@@ -651,12 +654,15 @@ function restore_current_blog() {
 						'blog_meta',
 						'global-posts',
 						'networks',
+						'network-queries',
 						'sites',
 						'site-details',
 						'site-options',
+						'site-queries',
 						'site-transient',
 						'rss',
 						'users',
+						'user-queries',
 						'useremail',
 						'userlogins',
 						'usermeta',

@@ -94,7 +94,7 @@ if ( isset( $_GET['action'] ) ) {
 								$blogs        = get_blogs_of_user( $user_id, true );
 
 								foreach ( (array) $blogs as $details ) {
-									if ( get_network()->site_id != $details->userblog_id ) { // Main blog is not a spam!
+									if ( ! is_main_site( $details->userblog_id ) ) { // Main site is not a spam!
 										update_blog_status( $details->userblog_id, 'spam', '1' );
 									}
 								}
@@ -253,7 +253,7 @@ get_current_screen()->set_screen_reader_content(
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
-if ( isset( $_REQUEST['updated'] ) && 'true' == $_REQUEST['updated'] && ! empty( $_REQUEST['action'] ) ) {
+if ( isset( $_REQUEST['updated'] ) && 'true' === $_REQUEST['updated'] && ! empty( $_REQUEST['action'] ) ) {
 	?>
 	<div id="message" class="notice notice-success is-dismissible"><p>
 		<?php

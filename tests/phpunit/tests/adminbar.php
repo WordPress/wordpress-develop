@@ -754,4 +754,33 @@ class Tests_AdminBar extends WP_UnitTestCase {
 			'network-admin-o'      => 'manage_network_options',
 		);
 	}
+
+	/**
+	 * This test ensures that WP_Admin_Bar::$proto is not defined (including magic methods).
+	 *
+	 * @ticket 56876
+	 * @coversNothing
+	 */
+	public function test_proto_property_is_not_defined() {
+		$admin_bar = new WP_Admin_Bar();
+		$this->assertFalse( property_exists( $admin_bar, 'proto' ), 'WP_Admin_Bar::$proto should not be defined.' );
+		$this->assertFalse( isset( $admin_bar->proto ), 'WP_Admin_Bar::$proto should not be defined.' );
+	}
+
+	/**
+	 * This test ensures that WP_Admin_Bar::$menu is declared as a "regular" class property.
+	 *
+	 * @ticket 56876
+	 * @coversNothing
+	 */
+	public function test_menu_property_is_defined() {
+		$admin_bar = new WP_Admin_Bar();
+		$this->assertTrue( property_exists( $admin_bar, 'menu' ), 'WP_Admin_Bar::$proto property should be defined.' );
+
+		$menu_property = new ReflectionProperty( WP_Admin_Bar::class, 'menu' );
+		$this->assertTrue( $menu_property->isPublic(), 'WP_Admin_Bar::$menu should be public.' );
+
+		$this->assertTrue( isset( $admin_bar->menu ), 'WP_Admin_Bar::$menu should be set.' );
+		$this->assertSame( array(), $admin_bar->menu, 'WP_Admin_Bar::$menu should be equal to an empty array.' );
+	}
 }

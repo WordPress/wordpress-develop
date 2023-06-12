@@ -1,13 +1,9 @@
 <?php
 /**
- * Unit tests covering the templates endpoint..
+ * Unit tests covering WP_REST_Templates_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
- * Tests for REST API for templates.
  *
  * @covers WP_REST_Templates_Controller
  *
@@ -173,7 +169,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 54507
-	 * @dataProvider get_template_endpoint_urls
+	 * @dataProvider data_get_item_works_with_a_single_slash
 	 */
 	public function test_get_item_works_with_a_single_slash( $endpoint_url ) {
 		wp_set_current_user( self::$admin_id );
@@ -207,7 +203,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 	}
 
-	public function get_template_endpoint_urls() {
+	public function data_get_item_works_with_a_single_slash() {
 		return array(
 			array( '/wp/v2/templates/default/my_template' ),
 			array( '/wp/v2/templates/default//my_template' ),
@@ -379,7 +375,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 54507
-	 * @dataProvider get_template_ids_to_sanitize
+	 * @dataProvider data_sanitize_template_id
 	 */
 	public function test_sanitize_template_id( $input_id, $sanitized_id ) {
 		$endpoint = new WP_REST_Templates_Controller( 'wp_template' );
@@ -389,7 +385,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 	}
 
-	public function get_template_ids_to_sanitize() {
+	public function data_sanitize_template_id() {
 		return array(
 			array( 'tt1-blocks/index', 'tt1-blocks//index' ),
 			array( 'tt1-blocks//index', 'tt1-blocks//index' ),

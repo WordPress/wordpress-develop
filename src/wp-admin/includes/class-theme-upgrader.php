@@ -56,7 +56,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		$this->strings['up_to_date'] = __( 'The theme is at the latest version.' );
 		$this->strings['no_package'] = __( 'Update package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package'] = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code">%s</span>' );
+		$this->strings['downloading_package'] = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code pre">%s</span>' );
 		$this->strings['unpack_package']      = __( 'Unpacking the update&#8230;' );
 		$this->strings['remove_old']          = __( 'Removing the old version of the theme&#8230;' );
 		$this->strings['remove_old_failed']   = __( 'Could not remove the old theme.' );
@@ -72,7 +72,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	public function install_strings() {
 		$this->strings['no_package'] = __( 'Installation package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code">%s</span>' );
+		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code pre">%s</span>' );
 		$this->strings['unpack_package']      = __( 'Unpacking the package&#8230;' );
 		$this->strings['installing_package']  = __( 'Installing the theme&#8230;' );
 		$this->strings['remove_old']          = __( 'Removing the old version of the theme&#8230;' );
@@ -328,9 +328,14 @@ class Theme_Upgrader extends WP_Upgrader {
 				'clear_destination' => true,
 				'clear_working'     => true,
 				'hook_extra'        => array(
-					'theme'  => $theme,
-					'type'   => 'theme',
-					'action' => 'update',
+					'theme'       => $theme,
+					'type'        => 'theme',
+					'action'      => 'update',
+					'temp_backup' => array(
+						'slug' => $theme,
+						'src'  => get_theme_root( $theme ),
+						'dir'  => 'themes',
+					),
 				),
 			)
 		);
@@ -443,7 +448,12 @@ class Theme_Upgrader extends WP_Upgrader {
 					'clear_working'     => true,
 					'is_multi'          => true,
 					'hook_extra'        => array(
-						'theme' => $theme,
+						'theme'       => $theme,
+						'temp_backup' => array(
+							'slug' => $theme,
+							'src'  => get_theme_root( $theme ),
+							'dir'  => 'themes',
+						),
 					),
 				)
 			);
@@ -477,7 +487,7 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		$this->skin->footer();
 
-		// Cleanup our hooks, in case something else does a upgrade on this connection.
+		// Cleanup our hooks, in case something else does an upgrade on this connection.
 		remove_filter( 'upgrader_pre_install', array( $this, 'current_before' ) );
 		remove_filter( 'upgrader_post_install', array( $this, 'current_after' ) );
 		remove_filter( 'upgrader_clear_destination', array( $this, 'delete_old_theme' ) );

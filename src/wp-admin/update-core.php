@@ -91,7 +91,7 @@ function list_core_update( $update ) {
 
 			$version_url = sprintf(
 				/* translators: %s: WordPress version. */
-				esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
+				esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
 				sanitize_title( $update->current )
 			);
 
@@ -1019,7 +1019,7 @@ get_current_screen()->set_help_sidebar(
 );
 
 if ( 'upgrade-core' === $action ) {
-	// Force a update check when requested.
+	// Force an update check when requested.
 	$force_check = ! empty( $_GET['force-check'] );
 	wp_version_check( array(), $force_check );
 

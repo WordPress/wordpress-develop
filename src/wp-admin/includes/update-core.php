@@ -863,6 +863,9 @@ $_old_files = array(
 	'wp-includes/blocks/comments-query-loop/editor-rtl.css',
 	'wp-includes/blocks/comments-query-loop/editor-rtl.min.css',
 	'wp-includes/blocks/comments-query-loop',
+	// 6.3
+	'wp-includes/images/wlw',
+	'wp-includes/wlwmanifest.xml',
 );
 
 /**
@@ -1408,7 +1411,7 @@ function update_core( $from, $to ) {
 		}
 
 		// Check if the language directory exists first.
-		if ( ! @is_dir( $lang_dir ) && 0 === strpos( $lang_dir, ABSPATH ) ) {
+		if ( ! @is_dir( $lang_dir ) && str_starts_with( $lang_dir, ABSPATH ) ) {
 			// If it's within the ABSPATH we can handle it here, otherwise they're out of luck.
 			$wp_filesystem->mkdir( $to . str_replace( ABSPATH, '', $lang_dir ), FS_CHMOD_DIR );
 			clearstatcache(); // For FTP, need to clear the stat cache.
@@ -1493,7 +1496,10 @@ function update_core( $from, $to ) {
 					$wp_filesystem->mkdir( $dest . $filename, FS_CHMOD_DIR );
 					$_result = copy_dir( $from . $distro . 'wp-content/' . $file, $dest . $filename );
 
-					// If a error occurs partway through this final step, keep the error flowing through, but keep process going.
+					/*
+					 * If an error occurs partway through this final step,
+					 * keep the error flowing through, but keep the process going.
+					 */
 					if ( is_wp_error( $_result ) ) {
 						if ( ! is_wp_error( $result ) ) {
 							$result = new WP_Error();
