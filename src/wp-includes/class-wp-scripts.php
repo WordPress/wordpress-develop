@@ -416,7 +416,7 @@ class WP_Scripts extends WP_Dependencies {
 			esc_url( $src ),
 			esc_attr( $handle ),
 			$strategy ? " {$strategy}" : '',
-			$intended_strategy  ? " data-wp-strategy='{$intended_strategy}'" : ''
+			$intended_strategy ? " data-wp-strategy='{$intended_strategy}'" : ''
 		);
 		$tag .= $after_script . $cond_after;
 
