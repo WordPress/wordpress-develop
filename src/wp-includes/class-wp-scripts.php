@@ -290,7 +290,10 @@ class WP_Scripts extends WP_Dependencies {
 		$this->all_deps( $handles );
 
 		// This statement is the only difference from parent::do_items().
-		if ( ! $this->printed_delayed_inline_script_loader && $this->has_delayed_inline_script( $this->to_do ) ) {
+		if ( 
+			! $this->printed_delayed_inline_script_loader
+			&& $this->has_delayed_inline_script( $this->to_do )
+		) {
 			$this->print_delayed_inline_script_loader();
 		}
 
