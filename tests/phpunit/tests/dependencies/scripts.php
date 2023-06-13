@@ -104,13 +104,14 @@ JS;
 		/**
 		 * Enqueue script with defer strategy.
 		 *
-		 * @param bool $in_footer In footer.
+		 * @param string $handle    Handle.
+		 * @param bool   $in_footer In footer.
 		 */
-		$enqueue_script    = static function ( $in_footer = false ) {
+		$enqueue_script    = static function ( $handle, $in_footer = false, $deps = array() ) {
 			wp_enqueue_script(
-				$in_footer ? 'foo-footer' : 'foo-head',
-				sprintf( 'https://example.com/%s.js', $in_footer ? 'foo-footer' : 'foo-head' ),
-				array(),
+				$handle,
+				sprintf( 'https://example.com/%s.js', $handle ),
+				$deps,
 				null,
 				array(
 					'in_footer' => $in_footer,
@@ -122,20 +123,22 @@ JS;
 		/**
 		 * Add inline after script.
 		 *
-		 * @param string $handle Handle.
+		 * @param string $handle   Handle.
+		 * @param string $position Position.
 		 */
-		$add_inline_script = static function ( $handle ) {
+		$add_inline_script = static function ( $handle, $position = 'after' ) {
 			wp_add_inline_script(
 				$handle,
-				"/*{$handle}-after*/"
+				"/*{$handle}-{$position}*/",
+				$position
 			);
 		};
 
 		return array(
 			'no_delayed_inline_scripts'            => array(
 				'set_up'          => static function () use ( $enqueue_script ) {
-					$enqueue_script( false );
-					$enqueue_script( true );
+					$enqueue_script( 'foo-head', false );
+					$enqueue_script( 'foo-footer', true );
 				},
 				'expected_head'   => <<<HTML
 <script id="foo-head-js" src="https://example.com/foo-head.js" type="text/javascript" defer></script>
@@ -149,7 +152,7 @@ HTML
 			),
 			'delayed_inline_script_in_head_only'   => array(
 				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
-					$enqueue_script( false );
+					$enqueue_script( 'foo-head', false );
 					$add_inline_script( 'foo-head' );
 				},
 				'expected_head'   => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
@@ -164,23 +167,31 @@ HTML
 			),
 			'delayed_inline_script_in_footer_only' => array(
 				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
-					$enqueue_script( true );
+					$enqueue_script( 'foo-footer', true );
 					$add_inline_script( 'foo-footer' );
 				},
-				'expected_head'   => $this->get_delayed_inline_script_loader_script_tag(), // TODO: This script is getting output even though it isn't needed yet.
+				/*
+				 * TODO: This script is getting output even though it isn't needed yet. It could be printed in the footer instead.
+				 * In order to handle this case, the logic to determine whether the script needs to be printed would have to
+				 * take into account the current group being printed. If we're printing the head scripts, but none of the
+				 * head scripts are delayed, then the script wouldn't have to be printed.
+				 */
+				'expected_head'   => $this->get_delayed_inline_script_loader_script_tag(),
 				'expected_torso'  => '',
 				'expected_footer' => <<<HTML
 <script id="foo-footer-js" src="https://example.com/foo-footer.js" type="text/javascript" defer></script>
 <script id="foo-footer-js-after" type="text/plain">
 /*foo-footer-after*/
 </script>
-HTML,
+HTML
+				,
 			),
 			'delayed_inline_script_in_both_head_and_footer' => array(
 				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
 					foreach ( array( false, true ) as $in_footer ) {
-						$enqueue_script( $in_footer );
-						$add_inline_script( $in_footer ? 'foo-footer' : 'foo-head' );
+						$handle = $in_footer ? 'foo-footer' : 'foo-head';
+						$enqueue_script( $handle, $in_footer );
+						$add_inline_script( $handle );
 					}
 				},
 				'expected_head'   => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
@@ -204,7 +215,7 @@ HTML
 					add_action(
 						'test_torso',
 						static function () use ( $enqueue_script, $add_inline_script ) {
-							$enqueue_script( true );
+							$enqueue_script( 'foo-footer', true );
 							$add_inline_script( 'foo-footer' );
 						}
 					);
