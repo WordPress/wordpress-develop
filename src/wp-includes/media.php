@@ -2046,23 +2046,29 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 			// Unset `loading` attributes if `$filtered_loading_attr` is set to `false`.
 			unset( $optimization_attrs['loading'] );
 		} elseif (
-			( isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false ) !== $filtered_loading_attr &&
-			// fetchpriority='high' and loading='lazy' should be mutually exclusive.
-			'lazy' === $filtered_loading_attr && 'high' === $optimization_attrs['fetchpriority']
+			in_array( $filtered_loading_attr, array( 'lazy', 'eager' ), true )
 		) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: %s: fetchpriority="high". */
-					__( 'An image cannot be lazy-loaded and assigned %s at the same time.' ),
-					'<code>fetchpriority="high"</code>'
-				),
-				'6.3.0'
-			);
+			/*
+			* If the filter changed the loading attribute to "lazy" when a fetchpriority attribute
+			* with value "high" is already present, trigger a warning since those two attribute
+			* values should be mutually exclusive.
+			*/
+			if ( isset( $optimization_attrs['fetchpriority'] ) && 'high' === $optimization_attrs['fetchpriority'] &&
+				( isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false ) !== $filtered_loading_attr &&
+				'lazy' === $filtered_loading_attr
+			) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: %s: fetchpriority="high". */
+						__( 'An image cannot be lazy-loaded and assigned %s at the same time.' ),
+						'<code>fetchpriority="high"</code>'
+					),
+					'6.3.0'
+				);
+			}
 
 			// The filtered value will still be respected.
-			$optimization_attrs['loading'] = $filtered_loading_attr;
-		} elseif ( in_array( $filtered_loading_attr, array( 'lazy', 'eager' ), true ) ) {
 			$optimization_attrs['loading'] = $filtered_loading_attr;
 		}
 
