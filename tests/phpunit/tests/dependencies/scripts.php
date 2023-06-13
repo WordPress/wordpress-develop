@@ -306,7 +306,6 @@ HTML
 	 * @param string $strategy Strategy.
 	 */
 	public function test_after_inline_script_with_delayed_main_script( $strategy ) {
-		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-isa-1', 'http://example.org/ms-isa-1.js', array(), null, compact( 'strategy' ) );
 		wp_add_inline_script( 'ms-isa-1', 'console.log("after one");', 'after' );
 		$output    = get_echo( 'wp_print_scripts' );
@@ -336,7 +335,6 @@ HTML
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_after_inline_script_with_blocking_main_script() {
-		unregister_all_script_handles();
 		wp_enqueue_script( 'ms-insa-3', 'http://example.org/ms-insa-3.js', array(), null );
 		wp_add_inline_script( 'ms-insa-3', 'console.log("after one");', 'after' );
 		$output = get_echo( 'wp_print_scripts' );
@@ -369,7 +367,6 @@ HTML
 	 * @param string $strategy
 	 */
 	public function test_before_inline_scripts_with_delayed_main_script( $strategy ) {
-		unregister_all_script_handles();
 		wp_enqueue_script( 'ds-i1-1', 'http://example.org/ds-i1-1.js', array(), null, compact( 'strategy' ) );
 		wp_add_inline_script( 'ds-i1-1', 'console.log("before first");', 'before' );
 		wp_enqueue_script( 'ds-i1-2', 'http://example.org/ds-i1-2.js', array(), null, compact( 'strategy' ) );
