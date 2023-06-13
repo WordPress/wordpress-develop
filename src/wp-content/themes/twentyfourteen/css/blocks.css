@@ -146,6 +146,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 	padding: 10px 30px 11px;
 	text-transform: uppercase;
 	vertical-align: bottom;
+	text-decoration: none;
 }
 
 .wp-block-file .wp-block-file__button:hover,

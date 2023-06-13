@@ -155,6 +155,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 	line-height: 1.428571429;
 	padding: 6px 10px;
 	padding: 0.428571429rem 0.714285714rem;
+	text-decoration: none;
 }
 
 .wp-block-file .wp-block-file__button:hover,
