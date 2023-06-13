@@ -4071,7 +4071,6 @@ function wp_plupload_default_settings() {
 		$defaults['webp_upload_error'] = true;
 	}
 
-
 	// Check if AVIF images can be edited.
 	if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/avif' ) ) ) {
 		$defaults['avif_upload_error'] = true;
