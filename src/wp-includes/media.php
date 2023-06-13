@@ -5856,7 +5856,7 @@ function wp_increase_content_media_count( $amount = 1 ) {
 }
 
 /**
- * Add fetchpriority='high' to $loading_attrs if applicable.
+ * Determines whether to add `fetchpriority='high'` to loading attributes.
  *
  * @since 6.3.0
  * @access private
