@@ -89,7 +89,7 @@ function wp_get_themes( $args = array() ) {
 
 	if ( null !== $args['errors'] ) {
 		foreach ( $themes as $theme => $wp_theme ) {
-			if ( $wp_theme->errors() !== $args['errors'] ) {
+			if ( (bool) $wp_theme->errors() !== $args['errors'] ) {
 				unset( $themes[ $theme ] );
 			}
 		}
