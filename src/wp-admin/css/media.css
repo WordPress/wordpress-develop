@@ -1030,20 +1030,8 @@ border color while dragging a file over the uploader drop area */
 	content: "\f211";
 }
 
-.imgedit-rleft:before {
-	content: "\f166";
-}
-
-.imgedit-rright:before {
+.imgedit-rotate:before {
 	content: "\f167";
-}
-
-.imgedit-flipv:before {
-	content: "\f168";
-}
-
-.imgedit-fliph:before {
-	content: "\f169";
 }
 
 .imgedit-undo:before {
@@ -1076,19 +1064,7 @@ border color while dragging a file over the uploader drop area */
 	margin: 0 8px 0 0;
 }
 
-.imgedit-rleft {
-	margin: 0 3px;
-}
-
-.imgedit-rright {
-	margin: 0 8px 0 3px;
-}
-
-.imgedit-flipv {
-	margin: 0 3px;
-}
-
-.imgedit-fliph {
+.imgedit-rotate {
 	margin: 0 8px 0 3px;
 }
 
