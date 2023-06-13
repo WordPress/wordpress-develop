@@ -5695,11 +5695,10 @@ function wp_get_loading_attr_default( $context ) {
  *
  * @since 6.3.0
  *
- * @param string  $tag_name The tag name.
- * @param array[] $attr     Array of the attributes for the tag.
- * @param string  $context  Context for the element for which the loading optimization attribute is requested.
- *
- * @return array[] Loading optimization attributes.
+ * @param string $tag_name The tag name.
+ * @param array  $attr     Array of the attributes for the tag.
+ * @param string $context  Context for the element for which the loading optimization attribute is requested.
+ * @return array Loading optimization attributes.
  */
 function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	global $wp_query;
@@ -5729,11 +5728,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		) {
 			_doing_it_wrong(
 				__FUNCTION__,
-				sprintf(
-					/* translators: %s: fetchpriority="high". */
-					__( 'An image cannot be lazy-loaded and assigned %s at the same time.' ),
-					'<code>fetchpriority="high"</code>'
-				),
+				__( 'An image should not be lazy-loaded and marked as high priority at the same time.' ),
 				'6.3.0'
 			);
 		}
