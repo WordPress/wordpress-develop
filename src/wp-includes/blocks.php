@@ -74,6 +74,39 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 }
 
 /**
+ * Get url to block assets.
+ *
+ * @since 6.3.0
+ * @param string $path Path to assert.
+ * @param string $file Path to block.json file.
+ *
+ * @return string|null
+ */
+function get_block_asset_uri( $path, $file ) {
+	// Path needs to be normalized to work in Windows env.
+	static $wpinc_path_norm = '';
+	if ( ! $wpinc_path_norm ) {
+		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
+	}
+
+	// Cache $theme_path_norm to avoid calling get_theme_file_path() multiple times.
+	static $theme_path_norm = '';
+	if ( ! $theme_path_norm ) {
+		$theme_path_norm = wp_normalize_path( get_theme_file_path() );
+	}
+
+	if ( str_starts_with( $path, $wpinc_path_norm ) ) {
+		$uri = includes_url( str_replace( $wpinc_path_norm, '', $path ) );
+	} elseif ( str_starts_with( $path, $theme_path_norm ) ) {
+		$uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $path ) );
+	} else {
+		$uri = plugins_url( $path, $file );
+	}
+
+	return $uri;
+}
+
+/**
  * Finds a script handle for the selected block metadata field. It detects
  * when a path to file was provided and finds a corresponding asset file
  * with details necessary to register the script under automatically
@@ -107,7 +140,8 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		return $script_handle;
 	}
 
-	$script_asset_raw_path = dirname( $metadata['file'] ) . '/' . substr_replace( $script_path, '.asset.php', - strlen( '.js' ) );
+	$path                  = dirname( $metadata['file'] );
+	$script_asset_raw_path = $path . '/' . substr_replace( $script_path, '.asset.php', - strlen( '.js' ) );
 	$script_handle         = generate_block_asset_handle( $metadata['name'], $field_name, $index );
 	$script_asset_path     = wp_normalize_path(
 		realpath( $script_asset_raw_path )
@@ -128,24 +162,8 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		return false;
 	}
 
-	// Path needs to be normalized to work in Windows env.
-	static $wpinc_path_norm = '';
-	if ( ! $wpinc_path_norm ) {
-		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
-	}
-
-	$theme_path_norm  = wp_normalize_path( get_theme_file_path() );
-	$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $script_path ) );
-
-	$is_core_block  = isset( $metadata['file'] ) && str_starts_with( $metadata['file'], $wpinc_path_norm );
-	$is_theme_block = str_starts_with( $script_path_norm, $theme_path_norm );
-
-	$script_uri = plugins_url( $script_path, $metadata['file'] );
-	if ( $is_core_block ) {
-		$script_uri = includes_url( str_replace( $wpinc_path_norm, '', $script_path_norm ) );
-	} elseif ( $is_theme_block ) {
-		$script_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $script_path_norm ) );
-	}
+	$script_path_norm = wp_normalize_path( realpath( $path . '/' . $script_path ) );
+	$script_uri       = get_block_asset_uri( $script_path_norm, $metadata['file'] );
 
 	$script_asset        = require $script_asset_path;
 	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
@@ -224,26 +242,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 
 	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
 	$has_style_file  = '' !== $style_path_norm;
-
-	if ( $has_style_file ) {
-		$style_uri = plugins_url( $style_path, $metadata['file'] );
-
-		// Cache $theme_path_norm to avoid calling get_theme_file_path() multiple times.
-		static $theme_path_norm = '';
-		if ( ! $theme_path_norm ) {
-			$theme_path_norm = wp_normalize_path( get_theme_file_path() );
-		}
-
-		$is_theme_block = str_starts_with( $style_path_norm, $theme_path_norm );
-
-		if ( $is_theme_block ) {
-			$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
-		} elseif ( $is_core_block ) {
-			$style_uri = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
-		}
-	} else {
-		$style_uri = false;
-	}
+	$style_uri       = $has_style_file ? get_block_asset_uri( $style_path_norm, $metadata['file'] ) : false;
 
 	$style_handle = generate_block_asset_handle( $metadata['name'], $field_name, $index );
 	$version      = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
