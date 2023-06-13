@@ -293,6 +293,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @ticket 56467
 	 * @ticket 57065
+	 * @ticket 58523
 	 *
 	 * @covers ::wp_get_typography_font_size_value
 	 *
@@ -385,7 +386,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 					'size' => '1.75rem',
 				),
 				'should_use_fluid_typography' => true,
-				'expected_output'             => 'clamp(1.313rem, 1.313rem + ((1vw - 0.48rem) * 0.84), 1.75rem)',
+				'expected_output'             => 'clamp(1.119rem, 1.119rem + ((1vw - 0.2rem) * 0.789), 1.75rem)',
 			),
 
 			'returns clamp value with em min and max units' => array(
@@ -393,15 +394,15 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 					'size' => '1.75em',
 				),
 				'should_use_fluid_typography' => true,
-				'expected_output'             => 'clamp(1.313em, 1.313rem + ((1vw - 0.48em) * 0.84), 1.75em)',
+				'expected_output'             => 'clamp(1.119em, 1.119rem + ((1vw - 0.2em) * 0.789), 1.75em)',
 			),
 
 			'returns clamp value for floats'             => array(
 				'font_size'                   => array(
-					'size' => '100.175px',
+					'size' => '70.175px',
 				),
 				'should_use_fluid_typography' => true,
-				'expected_output'             => 'clamp(75.131px, 4.696rem + ((1vw - 7.68px) * 3.01), 100.175px)',
+				'expected_output'             => 'clamp(37.897px, 2.369rem + ((1vw - 3.2px) * 2.522), 70.175px)',
 			),
 
 			'coerces integer to `px` and returns clamp value' => array(
@@ -409,15 +410,15 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 					'size' => 33,
 				),
 				'should_use_fluid_typography' => true,
-				'expected_output'             => 'clamp(24.75px, 1.547rem + ((1vw - 7.68px) * 0.992), 33px)',
+				'expected_output'             => 'clamp(20.515px, 1.282rem + ((1vw - 3.2px) * 0.975), 33px)',
 			),
 
 			'coerces float to `px` and returns clamp value' => array(
 				'font_size_preset'            => array(
-					'size' => 100.23,
+					'size' => 70.175,
 				),
 				'should_use_fluid_typography' => true,
-				'expected_output'             => 'clamp(75.173px, 4.698rem + ((1vw - 7.68px) * 3.012), 100.23px)',
+				'expected_output'             => 'clamp(37.897px, 2.369rem + ((1vw - 3.2px) * 2.522), 70.175px)',
 			),
 
 			'returns clamp value when `fluid` is empty array' => array(
@@ -426,7 +427,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 					'fluid' => array(),
 				),
 				'should_use_fluid_typography' => true,
-				'expected_output'             => 'clamp(21px, 1.313rem + ((1vw - 7.68px) * 0.841), 28px)',
+				'expected_output'             => 'clamp(17.905px, 1.119rem + ((1vw - 3.2px) * 0.789), 28px)',
 			),
 
 			'returns clamp value when `fluid` is `null`' => array(
@@ -435,7 +436,31 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 					'fluid' => null,
 				),
 				'should_use_fluid_typography' => true,
-				'expected_output'             => 'clamp(21px, 1.313rem + ((1vw - 7.68px) * 0.841), 28px)',
+				'expected_output'             => 'clamp(17.905px, 1.119rem + ((1vw - 3.2px) * 0.789), 28px)',
+			),
+
+			'returns clamp value where min and max fluid values defined' => array(
+				'font_size'                   => array(
+					'size'  => '80px',
+					'fluid' => array(
+						'min' => '70px',
+						'max' => '125px',
+					),
+				),
+				'should_use_fluid_typography' => true,
+				'expected_output'             => 'clamp(70px, 4.375rem + ((1vw - 3.2px) * 4.297), 125px)',
+			),
+
+			'returns clamp value where max is equal to size' => array(
+				'font_size'                   => array(
+					'size'  => '7.8125rem',
+					'fluid' => array(
+						'min' => '4.375rem',
+						'max' => '7.8125rem',
+					),
+				),
+				'should_use_fluid_typography' => true,
+				'expected_output'             => 'clamp(4.375rem, 4.375rem + ((1vw - 0.2rem) * 4.298), 7.8125rem)',
 			),
 
 			'returns clamp value if min font size is greater than max' => array(
@@ -447,7 +472,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 					),
 				),
 				'should_use_fluid_typography' => true,
-				'expected_output'             => 'clamp(5rem, 5rem + ((1vw - 0.48rem) * -5.769), 32px)',
+				'expected_output'             => 'clamp(5rem, 5rem + ((1vw - 0.2rem) * -3.75), 32px)',
 			),
 
 			'returns value with invalid min/max fluid units' => array(
@@ -487,18 +512,18 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 					),
 				),
 				'should_use_fluid_typography' => true,
-				'expected_output'             => 'clamp(20px, 1.25rem + ((1vw - 7.68px) * 93.75), 50rem)',
+				'expected_output'             => 'clamp(20px, 1.25rem + ((1vw - 3.2px) * 60.938), 50rem)',
 			),
 
 			'returns clamp value where no fluid max size is set' => array(
 				'font_size_preset'            => array(
-					'size'  => '28px',
+					'size'  => '50px',
 					'fluid' => array(
 						'min' => '2.6rem',
 					),
 				),
 				'should_use_fluid_typography' => true,
-				'expected_output'             => 'clamp(2.6rem, 2.6rem + ((1vw - 0.48rem) * -1.635), 28px)',
+				'expected_output'             => 'clamp(2.6rem, 2.6rem + ((1vw - 0.2rem) * 0.656), 50px)',
 			),
 
 			'returns clamp value where no fluid min size is set' => array(
@@ -509,7 +534,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 					),
 				),
 				'should_use_fluid_typography' => true,
-				'expected_output'             => 'clamp(21px, 1.313rem + ((1vw - 7.68px) * 7.091), 80px)',
+				'expected_output'             => 'clamp(17.905px, 1.119rem + ((1vw - 3.2px) * 4.851), 80px)',
 			),
 
 			'should not apply lower bound test when fluid values are set' => array(
@@ -521,7 +546,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 					),
 				),
 				'should_use_fluid_typography' => true,
-				'expected_output'             => 'clamp(0.5rem, 0.5rem + ((1vw - 0.48rem) * 8.654), 5rem)',
+				'expected_output'             => 'clamp(0.5rem, 0.5rem + ((1vw - 0.2rem) * 5.625), 5rem)',
 			),
 
 			'should not apply lower bound test when only fluid min is set' => array(
@@ -532,7 +557,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 					),
 				),
 				'should_use_fluid_typography' => true,
-				'expected_output'             => 'clamp(12px, 0.75rem + ((1vw - 7.68px) * 0.962), 20px)',
+				'expected_output'             => 'clamp(12px, 0.75rem + ((1vw - 3.2px) * 0.625), 20px)',
 			),
 
 			'should not apply lower bound test when only fluid max is set' => array(
@@ -543,7 +568,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 					),
 				),
 				'should_use_fluid_typography' => true,
-				'expected_output'             => 'clamp(0.875rem, 0.875rem + ((1vw - 0.48rem) * 36.779), 20rem)',
+				'expected_output'             => 'clamp(0.875rem, 0.875rem + ((1vw - 0.2rem) * 23.906), 20rem)',
 			),
 
 			'returns clamp value when min and max font sizes are equal' => array(
@@ -555,7 +580,34 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 					),
 				),
 				'should_use_fluid_typography' => true,
-				'expected_output'             => 'clamp(30px, 1.875rem + ((1vw - 7.68px) * 1), 30px)',
+				'expected_output'             => 'clamp(30px, 1.875rem + ((1vw - 3.2px) * 1), 30px)',
+			),
+
+			'should apply scaled min font size for em values when custom min font size is not set' => array(
+				'font_size'                   => array(
+					'size' => '12rem',
+				),
+				'should_use_fluid_typography' => true,
+				'expected_output'             => 'clamp(5.174rem, 5.174rem + ((1vw - 0.2rem) * 8.533), 12rem)',
+			),
+
+			'should apply scaled min font size for px values when custom min font size is not set' => array(
+				'font_size'                   => array(
+					'size' => '200px',
+				),
+				'should_use_fluid_typography' => true,
+				'expected_output'             => 'clamp(85.342px, 5.334rem + ((1vw - 3.2px) * 8.958), 200px)',
+			),
+
+			'should not apply scaled min font size for minimum font size when custom min font size is set' => array(
+				'font_size'                   => array(
+					'size'  => '200px',
+					'fluid' => array(
+						'min' => '100px',
+					),
+				),
+				'should_use_fluid_typography' => true,
+				'expected_output'             => 'clamp(100px, 6.25rem + ((1vw - 3.2px) * 7.813), 200px)',
 			),
 		);
 	}
@@ -569,6 +621,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * @ticket 57065
 	 * @ticket 57529
 	 * @ticket 58522
+	 * @ticket 58523
 	 *
 	 * @covers ::wp_register_typography_support
 	 *
@@ -629,7 +682,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 			'returns clamp value using default config' => array(
 				'font_size_value' => '15px',
 				'theme_slug'      => 'block-theme-child-with-fluid-typography',
-				'expected_output' => 'font-size:clamp(14px, 0.875rem + ((1vw - 7.68px) * 0.12), 15px);',
+				'expected_output' => 'font-size:clamp(14px, 0.875rem + ((1vw - 3.2px) * 0.078), 15px);',
 			),
 			'returns value when font size <= default min font size bound' => array(
 				'font_size_value' => '13px',
@@ -656,6 +709,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @ticket 56467
 	 * @ticket 57065
+	 * @ticket 58523
 	 *
 	 * @dataProvider data_generate_replace_inline_font_styles_with_fluid_values_fixtures
 	 *
@@ -703,7 +757,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 				'block_content'               => '<h2 class="has-vivid-red-background-color has-background has-link-color" style="margin-top:var(--wp--preset--spacing--60);font-size:4rem;font-style:normal;font-weight:600;letter-spacing:29px;text-decoration:underline;text-transform:capitalize">This is a heading</h2>',
 				'font_size_value'             => '4rem',
 				'should_use_fluid_typography' => true,
-				'expected_output'             => '<h2 class="has-vivid-red-background-color has-background has-link-color" style="margin-top:var(--wp--preset--spacing--60);font-size:clamp(3rem, 3rem + ((1vw - 0.48rem) * 1.923), 4rem);font-style:normal;font-weight:600;letter-spacing:29px;text-decoration:underline;text-transform:capitalize">This is a heading</h2>',
+				'expected_output'             => '<h2 class="has-vivid-red-background-color has-background has-link-color" style="margin-top:var(--wp--preset--spacing--60);font-size:clamp(2.2rem, 2.2rem + ((1vw - 0.2rem) * 2.25), 4rem);font-style:normal;font-weight:600;letter-spacing:29px;text-decoration:underline;text-transform:capitalize">This is a heading</h2>',
 			),
 			'return_content_if_no_inline_font_size_found'  => array(
 				'block_content'               => '<p class="has-medium-font-size" style="font-style:normal;font-weight:600;letter-spacing:29px;">A paragraph inside a group</p>',
@@ -721,13 +775,13 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 				'block_content'               => '<p class="has-medium-font-size" style="    font-size:   20px   ;    ">A paragraph inside a group</p>',
 				'font_size_value'             => '20px',
 				'should_use_fluid_typography' => true,
-				'expected_output'             => '<p class="has-medium-font-size" style="    font-size:clamp(15px, 0.938rem + ((1vw - 7.68px) * 0.601), 20px);    ">A paragraph inside a group</p>',
+				'expected_output'             => '<p class="has-medium-font-size" style="    font-size:clamp(14px, 0.875rem + ((1vw - 3.2px) * 0.469), 20px);    ">A paragraph inside a group</p>',
 			),
 			'return_content_with_first_match_replace_only' => array(
 				'block_content'               => "<div class=\"wp-block-group\" style=\"font-size:1.5em\"> \n \n<p style=\"font-size:1.5em\">A paragraph inside a group</p></div>",
 				'font_size_value'             => '1.5em',
 				'should_use_fluid_typography' => true,
-				'expected_output'             => "<div class=\"wp-block-group\" style=\"font-size:clamp(1.125em, 1.125rem + ((1vw - 0.48em) * 0.721), 1.5em);\"> \n \n<p style=\"font-size:1.5em\">A paragraph inside a group</p></div>",
+				'expected_output'             => "<div class=\"wp-block-group\" style=\"font-size:clamp(0.984em, 0.984rem + ((1vw - 0.2em) * 0.645), 1.5em);\"> \n \n<p style=\"font-size:1.5em\">A paragraph inside a group</p></div>",
 			),
 		);
 	}
