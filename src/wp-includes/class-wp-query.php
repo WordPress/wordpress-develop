@@ -2005,10 +2005,11 @@ class WP_Query {
 			}
 			$q['nopaging'] = false;
 		}
+
 		$q['posts_per_page'] = (int) $q['posts_per_page'];
 		if ( $q['posts_per_page'] < -1 ) {
 			$q['posts_per_page'] = abs( $q['posts_per_page'] );
-		} elseif ( 0 == $q['posts_per_page'] ) {
+		} elseif ( 0 === $q['posts_per_page'] ) {
 			$q['posts_per_page'] = 1;
 		}
 
@@ -3274,7 +3275,7 @@ class WP_Query {
 		}
 
 		if ( null === $this->posts ) {
-			$split_the_query = ( $old_request == $this->request && "{$wpdb->posts}.*" === $fields && ! empty( $limits ) && $q['posts_per_page'] < 500 );
+			$split_the_query = ( $old_request === $this->request && "{$wpdb->posts}.*" === $fields && ! empty( $limits ) && $q['posts_per_page'] < 500 );
 
 			/**
 			 * Filters whether to split the query.
