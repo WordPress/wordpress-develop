@@ -38,7 +38,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 		remove_action( 'wp_default_scripts', 'wp_default_packages' );
 		$GLOBALS['wp_scripts']                  = new WP_Scripts();
 		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
-		$GLOBALS['wp_styles']                  = new WP_Styles();
+		$GLOBALS['wp_styles']                   = new WP_Styles();
 
 		$this->wp_scripts_print_translations_output  = <<<JS
 <script type='text/javascript' id='__HANDLE__-js-translations'>
@@ -135,7 +135,7 @@ JS;
 		};
 
 		return array(
-			'no_delayed_inline_scripts'            => array(
+			'no_delayed_inline_scripts'                  => array(
 				'set_up'          => static function () use ( $enqueue_script ) {
 					$enqueue_script( 'foo-head', false );
 					$enqueue_script( 'foo-footer', true );
@@ -150,7 +150,7 @@ HTML
 HTML
 				,
 			),
-			'delayed_inline_script_in_head_only'   => array(
+			'delayed_inline_script_in_head_only'         => array(
 				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
 					$enqueue_script( 'foo-head', false );
 					$add_inline_script( 'foo-head' );
@@ -165,7 +165,7 @@ HTML
 				'expected_torso'  => '',
 				'expected_footer' => '',
 			),
-			'delayed_inline_script_in_footer_only' => array(
+			'delayed_inline_script_in_footer_only'       => array(
 				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
 					$enqueue_script( 'foo-footer', true );
 					$add_inline_script( 'foo-footer' );
@@ -230,7 +230,7 @@ HTML
 HTML
 			,
 			),
-			'delayed_inline_printed_in_torso'      => array(
+			'delayed_inline_printed_in_torso'            => array(
 				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
 					add_action(
 						'test_torso',
@@ -249,6 +249,24 @@ HTML
 </script>
 HTML
 				,
+				'expected_footer' => '',
+			),
+			'delayed_script_registered_but_not_enqueued' => array(
+				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
+					wp_register_script( 'not-enqueued', 'https://example.com/not-enqueued.js', array(), null, array( 'strategy' => 'defer' ) );
+					$add_inline_script( 'not-enqueued', 'after' );
+
+					wp_enqueue_script( 'enqueued', 'https://example.com/enqueued.js', array(), null );
+					$add_inline_script( 'enqueued', 'after' );
+				},
+				'expected_head'   => <<<HTML
+<script id="enqueued-js" src="https://example.com/enqueued.js" type="text/javascript"></script>
+<script id="enqueued-js-after" type="text/javascript">
+/*enqueued-after*/
+</script>
+HTML
+				,
+				'expected_torso'  => '',
 				'expected_footer' => '',
 			),
 		);
