@@ -638,7 +638,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 			'returns clamp value using custom fluid config' => array(
 				'font_size_value' => '17px',
 				'theme_slug'      => 'block-theme-child-with-fluid-typography-config',
-				'expected_output' => 'font-size:clamp(16px, 1rem + ((1vw - 7.68px) * 0.12), 17px);',
+				'expected_output' => 'font-size:clamp(16px, 1rem + ((1vw - 7.68px) * 0.431), 17px);',
 			),
 			'returns value when font size <= custom min font size bound' => array(
 				'font_size_value' => '15px',
