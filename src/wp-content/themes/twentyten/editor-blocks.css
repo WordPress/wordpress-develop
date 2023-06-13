@@ -248,9 +248,27 @@ p.has-drop-cap:not(:focus)::first-letter {
 	text-decoration: underline;
 }
 
+.wp-block-file .wp-block-file__button {
+	background: #32373c;
+	border-radius: 2em;
+	color: #fff;
+	font-size: 13px;
+	padding: 0.5em 1em;
+	text-decoration: none;
+}
+
 /*--------------------------------------------------------------
 4.0 Blocks - Formatting
 --------------------------------------------------------------*/
+
+/* Button */
+
+.wp-block-button .wp-block-button__link {
+	color: #fff;
+	background-color: #32373c;
+	font-size: 1.125em;
+	padding: calc(0.667em + 2px) calc(1.333em + 2px);
+}
 
 /* Code */
 
