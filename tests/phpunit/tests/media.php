@@ -2284,15 +2284,13 @@ EOF;
 	 * the 'src' attribute manually. To avoid incorrect images
 	 * being displayed, ensure we don't add attributes in this case.
 	 *
+	 * @ticket 58235
 	 * @ticket 34898
 	 * @ticket 33641
-	 *
-	 * @expectedDeprecated wp_img_tag_add_loading_attr
-	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_srcset_sizes_wrong() {
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$img = wp_img_tag_add_loading_attr( $img, 'test' );
+		$img = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
 		$img = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 
 		// Replace the src URL.
@@ -2302,15 +2300,13 @@ EOF;
 	}
 
 	/**
+	 * @ticket 58235
 	 * @ticket 33641
-	 *
-	 * @expectedDeprecated wp_img_tag_add_loading_attr
-	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_srcset_sizes_with_preexisting_srcset() {
 		// Generate HTML and add a dummy srcset attribute.
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$img = wp_img_tag_add_loading_attr( $img, 'test' );
+		$img = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
 		$img = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 		$img = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . 'srcset="image2x.jpg 2x" />', $img );
 
@@ -3924,8 +3920,6 @@ EOF;
 	 * @ticket 56930
 	 * @ticket 58235
 	 *
-	 * @since 6.3.0 Apply fetchpriority="high" on the LCP image.
-	 *
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_get_loading_attr_default
 	 *
@@ -4214,9 +4208,6 @@ EOF;
 	 *
 	 * @ticket 56588
 	 * @ticket 58235
-	 * @ticket 58235
-	 *
-	 * @since 6.3.0 Apply fetchpriority="high" on the LCP image.
 	 *
 	 * @covers ::wp_trim_excerpt
 	 */
