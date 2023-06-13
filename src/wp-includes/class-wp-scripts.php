@@ -309,10 +309,7 @@ class WP_Scripts extends WP_Dependencies {
 		$cond_after        = '';
 		$conditional       = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
 
-		if (
-			empty( $intended_strategy )
-			|| ( 'async' !== $intended_strategy && 'defer' !== $intended_strategy )
-		) {
+		if ( ! $this->is_delayed_strategy( (string) $intended_strategy ) ) {
 			$intended_strategy = '';
 		}
 
