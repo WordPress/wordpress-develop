@@ -5435,6 +5435,23 @@ body.page .main-navigation {
   margin-bottom: 0;
 }
 
+a.wp-block-button__link,
+a.wp-block-file__button {
+  background-color: #32373c;
+  outline-offset: -4px;
+}
+
+a.wp-block-button__link, a.wp-block-button__link:hover, a.wp-block-button__link:focus,
+a.wp-block-file__button,
+a.wp-block-file__button:hover,
+a.wp-block-file__button:focus {
+  color: white;
+}
+
+a.wp-block-button__link {
+  font-size: 1.125em;
+}
+
 /*
  * Unset nested content selector styles
  * - Prevents layout styles from cascading too deeply
