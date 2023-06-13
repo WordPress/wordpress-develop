@@ -766,7 +766,7 @@ function _wp_preview_terms_filter( $terms, $post_id, $taxonomy ) {
 		return $terms;
 	}
 
-	if ( empty( $_REQUEST['post_format'] ) || $post->ID != $post_id
+	if ( empty( $_REQUEST['post_format'] ) || $post->ID !== $post_id
 		|| 'post_format' !== $taxonomy || 'revision' === $post->post_type
 	) {
 		return $terms;
@@ -804,10 +804,10 @@ function _wp_preview_post_thumbnail_filter( $value, $post_id, $meta_key ) {
 
 	if ( empty( $_REQUEST['_thumbnail_id'] ) ||
 		empty( $_REQUEST['preview_id'] ) ||
-		$post->ID != $post_id ||
+		$post->ID !== $post_id ||
 		'_thumbnail_id' !== $meta_key ||
 		'revision' === $post->post_type ||
-		$post_id != $_REQUEST['preview_id'] ) {
+		$post_id !== (int) $_REQUEST['preview_id'] ) {
 
 		return $value;
 	}
