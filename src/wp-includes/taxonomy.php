@@ -2753,9 +2753,7 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 
 	if ( empty( $terms ) ) {
 		$terms = array();
-	}
-
-	if ( ! is_array( $terms ) ) {
+	} elseif ( ! is_array( $terms ) ) {
 		$terms = array( $terms );
 	}
 
