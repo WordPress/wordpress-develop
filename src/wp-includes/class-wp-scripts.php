@@ -588,7 +588,7 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @since 6.3.0
 	 */
-	private function print_delayed_inline_script_loader() {
+	public function print_delayed_inline_script_loader() {
 		wp_print_inline_script_tag(
 			file_get_contents( ABSPATH . WPINC . '/js/wp-delayed-inline-script-loader' . wp_scripts_get_suffix() . '.js' ),
 			array( 'id' => 'wp-delayed-inline-script-loader' )
