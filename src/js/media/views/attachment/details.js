@@ -26,11 +26,17 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 		'click .untrash-attachment':        'untrashAttachment',
 		'click .edit-attachment':           'editAttachment',
 		'keydown':                          'toggleSelectionHandler',
-		'keypress [data-setting="title"]':  'updateTitle',
+		'keypress [data-setting="title"]':  'updateTitle'
 	},
 
+	/**
+	 * Prevent enter keypress event in title textarea field
+	 * 
+	 * @param {KeyboardEvent} event A keypress event 
+	 * @returns {void}
+	 */
 	updateTitle: function( event ) {
-		if ( event.keyCode === 13 ) {
+		if ( event.key === '13' ) {
 			return false;
 		}
 	},
