@@ -2924,7 +2924,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			$extra_attr .= "decoding='{$args['decoding']}'";
 		}
 
-		// Add support for fetchpriority.
+		// Add support for `fetchpriority`.
 		if ( in_array( $args['fetchpriority'], array( 'high', 'low', 'auto' ), true )
 			&& ! preg_match( '/\bfetchpriority\s*=/', $extra_attr )
 		) {
