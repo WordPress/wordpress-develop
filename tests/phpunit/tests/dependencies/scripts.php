@@ -141,12 +141,12 @@ JS;
 					$enqueue_script( 'foo-footer', true );
 				},
 				'expected_head'   => <<<HTML
-<script id="foo-head-js" src="https://example.com/foo-head.js" type="text/javascript" defer></script>
+<script id="foo-head-js" src="https://example.com/foo-head.js" type="text/javascript" defer data-wp-strategy="defer"></script>
 HTML
 				,
 				'expected_torso'  => '',
 				'expected_footer' => <<<HTML
-<script id="foo-footer-js" src="https://example.com/foo-footer.js" type="text/javascript" defer></script>
+<script id="foo-footer-js" src="https://example.com/foo-footer.js" type="text/javascript" defer data-wp-strategy="defer"></script>
 HTML
 				,
 			),
@@ -156,7 +156,7 @@ HTML
 					$add_inline_script( 'foo-head' );
 				},
 				'expected_head'   => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
-<script id="foo-head-js" src="https://example.com/foo-head.js" type="text/javascript" defer></script>
+<script id="foo-head-js" src="https://example.com/foo-head.js" type="text/javascript" defer data-wp-strategy="defer"></script>
 <script id="foo-head-js-after" type="text/plain">
 /*foo-head-after*/
 </script>
@@ -179,7 +179,7 @@ HTML
 				'expected_head'   => $this->get_delayed_inline_script_loader_script_tag(),
 				'expected_torso'  => '',
 				'expected_footer' => <<<HTML
-<script id="foo-footer-js" src="https://example.com/foo-footer.js" type="text/javascript" defer></script>
+<script id="foo-footer-js" src="https://example.com/foo-footer.js" type="text/javascript" defer data-wp-strategy="defer"></script>
 <script id="foo-footer-js-after" type="text/plain">
 /*foo-footer-after*/
 </script>
@@ -195,7 +195,7 @@ HTML
 					}
 				},
 				'expected_head'   => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
-<script id="foo-head-js" src="https://example.com/foo-head.js" type="text/javascript" defer></script>
+<script id="foo-head-js" src="https://example.com/foo-head.js" type="text/javascript" defer data-wp-strategy="defer"></script>
 <script id="foo-head-js-after" type="text/plain">
 /*foo-head-after*/
 </script>
@@ -203,7 +203,7 @@ HTML
 				,
 				'expected_torso'  => '',
 				'expected_footer' => <<<HTML
-<script id="foo-footer-js" src="https://example.com/foo-footer.js" type="text/javascript" defer></script>
+<script id="foo-footer-js" src="https://example.com/foo-footer.js" type="text/javascript" defer data-wp-strategy="defer"></script>
 <script id="foo-footer-js-after" type="text/plain">
 /*foo-footer-after*/
 </script>
@@ -223,7 +223,7 @@ HTML
 				'expected_head'   => '',
 				'expected_torso'  => '',
 				'expected_footer' => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
-<script id="foo-footer-js" src="https://example.com/foo-footer.js" type="text/javascript" defer></script>
+<script id="foo-footer-js" src="https://example.com/foo-footer.js" type="text/javascript" defer data-wp-strategy="defer"></script>
 <script id="foo-footer-js-after" type="text/plain">
 /*foo-footer-after*/
 </script>
@@ -243,7 +243,7 @@ HTML
 				},
 				'expected_head'   => '',
 				'expected_torso'  => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
-<script id="foo-torso-js" src="https://example.com/foo-torso.js" type="text/javascript" defer></script>
+<script id="foo-torso-js" src="https://example.com/foo-torso.js" type="text/javascript" defer data-wp-strategy="defer"></script>
 <script id="foo-torso-js-after" type="text/plain">
 /*foo-torso-after*/
 </script>
