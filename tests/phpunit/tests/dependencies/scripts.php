@@ -2241,7 +2241,7 @@ HTML
 		ob_start();
 		$output = $wp_scripts->print_inline_script( $handle, $position, true );
 		$this->assertEqualMarkup( $expected_tag, ob_get_clean() );
-		$this->assertEqualMarkup( $expected_tag, $output );
+		$this->assertEquals( $expected_data, $output );
 	}
 
 	/**

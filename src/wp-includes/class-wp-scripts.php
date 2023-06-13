@@ -505,20 +505,20 @@ class WP_Scripts extends WP_Dependencies {
 	 *                         Must be lowercase.
 	 * @param string $position Optional. Whether to add the inline script
 	 *                         before the handle or after. Default 'after'.
-	 * @param bool   $display  Optional. Whether to print the script
-	 *                         instead of just returning it. Default true.
-	 * @return string|false Script on success, false otherwise.
+	 * @param bool   $display  Optional. Whether to print the script tag
+	 *                         instead of just returning the script data. Default true.
+	 * @return string|false Script data on success, false otherwise.
 	 */
 	public function print_inline_script( $handle, $position = 'after', $display = true ) {
 		_deprecated_function( __METHOD__, '6.3.0', 'WP_Scripts::get_inline_script_data() or WP_Scripts::get_inline_script_tag()' );
-		if ( $display ) {
-			$output = $this->get_inline_script_tag( $handle, $position );
-			echo $output;
-		} else {
-			$output = $this->get_inline_script_data( $handle, $position );
-		}
+
+		$output = $this->get_inline_script_data( $handle, $position );
 		if ( empty( $output ) ) {
 			return false;
+		}
+
+		if ( $display ) {
+			echo $this->get_inline_script_tag( $handle, $position );
 		}
 		return $output;
 	}
@@ -588,7 +588,7 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @since 6.3.0
 	 */
-	public function print_delayed_inline_script_loader() {
+	private function print_delayed_inline_script_loader() {
 		wp_print_inline_script_tag(
 			file_get_contents( ABSPATH . WPINC . '/js/wp-delayed-inline-script-loader' . wp_scripts_get_suffix() . '.js' ),
 			array( 'id' => 'wp-delayed-inline-script-loader' )
