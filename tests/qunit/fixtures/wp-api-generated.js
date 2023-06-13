@@ -9618,6 +9618,26 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/global-styles/(?P<parent>[\\d]+)/revisions": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The ID for the parent of the revision.",
+                            "type": "integer",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/global-styles/themes/(?P<stylesheet>[\\/\\s%\\w\\.\\(\\)\\[\\]\\@_\\-]+)/variations": {
             "namespace": "wp/v2",
             "methods": [
