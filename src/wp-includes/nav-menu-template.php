@@ -559,7 +559,7 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 					&& in_array( (int) $parent_item->object_id, $possible_taxonomy_ancestors[ $parent_item->object ], true )
 					&& (
 						! isset( $queried_object->term_id ) ||
-						(int) $parent_item->object_id != $queried_object->term_id
+						(int) $parent_item->object_id !== $queried_object->term_id
 					)
 				)
 			)
