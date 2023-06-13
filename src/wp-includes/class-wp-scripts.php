@@ -302,11 +302,16 @@ class WP_Scripts extends WP_Dependencies {
 			$ver = $ver ? $ver . '&amp;' . $this->args[ $handle ] : $this->args[ $handle ];
 		}
 
-		$src         = $obj->src;
-		$strategy    = $this->get_eligible_loading_strategy( $handle );
-		$cond_before = '';
-		$cond_after  = '';
-		$conditional = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
+		$src               = $obj->src;
+		$strategy          = $this->get_eligible_loading_strategy( $handle );
+		$intended_strategy = $this->get_data( $handle, 'strategy' );
+		$cond_before       = '';
+		$cond_after        = '';
+		$conditional       = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
+
+		if ( ! $this->is_delayed_strategy( (string) $intended_strategy ) ) {
+			$intended_strategy = '';
+		}
 
 		if ( $conditional ) {
 			$cond_before = "<!--[if {$conditional}]>\n";
@@ -406,11 +411,12 @@ class WP_Scripts extends WP_Dependencies {
 
 		$tag  = $translations . $cond_before . $before_script;
 		$tag .= sprintf(
-			"<script%s src='%s' id='%s-js'%s></script>\n",
+			"<script%s src='%s' id='%s-js'%s%s></script>\n",
 			$this->type_attr,
 			esc_url( $src ),
 			esc_attr( $handle ),
-			$strategy ? " {$strategy}" : ''
+			$strategy ? " {$strategy}" : '',
+			$intended_strategy  ? " data-wp-strategy='{$intended_strategy}'" : ''
 		);
 		$tag .= $after_script . $cond_after;
 
@@ -855,7 +861,7 @@ JS;
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(
-					/* translators: 1: $strategy, 2: $handle */
+						/* translators: 1: $strategy, 2: $handle */
 						__( 'Invalid strategy `%1$s` defined for `%2$s` during script registration.' ),
 						$value,
 						$handle
@@ -975,6 +981,11 @@ JS;
 		foreach ( $dependents as $dependent ) {
 			// If the dependent script has no src, ignore it for consideration.
 			if ( empty( $this->registered[ $dependent ]->src ) ) {
+				continue;
+			}
+
+			// If the dependency is not enqueued, ignore it for consideration.
+			if ( ! $this->query( $dependent, 'enqueued' ) ) {
 				continue;
 			}
 
