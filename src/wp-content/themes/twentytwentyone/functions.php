@@ -414,7 +414,7 @@ function twenty_twenty_one_scripts() {
 	// Print styles.
 	wp_enqueue_style( 'twenty-twenty-one-print-style', get_template_directory_uri() . '/assets/css/print.css', array(), wp_get_theme()->get( 'Version' ), 'print' );
 
-	// Remove default styles for button block.
+	// Remove default styles for Button and File blocks.
 	wp_dequeue_style( 'classic-theme-styles' );
 
 	// Threaded comment reply styles.
@@ -479,6 +479,9 @@ add_action( 'wp_enqueue_scripts', 'twenty_twenty_one_scripts' );
  * @return void
  */
 function twentytwentyone_block_editor_script() {
+
+	// Remove default styles for Button and File blocks.
+	wp_dequeue_style( 'classic-theme-styles' );
 
 	wp_enqueue_script( 'twentytwentyone-editor', get_theme_file_uri( '/assets/js/editor.js' ), array( 'wp-blocks', 'wp-dom' ), wp_get_theme()->get( 'Version' ), true );
 }

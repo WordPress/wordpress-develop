@@ -261,7 +261,7 @@ add_action( 'after_setup_theme', 'twentynineteen_content_width', 0 );
  * Enqueue scripts and styles.
  */
 function twentynineteen_scripts() {
-	// Removes default styles for button block.
+	// Removes default styles for Button and File blocks.
 	wp_dequeue_style( 'classic-theme-styles' );
 
 	wp_enqueue_style( 'twentynineteen-style', get_stylesheet_uri(), array(), wp_get_theme()->get( 'Version' ) );
@@ -305,6 +305,9 @@ function twentynineteen_skip_link_focus_fix() {
  * Enqueue supplemental block editor styles.
  */
 function twentynineteen_editor_customizer_styles() {
+
+	// Removes default styles for Button and File blocks.
+	wp_dequeue_style( 'classic-theme-styles' );
 
 	wp_enqueue_style( 'twentynineteen-editor-customizer-styles', get_theme_file_uri( '/style-editor-customizer.css' ), false, '1.1', 'all' );
 

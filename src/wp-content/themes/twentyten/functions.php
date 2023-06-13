@@ -723,7 +723,7 @@ add_filter( 'widget_tag_cloud_args', 'twentyten_widget_tag_cloud_args' );
  * @since Twenty Ten 2.6
  */
 function twentyten_scripts_styles() {
-	// Removes default styles for button block.
+	// Removes default styles for Button and File blocks.
 	wp_dequeue_style( 'classic-theme-styles' );
 
 	// Theme block stylesheet.
@@ -737,7 +737,9 @@ add_action( 'wp_enqueue_scripts', 'twentyten_scripts_styles' );
  * @since Twenty Ten 2.6
  */
 function twentyten_block_editor_styles() {
-	// Block styles.
+	// Removes default styles for Button and File blocks.
+	wp_dequeue_style( 'classic-theme-styles' );
+	// Adds block styles.
 	wp_enqueue_style( 'twentyten-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20221011' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyten_block_editor_styles' );

@@ -183,7 +183,7 @@ function twentytwelve_scripts_styles() {
 	// Adds JavaScript for handling the navigation menu hide-and-show behavior.
 	wp_enqueue_script( 'twentytwelve-navigation', get_template_directory_uri() . '/js/navigation.js', array( 'jquery' ), '20141205', true );
 
-	// Removes default styles for button block.
+	// Removes default styles for Button and File blocks.
 	wp_dequeue_style( 'classic-theme-styles' );
 
 	// Adds custom font, used in the main stylesheet.
@@ -211,7 +211,9 @@ add_action( 'wp_enqueue_scripts', 'twentytwelve_scripts_styles' );
  * @since Twenty Twelve 2.6
  */
 function twentytwelve_block_editor_styles() {
-	// Block styles.
+	// Remove default styles for Button and File blocks.
+	wp_dequeue_style( 'classic-theme-styles' );
+	// Add block styles.
 	wp_enqueue_style( 'twentytwelve-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20230213' );
 	// Add custom fonts.
 	$font_version = ( 0 === strpos( (string) twentytwelve_get_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;

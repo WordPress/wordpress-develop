@@ -296,7 +296,7 @@ endif; // twentyeleven_setup()
  * @since Twenty Eleven 2.9
  */
 function twentyeleven_scripts_styles() {
-	// Remove default styles for button block.
+	// Remove default styles for Button and File blocks.
 	wp_dequeue_style( 'classic-theme-styles' );
 
 	// Theme block stylesheet.
@@ -310,7 +310,9 @@ add_action( 'wp_enqueue_scripts', 'twentyeleven_scripts_styles' );
  * @since Twenty Eleven 2.9
  */
 function twentyeleven_block_editor_styles() {
-	// Block styles.
+	// Remove default styles for Button and File blocks.
+	wp_dequeue_style( 'classic-theme-styles' );
+	// Add block styles.
 	wp_enqueue_style( 'twentyeleven-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20220927' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyeleven_block_editor_styles' );

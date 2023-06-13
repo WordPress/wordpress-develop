@@ -316,7 +316,7 @@ function twentythirteen_scripts_styles() {
 	// Loads JavaScript file with functionality specific to Twenty Thirteen.
 	wp_enqueue_script( 'twentythirteen-script', get_template_directory_uri() . '/js/functions.js', array( 'jquery' ), '20230526', true );
 
-	// Remove default styles for button block.
+	// Remove default styles for Button and File blocks.
 	wp_dequeue_style( 'classic-theme-styles' );
 
 	// Add Source Sans Pro and Bitter fonts, used in the main stylesheet.
@@ -370,7 +370,9 @@ function twentythirteen_resource_hints( $urls, $relation_type ) {
  * @since Twenty Thirteen 2.5
  */
 function twentythirteen_block_editor_styles() {
-	// Block styles.
+	// Remove default styles for Button and File blocks.
+	wp_dequeue_style( 'classic-theme-styles' );
+	// Add block styles.
 	wp_enqueue_style( 'twentythirteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20210621' );
 	// Add custom fonts.
 	$font_version = ( 0 === strpos( (string) twentythirteen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;

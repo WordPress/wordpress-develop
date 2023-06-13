@@ -376,7 +376,7 @@ add_action( 'wp_head', 'twentysixteen_javascript_detection', 0 );
  * @since Twenty Sixteen 1.0
  */
 function twentysixteen_scripts() {
-	// Remove default styles for button block.
+	// Remove default styles for Button and File blocks.
 	wp_dequeue_style( 'classic-theme-styles' );
 
 	// Add custom fonts, used in the main stylesheet.
@@ -438,7 +438,9 @@ add_action( 'wp_enqueue_scripts', 'twentysixteen_scripts' );
  * @since Twenty Sixteen 1.6
  */
 function twentysixteen_block_editor_styles() {
-	// Block styles.
+	// Remove default styles for Button and File blocks.
+	wp_dequeue_style( 'classic-theme-styles' );
+	// Add block styles.
 	wp_enqueue_style( 'twentysixteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20221004' );
 	// Add custom fonts.
 	$font_version = ( 0 === strpos( (string) twentysixteen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;

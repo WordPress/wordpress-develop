@@ -330,7 +330,7 @@ endif;
  * @since Twenty Fourteen 1.0
  */
 function twentyfourteen_scripts() {
-	// Remove default styles for button block.
+	// Remove default styles for Button and File blocks.
 	wp_dequeue_style( 'classic-theme-styles' );
 
 	// Add Lato font, used in the main stylesheet.
@@ -421,7 +421,9 @@ function twentyfourteen_resource_hints( $urls, $relation_type ) {
  * @since Twenty Fourteen 2.3
  */
 function twentyfourteen_block_editor_styles() {
-	// Block styles.
+	// Remove default styles for Button and File blocks.
+	wp_dequeue_style( 'classic-theme-styles' );
+	// Add block styles.
 	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20230206' );
 	// Add custom fonts.
 	$font_version = ( 0 === strpos( (string) twentyfourteen_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
