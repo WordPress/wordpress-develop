@@ -558,6 +558,7 @@ Description: Used to style blocks in the editor.
 .wp-block-button__link {
 	background: #1a1a1a;
 	color: #fff;
+	font-size: 1.125em;
 }
 
 .is-style-outline .wp-block-button__link {
