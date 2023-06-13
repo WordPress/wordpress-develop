@@ -1672,7 +1672,7 @@ function wp_check_post_lock( $post ) {
 	/** This filter is documented in wp-admin/includes/ajax-actions.php */
 	$time_window = apply_filters( 'wp_check_post_lock_window', 150 );
 
-	if ( $time && $time > time() - $time_window && get_current_user_id() != $user ) {
+	if ( $time && $time > time() - $time_window && get_current_user_id() !== $user ) {
 		return $user;
 	}
 
