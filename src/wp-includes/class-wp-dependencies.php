@@ -134,7 +134,7 @@ class WP_Dependencies {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param int|false $group Optional. Group level: level (int), no group (false).
+	 * @param int|false $group Group level: level (int), no group (false).
 	 * @return string[] Array of handles of items that have been processed.
 	 */
 	protected function process_to_do_items( $group ) {
