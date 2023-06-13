@@ -5883,7 +5883,7 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ) {
 		return $loading_attrs;
 	}
 
-	/*
+	/**
 	 * Filters the minimum square-pixels threshold for an image to be eligible as the high-priority image.
 	 *
 	 * @since 6.3.0
