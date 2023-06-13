@@ -10,7 +10,16 @@
  * @covers ::wp_set_script_translations
  */
 class Tests_Dependencies_Scripts extends WP_UnitTestCase {
+
+	/**
+	 * @var WP_Scripts
+	 */
 	protected $old_wp_scripts;
+
+	/**
+	 * @var WP_Styles
+	 */
+	protected $old_wp_styles;
 
 	protected $wp_scripts_print_translations_output;
 
@@ -24,10 +33,12 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		$this->old_wp_scripts = isset( $GLOBALS['wp_scripts'] ) ? $GLOBALS['wp_scripts'] : null;
+		$this->old_wp_styles  = isset( $GLOBALS['wp_styles'] ) ? $GLOBALS['wp_styles'] : null;
 		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
 		remove_action( 'wp_default_scripts', 'wp_default_packages' );
 		$GLOBALS['wp_scripts']                  = new WP_Scripts();
 		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
+		$GLOBALS['wp_styles']                  = new WP_Styles();
 
 		$this->wp_scripts_print_translations_output  = <<<JS
 <script type='text/javascript' id='__HANDLE__-js-translations'>
@@ -43,6 +54,7 @@ JS;
 
 	public function tear_down() {
 		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
+		$GLOBALS['wp_styles']  = $this->old_wp_styles;
 		add_action( 'wp_default_scripts', 'wp_default_scripts' );
 		parent::tear_down();
 	}
