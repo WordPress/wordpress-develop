@@ -327,13 +327,14 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		trailingslashit( $file_or_folder ) . 'block.json' :
 		$file_or_folder;
 
-	if ( ! file_exists( $metadata_file ) ) {
+	$is_core_block = str_starts_with( $file_or_folder, ABSPATH . WPINC );
+
+	if ( ! $is_core_block && ! file_exists( $metadata_file ) ) {
 		return false;
 	}
 
 	// Try to get metadata from the static cache for core blocks.
 	$metadata      = false;
-	$is_core_block = str_starts_with( $file_or_folder, ABSPATH . WPINC );
 	if ( $is_core_block ) {
 		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
 		if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
