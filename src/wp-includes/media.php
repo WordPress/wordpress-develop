@@ -2030,7 +2030,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		 * Returning `true` will add the default value.
 		 * `true` and `false` usage supported for backward compatibility.
 		 *
-		 * @param string|bool $optimization_attrs['loading'] Current value for `loading` attribute for the image.
+		 * @param string|bool $loading Current value for `loading` attribute for the image.
 		 * @param string      $image   The HTML `img` tag to be filtered.
 		 * @param string      $context Additional context about how the function was called or where the img tag is.
 		 */
