@@ -2045,9 +2045,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		if ( isset( $optimization_attrs['loading'] ) && ! $filtered_loading_attr ) {
 			// Unset `loading` attributes if `$filtered_loading_attr` is set to `false`.
 			unset( $optimization_attrs['loading'] );
-		} elseif (
-			in_array( $filtered_loading_attr, array( 'lazy', 'eager' ), true )
-		) {
+		} elseif ( in_array( $filtered_loading_attr, array( 'lazy', 'eager' ), true ) ) {
 			/*
 			* If the filter changed the loading attribute to "lazy" when a fetchpriority attribute
 			* with value "high" is already present, trigger a warning since those two attribute
