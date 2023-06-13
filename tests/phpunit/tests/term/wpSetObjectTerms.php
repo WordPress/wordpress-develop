@@ -430,4 +430,43 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 
 		$this->assertSame( array(), $tt_ids );
 	}
+
+	/**
+	 * Empty values should clear an object of all terms.
+	 *
+	 * @ticket 57923
+	 *
+	 * @dataProvider data_empty_value_should_clear_terms
+	 *
+	 * @param mixed $empty_value An empty.
+	 */
+	public function test_empty_value_should_clear_terms( $empty_value ) {
+		$post_id = self::$post_ids[0];
+
+		// Assign some terms.
+		wp_set_object_terms( $post_id, array( 'foo', 'bar', 'baz' ), 'post_tag' );
+
+		// Remove terms by passing an empty value.
+		wp_set_object_terms( $post_id, $empty_value, 'post_tag' );
+
+		// Make sure they're gone.
+		$terms = wp_get_object_terms( $post_id, 'post_tag', array( 'fields' => 'names' ) );
+		$this->assertEmpty( $terms );
+	}
+
+	/**
+	 * Data provider for test_empty_value_should_clear_terms().
+	 *
+	 * @return array[]
+	 */
+	public function data_empty_value_should_clear_terms() {
+		return array(
+			'(bool) false' => array( false ),
+			'null'         => array( null ),
+			'(int) 0'      => array( 0 ),
+			'empty string' => array( '' ),
+			'(string) 0'   => array( '0' ),
+			'empty array'  => array( array() ),
+		);
+	}
 }
