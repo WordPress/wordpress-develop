@@ -9,7 +9,6 @@
 
 (function($) {
 	var __ = wp.i18n.__;
-	var sprintf = wp.i18n.sprintf;
 
 	/**
 	 * Contains all the methods to initialize and control the image editor.
@@ -566,16 +565,7 @@
 				} else {
 					$('button.imgedit-submit-btn', '#imgedit-panel-' + postid).prop('disabled', true);
 				}
-				var actionType = 'updated';
-				historyObj = JSON.parse( event.data.history );
-				if ( historyObj[historyObj.length - 1].hasOwnProperty( 'r' ) ) {
-					actionType = 'rotated';
-				}
-				if ( historyObj[historyObj.length - 1].hasOwnProperty( 'f' ) ) {
-					actionType = 'flipped';
-				}
-				// translators: Image editing action verb in past tense.
-				var successMessage = sprintf( __( 'Image %s.' ), actionType );
+				var successMessage = __( 'Image updated.' );
 
 				t.toggleEditor(postid, 0);
 				wp.a11y.speak( successMessage, 'assertive' );
