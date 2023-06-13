@@ -1842,21 +1842,6 @@ function wp_just_in_time_script_localization() {
 }
 
 /**
- * Prints a script to load delayed inline scripts.
- *
- * When a script dependency has attached inline scripts, the execution
- * of the inline scripts needs to be delayed in order to preserve the
- * execution order with the script along with any dependency/dependent
- * scripts. When there are delayed inline scripts needing to be printed
- * this function will print the loader script once.
- *
- * @since 6.3.0
- */
-function wp_print_delayed_inline_script_loader() {
-	wp_scripts()->print_delayed_inline_script_loader();
-}
-
-/**
  * Localizes the jQuery UI datepicker.
  *
  * @since 4.6.0

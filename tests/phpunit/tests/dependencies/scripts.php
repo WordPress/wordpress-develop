@@ -247,7 +247,6 @@ HTML
 	 * Tests that wp_print_delayed_inline_script_loader() is output before the first delayed inline script and not
 	 * duplicated in header and footer.
 	 *
-	 * @covers ::wp_print_delayed_inline_script_loader
 	 * @covers WP_Scripts::print_delayed_inline_script_loader
 	 *
 	 * @dataProvider data_to_test_print_delayed_inline_script_loader_timing
@@ -298,7 +297,6 @@ HTML
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_inline_script_tag
-	 * @covers ::wp_print_delayed_inline_script_loader
 	 * @covers WP_Scripts::print_delayed_inline_script_loader
 	 * @covers ::wp_add_inline_script
 	 * @covers ::wp_enqueue_script
