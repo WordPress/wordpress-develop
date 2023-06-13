@@ -311,10 +311,7 @@ class WP_Scripts extends WP_Dependencies {
 
 		if (
 			empty( $intended_strategy )
-			|| (
-				'async' !== $intended_strategy
-				&& 'defer' !== $intended_strategy
-			)
+			|| ( 'async' !== $intended_strategy && 'defer' !== $intended_strategy )
 		) {
 			$intended_strategy = '';
 		}
