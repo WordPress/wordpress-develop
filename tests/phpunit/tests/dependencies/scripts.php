@@ -340,7 +340,7 @@ scriptEventLog.push( "blocking-not-async-without-dependency: after inline" )
 <script id="async-with-blocking-dependency-js-before" type="text/javascript">
 scriptEventLog.push( "async-with-blocking-dependency: before inline" )
 </script>
-<script type='text/javascript' src='https://example.com/external.js?script_event_log=async-with-blocking-dependency:%20script' id='async-with-blocking-dependency-js' async  data-wp-strategy='async'></script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=async-with-blocking-dependency:%20script' id='async-with-blocking-dependency-js' async data-wp-strategy='async'></script>
 <script id="async-with-blocking-dependency-js-after" type="text/plain" data-wp-deps="blocking-not-async-without-dependency">
 scriptEventLog.push( "async-with-blocking-dependency: after inline" )
 </script>
