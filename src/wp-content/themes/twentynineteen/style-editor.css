@@ -1226,11 +1226,19 @@ figcaption,
 
 .wp-block-file .wp-block-file__button {
   display: table;
-  line-height: 1.8;
-  font-size: 0.88889em;
+  line-height: 1.2;
+  font-size: 22px;
   font-weight: bold;
+  padding: 16.5px 22px;
   background-color: #0073aa;
   border-radius: 5px;
+  color: #fff;
+}
+
+@media only screen and (min-width: 1168px) {
+  .wp-block-file .wp-block-file__button {
+    padding: 19.25px 33px;
+  }
 }
 
 .wp-block-file .wp-block-file__button-richtext-wrapper {

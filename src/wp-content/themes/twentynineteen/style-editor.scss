@@ -591,12 +591,18 @@ figcaption,
 
 	.wp-block-file__button {
 		display: table;
-		line-height: 1.8;
-		font-size: $font__size-sm;
+		line-height: $font__line-height-heading;
+		font-size: $font__size-base;
 		font-weight: bold;
+		padding: ($font__size-base * .75) $font__size-base;
 		background-color: $color__link;
 		border-radius: 5px;
-	}
+		color: #fff;
+
+		@include media(desktop) {
+			padding: ($font__size-base * .875) ($font__size-base * 1.5);
+		}
+}
 
 	.wp-block-file__button-richtext-wrapper {
 		display: block;
