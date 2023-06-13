@@ -150,7 +150,9 @@ function determine_locale() {
 		( isset( $_GET['_locale'] ) && 'user' === $_GET['_locale'] && wp_is_json_request() )
 	) {
 		$determined_locale = get_user_locale();
-	} else {
+	}
+
+	if ( ! $determined_locale ) {
 		$determined_locale = get_locale();
 	}
 
