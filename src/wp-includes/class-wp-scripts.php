@@ -302,11 +302,22 @@ class WP_Scripts extends WP_Dependencies {
 			$ver = $ver ? $ver . '&amp;' . $this->args[ $handle ] : $this->args[ $handle ];
 		}
 
-		$src         = $obj->src;
-		$strategy    = $this->get_eligible_loading_strategy( $handle );
-		$cond_before = '';
-		$cond_after  = '';
-		$conditional = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
+		$src               = $obj->src;
+		$strategy          = $this->get_eligible_loading_strategy( $handle );
+		$intended_strategy = $this->get_data( $handle, 'strategy' );
+		$cond_before       = '';
+		$cond_after        = '';
+		$conditional       = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
+
+		if (
+			empty( $intended_strategy )
+			|| (
+				'async' !== $intended_strategy
+				&& 'defer' !== $intended_strategy
+			)
+		) {
+			$intended_strategy = '';
+		}
 
 		if ( $conditional ) {
 			$cond_before = "<!--[if {$conditional}]>\n";
@@ -411,7 +422,7 @@ class WP_Scripts extends WP_Dependencies {
 			esc_url( $src ),
 			esc_attr( $handle ),
 			$strategy ? " {$strategy}" : '',
-			$strategy ? " data-wp-strategy='{$strategy}'" : " data-wp-strategy='blocking'"
+			$intended_strategy  ? " data-wp-strategy='{$intended_strategy}'" : ''
 		);
 		$tag .= $after_script . $cond_after;
 
