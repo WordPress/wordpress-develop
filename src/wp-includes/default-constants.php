@@ -103,7 +103,7 @@ function wp_initial_constants() {
 	 * plugin, or a theme respectively.
 	 */
 	if ( ! defined( 'WP_DEVELOPMENT_MODE' ) ) {
-		define( 'WP_DEVELOPMENT_MODE', defined( 'WP_RUN_CORE_TESTS' ) ? 'core' : '' );
+		define( 'WP_DEVELOPMENT_MODE', '' );
 	}
 
 	if ( ! defined( 'WP_CACHE' ) ) {
