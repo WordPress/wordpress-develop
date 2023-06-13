@@ -17,15 +17,22 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	attributes: {},
 
 	events: {
-		'change [data-setting]':          'updateSetting',
-		'change [data-setting] input':    'updateSetting',
-		'change [data-setting] select':   'updateSetting',
-		'change [data-setting] textarea': 'updateSetting',
-		'click .delete-attachment':       'deleteAttachment',
-		'click .trash-attachment':        'trashAttachment',
-		'click .untrash-attachment':      'untrashAttachment',
-		'click .edit-attachment':         'editAttachment',
-		'keydown':                        'toggleSelectionHandler'
+		'change [data-setting]':            'updateSetting',
+		'change [data-setting] input':      'updateSetting',
+		'change [data-setting] select':     'updateSetting',
+		'change [data-setting] textarea':   'updateSetting',
+		'click .delete-attachment':         'deleteAttachment',
+		'click .trash-attachment':          'trashAttachment',
+		'click .untrash-attachment':        'untrashAttachment',
+		'click .edit-attachment':           'editAttachment',
+		'keydown':                          'toggleSelectionHandler',
+		'keypress [data-setting="title"]':  'updateTitle',
+	},
+
+	updateTitle: function( event ) {
+		if ( event.keyCode === 13 ) {
+			return false;
+		}
 	},
 
 	/**
