@@ -1099,7 +1099,6 @@ hr.wp-block-separator.is-style-dots::before {
 }
 
 .editor-styles-wrapper .wp-block-file .wp-block-file__button {
-	font-size: 14px;
 	padding: 1em 1.25em;
 }
 
@@ -1318,8 +1317,7 @@ hr.wp-block-separator.is-style-dots::before {
 
 	/* BLOCK: BUTTON */
 
-	:root .editor-styles-wrapper .wp-block-button__link,
-	:root .editor-styles-wrapper .wp-block-file__button {
+	:root .editor-styles-wrapper .wp-block-button__link {
 		font-size: 17px;
 	}
 
