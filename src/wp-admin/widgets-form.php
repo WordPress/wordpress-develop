@@ -187,9 +187,9 @@ if ( isset( $_POST['savewidget'] ) || isset( $_POST['removewidget'] ) ) {
 
 	// Remove old position.
 	if ( ! isset( $_POST['delete_widget'] ) ) {
-		foreach ( $sidebars_widgets as $key => $sb ) {
-			if ( is_array( $sb ) ) {
-				$sidebars_widgets[ $key ] = array_diff( $sb, array( $widget_id ) );
+		foreach ( $sidebars_widgets as $sidebar_id => $sidebar ) {
+			if ( is_array( $sidebar ) ) {
+				$sidebars_widgets[ $sidebar_id ] = array_diff( $sidebar, array( $widget_id ) );
 			}
 		}
 		array_splice( $sidebars_widgets[ $sidebar_id ], $position, 0, $widget_id );
@@ -299,25 +299,25 @@ if ( isset( $_GET['editwidget'] ) && $_GET['editwidget'] ) {
 	<div class="widget-position">
 	<table class="widefat"><thead><tr><th><?php _e( 'Sidebar' ); ?></th><th><?php _e( 'Position' ); ?></th></tr></thead><tbody>
 	<?php
-	foreach ( $wp_registered_sidebars as $sbname => $sbvalue ) {
-		echo "\t\t<tr><td><label><input type='radio' name='sidebar' value='" . esc_attr( $sbname ) . "'" . checked( $sbname, $sidebar, false ) . " /> $sbvalue[name]</label></td><td>";
-		if ( 'wp_inactive_widgets' === $sbname || 'orphaned_widgets' === substr( $sbname, 0, 16 ) ) {
+	foreach ( $wp_registered_sidebars as $sidebar_name => $sidebar_data ) {
+		echo "\t\t<tr><td><label><input type='radio' name='sidebar' value='" . esc_attr( $sidebar_name ) . "'" . checked( $sidebar_name, $sidebar, false ) . " /> $sidebar_data[name]</label></td><td>";
+		if ( 'wp_inactive_widgets' === $sidebar_name || 'orphaned_widgets' === substr( $sidebar_name, 0, 16 ) ) {
 			echo '&nbsp;';
 		} else {
-			if ( ! isset( $sidebars_widgets[ $sbname ] ) || ! is_array( $sidebars_widgets[ $sbname ] ) ) {
-				$j                           = 1;
-				$sidebars_widgets[ $sbname ] = array();
+			if ( ! isset( $sidebars_widgets[ $sidebar_name ] ) || ! is_array( $sidebars_widgets[ $sidebar_name ] ) ) {
+				$widget_count                      = 1;
+				$sidebars_widgets[ $sidebar_name ] = array();
 			} else {
-				$j = count( $sidebars_widgets[ $sbname ] );
-				if ( isset( $_GET['addnew'] ) || ! in_array( $widget_id, $sidebars_widgets[ $sbname ], true ) ) {
-					$j++;
+				$widget_count = count( $sidebars_widgets[ $sidebar_name ] );
+				if ( isset( $_GET['addnew'] ) || ! in_array( $widget_id, $sidebars_widgets[ $sidebar_name ], true ) ) {
+					$widget_count++;
 				}
 			}
 			$selected = '';
-			echo "\t\t<select name='{$sbname}_position'>\n";
+			echo "\t\t<select name='{$sidebar_name}_position'>\n";
 			echo "\t\t<option value=''>" . __( '&mdash; Select &mdash;' ) . "</option>\n";
-			for ( $i = 1; $i <= $j; $i++ ) {
-				if ( in_array( $widget_id, $sidebars_widgets[ $sbname ], true ) ) {
+			for ( $i = 1; $i <= $widget_count; $i++ ) {
+				if ( in_array( $widget_id, $sidebars_widgets[ $sidebar_name ], true ) ) {
 					$selected = selected( $i, $key + 1, false );
 				}
 				echo "\t\t<option value='$i'$selected> $i </option>\n";
@@ -498,7 +498,7 @@ foreach ( $wp_registered_sidebars as $sidebar => $registered_sidebar ) {
 </div>
 <?php
 
-$i                    = 0;
+$sidebar_index        = 0;
 $split                = 0;
 $single_sidebar_class = '';
 $sidebars_count       = count( $theme_sidebars );
@@ -521,11 +521,11 @@ foreach ( $theme_sidebars as $sidebar => $registered_sidebar ) {
 		$wrap_class .= ' sidebar-' . $registered_sidebar['class'];
 	}
 
-	if ( $i > 0 ) {
+	if ( $sidebar_index > 0 ) {
 		$wrap_class .= ' closed';
 	}
 
-	if ( $split && $i === $split ) {
+	if ( $split && $sidebar_index === $split ) {
 		?>
 		</div><div class="sidebars-column-2">
 		<?php
@@ -540,7 +540,7 @@ foreach ( $theme_sidebars as $sidebar => $registered_sidebar ) {
 	</div>
 	<?php
 
-	$i++;
+	$sidebar_index++;
 }
 
 ?>
