@@ -5720,11 +5720,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		) {
 			_doing_it_wrong(
 				__FUNCTION__,
-				sprintf(
-					/* translators: %s: fetchpriority="high". */
-					__( 'An image cannot be lazy-loaded and assigned %s at the same time.' ),
-					'<code>fetchpriority="high"</code>'
-				),
+				__( 'An image should not be lazy-loaded and marked as high priority at the same time.' ),
 				'6.3.0'
 			);
 		}
