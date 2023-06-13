@@ -273,6 +273,31 @@ class WP_Scripts extends WP_Dependencies {
 	}
 
 	/**
+	 * Processes the items and dependencies.
+	 *
+	 * Processes the items passed to it or the queue, and their dependencies.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string|string[]|false $handles Optional. Items to be processed: queue (false),
+	 *                                       single item (string), or multiple items (array of strings).
+	 *                                       Default false.
+	 * @param int|false             $group   Optional. Group level: level (int), no group (false).
+	 * @return string[] Array of handles of items that have been processed.
+	 */
+	public function do_items( $handles = false, $group = false ) {
+		$handles = false === $handles ? $this->queue : (array) $handles;
+		$this->all_deps( $handles );
+
+		// This statement is the only difference from parent::do_items().
+		if ( ! $this->printed_delayed_inline_script_loader && $this->has_delayed_inline_script( $this->to_do ) ) {
+			$this->print_delayed_inline_script_loader();
+		}
+
+		return $this->process_to_do_items( $group );
+	}
+
+	/**
 	 * Processes a script dependency.
 	 *
 	 * @since 2.6.0
@@ -840,31 +865,6 @@ JS;
 	public function do_footer_items() {
 		$this->do_items( false, 1 );
 		return $this->done;
-	}
-
-	/**
-	 * Processes the items and dependencies.
-	 *
-	 * Processes the items passed to it or the queue, and their dependencies.
-	 *
-	 * @since 2.6.0
-	 * @since 2.8.0 Added the `$group` parameter.
-	 *
-	 * @param string|string[]|false $handles Optional. Items to be processed: queue (false),
-	 *                                       single item (string), or multiple items (array of strings).
-	 *                                       Default false.
-	 * @param int|false             $group   Optional. Group level: level (int), no group (false).
-	 * @return string[] Array of handles of items that have been processed.
-	 */
-	public function do_items( $handles = false, $group = false ) {
-		$handles = false === $handles ? $this->queue : (array) $handles;
-		$this->all_deps( $handles );
-
-		if ( ! $this->printed_delayed_inline_script_loader && $this->has_delayed_inline_script( $this->to_do ) ) {
-			$this->print_delayed_inline_script_loader();
-		}
-
-		return $this->process_to_do_items( $group );
 	}
 
 	/**
