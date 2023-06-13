@@ -5706,6 +5706,14 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 
 	$loading_attrs = array();
 
+	/*
+	 * Skip lazy-loading for the overall block template, as it is handled more granularly.
+	 * The skip is also applicable for `fetchpriority`.
+	 */
+	if ( 'template' === $context ) {
+		return $loading_attrs;
+	}
+
 	// For now this function only supports images.
 	if ( 'img' !== $tag_name ) {
 		return $loading_attrs;
@@ -5737,14 +5745,6 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	// An image with `fetchpriority="high"` cannot be assigned `loading="lazy"` at the same time.
 	if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority'] ) {
 		return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
-	}
-
-	/*
-	 * Skip lazy-loading for the overall block template, as it is handled more granularly.
-	 * The skip is also applicable for `fetchpriority`.
-	 */
-	if ( 'template' === $context ) {
-		return $loading_attrs;
 	}
 
 	/*
@@ -5871,9 +5871,11 @@ function wp_increase_content_media_count( $amount = 1 ) {
  * @return array[] $loading_attrs Updated loading attributes for the element.
  */
 function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ) {
-	if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority'] ) {
-		$loading_attrs['fetchpriority'] = 'high';
-		wp_high_priority_element_flag( false );
+	if ( isset( $attr['fetchpriority'] ) ) {
+		if ( 'high' === $attr['fetchpriority'] ) {
+			$loading_attrs['fetchpriority'] = 'high';
+			wp_high_priority_element_flag( false );
+		}
 		return $loading_attrs;
 	}
 

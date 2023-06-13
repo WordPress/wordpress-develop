@@ -2329,8 +2329,6 @@ EOF;
 	/**
 	 * @ticket 55510
 	 * @covers ::wp_filter_content_tags
-	 *
-	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_handles_duplicate_img_and_iframe_tags_once() {
 		$img     = get_image_tag( self::$large_id, '', '', '', 'large' );
@@ -2443,9 +2441,6 @@ EOF;
 	 * @ticket 35045
 	 * @ticket 33641
 	 * @requires function imagejpeg
-	 *
-	 * @expectedDeprecated wp_img_tag_add_loading_attr
-	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_schemes() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -2456,7 +2451,7 @@ EOF;
 
 		// Build HTML for the editor.
 		$img          = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$img          = wp_img_tag_add_loading_attr( $img, 'test' );
+		$img          = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
 		$img_https    = str_replace( 'http://', 'https://', $img );
 		$img_relative = str_replace( 'http://', '//', $img );
 
@@ -2998,9 +2993,6 @@ EOF;
 	 * @ticket 50367
 	 * @ticket 50756
 	 * @requires function imagejpeg
-	 *
-	 * @expectedDeprecated wp_img_tag_add_loading_attr
-	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_loading_lazy() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -3014,9 +3006,9 @@ EOF;
 		$iframe                 = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$iframe_no_width_height = '<iframe src="https://www.example.com"></iframe>';
 
-		$lazy_img       = wp_img_tag_add_loading_attr( $img, 'test' );
-		$lazy_img_xhtml = wp_img_tag_add_loading_attr( $img_xhtml, 'test' );
-		$lazy_img_html5 = wp_img_tag_add_loading_attr( $img_html5, 'test' );
+		$lazy_img       = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
+		$lazy_img_xhtml = wp_img_tag_add_loading_optimization_attrs( $img_xhtml, 'test' );
+		$lazy_img_html5 = wp_img_tag_add_loading_optimization_attrs( $img_html5, 'test' );
 		$lazy_iframe    = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
 		// The following should not be modified because there already is a 'loading' attribute.
@@ -3079,13 +3071,10 @@ EOF;
 	/**
 	 * @ticket 44427
 	 * @ticket 50756
-	 *
-	 * @expectedDeprecated wp_img_tag_add_loading_attr
-	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_loading_lazy_opted_in() {
 		$img         = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$lazy_img    = wp_img_tag_add_loading_attr( $img, 'test' );
+		$lazy_img    = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
 		$lazy_img    = wp_img_tag_add_decoding_attr( $lazy_img, 'the_content' );
 		$iframe      = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$lazy_iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
