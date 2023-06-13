@@ -275,7 +275,7 @@ HTML
 		$actual_footer = get_echo( 'do_action', array( 'test_footer' ) );
 
 		$delayed_script_count = substr_count( $actual_head . $actual_torso . $actual_footer, $this->get_delayed_inline_script_loader_script_tag() );
-		if ( wp_scripts()->has_delayed_inline_script() ) {
+		if ( wp_scripts()->has_delayed_inline_script( wp_scripts()->done ) ) {
 			$this->assertSame( 1, $delayed_script_count, 'Expected delayed inline script to occur exactly once.' );
 		} else {
 			$this->assertSame( 0, $delayed_script_count, 'Expected delayed inline script to not occur since no delayed inline scripts.' );

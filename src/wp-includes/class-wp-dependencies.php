@@ -126,6 +126,18 @@ class WP_Dependencies {
 		$handles = false === $handles ? $this->queue : (array) $handles;
 		$this->all_deps( $handles );
 
+		return $this->process_to_do_items( $group );
+	}
+
+	/**
+	 * Processes the items marked for to do, and their dependencies.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param int|false $group Optional. Group level: level (int), no group (false).
+	 * @return string[] Array of handles of items that have been processed.
+	 */
+	protected function process_to_do_items( $group ) {
 		foreach ( $this->to_do as $key => $handle ) {
 			if ( ! in_array( $handle, $this->done, true ) && isset( $this->registered[ $handle ] ) ) {
 				/*

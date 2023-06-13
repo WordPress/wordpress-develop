@@ -563,14 +563,12 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @since 6.3.0
 	 */
-	function print_delayed_inline_script_loader() {
-		if ( ! $this->printed_delayed_inline_script_loader && $this->has_delayed_inline_script() ) {
-			wp_print_inline_script_tag(
-				file_get_contents( ABSPATH . WPINC . '/js/wp-delayed-inline-script-loader' . wp_scripts_get_suffix() . '.js' ),
-				array( 'id' => 'wp-delayed-inline-script-loader' )
-			);
-			$this->printed_delayed_inline_script_loader = true;
-		}
+	public function print_delayed_inline_script_loader() {
+		wp_print_inline_script_tag(
+			file_get_contents( ABSPATH . WPINC . '/js/wp-delayed-inline-script-loader' . wp_scripts_get_suffix() . '.js' ),
+			array( 'id' => 'wp-delayed-inline-script-loader' )
+		);
+		$this->printed_delayed_inline_script_loader = true;
 	}
 
 	/**
@@ -845,6 +843,31 @@ JS;
 	}
 
 	/**
+	 * Processes the items and dependencies.
+	 *
+	 * Processes the items passed to it or the queue, and their dependencies.
+	 *
+	 * @since 2.6.0
+	 * @since 2.8.0 Added the `$group` parameter.
+	 *
+	 * @param string|string[]|false $handles Optional. Items to be processed: queue (false),
+	 *                                       single item (string), or multiple items (array of strings).
+	 *                                       Default false.
+	 * @param int|false             $group   Optional. Group level: level (int), no group (false).
+	 * @return string[] Array of handles of items that have been processed.
+	 */
+	public function do_items( $handles = false, $group = false ) {
+		$handles = false === $handles ? $this->queue : (array) $handles;
+		$this->all_deps( $handles );
+
+		if ( ! $this->printed_delayed_inline_script_loader && $this->has_delayed_inline_script( $this->to_do ) ) {
+			$this->print_delayed_inline_script_loader();
+		}
+
+		return $this->process_to_do_items( $group );
+	}
+
+	/**
 	 * Whether a handle's source is in a default directory.
 	 *
 	 * @since 2.8.0
@@ -916,10 +939,11 @@ JS;
 	 * @since 6.3.0
 	 * @see WP_Scripts::should_delay_inline_script()
 	 *
+	 * @param string[] $handles Handles to check.
 	 * @return bool True if the inline script present, otherwise false.
 	 */
-	public function has_delayed_inline_script() {
-		foreach ( $this->registered as $handle => $script ) {
+	public function has_delayed_inline_script( array $handles ) {
+		foreach ( $handles as $handle ) {
 			foreach ( array( 'before', 'after' ) as $position ) {
 				if (
 					$this->get_data( $handle, $position ) &&
