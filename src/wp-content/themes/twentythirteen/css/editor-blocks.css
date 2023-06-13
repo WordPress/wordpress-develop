@@ -263,11 +263,12 @@ p.has-drop-cap:not(:focus)::first-letter {
 	background: -webkit-linear-gradient(top, #e05d22 0%, #d94412 100%); /* Chrome 10+, Safari 5.1+ */
 	background: linear-gradient(to bottom, #e05d22 0%, #d94412 100%); /* W3C */
 	border: none;
+	border-radius: 2px;
 	border-bottom: 3px solid #b93207;
 	color: #fff;
 	display: inline-block;
 	font-size: 16px;
-	line-height: 24px;
+	line-height: 1.5;
 	padding: 11px 24px 10px;
 	text-decoration: none;
 }
@@ -340,7 +341,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 .wp-block-button .wp-block-button__link {
 	display: inline-block;
 	font-size: 16px;
-	line-height: 24px;
+	line-height: 1.5;
 	padding: 11px 24px 10px;
 	text-decoration: none;
 }
