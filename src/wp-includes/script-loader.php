@@ -1601,6 +1601,10 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'wp-block-library-theme', "/$block_library_theme_path" );
 	$styles->add_data( 'wp-block-library-theme', 'path', ABSPATH . $block_library_theme_path );
 
+	$classic_theme_styles_path = WPINC . "/css/classic-themes$suffix.css";
+	$styles->add( 'classic-theme-styles', "/$classic_theme_styles_path" );
+	$styles->add_data( 'classic-theme-styles', 'path', ABSPATH . $classic_theme_styles_path );
+
 	$styles->add(
 		'wp-reset-editor-styles',
 		"/wp-includes/css/dist/block-library/reset$suffix.css",
@@ -3707,14 +3711,13 @@ function _wp_theme_json_webfonts_handler() {
 /**
  * Loads classic theme styles on classic themes in the frontend.
  *
- * This is needed for backwards compatibility for button blocks specifically.
+ * This is added for backwards compatibility for Button and File blocks.
  *
  * @since 6.1.0
+ * @since 6.2.0 Added File block styles.
  */
 function wp_enqueue_classic_theme_styles() {
 	if ( ! wp_theme_has_theme_json() ) {
-		$suffix = wp_scripts_get_suffix();
-		wp_register_style( 'classic-theme-styles', '/' . WPINC . "/css/classic-themes$suffix.css" );
 		wp_enqueue_style( 'classic-theme-styles' );
 	}
 }
@@ -3722,9 +3725,11 @@ function wp_enqueue_classic_theme_styles() {
 /**
  * Loads classic theme styles on classic themes in the editor.
  *
- * This is needed for backwards compatibility for button blocks specifically.
+ * This is added for backwards compatibility for Button and File blocks.
  *
  * @since 6.1.0
+ * @since 6.2.0 Added File block styles.
+ * @deprecated 6.3.0 Removed from block_editor_settings_all filter.
  *
  * @param array $editor_settings The array of editor settings.
  * @return array A filtered array of editor settings.
