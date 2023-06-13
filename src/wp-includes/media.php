@@ -3969,6 +3969,7 @@ function _wp_image_editor_choose( $args = array() ) {
 	require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 	require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
 	require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
+	require_once ABSPATH . WPINC . '/class-avif-info.php';
 	/**
 	 * Filters the list of image editing library classes.
 	 *
@@ -4068,6 +4069,12 @@ function wp_plupload_default_settings() {
 	// Check if WebP images can be edited.
 	if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
 		$defaults['webp_upload_error'] = true;
+	}
+
+
+	// Check if AVIF images can be edited.
+	if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/avif' ) ) ) {
+		$defaults['avif_upload_error'] = true;
 	}
 
 	/**
@@ -5335,6 +5342,7 @@ function wp_show_heic_upload_error( $plupload_settings ) {
  *
  * @since 5.7.0
  * @since 5.8.0 Added support for WebP images.
+ * @since 6.4.0 Added support for AVIF images.
  *
  * @param string $filename   The file path.
  * @param array  $image_info Optional. Extended image information (passed by reference).
@@ -5396,8 +5404,94 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 		}
 	}
 
+	// For PHP versions that don't support AVIF images,
+	// extract the image size info from the file headers.
+	if ( 'image/avif' === wp_get_image_mime( $filename ) ) {
+		$avif_info = wp_get_avif_info( $filename );
+		$width     = $avif_info['width'];
+		$height    = $avif_info['height'];
+
+		// Mimic the native return format.
+		if ( $width && $height ) {
+			return array(
+				$width,
+				$height,
+				IMAGETYPE_AVIF,
+				sprintf(
+					'width="%d" height="%d"',
+					$width,
+					$height
+				),
+				'mime' => 'image/avif',
+			);
+		}
+	}
+
+
 	// The image could not be parsed.
 	return false;
+}
+
+/**
+ * Extracts meta information about an AVIF file: width, height, and type.
+ *
+ * @since 6.4.0
+ *
+ * @param string $filename Path to an AVIF file.
+ * @return array {
+ *    An array of AVIF image information.
+ *
+ *   @type int|false    $width  Image width on success, false on failure.
+ *   @type int|false    $height Image height on success, false on failure.
+ *   @type string|false $type   The AVIF type: one of 'lossy' or 'lossless'. False on failure.
+ * }
+ */
+function wp_get_avif_info( $filename ) {
+	$width  = false;
+	$height = false;
+	$type   = false;
+
+	if ( 'image/avif' !== wp_get_image_mime( $filename ) ) {
+		return compact( 'width', 'height', 'type' );
+	}
+
+	if ( function_exists( 'avif_get_info' ) ) {
+
+		$avif_info = avif_get_info( $filename );
+
+		if ( ! $avif_info ) {
+			return compact( 'width', 'height', 'type' );
+		}
+
+		$width  = $avif_info['width'];
+		$height = $avif_info['height'];
+		$type   = $avif_info['type'];
+
+		return compact( 'width', 'height', 'type' );
+	} else {
+		// Fall back to directly parsing the file headers.
+		require_once ABSPATH . WPINC . '/class-avif-info.php';
+		$features = array(
+			'width'        => false,
+			'height'       => false,
+			'bit_depth'    => false,
+			'num_channels' => false
+		);
+
+		$handle = fopen( $filename, 'rb' );
+		if ( $handle ) {
+			$parser  = new Avifinfo\Parser( $handle );
+			$success = $parser->parse_ftyp() && $parser->parse_file();
+			fclose( $handle );
+			if ( $success ) {
+				$features = $parser->features->primary_item_features;
+			}
+		}
+
+		return $features;
+
+	}
+
 }
 
 /**

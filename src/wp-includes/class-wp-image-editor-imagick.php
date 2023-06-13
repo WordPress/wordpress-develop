@@ -213,6 +213,15 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 						$this->image->setImageCompressionQuality( $quality );
 					}
 					break;
+				case 'image/avif':
+					$avif_info = wp_get_avif_info( $this->file );
+					if ( 'lossless' === $avif_info['type'] ) {
+						// Use quality 100 to trigger AVIF lossless.
+						$this->image->setImageCompressionQuality( 100 );
+					} else {
+						$this->image->setImageCompressionQuality( $quality );
+					}
+					break;
 				default:
 					$this->image->setImageCompressionQuality( $quality );
 			}
