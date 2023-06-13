@@ -882,7 +882,7 @@ function do_enclose( $content, $post ) {
 	global $wpdb;
 
 	// @todo Tidy this code and make the debug code optional.
-	include_once ABSPATH . WPINC . '/class-IXR.php';
+	require_once ABSPATH . WPINC . '/class-IXR.php';
 
 	$post = get_post( $post );
 	if ( ! $post ) {
@@ -2378,7 +2378,7 @@ function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false
 			$uploads['error'] = $tested_paths[ $path ];
 		} else {
 			if ( ! wp_mkdir_p( $path ) ) {
-				if ( 0 === strpos( $uploads['basedir'], ABSPATH ) ) {
+				if ( str_starts_with( $uploads['basedir'], ABSPATH ) ) {
 					$error_path = str_replace( ABSPATH, '', $uploads['basedir'] ) . $uploads['subdir'];
 				} else {
 					$error_path = wp_basename( $uploads['basedir'] ) . $uploads['subdir'];
@@ -2413,7 +2413,7 @@ function _wp_upload_dir( $time = null ) {
 
 	if ( empty( $upload_path ) || 'wp-content/uploads' === $upload_path ) {
 		$dir = WP_CONTENT_DIR . '/uploads';
-	} elseif ( 0 !== strpos( $upload_path, ABSPATH ) ) {
+	} elseif ( ! str_starts_with( $upload_path, ABSPATH ) ) {
 		// $dir is absolute, $upload_path is (maybe) relative to ABSPATH.
 		$dir = path_join( ABSPATH, $upload_path );
 	} else {
@@ -2575,7 +2575,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 		$file_type = wp_check_filetype( $filename );
 		$mime_type = $file_type['type'];
 
-		$is_image    = ( ! empty( $mime_type ) && 0 === strpos( $mime_type, 'image/' ) );
+		$is_image    = ( ! empty( $mime_type ) && str_starts_with( $mime_type, 'image/' ) );
 		$upload_dir  = wp_get_upload_dir();
 		$lc_filename = null;
 
@@ -2913,7 +2913,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 
 	$new_file = $upload['path'] . "/$filename";
 	if ( ! wp_mkdir_p( dirname( $new_file ) ) ) {
-		if ( 0 === strpos( $upload['basedir'], ABSPATH ) ) {
+		if ( str_starts_with( $upload['basedir'], ABSPATH ) ) {
 			$error_path = str_replace( ABSPATH, '', $upload['basedir'] ) . $upload['subdir'];
 		} else {
 			$error_path = wp_basename( $upload['basedir'] ) . $upload['subdir'];
@@ -3012,9 +3012,9 @@ function wp_get_default_extension_for_mime_type( $mime_type ) {
  *
  * @since 2.0.4
  *
- * @param string   $filename File name or path.
- * @param string[] $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
- *                           Defaults to the result of get_allowed_mime_types().
+ * @param string        $filename File name or path.
+ * @param string[]|null $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
+ *                                Defaults to the result of get_allowed_mime_types().
  * @return array {
  *     Values for the extension and mime type.
  *
@@ -3053,11 +3053,11 @@ function wp_check_filetype( $filename, $mimes = null ) {
  *
  * @since 3.0.0
  *
- * @param string   $file     Full path to the file.
- * @param string   $filename The name of the file (may differ from $file due to $file being
- *                           in a tmp directory).
- * @param string[] $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
- *                           Defaults to the result of get_allowed_mime_types().
+ * @param string        $file     Full path to the file.
+ * @param string        $filename The name of the file (may differ from $file due to $file being
+ *                                in a tmp directory).
+ * @param string[]|null $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
+ *                                Defaults to the result of get_allowed_mime_types().
  * @return array {
  *     Values for the extension, mime type, and corrected filename.
  *
@@ -3082,7 +3082,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 	$real_mime = false;
 
 	// Validate image types.
-	if ( $type && 0 === strpos( $type, 'image/' ) ) {
+	if ( $type && str_starts_with( $type, 'image/' ) ) {
 
 		// Attempt to figure out what type of image it actually is.
 		$real_mime = wp_get_image_mime( $file );
@@ -3153,7 +3153,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 				$type = false;
 				$ext  = false;
 			}
-		} elseif ( 0 === strpos( $real_mime, 'video/' ) || 0 === strpos( $real_mime, 'audio/' ) ) {
+		} elseif ( str_starts_with( $real_mime, 'video/' ) || str_starts_with( $real_mime, 'audio/' ) ) {
 			/*
 			 * For these types, only the major type must match the real value.
 			 * This means that common mismatches are forgiven: application/vnd.apple.numbers is often misidentified as application/zip,
@@ -3239,18 +3239,19 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 	 * @since 3.0.0
 	 * @since 5.1.0 The $real_mime parameter was added.
 	 *
-	 * @param array        $wp_check_filetype_and_ext {
+	 * @param array         $wp_check_filetype_and_ext {
 	 *     Values for the extension, mime type, and corrected filename.
 	 *
 	 *     @type string|false $ext             File extension, or false if the file doesn't match a mime type.
 	 *     @type string|false $type            File mime type, or false if the file doesn't match a mime type.
 	 *     @type string|false $proper_filename File name with its correct extension, or false if it cannot be determined.
 	 * }
-	 * @param string       $file                      Full path to the file.
-	 * @param string       $filename                  The name of the file (may differ from $file due to
-	 *                                                $file being in a tmp directory).
-	 * @param string[]     $mimes                     Array of mime types keyed by their file extension regex.
-	 * @param string|false $real_mime                 The actual mime type or false if the type cannot be determined.
+	 * @param string        $file                      Full path to the file.
+	 * @param string        $filename                  The name of the file (may differ from $file due to
+	 *                                                 $file being in a tmp directory).
+	 * @param string[]|null $mimes                     Array of mime types keyed by their file extension regex, or null if
+	 *                                                 none were provided.
+	 * @param string|false  $real_mime                 The actual mime type or false if the type cannot be determined.
 	 */
 	return apply_filters( 'wp_check_filetype_and_ext', compact( 'ext', 'type', 'proper_filename' ), $file, $filename, $mimes, $real_mime );
 }
@@ -3311,7 +3312,7 @@ function wp_get_image_mime( $file ) {
 		$magic = bin2hex( $magic );
 		if (
 			// RIFF.
-			( 0 === strpos( $magic, '52494646' ) ) &&
+			( str_starts_with( $magic, '52494646' ) ) &&
 			// WEBP.
 			( 16 === strpos( $magic, '57454250' ) )
 		) {
@@ -4754,7 +4755,7 @@ function smilies_init() {
 	 */
 	$wpsmiliestrans = apply_filters( 'smilies', $wpsmiliestrans );
 
-	if ( count( $wpsmiliestrans ) == 0 ) {
+	if ( count( $wpsmiliestrans ) === 0 ) {
 		return;
 	}
 
@@ -4947,14 +4948,35 @@ function _wp_array_get( $input_array, $path, $default_value = null ) {
 	}
 
 	foreach ( $path as $path_element ) {
-		if (
-			! is_array( $input_array ) ||
-			( ! is_string( $path_element ) && ! is_integer( $path_element ) && ! is_null( $path_element ) ) ||
-			! array_key_exists( $path_element, $input_array )
-		) {
+		if ( ! is_array( $input_array ) ) {
 			return $default_value;
 		}
-		$input_array = $input_array[ $path_element ];
+
+		if ( is_string( $path_element )
+			|| is_integer( $path_element )
+			|| null === $path_element
+		) {
+			/*
+			 * Check if the path element exists in the input array.
+			 * We check with `isset()` first, as it is a lot faster
+			 * than `array_key_exists()`.
+			 */
+			if ( isset( $input_array[ $path_element ] ) ) {
+				$input_array = $input_array[ $path_element ];
+				continue;
+			}
+
+			/*
+			 * If `isset()` returns false, we check with `array_key_exists()`,
+			 * which also checks for `null` values.
+			 */
+			if ( array_key_exists( $path_element, $input_array ) ) {
+				$input_array = $input_array[ $path_element ];
+				continue;
+			}
+		}
+
+		return $default_value;
 	}
 
 	return $input_array;
@@ -7183,7 +7205,7 @@ function wp_auth_check_load() {
 function wp_auth_check_html() {
 	$login_url      = wp_login_url();
 	$current_domain = ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'];
-	$same_domain    = ( strpos( $login_url, $current_domain ) === 0 );
+	$same_domain    = str_starts_with( $login_url, $current_domain );
 
 	/**
 	 * Filters whether the authentication check originated at the same domain.
@@ -7431,7 +7453,7 @@ function wp_delete_file_from_directory( $file, $directory ) {
 		$real_directory = wp_normalize_path( $real_directory );
 	}
 
-	if ( false === $real_file || false === $real_directory || strpos( $real_file, trailingslashit( $real_directory ) ) !== 0 ) {
+	if ( false === $real_file || false === $real_directory || ! str_starts_with( $real_file, trailingslashit( $real_directory ) ) ) {
 		return false;
 	}
 
@@ -7502,7 +7524,7 @@ function mysql_to_rfc3339( $date_string ) {
  * @since 4.6.0
  *
  * @param string $context Optional. Context in which the function is called. Accepts either 'admin',
- *                        'image', or an arbitrary other context. If an arbitrary context is passed,
+ *                        'image', 'cron', or an arbitrary other context. If an arbitrary context is passed,
  *                        the similarly arbitrary {@see '$context_memory_limit'} filter will be
  *                        invoked. Default 'admin'.
  * @return int|string|false The limit that was set or false on failure.
@@ -7554,7 +7576,7 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			 * @since 3.5.0
 			 * @since 4.6.0 The default now takes the original `memory_limit` into account.
 			 *
-			 * @param int|string $filtered_limit Maximum memory limit to allocate for images.
+			 * @param int|string $filtered_limit Maximum memory limit to allocate for image processing.
 			 *                                   Default `WP_MAX_MEMORY_LIMIT` or the original
 			 *                                   php.ini `memory_limit`, whichever is higher.
 			 *                                   Accepts an integer (bytes), or a shorthand string
@@ -7563,9 +7585,24 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			$filtered_limit = apply_filters( 'image_memory_limit', $filtered_limit );
 			break;
 
+		case 'cron':
+			/**
+			 * Filters the memory limit allocated for WP-Cron event processing.
+			 *
+			 * @since 6.3.0
+			 *
+			 * @param int|string $filtered_limit Maximum memory limit to allocate for WP-Cron.
+			 *                                   Default `WP_MAX_MEMORY_LIMIT` or the original
+			 *                                   php.ini `memory_limit`, whichever is higher.
+			 *                                   Accepts an integer (bytes), or a shorthand string
+			 *                                   notation, such as '256M'.
+			 */
+			$filtered_limit = apply_filters( 'cron_memory_limit', $filtered_limit );
+			break;
+
 		default:
 			/**
-			 * Filters the memory limit allocated for arbitrary contexts.
+			 * Filters the memory limit allocated for an arbitrary context.
 			 *
 			 * The dynamic portion of the hook name, `$context`, refers to an arbitrary
 			 * context passed on calling the function. This allows for plugins to define
@@ -7573,8 +7610,8 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			 *
 			 * @since 4.6.0
 			 *
-			 * @param int|string $filtered_limit Maximum memory limit to allocate for images.
-			 *                                   Default '256M' or the original php.ini `memory_limit`,
+			 * @param int|string $filtered_limit Maximum memory limit to allocate for this context.
+			 *                                   Default WP_MAX_MEMORY_LIMIT` or the original php.ini `memory_limit`,
 			 *                                   whichever is higher. Accepts an integer (bytes), or a
 			 *                                   shorthand string notation, such as '256M'.
 			 */
@@ -7680,12 +7717,42 @@ function wp_unique_id( $prefix = '' ) {
 function wp_cache_get_last_changed( $group ) {
 	$last_changed = wp_cache_get( 'last_changed', $group );
 
-	if ( ! $last_changed ) {
-		$last_changed = microtime();
-		wp_cache_set( 'last_changed', $last_changed, $group );
+	if ( $last_changed ) {
+		return $last_changed;
 	}
 
-	return $last_changed;
+	return wp_cache_set_last_changed( $group );
+}
+
+/**
+ * Sets last changed date for the specified cache group to now.
+ *
+ * @since 6.3.0
+ *
+ * @param string $group Where the cache contents are grouped.
+ * @return string UNIX timestamp when the group was last changed.
+ */
+function wp_cache_set_last_changed( $group ) {
+	$previous_time = wp_cache_get( 'last_changed', $group );
+
+	$time = microtime();
+
+	wp_cache_set( 'last_changed', $time, $group );
+
+	/**
+	 * Fires after a cache group `last_changed` time is updated.
+	 * This may occur multiple times per page load and registered
+	 * actions must be performant.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string    $group         The cache group name.
+	 * @param int       $time          The new last changed time.
+	 * @param int|false $previous_time The previous last changed time. False if not previously set.
+	 */
+	do_action( 'wp_cache_set_last_changed', $group, $time, $previous_time );
+
+	return $time;
 }
 
 /**

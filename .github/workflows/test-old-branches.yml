@@ -12,10 +12,16 @@ on:
     - cron: '0 0 1 * *'
     - cron: '0 0 15 * *'
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 jobs:
   dispatch-workflows-for-old-branches:
     name: ${{ matrix.workflow }} for ${{ matrix.branch }}
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     strategy:
@@ -88,6 +94,9 @@ jobs:
   slack-notifications:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    permissions:
+      actions: read
+      contents: read
     needs: [ dispatch-workflows-for-old-branches ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:

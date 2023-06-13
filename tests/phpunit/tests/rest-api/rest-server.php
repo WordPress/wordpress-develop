@@ -937,7 +937,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * @ticket 56566
 	 */
 	public function test_link_embedding_returning_wp_error() {
-		$return_wp_error = function() {
+		$return_wp_error = static function() {
 			return new WP_Error( 'some-error', 'This is not valid!' );
 		};
 		add_filter( 'rest_pre_dispatch', $return_wp_error );
@@ -2188,7 +2188,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			array(
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
-					'callback'            => function() {
+					'callback'            => static function() {
 						return new \WP_REST_Response( INF );
 					},
 					'permission_callback' => '__return_true',
