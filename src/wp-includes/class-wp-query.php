@@ -1084,7 +1084,7 @@ class WP_Query {
 			}
 
 			if ( isset( $this->queried_object_id )
-				&& (int) get_option( 'wp_page_for_privacy_policy' ) == $this->queried_object_id
+				&& (int) get_option( 'wp_page_for_privacy_policy' ) === $this->queried_object_id
 			) {
 				$this->is_privacy_policy = true;
 			}
