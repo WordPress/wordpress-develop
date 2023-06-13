@@ -1147,7 +1147,6 @@ border color while dragging a file over the uploader drop area */
 .imgedit-popup-menu {
 	width: fit-content;
 	position: absolute;
-	z-index: 10;
 	left: calc( 100% + 4px );
 	top: -3px;
 }

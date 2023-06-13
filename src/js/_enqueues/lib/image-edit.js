@@ -234,8 +234,9 @@
 		var $target = $( '#' + $targetEl );
 		$el
 			.attr( 'aria-expanded', 'false' === $el.attr( 'aria-expanded' ) ? 'true' : 'false' );
+		// Open menu and set z-index to appear above image crop area if it is enabled.
 		$target
-			.toggleClass( 'imgedit-popup-menu-open' ).slideToggle( 'fast' );
+			.toggleClass( 'imgedit-popup-menu-open' ).slideToggle( 'fast' ).css( { 'z-index' : 200000 } );
 		// Move focus to first item in menu.
 		$target.find( 'button' ).first().trigger( 'focus' );
 
