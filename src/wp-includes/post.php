@@ -5741,7 +5741,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 			 * Loop through the given path parts from right to left,
 			 * ensuring each matches the post ancestry.
 			 */
-			while ( 0 !== $p->post_parent && isset( $pages[ $p->post_parent ] ) ) {
+			while ( '0' !== $p->post_parent && isset( $pages[ $p->post_parent ] ) ) {
 				$count++;
 				$parent = $pages[ $p->post_parent ];
 				if ( ! isset( $revparts[ $count ] ) || $parent->post_name !== $revparts[ $count ] ) {
@@ -5750,7 +5750,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 				$p = $parent;
 			}
 
-			if ( 0 === $p->post_parent && count( $revparts ) === $count + 1 && $p->post_name === $revparts[ $count ] ) {
+			if ( '0' === $p->post_parent && count( $revparts ) === $count + 1 && $p->post_name === $revparts[ $count ] ) {
 				$foundid = $page->ID;
 				if ( $page->post_type === $post_type ) {
 					break;
