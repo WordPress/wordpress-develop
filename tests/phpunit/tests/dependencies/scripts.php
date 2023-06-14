@@ -298,7 +298,7 @@ JS;
 			'one_delayed_dependent'                => array(
 				'set_up'     => static function () {
 					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
-					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'bar' ), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
 					return 'foo';
 				},
 				'async_only' => false,
