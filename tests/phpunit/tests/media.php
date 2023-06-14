@@ -3977,6 +3977,7 @@ EOF;
 	 * Tests that wp_filter_content_tags() does not add loading="lazy" to images
 	 * in a "Header" template part.
 	 *
+	 * @ticket 58235
 	 * @ticket 56930
 	 *
 	 * @covers ::wp_filter_content_tags
