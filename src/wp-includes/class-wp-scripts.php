@@ -1014,19 +1014,19 @@ JS;
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string   $handle     The script handle.
-	 * @param bool     $async_only Whether to limit to async strategy only.
-	 * @param string[] $checked    Optional. An array of already checked script handles, used to avoid recursive loops.
+	 * @param string              $handle     The script handle.
+	 * @param bool                $async_only Whether to limit to async strategy only.
+	 * @param array<string, true> $checked    Optional. An array of already checked script handles, used to avoid recursive loops.
 	 * @return bool True if all dependents are delayed, false otherwise.
 	 */
 	private function has_only_delayed_dependents( $handle, $async_only = false, $checked = array() ) {
-		// If this node was already checked, this script can be deferred and the branch ends.
-		if ( in_array( $handle, $checked, true ) ) {
+		// If this node was already checked, this script can be delayed and the branch ends.
+		if ( array_key_exists( $handle, $checked ) ) {
 			return true;
 		}
 
-		$checked[]  = $handle;
-		$dependents = $this->get_dependents( $handle );
+		$checked[ $handle ] = true;
+		$dependents         = $this->get_dependents( $handle );
 
 		// If there are no dependents remaining to consider, the script can be deferred.
 		if ( empty( $dependents ) ) {
@@ -1035,7 +1035,7 @@ JS;
 
 		// Consider each dependent and check if it is delayed.
 		foreach ( $dependents as $dependent ) {
-			// If the dependent script has no src, ignore it for consideration.
+			// If the dependent script has no src (as it represents a script bundle), ignore it for consideration.
 			if ( empty( $this->registered[ $dependent ]->src ) ) {
 				continue;
 			}
