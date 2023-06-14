@@ -13,7 +13,7 @@ require __DIR__ . '/wp-load.php';
 
 // Redirect to HTTPS login if forced to use SSL.
 if ( force_ssl_admin() && ! is_ssl() ) {
-	if ( 0 === strpos( $_SERVER['REQUEST_URI'], 'http' ) ) {
+	if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
 		wp_safe_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
 		exit;
 	} else {
@@ -23,7 +23,7 @@ if ( force_ssl_admin() && ! is_ssl() ) {
 }
 
 /**
- * Output the login page header.
+ * Outputs the login page header.
  *
  * @since 2.1.0
  *
@@ -107,7 +107,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	}
 
 	/**
-	 * Enqueue scripts and styles for the login page.
+	 * Enqueues scripts and styles for the login page.
 	 *
 	 * @since 3.1.0
 	 */
@@ -294,7 +294,7 @@ function login_footer( $input_id = '' ) {
 				)
 			);
 			/**
-			 * Filter the "Go to site" link displayed in the login page footer.
+			 * Filters the "Go to site" link displayed in the login page footer.
 			 *
 			 * @since 5.7.0
 			 *
