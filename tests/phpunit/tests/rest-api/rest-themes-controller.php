@@ -186,6 +186,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'theme_uri',
 			'version',
 		);
+		$this->assertIsArray( $data );
+		$this->assertNotEmpty( $data );
 		$this->assertSameSets( $fields, array_keys( $data[0] ) );
 	}
 
@@ -222,6 +224,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'theme_uri',
 			'version',
 		);
+		$this->assertIsArray( $data );
+		$this->assertNotEmpty( $data );
 		$this->assertSameSets( $fields, array_keys( $data[0] ) );
 
 		$this->assertContains( 'twentytwenty', wp_list_pluck( $data, 'stylesheet' ) );
