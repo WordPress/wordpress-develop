@@ -1088,7 +1088,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			unset( $attr['loading'] );
 		}
 
-		// If `fetchpriority` attribute is overridden and set to false.
+		// If the `fetchpriority` attribute is overridden and set to false or an empty string.
 		if ( isset( $attr['fetchpriority'] ) && ! $attr['fetchpriority'] ) {
 			unset( $attr['fetchpriority'] );
 		}
