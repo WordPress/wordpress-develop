@@ -3210,8 +3210,6 @@ EOF;
 
 	/**
 	 * @ticket 50756
-	 *
-	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_iframe_tag_add_loading_attr() {
 		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
@@ -3222,8 +3220,6 @@ EOF;
 
 	/**
 	 * @ticket 50756
-	 *
-	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_iframe_tag_add_loading_attr_without_src() {
 		$iframe = '<iframe width="640" height="360"></iframe>';
@@ -3234,8 +3230,6 @@ EOF;
 
 	/**
 	 * @ticket 50756
-	 *
-	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_iframe_tag_add_loading_attr_with_single_quotes() {
 		$iframe = "<iframe src='https://www.example.com' width='640' height='360'></iframe>";
@@ -3250,8 +3244,6 @@ EOF;
 
 	/**
 	 * @ticket 50756
-	 *
-	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_iframe_tag_add_loading_attr_opt_out() {
 		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
@@ -3865,10 +3857,6 @@ EOF;
 	 * @ticket 56930
 	 *
 	 * @covers ::wp_filter_content_tags
-	 * @covers ::wp_get_loading_attr_default
-	 *
-	 * @expectedDeprecated wp_get_loading_attr_default
-	 * @expectedDeprecated wp_img_tag_add_loading_attr
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_first_image_in_block_theme() {
 		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
@@ -3913,10 +3901,6 @@ EOF;
 	 * @ticket 58235
 	 *
 	 * @covers ::wp_filter_content_tags
-	 * @covers ::wp_get_loading_attr_default
-	 *
-	 * @expectedDeprecated wp_get_loading_attr_default
-	 * @expectedDeprecated wp_img_tag_add_loading_attr
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_first_featured_image_in_block_theme() {
 		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
@@ -3980,10 +3964,6 @@ EOF;
 	 * @ticket 56930
 	 *
 	 * @covers ::wp_filter_content_tags
-	 * @covers ::wp_get_loading_attr_default
-	 *
-	 * @expectedDeprecated wp_img_tag_add_loading_attr
-	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_images_in_header() {
 		global $_wp_current_template_content;
