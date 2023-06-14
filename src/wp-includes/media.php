@@ -1074,14 +1074,6 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			$context
 		);
 
-		// Remove `loading` optimization attribute if not enabled.
-		if ( ( isset( $loading_optimization_attr['loading'] ) && ! wp_lazy_loading_enabled( 'img', $context ) ) ||
-			// If `$attr['loading']` set to `false` then remove loading attribute.
-			( isset( $attr['loading'] ) && ! $attr['loading'] )
-		) {
-			unset( $loading_optimization_attr['loading'] );
-		}
-
 		// Add loading optimization attributes if not available.
 		$attr = array_merge( $attr, $loading_optimization_attr );
 
@@ -5723,23 +5715,24 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		return $loading_attrs;
 	}
 
-	if ( isset( $attr['loading'] ) && 'lazy' === $attr['loading'] ) {
-		if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority']
-		) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				__( 'An image should not be lazy-loaded and marked as high priority at the same time.' ),
-				'6.3.0'
-			);
+	if ( isset( $attr['loading'] ) ) {
+		if ( 'lazy' === $attr['loading'] ) {
+			$loading_attrs['loading'] = $attr['loading'];
+			if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority'] ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					__( 'An image should not be lazy-loaded and marked as high priority at the same time.' ),
+					'6.3.0'
+				);
+			}
 		}
 
-		$loading_attrs['loading'] = 'lazy';
-		return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
+		return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ), $context );
 	}
 
 	// An image with `fetchpriority="high"` cannot be assigned `loading="lazy"` at the same time.
 	if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority'] ) {
-		return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
+		return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ), $context );
 	}
 
 	/*
@@ -5748,7 +5741,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 */
 	$header_area = WP_TEMPLATE_PART_AREA_HEADER;
 	if ( "template_part_{$header_area}" === $context ) {
-		return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
+		return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ), $context );
 	}
 
 	// Special handling for programmatically created image tags.
@@ -5760,7 +5753,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		 * post content image being lazy-loaded only because there are images elsewhere in the post content.
 		 */
 		if ( doing_filter( 'the_content' ) ) {
-			return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
+			return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ), $context );
 		}
 
 		// Conditionally skip lazy-loading on images before the loop.
@@ -5774,7 +5767,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			 */
 			&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
 		) {
-			return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
+			return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ), $context );
 		}
 	}
 
@@ -5786,7 +5779,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		// Only elements within the main query loop have special handling.
 		if ( is_admin() || ! in_the_loop() || ! is_main_query() ) {
 			$loading_attrs['loading'] = 'lazy';
-			return $loading_attrs;
+			return wp_maybe_strip_loading_attribute( $loading_attrs, $context );
 		}
 
 		// Increase the counter since this is a main query content element.
@@ -5795,13 +5788,13 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		// If the count so far is below the threshold, `loading` attribute is omitted.
 		if ( $content_media_count <= wp_omit_loading_attr_threshold() ) {
 			// The first largest image will still get `fetchpriority='high'`.
-			return wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr );
+			return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ), $context );
 		}
 	}
 
 	// Lazy-load by default for any unknown context.
 	$loading_attrs['loading'] = 'lazy';
-	return $loading_attrs;
+	return wp_maybe_strip_loading_attribute( $loading_attrs, $context );
 }
 
 /**
@@ -5915,3 +5908,22 @@ function wp_high_priority_element_flag( $value = null ) {
 	}
 	return $high_priority_element;
 }
+
+/**
+ * Strips loading optimization attributes array of `loading` attribute if the `wp_lazy_loading_eabled` filter is disabled.
+ *
+ * @since 6.3.0
+ * @access private
+ *
+ * @param array  $loading_attrs Contains loading optimization attributes.
+ * @param string $context       Context for the element.
+ * @return array Stripped loading optimization attributes array if lazy loading is disabled.
+ */
+function wp_maybe_strip_loading_attribute( $loading_attrs, $context ) {
+	if ( isset( $loading_attrs['loading'] ) && ! wp_lazy_loading_enabled( 'img', $context ) ) {
+		unset( $loading_attrs['loading'] );
+	}
+	return $loading_attrs;
+}
+
+

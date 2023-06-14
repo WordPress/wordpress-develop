@@ -2839,9 +2839,6 @@ if ( ! function_exists( 'get_avatar' ) ) :
 
 		// Update args with loading optimized attributes.
 		$loading_optimization_attr = wp_get_loading_optimization_attributes( 'img', $args, 'get_avatar' );
-		if ( isset( $loading_optimization_attr['loading'] ) && ! wp_lazy_loading_enabled( 'img', 'get_avatar' ) ) {
-			unset( $loading_optimization_attr['loading'] );
-		}
 
 		$args = array_merge( $args, $loading_optimization_attr );
 
