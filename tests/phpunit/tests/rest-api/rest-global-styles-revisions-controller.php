@@ -64,12 +64,11 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 				'post_status'  => 'publish',
 				'post_title'   => __( 'Custom Styles', 'default' ),
 				'post_type'    => 'wp_global_styles',
-				'post_name'    => 'wp-global-styles-tt1-blocks',
+				'post_name'    => 'wp-global-styles-tt1-blocks-revisions',
 				'tax_input'    => array(
 					'wp_theme' => 'tt1-blocks',
 				),
-			),
-			true
+			)
 		);
 	}
 
