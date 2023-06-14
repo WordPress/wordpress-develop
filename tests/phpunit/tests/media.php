@@ -2438,6 +2438,7 @@ EOF;
 	}
 
 	/**
+	 * @ticket 58235
 	 * @ticket 35045
 	 * @ticket 33641
 	 * @requires function imagejpeg
@@ -2989,6 +2990,7 @@ EOF;
 	}
 
 	/**
+	 * @ticket 58235
 	 * @ticket 44427
 	 * @ticket 50367
 	 * @ticket 50756
@@ -3069,6 +3071,7 @@ EOF;
 	}
 
 	/**
+	 * @ticket 58235
 	 * @ticket 44427
 	 * @ticket 50756
 	 */
@@ -4033,6 +4036,7 @@ EOF;
 	}
 
 	/**
+	 * @ticket 58235
 	 * @ticket 58089
 	 *
 	 * @covers ::wp_filter_content_tags
