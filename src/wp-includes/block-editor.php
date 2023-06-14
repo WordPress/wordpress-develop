@@ -362,6 +362,89 @@ function _wp_get_iframed_editor_assets() {
 }
 
 /**
+ * Finds the first occurrence of a specific block in an array of blocks.
+ * 
+ * @since 6.3.0
+ *
+ * @param string $block_name Name of the block to find.
+ * @param array  $blocks     Array of blocks.
+ * @return array Found block, or empty array if none found.
+ */
+function _wp_find_first_block( $block_name, $blocks ) {
+	foreach ( $blocks as $block ) {
+		if ( $block_name === $block['blockName'] ) {
+			return $block;
+		}
+		if ( ! empty( $block['innerBlocks'] ) ) {
+			$found_block = _wp_find_first_block( $block_name, $block['innerBlocks'] );
+
+			if ( ! empty( $found_block ) ) {
+				return $found_block;
+			}
+		}
+	}
+
+	return array();
+}
+
+/**
+ * Adds styles and __experimentalFeatures to the block editor settings.
+ * 
+ * @since 6.3.0
+ *
+ * @return array Post Content block attributes or empty array if they don't exist.
+ */
+function _wp_get_post_content_block_attributes() {
+	$is_block_theme = wp_is_block_theme();
+
+	global $post_ID;
+
+	if ( ! $is_block_theme || ! $post_ID ) {
+		return array();
+	}
+
+	$template_slug = get_page_template_slug( $post_ID );
+
+	if ( ! $template_slug ) {
+		$post_slug      = 'singular';
+		$page_slug      = 'singular';
+		$template_types = get_block_templates();
+
+		foreach ( $template_types as $template_type ) {
+			if ( 'page' === $template_type->slug ) {
+				$page_slug = 'page';
+			}
+			if ( 'single' === $template_type->slug ) {
+				$post_slug = 'single';
+			}
+		}
+
+		$what_post_type = get_post_type( $post_ID );
+		switch ( $what_post_type ) {
+			case 'page':
+				$template_slug = $page_slug;
+				break;
+			default:
+				$template_slug = $post_slug;
+				break;
+		}
+	}
+
+	$current_template = get_block_templates( array( 'slug__in' => array( $template_slug ) ) );
+
+	if ( ! empty( $current_template ) ) {
+		$template_blocks    = parse_blocks( $current_template[0]->content );
+		$post_content_block = _wp_find_first_block( 'core/post-content', $template_blocks );
+
+		if ( ! empty( $post_content_block['attrs'] ) ) {
+			return $post_content_block['attrs'];
+		}
+	}
+
+	return array();
+}
+
+/**
  * Returns the contextualized block editor settings for a selected editor context.
  *
  * @since 5.8.0
@@ -528,6 +611,11 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 			)
 		),
 	);
+
+	$editor_settings['randomthing'] = 'test';
+	if ( ! empty( _wp_get_post_content_block_attributes() )) {
+		$editor_settings['postContentAttributes'] = _wp_get_post_content_block_attributes();
+	}
 
 	/**
 	 * Filters the settings to pass to the block editor for all editor type.
