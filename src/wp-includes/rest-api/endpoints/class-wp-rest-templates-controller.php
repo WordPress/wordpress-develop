@@ -614,6 +614,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Renamed `$template` to `$item` to match parent class for PHP 8 named parameter support.
+	 * @since 6.3.0 Added `modified` property to the response.
 	 *
 	 * @param WP_Block_Template $item    Template instance.
 	 * @param WP_REST_Request   $request Request object.
@@ -706,6 +707,19 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 		if ( rest_is_field_included( 'area', $fields ) && 'wp_template_part' === $template->type ) {
 			$data['area'] = $template->area;
+		}
+
+		if ( rest_is_field_included( 'author', $fields ) ) {
+			$data['author'] = (int) $template->author;
+		}
+
+		/*
+		 * Only add the template's modified date if it is available.
+		 * This is because the modified date is not available for template files,
+		 * i.e., templates that have not been saved as posts.
+		 */
+		if ( rest_is_field_included( 'modified', $fields ) && ! empty( $template->modified ) ) {
+			$data['modified'] = mysql_to_rfc3339( $template->modified );
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -925,6 +939,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'description' => __( 'The ID for the author of the template.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
+				),
+				'modified'       => array(
+					'description' => __( "The date the post was last modified, in the site's timezone." ),
+					'type'        => 'string',
+					'format'      => 'date-time',
+					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
 				),
 			),
 		);

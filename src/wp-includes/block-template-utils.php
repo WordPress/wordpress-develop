@@ -743,6 +743,7 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  * Builds a unified template object based a post Object.
  *
  * @since 5.9.0
+ * @since 6.3.0 Added `modified` property for saved templates.
  * @access private
  *
  * @param WP_Post $post Template post.
@@ -782,6 +783,7 @@ function _build_block_template_result_from_post( $post ) {
 	$template->has_theme_file = $has_theme_file;
 	$template->is_custom      = empty( $is_wp_suggestion );
 	$template->author         = $post->post_author;
+	$template->modified       = $post->post_modified;
 
 	if ( 'wp_template' === $post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
 		$template->post_types = $template_file['postTypes'];
