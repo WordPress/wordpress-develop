@@ -470,6 +470,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 			'(bool) false' => array( false ),
 			'null'         => array( null ),
 			'(int) 0'      => array( 0 ),
+			'(float) 0.0'  => array( 0.0 ),
 			'empty string' => array( '' ),
 			'(string) 0'   => array( '0' ),
 			'empty array'  => array( array() ),
