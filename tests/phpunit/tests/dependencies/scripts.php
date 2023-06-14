@@ -367,14 +367,14 @@ JS;
 				'async_only' => true,
 				'expected'   => false,
 			),
-			'async_not_only_with_defer_dependency' => array(
+			'not_async_only_with_defer_dependency' => array(
 				'set_up'     => static function () {
-					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array( 'baz' ), null, array( 'strategy' => 'async' ) );
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'async' ) );
 					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
 					return 'foo';
 				},
-				'expected'   => true,
 				'async_only' => false,
+				'expected'   => true,
 			),
 		);
 	}
