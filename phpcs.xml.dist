@@ -68,7 +68,9 @@
 
 				<!-- From DOMDocument. -->
 				<element value="childNodes"/>
+				<element value="firstChild"/>
 				<element value="formatOutput"/>
+				<element value="lastChild"/>
 				<element value="nodeName"/>
 				<element value="nodeType"/>
 				<element value="parentNode"/>
