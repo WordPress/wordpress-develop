@@ -74,6 +74,15 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
+	 * Removes users after our tests run.
+	 */
+	public static function wpTearDownAfterClass() {
+		self::delete_user( self::$admin_id );
+		self::delete_user( self::$second_admin_id );
+		self::delete_user( self::$author_id );
+	}
+
+	/**
 	 * @covers WP_REST_Global_Styles_Controller::register_routes
 	 */
 	public function test_register_routes() {
