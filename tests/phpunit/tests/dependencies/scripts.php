@@ -317,7 +317,7 @@ HTML
 	}
 
 	/**
-	 * Test inline scripts in the `after` position with delayed main script.
+	 * Tests that inline scripts in the `after` position, attached to delayed main scripts, remain unaffected.
 	 *
 	 * If the main script with delayed loading strategy has an `after` inline script,
 	 * the inline script should not be affected.
@@ -351,7 +351,7 @@ HTML
 	}
 
 	/**
-	 * Test inline scripts in the `after` position with blocking main script.
+	 * Tests that inline scripts in the `after` position, attached to a blocking main script, are rendered as javascript.
 	 *
 	 * If a main script with a `blocking` strategy has an `after` inline script,
 	 * the inline script should be rendered as type='text/javascript'.
@@ -380,9 +380,8 @@ HTML
 	}
 
 	/**
-	 * Test `before` inline scripts attached to delayed main scripts.
-	 *
-	 * If the main script has a `before` inline script, all dependents still be delayed.
+	 * Tests that inline scripts in the `before` position, attached to a delayed inline main script, results in all
+	 * dependents being delayed.
 	 *
 	 * @ticket 12009
 	 *
@@ -428,7 +427,7 @@ HTML
 	}
 
 	/**
-	 * Test valid async loading strategy case.
+	 * Tests that scripts registered with an async strategy print with the async attribute.
 	 *
 	 * @ticket 12009
 	 *
@@ -446,7 +445,7 @@ HTML
 	}
 
 	/**
-	 * Test delayed dependent with blocking dependency.
+	 * Tests that dependents of a blocking dependency script are free to contain any strategy.
 	 *
 	 * @ticket 12009
 	 *
@@ -468,7 +467,7 @@ HTML
 	}
 
 	/**
-	 * Test delayed dependency with blocking dependent.
+	 * Tests that blocking dependents force delayed dependencies to become blocking.
 	 *
 	 * @ticket 12009
 	 *
@@ -489,7 +488,7 @@ HTML
 	}
 
 	/**
-	 * Test delayed dependency with non enqueued blocking dependent.
+	 * Tests that only enqueued dependents effect the eligible loading strategy.
 	 *
 	 * @ticket 12009
 	 *
@@ -610,7 +609,7 @@ HTML
 	}
 
 	/**
-	 * Test that has_only_delayed_dependents works as expected.
+	 * Tests that the has_only_delayed_dependents method works as expected and returns the correct value.
 	 *
 	 * @ticket 12009
 	 *
@@ -1053,7 +1052,7 @@ HTML
 	}
 
 	/**
-	 * Test various strategy dependency chains.
+	 * Tests that various loading strategy dependency chains function as expected.
 	 *
 	 * @covers ::wp_enqueue_script()
 	 * @covers ::wp_add_inline_script()
@@ -1074,7 +1073,7 @@ HTML
 	}
 
 	/**
-	 * Test defer strategy when there are no dependents and no dependencies.
+	 * Tests that defer is the final strategy when registering a script using defer, that has no dependents/dependencies.
 	 *
 	 * @ticket 12009
 	 *
@@ -1090,7 +1089,7 @@ HTML
 	}
 
 	/**
-	 * Test that main script is defer and all dependencies are either defer/blocking.
+	 * Tests that a script registered with defer remains deferred when all dependencies are either deferred or blocking.
 	 *
 	 * @ticket 12009
 	 *
@@ -1109,7 +1108,7 @@ HTML
 	}
 
 	/**
-	 * Test that dependency remains defer when it has defer dependents.
+	 * Tests that scripts registered with defer remain deferred when all dependents are also deferred.
 	 *
 	 * @ticket 12009
 	 *
@@ -1128,7 +1127,7 @@ HTML
 	}
 
 	/**
-	 * Test valid defer loading with async dependent.
+	 * Tests that dependents that are async but attached to a deferred main script, print with defer as opposed to async.
 	 *
 	 * @ticket 12009
 	 *
@@ -1152,7 +1151,7 @@ HTML
 	}
 
 	/**
-	 * Test invalid defer loading strategy case.
+	 * Tests that scripts registered as defer become blocking when their dependents chain are all blocking.
 	 *
 	 * @ticket 12009
 	 *
@@ -1173,7 +1172,7 @@ HTML
 	}
 
 	/**
-	 * Test valid blocking loading strategy cases.
+	 * Tests that scripts registered as default/blocking remain as such when they have no dependencies.
 	 *
 	 * @ticket 12009
 	 *
@@ -1196,7 +1195,7 @@ HTML
 	}
 
 	/**
-	 * Test that scripts registered for the head do indeed end up there.
+	 * Tests that scripts registered for the head do indeed end up there.
 	 *
 	 * @ticket 12009
 	 *
@@ -1327,7 +1326,7 @@ HTML
 	}
 
 	/**
-	 * Test setting in_footer and strategy.
+	 * Tests that scripts print in the correct group (head/footer) when using in_footer and assigning a strategy.
 	 *
 	 * @ticket 12009
 	 *
@@ -1349,7 +1348,7 @@ HTML
 	}
 
 	/**
-	 * Test script strategy doing it wrong when calling wp_register_script().
+	 * Tests that scripts print with no strategy when an incorrect strategy is passed during wp_register_script.
 	 *
 	 * For an invalid strategy defined during script registration, default to a blocking strategy.
 	 *
@@ -1372,7 +1371,7 @@ HTML
 	}
 
 	/**
-	 * Test script strategy doing it wrong when calling wp_script_add_data().
+	 * Tests that scripts print with no strategy when an incorrect strategy is passed via wp_script_add_data().
 	 *
 	 * For an invalid strategy defined during script registration, default to a blocking strategy.
 	 *
@@ -1397,7 +1396,7 @@ HTML
 	}
 
 	/**
-	 * Test script strategy doing it wrong when calling wp_enqueue_script().
+	 * Tests that scripts print with no strategy when an incorrect strategy is passed during wp_enqueue_script.
 	 *
 	 * For an invalid strategy defined during script registration, default to a blocking strategy.
 	 *
@@ -1418,7 +1417,7 @@ HTML
 	}
 
 	/**
-	 * Test script concatenation with deferred main script.
+	 * Tests that scripts registered with a deferred strategy are not included in the script concat loading query.
 	 *
 	 * @ticket 12009
 	 *
@@ -1488,7 +1487,8 @@ HTML
 	}
 
 	/**
-	 * Test script concatenation with blocking scripts before and after a `defer` script.
+	 * Tests that script concatenation remains correct when a main script is registered as deferred after other blocking
+	 * scripts are registered.
 	 *
 	 * @ticket 12009
 	 *
@@ -1666,7 +1666,7 @@ HTML
 	}
 
 	/**
-	 * Testing `wp_script_add_data` with an anvalid key.
+	 * Testing `wp_script_add_data` with an invalid key.
 	 *
 	 * @ticket 16024
 	 */
