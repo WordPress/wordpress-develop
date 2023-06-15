@@ -178,10 +178,11 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
  * @param string $field_name Field name to pick from metadata.
  * @param int    $index      Optional. Index of the style to register when multiple items passed.
  *                           Default 0.
+ * @param  boolean $lookup Use realpath to resolve filepath.
  * @return string|false Style handle provided directly or created through
  *                      style's registration, or false on failure.
  */
-function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
+function register_block_style_handle( $metadata, $field_name, $index = 0, $lookup = true ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
 		return false;
 	}
@@ -223,7 +224,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	}
 
 	$style_path      = dirname( $metadata['file'] ) . '/' . $style_path;
-	$style_path_norm = file_exists( $style_path ) ? wp_normalize_path( realpath( $style_path ) ) : '';
+	$style_path_norm = $lookup && file_exists( $style_path ) ? wp_normalize_path( realpath( $style_path ) ) : '';
 	$has_style_file  = '' !== $style_path_norm;
 
 	if ( $has_style_file ) {
@@ -445,47 +446,33 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'editorStyle' => 'editor_style_handles',
 		'style'       => 'style_handles',
 	);
-	$version      = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 	foreach ( $style_fields as $metadata_field_name => $settings_field_name ) {
 		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
 			$styles           = $metadata[ $metadata_field_name ];
 			$processed_styles = array();
 			if ( is_array( $styles ) ) {
 				for ( $index = 0; $index < count( $styles ); $index++ ) {
-					if ( $is_core_block && in_array( $metadata_field_name, $default_styles, true ) ) {
-						$style_handle = generate_block_asset_handle( $metadata['name'], $metadata_field_name, $index );
-						$result       = wp_register_style(
-							$style_handle,
-							false,
-							array(),
-							$version
-						);
-					} else {
-						$result = register_block_style_handle(
-							$metadata,
-							$metadata_field_name,
-							$index
-						);
-					}
+					$lookup = ! in_array( $metadata_field_name, $default_styles, true );
+					$result = register_block_style_handle(
+						$metadata,
+						$metadata_field_name,
+						$index,
+						$lookup
+					);
+
 					if ( $result ) {
 						$processed_styles[] = $result;
 					}
 				}
 			} else {
-				if ( $is_core_block && in_array( $metadata_field_name, $default_styles, true ) ) {
-					$style_handle = generate_block_asset_handle( $metadata['name'], $metadata_field_name );
-					$result       = wp_register_style(
-						$style_handle,
-						false,
-						array(),
-						$version
-					);
-				} else {
-					$result = register_block_style_handle(
-						$metadata,
-						$metadata_field_name
-					);
-				}
+				$lookup = ! in_array( $metadata_field_name, $default_styles, true );
+				$result = register_block_style_handle(
+					$metadata,
+					$metadata_field_name,
+					0,
+					$lookup
+				);
+
 				if ( $result ) {
 					$processed_styles[] = $result;
 				}
