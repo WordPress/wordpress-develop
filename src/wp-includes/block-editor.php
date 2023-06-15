@@ -612,7 +612,6 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		),
 	);
 
-	$editor_settings['randomthing'] = 'test';
 	if ( ! empty( _wp_get_post_content_block_attributes() ) ) {
 		$editor_settings['postContentAttributes'] = _wp_get_post_content_block_attributes();
 	}
