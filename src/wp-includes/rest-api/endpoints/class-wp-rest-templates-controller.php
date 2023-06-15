@@ -709,10 +709,6 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$data['area'] = $template->area;
 		}
 
-		if ( rest_is_field_included( 'author', $fields ) ) {
-			$data['author'] = (int) $template->author;
-		}
-
 		if ( rest_is_field_included( 'modified', $fields ) ) {
 			$data['modified'] = mysql_to_rfc3339( $template->modified );
 		}
