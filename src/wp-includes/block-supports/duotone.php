@@ -48,8 +48,8 @@ add_action( 'wp_loaded', array( 'WP_Duotone', 'set_global_style_block_names' ), 
 add_filter( 'render_block', array( 'WP_Duotone', 'render_duotone_support' ), 10, 2 );
 
 // Enqueue styles.
-// Block styles (core-block-supports-inline-css) before the style engine (gutenberg_enqueue_stored_styles).
-// Global styles (global-styles-inline-css) after the other global styles (gutenberg_enqueue_global_styles).
+// Block styles (core-block-supports-inline-css) before the style engine (wp_enqueue_stored_styles).
+// Global styles (global-styles-inline-css) after the other global styles (wp_enqueue_global_styles).
 add_action( 'wp_enqueue_scripts', array( 'WP_Duotone', 'output_block_styles' ), 9 );
 add_action( 'wp_enqueue_scripts', array( 'WP_Duotone', 'output_global_styles' ), 11 );
 
