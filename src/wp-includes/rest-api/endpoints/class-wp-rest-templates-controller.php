@@ -941,7 +941,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'modified'       => array(
-					'description' => __( "The date the post was last modified, in the site's timezone." ),
+					'description' => __( "The date the template was last modified, in the site's timezone." ),
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
