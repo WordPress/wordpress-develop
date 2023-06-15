@@ -713,12 +713,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$data['author'] = (int) $template->author;
 		}
 
-		/*
-		 * Only add the template's modified date if it is available.
-		 * This is because the modified date is not available for template files,
-		 * i.e., templates that have not been saved as posts.
-		 */
-		if ( rest_is_field_included( 'modified', $fields ) && ! empty( $template->modified ) ) {
+		if ( rest_is_field_included( 'modified', $fields ) ) {
 			$data['modified'] = mysql_to_rfc3339( $template->modified );
 		}
 
