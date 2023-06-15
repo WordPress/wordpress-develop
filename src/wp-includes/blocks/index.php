@@ -39,22 +39,23 @@ function register_core_block_types_from_metadata() {
 					$style_handle,
 					false
 				);
-			} else {
-				$style_handle = $schema[ $style_field ];
-				if ( is_array( $style_handle ) ) {
-					continue;
-				}
-				$path = "/wp-includes/blocks/$name/style$suffix.css";
-				wp_register_style( $style_handle, $path );
-				wp_style_add_data( $style_handle, 'path', ABSPATH . $path );
-
-				$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", ABSPATH . $path );
-				if ( is_rtl() && file_exists( $rtl_file ) ) {
-					wp_style_add_data( $style_handle, 'rtl', 'replace' );
-					wp_style_add_data( $style_handle, 'suffix', $suffix );
-					wp_style_add_data( $style_handle, 'path', $rtl_file );
-				}
+				continue;
 			}
+			$style_handle = $schema[ $style_field ];
+			if ( is_array( $style_handle ) ) {
+				continue;
+			}
+			$path = "/wp-includes/blocks/$name/style$suffix.css";
+			wp_register_style( $style_handle, $path );
+			wp_style_add_data( $style_handle, 'path', ABSPATH . $path );
+
+			$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", ABSPATH . $path );
+			if ( is_rtl() && file_exists( $rtl_file ) ) {
+				wp_style_add_data( $style_handle, 'rtl', 'replace' );
+				wp_style_add_data( $style_handle, 'suffix', $suffix );
+				wp_style_add_data( $style_handle, 'path', $rtl_file );
+			}
+
 		}
 	}
 
