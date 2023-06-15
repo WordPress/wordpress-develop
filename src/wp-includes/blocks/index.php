@@ -34,7 +34,7 @@ function register_core_block_types_from_metadata() {
 	foreach ( $core_blocks_meta as $name => $schema ) {
 		foreach ( $style_fields as $style_field ) {
 			if ( ! isset( $schema[ $style_field ] ) ) {
-				$style_handle = 'style' === $style_field ? "wp-block-$name" : "wp-block-{$name}-editor";
+				$style_handle = 'style' === $style_field ? "wp-block-{$name}" : "wp-block-{$name}-editor";
 				wp_register_style(
 					$style_handle,
 					false
@@ -45,7 +45,7 @@ function register_core_block_types_from_metadata() {
 			if ( is_array( $style_handle ) ) {
 				continue;
 			}
-			$path = "/wp-includes/blocks/$name/style$suffix.css";
+			$path = "/wp-includes/blocks/$name/style{$suffix}.css";
 			wp_register_style( $style_handle, $path );
 			wp_style_add_data( $style_handle, 'path', ABSPATH . $path );
 
