@@ -40,6 +40,8 @@
  *
  * @see https://github.com/bgrins/TinyColor
  *
+ * @deprecated 6.3.0
+ *
  * @since 5.8.0
  * @access private
  *
@@ -48,6 +50,7 @@
  * @return float Value in the range [0, 1].
  */
 function wp_tinycolor_bound01( $n, $max ) {
+	_deprecated_function( __FUNCTION__, '6.3.0' );
 	if ( 'string' === gettype( $n ) && str_contains( $n, '.' ) && 1 === (float) $n ) {
 		$n = '100%';
 	}
@@ -74,6 +77,8 @@ function wp_tinycolor_bound01( $n, $max ) {
  *
  * @see https://github.com/bgrins/TinyColor
  *
+ * @deprecated 6.3.0
+ *
  * @since 5.9.0
  * @access private
  *
@@ -81,6 +86,8 @@ function wp_tinycolor_bound01( $n, $max ) {
  * @return float Value in the range [0,1].
  */
 function _wp_tinycolor_bound_alpha( $n ) {
+	_deprecated_function( __FUNCTION__, '6.3.0' );
+
 	if ( is_numeric( $n ) ) {
 		$n = (float) $n;
 		if ( $n >= 0 && $n <= 1 ) {
@@ -97,6 +104,8 @@ function _wp_tinycolor_bound_alpha( $n ) {
  * consistency with TinyColor.
  *
  * @see https://github.com/bgrins/TinyColor
+ * 
+ * @deprecated 6.3.0
  *
  * @since 5.8.0
  * @access private
@@ -105,6 +114,8 @@ function _wp_tinycolor_bound_alpha( $n ) {
  * @return array Rounded and converted RGB object.
  */
 function wp_tinycolor_rgb_to_rgb( $rgb_color ) {
+	_deprecated_function( __FUNCTION__, '6.3.0' );
+
 	return array(
 		'r' => wp_tinycolor_bound01( $rgb_color['r'], 255 ) * 255,
 		'g' => wp_tinycolor_bound01( $rgb_color['g'], 255 ) * 255,
@@ -119,6 +130,8 @@ function wp_tinycolor_rgb_to_rgb( $rgb_color ) {
  * consistency with TinyColor.
  *
  * @see https://github.com/bgrins/TinyColor
+ * 
+ * @deprecated 6.3.0
  *
  * @since 5.8.0
  * @access private
@@ -129,6 +142,8 @@ function wp_tinycolor_rgb_to_rgb( $rgb_color ) {
  * @return float R, G, or B component.
  */
 function wp_tinycolor_hue_to_rgb( $p, $q, $t ) {
+	_deprecated_function( __FUNCTION__, '6.3.0' );
+
 	if ( $t < 0 ) {
 		++$t;
 	}
@@ -155,6 +170,8 @@ function wp_tinycolor_hue_to_rgb( $p, $q, $t ) {
  *
  * @see https://github.com/bgrins/TinyColor
  *
+ * @deprecated 6.3.0
+ *
  * @since 5.8.0
  * @access private
  *
@@ -162,6 +179,8 @@ function wp_tinycolor_hue_to_rgb( $p, $q, $t ) {
  * @return array Rounded and converted RGB object.
  */
 function wp_tinycolor_hsl_to_rgb( $hsl_color ) {
+	_deprecated_function( __FUNCTION__, '6.3.0' );
+
 	$h = wp_tinycolor_bound01( $hsl_color['h'], 360 );
 	$s = wp_tinycolor_bound01( $hsl_color['s'], 100 );
 	$l = wp_tinycolor_bound01( $hsl_color['l'], 100 );
@@ -196,6 +215,8 @@ function wp_tinycolor_hsl_to_rgb( $hsl_color ) {
  * @see https://github.com/bgrins/TinyColor
  * @see https://github.com/casesandberg/react-color/
  *
+ * @deprecated 6.3.0
+ *
  * @since 5.8.0
  * @since 5.9.0 Added alpha processing.
  * @access private
@@ -204,6 +225,8 @@ function wp_tinycolor_hsl_to_rgb( $hsl_color ) {
  * @return array RGB object.
  */
 function wp_tinycolor_string_to_rgb( $color_str ) {
+	_deprecated_function( __FUNCTION__, '6.3.0' );
+
 	$color_str = strtolower( trim( $color_str ) );
 
 	$css_integer = '[-\\+]?\\d+%?';
@@ -393,80 +416,13 @@ function wp_get_duotone_filter_property( $preset ) {
  * @since 5.9.1
  * @access private
  *
+ * @deprecated 6.3.0
+ *
  * @param array $preset Duotone preset value as seen in theme.json.
  * @return string Duotone SVG filter.
  */
-function wp_get_duotone_filter_svg( $preset ) {
-	$filter_id = wp_get_duotone_filter_id( $preset );
-
-	$duotone_values = array(
-		'r' => array(),
-		'g' => array(),
-		'b' => array(),
-		'a' => array(),
-	);
-
-	if ( ! isset( $preset['colors'] ) || ! is_array( $preset['colors'] ) ) {
-		$preset['colors'] = array();
-	}
-
-	foreach ( $preset['colors'] as $color_str ) {
-		$color = wp_tinycolor_string_to_rgb( $color_str );
-
-		$duotone_values['r'][] = $color['r'] / 255;
-		$duotone_values['g'][] = $color['g'] / 255;
-		$duotone_values['b'][] = $color['b'] / 255;
-		$duotone_values['a'][] = $color['a'];
-	}
-
-	ob_start();
-
-	?>
-
-	<svg
-		xmlns="http://www.w3.org/2000/svg"
-		viewBox="0 0 0 0"
-		width="0"
-		height="0"
-		focusable="false"
-		role="none"
-		style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;"
-	>
-		<defs>
-			<filter id="<?php echo esc_attr( $filter_id ); ?>">
-				<feColorMatrix
-					color-interpolation-filters="sRGB"
-					type="matrix"
-					values="
-						.299 .587 .114 0 0
-						.299 .587 .114 0 0
-						.299 .587 .114 0 0
-						.299 .587 .114 0 0
-					"
-				/>
-				<feComponentTransfer color-interpolation-filters="sRGB" >
-					<feFuncR type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['r'] ) ); ?>" />
-					<feFuncG type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['g'] ) ); ?>" />
-					<feFuncB type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['b'] ) ); ?>" />
-					<feFuncA type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['a'] ) ); ?>" />
-				</feComponentTransfer>
-				<feComposite in2="SourceGraphic" operator="in" />
-			</filter>
-		</defs>
-	</svg>
-
-	<?php
-
-	$svg = ob_get_clean();
-
-	if ( ! SCRIPT_DEBUG ) {
-		// Clean up the whitespace.
-		$svg = preg_replace( "/[\r\n\t ]+/", ' ', $svg );
-		$svg = str_replace( '> <', '><', $svg );
-		$svg = trim( $svg );
-	}
-
-	return $svg;
+function wp_get_duotone_filter_svg( $preset ) {_deprecated_function( __FUNCTION__, '6.3.0' );
+	return WP_Duotone::get_filter_svg_from_preset( $preset );
 }
 
 /**
