@@ -29,7 +29,7 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 		self::$shared_terms = self::generate_shared_terms();
 
-		self::$term = self::factory()->term->create_and_get( array( 'taxonomy' => 'wptests_tax' ) );
+		self::$term = $factory->term->create_and_get( array( 'taxonomy' => 'wptests_tax' ) );
 	}
 
 	/**
