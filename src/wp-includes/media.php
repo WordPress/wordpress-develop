@@ -5926,7 +5926,7 @@ function wp_high_priority_element_flag( $value = null ) {
 }
 
 /**
- * Strips loading optimization attributes array of `loading` attribute if the `wp_lazy_loading_eabled` filter is disabled.
+ * Strips loading optimization attributes array of `loading` attribute if lazy-loading is disabled.
  *
  * @since 6.3.0
  * @access private
