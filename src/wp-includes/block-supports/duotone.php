@@ -116,7 +116,7 @@ function _wp_tinycolor_bound_alpha( $n ) {
  * consistency with TinyColor.
  *
  * @see https://github.com/bgrins/TinyColor
- * 
+ *
  * @deprecated 6.3.0
  *
  * @since 5.8.0
@@ -142,7 +142,7 @@ function wp_tinycolor_rgb_to_rgb( $rgb_color ) {
  * consistency with TinyColor.
  *
  * @see https://github.com/bgrins/TinyColor
- * 
+ *
  * @deprecated 6.3.0
  *
  * @since 5.8.0
@@ -392,7 +392,7 @@ function wp_tinycolor_string_to_rgb( $color_str ) {
  *
  * @since 5.9.1
  * @access private
- * 
+ *
  *  @deprecated 6.3.0
  *
  * @param array $preset Duotone preset value as seen in theme.json.
@@ -409,7 +409,7 @@ function wp_get_duotone_filter_id( $preset ) {
  * @since 5.9.0
  * @since 6.1.0 Allow unset for preset colors.
  * @access private
- * 
+ *
  * @deprecated 6.3.0
  *
  * @param array $preset Duotone preset value as seen in theme.json.
@@ -431,7 +431,8 @@ function wp_get_duotone_filter_property( $preset ) {
  * @param array $preset Duotone preset value as seen in theme.json.
  * @return string Duotone SVG filter.
  */
-function wp_get_duotone_filter_svg( $preset ) {_deprecated_function( __FUNCTION__, '6.3.0' );
+function wp_get_duotone_filter_svg( $preset ) {
+	_deprecated_function( __FUNCTION__, '6.3.0' );
 	return WP_Duotone::get_filter_svg_from_preset( $preset );
 }
 
@@ -440,7 +441,7 @@ function wp_get_duotone_filter_svg( $preset ) {_deprecated_function( __FUNCTION_
  *
  * @since 5.8.0
  * @access private
- * 
+ *
  * @deprecated 6.3.0 Use WP_Duotone::register_duotone_support() instead.
  *
  * @param WP_Block_Type $block_type Block Type.
@@ -456,7 +457,7 @@ function wp_register_duotone_support( $block_type ) {
  * @since 5.8.0
  * @since 6.1.0 Allow unset for preset colors.
  * @access private
- * 
+ *
  * @deprecated 6.3.0 Use WP_Duotone::render_duotone_support() instead.
  *
  * @param string $block_content Rendered block content.

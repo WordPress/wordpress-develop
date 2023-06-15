@@ -478,7 +478,7 @@ class WP_Duotone {
 	 * @return string The CSS variable name.
 	 */
 	private static function get_css_custom_property_name( $slug ) {
-		return  "--wp--preset--duotone--$slug";
+		return "--wp--preset--duotone--$slug";
 	}
 
 	/**
@@ -488,7 +488,7 @@ class WP_Duotone {
 	 * @return string The ID of the duotone filter.
 	 */
 	private static function get_filter_id( $slug ) {
-		return  "wp-duotone-$slug";
+		return "wp-duotone-$slug";
 	}
 
 	/**
@@ -668,7 +668,7 @@ class WP_Duotone {
 			$colors            = $filter_data['colors'];
 			$css_property_name = self::get_css_custom_property_name( $slug );
 			$declaration_value = is_string( $colors ) ? $colors : self::get_filter_url( $filter_id );
-			$css .= "$css_property_name:$declaration_value;";
+			$css              .= "$css_property_name:$declaration_value;";
 		}
 		$css .= '}';
 		return $css;
@@ -856,7 +856,7 @@ class WP_Duotone {
 
 	/**
 	 * Render out the duotone CSS styles and SVG.
-	 * 
+	 *
 	 * @since 6.3.0
 	 *
 	 * @param  string $block_content Rendered block content.
@@ -1021,7 +1021,7 @@ class WP_Duotone {
 	/**
 	 * Migrate the old experimental duotone support flag to its stabilized location
 	 * under `supports.filter.duotone` and sets.
-	 * 
+	 *
 	 * @since 6.3.0
 	 *
 	 * @param array $settings Current block type settings.
@@ -1038,7 +1038,7 @@ class WP_Duotone {
 
 		return $settings;
 	}
-	
+
 	/**
 	 * Gets the CSS filter property value from a preset.
 	 *
