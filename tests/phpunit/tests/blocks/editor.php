@@ -397,6 +397,42 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58534
+	 */
+	public function test_wp_get_first_block() {
+		$block_name                  = 'core/paragraph';
+		$blocks                      = array(
+			array(
+				'blockName' => 'core/image',
+			),
+			array(
+				'blockName' => $block_name,
+				'attrs'	    => array(
+					'content' => 'Hello World!',
+				),
+			),
+			array(
+				'blockName' => 'core/heading',
+			),
+			array(
+				'blockName' => $block_name,
+			),
+		);
+		$blocks_with_no_paragraph     = array(
+			array(
+				'blockName' => 'core/image',
+			),
+			array(
+				'blockName' => 'core/heading',
+			),
+		);
+
+		$this->assertSame( $blocks[1], wp_get_first_block( $block_name, $blocks ) );
+
+		$this->assertSame( array(), wp_get_first_block( $block_name, $blocks_with_no_paragraph ) );
+	}
+
+	/**
 	 * @ticket 53458
 	 */
 	public function test_get_block_editor_settings_theme_json_settings() {
