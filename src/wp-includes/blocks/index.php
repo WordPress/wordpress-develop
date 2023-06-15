@@ -13,12 +13,11 @@ require BLOCKS_PATH . 'widget-group.php';
 require BLOCKS_PATH . 'require-dynamic-blocks.php';
 
 /**
- * Registers core block types using metadata files.
- * Dynamic core blocks are registered separately.
+ * Registers core block types styles.
  *
- * @since 5.5.0
+ * @since 6.3.0
  */
-function register_core_block_types_from_metadata() {
+function register_core_block_types_styles() {
 	static $core_blocks_meta;
 	if ( ! $core_blocks_meta ) {
 		$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
@@ -58,7 +57,16 @@ function register_core_block_types_from_metadata() {
 
 		}
 	}
+}
+add_action( 'init', 'register_core_block_types_styles', 9 );
 
+/**
+ * Registers core block types using metadata files.
+ * Dynamic core blocks are registered separately.
+ *
+ * @since 5.5.0
+ */
+function register_core_block_types_from_metadata() {
 	$block_folders = require BLOCKS_PATH . 'require-static-blocks.php';
 	foreach ( $block_folders as $block_folder ) {
 		register_block_type_from_metadata(
