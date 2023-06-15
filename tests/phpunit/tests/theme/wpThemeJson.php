@@ -3698,6 +3698,54 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertSame( $expected, $root_rules . $style_rules );
 	}
 
+	/*
+	 * @ticket 58462
+	 */
+	public function test_sanitize_for_unregistered_style_variations() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => 2,
+				'styles'  => array(
+					'blocks' => array(
+						'core/quote' => array(
+							'variations' => array(
+								'unregisteredVariation' => array(
+									'color' => array(
+										'background' => 'hotpink',
+									),
+								),
+								'plain'                 => array(
+									'color' => array(
+										'background' => 'hotpink',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$sanitized_theme_json = $theme_json->get_raw_data();
+		$expected             = array(
+			'version' => 2,
+			'styles'  => array(
+				'blocks' => array(
+					'core/quote' => array(
+						'variations' => array(
+							'plain' => array(
+								'color' => array(
+									'background' => 'hotpink',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+		$this->assertSameSetsWithIndex( $expected, $sanitized_theme_json, 'Sanitized theme.json styles does not match' );
+	}
+
 	/**
 	 * @ticket 57583
 	 *
@@ -3732,7 +3780,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 */
 	public function data_sanitize_for_block_with_style_variations() {
 		return array(
-			'1 variation with 1 invalid property'   => array(
+			'1 variation with 1 valid property'     => array(
 				'theme_json_variations' => array(
 					'variations' => array(
 						'plain' => array(
@@ -3775,44 +3823,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 								'plain' => array(
 									'color' => array(
 										'background' => 'hotpink',
-									),
-								),
-							),
-						),
-					),
-				),
-			),
-			'2 variations with 1 invalid property'  => array(
-				'theme_json_variations' => array(
-					'variations' => array(
-						'plain' => array(
-							'color'            => array(
-								'background' => 'hotpink',
-							),
-							'invalidProperty1' => 'value1',
-						),
-						'basic' => array(
-							'color' => array(
-								'background' => '#ffffff',
-								'text'       => '#000000',
-							),
-							'foo'   => 'bar',
-						),
-					),
-				),
-				'expected_sanitized'    => array(
-					'blocks' => array(
-						'core/quote' => array(
-							'variations' => array(
-								'plain' => array(
-									'color' => array(
-										'background' => 'hotpink',
-									),
-								),
-								'basic' => array(
-									'color' => array(
-										'background' => '#ffffff',
-										'text'       => '#000000',
 									),
 								),
 							),
@@ -3913,13 +3923,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 			'styles'   => '.is-style-plain.is-style-plain.wp-block-quote{background-color: hotpink;}',
 		);
-		$basic = array(
-			'metadata' => array(
-				'path'     => array( 'styles', 'blocks', 'core/quote', 'variations', 'basic' ),
-				'selector' => '.is-style-basic.is-style-basic.wp-block-quote',
-			),
-			'styles'   => '.is-style-basic.is-style-basic.wp-block-quote{background-color: #ffffff;color: #000000;}',
-		);
 
 		return array(
 			'1 variation with 1 invalid property'   => array(
@@ -3949,51 +3952,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 				'metadata_variation'    => array( $plain['metadata'] ),
 				'expected'              => $plain['styles'],
-			),
-			'2 variations with 1 invalid property'  => array(
-				'theme_json_variations' => array(
-					'variations' => array(
-						'plain' => array(
-							'color'            => array(
-								'background' => 'hotpink',
-							),
-							'invalidProperty1' => 'value1',
-						),
-						'basic' => array(
-							'color' => array(
-								'background' => '#ffffff',
-								'text'       => '#000000',
-							),
-							'foo'   => 'bar',
-						),
-					),
-				),
-				'metadata_variation'    => array( $plain['metadata'], $basic['metadata'] ),
-				'expected_styles'       => $plain['styles'] . $basic['styles'],
-			),
-			'2 variations with multiple invalid properties' => array(
-				'theme_json_variations' => array(
-					'variations' => array(
-						'plain' => array(
-							'color'            => array(
-								'background' => 'hotpink',
-							),
-							'invalidProperty1' => 'value1',
-							'invalidProperty2' => 'value2',
-						),
-						'basic' => array(
-							'foo'   => 'foo',
-							'color' => array(
-								'background' => '#ffffff',
-								'text'       => '#000000',
-							),
-							'bar'   => 'bar',
-							'baz'   => 'baz',
-						),
-					),
-				),
-				'metadata_variation'    => array( $plain['metadata'], $basic['metadata'] ),
-				'expected_styles'       => $plain['styles'] . $basic['styles'],
 			),
 		);
 	}
