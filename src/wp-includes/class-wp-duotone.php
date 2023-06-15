@@ -809,7 +809,7 @@ class WP_Duotone {
 	 */
 	public static function set_global_styles_presets() {
 		// Get the per block settings from the theme.json.
-		$tree              = gutenberg_get_global_settings();
+		$tree              = wp_get_global_settings();
 		$presets_by_origin = _wp_array_get( $tree, array( 'color', 'duotone' ), array() );
 
 		foreach ( $presets_by_origin as $presets ) {
@@ -828,7 +828,7 @@ class WP_Duotone {
 	 */
 	public static function set_global_style_block_names() {
 		// Get the per block settings from the theme.json.
-		$tree        = WP_Theme_JSON_Resolver_Gutenberg::get_merged_data();
+		$tree        = WP_Theme_JSON_Resolver::get_merged_data();
 		$block_nodes = $tree->get_styles_block_nodes();
 		$theme_json  = $tree->get_raw_data();
 
@@ -943,7 +943,7 @@ class WP_Duotone {
 	 */
 	public static function output_block_styles() {
 		if ( ! empty( self::$block_css_declarations ) ) {
-			gutenberg_style_engine_get_stylesheet_from_css_rules(
+			wp_style_engine_get_stylesheet_from_css_rules(
 				self::$block_css_declarations,
 				array(
 					'context' => 'block-supports',
