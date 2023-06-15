@@ -1619,43 +1619,6 @@ function wp_default_styles( $styles ) {
 		array()
 	);
 
-	static $core_blocks_meta;
-	if ( ! $core_blocks_meta ) {
-		$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
-	}
-
-	$style_fields = array(
-		'editorStyle',
-		'style',
-	);
-
-	foreach ( $core_blocks_meta as $name => $schema ) {
-		foreach ( $style_fields as $style_field ) {
-			if ( ! isset( $schema[ $style_field ] ) ) {
-				$style_handle = 'style' === $style_field ? "wp-block-$name" : "wp-block-{$name}-editor";
-				$styles->add(
-					$style_handle,
-					false
-				);
-			} else {
-				$style_handle = $schema[ $style_field ];
-				if ( is_array( $style_handle ) ) {
-					continue;
-				}
-				$path = "/wp-includes/blocks/$name/style$suffix.css";
-				$styles->add( $style_handle, $path );
-				$styles->add_data( $style_handle, 'path', ABSPATH . $path );
-
-				$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", ABSPATH . $path );
-				if ( 'rtl' === $styles->text_direction && file_exists( $rtl_file ) ) {
-					$styles->add_data( $style_handle, 'rtl', 'replace' );
-					$styles->add_data( $style_handle, 'suffix', $suffix );
-					$styles->add_data( $style_handle, 'path', $rtl_file );
-				}
-			}
-		}
-	}
-
 	$wp_edit_blocks_dependencies = array(
 		'wp-components',
 		'wp-editor',
