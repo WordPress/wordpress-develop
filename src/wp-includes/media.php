@@ -2228,8 +2228,8 @@ function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
 			 * TODO: Use WP_HTML_Tag_Processor to extract actual values once support is
 			 * added.
 			 */
-			'width'   => false === strpos( $iframe, ' width="' ) ? null : 100,
-			'height'  => false === strpos( $iframe, ' height="' ) ? null : 100,
+			'width'   => str_contains( $iframe, ' width="' ) ? 100 : null,
+			'height'  => str_contains( $iframe, ' height="' ) ? 100 : null,
 			// This function is never called when a 'loading' attribute is already present.
 			'loading' => null,
 		),
