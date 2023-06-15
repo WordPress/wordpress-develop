@@ -533,7 +533,7 @@ class WP_Duotone {
 			if ( null === $color ) {
 				$error_message = sprintf(
 					/* translators: %s: duotone colors */
-					__( '"%s" in theme.json settings.color.duotone is not a hex or rgb string.', 'gutenberg' ),
+					__( '"%s" in theme.json settings.color.duotone is not a hex or rgb string.' ),
 					$color_str
 				);
 				_doing_it_wrong( __METHOD__, $error_message, '6.3.0' );
@@ -727,7 +727,7 @@ class WP_Duotone {
 		if ( ! array_key_exists( $filter_id, self::$global_styles_presets ) ) {
 			$error_message = sprintf(
 				/* translators: %s: duotone filter ID */
-				__( 'The duotone id "%s" is not registered in theme.json settings', 'gutenberg' ),
+				__( 'The duotone id "%s" is not registered in theme.json settings' ),
 				$filter_id
 			);
 			_doing_it_wrong( __METHOD__, $error_message, '6.3.0' );
