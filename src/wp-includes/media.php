@@ -1980,7 +1980,6 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
  *
  * @param string $image   The HTML `img` tag where the attribute should be added.
  * @param string $context Additional context to pass to the filters.
- *
  * @return string Converted `img` tag with optimization attributes added.
  */
 function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
@@ -2219,12 +2218,29 @@ function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
 
 	// Get loading attribute value to use. This must occur before the conditional check below so that even iframes that
 	// are ineligible for being lazy-loaded are considered.
-	$value = wp_get_loading_attr_default( $context );
+	$optimization_attrs = wp_get_loading_optimization_attributes(
+		'iframe',
+		array(
+			/**
+			 * The concrete values for width and height are not important here for now
+			 * since fetchpriority is not yet supported for iframes.
+			 * TODO: Use WP_HTML_Tag_Processor to extract actual values once support is
+			 * added.
+			 */
+			'width'   => false === strpos( $iframe, ' width="' ) ? null : 100,
+			'height'  => false === strpos( $iframe, ' height="' ) ? null : 100,
+			// This function is never called when a 'loading' attribute is already present.
+			'loading' => null,
+		),
+		$context
+	);
 
 	// Iframes should have source and dimension attributes for the `loading` attribute to be added.
 	if ( false === strpos( $iframe, ' src="' ) || false === strpos( $iframe, ' width="' ) || false === strpos( $iframe, ' height="' ) ) {
 		return $iframe;
 	}
+
+	$value = isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false;
 
 	/**
 	 * Filters the `loading` attribute value to add to an iframe. Default `lazy`.
@@ -4600,13 +4616,11 @@ function wp_enqueue_media( $args = array() ) {
 	$show_audio_playlist = apply_filters( 'media_library_show_audio_playlist', true );
 	if ( null === $show_audio_playlist ) {
 		$show_audio_playlist = $wpdb->get_var(
-			"
-			SELECT ID
+			"SELECT ID
 			FROM $wpdb->posts
 			WHERE post_type = 'attachment'
 			AND post_mime_type LIKE 'audio%'
-			LIMIT 1
-		"
+			LIMIT 1"
 		);
 	}
 
@@ -4630,13 +4644,11 @@ function wp_enqueue_media( $args = array() ) {
 	$show_video_playlist = apply_filters( 'media_library_show_video_playlist', true );
 	if ( null === $show_video_playlist ) {
 		$show_video_playlist = $wpdb->get_var(
-			"
-			SELECT ID
+			"SELECT ID
 			FROM $wpdb->posts
 			WHERE post_type = 'attachment'
 			AND post_mime_type LIKE 'video%'
-			LIMIT 1
-		"
+			LIMIT 1"
 		);
 	}
 
@@ -4659,12 +4671,10 @@ function wp_enqueue_media( $args = array() ) {
 	if ( ! is_array( $months ) ) {
 		$months = $wpdb->get_results(
 			$wpdb->prepare(
-				"
-			SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
-			FROM $wpdb->posts
-			WHERE post_type = %s
-			ORDER BY post_date DESC
-		",
+				"SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
+				FROM $wpdb->posts
+				WHERE post_type = %s
+				ORDER BY post_date DESC",
 				'attachment'
 			)
 		);
@@ -5705,8 +5715,8 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		return $loading_attrs;
 	}
 
-	// For now this function only supports images.
-	if ( 'img' !== $tag_name ) {
+	// For now this function only supports images and iframes.
+	if ( 'img' !== $tag_name && 'iframe' !== $tag_name ) {
 		return $loading_attrs;
 	}
 
@@ -5727,12 +5737,12 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			}
 		}
 
-		return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ), $context );
+		return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr ), $tag_name, $context );
 	}
 
 	// An image with `fetchpriority="high"` cannot be assigned `loading="lazy"` at the same time.
 	if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority'] ) {
-		return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ), $context );
+		return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr ), $tag_name, $context );
 	}
 
 	/*
@@ -5741,7 +5751,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 */
 	$header_area = WP_TEMPLATE_PART_AREA_HEADER;
 	if ( "template_part_{$header_area}" === $context ) {
-		return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ), $context );
+		return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr ), $tag_name, $context );
 	}
 
 	// Special handling for programmatically created image tags.
@@ -5753,7 +5763,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		 * post content image being lazy-loaded only because there are images elsewhere in the post content.
 		 */
 		if ( doing_filter( 'the_content' ) ) {
-			return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ), $context );
+			return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr ), $tag_name, $context );
 		}
 
 		// Conditionally skip lazy-loading on images before the loop.
@@ -5767,7 +5777,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			 */
 			&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
 		) {
-			return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ), $context );
+			return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr ), $tag_name, $context );
 		}
 	}
 
@@ -5779,7 +5789,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		// Only elements within the main query loop have special handling.
 		if ( is_admin() || ! in_the_loop() || ! is_main_query() ) {
 			$loading_attrs['loading'] = 'lazy';
-			return wp_maybe_strip_loading_attribute( $loading_attrs, $context );
+			return wp_maybe_strip_loading_attribute( $loading_attrs, $tag_name, $context );
 		}
 
 		// Increase the counter since this is a main query content element.
@@ -5788,13 +5798,13 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		// If the count so far is below the threshold, `loading` attribute is omitted.
 		if ( $content_media_count <= wp_omit_loading_attr_threshold() ) {
 			// The first largest image will still get `fetchpriority='high'`.
-			return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ), $context );
+			return wp_maybe_strip_loading_attribute( wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr ), $tag_name, $context );
 		}
 	}
 
 	// Lazy-load by default for any unknown context.
 	$loading_attrs['loading'] = 'lazy';
-	return wp_maybe_strip_loading_attribute( $loading_attrs, $context );
+	return wp_maybe_strip_loading_attribute( $loading_attrs, $tag_name, $context );
 }
 
 /**
@@ -5854,11 +5864,17 @@ function wp_increase_content_media_count( $amount = 1 ) {
  * @since 6.3.0
  * @access private
  *
- * @param array $loading_attrs Array of the loading optimization attributes for the element.
- * @param array $attr          Array of the attributes for the element.
+ * @param array  $loading_attrs Array of the loading optimization attributes for the element.
+ * @param string $tag_name      The tag name.
+ * @param array  $attr          Array of the attributes for the element.
  * @return array Updated loading optimization attributes for the element.
  */
-function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $attr ) {
+function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr ) {
+	// For now, adding `fetchpriority="high"` is only supported for images.
+	if ( 'img' !== $tag_name ) {
+		return $loading_attrs;
+	}
+
 	if ( isset( $attr['fetchpriority'] ) ) {
 		if ( 'high' === $attr['fetchpriority'] ) {
 			$loading_attrs['fetchpriority'] = 'high';
@@ -5916,11 +5932,12 @@ function wp_high_priority_element_flag( $value = null ) {
  * @access private
  *
  * @param array  $loading_attrs Contains loading optimization attributes.
+ * @param string $tag_name      The tag name.
  * @param string $context       Context for the element.
  * @return array Stripped loading optimization attributes array if lazy loading is disabled.
  */
-function wp_maybe_strip_loading_attribute( $loading_attrs, $context ) {
-	if ( isset( $loading_attrs['loading'] ) && ! wp_lazy_loading_enabled( 'img', $context ) ) {
+function wp_maybe_strip_loading_attribute( $loading_attrs, $tag_name, $context ) {
+	if ( isset( $loading_attrs['loading'] ) && ! wp_lazy_loading_enabled( $tag_name, $context ) ) {
 		unset( $loading_attrs['loading'] );
 	}
 	return $loading_attrs;
