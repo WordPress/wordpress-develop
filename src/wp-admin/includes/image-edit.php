@@ -392,7 +392,7 @@ function wp_stream_image( $image, $mime_type, $attachment_id ) {
 					header( 'Content-Type: image/avif' );
 					return imageavif( $image, null, 90 );
 				}
-			return false;
+				return false;
 			default:
 				return false;
 		}
