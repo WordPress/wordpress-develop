@@ -407,7 +407,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			),
 			array(
 				'blockName' => $block_name,
-				'attrs'	    => array(
+				'attrs'     => array(
 					'content' => 'Hello World!',
 				),
 			),
