@@ -32,6 +32,39 @@
  * @since 5.8.0
  */
 
+// Register duotone block supports.
+WP_Block_Supports::get_instance()->register(
+	'duotone',
+	array(
+		'register_attribute' => array( 'WP_Duotone', 'register_duotone_support' ),
+	)
+);
+
+// Set up metadata prior to rendering any blocks.
+add_action( 'wp_loaded', array( 'WP_Duotone', 'set_global_styles_presets' ), 10 );
+add_action( 'wp_loaded', array( 'WP_Duotone', 'set_global_style_block_names' ), 10 );
+
+// Remove WordPress core filter to avoid rendering duplicate support elements.
+remove_filter( 'render_block', 'wp_render_duotone_support', 10, 2 );
+add_filter( 'render_block', array( 'WP_Duotone', 'render_duotone_support' ), 10, 2 );
+
+// Enqueue styles.
+// Global styles (global-styles-inline-css) after the other global styles (wp_enqueue_global_styles).
+add_action( 'wp_enqueue_scripts', array( 'WP_Duotone', 'output_global_styles' ), 11 );
+
+// Add SVG filters to the footer. Also, for classic themes, output block styles (core-block-supports-inline-css).
+add_action( 'wp_footer', array( 'WP_Duotone', 'output_footer_assets' ), 10 );
+
+// Add styles and SVGs for use in the editor via the EditorStyles component.
+add_filter( 'block_editor_settings_all', array( 'WP_Duotone', 'add_editor_settings' ), 10 );
+
+// Migrate the old experimental duotone support flag.
+add_filter( 'block_type_metadata_settings', array( 'WP_Duotone', 'migrate_experimental_duotone_support_flag' ), 10, 2 );
+
+/*
+ * Deprecated functions below. All new functions should be added in class-wp-duotone.php.
+ */
+
 /**
  * Takes input from [0, n] and returns it as [0, 1].
  *
@@ -380,16 +413,15 @@ function wp_tinycolor_string_to_rgb( $color_str ) {
  *
  * @since 5.9.1
  * @access private
+ * 
+ *  @deprecated 6.3.0
  *
  * @param array $preset Duotone preset value as seen in theme.json.
  * @return string Duotone filter CSS id.
  */
 function wp_get_duotone_filter_id( $preset ) {
-	if ( ! isset( $preset['slug'] ) ) {
-		return '';
-	}
-
-	return 'wp-duotone-' . $preset['slug'];
+	_deprecated_function( __FUNCTION__, '6.3.0' );
+	return WP_Duotone::get_filter_id_from_preset( $preset );
 }
 
 /**
@@ -398,16 +430,15 @@ function wp_get_duotone_filter_id( $preset ) {
  * @since 5.9.0
  * @since 6.1.0 Allow unset for preset colors.
  * @access private
+ * 
+ * @deprecated 6.3.0
  *
  * @param array $preset Duotone preset value as seen in theme.json.
  * @return string Duotone CSS filter property url value.
  */
 function wp_get_duotone_filter_property( $preset ) {
-	if ( isset( $preset['colors'] ) && 'unset' === $preset['colors'] ) {
-		return 'none';
-	}
-	$filter_id = wp_get_duotone_filter_id( $preset );
-	return "url('#" . $filter_id . "')";
+	_deprecated_function( __FUNCTION__, '6.3.0' );
+	return WP_Duotone::get_filter_css_property_value_from_preset( $preset );
 }
 
 /**
@@ -430,26 +461,14 @@ function wp_get_duotone_filter_svg( $preset ) {_deprecated_function( __FUNCTION_
  *
  * @since 5.8.0
  * @access private
+ * 
+ * @deprecated 6.3.0 Use WP_Duotone::register_duotone_support() instead.
  *
  * @param WP_Block_Type $block_type Block Type.
  */
 function wp_register_duotone_support( $block_type ) {
-	$has_duotone_support = false;
-	if ( property_exists( $block_type, 'supports' ) ) {
-		$has_duotone_support = _wp_array_get( $block_type->supports, array( 'color', '__experimentalDuotone' ), false );
-	}
-
-	if ( $has_duotone_support ) {
-		if ( ! $block_type->attributes ) {
-			$block_type->attributes = array();
-		}
-
-		if ( ! array_key_exists( 'style', $block_type->attributes ) ) {
-			$block_type->attributes['style'] = array(
-				'type' => 'object',
-			);
-		}
-	}
+	_deprecated_function( __FUNCTION__, '6.3.0', 'WP_Duotone::register_duotone_support' );
+	return WP_Duotone::register_duotone_support( $block_type );
 }
 
 /**
@@ -458,6 +477,8 @@ function wp_register_duotone_support( $block_type ) {
  * @since 5.8.0
  * @since 6.1.0 Allow unset for preset colors.
  * @access private
+ * 
+ * @deprecated 6.3.0 Use WP_Duotone::render_duotone_support() instead.
  *
  * @param string $block_content Rendered block content.
  * @param array  $block         Block object.
@@ -468,17 +489,3 @@ function wp_render_duotone_support( $block_content, $block ) {
 	_deprecated_function( __FUNCTION__, '6.3.0', 'WP_Duotone::render_duotone_support' );
 	return WP_Duotone::render_duotone_support( $block_content, $block );
 }
-
-// Register the block support.
-WP_Block_Supports::get_instance()->register(
-	'duotone',
-	array(
-		'register_attribute' => 'wp_register_duotone_support',
-	)
-);
-add_action( 'wp_loaded', array( 'WP_Duotone', 'set_global_styles_presets' ), 10 );
-add_action( 'wp_loaded', array( 'WP_Duotone', 'set_global_style_block_names' ), 10 );
-add_filter( 'render_block', array( 'WP_Duotone', 'render_duotone_support' ), 10, 2 );
-add_action( 'wp_enqueue_scripts', array( 'WP_Duotone', 'output_global_styles' ), 11 );
-add_action( 'wp_footer', array( 'WP_Duotone', 'output_footer_assets' ), 10 );
-add_filter( 'block_editor_settings_all', array( 'WP_Duotone', 'add_editor_settings' ), 10 );
