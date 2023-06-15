@@ -368,6 +368,7 @@ function wp_get_typography_value_and_unit( $raw_value, $options = array() ) {
  * width and min/max font sizes.
  *
  * @since 6.1.0
+ * @since 6.3.0 Checks for unsupported min/max viewport values that cause invalid clamp values.
  * @access private
  *
  * @param array $args {
@@ -432,6 +433,11 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
 			'coerce_to' => $font_size_unit,
 		)
 	);
+
+	// Protects against unsupported units in min and max viewport widths.
+	if ( ! $minimum_viewport_width || ! $maximum_viewport_width ) {
+		return null;
+	}
 
 	/*
 	 * Build CSS rule.
