@@ -400,8 +400,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	 * @ticket 58534
 	 */
 	public function test_wp_get_first_block() {
-		$block_name                  = 'core/paragraph';
-		$blocks                      = array(
+		$block_name               = 'core/paragraph';
+		$blocks                   = array(
 			array(
 				'blockName' => 'core/image',
 			),
@@ -418,7 +418,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 				'blockName' => $block_name,
 			),
 		);
-		$blocks_with_no_paragraph     = array(
+		$blocks_with_no_paragraph = array(
 			array(
 				'blockName' => 'core/image',
 			),
