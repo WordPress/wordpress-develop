@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers ::wp_set_object_terms
  */
 class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 	protected static $taxonomy = 'category';
