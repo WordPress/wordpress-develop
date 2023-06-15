@@ -49,7 +49,9 @@ remove_filter( 'render_block', 'wp_render_duotone_support', 10, 2 );
 add_filter( 'render_block', array( 'WP_Duotone', 'render_duotone_support' ), 10, 2 );
 
 // Enqueue styles.
+// Block styles (core-block-supports-inline-css) before the style engine (wp_enqueue_stored_styles).
 // Global styles (global-styles-inline-css) after the other global styles (wp_enqueue_global_styles).
+add_action( 'wp_enqueue_scripts', array( 'WP_Duotone', 'output_block_styles' ), 9 );
 add_action( 'wp_enqueue_scripts', array( 'WP_Duotone', 'output_global_styles' ), 11 );
 
 // Add SVG filters to the footer. Also, for classic themes, output block styles (core-block-supports-inline-css).
