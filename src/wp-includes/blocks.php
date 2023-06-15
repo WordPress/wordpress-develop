@@ -205,6 +205,10 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		$style_handle = $style_handle[ $index ];
 	}
 
+	if ( wp_style_is( $style_handle, 'registered' ) ) {
+		return $style_handle;
+	}
+
 	$style_path      = remove_block_asset_path_prefix( $style_handle );
 	$is_style_handle = $style_handle === $style_path;
 	// Allow only passing style handles for core blocks.
