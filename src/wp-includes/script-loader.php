@@ -1842,25 +1842,6 @@ function wp_just_in_time_script_localization() {
 }
 
 /**
- * Prints a loader script if there is text/plain registered script.
- *
- * When added to the DOM, this script converts any text/plain scripts
- * associated with a handle into type/javascript, and executes them.
- *
- * @since 6.3.0
- */
-function wp_print_delayed_inline_script_loader() {
-	$wp_scripts = wp_scripts();
-
-	if ( $wp_scripts->has_delayed_inline_script() ) {
-		wp_print_inline_script_tag(
-			file_get_contents( ABSPATH . WPINC . '/js/wp-delayed-inline-script-loader' . wp_scripts_get_suffix() . '.js' ),
-			array( 'id' => 'wp-delayed-inline-script-loader' )
-		);
-	}
-}
-
-/**
  * Localizes the jQuery UI datepicker.
  *
  * @since 4.6.0

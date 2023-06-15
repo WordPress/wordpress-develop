@@ -10,7 +10,16 @@
  * @covers ::wp_set_script_translations
  */
 class Tests_Dependencies_Scripts extends WP_UnitTestCase {
+
+	/**
+	 * @var WP_Scripts
+	 */
 	protected $old_wp_scripts;
+
+	/**
+	 * @var WP_Styles
+	 */
+	protected $old_wp_styles;
 
 	protected $wp_scripts_print_translations_output;
 
@@ -24,10 +33,12 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		$this->old_wp_scripts = isset( $GLOBALS['wp_scripts'] ) ? $GLOBALS['wp_scripts'] : null;
+		$this->old_wp_styles  = isset( $GLOBALS['wp_styles'] ) ? $GLOBALS['wp_styles'] : null;
 		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
 		remove_action( 'wp_default_scripts', 'wp_default_packages' );
 		$GLOBALS['wp_scripts']                  = new WP_Scripts();
 		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
+		$GLOBALS['wp_styles']                   = new WP_Styles();
 
 		$this->wp_scripts_print_translations_output  = <<<JS
 <script type='text/javascript' id='__HANDLE__-js-translations'>
@@ -43,6 +54,7 @@ JS;
 
 	public function tear_down() {
 		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
+		$GLOBALS['wp_styles']  = $this->old_wp_styles;
 		add_action( 'wp_default_scripts', 'wp_default_scripts' );
 		parent::tear_down();
 	}
@@ -84,6 +96,227 @@ JS;
 	}
 
 	/**
+	 * Data provider for test_print_delayed_inline_script_loader_timing.
+	 *
+	 * @return array[]
+	 */
+	public function data_to_test_print_delayed_inline_script_loader_timing() {
+		/**
+		 * Enqueue script with defer strategy.
+		 *
+		 * @param string $handle    Handle.
+		 * @param bool   $in_footer In footer.
+		 */
+		$enqueue_script    = static function ( $handle, $in_footer = false, $deps = array() ) {
+			wp_enqueue_script(
+				$handle,
+				sprintf( 'https://example.com/%s.js', $handle ),
+				$deps,
+				null,
+				array(
+					'in_footer' => $in_footer,
+					'strategy'  => 'defer',
+				)
+			);
+		};
+
+		/**
+		 * Add inline after script.
+		 *
+		 * @param string $handle   Handle.
+		 * @param string $position Position.
+		 */
+		$add_inline_script = static function ( $handle, $position = 'after' ) {
+			wp_add_inline_script(
+				$handle,
+				"/*{$handle}-{$position}*/",
+				$position
+			);
+		};
+
+		return array(
+			'no_delayed_inline_scripts'                  => array(
+				'set_up'          => static function () use ( $enqueue_script ) {
+					$enqueue_script( 'foo-head', false );
+					$enqueue_script( 'foo-footer', true );
+				},
+				'expected_head'   => <<<HTML
+<script id="foo-head-js" src="https://example.com/foo-head.js" type="text/javascript" defer data-wp-strategy="defer"></script>
+HTML
+				,
+				'expected_torso'  => '',
+				'expected_footer' => <<<HTML
+<script id="foo-footer-js" src="https://example.com/foo-footer.js" type="text/javascript" defer data-wp-strategy="defer"></script>
+HTML
+				,
+			),
+			'delayed_inline_script_in_head_only'         => array(
+				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
+					$enqueue_script( 'foo-head', false );
+					$add_inline_script( 'foo-head' );
+				},
+				'expected_head'   => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="foo-head-js" src="https://example.com/foo-head.js" type="text/javascript" defer data-wp-strategy="defer"></script>
+<script id="foo-head-js-after" type="text/plain">
+/*foo-head-after*/
+</script>
+HTML
+				,
+				'expected_torso'  => '',
+				'expected_footer' => '',
+			),
+			'delayed_inline_script_in_footer_only'       => array(
+				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
+					$enqueue_script( 'foo-footer', true );
+					$add_inline_script( 'foo-footer' );
+				},
+				/*
+				 * TODO: This script is getting output even though it isn't needed yet. It could be printed in the footer instead.
+				 * In order to handle this case, the logic to determine whether the script needs to be printed would have to
+				 * take into account the current group being printed. If we're printing the head scripts, but none of the
+				 * head scripts are delayed, then the script wouldn't have to be printed.
+				 */
+				'expected_head'   => $this->get_delayed_inline_script_loader_script_tag(),
+				'expected_torso'  => '',
+				'expected_footer' => <<<HTML
+<script id="foo-footer-js" src="https://example.com/foo-footer.js" type="text/javascript" defer data-wp-strategy="defer"></script>
+<script id="foo-footer-js-after" type="text/plain">
+/*foo-footer-after*/
+</script>
+HTML
+				,
+			),
+			'delayed_inline_script_in_both_head_and_footer' => array(
+				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
+					foreach ( array( false, true ) as $in_footer ) {
+						$handle = $in_footer ? 'foo-footer' : 'foo-head';
+						$enqueue_script( $handle, $in_footer );
+						$add_inline_script( $handle );
+					}
+				},
+				'expected_head'   => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="foo-head-js" src="https://example.com/foo-head.js" type="text/javascript" defer data-wp-strategy="defer"></script>
+<script id="foo-head-js-after" type="text/plain">
+/*foo-head-after*/
+</script>
+HTML
+				,
+				'expected_torso'  => '',
+				'expected_footer' => <<<HTML
+<script id="foo-footer-js" src="https://example.com/foo-footer.js" type="text/javascript" defer data-wp-strategy="defer"></script>
+<script id="foo-footer-js-after" type="text/plain">
+/*foo-footer-after*/
+</script>
+HTML
+				,
+			),
+			'delayed_inline_script_enqueued_in_torso_for_footer' => array(
+				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
+					add_action(
+						'test_torso',
+						static function () use ( $enqueue_script, $add_inline_script ) {
+							$enqueue_script( 'foo-footer', true );
+							$add_inline_script( 'foo-footer' );
+						}
+					);
+				},
+				'expected_head'   => '',
+				'expected_torso'  => '',
+				'expected_footer' => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="foo-footer-js" src="https://example.com/foo-footer.js" type="text/javascript" defer data-wp-strategy="defer"></script>
+<script id="foo-footer-js-after" type="text/plain">
+/*foo-footer-after*/
+</script>
+HTML
+			,
+			),
+			'delayed_inline_printed_in_torso'            => array(
+				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
+					add_action(
+						'test_torso',
+						static function () use ( $enqueue_script, $add_inline_script ) {
+							wp_register_script( 'foo-torso', 'https://example.com/foo-torso.js', array(), null, array( 'strategy' => 'defer' ) );
+							$add_inline_script( 'foo-torso' );
+							wp_print_scripts( array( 'foo-torso' ) );
+						}
+					);
+				},
+				'expected_head'   => '',
+				'expected_torso'  => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script id="foo-torso-js" src="https://example.com/foo-torso.js" type="text/javascript" defer data-wp-strategy="defer"></script>
+<script id="foo-torso-js-after" type="text/plain">
+/*foo-torso-after*/
+</script>
+HTML
+				,
+				'expected_footer' => '',
+			),
+			'delayed_script_registered_but_not_enqueued' => array(
+				'set_up'          => static function () use ( $enqueue_script, $add_inline_script ) {
+					wp_register_script( 'not-enqueued', 'https://example.com/not-enqueued.js', array(), null, array( 'strategy' => 'defer' ) );
+					$add_inline_script( 'not-enqueued', 'after' );
+
+					wp_enqueue_script( 'enqueued', 'https://example.com/enqueued.js', array(), null );
+					$add_inline_script( 'enqueued', 'after' );
+				},
+				'expected_head'   => <<<HTML
+<script id="enqueued-js" src="https://example.com/enqueued.js" type="text/javascript"></script>
+<script id="enqueued-js-after" type="text/javascript">
+/*enqueued-after*/
+</script>
+HTML
+				,
+				'expected_torso'  => '',
+				'expected_footer' => '',
+			),
+		);
+	}
+
+	/**
+	 * Tests that wp_print_delayed_inline_script_loader() is output before the first delayed inline script and not
+	 * duplicated in header and footer.
+	 *
+	 * @covers WP_Scripts::print_delayed_inline_script_loader
+	 *
+	 * @dataProvider data_to_test_print_delayed_inline_script_loader_timing
+	 * @param callable $set_up          Set up.
+	 * @param string   $expected_head   Expected head.
+	 * @param string   $expected_torso  Expected torso.
+	 * @param string   $expected_footer Expected footer.
+	 */
+	public function test_print_delayed_inline_script_loader_timing( $set_up, $expected_head, $expected_torso, $expected_footer ) {
+		$set_up();
+
+		// Note that test_head, test_enqueue_scripts, and test_footer are used instead of their wp_* actions to avoid triggering core actions.
+		add_action(
+			'test_head',
+			static function () {
+				do_action( 'test_enqueue_scripts' );
+			},
+			1 // Priority corresponds to wp_head in default-filters.php.
+		);
+		add_action( 'test_head', 'wp_print_head_scripts', 9 ); // Priority corresponds to wp_head in default-filters.php.
+		add_action( 'test_footer', 'wp_print_footer_scripts', 20 ); // Priority corresponds to wp_footer in default-filters.php.
+
+		$actual_head   = get_echo( 'do_action', array( 'test_head' ) );
+		$actual_torso  = get_echo( 'do_action', array( 'test_torso' ) );
+		$actual_footer = get_echo( 'do_action', array( 'test_footer' ) );
+
+		$delayed_script_count = substr_count( $actual_head . $actual_torso . $actual_footer, $this->get_delayed_inline_script_loader_script_tag() );
+		if ( wp_scripts()->has_delayed_inline_script( wp_scripts()->done ) ) {
+			$this->assertSame( 1, $delayed_script_count, 'Expected delayed inline script to occur exactly once.' );
+		} else {
+			$this->assertSame( 0, $delayed_script_count, 'Expected delayed inline script to not occur since no delayed inline scripts.' );
+		}
+
+		$this->assertLessThanOrEqual( 1, $delayed_script_count, 'Expected delayed-inline-script-loader to occur at most once.' );
+
+		$this->assertEqualMarkup( $actual_head, $expected_head, 'Expected head to match.' );
+		$this->assertEqualMarkup( $actual_torso, $expected_torso, 'Expected torso to match.' );
+		$this->assertEqualMarkup( $actual_footer, $expected_footer, 'Expected footer to match.' );
+	}
+
+	/**
 	 * Test inline scripts in the `after` position with delayed main script.
 	 *
 	 * If the main script with delayed loading strategy has an `after` inline script,
@@ -93,7 +326,7 @@ JS;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_inline_script_tag
-	 * @covers ::wp_print_delayed_inline_script_loader
+	 * @covers WP_Scripts::print_delayed_inline_script_loader
 	 * @covers ::wp_add_inline_script
 	 * @covers ::wp_enqueue_script
 	 *
@@ -201,6 +434,7 @@ JS;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::has_only_delayed_dependents
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_valid_async_registration() {
@@ -218,6 +452,7 @@ JS;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::has_only_delayed_dependents
 	 * @covers ::wp_enqueue_script
 	 *
 	 * @dataProvider data_provider_delayed_strategies
@@ -239,6 +474,7 @@ JS;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::has_only_delayed_dependents
 	 * @covers ::wp_enqueue_script
 	 *
 	 * @dataProvider data_provider_delayed_strategies
@@ -259,6 +495,7 @@ JS;
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::has_only_delayed_dependents
 	 * @covers ::wp_enqueue_script
 	 *
 	 * @dataProvider data_provider_delayed_strategies
@@ -271,6 +508,128 @@ JS;
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='/main-script-a4.js' id='main-script-a4-js' {$strategy} data-wp-strategy='{$strategy}'></script>";
 		$this->assertStringContainsString( $expected, $output, 'Only enqueued dependents should affect the eligible strategy.' );
+	}
+
+	/**
+	 * Data provider for test_has_only_delayed_dependents.
+	 *
+	 * @return array
+	 */
+	public function get_data_to_test_has_only_delayed_dependents() {
+		return array(
+			'no_dependents'                        => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => true,
+			),
+			'one_delayed_dependent'                => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => true,
+			),
+			'one_blocking_dependent'               => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => false,
+			),
+			'one_blocking_dependent_not_enqueued'  => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
+					wp_register_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => true, // Because bar was not enqueued, only foo was.
+			),
+			'two_delayed_dependents'               => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script( 'baz', 'https://example.com/baz.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => true,
+			),
+			'recursion_not_delayed'                => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array( 'foo' ), null );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => false,
+			),
+			'recursion_yes_delayed'                => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => true,
+			),
+			'recursion_triple_level'               => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array( 'baz' ), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script( 'baz', 'https://example.com/bar.js', array( 'bar' ), null, array( 'strategy' => 'defer' ) );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => true,
+			),
+			'async_only_with_defer_dependency'     => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'async' ) );
+					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
+					return 'foo';
+				},
+				'async_only' => true,
+				'expected'   => false,
+			),
+			'not_async_only_with_defer_dependency' => array(
+				'set_up'     => static function () {
+					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'async' ) );
+					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
+					return 'foo';
+				},
+				'async_only' => false,
+				'expected'   => true,
+			),
+		);
+	}
+
+	/**
+	 * Test that has_only_delayed_dependents works as expected.
+	 *
+	 * @ticket 12009
+	 *
+	 * @covers WP_Scripts::has_only_delayed_dependents
+	 * @covers WP_Scripts::get_dependents
+	 *
+	 * @dataProvider get_data_to_test_has_only_delayed_dependents
+	 *
+	 * @param callable $set_up     Set up.
+	 * @param bool     $async_only Async only.
+	 * @param bool     $expected   Expected return value.
+	 */
+	public function test_has_only_delayed_dependents( $set_up, $async_only, $expected ) {
+		$handle = $set_up();
+
+		$wp_scripts_reflection       = new ReflectionClass( WP_Scripts::class );
+		$has_only_delayed_dependents = $wp_scripts_reflection->getMethod( 'has_only_delayed_dependents' );
+		$has_only_delayed_dependents->setAccessible( true );
+		$this->assertSame( $expected, $has_only_delayed_dependents->invokeArgs( wp_scripts(), array( $handle, $async_only ) ), 'Expected return value of WP_Scripts::has_only_delayed_dependents to match.' );
 	}
 
 	/**
@@ -799,6 +1158,7 @@ HTML
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::has_only_delayed_dependents
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_invalid_defer_registration() {
@@ -819,6 +1179,7 @@ HTML
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers WP_Scripts::has_only_delayed_dependents
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_valid_blocking_registration() {
@@ -2034,7 +2395,7 @@ HTML
 		ob_start();
 		$output = $wp_scripts->print_inline_script( $handle, $position, true );
 		$this->assertEqualMarkup( $expected_tag, ob_get_clean() );
-		$this->assertEqualMarkup( $expected_tag, $output );
+		$this->assertEquals( $expected_data, $output );
 	}
 
 	/**
@@ -2731,7 +3092,18 @@ HTML
 		$dom->loadHTML(
 			"<!DOCTYPE html><html><head><meta charset=utf8></head><body>{$markup}</body></html>"
 		);
-		return $dom->getElementsByTagName( 'body' )->item( 0 );
+
+		/** @var DOMElement $body */
+		$body = $dom->getElementsByTagName( 'body' )->item( 0 );
+
+		// Trim whitespace nodes added before/after which can be added when parsing.
+		foreach ( array( $body->firstChild, $body->lastChild ) as $node ) {
+			if ( $node instanceof DOMText && '' === trim( $node->data ) ) {
+				$body->removeChild( $node );
+			}
+		}
+
+		return $body;
 	}
 
 	/**

@@ -76,6 +76,15 @@ class WP_Scripts extends WP_Dependencies {
 	public $do_concat = false;
 
 	/**
+	 * Whether the delayed inline script loader has been printed.
+	 *
+	 * @since 6.3.0
+	 * @see WP_Scripts::print_delayed_inline_script_loader()
+	 * @var bool
+	 */
+	public $printed_delayed_inline_script_loader = false;
+
+	/**
 	 * Holds HTML markup of scripts and additional data if concatenation
 	 * is enabled.
 	 *
@@ -261,6 +270,33 @@ class WP_Scripts extends WP_Dependencies {
 		echo "</script>\n";
 
 		return true;
+	}
+
+	/**
+	 * Processes the items and dependencies.
+	 *
+	 * Processes the items passed to it or the queue, and their dependencies.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string|string[]|false $handles Optional. Items to be processed: queue (false),
+	 *                                       single item (string), or multiple items (array of strings).
+	 *                                       Default false.
+	 * @param int|false             $group   Optional. Group level: level (int), no group (false).
+	 * @return string[] Array of handles of items that have been processed.
+	 */
+	public function do_items( $handles = false, $group = false ) {
+		$handles = false === $handles ? $this->queue : (array) $handles;
+		$this->all_deps( $handles );
+
+		// This statement is the only difference from parent::do_items().
+		if ( ! $this->printed_delayed_inline_script_loader
+			&& $this->has_delayed_inline_script( $this->to_do )
+		) {
+			$this->print_delayed_inline_script_loader();
+		}
+
+		return $this->process_to_do_items( $group );
 	}
 
 	/**
@@ -477,20 +513,20 @@ class WP_Scripts extends WP_Dependencies {
 	 *                         Must be lowercase.
 	 * @param string $position Optional. Whether to add the inline script
 	 *                         before the handle or after. Default 'after'.
-	 * @param bool   $display  Optional. Whether to print the script
-	 *                         instead of just returning it. Default true.
-	 * @return string|false Script on success, false otherwise.
+	 * @param bool   $display  Optional. Whether to print the script tag
+	 *                         instead of just returning the script data. Default true.
+	 * @return string|false Script data on success, false otherwise.
 	 */
 	public function print_inline_script( $handle, $position = 'after', $display = true ) {
 		_deprecated_function( __METHOD__, '6.3.0', 'WP_Scripts::get_inline_script_data() or WP_Scripts::get_inline_script_tag()' );
-		if ( $display ) {
-			$output = $this->get_inline_script_tag( $handle, $position );
-			echo $output;
-		} else {
-			$output = $this->get_inline_script_data( $handle, $position );
-		}
+
+		$output = $this->get_inline_script_data( $handle, $position );
 		if ( empty( $output ) ) {
 			return false;
+		}
+
+		if ( $display ) {
+			echo $this->get_inline_script_tag( $handle, $position );
 		}
 		return $output;
 	}
@@ -547,6 +583,25 @@ class WP_Scripts extends WP_Dependencies {
 		} else {
 			return wp_get_inline_script_tag( $js, compact( 'id' ) );
 		}
+	}
+
+	/**
+	 * Prints a script to load delayed inline scripts.
+	 *
+	 * When a script dependency has attached inline scripts, the execution
+	 * of the inline scripts needs to be delayed in order to preserve the
+	 * execution order with the script along with any dependency/dependent
+	 * scripts. When there are delayed inline scripts needing to be printed
+	 * this function will print the loader script once.
+	 *
+	 * @since 6.3.0
+	 */
+	public function print_delayed_inline_script_loader() {
+		wp_print_inline_script_tag(
+			file_get_contents( ABSPATH . WPINC . '/js/wp-delayed-inline-script-loader' . wp_scripts_get_suffix() . '.js' ),
+			array( 'id' => 'wp-delayed-inline-script-loader' )
+		);
+		$this->printed_delayed_inline_script_loader = true;
 	}
 
 	/**
@@ -892,10 +947,11 @@ JS;
 	 * @since 6.3.0
 	 * @see WP_Scripts::should_delay_inline_script()
 	 *
+	 * @param string[] $handles Handles to check.
 	 * @return bool True if the inline script present, otherwise false.
 	 */
-	public function has_delayed_inline_script() {
-		foreach ( $this->registered as $handle => $script ) {
+	public function has_delayed_inline_script( array $handles ) {
+		foreach ( $handles as $handle ) {
 			foreach ( array( 'before', 'after' ) as $position ) {
 				if (
 					$this->get_data( $handle, $position ) &&
@@ -958,19 +1014,19 @@ JS;
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string   $handle     The script handle.
-	 * @param bool     $async_only Whether to limit to async strategy only.
-	 * @param string[] $checked    Optional. An array of already checked script handles, used to avoid recursive loops.
+	 * @param string              $handle     The script handle.
+	 * @param bool                $async_only Whether to limit to async strategy only.
+	 * @param array<string, true> $checked    Optional. An array of already checked script handles, used to avoid recursive loops.
 	 * @return bool True if all dependents are delayed, false otherwise.
 	 */
 	private function has_only_delayed_dependents( $handle, $async_only = false, $checked = array() ) {
-		// If this node was already checked, this script can be deferred and the branch ends.
-		if ( in_array( $handle, $checked, true ) ) {
+		// If this node was already checked, this script can be delayed and the branch ends.
+		if ( array_key_exists( $handle, $checked ) ) {
 			return true;
 		}
 
-		$checked[]  = $handle;
-		$dependents = $this->get_dependents( $handle );
+		$checked[ $handle ] = true;
+		$dependents         = $this->get_dependents( $handle );
 
 		// If there are no dependents remaining to consider, the script can be deferred.
 		if ( empty( $dependents ) ) {
@@ -979,7 +1035,7 @@ JS;
 
 		// Consider each dependent and check if it is delayed.
 		foreach ( $dependents as $dependent ) {
-			// If the dependent script has no src, ignore it for consideration.
+			// If the dependent script has no src (as it represents a script bundle), ignore it for consideration.
 			if ( empty( $this->registered[ $dependent ]->src ) ) {
 				continue;
 			}
