@@ -222,10 +222,21 @@ function register_block_style_handle( $metadata, $field_name, $index = 0, $looku
 	if ( $is_core_block ) {
 		$style_path = "style$suffix.css";
 	}
+	$style_path_raw = dirname( $metadata['file'] ) . '/' . $style_path;
 
-	$style_path      = dirname( $metadata['file'] ) . '/' . $style_path;
-	$style_path_norm = $lookup && file_exists( $style_path ) ? wp_normalize_path( realpath( $style_path ) ) : '';
-	$has_style_file  = '' !== $style_path_norm;
+	static $styles_path_norm = array();
+	if ( ! $styles_path_norm ) {
+		$styles_path_norm = array();
+	}
+
+	if ( isset( $styles_path_norm[ $style_path_raw ] ) ) {
+		$style_path_norm = $styles_path_norm[ $style_path_raw ];
+	} else {
+		$style_path_norm                     = $lookup && file_exists( $style_path ) ? wp_normalize_path( realpath( $style_path ) ) : '';
+		$styles_path_norm[ $style_path_raw ] = $style_path_norm;
+	}
+
+	$has_style_file = '' !== $style_path_norm;
 
 	if ( $has_style_file ) {
 		$style_uri = plugins_url( $style_path, $metadata['file'] );
@@ -335,7 +346,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	}
 
 	// Try to get metadata from the static cache for core blocks.
-	$metadata      = false;
+	$metadata = false;
 	if ( $is_core_block ) {
 		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
 		if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
