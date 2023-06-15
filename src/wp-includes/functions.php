@@ -3328,10 +3328,8 @@ function wp_get_image_mime( $file ) {
 		 *
 		 */
 		if (
-			// ftyp.
-			( str_starts_with( $magic, '66747970' ) ) &&
 			// avif.
-			( 8 === strpos( $magic, '61766966' ) )
+			( str_starts_with( $magic, '0000002066' ) )
 		) {
 			$mime = 'image/avif';
 		}
