@@ -1930,7 +1930,8 @@ function wp_filter_content_tags( $content, $context = null ) {
  * Adds `loading` attribute to an `img` HTML tag.
  *
  * @since 5.5.0
- * @deprecated 6.3.0 Use {@see 'wp_img_tag_add_loading_optimization_attrs'} instead.
+ * @deprecated 6.3.0 Use wp_img_tag_add_loading_optimization_attrs() instead.
+ * @see wp_img_tag_add_loading_optimization_attrs()
  *
  * @param string $image   The HTML `img` tag where the attribute should be added.
  * @param string $context Additional context to pass to the filters.
