@@ -687,7 +687,7 @@ class WP_Scripts extends WP_Dependencies {
 
 			// If the dependency is an alias, look at its members.
 			if ( ! $this->registered[ $dep ]->src ) {
-				foreach ( $this->registered[ $dep ]->deps as $alias_dep ) {
+				foreach ( $this->get_unaliased_deps( $this->registered[ $dep ]->deps ) as $alias_dep ) {
 					if ( $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $alias_dep ) ) ) {
 						return true;
 					}
@@ -1106,7 +1106,6 @@ JS;
 					}
 				}
 			} else {
-
 				// If the dependent script is not using the defer or async strategy, no script in the chain is delayed.
 				$strategy = $this->get_data( $dependent, 'strategy' );
 				if ( $async_only ?
