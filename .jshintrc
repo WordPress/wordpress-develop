@@ -3,7 +3,7 @@
 	"curly": true,
 	"eqeqeq": true,
 	"eqnull": true,
-	"esversion": 3,
+	"esversion": 8,
 	"expr": true,
 	"immed": true,
 	"noarg": true,
@@ -24,6 +24,9 @@
 		"wp": false,
 		"export": false,
 		"module": false,
-		"require": false
+		"require": false,
+		"self": false,
+		"OffscreenCanvas": false,
+		"WorkerGlobalScope": false
 	}
 }

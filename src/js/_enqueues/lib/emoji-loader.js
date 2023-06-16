@@ -1,17 +1,28 @@
 /**
  * @output wp-includes/js/wp-emoji-loader.js
+ *
+ * @typedef WPEmojiSettings
+ * @type {object}
+ * @property {!object} source
+ * @property {!string} source.concatemoji
+ * @property {!string} source.twemoji
+ * @property {!string} source.wpemoji
+ *
+ * @param {Window} window
+ * @param {Document} document
+ * @param {WPEmojiSettings} settings
  */
 ( async function( window, document, settings ) {
-	var src, ii, tests;
-
 	let sessionSupports;
 	let sessionUpdated = false;
-	const sessionStorageKey = "wpEmojiSettingsSupports";
+	const sessionStorageKey = 'wpEmojiSettingsSupports';
 
 	// Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
-	const domReadyPromise = new Promise(function (resolve) {
-		document.addEventListener("DOMContentLoaded", resolve, { once: true });
-	});
+	const domReadyPromise = new Promise( ( resolve ) => {
+		document.addEventListener( 'DOMContentLoaded', resolve, {
+			once: true,
+		} );
+	} );
 
 	/**
 	 * Checks if two sets of Emoji characters render the same visually.
@@ -27,11 +38,10 @@
 	 * @return {boolean} True if the two sets render the same.
 	 */
 	function emojiSetsRenderIdentically( context, set1, set2 ) {
-
 		// Cleanup from previous test.
 		context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
 		context.fillText( set1, 0, 0 );
-		var rendered1 = context.getImageData(
+		const rendered1 = context.getImageData(
 			0,
 			0,
 			context.canvas.width,
@@ -41,16 +51,16 @@
 		// Cleanup from previous test.
 		context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
 		context.fillText( set2, 0, 0 );
-		var rendered2 = context.getImageData(
+		const rendered2 = context.getImageData(
 			0,
 			0,
 			context.canvas.width,
 			context.canvas.height
 		).data;
 
-		return rendered1.every(function (pixel, index) {
-			return pixel === rendered2[index];
-		});
+		return rendered1.every( ( pixel, index ) => {
+			return pixel === rendered2[ index ];
+		} );
 	}
 
 	/**
@@ -65,7 +75,7 @@
 	 * @return {boolean} True if the browser can render emoji, false if it cannot.
 	 */
 	function browserSupportsEmoji( type ) {
-		var isIdentical, canvas, context;
+		let canvas, isIdentical;
 
 		/*
 		 * Chrome on OS X added native emoji rendering in M41. Unfortunately,
@@ -73,15 +83,15 @@
 		 * check for bold rendering support to avoid invisible emoji in Chrome.
 		 */
 		if (
-			typeof WorkerGlobalScope !== "undefined" &&
+			typeof WorkerGlobalScope !== 'undefined' &&
 			self instanceof WorkerGlobalScope &&
-			typeof OffscreenCanvas !== "undefined"
+			typeof OffscreenCanvas !== 'undefined'
 		) {
-			canvas = new OffscreenCanvas(300, 150); // Dimensions are default for HTMLCanvasElement.
+			canvas = new OffscreenCanvas( 300, 150 ); // Dimensions are default for HTMLCanvasElement.
 		} else {
-			canvas = document.createElement("canvas");
+			canvas = document.createElement( 'canvas' );
 		}
-		context = canvas.getContext('2d', { willReadFrequently: true });
+		const context = canvas.getContext( '2d', { willReadFrequently: true } );
 		context.textBaseline = 'top';
 		context.font = '600 32px Arial';
 
@@ -96,7 +106,7 @@
 				isIdentical = emojiSetsRenderIdentically(
 					context,
 					'\uD83C\uDFF3\uFE0F\u200D\u26A7\uFE0F', // as a zero-width joiner sequence
-					'\uD83C\uDFF3\uFE0F\u200B\u26A7\uFE0F'  // separated by a zero-width space
+					'\uD83C\uDFF3\uFE0F\u200B\u26A7\uFE0F' // separated by a zero-width space
 				);
 
 				if ( isIdentical ) {
@@ -112,8 +122,8 @@
 				 */
 				isIdentical = emojiSetsRenderIdentically(
 					context,
-					'\uD83C\uDDFA\uD83C\uDDF3',       // as the sequence of two code points
-					'\uD83C\uDDFA\u200B\uD83C\uDDF3'  // as the two code points separated by a zero-width space
+					'\uD83C\uDDFA\uD83C\uDDF3', // as the sequence of two code points
+					'\uD83C\uDDFA\u200B\uD83C\uDDF3' // as the two code points separated by a zero-width space
 				);
 
 				if ( isIdentical ) {
@@ -158,7 +168,7 @@
 				isIdentical = emojiSetsRenderIdentically(
 					context,
 					'\uD83E\uDEF1\uD83C\uDFFB\u200D\uD83E\uDEF2\uD83C\uDFFF', // as the zero-width joiner sequence
-					'\uD83E\uDEF1\uD83C\uDFFB\u200B\uD83E\uDEF2\uD83C\uDFFF'  // separated by a zero-width space
+					'\uD83E\uDEF1\uD83C\uDFFB\u200B\uD83E\uDEF2\uD83C\uDFFF' // separated by a zero-width space
 				);
 
 				return ! isIdentical;
@@ -181,21 +191,25 @@
 	 *
 	 * @return {Promise<bool>} True if the browser can render emoji, false if it cannot.
 	 */
-	async function browserSupportsEmojiOptimized(type) {
-		if (typeof OffscreenCanvas !== 'undefined') {
+	async function browserSupportsEmojiOptimized( type ) {
+		if ( typeof OffscreenCanvas !== 'undefined' ) {
 			const workerScript =
-				`const emojiSetsRenderIdentically = ${emojiSetsRenderIdentically.toString()};` +
-				`const browserSupportsEmoji = ${browserSupportsEmoji.toString()};` +
-				`postMessage(browserSupportsEmoji(${JSON.stringify(type)}))`;
-			const blob = new Blob([workerScript], { type: 'text/javascript' });
-			const worker = new Worker(URL.createObjectURL(blob));
-			return await new Promise(function (resolve) {
-				worker.onmessage = function (event) {
-					resolve(event.data);
+				`const emojiSetsRenderIdentically = ${ emojiSetsRenderIdentically.toString() };` +
+				`const browserSupportsEmoji = ${ browserSupportsEmoji.toString() };` +
+				`postMessage(browserSupportsEmoji(${ JSON.stringify(
+					type
+				) }))`;
+			const blob = new Blob( [ workerScript ], {
+				type: 'text/javascript',
+			} );
+			const worker = new Worker( URL.createObjectURL( blob ) );
+			return await new Promise( ( resolve ) => {
+				worker.onmessage = ( event ) => {
+					resolve( event.data );
 				};
-			});
+			} );
 		} else {
-			return browserSupportsEmoji(type);
+			return browserSupportsEmoji( type );
 		}
 	}
 
@@ -206,33 +220,36 @@
 	 *
 	 * @since 4.2.0
 	 *
-	 * @param {Object} src The url where the script is located.
+	 * @param {string} src The url where the script is located.
+	 *
 	 * @return {void}
 	 */
 	function addScript( src ) {
-		var script = document.createElement( 'script' );
+		const script = document.createElement( 'script' );
 
 		script.src = src;
-		script.defer = script.type = 'text/javascript';
-		document.getElementsByTagName( 'head' )[0].appendChild( script );
+		script.defer = true;
+		document.getElementsByTagName( 'head' )[ 0 ].appendChild( script );
 	}
 
-	tests = Array( 'flag', 'emoji' );
+	const tests = [ 'flag', 'emoji' ];
 
 	settings.supports = {
 		everything: true,
-		everythingExceptFlag: true
+		everythingExceptFlag: true,
 	};
 
 	// Initialize sessionSupports from sessionStorage if available. This avoids expensive calls to browserSupportsEmoji().
 	if (
-		typeof sessionStorage !== "undefined" &&
+		typeof sessionStorage !== 'undefined' &&
 		sessionStorageKey in sessionStorage
 	) {
 		try {
-			sessionSupports = JSON.parse(sessionStorage.getItem(sessionStorageKey));
-			Object.assign(settings.supports, sessionSupports);
-		} catch (e) {
+			sessionSupports = JSON.parse(
+				sessionStorage.getItem( sessionStorageKey )
+			);
+			Object.assign( settings.supports, sessionSupports );
+		} catch ( e ) {
 			sessionSupports = {};
 		}
 	} else {
@@ -243,37 +260,41 @@
 	 * Tests the browser support for flag emojis and other emojis, and adjusts the
 	 * support settings accordingly.
 	 */
-	for( ii = 0; ii < tests.length; ii++ ) {
-		if (!(tests[ii] in sessionSupports)) {
-			sessionSupports[tests[ii]] = await browserSupportsEmojiOptimized(
-				tests[ii]
+	for ( const test of tests ) {
+		if ( ! ( test in sessionSupports ) ) {
+			sessionSupports[ test ] = await browserSupportsEmojiOptimized(
+				test
 			);
-			settings.supports[tests[ii]] = sessionSupports[tests[ii]];
+			settings.supports[ test ] = sessionSupports[ test ];
 			sessionUpdated = true;
 		}
 
-		settings.supports.everything = settings.supports.everything && settings.supports[ tests[ ii ] ];
+		settings.supports.everything =
+			settings.supports.everything && settings.supports[ test ];
 
-		if ( 'flag' !== tests[ ii ] ) {
-			settings.supports.everythingExceptFlag = settings.supports.everythingExceptFlag && settings.supports[ tests[ ii ] ];
+		if ( 'flag' !== test ) {
+			settings.supports.everythingExceptFlag =
+				settings.supports.everythingExceptFlag &&
+				settings.supports[ test ];
 		}
 	}
 
 	// If the sessionSupports was touched, persist the new object in sessionStorage.
-	if (sessionUpdated && typeof sessionStorage !== "undefined") {
+	if ( sessionUpdated && typeof sessionStorage !== 'undefined' ) {
 		try {
 			sessionStorage.setItem(
 				sessionStorageKey,
-				JSON.stringify(sessionSupports)
+				JSON.stringify( sessionSupports )
 			);
-		} catch (e) {}
+		} catch ( e ) {}
 	}
 
-	settings.supports.everythingExceptFlag = settings.supports.everythingExceptFlag && ! settings.supports.flag;
+	settings.supports.everythingExceptFlag =
+		settings.supports.everythingExceptFlag && ! settings.supports.flag;
 
 	// Sets DOMReady to false and assigns a ready function to settings.
 	settings.DOMReady = false;
-	settings.readyCallback = function() {
+	settings.readyCallback = () => {
 		settings.DOMReady = true;
 	};
 
@@ -282,7 +303,7 @@
 		await domReadyPromise;
 		settings.readyCallback();
 
-		src = settings.source || {};
+		const src = settings.source || {};
 
 		if ( src.concatemoji ) {
 			addScript( src.concatemoji );
@@ -291,5 +312,4 @@
 			addScript( src.wpemoji );
 		}
 	}
-
 } )( window, document, window._wpemojiSettings );
