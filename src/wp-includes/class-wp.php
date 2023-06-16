@@ -711,18 +711,20 @@ class WP {
 
 			// If posts were found, check for paged content.
 		} elseif ( $wp_query->posts ) {
-			$content_found = true;
+			$content_found  = true;
+			$page_query_var = isset( $this->query_vars['page'] ) ? $this->query_vars['page'] : '';
 
 			if ( is_singular() ) {
 				$post = isset( $wp_query->post ) ? $wp_query->post : null;
 				$next = '<!--nextpage-->';
 
 				// Check for paged content that exceeds the max number of pages.
-				if ( $post && ! empty( $this->query_vars['page'] ) ) {
+				if ( $post && '' !== $page_query_var ) {
+					$page = (int) trim( $page_query_var, '/' );
+
 					// Check if content is actually intended to be paged.
-					if ( false !== strpos( $post->post_content, $next ) ) {
-						$page          = trim( $this->query_vars['page'], '/' );
-						$content_found = (int) $page <= ( substr_count( $post->post_content, $next ) + 1 );
+					if ( $page > 0 && str_contains( $post->post_content, $next ) ) {
+						$content_found = $page <= ( substr_count( $post->post_content, $next ) + 1 );
 					} else {
 						$content_found = false;
 					}
@@ -730,7 +732,7 @@ class WP {
 			}
 
 			// The posts page does not support the <!--nextpage--> pagination.
-			if ( $wp_query->is_posts_page && ! empty( $this->query_vars['page'] ) ) {
+			if ( $wp_query->is_posts_page && '' !== $page_query_var ) {
 				$content_found = false;
 			}
 

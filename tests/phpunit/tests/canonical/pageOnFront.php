@@ -15,7 +15,7 @@ class Tests_Canonical_PageOnFront extends WP_Canonical_UnitTestCase {
 			'page_for_posts',
 			self::factory()->post->create(
 				array(
-					'post_title' => 'blog-page',
+					'post_title' => 'posts-page',
 					'post_type'  => 'page',
 				)
 			)
@@ -51,21 +51,23 @@ class Tests_Canonical_PageOnFront extends WP_Canonical_UnitTestCase {
 		 */
 		return array(
 			// Check against an odd redirect.
-			array( '/page/2/', '/page/2/', 20385 ),
-			array( '/?page=2', '/page/2/', 35344 ),
-			array( '/page/1/', '/', 35344 ),
-			array( '/?page=1', '/', 35344 ),
+			'home, page 2, pretty link'   => array( '/page/2/', '/page/2/', 20385 ),
+			'home, page 2, plain link'    => array( '/?page=2', '/page/2/', 35344 ),
+			'home, page 1, pretty link'   => array( '/page/1/', '/', 53362 ),
+			'home, page 1, plain link'    => array( '/?page=1', '/', 53362 ),
+			'home, page 0, pretty link'   => array( '/page/0/', '/', 53362 ),
+			'home, page 0, plain link'    => array( '/?page=0', '/', 53362 ),
 
 			// The page designated as the front page should redirect to the front of the site.
-			array( '/front-page/', '/', 20385 ),
+			'front page'                  => array( '/front-page/', '/', 20385 ),
 			// The front page supports the <!--nextpage--> pagination.
-			array( '/front-page/2/', '/page/2/', 35344 ),
-			array( '/front-page/?page=2', '/page/2/', 35344 ),
+			'front, page 2, pretty link'  => array( '/front-page/2/', '/page/2/', 35344 ),
+			'front, page 2, plain link'   => array( '/front-page/?page=2', '/page/2/', 35344 ),
 			// The posts page does not support the <!--nextpage--> pagination.
-			array( '/blog-page/2/', '/blog-page/', 45337 ),
-			array( '/blog-page/?page=2', '/blog-page/', 45337 ),
+			'posts, page 2, pretty link'  => array( '/posts-page/2/', '/posts-page/', 45337 ),
+			'posts, page 2, plain link'   => array( '/posts-page/?page=2', '/posts-page/', 45337 ),
 			// The posts page supports regular pagination.
-			array( '/blog-page/?paged=2', '/blog-page/page/2/', 20385 ),
+			'posts, previous page, plain' => array( '/posts-page/?paged=2', '/posts-page/page/2/', 20385 ),
 		);
 	}
 }

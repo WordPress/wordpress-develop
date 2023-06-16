@@ -190,7 +190,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		}
 
 		// Strip off non-existing <!--nextpage--> links from single posts or pages.
-		if ( get_query_var( 'page' ) ) {
+		if ( '' !== get_query_var( 'page' ) ) {
 			$post_id = 0;
 
 			if ( $wp_query->queried_object instanceof WP_Post ) {
