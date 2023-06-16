@@ -955,7 +955,7 @@ JS;
 	 * @return bool True on success, false on failure.
 	 */
 	public function add_data( $handle, $key, $value ) {
-		if ( ! array_key_exists( $handle, $this->registered ) ) {
+		if ( ! isset( $this->registered[ $handle ] ) ) {
 			return false;
 		}
 
@@ -1022,7 +1022,7 @@ JS;
 	 */
 	private function get_dependents( $handle ) {
 		// Check if dependents map for the handle in question is present. If so, use it.
-		if ( array_key_exists( $handle, $this->dependents_map ) ) {
+		if ( isset( $this->dependents_map[ $handle ] ) ) {
 			return $this->dependents_map[ $handle ];
 		}
 
@@ -1069,7 +1069,7 @@ JS;
 	 */
 	private function has_only_delayed_dependents( $handle, $async_only = false, $checked = array() ) {
 		// If this node was already checked, this script can be delayed and the branch ends.
-		if ( array_key_exists( $handle, $checked ) ) {
+		if ( isset( $checked[ $handle ] ) ) {
 			return true;
 		}
 
@@ -1083,7 +1083,7 @@ JS;
 
 		// Consider each dependent and check if it is delayed.
 		foreach ( $dependents as $dependent ) {
-			if ( ! array_key_exists( $dependent, $this->registered ) ) {
+			if ( ! isset( $this->registered[ $dependent ] ) ) {
 				continue;
 			}
 
@@ -1139,7 +1139,7 @@ JS;
 	 * @return string $strategy The best eligible loading strategy.
 	 */
 	private function get_eligible_loading_strategy( $handle ) {
-		if ( ! array_key_exists( $handle, $this->registered ) ) {
+		if ( ! isset( $this->registered[ $handle ] ) ) {
 			return '';
 		}
 
