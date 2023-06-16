@@ -480,8 +480,6 @@ function wp_register_duotone_support( $block_type ) {
  * @since 6.1.0 Allow unset for preset colors.
  * @access private
  *
- * @deprecated 6.3.0 Use WP_Duotone::render_duotone_support() instead.
- *
  * @param string $block_content Rendered block content.
  * @param array  $block         Block object.
  * @deprecated    6.3.0          Use WP_Duotone::render_duotone_support() instead.

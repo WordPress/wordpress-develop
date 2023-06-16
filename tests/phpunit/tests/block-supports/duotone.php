@@ -15,6 +15,11 @@ class WP_Duotone_Test extends WP_UnitTestCase {
 		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
 	}
 
+	/**
+	 * Tests whether the duotone preset class is added to the block.
+	 *
+	 * @covers ::render_duotone_support
+	 */
 	public function test_render_duotone_support_preset() {
 		$block         = array(
 			'blockName' => 'core/image',
@@ -25,6 +30,11 @@ class WP_Duotone_Test extends WP_UnitTestCase {
 		$this->assertSame( $expected, WP_Duotone::render_duotone_support( $block_content, $block ) );
 	}
 
+	/**
+	 * Tests whether the duotone unset class is added to the block.
+	 *
+	 * @covers ::render_duotone_support
+	 */
 	public function test_render_duotone_support_css() {
 		$block         = array(
 			'blockName' => 'core/image',
@@ -35,6 +45,11 @@ class WP_Duotone_Test extends WP_UnitTestCase {
 		$this->assertMatchesRegularExpression( $expected, WP_Duotone::render_duotone_support( $block_content, $block ) );
 	}
 
+	/**
+	 * Tests whether the duotone custom class is added to the block.
+	 *
+	 * @covers ::render_duotone_support
+	 */
 	public function test_render_duotone_support_custom() {
 		$block         = array(
 			'blockName' => 'core/image',
@@ -60,7 +75,10 @@ class WP_Duotone_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests whether the slug is extracted from the attribute.
+	 * 
 	 * @dataProvider data_get_slug_from_attribute
+	 * @covers ::get_slug_from_attribute
 	 */
 	public function test_get_slug_from_attribute( $data_attr, $expected ) {
 
