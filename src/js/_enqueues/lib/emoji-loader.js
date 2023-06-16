@@ -193,10 +193,11 @@
 	 * @since 6.3.0
 	 *
 	 * @private
+	 * @async
 	 *
 	 * @param {string} type Whether to test for support of "flag" or "emoji".
 	 *
-	 * @return {Promise<bool>} True if the browser can render emoji, false if it cannot.
+	 * @return {bool} True if the browser can render emoji, false if it cannot.
 	 */
 	async function browserSupportsEmojiOptimized( type ) {
 		if ( typeof OffscreenCanvas !== 'undefined' ) {
