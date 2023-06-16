@@ -1092,18 +1092,11 @@ JS;
 				continue;
 			}
 
-			// Handle script alias case (where it has no src).
+			// Handle script alias case (where it has no src). Here, the strategy doesn't matter, but only whether there are inline scripts.
 			if ( ! $this->registered[ $dependent ]->src ) {
 				// A script alias cannot be delayed if it has inline scripts since there is no load event.
 				if ( $this->has_inline_script( $dependent ) ) {
 					return false;
-				}
-
-				// Now check whether all members of the alias are delayed.
-				foreach ( $this->get_dependents( $dependent ) as $alias_dependent ) {
-					if ( ! $this->has_only_delayed_dependents( $alias_dependent, $async_only, $checked ) ) {
-						return false;
-					}
 				}
 			} else {
 				// If the dependent script is not using the defer or async strategy, no script in the chain is delayed.
@@ -1114,11 +1107,11 @@ JS;
 				) {
 					return false;
 				}
+			}
 
-				// Recursively check all dependents.
-				if ( ! $this->has_only_delayed_dependents( $dependent, $async_only, $checked ) ) {
-					return false;
-				}
+			// Recursively check all dependents.
+			if ( ! $this->has_only_delayed_dependents( $dependent, $async_only, $checked ) ) {
+				return false;
 			}
 		}
 
@@ -1173,8 +1166,8 @@ JS;
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string $handle   Name of the script to get data for.
-	 *                         Must be lowercase.
+	 * @param string $handle Name of the script to get data for.
+	 *                       Must be lowercase.
 	 * @return bool Whether the handle has an inline script (either before or after).
 	 */
 	private function has_inline_script( $handle ) {
