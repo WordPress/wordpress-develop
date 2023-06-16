@@ -1095,10 +1095,7 @@ JS;
 			// Handle script alias case (where it has no src).
 			if ( ! $this->registered[ $dependent ]->src ) {
 				// A script alias cannot be delayed if it has inline scripts since there is no load event.
-				if (
-					$this->get_data( $dependent, 'before' ) ||
-					$this->get_data( $dependent, 'after' )
-				) {
+				if ( $this->has_inline_script( $dependent ) ) {
 					return false;
 				}
 
@@ -1155,11 +1152,7 @@ JS;
 		}
 
 		// Aliases that have before/after inline scripts can never be delayed since there is no load event.
-		if ( ! $this->registered[ $handle ]->src && (
-				$this->get_data( $handle, 'before' ) ||
-				$this->get_data( $handle, 'after' )
-			)
-		) {
+		if ( ! $this->registered[ $handle ]->src && $this->has_inline_script( $handle ) ) {
 			return '';
 		}
 
@@ -1174,6 +1167,19 @@ JS;
 		}
 
 		return '';
+	}
+
+	/**
+	 * Gets data for inline scripts registered for a specific handle.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $handle   Name of the script to get data for.
+	 *                         Must be lowercase.
+	 * @return bool Whether the handle has an inline script (either before or after).
+	 */
+	private function has_inline_script( $handle ) {
+		return $this->get_data( $handle, 'before' ) || $this->get_data( $handle, 'after' );
 	}
 
 	/**
