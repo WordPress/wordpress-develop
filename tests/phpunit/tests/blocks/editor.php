@@ -1,105 +1,3 @@
-Deprecated: auto_detect_line_endings is deprecated in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Runner.php on line 294
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::current() should either be compatible with Iterator::current(): mixed, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 184
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::next() should either be compatible with Iterator::next(): void, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 213
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::key() should either be compatible with Iterator::key(): mixed, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 201
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::valid() should either be compatible with Iterator::valid(): bool, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 225
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::rewind() should either be compatible with Iterator::rewind(): void, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 172
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::count() should either be compatible with Countable::count(): int, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 241
-
-Deprecated: Return type of PHP_CodeSniffer\Filters\Filter::getChildren() should either be compatible with RecursiveFilterIterator::getChildren(): ?RecursiveFilterIterator, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Filters/Filter.php on line 133
-
-Deprecated: Return type of PHP_CodeSniffer\Filters\Filter::accept() should either be compatible with FilterIterator::accept(): bool, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Filters/Filter.php on line 92
-Deprecated: auto_detect_line_endings is deprecated in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Runner.php on line 294
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::current() should either be compatible with Iterator::current(): mixed, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 184
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::next() should either be compatible with Iterator::next(): void, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 213
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::key() should either be compatible with Iterator::key(): mixed, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 201
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::valid() should either be compatible with Iterator::valid(): bool, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 225
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::rewind() should either be compatible with Iterator::rewind(): void, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 172
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::count() should either be compatible with Countable::count(): int, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 241
-
-Deprecated: Return type of PHP_CodeSniffer\Filters\Filter::getChildren() should either be compatible with RecursiveFilterIterator::getChildren(): ?RecursiveFilterIterator, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Filters/Filter.php on line 133
-
-Deprecated: Return type of PHP_CodeSniffer\Filters\Filter::accept() should either be compatible with FilterIterator::accept(): bool, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Filters/Filter.php on line 92
-Deprecated: auto_detect_line_endings is deprecated in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Runner.php on line 294
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::current() should either be compatible with Iterator::current(): mixed, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 184
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::next() should either be compatible with Iterator::next(): void, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 213
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::key() should either be compatible with Iterator::key(): mixed, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 201
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::valid() should either be compatible with Iterator::valid(): bool, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 225
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::rewind() should either be compatible with Iterator::rewind(): void, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 172
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::count() should either be compatible with Countable::count(): int, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 241
-
-Deprecated: Return type of PHP_CodeSniffer\Filters\Filter::getChildren() should either be compatible with RecursiveFilterIterator::getChildren(): ?RecursiveFilterIterator, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Filters/Filter.php on line 133
-
-Deprecated: Return type of PHP_CodeSniffer\Filters\Filter::accept() should either be compatible with FilterIterator::accept(): bool, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Filters/Filter.php on line 92
-Deprecated: auto_detect_line_endings is deprecated in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Runner.php on line 294
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::current() should either be compatible with Iterator::current(): mixed, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 184
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::next() should either be compatible with Iterator::next(): void, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 213
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::key() should either be compatible with Iterator::key(): mixed, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 201
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::valid() should either be compatible with Iterator::valid(): bool, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 225
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::rewind() should either be compatible with Iterator::rewind(): void, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 172
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::count() should either be compatible with Countable::count(): int, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 241
-
-Deprecated: Return type of PHP_CodeSniffer\Filters\Filter::getChildren() should either be compatible with RecursiveFilterIterator::getChildren(): ?RecursiveFilterIterator, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Filters/Filter.php on line 133
-
-Deprecated: Return type of PHP_CodeSniffer\Filters\Filter::accept() should either be compatible with FilterIterator::accept(): bool, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Filters/Filter.php on line 92
-Deprecated: auto_detect_line_endings is deprecated in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Runner.php on line 294
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::current() should either be compatible with Iterator::current(): mixed, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 184
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::next() should either be compatible with Iterator::next(): void, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 213
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::key() should either be compatible with Iterator::key(): mixed, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 201
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::valid() should either be compatible with Iterator::valid(): bool, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 225
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::rewind() should either be compatible with Iterator::rewind(): void, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 172
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::count() should either be compatible with Countable::count(): int, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 241
-
-Deprecated: Return type of PHP_CodeSniffer\Filters\Filter::getChildren() should either be compatible with RecursiveFilterIterator::getChildren(): ?RecursiveFilterIterator, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Filters/Filter.php on line 133
-
-Deprecated: Return type of PHP_CodeSniffer\Filters\Filter::accept() should either be compatible with FilterIterator::accept(): bool, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Filters/Filter.php on line 92
-Deprecated: auto_detect_line_endings is deprecated in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Runner.php on line 294
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::current() should either be compatible with Iterator::current(): mixed, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 184
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::next() should either be compatible with Iterator::next(): void, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 213
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::key() should either be compatible with Iterator::key(): mixed, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 201
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::valid() should either be compatible with Iterator::valid(): bool, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 225
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::rewind() should either be compatible with Iterator::rewind(): void, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 172
-
-Deprecated: Return type of PHP_CodeSniffer\Files\FileList::count() should either be compatible with Countable::count(): int, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Files/FileList.php on line 241
-
-Deprecated: Return type of PHP_CodeSniffer\Filters\Filter::getChildren() should either be compatible with RecursiveFilterIterator::getChildren(): ?RecursiveFilterIterator, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Filters/Filter.php on line 133
-
-Deprecated: Return type of PHP_CodeSniffer\Filters\Filter::accept() should either be compatible with FilterIterator::accept(): bool, or the #[\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice in /Users/isabelbrison/wordpress-develop/vendor/squizlabs/php_codesniffer/src/Filters/Filter.php on line 92
 <?php
 /**
  * Tests for the block editor methods.
@@ -538,8 +436,19 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	 * @ticket 58534
 	 */
 	public function test__wp_get_post_content_block_attributes() {
+		$attributes_with_layout = array(
+			'layout' => array(
+				'type' => 'constrained',
+			),
+			);
 		// With no block theme and no post ID, expect an empty array.
 		$this->assertSame( array(), _wp_get_post_content_block_attributes() );
+
+		global $post_ID;
+		$post_ID = 1;
+		switch_theme( 'block-theme' );
+
+		$this->assertSame( $attributes_with_layout, _wp_get_post_content_block_attributes() );
 	}
 
 	/**
