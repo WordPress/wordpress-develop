@@ -62,8 +62,8 @@ foreach ( $load as $handle ) {
 /*
  * This is not intended to be cryptographically secure, just a fast way to get
  * a fixed length string based on the script versions. As this file does not
- * load the WordPress full WordPress environment, it is not possible to use
- * the salted wp_hash() function.
+ * load the full WordPress environment, it is not possible to use the salted
+ * wp_hash() function.
  */
 $etag = 'W/"' . md5( $etag ) . '"';
 
