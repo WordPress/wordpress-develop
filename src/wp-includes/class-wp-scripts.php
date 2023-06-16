@@ -565,7 +565,7 @@ class WP_Scripts extends WP_Dependencies {
 	private function get_unaliased_deps( array $deps ) {
 		$flattened = array();
 		foreach ( $deps as $dep ) {
-			if ( ! array_key_exists( $dep, $this->registered ) ) {
+			if ( ! isset( $this->registered[ $dep ] ) ) {
 				continue;
 			}
 
@@ -681,7 +681,7 @@ class WP_Scripts extends WP_Dependencies {
 		 * dependency's after inline script.
 		 */
 		foreach ( $deps as $dep ) {
-			if ( ! array_key_exists( $dep, $this->registered ) ) {
+			if ( ! isset( $this->registered[ $dep ] ) ) {
 				continue;
 			}
 
