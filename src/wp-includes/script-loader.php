@@ -2357,8 +2357,6 @@ function wp_common_block_scripts_and_styles() {
 		return;
 	}
 
-	wp_enqueue_style( 'wp-block-library' );
-
 	if ( current_theme_supports( 'wp-block-styles' ) ) {
 		if ( wp_should_load_separate_core_block_assets() ) {
 			$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? 'css' : 'min.css';
