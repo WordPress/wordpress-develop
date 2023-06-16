@@ -182,15 +182,12 @@
 	 * @return {Promise<bool>} True if the browser can render emoji, false if it cannot.
 	 */
 	async function browserSupportsEmojiOptimized(type) {
-		if (typeof OffscreenCanvas !== "undefined") {
-			const blob = new Blob(
-				[
-					emojiSetsRenderIdentically.toString() +
-						browserSupportsEmoji.toString() +
-						`postMessage(browserSupportsEmoji(${JSON.stringify(type)}))`,
-				],
-				{ type: "text/javascript" }
-			);
+		if (typeof OffscreenCanvas !== 'undefined') {
+			const workerScript =
+				`const emojiSetsRenderIdentically = ${emojiSetsRenderIdentically.toString()};` +
+				`const browserSupportsEmoji = ${browserSupportsEmoji.toString()};` +
+				`postMessage(browserSupportsEmoji(${JSON.stringify(type)}))`;
+			const blob = new Blob([workerScript], { type: 'text/javascript' });
 			const worker = new Worker(URL.createObjectURL(blob));
 			return await new Promise(function (resolve) {
 				worker.onmessage = function (event) {
