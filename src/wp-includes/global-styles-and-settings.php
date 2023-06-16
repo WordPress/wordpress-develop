@@ -355,7 +355,7 @@ function wp_add_global_styles_for_blocks() {
 			$result = array_values(
 				array_filter(
 					$metadata['path'],
-					function ( $item ) {
+					static function ( $item ) {
 						if ( strpos( $item, 'core/' ) !== false ) {
 							return true;
 						}

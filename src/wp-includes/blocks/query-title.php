@@ -28,7 +28,7 @@ function render_block_core_query_title( $attributes ) {
 	if ( $is_archive ) {
 		$show_prefix = isset( $attributes['showPrefix'] ) ? $attributes['showPrefix'] : true;
 		if ( ! $show_prefix ) {
-			$filter_title = function( $title, $original_title ) {
+			$filter_title = static function( $title, $original_title ) {
 				return $original_title;
 			};
 			add_filter( 'get_the_archive_title', $filter_title, 10, 2 );
