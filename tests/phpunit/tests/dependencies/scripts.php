@@ -1109,6 +1109,26 @@ scriptEventLog.push( "defer-dependent-of-nested-aliases: after inline" )
 HTML
 				,
 			),
+
+			'async-alias-members-with-defer-dependency'    => array(
+				'set_up'          => function () {
+					$alias_handle = 'async-alias';
+					$async_handle1 = 'async1';
+					$async_handle2 = 'async2';
+
+					wp_register_script( $alias_handle, false, array( $async_handle1, $async_handle2 ), null );
+					$this->register_test_script( $async_handle1, 'async', array() );
+					$this->register_test_script( $async_handle2, 'async', array() );
+
+					$this->enqueue_test_script( 'defer-dependent-of-async-aliases', 'defer', array( $alias_handle ) );
+				},
+				'expected_markup' => $this->get_delayed_inline_script_loader_script_tag() . <<<HTML
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=async1:%20script' id='async1-js' defer data-wp-strategy='async'></script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=async2:%20script' id='async2-js' defer data-wp-strategy='async'></script>
+<script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-async-aliases:%20script' id='defer-dependent-of-async-aliases-js' defer data-wp-strategy='defer'></script>
+HTML
+				,
+			),
 		);
 	}
 
