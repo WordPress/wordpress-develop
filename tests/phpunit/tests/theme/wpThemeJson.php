@@ -547,7 +547,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						),
 					),
 					'blocks'   => array(
-						'core/group'     => array(
+						'core/group'        => array(
 							'color'    => array(
 								'gradient' => 'var:preset|gradient|custom-gradient',
 							),
@@ -565,7 +565,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 								'padding' => '24px',
 							),
 						),
-						'core/heading'   => array(
+						'core/heading'      => array(
 							'color'    => array(
 								'text' => '#123456',
 							),
@@ -581,7 +581,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 								),
 							),
 						),
-						'core/post-date' => array(
+						'core/post-date'    => array(
 							'color'    => array(
 								'text' => '#123456',
 							),
@@ -599,7 +599,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 								'textColumns' => 2,
 							),
 						),
-						'core/image'     => array(
+						'core/image'        => array(
 							'border'  => array(
 								'radius' => array(
 									'topLeft'     => '10px',
