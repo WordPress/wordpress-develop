@@ -73,7 +73,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				return ( $image_types & IMG_WEBP ) != 0;
 			case 'image/avif':
 				return ( $image_types & IMG_AVIF ) != 0;
-			}
+		}
 
 		return false;
 	}
@@ -562,11 +562,13 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 					header( 'Content-Type: image/webp' );
 					return imagewebp( $this->image, null, $this->get_quality() );
 				}
+				// Fall back to the default if WebP isn't supported.
 			case 'image/avif':
 				if ( function_exists( 'imageavif' ) ) {
 					header( 'Content-Type: image/avif' );
 					return imageavif( $this->image, null, $this->get_quality() );
 				}
+				// Fall back to the default if AVIF isn't supported.
 			default:
 				header( 'Content-Type: image/jpeg' );
 				return imagejpeg( $this->image, null, $this->get_quality() );
