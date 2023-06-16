@@ -335,6 +335,8 @@ class WP_Theme_JSON {
 	 * @since 6.1.0 Added `layout.definitions` and `useRootPaddingAwareAlignments`.
 	 * @since 6.2.0 Added `dimensions.minHeight`, 'shadow.presets', 'shadow.defaultPresets',
 	 *              `position.fixed` and `position.sticky`.
+	 * @since 6.3.0 Added support for `typography.textColumns`.
+	 *
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -413,6 +415,7 @@ class WP_Theme_JSON {
 	 *              added new property `shadow`,
 	 *              updated `blockGap` to be allowed at any level.
 	 * @since 6.2.0 Added `outline`, and `minHeight` properties.
+	 * @since 6.3.0 Added support for `typography.textColumns`.
 	 *
 	 * @var array
 	 */

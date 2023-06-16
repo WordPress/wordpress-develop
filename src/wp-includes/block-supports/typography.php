@@ -74,6 +74,7 @@ function wp_register_typography_support( $block_type ) {
  *
  * @since 5.6.0
  * @since 6.1.0 Used the style engine to generate CSS and classnames.
+ * @since 6.3.0 Added support for text-columns.
  * @access private
  *
  * @param WP_Block_Type $block_type       Block type.
