@@ -66,12 +66,11 @@ jobs:
       - name: Build WordPress in /src
         run: npm run build:dev
 
-      - name: Archive WordPress build artifact
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+      - name: Cache WordPress build artifacts
+        uses: actions/cache@v3
         with:
-          if-no-files-found: error
-          name: wordpress-src-built
           path: src
+          key: ${{ github.sha }}-src
 
   # Runs the PHPUnit tests for WordPress.
   #
@@ -177,10 +176,10 @@ jobs:
           custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
       - name: Download Build artifact.
-        uses: actions/download-artifact@v3
+        uses: actions/cache@v3
         with:
-          name: wordpress-src-built
           path: src
+          key: ${{ github.sha }}-src
 
       - name: Install npm dependencies
         run: npm ci
