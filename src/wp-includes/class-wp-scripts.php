@@ -552,6 +552,33 @@ class WP_Scripts extends WP_Dependencies {
 	}
 
 	/**
+	 * Gets unaliased dependencies.
+	 *
+	 * An alias is a dependency whose src is false. It is used as a way to bundle multiple dependencies in a single
+	 * handle. This in effect flattens an alias dependency tree.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string[] $deps Dependency handles.
+	 * @return string[] Unaliased handles.
+	 */
+	private function get_unaliased_deps( array $deps ) {
+		$flattened = array();
+		foreach ( $deps as $dep ) {
+			if ( ! array_key_exists( $dep, $this->registered ) ) {
+				continue;
+			}
+
+			if ( $this->registered[ $dep ]->src ) {
+				$flattened[] = $dep;
+			} elseif ( $this->registered[ $dep ]->deps ) {
+				array_push( $flattened, ...$this->get_unaliased_deps( $this->registered[ $dep ]->deps ) );
+			}
+		}
+		return $flattened;
+	}
+
+	/**
 	 * Gets tags for inline scripts registered for a specific handle.
 	 *
 	 * @since 6.3.0
@@ -568,14 +595,20 @@ class WP_Scripts extends WP_Dependencies {
 			return '';
 		}
 
-		$id   = "{$handle}-js-{$position}";
-		$deps = $this->registered[ $handle ]->deps;
-
+		$id = "{$handle}-js-{$position}";
 		if ( $this->should_delay_inline_script( $handle, $position ) ) {
 			$attributes = array(
 				'id'   => $id,
 				'type' => 'text/plain',
 			);
+
+			/*
+			 * Note that any dependency aliases need to be flattened because an alias is a bundle of dependencies
+			 * and their handles won't appear on any specific scripts. Since no script will appear in the DOM for
+			 * an alias, there won't be any way to keep track of when it has loaded. Therefore, we only keep track of
+			 * the aliased dependencies (the leaf nodes of the alias dependency tree as it were).
+			 */
+			$deps = $this->get_unaliased_deps( $this->registered[ $handle ]->deps );
 			if ( $deps ) {
 				$attributes['data-wp-deps'] = implode( ',', $deps );
 			}
@@ -648,7 +681,18 @@ class WP_Scripts extends WP_Dependencies {
 		 * dependency's after inline script.
 		 */
 		foreach ( $deps as $dep ) {
-			if ( $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $dep ) ) ) {
+			if ( ! array_key_exists( $dep, $this->registered ) ) {
+				continue;
+			}
+
+			// If the dependency is an alias, look at its members.
+			if ( ! $this->registered[ $dep ]->src ) {
+				foreach ( $this->registered[ $dep ]->deps as $alias_dep ) {
+					if ( $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $alias_dep ) ) ) {
+						return true;
+					}
+				}
+			} elseif ( $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $dep ) ) ) {
 				return true;
 			}
 		}
@@ -1028,36 +1072,54 @@ JS;
 		$checked[ $handle ] = true;
 		$dependents         = $this->get_dependents( $handle );
 
-		// If there are no dependents remaining to consider, the script can be deferred.
+		// If there are no dependents remaining to consider, the script can be delayed.
 		if ( empty( $dependents ) ) {
 			return true;
 		}
 
 		// Consider each dependent and check if it is delayed.
 		foreach ( $dependents as $dependent ) {
-			// If the dependent script has no src (as it represents an alias for a set of items), ignore it from consideration.
-			if ( empty( $this->registered[ $dependent ]->src ) ) {
+			if ( ! array_key_exists( $dependent, $this->registered ) ) {
 				continue;
 			}
 
-			// If the dependency is not enqueued, ignore it for consideration.
+			// If the dependency is not enqueued, exclude it from consideration.
 			if ( ! $this->query( $dependent, 'enqueued' ) ) {
 				continue;
 			}
 
-			// If the dependent script is not using the defer or async strategy, no script in the chain is delayed.
-			$strategy = $this->get_data( $dependent, 'strategy' );
-			if ( $async_only ) {
-				if ( 'async' !== $strategy ) {
+			// Handle script alias case (where it has no src).
+			if ( ! $this->registered[ $dependent ]->src ) {
+				// A script alias cannot be delayed if it has inline scripts since there is no load event.
+				if (
+					$this->get_data( $dependent, 'before' ) ||
+					$this->get_data( $dependent, 'after' )
+				) {
 					return false;
 				}
-			} elseif ( ! $this->is_delayed_strategy( $strategy ) ) {
-				return false;
-			}
 
-			// Recursively check all dependents.
-			if ( ! $this->has_only_delayed_dependents( $dependent, $async_only, $checked ) ) {
-				return false;
+				// Now check whether all members of the alias are delayed.
+				foreach ( $this->get_dependents( $dependent ) as $alias_dependent ) {
+					if ( ! $this->has_only_delayed_dependents( $alias_dependent, $async_only, $checked ) ) {
+						return false;
+					}
+				}
+			} else {
+
+				// If the dependent script is not using the defer or async strategy, no script in the chain is delayed.
+				$strategy = $this->get_data( $dependent, 'strategy' );
+				if ( $async_only ) {
+					if ( 'async' !== $strategy ) {
+						return false;
+					}
+				} elseif ( ! $this->is_delayed_strategy( $strategy ) ) {
+					return false;
+				}
+
+				// Recursively check all dependents.
+				if ( ! $this->has_only_delayed_dependents( $dependent, $async_only, $checked ) ) {
+					return false;
+				}
 			}
 		}
 
@@ -1073,7 +1135,7 @@ JS;
 	 * @return string $strategy The best eligible loading strategy.
 	 */
 	private function get_eligible_loading_strategy( $handle ) {
-		if ( ! isset( $this->registered[ $handle ] ) ) {
+		if ( ! array_key_exists( $handle, $this->registered ) ) {
 			return '';
 		}
 
@@ -1085,7 +1147,16 @@ JS;
 		 * - A script alias (where $src is false) must always be blocking since the after inline script cannot be
 		 *   delayed as there is no external script tag and thus no load event at which the inline script can be run.
 		 */
-		if ( empty( $intended_strategy ) || empty( $this->registered[ $handle ]->src ) ) {
+		if ( empty( $intended_strategy ) ) {
+			return '';
+		}
+
+		// Aliases that have before/after inline scripts can never be delayed since there is no load event.
+		if ( ! $this->registered[ $handle ]->src && (
+				$this->get_data( $handle, 'before' ) ||
+				$this->get_data( $handle, 'after' )
+			)
+		) {
 			return '';
 		}
 

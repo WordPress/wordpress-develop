@@ -810,7 +810,6 @@ HTML
 					$handle1 = 'blocking-bundle-of-none';
 					$handle2 = 'defer-dependent-of-blocking-bundle-of-none';
 
-					// Note that jQuery is registered like this.
 					wp_register_script( $handle1, false, array(), null );
 					$this->add_test_inline_script( $handle1, 'before' );
 					$this->add_test_inline_script( $handle1, 'after' );
@@ -831,7 +830,7 @@ scriptEventLog.push( "blocking-bundle-of-none: after inline" )
 scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-none: before inline" )
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-blocking-bundle-of-none:%20script' id='defer-dependent-of-blocking-bundle-of-none-js' defer data-wp-strategy='defer'></script>
-<script id="defer-dependent-of-blocking-bundle-of-none-js-after" type="text/plain" data-wp-deps="blocking-bundle-of-none">
+<script id="defer-dependent-of-blocking-bundle-of-none-js-after" type="text/plain">
 scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-none: after inline" )
 </script>
 HTML
@@ -844,9 +843,9 @@ HTML
 					$handle3 = 'blocking-bundle-member-two';
 					$handle4 = 'defer-dependent-of-blocking-bundle-of-two';
 
-					wp_register_script( $handle1, false, array(), null );
-					$this->enqueue_test_script( $handle2, 'blocking', array( $handle1 ) );
-					$this->enqueue_test_script( $handle3, 'blocking', array( $handle1 ) );
+					wp_register_script( $handle1, false, array( $handle2, $handle3 ), null );
+					$this->enqueue_test_script( $handle2, 'blocking' );
+					$this->enqueue_test_script( $handle3, 'blocking' );
 					$this->enqueue_test_script( $handle4, 'defer', array( $handle1 ) );
 
 					foreach ( array( $handle2, $handle3, $handle4 ) as $handle ) {
@@ -873,7 +872,7 @@ scriptEventLog.push( "blocking-bundle-member-two: after inline" )
 scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-two: before inline" )
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-blocking-bundle-of-two:%20script' id='defer-dependent-of-blocking-bundle-of-two-js' defer data-wp-strategy='defer'></script>
-<script id="defer-dependent-of-blocking-bundle-of-two-js-after" type="text/plain" data-wp-deps="blocking-bundle-of-two">
+<script id="defer-dependent-of-blocking-bundle-of-two-js-after" type="text/plain" data-wp-deps="blocking-bundle-member-one,blocking-bundle-member-two">
 scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-two: after inline" )
 </script>
 HTML
@@ -906,7 +905,7 @@ scriptEventLog.push( "defer-bundle-of-none: after inline" )
 scriptEventLog.push( "defer-dependent-of-defer-bundle-of-none: before inline" )
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-defer-bundle-of-none:%20script' id='defer-dependent-of-defer-bundle-of-none-js' defer data-wp-strategy='defer'></script>
-<script id="defer-dependent-of-defer-bundle-of-none-js-after" type="text/plain" data-wp-deps="defer-bundle-of-none">
+<script id="defer-dependent-of-defer-bundle-of-none-js-after" type="text/plain">
 scriptEventLog.push( "defer-dependent-of-defer-bundle-of-none: after inline" )
 </script>
 HTML
