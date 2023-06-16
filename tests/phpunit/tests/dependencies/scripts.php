@@ -1048,6 +1048,22 @@ scriptEventLog.push( "defer-with-after-inline: after inline" )
 HTML
 				,
 			),
+			'jquery-deferred'                              => array(
+				'set_up'          => function () {
+					$wp_scripts = wp_scripts();
+					wp_default_scripts( $wp_scripts );
+					foreach ( $wp_scripts->registered['jquery']->deps as $jquery_dep ) {
+						$wp_scripts->registered[ $jquery_dep ]->add_data( 'strategy', 'defer' );
+					}
+					wp_enqueue_script( 'theme-functions', 'https://example.com/theme-functions.js', array( 'jquery' ), null, array( 'strategy' => 'defer' ) );
+				},
+				'expected_markup' => <<<HTML
+<script type='text/javascript' src='http://example.org/wp-includes/js/jquery/jquery.js?ver=3.7.0' id='jquery-core-js' defer data-wp-strategy='defer'></script>
+<script type='text/javascript' src='http://example.org/wp-includes/js/jquery/jquery-migrate.js?ver=3.4.0' id='jquery-migrate-js' defer data-wp-strategy='defer'></script>
+<script type='text/javascript' src='https://example.com/theme-functions.js' id='theme-functions-js' defer data-wp-strategy='defer'></script>
+HTML
+				,
+			),
 		);
 	}
 
