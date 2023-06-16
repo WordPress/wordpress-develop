@@ -21,7 +21,7 @@
 class Core_Upgrader extends WP_Upgrader {
 
 	/**
-	 * Initialize the upgrade strings.
+	 * Initializes the upgrade strings.
 	 *
 	 * @since 2.8.0
 	 */
@@ -30,7 +30,7 @@ class Core_Upgrader extends WP_Upgrader {
 		$this->strings['locked']     = __( 'Another update is currently in progress.' );
 		$this->strings['no_package'] = __( 'Update package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package']   = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code">%s</span>' );
+		$this->strings['downloading_package']   = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code pre">%s</span>' );
 		$this->strings['unpack_package']        = __( 'Unpacking the update&#8230;' );
 		$this->strings['copy_failed']           = __( 'Could not copy files.' );
 		$this->strings['copy_failed_space']     = __( 'Could not copy files. You may have run out of disk space.' );
@@ -39,7 +39,7 @@ class Core_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Upgrade WordPress core.
+	 * Upgrades WordPress core.
 	 *
 	 * @since 2.8.0
 	 *
@@ -385,7 +385,7 @@ class Core_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Compare the disk file checksums against the expected checksums.
+	 * Compares the disk file checksums against the expected checksums.
 	 *
 	 * @since 3.7.0
 	 *
