@@ -46,7 +46,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
 
+      - name: Cache WordPress build artifacts
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: src
+          key: ${{ github.sha }}-src
+
       - name: Set up Node.js
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version-file: '.nvmrc'
@@ -66,11 +74,6 @@ jobs:
       - name: Build WordPress in /src
         run: npm run build:dev
 
-      - name: Cache WordPress build artifacts
-        uses: actions/cache@v3
-        with:
-          path: src
-          key: ${{ github.sha }}-src
 
   # Runs the PHPUnit tests for WordPress.
   #
