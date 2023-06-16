@@ -955,6 +955,10 @@ JS;
 	 * @return bool True on success, false on failure.
 	 */
 	public function add_data( $handle, $key, $value ) {
+		if ( ! array_key_exists( $handle, $this->registered ) ) {
+			return false;
+		}
+
 		if ( 'strategy' === $key ) {
 			if ( ! empty( $value ) && ! $this->is_delayed_strategy( $value ) ) {
 				_doing_it_wrong(
@@ -968,7 +972,7 @@ JS;
 					'6.3.0'
 				);
 				return false;
-			} elseif ( empty( $this->registered[ $handle ]->src ) && $this->is_delayed_strategy( $value ) ) {
+			} elseif ( ! $this->registered[ $handle ]->src && $this->is_delayed_strategy( $value ) ) {
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(
