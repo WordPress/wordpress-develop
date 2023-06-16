@@ -5426,7 +5426,6 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 		}
 	}
 
-
 	// The image could not be parsed.
 	return false;
 }
@@ -5474,7 +5473,7 @@ function wp_get_avif_info( $filename ) {
 			'width'        => false,
 			'height'       => false,
 			'bit_depth'    => false,
-			'num_channels' => false
+			'num_channels' => false,
 		);
 
 		$handle = fopen( $filename, 'rb' );

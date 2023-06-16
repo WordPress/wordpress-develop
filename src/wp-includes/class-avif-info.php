@@ -34,11 +34,11 @@ const UNDEFINED     = 0;          // Value was not yet parsed.
  * @return int                     Value.
  */
 function read_big_endian( $input, $num_bytes ) {
-	if ( $num_bytes == 1 ) {
+	if ( 1 === $num_bytes ) {
 		return unpack( 'C', $input ) [1];
-	} elseif ( $num_bytes == 2 ) {
+	} elseif ( 2 === $num_bytes ) {
 		return unpack( 'n', $input ) [1];
-	} elseif ( $num_bytes == 3 ) {
+	} elseif ( 3 === $num_bytes ) {
 		$bytes = unpack( 'C3', $input );
 		return ( $bytes[1] << 16 ) | ( $bytes[2] << 8 ) | $bytes[3];
 	} else { // $num_bytes is 4
@@ -57,7 +57,7 @@ function read_big_endian( $input, $num_bytes ) {
  */
 function read( $handle, $num_bytes ) {
 	$data = fread( $handle, $num_bytes );
-	return ( $data !== false && strlen( $data ) >= $num_bytes ) ? $data : false;
+	return ( FALSE !== $data && strlen( $data ) >= $num_bytes ) ? $data : false;
 }
 
 /**
@@ -133,16 +133,14 @@ class Features {
 
 			// Retrieve the width and height of the primary item if not already done.
 			if ( $target_item_id == $this->primary_item_id &&
-			( $this->primary_item_features['width'] == UNDEFINED ||
-			 $this->primary_item_features['height'] == UNDEFINED ) ) {
+			( UNDEFINED === $this->primary_item_features['width'] || UNDEFINED === $this->primary_item_features['height'] ) ) {
 				foreach ( $this->dim_props as $dim_prop ) {
 					if ( $dim_prop->property_index != $prop->property_index ) {
 						continue;
 					}
 					$this->primary_item_features['width']  = $dim_prop->width;
 					$this->primary_item_features['height'] = $dim_prop->height;
-					if ( $this->primary_item_features['bit_depth'] != UNDEFINED &&
-					$this->primary_item_features['num_channels'] != UNDEFINED ) {
+					if ( UNDEFINED !== $this->primary_item_features['bit_depth'] && UNDEFINED !== $this->primary_item_features['num_channels'] ) {
 						return FOUND;
 					}
 					break;
