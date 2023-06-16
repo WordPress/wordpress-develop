@@ -236,7 +236,7 @@
 
 		script.src = src;
 		script.defer = true;
-		document.getElementsByTagName( 'head' )[ 0 ].appendChild( script );
+		document.head.appendChild( script );
 	}
 
 	const tests = [ 'flag', 'emoji' ];
