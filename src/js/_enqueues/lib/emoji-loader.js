@@ -1,12 +1,19 @@
 /**
  * @output wp-includes/js/wp-emoji-loader.js
- *
+ */
+
+/**
+ * Emoji Settings as exported in PHP via _print_emoji_detection_script().
  * @typedef WPEmojiSettings
  * @type {object}
  * @property {!object} source
  * @property {!string} source.concatemoji
  * @property {!string} source.twemoji
  * @property {!string} source.wpemoji
+ */
+
+/**
+ * IIFE to detect emoji support and load Twemoji if needed.
  *
  * @param {Window} window
  * @param {Document} document
