@@ -1,6 +1,6 @@
 <?php
 /**
- * Enable theme previews in the Site Editor for block themes.
+ * Theme previews using the Site Editor for block themes.
  *
  * @package gutenberg
  */
