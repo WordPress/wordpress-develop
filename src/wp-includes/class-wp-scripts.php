@@ -1112,11 +1112,10 @@ JS;
 
 				// If the dependent script is not using the defer or async strategy, no script in the chain is delayed.
 				$strategy = $this->get_data( $dependent, 'strategy' );
-				if ( $async_only ) {
-					if ( 'async' !== $strategy ) {
-						return false;
-					}
-				} elseif ( ! $this->is_delayed_strategy( $strategy ) ) {
+				if ( $async_only ?
+					'async' !== $strategy :
+					! $this->is_delayed_strategy( $strategy )
+				) {
 					return false;
 				}
 
