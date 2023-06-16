@@ -475,6 +475,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 53175
 	 * @ticket 54336
 	 * @ticket 56611
+	 * @ticket 58549
 	 */
 	public function test_get_stylesheet() {
 		$theme_json = new WP_Theme_JSON(
