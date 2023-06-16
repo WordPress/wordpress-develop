@@ -2,7 +2,7 @@
 /**
  * Theme previews using the Site Editor for block themes.
  *
- * @package gutenberg
+ * @package WordPress
  */
 
 /**
@@ -11,8 +11,7 @@
  * @param string $current_stylesheet The current theme's stylesheet or template path.
  * @return string The previewed theme's stylesheet or template path.
  */
-function gutenberg_get_theme_preview_path( $current_stylesheet = null ) {
-	// Don't allow non-admins to preview themes.
+function wp_get_theme_preview_path( $current_stylesheet = null ) {
 	if ( ! current_user_can( 'switch_themes' ) ) {
 		return $current_stylesheet;
 	}
@@ -35,7 +34,7 @@ function gutenberg_get_theme_preview_path( $current_stylesheet = null ) {
 /**
  * Adds a middleware to `apiFetch` to set the theme for the preview.
  */
-function gutenberg_attach_theme_preview_middleware() {
+function wp_attach_theme_preview_middleware() {
 	// Don't allow non-admins to preview themes.
 	if ( ! current_user_can( 'switch_themes' ) ) {
 		return;
@@ -104,7 +103,7 @@ function add_live_preview_button() {
  * Adds a nonce for the theme activation link.
  */
 function block_theme_activate_nonce() {
-	$nonce_handle = 'switch-theme_' . gutenberg_get_theme_preview_path();
+	$nonce_handle = 'switch-theme_' . wp_get_theme_preview_path();
 	?>
 <script type="text/javascript">
 	window.BLOCK_THEME_ACTIVATE_NONCE = '<?php echo wp_create_nonce( $nonce_handle ); ?>';
@@ -116,9 +115,9 @@ function block_theme_activate_nonce() {
  * Attaches filters to enable theme previews in the Site Editor.
  */
 if ( ! empty( $_GET['wp_theme_preview'] ) ) {
-	add_filter( 'stylesheet', 'gutenberg_get_theme_preview_path' );
-	add_filter( 'template', 'gutenberg_get_theme_preview_path' );
-	add_filter( 'init', 'gutenberg_attach_theme_preview_middleware' );
+	add_filter( 'stylesheet', 'wp_get_theme_preview_path' );
+	add_filter( 'template', 'wp_get_theme_preview_path' );
+	add_filter( 'init', 'wp_attach_theme_preview_middleware' );
 }
-dd_action( 'admin_head', 'block_theme_activate_nonce' );
+add_action( 'admin_head', 'block_theme_activate_nonce' );
 add_action( 'admin_print_footer_scripts', 'add_live_preview_button', 11 );
