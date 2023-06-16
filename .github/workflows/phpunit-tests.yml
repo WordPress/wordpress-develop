@@ -54,7 +54,6 @@ jobs:
           key: ${{ github.sha }}-src
 
       - name: Set up Node.js
-        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version-file: '.nvmrc'
@@ -69,9 +68,11 @@ jobs:
           svn --version
 
       - name: Install npm Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
 
       - name: Build WordPress in /src
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm run build:dev
 
 
