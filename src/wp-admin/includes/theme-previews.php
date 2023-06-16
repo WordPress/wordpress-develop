@@ -39,7 +39,7 @@ function wp_attach_theme_preview_middleware() {
 	if ( ! current_user_can( 'switch_themes' ) ) {
 		return;
 	}
-	
+
 	wp_add_inline_script(
 		'wp-api-fetch',
 		sprintf(
