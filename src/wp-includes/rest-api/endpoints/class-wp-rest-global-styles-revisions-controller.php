@@ -75,7 +75,6 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 	 * @since 6.3.0
 	 *
 	 * @param WP_REST_Request $request The request instance.
-	 *
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_items( $request ) {

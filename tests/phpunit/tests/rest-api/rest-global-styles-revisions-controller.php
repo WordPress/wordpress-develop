@@ -83,6 +83,8 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::register_routes
+	 *
+	 * @ticket 58524
 	 */
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
@@ -95,6 +97,8 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 *
+	 * @ticket 58524
 	 */
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
@@ -170,6 +174,8 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::get_item_schema
+	 *
+	 * @ticket 58524
 	 */
 	public function test_get_item_schema() {
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
@@ -191,6 +197,8 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::get_item_permissions_check
+	 *
+	 * @ticket 58524
 	 */
 	public function test_get_item_permissions_check() {
 		wp_set_current_user( self::$author_id );
