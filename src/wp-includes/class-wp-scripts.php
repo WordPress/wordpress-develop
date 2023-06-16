@@ -552,6 +552,33 @@ class WP_Scripts extends WP_Dependencies {
 	}
 
 	/**
+	 * Gets unaliased dependencies.
+	 *
+	 * An alias is a dependency whose src is false. It is used as a way to bundle multiple dependencies in a single
+	 * handle. This in effect flattens an alias dependency tree.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string[] $deps Dependency handles.
+	 * @return string[] Unaliased handles.
+	 */
+	private function get_unaliased_deps( array $deps ) {
+		$flattened = array();
+		foreach ( $deps as $dep ) {
+			if ( ! isset( $this->registered[ $dep ] ) ) {
+				continue;
+			}
+
+			if ( $this->registered[ $dep ]->src ) {
+				$flattened[] = $dep;
+			} elseif ( $this->registered[ $dep ]->deps ) {
+				array_push( $flattened, ...$this->get_unaliased_deps( $this->registered[ $dep ]->deps ) );
+			}
+		}
+		return $flattened;
+	}
+
+	/**
 	 * Gets tags for inline scripts registered for a specific handle.
 	 *
 	 * @since 6.3.0
@@ -568,14 +595,20 @@ class WP_Scripts extends WP_Dependencies {
 			return '';
 		}
 
-		$id   = "{$handle}-js-{$position}";
-		$deps = $this->registered[ $handle ]->deps;
-
+		$id = "{$handle}-js-{$position}";
 		if ( $this->should_delay_inline_script( $handle, $position ) ) {
 			$attributes = array(
 				'id'   => $id,
 				'type' => 'text/plain',
 			);
+
+			/*
+			 * Note that any dependency aliases need to be flattened because an alias is a bundle of dependencies
+			 * and their handles won't appear on any specific scripts. Since no script will appear in the DOM for
+			 * an alias, there won't be any way to keep track of when it has loaded. Therefore, we only keep track of
+			 * the aliased dependencies (the leaf nodes of the alias dependency tree as it were).
+			 */
+			$deps = $this->get_unaliased_deps( $this->registered[ $handle ]->deps );
 			if ( $deps ) {
 				$attributes['data-wp-deps'] = implode( ',', $deps );
 			}
@@ -648,7 +681,18 @@ class WP_Scripts extends WP_Dependencies {
 		 * dependency's after inline script.
 		 */
 		foreach ( $deps as $dep ) {
-			if ( $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $dep ) ) ) {
+			if ( ! isset( $this->registered[ $dep ] ) ) {
+				continue;
+			}
+
+			// If the dependency is an alias, look at its members.
+			if ( ! $this->registered[ $dep ]->src ) {
+				foreach ( $this->get_unaliased_deps( $this->registered[ $dep ]->deps ) as $alias_dep ) {
+					if ( $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $alias_dep ) ) ) {
+						return true;
+					}
+				}
+			} elseif ( $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $dep ) ) ) {
 				return true;
 			}
 		}
@@ -911,6 +955,10 @@ JS;
 	 * @return bool True on success, false on failure.
 	 */
 	public function add_data( $handle, $key, $value ) {
+		if ( ! isset( $this->registered[ $handle ] ) ) {
+			return false;
+		}
+
 		if ( 'strategy' === $key ) {
 			if ( ! empty( $value ) && ! $this->is_delayed_strategy( $value ) ) {
 				_doing_it_wrong(
@@ -924,12 +972,12 @@ JS;
 					'6.3.0'
 				);
 				return false;
-			} elseif ( empty( $this->registered[ $handle ]->src ) && $this->is_delayed_strategy( $value ) ) {
+			} elseif ( ! $this->registered[ $handle ]->src && $this->is_delayed_strategy( $value ) ) {
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(
 						/* translators: 1: $strategy, 2: $handle */
-						__( 'Cannot supply a strategy `%1$s` for script `%2$s` because it does not have a `src` value.' ),
+						__( 'Cannot supply a strategy `%1$s` for script `%2$s` because it is an alias (it lacks a `src` value).' ),
 						$value,
 						$handle
 					),
@@ -974,7 +1022,7 @@ JS;
 	 */
 	private function get_dependents( $handle ) {
 		// Check if dependents map for the handle in question is present. If so, use it.
-		if ( array_key_exists( $handle, $this->dependents_map ) ) {
+		if ( isset( $this->dependents_map[ $handle ] ) ) {
 			return $this->dependents_map[ $handle ];
 		}
 
@@ -1021,38 +1069,44 @@ JS;
 	 */
 	private function has_only_delayed_dependents( $handle, $async_only = false, $checked = array() ) {
 		// If this node was already checked, this script can be delayed and the branch ends.
-		if ( array_key_exists( $handle, $checked ) ) {
+		if ( isset( $checked[ $handle ] ) ) {
 			return true;
 		}
 
 		$checked[ $handle ] = true;
 		$dependents         = $this->get_dependents( $handle );
 
-		// If there are no dependents remaining to consider, the script can be deferred.
+		// If there are no dependents remaining to consider, the script can be delayed.
 		if ( empty( $dependents ) ) {
 			return true;
 		}
 
 		// Consider each dependent and check if it is delayed.
 		foreach ( $dependents as $dependent ) {
-			// If the dependent script has no src (as it represents a script bundle), ignore it for consideration.
-			if ( empty( $this->registered[ $dependent ]->src ) ) {
+			if ( ! isset( $this->registered[ $dependent ] ) ) {
 				continue;
 			}
 
-			// If the dependency is not enqueued, ignore it for consideration.
+			// If the dependency is not enqueued, exclude it from consideration.
 			if ( ! $this->query( $dependent, 'enqueued' ) ) {
 				continue;
 			}
 
-			// If the dependent script is not using the defer or async strategy, no script in the chain is delayed.
-			$strategy = $this->get_data( $dependent, 'strategy' );
-			if ( $async_only ) {
-				if ( 'async' !== $strategy ) {
+			// Handle script alias case (where it has no src). Here, the strategy doesn't matter, but only whether there are inline scripts.
+			if ( ! $this->registered[ $dependent ]->src ) {
+				// A script alias cannot be delayed if it has inline scripts since there is no load event.
+				if ( $this->has_inline_script( $dependent ) ) {
 					return false;
 				}
-			} elseif ( ! $this->is_delayed_strategy( $strategy ) ) {
-				return false;
+			} else {
+				// If the dependent script is not using the defer or async strategy, no script in the chain is delayed.
+				$strategy = $this->get_data( $dependent, 'strategy' );
+				if ( $async_only ?
+					'async' !== $strategy :
+					! $this->is_delayed_strategy( $strategy )
+				) {
+					return false;
+				}
 			}
 
 			// Recursively check all dependents.
@@ -1082,10 +1136,15 @@ JS;
 		/*
 		 * Handle known blocking strategy scenarios.
 		 * - An empty strategy is synonymous with blocking.
-		 * - A script bundle (where $src is false) must always be blocking since the after inline script cannot be
+		 * - A script alias (where $src is false) must always be blocking since the after inline script cannot be
 		 *   delayed as there is no external script tag and thus no load event at which the inline script can be run.
 		 */
-		if ( empty( $intended_strategy ) || empty( $this->registered[ $handle ]->src ) ) {
+		if ( empty( $intended_strategy ) ) {
+			return '';
+		}
+
+		// Aliases that have before/after inline scripts can never be delayed since there is no load event.
+		if ( ! $this->registered[ $handle ]->src && $this->has_inline_script( $handle ) ) {
 			return '';
 		}
 
@@ -1100,6 +1159,19 @@ JS;
 		}
 
 		return '';
+	}
+
+	/**
+	 * Gets data for inline scripts registered for a specific handle.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $handle Name of the script to get data for.
+	 *                       Must be lowercase.
+	 * @return bool Whether the handle has an inline script (either before or after).
+	 */
+	private function has_inline_script( $handle ) {
+		return $this->get_data( $handle, 'before' ) || $this->get_data( $handle, 'after' );
 	}
 
 	/**
