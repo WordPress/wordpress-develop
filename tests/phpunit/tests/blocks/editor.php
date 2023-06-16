@@ -440,7 +440,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			'layout' => array(
 				'type' => 'constrained',
 			),
-			);
+		);
 		// With no block theme and no post ID, expect an empty array.
 		$this->assertSame( array(), _wp_get_post_content_block_attributes() );
 
