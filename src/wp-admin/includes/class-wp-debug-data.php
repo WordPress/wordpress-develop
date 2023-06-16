@@ -842,7 +842,7 @@ class WP_Debug_Data {
 		// Server time.
 		$date = new \DateTime( 'now', new \DateTimeZone( 'UTC' ) );
 		$info['wp-server']['fields']['current'] = array(
-			'label' => __( 'Current date' ),
+			'label' => __( 'Current time' ),
 			'value' => $date->format( \DateTime::ATOM ),
 		);
 		$info['wp-server']['fields']['utc-time'] = array(
