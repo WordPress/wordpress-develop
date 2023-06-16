@@ -33,7 +33,7 @@ function gutenberg_get_theme_preview_path( $current_stylesheet = null ) {
 }
 
 /**
- * Adds a middleware to the REST API to set the theme for the preview.
+ * Adds a middleware to `apiFetch` to set the theme for the preview.
  */
 function gutenberg_attach_theme_preview_middleware() {
 	// Don't allow non-admins to preview themes.
