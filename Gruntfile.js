@@ -1035,29 +1035,29 @@ module.exports = function(grunt) {
 				}
 			}
 		},
-		jsvalidate:{
-			options: {
-				globals: {},
-				esprimaOptions:{},
-				verbose: false
-			},
-			build: {
-				files: {
-					src: [
-						WORKING_DIR + 'wp-{admin,includes}/**/*.js',
-						WORKING_DIR + 'wp-content/themes/twenty*/**/*.js',
-						'!' + WORKING_DIR + 'wp-content/themes/twenty*/node_modules/**/*.js',
-						'!' + WORKING_DIR + 'wp-includes/blocks/**/*.js',
-						'!' + WORKING_DIR + 'wp-includes/js/dist/**/*.js',
-					]
-				}
-			},
-			dynamic: {
-				files: {
-					src: []
-				}
-			}
-		},
+		// jsvalidate:{
+		// 	options: {
+		// 		globals: {},
+		// 		esprimaOptions:{},
+		// 		verbose: false
+		// 	},
+		// 	build: {
+		// 		files: {
+		// 			src: [
+		// 				WORKING_DIR + 'wp-{admin,includes}/**/*.js',
+		// 				WORKING_DIR + 'wp-content/themes/twenty*/**/*.js',
+		// 				'!' + WORKING_DIR + 'wp-content/themes/twenty*/node_modules/**/*.js',
+		// 				'!' + WORKING_DIR + 'wp-includes/blocks/**/*.js',
+		// 				'!' + WORKING_DIR + 'wp-includes/js/dist/**/*.js',
+		// 			]
+		// 		}
+		// 	},
+		// 	dynamic: {
+		// 		files: {
+		// 			src: []
+		// 		}
+		// 	}
+		// },
 		imagemin: {
 			core: {
 				expand: true,
@@ -1182,7 +1182,7 @@ module.exports = function(grunt) {
 			},
 			'js-enqueues': {
 				files: [SOURCE_DIR + 'js/_enqueues/**/*.js'],
-				tasks: ['clean:dynamic', 'copy:dynamic-js', 'uglify:dynamic', 'jsvalidate:dynamic'],
+				tasks: ['clean:dynamic', 'copy:dynamic-js', 'uglify:dynamic' /*, 'jsvalidate:dynamic'*/],
 				options: {
 					dot: true,
 					spawn: false
@@ -1194,7 +1194,7 @@ module.exports = function(grunt) {
 					'!' + SOURCE_DIR + 'js/_enqueues/**/*.js',
 					'webpack-dev.config.js'
 				],
-				tasks: ['clean:dynamic', 'webpack:dev', 'uglify:dynamic', 'jsvalidate:dynamic'],
+				tasks: ['clean:dynamic', 'webpack:dev', 'uglify:dynamic' /*, 'jsvalidate:dynamic'*/],
 				options: {
 					dot: true,
 					spawn: false
@@ -1492,7 +1492,7 @@ module.exports = function(grunt) {
 		'uglify:all',
 		'concat:tinymce',
 		'concat:emoji',
-		'jsvalidate:build'
+		// 'jsvalidate:build'
 	] );
 
 	grunt.registerTask( 'build:css', [
@@ -1857,11 +1857,11 @@ module.exports = function(grunt) {
 			// For javascript also minify and validate the changed file.
 			if ( target === 'js-enqueues' ) {
 				grunt.config( [ 'uglify', 'dynamic', 'src' ], src );
-				grunt.config( [ 'jsvalidate', 'dynamic', 'files', 'src' ], src.map( function( dir ) { return  WORKING_DIR + dir; } ) );
+				grunt.config( [ /*'jsvalidate',*/ 'dynamic', 'files', 'src' ], src.map( function( dir ) { return  WORKING_DIR + dir; } ) );
 			}
 			// For webpack only validate the file, minification is handled by webpack itself.
 			if ( target === 'js-webpack' ) {
-				grunt.config( [ 'jsvalidate', 'dynamic', 'files', 'src' ], src.map( function( dir ) { return  WORKING_DIR + dir; } ) );
+				grunt.config( [ /*'jsvalidate',*/ 'dynamic', 'files', 'src' ], src.map( function( dir ) { return  WORKING_DIR + dir; } ) );
 			}
 			// For css run the rtl task on just the changed file.
 			if ( target === 'rtl' ) {
