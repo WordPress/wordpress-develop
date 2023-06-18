@@ -538,7 +538,7 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	 * Tests that AltBody is reset between each wp_mail call.
 	 */
 	public function test_wp_mail_resets_properties() {
-		$wp_mail_set_text_message = function ( $phpmailer ) {
+		$wp_mail_set_text_message = static function ( $phpmailer ) {
 			$phpmailer->AltBody = 'user1';
 		};
 

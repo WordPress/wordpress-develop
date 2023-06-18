@@ -332,6 +332,14 @@ function create_initial_post_types() {
 		)
 	);
 
+	$template_edit_link = 'site-editor.php?' . build_query(
+		array(
+			'postType' => '%s',
+			'postId'   => '%s',
+			'canvas'   => 'edit',
+		)
+	);
+
 	register_post_type(
 		'wp_template',
 		array(
@@ -358,6 +366,7 @@ function create_initial_post_types() {
 			'description'           => __( 'Templates to include in your theme.' ),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'            => $template_edit_link, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
 			'show_ui'               => false,
 			'show_in_menu'          => false,
@@ -418,6 +427,7 @@ function create_initial_post_types() {
 			'description'           => __( 'Template parts to include in your templates.' ),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'            => $template_edit_link, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
 			'show_ui'               => false,
 			'show_in_menu'          => false,
@@ -458,6 +468,7 @@ function create_initial_post_types() {
 			'description'  => __( 'Global styles to include in themes.' ),
 			'public'       => false,
 			'_builtin'     => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'   => '/site-editor.php?canvas=edit', /* internal use only. don't use this when registering your own post type. */
 			'show_ui'      => false,
 			'show_in_rest' => false,
 			'rewrite'      => false,
@@ -1225,7 +1236,7 @@ function get_page_statuses() {
  * @since 4.9.6
  * @access private
  *
- * @return array
+ * @return string[] Array of privacy request status labels keyed by their status.
  */
 function _wp_privacy_statuses() {
 	return array(
@@ -1946,6 +1957,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  *                              Default is 'Post published privately.' / 'Page published privately.'
  * - `item_reverted_to_draft` - Label used when an item is switched to a draft.
  *                            Default is 'Post reverted to draft.' / 'Page reverted to draft.'
+ * - `item_trashed` - Label used when an item is moved to Trash. Default is 'Post trashed.' / 'Page trashed.'
  * - `item_scheduled` - Label used when an item is scheduled for publishing. Default is 'Post scheduled.' /
  *                    'Page scheduled.'
  * - `item_updated` - Label used when an item is updated. Default is 'Post updated.' / 'Page updated.'
@@ -1969,6 +1981,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  *              `item_scheduled`, and `item_updated` labels.
  * @since 5.7.0 Added the `filter_by_date` label.
  * @since 5.8.0 Added the `item_link` and `item_link_description` labels.
+ * @since 6.3.0 Added the `item_trashed` label.
  *
  * @access private
  *
@@ -6020,7 +6033,7 @@ function get_pages( $args = array() ) {
 					}
 					$post_author = $post_author->ID;
 				}
-				$query_args['author__in'][] = $post_author;
+				$query_args['author__in'][] = (int) $post_author;
 			}
 		}
 	}
@@ -6048,6 +6061,16 @@ function get_pages( $args = array() ) {
 	if ( ! empty( $number ) ) {
 		$query_args['posts_per_page'] = $number;
 	}
+
+	/**
+	 * Filters query arguments passed to WP_Query in get_pages.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param array $query_args  Array of arguments passed to WP_Query.
+	 * @param array $parsed_args Array of get_pages() arguments.
+	 */
+	$query_args = apply_filters( 'get_pages_query_args', $query_args, $parsed_args );
 
 	$query = new WP_Query( $query_args );
 	$pages = $query->get_posts();

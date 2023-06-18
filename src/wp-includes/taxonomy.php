@@ -2192,6 +2192,8 @@ function wp_delete_category( $cat_id ) {
  * @since 4.4.0 Introduced `$meta_query` and `$update_term_meta_cache` arguments. When `$fields` is 'all' or
  *              'all_with_object_id', an array of `WP_Term` objects will be returned.
  * @since 4.7.0 Refactored to use WP_Term_Query, and to support any WP_Term_Query arguments.
+ * @since 6.3.0 Passing `update_term_meta_cache` argument value false by default resulting in get_terms() to not
+ *              prime the term meta cache.
  *
  * @param int|int[]       $object_ids The ID(s) of the object(s) to retrieve.
  * @param string|string[] $taxonomies The taxonomy names to retrieve terms from.
@@ -2220,7 +2222,11 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	}
 	$object_ids = array_map( 'intval', $object_ids );
 
-	$args = wp_parse_args( $args );
+	$defaults = array(
+		'update_term_meta_cache' => false,
+	);
+
+	$args = wp_parse_args( $args, $defaults );
 
 	/**
 	 * Filters arguments for retrieving object terms.
@@ -2731,7 +2737,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
  * @param int              $object_id The object to relate to.
  * @param string|int|array $terms     A single term slug, single term ID, or array of either term slugs or IDs.
  *                                    Will replace all existing related terms in this taxonomy. Passing an
- *                                    empty value will remove all related terms.
+ *                                    empty array will remove all related terms.
  * @param string           $taxonomy  The context in which to relate the term to the object.
  * @param bool             $append    Optional. If false will delete difference of terms. Default false.
  * @return array|WP_Error Term taxonomy IDs of the affected terms or WP_Error on failure.
@@ -2745,7 +2751,9 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 		return new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
 	}
 
-	if ( ! is_array( $terms ) ) {
+	if ( empty( $terms ) ) {
+		$terms = array();
+	} elseif ( ! is_array( $terms ) ) {
 		$terms = array( $terms );
 	}
 

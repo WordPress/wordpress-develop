@@ -27,13 +27,6 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 	 * @return void
 	 */
 	function twenty_twenty_one_setup() {
-		/*
-		 * Make theme available for translation.
-		 * Translations can be filed in the /languages/ directory.
-		 * If you're building a theme based on Twenty Twenty-One, use a find and replace
-		 * to change 'twentytwentyone' to the name of your theme in all the template files.
-		 */
-		load_theme_textdomain( 'twentytwentyone', get_template_directory() . '/languages' );
 
 		// Add default posts and comments RSS feed links to head.
 		add_theme_support( 'automatic-feed-links' );
@@ -489,6 +482,7 @@ add_action( 'enqueue_block_editor_assets', 'twentytwentyone_block_editor_script'
  * thus it does not warrant having an entire dedicated blocking script being loaded.
  *
  * @since Twenty Twenty-One 1.0
+ * @deprecated Twenty Twenty-One 1.9 Removed from wp_print_footer_scripts action.
  *
  * @link https://git.io/vWdr2
  */
@@ -508,7 +502,6 @@ function twenty_twenty_one_skip_link_focus_fix() {
 		<?php
 	}
 }
-add_action( 'wp_print_footer_scripts', 'twenty_twenty_one_skip_link_focus_fix' );
 
 /**
  * Enqueue non-latin language styles.
