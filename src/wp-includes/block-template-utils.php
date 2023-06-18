@@ -65,7 +65,7 @@ function get_allowed_block_template_part_areas() {
 	$default_area_definitions = array(
 		array(
 			'area'        => WP_TEMPLATE_PART_AREA_UNCATEGORIZED,
-			'label'       => __( 'General' ),
+			'label'       => _x( 'General', 'template part area' ),
 			'description' => __(
 				'General templates often perform a specific role like displaying post content, and are not tied to any particular area.'
 			),
@@ -74,7 +74,7 @@ function get_allowed_block_template_part_areas() {
 		),
 		array(
 			'area'        => WP_TEMPLATE_PART_AREA_HEADER,
-			'label'       => __( 'Header' ),
+			'label'       => _x( 'Header', 'template part area' ),
 			'description' => __(
 				'The Header template defines a page area that typically contains a title, logo, and main navigation.'
 			),
@@ -83,7 +83,7 @@ function get_allowed_block_template_part_areas() {
 		),
 		array(
 			'area'        => WP_TEMPLATE_PART_AREA_FOOTER,
-			'label'       => __( 'Footer' ),
+			'label'       => _x( 'Footer', 'template part area' ),
 			'description' => __(
 				'The Footer template defines a page area that typically contains site credits, social links, or any other combination of blocks.'
 			),
@@ -952,11 +952,12 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 
 	$post_type     = isset( $query['post_type'] ) ? $query['post_type'] : '';
 	$wp_query_args = array(
-		'post_status'    => array( 'auto-draft', 'draft', 'publish' ),
-		'post_type'      => $template_type,
-		'posts_per_page' => -1,
-		'no_found_rows'  => true,
-		'tax_query'      => array(
+		'post_status'         => array( 'auto-draft', 'draft', 'publish' ),
+		'post_type'           => $template_type,
+		'posts_per_page'      => -1,
+		'no_found_rows'       => true,
+		'lazy_load_term_meta' => false,
+		'tax_query'           => array(
 			array(
 				'taxonomy' => 'wp_theme',
 				'field'    => 'name',
