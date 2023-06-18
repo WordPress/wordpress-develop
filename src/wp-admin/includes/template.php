@@ -758,7 +758,9 @@ function meta_form( $post = null ) {
 <input type="text" id="metakeyinput" name="metakeyinput" value="" />
 <?php } ?>
 </td>
-<td><textarea id="metavalue" name="metavalue" rows="2" cols="25"></textarea></td>
+<td><textarea id="metavalue" name="metavalue" rows="2" cols="25"></textarea>
+<?php wp_nonce_field( 'add-meta', '_ajax_nonce-add-meta', false ); ?>
+</td>
 </tr>
 </tbody>
 </table>
@@ -777,7 +779,6 @@ function meta_form( $post = null ) {
 	?>
 </div>
 	<?php
-	wp_nonce_field( 'add-meta', '_ajax_nonce-add-meta', false );
 }
 
 /**
