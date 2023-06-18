@@ -22,19 +22,21 @@ require BLOCKS_PATH . 'require-dynamic-blocks.php';
  * @since 6.3.0
  */
 function register_core_block_style_handles() {
+	if ( ! wp_should_load_separate_core_block_assets() ) {
+		return;
+	}
+
 	static $core_blocks_meta;
 	if ( ! $core_blocks_meta ) {
 		$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
 	}
 
 	$suffix = SCRIPT_DEBUG ? '' : '.min';
-
+	$wp_styles = wp_styles();
 	$style_fields = array(
 		'editorStyle',
 		'style',
 	);
-
-	$wp_styles = wp_styles();
 
 	foreach ( $core_blocks_meta as $name => $schema ) {
 		foreach ( $style_fields as $style_field ) {
