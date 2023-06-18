@@ -793,7 +793,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
 				__( 'Delete Permanently' )
 			),
-			'condition' => ( $this->is_trash && current_user_can( 'delete_post', $post->ID ) && ( ! EMPTY_TRASH_DAYS && ! MEDIA_TRASH ) ),
+			'condition' => ( $this->is_trash && current_user_can( 'delete_post', $post->ID ) || ! EMPTY_TRASH_DAYS || ! MEDIA_TRASH ),
 		);
 
 		$actions_raw['view'] = array(
