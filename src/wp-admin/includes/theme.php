@@ -718,13 +718,15 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		} elseif ( ! $is_block_theme && $can_customize && $can_edit_theme_options ) {
 			$customize_action = wp_customize_url( $slug );
 		}
-		$customize_action = add_query_arg(
-			array(
-				'return' => urlencode( sanitize_url( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
-			),
-			$customize_action
-		);
-		$customize_action = esc_url( $customize_action );
+		if ($customize_action !== null) {
+			$customize_action = add_query_arg(
+				array(
+					'return' => urlencode( sanitize_url( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
+				),
+				$customize_action
+			);
+			$customize_action = esc_url( $customize_action );
+		}
 
 		$update_requires_wp  = isset( $updates[ $slug ]['requires'] ) ? $updates[ $slug ]['requires'] : null;
 		$update_requires_php = isset( $updates[ $slug ]['requires_php'] ) ? $updates[ $slug ]['requires_php'] : null;
