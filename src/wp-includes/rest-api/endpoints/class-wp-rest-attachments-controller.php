@@ -1489,7 +1489,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					$post->post_mime_type
 				),
 				'6.2.0'
-			);;
+			);
 		}
 	}
 }
