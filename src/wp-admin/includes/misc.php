@@ -1642,3 +1642,101 @@ function wp_check_php_version() {
 
 	return $response;
 }
+
+/**
+ * Creates and returns the markup for an admin notice.
+ *
+ * @since 6.4.0
+ *
+ * @param string $message The message.
+ * @param array  $args {
+ *     Optional. An array of arguments for the admin notice. Default empty array.
+ *
+ *     @type string   $type               Optional. The type of admin notice.
+ *                                        For example, 'error', 'success', 'warning', 'info'.
+ *                                        Default empty string.
+ *     @type bool     $dismissible        Optional. Whether the admin notice is dismissible. Default false.
+ *     @type string   $id                 Optional. The value of the admin notice's ID attribute. Default empty string.
+ *     @type string[] $additional_classes Optional. A string array of class names. Default empty array.
+ *     @type bool     $paragraph_wrap     Optional. Whether to wrap the message in paragraph tags. Default true.
+ * }
+ */
+function wp_get_admin_notice( $message, $args = array() ) {
+	$defaults = array(
+		'type'               => '',
+		'dismissible'        => false,
+		'id'                 => '',
+		'additional_classes' => array(),
+		'paragraph_wrap'     => true,
+	);
+
+	$args = wp_parse_args( $args, $defaults );
+
+	/**
+	 * Filters the arguments for an admin notice.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array  $args    The arguments for the admin notice.
+	 * @param string $message The message for the admin notice.
+	 */
+	$args    = apply_filters( 'wp_admin_notice_args', $args, $message );
+	$id      = '';
+	$classes = 'notice';
+
+	if ( is_string( $args['id'] ) ) {
+		$trimmed_id = trim( $args['id'] );
+
+		if ( '' !== $trimmed_id ) {
+			$id = 'id="' . esc_attr( $trimmed_id ) . '" ';
+		}
+	}
+
+	if ( is_string( $args['type'] ) ) {
+		$type = trim( $args['type'] );
+
+		if ( '' !== $type ) {
+			if ( 'updated' === $type ) {
+				$type = 'success';
+			}
+
+			if (
+				// Don't add "notice-" when it already exists.
+				str_starts_with( $type, 'notice-' ) ||
+				// Don't add "notice-" for a type containing spaces.
+				str_contains( $type, ' ' ) ||
+				// Don't add "notice-" for unknown types.
+				! in_array( $type, array( 'error', 'success', 'warning', 'info' ), true )
+			) {
+				$classes .= ' ' . $type;
+			} else {
+				$classes .= ' notice-' . $type;
+			}
+		}
+	}
+
+	if ( true === $args['dismissible'] ) {
+		$classes .= ' is-dismissible';
+	}
+
+	if ( is_array( $args['additional_classes'] ) && ! empty( $args['additional_classes'] ) ) {
+		$classes .= ' ' . implode( ' ', $args['additional_classes'] );
+	}
+
+	if ( false !== $args['paragraph_wrap'] ) {
+		$message = "<p>$message</p>";
+	}
+
+	$markup = sprintf( '<div %1$sclass="%2$s">%3$s</div>', $id, esc_attr( $classes ), $message );
+
+	/**
+	 * Filters the markup for an admin notice.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $markup  The HTML markup for the admin notice.
+	 * @param string $message The message for the admin notice.
+	 * @param array  $args    The arguments for the admin notice.
+	 */
+	return apply_filters( 'wp_admin_notice_markup', $markup, $message, $args );
+}
