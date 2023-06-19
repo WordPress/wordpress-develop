@@ -117,8 +117,6 @@ function get_id_from_blogname( $slug ) {
  *
  * @since MU (3.0.0)
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
  * @param int|string|array $fields  Optional. A blog ID, a blog slug, or an array of fields to query against.
  *                                  Defaults to the current blog ID.
  * @param bool             $get_all Whether to retrieve all details or only the details in the blogs table.
@@ -126,49 +124,25 @@ function get_id_from_blogname( $slug ) {
  * @return WP_Site|false Blog details on success. False on failure.
  */
 function get_blog_details( $fields = null, $get_all = true ) {
-	global $wpdb;
+	$blog_id = 0;
 
 	if ( is_array( $fields ) ) {
 		if ( isset( $fields['blog_id'] ) ) {
 			$blog_id = $fields['blog_id'];
 		} elseif ( isset( $fields['domain'] ) && isset( $fields['path'] ) ) {
-			$key  = md5( $fields['domain'] . $fields['path'] );
-			$blog = wp_cache_get( $key, 'blog-lookup' );
-			if ( false !== $blog ) {
-				return $blog;
-			}
-			if ( 'www.' === substr( $fields['domain'], 0, 4 ) ) {
-				$nowww = substr( $fields['domain'], 4 );
-				$blog  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) AND path = %s ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields['domain'], $fields['path'] ) );
-			} else {
-				$blog = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain = %s AND path = %s", $fields['domain'], $fields['path'] ) );
-			}
-			if ( $blog ) {
-				wp_cache_set( $blog->blog_id . 'short', $blog, 'blog-details' );
-				$blog_id = $blog->blog_id;
-			} else {
-				return false;
+			$blog_id = get_blog_id_from_url( $fields['domain'], $fields['path'] );
+
+			if ( ! $blog_id && 'www.' === substr( $fields['domain'], 0, 4 ) ) {
+				$nowww   = substr( $fields['domain'], 4 );
+				$blog_id = get_blog_id_from_url( $nowww, $fields['path'] );
 			}
 		} elseif ( isset( $fields['domain'] ) && is_subdomain_install() ) {
-			$key  = md5( $fields['domain'] );
-			$blog = wp_cache_get( $key, 'blog-lookup' );
-			if ( false !== $blog ) {
-				return $blog;
+			$blog_id = get_blog_id_from_url( $fields['domain'], '' );
+
+			if ( ! $blog_id && 'www.' === substr( $fields['domain'], 0, 4 ) ) {
+				$nowww   = substr( $fields['domain'], 4 );
+				$blog_id = get_blog_id_from_url( $nowww, '' );
 			}
-			if ( 'www.' === substr( $fields['domain'], 0, 4 ) ) {
-				$nowww = substr( $fields['domain'], 4 );
-				$blog  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields['domain'] ) );
-			} else {
-				$blog = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain = %s", $fields['domain'] ) );
-			}
-			if ( $blog ) {
-				wp_cache_set( $blog->blog_id . 'short', $blog, 'blog-details' );
-				$blog_id = $blog->blog_id;
-			} else {
-				return false;
-			}
-		} else {
-			return false;
 		}
 	} else {
 		if ( ! $fields ) {
@@ -181,6 +155,10 @@ function get_blog_details( $fields = null, $get_all = true ) {
 	}
 
 	$blog_id = (int) $blog_id;
+
+	if ( ! $blog_id ) {
+		return false;
+	}
 
 	$all     = $get_all ? '' : 'short';
 	$details = wp_cache_get( $blog_id . $all, 'blog-details' );
@@ -265,9 +243,6 @@ function get_blog_details( $fields = null, $get_all = true ) {
 	$details = apply_filters_deprecated( 'blog_details', array( $details ), '4.7.0', 'site_details' );
 
 	wp_cache_set( $blog_id . $all, $details, 'blog-details' );
-
-	$key = md5( $details->domain . $details->path );
-	wp_cache_set( $key, $details, 'blog-lookup' );
 
 	return $details;
 }
@@ -556,7 +531,6 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 					array(
 						'blog-details',
 						'blog-id-cache',
-						'blog-lookup',
 						'blog_meta',
 						'global-posts',
 						'networks',
@@ -650,7 +624,6 @@ function restore_current_blog() {
 					array(
 						'blog-details',
 						'blog-id-cache',
-						'blog-lookup',
 						'blog_meta',
 						'global-posts',
 						'networks',

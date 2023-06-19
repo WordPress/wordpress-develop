@@ -759,7 +759,6 @@ function wp_start_object_cache() {
 			array(
 				'blog-details',
 				'blog-id-cache',
-				'blog-lookup',
 				'blog_meta',
 				'global-posts',
 				'networks',
