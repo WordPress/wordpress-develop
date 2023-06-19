@@ -300,7 +300,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		/**
 		 * Filters the array of plugins for the list table.
 		 *
-		 * @since 6.2.0
+		 * @since 6.3.0
 		 *
 		 * @param array[] $plugins An array of arrays of plugin data, keyed by context.
 		 */
