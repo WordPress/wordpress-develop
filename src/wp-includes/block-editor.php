@@ -388,13 +388,16 @@ function wp_get_first_block( $blocks, $block_name ) {
 }
 
 /**
- * Adds styles and __experimentalFeatures to the block editor settings.
+ * Retrieves Post Content block attributes from the current post template.
  *
  * @since 6.3.0
+ * @access private
+ * 
+ * @global int $post_ID
  *
  * @return array Post Content block attributes or empty array if they don't exist.
  */
-function _wp_get_post_content_block_attributes() {
+function wp_get_post_content_block_attributes() {
 	$is_block_theme = wp_is_block_theme();
 
 	global $post_ID;
@@ -612,8 +615,8 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		),
 	);
 
-	if ( ! empty( _wp_get_post_content_block_attributes() ) ) {
-		$editor_settings['postContentAttributes'] = _wp_get_post_content_block_attributes();
+	if ( ! empty( wp_get_post_content_block_attributes() ) ) {
+		$editor_settings['postContentAttributes'] = wp_get_post_content_block_attributes();
 	}
 
 	/**

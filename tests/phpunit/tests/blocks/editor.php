@@ -435,20 +435,20 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	/**
 	 * @ticket 58534
 	 */
-	public function test__wp_get_post_content_block_attributes() {
+	public function test_wp_get_post_content_block_attributes() {
 		$attributes_with_layout = array(
 			'layout' => array(
 				'type' => 'constrained',
 			),
 		);
 		// With no block theme and no post ID, expect an empty array.
-		$this->assertSame( array(), _wp_get_post_content_block_attributes() );
+		$this->assertSame( array(), wp_get_post_content_block_attributes() );
 
 		global $post_ID;
 		$post_ID = 1;
 		switch_theme( 'block-theme' );
 
-		$this->assertSame( $attributes_with_layout, _wp_get_post_content_block_attributes() );
+		$this->assertSame( $attributes_with_layout, wp_get_post_content_block_attributes() );
 	}
 
 	/**
