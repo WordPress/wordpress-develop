@@ -197,12 +197,13 @@ function wp_get_layout_definitions() {
  * Registers the layout block attribute for block types that support it.
  *
  * @since 5.8.0
+ * @since 6.3.0 Check for layout support via the `layout` key with fallback to `__experimentalLayout`.
  * @access private
  *
  * @param WP_Block_Type $block_type Block Type.
  */
 function wp_register_layout_support( $block_type ) {
-	$support_layout = block_has_support( $block_type, array( '__experimentalLayout' ), false );
+	$support_layout = block_has_support( $block_type, array( 'layout' ), false ) || block_has_support( $block_type, array( '__experimentalLayout' ), false );
 	if ( $support_layout ) {
 		if ( ! $block_type->attributes ) {
 			$block_type->attributes = array();
@@ -539,6 +540,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
  *
  * @since 5.8.0
  * @since 6.3.0 Adds compound class to layout wrapper for global spacing styles.
+ * @since 6.3.0 Check for layout support via the `layout` key with fallback to `__experimentalLayout`.
  * @access private
  *
  * @param string $block_content Rendered block content.
@@ -547,7 +549,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
  */
 function wp_render_layout_support_flag( $block_content, $block ) {
 	$block_type       = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
-	$support_layout   = block_has_support( $block_type, array( '__experimentalLayout' ), false );
+	$support_layout   = block_has_support( $block_type, array( 'layout' ), false ) || block_has_support( $block_type, array( '__experimentalLayout' ), false );
 	$has_child_layout = isset( $block['attrs']['style']['layout']['selfStretch'] );
 
 	if ( ! $support_layout && ! $has_child_layout ) {
@@ -597,7 +599,8 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	}
 
 	$global_settings = wp_get_global_settings();
-	$used_layout     = isset( $block['attrs']['layout'] ) ? $block['attrs']['layout'] : _wp_array_get( $block_type->supports, array( '__experimentalLayout', 'default' ), array() );
+	$fallback_layout = ! empty( _wp_array_get( $block_type->supports, array( 'layout', 'default' ), array() ) ) ? _wp_array_get( $block_type->supports, array( 'layout', 'default' ), array() ) : _wp_array_get( $block_type->supports, array( '__experimentalLayout', 'default' ), array() );
+	$used_layout     = isset( $block['attrs']['layout'] ) ? $block['attrs']['layout'] : $fallback_layout;
 
 	$class_names        = array();
 	$layout_definitions = wp_get_layout_definitions();
