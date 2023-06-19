@@ -509,7 +509,13 @@ function wp_debug_mode() {
 		defined( 'XMLRPC_REQUEST' ) || defined( 'REST_REQUEST' ) || defined( 'MS_FILES_REQUEST' ) ||
 		( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) ||
 		wp_doing_ajax() || wp_is_json_request() ) {
-		ini_set( 'display_errors', 0 );
+
+		if ( WP_DEBUG &&  WP_DEBUG_DISPLAY ) {
+			ini_set( 'display_errors', 1 );			
+		}
+		else{
+			ini_set( 'display_errors', 0 );
+		}
 	}
 }
 
