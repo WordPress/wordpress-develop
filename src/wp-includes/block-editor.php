@@ -392,7 +392,7 @@ function wp_get_first_block( $blocks, $block_name ) {
  *
  * @since 6.3.0
  * @access private
- * 
+ *
  * @global int $post_ID
  *
  * @return array Post Content block attributes or empty array if they don't exist.
