@@ -1462,6 +1462,14 @@ module.exports = function(grunt) {
 		);
 	} );
 
+	grunt.registerTask( 'copy:theme-json', 'Copies theme.json file contents to theme-json.php.', function() {
+		var themeData = grunt.file.readJSON( SOURCE_DIR + 'wp-includes/theme.json' );
+		grunt.file.write(
+			SOURCE_DIR + 'wp-includes/theme-json.php',
+			'<?php return ' + json2php( themeData ) + ';'
+		);
+	} );
+
 	grunt.registerTask( 'copy:js', [
 		'copy:npm-packages',
 		'copy:vendor-js',
@@ -1511,6 +1519,7 @@ module.exports = function(grunt) {
 		'clean:files',
 		'copy:files',
 		'copy:block-json',
+		'copy:theme-json',
 		'copy:version',
 	] );
 
