@@ -366,17 +366,17 @@ function _wp_get_iframed_editor_assets() {
  *
  * @since 6.3.0
  *
- * @param string $block_name Name of the block to find.
  * @param array  $blocks     Array of blocks.
+ * @param string $block_name Name of the block to find.
  * @return array Found block, or empty array if none found.
  */
-function wp_get_first_block( $block_name, $blocks ) {
+function wp_get_first_block( $blocks, $block_name ) {
 	foreach ( $blocks as $block ) {
 		if ( $block_name === $block['blockName'] ) {
 			return $block;
 		}
 		if ( ! empty( $block['innerBlocks'] ) ) {
-			$found_block = wp_get_first_block( $block_name, $block['innerBlocks'] );
+			$found_block = wp_get_first_block( $block['innerBlocks'], $block_name );
 
 			if ( ! empty( $found_block ) ) {
 				return $found_block;
@@ -434,7 +434,7 @@ function _wp_get_post_content_block_attributes() {
 
 	if ( ! empty( $current_template ) ) {
 		$template_blocks    = parse_blocks( $current_template[0]->content );
-		$post_content_block = wp_get_first_block( 'core/post-content', $template_blocks );
+		$post_content_block = wp_get_first_block( $template_blocks, 'core/post-content' );
 
 		if ( ! empty( $post_content_block['attrs'] ) ) {
 			return $post_content_block['attrs'];

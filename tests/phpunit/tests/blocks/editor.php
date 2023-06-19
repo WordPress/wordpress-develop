@@ -427,9 +427,9 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertSame( $blocks[1], wp_get_first_block( $block_name, $blocks ) );
+		$this->assertSame( $blocks[1], wp_get_first_block( $blocks, $block_name ) );
 
-		$this->assertSame( array(), wp_get_first_block( $block_name, $blocks_with_no_paragraph ) );
+		$this->assertSame( array(), wp_get_first_block( $blocks_with_no_paragraph, $block_name ) );
 	}
 
 	/**
