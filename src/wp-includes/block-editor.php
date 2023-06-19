@@ -615,8 +615,10 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		),
 	);
 
-	if ( ! empty( wp_get_post_content_block_attributes() ) ) {
-		$editor_settings['postContentAttributes'] = wp_get_post_content_block_attributes();
+	$post_content_block_attributes = wp_get_post_content_block_attributes();
+
+	if ( ! empty( $post_content_block_attributes ) ) {
+		$editor_settings['postContentAttributes'] = $post_content_block_attributes;
 	}
 
 	/**
