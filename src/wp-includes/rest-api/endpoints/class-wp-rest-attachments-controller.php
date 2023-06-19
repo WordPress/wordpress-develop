@@ -171,6 +171,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			update_post_meta( $attachment_id, '_wp_attachment_image_alt', sanitize_text_field( $request['alt_text'] ) );
 		}
 
+		if ( isset( $request['featured_media'] ) ) {
+			$this->handle_featured_media( $request['featured_media'], $attachment_id );
+			$this->maybe_did_featured_media_wrong( $attachment_id, __METHOD__ );
+		}
+
 		if ( ! empty( $schema['properties']['meta'] ) && isset( $request['meta'] ) ) {
 			$meta_update = $this->meta->update_value( $request['meta'], $attachment_id );
 
@@ -341,6 +346,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		if ( isset( $request['alt_text'] ) ) {
 			update_post_meta( $data['id'], '_wp_attachment_image_alt', $request['alt_text'] );
+		}
+
+		if ( isset( $request['featured_media'] ) ) {
+			$this->handle_featured_media( $request['featured_media'], $data['id'] );
+			$this->maybe_did_featured_media_wrong( $data['id'], __METHOD__ );
 		}
 
 		$attachment = get_post( $request['id'] );
@@ -1444,4 +1454,42 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		);
 	}
 
+	/**
+	 * Issue an incorrect-usage error when a featured image has been assigned to an attachment with
+	 * a MIME type that doesn't support post thumbnails.
+	 *
+	 * @see https://core.trac.wordpress.org/ticket/41692
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $method        Method name.
+	 */
+	private function maybe_did_featured_media_wrong( $attachment_id, $method ) {
+		$post = get_post( $attachment_id );
+
+		if ( ! $post instanceof WP_Post || 'attachment' !== $post->post_type ) {
+			return;
+		}
+
+		$thumbnail_support = current_theme_supports( 'post-thumbnails', $post->post_type ) && post_type_supports( $post->post_type, 'thumbnail' );
+
+		if ( false === $thumbnail_support && '' !== $post->post_mime_type ) {
+			if ( wp_attachment_is( 'audio', $post ) ) {
+				$thumbnail_support = post_type_supports( 'attachment:audio', 'thumbnail' ) || current_theme_supports( 'post-thumbnails', 'attachment:audio' );
+			} elseif ( wp_attachment_is( 'video', $post ) ) {
+				$thumbnail_support = post_type_supports( 'attachment:video', 'thumbnail' ) || current_theme_supports( 'post-thumbnails', 'attachment:video' );
+			}
+		}
+
+		if ( false === $thumbnail_support ) {
+			_doing_it_wrong(
+				$method,
+				sprintf(
+					/* translators: %s: attachment mime type */
+					__( 'This site does not support post thumbnails on attachments with MIME type %s.' ),
+					$post->post_mime_type
+				),
+				'6.2.0'
+			);;
+		}
+	}
 }
