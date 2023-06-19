@@ -31,7 +31,7 @@ function register_core_block_style_handles() {
 		$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
 	}
 
-	$suffix = SCRIPT_DEBUG ? '' : '.min';
+	$suffix = wp_scripts_get_suffix();
 	$wp_styles = wp_styles();
 	$style_fields = array(
 		'editorStyle',
@@ -52,7 +52,7 @@ function register_core_block_style_handles() {
 			if ( is_array( $style_handle ) ) {
 				continue;
 			}
-			$path = "/wp-includes/blocks/$name/style{$suffix}.css";
+			$path = "/wp-includes/blocks/{$name}/style{$suffix}.css";
 			$wp_styles->add( $style_handle, $path );
 			$wp_styles->add_data( $style_handle, 'path', ABSPATH . $path );
 
@@ -62,7 +62,6 @@ function register_core_block_style_handles() {
 				$wp_styles->add_data( $style_handle, 'suffix', $suffix );
 				$wp_styles->add_data( $style_handle, 'path', $rtl_file );
 			}
-
 		}
 	}
 }
