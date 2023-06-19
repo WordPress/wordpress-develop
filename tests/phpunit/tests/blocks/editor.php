@@ -511,6 +511,15 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$this->assertSameSets( array( 'rem' ), $settings['enableCustomUnits'] );
 		// settings.spacing.customPadding
 		$this->assertTrue( $settings['enableCustomSpacing'] );
+		// settings.postContentAttributes
+		$this->assertSameSets(
+			array(
+				'layout' => array(
+					'type' => 'constrained',
+				),
+			),
+			$settings['postContentAttributes']
+		);
 
 		switch_theme( WP_DEFAULT_THEME );
 	}
