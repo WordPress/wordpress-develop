@@ -77,7 +77,12 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that WP_Plugins_List_Table::prepare_items() 
+	 * applies 'plugins_list' filters.
+	 *
 	 * @ticket 57278
+	 *
+	 * @covers WP_Plugins_List_Table::prepare_items
 	 */
 	public function test_plugins_list_filter() {
 		global $status;
