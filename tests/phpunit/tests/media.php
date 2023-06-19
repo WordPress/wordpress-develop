@@ -3863,7 +3863,7 @@ EOF;
 		$_wp_current_template_content = '<!-- wp:post-content /-->';
 
 		$html = get_the_block_template_html();
-		$this->assertSame( '<div class="wp-site-blocks"><div class="entry-content wp-block-post-content is-layout-flow">' . $expected_content . '</div></div>', $html );
+		$this->assertSame( '<div class="wp-site-blocks"><div class="entry-content wp-block-post-content is-layout-flow wp-block-post-content-is-layout-flow">' . $expected_content . '</div></div>', $html );
 	}
 
 	/**
@@ -3918,7 +3918,7 @@ EOF;
 		$_wp_current_template_content = '<!-- wp:post-featured-image /--> <!-- wp:post-content /-->';
 
 		$html = get_the_block_template_html();
-		$this->assertSame( '<div class="wp-site-blocks">' . $expected_featured_image . ' <div class="entry-content wp-block-post-content is-layout-flow">' . $expected_content . '</div></div>', $html );
+		$this->assertSame( '<div class="wp-site-blocks">' . $expected_featured_image . ' <div class="entry-content wp-block-post-content is-layout-flow wp-block-post-content-is-layout-flow">' . $expected_content . '</div></div>', $html );
 	}
 
 	/**
