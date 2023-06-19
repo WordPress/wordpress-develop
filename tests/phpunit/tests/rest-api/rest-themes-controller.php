@@ -479,6 +479,10 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( '5.3', $result[0]['requires_wp'] );
 	}
 
+	/**
+	 * @ticket 58123
+	 * @covers WP_REST_Themes_Controller::prepare_item_for_response
+	 */
 	public function test_theme_is_block_theme() {
 		// Test classic theme, activated in test setup.
 		$response = self::perform_active_theme_request();
