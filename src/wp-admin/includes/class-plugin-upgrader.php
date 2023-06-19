@@ -49,7 +49,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	public $new_plugin_data = array();
 
 	/**
-	 * Initialize the upgrade strings.
+	 * Initializes the upgrade strings.
 	 *
 	 * @since 2.8.0
 	 */
@@ -57,7 +57,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 		$this->strings['up_to_date'] = __( 'The plugin is at the latest version.' );
 		$this->strings['no_package'] = __( 'Update package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package']  = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code">%s</span>' );
+		$this->strings['downloading_package']  = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code pre">%s</span>' );
 		$this->strings['unpack_package']       = __( 'Unpacking the update&#8230;' );
 		$this->strings['remove_old']           = __( 'Removing the old version of the plugin&#8230;' );
 		$this->strings['remove_old_failed']    = __( 'Could not remove the old plugin.' );
@@ -67,14 +67,14 @@ class Plugin_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Initialize the installation strings.
+	 * Initializes the installation strings.
 	 *
 	 * @since 2.8.0
 	 */
 	public function install_strings() {
 		$this->strings['no_package'] = __( 'Installation package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code">%s</span>' );
+		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code pre">%s</span>' );
 		$this->strings['unpack_package']      = __( 'Unpacking the package&#8230;' );
 		$this->strings['installing_package']  = __( 'Installing the plugin&#8230;' );
 		$this->strings['remove_old']          = __( 'Removing the current plugin&#8230;' );
@@ -173,7 +173,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Upgrade a plugin.
+	 * Upgrades a plugin.
 	 *
 	 * @since 2.8.0
 	 * @since 3.7.0 The `$args` parameter was added, making clearing the plugin update cache optional.
@@ -265,7 +265,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Bulk upgrade several plugins at once.
+	 * Upgrades several plugins at once.
 	 *
 	 * @since 2.8.0
 	 * @since 3.7.0 The `$args` parameter was added, making clearing the plugin update cache optional.
@@ -479,7 +479,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Retrieve the path to the file that contains the plugin info.
+	 * Retrieves the path to the file that contains the plugin info.
 	 *
 	 * This isn't used internally in the class, but is called by the skins.
 	 *
