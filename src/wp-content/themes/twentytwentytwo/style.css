@@ -101,8 +101,8 @@ body > .is-root-container,
 .wp-block-group.alignfull,
 .wp-block-group.has-background,
 .wp-block-cover.alignfull,
-.is-root-container .wp-block[data-align="full"]>.wp-block-group,
-.is-root-container .wp-block[data-align="full"]>.wp-block-cover {
+.is-root-container .wp-block[data-align="full"] > .wp-block-group,
+.is-root-container .wp-block[data-align="full"] > .wp-block-cover {
 	padding-left: var(--wp--custom--spacing--outer);
 	padding-right: var(--wp--custom--spacing--outer);
 }
