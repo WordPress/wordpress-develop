@@ -121,6 +121,7 @@
 	<exclude-pattern>/src/wp-includes/ms-deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/pluggable-deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/rss\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/theme-json\.php</exclude-pattern>
 
 	<exclude-pattern>/src/wp-includes/assets/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/blocks/*</exclude-pattern>
