@@ -682,7 +682,7 @@ function list_theme_updates() {
 
 		// Get the upgrade notice for the new theme version.
 		if ( isset( $theme->update['upgrade_notice'] ) ) {
-				$upgrade_notice = '<br/>' . strip_tags( $theme->update['upgrade_notice'] );
+			$upgrade_notice = '<br/>' . strip_tags( $theme->update['upgrade_notice'] );
 		} else {
 			$upgrade_notice = '';
 		}
