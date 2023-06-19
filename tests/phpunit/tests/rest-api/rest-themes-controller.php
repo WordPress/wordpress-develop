@@ -480,21 +480,20 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_theme_is_block_theme() {
-		switch_theme( 'block-theme' );
-
-		$response = self::perform_active_theme_request();
-		$result   = $response->get_data();
-
-		$this->assertArrayHasKey( 'is_block_theme', $result[0] );
-		$this->assertTrue( $result[0]['is_block_theme'] );
-	}
-
-	public function test_theme_is_not_block_theme() {
+		// Test classic theme, activated in test setup.
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 
 		$this->assertArrayHasKey( 'is_block_theme', $result[0] );
 		$this->assertFalse( $result[0]['is_block_theme'] );
+
+		// Test block theme.
+		switch_theme( 'block-theme' );
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+
+		$this->assertArrayHasKey( 'is_block_theme', $result[0] );
+		$this->assertTrue( $result[0]['is_block_theme'] );
 	}
 
 	/**
