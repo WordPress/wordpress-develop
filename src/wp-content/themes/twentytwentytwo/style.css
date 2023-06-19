@@ -108,13 +108,13 @@ body > .is-root-container,
 }
 
 .wp-site-blocks .alignfull,
-.wp-site-blocks>.wp-block-group.has-background,
-.wp-site-blocks>.wp-block-cover,
-.wp-site-blocks>.wp-block-template-part>.wp-block-group.has-background,
-.wp-site-blocks>.wp-block-template-part>.wp-block-cover,
-body>.is-root-container>.wp-block-cover,
-body>.is-root-container>.wp-block-template-part>.wp-block-group.has-background,
-body>.is-root-container>.wp-block-template-part>.wp-block-cover,
+.wp-site-blocks > .wp-block-group.has-background,
+.wp-site-blocks > .wp-block-cover,
+.wp-site-blocks > .wp-block-template-part>.wp-block-group.has-background,
+.wp-site-blocks > .wp-block-template-part>.wp-block-cover,
+body > .is-root-container > .wp-block-cover,
+body > .is-root-container > .wp-block-template-part > .wp-block-group.has-background,
+body > .is-root-container > .wp-block-template-part > .wp-block-cover,
 .is-root-container .wp-block[data-align="full"] {
 	margin-left: calc(-1 * var(--wp--custom--spacing--outer)) !important;
 	margin-right: calc(-1 * var(--wp--custom--spacing--outer)) !important;
