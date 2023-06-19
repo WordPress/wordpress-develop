@@ -226,7 +226,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Determine if the current view is the "All" view.
+	 * Determines if the current view is the "All" view.
 	 *
 	 * @since 4.2.0
 	 *
@@ -246,7 +246,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Helper to create links to edit.php with params.
+	 * Creates a link to edit.php with params.
 	 *
 	 * @since 4.4.0
 	 *
@@ -651,7 +651,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		$post_type = $this->screen->post_type;
@@ -917,8 +917,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Given a top level page ID, display the nested hierarchy of sub-pages
-	 * together with paging support
+	 * Displays the nested hierarchy of sub-pages together with paging
+	 * support, based on a top level page ID.
 	 *
 	 * @since 3.1.0 (Standalone function exists since 2.6.0)
 	 * @since 4.2.0 Added the `$to_display` parameter.
@@ -1271,7 +1271,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$taxonomy = 'category';
 		} elseif ( 'tags' === $column_name ) {
 			$taxonomy = 'post_tag';
-		} elseif ( 0 === strpos( $column_name, 'taxonomy-' ) ) {
+		} elseif ( str_starts_with( $column_name, 'taxonomy-' ) ) {
 			$taxonomy = substr( $column_name, 9 );
 		} else {
 			$taxonomy = false;

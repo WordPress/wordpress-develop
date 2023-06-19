@@ -21,7 +21,7 @@
  *                              Valid values are 'all' (core, theme, and user) or 'base' (core and theme).
  *                              If empty or unknown, 'all' is used.
  * }
- * @return array The settings to retrieve.
+ * @return mixed The settings array or individual setting value to retrieve.
  */
 function wp_get_global_settings( $path = array(), $context = array() ) {
 	if ( ! empty( $context['block_name'] ) ) {
@@ -104,7 +104,7 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
  *                              Valid values are 'all' (core, theme, and user) or 'base' (core and theme).
  *                              If empty or unknown, 'all' is used.
  * }
- * @return array The styles to retrieve.
+ * @return mixed The styles array or individual style value to retrieve.
  */
 function wp_get_global_styles( $path = array(), $context = array() ) {
 	if ( ! empty( $context['block_name'] ) ) {
@@ -226,11 +226,11 @@ function wp_get_global_stylesheet( $types = array() ) {
 }
 
 /**
- * Gets the global styles custom css from theme.json.
+ * Gets the global styles custom CSS from theme.json.
  *
  * @since 6.2.0
  *
- * @return string Stylesheet.
+ * @return string The global styles custom CSS.
  */
 function wp_get_global_styles_custom_css() {
 	if ( ! wp_theme_has_theme_json() ) {
@@ -425,4 +425,16 @@ function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_global_settings_theme', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_styles_custom_css', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
+}
+
+/**
+ * Returns the current theme's wanted patterns (slugs) to be
+ * registered from Pattern Directory.
+ *
+ * @since 6.3.0
+ *
+ * @return string[]
+ */
+function wp_get_remote_theme_patterns() {
+	return WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_patterns();
 }

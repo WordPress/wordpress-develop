@@ -66,15 +66,13 @@ class WP_Theme_JSON {
 	 *
 	 * They are a unkeyed array of values such as:
 	 *
-	 * ```php
-	 * array(
-	 *   array(
-	 *     'slug'      => 'unique-name-within-the-set',
-	 *     'name'      => 'Name for the UI',
-	 *     <value_key> => 'value'
-	 *   ),
-	 * )
-	 * ```
+	 *     array(
+	 *       array(
+	 *         'slug'      => 'unique-name-within-the-set',
+	 *         'name'      => 'Name for the UI',
+	 *         <value_key> => 'value'
+	 *       ),
+	 *     )
 	 *
 	 * This contains the necessary metadata to process them:
 	 *
@@ -591,8 +589,15 @@ class WP_Theme_JSON {
 		$this->theme_json    = WP_Theme_JSON_Schema::migrate( $theme_json );
 		$valid_block_names   = array_keys( static::get_blocks_metadata() );
 		$valid_element_names = array_keys( static::ELEMENTS );
-		$theme_json          = static::sanitize( $this->theme_json, $valid_block_names, $valid_element_names );
-		$this->theme_json    = static::maybe_opt_in_into_settings( $theme_json );
+		$valid_variations    = array();
+		foreach ( self::get_blocks_metadata() as $block_name => $block_meta ) {
+			if ( ! isset( $block_meta['styleVariations'] ) ) {
+				continue;
+			}
+			$valid_variations[ $block_name ] = array_keys( $block_meta['styleVariations'] );
+		}
+		$theme_json       = static::sanitize( $this->theme_json, $valid_block_names, $valid_element_names, $valid_variations );
+		$this->theme_json = static::maybe_opt_in_into_settings( $theme_json );
 
 		// Internally, presets are keyed by origin.
 		$nodes = static::get_setting_nodes( $this->theme_json );
@@ -666,13 +671,15 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Added the `$valid_block_names` and `$valid_element_name` parameters.
+	 * @since 6.3.0 Added the `$valid_variations` parameter.
 	 *
 	 * @param array $input               Structure to sanitize.
 	 * @param array $valid_block_names   List of valid block names.
 	 * @param array $valid_element_names List of valid element names.
+	 * @param array $valid_variations    List of valid variations per block.
 	 * @return array The sanitized output.
 	 */
-	protected static function sanitize( $input, $valid_block_names, $valid_element_names ) {
+	protected static function sanitize( $input, $valid_block_names, $valid_element_names, $valid_variations ) {
 
 		$output = array();
 
@@ -730,9 +737,13 @@ class WP_Theme_JSON {
 			$style_variation_names = array();
 			if (
 				! empty( $input['styles']['blocks'][ $block ]['variations'] ) &&
-				is_array( $input['styles']['blocks'][ $block ]['variations'] )
+				is_array( $input['styles']['blocks'][ $block ]['variations'] ) &&
+				isset( $valid_variations[ $block ] )
 			) {
-				$style_variation_names = array_keys( $input['styles']['blocks'][ $block ]['variations'] );
+				$style_variation_names = array_intersect(
+					array_keys( $input['styles']['blocks'][ $block ]['variations'] ),
+					$valid_variations[ $block ]
+				);
 			}
 
 			$schema_styles_variations = array();
@@ -791,6 +802,9 @@ class WP_Theme_JSON {
 	 * @return string The new selector.
 	 */
 	protected static function append_to_selector( $selector, $to_append, $position = 'right' ) {
+		if ( ! str_contains( $selector, ',' ) ) {
+			return 'right' === $position ? $selector . $to_append : $to_append . $selector;
+		}
 		$new_selectors = array();
 		$selectors     = explode( ',', $selector );
 		foreach ( $selectors as $sel ) {
@@ -972,16 +986,17 @@ class WP_Theme_JSON {
 	 * the theme.json structure this object represents.
 	 *
 	 * @since 5.8.0
-	 * @since 5.9.0 Removed the `$type` parameter`, added the `$types` and `$origins` parameters.
+	 * @since 5.9.0 Removed the `$type` parameter, added the `$types` and `$origins` parameters.
 	 *
-	 * @param array $types   Types of styles to load. Will load all by default. It accepts:
-	 *                       - `variables`: only the CSS Custom Properties for presets & custom ones.
-	 *                       - `styles`: only the styles section in theme.json.
-	 *                       - `presets`: only the classes for the presets.
-	 * @param array $origins A list of origins to include. By default it includes VALID_ORIGINS.
-	 * @param array $options An array of options for now used for internal purposes only (may change without notice).
-	 *                       The options currently supported are 'scope' that makes sure all style are scoped to a given selector,
-	 *                       and root_selector which overwrites and forces a given selector to be used on the root node.
+	 * @param string[] $types   Types of styles to load. Will load all by default. It accepts:
+	 *                          - `variables`: only the CSS Custom Properties for presets & custom ones.
+	 *                          - `styles`: only the styles section in theme.json.
+	 *                          - `presets`: only the classes for the presets.
+	 * @param string[] $origins A list of origins to include. By default it includes VALID_ORIGINS.
+	 * @param array    $options An array of options for now used for internal purposes only (may change without notice).
+	 *                          The options currently supported are 'scope' that makes sure all style are scoped to a
+	 *                          given selector, and root_selector which overwrites and forces a given selector to be
+	 *                          used on the root node.
 	 * @return string The resulting stylesheet.
 	 */
 	public function get_stylesheet( $types = array( 'variables', 'styles', 'presets' ), $origins = null, $options = array() ) {
@@ -1096,7 +1111,7 @@ class WP_Theme_JSON {
 	}
 
 	/**
-	 * Returns the global styles custom css.
+	 * Returns the global styles custom CSS.
 	 *
 	 * @since 6.2.0
 	 *
@@ -1410,8 +1425,8 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array $setting_nodes Nodes with settings.
-	 * @param array $origins       List of origins to process presets from.
+	 * @param array    $setting_nodes Nodes with settings.
+	 * @param string[] $origins       List of origins to process presets from.
 	 * @return string The new stylesheet.
 	 */
 	protected function get_preset_classes( $setting_nodes, $origins ) {
@@ -1447,8 +1462,8 @@ class WP_Theme_JSON {
 	 * @since 5.8.0
 	 * @since 5.9.0 Added the `$origins` parameter.
 	 *
-	 * @param array $nodes   Nodes with settings.
-	 * @param array $origins List of origins to process.
+	 * @param array    $nodes   Nodes with settings.
+	 * @param string[] $origins List of origins to process.
 	 * @return string The new stylesheet.
 	 */
 	protected function get_css_variables( $nodes, $origins ) {
@@ -1505,9 +1520,9 @@ class WP_Theme_JSON {
 	 * @since 5.8.0
 	 * @since 5.9.0 Added the `$origins` parameter.
 	 *
-	 * @param array  $settings Settings to process.
-	 * @param string $selector Selector wrapping the classes.
-	 * @param array  $origins  List of origins to process.
+	 * @param array    $settings Settings to process.
+	 * @param string   $selector Selector wrapping the classes.
+	 * @param string[] $origins  List of origins to process.
 	 * @return string The result of processing the presets.
 	 */
 	protected static function compute_preset_classes( $settings, $selector, $origins ) {
@@ -1611,9 +1626,9 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array $settings        Settings to process.
-	 * @param array $preset_metadata One of the PRESETS_METADATA values.
-	 * @param array $origins         List of origins to process.
+	 * @param array    $settings        Settings to process.
+	 * @param array    $preset_metadata One of the PRESETS_METADATA values.
+	 * @param string[] $origins         List of origins to process.
 	 * @return array Array of presets where each key is a slug and each value is the preset value.
 	 */
 	protected static function get_settings_values_by_slug( $settings, $preset_metadata, $origins ) {
@@ -1653,9 +1668,9 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array $settings        Settings to process.
-	 * @param array $preset_metadata One of the PRESETS_METADATA values.
-	 * @param array $origins         List of origins to process.
+	 * @param array    $settings        Settings to process.
+	 * @param array    $preset_metadata One of the PRESETS_METADATA values.
+	 * @param string[] $origins         List of origins to process.
 	 * @return array Array of presets where the key and value are both the slug.
 	 */
 	protected static function get_settings_slugs( $settings, $preset_metadata, $origins = null ) {
@@ -1706,8 +1721,8 @@ class WP_Theme_JSON {
 	 * @since 5.8.0
 	 * @since 5.9.0 Added the `$origins` parameter.
 	 *
-	 * @param array $settings Settings to process.
-	 * @param array $origins  List of origins to process.
+	 * @param array    $settings Settings to process.
+	 * @param string[] $origins  List of origins to process.
 	 * @return array The modified $declarations.
 	 */
 	protected static function compute_preset_vars( $settings, $origins ) {
@@ -2531,19 +2546,17 @@ class WP_Theme_JSON {
 	/**
 	 * For metadata values that can either be booleans or paths to booleans, gets the value.
 	 *
-	 * ```php
-	 * $data = array(
-	 *   'color' => array(
-	 *     'defaultPalette' => true
-	 *   )
-	 * );
+	 *     $data = array(
+	 *       'color' => array(
+	 *         'defaultPalette' => true
+	 *       )
+	 *     );
 	 *
-	 * static::get_metadata_boolean( $data, false );
-	 * // => false
+	 *     static::get_metadata_boolean( $data, false );
+	 *     // => false
 	 *
-	 * static::get_metadata_boolean( $data, array( 'color', 'defaultPalette' ) );
-	 * // => true
-	 * ```
+	 *     static::get_metadata_boolean( $data, array( 'color', 'defaultPalette' ) );
+	 *     // => true
 	 *
 	 * @since 6.0.0
 	 *
@@ -2748,12 +2761,12 @@ class WP_Theme_JSON {
 	 *
 	 * For example:
 	 *
-	 *  array(
-	 *   'color' => array(
-	 *     'palette'   => array( 'slug-1', 'slug-2' ),
-	 *     'gradients' => array( 'slug-3', 'slug-4' ),
-	 *   ),
-	 * )
+	 *     array(
+	 *       'color' => array(
+	 *         'palette'   => array( 'slug-1', 'slug-2' ),
+	 *         'gradients' => array( 'slug-3', 'slug-4' ),
+	 *       ),
+	 *     )
 	 *
 	 * @since 5.9.0
 	 *
@@ -2852,8 +2865,15 @@ class WP_Theme_JSON {
 
 		$valid_block_names   = array_keys( static::get_blocks_metadata() );
 		$valid_element_names = array_keys( static::ELEMENTS );
+		$valid_variations    = array();
+		foreach ( self::get_blocks_metadata() as $block_name => $block_meta ) {
+			if ( ! isset( $block_meta['styleVariations'] ) ) {
+				continue;
+			}
+			$valid_variations[ $block_name ] = array_keys( $block_meta['styleVariations'] );
+		}
 
-		$theme_json = static::sanitize( $theme_json, $valid_block_names, $valid_element_names );
+		$theme_json = static::sanitize( $theme_json, $valid_block_names, $valid_element_names, $valid_variations );
 
 		$blocks_metadata = static::get_blocks_metadata();
 		$style_nodes     = static::get_style_nodes( $theme_json, $blocks_metadata );
@@ -3429,7 +3449,7 @@ class WP_Theme_JSON {
 			$spacing_sizes[] = $above_sizes_item;
 		}
 
-		// If there are 7 or less steps in the scale revert to numbers for labels instead of t-shirt sizes.
+		// If there are 7 or fewer steps in the scale revert to numbers for labels instead of t-shirt sizes.
 		if ( $spacing_scale['steps'] <= 7 ) {
 			for ( $spacing_sizes_count = 0; $spacing_sizes_count < count( $spacing_sizes ); $spacing_sizes_count++ ) {
 				$spacing_sizes[ $spacing_sizes_count ]['name'] = (string) ( $spacing_sizes_count + 1 );
