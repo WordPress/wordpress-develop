@@ -102,6 +102,13 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 		$this->assertSame( $plugins, $this->fake_plugin );
 	}
 
+	/**
+	 * Adds a fake plugin to an array of plugins.
+	 *
+	 * Used as a callback for the 'plugins_list' hook.
+	 *
+	 * @return array
+	 */
 	public function plugins_list_filter( $plugins_list ) {
 		$plugins_list['mustuse'] = $this->fake_plugin;
 
