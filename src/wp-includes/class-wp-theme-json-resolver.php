@@ -162,7 +162,13 @@ class WP_Theme_JSON_Resolver {
 			return static::$core;
 		}
 
-		$config = require __DIR__ . '/assets/theme-json.php';
+		$file_path = __DIR__ . '/assets/theme-json.php';
+		if ( file_exists( $file_path ) ) {
+			$config = require $file_path;
+		} else {
+			$config = static::read_json_file( __DIR__ . '/theme.json' );
+		}
+
 		$config = static::translate( $config );
 
 		/**
