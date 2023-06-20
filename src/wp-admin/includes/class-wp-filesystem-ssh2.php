@@ -103,6 +103,8 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			// Password can be blank if we are using keys.
 			if ( ! $this->keys ) {
 				$this->errors->add( 'empty_password', __( 'SSH2 password is required' ) );
+			} else {
+				$this->options['password'] = null;
 			}
 		} else {
 			$this->options['password'] = $opt['password'];
@@ -150,8 +152,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 				return false;
 			}
 		} else {
-			$password = isset( $this->options['password'] ) ? $this->options['password'] : null;
-			if ( ! @ssh2_auth_pubkey_file( $this->link, $this->options['username'], $this->options['public_key'], $this->options['private_key'], $password ) ) {
+			if ( ! @ssh2_auth_pubkey_file( $this->link, $this->options['username'], $this->options['public_key'], $this->options['private_key'], $this->options['password'] ) ) {
 				$this->errors->add(
 					'auth',
 					sprintf(
