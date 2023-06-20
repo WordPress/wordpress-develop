@@ -1464,9 +1464,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @param string $method        Method name.
 	 */
 	private function maybe_did_featured_media_wrong( $attachment_id, $method ) {
-		$post = get_post( $attachment_id );
+		$post = $this->get_post( $attachment_id );
 
-		if ( ! $post instanceof WP_Post || 'attachment' !== $post->post_type ) {
+		if ( ! $post instanceof WP_Post ) {
 			return;
 		}
 
