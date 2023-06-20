@@ -11922,15 +11922,12 @@ mockedApiResponse.TypesCollection = {
         "description": "",
         "hierarchical": false,
         "has_archive": false,
-        "name": "Patterns",
+        "name": "Reusable blocks",
         "slug": "wp_block",
         "icon": null,
         "taxonomies": [],
         "rest_base": "blocks",
         "rest_namespace": "wp/v2",
-        "meta": {
-            "sync_status": ""
-        },
         "_links": {
             "collection": [
                 {
