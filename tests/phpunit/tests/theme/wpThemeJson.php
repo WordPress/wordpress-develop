@@ -269,7 +269,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'color'  => true,
 			),
 			'color'      => array(
-				'link' => true,
+				'link'    => true,
+				'heading' => true,
+				'button'  => true,
+				'caption' => true,
 			),
 			'dimensions' => array(
 				'minHeight' => true,
@@ -299,7 +302,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'color'  => true,
 					),
 					'color'      => array(
-						'link' => true,
+						'link'    => true,
+						'heading' => true,
+						'button'  => true,
+						'caption' => true,
 					),
 					'dimensions' => array(
 						'minHeight' => true,
