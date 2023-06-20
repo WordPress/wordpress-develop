@@ -3048,6 +3048,13 @@ EOF;
 			$iframe_no_width_height
 		);
 
+		$image_elm = new WP_HTML_Tag_Processor( $img_eager );
+		if ( ! $image_elm->next_tag() ) {
+			return $image;
+		}
+		$image_elm->set_attribute( 'fetchpriority', 'high' );
+		$img_eager = $image_elm->get_updated_html();
+
 		$content_filtered = sprintf(
 			$content,
 			$lazy_img,
