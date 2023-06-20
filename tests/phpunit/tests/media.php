@@ -76,13 +76,14 @@ CAP;
 	}
 
 	/**
-	 * Ensures that the static content media count and related filter are reset between tests.
+	 * Ensures that the static content media count, fetchpriority element flag and related filter are reset between tests.
 	 */
 	public function set_up() {
 		parent::set_up();
 
 		$this->reset_content_media_count();
 		$this->reset_omit_loading_attr_filter();
+		wp_high_priority_element_flag( true );
 	}
 
 	public function test_img_caption_shortcode_added() {
@@ -3665,8 +3666,8 @@ EOF;
 		$img2         = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img3         = get_image_tag( self::$large_id, '', '', '', 'thumbnail' );
 		$iframe2      = '<iframe src="https://wordpress.org" width="640" height="360"></iframe>';
-		$lazy_img2    = wp_img_tag_add_loading_attr( $img2, 'the_content' );
-		$lazy_img3    = wp_img_tag_add_loading_attr( $img3, 'the_content' );
+		$lazy_img2    = wp_img_tag_add_loading_optimization_attrs( $img2, 'the_content' );
+		$lazy_img3    = wp_img_tag_add_loading_optimization_attrs( $img3, 'the_content' );
 		$lazy_iframe2 = wp_iframe_tag_add_loading_attr( $iframe2, 'the_content' );
 
 		// Use a threshold of 2.
@@ -3916,11 +3917,9 @@ EOF;
 			}
 		);
 		$this->force_omit_loading_attr_threshold( 1 );
-		// Reset the media counting variable.
-		$this->reset_content_media_count();
 
 		$content_img      = get_image_tag( self::$large_id, '', '', '', 'large' );
-		$lazy_content_img = wp_img_tag_add_loading_attr( $content_img, 'the_content' );
+		$lazy_content_img = wp_img_tag_add_loading_optimization_attrs( $content_img, 'the_content' );
 
 		// The featured image should not be lazy-loaded as it is the first image.
 		$featured_image_id = self::$large_id;
@@ -3973,10 +3972,6 @@ EOF;
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 
-		// Reset media counting variables.
-		$this->reset_content_media_count();
-		wp_high_priority_element_flag( true );
-
 		// Use a single image for each header and footer template parts.
 		$header_img = get_image_tag( self::$large_id, '', '', '', 'large' );
 		// Since header_img is qualified candidate for LCP, fetchpriority high is applied to it.
@@ -4010,7 +4005,7 @@ EOF;
 
 		// Header image should not be lazy-loaded, footer image should be lazy-loaded.
 		$expected_template_content  = '<header class="wp-block-template-part">' . $header_img . '</header>';
-		$expected_template_content .= '<footer class="wp-block-template-part">' . wp_img_tag_add_loading_attr( $footer_img, 'force-lazy' ) . '</footer>';
+		$expected_template_content .= '<footer class="wp-block-template-part">' . wp_img_tag_add_loading_optimization_attrs( $footer_img, 'force-lazy' ) . '</footer>';
 
 		$html = get_the_block_template_html();
 		$this->assertSame( '<div class="wp-site-blocks">' . $expected_template_content . '</div>', $html );
@@ -4026,9 +4021,6 @@ EOF;
 	public function test_wp_filter_content_tags_does_not_lazy_load_special_images_within_the_content() {
 		global $wp_query, $wp_the_query;
 
-		// Reset counting variables.
-		$this->reset_content_media_count();
-
 		// Force no lazy-loading on the image tag expected in the content.
 		$expected_content = wpautop(
 			wp_get_attachment_image(
@@ -4042,15 +4034,15 @@ EOF;
 			)
 		);
 
-				// Overwrite post content with an image.
-				add_filter(
-					'the_content',
-					static function() {
-						// Replace content with an image tag, i.e. the 'wp_get_attachment_image' context is used while running 'the_content' filter.
-						return wp_get_attachment_image( self::$large_id, 'large', false );
-					},
-					9 // Run before wp_filter_content_tags().
-				);
+		// Overwrite post content with an image.
+		add_filter(
+			'the_content',
+			static function() {
+				// Replace content with an image tag, i.e. the 'wp_get_attachment_image' context is used while running 'the_content' filter.
+				return wp_get_attachment_image( self::$large_id, 'large', false );
+			},
+			9 // Run before wp_filter_content_tags().
+		);
 
 		wp_high_priority_element_flag( true );
 
@@ -4381,6 +4373,219 @@ EOF;
 
 		wp_get_attachment_image( self::$large_id );
 		$this->assertSame( 'my_custom_context', $last_context );
+	}
+
+	/**
+	 * Tests tag restriction for `wp_get_loading_optimization_attributes()`.
+	 *
+	 * @ticket 58235
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes()
+	 * @dataProvider data_wp_get_loading_optimization_attributes_min_required_attrs
+	 *
+	 * @param string $tag_name The tag name.
+	 * @param string $attr Element attributes.
+	 * @param array  $expected Expected return value.
+	 * @param string $message Message to display if the test fails.
+	 */
+	public function test_wp_get_loading_optimization_attributes_min_required_attrs( $tag_name, $attr, $expected, $message ) {
+		$context = 'the_post_thumbnail';
+		$this->assertSame( wp_get_loading_optimization_attributes( $tag_name, $attr, $context ), $expected, $message );
+	}
+
+	public function data_wp_get_loading_optimization_attributes_min_required_attrs() {
+		return array(
+			'img_with_min_attrs' => array(
+				'img',
+				array(
+					'width'  => 100,
+					'height' => 100,
+				),
+				array( 'loading' => 'lazy' ),
+				'Expected default `loading="lazy"`.',
+			),
+			'img_without_height' => array(
+				'img',
+				array( 'width' => 100 ),
+				array(),
+				'Expected blank array as height is required.',
+			),
+			'img_without_width'  => array(
+				'img',
+				array( 'height' => 100 ),
+				array(),
+				'Expected blank array as width is required.',
+			),
+		);
+	}
+
+	/**
+	 * Tests tag restriction for `wp_get_loading_optimization_attributes()`.
+	 *
+	 * @ticket 58235
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes()
+	 * @dataProvider data_wp_get_loading_optimization_attributes_check_allowed_tags
+	 *
+	 * @param string $tag_name The tag name.
+	 * @param array  $expected Expected return value.
+	 * @param string $message Message to display if the test fails.
+	 */
+	public function test_wp_get_loading_optimization_attributes_check_allowed_tags( $tag_name, $expected, $message ) {
+		$attr    = array(
+			'width'  => 300,
+			'height' => 200,
+		);
+		$context = 'the_post_thumbnail';
+		$this->assertSame( wp_get_loading_optimization_attributes( $tag_name, $attr, $context ), $expected, $message );
+	}
+
+	public function data_wp_get_loading_optimization_attributes_check_allowed_tags() {
+		return array(
+			'img'    => array(
+				'img',
+				array( 'loading' => 'lazy' ),
+				'Expected `loading="lazy"` for the img.',
+			),
+			'iframe' => array(
+				'iframe',
+				array(
+					'loading' => 'lazy',
+				),
+				'Expected `loading="lazy"` for the iframe.',
+			),
+			'video'  =>
+			array(
+				'video',
+				array(),
+				'Function should return empty array as video tag is not supported.',
+			),
+		);
+	}
+
+	/**
+	 * @ticket 58235
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes()
+	 */
+	public function test_wp_get_loading_optimization_attributes_skip_for_block_template() {
+		$attr = array(
+			'width'  => 300,
+			'height' => 200,
+		);
+
+		// Skip logic if context is `template`.
+		$this->assertSame(
+			wp_get_loading_optimization_attributes( 'img', $attr, 'template' ),
+			array(),
+			'Skip logic and return blank array for block template.'
+		);
+	}
+
+	/**
+	 * @ticket 58235
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes()
+	 * @expectedIncorrectUsage wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_get_loading_optimization_attributes_incorrect_loading_attrs() {
+		$attr = array(
+			'width'         => 300,
+			'height'        => 200,
+			'loading'       => 'lazy',
+			'fetchpriority' => 'high',
+		);
+
+		$this->assertSame(
+			array(
+				'loading'       => 'lazy',
+				'fetchpriority' => 'high',
+			),
+			wp_get_loading_optimization_attributes( 'img', $attr, 'test' ),
+			'This should return both lazy-loading and high fetchpriority, but with doing_it_wrong message.'
+		);
+	}
+
+	/**
+	 * @ticket 58235
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes()
+	 */
+	public function test_wp_get_loading_optimization_attributes_if_loading_attr_present() {
+		$attr = array(
+			'width'   => 300,
+			'height'  => 200,
+			'loading' => 'eager',
+		);
+
+		// Check fetchpriority high logic if loading attribute is present.
+		$this->assertSame(
+			array(
+				'fetchpriority' => 'high',
+			),
+			wp_get_loading_optimization_attributes( 'img', $attr, 'test' ),
+			'fetchpriority should be set to high.'
+		);
+	}
+
+	/**
+	 * @ticket 58235
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes()
+	 */
+	public function test_wp_get_loading_optimization_attributes_low_res_image() {
+		$attr = array(
+			'width'   => 100,
+			'height'  => 100,
+			'loading' => 'eager',
+		);
+
+		// fetchpriority not set as image is of lower resolution.
+		$this->assertSame(
+			array(),
+			wp_get_loading_optimization_attributes( 'img', $attr, 'test' ),
+			'loading optimization attr array should be empty.'
+		);
+	}
+
+	/**
+	 * @ticket 58235
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes()
+	 */
+	public function test_wp_maybe_add_fetchpriority_high_attr_min_priority_filter() {
+		$attr = array(
+			'width'   => 50,
+			'height'  => 50,
+			'loading' => 'eager',
+		);
+
+		add_filter(
+			'wp_min_priority_img_pixels',
+			static function( $res ) {
+				return 100;
+			}
+		);
+
+		// fetchpriority set to high as resolution is greater than 100.
+		$this->assertSame(
+			array(
+				'fetchpriority' => 'high',
+			),
+			wp_get_loading_optimization_attributes( 'img', $attr, 'test' ),
+			'fetchpriority set to high as image resolution greater than 100.'
+		);
+	}
+
+	/**
+	 * @ticket 58235
+	 *
+	 * @covers ::wp_img_tag_add_loading_optimization_attrs
+	 */
+	public function test_wp_img_tag_add_loading_optimization_attrs() {
+		$img = '<img src="example.png" alt="" width="300" height="225" />';
+		$img = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
+		$this->assertStringContainsString( ' loading="lazy"', $img );
 	}
 
 	/**
