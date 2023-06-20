@@ -4573,13 +4573,12 @@ EOF;
 	/**
 	 * @ticket 58235
 	 *
-	 * @covers ::wp_get_loading_optimization_attributes()
+	 * @covers ::wp_maybe_add_fetchpriority_high_attr()
 	 */
 	public function test_wp_maybe_add_fetchpriority_high_attr_min_priority_filter() {
 		$attr = array(
-			'width'   => 50,
-			'height'  => 50,
-			'loading' => 'eager',
+			'width'  => 50,
+			'height' => 50,
 		);
 
 		add_filter(
@@ -4594,7 +4593,7 @@ EOF;
 			array(
 				'fetchpriority' => 'high',
 			),
-			wp_get_loading_optimization_attributes( 'img', $attr, 'test' ),
+			wp_maybe_add_fetchpriority_high_attr( array(), 'img', $attr ),
 			'fetchpriority set to high as image resolution greater than 100.'
 		);
 	}
