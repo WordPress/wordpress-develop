@@ -3305,6 +3305,92 @@ EOF;
 	}
 
 	/**
+	 * @ticket 58235
+	 *
+	 * @covers ::wp_get_attachment_image
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_get_attachment_image_fetchpriority_not_present_by_default() {
+		$img = wp_get_attachment_image( self::$large_id );
+
+		$this->assertStringNotContainsString( ' fetchpriority="high"', $img );
+	}
+
+	/**
+	 * @ticket 58235
+	 *
+	 * @covers ::wp_get_attachment_image
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_get_attachment_image_fetchpriority_high_when_not_lazy_loaded() {
+		$img = wp_get_attachment_image( self::$large_id, 'large', false, array( 'loading' => false ) );
+
+		$this->assertStringContainsString( ' fetchpriority="high"', $img );
+	}
+
+	/**
+	 * @ticket 58235
+	 *
+	 * @dataProvider data_provider_fetchpriority_values
+	 *
+	 * @covers ::wp_get_attachment_image
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_get_attachment_image_fetchpriority_original_value_respected( $value ) {
+		$img = wp_get_attachment_image(
+			self::$large_id,
+			'large',
+			false,
+			array(
+				'loading'       => false,
+				'fetchpriority' => $value,
+			)
+		);
+
+		$this->assertStringContainsString( ' fetchpriority="' . $value . '"', $img );
+	}
+
+	/**
+	 * @ticket 58235
+	 *
+	 * @covers ::wp_get_attachment_image
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_get_attachment_image_fetchpriority_stripped_when_false() {
+		$img = wp_get_attachment_image(
+			self::$large_id,
+			'large',
+			false,
+			array(
+				'loading'       => false,
+				'fetchpriority' => false,
+			)
+		);
+
+		$this->assertStringNotContainsString( ' fetchpriority=', $img );
+	}
+
+	/**
+	 * @ticket 58235
+	 *
+	 * @covers ::wp_get_attachment_image
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_get_attachment_image_fetchpriority_high_prevents_lazy_loading() {
+		$img = wp_get_attachment_image( self::$large_id, 'large', false, array( 'fetchpriority' => 'high' ) );
+
+		$this->assertStringNotContainsString( ' loading="lazy"', $img );
+	}
+
+	public function data_provider_fetchpriority_values() {
+		return array(
+			array( 'high' ),
+			array( 'low' ),
+			array( 'auto' ),
+		);
+	}
+
+	/**
 	 * @ticket 57086
 	 *
 	 * @dataProvider data_wp_get_attachment_image_decoding_attr
