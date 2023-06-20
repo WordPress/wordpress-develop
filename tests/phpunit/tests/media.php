@@ -3865,6 +3865,7 @@ EOF;
 	 * image in the loop when using a block theme.
 	 *
 	 * @ticket 56930
+	 * @ticket 58235
 	 *
 	 * @covers ::wp_filter_content_tags
 	 */
@@ -3878,7 +3879,14 @@ EOF;
 
 		$img1      = get_image_tag( self::$large_id, '', '', '', 'large' );
 		$img2      = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$lazy_img2 = wp_img_tag_add_loading_attr( $img2, 'the_content' );
+		$lazy_img2 = wp_img_tag_add_loading_optimization_attrs( $img2, 'the_content' );
+
+		$image_elm = new WP_HTML_Tag_Processor( $img1 );
+		if ( ! $image_elm->next_tag() ) {
+			return $image;
+		}
+		$image_elm->set_attribute( 'fetchpriority', 'high' );
+		$img1 = $image_elm->get_updated_html();
 
 		// Only the second image should be lazy-loaded.
 		$post_content     = $img1 . $img2;
