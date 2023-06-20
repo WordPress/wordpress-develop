@@ -30,7 +30,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 		global $post_ID;
 		$this->orig_post_id = $post_ID;
-		$post_ID = 1;
+		$post_ID            = 1;
 	}
 
 	public function tear_down() {
