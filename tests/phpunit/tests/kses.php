@@ -1336,6 +1336,11 @@ EOF;
 				'css'      => 'grid-template-columns: repeat(4, minmax(0, 1fr)',
 				'expected' => '',
 			),
+			// Malformed repeat, contains unsupported function.
+			array(
+				'css'      => 'grid-template-columns: repeat(4, unsupported(0, 1fr)',
+				'expected' => '',
+			),
 		);
 	}
 
