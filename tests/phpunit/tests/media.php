@@ -3659,6 +3659,7 @@ EOF;
 
 	/**
 	 * @ticket 53675
+	 * @ticket 58235
 	 */
 	public function test_wp_filter_content_tags_with_wp_get_loading_attr_default() {
 		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );
