@@ -206,6 +206,41 @@ class Tests_File extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `wp_tempnam()` limits the filename's length to 252 characters.
+	 *
+	 * @ticket 35755
+	 *
+	 * @covers ::wp_tempnam
+	 *
+	 * @dataProvider data_wp_tempnam_should_limit_filename_length_to_252_characters
+	 */
+	public function test_wp_tempnam_should_limit_filename_length_to_252_characters( $filename ) {
+		$file = wp_tempnam( $filename );
+
+		if ( file_exists( $file ) ) {
+			self::unlink( $file );
+		}
+
+		$this->assertLessThanOrEqual( 252, strlen( basename( $file ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_tempnam_should_limit_filename_length_to_252_characters() {
+		return array(
+			'the limit before adding characters for uniqueness' => array( 'filename' => str_pad( '', 241, 'filename' ) ),
+			'one more than the limit before adding characters for uniqueness' => array( 'filename' => str_pad( '', 242, 'filename' ) ),
+			'251 characters' => array( 'filename' => str_pad( '', 251, 'filename' ) ),
+			'252 characters' => array( 'filename' => str_pad( '', 252, 'filename' ) ),
+			'253 characters' => array( 'filename' => str_pad( '', 253, 'filename' ) ),
+		);
+	}
+
+
+	/**
 	 * @ticket 47186
 	 */
 	public function test_file_signature_functions_as_expected() {
