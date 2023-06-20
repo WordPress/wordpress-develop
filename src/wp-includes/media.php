@@ -1933,15 +1933,10 @@ function wp_filter_content_tags( $content, $context = null ) {
  * @return string Converted `img` tag with optimization attributes added.
  */
 function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
-	$image_elm = new WP_HTML_Tag_Processor( $image );
-	if ( ! $image_elm->next_tag() ) {
-		return $image;
-	}
-
-	$width             = $image_elm->get_attribute( 'width' );
-	$height            = $image_elm->get_attribute( 'height' );
-	$loading_val       = $image_elm->get_attribute( 'loading' );
-	$fetchpriority_val = $image_elm->get_attribute( 'fetchpriority' );
+	$width             = preg_match( '/ width="([0-9]+)"/', $image, $match_width ) ? (int) $match_width[1] : null;
+	$height            = preg_match( '/ height="([0-9]+)"/', $image, $match_height ) ? (int) $match_height[1] : null;
+	$loading_val       = preg_match( '/ loading="([A-Za-z]+)"/', $image, $match_loading ) ? $match_loading[1] : null;
+	$fetchpriority_val = preg_match( '/ fetchpriority="([A-Za-z]+)"/', $image, $match_fetchpriority ) ? $match_fetchpriority[1] : null;
 
 	$optimization_attrs = wp_get_loading_optimization_attributes(
 		'img',
@@ -2009,15 +2004,15 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		}
 
 		if ( ! empty( $optimization_attrs['loading'] ) ) {
-			$image_elm->set_attribute( 'loading', esc_attr( $optimization_attrs['loading'] ) );
+			$image = str_replace( '<img', '<img loading="' . esc_attr( $optimization_attrs['loading'] ) . '"', $image );
 		}
 	}
 
 	if ( empty( $fetchpriority_val ) && ! empty( $optimization_attrs['fetchpriority'] ) ) {
-		$image_elm->set_attribute( 'fetchpriority', esc_attr( $optimization_attrs['fetchpriority'] ) );
+		$image = str_replace( '<img', '<img fetchpriority="' . esc_attr( $optimization_attrs['fetchpriority'] ) . '"', $image );
 	}
 
-	return $image_elm->get_updated_html();
+	return $image;
 }
 
 /**
