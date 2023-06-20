@@ -7099,8 +7099,8 @@ function _device_can_upload() {
 	$ua = $_SERVER['HTTP_USER_AGENT'];
 
 	if ( str_contains( $ua, 'iPhone' )
-		 || str_contains( $ua, 'iPad' )
-		 || str_contains( $ua, 'iPod' ) ) {
+		|| str_contains( $ua, 'iPad' )
+		|| str_contains( $ua, 'iPod' ) ) {
 			return preg_match( '#OS ([\d_]+) like Mac OS X#', $ua, $version ) && version_compare( $version[1], '6', '>=' );
 	}
 
