@@ -10,11 +10,6 @@
  */
 
 /**
- * Import dependencies.
- */
-require __DIR__ . '/class-wp-classic-to-block-menu-converter.php';
-
-/**
  * Manages fallback behavior for Navigation menus.
  *
  * @access public

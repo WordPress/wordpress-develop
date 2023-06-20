@@ -10,11 +10,6 @@
  */
 
 /**
- * Import dependencies.
- */
-require __DIR__ . '/class-wp-navigation-fallback.php';
-
-/**
  * REST Controller to fetch a fallback Navigation Block Menu. If needed it creates one.
  *
  * @since 6.3.0.
