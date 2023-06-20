@@ -48,7 +48,7 @@ function get_default_block_categories() {
 		),
 		array(
 			'slug'  => 'reusable',
-			'title' => _x( 'Reusable Blocks', 'block category' ),
+			'title' => _x( 'Patterns', 'block category' ),
 			'icon'  => null,
 		),
 	);

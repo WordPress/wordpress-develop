@@ -234,7 +234,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 				),
 				array(
 					'slug'  => 'reusable',
-					'title' => 'Reusable Blocks',
+					'title' => 'Patterns',
 					'icon'  => null,
 				),
 			),
