@@ -27,12 +27,18 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
+
+		global $post_ID;
+		$this->orig_postID = $post_ID;
+		$post_ID = 1;
 	}
 
 	public function tear_down() {
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
+		global $post_ID;
+		$post_ID = $this->orig_postID;
 		parent::tear_down();
 	}
 
@@ -441,11 +447,9 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 				'type' => 'constrained',
 			),
 		);
-		// With no block theme and no post ID, expect an empty array.
+		// With no block theme, expect an empty array.
 		$this->assertSame( array(), wp_get_post_content_block_attributes() );
-
-		global $post_ID;
-		$post_ID = 1;
+		
 		switch_theme( 'block-theme' );
 
 		$this->assertSame( $attributes_with_layout, wp_get_post_content_block_attributes() );
