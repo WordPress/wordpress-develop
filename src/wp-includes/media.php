@@ -1943,11 +1943,6 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 	$loading_val       = $image_elm->get_attribute( 'loading' );
 	$fetchpriority_val = $image_elm->get_attribute( 'fetchpriority' );
 
-	// Bail early if both the priority attributes are already present.
-	if ( ! empty( $loading_val ) && ! empty( $fetchpriority_val ) ) {
-		return $image;
-	}
-
 	$optimization_attrs = wp_get_loading_optimization_attributes(
 		'img',
 		array(
