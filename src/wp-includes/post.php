@@ -8019,3 +8019,38 @@ function use_block_editor_for_post_type( $post_type ) {
 	 */
 	return apply_filters( 'use_block_editor_for_post_type', true, $post_type );
 }
+
+/**
+ * Adds sync_status meta field to the wp_block post type so an unsynced option can be added.
+ *
+ * @since 6.3.0
+ * 
+ * @see https://github.com/WordPress/gutenberg/pull/51144
+ *
+ * @return void
+ */
+function wp_register_wp_block_postmeta() {
+	$post_type = 'wp_block';
+	register_post_meta(
+		$post_type,
+		'sync_status',
+		array(
+			'auth_callback'     => function() {
+				return current_user_can( 'edit_posts' );
+			},
+			'sanitize_callback' => 'sanitize_text_field',
+			'single'            => true,
+			'type'              => 'string',
+			'show_in_rest'      => array(
+				'schema' => array(
+					'type'       => 'string',
+					'properties' => array(
+						'sync_status' => array(
+							'type' => 'string',
+						),
+					),
+				),
+			),
+		)
+	);
+}
