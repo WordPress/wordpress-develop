@@ -16,12 +16,15 @@ require __DIR__ . '/class-wp-navigation-fallback.php';
 
 /**
  * REST Controller to fetch a fallback Navigation Block Menu. If needed it creates one.
+ *
+ * @since 6.3.0.
  */
 class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 
 	/**
 	 * The Post Type for the Controller
 	 *
+	 * @since 6.3.0.
 	 * @var string
 	 */
 	private $post_type;
@@ -29,7 +32,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 	/**
 	 * Constructs the controller.
 	 *
-	 * @since 5.9.0
+	 * @since 6.3.0.
 	 */
 	public function __construct() {
 		$this->namespace = 'wp-block-editor/v1';
@@ -40,6 +43,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 	/**
 	 * Registers the controllers routes.
 	 *
+	 * @since 6.3.0.
 	 * @return void
 	 */
 	public function register_routes() {
@@ -63,6 +67,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given request has access to read fallbacks.
 	 *
+	 * @since 6.3.0.
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
@@ -93,6 +98,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 	/**
 	 * Gets the most appropriate fallback Navigation Menu.
 	 *
+	 * @since 6.3.0.
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -112,6 +118,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the fallbacks' schema, conforming to JSON Schema.
 	 *
+	 * @since 6.3.0.
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
@@ -139,6 +146,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 	/**
 	 * Matches the post data to the schema we want.
 	 *
+	 * @since 6.3.0.
 	 * @param WP_Post         $item The wp_navigation Post object whose response is being prepared.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response $response The response data.
@@ -169,6 +177,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 	/**
 	 * Prepares the links for the request.
 	 *
+	 * @since 6.3.0.
 	 * @param WP_Post $post the Navigation Menu post object.
 	 * @return array Links for the given request.
 	 */
