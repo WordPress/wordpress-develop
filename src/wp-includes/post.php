@@ -8024,7 +8024,7 @@ function use_block_editor_for_post_type( $post_type ) {
  * Adds sync_status meta field to the wp_block post type so an unsynced option can be added.
  *
  * @since 6.3.0
- * 
+ *
  * @see https://github.com/WordPress/gutenberg/pull/51144
  *
  * @return void
