@@ -29,8 +29,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		do_action( 'rest_api_init', $wp_rest_server );
 
 		global $post_ID;
-		$this->orig_post_id = $post_ID;
-		$post_ID            = 1;
+		$post_ID = 1;
 	}
 
 	public function tear_down() {
@@ -38,7 +37,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		global $wp_rest_server;
 		$wp_rest_server = null;
 		global $post_ID;
-		$post_ID = $this->orig_post_id;
+		$post_ID = null;
 		parent::tear_down();
 	}
 
