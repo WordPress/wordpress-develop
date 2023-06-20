@@ -83,7 +83,7 @@ CAP;
 
 		$this->reset_content_media_count();
 		$this->reset_omit_loading_attr_filter();
-		wp_high_priority_element_flag( true );
+		$this->reset_high_priority_element_flag();
 	}
 
 	public function test_img_caption_shortcode_added() {
@@ -3016,7 +3016,7 @@ EOF;
 		$lazy_iframe    = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
 		// The following should not be modified because there already is a 'loading' attribute.
-		$img_eager    = str_replace( ' />', ' loading="eager" />', $img );
+		$img_eager    = str_replace( ' />', ' loading="eager" fetchpriority="high" />', $img );
 		$iframe_eager = str_replace( '">', '" loading="eager">', $iframe );
 
 		$content = '
@@ -3048,13 +3048,6 @@ EOF;
 			$iframe_eager,
 			$iframe_no_width_height
 		);
-
-		$image_elm = new WP_HTML_Tag_Processor( $img_eager );
-		if ( ! $image_elm->next_tag() ) {
-			return $image;
-		}
-		$image_elm->set_attribute( 'fetchpriority', 'high' );
-		$img_eager = $image_elm->get_updated_html();
 
 		$content_filtered = sprintf(
 			$content,
@@ -3668,13 +3661,18 @@ EOF;
 	/**
 	 * @ticket 53675
 	 * @ticket 58235
+	 *
+	 * @covers ::wp_filter_content_tags
+	 * @covers ::wp_img_tag_add_loading_optimization_attrs
+	 * @covers ::wp_get_loading_optimization_attributes
 	 */
-	public function test_wp_filter_content_tags_with_wp_get_loading_attr_default() {
+	public function test_wp_filter_content_tags_with_loading_optimization_attrs() {
 		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );
 		$iframe1      = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$img2         = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img3         = get_image_tag( self::$large_id, '', '', '', 'thumbnail' );
 		$iframe2      = '<iframe src="https://wordpress.org" width="640" height="360"></iframe>';
+		$prio_img1    = str_replace( ' src=', ' fetchpriority="high" src=', $img1 );
 		$lazy_img2    = wp_img_tag_add_loading_optimization_attrs( $img2, 'the_content' );
 		$lazy_img3    = wp_img_tag_add_loading_optimization_attrs( $img3, 'the_content' );
 		$lazy_iframe2 = wp_iframe_tag_add_loading_attr( $iframe2, 'the_content' );
@@ -3684,16 +3682,8 @@ EOF;
 
 		// Following the threshold of 2, the first two content media elements should not be lazy-loaded.
 		$content_unfiltered = $img1 . $iframe1 . $img2 . $img3 . $iframe2;
-
-		$image_elm = new WP_HTML_Tag_Processor( $img1 );
-		if ( ! $image_elm->next_tag() ) {
-			return $image;
-		}
-		$image_elm->set_attribute( 'fetchpriority', 'high' );
-		$img1 = $image_elm->get_updated_html();
-
-		$content_expected = $img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2;
-		$content_expected = wp_img_tag_add_decoding_attr( $content_expected, 'the_content' );
+		$content_expected   = $prio_img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2;
+		$content_expected   = wp_img_tag_add_decoding_attr( $content_expected, 'the_content' );
 
 		$query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $query );
@@ -3887,18 +3877,12 @@ EOF;
 
 		$img1      = get_image_tag( self::$large_id, '', '', '', 'large' );
 		$img2      = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$prio_img1 = str_replace( ' src=', ' fetchpriority="high" src=', $img1 );
 		$lazy_img2 = wp_img_tag_add_loading_optimization_attrs( $img2, 'the_content' );
-
-		$image_elm = new WP_HTML_Tag_Processor( $img1 );
-		if ( ! $image_elm->next_tag() ) {
-			return $image;
-		}
-		$image_elm->set_attribute( 'fetchpriority', 'high' );
-		$img1 = $image_elm->get_updated_html();
 
 		// Only the second image should be lazy-loaded.
 		$post_content     = $img1 . $img2;
-		$expected_content = wpautop( $img1 . $lazy_img2 );
+		$expected_content = wpautop( $prio_img1 . $lazy_img2 );
 
 		// Update the post to test with so that it has the above post content.
 		wp_update_post(
@@ -3958,6 +3942,9 @@ EOF;
 			)
 		) . '</figure>';
 
+		// Reset high priority flag as the forced `fetchpriority="high"` above already modified it.
+		$this->reset_high_priority_element_flag();
+
 		// The post content image should be lazy-loaded since the featured image appears above.
 		$post_content     = $content_img;
 		$expected_content = wpautop( $lazy_content_img );
@@ -3970,7 +3957,6 @@ EOF;
 				'post_content_filtered' => $post_content,
 			)
 		);
-		wp_high_priority_element_flag( true );
 		$wp_query     = new WP_Query( array( 'p' => self::$post_ids['publish'] ) );
 		$wp_the_query = $wp_query;
 		$post         = get_post( self::$post_ids['publish'] );
@@ -4041,7 +4027,7 @@ EOF;
 	 * @ticket 58089
 	 *
 	 * @covers ::wp_filter_content_tags
-	 * @covers ::wp_get_loading_attr_default
+	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_special_images_within_the_content() {
 		global $wp_query, $wp_the_query;
@@ -4059,6 +4045,9 @@ EOF;
 			)
 		);
 
+		// Reset high priority flag as the forced `fetchpriority="high"` above already modified it.
+		$this->reset_high_priority_element_flag();
+
 		// Overwrite post content with an image.
 		add_filter(
 			'the_content',
@@ -4068,8 +4057,6 @@ EOF;
 			},
 			9 // Run before wp_filter_content_tags().
 		);
-
-		wp_high_priority_element_flag( true );
 
 		/*
 		 * We have to run a main query loop so that the first 'the_content' context image is not
@@ -4233,7 +4220,9 @@ EOF;
 			)
 		);
 
-		wp_high_priority_element_flag( true );
+		// Reset high priority flag as the forced `fetchpriority="high"` above already modified it.
+		$this->reset_high_priority_element_flag();
+
 		$wp_query     = new WP_Query( array( 'post__in' => array( $post_id ) ) );
 		$wp_the_query = $wp_query;
 
@@ -4266,6 +4255,10 @@ EOF;
 
 		// Clean up the above filter.
 		remove_filter( 'wp_omit_loading_attr_threshold', '__return_null', 100 );
+	}
+
+	private function reset_high_priority_element_flag() {
+		wp_high_priority_element_flag( true );
 	}
 
 	/**
