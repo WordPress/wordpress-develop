@@ -4186,9 +4186,6 @@ EOF;
 		 */
 		$this->force_omit_loading_attr_threshold( 2 );
 
-		// Reset the variable.
-		$this->reset_content_media_count();
-
 		$post_content  = '<img src="example.jpg" width="800" height="600">';
 		$post_content .= '<p>Some text.</p>';
 		$post_content .= '<img src="example2.jpg" width="800" height="600">';
