@@ -385,7 +385,7 @@ function wp_load_core_site_options( $network_id = null ) {
 	if ( wp_using_ext_object_cache() ) {
 		$cache_keys = array();
 		foreach ( $core_options as $option ) {
-			$cache_keys[] = "{$network_id}:$option";
+			$cache_keys[] = "{$network_id}:{$option}";
 		}
 		wp_cache_get_multiple( $cache_keys, 'site-options' );
 
