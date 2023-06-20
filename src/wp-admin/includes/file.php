@@ -890,7 +890,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 
 	// If you override this, you must provide $ext and $type!!
 	$test_type = isset( $overrides['test_type'] ) ? $overrides['test_type'] : true;
-	$mimes     = isset( $overrides['mimes'] ) ? $overrides['mimes'] : false;
+	$mimes     = isset( $overrides['mimes'] ) ? $overrides['mimes'] : null;
 
 	// A correct form post will pass this test.
 	if ( $test_form && ( ! isset( $_POST['action'] ) || $_POST['action'] !== $action ) ) {
@@ -1377,7 +1377,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 		);
 	}
 
-	// Check for a edge-case affecting PHP Maths abilities.
+	// Check for an edge-case affecting PHP Maths abilities.
 	if (
 		! extension_loaded( 'sodium' ) &&
 		in_array( PHP_VERSION_ID, array( 70200, 70201, 70202 ), true ) &&
@@ -1909,6 +1909,14 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 
 	$from = trailingslashit( $from );
 	$to   = trailingslashit( $to );
+
+	if ( ! $wp_filesystem->exists( $to ) && ! $wp_filesystem->mkdir( $to ) ) {
+		return new WP_Error(
+			'mkdir_destination_failed_copy_dir',
+			__( 'Could not create the destination directory.' ),
+			basename( $to )
+		);
+	}
 
 	foreach ( (array) $dirlist as $filename => $fileinfo ) {
 		if ( in_array( $filename, $skip_list, true ) ) {
@@ -2685,7 +2693,7 @@ function wp_opcache_invalidate_directory( $dir ) {
 	 *                        with sub-directories represented as nested arrays.
 	 * @param string $path    Absolute path to the directory.
 	 */
-	$invalidate_directory = function( $dirlist, $path ) use ( &$invalidate_directory ) {
+	$invalidate_directory = static function( $dirlist, $path ) use ( &$invalidate_directory ) {
 		$path = trailingslashit( $path );
 
 		foreach ( $dirlist as $name => $details ) {

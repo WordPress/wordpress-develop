@@ -817,7 +817,7 @@ function list_translation_updates() {
 }
 
 /**
- * Upgrade WordPress core display.
+ * Upgrades WordPress core display.
  *
  * @since 2.7.0
  *
@@ -1019,7 +1019,7 @@ get_current_screen()->set_help_sidebar(
 );
 
 if ( 'upgrade-core' === $action ) {
-	// Force a update check when requested.
+	// Force an update check when requested.
 	$force_check = ! empty( $_GET['force-check'] );
 	wp_version_check( array(), $force_check );
 

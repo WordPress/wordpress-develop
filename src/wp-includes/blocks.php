@@ -326,13 +326,15 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		trailingslashit( $file_or_folder ) . 'block.json' :
 		$file_or_folder;
 
-	if ( ! file_exists( $metadata_file ) ) {
+	$is_core_block = str_starts_with( $file_or_folder, ABSPATH . WPINC );
+
+	if ( ! $is_core_block && ! file_exists( $metadata_file ) ) {
 		return false;
 	}
 
 	// Try to get metadata from the static cache for core blocks.
 	$metadata = false;
-	if ( str_starts_with( $file_or_folder, ABSPATH . WPINC ) ) {
+	if ( $is_core_block ) {
 		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
 		if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
 			$metadata = $core_blocks_meta[ $core_block_name ];
@@ -485,7 +487,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			 *
 			 * @return string Returns the block content.
 			 */
-			$settings['render_callback'] = function( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+			$settings['render_callback'] = static function( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 				ob_start();
 				require $template_path;
 				return ob_get_clean();
@@ -800,6 +802,10 @@ function serialize_blocks( $blocks ) {
 function filter_block_content( $text, $allowed_html = 'post', $allowed_protocols = array() ) {
 	$result = '';
 
+	if ( false !== strpos( $text, '<!--' ) && false !== strpos( $text, '--->' ) ) {
+		$text = preg_replace_callback( '%<!--(.*?)--->%', '_filter_block_content_callback', $text );
+	}
+
 	$blocks = parse_blocks( $text );
 	foreach ( $blocks as $block ) {
 		$block   = filter_block_kses( $block, $allowed_html, $allowed_protocols );
@@ -807,6 +813,19 @@ function filter_block_content( $text, $allowed_html = 'post', $allowed_protocols
 	}
 
 	return $result;
+}
+
+/**
+ * Callback used for regular expression replacement in filter_block_content().
+ *
+ * @private
+ * @since 6.2.1
+ *
+ * @param array $matches Array of preg_replace_callback matches.
+ * @return string Replacement string.
+ */
+function _filter_block_content_callback( $matches ) {
+	return '<!--' . rtrim( $matches[1], '-' ) . '-->';
 }
 
 /**
