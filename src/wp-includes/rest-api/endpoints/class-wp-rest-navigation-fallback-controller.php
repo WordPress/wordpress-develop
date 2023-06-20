@@ -74,7 +74,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 		if ( ! current_user_can( $post_type->cap->create_posts ) || ! current_user_can( 'edit_theme_options' ) || ! current_user_can( 'edit_posts' ) ) {
 			return new WP_Error(
 				'rest_cannot_create',
-				__( 'Sorry, you are not allowed to create Navigation Menus as this user.', 'gutenberg' ),
+				__( 'Sorry, you are not allowed to create Navigation Menus as this user.' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
 		}
@@ -82,7 +82,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 		if ( 'edit' === $request['context'] && ! current_user_can( $post_type->cap->edit_posts ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
-				__( 'Sorry, you are not allowed to edit Navigation Menus as this user.', 'gutenberg' ),
+				__( 'Sorry, you are not allowed to edit Navigation Menus as this user.' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
 		}
@@ -101,7 +101,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 		$post = WP_Navigation_Fallback::get_fallback();
 
 		if ( empty( $post ) ) {
-			return rest_ensure_response( new WP_Error( 'no_fallback_menu', __( 'No fallback menu found.', 'gutenberg' ), array( 'status' => 404 ) ) );
+			return rest_ensure_response( new WP_Error( 'no_fallback_menu', __( 'No fallback menu found.' ), array( 'status' => 404 ) ) );
 		}
 
 		$response = $this->prepare_item_for_response( $post, $request );
@@ -125,7 +125,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 			'type'       => 'object',
 			'properties' => array(
 				'id' => array(
-					'description' => __( 'The unique identifier for the Navigation Menu.', 'gutenberg' ),
+					'description' => __( 'The unique identifier for the Navigation Menu.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
