@@ -162,7 +162,7 @@ class WP_Theme_JSON_Resolver {
 			return static::$core;
 		}
 
-		$config = require __DIR__ . '/theme-json.php';
+		$config = require __DIR__ . '/assets/theme-json.php';
 		$config = static::translate( $config );
 
 		/**

@@ -1465,7 +1465,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'copy:theme-json', 'Copies theme.json file contents to theme-json.php.', function() {
 		var themeData = grunt.file.readJSON( SOURCE_DIR + 'wp-includes/theme.json' );
 		grunt.file.write(
-			SOURCE_DIR + 'wp-includes/theme-json.php',
+			SOURCE_DIR + 'wp-includes/assets/theme-json.php',
 			'<?php return ' + json2php( themeData ) + ';'
 		);
 	} );
