@@ -1064,13 +1064,10 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		$loading_optimization_attr = wp_get_loading_optimization_attributes(
 			'img',
 			// $attr doesn't contain width and height by default.
-			array_merge(
-				array(
-					'width'  => $width,
-					'height' => $height,
-				),
-				$attr
-			),
+			array(
+				'width'  => $width,
+				'height' => $height,
+			) + $attr,
 			$context
 		);
 
