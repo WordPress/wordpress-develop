@@ -2995,6 +2995,7 @@ EOF;
 	 * @ticket 44427
 	 * @ticket 50367
 	 * @ticket 50756
+	 * @ticket 58235
 	 * @requires function imagejpeg
 	 */
 	public function test_wp_filter_content_tags_loading_lazy() {
