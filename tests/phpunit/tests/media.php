@@ -4601,12 +4601,34 @@ EOF;
 	/**
 	 * @ticket 58235
 	 *
-	 * @covers ::wp_img_tag_add_loading_optimization_attrs
+	 * @covers ::wp_img_tag_add_loading_optimization_attrs()
 	 */
 	public function test_wp_img_tag_add_loading_optimization_attrs() {
 		$img = '<img src="example.png" alt="" width="300" height="225" />';
 		$img = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
 		$this->assertStringContainsString( ' loading="lazy"', $img );
+	}
+
+	/**
+	 * @ticket 58235
+	 *
+	 * @covers ::wp_maybe_strip_loading_attribute()
+	 */
+	public function test_wp_maybe_strip_loading_attribute() {
+		$loading_attrs = array(
+			'loading'       => 'lazy',
+			'fetchpriority' => 'low',
+		);
+
+		// Disable lazy loading.
+		add_filter( 'wp_lazy_loading_enabled', '__return_false' );
+
+		// remove lazy loading attribute if not enabled.
+		$this->assertSame(
+			array( 'fetchpriority' => 'low' ),
+			wp_maybe_strip_loading_attribute( $loading_attrs, 'img', 'the_content' ),
+			'Remove loading attribute from the initial array.'
+		);
 	}
 
 	/**
