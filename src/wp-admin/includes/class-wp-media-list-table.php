@@ -779,12 +779,11 @@ class WP_Media_List_Table extends WP_List_Table {
 			);
 		}
 
-		$delete_are_you_sure = ! MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '';
 		if ( $this->is_trash && current_user_can( 'delete_post', $post->ID ) || ! EMPTY_TRASH_DAYS || ! MEDIA_TRASH ) {
 			$actions['delete'] = sprintf(
 				'<a href="%s" class="submitdelete aria-button-if-js"%s aria-label="%s">%s</a>',
 				wp_nonce_url( "post.php?action=delete&amp;post=$post->ID", 'delete-post_' . $post->ID ),
-				$delete_are_you_sure,
+				! MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '',
 				/* translators: %s: Attachment title. */
 				esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
 				__( 'Delete Permanently' )
