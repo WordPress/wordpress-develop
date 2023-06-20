@@ -205,6 +205,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		$style_handle = $style_handle[ $index ];
 	}
 
+	// If the style handle is already registered, skip re-registering.
 	if ( wp_style_is( $style_handle, 'registered' ) ) {
 		return $style_handle;
 	}

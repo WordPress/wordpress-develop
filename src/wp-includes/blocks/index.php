@@ -31,8 +31,9 @@ function register_core_block_style_handles() {
 		$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
 	}
 
-	$suffix = wp_scripts_get_suffix();
-	$wp_styles = wp_styles();
+	$includes_url = includes_url();
+	$suffix       = wp_scripts_get_suffix();
+	$wp_styles    = wp_styles();
 	$style_fields = array(
 		'editorStyle',
 		'style',
@@ -52,11 +53,12 @@ function register_core_block_style_handles() {
 			if ( is_array( $style_handle ) ) {
 				continue;
 			}
-			$path = "/wp-includes/blocks/{$name}/style{$suffix}.css";
-			$wp_styles->add( $style_handle, $path );
-			$wp_styles->add_data( $style_handle, 'path', ABSPATH . $path );
+			$style_path = "blocks/{$name}/style{$suffix}.css";
+			$wp_styles->add( $style_handle, $includes_url . $style_path );
+			$path = ABSPATH . WPINC . DIRECTORY_SEPARATOR . $style_path;
+			$wp_styles->add_data( $style_handle, 'path', ABSPATH . WPINC . DIRECTORY_SEPARATOR . $style_path );
 
-			$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", ABSPATH . $path );
+			$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $path );
 			if ( is_rtl() && file_exists( $rtl_file ) ) {
 				$wp_styles->add_data( $style_handle, 'rtl', 'replace' );
 				$wp_styles->add_data( $style_handle, 'suffix', $suffix );
