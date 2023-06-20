@@ -11922,7 +11922,7 @@ mockedApiResponse.TypesCollection = {
         "description": "",
         "hierarchical": false,
         "has_archive": false,
-        "name": "Reusable blocks",
+        "name": "Patterns",
         "slug": "wp_block",
         "icon": null,
         "taxonomies": [],
