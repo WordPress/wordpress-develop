@@ -11928,6 +11928,9 @@ mockedApiResponse.TypesCollection = {
         "taxonomies": [],
         "rest_base": "blocks",
         "rest_namespace": "wp/v2",
+        "meta": {
+            "sync_status": ""
+        },
         "_links": {
             "collection": [
                 {
