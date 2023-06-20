@@ -687,7 +687,21 @@ function wp_tempnam( $filename = '', $dir = '' ) {
 	// Suffix some random data to avoid filename conflicts.
 	$temp_filename .= '-' . wp_generate_password( 6, false );
 	$temp_filename .= '.tmp';
-	$temp_filename  = $dir . wp_unique_filename( $dir, $temp_filename );
+	$temp_filename  = wp_unique_filename( $dir, $temp_filename );
+
+	/*
+	 * Filesystems typically have a limit of 255 characters for a filename.
+	 *
+	 * If the generated unique filename exceeds this, truncate the initial
+	 * filename and try again.
+	 */
+	$characters_over_255 = strlen( $temp_filename ) - 255;
+	if ( $characters_over_255 > 0 ) {
+		$filename = substr( $filename, 0, -$characters_over_255 );
+		return wp_tempnam( $filename, $dir );
+	}
+
+	$temp_filename = $dir . $temp_filename;
 
 	$fp = @fopen( $temp_filename, 'x' );
 
