@@ -1924,10 +1924,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * Verify that the naming behavior of REST media uploads matches core media uplaods.
-	 * In particular filenames with spaces should maintain the spaces rather than being replaced by hyphens.
+	 * Tests that the naming behavior of REST media uploads matches core media uploads.
+	 *
+	 * In particular, filenames with spaces should maintain the spaces rather than
+	 * replacing them with hyphens.
 	 *
 	 * @ticket 57957
+	 *
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
 	 */
 	public function test_rest_upload_filename_spaces() {
 		wp_set_current_user( self::$editor_id );
