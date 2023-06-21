@@ -110,7 +110,7 @@ function wp_render_elements_support_styles( $pre_render, $block ) {
 	);
 
 	if ( isset( $link_block_styles[':hover'] ) ) {
-		gutenberg_style_engine_get_styles(
+		wp_style_engine_get_styles(
 			$link_block_styles[':hover'],
 			array(
 				'selector' => ".$class_name a:hover",
