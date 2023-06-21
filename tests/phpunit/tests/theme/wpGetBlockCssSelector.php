@@ -100,21 +100,6 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( '.duotone-selector', $selector );
 	}
 
-	public function test_get_duotone_selector_via_experimental_property() {
-		$block_type = self::register_test_block(
-			'test/experimental-duotone-selector',
-			null,
-			array(
-				'color' => array(
-					'__experimentalDuotone' => '.experimental-duotone',
-				),
-			)
-		);
-
-		$selector = wp_get_block_css_selector( $block_type, 'filters.duotone' );
-		$this->assertEquals( '.experimental-duotone', $selector );
-	}
-
 	public function test_no_duotone_selector_set() {
 		$block_type = self::register_test_block(
 			'test/null-duotone-selector',
@@ -347,11 +332,11 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 			'test/editor-only-selectors',
 			array( 'root' => '.wp-custom-block-class' ),
 			null,
-			array( 'root' => '.editor-only.wp-custom-block-class' )
+			array( 'root' => '.wp-custom-block-class' )
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'root' );
-		$this->assertEquals( '.editor-only.wp-custom-block-class', $selector );
+		$this->assertEquals( '.wp-custom-block-class', $selector );
 	}
 
 	public function test_editor_only_duotone_selector() {
@@ -364,12 +349,12 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 			),
 			null,
 			array(
-				'filters' => array( 'duotone' => '.editor-duotone-selector' ),
+				'filters' => array( 'duotone' => '.duotone-selector' ),
 			)
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'filters.duotone' );
-		$this->assertEquals( '.editor-duotone-selector', $selector );
+		$this->assertEquals( '.duotone-selector', $selector );
 	}
 
 	public function test_editor_only_feature_selector() {
@@ -379,11 +364,11 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 			'test/editor-feature-selector',
 			array( 'typography' => array( 'root' => '.typography' ) ),
 			null,
-			array( 'typography' => array( 'root' => '.editor-typography' ) )
+			array( 'typography' => array( 'root' => '.typography' ) )
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography' );
-		$this->assertEquals( '.editor-typography', $selector );
+		$this->assertEquals( '.typography', $selector );
 	}
 
 	public function test_editor_only_feature_selector_shorthand() {
@@ -393,11 +378,11 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 			'test/editor-feature-selector',
 			array( 'typography' => '.typography' ),
 			null,
-			array( 'typography' => '.editor-typography' )
+			array( 'typography' => '.typography' )
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography' );
-		$this->assertEquals( '.editor-typography', $selector );
+		$this->assertEquals( '.typography', $selector );
 	}
 
 	public function test_editor_only_subfeature_selector() {
@@ -407,11 +392,11 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 			'test/editor-subfeature-selector',
 			array( 'typography' => array( 'fontSize' => '.font-size' ) ),
 			null,
-			array( 'typography' => array( 'fontSize' => '.editor-font-size' ) )
+			array( 'typography' => array( 'fontSize' => '.font-size' ) )
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography.fontSize' );
-		$this->assertEquals( '.editor-font-size', $selector );
+		$this->assertEquals( '.font-size', $selector );
 	}
 
 	public function test_non_editor_subfeature_does_not_fall_back_to_editor_only_feature_selector() {
@@ -421,7 +406,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 			'test/editor-subfeature-selector',
 			array( 'typography' => array( 'fontSize' => '.font-size' ) ),
 			null,
-			array( 'typography' => '.editor-font-size' )
+			array( 'typography' => '.font-size' )
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography.fontSize', true );
@@ -435,11 +420,11 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 			'test/editor-subfeature-selector',
 			array( 'typography' => '.typography' ),
 			null,
-			array( 'typography' => '.editor-typography' )
+			array( 'typography' => '.typography' )
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography.fontSize', true );
-		$this->assertEquals( '.editor-typography', $selector );
+		$this->assertEquals( '.typography', $selector );
 	}
 }
 
