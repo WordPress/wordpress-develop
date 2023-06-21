@@ -59,7 +59,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 	<div class="about__section">
 		<div class="column">
-			<h2 class="is-smaller-heading"><?php _e( 'Hot to find the team you will enjoy?' ); ?></h2>
+			<h2 class="is-smaller-heading"><?php _e( 'Eager to find a team you will enjoy?' ); ?></h2>
 			<p><?php _e( 'What you like most or have a particular knowledge in can be a starting point, but you can take time to look around and explore possibilities before stepping in to contribute. Either way you can learn a lot.' ); ?></p>
 		</div>
 	</div>
