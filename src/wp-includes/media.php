@@ -1932,7 +1932,7 @@ function wp_filter_content_tags( $content, $context = null ) {
  */
 function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 	// Images should have source and dimension attributes for the loading attributes to be added.
-	if ( false === strpos( $image, ' src="' ) || false === strpos( $image, ' width="' ) || false === strpos( $image, ' height="' ) ) {
+	if ( ! str_contains( $image, ' src="' ) || ! str_contains( $image, ' width="' ) || ! str_contains( $image, ' height="' ) ) {
 		return $image;
 	}
 
@@ -2181,7 +2181,7 @@ function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
 	);
 
 	// Iframes should have source and dimension attributes for the `loading` attribute to be added.
-	if ( false === strpos( $iframe, ' src="' ) || false === strpos( $iframe, ' width="' ) || false === strpos( $iframe, ' height="' ) ) {
+	if ( ! str_contains( $iframe, ' src="' ) || ! str_contains( $iframe, ' width="' ) || ! str_contains( $iframe, ' height="' ) ) {
 		return $iframe;
 	}
 
