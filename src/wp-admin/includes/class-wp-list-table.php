@@ -1109,7 +1109,7 @@ class WP_List_Table {
 	 *
 	 * The format is:
 	 * - `'internal-name' => 'orderby'`
-	 * - `'internal-name' => array( 'orderby', bool, 'abbr', 'orderby-text', 'initially-sorted-column-order' )` - 
+	 * - `'internal-name' => array( 'orderby', bool, 'abbr', 'orderby-text', 'initially-sorted-column-order' )` -
 	 * - `'internal-name' => array( 'orderby', 'asc' )` - The second element sets the initial sorting order.
 	 * - `'internal-name' => array( 'orderby', true )`  - The second element makes the initial order descending.
 	 *
@@ -1262,7 +1262,7 @@ class WP_List_Table {
 			$data = (array) $data;
 			// Descending initial sorting.
 			if ( ! isset( $data[1] ) ) {
- 				$data[1] = false;
+				$data[1] = false;
 			}
 			// Current sorting translatable string.
 			if ( ! isset( $data[2] ) ) {
@@ -1314,10 +1314,10 @@ class WP_List_Table {
 
 		// When users click on a column header to sort by other columns.
 		if ( isset( $_GET['orderby'] ) ) {
- 			$current_orderby = $_GET['orderby'];
-		// In the initial view there's no orderby parameter.
+			$current_orderby = $_GET['orderby'];
+			// In the initial view there's no orderby parameter.
 		} else {
- 			$current_orderby = '';
+			$current_orderby = '';
 		}
 
 		// Not in the initial view and descending order.
@@ -1325,7 +1325,7 @@ class WP_List_Table {
 			$current_order = 'desc';
 		} else {
 			// The initial view is not always 'asc' we'll take care of this below.
- 			$current_order = 'asc';
+			$current_order = 'asc';
 		}
 
 		if ( ! empty( $columns['cb'] ) ) {
@@ -1361,8 +1361,8 @@ class WP_List_Table {
 			}
 
 			if ( isset( $sortable[ $column_key ] ) ) {
-				list( $orderby, $desc_first, $abbr, $orderby_text, $initial_order ) = $sortable[$column_key];
- 
+				list( $orderby, $desc_first, $abbr, $orderby_text, $initial_order ) = $sortable[ $column_key ];
+
 				/*
 				 * We're in the initial view and there's no $_GET['orderby'] then check if the
 				 * initial sorting information is set in the sortable columns and use that.
@@ -1408,7 +1408,7 @@ class WP_List_Table {
 				// Print an 'abbr' attribute if a value is provided via get_sortable_columns().
 				$abbr_attr           = $abbr ? ' abbr="' . esc_attr( $abbr ) . '"' : '';
 				$column_display_name = '<a href="' . esc_url( add_query_arg( compact( 'orderby', 'order' ), $current_url ) ) . '"><span>' . $column_display_name . '</span><span class="sorting-indicators"><span class="sorting-indicator asc" aria-hidden="true"></span><span class="sorting-indicator desc" aria-hidden="true"></span>' . $order_text . '</a>';
- 			}
+			}
 
 			$tag   = ( 'cb' === $column_key ) ? 'td' : 'th';
 			$scope = ( 'th' === $tag ) ? 'scope="col"' : '';
@@ -1422,7 +1422,7 @@ class WP_List_Table {
 		}
 	}
 
- 	/**
+	/**
 	 * Print a table description with information about current sorting and order.
 	 *
 	 * For the table initial view, information about initial orderby and order
@@ -1441,7 +1441,7 @@ class WP_List_Table {
 		// When users click on a column header to sort by other columns.
 		if ( isset( $_GET['orderby'] ) ) {
 			$current_orderby = $_GET['orderby'];
-		// In the initial view there's no orderby parameter.
+			// In the initial view there's no orderby parameter.
 		} else {
 			$current_orderby = '';
 		}
@@ -1456,9 +1456,9 @@ class WP_List_Table {
 
 		foreach ( array_keys( $columns ) as $column_key ) {
 
-			if ( isset( $sortable[$column_key] ) ) {
+			if ( isset( $sortable[ $column_key ] ) ) {
 
-				list( $orderby, $desc_first, $abbr, $orderby_text, $initial_order ) = $sortable[$column_key];
+				list( $orderby, $desc_first, $abbr, $orderby_text, $initial_order ) = $sortable[ $column_key ];
 
 				if ( ! is_string( $orderby_text ) || '' === $orderby_text ) {
 					return;
@@ -1501,7 +1501,7 @@ class WP_List_Table {
 		$this->screen->render_screen_reader_content( 'heading_list' );
 		?>
 <table class="wp-list-table <?php echo implode( ' ', $this->get_table_classes() ); ?>">
-	<?php $this->print_table_description(); ?>
+		<?php $this->print_table_description(); ?>
 	<thead>
 	<tr>
 		<?php $this->print_column_headers(); ?>
