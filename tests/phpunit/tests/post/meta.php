@@ -169,7 +169,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$mid = add_post_meta( self::$post_id, 'get_post_meta_by_key', 'get_post_meta_by_key_value', true );
 		$this->assertIsInt( $mid );
 
-		$mobj             = new stdClass;
+		$mobj             = new stdClass();
 		$mobj->meta_id    = $mid;
 		$mobj->post_id    = self::$post_id;
 		$mobj->meta_key   = 'get_post_meta_by_key';

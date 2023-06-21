@@ -456,7 +456,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * Filter the scheduling of events to use the preflight array.
 	 */
-	public function filter_pre_schedule_event_filter( $null, $event ) {
+	public function filter_pre_schedule_event_filter( $result, $event ) {
 		$key = md5( serialize( $event->args ) );
 
 		$this->preflight_cron_array[ $event->timestamp ][ $event->hook ][ $key ] = array(
@@ -465,6 +465,7 @@ class Tests_Cron extends WP_UnitTestCase {
 			'args'     => $event->args,
 		);
 		uksort( $this->preflight_cron_array, 'strnatcasecmp' );
+
 		return true;
 	}
 

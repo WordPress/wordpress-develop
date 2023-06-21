@@ -19,7 +19,7 @@ $tabs = array(
 );
 
 /**
- * An associative array of extra tabs for the Site Health navigation bar.
+ * Filters the extra tabs for the Site Health navigation bar.
  *
  * Add a custom page to the Site Health screen, based on a tab slug and label.
  * The label you provide will also be used as part of the site title.
@@ -87,7 +87,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/site-health-screen/">Documentation on Site Health tool</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/site-health-screen/">Documentation on Site Health tool</a>' ) . '</p>'
 );
 
 // Start by checking if this is a special request checking for the existence of certain filters.
@@ -160,7 +160,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<?php if ( count( $tabs ) > 4 ) : ?>
 			<button type="button" class="health-check-tab health-check-offscreen-nav-wrapper" aria-haspopup="true">
 				<span class="dashicons dashicons-ellipsis"></span>
-				<span class="screen-reader-text"><?php _e( 'Toggle extra menu items' ); ?></span>
+				<span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Toggle extra menu items' );
+					?>
+				</span>
 
 				<div class="health-check-offscreen-nav">
 					<?php
@@ -193,7 +198,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <?php
 if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 	/**
-	 * Output content of a custom Site Health tab.
+	 * Fires when outputting the content of a custom Site Health tab.
 	 *
 	 * This action fires right after the Site Health header, and users are still subject to
 	 * the capability checks for the Site Health page to view any custom tabs and their contents.

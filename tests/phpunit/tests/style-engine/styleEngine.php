@@ -166,6 +166,21 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
+			'inline_valid_dimensions_style'                => array(
+				'block_styles'    => array(
+					'dimensions' => array(
+						'minHeight' => '50vh',
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'min-height:50vh;',
+					'declarations' => array(
+						'min-height' => '50vh',
+					),
+				),
+			),
+
 			'inline_valid_typography_style'                => array(
 				'block_styles'    => array(
 					'typography' => array(

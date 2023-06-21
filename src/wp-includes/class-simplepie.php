@@ -20,9 +20,11 @@ require ABSPATH . WPINC . '/SimplePie/Author.php';
  * WordPress autoloader for SimplePie.
  *
  * @since 3.5.0
+ *
+ * @param string $class Class name.
  */
 function wp_simplepie_autoload( $class ) {
-	if ( 0 !== strpos( $class, 'SimplePie_' ) )
+	if ( ! str_starts_with( $class, 'SimplePie_' ) )
 		return;
 
 	$file = ABSPATH . WPINC . '/' . str_replace( '_', '/', $class ) . '.php';
@@ -1864,7 +1866,7 @@ class SimplePie
 	}
 
 	/**
-	 * Send the content-type header with correct encoding
+	 * Send the Content-Type header with correct encoding
 	 *
 	 * This method ensures that the SimplePie-enabled page is being served with
 	 * the correct {@link http://www.iana.org/assignments/media-types/ mime-type}
@@ -1886,7 +1888,7 @@ class SimplePie
 	{
 		if (!headers_sent())
 		{
-			$header = "Content-type: $mime;";
+			$header = "Content-Type: $mime;";
 			if ($this->get_encoding())
 			{
 				$header .= ' charset=' . $this->get_encoding();

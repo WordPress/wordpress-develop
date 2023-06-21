@@ -67,7 +67,6 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 
 		$this->assertSame( 10, has_action( 'admin_print_scripts-widgets.php', array( $widget, 'enqueue_admin_scripts' ) ) );
 		$this->assertSame( 10, has_action( 'admin_footer-widgets.php', array( 'WP_Widget_Text', 'render_control_template_scripts' ) ) );
-		$this->assertContains( 'wp.textWidgets.idBases.push( "text" );', wp_scripts()->registered['text-widgets']->extra['after'] );
 		$this->assertFalse( has_action( 'wp_enqueue_scripts', array( $widget, 'enqueue_preview_scripts' ) ) );
 	}
 

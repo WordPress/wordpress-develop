@@ -76,7 +76,7 @@ if ( function_exists( 'mb_convert_encoding' ) ) {
 	$blog_name = mb_convert_encoding( $blog_name, get_option( 'blog_charset' ), $charset );
 }
 
-// Now that mb_convert_encoding() has been given a swing, we need to escape these three.
+// Escape values to use in the trackback.
 $title     = wp_slash( $title );
 $excerpt   = wp_slash( $excerpt );
 $blog_name = wp_slash( $blog_name );
@@ -106,7 +106,7 @@ if ( ! empty( $trackback_url ) && ! empty( $title ) ) {
 	 * @param string $charset       Character set.
 	 * @param string $title         Trackback title.
 	 * @param string $excerpt       Trackback excerpt.
-	 * @param string $blog_name     Blog name.
+	 * @param string $blog_name     Site name.
 	 */
 	do_action( 'pre_trackback_post', $post_id, $trackback_url, $charset, $title, $excerpt, $blog_name );
 

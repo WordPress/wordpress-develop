@@ -39,12 +39,12 @@ function wp_set_unique_slug_on_create_template_part( $post_id ) {
  *
  * @param string $override_slug The filtered value of the slug (starts as `null` from apply_filter).
  * @param string $slug          The original/un-filtered slug (post_name).
- * @param int    $post_ID       Post ID.
+ * @param int    $post_id       Post ID.
  * @param string $post_status   No uniqueness checks are made if the post is still draft or pending.
  * @param string $post_type     Post type.
  * @return string The original, desired slug.
  */
-function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID, $post_status, $post_type ) {
+function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_id, $post_status, $post_type ) {
 	if ( 'wp_template' !== $post_type && 'wp_template_part' !== $post_type ) {
 		return $override_slug;
 	}
@@ -61,7 +61,7 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID
 	 * to the entity. So for now we use the currently activated theme for creation.
 	 */
 	$theme = get_stylesheet();
-	$terms = get_the_terms( $post_ID, 'wp_theme' );
+	$terms = get_the_terms( $post_id, 'wp_theme' );
 	if ( $terms && ! is_wp_error( $terms ) ) {
 		$theme = $terms[0]->name;
 	}
@@ -71,7 +71,7 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID
 		'post_type'      => $post_type,
 		'posts_per_page' => 1,
 		'no_found_rows'  => true,
-		'post__not_in'   => array( $post_ID ),
+		'post__not_in'   => array( $post_id ),
 		'tax_query'      => array(
 			array(
 				'taxonomy' => 'wp_theme',
@@ -193,7 +193,7 @@ function the_block_template_skip_link() {
 		skipLink = document.createElement( 'a' );
 		skipLink.classList.add( 'skip-link', 'screen-reader-text' );
 		skipLink.href = '#' + skipLinkTargetID;
-		skipLink.innerHTML = '<?php esc_html_e( 'Skip to content' ); ?>';
+		skipLink.innerHTML = '<?php /* translators: Hidden accessibility text. */ esc_html_e( 'Skip to content' ); ?>';
 
 		// Inject the skip link.
 		sibling.parentElement.insertBefore( skipLink, sibling );
@@ -209,7 +209,7 @@ function the_block_template_skip_link() {
  * @since 5.8.0
  */
 function wp_enable_block_templates() {
-	if ( wp_is_block_theme() || WP_Theme_JSON_Resolver::theme_has_support() ) {
+	if ( wp_is_block_theme() || wp_theme_has_theme_json() ) {
 		add_theme_support( 'block-templates' );
 	}
 }
