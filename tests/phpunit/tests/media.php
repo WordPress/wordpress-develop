@@ -2285,7 +2285,6 @@ EOF;
 	 * the 'src' attribute manually. To avoid incorrect images
 	 * being displayed, ensure we don't add attributes in this case.
 	 *
-	 * @ticket 58235
 	 * @ticket 34898
 	 * @ticket 33641
 	 */
@@ -2301,7 +2300,6 @@ EOF;
 	}
 
 	/**
-	 * @ticket 58235
 	 * @ticket 33641
 	 */
 	public function test_wp_filter_content_tags_srcset_sizes_with_preexisting_srcset() {
@@ -2439,7 +2437,6 @@ EOF;
 	}
 
 	/**
-	 * @ticket 58235
 	 * @ticket 35045
 	 * @ticket 33641
 	 * @requires function imagejpeg
@@ -2991,7 +2988,6 @@ EOF;
 	}
 
 	/**
-	 * @ticket 58235
 	 * @ticket 44427
 	 * @ticket 50367
 	 * @ticket 50756
@@ -3073,9 +3069,9 @@ EOF;
 	}
 
 	/**
-	 * @ticket 58235
 	 * @ticket 44427
 	 * @ticket 50756
+	 * @ticket 58235
 	 */
 	public function test_wp_filter_content_tags_loading_lazy_opted_in() {
 		$img         = get_image_tag( self::$large_id, '', '', '', 'medium' );
@@ -4070,8 +4066,8 @@ EOF;
 	 * Tests that wp_filter_content_tags() does not add loading="lazy" to images
 	 * in a "Header" template part.
 	 *
-	 * @ticket 58235
 	 * @ticket 56930
+	 * @ticket 58235
 	 *
 	 * @covers ::wp_filter_content_tags
 	 */
@@ -4122,8 +4118,8 @@ EOF;
 	}
 
 	/**
-	 * @ticket 58235
 	 * @ticket 58089
+	 * @ticket 58235
 	 *
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_get_loading_optimization_attributes
