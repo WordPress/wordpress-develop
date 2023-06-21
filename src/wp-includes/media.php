@@ -1059,15 +1059,12 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		 */
 		$context = apply_filters( 'wp_get_attachment_image_context', 'wp_get_attachment_image' );
 
-		$attr = wp_parse_args( $attr, $default_attr );
-
+		$loading_attr              = $attr = wp_parse_args( $attr, $default_attr );
+		$loading_attr['width']     = $width;
+		$loading_attr['height']    = $height;
 		$loading_optimization_attr = wp_get_loading_optimization_attributes(
 			'img',
-			// $attr doesn't contain width and height by default.
-			array(
-				'width'  => $width,
-				'height' => $height,
-			) + $attr,
+			$loading_attr,
 			$context
 		);
 
