@@ -130,10 +130,10 @@ function wp_tinycolor_rgb_to_rgb( $rgb_color ) {
  */
 function wp_tinycolor_hue_to_rgb( $p, $q, $t ) {
 	if ( $t < 0 ) {
-		$t += 1;
+		++$t;
 	}
 	if ( $t > 1 ) {
-		$t -= 1;
+		--$t;
 	}
 	if ( $t < 1 / 6 ) {
 		return $p + ( $q - $p ) * 6 * $t;
@@ -459,7 +459,7 @@ function wp_get_duotone_filter_svg( $preset ) {
 
 	$svg = ob_get_clean();
 
-	if ( ! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG ) {
+	if ( ! SCRIPT_DEBUG ) {
 		// Clean up the whitespace.
 		$svg = preg_replace( "/[\r\n\t ]+/", ' ', $svg );
 		$svg = str_replace( '> <', '><', $svg );
@@ -497,7 +497,7 @@ function wp_register_duotone_support( $block_type ) {
 }
 
 /**
- * Render out the duotone stylesheet and SVG.
+ * Renders out the duotone stylesheet and SVG.
  *
  * @since 5.8.0
  * @since 6.1.0 Allow unset for preset colors.
@@ -543,11 +543,11 @@ function wp_render_duotone_support( $block_content, $block ) {
 
 	// !important is needed because these styles render before global styles,
 	// and they should be overriding the duotone filters set by global styles.
-	$filter_style = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG
+	$filter_style = SCRIPT_DEBUG
 		? $selector . " {\n\tfilter: " . $filter_property . " !important;\n}\n"
 		: $selector . '{filter:' . $filter_property . ' !important;}';
 
-	wp_register_style( $filter_id, false, array(), true, true );
+	wp_register_style( $filter_id, false );
 	wp_add_inline_style( $filter_id, $filter_style );
 	wp_enqueue_style( $filter_id );
 

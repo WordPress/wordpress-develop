@@ -130,14 +130,6 @@
 	},
 	"styles": {
 		"blocks": {
-			"core/query-pagination": {
-				"border": {
-					"top": {
-						"color": "var(--wp--preset--color--tertiary)",
-						"width": "4px"
-					}
-				}
-			},
 			"core/separator": {
 				"border": {
 					"color":"var(--wp--preset--color--tertiary)",
@@ -203,6 +195,11 @@
 					"color": {
 						"background": "var(--wp--preset--color--contrast)",
 						"text": "var(--wp--preset--color--tertiary)"
+					}
+				},
+				":visited": {
+					"color": {
+						"text": "var(--wp--preset--color--base)"
 					}
 				}
 			},

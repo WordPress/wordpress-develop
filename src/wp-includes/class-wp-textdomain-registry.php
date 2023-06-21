@@ -1,6 +1,9 @@
 <?php
 /**
- * Locale API: WP_Textdomain_Registry class
+ * Locale API: WP_Textdomain_Registry class.
+ *
+ * This file uses rtrim() instead of untrailingslashit() and trailingslashit()
+ * to avoid formatting.php dependency.
  *
  * @package WordPress
  * @subpackage i18n
@@ -33,16 +36,37 @@ class WP_Textdomain_Registry {
 	protected $current = array();
 
 	/**
+	 * List of domains and their custom language directory paths.
+	 *
+	 * @see load_plugin_textdomain()
+	 * @see load_theme_textdomain()
+	 *
+	 * @since 6.1.0
+	 *
+	 * @var array
+	 */
+	protected $custom_paths = array();
+
+	/**
 	 * Holds a cached list of available .mo files to improve performance.
 	 *
 	 * @since 6.1.0
 	 *
 	 * @var array
 	 */
-	protected $cached_mo_files;
+	protected $cached_mo_files = array();
 
 	/**
-	 * Returns the MO file path for a specific domain and locale.
+	 * Holds a cached list of domains with translations to improve performance.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @var string[]
+	 */
+	protected $domains_with_translations = array();
+
+	/**
+	 * Returns the languages directory path for a specific domain and locale.
 	 *
 	 * @since 6.1.0
 	 *
@@ -62,33 +86,25 @@ class WP_Textdomain_Registry {
 	/**
 	 * Determines whether any MO file paths are available for the domain.
 	 *
+	 * This is the case if a path has been set for the current locale,
+	 * or if there is no information stored yet, in which case
+	 * {@see _load_textdomain_just_in_time()} will fetch the information first.
+	 *
 	 * @since 6.1.0
 	 *
 	 * @param string $domain Text domain.
 	 * @return bool Whether any MO file paths are available for the domain.
 	 */
 	public function has( $domain ) {
-		return ! empty( $this->all[ $domain ] );
+		return (
+			isset( $this->current[ $domain ] ) ||
+			empty( $this->all[ $domain ] ) ||
+			in_array( $domain, $this->domains_with_translations, true )
+		);
 	}
 
 	/**
-	 * Returns the current (most recent) MO file path for a specific domain.
-	 *
-	 * @since 6.1.0
-	 *
-	 * @param string $domain Text domain.
-	 * @return string|false Current MO file path or false if there is none available.
-	 */
-	public function get_current( $domain ) {
-		if ( isset( $this->current[ $domain ] ) ) {
-			return $this->current[ $domain ];
-		}
-
-		return false;
-	}
-
-	/**
-	 * Sets the MO file path for a specific domain and locale.
+	 * Sets the language directory path for a specific domain and locale.
 	 *
 	 * Also sets the 'current' property for direct access
 	 * to the path for the current (most recent) locale.
@@ -100,60 +116,97 @@ class WP_Textdomain_Registry {
 	 * @param string|false $path   Language directory path or false if there is none available.
 	 */
 	public function set( $domain, $locale, $path ) {
-		$this->all[ $domain ][ $locale ] = $path ? trailingslashit( $path ) : false;
+		$this->all[ $domain ][ $locale ] = $path ? rtrim( $path, '/' ) . '/' : false;
 		$this->current[ $domain ]        = $this->all[ $domain ][ $locale ];
 	}
 
 	/**
-	 * Resets the registry state.
+	 * Sets the custom path to the plugin's/theme's languages directory.
 	 *
-	 * @since 6.1.0
-	 */
-	public function reset() {
-		$this->cached_mo_files = null;
-		$this->all             = array();
-		$this->current         = array();
-	}
-
-	/**
-	 * Gets the path to a translation file in the languages directory for the current locale.
+	 * Used by {@see load_plugin_textdomain()} and {@see load_theme_textdomain()}.
 	 *
 	 * @since 6.1.0
 	 *
 	 * @param string $domain Text domain.
+	 * @param string $path   Language directory path.
+	 */
+	public function set_custom_path( $domain, $path ) {
+		$this->custom_paths[ $domain ] = rtrim( $path, '/' );
+	}
+
+	/**
+	 * Returns possible language directory paths for a given text domain.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param string $domain Text domain.
+	 * @return string[] Array of language directory paths.
+	 */
+	private function get_paths_for_domain( $domain ) {
+		$locations = array(
+			WP_LANG_DIR . '/plugins',
+			WP_LANG_DIR . '/themes',
+		);
+
+		if ( isset( $this->custom_paths[ $domain ] ) ) {
+			$locations[] = $this->custom_paths[ $domain ];
+		}
+
+		return $locations;
+	}
+
+	/**
+	 * Gets the path to the language directory for the current locale.
+	 *
+	 * Checks the plugins and themes language directories as well as any
+	 * custom directory set via {@see load_plugin_textdomain()} or {@see load_theme_textdomain()}.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @see _get_path_to_translation_from_lang_dir()
+	 *
+	 * @param string $domain Text domain.
 	 * @param string $locale Locale.
-	 * @return string|false MO file path or false if there is none available.
+	 * @return string|false Language directory path or false if there is none available.
 	 */
 	private function get_path_from_lang_dir( $domain, $locale ) {
-		if ( null === $this->cached_mo_files ) {
-			$this->set_cached_mo_files();
+		$locations = $this->get_paths_for_domain( $domain );
+
+		$found_location = false;
+
+		foreach ( $locations as $location ) {
+			if ( ! isset( $this->cached_mo_files[ $location ] ) ) {
+				$this->set_cached_mo_files( $location );
+			}
+
+			$path = "$location/$domain-$locale.mo";
+
+			foreach ( $this->cached_mo_files[ $location ] as $mo_path ) {
+				if (
+					! in_array( $domain, $this->domains_with_translations, true ) &&
+					str_starts_with( str_replace( "$location/", '', $mo_path ), "$domain-" )
+				) {
+					$this->domains_with_translations[] = $domain;
+				}
+
+				if ( $mo_path === $path ) {
+					$found_location = rtrim( $location, '/' ) . '/';
+				}
+			}
 		}
 
-		$mofile = "{$domain}-{$locale}.mo";
+		if ( $found_location ) {
+			$this->set( $domain, $locale, $found_location );
 
-		$path = WP_LANG_DIR . '/plugins/' . $mofile;
-
-		if ( in_array( $path, $this->cached_mo_files, true ) ) {
-			$path = WP_LANG_DIR . '/plugins/';
-			$this->set( $domain, $locale, $path );
-
-			return $path;
+			return $found_location;
 		}
 
-		$path = WP_LANG_DIR . '/themes/' . $mofile;
-		if ( in_array( $path, $this->cached_mo_files, true ) ) {
-			$path = WP_LANG_DIR . '/themes/';
-			$this->set( $domain, $locale, $path );
-
-			return $path;
-		}
-
-		// If no path is found for the given locale, check if an entry for the default
-		// en_US locale exists. This is the case when e.g. using load_plugin_textdomain
-		// with a custom path.
-		if ( 'en_US' !== $locale && isset( $this->all[ $domain ]['en_US'] ) ) {
-			$this->set( $domain, $locale, $this->all[ $domain ]['en_US'] );
-			return $this->all[ $domain ]['en_US'];
+		// If no path is found for the given locale and a custom path has been set
+		// using load_plugin_textdomain/load_theme_textdomain, use that one.
+		if ( 'en_US' !== $locale && isset( $this->custom_paths[ $domain ] ) ) {
+			$fallback_location = rtrim( $this->custom_paths[ $domain ], '/' ) . '/';
+			$this->set( $domain, $locale, $fallback_location );
+			return $fallback_location;
 		}
 
 		$this->set( $domain, $locale, false );
@@ -162,24 +215,19 @@ class WP_Textdomain_Registry {
 	}
 
 	/**
-	 * Reads and caches all available MO files from the plugins and themes language directories.
+	 * Reads and caches all available MO files from a given directory.
 	 *
 	 * @since 6.1.0
+	 *
+	 * @param string $path Language directory path.
 	 */
-	protected function set_cached_mo_files() {
-		$this->cached_mo_files = array();
+	private function set_cached_mo_files( $path ) {
+		$this->cached_mo_files[ $path ] = array();
 
-		$locations = array(
-			WP_LANG_DIR . '/plugins',
-			WP_LANG_DIR . '/themes',
-		);
+		$mo_files = glob( $path . '/*.mo' );
 
-		foreach ( $locations as $location ) {
-			$mo_files = glob( $location . '/*.mo' );
-
-			if ( $mo_files ) {
-				$this->cached_mo_files = array_merge( $this->cached_mo_files, $mo_files );
-			}
+		if ( $mo_files ) {
+			$this->cached_mo_files[ $path ] = $mo_files;
 		}
 	}
 }

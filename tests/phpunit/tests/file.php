@@ -188,8 +188,8 @@ class Tests_File extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_wp_tempnam_filenames
 	 */
-	public function test_wp_tempnam( $case ) {
-		$file = wp_tempnam( $case );
+	public function test_wp_tempnam( $filename ) {
+		$file = wp_tempnam( $filename );
 		unlink( $file );
 
 		$this->assertNotEmpty( basename( basename( $file, '.tmp' ), '.zip' ) );

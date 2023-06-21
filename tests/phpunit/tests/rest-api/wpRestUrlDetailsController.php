@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_REST_URL_Details_Controller tests.
+ * Unit tests covering WP_REST_URL_Details_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.9.0
- */
-
-/**
- * Tests for WP_REST_URL_Details_Controller.
- *
  * @since 5.9.0
  *
  * @covers WP_REST_URL_Details_Controller
@@ -1096,20 +1090,20 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	 *
 	 * @return array faux/mocked response.
 	 */
-	public function mock_success_request_to_remote_url( $response, $args ) {
-		return $this->mock_request_to_remote_url( 'success', $args );
+	public function mock_success_request_to_remote_url( $response, $parsed_args ) {
+		return $this->mock_request_to_remote_url( 'success', $parsed_args );
 	}
 
-	public function mock_failed_request_to_remote_url( $response, $args ) {
-		return $this->mock_request_to_remote_url( 'failure', $args );
+	public function mock_failed_request_to_remote_url( $response, $parsed_args ) {
+		return $this->mock_request_to_remote_url( 'failure', $parsed_args );
 	}
 
-	public function mock_request_to_remote_url_with_empty_body_response( $response, $args ) {
-		return $this->mock_request_to_remote_url( 'empty_body', $args );
+	public function mock_request_to_remote_url_with_empty_body_response( $response, $parsed_args ) {
+		return $this->mock_request_to_remote_url( 'empty_body', $parsed_args );
 	}
 
-	private function mock_request_to_remote_url( $result_type, $args ) {
-		$this->request_args = $args;
+	private function mock_request_to_remote_url( $result_type, $parsed_args ) {
+		$this->request_args = $parsed_args;
 
 		$types = array(
 			'success',

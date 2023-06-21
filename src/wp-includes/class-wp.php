@@ -227,7 +227,7 @@ class WP {
 			} else {
 				foreach ( (array) $rewrite as $match => $query ) {
 					// If the requested file is the anchor of the match, prepend it to the path info.
-					if ( ! empty( $requested_file ) && strpos( $match, $requested_file ) === 0 && $requested_file != $requested_path ) {
+					if ( ! empty( $requested_file ) && str_starts_with( $match, $requested_file ) && $requested_file != $requested_path ) {
 						$request_match = $requested_file . '/' . $requested_path;
 					}
 
@@ -410,8 +410,12 @@ class WP {
 	 * @since 2.0.0
 	 * @since 4.4.0 `X-Pingback` header is added conditionally for single posts that allow pings.
 	 * @since 6.1.0 Runs after posts have been queried.
+	 *
+	 * @global WP_Query $wp_query WordPress Query object.
 	 */
 	public function send_headers() {
+		global $wp_query;
+
 		$headers       = array();
 		$status        = null;
 		$exit_required = false;

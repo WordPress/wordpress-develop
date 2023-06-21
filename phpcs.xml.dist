@@ -244,6 +244,7 @@
 				<element value="WP_Import_UnitTestCase"/>
 				<element value="WP_Test_Adjacent_Image_Link_TestCase"/>
 				<element value="WP_Tests_Image_Resize_UnitTestCase"/>
+				<element value="WP_Theme_UnitTestCase"/>
 
 				<!-- Mock classes. -->
 				<element value="Spy_REST_Server"/>

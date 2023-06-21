@@ -186,7 +186,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider orderby_should_convert_non_prefixed_keys_data
+	 * @dataProvider data_orderby_should_convert_non_prefixed_keys
 	 */
 	public function test_orderby_should_convert_non_prefixed_keys( $short_key, $full_key ) {
 		$q = new WP_User_Query(
@@ -198,7 +198,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertStringContainsString( "ORDER BY $full_key", $q->query_orderby );
 	}
 
-	public function orderby_should_convert_non_prefixed_keys_data() {
+	public function data_orderby_should_convert_non_prefixed_keys() {
 		return array(
 			array( 'nicename', 'user_nicename' ),
 			array( 'email', 'user_email' ),
@@ -1720,11 +1720,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @ticket 44169
 	 */
 	public function test_users_pre_query_filter_should_bypass_database_query() {
-		global $wpdb;
-
 		add_filter( 'users_pre_query', array( __CLASS__, 'filter_users_pre_query' ), 10, 2 );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$q           = new WP_User_Query(
 			array(
 				'fields' => 'ID',
@@ -1734,7 +1732,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		remove_filter( 'users_pre_query', array( __CLASS__, 'filter_users_pre_query' ), 10, 2 );
 
 		// Make sure no queries were executed.
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 
 		// We manually inserted a non-existing user and overrode the results with it.
 		$this->assertSame( array( 555 ), $q->results );
@@ -2011,7 +2009,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function data_returning_field_subset_as_string() {
+	public function data_returning_field_subset_as_string() {
 		$data = array(
 			'id'            => array(
 				'fields'   => 'id',
@@ -2093,7 +2091,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function data_returning_field_subset_as_array() {
+	public function data_returning_field_subset_as_array() {
 		$data = array(
 			'id'                 => array(
 				'fields'   => array( 'id' ),

@@ -33,6 +33,22 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public static $author_id;
 
+	/**
+	 * For testing test_generate_cache_key() includes a test containing the
+	 * placeholder within the generated SQL query.
+	 *
+	 * @var bool
+	 */
+	public static $sql_placeholder_cache_key_tested = false;
+
+	/**
+	 * For testing test_generate_cache_key() includes a test containing the
+	 * placeholder within the generated WP_Query variables.
+	 *
+	 * @var bool
+	 */
+	public static $wp_query_placeholder_cache_key_tested = false;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Make some post objects.
 		self::$posts = $factory->post->create_many( 5 );
@@ -55,6 +71,104 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 				'role' => 'author',
 			)
 		);
+	}
+
+	/**
+	 * Ensure cache keys are generated without WPDB placeholders.
+	 *
+	 * @ticket 56802
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 *
+	 * @dataProvider data_query_cache
+	 */
+	public function test_generate_cache_key( $args ) {
+		global $wpdb;
+		$query1 = new WP_Query();
+		$query1->query( $args );
+
+		$query_vars             = $query1->query_vars;
+		$request                = $query1->request;
+		$request_no_placeholder = $wpdb->remove_placeholder_escape( $request );
+
+		$this->assertStringNotContainsString( $wpdb->placeholder_escape(), $request_no_placeholder, 'Placeholder escape should be removed from the modified request.' );
+
+		if ( str_contains( $request, $wpdb->placeholder_escape() ) ) {
+			self::$sql_placeholder_cache_key_tested = true;
+		}
+
+		if ( str_contains( serialize( $query_vars ), $wpdb->placeholder_escape() ) ) {
+			self::$wp_query_placeholder_cache_key_tested = true;
+		}
+
+		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
+		$reflection->setAccessible( true );
+
+		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request );
+		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request_no_placeholder );
+
+		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs when using wpdb placeholder.' );
+	}
+
+	/**
+	 * Ensure cache keys tests include WPDB placeholder in SQL Query.
+	 *
+	 * @ticket 56802
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 *
+	 * @depends test_generate_cache_key
+	 */
+	public function test_sql_placeholder_cache_key_tested() {
+		$this->assertTrue( self::$sql_placeholder_cache_key_tested, 'Cache key containing WPDB placeholder in SQL query was not tested.' );
+	}
+
+	/**
+	 * Ensure cache keys tests include WPDB placeholder in WP_Query arguments.
+	 *
+	 * This test mainly covers the search query which generates the `search_orderby_title`
+	 * query_var in WP_Query.
+	 *
+	 * @ticket 56802
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 *
+	 * @depends test_generate_cache_key
+	 */
+	public function test_wp_query_placeholder_cache_key_tested() {
+		$this->assertTrue( self::$wp_query_placeholder_cache_key_tested, 'Cache key containing WPDB placeholder in WP_Query arguments was not tested.' );
+	}
+
+	/**
+	 * Ensure cache keys are generated without WPDB placeholders.
+	 *
+	 * @ticket 56802
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 */
+	public function test_generate_cache_key_placeholder() {
+		global $wpdb;
+		$query1 = new WP_Query();
+		$query1->query( array() );
+
+		$query_vars                                  = $query1->query_vars;
+		$request                                     = $query1->request;
+		$query_vars['test']['nest']                  = '%';
+		$query_vars['test2']['nest']['nest']['nest'] = '%';
+		$this->assertStringNotContainsString( $wpdb->placeholder_escape(), serialize( $query_vars ), 'Query vars should not contain the wpdb placeholder.' );
+
+		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
+		$reflection->setAccessible( true );
+
+		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request );
+
+		$query_vars['test']['nest']                  = $wpdb->placeholder_escape();
+		$query_vars['test2']['nest']['nest']['nest'] = $wpdb->placeholder_escape();
+		$this->assertStringContainsString( $wpdb->placeholder_escape(), serialize( $query_vars ), 'Query vars should not contain the wpdb placeholder.' );
+
+		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request );
+
+		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs when using wpdb placeholder.' );
 	}
 
 	/**
@@ -191,6 +305,64 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 					),
 				),
 			),
+			'cache meta query search'                     => array(
+				'args' => array(
+					'cache_results' => true,
+					'meta_query'    => array(
+						array(
+							'key'     => 'color',
+							'value'   => '00',
+							'compare' => 'LIKE',
+						),
+					),
+				),
+			),
+			'cache nested meta query search'              => array(
+				'args' => array(
+					'cache_results' => true,
+					'meta_query'    => array(
+						'relation' => 'AND',
+						array(
+							'key'     => 'color',
+							'value'   => '00',
+							'compare' => 'LIKE',
+						),
+						array(
+							'relation' => 'OR',
+							array(
+								'key'     => 'color',
+								'value'   => '00',
+								'compare' => 'LIKE',
+							),
+							array(
+								'relation' => 'AND',
+								array(
+									'key'     => 'wp_test_suite',
+									'value'   => '56802',
+									'compare' => 'LIKE',
+								),
+								array(
+									'key'     => 'wp_test_suite_too',
+									'value'   => '56802',
+									'compare' => 'LIKE',
+								),
+							),
+						),
+					),
+				),
+			),
+			'cache meta query not search'                 => array(
+				'args' => array(
+					'cache_results' => true,
+					'meta_query'    => array(
+						array(
+							'key'     => 'color',
+							'value'   => 'ff',
+							'compare' => 'NOT LIKE',
+						),
+					),
+				),
+			),
 			'cache comment_count'                         => array(
 				'args' => array(
 					'cache_results' => true,
@@ -207,6 +379,18 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 							'field'    => 'slug',
 						),
 					),
+				),
+			),
+			'cache search query'                          => array(
+				'args' => array(
+					'cache_results' => true,
+					's'             => 'title',
+				),
+			),
+			'cache search query multiple terms'           => array(
+				'args' => array(
+					'cache_results' => true,
+					's'             => 'Post title',
 				),
 			),
 		);
@@ -1025,5 +1209,134 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			array( 'id=>parent', 'ids' ),
 			array( 'id=>parent', 'id=>parent' ),
 		);
+	}
+
+	/**
+	 * Ensure starting the loop warms the author cache.
+	 *
+	 * @since 6.1.1
+	 * @ticket 56948
+	 *
+	 * @covers WP_Query::the_post
+	 *
+	 * @dataProvider data_author_cache_warmed_by_the_loop
+	 *
+	 * @param string $fields Query fields.
+	 */
+	public function test_author_cache_warmed_by_the_loop( $fields ) {
+		// Update post author for the parent post.
+		self::factory()->post->update_object( self::$pages[0], array( 'post_author' => self::$author_id ) );
+
+		self::factory()->post->create(
+			array(
+				'post_author' => self::$author_id,
+				'post_parent' => self::$pages[0],
+				'post_type'   => 'page',
+			)
+		);
+
+		$query_1 = new WP_Query(
+			array(
+				'post_type'              => 'page',
+				'fields'                 => $fields,
+				'author'                 => self::$author_id,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		// Start the loop.
+		$start_loop_queries = get_num_queries();
+		$query_1->the_post();
+		$num_loop_queries = get_num_queries() - $start_loop_queries;
+		/*
+		 * Two expected queries:
+		 * 1: User meta data,
+		 * 2: User data.
+		 */
+		$this->assertSame( 2, $num_loop_queries, 'Unexpected number of queries while initializing the loop.' );
+
+		$start_author_queries = get_num_queries();
+		get_user_by( 'ID', self::$author_id );
+		$num_author_queries = get_num_queries() - $start_author_queries;
+		$this->assertSame( 0, $num_author_queries, 'Author cache is not warmed by the loop.' );
+	}
+
+	/**
+	 * Data provider for test_author_cache_warmed_by_the_loop
+	 *
+	 * @return array[]
+	 */
+	public function data_author_cache_warmed_by_the_loop() {
+		return array(
+			'fields: empty' => array( '' ),
+			'fields: all'   => array( 'all' ),
+			'fields: ids'   => array( 'ids' ),
+			/*
+			 * `id=>parent` is untested pending the resolution of an existing bug.
+			 * See https://core.trac.wordpress.org/ticket/56992
+			 */
+		);
+	}
+
+	/**
+	 * Ensure lazy loading term meta queries all term meta in a single query.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @ticket 57163
+	 * @ticket 22176
+	 */
+	public function test_get_post_meta_lazy_loads_all_term_meta_data() {
+		$query = new WP_Query();
+
+		$t2 = $this->factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'slug'     => 'bar',
+				'name'     => 'Bar',
+			)
+		);
+
+		wp_set_post_terms( self::$posts[0], $t2, 'category', true );
+		// Clean data added to cache by factory and setting terms.
+		clean_term_cache( array( self::$t1, $t2 ), 'category' );
+		clean_post_cache( self::$posts[0] );
+
+		$num_queries_start = get_num_queries();
+		$query_posts       = $query->query(
+			array(
+				'lazy_load_term_meta' => true,
+				'no_found_rows'       => true,
+			)
+		);
+		$num_queries       = get_num_queries() - $num_queries_start;
+
+		/*
+		 * Four expected queries:
+		 * 1: Post IDs
+		 * 2: Post data
+		 * 3: Post meta data.
+		 * 4: Post term data.
+		 */
+		$this->assertSame( 4, $num_queries, 'Unexpected number of queries while querying posts.' );
+		$this->assertNotEmpty( $query_posts, 'Query posts is empty.' );
+
+		$num_queries_start = get_num_queries();
+		get_term_meta( self::$t1 );
+		$num_queries = get_num_queries() - $num_queries_start;
+
+		/*
+		 * One expected query:
+		 * 1: Term meta data.
+		 */
+		$this->assertSame( 1, $num_queries, 'Unexpected number of queries during first query of term meta.' );
+
+		$num_queries_start = get_num_queries();
+		get_term_meta( $t2 );
+		$num_queries = get_num_queries() - $num_queries_start;
+
+		// No additional queries expected.
+		$this->assertSame( 0, $num_queries, 'Unexpected number of queries during second query of term meta.' );
 	}
 }

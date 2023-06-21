@@ -137,124 +137,58 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 37181
-	 *
+	 * @ticket 43506
 	 * @group ms-required
 	 *
 	 * @covers ::get_network_option
 	 * @covers ::wp_cache_get
 	 * @covers ::wp_cache_delete
 	 */
-	public function test_meta_api_use_values_in_network_option() {
-		$network_id = self::factory()->network->create();
-		$option     = __FUNCTION__;
-		$value      = __FUNCTION__;
+	public function test_get_network_option_sets_notoptions_if_option_found() {
+		$network_id     = get_current_network_id();
+		$notoptions_key = "$network_id:notoptions";
 
-		add_metadata( 'site', $network_id, $option, $value, true );
-		$this->assertEqualSets( get_metadata( 'site', $network_id, $option ), array( get_network_option( $network_id, $option, true ) ) );
+		$original_cache = wp_cache_get( $notoptions_key, 'site-options' );
+		if ( false !== $original_cache ) {
+			wp_cache_delete( $notoptions_key, 'site-options' );
+		}
+
+		// Retrieve any existing option.
+		get_network_option( $network_id, 'site_name' );
+
+		$cache = wp_cache_get( $notoptions_key, 'site-options' );
+		if ( false !== $original_cache ) {
+			wp_cache_set( $notoptions_key, $original_cache, 'site-options' );
+		}
+
+		$this->assertSame( array(), $cache );
 	}
 
 	/**
-	 * @ticket 37181
-	 *
-	 * @group ms-required
-	 */
-	function test_funky_network_meta() {
-		$network_id      = self::factory()->network->create();
-		$option          = __FUNCTION__;
-		$classy          = new StdClass();
-		$classy->ID      = 1;
-		$classy->stringy = 'I love slashes\\\\';
-		$funky_meta[]    = $classy;
-
-		$classy          = new StdClass();
-		$classy->ID      = 2;
-		$classy->stringy = 'I love slashes\\\\ more';
-		$funky_meta[]    = $classy;
-
-		// Add a network meta item.
-		$this->assertIsInt( add_metadata( 'site', $network_id, $option, $funky_meta, true ) );
-
-		// Check they exists.
-		$this->assertEqualSets( $funky_meta, get_network_option( $network_id, $option ) );
-	}
-
-	/**
-	 * @ticket 37181
-	 *
-	 * @group ms-required
-	 */
-	public function test_meta_api_multiple_values_in_network_option() {
-		$network_id = self::factory()->network->create();
-		$option     = __FUNCTION__;
-		add_metadata( 'site', $network_id, $option, 'monday', true );
-		add_metadata( 'site', $network_id, $option, 'tuesday', true );
-		add_metadata( 'site', $network_id, $option, 'wednesday', true );
-		$this->assertSame( 'monday', get_network_option( $network_id, $option, true ) );
-	}
-
-	/**
-	 * @ticket 37181
-	 *
+	 * @ticket 43506
 	 * @group ms-required
 	 *
 	 * @covers ::get_network_option
 	 * @covers ::wp_cache_get
 	 */
-	public function test_network_option_count_queries_on_non_existing() {
-		$network_id = self::factory()->network->create();
-		$option     = __FUNCTION__;
-		add_network_option( $network_id, $option, 'monday' );
-		get_network_option( $network_id, $option );
-		$num_queries_pre_get = get_num_queries();
-		get_network_option( $network_id, 'do_not_exist' );
-		$num_queries_after_get = get_num_queries();
+	public function test_get_network_option_sets_notoptions_if_option_not_found() {
+		$network_id     = get_current_network_id();
+		$notoptions_key = "$network_id:notoptions";
 
-		$this->assertSame( $num_queries_pre_get, $num_queries_after_get );
-	}
+		$original_cache = wp_cache_get( $notoptions_key, 'site-options' );
+		if ( false !== $original_cache ) {
+			wp_cache_delete( $notoptions_key, 'site-options' );
+		}
 
-	/**
-	 * @ticket 37181
-	 *
-	 * @group ms-required
-	 */
-	public function test_register_meta_network_option_single_false() {
-		$network_id = self::factory()->network->create();
-		$option     = __FUNCTION__;
-		$value      = __FUNCTION__;
-		register_meta(
-			'site',
-			$option,
-			array(
-				'type'    => 'string',
-				'default' => $value,
-				'single'  => false,
-			)
-		);
+		// Retrieve any non-existing option.
+		get_network_option( $network_id, 'this_does_not_exist' );
 
-		$this->assertSame( $value, get_network_option( $network_id, $option ) );
-	}
+		$cache = wp_cache_get( $notoptions_key, 'site-options' );
+		if ( false !== $original_cache ) {
+			wp_cache_set( $notoptions_key, $original_cache, 'site-options' );
+		}
 
-	/**
-	 * @ticket 37181
-	 *
-	 * @group ms-required
-	 */
-	public function test_register_meta_network_option_single_true() {
-		$network_id = self::factory()->network->create();
-		$option     = __FUNCTION__;
-		$value      = __FUNCTION__;
-		register_meta(
-			'site',
-			$option,
-			array(
-				'type'    => 'string',
-				'default' => $value,
-				'single'  => true,
-			)
-		);
-
-		$this->assertSame( $value, get_network_option( $network_id, $option ) );
+		$this->assertSame( array( 'this_does_not_exist' => true ), $cache );
 	}
 
 	/**
@@ -262,13 +196,9 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 *
 	 * @ticket 44956
 	 *
-	 * @group ms-required
-	 *
 	 * @covers ::update_network_option
 	 */
 	public function test_update_network_option_array_with_object() {
-		$network_id     = self::factory()->network->create();
-		$option         = __FUNCTION__;
 		$array_w_object = array(
 			'url'       => 'http://src.wordpress-develop.dev/wp-content/uploads/2016/10/cropped-Blurry-Lights.jpg',
 			'meta_data' => (object) array(
@@ -278,140 +208,24 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 			),
 		);
 
-		add_metadata( 'site', $network_id, $option, $array_w_object, true );
-		$this->assertEqualSets( $array_w_object, get_network_option( $network_id, $option ) );
-	}
-
-	/**
-	 * @ticket 37181
-	 *
-	 * @group ms-required
-	 *
-	 * @covers ::add_network_option
-	 *
-	 * @dataProvider data_types_options
-	 */
-	public function test_type_add_network_option( $name, $value, $expected ) {
-		$result = add_network_option( null, $name, $value );
-		$this->assertTrue( $result, 'Network option was not added' );
-
-		$test_value = get_network_option( null, $name );
-		$this->assertSame( $expected, $test_value, 'Values do not match' );
-	}
-
-	/**
-	 * @ticket 37181
-	 *
-	 * @covers ::add_network_option
-	 *
-	 * @dataProvider data_slashed_options
-	 */
-	public function test_slash_add_network_option( $name, $value ) {
-		$result = add_network_option( null, $name, $value );
-		$this->assertTrue( $result, 'Network option was not added' );
-		$this->assertSame( $value, get_network_option( null, $name ), 'Values do not match' );
-	}
-
-	/**
-	 * @ticket 37181
-	 *
-	 * @covers ::update_network_option
-	 *
-	 * @dataProvider data_slashed_options
-	 */
-	public function test_slash_update_network_option( $name, $value ) {
-		$result = update_network_option( null, $name, $value );
-		$this->assertTrue( $result, 'Network option was not updated' );
-		$this->assertSame( $value, get_network_option( null, $name ), 'Values do not match' );
-	}
-
-	/**
-	 * @ticket 37181
-	 *
-	 * @covers ::delete_network_option()
-	 *
-	 * @dataProvider data_slashed_options
-	 */
-	public function test_slash_delete_network_option( $name, $value ) {
-		$result = add_network_option( null, $name, $value );
-		$this->assertTrue( $result, 'Network option was not added' );
-		$this->assertSame( $value, get_network_option( null, $name ) );
-		$result = delete_network_option( null, $name );
-		$this->assertTrue( $result, 'Network option was not deleted' );
-		$this->assertFalse( get_network_option( null, $name ), 'Network option was not deleted' );
-	}
-
-	public function data_slashed_options() {
-		return array(
-			'slashed option name'                   => array(
-				'option' => 'String with 1 slash \\',
-				'value'  => 'foo',
-			),
-			'slashed in middle option name'         => array(
-				'option' => 'String\\thing',
-				'value'  => 'foo',
-			),
-			'slashed option value'                  => array(
-				'option' => 'bar',
-				'value'  => 'String with 1 slash \\',
-			),
-			'slashed option name and value'         => array(
-				'option' => 'String with 1 slash \\',
-				'value'  => 'String with 1 slash \\',
-			),
-			'slashed 4 times option name and value' => array(
-				'option' => 'String with 4 slashes \\\\\\\\',
-				'value'  => 'String with 4 slashes \\\\\\\\',
-			),
-			'slashed 7 times option name and value' => array(
-				'option' => 'String with 7 slashes \\\\\\\\\\\\\\',
-				'value'  => 'String with 7 slashes \\\\\\\\\\\\\\',
+		$array_w_object_2 = array(
+			'url'       => 'http://src.wordpress-develop.dev/wp-content/uploads/2016/10/cropped-Blurry-Lights.jpg',
+			'meta_data' => (object) array(
+				'attachment_id' => 292,
+				'height'        => 708,
+				'width'         => 1260,
 			),
 		);
-	}
 
-	public function data_types_options() {
-		return array(
-			'array'       => array(
-				'option'   => 'array',
-				'value'    => array(),
-				'expected' => array(),
-			),
-			'array_keys'  => array(
-				'option'   => 'array',
-				'value'    => array( 'key' => 'value' ),
-				'expected' => array( 'key' => 'value' ),
-			),
-			'int'         => array(
-				'option'   => 'int',
-				'value'    => 33,
-				'expected' => '33',
-			),
-			'string'      => array(
-				'option'   => 'string',
-				'value'    => 'foo',
-				'expected' => 'foo',
-			),
-			'string_bool' => array(
-				'option'   => 'string',
-				'value'    => 'true',
-				'expected' => 'true',
-			),
-			'float'       => array(
-				'option'   => 'float',
-				'value'    => 33.5555,
-				'expected' => '33.5555',
-			),
-			'bool'        => array(
-				'option'   => 'bool',
-				'value'    => true,
-				'expected' => '1',
-			),
-			'null'        => array(
-				'option'   => 'null',
-				'value'    => null,
-				'expected' => null,
-			),
-		);
+		// Add the option, it did not exist before this.
+		add_network_option( null, 'array_w_object', $array_w_object );
+
+		$num_queries_pre_update = get_num_queries();
+
+		// Update the option using the same array with an object for the value.
+		$this->assertFalse( update_network_option( null, 'array_w_object', $array_w_object_2 ) );
+
+		// Check that no new database queries were performed.
+		$this->assertSame( $num_queries_pre_update, get_num_queries() );
 	}
 }

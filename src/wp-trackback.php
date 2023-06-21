@@ -13,6 +13,9 @@ if ( empty( $wp ) ) {
 	wp( array( 'tb' => '1' ) );
 }
 
+// Always run as an unauthenticated user.
+wp_set_current_user( 0 );
+
 /**
  * Response to a trackback.
  *
@@ -22,7 +25,7 @@ if ( empty( $wp ) ) {
  *
  * @param int|bool $error         Whether there was an error.
  *                                Default '0'. Accepts '0' or '1', true or false.
- * @param string   $error_message Error message if an error occurred.
+ * @param string   $error_message Error message if an error occurred. Default empty string.
  */
 function trackback_response( $error = 0, $error_message = '' ) {
 	header( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ) );
@@ -73,7 +76,7 @@ if ( function_exists( 'mb_convert_encoding' ) ) {
 	$blog_name = mb_convert_encoding( $blog_name, get_option( 'blog_charset' ), $charset );
 }
 
-// Now that mb_convert_encoding() has been given a swing, we need to escape these three.
+// Escape values to use in the trackback.
 $title     = wp_slash( $title );
 $excerpt   = wp_slash( $excerpt );
 $blog_name = wp_slash( $blog_name );
@@ -103,7 +106,7 @@ if ( ! empty( $trackback_url ) && ! empty( $title ) ) {
 	 * @param string $charset       Character set.
 	 * @param string $title         Trackback title.
 	 * @param string $excerpt       Trackback excerpt.
-	 * @param string $blog_name     Blog name.
+	 * @param string $blog_name     Site name.
 	 */
 	do_action( 'pre_trackback_post', $post_id, $trackback_url, $charset, $title, $excerpt, $blog_name );
 

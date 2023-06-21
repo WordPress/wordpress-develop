@@ -271,7 +271,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @ticket 41039
 	 */
 	public function test_fresh_site_flag_clearing() {
-		global $wp_customize, $wpdb;
+		global $wp_customize;
 
 		// Make sure fresh site flag is cleared when publishing a changeset.
 		update_option( 'fresh_site', '1' );
@@ -283,9 +283,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		wp_load_alloptions();
 
 		// Make sure no DB write is done when publishing and a site is already non-fresh.
-		$query_count = $wpdb->num_queries;
+		$query_count = get_num_queries();
 		do_action( 'customize_save_after', $wp_customize );
-		$this->assertSame( $query_count, $wpdb->num_queries );
+		$this->assertSame( $query_count, get_num_queries() );
 	}
 
 	/**
@@ -547,8 +547,13 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		add_theme_support( 'custom-header' );
 		add_theme_support( 'custom-background' );
 
+		// For existing attachment, copy into uploads.
+		$canola_image_file    = DIR_TESTDATA . '/images/canola.jpg';
+		$canola_image_upload  = wp_upload_bits( wp_basename( $canola_image_file ), null, file_get_contents( $canola_image_file ) );
+		$existing_canola_file = $canola_image_upload['file'];
+
 		$existing_canola_attachment_id = self::factory()->attachment->create_object(
-			DIR_TESTDATA . '/images/canola.jpg',
+			$existing_canola_file,
 			0,
 			array(
 				'post_mime_type' => 'image/jpeg',
@@ -631,7 +636,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 					'post_title'   => 'Canola',
 					'post_content' => 'Canola Attachment Description',
 					'post_excerpt' => 'Canola Attachment Caption',
-					'file'         => DIR_TESTDATA . '/images/canola.jpg',
+					'file'         => $existing_canola_file,
 				),
 			),
 			'options'     => array(
@@ -759,7 +764,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		/*
 		 * Test that adding blogname starter content is ignored now that it is modified,
-		 * but updating a non-modified starter content blog description passes.
+		 * but updating a non-modified starter content site description passes.
 		 */
 		$previous_blogname        = $changeset_data['blogname']['value'];
 		$previous_blogdescription = $changeset_data['blogdescription']['value'];
@@ -3346,33 +3351,33 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Return 'Test_Dynamic_Customize_Setting' in 'customize_dynamic_setting_class.
+	 * Returns 'Test_Dynamic_Customize_Setting' in 'customize_dynamic_setting_class'.
 	 *
-	 * @param string $class Setting class.
-	 * @param array  $args  Setting args.
-	 * @param string $id    Setting ID.
-	 * @return string       Setting class.
+	 * @param string $setting_class Setting class.
+	 * @param array  $setting_args  Setting args.
+	 * @param string $setting_id    Setting ID.
+	 * @return string Setting class.
 	 */
-	public function return_dynamic_customize_setting_class( $class, $id, $args ) {
-		unset( $args );
-		if ( 0 === strpos( $id, 'dynamic' ) ) {
-			$class = 'Test_Dynamic_Customize_Setting';
+	public function return_dynamic_customize_setting_class( $setting_class, $setting_id, $setting_args ) {
+		unset( $setting_args );
+		if ( 0 === strpos( $setting_id, 'dynamic' ) ) {
+			$setting_class = 'Test_Dynamic_Customize_Setting';
 		}
-		return $class;
+		return $setting_class;
 	}
 
 	/**
-	 * Return 'Test_Dynamic_Customize_Setting' in 'customize_dynamic_setting_class.
+	 * Returns 'foo' in 'customize_dynamic_setting_args'.
 	 *
-	 * @param array  $args Setting args.
-	 * @param string $id   Setting ID.
-	 * @return string      Setting args.
+	 * @param array  $setting_args Setting args.
+	 * @param string $setting_id   Setting ID.
+	 * @return array Setting args.
 	 */
-	public function return_dynamic_customize_setting_args( $args, $id ) {
-		if ( 0 === strpos( $id, 'dynamic' ) ) {
-			$args['custom'] = 'foo';
+	public function return_dynamic_customize_setting_args( $setting_args, $setting_id ) {
+		if ( 0 === strpos( $setting_id, 'dynamic' ) ) {
+			$setting_args['custom'] = 'foo';
 		}
-		return $args;
+		return $setting_args;
 	}
 
 	/**

@@ -4,9 +4,7 @@
  *
  * @package    WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Controller_Testcase {
@@ -992,7 +990,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 		$actual = wp_is_application_passwords_supported();
 
-		// Revert to default behaviour so that other tests are not affected.
+		// Revert to default behavior so that other tests are not affected.
 		putenv( 'WP_ENVIRONMENT_TYPE' );
 
 		$this->assertTrue( $actual );
@@ -1024,7 +1022,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$actual = wp_is_application_passwords_available();
 
 		if ( 'default' === $expected ) {
-			// Revert to default behaviour so that other tests are not affected.
+			// Revert to default behavior so that other tests are not affected.
 			putenv( 'WP_ENVIRONMENT_TYPE' );
 		}
 

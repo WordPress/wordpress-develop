@@ -118,6 +118,14 @@ class WP_Block_Type {
 	public $variations = array();
 
 	/**
+	 * Custom CSS selectors for theme.json style generation.
+	 *
+	 * @since 6.3.0
+	 * @var array
+	 */
+	public $selectors = array();
+
+	/**
 	 * Supported features.
 	 *
 	 * @since 5.5.0
@@ -245,6 +253,7 @@ class WP_Block_Type {
 	 * @since 6.1.0 Added the `editor_script_handles`, `script_handles`, `view_script_handles,
 	 *              `editor_style_handles`, and `style_handles` properties.
 	 *              Deprecated the `editor_script`, `script`, `view_script`, `editor_style`, and `style` properties.
+	 * @since 6.3.0 Added the `selectors` property.
 	 *
 	 * @see register_block_type()
 	 *
@@ -268,6 +277,7 @@ class WP_Block_Type {
 	 *     @type string|null   $textdomain               The translation textdomain.
 	 *     @type array[]       $styles                   Alternative block styles.
 	 *     @type array[]       $variations               Block variations.
+	 *     @type array         $selectors                Custom CSS selectors for theme.json style generation.
 	 *     @type array|null    $supports                 Supported features.
 	 *     @type array|null    $example                  Structured data for the block preview.
 	 *     @type callable|null $render_callback          Block type render callback.
@@ -295,15 +305,23 @@ class WP_Block_Type {
 	 *
 	 * @param string $name Deprecated property name.
 	 *
-	 * @return string|null|void The value read from the new property if the first item in the array provided,
-	 *                          null when value not found, or void when unknown property name provided.
+	 * @return string|string[]|null|void The value read from the new property if the first item in the array provided,
+	 *                                   null when value not found, or void when unknown property name provided.
 	 */
 	public function __get( $name ) {
-		if ( ! in_array( $name, $this->deprecated_properties ) ) {
+		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
 			return;
 		}
 
 		$new_name = $name . '_handles';
+
+		if ( ! property_exists( $this, $new_name ) || ! is_array( $this->{$new_name} ) ) {
+			return null;
+		}
+
+		if ( count( $this->{$new_name} ) > 1 ) {
+			return $this->{$new_name};
+		}
 		return isset( $this->{$new_name}[0] ) ? $this->{$new_name}[0] : null;
 	}
 
@@ -319,7 +337,7 @@ class WP_Block_Type {
 	 *                     or false otherwise.
 	 */
 	public function __isset( $name ) {
-		if ( ! in_array( $name, $this->deprecated_properties ) ) {
+		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
 			return false;
 		}
 
@@ -338,8 +356,29 @@ class WP_Block_Type {
 	 * @param mixed  $value Property value.
 	 */
 	public function __set( $name, $value ) {
-		if ( ! in_array( $name, $this->deprecated_properties ) ) {
+		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
 			$this->{$name} = $value;
+			return;
+		}
+
+		$new_name = $name . '_handles';
+
+		if ( is_array( $value ) ) {
+			$filtered = array_filter( $value, 'is_string' );
+
+			if ( count( $filtered ) !== count( $value ) ) {
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: %s: The '$value' argument. */
+							__( 'The %s argument must be a string or a string array.' ),
+							'<code>$value</code>'
+						),
+						'6.1.0'
+					);
+			}
+
+			$this->{$new_name} = array_values( $filtered );
 			return;
 		}
 
@@ -347,8 +386,7 @@ class WP_Block_Type {
 			return;
 		}
 
-		$new_name             = $name . '_handles';
-		$this->{$new_name}[0] = $value;
+		$this->{$new_name} = array( $value );
 	}
 
 	/**

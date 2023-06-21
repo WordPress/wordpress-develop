@@ -222,13 +222,6 @@
 				}
 			},
 			"core/query-pagination": {
-				"border": {
-					"top": {
-						"color": "var(--wp--preset--color--contrast)",
-						"style": "double",
-						"width": "6px"
-					}
-				},
 				"elements": {
 					"link": {
 						":hover": {
@@ -427,6 +420,11 @@
 						"padding": {
 							"bottom": "min(calc(1rem + 2px), 3vw) !important"
 						}
+					}
+				},
+				":visited": {
+					"color": {
+						"text": "var(--wp--preset--color--primary)"
 					}
 				}
 			},
