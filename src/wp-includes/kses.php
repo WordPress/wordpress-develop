@@ -2447,6 +2447,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'bottom',
 			'left',
 			'z-index',
+			'box-shadow',
 			'aspect-ratio',
 
 			// Custom CSS properties.
