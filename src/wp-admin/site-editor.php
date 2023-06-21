@@ -81,7 +81,7 @@ $navigation_rest_route = rest_get_route_for_post_type_items(
 	'wp_navigation'
 );
 
-$preload_paths           = array(
+$preload_paths = array(
 	array( '/wp/v2/media', 'OPTIONS' ),
 	'/wp/v2/types?context=view',
 	'/wp/v2/types/wp_template?context=edit',
@@ -120,7 +120,7 @@ $preload_paths           = array(
 			$navigation_rest_route
 		),
 		'GET',
-	)
+	),
 );
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
