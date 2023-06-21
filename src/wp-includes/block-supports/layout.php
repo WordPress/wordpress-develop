@@ -34,6 +34,7 @@ function wp_register_layout_support( $block_type ) {
  *
  * @since 5.9.0
  * @since 6.1.0 Added `$block_spacing` param, use style engine to enqueue styles.
+ * @since 6.3.0 Added grid layout type.
  * @access private
  *
  * @param string               $selector                      CSS selector.
