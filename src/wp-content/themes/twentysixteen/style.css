@@ -1604,6 +1604,10 @@ blockquote:after,
 
 .site-branding {
 	margin: 0.875em auto 0.875em 0;
+	/* Avoid overflowing wide custom logo in small screens in Firefox and IEs */
+	max-width: 100%;
+	min-width: 0;
+	overflow: hidden;
 }
 
 .custom-logo-link {
@@ -2044,6 +2048,13 @@ body:not(.search-results) .entry-summary > :last-child,
 	line-height: 1.6153846154;
 	margin-bottom: 0.5384615385em;
 	text-transform: uppercase;
+}
+
+/**
+* Do not combine these styles with the next block.
+ */
+ .updated:not(.published) {
+	display: none;
 }
 
 .sticky .posted-on,

@@ -703,6 +703,13 @@ function twentysixteen_get_color_scheme_css( $colors ) {
 
 	/* Secondary Text Color */
 
+	/**
+	* Do not combine these styles with the next block.
+	 */
+	body:not(.search-results) .entry-summary {
+		color: {$colors['secondary_text_color']};
+	}
+
 	blockquote,
 	.post-password-form label,
 	a:hover,
@@ -1148,6 +1155,9 @@ function twentysixteen_main_text_color_css() {
 		.comment-list .trackback,
 		.comment-reply-link,
 		.no-comments,
+		widecolumn .mu_register .mu_alert {
+			border-color: %2$s;
+		}
 
 		hr,
 		code {
@@ -1190,6 +1200,13 @@ function twentysixteen_secondary_text_color_css() {
 
 	$css = '
 		/* Custom Secondary Text Color */
+
+		/**
+		* Do not combine these styles with the next block.
+		 */
+		body:not(.search-results) .entry-summary {
+			color: %1$s;
+		}
 
 		blockquote,
 		.post-password-form label,
