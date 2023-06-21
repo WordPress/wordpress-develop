@@ -312,6 +312,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
  * Renders the layout config to the block wrapper.
  *
  * @since 5.8.0
+ * @since 6.3.0 Adds compound class to layout wrapper for global spacing styles.
  * @access private
  *
  * @param string $block_content Rendered block content.

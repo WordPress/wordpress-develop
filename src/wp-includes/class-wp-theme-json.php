@@ -1221,6 +1221,7 @@ class WP_Theme_JSON {
 	 * Gets the CSS layout rules for a particular block from theme.json layout definitions.
 	 *
 	 * @since 6.1.0
+	 * @since 6.3.0 Reduced specificity for layout margin rules.
 	 *
 	 * @param array $block_metadata Metadata about the block to get styles for.
 	 * @return string Layout styles for the block.

@@ -3827,6 +3827,7 @@ EOF;
 	 * image in the loop when using a block theme.
 	 *
 	 * @ticket 56930
+	 * @ticket 58548
 	 *
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_get_loading_attr_default
@@ -3871,6 +3872,7 @@ EOF;
 	 * to the featured image when using a block theme.
 	 *
 	 * @ticket 56930
+	 * @ticket 58548
 	 *
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_get_loading_attr_default

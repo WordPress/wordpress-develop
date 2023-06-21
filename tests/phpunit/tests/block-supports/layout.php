@@ -170,6 +170,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 57584
+	 * @ticket 58548
 	 *
 	 * @dataProvider data_layout_support_flag_renders_classnames_on_wrapper
 	 *

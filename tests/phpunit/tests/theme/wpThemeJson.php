@@ -448,6 +448,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54336
+	 * @ticket 58548
 	 */
 	public function test_get_stylesheet_renders_enabled_protected_properties() {
 		$theme_json = new WP_Theme_JSON(
@@ -3299,6 +3300,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @dataProvider data_get_layout_definitions
 	 *
 	 * @ticket 56467
+	 * @ticket 58548
 	 *
 	 * @param array $layout_definitions Layout definitions as stored in core theme.json.
 	 */
@@ -3334,6 +3336,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @dataProvider data_get_layout_definitions
 	 *
 	 * @ticket 56467
+	 * @ticket 58548
 	 *
 	 * @param array $layout_definitions Layout definitions as stored in core theme.json.
 	 */
@@ -3958,6 +3961,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56611
+	 * @ticket 58548
 	 */
 	public function test_get_styles_with_appearance_tools() {
 		$theme_json = new WP_Theme_JSON(
