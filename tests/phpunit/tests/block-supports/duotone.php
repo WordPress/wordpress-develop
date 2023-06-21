@@ -18,6 +18,8 @@ class WP_Duotone_Test extends WP_UnitTestCase {
 	/**
 	 * Tests whether the duotone preset class is added to the block.
 	 *
+	 * @ticket 58555
+	 *
 	 * @covers ::render_duotone_support
 	 */
 	public function test_render_duotone_support_preset() {
@@ -32,6 +34,8 @@ class WP_Duotone_Test extends WP_UnitTestCase {
 
 	/**
 	 * Tests whether the duotone unset class is added to the block.
+	 *
+	 * @ticket 58555
 	 *
 	 * @covers ::render_duotone_support
 	 */
@@ -76,7 +80,7 @@ class WP_Duotone_Test extends WP_UnitTestCase {
 
 	/**
 	 * Tests whether the slug is extracted from the attribute.
-	 * 
+	 *
 	 * @dataProvider data_get_slug_from_attribute
 	 * @covers ::get_slug_from_attribute
 	 */

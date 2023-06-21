@@ -472,7 +472,7 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Get the CSS variable name for a duotone preset.
+	 * Gets the CSS variable name for a duotone preset.
 	 *
 	 * @param string $slug The slug of the duotone preset.
 	 * @return string The CSS variable name.
