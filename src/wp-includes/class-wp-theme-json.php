@@ -3586,7 +3586,7 @@ class WP_Theme_JSON {
 			function( $carry, $item ) {
 				$name                    = $item['name'];
 				$carry[ "var({$name})" ] = $item['value'];
-				return  $carry;
+				return $carry;
 			},
 			array()
 		);
