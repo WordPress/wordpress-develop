@@ -523,7 +523,6 @@ function create_initial_post_types() {
 				'items_list'            => __( 'Navigation Menus list' ),
 				/* internal use only. don't use this when registering your own post type. */
 				'_edit_link'            => $navigation_post_edit_link,
-
 			),
 			'description'           => __( 'Navigation menus that can be inserted into your site.' ),
 			'public'                => false,
