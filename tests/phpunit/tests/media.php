@@ -4243,10 +4243,7 @@ EOF;
 	 * @param string $context
 	 */
 	public function test_wp_get_loading_optimization_attributes( $context ) {
-		$attr = array(
-			'width'  => 300,
-			'height' => 200,
-		);
+		$attr = $this->get_width_height_for_high_priority();
 
 		// Return 'lazy' by default.
 		$this->assertSame(
@@ -4344,10 +4341,7 @@ EOF;
 
 		do_action( 'get_header' );
 
-		$attr = array(
-			'width'  => 300,
-			'height' => 200,
-		);
+		$attr = $this->get_width_height_for_high_priority();
 
 		// Lazy if not main query.
 		$this->assertSame(
@@ -4374,10 +4368,7 @@ EOF;
 		$wp_query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $wp_query );
 
-		$attr = array(
-			'width'  => 300,
-			'height' => 200,
-		);
+		$attr = $this->get_width_height_for_high_priority();
 
 		// Lazy if header not called.
 		$this->assertSame(
@@ -4403,11 +4394,9 @@ EOF;
 
 		$wp_query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $wp_query );
-		$attr = array(
-			'width'  => 300,
-			'height' => 200,
-		);
 		do_action( 'get_header' );
+
+		$attr = $this->get_width_height_for_high_priority();
 
 		// First image is loaded with high fetchpriority.
 		$this->assertSame(
@@ -4441,10 +4430,7 @@ EOF;
 			the_post();
 		}
 
-		$attr = array(
-			'width'  => 300,
-			'height' => 200,
-		);
+		$attr = $this->get_width_height_for_high_priority();
 		$this->assertSame(
 			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context )
@@ -4473,10 +4459,7 @@ EOF;
 		do_action( 'get_header' );
 		do_action( 'get_footer' );
 
-		$attr = array(
-			'width'  => 300,
-			'height' => 200,
-		);
+		$attr = $this->get_width_height_for_high_priority();
 
 		// Load lazy if the there is no loop and footer was called.
 		$this->assertSame(
@@ -4498,10 +4481,7 @@ EOF;
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_optimization_attributes_should_return_lazy_for_special_contexts_outside_of_the_content( $context ) {
-		$attr = array(
-			'width'  => 300,
-			'height' => 200,
-		);
+		$attr = $this->get_width_height_for_high_priority();
 		$this->assertSame(
 			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context )
@@ -4527,10 +4507,7 @@ EOF;
 		add_filter(
 			'the_content',
 			function( $content ) use ( &$result, $context ) {
-				$attr   = array(
-					'width'  => 300,
-					'height' => 200,
-				);
+				$attr   = $this->get_width_height_for_high_priority();
 				$result = wp_get_loading_optimization_attributes( 'img', $attr, $context );
 				return $content;
 			}
@@ -4881,10 +4858,7 @@ EOF;
 	 * @param string $message Message to display if the test fails.
 	 */
 	public function test_wp_get_loading_optimization_attributes_check_allowed_tags( $tag_name, $expected, $message ) {
-		$attr    = array(
-			'width'  => 300,
-			'height' => 200,
-		);
+		$attr    = $this->get_width_height_for_high_priority();
 		$context = 'the_post_thumbnail';
 		$this->assertSame( wp_get_loading_optimization_attributes( $tag_name, $attr, $context ), $expected, $message );
 	}
@@ -4918,10 +4892,7 @@ EOF;
 	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_get_loading_optimization_attributes_skip_for_block_template() {
-		$attr = array(
-			'width'  => 300,
-			'height' => 200,
-		);
+		$attr = $this->get_width_height_for_high_priority();
 
 		// Skip logic if context is `template`.
 		$this->assertSame(
@@ -4938,12 +4909,9 @@ EOF;
 	 * @expectedIncorrectUsage wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_get_loading_optimization_attributes_incorrect_loading_attrs() {
-		$attr = array(
-			'width'         => 300,
-			'height'        => 200,
-			'loading'       => 'lazy',
-			'fetchpriority' => 'high',
-		);
+		$attr                  = $this->get_width_height_for_high_priority();
+		$attr['loading']       = 'lazy';
+		$attr['fetchpriority'] = 'high';
 
 		$this->assertSame(
 			array(
@@ -4961,11 +4929,8 @@ EOF;
 	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_get_loading_optimization_attributes_if_loading_attr_present() {
-		$attr = array(
-			'width'   => 300,
-			'height'  => 200,
-			'loading' => 'eager',
-		);
+		$attr            = $this->get_width_height_for_high_priority();
+		$attr['loading'] = 'eager';
 
 		// Check fetchpriority high logic if loading attribute is present.
 		$this->assertSame(
@@ -5019,66 +4984,49 @@ EOF;
 			'small image'                   => array(
 				array(),
 				'img',
-				array(
-					'width'  => 150,
-					'height' => 150,
-				),
+				$this->get_insufficient_width_height_for_high_priority(),
 				false,
 			),
 			'large image'                   => array(
 				array(),
 				'img',
-				array(
-					'width'  => 600,
-					'height' => 400,
-				),
+				$this->get_width_height_for_high_priority(),
 				'high',
 			),
 			'image with loading=lazy'       => array(
 				array( 'loading' => 'lazy' ),
 				'img',
-				array(
-					'width'  => 600,
-					'height' => 400,
-				),
+				$this->get_width_height_for_high_priority(),
 				false,
 			),
 			'image with loading=eager'      => array(
 				array( 'loading' => 'eager' ),
 				'img',
-				array(
-					'width'  => 600,
-					'height' => 400,
-				),
+				$this->get_width_height_for_high_priority(),
 				'high',
 			),
 			'image with fetchpriority=high' => array(
 				array(),
 				'img',
-				array(
-					'width'         => 150,
-					'height'        => 150,
-					'fetchpriority' => 'high',
+				array_merge(
+					$this->get_insufficient_width_height_for_high_priority(),
+					array( 'fetchpriority' => 'high' )
 				),
 				'high',
 			),
 			'image with fetchpriority=low'  => array(
 				array(),
 				'img',
-				array(
-					'width'         => 150,
-					'height'        => 150,
-					'fetchpriority' => 'low',
+				array_merge(
+					$this->get_insufficient_width_height_for_high_priority(),
+					array( 'fetchpriority' => 'low' )
 				),
 				false,
 			),
 			'non-image element'             => array(
 				array(),
 				'video',
-				array(
-					'width'  => 600,
-					'height' => 400,
-				),
+				$this->get_width_height_for_high_priority(),
 				false,
 			),
 		);
@@ -5230,6 +5178,34 @@ EOF;
 	public function set_main_query( $query ) {
 		global $wp_the_query;
 		$wp_the_query = $query;
+	}
+
+	/**
+	 * Returns an array with dimension attribute values eligible for a high priority image.
+	 *
+	 * @return array Associative array with 'width' and 'height' keys.
+	 */
+	private function get_width_height_for_high_priority() {
+		// The product of width * height must be >50000 to qualify for high priority image.
+		// 300 * 200 = 60000
+		return array(
+			'width'  => 300,
+			'height' => 200,
+		);
+	}
+
+	/**
+	 * Returns an array with dimension attribute values ineligible for a high priority image.
+	 *
+	 * @return array Associative array with 'width' and 'height' keys.
+	 */
+	private function get_insufficient_width_height_for_high_priority() {
+		// The product of width * height must be >50000 to qualify for high priority image.
+		// 200 * 100 = 20000
+		return array(
+			'width'  => 200,
+			'height' => 100,
+		);
 	}
 }
 
