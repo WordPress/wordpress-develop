@@ -223,7 +223,7 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 
 	/**
 	 * Check that the postmeta sync_status field is returned in the response.
-	 * 
+	 *
 	 * @ticket 58577
 	 */
 	public function test_postmeta() {
