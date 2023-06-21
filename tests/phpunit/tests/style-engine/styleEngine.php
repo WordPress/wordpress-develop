@@ -205,6 +205,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 						'font-style'      => 'italic',
 						'font-weight'     => '800',
 						'line-height'     => '1.3',
+						'textColumns'     => '2',
 						'text-decoration' => 'underline',
 						'text-transform'  => 'uppercase',
 						'letter-spacing'  => '2',
