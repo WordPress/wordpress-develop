@@ -562,8 +562,7 @@ function create_initial_post_types() {
 		array(
 			'label'       => _x( 'Published', 'post status' ),
 			'public'      => true,
-			'_builtin'    => true, /*
-		internal use only. */
+			'_builtin'    => true, /* internal use only. */
 			/* translators: %s: Number of published posts. */
 			'label_count' => _n_noop(
 				'Published <span class="count">(%s)</span>',
@@ -577,8 +576,7 @@ function create_initial_post_types() {
 		array(
 			'label'       => _x( 'Scheduled', 'post status' ),
 			'protected'   => true,
-			'_builtin'    => true, /*
-		internal use only. */
+			'_builtin'    => true, /* internal use only. */
 			/* translators: %s: Number of scheduled posts. */
 			'label_count' => _n_noop(
 				'Scheduled <span class="count">(%s)</span>',
@@ -592,8 +590,7 @@ function create_initial_post_types() {
 		array(
 			'label'         => _x( 'Draft', 'post status' ),
 			'protected'     => true,
-			'_builtin'      => true, /*
-		internal use only. */
+			'_builtin'      => true, /* internal use only. */
 			/* translators: %s: Number of draft posts. */
 			'label_count'   => _n_noop(
 				'Draft <span class="count">(%s)</span>',
@@ -608,8 +605,7 @@ function create_initial_post_types() {
 		array(
 			'label'         => _x( 'Pending', 'post status' ),
 			'protected'     => true,
-			'_builtin'      => true, /*
-		internal use only. */
+			'_builtin'      => true, /* internal use only. */
 			/* translators: %s: Number of pending posts. */
 			'label_count'   => _n_noop(
 				'Pending <span class="count">(%s)</span>',
@@ -624,8 +620,7 @@ function create_initial_post_types() {
 		array(
 			'label'       => _x( 'Private', 'post status' ),
 			'private'     => true,
-			'_builtin'    => true, /*
-		internal use only. */
+			'_builtin'    => true, /* internal use only. */
 			/* translators: %s: Number of private posts. */
 			'label_count' => _n_noop(
 				'Private <span class="count">(%s)</span>',
@@ -639,8 +634,7 @@ function create_initial_post_types() {
 		array(
 			'label'                     => _x( 'Trash', 'post status' ),
 			'internal'                  => true,
-			'_builtin'                  => true, /*
-		internal use only. */
+			'_builtin'                  => true, /* internal use only. */
 			/* translators: %s: Number of trashed posts. */
 			'label_count'               => _n_noop(
 				'Trash <span class="count">(%s)</span>',
@@ -675,8 +669,7 @@ function create_initial_post_types() {
 		array(
 			'label'               => _x( 'Pending', 'request status' ),
 			'internal'            => true,
-			'_builtin'            => true, /*
-		internal use only. */
+			'_builtin'            => true, /* internal use only. */
 			/* translators: %s: Number of pending requests. */
 			'label_count'         => _n_noop(
 				'Pending <span class="count">(%s)</span>',
@@ -691,8 +684,7 @@ function create_initial_post_types() {
 		array(
 			'label'               => _x( 'Confirmed', 'request status' ),
 			'internal'            => true,
-			'_builtin'            => true, /*
-		internal use only. */
+			'_builtin'            => true, /* internal use only. */
 			/* translators: %s: Number of confirmed requests. */
 			'label_count'         => _n_noop(
 				'Confirmed <span class="count">(%s)</span>',
@@ -707,8 +699,7 @@ function create_initial_post_types() {
 		array(
 			'label'               => _x( 'Failed', 'request status' ),
 			'internal'            => true,
-			'_builtin'            => true, /*
-		internal use only. */
+			'_builtin'            => true, /* internal use only. */
 			/* translators: %s: Number of failed requests. */
 			'label_count'         => _n_noop(
 				'Failed <span class="count">(%s)</span>',
@@ -723,8 +714,7 @@ function create_initial_post_types() {
 		array(
 			'label'               => _x( 'Completed', 'request status' ),
 			'internal'            => true,
-			'_builtin'            => true, /*
-		internal use only. */
+			'_builtin'            => true, /* internal use only. */
 			/* translators: %s: Number of completed requests. */
 			'label_count'         => _n_noop(
 				'Completed <span class="count">(%s)</span>',
