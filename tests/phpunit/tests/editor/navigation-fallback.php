@@ -26,6 +26,7 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller
 	 */
 	public function test_it_exists() {
@@ -34,6 +35,7 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller::get_fallback
 	 */
 	public function test_should_return_a_default_fallback_navigation_menu_in_absence_of_other_fallbacks() {
@@ -55,6 +57,7 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller::get_fallback
 	 */
 	public function test_should_return_a_default_fallback_navigation_menu_with_no_blocks_if_page_list_block_is_not_registered() {
@@ -75,6 +78,7 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller::get_fallback
 	 */
 	public function test_should_handle_consecutive_invocations() {
@@ -95,6 +99,7 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller::get_fallback
 	 */
 	public function test_should_return_the_most_recently_created_navigation_menu() {
@@ -132,6 +137,7 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller::get_fallback
 	 */
 	public function test_should_return_fallback_navigation_from_existing_classic_menu_if_no_navigation_menus_exist() {
@@ -169,6 +175,7 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller::get_fallback
 	 */
 	public function test_should_prioritise_fallback_to_classic_menu_in_primary_location() {
@@ -209,6 +216,7 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller::get_fallback
 	 */
 	public function test_should_fallback_to_classic_menu_with_primary_slug() {
@@ -246,6 +254,7 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller::get_fallback
 	 */
 	public function test_should_fallback_to_most_recently_created_classic_menu() {
@@ -283,6 +292,7 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller::get_fallback
 	 */
 	public function test_should_not_create_fallback_from_classic_menu_if_a_navigation_menu_already_exists() {

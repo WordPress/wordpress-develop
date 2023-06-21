@@ -10,6 +10,7 @@
  *
  * @package WordPress
  * @subpackage REST API
+ *
  * @covers WP_REST_Navigation_Fallback_Controller
  */
 
@@ -35,6 +36,7 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller::register_routes
 	 *
 	 * @since 6.3.0 Added Navigation Fallbacks endpoint.
@@ -46,6 +48,7 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller
 	 *
 	 * @since 6.3.0 Added Navigation Fallbacks endpoint.
@@ -66,6 +69,7 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller
 	 *
 	 * @since 6.3.0 Added Navigation Fallbacks endpoint.
@@ -92,6 +96,7 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller
 	 *
 	 * @since 6.3.0 Added Navigation Fallbacks endpoint.
@@ -115,6 +120,7 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller
 	 *
 	 * @since 6.3.0 Added Navigation Fallbacks endpoint.

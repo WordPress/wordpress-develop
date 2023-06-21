@@ -11,6 +11,7 @@
 class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_Classic_To_Block_Menu_Converter::get_fallback
 	 */
 	public function test_class_exists() {
@@ -18,6 +19,7 @@ class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_Classic_To_Block_Menu_Converter::convert
 	 * @dataProvider provider_test_passing_non_menu_object_to_converter_returns_wp_error
 	 */
@@ -33,6 +35,7 @@ class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_Classic_To_Block_Menu_Converter::convert
 	 */
 	public function provider_test_passing_non_menu_object_to_converter_returns_wp_error() {
@@ -49,6 +52,7 @@ class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_Classic_To_Block_Menu_Converter::convert
 	 */
 	public function test_can_convert_classic_menu_to_blocks() {
@@ -121,6 +125,7 @@ class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_Classic_To_Block_Menu_Converter::convert
 	 */
 	public function test_does_not_convert_menu_items_with_non_publish_status() {
@@ -197,6 +202,7 @@ class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58557
 	 * @covers WP_Classic_To_Block_Menu_Converter::convert
 	 */
 	public function test_returns_empty_array_for_menus_with_no_items() {
