@@ -4443,7 +4443,7 @@ EOF;
 	 *
 	 * @ticket 58212
 	 *
-	 * @covers ::wp_get_attachment_image()
+	 * @covers ::wp_get_attachment_image
 	 */
 	public function test_wp_get_attachment_image_context_filter_default() {
 		$last_context = '';
@@ -4458,7 +4458,7 @@ EOF;
 	 *
 	 * @ticket 58212
 	 *
-	 * @covers ::wp_get_attachment_image()
+	 * @covers ::wp_get_attachment_image
 	 */
 	public function test_wp_get_attachment_image_context_filter_value_is_passed_correctly() {
 		$last_context = '';
@@ -4481,7 +4481,7 @@ EOF;
 	 *
 	 * @ticket 58235
 	 *
-	 * @covers ::wp_get_loading_optimization_attributes()
+	 * @covers ::wp_get_loading_optimization_attributes
 	 * @dataProvider data_wp_get_loading_optimization_attributes_min_required_attrs
 	 *
 	 * @param string $tag_name The tag name.
@@ -4525,7 +4525,7 @@ EOF;
 	 *
 	 * @ticket 58235
 	 *
-	 * @covers ::wp_get_loading_optimization_attributes()
+	 * @covers ::wp_get_loading_optimization_attributes
 	 * @dataProvider data_wp_get_loading_optimization_attributes_check_allowed_tags
 	 *
 	 * @param string $tag_name The tag name.
@@ -4567,7 +4567,7 @@ EOF;
 	/**
 	 * @ticket 58235
 	 *
-	 * @covers ::wp_get_loading_optimization_attributes()
+	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_get_loading_optimization_attributes_skip_for_block_template() {
 		$attr = array(
@@ -4586,7 +4586,7 @@ EOF;
 	/**
 	 * @ticket 58235
 	 *
-	 * @covers ::wp_get_loading_optimization_attributes()
+	 * @covers ::wp_get_loading_optimization_attributes
 	 * @expectedIncorrectUsage wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_get_loading_optimization_attributes_incorrect_loading_attrs() {
@@ -4610,7 +4610,7 @@ EOF;
 	/**
 	 * @ticket 58235
 	 *
-	 * @covers ::wp_get_loading_optimization_attributes()
+	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_get_loading_optimization_attributes_if_loading_attr_present() {
 		$attr = array(
@@ -4632,7 +4632,7 @@ EOF;
 	/**
 	 * @ticket 58235
 	 *
-	 * @covers ::wp_get_loading_optimization_attributes()
+	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_get_loading_optimization_attributes_low_res_image() {
 		$attr = array(
@@ -4766,7 +4766,7 @@ EOF;
 	/**
 	 * @ticket 58235
 	 *
-	 * @covers ::wp_img_tag_add_loading_optimization_attrs()
+	 * @covers ::wp_img_tag_add_loading_optimization_attrs
 	 */
 	public function test_wp_img_tag_add_loading_optimization_attrs() {
 		$img = '<img src="example.png" alt="" width="300" height="225" />';
@@ -4777,7 +4777,7 @@ EOF;
 	/**
 	 * @ticket 58235
 	 *
-	 * @covers ::wp_maybe_strip_loading_attribute()
+	 * @covers ::wp_maybe_strip_loading_attribute
 	 */
 	public function test_wp_maybe_strip_loading_attribute() {
 		$loading_attrs = array(
