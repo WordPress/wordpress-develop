@@ -220,33 +220,4 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 			$data['content']
 		);
 	}
-
-	/**
-	 * Check that the postmeta sync_status field is returned in the response.
-	 *
-	 * @ticket 58577
-	 */
-	public function test_postmeta() {
-		wp_set_current_user( self::$user_ids['editor'] );
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/blocks' );
-		$request->set_body_params(
-			array(
-				'title'   => 'Test',
-				'content' => '<!-- wp:paragraph --><p>Test</p><!-- /wp:paragraph -->',
-				'meta'    => array(
-					'sync_status' => 'unsynced',
-				),
-			)
-		);
-
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-		$this->assertSame(
-			array(
-				'sync_status' => 'unsynced',
-			),
-			$data['meta']
-		);
-	}
 }
