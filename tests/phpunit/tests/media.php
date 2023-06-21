@@ -4327,7 +4327,7 @@ EOF;
 	 * Tests that wp_get_loading_optimization_attributes() returns the expected loading attribute value before loop but after get_header if not main query.
 	 *
 	 * @ticket 58211
-	 * @ticket 58235111
+	 * @ticket 58235
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
 	 *
@@ -4358,7 +4358,7 @@ EOF;
 	 * Tests that wp_get_loading_optimization_attributes() returns the expected loading attribute value before loop but after get_header in main query but header was not called.
 	 *
 	 * @ticket 58211
-	 * @ticket 58235111
+	 * @ticket 58235
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
 	 *
@@ -4388,7 +4388,7 @@ EOF;
 	 * Tests that wp_get_loading_optimization_attributes() returns the expected loading attribute value before loop but after get_header for main query.
 	 *
 	 * @ticket 58211
-	 * @ticket 58235111
+	 * @ticket 58235
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
 	 *
@@ -4419,7 +4419,7 @@ EOF;
 	 * Tests that wp_get_loading_optimization_attributes() returns the expected loading attribute value after get_header and after loop.
 	 *
 	 * @ticket 58211
-	 * @ticket 58235111
+	 * @ticket 58235
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
 	 *
@@ -4453,6 +4453,7 @@ EOF;
 	 * Tests that wp_get_loading_optimization_attributes() returns the expected loading attribute if no loop.
 	 *
 	 * @ticket 58211
+	 * @ticket 58235
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
 	 *
@@ -4486,6 +4487,7 @@ EOF;
 	 * Tests that wp_get_loading_optimization_attributes() returns 'lazy' for special contexts when they're used outside of 'the_content' filter.
 	 *
 	 * @ticket 58089
+	 * @ticket 58235
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
 	 *
@@ -4508,6 +4510,7 @@ EOF;
 	 * Tests that wp_get_loading_optimization_attributes() returns false for special contexts when they're used within 'the_content' filter.
 	 *
 	 * @ticket 58089
+	 * @ticket 58235
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
 	 *
@@ -4531,7 +4534,36 @@ EOF;
 			}
 		);
 		apply_filters( 'the_content', '' );
-		$this->assertEmpty( $result );
+
+		$this->assertSame(
+			array( 'fetchpriority' => 'high' ),
+			$result,
+			'First large image is loaded with high fetchpriority.'
+		);
+	}
+
+	/**
+	 * @ticket 44427
+	 * @ticket 50367
+	 * @ticket 58235
+	 */
+	public function test_wp_img_tag_add_loading_optimization_attrs() {
+		$img = '<img src="example.png" alt=" width="300" height="225" />';
+		$img = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
+
+		$this->assertStringContainsString( ' loading="lazy"', $img );
+	}
+
+	/**
+	 * @ticket 44427
+	 * @ticket 50367
+	 * @ticket 58235
+	 */
+	public function test_wp_img_tag_add_loading_optimization_attrs_without_src() {
+		$img = '<img alt="" width="300" height="225" />';
+		$img = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
+
+		$this->assertStringNotContainsString( ' loading=', $img );
 	}
 
 	/**
@@ -5075,17 +5107,6 @@ EOF;
 			),
 			wp_maybe_add_fetchpriority_high_attr( array(), 'img', $attr )
 		);
-	}
-
-	/**
-	 * @ticket 58235
-	 *
-	 * @covers ::wp_img_tag_add_loading_optimization_attrs
-	 */
-	public function test_wp_img_tag_add_loading_optimization_attrs() {
-		$img = '<img src="example.png" alt="" width="300" height="225" />';
-		$img = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
-		$this->assertStringContainsString( ' loading="lazy"', $img );
 	}
 
 	/**
