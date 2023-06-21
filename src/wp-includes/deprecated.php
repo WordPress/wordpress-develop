@@ -4675,7 +4675,7 @@ function wp_queue_comments_for_comment_meta_lazyload( $comments ) {
  * {@see 'wp_omit_loading_attr_threshold'} filter.
  *
  * @since 5.9.0
- * @deprecated 6.3.0 Use {@see 'wp_get_loading_optimization_attributes'} instead.
+ * @deprecated 6.3.0 Use {@see wp_get_loading_optimization_attributes()} instead.
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
