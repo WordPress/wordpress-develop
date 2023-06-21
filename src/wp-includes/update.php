@@ -74,10 +74,25 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	$current->last_checked = time();
 	set_site_transient( 'update_core', $current );
 
-	if ( method_exists( $wpdb, 'db_version' ) ) {
+	// Populate the DB version
+	if ( method_exists( $wpdb, 'db_server_info' ) ) {
+		$mysql_version = $wpdb->db_server_info();
+	} elseif ( method_exists( $wpdb, 'db_version' ) ) {
 		$mysql_version = preg_replace( '/[^0-9.].*/', '', $wpdb->db_version() );
 	} else {
 		$mysql_version = 'N/A';
+	}
+
+	// Populate the interface DB interface Type
+	if ( is_resource( $wpdb->dbh ) ) {
+		// Old mysql extension.
+		$mysql_interface = 'mysql';
+	} elseif ( is_object( $wpdb->dbh ) ) {
+		// mysqli, PDO, custom class.
+		$mysql_interface = get_class( $wpdb->dbh );
+	} else {
+		// Unknown sql extension.
+		$mysql_interface = false;
 	}
 
 	if ( is_multisite() ) {
@@ -97,6 +112,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		'php'                => $php_version,
 		'locale'             => $locale,
 		'mysql'              => $mysql_version,
+		'mysql_interface'    => $mysql_interface,
 		'local_package'      => isset( $wp_local_package ) ? $wp_local_package : '',
 		'blogs'              => $num_blogs,
 		'users'              => get_user_count(),
