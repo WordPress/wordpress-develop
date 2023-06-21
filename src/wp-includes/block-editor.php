@@ -398,9 +398,9 @@ function wp_get_first_block( $blocks, $block_name ) {
  * @return array Post Content block attributes or empty array if they don't exist.
  */
 function wp_get_post_content_block_attributes() {
-	$is_block_theme = wp_is_block_theme();
-
 	global $post_ID;
+
+	$is_block_theme = wp_is_block_theme();
 
 	if ( ! $is_block_theme || ! $post_ID ) {
 		return array();
