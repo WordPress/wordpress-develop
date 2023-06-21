@@ -67,7 +67,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<div class="about__section has-2-columns">
 		<div class="column is-vertically-aligned-center">
 			<ul>
-				<li><?php _e( 'Pic a team' ); ?></li>
+				<li><?php _e( 'Pick a team' ); ?></li>
 				<li><?php _e( 'Follow its news to see how you can participate' ); ?></li>
 				<li><?php _e( "Attend team's meetings" ); ?></li>
 				<li><?php _e( 'Ask for Good First issue to solve' ); ?></li>
