@@ -1972,30 +1972,30 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'version' => WP_Theme_JSON::LATEST_SCHEMA,
 			'styles'  => array(
 				'color'    => array(
-					'text' => 'var:preset|color|dark-red',
+					'text' => 'var(--wp--preset--color--dark-red)',
 				),
 				'elements' => array(
 					'link' => array(
 						'color' => array(
-							'text'       => 'var:preset|color|dark-pink',
-							'background' => 'var:preset|color|dark-red',
+							'text'       => 'var(--wp--preset--color--dark-pink)',
+							'background' => 'var(--wp--preset--color--dark-red)',
 						),
 					),
 				),
 				'blocks'   => array(
 					'core/image' => array(
 						'filter' => array(
-							'duotone' => 'var:preset|duotone|blue-red',
+							'duotone' => 'var(--wp--preset--duotone--blue-red)',
 						),
 					),
 					'core/group' => array(
 						'color'    => array(
-							'text' => 'var:preset|color|dark-gray',
+							'text' => 'var(--wp--preset--color--dark-gray)',
 						),
 						'elements' => array(
 							'link' => array(
 								'color' => array(
-									'text' => 'var:preset|color|dark-pink',
+									'text' => 'var(--wp--preset--color--dark-pink)',
 								),
 							),
 						),
@@ -4705,5 +4705,70 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'expected' => '.foo{color: red; margin: auto;}.foo .bar{color: blue;}.foo::before{color: green;}',
 			),
 		);
+	}
+
+	public function test_internal_syntax_is_converted_to_css_variables() {
+		$result = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'color'    => array(
+						'background' => 'var:preset|color|primary',
+						'text'       => 'var(--wp--preset--color--secondary)',
+					),
+					'elements' => array(
+						'link' => array(
+							'color' => array(
+								'background' => 'var:preset|color|pri',
+								'text'       => 'var(--wp--preset--color--sec)',
+							),
+						),
+					),
+					'blocks'   => array(
+						'core/post-terms' => array(
+							'typography' => array( 'fontSize' => 'var(--wp--preset--font-size--small)' ),
+							'color'      => array( 'background' => 'var:preset|color|secondary' ),
+						),
+						'core/navigation' => array(
+							'elements' => array(
+								'link' => array(
+									'color' => array(
+										'background' => 'var:preset|color|p',
+										'text'       => 'var(--wp--preset--color--s)',
+									),
+								),
+							),
+						),
+						'core/quote'      => array(
+							'typography' => array( 'fontSize' => 'var(--wp--preset--font-size--d)' ),
+							'color'      => array( 'background' => 'var:preset|color|d' ),
+							'variations' => array(
+								'plain' => array(
+									'typography' => array( 'fontSize' => 'var(--wp--preset--font-size--s)' ),
+									'color'      => array( 'background' => 'var:preset|color|s' ),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+		$styles = $result->get_raw_data()['styles'];
+
+		$this->assertEquals( 'var(--wp--preset--color--primary)', $styles['color']['background'], 'Top level: Assert the originally correct values are still correct.' );
+		$this->assertEquals( 'var(--wp--preset--color--secondary)', $styles['color']['text'], 'Top level: Assert the originally correct values are still correct.' );
+
+		$this->assertEquals( 'var(--wp--preset--color--pri)', $styles['elements']['link']['color']['background'], 'Element top level: Assert the originally correct values are still correct.' );
+		$this->assertEquals( 'var(--wp--preset--color--sec)', $styles['elements']['link']['color']['text'], 'Element top level: Assert the originally correct values are still correct.' );
+
+		$this->assertEquals( 'var(--wp--preset--font-size--small)', $styles['blocks']['core/post-terms']['typography']['fontSize'], 'Top block level: Assert the originally correct values are still correct.' );
+		$this->assertEquals( 'var(--wp--preset--color--secondary)', $styles['blocks']['core/post-terms']['color']['background'], 'Top block level: Assert the internal variables are convert to CSS custom variables.' );
+
+		$this->assertEquals( 'var(--wp--preset--color--p)', $styles['blocks']['core/navigation']['elements']['link']['color']['background'], 'Elements block level: Assert the originally correct values are still correct.' );
+		$this->assertEquals( 'var(--wp--preset--color--s)', $styles['blocks']['core/navigation']['elements']['link']['color']['text'], 'Elements block level: Assert the originally correct values are still correct.' );
+
+		$this->assertEquals( 'var(--wp--preset--font-size--s)', $styles['blocks']['core/quote']['variations']['plain']['typography']['fontSize'], 'Style variations: Assert the originally correct values are still correct.' );
+		$this->assertEquals( 'var(--wp--preset--color--s)', $styles['blocks']['core/quote']['variations']['plain']['color']['background'], 'Style variations: Assert the internal variables are convert to CSS custom variables.' );
+
 	}
 }
