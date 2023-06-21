@@ -1475,8 +1475,7 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
 		$slug = urlencode( get_stylesheet() . '//' . $post->post_name );
 		$link = admin_url( sprintf( $post_type_object->_edit_link, $post->post_type, $slug ) );
 	} elseif ( 'wp_navigation' === $post->post_type ) {
-		$id               = $post->ID;
-		$link             = admin_url( sprintf( $post_type_object->_edit_link, $id ) );
+		$link = admin_url( sprintf( $post_type_object->_edit_link, (string) $post->ID ) );
 	} elseif ( $post_type_object->_edit_link ) {
 		$link = admin_url( sprintf( $post_type_object->_edit_link . $action, $post->ID ) );
 	}
