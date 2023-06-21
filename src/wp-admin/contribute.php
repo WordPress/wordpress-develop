@@ -69,7 +69,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<ul>
 				<li><?php _e( 'Choose a team' ); ?></li>
 				<li><?php _e( 'Follow its news to see how you can participate' ); ?></li>
-				<li><?php _e( "Attend team&#8217;s meetings" ); ?></li>
+				<li><?php _e( 'Attend team&#8217;s meetings' ); ?></li>
 				<li><?php _e( 'Ask for a Good First issue to solve' ); ?></li>
 			</ul>
 		</div>
