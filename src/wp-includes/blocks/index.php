@@ -55,7 +55,7 @@ function register_core_block_style_handles() {
 			}
 			$style_path = "blocks/{$name}/style{$suffix}.css";
 			$wp_styles->add( $style_handle, $includes_url . $style_path );
-			$path = ABSPATH . WPINC . DIRECTORY_SEPARATOR . $style_path;
+			$path = ABSPATH . WPINC . '/' . $style_path;
 			$wp_styles->add_data( $style_handle, 'path', $path );
 
 			$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $path );
