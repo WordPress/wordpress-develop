@@ -4739,7 +4739,7 @@ EOF;
 	/**
 	 * @ticket 58235
 	 *
-	 * @covers ::wp_maybe_add_fetchpriority_high_attr()
+	 * @covers ::wp_maybe_add_fetchpriority_high_attr
 	 */
 	public function test_wp_maybe_add_fetchpriority_high_attr_min_priority_filter() {
 		$attr = array(
@@ -4750,17 +4750,16 @@ EOF;
 		add_filter(
 			'wp_min_priority_img_pixels',
 			static function( $res ) {
-				return 100;
+				return 2500; // 50*50=2500
 			}
 		);
 
-		// fetchpriority set to high as resolution is greater than 100.
+		// fetchpriority set to high as resolution is equal to (or greater than) 2500.
 		$this->assertSame(
 			array(
 				'fetchpriority' => 'high',
 			),
-			wp_maybe_add_fetchpriority_high_attr( array(), 'img', $attr ),
-			'fetchpriority set to high as image resolution greater than 100.'
+			wp_maybe_add_fetchpriority_high_attr( array(), 'img', $attr )
 		);
 	}
 
