@@ -423,13 +423,12 @@ class WP_Rollback_Auto_Update {
 		foreach ( $plugin_theme_email_data as $type => $data ) {
 			$current_items = 'plugin' === $type ? static::$current_plugins : static::$current_themes;
 
-			foreach ( $current_items->response as $k => $update ) {
-				$item = $current_items->response[ $k ];
+			foreach ( array_keys( $current_items->response ) as $file ) {
+				$item            = $current_items->response[ $file ];
+				$current_version = $current_items->checked[ $file ];
 
 				if ( 'plugin' === $type ) {
-					$file                  = $update->plugin;
 					$name                  = $data['data'][ $file ]['Name'];
-					$current_version       = $current_items->checked[ $file ];
 					$item->current_version = $current_version;
 					$type_result           = (object) array(
 						'name' => $name,
@@ -438,9 +437,7 @@ class WP_Rollback_Auto_Update {
 				}
 
 				if ( 'theme' === $type ) {
-					$file                    = $update['theme'];
 					$name                    = $data['data'][ $file ]->get( 'Name' );
-					$current_version         = $current_items->checked[ $file ];
 					$item['current_version'] = $current_version;
 					$type_result             = (object) array(
 						'name' => $name,
