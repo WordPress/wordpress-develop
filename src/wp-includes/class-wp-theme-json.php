@@ -80,8 +80,8 @@ class WP_Theme_JSON {
 	 * - prevent_override => Disables override of default presets by theme presets.
 	 *                       The relationship between whether to override the defaults
 	 *                       and whether the defaults are enabled is inverse:
-	 *                         - If defaults are enabled  => theme presets should not be overriden
-	 *                         - If defaults are disabled => theme presets should be overriden
+	 *                         - If defaults are enabled  => theme presets should not be overridden
+	 *                         - If defaults are disabled => theme presets should be overridden
 	 *                       For example, a theme sets defaultPalette to false,
 	 *                       making the default palette hidden from the user.
 	 *                       In that case, we want all the theme presets to be present,
@@ -779,7 +779,7 @@ class WP_Theme_JSON {
 			if ( empty( $result ) ) {
 				unset( $output[ $subtree ] );
 			} else {
-				$output[ $subtree ] = $result;
+				$output[ $subtree ] = static::resolve_custom_css_format( $result );
 			}
 		}
 
@@ -795,20 +795,45 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.8.0
 	 * @since 6.1.0 Added append position.
+	 * @since 6.3.0 Removed append position parameter.
 	 *
 	 * @param string $selector  Original selector.
 	 * @param string $to_append Selector to append.
-	 * @param string $position  A position sub-selector should be appended. Default 'right'.
 	 * @return string The new selector.
 	 */
-	protected static function append_to_selector( $selector, $to_append, $position = 'right' ) {
+	protected static function append_to_selector( $selector, $to_append ) {
 		if ( ! str_contains( $selector, ',' ) ) {
-			return 'right' === $position ? $selector . $to_append : $to_append . $selector;
+			return $selector . $to_append;
 		}
 		$new_selectors = array();
 		$selectors     = explode( ',', $selector );
 		foreach ( $selectors as $sel ) {
-			$new_selectors[] = 'right' === $position ? $sel . $to_append : $to_append . $sel;
+			$new_selectors[] = $sel . $to_append;
+		}
+		return implode( ',', $new_selectors );
+	}
+
+	/**
+	 * Prepends a sub-selector to an existing one.
+	 *
+	 * Given the compounded $selector "h1, h2, h3"
+	 * and the $to_prepend selector ".some-class " the result will be
+	 * ".some-class h1, .some-class  h2, .some-class  h3".
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $selector   Original selector.
+	 * @param string $to_prepend Selector to prepend.
+	 * @return string The new selector.
+	 */
+	protected static function prepend_to_selector( $selector, $to_prepend ) {
+		if ( ! str_contains( $selector, ',' ) ) {
+			return $to_prepend . $selector;
+		}
+		$new_selectors = array();
+		$selectors     = explode( ',', $selector );
+		foreach ( $selectors as $sel ) {
+			$new_selectors[] = $to_prepend . $sel;
 		}
 		return implode( ',', $new_selectors );
 	}
@@ -900,7 +925,7 @@ class WP_Theme_JSON {
 						$element_selector = array( $el_selector );
 						break;
 					}
-					$element_selector[] = static::append_to_selector( $el_selector, $selector . ' ', 'left' );
+					$element_selector[] = static::prepend_to_selector( $el_selector, $selector . ' ' );
 				}
 				static::$blocks_metadata[ $block_name ]['elements'][ $el_name ] = implode( ',', $element_selector );
 			}
@@ -1221,6 +1246,7 @@ class WP_Theme_JSON {
 	 * Gets the CSS layout rules for a particular block from theme.json layout definitions.
 	 *
 	 * @since 6.1.0
+	 * @since 6.3.0 Reduced specificity for layout margin rules.
 	 *
 	 * @param array $block_metadata Metadata about the block to get styles for.
 	 * @return string Layout styles for the block.
@@ -1317,7 +1343,7 @@ class WP_Theme_JSON {
 										$spacing_rule['selector']
 									);
 								} else {
-									$format          = static::ROOT_BLOCK_SELECTOR === $selector ? '%s .%s%s' : '%s.%s%s';
+									$format          = static::ROOT_BLOCK_SELECTOR === $selector ? ':where(%s .%s) %s' : '%s-%s%s';
 									$layout_selector = sprintf(
 										$format,
 										$selector,
@@ -1537,10 +1563,13 @@ class WP_Theme_JSON {
 			$slugs = static::get_settings_slugs( $settings, $preset_metadata, $origins );
 			foreach ( $preset_metadata['classes'] as $class => $property ) {
 				foreach ( $slugs as $slug ) {
-					$css_var     = static::replace_slug_in_string( $preset_metadata['css_vars'], $slug );
-					$class_name  = static::replace_slug_in_string( $class, $slug );
-					$stylesheet .= static::to_ruleset(
-						static::append_to_selector( $selector, $class_name ),
+					$css_var    = static::replace_slug_in_string( $preset_metadata['css_vars'], $slug );
+					$class_name = static::replace_slug_in_string( $class, $slug );
+
+					// $selector is often empty, so we can save ourselves the `append_to_selector()` call then.
+					$new_selector = '' === $selector ? $class_name : static::append_to_selector( $selector, $class_name );
+					$stylesheet  .= static::to_ruleset(
+						$new_selector,
 						array(
 							array(
 								'name'  => $property,
@@ -1929,10 +1958,6 @@ class WP_Theme_JSON {
 	/**
 	 * Returns the style property for the given path.
 	 *
-	 * It also converts CSS Custom Property stored as
-	 * "var:preset|color|secondary" to the form
-	 * "--wp--preset--color--secondary".
-	 *
 	 * It also converts references to a path to the value
 	 * stored at that location, e.g.
 	 * { "ref": "style.color.background" } => "#fff".
@@ -1940,6 +1965,10 @@ class WP_Theme_JSON {
 	 * @since 5.8.0
 	 * @since 5.9.0 Added support for values of array type, which are returned as is.
 	 * @since 6.1.0 Added the `$theme_json` parameter.
+	 * @since 6.3.0 It no longer converts the internal format "var:preset|color|secondary"
+	 *              to the standard form "--wp--preset--color--secondary".
+	 *              This is already done by the sanitize method,
+	 *              so every property will be in the standard form.
 	 *
 	 * @param array $styles Styles subtree.
 	 * @param array $path   Which property to process.
@@ -1987,20 +2016,6 @@ class WP_Theme_JSON {
 
 		if ( is_array( $value ) ) {
 			return $value;
-		}
-
-		// Convert custom CSS properties.
-		$prefix     = 'var:';
-		$prefix_len = strlen( $prefix );
-		$token_in   = '|';
-		$token_out  = '--';
-		if ( 0 === strncmp( $value, $prefix, $prefix_len ) ) {
-			$unwrapped_name = str_replace(
-				$token_in,
-				$token_out,
-				substr( $value, $prefix_len )
-			);
-			$value          = "var(--wp--$unwrapped_name)";
 		}
 
 		return $value;
@@ -2532,8 +2547,9 @@ class WP_Theme_JSON {
 		$has_block_gap_support = _wp_array_get( $this->theme_json, array( 'settings', 'spacing', 'blockGap' ) ) !== null;
 		if ( $has_block_gap_support ) {
 			$block_gap_value = static::get_property_value( $this->theme_json, array( 'styles', 'spacing', 'blockGap' ) );
-			$css            .= '.wp-site-blocks > * { margin-block-start: 0; margin-block-end: 0; }';
-			$css            .= ".wp-site-blocks > * + * { margin-block-start: $block_gap_value; }";
+			$css            .= ":where(.wp-site-blocks) > * { margin-block-start: $block_gap_value; margin-block-end: 0; }";
+			$css            .= ':where(.wp-site-blocks) > :first-child:first-child { margin-block-start: 0; }';
+			$css            .= ':where(.wp-site-blocks) > :last-child:last-child { margin-block-end: 0; }';
 
 			// For backwards compatibility, ensure the legacy block gap CSS variable is still available.
 			$css .= "$selector { --wp--style--block-gap: $block_gap_value; }";
@@ -3458,4 +3474,52 @@ class WP_Theme_JSON {
 
 		_wp_array_set( $this->theme_json, array( 'settings', 'spacing', 'spacingSizes', 'default' ), $spacing_sizes );
 	}
+
+	/**
+	 * This is used to convert the internal representation of variables to the CSS representation.
+	 * For example, `var:preset|color|vivid-green-cyan` becomes `var(--wp--preset--color--vivid-green-cyan)`.
+	 *
+	 * @since 6.3.0
+	 * @param string $value The variable such as var:preset|color|vivid-green-cyan to convert.
+	 * @return string The converted variable.
+	 */
+	private static function convert_custom_properties( $value ) {
+		$prefix     = 'var:';
+		$prefix_len = strlen( $prefix );
+		$token_in   = '|';
+		$token_out  = '--';
+		if ( 0 === strpos( $value, $prefix ) ) {
+			$unwrapped_name = str_replace(
+				$token_in,
+				$token_out,
+				substr( $value, $prefix_len )
+			);
+			$value          = "var(--wp--$unwrapped_name)";
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Given a tree, converts the internal representation of variables to the CSS representation.
+	 * It is recursive and modifies the input in-place.
+	 *
+	 * @since 6.3.0
+	 * @param array $tree   Input to process.
+	 * @return array The modified $tree.
+	 */
+	private static function resolve_custom_css_format( $tree ) {
+		$prefix = 'var:';
+
+		foreach ( $tree as $key => $data ) {
+			if ( is_string( $data ) && 0 === strpos( $data, $prefix ) ) {
+				$tree[ $key ] = self::convert_custom_properties( $data );
+			} elseif ( is_array( $data ) ) {
+				$tree[ $key ] = self::resolve_custom_css_format( $data );
+			}
+		}
+
+		return $tree;
+	}
+
 }
