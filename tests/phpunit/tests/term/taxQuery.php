@@ -439,7 +439,7 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 
 		global $wpdb;
 		$sql = $tq->get_sql( $wpdb->posts, 'ID' );
-		
+
 		$this->assertSame( 2, substr_count( $sql['where'], 'OR' ), 'SQL query does not contain expected number conditions joined by operator OR.' );
 		$this->assertStringNotContainsString( 'AND', substr( $sql['where'], 5 ), 'SQL query contains conditions joined by operator AND.' );
 
