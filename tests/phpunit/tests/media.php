@@ -4651,6 +4651,93 @@ EOF;
 
 	/**
 	 * @ticket 58235
+	 * @dataProvider data_wp_maybe_add_fetchpriority_high_attr
+	 *
+	 * @covers ::wp_maybe_add_fetchpriority_high_attr
+	 */
+	public function test_wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr, $expected_fetchpriority ) {
+		$loading_attrs = wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr );
+
+		if ( $expected_fetchpriority ) {
+			$this->assertArrayHasKey( 'fetchpriority', $loading_attrs, 'fetchpriority attribute should be present' );
+			$this->assertSame( $expected_fetchpriority, $loading_attrs['fetchpriority'], 'fetchpriority attribute has incorrect value' );
+		} else {
+			$this->assertArrayNotHasKey( 'fetchpriority', $loading_attrs, 'fetchpriority attribute should not be present' );
+		}
+	}
+
+	public function data_wp_maybe_add_fetchpriority_high_attr() {
+		return array(
+			'small image'                   => array(
+				array(),
+				'img',
+				array(
+					'width'  => 150,
+					'height' => 150,
+				),
+				false,
+			),
+			'large image'                   => array(
+				array(),
+				'img',
+				array(
+					'width'  => 600,
+					'height' => 400,
+				),
+				'high',
+			),
+			'image with loading=lazy'       => array(
+				array( 'loading' => 'lazy' ),
+				'img',
+				array(
+					'width'  => 600,
+					'height' => 400,
+				),
+				false,
+			),
+			'image with loading=eager'      => array(
+				array( 'loading' => 'eager' ),
+				'img',
+				array(
+					'width'  => 600,
+					'height' => 400,
+				),
+				'high',
+			),
+			'image with fetchpriority=high' => array(
+				array(),
+				'img',
+				array(
+					'width'         => 150,
+					'height'        => 150,
+					'fetchpriority' => 'high',
+				),
+				'high',
+			),
+			'image with fetchpriority=low'  => array(
+				array(),
+				'img',
+				array(
+					'width'         => 150,
+					'height'        => 150,
+					'fetchpriority' => 'low',
+				),
+				false,
+			),
+			'non-image element'             => array(
+				array(),
+				'video',
+				array(
+					'width'  => 600,
+					'height' => 400,
+				),
+				false,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 58235
 	 *
 	 * @covers ::wp_maybe_add_fetchpriority_high_attr()
 	 */
