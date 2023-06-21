@@ -389,11 +389,11 @@ class WP_Media_List_Table extends WP_List_Table {
 	 */
 	protected function get_sortable_columns() {
 		return array(
-			'title'    => 'title',
-			'author'   => 'author',
-			'parent'   => 'parent',
-			'comments' => 'comment_count',
-			'date'     => array( 'date', true ),
+			'title'    => array( 'title', false, _x( 'File', 'column name' ), __( 'Table ordered by File Name.' ) ),
+			'author'   => array( 'author', false, __( 'Author' ), __( 'Table ordered by Author.' ) ),
+			'parent'   => array( 'parent', false, _x( 'Uploaded to', 'column name' ), __( 'Table ordered by Uploaded To.' ) ),
+			'comments' => array( 'comment_count', __( 'Comments' ), false, __( 'Table ordered by Comments.' ) ),
+			'date'     => array( 'date', true, __( 'Date' ), __( 'Table ordered by Date.' ), 'desc' ),
 		);
 	}
 
@@ -411,11 +411,13 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		if ( current_user_can( 'edit_post', $post->ID ) ) {
 			?>
-			<label class="screen-reader-text" for="cb-select-<?php echo $post->ID; ?>">
+			<label class="label-covers-full-cell" for="cb-select-<?php echo $post->ID; ?>">
+				<span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. %s: Attachment title. */
 				printf( __( 'Select %s' ), _draft_or_post_title() );
 				?>
+				</span>
 			</label>
 			<input type="checkbox" name="media[]" id="cb-select-<?php echo $post->ID; ?>" value="<?php echo $post->ID; ?>" />
 			<?php
