@@ -1,7 +1,4 @@
 <?php
-
-require_once __DIR__ . '/base.php';
-
 /**
  * Tests wp_get_block_css_selector().
  *
@@ -9,6 +6,7 @@ require_once __DIR__ . '/base.php';
  *
  * @covers ::wp_get_block_css_selector
  */
+
 class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 	private $test_block_name;
 
