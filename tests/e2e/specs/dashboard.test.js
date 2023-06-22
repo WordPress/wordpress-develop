@@ -44,7 +44,7 @@ describe( 'Quick Draft', () => {
 
 		expect(
 			await postsListDraft.evaluate( ( element ) => element.innerText )
-		).toContain( 'Test Draft Title' );
+		).toContain( 'Peter edited this to force the tests to fail. Note to self: Revert.' );
 	} );
 
 	it( 'Allows draft to be created without Title or Content', async () => {
