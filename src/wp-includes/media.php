@@ -5578,7 +5578,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * It is here to avoid duplicate logic in many places below, without having
 	 * to introduce a very specific private global function.
 	 */
-	$postprocess = function( $loading_attributes, $with_fetchpriority = false ) use ( $tag_name, $attr, $context ) {
+	$postprocess = static function( $loading_attributes, $with_fetchpriority = false ) use ( $tag_name, $attr, $context ) {
 		if ( $with_fetchpriority ) {
 			$loading_attributes = wp_maybe_add_fetchpriority_high_attr( $loading_attributes, $tag_name, $attr );
 		}
