@@ -147,22 +147,8 @@ if ( is_multisite() ) :
 			// $get_all = false, only retrieve details from the blogs table.
 			$details = get_blog_details( $blog_id, false );
 
-			// Combine domain and path for a site specific cache key.
-			$key = md5( $details->domain . $details->path );
-
-			$this->assertEquals( $details, wp_cache_get( $blog_id . 'short', 'blog-details' ) );
-
 			// get_blogaddress_by_name().
 			$this->assertSame( 'http://' . $details->domain . $details->path, get_blogaddress_by_name( trim( $details->path, '/' ) ) );
-
-			// These are empty until get_blog_details() is called with $get_all = true.
-			$this->assertFalse( wp_cache_get( $blog_id, 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $key, 'blog-lookup' ) );
-
-			// $get_all = true, populate the full blog-details cache and the blog slug lookup cache.
-			$details = get_blog_details( $blog_id, true );
-			$this->assertEquals( $details, wp_cache_get( $blog_id, 'blog-details' ) );
-			$this->assertEquals( $details, wp_cache_get( $key, 'blog-lookup' ) );
 
 			// Check existence of each database table for the created site.
 			foreach ( $wpdb->tables( 'blog', false ) as $table ) {
@@ -230,9 +216,6 @@ if ( is_multisite() ) :
 			// Delete the site without forcing a table drop.
 			wpmu_delete_blog( $blog_id, false );
 
-			$this->assertFalse( wp_cache_get( $blog_id, 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $blog_id . 'short', 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $key, 'blog-lookup' ) );
 			$this->assertFalse( wp_cache_get( $key, 'blog-id-cache' ) );
 		}
 
@@ -271,9 +254,6 @@ if ( is_multisite() ) :
 			// Delete the site and force a table drop.
 			wpmu_delete_blog( $blog_id, true );
 
-			$this->assertFalse( wp_cache_get( $blog_id, 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $blog_id . 'short', 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $key, 'blog-lookup' ) );
 			$this->assertFalse( wp_cache_get( $key, 'blog-id-cache' ) );
 		}
 
@@ -312,9 +292,6 @@ if ( is_multisite() ) :
 			// Delete the site and force a table drop.
 			wpmu_delete_blog( $blog_id, true );
 
-			$this->assertFalse( wp_cache_get( $blog_id, 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $blog_id . 'short', 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $key, 'blog-lookup' ) );
 			$this->assertFalse( wp_cache_get( $key, 'blog-id-cache' ) );
 		}
 
@@ -428,18 +405,18 @@ if ( is_multisite() ) :
 			get_blog_details( $blog_id );
 
 			// When the cache is primed with an invalid site, the value is set to -1.
-			$this->assertSame( -1, wp_cache_get( $blog_id, 'blog-details' ) );
+			$this->assertSame( -1, wp_cache_get( $blog_id, 'sites' ) );
 
 			// Create a site in the invalid site's place.
 			self::factory()->blog->create();
 
 			// When a new site is created, its cache is cleared through refresh_blog_details.
-			$this->assertFalse( wp_cache_get( $blog_id, 'blog-details' ) );
+			$this->assertFalse( wp_cache_get( $blog_id, 'sites' ) );
 
-			$blog = get_blog_details( $blog_id );
+			$blog = get_blog_details( $blog_id, false );
 
 			// When the cache is refreshed, it should now equal the site data.
-			$this->assertEquals( $blog, wp_cache_get( $blog_id, 'blog-details' ) );
+			$this->assertEquals( $blog, get_site( $blog_id ) );
 		}
 
 		/**
@@ -1040,9 +1017,6 @@ if ( is_multisite() ) :
 			return array(
 				array( '%blog_id%', 'sites' ),
 				array( '%blog_id%', 'site-details' ),
-				array( '%blog_id%', 'blog-details' ),
-				array( '%blog_id%' . 'short', 'blog-details' ),
-				array( '%domain_path_key%', 'blog-lookup' ),
 				array( '%domain_path_key%', 'blog-id-cache' ),
 			);
 		}

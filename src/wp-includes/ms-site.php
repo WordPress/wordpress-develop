@@ -393,15 +393,12 @@ function update_site_cache( $sites, $update_meta_cache = true ) {
 	}
 	$site_ids          = array();
 	$site_data         = array();
-	$blog_details_data = array();
 	foreach ( $sites as $site ) {
-		$site_ids[]                                    = $site->blog_id;
-		$site_data[ $site->blog_id ]                   = $site;
-		$blog_details_data[ $site->blog_id . 'short' ] = $site;
+		$site_ids[]                  = $site->blog_id;
+		$site_data[ $site->blog_id ] = $site;
 
 	}
 	wp_cache_add_multiple( $site_data, 'sites' );
-	wp_cache_add_multiple( $blog_details_data, 'blog-details' );
 
 	if ( $update_meta_cache ) {
 		update_sitemeta_cache( $site_ids );
@@ -991,9 +988,6 @@ function clean_blog_cache( $blog ) {
 
 	wp_cache_delete( $blog_id, 'sites' );
 	wp_cache_delete( $blog_id, 'site-details' );
-	wp_cache_delete( $blog_id, 'blog-details' );
-	wp_cache_delete( $blog_id . 'short', 'blog-details' );
-	wp_cache_delete( $domain_path_key, 'blog-lookup' );
 	wp_cache_delete( $domain_path_key, 'blog-id-cache' );
 	wp_cache_delete( $blog_id, 'blog_meta' );
 

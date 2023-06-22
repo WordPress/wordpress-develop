@@ -126,50 +126,37 @@ function get_id_from_blogname( $slug ) {
  * @return WP_Site|false Blog details on success. False on failure.
  */
 function get_blog_details( $fields = null, $get_all = true ) {
-	global $wpdb;
-
 	if ( is_array( $fields ) ) {
+		$args = array();
 		if ( isset( $fields['blog_id'] ) ) {
-			$blog_id = $fields['blog_id'];
-		} elseif ( isset( $fields['domain'] ) && isset( $fields['path'] ) ) {
-			$key  = md5( $fields['domain'] . $fields['path'] );
-			$blog = wp_cache_get( $key, 'blog-lookup' );
-			if ( false !== $blog ) {
-				return $blog;
-			}
+			$args['site__in'][] = $fields['blog_id'];
+		} elseif ( isset( $fields['domain'] ) ) {
+			$domains = array( $fields['domain'] );
 			if ( 'www.' === substr( $fields['domain'], 0, 4 ) ) {
-				$nowww = substr( $fields['domain'], 4 );
-				$blog  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) AND path = %s ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields['domain'], $fields['path'] ) );
-			} else {
-				$blog = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain = %s AND path = %s", $fields['domain'], $fields['path'] ) );
+				$domains[] = substr( $fields['domain'], 4 );
 			}
-			if ( $blog ) {
-				wp_cache_set( $blog->blog_id . 'short', $blog, 'blog-details' );
-				$blog_id = $blog->blog_id;
-			} else {
-				return false;
-			}
-		} elseif ( isset( $fields['domain'] ) && is_subdomain_install() ) {
-			$key  = md5( $fields['domain'] );
-			$blog = wp_cache_get( $key, 'blog-lookup' );
-			if ( false !== $blog ) {
-				return $blog;
-			}
-			if ( 'www.' === substr( $fields['domain'], 0, 4 ) ) {
-				$nowww = substr( $fields['domain'], 4 );
-				$blog  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields['domain'] ) );
-			} else {
-				$blog = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain = %s", $fields['domain'] ) );
-			}
-			if ( $blog ) {
-				wp_cache_set( $blog->blog_id . 'short', $blog, 'blog-details' );
-				$blog_id = $blog->blog_id;
-			} else {
+			$args['domain__in'] = $domains;
+			if ( isset( $fields['path'] ) ) {
+				$args['path'] = $fields['path'];
+			} elseif ( ! is_subdomain_install() ) {
 				return false;
 			}
 		} else {
 			return false;
 		}
+		if ( empty( $args ) ) {
+			return false;
+		}
+
+		$args['number'] = 1;
+		$sites          = get_sites( $args );
+
+		if ( empty( $sites ) ) {
+			return false;
+		}
+
+		$details = array_shift( $sites );
+		$blog_id = $details->blog_id;
 	} else {
 		if ( ! $fields ) {
 			$blog_id = get_current_blog_id();
@@ -178,63 +165,17 @@ function get_blog_details( $fields = null, $get_all = true ) {
 		} else {
 			$blog_id = $fields;
 		}
-	}
-
-	$blog_id = (int) $blog_id;
-
-	$all     = $get_all ? '' : 'short';
-	$details = wp_cache_get( $blog_id . $all, 'blog-details' );
-
-	if ( $details ) {
-		if ( ! is_object( $details ) ) {
-			if ( -1 == $details ) {
-				return false;
-			} else {
-				// Clear old pre-serialized objects. Cache clients do better with that.
-				wp_cache_delete( $blog_id . $all, 'blog-details' );
-				unset( $details );
-			}
-		} else {
-			return $details;
+		$blog_id = (int) $blog_id;
+		if ( ! $blog_id ) {
+			return false;
 		}
-	}
-
-	// Try the other cache.
-	if ( $get_all ) {
-		$details = wp_cache_get( $blog_id . 'short', 'blog-details' );
-	} else {
-		$details = wp_cache_get( $blog_id, 'blog-details' );
-		// If short was requested and full cache is set, we can return.
-		if ( $details ) {
-			if ( ! is_object( $details ) ) {
-				if ( -1 == $details ) {
-					return false;
-				} else {
-					// Clear old pre-serialized objects. Cache clients do better with that.
-					wp_cache_delete( $blog_id, 'blog-details' );
-					unset( $details );
-				}
-			} else {
-				return $details;
-			}
-		}
-	}
-
-	if ( empty( $details ) ) {
-		$details = WP_Site::get_instance( $blog_id );
+		$details = get_site( $blog_id );
 		if ( ! $details ) {
-			// Set the full cache.
-			wp_cache_set( $blog_id, -1, 'blog-details' );
 			return false;
 		}
 	}
 
-	if ( ! $details instanceof WP_Site ) {
-		$details = new WP_Site( $details );
-	}
-
 	if ( ! $get_all ) {
-		wp_cache_set( $blog_id . $all, $details, 'blog-details' );
 		return $details;
 	}
 
@@ -263,11 +204,6 @@ function get_blog_details( $fields = null, $get_all = true ) {
 	 * @param WP_Site $details The blog details.
 	 */
 	$details = apply_filters_deprecated( 'blog_details', array( $details ), '4.7.0', 'site_details' );
-
-	wp_cache_set( $blog_id . $all, $details, 'blog-details' );
-
-	$key = md5( $details->domain . $details->path );
-	wp_cache_set( $key, $details, 'blog-lookup' );
 
 	return $details;
 }
@@ -333,7 +269,6 @@ function clean_site_details_cache( $site_id = 0 ) {
 	}
 
 	wp_cache_delete( $site_id, 'site-details' );
-	wp_cache_delete( $site_id, 'blog-details' );
 }
 
 /**

@@ -32,25 +32,6 @@ if ( is_multisite() ) :
 		 *
 		 * @ticket 40063
 		 */
-		public function test_update_allowed_option_deletes_blog_details_cache( $allowed_option, $temporary_value ) {
-			$blog_details = get_blog_details();
-
-			$original_value = $blog_details->$allowed_option;
-			update_option( $allowed_option, $temporary_value );
-
-			$cached_result = wp_cache_get( $blog_details->id, 'blog-details' );
-
-			/* Reset to original value. */
-			update_option( $allowed_option, $original_value );
-
-			$this->assertFalse( $cached_result );
-		}
-
-		/**
-		 * @dataProvider data_allowed_options
-		 *
-		 * @ticket 40063
-		 */
 		public function test_update_allowed_option_does_not_delete_site_cache( $allowed_option, $temporary_value ) {
 			$site = get_site();
 
@@ -58,25 +39,6 @@ if ( is_multisite() ) :
 			update_option( $allowed_option, $temporary_value );
 
 			$cached_result = wp_cache_get( $site->id, 'sites' );
-
-			/* Reset to original value. */
-			update_option( $allowed_option, $original_value );
-
-			$this->assertNotFalse( $cached_result );
-		}
-
-		/**
-		 * @dataProvider data_allowed_options
-		 *
-		 * @ticket 40063
-		 */
-		public function test_update_allowed_option_does_not_delete_short_blog_details_cache( $allowed_option, $temporary_value ) {
-			$blog_details = get_blog_details( null, false );
-
-			$original_value = get_option( $allowed_option );
-			update_option( $allowed_option, $temporary_value );
-
-			$cached_result = wp_cache_get( $blog_details->id . 'short', 'blog-details' );
 
 			/* Reset to original value. */
 			update_option( $allowed_option, $original_value );
