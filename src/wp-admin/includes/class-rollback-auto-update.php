@@ -288,8 +288,6 @@ class WP_Rollback_Auto_Update {
 			),
 		);
 
-		include_once $wp_filesystem->wp_plugins_dir() . 'rollback-update-failure/wp-admin/includes/class-wp-upgrader.php';
-
 		$rollback_updater = new WP_Upgrader();
 
 		// Set private $temp_restores variable.
