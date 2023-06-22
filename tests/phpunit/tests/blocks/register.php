@@ -323,6 +323,71 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58605
+	 * @dataProvider data_register_block_style_handle_uses_correct_core_stylesheet
+	 *
+	 * @param string      $block_json_path Path to the `block.json` file, relative to ABSPATH.
+	 * @param string      $style_field     Either 'style' or 'editorStyle'.
+	 * @param string|bool $expected_path   Expected path of registered stylesheet, relative to ABSPATH.
+	 */
+	public function test_register_block_style_handle_uses_correct_core_stylesheet( $block_json_path, $style_field, $expected_path ) {
+		$metadata_file = ABSPATH . $block_json_path;
+		$metadata      = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
+
+		$block_name = str_replace( 'core/', '', $metadata['name'] );
+
+		// Normalize metadata similar to `register_block_type_from_metadata()`.
+		$metadata['file'] = wp_normalize_path( realpath( $metadata_file ) );
+		if ( ! isset( $metadata['style'] ) ) {
+			$metadata['style'] = "wp-block-$block_name";
+		}
+		if ( ! isset( $metadata['editorStyle'] ) ) {
+			$metadata['editorStyle'] = "wp-block-{$block_name}-editor";
+		}
+
+		// Ensure block assets are separately registered.
+		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+
+		// Account for minified asset path.
+		if ( is_string( $expected_path ) ) {
+			$expected_path = str_replace( '.css', wp_scripts_get_suffix() . '.css', $expected_path );
+		}
+
+		$result = register_block_style_handle( $metadata, $style_field );
+		$this->assertSame( $metadata[ $style_field ], $result, 'Core block registration failed' );
+		if ( $expected_path ) {
+			$this->assertStringEndsWith( $expected_path, wp_styles()->registered[ $result ]->src, 'Core block stylesheet path incorrect' );
+		} else {
+			$this->assertFalse( wp_styles()->registered[ $result ]->src, 'Core block stylesheet src should be false' );
+		}
+	}
+
+	public function data_register_block_style_handle_uses_correct_core_stylesheet() {
+		return array(
+			'block with style'           => array(
+				WPINC . '/blocks/archives/block.json',
+				'style',
+				WPINC . '/blocks/archives/style.css',
+			),
+			'block with editor style'    => array(
+				WPINC . '/blocks/archives/block.json',
+				'editorStyle',
+				WPINC . '/blocks/archives/editor.css',
+			),
+			'block without style'        => array(
+				WPINC . '/blocks/widget-group/block.json',
+				'style',
+				false,
+			),
+			'block without editor style' => array(
+				WPINC . '/blocks/widget-group/block.json',
+				'editorStyle',
+				false,
+			),
+		);
+	}
+
+	/**
 	 * @ticket 50263
 	 */
 	public function test_handle_passed_register_block_style_handle() {
