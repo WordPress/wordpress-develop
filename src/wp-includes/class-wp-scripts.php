@@ -76,15 +76,6 @@ class WP_Scripts extends WP_Dependencies {
 	public $do_concat = false;
 
 	/**
-	 * Whether the delayed inline script loader has been printed.
-	 *
-	 * @since 6.3.0
-	 * @see WP_Scripts::print_delayed_inline_script_loader()
-	 * @var bool
-	 */
-	public $printed_delayed_inline_script_loader = false;
-
-	/**
 	 * Holds HTML markup of scripts and additional data if concatenation
 	 * is enabled.
 	 *
@@ -270,33 +261,6 @@ class WP_Scripts extends WP_Dependencies {
 		echo "</script>\n";
 
 		return true;
-	}
-
-	/**
-	 * Processes the items and dependencies.
-	 *
-	 * Processes the items passed to it or the queue, and their dependencies.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @param string|string[]|false $handles Optional. Items to be processed: queue (false),
-	 *                                       single item (string), or multiple items (array of strings).
-	 *                                       Default false.
-	 * @param int|false             $group   Optional. Group level: level (int), no group (false).
-	 * @return string[] Array of handles of items that have been processed.
-	 */
-	public function do_items( $handles = false, $group = false ) {
-		$handles = false === $handles ? $this->queue : (array) $handles;
-		$this->all_deps( $handles );
-
-		// This statement is the only difference from parent::do_items().
-		if ( ! $this->printed_delayed_inline_script_loader
-			&& $this->has_delayed_inline_script( $this->to_do )
-		) {
-			$this->print_delayed_inline_script_loader();
-		}
-
-		return $this->process_to_do_items( $group );
 	}
 
 	/**
@@ -596,108 +560,8 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$id = "{$handle}-js-{$position}";
-		if ( $this->should_delay_inline_script( $handle, $position ) ) {
-			$attributes = array(
-				'id'   => $id,
-				'type' => 'text/plain',
-			);
 
-			/*
-			 * Note that any dependency aliases need to be flattened because an alias is a bundle of dependencies
-			 * and their handles won't appear on any specific scripts. Since no script will appear in the DOM for
-			 * an alias, there won't be any way to keep track of when it has loaded. Therefore, we only keep track of
-			 * the aliased dependencies (the leaf nodes of the alias dependency tree as it were).
-			 */
-			$deps = $this->get_unaliased_deps( $this->registered[ $handle ]->deps );
-			if ( $deps ) {
-				$attributes['data-wp-deps'] = implode( ',', $deps );
-			}
-			return wp_get_inline_script_tag( $js, $attributes );
-		} else {
-			return wp_get_inline_script_tag( $js, compact( 'id' ) );
-		}
-	}
-
-	/**
-	 * Prints a script to load delayed inline scripts.
-	 *
-	 * When a script dependency has attached inline scripts, the execution
-	 * of the inline scripts needs to be delayed in order to preserve the
-	 * execution order with the script along with any dependency/dependent
-	 * scripts. When there are delayed inline scripts needing to be printed
-	 * this function will print the loader script once.
-	 *
-	 * @since 6.3.0
-	 */
-	public function print_delayed_inline_script_loader() {
-		wp_print_inline_script_tag(
-			file_get_contents( ABSPATH . WPINC . '/js/wp-delayed-inline-script-loader' . wp_scripts_get_suffix() . '.js' ),
-			array( 'id' => 'wp-delayed-inline-script-loader' )
-		);
-		$this->printed_delayed_inline_script_loader = true;
-	}
-
-	/**
-	 * Determines whether an inline script should be delayed.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @param string $handle   Name of the script for which the check should be run against.
-	 *                         Must be lowercase.
-	 * @param string $position Position, either 'before' or 'after'.
-	 *
-	 * @return bool Whether to delay.
-	 */
-	private function should_delay_inline_script( $handle, $position ) {
-		// Never delay the inline script if the script is blocking.
-		if ( ! $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $handle ) ) ) {
-			return false;
-		}
-
-		// After inline scripts must always be delayed for non-blocking scripts.
-		if ( 'after' === $position ) {
-			return true;
-		}
-
-		// From now on, we're only considering before inline scripts.
-		$deps = $this->registered[ $handle ]->deps;
-
-		/*
-		 * If there are no dependencies, the before script must not delay since there will not be a load event on a
-		 * preceding script for which an event handler can run the before inline script.
-		 */
-		if ( empty( $deps ) ) {
-			return false;
-		}
-
-		/*
-		 * Only delay a before inline script if there is a delayed dependency. When this dependency loads, the load
-		 * event will fire and the logic in delayed-inline-script-loader.js will run any inline before scripts for which
-		 * all dependencies have been run. Importantly, if there are no dependencies, the before inline script must not
-		 * be delayed because there will be no such preceding load event at which the before inline scripts can be run.
-		 * Additionally, if there are only blocking dependencies then the before inline script cannot be delayed because
-		 * a blocking dependency may have an after script which must execute after the load event, meaning the load
-		 * event cannot be used to run the before scripts of delayed dependents since it would be running before the
-		 * dependency's after inline script.
-		 */
-		foreach ( $deps as $dep ) {
-			if ( ! isset( $this->registered[ $dep ] ) ) {
-				continue;
-			}
-
-			// If the dependency is an alias, look at its members.
-			if ( ! $this->registered[ $dep ]->src ) {
-				foreach ( $this->get_unaliased_deps( $this->registered[ $dep ]->deps ) as $alias_dep ) {
-					if ( $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $alias_dep ) ) ) {
-						return true;
-					}
-				}
-			} elseif ( $this->is_delayed_strategy( $this->get_eligible_loading_strategy( $dep ) ) ) {
-				return true;
-			}
-		}
-
-		return false;
+		return wp_get_inline_script_tag( $js, compact( 'id' ) );
 	}
 
 	/**
@@ -990,29 +854,6 @@ JS;
 	}
 
 	/**
-	 * Checks all handles for any delayed inline scripts.
-	 *
-	 * @since 6.3.0
-	 * @see WP_Scripts::should_delay_inline_script()
-	 *
-	 * @param string[] $handles Handles to check.
-	 * @return bool True if the inline script present, otherwise false.
-	 */
-	public function has_delayed_inline_script( array $handles ) {
-		foreach ( $handles as $handle ) {
-			foreach ( array( 'before', 'after' ) as $position ) {
-				if (
-					$this->get_data( $handle, $position ) &&
-					$this->should_delay_inline_script( $handle, $position )
-				) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * Gets all dependents of a script.
 	 *
 	 * @since 6.3.0
@@ -1058,107 +899,89 @@ JS;
 	}
 
 	/**
-	 * Checks if all of a script's dependents are delayed, which is required to maintain execution order.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @param string              $handle     The script handle.
-	 * @param bool                $async_only Whether to limit to async strategy only.
-	 * @param array<string, true> $checked    Optional. An array of already checked script handles, used to avoid recursive loops.
-	 * @return bool True if all dependents are delayed, false otherwise.
-	 */
-	private function has_only_delayed_dependents( $handle, $async_only = false, $checked = array() ) {
-		// If this node was already checked, this script can be delayed and the branch ends.
-		if ( isset( $checked[ $handle ] ) ) {
-			return true;
-		}
-
-		$checked[ $handle ] = true;
-		$dependents         = $this->get_dependents( $handle );
-
-		// If there are no dependents remaining to consider, the script can be delayed.
-		if ( empty( $dependents ) ) {
-			return true;
-		}
-
-		// Consider each dependent and check if it is delayed.
-		foreach ( $dependents as $dependent ) {
-			if ( ! isset( $this->registered[ $dependent ] ) ) {
-				continue;
-			}
-
-			// If the dependency is not enqueued, exclude it from consideration.
-			if ( ! $this->query( $dependent, 'enqueued' ) ) {
-				continue;
-			}
-
-			// Handle script alias case (where it has no src). Here, the strategy doesn't matter, but only whether there are inline scripts.
-			if ( ! $this->registered[ $dependent ]->src ) {
-				// A script alias cannot be delayed if it has inline scripts since there is no load event.
-				if ( $this->has_inline_script( $dependent ) ) {
-					return false;
-				}
-			} else {
-				// If the dependent script is not using the defer or async strategy, no script in the chain is delayed.
-				$strategy = $this->get_data( $dependent, 'strategy' );
-				if ( $async_only ?
-					'async' !== $strategy :
-					! $this->is_delayed_strategy( $strategy )
-				) {
-					return false;
-				}
-			}
-
-			// Recursively check all dependents.
-			if ( ! $this->has_only_delayed_dependents( $dependent, $async_only, $checked ) ) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	/**
 	 * Gets the best eligible loading strategy for a script.
 	 *
 	 * @since 6.3.0
 	 *
 	 * @param string  $handle The script handle.
-	 * @return string $strategy The best eligible loading strategy.
+	 * @return string The best eligible loading strategy.
 	 */
 	private function get_eligible_loading_strategy( $handle ) {
-		if ( ! isset( $this->registered[ $handle ] ) ) {
+		$eligible = $this->filter_eligible_strategies( $handle );
+
+		// Bail early once we know the eligible strategy is blocking.
+		if ( empty( $eligible ) ) {
 			return '';
 		}
 
+		return in_array( 'async', $eligible, true ) ? 'async' : 'defer' ;
+	}
+
+	/**
+	 * Filter the list of eligible loading strategies for a script.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string              $handle   The script handle.
+	 * @param string[]|null       $eligible Optional. The list of strategies to filter. Default null.
+	 * @param array<string, true> $checked  Optional. An array of already checked script handles, used to avoid recursive loops.
+	 * @return string[] A list of eligible loading strategies that could be used.
+	 */
+	private function filter_eligible_strategies( $handle, $eligible = null, $checked = array() ) {
+		// If no strategies are being passed, all strategies are eligible.
+		if ( null === $eligible ) {
+			$eligible = $this->delayed_strategies;
+		}
+
+		// If this handle was already checked, return early.
+		if ( isset( $checked[ $handle ] ) ) {
+			return $eligible;
+		}
+
+		// Mark this handle as checked.
+		$checked[ $handle ] = true;
+
+		// If this handle isn't registered, don't filter anything and return.
+		if ( ! isset( $this->registered[ $handle ] ) ) {
+			return $eligible;
+		}
+
+		// If the handle is not enqueued, don't filter anything and return.
+		if ( ! $this->query( $handle, 'enqueued' ) ) {
+			return $eligible;
+		}
+
+		$is_alias = (bool) ! $this->registered[ $handle ]->src;
 		$intended_strategy = $this->get_data( $handle, 'strategy' );
 
-		/*
-		 * Handle known blocking strategy scenarios.
-		 * - An empty strategy is synonymous with blocking.
-		 * - A script alias (where $src is false) must always be blocking since the after inline script cannot be
-		 *   delayed as there is no external script tag and thus no load event at which the inline script can be run.
-		 */
-		if ( empty( $intended_strategy ) ) {
-			return '';
+		// For non-alias handles, an empty intended strategy filters all strategies.
+		if ( ! $is_alias && empty( $intended_strategy ) ) {
+			return array();
 		}
 
-		// Aliases that have before/after inline scripts can never be delayed since there is no load event.
-		if ( ! $this->registered[ $handle ]->src && $this->has_inline_script( $handle ) ) {
-			return '';
+		// Handles with inline scripts attached in the 'after' position cannot be delayed.
+		if ( $this->has_inline_script( $handle, 'after' ) ) {
+			return array();
 		}
 
-		// Handle async strategy scenario.
-		if ( 'async' === $intended_strategy && $this->has_only_delayed_dependents( $handle, true ) ) {
-			return 'async';
+		// If the intended strategy is 'defer', filter out 'async'.
+		if ( $intended_strategy === 'defer' ) {
+			$eligible =  array( 'defer' );
 		}
 
-		// Handling defer strategy scenarios. (The intended strategy could actually be 'async' here.)
-		if ( $this->has_only_delayed_dependents( $handle ) ) {
-			return 'defer';
+		$dependents = $this->get_dependents( $handle );
+
+		// Recursively filter eligible strategies for dependents.
+		foreach ( $dependents as $dependent ) {
+			// Bail early once we know the eligible strategy is blocking.
+			if ( empty( $eligible ) ) {
+				return array();
+			}
+
+			$eligible = $this->filter_eligible_strategies( $dependent, $eligible, $checked );
 		}
 
-		return '';
+		return $eligible;
 	}
 
 	/**
@@ -1166,12 +989,17 @@ JS;
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string $handle Name of the script to get data for.
-	 *                       Must be lowercase.
+	 * @param string $handle   Name of the script to get data for. Must be lowercase.
+	 * @param string $position The position of the inline script.
+	 *
 	 * @return bool Whether the handle has an inline script (either before or after).
 	 */
-	private function has_inline_script( $handle ) {
-		return $this->get_data( $handle, 'before' ) || $this->get_data( $handle, 'after' );
+	private function has_inline_script( $handle, $position = null ) {
+		if ( $position && in_array( $position, array( 'before', 'after' ), true ) ) {
+			return (bool) $this->get_data( $handle, $position );
+		}
+
+		return (bool) ( $this->get_data( $handle, 'before' ) || $this->get_data( $handle, 'after' ) );
 	}
 
 	/**
