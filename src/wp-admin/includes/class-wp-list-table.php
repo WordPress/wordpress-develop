@@ -1400,9 +1400,9 @@ class WP_List_Table {
 					$class[] = 'sortable';
 					$class[] = 'desc' === $order ? 'asc' : 'desc';
 					/* translators: Hidden accessibility text. */
-					$asc_text =__( 'Sort ascending.' );
+					$asc_text = __( 'Sort ascending.' );
 					/* translators: Hidden accessibility text. */
-					$desc_text  =  __( 'Sort descending.' );
+					$desc_text  = __( 'Sort descending.' );
 					$order_text = 'asc' === $order ? $asc_text : $desc_text;
 				}
 				if ( '' !== $order_text ) {
