@@ -81,7 +81,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 
 		$s    = isset( $_REQUEST['s'] ) ? wp_unslash( trim( $_REQUEST['s'] ) ) : '';
 		$wild = '';
-		if ( false !== strpos( $s, '*' ) ) {
+		if ( str_contains( $s, '*' ) ) {
 			$wild = '*';
 			$s    = trim( $s, '*' );
 		}
@@ -389,10 +389,19 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 * @return array
 	 */
 	protected function get_sortable_columns() {
+
+		if ( is_subdomain_install() ) {
+			$abbr = __( 'Domain' );
+			$blogname_orderby_text = __( 'Table ordered by Site Domain Name.' );
+		} else {
+			$abbr = __( 'Path' );
+			$blogname_orderby_text = __( 'Table ordered by Site Path.' );
+		}
+
 		return array(
-			'blogname'    => 'blogname',
-			'lastupdated' => 'lastupdated',
-			'registered'  => 'blog_id',
+			'blogname'    => array( 'blogname', false, $abbr, $blogname_orderby_text ),
+			'lastupdated' => array( 'lastupdated', true, __( 'Last Updated' ), __( 'Table ordered by Last Updated.' ) ),
+			'registered'  => array( 'blog_id', true, _x( 'Registered', 'site' ), __( 'Table ordered by Site Registered Date.' ), 'desc' ),
 		);
 	}
 
