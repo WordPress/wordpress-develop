@@ -4315,17 +4315,6 @@ EOF;
 				wp_get_loading_optimization_attributes( 'img', $attr, $context )
 			);
 		}
-
-		// Exceptions: In the following contexts, images shouldn't be lazy-loaded by default.
-		$this->assertEmpty(
-			wp_get_loading_optimization_attributes( 'img', $attr, 'template' ),
-			'Images run through the overall block template filter should not be lazy-loaded.'
-		);
-
-		$this->assertEmpty(
-			wp_get_loading_optimization_attributes( 'img', $attr, 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER ),
-			'Images in the header block template part should not be lazy-loaded.'
-		);
 	}
 
 	/**
@@ -4905,6 +4894,22 @@ EOF;
 			wp_get_loading_optimization_attributes( 'img', $attr, 'template' ),
 			array(),
 			'Skip logic and return blank array for block template.'
+		);
+	}
+
+	/**
+	 * @ticket 58235
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_get_loading_optimization_attributes_header_block_template() {
+		$attr = $this->get_width_height_for_high_priority();
+
+		// Skip logic if context is `template`.
+		$this->assertSame(
+			wp_get_loading_optimization_attributes( 'img', $attr, 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER ),
+			array( 'fetchpriority' => 'high' ),
+			'Images in the header block template part should not be lazy-loaded and first large image is set high fetchpriority.'
 		);
 	}
 
