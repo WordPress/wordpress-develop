@@ -3960,6 +3960,8 @@ EOF;
 	 * @ticket 58235
 	 *
 	 * @covers ::wp_filter_content_tags
+	 * @covers ::wp_img_tag_add_loading_optimization_attrs
+	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_first_image_in_block_theme() {
 		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
