@@ -88,7 +88,7 @@ class WP_Upgrader_Skin {
 	 */
 	public function set_upgrader( &$upgrader ) {
 		if ( is_object( $upgrader ) ) {
-			$this->upgrader =& $upgrader;
+			$this->upgrader = & $upgrader;
 		}
 		$this->add_strings();
 	}

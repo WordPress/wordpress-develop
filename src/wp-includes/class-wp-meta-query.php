@@ -637,7 +637,7 @@ class WP_Meta_Query {
 		}
 
 		// Store the clause in our flat array.
-		$this->clauses[ $clause_key ] =& $clause;
+		$this->clauses[ $clause_key ] = & $clause;
 
 		// Next, build the WHERE clause.
 

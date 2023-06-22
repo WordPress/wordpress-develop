@@ -1258,7 +1258,7 @@ class wpdb {
 
 				$message .= '<p>' . sprintf(
 					/* translators: %s: Database name. */
-                    __( 'The database server could be connected to (which means your username and password is okay) but the %s database could not be selected.' ),
+					__( 'The database server could be connected to (which means your username and password is okay) but the %s database could not be selected.' ),
 					'<code>' . htmlspecialchars( $db, ENT_QUOTES ) . '</code>'
 				) . "</p>\n";
 
@@ -1341,9 +1341,10 @@ class wpdb {
 
 			wp_load_translations_early();
 			/* translators: %s: Database access abstraction class, usually wpdb or a class extending wpdb. */
-			_doing_it_wrong( $class,
-			sprintf( __( '%s must set a database connection for use with escaping.' ), $class ),
-			'3.6.0'
+			_doing_it_wrong(
+				$class,
+				sprintf( __( '%s must set a database connection for use with escaping.' ), $class ),
+				'3.6.0'
 			);
 
 			$escaped = addslashes( $data );
@@ -1890,27 +1891,25 @@ class wpdb {
 							);
 						} elseif ( is_int( $arg ) || is_float( $arg ) ) {
 							$query = str_replace(
-							":$placeholder",
-							is_int( $arg ) ? intval($arg) : floatval($arg),
-							$query
+								":$placeholder",
+								is_int( $arg ) ? intval( $arg ) : floatval( $arg ),
+								$query
 							);
 						} elseif ( is_bool( $arg ) ) {
 							$query = str_replace(
-							":$placeholder",
-							true === $arg ? 1 : 0,
-							$query
+								":$placeholder",
+								true === $arg ? 1 : 0,
+								$query
 							);
 						}
-					}
-					// Otherwise, if the value is an array, manipulate the array in different way.
-					elseif ( is_array( $arg ) ) {
+					} elseif ( is_array( $arg ) ) { // Otherwise, if the value is an array, manipulate the array in different way.
 						// Ge the array depth.
-						$array_depth = array_depth($arg);
+						$array_depth = array_depth( $arg );
 
 						// If the array depth is greater than 1, then flatten the array.
 						if ( $array_depth > 1 ) {
 							// Flatten the array.
-							$arg = array_flatten($arg);
+							$arg = array_flatten( $arg );
 
 							wp_load_translations_early();
 							_doing_it_wrong(
@@ -1930,7 +1929,7 @@ class wpdb {
 											$argument
 										);
 									} elseif ( is_int( $argument ) || is_float( $argument ) ) {
-										$argument = is_int( $argument ) ? intval($argument) : floatval($argument);
+										$argument = is_int( $argument ) ? intval( $argument ) : floatval( $argument );
 									} elseif ( is_bool( $argument ) ) {
 										$argument = true === $argument ? 1 : 0;
 									}
@@ -1954,7 +1953,7 @@ class wpdb {
 
 						$query = str_replace(
 							":$placeholder",
-							join( ", ", $arg ),
+							join( ', ', $arg ),
 							$query
 						);
 					}
@@ -2026,10 +2025,12 @@ class wpdb {
 		$caller = $this->get_caller();
 		if ( $caller ) {
 			// Not translated, as this will only appear in the error log.
-			$error_str = sprintf( 'WordPress database error %1$s for query %2$s made by %3$s',
+			$error_str = sprintf(
+				'WordPress database error %1$s for query %2$s made by %3$s',
 				$str,
 				$this->last_query,
-				$caller );
+				$caller
+			);
 		} else {
 			$error_str = sprintf( 'WordPress database error %1$s for query %2$s', $str, $this->last_query );
 		}
@@ -2213,24 +2214,28 @@ class wpdb {
 			}
 
 			if ( WP_DEBUG ) {
-				mysqli_real_connect( $this->dbh,
+				mysqli_real_connect(
+					$this->dbh,
 					$host,
 					$this->dbuser,
 					$this->dbpassword,
 					null,
 					$port,
 					$socket,
-					$client_flags );
+					$client_flags
+				);
 			} else {
 				// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-				@mysqli_real_connect( $this->dbh,
+				@mysqli_real_connect(
+					$this->dbh,
 					$host,
 					$this->dbuser,
 					$this->dbpassword,
 					null,
 					$port,
 					$socket,
-					$client_flags );
+					$client_flags
+				);
 			}
 
 			if ( $this->dbh->connect_errno ) {
@@ -2263,11 +2268,13 @@ class wpdb {
 				$this->dbh = mysql_connect( $this->dbhost, $this->dbuser, $this->dbpassword, $new_link, $client_flags );
 			} else {
 				// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-				$this->dbh = @mysql_connect( $this->dbhost,
+				$this->dbh = @mysql_connect(
+					$this->dbhost,
 					$this->dbuser,
 					$this->dbpassword,
 					$new_link,
-					$client_flags );
+					$client_flags
+				);
 			}
 		}
 
@@ -2284,10 +2291,10 @@ class wpdb {
 
 			$message .= '<p>' . sprintf(
 				/* translators: 1: wp-config.php, 2: Database host. */
-					__( 'This either means that the username and password information in your %1$s file is incorrect or that contact with the database server at %2$s could not be established. This could mean your host&#8217;s database server is down.' ),
-					'<code>wp-config.php</code>',
-					'<code>' . htmlspecialchars( $this->dbhost, ENT_QUOTES ) . '</code>'
-				) . "</p>\n";
+				__( 'This either means that the username and password information in your %1$s file is incorrect or that contact with the database server at %2$s could not be established. This could mean your host&#8217;s database server is down.' ),
+				'<code>wp-config.php</code>',
+				'<code>' . htmlspecialchars( $this->dbhost, ENT_QUOTES ) . '</code>'
+			) . "</p>\n";
 
 			$message .= "<ul>\n";
 			$message .= '<li>' . __( 'Are you sure you have the correct username and password?' ) . "</li>\n";
@@ -2297,9 +2304,9 @@ class wpdb {
 
 			$message .= '<p>' . sprintf(
 				/* translators: %s: Support forums URL. */
-					__( 'If you are unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress support forums</a>.' ),
-					__( 'https://wordpress.org/support/forums/' )
-				) . "</p>\n";
+				__( 'If you are unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress support forums</a>.' ),
+				__( 'https://wordpress.org/support/forums/' )
+			) . "</p>\n";
 
 			$this->bail( $message, 'db_connect_fail' );
 
@@ -2448,9 +2455,9 @@ class wpdb {
 
 		$message .= '<p>' . sprintf(
 			/* translators: %s: Database host. */
-				__( 'This means that the contact with the database server at %s was lost. This could mean your host&#8217;s database server is down.' ),
-				'<code>' . htmlspecialchars( $this->dbhost, ENT_QUOTES ) . '</code>'
-			) . "</p>\n";
+			__( 'This means that the contact with the database server at %s was lost. This could mean your host&#8217;s database server is down.' ),
+			'<code>' . htmlspecialchars( $this->dbhost, ENT_QUOTES ) . '</code>'
+		) . "</p>\n";
 
 		$message .= "<ul>\n";
 		$message .= '<li>' . __( 'Are you sure the database server is running?' ) . "</li>\n";
@@ -2459,9 +2466,9 @@ class wpdb {
 
 		$message .= '<p>' . sprintf(
 			/* translators: %s: Support forums URL. */
-				__( 'If you are unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress support forums</a>.' ),
-				__( 'https://wordpress.org/support/forums/' )
-			) . "</p>\n";
+			__( 'If you are unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress support forums</a>.' ),
+			__( 'https://wordpress.org/support/forums/' )
+		) . "</p>\n";
 
 		// We weren't able to reconnect, so we better bail.
 		$this->bail( $message, 'db_connect_fail' );
@@ -2698,12 +2705,14 @@ class wpdb {
 		 * @since 5.3.0
 		 *
 		 */
-		$query_data = apply_filters( 'log_query_custom_data',
+		$query_data = apply_filters(
+			'log_query_custom_data',
 			$query_data,
 			$query,
 			$query_time,
 			$query_callstack,
-			$query_start );
+			$query_start
+		);
 
 		$this->queries[] = array(
 			$query,
@@ -3458,9 +3467,11 @@ class wpdb {
 			list( $type ) = explode( '(', $column->Type );
 
 			// A binary/blob means the whole query gets treated like this.
-			if ( in_array( strtoupper( $type ),
+			if ( in_array(
+				strtoupper( $type ),
 				array( 'BINARY', 'VARBINARY', 'TINYBLOB', 'MEDIUMBLOB', 'BLOB', 'LONGBLOB' ),
-				true ) ) {
+				true
+			) ) {
 				$this->table_charset[ $tablekey ] = 'binary';
 
 				return 'binary';
@@ -3836,7 +3847,7 @@ class wpdb {
 					';
 				}
 
-				$regex          .= '){1,40}                          # ...one or more times
+				$regex         .= '){1,40}                          # ...one or more times
 					)
 					| .                                  # anything else
 					/x';
@@ -3878,12 +3889,16 @@ class wpdb {
 
 					if ( is_array( $value['length'] ) ) {
 						$length          = sprintf( '%.0f', $value['length']['length'] );
-						$queries[ $col ] = $this->prepare( "CONVERT( LEFT( CONVERT( %s USING $charset ), $length ) USING $connection_charset )",
-							$value['value'] );
+						$queries[ $col ] = $this->prepare(
+							"CONVERT( LEFT( CONVERT( %s USING $charset ), $length ) USING $connection_charset )",
+							$value['value']
+						);
 					} elseif ( 'binary' !== $charset ) {
 						// If we don't have a length, there's no need to convert binary - it will always return the same result.
-						$queries[ $col ] = $this->prepare( "CONVERT( CONVERT( %s USING $charset ) USING $connection_charset )",
-							$value['value'] );
+						$queries[ $col ] = $this->prepare(
+							"CONVERT( CONVERT( %s USING $charset ) USING $connection_charset )",
+							$value['value']
+						);
 					}
 
 					unset( $data[ $col ]['db'] );
@@ -3906,8 +3921,8 @@ class wpdb {
 			}
 
 			foreach ( array_keys( $data ) as $column ) {
-				if ( isset( $row["x_$column"] ) ) {
-					$data[ $column ]['value'] = $row["x_$column"];
+				if ( isset( $row[ "x_$column" ] ) ) {
+					$data[ $column ]['value'] = $row[ "x_$column" ];
 				}
 			}
 		}
@@ -4037,9 +4052,11 @@ class wpdb {
 		}
 
 		// SHOW TABLE STATUS and SHOW TABLES WHERE Name = 'wp_posts'
-		if ( preg_match( '/^\s*SHOW\s+(?:TABLE\s+STATUS|(?:FULL\s+)?TABLES).+WHERE\s+Name\s*=\s*("|\')((?:[0-9a-zA-Z$_.-]|[\xC2-\xDF][\x80-\xBF])+)\\1/is',
+		if ( preg_match(
+			'/^\s*SHOW\s+(?:TABLE\s+STATUS|(?:FULL\s+)?TABLES).+WHERE\s+Name\s*=\s*("|\')((?:[0-9a-zA-Z$_.-]|[\xC2-\xDF][\x80-\xBF])+)\\1/is',
 			$query,
-			$maybe ) ) {
+			$maybe
+		) ) {
 			return $maybe[2];
 		}
 
@@ -4050,9 +4067,11 @@ class wpdb {
 		 * strip the trailing % and unescape the _ to get 'wp_123_'
 		 * which drop-ins can use for routing these SQL statements.
 		 */
-		if ( preg_match( '/^\s*SHOW\s+(?:TABLE\s+STATUS|(?:FULL\s+)?TABLES)\s+(?:WHERE\s+Name\s+)?LIKE\s*("|\')((?:[\\\\0-9a-zA-Z$_.-]|[\xC2-\xDF][\x80-\xBF])+)%?\\1/is',
+		if ( preg_match(
+			'/^\s*SHOW\s+(?:TABLE\s+STATUS|(?:FULL\s+)?TABLES)\s+(?:WHERE\s+Name\s+)?LIKE\s*("|\')((?:[\\\\0-9a-zA-Z$_.-]|[\xC2-\xDF][\x80-\xBF])+)%?\\1/is',
 			$query,
-			$maybe ) ) {
+			$maybe
+		) ) {
 			return str_replace( '\\_', '_', $maybe[2] );
 		}
 
@@ -4250,10 +4269,14 @@ class wpdb {
 		// Make sure the server has the required MySQL version.
 		if ( version_compare( $this->db_version(), $required_mysql_version, '<' ) ) {
 			/* translators: 1: WordPress version number, 2: Minimum required MySQL version number. */
-			return new WP_Error( 'database_version',
-				sprintf( __( '<strong>Error:</strong> WordPress %1$s requires MySQL %2$s or higher' ),
+			return new WP_Error(
+				'database_version',
+				sprintf(
+					__( '<strong>Error:</strong> WordPress %1$s requires MySQL %2$s or higher' ),
 					$wp_version,
-					$required_mysql_version ) );
+					$required_mysql_version
+				)
+			);
 		}
 	}
 
@@ -4325,7 +4348,7 @@ class wpdb {
 
 		// Account for MariaDB version being prefixed with '5.5.5-' on older PHP versions.
 		if ( '5.5.5' === $db_version && str_contains( $db_server_info, 'MariaDB' )
-		     && PHP_VERSION_ID < 80016 // PHP 8.0.15 or older.
+			 && PHP_VERSION_ID < 80016 // PHP 8.0.15 or older.
 		) {
 			// Strip the '5.5.5-' prefix and set the version to the correct value.
 			$db_server_info = preg_replace( '/^5\.5\.5-(.*)/', '$1', $db_server_info );

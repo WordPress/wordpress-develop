@@ -371,7 +371,7 @@ function wp_make_theme_file_tree( $allowed_files ) {
 		$last_dir = &$tree_list;
 
 		foreach ( $list as $dir ) {
-			$last_dir =& $last_dir[ $dir ];
+			$last_dir = & $last_dir[ $dir ];
 		}
 
 		$last_dir = $file_name;
@@ -476,7 +476,7 @@ function wp_make_plugin_file_tree( $plugin_editable_files ) {
 		$last_dir = &$tree_list;
 
 		foreach ( $list as $dir ) {
-			$last_dir =& $last_dir[ $dir ];
+			$last_dir = & $last_dir[ $dir ];
 		}
 
 		$last_dir = $plugin_file;

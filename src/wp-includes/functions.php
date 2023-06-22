@@ -4812,7 +4812,7 @@ function wp_parse_args( $args, $defaults = array() ) {
 	if ( is_object( $args ) ) {
 		$parsed_args = get_object_vars( $args );
 	} elseif ( is_array( $args ) ) {
-		$parsed_args =& $args;
+		$parsed_args = & $args;
 	} else {
 		wp_parse_str( $args, $parsed_args );
 	}
@@ -8615,13 +8615,13 @@ function array_depth( $array ) {
  * @return array The flattened array.
  */
 function array_flatten( $array ) {
-	$result = [];
+	$result = array();
 
 	foreach ( $array as $element ) {
 		if ( is_array( $element ) ) {
 			$result = array_merge( $result, array_flatten( $element ) );
 		} else {
-			array_push($result, $element);
+			array_push( $result, $element );
 		}
 	}
 

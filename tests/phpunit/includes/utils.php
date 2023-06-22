@@ -384,7 +384,7 @@ function xml_find( $tree, ...$elements ) {
 			if ( 1 === $n ) {
 				$out[] = $tree[ $i ];
 			} else {
-				$subtree =& $tree[ $i ]['child'];
+				$subtree = & $tree[ $i ]['child'];
 				$out     = array_merge( $out, xml_find( $subtree, ...array_slice( $elements, 1 ) ) );
 			}
 		}

@@ -8,7 +8,7 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		$this->cache =& $this->init_cache();
+		$this->cache = & $this->init_cache();
 	}
 
 	public function tear_down() {
@@ -16,6 +16,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
+	// phpcs:disable WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterOpenParenthesis
 	private function &init_cache() {
 		global $wp_object_cache;
 

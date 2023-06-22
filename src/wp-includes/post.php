@@ -6782,7 +6782,7 @@ function wp_mime_type_icon( $mime = 0 ) {
 		$types = array();
 		// Icon wp_basename - extension = MIME wildcard.
 		foreach ( $icon_files as $file => $uri ) {
-			$types[ preg_replace( '/^([^.]*).*$/', '$1', wp_basename( $file ) ) ] =& $icon_files[ $file ];
+			$types[ preg_replace( '/^([^.]*).*$/', '$1', wp_basename( $file ) ) ] = & $icon_files[ $file ];
 		}
 
 		if ( ! empty( $mime ) ) {

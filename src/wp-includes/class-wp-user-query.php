@@ -281,7 +281,7 @@ class WP_User_Query {
 		do_action_ref_array( 'pre_get_users', array( &$this ) );
 
 		// Ensure that query vars are filled after 'pre_get_users'.
-		$qv =& $this->query_vars;
+		$qv = & $this->query_vars;
 		$qv = $this->fill_query_vars( $qv );
 
 		$allowed_fields = array(
@@ -792,7 +792,7 @@ class WP_User_Query {
 			);
 		}
 
-		$qv =& $this->query_vars;
+		$qv = & $this->query_vars;
 
 		// Do not cache results if more than 3 fields are requested.
 		if ( is_array( $qv['fields'] ) && count( $qv['fields'] ) > 3 ) {
