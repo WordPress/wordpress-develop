@@ -361,13 +361,14 @@ function wp_load_alloptions( $force_cache = false ) {
 }
 
 /**
- * Loads and caches certain often requested site options if is_multisite() and a persistent cache is not being used.
+ * Loads and primes caches of certain often requested network options if is_multisite().
  *
  * @since 3.0.0
+ * @since 6.3.0 Also prime caches for network options when persistent object cache is enabled.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int $network_id Optional site ID for which to query the options. Defaults to the current site.
+ * @param int $network_id Optional network ID for which network to prime caches of network options. Defaults to the current network.
  */
 function wp_load_core_site_options( $network_id = null ) {
 	global $wpdb;
