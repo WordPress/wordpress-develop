@@ -74,7 +74,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	$current->last_checked = time();
 	set_site_transient( 'update_core', $current );
 
-	// Populate the DB version
+	// Populate the DB version.
 	if ( method_exists( $wpdb, 'db_server_info' ) ) {
 		$mysql_version = $wpdb->db_server_info();
 	} elseif ( method_exists( $wpdb, 'db_version' ) ) {
@@ -83,7 +83,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		$mysql_version = 'N/A';
 	}
 
-	// Populate the interface DB interface Type
+	// Populate the interface DB interface Type.
 	if ( is_resource( $wpdb->dbh ) ) {
 		// Old mysql extension.
 		$mysql_interface = 'mysql';
