@@ -545,10 +545,9 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
  * @param WP_Post  $page         Page data object.
  * @param int      $depth        Depth of page, used for padding.
  * @param array    $args         An array of arguments.
- * @param int      $current_page ID of the current page.
  * @return array CSS class names.
  */
-function twentytwenty_filter_wp_list_pages_item_classes( $css_class, $page, $depth, $args, $current_page ) {
+function twentytwenty_filter_wp_list_pages_item_classes( $css_class, $page, $depth, $args ) {
 
 	// Only apply to wp_list_pages() calls with match_menu_classes set to true.
 	$match_menu_classes = isset( $args['match_menu_classes'] );
@@ -571,7 +570,7 @@ function twentytwenty_filter_wp_list_pages_item_classes( $css_class, $page, $dep
 
 }
 
-add_filter( 'page_css_class', 'twentytwenty_filter_wp_list_pages_item_classes', 10, 5 );
+add_filter( 'page_css_class', 'twentytwenty_filter_wp_list_pages_item_classes', 10, 4 );
 
 /**
  * Adds a Sub Nav Toggle to the Expanded Menu and Mobile Menu.
@@ -580,10 +579,9 @@ add_filter( 'page_css_class', 'twentytwenty_filter_wp_list_pages_item_classes', 
  *
  * @param stdClass $args  An object of wp_nav_menu() arguments.
  * @param WP_Post  $item  Menu item data object.
- * @param int      $depth Depth of menu item. Used for padding.
  * @return stdClass An object of wp_nav_menu() arguments.
  */
-function twentytwenty_add_sub_toggles_to_main_menu( $args, $item, $depth ) {
+function twentytwenty_add_sub_toggles_to_main_menu( $args, $item ) {
 
 	// Add sub menu toggles to the Expanded Menu with toggles.
 	if ( isset( $args->show_toggles ) && $args->show_toggles ) {
@@ -622,7 +620,7 @@ function twentytwenty_add_sub_toggles_to_main_menu( $args, $item, $depth ) {
 
 }
 
-add_filter( 'nav_menu_item_args', 'twentytwenty_add_sub_toggles_to_main_menu', 10, 3 );
+add_filter( 'nav_menu_item_args', 'twentytwenty_add_sub_toggles_to_main_menu', 10, 2 );
 
 /**
  * Displays SVG icons in social links menu.
