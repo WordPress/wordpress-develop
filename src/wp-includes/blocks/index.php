@@ -46,6 +46,10 @@ function register_core_block_style_handles() {
 	}
 
 	foreach ( $core_blocks_meta as $name => $schema ) {
+		/** This filter is documented in wp-includes/blocks.php */
+		$schema = apply_filters( 'block_type_metadata', $schema );
+
+		// Backfill these properties similar to `register_block_type_from_metadata()`.
 		if ( ! isset( $schema['style'] ) ) {
 			$schema['style'] = "wp-block-$name";
 		}
