@@ -11,9 +11,9 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	 */
 	public $table = false;
 
-  /*
-   * An admin user ID.
-	 *
+	/*
+ 	 * An admin user ID.
+   	 *
 	 * @var int
 	 */
 	private static $admin_id;
@@ -35,7 +35,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	}
 
 	/**
-   * Creates fake plugin data.
+ 	 * Creates fake plugin data.
 	 * @var array
 	 */
 	public $fake_plugin = array(
@@ -137,10 +137,10 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 		$plugins_list['mustuse'] = $this->fake_plugin;
 
 		return $plugins_list;
-  }
+	}
 
-  /*
-   * Tests that WP_Plugins_List_Table::__construct() does not set
+	/*
+	 * Tests that WP_Plugins_List_Table::__construct() does not set
 	 * the 'show_autoupdates' property to false for Must-Use and Drop-in
 	 * plugins.
 	 *
