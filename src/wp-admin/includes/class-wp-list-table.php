@@ -1397,9 +1397,13 @@ class WP_List_Table {
 						$order = $desc_first ? 'desc' : 'asc';
 					}
 
-					$class[]    = 'sortable';
-					$class[]    = 'desc' === $order ? 'asc' : 'desc';
-					$order_text = 'asc' === $order ? __( 'Sort ascending.' ) : __( 'Sort descending.' );
+					$class[] = 'sortable';
+					$class[] = 'desc' === $order ? 'asc' : 'desc';
+					/* translators: Hidden accessibility text. */
+					$asc_text =__( 'Sort ascending.' );
+					/* translators: Hidden accessibility text. */
+					$desc_text  =  __( 'Sort descending.' );
+					$order_text = 'asc' === $order ? $asc_text : $desc_text;
 				}
 				if ( '' !== $order_text ) {
 					$order_text = ' <span class="screen-reader-text">' . $order_text . '</span>';
@@ -1479,7 +1483,11 @@ class WP_List_Table {
 				 * and true in the sorted views when the actual $_GET['orderby'] is equal to $orderby.
 				 */
 				if ( $current_orderby == $orderby ) {
-					$order_text = 'asc' === $current_order ? __( 'Ascending.' ) : __( 'Descending.' );
+					/* translators: Hidden accessibility text. */
+					$asc_text = __( 'Ascending.' );
+					/* translators: Hidden accessibility text. */
+					$desc_text  = __( 'Descending.' );
+					$order_text = 'asc' === $current_order ? $asc_text : $desc_text;
 					echo '<caption  class="screen-reader-text">' . $orderby_text . ' ' . $order_text . '</p>';
 
 					return;
