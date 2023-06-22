@@ -1079,12 +1079,12 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 	$content = wp_kses_stripslashes( $content );
 
 	// It matched a ">" character.
-	if ( '<' !== substr( $content, 0, 1 ) ) {
+	if ( ! str_starts_with( $content, '<' ) ) {
 		return '&gt;';
 	}
 
 	// Allow HTML comments.
-	if ( '<!--' === substr( $content, 0, 4 ) ) {
+	if ( str_starts_with( $content, '<!--' ) ) {
 		$content = str_replace( array( '<!--', '-->' ), '', $content );
 		while ( ( $newstring = wp_kses( $content, $allowed_html, $allowed_protocols ) ) != $content ) {
 			$content = $newstring;
@@ -2279,7 +2279,7 @@ function kses_init() {
  *              Extended `margin-*` and `padding-*` support for logical properties.
  * @since 6.2.0 Added support for `aspect-ratio`, `position`, `top`, `right`, `bottom`, `left`,
  *              and `z-index` CSS properties.
- * @since 6.3.0 Extended support for `filter` to accept a URL.
+ * @since 6.3.0 Extended support for `filter` to accept a URL and added support for repeat().
  *
  * @param string $css        A string of CSS rules.
  * @param string $deprecated Not used.
@@ -2499,7 +2499,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		$gradient_attr   = false;
 		$is_custom_var   = false;
 
-		if ( strpos( $css_item, ':' ) === false ) {
+		if ( ! str_contains( $css_item, ':' ) ) {
 			$found = true;
 		} else {
 			$parts        = explode( ':', $css_item, 2 );
@@ -2563,7 +2563,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			 * Nested functions and parentheses are also removed, so long as the parentheses are balanced.
 			 */
 			$css_test_string = preg_replace(
-				'/\b(?:var|calc|min|max|minmax|clamp)(\((?:[^()]|(?1))*\))/',
+				'/\b(?:var|calc|min|max|minmax|clamp|repeat)(\((?:[^()]|(?1))*\))/',
 				'',
 				$css_test_string
 			);
