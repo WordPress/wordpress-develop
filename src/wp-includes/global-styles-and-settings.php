@@ -127,9 +127,9 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
 	&& is_array( $context['transforms'] )
 	&& in_array( 'resolve-variables', $context['transforms'], true );
 
-	$merged_data = WP_Theme_JSON_Resolver_Gutenberg::get_merged_data( $origin );
+	$merged_data = WP_Theme_JSON_Resolver::get_merged_data( $origin );
 	if ( $resolve_variables ) {
-		$merged_data = WP_Theme_JSON_Gutenberg::resolve_variables( $merged_data );
+		$merged_data = WP_Theme_JSON::resolve_variables( $merged_data );
 	}
 	$styles = $merged_data->get_raw_data()['styles'];
 	return _wp_array_get( $styles, $path, $styles );
