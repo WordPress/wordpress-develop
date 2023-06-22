@@ -13,7 +13,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 
 	/**
 	 * An admin user ID.
-  	 *
+ 	 *
 	 * @var int
 	 */
 	private static $admin_id;
