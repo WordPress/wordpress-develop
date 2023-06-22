@@ -3517,7 +3517,7 @@ class WP_Query {
 			/** @var WP_Post[] */
 			$this->posts = array_map( 'get_post', $this->posts );
 
-			if ( $q['cache_results'] ) {
+			if ( $q['cache_results'] && $id_query_is_cacheable ) {
 				update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 			}
 
