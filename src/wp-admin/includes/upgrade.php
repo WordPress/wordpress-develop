@@ -654,6 +654,8 @@ if ( ! function_exists( 'wp_upgrade' ) ) :
 			update_site_meta( get_current_blog_id(), 'db_last_updated', microtime() );
 		}
 
+		delete_transient( 'block_styles' );
+
 		/**
 		 * Fires after a site is fully upgraded.
 		 *
