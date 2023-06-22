@@ -1991,6 +1991,9 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 			* If the filter changed the loading attribute to "lazy" when a fetchpriority attribute
 			* with value "high" is already present, trigger a warning since those two attribute
 			* values should be mutually exclusive.
+			 *
+			 * The same warning is present in `wp_get_loading_optimization_attributes()`, and here it
+			 * is only intended for the specific scenario where the above filtered caused the problem.
 			*/
 			if ( isset( $optimization_attrs['fetchpriority'] ) && 'high' === $optimization_attrs['fetchpriority'] &&
 				( isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false ) !== $filtered_loading_attr &&
@@ -1998,11 +2001,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 			) {
 				_doing_it_wrong(
 					__FUNCTION__,
-					sprintf(
-						/* translators: %s: fetchpriority="high". */
-						__( 'An image cannot be lazy-loaded and assigned %s at the same time.' ),
-						'<code>fetchpriority="high"</code>'
-					),
+					__( 'An image should not be lazy-loaded and marked as high priority at the same time.' ),
 					'6.3.0'
 				);
 			}
