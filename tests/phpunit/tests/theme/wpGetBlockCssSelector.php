@@ -2,6 +2,8 @@
 /**
  * Tests wp_get_block_css_selector().
  *
+ * @since 6.3.0
+ *
  * @group themes
  *
  * @covers ::wp_get_block_css_selector
@@ -18,30 +20,26 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 	public function tear_down() {
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
-		set_current_screen( '' );
 		parent::tear_down();
 	}
 
-	private function register_test_block( $name, $selectors = null, $supports = null, $editor_selectors = null ) {
+	private function register_test_block( $name, $selectors = null, $supports = null ) {
 		$this->test_block_name = $name;
 
 		return register_block_type(
 			$this->test_block_name,
 			array(
-				'api_version'      => 2,
-				'attributes'       => array(),
-				'selectors'        => $selectors,
-				'editor_selectors' => $editor_selectors,
-				'supports'         => $supports,
+				'api_version' => 2,
+				'attributes'  => array(),
+				'selectors'   => $selectors,
+				'supports'    => $supports,
 			)
 		);
 	}
 
-	private function set_screen_to_block_editor() {
-		set_current_screen( 'edit-post' );
-		get_current_screen()->is_block_editor( true );
-	}
-
+	/**
+	* @ticket 58586
+	*/
 	public function test_get_root_selector_via_selectors_api() {
 		$block_type = self::register_test_block(
 			'test/block-with-selectors',
@@ -52,6 +50,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( '.wp-custom-block-class', $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_get_root_selector_via_experimental_property() {
 		$block_type = self::register_test_block(
 			'test/block-without-selectors',
@@ -63,6 +64,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( '.experimental-selector', $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_default_root_selector_generation_for_core_block() {
 		$block_type = self::register_test_block(
 			'core/without-selectors-or-supports',
@@ -74,6 +78,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( '.wp-block-without-selectors-or-supports', $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_default_root_selector_generation() {
 		$block_type = self::register_test_block(
 			'test/without-selectors-or-supports',
@@ -85,30 +92,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( '.wp-block-test-without-selectors-or-supports', $selector );
 	}
 
-	public function test_get_duotone_selector_via_selectors_api() {
-		$block_type = self::register_test_block(
-			'test/duotone-selector',
-			array(
-				'filters' => array( 'duotone' => '.duotone-selector' ),
-			),
-			null
-		);
-
-		$selector = wp_get_block_css_selector( $block_type, array( 'filters', 'duotone' ) );
-		$this->assertEquals( '.duotone-selector', $selector );
-	}
-
-	public function test_no_duotone_selector_set() {
-		$block_type = self::register_test_block(
-			'test/null-duotone-selector',
-			null,
-			null
-		);
-
-		$selector = wp_get_block_css_selector( $block_type, 'filters.duotone' );
-		$this->assertEquals( null, $selector );
-	}
-
+	/**
+	 * @ticket 58586
+	 */
 	public function test_get_feature_selector_via_selectors_api() {
 		$block_type = self::register_test_block(
 			'test/feature-selector',
@@ -120,6 +106,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( '.typography', $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_get_feature_selector_via_selectors_api_shorthand_property() {
 		$block_type = self::register_test_block(
 			'test/shorthand-feature-selector',
@@ -131,6 +120,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( '.typography', $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_no_feature_level_selector_via_selectors_api() {
 		$block_type = self::register_test_block(
 			'test/null-feature-selector',
@@ -142,6 +134,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( null, $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_fallback_feature_level_selector_via_selectors_api_to_generated_class() {
 		$block_type = self::register_test_block(
 			'test/fallback-feature-selector',
@@ -153,7 +148,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( '.wp-block-test-fallback-feature-selector', $selector );
 	}
 
-
+	/**
+	 * @ticket 58586
+	 */
 	public function test_fallback_feature_level_selector_via_selectors_api() {
 		$block_type = self::register_test_block(
 			'test/fallback-feature-selector',
@@ -165,6 +162,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( '.fallback-root-selector', $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_get_feature_selector_via_experimental_property() {
 		$block_type = self::register_test_block(
 			'test/experimental-feature-selector',
@@ -180,6 +180,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( '.wp-block-test-experimental-feature-selector .experimental-typography', $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_fallback_feature_selector_via_experimental_property() {
 		$block_type = self::register_test_block(
 			'test/fallback-feature-selector',
@@ -191,6 +194,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( '.wp-block-test-fallback-feature-selector', $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_no_feature_selector_via_experimental_property() {
 		$block_type = self::register_test_block(
 			'test/null-experimental-feature-selector',
@@ -202,6 +208,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( null, $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_get_subfeature_selector_via_selectors_api() {
 		$block_type = self::register_test_block(
 			'test/subfeature-selector',
@@ -221,6 +230,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( '.root .typography .text-decoration', $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_fallback_subfeature_selector_via_selectors_api() {
 		$block_type = self::register_test_block(
 			'test/subfeature-selector',
@@ -239,6 +251,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( '.root .typography', $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_no_subfeature_level_selector_via_selectors_api() {
 		$block_type = self::register_test_block(
 			'test/null-subfeature-selector',
@@ -250,6 +265,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( null, $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_fallback_subfeature_selector_via_experimental_property() {
 		$block_type = self::register_test_block(
 			'test/fallback-subfeature-selector',
@@ -265,6 +283,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( '.wp-block-test-fallback-subfeature-selector', $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_no_subfeature_selector_via_experimental_property() {
 		$block_type = self::register_test_block(
 			'test/null-experimental-subfeature-selector',
@@ -279,6 +300,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( null, $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_empty_target_returns_null() {
 		$block_type = self::register_test_block(
 			'test/null-experimental-subfeature-selector',
@@ -293,6 +317,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( null, $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_string_targets_for_features() {
 		$block_type = self::register_test_block(
 			'test/target-types-for-features',
@@ -307,6 +334,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( '.found', $selector );
 	}
 
+	/**
+	 * @ticket 58586
+	 */
 	public function test_string_targets_for_subfeatures() {
 		$block_type = self::register_test_block(
 			'test/target-types-for-features',
@@ -321,108 +351,6 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 
 		$selector = wp_get_block_css_selector( $block_type, array( 'typography', 'fontSize' ) );
 		$this->assertEquals( '.found', $selector );
-	}
-
-	public function test_editor_only_root_selector() {
-		self::set_screen_to_block_editor();
-
-		$block_type = self::register_test_block(
-			'test/editor-only-selectors',
-			array( 'root' => '.wp-custom-block-class' ),
-			null,
-			array( 'root' => '.wp-custom-block-class' )
-		);
-
-		$selector = wp_get_block_css_selector( $block_type, 'root' );
-		$this->assertEquals( '.wp-custom-block-class', $selector );
-	}
-
-	public function test_editor_only_duotone_selector() {
-		self::set_screen_to_block_editor();
-
-		$block_type = self::register_test_block(
-			'test/editor-duotone-selector',
-			array(
-				'filters' => array( 'duotone' => '.duotone-selector' ),
-			),
-			null,
-			array(
-				'filters' => array( 'duotone' => '.duotone-selector' ),
-			)
-		);
-
-		$selector = wp_get_block_css_selector( $block_type, 'filters.duotone' );
-		$this->assertEquals( '.duotone-selector', $selector );
-	}
-
-	public function test_editor_only_feature_selector() {
-		self::set_screen_to_block_editor();
-
-		$block_type = self::register_test_block(
-			'test/editor-feature-selector',
-			array( 'typography' => array( 'root' => '.typography' ) ),
-			null,
-			array( 'typography' => array( 'root' => '.typography' ) )
-		);
-
-		$selector = wp_get_block_css_selector( $block_type, 'typography' );
-		$this->assertEquals( '.typography', $selector );
-	}
-
-	public function test_editor_only_feature_selector_shorthand() {
-		self::set_screen_to_block_editor();
-
-		$block_type = self::register_test_block(
-			'test/editor-feature-selector',
-			array( 'typography' => '.typography' ),
-			null,
-			array( 'typography' => '.typography' )
-		);
-
-		$selector = wp_get_block_css_selector( $block_type, 'typography' );
-		$this->assertEquals( '.typography', $selector );
-	}
-
-	public function test_editor_only_subfeature_selector() {
-		self::set_screen_to_block_editor();
-
-		$block_type = self::register_test_block(
-			'test/editor-subfeature-selector',
-			array( 'typography' => array( 'fontSize' => '.font-size' ) ),
-			null,
-			array( 'typography' => array( 'fontSize' => '.font-size' ) )
-		);
-
-		$selector = wp_get_block_css_selector( $block_type, 'typography.fontSize' );
-		$this->assertEquals( '.font-size', $selector );
-	}
-
-	public function test_non_editor_subfeature_does_not_fall_back_to_editor_only_feature_selector() {
-		self::set_screen_to_block_editor();
-
-		$block_type = self::register_test_block(
-			'test/editor-subfeature-selector',
-			array( 'typography' => array( 'fontSize' => '.font-size' ) ),
-			null,
-			array( 'typography' => '.font-size' )
-		);
-
-		$selector = wp_get_block_css_selector( $block_type, 'typography.fontSize', true );
-		$this->assertEquals( '.font-size', $selector );
-	}
-
-	public function test_unspecified_subfeature_falls_back_to_editor_only_feature_selector() {
-		self::set_screen_to_block_editor();
-
-		$block_type = self::register_test_block(
-			'test/editor-subfeature-selector',
-			array( 'typography' => '.typography' ),
-			null,
-			array( 'typography' => '.typography' )
-		);
-
-		$selector = wp_get_block_css_selector( $block_type, 'typography.fontSize', true );
-		$this->assertEquals( '.typography', $selector );
 	}
 }
 
