@@ -218,7 +218,7 @@ function export_wp( $args = array() ) {
 			// Multisite: the base URL.
 			return network_home_url();
 		} else {
-			// WordPress (single site): the blog URL.
+			// WordPress (single site): the site URL.
 			return get_bloginfo_rss( 'url' );
 		}
 	}
@@ -317,6 +317,8 @@ function export_wp( $args = array() ) {
 	 * Outputs term meta XML tags for a given term object.
 	 *
 	 * @since 4.6.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param WP_Term $term Term object.
 	 */
@@ -519,7 +521,8 @@ function export_wp( $args = array() ) {
 	<?php endforeach; ?>
 	<?php
 	if ( 'all' === $args['content'] ) {
-		wxr_nav_menu_terms();}
+		wxr_nav_menu_terms();
+	}
 	?>
 
 	<?php

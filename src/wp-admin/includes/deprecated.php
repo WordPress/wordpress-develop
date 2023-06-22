@@ -197,7 +197,7 @@ function remove_option_update_handler( $option_group, $option_name, $sanitize_ca
  * @deprecated 3.0.0
  *
  * @param string $filename
-**/
+ */
 function codepress_get_lang( $filename ) {
 	_deprecated_function( __FUNCTION__, '3.0.0' );
 }
@@ -207,7 +207,7 @@ function codepress_get_lang( $filename ) {
  *
  * @since 2.8.0
  * @deprecated 3.0.0
-**/
+ */
 function codepress_footer_js() {
 	_deprecated_function( __FUNCTION__, '3.0.0' );
 }
@@ -217,7 +217,7 @@ function codepress_footer_js() {
  *
  * @since 2.8.0
  * @deprecated 3.0.0
-**/
+ */
 function use_codepress() {
 	_deprecated_function( __FUNCTION__, '3.0.0' );
 }
@@ -524,6 +524,8 @@ class WP_User_Search {
 	 *
 	 * @since 2.1.0
 	 * @access public
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public function prepare_query() {
 		global $wpdb;
@@ -562,6 +564,8 @@ class WP_User_Search {
 	 *
 	 * @since 2.1.0
 	 * @access public
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public function query() {
 		global $wpdb;
@@ -1361,7 +1365,7 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 			// Is this random plugin's slug already installed? If so, try again.
 			reset( $plugin_slugs );
 			foreach ( $plugin_slugs as $plugin_slug ) {
-				if ( $slug == substr( $plugin_slug, 0, strlen( $slug ) ) ) {
+				if ( str_starts_with( $plugin_slug, $slug ) ) {
 					unset( $items[$item_key] );
 					continue 2;
 				}
@@ -1372,7 +1376,7 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 		}
 
 		// Eliminate some common badly formed plugin descriptions.
-		while ( ( null !== $item_key = array_rand($items) ) && false !== strpos( $items[$item_key]->get_description(), 'Plugin Name:' ) )
+		while ( ( null !== $item_key = array_rand($items) ) && str_contains( $items[$item_key]->get_description(), 'Plugin Name:' ) )
 			unset($items[$item_key]);
 
 		if ( !isset($items[$item_key]) )

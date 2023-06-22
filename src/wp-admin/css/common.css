@@ -141,21 +141,24 @@
 .screen-reader-shortcut {
 	position: absolute;
 	top: -1000em;
-}
-
-.screen-reader-shortcut:focus {
 	left: 6px;
-	top: -25px;
 	height: auto;
 	width: auto;
 	display: block;
 	font-size: 14px;
 	font-weight: 600;
 	padding: 15px 23px 14px;
+	/* Background and color set to prevent false positives in automated accessibility tests. */
 	background: #f0f0f1;
 	color: #2271b1;
 	z-index: 100000;
 	line-height: normal;
+}
+
+.screen-reader-shortcut:focus {
+	top: -25px;
+	/* Overrides a:focus in the admin. See ticket #56789. */
+	color: #2271b1;
 	box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
 	text-decoration: none;
 	/* Only visible in Windows High Contrast mode */
@@ -188,7 +191,6 @@ p.popular-tags,
 .wp-editor-container,
 .popular-tags,
 .feature-filter,
-.imgedit-group,
 .comment-ays {
 	border: 1px solid #c3c4c7;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
@@ -201,7 +203,6 @@ p.popular-tags,
 .widgets-holder-wrap,
 .popular-tags,
 .feature-filter,
-.imgedit-group,
 .comment-ays {
 	background: #fff;
 }
@@ -3030,9 +3031,15 @@ div.action-links {
 
 .plugin-details-modal #TB_closeWindowButton:hover,
 .plugin-details-modal #TB_closeWindowButton:focus {
-	color: #135e96;
 	outline: none;
 	box-shadow: none;
+}
+
+.plugin-details-modal #TB_closeWindowButton:hover::after,
+.plugin-details-modal #TB_closeWindowButton:focus::after {
+	outline: 2px solid;
+	outline-offset: -4px;
+	border-radius: 4px;
 }
 
 .plugin-details-modal .tb-close-icon {
@@ -3154,7 +3161,6 @@ img {
 	font-family: Consolas, Monaco, monospace;
 	font-size: 13px;
 	background: #f6f7f7;
-	-o-tab-size: 4;
 	tab-size: 4;
 }
 
@@ -4113,6 +4119,17 @@ img {
 
 	.wp-filter .search-form input[type="search"] {
 		width: 100%;
+	}
+}
+
+@media screen and (max-width: 480px) {
+	.metabox-prefs-container {
+		display: grid;
+	}
+
+	.metabox-prefs-container > * {
+		display: inline-block;
+		padding: 2px;
 	}
 }
 

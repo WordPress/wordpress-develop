@@ -30,26 +30,26 @@ class Tests_Functions_wpRefererField extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the echo argument is respected.
+	 * Tests that the display argument is respected.
 	 *
 	 * @ticket 54106
 	 *
-	 * @dataProvider data_wp_referer_field_should_respect_echo_arg
+	 * @dataProvider data_wp_referer_field_should_respect_display_arg
 	 *
-	 * @param mixed $echo Whether to echo or return the referer field.
+	 * @param mixed $display Whether to echo or return the referer field.
 	 */
-	public function test_wp_referer_field_should_respect_echo_arg( $echo ) {
-		$actual = $echo ? get_echo( 'wp_referer_field' ) : wp_referer_field( false );
+	public function test_wp_referer_field_should_respect_display_arg( $display ) {
+		$actual = $display ? get_echo( 'wp_referer_field' ) : wp_referer_field( false );
 
 		$this->assertSame( '<input type="hidden" name="_wp_http_referer" value="" />', $actual );
 	}
 
 	/**
-	 * Data provider for test_wp_referer_field_should_respect_echo_arg().
+	 * Data provider for test_wp_referer_field_should_respect_display_arg().
 	 *
 	 * @return array
 	 */
-	public function data_wp_referer_field_should_respect_echo_arg() {
+	public function data_wp_referer_field_should_respect_display_arg() {
 		return array(
 			'true'         => array( true ),
 			'(int) 1'      => array( 1 ),

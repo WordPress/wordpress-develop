@@ -183,7 +183,7 @@ class WP_Test_Stream {
 	 *
 	 * @see streamWrapper::stream_metadata
 	 */
-	public function stream_metadata( $path, $option, $var ) {
+	public function stream_metadata( $path, $option, $value ) {
 		$this->open( $path );
 		if ( STREAM_META_TOUCH === $option ) {
 			if ( ! isset( $this->data_ref ) ) {

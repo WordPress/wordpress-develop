@@ -5,9 +5,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcase {
@@ -1093,7 +1091,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_prepare_item_limit_fields() {
-		$request  = new WP_REST_Request;
+		$request  = new WP_REST_Request();
 		$endpoint = new WP_REST_Terms_Controller( 'category' );
 		$request->set_param( '_fields', 'id,name' );
 		$term     = get_term( 1, 'category' );
@@ -1180,7 +1178,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$wp_rest_additional_fields = array();
 	}
 
-	public function additional_field_get_callback( $object, $request ) {
+	public function additional_field_get_callback( $response_data, $field_name ) {
 		return 123;
 	}
 

@@ -115,7 +115,7 @@ class WP_Http_Cookie {
 			$this->domain = $parsed_url['host'];
 		}
 		$this->path = isset( $parsed_url['path'] ) ? $parsed_url['path'] : '/';
-		if ( '/' !== substr( $this->path, -1 ) ) {
+		if ( ! str_ends_with( $this->path, '/' ) ) {
 			$this->path = dirname( $this->path ) . '/';
 		}
 
@@ -136,7 +136,7 @@ class WP_Http_Cookie {
 			foreach ( $pairs as $pair ) {
 				$pair = rtrim( $pair );
 
-				// Handle the cookie ending in ; which results in a empty final pair.
+				// Handle the cookie ending in ; which results in an empty final pair.
 				if ( empty( $pair ) ) {
 					continue;
 				}
@@ -202,7 +202,7 @@ class WP_Http_Cookie {
 		}
 
 		// Host - very basic check that the request URL ends with the domain restriction (minus leading dot).
-		$domain = ( '.' === substr( $domain, 0, 1 ) ) ? substr( $domain, 1 ) : $domain;
+		$domain = ( str_starts_with( $domain, '.' ) ) ? substr( $domain, 1 ) : $domain;
 		if ( substr( $url['host'], -strlen( $domain ) ) !== $domain ) {
 			return false;
 		}

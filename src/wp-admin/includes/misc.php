@@ -76,19 +76,19 @@ function extract_from_markers( $filename, $marker ) {
 	$state = false;
 
 	foreach ( $markerdata as $markerline ) {
-		if ( false !== strpos( $markerline, '# END ' . $marker ) ) {
+		if ( str_contains( $markerline, '# END ' . $marker ) ) {
 			$state = false;
 		}
 
 		if ( $state ) {
-			if ( '#' === substr( $markerline, 0, 1 ) ) {
+			if ( str_starts_with( $markerline, '#' ) ) {
 				continue;
 			}
 
 			$result[] = $markerline;
 		}
 
-		if ( false !== strpos( $markerline, '# BEGIN ' . $marker ) ) {
+		if ( str_contains( $markerline, '# BEGIN ' . $marker ) ) {
 			$state = true;
 		}
 	}
@@ -194,10 +194,10 @@ Any changes to the directives between these markers will be overwritten.'
 	$found_end_marker = false;
 
 	foreach ( $lines as $line ) {
-		if ( ! $found_marker && false !== strpos( $line, $start_marker ) ) {
+		if ( ! $found_marker && str_contains( $line, $start_marker ) ) {
 			$found_marker = true;
 			continue;
-		} elseif ( ! $found_end_marker && false !== strpos( $line, $end_marker ) ) {
+		} elseif ( ! $found_end_marker && str_contains( $line, $end_marker ) ) {
 			$found_end_marker = true;
 			continue;
 		}
@@ -414,7 +414,12 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 				aria-level="<?php echo esc_attr( $level ); ?>"
 				aria-setsize="<?php echo esc_attr( $size ); ?>"
 				aria-posinset="<?php echo esc_attr( $index ); ?>">
-				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text"><?php _e( 'folder' ); ?></span><span aria-hidden="true" class="icon"></span></span>
+				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'folder' );
+					?>
+				</span><span aria-hidden="true" class="icon"></span></span>
 				<ul role="group" class="tree-folder"><?php wp_print_theme_file_tree( $theme_file, $level + 1, $index, $size ); ?></ul>
 			</li>
 			<?php
@@ -511,7 +516,12 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 				aria-level="<?php echo esc_attr( $level ); ?>"
 				aria-setsize="<?php echo esc_attr( $size ); ?>"
 				aria-posinset="<?php echo esc_attr( $index ); ?>">
-				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text"><?php _e( 'folder' ); ?></span><span aria-hidden="true" class="icon"></span></span>
+				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'folder' );
+					?>
+				</span><span aria-hidden="true" class="icon"></span></span>
 				<ul role="group" class="tree-folder"><?php wp_print_plugin_file_tree( $plugin_file, '', $level + 1, $index, $size ); ?></ul>
 			</li>
 			<?php
@@ -740,7 +750,7 @@ function set_screen_options() {
 		default:
 			$screen_option = false;
 
-			if ( '_page' === substr( $option, -5 ) || 'layout_columns' === $option ) {
+			if ( str_ends_with( $option, '_page' ) || 'layout_columns' === $option ) {
 				/**
 				 * Filters a screen option value before it is set.
 				 *
@@ -1012,7 +1022,12 @@ function admin_color_scheme_picker( $user_id ) {
 	}
 	?>
 	<fieldset id="color-picker" class="scheme-list">
-		<legend class="screen-reader-text"><span><?php _e( 'Admin Color Scheme' ); ?></span></legend>
+		<legend class="screen-reader-text"><span>
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Admin Color Scheme' );
+			?>
+		</span></legend>
 		<?php
 		wp_nonce_field( 'save-color-scheme', 'color-nonce', false );
 		foreach ( $_wp_admin_css_colors as $color => $color_info ) :
@@ -1457,7 +1472,7 @@ function update_option_new_admin_email( $old_value, $value ) {
 	);
 	update_option( 'adminhash', $new_admin_email );
 
-	$switched_locale = switch_to_locale( get_user_locale() );
+	$switched_locale = switch_to_user_locale( get_current_user_id() );
 
 	/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
 	$email_text = __(

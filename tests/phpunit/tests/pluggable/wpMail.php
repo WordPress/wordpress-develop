@@ -173,7 +173,7 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		$this->assertTrue( wp_mail( 'valid@address.com', 'subject', 'body' ) );
 
 		// Non-fatal errors.
-		$this->assertTrue( wp_mail( 'valid@address.com', 'subject', 'body', "Cc: invalid-address\nBcc: @invalid.address", ABSPATH . '/non-existent-file.html' ) );
+		$this->assertTrue( wp_mail( 'valid@address.com', 'subject', 'body', "Cc: invalid-address\nBcc: @invalid.address", ABSPATH . 'non-existent-file.html' ) );
 
 		// Fatal errors.
 		$this->assertFalse( wp_mail( 'invalid.address', 'subject', 'body', '', array() ) );
@@ -455,6 +455,62 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that attachment file names are derived from array values when their
+	 * associative array keys are numeric.
+	 *
+	 * @ticket 28407
+	 */
+	public function test_wp_mail_sends_attachments_with_original_name() {
+		wp_mail(
+			'user@example.org',
+			'Subject',
+			'Hello World',
+			'',
+			array(
+				DIR_TESTDATA . '/images/canola.jpg',
+				DIR_TESTDATA . '/images/waffles.jpg',
+			)
+		);
+
+		/** @var PHPMailer $mailer */
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$attachments = $mailer->getAttachments();
+
+		$this->assertTrue( $mailer->attachmentExists(), 'There are no attachments.' );
+		$this->assertSame( $attachments[0][1], $attachments[0][2], 'The first attachment name did not match.' );
+		$this->assertSame( $attachments[1][1], $attachments[1][2], 'The second attachment name did not match.' );
+	}
+
+	/**
+	 * Test that attachment file names are derived from array keys when they
+	 * are non-empty strings.
+	 *
+	 * @ticket 28407
+	 */
+	public function test_wp_mail_sends_attachments_with_custom_name() {
+		wp_mail(
+			'user@example.org',
+			'Subject',
+			'Hello World',
+			'',
+			array(
+				'alonac.jpg'  => DIR_TESTDATA . '/images/canola.jpg',
+				'selffaw.jpg' => DIR_TESTDATA . '/images/waffles.jpg',
+			)
+		);
+
+		/** @var PHPMailer $mailer */
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$attachments = $mailer->getAttachments();
+
+		$this->assertTrue( $mailer->attachmentExists(), 'There are no attachments.' );
+		$this->assertSame( 'alonac.jpg', $attachments[0][2], 'The first attachment name did not match.' );
+		$this->assertSame( 'selffaw.jpg', $attachments[1][2], 'The second attachment name did not match.' );
+	}
+
+	/**
 	 * @ticket 50720
 	 */
 	public function test_phpmailer_validator() {
@@ -482,7 +538,7 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	 * Tests that AltBody is reset between each wp_mail call.
 	 */
 	public function test_wp_mail_resets_properties() {
-		$wp_mail_set_text_message = function ( $phpmailer ) {
+		$wp_mail_set_text_message = static function ( $phpmailer ) {
 			$phpmailer->AltBody = 'user1';
 		};
 
