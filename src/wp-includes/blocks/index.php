@@ -35,27 +35,35 @@ function register_core_block_style_handles() {
 	$suffix       = wp_scripts_get_suffix();
 	$wp_styles    = wp_styles();
 	$style_fields = array(
-		'editorStyle',
 		'style',
+		'editorStyle',
 	);
+	$file_exists  = array();
 
 	foreach ( $core_blocks_meta as $name => $schema ) {
 		foreach ( $style_fields as $style_field ) {
+			$style_path = "blocks/{$name}/style{$suffix}.css";
+			$path       = ABSPATH . WPINC . '/' . $style_path;
+
 			if ( ! isset( $schema[ $style_field ] ) ) {
 				$style_handle = 'style' === $style_field ? "wp-block-{$name}" : "wp-block-{$name}-editor";
-				$wp_styles->add(
-					$style_handle,
-					false
-				);
-				continue;
+				if ( ! isset( $file_exists[ $path ] ) ) {
+					$file_exists[ $path ] = file_exists( $path );
+				}
+				if ( ! $file_exists[ $path ] ) {
+					$wp_styles->add(
+						$style_handle,
+						false
+					);
+					continue;
+				}
+			}else {
+				$style_handle = $schema[$style_field];
 			}
-			$style_handle = $schema[ $style_field ];
 			if ( is_array( $style_handle ) ) {
 				continue;
 			}
-			$style_path = "blocks/{$name}/style{$suffix}.css";
 			$wp_styles->add( $style_handle, $includes_url . $style_path );
-			$path = ABSPATH . WPINC . '/' . $style_path;
 			$wp_styles->add_data( $style_handle, 'path', $path );
 
 			$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $path );
