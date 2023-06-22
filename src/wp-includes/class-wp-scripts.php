@@ -914,7 +914,7 @@ JS;
 			return '';
 		}
 
-		return in_array( 'async', $eligible, true ) ? 'async' : 'defer' ;
+		return in_array( 'async', $eligible, true ) ? 'async' : 'defer';
 	}
 
 	/**
@@ -965,8 +965,8 @@ JS;
 		}
 
 		// If the intended strategy is 'defer', filter out 'async'.
-		if ( $intended_strategy === 'defer' ) {
-			$eligible =  array( 'defer' );
+		if ( 'defer' === $intended_strategy ) {
+			$eligible = array( 'defer' );
 		}
 
 		$dependents = $this->get_dependents( $handle );
