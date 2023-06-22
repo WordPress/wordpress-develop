@@ -1428,7 +1428,7 @@ class WP_List_Table {
 	 * For the table initial view, information about initial orderby and order
 	 * should be provided via get_sortable_columns().
 	 *
-	 * @since 4.3.0
+	 * @since 6.3.0
 	 * @access public
 	 */
 	public function print_table_description() {
