@@ -233,7 +233,15 @@ switch ( $step ) {
 		</tr>
 		<tr>
 			<th scope="row"><label for="pwd"><?php _e( 'Password' ); ?></label></th>
-			<td><input name="pwd" id="pwd" type="text" aria-describedby="pwd-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'password', 'example password' ), ENT_QUOTES ); ?>" autocomplete="off" spellcheck="false" /></td>
+			<td>
+				<div class="wp-pwd">
+					<input name="pwd" id="pwd" type="password" class="regular-text" data-reveal="1" aria-describedby="pwd-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'password', 'example password' ), ENT_QUOTES ); ?>" autocomplete="off" spellcheck="false" />
+					<button type="button" class="button pwd-toggle hide-if-no-js" data-toggle="0" data-start-masked="1" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
+						<span class="dashicons dashicons-visibility"></span>
+						<span class="text"><?php _e( 'Show' ); ?></span>
+					</button>
+				</div>
+			</td>
 			<td id="pwd-desc"><?php _e( 'Your database password.' ); ?></td>
 		</tr>
 		<tr>
@@ -260,6 +268,7 @@ switch ( $step ) {
 	<p class="step"><input name="submit" type="submit" value="<?php echo htmlspecialchars( __( 'Submit' ), ENT_QUOTES ); ?>" class="button button-large" /></p>
 </form>
 		<?php
+		wp_print_scripts( 'password-toggle' );
 		break;
 
 	case 2:

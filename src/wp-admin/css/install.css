@@ -131,7 +131,7 @@ textarea {
 	font-size: 14px;
 	text-align: left;
 	padding: 10px 20px 10px 0;
-	width: 140px;
+	width: 115px;
 	vertical-align: top;
 }
 
@@ -151,6 +151,14 @@ textarea {
 	padding: 3px 5px;
 }
 
+.wp-pwd {
+	margin-top: 0;
+}
+
+.form-table .wp-pwd {
+	display: flex;
+}
+
 input,
 submit {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
@@ -161,7 +169,7 @@ submit {
 .form-table input[type=url],
 .form-table input[type=password],
 #pass-strength-result {
-	width: 218px;
+	width: 100%;
 }
 
 .form-table th p {
@@ -284,6 +292,11 @@ body.rtl,
 		display: block;
 		max-width: none;
 		box-sizing: border-box;
+	}
+
+	.form-table td input[type="password"] {
+		/* rtl:ignore */
+		padding-right: 2.5rem;
 	}
 
 	.wp-pwd #pass1 {
