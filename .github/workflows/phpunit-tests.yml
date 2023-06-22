@@ -26,6 +26,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
   LOCAL_PHP_MEMCACHED: ${{ false }}
@@ -54,6 +58,8 @@ jobs:
   test-php:
     name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.split_slow && ' slow tests' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
@@ -220,6 +226,9 @@ jobs:
   slack-notifications:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    permissions:
+      actions: read
+      contents: read
     needs: [ test-php ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
@@ -233,6 +242,8 @@ jobs:
   failed-workflow:
     name: Failed workflow tasks
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     needs: [ test-php, slack-notifications ]
     if: |
       always() &&

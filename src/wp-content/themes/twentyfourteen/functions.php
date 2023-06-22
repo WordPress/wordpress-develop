@@ -64,8 +64,15 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 		 * If you're building a theme based on Twenty Fourteen, use a find and
 		 * replace to change 'twentyfourteen' to the name of your theme in all
 		 * template files.
+		 *
+		 * Manual loading of text domain is not required after the introduction of
+		 * just in time translation loading in WordPress version 4.6.
+		 *
+		 * @ticket 58318
 		 */
-		load_theme_textdomain( 'twentyfourteen' );
+		if ( version_compare( $GLOBALS['wp_version'], '4.6', '<' ) ) {
+			load_theme_textdomain( 'twentyfourteen' );
+		}
 
 		/*
 		 * This theme styles the visual editor to resemble the theme style.
@@ -371,7 +378,7 @@ function twentyfourteen_scripts() {
 		);
 	}
 
-	wp_enqueue_script( 'twentyfourteen-script', get_template_directory_uri() . '/js/functions.js', array( 'jquery' ), '20210122', true );
+	wp_enqueue_script( 'twentyfourteen-script', get_template_directory_uri() . '/js/functions.js', array( 'jquery' ), '20230526', true );
 }
 add_action( 'wp_enqueue_scripts', 'twentyfourteen_scripts' );
 

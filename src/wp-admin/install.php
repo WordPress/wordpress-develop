@@ -224,7 +224,7 @@ if ( is_blog_installed() ) {
 	die(
 		'<h1>' . __( 'Already Installed' ) . '</h1>' .
 		'<p>' . __( 'You appear to have already installed WordPress. To reinstall please clear your old database tables first.' ) . '</p>' .
-		'<p class="step"><a href="' . esc_url( wp_login_url() ) . '" class="button button-large">' . __( 'Log In' ) . '</a></p>' .
+		'<p class="step"><a href="' . esc_url( wp_login_url() ) . '">' . __( 'Log In' ) . '</a></p>' .
 		'</body></html>'
 	);
 }
@@ -244,7 +244,7 @@ $mysql_compat  = version_compare( $mysql_version, $required_mysql_version, '>=' 
 
 $version_url = sprintf(
 	/* translators: %s: WordPress version. */
-	esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
+	esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
 	sanitize_title( $wp_version )
 );
 
@@ -443,7 +443,7 @@ switch ( $step ) {
 	</tr>
 </table>
 
-<p class="step"><a href="<?php echo esc_url( wp_login_url() ); ?>" class="button button-large"><?php _e( 'Log In' ); ?></a></p>
+<p class="step"><a href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log In' ); ?></a></p>
 
 			<?php
 		}

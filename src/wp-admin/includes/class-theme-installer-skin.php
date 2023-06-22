@@ -46,7 +46,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Action to perform before installing a theme.
+	 * Performs an action before installing a theme.
 	 *
 	 * @since 2.8.0
 	 */
@@ -66,7 +66,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	 * @since 5.5.0
 	 *
 	 * @param WP_Error $wp_error WP_Error object.
-	 * @return bool
+	 * @return bool True if the error should be hidden, false otherwise.
 	 */
 	public function hide_process_failed( $wp_error ) {
 		if (
@@ -81,7 +81,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Action to perform following a single theme install.
+	 * Performs an action following a single theme install.
 	 *
 	 * @since 2.8.0
 	 */
@@ -188,7 +188,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Check if the theme can be overwritten and output the HTML for overwriting a theme on upload.
+	 * Checks if the theme can be overwritten and outputs the HTML for overwriting a theme on upload.
 	 *
 	 * @since 5.5.0
 	 *

@@ -89,7 +89,7 @@ final class WP_Screen {
 	 * have a `$parent_base` of 'edit'.
 	 *
 	 * @since 3.3.0
-	 * @var string
+	 * @var string|null
 	 */
 	public $parent_base;
 
@@ -99,7 +99,7 @@ final class WP_Screen {
 	 * Some `$parent_file` values are 'edit.php?post_type=page', 'edit.php', and 'options-general.php'.
 	 *
 	 * @since 3.3.0
-	 * @var string
+	 * @var string|null
 	 */
 	public $parent_file;
 
@@ -1118,6 +1118,7 @@ final class WP_Screen {
 			<?php _e( 'Some screen elements can be shown or hidden by using the checkboxes.' ); ?>
 			<?php _e( 'Expand or collapse the elements by clicking on their headings, and arrange them by dragging their headings or by clicking on the up and down arrows.' ); ?>
 		</p>
+		<div class="metabox-prefs-container">
 		<?php
 
 		meta_box_prefs( $this );
@@ -1137,6 +1138,7 @@ final class WP_Screen {
 			echo _x( 'Welcome', 'Welcome panel' ) . "</label>\n";
 		}
 		?>
+		</div>
 		</fieldset>
 		<?php
 	}

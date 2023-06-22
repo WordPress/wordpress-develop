@@ -61,8 +61,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		$this->show_autoupdates = wp_is_auto_update_enabled_for_type( 'plugin' )
 			&& current_user_can( 'update_plugins' )
-			&& ( ! is_multisite() || $this->screen->in_admin( 'network' ) )
-			&& ! in_array( $status, array( 'mustuse', 'dropins' ), true );
+			&& ( ! is_multisite() || $this->screen->in_admin( 'network' ) );
 	}
 
 	/**
@@ -460,7 +459,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 	/**
 	 * @global string $status
-	 * @return array
+	 *
+	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		global $status;
@@ -471,7 +471,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			'description' => __( 'Description' ),
 		);
 
-		if ( $this->show_autoupdates ) {
+		if ( $this->show_autoupdates && ! in_array( $status, array( 'mustuse', 'dropins' ), true ) ) {
 			$columns['auto-updates'] = __( 'Automatic Updates' );
 		}
 
@@ -991,7 +991,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$checkbox = '';
 		} else {
 			$checkbox = sprintf(
-				'<label class="screen-reader-text" for="%1$s">%2$s</label>' .
+				'<label class="label-covers-full-cell" for="%1$s"><span class="screen-reader-text">%2$s</span></label>' .
 				'<input type="checkbox" name="checked[]" value="%3$s" id="%1$s" />',
 				$checkbox_id,
 				/* translators: Hidden accessibility text. %s: Plugin name. */
@@ -1162,7 +1162,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					echo '</td>';
 					break;
 				case 'auto-updates':
-					if ( ! $this->show_autoupdates ) {
+					if ( ! $this->show_autoupdates || in_array( $status, array( 'mustuse', 'dropins' ), true ) ) {
 						break;
 					}
 
