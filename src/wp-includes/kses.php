@@ -1079,12 +1079,12 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 	$content = wp_kses_stripslashes( $content );
 
 	// It matched a ">" character.
-	if ( '<' !== substr( $content, 0, 1 ) ) {
+	if ( ! str_starts_with( $content, '<' ) ) {
 		return '&gt;';
 	}
 
 	// Allow HTML comments.
-	if ( '<!--' === substr( $content, 0, 4 ) ) {
+	if ( str_starts_with( $content, '<!--' ) ) {
 		$content = str_replace( array( '<!--', '-->' ), '', $content );
 		while ( ( $newstring = wp_kses( $content, $allowed_html, $allowed_protocols ) ) != $content ) {
 			$content = $newstring;
@@ -2499,7 +2499,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		$gradient_attr   = false;
 		$is_custom_var   = false;
 
-		if ( strpos( $css_item, ':' ) === false ) {
+		if ( ! str_contains( $css_item, ':' ) ) {
 			$found = true;
 		} else {
 			$parts        = explode( ':', $css_item, 2 );
