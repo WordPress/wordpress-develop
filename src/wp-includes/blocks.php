@@ -219,11 +219,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	// Check whether styles should have a ".min" suffix or not.
 	$suffix = SCRIPT_DEBUG ? '' : '.min';
 	if ( $is_core_block ) {
-		if ( 'editorStyle' === $field_name ) {
-			$style_path = "editor$suffix.css";
-		} else {
-			$style_path = "style$suffix.css";
-		}
+		$style_path = ( 'editorStyle' === $field_name ) ? "editor$suffix.css" : "style$suffix.css";
 	}
 
 	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
