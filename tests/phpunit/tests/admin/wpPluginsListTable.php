@@ -11,9 +11,9 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	 */
 	public $table = false;
 
-	/*
- 	 * An admin user ID.
-   	 *
+	/**
+	 * An admin user ID.
+  	 *
 	 * @var int
 	 */
 	private static $admin_id;
@@ -35,7 +35,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	}
 
 	/**
- 	 * Creates fake plugin data.
+	 * Creates fake plugin data.
 	 * @var array
 	 */
 	public $fake_plugin = array(
@@ -101,7 +101,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that WP_Plugins_List_Table::prepare_items() 
+	 * Tests that WP_Plugins_List_Table::prepare_items()
 	 * applies 'plugins_list' filters.
 	 *
 	 * @ticket 57278
