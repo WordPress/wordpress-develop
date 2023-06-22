@@ -191,8 +191,8 @@ JS;
 		$expected .= wp_get_inline_script_tag(
 			"console.log(\"before last\");\n",
 			array(
-				'id'           => 'ms-i1-1-js-before',
-				'type'         => 'text/javascript',
+				'id'   => 'ms-i1-1-js-before',
+				'type' => 'text/javascript',
 			)
 		);
 		$expected .= "<script type='text/javascript' src='http://example.org/ms-i1-1.js' id='ms-i1-1-js' {$strategy} data-wp-strategy='{$strategy}'></script>\n";
@@ -290,124 +290,124 @@ JS;
 	 */
 	public function get_data_to_filter_eligible_strategies() {
 		return array(
-			'no_dependents'                        => array(
-				'set_up'     => static function () {
+			'no_dependents'                       => array(
+				'set_up'   => static function () {
 					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
 					return 'foo';
 				},
-				'expected'   => array( 'defer' ),
+				'expected' => array( 'defer' ),
 			),
-			'one_delayed_dependent'                => array(
-				'set_up'     => static function () {
+			'one_delayed_dependent'               => array(
+				'set_up'   => static function () {
 					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
 					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
 					return 'foo';
 				},
-				'expected'   => array( 'defer' ),
+				'expected' => array( 'defer' ),
 			),
-			'one_blocking_dependent'               => array(
-				'set_up'     => static function () {
+			'one_blocking_dependent'              => array(
+				'set_up'   => static function () {
 					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
 					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null );
 					return 'foo';
 				},
-				'expected'   => array(),
+				'expected' => array(),
 			),
-			'one_blocking_dependent_not_enqueued'  => array(
-				'set_up'     => static function () {
+			'one_blocking_dependent_not_enqueued' => array(
+				'set_up'   => static function () {
 					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
 					wp_register_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null );
 					return 'foo';
 				},
-				'expected'   => array( 'defer' ), // Because bar was not enqueued, only foo was.
+				'expected' => array( 'defer' ), // Because bar was not enqueued, only foo was.
 			),
-			'two_delayed_dependents'               => array(
-				'set_up'     => static function () {
+			'two_delayed_dependents'              => array(
+				'set_up'   => static function () {
 					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
 					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
 					wp_enqueue_script( 'baz', 'https://example.com/baz.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
 					return 'foo';
 				},
-				'expected'   => array( 'defer' ),
+				'expected' => array( 'defer' ),
 			),
-			'recursion_not_delayed'                => array(
-				'set_up'     => static function () {
+			'recursion_not_delayed'               => array(
+				'set_up'   => static function () {
 					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array( 'foo' ), null );
 					return 'foo';
 				},
-				'expected'   => array(),
+				'expected' => array(),
 			),
-			'recursion_yes_delayed'                => array(
-				'set_up'     => static function () {
+			'recursion_yes_delayed'               => array(
+				'set_up'   => static function () {
 					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
 					return 'foo';
 				},
-				'expected'   => array( 'defer' ),
+				'expected' => array( 'defer' ),
 			),
-			'recursion_triple_level'               => array(
-				'set_up'     => static function () {
+			'recursion_triple_level'              => array(
+				'set_up'   => static function () {
 					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array( 'baz' ), null, array( 'strategy' => 'defer' ) );
 					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
 					wp_enqueue_script( 'baz', 'https://example.com/bar.js', array( 'bar' ), null, array( 'strategy' => 'defer' ) );
 					return 'foo';
 				},
-				'expected'   => array( 'defer' ),
+				'expected' => array( 'defer' ),
 			),
-			'async_only_with_async_dependency'     => array(
-				'set_up'     => static function () {
+			'async_only_with_async_dependency'    => array(
+				'set_up'   => static function () {
 					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'async' ) );
 					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null, array( 'strategy' => 'async' ) );
 					return 'foo';
 				},
-				'expected'   => array( 'defer', 'async' ),
+				'expected' => array( 'defer', 'async' ),
 			),
-			'async_only_with_defer_dependency'     => array(
-				'set_up'     => static function () {
+			'async_only_with_defer_dependency'    => array(
+				'set_up'   => static function () {
 					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'async' ) );
 					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null, array( 'strategy' => 'defer' ) );
 					return 'foo';
 				},
-				'expected'   => array( 'defer' ),
+				'expected' => array( 'defer' ),
 			),
 			'async_only_with_blocking_dependency' => array(
-				'set_up'     => static function () {
+				'set_up'   => static function () {
 					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'async' ) );
 					wp_enqueue_script( 'bar', 'https://example.com/bar.js', array( 'foo' ), null );
 					return 'foo';
 				},
-				'expected'   => array(),
+				'expected' => array(),
 			),
-			'defer_with_inline_after_script' => array(
-				'set_up'     => static function () {
+			'defer_with_inline_after_script'      => array(
+				'set_up'   => static function () {
 					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
 					wp_add_inline_script( 'foo', 'console.log("foo")', 'after' );
 					return 'foo';
 				},
-				'expected'   => array(),
+				'expected' => array(),
 			),
-			'defer_with_inline_before_script' => array(
-				'set_up'     => static function () {
+			'defer_with_inline_before_script'     => array(
+				'set_up'   => static function () {
 					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'defer' ) );
 					wp_add_inline_script( 'foo', 'console.log("foo")', 'before' );
 					return 'foo';
 				},
-				'expected'   => array( 'defer' ),
+				'expected' => array( 'defer' ),
 			),
-			'async_with_inline_after_script' => array(
-				'set_up'     => static function () {
+			'async_with_inline_after_script'      => array(
+				'set_up'   => static function () {
 					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'async' ) );
 					wp_add_inline_script( 'foo', 'console.log("foo")', 'after' );
 					return 'foo';
 				},
-				'expected'   => array(),
+				'expected' => array(),
 			),
-			'async_with_inline_before_script' => array(
-				'set_up'     => static function () {
+			'async_with_inline_before_script'     => array(
+				'set_up'   => static function () {
 					wp_enqueue_script( 'foo', 'https://example.com/foo.js', array(), null, array( 'strategy' => 'async' ) );
 					wp_add_inline_script( 'foo', 'console.log("foo")', 'before' );
 					return 'foo';
 				},
-				'expected'   => array( 'defer', 'async' ),
+				'expected' => array( 'defer', 'async' ),
 			),
 		);
 	}
@@ -428,7 +428,7 @@ JS;
 	public function test_filter_eligible_strategies( $set_up, $expected ) {
 		$handle = $set_up();
 
-		$wp_scripts_reflection       = new ReflectionClass( WP_Scripts::class );
+		$wp_scripts_reflection      = new ReflectionClass( WP_Scripts::class );
 		$filter_eligible_strategies = $wp_scripts_reflection->getMethod( 'filter_eligible_strategies' );
 		$filter_eligible_strategies->setAccessible( true );
 		$this->assertSame( $expected, $filter_eligible_strategies->invokeArgs( wp_scripts(), array( $handle ) ), 'Expected return value of WP_Scripts::filter_eligible_strategies to match.' );
