@@ -4891,8 +4891,8 @@ EOF;
 
 		// Skip logic if context is `template`.
 		$this->assertSame(
-			wp_get_loading_optimization_attributes( 'img', $attr, 'template' ),
 			array(),
+			wp_get_loading_optimization_attributes( 'img', $attr, 'template' ),
 			'Skip logic and return blank array for block template.'
 		);
 	}
@@ -4907,8 +4907,8 @@ EOF;
 
 		// Skip logic if context is `template`.
 		$this->assertSame(
-			wp_get_loading_optimization_attributes( 'img', $attr, 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER ),
 			array( 'fetchpriority' => 'high' ),
+			wp_get_loading_optimization_attributes( 'img', $attr, 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER ),
 			'Images in the header block template part should not be lazy-loaded and first large image is set high fetchpriority.'
 		);
 	}
