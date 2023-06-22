@@ -51,9 +51,14 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 					'args'                => array(
 						'slug'   => array(
 							'type'        => 'string',
-							'required'    => true,
 							'description' => __( 'WordPress.org plugin directory slug.' ),
 							'pattern'     => '[\w\-]+',
+						),
+						'url'    => array(
+							'type'        => 'string',
+							'description' => __( 'A URL to a zip or tar archive.' ),
+							'format'      => 'uri',
+							'pattern'     => '\\.(zip|tar|tar\\.gz)$',
 						),
 						'status' => array(
 							'description' => __( 'The plugin activation status.' ),
@@ -62,6 +67,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 							'default'     => 'inactive',
 						),
 					),
+					'validate_callback'   => array( $this, 'validate_create_plugin_params' ),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
@@ -278,39 +284,56 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 
-		$slug = $request['slug'];
+		$language_packs = array();
 
-		// Verify filesystem is accessible first.
-		$filesystem_available = $this->is_filesystem_available();
-		if ( is_wp_error( $filesystem_available ) ) {
-			return $filesystem_available;
-		}
+		if ( isset( $request['slug'] ) ) {
+			$slug = $request['slug'];
 
-		$api = plugins_api(
-			'plugin_information',
-			array(
-				'slug'   => $slug,
-				'fields' => array(
-					'sections'       => false,
-					'language_packs' => true,
-				),
-			)
-		);
-
-		if ( is_wp_error( $api ) ) {
-			if ( false !== strpos( $api->get_error_message(), 'Plugin not found.' ) ) {
-				$api->add_data( array( 'status' => 404 ) );
-			} else {
-				$api->add_data( array( 'status' => 500 ) );
+			// Verify filesystem is accessible first.
+			$filesystem_available = $this->is_filesystem_available();
+			if ( is_wp_error( $filesystem_available ) ) {
+				return $filesystem_available;
 			}
 
-			return $api;
+			$api = plugins_api(
+				'plugin_information',
+				array(
+					'slug'   => $slug,
+					'fields' => array(
+						'sections'       => false,
+						'language_packs' => true,
+					),
+				)
+			);
+
+			if ( is_wp_error( $api ) ) {
+				if ( false !== strpos( $api->get_error_message(), 'Plugin not found.' ) ) {
+					$api->add_data( array( 'status' => 404 ) );
+				} else {
+					$api->add_data( array( 'status' => 500 ) );
+				}
+
+				return $api;
+			}
+
+			$plugin_url = $api->download_link;
+
+			$language_packs = array_map(
+				static function ( $item ) {
+					return (object) $item;
+				},
+				$api->language_packs
+			);
+		}
+
+		if ( isset( $request['url'] ) ) {
+			$plugin_url = $request['url'];
 		}
 
 		$skin     = new WP_Ajax_Upgrader_Skin();
 		$upgrader = new Plugin_Upgrader( $skin );
 
-		$result = $upgrader->install( $api->download_link );
+		$result = $upgrader->install( $plugin_url );
 
 		if ( is_wp_error( $result ) ) {
 			$result->add_data( array( 'status' => 500 ) );
@@ -380,16 +403,9 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		/** This filter is documented in wp-includes/update.php */
 		$installed_locales = apply_filters( 'plugins_update_check_locales', $installed_locales );
 
-		$language_packs = array_map(
-			static function( $item ) {
-				return (object) $item;
-			},
-			$api->language_packs
-		);
-
 		$language_packs = array_filter(
 			$language_packs,
-			static function( $pack ) use ( $installed_locales ) {
+			static function ( $pack ) use ( $installed_locales ) {
 				return in_array( $pack->language, $installed_locales, true );
 			}
 		);
@@ -779,6 +795,30 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		$validated = validate_file( plugin_basename( $file ) );
 
 		return 0 === $validated;
+	}
+
+	/**
+	 * When installing a plugin via a POST create request, validate that one of either "url" or "slug" are present.
+	 * If both are present, the plugin URL must be a wordpress.org URL.
+	 *
+	 * @param WP_REST_Request $request
+	 *
+	 * @return bool
+	 */
+	public function validate_create_plugin_params( $request ) {
+
+		$xor_param_required      = array( 'slug', 'url' );
+		$request_params          = $request->get_params();
+		$required_params_present = array_intersect( $xor_param_required, array_keys( $request_params ) );
+
+		switch ( count( $required_params_present ) ) {
+			case 1:
+				return true;
+			case 2:
+				return wp_parse_url( $request_params['url'], PHP_URL_HOST ) === 'downloads.wordpress.org';
+			default:
+				return false;
+		}
 	}
 
 	/**

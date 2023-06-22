@@ -413,6 +413,93 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 56221
+	 */
+	public function test_create_item_from_url_and_activate() {
+		wp_set_current_user( self::$super_admin );
+		$this->setup_plugin_download();
+
+		$request = new WP_REST_Request( 'POST', self::BASE );
+		$request->set_body_params(
+			array(
+				'url'    => 'https://downloads.wordpress.org/plugin/link-manager.zip',
+				'status' => 'active',
+			)
+		);
+
+		$response = rest_do_request( $request );
+		$this->assertNotWPError( $response->as_error() );
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 'Link Manager', $response->get_data()['name'] );
+		$this->assertTrue( is_plugin_active( 'link-manager/link-manager.php' ) );
+	}
+
+	/**
+	 * @ticket 56221
+	 */
+	public function test_create_validate_require_one_of_slug_or_url_neither_present() {
+		wp_set_current_user( self::$super_admin );
+		$this->setup_plugin_download();
+
+		$request = new WP_REST_Request( 'POST', self::BASE );
+		$request->set_body_params(
+			array(
+				'status' => 'active',
+			)
+		);
+
+		$response = rest_do_request( $request );
+		/** @var WP_Error $response_error */
+		$response_error = $response->as_error();
+		$this->assertWPError( $response_error );
+		$this->assertEquals( 'Invalid parameters.', $response_error->get_error_message() );
+	}
+
+	/**
+	 * @ticket 56221
+	 */
+	public function test_create_validate_require_one_of_slug_or_url_both_present_wordpress_org_url() {
+		wp_set_current_user( self::$super_admin );
+		$this->setup_plugin_download();
+
+		$request = new WP_REST_Request( 'POST', self::BASE );
+		$request->set_body_params(
+			array(
+				'slug'   => 'link-manager',
+				'url'    => 'https://downloads.wordpress.org/plugin/link-manager.zip',
+				'status' => 'active',
+			)
+		);
+
+		$response = rest_do_request( $request );
+		$err      = $response->as_error();
+		$this->assertNotWPError( $response->as_error() );
+	}
+
+	/**
+	 * @ticket 56221
+	 */
+	public function test_create_validate_require_one_of_slug_or_url_both_present_non_wordpress_org_url() {
+		wp_set_current_user( self::$super_admin );
+		$this->setup_plugin_download();
+
+		$request = new WP_REST_Request( 'POST', self::BASE );
+		$request->set_body_params(
+			array(
+				'slug'   => 'link-manager',
+				'url'    => 'https://example.org/link-manager.zip',
+				'status' => 'active',
+			)
+		);
+
+		$response = rest_do_request( $request );
+		/** @var WP_Error $response_error */
+		$response_error = $response->as_error();
+		$this->assertWPError( $response_error );
+		$this->assertEquals( 'Invalid parameters.', $response_error->get_error_message() );
+	}
+
+	/**
 	 * @ticket 50321
 	 */
 	public function test_create_item_and_activate_errors_if_no_permission_to_activate_plugin() {
