@@ -829,16 +829,16 @@ function xmlrpc_removepostdata( $content ) {
 function wp_extract_urls( $content ) {
 	preg_match_all(
 		"#([\"']?)("
-			. '(?:([\w-]+:)?//?)'
-			. '[^\s()<>]+'
-			. '[.]'
-			. '(?:'
-				. '\([\w\d]+\)|'
-				. '(?:'
-					. "[^`!()\[\]{}:'\".,<>«»“”‘’\s]|"
-					. '(?:[:]\d+)?/?'
-				. ')+'
-			. ')'
+		. '(?:([\w-]+:)?//?)'
+		. '[^\s()<>]+'
+		. '[.]'
+		. '(?:'
+		. '\([\w\d]+\)|'
+		. '(?:'
+		. "[^`!()\[\]{}:'\".,<>«»“”‘’\s]|"
+		. '(?:[:]\d+)?/?'
+		. ')+'
+		. ')'
 		. ")\\1#",
 		$content,
 		$post_links
@@ -846,7 +846,7 @@ function wp_extract_urls( $content ) {
 
 	$post_links = array_unique(
 		array_map(
-			static function( $link ) {
+			static function ( $link ) {
 				// Decode to replace valid entities, like &amp;.
 				$link = html_entity_decode( $link );
 				// Maintain backward compatibility by removing extraneous semi-colons (`;`).
@@ -2946,7 +2946,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 	clearstatcache();
 
 	// Set correct file permissions.
-	$stat  = @ stat( dirname( $new_file ) );
+	$stat  = @stat( dirname( $new_file ) );
 	$perms = $stat['mode'] & 0007777;
 	$perms = $perms & 0000666;
 	chmod( $new_file, $perms );
@@ -3317,9 +3317,9 @@ function wp_get_image_mime( $file ) {
 		 */
 		$magic = bin2hex( $magic );
 		if (
-			// RIFF.
+				// RIFF.
 			( str_starts_with( $magic, '52494646' ) ) &&
-			// WEBP.
+				// WEBP.
 			( 16 === strpos( $magic, '57454250' ) )
 		) {
 			$mime = 'image/webp';
@@ -3379,7 +3379,7 @@ function wp_get_mime_types() {
 			'ogv'                          => 'video/ogg',
 			'webm'                         => 'video/webm',
 			'mkv'                          => 'video/x-matroska',
-			'3gp|3gpp'                     => 'video/3gpp',  // Can also be audio.
+			'3gp|3gpp'                     => 'video/3gpp', // Can also be audio.
 			'3g2|3gp2'                     => 'video/3gpp2', // Can also be audio.
 			// Text formats.
 			'txt|asc|c|cc|h|srt'           => 'text/plain',
@@ -3713,7 +3713,7 @@ function wp_die( $message = '', $title = '', $args = array() ) {
 		$callback = apply_filters( 'wp_die_xmlrpc_handler', '_xmlrpc_wp_die_handler' );
 	} elseif ( wp_is_xml_request()
 		|| isset( $wp_query ) &&
-			( function_exists( 'is_feed' ) && is_feed()
+		( function_exists( 'is_feed' ) && is_feed()
 			|| function_exists( 'is_comment_feed' ) && is_comment_feed()
 			|| function_exists( 'is_trackback' ) && is_trackback() ) ) {
 		/**
@@ -3803,142 +3803,142 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 			$dir_attr = get_language_attributes();
 		}
 		?>
-<!DOCTYPE html>
-<html <?php echo $dir_attr; ?>>
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=<?php echo $parsed_args['charset']; ?>" />
-	<meta name="viewport" content="width=device-width">
-		<?php
-		if ( function_exists( 'wp_robots' ) && function_exists( 'wp_robots_no_robots' ) && function_exists( 'add_filter' ) ) {
-			add_filter( 'wp_robots', 'wp_robots_no_robots' );
-			wp_robots();
-		}
-		?>
-	<title><?php echo $title; ?></title>
-	<style type="text/css">
-		html {
-			background: #f1f1f1;
-		}
-		body {
-			background: #fff;
-			border: 1px solid #ccd0d4;
-			color: #444;
-			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-			margin: 2em auto;
-			padding: 1em 2em;
-			max-width: 700px;
-			-webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
-			box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
-		}
-		h1 {
-			border-bottom: 1px solid #dadada;
-			clear: both;
-			color: #666;
-			font-size: 24px;
-			margin: 30px 0 0 0;
-			padding: 0;
-			padding-bottom: 7px;
-		}
-		#error-page {
-			margin-top: 50px;
-		}
-		#error-page p,
-		#error-page .wp-die-message {
-			font-size: 14px;
-			line-height: 1.5;
-			margin: 25px 0 20px;
-		}
-		#error-page code {
-			font-family: Consolas, Monaco, monospace;
-		}
-		ul li {
-			margin-bottom: 10px;
-			font-size: 14px ;
-		}
-		a {
-			color: #0073aa;
-		}
-		a:hover,
-		a:active {
-			color: #006799;
-		}
-		a:focus {
-			color: #124964;
-			-webkit-box-shadow:
-				0 0 0 1px #5b9dd9,
-				0 0 2px 1px rgba(30, 140, 190, 0.8);
-			box-shadow:
-				0 0 0 1px #5b9dd9,
-				0 0 2px 1px rgba(30, 140, 190, 0.8);
-			outline: none;
-		}
-		.button {
-			background: #f3f5f6;
-			border: 1px solid #016087;
-			color: #016087;
-			display: inline-block;
-			text-decoration: none;
-			font-size: 13px;
-			line-height: 2;
-			height: 28px;
-			margin: 0;
-			padding: 0 10px 1px;
-			cursor: pointer;
-			-webkit-border-radius: 3px;
-			-webkit-appearance: none;
-			border-radius: 3px;
-			white-space: nowrap;
-			-webkit-box-sizing: border-box;
-			-moz-box-sizing:    border-box;
-			box-sizing:         border-box;
+						<!DOCTYPE html>
+						<html <?php echo $dir_attr; ?>>
+						<head>
+							<meta http-equiv="Content-Type" content="text/html; charset=<?php echo $parsed_args['charset']; ?>" />
+							<meta name="viewport" content="width=device-width">
+								<?php
+								if ( function_exists( 'wp_robots' ) && function_exists( 'wp_robots_no_robots' ) && function_exists( 'add_filter' ) ) {
+									add_filter( 'wp_robots', 'wp_robots_no_robots' );
+									wp_robots();
+								}
+								?>
+							<title><?php echo $title; ?></title>
+							<style type="text/css">
+								html {
+									background: #f1f1f1;
+								}
+								body {
+									background: #fff;
+									border: 1px solid #ccd0d4;
+									color: #444;
+									font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+									margin: 2em auto;
+									padding: 1em 2em;
+									max-width: 700px;
+									-webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+									box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+								}
+								h1 {
+									border-bottom: 1px solid #dadada;
+									clear: both;
+									color: #666;
+									font-size: 24px;
+									margin: 30px 0 0 0;
+									padding: 0;
+									padding-bottom: 7px;
+								}
+								#error-page {
+									margin-top: 50px;
+								}
+								#error-page p,
+								#error-page .wp-die-message {
+									font-size: 14px;
+									line-height: 1.5;
+									margin: 25px 0 20px;
+								}
+								#error-page code {
+									font-family: Consolas, Monaco, monospace;
+								}
+								ul li {
+									margin-bottom: 10px;
+									font-size: 14px ;
+								}
+								a {
+									color: #0073aa;
+								}
+								a:hover,
+								a:active {
+									color: #006799;
+								}
+								a:focus {
+									color: #124964;
+									-webkit-box-shadow:
+										0 0 0 1px #5b9dd9,
+										0 0 2px 1px rgba(30, 140, 190, 0.8);
+									box-shadow:
+										0 0 0 1px #5b9dd9,
+										0 0 2px 1px rgba(30, 140, 190, 0.8);
+									outline: none;
+								}
+								.button {
+									background: #f3f5f6;
+									border: 1px solid #016087;
+									color: #016087;
+									display: inline-block;
+									text-decoration: none;
+									font-size: 13px;
+									line-height: 2;
+									height: 28px;
+									margin: 0;
+									padding: 0 10px 1px;
+									cursor: pointer;
+									-webkit-border-radius: 3px;
+									-webkit-appearance: none;
+									border-radius: 3px;
+									white-space: nowrap;
+									-webkit-box-sizing: border-box;
+									-moz-box-sizing:    border-box;
+									box-sizing:         border-box;
 
-			vertical-align: top;
-		}
+									vertical-align: top;
+								}
 
-		.button.button-large {
-			line-height: 2.30769231;
-			min-height: 32px;
-			padding: 0 12px;
-		}
+								.button.button-large {
+									line-height: 2.30769231;
+									min-height: 32px;
+									padding: 0 12px;
+								}
 
-		.button:hover,
-		.button:focus {
-			background: #f1f1f1;
-		}
+								.button:hover,
+								.button:focus {
+									background: #f1f1f1;
+								}
 
-		.button:focus {
-			background: #f3f5f6;
-			border-color: #007cba;
-			-webkit-box-shadow: 0 0 0 1px #007cba;
-			box-shadow: 0 0 0 1px #007cba;
-			color: #016087;
-			outline: 2px solid transparent;
-			outline-offset: 0;
-		}
+								.button:focus {
+									background: #f3f5f6;
+									border-color: #007cba;
+									-webkit-box-shadow: 0 0 0 1px #007cba;
+									box-shadow: 0 0 0 1px #007cba;
+									color: #016087;
+									outline: 2px solid transparent;
+									outline-offset: 0;
+								}
 
-		.button:active {
-			background: #f3f5f6;
-			border-color: #7e8993;
-			-webkit-box-shadow: none;
-			box-shadow: none;
-		}
+								.button:active {
+									background: #f3f5f6;
+									border-color: #7e8993;
+									-webkit-box-shadow: none;
+									box-shadow: none;
+								}
 
-		<?php
-		if ( 'rtl' === $text_direction ) {
-			echo 'body { font-family: Tahoma, Arial; }';
-		}
-		?>
-	</style>
-</head>
-<body id="error-page">
-<?php endif; // ! did_action( 'admin_head' ) ?>
-	<?php echo $message; ?>
-</body>
-</html>
-	<?php
-	if ( $parsed_args['exit'] ) {
-		die();
-	}
+								<?php
+								if ( 'rtl' === $text_direction ) {
+									echo 'body { font-family: Tahoma, Arial; }';
+								}
+								?>
+							</style>
+						</head>
+						<body id="error-page">
+			<?php endif; // ! did_action( 'admin_head' ) ?>
+				<?php echo $message; ?>
+			</body>
+			</html>
+				<?php
+				if ( $parsed_args['exit'] ) {
+					die();
+				}
 }
 
 /**
@@ -4498,6 +4498,12 @@ function wp_send_json_error( $data = null, $status_code = null, $options = 0 ) {
 						'message' => $message,
 					);
 				}
+				if ( is_null( $status_code ) ) {
+					$error_data = $data->get_error_data( $code );
+					if ( ! empty( $error_data['status'] ) ) {
+						$status_code = $error_data['status'];
+					}
+				}
 			}
 
 			$response['data'] = $result;
@@ -4785,7 +4791,7 @@ function smilies_init() {
 		// New subpattern?
 		if ( $firstchar != $subchar ) {
 			if ( '' !== $subchar ) {
-				$wp_smiliessearch .= ')(?=' . $spaces . '|$)';  // End previous "subpattern".
+				$wp_smiliessearch .= ')(?=' . $spaces . '|$)'; // End previous "subpattern".
 				$wp_smiliessearch .= '|(?<=' . $spaces . '|^)'; // Begin another "subpattern".
 			}
 			$subchar           = $firstchar;
@@ -6899,9 +6905,9 @@ function wp_find_hierarchy_loop_tortoise_hare( $callback, $start, $override = ar
 	// Increment hare two steps.
 	while (
 		$tortoise
-	&&
+		&&
 		( $evanescent_hare = isset( $override[ $hare ] ) ? $override[ $hare ] : call_user_func_array( $callback, array_merge( array( $hare ), $callback_args ) ) )
-	&&
+		&&
 		( $hare = isset( $override[ $evanescent_hare ] ) ? $override[ $evanescent_hare ] : call_user_func_array( $callback, array_merge( array( $evanescent_hare ), $callback_args ) ) )
 	) {
 		if ( $_return_loop ) {
@@ -7107,7 +7113,7 @@ function _device_can_upload() {
 	if ( strpos( $ua, 'iPhone' ) !== false
 		|| strpos( $ua, 'iPad' ) !== false
 		|| strpos( $ua, 'iPod' ) !== false ) {
-			return preg_match( '#OS ([\d_]+) like Mac OS X#', $ua, $version ) && version_compare( $version[1], '6', '>=' );
+		return preg_match( '#OS ([\d_]+) like Mac OS X#', $ua, $version ) && version_compare( $version[1], '6', '>=' );
 	}
 
 	return true;
@@ -7224,39 +7230,39 @@ function wp_auth_check_html() {
 	$wrap_class  = $same_domain ? 'hidden' : 'hidden fallback';
 
 	?>
-	<div id="wp-auth-check-wrap" class="<?php echo $wrap_class; ?>">
-	<div id="wp-auth-check-bg"></div>
-	<div id="wp-auth-check">
-	<button type="button" class="wp-auth-check-close button-link"><span class="screen-reader-text">
-		<?php
-		/* translators: Hidden accessibility text. */
-		_e( 'Close dialog' );
-		?>
-	</span></button>
-	<?php
+				<div id="wp-auth-check-wrap" class="<?php echo $wrap_class; ?>">
+				<div id="wp-auth-check-bg"></div>
+				<div id="wp-auth-check">
+				<button type="button" class="wp-auth-check-close button-link"><span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Close dialog' );
+					?>
+				</span></button>
+				<?php
 
-	if ( $same_domain ) {
-		$login_src = add_query_arg(
-			array(
-				'interim-login' => '1',
-				'wp_lang'       => get_user_locale(),
-			),
-			$login_url
-		);
-		?>
-		<div id="wp-auth-check-form" class="loading" data-src="<?php echo esc_url( $login_src ); ?>"></div>
-		<?php
-	}
+				if ( $same_domain ) {
+					$login_src = add_query_arg(
+						array(
+							'interim-login' => '1',
+							'wp_lang'       => get_user_locale(),
+						),
+						$login_url
+					);
+					?>
+								<div id="wp-auth-check-form" class="loading" data-src="<?php echo esc_url( $login_src ); ?>"></div>
+								<?php
+				}
 
-	?>
-	<div class="wp-auth-fallback">
-		<p><b class="wp-auth-fallback-expired" tabindex="0"><?php _e( 'Session expired' ); ?></b></p>
-		<p><a href="<?php echo esc_url( $login_url ); ?>" target="_blank"><?php _e( 'Please log in again.' ); ?></a>
-		<?php _e( 'The login page will open in a new tab. After logging in you can close it and return to this page.' ); ?></p>
-	</div>
-	</div>
-	</div>
-	<?php
+				?>
+				<div class="wp-auth-fallback">
+					<p><b class="wp-auth-fallback-expired" tabindex="0"><?php _e( 'Session expired' ); ?></b></p>
+					<p><a href="<?php echo esc_url( $login_url ); ?>" target="_blank"><?php _e( 'Please log in again.' ); ?></a>
+					<?php _e( 'The login page will open in a new tab. After logging in you can close it and return to this page.' ); ?></p>
+				</div>
+				</div>
+				</div>
+				<?php
 }
 
 /**
@@ -7488,20 +7494,20 @@ function wp_post_preview_js() {
 	$name = 'wp-preview-' . (int) $post->ID;
 
 	?>
-	<script>
-	( function() {
-		var query = document.location.search;
+				<script>
+				( function() {
+					var query = document.location.search;
 
-		if ( query && query.indexOf( 'preview=true' ) !== -1 ) {
-			window.name = '<?php echo $name; ?>';
-		}
+					if ( query && query.indexOf( 'preview=true' ) !== -1 ) {
+						window.name = '<?php echo $name; ?>';
+					}
 
-		if ( window.addEventListener ) {
-			window.addEventListener( 'unload', function() { window.name = ''; }, false );
-		}
-	}());
-	</script>
-	<?php
+					if ( window.addEventListener ) {
+						window.addEventListener( 'unload', function() { window.name = ''; }, false );
+					}
+				}());
+				</script>
+				<?php
 }
 
 /**
