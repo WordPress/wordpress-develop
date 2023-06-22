@@ -1258,33 +1258,33 @@ class wpdb {
 
 				$message .= '<p>' . sprintf(
 					/* translators: %s: Database name. */
-						__( 'The database server could be connected to (which means your username and password is okay) but the %s database could not be selected.' ),
-						'<code>' . htmlspecialchars( $db, ENT_QUOTES ) . '</code>'
-					) . "</p>\n";
+                    __( 'The database server could be connected to (which means your username and password is okay) but the %s database could not be selected.' ),
+					'<code>' . htmlspecialchars( $db, ENT_QUOTES ) . '</code>'
+				) . "</p>\n";
 
 				$message .= "<ul>\n";
 				$message .= '<li>' . __( 'Are you sure it exists?' ) . "</li>\n";
 
 				$message .= '<li>' . sprintf(
 					/* translators: 1: Database user, 2: Database name. */
-						__( 'Does the user %1$s have permission to use the %2$s database?' ),
-						'<code>' . htmlspecialchars( $this->dbuser, ENT_QUOTES ) . '</code>',
-						'<code>' . htmlspecialchars( $db, ENT_QUOTES ) . '</code>'
-					) . "</li>\n";
+					__( 'Does the user %1$s have permission to use the %2$s database?' ),
+					'<code>' . htmlspecialchars( $this->dbuser, ENT_QUOTES ) . '</code>',
+					'<code>' . htmlspecialchars( $db, ENT_QUOTES ) . '</code>'
+				) . "</li>\n";
 
 				$message .= '<li>' . sprintf(
 					/* translators: %s: Database name. */
-						__( 'On some systems the name of your database is prefixed with your username, so it would be like <code>username_%1$s</code>. Could that be the problem?' ),
-						htmlspecialchars( $db, ENT_QUOTES )
-					) . "</li>\n";
+					__( 'On some systems the name of your database is prefixed with your username, so it would be like <code>username_%1$s</code>. Could that be the problem?' ),
+					htmlspecialchars( $db, ENT_QUOTES )
+				) . "</li>\n";
 
 				$message .= "</ul>\n";
 
 				$message .= '<p>' . sprintf(
 					/* translators: %s: Support forums URL. */
-						__( 'If you do not know how to set up a database you should <strong>contact your host</strong>. If all else fails you may find help at the <a href="%s">WordPress support forums</a>.' ),
-						__( 'https://wordpress.org/support/forums/' )
-					) . "</p>\n";
+					__( 'If you do not know how to set up a database you should <strong>contact your host</strong>. If all else fails you may find help at the <a href="%s">WordPress support forums</a>.' ),
+					__( 'https://wordpress.org/support/forums/' )
+				) . "</p>\n";
 
 				$this->bail( $message, 'db_select_fail' );
 			}
@@ -1342,8 +1342,9 @@ class wpdb {
 			wp_load_translations_early();
 			/* translators: %s: Database access abstraction class, usually wpdb or a class extending wpdb. */
 			_doing_it_wrong( $class,
-				sprintf( __( '%s must set a database connection for use with escaping.' ), $class ),
-				'3.6.0' );
+			sprintf( __( '%s must set a database connection for use with escaping.' ), $class ),
+			'3.6.0'
+			);
 
 			$escaped = addslashes( $data );
 		}
@@ -1889,15 +1890,15 @@ class wpdb {
 							);
 						} elseif ( is_int( $arg ) || is_float( $arg ) ) {
 							$query = str_replace(
-								":$placeholder",
-								is_int( $arg ) ? intval($arg) : floatval($arg),
-								$query
+							":$placeholder",
+							is_int( $arg ) ? intval($arg) : floatval($arg),
+							$query
 							);
 						} elseif ( is_bool( $arg ) ) {
 							$query = str_replace(
-								":$placeholder",
-								true === $arg ? 1 : 0,
-								$query
+							":$placeholder",
+							true === $arg ? 1 : 0,
+							$query
 							);
 						}
 					}

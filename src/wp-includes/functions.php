@@ -8621,7 +8621,7 @@ function array_flatten( $array ) {
 		if ( is_array( $element ) ) {
 			$result = array_merge( $result, array_flatten( $element ) );
 		} else {
-			$result[] = $element;
+			array_push($result, $element);
 		}
 	}
 
