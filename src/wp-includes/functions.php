@@ -4818,7 +4818,7 @@ function wp_parse_args( $args, $defaults = array() ) {
 	if ( is_object( $args ) ) {
 		$parsed_args = get_object_vars( $args );
 	} elseif ( is_array( $args ) ) {
-		$parsed_args =& $args;
+		$parsed_args = & $args;
 	} else {
 		wp_parse_str( $args, $parsed_args );
 	}
@@ -8581,4 +8581,55 @@ function is_php_version_compatible( $required ) {
  */
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
+}
+
+/**
+ * Get the depth of a multidimensional array.
+ *
+ * This function recursively calculates the maximum depth of a multidimensional array.
+ * It traverses through the array and checks if each value is an array. If it is, the function
+ * recursively calls itself to calculate the depth of the nested array. The maximum depth
+ * encountered during the traversal is stored and returned.
+ *
+ * @param array $array The multidimensional array to calculate the depth for.
+ * @return int The maximum depth of the multidimensional array.
+ */
+function array_depth( $array ) {
+	$maxDepth = 1;
+
+	foreach ( $array as $value ) {
+		if ( is_array( $value ) ) {
+			$depth = array_depth( $value ) + 1;
+			if ( $depth > $maxDepth ) {
+				$maxDepth = $depth;
+			}
+		}
+	}
+
+	return $maxDepth;
+}
+
+/**
+ * Flatten a nested array.
+ *
+ * This function recursively flattens a multidimensional array into a single-level array.
+ * It traverses through the array and checks each element. If an element is an array, the function
+ * recursively calls itself to flatten the nested array. If an element is not an array, it is
+ * added to the result array. The final flattened array is returned.
+ *
+ * @param array $array The multidimensional array to be flattened.
+ * @return array The flattened array.
+ */
+function array_flatten( $array ) {
+	$result = array();
+
+	foreach ( $array as $element ) {
+		if ( is_array( $element ) ) {
+			$result = array_merge( $result, array_flatten( $element ) );
+		} else {
+			array_push( $result, $element );
+		}
+	}
+
+	return $result;
 }

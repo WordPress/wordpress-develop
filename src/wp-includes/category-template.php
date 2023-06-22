@@ -1017,7 +1017,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 
 	switch ( $args['format'] ) {
 		case 'array':
-			$return =& $a;
+			$return = & $a;
 			break;
 		case 'list':
 			/*

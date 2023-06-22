@@ -145,7 +145,7 @@ function determine_locale() {
 		} else {
 			$determined_locale = sanitize_locale_name( $_COOKIE['wp_lang'] );
 		}
-	} else if (
+	} elseif (
 		( isset( $_GET['_locale'] ) && 'user' === $_GET['_locale'] && wp_is_json_request() ) ||
 		is_admin()
 	) {

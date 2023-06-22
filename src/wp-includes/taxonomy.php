@@ -4840,7 +4840,7 @@ function is_object_in_term( $object_id, $taxonomy, $terms = null ) {
 	if ( $ints ) {
 		$strs = array_diff( $terms, $ints );
 	} else {
-		$strs =& $terms;
+		$strs = & $terms;
 	}
 
 	foreach ( $object_terms as $object_term ) {

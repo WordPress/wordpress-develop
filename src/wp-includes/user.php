@@ -1293,7 +1293,7 @@ function count_users( $strategy = 'time', $site_id = null ) {
 		$total_users = (int) $row[ $col ];
 
 		$result['total_users'] = $total_users;
-		$result['avail_roles'] =& $role_counts;
+		$result['avail_roles'] = & $role_counts;
 	} else {
 		$avail_roles = array(
 			'none' => 0,
@@ -1326,7 +1326,7 @@ function count_users( $strategy = 'time', $site_id = null ) {
 		}
 
 		$result['total_users'] = count( $users_of_blog );
-		$result['avail_roles'] =& $avail_roles;
+		$result['avail_roles'] = & $avail_roles;
 	}
 
 	return $result;

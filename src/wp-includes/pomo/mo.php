@@ -316,6 +316,7 @@ if ( ! class_exists( 'MO', false ) ) :
 		 *  0x00 as a plural translations separator
 		 * @return Translation_Entry Entry instance.
 		 */
+		// phpcs:disable WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterOpenParenthesis
 		public function &make_entry( $original, $translation ) {
 			$entry = new Translation_Entry();
 			// Look for context, separated by \4.

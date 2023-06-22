@@ -64,7 +64,7 @@ class WP_Test_Stream {
 			WP_Test_Stream::$data[ $this->bucket ] = array();
 		}
 
-		$this->data_ref =& WP_Test_Stream::$data[ $this->bucket ][ $this->file ];
+		$this->data_ref = & WP_Test_Stream::$data[ $this->bucket ][ $this->file ];
 
 		$this->position = 0;
 	}
@@ -292,6 +292,7 @@ class WP_Test_Stream {
 	 *
 	 * @return A reference to the data entry for the directory.
 	 */
+	// phpcs:disable WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterOpenParenthesis
 	private function &get_directory_ref() {
 		return WP_Test_Stream::$data[ $this->bucket ][ rtrim( $this->file, '/' ) . '/' ];
 	}

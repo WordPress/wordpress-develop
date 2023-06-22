@@ -198,7 +198,7 @@ class WP_Users_List_Table extends WP_List_Table {
 			}
 
 			$total_users = $users_of_blog['total_users'];
-			$avail_roles =& $users_of_blog['avail_roles'];
+			$avail_roles = & $users_of_blog['avail_roles'];
 			unset( $users_of_blog );
 
 			$all_text = sprintf(
