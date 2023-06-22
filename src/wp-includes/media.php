@@ -5592,7 +5592,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	}
 
 	// For any resources, width and height must be provided, to avoid layout shifts.
-	if ( ! isset( $attr['width'] ) || ! isset( $attr['height'] ) ) {
+	if ( ! isset( $attr['width'], $attr['height'] ) ) {
 		return $loading_attrs;
 	}
 
