@@ -5552,6 +5552,15 @@ function wp_get_webp_info( $filename ) {
 /**
  * Gets loading optimization attributes.
  *
+ * This function returns an array of attributes that should be merged into the given attributes array to optimize
+ * loading performance. Potential attributes returned by this function are:
+ * - `loading` attribute with a value of "lazy"
+ * - `fetchpriority` attribute with a value of "high"
+ *
+ * If any of these attributes are already present in the given attributes, they will not be modified. Note that no
+ * element should have both `loading="lazy"` and `fetchpriority="high"`, so the function will trigger a warning in case
+ * both attributes are present with those values.
+ *
  * @since 6.3.0
  *
  * @global WP_Query $wp_query WordPress Query object.
