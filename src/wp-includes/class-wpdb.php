@@ -1497,7 +1497,7 @@ class wpdb {
 		}
 
 		// This is not meant to be foolproof -- but it will catch obviously incorrect usage.
-		if ( strpos( $query, '%' ) === false ) {
+		if ( ! str_contains( $query, '%' ) ) {
 			wp_load_translations_early();
 			_doing_it_wrong(
 				'wpdb::prepare',
@@ -1564,7 +1564,7 @@ class wpdb {
 			$type   = substr( $placeholder, -1 );
 
 			if ( 'f' === $type && true === $this->allow_unsafe_unquoted_parameters
-				&& '%' === substr( $split_query[ $key - 1 ], -1, 1 )
+				&& str_ends_with( $split_query[ $key - 1 ], '%' )
 			) {
 
 				/*
@@ -1625,7 +1625,7 @@ class wpdb {
 					 * Second, if "%s" has a "%" before it, even if it's unrelated (e.g. "LIKE '%%%s%%'").
 					 */
 					if ( true !== $this->allow_unsafe_unquoted_parameters
-						|| ( '' === $format && '%' !== substr( $split_query[ $key - 1 ], -1, 1 ) )
+						|| ( '' === $format && ! str_ends_with( $split_query[ $key - 1 ], '%' ) )
 					) {
 						$placeholder = "'%" . $format . "s'";
 					}
@@ -4068,7 +4068,7 @@ class wpdb {
 				 * libmysql has supported utf8mb4 since 5.5.3, same as the MySQL server.
 				 * mysqlnd has supported utf8mb4 since 5.0.9.
 				 */
-				if ( false !== strpos( $client_version, 'mysqlnd' ) ) {
+				if ( str_contains( $client_version, 'mysqlnd' ) ) {
 					$client_version = preg_replace( '/^\D+([\d.]+).*/', '$1', $client_version );
 					return version_compare( $client_version, '5.0.9', '>=' );
 				} else {

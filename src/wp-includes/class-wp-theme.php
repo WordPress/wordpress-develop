@@ -1283,24 +1283,24 @@ final class WP_Theme implements ArrayAccess {
 				}
 			}
 
-			if ( current_theme_supports( 'block-templates' ) ) {
-				$block_templates = get_block_templates( array(), 'wp_template' );
-				foreach ( get_post_types( array( 'public' => true ) ) as $type ) {
-					foreach ( $block_templates as $block_template ) {
-						if ( ! $block_template->is_custom ) {
-							continue;
-						}
+			$this->cache_add( 'post_templates', $post_templates );
+		}
 
-						if ( isset( $block_template->post_types ) && ! in_array( $type, $block_template->post_types, true ) ) {
-							continue;
-						}
-
-						$post_templates[ $type ][ $block_template->slug ] = $block_template->title;
+		if ( current_theme_supports( 'block-templates' ) ) {
+			$block_templates = get_block_templates( array(), 'wp_template' );
+			foreach ( get_post_types( array( 'public' => true ) ) as $type ) {
+				foreach ( $block_templates as $block_template ) {
+					if ( ! $block_template->is_custom ) {
+						continue;
 					}
+
+					if ( isset( $block_template->post_types ) && ! in_array( $type, $block_template->post_types, true ) ) {
+						continue;
+					}
+
+					$post_templates[ $type ][ $block_template->slug ] = $block_template->title;
 				}
 			}
-
-			$this->cache_add( 'post_templates', $post_templates );
 		}
 
 		if ( $this->load_textdomain() ) {
@@ -1515,8 +1515,8 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		$paths_to_index_block_template = array(
-			$this->get_file_path( '/block-templates/index.html' ),
 			$this->get_file_path( '/templates/index.html' ),
+			$this->get_file_path( '/block-templates/index.html' ),
 		);
 
 		$this->block_theme = false;

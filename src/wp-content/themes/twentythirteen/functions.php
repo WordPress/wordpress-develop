@@ -75,8 +75,15 @@ function twentythirteen_setup() {
 	 * If you're building a theme based on Twenty Thirteen, use a find and
 	 * replace to change 'twentythirteen' to the name of your theme in all
 	 * template files.
+	 *
+	 * Manual loading of text domain is not required after the introduction of
+	 * just in time translation loading in WordPress version 4.6.
+	 *
+	 * @ticket 58318
 	 */
-	load_theme_textdomain( 'twentythirteen' );
+	if ( version_compare( $GLOBALS['wp_version'], '4.6', '<' ) ) {
+		load_theme_textdomain( 'twentythirteen' );
+	}
 
 	/*
 	 * This theme styles the visual editor to resemble the theme style,
@@ -329,8 +336,8 @@ function twentythirteen_scripts_styles() {
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentythirteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentythirteen-style' ), '20230122' );
 
-	// Loads the Internet Explorer specific stylesheet.
-	wp_enqueue_style( 'twentythirteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentythirteen-style' ), '20150214' );
+	// Registers the Internet Explorer specific stylesheet.
+	wp_register_style( 'twentythirteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentythirteen-style' ), '20150214' );
 	wp_style_add_data( 'twentythirteen-ie', 'conditional', 'lt IE 9' );
 }
 add_action( 'wp_enqueue_scripts', 'twentythirteen_scripts_styles' );
