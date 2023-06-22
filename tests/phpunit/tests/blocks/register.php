@@ -348,9 +348,11 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		// Ensure block assets are separately registered.
 		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
 
-		// Account for minified asset path.
+		// Account for minified asset path and ensure the file exists.
+		// This may not be the case in the testing environment since it requires the build process to place them.
 		if ( is_string( $expected_path ) ) {
 			$expected_path = str_replace( '.css', wp_scripts_get_suffix() . '.css', $expected_path );
+			self::touch( ABSPATH . $expected_path );
 		}
 
 		$result = register_block_style_handle( $metadata, $style_field );
