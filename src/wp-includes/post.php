@@ -8034,9 +8034,6 @@ function wp_register_initial_post_meta() {
 		$post_type,
 		'sync_status',
 		array(
-			'auth_callback'     => function() {
-				return current_user_can( 'edit_posts' );
-			},
 			'sanitize_callback' => 'sanitize_text_field',
 			'single'            => true,
 			'type'              => 'string',
