@@ -324,6 +324,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 58605
+	 *
 	 * @dataProvider data_register_block_style_handle_uses_correct_core_stylesheet
 	 *
 	 * @param string      $block_json_path Path to the `block.json` file, relative to ABSPATH.
