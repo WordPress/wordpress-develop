@@ -31,19 +31,29 @@ function register_core_block_style_handles() {
 		$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
 	}
 
-	$includes_url   = includes_url();
-	$includes_path  = ABSPATH . WPINC . '/';
-	$suffix         = wp_scripts_get_suffix();
-	$wp_styles      = wp_styles();
-	$style_fields   = array(
+	$includes_url  = includes_url();
+	$includes_path = ABSPATH . WPINC . '/';
+	$suffix        = wp_scripts_get_suffix();
+	$wp_styles     = wp_styles();
+	$style_fields  = array(
 		'style'       => 'style',
 		'editorStyle' => 'editor',
 	);
-	$transient_name = 'wp_core_block_styles';
-	$files          = get_transient( $transient_name );
-	if ( ! $files ) {
-		$files = glob( __DIR__ . "/**/**{$suffix}.css" );
-		set_transient( $transient_name, $files );
+	$files         = array();
+
+	/*
+	 * Ignore transient cache when `WP_DEBUG` is enabled. Why? To avoid interfering with
+	 * the core developer's workflow.
+	 *
+	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
+	 */
+	if ( ! WP_DEBUG ) {
+		$transient_name = 'wp_core_block_styles';
+		$files          = get_transient( $transient_name );
+		if ( ! $files ) {
+			$files = glob( __DIR__ . "/**/**{$suffix}.css" );
+			set_transient( $transient_name, $files );
+		}
 	}
 
 	foreach ( $core_blocks_meta as $name => $schema ) {
