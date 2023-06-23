@@ -304,12 +304,12 @@ class WP_Scripts extends WP_Dependencies {
 
 		$src               = $obj->src;
 		$strategy          = $this->get_eligible_loading_strategy( $handle );
-		$intended_strategy = $this->get_data( $handle, 'strategy' );
+		$intended_strategy = (string) $this->get_data( $handle, 'strategy' );
 		$cond_before       = '';
 		$cond_after        = '';
 		$conditional       = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
 
-		if ( ! $this->is_delayed_strategy( (string) $intended_strategy ) ) {
+		if ( ! $this->is_delayed_strategy( $intended_strategy ) ) {
 			$intended_strategy = '';
 		}
 
