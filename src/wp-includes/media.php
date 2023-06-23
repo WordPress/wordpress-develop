@@ -5821,5 +5821,3 @@ function wp_maybe_strip_loading_attribute( $loading_attrs, $tag_name, $context )
 	}
 	return $loading_attrs;
 }
-
-

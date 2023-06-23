@@ -4847,6 +4847,7 @@ EOF;
 	 * @ticket 58235
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
+	 *
 	 * @dataProvider data_wp_get_loading_optimization_attributes_check_allowed_tags
 	 *
 	 * @param string $tag_name The tag name.
@@ -4976,9 +4977,10 @@ EOF;
 
 	/**
 	 * @ticket 58235
-	 * @dataProvider data_wp_maybe_add_fetchpriority_high_attr
 	 *
 	 * @covers ::wp_maybe_add_fetchpriority_high_attr
+	 *
+	 * @dataProvider data_wp_maybe_add_fetchpriority_high_attr
 	 */
 	public function test_wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr, $expected_fetchpriority ) {
 		$loading_attrs = wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr );
