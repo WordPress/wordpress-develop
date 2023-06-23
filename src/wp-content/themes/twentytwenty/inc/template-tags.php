@@ -241,8 +241,6 @@ add_filter( 'edit_post_link', 'twentytwenty_edit_post_link', 10, 3 );
  *
  * @since Twenty Twenty 1.0
  *
- * @global WP_Post $post Global post object.
- *
  * @param int    $post_id  The ID of the post.
  * @param string $location The location where the meta is shown.
  */
@@ -331,7 +329,6 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 		// Make sure we don't output an empty container.
 		$has_meta = false;
 
-		global $post;
 		$the_post = get_post( $post_id );
 		setup_postdata( $the_post );
 
