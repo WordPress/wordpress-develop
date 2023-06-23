@@ -27,12 +27,17 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
+
+		global $post_ID;
+		$post_ID = 1;
 	}
 
 	public function tear_down() {
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
+		global $post_ID;
+		$post_ID = null;
 		parent::tear_down();
 	}
 
@@ -397,6 +402,59 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58534
+	 */
+	public function test_wp_get_first_block() {
+		$block_name               = 'core/paragraph';
+		$blocks                   = array(
+			array(
+				'blockName' => 'core/image',
+			),
+			array(
+				'blockName' => $block_name,
+				'attrs'     => array(
+					'content' => 'Hello World!',
+				),
+			),
+			array(
+				'blockName' => 'core/heading',
+			),
+			array(
+				'blockName' => $block_name,
+			),
+		);
+		$blocks_with_no_paragraph = array(
+			array(
+				'blockName' => 'core/image',
+			),
+			array(
+				'blockName' => 'core/heading',
+			),
+		);
+
+		$this->assertSame( $blocks[1], wp_get_first_block( $blocks, $block_name ) );
+
+		$this->assertSame( array(), wp_get_first_block( $blocks_with_no_paragraph, $block_name ) );
+	}
+
+	/**
+	 * @ticket 58534
+	 */
+	public function test_wp_get_post_content_block_attributes() {
+		$attributes_with_layout = array(
+			'layout' => array(
+				'type' => 'constrained',
+			),
+		);
+		// With no block theme, expect an empty array.
+		$this->assertSame( array(), wp_get_post_content_block_attributes() );
+
+		switch_theme( 'block-theme' );
+
+		$this->assertSame( $attributes_with_layout, wp_get_post_content_block_attributes() );
+	}
+
+	/**
 	 * @ticket 53458
 	 */
 	public function test_get_block_editor_settings_theme_json_settings() {
@@ -456,6 +514,15 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$this->assertSameSets( array( 'rem' ), $settings['enableCustomUnits'] );
 		// settings.spacing.customPadding
 		$this->assertTrue( $settings['enableCustomSpacing'] );
+		// settings.postContentAttributes
+		$this->assertSameSets(
+			array(
+				'layout' => array(
+					'type' => 'constrained',
+				),
+			),
+			$settings['postContentAttributes']
+		);
 
 		switch_theme( WP_DEFAULT_THEME );
 	}

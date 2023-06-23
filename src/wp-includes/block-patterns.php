@@ -287,7 +287,7 @@ function _register_remote_theme_patterns() {
 		return;
 	}
 
-	$pattern_settings = WP_Theme_JSON_Resolver::get_theme_data()->get_patterns();
+	$pattern_settings = wp_get_theme_directory_pattern_slugs();
 	if ( empty( $pattern_settings ) ) {
 		return;
 	}

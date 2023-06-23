@@ -583,7 +583,7 @@ function has_blocks( $post = null ) {
 		$post = $wp_post->post_content;
 	}
 
-	return false !== strpos( (string) $post, '<!-- wp:' );
+	return str_contains( (string) $post, '<!-- wp:' );
 }
 
 /**
@@ -619,12 +619,12 @@ function has_block( $block_name, $post = null ) {
 	 * This matches behavior for WordPress 5.0.0 - 5.3.0 in matching blocks by
 	 * their serialized names.
 	 */
-	if ( false === strpos( $block_name, '/' ) ) {
+	if ( ! str_contains( $block_name, '/' ) ) {
 		$block_name = 'core/' . $block_name;
 	}
 
 	// Test for existence of block by its fully qualified name.
-	$has_block = false !== strpos( $post, '<!-- wp:' . $block_name . ' ' );
+	$has_block = str_contains( $post, '<!-- wp:' . $block_name . ' ' );
 
 	if ( ! $has_block ) {
 		/*
@@ -633,7 +633,7 @@ function has_block( $block_name, $post = null ) {
 		 */
 		$serialized_block_name = strip_core_block_namespace( $block_name );
 		if ( $serialized_block_name !== $block_name ) {
-			$has_block = false !== strpos( $post, '<!-- wp:' . $serialized_block_name . ' ' );
+			$has_block = str_contains( $post, '<!-- wp:' . $serialized_block_name . ' ' );
 		}
 	}
 
@@ -1165,8 +1165,8 @@ function block_version( $content ) {
  * @link https://developer.wordpress.org/block-editor/reference-guides/block-api/block-styles/
  *
  * @param string $block_name       Block type name including namespace.
- * @param array  $style_properties Array containing the properties of the style name,
- *                                 label, style (name of the stylesheet to be enqueued),
+ * @param array  $style_properties Array containing the properties of the style name, label,
+ *                                 style_handle (name of the stylesheet to be enqueued),
  *                                 inline_style (string containing the CSS to be added).
  * @return bool True if the block style was registered with success and false otherwise.
  */
