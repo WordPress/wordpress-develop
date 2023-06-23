@@ -4802,6 +4802,7 @@ EOF;
 	 * @ticket 58235
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
+	 *
 	 * @dataProvider data_wp_get_loading_optimization_attributes_min_required_attrs
 	 *
 	 * @param string $tag_name The tag name.
