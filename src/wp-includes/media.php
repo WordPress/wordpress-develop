@@ -1988,13 +1988,13 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 			unset( $optimization_attrs['loading'] );
 		} elseif ( in_array( $filtered_loading_attr, array( 'lazy', 'eager' ), true ) ) {
 			/*
-			* If the filter changed the loading attribute to "lazy" when a fetchpriority attribute
-			* with value "high" is already present, trigger a warning since those two attribute
-			* values should be mutually exclusive.
+			 * If the filter changed the loading attribute to "lazy" when a fetchpriority attribute
+			 * with value "high" is already present, trigger a warning since those two attribute
+			 * values should be mutually exclusive.
 			 *
 			 * The same warning is present in `wp_get_loading_optimization_attributes()`, and here it
 			 * is only intended for the specific scenario where the above filtered caused the problem.
-			*/
+			 */
 			if ( isset( $optimization_attrs['fetchpriority'] ) && 'high' === $optimization_attrs['fetchpriority'] &&
 				( isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false ) !== $filtered_loading_attr &&
 				'lazy' === $filtered_loading_attr
@@ -2170,7 +2170,7 @@ function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
 	$optimization_attrs = wp_get_loading_optimization_attributes(
 		'iframe',
 		array(
-			/**
+			/*
 			 * The concrete values for width and height are not important here for now
 			 * since fetchpriority is not yet supported for iframes.
 			 * TODO: Use WP_HTML_Tag_Processor to extract actual values once support is

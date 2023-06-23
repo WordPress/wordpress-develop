@@ -4693,8 +4693,10 @@ function wp_get_loading_attr_default( $context ) {
 		return false;
 	}
 
-	// Do not lazy-load images in the header block template part, as they are likely above the fold.
-	// For classic themes, this is handled in the condition below using the 'get_header' action.
+	/*
+	 * Do not lazy-load images in the header block template part, as they are likely above the fold.
+	 * For classic themes, this is handled in the condition below using the 'get_header' action.
+	 */
 	$header_area = WP_TEMPLATE_PART_AREA_HEADER;
 	if ( "template_part_{$header_area}" === $context ) {
 		return false;
@@ -4766,8 +4768,10 @@ function wp_get_loading_attr_default( $context ) {
  */
 function wp_img_tag_add_loading_attr( $image, $context ) {
 	_deprecated_function( __FUNCTION__, '6.3.0', 'wp_img_tag_add_loading_optimization_attrs' );
-	// Get loading attribute value to use. This must occur before the conditional check below so that even images that
-	// are ineligible for being lazy-loaded are considered.
+	/*
+	 * Get loading attribute value to use. This must occur before the conditional check below so that even images that
+	 * are ineligible for being lazy-loaded are considered.
+	 */
 	$value = wp_get_loading_attr_default( $context );
 
 	// Images should have source and dimension attributes for the `loading` attribute to be added.
