@@ -46,30 +46,6 @@ function register_core_block_style_handles() {
 		set_transient( $transient_name, $files );
 	}
 
-	$callback = static function( $name, $filename, $style_handle ) use ( $files, $suffix, $wp_styles, $includes_url, $includes_path ) {
-		$style_path = "blocks/{$name}/{$filename}{$suffix}.css";
-		$path       = $includes_path . $style_path;
-
-		if ( ! in_array( $path, $files, true ) ) {
-			$wp_styles->add(
-				$style_handle,
-				false
-			);
-		} else {
-			$wp_styles->add( $style_handle, $includes_url . $style_path );
-			$wp_styles->add_data( $style_handle, 'path', $path );
-
-			$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $path );
-			if ( is_rtl() && in_array( $rtl_file, $files, true ) ) {
-				$wp_styles->add_data( $style_handle, 'rtl', 'replace' );
-				$wp_styles->add_data( $style_handle, 'suffix', $suffix );
-				$wp_styles->add_data( $style_handle, 'path', $rtl_file );
-			}
-		}
-	};
-
-	$supports_blocks_styles = current_theme_supports( 'wp-block-styles' );
-
 	foreach ( $core_blocks_meta as $name => $schema ) {
 		/** This filter is documented in wp-includes/blocks.php */
 		$schema = apply_filters( 'block_type_metadata', $schema );
@@ -82,16 +58,31 @@ function register_core_block_style_handles() {
 			$schema['editorStyle'] = "wp-block-{$name}-editor";
 		}
 
-		if ( $supports_blocks_styles ) {
-			$callback( $name, 'theme', "wp-block-{$name}-theme" );
-		}
 		foreach ( $style_fields as $style_field => $filename ) {
 			$style_handle = $schema[ $style_field ];
 			if ( is_array( $style_handle ) ) {
 				continue;
 			}
 
-			$callback( $name, $filename, $style_handle );
+			$style_path = "blocks/{$name}/{$filename}{$suffix}.css";
+			$path       = $includes_path . $style_path;
+
+			if ( ! in_array( $path, $files, true ) ) {
+				$wp_styles->add(
+					$style_handle,
+					false
+				);
+			} else {
+				$wp_styles->add( $style_handle, $includes_url . $style_path );
+				$wp_styles->add_data( $style_handle, 'path', $path );
+
+				$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $path );
+				if ( is_rtl() && in_array( $rtl_file, $files, true ) ) {
+					$wp_styles->add_data( $style_handle, 'rtl', 'replace' );
+					$wp_styles->add_data( $style_handle, 'suffix', $suffix );
+					$wp_styles->add_data( $style_handle, 'path', $rtl_file );
+				}
+			}
 		}
 	}
 }

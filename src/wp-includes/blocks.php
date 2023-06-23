@@ -372,12 +372,6 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		if ( ! isset( $metadata['style'] ) ) {
 			$metadata['style'] = "wp-block-$block_name";
 		}
-		if ( current_theme_supports( 'wp-block-styles' ) ) {
-			$metadata['style'] = (array) $metadata['style'];
-			if ( ! in_array( "wp-block-{$block_name}-theme", $metadata['style'], true ) ) {
-				$metadata['style'][] = "wp-block-{$block_name}-theme";
-			}
-		}
 
 		if ( ! isset( $metadata['editorStyle'] ) ) {
 			$metadata['editorStyle'] = "wp-block-{$block_name}-editor";
