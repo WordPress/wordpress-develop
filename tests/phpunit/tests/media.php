@@ -3378,6 +3378,11 @@ EOF;
 		$this->assertStringNotContainsString( ' loading="lazy"', $img );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_provider_fetchpriority_values() {
 		return array(
 			array( 'high' ),
@@ -4815,6 +4820,11 @@ EOF;
 		$this->assertSame( wp_get_loading_optimization_attributes( $tag_name, $attr, $context ), $expected, $message );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_wp_get_loading_optimization_attributes_min_required_attrs() {
 		return array(
 			'img_with_min_attrs' => array(
@@ -4860,6 +4870,11 @@ EOF;
 		$this->assertSame( wp_get_loading_optimization_attributes( $tag_name, $attr, $context ), $expected, $message );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_wp_get_loading_optimization_attributes_check_allowed_tags() {
 		return array(
 			'img'    => array(
@@ -4993,6 +5008,11 @@ EOF;
 		}
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_wp_maybe_add_fetchpriority_high_attr() {
 		return array(
 			'small image'                   => array(
