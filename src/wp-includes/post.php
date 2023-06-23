@@ -8042,12 +8042,8 @@ function wp_register_initial_post_meta() {
 			'type'              => 'string',
 			'show_in_rest'      => array(
 				'schema' => array(
-					'type'       => 'string',
-					'properties' => array(
-						'sync_status' => array(
-							'type' => 'string',
-						),
-					),
+					'type' => 'string',
+					'enum' => array( 'partial', 'unsynced' ),
 				),
 			),
 		)
