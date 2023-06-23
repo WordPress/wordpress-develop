@@ -4284,8 +4284,10 @@ EOF;
 			// Set as main query.
 			$this->set_main_query( $query );
 
-			// For contexts other than for the main content, still return 'lazy' even in the loop
-			// and in the main query, and do not increase the content media count.
+			/*
+			 * For contexts other than for the main content, still return 'lazy' even in the loop
+			 * and in the main query, and do not increase the content media count.
+			 */
 			$this->assertSame(
 				array( 'loading' => 'lazy' ),
 				wp_get_loading_optimization_attributes( 'img', $attr, 'wp_get_attachment_image' )
