@@ -50,11 +50,11 @@ function register_core_block_style_handles() {
 		$transient_name = 'wp_core_block_styles';
 		$files          = get_transient( $transient_name );
 		if ( ! $files ) {
-			$files = glob( __DIR__ . "/**/**.css" );
+			$files = glob( __DIR__ . '/**/**.css' );
 			set_transient( $transient_name, $files );
 		}
 	} else {
-		$files = glob( __DIR__ . "/**/**.css" );
+		$files = glob( __DIR__ . '/**/**.css' );
 	}
 
 	foreach ( $core_blocks_meta as $name => $schema ) {
