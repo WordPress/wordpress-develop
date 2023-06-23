@@ -903,7 +903,7 @@ JS;
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string  $handle The script handle.
+	 * @param string $handle The script handle.
 	 * @return string The best eligible loading strategy.
 	 */
 	private function get_eligible_loading_strategy( $handle ) {
@@ -991,7 +991,6 @@ JS;
 	 *
 	 * @param string $handle   Name of the script to get data for. Must be lowercase.
 	 * @param string $position The position of the inline script.
-	 *
 	 * @return bool Whether the handle has an inline script (either before or after).
 	 */
 	private function has_inline_script( $handle, $position = null ) {
