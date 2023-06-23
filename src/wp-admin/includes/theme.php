@@ -713,7 +713,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		if ( $is_block_theme && $can_edit_theme_options ) {
 			$customize_action = admin_url( 'site-editor.php' );
 			if ( $current_theme !== $slug ) {
-				$customize_action = add_query_arg( 'theme_preview', $slug, $customize_action );
+				$customize_action = add_query_arg( 'wp_theme_preview', $slug, $customize_action );
 			}
 		} elseif ( ! $is_block_theme && $can_customize && $can_edit_theme_options ) {
 			$customize_action = wp_customize_url( $slug );

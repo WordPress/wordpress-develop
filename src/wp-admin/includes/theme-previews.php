@@ -54,15 +54,3 @@ function wp_attach_theme_preview_middleware() {
 		'after'
 	);
 }
-
-/**
- * Attaches filters to enable theme previews in the Site Editor.
- *
- * @since 6.3.0
- *
- */
-if ( ! empty( $_GET['wp_theme_preview'] ) ) {
-	add_filter( 'stylesheet', 'wp_get_theme_preview_path' );
-	add_filter( 'template', 'wp_get_theme_preview_path' );
-	add_filter( 'init', 'wp_attach_theme_preview_middleware' );
-}
