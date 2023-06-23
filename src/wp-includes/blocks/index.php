@@ -32,22 +32,23 @@ function register_core_block_style_handles() {
 	}
 
 	$includes_url   = includes_url();
+	$includes_path  = ABSPATH . WPINC . '/';
 	$suffix         = wp_scripts_get_suffix();
 	$wp_styles      = wp_styles();
 	$style_fields   = array(
 		'style'       => 'style',
 		'editorStyle' => 'editor',
 	);
-	$transient_name = 'block_styles__';
+	$transient_name = 'wp_core_block_styles';
 	$files          = get_transient( $transient_name );
 	if ( ! $files ) {
 		$files = glob( __DIR__ . "/**/**{$suffix}.css" );
 		set_transient( $transient_name, $files );
 	}
 
-	$callback = static function( $name, $filename, $style_handle ) use ( $files, $suffix, $wp_styles, $includes_url ) {
+	$callback = static function( $name, $filename, $style_handle ) use ( $files, $suffix, $wp_styles, $includes_url, $includes_path ) {
 		$style_path = "blocks/{$name}/{$filename}{$suffix}.css";
-		$path       = ABSPATH . WPINC . '/' . $style_path;
+		$path       = $includes_path . $style_path;
 
 		if ( ! in_array( $path, $files, true ) ) {
 			$wp_styles->add(
