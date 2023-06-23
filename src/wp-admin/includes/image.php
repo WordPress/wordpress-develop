@@ -95,8 +95,8 @@ function wp_get_missing_image_subsizes( $attachment_id ) {
 		return $registered_sizes;
 	}
 
-	// Use the originally uploaded image dimensions as full_width and full_height.
-	if ( ! empty( $image_meta['original_image'] ) ) {
+	// Use the originally uploaded image dimensions as full_width and full_height, unless rotated.
+	if ( ! empty( $image_meta['original_image'] ) && empty( $image_meta['image_meta']['orientation'] ) ) {
 		$image_file = wp_get_original_image_path( $attachment_id );
 		$imagesize  = wp_getimagesize( $image_file );
 	}
