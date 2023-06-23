@@ -254,7 +254,6 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 				'posts_per_page'   => -1,
 				'orderby'          => 'date ID',
 				'order'            => 'DESC',
-				'suppress_filters' => true,
 			);
 
 			$parameter_mappings = array(
