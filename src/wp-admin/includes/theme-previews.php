@@ -18,7 +18,7 @@ function wp_get_theme_preview_path( $current_stylesheet = null ) {
 		return $current_stylesheet;
 	}
 
-	$preview_stylesheet = ! empty( $_GET['wp_theme_preview'] ) ? $_GET['wp_theme_preview'] : null;
+	$preview_stylesheet = ! empty( $_GET['wp_theme_preview'] ) ? sanitize_text_field( wp_unslash( $_GET['wp_theme_preview'] ) ) : null;
 	$wp_theme           = wp_get_theme( $preview_stylesheet );
 	if ( ! is_wp_error( $wp_theme->errors() ) ) {
 		if ( current_filter() === 'template' ) {
