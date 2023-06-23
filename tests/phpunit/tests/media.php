@@ -3347,6 +3347,15 @@ EOF;
 	}
 
 	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_provider_fetchpriority_values() {
+		return self::text_array_to_dataprovider( array( 'high', 'low', 'auto' ) );
+	}
+
+	/**
 	 * @ticket 58235
 	 *
 	 * @covers ::wp_get_attachment_image
@@ -3376,15 +3385,6 @@ EOF;
 		$img = wp_get_attachment_image( self::$large_id, 'large', false, array( 'fetchpriority' => 'high' ) );
 
 		$this->assertStringNotContainsString( ' loading="lazy"', $img );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public function data_provider_fetchpriority_values() {
-		return self::text_array_to_dataprovider( array( 'high', 'low', 'auto' ) );
 	}
 
 	/**
