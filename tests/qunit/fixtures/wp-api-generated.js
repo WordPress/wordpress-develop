@@ -18,13 +18,7 @@ mockedApiResponse.Schema = {
         "wp-site-health/v1",
         "wp-block-editor/v1"
     ],
-    "authentication": {
-        "application-passwords": {
-            "endpoints": {
-                "authorization": "http://example.org/wp-admin/authorize-application.php"
-            }
-        }
-    },
+    "authentication": [],
     "routes": {
         "/": {
             "namespace": "",
@@ -9631,6 +9625,29 @@ mockedApiResponse.Schema = {
                     "args": {
                         "parent": {
                             "description": "The ID for the parent of the revision.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "offset": {
+                            "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
                             "required": false
                         }
