@@ -39,7 +39,6 @@ function register_core_block_style_handles() {
 		'style'       => 'style',
 		'editorStyle' => 'editor',
 	);
-	$files         = array();
 
 	/*
 	 * Ignore transient cache when `WP_DEBUG` is enabled. Why? To avoid interfering with
@@ -54,6 +53,8 @@ function register_core_block_style_handles() {
 			$files = glob( __DIR__ . "/**/**.css" );
 			set_transient( $transient_name, $files );
 		}
+	} else {
+		$files = glob( __DIR__ . "/**/**.css" );
 	}
 
 	foreach ( $core_blocks_meta as $name => $schema ) {
