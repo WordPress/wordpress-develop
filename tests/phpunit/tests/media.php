@@ -3384,11 +3384,7 @@ EOF;
 	 * @return array[]
 	 */
 	public function data_provider_fetchpriority_values() {
-		return array(
-			array( 'high' ),
-			array( 'low' ),
-			array( 'auto' ),
-		);
+		return self::text_array_to_dataprovider( array( 'high', 'low', 'auto' ) );
 	}
 
 	/**
@@ -3692,8 +3688,10 @@ EOF;
 			// Set as main query.
 			$this->set_main_query( $query );
 
-			// For contexts other than for the main content, still return 'lazy' even in the loop
-			// and in the main query, and do not increase the content media count.
+			/*
+			 * For contexts other than for the main content, still return 'lazy' even in the loop
+			 * and in the main query, and do not increase the content media count.
+			 */
 			$this->assertSame( 'lazy', wp_get_loading_attr_default( 'wp_get_attachment_image' ) );
 
 			// Return `false` in the main query for first three element.
@@ -5220,8 +5218,10 @@ EOF;
 	 * @return array Associative array with 'width' and 'height' keys.
 	 */
 	private function get_width_height_for_high_priority() {
-		// The product of width * height must be >50000 to qualify for high priority image.
-		// 300 * 200 = 60000
+		/*
+		 * The product of width * height must be >50000 to qualify for high priority image.
+		 * 300 * 200 = 60000
+		 */
 		return array(
 			'width'  => 300,
 			'height' => 200,
@@ -5234,8 +5234,10 @@ EOF;
 	 * @return array Associative array with 'width' and 'height' keys.
 	 */
 	private function get_insufficient_width_height_for_high_priority() {
-		// The product of width * height must be >50000 to qualify for high priority image.
-		// 200 * 100 = 20000
+		/*
+		 * The product of width * height must be >50000 to qualify for high priority image.
+		 * 200 * 100 = 20000
+		 */
 		return array(
 			'width'  => 200,
 			'height' => 100,
