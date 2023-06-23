@@ -110,6 +110,14 @@ jobs:
       - name: Run E2E tests
         run: npm run test:e2e
 
+      - name: Archive debug artifacts (screenshots, HTML snapshots)
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        if: always()
+        with:
+            name: failures-artifacts
+            path: artifacts
+            if-no-files-found: ignore
+
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
 
