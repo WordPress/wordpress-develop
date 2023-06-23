@@ -5578,10 +5578,15 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * to introduce a very specific private global function.
 	 */
 	$postprocess = static function( $loading_attributes, $with_fetchpriority = false ) use ( $tag_name, $attr, $context ) {
+		// Potentially add `fetchpriority="high"`.
 		if ( $with_fetchpriority ) {
 			$loading_attributes = wp_maybe_add_fetchpriority_high_attr( $loading_attributes, $tag_name, $attr );
 		}
-		return wp_maybe_strip_loading_attribute( $loading_attributes, $tag_name, $context );
+		// Potentially strip `loading="lazy"` if the feature is disabled.
+		if ( isset( $loading_attributes['loading'] ) && ! wp_lazy_loading_enabled( $tag_name, $context ) ) {
+			unset( $loading_attributes['loading'] );
+		}
+		return $loading_attributes;
 	};
 
 	$loading_attrs = array();
@@ -5802,22 +5807,4 @@ function wp_high_priority_element_flag( $value = null ) {
 		$high_priority_element = $value;
 	}
 	return $high_priority_element;
-}
-
-/**
- * Strips loading optimization attributes array of `loading` attribute if lazy-loading is disabled.
- *
- * @since 6.3.0
- * @access private
- *
- * @param array  $loading_attrs Contains loading optimization attributes.
- * @param string $tag_name      The tag name.
- * @param string $context       Context for the element.
- * @return array Stripped loading optimization attributes array if lazy loading is disabled.
- */
-function wp_maybe_strip_loading_attribute( $loading_attrs, $tag_name, $context ) {
-	if ( isset( $loading_attrs['loading'] ) && ! wp_lazy_loading_enabled( $tag_name, $context ) ) {
-		unset( $loading_attrs['loading'] );
-	}
-	return $loading_attrs;
 }

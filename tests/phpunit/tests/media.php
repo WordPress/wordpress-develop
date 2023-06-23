@@ -5094,28 +5094,6 @@ EOF;
 	}
 
 	/**
-	 * @ticket 58235
-	 *
-	 * @covers ::wp_maybe_strip_loading_attribute
-	 */
-	public function test_wp_maybe_strip_loading_attribute() {
-		$loading_attrs = array(
-			'loading'       => 'lazy',
-			'fetchpriority' => 'low',
-		);
-
-		// Disable lazy loading.
-		add_filter( 'wp_lazy_loading_enabled', '__return_false' );
-
-		// remove lazy loading attribute if not enabled.
-		$this->assertSame(
-			array( 'fetchpriority' => 'low' ),
-			wp_maybe_strip_loading_attribute( $loading_attrs, 'img', 'the_content' ),
-			'Remove loading attribute from the initial array.'
-		);
-	}
-
-	/**
 	 * Helper method to keep track of the last context returned by the 'wp_get_attachment_image_context' filter.
 	 *
 	 * The method parameter is passed by reference and therefore will always contain the last context value.
