@@ -101,7 +101,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( 'My Template', $template->title );
 		$this->assertSame( 'Description of my template', $template->description );
 		$this->assertSame( 'wp_template', $template->type );
-		$this->assertSame( self::$template_post->post_modified, $template->modified );
+		$this->assertSame( self::$template_post->post_modified, $template->modified, 'Template result properties match' );
 
 		// Test template parts.
 		$template_part = _build_block_template_result_from_post(
@@ -118,7 +118,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( 'Description of my template part', $template_part->description );
 		$this->assertSame( 'wp_template_part', $template_part->type );
 		$this->assertSame( WP_TEMPLATE_PART_AREA_HEADER, $template_part->area );
-		$this->assertSame( self::$template_part_post->post_modified, $template->modified );
+		$this->assertSame( self::$template_part_post->post_modified, $template_part->modified, 'Template part result properties match' );
 	}
 
 	public function test_build_block_template_result_from_file() {
