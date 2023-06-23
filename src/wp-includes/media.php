@@ -5610,8 +5610,13 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	}
 
 	if ( isset( $attr['loading'] ) ) {
+		/*
+		 * While any `loading` value could be set in `$loading_attrs`, for
+		 * consistency we only do it for `loading="lazy"` since that is the
+		 * only possible value that WordPress core would apply on its own.
+		 */
 		if ( 'lazy' === $attr['loading'] ) {
-			$loading_attrs['loading'] = $attr['loading'];
+			$loading_attrs['loading'] = 'lazy';
 			if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority'] ) {
 				_doing_it_wrong(
 					__FUNCTION__,
@@ -5760,6 +5765,12 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr 
 	}
 
 	if ( isset( $attr['fetchpriority'] ) ) {
+		/*
+		 * While any `fetchpriority` value could be set in `$loading_attrs`,
+		 * for consistency we only do it for `fetchpriority="high"` since that
+		 * is the only possible value that WordPress core would apply on its
+		 * own.
+		 */
 		if ( 'high' === $attr['fetchpriority'] ) {
 			$loading_attrs['fetchpriority'] = 'high';
 			wp_high_priority_element_flag( false );
