@@ -413,7 +413,7 @@ class WP_Scripts extends WP_Dependencies {
 		$tag .= sprintf(
 			"<script%s src='%s' id='%s-js'%s%s></script>\n",
 			$this->type_attr,
-			esc_url( $src ),
+			$src, // Value is escaped above.
 			esc_attr( $handle ),
 			$strategy ? " {$strategy}" : '',
 			$intended_strategy ? " data-wp-strategy='{$intended_strategy}'" : ''
