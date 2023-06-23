@@ -107,84 +107,90 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		// Update post to create a new revisions.
 		$new_styles_post = array(
 			'ID'           => self::$global_styles_id,
-			'post_content' => wp_json_encode( array(
-				'version'                     => WP_Theme_JSON::LATEST_SCHEMA,
-				'isGlobalStylesUserThemeJSON' => true,
-				'styles'                      => array(
-					'color' => array(
-						'background' => 'hotpink',
+			'post_content' => wp_json_encode(
+				array(
+					'version'                     => WP_Theme_JSON::LATEST_SCHEMA,
+					'isGlobalStylesUserThemeJSON' => true,
+					'styles'                      => array(
+						'color' => array(
+							'background' => 'hotpink',
+						),
 					),
-				),
-				'settings'                    => array(
-					'color' => array(
-						'palette' => array(
-							'custom' => array(
-								array(
-									'name'  => 'Ghost',
-									'slug'  => 'ghost',
-									'color' => 'ghost',
+					'settings'                    => array(
+						'color' => array(
+							'palette' => array(
+								'custom' => array(
+									array(
+										'name'  => 'Ghost',
+										'slug'  => 'ghost',
+										'color' => 'ghost',
+									),
 								),
 							),
 						),
 					),
-				),
-			) ),
+				)
+			),
 		);
 
 		wp_update_post( $new_styles_post, true, false );
 
 		$new_styles_post = array(
 			'ID'           => self::$global_styles_id,
-			'post_content' => wp_json_encode( array(
-				'version'                     => WP_Theme_JSON::LATEST_SCHEMA,
-				'isGlobalStylesUserThemeJSON' => true,
-				'styles'                      => array(
-					'color' => array(
-						'background' => 'lemonchiffon',
+			'post_content' => wp_json_encode(
+				array(
+					'version'                     => WP_Theme_JSON::LATEST_SCHEMA,
+					'isGlobalStylesUserThemeJSON' => true,
+					'styles'                      => array(
+						'color' => array(
+							'background' => 'lemonchiffon',
+						),
 					),
-				),
-				'settings'                    => array(
-					'color' => array(
-						'palette' => array(
-							'custom' => array(
-								array(
-									'name'  => 'Gwanda',
-									'slug'  => 'gwanda',
-									'color' => 'gwanda',
+					'settings'                    => array(
+						'color' => array(
+							'palette' => array(
+								'custom' => array(
+									array(
+										'name'  => 'Gwanda',
+										'slug'  => 'gwanda',
+										'color' => 'gwanda',
+									),
 								),
 							),
 						),
 					),
-				),
-			) ),
+				)
+			),
 		);
 
 		wp_update_post( $new_styles_post, true, false );
 
 		$new_styles_post = array(
 			'ID'           => self::$global_styles_id,
-			'post_content' => wp_json_encode( array(
-				'version'                     => WP_Theme_JSON::LATEST_SCHEMA,
-				'isGlobalStylesUserThemeJSON' => true,
-				'styles'                      => array(
-					'color' => array(
-						'background' => 'chocolate',
+			'post_content' => wp_json_encode(
+				array(
+					'version'                     => WP_Theme_JSON::LATEST_SCHEMA,
+					'isGlobalStylesUserThemeJSON' => true,
+					'styles'                      => array(
+						'color' => array(
+							'background' => 'chocolate',
+						),
 					),
-				),
-				'settings'                    => array(
-					'color' => array(
-						'palette' => array(
-							'custom' => array(
-								array(
-									'name'  => 'Stacy',
-									'slug'  => 'stacy',
-									'color' => 'stacy',
+					'settings'                    => array(
+						'color' => array(
+							'palette' => array(
+								'custom' => array(
+									array(
+										'name'  => 'Stacy',
+										'slug'  => 'stacy',
+										'color' => 'stacy',
+									),
 								),
 							),
 						),
 					),
-				),
-			) ),
+				)
+			),
 		);
 
 		wp_update_post( $new_styles_post, true, false );
@@ -389,7 +395,9 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
-	 * Test the pagination header of the first page.
+	 * Tests the pagination header of the first page.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_pagination_header_of_the_first_page
 	 *
 	 * @ticket 58524
 	 */
@@ -424,7 +432,9 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
-	 * Test the pagination header of the last page.
+	 * Tests the pagination header of the last page.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_pagination_header_of_the_last_page
 	 *
 	 * @ticket 58524
 	 */
@@ -458,7 +468,9 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
-	 * Test that invalid 'per_page' query should error.
+	 * Tests that invalid 'per_page' query should error.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_invalid_per_page_should_error
 	 *
 	 * @ticket 58524
 	 */
@@ -476,7 +488,9 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
-	 * Test that out of bounds 'page' query should error.
+	 * Tests that out of bounds 'page' query should error.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_out_of_bounds_page_should_error
 	 *
 	 * @ticket 58524
 	 */
@@ -501,7 +515,9 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
-	 * Test that impossibly high 'page' query should error.
+	 * Tests that impossibly high 'page' query should error.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_invalid_max_pages_should_error
 	 *
 	 * @ticket 58524
 	 */
@@ -525,7 +541,9 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
-	 * Test that the default query should fetch all revisions.
+	 * Tests that the default query should fetch all revisions.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_default_query_should_fetch_all_revisons
 	 *
 	 * @ticket 58524
 	 */
@@ -534,14 +552,16 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 
 		$expected_count = $this->total_revisions;
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( $expected_count, $response->get_data() );
 	}
 
 
 	/**
-	 * Test that 'offset' query shouldn't work without 'per_page' (fallback -1).
+	 * Tests that 'offset' query shouldn't work without 'per_page' (fallback -1).
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_offset_should_not_work_without_per_page
 	 *
 	 * @ticket 58524
 	 */
@@ -558,7 +578,9 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
-	 * Test that 'offset' query should work with 'per_page'.
+	 * Tests that 'offset' query should work with 'per_page'.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_offset_should_work_with_per_page
 	 *
 	 * @ticket 58524
 	 */
@@ -581,7 +603,9 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
-	 * Test that 'offset' query should take priority over 'page'.
+	 * Tests that 'offset' query should take priority over 'page'.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_offset_should_take_priority_over_page
 	 *
 	 * @ticket 58524
 	 */
@@ -606,7 +630,9 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
-	 * Test that 'offset' query, as the total revisions count, should return empty data.
+	 * Tests that 'offset' query, as the total revisions count, should return empty data.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_total_revisions_offset_should_return_empty_data
 	 *
 	 * @ticket 58524
 	 */
@@ -630,7 +656,9 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
-	 * Test that out of bound 'offset' query should error.
+	 * Tests that out of bound 'offset' query should error.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_out_of_bound_offset_should_error
 	 *
 	 * @ticket 58524
 	 */
@@ -654,7 +682,9 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
-	 * Test that impossible high number for 'offset' query should error.
+	 * Tests that impossible high number for 'offset' query should error.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_impossible_high_number_offset_should_error
 	 *
 	 * @ticket 58524
 	 */
@@ -678,7 +708,9 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
-	 * Test that invalid 'offset' query should error.
+	 * Tests that invalid 'offset' query should error.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_invalid_offset_should_error
 	 *
 	 * @ticket 58524
 	 */
@@ -702,8 +734,10 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
-	 * Test that out of bounds 'page' query should not error when offset is provided,
+	 * Tests that out of bounds 'page' query should not error when offset is provided,
 	 * because it takes precedence.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_out_of_bounds_page_should_not_error_if_offset
 	 *
 	 * @ticket 58524
 	 */

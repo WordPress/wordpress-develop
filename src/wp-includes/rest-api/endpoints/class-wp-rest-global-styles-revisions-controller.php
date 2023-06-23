@@ -45,8 +45,6 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 
 	/**
 	 * Registers the controllers routes.
-	 *
-	 * @return void
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -252,9 +250,10 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * A direct copy of WP_REST_Revisions_Controller->prepare_date_response().
 	 * Checks the post_date_gmt or modified_gmt and prepare any post or
 	 * modified date for single post output.
+	 *
+	 * Duplicate of WP_REST_Revisions_Controller::prepare_date_response
 	 *
 	 * @since 6.3.0
 	 *
@@ -438,7 +437,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		/*
-		 * The same check as WP_REST_Global_Styles_Controller->get_item_permissions_check.
+		 * The same check as WP_REST_Global_Styles_Controller::get_item_permissions_check.
 		 */
 		if ( ! current_user_can( 'read_post', $post->ID ) ) {
 			return new WP_Error(
@@ -452,7 +451,9 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Get the parent post, if the ID is valid. Copied from WP_REST_Revisions_Controller.
+	 * Get the parent post, if the ID is valid.
+	 *
+	 * Duplicate of WP_REST_Revisions_Controller::get_parent
 	 *
 	 * @since 6.3.0
 	 *
