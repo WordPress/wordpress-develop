@@ -280,15 +280,14 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_Post         $post    Post revision object.
 	 * @param WP_REST_Request $request Request object.
-	 * @return WP_REST_Response Response object.
+	 * @return WP_REST_Response|WP_Error Response object.
 	 */
 	public function prepare_item_for_response( $post, $request ) {
 		$parent               = $this->get_parent( $request['parent'] );
 		$global_styles_config = $this->get_decoded_global_styles_json( $post->post_content );
-		$data                 = array();
 
 		if ( is_wp_error( $global_styles_config ) ) {
-			return rest_ensure_response( $data );
+			return $global_styles_config;
 		}
 
 		if ( ! empty( $global_styles_config['styles'] ) || ! empty( $global_styles_config['settings'] ) ) {
@@ -296,6 +295,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		$fields = $this->get_fields_for_response( $request );
+		$data   = array();
 
 		if ( rest_is_field_included( 'author', $fields ) ) {
 			$data['author'] = (int) $post->post_author;
