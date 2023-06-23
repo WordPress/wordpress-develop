@@ -145,6 +145,11 @@ textarea {
 	font-size: 11px;
 }
 
+.form-table .setup-description {
+	margin: 4px 0 0;
+	line-height: 1.6;
+}
+
 .form-table input {
 	line-height: 1.33333333;
 	font-size: 15px;
@@ -157,6 +162,11 @@ textarea {
 
 .form-table .wp-pwd {
 	display: flex;
+	column-gap: 4px;
+}
+
+.form-table .password-input-wrapper {
+	width: 100%;
 }
 
 input,
@@ -294,8 +304,7 @@ body.rtl,
 		box-sizing: border-box;
 	}
 
-	.form-table td input[type="password"] {
-		/* rtl:ignore */
+	#pwd {
 		padding-right: 2.5rem;
 	}
 
