@@ -2,25 +2,29 @@
  * Twenty Sixteen keyboard support for image navigation.
  */
 
-( function( $ ) {
-	$( document ).on( 'keydown.twentysixteen', function( e ) {
-		var url = false;
+ ( function() {
+	'use strict';
 
-		// Left arrow key code.
-		if ( 37 === e.which ) {
-			url = $( '.nav-previous a' ).attr( 'href' );
+	document.addEventListener( 'keydown', function ( e ) {
+		var url = null;
+		var focusedTag;
+		var el;
 
-		// Right arrow key code.
-		} else if ( 39 === e.which ) {
-			url = $( '.nav-next a' ).attr( 'href' );
-
-		// Other key code.
+		if ( e.code === 'ArrowLeft' || e.keyCode === 37 ) {
+			el = document.querySelector( '.nav-previous a' );
+			url = el && el.getAttribute( 'href' );
+		} else if ( e.code === 'ArrowRight' || e.keyCode === 39 ) {
+			el = document.querySelector( '.nav-next a' );
+			url = el && el.getAttribute( 'href' );
 		} else {
 			return;
 		}
 
-		if ( url && ! $( 'textarea, input' ).is( ':focus' ) ) {
+		focusedTag =
+			document.activeElement && document.activeElement.tagName.toLowerCase();
+
+		if ( url && focusedTag !== 'textarea' && focusedTag !== 'input' ) {
 			window.location = url;
 		}
 	} );
-} )( jQuery );
+} )();
