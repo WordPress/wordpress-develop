@@ -179,6 +179,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
+		if ( ! empty( $schema['properties']['featured_media'] ) && isset( $request['featured_media'] ) ) {
+			$update_featured_media = $this->handle_featured_media( $request['featured_media'], $attachment_id );
+
+			if ( is_wp_error( $update_featured_media ) ) {
+				return $update_featured_media;
+			}
+		}
+
 		$attachment    = get_post( $attachment_id );
 		$fields_update = $this->update_additional_fields_for_object( $attachment, $request );
 
@@ -334,6 +342,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		if ( is_wp_error( $response ) ) {
 			return $response;
+		}
+
+		$schema = $this->get_item_schema();
+
+		if ( ! empty( $schema['properties']['featured_media'] ) && isset( $request['featured_media'] ) ) {
+			$update_featured_media = $this->handle_featured_media( $request['featured_media'], $request['id'] );
+
+			if ( is_wp_error( $update_featured_media ) ) {
+				return $update_featured_media;
+			}
 		}
 
 		$response = rest_ensure_response( $response );
@@ -1261,6 +1279,41 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return $media_types;
+	}
+
+
+	/**
+	 * Determines the featured media based on a request param.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param int $featured_media Featured Media ID.
+	 * @param int $post_id        Post ID.
+	 * @return bool|WP_Error Whether the post thumbnail was successfully deleted, otherwise WP_Error.
+	 */
+	protected function handle_featured_media( $featured_media, $post_id ) {
+		$post = $this->get_post( $post_id );
+		if ( is_wp_error( $post ) ) {
+			return new WP_Error(
+				'rest_invalid_featured_media',
+				__( 'Invalid featured media ID!' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( wp_attachment_is( 'audio', $post_id ) && post_type_supports( 'attachment:audio', 'thumbnail' ) || current_theme_supports( 'post-thumbnails', 'attachment:audio' ) ) {
+			return parent::handle_featured_media( $featured_media, $post_id );
+		} else if ( wp_attachment_is( 'video', $post_id ) && post_type_supports( 'attachment:video', 'thumbnail' ) || current_theme_supports( 'post-thumbnails', 'attachment:video' ) ) {
+			return parent::handle_featured_media( $featured_media, $post_id );
+		}
+		return new WP_Error( 'rest_feature_meta_update',
+			sprintf(
+			/* translators: %s: attachment mime type */
+				__( 'This site does not support post thumbnails on attachments with MIME type %s.' ),
+				$post->post_mime_type
+			),
+			array( 'status' => rest_authorization_required_code() )
+		);
 	}
 
 	/**
