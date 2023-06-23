@@ -82,16 +82,17 @@ function register_core_block_style_handles() {
 					$style_handle,
 					false
 				);
-			} else {
-				$wp_styles->add( $style_handle, $includes_url . $style_path );
-				$wp_styles->add_data( $style_handle, 'path', $path );
+				continue;
+			}
 
-				$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $path );
-				if ( is_rtl() && in_array( $rtl_file, $files, true ) ) {
-					$wp_styles->add_data( $style_handle, 'rtl', 'replace' );
-					$wp_styles->add_data( $style_handle, 'suffix', $suffix );
-					$wp_styles->add_data( $style_handle, 'path', $rtl_file );
-				}
+			$wp_styles->add( $style_handle, $includes_url . $style_path );
+			$wp_styles->add_data( $style_handle, 'path', $path );
+
+			$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $path );
+			if ( is_rtl() && in_array( $rtl_file, $files, true ) ) {
+				$wp_styles->add_data( $style_handle, 'rtl', 'replace' );
+				$wp_styles->add_data( $style_handle, 'suffix', $suffix );
+				$wp_styles->add_data( $style_handle, 'path', $rtl_file );
 			}
 		}
 	}
