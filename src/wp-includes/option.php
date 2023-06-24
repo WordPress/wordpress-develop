@@ -368,7 +368,7 @@ function wp_load_alloptions( $force_cache = false ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int $network_id Optional network ID for which network to prime caches of network options. Defaults to the current network.
+ * @param int $network_id Optional. Network ID of network for which to prime network options cache. Defaults to current network.
  */
 function wp_load_core_site_options( $network_id = null ) {
 	global $wpdb;
