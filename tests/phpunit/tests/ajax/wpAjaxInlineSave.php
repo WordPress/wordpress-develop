@@ -123,7 +123,7 @@ class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 		$_POST['post_author']  = $user;
 		$_POST['screen']       = 'edit-post';
 		$_POST['post_view']    = 'list';
-		$_POST['edit_date']    = false;
+		$_POST['edit_date']    = 'false';
 		$_POST['mm']           = '09';
 		$_POST['jj']           = 11;
 		$_POST['aa']           = 2020;
