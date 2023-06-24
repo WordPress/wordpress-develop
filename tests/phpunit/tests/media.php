@@ -35,6 +35,9 @@ CAP;
 
 		$filename       = DIR_TESTDATA . '/images/' . self::$large_filename;
 		self::$large_id = $factory->attachment->create_upload_object( $filename );
+		$metadata       = wp_get_attachment_metadata( self::$large_id );
+		$metadata       = dominant_color_metadata( $metadata, self::$large_id );
+		wp_update_attachment_metadata( self::$large_id, $metadata );
 
 		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash' );
 		foreach ( $post_statuses as $post_status ) {
@@ -1487,6 +1490,23 @@ EOF;
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
 		$expected = sprintf(
 			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" decoding="async" loading="lazy" />',
+			$image[1],
+			$image[2],
+			$image[0]
+		);
+
+		$this->assertSame( $expected, wp_get_attachment_image( self::$large_id ) );
+	}
+	/**
+	 * Tests the default output of `wp_get_attachment_image()`.
+	 *
+	 * @ticket 34635
+	 */
+	public function test_wp_get_attachment_image_defaults_with_dom_color() {
+		add_theme_support( 'dominant-color' );
+		$image    = image_downsize( self::$large_id, 'thumbnail' );
+		$expected = sprintf(
+			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail not-transparent" alt="" decoding="async" loading="lazy" data-has-transparency="false" data-dominant-color="dadada" style="--dominant-color: #dadada;" />',
 			$image[1],
 			$image[2],
 			$image[0]

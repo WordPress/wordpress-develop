@@ -176,7 +176,9 @@ function wp_update_image_subsizes( $attachment_id ) {
 		// This also updates the image meta.
 		$image_meta = _wp_make_subsizes( $missing_sizes, $image_file, $image_meta, $attachment_id );
 	}
-
+	if ( ! isset( $image_meta['dominant_color'] ) || ! isset( $image_meta['has_transparency'] ) ) {
+		$image_meta = dominant_color_metadata( $image_meta, $attachment_id );
+	}
 	/** This filter is documented in wp-admin/includes/image.php */
 	$image_meta = apply_filters( 'wp_generate_attachment_metadata', $image_meta, $attachment_id, 'update' );
 
@@ -643,7 +645,9 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 	if ( ! isset( $metadata['filesize'] ) && file_exists( $file ) ) {
 		$metadata['filesize'] = wp_filesize( $file );
 	}
-
+	if ( ! isset( $metadata['dominant_color'] ) || ! isset( $metadata['has_transparency'] ) ) {
+		$metadata = dominant_color_metadata( $metadata, $attachment_id );
+	}
 	/**
 	 * Filters the generated attachment meta data.
 	 *
