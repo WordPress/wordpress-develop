@@ -274,7 +274,7 @@ function remove_user_from_blog( $user_id, $blog_id = 0, $reassign = 0 ) {
 	$user->remove_all_caps();
 
 	$blogs = get_blogs_of_user( $user_id );
-	if ( count( $blogs ) == 0 ) {
+	if ( count( $blogs ) === 0 ) {
 		update_user_meta( $user_id, 'primary_blog', '' );
 		update_user_meta( $user_id, 'source_domain', '' );
 	}
@@ -295,6 +295,7 @@ function remove_user_from_blog( $user_id, $blog_id = 0, $reassign = 0 ) {
 		}
 	}
 
+	clean_user_cache( $user_id );
 	restore_current_blog();
 
 	return true;
@@ -330,7 +331,7 @@ function get_blog_permalink( $blog_id, $post_id ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $domain Website domain.
- * @param string $path   Optional. Not required for subdomain installations.
+ * @param string $path   Optional. Not required for subdomain installations. Default '/'.
  * @return int 0 if no blog found, otherwise the ID of the matching blog.
  */
 function get_blog_id_from_url( $domain, $path = '/' ) {
@@ -603,11 +604,12 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
  * @global wpdb   $wpdb   WordPress database abstraction object.
  * @global string $domain
  *
- * @param string         $blogname   The blog name provided by the user. Must be unique.
- * @param string         $blog_title The blog title provided by the user.
+ * @param string         $blogname   The site name provided by the user. Must be unique.
+ * @param string         $blog_title The site title provided by the user.
  * @param WP_User|string $user       Optional. The user object to check against the new site name.
+ *                                   Default empty string.
  * @return array {
- *     Array of domain, path, blog name, blog title, user and error messages.
+ *     Array of domain, path, site name, site title, user and error messages.
  *
  *     @type string         $domain     Domain for the site.
  *     @type string         $path       Path for the site. Used in subdirectory installations.
@@ -750,12 +752,12 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 	 * @since MU (3.0.0)
 	 *
 	 * @param array $result {
-	 *     Array of domain, path, blog name, blog title, user and error messages.
+	 *     Array of domain, path, site name, site title, user and error messages.
 	 *
 	 *     @type string         $domain     Domain for the site.
 	 *     @type string         $path       Path for the site. Used in subdirectory installations.
 	 *     @type string         $blogname   The unique site name (slug).
-	 *     @type string         $blog_title Blog title.
+	 *     @type string         $blog_title Site title.
 	 *     @type string|WP_User $user       By default, an empty string. A user object if provided.
 	 *     @type WP_Error       $errors     WP_Error containing any errors found.
 	 * }
@@ -1354,6 +1356,7 @@ function wpmu_create_user( $user_name, $password, $email ) {
  *                           updated. Otherwise, keys and values will be used to set options for
  *                           the new site. Default empty array.
  * @param int    $network_id Optional. Network ID. Only relevant on multi-network installations.
+ *                           Default 1.
  * @return int|WP_Error Returns WP_Error object on failure, the new site ID on success.
  */
 function wpmu_create_blog( $domain, $path, $title, $user_id, $options = array(), $network_id = 1 ) {
@@ -1398,7 +1401,7 @@ function wpmu_create_blog( $domain, $path, $title, $user_id, $options = array(),
 		return $blog_id;
 	}
 
-	wp_cache_set( 'last_changed', microtime(), 'sites' );
+	wp_cache_set_sites_last_changed();
 
 	return $blog_id;
 }
@@ -1539,7 +1542,8 @@ Disable these notifications: %3$s'
  *
  * @param string $domain     The domain to be checked.
  * @param string $path       The path to be checked.
- * @param int    $network_id Optional. Network ID. Relevant only on multi-network installations.
+ * @param int    $network_id Optional. Network ID. Only relevant on multi-network installations.
+ *                           Default 1.
  * @return int|null The site ID if the site name exists, null otherwise.
  */
 function domain_exists( $domain, $path, $network_id = 1 ) {
@@ -1566,7 +1570,7 @@ function domain_exists( $domain, $path, $network_id = 1 ) {
 	 * @param int|null $result     The site ID if the site name exists, null otherwise.
 	 * @param string   $domain     Domain to be checked.
 	 * @param string   $path       Path to be checked.
-	 * @param int      $network_id Network ID. Relevant only on multi-network installations.
+	 * @param int      $network_id Network ID. Only relevant on multi-network installations.
 	 */
 	return apply_filters( 'domain_exists', $result, $domain, $path, $network_id );
 }
@@ -1988,7 +1992,7 @@ function check_upload_mimes( $mimes ) {
 	$site_mimes = array();
 	foreach ( $site_exts as $ext ) {
 		foreach ( $mimes as $ext_pattern => $mime ) {
-			if ( '' !== $ext && false !== strpos( $ext_pattern, $ext ) ) {
+			if ( '' !== $ext && str_contains( $ext_pattern, $ext ) ) {
 				$site_mimes[ $ext_pattern ] = $mime;
 			}
 		}
@@ -2161,7 +2165,7 @@ function maybe_redirect_404() {
  * @since MU (3.0.0)
  */
 function maybe_add_existing_user_to_blog() {
-	if ( false === strpos( $_SERVER['REQUEST_URI'], '/newbloguser/' ) ) {
+	if ( ! str_contains( $_SERVER['REQUEST_URI'], '/newbloguser/' ) ) {
 		return;
 	}
 
@@ -2383,7 +2387,7 @@ function force_ssl_content( $force = '' ) {
  */
 function filter_SSL( $url ) {  // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	if ( ! is_string( $url ) ) {
-		return get_bloginfo( 'url' ); // Return home blog URL with proper scheme.
+		return get_bloginfo( 'url' ); // Return home site URL with proper scheme.
 	}
 
 	if ( force_ssl_content() && is_ssl() ) {

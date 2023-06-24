@@ -68,8 +68,8 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		$this->parent_controller    = $parent_controller;
 		$this->revisions_controller = new WP_REST_Revisions_Controller( $parent_post_type );
 		$this->rest_base            = 'autosaves';
-		$this->namespace            = ! empty( $post_type_object->rest_namespace ) ? $post_type_object->rest_namespace : 'wp/v2';
 		$this->parent_base          = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
+		$this->namespace            = ! empty( $post_type_object->rest_namespace ) ? $post_type_object->rest_namespace : 'wp/v2';
 	}
 
 	/**
@@ -304,7 +304,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		$revisions = wp_get_post_revisions( $parent_id, array( 'check_enabled' => false ) );
 
 		foreach ( $revisions as $revision ) {
-			if ( false !== strpos( $revision->post_name, "{$parent_id}-autosave" ) ) {
+			if ( str_contains( $revision->post_name, "{$parent_id}-autosave" ) ) {
 				$data       = $this->prepare_item_for_response( $revision, $request );
 				$response[] = $this->prepare_response_for_collection( $data );
 			}

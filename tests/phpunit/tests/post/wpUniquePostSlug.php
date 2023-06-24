@@ -128,7 +128,7 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider allowed_post_statuses
+	 * @dataProvider data_allowed_post_statuses_should_not_be_forced_to_be_unique
 	 */
 	public function test_allowed_post_statuses_should_not_be_forced_to_be_unique( $status ) {
 		$p1 = self::factory()->post->create(
@@ -149,7 +149,7 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 		$this->assertSame( 'foo', $actual );
 	}
 
-	public function allowed_post_statuses() {
+	public function data_allowed_post_statuses_should_not_be_forced_to_be_unique() {
 		return array(
 			array( 'draft' ),
 			array( 'pending' ),

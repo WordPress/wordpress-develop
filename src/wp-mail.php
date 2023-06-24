@@ -107,7 +107,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 				$content_transfer_encoding = explode( ';', $content_transfer_encoding );
 				$content_transfer_encoding = $content_transfer_encoding[0];
 			}
-			if ( ( 'multipart/alternative' === $content_type ) && ( false !== strpos( $line, 'boundary="' ) ) && ( '' === $boundary ) ) {
+			if ( ( 'multipart/alternative' === $content_type ) && ( str_contains( $line, 'boundary="' ) ) && ( '' === $boundary ) ) {
 				$boundary = trim( $line );
 				$boundary = explode( '"', $boundary );
 				$boundary = $boundary[1];
@@ -171,7 +171,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 		$content = explode( '--' . $boundary, $content );
 		$content = $content[2];
 
-		// Match case-insensitive content-transfer-encoding.
+		// Match case-insensitive Content-Transfer-Encoding.
 		if ( preg_match( '/Content-Transfer-Encoding: quoted-printable/i', $content, $delim ) ) {
 			$content = explode( $delim[0], $content );
 			$content = $content[1];

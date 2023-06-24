@@ -58,6 +58,12 @@ p.has-drop-cap:not(:focus)::first-letter {
 		margin-left: 0;
 		margin-right: -40%;
 	}
+
+	body:not(.search-results) article:not(.type-page) .wp-block-gallery .wp-block-image img.below-entry-meta,
+	body:not(.search-results) article:not(.type-page) .wp-block-gallery .wp-block-image figcaption.below-entry-meta {
+		margin: 0;
+		max-width: 100%;
+	}
 }
 
 /* Gallery */
@@ -244,6 +250,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 	line-height: 1;
 	padding: 0.84375em 1.3125em 0.78125em;
 	text-transform: uppercase;
+}
+
+.wp-block-buttons[style*="text-transform"] .wp-block-button__link,
+.wp-block-button[style*="text-transform"] .wp-block-button__link {
+	text-transform: inherit;
 }
 
 .wp-block-button__link {

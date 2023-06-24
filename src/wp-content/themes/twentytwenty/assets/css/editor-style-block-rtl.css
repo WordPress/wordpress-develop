@@ -683,10 +683,17 @@ hr.wp-block-separator.is-style-dots::before {
 	font-style: normal;
 }
 
+.editor-styles-wrapper .wp-block-quote.has-text-color cite,
+.editor-styles-wrapper .wp-block-quote.has-background cite,
+.editor-styles-wrapper .has-background .wp-block-quote cite {
+	color: inherit;
+}
+
 .editor-styles-wrapper .wp-block-quote p {
 	color: inherit;
 	font-weight: 400;
 	margin: 0 0 20px 0;
+	letter-spacing: inherit;
 }
 
 .editor-styles-wrapper .wp-block-quote.is-style-large {
@@ -883,6 +890,12 @@ hr.wp-block-separator.is-style-dots::before {
 	text-transform: none;
 }
 
+.editor-styles-wrapper .wp-block-pullquote.has-text-color cite,
+.editor-styles-wrapper .wp-block-pullquote.has-background cite,
+.editor-styles-wrapper .has-background .wp-block-pullquote cite {
+	color: inherit;
+}
+
 /* STYLE: SOLID COLOR */
 
 .editor-styles-wrapper .wp-block-pullquote.is-style-solid-color {
@@ -931,6 +944,11 @@ hr.wp-block-separator.is-style-dots::before {
 	line-height: 1.25;
 	padding: 1.1em 1.44em;
 	text-transform: uppercase;
+}
+
+.wp-block-buttons[style*="text-transform"] .wp-block-button__link,
+.wp-block-button[style*="text-transform"] .wp-block-button__link {
+	text-transform: inherit;
 }
 
 .editor-styles-wrapper .wp-block-button .wp-block-button__link.mce-content-body {

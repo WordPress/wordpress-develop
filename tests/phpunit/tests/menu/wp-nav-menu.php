@@ -197,4 +197,52 @@ class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 			'Level 3 should not be present in the HTML output.'
 		);
 	}
+
+	/**
+	 * The order in which parent/child menu items are created should not matter.
+	 *
+	 * @ticket 57122
+	 */
+	public function test_parent_with_higher_id_should_not_error() {
+		// Create a new level zero menu item.
+		$new_lvl0_menu_item = wp_update_nav_menu_item(
+			self::$menu_id,
+			0,
+			array(
+				'menu-item-title'  => 'Root menu item with high ID',
+				'menu-item-url'    => '#',
+				'menu-item-status' => 'publish',
+			)
+		);
+
+		// Reparent level 1 menu item to the new level zero menu item.
+		self::$lvl1_menu_item = wp_update_nav_menu_item(
+			self::$menu_id,
+			self::$lvl1_menu_item,
+			array(
+				'menu-item-parent-id' => $new_lvl0_menu_item,
+			)
+		);
+
+		// Delete the old level zero menu item.
+		wp_delete_post( self::$lvl0_menu_item, true );
+
+		// Render the menu.
+		$menu_html = wp_nav_menu(
+			array(
+				'menu' => self::$menu_id,
+				'echo' => false,
+			)
+		);
+
+		$this->assertStringContainsString(
+			sprintf(
+				'<li id="menu-item-%1$d" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-%1$d">',
+				$new_lvl0_menu_item
+			),
+			$menu_html,
+			'The level zero menu item should appear in the menu.'
+		);
+
+	}
 }

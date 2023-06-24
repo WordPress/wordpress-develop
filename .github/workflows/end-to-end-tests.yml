@@ -26,6 +26,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 env:
   LOCAL_DIR: build
 
@@ -48,6 +52,8 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
@@ -104,12 +110,23 @@ jobs:
       - name: Run E2E tests
         run: npm run test:e2e
 
+      - name: Archive debug artifacts (screenshots, HTML snapshots)
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        if: always()
+        with:
+            name: failures-artifacts
+            path: artifacts
+            if-no-files-found: ignore
+
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
 
   slack-notifications:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    permissions:
+      actions: read
+      contents: read
     needs: [ e2e-tests ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
@@ -123,6 +140,8 @@ jobs:
   failed-workflow:
     name: Failed workflow tasks
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     needs: [ e2e-tests, slack-notifications ]
     if: |
       always() &&

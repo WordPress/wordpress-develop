@@ -301,6 +301,22 @@ function form_option( $option ) {
 function wp_load_alloptions( $force_cache = false ) {
 	global $wpdb;
 
+	/**
+	 * Filters the array of alloptions before it is populated.
+	 *
+	 * Returning an array from the filter will effectively short circuit
+	 * wp_load_alloptions(), returning that value instead.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param array|null $alloptions  An array of alloptions. Default null.
+	 * @param bool       $force_cache Whether to force an update of the local cache from the persistent cache. Default false.
+	 */
+	$alloptions = apply_filters( 'pre_wp_load_alloptions', null, $force_cache );
+	if ( is_array( $alloptions ) ) {
+		return $alloptions;
+	}
+
 	if ( ! wp_installing() || ! is_multisite() ) {
 		$alloptions = wp_cache_get( 'alloptions', 'options', $force_cache );
 	} else {
@@ -711,7 +727,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 }
 
 /**
- * Removes option by name. Prevents removal of protected WordPress options.
+ * Removes an option by name. Prevents removal of protected WordPress options.
  *
  * @since 1.2.0
  *
@@ -1354,7 +1370,7 @@ function add_site_option( $option, $value ) {
 }
 
 /**
- * Removes a option by name for the current network.
+ * Removes an option by name for the current network.
  *
  * @since 2.8.0
  * @since 4.4.0 Modified into wrapper for delete_network_option()

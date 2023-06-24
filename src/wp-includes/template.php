@@ -152,7 +152,7 @@ function get_archive_template() {
 
 	$templates = array();
 
-	if ( count( $post_types ) == 1 ) {
+	if ( count( $post_types ) === 1 ) {
 		$post_type   = reset( $post_types );
 		$templates[] = "archive-{$post_type}.php";
 	}
@@ -662,7 +662,7 @@ function get_attachment_template() {
 	$templates = array();
 
 	if ( $attachment ) {
-		if ( false !== strpos( $attachment->post_mime_type, '/' ) ) {
+		if ( str_contains( $attachment->post_mime_type, '/' ) ) {
 			list( $type, $subtype ) = explode( '/', $attachment->post_mime_type );
 		} else {
 			list( $type, $subtype ) = array( $attachment->post_mime_type, '' );
