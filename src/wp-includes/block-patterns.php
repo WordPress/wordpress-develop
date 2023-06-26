@@ -30,7 +30,7 @@ function _register_core_block_patterns_and_categories() {
 		);
 
 		foreach ( $core_block_patterns as $core_block_pattern ) {
-			$pattern           = require ABSPATH . WPINC . '/block-patterns/' . $core_block_pattern . '.php';
+			$pattern           = require __DIR__ . '/block-patterns/' . $core_block_pattern . '.php';
 			$pattern['source'] = 'core'; // Added in 6.3.0.
 			register_block_pattern( 'core/' . $core_block_pattern, $pattern );
 		}
