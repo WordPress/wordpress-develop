@@ -132,9 +132,12 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 		}
 	}
 
-
 	public function data_block_data() {
 		$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
+
+		// Remove this blocks for now, as they are registered elsewhere.
+		unset( $core_blocks_meta['archives'] );
+		unset( $core_blocks_meta['widget-group'] );
 
 		$data = array();
 		foreach ( $core_blocks_meta as $name => $schema ) {

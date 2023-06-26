@@ -45,13 +45,12 @@ function register_core_block_style_handles() {
 	}
 
 	/*
-	 * Ignore transient cache when `WP_DEBUG` is enabled. Why? To avoid interfering with
+	/*
+	 * Ignore transient cache when the development mode is set to 'core'. Why? To avoid interfering with
 	 * the core developer's workflow.
-	 *
-	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
 	 */
-	if ( ! WP_DEBUG ) {
-		$transient_name = 'wp_core_block_styles';
+	if ( 'core' !== wp_get_development_mode() ) {
+		$transient_name = 'wp_core_block_css_files';
 		$files          = get_transient( $transient_name );
 		if ( ! $files ) {
 			$files = glob( __DIR__ . '/**/**.css' );
@@ -72,6 +71,7 @@ function register_core_block_style_handles() {
 		if ( ! isset( $schema['editorStyle'] ) ) {
 			$schema['editorStyle'] = "wp-block-{$name}-editor";
 		}
+
 		if ( ! isset( $schema['themeStyle'] ) ) {
 			$schema['themeStyle'] = "wp-block-{$name}-theme";
 		}
