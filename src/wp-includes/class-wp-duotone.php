@@ -143,9 +143,9 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Direct port of colord's clampHue function.
+	 * Processes and clamps a degree (angle) value properly.
 	 *
-	 * @see https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/helpers.ts#L32
+	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/helpers.ts#L32 Sourced from colord.
 	 *
 	 * @param float $degrees The hue to clamp.
 	 * @return float The clamped hue.
@@ -156,9 +156,9 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Direct port of colord's parseHue function.
+	 * Converts a hue value to degrees from 0 to 360 inclusive.
 	 *
-	 * @see https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/helpers.ts#L40
+	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/helpers.ts#L40 Sourced from colord.
 	 *
 	 * @param float  $value The hue value to parse.
 	 * @param string $unit  The unit of the hue value.
@@ -180,9 +180,9 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Direct port of colord's parseHex function.
+	 * Parses any valid Hex3, Hex4, Hex6 or Hex8 string and converts it to an RGBA object
 	 *
-	 * @see https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hex.ts#L8
+	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hex.ts#L8 Sourced from colord.
 	 *
 	 * @param string $hex The hex string to parse.
 	 * @return array|null An array of RGBA values or null if the hex string is invalid.
@@ -222,9 +222,9 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Direct port of colord's clampRgba function.
+	 * Clamps an array of RGBA values.
 	 *
-	 * @see https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/rgb.ts#L5
+	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/rgb.ts#L5 Sourced from colord.
 	 *
 	 * @param array $rgba The RGBA array to clamp.
 	 * @return array The clamped RGBA array.
@@ -239,9 +239,9 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Direct port of colord's parseRgbaString function.
+	 * Parses a valid RGB[A] CSS color function/string
 	 *
-	 * @see https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/rgbString.ts#L18
+	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/rgbString.ts#L18 Sourced from colord.
 	 *
 	 * @param string $input The RGBA string to parse.
 	 * @return array|null An array of RGBA values or null if the RGB string is invalid.
@@ -292,9 +292,9 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Direct port of colord's clampHsla function.
+	 * Clamps an array of HSLA values.
 	 *
-	 * @see https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hsl.ts#L6
+	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hsl.ts#L6 Sourced from colord.
 	 *
 	 * @param array $hsla The HSLA array to clamp.
 	 * @return array The clamped HSLA array.
@@ -309,9 +309,9 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Direct port of colord's hsvaToRgba function.
+	 * Converts an HSVA array to RGBA.
 	 *
-	 * @see https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hsv.ts#L52
+	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hsv.ts#L52 Sourced from colord.
 	 *
 	 * @param array $hsva The HSVA array to convert.
 	 * @return array The RGBA array.
@@ -337,9 +337,9 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Direct port of colord's hslaToHsva function.
+	 * Converts an HSLA array to HSVA.
 	 *
-	 * @see https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hsl.ts#L33
+	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hsl.ts#L33 Sourced from colord.
 	 *
 	 * @param array $hsla The HSLA array to convert.
 	 * @return array The HSVA array.
@@ -361,9 +361,9 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Direct port of colord's hslaToRgba function.
+	 * Converts an HSLA array to RGBA.
 	 *
-	 * @see https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hsl.ts#L55
+	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hsl.ts#L55 Sourced from colord.
 	 *
 	 * @param array $hsla The HSLA array to convert.
 	 * @return array The RGBA array.
@@ -373,9 +373,9 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Direct port of colord's parseHslaString function.
+	 * Parses a valid HSL[A] CSS color function/string.
 	 *
-	 * @see https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hslString.ts#L17
+	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hslString.ts#L17 Sourced from colord.
 	 *
 	 * @param string $input The HSLA string to parse.
 	 * @return array|null An array of RGBA values or null if the RGB string is invalid.
@@ -401,7 +401,7 @@ class WP_Duotone {
 			return null;
 		}
 
-		/* 
+		/*
 		 * For some reason, preg_match doesn't include empty matches at the end
 		 * of the array, so we add them manually to make things easier later.
 		 */
@@ -424,10 +424,9 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Direct port of colord's parse function simplified for our use case. This
-	 * version only supports string parsing and only returns RGBA values.
+	 * Tries to convert an incoming string into RGBA values.
 	 *
-	 * @see https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/parse.ts#L37
+	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/parse.ts#L37 Sourced from colord.
 	 *
 	 * @param string $input The string to parse.
 	 * @return array|null An array of RGBA values or null if the string is invalid.
@@ -783,7 +782,7 @@ class WP_Duotone {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
 
 		if ( $block_type && property_exists( $block_type, 'supports' ) ) {
-			/* 
+			/*
 			 * Backwards compatibility with `supports.color.__experimentalDuotone`
 			 * is provided via the `block_type_metadata_settings` filter. If
 			 * `supports.filter.duotone` has not been set and the experimental
@@ -795,7 +794,7 @@ class WP_Duotone {
 				return null;
 			}
 
-			/* 
+			/*
 			 * If the experimental duotone support was set, that value is to be
 			 * treated as a selector and requires scoping.
 			 */
