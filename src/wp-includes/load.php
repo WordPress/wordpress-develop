@@ -284,6 +284,8 @@ function wp_get_development_mode() {
 	}
 
 	$development_mode = WP_DEVELOPMENT_MODE;
+
+	// Exclusively for core tests, rely on a global `$_wp_tests_development_mode`.
 	if ( defined( 'WP_RUN_CORE_TESTS' ) && isset( $GLOBALS['_wp_tests_development_mode'] ) ) {
 		$development_mode = $GLOBALS['_wp_tests_development_mode'];
 	}
