@@ -78,8 +78,9 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 	 * @return array Collection parameters.
 	 */
 	public function get_collection_params() {
-		$collection_params           = parent::get_collection_params();
-		$collection_params['offset'] = array(
+		$collection_params                  = parent::get_collection_params();
+		$query_params['context']['default'] = 'view';
+		$collection_params['offset']        = array(
 			'description' => __( 'Offset the result set by a specific number of items.' ),
 			'type'        => 'integer',
 		);
