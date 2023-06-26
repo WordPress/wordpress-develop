@@ -287,7 +287,9 @@ function get_legacy_widget_block_editor_settings() {
  * @since 6.0.0
  * @access private
  *
- * @global string $pagenow The filename of the current screen.
+ * @global string     $pagenow    The filename of the current screen.
+ * @global WP_Styles  $wp_styles  The WP_Styles current instance.
+ * @global WP_Scripts $wp_scripts The WP_Scripts current instance.
  *
  * @return array {
  *     The block editor assets.
@@ -351,7 +353,6 @@ function _wp_get_iframed_editor_assets() {
 
 	ob_start();
 	wp_print_styles();
-	wp_print_fonts( true );
 	$styles = ob_get_clean();
 
 	ob_start();
