@@ -70,36 +70,23 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves the query params for collections.
-	 * Taken mostly from WP_REST_Controller->get_collection_params().
+	 * Inherits from WP_REST_Controller::get_collection_params(),
+	 * also reflects changes to return value WP_REST_Revisions_Controller::get_collection_params().
 	 *
 	 * @since 6.3.0
 	 *
 	 * @return array Collection parameters.
 	 */
 	public function get_collection_params() {
-		return array(
-			'context'  => array( 'default' => 'view' ),
-			'page'     => array(
-				'description'       => __( 'Current page of the collection.' ),
-				'type'              => 'integer',
-				'default'           => 1,
-				'sanitize_callback' => 'absint',
-				'validate_callback' => 'rest_validate_request_arg',
-				'minimum'           => 1,
-			),
-			'per_page' => array(
-				'description'       => __( 'Maximum number of items to be returned in result set.' ),
-				'type'              => 'integer',
-				'minimum'           => 1,
-				'maximum'           => 100,
-				'sanitize_callback' => 'absint',
-				'validate_callback' => 'rest_validate_request_arg',
-			),
-			'offset'   => array(
-				'description' => __( 'Offset the result set by a specific number of items.' ),
-				'type'        => 'integer',
-			),
+		$collection_params           = parent::get_collection_params();
+		$collection_params['offset'] = array(
+			'description' => __( 'Offset the result set by a specific number of items.' ),
+			'type'        => 'integer',
 		);
+		unset( $collection_params['search'] );
+		unset( $collection_params['per_page']['default'] );
+
+		return $collection_params;
 	}
 
 	/**
@@ -290,12 +277,18 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 			return $global_styles_config;
 		}
 
-		if ( ! empty( $global_styles_config['styles'] ) || ! empty( $global_styles_config['settings'] ) ) {
-			$global_styles_config = ( new WP_Theme_JSON( $global_styles_config, 'custom' ) )->get_raw_data();
-		}
-
 		$fields = $this->get_fields_for_response( $request );
 		$data   = array();
+
+		if ( ! empty( $global_styles_config['styles'] ) || ! empty( $global_styles_config['settings'] ) ) {
+			$global_styles_config = ( new WP_Theme_JSON( $global_styles_config, 'custom' ) )->get_raw_data();
+			if ( rest_is_field_included( 'settings', $fields ) ) {
+				$data['settings'] = ! empty( $global_styles_config['settings'] ) ? $global_styles_config['settings'] : new stdClass();
+			}
+			if ( rest_is_field_included( 'styles', $fields ) ) {
+				$data['styles'] = ! empty( $global_styles_config['styles'] ) ? $global_styles_config['styles'] : new stdClass();
+			}
+		}
 
 		if ( rest_is_field_included( 'author', $fields ) ) {
 			$data['author'] = (int) $post->post_author;
@@ -323,14 +316,6 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 
 		if ( rest_is_field_included( 'parent', $fields ) ) {
 			$data['parent'] = (int) $parent->ID;
-		}
-
-		if ( rest_is_field_included( 'settings', $fields ) ) {
-			$data['settings'] = ! empty( $global_styles_config['settings'] ) ? $global_styles_config['settings'] : new stdClass();
-		}
-
-		if ( rest_is_field_included( 'styles', $fields ) ) {
-			$data['styles'] = ! empty( $global_styles_config['styles'] ) ? $global_styles_config['styles'] : new stdClass();
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
