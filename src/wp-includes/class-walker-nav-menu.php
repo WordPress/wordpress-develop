@@ -321,7 +321,7 @@ class Walker_Nav_Menu extends Walker {
 	 * Builds a string of HTML attributes from an array of key/value pairs.
 	 * Empty values are ignored.
 	 *
-	 * @since 6.2.0
+	 * @since 6.3.0
 	 *
 	 * @param  array $atts Optional. An array of HTML attribute key/value pairs. Default empty array.
 	 * @return string A string of HTML attributes.
