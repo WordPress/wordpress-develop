@@ -127,7 +127,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		wp_set_current_user( self::$admin_id );
 
 		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
-		$request['_fields'] = 'name,content,template_types';
+		$request['_fields'] = 'name,content,source,template_types';
 		$response           = rest_get_server()->dispatch( $request );
 		$data               = $response->get_data();
 
