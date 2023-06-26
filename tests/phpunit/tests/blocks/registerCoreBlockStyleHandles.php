@@ -114,7 +114,7 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 
 	protected function get_block_data() {
 		$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
-		// Remove this blocks for now, as they are registered elsewhere. 
+		// Remove this blocks for now, as they are registered elsewhere.
 		unset( $core_blocks_meta['archives'] );
 		unset( $core_blocks_meta['widget-group'] );
 		return $core_blocks_meta;
