@@ -195,7 +195,7 @@ class Walker_Nav_Menu extends Walker {
 		/**
 		 * Filters the HTML attributes applied to a menu's list item element.
 		 *
-		 * @since 6.2.0
+		 * @since 6.3.0
 		 *
 		 * @param array $li_atts {
 		 *     The HTML attributes applied to the menu item's `<li>` element, empty strings are ignored.
