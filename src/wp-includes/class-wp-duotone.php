@@ -446,7 +446,9 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Takes the inline CSS duotone variable from a block and return the slug. Handles styles slugs like:
+	 * Takes the inline CSS duotone variable from a block and return the slug.
+	 *
+	 * Handles styles slugs like:
 	 * var:preset|duotone|blue-orange
 	 * var(--wp--preset--duotone--blue-orange)
 	 *
