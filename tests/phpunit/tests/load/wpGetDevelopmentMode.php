@@ -21,17 +21,14 @@ class Test_WP_Get_Development_Mode extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that `wp_get_development_mode()` applies its filter correctly.
+	 * Tests that `wp_get_development_mode()` allows test overrides.
 	 *
 	 * @ticket 57487
 	 */
-	public function test_wp_get_development_mode_filter() {
-		add_filter(
-			'wp_development_mode',
-			static function() {
-				return 'plugin';
-			}
-		);
+	public function test_wp_get_development_mode_test_overrides() {
+		global $_wp_tests_development_mode;
+
+		$_wp_tests_development_mode = 'plugin';
 		$this->assertSame( 'plugin', wp_get_development_mode() );
 	}
 
@@ -41,12 +38,9 @@ class Test_WP_Get_Development_Mode extends WP_UnitTestCase {
 	 * @ticket 57487
 	 */
 	public function test_wp_get_development_mode_filter_invalid_value() {
-		add_filter(
-			'wp_development_mode',
-			static function() {
-				return 'invalid';
-			}
-		);
+		global $_wp_tests_development_mode;
+
+		$_wp_tests_development_mode = 'invalid';
 		$this->assertSame( '', wp_get_development_mode() );
 	}
 }

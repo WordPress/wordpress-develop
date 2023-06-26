@@ -283,28 +283,17 @@ function wp_get_development_mode() {
 		return $current_mode;
 	}
 
+	$development_mode = WP_DEVELOPMENT_MODE;
+	if ( defined( 'WP_RUN_CORE_TESTS' ) && isset( $GLOBALS['_wp_tests_development_mode'] ) ) {
+		$development_mode = $GLOBALS['_wp_tests_development_mode'];
+	}
+
 	$valid_modes = array(
 		'core',
 		'plugin',
 		'theme',
 		'',
 	);
-
-	$development_mode = WP_DEVELOPMENT_MODE;
-	if ( ! in_array( $development_mode, $valid_modes, true ) ) {
-		$development_mode = '';
-	}
-
-	/**
-	 * Filters the development mode.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @param string $development_mode The development mode. Valid values are 'core', 'plugin', 'theme', or an empty
-	 *                                 string to signify no developer mode.
-	 */
-	$development_mode = apply_filters( 'wp_development_mode', $development_mode );
-
 	if ( ! in_array( $development_mode, $valid_modes, true ) ) {
 		$development_mode = '';
 	}

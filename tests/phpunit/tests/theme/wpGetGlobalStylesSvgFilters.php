@@ -43,6 +43,8 @@ class Tests_Theme_wpGetGlobalStylesSvgFilters extends WP_UnitTestCase {
 	 * @covers ::wp_get_global_styles_svg_filters
 	 */
 	public function test_caching_is_used_when_developing_theme() {
+		global $_wp_tests_development_mode;
+
 		switch_theme( 'block-theme' );
 
 		// Store SVG in cache.
@@ -50,16 +52,11 @@ class Tests_Theme_wpGetGlobalStylesSvgFilters extends WP_UnitTestCase {
 		wp_cache_set( 'wp_get_global_styles_svg_filters', $svg, 'theme_json' );
 
 		// By default, caching should be used, so the above value will be returned.
-		add_filter( 'wp_development_mode', '__return_empty_string' );
+		$_wp_tests_development_mode = '';
 		$this->assertSame( $svg, wp_get_global_styles_svg_filters(), 'Caching was not used despite development mode disabled' );
 
 		// When the development mode is set to 'theme', caching should not be used.
-		add_filter(
-			'wp_development_mode',
-			static function() {
-				return 'theme';
-			}
-		);
+		$_wp_tests_development_mode = 'theme';
 		$this->assertNotSame( $svg, wp_get_global_styles_svg_filters(), 'Caching was used despite theme development mode' );
 	}
 }
