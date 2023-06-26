@@ -1778,6 +1778,8 @@ function wp_lazy_loading_enabled( $tag_name, $context ) {
  * @since 5.5.0
  * @since 5.7.0 Now supports adding `loading` attributes to `iframe` tags.
  *
+ * @global bool $_wp_image_mime_fallback_should_load
+ *
  * @see wp_img_tag_add_width_and_height_attr()
  * @see wp_img_tag_add_srcset_and_sizes_attr()
  * @see wp_img_tag_add_loading_attr()
@@ -1789,6 +1791,8 @@ function wp_lazy_loading_enabled( $tag_name, $context ) {
  * @return string Converted content with images modified.
  */
 function wp_filter_content_tags( $content, $context = null ) {
+	global $_wp_image_mime_fallback_should_load;
+
 	if ( null === $context ) {
 		$context = current_filter();
 	}
@@ -1867,6 +1871,10 @@ function wp_filter_content_tags( $content, $context = null ) {
 				$filtered_image = wp_img_tag_add_decoding_attr( $filtered_image, $context );
 			}
 
+			if ( strpos( $filtered_image, '.webp' ) ) {
+				$_wp_image_mime_fallback_should_load = true;
+			}
+
 			/**
 			 * Filters an img tag within the content for a given context.
 			 *
@@ -1911,6 +1919,35 @@ function wp_filter_content_tags( $content, $context = null ) {
 	}
 
 	return $content;
+}
+
+/**
+ * Adds a fallback script to replace images in modern mime types with alternative mime types on older browsers.
+ *
+ * @since 6.1.0
+ *
+ * @global bool $_wp_image_mime_fallback_should_load
+ */
+function wp_print_image_mime_fallback_script() {
+	global $_wp_image_mime_fallback_should_load;
+
+	// Bail early if an image has no additional mime.
+	if ( true !== $_wp_image_mime_fallback_should_load ) {
+		return;
+	}
+
+	$suffix   = wp_scripts_get_suffix();
+	$version  = 'ver=' . get_bloginfo( 'version' );
+	$settings = array(
+		'restApi'                 => esc_url_raw( trailingslashit( get_rest_url() ) ),
+		/** This filter is documented in wp-includes/class.wp-scripts.php */
+		'imageMimeFallbackScript' => apply_filters( 'script_loader_src', includes_url( "js/wp-image-mime-fallback$suffix.js?$version" ), 'wp-image-mime-fallback' ),
+	);
+
+	wp_print_inline_script_tag(
+		sprintf( 'window._wpImageMimeFallbackSettings = %s;', wp_json_encode( $settings ) ) . "\n" .
+			file_get_contents( sprintf( ABSPATH . WPINC . '/js/wp-image-mime-fallback-loader' . $suffix . '.js' ) )
+	);
 }
 
 /**

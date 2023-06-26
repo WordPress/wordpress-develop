@@ -4407,6 +4407,82 @@ EOF;
 		global $wp_the_query;
 		$wp_the_query = $query;
 	}
+
+	/**
+	 * @ticket 56529
+	 *
+	 * @covers ::wp_print_image_mime_fallback_script
+	 */
+	public function test_wp_print_image_mime_fallback_script_if_content_has_the_webp_images() {
+
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
+
+		$filename      = DIR_TESTDATA . '/images/' . self::$large_filename;
+		$attachment_id = $this->factory->attachment->create_upload_object( $filename );
+
+		apply_filters(
+			'the_content',
+			sprintf(
+				'<p>before image</p>%s<p>after image</p>',
+				wp_filter_content_tags( wp_get_attachment_image( $attachment_id, 'medium', false, array( 'class' => "wp-image-{$attachment_id}" ) ) )
+			)
+		);
+
+		// `wp_print_image_mime_fallback_script()` assumes `wp-includes/js/wp-image-mime-fallback-loader.js` is present:
+		copy(
+			ABSPATH . 'js/_enqueues/wp/image-mime-fallback-loader.js',
+			ABSPATH . WPINC . '/js/wp-image-mime-fallback-loader.js'
+		);
+
+		$this->assertStringContainsString( 'data:image/webp;base64,UklGR', get_echo( 'wp_footer' ) );
+	}
+
+	/**
+	 * @ticket 56529
+	 *
+	 * @covers ::wp_print_image_mime_fallback_script
+	 */
+	public function test_wp_print_image_mime_fallback_script_if_content_has_no_webp_images() {
+
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
+		$GLOBALS['_wp_image_mime_fallback_should_load'] = false;
+		apply_filters( 'the_content', '<p>no image</p>' );
+
+		$this->assertStringNotContainsString( 'data:image/webp;base64,UklGR', get_echo( 'wp_footer' ) );
+	}
+
+	/**
+	 * @ticket 56529
+	 *
+	 * @covers ::wp_print_image_mime_fallback_script
+	 */
+	public function test_wp_print_image_mime_fallback_script_do_not_print_fallback_script_if_global_is_false() {
+		$GLOBALS['_wp_image_mime_fallback_should_load'] = false;
+		$this->assertSame( '', get_echo( 'wp_print_image_mime_fallback_script' ) );
+	}
+
+	/**
+	 * @ticket 56529
+	 *
+	 * @covers ::wp_print_image_mime_fallback_script
+	 */
+	public function test_wp_print_image_mime_fallback_script_print_fallback_script_if_global_is_true() {
+		$GLOBALS['_wp_image_mime_fallback_should_load'] = true;
+
+		// `wp_print_image_mime_fallback_script()` assumes `wp-includes/js/wp-image-mime-fallback-loader.js` is present:
+		self::touch( ABSPATH . WPINC . '/js/wp-image-mime-fallback-loader.js' );
+
+		$output = get_echo( 'wp_print_image_mime_fallback_script' );
+		$this->assertNotSame( '', $output, 'It return the script when gloabl `_wp_image_mime_fallback_should_load` set to true' );
+		$this->assertStringContainsString( 'window._wpImageMimeFallbackSettings', $output, 'Check if the fallback script present' );
+	}
 }
 
 /**

@@ -376,6 +376,8 @@ module.exports = function(grunt) {
 					[ WORKING_DIR + 'wp-includes/js/wp-embed.js' ]: [ './src/js/_enqueues/wp/embed.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-emoji-loader.js' ]: [ './src/js/_enqueues/lib/emoji-loader.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-emoji.js' ]: [ './src/js/_enqueues/wp/emoji.js' ],
+					[ WORKING_DIR + 'wp-includes/js/wp-image-mime-fallback-loader.js' ]: [ './src/js/_enqueues/wp/image-mime-fallback-loader.js' ],
+					[ WORKING_DIR + 'wp-includes/js/wp-image-mime-fallback.js' ]: [ './src/js/_enqueues/wp/image-mime-fallback.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-list-revisions.js' ]: [ './src/js/_enqueues/lib/list-revisions.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-lists.js' ]: [ './src/js/_enqueues/lib/lists.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-pointer.js' ]: [ './src/js/_enqueues/lib/pointer.js' ],
