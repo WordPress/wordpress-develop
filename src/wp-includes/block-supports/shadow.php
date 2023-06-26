@@ -25,13 +25,13 @@ function wp_register_shadow_support( $block_type ) {
 		$block_type->attributes = array();
 	}
 
-	if ( $has_shadow_support && ! array_key_exists( 'style', $block_type->attributes ) ) {
+	if ( array_key_exists( 'style', $block_type->attributes ) ) {
 		$block_type->attributes['style'] = array(
 			'type' => 'object',
 		);
 	}
 
-	if ( $has_shadow_support && ! array_key_exists( 'shadow', $block_type->attributes ) ) {
+	if ( array_key_exists( 'shadow', $block_type->attributes ) ) {
 		$block_type->attributes['shadow'] = array(
 			'type' => 'string',
 		);
@@ -47,7 +47,6 @@ function wp_register_shadow_support( $block_type ) {
  *
  * @param  WP_Block_Type $block_type       Block type.
  * @param  array         $block_attributes Block attributes.
- *
  * @return array Shadow CSS classes and inline styles.
  */
 function wp_apply_shadow_support( $block_type, $block_attributes ) {
