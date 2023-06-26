@@ -115,7 +115,6 @@
 		"@wordpress/list-reusable-blocks": "4.3.7",
 		"@wordpress/media-utils": "4.17.2",
 		"@wordpress/notices": "3.26.3",
-		"@wordpress/nux": "6.0.0",
 		"@wordpress/plugins": "5.3.3",
 		"@wordpress/preferences": "3.3.7",
 		"@wordpress/preferences-persistence": "1.18.1",
