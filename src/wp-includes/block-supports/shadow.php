@@ -11,7 +11,7 @@
  *
  * @since 6.3.0
  * @access private
- * 
+ *
  * @param WP_Block_Type $block_type Block Type.
  */
 function wp_register_shadow_support( $block_type ) {
@@ -40,9 +40,8 @@ function wp_register_shadow_support( $block_type ) {
 
 /**
  * Add CSS classes and inline styles for shadow features to the incoming attributes array.
- * This will be applied to the block markup in
- * the front-end.
- * 
+ * This will be applied to the block markup in the front-end.
+ *
  * @since 6.3.0
  * @access private
  *
