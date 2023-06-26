@@ -651,6 +651,11 @@ function wp_scripts_get_suffix( $type = '' ) {
 		// Include an unmodified $wp_version.
 		require ABSPATH . WPINC . '/version.php';
 
+		/*
+		 * Note: str_contains() is not used here, as this file can be included
+		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
+		 * the polyfills from wp-includes/compat.php are not loaded.
+		 */
 		$develop_src = false !== strpos( $wp_version, '-src' );
 
 		if ( ! defined( 'SCRIPT_DEBUG' ) ) {
@@ -1166,6 +1171,9 @@ function wp_default_scripts( $scripts ) {
 	);
 	$scripts->set_translations( 'password-strength-meter' );
 
+	$scripts->add( 'password-toggle', "/wp-admin/js/password-toggle$suffix.js", array(), false, 1 );
+	$scripts->set_translations( 'password-toggle' );
+
 	$scripts->add( 'application-passwords', "/wp-admin/js/application-passwords$suffix.js", array( 'jquery', 'wp-util', 'wp-api-request', 'wp-date', 'wp-i18n', 'wp-hooks' ), false, 1 );
 	$scripts->set_translations( 'application-passwords' );
 
@@ -1480,6 +1488,11 @@ function wp_default_styles( $styles ) {
 	require ABSPATH . WPINC . '/version.php';
 
 	if ( ! defined( 'SCRIPT_DEBUG' ) ) {
+		/*
+		 * Note: str_contains() is not used here, as this file can be included
+		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
+		 * the polyfills from wp-includes/compat.php are not loaded.
+		 */
 		define( 'SCRIPT_DEBUG', false !== strpos( $wp_version, '-src' ) );
 	}
 
@@ -3718,6 +3731,7 @@ function wp_enqueue_classic_theme_styles() {
 	if ( ! wp_theme_has_theme_json() ) {
 		$suffix = wp_scripts_get_suffix();
 		wp_register_style( 'classic-theme-styles', '/' . WPINC . "/css/classic-themes$suffix.css" );
+		wp_style_add_data( 'classic-theme-styles', 'path', ABSPATH . WPINC . "/css/classic-themes$suffix.css" );
 		wp_enqueue_style( 'classic-theme-styles' );
 	}
 }

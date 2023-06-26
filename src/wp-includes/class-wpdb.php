@@ -1496,8 +1496,14 @@ class wpdb {
 			return;
 		}
 
-		// This is not meant to be foolproof -- but it will catch obviously incorrect usage.
-		if ( strpos( $query, '%' ) === false ) {
+		/*
+		 * This is not meant to be foolproof -- but it will catch obviously incorrect usage.
+		 *
+		 * Note: str_contains() is not used here, as this file can be included
+		 * directly outside of WordPress core, e.g. by HyperDB, in which case
+		 * the polyfills from wp-includes/compat.php are not loaded.
+		 */
+		if ( false === strpos( $query, '%' ) ) {
 			wp_load_translations_early();
 			_doing_it_wrong(
 				'wpdb::prepare',
@@ -1564,6 +1570,11 @@ class wpdb {
 			$type   = substr( $placeholder, -1 );
 
 			if ( 'f' === $type && true === $this->allow_unsafe_unquoted_parameters
+				/*
+				 * Note: str_ends_with() is not used here, as this file can be included
+				 * directly outside of WordPress core, e.g. by HyperDB, in which case
+				 * the polyfills from wp-includes/compat.php are not loaded.
+				 */
 				&& '%' === substr( $split_query[ $key - 1 ], -1, 1 )
 			) {
 
@@ -1625,6 +1636,11 @@ class wpdb {
 					 * Second, if "%s" has a "%" before it, even if it's unrelated (e.g. "LIKE '%%%s%%'").
 					 */
 					if ( true !== $this->allow_unsafe_unquoted_parameters
+						/*
+						 * Note: str_ends_with() is not used here, as this file can be included
+						 * directly outside of WordPress core, e.g. by HyperDB, in which case
+						 * the polyfills from wp-includes/compat.php are not loaded.
+						 */
 						|| ( '' === $format && '%' !== substr( $split_query[ $key - 1 ], -1, 1 ) )
 					) {
 						$placeholder = "'%" . $format . "s'";
@@ -4038,8 +4054,14 @@ class wpdb {
 		$db_version     = $this->db_version();
 		$db_server_info = $this->db_server_info();
 
-		// Account for MariaDB version being prefixed with '5.5.5-' on older PHP versions.
-		if ( '5.5.5' === $db_version && str_contains( $db_server_info, 'MariaDB' )
+		/*
+		 * Account for MariaDB version being prefixed with '5.5.5-' on older PHP versions.
+		 *
+		 * Note: str_contains() is not used here, as this file can be included
+		 * directly outside of WordPress core, e.g. by HyperDB, in which case
+		 * the polyfills from wp-includes/compat.php are not loaded.
+		 */
+		if ( '5.5.5' === $db_version && false !== strpos( $db_server_info, 'MariaDB' )
 			&& PHP_VERSION_ID < 80016 // PHP 8.0.15 or older.
 		) {
 			// Strip the '5.5.5-' prefix and set the version to the correct value.
@@ -4067,6 +4089,10 @@ class wpdb {
 				/*
 				 * libmysql has supported utf8mb4 since 5.5.3, same as the MySQL server.
 				 * mysqlnd has supported utf8mb4 since 5.0.9.
+				 *
+				 * Note: str_contains() is not used here, as this file can be included
+				 * directly outside of WordPress core, e.g. by HyperDB, in which case
+				 * the polyfills from wp-includes/compat.php are not loaded.
 				 */
 				if ( false !== strpos( $client_version, 'mysqlnd' ) ) {
 					$client_version = preg_replace( '/^\D+([\d.]+).*/', '$1', $client_version );

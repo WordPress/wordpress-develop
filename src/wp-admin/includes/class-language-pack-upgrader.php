@@ -105,7 +105,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Initialize the upgrade strings.
+	 * Initializes the upgrade strings.
 	 *
 	 * @since 3.7.0
 	 */
@@ -123,7 +123,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Upgrade a language pack.
+	 * Upgrades a language pack.
 	 *
 	 * @since 3.7.0
 	 *
@@ -147,7 +147,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Bulk upgrade language packs.
+	 * Upgrades several language packs at once.
 	 *
 	 * @since 3.7.0
 	 *
@@ -336,9 +336,9 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		$po = false;
 		$mo = false;
 		foreach ( (array) $files as $file => $filedata ) {
-			if ( '.po' === substr( $file, -3 ) ) {
+			if ( str_ends_with( $file, '.po' ) ) {
 				$po = true;
-			} elseif ( '.mo' === substr( $file, -3 ) ) {
+			} elseif ( str_ends_with( $file, '.mo' ) ) {
 				$mo = true;
 			}
 		}
@@ -360,7 +360,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Get the name of an item being updated.
+	 * Gets the name of an item being updated.
 	 *
 	 * @since 3.7.0
 	 *

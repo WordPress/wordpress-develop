@@ -19,11 +19,13 @@
 	"globals": {
 		"_": false,
 		"Backbone": false,
+		"console": false,
 		"jQuery": false,
 		"JSON": false,
 		"wp": false,
 		"export": false,
 		"module": false,
-		"require": false
+		"require": false,
+		"Set": false
 	}
 }

@@ -282,26 +282,26 @@ function create_initial_post_types() {
 		'wp_block',
 		array(
 			'labels'                => array(
-				'name'                     => _x( 'Reusable blocks', 'post type general name' ),
-				'singular_name'            => _x( 'Reusable block', 'post type singular name' ),
-				'add_new'                  => _x( 'Add New', 'Reusable block' ),
-				'add_new_item'             => __( 'Add new Reusable block' ),
-				'new_item'                 => __( 'New Reusable block' ),
-				'edit_item'                => __( 'Edit Reusable block' ),
-				'view_item'                => __( 'View Reusable block' ),
-				'view_items'               => __( 'View Reusable blocks' ),
-				'all_items'                => __( 'All Reusable blocks' ),
-				'search_items'             => __( 'Search Reusable blocks' ),
-				'not_found'                => __( 'No reusable blocks found.' ),
-				'not_found_in_trash'       => __( 'No reusable blocks found in Trash.' ),
-				'filter_items_list'        => __( 'Filter reusable blocks list' ),
-				'items_list_navigation'    => __( 'Reusable blocks list navigation' ),
-				'items_list'               => __( 'Reusable blocks list' ),
-				'item_published'           => __( 'Reusable block published.' ),
-				'item_published_privately' => __( 'Reusable block published privately.' ),
-				'item_reverted_to_draft'   => __( 'Reusable block reverted to draft.' ),
-				'item_scheduled'           => __( 'Reusable block scheduled.' ),
-				'item_updated'             => __( 'Reusable block updated.' ),
+				'name'                     => _x( 'Patterns', 'post type general name' ),
+				'singular_name'            => _x( 'Pattern', 'post type singular name' ),
+				'add_new'                  => _x( 'Add New', 'Pattern' ),
+				'add_new_item'             => __( 'Add new Pattern' ),
+				'new_item'                 => __( 'New Pattern' ),
+				'edit_item'                => __( 'Edit Pattern' ),
+				'view_item'                => __( 'View Pattern' ),
+				'view_items'               => __( 'View Patterns' ),
+				'all_items'                => __( 'All Patterns' ),
+				'search_items'             => __( 'Search Patterns' ),
+				'not_found'                => __( 'No patterns found.' ),
+				'not_found_in_trash'       => __( 'No patterns found in Trash.' ),
+				'filter_items_list'        => __( 'Filter patterns list' ),
+				'items_list_navigation'    => __( 'Patterns list navigation' ),
+				'items_list'               => __( 'Patterns list' ),
+				'item_published'           => __( 'Pattern published.' ),
+				'item_published_privately' => __( 'Pattern published privately.' ),
+				'item_reverted_to_draft'   => __( 'Pattern reverted to draft.' ),
+				'item_scheduled'           => __( 'Pattern scheduled.' ),
+				'item_updated'             => __( 'Pattern updated.' ),
 			),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
@@ -328,6 +328,7 @@ function create_initial_post_types() {
 				'title',
 				'editor',
 				'revisions',
+				'custom-fields',
 			),
 		)
 	);
@@ -1957,6 +1958,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  *                              Default is 'Post published privately.' / 'Page published privately.'
  * - `item_reverted_to_draft` - Label used when an item is switched to a draft.
  *                            Default is 'Post reverted to draft.' / 'Page reverted to draft.'
+ * - `item_trashed` - Label used when an item is moved to Trash. Default is 'Post trashed.' / 'Page trashed.'
  * - `item_scheduled` - Label used when an item is scheduled for publishing. Default is 'Post scheduled.' /
  *                    'Page scheduled.'
  * - `item_updated` - Label used when an item is updated. Default is 'Post updated.' / 'Page updated.'
@@ -1980,6 +1982,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  *              `item_scheduled`, and `item_updated` labels.
  * @since 5.7.0 Added the `filter_by_date` label.
  * @since 5.8.0 Added the `item_link` and `item_link_description` labels.
+ * @since 6.3.0 Added the `item_trashed` label.
  *
  * @access private
  *
@@ -2772,7 +2775,7 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 	}
 
 	$prefixed = false;
-	if ( false !== strpos( $field, 'post_' ) ) {
+	if ( str_contains( $field, 'post_' ) ) {
 		$prefixed        = true;
 		$field_no_prefix = str_replace( 'post_', '', $field );
 	}
@@ -3271,7 +3274,7 @@ function wp_match_mime_types( $wildcard_mime_types, $real_mime_types ) {
 
 			$patternses[][ $type ] = "^$regex$";
 
-			if ( false === strpos( $mime, '/' ) ) {
+			if ( ! str_contains( $mime, '/' ) ) {
 				$patternses[][ $type ] = "^$regex/";
 				$patternses[][ $type ] = $regex;
 			}
@@ -3328,7 +3331,7 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 			$mime_pattern = "$mime_group/$mime_subgroup";
 		} else {
 			$mime_pattern = preg_replace( '/[^-*.a-zA-Z0-9]/', '', $mime_type );
-			if ( false === strpos( $mime_pattern, '*' ) ) {
+			if ( ! str_contains( $mime_pattern, '*' ) ) {
 				$mime_pattern .= '/*';
 			}
 		}
@@ -3339,7 +3342,7 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 			return '';
 		}
 
-		if ( false !== strpos( $mime_pattern, '%' ) ) {
+		if ( str_contains( $mime_pattern, '%' ) ) {
 			$wheres[] = empty( $table_alias ) ? "post_mime_type LIKE '$mime_pattern'" : "$table_alias.post_mime_type LIKE '$mime_pattern'";
 		} else {
 			$wheres[] = empty( $table_alias ) ? "post_mime_type = '$mime_pattern'" : "$table_alias.post_mime_type = '$mime_pattern'";
@@ -6122,10 +6125,10 @@ function get_pages( $args = array() ) {
  * @return bool True on success, false on failure.
  */
 function is_local_attachment( $url ) {
-	if ( strpos( $url, home_url() ) === false ) {
+	if ( ! str_contains( $url, home_url() ) ) {
 		return false;
 	}
-	if ( strpos( $url, home_url( '/?attachment_id=' ) ) !== false ) {
+	if ( str_contains( $url, home_url( '/?attachment_id=' ) ) ) {
 		return true;
 	}
 
@@ -6508,7 +6511,7 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 			if ( str_starts_with( $file, $uploads['basedir'] ) ) {
 				// Replace file location with url location.
 				$url = str_replace( $uploads['basedir'], $uploads['baseurl'], $file );
-			} elseif ( false !== strpos( $file, 'wp-content/uploads' ) ) {
+			} elseif ( str_contains( $file, 'wp-content/uploads' ) ) {
 				// Get the directory name relative to the basedir (back compat for pre-2.7 uploads).
 				$url = trailingslashit( $uploads['baseurl'] . '/' . _wp_get_attachment_relative_path( $file ) ) . wp_basename( $file );
 			} else {
@@ -6760,7 +6763,7 @@ function wp_mime_type_icon( $mime = 0 ) {
 				if ( $dh ) {
 					while ( false !== $file = readdir( $dh ) ) {
 						$file = wp_basename( $file );
-						if ( '.' === substr( $file, 0, 1 ) ) {
+						if ( str_starts_with( $file, '.' ) ) {
 							continue;
 						}
 
@@ -7811,7 +7814,7 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
 
 	$post = get_post( $post );
 
-	if ( '__trashed' === substr( $post->post_name, -9 ) ) {
+	if ( str_ends_with( $post->post_name, '__trashed' ) ) {
 		return $post->post_name;
 	}
 	add_post_meta( $post->ID, '_wp_desired_post_slug', $post->post_name );
@@ -8015,4 +8018,29 @@ function use_block_editor_for_post_type( $post_type ) {
 	 * @param string $post_type         The post type being checked.
 	 */
 	return apply_filters( 'use_block_editor_for_post_type', true, $post_type );
+}
+
+/**
+ * Registers any additional post meta fields.
+ *
+ * @since 6.3.0 Adds sync_status meta field to the wp_block post type so an unsynced option can be added.
+ *
+ * @link https://github.com/WordPress/gutenberg/pull/51144
+ */
+function wp_create_initial_post_meta() {
+	register_post_meta(
+		'wp_block',
+		'sync_status',
+		array(
+			'sanitize_callback' => 'sanitize_text_field',
+			'single'            => true,
+			'type'              => 'string',
+			'show_in_rest'      => array(
+				'schema' => array(
+					'type' => 'string',
+					'enum' => array( 'partial', 'unsynced' ),
+				),
+			),
+		)
+	);
 }

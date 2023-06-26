@@ -799,7 +799,7 @@ function wp_kses_one_attr( $attr, $element ) {
 			$quote = $value[0];
 		}
 		if ( '"' === $quote || "'" === $quote ) {
-			if ( substr( $value, -1 ) !== $quote ) {
+			if ( ! str_ends_with( $value, $quote ) ) {
 				return '';
 			}
 			$value = substr( $value, 1, -1 );
@@ -1079,12 +1079,12 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 	$content = wp_kses_stripslashes( $content );
 
 	// It matched a ">" character.
-	if ( '<' !== substr( $content, 0, 1 ) ) {
+	if ( ! str_starts_with( $content, '<' ) ) {
 		return '&gt;';
 	}
 
 	// Allow HTML comments.
-	if ( '<!--' === substr( $content, 0, 4 ) ) {
+	if ( str_starts_with( $content, '<!--' ) ) {
 		$content = str_replace( array( '<!--', '-->' ), '', $content );
 		while ( ( $newstring = wp_kses( $content, $allowed_html, $allowed_protocols ) ) != $content ) {
 			$content = $newstring;
@@ -2279,7 +2279,7 @@ function kses_init() {
  *              Extended `margin-*` and `padding-*` support for logical properties.
  * @since 6.2.0 Added support for `aspect-ratio`, `position`, `top`, `right`, `bottom`, `left`,
  *              and `z-index` CSS properties.
- * @since 6.3.0 Extended support for `filter` to accept a URL.
+ * @since 6.3.0 Extended support for `filter` to accept a URL and added support for repeat().
  *
  * @param string $css        A string of CSS rules.
  * @param string $deprecated Not used.
@@ -2499,7 +2499,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		$gradient_attr   = false;
 		$is_custom_var   = false;
 
-		if ( strpos( $css_item, ':' ) === false ) {
+		if ( ! str_contains( $css_item, ':' ) ) {
 			$found = true;
 		} else {
 			$parts        = explode( ':', $css_item, 2 );
@@ -2563,7 +2563,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			 * Nested functions and parentheses are also removed, so long as the parentheses are balanced.
 			 */
 			$css_test_string = preg_replace(
-				'/\b(?:var|calc|min|max|minmax|clamp)(\((?:[^()]|(?1))*\))/',
+				'/\b(?:var|calc|min|max|minmax|clamp|repeat)(\((?:[^()]|(?1))*\))/',
 				'',
 				$css_test_string
 			);
@@ -2608,6 +2608,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
  * @since 3.5.0
  * @since 5.0.0 Added support for `data-*` wildcard attributes.
  * @since 6.0.0 Added `dir`, `lang`, and `xml:lang` to global attributes.
+ * @since 6.3.0 Added `aria-controls`, `aria-current`, and `aria-expanded` attributes.
  *
  * @access private
  * @ignore
@@ -2617,8 +2618,11 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
  */
 function _wp_add_global_attributes( $value ) {
 	$global_attributes = array(
+		'aria-controls'    => true,
+		'aria-current'     => true,
 		'aria-describedby' => true,
 		'aria-details'     => true,
+		'aria-expanded'    => true,
 		'aria-label'       => true,
 		'aria-labelledby'  => true,
 		'aria-hidden'      => true,
