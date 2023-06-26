@@ -889,7 +889,7 @@ function permalink_single_rss($deprecated = '') {
 function wp_get_links($args = '') {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_list_bookmarks()' );
 
-	if ( strpos( $args, '=' ) === false ) {
+	if ( ! str_contains( $args, '=' ) ) {
 		$cat_id = $args;
 		$args = add_query_arg( 'category', $cat_id, $args );
 	}
@@ -947,7 +947,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmarks()' );
 
 	$order = 'ASC';
-	if ( substr($orderby, 0, 1) === '_' ) {
+	if ( str_starts_with($orderby, '_') ) {
 		$order = 'DESC';
 		$orderby = substr($orderby, 1);
 	}
@@ -980,7 +980,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 		$title = $desc;
 
 		if ( $show_updated )
-			if (substr($row->link_updated_f, 0, 2) !== '00')
+			if ( !str_starts_with($row->link_updated_f, '00') )
 				$title .= ' ('.__('Last updated') . ' ' . gmdate(get_option('links_updated_date_format'), $row->link_updated_f + (get_option('gmt_offset') * HOUR_IN_SECONDS)) . ')';
 
 		if ( '' != $title )
@@ -995,7 +995,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 		$output .= '<a href="' . $the_link . '"' . $rel . $title . $target. '>';
 
 		if ( $row->link_image != null && $show_images ) {
-			if ( strpos($row->link_image, 'http') !== false )
+			if ( str_contains( $row->link_image, 'http' ) )
 				$output .= "<img src=\"$row->link_image\" $alt $title />";
 			else // If it's a relative path.
 				$output .= "<img src=\"" . get_option('siteurl') . "$row->link_image\" $alt $title />";
@@ -1042,7 +1042,7 @@ function get_links_list($order = 'name') {
 
 	// Handle link category sorting.
 	$direction = 'ASC';
-	if ( '_' === substr($order,0,1) ) {
+	if ( str_starts_with( $order, '_' ) ) {
 		$direction = 'DESC';
 		$order = substr($order,1);
 	}
@@ -4484,7 +4484,7 @@ function wp_typography_get_css_variable_inline_style( $attributes, $feature, $cs
 	}
 
 	// If we don't have a preset CSS variable, we'll assume it's a regular CSS value.
-	if ( strpos( $style_value, "var:preset|{$css_property}|" ) === false ) {
+	if ( ! str_contains( $style_value, "var:preset|{$css_property}|" ) ) {
 		return sprintf( '%s:%s;', $css_property, $style_value );
 	}
 
