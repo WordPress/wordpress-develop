@@ -40,6 +40,10 @@ function register_core_block_style_handles() {
 		'editorStyle' => 'editor',
 	);
 
+	if( current_theme_supports( 'wp-block-styles' ) ){
+		$style_fields['themeStyle'] = 'theme';
+	}
+
 	/*
 	 * Ignore transient cache when `WP_DEBUG` is enabled. Why? To avoid interfering with
 	 * the core developer's workflow.
@@ -67,6 +71,9 @@ function register_core_block_style_handles() {
 		}
 		if ( ! isset( $schema['editorStyle'] ) ) {
 			$schema['editorStyle'] = "wp-block-{$name}-editor";
+		}
+		if ( ! isset( $schema['themeStyle'] ) ) {
+			$schema['themeStyle'] = "wp-block-{$name}-theme";
 		}
 
 		foreach ( $style_fields as $style_field => $filename ) {
