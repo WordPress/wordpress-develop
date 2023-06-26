@@ -32,24 +32,24 @@
 	} );
 
 	/**
-	 * Get session supports.
+	 * Get supports from session.
 	 *
-	 * @returns {object} Session supports.
+	 * @returns {object} Supports.
 	 */
 	function getSessionSupports() {
-		var sessionSupports = {};
+		var supports = {};
 		if (
 			typeof sessionStorage !== 'undefined' &&
 			sessionStorageKey in sessionStorage
 		) {
 			try {
-				sessionSupports = JSON.parse(
+				supports = JSON.parse(
 					sessionStorage.getItem( sessionStorageKey )
 				);
 			} catch ( e ) {}
 		}
-		if ( typeof sessionSupports === 'object' ) {
-			return sessionSupports;
+		if ( typeof supports === 'object' ) {
+			return supports;
 		} else {
 			return {};
 		}
@@ -58,14 +58,14 @@
 	/**
 	 * Persist the supports in session storage.
 	 *
-	 * @param {object} sessionSupports Session supports.
+	 * @param {object} supports Supports.
 	 */
-	function setSessionSupports( sessionSupports ) {
+	function setSessionSupports( supports ) {
 		if ( typeof sessionStorage !== 'undefined' ) {
 			try {
 				sessionStorage.setItem(
 					sessionStorageKey,
-					JSON.stringify( sessionSupports )
+					JSON.stringify( supports )
 				);
 			} catch ( e ) {}
 		}
