@@ -39,6 +39,9 @@ function register_core_block_style_handles() {
 		'style'       => 'style',
 		'editorStyle' => 'editor',
 	);
+	if( current_theme_supports( 'wp-block-styles' ) ){
+		$style_fields['themeStyle'] = 'theme';
+	}
 
 	/*
 	 * Ignore transient cache when the development mode is set to 'core'. Why? To avoid interfering with
@@ -65,6 +68,11 @@ function register_core_block_style_handles() {
 		}
 		if ( ! isset( $schema['editorStyle'] ) ) {
 			$schema['editorStyle'] = "wp-block-{$name}-editor";
+		}
+
+		// This is not a real field in the schema, but is used to register theme styles if needed.
+		if ( ! isset( $schema['themeStyle'] ) ) {
+			$schema['themeStyle'] = "wp-block-{$name}-theme";
 		}
 
 		foreach ( $style_fields as $style_field => $filename ) {
