@@ -1419,7 +1419,7 @@ switch ( $action ) {
 			$aria_describedby = ' aria-describedby="login-message"';
 		}
 
-		wp_enqueue_script( 'user-profile' );
+		wp_enqueue_script( 'password-toggle' );
 		?>
 
 		<form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
