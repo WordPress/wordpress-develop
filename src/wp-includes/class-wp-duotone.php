@@ -526,6 +526,8 @@ class WP_Duotone {
 	/**
 	 * Checks if we have a valid duotone preset.
 	 *
+	 * Valid presets are defined in the $global_styles_presets array.
+	 *
 	 * @internal
 	 *
 	 * @param string $duotone_attr The duotone attribute from a block.
@@ -541,6 +543,9 @@ class WP_Duotone {
 	/**
 	 * Gets the CSS variable name for a duotone preset.
 	 *
+	 * Example output:
+	 *  --wp--preset--duotone--blue-orange
+	 *
 	 * @internal
 	 *
 	 * @param string $slug The slug of the duotone preset.
@@ -553,6 +558,9 @@ class WP_Duotone {
 	/**
 	 * Get the ID of the duotone filter.
 	 *
+	 * Example output:
+	 *  wp-duotone-blue-orange
+	 *
 	 * @internal
 	 *
 	 * @param string $slug The slug of the duotone preset.
@@ -564,6 +572,9 @@ class WP_Duotone {
 
 	/**
 	 * Get the CSS variable for a duotone preset.
+	 *
+	 * Example output:
+	 *  var(--wp--preset--duotone--blue-orange)
 	 *
 	 * @internal
 	 *
@@ -578,6 +589,9 @@ class WP_Duotone {
 	/**
 	 * Get the URL for a duotone filter.
 	 *
+	 * Example output:
+	 *  url(#wp-duotone-blue-orange)
+	 *
 	 * @internal
 	 *
 	 * @param string $filter_id The ID of the filter.
@@ -589,6 +603,8 @@ class WP_Duotone {
 
 	/**
 	 * Gets the SVG for the duotone filter definition.
+	 *
+	 * Whitespace is removed when SCRIPT_DEBUG is not enabled.
 	 *
 	 * @internal
 	 *
@@ -762,6 +778,8 @@ class WP_Duotone {
 	/**
 	 * Enqueue a block CSS declaration for the page.
 	 *
+	 * This does not include any SVGs.
+	 *
 	 * @internal
 	 *
 	 * @param string $filter_id        The filter ID. e.g. 'wp-duotone-000000-ffffff-2'.
@@ -837,6 +855,8 @@ class WP_Duotone {
 	/**
 	 * Registers the style and colors block attributes for block types that support it.
 	 *
+	 * Block support is added with `supports.filter.duotone` in block.json.
+	 *
 	 * @since 6.3.0
 	 *
 	 * @param WP_Block_Type $block_type Block Type.
@@ -866,6 +886,9 @@ class WP_Duotone {
 
 	/**
 	 * Get the CSS selector for a block type.
+	 *
+	 * This handles selectors defined in `color.__experimentalDuotone` support
+	 * if `filter.duotone` support is not defined.
 	 *
 	 * @param string $block_name The block name.
 	 *
@@ -907,10 +930,11 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Get all possible duotone presets from global and theme styles.
+	 * Scrape all possible duotone presets from global and theme styles and
+	 * store them in self::$global_styles_presets.
 	 *
-	 * Store each item as slug => [ colors array ]
-	 * We only want to process this one time. On block render we'll access and output only the needed presets for that page.
+	 * Used in conjunction with self::render_duotone_support for blocks that
+	 * use duotone preset filters.
 	 *
 	 * @since 6.3.0
 	 */
@@ -929,7 +953,10 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Scrape all block names from global styles and store in self::$global_styles_block_names
+	 * Scrape all block names from global styles and store in self::$global_styles_block_names.
+	 *
+	 * Used in conjunction with self::render_duotone_support to output the
+	 * duotone filters defined in the theme.json global styles.
 	 *
 	 * @since 6.3.0
 	 */
@@ -963,6 +990,9 @@ class WP_Duotone {
 
 	/**
 	 * Render out the duotone CSS styles and SVG.
+	 *
+	 * The hooks self::set_global_style_block_names and self::set_global_styles_presets
+	 * must be called before this function.
 	 *
 	 * @since 6.3.0
 	 *
@@ -1048,6 +1078,8 @@ class WP_Duotone {
 	/**
 	 * Appends the used block duotone filter declarations to the inline block supports CSS.
 	 *
+	 * Uses the declarations saved in earlier calls to self::enqueue_block_css.
+	 *
 	 * @since 6.3.0
 	 */
 	public static function output_block_styles() {
@@ -1065,6 +1097,8 @@ class WP_Duotone {
 	 * Appends the used global style duotone filter presets (CSS custom
 	 * properties) to the inline global styles CSS.
 	 *
+	 * Uses the declarations saved in earlier calls to self::enqueue_global_styles_preset.
+	 *
 	 * @since 6.3.0
 	 */
 	public static function output_global_styles() {
@@ -1075,6 +1109,9 @@ class WP_Duotone {
 
 	/**
 	 * Outputs all necessary SVG for duotone filters, CSS for classic themes.
+	 *
+	 * Uses the declarations saved in earlier calls to self::enqueue_global_styles_preset
+	 * and self::enqueue_custom_filter.
 	 *
 	 * @since 6.3.0
 	 */
@@ -1129,8 +1166,9 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Migrate the old experimental duotone support flag to its stabilized location
-	 * under `supports.filter.duotone` and sets.
+	 * Migrates the experimental duotone support flag to the stabilized location.
+	 *
+	 * This moves `supports.color.__experimentalDuotone` to `supports.filter.duotone`.
 	 *
 	 * @since 6.3.0
 	 *
