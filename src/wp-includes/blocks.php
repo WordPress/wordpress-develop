@@ -252,8 +252,8 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		$style_uri = false;
 	}
 
-	$version      = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
-	$result       = wp_register_style(
+	$version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
+	$result  = wp_register_style(
 		$style_handle_name,
 		$style_uri,
 		array(),
