@@ -4811,11 +4811,11 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
  * Direct port of TinyColor's function, lightly simplified to maintain
  * consistency with TinyColor.
  *
- * @see https://github.com/bgrins/TinyColor
- *
- * @deprecated 6.3.0
+ * @link https://github.com/bgrins/TinyColor
  *
  * @since 5.8.0
+ * @deprecated 6.3.0
+ *
  * @access private
  *
  * @param mixed $n   Number of unknown type.
@@ -4848,11 +4848,11 @@ function wp_tinycolor_bound01( $n, $max ) {
  * Direct port of tinycolor's boundAlpha function to maintain consistency with
  * how tinycolor works.
  *
- * @see https://github.com/bgrins/TinyColor
- *
- * @deprecated 6.3.0
+ * @link https://github.com/bgrins/TinyColor
  *
  * @since 5.9.0
+ * @deprecated 6.3.0
+ *
  * @access private
  *
  * @param mixed $n Number of unknown type.
@@ -4876,11 +4876,11 @@ function _wp_tinycolor_bound_alpha( $n ) {
  * Direct port of TinyColor's function, lightly simplified to maintain
  * consistency with TinyColor.
  *
- * @see https://github.com/bgrins/TinyColor
- *
- * @deprecated 6.3.0
+ * @link https://github.com/bgrins/TinyColor
  *
  * @since 5.8.0
+ * @deprecated 6.3.0
+ *
  * @access private
  *
  * @param array $rgb_color RGB object.
@@ -4902,11 +4902,11 @@ function wp_tinycolor_rgb_to_rgb( $rgb_color ) {
  * Direct port of TinyColor's function, lightly simplified to maintain
  * consistency with TinyColor.
  *
- * @see https://github.com/bgrins/TinyColor
- *
- * @deprecated 6.3.0
+ * @link https://github.com/bgrins/TinyColor
  *
  * @since 5.8.0
+ * @deprecated 6.3.0
+ *
  * @access private
  *
  * @param float $p first component.
@@ -4941,11 +4941,11 @@ function wp_tinycolor_hue_to_rgb( $p, $q, $t ) {
  * Direct port of TinyColor's function, lightly simplified to maintain
  * consistency with TinyColor.
  *
- * @see https://github.com/bgrins/TinyColor
- *
- * @deprecated 6.3.0
+ * @link https://github.com/bgrins/TinyColor
  *
  * @since 5.8.0
+ * @deprecated 6.3.0
+ *
  * @access private
  *
  * @param array $hsl_color HSL object.
@@ -4985,13 +4985,13 @@ function wp_tinycolor_hsl_to_rgb( $hsl_color ) {
  * Direct port of TinyColor's function, lightly simplified to maintain
  * consistency with TinyColor.
  *
- * @see https://github.com/bgrins/TinyColor
- * @see https://github.com/casesandberg/react-color/
- *
- * @deprecated 6.3.0
+ * @link https://github.com/bgrins/TinyColor
+ * @link https://github.com/casesandberg/react-color/
  *
  * @since 5.8.0
  * @since 5.9.0 Added alpha processing.
+ * @deprecated 6.3.0
+ *
  * @access private
  *
  * @param string $color_str CSS color string.
@@ -5152,9 +5152,9 @@ function wp_tinycolor_string_to_rgb( $color_str ) {
  * Returns the prefixed id for the duotone filter for use as a CSS id.
  *
  * @since 5.9.1
- * @access private
+ * @deprecated 6.3.0
  *
- *  @deprecated 6.3.0
+ * @access private
  *
  * @param array $preset Duotone preset value as seen in theme.json.
  * @return string Duotone filter CSS id.
@@ -5169,9 +5169,9 @@ function wp_get_duotone_filter_id( $preset ) {
  *
  * @since 5.9.0
  * @since 6.1.0 Allow unset for preset colors.
- * @access private
- *
  * @deprecated 6.3.0
+ *
+ * @access private
  *
  * @param array $preset Duotone preset value as seen in theme.json.
  * @return string Duotone CSS filter property url value.
@@ -5185,9 +5185,9 @@ function wp_get_duotone_filter_property( $preset ) {
  * Returns the duotone filter SVG string for the preset.
  *
  * @since 5.9.1
- * @access private
- *
  * @deprecated 6.3.0
+ *
+ * @access private
  *
  * @param array $preset Duotone preset value as seen in theme.json.
  * @return string Duotone SVG filter.
@@ -5201,9 +5201,9 @@ function wp_get_duotone_filter_svg( $preset ) {
  * Registers the style and colors block attributes for block types that support it.
  *
  * @since 5.8.0
- * @access private
- *
  * @deprecated 6.3.0 Use WP_Duotone::register_duotone_support() instead.
+ *
+ * @access private
  *
  * @param WP_Block_Type $block_type Block Type.
  */
@@ -5217,11 +5217,12 @@ function wp_register_duotone_support( $block_type ) {
  *
  * @since 5.8.0
  * @since 6.1.0 Allow unset for preset colors.
+ * @deprecated 6.3.0 Use WP_Duotone::render_duotone_support() instead.
+ * 
  * @access private
  *
  * @param string $block_content Rendered block content.
  * @param array  $block         Block object.
- * @deprecated    6.3.0          Use WP_Duotone::render_duotone_support() instead.
  * @return string Filtered block content.
  */
 function wp_render_duotone_support( $block_content, $block ) {
