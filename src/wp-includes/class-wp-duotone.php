@@ -48,6 +48,8 @@ class WP_Duotone {
 	 *       …
 	 *  ]
 	 *
+	 * @internal
+	 *
 	 * @var array
 	 */
 	private static $global_styles_block_names = array();
@@ -68,6 +70,8 @@ class WP_Duotone {
 	 *      …
 	 *  ]
 	 *
+	 * @internal
+	 *
 	 * @var array
 	 */
 	private static $global_styles_presets = array();
@@ -84,6 +88,8 @@ class WP_Duotone {
 	 *      ],
 	 *      …
 	 *  ]
+	 *
+	 * @internal
 	 *
 	 * @var array
 	 */
@@ -106,6 +112,8 @@ class WP_Duotone {
 	 *      …
 	 *  ]
 	 *
+	 * @internal
+	 *
 	 * @var array
 	 */
 	private static $used_svg_filter_data = array();
@@ -124,14 +132,20 @@ class WP_Duotone {
 	 *      …
 	 *  ]
 	 *
+	 * @internal
+	 *
 	 * @var array
 	 */
 	private static $block_css_declarations = array();
 
 	/**
 	 * Clamps a value between an upper and lower bound.
+	 * 
+	 * Direct port of colord's clamp function.
 	 *
 	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/helpers.ts#L23 Sourced from colord.
+	 *
+	 * @internal
 	 *
 	 * @param float $number The number to clamp.
 	 * @param float $min    The minimum value.
@@ -145,7 +159,11 @@ class WP_Duotone {
 	/**
 	 * Processes and clamps a degree (angle) value properly.
 	 *
+	 * Direct port of colord's clampHue function.
+	 *
 	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/helpers.ts#L32 Sourced from colord.
+	 *
+	 * @internal
 	 *
 	 * @param float $degrees The hue to clamp.
 	 * @return float The clamped hue.
@@ -158,7 +176,11 @@ class WP_Duotone {
 	/**
 	 * Converts a hue value to degrees from 0 to 360 inclusive.
 	 *
+	 * Direct port of colord's parseHue function.
+	 *
 	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/helpers.ts#L40 Sourced from colord.
+	 *
+	 * @internal
 	 *
 	 * @param float  $value The hue value to parse.
 	 * @param string $unit  The unit of the hue value.
@@ -182,7 +204,11 @@ class WP_Duotone {
 	/**
 	 * Parses any valid Hex3, Hex4, Hex6 or Hex8 string and converts it to an RGBA object
 	 *
+	 * Direct port of colord's parseHex function.
+	 *
 	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hex.ts#L8 Sourced from colord.
+	 *
+	 * @internal
 	 *
 	 * @param string $hex The hex string to parse.
 	 * @return array|null An array of RGBA values or null if the hex string is invalid.
@@ -224,7 +250,11 @@ class WP_Duotone {
 	/**
 	 * Clamps an array of RGBA values.
 	 *
+	 * Direct port of colord's clampRgba function.
+	 *
 	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/rgb.ts#L5 Sourced from colord.
+	 *
+	 * @internal
 	 *
 	 * @param array $rgba The RGBA array to clamp.
 	 * @return array The clamped RGBA array.
@@ -241,7 +271,11 @@ class WP_Duotone {
 	/**
 	 * Parses a valid RGB[A] CSS color function/string
 	 *
+	 * Direct port of colord's parseRgbaString function.
+	 *
 	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/rgbString.ts#L18 Sourced from colord.
+	 *
+	 * @internal
 	 *
 	 * @param string $input The RGBA string to parse.
 	 * @return array|null An array of RGBA values or null if the RGB string is invalid.
@@ -294,7 +328,11 @@ class WP_Duotone {
 	/**
 	 * Clamps an array of HSLA values.
 	 *
+	 * Direct port of colord's clampHsla function.
+	 *
 	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hsl.ts#L6 Sourced from colord.
+	 *
+	 * @internal
 	 *
 	 * @param array $hsla The HSLA array to clamp.
 	 * @return array The clamped HSLA array.
@@ -311,7 +349,11 @@ class WP_Duotone {
 	/**
 	 * Converts an HSVA array to RGBA.
 	 *
+	 * Direct port of colord's hsvaToRgba function.
+	 *
 	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hsv.ts#L52 Sourced from colord.
+	 *
+	 * @internal
 	 *
 	 * @param array $hsva The HSVA array to convert.
 	 * @return array The RGBA array.
@@ -339,7 +381,11 @@ class WP_Duotone {
 	/**
 	 * Converts an HSLA array to HSVA.
 	 *
+	 * Direct port of colord's hslaToHsva function.
+	 *
 	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hsl.ts#L33 Sourced from colord.
+	 *
+	 * @internal
 	 *
 	 * @param array $hsla The HSLA array to convert.
 	 * @return array The HSVA array.
@@ -363,7 +409,11 @@ class WP_Duotone {
 	/**
 	 * Converts an HSLA array to RGBA.
 	 *
+	 * Direct port of colord's hslaToRgba function.
+	 *
 	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hsl.ts#L55 Sourced from colord.
+	 *
+	 * @internal
 	 *
 	 * @param array $hsla The HSLA array to convert.
 	 * @return array The RGBA array.
@@ -375,7 +425,11 @@ class WP_Duotone {
 	/**
 	 * Parses a valid HSL[A] CSS color function/string.
 	 *
+	 * Direct port of colord's parseHslaString function.
+	 *
 	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/colorModels/hslString.ts#L17 Sourced from colord.
+	 *
+	 * @internal
 	 *
 	 * @param string $input The HSLA string to parse.
 	 * @return array|null An array of RGBA values or null if the RGB string is invalid.
@@ -426,7 +480,12 @@ class WP_Duotone {
 	/**
 	 * Tries to convert an incoming string into RGBA values.
 	 *
+	 * Direct port of colord's parse function simplified for our use case. This
+	 * version only supports string parsing and only returns RGBA values.
+	 *
 	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/parse.ts#L37 Sourced from colord.
+	 *
+	 * @internal
 	 *
 	 * @param string $input The string to parse.
 	 * @return array|null An array of RGBA values or null if the string is invalid.
@@ -452,6 +511,8 @@ class WP_Duotone {
 	 * var:preset|duotone|blue-orange
 	 * var(--wp--preset--duotone--blue-orange)
 	 *
+	 * @internal
+	 *
 	 * @param string $duotone_attr The duotone attribute from a block.
 	 * @return string The slug of the duotone preset or an empty string if no slug is found.
 	 */
@@ -464,6 +525,8 @@ class WP_Duotone {
 
 	/**
 	 * Checks if we have a valid duotone preset.
+	 *
+	 * @internal
 	 *
 	 * @param string $duotone_attr The duotone attribute from a block.
 	 * @return bool True if the duotone preset present and valid.
@@ -478,6 +541,8 @@ class WP_Duotone {
 	/**
 	 * Gets the CSS variable name for a duotone preset.
 	 *
+	 * @internal
+	 *
 	 * @param string $slug The slug of the duotone preset.
 	 * @return string The CSS variable name.
 	 */
@@ -488,6 +553,8 @@ class WP_Duotone {
 	/**
 	 * Get the ID of the duotone filter.
 	 *
+	 * @internal
+	 *
 	 * @param string $slug The slug of the duotone preset.
 	 * @return string The ID of the duotone filter.
 	 */
@@ -497,6 +564,8 @@ class WP_Duotone {
 
 	/**
 	 * Get the CSS variable for a duotone preset.
+	 *
+	 * @internal
 	 *
 	 * @param string $slug The slug of the duotone preset.
 	 * @return string The CSS variable.
@@ -509,6 +578,8 @@ class WP_Duotone {
 	/**
 	 * Get the URL for a duotone filter.
 	 *
+	 * @internal
+	 *
 	 * @param string $filter_id The ID of the filter.
 	 * @return string The URL for the duotone filter.
 	 */
@@ -518,6 +589,8 @@ class WP_Duotone {
 
 	/**
 	 * Gets the SVG for the duotone filter definition.
+	 *
+	 * @internal
 	 *
 	 * @param string $filter_id The ID of the filter.
 	 * @param array  $colors    An array of color strings.
@@ -604,6 +677,8 @@ class WP_Duotone {
 	 *
 	 * Exported for the deprecated function wp_get_duotone_filter_id().
 	 *
+	 * @internal
+	 *
 	 * @since 6.3.0
 	 * @deprecated 6.3.0
 	 *
@@ -625,6 +700,8 @@ class WP_Duotone {
 	 *
 	 * Exported for the deprecated function wp_get_duotone_filter_property().
 	 *
+	 * @internal
+	 *
 	 * @since 6.3.0
 	 * @deprecated 6.3.0
 	 *
@@ -644,6 +721,8 @@ class WP_Duotone {
 	 * Example output:
 	 *  <svg><defs><filter id="wp-duotone-blue-orange">…</filter></defs></svg><svg>…</svg>
 	 *
+	 * @internal
+	 *
 	 * @param array $sources The duotone presets.
 	 * @return string The SVGs for the duotone filters.
 	 */
@@ -661,6 +740,8 @@ class WP_Duotone {
 	 *
 	 * Example output:
 	 *  body{--wp--preset--duotone--blue-orange:url('#wp-duotone-blue-orange');}
+	 *
+	 * @internal
 	 *
 	 * @param array $sources The duotone presets.
 	 * @return string The CSS for global styles.
@@ -680,6 +761,8 @@ class WP_Duotone {
 
 	/**
 	 * Enqueue a block CSS declaration for the page.
+	 *
+	 * @internal
 	 *
 	 * @param string $filter_id        The filter ID. e.g. 'wp-duotone-000000-ffffff-2'.
 	 * @param string $duotone_selector The block's duotone selector. e.g. '.wp-block-image img'.
@@ -714,6 +797,8 @@ class WP_Duotone {
 	 *
 	 * Includes an SVG filter and block CSS declaration.
 	 *
+	 * @internal
+	 *
 	 * @param string $filter_id        The filter ID. e.g. 'wp-duotone-000000-ffffff-2'.
 	 * @param string $duotone_selector The block's duotone selector. e.g. '.wp-block-image img'.
 	 * @param string $filter_value     The filter CSS value. e.g. 'url(#wp-duotone-000000-ffffff-2)' or 'unset'.
@@ -728,6 +813,8 @@ class WP_Duotone {
 	 * Enqueue preset assets for the page.
 	 *
 	 * Includes a CSS custom property, SVG filter, and block CSS declaration.
+	 *
+	 * @internal
 	 *
 	 * @param string $filter_id        The filter ID. e.g. 'wp-duotone-blue-orange'.
 	 * @param string $duotone_selector The block's duotone selector. e.g. '.wp-block-image img'.
@@ -781,6 +868,8 @@ class WP_Duotone {
 	 * Get the CSS selector for a block type.
 	 *
 	 * @param string $block_name The block name.
+	 *
+	 * @internal
 	 *
 	 * @return string The CSS selector or null if there is no support.
 	 */
@@ -1065,6 +1154,8 @@ class WP_Duotone {
 	 * Gets the CSS filter property value from a preset.
 	 *
 	 * Exported for the deprecated function wp_get_duotone_filter_id().
+	 *
+	 * @internal
 	 *
 	 * @since 6.3.0
 	 * @deprecated 6.3.0
