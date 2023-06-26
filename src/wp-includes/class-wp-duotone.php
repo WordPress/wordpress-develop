@@ -134,8 +134,8 @@ class WP_Duotone {
 	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/helpers.ts#L23 Sourced from colord.
 	 *
 	 * @param float $number The number to clamp.
-	 * @param float $min   The minimum value.
-	 * @param float $max   The maximum value.
+	 * @param float $min    The minimum value.
+	 * @param float $max    The maximum value.
 	 * @return float The clamped value.
 	 */
 	private static function colord_clamp( $number, $min = 0, $max = 1 ) {
