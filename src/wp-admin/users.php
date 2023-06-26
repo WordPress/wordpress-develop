@@ -381,7 +381,7 @@ switch ( $wp_list_table->current_action() ) {
 				);
 				echo '<select name="reassign_user">';
 				foreach ( $users as $user ) {
-					echo '<option value="' . esc_attr( $user->ID ) . '"> User: ' . esc_html( $user->display_name ) . ' - Role: ' . esc_html( $user->roles[0] ) . '</option>';
+					echo '<option value="' . esc_attr( $user->ID ) . '">' . esc_html( $user->display_name ) . ' (' . esc_html( $user->user_login ) . ') - ' . esc_html( $user->roles[0] ) . '</option>';
 				}
 				echo '</select>';
 				?>
