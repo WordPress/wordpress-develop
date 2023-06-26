@@ -981,8 +981,10 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Adds the duotone SVGs and CSS custom properties to the editor settings so
-	 * they can be pulled in by the EditorStyles component in JS and rendered in
+	 * Adds the duotone SVGs and CSS custom properties to the editor settings.
+	 *
+	 * This allows the properties to be
+	 * pulled in by the EditorStyles component in JS and rendered in
 	 * the post editor.
 	 *
 	 * @since 6.3.0
