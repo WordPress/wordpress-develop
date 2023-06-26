@@ -143,7 +143,7 @@ class Tests_Link_GetEditPostLink extends WP_UnitTestCase {
 			)
 		);
 
-		$post_type_object     = get_post_type_object( $navigation_post->post_type );
+		$post_type_object = get_post_type_object( $navigation_post->post_type );
 
 		$link_default_context = admin_url( sprintf( $post_type_object->_edit_link, $navigation_post->ID ) );
 		$link_custom_context  = admin_url( sprintf( $post_type_object->_edit_link, $navigation_post->ID ) );
