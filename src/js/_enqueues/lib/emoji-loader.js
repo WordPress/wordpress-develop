@@ -20,14 +20,14 @@
  * @param {WPEmojiSettings} settings
  */
 ( async function( window, document, settings ) {
-	let sessionSupports;
-	let sessionUpdated = false;
-	const sessionStorageKey = 'wpEmojiSettingsSupports';
+	var sessionSupports;
+	var sessionUpdated = false;
+	var sessionStorageKey = 'wpEmojiSettingsSupports';
 
 	// Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
-	const domReadyPromise = new Promise( ( resolve ) => {
+	var domReadyPromise = new Promise( function( resolve ) {
 		document.addEventListener( 'DOMContentLoaded', resolve, {
-			once: true,
+			once: true
 		} );
 	} );
 
@@ -48,7 +48,7 @@
 		// Cleanup from previous test.
 		context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
 		context.fillText( set1, 0, 0 );
-		const rendered1 = new Uint32Array(
+		var rendered1 = new Uint32Array(
 			context.getImageData(
 				0,
 				0,
@@ -60,7 +60,7 @@
 		// Cleanup from previous test.
 		context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
 		context.fillText( set2, 0, 0 );
-		const rendered2 = new Uint32Array(
+		var rendered2 = new Uint32Array(
 			context.getImageData(
 				0,
 				0,
@@ -69,7 +69,7 @@
 			).data
 		);
 
-		return rendered1.every( ( rendered2Data, index ) => {
+		return rendered1.every( function ( rendered2Data, index ) {
 			return rendered2Data === rendered2[ index ];
 		} );
 	}
@@ -86,7 +86,7 @@
 	 * @return {boolean} True if the browser can render emoji, false if it cannot.
 	 */
 	function browserSupportsEmoji( type ) {
-		let canvas, isIdentical;
+		var canvas, isIdentical;
 
 		/*
 		 * Chrome on OS X added native emoji rendering in M41. Unfortunately,
@@ -102,7 +102,7 @@
 		} else {
 			canvas = document.createElement( 'canvas' );
 		}
-		const context = canvas.getContext( '2d', { willReadFrequently: true } );
+		var context = canvas.getContext( '2d', { willReadFrequently: true } );
 		context.textBaseline = 'top';
 		context.font = '600 32px Arial';
 
@@ -214,22 +214,21 @@
 			 * Example
 			 *
 			 *     > console.log( workerScript );
-			 *     const emojiSetsRenderIdentically = function emojiSetsRenderIdentically(context, set1, set2) { … }
+			 *     var emojiSetsRenderIdentically = function emojiSetsRenderIdentically(context, set1, set2) { … }
 			 *     …
 			 */
-			const workerScript = `
-				/** @var {Function} copy of comparison function to send into worker. */
-				const emojiSetsRenderIdentically = ${ emojiSetsRenderIdentically };
-				/** @var {Function} copy of detection function to send into worker. */
-				const browserSupportsEmoji = ${ browserSupportsEmoji };
-				postMessage(browserSupportsEmoji(${ JSON.stringify( type ) }));
-			`;
-			const blob = new Blob( [ workerScript ], {
-				type: 'text/javascript',
+			var workerScript =
+				'/** @var {Function} copy of comparison function to send into worker. */' +
+				'var emojiSetsRenderIdentically = ' + emojiSetsRenderIdentically + ';' +
+				'/** @var {Function} copy of detection function to send into worker. */' +
+				'var browserSupportsEmoji = ' + browserSupportsEmoji + ';' +
+				'postMessage(browserSupportsEmoji(' + JSON.stringify( type ) + '));';
+			var blob = new Blob( [ workerScript ], {
+				type: 'text/javascript'
 			} );
-			const worker = new Worker( URL.createObjectURL( blob ) );
-			return await new Promise( ( resolve ) => {
-				worker.onmessage = ( event ) => {
+			var worker = new Worker( URL.createObjectURL( blob ) );
+			return await new Promise( function ( resolve ) {
+				worker.onmessage = function ( event ) {
 					resolve( event.data );
 				};
 			} );
@@ -250,14 +249,14 @@
 	 * @return {void}
 	 */
 	function addScript( src ) {
-		const script = document.createElement( 'script' );
+		var script = document.createElement( 'script' );
 
 		script.src = src;
 		script.defer = true;
 		document.head.appendChild( script );
 	}
 
-	const tests = [ 'flag', 'emoji' ];
+	var tests = [ 'flag', 'emoji' ];
 
 	settings.supports = {
 		everything: true,
@@ -285,7 +284,7 @@
 	 * Tests the browser support for flag emojis and other emojis, and adjusts the
 	 * support settings accordingly.
 	 */
-	for ( const test of tests ) {
+	for ( var test of tests ) {
 		if ( ! ( test in sessionSupports ) ) {
 			sessionSupports[ test ] = await browserSupportsEmojiOptimized(
 				test
@@ -319,7 +318,7 @@
 
 	// Sets DOMReady to false and assigns a ready function to settings.
 	settings.DOMReady = false;
-	settings.readyCallback = () => {
+	settings.readyCallback = function () {
 		settings.DOMReady = true;
 	};
 
@@ -328,7 +327,7 @@
 		await domReadyPromise;
 		settings.readyCallback();
 
-		const src = settings.source || {};
+		var src = settings.source || {};
 
 		if ( src.concatemoji ) {
 			addScript( src.concatemoji );

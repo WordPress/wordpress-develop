@@ -3,7 +3,7 @@
 	"curly": true,
 	"eqeqeq": true,
 	"eqnull": true,
-	"esversion": 8,
+	"esversion": 3,
 	"expr": true,
 	"immed": true,
 	"noarg": true,
@@ -19,6 +19,7 @@
 	"globals": {
 		"Backbone": false,
 		"JSON": false,
+		"Promise": false,
 		"OffscreenCanvas": false,
 		"Set": false,
 		"WorkerGlobalScope": false,
