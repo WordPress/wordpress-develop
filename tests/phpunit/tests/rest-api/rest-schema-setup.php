@@ -6,9 +6,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  * @group restapi-jsclient
  */
@@ -146,14 +144,14 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/settings',
 			'/wp/v2/template-parts',
 			'/wp/v2/template-parts/(?P<id>[\d]+)/autosaves',
-			'/wp/v2/template-parts/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w-]+)',
+			'/wp/v2/template-parts/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)',
 			'/wp/v2/template-parts/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
 			'/wp/v2/template-parts/(?P<parent>[\d]+)/revisions',
 			'/wp/v2/template-parts/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
 			'/wp/v2/template-parts/lookup',
 			'/wp/v2/templates',
 			'/wp/v2/templates/(?P<id>[\d]+)/autosaves',
-			'/wp/v2/templates/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w-]+)',
+			'/wp/v2/templates/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)',
 			'/wp/v2/templates/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
 			'/wp/v2/templates/(?P<parent>[\d]+)/revisions',
 			'/wp/v2/templates/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',

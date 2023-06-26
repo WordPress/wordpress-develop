@@ -376,9 +376,14 @@ window.wp = window.wp || {};
 		});
 
 		// Handle the post status.
+		var post_date_string = $(':input[name="aa"]').val() + '-' + $(':input[name="mm"]').val() + '-' + $(':input[name="jj"]').val();
+		post_date_string += ' ' + $(':input[name="hh"]').val() + ':' + $(':input[name="mn"]').val() + ':' + $(':input[name="ss"]').val();
+		var post_date = new Date( post_date_string );
 		status = $('._status', rowData).text();
-		if ( 'future' !== status ) {
+		if ( 'future' !== status && Date.now() > post_date ) {
 			$('select[name="_status"] option[value="future"]', editRow).remove();
+		} else {
+			$('select[name="_status"] option[value="publish"]', editRow).remove();
 		}
 
 		pw = $( '.inline-edit-password-input' ).prop( 'disabled', false );
@@ -444,6 +449,13 @@ window.wp = window.wp || {};
 		};
 
 		fields = $('#edit-'+id).find(':input').serialize();
+
+		var status = $(':input[name="_status"]').val();
+
+		if ( [ 'draft', 'pending', 'auto-draft' ].includes( status ) ) {
+			params.edit_date = 'false';
+		}
+
 		params = fields + '&' + $.param(params);
 
 		// Make Ajax request.

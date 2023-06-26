@@ -10,7 +10,7 @@
  * This functionality was found in a plugin before the WordPress 2.2 release, which
  * included it in the core from that point on.
  *
- * @link https://wordpress.org/support/article/wordpress-widgets/
+ * @link https://wordpress.org/documentation/article/manage-wordpress-widgets/
  * @link https://developer.wordpress.org/themes/functionality/widgets/
  *
  * @package WordPress
@@ -908,7 +908,7 @@ function is_active_widget( $callback = false, $widget_id = false, $id_base = fal
 
 	if ( is_array( $sidebars_widgets ) ) {
 		foreach ( $sidebars_widgets as $sidebar => $widgets ) {
-			if ( $skip_inactive && ( 'wp_inactive_widgets' === $sidebar || 'orphaned_widgets' === substr( $sidebar, 0, 16 ) ) ) {
+			if ( $skip_inactive && ( 'wp_inactive_widgets' === $sidebar || str_starts_with( $sidebar, 'orphaned_widgets' ) ) ) {
 				continue;
 			}
 
@@ -1382,7 +1382,7 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
 	}
 
 	foreach ( $existing_sidebars_widgets as $sidebar => $widgets ) {
-		if ( 'wp_inactive_widgets' === $sidebar || 'orphaned_widgets' === substr( $sidebar, 0, 16 ) ) {
+		if ( 'wp_inactive_widgets' === $sidebar || str_starts_with( $sidebar, 'orphaned_widgets' ) ) {
 			$new_sidebars_widgets['wp_inactive_widgets'] = array_merge( $new_sidebars_widgets['wp_inactive_widgets'], (array) $widgets );
 			unset( $existing_sidebars_widgets[ $sidebar ] );
 		}
@@ -1490,7 +1490,7 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
 
 		// Remove orphaned widgets, we're only interested in previously active sidebars.
 		foreach ( $old_sidebars_widgets as $sidebar => $widgets ) {
-			if ( 'orphaned_widgets' === substr( $sidebar, 0, 16 ) ) {
+			if ( str_starts_with( $sidebar, 'orphaned_widgets' ) ) {
 				unset( $old_sidebars_widgets[ $sidebar ] );
 			}
 		}
@@ -1627,7 +1627,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 			$summary = $desc;
 
 			// Change existing [...] to [&hellip;].
-			if ( '[...]' === substr( $summary, -5 ) ) {
+			if ( str_ends_with( $summary, '[...]' ) ) {
 				$summary = substr( $summary, 0, -5 ) . '[&hellip;]';
 			}
 
@@ -2103,5 +2103,31 @@ function wp_check_widget_editor_deps() {
 				'5.8.0'
 			);
 		}
+	}
+}
+
+/**
+ * Registers the previous theme's sidebars for the block themes.
+ *
+ * @since 6.2.0
+ * @access private
+ *
+ * @global array $wp_registered_sidebars Registered sidebars.
+ */
+function _wp_block_theme_register_classic_sidebars() {
+	global $wp_registered_sidebars;
+
+	if ( ! wp_is_block_theme() ) {
+		return;
+	}
+
+	$classic_sidebars = get_theme_mod( 'wp_classic_sidebars' );
+	if ( empty( $classic_sidebars ) ) {
+		return;
+	}
+
+	// Don't use `register_sidebar` since it will enable the `widgets` support for a theme.
+	foreach ( $classic_sidebars as $sidebar ) {
+		$wp_registered_sidebars[ $sidebar['id'] ] = $sidebar;
 	}
 }

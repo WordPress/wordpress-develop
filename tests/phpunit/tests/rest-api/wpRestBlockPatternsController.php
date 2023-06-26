@@ -2,14 +2,8 @@
 /**
  * Unit tests covering WP_REST_Block_Patterns_Controller functionality.
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage REST_API
- * @since      6.0.0
- */
-
-/**
- * Tests for REST API for Block Patterns.
- *
  * @since 6.0.0
  *
  * @ticket 55505
@@ -78,18 +72,20 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 			'test/one',
 			array(
 				'title'         => 'Pattern One',
-				'categories'    => array( 'test' ),
-				'viewportWidth' => 1440,
 				'content'       => '<!-- wp:heading {"level":1} --><h1>One</h1><!-- /wp:heading -->',
+				'viewportWidth' => 1440,
+				'categories'    => array( 'test' ),
+				'templateTypes' => array( 'page' ),
 			)
 		);
 
 		$test_registry->register(
 			'test/two',
 			array(
-				'title'      => 'Pattern Two',
-				'categories' => array( 'test' ),
-				'content'    => '<!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->',
+				'title'         => 'Pattern Two',
+				'content'       => '<!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->',
+				'categories'    => array( 'test' ),
+				'templateTypes' => array( 'single' ),
 			)
 		);
 
@@ -97,8 +93,8 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 			'test/three',
 			array(
 				'title'      => 'Pattern Three',
-				'categories' => array( 'test', 'buttons', 'query' ),
 				'content'    => '<!-- wp:paragraph --><p>Three</p><!-- /wp:paragraph -->',
+				'categories' => array( 'test', 'buttons', 'query' ),
 			)
 		);
 	}
@@ -128,7 +124,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		wp_set_current_user( self::$admin_id );
 
 		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
-		$request['_fields'] = 'name,content';
+		$request['_fields'] = 'name,content,template_types';
 		$response           = rest_get_server()->dispatch( $request );
 		$data               = $response->get_data();
 
@@ -136,16 +132,18 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		$this->assertGreaterThanOrEqual( 2, count( $data ), 'WP_REST_Block_Patterns_Controller::get_items() should return at least 2 items' );
 		$this->assertSame(
 			array(
-				'name'    => 'test/one',
-				'content' => '<!-- wp:heading {"level":1} --><h1>One</h1><!-- /wp:heading -->',
+				'name'           => 'test/one',
+				'content'        => '<!-- wp:heading {"level":1} --><h1>One</h1><!-- /wp:heading -->',
+				'template_types' => array( 'page' ),
 			),
 			$data[0],
 			'WP_REST_Block_Patterns_Controller::get_items() should return test/one'
 		);
 		$this->assertSame(
 			array(
-				'name'    => 'test/two',
-				'content' => '<!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->',
+				'name'           => 'test/two',
+				'content'        => '<!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->',
+				'template_types' => array( 'single' ),
 			),
 			$data[1],
 			'WP_REST_Block_Patterns_Controller::get_items() should return test/two'

@@ -937,7 +937,8 @@ EOF;
 	 * @ticket 48376
 	 * @ticket 55966
 	 * @ticket 56122
-	 * @dataProvider data_test_safecss_filter_attr
+	 * @ticket 58551
+	 * @dataProvider data_safecss_filter_attr
 	 *
 	 * @param string $css      A string of CSS rules.
 	 * @param string $expected Expected string of CSS rules.
@@ -947,7 +948,7 @@ EOF;
 	}
 
 	/**
-	 * Data Provider for test_safecss_filter_attr().
+	 * Data provider for test_safecss_filter_attr().
 	 *
 	 * @return array {
 	 *     @type array {
@@ -956,7 +957,7 @@ EOF;
 	 *     }
 	 * }
 	 */
-	public function data_test_safecss_filter_attr() {
+	public function data_safecss_filter_attr() {
 		return array(
 			// Empty input, empty output.
 			array(
@@ -1047,9 +1048,9 @@ EOF;
 				'css'      => 'grid-template-rows: 40px 4em 40px;grid-auto-rows: min-content;grid-row-start: -1;grid-row-end: 3;grid-row-gap: 1em',
 				'expected' => 'grid-template-rows: 40px 4em 40px;grid-auto-rows: min-content;grid-row-start: -1;grid-row-end: 3;grid-row-gap: 1em',
 			),
-			// `grid` does not yet support functions or `\`.
+			// `grid` does not yet support `\`.
 			array(
-				'css'      => 'grid-template-columns: repeat(2, 50px 1fr);grid-template: 1em / 20% 20px 1fr',
+				'css'      => 'grid-template: 1em / 20% 20px 1fr',
 				'expected' => '',
 			),
 			// `flex` and `grid` alignments introduced in 5.3.
@@ -1276,6 +1277,68 @@ EOF;
 			),
 			array(
 				'css'      => '--?><.%-not-allowed: red;',
+				'expected' => '',
+			),
+			// Position properties introduced in 6.2.
+			array(
+				'css'      => 'position: sticky;top: 0;left: 0;right: 0;bottom: 0;z-index: 10;',
+				'expected' => 'position: sticky;top: 0;left: 0;right: 0;bottom: 0;z-index: 10',
+			),
+			// `aspect-ratio` introduced in 6.2.
+			array(
+				'css'      => 'aspect-ratio: auto;',
+				'expected' => 'aspect-ratio: auto',
+			),
+			array(
+				'css'      => 'aspect-ratio: 0.5;',
+				'expected' => 'aspect-ratio: 0.5',
+			),
+			array(
+				'css'      => 'aspect-ratio: 1;',
+				'expected' => 'aspect-ratio: 1',
+			),
+			array(
+				'css'      => 'aspect-ratio: 16 / 9;',
+				'expected' => 'aspect-ratio: 16 / 9',
+			),
+			array(
+				'css'      => 'aspect-ratio: expression( 16 / 9 );',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'aspect-ratio: calc( 16 / 9;',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'aspect-ratio: calc( 16 / 9 );',
+				'expected' => 'aspect-ratio: calc( 16 / 9 )',
+			),
+			array(
+				'css'      => 'aspect-ratio: url( https://wordpress.org/wp-content/uploads/aspect-ratio.jpg );',
+				'expected' => '',
+			),
+			// URL support for `filter` introduced in 6.3.
+			array(
+				'css'      => 'filter: url( my-file.svg#svg-blur );',
+				'expected' => 'filter: url( my-file.svg#svg-blur )',
+			),
+			// Support for `repeat` function.
+			array(
+				'css'      => 'grid-template-columns: repeat(4, minmax(0, 1fr))',
+				'expected' => 'grid-template-columns: repeat(4, minmax(0, 1fr))',
+			),
+			array(
+				'css'      => 'grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr))',
+				'expected' => 'grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr))',
+			),
+			// Malformed repeat, no closing `)`.
+			array(
+				'css'      => 'grid-template-columns: repeat(4, minmax(0, 1fr)',
+				'expected' => '',
+			),
+			// Malformed repeat, contains unsupported function.
+			array(
+				'css'      => 'grid-template-columns: repeat(4, unsupported(0, 1fr)',
 				'expected' => '',
 			),
 		);
@@ -1530,7 +1593,7 @@ EOF;
 	 *
 	 * @ticket 37134
 	 *
-	 * @dataProvider data_test_safecss_filter_attr_filtered
+	 * @dataProvider data_safecss_filter_attr_filtered
 	 *
 	 * @param string $css      A string of CSS rules.
 	 * @param string $expected Expected string of CSS rules.
@@ -1542,7 +1605,7 @@ EOF;
 	}
 
 	/**
-	 * Data Provider for test_safecss_filter_attr_filtered().
+	 * Data provider for test_safecss_filter_attr_filtered().
 	 *
 	 * @return array {
 	 *     @type array {
@@ -1551,7 +1614,7 @@ EOF;
 	 *     }
 	 * }
 	 */
-	public function data_test_safecss_filter_attr_filtered() {
+	public function data_safecss_filter_attr_filtered() {
 		return array(
 
 			// A single attribute name, with a single value.
@@ -1880,7 +1943,7 @@ HTML;
 		);
 
 		return array_map(
-			function ( $datum ) {
+			static function ( $datum ) {
 				$datum[] = array(
 					'p' => array(
 						'dir' => array(

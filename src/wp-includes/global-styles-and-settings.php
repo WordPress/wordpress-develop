@@ -21,7 +21,7 @@
  *                              Valid values are 'all' (core, theme, and user) or 'base' (core and theme).
  *                              If empty or unknown, 'all' is used.
  * }
- * @return array The settings to retrieve.
+ * @return mixed The settings array or individual setting value to retrieve.
  */
 function wp_get_global_settings( $path = array(), $context = array() ) {
 	if ( ! empty( $context['block_name'] ) ) {
@@ -92,6 +92,10 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
  * Gets the styles resulting of merging core, theme, and user data.
  *
  * @since 5.9.0
+ * @since 6.3.0 the internal link format "var:preset|color|secondary" is resolved
+ *              to "var(--wp--preset--font-size--small)" so consumers don't have to.
+ * @since 6.3.0 `transforms` is now usable in the `context` parameter. In case [`transforms`]['resolve_variables']
+ *              is defined, variables are resolved to their value in the styles.
  *
  * @param array $path    Path to the specific style to retrieve. Optional.
  *                       If empty, will return all styles.
@@ -103,8 +107,11 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
  *     @type string $origin     Which origin to take data from.
  *                              Valid values are 'all' (core, theme, and user) or 'base' (core and theme).
  *                              If empty or unknown, 'all' is used.
+ *     @type array $transforms Which transformation(s) to apply.
+ *                              Valid value is array( 'resolve-variables' ).
+ *                              If defined, variables are resolved to their value in the styles.
  * }
- * @return array The styles to retrieve.
+ * @return mixed The styles array or individual style value to retrieve.
  */
 function wp_get_global_styles( $path = array(), $context = array() ) {
 	if ( ! empty( $context['block_name'] ) ) {
@@ -116,10 +123,18 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
 		$origin = 'theme';
 	}
 
-	$styles = WP_Theme_JSON_Resolver::get_merged_data( $origin )->get_raw_data()['styles'];
+	$resolve_variables = isset( $context['transforms'] )
+	&& is_array( $context['transforms'] )
+	&& in_array( 'resolve-variables', $context['transforms'], true );
 
+	$merged_data = WP_Theme_JSON_Resolver::get_merged_data( $origin );
+	if ( $resolve_variables ) {
+		$merged_data = WP_Theme_JSON::resolve_variables( $merged_data );
+	}
+	$styles = $merged_data->get_raw_data()['styles'];
 	return _wp_array_get( $styles, $path, $styles );
 }
+
 
 /**
  * Returns the stylesheet resulting of merging core, theme, and user data.
@@ -226,6 +241,60 @@ function wp_get_global_stylesheet( $types = array() ) {
 }
 
 /**
+ * Gets the global styles custom CSS from theme.json.
+ *
+ * @since 6.2.0
+ *
+ * @return string The global styles custom CSS.
+ */
+function wp_get_global_styles_custom_css() {
+	if ( ! wp_theme_has_theme_json() ) {
+		return '';
+	}
+	/*
+	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme
+	 * developer's workflow.
+	 *
+	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
+	 */
+	$can_use_cached = ! WP_DEBUG;
+
+	/*
+	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
+	 * @see `wp_cache_add_non_persistent_groups()`.
+	 *
+	 * The rationale for this is to make sure derived data from theme.json
+	 * is always fresh from the potential modifications done via hooks
+	 * that can use dynamic data (modify the stylesheet depending on some option,
+	 * settings depending on user permissions, etc.).
+	 * See some of the existing hooks to modify theme.json behavior:
+	 * @see https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
+	 *
+	 * A different alternative considered was to invalidate the cache upon certain
+	 * events such as options add/update/delete, user meta, etc.
+	 * It was judged not enough, hence this approach.
+	 * @see https://github.com/WordPress/gutenberg/pull/45372
+	 */
+	$cache_key   = 'wp_get_global_styles_custom_css';
+	$cache_group = 'theme_json';
+	if ( $can_use_cached ) {
+		$cached = wp_cache_get( $cache_key, $cache_group );
+		if ( $cached ) {
+			return $cached;
+		}
+	}
+
+	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
+	$stylesheet = $tree->get_custom_css();
+
+	if ( $can_use_cached ) {
+		wp_cache_set( $cache_key, $stylesheet, $cache_group );
+	}
+
+	return $stylesheet;
+}
+
+/**
  * Returns a string containing the SVGs to be referenced as filters (duotone).
  *
  * @since 5.9.1
@@ -233,17 +302,17 @@ function wp_get_global_stylesheet( $types = array() ) {
  * @return string
  */
 function wp_get_global_styles_svg_filters() {
-	// Return cached value if it can be used and exists.
-	// It's cached by theme to make sure that theme switching clears the cache.
-	$can_use_cached = (
-		( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) &&
-		( ! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG ) &&
-		( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) &&
-		! is_admin()
-	);
-	$transient_name = 'global_styles_svg_filters_' . get_stylesheet();
+	/*
+	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme
+	 * developer's workflow.
+	 *
+	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
+	 */
+	$can_use_cached = ! WP_DEBUG;
+	$cache_group    = 'theme_json';
+	$cache_key      = 'wp_get_global_styles_svg_filters';
 	if ( $can_use_cached ) {
-		$cached = get_transient( $transient_name );
+		$cached = wp_cache_get( $cache_key, $cache_group );
 		if ( $cached ) {
 			return $cached;
 		}
@@ -260,8 +329,7 @@ function wp_get_global_styles_svg_filters() {
 	$svgs = $tree->get_svg_filters( $origins );
 
 	if ( $can_use_cached ) {
-		// Cache for a minute, same as wp_get_global_stylesheet.
-		set_transient( $transient_name, $svgs, MINUTE_IN_SECONDS );
+		wp_cache_set( $cache_key, $svgs, $cache_group );
 	}
 
 	return $svgs;
@@ -303,7 +371,7 @@ function wp_add_global_styles_for_blocks() {
 				array_filter(
 					$metadata['path'],
 					function ( $item ) {
-						if ( strpos( $item, 'core/' ) !== false ) {
+						if ( str_contains( $item, 'core/' ) ) {
 							return true;
 						}
 						return false;
@@ -367,7 +435,21 @@ function wp_theme_has_theme_json() {
  */
 function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_global_stylesheet', 'theme_json' );
+	wp_cache_delete( 'wp_get_global_styles_svg_filters', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_settings_custom', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_settings_theme', 'theme_json' );
+	wp_cache_delete( 'wp_get_global_styles_custom_css', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
+}
+
+/**
+ * Returns the current theme's wanted patterns (slugs) to be
+ * registered from Pattern Directory.
+ *
+ * @since 6.3.0
+ *
+ * @return string[]
+ */
+function wp_get_theme_directory_pattern_slugs() {
+	return WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_patterns();
 }

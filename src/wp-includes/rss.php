@@ -195,7 +195,7 @@ class MagpieRSS {
 			array_unshift( $this->stack, $el );
 		}
 
-		// Atom support many links per containging element.
+		// Atom support many links per containing element.
 		// Magpie treats link elements of type rel='alternate'
 		// as being equivalent to RSS's simple link element.
 		//
@@ -338,7 +338,7 @@ class MagpieRSS {
 	function normalize () {
 		// if atom populate rss fields
 		if ( $this->is_atom() ) {
-			$this->channel['descripton'] = $this->channel['tagline'];
+			$this->channel['description'] = $this->channel['tagline'];
 			for ( $i = 0; $i < count($this->items); $i++) {
 				$item = $this->items[$i];
 				if ( isset($item['summary']) )
@@ -500,7 +500,7 @@ function fetch_rss ($url) {
 			else {
 				$errormsg = "Failed to fetch $url. ";
 				if ( $resp->error ) {
-					# compensate for Snoopy's annoying habbit to tacking
+					# compensate for Snoopy's annoying habit to tacking
 					# on '\n'
 					$http_error = substr($resp->error, 0, -2);
 					$errormsg .= "(HTTP Error: $http_error)";
@@ -541,7 +541,7 @@ endif;
  * @subpackage MagpieRSS
  *
  * @param string $url URL to retrieve
- * @param array $headers Optional. Headers to send to the URL.
+ * @param array $headers Optional. Headers to send to the URL. Default empty string.
  * @return Snoopy style response
  */
 function _fetch_remote_file($url, $headers = "" ) {
@@ -836,7 +836,7 @@ class RSSCache {
 if ( !function_exists('parse_w3cdtf') ) :
 function parse_w3cdtf ( $date_str ) {
 
-	# regex to match wc3dtf
+	# regex to match W3C date/time formats
 	$pat = "/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(:(\d{2}))?(?:([-+])(\d{2}):?(\d{2})|(Z))?/";
 
 	if ( preg_match( $pat, $date_str, $match ) ) {

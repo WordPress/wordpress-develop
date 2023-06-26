@@ -37,12 +37,13 @@ function get_the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctio
  * @param string $before  Optional. Markup to prepend to the title. Default empty.
  * @param string $after   Optional. Markup to append to the title. Default empty.
  * @param bool   $display Optional. Whether to echo or return the title. Default true for echo.
- * @return void|string Void if `$display` argument is true, current post title if `$display` is false.
+ * @return void|string Void if `$display` argument is true or the title is empty,
+ *                     current post title if `$display` is false.
  */
 function the_title( $before = '', $after = '', $display = true ) {
 	$title = get_the_title();
 
-	if ( strlen( $title ) == 0 ) {
+	if ( strlen( $title ) === 0 ) {
 		return;
 	}
 
@@ -88,7 +89,7 @@ function the_title_attribute( $args = '' ) {
 
 	$title = get_the_title( $parsed_args['post'] );
 
-	if ( strlen( $title ) == 0 ) {
+	if ( strlen( $title ) === 0 ) {
 		return;
 	}
 
@@ -342,7 +343,7 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 		$content = array( $content );
 	}
 
-	if ( false !== strpos( $_post->post_content, '<!--noteaser-->' ) && ( ! $elements['multipage'] || 1 == $elements['page'] ) ) {
+	if ( str_contains( $_post->post_content, '<!--noteaser-->' ) && ( ! $elements['multipage'] || 1 == $elements['page'] ) ) {
 		$strip_teaser = true;
 	}
 
@@ -886,7 +887,7 @@ function post_password_required( $post = null ) {
 	$hasher = new PasswordHash( 8, true );
 
 	$hash = wp_unslash( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] );
-	if ( 0 !== strpos( $hash, '$P$B' ) ) {
+	if ( ! str_starts_with( $hash, '$P$B' ) ) {
 		$required = true;
 	} else {
 		$required = ! $hasher->CheckPassword( $post->post_password, $hash );
@@ -1666,7 +1667,24 @@ function wp_get_attachment_link( $post = 0, $size = 'thumbnail', $permalink = fa
 		$link_text = esc_html( pathinfo( get_attached_file( $_post->ID ), PATHINFO_FILENAME ) );
 	}
 
-	$link_html = "<a href='" . esc_url( $url ) . "'>$link_text</a>";
+	/**
+	 * Filters the list of attachment link attributes.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param array $attributes An array of attributes for the link markup,
+	 *                          keyed on the attribute name.
+	 * @param int   $id         Post ID.
+	 */
+	$attributes = apply_filters( 'wp_get_attachment_link_attributes', array( 'href' => $url ), $_post->ID );
+
+	$link_attributes = '';
+	foreach ( $attributes as $name => $value ) {
+		$value            = 'href' === $name ? esc_url( $value ) : esc_attr( $value );
+		$link_attributes .= ' ' . esc_attr( $name ) . "='" . $value . "'";
+	}
+
+	$link_html = "<a$link_attributes>$link_text</a>";
 
 	/**
 	 * Filters a retrieved attachment page link.

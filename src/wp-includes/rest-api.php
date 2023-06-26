@@ -467,7 +467,7 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
 		$url = trailingslashit( get_home_url( $blog_id, '', $scheme ) );
 		// nginx only allows HTTP/1.0 methods when redirecting from / to /index.php.
 		// To work around this, we manually add index.php to the URL, avoiding the redirect.
-		if ( 'index.php' !== substr( $url, 9 ) ) {
+		if ( ! str_ends_with( $url, 'index.php' ) ) {
 			$url .= 'index.php';
 		}
 
@@ -939,12 +939,12 @@ function rest_is_field_included( $field, $fields ) {
 	foreach ( $fields as $accepted_field ) {
 		// Check to see if $field is the parent of any item in $fields.
 		// A field "parent" should be accepted if "parent.child" is accepted.
-		if ( strpos( $accepted_field, "$field." ) === 0 ) {
+		if ( str_starts_with( $accepted_field, "$field." ) ) {
 			return true;
 		}
 		// Conversely, if "parent" is accepted, all "parent.child" fields
 		// should also be accepted.
-		if ( strpos( $field, "$accepted_field." ) === 0 ) {
+		if ( str_starts_with( $field, "$accepted_field." ) ) {
 			return true;
 		}
 	}
@@ -1292,8 +1292,13 @@ function rest_parse_hex_color( $color ) {
  *
  * @param string $date   RFC3339 timestamp.
  * @param bool   $is_utc Whether the provided date should be interpreted as UTC. Default false.
- * @return array|null Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s),
- *                    null on failure.
+ * @return array|null {
+ *     Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s),
+ *     null on failure.
+ *
+ *     @type string $0 Local datetime string.
+ *     @type string $1 UTC datetime string.
+ * }
  */
 function rest_get_date_with_gmt( $date, $is_utc = false ) {
 	/*
@@ -1549,12 +1554,12 @@ function rest_is_object( $maybe_object ) {
 }
 
 /**
- * Converts an object-like value to an object.
+ * Converts an object-like value to an array.
  *
  * @since 5.5.0
  *
  * @param mixed $maybe_object The value being evaluated.
- * @return array Returns the object extracted from the value.
+ * @return array Returns the object extracted from the value as an associative array.
  */
 function rest_sanitize_object( $maybe_object ) {
 	if ( '' === $maybe_object ) {
@@ -1581,8 +1586,8 @@ function rest_sanitize_object( $maybe_object ) {
  *
  * @since 5.5.0
  *
- * @param mixed $value The value to check.
- * @param array $types The list of possible types.
+ * @param mixed    $value The value to check.
+ * @param string[] $types The list of possible types.
  * @return string The best matching type, an empty string if no types match.
  */
 function rest_get_best_type_for_value( $value, $types ) {
