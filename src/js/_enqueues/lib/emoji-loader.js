@@ -48,25 +48,29 @@
 		// Cleanup from previous test.
 		context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
 		context.fillText( set1, 0, 0 );
-		const rendered1 = context.getImageData(
-			0,
-			0,
-			context.canvas.width,
-			context.canvas.height
-		).data;
+		const rendered1 = new Uint32Array(
+			context.getImageData(
+				0,
+				0,
+				context.canvas.width,
+				context.canvas.height
+			).data
+		);
 
 		// Cleanup from previous test.
 		context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
 		context.fillText( set2, 0, 0 );
-		const rendered2 = context.getImageData(
-			0,
-			0,
-			context.canvas.width,
-			context.canvas.height
-		).data;
+		const rendered2 = new Uint32Array(
+			context.getImageData(
+				0,
+				0,
+				context.canvas.width,
+				context.canvas.height
+			).data
+		);
 
-		return rendered1.every( ( pixel, index ) => {
-			return pixel === rendered2[ index ];
+		return rendered1.every( ( rendered2Data, index ) => {
+			return rendered2Data === rendered2[ index ];
 		} );
 	}
 
