@@ -80,7 +80,7 @@ class Walker_Nav_Menu extends Walker {
 		/**
 		 * Filters the HTML attributes applied to a menu list element.
 		 *
-		 * @since 6.2.0
+		 * @since 6.3.0
 		 *
 		 * @param array $atts {
 		 *     The HTML attributes applied to the `<ul>` element, empty strings are ignored.
