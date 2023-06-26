@@ -156,7 +156,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_template_fallback( $request ) {
-		$hierarchy         = get_template_hierarchy( $request['slug'], $request['is_custom'], $request['template_prefix'] );
+		$hierarchy = get_template_hierarchy( $request['slug'], $request['is_custom'], $request['template_prefix'] );
 
 		do {
 			$fallback_template = resolve_block_template( $request['slug'], $hierarchy, '' );
