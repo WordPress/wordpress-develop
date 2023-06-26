@@ -47,7 +47,7 @@ function register_core_block_style_handles() {
 	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
 	 */
 	if ( ! WP_DEBUG ) {
-		$transient_name = 'wp_core_block_styles';
+		$transient_name = 'wp_core_block_css_files';
 		$files          = get_transient( $transient_name );
 		if ( ! $files ) {
 			$files = glob( __DIR__ . '/**/**.css' );
