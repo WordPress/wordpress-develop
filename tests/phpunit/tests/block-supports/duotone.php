@@ -64,6 +64,25 @@ class Tests_Block_Supports_DuoTones extends WP_UnitTestCase {
 		$this->assertMatchesRegularExpression( $expected, WP_Duotone::render_duotone_support( $block_content, $block ) );
 	}
 
+	/**
+	 * Tests whether the slug is extracted from the attribute.
+	 *
+	 * @dataProvider data_get_slug_from_attribute
+	 * @covers ::get_slug_from_attribute
+	 */
+	public function test_get_slug_from_attribute( $data_attr, $expected ) {
+
+		$reflection = new ReflectionMethod( 'WP_Duotone', 'get_slug_from_attribute' );
+		$reflection->setAccessible( true );
+
+		$this->assertSame( $expected, $reflection->invoke( null, $data_attr ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
 	public function data_get_slug_from_attribute() {
 		return array(
 			'pipe-slug'                       => array( 'var:preset|duotone|blue-orange', 'blue-orange' ),
@@ -79,19 +98,20 @@ class Tests_Block_Supports_DuoTones extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests whether the slug is extracted from the attribute.
-	 *
-	 * @dataProvider data_get_slug_from_attribute
-	 * @covers ::get_slug_from_attribute
+	 * @dataProvider data_is_preset
 	 */
-	public function test_get_slug_from_attribute( $data_attr, $expected ) {
-
-		$reflection = new ReflectionMethod( 'WP_Duotone', 'get_slug_from_attribute' );
+	public function test_is_preset( $data_attr, $expected ) {
+		$reflection = new ReflectionMethod( 'WP_Duotone', 'is_preset' );
 		$reflection->setAccessible( true );
 
 		$this->assertSame( $expected, $reflection->invoke( null, $data_attr ) );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
 	public function data_is_preset() {
 		return array(
 			'pipe-slug'                       => array( 'var:preset|duotone|blue-orange', true ),
@@ -100,15 +120,5 @@ class Tests_Block_Supports_DuoTones extends WP_UnitTestCase {
 			'css-var-missing-end-parenthesis' => array( 'var(--wp--preset--duotone--blue-orange', false ),
 			'invalid'                         => array( 'not a valid attribute', false ),
 		);
-	}
-
-	/**
-	 * @dataProvider data_is_preset
-	 */
-	public function test_is_preset( $data_attr, $expected ) {
-		$reflection = new ReflectionMethod( 'WP_Duotone', 'is_preset' );
-		$reflection->setAccessible( true );
-
-		$this->assertSame( $expected, $reflection->invoke( null, $data_attr ) );
 	}
 }
