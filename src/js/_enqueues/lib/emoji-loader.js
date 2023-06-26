@@ -32,6 +32,46 @@
 	} );
 
 	/**
+	 * Get session supports.
+	 *
+	 * @returns {object} Session supports.
+	 */
+	function getSessionSupports() {
+		var sessionSupports = {};
+		if (
+			typeof sessionStorage !== 'undefined' &&
+			sessionStorageKey in sessionStorage
+		) {
+			try {
+				sessionSupports = JSON.parse(
+					sessionStorage.getItem( sessionStorageKey )
+				);
+			} catch ( e ) {}
+		}
+		if ( typeof sessionSupports === 'object' ) {
+			return sessionSupports;
+		} else {
+			return {};
+		}
+	}
+
+	/**
+	 * Persist the supports in session storage.
+	 *
+	 * @param {object} sessionSupports Session supports.
+	 */
+	function setSessionSupports( sessionSupports ) {
+		if ( typeof sessionStorage !== 'undefined' ) {
+			try {
+				sessionStorage.setItem(
+					sessionStorageKey,
+					JSON.stringify( sessionSupports )
+				);
+			} catch ( e ) {}
+		}
+	}
+
+	/**
 	 * Checks if two sets of Emoji characters render the same visually.
 	 *
 	 * @since 4.9.0
@@ -250,7 +290,6 @@
 	 */
 	function addScript( src ) {
 		var script = document.createElement( 'script' );
-
 		script.src = src;
 		script.defer = true;
 		document.head.appendChild( script );
@@ -263,22 +302,8 @@
 		everythingExceptFlag: true,
 	};
 
-	// Initialize sessionSupports from sessionStorage if available. This avoids expensive calls to browserSupportsEmoji().
-	if (
-		typeof sessionStorage !== 'undefined' &&
-		sessionStorageKey in sessionStorage
-	) {
-		try {
-			sessionSupports = JSON.parse(
-				sessionStorage.getItem( sessionStorageKey )
-			);
-			Object.assign( settings.supports, sessionSupports );
-		} catch ( e ) {
-			sessionSupports = {};
-		}
-	} else {
-		sessionSupports = {};
-	}
+	sessionSupports = getSessionSupports();
+	Object.assign( settings.supports, sessionSupports );
 
 	/*
 	 * Tests the browser support for flag emojis and other emojis, and adjusts the
@@ -303,14 +328,8 @@
 		}
 	}
 
-	// If the sessionSupports was touched, persist the new object in sessionStorage.
-	if ( sessionUpdated && typeof sessionStorage !== 'undefined' ) {
-		try {
-			sessionStorage.setItem(
-				sessionStorageKey,
-				JSON.stringify( sessionSupports )
-			);
-		} catch ( e ) {}
+	if ( sessionUpdated ) {
+		setSessionSupports( sessionSupports );
 	}
 
 	settings.supports.everythingExceptFlag =
