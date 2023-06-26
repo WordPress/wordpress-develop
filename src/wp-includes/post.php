@@ -8028,9 +8028,8 @@ function use_block_editor_for_post_type( $post_type ) {
  * @link https://github.com/WordPress/gutenberg/pull/51144
  */
 function wp_create_initial_post_meta() {
-	$post_type = 'wp_block';
 	register_post_meta(
-		$post_type,
+		'wp_block',
 		'sync_status',
 		array(
 			'sanitize_callback' => 'sanitize_text_field',
