@@ -190,7 +190,7 @@ function wp_normalize_remote_block_pattern( $pattern ) {
  * @since 5.9.0 The $current_screen argument was removed.
  * @since 6.2.0 Normalize the pattern from the API (snake_case) to the
  *              format expected by `register_block_pattern` (camelCase).
- * @since 6.3.0 Add 'pattern-directory/core' to the pattern's source.
+ * @since 6.3.0 Add 'pattern-directory/core' to the pattern's 'source'.
  *
  * @param WP_Screen $deprecated Unused. Formerly the screen that the current request was triggered from.
  */
