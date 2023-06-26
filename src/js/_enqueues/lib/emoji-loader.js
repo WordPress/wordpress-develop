@@ -295,8 +295,6 @@
 		document.head.appendChild( script );
 	}
 
-	var tests = [ 'flag', 'emoji' ];
-
 	settings.supports = {
 		everything: true,
 		everythingExceptFlag: true
@@ -305,18 +303,25 @@
 	sessionSupports = getSessionSupports();
 	Object.assign( settings.supports, sessionSupports );
 
+	for ( const test of [ 'flag', 'emoji' ] ) {
+		if ( ! ( test in sessionSupports ) ) {
+			sessionSupports[test] = await browserSupportsEmojiOptimized(
+				test
+			);
+			sessionUpdated = true;
+		}
+	}
+
+	if ( sessionUpdated ) {
+		setSessionSupports( sessionSupports );
+	}
+
 	/*
 	 * Tests the browser support for flag emojis and other emojis, and adjusts the
 	 * support settings accordingly.
 	 */
-	for ( var test of tests ) {
-		if ( ! ( test in sessionSupports ) ) {
-			sessionSupports[ test ] = await browserSupportsEmojiOptimized(
-				test
-			);
-			settings.supports[ test ] = sessionSupports[ test ];
-			sessionUpdated = true;
-		}
+	for ( var test in sessionSupports ) {
+		settings.supports[ test ] = sessionSupports[ test ];
 
 		settings.supports.everything =
 			settings.supports.everything && settings.supports[ test ];
@@ -326,10 +331,6 @@
 				settings.supports.everythingExceptFlag &&
 				settings.supports[ test ];
 		}
-	}
-
-	if ( sessionUpdated ) {
-		setSessionSupports( sessionSupports );
 	}
 
 	settings.supports.everythingExceptFlag =
