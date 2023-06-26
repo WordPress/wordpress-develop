@@ -299,7 +299,7 @@
 
 	settings.supports = {
 		everything: true,
-		everythingExceptFlag: true,
+		everythingExceptFlag: true
 	};
 
 	sessionSupports = getSessionSupports();
