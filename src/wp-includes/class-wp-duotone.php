@@ -140,7 +140,7 @@ class WP_Duotone {
 
 	/**
 	 * Clamps a value between an upper and lower bound.
-	 * 
+	 *
 	 * Direct port of colord's clamp function.
 	 *
 	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/helpers.ts#L23 Sourced from colord.
