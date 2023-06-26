@@ -279,7 +279,7 @@ function block_core_navigation_get_classic_menu_fallback() {
 		// Otherwise return the most recently created classic menu.
 		usort(
 			$classic_nav_menus,
-			static function( $a, $b ) {
+			function( $a, $b ) {
 				return $b->term_id - $a->term_id;
 			}
 		);
@@ -403,7 +403,7 @@ function block_core_navigation_get_most_recently_published_navigation() {
 function block_core_navigation_filter_out_empty_blocks( $parsed_blocks ) {
 	$filtered = array_filter(
 		$parsed_blocks,
-		static function( $block ) {
+		function( $block ) {
 			return isset( $block['blockName'] );
 		}
 	);
