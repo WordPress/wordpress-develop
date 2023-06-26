@@ -725,7 +725,9 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Enqueue preset assets for the page. Includes a CSS custom property, SVG filter, and block CSS declaration.
+	 * Enqueue preset assets for the page.
+	 *
+	 * Includes a CSS custom property, SVG filter, and block CSS declaration.
 	 *
 	 * @param string $filter_id        The filter ID. e.g. 'wp-duotone-blue-orange'.
 	 * @param string $duotone_selector The block's duotone selector. e.g. '.wp-block-image img'.
