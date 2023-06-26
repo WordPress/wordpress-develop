@@ -131,7 +131,7 @@ class WP_Duotone {
 	/**
 	 * Clamps a value between an upper and lower bound.
 	 *
-	 * @see https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/helpers.ts#L23
+	 * @link https://github.com/omgovich/colord/blob/3f859e03b0ca622eb15480f611371a0f15c9427f/src/helpers.ts#L23 Sourced from colord.
 	 *
 	 * @param float $number The number to clamp.
 	 * @param float $min   The minimum value.
