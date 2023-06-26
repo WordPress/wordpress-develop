@@ -401,13 +401,12 @@ function is_email_address_unsafe( $user_email ) {
 				continue;
 			}
 
-			if ( $email_domain == $banned_domain ) {
+			if ( $email_domain === $banned_domain ) {
 				$is_email_address_unsafe = true;
 				break;
 			}
 
-			$dotted_domain = ".$banned_domain";
-			if ( substr( $normalized_email, -strlen( $dotted_domain ) ) === $dotted_domain ) {
+			if ( str_ends_with( $normalized_email, ".$banned_domain" ) ) {
 				$is_email_address_unsafe = true;
 				break;
 			}
@@ -1992,7 +1991,7 @@ function check_upload_mimes( $mimes ) {
 	$site_mimes = array();
 	foreach ( $site_exts as $ext ) {
 		foreach ( $mimes as $ext_pattern => $mime ) {
-			if ( '' !== $ext && false !== strpos( $ext_pattern, $ext ) ) {
+			if ( '' !== $ext && str_contains( $ext_pattern, $ext ) ) {
 				$site_mimes[ $ext_pattern ] = $mime;
 			}
 		}
@@ -2165,7 +2164,7 @@ function maybe_redirect_404() {
  * @since MU (3.0.0)
  */
 function maybe_add_existing_user_to_blog() {
-	if ( false === strpos( $_SERVER['REQUEST_URI'], '/newbloguser/' ) ) {
+	if ( ! str_contains( $_SERVER['REQUEST_URI'], '/newbloguser/' ) ) {
 		return;
 	}
 

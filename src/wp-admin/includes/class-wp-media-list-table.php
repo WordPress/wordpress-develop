@@ -312,8 +312,16 @@ class WP_Media_List_Table extends WP_List_Table {
 			</div>
 
 			<div class="search-form">
-				<label for="media-search-input" class="media-search-input-label"><?php esc_html_e( 'Search' ); ?></label>
-				<input type="search" id="media-search-input" class="search" name="s" value="<?php _admin_search_query(); ?>">
+				<p class="search-box">
+					<label class="screen-reader-text" for="media-search-input">
+					<?php
+					/* translators: Hidden accessibility text. */
+					esc_html_e( 'Search Media' );
+					?>
+					</label>
+					<input type="search" id="media-search-input" class="search" name="s" value="<?php _admin_search_query(); ?>">
+					<input id="search-submit" type="submit" class="button" value="<?php esc_attr_e( 'Search Media' ); ?>">
+				</p>
 			</div>
 		</div>
 		<?php
@@ -389,11 +397,11 @@ class WP_Media_List_Table extends WP_List_Table {
 	 */
 	protected function get_sortable_columns() {
 		return array(
-			'title'    => 'title',
-			'author'   => 'author',
-			'parent'   => 'parent',
-			'comments' => 'comment_count',
-			'date'     => array( 'date', true ),
+			'title'    => array( 'title', false, _x( 'File', 'column name' ), __( 'Table ordered by File Name.' ) ),
+			'author'   => array( 'author', false, __( 'Author' ), __( 'Table ordered by Author.' ) ),
+			'parent'   => array( 'parent', false, _x( 'Uploaded to', 'column name' ), __( 'Table ordered by Uploaded To.' ) ),
+			'comments' => array( 'comment_count', __( 'Comments' ), false, __( 'Table ordered by Comments.' ) ),
+			'date'     => array( 'date', true, __( 'Date' ), __( 'Table ordered by Date.' ), 'desc' ),
 		);
 	}
 

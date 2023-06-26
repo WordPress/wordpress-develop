@@ -219,7 +219,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	// Check whether styles should have a ".min" suffix or not.
 	$suffix = SCRIPT_DEBUG ? '' : '.min';
 	if ( $is_core_block ) {
-		$style_path = "style$suffix.css";
+		$style_path = ( 'editorStyle' === $field_name ) ? "editor{$suffix}.css" : "style{$suffix}.css";
 	}
 
 	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
@@ -239,7 +239,8 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		if ( $is_theme_block ) {
 			$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
 		} elseif ( $is_core_block ) {
-			$style_uri = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
+			// All possible $style_path variants for core blocks are hard-coded above.
+			$style_uri = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . '/' . $style_path );
 		}
 	} else {
 		$style_uri = false;
@@ -583,7 +584,7 @@ function has_blocks( $post = null ) {
 		$post = $wp_post->post_content;
 	}
 
-	return false !== strpos( (string) $post, '<!-- wp:' );
+	return str_contains( (string) $post, '<!-- wp:' );
 }
 
 /**
@@ -619,12 +620,12 @@ function has_block( $block_name, $post = null ) {
 	 * This matches behavior for WordPress 5.0.0 - 5.3.0 in matching blocks by
 	 * their serialized names.
 	 */
-	if ( false === strpos( $block_name, '/' ) ) {
+	if ( ! str_contains( $block_name, '/' ) ) {
 		$block_name = 'core/' . $block_name;
 	}
 
 	// Test for existence of block by its fully qualified name.
-	$has_block = false !== strpos( $post, '<!-- wp:' . $block_name . ' ' );
+	$has_block = str_contains( $post, '<!-- wp:' . $block_name . ' ' );
 
 	if ( ! $has_block ) {
 		/*
@@ -633,7 +634,7 @@ function has_block( $block_name, $post = null ) {
 		 */
 		$serialized_block_name = strip_core_block_namespace( $block_name );
 		if ( $serialized_block_name !== $block_name ) {
-			$has_block = false !== strpos( $post, '<!-- wp:' . $serialized_block_name . ' ' );
+			$has_block = str_contains( $post, '<!-- wp:' . $serialized_block_name . ' ' );
 		}
 	}
 
@@ -802,7 +803,7 @@ function serialize_blocks( $blocks ) {
 function filter_block_content( $text, $allowed_html = 'post', $allowed_protocols = array() ) {
 	$result = '';
 
-	if ( false !== strpos( $text, '<!--' ) && false !== strpos( $text, '--->' ) ) {
+	if ( str_contains( $text, '<!--' ) && str_contains( $text, '--->' ) ) {
 		$text = preg_replace_callback( '%<!--(.*?)--->%', '_filter_block_content_callback', $text );
 	}
 

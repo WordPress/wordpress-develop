@@ -583,7 +583,7 @@ border color while dragging a file over the uploader drop area */
 	margin-top: 0;
 }
 
-.media-search-input-label {
+.media-frame-content .media-search-input-label {
 	margin: 0 .2em 0 0;
 	vertical-align: baseline;
 }
@@ -1344,12 +1344,22 @@ audio, video {
 /**
  * Media queries for media grid.
  */
-
 @media only screen and (max-width: 1120px) {
 	/* override for media-views.css */
 	#wp-media-grid .wp-filter .attachment-filters {
 		max-width: 100%;
 	}
+}
+
+@media only screen and (max-width: 1000px) {
+	/* override for forms.css */
+	.wp-filter p.search-box {
+		float: none;
+		width: 100%;
+		margin-bottom: 20px;
+		display: flex;
+	}
+
 }
 
 @media only screen and (max-width: 782px) {
