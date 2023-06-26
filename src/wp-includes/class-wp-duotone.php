@@ -267,8 +267,10 @@ class WP_Duotone {
 			return null;
 		}
 
-		// For some reason, preg_match doesn't include empty matches at the end
-		// of the array, so we add them manually to make things easier later.
+		/*
+		 * For some reason, preg_match doesn't include empty matches at the end
+		 * of the array, so we add them manually to make things easier later.
+		 */
 		for ( $i = 1; $i <= 8; $i++ ) {
 			if ( ! isset( $match[ $i ] ) ) {
 				$match[ $i ] = '';
@@ -399,8 +401,10 @@ class WP_Duotone {
 			return null;
 		}
 
-		// For some reason, preg_match doesn't include empty matches at the end
-		// of the array, so we add them manually to make things easier later.
+		/* 
+		 * For some reason, preg_match doesn't include empty matches at the end
+		 * of the array, so we add them manually to make things easier later.
+		 */
 		for ( $i = 1; $i <= 6; $i++ ) {
 			if ( ! isset( $match[ $i ] ) ) {
 				$match[ $i ] = '';
@@ -686,9 +690,11 @@ class WP_Duotone {
 
 		$selectors_scoped = array();
 		foreach ( $selectors as $selector_part ) {
-			// Assuming the selector part is a subclass selector (not a tag name)
-			// so we can prepend the filter id class. If we want to support elements
-			// such as `img` or namespaces, we'll need to add a case for that here.
+			/*
+			 * Assuming the selector part is a subclass selector (not a tag name)
+			 * so we can prepend the filter id class. If we want to support elements
+			 * such as `img` or namespaces, we'll need to add a case for that here.
+			 */
 			$selectors_scoped[] = '.' . $filter_id . trim( $selector_part );
 		}
 
@@ -746,8 +752,10 @@ class WP_Duotone {
 	public static function register_duotone_support( $block_type ) {
 		$has_duotone_support = false;
 		if ( property_exists( $block_type, 'supports' ) ) {
-			// Previous `color.__experimentalDuotone` support flag is migrated
-			// to `filter.duotone` via `block_type_metadata_settings` filter.
+			/*
+			 * Previous `color.__experimentalDuotone` support flag is migrated
+			 * to `filter.duotone` via `block_type_metadata_settings` filter.
+			 */
 			$has_duotone_support = _wp_array_get( $block_type->supports, array( 'filter', 'duotone' ), null );
 		}
 
@@ -775,18 +783,22 @@ class WP_Duotone {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
 
 		if ( $block_type && property_exists( $block_type, 'supports' ) ) {
-			// Backwards compatibility with `supports.color.__experimentalDuotone`
-			// is provided via the `block_type_metadata_settings` filter. If
-			// `supports.filter.duotone` has not been set and the experimental
-			// property has been, the experimental property value is copied into
-			// `supports.filter.duotone`.
+			/* 
+			 * Backwards compatibility with `supports.color.__experimentalDuotone`
+			 * is provided via the `block_type_metadata_settings` filter. If
+			 * `supports.filter.duotone` has not been set and the experimental
+			 * property has been, the experimental property value is copied into
+			 * `supports.filter.duotone`.
+			 */
 			$duotone_support = _wp_array_get( $block_type->supports, array( 'filter', 'duotone' ), false );
 			if ( ! $duotone_support ) {
 				return null;
 			}
 
-			// If the experimental duotone support was set, that value is to be
-			// treated as a selector and requires scoping.
+			/* 
+			 * If the experimental duotone support was set, that value is to be
+			 * treated as a selector and requires scoping.
+			 */
 			$experimental_duotone = _wp_array_get( $block_type->supports, array( 'color', '__experimentalDuotone' ), false );
 			if ( $experimental_duotone ) {
 				$root_selector = wp_get_block_css_selector( $block_type );
@@ -882,10 +894,12 @@ class WP_Duotone {
 		// Generate the pieces needed for rendering a duotone to the page.
 		if ( $has_duotone_attribute ) {
 
-			// Possible values for duotone attribute:
-			// 1. Array of colors - e.g. array('#000000', '#ffffff').
-			// 2. Variable for an existing Duotone preset - e.g. 'var:preset|duotone|blue-orange' or 'var(--wp--preset--duotone--blue-orange)''
-			// 3. A CSS string - e.g. 'unset' to remove globally applied duotone.
+			/*
+			 * Possible values for duotone attribute:
+			 * 1. Array of colors - e.g. array('#000000', '#ffffff').
+			 * 2. Variable for an existing Duotone preset - e.g. 'var:preset|duotone|blue-orange' or 'var(--wp--preset--duotone--blue-orange)''
+			 * 3. A CSS string - e.g. 'unset' to remove globally applied duotone.
+			 */
 
 			$duotone_attr = $block['attrs']['style']['color']['duotone'];
 			$is_preset    = is_string( $duotone_attr ) && self::is_preset( $duotone_attr );
