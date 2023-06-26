@@ -521,11 +521,11 @@ function create_initial_post_types() {
 				'filter_items_list'     => __( 'Filter Navigation Menu list' ),
 				'items_list_navigation' => __( 'Navigation Menus list navigation' ),
 				'items_list'            => __( 'Navigation Menus list' ),
-				'_edit_link'            => $navigation_post_edit_link, /* internal use only. don't use this when registering your own post type. */
 			),
 			'description'           => __( 'Navigation menus that can be inserted into your site.' ),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'            => $navigation_post_edit_link, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
 			'show_ui'               => true,
 			'show_in_menu'          => false,
