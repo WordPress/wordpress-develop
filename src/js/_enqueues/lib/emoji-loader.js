@@ -201,12 +201,25 @@
 	 */
 	async function browserSupportsEmojiOptimized( type ) {
 		if ( typeof OffscreenCanvas !== 'undefined' ) {
-			const workerScript =
-				`const emojiSetsRenderIdentically = ${ emojiSetsRenderIdentically.toString() };` +
-				`const browserSupportsEmoji = ${ browserSupportsEmoji.toString() };` +
-				`postMessage(browserSupportsEmoji(${ JSON.stringify(
-					type
-				) }))`;
+			/*
+			 * Note that this string contains the real source code for the
+			 * copied functions, _not_ a string representation of them. This
+			 * is because it's not possible to transfer a Function across
+			 * threads. The lack of quotes is intentional.
+			 *
+			 * Example
+			 *
+			 *     > console.log( workerScript );
+			 *     const emojiSetsRenderIdentically = function emojiSetsRenderIdentically(context, set1, set2) { … }
+			 *     …
+			 */
+			const workerScript = `
+				/** @var {Function} copy of comparison function to send into worker. */
+				const emojiSetsRenderIdentically = ${ emojiSetsRenderIdentically };
+				/** @var {Function} copy of detection function to send into worker. */
+				const browserSupportsEmoji = ${ browserSupportsEmoji };
+				postMessage(browserSupportsEmoji(${ JSON.stringify( type ) }));
+			`;
 			const blob = new Blob( [ workerScript ], {
 				type: 'text/javascript',
 			} );
