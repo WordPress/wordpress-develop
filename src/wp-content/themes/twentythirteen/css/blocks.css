@@ -242,6 +242,10 @@ body:not(.sidebar) .wp-block-cover > .wp-block-cover__inner-container > * {
 	padding: 10px 24px 11px;
 }
 
+.widget a.wp-block-file__button {
+	color: #fff;
+}
+
 /*--------------------------------------------------------------
 4.0 Blocks - Formatting
 --------------------------------------------------------------*/
@@ -347,6 +351,11 @@ body:not(.sidebar) .wp-block-table.alignfull {
 
 .wp-block-button.alignright {
 	margin-left: 20px;
+}
+
+.wp-block-button__link {
+	background-color: #32373c;
+	color: #fff;
 }
 
 .wp-block-button .wp-block-button__link {
