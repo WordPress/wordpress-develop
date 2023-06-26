@@ -343,16 +343,17 @@
 
 	// When the browser can not render everything we need to load a polyfill.
 	if ( ! settings.supports.everything ) {
-		await domReadyPromise;
-		settings.readyCallback();
+		domReadyPromise.then( function () {
+			settings.readyCallback();
 
-		var src = settings.source || {};
+			var src = settings.source || {};
 
-		if ( src.concatemoji ) {
-			addScript( src.concatemoji );
-		} else if ( src.wpemoji && src.twemoji ) {
-			addScript( src.twemoji );
-			addScript( src.wpemoji );
-		}
+			if ( src.concatemoji ) {
+				addScript( src.concatemoji );
+			} else if ( src.wpemoji && src.twemoji ) {
+				addScript( src.twemoji );
+				addScript( src.wpemoji );
+			}
+		} );
 	}
 } )( window, document, window._wpemojiSettings );
