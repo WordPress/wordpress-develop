@@ -182,6 +182,19 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
+			'inline_valid_shadow_style'                => array(
+				'block_styles'    => array(
+						'shadow' => 'inset 5em 1em gold',
+					),
+				'options'         => null,
+				'expected_output' => array(
+						'css'          => 'box-shadow:inset 5em 1em gold;',
+						'declarations' => array(
+								'box-shadow' => 'inset 5em 1em gold',
+							),
+					),
+			),
+
 			'inline_valid_typography_style'                => array(
 				'block_styles'    => array(
 					'typography' => array(
