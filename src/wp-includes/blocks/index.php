@@ -63,7 +63,7 @@ function register_core_block_style_handles() {
 
 		// Backfill these properties similar to `register_block_type_from_metadata()`.
 		if ( ! isset( $schema['style'] ) ) {
-			$schema['style'] = "wp-block-$name";
+			$schema['style'] = "wp-block-{$name}";
 		}
 		if ( ! isset( $schema['editorStyle'] ) ) {
 			$schema['editorStyle'] = "wp-block-{$name}-editor";
