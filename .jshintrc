@@ -19,6 +19,7 @@
 	"globals": {
 		"_": false,
 		"Backbone": false,
+		"console": false,
 		"jQuery": false,
 		"JSON": false,
 		"wp": false,
@@ -27,6 +28,7 @@
 		"require": false,
 		"self": false,
 		"OffscreenCanvas": false,
-		"WorkerGlobalScope": false
+		"WorkerGlobalScope": false,
+		"Set": false
 	}
 }
