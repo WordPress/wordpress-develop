@@ -802,7 +802,9 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Get all possible duotone presets from global and theme styles and store as slug => [ colors array ]
+	 * Get all possible duotone presets from global and theme styles.
+	 *
+	 * Store each item as slug => [ colors array ]
 	 * We only want to process this one time. On block render we'll access and output only the needed presets for that page.
 	 *
 	 * @since 6.3.0
