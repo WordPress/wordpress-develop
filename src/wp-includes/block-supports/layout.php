@@ -6,7 +6,6 @@
  * @since 5.8.0
  */
 
-
 /**
  * Returns layout definitions, keyed by layout type.
  *
