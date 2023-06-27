@@ -371,7 +371,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @ticket 57278
 	 *
-	 * @covers Walker_Nav_Menu::start_lvl()
+	 * @covers Walker_Nav_Menu::start_lvl
 	 */
 	public function test_start_lvl_should_apply_nav_menu_submenu_attributes_filters() {
 		$output = '';
