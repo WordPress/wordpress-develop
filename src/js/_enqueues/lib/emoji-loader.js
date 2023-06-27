@@ -30,6 +30,8 @@
 ( function( window, document, settings ) {
 	var sessionStorageKey = 'wpEmojiSettingsSupports';
 
+	var tests = [ 'flag', 'emoji' ];
+
 	// Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
 	var domReadyPromise = new Promise( function ( resolve ) {
 		document.addEventListener( 'DOMContentLoaded', resolve, {
@@ -314,8 +316,6 @@
 		everything: true,
 		everythingExceptFlag: true
 	};
-
-	var tests = [ 'flag', 'emoji' ];
 
 	var sessionSupportsPromise = new Promise( function ( resolve ) {
 		var sessionSupports = getSessionSupports();
