@@ -329,11 +329,8 @@
 			 *     ...
 			 */
 			var workerScript =
-				'/** @var {Function} Function serialized from main thread into worker. */' +
 				'var emojiSetsRenderIdentically = ' + emojiSetsRenderIdentically + ';' +
-				'/** @var {Function} Function serialized from main thread into worker. */' +
 				'var browserSupportsEmoji = ' + browserSupportsEmoji + ';' +
-				'/** @var {Function} Function serialized from main thread into worker. */' +
 				'var testEmojiSupports = ' + testEmojiSupports + ';' +
 				'postMessage(testEmojiSupports(' + JSON.stringify( tests ) + '));';
 			var blob = new Blob( [ workerScript ], {
