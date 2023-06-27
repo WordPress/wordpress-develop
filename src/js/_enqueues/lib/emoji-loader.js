@@ -313,8 +313,15 @@
 		everythingExceptFlag: true
 	};
 
+	// Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
+	var domReadyPromise = new Promise( function ( resolve ) {
+		document.addEventListener( 'DOMContentLoaded', resolve, {
+			once: true
+		} );
+	} );
+
 	// Obtain the emoji support from the browser, asynchronously when possible.
-	var sessionSupportsPromise = new Promise( function ( resolve ) {
+	new Promise( function ( resolve ) {
 		var sessionSupports = getSessionSupports();
 		if ( sessionSupports ) {
 			resolve( sessionSupports );
@@ -343,8 +350,8 @@
 				var worker = new Worker(URL.createObjectURL(blob));
 				worker.onmessage = function (event) {
 					sessionSupports = event.data;
-					setSessionSupports(sessionSupports);
-					resolve(sessionSupports);
+					setSessionSupports( sessionSupports );
+					resolve( sessionSupports );
 				};
 				return;
 			} catch ( e ) {}
@@ -353,17 +360,8 @@
 		sessionSupports = testEmojiSupports( tests );
 		setSessionSupports( sessionSupports );
 		resolve( sessionSupports );
-	} );
-
-	// Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
-	var domReadyPromise = new Promise( function ( resolve ) {
-		document.addEventListener( 'DOMContentLoaded', resolve, {
-			once: true
-		} );
-	} );
-
-	// Once the browser emoji support has been obtained from the session, finalize the settings.
-	sessionSupportsPromise
+	} )
+		// Once the browser emoji support has been obtained from the session, finalize the settings.
 		.then( function ( sessionSupports ) {
 			Object.assign( settings.supports, sessionSupports );
 
