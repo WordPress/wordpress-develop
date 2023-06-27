@@ -132,6 +132,11 @@ class Tests_Link_GetEditPostLink extends WP_UnitTestCase {
 		$this->assertSame( $link_custom_context, get_edit_post_link( $template_part_post, 'something-else' ), 'Pass non-default value in second argument.' );
 	}
 
+	/**
+	 * Tests getting the edit post link for a wp_navigation post type.
+	 *
+	 * @ticket 58589
+	 * */
 	public function test_get_edit_post_link_for_wp_navigation_post_type() {
 		$navigation_post = self::factory()->post->create_and_get(
 			array(

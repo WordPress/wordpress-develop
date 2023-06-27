@@ -1438,6 +1438,8 @@ function get_preview_post_link( $post = null, $query_args = array(), $preview_li
  * pages, posts, attachments, revisions, global styles, templates, and template parts.
  *
  * @since 2.3.0
+ * @since 6.3.0 Adds custom link for wp_navigation post types.
+ *              Adds custom links for wp_template_part and wp_template post types.
  *
  * @param int|WP_Post $post    Optional. Post ID or post object. Default is the global `$post`.
  * @param string      $context Optional. How to output the '&' character. Default '&amp;'.
