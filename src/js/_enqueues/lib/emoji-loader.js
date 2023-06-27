@@ -29,15 +29,7 @@
  */
 ( function( window, document, settings ) {
 	var sessionStorageKey = 'wpEmojiSettingsSupports';
-
 	var tests = [ 'flag', 'emoji' ];
-
-	// Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
-	var domReadyPromise = new Promise( function ( resolve ) {
-		document.addEventListener( 'DOMContentLoaded', resolve, {
-			once: true
-		} );
-	} );
 
 	/**
 	 * Checks whether the browser supports offloading to a Worker.
@@ -317,6 +309,7 @@
 		everythingExceptFlag: true
 	};
 
+	// Obtain the emoji support from the browser, asynchronously when possible.
 	var sessionSupportsPromise = new Promise( function ( resolve ) {
 		var sessionSupports = getSessionSupports();
 		if ( sessionSupports ) {
@@ -361,6 +354,14 @@
 		}
 	} );
 
+	// Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
+	var domReadyPromise = new Promise( function ( resolve ) {
+		document.addEventListener( 'DOMContentLoaded', resolve, {
+			once: true
+		} );
+	} );
+
+	// Once the browser emoji support has been obtained from the session, finalize the settings.
 	sessionSupportsPromise
 		.then( function ( sessionSupports ) {
 			Object.assign( settings.supports, sessionSupports );
