@@ -890,7 +890,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 
 	// If you override this, you must provide $ext and $type!!
 	$test_type = isset( $overrides['test_type'] ) ? $overrides['test_type'] : true;
-	$mimes     = isset( $overrides['mimes'] ) ? $overrides['mimes'] : false;
+	$mimes     = isset( $overrides['mimes'] ) ? $overrides['mimes'] : null;
 
 	// A correct form post will pass this test.
 	if ( $test_form && ( ! isset( $_POST['action'] ) || $_POST['action'] !== $action ) ) {
@@ -1909,6 +1909,14 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 
 	$from = trailingslashit( $from );
 	$to   = trailingslashit( $to );
+
+	if ( ! $wp_filesystem->exists( $to ) && ! $wp_filesystem->mkdir( $to ) ) {
+		return new WP_Error(
+			'mkdir_destination_failed_copy_dir',
+			__( 'Could not create the destination directory.' ),
+			basename( $to )
+		);
+	}
 
 	foreach ( (array) $dirlist as $filename => $fileinfo ) {
 		if ( in_array( $filename, $skip_list, true ) ) {

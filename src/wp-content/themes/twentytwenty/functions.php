@@ -111,14 +111,6 @@ function twentytwenty_theme_support() {
 		)
 	);
 
-	/*
-	 * Make theme available for translation.
-	 * Translations can be filed in the /languages/ directory.
-	 * If you're building a theme based on Twenty Twenty, use a find and replace
-	 * to change 'twentytwenty' to the name of your theme in all the template files.
-	 */
-	load_theme_textdomain( 'twentytwenty' );
-
 	// Add support for full and wide align images.
 	add_theme_support( 'align-wide' );
 
@@ -235,6 +227,7 @@ add_action( 'wp_enqueue_scripts', 'twentytwenty_register_scripts' );
  * thus it does not warrant having an entire dedicated blocking script being loaded.
  *
  * @since Twenty Twenty 1.0
+ * @deprecated Twenty Twenty 2.3 Removed from wp_print_footer_scripts action.
  *
  * @link https://git.io/vWdr2
  */
@@ -246,7 +239,6 @@ function twentytwenty_skip_link_focus_fix() {
 	</script>
 	<?php
 }
-add_action( 'wp_print_footer_scripts', 'twentytwenty_skip_link_focus_fix' );
 
 /**
  * Enqueue non-latin language styles.
