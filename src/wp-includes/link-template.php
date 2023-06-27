@@ -4582,38 +4582,6 @@ function get_parent_theme_file_uri( $file = '' ) {
 	return apply_filters( 'parent_theme_file_uri', $url, $file );
 }
 
-/**
- * Retrieves the path of a file in the theme.
- *
- * Searches in the stylesheet directory before the template directory so themes
- * which inherit from a parent theme can just override one file.
- *
- * @since 4.7.0
- *
- * @param string $file Optional. File to search for in the stylesheet directory.
- * @return string The path of the file.
- */
-function get_theme_file_path( $file = '' ) {
-	$file = ltrim( $file, '/' );
-
-	if ( empty( $file ) ) {
-		$path = get_stylesheet_directory();
-	} elseif ( file_exists( get_stylesheet_directory() . '/' . $file ) ) {
-		$path = get_stylesheet_directory() . '/' . $file;
-	} else {
-		$path = get_template_directory() . '/' . $file;
-	}
-
-	/**
-	 * Filters the path to a file in the theme.
-	 *
-	 * @since 4.7.0
-	 *
-	 * @param string $path The file path.
-	 * @param string $file The requested file to search for.
-	 */
-	return apply_filters( 'theme_file_path', $path, $file );
-}
 
 /**
  * Retrieves the path of a file in the parent theme.
