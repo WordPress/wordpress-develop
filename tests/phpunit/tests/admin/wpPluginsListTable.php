@@ -52,7 +52,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 
 		parent::set_up_before_class();
 
-		self::$admin_id = self::factory()->user->create(
+		self::$admin_id   = self::factory()->user->create(
 			array(
 				'role'       => 'administrator',
 				'user_login' => 'test_wp_plugins_list_table',
