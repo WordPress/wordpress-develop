@@ -1156,7 +1156,7 @@ function twentysixteen_main_text_color_css() {
 		.comment-list .trackback,
 		.comment-reply-link,
 		.no-comments,
-		widecolumn .mu_register .mu_alert {
+		.widecolumn .mu_register .mu_alert {
 			border-color: %2$s;
 		}
 
