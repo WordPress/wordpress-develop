@@ -76,7 +76,7 @@ function register_core_block_style_handles() {
 			$wp_styles->add_data( $style_handle, 'suffix', $suffix );
 			$wp_styles->add_data( $style_handle, 'path', $rtl_file );
 		}
-	}
+	};
 
 	foreach ( $core_blocks_meta as $name => $schema ) {
 		/** This filter is documented in wp-includes/blocks.php */
@@ -90,7 +90,7 @@ function register_core_block_style_handles() {
 			$schema['editorStyle'] = "wp-block-{$name}-editor";
 		}
 
-		// Register block theme styles. 
+		// Register block theme styles.
 		$register_style( $name, 'theme', "wp-block-{$name}-theme" );
 
 		foreach ( $style_fields as $style_field => $filename ) {
