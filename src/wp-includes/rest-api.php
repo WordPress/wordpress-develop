@@ -377,6 +377,10 @@ function create_initial_rest_routes() {
 	// Site Editor Export.
 	$controller = new WP_REST_Edit_Site_Export_Controller();
 	$controller->register_routes();
+
+	// Navigation Fallback.
+	$controller = new WP_REST_Navigation_Fallback_Controller();
+	$controller->register_routes();
 }
 
 /**
@@ -467,7 +471,7 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
 		$url = trailingslashit( get_home_url( $blog_id, '', $scheme ) );
 		// nginx only allows HTTP/1.0 methods when redirecting from / to /index.php.
 		// To work around this, we manually add index.php to the URL, avoiding the redirect.
-		if ( 'index.php' !== substr( $url, 9 ) ) {
+		if ( ! str_ends_with( $url, 'index.php' ) ) {
 			$url .= 'index.php';
 		}
 

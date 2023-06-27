@@ -147,7 +147,7 @@ function shortcode_exists( $tag ) {
  * @return bool Whether the passed content contains the given shortcode.
  */
 function has_shortcode( $content, $tag ) {
-	if ( false === strpos( $content, '[' ) ) {
+	if ( ! str_contains( $content, '[' ) ) {
 		return false;
 	}
 
@@ -205,7 +205,7 @@ function apply_shortcodes( $content, $ignore_html = false ) {
 function do_shortcode( $content, $ignore_html = false ) {
 	global $shortcode_tags;
 
-	if ( false === strpos( $content, '[' ) ) {
+	if ( ! str_contains( $content, '[' ) ) {
 		return $content;
 	}
 
@@ -412,8 +412,8 @@ function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
 			continue;
 		}
 
-		$noopen  = false === strpos( $element, '[' );
-		$noclose = false === strpos( $element, ']' );
+		$noopen  = ! str_contains( $element, '[' );
+		$noclose = ! str_contains( $element, ']' );
 		if ( $noopen || $noclose ) {
 			// This element does not contain shortcodes.
 			if ( $noopen xor $noclose ) {
@@ -423,7 +423,7 @@ function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
 			continue;
 		}
 
-		if ( $ignore_html || '<!--' === substr( $element, 0, 4 ) || '<![CDATA[' === substr( $element, 0, 9 ) ) {
+		if ( $ignore_html || str_starts_with( $element, '<!--' ) || str_starts_with( $element, '<![CDATA[' ) ) {
 			// Encode all '[' and ']' chars.
 			$element = strtr( $element, $trans );
 			continue;
@@ -559,7 +559,7 @@ function shortcode_parse_atts( $text ) {
 
 		// Reject any unclosed HTML elements.
 		foreach ( $atts as &$value ) {
-			if ( false !== strpos( $value, '<' ) ) {
+			if ( str_contains( $value, '<' ) ) {
 				if ( 1 !== preg_match( '/^[^<]*+(?:<[^>]*+>[^<]*+)*+$/', $value ) ) {
 					$value = '';
 				}
@@ -634,7 +634,7 @@ function shortcode_atts( $pairs, $atts, $shortcode = '' ) {
 function strip_shortcodes( $content ) {
 	global $shortcode_tags;
 
-	if ( false === strpos( $content, '[' ) ) {
+	if ( ! str_contains( $content, '[' ) ) {
 		return $content;
 	}
 
