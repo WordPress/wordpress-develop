@@ -5229,3 +5229,76 @@ function wp_render_duotone_support( $block_content, $block ) {
 	_deprecated_function( __FUNCTION__, '6.3.0', 'WP_Duotone::render_duotone_support' );
 	return WP_Duotone::render_duotone_support( $block_content, $block );
 }
+
+/**
+ * Returns a string containing the SVGs to be referenced as filters (duotone).
+ *
+ * @since 5.9.1
+ * @deprecated 6.3.0 SVG generation is handled on a per-block basis in block supports.
+ *
+ * @return string
+ */
+function wp_get_global_styles_svg_filters() {
+	_deprecated_function( __FUNCTION__, '6.3.0' );
+
+	/*
+	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
+	 * developer's workflow.
+	 */
+	$can_use_cached = wp_get_development_mode() !== 'theme';
+	$cache_group    = 'theme_json';
+	$cache_key      = 'wp_get_global_styles_svg_filters';
+	if ( $can_use_cached ) {
+		$cached = wp_cache_get( $cache_key, $cache_group );
+		if ( $cached ) {
+			return $cached;
+		}
+	}
+
+	$supports_theme_json = wp_theme_has_theme_json();
+
+	$origins = array( 'default', 'theme', 'custom' );
+	if ( ! $supports_theme_json ) {
+		$origins = array( 'default' );
+	}
+
+	$tree = WP_Theme_JSON_Resolver::get_merged_data();
+	$svgs = $tree->get_svg_filters( $origins );
+
+	if ( $can_use_cached ) {
+		wp_cache_set( $cache_key, $svgs, $cache_group );
+	}
+
+	return $svgs;
+}
+
+/**
+ * Renders the SVG filters supplied by theme.json.
+ *
+ * Note that this doesn't render the per-block user-defined
+ * filters which are handled by wp_render_duotone_support,
+ * but it should be rendered before the filtered content
+ * in the body to satisfy Safari's rendering quirks.
+ *
+ * @since 5.9.1
+ * @deprecated 6.3.0 SVG generation is handled on a per-block basis in block supports.
+ */
+function wp_global_styles_render_svg_filters() {
+	_deprecated_function( __FUNCTION__, '6.3.0' );
+
+	/*
+	 * When calling via the in_admin_header action, we only want to render the
+	 * SVGs on block editor pages.
+	 */
+	if (
+		is_admin() &&
+		! get_current_screen()->is_block_editor()
+	) {
+		return;
+	}
+
+	$filters = wp_get_global_styles_svg_filters();
+	if ( ! empty( $filters ) ) {
+		echo $filters;
+	}
+}
