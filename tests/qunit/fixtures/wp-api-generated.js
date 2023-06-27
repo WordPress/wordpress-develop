@@ -4539,6 +4539,12 @@ mockedApiResponse.Schema = {
                             },
                             "required": false
                         },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
+                            "required": false
+                        },
                         "template": {
                             "description": "The theme file to use to display the post.",
                             "type": "string",
@@ -4693,6 +4699,12 @@ mockedApiResponse.Schema = {
                                     "readonly": true
                                 }
                             },
+                            "required": false
+                        },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
                             "required": false
                         },
                         "template": {
@@ -5009,6 +5021,12 @@ mockedApiResponse.Schema = {
                                     "readonly": true
                                 }
                             },
+                            "required": false
+                        },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
                             "required": false
                         },
                         "template": {
@@ -11003,6 +11021,27 @@ mockedApiResponse.Schema = {
                     }
                 ]
             }
+        },
+        "/wp-block-editor/v1/navigation-fallback": {
+            "namespace": "wp-block-editor/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-block-editor/v1/navigation-fallback"
+                    }
+                ]
+            }
         }
     },
     "site_logo": 0,
@@ -11922,7 +11961,7 @@ mockedApiResponse.TypesCollection = {
         "description": "",
         "hierarchical": false,
         "has_archive": false,
-        "name": "Reusable blocks",
+        "name": "Patterns",
         "slug": "wp_block",
         "icon": null,
         "taxonomies": [],

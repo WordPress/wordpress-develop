@@ -31,12 +31,12 @@ function wpmu_update_blogs_date() {
 }
 
 /**
- * Gets a full blog URL, given a blog ID.
+ * Gets a full site URL, given a site ID.
  *
  * @since MU (3.0.0)
  *
- * @param int $blog_id Blog ID.
- * @return string Full URL of the blog if found. Empty string if not.
+ * @param int $blog_id Site ID.
+ * @return string Full site URL if found. Empty string if not.
  */
 function get_blogaddress_by_id( $blog_id ) {
 	$bloginfo = get_site( (int) $blog_id );
@@ -52,7 +52,7 @@ function get_blogaddress_by_id( $blog_id ) {
 }
 
 /**
- * Gets a full blog URL, given a blog name.
+ * Gets a full site URL, given a site name.
  *
  * @since MU (3.0.0)
  *
@@ -120,7 +120,7 @@ function get_id_from_blogname( $slug ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|string|array $fields  Optional. A blog ID, a blog slug, or an array of fields to query against.
- *                                  If not specified the current blog ID is used.
+ *                                  Defaults to the current blog ID.
  * @param bool             $get_all Whether to retrieve all details or only the details in the blogs table.
  *                                  Default is true.
  * @return WP_Site|false Blog details on success. False on failure.
@@ -137,7 +137,7 @@ function get_blog_details( $fields = null, $get_all = true ) {
 			if ( false !== $blog ) {
 				return $blog;
 			}
-			if ( 'www.' === substr( $fields['domain'], 0, 4 ) ) {
+			if ( str_starts_with( $fields['domain'], 'www.' ) ) {
 				$nowww = substr( $fields['domain'], 4 );
 				$blog  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) AND path = %s ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields['domain'], $fields['path'] ) );
 			} else {
@@ -155,7 +155,7 @@ function get_blog_details( $fields = null, $get_all = true ) {
 			if ( false !== $blog ) {
 				return $blog;
 			}
-			if ( 'www.' === substr( $fields['domain'], 0, 4 ) ) {
+			if ( str_starts_with( $fields['domain'], 'www.' ) ) {
 				$nowww = substr( $fields['domain'], 4 );
 				$blog  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields['domain'] ) );
 			} else {
@@ -397,7 +397,7 @@ function get_blog_option( $id, $option, $default_value = false ) {
  *
  * @param int    $id     A blog ID. Can be null to refer to the current blog.
  * @param string $option Name of option to add. Expected to not be SQL-escaped.
- * @param mixed  $value  Optional. Option value, can be anything. Expected to not be SQL-escaped.
+ * @param mixed  $value  Option value, can be anything. Expected to not be SQL-escaped.
  * @return bool True if the option was added, false otherwise.
  */
 function add_blog_option( $id, $option, $value ) {
@@ -419,7 +419,7 @@ function add_blog_option( $id, $option, $value ) {
 }
 
 /**
- * Removes option by name for a given blog ID. Prevents removal of protected WordPress options.
+ * Removes an option by name for a given blog ID. Prevents removal of protected WordPress options.
  *
  * @since MU (3.0.0)
  *
@@ -560,16 +560,18 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 						'blog_meta',
 						'global-posts',
 						'networks',
+						'network-queries',
 						'sites',
 						'site-details',
 						'site-options',
+						'site-queries',
 						'site-transient',
 						'rss',
 						'users',
+						'user-queries',
+						'user_meta',
 						'useremail',
 						'userlogins',
-						'usermeta',
-						'user_meta',
 						'userslugs',
 					)
 				);
@@ -651,16 +653,18 @@ function restore_current_blog() {
 						'blog_meta',
 						'global-posts',
 						'networks',
+						'network-queries',
 						'sites',
 						'site-details',
 						'site-options',
+						'site-queries',
 						'site-transient',
 						'rss',
 						'users',
+						'user-queries',
+						'user_meta',
 						'useremail',
 						'userlogins',
-						'usermeta',
-						'user_meta',
 						'userslugs',
 					)
 				);
@@ -877,12 +881,12 @@ function _update_blog_date_on_post_delete( $post_id ) {
  * Handler for updating the current site's posts count when a post is deleted.
  *
  * @since 4.0.0
+ * @since 6.2.0 Added the `$post` parameter.
  *
- * @param int $post_id Post ID.
+ * @param int     $post_id Post ID.
+ * @param WP_Post $post    Post object.
  */
-function _update_posts_count_on_delete( $post_id ) {
-	$post = get_post( $post_id );
-
+function _update_posts_count_on_delete( $post_id, $post ) {
 	if ( ! $post || 'publish' !== $post->post_status || 'post' !== $post->post_type ) {
 		return;
 	}

@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {

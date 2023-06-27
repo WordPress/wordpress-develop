@@ -41,6 +41,41 @@ class Tests_HtmlApi_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57788
+	 *
+	 * @covers WP_HTML_Tag_Processor::has_bookmark
+	 */
+	public function test_has_bookmark_returns_false_if_bookmark_does_not_exist() {
+		$p = new WP_HTML_Tag_Processor( '<div>Test</div>' );
+		$this->assertFalse( $p->has_bookmark( 'my-bookmark' ) );
+	}
+
+	/**
+	 * @ticket 57788
+	 *
+	 * @covers WP_HTML_Tag_Processor::has_bookmark
+	 */
+	public function test_has_bookmark_returns_true_if_bookmark_exists() {
+		$p = new WP_HTML_Tag_Processor( '<div>Test</div>' );
+		$p->next_tag();
+		$p->set_bookmark( 'my-bookmark' );
+		$this->assertTrue( $p->has_bookmark( 'my-bookmark' ) );
+	}
+
+	/**
+	 * @ticket 57788
+	 *
+	 * @covers WP_HTML_Tag_Processor::has_bookmark
+	 */
+	public function test_has_bookmark_returns_false_if_bookmark_has_been_released() {
+		$p = new WP_HTML_Tag_Processor( '<div>Test</div>' );
+		$p->next_tag();
+		$p->set_bookmark( 'my-bookmark' );
+		$p->release_bookmark( 'my-bookmark' );
+		$this->assertFalse( $p->has_bookmark( 'my-bookmark' ) );
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::seek
@@ -60,6 +95,28 @@ class Tests_HtmlApi_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 			'<ul><li foo-1="bar-1">One</li><li foo-2="bar-2">Two</li><li>Three</li></ul>',
 			$p->get_updated_html(),
 			'Did not seek to the intended bookmark locations'
+		);
+	}
+
+	/**
+	 * @ticket 57787
+	 *
+	 * @covers WP_HTML_Tag_Processor::seek
+	 */
+	public function test_seeks_to_tag_closer_bookmark() {
+		$p = new WP_HTML_Tag_Processor( '<div>First</div><span>Second</span>' );
+		$p->next_tag( array( 'tag_closers' => 'visit' ) );
+		$p->set_bookmark( 'first' );
+		$p->next_tag( array( 'tag_closers' => 'visit' ) );
+		$p->set_bookmark( 'second' );
+
+		$p->seek( 'first' );
+		$p->seek( 'second' );
+
+		$this->assertSame(
+			'DIV',
+			$p->get_tag(),
+			'Did not seek to the intended bookmark location'
 		);
 	}
 

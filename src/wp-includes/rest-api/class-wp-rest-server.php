@@ -158,8 +158,8 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return WP_Error|null WP_Error indicates unsuccessful login, null indicates successful
-	 *                       or no authentication provided
+	 * @return WP_Error|null|true WP_Error indicates unsuccessful login, null indicates successful
+	 *                            or no authentication provided
 	 */
 	public function check_authentication() {
 		/**
@@ -648,7 +648,7 @@ class WP_REST_Server {
 			// Convert $rel URIs to their compact versions if they exist.
 			foreach ( $curies as $curie ) {
 				$href_prefix = substr( $curie['href'], 0, strpos( $curie['href'], '{rel}' ) );
-				if ( strpos( $rel, $href_prefix ) !== 0 ) {
+				if ( ! str_starts_with( $rel, $href_prefix ) ) {
 					continue;
 				}
 
@@ -984,6 +984,15 @@ class WP_REST_Server {
 		$result = apply_filters( 'rest_pre_dispatch', null, $this, $request );
 
 		if ( ! empty( $result ) ) {
+
+			// Normalize to either WP_Error or WP_REST_Response...
+			$result = rest_ensure_response( $result );
+
+			// ...then convert WP_Error across.
+			if ( is_wp_error( $result ) ) {
+				$result = $this->error_to_response( $result );
+			}
+
 			return $result;
 		}
 
@@ -1035,7 +1044,7 @@ class WP_REST_Server {
 		$with_namespace = array();
 
 		foreach ( $this->get_namespaces() as $namespace ) {
-			if ( 0 === strpos( trailingslashit( ltrim( $path, '/' ) ), $namespace ) ) {
+			if ( str_starts_with( trailingslashit( ltrim( $path, '/' ) ), $namespace ) ) {
 				$with_namespace[] = $this->get_routes( $namespace );
 			}
 		}
@@ -1529,7 +1538,7 @@ class WP_REST_Server {
 			$data['endpoints'][] = $endpoint_data;
 
 			// For non-variable routes, generate links.
-			if ( strpos( $route, '{' ) === false ) {
+			if ( ! str_contains( $route, '{' ) ) {
 				$data['_links'] = array(
 					'self' => array(
 						array(
@@ -1818,7 +1827,7 @@ class WP_REST_Server {
 		);
 
 		foreach ( $server as $key => $value ) {
-			if ( strpos( $key, 'HTTP_' ) === 0 ) {
+			if ( str_starts_with( $key, 'HTTP_' ) ) {
 				$headers[ substr( $key, 5 ) ] = $value;
 			} elseif ( 'REDIRECT_HTTP_AUTHORIZATION' === $key && empty( $server['HTTP_AUTHORIZATION'] ) ) {
 				/*

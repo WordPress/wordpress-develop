@@ -1,15 +1,9 @@
 <?php
 /**
- * Block supports tests for the layout.
+ * Tests for block supports related to layout.
  *
  * @package WordPress
  * @subpackage Block Supports
- * @since 6.0.0
- */
-
-/**
- * Tests for block supports related to layout.
- *
  * @since 6.0.0
  *
  * @group block-supports
@@ -176,6 +170,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 57584
+	 * @ticket 58548
 	 *
 	 * @dataProvider data_layout_support_flag_renders_classnames_on_wrapper
 	 *
@@ -213,7 +208,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 						),
 					),
 				),
-				'expected_output' => '<div class="wp-block-group is-layout-flow"></div>',
+				'expected_output' => '<div class="wp-block-group is-layout-flow wp-block-group-is-layout-flow"></div>',
 			),
 			'single wrapper block layout with constrained type' => array(
 				'args'            => array(
@@ -232,7 +227,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 						),
 					),
 				),
-				'expected_output' => '<div class="wp-block-group is-layout-constrained"></div>',
+				'expected_output' => '<div class="wp-block-group is-layout-constrained wp-block-group-is-layout-constrained"></div>',
 			),
 			'multiple wrapper block layout with flow type' => array(
 				'args'            => array(
@@ -253,7 +248,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 						),
 					),
 				),
-				'expected_output' => '<div class="wp-block-group"><div class="wp-block-group__inner-wrapper is-layout-flow"></div></div>',
+				'expected_output' => '<div class="wp-block-group"><div class="wp-block-group__inner-wrapper is-layout-flow wp-block-group-is-layout-flow"></div></div>',
 			),
 		);
 	}

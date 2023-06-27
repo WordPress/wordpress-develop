@@ -532,7 +532,7 @@ function wp_network_dashboard_right_now() {
 }
 
 /**
- * The Quick Draft widget display and creation of drafts.
+ * Displays the Quick Draft widget.
  *
  * @since 3.8.0
  *
@@ -920,7 +920,9 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 }
 
 /**
- * Callback function for Activity widget.
+ * Outputs the Activity widget.
+ *
+ * Callback function for {@see 'dashboard_activity'}.
  *
  * @since 3.8.0
  */
@@ -982,7 +984,7 @@ function wp_dashboard_recent_posts( $args ) {
 		'order'          => $args['order'],
 		'posts_per_page' => (int) $args['max'],
 		'no_found_rows'  => true,
-		'cache_results'  => false,
+		'cache_results'  => true,
 		'perm'           => ( 'future' === $args['status'] ) ? 'editable' : 'readable',
 	);
 
@@ -1227,10 +1229,9 @@ function wp_dashboard_trigger_widget_control( $widget_control_id = false ) {
 }
 
 /**
- * The RSS dashboard widget control.
+ * Sets up the RSS dashboard widget control and $args to be used as input to wp_widget_rss_form().
  *
- * Sets up $args to be used as input to wp_widget_rss_form(). Handles POST data
- * from RSS-type widgets.
+ * Handles POST data from RSS-type widgets.
  *
  * @since 2.5.0
  *
@@ -2023,7 +2024,9 @@ function wp_dashboard_site_health() {
 }
 
 /**
- * Empty function usable by plugins to output empty dashboard widget (to be populated later by JS).
+ * Outputs empty dashboard widget to be populated by JS later.
+ *
+ * Usable by plugins.
  *
  * @since 2.5.0
  */
@@ -2043,7 +2046,7 @@ function wp_welcome_panel() {
 	<div class="welcome-panel-content">
 	<div class="welcome-panel-header">
 		<div class="welcome-panel-header-image">
-			<?php echo file_get_contents( dirname( __DIR__ ) . '/images/about-header-about.svg' ); ?>
+			<?php echo file_get_contents( dirname( __DIR__ ) . '/images/dashboard-background.svg' ); ?>
 		</div>
 		<h2><?php _e( 'Welcome to WordPress!' ); ?></h2>
 		<p>
@@ -2095,11 +2098,10 @@ function wp_welcome_panel() {
 			<?php if ( $is_block_theme ) : ?>
 				<h3><?php _e( 'Switch up your site&#8217;s look & feel with Styles' ); ?></h3>
 				<p><?php _e( 'Tweak your site, or give it a whole new look! Get creative &#8212; how about a new color palette or font?' ); ?></p>
-				<a href="<?php echo esc_url( admin_url( 'site-editor.php?styles=open' ) ); ?>"><?php _e( 'Edit styles' ); ?></a>
 			<?php else : ?>
 				<h3><?php _e( 'Discover a new way to build your site.' ); ?></h3>
 				<p><?php _e( 'There is a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ?></p>
-				<a href="<?php echo esc_url( __( 'https://wordpress.org/support/article/block-themes/' ) ); ?>"><?php _e( 'Learn about block themes' ); ?></a>
+				<a href="<?php echo esc_url( __( 'https://wordpress.org/documentation/article/block-themes/' ) ); ?>"><?php _e( 'Learn about block themes' ); ?></a>
 			<?php endif; ?>
 			</div>
 		</div>
