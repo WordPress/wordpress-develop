@@ -103,6 +103,9 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 	 * @ticket 58560
 	 *
 	 * @dataProvider data_block_data
+	 *
+	 * @param string $name   The block name.
+	 * @param array  $schema The block's schema.
 	 */
 	public function test_wp_should_load_separate_core_block_assets_current_theme_supports( $name, $schema ) {
 		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
