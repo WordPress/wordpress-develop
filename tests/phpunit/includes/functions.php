@@ -346,3 +346,19 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );
+
+
+/**
+ * Removes 'no-store' from the Cache-Control header set by WordPress when running
+ * E2E tests. This is a workaround for an issue where E2E tests time out waiting
+ * for 'networkidle'.
+ *
+ * @since 6.3.0
+ */
+function _remove_no_store_from_cache_control_header( $headers ) {
+	$cache_control_parts      = explode( ', ', $headers['Cache-Control'] );
+	$cache_control_parts      = array_diff( $cache_control_parts, array( 'no-store' ) );
+	$headers['Cache-Control'] = implode( ', ', $cache_control_parts );
+	return $headers;
+}
+tests_add_filter( 'nocache_headers', '_remove_no_store_from_cache_control_header' );
