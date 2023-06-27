@@ -19,6 +19,13 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	private static $admin_id;
 
 	/**
+	 * The original value of the `$s` global.
+	 *
+	 * @var string|null
+	 */
+	private static $original_s;
+
+	/**
 	 * @var array
 	 */
 	public $fake_plugin = array(
@@ -38,9 +45,11 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	);
 
 	/**
-	 * Creates an admin user before any tests run.
+	 * Creates an admin user before any tests run and backs up the `$s` global.
 	 */
 	public static function set_up_before_class() {
+		global $s;
+
 		parent::set_up_before_class();
 
 		self::$admin_id = self::factory()->user->create(
@@ -51,11 +60,24 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 				'user_email' => 'testadmin@test.com',
 			)
 		);
+
+		self::$original_s = $s;
 	}
 
 	public function set_up() {
 		parent::set_up();
 		$this->table = _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => 'plugins' ) );
+	}
+
+	/**
+	 * Restores the `$s` global after each test.
+	 */
+	public function tear_down() {
+		global $s;
+
+		$s = self::$original_s;
+
+		parent::tear_down();
 	}
 
 	/**
@@ -282,10 +304,11 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	 * @covers WP_Plugins_List_Table::prepare_items
 	 */
 	public function test_plugins_list_filter() {
-		global $status;
+		global $status, $s;
 
 		$old_status = $status;
 		$status     = 'mustuse';
+		$s          = '';
 
 		add_filter( 'plugins_list', array( $this, 'plugins_list_filter' ), 10, 1 );
 		$this->table->prepare_items();
