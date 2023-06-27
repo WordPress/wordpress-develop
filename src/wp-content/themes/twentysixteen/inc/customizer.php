@@ -704,7 +704,8 @@ function twentysixteen_get_color_scheme_css( $colors ) {
 	/* Secondary Text Color */
 
 	/**
-	* Do not combine these styles with the next block.
+	 * IE8 and earlier will drop any block with CSS3 selectors.
+	 * Do not combine these styles with the next block.
 	 */
 	body:not(.search-results) .entry-summary {
 		color: {$colors['secondary_text_color']};
