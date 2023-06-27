@@ -334,7 +334,7 @@ class Walker_Nav_Menu extends Walker {
 				$attribute_string .= ' ' . $attr . '="' . $value . '"';
 			}
 		}
-		return $attributes;
+		return $attribute_string;
 	}
 
 }
