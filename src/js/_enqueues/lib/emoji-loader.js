@@ -364,7 +364,7 @@
 					'var testEmojiSupports = ' + testEmojiSupports + ';' +
 					'postMessage(testEmojiSupports(' + JSON.stringify(tests) + '));';
 				var blob = new Blob( [ workerScript ], {
-					type: 'text/javascript',
+					type: 'text/javascript'
 				} );
 				var worker = new Worker( URL.createObjectURL( blob ) );
 				worker.onmessage = function ( event ) {
