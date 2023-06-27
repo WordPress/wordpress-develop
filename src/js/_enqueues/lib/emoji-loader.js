@@ -381,15 +381,13 @@
 		resolve( supportTests );
 	} )
 		// Once the browser emoji support has been obtained from the session, finalize the settings.
-		.then( function ( sessionSupports ) {
-			Object.assign( settings.supports, sessionSupports );
-
+		.then( function ( supportTests ) {
 			/*
 			 * Tests the browser support for flag emojis and other emojis, and adjusts the
 			 * support settings accordingly.
 			 */
-			for ( var test in sessionSupports ) {
-				settings.supports[ test ] = sessionSupports[ test ];
+			for ( var test in supportTests ) {
+				settings.supports[ test ] = supportTests[ test ];
 
 				settings.supports.everything =
 					settings.supports.everything && settings.supports[ test ];
