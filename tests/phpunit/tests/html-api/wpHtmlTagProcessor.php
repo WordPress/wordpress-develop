@@ -2039,6 +2039,47 @@ HTML;
 	}
 
 	/**
+	 * @ticket 58637
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 *
+	 * @dataProvider data_incomplete_syntax_elements
+	 *
+	 * @param string $incomplete_html HTML text containing some kind of incomplete syntax.
+	 */
+	public function test_returns_false_for_incomplete_syntax_elements( $incomplete_html ) {
+		$p = new WP_HTML_Tag_Processor( $incomplete_html );
+		$this->assertFalse( $p->next_tag() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_incomplete_syntax_elements() {
+		return array(
+			'No tags'                              => array( 'this is nothing more than a text node' ),
+			'Incomplete tag name'                  => array( '<swit' ),
+			'Incomplete tag (no attributes)'       => array( '<div' ),
+			'Incomplete tag (attributes)'          => array( '<div inert title="test"' ),
+			'Incomplete attribute (unquoted)'      => array( '<button disabled' ),
+			'Incomplete attribute (single quoted)' => array( "<li class='just-another class" ),
+			'Incomplete attribute (double quoted)' => array( '<iframe src="https://www.example.com/embed/abcdef' ),
+			'Incomplete comment (normative)'       => array( '<!-- without end' ),
+			'Incomplete comment (missing --)'      => array( '<!-- without end --' ),
+			'Incomplete comment (--!)'             => array( '<!-- without end --!' ),
+			'Incomplete comment (bogus comment)'   => array( '</3 is not a tag' ),
+			'Incomplete DOCTYPE'                   => array( '<!DOCTYPE html' ),
+			'Partial DOCTYPE'                      => array( '<!DOCTY' ),
+			'Incomplete CDATA'                     => array( '<[CDATA[something inside of here needs to get out' ),
+			'Partial CDATA'                        => array( '<[CDA' ),
+			'Partially closed CDATA]'              => array( '<[CDATA[cannot escape]' ),
+			'Partially closed CDATA]>'             => array( '<[CDATA[cannot escape]>' ),
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::set_attribute
