@@ -11021,6 +11021,27 @@ mockedApiResponse.Schema = {
                     }
                 ]
             }
+        },
+        "/wp-block-editor/v1/navigation-fallback": {
+            "namespace": "wp-block-editor/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-block-editor/v1/navigation-fallback"
+                    }
+                ]
+            }
         }
     },
     "site_logo": 0,
