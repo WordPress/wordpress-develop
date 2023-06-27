@@ -6,18 +6,18 @@
  * Emoji Settings as exported in PHP via _print_emoji_detection_script().
  * @typedef WPEmojiSettings
  * @type {object}
- * @property {!object} source
- * @property {!string} source.concatemoji
- * @property {!string} source.twemoji
- * @property {!string} source.wpemoji
+ * @property {?object} source
+ * @property {?string} source.concatemoji
+ * @property {?string} source.twemoji
+ * @property {?string} source.wpemoji
  */
 
 /**
  * Support tests.
  * @typedef SupportTests
  * @type {object}
- * @property {!boolean} flag
- * @property {!boolean} emoji
+ * @property {?boolean} flag
+ * @property {?boolean} emoji
  */
 
 /**
@@ -28,7 +28,6 @@
  * @param {WPEmojiSettings} settings
  */
 ( function( window, document, settings ) {
-	var sessionSupports;
 	var sessionStorageKey = 'wpEmojiSettingsSupports';
 
 	// Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
@@ -38,6 +37,15 @@
 		} );
 	} );
 
+	/**
+	 * Checks whether the browser supports offloading to a Worker.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @private
+	 *
+	 * @returns {boolean}
+	 */
 	function supportsWorkerOffloading() {
 		return (
 			typeof Worker !== 'undefined' &&
@@ -51,7 +59,11 @@
 	/**
 	 * Get supports from session.
 	 *
-	 * @returns {SupportTests|null} Supports.
+	 * @since 6.3.0
+	 *
+	 * @private
+	 *
+	 * @returns {?SupportTests} Supports or null if not set.
 	 */
 	function getSessionSupports() {
 		var supports = {};
@@ -74,6 +86,10 @@
 
 	/**
 	 * Persist the supports in session storage.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @private
 	 *
 	 * @param {SupportTests} supports Supports.
 	 */
@@ -302,7 +318,7 @@
 	var tests = [ 'flag', 'emoji' ];
 
 	var sessionSupportsPromise = new Promise( function ( resolve ) {
-		sessionSupports = getSessionSupports();
+		var sessionSupports = getSessionSupports();
 		if ( sessionSupports ) {
 			resolve( sessionSupports );
 			return;
@@ -318,8 +334,8 @@
 			 * Example
 			 *
 			 *     > console.log( workerScript );
-			 *     var emojiSetsRenderIdentically = function emojiSetsRenderIdentically(context, set1, set2) { … }
-			 *     …
+			 *     var emojiSetsRenderIdentically = function emojiSetsRenderIdentically(context, set1, set2) { ... }
+			 *     ...
 			 */
 			var workerScript =
 				'/** @var {Function} Function serialized from main thread into worker. */' +
@@ -334,13 +350,15 @@
 			} );
 			var worker = new Worker( URL.createObjectURL( blob ) );
 			worker.onmessage = function ( event ) {
-				resolve( event.data );
+				sessionSupports = event.data;
+				setSessionSupports( sessionSupports );
+				resolve( sessionSupports );
 			};
 		} else {
 			sessionSupports = testEmojiSupports( tests );
+			setSessionSupports( sessionSupports );
+			resolve( sessionSupports );
 		}
-		setSessionSupports( sessionSupports );
-		resolve( sessionSupports );
 	} );
 
 	sessionSupportsPromise
@@ -374,7 +392,9 @@
 				settings.DOMReady = true;
 			};
 		} )
-		.then( domReadyPromise )
+		.then( function () {
+			return domReadyPromise;
+		} )
 		.then( function () {
 			// When the browser can not render everything we need to load a polyfill.
 			if ( ! settings.supports.everything ) {
