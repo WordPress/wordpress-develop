@@ -330,8 +330,8 @@ class Walker_Nav_Menu extends Walker {
 		$attribute_string = '';
 		foreach ( $atts as $attr => $value ) {
 			if ( false !== $value && '' !== $value && is_scalar( $value ) ) {
-				$value       = ( 'href' === $attr ) ? esc_url( $value ) : esc_attr( $value );
-				$attributes .= ' ' . $attr . '="' . $value . '"';
+				$value             = ( 'href' === $attr ) ? esc_url( $value ) : esc_attr( $value );
+				$attribute_string .= ' ' . $attr . '="' . $value . '"';
 			}
 		}
 		return $attributes;
