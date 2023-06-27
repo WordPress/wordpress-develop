@@ -118,7 +118,6 @@
 	<exclude-pattern>/src/wp-includes/class-requests\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-simplepie\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-snoopy\.php</exclude-pattern>
-	<exclude-pattern>/src/wp-includes/class-wp-block-parser\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/ms-deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/pluggable-deprecated\.php</exclude-pattern>
@@ -185,6 +184,18 @@
 	<rule ref="WordPress.DB.PreparedSQL.NotPrepared">
 		<exclude-pattern>/tests/phpunit/tests/admin/includesSchema\.php</exclude-pattern>
 		<exclude-pattern>/tests/phpunit/tests/multisite/site\.php</exclude-pattern>
+	</rule>
+
+	<!-- Allow non-snake-case vars & properties for block-related classes. -->
+	<rule ref="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase">
+		<exclude-pattern>/src/wp-includes/class-wp-block-parser\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.NamingConventions.ValidVariableName.PropertyNotSnakeCase">
+		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase">
+		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
 	</rule>
 
 	<!-- Allow the I18n functions file for issues identified by the I18n sniff

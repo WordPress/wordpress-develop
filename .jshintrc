@@ -17,19 +17,17 @@
 	"browser": true,
 
 	"globals": {
-		"Backbone": false,
-		"JSON": false,
-		"Promise": false,
-		"OffscreenCanvas": false,
-		"Set": false,
-		"WorkerGlobalScope": false,
 		"_": false,
-		"console": false,
-		"export": false,
+		"Backbone": false,
 		"jQuery": false,
+		"JSON": false,
+		"wp": false,
+		"export": false,
 		"module": false,
 		"require": false,
+		"WorkerGlobalScope": false,
 		"self": false,
-		"wp": false
+		"OffscreenCanvas": false,
+		"Promise": false
 	}
 }
