@@ -320,13 +320,10 @@
 			 * Note that this string contains the real source code for the
 			 * copied functions, _not_ a string representation of them. This
 			 * is because it's not possible to transfer a Function across
-			 * threads. The lack of quotes is intentional.
-			 *
-			 * Example
-			 *
-			 *     > console.log( workerScript );
-			 *     var emojiSetsRenderIdentically = function emojiSetsRenderIdentically(context, set1, set2) { ... }
-			 *     ...
+			 * threads. The lack of quotes is intentional. The function names
+			 * are copied to variable names since minification will munge the
+			 * function names, thus breaking the ability for the functions to
+			 * refer to each other.
 			 */
 			var workerScript =
 				'var emojiSetsRenderIdentically = ' + emojiSetsRenderIdentically + ';' +
