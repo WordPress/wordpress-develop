@@ -316,34 +316,38 @@
 		}
 
 		if ( supportsWorkerOffloading() ) {
-			/*
-			 * Note that this string contains the real source code for the
-			 * copied functions, _not_ a string representation of them. This
-			 * is because it's not possible to transfer a Function across
-			 * threads. The lack of quotes is intentional. The function names
-			 * are copied to variable names since minification will munge the
-			 * function names, thus breaking the ability for the functions to
-			 * refer to each other.
-			 */
-			var workerScript =
-				'var emojiSetsRenderIdentically = ' + emojiSetsRenderIdentically + ';' +
-				'var browserSupportsEmoji = ' + browserSupportsEmoji + ';' +
-				'var testEmojiSupports = ' + testEmojiSupports + ';' +
-				'postMessage(testEmojiSupports(' + JSON.stringify( tests ) + '));';
-			var blob = new Blob( [ workerScript ], {
-				type: 'text/javascript'
-			} );
-			var worker = new Worker( URL.createObjectURL( blob ) );
-			worker.onmessage = function ( event ) {
-				sessionSupports = event.data;
-				setSessionSupports( sessionSupports );
-				resolve( sessionSupports );
-			};
-		} else {
-			sessionSupports = testEmojiSupports( tests );
-			setSessionSupports( sessionSupports );
-			resolve( sessionSupports );
+			try {
+				/*
+				 * Note that this string contains the real source code for the
+				 * copied functions, _not_ a string representation of them. This
+				 * is because it's not possible to transfer a Function across
+				 * threads. The lack of quotes is intentional. The function names
+				 * are copied to variable names since minification will munge the
+				 * function names, thus breaking the ability for the functions to
+				 * refer to each other.
+				 */
+				var workerScript =
+					'var emojiSetsRenderIdentically = ' + emojiSetsRenderIdentically + ';' +
+					'var browserSupportsEmoji = ' + browserSupportsEmoji + ';' +
+					'var testEmojiSupports = ' + testEmojiSupports + ';' +
+					'postMessage(testEmojiSupports(' + JSON.stringify(tests) + '));';
+				var blob = new Blob([workerScript], {
+					type: 'text/javascript'
+				});
+				var worker = new Worker(URL.createObjectURL(blob));
+				worker.onmessage = function (event) {
+					sessionSupports = event.data;
+					setSessionSupports(sessionSupports);
+					resolve(sessionSupports);
+				};
+				debugger;
+				return;
+			} catch ( e ) {}
 		}
+
+		sessionSupports = testEmojiSupports( tests );
+		setSessionSupports( sessionSupports );
+		resolve( sessionSupports );
 	} );
 
 	// Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
