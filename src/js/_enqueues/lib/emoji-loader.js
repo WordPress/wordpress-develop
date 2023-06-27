@@ -10,8 +10,8 @@
  * @property {?string} source.concatemoji
  * @property {?string} source.twemoji
  * @property {?string} source.wpemoji
- * @property {?boolean} source.DOMReady
- * @property {?Function} source.readyCallback
+ * @property {?boolean} DOMReady
+ * @property {?Function} readyCallback
  */
 
 /**
