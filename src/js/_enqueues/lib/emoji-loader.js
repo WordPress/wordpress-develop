@@ -57,25 +57,38 @@
 	}
 
 	/**
-	 * Get supports from session.
+	 * @typedef SessionSupportTests
+	 * @type {object}
+	 * @property {number} timestamp
+	 * @property {SupportTests} supportTests
+	 */
+
+	/**
+	 * Get support tests from session.
 	 *
 	 * @since 6.3.0
 	 *
 	 * @private
 	 *
-	 * @returns {?SupportTests} Supports or null if not set.
+	 * @returns {?SupportTests} Support tests, or null if not set or older than 1 day.
 	 */
-	function getSessionSupports() {
+	function getSessionSupportTests() {
 		if (
 			typeof sessionStorage !== 'undefined' &&
 			sessionStorageKey in sessionStorage
 		) {
 			try {
-				var supports = JSON.parse(
+				/** @type {SessionSupportTests} */
+				var item = JSON.parse(
 					sessionStorage.getItem( sessionStorageKey )
 				);
-				if ( typeof supports === 'object' ) {
-					return supports;
+				if (
+					typeof item === 'object' &&
+					typeof item.timestamp === 'number' &&
+					new Date().valueOf() < item.timestamp + 86400 &&
+					typeof item.supportTests === 'object'
+				) {
+					return item.supportTests;
 				}
 			} catch ( e ) {}
 		}
@@ -89,14 +102,20 @@
 	 *
 	 * @private
 	 *
-	 * @param {SupportTests} supports Supports.
+	 * @param {SupportTests} supportTests Support tests.
 	 */
-	function setSessionSupports( supports ) {
+	function setSessionSupportTests( supportTests ) {
 		if ( typeof sessionStorage !== 'undefined' ) {
 			try {
+				/** @type {SessionSupportTests} */
+				var item = {
+					supportTests: supportTests,
+					timestamp: new Date().valueOf()
+				};
+
 				sessionStorage.setItem(
 					sessionStorageKey,
-					JSON.stringify( supports )
+					JSON.stringify( item )
 				);
 			} catch ( e ) {}
 		}
@@ -322,9 +341,9 @@
 
 	// Obtain the emoji support from the browser, asynchronously when possible.
 	new Promise( function ( resolve ) {
-		var sessionSupports = getSessionSupports();
-		if ( sessionSupports ) {
-			resolve( sessionSupports );
+		var supportTests = getSessionSupportTests();
+		if ( supportTests ) {
+			resolve( supportTests );
 			return;
 		}
 
@@ -344,22 +363,22 @@
 					'var browserSupportsEmoji = ' + browserSupportsEmoji + ';' +
 					'var testEmojiSupports = ' + testEmojiSupports + ';' +
 					'postMessage(testEmojiSupports(' + JSON.stringify(tests) + '));';
-				var blob = new Blob([workerScript], {
-					type: 'text/javascript'
-				});
-				var worker = new Worker(URL.createObjectURL(blob));
-				worker.onmessage = function (event) {
-					sessionSupports = event.data;
-					setSessionSupports( sessionSupports );
-					resolve( sessionSupports );
+				var blob = new Blob( [ workerScript ], {
+					type: 'text/javascript',
+				} );
+				var worker = new Worker( URL.createObjectURL( blob ) );
+				worker.onmessage = function ( event ) {
+					supportTests = event.data;
+					setSessionSupportTests( supportTests );
+					resolve( supportTests );
 				};
 				return;
 			} catch ( e ) {}
 		}
 
-		sessionSupports = testEmojiSupports( tests );
-		setSessionSupports( sessionSupports );
-		resolve( sessionSupports );
+		supportTests = testEmojiSupports( tests );
+		setSessionSupportTests( supportTests );
+		resolve( supportTests );
 	} )
 		// Once the browser emoji support has been obtained from the session, finalize the settings.
 		.then( function ( sessionSupports ) {
@@ -410,5 +429,4 @@
 				}
 			}
 		} );
-
 } )( window, document, window._wpemojiSettings );
