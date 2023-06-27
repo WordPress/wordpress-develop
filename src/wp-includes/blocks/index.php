@@ -39,9 +39,6 @@ function register_core_block_style_handles() {
 		'style'       => 'style',
 		'editorStyle' => 'editor',
 	);
-	if( current_theme_supports( 'wp-block-styles' ) ){
-		$style_fields['themeStyle'] = 'theme';
-	}
 
 	/*
 	 * Ignore transient cache when the development mode is set to 'core'. Why? To avoid interfering with
@@ -58,6 +55,29 @@ function register_core_block_style_handles() {
 		$files = glob( __DIR__ . '/**/**.css' );
 	}
 
+	$register_style = static function( $name, $filename, $style_handle ) use ( $includes_path, $includes_url, $suffix, $wp_styles, $files ) {
+		$style_path = "blocks/{$name}/{$filename}{$suffix}.css";
+		$path       = $includes_path . $style_path;
+
+		if ( ! in_array( $path, $files, true ) ) {
+			$wp_styles->add(
+				$style_handle,
+				false
+			);
+			return;
+		}
+
+		$wp_styles->add( $style_handle, $includes_url . $style_path );
+		$wp_styles->add_data( $style_handle, 'path', $path );
+
+		$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $path );
+		if ( is_rtl() && in_array( $rtl_file, $files, true ) ) {
+			$wp_styles->add_data( $style_handle, 'rtl', 'replace' );
+			$wp_styles->add_data( $style_handle, 'suffix', $suffix );
+			$wp_styles->add_data( $style_handle, 'path', $rtl_file );
+		}
+	}
+
 	foreach ( $core_blocks_meta as $name => $schema ) {
 		/** This filter is documented in wp-includes/blocks.php */
 		$schema = apply_filters( 'block_type_metadata', $schema );
@@ -70,37 +90,15 @@ function register_core_block_style_handles() {
 			$schema['editorStyle'] = "wp-block-{$name}-editor";
 		}
 
-		// This is not a real field in the schema, but is used to register theme styles if needed.
-		if ( ! isset( $schema['themeStyle'] ) ) {
-			$schema['themeStyle'] = "wp-block-{$name}-theme";
-		}
+		// Register block theme styles. 
+		$register_style( $name, 'theme', "wp-block-{$name}-theme" );
 
 		foreach ( $style_fields as $style_field => $filename ) {
 			$style_handle = $schema[ $style_field ];
 			if ( is_array( $style_handle ) ) {
 				continue;
 			}
-
-			$style_path = "blocks/{$name}/{$filename}{$suffix}.css";
-			$path       = $includes_path . $style_path;
-
-			if ( ! in_array( $path, $files, true ) ) {
-				$wp_styles->add(
-					$style_handle,
-					false
-				);
-				continue;
-			}
-
-			$wp_styles->add( $style_handle, $includes_url . $style_path );
-			$wp_styles->add_data( $style_handle, 'path', $path );
-
-			$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $path );
-			if ( is_rtl() && in_array( $rtl_file, $files, true ) ) {
-				$wp_styles->add_data( $style_handle, 'rtl', 'replace' );
-				$wp_styles->add_data( $style_handle, 'suffix', $suffix );
-				$wp_styles->add_data( $style_handle, 'path', $rtl_file );
-			}
+			$register_style( $name, $filename, $style_handle );
 		}
 	}
 }
