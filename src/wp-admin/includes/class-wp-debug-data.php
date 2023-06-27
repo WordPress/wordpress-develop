@@ -332,8 +332,8 @@ class WP_Debug_Data {
 				),
 				'WP_DEVELOPMENT_MODE' => array(
 					'label' => 'WP_DEVELOPMENT_MODE',
-					'value' => $wp_development_type,
-					'debug' => $wp_development_type,
+					'value' => WP_DEVELOPMENT_MODE ? WP_DEVELOPMENT_MODE : __( 'Disabled' ),
+					'debug' => WP_DEVELOPMENT_MODE,
 				),
 				'DB_CHARSET'          => array(
 					'label' => 'DB_CHARSET',
