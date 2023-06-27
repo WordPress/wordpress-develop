@@ -1,34 +1,36 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
-	"name": "core/latest-comments",
-	"title": "Latest Comments",
-	"category": "widgets",
-	"description": "Display a list of your most recent comments.",
-	"keywords": [ "recent comments" ],
+	"name": "core/details",
+	"title": "Details",
+	"category": "text",
+	"description": "Hide and show additional content.",
+	"keywords": [ "disclosure", "summary", "hide" ],
 	"textdomain": "default",
 	"attributes": {
-		"commentsToShow": {
-			"type": "number",
-			"default": 5,
-			"minimum": 1,
-			"maximum": 100
-		},
-		"displayAvatar": {
+		"showContent": {
 			"type": "boolean",
-			"default": true
+			"default": false
 		},
-		"displayDate": {
-			"type": "boolean",
-			"default": true
-		},
-		"displayExcerpt": {
-			"type": "boolean",
-			"default": true
+		"summary": {
+			"type": "string"
 		}
 	},
 	"supports": {
-		"align": true,
+		"align": [ "wide", "full" ],
+		"color": {
+			"gradients": true,
+			"link": true,
+			"__experimentalDefaultControls": {
+				"background": true,
+				"text": true
+			}
+		},
+		"__experimentalBorder": {
+			"color": true,
+			"width": true,
+			"style": true
+		},
 		"html": false,
 		"spacing": {
 			"margin": true,
@@ -48,6 +50,6 @@
 			}
 		}
 	},
-	"editorStyle": "wp-block-latest-comments-editor",
-	"style": "wp-block-latest-comments"
+	"editorStyle": "wp-block-details-editor",
+	"style": "wp-block-details"
 }
