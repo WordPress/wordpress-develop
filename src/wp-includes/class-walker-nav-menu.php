@@ -327,7 +327,7 @@ class Walker_Nav_Menu extends Walker {
 	 * @return string A string of HTML attributes.
 	 */
 	protected function build_atts( $atts = array() ) {
-		$attributes = '';
+		$attribute_string = '';
 		foreach ( $atts as $attr => $value ) {
 			if ( false !== $value && '' !== $value && is_scalar( $value ) ) {
 				$value       = ( 'href' === $attr ) ? esc_url( $value ) : esc_attr( $value );
