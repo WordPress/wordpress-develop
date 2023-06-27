@@ -50,7 +50,6 @@
 		"grunt-contrib-watch": "~1.1.0",
 		"grunt-file-append": "0.0.7",
 		"grunt-jsdoc": "2.4.1",
-		"grunt-jsvalidate": "~0.2.2",
 		"grunt-legacy-util": "^2.0.1",
 		"grunt-patch-wordpress": "~3.0.0",
 		"grunt-replace-lts": "~1.1.0",
