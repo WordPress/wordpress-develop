@@ -251,6 +251,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, 404 );
 	}
+
 	/**
 	 * Utility function to check the items in WP_REST_Global_Styles_Controller::get_items
 	 * against the expected values.
