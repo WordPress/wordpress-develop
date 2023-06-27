@@ -4041,7 +4041,7 @@ EOF;
 			array(
 				'loading'       => false,
 				'style'         => 'object-fit:cover;',
-				'fetchpriority' => 'high', 
+				'fetchpriority' => 'high',
 			)
 		) . '</figure>';
 
