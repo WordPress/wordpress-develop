@@ -19,22 +19,31 @@
  * @param {Document} document
  * @param {WPEmojiSettings} settings
  */
-( async function( window, document, settings ) {
+( function( window, document, settings ) {
 	var sessionSupports;
-	var sessionUpdated = false;
 	var sessionStorageKey = 'wpEmojiSettingsSupports';
 
 	// Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
-	var domReadyPromise = new Promise( function( resolve ) {
+	var domReadyPromise = new Promise( function ( resolve ) {
 		document.addEventListener( 'DOMContentLoaded', resolve, {
 			once: true
 		} );
 	} );
 
+	function supportsWorkerOffloading() {
+		return (
+			typeof Worker !== 'undefined' &&
+			typeof OffscreenCanvas !== 'undefined' &&
+			typeof URL !== 'undefined' &&
+			URL.createObjectURL &&
+			typeof Blob !== 'undefined'
+		);
+	}
+
 	/**
 	 * Get supports from session.
 	 *
-	 * @returns {object} Supports.
+	 * @returns {object|null} Supports.
 	 */
 	function getSessionSupports() {
 		var supports = {};
@@ -51,7 +60,7 @@
 		if ( typeof supports === 'object' ) {
 			return supports;
 		} else {
-			return {};
+			return null;
 		}
 	}
 
@@ -73,6 +82,9 @@
 
 	/**
 	 * Checks if two sets of Emoji characters render the same visually.
+	 *
+	 * This function may be serialized to run in a Worker. Therefore, it cannot refer to variables from the containing
+	 * scope. Everything must be passed by parameters.
 	 *
 	 * @since 4.9.0
 	 *
@@ -117,34 +129,20 @@
 	/**
 	 * Determines if the browser properly renders Emoji that Twemoji can supplement.
 	 *
+	 * This function may be serialized to run in a Worker. Therefore, it cannot refer to variables from the containing
+	 * scope. Everything must be passed by parameters.
+	 *
 	 * @since 4.2.0
 	 *
 	 * @private
 	 *
+	 * @param {CanvasRenderingContext2D} context 2D Context.
 	 * @param {string} type Whether to test for support of "flag" or "emoji".
 	 *
 	 * @return {boolean} True if the browser can render emoji, false if it cannot.
 	 */
-	function browserSupportsEmoji( type ) {
-		var canvas, isIdentical;
-
-		/*
-		 * Chrome on OS X added native emoji rendering in M41. Unfortunately,
-		 * it doesn't work when the font is bolder than 500 weight. So, we
-		 * check for bold rendering support to avoid invisible emoji in Chrome.
-		 */
-		if (
-			typeof WorkerGlobalScope !== 'undefined' &&
-			self instanceof WorkerGlobalScope &&
-			typeof OffscreenCanvas !== 'undefined'
-		) {
-			canvas = new OffscreenCanvas( 300, 150 ); // Dimensions are default for HTMLCanvasElement.
-		} else {
-			canvas = document.createElement( 'canvas' );
-		}
-		var context = canvas.getContext( '2d', { willReadFrequently: true } );
-		context.textBaseline = 'top';
-		context.font = '600 32px Arial';
+	function browserSupportsEmoji( context, type ) {
+		var isIdentical;
 
 		switch ( type ) {
 			case 'flag':
@@ -229,52 +227,43 @@
 	}
 
 	/**
-	 * Determines if the browser properly renders Emoji that Twemoji can supplement.
+	 * Checks emoji support tests.
 	 *
-	 * This is a wrapper for browserSupportsEmoji() which attempts to offload the work to a worker to free up the main
-	 * thread.
+	 * This function may be serialized to run in a Worker. Therefore, it cannot refer to variables from the containing
+	 * scope. Everything must be passed by parameters.
 	 *
 	 * @since 6.3.0
 	 *
 	 * @private
-	 * @async
 	 *
-	 * @param {string} type Whether to test for support of "flag" or "emoji".
-	 *
-	 * @return {bool} True if the browser can render emoji, false if it cannot.
+	 * @param {string[]} tests Tests.
 	 */
-	async function browserSupportsEmojiOptimized( type ) {
-		if ( typeof OffscreenCanvas !== 'undefined' ) {
-			/*
-			 * Note that this string contains the real source code for the
-			 * copied functions, _not_ a string representation of them. This
-			 * is because it's not possible to transfer a Function across
-			 * threads. The lack of quotes is intentional.
-			 *
-			 * Example
-			 *
-			 *     > console.log( workerScript );
-			 *     var emojiSetsRenderIdentically = function emojiSetsRenderIdentically(context, set1, set2) { … }
-			 *     …
-			 */
-			var workerScript =
-				'/** @var {Function} copy of comparison function to send into worker. */' +
-				'var emojiSetsRenderIdentically = ' + emojiSetsRenderIdentically + ';' +
-				'/** @var {Function} copy of detection function to send into worker. */' +
-				'var browserSupportsEmoji = ' + browserSupportsEmoji + ';' +
-				'postMessage(browserSupportsEmoji(' + JSON.stringify( type ) + '));';
-			var blob = new Blob( [ workerScript ], {
-				type: 'text/javascript'
-			} );
-			var worker = new Worker( URL.createObjectURL( blob ) );
-			return await new Promise( function ( resolve ) {
-				worker.onmessage = function ( event ) {
-					resolve( event.data );
-				};
-			} );
+	function testEmojiSupports( tests ) {
+		var canvas;
+		if (
+			typeof WorkerGlobalScope !== 'undefined' &&
+			self instanceof WorkerGlobalScope
+		) {
+			canvas = new OffscreenCanvas( 300, 150 ); // Dimensions are default for HTMLCanvasElement.
 		} else {
-			return browserSupportsEmoji( type );
+			canvas = document.createElement( 'canvas' );
 		}
+
+		var context = canvas.getContext( '2d', { willReadFrequently: true } );
+
+		/*
+		 * Chrome on OS X added native emoji rendering in M41. Unfortunately,
+		 * it doesn't work when the font is bolder than 500 weight. So, we
+		 * check for bold rendering support to avoid invisible emoji in Chrome.
+		 */
+		context.textBaseline = 'top';
+		context.font = '600 32px Arial';
+
+		var supports = {};
+		tests.forEach( function ( test ) {
+			supports[ test ] = browserSupportsEmoji( context, test );
+		} );
+		return supports;
 	}
 
 	/**
@@ -300,61 +289,96 @@
 		everythingExceptFlag: true
 	};
 
-	sessionSupports = getSessionSupports();
-	Object.assign( settings.supports, sessionSupports );
+	var tests = [ 'flag', 'emoji' ];
 
-	for ( const test of [ 'flag', 'emoji' ] ) {
-		if ( ! ( test in sessionSupports ) ) {
-			sessionSupports[test] = await browserSupportsEmojiOptimized(
-				test
-			);
-			sessionUpdated = true;
+	var sessionSupportsPromise = new Promise( function ( resolve ) {
+		sessionSupports = getSessionSupports();
+		if ( sessionSupports ) {
+			resolve( sessionSupports );
+			return;
 		}
-	}
 
-	if ( sessionUpdated ) {
+		if ( supportsWorkerOffloading() ) {
+			/*
+			 * Note that this string contains the real source code for the
+			 * copied functions, _not_ a string representation of them. This
+			 * is because it's not possible to transfer a Function across
+			 * threads. The lack of quotes is intentional.
+			 *
+			 * Example
+			 *
+			 *     > console.log( workerScript );
+			 *     var emojiSetsRenderIdentically = function emojiSetsRenderIdentically(context, set1, set2) { … }
+			 *     …
+			 */
+			var workerScript =
+				'/** @var {Function} Function serialized from main thread into worker. */' +
+				'var emojiSetsRenderIdentically = ' + emojiSetsRenderIdentically + ';' +
+				'/** @var {Function} Function serialized from main thread into worker. */' +
+				'var browserSupportsEmoji = ' + browserSupportsEmoji + ';' +
+				'/** @var {Function} Function serialized from main thread into worker. */' +
+				'var testEmojiSupports = ' + testEmojiSupports + ';' +
+				'postMessage(testEmojiSupports(' + JSON.stringify( tests ) + '));';
+			var blob = new Blob( [ workerScript ], {
+				type: 'text/javascript'
+			} );
+			var worker = new Worker( URL.createObjectURL( blob ) );
+			worker.onmessage = function ( event ) {
+				resolve( event.data );
+			};
+		} else {
+			sessionSupports = testEmojiSupports( tests );
+		}
 		setSessionSupports( sessionSupports );
-	}
+		resolve( sessionSupports );
+	} );
 
-	/*
-	 * Tests the browser support for flag emojis and other emojis, and adjusts the
-	 * support settings accordingly.
-	 */
-	for ( var test in sessionSupports ) {
-		settings.supports[ test ] = sessionSupports[ test ];
+	sessionSupportsPromise
+		.then( function ( sessionSupports ) {
+			Object.assign( settings.supports, sessionSupports );
 
-		settings.supports.everything =
-			settings.supports.everything && settings.supports[ test ];
+			/*
+			 * Tests the browser support for flag emojis and other emojis, and adjusts the
+			 * support settings accordingly.
+			 */
+			for ( var test in sessionSupports ) {
+				settings.supports[ test ] = sessionSupports[ test ];
 
-		if ( 'flag' !== test ) {
+				settings.supports.everything =
+					settings.supports.everything && settings.supports[ test ];
+
+				if ( 'flag' !== test ) {
+					settings.supports.everythingExceptFlag =
+						settings.supports.everythingExceptFlag &&
+						settings.supports[ test ];
+				}
+			}
+
 			settings.supports.everythingExceptFlag =
 				settings.supports.everythingExceptFlag &&
-				settings.supports[ test ];
-		}
-	}
+				! settings.supports.flag;
 
-	settings.supports.everythingExceptFlag =
-		settings.supports.everythingExceptFlag && ! settings.supports.flag;
+			// Sets DOMReady to false and assigns a ready function to settings.
+			settings.DOMReady = false;
+			settings.readyCallback = function () {
+				settings.DOMReady = true;
+			};
+		} )
+		.then( domReadyPromise )
+		.then( function () {
+			// When the browser can not render everything we need to load a polyfill.
+			if ( ! settings.supports.everything ) {
+				settings.readyCallback();
 
-	// Sets DOMReady to false and assigns a ready function to settings.
-	settings.DOMReady = false;
-	settings.readyCallback = function () {
-		settings.DOMReady = true;
-	};
+				var src = settings.source || {};
 
-	// When the browser can not render everything we need to load a polyfill.
-	if ( ! settings.supports.everything ) {
-		domReadyPromise.then( function () {
-			settings.readyCallback();
-
-			var src = settings.source || {};
-
-			if ( src.concatemoji ) {
-				addScript( src.concatemoji );
-			} else if ( src.wpemoji && src.twemoji ) {
-				addScript( src.twemoji );
-				addScript( src.wpemoji );
+				if ( src.concatemoji ) {
+					addScript( src.concatemoji );
+				} else if ( src.wpemoji && src.twemoji ) {
+					addScript( src.twemoji );
+					addScript( src.wpemoji );
+				}
 			}
 		} );
-	}
+
 } )( window, document, window._wpemojiSettings );
