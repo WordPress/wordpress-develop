@@ -28,6 +28,10 @@
  * @param {WPEmojiSettings} settings
  */
 ( function wpEmojiLoader( window, document, settings ) {
+	if ( typeof Promise === 'undefined' ) {
+		return;
+	}
+
 	var sessionStorageKey = 'wpEmojiSettingsSupports';
 	var tests = [ 'flag', 'emoji' ];
 
@@ -340,7 +344,6 @@
 					setSessionSupports(sessionSupports);
 					resolve(sessionSupports);
 				};
-				debugger;
 				return;
 			} catch ( e ) {}
 		}
