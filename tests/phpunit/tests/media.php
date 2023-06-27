@@ -5099,8 +5099,6 @@ EOF;
 	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_get_loading_optimization_attributes_header_block_template_increase_media_count() {
-		$this->assertSame( 0, wp_increase_content_media_count( 0 ) );
-
 		$attr = $this->get_width_height_for_high_priority();
 		wp_get_loading_optimization_attributes( 'img', $attr, 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER );
 
@@ -5118,8 +5116,6 @@ EOF;
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
 	public function test_wp_get_loading_optimization_attributes_image_before_loop_increase_media_count( $context ) {
-		$this->assertSame( 0, wp_increase_content_media_count( 0 ) );
-
 		global $wp_query;
 
 		$wp_query = $this->get_new_wp_query_for_published_post();
