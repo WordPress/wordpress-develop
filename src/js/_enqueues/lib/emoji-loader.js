@@ -27,7 +27,7 @@
  * @param {Document} document
  * @param {WPEmojiSettings} settings
  */
-( function( window, document, settings ) {
+( function wpEmojiLoader( window, document, settings ) {
 	var sessionStorageKey = 'wpEmojiSettingsSupports';
 	var tests = [ 'flag', 'emoji' ];
 
