@@ -282,7 +282,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			if ( ! empty( $content_disposition ) ) {
 				$lower_content_disposition = strtolower( $content_disposition );
 
-				if ( 0 === strpos( $lower_content_disposition, 'attachment; filename=' ) ) {
+				if ( str_starts_with( $lower_content_disposition, 'attachment; filename=' ) ) {
 					$tmpfname_disposition = explode( '.', substr( $content_disposition, 21 ) );
 					if ( ! empty( $tmpfname_disposition ) ) {
 						$attachment->post_title = $tmpfname_disposition[0];
