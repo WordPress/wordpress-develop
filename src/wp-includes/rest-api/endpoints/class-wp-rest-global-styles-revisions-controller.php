@@ -44,7 +44,9 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Registers the controllers routes.
+	 * Registers the controller's routes.
+  	 *
+    	 * @since 6.3.0
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -70,6 +72,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves the query params for collections.
+  	 *
 	 * Inherits from WP_REST_Controller::get_collection_params(),
 	 * also reflects changes to return value WP_REST_Revisions_Controller::get_collection_params().
 	 *
@@ -115,9 +118,10 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 
 	/**
 	 * Returns paginated revisions of the given global styles config custom post type.
-	 * The bulk of the body is taken from WP_REST_Revisions_Controller->get_items,
-	 * but global styles does not require as many parameters.
 	 *
+  	 * The bulk of the body is taken from WP_REST_Revisions_Controller->get_items,
+    	 * but global styles does not require as many parameters.
+    	 *
 	 * @since 6.3.0
 	 *
 	 * @param WP_REST_Request $request The request instance.
