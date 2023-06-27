@@ -395,7 +395,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @ticket 57278
 	 *
-	 * @covers Walker_Nav_Menu::start_el()
+	 * @covers Walker_Nav_Menu::start_el
 	 */
 	public function test_start_el_should_apply_nav_menu_item_attributes_filters() {
 		$output  = '';
