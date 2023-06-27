@@ -279,7 +279,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			if ( ! empty( $tempheaders ) ) {
 				// Iterate through the raw headers.
 				foreach ( (array) $tempheaders as $header ) {
-					if ( strpos( $header, ':' ) === false ) {
+					if ( ! str_contains( $header, ':' ) ) {
 						if ( false !== stripos( $header, 'boundary=' ) ) {
 							$parts    = preg_split( '/boundary=/i', trim( $header ) );
 							$boundary = trim( str_replace( array( "'", '"' ), '', $parts[1] ) );
@@ -315,7 +315,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 							}
 							break;
 						case 'content-type':
-							if ( strpos( $content, ';' ) !== false ) {
+							if ( str_contains( $content, ';' ) ) {
 								list( $type, $charset_content ) = explode( ';', $content );
 								$content_type                   = trim( $type );
 								if ( false !== stripos( $charset_content, 'charset=' ) ) {
@@ -376,7 +376,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			$from_email = 'wordpress@';
 
 			if ( null !== $sitename ) {
-				if ( 'www.' === substr( $sitename, 0, 4 ) ) {
+				if ( str_starts_with( $sitename, 'www.' ) ) {
 					$sitename = substr( $sitename, 4 );
 				}
 
@@ -432,7 +432,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 					$recipient_name = '';
 
 					if ( preg_match( '/(.*)<(.+)>/', $address, $matches ) ) {
-						if ( count( $matches ) == 3 ) {
+						if ( count( $matches ) === 3 ) {
 							$recipient_name = $matches[1];
 							$address        = $matches[2];
 						}
@@ -1070,17 +1070,19 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		 * Allows preventing auth cookies from actually being sent to the client.
 		 *
 		 * @since 4.7.4
-		 * @since 6.2.0 The `$user_id`, `$expire`, `$expiration`, and `$token` parameters were added.
+		 * @since 6.2.0 The `$expire`, `$expiration`, `$user_id`, `$scheme`, and `$token` parameters were added.
 		 *
 		 * @param bool   $send       Whether to send auth cookies to the client. Default true.
-		 * @param int    $user_id    User ID. Zero when clearing cookies.
 		 * @param int    $expire     The time the login grace period expires as a UNIX timestamp.
 		 *                           Default is 12 hours past the cookie's expiration time. Zero when clearing cookies.
 		 * @param int    $expiration The time when the logged-in authentication cookie expires as a UNIX timestamp.
 		 *                           Default is 14 days from now. Zero when clearing cookies.
+		 * @param int    $user_id    User ID. Zero when clearing cookies.
+		 * @param string $scheme     Authentication scheme. Values include 'auth' or 'secure_auth'.
+		 *                           Empty string when clearing cookies.
 		 * @param string $token      User's session token to use for this cookie. Empty string when clearing cookies.
 		 */
-		if ( ! apply_filters( 'send_auth_cookies', true, $user_id, $expire, $expiration, $token ) ) {
+		if ( ! apply_filters( 'send_auth_cookies', true, $expire, $expiration, $user_id, $scheme, $token ) ) {
 			return;
 		}
 
@@ -1108,7 +1110,7 @@ if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
 		do_action( 'clear_auth_cookie' );
 
 		/** This filter is documented in wp-includes/pluggable.php */
-		if ( ! apply_filters( 'send_auth_cookies', true, 0, 0, 0, '' ) ) {
+		if ( ! apply_filters( 'send_auth_cookies', true, 0, 0, 0, '', '' ) ) {
 			return;
 		}
 
@@ -1184,8 +1186,8 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 		$secure = apply_filters( 'secure_auth_redirect', $secure );
 
 		// If https is required and request is http, redirect.
-		if ( $secure && ! is_ssl() && false !== strpos( $_SERVER['REQUEST_URI'], 'wp-admin' ) ) {
-			if ( 0 === strpos( $_SERVER['REQUEST_URI'], 'http' ) ) {
+		if ( $secure && ! is_ssl() && str_contains( $_SERVER['REQUEST_URI'], 'wp-admin' ) ) {
+			if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
 				wp_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
 				exit;
 			} else {
@@ -1215,8 +1217,8 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 			do_action( 'auth_redirect', $user_id );
 
 			// If the user wants ssl but the session is not ssl, redirect.
-			if ( ! $secure && get_user_option( 'use_ssl', $user_id ) && false !== strpos( $_SERVER['REQUEST_URI'], 'wp-admin' ) ) {
-				if ( 0 === strpos( $_SERVER['REQUEST_URI'], 'http' ) ) {
+			if ( ! $secure && get_user_option( 'use_ssl', $user_id ) && str_contains( $_SERVER['REQUEST_URI'], 'wp-admin' ) ) {
+				if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
 					wp_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
 					exit;
 				} else {
@@ -1279,7 +1281,7 @@ if ( ! function_exists( 'check_admin_referer' ) ) :
 		 */
 		do_action( 'check_admin_referer', $action, $result );
 
-		if ( ! $result && ! ( -1 === $action && strpos( $referer, $adminurl ) === 0 ) ) {
+		if ( ! $result && ! ( -1 === $action && str_starts_with( $referer, $adminurl ) ) ) {
 			wp_nonce_ays( $action );
 			die();
 		}
@@ -1555,7 +1557,7 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 	function wp_validate_redirect( $location, $fallback_url = '' ) {
 		$location = wp_sanitize_redirect( trim( $location, " \t\n\r\0\x08\x0B" ) );
 		// Browsers will assume 'http' is your protocol, and will obey a redirect to a URL starting with '//'.
-		if ( '//' === substr( $location, 0, 2 ) ) {
+		if ( str_starts_with( $location, '//' ) ) {
 			$location = 'http:' . $location;
 		}
 
@@ -1873,7 +1875,7 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 		 * @since 4.4.0
 		 *
 		 * @param bool $maybe_notify Whether to notify blog moderator.
-		 * @param int  $comment_ID   The id of the comment for the notification.
+		 * @param int  $comment_id   The ID of the comment for the notification.
 		 */
 		$maybe_notify = apply_filters( 'notify_moderator', $maybe_notify, $comment_id );
 
@@ -2357,7 +2359,7 @@ if ( ! function_exists( 'wp_create_nonce' ) ) :
 			$uid = apply_filters( 'nonce_user_logged_out', $uid, $action );
 		}
 
-		$token = wp_get_session_token( $action );
+		$token = wp_get_session_token();
 		$i     = wp_nonce_tick( $action );
 
 		return substr( wp_hash( $i . '|' . $action . '|' . $uid . '|' . $token, 'nonce' ), -12, 10 );
@@ -2415,14 +2417,16 @@ if ( ! function_exists( 'wp_salt' ) ) :
 		static $duplicated_keys;
 		if ( null === $duplicated_keys ) {
 			$duplicated_keys = array(
-				'put your unique phrase here'       => true,
-				/*
-				 * translators: This string should only be translated if wp-config-sample.php is localized.
-				 * You can check the localized release package or
-				 * https://i18n.svn.wordpress.org/<locale code>/branches/<wp version>/dist/wp-config-sample.php
-				 */
-				__( 'put your unique phrase here' ) => true,
+				'put your unique phrase here' => true,
 			);
+
+			/*
+			 * translators: This string should only be translated if wp-config-sample.php is localized.
+			 * You can check the localized release package or
+			 * https://i18n.svn.wordpress.org/<locale code>/branches/<wp version>/dist/wp-config-sample.php
+			 */
+			$duplicated_keys[ __( 'put your unique phrase here' ) ] = true;
+
 			foreach ( array( 'AUTH', 'SECURE_AUTH', 'LOGGED_IN', 'NONCE', 'SECRET' ) as $first ) {
 				foreach ( array( 'KEY', 'SALT' ) as $second ) {
 					if ( ! defined( "{$first}_{$second}" ) ) {
@@ -2587,7 +2591,7 @@ if ( ! function_exists( 'wp_generate_password' ) ) :
 	/**
 	 * Generates a random password drawn from the defined set of characters.
 	 *
-	 * Uses wp_rand() is used to create passwords with far less predictability
+	 * Uses wp_rand() to create passwords with far less predictability
 	 * than similar native PHP functions like `rand()` or `mt_rand()`.
 	 *
 	 * @since 2.5.0
@@ -2811,13 +2815,10 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			'class'         => null,
 			'force_display' => false,
 			'loading'       => null,
+			'fetchpriority' => null,
 			'extra_attr'    => '',
 			'decoding'      => 'async',
 		);
-
-		if ( wp_lazy_loading_enabled( 'img', 'get_avatar' ) ) {
-			$defaults['loading'] = wp_get_loading_attr_default( 'get_avatar' );
-		}
 
 		if ( empty( $args ) ) {
 			$args = array();
@@ -2835,6 +2836,11 @@ if ( ! function_exists( 'get_avatar' ) ) :
 		if ( empty( $args['width'] ) ) {
 			$args['width'] = $args['size'];
 		}
+
+		// Update args with loading optimized attributes.
+		$loading_optimization_attr = wp_get_loading_optimization_attributes( 'img', $args, 'get_avatar' );
+
+		$args = array_merge( $args, $loading_optimization_attr );
 
 		if ( is_object( $id_or_email ) && isset( $id_or_email->comment_ID ) ) {
 			$id_or_email = get_comment( $id_or_email );
@@ -2888,7 +2894,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			}
 		}
 
-		// Add `loading` and `decoding` attributes.
+		// Add `loading`, `fetchpriority` and `decoding` attributes.
 		$extra_attr = $args['extra_attr'];
 
 		if ( in_array( $args['loading'], array( 'lazy', 'eager' ), true )
@@ -2909,6 +2915,17 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			}
 
 			$extra_attr .= "decoding='{$args['decoding']}'";
+		}
+
+		// Add support for `fetchpriority`.
+		if ( in_array( $args['fetchpriority'], array( 'high', 'low', 'auto' ), true )
+			&& ! preg_match( '/\bfetchpriority\s*=/', $extra_attr )
+		) {
+			if ( ! empty( $extra_attr ) ) {
+				$extra_attr .= ' ';
+			}
+
+			$extra_attr .= "fetchpriority='{$args['fetchpriority']}'";
 		}
 
 		$avatar = sprintf(

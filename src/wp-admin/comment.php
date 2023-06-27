@@ -68,8 +68,8 @@ switch ( $action ) {
 
 		get_current_screen()->set_help_sidebar(
 			'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-			'<p>' . __( '<a href="https://wordpress.org/support/article/comments-screen/">Documentation on Comments</a>' ) . '</p>' .
-			'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+			'<p>' . __( '<a href="https://wordpress.org/documentation/article/comments-screen/">Documentation on Comments</a>' ) . '</p>' .
+			'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 		);
 
 		wp_enqueue_script( 'comment' );
@@ -282,7 +282,7 @@ switch ( $action ) {
 			comment_footer_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
 		}
 
-		if ( wp_get_referer() && ! $noredir && false === strpos( wp_get_referer(), 'comment.php' ) ) {
+		if ( wp_get_referer() && ! $noredir && ! str_contains( wp_get_referer(), 'comment.php' ) ) {
 			$redir = wp_get_referer();
 		} elseif ( wp_get_original_referer() && ! $noredir ) {
 			$redir = wp_get_original_referer();

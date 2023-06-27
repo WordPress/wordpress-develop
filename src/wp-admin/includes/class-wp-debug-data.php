@@ -581,6 +581,7 @@ class WP_Debug_Data {
 				'map'    => ( defined( 'imagick::RESOURCETYPE_MAP' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MAP ) ) : $not_available ),
 				'memory' => ( defined( 'imagick::RESOURCETYPE_MEMORY' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MEMORY ) ) : $not_available ),
 				'thread' => ( defined( 'imagick::RESOURCETYPE_THREAD' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_THREAD ) : $not_available ),
+				'time'   => ( defined( 'imagick::RESOURCETYPE_TIME' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_TIME ) : $not_available ),
 			);
 
 			$limits_debug = array(
@@ -590,6 +591,7 @@ class WP_Debug_Data {
 				'imagick::RESOURCETYPE_MAP'    => ( defined( 'imagick::RESOURCETYPE_MAP' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MAP ) ) : 'not available' ),
 				'imagick::RESOURCETYPE_MEMORY' => ( defined( 'imagick::RESOURCETYPE_MEMORY' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MEMORY ) ) : 'not available' ),
 				'imagick::RESOURCETYPE_THREAD' => ( defined( 'imagick::RESOURCETYPE_THREAD' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_THREAD ) : 'not available' ),
+				'imagick::RESOURCETYPE_TIME'   => ( defined( 'imagick::RESOURCETYPE_TIME' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_TIME ) : 'not available' ),
 			);
 
 			$info['wp-media']['fields']['imagick_limits'] = array(
@@ -836,6 +838,21 @@ class WP_Debug_Data {
 				'debug' => $filtered_htaccess_content,
 			);
 		}
+
+		// Server time.
+		$date = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
+		$info['wp-server']['fields']['current'] = array(
+			'label' => __( 'Current time' ),
+			'value' => $date->format( DateTime::ATOM ),
+		);
+		$info['wp-server']['fields']['utc-time'] = array(
+			'label' => __( 'Current UTC time' ),
+			'value' => $date->format( DateTime::RFC850 ),
+		);
+		$info['wp-server']['fields']['server-time'] = array(
+			'label' => __( 'Current Server time' ),
+			'value' => wp_date( 'c', $_SERVER['REQUEST_TIME'] ),
+		);
 
 		// Populate the database debug fields.
 		if ( is_resource( $wpdb->dbh ) ) {

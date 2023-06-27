@@ -882,4 +882,124 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 		$this->assertNotWPError( $second_comment );
 		$this->assertEquals( self::$post->ID, $second_comment->comment_post_ID );
 	}
+
+	/**
+	 * Tests that wp_handle_comment_submission() only allows replying to
+	 * an approved parent comment.
+	 *
+	 * @ticket 53962
+	 *
+	 * @dataProvider data_should_only_allow_replying_to_an_approved_parent_comment
+	 *
+	 * @param int $approved Whether the parent comment is approved.
+	 */
+	public function test_should_only_allow_replying_to_an_approved_parent_comment( $approved ) {
+		wp_set_current_user( self::$editor_id );
+
+		$comment_parent = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post->ID,
+				'comment_approved' => $approved,
+			)
+		);
+
+		$comment = wp_handle_comment_submission(
+			array(
+				'comment_post_ID'      => self::$post->ID,
+				'comment_author'       => 'A comment author',
+				'comment_author_email' => 'comment_author@example.org',
+				'comment'              => 'Howdy, comment!',
+				'comment_parent'       => $comment_parent,
+			)
+		);
+
+		if ( $approved ) {
+			$this->assertInstanceOf(
+				'WP_Comment',
+				$comment,
+				'The comment was not submitted.'
+			);
+		} else {
+			$this->assertWPError( $comment, 'The comment was submitted.' );
+			$this->assertSame(
+				'comment_reply_to_unapproved_comment',
+				$comment->get_error_code(),
+				'The wrong error code was returned.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_should_only_allow_replying_to_an_approved_parent_comment() {
+		return array(
+			'an approved parent comment'   => array( 'approved' => 1 ),
+			'an unapproved parent comment' => array( 'approved' => 0 ),
+		);
+	}
+
+	/**
+	 * Tests that wp_handle_comment_submission() only allows replying to
+	 * an existing parent comment.
+	 *
+	 * @ticket 53962
+	 *
+	 * @dataProvider data_should_only_allow_replying_to_an_existing_parent_comment
+	 *
+	 * @param bool $exists Whether the parent comment exists.
+	 */
+	public function test_should_only_allow_replying_to_an_existing_parent_comment( $exists ) {
+		wp_set_current_user( self::$editor_id );
+
+		$parent_comment = -99999;
+
+		if ( $exists ) {
+			$parent_comment = self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => self::$post->ID,
+					'comment_approved' => 1,
+				)
+			);
+		}
+
+		$comment = wp_handle_comment_submission(
+			array(
+				'comment_post_ID'      => self::$post->ID,
+				'comment_author'       => 'A comment author',
+				'comment_author_email' => 'comment_author@example.org',
+				'comment'              => 'Howdy, comment!',
+				'comment_parent'       => $parent_comment,
+			)
+		);
+
+		if ( $exists ) {
+			$this->assertInstanceOf(
+				'WP_Comment',
+				$comment,
+				'The comment was not submitted.'
+			);
+		} else {
+			$this->assertWPError( $comment, 'The comment was submitted.' );
+			$this->assertSame(
+				'comment_reply_to_unapproved_comment',
+				$comment->get_error_code(),
+				'The wrong error code was returned.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_should_only_allow_replying_to_an_existing_parent_comment() {
+		return array(
+			'an existing parent comment'    => array( 'exists' => true ),
+			'a non-existent parent comment' => array( 'exists' => false ),
+		);
+	}
 }

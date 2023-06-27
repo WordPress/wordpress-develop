@@ -1072,7 +1072,7 @@ class wpdb {
 	 * @since 3.0.0
 	 *
 	 * @param int $blog_id
-	 * @param int $network_id Optional.
+	 * @param int $network_id Optional. Network ID. Default 0.
 	 * @return int Previous blog ID.
 	 */
 	public function set_blog_id( $blog_id, $network_id = 0 ) {
@@ -1101,7 +1101,8 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param int $blog_id Optional.
+	 * @param int $blog_id Optional. Blog ID to retrieve the table prefix for.
+	 *                     Defaults to the current blog ID.
 	 * @return string Blog prefix.
 	 */
 	public function get_blog_prefix( $blog_id = null ) {
@@ -1220,7 +1221,8 @@ class wpdb {
 	 * @since 0.71
 	 *
 	 * @param string          $db  Database name.
-	 * @param mysqli|resource $dbh Optional database connection.
+	 * @param mysqli|resource $dbh Optional. Database connection.
+	 *                             Defaults to the current database handle.
 	 */
 	public function select( $db, $dbh = null ) {
 		if ( is_null( $dbh ) ) {
@@ -1265,7 +1267,7 @@ class wpdb {
 
 				$message .= '<p>' . sprintf(
 					/* translators: %s: Support forums URL. */
-					__( 'If you do not know how to set up a database you should <strong>contact your host</strong>. If all else fails you may find help at the <a href="%s">WordPress Support Forums</a>.' ),
+					__( 'If you do not know how to set up a database you should <strong>contact your host</strong>. If all else fails you may find help at the <a href="%s">WordPress support forums</a>.' ),
 					__( 'https://wordpress.org/support/forums/' )
 				) . "</p>\n";
 
@@ -1435,12 +1437,12 @@ class wpdb {
 	/**
 	 * Prepares a SQL query for safe execution.
 	 *
-	 * Uses sprintf()-like syntax. The following placeholders can be used in the query string:
+	 * Uses `sprintf()`-like syntax. The following placeholders can be used in the query string:
 	 *
-	 * - %d (integer)
-	 * - %f (float)
-	 * - %s (string)
-	 * - %i (identifier, e.g. table/field names)
+	 * - `%d` (integer)
+	 * - `%f` (float)
+	 * - `%s` (string)
+	 * - `%i` (identifier, e.g. table/field names)
 	 *
 	 * All placeholders MUST be left unquoted in the query string. A corresponding argument
 	 * MUST be passed for each placeholder.
@@ -1475,12 +1477,12 @@ class wpdb {
 	 *              from `$args` to `...$args`.
 	 * @since 6.2.0 Added `%i` for identifiers, e.g. table or field names.
 	 *              Check support via `wpdb::has_cap( 'identifier_placeholders' )`.
-	 *              This preserves compatibility with sprintf(), as the C version uses
+	 *              This preserves compatibility with `sprintf()`, as the C version uses
 	 *              `%d` and `$i` as a signed integer, whereas PHP only supports `%d`.
 	 *
 	 * @link https://www.php.net/sprintf Description of syntax.
 	 *
-	 * @param string      $query   Query statement with sprintf()-like placeholders.
+	 * @param string      $query   Query statement with `sprintf()`-like placeholders.
 	 * @param array|mixed $args    The array of variables to substitute into the query's placeholders
 	 *                             if being called with an array of arguments, or the first variable
 	 *                             to substitute into the query's placeholders if being called with
@@ -1494,8 +1496,14 @@ class wpdb {
 			return;
 		}
 
-		// This is not meant to be foolproof -- but it will catch obviously incorrect usage.
-		if ( strpos( $query, '%' ) === false ) {
+		/*
+		 * This is not meant to be foolproof -- but it will catch obviously incorrect usage.
+		 *
+		 * Note: str_contains() is not used here, as this file can be included
+		 * directly outside of WordPress core, e.g. by HyperDB, in which case
+		 * the polyfills from wp-includes/compat.php are not loaded.
+		 */
+		if ( false === strpos( $query, '%' ) ) {
 			wp_load_translations_early();
 			_doing_it_wrong(
 				'wpdb::prepare',
@@ -1562,6 +1570,11 @@ class wpdb {
 			$type   = substr( $placeholder, -1 );
 
 			if ( 'f' === $type && true === $this->allow_unsafe_unquoted_parameters
+				/*
+				 * Note: str_ends_with() is not used here, as this file can be included
+				 * directly outside of WordPress core, e.g. by HyperDB, in which case
+				 * the polyfills from wp-includes/compat.php are not loaded.
+				 */
 				&& '%' === substr( $split_query[ $key - 1 ], -1, 1 )
 			) {
 
@@ -1623,6 +1636,11 @@ class wpdb {
 					 * Second, if "%s" has a "%" before it, even if it's unrelated (e.g. "LIKE '%%%s%%'").
 					 */
 					if ( true !== $this->allow_unsafe_unquoted_parameters
+						/*
+						 * Note: str_ends_with() is not used here, as this file can be included
+						 * directly outside of WordPress core, e.g. by HyperDB, in which case
+						 * the polyfills from wp-includes/compat.php are not loaded.
+						 */
 						|| ( '' === $format && '%' !== substr( $split_query[ $key - 1 ], -1, 1 ) )
 					) {
 						$placeholder = "'%" . $format . "s'";
@@ -2079,7 +2097,7 @@ class wpdb {
 
 			$message .= '<p>' . sprintf(
 				/* translators: %s: Support forums URL. */
-				__( 'If you are unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress Support Forums</a>.' ),
+				__( 'If you are unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress support forums</a>.' ),
 				__( 'https://wordpress.org/support/forums/' )
 			) . "</p>\n";
 
@@ -2239,7 +2257,7 @@ class wpdb {
 
 		$message .= '<p>' . sprintf(
 			/* translators: %s: Support forums URL. */
-			__( 'If you are unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress Support Forums</a>.' ),
+			__( 'If you are unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress support forums</a>.' ),
 			__( 'https://wordpress.org/support/forums/' )
 		) . "</p>\n";
 
@@ -2554,14 +2572,14 @@ class wpdb {
 	 *
 	 * @param string       $table  Table name.
 	 * @param array        $data   Data to insert (in column => value pairs).
-	 *                             Both $data columns and $data values should be "raw" (neither should be SQL escaped).
+	 *                             Both `$data` columns and `$data` values should be "raw" (neither should be SQL escaped).
 	 *                             Sending a null value will cause the column to be set to NULL - the corresponding
 	 *                             format is ignored in this case.
-	 * @param array|string $format Optional. An array of formats to be mapped to each of the value in $data.
-	 *                             If string, that format will be used for all of the values in $data.
+	 * @param array|string $format Optional. An array of formats to be mapped to each of the value in `$data`.
+	 *                             If string, that format will be used for all of the values in `$data`.
 	 *                             A format is one of '%d', '%f', '%s' (integer, float, string).
-	 *                             If omitted, all values in $data will be treated as strings unless otherwise
-	 *                             specified in wpdb::$field_types.
+	 *                             If omitted, all values in `$data` will be treated as strings unless otherwise
+	 *                             specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows inserted, or false on error.
 	 */
 	public function insert( $table, $data, $format = null ) {
@@ -2584,14 +2602,14 @@ class wpdb {
 	 *
 	 * @param string       $table  Table name.
 	 * @param array        $data   Data to insert (in column => value pairs).
-	 *                             Both $data columns and $data values should be "raw" (neither should be SQL escaped).
+	 *                             Both `$data` columns and `$data` values should be "raw" (neither should be SQL escaped).
 	 *                             Sending a null value will cause the column to be set to NULL - the corresponding
 	 *                             format is ignored in this case.
-	 * @param array|string $format Optional. An array of formats to be mapped to each of the value in $data.
-	 *                             If string, that format will be used for all of the values in $data.
+	 * @param array|string $format Optional. An array of formats to be mapped to each of the value in `$data`.
+	 *                             If string, that format will be used for all of the values in `$data`.
 	 *                             A format is one of '%d', '%f', '%s' (integer, float, string).
-	 *                             If omitted, all values in $data will be treated as strings unless otherwise
-	 *                             specified in wpdb::$field_types.
+	 *                             If omitted, all values in `$data` will be treated as strings unless otherwise
+	 *                             specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows affected, or false on error.
 	 */
 	public function replace( $table, $data, $format = null ) {
@@ -2601,7 +2619,7 @@ class wpdb {
 	/**
 	 * Helper function for insert and replace.
 	 *
-	 * Runs an insert or replace query based on $type argument.
+	 * Runs an insert or replace query based on `$type` argument.
 	 *
 	 * @since 3.0.0
 	 *
@@ -2611,15 +2629,15 @@ class wpdb {
 	 *
 	 * @param string       $table  Table name.
 	 * @param array        $data   Data to insert (in column => value pairs).
-	 *                             Both $data columns and $data values should be "raw" (neither should be SQL escaped).
+	 *                             Both `$data` columns and `$data` values should be "raw" (neither should be SQL escaped).
 	 *                             Sending a null value will cause the column to be set to NULL - the corresponding
 	 *                             format is ignored in this case.
-	 * @param array|string $format Optional. An array of formats to be mapped to each of the value in $data.
-	 *                             If string, that format will be used for all of the values in $data.
+	 * @param array|string $format Optional. An array of formats to be mapped to each of the value in `$data`.
+	 *                             If string, that format will be used for all of the values in `$data`.
 	 *                             A format is one of '%d', '%f', '%s' (integer, float, string).
-	 *                             If omitted, all values in $data will be treated as strings unless otherwise
-	 *                             specified in wpdb::$field_types.
-	 * @param string       $type   Optional. Type of operation. Possible values include 'INSERT' or 'REPLACE'.
+	 *                             If omitted, all values in `$data` will be treated as strings unless otherwise
+	 *                             specified in wpdb::$field_types. Default null.
+	 * @param string       $type   Optional. Type of operation. Either 'INSERT' or 'REPLACE'.
 	 *                             Default 'INSERT'.
 	 * @return int|false The number of rows affected, or false on error.
 	 */
@@ -2684,11 +2702,11 @@ class wpdb {
 	 *                                   If string, that format will be used for all of the values in $data.
 	 *                                   A format is one of '%d', '%f', '%s' (integer, float, string).
 	 *                                   If omitted, all values in $data will be treated as strings unless otherwise
-	 *                                   specified in wpdb::$field_types.
+	 *                                   specified in wpdb::$field_types. Default null.
 	 * @param array|string $where_format Optional. An array of formats to be mapped to each of the values in $where.
 	 *                                   If string, that format will be used for all of the items in $where.
 	 *                                   A format is one of '%d', '%f', '%s' (integer, float, string).
-	 *                                   If omitted, all values in $where will be treated as strings.
+	 *                                   If omitted, all values in $where will be treated as strings. Default null.
 	 * @return int|false The number of rows updated, or false on error.
 	 */
 	public function update( $table, $data, $where, $format = null, $where_format = null ) {
@@ -2760,7 +2778,7 @@ class wpdb {
 	 *                                   If string, that format will be used for all of the items in $where.
 	 *                                   A format is one of '%d', '%f', '%s' (integer, float, string).
 	 *                                   If omitted, all values in $data will be treated as strings unless otherwise
-	 *                                   specified in wpdb::$field_types.
+	 *                                   specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows deleted, or false on error.
 	 */
 	public function delete( $table, $where, $where_format = null ) {
@@ -2967,8 +2985,8 @@ class wpdb {
 	 * @since 0.71
 	 *
 	 * @param string|null $query Optional. SQL query. Defaults to null, use the result from the previous query.
-	 * @param int         $x     Optional. Column of value to return. Indexed from 0.
-	 * @param int         $y     Optional. Row of value to return. Indexed from 0.
+	 * @param int         $x     Optional. Column of value to return. Indexed from 0. Default 0.
+	 * @param int         $y     Optional. Row of value to return. Indexed from 0. Default 0.
 	 * @return string|null Database query result (as string), or null on failure.
 	 */
 	public function get_var( $query = null, $x = 0, $y = 0 ) {
@@ -3002,7 +3020,7 @@ class wpdb {
 	 * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
 	 *                            correspond to an stdClass object, an associative array, or a numeric array,
 	 *                            respectively. Default OBJECT.
-	 * @param int         $y      Optional. Row to return. Indexed from 0.
+	 * @param int         $y      Optional. Row to return. Indexed from 0. Default 0.
 	 * @return array|object|null|void Database query result in format specified by $output or null on failure.
 	 */
 	public function get_row( $query = null, $output = OBJECT, $y = 0 ) {
@@ -3046,7 +3064,7 @@ class wpdb {
 	 * @since 0.71
 	 *
 	 * @param string|null $query Optional. SQL query. Defaults to previous query.
-	 * @param int         $x     Optional. Column to return. Indexed from 0.
+	 * @param int         $x     Optional. Column to return. Indexed from 0. Default 0.
 	 * @return array Database query result. Array indexed from 0 by SQL result row number.
 	 */
 	public function get_col( $query = null, $x = 0 ) {
@@ -3083,6 +3101,7 @@ class wpdb {
 	 *                       or an object ( ->column = value ), respectively. With OBJECT_K,
 	 *                       return an associative array of row objects keyed by the value
 	 *                       of each row's first column's value. Duplicate keys are discarded.
+	 *                       Default OBJECT.
 	 * @return array|object|null Database query results.
 	 */
 	public function get_results( $query = null, $output = OBJECT ) {
@@ -3118,11 +3137,13 @@ class wpdb {
 		} elseif ( ARRAY_A === $output || ARRAY_N === $output ) {
 			// Return an integer-keyed array of...
 			if ( $this->last_result ) {
-				foreach ( (array) $this->last_result as $row ) {
-					if ( ARRAY_N === $output ) {
+				if ( ARRAY_N === $output ) {
+					foreach ( (array) $this->last_result as $row ) {
 						// ...integer-keyed row arrays.
 						$new_array[] = array_values( get_object_vars( $row ) );
-					} else {
+					}
+				} else {
+					foreach ( (array) $this->last_result as $row ) {
 						// ...column name-keyed row arrays.
 						$new_array[] = get_object_vars( $row );
 					}
@@ -3316,6 +3337,7 @@ class wpdb {
 	 *
 	 *     @type int    $length The column length.
 	 *     @type string $type   One of 'byte' or 'char'.
+	 * }
 	 */
 	public function get_col_length( $table, $column ) {
 		$tablekey  = strtolower( $table );
@@ -4034,8 +4056,14 @@ class wpdb {
 		$db_version     = $this->db_version();
 		$db_server_info = $this->db_server_info();
 
-		// Account for MariaDB version being prefixed with '5.5.5-' on older PHP versions.
-		if ( '5.5.5' === $db_version && str_contains( $db_server_info, 'MariaDB' )
+		/*
+		 * Account for MariaDB version being prefixed with '5.5.5-' on older PHP versions.
+		 *
+		 * Note: str_contains() is not used here, as this file can be included
+		 * directly outside of WordPress core, e.g. by HyperDB, in which case
+		 * the polyfills from wp-includes/compat.php are not loaded.
+		 */
+		if ( '5.5.5' === $db_version && false !== strpos( $db_server_info, 'MariaDB' )
 			&& PHP_VERSION_ID < 80016 // PHP 8.0.15 or older.
 		) {
 			// Strip the '5.5.5-' prefix and set the version to the correct value.
@@ -4063,6 +4091,10 @@ class wpdb {
 				/*
 				 * libmysql has supported utf8mb4 since 5.5.3, same as the MySQL server.
 				 * mysqlnd has supported utf8mb4 since 5.0.9.
+				 *
+				 * Note: str_contains() is not used here, as this file can be included
+				 * directly outside of WordPress core, e.g. by HyperDB, in which case
+				 * the polyfills from wp-includes/compat.php are not loaded.
 				 */
 				if ( false !== strpos( $client_version, 'mysqlnd' ) ) {
 					$client_version = preg_replace( '/^\D+([\d.]+).*/', '$1', $client_version );

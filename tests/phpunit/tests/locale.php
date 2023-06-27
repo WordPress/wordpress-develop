@@ -173,6 +173,62 @@ class Tests_Locale extends WP_UnitTestCase {
 		$this->locale->text_direction = 'ltr';
 		$this->assertFalse( $this->locale->is_rtl() );
 	}
+
+	/**
+	 * Tests that `WP_Locale::get_word_count_type()` returns
+	 * the appropriate value.
+	 *
+	 * @ticket 56698
+	 *
+	 * @covers WP_Locale::get_word_count_type
+	 *
+	 * @dataProvider data_get_word_count_type
+	 *
+	 * @param string $word_count_type The word count type.
+	 * @param string $expected        The expected return value.
+	 */
+	public function test_get_word_count_type( $word_count_type, $expected ) {
+		if ( is_string( $word_count_type ) ) {
+			$this->locale->word_count_type = $word_count_type;
+
+		}
+
+		$this->assertSame( $expected, $this->locale->get_word_count_type() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_word_count_type() {
+		return array(
+			'default'                   => array(
+				'word_count_type' => null,
+				'expected'        => 'words',
+			),
+			'empty string'              => array(
+				'word_count_type' => '',
+				'expected'        => 'words',
+			),
+			'an invalid option - "foo"' => array(
+				'word_count_type' => 'foo',
+				'expected'        => 'words',
+			),
+			'a valid option - "words"'  => array(
+				'word_count_type' => 'words',
+				'expected'        => 'words',
+			),
+			'a valid option - "characters_excluding_spaces"' => array(
+				'word_count_type' => 'characters_excluding_spaces',
+				'expected'        => 'characters_excluding_spaces',
+			),
+			'a valid option - "characters_including_spaces"' => array(
+				'word_count_type' => 'characters_including_spaces',
+				'expected'        => 'characters_including_spaces',
+			),
+		);
+	}
 }
 
 class Custom_WP_Locale extends WP_Locale {

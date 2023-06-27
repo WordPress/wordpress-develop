@@ -65,7 +65,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'lodash.js': 'lodash/lodash.js',
 		'wp-polyfill.js': '@wordpress/babel-preset-default/build/polyfill.js',
 		'wp-polyfill-fetch.js': 'whatwg-fetch/dist/fetch.umd.js',
-		'wp-polyfill-element-closest.js': 'element-closest/element-closest.js',
+		'wp-polyfill-element-closest.js': 'element-closest/browser.js',
 		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
 		'wp-polyfill-url.js': 'core-js-url-browser/url.js',
 		'wp-polyfill-dom-rect.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
@@ -81,6 +81,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	const minifiedVendors = {
 		'lodash.min.js': 'lodash/lodash.min.js',
 		'wp-polyfill.min.js': '@wordpress/babel-preset-default/build/polyfill.min.js',
+		'wp-polyfill-element-closest.min.js': 'element-closest/browser.js',
 		'wp-polyfill-formdata.min.js': 'formdata-polyfill/formdata.min.js',
 		'wp-polyfill-url.min.js': 'core-js-url-browser/url.min.js',
 		'wp-polyfill-object-fit.min.js': 'objectFitPolyfill/dist/objectFitPolyfill.min.js',
@@ -93,13 +94,14 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	const minifyVendors = {
 		'regenerator-runtime.min.js': 'regenerator-runtime/runtime.js',
 		'wp-polyfill-fetch.min.js': 'whatwg-fetch/dist/fetch.umd.js',
-		'wp-polyfill-element-closest.min.js': 'element-closest/element-closest.js',
 		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
 		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
 	};
 
 	const phpFiles = {
-		'block-serialization-default-parser/parser.php': 'wp-includes/class-wp-block-parser.php',
+		'block-serialization-default-parser/class-wp-block-parser.php': 'wp-includes/class-wp-block-parser.php',
+		'block-serialization-default-parser/class-wp-block-parser-frame.php': 'wp-includes/class-wp-block-parser-frame.php',
+		'block-serialization-default-parser/class-wp-block-parser-block.php': 'wp-includes/class-wp-block-parser-block.php',
 	};
 
 	const developmentCopies = mapVendorCopies( vendors, buildTarget );
@@ -152,6 +154,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			new DefinePlugin( {
 				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
 				'process.env.IS_GUTENBERG_PLUGIN': false,
+				// Inject the `IS_WORDPRESS_CORE` global, used for feature flagging.
+				'process.env.IS_WORDPRESS_CORE': true,
 				'process.env.FORCE_REDUCED_MOTION': JSON.stringify(
 					process.env.FORCE_REDUCED_MOTION
 				),

@@ -4539,6 +4539,12 @@ mockedApiResponse.Schema = {
                             },
                             "required": false
                         },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
+                            "required": false
+                        },
                         "template": {
                             "description": "The theme file to use to display the post.",
                             "type": "string",
@@ -4693,6 +4699,12 @@ mockedApiResponse.Schema = {
                                     "readonly": true
                                 }
                             },
+                            "required": false
+                        },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
                             "required": false
                         },
                         "template": {
@@ -5011,6 +5023,12 @@ mockedApiResponse.Schema = {
                             },
                             "required": false
                         },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
+                            "required": false
+                        },
                         "template": {
                             "description": "The theme file to use to display the post.",
                             "type": "string",
@@ -5105,7 +5123,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": true
                         },
                         "theme": {
@@ -5247,7 +5265,7 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w-]+)": {
+        "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5296,7 +5314,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": false
                         },
                         "theme": {
@@ -5610,7 +5628,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": false
                         },
                         "theme": {
@@ -5789,7 +5807,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": true
                         },
                         "theme": {
@@ -5936,7 +5954,7 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/template-parts/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w-]+)": {
+        "/wp/v2/template-parts/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5985,7 +6003,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": false
                         },
                         "theme": {
@@ -6304,7 +6322,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": false
                         },
                         "theme": {
@@ -11003,6 +11021,27 @@ mockedApiResponse.Schema = {
                     }
                 ]
             }
+        },
+        "/wp-block-editor/v1/navigation-fallback": {
+            "namespace": "wp-block-editor/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-block-editor/v1/navigation-fallback"
+                    }
+                ]
+            }
         }
     },
     "site_logo": 0,
@@ -11922,7 +11961,7 @@ mockedApiResponse.TypesCollection = {
         "description": "",
         "hierarchical": false,
         "has_archive": false,
-        "name": "Reusable blocks",
+        "name": "Patterns",
         "slug": "wp_block",
         "icon": null,
         "taxonomies": [],

@@ -7,15 +7,202 @@
  */
 
 /**
+ * Returns layout definitions, keyed by layout type.
+ *
+ * Provides a common definition of slugs, classnames, base styles, and spacing styles for each layout type.
+ * When making changes or additions to layout definitions, the corresponding JavaScript definitions should
+ * also be updated.
+ *
+ * @since 6.3.0
+ * @access private
+ *
+ * @return array[] Layout definitions.
+ */
+function wp_get_layout_definitions() {
+	$layout_definitions = array(
+		'default'     => array(
+			'name'          => 'default',
+			'slug'          => 'flow',
+			'className'     => 'is-layout-flow',
+			'baseStyles'    => array(
+				array(
+					'selector' => ' > .alignleft',
+					'rules'    => array(
+						'float'               => 'left',
+						'margin-inline-start' => '0',
+						'margin-inline-end'   => '2em',
+					),
+				),
+				array(
+					'selector' => ' > .alignright',
+					'rules'    => array(
+						'float'               => 'right',
+						'margin-inline-start' => '2em',
+						'margin-inline-end'   => '0',
+					),
+				),
+				array(
+					'selector' => ' > .aligncenter',
+					'rules'    => array(
+						'margin-left'  => 'auto !important',
+						'margin-right' => 'auto !important',
+					),
+				),
+			),
+			'spacingStyles' => array(
+				array(
+					'selector' => ' > :first-child:first-child',
+					'rules'    => array(
+						'margin-block-start' => '0',
+					),
+				),
+				array(
+					'selector' => ' > :last-child:last-child',
+					'rules'    => array(
+						'margin-block-end' => '0',
+					),
+				),
+				array(
+					'selector' => ' > *',
+					'rules'    => array(
+						'margin-block-start' => null,
+						'margin-block-end'   => '0',
+					),
+				),
+			),
+		),
+		'constrained' => array(
+			'name'          => 'constrained',
+			'slug'          => 'constrained',
+			'className'     => 'is-layout-constrained',
+			'baseStyles'    => array(
+				array(
+					'selector' => ' > .alignleft',
+					'rules'    => array(
+						'float'               => 'left',
+						'margin-inline-start' => '0',
+						'margin-inline-end'   => '2em',
+					),
+				),
+				array(
+					'selector' => ' > .alignright',
+					'rules'    => array(
+						'float'               => 'right',
+						'margin-inline-start' => '2em',
+						'margin-inline-end'   => '0',
+					),
+				),
+				array(
+					'selector' => ' > .aligncenter',
+					'rules'    => array(
+						'margin-left'  => 'auto !important',
+						'margin-right' => 'auto !important',
+					),
+				),
+				array(
+					'selector' => ' > :where(:not(.alignleft):not(.alignright):not(.alignfull))',
+					'rules'    => array(
+						'max-width'    => 'var(--wp--style--global--content-size)',
+						'margin-left'  => 'auto !important',
+						'margin-right' => 'auto !important',
+					),
+				),
+				array(
+					'selector' => ' > .alignwide',
+					'rules'    => array(
+						'max-width' => 'var(--wp--style--global--wide-size)',
+					),
+				),
+			),
+			'spacingStyles' => array(
+				array(
+					'selector' => ' > :first-child:first-child',
+					'rules'    => array(
+						'margin-block-start' => '0',
+					),
+				),
+				array(
+					'selector' => ' > :last-child:last-child',
+					'rules'    => array(
+						'margin-block-end' => '0',
+					),
+				),
+				array(
+					'selector' => ' > *',
+					'rules'    => array(
+						'margin-block-start' => null,
+						'margin-block-end'   => '0',
+					),
+				),
+			),
+		),
+		'flex'        => array(
+			'name'          => 'flex',
+			'slug'          => 'flex',
+			'className'     => 'is-layout-flex',
+			'displayMode'   => 'flex',
+			'baseStyles'    => array(
+				array(
+					'selector' => '',
+					'rules'    => array(
+						'flex-wrap'   => 'wrap',
+						'align-items' => 'center',
+					),
+				),
+				array(
+					'selector' => ' > *',
+					'rules'    => array(
+						'margin' => '0',
+					),
+				),
+			),
+			'spacingStyles' => array(
+				array(
+					'selector' => '',
+					'rules'    => array(
+						'gap' => null,
+					),
+				),
+			),
+		),
+		'grid'        => array(
+			'name'          => 'grid',
+			'slug'          => 'grid',
+			'className'     => 'is-layout-grid',
+			'displayMode'   => 'grid',
+			'baseStyles'    => array(
+				array(
+					'selector' => ' > *',
+					'rules'    => array(
+						'margin' => '0',
+					),
+				),
+			),
+			'spacingStyles' => array(
+				array(
+					'selector' => '',
+					'rules'    => array(
+						'gap' => null,
+					),
+				),
+			),
+		),
+	);
+
+	return $layout_definitions;
+}
+
+/**
  * Registers the layout block attribute for block types that support it.
  *
  * @since 5.8.0
+ * @since 6.3.0 Check for layout support via the `layout` key with fallback to `__experimentalLayout`.
  * @access private
  *
  * @param WP_Block_Type $block_type Block Type.
  */
 function wp_register_layout_support( $block_type ) {
-	$support_layout = block_has_support( $block_type, array( '__experimentalLayout' ), false );
+	$support_layout = block_has_support( $block_type, array( 'layout' ), false ) || block_has_support( $block_type, array( '__experimentalLayout' ), false );
 	if ( $support_layout ) {
 		if ( ! $block_type->attributes ) {
 			$block_type->attributes = array();
@@ -34,6 +221,7 @@ function wp_register_layout_support( $block_type ) {
  *
  * @since 5.9.0
  * @since 6.1.0 Added `$block_spacing` param, use style engine to enqueue styles.
+ * @since 6.3.0 Added grid layout type.
  * @access private
  *
  * @param string               $selector                      CSS selector.
@@ -287,6 +475,44 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 				);
 			}
 		}
+	} elseif ( 'grid' === $layout_type ) {
+		if ( ! empty( $layout['columnCount'] ) ) {
+			$layout_styles[] = array(
+				'selector'     => $selector,
+				'declarations' => array( 'grid-template-columns' => 'repeat(' . $layout['columnCount'] . ', minmax(0, 1fr))' ),
+			);
+		} else {
+			$minimum_column_width = ! empty( $layout['minimumColumnWidth'] ) ? $layout['minimumColumnWidth'] : '12rem';
+
+			$layout_styles[] = array(
+				'selector'     => $selector,
+				'declarations' => array( 'grid-template-columns' => 'repeat(auto-fill, minmax(min(' . $minimum_column_width . ', 100%), 1fr))' ),
+			);
+		}
+
+		if ( $has_block_gap_support && isset( $gap_value ) ) {
+			$combined_gap_value = '';
+			$gap_sides          = is_array( $gap_value ) ? array( 'top', 'left' ) : array( 'top' );
+
+			foreach ( $gap_sides as $gap_side ) {
+				$process_value = is_string( $gap_value ) ? $gap_value : _wp_array_get( $gap_value, array( $gap_side ), $fallback_gap_value );
+				// Get spacing CSS variable from preset value if provided.
+				if ( is_string( $process_value ) && str_contains( $process_value, 'var:preset|spacing|' ) ) {
+					$index_to_splice = strrpos( $process_value, '|' ) + 1;
+					$slug            = _wp_to_kebab_case( substr( $process_value, $index_to_splice ) );
+					$process_value   = "var(--wp--preset--spacing--$slug)";
+				}
+				$combined_gap_value .= "$process_value ";
+			}
+			$gap_value = trim( $combined_gap_value );
+
+			if ( null !== $gap_value && ! $should_skip_gap_serialization ) {
+				$layout_styles[] = array(
+					'selector'     => $selector,
+					'declarations' => array( 'gap' => $gap_value ),
+				);
+			}
+		}
 	}
 
 	if ( ! empty( $layout_styles ) ) {
@@ -312,6 +538,8 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
  * Renders the layout config to the block wrapper.
  *
  * @since 5.8.0
+ * @since 6.3.0 Adds compound class to layout wrapper for global spacing styles.
+ * @since 6.3.0 Check for layout support via the `layout` key with fallback to `__experimentalLayout`.
  * @access private
  *
  * @param string $block_content Rendered block content.
@@ -319,29 +547,62 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
  * @return string Filtered block content.
  */
 function wp_render_layout_support_flag( $block_content, $block ) {
-	$block_type     = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
-	$support_layout = block_has_support( $block_type, array( '__experimentalLayout' ), false );
+	$block_type       = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
+	$support_layout   = block_has_support( $block_type, array( 'layout' ), false ) || block_has_support( $block_type, array( '__experimentalLayout' ), false );
+	$has_child_layout = isset( $block['attrs']['style']['layout']['selfStretch'] );
 
-	if ( ! $support_layout ) {
+	if ( ! $support_layout && ! $has_child_layout ) {
 		return $block_content;
 	}
+	$outer_class_names = array();
 
-	$global_settings               = wp_get_global_settings();
-	$block_gap                     = _wp_array_get( $global_settings, array( 'spacing', 'blockGap' ), null );
-	$has_block_gap_support         = isset( $block_gap );
-	$global_layout_settings        = _wp_array_get( $global_settings, array( 'layout' ), null );
-	$root_padding_aware_alignments = _wp_array_get( $global_settings, array( 'useRootPaddingAwareAlignments' ), false );
+	if ( $has_child_layout && ( 'fixed' === $block['attrs']['style']['layout']['selfStretch'] || 'fill' === $block['attrs']['style']['layout']['selfStretch'] ) ) {
+		$container_content_class = wp_unique_id( 'wp-container-content-' );
 
-	$default_block_layout = _wp_array_get( $block_type->supports, array( '__experimentalLayout', 'default' ), array() );
-	$used_layout          = isset( $block['attrs']['layout'] ) ? $block['attrs']['layout'] : $default_block_layout;
+		$child_layout_styles = array();
 
-	if ( isset( $used_layout['inherit'] ) && $used_layout['inherit'] && ! $global_layout_settings ) {
-		return $block_content;
+		if ( 'fixed' === $block['attrs']['style']['layout']['selfStretch'] && isset( $block['attrs']['style']['layout']['flexSize'] ) ) {
+			$child_layout_styles[] = array(
+				'selector'     => ".$container_content_class",
+				'declarations' => array(
+					'flex-basis' => $block['attrs']['style']['layout']['flexSize'],
+					'box-sizing' => 'border-box',
+				),
+			);
+		} elseif ( 'fill' === $block['attrs']['style']['layout']['selfStretch'] ) {
+			$child_layout_styles[] = array(
+				'selector'     => ".$container_content_class",
+				'declarations' => array(
+					'flex-grow' => '1',
+				),
+			);
+		}
+
+		wp_style_engine_get_stylesheet_from_css_rules(
+			$child_layout_styles,
+			array(
+				'context'  => 'block-supports',
+				'prettify' => false,
+			)
+		);
+
+		$outer_class_names[] = $container_content_class;
 	}
+
+	// Return early if only child layout exists.
+	if ( ! $support_layout && ! empty( $outer_class_names ) ) {
+		$content = new WP_HTML_Tag_Processor( $block_content );
+		$content->next_tag();
+		$content->add_class( implode( ' ', $outer_class_names ) );
+		return (string) $content;
+	}
+
+	$global_settings = wp_get_global_settings();
+	$fallback_layout = ! empty( _wp_array_get( $block_type->supports, array( 'layout', 'default' ), array() ) ) ? _wp_array_get( $block_type->supports, array( 'layout', 'default' ), array() ) : _wp_array_get( $block_type->supports, array( '__experimentalLayout', 'default' ), array() );
+	$used_layout     = isset( $block['attrs']['layout'] ) ? $block['attrs']['layout'] : $fallback_layout;
 
 	$class_names        = array();
-	$layout_definitions = _wp_array_get( $global_layout_settings, array( 'definitions' ), array() );
-	$block_classname    = wp_get_block_default_classname( $block['blockName'] );
+	$layout_definitions = wp_get_layout_definitions();
 	$container_class    = wp_unique_id( 'wp-container-' );
 	$layout_classname   = '';
 
@@ -349,6 +610,8 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	if ( isset( $used_layout['inherit'] ) && $used_layout['inherit'] || isset( $used_layout['contentSize'] ) && $used_layout['contentSize'] ) {
 		$used_layout['type'] = 'constrained';
 	}
+
+	$root_padding_aware_alignments = _wp_array_get( $global_settings, array( 'useRootPaddingAwareAlignments' ), false );
 
 	if (
 		$root_padding_aware_alignments &&
@@ -416,8 +679,11 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		 */
 		$should_skip_gap_serialization = wp_should_skip_block_supports_serialization( $block_type, 'spacing', 'blockGap' );
 
+		$block_gap             = _wp_array_get( $global_settings, array( 'spacing', 'blockGap' ), null );
+		$has_block_gap_support = isset( $block_gap );
+
 		$style = wp_get_layout_style(
-			".$block_classname.$container_class",
+			".$container_class.$container_class",
 			$used_layout,
 			$has_block_gap_support,
 			$gap_value,
@@ -432,18 +698,53 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		}
 	}
 
-	/*
-	 * This assumes the hook only applies to blocks with a single wrapper.
-	 * A limitation of this hook is that nested inner blocks wrappers are not yet supported.
-	 */
-	$content = preg_replace(
-		'/' . preg_quote( 'class="', '/' ) . '/',
-		'class="' . esc_attr( implode( ' ', $class_names ) ) . ' ',
-		$block_content,
-		1
-	);
+	// Add combined layout and block classname for global styles to hook onto.
+	$block_name    = explode( '/', $block['blockName'] );
+	$class_names[] = 'wp-block-' . end( $block_name ) . '-' . $layout_classname;
 
-	return $content;
+	$content_with_outer_classnames = '';
+
+	if ( ! empty( $outer_class_names ) ) {
+		$content_with_outer_classnames = new WP_HTML_Tag_Processor( $block_content );
+		$content_with_outer_classnames->next_tag();
+		foreach ( $outer_class_names as $outer_class_name ) {
+			$content_with_outer_classnames->add_class( $outer_class_name );
+		}
+
+		$content_with_outer_classnames = (string) $content_with_outer_classnames;
+	}
+
+	/**
+	* The first chunk of innerContent contains the block markup up until the inner blocks start.
+	* This targets the opening tag of the inner blocks wrapper, which is the last tag in that chunk.
+	*/
+	$inner_content_classnames = '';
+
+	if ( isset( $block['innerContent'][0] ) && 'string' === gettype( $block['innerContent'][0] ) && count( $block['innerContent'] ) > 1 ) {
+		$tags            = new WP_HTML_Tag_Processor( $block['innerContent'][0] );
+		$last_classnames = '';
+		while ( $tags->next_tag() ) {
+			$last_classnames = $tags->get_attribute( 'class' );
+		}
+
+		$inner_content_classnames = (string) $last_classnames;
+	}
+
+	$content = $content_with_outer_classnames ? new WP_HTML_Tag_Processor( $content_with_outer_classnames ) : new WP_HTML_Tag_Processor( $block_content );
+
+	if ( $inner_content_classnames ) {
+		$content->next_tag( array( 'class_name' => $inner_content_classnames ) );
+		foreach ( $class_names as $class_name ) {
+			$content->add_class( $class_name );
+		}
+	} else {
+		$content->next_tag();
+		foreach ( $class_names as $class_name ) {
+			$content->add_class( $class_name );
+		}
+	}
+
+	return (string) $content;
 }
 
 // Register the block support.

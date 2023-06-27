@@ -2,14 +2,8 @@
 /**
  * Unit tests covering WP_REST_Block_Patterns_Controller functionality.
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage REST_API
- * @since      6.0.0
- */
-
-/**
- * Tests for REST API for Block Patterns.
- *
  * @since 6.0.0
  *
  * @ticket 55505
@@ -82,6 +76,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 				'viewportWidth' => 1440,
 				'categories'    => array( 'test' ),
 				'templateTypes' => array( 'page' ),
+				'source'        => 'theme',
 			)
 		);
 
@@ -92,6 +87,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 				'content'       => '<!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->',
 				'categories'    => array( 'test' ),
 				'templateTypes' => array( 'single' ),
+				'source'        => 'core',
 			)
 		);
 
@@ -101,6 +97,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 				'title'      => 'Pattern Three',
 				'content'    => '<!-- wp:paragraph --><p>Three</p><!-- /wp:paragraph -->',
 				'categories' => array( 'test', 'buttons', 'query' ),
+				'source'     => 'pattern-directory/featured',
 			)
 		);
 	}
@@ -130,7 +127,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		wp_set_current_user( self::$admin_id );
 
 		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
-		$request['_fields'] = 'name,content,template_types';
+		$request['_fields'] = 'name,content,source,template_types';
 		$response           = rest_get_server()->dispatch( $request );
 		$data               = $response->get_data();
 
@@ -141,6 +138,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 				'name'           => 'test/one',
 				'content'        => '<!-- wp:heading {"level":1} --><h1>One</h1><!-- /wp:heading -->',
 				'template_types' => array( 'page' ),
+				'source'         => 'theme',
 			),
 			$data[0],
 			'WP_REST_Block_Patterns_Controller::get_items() should return test/one'
@@ -150,6 +148,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 				'name'           => 'test/two',
 				'content'        => '<!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->',
 				'template_types' => array( 'single' ),
+				'source'         => 'core',
 			),
 			$data[1],
 			'WP_REST_Block_Patterns_Controller::get_items() should return test/two'

@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_Block tests
+ * Tests for WP_Block.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.5.0
- */
-
-/**
- * Tests for WP_Block.
- *
  * @since 5.5.0
  *
  * @group blocks
@@ -699,7 +693,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->registry->register(
 			'core/outer',
 			array(
-				'render_callback' => function( $block_attributes, $content ) {
+				'render_callback' => static function( $block_attributes, $content ) {
 					return $content;
 				},
 			)
@@ -708,7 +702,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->registry->register(
 			'core/inner',
 			array(
-				'render_callback' => function() {
+				'render_callback' => static function() {
 					return 'b';
 				},
 			)

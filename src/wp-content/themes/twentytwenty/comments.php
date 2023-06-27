@@ -23,7 +23,7 @@ if ( $comments ) {
 	<div class="comments" id="comments">
 
 		<?php
-		$comments_number = absint( get_comments_number() );
+		$comments_number = get_comments_number();
 		?>
 
 		<div class="comments-header section-inner small max-percentage">
@@ -32,7 +32,7 @@ if ( $comments ) {
 			<?php
 			if ( ! have_comments() ) {
 				_e( 'Leave a comment', 'twentytwenty' );
-			} elseif ( 1 === $comments_number ) {
+			} elseif ( '1' === $comments_number ) {
 				/* translators: %s: Post title. */
 				printf( _x( 'One reply on &ldquo;%s&rdquo;', 'comments title', 'twentytwenty' ), get_the_title() );
 			} else {
@@ -80,7 +80,7 @@ if ( $comments ) {
 				$pagination_classes = '';
 
 				// If we're only showing the "Next" link, add a class indicating so.
-				if ( false === strpos( $comment_pagination, 'prev page-numbers' ) ) {
+				if ( ! str_contains( $comment_pagination, 'prev page-numbers' ) ) {
 					$pagination_classes = ' only-next';
 				}
 				?>
