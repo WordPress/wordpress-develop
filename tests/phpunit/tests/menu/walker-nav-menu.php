@@ -428,7 +428,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @ticket 57278
 	 *
-	 * @covers Walker_Nav_Menu::build_atts()
+	 * @covers Walker_Nav_Menu::build_atts
 	 *
 	 * @dataProvider data_build_atts_should_build_attributes
 	 *
