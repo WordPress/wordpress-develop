@@ -2488,8 +2488,11 @@ function wp_enqueue_global_styles_custom_css() {
  * in the body to satisfy Safari's rendering quirks.
  *
  * @since 5.9.1
+ * @deprecated 6.3.0 SVG generation is handled on a per-block basis in block supports.
  */
 function wp_global_styles_render_svg_filters() {
+	_deprecated_function( __FUNCTION__, '6.3.0' );
+
 	/*
 	 * When calling via the in_admin_header action, we only want to render the
 	 * SVGs on block editor pages.
