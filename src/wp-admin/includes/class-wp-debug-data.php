@@ -243,6 +243,13 @@ class WP_Debug_Data {
 			$wp_environment_type = __( 'Undefined' );
 		}
 
+		// Check WP_DEVELOPMENT_MODE.
+		if ( defined( 'WP_DEVELOPMENT_MODE' ) && WP_DEVELOPMENT_MODE ) {
+			$wp_development_type = WP_DEVELOPMENT_MODE;
+		} else {
+			$wp_development_type = __( 'Undefined' );
+		}
+
 		$info['wp-constants'] = array(
 			'label'       => __( 'WordPress Constants' ),
 			'description' => __( 'These settings alter where and how parts of WordPress are loaded.' ),
@@ -322,6 +329,11 @@ class WP_Debug_Data {
 					'label' => 'WP_ENVIRONMENT_TYPE',
 					'value' => $wp_environment_type,
 					'debug' => $wp_environment_type,
+				),
+				'WP_DEVELOPMENT_MODE' => array(
+					'label' => 'WP_DEVELOPMENT_MODE',
+					'value' => $wp_development_type,
+					'debug' => $wp_development_type,
 				),
 				'DB_CHARSET'          => array(
 					'label' => 'DB_CHARSET',
