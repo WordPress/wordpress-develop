@@ -93,7 +93,7 @@ class Walker_Nav_Menu extends Walker {
 		$atts       = apply_filters( 'nav_menu_submenu_attributes', $atts, $args, $depth );
 		$attributes = $this->build_atts( $atts );
 
-		$output .= "{$n}{$indent}<ul$attributes>{$n}";
+		$output .= "{$n}{$indent}<ul{$attributes}>{$n}";
 	}
 
 	/**
