@@ -26,6 +26,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 *
 	 * @ticket 56467
 	 * @ticket 58549
+	 * @ticket 58590
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -178,6 +179,19 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 					'css'          => 'min-height:50vh;',
 					'declarations' => array(
 						'min-height' => '50vh',
+					),
+				),
+			),
+
+			'inline_valid_shadow_style'                    => array(
+				'block_styles'    => array(
+					'shadow' => 'inset 5em 1em gold',
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'box-shadow:inset 5em 1em gold;',
+					'declarations' => array(
+						'box-shadow' => 'inset 5em 1em gold',
 					),
 				),
 			),
