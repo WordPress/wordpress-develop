@@ -60,22 +60,20 @@
 	 * @returns {?SupportTests} Supports or null if not set.
 	 */
 	function getSessionSupports() {
-		var supports = {};
 		if (
 			typeof sessionStorage !== 'undefined' &&
 			sessionStorageKey in sessionStorage
 		) {
 			try {
-				supports = JSON.parse(
+				var supports = JSON.parse(
 					sessionStorage.getItem( sessionStorageKey )
 				);
+				if ( typeof supports === 'object' ) {
+					return supports;
+				}
 			} catch ( e ) {}
 		}
-		if ( typeof supports === 'object' ) {
-			return supports;
-		} else {
-			return null;
-		}
+		return null;
 	}
 
 	/**
