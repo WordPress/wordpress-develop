@@ -73,14 +73,12 @@ function wp_fix_server_vars() {
 	}
 
 	// Fix for PHP as CGI hosts that set SCRIPT_FILENAME to something ending in php.cgi for all requests.
-	if ( isset( $_SERVER['SCRIPT_FILENAME'] )
-		&& ( strpos( $_SERVER['SCRIPT_FILENAME'], 'php.cgi' ) === strlen( $_SERVER['SCRIPT_FILENAME'] ) - 7 )
-	) {
+	if ( isset( $_SERVER['SCRIPT_FILENAME'] ) && str_ends_with( $_SERVER['SCRIPT_FILENAME'], 'php.cgi' ) ) {
 		$_SERVER['SCRIPT_FILENAME'] = $_SERVER['PATH_TRANSLATED'];
 	}
 
 	// Fix for Dreamhost and other PHP as CGI hosts.
-	if ( isset( $_SERVER['SCRIPT_NAME'] ) && ( strpos( $_SERVER['SCRIPT_NAME'], 'php.cgi' ) !== false ) ) {
+	if ( isset( $_SERVER['SCRIPT_NAME'] ) && str_contains( $_SERVER['SCRIPT_NAME'], 'php.cgi' ) ) {
 		unset( $_SERVER['PATH_INFO'] );
 	}
 
@@ -261,6 +259,50 @@ function wp_get_environment_type() {
 	}
 
 	return $current_env;
+}
+
+/**
+ * Retrieves the current development mode.
+ *
+ * The development mode affects how certain parts of the WordPress application behave, which is relevant when
+ * developing for WordPress.
+ *
+ * Valid developer modes are 'core', 'plugin', 'theme', or an empty string to disable developer mode.
+ *
+ * Developer mode is considered separately from `WP_DEBUG` and {@see wp_get_environment_type()}. It does not affect
+ * debugging output, but rather functional nuances in WordPress.
+ *
+ * @since 6.3.0
+ *
+ * @return string The current development mode.
+ */
+function wp_get_development_mode() {
+	static $current_mode = null;
+
+	if ( ! defined( 'WP_RUN_CORE_TESTS' ) && null !== $current_mode ) {
+		return $current_mode;
+	}
+
+	$development_mode = WP_DEVELOPMENT_MODE;
+
+	// Exclusively for core tests, rely on a global `$_wp_tests_development_mode`.
+	if ( defined( 'WP_RUN_CORE_TESTS' ) && isset( $GLOBALS['_wp_tests_development_mode'] ) ) {
+		$development_mode = $GLOBALS['_wp_tests_development_mode'];
+	}
+
+	$valid_modes = array(
+		'core',
+		'plugin',
+		'theme',
+		'',
+	);
+	if ( ! in_array( $development_mode, $valid_modes, true ) ) {
+		$development_mode = '';
+	}
+
+	$current_mode = $development_mode;
+
+	return $current_mode;
 }
 
 /**
@@ -1507,11 +1549,11 @@ function wp_convert_hr_to_bytes( $value ) {
 	$value = strtolower( trim( $value ) );
 	$bytes = (int) $value;
 
-	if ( false !== strpos( $value, 'g' ) ) {
+	if ( str_contains( $value, 'g' ) ) {
 		$bytes *= GB_IN_BYTES;
-	} elseif ( false !== strpos( $value, 'm' ) ) {
+	} elseif ( str_contains( $value, 'm' ) ) {
 		$bytes *= MB_IN_BYTES;
-	} elseif ( false !== strpos( $value, 'k' ) ) {
+	} elseif ( str_contains( $value, 'k' ) ) {
 		$bytes *= KB_IN_BYTES;
 	}
 
@@ -1790,7 +1832,7 @@ function wp_is_xml_request() {
 
 	if ( isset( $_SERVER['HTTP_ACCEPT'] ) ) {
 		foreach ( $accepted as $type ) {
-			if ( false !== strpos( $_SERVER['HTTP_ACCEPT'], $type ) ) {
+			if ( str_contains( $_SERVER['HTTP_ACCEPT'], $type ) ) {
 				return true;
 			}
 		}
