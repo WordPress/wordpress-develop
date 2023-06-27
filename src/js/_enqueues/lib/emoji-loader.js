@@ -13,6 +13,14 @@
  */
 
 /**
+ * Support tests.
+ * @typedef SupportTests
+ * @type {object}
+ * @property {!boolean} flag
+ * @property {!boolean} emoji
+ */
+
+/**
  * IIFE to detect emoji support and load Twemoji if needed.
  *
  * @param {Window} window
@@ -43,7 +51,7 @@
 	/**
 	 * Get supports from session.
 	 *
-	 * @returns {object|null} Supports.
+	 * @returns {SupportTests|null} Supports.
 	 */
 	function getSessionSupports() {
 		var supports = {};
@@ -67,7 +75,7 @@
 	/**
 	 * Persist the supports in session storage.
 	 *
-	 * @param {object} supports Supports.
+	 * @param {SupportTests} supports Supports.
 	 */
 	function setSessionSupports( supports ) {
 		if ( typeof sessionStorage !== 'undefined' ) {
@@ -237,6 +245,8 @@
 	 * @private
 	 *
 	 * @param {string[]} tests Tests.
+	 *
+	 * @return {SupportTests} Support tests.
 	 */
 	function testEmojiSupports( tests ) {
 		var canvas;
