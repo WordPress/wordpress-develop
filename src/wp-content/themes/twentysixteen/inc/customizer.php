@@ -1203,7 +1203,8 @@ function twentysixteen_secondary_text_color_css() {
 		/* Custom Secondary Text Color */
 
 		/**
-		* Do not combine these styles with the next block.
+		 * IE8 and earlier will drop any block with CSS3 selectors.
+		 * Do not combine these styles with the next block.
 		 */
 		body:not(.search-results) .entry-summary {
 			color: %1$s;
