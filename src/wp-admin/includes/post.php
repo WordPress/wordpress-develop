@@ -169,6 +169,10 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 		}
 	}
 
+	if ( isset( $post_data['edit_date'] ) && 'false' === $post_data['edit_date'] ) {
+		$post_data['edit_date'] = false;
+	}
+
 	if ( ! empty( $post_data['edit_date'] ) ) {
 		$aa = $post_data['aa'];
 		$mm = $post_data['mm'];
@@ -1010,11 +1014,10 @@ function get_meta_keys() {
 	global $wpdb;
 
 	$keys = $wpdb->get_col(
-		"
-			SELECT meta_key
-			FROM $wpdb->postmeta
-			GROUP BY meta_key
-			ORDER BY meta_key"
+		"SELECT meta_key
+		FROM $wpdb->postmeta
+		GROUP BY meta_key
+		ORDER BY meta_key"
 	);
 
 	return $keys;
@@ -1126,7 +1129,7 @@ function _fix_attachment_links( $post ) {
 		$url_id = (int) $url_match[2];
 		$rel_id = (int) $rel_match[1];
 
-		if ( ! $url_id || ! $rel_id || $url_id != $rel_id || strpos( $url_match[0], $site_url ) === false ) {
+		if ( ! $url_id || ! $rel_id || $url_id != $rel_id || ! str_contains( $url_match[0], $site_url ) ) {
 			continue;
 		}
 
@@ -1516,7 +1519,7 @@ function get_sample_permalink_html( $post, $new_title = null, $new_slug = null )
 	}
 
 	// Permalinks without a post/page name placeholder don't have anything to edit.
-	if ( false === strpos( $permalink, '%postname%' ) && false === strpos( $permalink, '%pagename%' ) ) {
+	if ( ! str_contains( $permalink, '%postname%' ) && ! str_contains( $permalink, '%pagename%' ) ) {
 		$return = '<strong>' . __( 'Permalink:' ) . "</strong>\n";
 
 		if ( false !== $view_link ) {
@@ -1555,11 +1558,11 @@ function get_sample_permalink_html( $post, $new_title = null, $new_slug = null )
 	 * @since 2.9.0
 	 * @since 4.4.0 Added `$post` parameter.
 	 *
-	 * @param string  $return    Sample permalink HTML markup.
-	 * @param int     $post_id   Post ID.
-	 * @param string  $new_title New sample permalink title.
-	 * @param string  $new_slug  New sample permalink slug.
-	 * @param WP_Post $post      Post object.
+	 * @param string      $return    Sample permalink HTML markup.
+	 * @param int         $post_id   Post ID.
+	 * @param string|null $new_title New sample permalink title.
+	 * @param string|null $new_slug  New sample permalink slug.
+	 * @param WP_Post     $post      Post object.
 	 */
 	$return = apply_filters( 'get_sample_permalink_html', $return, $post->ID, $new_title, $new_slug, $post );
 
@@ -1756,7 +1759,7 @@ function _admin_notice_post_locked() {
 	}
 
 	$sendback = wp_get_referer();
-	if ( $locked && $sendback && false === strpos( $sendback, 'post.php' ) && false === strpos( $sendback, 'post-new.php' ) ) {
+	if ( $locked && $sendback && ! str_contains( $sendback, 'post.php' ) && ! str_contains( $sendback, 'post-new.php' ) ) {
 
 		$sendback_text = __( 'Go back' );
 	} else {
@@ -2178,6 +2181,7 @@ function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {
  * of a block relevant for client registration.
  *
  * @since 5.0.0
+ * @since 6.3.0 Added `selectors` field.
  *
  * @return array An associative array of registered block data.
  */
@@ -2192,6 +2196,7 @@ function get_block_editor_server_block_settings() {
 		'attributes'       => 'attributes',
 		'provides_context' => 'providesContext',
 		'uses_context'     => 'usesContext',
+		'selectors'        => 'selectors',
 		'supports'         => 'supports',
 		'category'         => 'category',
 		'styles'           => 'styles',
@@ -2436,7 +2441,7 @@ function the_block_editor_meta_box_post_form_hidden_fields( $post ) {
 	$classic_elements = wp_html_split( $classic_output );
 	$hidden_inputs    = '';
 	foreach ( $classic_elements as $element ) {
-		if ( 0 !== strpos( $element, '<input ' ) ) {
+		if ( ! str_starts_with( $element, '<input ' ) ) {
 			continue;
 		}
 

@@ -21,7 +21,7 @@
  *                              Valid values are 'all' (core, theme, and user) or 'base' (core and theme).
  *                              If empty or unknown, 'all' is used.
  * }
- * @return array The settings to retrieve.
+ * @return mixed The settings array or individual setting value to retrieve.
  */
 function wp_get_global_settings( $path = array(), $context = array() ) {
 	if ( ! empty( $context['block_name'] ) ) {
@@ -66,12 +66,10 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 	$cache_key   = 'wp_get_global_settings_' . $origin;
 
 	/*
-	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme
+	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
 	 * developer's workflow.
-	 *
-	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
 	 */
-	$can_use_cached = ! WP_DEBUG;
+	$can_use_cached = wp_get_development_mode() !== 'theme';
 
 	$settings = false;
 	if ( $can_use_cached ) {
@@ -92,6 +90,10 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
  * Gets the styles resulting of merging core, theme, and user data.
  *
  * @since 5.9.0
+ * @since 6.3.0 the internal link format "var:preset|color|secondary" is resolved
+ *              to "var(--wp--preset--font-size--small)" so consumers don't have to.
+ * @since 6.3.0 `transforms` is now usable in the `context` parameter. In case [`transforms`]['resolve_variables']
+ *              is defined, variables are resolved to their value in the styles.
  *
  * @param array $path    Path to the specific style to retrieve. Optional.
  *                       If empty, will return all styles.
@@ -103,8 +105,11 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
  *     @type string $origin     Which origin to take data from.
  *                              Valid values are 'all' (core, theme, and user) or 'base' (core and theme).
  *                              If empty or unknown, 'all' is used.
+ *     @type array $transforms Which transformation(s) to apply.
+ *                              Valid value is array( 'resolve-variables' ).
+ *                              If defined, variables are resolved to their value in the styles.
  * }
- * @return array The styles to retrieve.
+ * @return mixed The styles array or individual style value to retrieve.
  */
 function wp_get_global_styles( $path = array(), $context = array() ) {
 	if ( ! empty( $context['block_name'] ) ) {
@@ -116,10 +121,18 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
 		$origin = 'theme';
 	}
 
-	$styles = WP_Theme_JSON_Resolver::get_merged_data( $origin )->get_raw_data()['styles'];
+	$resolve_variables = isset( $context['transforms'] )
+	&& is_array( $context['transforms'] )
+	&& in_array( 'resolve-variables', $context['transforms'], true );
 
+	$merged_data = WP_Theme_JSON_Resolver::get_merged_data( $origin );
+	if ( $resolve_variables ) {
+		$merged_data = WP_Theme_JSON::resolve_variables( $merged_data );
+	}
+	$styles = $merged_data->get_raw_data()['styles'];
 	return _wp_array_get( $styles, $path, $styles );
 }
+
 
 /**
  * Returns the stylesheet resulting of merging core, theme, and user data.
@@ -136,12 +149,10 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
  */
 function wp_get_global_stylesheet( $types = array() ) {
 	/*
-	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme
+	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
 	 * developer's workflow.
-	 *
-	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
 	 */
-	$can_use_cached = empty( $types ) && ! WP_DEBUG;
+	$can_use_cached = empty( $types ) && wp_get_development_mode() !== 'theme';
 
 	/*
 	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
@@ -226,23 +237,21 @@ function wp_get_global_stylesheet( $types = array() ) {
 }
 
 /**
- * Gets the global styles custom css from theme.json.
+ * Gets the global styles custom CSS from theme.json.
  *
  * @since 6.2.0
  *
- * @return string Stylesheet.
+ * @return string The global styles custom CSS.
  */
 function wp_get_global_styles_custom_css() {
 	if ( ! wp_theme_has_theme_json() ) {
 		return '';
 	}
 	/*
-	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme
+	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
 	 * developer's workflow.
-	 *
-	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
 	 */
-	$can_use_cached = ! WP_DEBUG;
+	$can_use_cached = wp_get_development_mode() !== 'theme';
 
 	/*
 	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
@@ -288,12 +297,10 @@ function wp_get_global_styles_custom_css() {
  */
 function wp_get_global_styles_svg_filters() {
 	/*
-	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme
+	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
 	 * developer's workflow.
-	 *
-	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
 	 */
-	$can_use_cached = ! WP_DEBUG;
+	$can_use_cached = wp_get_development_mode() !== 'theme';
 	$cache_group    = 'theme_json';
 	$cache_key      = 'wp_get_global_styles_svg_filters';
 	if ( $can_use_cached ) {
@@ -355,8 +362,8 @@ function wp_add_global_styles_for_blocks() {
 			$result = array_values(
 				array_filter(
 					$metadata['path'],
-					function ( $item ) {
-						if ( strpos( $item, 'core/' ) !== false ) {
+					static function ( $item ) {
+						if ( str_contains( $item, 'core/' ) ) {
 							return true;
 						}
 						return false;
@@ -387,12 +394,10 @@ function wp_theme_has_theme_json() {
 	if (
 		null !== $theme_has_support &&
 		/*
-		 * Ignore static cache when `WP_DEBUG` is enabled. Why? To avoid interfering with
+		 * Ignore static cache when the development mode is set to 'theme', to avoid interfering with
 		 * the theme developer's workflow.
-		 *
-		 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
 		 */
-		! WP_DEBUG &&
+		wp_get_development_mode() !== 'theme' &&
 		/*
 		 * Ignore cache when automated test suites are running. Why? To ensure
 		 * the static cache is reset between each test.
@@ -403,12 +408,7 @@ function wp_theme_has_theme_json() {
 	}
 
 	// Does the theme have its own theme.json?
-	$theme_has_support = is_readable( get_stylesheet_directory() . '/theme.json' );
-
-	// Look up the parent if the child does not have a theme.json.
-	if ( ! $theme_has_support ) {
-		$theme_has_support = is_readable( get_template_directory() . '/theme.json' );
-	}
+	$theme_has_support = is_readable( get_theme_file_path( 'theme.json' ) );
 
 	return $theme_has_support;
 }
@@ -425,4 +425,121 @@ function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_global_settings_theme', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_styles_custom_css', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
+}
+
+/**
+ * Returns the current theme's wanted patterns (slugs) to be
+ * registered from Pattern Directory.
+ *
+ * @since 6.3.0
+ *
+ * @return string[]
+ */
+function wp_get_theme_directory_pattern_slugs() {
+	return WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_patterns();
+}
+
+/**
+ * Determines the CSS selector for the block type and property provided,
+ * returning it if available.
+ *
+ * @since 6.3.0
+ *
+ * @param WP_Block_Type $block_type The block's type.
+ * @param string|array  $target     The desired selector's target, `root` or array path.
+ * @param boolean       $fallback   Whether to fall back to broader selector.
+ *
+ * @return string|null CSS selector or `null` if no selector available.
+ */
+function wp_get_block_css_selector( $block_type, $target = 'root', $fallback = false ) {
+	if ( empty( $target ) ) {
+		return null;
+	}
+
+	$has_selectors = ! empty( $block_type->selectors );
+
+	// Root Selector.
+
+	// Calculated before returning as it can be used as fallback for
+	// feature selectors later on.
+	$root_selector = null;
+
+	if ( $has_selectors && isset( $block_type->selectors['root'] ) ) {
+		// Use the selectors API if available.
+		$root_selector = $block_type->selectors['root'];
+	} elseif ( isset( $block_type->supports['__experimentalSelector'] ) && is_string( $block_type->supports['__experimentalSelector'] ) ) {
+		// Use the old experimental selector supports property if set.
+		$root_selector = $block_type->supports['__experimentalSelector'];
+	} else {
+		// If no root selector found, generate default block class selector.
+		$block_name    = str_replace( '/', '-', str_replace( 'core/', '', $block_type->name ) );
+		$root_selector = ".wp-block-{$block_name}";
+	}
+
+	// Return selector if it's the root target we are looking for.
+	if ( 'root' === $target ) {
+		return $root_selector;
+	}
+
+	// If target is not `root` we have a feature or subfeature as the target.
+	// If the target is a string convert to an array.
+	if ( is_string( $target ) ) {
+		$target = explode( '.', $target );
+	}
+
+	// Feature Selectors ( May fallback to root selector ).
+	if ( 1 === count( $target ) ) {
+		$fallback_selector = $fallback ? $root_selector : null;
+
+		// Prefer the selectors API if available.
+		if ( $has_selectors ) {
+			// Look for selector under `feature.root`.
+			$path             = array_merge( $target, array( 'root' ) );
+			$feature_selector = _wp_array_get( $block_type->selectors, $path, null );
+
+			if ( $feature_selector ) {
+				return $feature_selector;
+			}
+
+			// Check if feature selector is set via shorthand.
+			$feature_selector = _wp_array_get( $block_type->selectors, $target, null );
+
+			return is_string( $feature_selector ) ? $feature_selector : $fallback_selector;
+		}
+
+		// Try getting old experimental supports selector value.
+		$path             = array_merge( $target, array( '__experimentalSelector' ) );
+		$feature_selector = _wp_array_get( $block_type->supports, $path, null );
+
+		// Nothing to work with, provide fallback or null.
+		if ( null === $feature_selector ) {
+			return $fallback_selector;
+		}
+
+		// Scope the feature selector by the block's root selector.
+		return WP_Theme_JSON::scope_selector( $root_selector, $feature_selector );
+	}
+
+	// Subfeature selector
+	// This may fallback either to parent feature or root selector.
+	$subfeature_selector = null;
+
+	// Use selectors API if available.
+	if ( $has_selectors ) {
+		$subfeature_selector = _wp_array_get( $block_type->selectors, $target, null );
+	}
+
+	// Only return if we have a subfeature selector.
+	if ( $subfeature_selector ) {
+		return $subfeature_selector;
+	}
+
+	// To this point we don't have a subfeature selector. If a fallback
+	// has been requested, remove subfeature from target path and return
+	// results of a call for the parent feature's selector.
+	if ( $fallback ) {
+		return wp_get_block_css_selector( $block_type, $target[0], $fallback );
+	}
+
+	return null;
 }

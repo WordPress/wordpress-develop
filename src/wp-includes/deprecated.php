@@ -889,7 +889,7 @@ function permalink_single_rss($deprecated = '') {
 function wp_get_links($args = '') {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_list_bookmarks()' );
 
-	if ( strpos( $args, '=' ) === false ) {
+	if ( ! str_contains( $args, '=' ) ) {
 		$cat_id = $args;
 		$args = add_query_arg( 'category', $cat_id, $args );
 	}
@@ -947,7 +947,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmarks()' );
 
 	$order = 'ASC';
-	if ( substr($orderby, 0, 1) == '_' ) {
+	if ( str_starts_with($orderby, '_') ) {
 		$order = 'DESC';
 		$orderby = substr($orderby, 1);
 	}
@@ -980,7 +980,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 		$title = $desc;
 
 		if ( $show_updated )
-			if (substr($row->link_updated_f, 0, 2) != '00')
+			if ( !str_starts_with($row->link_updated_f, '00') )
 				$title .= ' ('.__('Last updated') . ' ' . gmdate(get_option('links_updated_date_format'), $row->link_updated_f + (get_option('gmt_offset') * HOUR_IN_SECONDS)) . ')';
 
 		if ( '' != $title )
@@ -995,7 +995,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 		$output .= '<a href="' . $the_link . '"' . $rel . $title . $target. '>';
 
 		if ( $row->link_image != null && $show_images ) {
-			if ( strpos($row->link_image, 'http') !== false )
+			if ( str_contains( $row->link_image, 'http' ) )
 				$output .= "<img src=\"$row->link_image\" $alt $title />";
 			else // If it's a relative path.
 				$output .= "<img src=\"" . get_option('siteurl') . "$row->link_image\" $alt $title />";
@@ -1042,7 +1042,7 @@ function get_links_list($order = 'name') {
 
 	// Handle link category sorting.
 	$direction = 'ASC';
-	if ( '_' == substr($order,0,1) ) {
+	if ( str_starts_with( $order, '_' ) ) {
 		$direction = 'DESC';
 		$order = substr($order,1);
 	}
@@ -1739,7 +1739,7 @@ function make_url_footnote( $content ) {
 		$link_url = $matches[2][$i];
 		$link_text = $matches[4][$i];
 		$content = str_replace( $link_match, $link_text . ' ' . $link_number, $content );
-		$link_url = ( ( strtolower( substr( $link_url, 0, 7 ) ) != 'http://' ) && ( strtolower( substr( $link_url, 0, 8 ) ) != 'https://' ) ) ? get_option( 'home' ) . $link_url : $link_url;
+		$link_url = ( ( strtolower( substr( $link_url, 0, 7 ) ) !== 'http://' ) && ( strtolower( substr( $link_url, 0, 8 ) ) !== 'https://' ) ) ? get_option( 'home' ) . $link_url : $link_url;
 		$links_summary .= "\n" . $link_number . ' ' . $link_url;
 	}
 	$content  = strip_tags( $content );
@@ -2297,7 +2297,7 @@ function get_usermeta( $user_id, $meta_key = '' ) {
 
 	$metas = array_map('maybe_unserialize', $metas);
 
-	if ( count($metas) == 1 )
+	if ( count($metas) === 1 )
 		return $metas[0];
 	else
 		return $metas;
@@ -3916,7 +3916,7 @@ function _sort_nav_menu_items( $a, $b ) {
  *
  * @since 2.6.0
  * @deprecated 4.9.0
- *
+ * @return string
  */
 function get_shortcut_link() {
 	_deprecated_function( __FUNCTION__, '4.9.0' );
@@ -3935,11 +3935,11 @@ function get_shortcut_link() {
 }
 
 /**
-* Ajax handler for saving a post from Press This.
-*
-* @since 4.2.0
-* @deprecated 4.9.0
-*/
+ * Ajax handler for saving a post from Press This.
+ *
+ * @since 4.2.0
+ * @deprecated 4.9.0
+ */
 function wp_ajax_press_this_save_post() {
 	_deprecated_function( __FUNCTION__, '4.9.0' );
 	if ( is_plugin_active( 'press-this/press-this-plugin.php' ) ) {
@@ -3952,11 +3952,11 @@ function wp_ajax_press_this_save_post() {
 }
 
 /**
-* Ajax handler for creating new category from Press This.
-*
-* @since 4.2.0
-* @deprecated 4.9.0
-*/
+ * Ajax handler for creating new category from Press This.
+ *
+ * @since 4.2.0
+ * @deprecated 4.9.0
+ */
 function wp_ajax_press_this_add_category() {
 	_deprecated_function( __FUNCTION__, '4.9.0' );
 	if ( is_plugin_active( 'press-this/press-this-plugin.php' ) ) {
@@ -4446,15 +4446,15 @@ function _get_path_to_translation_from_lang_dir( $domain ) {
 }
 
 /**
-  * Allows multiple block styles.
-  *
-  * @since 5.9.0
-  * @deprecated 6.1.0
-  *
-  * @param array $metadata Metadata for registering a block type.
-  * @return array Metadata for registering a block type.
-  */
-  function _wp_multiple_block_styles( $metadata ) {
+ * Allows multiple block styles.
+ *
+ * @since 5.9.0
+ * @deprecated 6.1.0
+ *
+ * @param array $metadata Metadata for registering a block type.
+ * @return array Metadata for registering a block type.
+ */
+function _wp_multiple_block_styles( $metadata ) {
 	_deprecated_function( __FUNCTION__, '6.1.0' );
 	return $metadata;
 }
@@ -4484,7 +4484,7 @@ function wp_typography_get_css_variable_inline_style( $attributes, $feature, $cs
 	}
 
 	// If we don't have a preset CSS variable, we'll assume it's a regular CSS value.
-	if ( strpos( $style_value, "var:preset|{$css_property}|" ) === false ) {
+	if ( ! str_contains( $style_value, "var:preset|{$css_property}|" ) ) {
 		return sprintf( '%s:%s;', $css_property, $style_value );
 	}
 
@@ -4562,22 +4562,18 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 		$post_type           = esc_sql( $post_type );
 		$post_type_in_string = "'" . implode( "','", $post_type ) . "'";
 		$sql                 = $wpdb->prepare(
-			"
-			SELECT ID
+			"SELECT ID
 			FROM $wpdb->posts
 			WHERE post_title = %s
-			AND post_type IN ($post_type_in_string)
-		",
+			AND post_type IN ($post_type_in_string)",
 			$page_title
 		);
 	} else {
 		$sql = $wpdb->prepare(
-			"
-			SELECT ID
+			"SELECT ID
 			FROM $wpdb->posts
 			WHERE post_title = %s
-			AND post_type = %s
-		",
+			AND post_type = %s",
 			$page_title,
 			$post_type
 		);
@@ -4598,7 +4594,7 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
  * @access private
  * @since 6.0.0
  * @deprecated 6.2.0 Site Editor's server-side redirect for missing postType and postId
- *             		 query args is removed. Thus, this function is no longer used.
+ *                   query args is removed. Thus, this function is no longer used.
  *
  * @return array|null A template object, or null if none could be found.
  */
@@ -4626,4 +4622,185 @@ function _resolve_home_block_template() {
 			'postType' => 'wp_template',
 			'postId'   => $template->id,
 	);
+}
+
+/**
+ * Displays the link to the Windows Live Writer manifest file.
+ *
+ * @link https://msdn.microsoft.com/en-us/library/bb463265.aspx
+ * @since 2.3.1
+ * @deprecated 6.3.0 WLW manifest is no longer in use and no longer included in core,
+ *                   so the output from this function is removed.
+ */
+function wlwmanifest_link() {
+	_deprecated_function( __FUNCTION__, '6.3.0' );
+}
+
+/**
+ * Queues comments for metadata lazy-loading.
+ *
+ * @since 4.5.0
+ * @deprecated 6.3.0 Use wp_lazyload_comment_meta() instead.
+ *
+ * @param WP_Comment[] $comments Array of comment objects.
+ */
+function wp_queue_comments_for_comment_meta_lazyload( $comments ) {
+	_deprecated_function( __FUNCTION__, '6.3.0', 'wp_lazyload_comment_meta' );
+	// Don't use `wp_list_pluck()` to avoid by-reference manipulation.
+	$comment_ids = array();
+	if ( is_array( $comments ) ) {
+		foreach ( $comments as $comment ) {
+			if ( $comment instanceof WP_Comment ) {
+				$comment_ids[] = $comment->comment_ID;
+			}
+		}
+	}
+
+	wp_lazyload_comment_meta( $comment_ids );
+}
+
+/**
+ * Gets the default value to use for a `loading` attribute on an element.
+ *
+ * This function should only be called for a tag and context if lazy-loading is generally enabled.
+ *
+ * The function usually returns 'lazy', but uses certain heuristics to guess whether the current element is likely to
+ * appear above the fold, in which case it returns a boolean `false`, which will lead to the `loading` attribute being
+ * omitted on the element. The purpose of this refinement is to avoid lazy-loading elements that are within the initial
+ * viewport, which can have a negative performance impact.
+ *
+ * Under the hood, the function uses {@see wp_increase_content_media_count()} every time it is called for an element
+ * within the main content. If the element is the very first content element, the `loading` attribute will be omitted.
+ * This default threshold of 3 content elements to omit the `loading` attribute for can be customized using the
+ * {@see 'wp_omit_loading_attr_threshold'} filter.
+ *
+ * @since 5.9.0
+ * @deprecated 6.3.0 Use wp_get_loading_optimization_attributes() instead.
+ * @see wp_get_loading_optimization_attributes()
+ *
+ * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @param string $context Context for the element for which the `loading` attribute value is requested.
+ * @return string|bool The default `loading` attribute value. Either 'lazy', 'eager', or a boolean `false`, to indicate
+ *                     that the `loading` attribute should be skipped.
+ */
+function wp_get_loading_attr_default( $context ) {
+	_deprecated_function( __FUNCTION__, '6.3.0', 'wp_get_loading_optimization_attributes' );
+	global $wp_query;
+
+	// Skip lazy-loading for the overall block template, as it is handled more granularly.
+	if ( 'template' === $context ) {
+		return false;
+	}
+
+	/*
+	 * Do not lazy-load images in the header block template part, as they are likely above the fold.
+	 * For classic themes, this is handled in the condition below using the 'get_header' action.
+	 */
+	$header_area = WP_TEMPLATE_PART_AREA_HEADER;
+	if ( "template_part_{$header_area}" === $context ) {
+		return false;
+	}
+
+	// Special handling for programmatically created image tags.
+	if ( 'the_post_thumbnail' === $context || 'wp_get_attachment_image' === $context ) {
+		/*
+		 * Skip programmatically created images within post content as they need to be handled together with the other
+		 * images within the post content.
+		 * Without this clause, they would already be counted below which skews the number and can result in the first
+		 * post content image being lazy-loaded only because there are images elsewhere in the post content.
+		 */
+		if ( doing_filter( 'the_content' ) ) {
+			return false;
+		}
+
+		// Conditionally skip lazy-loading on images before the loop.
+		if (
+			// Only apply for main query but before the loop.
+			$wp_query->before_loop && $wp_query->is_main_query()
+			/*
+			 * Any image before the loop, but after the header has started should not be lazy-loaded,
+			 * except when the footer has already started which can happen when the current template
+			 * does not include any loop.
+			 */
+			&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
+		) {
+			return false;
+		}
+	}
+
+	/*
+	 * The first elements in 'the_content' or 'the_post_thumbnail' should not be lazy-loaded,
+	 * as they are likely above the fold.
+	 */
+	if ( 'the_content' === $context || 'the_post_thumbnail' === $context ) {
+		// Only elements within the main query loop have special handling.
+		if ( is_admin() || ! in_the_loop() || ! is_main_query() ) {
+			return 'lazy';
+		}
+
+		// Increase the counter since this is a main query content element.
+		$content_media_count = wp_increase_content_media_count();
+
+		// If the count so far is below the threshold, return `false` so that the `loading` attribute is omitted.
+		if ( $content_media_count <= wp_omit_loading_attr_threshold() ) {
+			return false;
+		}
+
+		// For elements after the threshold, lazy-load them as usual.
+		return 'lazy';
+	}
+
+	// Lazy-load by default for any unknown context.
+	return 'lazy';
+}
+
+/**
+ * Adds `loading` attribute to an `img` HTML tag.
+ *
+ * @since 5.5.0
+ * @deprecated 6.3.0 Use wp_img_tag_add_loading_optimization_attrs() instead.
+ * @see wp_img_tag_add_loading_optimization_attrs()
+ *
+ * @param string $image   The HTML `img` tag where the attribute should be added.
+ * @param string $context Additional context to pass to the filters.
+ * @return string Converted `img` tag with `loading` attribute added.
+ */
+function wp_img_tag_add_loading_attr( $image, $context ) {
+	_deprecated_function( __FUNCTION__, '6.3.0', 'wp_img_tag_add_loading_optimization_attrs' );
+	/*
+	 * Get loading attribute value to use. This must occur before the conditional check below so that even images that
+	 * are ineligible for being lazy-loaded are considered.
+	 */
+	$value = wp_get_loading_attr_default( $context );
+
+	// Images should have source and dimension attributes for the `loading` attribute to be added.
+	if ( ! str_contains( $image, ' src="' ) || ! str_contains( $image, ' width="' ) || ! str_contains( $image, ' height="' ) ) {
+		return $image;
+	}
+
+	/**
+	 * Filters the `loading` attribute value to add to an image. Default `lazy`.
+	 *
+	 * Returning `false` or an empty string will not add the attribute.
+	 * Returning `true` will add the default value.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param string|bool $value   The `loading` attribute value. Returning a falsey value will result in
+	 *                             the attribute being omitted for the image.
+	 * @param string      $image   The HTML `img` tag to be filtered.
+	 * @param string      $context Additional context about how the function was called or where the img tag is.
+	 */
+	$value = apply_filters( 'wp_img_tag_add_loading_attr', $value, $image, $context );
+
+	if ( $value ) {
+		if ( ! in_array( $value, array( 'lazy', 'eager' ), true ) ) {
+			$value = 'lazy';
+		}
+
+		return str_replace( '<img', '<img loading="' . esc_attr( $value ) . '"', $image );
+	}
+
+	return $image;
 }

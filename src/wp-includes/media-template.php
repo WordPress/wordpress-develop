@@ -8,7 +8,7 @@
  */
 
 /**
- * Outputs the markup for a audio tag to be used in an Underscore template
+ * Outputs the markup for an audio tag to be used in an Underscore template
  * when data.model is passed.
  *
  * @since 3.9.0
@@ -373,6 +373,11 @@ function wp_print_media_templates() {
 	<?php // Template for the Attachment Details two columns layout. ?>
 	<script type="text/html" id="tmpl-attachment-details-two-column">
 		<div class="attachment-media-view {{ data.orientation }}">
+			<?php
+			if ( isset( $_GET['error'] ) && 'deprecated' === $_GET['error'] ) {
+				echo '<div id="message" class="error notice"><p>' . __( 'The Edit Media screen is deprecated as of WordPress 6.3. Please use the Media Library instead.' ) . '</p></div>';
+			}
+			?>
 			<h2 class="screen-reader-text"><?php /* translators: Hidden accessibility text. */ _e( 'Attachment Preview' ); ?></h2>
 			<div class="thumbnail thumbnail-{{ data.type }}">
 				<# if ( data.uploading ) { #>

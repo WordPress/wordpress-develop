@@ -39,7 +39,7 @@ if ( $action ) {
 		case 'enable':
 			check_admin_referer( 'enable-theme_' . $_GET['theme'] );
 			WP_Theme::network_enable_theme( $_GET['theme'] );
-			if ( false === strpos( $referer, '/network/themes.php' ) ) {
+			if ( ! str_contains( $referer, '/network/themes.php' ) ) {
 				wp_redirect( network_admin_url( 'themes.php?enabled=1' ) );
 			} else {
 				wp_safe_redirect( add_query_arg( 'enabled', 1, $referer ) );
@@ -375,7 +375,7 @@ if ( isset( $_GET['enabled'] ) ) {
 		/* translators: %s: Number of themes. */
 		$message = _n( '%s theme enabled.', '%s themes enabled.', $enabled );
 	}
-	echo '<div id="message" class="notice notice-updated is-dismissible"><p>' . sprintf( $message, number_format_i18n( $enabled ) ) . '</p></div>';
+	echo '<div id="message" class="notice notice-success is-dismissible"><p>' . sprintf( $message, number_format_i18n( $enabled ) ) . '</p></div>';
 } elseif ( isset( $_GET['disabled'] ) ) {
 	$disabled = absint( $_GET['disabled'] );
 	if ( 1 === $disabled ) {
@@ -384,7 +384,7 @@ if ( isset( $_GET['enabled'] ) ) {
 		/* translators: %s: Number of themes. */
 		$message = _n( '%s theme disabled.', '%s themes disabled.', $disabled );
 	}
-	echo '<div id="message" class="notice notice-updated is-dismissible"><p>' . sprintf( $message, number_format_i18n( $disabled ) ) . '</p></div>';
+	echo '<div id="message" class="notice notice-success is-dismissible"><p>' . sprintf( $message, number_format_i18n( $disabled ) ) . '</p></div>';
 } elseif ( isset( $_GET['deleted'] ) ) {
 	$deleted = absint( $_GET['deleted'] );
 	if ( 1 === $deleted ) {

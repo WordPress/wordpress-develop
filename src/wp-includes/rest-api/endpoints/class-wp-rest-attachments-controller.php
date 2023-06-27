@@ -1123,7 +1123,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		foreach ( $disposition_header as $value ) {
 			$value = trim( $value );
 
-			if ( strpos( $value, ';' ) === false ) {
+			if ( ! str_contains( $value, ';' ) ) {
 				continue;
 			}
 
@@ -1133,7 +1133,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$attributes = array();
 
 			foreach ( $attr_parts as $part ) {
-				if ( strpos( $part, '=' ) === false ) {
+				if ( ! str_contains( $part, '=' ) ) {
 					continue;
 				}
 
@@ -1149,7 +1149,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$filename = trim( $attributes['filename'] );
 
 			// Unquote quoted filename, but after trimming.
-			if ( substr( $filename, 0, 1 ) === '"' && substr( $filename, -1, 1 ) === '"' ) {
+			if ( str_starts_with( $filename, '"' ) && str_ends_with( $filename, '"' ) ) {
 				$filename = substr( $filename, 1, -1 );
 			}
 		}

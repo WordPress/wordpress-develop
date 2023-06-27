@@ -353,7 +353,8 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 	exit;
 }
 
-require_once ABSPATH . 'wp-admin/admin-header.php'; ?>
+require_once ABSPATH . 'wp-admin/admin-header.php';
+?>
 
 <div class="wrap">
 	<h1><?php esc_html_e( 'All Settings' ); ?></h1>
@@ -399,7 +400,7 @@ foreach ( (array) $options as $option ) :
 <tr>
 	<th scope="row"><label for="<?php echo $name; ?>"><?php echo esc_html( $option->option_name ); ?></label></th>
 <td>
-	<?php if ( strpos( $value, "\n" ) !== false ) : ?>
+	<?php if ( str_contains( $value, "\n" ) ) : ?>
 		<textarea class="<?php echo $class; ?>" name="<?php echo $name; ?>" id="<?php echo $name; ?>" cols="30" rows="5"><?php echo esc_textarea( $value ); ?></textarea>
 	<?php else : ?>
 		<input class="regular-text <?php echo $class; ?>" type="text" name="<?php echo $name; ?>" id="<?php echo $name; ?>" value="<?php echo esc_attr( $value ); ?>"<?php disabled( $disabled, true ); ?> />

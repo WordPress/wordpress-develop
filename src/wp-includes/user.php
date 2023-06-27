@@ -986,10 +986,10 @@ function get_blogs_of_user( $user_id, $all = false ) {
 	$keys = array_keys( $keys );
 
 	foreach ( $keys as $key ) {
-		if ( 'capabilities' !== substr( $key, -12 ) ) {
+		if ( ! str_ends_with( $key, 'capabilities' ) ) {
 			continue;
 		}
-		if ( $wpdb->base_prefix && 0 !== strpos( $key, $wpdb->base_prefix ) ) {
+		if ( $wpdb->base_prefix && ! str_starts_with( $key, $wpdb->base_prefix ) ) {
 			continue;
 		}
 		$site_id = str_replace( array( $wpdb->base_prefix, '_capabilities' ), '', $key );
@@ -1004,9 +1004,8 @@ function get_blogs_of_user( $user_id, $all = false ) {
 
 	if ( ! empty( $site_ids ) ) {
 		$args = array(
-			'number'                 => '',
-			'site__in'               => $site_ids,
-			'update_site_meta_cache' => false,
+			'number'   => '',
+			'site__in' => $site_ids,
 		);
 		if ( ! $all ) {
 			$args['archived'] = 0;
@@ -1766,7 +1765,7 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
 		return $value;
 	}
 
-	$prefixed = false !== strpos( $field, 'user_' );
+	$prefixed = str_contains( $field, 'user_' );
 
 	if ( 'edit' === $context ) {
 		if ( $prefixed ) {
@@ -1907,6 +1906,7 @@ function clean_user_cache( $user ) {
 	}
 
 	wp_cache_delete( $user->ID, 'user_meta' );
+	wp_cache_set_users_last_changed();
 
 	/**
 	 * Fires immediately after the given user's cache is cleaned.
@@ -2030,7 +2030,8 @@ function validate_username( $username ) {
  *     An array, object, or WP_User object of user data arguments.
  *
  *     @type int    $ID                   User ID. If supplied, the user will be updated.
- *     @type string $user_pass            The plain-text user password.
+ *     @type string $user_pass            The plain-text user password for new users.
+ *                                        Hashed password for existing users.
  *     @type string $user_login           The user's login username.
  *     @type string $user_nicename        The URL-friendly user name.
  *     @type string $user_url             The user URL.
@@ -2520,6 +2521,8 @@ function wp_update_user( $userdata ) {
 		$userdata = $userdata->to_array();
 	}
 
+	$userdata_raw = $userdata;
+
 	$user_id = isset( $userdata['ID'] ) ? (int) $userdata['ID'] : 0;
 	if ( ! $user_id ) {
 		return new WP_Error( 'invalid_user_id', __( 'Invalid user ID.' ) );
@@ -2733,6 +2736,17 @@ All at ###SITENAME###
 			wp_set_auth_cookie( $user_id, $remember );
 		}
 	}
+
+	/**
+	 * Fires after the user has been updated and emails have been sent.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param int   $user_id      The ID of the user that was just updated.
+	 * @param array $userdata     The array of user data that was updated.
+	 * @param array $userdata_raw The unedited array of user data that was updated.
+	 */
+	do_action( 'wp_update_user', $user_id, $userdata, $userdata_raw );
 
 	return $user_id;
 }
@@ -2989,7 +3003,7 @@ function check_password_reset_key( $key, $login ) {
 	 */
 	$expiration_duration = apply_filters( 'password_reset_expiration', DAY_IN_SECONDS );
 
-	if ( false !== strpos( $user->user_activation_key, ':' ) ) {
+	if ( str_contains( $user->user_activation_key, ':' ) ) {
 		list( $pass_request_time, $pass_key ) = explode( ':', $user->user_activation_key, 2 );
 		$expiration_time                      = $pass_request_time + $expiration_duration;
 	} else {
@@ -3545,12 +3559,10 @@ function wp_get_users_with_no_role( $site_id = null ) {
 	$regex = preg_replace( '/[^a-zA-Z_\|-]/', '', $regex );
 	$users = $wpdb->get_col(
 		$wpdb->prepare(
-			"
-		SELECT user_id
-		FROM $wpdb->usermeta
-		WHERE meta_key = '{$prefix}capabilities'
-		AND meta_value NOT REGEXP %s
-	",
+			"SELECT user_id
+			FROM $wpdb->usermeta
+			WHERE meta_key = '{$prefix}capabilities'
+			AND meta_value NOT REGEXP %s",
 			$regex
 		)
 	);
@@ -5015,4 +5027,13 @@ function wp_register_persisted_preferences_meta() {
 			),
 		)
 	);
+}
+
+/**
+ * Sets the last changed time for the 'users' cache group.
+ *
+ * @since 6.3.0
+ */
+function wp_cache_set_users_last_changed() {
+	wp_cache_set_last_changed( 'users' );
 }

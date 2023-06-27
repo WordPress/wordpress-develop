@@ -102,7 +102,7 @@ if ( isset( $_GET['action'] ) ) {
 			header( 'Content-Type: text/html; charset=utf-8' );
 		}
 
-		if ( get_network()->site_id == $id ) {
+		if ( is_main_site( $id ) ) {
 			wp_die( __( 'Sorry, you are not allowed to change the current site.' ) );
 		}
 
@@ -142,7 +142,7 @@ if ( isset( $_GET['action'] ) ) {
 			}
 
 			$updated_action = 'not_deleted';
-			if ( '0' != $id && get_network()->site_id != $id && current_user_can( 'delete_site', $id ) ) {
+			if ( 0 !== $id && ! is_main_site( $id ) && current_user_can( 'delete_site', $id ) ) {
 				wpmu_delete_blog( $id, true );
 				$updated_action = 'delete';
 			}
@@ -154,7 +154,7 @@ if ( isset( $_GET['action'] ) ) {
 			foreach ( (array) $_POST['site_ids'] as $site_id ) {
 				$site_id = (int) $site_id;
 
-				if ( get_network()->site_id == $site_id ) {
+				if ( is_main_site( $site_id ) ) {
 					continue;
 				}
 
@@ -181,8 +181,10 @@ if ( isset( $_GET['action'] ) ) {
 			if ( isset( $_POST['action'] ) && isset( $_POST['allblogs'] ) ) {
 				$doaction = $_POST['action'];
 
-				foreach ( (array) $_POST['allblogs'] as $key => $val ) {
-					if ( '0' != $val && get_network()->site_id != $val ) {
+				foreach ( (array) $_POST['allblogs'] as $site_id ) {
+					$site_id = (int) $site_id;
+
+					if ( 0 !== $site_id && ! is_main_site( $site_id ) ) {
 						switch ( $doaction ) {
 							case 'delete':
 								require_once ABSPATH . 'wp-admin/admin-header.php';
@@ -197,12 +199,14 @@ if ( isset( $_GET['action'] ) ) {
 										<ul class="ul-disc">
 											<?php
 											foreach ( $_POST['allblogs'] as $site_id ) :
+												$site_id = (int) $site_id;
+
 												$site         = get_site( $site_id );
 												$site_address = untrailingslashit( $site->domain . $site->path );
 												?>
 												<li>
 													<?php echo $site_address; ?>
-													<input type="hidden" name="site_ids[]" value="<?php echo (int) $site_id; ?>" />
+													<input type="hidden" name="site_ids[]" value="<?php echo esc_attr( $site_id ); ?>" />
 												</li>
 											<?php endforeach; ?>
 										</ul>
@@ -217,7 +221,7 @@ if ( isset( $_GET['action'] ) ) {
 							case 'spam':
 							case 'notspam':
 								$updated_action = ( 'spam' === $doaction ) ? 'all_spam' : 'all_notspam';
-								update_blog_status( $val, 'spam', ( 'spam' === $doaction ) ? '1' : '0' );
+								update_blog_status( $site_id, 'spam', ( 'spam' === $doaction ) ? '1' : '0' );
 								break;
 						}
 					} else {
