@@ -4040,7 +4040,8 @@ EOF;
 			'post-thumbnail',
 			array(
 				'loading'       => false,
-				'fetchpriority' => 'high',
+				'style'         => 'object-fit:cover;',
+				'fetchpriority' => 'high', 
 			)
 		) . '</figure>';
 
