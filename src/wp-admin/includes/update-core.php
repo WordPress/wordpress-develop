@@ -1140,7 +1140,7 @@ function update_core( $from, $to ) {
 	$php_version       = PHP_VERSION;
 	$mysql_version     = $wpdb->db_version();
 	$old_wp_version    = $GLOBALS['wp_version']; // The version of WordPress we're updating from.
-	$development_build = ( str_contains( $old_wp_version . $wp_version, '-' ) ); // A dash in the version indicates a development release.
+	$development_build = ( false !== strpos( $old_wp_version . $wp_version, '-' ) ); // A dash in the version indicates a development release.
 	$php_compat        = version_compare( $php_version, $required_php_version, '>=' );
 
 	if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
@@ -1242,7 +1242,7 @@ function update_core( $from, $to ) {
 
 		if ( is_array( $checksums ) ) {
 			foreach ( $checksums as $file => $checksum ) {
-				if ( str_starts_with( $file, 'wp-content' ) ) {
+				if ( 'wp-content' === substr( $file, 0, 10 ) ) {
 					continue;
 				}
 
@@ -1349,7 +1349,7 @@ function update_core( $from, $to ) {
 
 	if ( isset( $checksums ) && is_array( $checksums ) ) {
 		foreach ( $checksums as $file => $checksum ) {
-			if ( str_starts_with( $file, 'wp-content' ) ) {
+			if ( 'wp-content' === substr( $file, 0, 10 ) ) {
 				continue;
 			}
 
@@ -1764,7 +1764,7 @@ function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 	$files     = array();
 
 	if ( file_exists( "{$directory}example.html" )
-		&& str_contains( file_get_contents( "{$directory}example.html" ), '<title>Genericons</title>' )
+		&& false !== strpos( file_get_contents( "{$directory}example.html" ), '<title>Genericons</title>' )
 	) {
 		$files[] = "{$directory}example.html";
 	}
@@ -1774,7 +1774,7 @@ function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 		$dirs,
 		static function( $dir ) {
 			// Skip any node_modules directories.
-			return ! str_contains( $dir, 'node_modules' );
+			return false === strpos( $dir, 'node_modules' );
 		}
 	);
 
