@@ -70,7 +70,7 @@
 	 *
 	 * @private
 	 *
-	 * @returns {?SupportTests} Support tests, or null if not set or older than 1 day.
+	 * @returns {?SupportTests} Support tests, or null if not set or older than 1 week.
 	 */
 	function getSessionSupportTests() {
 		if (
@@ -85,7 +85,7 @@
 				if (
 					typeof item === 'object' &&
 					typeof item.timestamp === 'number' &&
-					new Date().valueOf() < item.timestamp + 86400 &&
+					new Date().valueOf() < item.timestamp + 604800 && // Note: Number is a week in seconds.
 					typeof item.supportTests === 'object'
 				) {
 					return item.supportTests;
