@@ -408,7 +408,7 @@ function wp_theme_has_theme_json() {
 	}
 
 	// Does the theme have its own theme.json?
-	$theme_has_support = is_readable( get_theme_file_path( 'theme.json' ) );
+	$theme_has_support = is_readable( wp_get_theme()->get_file_path( 'theme.json' ) );
 
 	return $theme_has_support;
 }
