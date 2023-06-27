@@ -1021,7 +1021,7 @@ if ( current_user_can( 'update_themes' ) || current_user_can( 'update_plugins' )
 	get_current_screen()->add_help_tab(
 		array(
 			'id'      => 'rollback-plugins-themes',
-			'title'   => __( 'Rollback' ),
+			'title'   => __( 'Restore Plugin or Theme' ),
 			'content' => $rollback_help,
 		)
 	);
