@@ -1556,7 +1556,7 @@ final class WP_Theme implements ArrayAccess {
 			$path = $template_directory . '/' . $file;
 		}
 
-		/** This filter is documented in wp-includes/link-template.php */
+		/** This filter is documented in wp-includes/theme.php */
 		return apply_filters( 'theme_file_path', $path, $file );
 	}
 
