@@ -2313,10 +2313,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 				'type'          => 'boolean',
 				'default'       => false,
 				'show_in_rest'  => true,
-				'auth_callback' => static function() {
-					// No user has permissions to update this field.
-					return false;
-				},
+				'auth_callback' => '__return_false'
 			)
 		);
 
