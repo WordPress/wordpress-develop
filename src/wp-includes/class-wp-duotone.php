@@ -35,7 +35,7 @@
 /**
  * Manages duotone block supports and global styles.
  *
- * @access public
+ * @access private
  */
 class WP_Duotone {
 	/**
