@@ -1467,7 +1467,11 @@ module.exports = function(grunt) {
 		} );
 		grunt.file.write(
 			SOURCE_DIR + 'wp-includes/blocks/blocks-json.php',
-			'<?php return ' + json2php( blocks ) + ';'
+			'<?php return ' + json2php.make( {
+				linebreak: '\n',
+				indent: '  ',
+				shortArraySyntax: false
+			} )( blocks ) + ';'
 		);
 	} );
 
