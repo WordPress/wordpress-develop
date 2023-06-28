@@ -118,6 +118,20 @@ function wp_apply_colors_support( $block_type, $block_attributes ) {
 
 	return $attributes;
 }
+/**
+ * Temporary wrapper for wp_register_colors_support.
+ * 
+ * @since 6.3.0
+ * @access private
+ *
+ * @param  WP_Block_Type $block_type       Block type.
+ * @param  array         $block_attributes Block attributes.
+ *
+ * @return array Colors CSS classes and inline styles.
+ */
+function gutenberg_apply_colors_support( $block_type, $block_attributes ) {
+	return wp_register_colors_support( $block_type, $block_attributes );
+}
 
 // Register the block support.
 WP_Block_Supports::get_instance()->register(
