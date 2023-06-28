@@ -27,17 +27,15 @@ describe( 'Edit Posts', () => {
 
 		await page.waitForSelector( '#the-list .type-post' );
 
-		// Wait for the editor iframe to load, and switch to it as the active content frame.
-		const editorFrame = await page.waitForSelector( 'iframe[name="editor-canvas"]' );
+		// Expect there to be one row in the post list.
+		const posts = await page.$$( '#the-list .type-post' );
+		expect( posts.length ).toBe( 1 );
 
-		const innerFrame = await editorFrame.contentFrame();
+		const [ firstPost ] = posts;
 
-		// Wait for title field to render onscreen.
-		await innerFrame.waitForSelector( '.editor-post-title__input' );
-
-		// Expect to now be in the editor with the correct post title shown.
-		const editorPostTitleInput = await innerFrame.$x(
-			`//h1[contains(@class, "editor-post-title__input")][contains(text(), "${ title }")]`
+		// Expect the title of the post to be correct.
+		const postTitle = await firstPost.$x(
+			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
 		);
 		expect( postTitle.length ).toBe( 1 );
 	} );
@@ -56,14 +54,16 @@ describe( 'Edit Posts', () => {
 		);
 		await editLink.click();
 
-		// Edit the post.
-		await page.waitForNavigation();
+		// Wait for the editor iframe to load, and switch to it as the active content frame.
+		const editorFrame = await page.waitForSelector( 'iframe[name="editor-canvas"]' );
+
+		const innerFrame = await editorFrame.contentFrame();
 
 		// Wait for title field to render onscreen.
-		await page.waitForSelector( '.editor-post-title__input' );
+		await innerFrame.waitForSelector( '.editor-post-title__input' );
 
 		// Expect to now be in the editor with the correct post title shown.
-		const editorPostTitleInput = await page.$x(
+		const editorPostTitleInput = await innerFrame.$x(
 			`//h1[contains(@class, "editor-post-title__input")][contains(text(), "${ title }")]`
 		);
 		expect( editorPostTitleInput.length ).toBe( 1 );
