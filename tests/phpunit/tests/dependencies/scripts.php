@@ -2932,6 +2932,21 @@ HTML
 	}
 
 	/**
+	 * Ensure tinymce scripts aren't loading async.
+	 *
+	 * @ticket 58648
+	 */
+	public function test_printing_tinymce_scripts() {
+		global $wp_scripts;
+
+		wp_register_tinymce_scripts( $wp_scripts, true );
+
+		$actual = get_echo( 'wp_print_scripts', array( array( 'wp-tinymce' ) ) );
+
+		$this->assertStringNotContainsString( 'async', $actual );
+	}
+
+	/**
 	 * Parse an HTML markup fragment.
 	 *
 	 * @param string $markup Markup.
