@@ -228,8 +228,8 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		$style_path = ( 'editorStyle' === $field_name ) ? "editor{$suffix}.css" : "style{$suffix}.css";
 	}
 
-	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
-	$has_style_file  = '' !== $style_path_norm;
+	$style_relative_path = dirname( $metadata['file'] ) . '/' . $style_path;
+	$has_style_file      = file_exists( $style_relative_path );
 
 	if ( $has_style_file ) {
 		$style_uri = plugins_url( $style_path, $metadata['file'] );
@@ -239,8 +239,8 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		if ( ! $theme_path_norm ) {
 			$theme_path_norm = wp_normalize_path( get_theme_file_path() );
 		}
-
-		$is_theme_block = str_starts_with( $style_path_norm, $theme_path_norm );
+		$style_path_norm = wp_normalize_path( realpath( $style_relative_path ) );
+		$is_theme_block  = str_starts_with( $style_path_norm, $theme_path_norm );
 
 		if ( $is_theme_block ) {
 			$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
