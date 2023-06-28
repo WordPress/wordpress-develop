@@ -288,6 +288,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 						$attachment->post_title = $tmpfname_disposition[0];
 					}
 				}
+			} else {
+				$attachment->post_title = preg_replace( '/\.[^.]+$/', '', wp_basename( $file ) );
 			}
 		}
 
