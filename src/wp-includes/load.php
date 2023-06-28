@@ -166,7 +166,7 @@ function wp_check_php_mysql_versions() {
 	$wp_content_dir = defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR : 'wp-content';
 
 	if ( ! function_exists( 'mysqli_connect' ) && ! function_exists( 'mysql_connect' )
-		&& ! file_exists( ABSPATH . $wp_content_dir . '/db.php' ) )
+		&& ! file_exists( ABSPATH . $wp_content_dir . '/db.php' )
 	) {
 		require_once ABSPATH . WPINC . '/functions.php';
 		wp_load_translations_early();
