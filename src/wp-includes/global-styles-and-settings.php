@@ -407,6 +407,7 @@ function wp_theme_has_theme_json() {
 		return $theme_has_support;
 	}
 
+	// This is the same as get_theme_file_path(), which isn't available in load-styles.php context
 	if ( file_exists( get_stylesheet_directory() . '/theme.json' ) ) {
 		$path = get_stylesheet_directory() . '/theme.json';
 	} else {
