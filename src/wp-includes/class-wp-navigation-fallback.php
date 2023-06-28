@@ -71,7 +71,7 @@ class WP_Navigation_Fallback {
 
 		$navigation_post = new WP_Query( $parsed_args );
 
-		if ( count( $navigation_post->posts ) > 0 ) {
+		if ( $navigation_post->found_posts > 0 ) {
 			return $navigation_post->posts[0];
 		}
 
