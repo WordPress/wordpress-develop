@@ -2210,6 +2210,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		rest_get_server()->serve_request( '/test-exposed-cors-headers' );
 
 		$this->assertCount( 1, $mock_hook->get_events() );
+		$this->assertCount( 2, $mock_hook->get_events()[0]['args'] );
 		$this->assertInstanceOf( 'WP_REST_Request', $mock_hook->get_events()[0]['args'][1] );
 		$this->assertSame( '/test-exposed-cors-headers', $mock_hook->get_events()[0]['args'][1]->get_route() );
 	}
@@ -2224,6 +2225,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		rest_get_server()->serve_request( '/test-allowed-cors-headers' );
 
 		$this->assertCount( 1, $mock_hook->get_events() );
+		$this->assertCount( 2, $mock_hook->get_events()[0]['args'] );
 		$this->assertInstanceOf( 'WP_REST_Request', $mock_hook->get_events()[0]['args'][1] );
 		$this->assertSame( '/test-allowed-cors-headers', $mock_hook->get_events()[0]['args'][1]->get_route() );
 	}
