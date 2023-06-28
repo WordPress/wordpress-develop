@@ -319,6 +319,31 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `bulk_edit_posts()` fires the 'bulk_edit_posts' action.
+	 *
+	 * @ticket 28112
+	 *
+	 * @covers ::bulk_edit_posts
+	 */
+	public function test_bulk_edit_posts_should_fire_bulk_edit_posts_action() {
+		wp_set_current_user( self::$admin_id );
+
+		$action = new MockAction();
+		add_action( 'bulk_edit_posts', array( $action, 'action' ) );
+
+		bulk_edit_posts(
+			array(
+				'post'      => self::$post_id,
+				'post_type' => 'post',
+				'_status'   => 1,
+
+			)
+		);
+
+		$this->assertSame( 1, $action->get_call_count() );
+	}
+
+	/**
 	 * @ticket 38293
 	 */
 	public function test_user_cant_delete_protected_meta() {
