@@ -378,7 +378,7 @@ function _register_theme_block_patterns() {
 	foreach ( $themes as $theme ) {
 		$dirpath = $theme->get_stylesheet_directory() . '/patterns/';
 
-		if ( ! file_exists( $dirpath ) ) {
+		if ( ! is_readable( $dirpath ) ) {
 			continue;
 		} else {
 			$files = glob( $dirpath . '*.php' );
