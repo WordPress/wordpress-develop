@@ -407,24 +407,21 @@ function wp_theme_has_theme_json() {
 		return $theme_has_support;
 	}
 
-	$stylesheet_directory = get_stylesheet_directory();
-	$template_directory   = get_template_directory();
-	$directories          = array( $stylesheet_directory );
-	if ( $stylesheet_directory !== $template_directory ) {
-		$directories[] = $template_directory;
+	if ( file_exists( get_stylesheet_directory() . '/theme.json' ) ) {
+		$path = get_stylesheet_directory() . '/theme.json';
+	} else {
+		$path = get_template_directory() . '/theme.json';
 	}
-
-	$theme_has_support = false;
-	foreach ( $directories as $directory ) {
-		/** This filter is documented in wp-includes/link-template.php */
-		$file_path = apply_filters( 'theme_file_path', $directory . '/theme.json', 'theme.json' );
-		// Does the theme have its own theme.json?
-		$theme_has_support = is_readable( $file_path );
-		if ( $theme_has_support ) {
-			break;
-		}
+	
+	/** This filter is documented in wp-includes/link-template.php */
+	$path = apply_filters( 'theme_file_path', $path, 'theme.json' );
+	
+	if ( file_exists( $path ) ) {
+		$theme_has_support = true;
+	} else {
+		$theme_has_support = false;
 	}
-
+	
 	return $theme_has_support;
 }
 
