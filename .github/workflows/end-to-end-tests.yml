@@ -56,6 +56,10 @@ jobs:
       contents: read
     timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        script_debug: [ true, false ]
 
     steps:
       - name: Configure environment variables
@@ -106,6 +110,9 @@ jobs:
 
       - name: Install WordPress
         run: npm run env:install
+
+      - name: Set SCRIPT_DEBUG constant
+        run: docker-compose run --rm cli config set SCRIPT_DEBUG ${{ matrix.script_debug }} --raw --type=constant
 
       - name: Run E2E tests
         run: npm run test:e2e
