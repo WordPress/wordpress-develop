@@ -1931,11 +1931,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( rest_is_field_included( 'meta', $fields ) && 'wp_block' !== $this->post_type ) {
+		if ( rest_is_field_included( 'meta', $fields )) {
 			$data['meta'] = $this->meta->get_value( $post->ID, $request );
 		}
 
 		if ( 'wp_block' === $this->post_type ) {
+			unset($data['meta']['sync_status']);
 			$wp_block_meta = $this->meta->get_value( $post->ID, $request );
 			$data['sync_status'] = $wp_block_meta['sync_status'];
 		}
