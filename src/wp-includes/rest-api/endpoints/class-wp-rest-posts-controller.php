@@ -1931,10 +1931,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( rest_is_field_included( 'meta', $fields ) ) {
+		if ( rest_is_field_included( 'meta', $fields ) && 'wp_block' !== $this->post_type ) {
 			$data['meta'] = $this->meta->get_value( $post->ID, $request );
 		}
 
+		if ( 'wp_block' === $this->post_type ) {
+			$wp_block_meta = $this->meta->get_value( $post->ID, $request );
+			$data['sync_status'] = $wp_block_meta['sync_status'];
+		}
+		
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
 
 		foreach ( $taxonomies as $taxonomy ) {
