@@ -5578,15 +5578,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * It is here to avoid duplicate logic in many places below, without having
 	 * to introduce a very specific private global function.
 	 */
-	$postprocess = static function( $loading_attributes, $with_fetchpriority = false, $is_header = false ) use ( $tag_name, $attr, $context ) {
-		if ( $is_header ) {
-			/** This filter is documented in wp-admin/includes/media.php */
-			$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 50000 );
-			// Images with a certain minimum size in the header of the page are also counted towards the threshold.
-			if ( $wp_min_priority_img_pixels <= $attr['width'] * $attr['height'] ) {
-				wp_increase_content_media_count();
-			}
-		}
+	$postprocess = static function( $loading_attributes, $with_fetchpriority = false ) use ( $tag_name, $attr, $context ) {
 		// Potentially add `fetchpriority="high"`.
 		if ( $with_fetchpriority ) {
 			$loading_attributes = wp_maybe_add_fetchpriority_high_attr( $loading_attributes, $tag_name, $attr );
@@ -5597,35 +5589,14 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		}
 		return $loading_attributes;
 	};
-	/*
-	 * Closure for postprocessing logic.
-	 * It is here to avoid duplicate logic in many places below, without having
-	 * to introduce a very specific private global function.
-	 */
-	$postprocess = static function( $loading_attributes, $with_fetchpriority = false, $is_header = false ) use ( $tag_name, $attr, $context ) {
-		if ( $is_header ) {
-			/**
-			 * Filters the minimum square-pixels threshold for an image to be eligible as the high-priority image.
-			 *
-			 * @since 6.3.0
-			 *
-			 * @param int $threshold Minimum square-pixels threshold. Default 50000.
-			 */
-			$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 50000 );
-			// Images with a certain minimum size in the header of the page are also counted towards the threshold.
-			if ( $wp_min_priority_img_pixels <= $attr['width'] * $attr['height'] ) {
-				wp_increase_content_media_count();
-			}
+	// Closure to increase media count for images with certain minimum threshold, mostly used for header images.
+	$maybe_increase_content_media_count = static function() use ( $attr ) {
+		/** This filter is documented in wp-admin/includes/media.php */
+		$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 50000 );
+		// Images with a certain minimum size in the header of the page are also counted towards the threshold.
+		if ( $wp_min_priority_img_pixels <= $attr['width'] * $attr['height'] ) {
+			wp_increase_content_media_count();
 		}
-		// Potentially add `fetchpriority="high"`.
-		if ( $with_fetchpriority ) {
-			$loading_attributes = wp_maybe_add_fetchpriority_high_attr( $loading_attributes, $tag_name, $attr );
-		}
-		// Potentially strip `loading="lazy"` if the feature is disabled.
-		if ( isset( $loading_attributes['loading'] ) && ! wp_lazy_loading_enabled( $tag_name, $context ) ) {
-			unset( $loading_attributes['loading'] );
-		}
-		return $loading_attributes;
 	};
 
 	$loading_attrs = array();
@@ -5679,7 +5650,9 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 */
 	$header_area = WP_TEMPLATE_PART_AREA_HEADER;
 	if ( "template_part_{$header_area}" === $context ) {
-		return $postprocess( $loading_attrs, true, true );
+		// Increase media count if there are images in header above a certian minimum size threshold.
+		$maybe_increase_content_media_count();
+		return $postprocess( $loading_attrs, true );
 	}
 
 	// Special handling for programmatically created image tags.
@@ -5705,7 +5678,9 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			 */
 			&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
 		) {
-			return $postprocess( $loading_attrs, true, true );
+			// Increase media count if there are images in header above a certian minimum size threshold.
+			$maybe_increase_content_media_count();
+			return $postprocess( $loading_attrs, true );
 		}
 	}
 
