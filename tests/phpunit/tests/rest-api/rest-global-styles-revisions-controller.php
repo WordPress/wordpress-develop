@@ -224,7 +224,6 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$this->revision_3_id = $this->revision_3->ID;
 	}
 
-
 	/**
 	 * @ticket 58524
 	 *
@@ -568,7 +567,6 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( $expected_count, $response->get_data() );
 	}
-
 
 	/**
 	 * Tests that 'offset' query shouldn't work without 'per_page' (fallback -1).
