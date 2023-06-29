@@ -1936,7 +1936,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( 'wp_block' === $this->post_type ) {
-			unset($data['meta']['sync_status']);
+			unset( $data['meta']['sync_status'] );
 			$wp_block_meta = $this->meta->get_value( $post->ID, $request );
 			$data['sync_status'] = $wp_block_meta['sync_status'];
 		}
