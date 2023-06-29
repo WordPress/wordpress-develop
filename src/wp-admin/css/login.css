@@ -133,6 +133,7 @@ p {
 	position: relative;
 }
 
+.hidden,
 .no-js .hide-if-no-js {
 	display: none;
 }
