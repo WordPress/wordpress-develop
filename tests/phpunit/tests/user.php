@@ -916,7 +916,7 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 
- 	/**
+	/**
 	 * @ticket 57394
 	 */
 	public function test_wp_insert_user_should_reject_user_login_that_matches_existing_user_email() {
@@ -948,8 +948,8 @@ class Tests_User extends WP_UnitTestCase {
 
 		$user_id = wp_update_user(
 			array(
-				'ID'            => $user_id,
-				'user_login'    => $new_email,
+				'ID'         => $user_id,
+				'user_login' => $new_email,
 			)
 		);
 		// No error should be returned.
