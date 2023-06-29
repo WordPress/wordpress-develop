@@ -651,22 +651,32 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
 		}
 
-		$test_file = DIR_TESTDATA . '/images/test-alpha.pdf';
+		$test_file     = DIR_TESTDATA . '/images/test-alpha.pdf';
 		$attachment_id = $this->factory->attachment->create_upload_object( $test_file );
 		$this->assertNotEmpty( $attachment_id );
 
 		$attached_file = get_attached_file( $attachment_id );
 		$this->assertNotEmpty( $attached_file );
 
-		$rgb = array( 'r' => true, 'g' => true, 'b' => true ); // Used for intersecting - not interested in alpha channel.
-		$expected = array( 'r' => 1, 'g' => 1, 'b' => 1 ); // White.
+		$rgb = array(
+			'r' => true,
+			'g' => true,
+			'b' => true,
+		);
 
-			$check = image_get_intermediate_size( $attachment_id, 'full' );
+		// White.
+		$expected = array(
+			'r' => 1,
+			'g' => 1,
+			'b' => 1,
+		);
+
+		$check = image_get_intermediate_size( $attachment_id, 'full' );
 		$this->assertNotEmpty( $check['file'] );
-		$check_file = path_join( dirname( $attached_file ), $check['file'] );
 
-		$imagick = new Imagick( $check_file );
-		$output = array_map( 'round', array_intersect_key( $imagick->getImagePixelColor( 100, 100 )->getColor( true /*normalized*/ ), $rgb ) );
+		$check_file = path_join( dirname( $attached_file ), $check['file'] );
+		$imagick    = new Imagick( $check_file );
+		$output     = array_map( 'round', array_intersect_key( $imagick->getImagePixelColor( 100, 100 )->getColor( true /*normalized*/ ), $rgb ) );
 		$imagick->destroy();
 		$this->assertEquals( $expected, $output ); // Allow for floating point equivalence.
 	}

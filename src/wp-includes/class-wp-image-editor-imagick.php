@@ -764,8 +764,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			try {
 				// Imagick::ALPHACHANNEL_REMOVE mapped to RemoveAlphaChannel in PHP imagick 3.2.0b2.
 				$this->image->setImageAlphaChannel( defined( 'Imagick::ALPHACHANNEL_REMOVE' ) ? Imagick::ALPHACHANNEL_REMOVE : 12 );
-			}
-			catch ( Exception $e ) {
+			} catch ( Exception $e ) {
 				return new WP_Error( 'pdf_alpha_process_failed', $e->getMessage() );
 			}
 		}
