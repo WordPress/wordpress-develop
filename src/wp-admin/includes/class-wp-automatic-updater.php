@@ -313,7 +313,7 @@ class WP_Automatic_Updater {
 
 		// Don't notify if we've already notified the same email address of the same version.
 		if ( $notified
-			&& get_site_option( 'admin_email' ) === $notified['email']
+			&& 0 === strcasecmp( get_site_option( 'admin_email' ), $notified['email'] )
 			&& $notified['version'] === $item->current
 		) {
 			return false;
@@ -691,7 +691,7 @@ class WP_Automatic_Updater {
 		// Don't notify if we've already notified the same email address of the same version of the same notification type.
 		if ( $notified
 			&& 'fail' === $notified['type']
-			&& get_site_option( 'admin_email' ) === $notified['email']
+			&& 0 === strcasecmp( get_site_option( 'admin_email' ), $notified['email'] )
 			&& $notified['version'] === $core_update->current
 		) {
 			$send = false;

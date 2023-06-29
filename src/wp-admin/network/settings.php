@@ -166,7 +166,7 @@ if ( isset( $_GET['updated'] ) ) {
 					</p>
 					<?php
 					$new_admin_email = get_site_option( 'new_admin_email' );
-					if ( $new_admin_email && get_site_option( 'admin_email' ) !== $new_admin_email ) :
+					if ( $new_admin_email && 0 !== strcasecmp( get_site_option( 'admin_email' ), $new_admin_email ) ) :
 						?>
 						<div class="notice notice-warning is-dismissible inline">
 						<p>

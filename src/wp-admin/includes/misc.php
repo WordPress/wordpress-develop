@@ -1461,7 +1461,7 @@ function wp_page_reload_on_back_button_js() {
  * @param string $value     The proposed new site admin email address.
  */
 function update_option_new_admin_email( $old_value, $value ) {
-	if ( get_option( 'admin_email' ) === $value || ! is_email( $value ) ) {
+	if ( 0 === strcasecmp( get_option( 'admin_email' ), $value ) || ! is_email( $value ) ) {
 		return;
 	}
 

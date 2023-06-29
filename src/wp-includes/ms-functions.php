@@ -2718,7 +2718,7 @@ function get_subdirectory_reserved_names() {
  * @param string $value     The proposed new network admin email address.
  */
 function update_network_option_new_admin_email( $old_value, $value ) {
-	if ( get_site_option( 'admin_email' ) === $value || ! is_email( $value ) ) {
+	if ( 0 === strcasecmp( get_site_option( 'admin_email' ), $value ) || ! is_email( $value ) ) {
 		return;
 	}
 
