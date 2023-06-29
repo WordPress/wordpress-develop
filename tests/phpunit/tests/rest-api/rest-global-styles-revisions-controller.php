@@ -66,7 +66,6 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	 */
 	private $revision_3_id;
 
-
 	/**
 	 * Create fake data before our tests run.
 	 *
