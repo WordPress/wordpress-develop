@@ -491,6 +491,14 @@ function create_initial_post_types() {
 		)
 	);
 
+	$navigation_post_edit_link = 'site-editor.php?' . build_query(
+		array(
+			'postId'   => '%s',
+			'postType' => 'wp_navigation',
+			'canvas'   => 'edit',
+		)
+	);
+
 	register_post_type(
 		'wp_navigation',
 		array(
@@ -517,6 +525,7 @@ function create_initial_post_types() {
 			'description'           => __( 'Navigation menus that can be inserted into your site.' ),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'            => $navigation_post_edit_link, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
 			'show_ui'               => true,
 			'show_in_menu'          => false,
@@ -3576,15 +3585,19 @@ function wp_trash_post( $post_id = 0 ) {
 		return false;
 	}
 
+	$previous_status = $post->post_status;
+
 	/**
 	 * Filters whether a post trashing should take place.
 	 *
 	 * @since 4.9.0
+	 * @since 6.3.0 Added the `$previous_status` parameter.
 	 *
-	 * @param bool|null $trash Whether to go forward with trashing.
-	 * @param WP_Post   $post  Post object.
+	 * @param bool|null $trash           Whether to go forward with trashing.
+	 * @param WP_Post   $post            Post object.
+	 * @param string    $previous_status The status of the post about to be trashed.
 	 */
-	$check = apply_filters( 'pre_trash_post', null, $post );
+	$check = apply_filters( 'pre_trash_post', null, $post, $previous_status );
 
 	if ( null !== $check ) {
 		return $check;
@@ -3594,12 +3607,14 @@ function wp_trash_post( $post_id = 0 ) {
 	 * Fires before a post is sent to the Trash.
 	 *
 	 * @since 3.3.0
+	 * @since 6.3.0 Added the `$previous_status` parameter.
 	 *
-	 * @param int $post_id Post ID.
+	 * @param int    $post_id         Post ID.
+	 * @param string $previous_status The status of the post about to be trashed.
 	 */
-	do_action( 'wp_trash_post', $post_id );
+	do_action( 'wp_trash_post', $post_id, $previous_status );
 
-	add_post_meta( $post_id, '_wp_trash_meta_status', $post->post_status );
+	add_post_meta( $post_id, '_wp_trash_meta_status', $previous_status );
 	add_post_meta( $post_id, '_wp_trash_meta_time', time() );
 
 	$post_updated = wp_update_post(
@@ -3619,10 +3634,12 @@ function wp_trash_post( $post_id = 0 ) {
 	 * Fires after a post is sent to the Trash.
 	 *
 	 * @since 2.9.0
+	 * @since 6.3.0 Added the `$previous_status` parameter.
 	 *
-	 * @param int $post_id Post ID.
+	 * @param int    $post_id         Post ID.
+	 * @param string $previous_status The status of the post at the point where it was trashed.
 	 */
-	do_action( 'trashed_post', $post_id );
+	do_action( 'trashed_post', $post_id, $previous_status );
 
 	return $post;
 }
@@ -3656,7 +3673,7 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * Filters whether a post untrashing should take place.
 	 *
 	 * @since 4.9.0
-	 * @since 5.6.0 The `$previous_status` parameter was added.
+	 * @since 5.6.0 Added the `$previous_status` parameter.
 	 *
 	 * @param bool|null $untrash         Whether to go forward with untrashing.
 	 * @param WP_Post   $post            Post object.
@@ -3671,7 +3688,7 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * Fires before a post is restored from the Trash.
 	 *
 	 * @since 2.9.0
-	 * @since 5.6.0 The `$previous_status` parameter was added.
+	 * @since 5.6.0 Added the `$previous_status` parameter.
 	 *
 	 * @param int    $post_id         Post ID.
 	 * @param string $previous_status The status of the post at the point where it was trashed.
@@ -3717,7 +3734,7 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * Fires after a post is restored from the Trash.
 	 *
 	 * @since 2.9.0
-	 * @since 5.6.0 The `$previous_status` parameter was added.
+	 * @since 5.6.0 Added the `$previous_status` parameter.
 	 *
 	 * @param int    $post_id         Post ID.
 	 * @param string $previous_status The status of the post at the point where it was trashed.

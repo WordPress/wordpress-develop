@@ -317,6 +317,10 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Block_Types_Controller();
 	$controller->register_routes();
 
+	// Global Styles revisions.
+	$controller = new WP_REST_Global_Styles_Revisions_Controller();
+	$controller->register_routes();
+
 	// Global Styles.
 	$controller = new WP_REST_Global_Styles_Controller();
 	$controller->register_routes();
@@ -376,6 +380,10 @@ function create_initial_rest_routes() {
 
 	// Site Editor Export.
 	$controller = new WP_REST_Edit_Site_Export_Controller();
+	$controller->register_routes();
+
+	// Navigation Fallback.
+	$controller = new WP_REST_Navigation_Fallback_Controller();
 	$controller->register_routes();
 }
 

@@ -1629,7 +1629,7 @@ function wp_default_styles( $styles ) {
 	$styles->add(
 		'wp-block-editor-content',
 		"/wp-includes/css/dist/block-editor/content$suffix.css",
-		array()
+		array( 'wp-components' )
 	);
 
 	$wp_edit_blocks_dependencies = array(
@@ -2372,20 +2372,8 @@ function wp_common_block_scripts_and_styles() {
 
 	wp_enqueue_style( 'wp-block-library' );
 
-	if ( current_theme_supports( 'wp-block-styles' ) ) {
-		if ( wp_should_load_separate_core_block_assets() ) {
-			$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? 'css' : 'min.css';
-			$files  = glob( __DIR__ . "/blocks/**/theme.$suffix" );
-			foreach ( $files as $path ) {
-				$block_name = basename( dirname( $path ) );
-				if ( is_rtl() && file_exists( __DIR__ . "/blocks/$block_name/theme-rtl.$suffix" ) ) {
-					$path = __DIR__ . "/blocks/$block_name/theme-rtl.$suffix";
-				}
-				wp_add_inline_style( "wp-block-{$block_name}", file_get_contents( $path ) );
-			}
-		} else {
-			wp_enqueue_style( 'wp-block-library-theme' );
-		}
+	if ( current_theme_supports( 'wp-block-styles' ) && ! wp_should_load_separate_core_block_assets() ) {
+		wp_enqueue_style( 'wp-block-library-theme' );
 	}
 
 	/**
@@ -2488,34 +2476,6 @@ function wp_enqueue_global_styles_custom_css() {
 
 	if ( ! empty( $custom_css ) ) {
 		wp_add_inline_style( 'global-styles', $custom_css );
-	}
-}
-
-/**
- * Renders the SVG filters supplied by theme.json.
- *
- * Note that this doesn't render the per-block user-defined
- * filters which are handled by wp_render_duotone_support,
- * but it should be rendered before the filtered content
- * in the body to satisfy Safari's rendering quirks.
- *
- * @since 5.9.1
- */
-function wp_global_styles_render_svg_filters() {
-	/*
-	 * When calling via the in_admin_header action, we only want to render the
-	 * SVGs on block editor pages.
-	 */
-	if (
-		is_admin() &&
-		! get_current_screen()->is_block_editor()
-	) {
-		return;
-	}
-
-	$filters = wp_get_global_styles_svg_filters();
-	if ( ! empty( $filters ) ) {
-		echo $filters;
 	}
 }
 
