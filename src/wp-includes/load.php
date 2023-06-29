@@ -163,10 +163,10 @@ function wp_check_php_mysql_versions() {
 	}
 
 	// This runs before default constants are defined, so we can't assume WP_CONTENT_DIR is set yet.
-	$wp_content_dir = defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR : 'wp-content';
+	$wp_content_dir = defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
 
 	if ( ! function_exists( 'mysqli_connect' ) && ! function_exists( 'mysql_connect' )
-		&& ! file_exists( ABSPATH . $wp_content_dir . '/db.php' )
+		&& ! file_exists( $wp_content_dir . '/db.php' )
 	) {
 		require_once ABSPATH . WPINC . '/functions.php';
 		wp_load_translations_early();
