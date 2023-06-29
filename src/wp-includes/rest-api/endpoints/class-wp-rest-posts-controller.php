@@ -1931,7 +1931,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( rest_is_field_included( 'meta', $fields )) {
+		if ( rest_is_field_included( 'meta', $fields ) ) {
 			$data['meta'] = $this->meta->get_value( $post->ID, $request );
 		}
 
