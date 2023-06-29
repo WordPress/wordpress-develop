@@ -50,7 +50,7 @@ jobs:
   # - Run the E2E tests.
   # - Ensures version-controlled files are not modified or deleted.
   e2e-tests:
-    name: E2E Tests
+    name: E2E Tests with SCRIPT_DEBUG ${{ matrix.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
