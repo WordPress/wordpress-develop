@@ -938,7 +938,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		$user_id = wp_insert_user(
 			array(
-				'user_login'    => 'testuser',
+				'user_login'    => $new_email,
 				'user_email'    => $new_email,
 				'user_pass'     => 'whatever',
 				'user_nicename' => 'whatever',
@@ -948,14 +948,16 @@ class Tests_User extends WP_UnitTestCase {
 
 		$user_id = wp_update_user(
 			array(
-				'ID'         => $user_id,
-				'user_login' => $new_email,
+				'ID'            => $user_id,
+				'user_login'    => $new_email,
+				'user_email'    => $new_email,
+				'user_nicename' => 'new-nicename',
 			)
 		);
 		// No error should be returned.
 		$this->assertNotWPError( $user_id );
-		// The user login should have been updated.
-		$this->assertSame( $new_email, get_userdata( $user_id )->user_login );
+		// The user_nicename should have been updated.
+		$this->assertSame( 'new-nicename', get_userdata( $user_id )->user_nicename );
 	}
 
 	/**
