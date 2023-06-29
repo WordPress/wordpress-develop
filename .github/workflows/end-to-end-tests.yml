@@ -59,7 +59,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        script_debug: [ true, false ]
+        LOCAL_SCRIPT_DEBUG: [ true, false ]
 
     steps:
       - name: Configure environment variables
@@ -109,10 +109,9 @@ jobs:
           docker-compose run --rm php locale -a
 
       - name: Install WordPress
+        env:
+          LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
         run: npm run env:install
-
-      - name: Set SCRIPT_DEBUG constant
-        run: docker-compose run --rm cli config set SCRIPT_DEBUG ${{ matrix.script_debug }} --raw --type=constant
 
       - name: Run E2E tests
         run: npm run test:e2e
