@@ -276,7 +276,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$attachment->guid           = $url;
 
 		// If the title was not set, use the filename extracted from the request header.
-		if ( empty( $attachment->post_title ) &&  ! empty( $headers['content_disposition'] ) ) {
+		if ( empty( $attachment->post_title ) && ! empty( $headers['content_disposition'] ) ) {
 			$content_disposition = self::get_filename_from_disposition( $headers['content_disposition'] );
 			if ( ! empty( $content_disposition ) ) {
 				$tmpfname_disposition = explode( '.', $content_disposition );
