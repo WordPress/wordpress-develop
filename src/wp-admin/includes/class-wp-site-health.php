@@ -2009,12 +2009,8 @@ class WP_Site_Health {
 		$wp_content = $wp_filesystem->wp_content_dir();
 
 		if ( ! $wp_content ) {
-			$result['status'] = 'critical';
-			$result['label']  = sprintf(
-				/* translators: %s: wp-content */
-				__( 'Unable to locate WordPress content directory (%s)' ),
-				'<code>wp-content</code>'
-			);
+			$result['status']      = 'critical';
+			$result['label']       = __( 'Unable to locate WordPress content directory' );
 			$result['description'] = sprintf(
 				/* translators: %s: wp-content */
 				'<p>' . __( 'The %s directory cannot be located.' ) . '</p>',
