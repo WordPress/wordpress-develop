@@ -3034,7 +3034,7 @@ function _count_posts_cache_key( $type = 'post', $perm = '' ) {
  *
  * @param string $type Optional. Post type to retrieve count. Default 'post'.
  * @param string $perm Optional. 'readable' or empty. Default empty.
- * @return stdClass Number of posts for each status.
+ * @return stdClass Number of posts for each status, or empty stdClass.
  */
 function wp_count_posts( $type = 'post', $perm = '' ) {
 	global $wpdb;
