@@ -73,7 +73,7 @@ function wp_embed_defaults( $url = '' ) {
 		$width = 500;
 	}
 
-	$height = min( ceil( $width * 1.5 ), 1000 );
+	$height = min( (int) ceil( $width * 1.5 ), 1000 );
 
 	/**
 	 * Filters the default array of embed dimensions.
