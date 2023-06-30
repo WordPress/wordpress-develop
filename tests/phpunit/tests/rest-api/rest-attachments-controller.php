@@ -1937,9 +1937,17 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		wp_set_current_user( self::$editor_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
-		$request->set_header( 'Content-Disposition', 'attachment; filename=Filename With Spaces.jpg' );
 		$request->set_body( file_get_contents( self::$test_file ) );
-
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'file'     => file_get_contents( self::$test_file2 ),
+					'name'     => 'Filename With Spaces.jpg',
+					'size'     => filesize( self::$test_file2 ),
+					'tmp_name' => self::$test_file2,
+				),
+			)
+		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSame( 201, $response->get_status(), 'The file was not uploaded.' );
