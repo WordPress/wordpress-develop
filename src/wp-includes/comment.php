@@ -1023,9 +1023,9 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
 
 	if ( $threaded ) {
 		$walker = new Walker_Comment();
-		$count  = ceil( $walker->get_number_of_root_elements( $comments ) / $per_page );
+		$count  = (int) ceil( $walker->get_number_of_root_elements( $comments ) / $per_page );
 	} else {
-		$count = ceil( count( $comments ) / $per_page );
+		$count = (int) ceil( count( $comments ) / $per_page );
 	}
 
 	return $count;
