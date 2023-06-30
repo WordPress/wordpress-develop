@@ -188,7 +188,6 @@ function wp_default_packages_vendor( $scripts ) {
 	);
 }
 
-
 /**
  * Convert a PHP datetime format to moment JS format
  *
