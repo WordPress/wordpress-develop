@@ -245,7 +245,6 @@ function wp_convert_php_datetime_format_to_moment_js( $php_format ) {
 	return $moment_js_format;
 }
 
-
 /**
  * Returns contents of an inline script used in appending polyfill scripts for
  * browsers which fail the provided tests. The provided array is a mapping from
