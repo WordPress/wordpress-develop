@@ -575,7 +575,7 @@ function get_oembed_response_data( $post, $width ) {
 	);
 
 	$width  = min( max( $min_max_width['min'], $width ), $min_max_width['max'] );
-	$height = max( ceil( $width / 16 * 9 ), 200 );
+	$height = max( (int) ceil( $width / 16 * 9 ), 200 );
 
 	$data = array(
 		'version'       => '1.0',
