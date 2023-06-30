@@ -909,6 +909,10 @@ function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = ar
  * @return string The parsed and filtered content.
  */
 function excerpt_remove_blocks( $content ) {
+	if ( ! has_blocks( $content ) ) {
+		return $content;
+	}
+
 	$allowed_inner_blocks = array(
 		// Classic blocks have their blockName set to null.
 		null,
@@ -958,6 +962,7 @@ function excerpt_remove_blocks( $content ) {
 	$output         = '';
 
 	foreach ( $blocks as $block ) {
+
 		if ( in_array( $block['blockName'], $allowed_blocks, true ) ) {
 			if ( ! empty( $block['innerBlocks'] ) ) {
 				if ( in_array( $block['blockName'], $allowed_wrapper_blocks, true ) ) {
