@@ -1800,15 +1800,15 @@ function wp_lazy_loading_enabled( $tag_name, $context ) {
  * @return string Converted content with images modified.
  */
 function wp_filter_content_tags( $content, $context = null ) {
+	if ( ! preg_match_all( '/<(img|iframe)\s[^>]+>/', $content, $matches, PREG_SET_ORDER ) ) {
+		return $content;
+	}
+
 	if ( null === $context ) {
 		$context = current_filter();
 	}
 
 	$add_iframe_loading_attr = wp_lazy_loading_enabled( 'iframe', $context );
-
-	if ( ! preg_match_all( '/<(img|iframe)\s[^>]+>/', $content, $matches, PREG_SET_ORDER ) ) {
-		return $content;
-	}
 
 	// List of the unique `img` tags found in $content.
 	$images = array();
