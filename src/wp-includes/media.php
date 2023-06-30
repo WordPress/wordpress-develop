@@ -1931,6 +1931,11 @@ function wp_filter_content_tags( $content, $context = null ) {
  * @return string Converted `img` tag with optimization attributes added.
  */
 function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
+	// Images should have source and dimension attributes for the loading optimization attributes to be added.
+	if ( ! str_contains( $image, ' src="' ) || ! str_contains( $image, ' width="' ) || ! str_contains( $image, ' height="' ) ) {
+		return $image;
+	}
+
 	$width             = preg_match( '/ width=["\']([0-9]+)["\']/', $image, $match_width ) ? (int) $match_width[1] : null;
 	$height            = preg_match( '/ height=["\']([0-9]+)["\']/', $image, $match_height ) ? (int) $match_height[1] : null;
 	$loading_val       = preg_match( '/ loading=["\']([A-Za-z]+)["\']/', $image, $match_loading ) ? $match_loading[1] : null;
@@ -1951,11 +1956,6 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		),
 		$context
 	);
-
-	// Images should have source and dimension attributes for the loading optimization attributes to be added.
-	if ( ! str_contains( $image, ' src="' ) || ! str_contains( $image, ' width="' ) || ! str_contains( $image, ' height="' ) ) {
-		return $image;
-	}
 
 	// Retained for backward compatibility.
 	$loading_attrs_enabled = wp_lazy_loading_enabled( 'img', $context );
@@ -2164,6 +2164,11 @@ function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
 		return $iframe;
 	}
 
+	// Iframes should have source and dimension attributes for the `loading` attribute to be added.
+	if ( ! str_contains( $iframe, ' src="' ) || ! str_contains( $iframe, ' width="' ) || ! str_contains( $iframe, ' height="' ) ) {
+		return $iframe;
+	}
+
 	// Get loading attribute value to use. This must occur before the conditional check below so that even iframes that
 	// are ineligible for being lazy-loaded are considered.
 	$optimization_attrs = wp_get_loading_optimization_attributes(
@@ -2182,11 +2187,6 @@ function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
 		),
 		$context
 	);
-
-	// Iframes should have source and dimension attributes for the `loading` attribute to be added.
-	if ( ! str_contains( $iframe, ' src="' ) || ! str_contains( $iframe, ' width="' ) || ! str_contains( $iframe, ' height="' ) ) {
-		return $iframe;
-	}
 
 	$value = isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false;
 
