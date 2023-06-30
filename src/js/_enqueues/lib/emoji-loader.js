@@ -370,6 +370,7 @@
 				worker.onmessage = function ( event ) {
 					supportTests = event.data;
 					setSessionSupportTests( supportTests );
+					worker.terminate();
 					resolve( supportTests );
 				};
 				return;
