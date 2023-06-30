@@ -278,10 +278,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// If the title was not set, use the original filename.
 		if ( empty( $attachment->post_title ) && ! empty( $files['file']['name'] ) ) {
 			// Remove the file extension (after the last `.`)
-			$tmp_filename = substr( $files['file']['name'], 0, strrpos( $files['file']['name'], '.' ) );
+			$tmp_title = substr( $files['file']['name'], 0, strrpos( $files['file']['name'], '.' ) );
 
-			if ( ! empty( $tmp_filename ) ) {
-				$attachment->post_title = $tmp_filename;
+			if ( ! empty( $tmp_title ) ) {
+				$attachment->post_title = $tmp_title;
 			}
 		}
 
