@@ -28,6 +28,8 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 			'com.exampleNOSPAMbob',
 			'bob@your mom',
 			'a@b.c',
+			'a@b..c',
+			'a..b@c.d',
 		);
 		foreach ( $data as $datum ) {
 			$this->assertFalse( is_email( $datum ), $datum );
