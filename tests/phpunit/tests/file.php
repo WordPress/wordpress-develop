@@ -345,6 +345,60 @@ class Tests_File extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `wp_tempnam()` limits the filename's length to 252 characters
+	 * when both a 'random_password' filter and a 'wp_unique_filename' filter
+	 * cause the filename to be greater than 252 characters.
+	 *
+	 * @ticket 35755
+	 *
+	 * @covers ::wp_tempnam
+	 */
+	public function test_wp_tempnam_should_limit_filename_length_to_252_characters_when_random_password_and_wp_unique_filename_are_filtered() {
+		// Force random passwords to 12 characters.
+		add_filter(
+			'random_password',
+			static function() {
+				return '1a2b3c4d5e6f';
+			},
+			10,
+			0
+		);
+
+		// Determine the number of additional characters added by `wp_tempnam()`.
+		$temp_dir                    = get_temp_dir();
+		$additional_chars_filename   = wp_unique_filename( $temp_dir, 'filename' );
+		$additional_chars_generated  = wp_tempnam( $additional_chars_filename, $temp_dir );
+		$additional_chars_difference = strlen( basename( $additional_chars_generated ) ) - strlen( $additional_chars_filename );
+
+		$filenames_over_limit = 0;
+
+		// Make the filter send the filename over the limit.
+		add_filter(
+			'wp_unique_filename',
+			static function( $filename ) use ( &$filenames_over_limit ) {
+				if ( strlen( $filename ) === 252 ) {
+					$filename .= '1';
+					++$filenames_over_limit;
+				}
+
+				return $filename;
+			},
+			10,
+			1
+		);
+
+		// A filename that will hit the limit when `wp_tempnam()` adds characters.
+		$filename = str_pad( '', 252 - $additional_chars_difference, 'filename' );
+		$actual   = wp_tempnam( $filename );
+
+		self::unlink( $additional_chars_generated );
+		self::unlink( $actual );
+
+		$this->assertLessThanOrEqual( 252, strlen( basename( $actual ) ), 'The final filename was over the limit.' );
+		$this->assertSame( 1, $filenames_over_limit, 'One filename should have been over the limit.' );
+	}
+
+	/**
 	 * @ticket 47186
 	 */
 	public function test_file_signature_functions_as_expected() {
