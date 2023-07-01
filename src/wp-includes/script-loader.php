@@ -2781,9 +2781,18 @@ function wp_print_script_tag( $attributes ) {
  * @return string String containing inline JavaScript code wrapped around `<script>` tag.
  */
 function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
-	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
+	$is_html5 = current_theme_supports( 'html5', 'script' ) || is_admin();
+	if ( ! isset( $attributes['type'] ) && ! $is_html5 ) {
 		$attributes['type'] = 'text/javascript';
 	}
+
+	// Ensure markup is XHTML compatible if not HTML5.
+	if ( ! $is_html5 ) {
+		$javascript = sprintf( "/* <![CDATA[ */\n%s\n/* ]]> */", $javascript );
+	}
+
+	$javascript = "\n" . trim( $javascript, "\n\r " ) . "\n";
+
 	/**
 	 * Filters attributes to be added to a script tag.
 	 *
@@ -2795,8 +2804,6 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 	 * @param string $javascript Inline JavaScript code.
 	 */
 	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $javascript );
-
-	$javascript = "\n" . trim( $javascript, "\n\r " ) . "\n";
 
 	return sprintf( "<script%s>%s</script>\n", wp_sanitize_script_attributes( $attributes ), $javascript );
 }
