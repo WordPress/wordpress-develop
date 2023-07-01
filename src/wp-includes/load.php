@@ -264,6 +264,50 @@ function wp_get_environment_type() {
 }
 
 /**
+ * Retrieves the current development mode.
+ *
+ * The development mode affects how certain parts of the WordPress application behave, which is relevant when
+ * developing for WordPress.
+ *
+ * Valid developer modes are 'core', 'plugin', 'theme', or an empty string to disable developer mode.
+ *
+ * Developer mode is considered separately from `WP_DEBUG` and {@see wp_get_environment_type()}. It does not affect
+ * debugging output, but rather functional nuances in WordPress.
+ *
+ * @since 6.3.0
+ *
+ * @return string The current development mode.
+ */
+function wp_get_development_mode() {
+	static $current_mode = null;
+
+	if ( ! defined( 'WP_RUN_CORE_TESTS' ) && null !== $current_mode ) {
+		return $current_mode;
+	}
+
+	$development_mode = WP_DEVELOPMENT_MODE;
+
+	// Exclusively for core tests, rely on a global `$_wp_tests_development_mode`.
+	if ( defined( 'WP_RUN_CORE_TESTS' ) && isset( $GLOBALS['_wp_tests_development_mode'] ) ) {
+		$development_mode = $GLOBALS['_wp_tests_development_mode'];
+	}
+
+	$valid_modes = array(
+		'core',
+		'plugin',
+		'theme',
+		'',
+	);
+	if ( ! in_array( $development_mode, $valid_modes, true ) ) {
+		$development_mode = '';
+	}
+
+	$current_mode = $development_mode;
+
+	return $current_mode;
+}
+
+/**
  * Don't load all of WordPress when handling a favicon.ico request.
  *
  * Instead, send the headers for a zero-length favicon and bail.
@@ -835,7 +879,7 @@ function wp_get_mu_plugins() {
 		return $mu_plugins;
 	}
 	while ( ( $plugin = readdir( $dh ) ) !== false ) {
-		if ( str_ends_with( $plugin, '.php' ) ) {
+		if ( '.php' === substr( $plugin, -4 ) ) {
 			$mu_plugins[] = WPMU_PLUGIN_DIR . '/' . $plugin;
 		}
 	}
@@ -877,7 +921,7 @@ function wp_get_active_and_valid_plugins() {
 
 	foreach ( $active_plugins as $plugin ) {
 		if ( ! validate_file( $plugin )                     // $plugin must validate as file.
-			&& str_ends_with( $plugin, '.php' )             // $plugin must end with '.php'.
+			&& '.php' === substr( $plugin, -4 )             // $plugin must end with '.php'.
 			&& file_exists( WP_PLUGIN_DIR . '/' . $plugin ) // $plugin must exist.
 			// Not already included as a network plugin.
 			&& ( ! $network_plugins || ! in_array( WP_PLUGIN_DIR . '/' . $plugin, $network_plugins, true ) )

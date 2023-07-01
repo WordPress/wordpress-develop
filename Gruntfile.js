@@ -1147,7 +1147,7 @@ module.exports = function(grunt) {
 				options: {
 					patterns: [
 						{
-							match: new RegExp( '//# sourceMappingURL=.*\\s*' ),
+							match: new RegExp( '\/\/# sourceMappingURL=.*\\s*', 'g' ),
 							replacement: ''
 						}
 					]
@@ -1160,6 +1160,14 @@ module.exports = function(grunt) {
 							BUILD_DIR + 'wp-includes/js/underscore.js'
 						],
 						dest: BUILD_DIR + 'wp-includes/js/'
+					},
+					{
+						expand: true,
+						flatten: true,
+						src: [
+							BUILD_DIR + 'wp-includes/js/dist/block-editor.js',
+						],
+						dest: BUILD_DIR + 'wp-includes/js/dist/'
 					}
 				]
 			}
@@ -1459,7 +1467,11 @@ module.exports = function(grunt) {
 		} );
 		grunt.file.write(
 			SOURCE_DIR + 'wp-includes/blocks/blocks-json.php',
-			'<?php return ' + json2php( blocks ) + ';'
+			'<?php return ' + json2php.make( {
+				linebreak: '\n',
+				indent: '  ',
+				shortArraySyntax: false
+			} )( blocks ) + ';'
 		);
 	} );
 
