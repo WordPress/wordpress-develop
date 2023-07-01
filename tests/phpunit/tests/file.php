@@ -274,6 +274,34 @@ class Tests_File extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `wp_tempnam()` limits the filename's length to 252 characters
+	 * when a 'random_password' filter returns passwords longer than 6 characters.
+	 *
+	 * @ticket 35755
+	 *
+	 * @covers ::wp_tempnam
+	 */
+	public function test_wp_tempnam_should_limit_filename_length_to_252_characters_when_random_password_is_filtered() {
+		// Force random passwords to 12 characters.
+		add_filter(
+			'random_password',
+			static function() {
+				return '1a2b3c4d5e6f';
+			},
+			10,
+			0
+		);
+
+		// A filename at the limit.
+		$filename = str_pad( '', 252, 'filename' );
+		$actual   = wp_tempnam( $filename );
+
+		self::unlink( $actual );
+
+		$this->assertLessThanOrEqual( 252, strlen( basename( $actual ) ) );
+	}
+
+	/**
 	 * @ticket 47186
 	 */
 	public function test_file_signature_functions_as_expected() {
