@@ -2112,6 +2112,10 @@ function _admin_search_query() {
  * @param bool   $deprecated Not used.
  */
 function iframe_header( $title = '', $deprecated = false ) {
+	if ( false !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '4.2.0' );
+	}
+
 	show_admin_bar( false );
 	global $hook_suffix, $admin_body_class, $wp_locale;
 	$admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );

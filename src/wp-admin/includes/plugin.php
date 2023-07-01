@@ -894,6 +894,10 @@ function activate_plugins( $plugins, $redirect = '', $network_wide = false, $sil
 function delete_plugins( $plugins, $deprecated = '' ) {
 	global $wp_filesystem;
 
+	if ( '' !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '4.0.0' );
+	}
+
 	if ( empty( $plugins ) ) {
 		return false;
 	}

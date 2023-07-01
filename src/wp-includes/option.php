@@ -1363,6 +1363,10 @@ function delete_all_user_settings() {
  * @return mixed Value set for the option.
  */
 function get_site_option( $option, $default_value = false, $deprecated = true ) {
+	if ( true !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '4.4.0' );
+	}
+
 	return get_network_option( null, $option, $default_value );
 }
 
@@ -2490,6 +2494,10 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 	 * Please consider writing more inclusive code.
 	 */
 	$GLOBALS['new_whitelist_options'] = &$new_allowed_options;
+
+	if ( '' !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '4.7.0' );
+	}
 
 	if ( 'misc' === $option_group ) {
 		_deprecated_argument(

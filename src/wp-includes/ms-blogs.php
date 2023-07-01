@@ -500,6 +500,10 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
 function switch_to_blog( $new_blog_id, $deprecated = null ) {
 	global $wpdb;
 
+	if ( isset( $deprecated ) ) {
+		_deprecated_argument( __FUNCTION__, '3.5.0' );
+	}
+
 	$prev_blog_id = get_current_blog_id();
 	if ( empty( $new_blog_id ) ) {
 		$new_blog_id = $prev_blog_id;

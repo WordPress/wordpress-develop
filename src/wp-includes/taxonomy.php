@@ -1246,11 +1246,11 @@ function get_term_to_edit( $id, $taxonomy ) {
  * @since 2.3.0
  * @since 4.2.0 Introduced 'name' and 'childless' parameters.
  * @since 4.4.0 Introduced the ability to pass 'term_id' as an alias of 'id' for the `orderby` parameter.
- *              Introduced the 'meta_query' and 'update_term_meta_cache' parameters. Converted to return
+ *              Introduced the 'meta_query' and 'update_term_meta_cache' array indexes. Converted to return
  *              a list of WP_Term objects.
  * @since 4.5.0 Changed the function signature so that the `$args` array can be provided as the first parameter.
  *              Introduced 'meta_key' and 'meta_value' parameters. Introduced the ability to order results by metadata.
- * @since 4.8.0 Introduced 'suppress_filter' parameter.
+ * @since 4.8.0 Introduced 'suppress_filter' array index.
  *
  * @internal The `$deprecated` parameter is parsed for backward compatibility only.
  *

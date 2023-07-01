@@ -1423,6 +1423,10 @@ function wpmu_create_blog( $domain, $path, $title, $user_id, $options = array(),
  * @return bool
  */
 function newblog_notify_siteadmin( $blog_id, $deprecated = '' ) {
+	if ( '' !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '3.0.0' );
+	}
+
 	if ( is_object( $blog_id ) ) {
 		$blog_id = $blog_id->blog_id;
 	}
@@ -2021,6 +2025,11 @@ function check_upload_mimes( $mimes ) {
  */
 function update_posts_count( $deprecated = '' ) {
 	global $wpdb;
+
+	if ( '' !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '3.0.0' );
+	}
+
 	update_option( 'post_count', (int) $wpdb->get_var( "SELECT COUNT(ID) FROM {$wpdb->posts} WHERE post_status = 'publish' and post_type = 'post'" ) );
 }
 
@@ -2074,6 +2083,10 @@ function wpmu_log_new_registrations( $blog_id, $user_id ) {
  * }
  */
 function redirect_this_site( $deprecated = '' ) {
+	if ( '' !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '3.0.0' );
+	}
+
 	return array( get_network()->domain );
 }
 

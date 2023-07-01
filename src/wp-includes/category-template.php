@@ -1263,6 +1263,10 @@ function tag_description( $tag = 0 ) {
  * @return string Term description, if available.
  */
 function term_description( $term = 0, $deprecated = null ) {
+	if ( ! empty( $deprecated ) ) {
+		_deprecated_argument( __FUNCTION__, '4.9.2' );
+	}
+
 	if ( ! $term && ( is_tax() || is_tag() || is_category() ) ) {
 		$term = get_queried_object();
 		if ( $term ) {
