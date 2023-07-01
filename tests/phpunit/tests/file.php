@@ -239,6 +239,39 @@ class Tests_File extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tests that `wp_tempnam()` limits the filename's length to 252 characters
+	 * when there is a name conflict.
+	 *
+	 * @ticket 35755
+	 *
+	 * @covers ::wp_tempnam
+	 */
+	public function test_wp_tempnam_should_limit_filename_length_to_252_characters_with_name_conflict() {
+		// Create a conflict by removing the randomness of the generated password.
+		add_filter(
+			'random_password',
+			static function() {
+				return '123456';
+			},
+			10,
+			0
+		);
+
+		// A filename at the limit.
+		$filename = str_pad( '', 252, 'filename' );
+
+		// Create the initial file.
+		$existing_file = wp_tempnam( $filename );
+
+		// Try creating a file with the same name.
+		$actual = wp_tempnam( basename( $existing_file ) );
+
+		self::unlink( $existing_file );
+		self::unlink( $actual );
+
+		$this->assertLessThanOrEqual( 252, strlen( basename( $actual ) ) );
+	}
 
 	/**
 	 * @ticket 47186
