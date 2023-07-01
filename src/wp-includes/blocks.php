@@ -373,6 +373,10 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		if ( ! isset( $metadata['style'] ) ) {
 			$metadata['style'] = "wp-block-$block_name";
 		}
+		if ( current_theme_supports( 'wp-block-styles' ) && wp_should_load_separate_core_block_assets() ) {
+			$metadata['style']   = (array) $metadata['style'];
+			$metadata['style'][] = "wp-block-{$block_name}-theme";
+		}
 		if ( ! isset( $metadata['editorStyle'] ) ) {
 			$metadata['editorStyle'] = "wp-block-{$block_name}-editor";
 		}
@@ -1372,10 +1376,15 @@ function build_query_vars_from_query_block( $block, $page ) {
 			$query['orderby'] = $block->context['query']['orderBy'];
 		}
 		if (
-			isset( $block->context['query']['author'] ) &&
-			(int) $block->context['query']['author'] > 0
+			isset( $block->context['query']['author'] )
 		) {
-			$query['author'] = (int) $block->context['query']['author'];
+			if ( is_array( $block->context['query']['author'] ) ) {
+				$query['author__in'] = array_filter( array_map( 'intval', $block->context['query']['author'] ) );
+			} elseif ( is_string( $block->context['query']['author'] ) ) {
+				$query['author__in'] = array_filter( array_map( 'intval', explode( ',', $block->context['query']['author'] ) ) );
+			} elseif ( is_int( $block->context['query']['author'] ) && $block->context['query']['author'] > 0 ) {
+				$query['author'] = $block->context['query']['author'];
+			}
 		}
 		if ( ! empty( $block->context['query']['search'] ) ) {
 			$query['s'] = $block->context['query']['search'];

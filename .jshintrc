@@ -19,13 +19,15 @@
 	"globals": {
 		"_": false,
 		"Backbone": false,
-		"console": false,
 		"jQuery": false,
 		"JSON": false,
 		"wp": false,
 		"export": false,
 		"module": false,
 		"require": false,
-		"Set": false
+		"WorkerGlobalScope": false,
+		"self": false,
+		"OffscreenCanvas": false,
+		"Promise": false
 	}
 }

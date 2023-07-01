@@ -55,6 +55,9 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 	 * @ticket 58528
 	 *
 	 * @dataProvider data_block_data
+	 *
+	 * @param string $name   The block name.
+	 * @param array  $schema The block's schema.
 	 */
 	public function test_wp_should_load_separate_core_block_assets_false( $name, $schema ) {
 		register_core_block_style_handles();
@@ -74,6 +77,9 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 	 * @ticket 58528
 	 *
 	 * @dataProvider data_block_data
+	 *
+	 * @param string $name   The block name.
+	 * @param array  $schema The block's schema.
 	 */
 	public function test_wp_should_load_separate_core_block_assets_true( $name, $schema ) {
 		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
@@ -99,6 +105,32 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @ticket 58560
+	 *
+	 * @dataProvider data_block_data
+	 *
+	 * @param string $name The block name.
+	 */
+	public function test_wp_should_load_separate_core_block_assets_current_theme_supports( $name ) {
+		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+		add_theme_support( 'wp-block-styles' );
+		register_core_block_style_handles();
+
+		$wp_styles = $GLOBALS['wp_styles'];
+
+		$style_handle = "wp-block-{$name}-theme";
+
+		$this->assertArrayHasKey( $style_handle, $wp_styles->registered, 'The key should exist, as this style should be registered' );
+		if ( false === $wp_styles->registered[ $style_handle ]->src ) {
+			$this->assertEmpty( $wp_styles->registered[ $style_handle ]->extra, 'If source is false, not style path should be set' );
+		} else {
+			$this->assertStringContainsString( $this->includes_url, $wp_styles->registered[ $style_handle ]->src, 'Source of style should contain the includes url' );
+			$this->assertNotEmpty( $wp_styles->registered[ $style_handle ]->extra, 'The path of the style should exist' );
+			$this->assertArrayHasKey( 'path', $wp_styles->registered[ $style_handle ]->extra, 'The path key of the style should exist in extra array' );
+			$this->assertNotEmpty( $wp_styles->registered[ $style_handle ]->extra['path'], 'The path key of the style should not be empty' );
+		}
+	}
 
 	public function data_block_data() {
 		$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
