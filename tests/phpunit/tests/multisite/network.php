@@ -590,14 +590,12 @@ if ( is_multisite() ) :
 		 * @ticket 42251
 		 */
 		public function test_get_network_not_found_cache() {
-			global $wpdb;
-
 			$new_network_id = $this->_get_next_network_id();
 			$this->assertNull( get_network( $new_network_id ) );
 
-			$num_queries = $wpdb->num_queries;
+			$num_queries = get_num_queries();
 			$this->assertNull( get_network( $new_network_id ) );
-			$this->assertSame( $num_queries, $wpdb->num_queries );
+			$this->assertSame( $num_queries, get_num_queries() );
 		}
 
 		/**

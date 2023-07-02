@@ -46,7 +46,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Action to perform before installing a plugin.
+	 * Performs an action before installing a plugin.
 	 *
 	 * @since 2.8.0
 	 */
@@ -66,7 +66,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	 * @since 5.5.0
 	 *
 	 * @param WP_Error $wp_error WP_Error object.
-	 * @return bool
+	 * @return bool True if the error should be hidden, false otherwise.
 	 */
 	public function hide_process_failed( $wp_error ) {
 		if (
@@ -81,7 +81,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Action to perform following a plugin install.
+	 * Performs an action following a plugin install.
 	 *
 	 * @since 2.8.0
 	 */
@@ -177,7 +177,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Check if the plugin can be overwritten and output the HTML for overwriting a plugin on upload.
+	 * Checks if the plugin can be overwritten and outputs the HTML for overwriting a plugin on upload.
 	 *
 	 * @since 5.5.0
 	 *

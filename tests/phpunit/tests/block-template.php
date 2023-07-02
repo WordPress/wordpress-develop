@@ -1,12 +1,8 @@
 <?php
 /**
- * Tests_Block_Template class
+ * Tests for the block template loading algorithm.
  *
  * @package WordPress
- */
-
-/**
- * Tests for the block template loading algorithm.
  *
  * @group block-templates
  */

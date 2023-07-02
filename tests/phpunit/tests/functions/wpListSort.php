@@ -9,7 +9,7 @@
 class Tests_Functions_wpListSort extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider data_test_wp_list_sort
+	 * @dataProvider data_wp_list_sort
 	 *
 	 * @param string|array $orderby Either the field name to order by or an array
 	 *                              of multiple orderby fields as `$orderby => $order`.
@@ -19,7 +19,7 @@ class Tests_Functions_wpListSort extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_list_sort( $input_list, $orderby, $order ) );
 	}
 
-	public function data_test_wp_list_sort() {
+	public function data_wp_list_sort() {
 		return array(
 			'single orderby ascending'        => array(
 				array(
@@ -334,7 +334,7 @@ class Tests_Functions_wpListSort extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_test_wp_list_sort_preserve_keys
+	 * @dataProvider data_wp_list_sort_preserve_keys
 	 *
 	 * @param string|array $orderby Either the field name to order by or an array
 	 *                              of multiple orderby fields as `$orderby => $order`.
@@ -344,7 +344,7 @@ class Tests_Functions_wpListSort extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_list_sort( $input_list, $orderby, $order, true ) );
 	}
 
-	public function data_test_wp_list_sort_preserve_keys() {
+	public function data_wp_list_sort_preserve_keys() {
 		return array(
 			'single orderby ascending'        => array(
 				array(

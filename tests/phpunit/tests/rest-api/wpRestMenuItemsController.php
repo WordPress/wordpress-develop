@@ -1,14 +1,10 @@
 <?php
 /**
- * WP_REST_Menu_Items_Controller tests
+ * Unit tests covering WP_REST_Menu_Items_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
  * @since 5.9.0
- */
-
-/**
- * Tests for REST API for Menu items.
  *
  * @group restapi
  *

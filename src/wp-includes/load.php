@@ -40,7 +40,9 @@ function wp_fix_server_vars() {
 	$_SERVER = array_merge( $default_server_values, $_SERVER );
 
 	// Fix for IIS when running with PHP ISAPI.
-	if ( empty( $_SERVER['REQUEST_URI'] ) || ( 'cgi-fcgi' !== PHP_SAPI && preg_match( '/^Microsoft-IIS\//', $_SERVER['SERVER_SOFTWARE'] ) ) ) {
+	if ( empty( $_SERVER['REQUEST_URI'] )
+		|| ( 'cgi-fcgi' !== PHP_SAPI && preg_match( '/^Microsoft-IIS\//', $_SERVER['SERVER_SOFTWARE'] ) )
+	) {
 
 		if ( isset( $_SERVER['HTTP_X_ORIGINAL_URL'] ) ) {
 			// IIS Mod-Rewrite.
@@ -71,7 +73,9 @@ function wp_fix_server_vars() {
 	}
 
 	// Fix for PHP as CGI hosts that set SCRIPT_FILENAME to something ending in php.cgi for all requests.
-	if ( isset( $_SERVER['SCRIPT_FILENAME'] ) && ( strpos( $_SERVER['SCRIPT_FILENAME'], 'php.cgi' ) == strlen( $_SERVER['SCRIPT_FILENAME'] ) - 7 ) ) {
+	if ( isset( $_SERVER['SCRIPT_FILENAME'] )
+		&& ( strpos( $_SERVER['SCRIPT_FILENAME'], 'php.cgi' ) === strlen( $_SERVER['SCRIPT_FILENAME'] ) - 7 )
+	) {
 		$_SERVER['SCRIPT_FILENAME'] = $_SERVER['PATH_TRANSLATED'];
 	}
 
@@ -257,6 +261,50 @@ function wp_get_environment_type() {
 	}
 
 	return $current_env;
+}
+
+/**
+ * Retrieves the current development mode.
+ *
+ * The development mode affects how certain parts of the WordPress application behave, which is relevant when
+ * developing for WordPress.
+ *
+ * Valid developer modes are 'core', 'plugin', 'theme', or an empty string to disable developer mode.
+ *
+ * Developer mode is considered separately from `WP_DEBUG` and {@see wp_get_environment_type()}. It does not affect
+ * debugging output, but rather functional nuances in WordPress.
+ *
+ * @since 6.3.0
+ *
+ * @return string The current development mode.
+ */
+function wp_get_development_mode() {
+	static $current_mode = null;
+
+	if ( ! defined( 'WP_RUN_CORE_TESTS' ) && null !== $current_mode ) {
+		return $current_mode;
+	}
+
+	$development_mode = WP_DEVELOPMENT_MODE;
+
+	// Exclusively for core tests, rely on a global `$_wp_tests_development_mode`.
+	if ( defined( 'WP_RUN_CORE_TESTS' ) && isset( $GLOBALS['_wp_tests_development_mode'] ) ) {
+		$development_mode = $GLOBALS['_wp_tests_development_mode'];
+	}
+
+	$valid_modes = array(
+		'core',
+		'plugin',
+		'theme',
+		'',
+	);
+	if ( ! in_array( $development_mode, $valid_modes, true ) ) {
+		$development_mode = '';
+	}
+
+	$current_mode = $development_mode;
+
+	return $current_mode;
 }
 
 /**
@@ -759,16 +807,18 @@ function wp_start_object_cache() {
 				'blog_meta',
 				'global-posts',
 				'networks',
+				'network-queries',
 				'sites',
 				'site-details',
 				'site-options',
+				'site-queries',
 				'site-transient',
 				'rss',
 				'users',
+				'user-queries',
+				'user_meta',
 				'useremail',
 				'userlogins',
-				'usermeta',
-				'user_meta',
 				'userslugs',
 			)
 		);

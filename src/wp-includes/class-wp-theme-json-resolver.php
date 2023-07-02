@@ -13,7 +13,7 @@
  *
  * This class is for internal core usage and is not supposed to be used by extenders (plugins and/or themes).
  * This is a low-level API that may need to do breaking changes. Please,
- * use get_global_settings, get_global_styles, and get_global_stylesheet instead.
+ * use get_global_settings(), get_global_styles(), and get_global_stylesheet() instead.
  *
  * @access private
  */
@@ -238,9 +238,9 @@ class WP_Theme_JSON_Resolver {
 		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
 
 		if ( null === static::$theme || ! static::has_same_registered_blocks( 'theme' ) ) {
-			$theme_json_file = static::get_file_path_from_theme( 'theme.json' );
 			$wp_theme        = wp_get_theme();
-			if ( '' !== $theme_json_file ) {
+			$theme_json_file = $wp_theme->get_file_path( 'theme.json' );
+			if ( is_readable( $theme_json_file ) ) {
 				$theme_json_data = static::read_json_file( $theme_json_file );
 				$theme_json_data = static::translate( $theme_json_data, $wp_theme->get( 'TextDomain' ) );
 			} else {
@@ -260,8 +260,8 @@ class WP_Theme_JSON_Resolver {
 
 			if ( $wp_theme->parent() ) {
 				// Get parent theme.json.
-				$parent_theme_json_file = static::get_file_path_from_theme( 'theme.json', true );
-				if ( '' !== $parent_theme_json_file ) {
+				$parent_theme_json_file = $wp_theme->parent()->get_file_path( 'theme.json' );
+				if ( $theme_json_file !== $parent_theme_json_file && is_readable( $parent_theme_json_file ) ) {
 					$parent_theme_json_data = static::read_json_file( $parent_theme_json_file );
 					$parent_theme_json_data = static::translate( $parent_theme_json_data, $wp_theme->parent()->get( 'TextDomain' ) );
 					$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
@@ -314,6 +314,19 @@ class WP_Theme_JSON_Resolver {
 
 			// Classic themes without a theme.json don't support global duotone.
 			$theme_support_data['settings']['color']['defaultDuotone'] = false;
+
+			// Allow themes to enable link color setting via theme_support.
+			if ( current_theme_supports( 'link-color' ) ) {
+				$theme_support_data['settings']['color']['link'] = true;
+			}
+
+			// Allow themes to enable all border settings via theme_support.
+			if ( current_theme_supports( 'border' ) ) {
+				$theme_support_data['settings']['border']['color']  = true;
+				$theme_support_data['settings']['border']['radius'] = true;
+				$theme_support_data['settings']['border']['style']  = true;
+				$theme_support_data['settings']['border']['width']  = true;
+			}
 		}
 		$with_theme_supports = new WP_Theme_JSON( $theme_support_data );
 		$with_theme_supports->merge( static::$theme );
@@ -386,7 +399,7 @@ class WP_Theme_JSON_Resolver {
 
 	/**
 	 * Returns the custom post type that contains the user's origin config
-	 * for the active theme or a void array if none are found.
+	 * for the active theme or an empty array if none are found.
 	 *
 	 * This can also create and return a new draft custom post type.
 	 *

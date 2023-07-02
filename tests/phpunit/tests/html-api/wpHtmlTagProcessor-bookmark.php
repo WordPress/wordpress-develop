@@ -41,6 +41,41 @@ class Tests_HtmlApi_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57788
+	 *
+	 * @covers WP_HTML_Tag_Processor::has_bookmark
+	 */
+	public function test_has_bookmark_returns_false_if_bookmark_does_not_exist() {
+		$p = new WP_HTML_Tag_Processor( '<div>Test</div>' );
+		$this->assertFalse( $p->has_bookmark( 'my-bookmark' ) );
+	}
+
+	/**
+	 * @ticket 57788
+	 *
+	 * @covers WP_HTML_Tag_Processor::has_bookmark
+	 */
+	public function test_has_bookmark_returns_true_if_bookmark_exists() {
+		$p = new WP_HTML_Tag_Processor( '<div>Test</div>' );
+		$p->next_tag();
+		$p->set_bookmark( 'my-bookmark' );
+		$this->assertTrue( $p->has_bookmark( 'my-bookmark' ) );
+	}
+
+	/**
+	 * @ticket 57788
+	 *
+	 * @covers WP_HTML_Tag_Processor::has_bookmark
+	 */
+	public function test_has_bookmark_returns_false_if_bookmark_has_been_released() {
+		$p = new WP_HTML_Tag_Processor( '<div>Test</div>' );
+		$p->next_tag();
+		$p->set_bookmark( 'my-bookmark' );
+		$p->release_bookmark( 'my-bookmark' );
+		$this->assertFalse( $p->has_bookmark( 'my-bookmark' ) );
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::seek

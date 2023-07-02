@@ -523,6 +523,10 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
 		$schema = parent::get_item_schema();
 		unset( $schema['properties']['count'], $schema['properties']['link'], $schema['properties']['taxonomy'] );
 
@@ -534,7 +538,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 			),
 			'context'     => array( 'view', 'edit' ),
 			'arg_options' => array(
-				'validate_callback' => function ( $locations, $request, $param ) {
+				'validate_callback' => static function ( $locations, $request, $param ) {
 					$valid = rest_validate_request_arg( $locations, $request, $param );
 
 					if ( true !== $valid ) {
@@ -566,6 +570,8 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 			'type'        => 'boolean',
 		);
 
-		return $schema;
+		$this->schema = $schema;
+
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 }

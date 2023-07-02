@@ -12,7 +12,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	 * @ticket 20434
 	 * @ticket 56231
 	 *
-	 * @dataProvider make_absolute_url_testcases
+	 * @dataProvider data_make_absolute_url
 	 *
 	 * @covers WP_Http::make_absolute_url
 	 */
@@ -21,7 +21,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function make_absolute_url_testcases() {
+	public function data_make_absolute_url() {
 		// 0: The Location header, 1: The current URL, 3: The expected URL.
 		return array(
 			// Absolute URL provided.
@@ -80,7 +80,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider parse_url_testcases
+	 * @dataProvider data_wp_parse_url
 	 *
 	 * @covers ::wp_parse_url
 	 */
@@ -89,7 +89,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function parse_url_testcases() {
+	public function data_wp_parse_url() {
 		// 0: The URL, 1: The expected resulting structure.
 		return array(
 			array(
@@ -217,7 +217,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	/**
 	 * @ticket 36356
 	 *
-	 * @dataProvider parse_url_component_testcases
+	 * @dataProvider data_wp_parse_url_with_component
 	 *
 	 * @covers ::wp_parse_url
 	 */
@@ -226,7 +226,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function parse_url_component_testcases() {
+	public function data_wp_parse_url_with_component() {
 		// 0: The URL, 1: The requested component, 2: The expected resulting structure.
 		return array(
 			array( self::FULL_TEST_URL, PHP_URL_SCHEME, 'http' ),
@@ -333,7 +333,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	/**
 	 * @ticket 36356
 	 *
-	 * @dataProvider get_component_from_parsed_url_array_testcases
+	 * @dataProvider data_get_component_from_parsed_url_array
 	 *
 	 * @covers ::wp_parse_url
 	 * @covers ::_get_component_from_parsed_url_array
@@ -344,7 +344,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function get_component_from_parsed_url_array_testcases() {
+	public function data_get_component_from_parsed_url_array() {
 		// 0: A URL, 1: PHP URL constant, 2: The expected result.
 		return array(
 			array(
@@ -375,7 +375,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	/**
 	 * @ticket 36356
 	 *
-	 * @dataProvider wp_translate_php_url_constant_to_key_testcases
+	 * @dataProvider data_wp_translate_php_url_constant_to_key
 	 *
 	 * @covers ::_wp_translate_php_url_constant_to_key
 	 */
@@ -384,7 +384,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function wp_translate_php_url_constant_to_key_testcases() {
+	public function data_wp_translate_php_url_constant_to_key() {
 		// 0: PHP URL constant, 1: The expected result.
 		return array(
 			array( PHP_URL_SCHEME, 'scheme' ),
