@@ -513,7 +513,7 @@ function human_readable_duration( $duration = '' ) {
 	$duration = trim( $duration );
 
 	// Remove prepended negative sign.
-	if ( '-' === substr( $duration, 0, 1 ) ) {
+	if ( str_starts_with( $duration, '-' ) ) {
 		$duration = substr( $duration, 1 );
 	}
 
@@ -708,7 +708,7 @@ function is_serialized( $data, $strict = true ) {
 				if ( '"' !== substr( $data, -2, 1 ) ) {
 					return false;
 				}
-			} elseif ( false === strpos( $data, '"' ) ) {
+			} elseif ( ! str_contains( $data, '"' ) ) {
 				return false;
 			}
 			// Or else fall through.
@@ -743,7 +743,7 @@ function is_serialized_string( $data ) {
 		return false;
 	} elseif ( ':' !== $data[1] ) {
 		return false;
-	} elseif ( ';' !== substr( $data, -1 ) ) {
+	} elseif ( ! str_ends_with( $data, ';' ) ) {
 		return false;
 	} elseif ( 's' !== $data[0] ) {
 		return false;
@@ -1158,10 +1158,10 @@ function add_query_arg( ...$args ) {
 		$protocol = '';
 	}
 
-	if ( strpos( $uri, '?' ) !== false ) {
+	if ( str_contains( $uri, '?' ) ) {
 		list( $base, $query ) = explode( '?', $uri, 2 );
 		$base                .= '?';
-	} elseif ( $protocol || strpos( $uri, '=' ) === false ) {
+	} elseif ( $protocol || ! str_contains( $uri, '=' ) ) {
 		$base  = $uri . '?';
 		$query = '';
 	} else {
@@ -1477,24 +1477,30 @@ function status_header( $code, $description = '' ) {
 }
 
 /**
- * Gets the header information to prevent caching.
+ * Gets the HTTP header information to prevent caching.
  *
  * The several different headers cover the different ways cache prevention
- * is handled by different browsers
+ * is handled by different browsers.
  *
  * @since 2.8.0
+ * @since 6.3.0 The `Cache-Control` header for logged in users now includes the
+ *              `no-store` and `private` directives.
  *
  * @return array The associative array of header names and field values.
  */
 function wp_get_nocache_headers() {
+	$cache_control = ( function_exists( 'is_user_logged_in' ) && is_user_logged_in() )
+		? 'no-cache, must-revalidate, max-age=0, no-store, private'
+		: 'no-cache, must-revalidate, max-age=0';
+
 	$headers = array(
 		'Expires'       => 'Wed, 11 Jan 1984 05:00:00 GMT',
-		'Cache-Control' => 'no-cache, must-revalidate, max-age=0',
+		'Cache-Control' => $cache_control,
 	);
 
 	if ( function_exists( 'apply_filters' ) ) {
 		/**
-		 * Filters the cache-controlling headers.
+		 * Filters the cache-controlling HTTP headers that are used to prevent caching.
 		 *
 		 * @since 2.8.0
 		 *
@@ -1509,7 +1515,7 @@ function wp_get_nocache_headers() {
 }
 
 /**
- * Sets the headers to prevent caching for the different browsers.
+ * Sets the HTTP headers to prevent caching for the different browsers.
  *
  * Different browsers support different nocache headers, so several
  * headers must be sent so that all of them get the point that no
@@ -1536,7 +1542,7 @@ function nocache_headers() {
 }
 
 /**
- * Sets the headers for caching for 10 days with JavaScript content type.
+ * Sets the HTTP headers for caching for 10 days with JavaScript content type.
  *
  * @since 2.1.0
  */
@@ -1970,7 +1976,9 @@ function wp_get_referer() {
 }
 
 /**
- * Retrieves unvalidated referer from '_wp_http_referer' or HTTP referer.
+ * Retrieves unvalidated referer from the '_wp_http_referer' URL query variable or the HTTP referer.
+ *
+ * If the value of the '_wp_http_referer' URL query variable is not a string then it will be ignored.
  *
  * Do not use for redirects, use wp_get_referer() instead.
  *
@@ -1979,7 +1987,7 @@ function wp_get_referer() {
  * @return string|false Referer URL on success, false on failure.
  */
 function wp_get_raw_referer() {
-	if ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
+	if ( ! empty( $_REQUEST['_wp_http_referer'] ) && is_string( $_REQUEST['_wp_http_referer'] ) ) {
 		return wp_unslash( $_REQUEST['_wp_http_referer'] );
 	} elseif ( ! empty( $_SERVER['HTTP_REFERER'] ) ) {
 		return wp_unslash( $_SERVER['HTTP_REFERER'] );
@@ -2048,7 +2056,7 @@ function wp_mkdir_p( $target ) {
 	}
 
 	// Do not allow path traversals.
-	if ( false !== strpos( $target, '../' ) || false !== strpos( $target, '..' . DIRECTORY_SEPARATOR ) ) {
+	if ( str_contains( $target, '../' ) || str_contains( $target, '..' . DIRECTORY_SEPARATOR ) ) {
 		return false;
 	}
 
@@ -2635,7 +2643,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 		$count = 10000;
 
 		// The (resized) image files would have name and extension, and will be in the uploads dir.
-		if ( $name && $ext && @is_dir( $dir ) && false !== strpos( $dir, $upload_dir['basedir'] ) ) {
+		if ( $name && $ext && @is_dir( $dir ) && str_contains( $dir, $upload_dir['basedir'] ) ) {
 			/**
 			 * Filters the file list used for calculating a unique filename for a newly added file.
 			 *
@@ -3012,9 +3020,9 @@ function wp_get_default_extension_for_mime_type( $mime_type ) {
  *
  * @since 2.0.4
  *
- * @param string   $filename File name or path.
- * @param string[] $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
- *                           Defaults to the result of get_allowed_mime_types().
+ * @param string        $filename File name or path.
+ * @param string[]|null $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
+ *                                Defaults to the result of get_allowed_mime_types().
  * @return array {
  *     Values for the extension and mime type.
  *
@@ -3053,11 +3061,11 @@ function wp_check_filetype( $filename, $mimes = null ) {
  *
  * @since 3.0.0
  *
- * @param string   $file     Full path to the file.
- * @param string   $filename The name of the file (may differ from $file due to $file being
- *                           in a tmp directory).
- * @param string[] $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
- *                           Defaults to the result of get_allowed_mime_types().
+ * @param string        $file     Full path to the file.
+ * @param string        $filename The name of the file (may differ from $file due to $file being
+ *                                in a tmp directory).
+ * @param string[]|null $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
+ *                                Defaults to the result of get_allowed_mime_types().
  * @return array {
  *     Values for the extension, mime type, and corrected filename.
  *
@@ -3239,18 +3247,19 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 	 * @since 3.0.0
 	 * @since 5.1.0 The $real_mime parameter was added.
 	 *
-	 * @param array        $wp_check_filetype_and_ext {
+	 * @param array         $wp_check_filetype_and_ext {
 	 *     Values for the extension, mime type, and corrected filename.
 	 *
 	 *     @type string|false $ext             File extension, or false if the file doesn't match a mime type.
 	 *     @type string|false $type            File mime type, or false if the file doesn't match a mime type.
 	 *     @type string|false $proper_filename File name with its correct extension, or false if it cannot be determined.
 	 * }
-	 * @param string       $file                      Full path to the file.
-	 * @param string       $filename                  The name of the file (may differ from $file due to
-	 *                                                $file being in a tmp directory).
-	 * @param string[]     $mimes                     Array of mime types keyed by their file extension regex.
-	 * @param string|false $real_mime                 The actual mime type or false if the type cannot be determined.
+	 * @param string        $file                      Full path to the file.
+	 * @param string        $filename                  The name of the file (may differ from $file due to
+	 *                                                 $file being in a tmp directory).
+	 * @param string[]|null $mimes                     Array of mime types keyed by their file extension regex, or null if
+	 *                                                 none were provided.
+	 * @param string|false  $real_mime                 The actual mime type or false if the type cannot be determined.
 	 */
 	return apply_filters( 'wp_check_filetype_and_ext', compact( 'ext', 'type', 'proper_filename' ), $file, $filename, $mimes, $real_mime );
 }
@@ -4649,7 +4658,7 @@ function _mce_set_direction( $mce_init ) {
 		$mce_init['directionality'] = 'rtl';
 		$mce_init['rtl_ui']         = true;
 
-		if ( ! empty( $mce_init['plugins'] ) && strpos( $mce_init['plugins'], 'directionality' ) === false ) {
+		if ( ! empty( $mce_init['plugins'] ) && ! str_contains( $mce_init['plugins'], 'directionality' ) ) {
 			$mce_init['plugins'] .= ',directionality';
 		}
 
@@ -5961,13 +5970,13 @@ function apache_mod_loaded( $mod, $default_value = false ) {
 
 	if ( empty( $loaded_mods )
 		&& function_exists( 'phpinfo' )
-		&& false === strpos( ini_get( 'disable_functions' ), 'phpinfo' )
+		&& ! str_contains( ini_get( 'disable_functions' ), 'phpinfo' )
 	) {
 		ob_start();
 		phpinfo( INFO_MODULES );
 		$phpinfo = ob_get_clean();
 
-		if ( false !== strpos( $phpinfo, $mod ) ) {
+		if ( str_contains( $phpinfo, $mod ) ) {
 			return true;
 		}
 	}
@@ -6042,7 +6051,7 @@ function validate_file( $file, $allowed_files = array() ) {
 	}
 
 	// `../` which does not occur at the end of the path is not allowed:
-	if ( false !== strpos( $file, '../' ) && '../' !== mb_substr( $file, -3, 3 ) ) {
+	if ( str_contains( $file, '../' ) && '../' !== mb_substr( $file, -3, 3 ) ) {
 		return 1;
 	}
 
@@ -6097,7 +6106,7 @@ function wp_guess_url() {
 		$script_filename_dir = dirname( $_SERVER['SCRIPT_FILENAME'] );
 
 		// The request is for the admin.
-		if ( strpos( $_SERVER['REQUEST_URI'], 'wp-admin' ) !== false || strpos( $_SERVER['REQUEST_URI'], 'wp-login.php' ) !== false ) {
+		if ( str_contains( $_SERVER['REQUEST_URI'], 'wp-admin' ) || str_contains( $_SERVER['REQUEST_URI'], 'wp-login.php' ) ) {
 			$path = preg_replace( '#/(wp-admin/?.*|wp-login\.php.*)#i', '', $_SERVER['REQUEST_URI'] );
 
 			// The request is for a file in ABSPATH.
@@ -6106,12 +6115,12 @@ function wp_guess_url() {
 			$path = preg_replace( '#/[^/]*$#i', '', $_SERVER['PHP_SELF'] );
 
 		} else {
-			if ( false !== strpos( $_SERVER['SCRIPT_FILENAME'], $abspath_fix ) ) {
+			if ( str_contains( $_SERVER['SCRIPT_FILENAME'], $abspath_fix ) ) {
 				// Request is hitting a file inside ABSPATH.
 				$directory = str_replace( ABSPATH, '', $script_filename_dir );
 				// Strip off the subdirectory, and any file/query params.
 				$path = preg_replace( '#/' . preg_quote( $directory, '#' ) . '/[^/]*$#i', '', $_SERVER['REQUEST_URI'] );
-			} elseif ( false !== strpos( $abspath_fix, $script_filename_dir ) ) {
+			} elseif ( str_contains( $abspath_fix, $script_filename_dir ) ) {
 				// Request is hitting a file above ABSPATH.
 				$subdirectory = substr( $abspath_fix, strpos( $abspath_fix, $script_filename_dir ) + strlen( $script_filename_dir ) );
 				// Strip off any file/query params from the path, appending the subdirectory to the installation.
@@ -6354,17 +6363,17 @@ function _wp_timezone_choice_usort_callback( $a, $b ) {
 	// Don't use translated versions of Etc.
 	if ( 'Etc' === $a['continent'] && 'Etc' === $b['continent'] ) {
 		// Make the order of these more like the old dropdown.
-		if ( 'GMT+' === substr( $a['city'], 0, 4 ) && 'GMT+' === substr( $b['city'], 0, 4 ) ) {
+		if ( str_starts_with( $a['city'], 'GMT+' ) && str_starts_with( $b['city'], 'GMT+' ) ) {
 			return -1 * ( strnatcasecmp( $a['city'], $b['city'] ) );
 		}
 		if ( 'UTC' === $a['city'] ) {
-			if ( 'GMT+' === substr( $b['city'], 0, 4 ) ) {
+			if ( str_starts_with( $b['city'], 'GMT+' ) ) {
 				return 1;
 			}
 			return -1;
 		}
 		if ( 'UTC' === $b['city'] ) {
-			if ( 'GMT+' === substr( $a['city'], 0, 4 ) ) {
+			if ( str_starts_with( $a['city'], 'GMT+' ) ) {
 				return -1;
 			}
 			return 1;
@@ -7097,9 +7106,9 @@ function _device_can_upload() {
 
 	$ua = $_SERVER['HTTP_USER_AGENT'];
 
-	if ( strpos( $ua, 'iPhone' ) !== false
-		|| strpos( $ua, 'iPad' ) !== false
-		|| strpos( $ua, 'iPod' ) !== false ) {
+	if ( str_contains( $ua, 'iPhone' )
+		|| str_contains( $ua, 'iPad' )
+		|| str_contains( $ua, 'iPod' ) ) {
 			return preg_match( '#OS ([\d_]+) like Mac OS X#', $ua, $version ) && version_compare( $version[1], '6', '>=' );
 	}
 
@@ -7523,7 +7532,7 @@ function mysql_to_rfc3339( $date_string ) {
  * @since 4.6.0
  *
  * @param string $context Optional. Context in which the function is called. Accepts either 'admin',
- *                        'image', or an arbitrary other context. If an arbitrary context is passed,
+ *                        'image', 'cron', or an arbitrary other context. If an arbitrary context is passed,
  *                        the similarly arbitrary {@see '$context_memory_limit'} filter will be
  *                        invoked. Default 'admin'.
  * @return int|string|false The limit that was set or false on failure.
@@ -7575,7 +7584,7 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			 * @since 3.5.0
 			 * @since 4.6.0 The default now takes the original `memory_limit` into account.
 			 *
-			 * @param int|string $filtered_limit Maximum memory limit to allocate for images.
+			 * @param int|string $filtered_limit Maximum memory limit to allocate for image processing.
 			 *                                   Default `WP_MAX_MEMORY_LIMIT` or the original
 			 *                                   php.ini `memory_limit`, whichever is higher.
 			 *                                   Accepts an integer (bytes), or a shorthand string
@@ -7584,9 +7593,24 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			$filtered_limit = apply_filters( 'image_memory_limit', $filtered_limit );
 			break;
 
+		case 'cron':
+			/**
+			 * Filters the memory limit allocated for WP-Cron event processing.
+			 *
+			 * @since 6.3.0
+			 *
+			 * @param int|string $filtered_limit Maximum memory limit to allocate for WP-Cron.
+			 *                                   Default `WP_MAX_MEMORY_LIMIT` or the original
+			 *                                   php.ini `memory_limit`, whichever is higher.
+			 *                                   Accepts an integer (bytes), or a shorthand string
+			 *                                   notation, such as '256M'.
+			 */
+			$filtered_limit = apply_filters( 'cron_memory_limit', $filtered_limit );
+			break;
+
 		default:
 			/**
-			 * Filters the memory limit allocated for arbitrary contexts.
+			 * Filters the memory limit allocated for an arbitrary context.
 			 *
 			 * The dynamic portion of the hook name, `$context`, refers to an arbitrary
 			 * context passed on calling the function. This allows for plugins to define
@@ -7594,8 +7618,8 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			 *
 			 * @since 4.6.0
 			 *
-			 * @param int|string $filtered_limit Maximum memory limit to allocate for images.
-			 *                                   Default '256M' or the original php.ini `memory_limit`,
+			 * @param int|string $filtered_limit Maximum memory limit to allocate for this context.
+			 *                                   Default WP_MAX_MEMORY_LIMIT` or the original php.ini `memory_limit`,
 			 *                                   whichever is higher. Accepts an integer (bytes), or a
 			 *                                   shorthand string notation, such as '256M'.
 			 */
@@ -8488,8 +8512,8 @@ function clean_dirsize_cache( $path ) {
 	}
 
 	if (
-		strpos( $path, '/' ) === false &&
-		strpos( $path, '\\' ) === false
+		! str_contains( $path, '/' ) &&
+		! str_contains( $path, '\\' )
 	) {
 		unset( $directory_cache[ $path ] );
 		set_transient( 'dirsize_cache', $directory_cache );

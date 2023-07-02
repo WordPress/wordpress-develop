@@ -191,7 +191,6 @@ p.popular-tags,
 .wp-editor-container,
 .popular-tags,
 .feature-filter,
-.imgedit-group,
 .comment-ays {
 	border: 1px solid #c3c4c7;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
@@ -204,7 +203,6 @@ p.popular-tags,
 .widgets-holder-wrap,
 .popular-tags,
 .feature-filter,
-.imgedit-group,
 .comment-ays {
 	background: #fff;
 }
@@ -555,6 +553,14 @@ code {
 	margin-left: 0;
 }
 
+.js-update-details-toggle .dashicons {
+	text-decoration: none;
+}
+
+.js-update-details-toggle[aria-expanded="true"] .dashicons::before {
+	content: "\f142";
+}
+
 .no-js .widefat thead .check-column input,
 .no-js .widefat tfoot .check-column input {
 	display: none;
@@ -575,7 +581,8 @@ code {
 	margin: 10px 20px 0 2px;
 }
 
-.wrap.block-editor-no-js {
+.wrap.block-editor-no-js,
+.wrap.site-editor-no-js {
 	padding-left: 20px;
 }
 
@@ -1083,7 +1090,6 @@ th.action-links {
 }
 
 .wp-filter .search-form input[type="search"] {
-	margin: 1px 0;
 	width: 280px;
 	max-width: 100%;
 }
@@ -4065,6 +4071,7 @@ img {
 	}
 
 	.wp-filter .search-form input[type="search"] {
+		width: 100%;
 		font-size: 1rem;
 	}
 
@@ -4118,9 +4125,16 @@ img {
 	.nav-tab-active:focus:active {
 		border-bottom: 1px solid #c3c4c7;
 	}
+}
 
-	.wp-filter .search-form input[type="search"] {
-		width: 100%;
+@media screen and (max-width: 480px) {
+	.metabox-prefs-container {
+		display: grid;
+	}
+
+	.metabox-prefs-container > * {
+		display: inline-block;
+		padding: 2px;
 	}
 }
 

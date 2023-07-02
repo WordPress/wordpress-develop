@@ -65,7 +65,7 @@ function get_allowed_block_template_part_areas() {
 	$default_area_definitions = array(
 		array(
 			'area'        => WP_TEMPLATE_PART_AREA_UNCATEGORIZED,
-			'label'       => __( 'General' ),
+			'label'       => _x( 'General', 'template part area' ),
 			'description' => __(
 				'General templates often perform a specific role like displaying post content, and are not tied to any particular area.'
 			),
@@ -74,7 +74,7 @@ function get_allowed_block_template_part_areas() {
 		),
 		array(
 			'area'        => WP_TEMPLATE_PART_AREA_HEADER,
-			'label'       => __( 'Header' ),
+			'label'       => _x( 'Header', 'template part area' ),
 			'description' => __(
 				'The Header template defines a page area that typically contains a title, logo, and main navigation.'
 			),
@@ -83,7 +83,7 @@ function get_allowed_block_template_part_areas() {
 		),
 		array(
 			'area'        => WP_TEMPLATE_PART_AREA_FOOTER,
-			'label'       => __( 'Footer' ),
+			'label'       => _x( 'Footer', 'template part area' ),
 			'description' => __(
 				'The Footer template defines a page area that typically contains site credits, social links, or any other combination of blocks.'
 			),
@@ -542,6 +542,7 @@ function _remove_theme_attribute_in_block_template_content( $template_content ) 
  * Builds a unified template object based on a theme file.
  *
  * @since 5.9.0
+ * @since 6.3.0 Added `modified` property to template objects.
  * @access private
  *
  * @param array  $template_file Theme file.
@@ -564,6 +565,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	$template->status         = 'publish';
 	$template->has_theme_file = true;
 	$template->is_custom      = true;
+	$template->modified       = null;
 
 	if ( 'wp_template' === $template_type && isset( $default_template_types[ $template_file['slug'] ] ) ) {
 		$template->description = $default_template_types[ $template_file['slug'] ]['description'];
@@ -743,6 +745,7 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  * Builds a unified template object based a post Object.
  *
  * @since 5.9.0
+ * @since 6.3.0 Added `modified` property to template objects.
  * @access private
  *
  * @param WP_Post $post Template post.
@@ -782,6 +785,7 @@ function _build_block_template_result_from_post( $post ) {
 	$template->has_theme_file = $has_theme_file;
 	$template->is_custom      = empty( $is_wp_suggestion );
 	$template->author         = $post->post_author;
+	$template->modified       = $post->post_modified;
 
 	if ( 'wp_template' === $post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
 		$template->post_types = $template_file['postTypes'];

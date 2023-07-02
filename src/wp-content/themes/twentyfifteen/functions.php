@@ -57,9 +57,17 @@ if ( ! function_exists( 'twentyfifteen_setup' ) ) :
 		 * Make theme available for translation.
 		 * Translations can be filed at WordPress.org. See: https://translate.wordpress.org/projects/wp-themes/twentyfifteen
 		 * If you're building a theme based on twentyfifteen, use a find and replace
-		 * to change 'twentyfifteen' to the name of your theme in all the template files
+		 * to change 'twentyfifteen' to the name of your theme in all the template files.
+		 *
+		 * Manual loading of text domain is not required after the introduction of
+		 * just in time translation loading in WordPress version 4.6.
+		 *
+		 * @ticket 58318
 		 */
-		load_theme_textdomain( 'twentyfifteen' );
+
+		if ( version_compare( $GLOBALS['wp_version'], '4.6', '<' ) ) {
+			load_theme_textdomain( 'twentyfifteen' );
+		}
 
 		// Add default posts and comments RSS feed links to head.
 		add_theme_support( 'automatic-feed-links' );
@@ -427,12 +435,12 @@ function twentyfifteen_scripts() {
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyfifteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfifteen-style' ), '20230122' );
 
-	// Load the Internet Explorer specific stylesheet.
-	wp_enqueue_style( 'twentyfifteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentyfifteen-style' ), '20220908' );
+	// Register the Internet Explorer specific stylesheet.
+	wp_register_style( 'twentyfifteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentyfifteen-style' ), '20220908' );
 	wp_style_add_data( 'twentyfifteen-ie', 'conditional', 'lt IE 9' );
 
-	// Load the Internet Explorer 7 specific stylesheet.
-	wp_enqueue_style( 'twentyfifteen-ie7', get_template_directory_uri() . '/css/ie7.css', array( 'twentyfifteen-style' ), '20141210' );
+	// Register the Internet Explorer 7 specific stylesheet.
+	wp_register_style( 'twentyfifteen-ie7', get_template_directory_uri() . '/css/ie7.css', array( 'twentyfifteen-style' ), '20141210' );
 	wp_style_add_data( 'twentyfifteen-ie7', 'conditional', 'lt IE 8' );
 
 	// Skip-link fix is no longer enqueued by default.

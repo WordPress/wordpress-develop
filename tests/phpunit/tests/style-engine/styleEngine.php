@@ -25,6 +25,8 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 * Tests generating block styles and classnames based on various manifestations of the $block_styles argument.
 	 *
 	 * @ticket 56467
+	 * @ticket 58549
+	 * @ticket 58590
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -181,6 +183,19 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
+			'inline_valid_shadow_style'                    => array(
+				'block_styles'    => array(
+					'shadow' => 'inset 5em 1em gold',
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'box-shadow:inset 5em 1em gold;',
+					'declarations' => array(
+						'box-shadow' => 'inset 5em 1em gold',
+					),
+				),
+			),
+
 			'inline_valid_typography_style'                => array(
 				'block_styles'    => array(
 					'typography' => array(
@@ -189,6 +204,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 						'fontStyle'      => 'italic',
 						'fontWeight'     => '800',
 						'lineHeight'     => '1.3',
+						'textColumns'    => '2',
 						'textDecoration' => 'underline',
 						'textTransform'  => 'uppercase',
 						'letterSpacing'  => '2',
@@ -196,13 +212,14 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 				'options'         => null,
 				'expected_output' => array(
-					'css'          => 'font-size:clamp(2em, 2vw, 4em);font-family:Roboto,Oxygen-Sans,Ubuntu,sans-serif;font-style:italic;font-weight:800;line-height:1.3;text-decoration:underline;text-transform:uppercase;letter-spacing:2;',
+					'css'          => 'font-size:clamp(2em, 2vw, 4em);font-family:Roboto,Oxygen-Sans,Ubuntu,sans-serif;font-style:italic;font-weight:800;line-height:1.3;column-count:2;text-decoration:underline;text-transform:uppercase;letter-spacing:2;',
 					'declarations' => array(
 						'font-size'       => 'clamp(2em, 2vw, 4em)',
 						'font-family'     => 'Roboto,Oxygen-Sans,Ubuntu,sans-serif',
 						'font-style'      => 'italic',
 						'font-weight'     => '800',
 						'line-height'     => '1.3',
+						'column-count'    => '2',
 						'text-decoration' => 'underline',
 						'text-transform'  => 'uppercase',
 						'letter-spacing'  => '2',

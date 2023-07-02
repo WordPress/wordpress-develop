@@ -149,7 +149,7 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Initialize the upgrader.
+	 * Initializes the upgrader.
 	 *
 	 * This will set the relationship between the skin being used and this upgrader,
 	 * and also add the generic strings to `WP_Upgrader::$strings`.
@@ -180,7 +180,7 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Add the generic strings to WP_Upgrader::$strings.
+	 * Adds the generic strings to WP_Upgrader::$strings.
 	 *
 	 * @since 2.8.0
 	 */
@@ -189,7 +189,7 @@ class WP_Upgrader {
 		$this->strings['fs_unavailable']    = __( 'Could not access filesystem.' );
 		$this->strings['fs_error']          = __( 'Filesystem error.' );
 		$this->strings['fs_no_root_dir']    = __( 'Unable to locate WordPress root directory.' );
-		$this->strings['fs_no_content_dir'] = __( 'Unable to locate WordPress content directory (wp-content).' );
+		$this->strings['fs_no_content_dir'] = sprintf( __( 'Unable to locate WordPress content directory (%s).' ), 'wp-content' );
 		$this->strings['fs_no_plugins_dir'] = __( 'Unable to locate WordPress plugin directory.' );
 		$this->strings['fs_no_themes_dir']  = __( 'Unable to locate WordPress theme directory.' );
 		/* translators: %s: Directory name. */
@@ -217,7 +217,7 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Connect to the filesystem.
+	 * Connects to the filesystem.
 	 *
 	 * @since 2.8.0
 	 *
@@ -289,7 +289,7 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Download a package.
+	 * Downloads a package.
 	 *
 	 * @since 2.8.0
 	 * @since 5.2.0 Added the `$check_signatures` parameter.
@@ -339,7 +339,7 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Unpack a compressed package file.
+	 * Unpacks a compressed package file.
 	 *
 	 * @since 2.8.0
 	 *
@@ -397,7 +397,7 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Flatten the results of WP_Filesystem_Base::dirlist() for iterating over.
+	 * Flattens the results of WP_Filesystem_Base::dirlist() for iterating over.
 	 *
 	 * @since 4.9.0
 	 * @access protected
@@ -712,7 +712,7 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Run an upgrade/installation.
+	 * Runs an upgrade/installation.
 	 *
 	 * Attempts to download the package (if it is not a local file), unpack it, and
 	 * install it in the destination folder.
@@ -960,7 +960,7 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Toggle maintenance mode for the site.
+	 * Toggles maintenance mode for the site.
 	 *
 	 * Creates/deletes the maintenance file to enable/disable maintenance mode.
 	 *
