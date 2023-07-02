@@ -357,7 +357,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$minute_before = gmdate( 'Y-m-d H:i:s', strtotime( '-1 minute' ) );
 		$this->assertGreaterThanOrEqual( $minute_before, get_post_time( 'Y-m-d H:i:s', false, $post ) );
 		$this->assertLessThanOrEqual( gmdate( 'Y-m-d H:i:s' ), get_post_time( 'Y-m-d H:i:s', false, $post ) );
-}
+	}
 
 	/**
 	 * @ticket 41396
