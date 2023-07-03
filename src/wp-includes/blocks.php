@@ -204,6 +204,20 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		return false;
 	}
 
+	$style_handle = $metadata[ $field_name ];
+	if ( is_array( $style_handle ) ) {
+		if ( empty( $style_handle[ $index ] ) ) {
+			return false;
+		}
+		$style_handle = $style_handle[ $index ];
+	}
+
+	$style_handle_name = generate_block_asset_handle( $metadata['name'], $field_name, $index );
+	// If the style handle is already registered, skip re-registering.
+	if ( wp_style_is( $style_handle_name, 'registered' ) ) {
+		return $style_handle_name;
+	}
+
 	static $wpinc_path_norm = '';
 	if ( ! $wpinc_path_norm ) {
 		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
@@ -213,14 +227,6 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	// Skip registering individual styles for each core block when a bundled version provided.
 	if ( $is_core_block && ! wp_should_load_separate_core_block_assets() ) {
 		return false;
-	}
-
-	$style_handle = $metadata[ $field_name ];
-	if ( is_array( $style_handle ) ) {
-		if ( empty( $style_handle[ $index ] ) ) {
-			return false;
-		}
-		$style_handle = $style_handle[ $index ];
 	}
 
 	$style_path      = remove_block_asset_path_prefix( $style_handle );
@@ -237,17 +243,16 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	// Check whether styles should have a ".min" suffix or not.
 	$suffix = SCRIPT_DEBUG ? '' : '.min';
 	if ( $is_core_block ) {
-		$style_path = "style$suffix.css";
+		$style_path = ( 'editorStyle' === $field_name ) ? "editor{$suffix}.css" : "style{$suffix}.css";
 	}
 
 	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
 	$has_style_file  = '' !== $style_path_norm;
 	$style_uri       = $has_style_file ? get_block_asset_uri( $style_path_norm, $metadata['file'] ) : false;
 
-	$style_handle = generate_block_asset_handle( $metadata['name'], $field_name, $index );
-	$version      = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
-	$result       = wp_register_style(
-		$style_handle,
+	$version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
+	$result  = wp_register_style(
+		$style_handle_name,
 		$style_uri,
 		array(),
 		$version
@@ -257,7 +262,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	}
 
 	if ( $has_style_file ) {
-		wp_style_add_data( $style_handle, 'path', $style_path_norm );
+		wp_style_add_data( $style_handle_name, 'path', $style_path_norm );
 
 		if ( $is_core_block ) {
 			$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $style_path_norm );
@@ -266,13 +271,13 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		}
 
 		if ( is_rtl() && file_exists( $rtl_file ) ) {
-			wp_style_add_data( $style_handle, 'rtl', 'replace' );
-			wp_style_add_data( $style_handle, 'suffix', $suffix );
-			wp_style_add_data( $style_handle, 'path', $rtl_file );
+			wp_style_add_data( $style_handle_name, 'rtl', 'replace' );
+			wp_style_add_data( $style_handle_name, 'suffix', $suffix );
+			wp_style_add_data( $style_handle_name, 'path', $rtl_file );
 		}
 	}
 
-	return $style_handle;
+	return $style_handle_name;
 }
 
 /**
@@ -318,20 +323,22 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 */
 	static $core_blocks_meta;
 	if ( ! $core_blocks_meta ) {
-		$core_blocks_meta = require_once ABSPATH . WPINC . '/blocks/blocks-json.php';
+		$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
 	}
 
 	$metadata_file = ( ! str_ends_with( $file_or_folder, 'block.json' ) ) ?
 		trailingslashit( $file_or_folder ) . 'block.json' :
 		$file_or_folder;
 
-	if ( ! file_exists( $metadata_file ) ) {
+	$is_core_block = str_starts_with( $file_or_folder, ABSPATH . WPINC );
+
+	if ( ! $is_core_block && ! file_exists( $metadata_file ) ) {
 		return false;
 	}
 
 	// Try to get metadata from the static cache for core blocks.
 	$metadata = false;
-	if ( str_starts_with( $file_or_folder, ABSPATH . WPINC ) ) {
+	if ( $is_core_block ) {
 		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
 		if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
 			$metadata = $core_blocks_meta[ $core_block_name ];
@@ -363,6 +370,10 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 
 		if ( ! isset( $metadata['style'] ) ) {
 			$metadata['style'] = "wp-block-$block_name";
+		}
+		if ( current_theme_supports( 'wp-block-styles' ) && wp_should_load_separate_core_block_assets() ) {
+			$metadata['style']   = (array) $metadata['style'];
+			$metadata['style'][] = "wp-block-{$block_name}-theme";
 		}
 		if ( ! isset( $metadata['editorStyle'] ) ) {
 			$metadata['editorStyle'] = "wp-block-{$block_name}-editor";
@@ -580,7 +591,7 @@ function has_blocks( $post = null ) {
 		$post = $wp_post->post_content;
 	}
 
-	return false !== strpos( (string) $post, '<!-- wp:' );
+	return str_contains( (string) $post, '<!-- wp:' );
 }
 
 /**
@@ -616,12 +627,12 @@ function has_block( $block_name, $post = null ) {
 	 * This matches behavior for WordPress 5.0.0 - 5.3.0 in matching blocks by
 	 * their serialized names.
 	 */
-	if ( false === strpos( $block_name, '/' ) ) {
+	if ( ! str_contains( $block_name, '/' ) ) {
 		$block_name = 'core/' . $block_name;
 	}
 
 	// Test for existence of block by its fully qualified name.
-	$has_block = false !== strpos( $post, '<!-- wp:' . $block_name . ' ' );
+	$has_block = str_contains( $post, '<!-- wp:' . $block_name . ' ' );
 
 	if ( ! $has_block ) {
 		/*
@@ -630,7 +641,7 @@ function has_block( $block_name, $post = null ) {
 		 */
 		$serialized_block_name = strip_core_block_namespace( $block_name );
 		if ( $serialized_block_name !== $block_name ) {
-			$has_block = false !== strpos( $post, '<!-- wp:' . $serialized_block_name . ' ' );
+			$has_block = str_contains( $post, '<!-- wp:' . $serialized_block_name . ' ' );
 		}
 	}
 
@@ -799,7 +810,7 @@ function serialize_blocks( $blocks ) {
 function filter_block_content( $text, $allowed_html = 'post', $allowed_protocols = array() ) {
 	$result = '';
 
-	if ( false !== strpos( $text, '<!--' ) && false !== strpos( $text, '--->' ) ) {
+	if ( str_contains( $text, '<!--' ) && str_contains( $text, '--->' ) ) {
 		$text = preg_replace_callback( '%<!--(.*?)--->%', '_filter_block_content_callback', $text );
 	}
 
@@ -1162,8 +1173,8 @@ function block_version( $content ) {
  * @link https://developer.wordpress.org/block-editor/reference-guides/block-api/block-styles/
  *
  * @param string $block_name       Block type name including namespace.
- * @param array  $style_properties Array containing the properties of the style name,
- *                                 label, style (name of the stylesheet to be enqueued),
+ * @param array  $style_properties Array containing the properties of the style name, label,
+ *                                 style_handle (name of the stylesheet to be enqueued),
  *                                 inline_style (string containing the CSS to be added).
  * @return bool True if the block style was registered with success and false otherwise.
  */
@@ -1363,10 +1374,15 @@ function build_query_vars_from_query_block( $block, $page ) {
 			$query['orderby'] = $block->context['query']['orderBy'];
 		}
 		if (
-			isset( $block->context['query']['author'] ) &&
-			(int) $block->context['query']['author'] > 0
+			isset( $block->context['query']['author'] )
 		) {
-			$query['author'] = (int) $block->context['query']['author'];
+			if ( is_array( $block->context['query']['author'] ) ) {
+				$query['author__in'] = array_filter( array_map( 'intval', $block->context['query']['author'] ) );
+			} elseif ( is_string( $block->context['query']['author'] ) ) {
+				$query['author__in'] = array_filter( array_map( 'intval', explode( ',', $block->context['query']['author'] ) ) );
+			} elseif ( is_int( $block->context['query']['author'] ) && $block->context['query']['author'] > 0 ) {
+				$query['author'] = $block->context['query']['author'];
+			}
 		}
 		if ( ! empty( $block->context['query']['search'] ) ) {
 			$query['s'] = $block->context['query']['search'];

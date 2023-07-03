@@ -323,6 +323,11 @@ class WP_Debug_Data {
 					'value' => $wp_environment_type,
 					'debug' => $wp_environment_type,
 				),
+				'WP_DEVELOPMENT_MODE' => array(
+					'label' => 'WP_DEVELOPMENT_MODE',
+					'value' => WP_DEVELOPMENT_MODE ? WP_DEVELOPMENT_MODE : __( 'Disabled' ),
+					'debug' => WP_DEVELOPMENT_MODE,
+				),
 				'DB_CHARSET'          => array(
 					'label' => 'DB_CHARSET',
 					'value' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : __( 'Undefined' ) ),
@@ -838,6 +843,21 @@ class WP_Debug_Data {
 				'debug' => $filtered_htaccess_content,
 			);
 		}
+
+		// Server time.
+		$date = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
+		$info['wp-server']['fields']['current'] = array(
+			'label' => __( 'Current time' ),
+			'value' => $date->format( DateTime::ATOM ),
+		);
+		$info['wp-server']['fields']['utc-time'] = array(
+			'label' => __( 'Current UTC time' ),
+			'value' => $date->format( DateTime::RFC850 ),
+		);
+		$info['wp-server']['fields']['server-time'] = array(
+			'label' => __( 'Current Server time' ),
+			'value' => wp_date( 'c', $_SERVER['REQUEST_TIME'] ),
+		);
 
 		// Populate the database debug fields.
 		if ( is_resource( $wpdb->dbh ) ) {

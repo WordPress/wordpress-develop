@@ -211,6 +211,22 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 		$this->assertSame( 'siteLocale', determine_locale() );
 	}
 
+	public function test_wp_login_get_param_on_login_page_incorrect_string() {
+		add_filter(
+			'locale',
+			static function() {
+				return 'siteLocale';
+			}
+		);
+
+		wp_set_current_user( self::$user_id );
+
+		$GLOBALS['pagenow'] = 'wp-login.php';
+		$_GET['wp_lang']    = '###'; // Something sanitize_locale_name() strips away.
+
+		$this->assertSame( 'siteLocale', determine_locale() );
+	}
+
 	public function test_wp_login_cookie_not_on_login_page() {
 		add_filter(
 			'locale',
