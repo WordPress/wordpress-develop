@@ -1132,10 +1132,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$request = new WP_REST_Request( 'GET', '/' );
 		$request->set_param( '_fields', 'name' );
 		$index = $server->dispatch( $request );
+		$index = rest_filter_response_fields( $index, $server, $request );
 		$data  = $index->get_data();
+		$links = $index->get_links();
 
 		$this->assertArrayHasKey( 'name', $data );
-		$this->assertArrayNotHasKey( '_links', $data );
+		$this->assertArrayNotHasKey( 'help', $links );
 	}
 
 	/**
@@ -1149,10 +1151,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$request = new WP_REST_Request( 'GET', '/' );
 		$request->set_param( '_fields', '_links' );
 		$index = $server->dispatch( $request );
+		$index = rest_filter_response_fields( $index, $server, $request );
 		$data  = $index->get_data();
+		$links = $index->get_links();
 
 		$this->assertArrayNotHasKey( 'name', $data );
-		$this->assertArrayHasKey( '_links', $data );
+		$this->assertArrayHasKey( 'help', $links );
 	}
 
 	/**

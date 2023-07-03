@@ -2515,7 +2515,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		// Filtered request only has the desired fields + links
 		$this->assertSame(
 			array_keys( $preload_data['/?_fields=description']['body'] ),
-			array( 'description', '_links' )
+			array( 'description' )
 		);
 	}
 
