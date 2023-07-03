@@ -6,6 +6,8 @@
  * @subpackage REST API
  *
  * @group restapi
+ *
+ * @coversDefaultClass WP_REST_Server
  */
 class Tests_REST_Server extends WP_Test_REST_TestCase {
 	protected static $icon_id;
@@ -1117,6 +1119,40 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( 'site_logo', $data );
 		$this->assertArrayHasKey( 'site_icon', $data );
 		$this->assertArrayHasKey( 'site_icon_url', $data );
+	}
+
+	/**
+	 * @covers ::get_index
+	 *
+	 * @ticket 57902
+	 */
+	public function test_get_index_fields_name() {
+		$server = new WP_REST_Server();
+
+		$request = new WP_REST_Request( 'GET', '/' );
+		$request->set_param( '_fields', 'name' );
+		$index = $server->dispatch( $request );
+		$data  = $index->get_data();
+
+		$this->assertArrayHasKey( 'name', $data );
+		$this->assertArrayNotHasKey( '_links', $data );
+	}
+
+	/**
+	 * @covers ::get_index
+	 *
+	 * @ticket 57902
+	 */
+	public function test_get_index_fields_links() {
+		$server = new WP_REST_Server();
+
+		$request = new WP_REST_Request( 'GET', '/' );
+		$request->set_param( '_fields', '_links' );
+		$index = $server->dispatch( $request );
+		$data  = $index->get_data();
+
+		$this->assertArrayNotHasKey( 'name', $data );
+		$this->assertArrayHasKey( '_links', $data );
 	}
 
 	/**
