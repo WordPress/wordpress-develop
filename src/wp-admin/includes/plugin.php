@@ -45,7 +45,7 @@
  * @since 1.5.0
  * @since 5.3.0 Added support for `Requires at least` and `Requires PHP` headers.
  * @since 5.8.0 Added support for `Update URI` header.
- * @since 6.3.0 Added support for `Requires Plugins` header.
+ * @since 6.4.0 Added support for `Requires Plugins` header.
  *
  * @param string $plugin_file Absolute path to the main plugin file.
  * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
