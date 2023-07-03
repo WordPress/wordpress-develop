@@ -5295,6 +5295,7 @@ function wp_global_styles_render_svg_filters() {
  * Build an array with CSS classes and inline styles defining the colors
  * which will be applied to the navigation markup in the front-end.
  *
+ * @since 5.9.0
  * @deprecated 6.3.0 This was removed from the Navigation Submenu block in favour of `wp_apply_colors_support()`.
  *                   `wp_apply_colors_support()` returns an array with similar class and style values,
  *                   but with different keys: `class` and `style`.
