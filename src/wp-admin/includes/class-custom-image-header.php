@@ -369,7 +369,7 @@ class Custom_Image_Header {
 		$default_color = '';
 		if ( current_theme_supports( 'custom-header', 'default-text-color' ) ) {
 			$default_color = get_theme_support( 'custom-header', 'default-text-color' );
-			if ( $default_color && false === strpos( $default_color, '#' ) ) {
+			if ( $default_color && ! str_contains( $default_color, '#' ) ) {
 				$default_color = '#' . $default_color;
 			}
 		}
@@ -703,7 +703,7 @@ class Custom_Image_Header {
 <th scope="row"><?php _e( 'Default Images' ); ?></th>
 <td>
 			<?php if ( current_theme_supports( 'custom-header', 'uploads' ) ) : ?>
-	<p><?php _e( 'If you don&lsquo;t want to upload your own image, you can use one of these cool headers, or show a random one.' ); ?></p>
+	<p><?php _e( 'If you do not want to upload your own image, you can use one of these cool headers, or show a random one.' ); ?></p>
 	<?php else : ?>
 	<p><?php _e( 'You can use one of these cool headers or show a random one on each page.' ); ?></p>
 	<?php endif; ?>
@@ -768,7 +768,7 @@ class Custom_Image_Header {
 			$default_color = '';
 			if ( current_theme_supports( 'custom-header', 'default-text-color' ) ) {
 				$default_color = get_theme_support( 'custom-header', 'default-text-color' );
-				if ( $default_color && false === strpos( $default_color, '#' ) ) {
+				if ( $default_color && ! str_contains( $default_color, '#' ) ) {
 					$default_color = '#' . $default_color;
 				}
 			}
@@ -776,7 +776,7 @@ class Custom_Image_Header {
 			$default_color_attr = $default_color ? ' data-default-color="' . esc_attr( $default_color ) . '"' : '';
 
 			$header_textcolor = display_header_text() ? get_header_textcolor() : get_theme_support( 'custom-header', 'default-text-color' );
-			if ( $header_textcolor && false === strpos( $header_textcolor, '#' ) ) {
+			if ( $header_textcolor && ! str_contains( $header_textcolor, '#' ) ) {
 				$header_textcolor = '#' . $header_textcolor;
 			}
 
