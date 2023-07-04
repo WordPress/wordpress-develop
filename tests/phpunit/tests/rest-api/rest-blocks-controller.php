@@ -232,9 +232,9 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 			'wp_block',
 			'wp_pattern_sync_status',
 			array(
-				'single'            => true,
-				'type'              => 'string',
-				'show_in_rest'      => array(
+				'single'       => true,
+				'type'         => 'string',
+				'show_in_rest' => array(
 					'schema' => array(
 						'type'       => 'string',
 						'properties' => array(
