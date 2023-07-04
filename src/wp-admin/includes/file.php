@@ -694,10 +694,14 @@ function wp_tempnam( $filename = '', $dir = '' ) {
 	 *
 	 * If the generated unique filename exceeds this, truncate the initial
 	 * filename and try again.
+	 *
+	 * As it's possible that the truncated filename may exist, producing a
+	 * suffix of "-1" or "-10" which could exceed the limit again, truncate
+	 * it to 252 instead.
 	 */
-	$characters_over_255 = strlen( $temp_filename ) - 255;
-	if ( $characters_over_255 > 0 ) {
-		$filename = substr( $filename, 0, -$characters_over_255 );
+	$characters_over_limit = strlen( $temp_filename ) - 252;
+	if ( $characters_over_limit > 0 ) {
+		$filename = substr( $filename, 0, -$characters_over_limit );
 		return wp_tempnam( $filename, $dir );
 	}
 
