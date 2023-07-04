@@ -1707,6 +1707,73 @@ final class WP_Theme implements ArrayAccess {
 	}
 
 	/**
+	 * Enables a theme for a site.
+	 *
+	 * @param string|string[] $stylesheets Stylesheet name or array of stylesheet names.
+	 * @param int             $site_id     Site ID.
+	 *
+	 * @since 6.3
+	 *
+	 */
+	public static function site_enable_theme( $stylesheets, $site_id = null ) {
+		$site_id = (int) $site_id;
+
+		if ( ! is_multisite() ) {
+			return;
+		}
+
+		if ( ! is_array( $stylesheets ) ) {
+			$stylesheets = array( $stylesheets );
+		}
+
+		$current_site_id = get_current_blog_id();
+		if ( ! $site_id ) {
+			$site_id = $current_site_id;
+		}
+
+		$allowed_themes = get_blog_option( $site_id, 'allowedthemes' );
+		foreach ( $stylesheets as $stylesheet ) {
+			$allowed_themes[ $stylesheet ] = true;
+		}
+
+		update_blog_option( $site_id, 'allowedthemes', $allowed_themes );
+	}
+
+	/**
+	 * Disables a theme for a site.
+	 *
+	 * @since 6.3
+	 *
+	 * @param string|string[] $stylesheets Stylesheet name or array of stylesheet names.
+	 * @param int             $site_id     Site ID.
+	 */
+	public static function site_disable_theme( $stylesheets, $site_id = null ) {
+		$site_id = (int) $site_id;
+
+		if ( ! is_multisite() ) {
+			return;
+		}
+
+		if ( ! is_array( $stylesheets ) ) {
+			$stylesheets = array( $stylesheets );
+		}
+
+		$current_site_id = get_current_blog_id();
+		if ( ! $site_id ) {
+			$site_id = $current_site_id;
+		}
+
+		$allowed_themes = get_blog_option( $site_id, 'allowedthemes' );
+		foreach ( $stylesheets as $stylesheet ) {
+			if ( isset( $allowed_themes[ $stylesheet ] ) ) {
+				unset( $allowed_themes[ $stylesheet ] );
+			}
+		}
+
+		update_blog_option( $site_id, 'allowedthemes', $allowed_themes );
+	}
+
+	/**
 	 * Enables a theme for all sites on the current network.
 	 *
 	 * @since 4.6.0
