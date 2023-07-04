@@ -1274,8 +1274,8 @@ class WP_REST_Server {
 		$fields = wp_parse_list( $fields );
 		if ( empty( $fields ) ) {
 			$fields[] = '_links';
-		} 
-		
+		}
+
 		if ( $request->has_param( '_embed' ) ) {
 			$fields[] = '_embedded';
 		}
