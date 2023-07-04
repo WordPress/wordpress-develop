@@ -22,8 +22,8 @@ describe( 'Cache Control header directives', () => {
 		const response = await page.goto( createURL( '/hello-world/' ) );
 		const cacheControl = response.headers();
 
-		expect( cacheControl[ 'cache-control' ] ).not.toContain( 'no-store' );
-		expect( cacheControl[ 'cache-control' ] ).not.toContain( 'private' );
+		expect( cacheControl ).toEqual( expect.not.objectContaining( { "cache-control": "no-store" } ) );
+		expect( cacheControl ).toEqual( expect.not.objectContaining( { "cache-control": "private" } ) );
 	} );
 
 	it( 'Private directive header present in cache control when logged in.', async () => {
