@@ -3732,7 +3732,7 @@ function wp_enqueue_classic_theme_styles() {
  *
  * @since 6.1.0
  * @since 6.2.0 Added File block styles.
- * @deprecated 6.3.0 Removed from block_editor_settings_all filter.
+ * @since 6.3.0 Removed from block_editor_settings_all filter.
  *
  * @param array $editor_settings The array of editor settings.
  * @return array A filtered array of editor settings.
