@@ -40,7 +40,7 @@ class WP_REST_Blocks_Controller extends WP_REST_Posts_Controller {
 	 * Filters a response based on the context defined in the schema.
 	 *
 	 * @since 5.0.0
-	 * @since 6.3 Adds the `wp_sync_status` postmeta property to the toplevel of response.
+	 * @since 6.3 Adds the `wp_pattern_sync_status` postmeta property to the toplevel of response.
 	 *
 	 * @param array  $data    Response data to filter.
 	 * @param string $context Context defined in the schema.
@@ -57,9 +57,9 @@ class WP_REST_Blocks_Controller extends WP_REST_Posts_Controller {
 		unset( $data['title']['rendered'] );
 		unset( $data['content']['rendered'] );
 
-		// Add the core wp_sync_status meta as top level property to the response.
-		$data['wp_sync_status'] = $data['meta']['wp_sync_status'];
-		unset( $data['meta']['wp_sync_status'] );
+		// Add the core wp_pattern_sync_status meta as top level property to the response.
+		$data['wp_pattern_sync_status'] = $data['meta']['wp_pattern_sync_status'];
+		unset( $data['meta']['wp_pattern_sync_status'] );
 		return $data;
 	}
 
