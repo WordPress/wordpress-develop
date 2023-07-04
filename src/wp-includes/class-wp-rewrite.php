@@ -509,7 +509,7 @@ class WP_Rewrite {
 		$date_endian          = '';
 
 		foreach ( $endians as $endian ) {
-			if ( false !== strpos( $this->permalink_structure, $endian ) ) {
+			if ( str_contains( $this->permalink_structure, $endian ) ) {
 				$date_endian = $endian;
 				break;
 			}
@@ -1060,13 +1060,18 @@ class WP_Rewrite {
 				 * 2) post ID, 3) page name, 4) timestamp (year, month, day, hour, second and
 				 * minute all present). Set these flags now as we need them for the endpoints.
 				 */
-				if ( strpos( $struct, '%postname%' ) !== false
-						|| strpos( $struct, '%post_id%' ) !== false
-						|| strpos( $struct, '%pagename%' ) !== false
-						|| ( strpos( $struct, '%year%' ) !== false && strpos( $struct, '%monthnum%' ) !== false && strpos( $struct, '%day%' ) !== false && strpos( $struct, '%hour%' ) !== false && strpos( $struct, '%minute%' ) !== false && strpos( $struct, '%second%' ) !== false )
-						) {
+				if ( str_contains( $struct, '%postname%' )
+					|| str_contains( $struct, '%post_id%' )
+					|| str_contains( $struct, '%pagename%' )
+					|| ( str_contains( $struct, '%year%' )
+						&& str_contains( $struct, '%monthnum%' )
+						&& str_contains( $struct, '%day%' )
+						&& str_contains( $struct, '%hour%' )
+						&& str_contains( $struct, '%minute%' )
+						&& str_contains( $struct, '%second%' ) )
+				) {
 					$post = true;
-					if ( strpos( $struct, '%pagename%' ) !== false ) {
+					if ( str_contains( $struct, '%pagename%' ) ) {
 						$page = true;
 					}
 				}
@@ -1074,7 +1079,7 @@ class WP_Rewrite {
 				if ( ! $post ) {
 					// For custom post types, we need to add on endpoints as well.
 					foreach ( get_post_types( array( '_builtin' => false ) ) as $ptype ) {
-						if ( strpos( $struct, "%$ptype%" ) !== false ) {
+						if ( str_contains( $struct, "%$ptype%" ) ) {
 							$post = true;
 
 							// This is for page style attachment URLs.
@@ -1399,7 +1404,7 @@ class WP_Rewrite {
 		// Extra permastructs.
 		foreach ( $this->extra_permastructs as $permastructname => $struct ) {
 			if ( is_array( $struct ) ) {
-				if ( count( $struct ) == 2 ) {
+				if ( count( $struct ) === 2 ) {
 					$rules = $this->generate_rewrite_rules( $struct[0], $struct[1] );
 				} else {
 					$rules = $this->generate_rewrite_rules( $struct['struct'], $struct['ep_mask'], $struct['paged'], $struct['feed'], $struct['forcomments'], $struct['walk_dirs'], $struct['endpoints'] );
@@ -1555,7 +1560,7 @@ class WP_Rewrite {
 				// Apache 1.3 does not support the reluctant (non-greedy) modifier.
 				$match = str_replace( '.+?', '.+', $match );
 
-				if ( strpos( $query, $this->index ) !== false ) {
+				if ( str_contains( $query, $this->index ) ) {
 					$rules .= 'RewriteRule ^' . $match . ' ' . $home_root . $query . " [QSA,L]\n";
 				} else {
 					$rules .= 'RewriteRule ^' . $match . ' ' . $site_root . $query . " [QSA,L]\n";
@@ -1660,7 +1665,7 @@ class WP_Rewrite {
 			$external = false;
 			$query    = add_query_arg( $query, 'index.php' );
 		} else {
-			$index = false === strpos( $query, '?' ) ? strlen( $query ) : strpos( $query, '?' );
+			$index = ! str_contains( $query, '?' ) ? strlen( $query ) : strpos( $query, '?' );
 			$front = substr( $query, 0, $index );
 
 			$external = $front != $this->index;
@@ -1907,7 +1912,7 @@ class WP_Rewrite {
 		unset( $this->feed_structure );
 		unset( $this->comment_feed_structure );
 
-		$this->use_trailing_slashes = ( '/' === substr( $this->permalink_structure, -1, 1 ) );
+		$this->use_trailing_slashes = str_ends_with( $this->permalink_structure, '/' );
 
 		// Enable generic rules for pages if permalink structure doesn't begin with a wildcard.
 		if ( preg_match( '/^[^%]*%(?:postname|category|tag|author)%/', $this->permalink_structure ) ) {

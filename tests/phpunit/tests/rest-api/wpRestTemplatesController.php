@@ -1,13 +1,9 @@
 <?php
 /**
- * Unit tests covering the templates endpoint..
+ * Unit tests covering WP_REST_Templates_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
- * Tests for REST API for templates.
  *
  * @covers WP_REST_Templates_Controller
  *
@@ -122,6 +118,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'has_theme_file' => false,
 				'is_custom'      => true,
 				'author'         => 0,
+				'modified'       => mysql_to_rfc3339( self::$post->post_modified ),
 			),
 			$this->find_and_normalize_template_by_id( $data, 'default//my_template' )
 		);
@@ -166,6 +163,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'has_theme_file' => false,
 				'is_custom'      => true,
 				'author'         => 0,
+				'modified'       => mysql_to_rfc3339( self::$post->post_modified ),
 			),
 			$data
 		);
@@ -173,7 +171,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 54507
-	 * @dataProvider get_template_endpoint_urls
+	 * @dataProvider data_get_item_works_with_a_single_slash
 	 */
 	public function test_get_item_works_with_a_single_slash( $endpoint_url ) {
 		wp_set_current_user( self::$admin_id );
@@ -202,12 +200,13 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'has_theme_file' => false,
 				'is_custom'      => true,
 				'author'         => 0,
+				'modified'       => mysql_to_rfc3339( self::$post->post_modified ),
 			),
 			$data
 		);
 	}
 
-	public function get_template_endpoint_urls() {
+	public function data_get_item_works_with_a_single_slash() {
 		return array(
 			array( '/wp/v2/templates/default/my_template' ),
 			array( '/wp/v2/templates/default//my_template' ),
@@ -261,6 +260,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'has_theme_file' => false,
 				'is_custom'      => true,
 				'author'         => self::$admin_id,
+				'modified'       => mysql_to_rfc3339( $post->post_modified ),
 			),
 			$data
 		);
@@ -379,7 +379,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 54507
-	 * @dataProvider get_template_ids_to_sanitize
+	 * @dataProvider data_sanitize_template_id
 	 */
 	public function test_sanitize_template_id( $input_id, $sanitized_id ) {
 		$endpoint = new WP_REST_Templates_Controller( 'wp_template' );
@@ -389,7 +389,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 	}
 
-	public function get_template_ids_to_sanitize() {
+	public function data_sanitize_template_id() {
 		return array(
 			array( 'tt1-blocks/index', 'tt1-blocks//index' ),
 			array( 'tt1-blocks//index', 'tt1-blocks//index' ),
@@ -417,6 +417,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$modified = get_post( $data['wp_id'] )->post_modified;
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
 
@@ -440,6 +441,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'has_theme_file' => false,
 				'is_custom'      => true,
 				'author'         => self::$admin_id,
+				'modified'       => mysql_to_rfc3339( $modified ),
 			),
 			$data
 		);
@@ -463,6 +465,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$modified = get_post( $data['wp_id'] )->post_modified;
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
 
@@ -486,6 +489,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'has_theme_file' => false,
 				'is_custom'      => false,
 				'author'         => self::$admin_id,
+				'modified'       => mysql_to_rfc3339( $modified ),
 			),
 			$data
 		);
@@ -513,6 +517,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$modified = get_post( $data['wp_id'] )->post_modified;
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
 
@@ -536,6 +541,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'has_theme_file' => false,
 				'is_custom'      => true,
 				'author'         => self::$admin_id,
+				'modified'       => mysql_to_rfc3339( $modified ),
 			),
 			$data
 		);
@@ -694,7 +700,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 14, $properties );
+		$this->assertCount( 15, $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
@@ -710,6 +716,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertArrayHasKey( 'has_theme_file', $properties );
 		$this->assertArrayHasKey( 'is_custom', $properties );
 		$this->assertArrayHasKey( 'author', $properties );
+		$this->assertArrayHasKey( 'modified', $properties );
 	}
 
 	protected function find_and_normalize_template_by_id( $templates, $id ) {
@@ -740,8 +747,10 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/templates' );
 		$request->set_body_params( $body_params );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
+		$response             = rest_get_server()->dispatch( $request );
+		$data                 = $response->get_data();
+		$modified             = get_post( $data['wp_id'] )->post_modified;
+		$expected['modified'] = mysql_to_rfc3339( $modified );
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
 
@@ -828,5 +837,12 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$request->set_param( 'template_prefix', 'page' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 'page', $response->get_data()['slug'], 'Should fallback to `page.html`.' );
+		// Should fallback to `index.html`.
+		$request->set_param( 'slug', 'author' );
+		$request->set_param( 'ignore_empty', true );
+		$request->set_param( 'template_prefix', 'tag' );
+		$request->set_param( 'is_custom', false );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 'index', $response->get_data()['slug'], 'Should fallback to `index.html` when  ignore_empty is `true`.' );
 	}
 }

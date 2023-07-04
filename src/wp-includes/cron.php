@@ -883,7 +883,7 @@ function spawn_cron( $gmt_time = 0 ) {
 		wp_ob_end_flush_all();
 		flush();
 
-		include_once ABSPATH . 'wp-cron.php';
+		require_once ABSPATH . 'wp-cron.php';
 		return true;
 	}
 
@@ -974,7 +974,7 @@ function wp_cron() {
  */
 function _wp_cron() {
 	// Prevent infinite loops caused by lack of wp-cron.php.
-	if ( strpos( $_SERVER['REQUEST_URI'], '/wp-cron.php' ) !== false || ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ) ) {
+	if ( str_contains( $_SERVER['REQUEST_URI'], '/wp-cron.php' ) || ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ) ) {
 		return 0;
 	}
 

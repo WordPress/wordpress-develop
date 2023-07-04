@@ -1,15 +1,9 @@
 <?php
 /**
- * Comment Template block rendering tests.
+ * Tests for the Comment Template block rendering.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 6.0.0
- */
-
-/**
- * Tests for the Comment Template block.
- *
  * @since 6.0.0
  *
  * @group blocks
@@ -442,7 +436,7 @@ END
 			)
 		);
 
-		$commenter_filter = function () {
+		$commenter_filter = static function () {
 			return array(
 				'comment_author_email' => 'unapproved@example.org',
 			);
