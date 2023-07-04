@@ -360,25 +360,6 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			return $post;
 		}
 
-		// Only create an autosave when it is different from the saved post.
-		$autosave_is_different = false;
-		$new_autosave          = _wp_post_revision_data( $post_data, true );
-
-		foreach ( array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) ) as $field ) {
-			if ( normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) ) {
-				$autosave_is_different = true;
-				break;
-			}
-		}
-
-		if ( ! $autosave_is_different ) {
-			return new WP_Error(
-				'rest_autosave_no_changes',
-				__( 'There is nothing to save. The autosave and the post content are the same.' ),
-				array( 'status' => 400 )
-			);
-		}
-
 		$user_id = get_current_user_id();
 
 		// Store one autosave per author. If there is already an autosave, overwrite it.
