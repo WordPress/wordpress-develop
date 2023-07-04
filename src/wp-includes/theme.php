@@ -1237,10 +1237,11 @@ function get_header_image_tag( $attr = array() ) {
 	$attr = wp_parse_args(
 		$attr,
 		array(
-			'src'    => $header->url,
-			'width'  => $width,
-			'height' => $height,
-			'alt'    => $alt,
+			'src'      => $header->url,
+			'width'    => $width,
+			'height'   => $height,
+			'alt'      => $alt,
+			'decoding' => 'async',
 		)
 	);
 
@@ -1279,6 +1280,11 @@ function get_header_image_tag( $attr = array() ) {
 	// If the `fetchpriority` attribute is overridden and set to false or an empty string.
 	if ( isset( $attr['fetchpriority'] ) && ! $attr['fetchpriority'] ) {
 		unset( $attr['fetchpriority'] );
+	}
+
+	// If the `decoding` attribute is overridden and set to false or an empty string.
+	if ( isset( $attr['decoding'] ) && ! $attr['decoding'] ) {
+		unset( $attr['decoding'] );
 	}
 
 	/**

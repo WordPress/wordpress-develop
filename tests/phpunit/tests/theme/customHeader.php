@@ -174,6 +174,74 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		$this->assertStringContainsString( sprintf( 'src="%s"', $custom ), $html );
 	}
 
+	/**
+	 * Tests default values of performance attributes for "get_header_image_tag".
+	 *
+	 * @ticket 58680
+	 */
+	public function test_get_header_image_tag_with_default_performance_attributes() {
+		$this->add_theme_support(
+			array(
+				'default-image' => 'http://localhost/default-header.jpg',
+				'width'         => 500,
+				'height'        => 500,
+			)
+		);
+
+		$html = get_header_image_tag();
+		$this->assertStringNotContainsString( ' loading="lazy"', $html );
+		$this->assertStringContainsString( ' fetchpriority="high"', $html );
+		$this->assertStringContainsString( ' decoding="async"', $html );
+	}
+
+	/**
+	 * Tests custom values of performance attributes for "get_header_image_tag".
+	 *
+	 * @ticket 58680
+	 */
+	public function test_get_header_image_tag_with_custom_performance_attributes() {
+		$this->add_theme_support(
+			array(
+				'default-image' => 'http://localhost/default-header.jpg',
+				'width'         => 500,
+				'height'        => 500,
+			)
+		);
+
+		$html = get_header_image_tag(
+			array(
+				'fetchpriority' => '',
+				'decoding'      => '',
+			)
+		);
+		$this->assertStringNotContainsString( ' fetchpriority="high"', $html );
+		$this->assertStringNotContainsString( ' decoding="async"', $html );
+	}
+
+
+	/**
+	 * Tests custom lazy loading for "get_header_image_tag".
+	 *
+	 * @ticket 58680
+	 */
+	public function test_get_header_image_tag_with_custom_lazy_loading() {
+		$this->add_theme_support(
+			array(
+				'default-image' => 'http://localhost/default-header.jpg',
+				'width'         => 500,
+				'height'        => 500,
+			)
+		);
+
+		$html = get_header_image_tag(
+			array(
+				'loading' => 'lazy',
+			)
+		);
+		$this->assertStringNotContainsString( ' fetchpriority="high"', $html );
+		$this->assertStringContainsString( ' loading="lazy"', $html );
+	}
+
 	public function test_get_custom_header_markup_without_registered_default_image() {
 		$this->add_theme_support();
 
