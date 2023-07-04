@@ -5438,7 +5438,7 @@ a.wp-block-file__button {
   outline-offset: -4px;
 }
 
-a.wp-block-button__link, a.wp-block-button__link:hover, a.wp-block-button__link:focus,
+a.wp-block-button__link:where(:not(.has-text-color)), a.wp-block-button__link:where(:not(.has-text-color)):hover, a.wp-block-button__link:where(:not(.has-text-color)):focus,
 a.wp-block-file__button,
 a.wp-block-file__button:hover,
 a.wp-block-file__button:focus {

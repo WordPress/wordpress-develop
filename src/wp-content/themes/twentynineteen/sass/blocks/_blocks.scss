@@ -101,13 +101,16 @@
 	}
 }
 
-// Add basic styles for Button and File blocks in widget area.
+// Adds basic styles for Button and File blocks in widget area.
 // This does NOT match the blocks in the content area.
 a.wp-block-button__link,
 a.wp-block-file__button {
 	background-color: #32373c;
 	outline-offset: -4px;
+}
 
+a.wp-block-button__link:where(:not(.has-text-color)),
+a.wp-block-file__button {
 	&,
 	&:hover,
 	&:focus {
