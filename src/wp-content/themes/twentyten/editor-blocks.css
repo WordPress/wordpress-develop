@@ -249,7 +249,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 }
 
 .wp-block-file .wp-block-file__button {
-	background-color: #32373c;
+	background: #32373c;
 	border-radius: 2em;
 	color: #fff;
 	font-size: 13px;
