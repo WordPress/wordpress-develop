@@ -210,6 +210,20 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 					),
 				),
 			),
+			'string to int comparison' => array(
+				array(
+					(object) array(
+						'foo' => '1',
+					),
+				),
+				array( 'foo' => 1 ),
+				'AND',
+				array(
+					0 => (object) array(
+						'foo' => '1',
+					),
+				),
+			),
 		);
 	}
 }
