@@ -166,3 +166,23 @@ function twentytwelve_admin_header_image() {
 	</div>
 	<?php
 }
+
+
+/**
+ * Output markup to be displayed.
+ *
+ * @since Twenty Twelve 1.0
+ */
+function twentytwelve_header_image() {
+	if ( function_exists( 'the_header_image_tag' ) ) {
+		$attrs = array(
+			'alt'   => get_bloginfo( 'name', 'display' ),
+			'class' => 'header-image',
+		);
+		the_header_image_tag( $attrs );
+		return;
+	}
+	?>
+	<img src="<?php header_image(); ?>" class="header-image" width="<?php echo esc_attr( get_custom_header()->width ); ?>" height="<?php echo esc_attr( get_custom_header()->height ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name', 'display' ) ); ?>" />
+	<?php
+}

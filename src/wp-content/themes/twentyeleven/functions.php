@@ -440,6 +440,42 @@ if ( ! function_exists( 'twentyeleven_admin_header_image' ) ) :
 	}
 endif; // twentyeleven_admin_header_image()
 
+
+if ( ! function_exists( 'twentyeleven_header_image' ) ) :
+	/**
+	 * Custom header image markup displayed.
+	 *
+	 * @since Twenty Eleven 1.0
+	 */
+	function twentyeleven_header_image() {
+
+		// Compatibility with versions of WordPress prior to 3.4.
+		if ( function_exists( 'get_custom_header' ) ) {
+			$custom_header       = get_custom_header();
+			$header_image_width  = $custom_header->width;
+			$header_image_height = $custom_header->height;
+		} else {
+			$header_image_width  = HEADER_IMAGE_WIDTH;
+			$header_image_height = HEADER_IMAGE_HEIGHT;
+		}
+
+		if ( function_exists( 'the_header_image_tag' ) ) {
+			$attrs = array(
+				'alt'    => get_bloginfo( 'name', 'display' ),
+				'width'  => $header_image_width,
+				'height' => $header_image_height,
+			);
+
+			the_header_image_tag( $attrs );
+			return;
+		}
+
+		?>
+		<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $header_image_width ); ?>" height="<?php echo esc_attr( $header_image_height ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name', 'display' ) ); ?>" />
+		<?php
+	}
+endif; // twentyeleven_header_image()
+
 /**
  * Set the post excerpt length to 40 words.
  *
