@@ -167,7 +167,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			}
 
 			if ( 'pdf' === $file_extension ) {
-				$this->pdf_process();
+				$this->remove_pdf_transparency();
 			}
 
 			$this->mime_type = $this->get_mime_type( $this->image->getImageFormat() );
@@ -750,14 +750,14 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	}
 
 	/**
-	 * Process PDF after it's been read.
+	 * Remove PDF transparency after it's been read.
 	 *
 	 * @since  6.3.0
 	 * @access protected
 	 *
 	 * @return void
 	 */
-	protected function pdf_process() {
+	protected function remove_pdf_transparency() {
 		$version = Imagick::getVersion();
 		// Remove alpha channel if possible to avoid black backgrounds for Ghostscript >= 9.14. RemoveAlphaChannel added in ImageMagick 6.7.5.
 		if ( $version['versionNumber'] >= 0x675 ) {
