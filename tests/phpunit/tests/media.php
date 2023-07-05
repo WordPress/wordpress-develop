@@ -5111,6 +5111,19 @@ EOF;
 	 * @ticket 58635
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_get_loading_optimization_attributes_header_image_tag_increase_media_count() {
+		$attr = $this->get_width_height_for_high_priority();
+		wp_get_loading_optimization_attributes( 'img', $attr, 'get_header_image_tag' );
+
+		// Images with a certain minimum size in the header of the page are also counted towards the threshold.
+		$this->assertSame( 1, wp_increase_content_media_count( 0 ) );
+	}
+
+	/**
+	 * @ticket 58635
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
 	 *
 	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
 	 *
