@@ -295,7 +295,7 @@ if ( ! function_exists( 'twentyten_header_image' ) ) :
 	/**
 	 * Custom header image markup displayed.
 	 *
-	 * @since Twenty Ten 1.0
+	 * @since Twenty Ten 3.9
 	 */
 	function twentyten_header_image() {
 		$attrs = array(

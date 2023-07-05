@@ -159,7 +159,7 @@ if ( ! function_exists( 'twentyfourteen_header_image' ) ) :
 	 *
 	 * @see twentyfourteen_custom_header_setup()
 	 *
-	 * @since Twenty Fourteen 1.0
+	 * @since Twenty Fourteen 3.7
 	 */
 	function twentyfourteen_header_image() {
 		$custom_header = get_custom_header();
