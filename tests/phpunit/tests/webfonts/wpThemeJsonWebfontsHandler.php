@@ -74,12 +74,14 @@ class Tests_Webfonts_wpThemeJsonWebfontsHandler extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @dataProvider data_font_face_generated_from_themejson
+	 *
 	 * @ticket 55567
 	 * @ticket 46370
 	 * @ticket 57430
 	 */
-	public function test_font_face_generated_from_themejson() {
-		$this->setup_theme_and_test( 'webfonts-theme' );
+	public function test_font_face_generated_from_themejson( $theme_name ) {
+		$this->setup_theme_and_test( $theme_name );
 
 		$expected = <<<EOF
 <style id='wp-webfonts-inline-css' type='text/css'>
@@ -92,6 +94,17 @@ EOF;
 		$this->assertStringContainsString(
 			$expected,
 			get_echo( 'wp_print_styles' )
+		);
+	}
+
+	/**
+	 * Data provider for happy paths.
+	 *
+	 * @return string[][]
+	 */
+	public function data_font_face_generated_from_themejson() {
+		return array(
+			'block theme with custom font'   => array( 'webfonts-theme' ),
 		);
 	}
 
