@@ -221,6 +221,12 @@ function do_shortcode( $content, $ignore_html = false ) {
 		return $content;
 	}
 
+	$callback = static function() {
+		return 'do_shortcode';
+	};
+
+	add_filter( 'wp_get_attachment_image_context', $callback );
+
 	$content = do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames );
 
 	$pattern = get_shortcode_regex( $tagnames );
@@ -228,6 +234,8 @@ function do_shortcode( $content, $ignore_html = false ) {
 
 	// Always restore square braces so we don't break things like <!--[if IE ]>.
 	$content = unescape_invalid_shortcodes( $content );
+
+	remove_filter( 'wp_get_attachment_image_context', $callback );
 
 	return $content;
 }
