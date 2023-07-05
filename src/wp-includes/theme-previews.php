@@ -54,3 +54,28 @@ function wp_attach_theme_preview_middleware() {
 		'after'
 	);
 }
+
+
+// Attaches filters to enable theme previews in the Site Editor.
+if ( ! empty( $_GET['wp_theme_preview'] ) ) {
+	add_filter( 'stylesheet', 'wp_get_theme_preview_path' );
+	add_filter( 'template', 'wp_get_theme_preview_path' );
+	add_action( 'init', 'wp_attach_theme_preview_middleware' );
+	add_action( 'admin_head', 'block_theme_activate_nonce' );
+}
+
+
+
+/**
+ * Adds a nonce for the theme activation link.
+ */
+function block_theme_activate_nonce() {
+	$nonce_handle = 'switch-theme_' . wp_get_theme_preview_path();
+	?>
+<script type="text/javascript">
+	window.BLOCK_THEME_ACTIVATE_NONCE = '<?php echo wp_create_nonce( $nonce_handle ); ?>';
+</script>
+	<?php
+}
+
+
