@@ -4520,11 +4520,7 @@ EOF;
 		);
 		apply_filters( 'the_content', '' );
 
-		$this->assertSame(
-			array(),
-			$result,
-			'First large image is loaded with high fetchpriority.'
-		);
+		$this->assertSame( array(), $result );
 	}
 
 	/**
