@@ -3689,7 +3689,7 @@ function _wp_theme_json_webfonts_handler() {
 }
 
 /**
- * Loads classic theme styles on classic themes in the frontend.
+ * Loads classic theme styles on classic themes in the frontend and editor.
  *
  * This is added for backwards compatibility for Button and File blocks.
  *
@@ -3700,39 +3700,4 @@ function wp_enqueue_classic_theme_styles() {
 	if ( ! wp_theme_has_theme_json() ) {
 		wp_enqueue_style( 'classic-theme-styles' );
 	}
-}
-
-/**
- * Loads classic theme styles on classic themes in the editor.
- *
- * This is added for backwards compatibility for Button and File blocks.
- *
- * @since 6.1.0
- * @since 6.2.0 Added File block styles.
- * @since 6.3.0 Removed from block_editor_settings_all filter.
- *
- * @param array $editor_settings The array of editor settings.
- * @return array A filtered array of editor settings.
- */
-function wp_add_editor_classic_theme_styles( $editor_settings ) {
-	if ( wp_theme_has_theme_json() ) {
-		return $editor_settings;
-	}
-
-	$suffix               = wp_scripts_get_suffix();
-	$classic_theme_styles = ABSPATH . WPINC . "/css/classic-themes$suffix.css";
-
-	// This follows the pattern of get_block_editor_theme_styles,
-	// but we can't use get_block_editor_theme_styles directly as it
-	// only handles external files or theme files.
-	$classic_theme_styles_settings = array(
-		'css'            => file_get_contents( $classic_theme_styles ),
-		'__unstableType' => 'core',
-		'isGlobalStyles' => false,
-	);
-
-	// Add these settings to the start of the array so that themes can override them.
-	array_unshift( $editor_settings['styles'], $classic_theme_styles_settings );
-
-	return $editor_settings;
 }
