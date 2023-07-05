@@ -643,8 +643,13 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 39216
+	 * Tests that the alpha channel of PDFs is removed from PDF previews.
+	 *
 	 * Only affects systems with Ghostscript version >= 9.14.
+	 *
+	 * @ticket 39216
+	 *
+	 * @covers WP_Image_Editor_Imagick::remove_pdf_alpha_channel
 	 */
 	public function test_remove_alpha_pdf_preview() {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
