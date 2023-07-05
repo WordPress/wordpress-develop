@@ -171,11 +171,15 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 /* Button */
 
-.wp-block-button .wp-block-button__link {
-	color: #fff;
+.wp-block-button__link {
 	background-color: #32373c;
+	color: #fff;
 	font-size: 18px;
 	padding: calc(0.667em + 2px) calc(1.333em + 2px);
+}
+
+.wp-block-button__link:not(.has-text-color) {
+	color: #fff;
 }
 
 /* Separator */
