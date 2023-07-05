@@ -434,6 +434,7 @@ function twentyfifteen_scripts() {
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyfifteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfifteen-style' ), '20230122' );
+	wp_style_add_data( 'twentyfifteen-block-style', 'path', get_template_directory() . '/css/blocks.css' );
 
 	// Register the Internet Explorer specific stylesheet.
 	wp_register_style( 'twentyfifteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentyfifteen-style' ), '20220908' );

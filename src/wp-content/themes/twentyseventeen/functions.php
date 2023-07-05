@@ -456,10 +456,12 @@ function twentyseventeen_scripts() {
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyseventeen-block-style', get_theme_file_uri( '/assets/css/blocks.css' ), array( 'twentyseventeen-style' ), '20220912' );
+	wp_style_add_data( 'twentyseventeen-block-style', 'path', get_theme_file_path( '/assets/css/blocks.css' ) );
 
 	// Load the dark colorscheme.
 	if ( 'dark' === get_theme_mod( 'colorscheme', 'light' ) || is_customize_preview() ) {
 		wp_enqueue_style( 'twentyseventeen-colors-dark', get_theme_file_uri( '/assets/css/colors-dark.css' ), array( 'twentyseventeen-style' ), '20191025' );
+		wp_style_add_data( 'twentyseventeen-colors-dark', 'path', get_theme_file_path( '/assets/css/colors-dark.css' ) );
 	}
 
 	// Register the Internet Explorer 9 specific stylesheet, to fix display issues in the Customizer.
