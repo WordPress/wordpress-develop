@@ -57,6 +57,10 @@ function wp_attach_theme_preview_middleware() {
 
 /**
  * Adds a nonce for the theme activation link.
+ * This is needed until we have a way to activate the theme via the REST API.
+ * See https://github.com/WordPress/gutenberg/pull/41836.
+ *
+ * @since 6.3.0
  */
 function block_theme_activate_nonce() {
 	$nonce_handle = 'switch-theme_' . wp_get_theme_preview_path();
