@@ -5651,9 +5651,9 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		 * Without this clause, they would already be counted below which skews the number and can result in the first
 		 * post content image being lazy-loaded only because there are images elsewhere in the post content.
 		 */
-		if ( doing_filter( 'the_content' ) ) {
-			return $postprocess( $loading_attrs, true );
-		}
+		// if ( doing_filter( 'the_content' ) ) {
+		// 	return $postprocess( $loading_attrs, true );
+		// }
 
 		// Conditionally skip lazy-loading on images before the loop.
 		if (
