@@ -34,6 +34,7 @@ env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
   LOCAL_PHP_MEMCACHED: ${{ false }}
   SLOW_TESTS: 'external-http,media,restapi'
+  GUTENBERG_DIRECTORY: 'src/wp-content/plugins/gutenberg'
 
 jobs:
   # Runs the PHPUnit tests for WordPress.
@@ -56,7 +57,7 @@ jobs:
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
   test-php:
-    name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.split_slow && ' slow tests' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
+    name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.split_slow && ' slow tests' || '' }}${{ matrix.memcached && ' with memcached' || '' }}${{ matrix.gutenberg && ' with Gutenberg' || '' }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -70,6 +71,7 @@ jobs:
         memcached: [ false ]
         split_slow: [ false ]
         multisite: [ false, true ]
+        gutenberg: [ false ]
         include:
           # Additional "slow" jobs for PHP 5.6.
           - php: '5.6'
@@ -97,6 +99,11 @@ jobs:
             memcached: false
             multisite: false
             report: true
+          - php: '8.0'
+            os: ubuntu-latest
+            memcached: false
+            multisite: false
+            gutenberg: true
 
     env:
       LOCAL_PHP: ${{ matrix.php }}-fpm
@@ -173,6 +180,27 @@ jobs:
 
       - name: Install WordPress
         run: npm run env:install
+
+      - name: Checkout Gutenberg plugin
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && matrix.gutenberg }}
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
+        with:
+          repository: 'WordPress/gutenberg'
+          path: ${{ env.GUTENBERG_DIRECTORY }}
+
+      - name: Install Gutenberg dependencies
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && matrix.gutenberg }}
+        run: npm install
+        working-directory: ${{ env.GUTENBERG_DIRECTORY }}
+
+      - name: Build Gutenberg plugin
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && matrix.gutenberg }}
+        run: npm run build
+        working-directory: ${{ env.GUTENBERG_DIRECTORY }}
+
+      - name: Activate Gutenberg plugin
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && matrix.gutenberg }}
+        run: npm run env:cli -- wp plugin activate gutenberg
 
       - name: Run slow PHPUnit tests
         if: ${{ matrix.split_slow }}
