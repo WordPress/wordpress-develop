@@ -749,10 +749,10 @@ function wp_image_matches_ratio( $source_width, $source_height, $target_width, $
  *     Array of file relative path, width, and height on success. Additionally includes absolute
  *     path and URL if registered size is passed to `$size` parameter. False on failure.
  *
- *     @type string $file   Path of image relative to uploads directory.
+ *     @type string $file   Filename of image.
  *     @type int    $width  Width of image in pixels.
  *     @type int    $height Height of image in pixels.
- *     @type string $path   Absolute filesystem path of image.
+ *     @type string $path   Path of image relative to uploads directory.
  *     @type string $url    URL of image.
  * }
  */
@@ -1963,15 +1963,14 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 	if ( empty( $loading_val ) && $loading_attrs_enabled ) {
 		/**
 		 * Filters the `loading` attribute value to add to an image. Default `lazy`.
-		 * This filter is added in for backward compatibility.
 		 *
 		 * Returning `false` or an empty string will not add the attribute.
 		 * Returning `true` will add the default value.
-		 * `true` and `false` usage supported for backward compatibility.
 		 *
 		 * @since 5.5.0
 		 *
-		 * @param string|bool $loading Current value for `loading` attribute for the image.
+		 * @param string|bool $value   The `loading` attribute value. Returning a falsey value will result in
+		 *                             the attribute being omitted for the image.
 		 * @param string      $image   The HTML `img` tag to be filtered.
 		 * @param string      $context Additional context about how the function was called or where the img tag is.
 		 */
@@ -5641,6 +5640,11 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 */
 	$header_area = WP_TEMPLATE_PART_AREA_HEADER;
 	if ( "template_part_{$header_area}" === $context ) {
+		return $postprocess( $loading_attrs, true );
+	}
+
+	// The custom header image is always expected to be in the header.
+	if ( 'get_header_image_tag' === $context ) {
 		return $postprocess( $loading_attrs, true );
 	}
 

@@ -1670,12 +1670,14 @@ function wp_default_styles( $styles ) {
 		'block-library'        => array(),
 		'block-directory'      => array(),
 		'components'           => array(),
+		'commands'             => array(),
 		'edit-post'            => array(
 			'wp-components',
 			'wp-block-editor',
 			'wp-editor',
 			'wp-edit-blocks',
 			'wp-block-library',
+			'wp-commands',
 		),
 		'editor'               => array(
 			'wp-components',
@@ -1707,6 +1709,7 @@ function wp_default_styles( $styles ) {
 			'wp-components',
 			'wp-block-editor',
 			'wp-edit-blocks',
+			'wp-commands',
 		),
 	);
 
@@ -1762,6 +1765,7 @@ function wp_default_styles( $styles ) {
 		'wp-block-editor',
 		'wp-block-library',
 		'wp-block-directory',
+		'wp-commands',
 		'wp-components',
 		'wp-customize-widgets',
 		'wp-edit-post',
@@ -2476,34 +2480,6 @@ function wp_enqueue_global_styles_custom_css() {
 
 	if ( ! empty( $custom_css ) ) {
 		wp_add_inline_style( 'global-styles', $custom_css );
-	}
-}
-
-/**
- * Renders the SVG filters supplied by theme.json.
- *
- * Note that this doesn't render the per-block user-defined
- * filters which are handled by wp_render_duotone_support,
- * but it should be rendered before the filtered content
- * in the body to satisfy Safari's rendering quirks.
- *
- * @since 5.9.1
- */
-function wp_global_styles_render_svg_filters() {
-	/*
-	 * When calling via the in_admin_header action, we only want to render the
-	 * SVGs on block editor pages.
-	 */
-	if (
-		is_admin() &&
-		! get_current_screen()->is_block_editor()
-	) {
-		return;
-	}
-
-	$filters = wp_get_global_styles_svg_filters();
-	if ( ! empty( $filters ) ) {
-		echo $filters;
 	}
 }
 
@@ -3549,14 +3525,6 @@ function _wp_theme_json_webfonts_handler() {
 		$src = '';
 
 		foreach ( $value as $item ) {
-
-			if (
-				str_starts_with( $item['url'], site_url() ) ||
-				str_starts_with( $item['url'], home_url() )
-			) {
-				$item['url'] = wp_make_link_relative( $item['url'] );
-			}
-
 			$src .= ( 'data' === $item['format'] )
 				? ", url({$item['url']})"
 				: ", url('{$item['url']}') format('{$item['format']}')";
