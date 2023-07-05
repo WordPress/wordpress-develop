@@ -162,15 +162,18 @@ if ( ! function_exists( 'twentyfourteen_header_image' ) ) :
 	 * @since Twenty Fourteen 1.0
 	 */
 	function twentyfourteen_header_image() {
+		$custom_header = get_custom_header();
+		$attrs         = array(
+			'alt'    => get_bloginfo( 'name', 'display' ),
+			'height' => $custom_header->height,
+			'width'  => $custom_header->width,
+		);
 		if ( function_exists( 'the_header_image_tag' ) ) {
-			$attrs = array(
-				'alt' => get_bloginfo( 'name', 'display' ),
-			);
 			the_header_image_tag( $attrs );
 			return;
 		}
 		?>
-		<img src="<?php header_image(); ?>" width="<?php echo get_custom_header()->width; ?>" height="<?php echo get_custom_header()->height; ?>" alt="<?php echo esc_attr( get_bloginfo( 'name', 'display' ) ); ?>" />
+		<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $attrs['width'] ); ?>" height="<?php echo esc_attr( $attrs['height'] ); ?>" alt="<?php echo esc_attr( $attrs['alt'] ); ?>" />
 		<?php
 	}
 endif; // twentyfourteen_header_image()
