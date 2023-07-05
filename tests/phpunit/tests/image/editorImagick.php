@@ -681,7 +681,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$check_file = path_join( dirname( $attached_file ), $check['file'] );
 		$imagick    = new Imagick( $check_file );
-		$output = array_map(
+		$output     = array_map(
 			static function( $value ) {
 				return (int) round( $value );
 			},
