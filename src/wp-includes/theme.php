@@ -1271,8 +1271,10 @@ function get_header_image_tag( $attr = array() ) {
 		wp_get_loading_optimization_attributes( 'img', $attr, 'get_header_image_tag' )
 	);
 
-	// If the default value of `lazy` for the `loading` attribute is overridden
-	// to omit the attribute for this image, ensure it is not included.
+	/*
+	 * If the default value of `lazy` for the `loading` attribute is overridden
+	 * to omit the attribute for this image, ensure it is not included.
+	 */
 	if ( isset( $attr['loading'] ) && ! $attr['loading'] ) {
 		unset( $attr['loading'] );
 	}

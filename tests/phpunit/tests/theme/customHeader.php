@@ -190,7 +190,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_min_priority_img_pixels',
-			function() {
+			static function() {
 				return 2500; // 50*50=2500
 			}
 		);
@@ -226,7 +226,6 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( ' fetchpriority="high"', $html );
 		$this->assertStringNotContainsString( ' decoding="async"', $html );
 	}
-
 
 	/**
 	 * Tests custom lazy loading for "get_header_image_tag".
