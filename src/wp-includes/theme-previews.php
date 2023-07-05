@@ -55,17 +55,6 @@ function wp_attach_theme_preview_middleware() {
 	);
 }
 
-
-// Attaches filters to enable theme previews in the Site Editor.
-if ( ! empty( $_GET['wp_theme_preview'] ) ) {
-	add_filter( 'stylesheet', 'wp_get_theme_preview_path' );
-	add_filter( 'template', 'wp_get_theme_preview_path' );
-	add_action( 'init', 'wp_attach_theme_preview_middleware' );
-	add_action( 'admin_head', 'block_theme_activate_nonce' );
-}
-
-
-
 /**
  * Adds a nonce for the theme activation link.
  */
@@ -78,4 +67,10 @@ function block_theme_activate_nonce() {
 	<?php
 }
 
-
+// Attaches filters to enable theme previews in the Site Editor.
+if ( ! empty( $_GET['wp_theme_preview'] ) ) {
+	add_filter( 'stylesheet', 'wp_get_theme_preview_path' );
+	add_filter( 'template', 'wp_get_theme_preview_path' );
+	add_action( 'init', 'wp_attach_theme_preview_middleware' );
+	add_action( 'admin_head', 'block_theme_activate_nonce' );
+}
