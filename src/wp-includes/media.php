@@ -749,10 +749,10 @@ function wp_image_matches_ratio( $source_width, $source_height, $target_width, $
  *     Array of file relative path, width, and height on success. Additionally includes absolute
  *     path and URL if registered size is passed to `$size` parameter. False on failure.
  *
- *     @type string $file   Path of image relative to uploads directory.
+ *     @type string $file   Filename of image.
  *     @type int    $width  Width of image in pixels.
  *     @type int    $height Height of image in pixels.
- *     @type string $path   Absolute filesystem path of image.
+ *     @type string $path   Path of image relative to uploads directory.
  *     @type string $url    URL of image.
  * }
  */
@@ -5651,6 +5651,11 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	if ( "template_part_{$header_area}" === $context ) {
 		// Increase media count if there are images in header above a certian minimum size threshold.
 		$maybe_increase_content_media_count();
+		return $postprocess( $loading_attrs, true );
+	}
+
+	// The custom header image is always expected to be in the header.
+	if ( 'get_header_image_tag' === $context ) {
 		return $postprocess( $loading_attrs, true );
 	}
 
