@@ -5670,7 +5670,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		 * post content image being lazy-loaded only because there are images elsewhere in the post content.
 		 */
 		if ( doing_filter( 'the_content' ) ) {
-			return $postprocess( $loading_attrs, true );
+			return $loading_attrs;
 		}
 
 		// Conditionally skip lazy-loading on images before the loop.
