@@ -681,8 +681,13 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$check_file = path_join( dirname( $attached_file ), $check['file'] );
 		$imagick    = new Imagick( $check_file );
-		$output     = array_map( 'round', array_intersect_key( $imagick->getImagePixelColor( 100, 100 )->getColor( true /*normalized*/ ), $rgb ) );
+		$output = array_map(
+			static function( $value ) {
+				return (int) round( $value );
+			},
+			array_intersect_key( $imagick->getImagePixelColor( 100, 100 )->getColor( true /* normalized */ ), $rgb )
+		);
 		$imagick->destroy();
-		$this->assertEquals( $expected, $output ); // Allow for floating point equivalence.
+		$this->assertSame( $expected, $output ); // Allow for floating point equivalence.
 	}
 }
