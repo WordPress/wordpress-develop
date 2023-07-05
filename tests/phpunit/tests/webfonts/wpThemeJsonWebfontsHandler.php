@@ -105,6 +105,7 @@ EOF;
 	public function data_font_face_generated_from_themejson() {
 		return array(
 			'block theme with custom font'   => array( 'webfonts-theme' ),
+			'classic theme with custom font' => array( 'webfonts-theme-classic' ),
 		);
 	}
 
