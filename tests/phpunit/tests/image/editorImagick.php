@@ -651,7 +651,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 *
 	 * @covers WP_Image_Editor_Imagick::remove_pdf_alpha_channel
 	 */
-	public function test_remove_alpha_pdf_preview() {
+	public function test_remove_pdf_alpha_channel_should_remove_the_alpha_chanel_in_preview() {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
 			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
 		}
