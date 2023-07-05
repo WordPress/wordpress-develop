@@ -2262,6 +2262,23 @@ function _wp_post_thumbnail_class_filter_remove( $attr ) {
 /**
  * Overrides the context used in {@see wp_get_attachment_image()}. Internal use only.
  *
+ * Uses the {@see 'gallery_shortcode'}
+ *
+ * @ignore
+ * @since 6.3.0
+ * @access private
+ *
+ * @param string $context The context for rendering an attachment image.
+ * @return string Modified context set to 'gallery_shortcode'.
+ */
+function _wp_gallery_shortcode_context_filter( $context ) {
+	return 'gallery_shortcode';
+}
+
+
+/**
+ * Overrides the context used in {@see wp_get_attachment_image()}. Internal use only.
+ *
  * Uses the {@see 'begin_fetch_post_thumbnail_html'} and {@see 'end_fetch_post_thumbnail_html'}
  * action hooks to dynamically add/remove itself so as to only filter post thumbnails.
  *
@@ -2530,6 +2547,8 @@ function gallery_shortcode( $attr ) {
 		$attr['include'] = $attr['ids'];
 	}
 
+	add_filter( 'wp_get_attachment_image_context', '_wp_gallery_shortcode_context_filter' );
+
 	/**
 	 * Filters the default gallery shortcode output.
 	 *
@@ -2548,6 +2567,7 @@ function gallery_shortcode( $attr ) {
 	$output = apply_filters( 'post_gallery', '', $attr, $instance );
 
 	if ( ! empty( $output ) ) {
+		remove_filter( 'wp_get_attachment_image_context', '_wp_gallery_shortcode_context_filter' );
 		return $output;
 	}
 
@@ -2751,6 +2771,8 @@ function gallery_shortcode( $attr ) {
 
 	$output .= "
 		</div>\n";
+
+	remove_filter( 'wp_get_attachment_image_context', '_wp_gallery_shortcode_context_filter' );
 
 	return $output;
 }
@@ -5577,7 +5599,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * It is here to avoid duplicate logic in many places below, without having
 	 * to introduce a very specific private global function.
 	 */
-	$postprocess = static function( $loading_attributes, $with_fetchpriority = false ) use ( $tag_name, $attr, $context ) {
+	$postprocess   = static function( $loading_attributes, $with_fetchpriority = false ) use ( $tag_name, $attr, $context ) {
 		// Potentially add `fetchpriority="high"`.
 		if ( $with_fetchpriority ) {
 			$loading_attributes = wp_maybe_add_fetchpriority_high_attr( $loading_attributes, $tag_name, $attr );
@@ -5671,10 +5693,10 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	}
 
 	/*
-	 * The first elements in 'the_content' or 'the_post_thumbnail' should not be lazy-loaded,
+	 * The first elements in 'the_content' or 'the_post_thumbnail' or 'gallery_shortcode' should not be lazy-loaded,
 	 * as they are likely above the fold.
 	 */
-	if ( 'the_content' === $context || 'the_post_thumbnail' === $context ) {
+	if ( 'the_content' === $context || 'the_post_thumbnail' === $context || 'gallery_shortcode' === $context ) {
 		// Only elements within the main query loop have special handling.
 		if ( is_admin() || ! in_the_loop() || ! is_main_query() ) {
 			$loading_attrs['loading'] = 'lazy';
