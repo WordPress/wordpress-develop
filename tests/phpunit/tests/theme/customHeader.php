@@ -183,10 +183,19 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		$this->add_theme_support(
 			array(
 				'default-image' => 'http://localhost/default-header.jpg',
-				'width'         => 500,
-				'height'        => 500,
+				'width'         => 60,
+				'height'        => 60,
 			)
 		);
+
+		add_filter(
+			'wp_min_priority_img_pixels',
+			function() {
+				return 2500; // 50*50=2500
+			}
+		);
+
+		wp_high_priority_element_flag( true );
 
 		$html = get_header_image_tag();
 		$this->assertStringNotContainsString( ' loading="lazy"', $html );
