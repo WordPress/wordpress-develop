@@ -5656,6 +5656,8 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 
 	// The custom header image is always expected to be in the header.
 	if ( 'get_header_image_tag' === $context ) {
+		// Increase media count if there are images in header above a certian minimum size threshold.
+		$maybe_increase_content_media_count();
 		return $postprocess( $loading_attrs, true );
 	}
 
