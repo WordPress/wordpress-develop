@@ -62,7 +62,7 @@ function wp_attach_theme_preview_middleware() {
  *
  * @since 6.3.0
  */
-function block_theme_activate_nonce() {
+function wp_block_theme_activate_nonce() {
 	$nonce_handle = 'switch-theme_' . wp_get_theme_preview_path();
 	?>
 <script type="text/javascript">
@@ -76,5 +76,5 @@ if ( ! empty( $_GET['wp_theme_preview'] ) ) {
 	add_filter( 'stylesheet', 'wp_get_theme_preview_path' );
 	add_filter( 'template', 'wp_get_theme_preview_path' );
 	add_action( 'init', 'wp_attach_theme_preview_middleware' );
-	add_action( 'admin_head', 'block_theme_activate_nonce' );
+	add_action( 'admin_head', 'wp_block_theme_activate_nonce' );
 }
