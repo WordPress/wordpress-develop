@@ -4191,7 +4191,7 @@ EOF;
 	 *
 	 * @expectedDeprecated wp_get_loading_attr_default
 	 *
-	 * @dataProvider data_special_contexts_for_the_content_loading_attr_default
+	 * @dataProvider data_special_contexts_for_the_content_wp_get_loading_attr_default
 	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
@@ -4208,7 +4208,7 @@ EOF;
 	 *
 	 * @expectedDeprecated wp_get_loading_attr_default
 	 *
-	 * @dataProvider data_special_contexts_for_the_content_loading_attr_default
+	 * @dataProvider data_special_contexts_for_the_content_wp_get_loading_attr_default
 	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
@@ -4245,7 +4245,7 @@ EOF;
 	 *
 	 * @return array[]
 	 */
-	public function data_special_contexts_for_the_content_loading_attr_default() {
+	public function data_special_contexts_for_the_content_wp_get_loading_attr_default() {
 		return array(
 			'the_post_thumbnail'      => array( 'context' => 'the_post_thumbnail' ),
 			'wp_get_attachment_image' => array( 'context' => 'wp_get_attachment_image' ),
