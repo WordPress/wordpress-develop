@@ -752,7 +752,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	/**
 	 * Removes PDF alpha after it's been read.
 	 *
-	 * @since  6.3.0
+	 * @since 6.3.0
 	 */
 	protected function remove_pdf_alpha_channel() {
 		$version = Imagick::getVersion();
