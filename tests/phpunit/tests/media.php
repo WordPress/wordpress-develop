@@ -4191,7 +4191,7 @@ EOF;
 	 *
 	 * @expectedDeprecated wp_get_loading_attr_default
 	 *
-	 * @dataProvider data_special_contexts_for_the_content
+	 * @dataProvider data_special_contexts_for_the_content_wp_get_loading_attr_default
 	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
@@ -4208,7 +4208,7 @@ EOF;
 	 *
 	 * @expectedDeprecated wp_get_loading_attr_default
 	 *
-	 * @dataProvider data_special_contexts_for_the_content
+	 * @dataProvider data_special_contexts_for_the_content_wp_get_loading_attr_default
 	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
@@ -4233,6 +4233,19 @@ EOF;
 	 * @return array[]
 	 */
 	public function data_special_contexts_for_the_content() {
+		return array(
+			'widget_media_image'      => array( 'context' => 'widget_media_image' ),
+			'the_post_thumbnail'      => array( 'context' => 'the_post_thumbnail' ),
+			'wp_get_attachment_image' => array( 'context' => 'wp_get_attachment_image' ),
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_special_contexts_for_the_content_wp_get_loading_attr_default() {
 		return array(
 			'the_post_thumbnail'      => array( 'context' => 'the_post_thumbnail' ),
 			'wp_get_attachment_image' => array( 'context' => 'wp_get_attachment_image' ),
@@ -5092,6 +5105,55 @@ EOF;
 			),
 			wp_maybe_add_fetchpriority_high_attr( array(), 'img', $attr )
 		);
+	}
+
+	/**
+	 * @ticket 58635
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_get_loading_optimization_attributes_header_block_template_increase_media_count() {
+		$attr = $this->get_width_height_for_high_priority();
+		wp_get_loading_optimization_attributes( 'img', $attr, 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER );
+
+		// Images with a certain minimum size in the header of the page are also counted towards the threshold.
+		$this->assertSame( 1, wp_increase_content_media_count( 0 ) );
+	}
+
+	/**
+	 * @ticket 58635
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_get_loading_optimization_attributes_header_image_tag_increase_media_count() {
+		$attr = $this->get_width_height_for_high_priority();
+		wp_get_loading_optimization_attributes( 'img', $attr, 'get_header_image_tag' );
+
+		// Images with a certain minimum size in the header of the page are also counted towards the threshold.
+		$this->assertSame( 1, wp_increase_content_media_count( 0 ) );
+	}
+
+	/**
+	 * @ticket 58635
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
+	 *
+	 * @param string $context Context for the element for which the `loading` attribute value is requested.
+	 */
+	public function test_wp_get_loading_optimization_attributes_image_before_loop_increase_media_count( $context ) {
+		global $wp_query;
+
+		$wp_query = $this->get_new_wp_query_for_published_post();
+		$this->set_main_query( $wp_query );
+		do_action( 'get_header' );
+
+		$attr = $this->get_width_height_for_high_priority();
+		wp_get_loading_optimization_attributes( 'img', $attr, $context );
+
+		// Images with a certain minimum size in the header of the page are also counted towards the threshold.
+		$this->assertSame( 1, wp_increase_content_media_count( 0 ) );
 	}
 
 	/**

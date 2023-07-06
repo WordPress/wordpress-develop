@@ -5588,6 +5588,15 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		}
 		return $loading_attributes;
 	};
+	// Closure to increase media count for images with certain minimum threshold, mostly used for header images.
+	$maybe_increase_content_media_count = static function() use ( $attr ) {
+		/** This filter is documented in wp-admin/includes/media.php */
+		$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 50000 );
+		// Images with a certain minimum size in the header of the page are also counted towards the threshold.
+		if ( $wp_min_priority_img_pixels <= $attr['width'] * $attr['height'] ) {
+			wp_increase_content_media_count();
+		}
+	};
 
 	$loading_attrs = array();
 
@@ -5640,16 +5649,20 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 */
 	$header_area = WP_TEMPLATE_PART_AREA_HEADER;
 	if ( "template_part_{$header_area}" === $context ) {
+		// Increase media count if there are images in header above a certian minimum size threshold.
+		$maybe_increase_content_media_count();
 		return $postprocess( $loading_attrs, true );
 	}
 
 	// The custom header image is always expected to be in the header.
 	if ( 'get_header_image_tag' === $context ) {
+		// Increase media count if there are images in header above a certian minimum size threshold.
+		$maybe_increase_content_media_count();
 		return $postprocess( $loading_attrs, true );
 	}
 
 	// Special handling for programmatically created image tags.
-	if ( 'the_post_thumbnail' === $context || 'wp_get_attachment_image' === $context ) {
+	if ( 'the_post_thumbnail' === $context || 'wp_get_attachment_image' === $context || 'widget_media_image' === $context ) {
 		/*
 		 * Skip programmatically created images within post content as they need to be handled together with the other
 		 * images within the post content.
@@ -5671,6 +5684,8 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			 */
 			&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
 		) {
+			// Increase media count if there are images in header above a certian minimum size threshold.
+			$maybe_increase_content_media_count();
 			return $postprocess( $loading_attrs, true );
 		}
 	}
