@@ -372,7 +372,9 @@ function wp_oembed_add_discovery_links() {
  * @since 4.4.0
  * @deprecated 5.9.0 Use {@see wp_maybe_enqueue_oembed_host_js()} instead.
  */
-function wp_oembed_add_host_js() {}
+function wp_oembed_add_host_js() {
+	_deprecated_function( __FUNCTION__, '5.9.0', 'wp_maybe_enqueue_oembed_host_js()' );
+}
 
 /**
  * Enqueue the wp-embed script if the provided oEmbed HTML contains a post embed.
