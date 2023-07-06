@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - trunk
+      - 'feature/**'
       - '5.[5-9]'
       - '[6-9].[0-9]'
     tags:
@@ -15,6 +16,7 @@ on:
   pull_request:
     branches:
       - trunk
+      - 'feature/**'
       - '5.[5-9]'
       - '[6-9].[0-9]'
     paths:

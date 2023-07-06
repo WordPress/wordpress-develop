@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - trunk
+      - 'feature/**'
     paths:
       - '.github/workflows/test-coverage.yml'
       - 'docker-compose.yml'
@@ -13,6 +14,7 @@ on:
   pull_request:
     branches:
       - trunk
+      - 'feature/**'
     paths:
       - '.github/workflows/test-coverage.yml'
       - 'docker-compose.yml'

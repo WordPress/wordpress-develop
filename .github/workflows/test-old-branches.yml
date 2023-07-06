@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - trunk
+      - 'feature/**'
     paths:
       - '.github/workflows/test-old-branches.yml'
   # Run twice a month on the 1st and 15th at 00:00 UTC.
