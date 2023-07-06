@@ -32,7 +32,7 @@ function _add_template_loader_filters() {
  * @return string The path to the Site Editor template canvas file, or the fallback PHP template.
  */
 function locate_block_template( $template, $type, array $templates ) {
-	global $_wp_current_template_content;
+	global $_wp_current_template_content, $_wp_current_template_id;
 
 	if ( ! current_theme_supports( 'block-templates' ) ) {
 		return $template;
@@ -64,6 +64,8 @@ function locate_block_template( $template, $type, array $templates ) {
 	$block_template = resolve_block_template( $type, $templates, $template );
 
 	if ( $block_template ) {
+		$_wp_current_template_id = $block_template->id;
+
 		if ( empty( $block_template->content ) && is_user_logged_in() ) {
 			$_wp_current_template_content =
 			sprintf(

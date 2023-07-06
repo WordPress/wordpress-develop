@@ -422,6 +422,8 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
 function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
+	global $_wp_current_template_id;
+
 	// Don't show if a block theme is not activated.
 	if ( ! wp_is_block_theme() ) {
 		return;
@@ -436,7 +438,13 @@ function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
 		array(
 			'id'    => 'site-editor',
 			'title' => __( 'Edit site' ),
-			'href'  => admin_url( 'site-editor.php' ),
+			'href'  => add_query_arg(
+				array(
+					'postType' => 'wp_template',
+					'postId'   => $_wp_current_template_id,
+				),
+				admin_url( 'site-editor.php' )
+			),
 		)
 	);
 }
