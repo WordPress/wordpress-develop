@@ -107,7 +107,9 @@ function wpmu_get_blog_allowedthemes( $blog_id = 0 ) {
  *
  * @deprecated 3.5.0
  */
-function ms_deprecated_blogs_file() {}
+function ms_deprecated_blogs_file() {
+	_deprecated_function( __FUNCTION__, '3.5.0' );
+}
 
 if ( ! function_exists( 'install_global_terms' ) ) :
 	/**
