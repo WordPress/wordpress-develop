@@ -388,13 +388,26 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		// If we got our data from cache, we can assume that 'template' is pointing to the right place.
-		if ( ! is_array( $cache ) && $this->template != $this->stylesheet && ! file_exists( $this->theme_root . '/' . $this->template . '/index.php' ) ) {
+		if (
+			! is_array( $cache ) &&
+			$this->template != $this->stylesheet &&
+			! file_exists( $this->theme_root . '/' . $this->template . '/index.php' ) &&
+			! file_exists( $this->theme_root . '/' . $this->template . '/templates/index.html' ) &&
+			! file_exists( $this->theme_root . '/' . $this->template . '/block-templates/index.html' ) // Deprecated path support since 5.9.0.
+		) {
 			// If we're in a directory of themes inside /themes, look for the parent nearby.
 			// wp-content/themes/directory-of-themes/*
 			$parent_dir  = dirname( $this->stylesheet );
 			$directories = search_theme_directories();
 
-			if ( '.' !== $parent_dir && file_exists( $this->theme_root . '/' . $parent_dir . '/' . $this->template . '/index.php' ) ) {
+			if (
+				'.' !== $parent_dir &&
+				(
+					file_exists( $this->theme_root . '/' . $parent_dir . '/' . $this->template . '/index.php' ) ||
+					file_exists( $this->theme_root . '/' . $parent_dir . '/' . $this->template . '/templates/index.html' ) ||
+					file_exists( $this->theme_root . '/' . $parent_dir . '/' . $this->template . '/block-templates/index.html' ) // Deprecated path support since 5.9.0.
+				)
+			) {
 				$this->template = $parent_dir . '/' . $this->template;
 			} elseif ( $directories && isset( $directories[ $this->template ] ) ) {
 				// Look for the template in the search_theme_directories() results, in case it is in another theme root.
