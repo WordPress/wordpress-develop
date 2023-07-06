@@ -912,6 +912,20 @@ class WP_Object_Cache {
 	 * @var string
 	 */
 	public $blog_prefix = '';
+	
+	/**
+	 * Thirty days in seconds.
+	 *
+	 * @var int
+	 */
+	public $thirty_days;
+
+	/**
+	 * Current unix time stamp.
+	 *
+	 * @var int
+	 */
+	public $now;
 
 	/**
 	 * Instantiates the Memcached class.
