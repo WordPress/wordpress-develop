@@ -642,6 +642,44 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertIsCallable( $result->render_callback );
 	}
 
+	public function data_register_block_registers_with_args_override_returns_false_when_name_is_missing() {
+		return array(
+			'no block.json file and no name argument' => array(
+				'file' => '', // No block.json file.
+				'args' => array(
+					'title' => 'Overriden title',
+					'style' => array( 'tests-notice-style-overridden' ),
+				),
+			),
+			'existing file and args not an array'     => array(
+				// A file that exists but is empty. This will bypass the file_exists() check.
+				'file' => DIR_TESTDATA . '/blocks/notice/block.js',
+				'args' => false,
+			),
+			'existing file and args[name] missing'    => array(
+				// A file that exists but is empty. This will bypass the file_exists() check.
+				'file' => DIR_TESTDATA . '/blocks/notice/block.js',
+				'args' => array(
+					'title' => 'Overriden title',
+					'style' => array( 'tests-notice-style-overridden' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests that when the `name` is missing, `register_block_type_from_metadata`
+	 * will return `false`.
+	 *
+	 * @ticket 56865
+	 * @dataProvider data_register_block_registers_with_args_override_returns_false_when_name_is_missing
+	 *
+	 * @covers ::register_block_type_from_metadata
+	 */
+	public function test_block_registers_with_args_override_returns_false_when_name_is_missing( $file, $args ) {
+		$this->assertFalse( register_block_type_from_metadata( $file, $args ) );
+	}
+
 	/**
 	 * Tests that the function returns the registered block when the `block.json`
 	 * is found in the fixtures directory.
