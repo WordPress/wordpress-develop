@@ -571,13 +571,15 @@ function list_plugin_updates() {
 	<tr>
 		<td class="check-column">
 			<?php if ( $compatible_php ) : ?>
-				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $plugin_file ); ?>" />
-				<label for="<?php echo $checkbox_id; ?>" class="screen-reader-text">
+				<label for="<?php echo $checkbox_id; ?>" class="label-covers-full-cell">
+					<span class="screen-reader-text">
 					<?php
 					/* translators: Hidden accessibility text. %s: Plugin name. */
 					printf( __( 'Select %s' ), $plugin_data->Name );
 					?>
+					</span>
 				</label>
+				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $plugin_file ); ?>" />
 			<?php endif; ?>
 		</td>
 		<td class="plugin-title"><p>
@@ -591,11 +593,13 @@ function list_plugin_updates() {
 				$plugin_data->update->new_version
 			);
 
-			echo ' ' . $details . $compat . $upgrade_notice;
+			echo ' ' . $details . $compat;
 
 			if ( in_array( $plugin_file, $auto_updates, true ) ) {
 				echo $auto_update_notice;
 			}
+
+			echo $upgrade_notice;
 			?>
 		</p></td>
 	</tr>
@@ -745,13 +749,15 @@ function list_theme_updates() {
 	<tr>
 		<td class="check-column">
 			<?php if ( $compatible_wp && $compatible_php ) : ?>
-				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $stylesheet ); ?>" />
-				<label for="<?php echo $checkbox_id; ?>" class="screen-reader-text">
+				<label for="<?php echo $checkbox_id; ?>" class="label-covers-full-cell">
+					<span class="screen-reader-text">
 					<?php
 					/* translators: Hidden accessibility text. %s: Theme name. */
 					printf( __( 'Select %s' ), $theme->display( 'Name' ) );
 					?>
+					</span>
 				</label>
+				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $stylesheet ); ?>" />
 			<?php endif; ?>
 		</td>
 		<td class="plugin-title"><p>
@@ -1031,13 +1037,21 @@ if ( 'upgrade-core' === $action ) {
 
 	<?php
 	if ( $upgrade_error ) {
-		echo '<div class="error"><p>';
 		if ( 'themes' === $upgrade_error ) {
-			_e( 'Please select one or more themes to update.' );
+			$theme_updates = get_theme_updates();
+			if ( ! empty( $theme_updates ) ) {
+				echo '<div class="error"><p>';
+				_e( 'Please select one or more themes to update.' );
+				echo '</p></div>';
+			}
 		} else {
-			_e( 'Please select one or more plugins to update.' );
+			$plugin_updates = get_plugin_updates();
+			if ( ! empty( $plugin_updates ) ) {
+				echo '<div class="error"><p>';
+				_e( 'Please select one or more plugins to update.' );
+				echo '</p></div>';
+			}
 		}
-		echo '</p></div>';
 	}
 
 	$last_update_check = false;

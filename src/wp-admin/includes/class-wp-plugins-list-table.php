@@ -296,6 +296,15 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$plugins['search'] = array_filter( $plugins['all'], array( $this, '_search_callback' ) );
 		}
 
+		/**
+		 * Filters the array of plugins for the list table.
+		 *
+		 * @since 6.3.0
+		 *
+		 * @param array[] $plugins An array of arrays of plugin data, keyed by context.
+		 */
+		$plugins = apply_filters( 'plugins_list', $plugins );
+
 		$totals = array();
 		foreach ( $plugins as $type => $list ) {
 			$totals[ $type ] = count( $list );
@@ -982,7 +991,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$checkbox = '';
 		} else {
 			$checkbox = sprintf(
-				'<label class="screen-reader-text" for="%1$s">%2$s</label>' .
+				'<label class="label-covers-full-cell" for="%1$s"><span class="screen-reader-text">%2$s</span></label>' .
 				'<input type="checkbox" name="checked[]" value="%3$s" id="%1$s" />',
 				$checkbox_id,
 				/* translators: Hidden accessibility text. %s: Plugin name. */
