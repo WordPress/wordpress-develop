@@ -350,7 +350,22 @@ function wp_add_global_styles_for_blocks() {
  * @return bool Returns true if theme or its parent has a theme.json file, false otherwise.
  */
 function wp_theme_has_theme_json() {
-	static $theme_has_support = null;
+	static $theme_has_support         = null;
+	static $prev_stylesheet_directory = null;
+	static $prev_template_directory   = null;
+
+	$stylesheet_directory = get_stylesheet_directory();
+	$template_directory   = get_template_directory();
+
+	// Make sure that the cached $theme_has_support value is reset the theme changes.
+	if ( $prev_stylesheet_directory && $stylesheet_directory !== $prev_stylesheet_directory ) {
+		$theme_has_support = null;
+	}
+	$prev_stylesheet_directory = $stylesheet_directory;
+	if ( $prev_template_directory && $template_directory !== $prev_template_directory ) {
+		$theme_has_support = null;
+	}
+	$prev_template_directory = $template_directory;
 
 	if (
 		null !== $theme_has_support &&
@@ -358,18 +373,10 @@ function wp_theme_has_theme_json() {
 		 * Ignore static cache when the development mode is set to 'theme', to avoid interfering with
 		 * the theme developer's workflow.
 		 */
-		wp_get_development_mode() !== 'theme' &&
-		/*
-		 * Ignore cache when automated test suites are running. Why? To ensure
-		 * the static cache is reset between each test.
-		 */
-		! ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS )
+		wp_get_development_mode() !== 'theme'
 	) {
 		return $theme_has_support;
 	}
-
-	$stylesheet_directory = get_stylesheet_directory();
-	$template_directory   = get_template_directory();
 
 	// This is the same as get_theme_file_path(), which isn't available in load-styles.php context
 	if ( $stylesheet_directory !== $template_directory && file_exists( $stylesheet_directory . '/theme.json' ) ) {
