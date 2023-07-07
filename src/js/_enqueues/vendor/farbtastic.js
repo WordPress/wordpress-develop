@@ -4,13 +4,6 @@
  * Licensed under the GPL license:
  *   http://www.gnu.org/licenses/gpl.html
  * 
- * Note: Due to no activity of Fabrastic Github repo [https://github.com/mattfarina/farbtastic/issues]
- * and JQuery depriciate these following methods, rewrite this with new methods at WP milestone: 6.3
- * Details are described here: [https://core.trac.wordpress.org/ticket/57946]
- * a. bind()
- * b. unbind()
- * c. mousedown()
- * 
  */
 (function($) {
 
