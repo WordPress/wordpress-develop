@@ -4134,31 +4134,32 @@ EOF;
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_get_loading_optimization_attributes
 	 */
-	public function test_wp_filter_content_tags_does_not_lazy_load_special_images_within_the_content() {
+	public function test_wp_filter_content_tags_does_not_apply_loading_optimization_to_special_images_within_the_content() {
 		global $wp_query, $wp_the_query;
 
-		// Force no lazy-loading on the image tag expected in the content.
-		$expected_content = wpautop(
-			wp_get_attachment_image(
-				self::$large_id,
-				'large',
-				false,
-				array(
-					'loading'       => false,
-					'fetchpriority' => 'high',
-				)
+		// Force no lazy-loading or fetchpriority on the image tag expected in the content.
+		$expected_image = wp_get_attachment_image(
+			self::$large_id,
+			'large',
+			false,
+			array(
+				'loading'       => false,
+				'fetchpriority' => false,
 			)
 		);
 
 		// Reset high priority flag as the forced `fetchpriority="high"` above already modified it.
 		$this->reset_high_priority_element_flag();
 
+		$image_within_content = '';
+
 		// Overwrite post content with an image.
 		add_filter(
 			'the_content',
-			static function() {
+			static function() use ( &$image_within_content ) {
 				// Replace content with an image tag, i.e. the 'wp_get_attachment_image' context is used while running 'the_content' filter.
-				return wp_get_attachment_image( self::$large_id, 'large', false );
+				$image_within_content = wp_get_attachment_image( self::$large_id, 'large', false );
+				return $image_within_content;
 			},
 			9 // Run before wp_filter_content_tags().
 		);
@@ -4178,8 +4179,12 @@ EOF;
 			$content = get_echo( 'the_content' );
 		}
 
-		// Ensure that parsed content has the image without lazy-loading.
-		$this->assertSame( $expected_content, $content );
+		// Ensure that parsed image within content does not receive any loading optimization attributes.
+		$this->assertSame( $expected_image, $image_within_content, 'Image with wp_get_attachment_image context within post content should not receive loading optimization attributes' );
+
+		// Ensure that parsed content has the image with fetchpriority as it is the first large image.
+		$expected_content = wpautop( str_replace( '<img ', '<img fetchpriority="high" ', $expected_image ) );
+		$this->assertSame( $expected_content, $content, 'Post content with programmatically injected image is missing loading optimization attributes' );
 	}
 
 	/**
@@ -4503,7 +4508,7 @@ EOF;
 	}
 
 	/**
-	 * Tests that wp_get_loading_optimization_attributes() returns false for special contexts when they're used within 'the_content' filter.
+	 * Tests that wp_get_loading_optimization_attributes() does not modify any attributes for special contexts when they're used within 'the_content' filter.
 	 *
 	 * @ticket 58089
 	 * @ticket 58235
@@ -4514,7 +4519,7 @@ EOF;
 	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
-	public function test_wp_get_loading_optimization_attributes_should_return_false_for_special_contexts_within_the_content( $context ) {
+	public function test_wp_get_loading_optimization_attributes_should_not_modify_images_for_special_contexts_within_the_content( $context ) {
 		remove_all_filters( 'the_content' );
 
 		$result = null;
@@ -4528,11 +4533,7 @@ EOF;
 		);
 		apply_filters( 'the_content', '' );
 
-		$this->assertSame(
-			array( 'fetchpriority' => 'high' ),
-			$result,
-			'First large image is loaded with high fetchpriority.'
-		);
+		$this->assertSame( array(), $result );
 	}
 
 	/**
