@@ -1019,7 +1019,7 @@ function wp_specialchars_decode( $text, $quote_style = ENT_NOQUOTES ) {
 	}
 
 	// Don't bother if there are no entities - saves a lot of processing.
-	if ( strpos( $text, '&' ) === false ) {
+	if ( ! str_contains( $text, '&' ) ) {
 		return $text;
 	}
 
@@ -2474,7 +2474,7 @@ function convert_chars( $content, $deprecated = '' ) {
 		_deprecated_argument( __FUNCTION__, '0.71' );
 	}
 
-	if ( strpos( $content, '&' ) !== false ) {
+	if ( str_contains( $content, '&' ) ) {
 		$content = preg_replace( '/&([^#])(?![a-z1-4]{1,8};)/i', '&#038;$1', $content );
 	}
 
@@ -2525,7 +2525,7 @@ function convert_invalid_entities( $content ) {
 		'&#159;' => '&#376;',
 	);
 
-	if ( strpos( $content, '&#1' ) !== false ) {
+	if ( str_contains( $content, '&#1' ) ) {
 		$content = strtr( $content, $wp_htmltranswinuni );
 	}
 
@@ -4463,8 +4463,9 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	 * it needs http:// prepended (unless it's a relative link
 	 * starting with /, # or ?, or a PHP file).
 	 */
-	if ( strpos( $url, ':' ) === false && ! in_array( $url[0], array( '/', '#', '?' ), true ) &&
-		! preg_match( '/^[a-z0-9-]+?\.php/i', $url ) ) {
+	if ( ! str_contains( $url, ':' ) && ! in_array( $url[0], array( '/', '#', '?' ), true ) &&
+		! preg_match( '/^[a-z0-9-]+?\.php/i', $url )
+	) {
 		$url = 'http://' . $url;
 	}
 
@@ -4882,7 +4883,11 @@ function sanitize_option( $option, $value ) {
 			break;
 
 		case 'blog_charset':
-			$value = preg_replace( '/[^a-zA-Z0-9_-]/', '', $value ); // Strips slashes.
+			if ( is_string( $value ) ) {
+				$value = preg_replace( '/[^a-zA-Z0-9_-]/', '', $value ); // Strips slashes.
+			} else {
+				$value = '';
+			}
 			break;
 
 		case 'blog_public':
@@ -4917,7 +4922,11 @@ function sanitize_option( $option, $value ) {
 			break;
 
 		case 'gmt_offset':
-			$value = preg_replace( '/[^0-9:.-]/', '', $value ); // Strips slashes.
+			if ( is_numeric( $value ) ) {
+				$value = preg_replace( '/[^0-9:.-]/', '', $value ); // Strips slashes.
+			} else {
+				$value = '';
+			}
 			break;
 
 		case 'siteurl':
@@ -5580,7 +5589,7 @@ function _sanitize_text_fields( $str, $keep_newlines = false ) {
 
 	$filtered = wp_check_invalid_utf8( $str );
 
-	if ( strpos( $filtered, '<' ) !== false ) {
+	if ( str_contains( $filtered, '<' ) ) {
 		$filtered = wp_pre_kses_less_than( $filtered );
 		// This will strip extra whitespace for us.
 		$filtered = wp_strip_all_tags( $filtered, false );
@@ -6065,7 +6074,7 @@ function wp_staticize_emoji_for_email( $mail ) {
 	}
 
 	foreach ( $headers as $header ) {
-		if ( strpos( $header, ':' ) === false ) {
+		if ( ! str_contains( $header, ':' ) ) {
 			continue;
 		}
 
@@ -6077,7 +6086,7 @@ function wp_staticize_emoji_for_email( $mail ) {
 		$content = trim( $content );
 
 		if ( 'content-type' === strtolower( $name ) ) {
-			if ( strpos( $content, ';' ) !== false ) {
+			if ( str_contains( $content, ';' ) ) {
 				list( $type, $charset ) = explode( ';', $content );
 				$content_type           = trim( $type );
 			} else {

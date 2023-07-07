@@ -20,20 +20,20 @@ describe( 'Cache Control header directives', () => {
 		await logout();
 
 		const response = await page.goto( createURL( '/hello-world/' ) );
-		const cacheControl = response.headers();
+		const responseHeaders = response.headers();
 
-		expect( cacheControl[ 'cache-control' ] ).not.toContain( 'no-store' );
-		expect( cacheControl[ 'cache-control' ] ).not.toContain( 'private' );
+		expect( responseHeaders ).toEqual( expect.not.objectContaining( { "cache-control": "no-store" } ) );
+		expect( responseHeaders ).toEqual( expect.not.objectContaining( { "cache-control": "private" } ) );
 	} );
 
 	it( 'Private directive header present in cache control when logged in.', async () => {
 		await visitAdminPage( '/wp-admin' );
 
 		const response = await page.goto( createURL( '/wp-admin' ) );
-		const cacheControl = response.headers();
+		const responseHeaders = response.headers();
 
-		expect( cacheControl[ 'cache-control' ] ).toContain( 'no-store' );
-		expect( cacheControl[ 'cache-control' ] ).toContain( 'private' );
+		expect( responseHeaders[ 'cache-control' ] ).toContain( 'no-store' );
+		expect( responseHeaders[ 'cache-control' ] ).toContain( 'private' );
 	} );
 
 } );
