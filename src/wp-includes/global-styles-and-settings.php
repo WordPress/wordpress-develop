@@ -357,15 +357,15 @@ function wp_theme_has_theme_json() {
 	$stylesheet_directory = get_stylesheet_directory();
 	$template_directory   = get_template_directory();
 
-	// Make sure that the cached $theme_has_support value is reset the theme changes.
-	if ( $prev_stylesheet_directory && $stylesheet_directory !== $prev_stylesheet_directory ) {
+	// Make sure that the cached $theme_has_support value is reset when the theme changes.
+	if ( null !== $theme_has_support && (
+		$stylesheet_directory !== $prev_stylesheet_directory ||
+		$template_directory !== $prev_template_directory
+	) ) {
 		$theme_has_support = null;
 	}
 	$prev_stylesheet_directory = $stylesheet_directory;
-	if ( $prev_template_directory && $template_directory !== $prev_template_directory ) {
-		$theme_has_support = null;
-	}
-	$prev_template_directory = $template_directory;
+	$prev_template_directory   = $template_directory;
 
 	if (
 		null !== $theme_has_support &&
