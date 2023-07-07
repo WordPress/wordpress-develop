@@ -60,6 +60,25 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller::get_fallback
 	 */
+	public function test_should_not_automatically_create_fallback_if_filter_is_falsey() {
+
+		add_filter( 'gutenberg_navigation_should_create_fallback', '__return_false' );
+
+		$data = Gutenberg_Navigation_Fallback::get_fallback();
+
+		$this->assertEmpty( $data );
+
+		$navs_in_db = $this->get_navigations_in_database();
+
+		$this->assertCount( 0, $navs_in_db, 'The fallback Navigation post should not have been created.' );
+
+		remove_filter( 'gutenberg_navigation_should_create_fallback', '__return_false' );
+	}
+
+	/**
+	 * @ticket 58557
+	 * @covers WP_REST_Navigation_Fallback_Controller::get_fallback
+	 */
 	public function test_should_return_a_default_fallback_navigation_menu_with_no_blocks_if_page_list_block_is_not_registered() {
 
 		$original_page_list_block = WP_Block_Type_Registry::get_instance()->get_registered( 'core/page-list' );
