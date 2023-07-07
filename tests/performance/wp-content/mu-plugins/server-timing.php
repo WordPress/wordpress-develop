@@ -1,6 +1,6 @@
 <?php
 
-add_action(
+add_filter(
 	'template_include',
 	static function( $template ) {
 
