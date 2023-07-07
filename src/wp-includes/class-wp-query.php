@@ -3129,7 +3129,7 @@ class WP_Query {
 			 */
 			$this->request = apply_filters_ref_array( 'posts_request', array( $this->request, &$this ) );
 
-			if ( str_contains( $this->request, 'SQL_CALC_FOUND_ROWS' ) ) {
+			if ( is_string( $this->request ) && str_contains( $this->request, 'SQL_CALC_FOUND_ROWS' ) ) {
 				_deprecated_argument(
 					'The posts_request filter',
 					'x.x.x',
