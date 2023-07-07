@@ -8,7 +8,7 @@
  * `Backbone.View.dispose` in Backbone 0.9.8 development.
  *
  * This behavior has since been removed, and should not be used
- * outside of the media manager.
+ * outside the media manager.
  *
  * @memberOf wp.media
  *
