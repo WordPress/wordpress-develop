@@ -64,7 +64,7 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 
 		add_filter( 'wp_navigation_should_create_fallback', '__return_false' );
 
-		$data = Gutenberg_Navigation_Fallback::get_fallback();
+		$data = WP_Navigation_Fallback::get_fallback();
 
 		$this->assertEmpty( $data );
 
