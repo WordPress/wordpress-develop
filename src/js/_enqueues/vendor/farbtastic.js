@@ -262,7 +262,7 @@ $._farbtastic = function (container, callback) {
   };
 
   // Install mousedown handler (the others are set on the document on-demand)
-  $(document).on('mousedown', '*', e, fb.mousedown)
+  $( '*', e ).on('mousedown', '*', e, fb.mousedown)
 
     // Init color
   fb.setColor('#000000');
