@@ -72,7 +72,7 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 
 		$this->assertCount( 0, $navs_in_db, 'The fallback Navigation post should not have been created.' );
 
-		remove_filter( 'gutenberg_navigation_should_create_fallback', '__return_false' );
+		remove_filter( 'wp_navigation_should_create_fallback', '__return_false' );
 	}
 
 	/**
