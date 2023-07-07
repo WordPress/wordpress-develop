@@ -57,12 +57,12 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 58557
+	 * @ticket 58750
 	 * @covers WP_REST_Navigation_Fallback_Controller::get_fallback
 	 */
 	public function test_should_not_automatically_create_fallback_if_filter_is_falsey() {
 
-		add_filter( 'gutenberg_navigation_should_create_fallback', '__return_false' );
+		add_filter( 'wp_navigation_should_create_fallback', '__return_false' );
 
 		$data = Gutenberg_Navigation_Fallback::get_fallback();
 
