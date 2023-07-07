@@ -25,7 +25,7 @@ function _add_template_loader_filters() {
  * @since 5.8.0
  *
  * @global string $_wp_current_template_content
- * @global string _wp_current_template_id
+ * @global string $_wp_current_template_id
  *
  * @param string   $template  Path to the template. See locate_template().
  * @param string   $type      Sanitized filename without extension.
