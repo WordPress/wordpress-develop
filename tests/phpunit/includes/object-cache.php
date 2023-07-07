@@ -912,7 +912,7 @@ class WP_Object_Cache {
 	 * @var string
 	 */
 	public $blog_prefix = '';
-	
+
 	/**
 	 * Thirty days in seconds.
 	 *
