@@ -1,0 +1,358 @@
+<?xml version="1.0"?>
+<ruleset name="WordPress Coding Standards">
+	<description>Apply WordPress Coding Standards to all Core files</description>
+
+	<!-- Only scan PHP files. -->
+	<arg name="extensions" value="php"/>
+
+	<!-- Whenever possible, cache the scan results and re-use those for unchanged files on the next scan. -->
+	<arg name="cache" value=".cache/phpcs.json"/>
+
+	<!-- Set the memory limit to 256M.
+		 For most standard PHP configurations, this means the memory limit will temporarily be raised.
+		 Ref: https://github.com/squizlabs/PHP_CodeSniffer/wiki/Advanced-Usage#specifying-phpini-settings
+	-->
+	<ini name="memory_limit" value="256M"/>
+
+	<!-- Strip the filepaths down to the relevant bit. -->
+	<arg name="basepath" value="./"/>
+
+	<!-- Check up to 20 files simultaneously. -->
+	<arg name="parallel" value="20"/>
+
+	<!-- Show sniff codes in all reports. -->
+	<arg value="ps"/>
+
+	<file>.</file>
+
+	<rule ref="WordPress-Core"/>
+	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
+
+	<!-- These rules are being set as warnings instead of errors, so we can error check the entire codebase. -->
+	<rule ref="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase">
+		<type>warning</type>
+	</rule>
+	<rule ref="WordPress.DB.PreparedSQL.InterpolatedNotPrepared">
+		<type>warning</type>
+	</rule>
+	<rule ref="WordPress.DB.PreparedSQL.NotPrepared">
+		<type>warning</type>
+	</rule>
+	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
+		<type>warning</type>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.ValidVariableName">
+		<properties>
+			<property name="customPropertiesWhitelist" type="array">
+				<!-- From database structure queries. -->
+				<element value="Collation"/>
+				<element value="Column_name"/>
+				<element value="Default"/>
+				<element value="Extra"/>
+				<element value="Field"/>
+				<element value="Index_type"/>
+				<element value="Key"/>
+				<element value="Key_name"/>
+				<element value="Msg_text"/>
+				<element value="Non_unique"/>
+				<element value="Null"/>
+				<element value="Sub_part"/>
+				<element value="Type"/>
+				<!-- From plugin/theme data. -->
+				<element value="authorAndUri"/>
+				<element value="Name"/>
+				<element value="Version"/>
+				<!-- From the result of wp_xmlrpc_server::wp_getPageList(). -->
+				<element value="dateCreated"/>
+
+				<!-- From DOMDocument. -->
+				<element value="childNodes"/>
+				<element value="firstChild"/>
+				<element value="formatOutput"/>
+				<element value="lastChild"/>
+				<element value="nodeName"/>
+				<element value="nodeType"/>
+				<element value="parentNode"/>
+				<element value="preserveWhiteSpace"/>
+				<element value="textContent"/>
+				<!-- From PHPMailer. -->
+				<element value="AltBody"/>
+				<element value="Body"/>
+				<element value="CharSet"/>
+				<element value="ContentType"/>
+				<element value="Encoding"/>
+				<element value="Hostname"/>
+				<element value="mailHeader"/>
+				<element value="MIMEBody"/>
+				<element value="MIMEHeader"/>
+				<element value="Sender"/>
+				<element value="Subject"/>
+				<!-- From PHPUnit_Util_Getopt. -->
+				<element value="longOptions"/>
+				<!-- From POP3. -->
+				<element value="ERROR"/>
+				<!-- From ZipArchive. -->
+				<element value="numFiles"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Exclude the build folder in the current directory. -->
+	<exclude-pattern type="relative">^build/*</exclude-pattern>
+
+	<!-- Directories and third party library exclusions. -->
+	<exclude-pattern>/node_modules/*</exclude-pattern>
+	<exclude-pattern>/vendor/*</exclude-pattern>
+
+	<exclude-pattern>/src/wp-admin/includes/class-ftp*</exclude-pattern>
+	<exclude-pattern>/src/wp-admin/includes/class-pclzip\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-admin/includes/deprecated\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-admin/includes/ms-deprecated\.php</exclude-pattern>
+
+	<exclude-pattern>/src/wp-includes/atomlib\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-IXR\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-json\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-phpass\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-pop3\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-requests\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-simplepie\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-snoopy\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/deprecated\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/ms-deprecated\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/pluggable-deprecated\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/rss\.php</exclude-pattern>
+
+	<exclude-pattern>/src/wp-includes/assets/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/blocks/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/ID3/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/IXR/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/js/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/PHPMailer/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/random_compat/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/Requests/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/SimplePie/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/sodium_compat/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/Text/*</exclude-pattern>
+
+	<!-- Test data and fixtures. -->
+	<exclude-pattern>/tests/phpunit/build*</exclude-pattern>
+	<exclude-pattern>/tests/phpunit/data/*</exclude-pattern>
+
+	<exclude-pattern>/tools/*</exclude-pattern>
+
+	<!-- Drop-in plugins. -->
+	<exclude-pattern>/src/wp-content/advanced-cache\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/blog-deleted\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/blog-inactive\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/blog-suspended\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/db-error\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/db\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/fatal-error-handler\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/install\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/maintenance\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/object-cache\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/php-error\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/sunrise\.php</exclude-pattern>
+
+	<!-- Must-Use plugins. -->
+	<exclude-pattern>/src/wp-content/mu-plugins/*</exclude-pattern>
+
+	<!-- Plugins. -->
+	<exclude-pattern>/src/wp-content/plugins/*</exclude-pattern>
+
+	<!-- Themes except the twenty* themes. -->
+	<exclude-pattern>/src/wp-content/themes/(?!twenty)*</exclude-pattern>
+
+	<!-- Allow the WP DB Class and related tests for usage of direct database access functions. -->
+	<rule ref="WordPress.DB.RestrictedFunctions">
+		<exclude-pattern>/src/wp-includes/class-wpdb\.php</exclude-pattern>
+		<exclude-pattern>/tests/phpunit/tests/db/charset\.php</exclude-pattern>
+	</rule>
+
+	<!-- Allow the WP DB related tests for issues with prepared SQL placeholders
+		 (as the handling of those are being tested). -->
+	<rule ref="WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare">
+		<exclude-pattern>/tests/phpunit/tests/db\.php</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder">
+		<exclude-pattern>/tests/phpunit/tests/db\.php</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.DB.PreparedSQLPlaceholders.UnescapedLiteral">
+		<exclude-pattern>/tests/phpunit/tests/db\.php</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.DB.PreparedSQL.NotPrepared">
+		<exclude-pattern>/tests/phpunit/tests/admin/includesSchema\.php</exclude-pattern>
+		<exclude-pattern>/tests/phpunit/tests/multisite/site\.php</exclude-pattern>
+	</rule>
+
+	<!-- Allow non-snake-case vars & properties for block-related classes. -->
+	<rule ref="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase">
+		<exclude-pattern>/src/wp-includes/class-wp-block-parser\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.NamingConventions.ValidVariableName.PropertyNotSnakeCase">
+		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase">
+		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
+	</rule>
+
+	<!-- Allow the I18n functions file for issues identified by the I18n sniff
+		 (such as calling the low-level translate() function). -->
+	<rule ref="WordPress.WP.I18n">
+		<exclude-pattern>/src/wp-includes/l10n\.php</exclude-pattern>
+		<exclude-pattern>/tests/phpunit/tests/l10n\.php</exclude-pattern>
+		<exclude-pattern>/tests/phpunit/tests/l10n/loadTextdomainJustInTime\.php</exclude-pattern>
+	</rule>
+
+	<!-- Translator comments aren't needed in unit tests. -->
+	<rule ref="WordPress.WP.I18n.MissingTranslatorsComment">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
+	<rule ref="Generic.Functions.FunctionCallArgumentSpacing">
+		<exclude-pattern>/wp-config\.php</exclude-pattern>
+		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
+		<exclude-pattern>/wp-tests-config\.php</exclude-pattern>
+		<exclude-pattern>/wp-tests-config-sample\.php</exclude-pattern>
+	</rule>
+
+	<!-- Exclude checking of line endings when reporting errors, but fix them when running phpcbf.
+		 Git and SVN manage these pretty well cross-platform as "native".
+		 Allow configuration files. -->
+	<rule ref="Generic.Files.LineEndings">
+		<exclude-pattern>/wp-config\.php</exclude-pattern>
+		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
+		<exclude phpcs-only="true" name="Generic.Files.LineEndings"/>
+	</rule>
+
+	<!-- WPCS1620: template.php isn't a template tag file. -->
+	<rule ref="WordPress.Files.FileName.InvalidTemplateTagFileName">
+		<exclude-pattern>/src/wp-includes/template\.php</exclude-pattern>
+	</rule>
+
+	<!-- WPCS1621: These files are expected to use _ instead of -. -->
+	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
+		<exclude-pattern>/src/_index\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-admin/_index\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-content/themes/twentythirteen/taxonomy-post_format\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-content/themes/twentyfourteen/taxonomy-post_format\.php</exclude-pattern>
+	</rule>
+
+	<!-- Allow test classes for select sniffs. -->
+	<rule ref="WordPress.Files.FileName">
+		<properties>
+			<property name="custom_test_class_whitelist" type="array">
+				<!-- Test case parent classes in the "includes" folder, not yet accounted for in WPCS. -->
+				<element value="PHPUnit_Adapter_TestCase"/>
+				<element value="WP_Test_XML_TestCase"/>
+
+				<!-- Test case parent classes outside of the "includes" folder. -->
+				<element value="Tests_Query_Conditionals"/>
+				<element value="WP_Block_Templates_UnitTestCase"/>
+				<element value="WP_Filesystem_UnitTestCase"/>
+				<element value="WP_HTTP_UnitTestCase"/>
+				<element value="WP_Image_UnitTestCase"/>
+				<element value="WP_Import_UnitTestCase"/>
+				<element value="WP_Test_Adjacent_Image_Link_TestCase"/>
+				<element value="WP_Tests_Image_Resize_UnitTestCase"/>
+				<element value="WP_Theme_UnitTestCase"/>
+
+				<!-- Mock classes. -->
+				<element value="Spy_REST_Server"/>
+				<element value="WP_REST_Test_Controller"/>
+				<element value="WP_Image_Editor_Mock"/>
+				<element value="WP_Filesystem_MockFS"/>
+				<element value="Mock_Invokable"/>
+				<element value="MockPHPMailer"/>
+				<element value="MockAction"/>
+				<element value="WP_Object_Cache"/>
+
+				<!-- PHPUnit helpers. -->
+				<element value="TracTickets"/>
+				<element value="WP_PHPUnit_Util_Getopt"/>
+				<element value="PHPUnit_Util_Test"/>
+				<element value="WPProfiler"/>
+				<element value="PHPUnit_Framework_Exception"/>
+				<element value="Polyfill_TestCase"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.PHP.NoSilencedErrors">
+		<properties>
+			<property name="custom_whitelist" type="array">
+				<element value="ssh2_connect"/>
+				<element value="ssh2_auth_password"/>
+				<element value="ssh2_auth_pubkey_file"/>
+				<element value="ftp_ssl_connect"/>
+				<element value="ftp_connect"/>
+				<element value="ftp_get_option"/>
+				<element value="ftp_set_option"/>
+				<element value="disk_free_space"/>
+				<element value="getimagesize"/>
+				<element value="iptcparse"/>
+				<element value="exif_read_data"/>
+				<element value="gzinflate"/>
+				<element value="gzuncompress"/>
+				<element value="gzdecode"/>
+				<element value="imagecreatefromwebp"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Enforce no parenthesis for language constructs, and only one space immediately after.
+		 Including this rule is temporary until it is moved from the WordPress-Extra ruleset to
+		 the WordPress-Core ruleset upstream.
+	-->
+	<rule ref="PEAR.Files.IncludingFile.BracketsNotRequired">
+		<type>warning</type>
+	</rule>
+	<rule ref="PEAR.Files.IncludingFile.UseRequire">
+		<type>warning</type>
+	</rule>
+	<rule ref="PEAR.Files.IncludingFile.UseRequireOnce">
+		<type>warning</type>
+	</rule>
+	<rule ref="Squiz.WhiteSpace.LanguageConstructSpacing"/>
+
+	<!-- Assignments in while conditions are a valid method of looping over iterables. -->
+	<rule ref="WordPress.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition">
+		<exclude-pattern>*</exclude-pattern>
+	</rule>
+
+	<!-- Exclude the unit tests from select sniffs. -->
+	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
+		<exclude-pattern>/tests/phpunit/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="PEAR.NamingConventions.ValidClassName.Invalid">
+		<exclude-pattern>/tests/phpunit/tests/*</exclude-pattern>
+	</rule>
+
+	<!-- Exclude some old classes that cannot be renamed, as it would break back compat. -->
+	<rule ref="PEAR.NamingConventions.ValidClassName.Invalid">
+		<exclude-pattern>/src/wp-admin/includes/class-wp-filesystem-ftpsockets\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-oembed\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-oembed-controller\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-xmlrpc-server\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-text-diff-renderer-inline\.php</exclude-pattern>
+	</rule>
+	<rule ref="PEAR.NamingConventions.ValidClassName.StartWithCapital">
+		<exclude-pattern>/src/wp-admin/includes/class-wp-list-table-compat\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-dependency\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-editor\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-xmlrpc-server\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wpdb\.php</exclude-pattern>
+	</rule>
+
+	<!-- Exclude some incorrectly named files that won't be renamed. -->
+	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
+		<exclude-pattern>/src/wp-admin/includes/class-wp-list-table-compat\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-dependency\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-editor\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-content/themes/twentyeleven/inc/widgets\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-content/themes/twentyfourteen/inc/widgets\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-content/themes/twentyfourteen/inc/featured-content\.php</exclude-pattern>
+	</rule>
+</ruleset>

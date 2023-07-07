@@ -1,0 +1,33 @@
+{
+	"boss": true,
+	"curly": true,
+	"eqeqeq": true,
+	"eqnull": true,
+	"esversion": 3,
+	"expr": true,
+	"immed": true,
+	"noarg": true,
+	"nonbsp": true,
+	"onevar": true,
+	"quotmark": "single",
+	"trailing": true,
+	"undef": true,
+	"unused": true,
+
+	"browser": true,
+
+	"globals": {
+		"_": false,
+		"Backbone": false,
+		"jQuery": false,
+		"JSON": false,
+		"wp": false,
+		"export": false,
+		"module": false,
+		"require": false,
+		"WorkerGlobalScope": false,
+		"self": false,
+		"OffscreenCanvas": false,
+		"Promise": false
+	}
+}

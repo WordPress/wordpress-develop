@@ -1,0 +1,26 @@
+{
+	"plugins": [],
+	"recurseDepth": 10,
+	"source": {
+		"include": [ "src/js" ],
+		"exclude": [ "src/js/_enqueues/vendor" ]
+	},
+	"sourceType": "module",
+	"tags": {
+		"allowUnknownTags": true,
+		"dictionaries": [ "jsdoc", "closure" ]
+	},
+	"templates": {
+		"cleverLinks": false,
+		"monospaceLinks": false,
+		"theme": "united",
+		"outputSourceFiles": true,
+		"outputSourcePath": true,
+		"linenums": true
+	},
+	"opts": {
+		"template": "./node_modules/ink-docstrap/template",
+		"recurse": true,
+		"private": true
+	}
+}

@@ -1,0 +1,55 @@
+# Translation of Development (5.2.x) in Spanish (Spain)
+# This file is distributed under the same license as the Development (5.2.x) package.
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2020-07-23 21:12+0300\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Poedit 2.3\n"
+"Project-Id-Version: Development (5.2.x)\n"
+"Language: es_ES\n"
+"POT-Creation-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+
+#. translators: 'rtl' or 'ltr'. This sets the text direction for WordPress.
+#: wp-includes/locale.php:201
+msgctxt "text direction"
+msgid "ltr"
+msgstr "ltr"
+
+#: wp-includes/user.php:2132
+msgid "<strong>ERROR</strong>: Sorry, that username is not allowed."
+msgstr "<strong>ERROR</strong>: Lo siento, ese nombre de usuario no está permitido."
+
+#: wp-includes/rest-api/class-wp-rest-request.php:850
+msgid "Invalid parameter."
+msgstr "Parámetro no válido. "
+
+#. translators: %s: menu name
+#: wp-includes/customize/class-wp-customize-nav-menu-control.php:76
+msgctxt "menu location"
+msgid "(Current: %s)"
+msgstr "(Actual: %s)"
+
+#. translators: %s: menu location slug
+#: wp-includes/class-wp-customize-nav-menus.php:340
+msgctxt "menu"
+msgid "(Currently set to: %s)"
+msgstr "(Actualmente fijado en: %s)"
+
+#. translators: Privacy data request subject. 1: Site name, 2: Name of the action
+#: wp-includes/user.php:3445
+msgid "[%1$s] Confirm Action: %2$s"
+msgstr "[%1$s] Confirmar la acción: %2$s"
+
+#. translators: %s: Site name.
+#: wp-includes/user.php:3175
+msgid "[%s] Erasure Request Fulfilled"
+msgstr "[%s] Solicitud de borrado completada"
+
+#: wp-admin/includes/file.php:2415
+msgid "[%s] Personal Data Export"
+msgstr "[%s] Exportación de datos personales"

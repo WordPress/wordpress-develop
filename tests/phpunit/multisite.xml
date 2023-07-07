@@ -1,0 +1,75 @@
+<phpunit
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/9.2/phpunit.xsd"
+		bootstrap="includes/bootstrap.php"
+		backupGlobals="false"
+		colors="true"
+		beStrictAboutTestsThatDoNotTestAnything="true"
+		beStrictAboutOutputDuringTests="true"
+		convertErrorsToExceptions="true"
+		convertWarningsToExceptions="true"
+		convertNoticesToExceptions="true"
+		convertDeprecationsToExceptions="true"
+		>
+	<php>
+		<const name="WP_TESTS_MULTISITE" value="1" />
+		<const name="WP_RUN_CORE_TESTS" value="1" />
+	</php>
+	<testsuites>
+		<!-- Default test suite to run all tests. -->
+		<testsuite name="default">
+			<directory suffix=".php">tests</directory>
+			<exclude>tests/rest-api/rest-autosaves-controller.php</exclude>
+		</testsuite>
+		<!-- Sets the DOING_AUTOSAVE constant, so needs to be run last. -->
+		<testsuite name="restapi-autosave">
+			<file>tests/rest-api/rest-autosaves-controller.php</file>
+		</testsuite>
+	</testsuites>
+	<groups>
+		<exclude>
+			<group>ajax</group>
+			<group>ms-files</group>
+			<group>ms-excluded</group>
+			<group>external-http</group>
+			<group>oembed-headers</group>
+		</exclude>
+	</groups>
+	<filter>
+		<whitelist addUncoveredFilesFromWhitelist="true">
+			<directory suffix=".php">../../src</directory>
+			<exclude>
+				<!-- Third party library exclusions. -->
+				<directory suffix=".php">../../src/wp-includes/ID3</directory>
+				<directory suffix=".php">../../src/wp-includes/IXR</directory>
+				<directory suffix=".php">../../src/wp-includes/random_compat</directory>
+				<directory suffix=".php">../../src/wp-includes/PHPMailer</directory>
+				<directory suffix=".php">../../src/wp-includes/Requests</directory>
+				<directory suffix=".php">../../src/wp-includes/SimplePie</directory>
+				<directory suffix=".php">../../src/wp-includes/sodium_compat</directory>
+				<directory suffix=".php">../../src/wp-includes/Text</directory>
+
+				<!-- Plugins and themes. -->
+				<directory suffix=".php">../../src/wp-content/</directory>
+
+				<file>../../src/wp-admin/includes/class-ftp*</file>
+				<file>../../src/wp-admin/includes/class-pclzip.php</file>
+				<file>../../src/wp-admin/includes/deprecated.php</file>
+				<file>../../src/wp-admin/includes/ms-deprecated.php</file>
+
+				<file>../../src/wp-includes/atomlib.php</file>
+				<file>../../src/wp-includes/class-IXR.php</file>
+				<file>../../src/wp-includes/class-json.php</file>
+				<file>../../src/wp-includes/class-phpass.php</file>
+				<file>../../src/wp-includes/class-pop3.php</file>
+				<file>../../src/wp-includes/class-requests.php</file>
+				<file>../../src/wp-includes/class-simplepie.php</file>
+				<file>../../src/wp-includes/class-snoopy.php</file>
+				<file>../../src/wp-includes/deprecated.php</file>
+				<file>../../src/wp-includes/ms-deprecated.php</file>
+				<file>../../src/wp-includes/pluggable-deprecated.php</file>
+				<file>../../src/wp-includes/rss.php</file>
+			</exclude>
+		</whitelist>
+	</filter>
+</phpunit>

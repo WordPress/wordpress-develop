@@ -1,0 +1,2319 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>WordPress QUnit Test Suite</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+		<!-- Dependencies -->
+		<script src="../../build/wp-includes/js/jquery/jquery.js"></script>
+		<script src="../../build/wp-includes/js/jquery/jquery-migrate.js"></script>
+		<script src="../../build/wp-includes/js/jquery/ui/core.min.js"></script>
+		<script src="../../build/wp-includes/js/underscore.min.js"></script>
+		<script src="../../build/wp-includes/js/backbone.min.js"></script>
+		<script src="../../build/wp-includes/js/wp-backbone.js"></script>
+		<script src="../../build/wp-includes/js/zxcvbn.min.js"></script>
+		<script>
+			window._wpUtilSettings = {
+				'ajax': {
+					'url': '\/wp-admin\/admin-ajax.php'
+				}
+			};
+		</script>
+		<script>
+			var wpApiSettings = {
+				root: 'http://localhost/wp-json/',
+				nonce: 'not_a_real_nonce'
+			};
+		</script>
+		<script src="../../build/wp-includes/js/wp-util.js"></script>
+		<script src="../../build/wp-includes/js/dist/vendor/wp-polyfill.js"></script>
+		<script src="../../build/wp-includes/js/dist/dom-ready.js"></script>
+		<script src="../../build/wp-includes/js/dist/hooks.js"></script>
+		<script src="../../build/wp-includes/js/dist/i18n.js"></script>
+		<script src="../../build/wp-includes/js/dist/a11y.js"></script>
+		<script>
+			window._wpMediaModelsL10n = {"settings":{"ajaxurl":"\/wp-admin\/admin-ajax.php","post":{"id":0}}};
+		</script>
+		<script src="../../build/wp-includes/js/media-models.js"></script>
+		<script>
+			window.userSettings = {"url":"\/","uid":"0","time":"1493325477","secure":""};
+		</script>
+		<script src="../../build/wp-includes/js/utils.js"></script>
+		<script>
+			window.pluploadL10n = {"queue_limit_exceeded":"You have attempted to queue too many files.","file_exceeds_size_limit":"%s exceeds the maximum upload size for this site.","zero_byte_file":"This file is empty. Please try another.","invalid_filetype":"Sorry, you are not allowed to upload this file type.","not_an_image":"This file is not an image. Please try another.","image_memory_exceeded":"Memory exceeded. Please try another smaller file.","image_dimensions_exceeded":"This is larger than the maximum size. Please try another.","default_error":"An error occurred in the upload. Please try again later.","missing_upload_url":"There was a configuration error. Please contact the server administrator.","upload_limit_exceeded":"You may only upload 1 file.","http_error":"HTTP error.","upload_failed":"Upload failed.","big_upload_failed":"Please try uploading this file with the %1$sbrowser uploader%2$s.","big_upload_queued":"%s exceeds the maximum upload size for the multi-file uploader when used in your browser.","io_error":"IO error.","security_error":"Security error.","file_cancelled":"File canceled.","upload_stopped":"Upload stopped.","dismiss":"Dismiss","crunching":"Crunching\u2026","deleted":"moved to the Trash.","error_uploading":"\u201c%s\u201d has failed to upload."};
+			window._wpPluploadSettings = {"defaults":{"runtimes":"html5,flash,silverlight,html4","file_data_name":"async-upload","url":"\/wp-admin\/async-upload.php","flash_swf_url":"http:\/\/src.wordpress-develop.dev\/wp-includes\/js\/plupload\/plupload.flash.swf","silverlight_xap_url":"http:\/\/src.wordpress-develop.dev\/wp-includes\/js\/plupload\/plupload.silverlight.xap","filters":{"max_file_size":"2097152b","mime_types":[{"extensions":"jpg,jpeg,jpe,gif,png,bmp,tiff,tif,ico,asf,asx,wmv,wmx,wm,avi,divx,flv,mov,qt,mpeg,mpg,mpe,mp4,m4v,ogv,webm,mkv,3gp,3gpp,3g2,3gp2,txt,asc,c,cc,h,srt,csv,tsv,ics,rtx,css,vtt,dfxp,mp3,m4a,m4b,ra,ram,wav,ogg,oga,mid,midi,wma,wax,mka,rtf,js,pdf,class,tar,zip,gz,gzip,rar,7z,psd,xcf,doc,pot,pps,ppt,wri,xla,xls,xlt,xlw,mdb,mpp,docx,docm,dotx,dotm,xlsx,xlsm,xlsb,xltx,xltm,xlam,pptx,pptm,ppsx,ppsm,potx,potm,ppam,sldx,sldm,onetoc,onetoc2,onetmp,onepkg,oxps,xps,odt,odp,ods,odg,odc,odb,odf,wp,wpd,key,numbers,pages"}]},"multipart_params":{"action":"upload-attachment","_wpnonce":"87fa5740b8"}},"browser":{"mobile":false,"supported":true},"limitExceeded":false};
+		</script>
+		<script src="../../build/wp-includes/js/plupload/wp-plupload.js"></script>
+		<script>
+			window.mejsL10n = {"language":"en-US","strings":{"Close":"Close","Fullscreen":"Fullscreen","Turn off Fullscreen":"Turn off Fullscreen","Go Fullscreen":"Go Fullscreen","Download File":"Download File","Download Video":"Download Video","Play":"Play","Pause":"Pause","Captions\/Subtitles":"Captions\/Subtitles","None":"None","Time Slider":"Time Slider","Skip back %1 seconds":"Skip back %1 seconds","Video Player":"Video Player","Audio Player":"Audio Player","Volume Slider":"Volume Slider","Mute Toggle":"Mute Toggle","Unmute":"Unmute","Mute":"Mute","Use Up\/Down Arrow keys to increase or decrease volume.":"Use Up\/Down Arrow keys to increase or decrease volume.","Use Left\/Right Arrow keys to advance one second, Up\/Down arrows to advance ten seconds.":"Use Left\/Right Arrow keys to advance one second, Up\/Down arrows to advance ten seconds."}};
+			window._wpmejsSettings = {"pluginPath":"\/wp-includes\/js\/mediaelement\/"};
+		</script>
+		<script src="../../build/wp-includes/js/mediaelement/mediaelement-and-player.min.js"></script>
+		<script src="../../build/wp-includes/js/mediaelement/wp-mediaelement.js"></script>
+		<script>
+			window._wpMediaViewsL10n = {"mediaFrameDefaultTitle":"Media","url":"URL","addMedia":"Add Media","search":"Search","select":"Select","cancel":"Cancel","update":"Update","replace":"Replace","remove":"Remove","back":"Back","selected":"%d selected","dragInfo":"Drag and drop to reorder media files.","uploadFilesTitle":"Upload Files","uploadImagesTitle":"Upload Images","mediaLibraryTitle":"Media Library","insertMediaTitle":"Add Media","createNewGallery":"Create a new gallery","createNewPlaylist":"Create a new playlist","createNewVideoPlaylist":"Create a new video playlist","returnToLibrary":"\u2190 Return to library","allMediaItems":"All media items","allDates":"All dates","noItemsFound":"No items found.","insertIntoPost":"Insert into post","unattached":"Unattached","mine":"Mine","trash":"Trash","uploadedToThisPost":"Uploaded to this post","warnDelete":"You are about to permanently delete this item from your site.\nThis action cannot be undone.\n 'Cancel' to stop, 'OK' to delete.","warnBulkDelete":"You are about to permanently delete these items from your site.\nThis action cannot be undone.\n 'Cancel' to stop, 'OK' to delete.","warnBulkTrash":"You are about to trash these items.\n  'Cancel' to stop, 'OK' to delete.","bulkSelect":"Bulk Select","trashSelected":"Move to Trash","restoreSelected":"Restore from Trash","deletePermanently":"Delete Permanently","apply":"Apply","filterByDate":"Filter by date","filterByType":"Filter by type","searchMediaLabel":"Search Media","searchMediaPlaceholder":"Search media items...","mediaFound":"Number of media items found: %d","mediaFoundHasMoreResults":"Number of media items displayed: %d. Scroll the page for more results.","noMedia":"No media items found.","noMediaTryNewSearch":"No media items found. Try a different search.","attachmentDetails":"Attachment Details","insertFromUrlTitle":"Insert from URL","setFeaturedImageTitle":"Featured image","setFeaturedImage":"Set featured image","createGalleryTitle":"Create Gallery","editGalleryTitle":"Edit Gallery","cancelGalleryTitle":"\u2190 Cancel Gallery","insertGallery":"Insert gallery","updateGallery":"Update gallery","addToGallery":"Add to gallery","addToGalleryTitle":"Add to Gallery","reverseOrder":"Reverse order","imageDetailsTitle":"Image Details","imageReplaceTitle":"Replace Image","imageDetailsCancel":"Cancel Edit","editImage":"Edit Image","chooseImage":"Choose Image","selectAndCrop":"Select and Crop","skipCropping":"Skip Cropping","cropImage":"Crop Image","cropYourImage":"Crop your image","cropping":"Cropping\u2026","suggestedDimensions":"Suggested image dimensions: %1$s by %2$s pixels.","cropError":"There has been an error cropping your image.","audioDetailsTitle":"Audio Details","audioReplaceTitle":"Replace Audio","audioAddSourceTitle":"Add Audio Source","audioDetailsCancel":"Cancel Edit","videoDetailsTitle":"Video Details","videoReplaceTitle":"Replace Video","videoAddSourceTitle":"Add Video Source","videoDetailsCancel":"Cancel Edit","videoSelectPosterImageTitle":"Select Poster Image","videoAddTrackTitle":"Add Subtitles","playlistDragInfo":"Drag and drop to reorder tracks.","createPlaylistTitle":"Create Audio Playlist","editPlaylistTitle":"Edit Audio Playlist","cancelPlaylistTitle":"\u2190 Cancel Audio Playlist","insertPlaylist":"Insert audio playlist","updatePlaylist":"Update audio playlist","addToPlaylist":"Add to audio playlist","addToPlaylistTitle":"Add to Audio Playlist","videoPlaylistDragInfo":"Drag and drop to reorder videos.","createVideoPlaylistTitle":"Create Video Playlist","editVideoPlaylistTitle":"Edit Video Playlist","cancelVideoPlaylistTitle":"\u2190 Cancel Video Playlist","insertVideoPlaylist":"Insert video playlist","updateVideoPlaylist":"Update video playlist","addToVideoPlaylist":"Add to video playlist","addToVideoPlaylistTitle":"Add to Video Playlist","filterAttachments":"Filter Media","attachmentsList":"Media list","settings":{"tabs":[],"tabUrl":"http:\/\/build.wordpress-develop.test\/wp-admin\/media-upload.php?chromeless=1","mimeTypes":{"image":"Images","audio":"Audio","video":"Video","application\/msword,application\/vnd.openxmlformats-officedocument.wordprocessingml.document,application\/vnd.ms-word.document.macroEnabled.12,application\/vnd.ms-word.template.macroEnabled.12,application\/vnd.oasis.opendocument.text,application\/vnd.apple.pages,application\/pdf,application\/vnd.ms-xpsdocument,application\/oxps,application\/rtf,application\/wordperfect,application\/octet-stream":"Documents","application\/vnd.apple.numbers,application\/vnd.oasis.opendocument.spreadsheet,application\/vnd.ms-excel,application\/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application\/vnd.ms-excel.sheet.macroEnabled.12,application\/vnd.ms-excel.sheet.binary.macroEnabled.12":"Spreadsheets","application\/x-gzip,application\/rar,application\/x-tar,application\/zip,application\/x-7z-compressed":"Archives"},"captions":true,"nonce":{"sendToEditor":"078fccea44"},"post":{"id":7734,"nonce":"b81d45d05c","featuredImageId":-1},"defaultProps":{"link":"","align":"","size":""},"attachmentCounts":{"audio":1,"video":1},"oEmbedProxyUrl":"http:\/\/build.wordpress-develop.test\/wp-json\/oembed\/1.0\/proxy","embedExts":["mp3","ogg","flac","m4a","wav","mp4","m4v","webm","ogv","flv"],"embedMimes":{"mp3":"audio\/mpeg","ogg":"audio\/ogg","flac":"audio\/flac","m4a":"audio\/mpeg","wav":"audio\/wav","mp4":"video\/mp4","m4v":"video\/mp4","webm":"video\/webm","ogv":"video\/ogg","flv":"video\/x-flv"},"contentWidth":580,"months":[{"year":"2019","month":"10","text":"October 2019"},{"year":"2019","month":"9","text":"September 2019"},{"year":"2019","month":"7","text":"July 2019"},{"year":"2019","month":"6","text":"June 2019"},{"year":"2014","month":"1","text":"January 2014"},{"year":"2013","month":"12","text":"December 2013"},{"year":"2013","month":"9","text":"September 2013"},{"year":"2013","month":"4","text":"April 2013"},{"year":"2013","month":"3","text":"March 2013"},{"year":"2012","month":"7","text":"July 2012"},{"year":"2012","month":"6","text":"June 2012"},{"year":"2011","month":"7","text":"July 2011"},{"year":"2011","month":"1","text":"January 2011"}],"mediaTrash":0}};
+		</script>
+		<script src="../../build/wp-includes/js/media-views.js"></script>
+		<script src="../../build/wp-includes/js/media-editor.js"></script>
+		<script src="../../build/wp-includes/js/media-audiovideo.js"></script>
+		<script src="../../build/wp-includes/js/mce-view.js"></script>
+
+		<!-- QUnit -->
+		<link rel="stylesheet" href="../../node_modules/qunit/qunit/qunit.css" type="text/css" media="screen" />
+		<script src="../../node_modules/qunit/qunit/qunit.js"></script>
+		<script src="../../node_modules/sinon/pkg/sinon.js"></script>
+		<script src="../../node_modules/sinon-test/dist/sinon-test.js"></script>
+		<script>
+			var qTest = QUnit.test, sTest = sinonTest( sinon );
+
+			QUnit.config.hidepassed = false;
+
+			QUnit.test = function( testName, callback ) {
+				return qTest( testName, sTest(callback) );
+			};
+		</script>
+	</head>
+	<body>
+		<div id="qunit"></div>
+		<div id="qunit-fixture">
+			<script src="fixtures/customize-header.js"></script>
+			<script src="fixtures/customize-settings.js"></script>
+			<script src="fixtures/customize-menus.js"></script>
+			<script src="fixtures/customize-widgets.js"></script>
+			<script src="fixtures/wp-api-generated.js"></script>
+			<script src="fixtures/js-widgets-endpoint.js"></script>
+			<script src="fixtures/wp-api.js"></script>
+			<script src="fixtures/common.js"></script>
+		</div>
+
+		<!-- Tested files -->
+		<script src="../../build/wp-admin/js/dashboard.js"></script>
+		<script src="../../build/wp-admin/js/password-strength-meter.js"></script>
+		<script src="../../build/wp-admin/js/postbox.js"></script>
+		<script src="../../build/wp-includes/js/dist/vendor/moment.js"></script>
+		<script src="../../build/wp-includes/js/dist/date.js"></script>
+		<script src="../../build/wp-includes/js/dist/i18n.js"></script>
+		<script src="../../build/wp-includes/js/customize-base.js"></script>
+		<script src="../../build/wp-includes/js/customize-models.js"></script>
+		<script src="../../build/wp-includes/js/shortcode.js"></script>
+		<script src="../../build/wp-includes/js/wp-sanitize.js"></script>
+		<script src="../../build/wp-admin/js/customize-controls.js"></script>
+		<script src="../../build/wp-includes/js/api-request.js"></script>
+		<script src="../../build/wp-includes/js/wp-api.js"></script>
+
+		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/core.min.js'></script>
+		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/mouse.min.js'></script>
+		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/sortable.min.js'></script>
+		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/draggable.min.js'></script>
+		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/droppable.min.js'></script>
+
+		<script src="../../build/wp-admin/js/nav-menu.js"></script>
+		<script src="../../build/wp-admin/js/customize-nav-menus.js"></script>
+		<script src="../../build/wp-admin/js/customize-widgets.js"></script>
+		<script src="../../build/wp-admin/js/word-count.js"></script>
+
+		<script src="../../build/wp-admin/js/widgets/media-widgets.js"></script>
+		<script>
+			wp.mediaWidgets.init();
+		</script>
+		<script src="../../build/wp-admin/js/widgets/media-image-widget.js"></script>
+		<script>
+			wp.mediaWidgets.modelConstructors[ "media_image" ].prototype.schema = {"attachment_id":{"type":"integer","default":0,"minimum":0,"media_prop":"id"},"url":{"type":"string","default":"","format":"uri"},"title":{"type":"string","default":"","should_preview_update":false},"size":{"type":"string","default":"medium","enum":["thumbnail","medium","medium_large","large","twentyseventeen-featured-image","twentyseventeen-thumbnail-avatar","full","custom"]},"width":{"type":"integer","default":0,"minimum":0},"height":{"type":"integer","default":0,"minimum":0},"caption":{"type":"string","default":"","should_preview_update":false},"alt":{"type":"string","default":""},"link_type":{"type":"string","default":"none","enum":["none","file","post","custom"],"media_prop":"link","should_preview_update":false},"link_url":{"type":"string","default":"","format":"uri","media_prop":"linkUrl","should_preview_update":false},"image_classes":{"type":"string","default":"","media_prop":"extraClasses","should_preview_update":false},"link_classes":{"type":"string","default":"","media_prop":"linkClassName","should_preview_update":false},"link_rel":{"type":"string","default":"","media_prop":"linkRel","should_preview_update":false},"link_target_blank":{"type":"boolean","default":false,"media_prop":"linkTargetBlank","should_preview_update":false},"image_title":{"type":"string","default":"","media_prop":"title","should_preview_update":false}};
+
+			wp.mediaWidgets.controlConstructors[ "media_image" ].prototype.mime_type = "image";
+			_.extend( wp.mediaWidgets.controlConstructors[ "media_image" ].prototype.l10n, {"no_media_selected":"No image selected","select_media":"Select Image","change_media":"Change Image","edit_media":"Edit Image","add_to_widget":"Add to Widget","missing_attachment":"That image cannot be found. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it was not deleted.","media_library_state_multi":{"0":"Image Widget (%d)","1":"Image Widget (%d)","singular":"Image Widget (%d)","plural":"Image Widget (%d)","context":null,"domain":null},"media_library_state_single":"Image Widget"} );
+		</script>
+		<script src="../../build/wp-admin/js/widgets/media-video-widget.js"></script>
+		<script>
+			wp.mediaWidgets.modelConstructors[ "media_video" ].prototype.schema = {"attachment_id":{"type":"integer","default":0,"minimum":0,"media_prop":"id"},"url":{"type":"string","default":"","format":"uri"},"title":{"type":"string","default":""},"preload":{"type":"string","default":"metadata","enum":["none","auto","metadata"]},"loop":{"type":"boolean","default":false},"content":{"type":"string","default":""},"mp4":{"type":"string","default":"","format":"uri"},"m4v":{"type":"string","default":"","format":"uri"},"webm":{"type":"string","default":"","format":"uri"},"ogv":{"type":"string","default":"","format":"uri"},"wmv":{"type":"string","default":"","format":"uri"},"flv":{"type":"string","default":"","format":"uri"}};
+
+			wp.mediaWidgets.controlConstructors[ "media_video" ].prototype.mime_type = "video";
+			_.extend( wp.mediaWidgets.controlConstructors[ "media_video" ].prototype.l10n, {"no_media_selected":"No video selected","select_media":"Select Video","change_media":"Change Video","edit_media":"Edit Video","add_to_widget":"Add to Widget","missing_attachment":"That video cannot be found. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it was not deleted.","media_library_state_multi":{"0":"Video Widget (%d)","1":"Video Widget (%d)","singular":"Video Widget (%d)","plural":"Video Widget (%d)","context":null,"domain":null},"media_library_state_single":"Video Widget"} );
+		</script>
+		<script src="../../build/wp-admin/js/widgets/media-audio-widget.js"></script>
+		<script>
+			wp.mediaWidgets.modelConstructors[ "media_audio" ].prototype.schema = {"attachment_id":{"type":"integer","default":0,"minimum":0,"media_prop":"id"},"url":{"type":"string","default":"","format":"uri"},"title":{"type":"string","default":""},"preload":{"type":"string","default":"none","enum":["none","auto","metadata"]},"loop":{"type":"boolean","default":false},"mp3":{"type":"string","default":"","format":"uri"},"ogg":{"type":"string","default":"","format":"uri"},"wma":{"type":"string","default":"","format":"uri"},"m4a":{"type":"string","default":"","format":"uri"},"wav":{"type":"string","default":"","format":"uri"}};
+
+			wp.mediaWidgets.controlConstructors[ "media_audio" ].prototype.mime_type = "audio";
+			_.extend( wp.mediaWidgets.controlConstructors[ "media_audio" ].prototype.l10n, {"no_media_selected":"No audio selected","select_media":"Select File","change_media":"Change Audio","edit_media":"Edit Audio","add_to_widget":"Add to Widget","missing_attachment":"That audio file cannot be found. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it was not deleted.","media_library_state_multi":{"0":"Audio Widget (%d)","1":"Audio Widget (%d)","singular":"Audio Widget (%d)","plural":"Audio Widget (%d)","context":null,"domain":null},"media_library_state_single":"Audio Widget"} );
+		</script>
+		<script type='text/javascript' src='../../build/wp-admin/js/widgets/media-gallery-widget.js'></script>
+		<script type='text/javascript'>
+			wp.mediaWidgets.modelConstructors[ "media_gallery" ].prototype.schema = {"title":{"type":"string","default":"","should_preview_update":false},"ids":{"type":"string","default":""},"columns":{"type":"integer","default":3},"size":{"type":"string","default":"thumbnail","enum":["thumbnail","medium","medium_large","large","post-thumbnail","full","custom"]},"link_type":{"type":"string","default":"none","enum":["none","file","post"],"media_prop":"link","should_preview_update":false},"orderby_random":{"type":"boolean","default":false,"media_prop":"_orderbyRandom","should_preview_update":false},"attachments":{"type":"string","default":""}};
+			wp.mediaWidgets.controlConstructors[ "media_gallery" ].prototype.mime_type = "image";
+
+			_.extend( wp.mediaWidgets.controlConstructors[ "media_gallery" ].prototype.l10n, {"no_media_selected":"No images selected","add_media":"Add Media","replace_media":"Replace Media","edit_media":"Edit Gallery","add_to_widget":"Add to Widget","missing_attachment":"We cannot find that gallery. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it was not deleted.","media_library_state_multi":"","media_library_state_single":"","unsupported_file_type":"Looks like this is not the correct kind of file. Please link to an appropriate file instead.","select_media":"Select Images","change_media":"Add Image"} );
+		</script>
+
+		<!-- Unit tests -->
+		<script src="wp-admin/js/password-strength-meter.js"></script>
+		<script src="wp-admin/js/customize-base.js"></script>
+		<script src="wp-admin/js/customize-header.js"></script>
+		<script src="wp-admin/js/dashboard.js"></script>
+		<script src="wp-includes/js/shortcode.js"></script>
+		<script src="wp-includes/js/api-request.js"></script>
+		<script src="wp-includes/js/jquery.js"></script>
+		<script src="wp-includes/js/wp-api.js"></script>
+		<script src="wp-admin/js/customize-controls.js"></script>
+		<script src="wp-admin/js/customize-controls-utils.js"></script>
+		<script src="wp-admin/js/customize-nav-menus.js"></script>
+		<script src="wp-admin/js/customize-widgets.js"></script>
+		<script src="wp-admin/js/word-count.js"></script>
+		<script src="wp-admin/js/nav-menu.js"></script>
+		<script src="wp-admin/js/widgets/test-media-widgets.js"></script>
+		<script src="wp-admin/js/widgets/test-media-image-widget.js"></script>
+		<script src="wp-admin/js/widgets/test-media-gallery-widget.js"></script>
+		<script src="wp-admin/js/widgets/test-media-video-widget.js"></script>
+
+		<!-- Customizer templates for sections -->
+		<script type="text/html" id="tmpl-customize-section-default">
+			<li id="accordion-section-{{ data.id }}" class="accordion-section control-section control-section-{{ data.type }}">
+				<h3 class="accordion-section-title" tabindex="0">
+					{{ data.title }}
+					<span class="screen-reader-text">Press return or enter to expand</span>
+				</h3>
+				<ul class="accordion-section-content">
+					<# if ( data.description ) { #>
+						<li class="customize-section-description-container">
+							<p class="description customize-section-description">{{{ data.description }}}</p>
+						</li>
+					<# } #>
+				</ul>
+			</li>
+		</script>
+		<script type="text/html" id="tmpl-customize-section-titleless">
+			<li id="accordion-section-{{ data.id }}" class="accordion-section control-section control-section-{{ data.type }}">
+				<!-- Notice the lack of an h3 with title displayed inside. -->
+				<ul class="accordion-section-content">
+					<# if ( data.description ) { #>
+						<li class="customize-section-description-container">
+							<p class="description customize-section-description">{{{ data.description }}}</p>
+						</li>
+					<# } #>
+				</ul>
+			</li>
+		</script>
+
+		<!-- Customizer templates for panels -->
+		<script type="text/html" id="tmpl-customize-panel-default">
+			<li id="accordion-panel-{{ data.id }}" class="accordion-section control-section control-panel control-panel-{{ data.type }}">
+				<h3 class="accordion-section-title" tabindex="0">
+					{{ data.title }}
+					<span class="screen-reader-text">Press return or enter to open this panel</span>
+				</h3>
+				<ul class="accordion-sub-container control-panel-content"></ul>
+			</li>
+		</script>
+		<script type="text/html" id="tmpl-customize-panel-default-content">
+			<li class="panel-meta accordion-section control-section<# if ( ! data.description ) { #> cannot-expand<# } #>">
+				<div class="accordion-section-title" tabindex="0">
+					<span class="preview-notice">You are customizing <strong class="panel-title">{{ data.title }}</strong></span>
+				</div>
+				<# if ( data.description ) { #>
+					<div class="accordion-section-content description">
+						{{{ data.description }}}
+					</div>
+				<# } #>
+			</li>
+		</script>
+		<script type="text/html" id="tmpl-customize-panel-titleless">
+			<li id="accordion-panel-{{ data.id }}" class="accordion-section control-section control-panel control-panel-{{ data.type }}">
+				<!-- Notice the lack of an h3 with title displayed inside. -->
+				<ul class="accordion-sub-container control-panel-content"></ul>
+			</li>
+		</script>
+		<script type="text/html" id="tmpl-customize-panel-titleless-content">
+			<li class="panel-meta accordion-section control-section<# if ( ! data.description ) { #> cannot-expand<# } #>">
+				<!-- Notice lack of title containing preview notice -->
+				<# if ( data.description ) { #>
+					<div class="accordion-section-content description">
+						{{{ data.description }}}
+					</div>
+				<# } #>
+			</li>
+		</script>
+		<script type="text/html" id="tmpl-customize-control-notifications">
+			<ul>
+				<# _.each( data.notifications, function( notification ) { #>
+					<li data-code="{{ notification.code }}" data-type="{{ notification.type }}">{{ notification.message || notification.code }}</li>
+				<# } ); #>
+			</ul>
+		</script>
+		<script type="text/html" id="tmpl-customize-notification">
+			<li class="notice notice-{{ data.type || 'info' }} {{ data.altNotice ? 'notice-alt' : '' }} {{ data.dismissible ? 'is-dismissible' : '' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
+				{{{ data.message || data.code }}}
+				<# if ( data.dismissible ) { #>
+					<button type="button" class="notice-dismiss"><span class="screen-reader-text"><?php _e( 'Dismiss' ); ?></span></button>
+				<# } #>
+			</li>
+		</script>
+
+		<!-- Templates for Customizer Menus -->
+		<script type="text/html" id="tmpl-customize-control-nav_menu-content">
+					<button type="button" class="button add-new-menu-item" aria-label="Add or remove menu items" aria-expanded="false" aria-controls="available-menu-items">
+			Add Items		</button>
+		<button type="button" class="not-a-button reorder-toggle" aria-label="Reorder menu items" aria-describedby="reorder-items-desc-{{ data.menu_id }}">
+			<span class="reorder">Reorder</span>
+			<span class="reorder-done">Done</span>
+		</button>
+		<p class="screen-reader-text" id="reorder-items-desc-{{ data.menu_id }}">When in reorder mode, additional controls to reorder menu items will be available in the items list above.</p>
+		<span class="add-menu-item-loading spinner"></span>
+		<span class="menu-delete-item">
+			<button type="button" class="not-a-button menu-delete">
+				Delete menu <span class="screen-reader-text">{{ data.menu_name }}</span>
+			</button>
+		</span>
+				<ul class="menu-settings">
+			<li class="customize-control">
+				<span class="customize-control-title">Menu locations</span>
+			</li>
+
+						<li class="customize-control customize-control-checkbox assigned-menu-location">
+				<label>
+					<input type="checkbox" data-menu-id="{{ data.menu_id }}" data-location-id="primary" class="menu-location" /> Primary Menu					<span class="theme-location-set">(Current: <span class="current-menu-location-name-primary"></span>)</span>
+				</label>
+			</li>
+						<li class="customize-control customize-control-checkbox assigned-menu-location">
+				<label>
+					<input type="checkbox" data-menu-id="{{ data.menu_id }}" data-location-id="social" class="menu-location" /> Social Links Menu					<span class="theme-location-set">(Current: <span class="current-menu-location-name-social"></span>)</span>
+				</label>
+			</li>
+
+		</ul>
+				</script>
+				<script type="text/html" id="tmpl-customize-control-nav_menu_name-content">
+					<label>
+			<# if ( data.label ) { #>
+				<span class="customize-control-title screen-reader-text">{{ data.label }}</span>
+			<# } #>
+			<input type="text" class="menu-name-field live-update-section-title" />
+		</label>
+				</script>
+				<script type="text/html" id="tmpl-customize-control-nav_menu_auto_add-content">
+					<span class="customize-control-title">Menu options</span>
+		<label>
+			<input type="checkbox" class="auto_add" />
+			Automatically add new top-level pages to this menu		</label>
+				</script>
+				<script type="text/html" id="tmpl-customize-control-nav_menu_item-content">
+					<div class="menu-item-bar">
+			<div class="menu-item-handle">
+				<span class="item-type" aria-hidden="true">{{ data.item_type_label }}</span>
+				<span class="item-title" aria-hidden="true">
+					<span class="spinner"></span>
+					<span class="menu-item-title<# if ( ! data.title ) { #> no-title<# } #>">{{ data.title || wp.customize.Menus.data.l10n.untitled }}</span>
+				</span>
+				<span class="item-controls">
+					<button type="button" class="not-a-button item-edit" aria-expanded="false"><span class="screen-reader-text">Edit menu item: {{ data.title || wp.customize.Menus.data.l10n.untitled }} ({{ data.item_type_label }})</span><span class="toggle-indicator" aria-hidden="true"></span></button>
+					<button type="button" class="not-a-button item-delete submitdelete deletion"><span class="screen-reader-text">Remove Menu Item: {{ data.title || wp.customize.Menus.data.l10n.untitled }} ({{ data.item_type_label }})</span></button>
+				</span>
+			</div>
+		</div>
+
+		<div class="menu-item-settings" id="menu-item-settings-{{ data.menu_item_id }}">
+			<# if ( 'custom' === data.item_type ) { #>
+			<p class="field-url description description-thin">
+				<label for="edit-menu-item-url-{{ data.menu_item_id }}">
+					URL<br />
+					<input class="widefat code edit-menu-item-url" type="text" id="edit-menu-item-url-{{ data.menu_item_id }}" name="menu-item-url" />
+				</label>
+			</p>
+		<# } #>
+			<p class="description description-thin">
+				<label for="edit-menu-item-title-{{ data.menu_item_id }}">
+					Navigation Label<br />
+					<input type="text" id="edit-menu-item-title-{{ data.menu_item_id }}" class="widefat edit-menu-item-title" name="menu-item-title" />
+				</label>
+			</p>
+			<p class="field-link-target description description-thin">
+				<label for="edit-menu-item-target-{{ data.menu_item_id }}">
+					<input type="checkbox" id="edit-menu-item-target-{{ data.menu_item_id }}" class="edit-menu-item-target" value="_blank" name="menu-item-target" />
+					Open link in a new tab				</label>
+			</p>
+			<p class="field-attr-title description description-thin">
+				<label for="edit-menu-item-attr-title-{{ data.menu_item_id }}">
+					Title Attribute<br />
+					<input type="text" id="edit-menu-item-attr-title-{{ data.menu_item_id }}" class="widefat edit-menu-item-attr-title" name="menu-item-attr-title" />
+				</label>
+			</p>
+			<p class="field-css-classes description description-thin">
+				<label for="edit-menu-item-classes-{{ data.menu_item_id }}">
+					CSS Classes<br />
+					<input type="text" id="edit-menu-item-classes-{{ data.menu_item_id }}" class="widefat code edit-menu-item-classes" name="menu-item-classes" />
+				</label>
+			</p>
+			<p class="field-xfn description description-thin">
+				<label for="edit-menu-item-xfn-{{ data.menu_item_id }}">
+					Link Relationship (XFN)<br />
+					<input type="text" id="edit-menu-item-xfn-{{ data.menu_item_id }}" class="widefat code edit-menu-item-xfn" name="menu-item-xfn" />
+				</label>
+			</p>
+			<p class="field-description description description-thin">
+				<label for="edit-menu-item-description-{{ data.menu_item_id }}">
+					Description<br />
+					<textarea id="edit-menu-item-description-{{ data.menu_item_id }}" class="widefat edit-menu-item-description" rows="3" cols="20" name="menu-item-description">{{ data.description }}</textarea>
+					<span class="description">The description will be displayed in the menu if the current theme supports it.</span>
+				</label>
+			</p>
+
+			<div class="menu-item-actions description-thin submitbox">
+				<# if ( ( 'post_type' === data.item_type || 'taxonomy' === data.item_type ) && '' !== data.original_title ) { #>
+				<p class="link-to-original">
+					Original: <a class="original-link" href="{{ data.url }}">{{ data.original_title }}</a>				</p>
+				<# } #>
+
+				<button type="button" class="not-a-button item-delete submitdelete deletion">Remove</button>
+				<span class="spinner"></span>
+			</div>
+			<input type="hidden" name="menu-item-db-id[{{ data.menu_item_id }}]" class="menu-item-data-db-id" value="{{ data.menu_item_id }}" />
+			<input type="hidden" name="menu-item-parent-id[{{ data.menu_item_id }}]" class="menu-item-data-parent-id" value="{{ data.parent }}" />
+		</div><!-- .menu-item-settings-->
+		<ul class="menu-item-transport"></ul>
+		</script>
+
+				<script type="text/html" id="tmpl-available-menu-item">
+			<li id="menu-item-tpl-{{ data.id }}" class="menu-item-tpl" data-menu-item-id="{{ data.id }}">
+				<div class="menu-item-bar">
+					<div class="menu-item-handle">
+						<span class="item-type" aria-hidden="true">{{ data.type_label }}</span>
+						<span class="item-title" aria-hidden="true">
+							<span class="menu-item-title<# if ( ! data.title ) { #> no-title<# } #>">{{ data.title || wp.customize.Menus.data.l10n.untitled }}</span>
+						</span>
+						<button type="button" class="not-a-button item-add">
+							<span class="screen-reader-text">Add to menu: {{ data.title || wp.customize.Menus.data.l10n.untitled }} ({{ data.type_label }})</span>
+						</button>
+					</div>
+				</div>
+			</li>
+		</script>
+
+		<script type="text/html" id="tmpl-menu-item-reorder-nav">
+			<div class="menu-item-reorder-nav">
+				<button type="button" class="menus-move-up">Move up</button><button type="button" class="menus-move-down">Move down</button><button type="button" class="menus-move-left">Move one level up</button><button type="button" class="menus-move-right">Move one level down</button>			</div>
+		</script>
+
+		<script type="text/html" id="tmpl-nav-menu-locations-header">
+			<span class="customize-control-title customize-section-title-menu_locations-heading"><?php _e( 'Menu Locations' ); ?></span>
+			<p class="customize-control-description customize-section-title-menu_locations-description">Something</p>
+		</script>
+
+		<script type="text/html" id="tmpl-nav-menu-create-menu-section-title">
+			<h3>
+				<button type="button" class="button customize-add-menu-button">
+					<?php _e( 'Create New Menu' ); ?>
+				</button>
+			</h3>
+		</script>
+
+		<script type="text/html" id="tmpl-customize-section-sidebar">
+			<li id="accordion-section-{{ data.id }}" class="accordion-section control-section control-section-{{ data.type }}">
+			<h3 class="accordion-section-title" tabindex="0">
+				{{ data.title }}
+				<span class="screen-reader-text">Press return or enter to open</span>
+			</h3>
+			<ul class="accordion-section-content">
+				<li class="customize-section-description-container">
+					<div class="customize-section-title">
+						<button class="customize-section-back" tabindex="-1">
+							<span class="screen-reader-text">Back</span>
+						</button>
+						<h3>
+							<span class="customize-action">
+								{{{ data.customizeAction }}}
+							</span>
+							{{ data.title }}
+						</h3>
+					</div>
+					<# if ( data.description ) { #>
+						<div class="description customize-section-description">
+							{{{ data.description }}}
+						</div>
+					<# } #>
+				</li>
+			</ul>
+			</li>
+		</script>
+
+		<div hidden>
+			<div id="customize-preview"></div>
+			<div id="customize-notifications-test"><ul></ul></div>
+		</div>
+
+		<div hidden>
+			<div id="available-menu-items" class="accordion-container">
+			<div class="customize-section-title">
+				<button type="button" class="customize-section-back" tabindex="-1">
+					<span class="screen-reader-text">Back</span>
+				</button>
+				<h3>
+					<span class="customize-action">
+						Customizing &#9656; Menus					</span>
+					Add Menu Items				</h3>
+			</div>
+			<div id="available-menu-items-search" class="accordion-section cannot-expand">
+				<div class="accordion-section-title">
+					<label class="screen-reader-text" for="menu-items-search">Search Menu Items</label>
+					<input type="text" id="menu-items-search" placeholder="Search menu items&hellip;" aria-describedby="menu-items-search-desc" />
+					<p class="screen-reader-text" id="menu-items-search-desc">The search results will be updated as you type.</p>
+					<span class="spinner"></span>
+					<span class="clear-results"><span class="screen-reader-text">Clear Results</span></span>
+				</div>
+				<ul class="accordion-section-content" data-type="search"></ul>
+			</div>
+			<div id="new-custom-menu-item" class="accordion-section">
+				<h4 class="accordion-section-title" role="presentation">
+					Custom Links					<button type="button" class="not-a-button" aria-expanded="false">
+						<span class="screen-reader-text">Toggle section: Custom Links</span>
+						<span class="toggle-indicator" aria-hidden="true"></span>
+					</button>
+				</h4>
+				<div class="accordion-section-content">
+					<input type="hidden" value="custom" id="custom-menu-item-type" name="menu-item[-1][menu-item-type]" />
+					<p id="menu-item-url-wrap">
+						<label class="howto" for="custom-menu-item-url">
+							<span>URL</span>
+							<input id="custom-menu-item-url" name="menu-item[-1][menu-item-url]" type="text" class="code menu-item-textbox" value="http://">
+						</label>
+					</p>
+					<p id="menu-item-name-wrap">
+						<label class="howto" for="custom-menu-item-name">
+							<span>Link Text</span>
+							<input id="custom-menu-item-name" name="menu-item[-1][menu-item-title]" type="text" class="regular-text menu-item-textbox">
+						</label>
+					</p>
+					<p class="button-controls">
+						<span class="add-to-menu">
+							<input type="submit" class="button submit-add-to-menu right" value="Add to Menu" name="add-custom-menu-item" id="custom-menu-item-submit">
+							<span class="spinner"></span>
+						</span>
+					</p>
+				</div>
+			</div>
+			<div id="available-menu-items-post_type-post" class="accordion-section">
+					<h4 class="accordion-section-title" role="presentation">
+						Post						<span class="spinner"></span>
+						<span class="no-items">No items</span>
+						<button type="button" class="not-a-button" aria-expanded="false">
+							<span class="screen-reader-text">Toggle section: Post</span>
+							<span class="toggle-indicator" aria-hidden="true"></span>
+						</button>
+					</h4>
+					<ul class="accordion-section-content" data-type="post_type" data-object="post"></ul>
+				</div>
+								<div id="available-menu-items-post_type-page" class="accordion-section">
+					<h4 class="accordion-section-title" role="presentation">
+						Page						<span class="spinner"></span>
+						<span class="no-items">No items</span>
+						<button type="button" class="not-a-button" aria-expanded="false">
+							<span class="screen-reader-text">Toggle section: Page</span>
+							<span class="toggle-indicator" aria-hidden="true"></span>
+						</button>
+					</h4>
+					<ul class="accordion-section-content" data-type="post_type" data-object="page"></ul>
+				</div>
+								<div id="available-menu-items-taxonomy-category" class="accordion-section">
+					<h4 class="accordion-section-title" role="presentation">
+						Category						<span class="spinner"></span>
+						<span class="no-items">No items</span>
+						<button type="button" class="not-a-button" aria-expanded="false">
+							<span class="screen-reader-text">Toggle section: Category</span>
+							<span class="toggle-indicator" aria-hidden="true"></span>
+						</button>
+					</h4>
+					<ul class="accordion-section-content" data-type="taxonomy" data-object="category"></ul>
+				</div>
+								<div id="available-menu-items-taxonomy-post_tag" class="accordion-section">
+					<h4 class="accordion-section-title" role="presentation">
+						Tag						<span class="spinner"></span>
+						<span class="no-items">No items</span>
+						<button type="button" class="not-a-button" aria-expanded="false">
+							<span class="screen-reader-text">Toggle section: Tag</span>
+							<span class="toggle-indicator" aria-hidden="true"></span>
+						</button>
+					</h4>
+					<ul class="accordion-section-content" data-type="taxonomy" data-object="post_tag"></ul>
+				</div>
+								<div id="available-menu-items-taxonomy-post_format" class="accordion-section">
+					<h4 class="accordion-section-title" role="presentation">
+						Format						<span class="spinner"></span>
+						<span class="no-items">No items</span>
+						<button type="button" class="not-a-button" aria-expanded="false">
+							<span class="screen-reader-text">Toggle section: Format</span>
+							<span class="toggle-indicator" aria-hidden="true"></span>
+						</button>
+					</h4>
+					<ul class="accordion-section-content" data-type="taxonomy" data-object="post_format"></ul>
+				</div>
+						</div><!-- #available-menu-items -->
+			</div><!-- end nav menu templates -->
+
+		<div hidden>
+			<div id="widgets-left"><!-- compatibility with JS which looks for widget templates here -->
+				<div id="available-widgets">
+					<div class="customize-section-title">
+						<button class="customize-section-back" tabindex="-1">
+							<span class="screen-reader-text">Back</span>
+						</button>
+						<h3>
+							<span class="customize-action">Customizing &#9656; Widgets</span>
+							Add a Widget				</h3>
+					</div>
+					<div id="available-widgets-filter">
+						<label class="screen-reader-text" for="widgets-search">Search Widgets</label>
+						<input type="search" id="widgets-search" placeholder="Search widgets&hellip;" />
+					</div>
+					<div id="available-widgets-list">
+									<div id="widget-tpl-search-2" data-widget-id="search-2" class="widget-tpl search-2" tabindex="0">
+							<div id='widget-11_search-__i__' class='widget'>	<div class="widget-top">
+			<div class="widget-title-action">
+				<a class="widget-action hide-if-no-js" href="#available-widgets"></a>
+				<a class="widget-control-edit hide-if-js" href="/wp-admin/customize.php?editwidget=search-2&#038;addnew=1&#038;num=3&#038;base=search">
+					<span class="edit">Edit</span>
+					<span class="add">Add</span>
+					<span class="screen-reader-text">Search</span>
+				</a>
+			</div>
+			<div class="widget-title"><h4>Search<span class="in-widget-title"></span></h4></div>
+			</div>
+
+			<div class="widget-inside">
+			<div class="form">
+			<div class="widget-content">
+				<p><label for="widget-search-__i__-title">Title: <input class="widefat" id="widget-search-__i__-title" name="widget-search[__i__][title]" type="text" value="" /></label></p>
+			</div>
+			<input type="hidden" name="widget-id" class="widget-id" value="search-__i__" />
+			<input type="hidden" name="id_base" class="id_base" value="search" />
+			<input type="hidden" name="widget-width" class="widget-width" value="250" />
+			<input type="hidden" name="widget-height" class="widget-height" value="200" />
+			<input type="hidden" name="widget_number" class="widget_number" value="2" />
+			<input type="hidden" name="multi_number" class="multi_number" value="3" />
+			<input type="hidden" name="add_new" class="add_new" value="multi" />
+
+			<div class="widget-control-actions">
+				<div class="alignleft">
+				<a class="widget-control-remove" href="#remove">Delete</a> |
+				<a class="widget-control-close" href="#close">Close</a>
+				</div>
+				<div class="alignright">
+					<input type="submit" name="savewidget" id="widget-search-__i__-savewidget" class="button button-primary widget-control-save right" value="Save"  />			<span class="spinner"></span>
+				</div>
+				<br class="clear" />
+			</div>
+			</div><!-- .form -->
+			</div>
+
+			<div class="widget-description">
+		A search form for your site.
+			</div>
+		</div>				</div>
+					</div><!-- #available-widgets-list -->
+				</div><!-- #available-widgets -->
+			</div><!-- #widgets-left -->
+
+		<script type="text/html" id="tmpl-widget-media-media_image-control">
+			<# var elementIdPrefix = 'el' + String( Math.random() ) + '_' #>
+			<p>
+				<label for="{{ elementIdPrefix }}title">Title:</label>
+				<input id="{{ elementIdPrefix }}title" type="text" class="widefat title">
+			</p>
+			<div class="media-widget-preview media_image">
+				<div class="attachment-media-view">
+					<button type="button" class="select-media button-add-media not-selected">
+						Add Image					</button>
+				</div>
+			</div>
+			<p class="media-widget-buttons">
+				<button type="button" class="button edit-media selected">
+					Edit Image				</button>
+							<button type="button" class="button change-media select-media selected">
+					Replace Image				</button>
+						</p>
+			<div class="media-widget-fields">
+			</div>
+		</script>
+
+		<script type="text/html" id="tmpl-wp-media-widget-image-preview">
+			<# if ( data.error && 'missing_attachment' === data.error ) { #>
+				<div class="notice notice-error notice-alt notice-missing-attachment">
+					<p>That image cannot be found. Check your <a href="http://src.wordpress-develop.test/wp-admin/upload.php">media library</a> and make sure it was not deleted.</p>
+				</div>
+			<# } else if ( data.error ) { #>
+				<div class="notice notice-error notice-alt">
+					<p>Unable to preview media due to an unknown error.</p>
+				</div>
+			<# } else if ( data.url ) { #>
+				<img class="attachment-thumb" src="{{ data.url }}" draggable="false" alt="{{ data.alt }}"
+					<# if ( ! data.alt && data.currentFilename ) { #>
+						aria-label="
+						The current image has no alternative text. The file name is: {{ data.currentFilename }}						"
+					<# } #>
+				/>
+			<# } #>
+		</script>
+
+		<script type="text/html" id="tmpl-widget-media-media_video-control">
+			<# var elementIdPrefix = 'el' + String( Math.random() ) + '_' #>
+			<p>
+				<label for="{{ elementIdPrefix }}title">Title:</label>
+				<input id="{{ elementIdPrefix }}title" type="text" class="widefat title">
+			</p>
+			<div class="media-widget-preview media_video">
+				<div class="attachment-media-view">
+					<button type="button" class="select-media button-add-media not-selected">
+						Add Video					</button>
+				</div>
+			</div>
+			<p class="media-widget-buttons">
+				<button type="button" class="button edit-media selected">
+					Edit Video				</button>
+							<button type="button" class="button change-media select-media selected">
+					Replace Video				</button>
+						</p>
+			<div class="media-widget-fields">
+			</div>
+		</script>
+
+		<script type="text/html" id="tmpl-wp-media-widget-video-preview">
+			<# if ( data.error && 'missing_attachment' === data.error ) { #>
+				<div class="notice notice-error notice-alt notice-missing-attachment">
+					<p>That video cannot be found. Check your <a href="http://src.wordpress-develop.test/wp-admin/upload.php">media library</a> and make sure it was not deleted.</p>
+				</div>
+			<# } else if ( data.error && 'unsupported_file_type' === data.error ) { #>
+				<div class="notice notice-error notice-alt notice-missing-attachment">
+					<p>Sorry, the video at the supplied URL cannot be loaded. Please check that the URL is for a supported video file (<code>.mp4</code>, <code>.m4v</code>, <code>.webm</code>, <code>.ogv</code>, <code>.flv</code>) or stream (e.g. YouTube and Vimeo).</p>
+				</div>
+			<# } else if ( data.error ) { #>
+				<div class="notice notice-error notice-alt">
+					<p>Unable to preview media due to an unknown error.</p>
+				</div>
+			<# } else if ( data.is_oembed && data.model.poster ) { #>
+				<a href="{{ data.model.src }}" target="_blank" class="media-widget-video-link">
+					<img src="{{ data.model.poster }}" />
+				</a>
+			<# } else if ( data.is_oembed ) { #>
+				<a href="{{ data.model.src }}" target="_blank" class="media-widget-video-link no-poster">
+					<span class="dashicons dashicons-format-video"></span>
+				</a>
+			<# } else if ( data.model.src ) { #>
+				<#  var w_rule = '', classes = [],
+		w, h, settings = wp.media.view.settings,
+		isYouTube = isVimeo = false;
+
+	if ( ! _.isEmpty( data.model.src ) ) {
+		isYouTube = data.model.src.match(/youtube|youtu\.be/);
+		isVimeo = -1 !== data.model.src.indexOf('vimeo');
+	}
+
+	if ( settings.contentWidth && data.model.width >= settings.contentWidth ) {
+		w = settings.contentWidth;
+	} else {
+		w = data.model.width;
+	}
+
+	if ( w !== data.model.width ) {
+		h = Math.ceil( ( data.model.height * w ) / data.model.width );
+	} else {
+		h = data.model.height;
+	}
+
+	if ( w ) {
+		w_rule = 'width: ' + w + 'px; ';
+	}
+
+	if ( isYouTube ) {
+		classes.push( 'youtube-video' );
+	}
+
+	if ( isVimeo ) {
+		classes.push( 'vimeo-video' );
+	}
+
+#>
+<div style="{{ w_rule }}" class="wp-video">
+<video controls
+	class="wp-video-shortcode {{ classes.join( ' ' ) }}"
+	<# if ( w ) { #>width="{{ w }}"<# } #>
+	<# if ( h ) { #>height="{{ h }}"<# } #>
+			<#
+		if ( ! _.isUndefined( data.model.poster ) && data.model.poster ) {
+			#> poster="{{ data.model.poster }}"<#
+		} #>
+			preload			="{{ _.isUndefined( data.model.preload ) ? 'metadata' : data.model.preload }}"
+				<#
+		if ( ! _.isUndefined( data.model.autoplay ) && data.model.autoplay ) {
+		#> autoplay<#
+	}
+		if ( ! _.isUndefined( data.model.loop ) && data.model.loop ) {
+		#> loop<#
+	}
+	#>
+>
+	<# if ( ! _.isEmpty( data.model.src ) ) {
+		if ( isYouTube ) { #>
+		<source src="{{ data.model.src }}" type="video/youtube" />
+		<# } else if ( isVimeo ) { #>
+		<source src="{{ data.model.src }}" type="video/vimeo" />
+		<# } else { #>
+		<source src="{{ data.model.src }}" type="{{ settings.embedMimes[ data.model.src.split('.').pop() ] }}" />
+		<# }
+	} #>
+
+		<# if ( data.model.mp4 ) { #>
+	<source src="{{ data.model.mp4 }}" type="{{ settings.embedMimes[ 'mp4' ] }}" />
+	<# } #>
+		<# if ( data.model.m4v ) { #>
+	<source src="{{ data.model.m4v }}" type="{{ settings.embedMimes[ 'm4v' ] }}" />
+	<# } #>
+		<# if ( data.model.webm ) { #>
+	<source src="{{ data.model.webm }}" type="{{ settings.embedMimes[ 'webm' ] }}" />
+	<# } #>
+		<# if ( data.model.ogv ) { #>
+	<source src="{{ data.model.ogv }}" type="{{ settings.embedMimes[ 'ogv' ] }}" />
+	<# } #>
+		<# if ( data.model.flv ) { #>
+	<source src="{{ data.model.flv }}" type="{{ settings.embedMimes[ 'flv' ] }}" />
+	<# } #>
+		{{{ data.model.content }}}
+</video>
+</div>
+				<# } #>
+		</script>
+
+		<script type="text/html" id="tmpl-widget-media-media_audio-control">
+			<# var elementIdPrefix = 'el' + String( Math.random() ) + '_' #>
+			<p>
+				<label for="{{ elementIdPrefix }}title">Title:</label>
+				<input id="{{ elementIdPrefix }}title" type="text" class="widefat title">
+			</p>
+			<div class="media-widget-preview media_audio">
+				<div class="attachment-media-view">
+					<button type="button" class="select-media button-add-media not-selected">
+						Add Audio					</button>
+				</div>
+			</div>
+			<p class="media-widget-buttons">
+				<button type="button" class="button edit-media selected">
+					Edit Audio				</button>
+							<button type="button" class="button change-media select-media selected">
+					Replace Audio				</button>
+						</p>
+			<div class="media-widget-fields">
+			</div>
+		</script>
+
+		<script type="text/html" id="tmpl-wp-media-widget-audio-preview">
+			<# if ( data.error && 'missing_attachment' === data.error ) { #>
+				<div class="notice notice-error notice-alt notice-missing-attachment">
+					<p>That audio file cannot be found. Check your <a href="http://src.wordpress-develop.test/wp-admin/upload.php">media library</a> and make sure it was not deleted.</p>
+				</div>
+			<# } else if ( data.error ) { #>
+				<div class="notice notice-error notice-alt">
+					<p>Unable to preview media due to an unknown error.</p>
+				</div>
+			<# } else if ( data.model && data.model.src ) { #>
+				<audio style="visibility: hidden"
+	controls
+	class="wp-audio-shortcode"
+	width="{{ _.isUndefined( data.model.width ) ? 400 : data.model.width }}"
+	preload="{{ _.isUndefined( data.model.preload ) ? 'none' : data.model.preload }}"
+	<#
+		if ( ! _.isUndefined( data.model.autoplay ) && data.model.autoplay ) {
+		#> autoplay<#
+	}
+		if ( ! _.isUndefined( data.model.loop ) && data.model.loop ) {
+		#> loop<#
+	}
+	#>
+>
+	<# if ( ! _.isEmpty( data.model.src ) ) { #>
+	<source src="{{ data.model.src }}" type="{{ wp.media.view.settings.embedMimes[ data.model.src.split('.').pop() ] }}" />
+	<# } #>
+
+		<# if ( ! _.isEmpty( data.model.mp3 ) ) { #>
+	<source src="{{ data.model.mp3 }}" type="{{ wp.media.view.settings.embedMimes[ 'mp3' ] }}" />
+	<# } #>
+			<# if ( ! _.isEmpty( data.model.ogg ) ) { #>
+	<source src="{{ data.model.ogg }}" type="{{ wp.media.view.settings.embedMimes[ 'ogg' ] }}" />
+	<# } #>
+			<# if ( ! _.isEmpty( data.model.flac ) ) { #>
+	<source src="{{ data.model.flac }}" type="{{ wp.media.view.settings.embedMimes[ 'flac' ] }}" />
+	<# } #>
+			<# if ( ! _.isEmpty( data.model.m4a ) ) { #>
+	<source src="{{ data.model.m4a }}" type="{{ wp.media.view.settings.embedMimes[ 'm4a' ] }}" />
+	<# } #>
+			<# if ( ! _.isEmpty( data.model.wav ) ) { #>
+	<source src="{{ data.model.wav }}" type="{{ wp.media.view.settings.embedMimes[ 'wav' ] }}" />
+	<# } #>
+		</audio>
+				<# } #>
+		</script>
+
+	<script type="text/html" id="tmpl-media-frame">
+		<div class="media-frame-menu"></div>
+		<div class="media-frame-title"></div>
+		<div class="media-frame-router"></div>
+		<div class="media-frame-content"></div>
+		<div class="media-frame-toolbar"></div>
+		<div class="media-frame-uploader"></div>
+	</script>
+
+	<script type="text/html" id="tmpl-widget-media-media_gallery-control">
+		<# var elementIdPrefix = 'el' + String( Math.random() ) + '_' #>
+		<p>
+			<label for="{{ elementIdPrefix }}title">Title:</label>
+			<input id="{{ elementIdPrefix }}title" type="text" class="widefat title">
+		</p>
+		<div class="media-widget-preview media_gallery">
+			<div class="attachment-media-view">
+				<button type="button" class="select-media button-add-media not-selected">
+					Add Images					</button>
+			</div>
+		</div>
+		<p class="media-widget-buttons">
+			<button type="button" class="button edit-media selected">
+				Edit Gallery				</button>
+					</p>
+		<div class="media-widget-fields">
+		</div>
+	</script>
+
+	<script type="text/html" id="tmpl-wp-media-widget-gallery-preview">
+		<#
+		var ids = _.filter( data.ids, function( id ) {
+			return ( id in data.attachments );
+		} );
+		#>
+		<# if ( ids.length ) { #>
+			<ul class="gallery media-widget-gallery-preview" role="list">
+				<# _.each( ids, function( id, index ) { #>
+					<# var attachment = data.attachments[ id ]; #>
+					<# if ( index < 6 ) { #>
+						<li class="gallery-item">
+							<div class="gallery-icon">
+								<img alt="{{ attachment.alt }}"
+									<# if ( index === 5 && data.ids.length > 6 ) { #> aria-hidden="true" <# } #>
+									<# if ( attachment.sizes.thumbnail ) { #>
+										src="{{ attachment.sizes.thumbnail.url }}" width="{{ attachment.sizes.thumbnail.width }}" height="{{ attachment.sizes.thumbnail.height }}"
+									<# } else { #>
+										src="{{ attachment.url }}"
+									<# } #>
+									<# if ( ! attachment.alt && attachment.filename ) { #>
+										aria-label="
+										The current image has no alternative text. The file name is: {{ attachment.filename }}											"
+									<# } #>
+								/>
+								<# if ( index === 5 && data.ids.length > 6 ) { #>
+								<div class="gallery-icon-placeholder">
+									<p class="gallery-icon-placeholder-text" aria-label="
+									Additional images added to this gallery: {{ data.ids.length - 5 }}										">+{{ data.ids.length - 5 }}</p>
+								</div>
+								<# } #>
+							</div>
+						</li>
+					<# } #>
+				<# } ); #>
+			</ul>
+		<# } else { #>
+			<div class="attachment-media-view">
+				<button type="button" class="placeholder button-add-media">Add Images</button>
+			</div>
+		<# } #>
+	</script>
+
+		<script type="text/html" id="tmpl-customize-control-date_time-content">
+
+		<# _.defaults( data, {"settings":[],"type":"date_time","priority":10,"active":true,"section":"","content":"<li id=\"customize-control-temp\" class=\"customize-control customize-control-date_time\">\n\t\t\t\t\t<\/li>","label":"","description":"","instanceNumber":73,"maxYear":9999,"minYear":1000,"allowPastDate":true,"twelveHourFormat":true,"includeTime":true,"defaultValue":null,"month_choices":{"1":{"text":"1-Jan","value":1},"2":{"text":"2-Feb","value":2},"3":{"text":"3-Mar","value":3},"4":{"text":"4-Apr","value":4},"5":{"text":"5-May","value":5},"6":{"text":"6-Jun","value":6},"7":{"text":"7-Jul","value":7},"8":{"text":"8-Aug","value":8},"9":{"text":"9-Sep","value":9},"10":{"text":"10-Oct","value":10},"11":{"text":"11-Nov","value":11},"12":{"text":"12-Dec","value":12}}} ); #>
+		<# var idPrefix = _.uniqueId( 'el' ) + '-'; #>
+
+		<span class="customize-control-title">
+			{{ data.label }}
+		</span>
+		<div class="customize-control-notifications-container"></div>
+		<span class="description customize-control-description">{{ data.description }}</span>
+		<div class="date-time-fields">
+			<fieldset class="day-row">
+				<legend class="title-day">Date</legend>
+				<div class="day-fields clear">
+					<label for="{{ idPrefix }}date-time-month" class="screen-reader-text">Month</label>
+					<select id="{{ idPrefix }}date-time-month" class="date-input month" data-component="month">
+						<# _.each( data.month_choices, function( choice ) {
+								if ( _.isObject( choice ) && ! _.isUndefined( choice.text ) && ! _.isUndefined( choice.value ) ) {
+								text = choice.text;
+								value = choice.value;
+								}
+								#>
+							<option value="{{ value }}" >
+								{{ text }}
+							</option>
+						<# } ); #>
+					</select>
+					<label for="{{ idPrefix }}date-time-day" class="screen-reader-text">Day</label>
+					<input id="{{ idPrefix }}date-time-day" type="number" size="2" autocomplete="off" class="date-input day" data-component="day" min="1" max="31" />
+					<span class="time-special-char date-time-separator">,</span>
+					<label for="{{ idPrefix }}date-time-year" class="screen-reader-text">Year</label>
+					<input id="{{ idPrefix }}date-time-year" type="number" size="4" autocomplete="off" class="date-input year" data-component="year" min="{{ data.minYear }}" max="{{ data.maxYear }}">
+				</div>
+			</fieldset>
+			<# if ( data.includeTime ) { #>
+				<fieldset class="time-row clear">
+					<legend class="title-time">Time</legend>
+					<div class="time-fields clear">
+						<label for="{{ idPrefix }}date-time-hour" class="screen-reader-text">Hour</label>
+						<# var maxHour = data.twelveHourFormat ? 12 : 24; #>
+						<input id="{{ idPrefix }}date-time-hour" type="number" size="2" autocomplete="off" class="date-input hour" data-component="hour" min="1" max="{{ maxHour }}">
+						<span class="time-special-char date-time-separator">:</span>
+						<label for="{{ idPrefix }}date-time-minute" class="screen-reader-text">Minute</label>
+						<input id="{{ idPrefix }}date-time-minute" type="number" size="2" autocomplete="off" class="date-input minute" data-component="minute" min="0" max="59">
+						<# if ( data.twelveHourFormat ) { #>
+							<label for="{{ idPrefix }}date-time-meridian" class="screen-reader-text">Meridian</label>
+							<select id="{{ idPrefix }}date-time-meridian" class="date-input meridian" data-component="meridian">
+								<option value="am">AM</option>
+								<option value="pm">PM</option>
+							</select>
+						<# } #>
+						<p>Your timezone is set to America/Los Angeles (<abbr>PDT</abbr>), currently <abbr>UTC</abbr>-7 (Coordinated Universal Time -7).</p>
+					</div>
+				</fieldset>
+			<# } #>
+		</div>
+	</script>
+	<script type="text/html" id="tmpl-customize-preview-link-control" >
+		<# var elementPrefix = _.uniqueId( 'el' ) + '-' #>
+		<p class="customize-control-title">
+			Share Preview Link			</p>
+		<p class="description customize-control-description">See how changes would look live on your website, and share the preview with people who can&#039;t access the Customizer.</p>
+		<div class="customize-control-notifications-container"></div>
+		<div class="preview-link-wrapper">
+			<label for="{{ elementPrefix }}customize-preview-link-input" class="screen-reader-text">Preview Link</label>
+			<a href="" target="">
+				<span class="preview-control-element" data-component="url"></span>
+				<span class="screen-reader-text">(opens in a new tab)</span>
+			</a>
+			<input id="{{ elementPrefix }}customize-preview-link-input" readonly class="preview-control-element" data-component="input">
+			<button class="customize-copy-preview-link preview-control-element button button-secondary" data-component="button" data-copy-text="Copy" data-copied-text="Copied" >Copy</button>
+		</div>
+	</script>
+	<script type="text/html" id="tmpl-media-modal">
+		<div class="media-modal wp-core-ui">
+			<button type="button" class="media-modal-close"><span class="media-modal-icon"><span class="screen-reader-text">Close media panel</span></span></button>
+			<div class="media-modal-content"></div>
+		</div>
+		<div class="media-modal-backdrop"></div>
+	</script>
+
+	<script type="text/html" id="tmpl-uploader-window">
+		<div class="uploader-window-content">
+			<h1>Drop files to upload</h1>
+		</div>
+	</script>
+
+	<script type="text/html" id="tmpl-uploader-editor">
+		<div class="uploader-editor-content">
+			<div class="uploader-editor-title">Drop files to upload</div>
+		</div>
+	</script>
+
+	<script type="text/html" id="tmpl-uploader-inline">
+		<# var messageClass = data.message ? 'has-upload-message' : 'no-upload-message'; #>
+		<# if ( data.canClose ) { #>
+		<button class="close dashicons dashicons-no"><span class="screen-reader-text">Close uploader</span></button>
+		<# } #>
+		<div class="uploader-inline-content {{ messageClass }}">
+		<# if ( data.message ) { #>
+			<h2 class="upload-message">{{ data.message }}</h2>
+		<# } #>
+					<div class="upload-ui">
+				<h2 class="upload-instructions drop-instructions">Drop files anywhere to upload</h2>
+				<p class="upload-instructions drop-instructions">or</p>
+				<button type="button" class="browser button button-hero">Select Files</button>
+			</div>
+
+			<div class="upload-inline-status"></div>
+
+			<div class="post-upload-ui">
+
+				<p class="max-upload-size">Maximum upload file size: 2 MB.</p>
+
+				<# if ( data.suggestedWidth && data.suggestedHeight ) { #>
+					<p class="suggested-dimensions">
+						Suggested image dimensions: {{data.suggestedWidth}} &times; {{data.suggestedHeight}}
+					</p>
+				<# } #>
+
+							</div>
+				</div>
+	</script>
+
+	<script type="text/html" id="tmpl-media-library-view-switcher">
+		<a href="?mode=list" class="view-list">
+			<span class="screen-reader-text">List View</span>
+		</a>
+		<a href="?mode=grid" class="view-grid current">
+			<span class="screen-reader-text">Grid View</span>
+		</a>
+	</script>
+
+	<script type="text/html" id="tmpl-uploader-status">
+		<h2>Uploading</h2>
+		<button type="button" class="button-link upload-dismiss-errors"><span class="screen-reader-text">Dismiss Errors</span></button>
+
+		<div class="media-progress-bar"><div></div></div>
+		<div class="upload-details">
+			<span class="upload-count">
+				<span class="upload-index"></span> / <span class="upload-total"></span>
+			</span>
+			<span class="upload-detail-separator">&ndash;</span>
+			<span class="upload-filename"></span>
+		</div>
+		<div class="upload-errors"></div>
+	</script>
+
+	<script type="text/html" id="tmpl-uploader-status-error">
+		<span class="upload-error-filename">{{{ data.filename }}}</span>
+		<span class="upload-error-message">{{ data.message }}</span>
+	</script>
+
+	<script type="text/html" id="tmpl-edit-attachment-frame">
+		<div class="edit-media-header">
+			<button class="left dashicons <# if ( ! data.hasPrevious ) { #> disabled <# } #>"><span class="screen-reader-text">Edit previous media item</span></button>
+			<button class="right dashicons <# if ( ! data.hasNext ) { #> disabled <# } #>"><span class="screen-reader-text">Edit next media item</span></button>
+		</div>
+		<div class="media-frame-title"></div>
+		<div class="media-frame-content"></div>
+	</script>
+
+	<script type="text/html" id="tmpl-attachment-details-two-column">
+		<div class="attachment-media-view {{ data.orientation }}">
+			<div class="thumbnail thumbnail-{{ data.type }}">
+				<# if ( data.uploading ) { #>
+					<div class="media-progress-bar"><div></div></div>
+				<# } else if ( data.sizes && data.sizes.large ) { #>
+					<img class="details-image" src="{{ data.sizes.large.url }}" draggable="false" alt="" />
+				<# } else if ( data.sizes && data.sizes.full ) { #>
+					<img class="details-image" src="{{ data.sizes.full.url }}" draggable="false" alt="" />
+				<# } else if ( -1 === jQuery.inArray( data.type, [ 'audio', 'video' ] ) ) { #>
+					<img class="details-image icon" src="{{ data.icon }}" draggable="false" alt="" />
+				<# } #>
+
+				<# if ( 'audio' === data.type ) { #>
+				<div class="wp-media-wrapper">
+					<audio style="visibility: hidden" controls class="wp-audio-shortcode" width="100%" preload="none">
+						<source type="{{ data.mime }}" src="{{ data.url }}"/>
+					</audio>
+				</div>
+				<# } else if ( 'video' === data.type ) {
+					var w_rule = '';
+					if ( data.width ) {
+						w_rule = 'width: ' + data.width + 'px;';
+					} else if ( wp.media.view.settings.contentWidth ) {
+						w_rule = 'width: ' + wp.media.view.settings.contentWidth + 'px;';
+					}
+				#>
+				<div style="{{ w_rule }}" class="wp-media-wrapper wp-video">
+					<video controls="controls" class="wp-video-shortcode" preload="metadata"
+						<# if ( data.width ) { #>width="{{ data.width }}"<# } #>
+						<# if ( data.height ) { #>height="{{ data.height }}"<# } #>
+						<# if ( data.image && data.image.src !== data.icon ) { #>poster="{{ data.image.src }}"<# } #>>
+						<source type="{{ data.mime }}" src="{{ data.url }}"/>
+					</video>
+				</div>
+				<# } #>
+
+				<div class="attachment-actions">
+					<# if ( 'image' === data.type && ! data.uploading && data.sizes && data.can.save ) { #>
+					<button type="button" class="button edit-attachment">Edit Image</button>
+					<# } else if ( 'pdf' === data.subtype && data.sizes ) { #>
+					Document Preview					<# } #>
+				</div>
+			</div>
+		</div>
+		<div class="attachment-info">
+			<span class="settings-save-status">
+				<span class="spinner"></span>
+				<span class="saved">Saved.</span>
+			</span>
+			<div class="details">
+				<div class="filename"><strong>File name:</strong> {{ data.filename }}</div>
+				<div class="filename"><strong>File type:</strong> {{ data.mime }}</div>
+				<div class="uploaded"><strong>Uploaded on:</strong> {{ data.dateFormatted }}</div>
+
+				<div class="file-size"><strong>File size:</strong> {{ data.filesizeHumanReadable }}</div>
+				<# if ( 'image' === data.type && ! data.uploading ) { #>
+					<# if ( data.width && data.height ) { #>
+						<div class="dimensions"><strong>Dimensions:</strong>
+							{{ data.width }} by {{ data.height }} pixels						</div>
+					<# } #>
+				<# } #>
+
+				<# if ( data.fileLength && data.fileLengthHumanReadable ) { #>
+					<div class="file-length"><strong>Length:</strong>
+						<span aria-hidden="true">{{ data.fileLength }}</span>
+						<span class="screen-reader-text">{{ data.fileLengthHumanReadable }}</span>
+					</div>
+				<# } #>
+
+				<# if ( 'audio' === data.type && data.meta.bitrate ) { #>
+					<div class="bitrate">
+						<strong>Bitrate:</strong> {{ Math.round( data.meta.bitrate / 1000 ) }}kb/s
+						<# if ( data.meta.bitrate_mode ) { #>
+						{{ ' ' + data.meta.bitrate_mode.toUpperCase() }}
+						<# } #>
+					</div>
+				<# } #>
+
+				<div class="compat-meta">
+					<# if ( data.compat && data.compat.meta ) { #>
+						{{{ data.compat.meta }}}
+					<# } #>
+				</div>
+			</div>
+
+			<div class="settings">
+				<# var maybeReadOnly = data.can.save || data.allowLocalEdits ? '' : 'readonly'; #>
+				<# if ( 'image' === data.type ) { #>
+					<span class="setting alt-text has-description" data-setting="alt">
+						<label for="attachment-details-two-column-alt-text" class="name">Alternative Text</label>
+						<textarea id="attachment-details-two-column-alt-text" aria-describedby="alt-text-description" {{ maybeReadOnly }}>{{ data.alt }}</textarea>
+					</span>
+					<p class="description" id="alt-text-description"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener">Describe the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
+				<# } #>
+								<label class="setting" data-setting="title">
+					<span class="name">Title</span>
+					<input type="text" value="{{ data.title }}" {{ maybeReadOnly }} />
+				</label>
+								<# if ( 'audio' === data.type ) { #>
+								<label class="setting" data-setting="artist">
+					<span class="name">Artist</span>
+					<input type="text" value="{{ data.artist || data.meta.artist || '' }}" />
+				</label>
+								<label class="setting" data-setting="album">
+					<span class="name">Album</span>
+					<input type="text" value="{{ data.album || data.meta.album || '' }}" />
+				</label>
+								<# } #>
+				<label class="setting" data-setting="caption">
+					<span class="name">Caption</span>
+					<textarea {{ maybeReadOnly }}>{{ data.caption }}</textarea>
+				</label>
+				<label class="setting" data-setting="description">
+					<span class="name">Description</span>
+					<textarea {{ maybeReadOnly }}>{{ data.description }}</textarea>
+				</label>
+				<div class="setting">
+					<span class="name">Uploaded By</span>
+					<span class="value">{{ data.authorName }}</span>
+				</div>
+				<# if ( data.uploadedToTitle ) { #>
+					<div class="setting">
+						<span class="name">Uploaded To</span>
+						<# if ( data.uploadedToLink ) { #>
+							<span class="value"><a href="{{ data.uploadedToLink }}">{{ data.uploadedToTitle }}</a></span>
+						<# } else { #>
+							<span class="value">{{ data.uploadedToTitle }}</span>
+						<# } #>
+					</div>
+				<# } #>
+				<label class="setting" data-setting="url">
+					<span class="name">Copy Link</span>
+					<input type="text" value="{{ data.url }}" readonly />
+				</label>
+				<div class="attachment-compat"></div>
+			</div>
+
+			<div class="actions">
+				<a class="view-attachment" href="{{ data.link }}">View attachment page</a>
+				<# if ( data.can.save ) { #> |
+					<a href="{{ data.editLink }}">Edit more details</a>
+				<# } #>
+				<# if ( ! data.uploading && data.can.remove ) { #> |
+											<button type="button" class="button-link delete-attachment">Delete Permanently</button>
+									<# } #>
+			</div>
+
+		</div>
+	</script>
+
+	<script type="text/html" id="tmpl-attachment">
+		<div class="attachment-preview js--select-attachment type-{{ data.type }} subtype-{{ data.subtype }} {{ data.orientation }}">
+			<div class="thumbnail">
+				<# if ( data.uploading ) { #>
+					<div class="media-progress-bar"><div style="width: {{ data.percent }}%"></div></div>
+				<# } else if ( 'image' === data.type && data.sizes ) { #>
+					<div class="centered">
+						<img src="{{ data.size.url }}" draggable="false" alt="" />
+					</div>
+				<# } else { #>
+					<div class="centered">
+						<# if ( data.image && data.image.src && data.image.src !== data.icon ) { #>
+							<img src="{{ data.image.src }}" class="thumbnail" draggable="false" alt="" />
+						<# } else if ( data.sizes && data.sizes.medium ) { #>
+							<img src="{{ data.sizes.medium.url }}" class="thumbnail" draggable="false" alt="" />
+						<# } else { #>
+							<img src="{{ data.icon }}" class="icon" draggable="false" alt="" />
+						<# } #>
+					</div>
+					<div class="filename">
+						<div>{{ data.filename }}</div>
+					</div>
+				<# } #>
+			</div>
+			<# if ( data.buttons.close ) { #>
+				<button type="button" class="button-link attachment-close media-modal-icon"><span class="screen-reader-text">Remove</span></button>
+			<# } #>
+		</div>
+		<# if ( data.buttons.check ) { #>
+			<button type="button" class="check" tabindex="-1"><span class="media-modal-icon"></span><span class="screen-reader-text">Deselect</span></button>
+		<# } #>
+		<#
+		var maybeReadOnly = data.can.save || data.allowLocalEdits ? '' : 'readonly';
+		if ( data.describe ) {
+			if ( 'image' === data.type ) { #>
+				<input type="text" value="{{ data.caption }}" class="describe" data-setting="caption"
+					placeholder="Caption this image&hellip;" {{ maybeReadOnly }} />
+			<# } else { #>
+				<input type="text" value="{{ data.title }}" class="describe" data-setting="title"
+					<# if ( 'video' === data.type ) { #>
+						placeholder="Describe this video&hellip;"
+					<# } else if ( 'audio' === data.type ) { #>
+						placeholder="Describe this audio file&hellip;"
+					<# } else { #>
+						placeholder="Describe this media file&hellip;"
+					<# } #> {{ maybeReadOnly }} />
+			<# }
+		} #>
+	</script>
+
+	<script type="text/html" id="tmpl-attachment-details">
+		<h2>
+			Attachment Details			<span class="settings-save-status">
+				<span class="spinner"></span>
+				<span class="saved">Saved.</span>
+			</span>
+		</h2>
+		<div class="attachment-info">
+			<div class="thumbnail thumbnail-{{ data.type }}">
+				<# if ( data.uploading ) { #>
+					<div class="media-progress-bar"><div></div></div>
+				<# } else if ( 'image' === data.type && data.sizes ) { #>
+					<img src="{{ data.size.url }}" draggable="false" alt="" />
+				<# } else { #>
+					<img src="{{ data.icon }}" class="icon" draggable="false" alt="" />
+				<# } #>
+			</div>
+			<div class="details">
+				<div class="filename">{{ data.filename }}</div>
+				<div class="uploaded">{{ data.dateFormatted }}</div>
+
+				<div class="file-size">{{ data.filesizeHumanReadable }}</div>
+				<# if ( 'image' === data.type && ! data.uploading ) { #>
+					<# if ( data.width && data.height ) { #>
+						<div class="dimensions">
+							{{ data.width }} by {{ data.height }} pixels						</div>
+					<# } #>
+
+					<# if ( data.can.save && data.sizes ) { #>
+						<a class="edit-attachment" href="{{ data.editLink }}&amp;image-editor" target="_blank">Edit Image</a>
+					<# } #>
+				<# } #>
+
+				<# if ( data.fileLength && data.fileLengthHumanReadable ) { #>
+					<div class="file-length">Length:						<span aria-hidden="true">{{ data.fileLength }}</span>
+						<span class="screen-reader-text">{{ data.fileLengthHumanReadable }}</span>
+					</div>
+				<# } #>
+
+				<# if ( ! data.uploading && data.can.remove ) { #>
+											<button type="button" class="button-link delete-attachment">Delete Permanently</button>
+									<# } #>
+
+				<div class="compat-meta">
+					<# if ( data.compat && data.compat.meta ) { #>
+						{{{ data.compat.meta }}}
+					<# } #>
+				</div>
+			</div>
+		</div>
+
+		<# var maybeReadOnly = data.can.save || data.allowLocalEdits ? '' : 'readonly'; #>
+		<# if ( 'image' === data.type ) { #>
+			<span class="setting alt-text has-description" data-setting="alt">
+				<label for="attachment-details-alt-text" class="name">Alt Text</label>
+				<textarea id="attachment-details-alt-text" aria-describedby="alt-text-description" {{ maybeReadOnly }}>{{ data.alt }}</textarea>
+			</span>
+			<p class="description" id="alt-text-description"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener">Describe the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
+		<# } #>
+				<label class="setting" data-setting="title">
+			<span class="name">Title</span>
+			<input type="text" value="{{ data.title }}" {{ maybeReadOnly }} />
+		</label>
+				<# if ( 'audio' === data.type ) { #>
+				<label class="setting" data-setting="artist">
+			<span class="name">Artist</span>
+			<input type="text" value="{{ data.artist || data.meta.artist || '' }}" />
+		</label>
+				<label class="setting" data-setting="album">
+			<span class="name">Album</span>
+			<input type="text" value="{{ data.album || data.meta.album || '' }}" />
+		</label>
+				<# } #>
+		<label class="setting" data-setting="caption">
+			<span class="name">Caption</span>
+			<textarea {{ maybeReadOnly }}>{{ data.caption }}</textarea>
+		</label>
+		<label class="setting" data-setting="description">
+			<span class="name">Description</span>
+			<textarea {{ maybeReadOnly }}>{{ data.description }}</textarea>
+		</label>
+		<label class="setting" data-setting="url">
+			<span class="name">Copy Link</span>
+			<input type="text" value="{{ data.url }}" readonly />
+		</label>
+	</script>
+
+	<script type="text/html" id="tmpl-media-selection">
+		<div class="selection-info">
+			<span class="count"></span>
+			<# if ( data.editable ) { #>
+				<button type="button" class="button-link edit-selection">Edit Selection</button>
+			<# } #>
+			<# if ( data.clearable ) { #>
+				<button type="button" class="button-link clear-selection">Clear</button>
+			<# } #>
+		</div>
+		<div class="selection-view"></div>
+	</script>
+
+	<script type="text/html" id="tmpl-attachment-display-settings">
+		<h2>Attachment Display Settings</h2>
+
+		<# if ( 'image' === data.type ) { #>
+			<label class="setting">
+				<span>Alignment</span>
+				<select class="alignment"
+					data-setting="align"
+					<# if ( data.userSettings ) { #>
+						data-user-setting="align"
+					<# } #>>
+
+					<option value="left">
+						Left					</option>
+					<option value="center">
+						Center					</option>
+					<option value="right">
+						Right					</option>
+					<option value="none" selected>
+						None					</option>
+				</select>
+			</label>
+		<# } #>
+
+		<div class="setting">
+			<label>
+				<# if ( data.model.canEmbed ) { #>
+					<span>Embed or Link</span>
+				<# } else { #>
+					<span>Link To</span>
+				<# } #>
+
+				<select class="link-to"
+					data-setting="link"
+					<# if ( data.userSettings && ! data.model.canEmbed ) { #>
+						data-user-setting="urlbutton"
+					<# } #>>
+
+				<# if ( data.model.canEmbed ) { #>
+					<option value="embed" selected>
+						Embed Media Player					</option>
+					<option value="file">
+				<# } else { #>
+					<option value="none" selected>
+						None					</option>
+					<option value="file">
+				<# } #>
+					<# if ( data.model.canEmbed ) { #>
+						Link to Media File					<# } else { #>
+						Media File					<# } #>
+					</option>
+					<option value="post">
+					<# if ( data.model.canEmbed ) { #>
+						Link to Attachment Page					<# } else { #>
+						Attachment Page					<# } #>
+					</option>
+				<# if ( 'image' === data.type ) { #>
+					<option value="custom">
+						Custom URL					</option>
+				<# } #>
+				</select>
+			</label>
+			<input type="text" class="link-to-custom" data-setting="linkUrl" />
+		</div>
+
+		<# if ( 'undefined' !== typeof data.sizes ) { #>
+			<label class="setting">
+				<span>Size</span>
+				<select class="size" name="size"
+					data-setting="size"
+					<# if ( data.userSettings ) { #>
+						data-user-setting="imgsize"
+					<# } #>>
+											<#
+						var size = data.sizes['thumbnail'];
+						if ( size ) { #>
+							<option value="thumbnail" >
+								Thumbnail &ndash; {{ size.width }} &times; {{ size.height }}
+							</option>
+						<# } #>
+											<#
+						var size = data.sizes['medium'];
+						if ( size ) { #>
+							<option value="medium" >
+								Medium &ndash; {{ size.width }} &times; {{ size.height }}
+							</option>
+						<# } #>
+											<#
+						var size = data.sizes['large'];
+						if ( size ) { #>
+							<option value="large" >
+								Large &ndash; {{ size.width }} &times; {{ size.height }}
+							</option>
+						<# } #>
+											<#
+						var size = data.sizes['full'];
+						if ( size ) { #>
+							<option value="full"  selected='selected'>
+								Full Size &ndash; {{ size.width }} &times; {{ size.height }}
+							</option>
+						<# } #>
+									</select>
+			</label>
+		<# } #>
+	</script>
+
+	<script type="text/html" id="tmpl-gallery-settings">
+		<h2>Gallery Settings</h2>
+
+		<label class="setting">
+			<span>Link To</span>
+			<select class="link-to"
+				data-setting="link"
+				<# if ( data.userSettings ) { #>
+					data-user-setting="urlbutton"
+				<# } #>>
+
+				<option value="post" <# if ( ! wp.media.galleryDefaults.link || 'post' == wp.media.galleryDefaults.link ) {
+					#>selected="selected"<# }
+				#>>
+					Attachment Page				</option>
+				<option value="file" <# if ( 'file' == wp.media.galleryDefaults.link ) { #>selected="selected"<# } #>>
+					Media File				</option>
+				<option value="none" <# if ( 'none' == wp.media.galleryDefaults.link ) { #>selected="selected"<# } #>>
+					None				</option>
+			</select>
+		</label>
+
+		<label class="setting">
+			<span>Columns</span>
+			<select class="columns" name="columns"
+				data-setting="columns">
+									<option value="1" <#
+						if ( 1 == wp.media.galleryDefaults.columns ) { #>selected="selected"<# }
+					#>>
+						1					</option>
+									<option value="2" <#
+						if ( 2 == wp.media.galleryDefaults.columns ) { #>selected="selected"<# }
+					#>>
+						2					</option>
+									<option value="3" <#
+						if ( 3 == wp.media.galleryDefaults.columns ) { #>selected="selected"<# }
+					#>>
+						3					</option>
+									<option value="4" <#
+						if ( 4 == wp.media.galleryDefaults.columns ) { #>selected="selected"<# }
+					#>>
+						4					</option>
+									<option value="5" <#
+						if ( 5 == wp.media.galleryDefaults.columns ) { #>selected="selected"<# }
+					#>>
+						5					</option>
+									<option value="6" <#
+						if ( 6 == wp.media.galleryDefaults.columns ) { #>selected="selected"<# }
+					#>>
+						6					</option>
+									<option value="7" <#
+						if ( 7 == wp.media.galleryDefaults.columns ) { #>selected="selected"<# }
+					#>>
+						7					</option>
+									<option value="8" <#
+						if ( 8 == wp.media.galleryDefaults.columns ) { #>selected="selected"<# }
+					#>>
+						8					</option>
+									<option value="9" <#
+						if ( 9 == wp.media.galleryDefaults.columns ) { #>selected="selected"<# }
+					#>>
+						9					</option>
+							</select>
+		</label>
+
+		<label class="setting">
+			<span>Random Order</span>
+			<input type="checkbox" data-setting="_orderbyRandom" />
+		</label>
+
+		<label class="setting size">
+			<span>Size</span>
+			<select class="size" name="size"
+				data-setting="size"
+				<# if ( data.userSettings ) { #>
+					data-user-setting="imgsize"
+				<# } #>
+				>
+									<option value="thumbnail">
+						Thumbnail					</option>
+									<option value="medium">
+						Medium					</option>
+									<option value="large">
+						Large					</option>
+									<option value="full">
+						Full Size					</option>
+							</select>
+		</label>
+	</script>
+
+	<script type="text/html" id="tmpl-playlist-settings">
+		<h2>Playlist Settings</h2>
+
+		<# var emptyModel = _.isEmpty( data.model ),
+			isVideo = 'video' === data.controller.get('library').props.get('type'); #>
+
+		<label class="setting">
+			<input type="checkbox" data-setting="tracklist" <# if ( emptyModel ) { #>
+				checked="checked"
+			<# } #> />
+			<# if ( isVideo ) { #>
+			<span>Show Video List</span>
+			<# } else { #>
+			<span>Show Tracklist</span>
+			<# } #>
+		</label>
+
+		<# if ( ! isVideo ) { #>
+		<label class="setting">
+			<input type="checkbox" data-setting="artists" <# if ( emptyModel ) { #>
+				checked="checked"
+			<# } #> />
+			<span>Show Artist Name in Tracklist</span>
+		</label>
+		<# } #>
+
+		<label class="setting">
+			<input type="checkbox" data-setting="images" <# if ( emptyModel ) { #>
+				checked="checked"
+			<# } #> />
+			<span>Show Images</span>
+		</label>
+	</script>
+
+	<script type="text/html" id="tmpl-embed-link-settings">
+		<label class="setting link-text">
+			<span>Link Text</span>
+			<input type="text" class="alignment" data-setting="linkText" />
+		</label>
+		<div class="embed-container" style="display: none;">
+			<div class="embed-preview"></div>
+		</div>
+	</script>
+
+	<script type="text/html" id="tmpl-embed-image-settings">
+		<div class="thumbnail">
+			<img src="{{ data.model.url }}" draggable="false" alt="" />
+		</div>
+
+		<span class="setting alt-text has-description">
+			<label for="embed-image-settings-alt-text" class="name">Alternative Text</label>
+			<textarea id="embed-image-settings-alt-text" data-setting="alt" aria-describedby="alt-text-description"></textarea>
+		</span>
+		<p class="description" id="alt-text-description"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener">Describe the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
+
+					<label class="setting caption">
+				<span>Caption</span>
+				<textarea data-setting="caption" />
+			</label>
+
+		<div class="setting align">
+			<span>Align</span>
+			<div class="button-group button-large" data-setting="align">
+				<button class="button" value="left">
+					Left				</button>
+				<button class="button" value="center">
+					Center				</button>
+				<button class="button" value="right">
+					Right				</button>
+				<button class="button active" value="none">
+					None				</button>
+			</div>
+		</div>
+
+		<div class="setting link-to">
+			<span>Link To</span>
+			<div class="button-group button-large" data-setting="link">
+				<button class="button" value="file">
+					Image URL				</button>
+				<button class="button" value="custom">
+					Custom URL				</button>
+				<button class="button active" value="none">
+					None				</button>
+			</div>
+			<input type="text" class="link-to-custom" data-setting="linkUrl" />
+		</div>
+	</script>
+
+	<script type="text/html" id="tmpl-image-details">
+		<div class="media-embed">
+			<div class="embed-media-settings">
+				<div class="column-image">
+					<div class="image">
+						<img src="{{ data.model.url }}" draggable="false" alt="" />
+
+						<# if ( data.attachment && window.imageEdit ) { #>
+							<div class="actions">
+								<input type="button" class="edit-attachment button" value="Edit Original" />
+								<input type="button" class="replace-attachment button" value="Replace" />
+							</div>
+						<# } #>
+					</div>
+				</div>
+				<div class="column-settings">
+					<span class="setting alt-text has-description">
+						<label for="image-details-alt-text" class="name">Alternative Text</label>
+						<textarea id="image-details-alt-text" data-setting="alt" aria-describedby="alt-text-description">{{ data.model.alt }}</textarea>
+					</span>
+					<p class="description" id="alt-text-description"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener">Describe the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
+
+											<label class="setting caption">
+							<span>Caption</span>
+							<textarea data-setting="caption">{{ data.model.caption }}</textarea>
+						</label>
+
+					<h2>Display Settings</h2>
+					<div class="setting align">
+						<span>Align</span>
+						<div class="button-group button-large" data-setting="align">
+							<button class="button" value="left">
+								Left							</button>
+							<button class="button" value="center">
+								Center							</button>
+							<button class="button" value="right">
+								Right							</button>
+							<button class="button active" value="none">
+								None							</button>
+						</div>
+					</div>
+
+					<# if ( data.attachment ) { #>
+						<# if ( 'undefined' !== typeof data.attachment.sizes ) { #>
+							<label class="setting size">
+								<span>Size</span>
+								<select class="size" name="size"
+									data-setting="size"
+									<# if ( data.userSettings ) { #>
+										data-user-setting="imgsize"
+									<# } #>>
+																			<#
+										var size = data.sizes['thumbnail'];
+										if ( size ) { #>
+											<option value="thumbnail">
+												Thumbnail &ndash; {{ size.width }} &times; {{ size.height }}
+											</option>
+										<# } #>
+																			<#
+										var size = data.sizes['medium'];
+										if ( size ) { #>
+											<option value="medium">
+												Medium &ndash; {{ size.width }} &times; {{ size.height }}
+											</option>
+										<# } #>
+																			<#
+										var size = data.sizes['large'];
+										if ( size ) { #>
+											<option value="large">
+												Large &ndash; {{ size.width }} &times; {{ size.height }}
+											</option>
+										<# } #>
+																			<#
+										var size = data.sizes['full'];
+										if ( size ) { #>
+											<option value="full">
+												Full Size &ndash; {{ size.width }} &times; {{ size.height }}
+											</option>
+										<# } #>
+																		<option value="custom">
+										Custom Size									</option>
+								</select>
+							</label>
+						<# } #>
+							<div class="custom-size<# if ( data.model.size !== 'custom' ) { #> hidden<# } #>">
+								<label><span>Width <small>(px)</small></span> <input data-setting="customWidth" type="number" step="1" value="{{ data.model.customWidth }}" /></label><span class="sep">&times;</span><label><span>Height <small>(px)</small></span><input data-setting="customHeight" type="number" step="1" value="{{ data.model.customHeight }}" /></label>
+							</div>
+					<# } #>
+
+					<div class="setting link-to">
+						<span>Link To</span>
+						<select data-setting="link">
+						<# if ( data.attachment ) { #>
+							<option value="file">
+								Media File							</option>
+							<option value="post">
+								Attachment Page							</option>
+						<# } else { #>
+							<option value="file">
+								Image URL							</option>
+						<# } #>
+							<option value="custom">
+								Custom URL							</option>
+							<option value="none">
+								None							</option>
+						</select>
+						<input type="text" class="link-to-custom" data-setting="linkUrl" />
+					</div>
+					<div class="advanced-section">
+						<h2><button type="button" class="button-link advanced-toggle">Advanced Options</button></h2>
+						<div class="advanced-settings hidden">
+							<div class="advanced-image">
+								<label class="setting title-text">
+									<span>Image Title Attribute</span>
+									<input type="text" data-setting="title" value="{{ data.model.title }}" />
+								</label>
+								<label class="setting extra-classes">
+									<span>Image CSS Class</span>
+									<input type="text" data-setting="extraClasses" value="{{ data.model.extraClasses }}" />
+								</label>
+							</div>
+							<div class="advanced-link">
+								<div class="setting link-target">
+									<label><input type="checkbox" data-setting="linkTargetBlank" value="_blank" <# if ( data.model.linkTargetBlank ) { #>checked="checked"<# } #>>Open link in a new tab</label>
+								</div>
+								<label class="setting link-rel">
+									<span>Link Rel</span>
+									<input type="text" data-setting="linkRel" value="{{ data.model.linkRel }}" />
+								</label>
+								<label class="setting link-class-name">
+									<span>Link CSS Class</span>
+									<input type="text" data-setting="linkClassName" value="{{ data.model.linkClassName }}" />
+								</label>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</script>
+
+	<script type="text/html" id="tmpl-image-editor">
+		<div id="media-head-{{ data.id }}"></div>
+		<div id="image-editor-{{ data.id }}"></div>
+	</script>
+
+	<script type="text/html" id="tmpl-audio-details">
+		<# var ext, html5types = {
+			mp3: wp.media.view.settings.embedMimes.mp3,
+			ogg: wp.media.view.settings.embedMimes.ogg
+		}; #>
+
+				<div class="media-embed media-embed-details">
+			<div class="embed-media-settings embed-audio-settings">
+				<audio style="visibility: hidden"
+	controls
+	class="wp-audio-shortcode"
+	width="{{ _.isUndefined( data.model.width ) ? 400 : data.model.width }}"
+	preload="{{ _.isUndefined( data.model.preload ) ? 'none' : data.model.preload }}"
+	<#
+	if ( ! _.isUndefined( data.model.autoplay ) && data.model.autoplay ) {
+		#> autoplay<#
+	}
+	if ( ! _.isUndefined( data.model.loop ) && data.model.loop ) {
+		#> loop<#
+	}
+	#>
+>
+	<# if ( ! _.isEmpty( data.model.src ) ) { #>
+	<source src="{{ data.model.src }}" type="{{ wp.media.view.settings.embedMimes[ data.model.src.split('.').pop() ] }}" />
+	<# } #>
+
+	<# if ( ! _.isEmpty( data.model.mp3 ) ) { #>
+	<source src="{{ data.model.mp3 }}" type="{{ wp.media.view.settings.embedMimes[ 'mp3' ] }}" />
+	<# } #>
+	<# if ( ! _.isEmpty( data.model.ogg ) ) { #>
+	<source src="{{ data.model.ogg }}" type="{{ wp.media.view.settings.embedMimes[ 'ogg' ] }}" />
+	<# } #>
+	<# if ( ! _.isEmpty( data.model.wma ) ) { #>
+	<source src="{{ data.model.wma }}" type="{{ wp.media.view.settings.embedMimes[ 'wma' ] }}" />
+	<# } #>
+	<# if ( ! _.isEmpty( data.model.m4a ) ) { #>
+	<source src="{{ data.model.m4a }}" type="{{ wp.media.view.settings.embedMimes[ 'm4a' ] }}" />
+	<# } #>
+	<# if ( ! _.isEmpty( data.model.wav ) ) { #>
+	<source src="{{ data.model.wav }}" type="{{ wp.media.view.settings.embedMimes[ 'wav' ] }}" />
+	<# } #>
+	</audio>
+
+				<# if ( ! _.isEmpty( data.model.src ) ) {
+					ext = data.model.src.split('.').pop();
+					if ( html5types[ ext ] ) {
+						delete html5types[ ext ];
+					}
+				#>
+				<label class="setting">
+					<span>SRC</span>
+					<input type="text" disabled="disabled" data-setting="src" value="{{ data.model.src }}" />
+					<button type="button" class="button-link remove-setting">Remove audio source</button>
+				</label>
+				<# } #>
+				<# if ( ! _.isEmpty( data.model.mp3 ) ) {
+					if ( ! _.isUndefined( html5types.mp3 ) ) {
+						delete html5types.mp3;
+					}
+				#>
+				<label class="setting">
+					<span>MP3</span>
+					<input type="text" disabled="disabled" data-setting="mp3" value="{{ data.model.mp3 }}" />
+					<button type="button" class="button-link remove-setting">Remove audio source</button>
+				</label>
+				<# } #>
+				<# if ( ! _.isEmpty( data.model.ogg ) ) {
+					if ( ! _.isUndefined( html5types.ogg ) ) {
+						delete html5types.ogg;
+					}
+				#>
+				<label class="setting">
+					<span>OGG</span>
+					<input type="text" disabled="disabled" data-setting="ogg" value="{{ data.model.ogg }}" />
+					<button type="button" class="button-link remove-setting">Remove audio source</button>
+				</label>
+				<# } #>
+				<# if ( ! _.isEmpty( data.model.wma ) ) {
+					if ( ! _.isUndefined( html5types.wma ) ) {
+						delete html5types.wma;
+					}
+				#>
+				<label class="setting">
+					<span>WMA</span>
+					<input type="text" disabled="disabled" data-setting="wma" value="{{ data.model.wma }}" />
+					<button type="button" class="button-link remove-setting">Remove audio source</button>
+				</label>
+				<# } #>
+				<# if ( ! _.isEmpty( data.model.m4a ) ) {
+					if ( ! _.isUndefined( html5types.m4a ) ) {
+						delete html5types.m4a;
+					}
+				#>
+				<label class="setting">
+					<span>M4A</span>
+					<input type="text" disabled="disabled" data-setting="m4a" value="{{ data.model.m4a }}" />
+					<button type="button" class="button-link remove-setting">Remove audio source</button>
+				</label>
+				<# } #>
+				<# if ( ! _.isEmpty( data.model.wav ) ) {
+					if ( ! _.isUndefined( html5types.wav ) ) {
+						delete html5types.wav;
+					}
+				#>
+				<label class="setting">
+					<span>WAV</span>
+					<input type="text" disabled="disabled" data-setting="wav" value="{{ data.model.wav }}" />
+					<button type="button" class="button-link remove-setting">Remove audio source</button>
+				</label>
+				<# } #>
+
+				<# if ( ! _.isEmpty( html5types ) ) { #>
+				<div class="setting">
+					<span>Add alternate sources for maximum HTML5 playback:</span>
+					<div class="button-large">
+					<# _.each( html5types, function (mime, type) { #>
+					<button class="button add-media-source" data-mime="{{ mime }}">{{ type }}</button>
+					<# } ) #>
+					</div>
+				</div>
+				<# } #>
+
+				<div class="setting preload">
+					<span>Preload</span>
+					<div class="button-group button-large" data-setting="preload">
+						<button class="button" value="auto">Auto</button>
+						<button class="button" value="metadata">Metadata</button>
+						<button class="button active" value="none">None</button>
+					</div>
+				</div>
+
+				<label class="setting checkbox-setting">
+					<input type="checkbox" data-setting="autoplay" />
+					<span>Autoplay</span>
+				</label>
+
+				<label class="setting checkbox-setting">
+					<input type="checkbox" data-setting="loop" />
+					<span>Loop</span>
+				</label>
+			</div>
+		</div>
+	</script>
+
+	<script type="text/html" id="tmpl-video-details">
+		<# var ext, html5types = {
+			mp4: wp.media.view.settings.embedMimes.mp4,
+			ogv: wp.media.view.settings.embedMimes.ogv,
+			webm: wp.media.view.settings.embedMimes.webm
+		}; #>
+
+				<div class="media-embed media-embed-details">
+			<div class="embed-media-settings embed-video-settings">
+				<div class="wp-video-holder">
+				<#
+				var w = ! data.model.width || data.model.width > 640 ? 640 : data.model.width,
+					h = ! data.model.height ? 360 : data.model.height;
+
+				if ( data.model.width && w !== data.model.width ) {
+					h = Math.ceil( ( h * w ) / data.model.width );
+				}
+				#>
+
+				<#  var w_rule = '', classes = [],
+		w, h, settings = wp.media.view.settings,
+		isYouTube = isVimeo = false;
+
+	if ( ! _.isEmpty( data.model.src ) ) {
+		isYouTube = data.model.src.match(/youtube|youtu\.be/);
+		isVimeo = -1 !== data.model.src.indexOf('vimeo');
+	}
+
+	if ( settings.contentWidth && data.model.width >= settings.contentWidth ) {
+		w = settings.contentWidth;
+	} else {
+		w = data.model.width;
+	}
+
+	if ( w !== data.model.width ) {
+		h = Math.ceil( ( data.model.height * w ) / data.model.width );
+	} else {
+		h = data.model.height;
+ 	}
+
+	if ( w ) {
+		w_rule = 'width: ' + w + 'px; ';
+	}
+
+	if ( isYouTube ) {
+		classes.push( 'youtube-video' );
+	}
+
+	if ( isVimeo ) {
+		classes.push( 'vimeo-video' );
+	}
+
+#>
+<div style="{{ w_rule }}" class="wp-video">
+<video controls
+	class="wp-video-shortcode {{ classes.join( ' ' ) }}"
+	<# if ( w ) { #>width="{{ w }}"<# } #>
+	<# if ( h ) { #>height="{{ h }}"<# } #>
+	<#
+		if ( ! _.isUndefined( data.model.poster ) && data.model.poster ) {
+			#> poster="{{ data.model.poster }}"<#
+		} #>
+		preload="{{ _.isUndefined( data.model.preload ) ? 'metadata' : data.model.preload }}"<#
+	 if ( ! _.isUndefined( data.model.autoplay ) && data.model.autoplay ) {
+		#> autoplay<#
+	}
+	 if ( ! _.isUndefined( data.model.loop ) && data.model.loop ) {
+		#> loop<#
+	}
+	#>
+>
+	<# if ( ! _.isEmpty( data.model.src ) ) {
+		if ( isYouTube ) { #>
+		<source src="{{ data.model.src }}" type="video/youtube" />
+		<# } else if ( isVimeo ) { #>
+		<source src="{{ data.model.src }}" type="video/vimeo" />
+		<# } else { #>
+		<source src="{{ data.model.src }}" type="{{ settings.embedMimes[ data.model.src.split('.').pop() ] }}" />
+		<# }
+	} #>
+
+	<# if ( data.model.mp4 ) { #>
+	<source src="{{ data.model.mp4 }}" type="{{ settings.embedMimes[ 'mp4' ] }}" />
+	<# } #>
+	<# if ( data.model.m4v ) { #>
+	<source src="{{ data.model.m4v }}" type="{{ settings.embedMimes[ 'm4v' ] }}" />
+	<# } #>
+	<# if ( data.model.webm ) { #>
+	<source src="{{ data.model.webm }}" type="{{ settings.embedMimes[ 'webm' ] }}" />
+	<# } #>
+	<# if ( data.model.ogv ) { #>
+	<source src="{{ data.model.ogv }}" type="{{ settings.embedMimes[ 'ogv' ] }}" />
+	<# } #>
+	<# if ( data.model.wmv ) { #>
+	<source src="{{ data.model.wmv }}" type="{{ settings.embedMimes[ 'wmv' ] }}" />
+	<# } #>
+	<# if ( data.model.flv ) { #>
+	<source src="{{ data.model.flv }}" type="{{ settings.embedMimes[ 'flv' ] }}" />
+	<# } #>
+		{{{ data.model.content }}}
+</video>
+</div>
+
+				<# if ( ! _.isEmpty( data.model.src ) ) {
+					ext = data.model.src.split('.').pop();
+					if ( html5types[ ext ] ) {
+						delete html5types[ ext ];
+					}
+				#>
+				<label class="setting">
+					<span>SRC</span>
+					<input type="text" disabled="disabled" data-setting="src" value="{{ data.model.src }}" />
+					<button type="button" class="button-link remove-setting">Remove video source</button>
+				</label>
+				<# } #>
+				<# if ( ! _.isEmpty( data.model.mp4 ) ) {
+					if ( ! _.isUndefined( html5types.mp4 ) ) {
+						delete html5types.mp4;
+					}
+				#>
+				<label class="setting">
+					<span>MP4</span>
+					<input type="text" disabled="disabled" data-setting="mp4" value="{{ data.model.mp4 }}" />
+					<button type="button" class="button-link remove-setting">Remove video source</button>
+				</label>
+				<# } #>
+				<# if ( ! _.isEmpty( data.model.m4v ) ) {
+					if ( ! _.isUndefined( html5types.m4v ) ) {
+						delete html5types.m4v;
+					}
+				#>
+				<label class="setting">
+					<span>M4V</span>
+					<input type="text" disabled="disabled" data-setting="m4v" value="{{ data.model.m4v }}" />
+					<button type="button" class="button-link remove-setting">Remove video source</button>
+				</label>
+				<# } #>
+				<# if ( ! _.isEmpty( data.model.webm ) ) {
+					if ( ! _.isUndefined( html5types.webm ) ) {
+						delete html5types.webm;
+					}
+				#>
+				<label class="setting">
+					<span>WEBM</span>
+					<input type="text" disabled="disabled" data-setting="webm" value="{{ data.model.webm }}" />
+					<button type="button" class="button-link remove-setting">Remove video source</button>
+				</label>
+				<# } #>
+				<# if ( ! _.isEmpty( data.model.ogv ) ) {
+					if ( ! _.isUndefined( html5types.ogv ) ) {
+						delete html5types.ogv;
+					}
+				#>
+				<label class="setting">
+					<span>OGV</span>
+					<input type="text" disabled="disabled" data-setting="ogv" value="{{ data.model.ogv }}" />
+					<button type="button" class="button-link remove-setting">Remove video source</button>
+				</label>
+				<# } #>
+				<# if ( ! _.isEmpty( data.model.wmv ) ) {
+					if ( ! _.isUndefined( html5types.wmv ) ) {
+						delete html5types.wmv;
+					}
+				#>
+				<label class="setting">
+					<span>WMV</span>
+					<input type="text" disabled="disabled" data-setting="wmv" value="{{ data.model.wmv }}" />
+					<button type="button" class="button-link remove-setting">Remove video source</button>
+				</label>
+				<# } #>
+				<# if ( ! _.isEmpty( data.model.flv ) ) {
+					if ( ! _.isUndefined( html5types.flv ) ) {
+						delete html5types.flv;
+					}
+				#>
+				<label class="setting">
+					<span>FLV</span>
+					<input type="text" disabled="disabled" data-setting="flv" value="{{ data.model.flv }}" />
+					<button type="button" class="button-link remove-setting">Remove video source</button>
+				</label>
+				<# } #>
+								</div>
+
+				<# if ( ! _.isEmpty( html5types ) ) { #>
+				<div class="setting">
+					<span>Add alternate sources for maximum HTML5 playback:</span>
+					<div class="button-large">
+					<# _.each( html5types, function (mime, type) { #>
+					<button class="button add-media-source" data-mime="{{ mime }}">{{ type }}</button>
+					<# } ) #>
+					</div>
+				</div>
+				<# } #>
+
+				<# if ( ! _.isEmpty( data.model.poster ) ) { #>
+				<label class="setting">
+					<span>Poster Image</span>
+					<input type="text" disabled="disabled" data-setting="poster" value="{{ data.model.poster }}" />
+					<button type="button" class="button-link remove-setting">Remove poster image</button>
+				</label>
+				<# } #>
+				<div class="setting preload">
+					<span>Preload</span>
+					<div class="button-group button-large" data-setting="preload">
+						<button class="button" value="auto">Auto</button>
+						<button class="button" value="metadata">Metadata</button>
+						<button class="button active" value="none">None</button>
+					</div>
+				</div>
+
+				<label class="setting checkbox-setting">
+					<input type="checkbox" data-setting="autoplay" />
+					<span>Autoplay</span>
+				</label>
+
+				<label class="setting checkbox-setting">
+					<input type="checkbox" data-setting="loop" />
+					<span>Loop</span>
+				</label>
+
+				<label class="setting" data-setting="content">
+					<span>Tracks (subtitles, captions, descriptions, chapters, or metadata)</span>
+					<#
+					var content = '';
+					if ( ! _.isEmpty( data.model.content ) ) {
+						var tracks = jQuery( data.model.content ).filter( 'track' );
+						_.each( tracks.toArray(), function (track) {
+							content += track.outerHTML; #>
+						<p>
+							<input class="content-track" type="text" value="{{ track.outerHTML }}" />
+							<button type="button" class="button-link remove-setting remove-track">Remove video track</button>
+						</p>
+						<# } ); #>
+					<# } else { #>
+					<em>There are no associated subtitles.</em>
+					<# } #>
+					<textarea class="hidden content-setting">{{ content }}</textarea>
+				</label>
+			</div>
+		</div>
+	</script>
+
+	<script type="text/html" id="tmpl-editor-gallery">
+		<# if ( data.attachments.length ) { #>
+			<div class="gallery gallery-columns-{{ data.columns }}">
+				<# _.each( data.attachments, function( attachment, index ) { #>
+					<dl class="gallery-item">
+						<dt class="gallery-icon">
+							<# if ( attachment.thumbnail ) { #>
+								<img src="{{ attachment.thumbnail.url }}" width="{{ attachment.thumbnail.width }}" height="{{ attachment.thumbnail.height }}" alt="" />
+							<# } else { #>
+								<img src="{{ attachment.url }}" alt="" />
+							<# } #>
+						</dt>
+						<# if ( attachment.caption ) { #>
+							<dd class="wp-caption-text gallery-caption">
+								{{{ data.verifyHTML( attachment.caption ) }}}
+							</dd>
+						<# } #>
+					</dl>
+					<# if ( index % data.columns === data.columns - 1 ) { #>
+						<br style="clear: both;">
+					<# } #>
+				<# } ); #>
+			</div>
+		<# } else { #>
+			<div class="wpview-error">
+				<div class="dashicons dashicons-format-gallery"></div><p>No items found.</p>
+			</div>
+		<# } #>
+	</script>
+
+	<script type="text/html" id="tmpl-crop-content">
+		<img class="crop-image" src="{{ data.url }}" alt="Image crop area preview. Requires mouse interaction.">
+		<div class="upload-errors"></div>
+	</script>
+
+	<script type="text/html" id="tmpl-site-icon-preview">
+		<h2>Preview</h2>
+		<strong aria-hidden="true">As a browser icon</strong>
+		<div class="favicon-preview">
+			<img src="http://src.wordpress-develop.dev/wp-admin/images/browser.png" class="browser-preview" width="182" height="" alt="" />
+
+			<div class="favicon">
+				<img id="preview-favicon" src="{{ data.url }}" alt="Preview as a browser icon"/>
+			</div>
+			<span class="browser-title" aria-hidden="true">WordPress Develop</span>
+		</div>
+
+		<strong aria-hidden="true">As an app icon</strong>
+		<div class="app-icon-preview">
+			<img id="preview-app-icon" src="{{ data.url }}" alt="Preview as an app icon"/>
+		</div>
+	</script>
+
+		</div><!-- end widget templates -->
+		<script src="../../build/wp-includes/js/tinymce/tinymce.min.js"></script>
+		<script src="../../build/wp-includes/js/tinymce/plugins/wptextpattern/plugin.js"></script>
+		<script src="wp-includes/js/tinymce/plugins/wptextpattern/plugin.js"></script>
+		<script src="wp-includes/js/tinymce/tinymce-obsolete.js"></script>
+
+		<!-- Changeset locked notice template -->
+		<script type="text/html" id="tmpl-customize-changeset-locked-notice">
+			<div id="customize-changeset-lock-dialog" class="notification-dialog-wrap hidden">
+				<div class="notification-dialog-background"></div>
+				<div class="notification-dialog">
+					<div class="customize-changeset-locked-message">
+						<div class="customize-changeset-locked-avatar"></div>
+						<p class="currently-editing wp-tab-first" tabindex="0">
+							<span class="customize-notice-user-name"></span> <span class="customize-take-over-message">is already customizing this site. Do you want to take over?</span></p>
+						<p>
+							<a class="button customize-notice-go-back-button" href="/wp-admin/post.php?post=505&#038;action=edit">Go back</a>
+							<a class="button customize-notice-preview-button" href="http://example.org/?customize_changeset_uuid=7a796f7a-255c-49f5-9d25-cef0c315a4ba">Preview</a>
+							<a class="button button-primary wp-tab-last customize-notice-take-over-button" href="http://example.org/wp-admin/customize.php?changeset_uuid=7a796f7a-255c-49f5-9d25-cef0c315a4ba&action=customize_take_over_changeset&nonce=e3a1df16d2&return=/wp-admin/post.php?post=505&action=edit">Take over</a>
+						</p>
+					</div>
+				</div>
+			</div>
+		</script>
+
+		<!-- Updates templates and HTML fixtures -->
+		<script id="tmpl-wp-updates-admin-notice" type="text/html">
+			<div <# if ( data.id ) { #>id="{{ data.id }}"<# } #> class="notice {{ data.className }}"><p>{{{ data.message }}}</p></div>
+		</script>
+		<div hidden>
+			<ul>
+			<li id="wp-admin-bar-updates">
+				<a class="ab-item" href="wp-admin/update-core.php" title="2 Plugin Updates">
+					<span class="ab-icon"></span>
+					<span class="ab-label">2</span>
+					<span class="screen-reader-text">2 Plugin Updates</span>
+				</a>
+			</li>
+			<li class="wp-has-submenu wp-not-current-submenu menu-top menu-icon-plugins" id="menu-plugins">
+				<a href="plugins.php" class="wp-has-submenu wp-not-current-submenu menu-top menu-icon-plugins" aria-haspopup="true">
+					<div class="wp-menu-arrow"><div></div></div>
+					<div class="wp-menu-image dashicons-before dashicons-admin-plugins"><br></div>
+					<div class="wp-menu-name">Plugins
+				<span class="update-plugins count-2">
+					<span class="plugin-count">2</span>
+				</span>
+					</div>
+				</a>
+				<ul class="wp-submenu wp-submenu-wrap">
+					<li class="wp-submenu-head" aria-hidden="true">Plugins
+				<span class="update-plugins count-2">
+					<span class="plugin-count">2</span>
+				</span>
+					</li>
+					<li class="wp-first-item">
+						<a href="plugins.php" class="wp-first-item">Installed Plugins</a></li><li><a href="plugin-install.php">Add New</a>
+				</li><li>
+					<a href="plugin-editor.php">Editor</a>
+				</li>
+				</ul>
+			</li>
+			</ul>
+		</div>
+	</body>
+</html>

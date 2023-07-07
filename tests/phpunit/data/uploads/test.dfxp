@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tt xml:lang="en" xmlns="http://www.w3.org/ns/ttml"
+	xmlns:tts="http://www.w3.org/ns/ttml#styling"
+	xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+	<head>
+		<styling>
+			<style xml:id="defaultCaption" tts:fontSize="10" tts:fontFamily="SansSerif"
+			tts:fontWeight="normal" tts:fontStyle="normal"
+			tts:textDecoration="none" tts:color="white"
+			tts:backgroundColor="black" />
+		</styling>
+
+	</head>
+	<body>
+		<div style="defaultCaption" xml:lang="en">
+			<p begin="00:00:03.400" end="00:00:06.177">In this lesson, we're going to<br />be talking about finance. And</p>
+			<p begin="00:00:06.177" end="00:00:10.009">one of the most important aspects<br />of finance is interest.</p>
+			<p begin="00:00:10.009" end="00:00:13.655">When I go to a bank or some<br />other lending institution</p>
+			<p begin="00:00:13.655" end="00:00:17.720">to borrow money, the bank is happy<br />to give me that money. But then I'm</p>
+			<p begin="00:00:17.900" end="00:00:21.480">going to be paying the bank for the<br />privilege of using their money. And that</p>
+			<p begin="00:00:21.660" end="00:00:26.440">amount of money that I pay the bank is<br />called interest. Likewise, if I put money</p>
+			<p begin="00:00:26.620" end="00:00:31.220">in a savings account or I purchase a<br />certificate of deposit, the bank just</p>
+			<p begin="00:00:31.300" end="00:00:35.800">doesn't put my money in a little box<br />and leave it there until later. They take</p>
+			<p begin="00:00:35.800" end="00:00:40.822">my money and lend it to someone<br />else. So they are using my money.</p>
+			<p begin="00:00:40.822" end="00:00:44.400">The bank has to pay me for the privilege<br />of using my money.</p>
+			<p begin="00:00:44.400" end="00:00:48.700">Now what makes banks<br />profitable is the rate</p>
+			<p begin="00:00:48.700" end="00:00:53.330">that they charge people to use the bank's<br />money is higher than the rate that they</p>
+			<p begin="00:00:53.510" end="00:01:00.720">pay people like me to use my money. The<br />amount of interest that a person pays or</p>
+			<p begin="00:01:00.800" end="00:01:06.640">earns is dependent on three things. It's<br />dependent on how much money is involved.</p>
+			<p begin="00:01:06.820" end="00:01:11.300">It's dependent upon the rate of interest<br />being paid or the rate of interest being</p>
+			<p begin="00:01:11.480" end="00:01:17.898">charged. And it's also dependent upon<br />how much time is involved. If I have</p>
+			<p begin="00:01:17.898" end="00:01:22.730">a loan and I want to decrease the amount<br />of interest that I'm going to pay, then</p>
+			<p begin="00:01:22.800" end="00:01:28.040">I'm either going to have to decrease how<br />much money I borrow, I'm going to have</p>
+			<p begin="00:01:28.220" end="00:01:32.420">to borrow the money over a shorter period<br />of time, or I'm going to have to find a</p>
+			<p begin="00:01:32.600" end="00:01:37.279">lending institution that charges a lower<br />interest rate. On the other hand, if I</p>
+			<p begin="00:01:37.279" end="00:01:41.480">want to earn more interest on my<br />investment, I'm going to have to invest</p>
+			<p begin="00:01:41.480" end="00:01:46.860">more money, leave the money in the<br />account for a longer period of time, or</p>
+			<p begin="00:01:46.860" end="00:01:49.970">find an institution that will pay<br />me a higher interest rate.</p>
+		</div>
+	</body>
+</tt>
+<?xml version="1.0" encoding="utf-8"?>
+<tt xml:lang="en" xmlns="http://www.w3.org/ns/ttml"
+	xmlns:tts="http://www.w3.org/ns/ttml#styling"
+	xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+	<head>
+		<styling>
+			<style xml:id="defaultCaption" tts:fontSize="10" tts:fontFamily="SansSerif"
+			tts:fontWeight="normal" tts:fontStyle="normal"
+			tts:textDecoration="none" tts:color="white"
+			tts:backgroundColor="black" />
+		</styling>
+
+	</head>
+	<body>
+		<div style="defaultCaption" xml:lang="en">
+			<p begin="00:00:03.400" end="00:00:06.177">In this lesson, we're going to<br />be talking about finance. And</p>
+			<p begin="00:00:06.177" end="00:00:10.009">one of the most important aspects<br />of finance is interest.</p>
+			<p begin="00:00:10.009" end="00:00:13.655">When I go to a bank or some<br />other lending institution</p>
+			<p begin="00:00:13.655" end="00:00:17.720">to borrow money, the bank is happy<br />to give me that money. But then I'm</p>
+			<p begin="00:00:17.900" end="00:00:21.480">going to be paying the bank for the<br />privilege of using their money. And that</p>
+			<p begin="00:00:21.660" end="00:00:26.440">amount of money that I pay the bank is<br />called interest. Likewise, if I put money</p>
+			<p begin="00:00:26.620" end="00:00:31.220">in a savings account or I purchase a<br />certificate of deposit, the bank just</p>
+			<p begin="00:00:31.300" end="00:00:35.800">doesn't put my money in a little box<br />and leave it there until later. They take</p>
+			<p begin="00:00:35.800" end="00:00:40.822">my money and lend it to someone<br />else. So they are using my money.</p>
+			<p begin="00:00:40.822" end="00:00:44.400">The bank has to pay me for the privilege<br />of using my money.</p>
+			<p begin="00:00:44.400" end="00:00:48.700">Now what makes banks<br />profitable is the rate</p>
+			<p begin="00:00:48.700" end="00:00:53.330">that they charge people to use the bank's<br />money is higher than the rate that they</p>
+			<p begin="00:00:53.510" end="00:01:00.720">pay people like me to use my money. The<br />amount of interest that a person pays or</p>
+			<p begin="00:01:00.800" end="00:01:06.640">earns is dependent on three things. It's<br />dependent on how much money is involved.</p>
+			<p begin="00:01:06.820" end="00:01:11.300">It's dependent upon the rate of interest<br />being paid or the rate of interest being</p>
+			<p begin="00:01:11.480" end="00:01:17.898">charged. And it's also dependent upon<br />how much time is involved. If I have</p>
+			<p begin="00:01:17.898" end="00:01:22.730">a loan and I want to decrease the amount<br />of interest that I'm going to pay, then</p>
+			<p begin="00:01:22.800" end="00:01:28.040">I'm either going to have to decrease how<br />much money I borrow, I'm going to have</p>
+			<p begin="00:01:28.220" end="00:01:32.420">to borrow the money over a shorter period<br />of time, or I'm going to have to find a</p>
+			<p begin="00:01:32.600" end="00:01:37.279">lending institution that charges a lower<br />interest rate. On the other hand, if I</p>
+			<p begin="00:01:37.279" end="00:01:41.480">want to earn more interest on my<br />investment, I'm going to have to invest</p>
+			<p begin="00:01:41.480" end="00:01:46.860">more money, leave the money in the<br />account for a longer period of time, or</p>
+			<p begin="00:01:46.860" end="00:01:49.970">find an institution that will pay<br />me a higher interest rate.</p>
+		</div>
+	</body>
+</tt>
+<?xml version="1.0" encoding="utf-8"?>
+<tt xml:lang="en" xmlns="http://www.w3.org/ns/ttml"
+	xmlns:tts="http://www.w3.org/ns/ttml#styling"
+	xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+	<head>
+		<styling>
+			<style xml:id="defaultCaption" tts:fontSize="10" tts:fontFamily="SansSerif"
+			tts:fontWeight="normal" tts:fontStyle="normal"
+			tts:textDecoration="none" tts:color="white"
+			tts:backgroundColor="black" />
+		</styling>
+
+	</head>
+	<body>
+		<div style="defaultCaption" xml:lang="en">
+			<p begin="00:00:03.400" end="00:00:06.177">In this lesson, we're going to<br />be talking about finance. And</p>
+			<p begin="00:00:06.177" end="00:00:10.009">one of the most important aspects<br />of finance is interest.</p>
+			<p begin="00:00:10.009" end="00:00:13.655">When I go to a bank or some<br />other lending institution</p>
+			<p begin="00:00:13.655" end="00:00:17.720">to borrow money, the bank is happy<br />to give me that money. But then I'm</p>
+			<p begin="00:00:17.900" end="00:00:21.480">going to be paying the bank for the<br />privilege of using their money. And that</p>
+			<p begin="00:00:21.660" end="00:00:26.440">amount of money that I pay the bank is<br />called interest. Likewise, if I put money</p>
+			<p begin="00:00:26.620" end="00:00:31.220">in a savings account or I purchase a<br />certificate of deposit, the bank just</p>
+			<p begin="00:00:31.300" end="00:00:35.800">doesn't put my money in a little box<br />and leave it there until later. They take</p>
+			<p begin="00:00:35.800" end="00:00:40.822">my money and lend it to someone<br />else. So they are using my money.</p>
+			<p begin="00:00:40.822" end="00:00:44.400">The bank has to pay me for the privilege<br />of using my money.</p>
+			<p begin="00:00:44.400" end="00:00:48.700">Now what makes banks<br />profitable is the rate</p>
+			<p begin="00:00:48.700" end="00:00:53.330">that they charge people to use the bank's<br />money is higher than the rate that they</p>
+			<p begin="00:00:53.510" end="00:01:00.720">pay people like me to use my money. The<br />amount of interest that a person pays or</p>
+			<p begin="00:01:00.800" end="00:01:06.640">earns is dependent on three things. It's<br />dependent on how much money is involved.</p>
+			<p begin="00:01:06.820" end="00:01:11.300">It's dependent upon the rate of interest<br />being paid or the rate of interest being</p>
+			<p begin="00:01:11.480" end="00:01:17.898">charged. And it's also dependent upon<br />how much time is involved. If I have</p>
+			<p begin="00:01:17.898" end="00:01:22.730">a loan and I want to decrease the amount<br />of interest that I'm going to pay, then</p>
+			<p begin="00:01:22.800" end="00:01:28.040">I'm either going to have to decrease how<br />much money I borrow, I'm going to have</p>
+			<p begin="00:01:28.220" end="00:01:32.420">to borrow the money over a shorter period<br />of time, or I'm going to have to find a</p>
+			<p begin="00:01:32.600" end="00:01:37.279">lending institution that charges a lower<br />interest rate. On the other hand, if I</p>
+			<p begin="00:01:37.279" end="00:01:41.480">want to earn more interest on my<br />investment, I'm going to have to invest</p>
+			<p begin="00:01:41.480" end="00:01:46.860">more money, leave the money in the<br />account for a longer period of time, or</p>
+			<p begin="00:01:46.860" end="00:01:49.970">find an institution that will pay<br />me a higher interest rate.</p>
+		</div>
+	</body>
+</tt>
+<?xml version="1.0" encoding="utf-8"?>
+<tt xml:lang="en" xmlns="http://www.w3.org/ns/ttml"
+	xmlns:tts="http://www.w3.org/ns/ttml#styling"
+	xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+	<head>
+		<styling>
+			<style xml:id="defaultCaption" tts:fontSize="10" tts:fontFamily="SansSerif"
+			tts:fontWeight="normal" tts:fontStyle="normal"
+			tts:textDecoration="none" tts:color="white"
+			tts:backgroundColor="black" />
+		</styling>
+
+	</head>
+	<body>
+		<div style="defaultCaption" xml:lang="en">
+			<p begin="00:00:03.400" end="00:00:06.177">In this lesson, we're going to<br />be talking about finance. And</p>
+			<p begin="00:00:06.177" end="00:00:10.009">one of the most important aspects<br />of finance is interest.</p>
+			<p begin="00:00:10.009" end="00:00:13.655">When I go to a bank or some<br />other lending institution</p>
+			<p begin="00:00:13.655" end="00:00:17.720">to borrow money, the bank is happy<br />to give me that money. But then I'm</p>
+			<p begin="00:00:17.900" end="00:00:21.480">going to be paying the bank for the<br />privilege of using their money. And that</p>
+			<p begin="00:00:21.660" end="00:00:26.440">amount of money that I pay the bank is<br />called interest. Likewise, if I put money</p>
+			<p begin="00:00:26.620" end="00:00:31.220">in a savings account or I purchase a<br />certificate of deposit, the bank just</p>
+			<p begin="00:00:31.300" end="00:00:35.800">doesn't put my money in a little box<br />and leave it there until later. They take</p>
+			<p begin="00:00:35.800" end="00:00:40.822">my money and lend it to someone<br />else. So they are using my money.</p>
+			<p begin="00:00:40.822" end="00:00:44.400">The bank has to pay me for the privilege<br />of using my money.</p>
+			<p begin="00:00:44.400" end="00:00:48.700">Now what makes banks<br />profitable is the rate</p>
+			<p begin="00:00:48.700" end="00:00:53.330">that they charge people to use the bank's<br />money is higher than the rate that they</p>
+			<p begin="00:00:53.510" end="00:01:00.720">pay people like me to use my money. The<br />amount of interest that a person pays or</p>
+			<p begin="00:01:00.800" end="00:01:06.640">earns is dependent on three things. It's<br />dependent on how much money is involved.</p>
+			<p begin="00:01:06.820" end="00:01:11.300">It's dependent upon the rate of interest<br />being paid or the rate of interest being</p>
+			<p begin="00:01:11.480" end="00:01:17.898">charged. And it's also dependent upon<br />how much time is involved. If I have</p>
+			<p begin="00:01:17.898" end="00:01:22.730">a loan and I want to decrease the amount<br />of interest that I'm going to pay, then</p>
+			<p begin="00:01:22.800" end="00:01:28.040">I'm either going to have to decrease how<br />much money I borrow, I'm going to have</p>
+			<p begin="00:01:28.220" end="00:01:32.420">to borrow the money over a shorter period<br />of time, or I'm going to have to find a</p>
+			<p begin="00:01:32.600" end="00:01:37.279">lending institution that charges a lower<br />interest rate. On the other hand, if I</p>
+			<p begin="00:01:37.279" end="00:01:41.480">want to earn more interest on my<br />investment, I'm going to have to invest</p>
+			<p begin="00:01:41.480" end="00:01:46.860">more money, leave the money in the<br />account for a longer period of time, or</p>
+			<p begin="00:01:46.860" end="00:01:49.970">find an institution that will pay<br />me a higher interest rate.</p>
+		</div>
+	</body>
+</tt>

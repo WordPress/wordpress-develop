@@ -1,0 +1,86 @@
+var _n = wp.i18n._n,
+	sprintf = wp.i18n.sprintf,
+	Selection;
+
+/**
+ * wp.media.view.Selection
+ *
+ * @memberOf wp.media.view
+ *
+ * @class
+ * @augments wp.media.View
+ * @augments wp.Backbone.View
+ * @augments Backbone.View
+ */
+Selection = wp.media.View.extend(/** @lends wp.media.view.Selection.prototype */{
+	tagName:   'div',
+	className: 'media-selection',
+	template:  wp.template('media-selection'),
+
+	events: {
+		'click .edit-selection':  'edit',
+		'click .clear-selection': 'clear'
+	},
+
+	initialize: function() {
+		_.defaults( this.options, {
+			editable:  false,
+			clearable: true
+		});
+
+		/**
+		 * @member {wp.media.view.Attachments.Selection}
+		 */
+		this.attachments = new wp.media.view.Attachments.Selection({
+			controller: this.controller,
+			collection: this.collection,
+			selection:  this.collection,
+			model:      new Backbone.Model()
+		});
+
+		this.views.set( '.selection-view', this.attachments );
+		this.collection.on( 'add remove reset', this.refresh, this );
+		this.controller.on( 'content:activate', this.refresh, this );
+	},
+
+	ready: function() {
+		this.refresh();
+	},
+
+	refresh: function() {
+		// If the selection hasn't been rendered, bail.
+		if ( ! this.$el.children().length ) {
+			return;
+		}
+
+		var collection = this.collection,
+			editing = 'edit-selection' === this.controller.content.mode();
+
+		// If nothing is selected, display nothing.
+		this.$el.toggleClass( 'empty', ! collection.length );
+		this.$el.toggleClass( 'one', 1 === collection.length );
+		this.$el.toggleClass( 'editing', editing );
+
+		this.$( '.count' ).text(
+			/* translators: %s: Number of selected media attachments. */
+			sprintf( _n( '%s item selected', '%s items selected', collection.length ), collection.length )
+		);
+	},
+
+	edit: function( event ) {
+		event.preventDefault();
+		if ( this.options.editable ) {
+			this.options.editable.call( this, this.collection );
+		}
+	},
+
+	clear: function( event ) {
+		event.preventDefault();
+		this.collection.reset();
+
+		// Move focus to the modal.
+		this.controller.modal.focusManager.focus();
+	}
+});
+
+module.exports = Selection;

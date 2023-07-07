@@ -1,0 +1,102 @@
+# gitignore file for WordPress Core
+
+# Configuration files with possibly sensitive information
+wp-config.php
+wp-tests-config.php
+.htaccess
+
+# Files and folders related to build/test tools
+.phpunit.result.cache
+/phpunit.xml
+/.phpcs.xml
+/phpcs.xml
+.cache/*
+/tests/phpunit/data/plugins/wordpress-importer
+/tests/phpunit/data/.trac-ticket-cache*
+/tests/qunit/compiled.html
+/tests/performance/**/*.test.results.json
+/src/.wp-tests-version
+/node_modules
+/npm-debug.log
+/build
+/tests/phpunit/build
+/wp-cli.local.yml
+/jsdoc
+/composer.lock
+/vendor
+/src/wp-admin/css/*.min.css
+/src/wp-admin/css/*-rtl.css
+/src/wp-admin/css/colors/*/*.css
+/src/wp-admin/js
+/src/wp-includes/assets/*
+!/src/wp-includes/assets/script-loader-packages.min.php
+/src/wp-includes/js
+/src/wp-includes/css/dist
+/src/wp-includes/css/*.min.css
+/src/wp-includes/css/*-rtl.css
+/src/wp-includes/blocks/**/*.css
+/src/wp-includes/blocks/**/*.js
+/src/wp-includes/blocks/**/*.js.map
+/packagehash.txt
+/artifacts
+/setup.log
+
+# Files and folders that get created in wp-content
+/src/wp-content/blogs.dir
+/src/wp-content/languages
+/src/wp-content/mu-plugins
+/src/wp-content/plugins
+/src/wp-content/themes/*
+!/src/wp-content/themes/twentyten
+!/src/wp-content/themes/twentyeleven
+!/src/wp-content/themes/twentytwelve
+!/src/wp-content/themes/twentythirteen
+!/src/wp-content/themes/twentyfourteen
+!/src/wp-content/themes/twentyfifteen
+!/src/wp-content/themes/twentysixteen
+!/src/wp-content/themes/twentyseventeen
+!/src/wp-content/themes/twentynineteen
+!/src/wp-content/themes/twentytwenty
+!/src/wp-content/themes/twentytwentyone
+!/src/wp-content/themes/twentytwentytwo
+!/src/wp-content/themes/twentytwentythree
+/src/wp-content/upgrade
+/src/wp-content/uploads
+/src/wp-content/advanced-cache.php
+/src/wp-content/blog-deleted.php
+/src/wp-content/blog-inactive.php
+/src/wp-content/blog-suspended.php
+/src/wp-content/db.php
+/src/wp-content/db-error.php
+/src/wp-content/debug.log
+/src/wp-content/fatal-error-handler.php
+/src/wp-content/install.php
+/src/wp-content/maintenance.php
+/src/wp-content/object-cache.php
+/src/wp-content/php-error.php
+/src/wp-content/sunrise.php
+
+# Files and folders relating to wp-content build tools.
+/src/wp-content/themes/twentynineteen/node_modules
+/src/wp-content/themes/twentytwentyone/node_modules
+/src/wp-content/themes/twentytwenty/node_modules
+
+# Operating system specific files
+.DS_Store
+
+# Ignore other .gitignore files to allow for personal customizations
+.gitignore
+
+# Files related to applying patches
+*.rej
+*.orig
+*.patch
+*.diff
+.svn
+!/src/js/_enqueues/vendor
+
+# Files for local environment config
+/docker-compose.override.yml
+
+# Visual regression test diffs
+tests/visual-regression/specs/__image_snapshots__
