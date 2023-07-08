@@ -51,7 +51,7 @@
 		fb.width = 194;
 
 		// Fix background PNGs in IE6
-		if ( navigator.appVersion.match( /MSIE [0-6]\./ ) ) {
+		if ( navigator.userAgent.match( /MSIE [0-6]\./ ) ) {
 			$( '*', e ).each( function () {
 				if ( this.currentStyle.backgroundImage !== 'none' ) {
 					var image = this.currentStyle.backgroundImage;
