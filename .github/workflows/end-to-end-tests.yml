@@ -50,12 +50,16 @@ jobs:
   # - Run the E2E tests.
   # - Ensures version-controlled files are not modified or deleted.
   e2e-tests:
-    name: E2E Tests
+    name: E2E Tests with SCRIPT_DEBUG ${{ matrix.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
     timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        LOCAL_SCRIPT_DEBUG: [ true, false ]
 
     steps:
       - name: Configure environment variables
@@ -105,10 +109,20 @@ jobs:
           docker-compose run --rm php locale -a
 
       - name: Install WordPress
+        env:
+          LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
         run: npm run env:install
 
       - name: Run E2E tests
         run: npm run test:e2e
+
+      - name: Archive debug artifacts (screenshots, HTML snapshots)
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        if: always()
+        with:
+            name: failures-artifacts
+            path: artifacts
+            if-no-files-found: ignore
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code

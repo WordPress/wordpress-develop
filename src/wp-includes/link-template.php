@@ -222,7 +222,7 @@ function get_permalink( $post = 0, $leavename = false ) {
 	) {
 
 		$category = '';
-		if ( strpos( $permalink, '%category%' ) !== false ) {
+		if ( str_contains( $permalink, '%category%' ) ) {
 			$cats = get_the_category( $post->ID );
 			if ( $cats ) {
 				$cats = wp_list_sort(
@@ -260,7 +260,7 @@ function get_permalink( $post = 0, $leavename = false ) {
 		}
 
 		$author = '';
-		if ( strpos( $permalink, '%author%' ) !== false ) {
+		if ( str_contains( $permalink, '%author%' ) ) {
 			$authordata = get_userdata( $post->post_author );
 			$author     = $authordata->user_nicename;
 		}
@@ -496,13 +496,13 @@ function get_attachment_link( $post = null, $leavename = false ) {
 			$parentlink = get_permalink( $post->post_parent );
 		}
 
-		if ( is_numeric( $post->post_name ) || false !== strpos( get_option( 'permalink_structure' ), '%category%' ) ) {
+		if ( is_numeric( $post->post_name ) || str_contains( get_option( 'permalink_structure' ), '%category%' ) ) {
 			$name = 'attachment/' . $post->post_name; // <permalink>/<int>/ is paged so we use the explicit attachment marker.
 		} else {
 			$name = $post->post_name;
 		}
 
-		if ( strpos( $parentlink, '?' ) === false ) {
+		if ( ! str_contains( $parentlink, '?' ) ) {
 			$link = user_trailingslashit( trailingslashit( $parentlink ) . '%postname%' );
 		}
 
@@ -692,7 +692,7 @@ function get_feed_link( $feed = '' ) {
 	$permalink = $wp_rewrite->get_feed_permastruct();
 
 	if ( $permalink ) {
-		if ( false !== strpos( $feed, 'comments_' ) ) {
+		if ( str_contains( $feed, 'comments_' ) ) {
 			$feed      = str_replace( 'comments_', '', $feed );
 			$permalink = $wp_rewrite->get_comment_feed_permastruct();
 		}
@@ -709,7 +709,7 @@ function get_feed_link( $feed = '' ) {
 			$feed = get_default_feed();
 		}
 
-		if ( false !== strpos( $feed, 'comments_' ) ) {
+		if ( str_contains( $feed, 'comments_' ) ) {
 			$feed = str_replace( 'comments_', 'comments-', $feed );
 		}
 
@@ -1435,9 +1435,11 @@ function get_preview_post_link( $post = null, $query_args = array(), $preview_li
  * Retrieves the edit post link for post.
  *
  * Can be used within the WordPress loop or outside of it. Can be used with
- * pages, posts, attachments, and revisions.
+ * pages, posts, attachments, revisions, global styles, templates, and template parts.
  *
  * @since 2.3.0
+ * @since 6.3.0 Adds custom link for wp_navigation post types.
+ *              Adds custom links for wp_template_part and wp_template post types.
  *
  * @param int|WP_Post $post    Optional. Post ID or post object. Default is the global `$post`.
  * @param string      $context Optional. How to output the '&' character. Default '&amp;'.
@@ -1469,10 +1471,15 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
 		return;
 	}
 
-	if ( $post_type_object->_edit_link ) {
+	$link = '';
+
+	if ( 'wp_template' === $post->post_type || 'wp_template_part' === $post->post_type ) {
+		$slug = urlencode( get_stylesheet() . '//' . $post->post_name );
+		$link = admin_url( sprintf( $post_type_object->_edit_link, $post->post_type, $slug ) );
+	} elseif ( 'wp_navigation' === $post->post_type ) {
+		$link = admin_url( sprintf( $post_type_object->_edit_link, (string) $post->ID ) );
+	} elseif ( $post_type_object->_edit_link ) {
 		$link = admin_url( sprintf( $post_type_object->_edit_link . $action, $post->ID ) );
-	} else {
-		$link = '';
 	}
 
 	/**
@@ -1817,7 +1824,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 
 	if ( ! empty( $excluded_terms ) && ! is_array( $excluded_terms ) ) {
 		// Back-compat, $excluded_terms used to be $excluded_categories with IDs separated by " and ".
-		if ( false !== strpos( $excluded_terms, ' and ' ) ) {
+		if ( str_contains( $excluded_terms, ' and ' ) ) {
 			_deprecated_argument(
 				__FUNCTION__,
 				'3.3.0',
@@ -3021,7 +3028,7 @@ function _navigation_markup( $links, $css_class = 'posts-navigation', $screen_re
 	 */
 	$template = apply_filters( 'navigation_markup_template', $template, $css_class );
 
-	return sprintf( $template, sanitize_html_class( $css_class ), esc_html( $screen_reader_text ), $links, esc_html( $aria_label ) );
+	return sprintf( $template, sanitize_html_class( $css_class ), esc_html( $screen_reader_text ), $links, esc_attr( $aria_label ) );
 }
 
 /**
@@ -3888,7 +3895,7 @@ function set_url_scheme( $url, $scheme = null ) {
 	}
 
 	$url = trim( $url );
-	if ( substr( $url, 0, 2 ) === '//' ) {
+	if ( str_starts_with( $url, '//' ) ) {
 		$url = 'http:' . $url;
 	}
 

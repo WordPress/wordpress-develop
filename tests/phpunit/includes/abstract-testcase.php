@@ -281,6 +281,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$lazyloader = wp_metadata_lazyloader();
 		$lazyloader->reset_queue( 'term' );
 		$lazyloader->reset_queue( 'comment' );
+		$lazyloader->reset_queue( 'blog' );
 	}
 
 	/**
@@ -387,12 +388,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	public static function flush_cache() {
 		global $wp_object_cache;
 
-		$wp_object_cache->group_ops      = array();
-		$wp_object_cache->stats          = array();
-		$wp_object_cache->memcache_debug = array();
-		$wp_object_cache->cache          = array();
+		wp_cache_flush_runtime();
 
-		if ( method_exists( $wp_object_cache, '__remoteset' ) ) {
+		if ( is_object( $wp_object_cache ) && method_exists( $wp_object_cache, '__remoteset' ) ) {
 			$wp_object_cache->__remoteset();
 		}
 
@@ -415,10 +413,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 				'rss',
 				'users',
 				'user-queries',
+				'user_meta',
 				'useremail',
 				'userlogins',
-				'usermeta',
-				'user_meta',
 				'userslugs',
 			)
 		);

@@ -6,27 +6,13 @@
  */
 
 /**
- * Adds necessary filters to use 'wp_template' posts instead of theme template files.
+ * Adds necessary hooks to resolve '_wp-find-template' requests.
  *
  * @access private
  * @since 5.9.0
  */
 function _add_template_loader_filters() {
-	if ( ! current_theme_supports( 'block-templates' ) ) {
-		return;
-	}
-
-	$template_types = array_keys( get_default_block_template_types() );
-	foreach ( $template_types as $template_type ) {
-		// Skip 'embed' for now because it is not a regular template type.
-		if ( 'embed' === $template_type ) {
-			continue;
-		}
-		add_filter( str_replace( '-', '', $template_type ) . '_template', 'locate_block_template', 20, 3 );
-	}
-
-	// Request to resolve a template.
-	if ( isset( $_GET['_wp-find-template'] ) ) {
+	if ( isset( $_GET['_wp-find-template'] ) && current_theme_supports( 'block-templates' ) ) {
 		add_action( 'pre_get_posts', '_resolve_template_for_new_post' );
 	}
 }
@@ -166,7 +152,7 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 	// Is the active theme a child theme, and is the PHP fallback template part of it?
 	if (
 		str_starts_with( $fallback_template, $theme_base_path ) &&
-		strpos( $fallback_template, $parent_theme_base_path ) === false
+		! str_contains( $fallback_template, $parent_theme_base_path )
 	) {
 		$fallback_template_slug = substr(
 			$fallback_template,
@@ -236,12 +222,12 @@ function get_the_block_template_html() {
 
 	$content = $wp_embed->run_shortcode( $_wp_current_template_content );
 	$content = $wp_embed->autoembed( $content );
+	$content = shortcode_unautop( $content );
+	$content = do_shortcode( $content );
 	$content = do_blocks( $content );
 	$content = wptexturize( $content );
 	$content = convert_smilies( $content );
-	$content = shortcode_unautop( $content );
 	$content = wp_filter_content_tags( $content, 'template' );
-	$content = do_shortcode( $content );
 	$content = str_replace( ']]>', ']]&gt;', $content );
 
 	// Wrap block template in .wp-site-blocks to allow for specific descendant styles

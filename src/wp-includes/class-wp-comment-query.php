@@ -481,12 +481,16 @@ class WP_Comment_Query {
 
 		$comment_ids = array_map( 'intval', $comment_ids );
 
+		if ( $this->query_vars['update_comment_meta_cache'] ) {
+			wp_lazyload_comment_meta( $comment_ids );
+		}
+
 		if ( 'ids' === $this->query_vars['fields'] ) {
 			$this->comments = $comment_ids;
 			return $this->comments;
 		}
 
-		_prime_comment_caches( $comment_ids, $this->query_vars['update_comment_meta_cache'] );
+		_prime_comment_caches( $comment_ids, false );
 
 		// Fetch full comment objects from the primed cache.
 		$_comments = array();
@@ -673,7 +677,7 @@ class WP_Comment_Query {
 				// If no date-related order is available, use the date from the first available clause.
 				if ( ! $comment_id_order ) {
 					foreach ( $orderby_array as $orderby_clause ) {
-						if ( false !== strpos( 'ASC', $orderby_clause ) ) {
+						if ( str_contains( 'ASC', $orderby_clause ) ) {
 							$comment_id_order = 'ASC';
 						} else {
 							$comment_id_order = 'DESC';
