@@ -221,6 +221,11 @@ function do_shortcode( $content, $ignore_html = false ) {
 		return $content;
 	}
 
+	/*
+	 * When wp_get_attachment_image() is called during shortcode rendering,
+	 * we need to make clear that the context is a shortcode and not part
+	 * of the theme's template rendering logic.
+	 */
 	$callback = static function() {
 		return 'do_shortcode';
 	};
