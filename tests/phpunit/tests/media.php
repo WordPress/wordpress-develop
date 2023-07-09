@@ -5011,7 +5011,7 @@ EOF;
 	public function data_wp_get_loading_optimization_attributes_in_shortcodes() {
 		return array(
 			'default' => array(
-				'setup' => function () {
+				'setup'    => function () {
 					global $wp_query;
 
 					// Set WP_Query to be in the loop and main query.
@@ -5021,10 +5021,10 @@ EOF;
 				'expected' => array(
 					'fetchpriority' => 'high',
 				),
-				'message' => 'Fetch priority not applied to during shortcode rendering.',
+				'message'  => 'Fetch priority not applied to during shortcode rendering.',
 			),
-			'lazy' => array(
-				'setup' => function () {
+			'lazy'    => array(
+				'setup'    => function () {
 					global $wp_query;
 
 					// Set WP_Query to be in the loop and main query.
@@ -5037,17 +5037,17 @@ EOF;
 				'expected' => array(
 					'loading' => 'lazy',
 				),
-				'message' => 'Lazy-loading not applied to during shortcode rendering.',
+				'message'  => 'Lazy-loading not applied to during shortcode rendering.',
 			),
 			'no_loop' => array(
-				'setup' => function () {
+				'setup'    => function () {
 					// Avoid setting up the WP_Query object for the loop.
 					return;
 				},
 				'expected' => array(
 					'loading' => 'lazy',
 				),
-				'message' => 'Lazy-loading not applied to shortcodes outside the loop.',
+				'message'  => 'Lazy-loading not applied to shortcodes outside the loop.',
 			),
 		);
 	}
