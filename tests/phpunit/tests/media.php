@@ -4992,6 +4992,82 @@ EOF;
 	}
 
 	/**
+	 * @ticket 58681
+	 *
+	 * @dataProvider data_wp_get_loading_optimization_attributes_in_shortcodes
+	 */
+	public function test_wp_get_loading_optimization_attributes_in_shortcodes( $setup, $expected, $message) {
+		$attr = $this->get_width_height_for_high_priority();
+		$setup();
+
+		// The first image processed in a shortcode should have fetchpriority set to high.
+		$this->assertSame(
+			$expected,
+			wp_get_loading_optimization_attributes( 'img', $attr, 'do_shortcode' ),
+			$message
+		);
+	}
+
+	public function data_wp_get_loading_optimization_attributes_in_shortcodes() {
+		return array(
+			'default' => array(
+				'setup' => function () {
+					global $wp_query;
+
+					// Set WP_Query to be in the loop and main query.
+					$wp_query->in_the_loop   = true;
+					$wp_query->is_main_query = true;
+				},
+				'expected' => array(
+					'fetchpriority' => 'high',
+				),
+				'message' => "Fetch priority not applied to during shortcode rendering."
+			),
+			'lazy' => array(
+				'setup' => function () {
+					global $wp_query;
+
+					// Set WP_Query to be in the loop and main query.
+					$wp_query->in_the_loop   = true;
+					$wp_query->is_main_query = true;
+
+					// Increasing the media count should bypass fetchpriority.
+					wp_increase_content_media_count( 1 );
+				},
+				'expected' => array(
+					'loading' => 'lazy',
+				),
+				'message' => "Lazy-loading not applied to during shortcode rendering."
+			),
+			'no_loop' => array(
+				'setup' => function () {
+					// Avoid setting up the WP_Query object for the loop.
+					return;
+				},
+				'expected' => array(
+					'loading' => 'lazy',
+				),
+				'message' => "Lazy-loading not applied to shortcodes outside the loop."
+			),
+		);
+	}
+
+	/**
+	 * @ticket 58681
+	 */
+	public function test_content_rendering_with_shortcodes() {
+		// The gallery shortcode will dynamically create image markup that should be optimized.
+		$content = "[gallery ids='" . self::$large_id . "' size='large']";
+		$actual  = apply_filters( 'the_content', $content );
+
+		$this->assertTrue(
+			// Since the main query and loop isn't set, this should be lazily loaded.
+			str_contains( $actual, 'loading="lazy"' ),
+			'Could not confirm shortcodes get optimizations applied.'
+		);
+	}
+
+	/**
 	 * @ticket 58235
 	 *
 	 * @covers ::wp_maybe_add_fetchpriority_high_attr
