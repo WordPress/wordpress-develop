@@ -4996,7 +4996,7 @@ EOF;
 	 *
 	 * @dataProvider data_wp_get_loading_optimization_attributes_in_shortcodes
 	 */
-	public function test_wp_get_loading_optimization_attributes_in_shortcodes( $setup, $expected, $message) {
+	public function test_wp_get_loading_optimization_attributes_in_shortcodes( $setup, $expected, $message ) {
 		$attr = $this->get_width_height_for_high_priority();
 		$setup();
 
@@ -5021,7 +5021,7 @@ EOF;
 				'expected' => array(
 					'fetchpriority' => 'high',
 				),
-				'message' => "Fetch priority not applied to during shortcode rendering."
+				'message' => 'Fetch priority not applied to during shortcode rendering.',
 			),
 			'lazy' => array(
 				'setup' => function () {
@@ -5037,7 +5037,7 @@ EOF;
 				'expected' => array(
 					'loading' => 'lazy',
 				),
-				'message' => "Lazy-loading not applied to during shortcode rendering."
+				'message' => 'Lazy-loading not applied to during shortcode rendering.',
 			),
 			'no_loop' => array(
 				'setup' => function () {
@@ -5047,7 +5047,7 @@ EOF;
 				'expected' => array(
 					'loading' => 'lazy',
 				),
-				'message' => "Lazy-loading not applied to shortcodes outside the loop."
+				'message' => 'Lazy-loading not applied to shortcodes outside the loop.',
 			),
 		);
 	}
