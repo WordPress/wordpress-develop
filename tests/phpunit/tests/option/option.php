@@ -312,4 +312,21 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( 'autoload_false', false, 'no' ),
 		);
 	}
+
+	/**
+	 * Check we can shortcut the get_option with the pre_option_{$option} filter.
+	 *
+	 * @ticket 37930
+	 */
+	public function test_filter_pre_option_wildcard_filter_is_called() {
+
+		add_filter( 'pre_option_found', array( $this, 'pre_option_found_filter' ) );
+
+		// Filter was not called.
+		$this->assertEquals( array( 'found' => 'true' ), get_option( 'found' ) );
+	}
+
+	public function pre_option_found_filter() {
+		return array( 'found' => 'true' );
+	}
 }
