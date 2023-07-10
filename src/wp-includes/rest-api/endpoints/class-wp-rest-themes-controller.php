@@ -369,13 +369,8 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			),
 		);
 
-		if ( $this->is_same_theme( $theme, wp_get_theme() ) ) {
-			// This creates a record for the active theme if not existent.
-			$id = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
-		} else {
-			$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
-			$id       = isset( $user_cpt['ID'] ) ? $user_cpt['ID'] : null;
-		}
+		$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
+		$id       = isset( $user_cpt['ID'] ) ? $user_cpt['ID'] : null;
 
 		if ( $id ) {
 			$links['https://api.w.org/user-global-styles'] = array(
