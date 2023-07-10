@@ -5057,6 +5057,7 @@ EOF;
 
 	/**
 	 * @ticket 58681
+	 * @group goats
 	 */
 	public function test_content_rendering_with_shortcodes() {
 		// The gallery shortcode will dynamically create image markup that should be optimized.

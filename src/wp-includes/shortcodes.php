@@ -221,16 +221,13 @@ function do_shortcode( $content, $ignore_html = false ) {
 		return $content;
 	}
 
-	/*
-	 * When wp_get_attachment_image() is called during shortcode rendering,
-	 * we need to make clear that the context is a shortcode and not part
-	 * of the theme's template rendering logic.
-	 */
-	$callback = static function() {
-		return 'do_shortcode';
-	};
+	// Ensure this context is only added once if shortcodes are nested.
+	$has_filter = has_filter( 'wp_get_attachment_image_context', '_filter_do_shortcode_context' );
+	$filter_added = false;
 
-	add_filter( 'wp_get_attachment_image_context', $callback );
+	if ( ! $has_filter ) {
+		$filter_added = add_filter( 'wp_get_attachment_image_context', '_filter_do_shortcode_context' );
+	}
 
 	$content = do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames );
 
@@ -240,9 +237,27 @@ function do_shortcode( $content, $ignore_html = false ) {
 	// Always restore square braces so we don't break things like <!--[if IE ]>.
 	$content = unescape_invalid_shortcodes( $content );
 
-	remove_filter( 'wp_get_attachment_image_context', $callback );
+	// Only remove the filter if it was added in this scope.
+	if ( $filter_added ) {
+		remove_filter( 'wp_get_attachment_image_context', '_filter_do_shortcode_context' );
+	}
 
 	return $content;
+}
+
+/**
+ * Filter the `wp_get_attachment_image_context` hook during shortcode rendering.
+ *
+ * When wp_get_attachment_image() is called during shortcode rendering, we need to make clear
+ * that the context is a shortcode and not part of the theme's template rendering logic.
+ *
+ * @since 6.3.0
+ * @access private
+ *
+ * @return string The filtered context value for wp_get_attachment_images when doing shortcodes.
+ */
+function _filter_do_shortcode_context() {
+	return 'do_shortcode';
 }
 
 /**
