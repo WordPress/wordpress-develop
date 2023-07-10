@@ -44,7 +44,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 		<div class="column is-vertically-aligned-center">
 			<p>
-				<?php 
+				<?php
 				printf(
 					/* translators: %s: Percentage value */
 					__( 'Do you use WordPress for work, for personal projects, or maybe even just for fun? You can help shape the long-term success of the open source project that powers %s&#37; of the web.' ),
@@ -53,7 +53,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				?>
 			</p>
 			<p>
-				<?php 
+				<?php
 				_e( 'Join the WordPress contributor community and connect with others who are passionate about maintaining a free and open web.' );
 				?>
 			</p>
@@ -70,7 +70,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="column">
 			<h2><?php _e( 'Find your team' ); ?></h2>
 			<p>
-				<?php 
+				<?php
 				printf(
 					/* translators: %s: Rounded down number of teams */
 					__( 'Finding the area that aligns with your skills and interests is the first step toward meaningful contribution. With more than s% Make WordPress teams working on different parts of the open-source WordPress project, there&#8217;s a place for everyone, no matter what your skill set is.' ),
