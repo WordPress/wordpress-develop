@@ -1,6 +1,7 @@
 import {
 	visitAdminPage,
 	createNewPost,
+	publishPost,
 	trashAllPosts,
 	createURL,
 	logout,
@@ -13,10 +14,8 @@ describe( 'Cache Control header directives', () => {
 	} );
 
 	it( 'No private directive present in cache control when user not logged in.', async () => {
-		await createNewPost( {
-			title: 'Hello World',
-			post_status: 'publish',
-		} );
+		await createNewPost( { title: 'Hello World' } );
+		await publishPost();
 		await logout();
 
 		const response = await page.goto( createURL( '/hello-world/' ) );
