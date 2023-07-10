@@ -642,6 +642,11 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertIsCallable( $result->render_callback );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_register_block_registers_with_args_override_returns_false_when_name_is_missing() {
 		return array(
 			'no block.json file and no name argument' => array(
