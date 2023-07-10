@@ -647,6 +647,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * will return `false`.
 	 *
 	 * @ticket 56865
+	 *
 	 * @covers ::register_block_type_from_metadata
 	 *
 	 * @dataProvider data_register_block_registers_with_args_override_returns_false_when_name_is_missing
