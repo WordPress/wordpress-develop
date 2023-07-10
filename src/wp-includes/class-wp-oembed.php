@@ -414,7 +414,7 @@ class WP_oEmbed {
 			return false;
 		}
 
-		// Lazy load oembed iframes by default asd long as they contain width and height.
+		// Lazy load oEmbed iframes.
 		if ( wp_lazy_loading_enabled( 'iframe', 'the_content' ) && isset( $data->html ) && str_starts_with( $data->html, '<iframe' ) && ! str_contains( $data->html, 'loading' ) ) {
 			$data->html = wp_iframe_tag_add_loading_attr( $data->html, 'the_content' );
 		}
