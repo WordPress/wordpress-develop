@@ -414,6 +414,12 @@ class WP_oEmbed {
 			return false;
 		}
 
+		// Lazy load oembed iframes by default.
+		if ( wp_lazy_loading_enabled( 'iframe', 'oembed' ) && isset( $data->html ) && str_starts_with( $data->html, '<iframe' ) ) {
+			// If it is, add a loading="lazy" attribute to the iframe tag.
+			$data->html = preg_replace( '#^<iframe\s#i', '<iframe loading="lazy" ', $data->html );
+		}
+
 		/**
 		 * Filters the HTML returned by the oEmbed provider.
 		 *
