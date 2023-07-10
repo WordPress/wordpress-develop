@@ -5077,15 +5077,21 @@ EOF;
 		global $wp_query;
 		$wp_query->in_the_loop = true;
 
-		add_shortcode('div', function ( $atts, $content = null ) {
-			extract( shortcode_atts( array(
-				'class' => '',
-			), $atts ) );
+		add_shortcode(
+			'div',
+			function ( $atts, $content = null ) {
+				$parsed_atts = shortcode_atts(
+					array(
+						'class' => '',
+					),
+					$atts,
+				);
 
-			$class = $class ? " class=\"$class\"" : NULL;
+				$class = ! empty( $parsed_atts['class'] ) ? sprintf( ' class="%s"', $parsed_atts['class'] ) : null;
 
-			return "<div$class>".do_shortcode( $content ) ."</div>";
-		} );
+				return sprintf( '<div %s>%s</div>', $class, do_shortcode( $content ) );
+			}
+		);
 
 		// The gallery shortcode will dynamically create image markup that should be optimized.
 		$content = "[div][gallery ids='" . self::$large_id . "' size='large'][div]";
