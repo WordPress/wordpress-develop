@@ -78,11 +78,10 @@ CAP;
 	/**
 	 * Ensures that the static content media count, fetchpriority element flag and related filter are reset between tests.
 	 */
-	public function set_up() {
-		global $wp_query;
-		parent::set_up();
+	public function tear_down() {
+		parent::tear_down();
 
-		$this->set_main_query( $wp_query );
+		$this->set_main_query( new WP_Query() );
 		$this->reset_content_media_count();
 		$this->reset_omit_loading_attr_filter();
 		$this->reset_high_priority_element_flag();
@@ -5016,9 +5015,9 @@ EOF;
 				'setup'    => function () {
 					global $wp_query;
 
-					// Set WP_Query to be in the loop.
+					// Set WP_Query to be in the loop and the main query.
 					$wp_query->in_the_loop = true;
-
+					$this->set_main_query( $wp_query );
 				},
 				'expected' => array(
 					'fetchpriority' => 'high',
@@ -5029,8 +5028,9 @@ EOF;
 				'setup'    => function () {
 					global $wp_query;
 
-					// Set WP_Query to be in the loop.
+					// Set WP_Query to be in the loop and the main query.
 					$wp_query->in_the_loop = true;
+					$this->set_main_query( $wp_query );
 
 					// Set internal flags so lazy should be applied.
 					wp_high_priority_element_flag( false );
@@ -5075,7 +5075,10 @@ EOF;
 	 */
 	public function test_content_rendering_with_shortcodes_nested() {
 		global $wp_query;
+
+		// Set WP_Query to be in the loop and the main query.
 		$wp_query->in_the_loop = true;
+		$this->set_main_query( $wp_query );
 
 		add_shortcode(
 			'div',
