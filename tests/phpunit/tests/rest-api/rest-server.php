@@ -1122,9 +1122,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @covers ::get_index
-	 *
 	 * @ticket 57902
+	 *
+	 * @covers ::get_index
 	 */
 	public function test_get_index_fields_name() {
 		$server = new WP_REST_Server();
@@ -1141,9 +1141,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @covers ::get_index
-	 *
 	 * @ticket 57902
+	 *
+	 * @covers ::get_index
 	 */
 	public function test_get_index_fields_links() {
 		$server = new WP_REST_Server();
