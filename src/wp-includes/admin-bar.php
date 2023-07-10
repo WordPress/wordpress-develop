@@ -208,7 +208,7 @@ function wp_admin_bar_wp_menu( $wp_admin_bar ) {
 			array(
 				'parent' => 'wp-logo-external',
 				'id'     => 'contribute',
-				'title'  => __( 'Contribute' ),
+				'title'  => __( 'Get Involved' ),
 				'href'   => $contribute_url,
 			)
 		);

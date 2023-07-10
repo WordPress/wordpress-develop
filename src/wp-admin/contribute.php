@@ -10,7 +10,7 @@
 require_once __DIR__ . '/admin.php';
 
 // Used in the HTML title tag.
-$title = __( 'Contribute' );
+$title = __( 'Get Involved' );
 
 list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
 
@@ -21,12 +21,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<div class="about__header">
 		<div class="about__header-title">
 			<h1>
-				<?php _e( 'Contribute' ); ?>
+				<?php _e( 'Get Involved' ); ?>
 			</h1>
 		</div>
 
 		<div class="about__header-text">
-			<?php _e( 'Take part in WordPress development' ); ?>
+			<?php _e( 'Be the future of WordPress' ); ?>
 		</div>
 	</div>
 
@@ -35,7 +35,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<a href="credits.php" class="nav-tab"><?php _e( 'Credits' ); ?></a>
 		<a href="freedoms.php" class="nav-tab"><?php _e( 'Freedoms' ); ?></a>
 		<a href="privacy.php" class="nav-tab"><?php _e( 'Privacy' ); ?></a>
-		<a href="contribute.php" class="nav-tab nav-tab-active" aria-current="page"><?php _e( 'Contribute' ); ?></a>
+		<a href="contribute.php" class="nav-tab nav-tab-active" aria-current="page"><?php _e( 'Get Involved' ); ?></a>
 	</nav>
 
 	<div class="about__section has-2-columns is-wider-right">
@@ -43,17 +43,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%231d35b4' /%3E%3C/svg%3E" alt="" />
 		</div>
 		<div class="column is-vertically-aligned-center">
-			<p><?php _e( 'You can contribute to WordPress development bringing your ideas, collaborating on subjects close to your heart and trying many different roles and possibilities, learning continuously and meeting people who share passion to WordPress.' ); ?></p>
-
 			<p>
-				<?php
+				<?php 
 				printf(
 					/* translators: %s: Number of Make teams */
-					__( 'The Make WordPress has more than %s teams you can join, which have working groups and separate projects.' ),
-					20
+					__( 'You can shape the long-term success of WordPress. With %s Make WordPress teams working on different parts of the open-source WordPress project, there&#8217;s a place for everyone, no matter what your skill set is. Get involved and connect with others passionate about maintaining a free and Open Web with WordPress.' ),
+					22
 				);
 				?>
 			</p>
+
+			<ul>
+				<li><?php _e( 'Connect with a global, open source community' ); ?></li>
+				<li><?php _e( 'Deploy your skills or learn some new ones' ); ?></li>
+				<li><?php _e( 'Grow your network… and even make new friends' ); ?></li>
+			</ul>
 		</div>
 	</div>
 
