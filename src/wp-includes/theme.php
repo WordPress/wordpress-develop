@@ -2925,16 +2925,15 @@ function _custom_logo_header_styles() {
 		$classes = array_map( 'sanitize_html_class', $classes );
 		$classes = '.' . implode( ', .', $classes );
 
-		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-		?>
-		<!-- Custom Logo: hide header text -->
-		<style id="custom-logo-css"<?php echo $type_attr; ?>>
-			<?php echo $classes; ?> {
-				position: absolute;
-				clip: rect(1px, 1px, 1px, 1px);
-			}
-		</style>
-		<?php
+		$custom_logo_css = $classes . '{
+		position: absolute;
+		clip: rect(1px, 1px, 1px, 1px);
+		}';
+		$handle          = 'custom-logo-css';
+
+		wp_register_style( $handle, false );
+		wp_add_inline_style( $handle, $custom_logo_css );
+		wp_enqueue_style( $handle );
 	}
 }
 

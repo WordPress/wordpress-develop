@@ -1579,6 +1579,8 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'media-views', "/wp-includes/css/media-views$suffix.css", array( 'buttons', 'dashicons', 'wp-mediaelement' ) );
 	$styles->add( 'wp-pointer', "/wp-includes/css/wp-pointer$suffix.css", array( 'dashicons' ) );
 	$styles->add( 'customize-preview', "/wp-includes/css/customize-preview$suffix.css", array( 'dashicons' ) );
+	$styles->add( 'wp-embed-template', "/wp-includes/css/wp-embed-template$suffix.css" );
+	$styles->add_data( 'wp-embed-template', 'path', ABSPATH . "/wp-includes/css/wp-embed-template$suffix.css" );
 	$styles->add( 'wp-embed-template-ie', "/wp-includes/css/wp-embed-template-ie$suffix.css" );
 	$styles->add_data( 'wp-embed-template-ie', 'conditional', 'lte IE 8' );
 

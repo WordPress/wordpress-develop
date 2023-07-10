@@ -5814,31 +5814,23 @@ function wp_spaces_regexp() {
  * @since 4.2.0
  */
 function print_emoji_styles() {
-	static $printed = false;
-
-	if ( $printed ) {
-		return;
-	}
-
-	$printed = true;
-
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-	?>
-<style<?php echo $type_attr; ?>>
-img.wp-smiley,
-img.emoji {
-	display: inline !important;
-	border: none !important;
-	box-shadow: none !important;
-	height: 1em !important;
-	width: 1em !important;
-	margin: 0 0.07em !important;
-	vertical-align: -0.1em !important;
-	background: none !important;
-	padding: 0 !important;
-}
-</style>
-	<?php
+	$emoji_styles = '
+	img.wp-smiley,
+	img.emoji {
+		display: inline !important;
+		border: none !important;
+		box-shadow: none !important;
+		height: 1em !important;
+		width: 1em !important;
+		margin: 0 0.07em !important;
+		vertical-align: -0.1em !important;
+		background: none !important;
+		padding: 0 !important;
+	}';
+	$handle       = 'wp-emoji-styles';
+	wp_register_style( $handle, false );
+	wp_add_inline_style( $handle, $emoji_styles );
+	wp_enqueue_style( $handle );
 }
 
 /**
