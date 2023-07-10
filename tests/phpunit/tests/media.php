@@ -5089,7 +5089,7 @@ EOF;
 					array(
 						'class' => '',
 					),
-					$atts,
+					$atts
 				);
 
 				$class = ! empty( $parsed_atts['class'] ) ? sprintf( ' class="%s"', $parsed_atts['class'] ) : null;
