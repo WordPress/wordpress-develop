@@ -643,6 +643,22 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that when the `name` is missing, `register_block_type_from_metadata`
+	 * will return `false`.
+	 *
+	 * @ticket 56865
+	 * @covers ::register_block_type_from_metadata
+	 *
+	 * @dataProvider data_register_block_registers_with_args_override_returns_false_when_name_is_missing
+	 *
+	 * @param string $file The metadata file.
+	 * @param array  $args Array of block type arguments.
+	 */
+	public function test_block_registers_with_args_override_returns_false_when_name_is_missing( $file, $args ) {
+		$this->assertFalse( register_block_type_from_metadata( $file, $args ) );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[]
@@ -670,22 +686,6 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 				),
 			),
 		);
-	}
-
-	/**
-	 * Tests that when the `name` is missing, `register_block_type_from_metadata`
-	 * will return `false`.
-	 *
-	 * @ticket 56865
-	 * @covers ::register_block_type_from_metadata
-	 *
-	 * @dataProvider data_register_block_registers_with_args_override_returns_false_when_name_is_missing
-	 *
-	 * @param string $file The metadata file.
-	 * @param array  $args Array of block type arguments.
-	 */
-	public function test_block_registers_with_args_override_returns_false_when_name_is_missing( $file, $args ) {
-		$this->assertFalse( register_block_type_from_metadata( $file, $args ) );
 	}
 
 	/**
