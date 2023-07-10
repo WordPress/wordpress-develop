@@ -5071,6 +5071,34 @@ EOF;
 	}
 
 	/**
+	 * @ticket 58681
+	 */
+	public function test_content_rendering_with_shortcodes_nested() {
+		global $wp_query;
+		$wp_query->in_the_loop = true;
+
+		add_shortcode('div', function ( $atts, $content = null ) {
+			extract( shortcode_atts( array(
+				'class' => '',
+			), $atts ) );
+
+			$class = $class ? " class=\"$class\"" : NULL;
+
+			return "<div$class>".do_shortcode( $content ) ."</div>";
+		} );
+
+		// The gallery shortcode will dynamically create image markup that should be optimized.
+		$content = "[div][gallery ids='" . self::$large_id . "' size='large'][div]";
+		$actual  = apply_filters( 'the_content', $content );
+
+		$this->assertTrue(
+			// Since this is in the loop, it should have a high fetchpriority.
+			str_contains( $actual, 'fetchpriority="high"' ),
+			'Could not confirm shortcodes get optimizations applied.'
+		);
+	}
+
+	/**
 	 * @ticket 58235
 	 *
 	 * @covers ::wp_maybe_add_fetchpriority_high_attr
