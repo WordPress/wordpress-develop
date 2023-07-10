@@ -46,76 +46,91 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<p>
 				<?php 
 				printf(
-					/* translators: %s: Number of Make teams */
-					__( 'You can shape the long-term success of WordPress. With %s Make WordPress teams working on different parts of the open-source WordPress project, there&#8217;s a place for everyone, no matter what your skill set is. Get involved and connect with others passionate about maintaining a free and Open Web with WordPress.' ),
-					22
+					/* translators: %s: Percentage value */
+					__( 'Do you use WordPress for work, for personal projects, or maybe even just for fun? You can help shape the long-term success of the open source project that powers %s&#37; of the web.' ),
+					43
 				);
+				?>
+			</p>
+			<p>
+				<?php 
+				_e( 'Join the WordPress contributor community and connect with others who are passionate about maintaining a free and open web.' );
 				?>
 			</p>
 
 			<ul>
-				<li><?php _e( 'Connect with a global, open source community' ); ?></li>
-				<li><?php _e( 'Deploy your skills or learn some new ones' ); ?></li>
-				<li><?php _e( 'Grow your network… and even make new friends' ); ?></li>
+				<li><?php _e( 'Plug in to a global, open source community' ); ?></li>
+				<li><?php _e( 'Apply your skills or learn some new ones' ); ?></li>
+				<li><?php _e( 'Grow your network (and make new friends!)' ); ?></li>
 			</ul>
 		</div>
 	</div>
 
 	<div class="about__section">
 		<div class="column">
-			<h2 class="is-smaller-heading"><?php _e( 'Eager to find a team you will enjoy?' ); ?></h2>
-			<p><?php _e( 'What you like most or have a particular knowledge in can be a starting point, but you can take time to look around and explore possibilities before stepping in to contribute. Either way you can learn a lot.' ); ?></p>
+			<h2><?php _e( 'Find your team' ); ?></h2>
+			<p>
+				<?php 
+				printf(
+					/* translators: %s: Rounded down number of teams */
+					__( 'Finding the area that aligns with your skills and interests is the first step toward meaningful contribution. With more than s% Make WordPress teams working on different parts of the open-source WordPress project, there&#8217;s a place for everyone, no matter what your skill set is.' ),
+					20
+				);
+				?>
+			</p>
 		</div>
 	</div>
 
-	<div class="about__section has-2-columns">
+	<div class="about__section has-2-columns is-wider-left">
 		<div class="column is-vertically-aligned-center">
+			<h3><?php _e( 'No-Code Contribution' ); ?></h3>
+			<p><?php _e( 'WordPress may thrive on technical contributions, but you don&#8217;t have to code to contribute. Here are some of the ways you can make an impact without a single line of code:' ); ?></p>
 			<ul>
-				<li><?php _e( 'Choose a team' ); ?></li>
-				<li><?php _e( 'Follow its news to see how you can participate' ); ?></li>
-				<li><?php _e( 'Attend team&#8217;s meetings' ); ?></li>
-				<li><?php _e( 'Ask for a Good First issue to solve' ); ?></li>
+				<li><?php _e( '<strong>Share</strong> your knowledge in the WordPress support forums' ); ?></li>
+				<li><?php _e( '<strong>Write</strong> or improve documentation for WordPress' ); ?></li>
+				<li><?php _e( '<strong>Translate</strong> WordPress into your local language' ); ?></li>
+				<li><?php _e( '<strong>Create</strong> and improve WordPress educational materials' ); ?></li>
+				<li><?php _e( '<strong>Promote</strong> the WordPress project to your community' ); ?></li>
+				<li><?php _e( '<strong>Take</strong> photos for or help curate the WordPress Photos Directory' ); ?></li>
+				<li><?php _e( '<strong>Organize</strong> or participate in local WordPress Meetups and WordCamps' ); ?></li>
+				<li><?php _e( '<strong>Lend</strong> your creative imagination to the WordPress UI designy' ); ?></li>
+				<li><?php _e( '<strong>Edit</strong> videos and add captions to WordPress.tv' ); ?></li>
+				<li><?php _e( '<strong>Explore</strong> ways to reduce the environmental impact of millions of websites around the world' ); ?></li>
+
 			</ul>
 		</div>
 		<div class="column">
-			<img src="data:image/svg+xml,%3Csvg width='436' height='218' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%231d35b4' /%3E%3C/svg%3E" alt="" />
+			<img src="data:image/svg+xml,%3Csvg width='436' height='300' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%231d35b4' /%3E%3C/svg%3E" alt="" />
 		</div>
-
+	</div>
+	<div class="about__section has-2-columns is-wider-right">
 		<div class="column">
 			<img src="data:image/svg+xml,%3Csvg width='436' height='300' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%231d35b4' /%3E%3C/svg%3E" alt="" />
 		</div>
 		<div class="column is-vertically-aligned-center">
-			<h3 class="is-smaller-heading"><?php _e( 'Non-technical areas' ); ?></h3>
+			<h3><?php _e( 'Code-based Contribution' ); ?></h3>
+			<p><?php _e( 'If you do code, or want to, you can contribute technically in numerous ways:' ); ?></p>
 			<ul>
-				<li><?php _e( 'Translate strings for WordPress, plugins, themes and other WordPress.org related projects' ); ?></li>
-				<li><?php _e( 'Submit photography for Photo Directory' ); ?></li>
-				<li><?php _e( 'Help someone on the Support forum' ); ?></li>
-				<li><?php _e( 'Translate WordPress News articles into your native language' ); ?></li>
-				<li><?php _e( 'Test WordPress before releases, checking how new features and fixes works' ); ?></li>
+				<li><?php _e( '<strong>Find</strong> and report bugs in the WordPress core software' ); ?></li>
+				<li><?php _e( '<strong>Test</strong> new releases and proposed features for the block editor' ); ?></li>
+				<li><?php _e( '<strong>Write</strong> and submit patches to fix bugs or help build new features' ); ?></li>
+				<li><?php _e( '<strong>Contribute</strong> to the code, improve the UX, and test the WordPress app' ); ?></li>
+			</ul>
+			<p><?php _e( 'WordPress embraces new technologies, while being committed to backward compatibility. We use the following languages and libraries:' ); ?></p>
+			<ul>
+				<li><?php _e( 'For Core and Block Editor: HTML, CSS, PHP, SQL, JavaScript and React' ); ?></li>
+				<li><?php _e( 'For the WordPress app: Kotlin, Java, Swift, Objective-C, Vue, Python and TypeScript' ); ?></li>
 			</ul>
 		</div>
-
-		<div class="column is-vertically-aligned-center">
-			<h3 class="is-smaller-heading"><?php _e( 'Technical areas' ); ?></h3>
-			<ul>
-				<li><?php _e( 'Pick your favourite language or library:' ); ?>
-					<ul>
-						<li><?php _e( 'HTML, CSS, PHP, JavaScript and React for the Core of the CMS and the Block Editor (Gutenberg project' ); ?></li>
-						<li><?php _e( 'Kotlin, Java, Swift, Objective-C, Vue, Python, TypeScript for mobile apps' ); ?></li>
-					</ul>
-				</li>
-				<li><?php _e( 'Choose what you want to do: testing, creating patches, working on documentation' ); ?></li>
-			</ul>
-		</div>
-		<div class="column">
-			<img src="data:image/svg+xml,%3Csvg width='436' height='280' viewbox='0 0 100 50' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%231d35b4' /%3E%3C/svg%3E" alt="" />
-		</div>
-
 	</div>
 
 	<div class="about__section">
+		<div class="column">
+			<h2><?php _e( 'Help Make WordPress Better' ); ?></h2>
+			<p><?php _e( 'Whether you speak at a local meetup, provide your perspective on a feature proposal, or submit a basic bug report, your contributions will make a difference.' ); ?></p>
+		</div>
 		<div class="column aligncenter">
-			<p><a href="https://make.wordpress.org/contribute/" target="_blank"><?php _e( 'Discover your Make WordPress team' ); ?></a></p>
+			<p><a href="https://make.wordpress.org/contribute/" target="_blank"><?php _e( 'Find your team &rarr;' ); ?></a></p>
 		</div>
 	</div>
 
