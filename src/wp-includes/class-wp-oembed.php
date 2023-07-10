@@ -413,7 +413,6 @@ class WP_oEmbed {
 		if ( false === $data ) {
 			return false;
 		}
-		error_log( "data->html:" . json_encode( $data->html, JSON_PRETTY_PRINT ) );
 
 		// Lazy load oembed iframes by default asd long as they contain width and height.
 		if ( wp_lazy_loading_enabled( 'iframe', 'the_content' ) && isset( $data->html ) && str_starts_with( $data->html, '<iframe' ) && ! str_contains( $data->html, 'loading' ) ) {
