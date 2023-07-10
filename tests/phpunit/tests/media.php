@@ -5045,7 +5045,6 @@ EOF;
 				'setup'    => function () {
 					// Avoid setting up the WP_Query object for the loop.
 					return;
-
 				},
 				'expected' => array(
 					'loading' => 'lazy',
@@ -5057,7 +5056,6 @@ EOF;
 
 	/**
 	 * @ticket 58681
-	 * @group goats
 	 */
 	public function test_content_rendering_with_shortcodes() {
 		// The gallery shortcode will dynamically create image markup that should be optimized.
