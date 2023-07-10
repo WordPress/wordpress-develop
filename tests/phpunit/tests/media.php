@@ -5063,9 +5063,10 @@ EOF;
 		$content = "[gallery ids='" . self::$large_id . "' size='large']";
 		$actual  = apply_filters( 'the_content', $content );
 
-		$this->assertTrue(
+		$this->assertStringContainsString(
 			// Since the main query and loop isn't set, this should be lazily loaded.
-			str_contains( $actual, 'loading="lazy"' ),
+			'loading="lazy"',
+			$actual,
 			'Could not confirm shortcodes get optimizations applied.'
 		);
 	}
@@ -5100,9 +5101,10 @@ EOF;
 		$content = "[div][gallery ids='" . self::$large_id . "' size='large'][div]";
 		$actual  = apply_filters( 'the_content', $content );
 
-		$this->assertTrue(
+		$this->assertStringContainsString(
 			// Since this is in the loop, it should have a high fetchpriority.
-			str_contains( $actual, 'fetchpriority="high"' ),
+			'fetchpriority="high"',
+			$actual,
 			'Could not confirm shortcodes get optimizations applied.'
 		);
 	}
