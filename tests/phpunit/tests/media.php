@@ -5015,8 +5015,9 @@ EOF;
 					global $wp_query;
 
 					// Set WP_Query to be in the loop and main query.
-					$wp_query->in_the_loop   = true;
-					$wp_query->is_main_query = true;
+					$wp_query->in_the_loop = true;
+					$this->set_main_query( $wp_query );
+
 				},
 				'expected' => array(
 					'fetchpriority' => 'high',
@@ -5028,11 +5029,12 @@ EOF;
 					global $wp_query;
 
 					// Set WP_Query to be in the loop and main query.
-					$wp_query->in_the_loop   = true;
-					$wp_query->is_main_query = true;
+					$wp_query->in_the_loop = true;
+					$this->set_main_query( $wp_query );
 
-					// Increasing the media count should bypass fetchpriority.
-					wp_increase_content_media_count( 1 );
+					// Set internal flags so lazy should be applied.
+					wp_high_priority_element_flag( false );
+					wp_increase_content_media_count( 3 );
 				},
 				'expected' => array(
 					'loading' => 'lazy',
@@ -5043,6 +5045,7 @@ EOF;
 				'setup'    => function () {
 					// Avoid setting up the WP_Query object for the loop.
 					return;
+
 				},
 				'expected' => array(
 					'loading' => 'lazy',
