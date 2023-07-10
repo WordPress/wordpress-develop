@@ -131,7 +131,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		wp_set_current_user( 0 );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, 401 );
+		$this->assertEmpty( $response->get_data() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	/**

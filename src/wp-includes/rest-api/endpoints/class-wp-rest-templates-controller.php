@@ -177,6 +177,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	protected function permissions_check( $request ) {
+		_deprecated_function( __METHOD__, '5.9.0' );
 		// Verify if the current user has edit_theme_options capability.
 		// This capability is required to edit/view/delete templates.
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
@@ -236,7 +237,17 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		return $this->permissions_check( $request );
+		$post_type = get_post_type_object( $this->post_type );
+
+		if ( 'edit' === $request['context'] && ! current_user_can( $post_type->cap->edit_posts ) ) {
+			return new WP_Error(
+				'rest_forbidden_context',
+				__( 'Sorry, you are not allowed to edit templates of this type.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -261,6 +272,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 		$templates = array();
 		foreach ( get_block_templates( $query, $this->post_type ) as $template ) {
+			if ( ! $this->check_read_permission( $template ) ) {
+				continue;
+			}
 			$data        = $this->prepare_item_for_response( $template, $request );
 			$templates[] = $this->prepare_response_for_collection( $data );
 		}
@@ -277,7 +291,43 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
-		return $this->permissions_check( $request );
+		$template = $this->get_block_template( $request['id'] );
+		if ( is_wp_error( $template ) ) {
+			return $template;
+		}
+
+		if ( 'edit' === $request['context'] && $this->check_update_permission( $template ) ) {
+			return true;
+		}
+
+		if ( ! $this->check_read_permission( $template ) ) {
+			return new WP_Error(
+				'rest_cannot_manage_templates',
+				__( 'Sorry, you are not allowed to access the templates on this site.' ),
+				array(
+					'status' => rest_authorization_required_code(),
+				)
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Checks if a template can be read.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_Block_Template $template Template object.
+	 * @return bool Whether the post can be edited.
+	 */
+	protected function check_read_permission( $template ) {
+		if ( $template->wp_id ) {
+			return current_user_can( 'read_post', $template->wp_id );
+		}
+
+		$post_type = get_post_type_object( $this->post_type );
+		return current_user_can( $post_type->cap->read_post );
 	}
 
 	/**
@@ -291,12 +341,14 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	public function get_item( $request ) {
 		if ( isset( $request['source'] ) && 'theme' === $request['source'] ) {
 			$template = get_block_file_template( $request['id'], $this->post_type );
+			if ( ! $template ) {
+				return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
+			}
 		} else {
-			$template = get_block_template( $request['id'], $this->post_type );
-		}
-
-		if ( ! $template ) {
-			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
+			$template = $this->get_block_template( $request['id'] );
+			if ( is_wp_error( $template ) ) {
+				return $template;
+			}
 		}
 
 		return $this->prepare_item_for_response( $template, $request );
@@ -311,7 +363,38 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has write access for the item, WP_Error object otherwise.
 	 */
 	public function update_item_permissions_check( $request ) {
-		return $this->permissions_check( $request );
+		$template = $this->get_block_template( $request['id'] );
+		if ( is_wp_error( $template ) ) {
+			return $template;
+		}
+
+		if ( ! $this->check_update_permission( $template ) ) {
+			return new WP_Error(
+				'rest_cannot_manage_templates',
+				__( 'Sorry, you are not allowed to access the templates on this site.' ),
+				array(
+					'status' => rest_authorization_required_code(),
+				)
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Checks if a template can be edited.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_Block_Template $template Template object.
+	 * @return bool Whether the post can be edited.
+	 */
+	protected function check_update_permission( $template ) {
+		if ( $template->wp_id ) {
+			return current_user_can( 'edit_post', $template->wp_id );
+		}
+		$post_type = get_post_type_object( $this->post_type );
+		return current_user_can( $post_type->cap->edit_post );
 	}
 
 	/**
@@ -323,9 +406,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function update_item( $request ) {
-		$template = get_block_template( $request['id'], $this->post_type );
-		if ( ! $template ) {
-			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
+		$template = $this->get_block_template( $request['id'] );
+		if ( is_wp_error( $template ) ) {
+			return $template;
 		}
 
 		$post_before = get_post( $template->wp_id );
@@ -364,7 +447,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			return $result;
 		}
 
-		$template      = get_block_template( $request['id'], $this->post_type );
+		$template      = $this->get_block_template( $request['id'] );
 		$fields_update = $this->update_additional_fields_for_object( $template, $request );
 		if ( is_wp_error( $fields_update ) ) {
 			return $fields_update;
@@ -392,7 +475,19 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
 	 */
 	public function create_item_permissions_check( $request ) {
-		return $this->permissions_check( $request );
+		$post_type = get_post_type_object( $this->post_type );
+
+		if ( ! current_user_can( $post_type->cap->create_posts ) ) {
+			return new WP_Error(
+				'rest_cannot_manage_templates',
+				__( 'Sorry, you are not allowed to access the templates on this site.' ),
+				array(
+					'status' => rest_authorization_required_code(),
+				)
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -427,7 +522,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 		$id            = $posts[0]->id;
 		$post          = get_post( $post_id );
-		$template      = get_block_template( $id, $this->post_type );
+		$template      = $this->get_block_template( $id );
 		$fields_update = $this->update_additional_fields_for_object( $template, $request );
 		if ( is_wp_error( $fields_update ) ) {
 			return $fields_update;
@@ -448,6 +543,23 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Checks if a template can be deleted.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_Block_Template $template Template object.
+	 * @return bool Whether the post can be edited.
+	 */
+	protected function check_deleted_permission( $template ) {
+		if ( $template->wp_id ) {
+			return current_user_can( 'delete_post', $template->wp_id );
+		}
+
+		$post_type = get_post_type_object( $post->post_type );
+		return current_user_can( $post_type->cap->delete_post );
+	}
+
+	/**
 	 * Checks if a given request has access to delete a single template.
 	 *
 	 * @since 5.8.0
@@ -456,7 +568,26 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has delete access for the item, WP_Error object otherwise.
 	 */
 	public function delete_item_permissions_check( $request ) {
-		return $this->permissions_check( $request );
+		$template = $this->get_block_template( $request['id'] );
+		if ( is_wp_error( $template ) ) {
+			return $template;
+		}
+
+		if ( 'custom' !== $template->source ) {
+			return new WP_Error( 'rest_invalid_template', __( 'Templates based on theme files can\'t be removed.' ), array( 'status' => 400 ) );
+		}
+
+		if ( ! $this->check_deleted_permission( $template ) ) {
+			return new WP_Error(
+				'rest_cannot_manage_templates',
+				__( 'Sorry, you are not allowed to access the templates on this site.' ),
+				array(
+					'status' => rest_authorization_required_code(),
+				)
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -468,9 +599,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function delete_item( $request ) {
-		$template = get_block_template( $request['id'], $this->post_type );
-		if ( ! $template ) {
-			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
+		$template = $this->get_block_template( $request['id'] );
+		if ( is_wp_error( $template ) ) {
+			return $template;
 		}
 		if ( 'custom' !== $template->source ) {
 			return new WP_Error( 'rest_invalid_template', __( 'Templates based on theme files can\'t be removed.' ), array( 'status' => 400 ) );
@@ -521,6 +652,23 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Gets the template object for the given ID.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $id Supplied ID.
+	 * @return WP_Block_Template|WP_Error Block template object if ID is valid, WP_Error otherwise.
+	 */
+	protected function get_block_template( $id ) {
+		$template = get_block_template( $id, $this->post_type );
+		if ( ! $template ) {
+			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
+		}
+
+		return $template;
+	}
+
+	/**
 	 * Prepares a single template for create or update.
 	 *
 	 * @since 5.8.0
@@ -529,9 +677,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return stdClass Changes to pass to wp_update_post.
 	 */
 	protected function prepare_item_for_database( $request ) {
-		$template = $request['id'] ? get_block_template( $request['id'], $this->post_type ) : null;
+		$template = $this->get_block_template( $request['id'] );
 		$changes  = new stdClass();
-		if ( null === $template ) {
+		if ( is_wp_error( $template ) ) {
 			$changes->post_type   = $this->post_type;
 			$changes->post_status = 'publish';
 			$changes->tax_input   = array(
