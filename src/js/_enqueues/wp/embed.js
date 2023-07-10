@@ -77,11 +77,6 @@
 				source.height = height;
 			}
 
-			// Add a loading attribute to the iframe if missing.
-			if ( ! source.hasAttribute( 'loading' ) ) {
-				source.setAttribute( 'loading', 'lazy' );
-			}
-
 			/* Link to a specific URL on request. */
 			if ( 'link' === data.message ) {
 				sourceURL = document.createElement( 'a' );
@@ -127,11 +122,6 @@
 				secret = Math.random().toString( 36 ).substr( 2, 10 );
 				source.src += '#?secret=' + secret;
 				source.setAttribute( 'data-secret', secret );
-			}
-
-			// Add a loading attribute to the iframe if missing.
-			if ( ! source.hasAttribute( 'loading' ) ) {
-				source.setAttribute( 'loading', 'lazy' );
 			}
 
 			/* Remove security attribute from iframes in IE10 and IE11. */
