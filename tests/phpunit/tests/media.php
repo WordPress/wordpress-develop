@@ -79,8 +79,10 @@ CAP;
 	 * Ensures that the static content media count, fetchpriority element flag and related filter are reset between tests.
 	 */
 	public function set_up() {
+		global $wp_query;
 		parent::set_up();
 
+		$this->set_main_query( $wp_query );
 		$this->reset_content_media_count();
 		$this->reset_omit_loading_attr_filter();
 		$this->reset_high_priority_element_flag();
@@ -5014,9 +5016,8 @@ EOF;
 				'setup'    => function () {
 					global $wp_query;
 
-					// Set WP_Query to be in the loop and main query.
+					// Set WP_Query to be in the loop.
 					$wp_query->in_the_loop = true;
-					$this->set_main_query( $wp_query );
 
 				},
 				'expected' => array(
@@ -5028,9 +5029,8 @@ EOF;
 				'setup'    => function () {
 					global $wp_query;
 
-					// Set WP_Query to be in the loop and main query.
+					// Set WP_Query to be in the loop.
 					$wp_query->in_the_loop = true;
-					$this->set_main_query( $wp_query );
 
 					// Set internal flags so lazy should be applied.
 					wp_high_priority_element_flag( false );
