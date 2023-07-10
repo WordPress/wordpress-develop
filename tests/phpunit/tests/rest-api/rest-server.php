@@ -1142,12 +1142,14 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * @ticket 57902
 	 *
 	 * @covers WP_REST_Server::get_index
+	 *
+	 * @dataProvider data_get_index_should_return_help_and_not_name
 	 */
-	public function test_get_index_fields_links() {
+	public function test_get_index_fields_links( $field ) {
 		$server = new WP_REST_Server();
 
 		$request = new WP_REST_Request( 'GET', '/' );
-		$request->set_param( '_fields', '_links' );
+		$request->set_param( '_fields', $field );
 		$index = $server->dispatch( $request );
 		$index = rest_filter_response_fields( $index, $server, $request );
 		$data  = $index->get_data();
@@ -2340,5 +2342,16 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			array( 'alternate' ),
 			array( array( 'alternate' ) ),
 		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @throws Exception
+	 *
+	 * @return array
+	 */
+	public function data_get_index_should_return_help_and_not_name() {
+		return self::text_array_to_dataprovider( array( '_links', '_embedded' ) );
 	}
 }
