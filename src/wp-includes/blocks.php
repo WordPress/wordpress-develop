@@ -134,17 +134,34 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
 	}
 
-	$theme_path_norm  = wp_normalize_path( get_theme_file_path() );
+	// Cache $template_path_norm and $stylesheet_path_norm to avoid unnecessary additional calls.
+	static $template_path_norm   = '';
+	static $stylesheet_path_norm = '';
+	if ( ! $template_path_norm || ! $stylesheet_path_norm ) {
+		$template_path_norm   = wp_normalize_path( get_template_directory() );
+		$stylesheet_path_norm = wp_normalize_path( get_stylesheet_directory() );
+	}
+
 	$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $script_path ) );
 
-	$is_core_block  = isset( $metadata['file'] ) && str_starts_with( $metadata['file'], $wpinc_path_norm );
-	$is_theme_block = str_starts_with( $script_path_norm, $theme_path_norm );
+	$is_core_block = isset( $metadata['file'] ) && str_starts_with( $metadata['file'], $wpinc_path_norm );
+
+	/*
+	 * Determine if the block script was registered in a theme, by checking if the script path starts with either
+	 * the parent (template) or child (stylesheet) directory path.
+	 */
+	$is_parent_theme_block = str_starts_with( $script_path_norm, $template_path_norm );
+	$is_child_theme_block  = str_starts_with( $script_path_norm, $stylesheet_path_norm );
+	$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
 
 	$script_uri = plugins_url( $script_path, $metadata['file'] );
 	if ( $is_core_block ) {
 		$script_uri = includes_url( str_replace( $wpinc_path_norm, '', $script_path_norm ) );
 	} elseif ( $is_theme_block ) {
-		$script_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $script_path_norm ) );
+		// Get the script path deterministically based on whether or not it was registered in a parent or child theme.
+		$script_uri = $is_parent_theme_block
+			? get_theme_file_uri( str_replace( $template_path_norm, '', $script_path_norm ) )
+			: get_theme_file_uri( str_replace( $stylesheet_path_norm, '', $script_path_norm ) );
 	}
 
 	$script_asset        = require $script_asset_path;
@@ -186,6 +203,20 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		return false;
 	}
 
+	$style_handle = $metadata[ $field_name ];
+	if ( is_array( $style_handle ) ) {
+		if ( empty( $style_handle[ $index ] ) ) {
+			return false;
+		}
+		$style_handle = $style_handle[ $index ];
+	}
+
+	$style_handle_name = generate_block_asset_handle( $metadata['name'], $field_name, $index );
+	// If the style handle is already registered, skip re-registering.
+	if ( wp_style_is( $style_handle_name, 'registered' ) ) {
+		return $style_handle_name;
+	}
+
 	static $wpinc_path_norm = '';
 	if ( ! $wpinc_path_norm ) {
 		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
@@ -195,14 +226,6 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	// Skip registering individual styles for each core block when a bundled version provided.
 	if ( $is_core_block && ! wp_should_load_separate_core_block_assets() ) {
 		return false;
-	}
-
-	$style_handle = $metadata[ $field_name ];
-	if ( is_array( $style_handle ) ) {
-		if ( empty( $style_handle[ $index ] ) ) {
-			return false;
-		}
-		$style_handle = $style_handle[ $index ];
 	}
 
 	$style_path      = remove_block_asset_path_prefix( $style_handle );
@@ -219,7 +242,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	// Check whether styles should have a ".min" suffix or not.
 	$suffix = SCRIPT_DEBUG ? '' : '.min';
 	if ( $is_core_block ) {
-		$style_path = "style$suffix.css";
+		$style_path = ( 'editorStyle' === $field_name ) ? "editor{$suffix}.css" : "style{$suffix}.css";
 	}
 
 	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
@@ -228,27 +251,36 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	if ( $has_style_file ) {
 		$style_uri = plugins_url( $style_path, $metadata['file'] );
 
-		// Cache $theme_path_norm to avoid calling get_theme_file_path() multiple times.
-		static $theme_path_norm = '';
-		if ( ! $theme_path_norm ) {
-			$theme_path_norm = wp_normalize_path( get_theme_file_path() );
+		// Cache $template_path_norm and $stylesheet_path_norm to avoid unnecessary additional calls.
+		static $template_path_norm   = '';
+		static $stylesheet_path_norm = '';
+		if ( ! $template_path_norm || ! $stylesheet_path_norm ) {
+			$template_path_norm   = wp_normalize_path( get_template_directory() );
+			$stylesheet_path_norm = wp_normalize_path( get_stylesheet_directory() );
 		}
 
-		$is_theme_block = str_starts_with( $style_path_norm, $theme_path_norm );
+		// Determine if the block style was registered in a theme, by checking if the script path starts with either
+		// the parent (template) or child (stylesheet) directory path.
+		$is_parent_theme_block = str_starts_with( $style_path_norm, $template_path_norm );
+		$is_child_theme_block  = str_starts_with( $style_path_norm, $stylesheet_path_norm );
+		$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
 
-		if ( $is_theme_block ) {
-			$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
-		} elseif ( $is_core_block ) {
-			$style_uri = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
+		if ( $is_core_block ) {
+			// All possible $style_path variants for core blocks are hard-coded above.
+			$style_uri = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . '/' . $style_path );
+		} elseif ( $is_theme_block ) {
+			// Get the script path deterministically based on whether or not it was registered in a parent or child theme.
+			$style_uri = $is_parent_theme_block
+				? get_theme_file_uri( str_replace( $template_path_norm, '', $style_path_norm ) )
+				: get_theme_file_uri( str_replace( $stylesheet_path_norm, '', $style_path_norm ) );
 		}
 	} else {
 		$style_uri = false;
 	}
 
-	$style_handle = generate_block_asset_handle( $metadata['name'], $field_name, $index );
-	$version      = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
-	$result       = wp_register_style(
-		$style_handle,
+	$version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
+	$result  = wp_register_style(
+		$style_handle_name,
 		$style_uri,
 		array(),
 		$version
@@ -258,7 +290,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	}
 
 	if ( $has_style_file ) {
-		wp_style_add_data( $style_handle, 'path', $style_path_norm );
+		wp_style_add_data( $style_handle_name, 'path', $style_path_norm );
 
 		if ( $is_core_block ) {
 			$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $style_path_norm );
@@ -267,13 +299,13 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		}
 
 		if ( is_rtl() && file_exists( $rtl_file ) ) {
-			wp_style_add_data( $style_handle, 'rtl', 'replace' );
-			wp_style_add_data( $style_handle, 'suffix', $suffix );
-			wp_style_add_data( $style_handle, 'path', $rtl_file );
+			wp_style_add_data( $style_handle_name, 'rtl', 'replace' );
+			wp_style_add_data( $style_handle_name, 'suffix', $suffix );
+			wp_style_add_data( $style_handle_name, 'path', $rtl_file );
 		}
 	}
 
-	return $style_handle;
+	return $style_handle_name;
 }
 
 /**
@@ -319,7 +351,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 */
 	static $core_blocks_meta;
 	if ( ! $core_blocks_meta ) {
-		$core_blocks_meta = require_once ABSPATH . WPINC . '/blocks/blocks-json.php';
+		$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
 	}
 
 	$metadata_file = ( ! str_ends_with( $file_or_folder, 'block.json' ) ) ?
@@ -366,6 +398,10 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 
 		if ( ! isset( $metadata['style'] ) ) {
 			$metadata['style'] = "wp-block-$block_name";
+		}
+		if ( current_theme_supports( 'wp-block-styles' ) && wp_should_load_separate_core_block_assets() ) {
+			$metadata['style']   = (array) $metadata['style'];
+			$metadata['style'][] = "wp-block-{$block_name}-theme";
 		}
 		if ( ! isset( $metadata['editorStyle'] ) ) {
 			$metadata['editorStyle'] = "wp-block-{$block_name}-editor";
@@ -802,7 +838,7 @@ function serialize_blocks( $blocks ) {
 function filter_block_content( $text, $allowed_html = 'post', $allowed_protocols = array() ) {
 	$result = '';
 
-	if ( false !== strpos( $text, '<!--' ) && false !== strpos( $text, '--->' ) ) {
+	if ( str_contains( $text, '<!--' ) && str_contains( $text, '--->' ) ) {
 		$text = preg_replace_callback( '%<!--(.*?)--->%', '_filter_block_content_callback', $text );
 	}
 
@@ -1366,10 +1402,15 @@ function build_query_vars_from_query_block( $block, $page ) {
 			$query['orderby'] = $block->context['query']['orderBy'];
 		}
 		if (
-			isset( $block->context['query']['author'] ) &&
-			(int) $block->context['query']['author'] > 0
+			isset( $block->context['query']['author'] )
 		) {
-			$query['author'] = (int) $block->context['query']['author'];
+			if ( is_array( $block->context['query']['author'] ) ) {
+				$query['author__in'] = array_filter( array_map( 'intval', $block->context['query']['author'] ) );
+			} elseif ( is_string( $block->context['query']['author'] ) ) {
+				$query['author__in'] = array_filter( array_map( 'intval', explode( ',', $block->context['query']['author'] ) ) );
+			} elseif ( is_int( $block->context['query']['author'] ) && $block->context['query']['author'] > 0 ) {
+				$query['author'] = $block->context['query']['author'];
+			}
 		}
 		if ( ! empty( $block->context['query']['search'] ) ) {
 			$query['s'] = $block->context['query']['search'];
