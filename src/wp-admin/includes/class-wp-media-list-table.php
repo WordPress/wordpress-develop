@@ -312,8 +312,16 @@ class WP_Media_List_Table extends WP_List_Table {
 			</div>
 
 			<div class="search-form">
-				<label for="media-search-input" class="media-search-input-label"><?php esc_html_e( 'Search' ); ?></label>
-				<input type="search" id="media-search-input" class="search" name="s" value="<?php _admin_search_query(); ?>">
+				<p class="search-box">
+					<label class="screen-reader-text" for="media-search-input">
+					<?php
+					/* translators: Hidden accessibility text. */
+					esc_html_e( 'Search Media' );
+					?>
+					</label>
+					<input type="search" id="media-search-input" class="search" name="s" value="<?php _admin_search_query(); ?>">
+					<input id="search-submit" type="submit" class="button" value="<?php esc_attr_e( 'Search Media' ); ?>">
+				</p>
 			</div>
 		</div>
 		<?php
@@ -389,11 +397,11 @@ class WP_Media_List_Table extends WP_List_Table {
 	 */
 	protected function get_sortable_columns() {
 		return array(
-			'title'    => 'title',
-			'author'   => 'author',
-			'parent'   => 'parent',
-			'comments' => 'comment_count',
-			'date'     => array( 'date', true ),
+			'title'    => array( 'title', false, _x( 'File', 'column name' ), __( 'Table ordered by File Name.' ) ),
+			'author'   => array( 'author', false, __( 'Author' ), __( 'Table ordered by Author.' ) ),
+			'parent'   => array( 'parent', false, _x( 'Uploaded to', 'column name' ), __( 'Table ordered by Uploaded To.' ) ),
+			'comments' => array( 'comment_count', __( 'Comments' ), false, __( 'Table ordered by Comments.' ) ),
+			'date'     => array( 'date', true, __( 'Date' ), __( 'Table ordered by Date.' ), 'desc' ),
 		);
 	}
 
@@ -411,11 +419,13 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		if ( current_user_can( 'edit_post', $post->ID ) ) {
 			?>
-			<label class="screen-reader-text" for="cb-select-<?php echo $post->ID; ?>">
+			<label class="label-covers-full-cell" for="cb-select-<?php echo $post->ID; ?>">
+				<span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. %s: Attachment title. */
 				printf( __( 'Select %s' ), _draft_or_post_title() );
 				?>
+				</span>
 			</label>
 			<input type="checkbox" name="media[]" id="cb-select-<?php echo $post->ID; ?>" value="<?php echo $post->ID; ?>" />
 			<?php
@@ -806,23 +816,27 @@ class WP_Media_List_Table extends WP_List_Table {
 				);
 			}
 
-			$actions['copy'] = sprintf(
-				'<span class="copy-to-clipboard-container"><button type="button" class="button-link copy-attachment-url media-library" data-clipboard-text="%s" aria-label="%s">%s</button><span class="success hidden" aria-hidden="true">%s</span></span>',
-				esc_url( $attachment_url ),
-				/* translators: %s: Attachment title. */
-				esc_attr( sprintf( __( 'Copy &#8220;%s&#8221; URL to clipboard' ), $att_title ) ),
-				__( 'Copy URL' ),
-				__( 'Copied!' )
-			);
+			if ( $attachment_url ) {
+				$actions['copy'] = sprintf(
+					'<span class="copy-to-clipboard-container"><button type="button" class="button-link copy-attachment-url media-library" data-clipboard-text="%s" aria-label="%s">%s</button><span class="success hidden" aria-hidden="true">%s</span></span>',
+					esc_url( $attachment_url ),
+					/* translators: %s: Attachment title. */
+					esc_attr( sprintf( __( 'Copy &#8220;%s&#8221; URL to clipboard' ), $att_title ) ),
+					__( 'Copy URL' ),
+					__( 'Copied!' )
+				);
+			}
 		}
 
-		$actions['download'] = sprintf(
-			'<a href="%s" aria-label="%s" download>%s</a>',
-			esc_url( $attachment_url ),
-			/* translators: %s: Attachment title. */
-			esc_attr( sprintf( __( 'Download &#8220;%s&#8221;' ), $att_title ) ),
-			__( 'Download file' )
-		);
+		if ( $attachment_url ) {
+			$actions['download'] = sprintf(
+				'<a href="%s" aria-label="%s" download>%s</a>',
+				esc_url( $attachment_url ),
+				/* translators: %s: Attachment title. */
+				esc_attr( sprintf( __( 'Download &#8220;%s&#8221;' ), $att_title ) ),
+				__( 'Download file' )
+			);
+		}
 
 		if ( $this->detached && current_user_can( 'edit_post', $post->ID ) ) {
 			$actions['attach'] = sprintf(

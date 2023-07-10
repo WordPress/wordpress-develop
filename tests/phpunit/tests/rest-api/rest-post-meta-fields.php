@@ -2300,6 +2300,42 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 57745
+	 */
+	public function test_update_meta_with_unchanged_values_and_custom_authentication() {
+		register_post_meta(
+			'post',
+			'authenticated',
+			array(
+				'single'        => true,
+				'type'          => 'boolean',
+				'default'       => false,
+				'show_in_rest'  => true,
+				'auth_callback' => '__return_false',
+			)
+		);
+
+		add_post_meta( self::$post_id, 'authenticated', false );
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'authenticated' => false,
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( false, $data['meta']['authenticated'] );
+	}
+
+	/**
 	 * @ticket 43392
 	 */
 	public function test_register_meta_issues_doing_it_wrong_when_show_in_rest_is_true() {

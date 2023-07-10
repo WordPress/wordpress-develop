@@ -109,6 +109,7 @@ class WP_oEmbed {
 			'#https?://([a-z]{2}|www)\.pinterest\.com(\.(au|mx))?/.*#i' => array( 'https://www.pinterest.com/oembed.json', true ),
 			'#https?://(www\.)?wolframcloud\.com/obj/.+#i' => array( 'https://www.wolframcloud.com/oembed', true ),
 			'#https?://pca\.st/.+#i'                       => array( 'https://pca.st/oembed.json', true ),
+			'#https?://((play|www)\.)?anghami\.com/.*#i'   => array( 'https://api.anghami.com/rest/v1/oembed.view', true ),
 		);
 
 		if ( ! empty( self::$early_providers['add'] ) ) {
@@ -188,6 +189,7 @@ class WP_oEmbed {
 		 * | WolframCloud | wolframcloud.com                          | 5.9.0   |
 		 * | Pocket Casts | pocketcasts.com                           | 6.1.0   |
 		 * | Crowdsignal  | crowdsignal.net                           | 6.2.0   |
+		 * | Anghami      | anghami.com                               | 6.3.0   |
 		 *
 		 * No longer supported providers:
 		 *
@@ -618,9 +620,10 @@ class WP_oEmbed {
 		}
 
 		if ( PHP_VERSION_ID < 80000 ) {
-			// This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading
-			// is disabled by default, so this function is no longer needed to protect against XXE attacks.
-			// phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.libxml_disable_entity_loaderDeprecated
+			/*
+			 * This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading
+			 * is disabled by default, so this function is no longer needed to protect against XXE attacks.
+			 */
 			$loader = libxml_disable_entity_loader( true );
 		}
 
@@ -752,7 +755,7 @@ class WP_oEmbed {
 	 * @return string Possibly modified $html
 	 */
 	public function _strip_newlines( $html, $data, $url ) {
-		if ( false === strpos( $html, "\n" ) ) {
+		if ( ! str_contains( $html, "\n" ) ) {
 			return $html;
 		}
 

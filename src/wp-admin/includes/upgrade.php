@@ -440,8 +440,10 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 			$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->usermeta WHERE user_id != %d AND meta_key = %s", $user_id, $table_prefix . 'user_level' ) );
 			$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->usermeta WHERE user_id != %d AND meta_key = %s", $user_id, $table_prefix . 'capabilities' ) );
 
-			// Delete any caps that snuck into the previously active blog. (Hardcoded to blog 1 for now.)
-			// TODO: Get previous_blog_id.
+			/*
+			 * Delete any caps that snuck into the previously active blog. (Hardcoded to blog 1 for now.)
+			 * TODO: Get previous_blog_id.
+			 */
 			if ( ! is_super_admin( $user_id ) && 1 != $user_id ) {
 				$wpdb->delete(
 					$wpdb->usermeta,
@@ -653,6 +655,8 @@ if ( ! function_exists( 'wp_upgrade' ) ) :
 			update_site_meta( get_current_blog_id(), 'db_version', $wp_db_version );
 			update_site_meta( get_current_blog_id(), 'db_last_updated', microtime() );
 		}
+
+		delete_transient( 'wp_core_block_css_files' );
 
 		/**
 		 * Fires after a site is fully upgraded.
@@ -1642,8 +1646,10 @@ function upgrade_290() {
 	global $wp_current_db_version;
 
 	if ( $wp_current_db_version < 11958 ) {
-		// Previously, setting depth to 1 would redundantly disable threading,
-		// but now 2 is the minimum depth to avoid confusion.
+		/*
+		 * Previously, setting depth to 1 would redundantly disable threading,
+		 * but now 2 is the minimum depth to avoid confusion.
+		 */
 		if ( get_option( 'thread_comments_depth' ) == '1' ) {
 			update_option( 'thread_comments_depth', 2 );
 			update_option( 'thread_comments', 0 );
@@ -1842,7 +1848,7 @@ function upgrade_350() {
 	if ( $wp_current_db_version < 21811 && wp_should_upgrade_global_tables() ) {
 		$meta_keys = array();
 		foreach ( array_merge( get_post_types(), get_taxonomies() ) as $name ) {
-			if ( false !== strpos( $name, '-' ) ) {
+			if ( str_contains( $name, '-' ) ) {
 				$meta_keys[] = 'edit_' . str_replace( '-', '_', $name ) . '_per_page';
 			}
 		}
@@ -3247,7 +3253,7 @@ function make_site_theme_from_oldschool( $theme_name, $template ) {
 		// Check to make sure it's not a new index.
 		if ( 'index.php' === $oldfile ) {
 			$index = implode( '', file( "$oldpath/$oldfile" ) );
-			if ( strpos( $index, 'WP_USE_THEMES' ) !== false ) {
+			if ( str_contains( $index, 'WP_USE_THEMES' ) ) {
 				if ( ! copy( "$default_dir/$oldfile", "$site_dir/$newfile" ) ) {
 					return false;
 				}
@@ -3329,8 +3335,10 @@ function make_site_theme_from_default( $theme_name, $template ) {
 	$site_dir    = WP_CONTENT_DIR . "/themes/$template";
 	$default_dir = WP_CONTENT_DIR . '/themes/' . WP_DEFAULT_THEME;
 
-	// Copy files from the default theme to the site theme.
-	// $files = array( 'index.php', 'comments.php', 'comments-popup.php', 'footer.php', 'header.php', 'sidebar.php', 'style.css' );
+	/*
+	 * Copy files from the default theme to the site theme.
+	 * $files = array( 'index.php', 'comments.php', 'comments-popup.php', 'footer.php', 'header.php', 'sidebar.php', 'style.css' );
+	 */
 
 	$theme_dir = @opendir( $default_dir );
 	if ( $theme_dir ) {
@@ -3364,7 +3372,7 @@ function make_site_theme_from_default( $theme_name, $template ) {
 
 		foreach ( $stylelines as $line ) {
 			foreach ( $headers as $header => $value ) {
-				if ( strpos( $line, $header ) !== false ) {
+				if ( str_contains( $line, $header ) ) {
 					$line = $header . ' ' . $value;
 					break;
 				}
