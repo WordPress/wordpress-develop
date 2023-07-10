@@ -89,16 +89,29 @@ function get_block_asset_uri( $path, $file ) {
 		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
 	}
 
-	// Cache $theme_path_norm to avoid calling get_theme_file_path() multiple times.
-	static $theme_path_norm = '';
-	if ( ! $theme_path_norm ) {
-		$theme_path_norm = wp_normalize_path( get_theme_file_path() );
+	if ( str_starts_with( $path, $wpinc_path_norm ) ) {
+		return includes_url( str_replace( $wpinc_path_norm, '', $path ) );
 	}
 
-	if ( str_starts_with( $path, $wpinc_path_norm ) ) {
-		$uri = includes_url( str_replace( $wpinc_path_norm, '', $path ) );
-	} elseif ( str_starts_with( $path, $theme_path_norm ) ) {
-		$uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $path ) );
+	// Cache $theme_path_norm to avoid calling get_theme_file_path() multiple times.
+	static $template_path_norm = '', $stylesheet_path_norm = '';
+	if ( ! $template_path_norm || ! $stylesheet_path_norm ) {
+		$template_path_norm   = wp_normalize_path( get_template_directory() );
+		$stylesheet_path_norm = wp_normalize_path( get_stylesheet_directory() );
+	}
+
+	/*
+	 * Determine if the block script was registered in a theme, by checking if the script path starts with either
+	 * the parent (template) or child (stylesheet) directory path.
+	 */
+	$is_parent_theme_block = str_starts_with( $path, $template_path_norm );
+	$is_child_theme_block  = str_starts_with( $path, $stylesheet_path_norm );
+	$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
+
+	if ( $is_theme_block ) {
+		$uri = $is_parent_theme_block
+			? get_theme_file_uri( str_replace( $template_path_norm, '', $path ) )
+			: get_theme_file_uri( str_replace( $stylesheet_path_norm, '', $path ) );
 	} else {
 		$uri = plugins_url( $path, $file );
 	}
