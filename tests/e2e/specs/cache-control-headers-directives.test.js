@@ -26,7 +26,7 @@ describe( 'Cache Control header directives', () => {
 	} );
 
 	it( 'Private directive header present in cache control when logged in.', async () => {
-		await visitAdminPage( '/wp-admin' );
+		await visitAdminPage( '/' );
 
 		const response = await page.goto( createURL( '/wp-admin' ) );
 		const responseHeaders = response.headers();
