@@ -282,26 +282,26 @@ function create_initial_post_types() {
 		'wp_block',
 		array(
 			'labels'                => array(
-				'name'                     => _x( 'Reusable blocks', 'post type general name' ),
-				'singular_name'            => _x( 'Reusable block', 'post type singular name' ),
-				'add_new'                  => _x( 'Add New', 'Reusable block' ),
-				'add_new_item'             => __( 'Add new Reusable block' ),
-				'new_item'                 => __( 'New Reusable block' ),
-				'edit_item'                => __( 'Edit Reusable block' ),
-				'view_item'                => __( 'View Reusable block' ),
-				'view_items'               => __( 'View Reusable blocks' ),
-				'all_items'                => __( 'All Reusable blocks' ),
-				'search_items'             => __( 'Search Reusable blocks' ),
-				'not_found'                => __( 'No reusable blocks found.' ),
-				'not_found_in_trash'       => __( 'No reusable blocks found in Trash.' ),
-				'filter_items_list'        => __( 'Filter reusable blocks list' ),
-				'items_list_navigation'    => __( 'Reusable blocks list navigation' ),
-				'items_list'               => __( 'Reusable blocks list' ),
-				'item_published'           => __( 'Reusable block published.' ),
-				'item_published_privately' => __( 'Reusable block published privately.' ),
-				'item_reverted_to_draft'   => __( 'Reusable block reverted to draft.' ),
-				'item_scheduled'           => __( 'Reusable block scheduled.' ),
-				'item_updated'             => __( 'Reusable block updated.' ),
+				'name'                     => _x( 'Patterns', 'post type general name' ),
+				'singular_name'            => _x( 'Pattern', 'post type singular name' ),
+				'add_new'                  => _x( 'Add New', 'Pattern' ),
+				'add_new_item'             => __( 'Add new Pattern' ),
+				'new_item'                 => __( 'New Pattern' ),
+				'edit_item'                => __( 'Edit Pattern' ),
+				'view_item'                => __( 'View Pattern' ),
+				'view_items'               => __( 'View Patterns' ),
+				'all_items'                => __( 'All Patterns' ),
+				'search_items'             => __( 'Search Patterns' ),
+				'not_found'                => __( 'No patterns found.' ),
+				'not_found_in_trash'       => __( 'No patterns found in Trash.' ),
+				'filter_items_list'        => __( 'Filter patterns list' ),
+				'items_list_navigation'    => __( 'Patterns list navigation' ),
+				'items_list'               => __( 'Patterns list' ),
+				'item_published'           => __( 'Pattern published.' ),
+				'item_published_privately' => __( 'Pattern published privately.' ),
+				'item_reverted_to_draft'   => __( 'Pattern reverted to draft.' ),
+				'item_scheduled'           => __( 'Pattern scheduled.' ),
+				'item_updated'             => __( 'Pattern updated.' ),
 			),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
@@ -328,6 +328,7 @@ function create_initial_post_types() {
 				'title',
 				'editor',
 				'revisions',
+				'custom-fields',
 			),
 		)
 	);
@@ -490,6 +491,14 @@ function create_initial_post_types() {
 		)
 	);
 
+	$navigation_post_edit_link = 'site-editor.php?' . build_query(
+		array(
+			'postId'   => '%s',
+			'postType' => 'wp_navigation',
+			'canvas'   => 'edit',
+		)
+	);
+
 	register_post_type(
 		'wp_navigation',
 		array(
@@ -516,6 +525,7 @@ function create_initial_post_types() {
 			'description'           => __( 'Navigation menus that can be inserted into your site.' ),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'            => $navigation_post_edit_link, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
 			'show_ui'               => true,
 			'show_in_menu'          => false,
@@ -3024,7 +3034,8 @@ function _count_posts_cache_key( $type = 'post', $perm = '' ) {
  *
  * @param string $type Optional. Post type to retrieve count. Default 'post'.
  * @param string $perm Optional. 'readable' or empty. Default empty.
- * @return stdClass Number of posts for each status.
+ * @return stdClass An object containing the number of posts for each status,
+ *                  or an empty object if the post type does not exist.
  */
 function wp_count_posts( $type = 'post', $perm = '' ) {
 	global $wpdb;
@@ -3575,15 +3586,19 @@ function wp_trash_post( $post_id = 0 ) {
 		return false;
 	}
 
+	$previous_status = $post->post_status;
+
 	/**
 	 * Filters whether a post trashing should take place.
 	 *
 	 * @since 4.9.0
+	 * @since 6.3.0 Added the `$previous_status` parameter.
 	 *
-	 * @param bool|null $trash Whether to go forward with trashing.
-	 * @param WP_Post   $post  Post object.
+	 * @param bool|null $trash           Whether to go forward with trashing.
+	 * @param WP_Post   $post            Post object.
+	 * @param string    $previous_status The status of the post about to be trashed.
 	 */
-	$check = apply_filters( 'pre_trash_post', null, $post );
+	$check = apply_filters( 'pre_trash_post', null, $post, $previous_status );
 
 	if ( null !== $check ) {
 		return $check;
@@ -3593,12 +3608,14 @@ function wp_trash_post( $post_id = 0 ) {
 	 * Fires before a post is sent to the Trash.
 	 *
 	 * @since 3.3.0
+	 * @since 6.3.0 Added the `$previous_status` parameter.
 	 *
-	 * @param int $post_id Post ID.
+	 * @param int    $post_id         Post ID.
+	 * @param string $previous_status The status of the post about to be trashed.
 	 */
-	do_action( 'wp_trash_post', $post_id );
+	do_action( 'wp_trash_post', $post_id, $previous_status );
 
-	add_post_meta( $post_id, '_wp_trash_meta_status', $post->post_status );
+	add_post_meta( $post_id, '_wp_trash_meta_status', $previous_status );
 	add_post_meta( $post_id, '_wp_trash_meta_time', time() );
 
 	$post_updated = wp_update_post(
@@ -3618,10 +3635,12 @@ function wp_trash_post( $post_id = 0 ) {
 	 * Fires after a post is sent to the Trash.
 	 *
 	 * @since 2.9.0
+	 * @since 6.3.0 Added the `$previous_status` parameter.
 	 *
-	 * @param int $post_id Post ID.
+	 * @param int    $post_id         Post ID.
+	 * @param string $previous_status The status of the post at the point where it was trashed.
 	 */
-	do_action( 'trashed_post', $post_id );
+	do_action( 'trashed_post', $post_id, $previous_status );
 
 	return $post;
 }
@@ -3655,7 +3674,7 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * Filters whether a post untrashing should take place.
 	 *
 	 * @since 4.9.0
-	 * @since 5.6.0 The `$previous_status` parameter was added.
+	 * @since 5.6.0 Added the `$previous_status` parameter.
 	 *
 	 * @param bool|null $untrash         Whether to go forward with untrashing.
 	 * @param WP_Post   $post            Post object.
@@ -3670,7 +3689,7 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * Fires before a post is restored from the Trash.
 	 *
 	 * @since 2.9.0
-	 * @since 5.6.0 The `$previous_status` parameter was added.
+	 * @since 5.6.0 Added the `$previous_status` parameter.
 	 *
 	 * @param int    $post_id         Post ID.
 	 * @param string $previous_status The status of the post at the point where it was trashed.
@@ -3716,7 +3735,7 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * Fires after a post is restored from the Trash.
 	 *
 	 * @since 2.9.0
-	 * @since 5.6.0 The `$previous_status` parameter was added.
+	 * @since 5.6.0 Added the `$previous_status` parameter.
 	 *
 	 * @param int    $post_id         Post ID.
 	 * @param string $previous_status The status of the post at the point where it was trashed.
@@ -8017,4 +8036,29 @@ function use_block_editor_for_post_type( $post_type ) {
 	 * @param string $post_type         The post type being checked.
 	 */
 	return apply_filters( 'use_block_editor_for_post_type', true, $post_type );
+}
+
+/**
+ * Registers any additional post meta fields.
+ *
+ * @since 6.3.0 Adds `wp_pattern_sync_status` meta field to the wp_block post type so an unsynced option can be added.
+ *
+ * @link https://github.com/WordPress/gutenberg/pull/51144
+ */
+function wp_create_initial_post_meta() {
+	register_post_meta(
+		'wp_block',
+		'wp_pattern_sync_status',
+		array(
+			'sanitize_callback' => 'sanitize_text_field',
+			'single'            => true,
+			'type'              => 'string',
+			'show_in_rest'      => array(
+				'schema' => array(
+					'type' => 'string',
+					'enum' => array( 'partial', 'unsynced' ),
+				),
+			),
+		)
+	);
 }
