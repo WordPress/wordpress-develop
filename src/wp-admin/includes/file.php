@@ -127,13 +127,16 @@ function get_home_path() {
  *
  * @since 2.6.0
  * @since 4.9.0 Added the `$exclusions` parameter.
+ * @since 6.3.0 Added the `$include_hidden` parameter.
  *
- * @param string   $folder     Optional. Full path to folder. Default empty.
- * @param int      $levels     Optional. Levels of folders to follow, Default 100 (PHP Loop limit).
- * @param string[] $exclusions Optional. List of folders and files to skip.
+ * @param string   $folder         Optional. Full path to folder. Default empty.
+ * @param int      $levels         Optional. Levels of folders to follow, Default 100 (PHP Loop limit).
+ * @param string[] $exclusions     Optional. List of folders and files to skip.
+ * @param bool     $include_hidden Optional. Whether to include details of hidden ("." prefixed) files.
+ *                                 Default false.
  * @return string[]|false Array of files on success, false on failure.
  */
-function list_files( $folder = '', $levels = 100, $exclusions = array() ) {
+function list_files( $folder = '', $levels = 100, $exclusions = array(), $include_hidden = false ) {
 	if ( empty( $folder ) ) {
 		return false;
 	}
@@ -156,12 +159,12 @@ function list_files( $folder = '', $levels = 100, $exclusions = array() ) {
 			}
 
 			// Skip hidden and excluded files.
-			if ( '.' === $file[0] || in_array( $file, $exclusions, true ) ) {
+			if ( ( ! $include_hidden && '.' === $file[0] ) || in_array( $file, $exclusions, true ) ) {
 				continue;
 			}
 
 			if ( is_dir( $folder . $file ) ) {
-				$files2 = list_files( $folder . $file, $levels - 1 );
+				$files2 = list_files( $folder . $file, $levels - 1, array(), $include_hidden );
 				if ( $files2 ) {
 					$files = array_merge( $files, $files2 );
 				} else {
@@ -571,8 +574,10 @@ function wp_edit_theme_plugin_file( $args ) {
 		}
 
 		if ( function_exists( 'session_status' ) && PHP_SESSION_ACTIVE === session_status() ) {
-			// Close any active session to prevent HTTP requests from timing out
-			// when attempting to connect back to the site.
+			/*
+			 * Close any active session to prevent HTTP requests from timing out
+			 * when attempting to connect back to the site.
+			 */
 			session_write_close();
 		}
 
@@ -890,7 +895,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 
 	// If you override this, you must provide $ext and $type!!
 	$test_type = isset( $overrides['test_type'] ) ? $overrides['test_type'] : true;
-	$mimes     = isset( $overrides['mimes'] ) ? $overrides['mimes'] : false;
+	$mimes     = isset( $overrides['mimes'] ) ? $overrides['mimes'] : null;
 
 	// A correct form post will pass this test.
 	if ( $test_form && ( ! isset( $_POST['action'] ) || $_POST['action'] !== $action ) ) {
@@ -1248,12 +1253,14 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		$signature = wp_remote_retrieve_header( $response, 'X-Content-Signature' );
 
 		if ( ! $signature ) {
-			// Retrieve signatures from a file if the header wasn't included.
-			// WordPress.org stores signatures at $package_url.sig.
+			/*
+			 * Retrieve signatures from a file if the header wasn't included.
+			 * WordPress.org stores signatures at $package_url.sig.
+			 */
 
 			$signature_url = false;
 
-			if ( is_string( $url_path ) && ( '.zip' === substr( $url_path, -4 ) || '.tar.gz' === substr( $url_path, -7 ) ) ) {
+			if ( is_string( $url_path ) && ( str_ends_with( $url_path, '.zip' ) || str_ends_with( $url_path, '.tar.gz' ) ) ) {
 				$signature_url = str_replace( $url_path, $url_path . '.sig', $url );
 			}
 
@@ -1383,8 +1390,10 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 		in_array( PHP_VERSION_ID, array( 70200, 70201, 70202 ), true ) &&
 		extension_loaded( 'opcache' )
 	) {
-		// Sodium_Compat isn't compatible with PHP 7.2.0~7.2.2 due to a bug in the PHP Opcache extension, bail early as it'll fail.
-		// https://bugs.php.net/bug.php?id=75938
+		/*
+		 * Sodium_Compat isn't compatible with PHP 7.2.0~7.2.2 due to a bug in the PHP Opcache extension, bail early as it'll fail.
+		 * https://bugs.php.net/bug.php?id=75938
+		 */
 		return new WP_Error(
 			'signature_verification_unsupported',
 			sprintf(
@@ -1417,8 +1426,10 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 			// phpcs:enable
 		}
 
-		// This cannot be performed in a reasonable amount of time.
-		// https://github.com/paragonie/sodium_compat#help-sodium_compat-is-slow-how-can-i-make-it-fast
+		/*
+		 * This cannot be performed in a reasonable amount of time.
+		 * https://github.com/paragonie/sodium_compat#help-sodium_compat-is-slow-how-can-i-make-it-fast
+		 */
 		if ( ! $sodium_compat_is_fast ) {
 			return new WP_Error(
 				'signature_verification_unsupported',
@@ -1646,7 +1657,7 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 			return new WP_Error( 'stat_failed_ziparchive', __( 'Could not retrieve file from archive.' ) );
 		}
 
-		if ( '__MACOSX/' === substr( $info['name'], 0, 9 ) ) { // Skip the OS X-created __MACOSX directory.
+		if ( str_starts_with( $info['name'], '__MACOSX/' ) ) { // Skip the OS X-created __MACOSX directory.
 			continue;
 		}
 
@@ -1659,7 +1670,7 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 
 		$dirname = dirname( $info['name'] );
 
-		if ( '/' === substr( $info['name'], -1 ) ) {
+		if ( str_ends_with( $info['name'], '/' ) ) {
 			// Directory.
 			$needed_dirs[] = $to . untrailingslashit( $info['name'] );
 		} elseif ( '.' !== $dirname ) {
@@ -1693,7 +1704,7 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 			continue;
 		}
 
-		if ( strpos( $dir, $to ) === false ) { // If the directory is not within the working directory, skip it.
+		if ( ! str_contains( $dir, $to ) ) { // If the directory is not within the working directory, skip it.
 			continue;
 		}
 
@@ -1726,11 +1737,11 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 			return new WP_Error( 'stat_failed_ziparchive', __( 'Could not retrieve file from archive.' ) );
 		}
 
-		if ( '/' === substr( $info['name'], -1 ) ) { // Directory.
+		if ( str_ends_with( $info['name'], '/' ) ) { // Directory.
 			continue;
 		}
 
-		if ( '__MACOSX/' === substr( $info['name'], 0, 9 ) ) { // Don't extract the OS X-created __MACOSX directory files.
+		if ( str_starts_with( $info['name'], '__MACOSX/' ) ) { // Don't extract the OS X-created __MACOSX directory files.
 			continue;
 		}
 
@@ -1800,7 +1811,7 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 
 	// Determine any children directories needed (From within the archive).
 	foreach ( $archive_files as $file ) {
-		if ( '__MACOSX/' === substr( $file['filename'], 0, 9 ) ) { // Skip the OS X-created __MACOSX directory.
+		if ( str_starts_with( $file['filename'], '__MACOSX/' ) ) { // Skip the OS X-created __MACOSX directory.
 			continue;
 		}
 
@@ -1834,7 +1845,7 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 			continue;
 		}
 
-		if ( strpos( $dir, $to ) === false ) { // If the directory is not within the working directory, skip it.
+		if ( ! str_contains( $dir, $to ) ) { // If the directory is not within the working directory, skip it.
 			continue;
 		}
 
@@ -1866,7 +1877,7 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 			continue;
 		}
 
-		if ( '__MACOSX/' === substr( $file['filename'], 0, 9 ) ) { // Don't extract the OS X-created __MACOSX directory files.
+		if ( str_starts_with( $file['filename'], '__MACOSX/' ) ) { // Don't extract the OS X-created __MACOSX directory files.
 			continue;
 		}
 
@@ -1909,6 +1920,14 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 
 	$from = trailingslashit( $from );
 	$to   = trailingslashit( $to );
+
+	if ( ! $wp_filesystem->exists( $to ) && ! $wp_filesystem->mkdir( $to ) ) {
+		return new WP_Error(
+			'mkdir_destination_failed_copy_dir',
+			__( 'Could not create the destination directory.' ),
+			basename( $to )
+		);
+	}
 
 	foreach ( (array) $dirlist as $filename => $fileinfo ) {
 		if ( in_array( $filename, $skip_list, true ) ) {
@@ -2316,8 +2335,10 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 		'private_key' => 'FTP_PRIKEY',
 	);
 
-	// If defined, set it to that. Else, if POST'd, set it to that. If not, set it to an empty string.
-	// Otherwise, keep it as it previously was (saved details in option).
+	/*
+	 * If defined, set it to that. Else, if POST'd, set it to that. If not, set it to an empty string.
+	 * Otherwise, keep it as it previously was (saved details in option).
+	 */
 	foreach ( $ftp_constants as $key => $constant ) {
 		if ( defined( $constant ) ) {
 			$credentials[ $key ] = constant( $constant );
@@ -2520,8 +2541,10 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 		}
 	}
 
-	// Make sure the `submit_button()` function is available during the REST API call
-	// from WP_Site_Health_Auto_Updates::test_check_wp_filesystem_method().
+	/*
+	 * Make sure the `submit_button()` function is available during the REST API call
+	 * from WP_Site_Health_Auto_Updates::test_check_wp_filesystem_method().
+	 */
 	if ( ! function_exists( 'submit_button' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/template.php';
 	}
