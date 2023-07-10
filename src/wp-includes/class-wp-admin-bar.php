@@ -50,9 +50,9 @@ class WP_Admin_Bar {
 			}
 		}
 
-		add_action( 'wp_head', 'wp_admin_bar_header' );
+		add_action( 'wp_head', 'wp_admin_bar_header', 7 );
 
-		add_action( 'admin_head', 'wp_admin_bar_header' );
+		add_action( 'admin_head', 'wp_admin_bar_header', 7 );
 
 		if ( current_theme_supports( 'admin-bar' ) ) {
 			/**
@@ -67,7 +67,7 @@ class WP_Admin_Bar {
 			$header_callback = '_admin_bar_bump_cb';
 		}
 
-		add_action( 'wp_head', $header_callback );
+		add_action( 'wp_head', $header_callback, 7 );
 
 		wp_enqueue_script( 'admin-bar' );
 		wp_enqueue_style( 'admin-bar' );
