@@ -2512,7 +2512,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'description', $preload_data['/']['body'] );
 		$this->assertArrayHasKey( 'routes', $preload_data['/']['body'] );
 
-		// Filtered request only has the desired fields + links
+		// Filtered request only has the desired fields.
 		$this->assertSame(
 			array_keys( $preload_data['/?_fields=description']['body'] ),
 			array( 'description' )
