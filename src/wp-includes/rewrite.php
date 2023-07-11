@@ -210,6 +210,7 @@ function add_permastruct( $name, $struct, $args = array() ) {
 	if ( ! is_array( $args ) ) {
 		$args = array( 'with_front' => $args );
 	}
+
 	if ( func_num_args() === 4 ) {
 		$args['ep_mask'] = func_get_arg( 3 );
 	}
