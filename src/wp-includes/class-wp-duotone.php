@@ -1004,6 +1004,7 @@ class WP_Duotone {
 		$tree              = wp_get_global_settings();
 		$presets_by_origin = _wp_array_get( $tree, array( 'color', 'duotone' ), array() );
 
+		self::$global_styles_presets = array();
 		foreach ( $presets_by_origin as $presets ) {
 			foreach ( $presets as $preset ) {
 				$filter_id = self::get_filter_id( _wp_to_kebab_case( $preset['slug'] ) );
@@ -1041,6 +1042,8 @@ class WP_Duotone {
 		$tree        = WP_Theme_JSON_Resolver::get_merged_data();
 		$block_nodes = $tree->get_styles_block_nodes();
 		$theme_json  = $tree->get_raw_data();
+
+		self::$global_styles_block_names = array();
 
 		foreach ( $block_nodes as $block_node ) {
 			// This block definition doesn't include any duotone settings. Skip it.
@@ -1091,7 +1094,14 @@ class WP_Duotone {
 	 * @return string                Filtered block content.
 	 */
 	public static function render_duotone_support( $block_content, $block ) {
+		if ( empty( $block_content ) ) {
+			return $block_content;
+		}
 		$duotone_selector = self::get_selector( $block['blockName'] );
+
+		if ( ! $duotone_selector ) {
+			return $block_content;
+		}
 
 		$global_styles_block_names = self::_get_global_style_block_names();
 
@@ -1099,11 +1109,7 @@ class WP_Duotone {
 		$has_duotone_attribute     = isset( $block['attrs']['style']['color']['duotone'] );
 		$has_global_styles_duotone = array_key_exists( $block['blockName'], $global_styles_block_names );
 
-		if (
-			empty( $block_content ) ||
-			! $duotone_selector ||
-			( ! $has_duotone_attribute && ! $has_global_styles_duotone )
-		) {
+		if ( ! $has_duotone_attribute && ! $has_global_styles_duotone ) {
 			return $block_content;
 		}
 
