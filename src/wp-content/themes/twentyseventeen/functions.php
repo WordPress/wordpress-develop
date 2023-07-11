@@ -25,13 +25,6 @@ if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '<' ) ) {
  * as indicating support for post thumbnails.
  */
 function twentyseventeen_setup() {
-	/*
-	 * Make theme available for translation.
-	 * Translations can be filed at WordPress.org. See: https://translate.wordpress.org/projects/wp-themes/twentyseventeen
-	 * If you're building a theme based on Twenty Seventeen, use a find and replace
-	 * to change 'twentyseventeen' to the name of your theme in all the template files.
-	 */
-	load_theme_textdomain( 'twentyseventeen' );
 
 	// Add default posts and comments RSS feed links to head.
 	add_theme_support( 'automatic-feed-links' );
@@ -469,18 +462,18 @@ function twentyseventeen_scripts() {
 		wp_enqueue_style( 'twentyseventeen-colors-dark', get_theme_file_uri( '/assets/css/colors-dark.css' ), array( 'twentyseventeen-style' ), '20191025' );
 	}
 
-	// Load the Internet Explorer 9 specific stylesheet, to fix display issues in the Customizer.
+	// Register the Internet Explorer 9 specific stylesheet, to fix display issues in the Customizer.
 	if ( is_customize_preview() ) {
-		wp_enqueue_style( 'twentyseventeen-ie9', get_theme_file_uri( '/assets/css/ie9.css' ), array( 'twentyseventeen-style' ), '20161202' );
+		wp_register_style( 'twentyseventeen-ie9', get_theme_file_uri( '/assets/css/ie9.css' ), array( 'twentyseventeen-style' ), '20161202' );
 		wp_style_add_data( 'twentyseventeen-ie9', 'conditional', 'IE 9' );
 	}
 
-	// Load the Internet Explorer 8 specific stylesheet.
-	wp_enqueue_style( 'twentyseventeen-ie8', get_theme_file_uri( '/assets/css/ie8.css' ), array( 'twentyseventeen-style' ), '20161202' );
+	// Register the Internet Explorer 8 specific stylesheet.
+	wp_register_style( 'twentyseventeen-ie8', get_theme_file_uri( '/assets/css/ie8.css' ), array( 'twentyseventeen-style' ), '20161202' );
 	wp_style_add_data( 'twentyseventeen-ie8', 'conditional', 'lt IE 9' );
 
-	// Load the html5 shiv.
-	wp_enqueue_script( 'html5', get_theme_file_uri( '/assets/js/html5.js' ), array(), '20161020' );
+	// Register the html5 shiv.
+	wp_register_script( 'html5', get_theme_file_uri( '/assets/js/html5.js' ), array(), '20161020' );
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Skip-link fix is no longer enqueued by default.

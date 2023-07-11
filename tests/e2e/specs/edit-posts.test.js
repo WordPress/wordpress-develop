@@ -54,14 +54,16 @@ describe( 'Edit Posts', () => {
 		);
 		await editLink.click();
 
-		// Edit the post.
-		await page.waitForNavigation();
+		// Wait for the editor iframe to load, and switch to it as the active content frame.
+		const editorFrame = await page.waitForSelector( 'iframe[name="editor-canvas"]' );
+
+		const innerFrame = await editorFrame.contentFrame();
 
 		// Wait for title field to render onscreen.
-		await page.waitForSelector( '.editor-post-title__input' );
+		await innerFrame.waitForSelector( '.editor-post-title__input' );
 
 		// Expect to now be in the editor with the correct post title shown.
-		const editorPostTitleInput = await page.$x(
+		const editorPostTitleInput = await innerFrame.$x(
 			`//h1[contains(@class, "editor-post-title__input")][contains(text(), "${ title }")]`
 		);
 		expect( editorPostTitleInput.length ).toBe( 1 );

@@ -136,7 +136,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 				$ok_to_comment = $wpdb->get_var( $wpdb->prepare( "SELECT comment_approved FROM $wpdb->comments WHERE comment_author = %s AND comment_author_email = %s and comment_approved = '1' LIMIT 1", $author, $email ) );
 			}
 			if ( ( 1 == $ok_to_comment ) &&
-				( empty( $mod_keys ) || false === strpos( $email, $mod_keys ) ) ) {
+				( empty( $mod_keys ) || ! str_contains( $email, $mod_keys ) ) ) {
 					return true;
 			} else {
 				return false;
@@ -651,8 +651,10 @@ function sanitize_comment_cookies() {
 function wp_allow_comment( $commentdata, $wp_error = false ) {
 	global $wpdb;
 
-	// Simple duplicate check.
-	// expected_slashed ($comment_post_ID, $comment_author, $comment_author_email, $comment_content)
+	/*
+	 * Simple duplicate check.
+	 * expected_slashed ($comment_post_ID, $comment_author, $comment_author_email, $comment_content)
+	 */
 	$dupe = $wpdb->prepare(
 		"SELECT comment_ID FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_parent = %s AND comment_approved != 'trash' AND ( comment_author = %s ",
 		wp_unslash( $commentdata['comment_post_ID'] ),
@@ -1352,8 +1354,7 @@ function wp_check_comment_disallowed_list( $author, $email, $url, $comment, $use
 		if ( empty( $word ) ) {
 			continue; }
 
-		// Do some escaping magic so that '#' chars
-		// in the spam words don't break things:
+		// Do some escaping magic so that '#' chars in the spam words don't break things:
 		$word = preg_quote( $word, '#' );
 
 		$pattern = "#$word#iu";

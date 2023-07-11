@@ -106,7 +106,7 @@ final class _WP_Editors {
 		self::$this_tinymce = ( $set['tinymce'] && user_can_richedit() );
 
 		if ( self::$this_tinymce ) {
-			if ( false !== strpos( $editor_id, '[' ) ) {
+			if ( str_contains( $editor_id, '[' ) ) {
 				self::$this_tinymce = false;
 				_deprecated_argument( 'wp_editor()', '3.9.0', 'TinyMCE editor IDs cannot have brackets.' );
 			}
@@ -458,8 +458,10 @@ final class _WP_Editors {
 
 					$key = array_search( 'spellchecker', $plugins, true );
 					if ( false !== $key ) {
-						// Remove 'spellchecker' from the internal plugins if added with 'tiny_mce_plugins' filter to prevent errors.
-						// It can be added with 'mce_external_plugins'.
+						/*
+						 * Remove 'spellchecker' from the internal plugins if added with 'tiny_mce_plugins' filter to prevent errors.
+						 * It can be added with 'mce_external_plugins'.
+						 */
 						unset( $plugins[ $key ] );
 					}
 
@@ -571,7 +573,7 @@ final class _WP_Editors {
 					if ( ! empty( $editor_styles ) ) {
 						// Force urlencoding of commas.
 						foreach ( $editor_styles as $key => $url ) {
-							if ( strpos( $url, ',' ) !== false ) {
+							if ( str_contains( $url, ',' ) ) {
 								$editor_styles[ $key ] = str_replace( ',', '%2C', $url );
 							}
 						}
@@ -1484,7 +1486,7 @@ final class _WP_Editors {
 				continue;
 			}
 
-			if ( false !== strpos( $value, '&' ) ) {
+			if ( str_contains( $value, '&' ) ) {
 				$mce_translation[ $key ] = html_entity_decode( $value, ENT_QUOTES, 'UTF-8' );
 			}
 		}
