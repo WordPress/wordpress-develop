@@ -73,7 +73,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<?php
 				printf(
 					/* translators: %s: Rounded down number of teams */
-					__( 'Finding the area that aligns with your skills and interests is the first step toward meaningful contribution. With more than s% Make WordPress teams working on different parts of the open-source WordPress project, there&#8217;s a place for everyone, no matter what your skill set is.' ),
+					__( 'Finding the area that aligns with your skills and interests is the first step toward meaningful contribution. With more than %s Make WordPress teams working on different parts of the open-source WordPress project, there&#8217;s a place for everyone, no matter what your skill set is.' ),
 					20
 				);
 				?>
