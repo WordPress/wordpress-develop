@@ -69,14 +69,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<div class="about__section">
 		<div class="column">
 			<h2><?php _e( 'Find your team' ); ?></h2>
-			<p>
-				<?php
-				printf(
-					/* translators: %s: Rounded down number of teams */
-					__( 'Finding the area that aligns with your skills and interests is the first step toward meaningful contribution. With more than %s Make WordPress teams working on different parts of the open-source WordPress project, there&#8217;s a place for everyone, no matter what your skill set is.' ),
-					20
-				);
-				?>
+			<p><?php _e( 'Finding the area that aligns with your skills and interests is the first step toward meaningful contribution. With more than 20 Make WordPress teams working on different parts of the open-source WordPress project, there&#8217;s a place for everyone, no matter what your skill set is.' ); ?>
 			</p>
 		</div>
 	</div>
