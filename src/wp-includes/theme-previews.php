@@ -68,9 +68,9 @@ function wp_attach_theme_preview_middleware() {
 function wp_block_theme_activate_nonce() {
 	$nonce_handle = 'switch-theme_' . wp_get_theme_preview_path();
 	?>
-<script type="text/javascript">
-	window.BLOCK_THEME_ACTIVATE_NONCE = '<?php echo wp_create_nonce( $nonce_handle ); ?>';
-</script>
+	<script type="text/javascript">
+		window.WP_BLOCK_THEME_ACTIVATE_NONCE = '<?php echo wp_create_nonce( $nonce_handle ); ?>';
+	</script>
 	<?php
 }
 
