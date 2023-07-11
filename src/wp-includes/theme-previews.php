@@ -56,9 +56,12 @@ function wp_attach_theme_preview_middleware() {
 }
 
 /**
- * Adds a nonce for the theme activation link.
- * This is needed until we have a way to activate the theme via the REST API.
- * See https://github.com/WordPress/gutenberg/pull/41836.
+ * Set a JavaScript constant for theme activation.
+ *
+ * Sets the JavaScript global WP_BLOCK_THEME_ACTIVATE_NONCE containing the nonce
+ * required to activate a theme. For use within the site editor.
+ *
+ * @see https://github.com/WordPress/gutenberg/pull/41836.
  *
  * @since 6.3.0
  */
