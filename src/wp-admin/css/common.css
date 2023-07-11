@@ -138,6 +138,11 @@
 	height: auto; /* Fixes a Safari+VoiceOver bug, see ticket #42006 */
 }
 
+.screen-reader-text + .dashicons-external {
+	margin-top: -1px;
+	margin-left: 2px;
+}
+
 .screen-reader-shortcut {
 	position: absolute;
 	top: -1000em;
@@ -553,6 +558,14 @@ code {
 	margin-left: 0;
 }
 
+.js-update-details-toggle .dashicons {
+	text-decoration: none;
+}
+
+.js-update-details-toggle[aria-expanded="true"] .dashicons::before {
+	content: "\f142";
+}
+
 .no-js .widefat thead .check-column input,
 .no-js .widefat tfoot .check-column input {
 	display: none;
@@ -571,10 +584,6 @@ code {
 
 .wrap {
 	margin: 10px 20px 0 2px;
-}
-
-.wrap.block-editor-no-js {
-	padding-left: 20px;
 }
 
 .wrap > h2:first-child, /* Back-compat for pre-4.4 */
@@ -1081,7 +1090,6 @@ th.action-links {
 }
 
 .wp-filter .search-form input[type="search"] {
-	margin: 1px 0;
 	width: 280px;
 	max-width: 100%;
 }
@@ -4063,6 +4071,7 @@ img {
 	}
 
 	.wp-filter .search-form input[type="search"] {
+		width: 100%;
 		font-size: 1rem;
 	}
 
@@ -4115,10 +4124,6 @@ img {
 	.nav-tab-active:focus,
 	.nav-tab-active:focus:active {
 		border-bottom: 1px solid #c3c4c7;
-	}
-
-	.wp-filter .search-form input[type="search"] {
-		width: 100%;
 	}
 }
 

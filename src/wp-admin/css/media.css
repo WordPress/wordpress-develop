@@ -583,7 +583,7 @@ border color while dragging a file over the uploader drop area */
 	margin-top: 0;
 }
 
-.media-search-input-label {
+.media-frame-content .media-search-input-label {
 	margin: 0 .2em 0 0;
 	vertical-align: baseline;
 }
@@ -900,13 +900,13 @@ border color while dragging a file over the uploader drop area */
 
 .imgedit-panel-content {
 	display: grid;
-	grid-template-columns: 640px 1fr;
+	grid-template-columns: 1fr;
 	gap: 20px;
 }
 
-@media screen and (max-width: 1120px) {
-	.imgedit-panel-content {
-		grid-template-columns: 1fr;
+@media screen and (min-width: 1200px) {
+	.imgedit-panel-content.imgedit-panel-tools {
+		grid-template-columns: 50% 50%;
 	}
 }
 
@@ -1208,7 +1208,10 @@ span.imgedit-scale-warn {
 
 .image-editor .imgedit-scale-controls input[type="text"],
 .image-editor .imgedit-crop-ratio input[type="text"],
-.image-editor .imgedit-crop-sel input[type="text"] {
+.image-editor .imgedit-crop-sel input[type="text"],
+.image-editor .imgedit-scale-controls input[type="number"],
+.image-editor .imgedit-crop-ratio input[type="number"],
+.image-editor .imgedit-crop-sel input[type="number"] {
 	width: 80px;
 	font-size: 14px;
 	padding: 0 8px;
@@ -1344,12 +1347,22 @@ audio, video {
 /**
  * Media queries for media grid.
  */
-
 @media only screen and (max-width: 1120px) {
 	/* override for media-views.css */
 	#wp-media-grid .wp-filter .attachment-filters {
 		max-width: 100%;
 	}
+}
+
+@media only screen and (max-width: 1000px) {
+	/* override for forms.css */
+	.wp-filter p.search-box {
+		float: none;
+		width: 100%;
+		margin-bottom: 20px;
+		display: flex;
+	}
+
 }
 
 @media only screen and (max-width: 782px) {

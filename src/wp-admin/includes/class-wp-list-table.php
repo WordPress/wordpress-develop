@@ -1142,8 +1142,10 @@ class WP_List_Table {
 			return $column;
 		}
 
-		// We need a primary defined so responsive views show something,
-		// so let's fall back to the first non-checkbox column.
+		/*
+		 * We need a primary defined so responsive views show something,
+		 * so let's fall back to the first non-checkbox column.
+		 */
 		foreach ( $columns as $col => $column_name ) {
 			if ( 'cb' === $col ) {
 				continue;
@@ -1180,8 +1182,10 @@ class WP_List_Table {
 		$columns = get_column_headers( $this->screen );
 		$default = $this->get_default_primary_column_name();
 
-		// If the primary column doesn't exist,
-		// fall back to the first non-checkbox column.
+		/*
+		 * If the primary column doesn't exist,
+		 * fall back to the first non-checkbox column.
+		 */
 		if ( ! isset( $columns[ $default ] ) ) {
 			$default = self::get_default_primary_column_name();
 		}
@@ -1361,7 +1365,11 @@ class WP_List_Table {
 			}
 
 			if ( isset( $sortable[ $column_key ] ) ) {
-				list( $orderby, $desc_first, $abbr, $orderby_text, $initial_order ) = $sortable[ $column_key ];
+				$orderby       = isset( $sortable[ $column_key ][0] ) ? $sortable[ $column_key ][0] : '';
+				$desc_first    = isset( $sortable[ $column_key ][1] ) ? $sortable[ $column_key ][1] : false;
+				$abbr          = isset( $sortable[ $column_key ][2] ) ? $sortable[ $column_key ][2] : '';
+				$orderby_text  = isset( $sortable[ $column_key ][3] ) ? $sortable[ $column_key ][3] : '';
+				$initial_order = isset( $sortable[ $column_key ][4] ) ? $sortable[ $column_key ][4] : '';
 
 				/*
 				 * We're in the initial view and there's no $_GET['orderby'] then check if the
@@ -1397,9 +1405,13 @@ class WP_List_Table {
 						$order = $desc_first ? 'desc' : 'asc';
 					}
 
-					$class[]    = 'sortable';
-					$class[]    = 'desc' === $order ? 'asc' : 'desc';
-					$order_text = 'asc' === $order ? __( 'Sort ascending.' ) : __( 'Sort descending.' );
+					$class[] = 'sortable';
+					$class[] = 'desc' === $order ? 'asc' : 'desc';
+					/* translators: Hidden accessibility text. */
+					$asc_text = __( 'Sort ascending.' );
+					/* translators: Hidden accessibility text. */
+					$desc_text  = __( 'Sort descending.' );
+					$order_text = 'asc' === $order ? $asc_text : $desc_text;
 				}
 				if ( '' !== $order_text ) {
 					$order_text = ' <span class="screen-reader-text">' . $order_text . '</span>';
@@ -1428,7 +1440,7 @@ class WP_List_Table {
 	 * For the table initial view, information about initial orderby and order
 	 * should be provided via get_sortable_columns().
 	 *
-	 * @since 4.3.0
+	 * @since 6.3.0
 	 * @access public
 	 */
 	public function print_table_description() {
@@ -1457,8 +1469,11 @@ class WP_List_Table {
 		foreach ( array_keys( $columns ) as $column_key ) {
 
 			if ( isset( $sortable[ $column_key ] ) ) {
-
-				list( $orderby, $desc_first, $abbr, $orderby_text, $initial_order ) = $sortable[ $column_key ];
+				$orderby       = isset( $sortable[ $column_key ][0] ) ? $sortable[ $column_key ][0] : '';
+				$desc_first    = isset( $sortable[ $column_key ][1] ) ? $sortable[ $column_key ][1] : false;
+				$abbr          = isset( $sortable[ $column_key ][2] ) ? $sortable[ $column_key ][2] : '';
+				$orderby_text  = isset( $sortable[ $column_key ][3] ) ? $sortable[ $column_key ][3] : '';
+				$initial_order = isset( $sortable[ $column_key ][4] ) ? $sortable[ $column_key ][4] : '';
 
 				if ( ! is_string( $orderby_text ) || '' === $orderby_text ) {
 					return;
@@ -1479,8 +1494,12 @@ class WP_List_Table {
 				 * and true in the sorted views when the actual $_GET['orderby'] is equal to $orderby.
 				 */
 				if ( $current_orderby == $orderby ) {
-					$order_text = 'asc' === $current_order ? __( 'Ascending.' ) : __( 'Descending.' );
-					echo '<caption  class="screen-reader-text">' . $orderby_text . ' ' . $order_text . '</p>';
+					/* translators: Hidden accessibility text. */
+					$asc_text = __( 'Ascending.' );
+					/* translators: Hidden accessibility text. */
+					$desc_text  = __( 'Descending.' );
+					$order_text = 'asc' === $current_order ? $asc_text : $desc_text;
+					echo '<caption class="screen-reader-text">' . $orderby_text . ' ' . $order_text . '</caption>';
 
 					return;
 				}
@@ -1651,8 +1670,10 @@ class WP_List_Table {
 				$classes .= ' hidden';
 			}
 
-			// Comments column uses HTML in the display name with screen reader text.
-			// Strip tags to get closer to a user-friendly string.
+			/*
+			 * Comments column uses HTML in the display name with screen reader text.
+			 * Strip tags to get closer to a user-friendly string.
+			 */
 			$data = 'data-colname="' . esc_attr( wp_strip_all_tags( $column_display_name ) ) . '"';
 
 			$attributes = "class='$classes' $data";
