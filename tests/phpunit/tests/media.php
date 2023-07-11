@@ -81,7 +81,6 @@ CAP;
 	public function tear_down() {
 		parent::tear_down();
 
-		$this->set_main_query( $GLOBALS['wp_query'] );
 		$this->reset_content_media_count();
 		$this->reset_omit_loading_attr_filter();
 		$this->reset_high_priority_element_flag();
