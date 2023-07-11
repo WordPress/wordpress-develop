@@ -117,7 +117,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 	</div>
 
-	<div class="about__section">
+	<div class="about__section is-feature has-subtle-background-color">
 		<div class="column">
 			<h2><?php _e( 'Help Make WordPress Better' ); ?></h2>
 			<p><?php _e( 'Whether you speak at a local meetup, provide your perspective on a feature proposal, or submit a basic bug report, your contributions will make a difference.' ); ?></p>
