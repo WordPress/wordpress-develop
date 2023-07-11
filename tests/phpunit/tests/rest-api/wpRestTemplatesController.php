@@ -845,4 +845,45 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 'index', $response->get_data()['slug'], 'Should fallback to `index.html` when  ignore_empty is `true`.' );
 	}
+
+	/**
+	 * @ticket 57851
+	 * @covers WP_REST_Templates_Controller::prepare_item_for_database
+	 */
+	public function test_prepare_item_for_database() {
+		$endpoint = new WP_REST_Templates_Controller( 'wp_template_part' );
+
+		$prepare_item_for_database = new ReflectionMethod( $endpoint, 'prepare_item_for_database' );
+		$prepare_item_for_database->setAccessible( true );
+
+		$body_params = array(
+			'title'   => 'Untitled Template Part',
+			'slug'    => 'untitled-template-part',
+			'content' => '',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/template-parts' );
+		$request->set_body_params( $body_params );
+
+		$prepared = $prepare_item_for_database->invoke( $endpoint, $request );
+
+		$this->assertInstanceOf( 'stdClass', $prepared );
+
+		$prepared_array = (array) $prepared;
+
+		$this->assertArrayHasKey( 'post_type', $prepared_array );
+		$this->assertArrayHasKey( 'post_status', $prepared_array );
+		$this->assertArrayHasKey( 'tax_input', $prepared_array );
+		$this->assertArrayHasKey( 'wp_theme', $prepared_array['tax_input'] );
+		$this->assertArrayHasKey( 'wp_template_part_area', $prepared_array['tax_input'] );
+		$this->assertArrayHasKey( 'post_content', $prepared_array );
+		$this->assertArrayHasKey( 'post_title', $prepared_array );
+
+		$this->assertSame( 'wp_template_part', $prepared_array['post_type'] );
+		$this->assertSame( 'publish', $prepared_array['post_status'] );
+		$this->assertSame( WP_TEMPLATE_PART_AREA_UNCATEGORIZED, $prepared_array['tax_input']['wp_template_part_area'] );
+		$this->assertSame( 'Untitled Template Part', $prepared_array['post_title'] );
+
+		$this->assertEmpty( $prepared_array['post_content'] );
+	}
 }
