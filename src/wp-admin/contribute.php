@@ -46,8 +46,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<p>
 				<?php
 				printf(
-					/* translators: %s: Percentage value */
-					__( 'Do you use WordPress for work, for personal projects, or maybe even just for fun? You can help shape the long-term success of the open source project that powers %s&#37; of the web.' ),
+					/* translators: %s: Percentage value. Note: "%%" is used to display an escaped percentage sign. */
+					__( 'Do you use WordPress for work, for personal projects, or maybe even just for fun? You can help shape the long-term success of the open source project that powers %s%% of the web.' ),
 					43
 				);
 				?>
