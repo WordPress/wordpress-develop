@@ -7037,7 +7037,7 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
  * Retrieves IDs that are not already present in the cache.
  *
  * @since 3.4.0
-1 * @since 6.1.0 This function is no longer marked as "private".
+ * @since 6.1.0 This function is no longer marked as "private".
  *
  * @param int[]  $object_ids  Array of IDs.
  * @param string $cache_group The cache group to check against.
