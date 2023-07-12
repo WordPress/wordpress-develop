@@ -940,7 +940,7 @@ class WP_Duotone {
 	 * This handles selectors defined in `color.__experimentalDuotone` support
 	 * if `filter.duotone` support is not defined.
 	 *
-	 * @param WP_Block_Type $block_type  Block type to check for support.
+	 * @param WP_Block_Type $block_type Block type to check for support.
 	 *
 	 * @internal
 	 *
