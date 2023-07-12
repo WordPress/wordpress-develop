@@ -912,6 +912,8 @@ function install_plugin_information() {
 /**
  * Gets the markup for the plugin install action button.
  *
+ * @since 6.4.0
+ *
  * @param string       $name           Plugin name.
  * @param array|object $data           {
  *     An array or object of plugin data. Can be retrieved from the API.
@@ -922,26 +924,38 @@ function install_plugin_information() {
  * }
  * @param bool         $compatible_php   The result of a PHP compatibility check.
  * @param bool         $compatible_wp    The result of a WP compatibility check.
- *
  * @return string $button The markup for the dependency row button.
  */
 function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible_wp ) {
-	$button                = '';
-	$data                  = (object) $data;
-	$status                = install_plugin_install_status( $data );
-	$requires_plugins      = isset( $data->requires_plugins ) ? $data->requires_plugins : array();
-	$plugin_dependency_met = true;
+	$button           = '';
+	$data             = (object) $data;
+	$status           = install_plugin_install_status( $data );
+	$requires_plugins = isset( $data->requires_plugins ) ? $data->requires_plugins : array();
 
-	// Check if plugin dependency is installed and active.
+	// Determine the status of plugin dependencies.
+	$installed_plugins                   = get_plugins();
+	$active_plugins                      = get_option( 'active_plugins' );
+	$plugin_dependencies_count           = count( $requires_plugins );
+	$installed_plugin_dependencies_count = 0;
+	$active_plugin_dependencies_count    = 0;
 	foreach ( $requires_plugins as $dependency ) {
-		$plugin_dependency_met = false;
-		$active_plugins        = get_option( 'active_plugins' );
-		foreach ( $active_plugins as $plugin_file ) {
-			if ( str_contains( $plugin_file, '/' ) && explode( '/', $plugin_file )[0] === $dependency ) {
-				$plugin_dependency_met = true;
-				break;
+		foreach ( array_keys( $installed_plugins ) as $installed_plugin_file ) {
+			if ( str_contains( $installed_plugin_file, '/' ) && explode( '/', $installed_plugin_file )[0] === $dependency ) {
+				++$installed_plugin_dependencies_count;
 			}
 		}
+
+		foreach ( $active_plugins as $active_plugin_file ) {
+			if ( str_contains( $active_plugin_file, '/' ) && explode( '/', $active_plugin_file )[0] === $dependency ) {
+				++$active_plugin_dependencies_count;
+			}
+		}
+	}
+	$all_plugin_dependencies_installed = $installed_plugin_dependencies_count === $plugin_dependencies_count;
+	$all_plugin_dependencies_active    = $active_plugin_dependencies_count === $plugin_dependencies_count;
+
+	if ( apply_filters( 'pd_simple_card', false ) ) {
+		$plugin_dependency_met = true;
 	}
 
 	sprintf(
@@ -958,7 +972,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 		switch ( $status['status'] ) {
 			case 'install':
 				if ( $status['url'] ) {
-					if ( $compatible_php && $compatible_wp && $plugin_dependency_met ) {
+					if ( $compatible_php && $compatible_wp && $all_plugin_dependencies_installed ) {
 						$button = sprintf(
 							'<a class="install-now button" data-slug="%s" href="%s" aria-label="%s" data-name="%s">%s</a>',
 							esc_attr( $data->slug ),
@@ -1007,7 +1021,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						_x( 'Active', 'plugin' )
 					);
 				} elseif ( current_user_can( 'activate_plugin', $status['file'] ) ) {
-					if ( $compatible_php && $compatible_wp ) {
+					if ( $compatible_php && $compatible_wp && $all_plugin_dependencies_active ) {
 						$button_text = __( 'Activate' );
 						/* translators: %s: Plugin name. */
 						$button_label = _x( 'Activate %s', 'plugin' );
