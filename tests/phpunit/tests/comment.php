@@ -60,7 +60,8 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( 1, $result );
 
 		$comment = get_comment( $comments[0] );
-		$this->assertEquals( $comments[1], $comment->comment_parent );
+		// The factory returns ints, but get_comment returns strings
+		$this->assertSame( (string) $comments[1], $comment->comment_parent );
 
 		$result = wp_update_comment(
 			array(
@@ -78,7 +79,8 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$comment = get_comment( $comments[0] );
-		$this->assertEquals( $post2->ID, $comment->comment_post_ID );
+		// The factory returns ints, but get_comment returns strings
+		$this->assertSame( (string) $post2->ID, $comment->comment_post_ID );
 	}
 
 	public function test_update_comment_from_privileged_user_by_privileged_user() {
@@ -221,7 +223,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$comment = get_comment( $comment_id );
-		$this->assertEquals( 1, $comment->user_id );
+		$this->assertSame( "1", $comment->user_id );
 	}
 
 	/**
