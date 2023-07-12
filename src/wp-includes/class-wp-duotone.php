@@ -969,7 +969,7 @@ class WP_Duotone {
 		 * If the experimental duotone support was set, that value is to be
 		 * treated as a selector and requires scoping.
 		 */
-		$experimental_duotone = block_has_support( $block_type, array( 'color', '__experimentalDuotone' ) );
+		$experimental_duotone = _wp_array_get( $block_type->supports, array( 'color', '__experimentalDuotone' ), false );
 		if ( $experimental_duotone ) {
 			$root_selector = wp_get_block_css_selector( $block_type );
 			return is_string( $experimental_duotone )
