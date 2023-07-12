@@ -940,7 +940,7 @@ class WP_Duotone {
 	 * This handles selectors defined in `color.__experimentalDuotone` support
 	 * if `filter.duotone` support is not defined.
 	 *
-	 * @param string $block_name The block name.
+	 * @param WP_Block_Type $block_type  Block type to check for support.
 	 *
 	 * @internal
 	 *
@@ -948,13 +948,7 @@ class WP_Duotone {
 	 *
 	 * @return string The CSS selector or null if there is no support.
 	 */
-	private static function get_selector( $block_name ) {
-		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
-
-		if ( ! $block_type ) {
-			return null;
-		}
-
+	private static function get_selector( $block_type ) {
 		/*
 		 * Backwards compatibility with `supports.color.__experimentalDuotone`
 		 * is provided via the `block_type_metadata_settings` filter. If
@@ -1084,13 +1078,14 @@ class WP_Duotone {
 	 *
 	 * @param  string $block_content Rendered block content.
 	 * @param  array  $block         Block object.
+	 * @param  WP_Block $wp_block      The block instance.
 	 * @return string                Filtered block content.
 	 */
-	public static function render_duotone_support( $block_content, $block ) {
+	public static function render_duotone_support( $block_content, $block, $wp_block ) {
 		if ( empty( $block_content ) || ! $block['blockName'] ) {
 			return $block_content;
 		}
-		$duotone_selector = self::get_selector( $block['blockName'] );
+		$duotone_selector = self::get_selector( $wp_block->block_type );
 
 		if ( ! $duotone_selector ) {
 			return $block_content;
