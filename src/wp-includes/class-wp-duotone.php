@@ -925,7 +925,7 @@ class WP_Duotone {
 		 * Previous `color.__experimentalDuotone` support flag is migrated
 		 * to `filter.duotone` via `block_type_metadata_settings` filter.
 		 */
-		if ( block_has_support( $block_type, array( 'filter', 'duotone' ) ) ) {
+		if ( block_has_support( $block_type, array( 'filter', 'duotone' ), null ) ) {
 			if ( ! $block_type->attributes ) {
 				$block_type->attributes = array();
 			}
