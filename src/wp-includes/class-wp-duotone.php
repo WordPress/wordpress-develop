@@ -575,7 +575,7 @@ class WP_Duotone {
 		$slug      = self::get_slug_from_attribute( $duotone_attr );
 		$filter_id = self::get_filter_id( $slug );
 
-		return array_key_exists( $filter_id, self::_get_global_styles_presets() );
+		return array_key_exists( $filter_id, self::get_all_global_styles_presets() );
 	}
 
 	/**
@@ -897,7 +897,7 @@ class WP_Duotone {
 	 * @param string $filter_value     The filter CSS value. e.g. 'url(#wp-duotone-blue-orange)' or 'unset'.
 	 */
 	private static function enqueue_global_styles_preset( $filter_id, $duotone_selector, $filter_value ) {
-		$global_styles_presets = self::_get_global_styles_presets();
+		$global_styles_presets = self::get_all_global_styles_presets();
 		if ( ! array_key_exists( $filter_id, $global_styles_presets ) ) {
 			$error_message = sprintf(
 				/* translators: %s: duotone filter ID */
@@ -999,7 +999,7 @@ class WP_Duotone {
 	 *
 	 * @since 6.3.0
 	 */
-	public static function set_global_styles_presets() {
+	public static function load_global_styles_presets() {
 		// Get the per block settings from the theme.json.
 		$tree              = wp_get_global_settings();
 		$presets_by_origin = _wp_array_get( $tree, array( 'color', 'duotone' ), array() );
@@ -1021,9 +1021,9 @@ class WP_Duotone {
 	 *
 	 * @return array
 	 */
-	private static function _get_global_styles_presets() {
+	private static function get_all_global_styles_presets() {
 		if ( ! isset( self::$global_styles_presets ) ) {
-			self::set_global_styles_presets();
+			self::load_global_styles_presets();
 		}
 
 		return self::$global_styles_presets;
@@ -1037,7 +1037,7 @@ class WP_Duotone {
 	 *
 	 * @since 6.3.0
 	 */
-	public static function set_global_style_block_names() {
+	public static function load_global_style_block_names() {
 		// Get the per block settings from the theme.json.
 		$tree        = WP_Theme_JSON_Resolver::get_merged_data();
 		$block_nodes = $tree->get_styles_block_nodes();
@@ -1074,9 +1074,9 @@ class WP_Duotone {
 	 *
 	 * @return array
 	 */
-	private static function _get_global_style_block_names() {
+	private static function get_all_global_style_block_names() {
 		if ( ! isset( self::$global_styles_block_names ) ) {
-			self::set_global_style_block_names();
+			self::load_global_style_block_names();
 		}
 		return self::$global_styles_block_names;
 	}
@@ -1103,7 +1103,7 @@ class WP_Duotone {
 			return $block_content;
 		}
 
-		$global_styles_block_names = self::_get_global_style_block_names();
+		$global_styles_block_names = self::get_all_global_style_block_names();
 
 		// The block should have a duotone attribute or have duotone defined in its theme.json to be processed.
 		$has_duotone_attribute     = isset( $block['attrs']['style']['color']['duotone'] );
@@ -1236,7 +1236,7 @@ class WP_Duotone {
 	 * @return array The editor settings with duotone SVGs and CSS custom properties.
 	 */
 	public static function add_editor_settings( $settings ) {
-		$global_styles_presets = self::_get_global_styles_presets();
+		$global_styles_presets = self::get_all_global_styles_presets();
 		if ( ! empty( $global_styles_presets ) ) {
 			if ( ! isset( $settings['styles'] ) ) {
 				$settings['styles'] = array();
