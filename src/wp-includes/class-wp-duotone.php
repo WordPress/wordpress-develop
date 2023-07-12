@@ -989,32 +989,23 @@ class WP_Duotone {
 	 * use duotone preset filters.
 	 *
 	 * @since 6.3.0
-	 */
-	public static function load_global_styles_presets() {
-		// Get the per block settings from the theme.json.
-		$tree              = wp_get_global_settings();
-		$presets_by_origin = _wp_array_get( $tree, array( 'color', 'duotone' ), array() );
-
-		self::$global_styles_presets = array();
-		foreach ( $presets_by_origin as $presets ) {
-			foreach ( $presets as $preset ) {
-				$filter_id = self::get_filter_id( _wp_to_kebab_case( $preset['slug'] ) );
-
-				self::$global_styles_presets[ $filter_id ] = $preset;
-			}
-		}
-	}
-
-	/**
-	 * Get global styles presets.
 	 *
-	 * @since 6.3.0
-	 *
-	 * @return array
+	 * @return array An array of global styles presets, keyed on the filter ID.
 	 */
 	private static function get_all_global_styles_presets() {
 		if ( ! isset( self::$global_styles_presets ) ) {
-			self::load_global_styles_presets();
+			// Get the per block settings from the theme.json.
+			$tree              = wp_get_global_settings();
+			$presets_by_origin = _wp_array_get( $tree, array( 'color', 'duotone' ), array() );
+
+			self::$global_styles_presets = array();
+			foreach ( $presets_by_origin as $presets ) {
+				foreach ( $presets as $preset ) {
+					$filter_id = self::get_filter_id( _wp_to_kebab_case( $preset['slug'] ) );
+
+					self::$global_styles_presets[ $filter_id ] = $preset;
+				}
+			}
 		}
 
 		return self::$global_styles_presets;
@@ -1027,47 +1018,38 @@ class WP_Duotone {
 	 * duotone filters defined in the theme.json global styles.
 	 *
 	 * @since 6.3.0
-	 */
-	public static function load_global_style_block_names() {
-		// Get the per block settings from the theme.json.
-		$tree        = WP_Theme_JSON_Resolver::get_merged_data();
-		$block_nodes = $tree->get_styles_block_nodes();
-		$theme_json  = $tree->get_raw_data();
-
-		self::$global_styles_block_names = array();
-
-		foreach ( $block_nodes as $block_node ) {
-			// This block definition doesn't include any duotone settings. Skip it.
-			if ( empty( $block_node['duotone'] ) ) {
-				continue;
-			}
-
-			// Value looks like this: 'var(--wp--preset--duotone--blue-orange)' or 'var:preset|duotone|blue-orange'.
-			$duotone_attr_path = array_merge( $block_node['path'], array( 'filter', 'duotone' ) );
-			$duotone_attr      = _wp_array_get( $theme_json, $duotone_attr_path, array() );
-
-			if ( empty( $duotone_attr ) ) {
-				continue;
-			}
-			// If it has a duotone filter preset, save the block name and the preset slug.
-			$slug = self::get_slug_from_attribute( $duotone_attr );
-
-			if ( $slug && $slug !== $duotone_attr ) {
-				self::$global_styles_block_names[ $block_node['name'] ] = $slug;
-			}
-		}
-	}
-
-	/**
-	 * Get global style block names.
 	 *
-	 * @since 6.3.0
-	 *
-	 * @return array
+	 * @return string[] An array of global style block slugs, keyed on the block name.
 	 */
 	private static function get_all_global_style_block_names() {
 		if ( ! isset( self::$global_styles_block_names ) ) {
-			self::load_global_style_block_names();
+			// Get the per block settings from the theme.json.
+			$tree        = WP_Theme_JSON_Resolver::get_merged_data();
+			$block_nodes = $tree->get_styles_block_nodes();
+			$theme_json  = $tree->get_raw_data();
+
+			self::$global_styles_block_names = array();
+
+			foreach ( $block_nodes as $block_node ) {
+				// This block definition doesn't include any duotone settings. Skip it.
+				if ( empty( $block_node['duotone'] ) ) {
+					continue;
+				}
+
+				// Value looks like this: 'var(--wp--preset--duotone--blue-orange)' or 'var:preset|duotone|blue-orange'.
+				$duotone_attr_path = array_merge( $block_node['path'], array( 'filter', 'duotone' ) );
+				$duotone_attr      = _wp_array_get( $theme_json, $duotone_attr_path, array() );
+
+				if ( empty( $duotone_attr ) ) {
+					continue;
+				}
+				// If it has a duotone filter preset, save the block name and the preset slug.
+				$slug = self::get_slug_from_attribute( $duotone_attr );
+
+				if ( $slug && $slug !== $duotone_attr ) {
+					self::$global_styles_block_names[ $block_node['name'] ] = $slug;
+				}
+			}
 		}
 		return self::$global_styles_block_names;
 	}
