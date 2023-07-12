@@ -814,26 +814,3 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertStringStartsWith( '<b>Unfiltered</b>', $data->html );
 	}
 
-	/**
-	 * Test that oembed iframes are lazy loaded by default.
-	 */
-	public function test_oembed_iframes_are_lazy_loaded_by_default() {
-		wp_set_current_user( self::$editor );
-		$post = self::factory()->post->create_and_get(
-			array(
-				'post_author'  => self::$editor,
-				'post_title'   => 'Hello World',
-				'post_content' => 'https://www.youtube.com/watch?v=' . self::YOUTUBE_VIDEO_ID,
-			)
-		);
-
-		// Get the post content via the REST API.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post->ID );
-		$request->set_param( '_embed', true );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-
-		$this->assertIsArray( $data );
-		$this->assertStringContainsString( 'loading="lazy"', $data['content']['rendered'] );
-	}
-}

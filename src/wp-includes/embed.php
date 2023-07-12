@@ -1244,3 +1244,24 @@ function wp_filter_pre_oembed_result( $result, $url, $args ) {
 
 	return $result;
 }
+
+/**
+ * Apply the loading="lazy" attribute to the oEmbed iframe.
+ *
+ * @since 6.4.0
+ *
+ * @param string $html The oEmbed HTML, usually containing an iframe.
+ *
+ * @return string The oEmbed HTML with the loading="lazy" attribute added to the iframe.
+ */
+function wp_lazy_load_oembed_iframe( $html ) {
+	error_log( "before:" . json_encode( $html, JSON_PRETTY_PRINT ) );
+
+	$tag_parser = new WP_HTML_Tag_Processor( $html );
+	if ( wp_lazy_loading_enabled( 'iframe', 'oembed' ) && isset( $html ) && $tag_parser->next_tag( 'iframe' ) && ! $tag_parser->get_attribute( 'loading' ) ) {
+		$html = wp_iframe_tag_add_loading_attr( $html, 'oembed' );
+	}
+	error_log( "after:" . json_encode( $html, JSON_PRETTY_PRINT ) );
+
+	return $html;
+}
