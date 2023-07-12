@@ -102,7 +102,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 		<div class="column is-vertically-aligned-center">
 			<h3><?php _e( 'Code-based Contribution' ); ?></h3>
-			<p><?php _e( 'If you do code, or want to, you can contribute technically in numerous ways:' ); ?></p>
+			<p><?php _e( 'If you do code, or want to learn how, you can contribute technically in numerous ways:' ); ?></p>
 			<ul>
 				<li><?php _e( '<strong>Find</strong> and report bugs in the WordPress core software' ); ?></li>
 				<li><?php _e( '<strong>Test</strong> new releases and proposed features for the block editor' ); ?></li>
