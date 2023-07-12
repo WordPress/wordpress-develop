@@ -278,7 +278,7 @@ function wp_get_environment_type() {
  * debugging output, but rather functional nuances in WordPress.
  *
  * This function controls the currently set development mode value. To check for whether a specific development mode is
- * enabled, use {@see wp_in_development_mode()}.
+ * enabled, use wp_in_development_mode().
  *
  * @since 6.3.0
  *
@@ -320,7 +320,7 @@ function wp_get_development_mode() {
  * @since 6.3.0
  *
  * @param string $mode Development mode to check for. Either 'core', 'plugin', 'theme', or 'all'.
- * @return bool True if the given $mode is covered by the current development mode, false otherwise.
+ * @return bool True if the given mode is covered by the current development mode, false otherwise.
  */
 function wp_in_development_mode( $mode ) {
 	$current_mode = wp_get_development_mode();

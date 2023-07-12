@@ -57,101 +57,100 @@ class Test_WP_Get_Development_Mode extends WP_UnitTestCase {
 		$_wp_tests_development_mode = $current;
 
 		if ( $expected ) {
-			$this->assertTrue( wp_in_development_mode( $given ) );
+			$this->assertTrue( wp_in_development_mode( $given ), "{$given} is expected to pass in {$current} mode" );
 		} else {
-			$this->assertFalse( wp_in_development_mode( $given ) );
+			$this->assertFalse( wp_in_development_mode( $given ), "{$given} is expected to fail in {$current} mode" );
 		}
 	}
 
 	/**
 	 * Data provider that returns test scenarios for the `test_wp_in_development_mode()` method.
 	 *
-	 * @return array Test scenarios, each one with 3 entries for currently set development mode (string), given
-	 *               development mode (string), and expected result (boolean).
+	 * @return array[]
 	 */
 	public function data_wp_in_development_mode() {
 		return array(
-			array(
+			'core mode, testing for core' => array(
 				'core',
 				'core',
 				true,
 			),
-			array(
+			'plugin mode, testing for plugin' => array(
 				'plugin',
 				'plugin',
 				true,
 			),
-			array(
+			'theme mode, testing for theme' => array(
 				'theme',
 				'theme',
 				true,
 			),
-			array(
+			'core mode, testing for plugin' => array(
 				'core',
 				'plugin',
 				false,
 			),
-			array(
+			'core mode, testing for theme' => array(
 				'core',
 				'theme',
 				false,
 			),
-			array(
+			'plugin mode, testing for core' => array(
 				'plugin',
 				'core',
 				false,
 			),
-			array(
+			'plugin mode, testing for theme' => array(
 				'plugin',
 				'theme',
 				false,
 			),
-			array(
+			'theme mode, testing for core' => array(
 				'theme',
 				'core',
 				false,
 			),
-			array(
+			'theme mode, testing for plugin' => array(
 				'theme',
 				'plugin',
 				false,
 			),
-			array(
+			'all mode, testing for core' => array(
 				'all',
 				'core',
 				true,
 			),
-			array(
+			'all mode, testing for plugin' => array(
 				'all',
 				'plugin',
 				true,
 			),
-			array(
+			'all mode, testing for theme' => array(
 				'all',
 				'theme',
 				true,
 			),
-			array(
+			'all mode, testing for all' => array(
 				'all',
 				'all',
 				true,
 			),
-			array(
+			'all mode, testing for non-standard value' => array(
 				'all',
 				'random',
 				true,
 			),
-			array(
+			'invalid mode, testing for core' => array(
 				'invalid',
 				'core',
 				false,
 			),
-			array(
+			'invalid mode, testing for plugin' => array(
 				'invalid',
 				'plugin',
 				false,
 			),
-			array(
+			'invalid mode, testing for theme' => array(
 				'invalid',
 				'theme',
 				false,
