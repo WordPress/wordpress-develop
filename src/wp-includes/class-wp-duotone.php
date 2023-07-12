@@ -921,16 +921,7 @@ class WP_Duotone {
 	 * @param WP_Block_Type $block_type Block Type.
 	 */
 	public static function register_duotone_support( $block_type ) {
-		$has_duotone_support = false;
-		if ( property_exists( $block_type, 'supports' ) ) {
-			/*
-			 * Previous `color.__experimentalDuotone` support flag is migrated
-			 * to `filter.duotone` via `block_type_metadata_settings` filter.
-			 */
-			$has_duotone_support = _wp_array_get( $block_type->supports, array( 'filter', 'duotone' ), null );
-		}
-
-		if ( $has_duotone_support ) {
+		if ( block_has_support( $block_type, array( 'filter', 'duotone' ) ) ) {
 			if ( ! $block_type->attributes ) {
 				$block_type->attributes = array();
 			}
@@ -960,34 +951,36 @@ class WP_Duotone {
 	private static function get_selector( $block_name ) {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
 
-		if ( $block_type && property_exists( $block_type, 'supports' ) ) {
-			/*
-			 * Backwards compatibility with `supports.color.__experimentalDuotone`
-			 * is provided via the `block_type_metadata_settings` filter. If
-			 * `supports.filter.duotone` has not been set and the experimental
-			 * property has been, the experimental property value is copied into
-			 * `supports.filter.duotone`.
-			 */
-			$duotone_support = _wp_array_get( $block_type->supports, array( 'filter', 'duotone' ), false );
-			if ( ! $duotone_support ) {
-				return null;
-			}
-
-			/*
-			 * If the experimental duotone support was set, that value is to be
-			 * treated as a selector and requires scoping.
-			 */
-			$experimental_duotone = _wp_array_get( $block_type->supports, array( 'color', '__experimentalDuotone' ), false );
-			if ( $experimental_duotone ) {
-				$root_selector = wp_get_block_css_selector( $block_type );
-				return is_string( $experimental_duotone )
-					? WP_Theme_JSON::scope_selector( $root_selector, $experimental_duotone )
-					: $root_selector;
-			}
-
-			// Regular filter.duotone support uses filter.duotone selectors with fallbacks.
-			return wp_get_block_css_selector( $block_type, array( 'filter', 'duotone' ), true );
+		if ( ! $block_type ) {
+			return null;
 		}
+
+		/*
+		 * Backwards compatibility with `supports.color.__experimentalDuotone`
+		 * is provided via the `block_type_metadata_settings` filter. If
+		 * `supports.filter.duotone` has not been set and the experimental
+		 * property has been, the experimental property value is copied into
+		 * `supports.filter.duotone`.
+		 */
+		$duotone_support = block_has_support( $block_type, array( 'filter', 'duotone' ) );
+		if ( ! $duotone_support ) {
+			return null;
+		}
+
+		/*
+		 * If the experimental duotone support was set, that value is to be
+		 * treated as a selector and requires scoping.
+		 */
+		$experimental_duotone = block_has_support( $block_type, array( 'color', '__experimentalDuotone' ) );
+		if ( $experimental_duotone ) {
+			$root_selector = wp_get_block_css_selector( $block_type );
+			return is_string( $experimental_duotone )
+				? WP_Theme_JSON::scope_selector( $root_selector, $experimental_duotone )
+				: $root_selector;
+		}
+
+		// Regular filter.duotone support uses filter.duotone selectors with fallbacks.
+		return wp_get_block_css_selector( $block_type, array( 'filter', 'duotone' ), true );
 	}
 
 	/**
@@ -1094,7 +1087,7 @@ class WP_Duotone {
 	 * @return string                Filtered block content.
 	 */
 	public static function render_duotone_support( $block_content, $block ) {
-		if ( empty( $block_content ) ) {
+		if ( empty( $block_content ) || ! $block['blockName'] ) {
 			return $block_content;
 		}
 		$duotone_selector = self::get_selector( $block['blockName'] );
