@@ -45,11 +45,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="column is-vertically-aligned-center">
 			<p>
 				<?php
-				printf(
-					/* translators: %s: Percentage value. Note: "%%" is used to display an escaped percentage sign. */
-					__( 'Do you use WordPress for work, for personal projects, or maybe even just for fun? You can help shape the long-term success of the open source project that powers %s%% of the web.' ),
-					43
-				);
+				_e( 'Do you use WordPress for work, for personal projects, or even just for fun? You can help shape the long-term success of the open source project that powers millions of websites around the world.' );
 				?>
 			</p>
 			<p>
@@ -59,9 +55,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</p>
 
 			<ul>
-				<li><?php _e( 'Plug in to a global, open source community' ); ?></li>
+				<li><?php _e( 'Be part of a global open source community' ); ?></li>
 				<li><?php _e( 'Apply your skills or learn some new ones' ); ?></li>
-				<li><?php _e( 'Grow your network (and make new friends!)' ); ?></li>
+				<li><?php _e( 'Grow your network and make new friends' ); ?></li>
 			</ul>
 		</div>
 	</div>
@@ -69,7 +65,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<div class="about__section">
 		<div class="column">
 			<h2><?php _e( 'Find your team' ); ?></h2>
-			<p><?php _e( 'Finding the area that aligns with your skills and interests is the first step toward meaningful contribution. With more than 20 Make WordPress teams working on different parts of the open-source WordPress project, there&#8217;s a place for everyone, no matter what your skill set is.' ); ?>
+			<p><?php _e( 'Finding the area that aligns with your skills and interests is the first step toward meaningful contribution. With more than 20 Make WordPress teams working on different parts of the open-source WordPress project, theree&#8217;s a place for everyone, no matter what your skill set is.' ); ?>
 			</p>
 		</div>
 	</div>
@@ -88,7 +84,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<li><?php _e( '<strong>Organize</strong> or participate in local WordPress Meetups and WordCamps' ); ?></li>
 				<li><?php _e( '<strong>Lend</strong> your creative imagination to the WordPress UI designy' ); ?></li>
 				<li><?php _e( '<strong>Edit</strong> videos and add captions to WordPress.tv' ); ?></li>
-				<li><?php _e( '<strong>Explore</strong> ways to reduce the environmental impact of millions of websites around the world' ); ?></li>
+				<li><?php _e( '<strong>Explore</strong> ways to reduce the environmental impact of millions of websites' ); ?></li>
 
 			</ul>
 		</div>
@@ -111,8 +107,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</ul>
 			<p><?php _e( 'WordPress embraces new technologies, while being committed to backward compatibility. The WordPress project uses the following languages and libraries:' ); ?></p>
 			<ul>
-				<li><?php _e( 'For Core and Block Editor: HTML, CSS, PHP, SQL, JavaScript, and React' ); ?></li>
-				<li><?php _e( 'For the WordPress app: Kotlin, Java, Swift, Objective-C, Vue, Python, and TypeScript' ); ?></li>
+				<li><?php _e( 'Core and Block Editor: HTML, CSS, PHP, SQL, JavaScript, and React' ); ?></li>
+				<li><?php _e( 'WordPress app: Kotlin, Java, Swift, Objective-C, Vue, Python, and TypeScript' ); ?></li>
 			</ul>
 		</div>
 	</div>
@@ -120,7 +116,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<div class="about__section is-feature has-subtle-background-color">
 		<div class="column">
 			<h2><?php _e( 'Help Make WordPress Better' ); ?></h2>
-			<p><?php _e( 'Whether you speak at a local meetup, provide your perspective on a feature proposal, or submit a basic bug report, your contributions will make a difference.' ); ?></p>
+			<p><?php _e( 'Whether you speak at a local meetup, provide your perspective on a feature proposal, or submit a bug report, your contributions will make a difference.' ); ?></p>
 		<p class="aligncenter"><a href="https://make.wordpress.org/contribute/" target="_blank"><?php _e( 'Find your team &rarr;' ); ?></a></p>
 		</div>
 	</div>
