@@ -57,7 +57,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<div class="about__section">
 		<div class="column">
 			<h2><?php _e( 'Find your team' ); ?></h2>
-			<p><?php _e( 'Finding the area that aligns with your skills and interests is the first step toward meaningful contribution. With more than 20 Make WordPress teams working on different parts of the open-source WordPress project, theree&#8217;s a place for everyone, no matter what your skill set is.' ); ?>
+			<p><?php _e( 'Finding the area that aligns with your skills and interests is the first step toward meaningful contribution. With more than 20 Make WordPress teams working on different parts of the open-source WordPress project, there&#8217;s a place for everyone, no matter what your skill set is.' ); ?>
 			</p>
 		</div>
 	</div>
@@ -74,7 +74,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<li><?php _e( '<strong>Promote</strong> the WordPress project to your community' ); ?></li>
 				<li><?php _e( '<strong>Take</strong> photos for or help curate the WordPress Photos Directory' ); ?></li>
 				<li><?php _e( '<strong>Organize</strong> or participate in local WordPress Meetups and WordCamps' ); ?></li>
-				<li><?php _e( '<strong>Lend</strong> your creative imagination to the WordPress UI designy' ); ?></li>
+				<li><?php _e( '<strong>Lend</strong> your creative imagination to the WordPress UI design' ); ?></li>
 				<li><?php _e( '<strong>Edit</strong> videos and add captions to WordPress.tv' ); ?></li>
 				<li><?php _e( '<strong>Explore</strong> ways to reduce the environmental impact of millions of websites' ); ?></li>
 			</ul>
