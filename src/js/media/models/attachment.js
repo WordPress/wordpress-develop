@@ -86,8 +86,8 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 
 				// Get the element which contains the deleted data-id
 				var deletedAttached = document.querySelector('li[data-id="' + this.id + '"]');
-				if (deletedAttached !== null) {
-					deletedAttached.parentNode.removeChild(deletedAttached);
+				if(deletedAttached){
+					deletedAttached.remove();
 				}
 				this.destroyed = true;
 			}).fail( function() {
