@@ -108,7 +108,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="column">
 			<h2><?php _e( 'Help Make WordPress Better' ); ?></h2>
 			<p><?php _e( 'Whether you speak at a local meetup, provide your perspective on a feature proposal, or submit a bug report, your contributions will make a difference.' ); ?></p>
-		<p class="aligncenter"><a href="https://make.wordpress.org/contribute/" target="_blank"><?php _e( 'Find your team &rarr;' ); ?></a></p>
+			<p class="aligncenter"><a href="https://make.wordpress.org/contribute/" target="_blank"><?php _e( 'Find your team &rarr;' ); ?></a></p>
 		</div>
 	</div>
 
