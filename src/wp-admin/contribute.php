@@ -77,7 +77,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<div class="about__section has-2-columns is-wider-left">
 		<div class="column is-vertically-aligned-center">
 			<h3><?php _e( 'No-Code Contribution' ); ?></h3>
-			<p><?php _e( 'WordPress may thrive on technical contributions, but you don&#8217;t have to code to contribute. Here are some of the ways you can make an impact without a single line of code:' ); ?></p>
+			<p><?php _e( 'WordPress may thrive on technical contributions, but you don&#8217;t have to code to contribute. Here are some of the ways you can make an impact without writing a single line of code:' ); ?></p>
 			<ul>
 				<li><?php _e( '<strong>Share</strong> your knowledge in the WordPress support forums' ); ?></li>
 				<li><?php _e( '<strong>Write</strong> or improve documentation for WordPress' ); ?></li>
