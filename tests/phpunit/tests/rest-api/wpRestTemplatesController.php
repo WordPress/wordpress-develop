@@ -848,6 +848,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 57851
+	 *
 	 * @covers WP_REST_Templates_Controller::prepare_item_for_database
 	 */
 	public function test_prepare_item_for_database() {
