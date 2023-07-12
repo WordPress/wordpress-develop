@@ -997,18 +997,19 @@ class WP_Duotone {
 	 * @return array An array of global styles presets, keyed on the filter ID.
 	 */
 	private static function get_all_global_styles_presets() {
-		if ( ! isset( self::$global_styles_presets ) ) {
-			// Get the per block settings from the theme.json.
-			$tree              = wp_get_global_settings();
-			$presets_by_origin = _wp_array_get( $tree, array( 'color', 'duotone' ), array() );
+		if ( isset( self::$global_styles_presets ) ) {
+			return self::$global_styles_presets;
+		}
+		// Get the per block settings from the theme.json.
+		$tree              = wp_get_global_settings();
+		$presets_by_origin = _wp_array_get( $tree, array( 'color', 'duotone' ), array() );
 
-			self::$global_styles_presets = array();
-			foreach ( $presets_by_origin as $presets ) {
-				foreach ( $presets as $preset ) {
-					$filter_id = self::get_filter_id( _wp_to_kebab_case( $preset['slug'] ) );
+		self::$global_styles_presets = array();
+		foreach ( $presets_by_origin as $presets ) {
+			foreach ( $presets as $preset ) {
+				$filter_id = self::get_filter_id( _wp_to_kebab_case( $preset['slug'] ) );
 
-					self::$global_styles_presets[ $filter_id ] = $preset;
-				}
+				self::$global_styles_presets[ $filter_id ] = $preset;
 			}
 		}
 
@@ -1026,33 +1027,34 @@ class WP_Duotone {
 	 * @return string[] An array of global style block slugs, keyed on the block name.
 	 */
 	private static function get_all_global_style_block_names() {
-		if ( ! isset( self::$global_styles_block_names ) ) {
-			// Get the per block settings from the theme.json.
-			$tree        = WP_Theme_JSON_Resolver::get_merged_data();
-			$block_nodes = $tree->get_styles_block_nodes();
-			$theme_json  = $tree->get_raw_data();
+		if ( isset( self::$global_styles_block_names ) ) {
+			return self::$global_styles_block_names;
+		}
+		// Get the per block settings from the theme.json.
+		$tree        = WP_Theme_JSON_Resolver::get_merged_data();
+		$block_nodes = $tree->get_styles_block_nodes();
+		$theme_json  = $tree->get_raw_data();
 
-			self::$global_styles_block_names = array();
+		self::$global_styles_block_names = array();
 
-			foreach ( $block_nodes as $block_node ) {
-				// This block definition doesn't include any duotone settings. Skip it.
-				if ( empty( $block_node['duotone'] ) ) {
-					continue;
-				}
+		foreach ( $block_nodes as $block_node ) {
+			// This block definition doesn't include any duotone settings. Skip it.
+			if ( empty( $block_node['duotone'] ) ) {
+				continue;
+			}
 
-				// Value looks like this: 'var(--wp--preset--duotone--blue-orange)' or 'var:preset|duotone|blue-orange'.
-				$duotone_attr_path = array_merge( $block_node['path'], array( 'filter', 'duotone' ) );
-				$duotone_attr      = _wp_array_get( $theme_json, $duotone_attr_path, array() );
+			// Value looks like this: 'var(--wp--preset--duotone--blue-orange)' or 'var:preset|duotone|blue-orange'.
+			$duotone_attr_path = array_merge( $block_node['path'], array( 'filter', 'duotone' ) );
+			$duotone_attr      = _wp_array_get( $theme_json, $duotone_attr_path, array() );
 
-				if ( empty( $duotone_attr ) ) {
-					continue;
-				}
-				// If it has a duotone filter preset, save the block name and the preset slug.
-				$slug = self::get_slug_from_attribute( $duotone_attr );
+			if ( empty( $duotone_attr ) ) {
+				continue;
+			}
+			// If it has a duotone filter preset, save the block name and the preset slug.
+			$slug = self::get_slug_from_attribute( $duotone_attr );
 
-				if ( $slug && $slug !== $duotone_attr ) {
-					self::$global_styles_block_names[ $block_node['name'] ] = $slug;
-				}
+			if ( $slug && $slug !== $duotone_attr ) {
+				self::$global_styles_block_names[ $block_node['name'] ] = $slug;
 			}
 		}
 		return self::$global_styles_block_names;
