@@ -109,7 +109,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<li><?php _e( '<strong>Write</strong> and submit patches to fix bugs or help build new features' ); ?></li>
 				<li><?php _e( '<strong>Contribute</strong> to the code, improve the UX, and test the WordPress app' ); ?></li>
 			</ul>
-			<p><?php _e( 'WordPress embraces new technologies, while being committed to backward compatibility. We use the following languages and libraries:' ); ?></p>
+			<p><?php _e( 'WordPress embraces new technologies, while being committed to backward compatibility. The WordPress project uses the following languages and libraries:' ); ?></p>
 			<ul>
 				<li><?php _e( 'For Core and Block Editor: HTML, CSS, PHP, SQL, JavaScript, and React' ); ?></li>
 				<li><?php _e( 'For the WordPress app: Kotlin, Java, Swift, Objective-C, Vue, Python, and TypeScript' ); ?></li>
