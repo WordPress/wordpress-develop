@@ -85,7 +85,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<li><?php _e( '<strong>Lend</strong> your creative imagination to the WordPress UI designy' ); ?></li>
 				<li><?php _e( '<strong>Edit</strong> videos and add captions to WordPress.tv' ); ?></li>
 				<li><?php _e( '<strong>Explore</strong> ways to reduce the environmental impact of millions of websites' ); ?></li>
-
 			</ul>
 		</div>
 		<div class="column">
