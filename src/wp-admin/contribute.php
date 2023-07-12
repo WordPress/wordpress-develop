@@ -48,11 +48,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				_e( 'Do you use WordPress for work, for personal projects, or even just for fun? You can help shape the long-term success of the open source project that powers millions of websites around the world.' );
 				?>
 			</p>
-			<p>
-				<?php
-				_e( 'Join the WordPress contributor community and connect with others who are passionate about maintaining a free and open web.' );
-				?>
-			</p>
+			<p><?php _e( 'Join the WordPress contributor community and connect with others who are passionate about maintaining a free and open web.' ); ?></p>
 
 			<ul>
 				<li><?php _e( 'Be part of a global open source community' ); ?></li>
