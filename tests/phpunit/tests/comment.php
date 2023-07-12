@@ -60,7 +60,10 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( 1, $result );
 
 		$comment = get_comment( $comments[0] );
-		// The factory returns ints, but get_comment returns strings
+		/*
+		 * ::create_post_comments() returns comment IDs as integers,
+		 * but WP_Comment::$comment_parent is a string.
+		 */
 		$this->assertSame( (string) $comments[1], $comment->comment_parent );
 
 		$result = wp_update_comment(
@@ -79,7 +82,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$comment = get_comment( $comments[0] );
-		// The factory returns ints, but get_comment returns strings
+		// WP_Post::$ID is an integer, but WP_Comment::$comment_post_ID is a string.
 		$this->assertSame( (string) $post2->ID, $comment->comment_post_ID );
 	}
 
@@ -223,7 +226,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$comment = get_comment( $comment_id );
-		$this->assertSame( "1", $comment->user_id );
+		$this->assertSame( '1', $comment->user_id );
 	}
 
 	/**
