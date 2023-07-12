@@ -48,16 +48,16 @@
 .about-php,
 .credits-php,
 .freedoms-php,
-.contribute-php,
-.privacy-php {
+.privacy-php,
+.contribute-php {
 	background: #fff;
 }
 
 .about-php #wpcontent,
 .credits-php #wpcontent,
 .freedoms-php #wpcontent,
-.contribute-php #wpcontent,
-.privacy-php #wpcontent {
+.privacy-php #wpcontent,
+.contribute-php #wpcontent {
 	background: #fff;
 	padding: 0 24px;
 }
@@ -66,8 +66,8 @@
 	.about-php.auto-fold #wpcontent,
 	.credits-php.auto-fold #wpcontent,
 	.freedoms-php.auto-fold #wpcontent,
-	.contribute-php.auto-fold #wpcontent,
-	.privacy-php.auto-fold #wpcontent {
+	.privacy-php.auto-fold #wpcontent,
+	.contribute-php.auto-fold #wpcontent {
 		padding-left: 24px;
 	}
 }
@@ -577,9 +577,9 @@
 }
 
 .credits-php .about__header-title h1,
+.freedoms-php .about__header-title h1,
 .privacy-php .about__header-title h1,
-.contribute-php .about__header-title h1,
-.freedoms-php .about__header-title h1 {
+.contribute-php .about__header-title h1 {
 	/* Fluid font size scales on browser size 960px - 1200px. */
 	font-size: clamp(3rem, 10vw - 3rem, 4.5rem);
 }
@@ -650,9 +650,9 @@
 	}
 
 	.credits-php .about__header-title h1,
+	.freedoms-php .about__header-title h1,
 	.privacy-php .about__header-title h1,
-	.contribute-php .about__header-title h1,
-	.freedoms-php .about__header-title h1 {
+	.contribute-php .about__header-title h1 {
 		/* Fluid font size scales on browser size 600px - 960px. */
 		font-size: clamp(3rem, 6.67vw - 0.5rem, 4.5rem);
 	}
@@ -692,9 +692,9 @@
 
 	.about__header,
 	.credits-php .about__header,
+	.freedoms-php .about__header,
 	.privacy-php .about__header,
-	.contribute-php .about__header,
-	.freedoms-php .about__header {
+	.contribute-php .about__header {
 		background-image: none;
 	}
 
