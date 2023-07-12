@@ -9,6 +9,8 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 	 */
 	protected $wp_embed;
 
+	const YOUTUBE_VIDEO_ID = 'OQSNhk5ICTI';
+
 	public function set_up() {
 		parent::set_up();
 		$this->wp_embed = new WP_Embed();
@@ -377,4 +379,16 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->wp_embed->linkifunknown = false;
 		$this->assertSame( $url, $this->wp_embed->maybe_make_link( $url ) );
 	}
+
+	/**
+	 * Test that oembed iframes are lazy loaded by default.
+	 *
+	 * @ticket 58773
+	 */
+	public function test_oembed_iframes_are_lazy_loaded_by_default() {
+		$url    = 'https://www.youtube.com/watch?v=' . self::YOUTUBE_VIDEO_ID;
+		$actual = $this->wp_embed->run_shortcode( '[embed]' . $url . '[/embed]' );
+		$this->assertContains( 'loading="lazy"', $actual );
+	}
+
 }

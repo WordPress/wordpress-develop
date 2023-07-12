@@ -240,17 +240,4 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 		$this->assertSame( $current_blog_id, get_current_blog_id() );
 	}
 
-	/**
-	 * Test that oembed iframes are lazy loaded by default.
-	 */
-	public function test_oembed_iframes_are_lazy_loaded_by_default() {
-		$actual = $this->oembed->get_html( 'https://www.youtube.com/watch?v=' . self::YOUTUBE_VIDEO_ID );
-
-		//Check for the lazy loading attribute.
-		$this->assertStringContainsString( 'loading="lazy"', $actual );
-	}
-}
-
-
-
 }
