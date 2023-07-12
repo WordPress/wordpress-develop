@@ -1076,10 +1076,11 @@ class WP_Duotone {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param  string $block_content Rendered block content.
-	 * @param  array  $block         Block object.
-	 * @param  WP_Block $wp_block    The block instance.
-	 * @return string                Filtered block content.
+	 * @param  string   $block_content Rendered block content.
+	 * @param  array    $block         Block object.
+	 * @param  WP_Block $wp_block      The block instance.
+	 *
+	 * @return string Filtered block content.
 	 */
 	public static function render_duotone_support( $block_content, $block, $wp_block ) {
 		if ( empty( $block_content ) || ! $block['blockName'] ) {
