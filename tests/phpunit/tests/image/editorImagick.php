@@ -658,10 +658,10 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$test_file     = DIR_TESTDATA . '/images/test-alpha.pdf';
 		$attachment_id = $this->factory->attachment->create_upload_object( $test_file );
-		$this->assertNotEmpty( $attachment_id );
+		$this->assertNotEmpty( $attachment_id, 'The attachment was not created before testing.' );
 
 		$attached_file = get_attached_file( $attachment_id );
-		$this->assertNotEmpty( $attached_file );
+		$this->assertNotEmpty( $attached_file, 'The attached file was not returned.' );
 
 		$rgb = array(
 			'r' => true,
@@ -677,7 +677,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		);
 
 		$check = image_get_intermediate_size( $attachment_id, 'full' );
-		$this->assertNotEmpty( $check['file'] );
+		$this->assertNotEmpty( $check['file'], 'The intermediate size file was not found.' );
 
 		$check_file = path_join( dirname( $attached_file ), $check['file'] );
 		$imagick    = new Imagick( $check_file );
@@ -688,6 +688,6 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			array_intersect_key( $imagick->getImagePixelColor( 100, 100 )->getColor( true /* normalized */ ), $rgb )
 		);
 		$imagick->destroy();
-		$this->assertSame( $expected, $output ); // Allow for floating point equivalence.
+		$this->assertSame( $expected, $output, 'The image color of the generated thumb does not match expected opaque background.' ); // Allow for floating point equivalence.
 	}
 }
