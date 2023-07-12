@@ -813,4 +813,4 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 
 		$this->assertStringStartsWith( '<b>Unfiltered</b>', $data->html );
 	}
-
+}

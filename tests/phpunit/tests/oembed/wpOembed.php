@@ -240,8 +240,6 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 		$this->assertSame( $current_blog_id, get_current_blog_id() );
 	}
 
-
-
 	/**
 	 * Test that oembed iframes are lazy loaded by default.
 	 */
