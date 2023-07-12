@@ -69,7 +69,7 @@ if ( isset( $_SERVER['HTTP_USER_AGENT'] ) ) {
 		$is_lynx = true;
 	} elseif ( str_contains( $_SERVER['HTTP_USER_AGENT'], 'Edg' ) ) {
 		$is_edge = true;
-	} elseif ( str_contains( $_SERVER['HTTP_USER_AGENT'], 'Opera' ) || str_contains( $_SERVER['HTTP_USER_AGENT'], 'OPR' ) ) {
+	} elseif ( str_contains( $_SERVER['HTTP_USER_AGENT'], 'Opera' ) || str_contains( $_SERVER['HTTP_USER_AGENT'], 'OPR/' ) ) {
 		$is_opera = true;
 	} elseif ( stripos( $_SERVER['HTTP_USER_AGENT'], 'chrome' ) !== false ) {
 		if ( stripos( $_SERVER['HTTP_USER_AGENT'], 'chromeframe' ) !== false ) {
