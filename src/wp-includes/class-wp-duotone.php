@@ -953,6 +953,10 @@ class WP_Duotone {
 	 * @return string The CSS selector or null if there is no support.
 	 */
 	private static function get_selector( $block_type ) {
+		if ( ! ( $block_type instanceof WP_Block_Type ) ) {
+			return null;
+		}
+
 		/*
 		 * Backwards compatibility with `supports.color.__experimentalDuotone`
 		 * is provided via the `block_type_metadata_settings` filter. If
