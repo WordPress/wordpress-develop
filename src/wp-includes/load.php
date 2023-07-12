@@ -277,6 +277,9 @@ function wp_get_environment_type() {
  * Developer mode is considered separately from `WP_DEBUG` and {@see wp_get_environment_type()}. It does not affect
  * debugging output, but rather functional nuances in WordPress.
  *
+ * This function controls the currently set development mode value. To check for whether a specific development mode is
+ * enabled, use {@see wp_in_development_mode()}.
+ *
  * @since 6.3.0
  *
  * @return string The current development mode.
