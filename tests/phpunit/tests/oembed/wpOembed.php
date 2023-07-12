@@ -9,7 +9,7 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 */
 	protected $oembed;
 
-	const YOUTUBE_VIDEO_ID       = 'OQSNhk5ICTI';
+	const YOUTUBE_VIDEO_ID = 'OQSNhk5ICTI';
 
 	public $pre_oembed_result_filtered = false;
 
