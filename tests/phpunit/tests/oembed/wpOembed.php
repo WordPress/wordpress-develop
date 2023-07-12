@@ -9,8 +9,6 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 */
 	protected $oembed;
 
-	const YOUTUBE_VIDEO_ID = 'OQSNhk5ICTI';
-
 	public $pre_oembed_result_filtered = false;
 
 	public function set_up() {
@@ -239,5 +237,4 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 		$this->assertFalse( $actual );
 		$this->assertSame( $current_blog_id, get_current_blog_id() );
 	}
-
 }
