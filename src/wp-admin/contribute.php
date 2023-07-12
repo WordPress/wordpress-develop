@@ -43,11 +43,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%231d35b4' /%3E%3C/svg%3E" alt="" />
 		</div>
 		<div class="column is-vertically-aligned-center">
-			<p>
-				<?php
-				_e( 'Do you use WordPress for work, for personal projects, or even just for fun? You can help shape the long-term success of the open source project that powers millions of websites around the world.' );
-				?>
-			</p>
+			<p><?php _e( 'Do you use WordPress for work, for personal projects, or even just for fun? You can help shape the long-term success of the open source project that powers millions of websites around the world.' ); ?></p>
 			<p><?php _e( 'Join the WordPress contributor community and connect with others who are passionate about maintaining a free and open web.' ); ?></p>
 
 			<ul>
