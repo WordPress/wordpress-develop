@@ -287,7 +287,7 @@ function create_initial_post_types() {
 				'add_new'                  => _x( 'Add New', 'Pattern' ),
 				'add_new_item'             => __( 'Add new Pattern' ),
 				'new_item'                 => __( 'New Pattern' ),
-				'edit_item'                => __( 'Edit Pattern' ),
+				'edit_item'                => __( 'Edit Block Pattern' ),
 				'view_item'                => __( 'View Pattern' ),
 				'view_items'               => __( 'View Patterns' ),
 				'all_items'                => __( 'All Patterns' ),
@@ -6629,8 +6629,10 @@ function wp_get_attachment_caption( $post_id = 0 ) {
 function wp_get_attachment_thumb_url( $post_id = 0 ) {
 	$post_id = (int) $post_id;
 
-	// This uses image_downsize() which also looks for the (very) old format $image_meta['thumb']
-	// when the newer format $image_meta['sizes']['thumbnail'] doesn't exist.
+	/*
+	 * This uses image_downsize() which also looks for the (very) old format $image_meta['thumb']
+	 * when the newer format $image_meta['sizes']['thumbnail'] doesn't exist.
+	 */
 	$thumbnail_url = wp_get_attachment_image_url( $post_id, 'thumbnail' );
 
 	if ( empty( $thumbnail_url ) ) {
