@@ -40,7 +40,6 @@ wp-tests-config.php
 /packagehash.txt
 /artifacts
 /setup.log
-/.idea
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
