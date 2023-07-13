@@ -1255,9 +1255,11 @@ function wp_filter_pre_oembed_result( $result, $url, $args ) {
  * @return string The oEmbed HTML with the loading="lazy" attribute added to the iframe.
  */
 function wp_lazy_load_oembed_iframe( $html ) {
-	$tag_parser = new WP_HTML_Tag_Processor( $html );
-	if ( wp_lazy_loading_enabled( 'iframe', 'oembed' ) && isset( $html ) && $tag_parser->next_tag( 'iframe' ) && ! $tag_parser->get_attribute( 'loading' ) ) {
-		$html = wp_iframe_tag_add_loading_attr( $html, 'oembed' );
+	if ( $html && wp_lazy_loading_enabled( 'iframe', 'oembed' ) ) {
+		$tag_parser = new WP_HTML_Tag_Processor( $html );
+		if ( $tag_parser->next_tag( 'iframe' ) && ! $tag_parser->get_attribute( 'loading' ) ) {
+			$html = wp_iframe_tag_add_loading_attr( $html, 'oembed' );
+		}
 	}
 
 	return $html;
