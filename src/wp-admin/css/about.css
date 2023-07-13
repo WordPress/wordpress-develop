@@ -623,6 +623,12 @@
 	color: inherit;
 }
 
+@media (min-width: 783px) and (max-width: 926px) {
+	.about__header-navigation .nav-tab {
+		padding: calc(var(--gap) * 0.75) calc(var(--gap) * 0.5);
+	}
+}
+
 .about__header-navigation .nav-tab:hover,
 .about__header-navigation .nav-tab:active {
 	background-color: var(--nav-current);
