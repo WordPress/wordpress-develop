@@ -623,11 +623,6 @@
 	color: inherit;
 }
 
-@media (min-width: 783px) and (max-width: 926px) {
-	.about__header-navigation .nav-tab {
-		padding: calc(var(--gap) * 0.75) calc(var(--gap) * 0.5);
-	}
-}
 
 .about__header-navigation .nav-tab:hover,
 .about__header-navigation .nav-tab:active {
@@ -661,6 +656,10 @@
 	.contribute-php .about__header-title h1 {
 		/* Fluid font size scales on browser size 600px - 960px. */
 		font-size: clamp(3rem, 6.67vw - 0.5rem, 4.5rem);
+	}
+
+	.about__header-navigation .nav-tab {
+		padding: calc(var(--gap) * 0.75) calc(var(--gap) * 0.5);
 	}
 }
 
