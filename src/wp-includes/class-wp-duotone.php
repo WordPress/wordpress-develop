@@ -1071,7 +1071,6 @@ class WP_Duotone {
 	 * @param  string   $block_content Rendered block content.
 	 * @param  array    $block         Block object.
 	 * @param  WP_Block $wp_block      The block instance.
-	 *
 	 * @return string Filtered block content.
 	 */
 	public static function render_duotone_support( $block_content, $block, $wp_block ) {
@@ -1262,7 +1261,6 @@ class WP_Duotone {
 	 *
 	 * @param array $settings Current block type settings.
 	 * @param array $metadata Block metadata as read in via block.json.
-	 *
 	 * @return array Filtered block type settings.
 	 */
 	public static function migrate_experimental_duotone_support_flag( $settings, $metadata ) {
