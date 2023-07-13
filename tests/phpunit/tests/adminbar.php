@@ -485,6 +485,54 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the 'contribute' node is added for users with a role in single site.
+	 *
+	 * @ticket 23348
+	 *
+	 * @group ms-excluded
+	 *
+	 * @covers ::wp_admin_bar_wp_menu
+	 */
+	public function test_admin_bar_contains_contribute_node_for_users_with_role() {
+		wp_set_current_user( self::$editor_id );
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$this->assertNotNull( $wp_admin_bar->get_node( 'contribute' ) );
+	}
+
+	/**
+	 * Tests that the 'contribute' node is not added for users with no role in single site.
+	 *
+	 * @ticket 23348
+	 *
+	 * @group ms-excluded
+	 *
+	 * @covers ::wp_admin_bar_wp_menu
+	 */
+	public function test_admin_bar_does_not_contain_contribute_node_for_users_with_no_role() {
+		wp_set_current_user( self::$no_role_id );
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$this->assertNull( $wp_admin_bar->get_node( 'contribute' ) );
+	}
+
+	/**
+	 * Tests that the 'contribute' node is added for users with no role in multisite.
+	 *
+	 * @ticket 23348
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_admin_bar_wp_menu
+	 */
+	public function test_admin_bar_contains_contribute_node_for_users_with_no_role_in_multisite() {
+		// User is not a member of a site.
+		remove_user_from_blog( self::$no_role_id, get_current_blog_id() );
+		wp_set_current_user( self::$no_role_id );
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$this->assertNotNull( $wp_admin_bar->get_node( 'contribute' ) );
+	}
+
+	/**
 	 * @ticket 34113
 	 */
 	public function test_admin_bar_has_no_archives_link_for_non_public_cpt() {
