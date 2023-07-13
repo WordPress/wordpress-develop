@@ -944,12 +944,9 @@ class WP_Duotone {
 	 * This handles selectors defined in `color.__experimentalDuotone` support
 	 * if `filter.duotone` support is not defined.
 	 *
-	 * @param WP_Block_Type $block_type Block type to check for support.
-	 *
 	 * @internal
-	 *
 	 * @since 6.3.0
-	 *
+	 * @param WP_Block_Type $block_type Block type to check for support.
 	 * @return string The CSS selector or null if there is no support.
 	 */
 	private static function get_selector( $block_type ) {
@@ -958,7 +955,7 @@ class WP_Duotone {
 		}
 
 		/*
-		 * Backwards compatibility with `supports.color.__experimentalDuotone`
+		 * Backward compatibility with `supports.color.__experimentalDuotone`
 		 * is provided via the `block_type_metadata_settings` filter. If
 		 * `supports.filter.duotone` has not been set and the experimental
 		 * property has been, the experimental property value is copied into
