@@ -946,8 +946,9 @@ class WP_Duotone {
 	 *
 	 * @internal
 	 * @since 6.3.0
+	 *
 	 * @param WP_Block_Type $block_type Block type to check for support.
-	 * @return string The CSS selector or null if there is no support.
+	 * @return string|null The CSS selector or null if there is no support.
 	 */
 	private static function get_selector( $block_type ) {
 		if ( ! ( $block_type instanceof WP_Block_Type ) ) {
