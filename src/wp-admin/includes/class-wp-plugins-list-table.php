@@ -261,8 +261,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				}
 			} elseif ( ( ! $screen->in_admin( 'network' ) && is_plugin_active( $plugin_file ) )
 				|| ( $screen->in_admin( 'network' ) && is_plugin_active_for_network( $plugin_file ) ) ) {
-				// On the non-network screen, populate the active list with plugins that are individually activated.
-				// On the network admin screen, populate the active list with plugins that are network-activated.
+				/*
+				 * On the non-network screen, populate the active list with plugins that are individually activated.
+				 * On the network admin screen, populate the active list with plugins that are network-activated.
+				 */
 				$plugins['active'][ $plugin_file ] = $plugin_data;
 
 				if ( ! $screen->in_admin( 'network' ) && is_plugin_paused( $plugin_file ) ) {
@@ -295,6 +297,15 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$status            = 'search';
 			$plugins['search'] = array_filter( $plugins['all'], array( $this, '_search_callback' ) );
 		}
+
+		/**
+		 * Filters the array of plugins for the list table.
+		 *
+		 * @since 6.3.0
+		 *
+		 * @param array[] $plugins An array of arrays of plugin data, keyed by context.
+		 */
+		$plugins = apply_filters( 'plugins_list', $plugins );
 
 		$totals = array();
 		foreach ( $plugins as $type => $list ) {

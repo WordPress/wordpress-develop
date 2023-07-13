@@ -69,7 +69,7 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
 	 * developer's workflow.
 	 */
-	$can_use_cached = wp_get_development_mode() !== 'theme';
+	$can_use_cached = ! wp_in_development_mode( 'theme' );
 
 	$settings = false;
 	if ( $can_use_cached ) {
@@ -152,7 +152,7 @@ function wp_get_global_stylesheet( $types = array() ) {
 	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
 	 * developer's workflow.
 	 */
-	$can_use_cached = empty( $types ) && wp_get_development_mode() !== 'theme';
+	$can_use_cached = empty( $types ) && ! wp_in_development_mode( 'theme' );
 
 	/*
 	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
@@ -251,7 +251,7 @@ function wp_get_global_styles_custom_css() {
 	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
 	 * developer's workflow.
 	 */
-	$can_use_cached = wp_get_development_mode() !== 'theme';
+	$can_use_cached = ! wp_in_development_mode( 'theme' );
 
 	/*
 	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
@@ -286,45 +286,6 @@ function wp_get_global_styles_custom_css() {
 	}
 
 	return $stylesheet;
-}
-
-/**
- * Returns a string containing the SVGs to be referenced as filters (duotone).
- *
- * @since 5.9.1
- *
- * @return string
- */
-function wp_get_global_styles_svg_filters() {
-	/*
-	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
-	 * developer's workflow.
-	 */
-	$can_use_cached = wp_get_development_mode() !== 'theme';
-	$cache_group    = 'theme_json';
-	$cache_key      = 'wp_get_global_styles_svg_filters';
-	if ( $can_use_cached ) {
-		$cached = wp_cache_get( $cache_key, $cache_group );
-		if ( $cached ) {
-			return $cached;
-		}
-	}
-
-	$supports_theme_json = wp_theme_has_theme_json();
-
-	$origins = array( 'default', 'theme', 'custom' );
-	if ( ! $supports_theme_json ) {
-		$origins = array( 'default' );
-	}
-
-	$tree = WP_Theme_JSON_Resolver::get_merged_data();
-	$svgs = $tree->get_svg_filters( $origins );
-
-	if ( $can_use_cached ) {
-		wp_cache_set( $cache_key, $svgs, $cache_group );
-	}
-
-	return $svgs;
 }
 
 /**
@@ -389,33 +350,37 @@ function wp_add_global_styles_for_blocks() {
  * @return bool Returns true if theme or its parent has a theme.json file, false otherwise.
  */
 function wp_theme_has_theme_json() {
-	static $theme_has_support = null;
+	static $theme_has_support = array();
+
+	$stylesheet = get_stylesheet();
 
 	if (
-		null !== $theme_has_support &&
+		isset( $theme_has_support[ $stylesheet ] ) &&
 		/*
 		 * Ignore static cache when the development mode is set to 'theme', to avoid interfering with
 		 * the theme developer's workflow.
 		 */
-		wp_get_development_mode() !== 'theme' &&
-		/*
-		 * Ignore cache when automated test suites are running. Why? To ensure
-		 * the static cache is reset between each test.
-		 */
-		! ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS )
+		! wp_in_development_mode( 'theme' )
 	) {
-		return $theme_has_support;
+		return $theme_has_support[ $stylesheet ];
 	}
 
-	// Does the theme have its own theme.json?
-	$theme_has_support = is_readable( get_stylesheet_directory() . '/theme.json' );
+	$stylesheet_directory = get_stylesheet_directory();
+	$template_directory   = get_template_directory();
 
-	// Look up the parent if the child does not have a theme.json.
-	if ( ! $theme_has_support ) {
-		$theme_has_support = is_readable( get_template_directory() . '/theme.json' );
+	// This is the same as get_theme_file_path(), which isn't available in load-styles.php context
+	if ( $stylesheet_directory !== $template_directory && file_exists( $stylesheet_directory . '/theme.json' ) ) {
+		$path = $stylesheet_directory . '/theme.json';
+	} else {
+		$path = $template_directory . '/theme.json';
 	}
 
-	return $theme_has_support;
+	/** This filter is documented in wp-includes/link-template.php */
+	$path = apply_filters( 'theme_file_path', $path, 'theme.json' );
+
+	$theme_has_support[ $stylesheet ] = file_exists( $path );
+
+	return $theme_has_support[ $stylesheet ];
 }
 
 /**

@@ -921,7 +921,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *     @type string $minimum_font_size      Minimum font size for any clamp() calculation.
 	 *     @type int    $scale_factor           A scale factor to determine how fast a font scales within boundaries.
 	 * }
-	 * @param string $expected_output             Expected value of style property from gutenberg_apply_typography_support().
+	 * @param string $expected_output             Expected value of style property from wp_apply_typography_support().
 	 */
 	public function test_wp_get_computed_fluid_typography_value( $args, $expected_output ) {
 		$actual = wp_get_computed_fluid_typography_value( $args );

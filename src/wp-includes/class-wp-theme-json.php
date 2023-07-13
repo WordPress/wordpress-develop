@@ -114,6 +114,7 @@ class WP_Theme_JSON {
 	 * @since 6.0.0 Replaced `override` with `prevent_override` and updated the
 	 *              `prevent_override` value for `color.duotone` to use `color.defaultDuotone`.
 	 * @since 6.2.0 Added 'shadow' presets.
+	 * @since 6.3.0 Replaced value_func for duotone with `null`. Custom properties are handled by class-wp-duotone.php.
 	 * @var array
 	 */
 	const PRESETS_METADATA = array(
@@ -143,8 +144,8 @@ class WP_Theme_JSON {
 			'path'              => array( 'color', 'duotone' ),
 			'prevent_override'  => array( 'color', 'defaultDuotone' ),
 			'use_default_names' => false,
-			'value_func'        => 'wp_get_duotone_filter_property',
-			'css_vars'          => '--wp--preset--duotone--$slug',
+			'value_func'        => null, // CSS Custom Properties for duotone are handled by block supports in class-wp-duotone.php.
+			'css_vars'          => null,
 			'classes'           => array(),
 			'properties'        => array( 'filter' ),
 		),
@@ -544,8 +545,10 @@ class WP_Theme_JSON {
 	public static function get_element_class_name( $element ) {
 		$class_name = '';
 
-		// TODO: Replace array_key_exists() with isset() check once WordPress drops
-		// support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
+		/*
+		 * TODO: Replace array_key_exists() with isset() check once WordPress drops
+		 * support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
+		 */
 		if ( array_key_exists( $element, static::__EXPERIMENTAL_ELEMENT_CLASS_NAMES ) ) {
 			$class_name = static::__EXPERIMENTAL_ELEMENT_CLASS_NAMES[ $element ];
 		}
@@ -670,8 +673,10 @@ class WP_Theme_JSON {
 	 */
 	protected static function do_opt_in_into_settings( &$context ) {
 		foreach ( static::APPEARANCE_TOOLS_OPT_INS as $path ) {
-			// Use "unset prop" as a marker instead of "null" because
-			// "null" can be a valid value for some props (e.g. blockGap).
+			/*
+			 * Use "unset prop" as a marker instead of "null" because
+			 * "null" can be a valid value for some props (e.g. blockGap).
+			 */
 			if ( 'unset prop' === _wp_array_get( $context, $path, 'unset prop' ) ) {
 				_wp_array_set( $context, $path, true );
 			}
@@ -735,8 +740,10 @@ class WP_Theme_JSON {
 		foreach ( $valid_element_names as $element ) {
 			$schema_styles_elements[ $element ] = $styles_non_top_level;
 
-			// TODO: Replace array_key_exists() with isset() check once WordPress drops
-			// support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
+			/*
+			 * TODO: Replace array_key_exists() with isset() check once WordPress drops
+			 * support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
+			 */
 			if ( array_key_exists( $element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
 				foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
 					$schema_styles_elements[ $element ][ $pseudo_selector ] = $styles_non_top_level;
@@ -1004,6 +1011,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Removed the `$type` parameter, added the `$types` and `$origins` parameters.
+	 * @since 6.3.0 Add fallback layout styles for Post Template when block gap support isn't available.
 	 *
 	 * @param string[] $types   Types of styles to load. Will load all by default. It accepts:
 	 *                          - `variables`: only the CSS Custom Properties for presets & custom ones.
@@ -1070,17 +1078,21 @@ class WP_Theme_JSON {
 			}
 			$stylesheet .= $this->get_block_classes( $style_nodes );
 		} elseif ( in_array( 'base-layout-styles', $types, true ) ) {
-			$root_selector    = static::ROOT_BLOCK_SELECTOR;
-			$columns_selector = '.wp-block-columns';
+			$root_selector          = static::ROOT_BLOCK_SELECTOR;
+			$columns_selector       = '.wp-block-columns';
+			$post_template_selector = '.wp-block-post-template';
 			if ( ! empty( $options['scope'] ) ) {
-				$root_selector    = static::scope_selector( $options['scope'], $root_selector );
-				$columns_selector = static::scope_selector( $options['scope'], $columns_selector );
+				$root_selector          = static::scope_selector( $options['scope'], $root_selector );
+				$columns_selector       = static::scope_selector( $options['scope'], $columns_selector );
+				$post_template_selector = static::scope_selector( $options['scope'], $post_template_selector );
 			}
 			if ( ! empty( $options['root_selector'] ) ) {
 				$root_selector = $options['root_selector'];
 			}
-			// Base layout styles are provided as part of `styles`, so only output separately if explicitly requested.
-			// For backwards compatibility, the Columns block is explicitly included, to support a different default gap value.
+			/*
+			 * Base layout styles are provided as part of `styles`, so only output separately if explicitly requested.
+			 * For backwards compatibility, the Columns block is explicitly included, to support a different default gap value.
+			 */
 			$base_styles_nodes = array(
 				array(
 					'path'     => array( 'styles' ),
@@ -1090,6 +1102,11 @@ class WP_Theme_JSON {
 					'path'     => array( 'styles', 'blocks', 'core/columns' ),
 					'selector' => $columns_selector,
 					'name'     => 'core/columns',
+				),
+				array(
+					'path'     => array( 'styles', 'blocks', 'core/post-template' ),
+					'selector' => $post_template_selector,
+					'name'     => 'core/post-template',
 				),
 			);
 
@@ -1266,8 +1283,10 @@ class WP_Theme_JSON {
 		$layout_definitions       = wp_get_layout_definitions();
 		$layout_selector_pattern  = '/^[a-zA-Z0-9\-\.\ *+>:\(\)]*$/'; // Allow alphanumeric classnames, spaces, wildcard, sibling, child combinator and pseudo class selectors.
 
-		// Gap styles will only be output if the theme has block gap support, or supports a fallback gap.
-		// Default layout gap styles will be skipped for themes that do not explicitly opt-in to blockGap with a `true` or `false` value.
+		/*
+		 * Gap styles will only be output if the theme has block gap support, or supports a fallback gap.
+		 * Default layout gap styles will be skipped for themes that do not explicitly opt-in to blockGap with a `true` or `false` value.
+		 */
 		if ( $has_block_gap_support || $has_fallback_gap_support ) {
 			$block_gap_value = null;
 			// Use a fallback gap value if block gap support is not available.
@@ -1295,8 +1314,8 @@ class WP_Theme_JSON {
 			// If the block should have custom gap, add the gap styles.
 			if ( null !== $block_gap_value && false !== $block_gap_value && '' !== $block_gap_value ) {
 				foreach ( $layout_definitions as $layout_definition_key => $layout_definition ) {
-					// Allow outputting fallback gap styles for flex layout type when block gap support isn't available.
-					if ( ! $has_block_gap_support && 'flex' !== $layout_definition_key ) {
+					// Allow outputting fallback gap styles for flex and grid layout types when block gap support isn't available.
+					if ( ! $has_block_gap_support && 'flex' !== $layout_definition_key && 'grid' !== $layout_definition_key ) {
 						continue;
 					}
 
@@ -1545,8 +1564,10 @@ class WP_Theme_JSON {
 	 */
 	protected static function compute_preset_classes( $settings, $selector, $origins ) {
 		if ( static::ROOT_BLOCK_SELECTOR === $selector ) {
-			// Classes at the global level do not need any CSS prefixed,
-			// and we don't want to increase its specificity.
+			/*
+			 * Classes at the global level do not need any CSS prefixed,
+			 * and we don't want to increase its specificity.
+			 */
 			$selector = '';
 		}
 
@@ -1888,8 +1909,10 @@ class WP_Theme_JSON {
 			if ( str_starts_with( $css_property, '--wp--style--root--' ) && ( static::ROOT_BLOCK_SELECTOR !== $selector || ! $use_root_padding ) ) {
 				continue;
 			}
-			// Root-level padding styles don't currently support strings with CSS shorthand values.
-			// This may change: https://github.com/WordPress/gutenberg/issues/40132.
+			/*
+			 * Root-level padding styles don't currently support strings with CSS shorthand values.
+			 * This may change: https://github.com/WordPress/gutenberg/issues/40132.
+			 */
 			if ( '--wp--style--root--padding' === $css_property && is_string( $value ) ) {
 				continue;
 			}
@@ -1898,13 +1921,17 @@ class WP_Theme_JSON {
 				$root_variable_duplicates[] = substr( $css_property, strlen( '--wp--style--root--' ) );
 			}
 
-			// Look up protected properties, keyed by value path.
-			// Skip protected properties that are explicitly set to `null`.
+			/*
+			 * Look up protected properties, keyed by value path.
+			 * Skip protected properties that are explicitly set to `null`.
+			 */
 			if ( is_array( $value_path ) ) {
 				$path_string = implode( '.', $value_path );
 				if (
-					// TODO: Replace array_key_exists() with isset() check once WordPress drops
-					// support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
+					/*
+					 * TODO: Replace array_key_exists() with isset() check once WordPress drops
+					 * support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
+					 */
 					array_key_exists( $path_string, static::PROTECTED_PROPERTIES ) &&
 					_wp_array_get( $settings, static::PROTECTED_PROPERTIES[ $path_string ], null ) === null
 				) {
@@ -2109,9 +2136,11 @@ class WP_Theme_JSON {
 					'selector' => static::ELEMENTS[ $element ],
 				);
 
-				// Handle any pseudo selectors for the element.
-				// TODO: Replace array_key_exists() with isset() check once WordPress drops
-				// support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
+				/*
+				 * Handle any pseudo selectors for the element.
+				 * TODO: Replace array_key_exists() with isset() check once WordPress drops
+				 * support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
+				 */
 				if ( array_key_exists( $element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
 					foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
 
@@ -2261,9 +2290,11 @@ class WP_Theme_JSON {
 						'selector' => $selectors[ $name ]['elements'][ $element ],
 					);
 
-					// Handle any pseudo selectors for the element.
-					// TODO: Replace array_key_exists() with isset() check once WordPress drops
-					// support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
+					/*
+					 * Handle any pseudo selectors for the element.
+					 * TODO: Replace array_key_exists() with isset() check once WordPress drops
+					 * support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
+					 */
 					if ( array_key_exists( $element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
 						foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
 							if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'][ $element ][ $pseudo_selector ] ) ) {
@@ -2342,8 +2373,10 @@ class WP_Theme_JSON {
 
 		$element_pseudo_allowed = array();
 
-		// TODO: Replace array_key_exists() with isset() check once WordPress drops
-		// support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
+		/*
+		 * TODO: Replace array_key_exists() with isset() check once WordPress drops
+		 * support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
+		 */
 		if ( array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
 			$element_pseudo_allowed = static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ];
 		}
@@ -2369,8 +2402,10 @@ class WP_Theme_JSON {
 		 * Otherwise just compute the styles for the default selector as normal.
 		 */
 		if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) &&
-			// TODO: Replace array_key_exists() with isset() check once WordPress drops
-			// support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
+			/*
+			 * TODO: Replace array_key_exists() with isset() check once WordPress drops
+			 * support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
+			 */
 			array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS )
 			&& in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true )
 		) {
@@ -2860,9 +2895,10 @@ class WP_Theme_JSON {
 			/*
 			 * $output is stripped of pseudo selectors. Re-add and process them
 			 * or insecure styles here.
+			 *
+			 * TODO: Replace array_key_exists() with isset() check once WordPress drops
+			 * support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
 			 */
-			// TODO: Replace array_key_exists() with isset() check once WordPress drops
-			// support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
 			if ( array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
 				foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] as $pseudo_selector ) {
 					if ( isset( $input[ $pseudo_selector ] ) ) {
@@ -2983,8 +3019,10 @@ class WP_Theme_JSON {
 			if ( static::is_safe_css_declaration( $declaration['name'], $declaration['value'] ) ) {
 				$path = static::PROPERTIES_METADATA[ $declaration['name'] ];
 
-				// Check the value isn't an array before adding so as to not
-				// double up shorthand and longhand styles.
+				/*
+				 * Check the value isn't an array before adding so as to not
+				 * double up shorthand and longhand styles.
+				 */
 				$value = _wp_array_get( $input, $path, array() );
 				if ( ! is_array( $value ) ) {
 					_wp_array_set( $output, $path, $value );
@@ -3227,8 +3265,10 @@ class WP_Theme_JSON {
 			}
 		}
 
-		// If all of the static::APPEARANCE_TOOLS_OPT_INS are true,
-		// this code unsets them and sets 'appearanceTools' instead.
+		/*
+		 * If all of the static::APPEARANCE_TOOLS_OPT_INS are true,
+		 * this code unsets them and sets 'appearanceTools' instead.
+		 */
 		foreach ( $nodes as $node ) {
 			$all_opt_ins_are_set = true;
 			foreach ( static::APPEARANCE_TOOLS_OPT_INS as $opt_in_path ) {
@@ -3236,8 +3276,10 @@ class WP_Theme_JSON {
 				foreach ( $opt_in_path as $opt_in_path_item ) {
 					$full_path[] = $opt_in_path_item;
 				}
-				// Use "unset prop" as a marker instead of "null" because
-				// "null" can be a valid value for some props (e.g. blockGap).
+				/*
+				 * Use "unset prop" as a marker instead of "null" because
+				 * "null" can be a valid value for some props (e.g. blockGap).
+				 */
 				$opt_in_value = _wp_array_get( $output, $full_path, 'unset prop' );
 				if ( 'unset prop' === $opt_in_value ) {
 					$all_opt_ins_are_set = false;
@@ -3254,18 +3296,22 @@ class WP_Theme_JSON {
 					foreach ( $opt_in_path as $opt_in_path_item ) {
 						$full_path[] = $opt_in_path_item;
 					}
-					// Use "unset prop" as a marker instead of "null" because
-					// "null" can be a valid value for some props (e.g. blockGap).
+					/*
+					 * Use "unset prop" as a marker instead of "null" because
+					 * "null" can be a valid value for some props (e.g. blockGap).
+					 */
 					$opt_in_value = _wp_array_get( $output, $full_path, 'unset prop' );
 					if ( true !== $opt_in_value ) {
 						continue;
 					}
 
-					// The following could be improved to be path independent.
-					// At the moment it relies on a couple of assumptions:
-					//
-					// - all opt-ins having a path of size 2.
-					// - there's two sources of settings: the top-level and the block-level.
+					/*
+					 * The following could be improved to be path independent.
+					 * At the moment it relies on a couple of assumptions:
+					 *
+					 * - all opt-ins having a path of size 2.
+					 * - there's two sources of settings: the top-level and the block-level.
+					 */
 					if (
 						( 1 === count( $node['path'] ) ) &&
 						( 'settings' === $node['path'][0] )
@@ -3501,12 +3547,13 @@ class WP_Theme_JSON {
 	 * @return array The block's element selectors.
 	 */
 	protected static function get_block_element_selectors( $root_selector ) {
-		// Assign defaults, then override those that the block sets by itself.
-		// If the block selector is compounded, will append the element to each
-		// individual block selector.
+		/*
+		 * Assign defaults, then override those that the block sets by itself.
+		 * If the block selector is compounded, will append the element to each
+		 * individual block selector.
+		 */
 		$block_selectors   = explode( ',', $root_selector );
 		$element_selectors = array();
-
 		foreach ( static::ELEMENTS as $el_name => $el_selector ) {
 			$element_selector = array();
 			foreach ( $block_selectors as $selector ) {
@@ -3545,8 +3592,10 @@ class WP_Theme_JSON {
 		$settings = _wp_array_get( $this->theme_json, array( 'settings' ) );
 
 		foreach ( $metadata['selectors'] as $feature => $feature_selectors ) {
-			// Skip if this is the block's root selector or the block doesn't
-			// have any styles for the feature.
+			/*
+			 * Skip if this is the block's root selector or the block doesn't
+			 * have any styles for the feature.
+			 */
 			if ( 'root' === $feature || empty( $node[ $feature ] ) ) {
 				continue;
 			}
@@ -3557,8 +3606,10 @@ class WP_Theme_JSON {
 						continue;
 					}
 
-					// Create temporary node containing only the subfeature data
-					// to leverage existing `compute_style_properties` function.
+					/*
+					 * Create temporary node containing only the subfeature data
+					 * to leverage existing `compute_style_properties` function.
+					 */
 					$subfeature_node = array(
 						$feature => array(
 							$subfeature => $node[ $feature ][ $subfeature ],
@@ -3577,31 +3628,39 @@ class WP_Theme_JSON {
 						$declarations[ $subfeature_selector ] = $new_declarations;
 					}
 
-					// Remove the subfeature from the block's node now its
-					// styles will be included under its own selector not the
-					// block's.
+					/*
+					 * Remove the subfeature from the block's node now its
+					 * styles will be included under its own selector not the
+					 * block's.
+					 */
 					unset( $node[ $feature ][ $subfeature ] );
 				}
 			}
 
-			// Now subfeatures have been processed and removed we can process
-			// feature root selector or simple string selector.
+			/*
+			 * Now subfeatures have been processed and removed we can process
+			 * feature root selector or simple string selector.
+			 */
 			if (
 				is_string( $feature_selectors ) ||
 				( isset( $feature_selectors['root'] ) && $feature_selectors['root'] )
 			) {
 				$feature_selector = is_string( $feature_selectors ) ? $feature_selectors : $feature_selectors['root'];
 
-				// Create temporary node containing only the feature data
-				// to leverage existing `compute_style_properties` function.
+				/*
+				 * Create temporary node containing only the feature data
+				 * to leverage existing `compute_style_properties` function.
+				 */
 				$feature_node = array( $feature => $node[ $feature ] );
 
 				// Generate the style declarations.
 				$new_declarations = static::compute_style_properties( $feature_node, $settings, null, $this->theme_json );
 
-				// Merge new declarations with any that already exist for
-				// the feature selector. This may occur when multiple block
-				// support features use the same custom selector.
+				/*
+				 * Merge new declarations with any that already exist for
+				 * the feature selector. This may occur when multiple block
+				 * support features use the same custom selector.
+				 */
 				if ( isset( $declarations[ $feature_selector ] ) ) {
 					foreach ( $new_declarations as $new_declaration ) {
 						$declarations[ $feature_selector ][] = $new_declaration;
@@ -3610,8 +3669,10 @@ class WP_Theme_JSON {
 					$declarations[ $feature_selector ] = $new_declarations;
 				}
 
-				// Remove the feature from the block's node now its styles
-				// will be included under its own selector not the block's.
+				/*
+				 * Remove the feature from the block's node now its styles
+				 * will be included under its own selector not the block's.
+				 */
 				unset( $node[ $feature ] );
 			}
 		}
