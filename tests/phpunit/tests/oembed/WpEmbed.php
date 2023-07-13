@@ -388,7 +388,7 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 	public function test_oembed_iframes_are_lazy_loaded_by_default() {
 		$url    = 'https://www.youtube.com/watch?v=' . self::YOUTUBE_VIDEO_ID;
 		$actual = $this->wp_embed->run_shortcode( '[embed]' . $url . '[/embed]' );
-		$this->assertContains( 'loading="lazy"', $actual );
+		$this->assertStringContainsString( 'loading="lazy"', $actual );
 	}
 
 }
