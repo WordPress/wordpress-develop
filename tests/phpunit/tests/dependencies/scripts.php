@@ -2943,7 +2943,8 @@ HTML
 
 		$actual = get_echo( 'wp_print_scripts', array( array( 'wp-tinymce' ) ) );
 
-		$this->assertStringNotContainsString( 'async', $actual );
+		$this->assertStringNotContainsString( 'async', $actual, 'TinyMCE should not have an async attribute.' );
+		$this->assertStringNotContainsString( 'defer', $actual, 'TinyMCE should not have a defer attribute.' );
 	}
 
 	/**
