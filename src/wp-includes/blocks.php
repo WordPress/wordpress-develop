@@ -1019,12 +1019,15 @@ function excerpt_remove_blocks( $content ) {
  * @return string The parsed and filtered content.
  */
 function excerpt_remove_footnotes( $content ) {
-	if ( false === strpos( $content, 'data-fn=' ) ) {
+	if ( ! str_contains( $content, 'data-fn=' ) ) {
 		return $content;
 	}
 
-	static $footnote_pattern = '_<sup data-fn="[^"]+" class="[^"]+">\s*<a href="[^"]+" id="[^"]+">\d+</a>\s*</sup>_';
-	return preg_replace( $footnote_pattern, '', $content );
+	return preg_replace(
+		'_<sup data-fn="[^"]+" class="[^"]+">\s*<a href="[^"]+" id="[^"]+">\d+</a>\s*</sup>_',
+		'',
+		$content
+	);
 }
 
 /**
