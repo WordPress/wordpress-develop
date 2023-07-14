@@ -1246,7 +1246,7 @@ function wp_filter_pre_oembed_result( $result, $url, $args ) {
 }
 
 /**
- * Apply the loading="lazy" attribute to the oEmbed iframe.
+ * Applies the loading="lazy" attribute to the oEmbed iframe.
  *
  * @since 6.4.0
  *
