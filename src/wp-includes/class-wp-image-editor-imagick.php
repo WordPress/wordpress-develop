@@ -102,8 +102,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			return false;
 		}
 
-		// setIteratorIndex is optional unless mime is an animated format.
-		// Here, we just say no if you are missing it and aren't loading a jpeg.
+		/*
+		 * setIteratorIndex is optional unless mime is an animated format.
+		 * Here, we just say no if you are missing it and aren't loading a jpeg.
+		 */
 		if ( ! method_exists( 'Imagick', 'setIteratorIndex' ) && 'image/jpeg' !== $mime_type ) {
 				return false;
 		}
@@ -306,9 +308,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param int|null $max_w Image width.
-	 * @param int|null $max_h Image height.
-	 * @param bool     $crop
+	 * @param int|null   $max_w Image width.
+	 * @param int|null   $max_h Image height.
+	 * @param bool|array $crop
 	 * @return true|WP_Error
 	 */
 	public function resize( $max_w, $max_h, $crop = false ) {
@@ -493,9 +495,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *     @type array ...$0 {
 	 *         Array of height, width values, and whether to crop.
 	 *
-	 *         @type int  $width  Image width. Optional if `$height` is specified.
-	 *         @type int  $height Image height. Optional if `$width` is specified.
-	 *         @type bool $crop   Optional. Whether to crop the image. Default false.
+	 *         @type int        $width  Image width. Optional if `$height` is specified.
+	 *         @type int        $height Image height. Optional if `$width` is specified.
+	 *         @type bool|array $crop   Optional. Whether to crop the image. Default false.
 	 *     }
 	 * }
 	 * @return array An array of resized images' metadata by size.
@@ -522,9 +524,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param array $size_data {
 	 *     Array of size data.
 	 *
-	 *     @type int  $width  The maximum width in pixels.
-	 *     @type int  $height The maximum height in pixels.
-	 *     @type bool $crop   Whether to crop the image to exact dimensions.
+	 *     @type int        $width  The maximum width in pixels.
+	 *     @type int        $height The maximum height in pixels.
+	 *     @type bool|array $crop   Whether to crop the image to exact dimensions.
 	 * }
 	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
 	 *                        WP_Error object on error.
@@ -602,8 +604,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$this->image->setImagePage( $src_w, $src_h, 0, 0 );
 
 			if ( $dst_w || $dst_h ) {
-				// If destination width/height isn't specified,
-				// use same as width/height from source.
+				/*
+				 * If destination width/height isn't specified,
+				 * use same as width/height from source.
+				 */
 				if ( ! $dst_w ) {
 					$dst_w = $src_w;
 				}
@@ -957,8 +961,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 */
 	protected function pdf_setup() {
 		try {
-			// By default, PDFs are rendered in a very low resolution.
-			// We want the thumbnail to be readable, so increase the rendering DPI.
+			/*
+			 * By default, PDFs are rendered in a very low resolution.
+			 * We want the thumbnail to be readable, so increase the rendering DPI.
+			 */
 			$this->image->setResolution( 128, 128 );
 
 			// Only load the first page.
@@ -986,12 +992,16 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		try {
-			// When generating thumbnails from cropped PDF pages, Imagemagick uses the uncropped
-			// area (resulting in unnecessary whitespace) unless the following option is set.
+			/*
+			 * When generating thumbnails from cropped PDF pages, Imagemagick uses the uncropped
+			 * area (resulting in unnecessary whitespace) unless the following option is set.
+			 */
 			$this->image->setOption( 'pdf:use-cropbox', true );
 
-			// Reading image after Imagick instantiation because `setResolution`
-			// only applies correctly before the image is read.
+			/*
+			 * Reading image after Imagick instantiation because `setResolution`
+			 * only applies correctly before the image is read.
+			 */
 			$this->image->readImage( $filename );
 		} catch ( Exception $e ) {
 			// Attempt to run `gs` without the `use-cropbox` option. See #48853.

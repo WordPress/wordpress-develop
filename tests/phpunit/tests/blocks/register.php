@@ -397,6 +397,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 */
 	public function test_handle_passed_register_block_style_handle() {
 		$metadata = array(
+			'name'  => 'test-block',
 			'style' => 'test-style-handle',
 		);
 		$result   = register_block_style_handle( $metadata, 'style' );
@@ -406,6 +407,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 	public function test_handles_passed_register_block_style_handles() {
 		$metadata = array(
+			'name'  => 'test-block',
 			'style' => array( 'test-style-handle', 'test-style-handle-2' ),
 		);
 
@@ -521,6 +523,26 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$expected_style_handle = 'block-theme-example-block-editor-style';
 		$this->assertSame( $expected_style_handle, $result );
 		$this->assertFalse( wp_styles()->get_data( $expected_style_handle, 'rtl' ) );
+	}
+
+	/**
+	 * @ticket 58528
+	 *
+	 * @covers ::register_block_style_handle
+	 */
+	public function test_success_register_block_style_handle_exists() {
+		$expected_style_handle = 'block-theme-example-block-editor-style';
+		wp_register_style( $expected_style_handle, false );
+		switch_theme( 'block-theme' );
+
+		$metadata = array(
+			'file'        => wp_normalize_path( get_theme_file_path( 'blocks/example-block/block.json' ) ),
+			'name'        => 'block-theme/example-block',
+			'editorStyle' => 'file:./editor-style.css',
+		);
+		$result   = register_block_style_handle( $metadata, 'editorStyle' );
+
+		$this->assertSame( $expected_style_handle, $result );
 	}
 
 	/**

@@ -837,5 +837,12 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$request->set_param( 'template_prefix', 'page' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 'page', $response->get_data()['slug'], 'Should fallback to `page.html`.' );
+		// Should fallback to `index.html`.
+		$request->set_param( 'slug', 'author' );
+		$request->set_param( 'ignore_empty', true );
+		$request->set_param( 'template_prefix', 'tag' );
+		$request->set_param( 'is_custom', false );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 'index', $response->get_data()['slug'], 'Should fallback to `index.html` when  ignore_empty is `true`.' );
 	}
 }
