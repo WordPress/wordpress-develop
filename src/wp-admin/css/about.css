@@ -623,7 +623,6 @@
 	color: inherit;
 }
 
-
 .about__header-navigation .nav-tab:hover,
 .about__header-navigation .nav-tab:active {
 	background-color: var(--nav-current);
