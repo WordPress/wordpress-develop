@@ -3797,8 +3797,10 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		$text_direction = $parsed_args['text_direction'];
 		$dir_attr       = "dir='$text_direction'";
 
-		// If `text_direction` was not explicitly passed,
-		// use get_language_attributes() if available.
+		/*
+		 * If `text_direction` was not explicitly passed,
+		 * use get_language_attributes() if available.
+		 */
 		if ( empty( $args['text_direction'] )
 			&& function_exists( 'language_attributes' ) && function_exists( 'is_rtl' )
 		) {
@@ -5085,9 +5087,8 @@ function _wp_array_set( &$input_array, $path, $value = null ) {
  * @return string kebab-cased-string.
  */
 function _wp_to_kebab_case( $input_string ) {
-	//phpcs:disable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
-	// ignore the camelCase names for variables so the names are the same as lodash
-	// so comparing and porting new changes is easier.
+	// Ignore the camelCase names for variables so the names are the same as lodash so comparing and porting new changes is easier.
+	// phpcs:disable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
 
 	/*
 	 * Some notable things we've removed compared to the lodash version are:
@@ -6897,8 +6898,7 @@ function wp_find_hierarchy_loop_tortoise_hare( $callback, $start, $override = ar
 	$evanescent_hare = $start;
 	$return          = array();
 
-	// Set evanescent_hare to one past hare.
-	// Increment hare two steps.
+	// Set evanescent_hare to one past hare. Increment hare two steps.
 	while (
 		$tortoise
 	&&
@@ -8239,7 +8239,7 @@ function wp_direct_php_update_button() {
 
 	echo '<p class="button-container">';
 	printf(
-		'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+		'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 		esc_url( $direct_update_url ),
 		__( 'Update PHP' ),
 		/* translators: Hidden accessibility text. */
@@ -8349,8 +8349,10 @@ function wp_get_direct_update_https_url() {
  */
 function get_dirsize( $directory, $max_execution_time = null ) {
 
-	// Exclude individual site directories from the total when checking the main site of a network,
-	// as they are subdirectories and should not be counted.
+	/*
+	 * Exclude individual site directories from the total when checking the main site of a network,
+	 * as they are subdirectories and should not be counted.
+	 */
 	if ( is_multisite() && is_main_site() ) {
 		$size = recurse_dirsize( $directory, $directory . '/sites', $max_execution_time );
 	} else {

@@ -138,6 +138,11 @@
 	height: auto; /* Fixes a Safari+VoiceOver bug, see ticket #42006 */
 }
 
+.screen-reader-text + .dashicons-external {
+	margin-top: -1px;
+	margin-left: 2px;
+}
+
 .screen-reader-shortcut {
 	position: absolute;
 	top: -1000em;
@@ -579,11 +584,6 @@ code {
 
 .wrap {
 	margin: 10px 20px 0 2px;
-}
-
-.wrap.block-editor-no-js,
-.wrap.site-editor-no-js {
-	padding-left: 20px;
 }
 
 .wrap > h2:first-child, /* Back-compat for pre-4.4 */
