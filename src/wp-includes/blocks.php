@@ -1010,6 +1010,24 @@ function excerpt_remove_blocks( $content ) {
 }
 
 /**
+ * Parses footnotes markup out of a content string,
+ * and renders those appropriate for the excerpt.
+ *
+ * @since 6.3.0
+ *
+ * @param string $content The content to parse.
+ * @return string The parsed and filtered content.
+ */
+function excerpt_remove_footnotes( $content ) {
+	if ( false === strpos( $content, 'data-fn=' ) ) {
+		return $content;
+	}
+
+	static $footnote_pattern = '_<sup data-fn="[^"]+" class="[^"]+">\s*<a href="[^"]+" id="[^"]+">\d+</a>\s*</sup>_';
+	return preg_replace( $footnote_pattern, '', $content );
+}
+
+/**
  * Renders inner blocks from the allowed wrapper blocks
  * for generating an excerpt.
  *
