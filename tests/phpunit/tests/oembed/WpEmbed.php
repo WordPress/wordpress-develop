@@ -381,9 +381,11 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that oembed iframes are lazy loaded by default.
+	 * Tests that oEmbed iframes are lazy loaded by default.
 	 *
 	 * @ticket 58773
+	 *
+	 * @covers WP_Embed::shortcode
 	 */
 	public function test_oembed_iframes_are_lazy_loaded_by_default() {
 		$url    = 'https://www.youtube.com/watch?v=' . self::YOUTUBE_VIDEO_ID;
