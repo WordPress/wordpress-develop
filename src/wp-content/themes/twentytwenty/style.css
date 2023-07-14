@@ -2945,6 +2945,11 @@ h2.entry-title {
 	list-style: none;
 }
 
+ol.wp-block-latest-comments {
+	margin-left: auto;
+	margin-right: auto;
+}
+
 .entry-content .wp-block-archives > li,
 .entry-content .wp-block-categories > li,
 .entry-content .wp-block-latest-posts > li,
@@ -3041,6 +3046,11 @@ h2.entry-title {
 .is-style-outline .wp-block-button__link {
 	border: 2px solid;
 	padding: calc(1.1em - 0.2rem) calc(1.44em - 0.2rem);
+}
+
+.wp-block-buttons[style*="text-transform"] .wp-block-button__link,
+.wp-block-button[style*="text-transform"] .wp-block-button__link {
+	text-transform: inherit;
 }
 
 /* Block: Columns ---------------------------- */

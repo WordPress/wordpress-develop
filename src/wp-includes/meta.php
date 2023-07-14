@@ -10,6 +10,8 @@
  * @subpackage Meta
  */
 
+require ABSPATH . WPINC . '/class-wp-metadata-lazyloader.php';
+
 /**
  * Adds metadata for the specified object.
  *
@@ -908,8 +910,10 @@ function update_metadata_by_mid( $meta_type, $meta_id, $meta_value, $meta_key = 
 		$original_key = $meta->meta_key;
 		$object_id    = $meta->{$column};
 
-		// If a new meta_key (last parameter) was specified, change the meta key,
-		// otherwise use the original key in the update statement.
+		/*
+		 * If a new meta_key (last parameter) was specified, change the meta key,
+		 * otherwise use the original key in the update statement.
+		 */
 		if ( false === $meta_key ) {
 			$meta_key = $original_key;
 		} elseif ( ! is_string( $meta_key ) ) {

@@ -26,13 +26,6 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 	 * as indicating support for post thumbnails.
 	 */
 	function twentynineteen_setup() {
-		/*
-		 * Make theme available for translation.
-		 * Translations can be filed in the /languages/ directory.
-		 * If you're building a theme based on Twenty Nineteen, use a find and replace
-		 * to change 'twentynineteen' to the name of your theme in all the template files.
-		 */
-		load_theme_textdomain( 'twentynineteen', get_template_directory() . '/languages' );
 
 		// Add default posts and comments RSS feed links to head.
 		add_theme_support( 'automatic-feed-links' );
@@ -284,6 +277,9 @@ add_action( 'wp_enqueue_scripts', 'twentynineteen_scripts' );
  * This does not enqueue the script because it is tiny and because it is only for IE11,
  * thus it does not warrant having an entire dedicated blocking script being loaded.
  *
+ * @since Twenty Nineteen 1.0
+ * @deprecated Twenty Nineteen 2.6 Removed from wp_print_footer_scripts action.
+ *
  * @link https://git.io/vWdr2
  */
 function twentynineteen_skip_link_focus_fix() {
@@ -294,7 +290,6 @@ function twentynineteen_skip_link_focus_fix() {
 	</script>
 	<?php
 }
-add_action( 'wp_print_footer_scripts', 'twentynineteen_skip_link_focus_fix' );
 
 /**
  * Enqueue supplemental block editor styles.
