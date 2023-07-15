@@ -868,23 +868,21 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 		$prepared = $prepare_item_for_database->invoke( $endpoint, $request );
 
-		$this->assertInstanceOf( 'stdClass', $prepared );
+		$this->assertInstanceOf( 'stdClass', $prepared, 'The item could not be prepared for the database.' );
 
-		$prepared_array = (array) $prepared;
+		$this->assertObjectHasAttribute( 'post_type', $prepared, 'The "post_type" was not included in the prepared template part.' );
+		$this->assertObjectHasAttribute( 'post_status', $prepared, 'The "post_status" was not included in the prepared template part.' );
+		$this->assertObjectHasAttribute( 'tax_input', $prepared, 'The "tax_input" was not included in the prepared template part.' );
+		$this->assertArrayHasKey( 'wp_theme', $prepared->tax_input, 'The "wp_theme" tax was not included in the prepared template part.' );
+		$this->assertArrayHasKey( 'wp_template_part_area', $prepared->tax_input, 'The "wp_template_part_area" tax was not included in the prepared template part.' );
+		$this->assertObjectHasAttribute( 'post_content', $prepared, 'The "post_content" was not included in the prepared template part.' );
+		$this->assertObjectHasAttribute( 'post_title', $prepared, 'The "post_title" was not included in the prepared template part.' );
 
-		$this->assertArrayHasKey( 'post_type', $prepared_array );
-		$this->assertArrayHasKey( 'post_status', $prepared_array );
-		$this->assertArrayHasKey( 'tax_input', $prepared_array );
-		$this->assertArrayHasKey( 'wp_theme', $prepared_array['tax_input'] );
-		$this->assertArrayHasKey( 'wp_template_part_area', $prepared_array['tax_input'] );
-		$this->assertArrayHasKey( 'post_content', $prepared_array );
-		$this->assertArrayHasKey( 'post_title', $prepared_array );
+		$this->assertSame( 'wp_template_part', $prepared->post_type, 'The "post_type" was not be correct in the prepared template part.' );
+		$this->assertSame( 'publish', $prepared->post_status, 'The post status was not be correct in the prepared template part.' );
+		$this->assertSame( WP_TEMPLATE_PART_AREA_UNCATEGORIZED, $prepared->tax_input['wp_template_part_area'], 'The area was not be correct in the prepared template part.' );
+		$this->assertSame( 'Untitled Template Part', $prepared->post_title, 'The title was not correct in the prepared template part.' );
 
-		$this->assertSame( 'wp_template_part', $prepared_array['post_type'] );
-		$this->assertSame( 'publish', $prepared_array['post_status'] );
-		$this->assertSame( WP_TEMPLATE_PART_AREA_UNCATEGORIZED, $prepared_array['tax_input']['wp_template_part_area'] );
-		$this->assertSame( 'Untitled Template Part', $prepared_array['post_title'] );
-
-		$this->assertEmpty( $prepared_array['post_content'] );
+		$this->assertEmpty( $prepared->post_content, 'The content was not correct in the prepared template part.' );
 	}
 }
