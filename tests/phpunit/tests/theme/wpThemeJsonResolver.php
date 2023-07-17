@@ -600,7 +600,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$global_styles_query_count = 0;
 		add_filter(
 			'query',
-			function( $query ) use ( &$global_styles_query_count ) {
+			static function( $query ) use ( &$global_styles_query_count ) {
 				if ( preg_match( '#post_type = \'wp_global_styles\'#', $query ) ) {
 					$global_styles_query_count++;
 				}
@@ -729,7 +729,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	public function test_get_theme_data_theme_supports_overrides_theme_json() {
 		// Test that get_theme_data() returns a WP_Theme_JSON object.
 		$theme_json_resolver = new WP_Theme_JSON_Resolver();
-		$theme_data          = $theme_json_resolver->get_theme_data();
+		$theme_json_resolver->get_merged_data();
+		$theme_data = $theme_json_resolver->get_theme_data();
 		$this->assertInstanceOf( 'WP_Theme_JSON', $theme_data, 'Theme data should be an instance of WP_Theme_JSON.' );
 
 		// Test that wp_theme_json_data_theme filter has been called.
@@ -952,7 +953,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @ticket 57545
 	 *
 	 * @covers WP_Theme_JSON_Resolver::get_style_variations
-	 **/
+	 */
 	public function test_get_style_variations_returns_all_variations() {
 		// Switch to a child theme.
 		switch_theme( 'block-theme-child' );

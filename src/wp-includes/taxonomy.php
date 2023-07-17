@@ -814,7 +814,11 @@ function unregister_taxonomy_for_object_type( $taxonomy, $object_type ) {
  *
  * @param int|int[]       $term_ids   Term ID or array of term IDs of terms that will be used.
  * @param string|string[] $taxonomies String of taxonomy name or Array of string values of taxonomy names.
- * @param array|string    $args       Change the order of the object IDs, either ASC or DESC.
+ * @param array|string    $args       {
+ *     Change the order of the object IDs.
+ *
+ *     @type string $order Order to retrieve terms. Accepts 'ASC' or 'DESC'. Default 'ASC'.
+ * }
  * @return string[]|WP_Error An array of object IDs as numeric strings on success,
  *                           WP_Error if the taxonomy does not exist.
  */
@@ -847,10 +851,10 @@ function get_objects_in_term( $term_ids, $taxonomies, $args = array() ) {
 
 	$last_changed = wp_cache_get_last_changed( 'terms' );
 	$cache_key    = 'get_objects_in_term:' . md5( $sql ) . ":$last_changed";
-	$cache        = wp_cache_get( $cache_key, 'terms' );
+	$cache        = wp_cache_get( $cache_key, 'term-queries' );
 	if ( false === $cache ) {
 		$object_ids = $wpdb->get_col( $sql );
-		wp_cache_set( $cache_key, $object_ids, 'terms' );
+		wp_cache_set( $cache_key, $object_ids, 'term-queries' );
 	} else {
 		$object_ids = (array) $cache;
 	}
@@ -1424,6 +1428,22 @@ function update_term_meta( $term_id, $meta_key, $meta_value, $prev_value = '' ) 
  */
 function update_termmeta_cache( $term_ids ) {
 	return update_meta_cache( 'term', $term_ids );
+}
+
+
+/**
+ * Queue term meta for lazy-loading.
+ *
+ * @since 6.3.0
+ *
+ * @param array $term_ids List of term IDs.
+ */
+function wp_lazyload_term_meta( array $term_ids ) {
+	if ( empty( $term_ids ) ) {
+		return;
+	}
+	$lazyloader = wp_metadata_lazyloader();
+	$lazyloader->queue_objects( 'term', $term_ids );
 }
 
 /**
@@ -2172,6 +2192,8 @@ function wp_delete_category( $cat_id ) {
  * @since 4.4.0 Introduced `$meta_query` and `$update_term_meta_cache` arguments. When `$fields` is 'all' or
  *              'all_with_object_id', an array of `WP_Term` objects will be returned.
  * @since 4.7.0 Refactored to use WP_Term_Query, and to support any WP_Term_Query arguments.
+ * @since 6.3.0 Passing `update_term_meta_cache` argument value false by default resulting in get_terms() to not
+ *              prime the term meta cache.
  *
  * @param int|int[]       $object_ids The ID(s) of the object(s) to retrieve.
  * @param string|string[] $taxonomies The taxonomy names to retrieve terms from.
@@ -2200,7 +2222,11 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	}
 	$object_ids = array_map( 'intval', $object_ids );
 
-	$args = wp_parse_args( $args );
+	$defaults = array(
+		'update_term_meta_cache' => false,
+	);
+
+	$args = wp_parse_args( $args, $defaults );
 
 	/**
 	 * Filters arguments for retrieving object terms.
@@ -2242,7 +2268,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 		$terms_from_remaining_taxonomies = get_terms( $args );
 
 		// Array keys should be preserved for values of $fields that use term_id for keys.
-		if ( ! empty( $args['fields'] ) && 0 === strpos( $args['fields'], 'id=>' ) ) {
+		if ( ! empty( $args['fields'] ) && str_starts_with( $args['fields'], 'id=>' ) ) {
 			$terms = $terms + $terms_from_remaining_taxonomies;
 		} else {
 			$terms = array_merge( $terms, $terms_from_remaining_taxonomies );
@@ -2711,7 +2737,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
  * @param int              $object_id The object to relate to.
  * @param string|int|array $terms     A single term slug, single term ID, or array of either term slugs or IDs.
  *                                    Will replace all existing related terms in this taxonomy. Passing an
- *                                    empty value will remove all related terms.
+ *                                    empty array will remove all related terms.
  * @param string           $taxonomy  The context in which to relate the term to the object.
  * @param bool             $append    Optional. If false will delete difference of terms. Default false.
  * @return array|WP_Error Term taxonomy IDs of the affected terms or WP_Error on failure.
@@ -2725,7 +2751,9 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 		return new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
 	}
 
-	if ( ! is_array( $terms ) ) {
+	if ( empty( $terms ) ) {
+		$terms = array();
+	} elseif ( ! is_array( $terms ) ) {
 		$terms = array( $terms );
 	}
 
@@ -2858,7 +2886,7 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 	}
 
 	wp_cache_delete( $object_id, $taxonomy . '_relationships' );
-	wp_cache_delete( 'last_changed', 'terms' );
+	wp_cache_set_terms_last_changed();
 
 	/**
 	 * Fires after an object's terms have been set.
@@ -2956,7 +2984,7 @@ function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {
 		$deleted = $wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->term_relationships WHERE object_id = %d AND term_taxonomy_id IN ($in_tt_ids)", $object_id ) );
 
 		wp_cache_delete( $object_id, $taxonomy . '_relationships' );
-		wp_cache_delete( 'last_changed', 'terms' );
+		wp_cache_set_terms_last_changed();
 
 		/**
 		 * Fires immediately after an object-term relationship is deleted.
@@ -3222,8 +3250,10 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	// Check for duplicate slug.
 	$duplicate = get_term_by( 'slug', $slug, $taxonomy );
 	if ( $duplicate && $duplicate->term_id !== $term_id ) {
-		// If an empty slug was passed or the parent changed, reset the slug to something unique.
-		// Otherwise, bail.
+		/*
+		 * If an empty slug was passed or the parent changed, reset the slug to something unique.
+		 * Otherwise, bail.
+		 */
 		if ( $empty_slug || ( $parent !== (int) $term['parent'] ) ) {
 			$slug = wp_unique_term_slug( $slug, (object) $args );
 		} else {
@@ -3486,7 +3516,7 @@ function wp_update_term_count_now( $terms, $taxonomy ) {
 	} else {
 		$object_types = (array) $taxonomy->object_type;
 		foreach ( $object_types as &$object_type ) {
-			if ( 0 === strpos( $object_type, 'attachment:' ) ) {
+			if ( str_starts_with( $object_type, 'attachment:' ) ) {
 				list( $object_type ) = explode( ':', $object_type );
 			}
 		}
@@ -3542,7 +3572,7 @@ function clean_object_term_cache( $object_ids, $object_type ) {
 		wp_cache_delete_multiple( $object_ids, "{$taxonomy}_relationships" );
 	}
 
-	wp_cache_delete( 'last_changed', 'terms' );
+	wp_cache_set_terms_last_changed();
 
 	/**
 	 * Fires after the object term cache has been cleaned.
@@ -3617,7 +3647,7 @@ function clean_term_cache( $ids, $taxonomy = '', $clean_taxonomy = true ) {
 		do_action( 'clean_term_cache', $ids, $taxonomy, $clean_taxonomy );
 	}
 
-	wp_cache_set( 'last_changed', microtime(), 'terms' );
+	wp_cache_set_terms_last_changed();
 }
 
 /**
@@ -3630,7 +3660,7 @@ function clean_term_cache( $ids, $taxonomy = '', $clean_taxonomy = true ) {
 function clean_taxonomy_cache( $taxonomy ) {
 	wp_cache_delete( 'all_ids', $taxonomy );
 	wp_cache_delete( 'get', $taxonomy );
-	wp_cache_delete( 'last_changed', 'terms' );
+	wp_cache_set_terms_last_changed();
 
 	// Regenerate cached hierarchy.
 	delete_option( "{$taxonomy}_children" );
@@ -4003,6 +4033,7 @@ function _pad_term_counts( &$terms, $taxonomy ) {
  *
  * @since 4.6.0
  * @since 6.1.0 This function is no longer marked as "private".
+ * @since 6.3.0 Use wp_lazyload_term_meta() for lazy-loading of term meta.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -4017,10 +4048,10 @@ function _prime_term_caches( $term_ids, $update_meta_cache = true ) {
 		$fresh_terms = $wpdb->get_results( sprintf( "SELECT t.*, tt.* FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy AS tt ON t.term_id = tt.term_id WHERE t.term_id IN (%s)", implode( ',', array_map( 'intval', $non_cached_ids ) ) ) );
 
 		update_term_cache( $fresh_terms );
+	}
 
-		if ( $update_meta_cache ) {
-			update_termmeta_cache( $non_cached_ids );
-		}
+	if ( $update_meta_cache ) {
+		wp_lazyload_term_meta( $term_ids );
 	}
 }
 
@@ -5017,7 +5048,7 @@ function is_term_publicly_viewable( $term ) {
  * @since 5.0.0
  */
 function wp_cache_set_terms_last_changed() {
-	wp_cache_set( 'last_changed', microtime(), 'terms' );
+	wp_cache_set_last_changed( 'terms' );
 }
 
 /**

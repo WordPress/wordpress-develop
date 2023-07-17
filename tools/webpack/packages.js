@@ -99,7 +99,9 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	};
 
 	const phpFiles = {
-		'block-serialization-default-parser/parser.php': 'wp-includes/class-wp-block-parser.php',
+		'block-serialization-default-parser/class-wp-block-parser.php': 'wp-includes/class-wp-block-parser.php',
+		'block-serialization-default-parser/class-wp-block-parser-frame.php': 'wp-includes/class-wp-block-parser-frame.php',
+		'block-serialization-default-parser/class-wp-block-parser-block.php': 'wp-includes/class-wp-block-parser-block.php',
 	};
 
 	const developmentCopies = mapVendorCopies( vendors, buildTarget );
@@ -152,6 +154,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			new DefinePlugin( {
 				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
 				'process.env.IS_GUTENBERG_PLUGIN': false,
+				// Inject the `IS_WORDPRESS_CORE` global, used for feature flagging.
+				'process.env.IS_WORDPRESS_CORE': true,
 				'process.env.FORCE_REDUCED_MOTION': JSON.stringify(
 					process.env.FORCE_REDUCED_MOTION
 				),

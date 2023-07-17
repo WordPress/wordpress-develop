@@ -158,8 +158,8 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return WP_Error|null WP_Error indicates unsuccessful login, null indicates successful
-	 *                       or no authentication provided
+	 * @return WP_Error|null|true WP_Error indicates unsuccessful login, null indicates successful
+	 *                            or no authentication provided
 	 */
 	public function check_authentication() {
 		/**
@@ -321,42 +321,6 @@ class WP_REST_Server {
 		 * https://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
 		 */
 		$this->send_header( 'X-Content-Type-Options', 'nosniff' );
-		$expose_headers = array( 'X-WP-Total', 'X-WP-TotalPages', 'Link' );
-
-		/**
-		 * Filters the list of response headers that are exposed to REST API CORS requests.
-		 *
-		 * @since 5.5.0
-		 *
-		 * @param string[] $expose_headers The list of response headers to expose.
-		 */
-		$expose_headers = apply_filters( 'rest_exposed_cors_headers', $expose_headers );
-
-		$this->send_header( 'Access-Control-Expose-Headers', implode( ', ', $expose_headers ) );
-
-		$allow_headers = array(
-			'Authorization',
-			'X-WP-Nonce',
-			'Content-Disposition',
-			'Content-MD5',
-			'Content-Type',
-		);
-
-		/**
-		 * Filters the list of request headers that are allowed for REST API CORS requests.
-		 *
-		 * The allowed headers are passed to the browser to specify which
-		 * headers can be passed to the REST API. By default, we allow the
-		 * Content-* headers needed to upload files to the media endpoints.
-		 * As well as the Authorization and Nonce headers for allowing authentication.
-		 *
-		 * @since 5.5.0
-		 *
-		 * @param string[] $allow_headers The list of request headers to allow.
-		 */
-		$allow_headers = apply_filters( 'rest_allowed_cors_headers', $allow_headers );
-
-		$this->send_header( 'Access-Control-Allow-Headers', implode( ', ', $allow_headers ) );
 
 		/**
 		 * Filters whether to send nocache headers on a REST API request.
@@ -435,6 +399,47 @@ class WP_REST_Server {
 		} elseif ( isset( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ) ) {
 			$request->set_method( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] );
 		}
+
+		$expose_headers = array( 'X-WP-Total', 'X-WP-TotalPages', 'Link' );
+
+		/**
+		 * Filters the list of response headers that are exposed to REST API CORS requests.
+		 *
+		 * @since 5.5.0
+		 * @since 6.3.0 The `$request` parameter was added.
+		 *
+		 * @param string[]        $expose_headers The list of response headers to expose.
+		 * @param WP_REST_Request $request        The request in context.
+		 */
+		$expose_headers = apply_filters( 'rest_exposed_cors_headers', $expose_headers, $request );
+
+		$this->send_header( 'Access-Control-Expose-Headers', implode( ', ', $expose_headers ) );
+
+		$allow_headers = array(
+			'Authorization',
+			'X-WP-Nonce',
+			'Content-Disposition',
+			'Content-MD5',
+			'Content-Type',
+		);
+
+		/**
+		 * Filters the list of request headers that are allowed for REST API CORS requests.
+		 *
+		 * The allowed headers are passed to the browser to specify which
+		 * headers can be passed to the REST API. By default, we allow the
+		 * Content-* headers needed to upload files to the media endpoints.
+		 * As well as the Authorization and Nonce headers for allowing authentication.
+		 *
+		 * @since 5.5.0
+		 * @since 6.3.0 The `$request` parameter was added.
+		 *
+		 * @param string[]        $allow_headers The list of request headers to allow.
+		 * @param WP_REST_Request $request       The request in context.
+		 */
+		$allow_headers = apply_filters( 'rest_allowed_cors_headers', $allow_headers, $request );
+
+		$this->send_header( 'Access-Control-Allow-Headers', implode( ', ', $allow_headers ) );
 
 		$result = $this->check_authentication();
 
@@ -648,7 +653,7 @@ class WP_REST_Server {
 			// Convert $rel URIs to their compact versions if they exist.
 			foreach ( $curies as $curie ) {
 				$href_prefix = substr( $curie['href'], 0, strpos( $curie['href'], '{rel}' ) );
-				if ( strpos( $rel, $href_prefix ) !== 0 ) {
+				if ( ! str_starts_with( $rel, $href_prefix ) ) {
 					continue;
 				}
 
@@ -696,8 +701,10 @@ class WP_REST_Server {
 		$embedded = array();
 
 		foreach ( $data['_links'] as $rel => $links ) {
-			// If a list of relations was specified, and the link relation
-			// is not in the list of allowed relations, don't process the link.
+			/*
+			 * If a list of relations was specified, and the link relation
+			 * is not in the list of allowed relations, don't process the link.
+			 */
 			if ( is_array( $embed ) && ! in_array( $rel, $embed, true ) ) {
 				continue;
 			}
@@ -1044,7 +1051,7 @@ class WP_REST_Server {
 		$with_namespace = array();
 
 		foreach ( $this->get_namespaces() as $namespace ) {
-			if ( 0 === strpos( trailingslashit( ltrim( $path, '/' ) ), $namespace ) ) {
+			if ( str_starts_with( trailingslashit( ltrim( $path, '/' ) ), $namespace ) ) {
 				$with_namespace[] = $this->get_routes( $namespace );
 			}
 		}
@@ -1538,7 +1545,7 @@ class WP_REST_Server {
 			$data['endpoints'][] = $endpoint_data;
 
 			// For non-variable routes, generate links.
-			if ( strpos( $route, '{' ) === false ) {
+			if ( ! str_contains( $route, '{' ) ) {
 				$data['_links'] = array(
 					'self' => array(
 						array(
@@ -1827,7 +1834,7 @@ class WP_REST_Server {
 		);
 
 		foreach ( $server as $key => $value ) {
-			if ( strpos( $key, 'HTTP_' ) === 0 ) {
+			if ( str_starts_with( $key, 'HTTP_' ) ) {
 				$headers[ substr( $key, 5 ) ] = $value;
 			} elseif ( 'REDIRECT_HTTP_AUTHORIZATION' === $key && empty( $server['HTTP_AUTHORIZATION'] ) ) {
 				/*

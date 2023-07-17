@@ -282,25 +282,26 @@ function create_initial_post_types() {
 		'wp_block',
 		array(
 			'labels'                => array(
-				'name'                     => _x( 'Reusable blocks', 'post type general name' ),
-				'singular_name'            => _x( 'Reusable block', 'post type singular name' ),
-				'add_new'                  => _x( 'Add New', 'Reusable block' ),
-				'add_new_item'             => __( 'Add new Reusable block' ),
-				'new_item'                 => __( 'New Reusable block' ),
-				'edit_item'                => __( 'Edit Reusable block' ),
-				'view_item'                => __( 'View Reusable block' ),
-				'all_items'                => __( 'All Reusable blocks' ),
-				'search_items'             => __( 'Search Reusable blocks' ),
-				'not_found'                => __( 'No reusable blocks found.' ),
-				'not_found_in_trash'       => __( 'No reusable blocks found in Trash.' ),
-				'filter_items_list'        => __( 'Filter reusable blocks list' ),
-				'items_list_navigation'    => __( 'Reusable blocks list navigation' ),
-				'items_list'               => __( 'Reusable blocks list' ),
-				'item_published'           => __( 'Reusable block published.' ),
-				'item_published_privately' => __( 'Reusable block published privately.' ),
-				'item_reverted_to_draft'   => __( 'Reusable block reverted to draft.' ),
-				'item_scheduled'           => __( 'Reusable block scheduled.' ),
-				'item_updated'             => __( 'Reusable block updated.' ),
+				'name'                     => _x( 'Patterns', 'post type general name' ),
+				'singular_name'            => _x( 'Pattern', 'post type singular name' ),
+				'add_new'                  => _x( 'Add New', 'Pattern' ),
+				'add_new_item'             => __( 'Add new Pattern' ),
+				'new_item'                 => __( 'New Pattern' ),
+				'edit_item'                => __( 'Edit Block Pattern' ),
+				'view_item'                => __( 'View Pattern' ),
+				'view_items'               => __( 'View Patterns' ),
+				'all_items'                => __( 'All Patterns' ),
+				'search_items'             => __( 'Search Patterns' ),
+				'not_found'                => __( 'No patterns found.' ),
+				'not_found_in_trash'       => __( 'No patterns found in Trash.' ),
+				'filter_items_list'        => __( 'Filter patterns list' ),
+				'items_list_navigation'    => __( 'Patterns list navigation' ),
+				'items_list'               => __( 'Patterns list' ),
+				'item_published'           => __( 'Pattern published.' ),
+				'item_published_privately' => __( 'Pattern published privately.' ),
+				'item_reverted_to_draft'   => __( 'Pattern reverted to draft.' ),
+				'item_scheduled'           => __( 'Pattern scheduled.' ),
+				'item_updated'             => __( 'Pattern updated.' ),
 			),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
@@ -327,7 +328,16 @@ function create_initial_post_types() {
 				'title',
 				'editor',
 				'revisions',
+				'custom-fields',
 			),
+		)
+	);
+
+	$template_edit_link = 'site-editor.php?' . build_query(
+		array(
+			'postType' => '%s',
+			'postId'   => '%s',
+			'canvas'   => 'edit',
 		)
 	);
 
@@ -357,6 +367,7 @@ function create_initial_post_types() {
 			'description'           => __( 'Templates to include in your theme.' ),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'            => $template_edit_link, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
 			'show_ui'               => false,
 			'show_in_menu'          => false,
@@ -417,6 +428,7 @@ function create_initial_post_types() {
 			'description'           => __( 'Template parts to include in your templates.' ),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'            => $template_edit_link, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
 			'show_ui'               => false,
 			'show_in_menu'          => false,
@@ -457,6 +469,7 @@ function create_initial_post_types() {
 			'description'  => __( 'Global styles to include in themes.' ),
 			'public'       => false,
 			'_builtin'     => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'   => '/site-editor.php?canvas=edit', /* internal use only. don't use this when registering your own post type. */
 			'show_ui'      => false,
 			'show_in_rest' => false,
 			'rewrite'      => false,
@@ -475,6 +488,14 @@ function create_initial_post_types() {
 				'editor',
 				'revisions',
 			),
+		)
+	);
+
+	$navigation_post_edit_link = 'site-editor.php?' . build_query(
+		array(
+			'postId'   => '%s',
+			'postType' => 'wp_navigation',
+			'canvas'   => 'edit',
 		)
 	);
 
@@ -504,6 +525,7 @@ function create_initial_post_types() {
 			'description'           => __( 'Navigation menus that can be inserted into your site.' ),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'            => $navigation_post_edit_link, /* internal use only. don't use this when registering your own post type. */
 			'has_archive'           => false,
 			'show_ui'               => true,
 			'show_in_menu'          => false,
@@ -723,7 +745,7 @@ function get_attached_file( $attachment_id, $unfiltered = false ) {
 	$file = get_post_meta( $attachment_id, '_wp_attached_file', true );
 
 	// If the file is relative, prepend upload dir.
-	if ( $file && 0 !== strpos( $file, '/' ) && ! preg_match( '|^.:\\\|', $file ) ) {
+	if ( $file && ! str_starts_with( $file, '/' ) && ! preg_match( '|^.:\\\|', $file ) ) {
 		$uploads = wp_get_upload_dir();
 		if ( false === $uploads['error'] ) {
 			$file = $uploads['basedir'] . "/$file";
@@ -795,7 +817,7 @@ function _wp_relative_upload_path( $path ) {
 	$new_path = $path;
 
 	$uploads = wp_get_upload_dir();
-	if ( 0 === strpos( $new_path, $uploads['basedir'] ) ) {
+	if ( str_starts_with( $new_path, $uploads['basedir'] ) ) {
 			$new_path = str_replace( $uploads['basedir'], '', $new_path );
 			$new_path = ltrim( $new_path, '/' );
 	}
@@ -1224,7 +1246,7 @@ function get_page_statuses() {
  * @since 4.9.6
  * @access private
  *
- * @return array
+ * @return string[] Array of privacy request status labels keyed by their status.
  */
 function _wp_privacy_statuses() {
 	return array(
@@ -1945,6 +1967,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  *                              Default is 'Post published privately.' / 'Page published privately.'
  * - `item_reverted_to_draft` - Label used when an item is switched to a draft.
  *                            Default is 'Post reverted to draft.' / 'Page reverted to draft.'
+ * - `item_trashed` - Label used when an item is moved to Trash. Default is 'Post trashed.' / 'Page trashed.'
  * - `item_scheduled` - Label used when an item is scheduled for publishing. Default is 'Post scheduled.' /
  *                    'Page scheduled.'
  * - `item_updated` - Label used when an item is updated. Default is 'Post updated.' / 'Page updated.'
@@ -1968,6 +1991,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  *              `item_scheduled`, and `item_updated` labels.
  * @since 5.7.0 Added the `filter_by_date` label.
  * @since 5.8.0 Added the `item_link` and `item_link_description` labels.
+ * @since 6.3.0 Added the `item_trashed` label.
  *
  * @access private
  *
@@ -2760,7 +2784,7 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 	}
 
 	$prefixed = false;
-	if ( false !== strpos( $field, 'post_' ) ) {
+	if ( str_contains( $field, 'post_' ) ) {
 		$prefixed        = true;
 		$field_no_prefix = str_replace( 'post_', '', $field );
 	}
@@ -3010,7 +3034,8 @@ function _count_posts_cache_key( $type = 'post', $perm = '' ) {
  *
  * @param string $type Optional. Post type to retrieve count. Default 'post'.
  * @param string $perm Optional. 'readable' or empty. Default empty.
- * @return stdClass Number of posts for each status.
+ * @return stdClass An object containing the number of posts for each status,
+ *                  or an empty object if the post type does not exist.
  */
 function wp_count_posts( $type = 'post', $perm = '' ) {
 	global $wpdb;
@@ -3259,7 +3284,7 @@ function wp_match_mime_types( $wildcard_mime_types, $real_mime_types ) {
 
 			$patternses[][ $type ] = "^$regex$";
 
-			if ( false === strpos( $mime, '/' ) ) {
+			if ( ! str_contains( $mime, '/' ) ) {
 				$patternses[][ $type ] = "^$regex/";
 				$patternses[][ $type ] = $regex;
 			}
@@ -3316,7 +3341,7 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 			$mime_pattern = "$mime_group/$mime_subgroup";
 		} else {
 			$mime_pattern = preg_replace( '/[^-*.a-zA-Z0-9]/', '', $mime_type );
-			if ( false === strpos( $mime_pattern, '*' ) ) {
+			if ( ! str_contains( $mime_pattern, '*' ) ) {
 				$mime_pattern .= '/*';
 			}
 		}
@@ -3327,7 +3352,7 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 			return '';
 		}
 
-		if ( false !== strpos( $mime_pattern, '%' ) ) {
+		if ( str_contains( $mime_pattern, '%' ) ) {
 			$wheres[] = empty( $table_alias ) ? "post_mime_type LIKE '$mime_pattern'" : "$table_alias.post_mime_type LIKE '$mime_pattern'";
 		} else {
 			$wheres[] = empty( $table_alias ) ? "post_mime_type = '$mime_pattern'" : "$table_alias.post_mime_type = '$mime_pattern'";
@@ -3561,15 +3586,19 @@ function wp_trash_post( $post_id = 0 ) {
 		return false;
 	}
 
+	$previous_status = $post->post_status;
+
 	/**
 	 * Filters whether a post trashing should take place.
 	 *
 	 * @since 4.9.0
+	 * @since 6.3.0 Added the `$previous_status` parameter.
 	 *
-	 * @param bool|null $trash Whether to go forward with trashing.
-	 * @param WP_Post   $post  Post object.
+	 * @param bool|null $trash           Whether to go forward with trashing.
+	 * @param WP_Post   $post            Post object.
+	 * @param string    $previous_status The status of the post about to be trashed.
 	 */
-	$check = apply_filters( 'pre_trash_post', null, $post );
+	$check = apply_filters( 'pre_trash_post', null, $post, $previous_status );
 
 	if ( null !== $check ) {
 		return $check;
@@ -3579,12 +3608,14 @@ function wp_trash_post( $post_id = 0 ) {
 	 * Fires before a post is sent to the Trash.
 	 *
 	 * @since 3.3.0
+	 * @since 6.3.0 Added the `$previous_status` parameter.
 	 *
-	 * @param int $post_id Post ID.
+	 * @param int    $post_id         Post ID.
+	 * @param string $previous_status The status of the post about to be trashed.
 	 */
-	do_action( 'wp_trash_post', $post_id );
+	do_action( 'wp_trash_post', $post_id, $previous_status );
 
-	add_post_meta( $post_id, '_wp_trash_meta_status', $post->post_status );
+	add_post_meta( $post_id, '_wp_trash_meta_status', $previous_status );
 	add_post_meta( $post_id, '_wp_trash_meta_time', time() );
 
 	$post_updated = wp_update_post(
@@ -3604,10 +3635,12 @@ function wp_trash_post( $post_id = 0 ) {
 	 * Fires after a post is sent to the Trash.
 	 *
 	 * @since 2.9.0
+	 * @since 6.3.0 Added the `$previous_status` parameter.
 	 *
-	 * @param int $post_id Post ID.
+	 * @param int    $post_id         Post ID.
+	 * @param string $previous_status The status of the post at the point where it was trashed.
 	 */
-	do_action( 'trashed_post', $post_id );
+	do_action( 'trashed_post', $post_id, $previous_status );
 
 	return $post;
 }
@@ -3641,7 +3674,7 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * Filters whether a post untrashing should take place.
 	 *
 	 * @since 4.9.0
-	 * @since 5.6.0 The `$previous_status` parameter was added.
+	 * @since 5.6.0 Added the `$previous_status` parameter.
 	 *
 	 * @param bool|null $untrash         Whether to go forward with untrashing.
 	 * @param WP_Post   $post            Post object.
@@ -3656,7 +3689,7 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * Fires before a post is restored from the Trash.
 	 *
 	 * @since 2.9.0
-	 * @since 5.6.0 The `$previous_status` parameter was added.
+	 * @since 5.6.0 Added the `$previous_status` parameter.
 	 *
 	 * @param int    $post_id         Post ID.
 	 * @param string $previous_status The status of the post at the point where it was trashed.
@@ -3702,7 +3735,7 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * Fires after a post is restored from the Trash.
 	 *
 	 * @since 2.9.0
-	 * @since 5.6.0 The `$previous_status` parameter was added.
+	 * @since 5.6.0 Added the `$previous_status` parameter.
 	 *
 	 * @param int    $post_id         Post ID.
 	 * @param string $previous_status The status of the post at the point where it was trashed.
@@ -4194,7 +4227,10 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		// On updates, we need to check to see if it's using the old, fixed sanitization context.
 		$check_name = sanitize_title( $post_name, '', 'old-save' );
 
-		if ( $update && strtolower( urlencode( $post_name ) ) == $check_name && get_post_field( 'post_name', $post_id ) == $check_name ) {
+		if ( $update
+			&& strtolower( urlencode( $post_name ) ) === $check_name
+			&& get_post_field( 'post_name', $post_id ) === $check_name
+		) {
 			$post_name = $check_name;
 		} else { // New post, or slug has changed.
 			$post_name = sanitize_title( $post_name );
@@ -5675,7 +5711,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 
 	$hash      = md5( $page_path . serialize( $post_type ) );
 	$cache_key = "get_page_by_path:$hash:$last_changed";
-	$cached    = wp_cache_get( $cache_key, 'posts' );
+	$cached    = wp_cache_get( $cache_key, 'post-queries' );
 	if ( false !== $cached ) {
 		// Special case: '0' is a bad `$page_path`.
 		if ( '0' === $cached || 0 === $cached ) {
@@ -5732,7 +5768,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 				$p = $parent;
 			}
 
-			if ( 0 == $p->post_parent && count( $revparts ) == $count + 1 && $p->post_name == $revparts[ $count ] ) {
+			if ( 0 == $p->post_parent && count( $revparts ) === $count + 1 && $p->post_name == $revparts[ $count ] ) {
 				$foundid = $page->ID;
 				if ( $page->post_type == $post_type ) {
 					break;
@@ -5742,7 +5778,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	}
 
 	// We cache misses as well as hits.
-	wp_cache_set( $cache_key, $foundid, 'posts' );
+	wp_cache_set( $cache_key, $foundid, 'post-queries' );
 
 	if ( $foundid ) {
 		return get_post( $foundid, $output );
@@ -5886,9 +5922,8 @@ function get_page_uri( $page = 0 ) {
 /**
  * Retrieves an array of pages (or hierarchical post type items).
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
  * @since 1.5.0
+ * @since 6.3.0 Use WP_Query internally.
  *
  * @param array|string $args {
  *     Optional. Array or string of arguments to retrieve pages.
@@ -5928,8 +5963,6 @@ function get_page_uri( $page = 0 ) {
  *                         supported by the post type.
  */
 function get_pages( $args = array() ) {
-	global $wpdb;
-
 	$defaults = array(
 		'child_of'     => 0,
 		'sort_order'   => 'ASC',
@@ -5978,50 +6011,35 @@ function get_pages( $args = array() ) {
 		return false;
 	}
 
-	// $args can be whatever, only use the args defined in defaults to compute the key.
-	$key          = md5( serialize( wp_array_slice_assoc( $parsed_args, array_keys( $defaults ) ) ) );
-	$last_changed = wp_cache_get_last_changed( 'posts' );
+	$query_args = array(
+		'orderby'                => 'post_title',
+		'order'                  => 'ASC',
+		'post__not_in'           => wp_parse_id_list( $exclude ),
+		'meta_key'               => $meta_key,
+		'meta_value'             => $meta_value,
+		'posts_per_page'         => -1,
+		'offset'                 => $offset,
+		'post_type'              => $parsed_args['post_type'],
+		'post_status'            => $post_status,
+		'update_post_term_cache' => false,
+		'update_post_meta_cache' => false,
+		'ignore_sticky_posts'    => true,
+		'no_found_rows'          => true,
+	);
 
-	$cache_key = "get_pages:$key:$last_changed";
-	$cache     = wp_cache_get( $cache_key, 'posts' );
-	if ( false !== $cache ) {
-		_prime_post_caches( $cache, false, false );
-
-		// Convert to WP_Post instances.
-		$pages = array_map( 'get_post', $cache );
-		/** This filter is documented in wp-includes/post.php */
-		$pages = apply_filters( 'get_pages', $pages, $parsed_args );
-
-		return $pages;
-	}
-
-	$inclusions = '';
 	if ( ! empty( $parsed_args['include'] ) ) {
-		$child_of     = 0; // Ignore child_of, parent, exclude, meta_key, and meta_value params if using include.
-		$parent       = -1;
-		$exclude      = '';
-		$meta_key     = '';
-		$meta_value   = '';
-		$hierarchical = false;
-		$incpages     = wp_parse_id_list( $parsed_args['include'] );
-		if ( ! empty( $incpages ) ) {
-			$inclusions = ' AND ID IN (' . implode( ',', $incpages ) . ')';
-		}
+		$child_of = 0; // Ignore child_of, parent, exclude, meta_key, and meta_value params if using include.
+		$parent   = -1;
+		unset( $query_args['post__not_in'], $query_args['meta_key'], $query_args['meta_value'] );
+		$hierarchical           = false;
+		$query_args['post__in'] = wp_parse_id_list( $parsed_args['include'] );
 	}
 
-	$exclusions = '';
-	if ( ! empty( $exclude ) ) {
-		$expages = wp_parse_id_list( $exclude );
-		if ( ! empty( $expages ) ) {
-			$exclusions = ' AND ID NOT IN (' . implode( ',', $expages ) . ')';
-		}
-	}
-
-	$author_query = '';
 	if ( ! empty( $parsed_args['authors'] ) ) {
 		$post_authors = wp_parse_list( $parsed_args['authors'] );
 
 		if ( ! empty( $post_authors ) ) {
+			$query_args['author__in'] = array();
 			foreach ( $post_authors as $post_author ) {
 				// Do we have an author id or an author login?
 				if ( 0 == (int) $post_author ) {
@@ -6034,136 +6052,47 @@ function get_pages( $args = array() ) {
 					}
 					$post_author = $post_author->ID;
 				}
-
-				if ( '' === $author_query ) {
-					$author_query = $wpdb->prepare( ' post_author = %d ', $post_author );
-				} else {
-					$author_query .= $wpdb->prepare( ' OR post_author = %d ', $post_author );
-				}
+				$query_args['author__in'][] = (int) $post_author;
 			}
-			if ( '' !== $author_query ) {
-				$author_query = " AND ($author_query)";
-			}
-		}
-	}
-
-	$join  = '';
-	$where = "$exclusions $inclusions ";
-	if ( '' !== $meta_key || '' !== $meta_value ) {
-		$join = " LEFT JOIN $wpdb->postmeta ON ( $wpdb->posts.ID = $wpdb->postmeta.post_id )";
-
-		// meta_key and meta_value might be slashed.
-		$meta_key   = wp_unslash( $meta_key );
-		$meta_value = wp_unslash( $meta_value );
-		if ( '' !== $meta_key ) {
-			$where .= $wpdb->prepare( " AND $wpdb->postmeta.meta_key = %s", $meta_key );
-		}
-		if ( '' !== $meta_value ) {
-			$where .= $wpdb->prepare( " AND $wpdb->postmeta.meta_value = %s", $meta_value );
 		}
 	}
 
 	if ( is_array( $parent ) ) {
-		$post_parent__in = implode( ',', array_map( 'absint', (array) $parent ) );
+		$post_parent__in = array_map( 'absint', (array) $parent );
 		if ( ! empty( $post_parent__in ) ) {
-			$where .= " AND post_parent IN ($post_parent__in)";
+			$query_args['post_parent__in'] = $post_parent__in;
 		}
 	} elseif ( $parent >= 0 ) {
-		$where .= $wpdb->prepare( ' AND post_parent = %d ', $parent );
+		$query_args['post_parent'] = $parent;
 	}
 
-	if ( 1 === count( $post_status ) ) {
-		$where_post_type = $wpdb->prepare( 'post_type = %s AND post_status = %s', $parsed_args['post_type'], reset( $post_status ) );
-	} else {
-		$post_status     = implode( "', '", $post_status );
-		$where_post_type = $wpdb->prepare( "post_type = %s AND post_status IN ('$post_status')", $parsed_args['post_type'] );
+	$orderby = wp_parse_list( $parsed_args['sort_column'] );
+	$orderby = array_map( 'trim', $orderby );
+	if ( $orderby ) {
+		$query_args['orderby'] = array_fill_keys( $orderby, $parsed_args['sort_order'] );
 	}
 
-	$orderby_array = array();
-	$allowed_keys  = array(
-		'author',
-		'post_author',
-		'date',
-		'post_date',
-		'title',
-		'post_title',
-		'name',
-		'post_name',
-		'modified',
-		'post_modified',
-		'modified_gmt',
-		'post_modified_gmt',
-		'menu_order',
-		'parent',
-		'post_parent',
-		'ID',
-		'rand',
-		'comment_count',
-	);
-
-	foreach ( explode( ',', $parsed_args['sort_column'] ) as $orderby ) {
-		$orderby = trim( $orderby );
-		if ( ! in_array( $orderby, $allowed_keys, true ) ) {
-			continue;
-		}
-
-		switch ( $orderby ) {
-			case 'menu_order':
-				break;
-			case 'ID':
-				$orderby = "$wpdb->posts.ID";
-				break;
-			case 'rand':
-				$orderby = 'RAND()';
-				break;
-			case 'comment_count':
-				$orderby = "$wpdb->posts.comment_count";
-				break;
-			default:
-				if ( 0 === strpos( $orderby, 'post_' ) ) {
-					$orderby = "$wpdb->posts." . $orderby;
-				} else {
-					$orderby = "$wpdb->posts.post_" . $orderby;
-				}
-		}
-
-		$orderby_array[] = $orderby;
-
+	$order = $parsed_args['sort_order'];
+	if ( $order ) {
+		$query_args['order'] = $order;
 	}
-	$sort_column = ! empty( $orderby_array ) ? implode( ',', $orderby_array ) : "$wpdb->posts.post_title";
-
-	$sort_order = strtoupper( $parsed_args['sort_order'] );
-	if ( '' !== $sort_order && ! in_array( $sort_order, array( 'ASC', 'DESC' ), true ) ) {
-		$sort_order = 'ASC';
-	}
-
-	$query  = "SELECT * FROM $wpdb->posts $join WHERE ($where_post_type) $where ";
-	$query .= $author_query;
-	$query .= ' ORDER BY ' . $sort_column . ' ' . $sort_order;
 
 	if ( ! empty( $number ) ) {
-		$query .= ' LIMIT ' . $offset . ',' . $number;
+		$query_args['posts_per_page'] = $number;
 	}
 
-	$pages = $wpdb->get_results( $query );
+	/**
+	 * Filters query arguments passed to WP_Query in get_pages.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param array $query_args  Array of arguments passed to WP_Query.
+	 * @param array $parsed_args Array of get_pages() arguments.
+	 */
+	$query_args = apply_filters( 'get_pages_query_args', $query_args, $parsed_args );
 
-	if ( empty( $pages ) ) {
-		wp_cache_set( $cache_key, array(), 'posts' );
-
-		/** This filter is documented in wp-includes/post.php */
-		$pages = apply_filters( 'get_pages', array(), $parsed_args );
-
-		return $pages;
-	}
-
-	// Sanitize before caching so it'll only get done once.
-	$num_pages = count( $pages );
-	for ( $i = 0; $i < $num_pages; $i++ ) {
-		$pages[ $i ] = sanitize_post( $pages[ $i ], 'raw' );
-	}
-
-	// Update cache.
-	update_post_cache( $pages );
+	$query = new WP_Query( $query_args );
+	$pages = $query->get_posts();
 
 	if ( $child_of || $hierarchical ) {
 		$pages = get_page_children( $child_of, $pages );
@@ -6185,16 +6114,6 @@ function get_pages( $args = array() ) {
 			}
 		}
 	}
-
-	$page_structure = array();
-	foreach ( $pages as $page ) {
-		$page_structure[] = $page->ID;
-	}
-
-	wp_cache_set( $cache_key, $page_structure, 'posts' );
-
-	// Convert to WP_Post instances.
-	$pages = array_map( 'get_post', $pages );
 
 	/**
 	 * Filters the retrieved list of pages.
@@ -6224,10 +6143,10 @@ function get_pages( $args = array() ) {
  * @return bool True on success, false on failure.
  */
 function is_local_attachment( $url ) {
-	if ( strpos( $url, home_url() ) === false ) {
+	if ( ! str_contains( $url, home_url() ) ) {
 		return false;
 	}
-	if ( strpos( $url, home_url( '/?attachment_id=' ) ) !== false ) {
+	if ( str_contains( $url, home_url( '/?attachment_id=' ) ) ) {
 		return true;
 	}
 
@@ -6262,8 +6181,8 @@ function is_local_attachment( $url ) {
  * @see wp_insert_post()
  *
  * @param string|array $args             Arguments for inserting an attachment.
- * @param string|false $file             Optional. Filename.
- * @param int          $parent_post_id   Optional. Parent post ID.
+ * @param string|false $file             Optional. Filename. Default false.
+ * @param int          $parent_post_id   Optional. Parent post ID or 0 for no parent. Default 0.
  * @param bool         $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
  * @param bool         $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
@@ -6607,10 +6526,10 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 		$uploads = wp_get_upload_dir();
 		if ( $uploads && false === $uploads['error'] ) {
 			// Check that the upload base exists in the file location.
-			if ( 0 === strpos( $file, $uploads['basedir'] ) ) {
+			if ( str_starts_with( $file, $uploads['basedir'] ) ) {
 				// Replace file location with url location.
 				$url = str_replace( $uploads['basedir'], $uploads['baseurl'], $file );
-			} elseif ( false !== strpos( $file, 'wp-content/uploads' ) ) {
+			} elseif ( str_contains( $file, 'wp-content/uploads' ) ) {
 				// Get the directory name relative to the basedir (back compat for pre-2.7 uploads).
 				$url = trailingslashit( $uploads['baseurl'] . '/' . _wp_get_attachment_relative_path( $file ) ) . wp_basename( $file );
 			} else {
@@ -6695,8 +6614,10 @@ function wp_get_attachment_caption( $post_id = 0 ) {
 function wp_get_attachment_thumb_url( $post_id = 0 ) {
 	$post_id = (int) $post_id;
 
-	// This uses image_downsize() which also looks for the (very) old format $image_meta['thumb']
-	// when the newer format $image_meta['sizes']['thumbnail'] doesn't exist.
+	/*
+	 * This uses image_downsize() which also looks for the (very) old format $image_meta['thumb']
+	 * when the newer format $image_meta['sizes']['thumbnail'] doesn't exist.
+	 */
 	$thumbnail_url = wp_get_attachment_image_url( $post_id, 'thumbnail' );
 
 	if ( empty( $thumbnail_url ) ) {
@@ -6736,7 +6657,7 @@ function wp_attachment_is( $type, $post = null ) {
 		return false;
 	}
 
-	if ( 0 === strpos( $post->post_mime_type, $type . '/' ) ) {
+	if ( str_starts_with( $post->post_mime_type, $type . '/' ) ) {
 		return true;
 	}
 
@@ -6862,7 +6783,7 @@ function wp_mime_type_icon( $mime = 0 ) {
 				if ( $dh ) {
 					while ( false !== $file = readdir( $dh ) ) {
 						$file = wp_basename( $file );
-						if ( '.' === substr( $file, 0, 1 ) ) {
+						if ( str_starts_with( $file, '.' ) ) {
 							continue;
 						}
 
@@ -7355,7 +7276,7 @@ function clean_post_cache( $post ) {
 		do_action( 'clean_page_cache', $post->ID );
 	}
 
-	wp_cache_set( 'last_changed', microtime(), 'posts' );
+	wp_cache_set_posts_last_changed();
 }
 
 /**
@@ -7777,8 +7698,6 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 
 	$term_ids = array();
 	if ( $prime_post_terms ) {
-		$prime_term_ids     = array();
-		$prime_taxonomy_ids = array();
 		foreach ( $prime_post_terms as $taxonomy => $post_ids ) {
 			$cached_term_ids = wp_cache_get_multiple( $post_ids, "{$taxonomy}_relationships" );
 			if ( is_array( $cached_term_ids ) ) {
@@ -7787,42 +7706,18 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 					// Backward compatibility for if a plugin is putting objects into the cache, rather than IDs.
 					foreach ( $_term_ids as $term_id ) {
 						if ( is_numeric( $term_id ) ) {
-							$prime_term_ids[]                  = (int) $term_id;
-							$prime_taxonomy_ids[ $taxonomy ][] = (int) $term_id;
+							$term_ids[] = (int) $term_id;
 						} elseif ( isset( $term_id->term_id ) ) {
-							$prime_taxonomy_ids[ $taxonomy ][] = (int) $term_id->term_id;
-							$prime_term_ids[]                  = (int) $term_id->term_id;
+							$term_ids[] = (int) $term_id->term_id;
 						}
 					}
 				}
 			}
 		}
-
-		if ( $prime_term_ids ) {
-			$prime_term_ids = array_unique( $prime_term_ids );
-			// Do not prime term meta at this point, let the lazy loader take care of that.
-			_prime_term_caches( $prime_term_ids, false );
-
-			foreach ( $prime_taxonomy_ids as $taxonomy => $_term_ids ) {
-				foreach ( $_term_ids as $term_id ) {
-					if ( in_array( $term_id, $term_ids, true ) ) {
-						continue;
-					}
-					$term = get_term( $term_id, $taxonomy );
-					if ( is_wp_error( $term ) ) {
-						continue;
-					}
-
-					$term_ids[] = $term_id;
-				}
-			}
-		}
+		$term_ids = array_unique( $term_ids );
 	}
 
-	if ( $term_ids ) {
-		$lazyloader = wp_metadata_lazyloader();
-		$lazyloader->queue_objects( 'term', $term_ids );
-	}
+	wp_lazyload_term_meta( $term_ids );
 }
 
 /**
@@ -7939,7 +7834,7 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
 
 	$post = get_post( $post );
 
-	if ( '__trashed' === substr( $post->post_name, -9 ) ) {
+	if ( str_ends_with( $post->post_name, '__trashed' ) ) {
 		return $post->post_name;
 	}
 	add_post_meta( $post->ID, '_wp_desired_post_slug', $post->post_name );
@@ -7955,7 +7850,7 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
  * @since 5.0.0
  */
 function wp_cache_set_posts_last_changed() {
-	wp_cache_set( 'last_changed', microtime(), 'posts' );
+	wp_cache_set_last_changed( 'posts' );
 }
 
 /**
@@ -8143,4 +8038,29 @@ function use_block_editor_for_post_type( $post_type ) {
 	 * @param string $post_type         The post type being checked.
 	 */
 	return apply_filters( 'use_block_editor_for_post_type', true, $post_type );
+}
+
+/**
+ * Registers any additional post meta fields.
+ *
+ * @since 6.3.0 Adds `wp_pattern_sync_status` meta field to the wp_block post type so an unsynced option can be added.
+ *
+ * @link https://github.com/WordPress/gutenberg/pull/51144
+ */
+function wp_create_initial_post_meta() {
+	register_post_meta(
+		'wp_block',
+		'wp_pattern_sync_status',
+		array(
+			'sanitize_callback' => 'sanitize_text_field',
+			'single'            => true,
+			'type'              => 'string',
+			'show_in_rest'      => array(
+				'schema' => array(
+					'type' => 'string',
+					'enum' => array( 'partial', 'unsynced' ),
+				),
+			),
+		)
+	);
 }

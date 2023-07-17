@@ -102,8 +102,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			return false;
 		}
 
-		// setIteratorIndex is optional unless mime is an animated format.
-		// Here, we just say no if you are missing it and aren't loading a jpeg.
+		/*
+		 * setIteratorIndex is optional unless mime is an animated format.
+		 * Here, we just say no if you are missing it and aren't loading a jpeg.
+		 */
 		if ( ! method_exists( 'Imagick', 'setIteratorIndex' ) && 'image/jpeg' !== $mime_type ) {
 				return false;
 		}
@@ -266,6 +268,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * This function, which is expected to be run before heavy image routines, resolves
 	 * point 1 above by aligning Imagick's timeout with PHP's timeout, assuming it is set.
 	 *
+	 * However seems it introduces more problems than it fixes,
+	 * see https://core.trac.wordpress.org/ticket/58202.
+	 *
 	 * Note:
 	 *  - Imagick resource exhaustion does not issue catchable exceptions (yet).
 	 *    See https://github.com/Imagick/imagick/issues/333.
@@ -273,10 +278,13 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *    image operations within the time of the HTTP request.
 	 *
 	 * @since 6.2.0
+	 * @since 6.3.0 This method was deprecated.
 	 *
 	 * @return int|null The new limit on success, null on failure.
 	 */
 	public static function set_imagick_time_limit() {
+		_deprecated_function( __METHOD__, '6.3.0' );
+
 		if ( ! defined( 'Imagick::RESOURCETYPE_TIME' ) ) {
 			return null;
 		}
@@ -306,9 +314,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param int|null $max_w Image width.
-	 * @param int|null $max_h Image height.
-	 * @param bool     $crop
+	 * @param int|null   $max_w Image width.
+	 * @param int|null   $max_h Image height.
+	 * @param bool|array $crop
 	 * @return true|WP_Error
 	 */
 	public function resize( $max_w, $max_h, $crop = false ) {
@@ -326,8 +334,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		if ( $crop ) {
 			return $this->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h );
 		}
-
-		self::set_imagick_time_limit();
 
 		// Execute the resize.
 		$thumb_result = $this->thumbnail_image( $dst_w, $dst_h );
@@ -493,9 +499,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *     @type array ...$0 {
 	 *         Array of height, width values, and whether to crop.
 	 *
-	 *         @type int  $width  Image width. Optional if `$height` is specified.
-	 *         @type int  $height Image height. Optional if `$width` is specified.
-	 *         @type bool $crop   Optional. Whether to crop the image. Default false.
+	 *         @type int        $width  Image width. Optional if `$height` is specified.
+	 *         @type int        $height Image height. Optional if `$width` is specified.
+	 *         @type bool|array $crop   Optional. Whether to crop the image. Default false.
 	 *     }
 	 * }
 	 * @return array An array of resized images' metadata by size.
@@ -522,9 +528,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param array $size_data {
 	 *     Array of size data.
 	 *
-	 *     @type int  $width  The maximum width in pixels.
-	 *     @type int  $height The maximum height in pixels.
-	 *     @type bool $crop   Whether to crop the image to exact dimensions.
+	 *     @type int        $width  The maximum width in pixels.
+	 *     @type int        $height The maximum height in pixels.
+	 *     @type bool|array $crop   Whether to crop the image to exact dimensions.
 	 * }
 	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
 	 *                        WP_Error object on error.
@@ -595,15 +601,15 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$src_h -= $src_y;
 		}
 
-		self::set_imagick_time_limit();
-
 		try {
 			$this->image->cropImage( $src_w, $src_h, $src_x, $src_y );
 			$this->image->setImagePage( $src_w, $src_h, 0, 0 );
 
 			if ( $dst_w || $dst_h ) {
-				// If destination width/height isn't specified,
-				// use same as width/height from source.
+				/*
+				 * If destination width/height isn't specified,
+				 * use same as width/height from source.
+				 */
 				if ( ! $dst_w ) {
 					$dst_w = $src_w;
 				}
@@ -957,8 +963,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 */
 	protected function pdf_setup() {
 		try {
-			// By default, PDFs are rendered in a very low resolution.
-			// We want the thumbnail to be readable, so increase the rendering DPI.
+			/*
+			 * By default, PDFs are rendered in a very low resolution.
+			 * We want the thumbnail to be readable, so increase the rendering DPI.
+			 */
 			$this->image->setResolution( 128, 128 );
 
 			// Only load the first page.
@@ -986,12 +994,16 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		try {
-			// When generating thumbnails from cropped PDF pages, Imagemagick uses the uncropped
-			// area (resulting in unnecessary whitespace) unless the following option is set.
+			/*
+			 * When generating thumbnails from cropped PDF pages, Imagemagick uses the uncropped
+			 * area (resulting in unnecessary whitespace) unless the following option is set.
+			 */
 			$this->image->setOption( 'pdf:use-cropbox', true );
 
-			// Reading image after Imagick instantiation because `setResolution`
-			// only applies correctly before the image is read.
+			/*
+			 * Reading image after Imagick instantiation because `setResolution`
+			 * only applies correctly before the image is read.
+			 */
 			$this->image->readImage( $filename );
 		} catch ( Exception $e ) {
 			// Attempt to run `gs` without the `use-cropbox` option. See #48853.

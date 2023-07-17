@@ -16,6 +16,7 @@ on:
       - trunk
       - '6.[2-9]'
       - '[7-9].[0-9]'
+  workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
@@ -23,6 +24,10 @@ concurrency:
   # or the commit hash for any other events.
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
 
 env:
   # This workflow takes two sets of measurements — one for the current commit,
@@ -65,6 +70,8 @@ jobs:
   performance:
     name: Run performance tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
@@ -122,7 +129,7 @@ jobs:
 
       - name: Import mock data
         run: |
-          curl -O https://raw.githubusercontent.com/WPTT/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml
+          curl -O https://raw.githubusercontent.com/WordPress/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml
           npm run env:cli -- import themeunittestdata.wordpress.xml --authors=create --path=/var/www/${{ env.LOCAL_DIR }}
           rm themeunittestdata.wordpress.xml
 
@@ -181,7 +188,7 @@ jobs:
             BASE_SHA: ${{ steps.base-sha.outputs.result }}
             COMMITTED_AT: ${{ steps.commit-timestamp.outputs.result }}
             CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
-            HOST_NAME: "codevitals.run"
+            HOST_NAME: "www.codevitals.run"
         run: node ./tests/performance/log-results.js $CODEVITALS_PROJECT_TOKEN trunk $GITHUB_SHA $BASE_SHA $COMMITTED_AT $HOST_NAME
 
       - name: Ensure version-controlled files are not modified or deleted
@@ -190,6 +197,9 @@ jobs:
   slack-notifications:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    permissions:
+      actions: read
+      contents: read
     needs: [ performance ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
@@ -203,6 +213,8 @@ jobs:
   failed-workflow:
     name: Failed workflow tasks
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     needs: [ performance, slack-notifications ]
     if: |
       always() &&

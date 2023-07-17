@@ -254,6 +254,9 @@ function image_add_caption( $html, $id, $caption, $title, $align, $url, $size, $
  *
  * @access private
  * @since 3.4.0
+ *
+ * @param array $matches Single regex match.
+ * @return string Cleaned up HTML for caption.
  */
 function _cleanup_image_add_caption( $matches ) {
 	// Remove any line breaks from inside the tags.
@@ -385,7 +388,7 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 		}
 
 		// Use image exif/iptc data for title and caption defaults if possible.
-	} elseif ( 0 === strpos( $type, 'image/' ) ) {
+	} elseif ( str_starts_with( $type, 'image/' ) ) {
 		$image_meta = wp_read_image_metadata( $file );
 
 		if ( $image_meta ) {
@@ -419,14 +422,18 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 	$attachment_id = wp_insert_attachment( $attachment, $file, $post_id, true );
 
 	if ( ! is_wp_error( $attachment_id ) ) {
-		// Set a custom header with the attachment_id.
-		// Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+		/*
+		 * Set a custom header with the attachment_id.
+		 * Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+		 */
 		if ( ! headers_sent() ) {
 			header( 'X-WP-Upload-Attachment-ID: ' . $attachment_id );
 		}
 
-		// The image sub-sizes are created during wp_generate_attachment_metadata().
-		// This is generally slow and may cause timeouts or out of memory errors.
+		/*
+		 * The image sub-sizes are created during wp_generate_attachment_metadata().
+		 * This is generally slow and may cause timeouts or out of memory errors.
+		 */
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $file ) );
 	}
 
@@ -534,8 +541,8 @@ function wp_iframe( $content_func, ...$args ) {
 	wp_enqueue_style( 'colors' );
 	// Check callback name for 'media'.
 	if (
-		( is_array( $content_func ) && ! empty( $content_func[1] ) && 0 === strpos( (string) $content_func[1], 'media' ) ) ||
-		( ! is_array( $content_func ) && 0 === strpos( $content_func, 'media' ) )
+		( is_array( $content_func ) && ! empty( $content_func[1] ) && str_starts_with( (string) $content_func[1], 'media' ) ) ||
+		( ! is_array( $content_func ) && str_starts_with( $content_func, 'media' ) )
 	) {
 		wp_enqueue_style( 'deprecated-media' );
 	}
@@ -828,7 +835,7 @@ function media_upload_form_handler() {
 		if ( ! empty( $attachment['url'] ) ) {
 			$rel = '';
 
-			if ( strpos( $attachment['url'], 'attachment_id' ) || get_attachment_link( $send_id ) == $attachment['url'] ) {
+			if ( str_contains( $attachment['url'], 'attachment_id' ) || get_attachment_link( $send_id ) === $attachment['url'] ) {
 				$rel = " rel='attachment wp-att-" . esc_attr( $send_id ) . "'";
 			}
 
@@ -1351,12 +1358,12 @@ function media_post_single_attachment_fields_to_edit( $form_fields, $post ) {
 function image_media_send_to_editor( $html, $attachment_id, $attachment ) {
 	$post = get_post( $attachment_id );
 
-	if ( 'image' === substr( $post->post_mime_type, 0, 5 ) ) {
+	if ( str_starts_with( $post->post_mime_type, 'image' ) ) {
 		$url   = $attachment['url'];
 		$align = ! empty( $attachment['align'] ) ? $attachment['align'] : 'none';
 		$size  = ! empty( $attachment['image-size'] ) ? $attachment['image-size'] : 'medium';
 		$alt   = ! empty( $attachment['image_alt'] ) ? $attachment['image_alt'] : '';
-		$rel   = ( strpos( $url, 'attachment_id' ) || get_attachment_link( $attachment_id ) === $url );
+		$rel   = ( str_contains( $url, 'attachment_id' ) || get_attachment_link( $attachment_id ) === $url );
 
 		return get_image_send_to_editor( $attachment_id, $attachment['post_excerpt'], $attachment['post_title'], $align, $url, $rel, $size, $alt );
 	}
@@ -1462,7 +1469,7 @@ function get_attachment_fields_to_edit( $post, $errors = null ) {
 	$form_fields = array_merge_recursive( $form_fields, (array) $errors );
 
 	// This was formerly in image_attachment_fields_to_edit().
-	if ( 'image' === substr( $post->post_mime_type, 0, 5 ) ) {
+	if ( str_starts_with( $post->post_mime_type, 'image' ) ) {
 		$alt = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
 
 		if ( empty( $alt ) ) {
@@ -2180,8 +2187,8 @@ function media_upload_form( $errors = null ) {
 	 */
 	if (
 		wp_is_mobile() &&
-		strpos( $_SERVER['HTTP_USER_AGENT'], 'OS 7_' ) !== false &&
-		strpos( $_SERVER['HTTP_USER_AGENT'], 'like Mac OS X' ) !== false
+		str_contains( $_SERVER['HTTP_USER_AGENT'], 'OS 7_' ) &&
+		str_contains( $_SERVER['HTTP_USER_AGENT'], 'like Mac OS X' )
 	) {
 		$plupload_init['multi_selection'] = false;
 	}
@@ -2737,7 +2744,7 @@ function media_upload_library_form( $errors ) {
 		<label class="screen-reader-text" for="media-search-input">
 			<?php
 			/* translators: Hidden accessibility text. */
-			echo __( 'Search Media' ) . ':';
+			_e( 'Search Media:' );
 			?>
 		</label>
 		<input type="search" id="media-search-input" name="s" value="<?php the_search_query(); ?>" />
@@ -3217,7 +3224,7 @@ function edit_form_image_editor( $post ) {
 	?>
 	</div>
 	<div class="wp_attachment_details edit-form-section">
-	<?php if ( 'image' === substr( $post->post_mime_type, 0, 5 ) ) : ?>
+	<?php if ( str_starts_with( $post->post_mime_type, 'image' ) ) : ?>
 		<p class="attachment-alt-text">
 			<label for="attachment_alt"><strong><?php _e( 'Alternative Text' ); ?></strong></label><br />
 			<textarea class="widefat" name="_wp_attachment_image_alt" id="attachment_alt" aria-describedby="alt-text-description"><?php echo esc_attr( $alt_text ); ?></textarea>
@@ -3507,7 +3514,7 @@ function wp_add_id3_tag_data( &$metadata, $data ) {
 				if ( 'length' !== $key && ! empty( $list ) ) {
 					$metadata[ $key ] = wp_kses_post( reset( $list ) );
 					// Fix bug in byte stream analysis.
-					if ( 'terms_of_use' === $key && 0 === strpos( $metadata[ $key ], 'yright notice.' ) ) {
+					if ( 'terms_of_use' === $key && str_starts_with( $metadata[ $key ], 'yright notice.' ) ) {
 						$metadata[ $key ] = 'Cop' . $metadata[ $key ];
 					}
 				}
@@ -3847,7 +3854,7 @@ function wp_media_attach_action( $parent_id, $action = 'attach' ) {
 		$referer  = wp_get_referer();
 
 		if ( $referer ) {
-			if ( false !== strpos( $referer, 'upload.php' ) ) {
+			if ( str_contains( $referer, 'upload.php' ) ) {
 				$location = remove_query_arg( array( 'attached', 'detach' ), $referer );
 			}
 		}

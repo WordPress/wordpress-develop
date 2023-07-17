@@ -1767,7 +1767,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * Test file path validation
 	 *
 	 * @ticket 42016
-	 * @dataProvider data_test_validate_file
+	 * @dataProvider data_validate_file
 	 *
 	 * @param string $file          File path.
 	 * @param array  $allowed_files List of allowed files.
@@ -1781,14 +1781,14 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * Data provider for file validation.
 	 *
 	 * @return array {
-	 *     @type array $0... {
+	 *     @type array ...$0 {
 	 *         @type string $0 File path.
 	 *         @type array  $1 List of allowed files.
 	 *         @type int    $2 Expected result.
 	 *     }
 	 * }
 	 */
-	public function data_test_validate_file() {
+	public function data_validate_file() {
 		return array(
 
 			// Allowed files:
@@ -1910,7 +1910,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * Test stream URL validation.
 	 *
-	 * @dataProvider data_test_wp_is_stream
+	 * @dataProvider data_wp_is_stream
 	 *
 	 * @param string $path     The resource path or URL.
 	 * @param bool   $expected Expected result.
@@ -1927,13 +1927,13 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * Data provider for stream URL validation.
 	 *
 	 * @return array {
-	 *     @type array $0... {
+	 *     @type array ...$0 {
 	 *         @type string $0 The resource path or URL.
 	 *         @type bool   $1 Expected result.
 	 *     }
 	 * }
 	 */
-	public function data_test_wp_is_stream() {
+	public function data_wp_is_stream() {
 		return array(
 			// Legitimate stream examples.
 			array( 'http://example.com', true ),
@@ -1954,7 +1954,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * Test human_readable_duration().
 	 *
 	 * @ticket 39667
-	 * @dataProvider data_test_human_readable_duration
+	 * @dataProvider data_human_readable_duration
 	 *
 	 * @param string $input    Duration.
 	 * @param string $expected Expected human readable duration.
@@ -1973,7 +1973,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_test_human_readable_duration() {
+	public function data_human_readable_duration() {
 		return array(
 			// Valid ii:ss cases.
 			array( '0:0', '0 minutes, 0 seconds' ),
@@ -2030,14 +2030,14 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49404
-	 * @dataProvider data_test_wp_is_json_media_type
+	 * @dataProvider data_wp_is_json_media_type
 	 */
 	public function test_wp_is_json_media_type( $input, $expected ) {
 		$this->assertSame( $expected, wp_is_json_media_type( $input ) );
 	}
 
 
-	public function data_test_wp_is_json_media_type() {
+	public function data_wp_is_json_media_type() {
 		return array(
 			array( 'application/ld+json', true ),
 			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', true ),

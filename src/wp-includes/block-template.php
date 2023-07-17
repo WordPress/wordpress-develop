@@ -6,27 +6,13 @@
  */
 
 /**
- * Adds necessary filters to use 'wp_template' posts instead of theme template files.
+ * Adds necessary hooks to resolve '_wp-find-template' requests.
  *
  * @access private
  * @since 5.9.0
  */
 function _add_template_loader_filters() {
-	if ( ! current_theme_supports( 'block-templates' ) ) {
-		return;
-	}
-
-	$template_types = array_keys( get_default_block_template_types() );
-	foreach ( $template_types as $template_type ) {
-		// Skip 'embed' for now because it is not a regular template type.
-		if ( 'embed' === $template_type ) {
-			continue;
-		}
-		add_filter( str_replace( '-', '', $template_type ) . '_template', 'locate_block_template', 20, 3 );
-	}
-
-	// Request to resolve a template.
-	if ( isset( $_GET['_wp-find-template'] ) ) {
+	if ( isset( $_GET['_wp-find-template'] ) && current_theme_supports( 'block-templates' ) ) {
 		add_action( 'pre_get_posts', '_resolve_template_for_new_post' );
 	}
 }
@@ -37,8 +23,10 @@ function _add_template_loader_filters() {
  * Internally, this communicates the block content that needs to be used by the template canvas through a global variable.
  *
  * @since 5.8.0
+ * @since 6.3.0 Added `$_wp_current_template_id` global for editing of current template directly from the admin bar.
  *
  * @global string $_wp_current_template_content
+ * @global string $_wp_current_template_id
  *
  * @param string   $template  Path to the template. See locate_template().
  * @param string   $type      Sanitized filename without extension.
@@ -46,7 +34,7 @@ function _add_template_loader_filters() {
  * @return string The path to the Site Editor template canvas file, or the fallback PHP template.
  */
 function locate_block_template( $template, $type, array $templates ) {
-	global $_wp_current_template_content;
+	global $_wp_current_template_content, $_wp_current_template_id;
 
 	if ( ! current_theme_supports( 'block-templates' ) ) {
 		return $template;
@@ -78,6 +66,8 @@ function locate_block_template( $template, $type, array $templates ) {
 	$block_template = resolve_block_template( $type, $templates, $template );
 
 	if ( $block_template ) {
+		$_wp_current_template_id = $block_template->id;
+
 		if ( empty( $block_template->content ) && is_user_logged_in() ) {
 			$_wp_current_template_content =
 			sprintf(
@@ -145,7 +135,6 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 
 	// Find all potential templates 'wp_template' post matching the hierarchy.
 	$query     = array(
-		'theme'    => get_stylesheet(),
 		'slug__in' => $slugs,
 	);
 	$templates = get_block_templates( $query );
@@ -166,8 +155,8 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 
 	// Is the active theme a child theme, and is the PHP fallback template part of it?
 	if (
-		strpos( $fallback_template, $theme_base_path ) === 0 &&
-		strpos( $fallback_template, $parent_theme_base_path ) === false
+		str_starts_with( $fallback_template, $theme_base_path ) &&
+		! str_contains( $fallback_template, $parent_theme_base_path )
 	) {
 		$fallback_template_slug = substr(
 			$fallback_template,
@@ -237,12 +226,12 @@ function get_the_block_template_html() {
 
 	$content = $wp_embed->run_shortcode( $_wp_current_template_content );
 	$content = $wp_embed->autoembed( $content );
+	$content = shortcode_unautop( $content );
+	$content = do_shortcode( $content );
 	$content = do_blocks( $content );
 	$content = wptexturize( $content );
 	$content = convert_smilies( $content );
-	$content = shortcode_unautop( $content );
 	$content = wp_filter_content_tags( $content, 'template' );
-	$content = do_shortcode( $content );
 	$content = str_replace( ']]>', ']]&gt;', $content );
 
 	// Wrap block template in .wp-site-blocks to allow for specific descendant styles
