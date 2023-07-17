@@ -66,21 +66,14 @@ function render_block_core_template_part( $attributes ) {
 		} else {
 			// Else, if the template part was provided by the active theme,
 			// render the corresponding file content.
+			$template_part_file_path = '';
 			if ( 0 === validate_file( $attributes['slug'] ) ) {
-				$themes   = array( $stylesheet );
-				$template = get_template();
-				if ( $stylesheet !== $template ) {
-					$themes[] = $template;
-				}
-
-				foreach ( $themes as $theme ) {
-					$theme_folders           = get_block_theme_folders( $theme );
-					$template_part_file_path = get_theme_file_path( '/' . $theme_folders['wp_template_part'] . '/' . $attributes['slug'] . '.html' );
-					if ( file_exists( $template_part_file_path ) ) {
-						$content = (string) file_get_contents( $template_part_file_path );
-						$content = '' !== $content ? _inject_theme_attribute_in_block_template_content( $content ) : '';
-						break;
-					}
+				$template_data = _get_block_template_file( 'wp_template_part', $attributes['slug'] );
+				if ( $template_data ) {
+					$template_part_file_path = $template_data['path'];
+					$area                    = $template_data['area'];
+					$content                 = (string) file_get_contents( $template_part_file_path );
+					$content                 = '' !== $content ? _inject_theme_attribute_in_block_template_content( $content ) : '';
 				}
 			}
 
