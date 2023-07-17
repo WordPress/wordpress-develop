@@ -321,33 +321,17 @@ function wp_get_development_mode() {
  *
  * @since 6.3.0
  *
- * @param string|null $mode Optional. Development mode to check for. Either 'core', 'plugin', 'theme', or 'all'.
- *                          If no mode is passed, it will check for any development mode. Defaults to null.
+ * @param string $mode Development mode to check for. Either 'core', 'plugin', 'theme', or 'all'.
  * @return bool True if the given mode is covered by the current development mode, false otherwise.
  */
-function wp_is_development_mode( $mode = null ) {
+function wp_is_development_mode( $mode ) {
 	$current_mode = wp_get_development_mode();
-
 	if ( empty( $current_mode ) ) {
 		return false;
 	}
 
 	// Return true if the current mode encompasses all modes.
 	if ( 'all' === $current_mode ) {
-		return true;
-	}
-
-	$valid_modes = array(
-		'core',
-		'plugin',
-		'theme',
-		'all',
-	);
-
-	/**
-	 * If no mode is passed, return true if any valid development mode is set.
-	 */
-	if ( empty( $mode ) && in_array( $current_mode, $valid_modes, true ) ) {
 		return true;
 	}
 
