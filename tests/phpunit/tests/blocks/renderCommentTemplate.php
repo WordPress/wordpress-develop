@@ -524,8 +524,10 @@ END
 		$comment_author_name_block_markup = $comment_author_name_block->render();
 
 		$render_block_callback = static function( $block_content, $block ) use ( $parsed_comment_author_name_block ) {
-			// Insert a Comment Author Name block (which requires `commentId`
-			// block context to work) after the Comment Content block.
+			/*
+			 * Insert a Comment Author Name block (which requires `commentId`
+			 * block context to work) after the Comment Content block.
+			 */
 			if ( 'core/comment-content' !== $block['blockName'] ) {
 				return $block_content;
 			}
