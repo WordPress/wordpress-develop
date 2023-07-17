@@ -720,6 +720,6 @@ add_action( 'init', 'wp_register_persisted_preferences_meta' );
 add_action( 'init', 'wp_create_initial_post_meta' );
 
 // Including revisioned meta when considering whether a post revision has changed.
-add_filter( 'wp_save_post_revision_post_has_changed', 'wp_check_revisioned_meta_fields_have_changed' ), 10, 3 );
+add_filter( 'wp_save_post_revision_post_has_changed', 'wp_check_revisioned_meta_fields_have_changed', 10, 3 );
 
 unset( $filter, $action );
