@@ -743,6 +743,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
+		// Add meta to revision.
+		$revision = wp_get_post_revision( $post_id );
+		if ( $revision ) {
+			wp_save_revisioned_meta_fields( $revision->post_id, $post_id );
+		}
+
 		$post          = get_post( $post_id );
 		$fields_update = $this->update_additional_fields_for_object( $post, $request );
 
@@ -934,6 +940,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( is_wp_error( $fields_update ) ) {
 			return $fields_update;
+		}
+
+		// Add meta to revision.
+		$revision_id = wp_get_post_revision( $post_id );
+		if ( $revision_id ) {
+			wp_save_revisioned_meta_fields( $revision_id, $post_id );
 		}
 
 		$request->set_param( 'context', 'edit' );
