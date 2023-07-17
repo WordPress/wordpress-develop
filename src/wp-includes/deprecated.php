@@ -5149,7 +5149,8 @@ function wp_tinycolor_string_to_rgb( $color_str ) {
  */
 function wp_get_duotone_filter_id( $preset ) {
 	_deprecated_function( __FUNCTION__, '6.3.0' );
-	return WP_Duotone::get_filter_id_from_preset( $preset );
+	$duotone = new WP_Duotone();
+	return $duotone->get_filter_id_from_preset( $preset );
 }
 
 /**
@@ -5166,7 +5167,8 @@ function wp_get_duotone_filter_id( $preset ) {
  */
 function wp_get_duotone_filter_property( $preset ) {
 	_deprecated_function( __FUNCTION__, '6.3.0' );
-	return WP_Duotone::get_filter_css_property_value_from_preset( $preset );
+	$duotone = new WP_Duotone();
+	return $duotone->get_filter_css_property_value_from_preset( $preset );
 }
 
 /**
@@ -5182,7 +5184,8 @@ function wp_get_duotone_filter_property( $preset ) {
  */
 function wp_get_duotone_filter_svg( $preset ) {
 	_deprecated_function( __FUNCTION__, '6.3.0' );
-	return WP_Duotone::get_filter_svg_from_preset( $preset );
+	$duotone = new WP_Duotone();
+	return $duotone->get_filter_svg_from_preset( $preset );
 }
 
 /**
@@ -5197,7 +5200,8 @@ function wp_get_duotone_filter_svg( $preset ) {
  */
 function wp_register_duotone_support( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.3.0', 'WP_Duotone::register_duotone_support()' );
-	return WP_Duotone::register_duotone_support( $block_type );
+	$duotone = new WP_Duotone();
+	return $duotone->register_duotone_support( $block_type );
 }
 
 /**
@@ -5216,7 +5220,8 @@ function wp_register_duotone_support( $block_type ) {
 function wp_render_duotone_support( $block_content, $block ) {
 	_deprecated_function( __FUNCTION__, '6.3.0', 'WP_Duotone::render_duotone_support()' );
 	$wp_block = new WP_Block( $block );
-	return WP_Duotone::render_duotone_support( $block_content, $block, $wp_block );
+	$duotone  = new WP_Duotone();
+	return $duotone->render_duotone_support( $block_content, $block, $wp_block );
 }
 
 /**

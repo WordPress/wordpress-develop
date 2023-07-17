@@ -30,7 +30,8 @@ class Tests_Block_Supports_DuoTones extends WP_UnitTestCase {
 		$wp_block      = new WP_Block( $block );
 		$block_content = '<figure class="wp-block-image size-full"><img src="/my-image.jpg" /></figure>';
 		$expected      = '<figure class="wp-block-image size-full wp-duotone-blue-orange"><img src="/my-image.jpg" /></figure>';
-		$this->assertSame( $expected, WP_Duotone::render_duotone_support( $block_content, $block, $wp_block ) );
+		$duotone       = new WP_Duotone();
+		$this->assertSame( $expected, $duotone->render_duotone_support( $block_content, $block, $wp_block ) );
 	}
 
 	/**
@@ -48,7 +49,8 @@ class Tests_Block_Supports_DuoTones extends WP_UnitTestCase {
 		$wp_block      = new WP_Block( $block );
 		$block_content = '<figure class="wp-block-image size-full"><img src="/my-image.jpg" /></figure>';
 		$expected      = '/<figure class="wp-block-image size-full wp-duotone-unset-\d+"><img src="\\/my-image.jpg" \\/><\\/figure>/';
-		$this->assertMatchesRegularExpression( $expected, WP_Duotone::render_duotone_support( $block_content, $block, $wp_block ) );
+		$duotone       = new WP_Duotone();
+		$this->assertMatchesRegularExpression( $expected, $duotone->render_duotone_support( $block_content, $block, $wp_block ) );
 	}
 
 	/**
@@ -64,7 +66,8 @@ class Tests_Block_Supports_DuoTones extends WP_UnitTestCase {
 		$wp_block      = new WP_Block( $block );
 		$block_content = '<figure class="wp-block-image size-full"><img src="/my-image.jpg" /></figure>';
 		$expected      = '/<figure class="wp-block-image size-full wp-duotone-ffffff-000000-\d+"><img src="\\/my-image.jpg" \\/><\\/figure>/';
-		$this->assertMatchesRegularExpression( $expected, WP_Duotone::render_duotone_support( $block_content, $block, $wp_block ) );
+		$duotone       = new WP_Duotone();
+		$this->assertMatchesRegularExpression( $expected, $duotone->render_duotone_support( $block_content, $block, $wp_block ) );
 	}
 
 	/**
@@ -74,11 +77,11 @@ class Tests_Block_Supports_DuoTones extends WP_UnitTestCase {
 	 * @covers ::get_slug_from_attribute
 	 */
 	public function test_get_slug_from_attribute( $data_attr, $expected ) {
-
-		$reflection = new ReflectionMethod( 'WP_Duotone', 'get_slug_from_attribute' );
+		$duotone   = new WP_Duotone();
+		$reflection = new ReflectionMethod( $duotone, 'get_slug_from_attribute' );
 		$reflection->setAccessible( true );
 
-		$this->assertSame( $expected, $reflection->invoke( null, $data_attr ) );
+		$this->assertSame( $expected, $reflection->invoke( $duotone, $data_attr ) );
 	}
 
 	/**
@@ -104,10 +107,11 @@ class Tests_Block_Supports_DuoTones extends WP_UnitTestCase {
 	 * @dataProvider data_is_preset
 	 */
 	public function test_is_preset( $data_attr, $expected ) {
-		$reflection = new ReflectionMethod( 'WP_Duotone', 'is_preset' );
+		$duotone   = new WP_Duotone();
+		$reflection = new ReflectionMethod( $duotone, 'is_preset' );
 		$reflection->setAccessible( true );
 
-		$this->assertSame( $expected, $reflection->invoke( null, $data_attr ) );
+		$this->assertSame( $expected, $reflection->invoke( $duotone, $data_attr ) );
 	}
 
 	/**
