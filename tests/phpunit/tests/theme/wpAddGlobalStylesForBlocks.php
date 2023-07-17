@@ -176,13 +176,22 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 
 	/**
 	 * @ticket 57868
+	 *
 	 * @dataProvider data_wp_get_block_name_from_theme_json_path
+	 *
+	 * @param array  $path     An array of keys describing the path to a property in theme.json.
+	 * @param string $expected The expected block name.
 	 */
 	public function test_wp_get_block_name_from_theme_json_path( $path, $expected ) {
 		$block_name = wp_get_block_name_from_theme_json_path( $path );
 		$this->assertSame( $expected, $block_name );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_wp_get_block_name_from_theme_json_path() {
 		return array(
 			'core block styles'             => array(

@@ -352,8 +352,10 @@ function wp_get_block_name_from_theme_json_path( $path ) {
 		return $path[2];
 	}
 
-	// As fallback and for backward compatibility, allow any core block to be
-	// at any position.
+	/*
+	 * As fallback and for backward compatibility, allow any core block to be
+	 * at any position.
+	 */
 	$result = array_values(
 		array_filter(
 			$path,
