@@ -845,4 +845,44 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 'index', $response->get_data()['slug'], 'Should fallback to `index.html` when  ignore_empty is `true`.' );
 	}
+
+	/**
+	 * @ticket 57851
+	 *
+	 * @covers WP_REST_Templates_Controller::prepare_item_for_database
+	 */
+	public function test_prepare_item_for_database() {
+		$endpoint = new WP_REST_Templates_Controller( 'wp_template_part' );
+
+		$prepare_item_for_database = new ReflectionMethod( $endpoint, 'prepare_item_for_database' );
+		$prepare_item_for_database->setAccessible( true );
+
+		$body_params = array(
+			'title'   => 'Untitled Template Part',
+			'slug'    => 'untitled-template-part',
+			'content' => '',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/template-parts' );
+		$request->set_body_params( $body_params );
+
+		$prepared = $prepare_item_for_database->invoke( $endpoint, $request );
+
+		$this->assertInstanceOf( 'stdClass', $prepared, 'The item could not be prepared for the database.' );
+
+		$this->assertObjectHasAttribute( 'post_type', $prepared, 'The "post_type" was not included in the prepared template part.' );
+		$this->assertObjectHasAttribute( 'post_status', $prepared, 'The "post_status" was not included in the prepared template part.' );
+		$this->assertObjectHasAttribute( 'tax_input', $prepared, 'The "tax_input" was not included in the prepared template part.' );
+		$this->assertArrayHasKey( 'wp_theme', $prepared->tax_input, 'The "wp_theme" tax was not included in the prepared template part.' );
+		$this->assertArrayHasKey( 'wp_template_part_area', $prepared->tax_input, 'The "wp_template_part_area" tax was not included in the prepared template part.' );
+		$this->assertObjectHasAttribute( 'post_content', $prepared, 'The "post_content" was not included in the prepared template part.' );
+		$this->assertObjectHasAttribute( 'post_title', $prepared, 'The "post_title" was not included in the prepared template part.' );
+
+		$this->assertSame( 'wp_template_part', $prepared->post_type, 'The "post_type" in the prepared template part should be "wp_template_part".' );
+		$this->assertSame( 'publish', $prepared->post_status, 'The post status in the prepared template part should be "publish".' );
+		$this->assertSame( WP_TEMPLATE_PART_AREA_UNCATEGORIZED, $prepared->tax_input['wp_template_part_area'], 'The area in the prepared template part should be uncategorized.' );
+		$this->assertSame( 'Untitled Template Part', $prepared->post_title, 'The title was not correct in the prepared template part.' );
+
+		$this->assertEmpty( $prepared->post_content, 'The content was not correct in the prepared template part.' );
+	}
 }
