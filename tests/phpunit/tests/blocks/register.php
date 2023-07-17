@@ -644,7 +644,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 					'keywords'    => array( 'failure' ),
 				),
 			),
-			$result->variations
+			$result->get_variations()
 		);
 		$this->assertSame(
 			array(
@@ -867,7 +867,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 					'keywords'    => array( 'niepowodzenie' ),
 				),
 			),
-			$result->variations
+			$result->get_variations()
 		);
 	}
 
