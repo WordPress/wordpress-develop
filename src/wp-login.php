@@ -315,11 +315,11 @@ function login_footer( $input_id = '' ) {
 	if (
 		! $interim_login &&
 		/**
-		 * Filters the Languages select input activation on the login screen.
+		 * Filters whether to display the Language selector on the login screen.
 		 *
 		 * @since 5.9.0
 		 *
-		 * @param bool Whether to display the Languages select input on the login screen.
+		 * @param bool $display Whether to display the Language selector on the login screen.
 		 */
 		apply_filters( 'login_display_language_dropdown', true )
 	) {
@@ -1362,7 +1362,7 @@ switch ( $action ) {
 				$errors->add( 'loggedout', __( 'You are now logged out.' ), 'message' );
 			} elseif ( isset( $_GET['registration'] ) && 'disabled' === $_GET['registration'] ) {
 				$errors->add( 'registerdisabled', __( '<strong>Error:</strong> User registration is currently not allowed.' ) );
-			} elseif ( strpos( $redirect_to, 'about.php?updated' ) ) {
+			} elseif ( str_contains( $redirect_to, 'about.php?updated' ) ) {
 				$errors->add( 'updated', __( '<strong>You have successfully updated WordPress!</strong> Please log back in to see what&#8217;s new.' ), 'message' );
 			} elseif ( WP_Recovery_Mode_Link_Service::LOGIN_ACTION_ENTERED === $action ) {
 				$errors->add( 'enter_recovery_mode', __( 'Recovery Mode Initialized. Please log in to continue.' ), 'message' );

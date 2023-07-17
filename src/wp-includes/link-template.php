@@ -249,8 +249,10 @@ function get_permalink( $post = 0, $leavename = false ) {
 					$category = get_category_parents( $category_object->parent, false, '/', true ) . $category;
 				}
 			}
-			// Show default category in permalinks,
-			// without having to assign it explicitly.
+			/*
+			 * Show default category in permalinks,
+			 * without having to assign it explicitly.
+			 */
 			if ( empty( $category ) ) {
 				$default_category = get_term( get_option( 'default_category' ), 'category' );
 				if ( $default_category && ! is_wp_error( $default_category ) ) {
@@ -265,8 +267,10 @@ function get_permalink( $post = 0, $leavename = false ) {
 			$author     = $authordata->user_nicename;
 		}
 
-		// This is not an API call because the permalink is based on the stored post_date value,
-		// which should be parsed as local time regardless of the default PHP timezone.
+		/*
+		 * This is not an API call because the permalink is based on the stored post_date value,
+		 * which should be parsed as local time regardless of the default PHP timezone.
+		 */
 		$date = explode( ' ', str_replace( array( '-', ':' ), ' ', $post->post_date ) );
 
 		$rewritereplace = array(
@@ -4434,7 +4438,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	if ( is_numeric( $id_or_email ) ) {
 		$user = get_user_by( 'id', absint( $id_or_email ) );
 	} elseif ( is_string( $id_or_email ) ) {
-		if ( strpos( $id_or_email, '@md5.gravatar.com' ) ) {
+		if ( str_contains( $id_or_email, '@md5.gravatar.com' ) ) {
 			// MD5 hash.
 			list( $email_hash ) = explode( '@', $id_or_email );
 		} else {

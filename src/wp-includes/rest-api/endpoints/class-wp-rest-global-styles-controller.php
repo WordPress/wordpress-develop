@@ -61,8 +61,10 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 			sprintf(
 				'/%s/themes/(?P<stylesheet>%s)',
 				$this->rest_base,
-				// Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
-				// Excludes invalid directory name characters: `/:<>*?"|`.
+				/*
+				 * Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+				 * Excludes invalid directory name characters: `/:<>*?"|`.
+				 */
 				'[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?'
 			),
 			array(
@@ -435,9 +437,9 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		);
 
 		if ( post_type_supports( $this->post_type, 'revisions' ) ) {
-			$revisions       = wp_get_latest_revision_id_and_total_count( $id );
-			$revisions_count = ! is_wp_error( $revisions ) ? $revisions['count'] : 0;
-			$revisions_base  = sprintf( '/%s/%d/revisions', $base, $id );
+			$revisions                = wp_get_latest_revision_id_and_total_count( $id );
+			$revisions_count          = ! is_wp_error( $revisions ) ? $revisions['count'] : 0;
+			$revisions_base           = sprintf( '/%s/%d/revisions', $base, $id );
 			$links['version-history'] = array(
 				'href'  => rest_url( $revisions_base ),
 				'count' => $revisions_count,
@@ -565,8 +567,10 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_theme_item_permissions_check( $request ) {
-		// Verify if the current user has edit_theme_options capability.
-		// This capability is required to edit/view/delete templates.
+		/*
+		 * Verify if the current user has edit_theme_options capability.
+		 * This capability is required to edit/view/delete templates.
+		 */
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new WP_Error(
 				'rest_cannot_manage_global_styles',
@@ -638,8 +642,10 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_theme_items_permissions_check( $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-		// Verify if the current user has edit_theme_options capability.
-		// This capability is required to edit/view/delete templates.
+		/*
+		 * Verify if the current user has edit_theme_options capability.
+		 * This capability is required to edit/view/delete templates.
+		 */
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new WP_Error(
 				'rest_cannot_manage_global_styles',
