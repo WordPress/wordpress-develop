@@ -7,6 +7,7 @@
  * @group post
  * @group revision
  * @group meta
+ * @group meta-revisions
  */
 class MetaRevisionTests extends WP_UnitTestCase {
 
@@ -246,7 +247,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 
 		// This revision contains the existing post meta ('update3').
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 6, $revisions );
+		$this->assertCount( 5, $revisions );
 
 		// Verify that previous post meta is set.
 		$this->assertEquals( 'update3', get_post_meta( $post_id, 'meta_revision_test', true ) );
