@@ -585,12 +585,28 @@ END;
 		$block->render();
 		remove_filter( 'render_block_data', $render_block_data_callback );
 
-		$this->assertSame( 5, $render_block_callback->get_call_count() );
+		$this->assertSame(
+			5,
+			$render_block_callback->get_call_count(),
+			"render_block filter wasn't called the correct number of 5 times."
+		);
 
 		$args = $render_block_callback->get_args();
-		$this->assertSame( 'core/comment-content', $args[0][2]->name );
-		$this->assertSame( 'core/comment-template', $args[1][2]->name );
-		$this->assertCount( 2, $args[1][2]->inner_blocks, "Inner block inserted by render_block_data filter wasn't retained." );
+		$this->assertSame(
+			'core/comment-content',
+			$args[0][2]->name,
+			"render_block filter didn't receive Comment Content block instance upon first call."
+		);
+		$this->assertSame(
+			'core/comment-template',
+			$args[1][2]->name,
+			"render_block filter didn't receive Comment Template block instance upon second call."
+		);
+		$this->assertCount(
+			2,
+			$args[1][2]->inner_blocks,
+			"Inner block inserted by render_block_data filter wasn't retained."
+		);
 		$this->assertInstanceOf(
 			'WP_Block',
 			$args[1][2]->inner_blocks[1],
