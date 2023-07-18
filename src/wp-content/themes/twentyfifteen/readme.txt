@@ -1,6 +1,6 @@
 === Twenty Fifteen ===
 Contributors: wordpressdotorg
-Requires at least: WordPress 4.1
+Requires at least: 4.1
 Tested up to: 6.3
 Requires PHP: 5.2.4
 Version: 3.5

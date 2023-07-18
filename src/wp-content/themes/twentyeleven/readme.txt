@@ -1,6 +1,6 @@
 === Twenty Eleven ===
 Contributors: wordpressdotorg
-Requires at least: WordPress 3.2
+Requires at least: 3.2
 Tested up to: 6.3
 Requires PHP: 5.2.4
 Stable tag: 4.4
