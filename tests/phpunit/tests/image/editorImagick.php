@@ -677,7 +677,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		);
 
 		$check = image_get_intermediate_size( $attachment_id, 'full' );
-		$this->assertNotEmpty( $check['file'], 'The intermediate size file was not found.' );
+		$this->assertIsArray( $check, 'The intermediate size could not be retrieved.' )
+		$this->assertArrayHasKey( 'file', $check, 'The intermediate size file was not found.' );
 
 		$check_file = path_join( dirname( $attached_file ), $check['file'] );
 		$imagick    = new Imagick( $check_file );
