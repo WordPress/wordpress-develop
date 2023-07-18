@@ -514,7 +514,7 @@ END
 	}
 
 	/**
-	 * Verify that the Comment Template block makes comment ID context available to programmatically inserted child blocks.
+	 * Tests that the Comment Template block makes comment ID context available to programmatically inserted child blocks.
 	 *
 	 * @ticket 58839
 	 *
