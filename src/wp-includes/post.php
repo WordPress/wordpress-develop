@@ -5458,6 +5458,10 @@ function wp_after_insert_post( $post, $update, $post_before ) {
 
 	$post_id = $post->ID;
 
+	if ( $update ) {
+		_wp_save_post_revision_meta( $post_id );
+	}
+
 	/**
 	 * Fires once a post, its terms and meta data has been saved.
 	 *
