@@ -580,7 +580,7 @@ END
 	}
 
 	/**
-	 * Verify that an inner block added via the render_block_data filter is retained at render_block stage.
+	 * Tests that an inner block added via the render_block_data filter is retained at render_block stage.
 	 *
 	 * @ticket 58839
 	 *
