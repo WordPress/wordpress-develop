@@ -358,8 +358,9 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		trailingslashit( $file_or_folder ) . 'block.json' :
 		$file_or_folder;
 
-	$is_core_block        = str_starts_with( $file_or_folder, ABSPATH . WPINC );
-	$metadata_file_exists = file_exists( $metadata_file );
+	$is_core_block = str_starts_with( $file_or_folder, ABSPATH . WPINC );
+	// If the block is not a core block, the metadata file must exist.
+	$metadata_file_exists = $is_core_block || file_exists( $metadata_file );
 	if ( ! $is_core_block && ! $metadata_file_exists && empty( $args['name'] ) ) {
 		return false;
 	}
