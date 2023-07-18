@@ -513,6 +513,13 @@ END
 		);
 	}
 
+	/**
+	 * Verify that the Comment Template block makes comment ID context available to programmatically inserted child blocks.
+	 *
+	 * @ticket 58839
+	 * @covers ::render_block_core_comment_template
+	 * @covers ::block_core_comment_template_render_comments
+	 */
 	public function test_rendering_comment_template_sets_comment_id_context() {
 		$parsed_comment_author_name_block = parse_blocks( '<!-- wp:comment-author-name /-->' )[0];
 		$comment_author_name_block        = new WP_Block(
