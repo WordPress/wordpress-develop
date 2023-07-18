@@ -108,18 +108,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 		</div>
 
-		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='100' height='100' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" />
-				</div>
-			</div>
-			<div class="column">
-				<h3><?php _e( 'Sharpen your designs with updated tools' ); ?></h3>
-				<p><?php _e( 'New design controls bring more versatility for fine-tuning designs, starting with the ability to customize your caption’s styles from the Styles Interface without coding. You can manage your duotone filters in Styles for supported blocks and pick from the options provided by your theme or disable them entirely. The Cover block gets added settings for text color, layout controls, and border options, making this powerful block even more handy.' ); ?></p>
-			</div>
-		</div>
-
 		<div class="about__section has-3-columns">
 			<div class="column">
 				<div class="about__image">
@@ -154,7 +142,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						<path d="M25.7781 16.8569L25.8 22.8573L28.9984 22.8572C29.805 22.8572 30.2796 23.6339 29.8204 24.2024L23.8213 31.6292C23.2633 32.3201 22.2013 31.9819 22.2013 31.1416L22.2 25.1481H19.0016C18.1961 25.1481 17.7212 24.3733 18.1782 23.8047L24.1496 16.3722C24.7055 15.6804 25.7749 16.0169 25.7781 16.8569Z" fill="white"/>
 					</svg>
 				</div>
-				<h3><?php _e( 'Performance gets a boost' ); ?></h3>
+				<h3 style="margin-top:calc(var(--gap) * 0.75);margin-bottom:calc(var(--gap) * 0.5)"><?php _e( 'Performance gets a boost' ); ?></h3>
 				<p><?php _e( 'WordPress 6.3 has 170+ performance updates, including defer and async support for the WP Scripts API and fetchpriority support for images. These improvements can improve your website’s load time as perceived by visitors, along with block template resolution, image lazy-loading, and the emoji loader.' ); ?></p>
 			</div>
 			<div class="column">
@@ -164,7 +152,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						<path d="M24 18.285C23.55 18.285 23.1638 18.1237 22.8413 17.8012C22.5188 17.4788 22.3575 17.0925 22.3575 16.6425C22.3575 16.1925 22.5188 15.8062 22.8413 15.4837C23.1638 15.1612 23.55 15 24 15C24.45 15 24.8363 15.1612 25.1588 15.4837C25.4813 15.8062 25.6425 16.1925 25.6425 16.6425C25.6425 17.0925 25.4813 17.4788 25.1588 17.8012C24.8363 18.1237 24.45 18.285 24 18.285ZM21.5925 33V21.0075C20.5725 20.9325 19.5863 20.8275 18.6338 20.6925C17.6813 20.5575 16.77 20.385 15.9 20.175L16.2375 18.825C17.5125 19.125 18.78 19.3387 20.04 19.4662C21.3 19.5938 22.62 19.6575 24 19.6575C25.38 19.6575 26.7 19.5938 27.96 19.4662C29.22 19.3387 30.4875 19.125 31.7625 18.825L32.1 20.175C31.23 20.385 30.3187 20.5575 29.3663 20.6925C28.4137 20.8275 27.4275 20.9325 26.4075 21.0075V33H25.0575V27.15H22.9425V33H21.5925Z" fill="white"/>
 					</svg>
 				</div>
-				<h3><?php _e( 'Accessibility remains a core focus' ); ?></h3>
+				<h3 style="margin-top:calc(var(--gap) * 0.75);margin-bottom:calc(var(--gap) * 0.5)"><?php _e( 'Accessibility remains a core focus' ); ?></h3>
 				<p><?php _e( 'Incorporating more than 50 accessibility improvements across the platform, WordPress 6.3 is more accessible than ever. Improved labeling, optimized tab and arrow-key navigation, revised heading hierarchy, and new controls in the admin image editor allow those using assistive technologies to navigate more easily.' ); ?></p>
 			</div>
 		</div>
