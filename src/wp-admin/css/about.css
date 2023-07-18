@@ -31,7 +31,7 @@
 	/* Accent colors: used in header, on special classes. */
 	--accent-1: #3858e9; /* Link color, credit image overlay */
 	--accent-2: #ffb7a7; /* Accent background */
-	--accent-3: #ffa800; /* hr background */
+	--accent-3: #f0f0f1; /* hr background */
 
 	/* Navigation colors. */
 	--nav-background: #fff;
@@ -536,21 +536,25 @@
 	padding: calc(var(--gap) * 2) 0;
 	min-height: 420px;
 	color: var(--text-light);
-	background: var(--background) url('../images/about-header-about.svg?ver=6.2') no-repeat;
+	background: var(--background) url('../images/about-header-about.svg?ver=6.3') no-repeat;
 	background-size: cover;
 	background-position: center;
 }
 
 .credits-php .about__header {
-	background-image: url('../images/about-header-credits.svg?ver=6.2');
+	background-image: url('../images/about-header-credits.svg?ver=6.3');
 }
 
 .freedoms-php .about__header {
-	background-image: url('../images/about-header-freedoms.svg?ver=6.2');
+	background-image: url('../images/about-header-freedoms.svg?ver=6.3');
 }
 
 .privacy-php .about__header {
-	background-image: url('../images/about-header-privacy.svg?ver=6.2');
+	background-image: url('../images/about-header-privacy.svg?ver=6.3');
+}
+
+.contribute-php .about__header {
+	background-image: url('../images/about-header-contribute.svg?ver=6.3');
 }
 
 .about__header-image {
