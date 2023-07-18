@@ -99,7 +99,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
 				<h3><?php _e( 'Sharpen your designs with new tools' ); ?></h3>
-				<p><?php _e( 'New design controls bring more versatility for fine-tuning designs, starting with the ability to customize your caption’s styles from the Styles Interface without coding. You can manage your duotone filters in Styles for supported blocks and pick from the options provided by your theme or disable them entirely. The Cover block gets added settings for text color, layout controls, and border options, making this powerful block even more handy.' ); ?></p>
+				<p><?php _e( 'New design controls bring more versatility for fine-tuning designs, starting with the ability to customize your caption&#8217;s styles from the Styles Interface without coding. You can manage your duotone filters in Styles for supported blocks and pick from the options provided by your theme or disable them entirely. The Cover block gets added settings for text color, layout controls, and border options, making this powerful block even more handy.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
@@ -143,7 +143,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3 style="margin-top:calc(var(--gap) * 0.75);margin-bottom:calc(var(--gap) * 0.5)"><?php _e( 'Performance gets a boost' ); ?></h3>
-				<p><?php _e( 'WordPress 6.3 has 170+ performance updates, including defer and async support for the WP Scripts API and fetchpriority support for images. These improvements can improve your website’s load time as perceived by visitors, along with block template resolution, image lazy-loading, and the emoji loader.' ); ?></p>
+				<p><?php _e( 'WordPress 6.3 has 170+ performance updates, including defer and async support for the WP Scripts API and fetchpriority support for images. These improvements can improve your website&#8217;s load time as perceived by visitors, along with block template resolution, image lazy-loading, and the emoji loader.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
