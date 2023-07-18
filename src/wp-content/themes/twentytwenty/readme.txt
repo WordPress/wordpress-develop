@@ -22,6 +22,11 @@ you pick, ensuring a high, accessible color contrast for your visitors.
 
 == Changelog ==
 
+= 2.3 =
+* Released: August 08, 2023
+
+https://wordpress.org/documentation/article/twenty-twenty-changelog/#Version_2.3
+
 = 2.2 =
 * Released: March 28, 2023
 
