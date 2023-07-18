@@ -47,6 +47,11 @@ Images
 
 == Changelog ==
 
+= 4.4 =
+* Released: August 08, 2023
+
+https://codex.wordpress.org/Twenty_Eleven_Theme_Changelog#Version_4.4
+
 = 4.3 =
 * Released: March 28, 2023
 
