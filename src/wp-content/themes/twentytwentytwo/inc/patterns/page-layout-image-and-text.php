@@ -12,7 +12,7 @@ return array(
 					<!-- /wp:group -->
 
 					<!-- wp:image {"align":"full","style":{"color":{}}} -->
-					<figure class="wp-block-image alignfull"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-transparent-b.png" alt="' . esc_attr_x( 'TBD', 'Short for to be determined', 'twentytwentytwo' ) . '"/></figure>
+					<figure class="wp-block-image alignfull"><img width="2400" height="1800" src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-transparent-b.png" alt="' . esc_attr_x( 'TBD', 'Short for to be determined', 'twentytwentytwo' ) . '"/></figure>
 					<!-- /wp:image -->
 
 					<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"2rem","bottom":"var(--wp--custom--spacing--large, 8rem)"}}},"layout":{"inherit":true}} -->

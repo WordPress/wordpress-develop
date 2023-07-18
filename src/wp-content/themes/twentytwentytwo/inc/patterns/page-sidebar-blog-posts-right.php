@@ -55,7 +55,7 @@ return array(
 
 					<!-- wp:column {"width":"33.33%"} -->
 					<div class="wp-block-column" style="flex-basis:33.33%"><!-- wp:image {"sizeSlug":"large","linkDestination":"none"} -->
-					<figure class="wp-block-image size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-salmon.jpg" alt="' . esc_attr__( 'Illustration of a flying bird.', 'twentytwentytwo' ) . '"/></figure>
+					<figure class="wp-block-image size-large"><img width="768" height="1160" src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-salmon.jpg" alt="' . esc_attr__( 'Illustration of a flying bird.', 'twentytwentytwo' ) . '"/></figure>
 					<!-- /wp:image -->
 
 					<!-- wp:spacer {"height":4} -->
