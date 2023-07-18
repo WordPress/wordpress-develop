@@ -374,12 +374,12 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
 /**
  * Save the revisioned meta fields.
  *
- * @param int $revision_id The ID of the revision to save the meta to.
  * @param int $post_id     The ID of the post the revision is associated with.
+ * @param int $revision_id The ID of the revision to save the meta to.
  *
  * @since 6.4.0
  */
-function wp_save_revisioned_meta_fields( $revision_id, $post_id) {
+function wp_save_revisioned_meta_fields( $post_id, $revision_id ) {
 
 	// Save revisioned meta fields.
 	foreach ( wp_post_revision_meta_keys() as $meta_key ) {
@@ -396,15 +396,15 @@ function wp_save_revisioned_meta_fields( $revision_id, $post_id) {
  *
  */
 function _wp_save_post_revision_meta( $post_id ) {
-	// Exit early if no revisions are enabled.
-	if ( 0 >= wp_revisions_to_keep( get_post( $post_id ) ) ) {
+	// Exit early if no revisions are stored.
+	if ( 0 === wp_revisions_to_keep( get_post( $post_id ) ) ) {
 		return;
 	}
 
 	// Add meta to revision.
-	$revision = wp_get_post_revision( $post_id );
-	if ( $revision ) {
-		wp_save_revisioned_meta_fields( $revision->post_id, $post_id );
+	$revisions = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
+	if ( $revisions ) {
+		wp_save_revisioned_meta_fields( $post_id,  $revisions[0]->post_id );
 	}
 }
 
