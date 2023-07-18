@@ -19,6 +19,10 @@ function render_block_core_template_part( $attributes ) {
 	$content          = null;
 	$area             = WP_TEMPLATE_PART_AREA_UNCATEGORIZED;
 	$stylesheet       = get_stylesheet();
+	if ( wp_theme_has_theme_json() && isset( $attributes['slug'] ) ) {
+		$theme_data = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_template_parts();
+		$area       = $theme_data[ $attributes['slug'] ]['area'];
+	}
 
 	if (
 		isset( $attributes['slug'] ) &&
@@ -44,6 +48,12 @@ function render_block_core_template_part( $attributes ) {
 			)
 		);
 		$template_part_post  = $template_part_query->have_posts() ? $template_part_query->next_post() : null;
+
+		echo "<pre>";
+		print_r($template_part_id);
+		print_r($template_part_post);
+		echo "</pre>";
+		
 		if ( $template_part_post ) {
 			// A published post might already exist if this template part was customized elsewhere
 			// or if it's part of a customized template.
@@ -67,20 +77,12 @@ function render_block_core_template_part( $attributes ) {
 			// Else, if the template part was provided by the active theme,
 			// render the corresponding file content.
 			if ( 0 === validate_file( $attributes['slug'] ) ) {
-				$themes   = array( $stylesheet );
-				$template = get_template();
-				if ( $stylesheet !== $template ) {
-					$themes[] = $template;
-				}
-
-				foreach ( $themes as $theme ) {
-					$theme_folders           = get_block_theme_folders( $theme );
-					$template_part_file_path = get_theme_file_path( '/' . $theme_folders['wp_template_part'] . '/' . $attributes['slug'] . '.html' );
-					if ( file_exists( $template_part_file_path ) ) {
-						$content = (string) file_get_contents( $template_part_file_path );
-						$content = '' !== $content ? _inject_theme_attribute_in_block_template_content( $content ) : '';
-						break;
-					}
+				$template_data = _get_block_template_file( 'wp_template_part', $attributes['slug'] );
+				if ( $template_data ) {
+					$template_part_file_path = $template_data['path'];
+					$area                    = $template_data['area'];
+					$content                 = (string) file_get_contents( $template_part_file_path );
+					$content                 = '' !== $content ? _inject_theme_attribute_in_block_template_content( $content ) : '';
 				}
 			}
 
@@ -157,6 +159,9 @@ function render_block_core_template_part( $attributes ) {
 	unset( $seen_ids[ $template_part_id ] );
 	$content = wptexturize( $content );
 	$content = convert_smilies( $content );
+	
+	print_r($area);
+	
 	$content = wp_filter_content_tags( $content, "template_part_{$area}" );
 
 	// Handle embeds for block template parts.
