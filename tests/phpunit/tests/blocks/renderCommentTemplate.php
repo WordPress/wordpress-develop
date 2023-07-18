@@ -583,6 +583,7 @@ END
 	 * Verify that an inner block added via the render_block_data filter is retained at render_block stage.
 	 *
 	 * @ticket 58839
+	 *
 	 * @covers ::render_block_core_comment_template
 	 * @covers ::block_core_comment_template_render_comments
 	 */
