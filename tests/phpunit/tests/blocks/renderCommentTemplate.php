@@ -517,6 +517,7 @@ END
 	 * Verify that the Comment Template block makes comment ID context available to programmatically inserted child blocks.
 	 *
 	 * @ticket 58839
+	 *
 	 * @covers ::render_block_core_comment_template
 	 * @covers ::block_core_comment_template_render_comments
 	 */
