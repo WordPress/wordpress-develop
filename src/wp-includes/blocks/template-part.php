@@ -19,10 +19,6 @@ function render_block_core_template_part( $attributes ) {
 	$content          = null;
 	$area             = WP_TEMPLATE_PART_AREA_UNCATEGORIZED;
 	$stylesheet       = get_stylesheet();
-	if ( wp_theme_has_theme_json() && isset( $attributes['slug'] ) ) {
-		$theme_data = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_template_parts();
-		$area       = $theme_data[ $attributes['slug'] ]['area'];
-	}
 
 	if (
 		isset( $attributes['slug'] ) &&
@@ -48,11 +44,6 @@ function render_block_core_template_part( $attributes ) {
 			)
 		);
 		$template_part_post  = $template_part_query->have_posts() ? $template_part_query->next_post() : null;
-
-		echo "<pre>";
-		print_r($template_part_id);
-		print_r($template_part_post);
-		echo "</pre>";
 		
 		if ( $template_part_post ) {
 			// A published post might already exist if this template part was customized elsewhere
