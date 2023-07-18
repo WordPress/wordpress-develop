@@ -390,6 +390,25 @@ function wp_save_revisioned_meta_fields( $revision_id, $post_id) {
 }
 
 /**
+ * Copy any revisioned meta fields from the post to the most recently saved revision.
+ *
+ * @since 6.4.0
+ *
+ */
+function _wp_save_post_revision_meta( $post_id ) {
+	// Exit early if no revisions are enabled.
+	if ( 0 >= wp_revisions_to_keep( get_post( $post_id ) ) ) {
+		return;
+	}
+
+	// Add meta to revision.
+	$revision = wp_get_post_revision( $post_id );
+	if ( $revision ) {
+		wp_save_revisioned_meta_fields( $revision->post_id, $post_id );
+	}
+}
+
+/**
  * Gets a post revision.
  *
  * @since 2.6.0
