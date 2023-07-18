@@ -403,7 +403,7 @@ function _wp_save_post_revision_meta( $post_id ) {
 
 	// Add meta to revision.
 	$revisions = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
-	if ( $revisions ) {
+	if ( $revisions && isset ( $revisions[0]->post_id )  ) {
 		wp_save_revisioned_meta_fields( $post_id, $revisions[0]->post_id );
 	}
 }
