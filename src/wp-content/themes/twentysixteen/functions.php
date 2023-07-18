@@ -384,20 +384,20 @@ add_action( 'wp_head', 'twentysixteen_javascript_detection', 0 );
  */
 function twentysixteen_scripts() {
 	// Add custom fonts, used in the main stylesheet.
-	$font_version = ( 0 === strpos( (string) twentysixteen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
+	$font_version = ( 0 === strpos( (string) twentysixteen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230808' : null;
 	wp_enqueue_style( 'twentysixteen-fonts', twentysixteen_fonts_url(), array(), $font_version );
 
 	// Add Genericons, used in the main stylesheet.
-	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20201208' );
+	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20230808' );
 
 	// Theme stylesheet.
-	wp_enqueue_style( 'twentysixteen-style', get_stylesheet_uri(), array(), '20230328' );
+	wp_enqueue_style( 'twentysixteen-style', get_stylesheet_uri(), array(), '20230808' );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentysixteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentysixteen-style' ), '20230206' );
+	wp_enqueue_style( 'twentysixteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentysixteen-style' ), '20230808' );
 
 	// Load the Internet Explorer specific stylesheet.
-	wp_enqueue_style( 'twentysixteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentysixteen-style' ), '20170530' );
+	wp_enqueue_style( 'twentysixteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentysixteen-style' ), '20230808' );
 	wp_style_add_data( 'twentysixteen-ie', 'conditional', 'lt IE 10' );
 
 	// Load the Internet Explorer 8 specific stylesheet.
@@ -413,7 +413,7 @@ function twentysixteen_scripts() {
 	wp_script_add_data( 'twentysixteen-html5', 'conditional', 'lt IE 9' );
 
 	// Skip-link fix is no longer enqueued by default.
-	wp_register_script( 'twentysixteen-skip-link-focus-fix', get_template_directory_uri() . '/js/skip-link-focus-fix.js', array(), '20230526', true );
+	wp_register_script( 'twentysixteen-skip-link-focus-fix', get_template_directory_uri() . '/js/skip-link-focus-fix.js', array(), '20230808', true );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
@@ -445,7 +445,7 @@ function twentysixteen_block_editor_styles() {
 	// Block styles.
 	wp_enqueue_style( 'twentysixteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20221004' );
 	// Add custom fonts.
-	$font_version = ( 0 === strpos( (string) twentysixteen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
+	$font_version = ( 0 === strpos( (string) twentysixteen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230808' : null;
 	wp_enqueue_style( 'twentysixteen-fonts', twentysixteen_fonts_url(), array(), $font_version );
 }
 add_action( 'enqueue_block_editor_assets', 'twentysixteen_block_editor_styles' );
