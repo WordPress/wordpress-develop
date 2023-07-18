@@ -66,7 +66,6 @@ function render_block_core_template_part( $attributes ) {
 			$template_part_file_path = '';
 			// Else, if the template part was provided by the active theme,
 			// render the corresponding file content.
-			$template_part_file_path = '';
 			if ( 0 === validate_file( $attributes['slug'] ) ) {
 				$block_template_file = _get_block_template_file( 'wp_template_part', $attributes['slug'] );
 				if ( $block_template_file ) {
