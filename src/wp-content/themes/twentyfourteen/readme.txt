@@ -2,6 +2,7 @@
 Contributors: wordpressdotorg
 Requires at least: WordPress 3.6
 Tested up to: 6.3
+Requires PHP: 5.2.4
 Stable tag: 3.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html

@@ -1,6 +1,8 @@
 === Twenty Sixteen ===
 Contributors: wordpressdotorg
+Requires at least: WordPress 4.4
 Tested up to: 6.3
+Requires PHP: 5.2.4
 Version: 3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
