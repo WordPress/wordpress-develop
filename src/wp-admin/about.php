@@ -290,9 +290,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						sprintf(
 							/* translators: %s: WordPress version number. */
 							esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
-							'6-2'
+							'6-3'
 						),
-						'6.2'
+						'6.3'
 					);
 					?>
 				</p>
