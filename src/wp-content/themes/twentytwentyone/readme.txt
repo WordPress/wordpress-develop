@@ -1,9 +1,9 @@
 === Twenty Twenty-One ===
 Contributors: wordpressdotorg
 Requires at least: 5.3
-Tested up to: 6.2
+Tested up to: 6.3
 Requires PHP: 5.6
-Stable tag: 1.8
+Stable tag: 1.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,6 +30,10 @@ No data is saved in the database or transferred.
 
 == Changelog ==
 
+= 1.9 =
+* Released: August 08, 2023
+
+https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version_1.9
 = 1.8 =
 * Released: March 28, 2023
 
