@@ -143,7 +143,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3 style="margin-top:calc(var(--gap) * 0.75);margin-bottom:calc(var(--gap) * 0.5)"><?php _e( 'Performance gets a boost' ); ?></h3>
-				<p><?php _e( 'WordPress 6.3 has 170+ performance updates, including defer and async support for the WP Scripts API and fetchpriority support for images. These improvements can improve your website&#8217;s load time as perceived by visitors, along with block template resolution, image lazy-loading, and the emoji loader.' ); ?></p>
+				<p><?php _e( 'WordPress 6.3 has 170+ performance updates, including defer and async support for the Scripts API and fetchpriority support for images. These improvements can improve your website&#8217;s load time as perceived by visitors, along with block template resolution, image lazy-loading, and the emoji loader.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
