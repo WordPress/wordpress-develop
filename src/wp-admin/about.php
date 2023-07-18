@@ -75,7 +75,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
 				<h3><?php _e( 'Create and sync patterns' ); ?></h3>
-				<p><?php _e( 'Arrange Blocks in unlimited ways and save them as Patterns for use throughout your site. You can even specify whether to sync your patterns (previously referred to as “reusable blocks”) so that one change applies to all parts of your site. Or, utilize patterns as a starting point with the ability to customize each instance.' ); ?></p>
+				<p><?php _e( 'Arrange blocks in unlimited ways and save them as Patterns for use throughout your site. You can even specify whether to sync your patterns (previously referred to as “reusable blocks”) so that one change applies to all parts of your site. Or, utilize patterns as a starting point with the ability to customize each instance.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
@@ -92,7 +92,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<h3><?php _e( 'Work faster with the Command Palette' ); ?></h3>
-				<p><?php _e( 'Switch to a specific template or open your editor preferences with a new tool that helps you quickly navigate expanded functionality. With simple keyboard shortcuts (⌘+k on Mac or ctrl+k on Windows), clicking the sidebar search icon in Site View, or clicking the Edit View Title Bar while in Edit View, get where you need to go and do what you need to do in seconds, either in the Site Editor or the Post Editor.' ); ?></p>
+				<p><?php _e( 'Switch to a specific template or open your editor preferences with a new tool that helps you quickly navigate expanded functionality. With simple keyboard shortcuts (⌘+k on Mac or ctrl+k on Windows), clicking the sidebar search icon in Site View, or clicking the Title Bar, get where you need to go and do what you need to do in seconds.' ); ?></p>
 			</div>
 		</div>
 
