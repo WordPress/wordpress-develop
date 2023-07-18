@@ -559,6 +559,13 @@ END
 		$this->assertStringContainsString( $comment_author_name_block_markup, $markup );
 	}
 
+	/**
+	 * Verify that an inner block added via the render_block_data filter is retained at render_block stage.
+	 *
+	 * @ticket 58839
+	 * @covers ::render_block_core_comment_template
+	 * @covers ::block_core_comment_template_render_comments
+	 */
 	public function test_inner_block_inserted_by_render_block_data_is_retained() {
 		$render_block_callback = new MockAction();
 		add_filter( 'render_block', array( $render_block_callback, 'filter' ), 10, 3 );
