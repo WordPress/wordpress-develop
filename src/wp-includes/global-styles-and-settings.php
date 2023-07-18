@@ -69,7 +69,7 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
 	 * developer's workflow.
 	 */
-	$can_use_cached = wp_get_development_mode() !== 'theme';
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
 
 	$settings = false;
 	if ( $can_use_cached ) {
@@ -152,7 +152,7 @@ function wp_get_global_stylesheet( $types = array() ) {
 	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
 	 * developer's workflow.
 	 */
-	$can_use_cached = empty( $types ) && wp_get_development_mode() !== 'theme';
+	$can_use_cached = empty( $types ) && ! wp_is_development_mode( 'theme' );
 
 	/*
 	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
@@ -251,7 +251,7 @@ function wp_get_global_styles_custom_css() {
 	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
 	 * developer's workflow.
 	 */
-	$can_use_cached = wp_get_development_mode() !== 'theme';
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
 
 	/*
 	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
@@ -320,26 +320,57 @@ function wp_add_global_styles_for_blocks() {
 
 		// The likes of block element styles from theme.json do not have  $metadata['name'] set.
 		if ( ! isset( $metadata['name'] ) && ! empty( $metadata['path'] ) ) {
-			$result = array_values(
-				array_filter(
-					$metadata['path'],
-					static function ( $item ) {
-						if ( str_contains( $item, 'core/' ) ) {
-							return true;
-						}
-						return false;
-					}
-				)
-			);
-			if ( isset( $result[0] ) ) {
-				if ( str_starts_with( $result[0], 'core/' ) ) {
-					$block_name        = str_replace( 'core/', '', $result[0] );
+			$block_name = wp_get_block_name_from_theme_json_path( $metadata['path'] );
+			if ( $block_name ) {
+				if ( str_starts_with( $block_name, 'core/' ) ) {
+					$block_name        = str_replace( 'core/', '', $block_name );
 					$stylesheet_handle = 'wp-block-' . $block_name;
 				}
 				wp_add_inline_style( $stylesheet_handle, $block_css );
 			}
 		}
 	}
+}
+
+/**
+ * Gets the block name from a given theme.json path.
+ *
+ * @since 6.3.0
+ * @access private
+ *
+ * @param array $path An array of keys describing the path to a property in theme.json.
+ * @return string Identified block name, or empty string if none found.
+ */
+function wp_get_block_name_from_theme_json_path( $path ) {
+	// Block name is expected to be the third item after 'styles' and 'blocks'.
+	if (
+		count( $path ) >= 3
+		&& 'styles' === $path[0]
+		&& 'blocks' === $path[1]
+		&& str_contains( $path[2], '/' )
+	) {
+		return $path[2];
+	}
+
+	/*
+	 * As fallback and for backward compatibility, allow any core block to be
+	 * at any position.
+	 */
+	$result = array_values(
+		array_filter(
+			$path,
+			static function ( $item ) {
+				if ( str_contains( $item, 'core/' ) ) {
+					return true;
+				}
+				return false;
+			}
+		)
+	);
+	if ( isset( $result[0] ) ) {
+		return $result[0];
+	}
+	return '';
 }
 
 /**
@@ -360,7 +391,7 @@ function wp_theme_has_theme_json() {
 		 * Ignore static cache when the development mode is set to 'theme', to avoid interfering with
 		 * the theme developer's workflow.
 		 */
-		wp_get_development_mode() !== 'theme'
+		! wp_is_development_mode( 'theme' )
 	) {
 		return $theme_has_support[ $stylesheet ];
 	}
