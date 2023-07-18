@@ -188,22 +188,22 @@ function twentytwelve_scripts_styles() {
 	}
 
 	// Adds JavaScript for handling the navigation menu hide-and-show behavior.
-	wp_enqueue_script( 'twentytwelve-navigation', get_template_directory_uri() . '/js/navigation.js', array( 'jquery' ), '20141205', true );
+	wp_enqueue_script( 'twentytwelve-navigation', get_template_directory_uri() . '/js/navigation.js', array( 'jquery' ), '20230808', true );
 
 	$font_url = twentytwelve_get_font_url();
 	if ( ! empty( $font_url ) ) {
-		$font_version = ( 0 === strpos( (string) twentytwelve_get_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
+		$font_version = ( 0 === strpos( (string) twentytwelve_get_font_url(), get_template_directory_uri() . '/' ) ) ? '20230808' : null;
 		wp_enqueue_style( 'twentytwelve-fonts', esc_url_raw( $font_url ), array(), $font_version );
 	}
 
 	// Loads our main stylesheet.
-	wp_enqueue_style( 'twentytwelve-style', get_stylesheet_uri(), array(), '20230328' );
+	wp_enqueue_style( 'twentytwelve-style', get_stylesheet_uri(), array(), '20230808' );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentytwelve-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentytwelve-style' ), '20230213' );
+	wp_enqueue_style( 'twentytwelve-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentytwelve-style' ), '20230808' );
 
 	// Loads the Internet Explorer specific stylesheet.
-	wp_enqueue_style( 'twentytwelve-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentytwelve-style' ), '20150214' );
+	wp_enqueue_style( 'twentytwelve-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentytwelve-style' ), '20230808' );
 	$wp_styles->add_data( 'twentytwelve-ie', 'conditional', 'lt IE 9' );
 }
 add_action( 'wp_enqueue_scripts', 'twentytwelve_scripts_styles' );
@@ -215,9 +215,9 @@ add_action( 'wp_enqueue_scripts', 'twentytwelve_scripts_styles' );
  */
 function twentytwelve_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentytwelve-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20230213' );
+	wp_enqueue_style( 'twentytwelve-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20230808' );
 	// Add custom fonts.
-	$font_version = ( 0 === strpos( (string) twentytwelve_get_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
+	$font_version = ( 0 === strpos( (string) twentytwelve_get_font_url(), get_template_directory_uri() . '/' ) ) ? '20230808' : null;
 	wp_enqueue_style( 'twentytwelve-fonts', twentytwelve_get_font_url(), array(), $font_version );
 }
 add_action( 'enqueue_block_editor_assets', 'twentytwelve_block_editor_styles' );
@@ -692,7 +692,7 @@ function twentytwelve_customize_partial_blogdescription() {
  * @since Twenty Twelve 1.0
  */
 function twentytwelve_customize_preview_js() {
-	wp_enqueue_script( 'twentytwelve-customizer', get_template_directory_uri() . '/js/theme-customizer.js', array( 'customize-preview' ), '20200516', true );
+	wp_enqueue_script( 'twentytwelve-customizer', get_template_directory_uri() . '/js/theme-customizer.js', array( 'customize-preview' ), '20230808', true );
 }
 add_action( 'customize_preview_init', 'twentytwelve_customize_preview_js' );
 
