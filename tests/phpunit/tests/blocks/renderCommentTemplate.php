@@ -521,6 +521,9 @@ END
 	 * @covers ::block_core_comment_template_render_comments
 	 */
 	public function test_rendering_comment_template_sets_comment_id_context() {
+		$render_block_context_callback = new MockAction();
+		add_filter( 'render_block_context', array( $render_block_context_callback, 'filter' ), 2, 3 );
+
 		$parsed_comment_author_name_block = parse_blocks( '<!-- wp:comment-author-name /-->' )[0];
 		$comment_author_name_block        = new WP_Block(
 			$parsed_comment_author_name_block,
@@ -560,6 +563,19 @@ END
 		$markup        = $block->render();
 
 		$this->assertStringContainsString( $comment_author_name_block_markup, $markup );
+
+		$args    = $render_block_context_callback->get_args();
+		$context = $args[0][0];
+		$this->assertArrayHasKey(
+			'commentId',
+			$context,
+			"commentId block context wasn't set for render_block_context filter at priority 2."
+		);
+		$this->assertSame(
+			strval( self::$comment_ids[0] ),
+			$context['commentId'],
+			"commentId block context wasn't set correctly."
+		);
 	}
 
 	/**
