@@ -77,7 +77,7 @@ class Tests_Block_Supports_DuoTones extends WP_UnitTestCase {
 	 * @covers ::get_slug_from_attribute
 	 */
 	public function test_get_slug_from_attribute( $data_attr, $expected ) {
-		$duotone   = new WP_Duotone();
+		$duotone    = new WP_Duotone();
 		$reflection = new ReflectionMethod( $duotone, 'get_slug_from_attribute' );
 		$reflection->setAccessible( true );
 
@@ -107,7 +107,7 @@ class Tests_Block_Supports_DuoTones extends WP_UnitTestCase {
 	 * @dataProvider data_is_preset
 	 */
 	public function test_is_preset( $data_attr, $expected ) {
-		$duotone   = new WP_Duotone();
+		$duotone    = new WP_Duotone();
 		$reflection = new ReflectionMethod( $duotone, 'is_preset' );
 		$reflection->setAccessible( true );
 
