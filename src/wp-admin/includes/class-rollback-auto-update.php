@@ -301,12 +301,10 @@ class WP_Rollback_Auto_Update {
 		$ref_temp_backups->setValue( $rollback_updater, $temp_backup );
 
 		// Call Rollback's restore_temp_backup().
-		$restore_temp_backup = new ReflectionMethod( $rollback_updater, 'restore_temp_backup' );
-		$restore_temp_backup->invoke( $rollback_updater );
+		$rollback_updater->restore_temp_backup();
 
 		// Call Rollback's delete_temp_backup().
-		$delete_temp_backup = new ReflectionMethod( $rollback_updater, 'delete_temp_backup' );
-		$delete_temp_backup->invoke( $rollback_updater );
+		$rollback_updater->delete_temp_backup();
 	}
 
 	/**
