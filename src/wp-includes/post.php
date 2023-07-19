@@ -4214,11 +4214,11 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	}
 
 	/*
-	 * Create a valid post name. Drafts and pending posts are allowed to have
+	 * Create a valid post name. Auto-Drafts and pending posts are allowed to have
 	 * an empty post name.
 	 */
 	if ( empty( $post_name ) ) {
-		if ( ! in_array( $post_status, array( 'draft', 'pending', 'auto-draft' ), true ) ) {
+		if ( ! in_array( $post_status, array( 'pending', 'auto-draft' ), true ) ) {
 			$post_name = sanitize_title( $post_title );
 		} else {
 			$post_name = '';
@@ -4509,7 +4509,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		$where = array( 'ID' => $post_id );
 	}
 
-	if ( empty( $data['post_name'] ) && ! in_array( $data['post_status'], array( 'draft', 'pending', 'auto-draft' ), true ) ) {
+	if ( empty( $data['post_name'] ) && ! in_array( $data['post_status'], array( 'pending', 'auto-draft' ), true ) ) {
 		$data['post_name'] = wp_unique_post_slug( sanitize_title( $data['post_title'], $post_id ), $post_id, $data['post_status'], $post_type, $post_parent );
 
 		$wpdb->update( $wpdb->posts, array( 'post_name' => $data['post_name'] ), $where );
@@ -5011,13 +5011,13 @@ function wp_resolve_post_date( $post_date = '', $post_date_gmt = '' ) {
  *
  * @param string $slug        The desired slug (post_name).
  * @param int    $post_id     Post ID.
- * @param string $post_status No uniqueness checks are made if the post is still draft or pending.
+ * @param string $post_status No uniqueness checks are made if the post is still auto-draft or pending.
  * @param string $post_type   Post type.
  * @param int    $post_parent Post parent ID.
  * @return string Unique slug for the post, based on $post_name (with a -1, -2, etc. suffix)
  */
 function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_parent ) {
-	if ( in_array( $post_status, array( 'draft', 'pending', 'auto-draft' ), true )
+	if ( in_array( $post_status, array( 'pending', 'auto-draft' ), true )
 		|| ( 'inherit' === $post_status && 'revision' === $post_type ) || 'user_request' === $post_type
 	) {
 		return $slug;
