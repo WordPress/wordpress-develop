@@ -457,9 +457,10 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			 * @param array    $attributes Block attributes.
 			 * @param string   $content    Block default content.
 			 * @param WP_Block $block      Block instance.
+			 *
 			 * @return string Returns the block content.
 			 */
-			$settings['render_callback'] = function( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+			$settings['render_callback'] = static function( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 				ob_start();
 				require $template_path;
 				return ob_get_clean();
@@ -537,33 +538,6 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 				}
 			}
 			$settings[ $settings_field_name ] = $processed_styles;
-		}
-	}
-
-	if ( ! empty( $metadata['render'] ) ) {
-		$template_path = wp_normalize_path(
-			realpath(
-				dirname( $metadata['file'] ) . '/' .
-				remove_block_asset_path_prefix( $metadata['render'] )
-			)
-		);
-		if ( $template_path ) {
-			/**
-			 * Renders the block on the server.
-			 *
-			 * @since 6.1.0
-			 *
-			 * @param array    $attributes Block attributes.
-			 * @param string   $content    Block default content.
-			 * @param WP_Block $block      Block instance.
-			 *
-			 * @return string Returns the block content.
-			 */
-			$settings['render_callback'] = static function( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-				ob_start();
-				require $template_path;
-				return ob_get_clean();
-			};
 		}
 	}
 
