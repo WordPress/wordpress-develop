@@ -2128,12 +2128,6 @@ function wp_ajax_inline_save() {
 		}
 	}
 
-	// Hack: wp_unique_post_slug() doesn't work for drafts, so we will fake that our post is published.
-	if ( ! empty( $data['post_name'] ) && in_array( $post['post_status'], array( 'draft', 'pending' ), true ) ) {
-		$post['post_status'] = 'publish';
-		$data['post_name']   = wp_unique_post_slug( $data['post_name'], $post['ID'], $post['post_status'], $post['post_type'], $post['post_parent'] );
-	}
-
 	// Update the post.
 	edit_post();
 
