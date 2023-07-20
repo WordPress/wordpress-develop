@@ -881,9 +881,16 @@ class wpdb {
 			}
 		}
 
-		// _unicode_520_ is a better collation, we should use that when it's available.
-		if ( $this->has_cap( 'utf8mb4_520' ) && 'utf8mb4_unicode_ci' === $collate ) {
-			$collate = 'utf8mb4_unicode_520_ci';
+		/*
+		 * _uca1400_ai_ci_ is a better collation, we should use that when it's available.
+		 * but fall back to _unicode_520_ when it's available.
+		 */
+		if ( 'utf8mb4_unicode_ci' === $collate ) {
+			if ( $this->has_cap( 'uca1400' ) ) {
+				$collate = 'uca1400_ai_ci';
+			} elseif ( $this->has_cap( 'utf8mb4_520' ) ) {
+				$collate = 'utf8mb4_unicode_520_ci';
+			}
 		}
 
 		return compact( 'charset', 'collate' );
@@ -3509,6 +3516,7 @@ class wpdb {
 			'utf8mb3_general_ci',
 			'utf8mb4_bin',
 			'utf8mb4_general_ci',
+			'uca1400_ai_ci',
 		);
 
 		foreach ( $this->col_meta[ $table ] as $col ) {
@@ -4042,12 +4050,13 @@ class wpdb {
 	 * @since 4.1.0 Added support for the 'utf8mb4' feature.
 	 * @since 4.6.0 Added support for the 'utf8mb4_520' feature.
 	 * @since 6.2.0 Added support for the 'identifier_placeholders' feature.
+	 * @since 6.4.0 Added support for the 'uca1400' feature.
 	 *
 	 * @see wpdb::db_version()
 	 *
 	 * @param string $db_cap The feature to check for. Accepts 'collation', 'group_concat',
 	 *                       'subqueries', 'set_charset', 'utf8mb4', 'utf8mb4_520',
-	 *                       or 'identifier_placeholders'.
+	 *                       'identifier_placeholders' or 'uca1400'.
 	 * @return bool True when the database feature is supported, false otherwise.
 	 */
 	public function has_cap( $db_cap ) {
@@ -4105,6 +4114,13 @@ class wpdb {
 				 * e.g. table/field names.
 				 */
 				return true;
+			case 'uca1400': // @since 6.4.0
+				$res = mysqli_query( $this->dbh, 'SHOW COLLATION WHERE Collation=\'uca1400_ai_ci\'' );
+
+				if ( $res ) {
+					return mysqli_num_rows( $res ) > 0;
+				}
+				return false;
 		}
 
 		return false;
