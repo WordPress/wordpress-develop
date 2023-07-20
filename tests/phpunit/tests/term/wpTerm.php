@@ -5,6 +5,17 @@
  */
 class Tests_Term_WpTerm extends WP_UnitTestCase {
 	protected static $term_id;
+	/**
+	 * @var string[]
+	 */
+	protected static $int_fields = array(
+		'parent',
+		'term_id',
+		'count',
+		'term_group',
+		'term_taxonomy_id',
+		'object_id',
+	);
 
 	public function set_up() {
 		parent::set_up();
@@ -94,15 +105,14 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 	 * @ticket 58329
 	 */
 	public function test_get_instance_no_sanitize() {
-		$int_fields    = array( 'parent', 'term_id', 'count', 'term_group', 'term_taxonomy_id', 'object_id' );
 		$obj           = new stdClass();
 		$obj->taxonomy = 'wptests_tax';
-		foreach ( $int_fields as $int_field ) {
+		foreach ( self::$int_fields as $int_field ) {
 			$obj->$int_field = 'test';
 		}
 		wp_cache_add( 999, $obj, 'terms' );
 		$term = WP_Term::get_instance( 999, 'wptests_tax', false );
-		foreach ( $int_fields as $int_field ) {
+		foreach ( self::$int_fields as $int_field ) {
 			$this->assertIsString( $term->$int_field );
 		}
 	}
@@ -111,15 +121,14 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 	 * @ticket 58329
 	 */
 	public function test_get_instance_sanitize() {
-		$int_fields    = array( 'parent', 'term_id', 'count', 'term_group', 'term_taxonomy_id', 'object_id' );
 		$obj           = new stdClass();
 		$obj->taxonomy = 'wptests_tax';
-		foreach ( $int_fields as $int_field ) {
+		foreach ( self::$int_fields as $int_field ) {
 			$obj->$int_field = 'test';
 		}
 		wp_cache_add( 999, $obj, 'terms' );
 		$term = WP_Term::get_instance( 999, 'wptests_tax' );
-		foreach ( $int_fields as $int_field ) {
+		foreach ( self::$int_fields as $int_field ) {
 			$this->assertIsInt( $term->$int_field );
 		}
 	}
