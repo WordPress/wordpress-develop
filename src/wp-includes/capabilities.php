@@ -1073,7 +1073,7 @@ function get_super_admins() {
  * @return bool Whether the user is a site admin.
  */
 function is_super_admin( $user_id = false ) {
-	if ( ! $user_id ) {
+	if ( false === $user_id ) {
 		$user = wp_get_current_user();
 	} else {
 		$user = get_userdata( $user_id );
