@@ -183,8 +183,8 @@ final class WP_Term {
 		}
 
 		$term_obj = new WP_Term( $_term );
-		if( $filter ) {
-			$term_obj->filter($filter);
+		if ( $filter ) {
+			$term_obj->filter( $filter );
 		}
 		return $term_obj;
 	}
