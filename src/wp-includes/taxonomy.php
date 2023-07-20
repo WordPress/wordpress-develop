@@ -944,10 +944,10 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 			$_term = sanitize_term( $term, $taxonomy, 'raw' );
 			$_term = new WP_Term( $_term );
 		} else {
-			$_term = WP_Term::get_instance( $term->term_id );
+			$_term = WP_Term::get_instance( $term->term_id, null, false );
 		}
 	} else {
-		$_term = WP_Term::get_instance( $term, $taxonomy );
+		$_term = WP_Term::get_instance( $term, $taxonomy, false );
 	}
 
 	if ( is_wp_error( $_term ) ) {

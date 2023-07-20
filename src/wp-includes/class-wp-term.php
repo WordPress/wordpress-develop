@@ -109,11 +109,12 @@ final class WP_Term {
 	 * @param int    $term_id  Term ID.
 	 * @param string $taxonomy Optional. Limit matched terms to those matching `$taxonomy`. Only used for
 	 *                         disambiguating potentially shared terms.
+	 * @param string $filter   Optional. How to sanitize term fields. Default 'raw'.
 	 * @return WP_Term|WP_Error|false Term object, if found. WP_Error if `$term_id` is shared between taxonomies and
 	 *                                there's insufficient data to distinguish which term is intended.
 	 *                                False for other failures.
 	 */
-	public static function get_instance( $term_id, $taxonomy = null ) {
+	public static function get_instance( $term_id, $taxonomy = null, $filter = 'raw' ) {
 		global $wpdb;
 
 		$term_id = (int) $term_id;
@@ -182,8 +183,9 @@ final class WP_Term {
 		}
 
 		$term_obj = new WP_Term( $_term );
-		$term_obj->filter( $term_obj->filter );
-
+		if( $filter ) {
+			$term_obj->filter($filter);
+		}
 		return $term_obj;
 	}
 
