@@ -1323,7 +1323,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 			'height' => $image_meta['height'],
 			'file'   => $image_basename,
 		);
-	} elseif ( strpos( $image_src, $image_meta['file'] ) ) {
+	} elseif ( str_contains( $image_src, $image_meta['file'] ) ) {
 		return false;
 	}
 
@@ -5620,6 +5620,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		}
 		return $loading_attributes;
 	};
+
 	// Closure to increase media count for images with certain minimum threshold, mostly used for header images.
 	$maybe_increase_content_media_count = static function() use ( $attr ) {
 		/** This filter is documented in wp-admin/includes/media.php */
