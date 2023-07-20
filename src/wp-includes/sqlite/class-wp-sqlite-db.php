@@ -16,8 +16,6 @@ class WP_SQLite_DB extends wpdb {
 	/**
 	 * Database Handle
 	 *
-	 * @access protected
-	 *
 	 * @var WP_SQLite_Translator
 	 */
 	protected $dbh;
@@ -315,7 +313,6 @@ class WP_SQLite_DB extends wpdb {
 	 * This overrides wpdb::load_col_info(), which uses a mysql function.
 	 *
 	 * @see    wpdb::load_col_info()
-	 * @access protected
 	 */
 	protected function load_col_info() {
 		if ( $this->col_info ) {
