@@ -130,11 +130,16 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 }
 
 /**
- * Deletes a user from the network and remove from all sites.
+ * Deletes a user and all of their posts from the network.
+ *
+ * This function:
+ *
+ * - Deletes all posts (of all post types) authored by the user on all sites on the network
+ * - Deletes all links owned by the user on all sites on the network
+ * - Removes the user from all sites on the network
+ * - Deletes the user from the database
  *
  * @since 3.0.0
- *
- * @todo Merge with wp_delete_user()?
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -843,6 +848,7 @@ var tb_pathToImage = "<?php echo esc_js( includes_url( 'js/thickbox/loadingAnima
 
 /**
  * @param array $users
+ * @return bool
  */
 function confirm_delete_users( $users ) {
 	$current_user = wp_get_current_user();
@@ -999,8 +1005,10 @@ function network_settings_add_js() {
 jQuery( function($) {
 	var languageSelect = $( '#WPLANG' );
 	$( 'form' ).on( 'submit', function() {
-		// Don't show a spinner for English and installed languages,
-		// as there is nothing to download.
+		/*
+		 * Don't show a spinner for English and installed languages,
+		 * as there is nothing to download.
+		 */
 		if ( ! languageSelect.find( 'option:selected' ).data( 'installed' ) ) {
 			$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active" />' );
 		}

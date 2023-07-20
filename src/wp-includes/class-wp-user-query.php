@@ -67,11 +67,12 @@ class WP_User_Query {
 	public $query_limit;
 
 	/**
-	 * PHP5 constructor.
+	 * Constructor.
 	 *
 	 * @since 3.1.0
 	 *
 	 * @param null|string|array $query Optional. The query variables.
+	 *                                 See WP_User_Query::prepare_query() for information on accepted arguments.
 	 */
 	public function __construct( $query = null ) {
 		if ( ! empty( $query ) ) {
@@ -85,7 +86,7 @@ class WP_User_Query {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $args Query vars, as passed to `WP_User_Query`.
+	 * @param string|array $args Query vars, as passed to `WP_User_Query`.
 	 * @return array Complete query variables with undefined ones filled in with defaults.
 	 */
 	public static function fill_query_vars( $args ) {
@@ -147,7 +148,7 @@ class WP_User_Query {
 	 * @global WP_Roles $wp_roles WordPress role management object.
 	 *
 	 * @param string|array $query {
-	 *     Optional. Array or string of Query parameters.
+	 *     Optional. Array or string of query parameters.
 	 *
 	 *     @type int             $blog_id             The site ID. Default is the current site.
 	 *     @type string|string[] $role                An array or a comma-separated list of role names that users must match
@@ -712,7 +713,7 @@ class WP_User_Query {
 				$search_columns = array_intersect( $qv['search_columns'], array( 'ID', 'user_login', 'user_email', 'user_url', 'user_nicename', 'display_name' ) );
 			}
 			if ( ! $search_columns ) {
-				if ( false !== strpos( $search, '@' ) ) {
+				if ( str_contains( $search, '@' ) ) {
 					$search_columns = array( 'user_email' );
 				} elseif ( is_numeric( $search ) ) {
 					$search_columns = array( 'user_login', 'ID' );
@@ -826,7 +827,7 @@ class WP_User_Query {
 			";
 			$cache_value   = false;
 			$cache_key     = $this->generate_cache_key( $qv, $this->request );
-			$cache_group   = 'users-queries';
+			$cache_group   = 'user-queries';
 			if ( $qv['cache_results'] ) {
 				$cache_value = wp_cache_get( $cache_key, $cache_group );
 			}
@@ -1008,12 +1009,11 @@ class WP_User_Query {
 				FROM $wpdb->posts
 				$where
 				GROUP BY post_author
-			) p ON ({$wpdb->users}.ID = p.post_author)
-			";
+			) p ON ({$wpdb->users}.ID = p.post_author)";
 			$_orderby          = 'post_count';
 		} elseif ( 'ID' === $orderby || 'id' === $orderby ) {
 			$_orderby = 'ID';
-		} elseif ( 'meta_value' === $orderby || $this->get( 'meta_key' ) == $orderby ) {
+		} elseif ( 'meta_value' === $orderby || $this->get( 'meta_key' ) === $orderby ) {
 			$_orderby = "$wpdb->usermeta.meta_value";
 		} elseif ( 'meta_value_num' === $orderby ) {
 			$_orderby = "$wpdb->usermeta.meta_value+0";
