@@ -784,7 +784,7 @@ class WP_Term_Query {
 				$cache = array_map( 'intval', $cache );
 			} elseif ( 'count' !== $_fields ) {
 				if ( ( 'all_with_object_id' === $_fields && ! empty( $args['object_ids'] ) )
-					|| ( 'all' === $_fields && $args['pad_counts'] )
+					|| ( 'all' === $_fields && $args['pad_counts'] || $fields_is_filtered )
 				) {
 					$term_ids = wp_list_pluck( $cache, 'term_id' );
 				} else {
