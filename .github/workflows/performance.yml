@@ -100,6 +100,8 @@ jobs:
 
       - name: Install npm dependencies
         run: npm ci
+        env:
+          CI: true
 
       - name: Build WordPress
         run: npm run build

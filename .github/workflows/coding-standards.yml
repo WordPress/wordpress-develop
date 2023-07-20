@@ -162,6 +162,8 @@ jobs:
 
       - name: Install npm Dependencies
         run: npm ci
+        env:
+          CI: true
 
       - name: Run JSHint
         run: npm run grunt jshint

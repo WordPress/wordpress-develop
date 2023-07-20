@@ -86,6 +86,8 @@ jobs:
 
       - name: Install npm Dependencies
         run: npm ci
+        env:
+          CI: true
 
       - name: Build WordPress in /src
         run: npm run build:dev
@@ -152,6 +154,8 @@ jobs:
 
       - name: Install npm Dependencies
         run: npm ci
+        env:
+          CI: true
 
       - name: Build WordPress in /src
         run: npm run build:dev
