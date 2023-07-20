@@ -294,6 +294,72 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 31635
+	 */
+	public function test_bulk_edit_posts_should_publish_scheduled_post() {
+		wp_set_current_user( self::$admin_id );
+
+		$post = self::factory()->post->create(
+			array(
+				'post_author'    => self::$author_ids[0],
+				'comment_status' => 'closed',
+				'ping_status'    => 'closed',
+				'post_status'    => 'future',
+				'post_date'      => gmdate( 'Y-m-d H:i:s', strtotime( '+1 month' ) ),
+			)
+		);
+
+		$request = array(
+			'post_type'      => 'post',
+			'post_author'    => -1,
+			'ping_status'    => -1,
+			'comment_status' => -1,
+			'_status'        => 'publish',
+			'post'           => array( $post ),
+		);
+
+		bulk_edit_posts( $request );
+
+		$this->assertSame( 'publish', get_post_status( $post ) );
+		$this->assertLessThanOrEqual( gmdate( 'Y-m-d H:i:s' ), get_post_time( 'Y-m-d H:i:s', false, $post ) );
+	}
+	/**
+	 * @ticket 31635
+	 */
+	public function test_bulk_edit_posts_should_publish_draft_immediately() {
+		wp_set_current_user( self::$admin_id );
+
+		// Create draft last edited a month ago
+		$post = self::factory()->post->create(
+			array(
+				'post_author'    => self::$author_ids[0],
+				'comment_status' => 'closed',
+				'ping_status'    => 'closed',
+				'post_status'    => 'draft',
+				'post_date'      => gmdate( 'Y-m-d H:i:s', strtotime( '-1 month' ) ),
+			)
+		);
+
+		$request = array(
+			'post_type'      => 'post',
+			'post_author'    => -1,
+			'ping_status'    => -1,
+			'comment_status' => -1,
+			'_status'        => 'publish',
+			'post'           => array( $post ),
+		);
+
+		bulk_edit_posts( $request );
+
+		$this->assertSame( 'publish', get_post_status( $post ) );
+
+		// Expect to be published within the last minute (to consider slow testing environment).
+		$minute_before = gmdate( 'Y-m-d H:i:s', strtotime( '-1 minute' ) );
+		$this->assertGreaterThanOrEqual( $minute_before, get_post_time( 'Y-m-d H:i:s', false, $post ) );
+		$this->assertLessThanOrEqual( gmdate( 'Y-m-d H:i:s' ), get_post_time( 'Y-m-d H:i:s', false, $post ) );
+	}
+
+	/**
 	 * @ticket 41396
 	 */
 	public function test_bulk_edit_posts_should_set_post_format_before_wp_update_post_runs() {
@@ -316,6 +382,31 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		if ( self::$post_id === $post_id ) {
 			$this->assertSame( 'aside', get_post_format( $post_id ) );
 		}
+	}
+
+	/**
+	 * Tests that `bulk_edit_posts()` fires the 'bulk_edit_posts' action.
+	 *
+	 * @ticket 28112
+	 *
+	 * @covers ::bulk_edit_posts
+	 */
+	public function test_bulk_edit_posts_should_fire_bulk_edit_posts_action() {
+		wp_set_current_user( self::$admin_id );
+
+		$action = new MockAction();
+		add_action( 'bulk_edit_posts', array( $action, 'action' ) );
+
+		bulk_edit_posts(
+			array(
+				'post'      => self::$post_id,
+				'post_type' => 'post',
+				'_status'   => 1,
+
+			)
+		);
+
+		$this->assertSame( 1, $action->get_call_count() );
 	}
 
 	/**
@@ -826,6 +917,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 			'category'        => 'common',
 			'render_callback' => 'foo',
 			'ancestor'        => array( 'core/test-ancestor' ),
+			'selectors'       => array( 'root' => '.wp-block-test' ),
 		);
 
 		register_block_type( $name, $settings );
@@ -845,6 +937,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 					'lock' => array( 'type' => 'object' ),
 				),
 				'usesContext' => array(),
+				'selectors'   => array( 'root' => '.wp-block-test' ),
 				'category'    => 'common',
 				'styles'      => array(),
 				'ancestor'    => array( 'core/test-ancestor' ),

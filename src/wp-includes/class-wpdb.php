@@ -1437,12 +1437,12 @@ class wpdb {
 	/**
 	 * Prepares a SQL query for safe execution.
 	 *
-	 * Uses sprintf()-like syntax. The following placeholders can be used in the query string:
+	 * Uses `sprintf()`-like syntax. The following placeholders can be used in the query string:
 	 *
-	 * - %d (integer)
-	 * - %f (float)
-	 * - %s (string)
-	 * - %i (identifier, e.g. table/field names)
+	 * - `%d` (integer)
+	 * - `%f` (float)
+	 * - `%s` (string)
+	 * - `%i` (identifier, e.g. table/field names)
 	 *
 	 * All placeholders MUST be left unquoted in the query string. A corresponding argument
 	 * MUST be passed for each placeholder.
@@ -1477,12 +1477,12 @@ class wpdb {
 	 *              from `$args` to `...$args`.
 	 * @since 6.2.0 Added `%i` for identifiers, e.g. table or field names.
 	 *              Check support via `wpdb::has_cap( 'identifier_placeholders' )`.
-	 *              This preserves compatibility with sprintf(), as the C version uses
+	 *              This preserves compatibility with `sprintf()`, as the C version uses
 	 *              `%d` and `$i` as a signed integer, whereas PHP only supports `%d`.
 	 *
 	 * @link https://www.php.net/sprintf Description of syntax.
 	 *
-	 * @param string      $query   Query statement with sprintf()-like placeholders.
+	 * @param string      $query   Query statement with `sprintf()`-like placeholders.
 	 * @param array|mixed $args    The array of variables to substitute into the query's placeholders
 	 *                             if being called with an array of arguments, or the first variable
 	 *                             to substitute into the query's placeholders if being called with
@@ -1496,8 +1496,14 @@ class wpdb {
 			return;
 		}
 
-		// This is not meant to be foolproof -- but it will catch obviously incorrect usage.
-		if ( strpos( $query, '%' ) === false ) {
+		/*
+		 * This is not meant to be foolproof -- but it will catch obviously incorrect usage.
+		 *
+		 * Note: str_contains() is not used here, as this file can be included
+		 * directly outside of WordPress core, e.g. by HyperDB, in which case
+		 * the polyfills from wp-includes/compat.php are not loaded.
+		 */
+		if ( false === strpos( $query, '%' ) ) {
 			wp_load_translations_early();
 			_doing_it_wrong(
 				'wpdb::prepare',
@@ -1564,6 +1570,11 @@ class wpdb {
 			$type   = substr( $placeholder, -1 );
 
 			if ( 'f' === $type && true === $this->allow_unsafe_unquoted_parameters
+				/*
+				 * Note: str_ends_with() is not used here, as this file can be included
+				 * directly outside of WordPress core, e.g. by HyperDB, in which case
+				 * the polyfills from wp-includes/compat.php are not loaded.
+				 */
 				&& '%' === substr( $split_query[ $key - 1 ], -1, 1 )
 			) {
 
@@ -1625,6 +1636,11 @@ class wpdb {
 					 * Second, if "%s" has a "%" before it, even if it's unrelated (e.g. "LIKE '%%%s%%'").
 					 */
 					if ( true !== $this->allow_unsafe_unquoted_parameters
+						/*
+						 * Note: str_ends_with() is not used here, as this file can be included
+						 * directly outside of WordPress core, e.g. by HyperDB, in which case
+						 * the polyfills from wp-includes/compat.php are not loaded.
+						 */
 						|| ( '' === $format && '%' !== substr( $split_query[ $key - 1 ], -1, 1 ) )
 					) {
 						$placeholder = "'%" . $format . "s'";
@@ -2139,8 +2155,10 @@ class wpdb {
 			$host   = substr( $host, 0, $socket_pos );
 		}
 
-		// We need to check for an IPv6 address first.
-		// An IPv6 address will always contain at least two colons.
+		/*
+		 * We need to check for an IPv6 address first.
+		 * An IPv6 address will always contain at least two colons.
+		 */
 		if ( substr_count( $host, ':' ) > 1 ) {
 			$pattern = '#^(?:\[)?(?P<host>[0-9a-fA-F:]+)(?:\]:(?P<port>[\d]+))?#';
 			$is_ipv6 = true;
@@ -2197,8 +2215,10 @@ class wpdb {
 		}
 
 		for ( $tries = 1; $tries <= $this->reconnect_retries; $tries++ ) {
-			// On the last try, re-enable warnings. We want to see a single instance
-			// of the "unable to connect" message on the bail() screen, if it appears.
+			/*
+			 * On the last try, re-enable warnings. We want to see a single instance
+			 * of the "unable to connect" message on the bail() screen, if it appears.
+			 */
 			if ( $this->reconnect_retries === $tries && WP_DEBUG ) {
 				error_reporting( $error_reporting );
 			}
@@ -2214,8 +2234,10 @@ class wpdb {
 			sleep( 1 );
 		}
 
-		// If template_redirect has already happened, it's too late for wp_die()/dead_db().
-		// Let's just return and hope for the best.
+		/*
+		 * If template_redirect has already happened, it's too late for wp_die()/dead_db().
+		 * Let's just return and hope for the best.
+		 */
 		if ( did_action( 'template_redirect' ) ) {
 			return false;
 		}
@@ -2248,8 +2270,10 @@ class wpdb {
 		// We weren't able to reconnect, so we better bail.
 		$this->bail( $message, 'db_connect_fail' );
 
-		// Call dead_db() if bail didn't die, because this database is no more.
-		// It has ceased to be (at least temporarily).
+		/*
+		 * Call dead_db() if bail didn't die, because this database is no more.
+		 * It has ceased to be (at least temporarily).
+		 */
 		dead_db();
 	}
 
@@ -2297,8 +2321,10 @@ class wpdb {
 		// If we're writing to the database, make sure the query will write safely.
 		if ( $this->check_current_query && ! $this->check_ascii( $query ) ) {
 			$stripped_query = $this->strip_invalid_text_from_query( $query );
-			// strip_invalid_text_from_query() can perform queries, so we need
-			// to flush again, just to make sure everything is clear.
+			/*
+			 * strip_invalid_text_from_query() can perform queries, so we need
+			 * to flush again, just to make sure everything is clear.
+			 */
 			$this->flush();
 			if ( $stripped_query !== $query ) {
 				$this->insert_id  = 0;
@@ -2326,8 +2352,10 @@ class wpdb {
 				if ( $this->dbh instanceof mysqli ) {
 					$mysql_errno = mysqli_errno( $this->dbh );
 				} else {
-					// $dbh is defined, but isn't a real connection.
-					// Something has gone horribly wrong, let's try a reconnect.
+					/*
+					 * $dbh is defined, but isn't a real connection.
+					 * Something has gone horribly wrong, let's try a reconnect.
+					 */
 					$mysql_errno = 2006;
 				}
 			} else {
@@ -2556,13 +2584,13 @@ class wpdb {
 	 *
 	 * @param string       $table  Table name.
 	 * @param array        $data   Data to insert (in column => value pairs).
-	 *                             Both $data columns and $data values should be "raw" (neither should be SQL escaped).
+	 *                             Both `$data` columns and `$data` values should be "raw" (neither should be SQL escaped).
 	 *                             Sending a null value will cause the column to be set to NULL - the corresponding
 	 *                             format is ignored in this case.
-	 * @param array|string $format Optional. An array of formats to be mapped to each of the value in $data.
-	 *                             If string, that format will be used for all of the values in $data.
+	 * @param array|string $format Optional. An array of formats to be mapped to each of the value in `$data`.
+	 *                             If string, that format will be used for all of the values in `$data`.
 	 *                             A format is one of '%d', '%f', '%s' (integer, float, string).
-	 *                             If omitted, all values in $data will be treated as strings unless otherwise
+	 *                             If omitted, all values in `$data` will be treated as strings unless otherwise
 	 *                             specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows inserted, or false on error.
 	 */
@@ -2586,13 +2614,13 @@ class wpdb {
 	 *
 	 * @param string       $table  Table name.
 	 * @param array        $data   Data to insert (in column => value pairs).
-	 *                             Both $data columns and $data values should be "raw" (neither should be SQL escaped).
+	 *                             Both `$data` columns and `$data` values should be "raw" (neither should be SQL escaped).
 	 *                             Sending a null value will cause the column to be set to NULL - the corresponding
 	 *                             format is ignored in this case.
-	 * @param array|string $format Optional. An array of formats to be mapped to each of the value in $data.
-	 *                             If string, that format will be used for all of the values in $data.
+	 * @param array|string $format Optional. An array of formats to be mapped to each of the value in `$data`.
+	 *                             If string, that format will be used for all of the values in `$data`.
 	 *                             A format is one of '%d', '%f', '%s' (integer, float, string).
-	 *                             If omitted, all values in $data will be treated as strings unless otherwise
+	 *                             If omitted, all values in `$data` will be treated as strings unless otherwise
 	 *                             specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows affected, or false on error.
 	 */
@@ -2603,7 +2631,7 @@ class wpdb {
 	/**
 	 * Helper function for insert and replace.
 	 *
-	 * Runs an insert or replace query based on $type argument.
+	 * Runs an insert or replace query based on `$type` argument.
 	 *
 	 * @since 3.0.0
 	 *
@@ -2613,15 +2641,15 @@ class wpdb {
 	 *
 	 * @param string       $table  Table name.
 	 * @param array        $data   Data to insert (in column => value pairs).
-	 *                             Both $data columns and $data values should be "raw" (neither should be SQL escaped).
+	 *                             Both `$data` columns and `$data` values should be "raw" (neither should be SQL escaped).
 	 *                             Sending a null value will cause the column to be set to NULL - the corresponding
 	 *                             format is ignored in this case.
-	 * @param array|string $format Optional. An array of formats to be mapped to each of the value in $data.
-	 *                             If string, that format will be used for all of the values in $data.
+	 * @param array|string $format Optional. An array of formats to be mapped to each of the value in `$data`.
+	 *                             If string, that format will be used for all of the values in `$data`.
 	 *                             A format is one of '%d', '%f', '%s' (integer, float, string).
-	 *                             If omitted, all values in $data will be treated as strings unless otherwise
+	 *                             If omitted, all values in `$data` will be treated as strings unless otherwise
 	 *                             specified in wpdb::$field_types. Default null.
-	 * @param string       $type   Optional. Type of operation. Possible values include 'INSERT' or 'REPLACE'.
+	 * @param string       $type   Optional. Type of operation. Either 'INSERT' or 'REPLACE'.
 	 *                             Default 'INSERT'.
 	 * @return int|false The number of rows affected, or false on error.
 	 */
@@ -3106,8 +3134,10 @@ class wpdb {
 			// Return an integer-keyed array of row objects.
 			return $this->last_result;
 		} elseif ( OBJECT_K === $output ) {
-			// Return an array of row objects with keys from column 1.
-			// (Duplicates are discarded.)
+			/*
+			 * Return an array of row objects with keys from column 1.
+			 * (Duplicates are discarded.)
+			 */
 			if ( $this->last_result ) {
 				foreach ( $this->last_result as $row ) {
 					$var_by_ref = get_object_vars( $row );
@@ -3121,11 +3151,13 @@ class wpdb {
 		} elseif ( ARRAY_A === $output || ARRAY_N === $output ) {
 			// Return an integer-keyed array of...
 			if ( $this->last_result ) {
-				foreach ( (array) $this->last_result as $row ) {
-					if ( ARRAY_N === $output ) {
+				if ( ARRAY_N === $output ) {
+					foreach ( (array) $this->last_result as $row ) {
 						// ...integer-keyed row arrays.
 						$new_array[] = array_values( get_object_vars( $row ) );
-					} else {
+					}
+				} else {
+					foreach ( (array) $this->last_result as $row ) {
 						// ...column name-keyed row arrays.
 						$new_array[] = get_object_vars( $row );
 					}
@@ -3319,6 +3351,7 @@ class wpdb {
 	 *
 	 *     @type int    $length The column length.
 	 *     @type string $type   One of 'byte' or 'char'.
+	 * }
 	 */
 	public function get_col_length( $table, $column ) {
 		$tablekey  = strtolower( $table );
@@ -3510,8 +3543,10 @@ class wpdb {
 				$truncate_by_byte_length = 'byte' === $value['length']['type'];
 			} else {
 				$length = false;
-				// Since we have no length, we'll never truncate. Initialize the variable to false.
-				// True would take us through an unnecessary (for this case) codepath below.
+				/*
+				 * Since we have no length, we'll never truncate. Initialize the variable to false.
+				 * True would take us through an unnecessary (for this case) codepath below.
+				 */
 				$truncate_by_byte_length = false;
 			}
 
@@ -4037,8 +4072,14 @@ class wpdb {
 		$db_version     = $this->db_version();
 		$db_server_info = $this->db_server_info();
 
-		// Account for MariaDB version being prefixed with '5.5.5-' on older PHP versions.
-		if ( '5.5.5' === $db_version && str_contains( $db_server_info, 'MariaDB' )
+		/*
+		 * Account for MariaDB version being prefixed with '5.5.5-' on older PHP versions.
+		 *
+		 * Note: str_contains() is not used here, as this file can be included
+		 * directly outside of WordPress core, e.g. by HyperDB, in which case
+		 * the polyfills from wp-includes/compat.php are not loaded.
+		 */
+		if ( '5.5.5' === $db_version && false !== strpos( $db_server_info, 'MariaDB' )
 			&& PHP_VERSION_ID < 80016 // PHP 8.0.15 or older.
 		) {
 			// Strip the '5.5.5-' prefix and set the version to the correct value.
@@ -4066,6 +4107,10 @@ class wpdb {
 				/*
 				 * libmysql has supported utf8mb4 since 5.5.3, same as the MySQL server.
 				 * mysqlnd has supported utf8mb4 since 5.0.9.
+				 *
+				 * Note: str_contains() is not used here, as this file can be included
+				 * directly outside of WordPress core, e.g. by HyperDB, in which case
+				 * the polyfills from wp-includes/compat.php are not loaded.
 				 */
 				if ( false !== strpos( $client_version, 'mysqlnd' ) ) {
 					$client_version = preg_replace( '/^\D+([\d.]+).*/', '$1', $client_version );

@@ -351,6 +351,91 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `wp_image_editor()` applies 'image_edit_thumbnails_separately' filters.
+	 *
+	 * @ticket 53161
+	 *
+	 * @covers ::wp_image_editor
+	 */
+	public function test_wp_image_editor_should_apply_image_edit_thumbnails_separately_filters() {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$filename = DIR_TESTDATA . '/images/canola.jpg';
+		$contents = file_get_contents( $filename );
+		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
+		$id       = $this->_make_attachment( $upload );
+
+		$filter = new MockAction();
+		add_filter( 'image_edit_thumbnails_separately', array( &$filter, 'filter' ) );
+
+		ob_start();
+		wp_image_editor( $id );
+		ob_end_clean();
+
+		$this->assertSame( 1, $filter->get_call_count() );
+	}
+
+	/**
+	 * Tests that `wp_image_editor()` conditionally outputs markup for editing thumbnails separately
+	 * based on the result of applying 'image_edit_thumbnails_separately' filters.
+	 *
+	 * @ticket 53161
+	 *
+	 * @covers ::wp_image_editor
+	 *
+	 * @dataProvider data_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters
+	 *
+	 * @param string $callback The name of the callback for the 'image_edit_thumbnails_separately' hook.
+	 * @param bool   $expected Whether the markup should be output.
+	 */
+	public function test_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters( $callback, $expected ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$filename = DIR_TESTDATA . '/images/canola.jpg';
+		$contents = file_get_contents( $filename );
+		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
+		$id       = $this->_make_attachment( $upload );
+
+		add_filter( 'image_edit_thumbnails_separately', $callback );
+
+		ob_start();
+		wp_image_editor( $id );
+		$actual = ob_get_clean();
+
+		if ( $expected ) {
+			$this->assertStringContainsString(
+				'imgedit-applyto',
+				$actual,
+				'The markup should have been output.'
+			);
+		} else {
+			$this->assertStringNotContainsString(
+				'imgedit-applyto',
+				$actual,
+				'The markup should not have been output.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters() {
+		return array(
+			'true'  => array(
+				'callback' => '__return_true',
+				'expected' => true,
+			),
+			'false' => array(
+				'callback' => '__return_false',
+				'expected' => false,
+			),
+		);
+	}
+
+	/**
 	 * Tests that a passed mime type overrides the extension in the filename when saving an image.
 	 *
 	 * @dataProvider data_image_editor_engine_classes

@@ -147,7 +147,7 @@ function shortcode_exists( $tag ) {
  * @return bool Whether the passed content contains the given shortcode.
  */
 function has_shortcode( $content, $tag ) {
-	if ( false === strpos( $content, '[' ) ) {
+	if ( ! str_contains( $content, '[' ) ) {
 		return false;
 	}
 
@@ -205,7 +205,7 @@ function apply_shortcodes( $content, $ignore_html = false ) {
 function do_shortcode( $content, $ignore_html = false ) {
 	global $shortcode_tags;
 
-	if ( false === strpos( $content, '[' ) ) {
+	if ( ! str_contains( $content, '[' ) ) {
 		return $content;
 	}
 
@@ -221,6 +221,14 @@ function do_shortcode( $content, $ignore_html = false ) {
 		return $content;
 	}
 
+	// Ensure this context is only added once if shortcodes are nested.
+	$has_filter = has_filter( 'wp_get_attachment_image_context', '_filter_do_shortcode_context' );
+	$filter_added = false;
+
+	if ( ! $has_filter ) {
+		$filter_added = add_filter( 'wp_get_attachment_image_context', '_filter_do_shortcode_context' );
+	}
+
 	$content = do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames );
 
 	$pattern = get_shortcode_regex( $tagnames );
@@ -229,7 +237,27 @@ function do_shortcode( $content, $ignore_html = false ) {
 	// Always restore square braces so we don't break things like <!--[if IE ]>.
 	$content = unescape_invalid_shortcodes( $content );
 
+	// Only remove the filter if it was added in this scope.
+	if ( $filter_added ) {
+		remove_filter( 'wp_get_attachment_image_context', '_filter_do_shortcode_context' );
+	}
+
 	return $content;
+}
+
+/**
+ * Filter the `wp_get_attachment_image_context` hook during shortcode rendering.
+ *
+ * When wp_get_attachment_image() is called during shortcode rendering, we need to make clear
+ * that the context is a shortcode and not part of the theme's template rendering logic.
+ *
+ * @since 6.3.0
+ * @access private
+ *
+ * @return string The filtered context value for wp_get_attachment_images when doing shortcodes.
+ */
+function _filter_do_shortcode_context() {
+	return 'do_shortcode';
 }
 
 /**
@@ -263,8 +291,10 @@ function get_shortcode_regex( $tagnames = null ) {
 	}
 	$tagregexp = implode( '|', array_map( 'preg_quote', $tagnames ) );
 
-	// WARNING! Do not change this regex without changing do_shortcode_tag() and strip_shortcode_tag().
-	// Also, see shortcode_unautop() and shortcode.js.
+	/*
+	 * WARNING! Do not change this regex without changing do_shortcode_tag() and strip_shortcode_tag().
+	 * Also, see shortcode_unautop() and shortcode.js.
+	 */
 
 	// phpcs:disable Squiz.Strings.ConcatenationSpacing.PaddingFound -- don't remove regex indentation
 	return '\\['                             // Opening bracket.
@@ -308,8 +338,18 @@ function get_shortcode_regex( $tagnames = null ) {
  *
  * @global array $shortcode_tags
  *
- * @param array $m Regular expression match array.
- * @return string|false Shortcode output on success, false on failure.
+ * @param array $m {
+ *     Regular expression match array.
+ *
+ *     @type string $0 Entire matched shortcode text.
+ *     @type string $1 Optional second opening bracket for escaping shortcodes.
+ *     @type string $2 Shortcode name.
+ *     @type string $3 Shortcode arguments list.
+ *     @type string $4 Optional self closing slash.
+ *     @type string $5 Content of a shortcode when it wraps some content.
+ *     @type string $6 Optional second closing brocket for escaping shortcodes.
+ * }
+ * @return string Shortcode output.
  */
 function do_shortcode_tag( $m ) {
 	global $shortcode_tags;
@@ -342,7 +382,7 @@ function do_shortcode_tag( $m ) {
 	 *
 	 * @param false|string $output Short-circuit return value. Either false or the value to replace the shortcode with.
 	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or empty string.
+	 * @param array|string $attr   Shortcode attributes array or the original arguments string if it cannot be parsed.
 	 * @param array        $m      Regular expression match array.
 	 */
 	$return = apply_filters( 'pre_do_shortcode_tag', false, $tag, $attr, $m );
@@ -361,7 +401,7 @@ function do_shortcode_tag( $m ) {
 	 *
 	 * @param string       $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or empty string.
+	 * @param array|string $attr   Shortcode attributes array or the original arguments string if it cannot be parsed.
 	 * @param array        $m      Regular expression match array.
 	 */
 	return apply_filters( 'do_shortcode_tag', $output, $tag, $attr, $m );
@@ -402,8 +442,8 @@ function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
 			continue;
 		}
 
-		$noopen  = false === strpos( $element, '[' );
-		$noclose = false === strpos( $element, ']' );
+		$noopen  = ! str_contains( $element, '[' );
+		$noclose = ! str_contains( $element, ']' );
 		if ( $noopen || $noclose ) {
 			// This element does not contain shortcodes.
 			if ( $noopen xor $noclose ) {
@@ -413,7 +453,7 @@ function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
 			continue;
 		}
 
-		if ( $ignore_html || '<!--' === substr( $element, 0, 4 ) || '<![CDATA[' === substr( $element, 0, 9 ) ) {
+		if ( $ignore_html || str_starts_with( $element, '<!--' ) || str_starts_with( $element, '<![CDATA[' ) ) {
 			// Encode all '[' and ']' chars.
 			$element = strtr( $element, $trans );
 			continue;
@@ -456,8 +496,10 @@ function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
 				 */
 				$attr = preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $attr );
 			} else {
-				// $attr like 'name = "[shortcode]"' or "name = '[shortcode]'".
-				// We do not know if $content was unfiltered. Assume KSES ran before shortcodes.
+				/*
+				 * $attr like 'name = "[shortcode]"' or "name = '[shortcode]'".
+				 * We do not know if $content was unfiltered. Assume KSES ran before shortcodes.
+				 */
 				$count    = 0;
 				$new_attr = preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $attr, -1, $count );
 				if ( $count > 0 ) {
@@ -521,11 +563,10 @@ function get_shortcode_atts_regex() {
  *
  * @since 2.5.0
  *
- * @param string $text
- * @return array|string List of attribute values.
- *                      Returns empty array if '""' === trim( $text ).
- *                      Returns empty string if '' === trim( $text ).
- *                      All other matches are checked for not empty().
+ * @param string $text Shortcode arguments list.
+ * @return array|string Array of attribute values keyed by attribute name.
+ *                      Returns empty array if there are no attributes.
+ *                      Returns the original arguments string if it cannot be parsed.
  */
 function shortcode_parse_atts( $text ) {
 	$atts    = array();
@@ -550,7 +591,7 @@ function shortcode_parse_atts( $text ) {
 
 		// Reject any unclosed HTML elements.
 		foreach ( $atts as &$value ) {
-			if ( false !== strpos( $value, '<' ) ) {
+			if ( str_contains( $value, '<' ) ) {
 				if ( 1 !== preg_match( '/^[^<]*+(?:<[^>]*+>[^<]*+)*+$/', $value ) ) {
 					$value = '';
 				}
@@ -625,7 +666,7 @@ function shortcode_atts( $pairs, $atts, $shortcode = '' ) {
 function strip_shortcodes( $content ) {
 	global $shortcode_tags;
 
-	if ( false === strpos( $content, '[' ) ) {
+	if ( ! str_contains( $content, '[' ) ) {
 		return $content;
 	}
 

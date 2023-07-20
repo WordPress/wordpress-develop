@@ -481,12 +481,16 @@ class WP_Comment_Query {
 
 		$comment_ids = array_map( 'intval', $comment_ids );
 
+		if ( $this->query_vars['update_comment_meta_cache'] ) {
+			wp_lazyload_comment_meta( $comment_ids );
+		}
+
 		if ( 'ids' === $this->query_vars['fields'] ) {
 			$this->comments = $comment_ids;
 			return $this->comments;
 		}
 
-		_prime_comment_caches( $comment_ids, $this->query_vars['update_comment_meta_cache'] );
+		_prime_comment_caches( $comment_ids, false );
 
 		// Fetch full comment objects from the primed cache.
 		$_comments = array();
@@ -673,7 +677,7 @@ class WP_Comment_Query {
 				// If no date-related order is available, use the date from the first available clause.
 				if ( ! $comment_id_order ) {
 					foreach ( $orderby_array as $orderby_clause ) {
-						if ( false !== strpos( 'ASC', $orderby_clause ) ) {
+						if ( str_contains( 'ASC', $orderby_clause ) ) {
 							$comment_id_order = 'ASC';
 						} else {
 							$comment_id_order = 'DESC';
@@ -1030,13 +1034,19 @@ class WP_Comment_Query {
 			$child_ids           = array();
 			$uncached_parent_ids = array();
 			$_parent_ids         = $levels[ $level ];
-			foreach ( $_parent_ids as $parent_id ) {
-				$cache_key        = "get_comment_child_ids:$parent_id:$key:$last_changed";
-				$parent_child_ids = wp_cache_get( $cache_key, 'comment-queries' );
-				if ( false !== $parent_child_ids ) {
-					$child_ids = array_merge( $child_ids, $parent_child_ids );
-				} else {
-					$uncached_parent_ids[] = $parent_id;
+			if ( $_parent_ids ) {
+				$cache_keys = array();
+				foreach ( $_parent_ids as $parent_id ) {
+					$cache_keys[ $parent_id ] = "get_comment_child_ids:$parent_id:$key:$last_changed";
+				}
+				$cache_data = wp_cache_get_multiple( array_values( $cache_keys ), 'comment-queries' );
+				foreach ( $_parent_ids as $parent_id ) {
+					$parent_child_ids = $cache_data[ $cache_keys[ $parent_id ] ];
+					if ( false !== $parent_child_ids ) {
+						$child_ids = array_merge( $child_ids, $parent_child_ids );
+					} else {
+						$uncached_parent_ids[] = $parent_id;
+					}
 				}
 			}
 

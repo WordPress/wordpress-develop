@@ -410,6 +410,7 @@ final class WP_Post_Type {
 	 *
 	 * @param string       $post_type Post type key.
 	 * @param array|string $args      Optional. Array or string of arguments for registering a post type.
+	 *                                See register_post_type() for information on accepted arguments.
 	 *                                Default empty array.
 	 */
 	public function __construct( $post_type, $args = array() ) {
@@ -736,7 +737,7 @@ final class WP_Post_Type {
 			remove_rewrite_tag( "%$this->name%" );
 			remove_permastruct( $this->name );
 			foreach ( $wp_rewrite->extra_rules_top as $regex => $query ) {
-				if ( false !== strpos( $query, "index.php?post_type=$this->name" ) ) {
+				if ( str_contains( $query, "index.php?post_type=$this->name" ) ) {
 					unset( $wp_rewrite->extra_rules_top[ $regex ] );
 				}
 			}
@@ -856,6 +857,7 @@ final class WP_Post_Type {
 			'item_published'           => array( __( 'Post published.' ), __( 'Page published.' ) ),
 			'item_published_privately' => array( __( 'Post published privately.' ), __( 'Page published privately.' ) ),
 			'item_reverted_to_draft'   => array( __( 'Post reverted to draft.' ), __( 'Page reverted to draft.' ) ),
+			'item_trashed'             => array( __( 'Post trashed.' ), __( 'Page trashed.' ) ),
 			'item_scheduled'           => array( __( 'Post scheduled.' ), __( 'Page scheduled.' ) ),
 			'item_updated'             => array( __( 'Post updated.' ), __( 'Page updated.' ) ),
 			'item_link'                => array(

@@ -555,11 +555,9 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 36687
 	 */
 	public function test_posts_pre_query_filter_should_bypass_database_query() {
-		global $wpdb;
-
 		add_filter( 'posts_pre_query', array( __CLASS__, 'filter_posts_pre_query' ) );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$q           = new WP_Query(
 			array(
 				'fields'        => 'ids',
@@ -569,7 +567,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		remove_filter( 'posts_pre_query', array( __CLASS__, 'filter_posts_pre_query' ) );
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertSame( array( 12345 ), $q->posts );
 	}
 

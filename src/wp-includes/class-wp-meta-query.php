@@ -374,7 +374,7 @@ class WP_Meta_Query {
 		 * If any JOINs are LEFT JOINs (as in the case of NOT EXISTS), then all JOINs should
 		 * be LEFT. Otherwise posts with no metadata will be excluded from results.
 		 */
-		if ( false !== strpos( $sql['join'], 'LEFT JOIN' ) ) {
+		if ( str_contains( $sql['join'], 'LEFT JOIN' ) ) {
 			$sql['join'] = str_replace( 'INNER JOIN', 'LEFT JOIN', $sql['join'] );
 		}
 
@@ -523,11 +523,11 @@ class WP_Meta_Query {
 	 * @param string $clause_key   Optional. The array key used to name the clause in the original `$meta_query`
 	 *                             parameters. If not provided, a key will be generated automatically.
 	 *                             Default empty string.
-	 * @return string[] {
+	 * @return array {
 	 *     Array containing JOIN and WHERE SQL clauses to append to a first-order query.
 	 *
-	 *     @type string $join  SQL fragment to append to the main JOIN clause.
-	 *     @type string $where SQL fragment to append to the main WHERE clause.
+	 *     @type string[] $join  Array of SQL fragments to append to the main JOIN clause.
+	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
 	 * }
 	 */
 	public function get_sql_for_clause( &$clause, $parent_query, $clause_key = '' ) {

@@ -333,10 +333,6 @@ if ( ! function_exists( 'hash_equals' ) ) :
 	}
 endif;
 
-// random_int() was introduced in PHP 7.0.
-if ( ! function_exists( 'random_int' ) ) {
-	require ABSPATH . WPINC . '/random_compat/random.php';
-}
 // sodium_crypto_box() was introduced in PHP 7.2.
 if ( ! function_exists( 'sodium_crypto_box' ) ) {
 	require ABSPATH . WPINC . '/sodium_compat/autoload.php';
@@ -434,11 +430,15 @@ if ( ! function_exists( 'str_contains' ) ) {
 	 * @since 5.9.0
 	 *
 	 * @param string $haystack The string to search in.
-	 * @param string $needle   The substring to search for in the haystack.
+	 * @param string $needle   The substring to search for in the `$haystack`.
 	 * @return bool True if `$needle` is in `$haystack`, otherwise false.
 	 */
 	function str_contains( $haystack, $needle ) {
-		return ( '' === $needle || false !== strpos( $haystack, $needle ) );
+		if ( '' === $needle ) {
+			return true;
+		}
+
+		return false !== strpos( $haystack, $needle );
 	}
 }
 
@@ -478,13 +478,13 @@ if ( ! function_exists( 'str_ends_with' ) ) {
 	 * @return bool True if `$haystack` ends with `$needle`, otherwise false.
 	 */
 	function str_ends_with( $haystack, $needle ) {
-		if ( '' === $haystack && '' !== $needle ) {
-			return false;
+		if ( '' === $haystack ) {
+			return '' === $needle;
 		}
 
 		$len = strlen( $needle );
 
-		return 0 === substr_compare( $haystack, $needle, -$len, $len );
+		return substr( $haystack, -$len, $len ) === $needle;
 	}
 }
 

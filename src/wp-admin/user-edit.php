@@ -211,7 +211,7 @@ switch ( $action ) {
 				<?php else : ?>
 					<p><strong><?php _e( 'User updated.' ); ?></strong></p>
 				<?php endif; ?>
-				<?php if ( $wp_http_referer && false === strpos( $wp_http_referer, 'user-new.php' ) && ! IS_PROFILE_PAGE ) : ?>
+				<?php if ( $wp_http_referer && ! str_contains( $wp_http_referer, 'user-new.php' ) && ! IS_PROFILE_PAGE ) : ?>
 					<p><a href="<?php echo esc_url( wp_validate_redirect( sanitize_url( $wp_http_referer ), self_admin_url( 'users.php' ) ) ); ?>"><?php _e( '&larr; Go to Users' ); ?></a></p>
 				<?php endif; ?>
 			</div>
@@ -349,7 +349,7 @@ switch ( $action ) {
 					</tr>
 
 					<?php
-					$languages = get_available_languages();
+					$languages                = get_available_languages();
 					$can_install_translations = current_user_can( 'install_languages' ) && wp_can_install_language_pack();
 					?>
 					<?php if ( $languages || $can_install_translations ) : ?>
@@ -370,12 +370,12 @@ switch ( $action ) {
 
 							wp_dropdown_languages(
 								array(
-									'name'                        => 'locale',
-									'id'                          => 'locale',
-									'selected'                    => $user_locale,
-									'languages'                   => $languages,
+									'name'      => 'locale',
+									'id'        => 'locale',
+									'selected'  => $user_locale,
+									'languages' => $languages,
 									'show_available_translations' => $can_install_translations,
-									'show_option_site_default'    => true,
+									'show_option_site_default' => true,
 								)
 							);
 							?>
@@ -640,12 +640,13 @@ switch ( $action ) {
 							<tr id="password" class="user-pass1-wrap">
 								<th><label for="pass1"><?php _e( 'New Password' ); ?></label></th>
 								<td>
-									<input class="hidden" value=" " /><!-- #24364 workaround -->
+									<input type="hidden" value=" " /><!-- #24364 workaround -->
 									<button type="button" class="button wp-generate-pw hide-if-no-js" aria-expanded="false"><?php _e( 'Set New Password' ); ?></button>
 									<div class="wp-pwd hide-if-js">
-										<span class="password-input-wrapper">
+										<div class="password-input-wrapper">
 											<input type="password" name="pass1" id="pass1" class="regular-text" value="" autocomplete="new-password" spellcheck="false" data-pw="<?php echo esc_attr( wp_generate_password( 24 ) ); ?>" aria-describedby="pass-strength-result" />
-										</span>
+											<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
+										</div>
 										<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 											<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 											<span class="text"><?php _e( 'Hide' ); ?></span>
@@ -654,7 +655,6 @@ switch ( $action ) {
 											<span class="dashicons dashicons-no" aria-hidden="true"></span>
 											<span class="text"><?php _e( 'Cancel' ); ?></span>
 										</button>
-										<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
 									</div>
 								</td>
 							</tr>
@@ -681,7 +681,7 @@ switch ( $action ) {
 							<?php endif; // End Show Password Fields. ?>
 
 							<?php // Allow admins to send reset password link. ?>
-							<?php if ( ! IS_PROFILE_PAGE ) : ?>
+							<?php if ( ! IS_PROFILE_PAGE && true === wp_is_password_reset_allowed_for_user( $profile_user ) ) : ?>
 								<tr class="user-generate-reset-link-wrap hide-if-no-js">
 									<th><?php _e( 'Password Reset' ); ?></th>
 									<td>
@@ -921,8 +921,10 @@ switch ( $action ) {
 	jQuery( function( $ ) {
 		var languageSelect = $( '#locale' );
 		$( 'form' ).on( 'submit', function() {
-			// Don't show a spinner for English and installed languages,
-			// as there is nothing to download.
+			/*
+			 * Don't show a spinner for English and installed languages,
+			 * as there is nothing to download.
+			 */
 			if ( ! languageSelect.find( 'option:selected' ).data( 'installed' ) ) {
 				$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active" />' );
 			}

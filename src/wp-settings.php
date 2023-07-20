@@ -31,6 +31,7 @@ define( 'WPINC', 'wp-includes' );
  */
 global $wp_version, $wp_db_version, $tinymce_version, $required_php_version, $required_mysql_version, $wp_local_package;
 require ABSPATH . WPINC . '/version.php';
+require ABSPATH . WPINC . '/compat.php';
 require ABSPATH . WPINC . '/load.php';
 
 // Check for the required PHP version and for the MySQL extension or a database drop-in.
@@ -104,7 +105,6 @@ if ( WP_CACHE && apply_filters( 'enable_loading_advanced_cache_dropin', true ) &
 wp_set_lang_dir();
 
 // Load early WordPress files.
-require ABSPATH . WPINC . '/compat.php';
 require ABSPATH . WPINC . '/class-wp-list-util.php';
 require ABSPATH . WPINC . '/formatting.php';
 require ABSPATH . WPINC . '/meta.php';
@@ -175,11 +175,13 @@ require ABSPATH . WPINC . '/class-wp-theme-json-schema.php';
 require ABSPATH . WPINC . '/class-wp-theme-json-data.php';
 require ABSPATH . WPINC . '/class-wp-theme-json.php';
 require ABSPATH . WPINC . '/class-wp-theme-json-resolver.php';
+require ABSPATH . WPINC . '/class-wp-duotone.php';
 require ABSPATH . WPINC . '/global-styles-and-settings.php';
 require ABSPATH . WPINC . '/class-wp-block-template.php';
 require ABSPATH . WPINC . '/block-template-utils.php';
 require ABSPATH . WPINC . '/block-template.php';
 require ABSPATH . WPINC . '/theme-templates.php';
+require ABSPATH . WPINC . '/theme-previews.php';
 require ABSPATH . WPINC . '/template.php';
 require ABSPATH . WPINC . '/https-detection.php';
 require ABSPATH . WPINC . '/https-migration.php';
@@ -188,7 +190,6 @@ require ABSPATH . WPINC . '/user.php';
 require ABSPATH . WPINC . '/class-wp-user-query.php';
 require ABSPATH . WPINC . '/class-wp-session-tokens.php';
 require ABSPATH . WPINC . '/class-wp-user-meta-session-tokens.php';
-require ABSPATH . WPINC . '/class-wp-metadata-lazyloader.php';
 require ABSPATH . WPINC . '/general-template.php';
 require ABSPATH . WPINC . '/link-template.php';
 require ABSPATH . WPINC . '/author-template.php';
@@ -262,6 +263,7 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-posts-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-attachments-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-global-styles-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-global-styles-revisions-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-post-types-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-post-statuses-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-revisions-controller.php';
@@ -292,6 +294,7 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-widget-types-contro
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-widgets-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-templates-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-url-details-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-navigation-fallback-controller.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-comment-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-post-meta-fields.php';
@@ -319,7 +322,11 @@ require ABSPATH . WPINC . '/class-wp-block-styles-registry.php';
 require ABSPATH . WPINC . '/class-wp-block-type-registry.php';
 require ABSPATH . WPINC . '/class-wp-block.php';
 require ABSPATH . WPINC . '/class-wp-block-list.php';
+require ABSPATH . WPINC . '/class-wp-block-parser-block.php';
+require ABSPATH . WPINC . '/class-wp-block-parser-frame.php';
 require ABSPATH . WPINC . '/class-wp-block-parser.php';
+require ABSPATH . WPINC . '/class-wp-classic-to-block-menu-converter.php';
+require ABSPATH . WPINC . '/class-wp-navigation-fallback.php';
 require ABSPATH . WPINC . '/blocks.php';
 require ABSPATH . WPINC . '/blocks/index.php';
 require ABSPATH . WPINC . '/block-editor.php';
@@ -332,6 +339,7 @@ require ABSPATH . WPINC . '/block-supports/colors.php';
 require ABSPATH . WPINC . '/block-supports/custom-classname.php';
 require ABSPATH . WPINC . '/block-supports/dimensions.php';
 require ABSPATH . WPINC . '/block-supports/duotone.php';
+require ABSPATH . WPINC . '/block-supports/shadow.php';
 require ABSPATH . WPINC . '/block-supports/elements.php';
 require ABSPATH . WPINC . '/block-supports/generated-classname.php';
 require ABSPATH . WPINC . '/block-supports/layout.php';
