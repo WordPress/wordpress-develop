@@ -325,7 +325,7 @@ function wp_load_alloptions( $force_cache = false ) {
 
 	if ( ! $alloptions ) {
 		$suppress      = $wpdb->suppress_errors();
-		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload = 'yes'" );
+		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload = 'yes' OR autoload = 'default'" );
 		if ( ! $alloptions_db ) {
 			$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options" );
 		}
@@ -463,6 +463,7 @@ function update_option( $option, $value, $autoload = null ) {
 				$deprecated_keys[ $option ]
 			)
 		);
+		$autoload = get_autoload_value( $autoload, $deprecated_keys[ $option ], $value );
 		return update_option( $deprecated_keys[ $option ], $value, $autoload );
 	}
 
@@ -513,13 +514,10 @@ function update_option( $option, $value, $autoload = null ) {
 		return false;
 	}
 
+	$autoload = get_autoload_value( $autoload, $option, $value );
+
 	/** This filter is documented in wp-includes/option.php */
 	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
-		// Default setting for new options is 'yes'.
-		if ( null === $autoload ) {
-			$autoload = 'yes';
-		}
-
 		return add_option( $option, $value, '', $autoload );
 	}
 
@@ -538,11 +536,8 @@ function update_option( $option, $value, $autoload = null ) {
 
 	$update_args = array(
 		'option_value' => $serialized_value,
+		'autoload'     => $autoload,
 	);
-
-	if ( null !== $autoload ) {
-		$update_args['autoload'] = ( 'no' === $autoload || false === $autoload ) ? 'no' : 'yes';
-	}
 
 	$result = $wpdb->update( $wpdb->options, $update_args, array( 'option_name' => $option ) );
 	if ( ! $result ) {
@@ -618,7 +613,7 @@ function update_option( $option, $value, $autoload = null ) {
  *                                Default is enabled. Accepts 'no' to disable for legacy reasons.
  * @return bool True if the option was added, false otherwise.
  */
-function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' ) {
+function add_option( $option, $value = '', $deprecated = '', $autoload = null ) {
 	global $wpdb;
 
 	if ( ! empty( $deprecated ) ) {
@@ -653,6 +648,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 				$deprecated_keys[ $option ]
 			)
 		);
+		$autoload = get_autoload_value( $autoload, $deprecated_keys[ $option ], $value );
 		return add_option( $deprecated_keys[ $option ], $value, $deprecated, $autoload );
 	}
 
@@ -678,7 +674,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 	}
 
 	$serialized_value = maybe_serialize( $value );
-	$autoload         = ( 'no' === $autoload || false === $autoload ) ? 'no' : 'yes';
+	$autoload         = get_autoload_value( $autoload, $option, $value );
 
 	/**
 	 * Fires before an option is added.
@@ -696,7 +692,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 	}
 
 	if ( ! wp_installing() ) {
-		if ( 'yes' === $autoload ) {
+		if ( 'yes' === $autoload || 'default' === $autoload ) {
 			$alloptions            = wp_load_alloptions( true );
 			$alloptions[ $option ] = $serialized_value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -780,7 +776,7 @@ function delete_option( $option ) {
 	$result = $wpdb->delete( $wpdb->options, array( 'option_name' => $option ) );
 
 	if ( ! wp_installing() ) {
-		if ( 'yes' === $row->autoload ) {
+		if ( 'yes' === $row->autoload || 'default' === $row->autoload ) {
 			$alloptions = wp_load_alloptions( true );
 			if ( is_array( $alloptions ) && isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
@@ -817,6 +813,35 @@ function delete_option( $option ) {
 	}
 
 	return false;
+}
+
+function get_autoload_value( $autoload, $name, $value ) {
+	if ( 'no' === $autoload || false === $autoload ) {
+		return 'no';
+	}
+	if ( 'yes' === $autoload || true === $autoload ) {
+		return 'yes';
+	}
+
+	$serialized_value = maybe_serialize( $value );
+	$size             = strlen( $serialized_value );
+
+	$max_option_size = apply_filters( 'max_option_size', 150000, $name, $value );
+	if ( $size > $max_option_size ) {
+		return 'no';
+	}
+	$value = get_option( $name );
+	if ( false === $value ) {
+		return 'default';
+	}
+
+	$alloptions      = wp_load_alloptions();
+	$alloptions_keys = array_keys( $alloptions );
+	if ( ! in_array( $name, $alloptions_keys, true ) ) {
+		return 'no';
+	}
+
+	return 'default';
 }
 
 /**
@@ -993,7 +1018,7 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 		$transient_option  = '_transient_' . $transient;
 
 		if ( false === get_option( $transient_option ) ) {
-			$autoload = 'yes';
+			$autoload = get_autoload_value( null, $transient_option, $value );
 			if ( $expiration ) {
 				$autoload = 'no';
 				add_option( $transient_timeout, time() + $expiration, '', 'no' );
