@@ -684,7 +684,7 @@ function get_attachment_template() {
 /**
  * Retrieves the name of the highest priority template file that exists.
  *
- * Searches in the STYLESHEETPATH before TEMPLATEPATH and wp-includes/theme-compat
+ * Searches in the stylesheet path before template path and wp-includes/theme-compat
  * so that themes which inherit from a parent theme can just overload one file.
  *
  * @since 2.7.0
@@ -704,11 +704,14 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 		if ( ! $template_name ) {
 			continue;
 		}
-		if ( file_exists( STYLESHEETPATH . '/' . $template_name ) ) {
-			$located = STYLESHEETPATH . '/' . $template_name;
+
+		$stylesheet_path = get_stylesheet_directory();
+		$template_path   = get_template_directory();
+		if ( file_exists( $stylesheet_path . '/' . $template_name ) ) {
+			$located = $stylesheet_path . '/' . $template_name;
 			break;
-		} elseif ( file_exists( TEMPLATEPATH . '/' . $template_name ) ) {
-			$located = TEMPLATEPATH . '/' . $template_name;
+		} elseif ( file_exists( $template_path . '/' . $template_name ) ) {
+			$located = $template_path . '/' . $template_name;
 			break;
 		} elseif ( file_exists( ABSPATH . WPINC . '/theme-compat/' . $template_name ) ) {
 			$located = ABSPATH . WPINC . '/theme-compat/' . $template_name;
