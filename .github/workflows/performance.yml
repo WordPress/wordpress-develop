@@ -30,6 +30,15 @@ concurrency:
 permissions: {}
 
 env:
+  # Environment variables for Docker and PHP-FPM configuration
+  PHP_FPM_UID: ${{ steps.get-php-fpm-uid.outputs.php-fpm-uid }}
+  PHP_FPM_GID: ${{ steps.get-php-fpm-gid.outputs.php-fpm-gid }}
+
+  # Environment variables for WordPress performance testing
+  WP_DEBUG: false
+  SCRIPT_DEBUG: false
+  WP_DEVELOPMENT_MODE: ''
+
   # This workflow takes two sets of measurements — one for the current commit,
   # and another against a consistent version that is used as a baseline measurement.
   # This is done to isolate variance in measurements caused by the GitHub runners
@@ -75,13 +84,12 @@ jobs:
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
-      - name: Configure environment variables
-        run: |
-          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
-          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
-          echo "WP_DEBUG=false" >> $GITHUB_ENV
-          echo "SCRIPT_DEBUG=false" >> $GITHUB_ENV
-          echo "WP_DEVELOPMENT_MODE=" >> $GITHUB_ENV
+      - name: Get PHP-FPM UID and GID
+        id: get-php-fpm-uid
+        run: echo "::set-output name=php-fpm-uid::$(id -u)"
+      - name: Get PHP-FPM GID
+        id: get-php-fpm-gid
+        run: echo "::set-output name=php-fpm-gid::$(id -g)"
 
       - name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
