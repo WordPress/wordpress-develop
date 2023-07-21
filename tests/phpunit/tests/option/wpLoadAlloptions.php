@@ -20,6 +20,17 @@ class Tests_Option_wpLoadAlloptions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_load_alloptions
+	 */
+	public function test_default_and_on() {
+		add_option( 'foo', 'bar', '', 'default' );
+		add_option( 'bar', 'foo', '', 'on' );
+		$alloptions = wp_load_alloptions();
+		$this->assertArrayHasKey( 'foo', $alloptions );
+		$this->assertArrayHasKey( 'bar', $alloptions );
+	}
+
+	/**
 	 * @depends test_if_alloptions_is_cached
 	 *
 	 * @covers ::wp_cache_delete
