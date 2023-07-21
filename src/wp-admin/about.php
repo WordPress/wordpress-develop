@@ -231,7 +231,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section has-3-columns">
 			<div class="column about__image is-vertically-aligned-top">
-				<img src="./images/about-release-badge.svg" alt="" />
+				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=6.3' ) ); ?>" alt="" />
 			</div>
 			<div class="column is-vertically-aligned-center" style="grid-column-end:span 2">
 				<h3>
