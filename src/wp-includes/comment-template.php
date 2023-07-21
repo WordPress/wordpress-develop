@@ -1600,7 +1600,7 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 		define( 'COMMENTS_TEMPLATE', true );
 	}
 
-	$theme_template = STYLESHEETPATH . $file;
+	$theme_template = get_stylesheet_directory() . $file;
 
 	/**
 	 * Filters the path to the theme template file used for the comments template.
