@@ -8,7 +8,7 @@
 	},
 	"engines": {
 		"node": ">=16.19.1",
-		"npm": ">=8.19.3"
+		"npm": ">=8.19.3 <9"
 	},
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
