@@ -424,12 +424,12 @@ function wp_load_core_site_options( $network_id = null ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string      $option   Name of the option to update. Expected to not be SQL-escaped.
- * @param mixed       $value    Option value. Must be serializable if non-scalar. Expected to not be SQL-escaped.
- * @param string|bool $autoload Optional. Whether to load the option when WordPress starts up. For existing options,
- *                              `$autoload` can only be updated using `update_option()` if `$value` is also changed.
- *                              Accepts 'yes'|true to enable or 'no'|false to disable. For non-existent options,
- *                              the default value is 'yes'. Default null.
+ * @param string           $option   Name of the option to update. Expected to not be SQL-escaped.
+ * @param mixed            $value    Option value. Must be serializable if non-scalar. Expected to not be SQL-escaped.
+ * @param string|bool|null $autoload Optional. Whether to load the option when WordPress starts up. For existing options,
+ *                                  `$autoload` can only be updated using `update_option()` if `$value` is also changed.
+ *                                   Accepts 'yes'|true to enable or 'no'|false to disable. For non-existent options,
+ *                                   the default value is 'yes'. Default null.
  * @return bool True if the value was updated, false otherwise.
  */
 function update_option( $option, $value, $autoload = null ) {
@@ -609,7 +609,7 @@ function update_option( $option, $value, $autoload = null ) {
  * @param mixed       $value      Optional. Option value. Must be serializable if non-scalar.
  *                                Expected to not be SQL-escaped.
  * @param string      $deprecated Optional. Description. Not used anymore.
- * @param string|bool $autoload   Optional. Whether to load the option when WordPress starts up.
+ * @param string|bool|null $autoload   Optional. Whether to load the option when WordPress starts up.
  *                                Default is enabled. Accepts 'no' to disable for legacy reasons.
  * @return bool True if the option was added, false otherwise.
  */
@@ -815,30 +815,71 @@ function delete_option( $option ) {
 	return false;
 }
 
+/**
+ * Determines the autoload value for a given option.
+ *
+ * @param string|bool|null  $autoload The autoload value for the option. Can be 'yes', 'no', true, false, or null.
+ * @param string $name                The name of the option.
+ * @param mixed  $value               The value of the option.
+ *
+ * @return string The determined autoload value. Possible values: 'yes', 'no', 'default'.
+ */
 function get_autoload_value( $autoload, $name, $value ) {
+	global $wpdb;
+
+	// Check if autoload is explicitly set to 'no' or false.
 	if ( 'no' === $autoload || false === $autoload ) {
 		return 'no';
 	}
+
+	// Check if autoload is explicitly set to 'yes' or true.
 	if ( 'yes' === $autoload || true === $autoload ) {
 		return 'yes';
 	}
 
+	// Check if autoload is explicitly set to 'default' or true.
+	if ( 'default' === $autoload ) {
+		return $autoload;
+	}
+
+	// Serialize the value and check its size against the maximum allowed option size.
 	$serialized_value = maybe_serialize( $value );
 	$size             = strlen( $serialized_value );
 
+	/**
+	 * The maximum size of option value in bytes.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param int    $max_option_size  The option-size threshold, in bytes. Default 150000.
+	 * @param string $name             The name of the option.
+	 * @param mixed  $value            The value of the option.
+	 */
 	$max_option_size = apply_filters( 'max_option_size', 150000, $name, $value );
+
 	if ( $size > $max_option_size ) {
 		return 'no';
 	}
+
+	// Check if the option exists in the database and return the default autoload value if not found.
 	$value = get_option( $name );
+
 	if ( false === $value ) {
 		return 'default';
 	}
 
+	// Check if the option is present in the list of all autoloaded options.
 	$alloptions      = wp_load_alloptions();
 	$alloptions_keys = array_keys( $alloptions );
-	if ( ! in_array( $name, $alloptions_keys, true ) ) {
+	if ( $alloptions_keys && ! in_array( $name, $alloptions_keys, true ) ) {
 		return 'no';
+	}
+
+	// Retrieve the autoload value from the database if not explicitly set.
+	$autoload_raw = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $name ) );
+
+	if ( ! is_null( $autoload_raw ) ) {
+		return $autoload_raw;
 	}
 
 	return 'default';
