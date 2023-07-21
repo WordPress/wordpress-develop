@@ -172,7 +172,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 * @param array  $args {
 	 *        Optional arguments. Default empty.
 	 *
-	 *        @type string $separator     The separator between blog name and feed type.
+	 *        @type string $separator     The separator between site name and feed type.
 	 *        @type string $singletitle   The title of the comments feed.
 	 *        @type string $cattitle      The title of the category feed.
 	 *        @type string $tagtitle      The title of the tag feed.

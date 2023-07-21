@@ -1,8 +1,8 @@
 <?php
 
-add_action(
-	'template_redirect',
-	function() {
+add_filter(
+	'template_include',
+	static function( $template ) {
 
 		global $timestart;
 
@@ -15,7 +15,7 @@ add_action(
 
 		add_action(
 			'shutdown',
-			function() use ( $server_timing_values, $template_start ) {
+			static function() use ( $server_timing_values, $template_start ) {
 
 				global $timestart;
 
@@ -38,6 +38,8 @@ add_action(
 			},
 			PHP_INT_MIN
 		);
+
+		return $template;
 	},
 	PHP_INT_MAX
 );
