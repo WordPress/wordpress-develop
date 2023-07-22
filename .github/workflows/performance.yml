@@ -34,7 +34,7 @@ env:
   PHP_FPM_UID: ${{ steps.get-php-fpm-uid.outputs.php-fpm-uid }}
   PHP_FPM_GID: ${{ steps.get-php-fpm-gid.outputs.php-fpm-gid }}
 
-  # Environment variables for WordPress performance testing
+  # Performance testing should be performed in an environment reflecting a standard production environment.
   WP_DEBUG: false
   SCRIPT_DEBUG: false
   WP_DEVELOPMENT_MODE: ''
@@ -82,7 +82,7 @@ jobs:
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-
+    
     steps:
       - name: Get PHP-FPM UID and GID
         id: get-php-fpm-uid
