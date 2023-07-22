@@ -2658,7 +2658,7 @@ function get_post_custom_values( $key = '', $post_id = 0 ) {
 
 	$custom = get_post_custom( $post_id );
 
-	return isset( $custom[ $key ] ) ? $custom[ $key ] : null;
+	return $custom[ $key ] ?? null;
 }
 
 /**
@@ -4296,11 +4296,11 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 
 	// These variables are needed by compact() later.
 	$post_content_filtered = $postarr['post_content_filtered'];
-	$post_author           = isset( $postarr['post_author'] ) ? $postarr['post_author'] : $user_id;
+	$post_author           = $postarr['post_author'] ?? $user_id;
 	$ping_status           = empty( $postarr['ping_status'] ) ? get_default_comment_status( $post_type, 'pingback' ) : $postarr['ping_status'];
 	$to_ping               = isset( $postarr['to_ping'] ) ? sanitize_trackback_urls( $postarr['to_ping'] ) : '';
-	$pinged                = isset( $postarr['pinged'] ) ? $postarr['pinged'] : '';
-	$import_id             = isset( $postarr['import_id'] ) ? $postarr['import_id'] : 0;
+	$pinged                = $postarr['pinged'] ?? '';
+	$import_id             = $postarr['import_id'] ?? 0;
 
 	/*
 	 * The 'wp_insert_post_parent' filter expects all variables to be present.
@@ -4312,7 +4312,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		$menu_order = 0;
 	}
 
-	$post_password = isset( $postarr['post_password'] ) ? $postarr['post_password'] : '';
+	$post_password = $postarr['post_password'] ?? '';
 	if ( 'private' === $post_status ) {
 		$post_password = '';
 	}
@@ -4381,7 +4381,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	$post_name = wp_unique_post_slug( $post_name, $post_id, $post_status, $post_type, $post_parent );
 
 	// Don't unslash.
-	$post_mime_type = isset( $postarr['post_mime_type'] ) ? $postarr['post_mime_type'] : '';
+	$post_mime_type = $postarr['post_mime_type'] ?? '';
 
 	// Expected_slashed (everything!).
 	$data = compact(
