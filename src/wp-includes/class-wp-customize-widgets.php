@@ -1099,7 +1099,7 @@ final class WP_Customize_Widgets {
 			$available_widget = array_merge(
 				$available_widget,
 				array(
-					'temp_id'      => isset( $args['_temp_id'] ) ? $args['_temp_id'] : null,
+					'temp_id'      => $args['_temp_id'] ?? null,
 					'is_multi'     => $is_multi_widget,
 					'control_tpl'  => $control_tpl,
 					'multi_number' => ( 'multi' === $args['_add'] ) ? $args['_multi_num'] : false,
