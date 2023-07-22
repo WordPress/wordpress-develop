@@ -88,7 +88,7 @@ function wp_render_elements_support( $block_content, $block ) {
  */
 function wp_render_elements_support_styles( $pre_render, $block ) {
 	$block_type           = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
-	$element_block_styles = isset( $block['attrs']['style']['elements'] ) ? $block['attrs']['style']['elements'] : null;
+	$element_block_styles = $block['attrs']['style']['elements'] ?? null;
 
 	/*
 	* For now we only care about link color.
@@ -99,7 +99,7 @@ function wp_render_elements_support_styles( $pre_render, $block ) {
 		return null;
 	}
 	$class_name        = wp_get_elements_class_name( $block );
-	$link_block_styles = isset( $element_block_styles['link'] ) ? $element_block_styles['link'] : null;
+	$link_block_styles = $element_block_styles['link'] ?? null;
 
 	wp_style_engine_get_styles(
 		$link_block_styles,

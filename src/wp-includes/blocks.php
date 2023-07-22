@@ -165,12 +165,12 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	}
 
 	$script_asset        = require $script_asset_path;
-	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
+	$script_dependencies = $script_asset['dependencies'] ?? array();
 	$result              = wp_register_script(
 		$script_handle,
 		$script_uri,
 		$script_dependencies,
-		isset( $script_asset['version'] ) ? $script_asset['version'] : false
+		$script_asset['version'] ?? false
 	);
 	if ( ! $result ) {
 		return false;

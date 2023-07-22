@@ -59,7 +59,7 @@ function wp_apply_shadow_support( $block_type, $block_attributes ) {
 	$shadow_block_styles = array();
 
 	$preset_shadow                 = array_key_exists( 'shadow', $block_attributes ) ? "var:preset|shadow|{$block_attributes['shadow']}" : null;
-	$custom_shadow                 = isset( $block_attributes['style']['shadow'] ) ? $block_attributes['style']['shadow'] : null;
+	$custom_shadow                 = $block_attributes['style']['shadow'] ?? null;
 	$shadow_block_styles['shadow'] = $preset_shadow ? $preset_shadow : $custom_shadow;
 
 	$attributes = array();

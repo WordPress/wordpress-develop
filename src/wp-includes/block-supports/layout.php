@@ -235,13 +235,13 @@ function wp_register_layout_support( $block_type ) {
  * @return string CSS styles on success. Else, empty string.
  */
 function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false, $gap_value = null, $should_skip_gap_serialization = false, $fallback_gap_value = '0.5em', $block_spacing = null ) {
-	$layout_type   = isset( $layout['type'] ) ? $layout['type'] : 'default';
+	$layout_type   = $layout['type'] ?? 'default';
 	$layout_styles = array();
 
 	if ( 'default' === $layout_type ) {
 		if ( $has_block_gap_support ) {
 			if ( is_array( $gap_value ) ) {
-				$gap_value = isset( $gap_value['top'] ) ? $gap_value['top'] : null;
+				$gap_value = $gap_value['top'] ?? null;
 			}
 			if ( null !== $gap_value && ! $should_skip_gap_serialization ) {
 				// Get spacing CSS variable from preset value if provided.
@@ -271,9 +271,9 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 			}
 		}
 	} elseif ( 'constrained' === $layout_type ) {
-		$content_size    = isset( $layout['contentSize'] ) ? $layout['contentSize'] : '';
-		$wide_size       = isset( $layout['wideSize'] ) ? $layout['wideSize'] : '';
-		$justify_content = isset( $layout['justifyContent'] ) ? $layout['justifyContent'] : 'center';
+		$content_size    = $layout['contentSize'] ?? '';
+		$wide_size       = $layout['wideSize'] ?? '';
+		$justify_content = $layout['justifyContent'] ?? 'center';
 
 		$all_max_width_value  = $content_size ? $content_size : $wide_size;
 		$wide_max_width_value = $wide_size ? $wide_size : $content_size;
@@ -350,7 +350,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 
 		if ( $has_block_gap_support ) {
 			if ( is_array( $gap_value ) ) {
-				$gap_value = isset( $gap_value['top'] ) ? $gap_value['top'] : null;
+				$gap_value = $gap_value['top'] ?? null;
 			}
 			if ( null !== $gap_value && ! $should_skip_gap_serialization ) {
 				// Get spacing CSS variable from preset value if provided.
@@ -380,7 +380,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 			}
 		}
 	} elseif ( 'flex' === $layout_type ) {
-		$layout_orientation = isset( $layout['orientation'] ) ? $layout['orientation'] : 'horizontal';
+		$layout_orientation = $layout['orientation'] ?? 'horizontal';
 
 		$justify_content_options = array(
 			'left'   => 'flex-start',
@@ -599,7 +599,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 
 	$global_settings = wp_get_global_settings();
 	$fallback_layout = ! empty( _wp_array_get( $block_type->supports, array( 'layout', 'default' ), array() ) ) ? _wp_array_get( $block_type->supports, array( 'layout', 'default' ), array() ) : _wp_array_get( $block_type->supports, array( '__experimentalLayout', 'default' ), array() );
-	$used_layout     = isset( $block['attrs']['layout'] ) ? $block['attrs']['layout'] : $fallback_layout;
+	$used_layout     = $block['attrs']['layout'] ?? $fallback_layout;
 
 	$class_names        = array();
 	$layout_definitions = wp_get_layout_definitions();
@@ -769,7 +769,7 @@ add_filter( 'render_block', 'wp_render_layout_support_flag', 10, 2 );
  * @return string Filtered block content.
  */
 function wp_restore_group_inner_container( $block_content, $block ) {
-	$tag_name                         = isset( $block['attrs']['tagName'] ) ? $block['attrs']['tagName'] : 'div';
+	$tag_name                         = $block['attrs']['tagName'] ?? 'div';
 	$group_with_inner_container_regex = sprintf(
 		'/(^\s*<%1$s\b[^>]*wp-block-group(\s|")[^>]*>)(\s*<div\b[^>]*wp-block-group__inner-container(\s|")[^>]*>)((.|\S|\s)*)/U',
 		preg_quote( $tag_name, '/' )

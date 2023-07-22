@@ -394,11 +394,11 @@ function wp_get_typography_value_and_unit( $raw_value, $options = array() ) {
  * @return string|null A font-size value using clamp() on success, otherwise null.
  */
 function wp_get_computed_fluid_typography_value( $args = array() ) {
-	$maximum_viewport_width_raw = isset( $args['maximum_viewport_width'] ) ? $args['maximum_viewport_width'] : null;
-	$minimum_viewport_width_raw = isset( $args['minimum_viewport_width'] ) ? $args['minimum_viewport_width'] : null;
-	$maximum_font_size_raw      = isset( $args['maximum_font_size'] ) ? $args['maximum_font_size'] : null;
-	$minimum_font_size_raw      = isset( $args['minimum_font_size'] ) ? $args['minimum_font_size'] : null;
-	$scale_factor               = isset( $args['scale_factor'] ) ? $args['scale_factor'] : null;
+	$maximum_viewport_width_raw = $args['maximum_viewport_width'] ?? null;
+	$minimum_viewport_width_raw = $args['minimum_viewport_width'] ?? null;
+	$maximum_font_size_raw      = $args['maximum_font_size'] ?? null;
+	$minimum_font_size_raw      = $args['minimum_font_size'] ?? null;
+	$scale_factor               = $args['scale_factor'] ?? null;
 
 	// Normalizes the minimum font size in order to use the value for calculations.
 	$minimum_font_size = wp_get_typography_value_and_unit( $minimum_font_size_raw );
@@ -407,7 +407,7 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
 	 * We get a 'preferred' unit to keep units consistent when calculating,
 	 * otherwise the result will not be accurate.
 	 */
-	$font_size_unit = isset( $minimum_font_size['unit'] ) ? $minimum_font_size['unit'] : 'rem';
+	$font_size_unit = $minimum_font_size['unit'] ?? 'rem';
 
 	// Normalizes the maximum font size in order to use the value for calculations.
 	$maximum_font_size = wp_get_typography_value_and_unit(
@@ -498,8 +498,8 @@ function wp_get_typography_font_size_value( $preset, $should_use_fluid_typograph
 
 	// Checks if fluid font sizes are activated.
 	$global_settings     = wp_get_global_settings();
-	$typography_settings = isset( $global_settings['typography'] ) ? $global_settings['typography'] : array();
-	$layout_settings     = isset( $global_settings['layout'] ) ? $global_settings['layout'] : array();
+	$typography_settings = $global_settings['typography'] ?? array();
+	$layout_settings     = $global_settings['layout'] ?? array();
 
 	if (
 		isset( $typography_settings['fluid'] ) &&
@@ -517,7 +517,7 @@ function wp_get_typography_font_size_value( $preset, $should_use_fluid_typograph
 		: array();
 
 	// Defaults.
-	$default_maximum_viewport_width       = isset( $layout_settings['wideSize'] ) ? $layout_settings['wideSize'] : '1600px';
+	$default_maximum_viewport_width       = $layout_settings['wideSize'] ?? '1600px';
 	$default_minimum_viewport_width       = '320px';
 	$default_minimum_font_size_factor_max = 0.75;
 	$default_minimum_font_size_factor_min = 0.25;
@@ -527,7 +527,7 @@ function wp_get_typography_font_size_value( $preset, $should_use_fluid_typograph
 	$default_minimum_font_size_limit      = $has_min_font_size ? $fluid_settings['minFontSize'] : '14px';
 
 	// Font sizes.
-	$fluid_font_size_settings = isset( $preset['fluid'] ) ? $preset['fluid'] : null;
+	$fluid_font_size_settings = $preset['fluid'] ?? null;
 
 	// A font size has explicitly bypassed fluid calculations.
 	if ( false === $fluid_font_size_settings ) {
@@ -535,8 +535,8 @@ function wp_get_typography_font_size_value( $preset, $should_use_fluid_typograph
 	}
 
 	// Try to grab explicit min and max fluid font sizes.
-	$minimum_font_size_raw = isset( $fluid_font_size_settings['min'] ) ? $fluid_font_size_settings['min'] : null;
-	$maximum_font_size_raw = isset( $fluid_font_size_settings['max'] ) ? $fluid_font_size_settings['max'] : null;
+	$minimum_font_size_raw = $fluid_font_size_settings['min'] ?? null;
+	$maximum_font_size_raw = $fluid_font_size_settings['max'] ?? null;
 
 	// Font sizes.
 	$preferred_size = wp_get_typography_value_and_unit( $preset['size'] );
