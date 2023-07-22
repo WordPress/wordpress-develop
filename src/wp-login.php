@@ -435,7 +435,7 @@ function wp_login_viewport_meta() {
  * Check the request and redirect or display a form based on the current action.
  */
 
-$action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'login';
+$action = $_REQUEST['action'] ?? 'login';
 $errors = new WP_Error();
 
 if ( isset( $_GET['key'] ) ) {
@@ -1264,7 +1264,7 @@ switch ( $action ) {
 			}
 		}
 
-		$requested_redirect_to = isset( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : '';
+		$requested_redirect_to = $_REQUEST['redirect_to'] ?? '';
 		/**
 		 * Filters the login redirect URL.
 		 *
