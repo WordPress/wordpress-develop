@@ -103,7 +103,7 @@ class WP_Widget_Block extends WP_Widget {
 	private function get_dynamic_classname( $content ) {
 		$blocks = parse_blocks( $content );
 
-		$block_name = isset( $blocks[0] ) ? $blocks[0]['blockName'] : null;
+		$block_name = $blocks[0]['blockName'] ?? null;
 
 		switch ( $block_name ) {
 			case 'core/paragraph':
