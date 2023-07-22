@@ -168,7 +168,7 @@ class WP_Styles extends WP_Dependencies {
 		$src         = $obj->src;
 		$cond_before = '';
 		$cond_after  = '';
-		$conditional = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
+		$conditional = $obj->extra['conditional'] ?? '';
 
 		if ( $conditional ) {
 			$cond_before = "<!--[if {$conditional}]>\n";
@@ -252,7 +252,7 @@ class WP_Styles extends WP_Dependencies {
 
 		if ( 'rtl' === $this->text_direction && isset( $obj->extra['rtl'] ) && $obj->extra['rtl'] ) {
 			if ( is_bool( $obj->extra['rtl'] ) || 'replace' === $obj->extra['rtl'] ) {
-				$suffix   = isset( $obj->extra['suffix'] ) ? $obj->extra['suffix'] : '';
+				$suffix   = $obj->extra['suffix'] ?? '';
 				$rtl_href = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $this->_css_href( $src, $ver, "$handle-rtl" ) );
 			} else {
 				$rtl_href = $this->_css_href( $obj->extra['rtl'], $ver, "$handle-rtl" );
