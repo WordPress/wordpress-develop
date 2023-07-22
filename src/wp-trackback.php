@@ -50,8 +50,8 @@ if ( ! isset( $_GET['tb_id'] ) || ! $_GET['tb_id'] ) {
 	$post_id = (int) $post_id[ count( $post_id ) - 1 ];
 }
 
-$trackback_url = isset( $_POST['url'] ) ? $_POST['url'] : '';
-$charset       = isset( $_POST['charset'] ) ? $_POST['charset'] : '';
+$trackback_url = $_POST['url'] ?? '';
+$charset       = $_POST['charset'] ?? '';
 
 // These three are stripslashed here so they can be properly escaped after mb_convert_encoding().
 $title     = isset( $_POST['title'] ) ? wp_unslash( $_POST['title'] ) : '';
