@@ -608,12 +608,11 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 			)
 		);
 
-		$filter = new MockAction();
-		add_filter( 'pre_wp_setup_nav_menu_item', array( &$filter, 'filter' ) );
+		add_filter( 'pre_wp_setup_nav_menu_item', '__return_empty_string' );
 
-		wp_setup_nav_menu_item( get_post( $menu_item_id ) );
+		$custom_item = wp_setup_nav_menu_item( get_post( $menu_item_id ) );
 
-		$this->assertSame( 1, $filter->get_call_count() );
+		$this->assertSame( '', $custom_item );
 	}
 
 	/**

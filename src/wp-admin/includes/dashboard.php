@@ -532,7 +532,7 @@ function wp_network_dashboard_right_now() {
 }
 
 /**
- * The Quick Draft widget display and creation of drafts.
+ * Displays the Quick Draft widget.
  *
  * @since 3.8.0
  *
@@ -920,7 +920,9 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 }
 
 /**
- * Callback function for Activity widget.
+ * Outputs the Activity widget.
+ *
+ * Callback function for {@see 'dashboard_activity'}.
  *
  * @since 3.8.0
  */
@@ -1227,10 +1229,9 @@ function wp_dashboard_trigger_widget_control( $widget_control_id = false ) {
 }
 
 /**
- * The RSS dashboard widget control.
+ * Sets up the RSS dashboard widget control and $args to be used as input to wp_widget_rss_form().
  *
- * Sets up $args to be used as input to wp_widget_rss_form(). Handles POST data
- * from RSS-type widgets.
+ * Handles POST data from RSS-type widgets.
  *
  * @since 2.5.0
  *
@@ -1297,7 +1298,7 @@ function wp_dashboard_events_news() {
 	<p class="community-events-footer">
 		<?php
 			printf(
-				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 				'https://make.wordpress.org/community/meetups-landing-page',
 				__( 'Meetups' ),
 				/* translators: Hidden accessibility text. */
@@ -1309,7 +1310,7 @@ function wp_dashboard_events_news() {
 
 		<?php
 			printf(
-				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 				'https://central.wordcamp.org/schedule/',
 				__( 'WordCamps' ),
 				/* translators: Hidden accessibility text. */
@@ -1321,7 +1322,7 @@ function wp_dashboard_events_news() {
 
 		<?php
 			printf(
-				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 				/* translators: If a Rosetta site exists (e.g. https://es.wordpress.org/news/), then use that. Otherwise, leave untranslated. */
 				esc_url( _x( 'https://wordpress.org/news/', 'Events and News dashboard widget' ) ),
 				__( 'News' ),
@@ -1647,7 +1648,7 @@ function wp_dashboard_quota() {
 				number_format_i18n( $quota )
 			);
 			printf(
-				'<a href="%1$s">%2$s <span class="screen-reader-text">(%3$s)</span></a>',
+				'<a href="%1$s">%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
 				$text,
 				/* translators: Hidden accessibility text. */
@@ -1663,7 +1664,7 @@ function wp_dashboard_quota() {
 				$percentused
 			);
 			printf(
-				'<a href="%1$s" class="musublink">%2$s <span class="screen-reader-text">(%3$s)</span></a>',
+				'<a href="%1$s" class="musublink">%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
 				$text,
 				/* translators: Hidden accessibility text. */
@@ -1894,7 +1895,7 @@ function wp_dashboard_php_nag() {
 	<p class="button-container">
 		<?php
 		printf(
-			'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+			'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 			esc_url( wp_get_update_php_url() ),
 			__( 'Learn more about updating PHP' ),
 			/* translators: Hidden accessibility text. */
@@ -2023,7 +2024,9 @@ function wp_dashboard_site_health() {
 }
 
 /**
- * Empty function usable by plugins to output empty dashboard widget (to be populated later by JS).
+ * Outputs empty dashboard widget to be populated by JS later.
+ *
+ * Usable by plugins.
  *
  * @since 2.5.0
  */

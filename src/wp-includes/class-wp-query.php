@@ -1015,7 +1015,7 @@ class WP_Query {
 			$this->is_admin = true;
 		}
 
-		if ( false !== strpos( $qv['feed'], 'comments-' ) ) {
+		if ( str_contains( $qv['feed'], 'comments-' ) ) {
 			$qv['feed']         = str_replace( 'comments-', '', $qv['feed'] );
 			$qv['withcomments'] = 1;
 		}
@@ -1185,7 +1185,7 @@ class WP_Query {
 					$term = implode( ',', $term );
 				}
 
-				if ( strpos( $term, '+' ) !== false ) {
+				if ( str_contains( $term, '+' ) ) {
 					$terms = preg_split( '/[+]+/', $term );
 					foreach ( $terms as $term ) {
 						$tax_query[] = array_merge(
@@ -1298,7 +1298,7 @@ class WP_Query {
 		// Tag stuff.
 
 		if ( '' !== $q['tag'] && ! $this->is_singular && $this->query_vars_changed ) {
-			if ( strpos( $q['tag'], ',' ) !== false ) {
+			if ( str_contains( $q['tag'], ',' ) ) {
 				$tags = preg_split( '/[,\r\n\t ]+/', $q['tag'] );
 				foreach ( (array) $tags as $tag ) {
 					$tag                 = sanitize_term_field( 'slug', $tag, 0, 'post_tag', 'db' );
@@ -1461,7 +1461,7 @@ class WP_Query {
 
 		foreach ( $q['search_terms'] as $term ) {
 			// If there is an $exclusion_prefix, terms prefixed with it should be excluded.
-			$exclude = $exclusion_prefix && ( substr( $term, 0, 1 ) === $exclusion_prefix );
+			$exclude = $exclusion_prefix && str_starts_with( $term, $exclusion_prefix );
 			if ( $exclude ) {
 				$like_op  = 'NOT LIKE';
 				$andor_op = 'AND';
@@ -1616,8 +1616,10 @@ class WP_Query {
 				$search_orderby .= $wpdb->prepare( "WHEN {$wpdb->posts}.post_title LIKE %s THEN 1 ", $like );
 			}
 
-			// Sanity limit, sort as sentence when more than 6 terms
-			// (few searches are longer than 6 terms and most titles are not).
+			/*
+			 * Sanity limit, sort as sentence when more than 6 terms
+			 * (few searches are longer than 6 terms and most titles are not).
+			 */
 			if ( $num_terms < 7 ) {
 				// All words in title.
 				$search_orderby .= 'WHEN ' . implode( ' AND ', $q['search_orderby_title'] ) . ' THEN 2 ';
@@ -2354,7 +2356,7 @@ class WP_Query {
 		// Author stuff for nice URLs.
 
 		if ( '' !== $q['author_name'] ) {
-			if ( strpos( $q['author_name'], '/' ) !== false ) {
+			if ( str_contains( $q['author_name'], '/' ) ) {
 				$q['author_name'] = explode( '/', $q['author_name'] );
 				if ( $q['author_name'][ count( $q['author_name'] ) - 1 ] ) {
 					$q['author_name'] = $q['author_name'][ count( $q['author_name'] ) - 1 ]; // No trailing slash.
@@ -3509,8 +3511,10 @@ class WP_Query {
 			$this->posts = apply_filters_ref_array( 'the_posts', array( $this->posts, &$this ) );
 		}
 
-		// Ensure that any posts added/modified via one of the filters above are
-		// of the type WP_Post and are filtered.
+		/*
+		 * Ensure that any posts added/modified via one of the filters above are
+		 * of the type WP_Post and are filtered.
+		 */
 		if ( $this->posts ) {
 			$this->post_count = count( $this->posts );
 
@@ -3553,8 +3557,10 @@ class WP_Query {
 	private function set_found_posts( $q, $limits ) {
 		global $wpdb;
 
-		// Bail if posts is an empty array. Continue if posts is an empty string,
-		// null, or false to accommodate caching plugins that fill posts later.
+		/*
+		 * Bail if posts is an empty array. Continue if posts is an empty string,
+		 * null, or false to accommodate caching plugins that fill posts later.
+		 */
 		if ( $q['no_found_rows'] || ( is_array( $this->posts ) && ! $this->posts ) ) {
 			return;
 		}
@@ -4754,7 +4760,7 @@ class WP_Query {
 		}
 
 		$content = $post->post_content;
-		if ( false !== strpos( $content, '<!--nextpage-->' ) ) {
+		if ( str_contains( $content, '<!--nextpage-->' ) ) {
 			$content = str_replace( "\n<!--nextpage-->\n", '<!--nextpage-->', $content );
 			$content = str_replace( "\n<!--nextpage-->", '<!--nextpage-->', $content );
 			$content = str_replace( "<!--nextpage-->\n", '<!--nextpage-->', $content );
