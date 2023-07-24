@@ -8,12 +8,12 @@
 class Tests_Theme extends WP_UnitTestCase {
 
 	/**
-	 * Alternative theme root directory.
-	 * This directory contains a child and a parent theme for testing.
+	 * Pre-made test theme directory.
+	 * This directory contains a child and a parent theme.
 	 *
 	 * @var string
 	 */
-	const ALT_THEME_ROOT = DIR_TESTDATA . '/themedir1';
+	const TEST_THEME_ROOT = DIR_TESTDATA . '/themedir1';
 
 	protected $theme_slug     = 'twentyeleven';
 	protected $theme_name     = 'Twenty Eleven';
@@ -918,7 +918,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	public function set_up_alt_theme_root() {
 		global $wp_theme_directories;
-		$wp_theme_directories = array( WP_CONTENT_DIR . '/themes', self::ALT_THEME_ROOT );
+		$wp_theme_directories = array( WP_CONTENT_DIR . '/themes', self::TEST_THEME_ROOT );
 		add_filter( 'theme_root', array( $this, 'filter_to_alt_theme_root' ) );
 		add_filter( 'stylesheet_root', array( $this, 'filter_to_alt_theme_root' ) );
 		add_filter( 'template_root', array( $this, 'filter_to_alt_theme_root' ) );
@@ -941,6 +941,6 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @param string $dir Theme directory before filter.
 	 */
 	public function filter_to_alt_theme_root( $dir ) {
-		return self::ALT_THEME_ROOT;
+		return self::TEST_THEME_ROOT;
 	}
 }
