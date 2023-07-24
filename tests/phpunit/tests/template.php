@@ -740,7 +740,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 */
 	public function tear_down_test_theme_root() {
 		global $wp_theme_directories;
-		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
+		$wp_theme_directories = $this->orig_theme_dir;
 		remove_filter( 'theme_root', array( $this, 'filter_to_test_theme_root' ) );
 		remove_filter( 'stylesheet_root', array( $this, 'filter_to_test_theme_root' ) );
 		remove_filter( 'template_root', array( $this, 'filter_to_test_theme_root' ) );
