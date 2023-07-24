@@ -13,9 +13,9 @@
  * Navigation Fallback REST endpoint.
  *
  * The endpoint may embed the full Navigation Menu object into the
- * response as the `self` link. By default the Posts Controller
- * will only exposes a limited subset of fields but the editor requires
- * additional fields to be available in order to utilise the menu.
+ * response as the `self` link. By default, the Posts Controller
+ * will only expose a limited subset of fields but the editor requires
+ * additional fields to be available in order to utilize the menu.
  *
  * @since 6.3.0
  *
