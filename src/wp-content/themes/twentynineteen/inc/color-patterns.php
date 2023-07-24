@@ -141,7 +141,7 @@ function twentynineteen_custom_colors_css() {
 		.entry .entry-content blockquote,
 		.entry .entry-content .wp-block-quote:not(.is-large),
 		.entry .entry-content .wp-block-quote:not(.is-style-large),
-		.entry .entry-content > *[class^="wp-block-"].has-primary-border-color,
+		.entry .entry-content *[class^="wp-block-"].has-primary-border-color,
 		input[type="text"]:focus,
 		input[type="email"]:focus,
 		input[type="url"]:focus,
@@ -164,7 +164,7 @@ function twentynineteen_custom_colors_css() {
 		/*
 		 * - Blocks (secondary border color)
 		 */
-		.entry .entry-content > *[class^="wp-block-"].has-secondary-border-color {
+		.entry .entry-content *[class^="wp-block-"].has-secondary-border-color {
 			border-color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness_reduced . ' ); /* base: #005177; */
 		}
 
