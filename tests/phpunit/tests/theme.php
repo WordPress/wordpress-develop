@@ -6,6 +6,15 @@
  * @group themes
  */
 class Tests_Theme extends WP_UnitTestCase {
+
+	/**
+	 * Alternative theme root directory.
+	 * This directory contains a child and a parent theme for testing.
+	 *
+	 * @var string
+	 */
+	const ALT_THEME_ROOT = DIR_TESTDATA . '/themedir1';
+
 	protected $theme_slug     = 'twentyeleven';
 	protected $theme_name     = 'Twenty Eleven';
 	protected $default_themes = array(
@@ -855,6 +864,32 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * is_child_theme returns false for parent theme.
+	 *
+	 * @ticket 58866
+	 * @covers ::is_child_theme
+	 */
+	public function test_is_child_theme_false() {
+		$this->set_up_alt_theme_root();
+		$theme = wp_get_theme( 'page-templates' );
+		switch_theme( $theme['Template'], $theme['Stylesheet'] );
+		$this->assertFalse( is_child_theme() );
+		$this->tear_down_alt_theme_root();
+	}
+
+	/**
+	 * @ticket 58866
+	 * @covers ::is_child_theme
+	 */
+	public function test_is_child_theme_true() {
+		$this->set_up_alt_theme_root();
+		$theme = wp_get_theme( 'page-templates-child' );
+		switch_theme( $theme['Template'], $theme['Stylesheet'] );
+		$this->assertFalse( is_child_theme() );
+		$this->tear_down_alt_theme_root();
+	}
+
+	/**
 	 * Helper function to ensure that a block theme is available and active.
 	 */
 	private function helper_requires_block_theme() {
@@ -876,5 +911,32 @@ class Tests_Theme extends WP_UnitTestCase {
 		if ( wp_get_theme()->stylesheet !== $block_theme ) {
 			$this->markTestSkipped( "Could not switch to $block_theme." );
 		}
+	}
+
+	/**
+	 * Switch to alternative theme directory which contains a parent and a child theme.
+	 */
+	public function set_up_alt_theme_root() {
+		global $wp_theme_directories;
+		$wp_theme_directories = array( WP_CONTENT_DIR . '/themes', self::ALT_THEME_ROOT );
+		add_filter( 'theme_root', array( $this, 'filter_to_alt_theme_root' ) );
+		add_filter( 'stylesheet_root', array( $this, 'filter_to_alt_theme_root' ) );
+		add_filter( 'template_root', array( $this, 'filter_to_alt_theme_root' ) );
+	}
+
+	/**
+	 * Switch back to original theme directory.
+	 */
+	public function tear_down_alt_theme_root() {
+		global $wp_theme_directories;
+		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
+		remove_filter( 'theme_root', array( $this, 'filter_to_alt_theme_root' ) );
+		remove_filter( 'stylesheet_root', array( $this, 'filter_to_alt_theme_root' ) );
+		remove_filter( 'template_root', array( $this, 'filter_to_alt_theme_root' ) );		
+	}
+
+	// Replace the normal theme root directory with our premade test directory.
+	public function filter_to_alt_theme_root( $dir ) {
+		return self::ALT_THEME_ROOT;
 	}
 }
