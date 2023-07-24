@@ -30,7 +30,7 @@ function wp_add_fields_to_navigation_fallback_embedded_links( $schema ) {
 	/*
 	 * Exposes sub properties of content field.
 	 * These sub properties aren't exposed by the posts controller by default,
-	 * only when the post type attribute is `'editor'`.
+	 * for requests where context is `embed`.
 	 *
 	 * @see WP_REST_Posts_Controller::get_item_schema()
 	 */
@@ -41,7 +41,7 @@ function wp_add_fields_to_navigation_fallback_embedded_links( $schema ) {
 	/*
 	 * Exposes sub properties of title field.
 	 * These sub properties aren't exposed by the posts controller by default,
-	 * only when the post type attribute is `'editor'`.
+	 * for requests where context is `embed`.
 	 *
 	 * @see WP_REST_Posts_Controller::get_item_schema()
 	 */
