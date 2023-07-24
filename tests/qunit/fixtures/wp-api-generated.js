@@ -18,13 +18,7 @@ mockedApiResponse.Schema = {
         "wp-site-health/v1",
         "wp-block-editor/v1"
     ],
-    "authentication": {
-        "application-passwords": {
-            "endpoints": {
-                "authorization": "http://example.org/wp-admin/authorize-application.php"
-            }
-        }
-    },
+    "authentication": [],
     "routes": {
         "/": {
             "namespace": "",
@@ -6682,7 +6676,8 @@ mockedApiResponse.Schema = {
                                     "description": "Title for the post, as it exists in the database.",
                                     "type": "string",
                                     "context": [
-                                        "edit"
+                                        "edit",
+                                        "embed"
                                     ]
                                 },
                                 "rendered": {
@@ -6706,7 +6701,8 @@ mockedApiResponse.Schema = {
                                     "description": "Content for the post, as it exists in the database.",
                                     "type": "string",
                                     "context": [
-                                        "edit"
+                                        "edit",
+                                        "embed"
                                     ]
                                 },
                                 "rendered": {
@@ -6714,7 +6710,8 @@ mockedApiResponse.Schema = {
                                     "type": "string",
                                     "context": [
                                         "view",
-                                        "edit"
+                                        "edit",
+                                        "embed"
                                     ],
                                     "readonly": true
                                 },
@@ -6722,7 +6719,8 @@ mockedApiResponse.Schema = {
                                     "description": "Version of the content block format used by the post.",
                                     "type": "integer",
                                     "context": [
-                                        "edit"
+                                        "edit",
+                                        "embed"
                                     ],
                                     "readonly": true
                                 },
@@ -6859,7 +6857,8 @@ mockedApiResponse.Schema = {
                                     "description": "Title for the post, as it exists in the database.",
                                     "type": "string",
                                     "context": [
-                                        "edit"
+                                        "edit",
+                                        "embed"
                                     ]
                                 },
                                 "rendered": {
@@ -6883,7 +6882,8 @@ mockedApiResponse.Schema = {
                                     "description": "Content for the post, as it exists in the database.",
                                     "type": "string",
                                     "context": [
-                                        "edit"
+                                        "edit",
+                                        "embed"
                                     ]
                                 },
                                 "rendered": {
@@ -6891,7 +6891,8 @@ mockedApiResponse.Schema = {
                                     "type": "string",
                                     "context": [
                                         "view",
-                                        "edit"
+                                        "edit",
+                                        "embed"
                                     ],
                                     "readonly": true
                                 },
@@ -6899,7 +6900,8 @@ mockedApiResponse.Schema = {
                                     "description": "Version of the content block format used by the post.",
                                     "type": "integer",
                                     "context": [
-                                        "edit"
+                                        "edit",
+                                        "embed"
                                     ],
                                     "readonly": true
                                 },
@@ -7192,7 +7194,8 @@ mockedApiResponse.Schema = {
                                     "description": "Title for the post, as it exists in the database.",
                                     "type": "string",
                                     "context": [
-                                        "edit"
+                                        "edit",
+                                        "embed"
                                     ]
                                 },
                                 "rendered": {
@@ -7216,7 +7219,8 @@ mockedApiResponse.Schema = {
                                     "description": "Content for the post, as it exists in the database.",
                                     "type": "string",
                                     "context": [
-                                        "edit"
+                                        "edit",
+                                        "embed"
                                     ]
                                 },
                                 "rendered": {
@@ -7224,7 +7228,8 @@ mockedApiResponse.Schema = {
                                     "type": "string",
                                     "context": [
                                         "view",
-                                        "edit"
+                                        "edit",
+                                        "embed"
                                     ],
                                     "readonly": true
                                 },
@@ -7232,7 +7237,8 @@ mockedApiResponse.Schema = {
                                     "description": "Version of the content block format used by the post.",
                                     "type": "integer",
                                     "context": [
-                                        "edit"
+                                        "edit",
+                                        "embed"
                                     ],
                                     "readonly": true
                                 },
