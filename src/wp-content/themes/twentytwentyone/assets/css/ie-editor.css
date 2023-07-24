@@ -2834,8 +2834,8 @@ a {
 	background-color: #f0f0f0;
 }
 
-.has-light-grey-border-color[class] {
-	border-color: #fff;
+.has-light-gray-border-color[class] {
+	border-color: #f0f0f0;
 }
 
 .has-green-background-color[class] {

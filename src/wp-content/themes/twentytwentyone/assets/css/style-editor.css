@@ -2434,7 +2434,7 @@ a {
 }
 
 .has-black-border-color[class] {
-	border-color: var(--global--color-black, #000);
+	border-color: var(--global--color-black);
 }
 
 .has-dark-gray-background-color[class] {
@@ -2447,7 +2447,7 @@ a {
 }
 
 .has-dark-gray-border-color[class] {
-	border-color: var(--global--color-dark-gray, #000);
+	border-color: var(--global--color-dark-gray);
 }
 
 .has-gray-background-color[class] {
@@ -2460,7 +2460,7 @@ a {
 }
 
 .has-gray-border-color[class] {
-	border-color: var(--global--color-gray, #000);
+	border-color: var(--global--color-gray);
 }
 
 .has-light-gray-background-color[class] {
@@ -2472,8 +2472,8 @@ a {
 	background-color: var(--local--color-background);
 }
 
-.has-light-grey-border-color[class] {
-	border-color: var(--global--color-light-grey, #fff);
+.has-light-gray-border-color[class] {
+	border-color: var(--global--color-light-gray);
 }
 
 .has-green-background-color[class] {
@@ -2486,7 +2486,7 @@ a {
 }
 
 .has-green-border-color[class] {
-	border-color: var(--global--color-green, #fff);
+	border-color: var(--global--color-green);
 }
 
 .has-blue-background-color[class] {
@@ -2499,7 +2499,7 @@ a {
 }
 
 .has-blue-border-color[class] {
-	border-color: var(--global--color-blue, #fff);
+	border-color: var(--global--color-blue);
 }
 
 .has-purple-background-color[class] {
@@ -2512,7 +2512,7 @@ a {
 }
 
 .has-purple-border-color[class] {
-	border-color: var(--global--color-purple, #fff);
+	border-color: var(--global--color-purple);
 }
 
 .has-red-background-color[class] {
@@ -2525,7 +2525,7 @@ a {
 }
 
 .has-red-border-color[class] {
-	border-color: var(--global--color-red, #fff);
+	border-color: var(--global--color-red);
 }
 
 .has-orange-background-color[class] {
@@ -2538,7 +2538,7 @@ a {
 }
 
 .has-orange-border-color[class] {
-	border-color: var(--global--color-orange, #fff);
+	border-color: var(--global--color-orange);
 }
 
 .has-yellow-background-color[class] {
@@ -2551,7 +2551,7 @@ a {
 }
 
 .has-yellow-border-color[class] {
-	border-color: var(--global--color-yellow, #fff);
+	border-color: var(--global--color-yellow);
 }
 
 .has-white-background-color[class] {
@@ -2564,7 +2564,7 @@ a {
 }
 
 .has-white-border-color[class] {
-	border-color: var(--global--color-white, #fff);
+	border-color: var(--global--color-white);
 }
 
 .has-background:not(.has-text-color).has-black-background-color[class],
