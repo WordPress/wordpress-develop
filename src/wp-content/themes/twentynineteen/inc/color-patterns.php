@@ -48,24 +48,24 @@ function twentynineteen_custom_colors_css() {
 	$lightness = absint( $lightness ) . '%';
 
 	/**
-	 * Filters Twenty Nineteen default reduced lightness level.
+	 * Filters Twenty Nineteen default hover lightness level.
 	 *
 	 * @since Twenty Nineteen 1.0
 	 *
-	 * @param int $lightness_reduced Reduced color lightness level.
+	 * @param int $lightness_hover Hover color lightness level.
 	 */
-	$lightness_reduced = apply_filters( 'twentynineteen_custom_colors_lightness_reduced', 23 );
-	$lightness_reduced = absint( $lightness_reduced ) . '%';
+	$lightness_hover = apply_filters( 'twentynineteen_custom_colors_lightness_hover', 23 );
+	$lightness_hover = absint( $lightness_hover ) . '%';
 
 	/**
-	 * Filters Twenty Nineteen default increased lightness level.
+	 * Filters Twenty Nineteen default selection lightness level.
 	 *
 	 * @since Twenty Nineteen 1.0
 	 *
-	 * @param int $lightness_increased Increased color lightness level.
+	 * @param int $lightness_selection Selection color lightness level.
 	 */
-	$lightness_increased = apply_filters( 'twentynineteen_custom_colors_lightness_increased', 90 );
-	$lightness_increased = absint( $lightness_increased ) . '%';
+	$lightness_selection = apply_filters( 'twentynineteen_custom_colors_lightness_selection', 90 );
+	$lightness_selection = absint( $lightness_selection ) . '%';
 
 	$theme_css = '
 		/*
@@ -165,7 +165,7 @@ function twentynineteen_custom_colors_css() {
 		 * - Blocks (secondary border color)
 		 */
 		.entry .entry-content *[class^="wp-block-"].has-secondary-border-color {
-			border-color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness_reduced . ' ); /* base: #005177; */
+			border-color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness_hover . ' ); /* base: #005177; */
 		}
 
 		.gallery-item > div > a:focus {
@@ -189,7 +189,7 @@ function twentynineteen_custom_colors_css() {
 		.comment-navigation .nav-next a:hover,
 		#cancel-comment-reply-link:hover,
 		.widget a:hover {
-			color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness_reduced . ' ); /* base: #005177; */
+			color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness_hover . ' ); /* base: #005177; */
 		}
 
 		.main-navigation .sub-menu > li > a:hover,
@@ -204,15 +204,15 @@ function twentynineteen_custom_colors_css() {
 		.entry .entry-content > *[class^="wp-block-"].has-secondary-background-color,
 		.entry .entry-content > *[class^="wp-block-"] .has-secondary-background-color,
 		.entry .entry-content > *[class^="wp-block-"].is-style-solid-color.has-secondary-background-color {
-			background-color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness_reduced . ' ); /* base: #005177; */
+			background-color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness_hover . ' ); /* base: #005177; */
 		}
 
 		/* Text selection colors */
 		::selection {
-			background-color: hsl( ' . $primary_color . ', ' . $saturation_selection . ', ' . $lightness_increased . ' ); /* base: #005177; */
+			background-color: hsl( ' . $primary_color . ', ' . $saturation_selection . ', ' . $lightness_selection . ' ); /* base: #005177; */
 		}
 		::-moz-selection {
-			background-color: hsl( ' . $primary_color . ', ' . $saturation_selection . ', ' . $lightness_increased . ' ); /* base: #005177; */
+			background-color: hsl( ' . $primary_color . ', ' . $saturation_selection . ', ' . $lightness_selection . ' ); /* base: #005177; */
 		}';
 
 	$editor_css = '
@@ -253,7 +253,7 @@ function twentynineteen_custom_colors_css() {
 		.editor-block-list__layout .editor-block-list__block a:hover,
 		.editor-block-list__layout .editor-block-list__block a:active,
 		.editor-block-list__layout .editor-block-list__block .wp-block-file .wp-block-file__textlink:hover {
-			color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness_reduced . ' ); /* base: #005177; */
+			color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness_hover . ' ); /* base: #005177; */
 		}
 
 		/* Do not overwrite solid color pullquote or cover links */
