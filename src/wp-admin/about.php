@@ -32,7 +32,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</h1>
 			</div>
 
-			<div class="about__header-text"><?php _e( 'Edit pages in the Site Editor, sync patterns, and more' ); ?></div>
+			<div class="about__header-text"></div>
 		</div>
 
 		<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
