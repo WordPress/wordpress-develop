@@ -197,6 +197,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
 						<rect width="48" height="48" rx="4" fill="#151515"/>
+						<path fill="#fff" fill-rule="evenodd" d="m20.014 21.168 3.988-3.418 3.988 3.418-.976 1.14-3.012-2.582-3.012 2.581-.976-1.139Z" clip-rule="evenodd"/>
+						<path fill="#fff" d="M16 29h16v-1.5H16V29Z"/>
 					</svg>
 				</div>
 				<h3 class="is-smaller-heading" style="margin-top:calc(var(--gap) / 2);margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Rediscover the Top Toolbar' ); ?></h3>
