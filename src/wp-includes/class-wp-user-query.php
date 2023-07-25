@@ -1114,10 +1114,14 @@ class WP_User_Query {
 	 * @return mixed Property.
 	 */
 	public function __get( $name ) {
-		if ( in_array( $name, $this->compat_fields, true ) ) {
-			return $this->$name;
-		}
-	}
+        if ( in_array( $name, $this->compat_fields, true ) ) {
+            return $this->$name;
+        } else {
+            // Alert and inform developers about the incorrect use of dynamic property
+            _doing_it_wrong( __METHOD__, 'Trying to access non-existent dynamic property: ' . $name, '5.8.0' );
+            return null;
+        }
+    }
 
 	/**
 	 * Makes private properties settable for backward compatibility.
@@ -1129,10 +1133,13 @@ class WP_User_Query {
 	 * @return mixed Newly-set property.
 	 */
 	public function __set( $name, $value ) {
-		if ( in_array( $name, $this->compat_fields, true ) ) {
-			return $this->$name = $value;
-		}
-	}
+        if ( in_array( $name, $this->compat_fields, true ) ) {
+            $this->$name = $value;
+        } else {
+            // Alert and inform developers about the incorrect use of dynamic property
+            _doing_it_wrong( __METHOD__, 'Trying to set non-existent dynamic property: ' . $name, '5.8.0' );
+        }
+    }
 
 	/**
 	 * Makes private properties checkable for backward compatibility.
@@ -1143,10 +1150,13 @@ class WP_User_Query {
 	 * @return bool Whether the property is set.
 	 */
 	public function __isset( $name ) {
-		if ( in_array( $name, $this->compat_fields, true ) ) {
-			return isset( $this->$name );
-		}
-	}
+        if ( in_array( $name, $this->compat_fields, true ) ) {
+            return isset( $this->$name );
+        } else {
+            // Dynamic property not found, return false
+            return false;
+        }
+    }
 
 	/**
 	 * Makes private properties un-settable for backward compatibility.
@@ -1156,10 +1166,13 @@ class WP_User_Query {
 	 * @param string $name Property to unset.
 	 */
 	public function __unset( $name ) {
-		if ( in_array( $name, $this->compat_fields, true ) ) {
-			unset( $this->$name );
-		}
-	}
+        if ( in_array( $name, $this->compat_fields, true ) ) {
+            unset( $this->$name );
+        } else {
+            // Alert and inform developers about the incorrect use of dynamic property
+            _doing_it_wrong( __METHOD__, 'Trying to unset non-existent dynamic property: ' . $name, '5.8.0' );
+        }
+    }
 
 	/**
 	 * Makes private/protected methods readable for backward compatibility.
