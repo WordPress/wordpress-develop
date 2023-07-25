@@ -3137,7 +3137,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$request->set_body_params(
 			array(
 				'title' => 'Initial revision',
-				'meta' => array(
+				'meta'  => array(
 					'foo' => 'initial',
 				),
 			)
@@ -3151,7 +3151,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$request->set_body_params(
 			array(
 				'title' => 'Revision 1',
-				'meta' => array(
+				'meta'  => array(
 					'foo' => 'bar',
 				),
 			)
@@ -3160,7 +3160,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertSame( 200, $response->get_status() );
 
 		// Check that the revision has the old value.
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id ) );
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( 'bar', $response->get_data()['meta']['foo'] );
@@ -3191,7 +3191,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 
 		// Get the 3rd oldest revision.
-		$revisions = wp_get_post_revisions( $post_id );
+		$revisions     = wp_get_post_revisions( $post_id );
 		$revision_id_3 = $revisions[1]->ID;
 
 		// Restore it by id.

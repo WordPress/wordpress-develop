@@ -560,7 +560,7 @@ function wp_post_revision_meta_keys() {
 	 *
 	 * @param array $keys An array of default meta fields to be revisioned.
 	 */
-	return apply_filters( 'wp_post_revision_meta_keys', array( 'footnotes' ) ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals
+	return apply_filters( 'wp_post_revision_meta_keys', array( 'footnotes' ) );
 }
 
 /**
