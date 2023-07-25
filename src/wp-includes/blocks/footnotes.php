@@ -68,9 +68,10 @@ function register_block_core_footnotes() {
 			$post_type,
 			'footnotes',
 			array(
-				'show_in_rest' => true,
-				'single'       => true,
-				'type'         => 'string',
+				'show_in_rest'      => true,
+				'single'            => true,
+				'type'              => 'string',
+				'revisions_enabled' => true,
 			)
 		);
 	}

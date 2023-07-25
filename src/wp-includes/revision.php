@@ -536,6 +536,17 @@ function _wp_copy_post_meta( $source_post_id, $target_post_id, $meta_key ) {
  * @return array An array of meta keys to be revisioned.
  */
 function wp_post_revision_meta_keys() {
+	global $wp_meta_keys;
+
+	$revisioned_keys = array();
+	if ( ! empty ( $wp_meta_keys['wp_revisions_enabled'] ) ) {
+		foreach( $wp_meta_keys['wp_revisions_enabled'] as $meta_key => $revisions_enabled ) {
+			if ( $revisions_enabled ) {
+				$revisioned_keys[] = $meta_key;
+			}
+		}
+	}
+
 	/**
 	 * Filter the list of post meta keys to be revisioned.
 	 *
@@ -543,7 +554,7 @@ function wp_post_revision_meta_keys() {
 	 *
 	 * @param array $keys An array of default meta fields to be revisioned.
 	 */
-	return apply_filters( 'wp_post_revision_meta_keys', array( 'footnotes' ) );
+	return apply_filters( 'wp_post_revision_meta_keys', $revisioned_keys );
 }
 
 /**
