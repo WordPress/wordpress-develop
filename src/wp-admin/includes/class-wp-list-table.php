@@ -184,6 +184,17 @@ class WP_List_Table {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return $this->$name;
 		}
+
+		_doing_it_wrong(
+			__METHOD__,
+			sprintf(
+			// translators: 1: The name of the non-existent class property.
+				__( 'The "%1$s" property is not defined. Dynamic properties are deprecated in PHP 8.2 and above.' ),
+				$name
+			),
+			'6.4.0'
+		);
+		return null;
 	}
 
 	/**
@@ -193,12 +204,22 @@ class WP_List_Table {
 	 *
 	 * @param string $name  Property to check if set.
 	 * @param mixed  $value Property value.
-	 * @return mixed Newly-set property.
 	 */
 	public function __set( $name, $value ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
-			return $this->$name = $value;
+			$this->$name = $value;
+			return;
 		}
+
+		_doing_it_wrong(
+			__METHOD__,
+			sprintf(
+			// translators: 1: The name of the non-existent class property.
+				__( 'The "%1$s" property is not defined. Dynamic properties are deprecated in PHP 8.2 and above.' ),
+				$name
+			),
+			'6.4.0'
+		);
 	}
 
 	/**
