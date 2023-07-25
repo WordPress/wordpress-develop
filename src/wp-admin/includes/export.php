@@ -108,7 +108,7 @@ function export_wp( $args = array() ) {
 		$post_types = get_post_types( array( 'can_export' => true ) );
 		$esses      = array_fill( 0, count( $post_types ), '%s' );
 
-		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.NotPrepared
 		$where = $wpdb->prepare( "{$wpdb->posts}.post_type IN (" . implode( ',', $esses ) . ')', $post_types );
 	}
 
@@ -142,6 +142,7 @@ function export_wp( $args = array() ) {
 	}
 
 	// Grab a snapshot of post IDs, just in case it changes during the export.
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	$post_ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} $join WHERE $where" );
 
 	/*
@@ -358,14 +359,16 @@ function export_wp( $args = array() ) {
 	function wxr_authors_list( array $post_ids = null ) {
 		global $wpdb;
 
+		$and = '';
+
 		if ( ! empty( $post_ids ) ) {
 			$post_ids = array_map( 'absint', $post_ids );
 			$and      = 'AND ID IN ( ' . implode( ', ', $post_ids ) . ')';
-		} else {
-			$and = '';
 		}
 
 		$authors = array();
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$results = $wpdb->get_results( "SELECT DISTINCT post_author FROM $wpdb->posts WHERE post_status != 'auto-draft' $and" );
 		foreach ( (array) $results as $result ) {
 			$authors[] = get_userdata( $result->post_author );
@@ -543,6 +546,8 @@ function export_wp( $args = array() ) {
 		// Fetch 20 posts at a time rather than loading the entire table into memory.
 		while ( $next_posts = array_splice( $post_ids, 0, 20 ) ) {
 			$where = 'WHERE ID IN (' . implode( ',', $next_posts ) . ')';
+			// Using $wpdb->prepare() would add extra quotes here, which is not needed.
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$posts = $wpdb->get_results( "SELECT * FROM {$wpdb->posts} $where" );
 
 			// Begin Loop.
