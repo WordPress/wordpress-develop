@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_HTML_Processor
  */
-class Tests_HtmlApi_wpHtmlProcessor extends WP_UnitTestCase {
+class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensure that the HTML Processor's public constructor function warns a developer to call
 	 * the static creator methods instead of directly instantiating a new class.

@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_HTML_Processor
  */
-class Tests_HtmlApi_wpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
+class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	/**
 	 * @ticket 58517
 	 *
