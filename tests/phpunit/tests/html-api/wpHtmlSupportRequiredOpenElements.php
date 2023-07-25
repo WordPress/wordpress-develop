@@ -25,7 +25,7 @@
  *
  * @coversDefaultClass WP_HTML_Processor
  */
-class Tests_HtmlApi_wpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
+class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	/**
 	 * Fails to assert if the HTML Processor handles the given tag.
 	 *
