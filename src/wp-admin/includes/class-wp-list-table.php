@@ -773,7 +773,9 @@ class WP_List_Table {
 			}
 
 			printf(
-				"<a href='%s' class='%s' id='view-switch-$mode'$aria_current><span class='screen-reader-text'>%s</span></a>\n",
+				"<a href='%s' class='%s' id='view-switch-$mode'$aria_current>" .
+					"<span class='screen-reader-text'>%s</span>" .
+				"</a>\n",
 				esc_url( remove_query_arg( 'attachment-filter', add_query_arg( 'mode', $mode ) ) ),
 				implode( ' ', $classes ),
 				$title
@@ -819,20 +821,27 @@ class WP_List_Table {
 		if ( ! $approved_comments && ! $pending_comments ) {
 			// No comments at all.
 			printf(
-				'<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">%s</span>',
+				'<span aria-hidden="true">&#8212;</span>' .
+				'<span class="screen-reader-text">%s</span>',
 				__( 'No comments' )
 			);
 		} elseif ( $approved_comments && 'trash' === get_post_status( $post_id ) ) {
 			// Don't link the comment bubble for a trashed post.
 			printf(
-				'<span class="post-com-count post-com-count-approved"><span class="comment-count-approved" aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></span>',
+				'<span class="post-com-count post-com-count-approved">' .
+					'<span class="comment-count-approved" aria-hidden="true">%s</span>' .
+					'<span class="screen-reader-text">%s</span>' .
+				'</span>',
 				$approved_comments_number,
 				$pending_comments ? $approved_phrase : $approved_only_phrase
 			);
 		} elseif ( $approved_comments ) {
 			// Link the comment bubble to approved comments.
 			printf(
-				'<a href="%s" class="post-com-count post-com-count-approved"><span class="comment-count-approved" aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
+				'<a href="%s" class="post-com-count post-com-count-approved">' .
+					'<span class="comment-count-approved" aria-hidden="true">%s</span>' .
+					'<span class="screen-reader-text">%s</span>' .
+				'</a>',
 				esc_url(
 					add_query_arg(
 						array(
@@ -848,7 +857,10 @@ class WP_List_Table {
 		} else {
 			// Don't link the comment bubble when there are no approved comments.
 			printf(
-				'<span class="post-com-count post-com-count-no-comments"><span class="comment-count comment-count-no-comments" aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></span>',
+				'<span class="post-com-count post-com-count-no-comments">' .
+					'<span class="comment-count comment-count-no-comments" aria-hidden="true">%s</span>' .
+					'<span class="screen-reader-text">%s</span>' .
+				'</span>',
 				$approved_comments_number,
 				$pending_comments ?
 				/* translators: Hidden accessibility text. */
@@ -860,7 +872,10 @@ class WP_List_Table {
 
 		if ( $pending_comments ) {
 			printf(
-				'<a href="%s" class="post-com-count post-com-count-pending"><span class="comment-count-pending" aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
+				'<a href="%s" class="post-com-count post-com-count-pending">' .
+					'<span class="comment-count-pending" aria-hidden="true">%s</span>' .
+					'<span class="screen-reader-text">%s</span>' .
+				'</a>',
 				esc_url(
 					add_query_arg(
 						array(
@@ -875,7 +890,10 @@ class WP_List_Table {
 			);
 		} else {
 			printf(
-				'<span class="post-com-count post-com-count-pending post-com-count-no-pending"><span class="comment-count comment-count-no-pending" aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></span>',
+				'<span class="post-com-count post-com-count-pending post-com-count-no-pending">' .
+					'<span class="comment-count comment-count-no-pending" aria-hidden="true">%s</span>' .
+					'<span class="screen-reader-text">%s</span>' .
+				'</span>',
 				$pending_comments_number,
 				$approved_comments ?
 				/* translators: Hidden accessibility text. */
@@ -1004,7 +1022,10 @@ class WP_List_Table {
 			$page_links[] = '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&laquo;</span>';
 		} else {
 			$page_links[] = sprintf(
-				"<a class='first-page button' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
+				"<a class='first-page button' href='%s'>" .
+					"<span class='screen-reader-text'>%s</span>" .
+					"<span aria-hidden='true'>%s</span>" .
+				'</a>',
 				esc_url( remove_query_arg( 'paged', $current_url ) ),
 				/* translators: Hidden accessibility text. */
 				__( 'First page' ),
@@ -1016,7 +1037,10 @@ class WP_List_Table {
 			$page_links[] = '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&lsaquo;</span>';
 		} else {
 			$page_links[] = sprintf(
-				"<a class='prev-page button' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
+				"<a class='prev-page button' href='%s'>" .
+					"<span class='screen-reader-text'>%s</span>" .
+					"<span aria-hidden='true'>%s</span>" .
+				'</a>',
 				esc_url( add_query_arg( 'paged', max( 1, $current - 1 ), $current_url ) ),
 				/* translators: Hidden accessibility text. */
 				__( 'Previous page' ),
@@ -1026,23 +1050,29 @@ class WP_List_Table {
 
 		if ( 'bottom' === $which ) {
 			$html_current_page  = $current;
-			$total_pages_before = '<span class="screen-reader-text">' .
+			$total_pages_before = sprintf(
+				'<span class="screen-reader-text">%s</span>' .
+				'<span id="table-paging" class="paging-input">' .
+				'<span class="tablenav-paging-text">',
 				/* translators: Hidden accessibility text. */
-				__( 'Current Page' ) .
-			'</span><span id="table-paging" class="paging-input"><span class="tablenav-paging-text">';
+				__( 'Current Page' )
+			);
 		} else {
 			$html_current_page = sprintf(
-				"%s<input class='current-page' id='current-page-selector' type='text' name='paged' value='%s' size='%d' aria-describedby='table-paging' /><span class='tablenav-paging-text'>",
-				'<label for="current-page-selector" class="screen-reader-text">' .
-					/* translators: Hidden accessibility text. */
-					__( 'Current Page' ) .
-				'</label>',
+				'<label for="current-page-selector" class="screen-reader-text">%s</label>' .
+				"<input class='current-page' id='current-page-selector' type='text'
+					name='paged' value='%s' size='%d' aria-describedby='table-paging' />" .
+				"<span class='tablenav-paging-text'>",
+				/* translators: Hidden accessibility text. */
+				__( 'Current Page' ),
 				$current,
 				strlen( $total_pages )
 			);
 		}
+
 		$html_total_pages = sprintf( "<span class='total-pages'>%s</span>", number_format_i18n( $total_pages ) );
-		$page_links[]     = $total_pages_before . sprintf(
+
+		$page_links[] = $total_pages_before . sprintf(
 			/* translators: 1: Current page, 2: Total pages. */
 			_x( '%1$s of %2$s', 'paging' ),
 			$html_current_page,
@@ -1053,7 +1083,10 @@ class WP_List_Table {
 			$page_links[] = '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&rsaquo;</span>';
 		} else {
 			$page_links[] = sprintf(
-				"<a class='next-page button' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
+				"<a class='next-page button' href='%s'>" .
+					"<span class='screen-reader-text'>%s</span>" .
+					"<span aria-hidden='true'>%s</span>" .
+				'</a>',
 				esc_url( add_query_arg( 'paged', min( $total_pages, $current + 1 ), $current_url ) ),
 				/* translators: Hidden accessibility text. */
 				__( 'Next page' ),
@@ -1065,7 +1098,10 @@ class WP_List_Table {
 			$page_links[] = '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&raquo;</span>';
 		} else {
 			$page_links[] = sprintf(
-				"<a class='last-page button' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
+				"<a class='last-page button' href='%s'>" .
+					"<span class='screen-reader-text'>%s</span>" .
+					"<span aria-hidden='true'>%s</span>" .
+				'</a>',
 				esc_url( add_query_arg( 'paged', $total_pages, $current_url ) ),
 				/* translators: Hidden accessibility text. */
 				__( 'Last page' ),
@@ -1115,7 +1151,7 @@ class WP_List_Table {
 	 *
 	 * In the second format, passing true as second parameter will make the initial
 	 * sorting order be descending. Following parameters add a short column name to
-	 * be used as 'abbr' attribute, a translatable string for the current sorting
+	 * be used as 'abbr' attribute, a translatable string for the current sorting,
 	 * and the initial order for the initial sorted column, 'asc' or 'desc' (default: false).
 	 *
 	 * @since 3.1.0
@@ -1325,10 +1361,10 @@ class WP_List_Table {
 		}
 
 		// Not in the initial view and descending order.
-		if ( isset( $_GET['order'] ) && 'desc' == $_GET['order'] ) {
+		if ( isset( $_GET['order'] ) && 'desc' === $_GET['order'] ) {
 			$current_order = 'desc';
 		} else {
-			// The initial view is not always 'asc' we'll take care of this below.
+			// The initial view is not always 'asc', we'll take care of this below.
 			$current_order = 'asc';
 		}
 
@@ -1388,13 +1424,14 @@ class WP_List_Table {
 				 */
 				if ( $current_orderby === $orderby ) {
 					// The sorted column. The `aria-sort` attribute must be set only on the sorted column.
-					if ( 'asc' == $current_order ) {
+					if ( 'asc' === $current_order ) {
 						$order          = 'desc';
 						$aria_sort_attr = ' aria-sort="ascending"';
 					} else {
 						$order          = 'asc';
 						$aria_sort_attr = ' aria-sort="descending"';
 					}
+
 					$class[] = 'sorted';
 					$class[] = $current_order;
 				} else {
@@ -1407,19 +1444,34 @@ class WP_List_Table {
 
 					$class[] = 'sortable';
 					$class[] = 'desc' === $order ? 'asc' : 'desc';
+
 					/* translators: Hidden accessibility text. */
 					$asc_text = __( 'Sort ascending.' );
 					/* translators: Hidden accessibility text. */
 					$desc_text  = __( 'Sort descending.' );
 					$order_text = 'asc' === $order ? $asc_text : $desc_text;
 				}
+
 				if ( '' !== $order_text ) {
 					$order_text = ' <span class="screen-reader-text">' . $order_text . '</span>';
 				}
 
 				// Print an 'abbr' attribute if a value is provided via get_sortable_columns().
-				$abbr_attr           = $abbr ? ' abbr="' . esc_attr( $abbr ) . '"' : '';
-				$column_display_name = '<a href="' . esc_url( add_query_arg( compact( 'orderby', 'order' ), $current_url ) ) . '"><span>' . $column_display_name . '</span><span class="sorting-indicators"><span class="sorting-indicator asc" aria-hidden="true"></span><span class="sorting-indicator desc" aria-hidden="true"></span>' . $order_text . '</a>';
+				$abbr_attr = $abbr ? ' abbr="' . esc_attr( $abbr ) . '"' : '';
+
+				$column_display_name = sprintf(
+					'<a href="%1$s">' .
+						'<span>%2$s</span>' .
+						'<span class="sorting-indicators">' .
+							'<span class="sorting-indicator asc" aria-hidden="true"></span>' .
+							'<span class="sorting-indicator desc" aria-hidden="true"></span>' .
+						'</span>' .
+						'%3$s' .
+					'</a>',
+					esc_url( add_query_arg( compact( 'orderby', 'order' ), $current_url ) ),
+					$column_display_name,
+					$order_text
+				);
 			}
 
 			$tag   = ( 'cb' === $column_key ) ? 'td' : 'th';
@@ -1459,10 +1511,10 @@ class WP_List_Table {
 		}
 
 		// Not in the initial view and descending order.
-		if ( isset( $_GET['order'] ) && 'desc' == $_GET['order'] ) {
+		if ( isset( $_GET['order'] ) && 'desc' === $_GET['order'] ) {
 			$current_order = 'desc';
 		} else {
-			// The initial view is not always 'asc' we'll take care of this below.
+			// The initial view is not always 'asc', we'll take care of this below.
 			$current_order = 'asc';
 		}
 
@@ -1493,7 +1545,7 @@ class WP_List_Table {
 				 * True in the initial view when an initial orderby is set via get_sortable_columns()
 				 * and true in the sorted views when the actual $_GET['orderby'] is equal to $orderby.
 				 */
-				if ( $current_orderby == $orderby ) {
+				if ( $current_orderby === $orderby ) {
 					/* translators: Hidden accessibility text. */
 					$asc_text = __( 'Ascending.' );
 					/* translators: Hidden accessibility text. */

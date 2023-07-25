@@ -68,6 +68,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			'file/view': normalizeJoin(baseDir, `node_modules/@wordpress/block-library/build-module/file/view` ),
 			'navigation/view': normalizeJoin(baseDir, `node_modules/@wordpress/block-library/build-module/navigation/view` ),
 			'navigation/view-modal': normalizeJoin(baseDir, `node_modules/@wordpress/block-library/build-module/navigation/view-modal` ),
+			'search/view': normalizeJoin(baseDir, `node_modules/@wordpress/block-library/build-module/search/view` ),
 		},
 		output: {
 			devtoolNamespace: 'wp',
