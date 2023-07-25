@@ -1709,9 +1709,9 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 	}
 
 	// Bail early if an image has been inserted and later edited.
-	if ( preg_match( '/-e[0-9]{13}/', $image_meta['file'], $img_edit_hash ) &&
-		 ! str_contains( wp_basename( $image_src ), $img_edit_hash[0] ) ) {
-
+	if ( preg_match( '/-e[0-9]{13}/', $image_meta['file'], $img_edit_hash )
+		&& ! str_contains( wp_basename( $image_src ), $img_edit_hash[0] )
+	) {
 		return $image;
 	}
 
@@ -5620,6 +5620,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		}
 		return $loading_attributes;
 	};
+
 	// Closure to increase media count for images with certain minimum threshold, mostly used for header images.
 	$maybe_increase_content_media_count = static function() use ( $attr ) {
 		/** This filter is documented in wp-admin/includes/media.php */
