@@ -518,6 +518,9 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	public function __get( $name ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return $this->$name;
+		} else {
+			_doing_it_wrong( __FUNCTION__, 'The property ' . $name . ' is not accessible.', '1.0.0' );
+			return null;
 		}
 	}
 
@@ -533,6 +536,8 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	public function __set( $name, $value ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return $this->$name = $value;
+		} else {
+			_doing_it_wrong( __FUNCTION__, 'The property ' . $name . ' is not accessible.', '1.0.0' );
 		}
 	}
 
@@ -547,6 +552,8 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	public function __isset( $name ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return isset( $this->$name );
+		} else {
+			return false;
 		}
 	}
 
@@ -560,6 +567,8 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	public function __unset( $name ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			unset( $this->$name );
+		} else {
+			_doing_it_wrong( __FUNCTION__, 'The property ' . $name . ' is not accessible.', '1.0.0' );
 		}
 	}
 }
