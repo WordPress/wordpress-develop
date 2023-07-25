@@ -2227,4 +2227,89 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$results = $q->get_results();
 		$this->assertNotFalse( DateTime::createFromFormat( 'Y-m-d H:i:s', $results[0] ) );
 	}
+
+	/**
+	 * @dataProvider data_should_allow_predefined_dynamic_properties
+	 * @ticket       58897
+	 *
+	 * @covers WP_User_Query::__set
+	 * @covers WP_User_Query::__get
+	 *
+	 * @param string $property_name Name of the class property.
+	 */
+	public function test_should_allow_predefined_dynamic_properties( $property_name ) {
+		$value      = uniqid();
+		$user_query = new WP_User_Query();
+
+		// Calling the getter first to make sure it doesn't cause errors.
+		$user_query->$property_name;
+
+		$user_query->$property_name = $value;
+		$this->assertSame( $value, $user_query->$property_name );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_should_allow_predefined_dynamic_properties() {
+		$user_query             = new WP_User_Query();
+		$compat_fields_property = new ReflectionProperty( $user_query, 'compat_fields' );
+		$compat_fields_property->setAccessible( true );
+
+		$predefined_properties = $compat_fields_property->getValue( $user_query );
+
+		$compat_fields_property->setAccessible( false );
+		$predefined_properties = array_map(
+			function ( $property_name ) {
+				return array( $property_name );
+			},
+			$predefined_properties
+		);
+
+		return $predefined_properties;
+	}
+
+	/**
+	 * @ticket 58897
+	 *
+	 * @covers WP_User_Query::__get
+	 */
+	public function test_should_not_allow_to_get_dynamic_properties() {
+		$this->enable_doing_it_wrong_error();
+		$property_name = uniqid();
+		$this->setExpectedIncorrectUsage( 'WP_User_Query::__get' );
+		$this->expectNotice();
+		$this->expectNoticeMessageMatches( '/^.+' . $property_name . '.+$/' );
+
+		$user_query = new WP_User_Query();
+		// Invoking WP_User_Query::__get.
+		$user_query->$property_name;
+	}
+
+	/**
+	 * @ticket 58897
+	 *
+	 * @covers WP_User_Query::__set
+	 */
+	public function test_should_not_allow_to_set_dynamic_properties() {
+		$this->enable_doing_it_wrong_error();
+		$property_name = uniqid();
+		$this->setExpectedIncorrectUsage( 'WP_User_Query::__set' );
+		$this->expectNotice();
+		$this->expectNoticeMessageMatches( '/^.+' . $property_name . '.+$/' );
+
+		$user_query = new WP_User_Query();
+		// Invoking WP_User_Query::__set.
+		$user_query->$property_name = 'value';
+	}
+
+	/**
+	 * This function is needed to remove the filter and disable triggering
+	 * the "doing it wrong" error.
+	 */
+	private function enable_doing_it_wrong_error() {
+		add_filter( 'doing_it_wrong_trigger_error', '__return_true', 9999 );
+	}
 }
