@@ -60,7 +60,7 @@ $credits = wp_credits();
 				);
 				?>
 				<br />
-				<a href="https://make.wordpress.org/"><?php _e( 'Get involved in WordPress.' ); ?></a>
+				<a href="https://make.wordpress.org/contribute"><?php _e( 'Get involved in WordPress.' ); ?></a>
 			</p>
 
 			<?php else : ?>
