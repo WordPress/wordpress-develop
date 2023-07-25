@@ -220,7 +220,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 				'set_transient() should not accept an object for the transient name.',
 			),
 			array(
-				[],
+				array(),
 				false,
 				'set_transient() should not accept an array for the transient name.',
 			),
