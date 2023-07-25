@@ -956,6 +956,27 @@ function get_transient( $transient ) {
  */
 function set_transient( $transient, $value, $expiration = 0 ) {
 
+	// Transient name should not be empty.
+	if ( empty( $transient ) ) {
+
+		return false;
+	}
+
+	// Transient name should be a string or number
+	if ( ! ( is_string( $transient ) || is_numeric( $transient ) ) ) {
+
+		return false;
+	}
+
+	// Cast Transient name as string.
+	$transient = (string) $transient;
+
+	// Check that Transient name is 172 characters or less.
+	if ( 172 <= $transient ) {
+
+		return false;
+	}
+
 	$expiration = (int) $expiration;
 
 	/**

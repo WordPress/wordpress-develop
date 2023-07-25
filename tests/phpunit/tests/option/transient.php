@@ -184,4 +184,62 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		);
 		$this->assertSame( $expected, $a->get_events() );
 	}
+
+
+	/**
+	 * @dataProvider data_transient_keys
+	 *
+	 * @covers ::set_transient()
+	 */
+	public function test_transient_key_valid( $key, $expected, $message ) {
+		$value  = rand_str();
+
+		$this->assertSame( $expected, set_transient( $key, $value ), $message );
+	}
+
+	public function data_transient_keys() {
+		return array(
+			array(
+				'',
+				false,
+				'set_transient() should not accept empty string values for the transient name.',
+			),
+			array(
+				true,
+				false,
+				'set_transient() should not accept boolean true for the transient name.',
+			),
+			array(
+				false,
+				false,
+				'set_transient() should not accept boolean false for the transient name.',
+			),
+			array(
+				new stdClass(),
+				false,
+				'set_transient() should not accept an object for the transient name.',
+			),
+			array(
+				[],
+				false,
+				'set_transient() should not accept an array for the transient name.',
+			),
+			array(
+				'test_name', // rand_str(),
+				true,
+				'set_transient() should accept a string for the transient name.',
+			),
+		);
+	}
+
+	/**
+	 * @covers ::set_transient()
+	 */
+	public function test_transient_key_172_characters_or_less() {
+		$key = rand_str( 173 );
+		$value  = rand_str();
+
+		$this->assertSame( false, set_transient( $key, $value ), 'set_transient() should only accept string values of 172 characters or less for the transient name.' );
+	}
+
 }
