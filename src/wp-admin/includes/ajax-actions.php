@@ -5566,12 +5566,17 @@ function wp_ajax_send_password_reset() {
 	$user    = get_userdata( $user_id );
 	$results = retrieve_password( $user->user_login );
 
-	if ( ! is_wp_error( $results ) ) {
+	if ( true === $results ) {
 		wp_send_json_success(
-			/* translators: %s: User's display name. */
+		/* translators: %s: User's display name. */
+			sprintf( __( 'A password reset link was emailed to %s.' ), $user->display_name )
+		);
+	} elseif ( is_wp_error( $results ) ) {
+		wp_send_json_success(
+		/* translators: %s: User's display name. */
 			sprintf( __( 'A password reset link was emailed to %s.' ), $user->display_name )
 		);
 	} else {
-		wp_send_json_error( $results->get_error_message() );
+		wp_send_json_error( 'Cannot retrieve user\'s password', 500);
 	}
 }

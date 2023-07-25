@@ -793,7 +793,7 @@ switch ( $action ) {
 		if ( $http_post ) {
 			$errors = retrieve_password();
 
-			if ( ! is_wp_error( $errors ) ) {
+			if ( true === $errors ) {
 				$redirect_to = ! empty( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : 'wp-login.php?checkemail=confirm';
 				wp_safe_redirect( $redirect_to );
 				exit;
