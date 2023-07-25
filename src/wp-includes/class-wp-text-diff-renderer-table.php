@@ -519,6 +519,17 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return $this->$name;
 		}
+
+		_doing_it_wrong(
+			__METHOD__,
+			sprintf(
+			// translators: 1: The name of the non-existent class property.
+				__( 'The "%1$s" property is not defined. Dynamic properties are deprecated in PHP 8.2 and above.' ),
+				$name
+			),
+			'6.4.0'
+		);
+		return null;
 	}
 
 	/**
@@ -533,7 +544,19 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	public function __set( $name, $value ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return $this->$name = $value;
+			$this->$name = $value;
+			return;
 		}
+
+		_doing_it_wrong(
+			__METHOD__,
+			sprintf(
+			// translators: 1: The name of the non-existent class property.
+				__( 'The "%1$s" property is not defined. Dynamic properties are deprecated in PHP 8.2 and above.' ),
+				$name
+			),
+			'6.4.0'
+		);
 	}
 
 	/**
@@ -548,6 +571,8 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return isset( $this->$name );
 		}
+
+		return false;
 	}
 
 	/**
