@@ -34,7 +34,7 @@ env:
   WP_DEBUG: false
   SCRIPT_DEBUG: false
   WP_DEVELOPMENT_MODE: ''
-
+  
   # This workflow takes two sets of measurements — one for the current commit,
   # and another against a consistent version that is used as a baseline measurement.
   # This is done to isolate variance in measurements caused by the GitHub runners
@@ -78,7 +78,7 @@ jobs:
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-    
+
     steps:
       - name: Configure environment variables
         run: |
