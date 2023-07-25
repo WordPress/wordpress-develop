@@ -21,7 +21,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 	/**
 	 * {@inheritDoc}
 	 */
-	protected function setUp() {
+	public function setUp() {
 		parent::setUp();
 
 		// Reset for current test.
