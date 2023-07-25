@@ -1136,10 +1136,10 @@ class WP_User_Query {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			$this->$name = $value;
 		} else {
-            // Alert and inform developers about the incorrect use of dynamic property
-            _doing_it_wrong( __METHOD__, 'Trying to set non-existent dynamic property: ' . $name, '5.8.0' );
-        }
-    }
+			// Alert and inform developers about the incorrect use of dynamic property
+			_doing_it_wrong( __METHOD__, 'Trying to set non-existent dynamic property: ' . $name, '5.8.0' );
+		}
+	}
 
 	/**
 	 * Makes private properties checkable for backward compatibility.
@@ -1150,12 +1150,12 @@ class WP_User_Query {
 	 * @return bool Whether the property is set.
 	 */
 	public function __isset( $name ) {
-        if ( in_array( $name, $this->compat_fields, true ) ) {
-            return isset( $this->$name );
-        } else {
-            // Dynamic property not found, return false
-            return false;
-        }
+		if ( in_array( $name, $this->compat_fields, true ) ) {
+			return isset( $this->$name );
+		} else {
+			// Dynamic property not found, return false
+			return false;
+		}
     }
 
 	/**
