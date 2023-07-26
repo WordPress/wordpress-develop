@@ -38,7 +38,6 @@ class MetaRevisionTests extends WP_UnitTestCase {
 	public function test_revisions_stores_meta_values_with_slashes( $passed, $expected ) {
 		// Set up a new post.
 		$post_id          = $this->factory->post->create();
-		$original_post_id = $post_id;
 
 		// And update to store an initial revision.
 		wp_update_post(
