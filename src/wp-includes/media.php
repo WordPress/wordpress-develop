@@ -5743,14 +5743,18 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	}
 
 	/*
-	 * If the element is in the viewport, potentially add `fetchpriority` with
-	 * a value of "high". Otherwise (element not in viewport or viewport is
-	 * unknown), add `loading` with a value of "lazy".
+	 * If the element is in the viewport (`true`), potentially add
+	 * `fetchpriority` with a value of "high". Otherwise, i.e. if the element
+	 * is not not in the viewport (`false`) or it is unknown (`null`), add
+	 * `loading` with a value of "lazy".
 	 */
 	if ( $in_viewport ) {
 		$loading_attrs = wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr );
-	} else { // `$in_viewport` is either `false` or `null`.
-		$loading_attrs['loading'] = 'lazy';
+	} else {
+		// Only add `loading="lazy"` if the feature is enabled.
+		if ( wp_lazy_loading_enabled( $tag_name, $context ) ) {
+			$loading_attrs['loading'] = 'lazy';
+		}
 	}
 
 	/*
@@ -5764,11 +5768,6 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		if ( $wp_min_priority_img_pixels <= $attr['width'] * $attr['height'] ) {
 			wp_increase_content_media_count();
 		}
-	}
-
-	// Potentially strip `loading="lazy"` if the feature is disabled.
-	if ( isset( $loading_attrs['loading'] ) && ! wp_lazy_loading_enabled( $tag_name, $context ) ) {
-		unset( $loading_attrs['loading'] );
 	}
 
 	return $loading_attrs;
