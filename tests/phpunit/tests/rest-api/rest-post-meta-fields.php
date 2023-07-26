@@ -3114,11 +3114,11 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * Test that post meta is revisioned when saving to the REST API as part of a post update.
+	 * Test that post meta is revisioned when saving to the revisions REST API endpoint.
 	 *
 	 * @ticket 20564
 	 */
-	public function test_revisioned_post_meta() {
+	public function test_revisioned_post_meta_with_revisions_endpoint() {
 		$this->grant_write_permission();
 
 		register_post_meta(
@@ -3181,6 +3181,95 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 		// One more revision!
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/revisions', $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 3',
+				'meta'  => array(
+					'foo' => 'qux',
+				),
+			)
+		);
+
+		// Get the 3rd oldest revision.
+		$revisions     = wp_get_post_revisions( $post_id );
+		$revision_id_3 = $revisions[1]->ID;
+
+		// Restore it by id.
+		wp_restore_post_revision( $revision_id_3 );
+
+		// Check that the revision's 'foo' post meta has the proper value.
+		$this->assertSame( 'bar', get_post_meta( $post_id, 'foo', true ) );
+		$this->assertSame( 'Revision 1', get_post( $post_id )->post_title );
+	}
+
+	/**
+	 * Test that post meta is revisioned when saving to the posts REST API endpoint.
+	 *
+	 * @ticket 20564
+	 */
+	public function test_revisioned_post_meta_with_posts_endpoint() {
+		$this->grant_write_permission();
+
+		register_post_meta(
+			'post',
+			'foo',
+			array(
+				'single'       => true,
+				'show_in_rest' => true,
+			)
+		);
+
+		$post_id = self::$post_id;
+
+		// Create a revision.
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/revisions', $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Initial revision',
+				'meta'  => array(
+					'foo' => 'initial',
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 201, $response->get_status() );
+		$revision_id = $response->get_data()['id'];
+
+		// Update the post.
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 1',
+				'meta'  => array(
+					'foo' => 'bar',
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// Check that the revision has the old value.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'bar', $response->get_data()['meta']['foo'] );
+
+		// Create two more revisions with different meta values for the foo key.
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 2',
+				'meta'  => array(
+					'foo' => 'baz',
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 201, $response->get_status() );
+		$revision_id_2 = $response->get_data()['id'];
+
+		// One more revision!
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
 		$request->set_body_params(
 			array(
 				'title' => 'Revision 3',
