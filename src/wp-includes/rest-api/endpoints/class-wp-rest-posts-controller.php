@@ -741,6 +741,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			if ( is_wp_error( $meta_update ) ) {
 				return $meta_update;
 			}
+
+			// Update the revision meta as well.
+			$revisions = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
+			$revision  = array_shift( $revisions );
+			if ( ! empty( $revisions ) ) {
+				wp_save_revisioned_meta_fields( $post_id, $revision->ID );
+			}
 		}
 
 		$post          = get_post( $post_id );
@@ -926,6 +933,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 			if ( is_wp_error( $meta_update ) ) {
 				return $meta_update;
+			}
+
+			// Update the revision meta as well.
+			$revisions = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
+			$revision  = array_shift( $revisions );
+			if ( ! empty( $revisions ) ) {
+				wp_save_revisioned_meta_fields( $post_id, $revision->ID );
 			}
 		}
 
