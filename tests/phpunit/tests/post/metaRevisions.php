@@ -12,23 +12,6 @@
 class MetaRevisionTests extends WP_UnitTestCase {
 
 	/**
-	 * Array of meta keys to revision.
-	 *
-	 * @var array
-	 */
-	protected $revisioned_keys;
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function setUp() {
-		parent::setUp();
-
-		// Reset for current test.
-		$this->revisioned_keys = array( 'meta_revision_test' );
-	}
-
-	/**
 	 * Callback function to add the revisioned keys.
 	 *
 	 * @param array $keys The array of revisioned keys.
@@ -429,9 +412,6 @@ class MetaRevisionTests extends WP_UnitTestCase {
 	 * Verify that only existing meta is revisioned.
 	 */
 	public function only_existing_meta_is_revisioned() {
-		$this->revisioned_keys[] = 'foo';
-		$this->revisioned_keys[] = 'bar';
-
 		add_filter( 'wp_post_revision_meta_keys', array( $this, 'add_revisioned_keys' ) );
 
 		// Set up a new post.
@@ -482,7 +462,6 @@ class MetaRevisionTests extends WP_UnitTestCase {
 	 * Verify that blank strings are revisioned correctly.
 	 */
 	public function blank_meta_is_revisioned() {
-		$this->revisioned_keys[] = 'foo';
 
 		add_filter( 'wp_post_revision_meta_keys', array( $this, 'add_revisioned_keys' ) );
 
