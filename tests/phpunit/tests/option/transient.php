@@ -185,18 +185,30 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		$this->assertSame( $expected, $a->get_events() );
 	}
 
-
 	/**
+	 * @ticket 58903
+	 *
 	 * @dataProvider data_transient_keys
 	 *
 	 * @covers ::set_transient()
 	 */
 	public function test_transient_key_valid( $key, $expected, $message ) {
-		$value  = rand_str();
+		$value = rand_str();
 
 		$this->assertSame( $expected, set_transient( $key, $value ), $message );
 	}
 
+	/**
+	 * @ticket 58903
+	 *
+	 * @covers ::set_transient()
+	 *
+	 * @return array[] {
+	 *    mixed  Arguments used as transient name/key
+	 *    bool   Whether the transient key is expected to redirect
+	 *    string Error value when condition test fails
+	 * }
+	 */
 	public function data_transient_keys() {
 		return array(
 			array(
@@ -225,7 +237,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 				'set_transient() should not accept an array for the transient name.',
 			),
 			array(
-				'test_name', // rand_str(),
+				rand_str(),
 				true,
 				'set_transient() should accept a string for the transient name.',
 			),
@@ -233,13 +245,16 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58903
+	 *
 	 * @covers ::set_transient()
 	 */
 	public function test_transient_key_172_characters_or_less() {
-		$key = rand_str( 173 );
-		$value  = rand_str();
+		// rand_str() is limited to 32 chars. Static string is 148 chars, so need 173 - 148 random chars.
+		$key   = rand_str( 25 ) . '_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+		$value = rand_str();
 
-		$this->assertSame( false, set_transient( $key, $value ), 'set_transient() should only accept string values of 172 characters or less for the transient name.' );
+		$this->assertFalse( set_transient( $key, $value ), 'set_transient() should only accept string values of 172 characters or less for the transient name.' );
 	}
 
 }
