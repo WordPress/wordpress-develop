@@ -534,7 +534,15 @@ class MetaRevisionTests extends WP_UnitTestCase {
 	public function data_register_post_meta_supports_revisions() {
 		return array(
 			array( 'post', 'registered_key1', array( 'single' => true ), false ),
-			array( 'post', 'registered_key1', array( 'single' => true, 'revisions_enabled' => true ), true ),
+			array(
+				'post',
+				'registered_key1',
+				array(
+					'single'            => true,
+					'revisions_enabled' => true,
+				),
+				true,
+			),
 			array( 'page', 'registered_key2', array( 'revisions_enabled' => false ), false ),
 			array( 'page', 'registered_key2', array( 'revisions_enabled' => true ), true ),
 			array( '', 'registered_key3', array( 'revisions_enabled' => false ), false ),
