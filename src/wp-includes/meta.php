@@ -1468,7 +1468,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	}
 
 	// Store the revisioned meta fields.
-	if ( isset( $args['revisions_enabled'] ) && $args['revisions_enabled'] ) {
+	if ( isset( $args['revisions_enabled'] ) && $args['revisions_enabled'] && ! in_array( $meta_key, $wp_revisioned_meta_keys ) ) {
 		array_push( $wp_revisioned_meta_keys, $meta_key );
 	}
 
