@@ -49,6 +49,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'IMG',
 			'P',
 			'SMALL',
+			'SPAN',
 			'STRIKE',
 			'STRONG',
 			'TT',
@@ -191,7 +192,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'SLOT',
 			'SOURCE',
 			'SPACER', // Deprecated
-			'SPAN',
 			'STYLE',
 			'SUB',
 			'SUMMARY',
