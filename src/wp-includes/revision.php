@@ -539,8 +539,8 @@ function wp_post_revision_meta_keys() {
 	global $wp_meta_keys;
 
 	$revisioned_keys = array();
-	if ( ! empty ( $wp_meta_keys['wp_revisions_enabled'] ) ) {
-		foreach( $wp_meta_keys['wp_revisions_enabled'] as $meta_key => $revisions_enabled ) {
+	if ( ! empty( $wp_meta_keys['wp_revisions_enabled'] ) ) {
+		foreach ( $wp_meta_keys['wp_revisions_enabled'] as $meta_key => $revisions_enabled ) {
 			if ( $revisions_enabled ) {
 				$revisioned_keys[] = $meta_key;
 			}
