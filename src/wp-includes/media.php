@@ -5721,6 +5721,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 				if ( 'the_post_thumbnail' !== $context || null !== $in_viewport ) {
 					break;
 				}
+			// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect
 			// Consider elements before the loop as being in viewport.
 			case 'wp_get_attachment_image':
 			case 'widget_media_image':
