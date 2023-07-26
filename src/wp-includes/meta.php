@@ -1402,9 +1402,14 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  */
 function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	global $wp_meta_keys;
+	global $wp_revisioned_meta_keys;
 
 	if ( ! is_array( $wp_meta_keys ) ) {
 		$wp_meta_keys = array();
+	}
+
+	if ( ! is_array( $wp_revisioned_meta_keys ) ) {
+		$wp_revisioned_meta_keys = array();
 	}
 
 	$defaults = array(
@@ -1462,6 +1467,11 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 		}
 	}
 
+	// Store the revisioned meta fields.
+	if ( isset( $args['revisions_enabled'] ) && $args['revisions_enabled'] ) {
+		array_push( $wp_revisioned_meta_keys, $meta_key );
+	}
+
 	$object_subtype = ! empty( $args['object_subtype'] ) ? $args['object_subtype'] : '';
 
 	// If `auth_callback` is not provided, fall back to `is_protected_meta()`.
@@ -1515,11 +1525,6 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 		$wp_meta_keys[ $object_type ][ $object_subtype ][ $meta_key ] = $args;
 
 		return true;
-	}
-
-	// Store the revisioned meta fields.
-	if ( isset( $args['revisions_enabled'] ) && $args['revisions_enabled'] ) {
-		$wp_meta_keys['wp_revisions_enabled'][ $meta_key ] = $args['revisions_enabled'];
 	}
 
 	return false;
