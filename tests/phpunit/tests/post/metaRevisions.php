@@ -494,6 +494,54 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		$this->assertEquals( '', $stored_data[0] );
 	}
 
+
+	/**
+	 * @dataProvider data_register_post_meta_supports_revisions
+	 */
+	public function test_register_post_meta_supports_revisions( $post_type, $meta_key, $args, $expected_is_revisioned ) {
+		register_post_meta( $post_type, $meta_key, $args );
+
+		// Set up a new post.
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => 'initial content',
+				'post_type'    => $post_type,
+				'meta_input'   => array(
+					$meta_key => 'foo',
+				),
+			)
+		);
+
+		// Update the post meta and post to save.
+		update_post_meta( $post_id, $meta_key, 'bar' );
+		wp_update_post(
+			array(
+				'ID'         => $post_id,
+				'post_title' => 'updated title',
+			)
+		);
+
+		// Check the last revision for the post to see if the meta key was revisioned
+		$revisions       = wp_get_post_revisions( $post_id );
+		$revision        = array_shift( $revisions );
+		$revisioned_meta = get_post_meta( $revision->ID, $meta_key, true );
+		$this->assertEquals( $expected_is_revisioned, 'bar' === $revisioned_meta );
+
+		// Reset global so subsequent data tests do not get polluted.
+		$GLOBALS['wp_meta_keys'] = array();
+	}
+
+	public function data_register_post_meta_supports_revisions() {
+		return array(
+			array( 'post', 'registered_key1', array( 'single' => true ), false ),
+			array( 'post', 'registered_key1', array( 'single' => true, 'revisions_enabled' => true ), true ),
+			array( 'page', 'registered_key2', array( 'revisions_enabled' => false ), false ),
+			array( 'page', 'registered_key2', array( 'revisions_enabled' => true ), true ),
+			array( '', 'registered_key3', array( 'revisions_enabled' => false ), false ),
+			array( '', 'registered_key3', array( 'revisions_enabled' => true ), true ),
+		);
+	}
+
 	/**
 	 * Assert the a post has a meta key.
 	 *

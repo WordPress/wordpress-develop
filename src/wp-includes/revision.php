@@ -552,7 +552,7 @@ function wp_post_revision_meta_keys() {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param array $keys An array of default meta fields to be revisioned.
+	 * @param array $keys An array of meta fields to be revisioned.
 	 */
 	return apply_filters( 'wp_post_revision_meta_keys', $revisioned_keys );
 }
