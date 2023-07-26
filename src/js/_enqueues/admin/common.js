@@ -1703,23 +1703,25 @@ $( function() {
 			} );
 
 			// Close sidebar when focus moves outside of toggle and sidebar.
-			$( '#wp-admin-bar-menu-toggle, #adminmenumain' ).on( 'focusout', function() {
-				var focusIsInToggle, focusIsInSidebar;
-
-				if ( ! $wpwrap.hasClass( 'wp-responsive-open' ) || ! document.hasFocus() ) {
-					return;
+			$(document).on('blur', function(event) {
+				var toggleButton = $('#wp-admin-bar-menu-toggle')[0];
+				var sidebar = $('#adminmenumain')[0];
+				var focusedElement = event.relatedTarget || document.activeElement;
+				
+				if (!$wpwrap.hasClass('wp-responsive-open')) {
+				    return;
 				}
+				
 				// A brief delay is required to allow focus to switch to another element.
-				setTimeout( function() {
-					focusIsInToggle  = $.contains( $( '#wp-admin-bar-menu-toggle' )[0], $( ':focus' )[0] );
-					focusIsInSidebar = $.contains( $( '#adminmenumain' )[0], $( ':focus' )[0] );
-
-					if ( ! focusIsInToggle && ! focusIsInSidebar ) {
-						$( '#wp-admin-bar-menu-toggle' ).trigger( 'click.wp-responsive' );
+				setTimeout(function() {
+					var focusIsInToggle = $.contains(toggleButton, focusedElement);
+					var focusIsInSidebar = $.contains(sidebar, focusedElement);
+					
+					if ( ! focusIsInToggle && ! focusIsInSidebar) {
+						$(toggleButton).trigger('click.wp-responsive');
 					}
-				}, 10 );
-			} );
-
+				}, 10);
+			});
 
 			// Add menu events.
 			$adminmenu.on( 'click.wp-responsive', 'li.wp-has-submenu > a', function( event ) {
