@@ -110,6 +110,19 @@ add_filter( '_wp_post_revision_fields', 'wp_add_footnotes_to_revision' );
  * @return string The field value.
  */
 function wp_get_footnotes_from_revision( $revision_field, $field, $revision ) {
-	return get_metadata( 'post', $revision->ID, $field, true );
+	$footnotes = json_decode( get_metadata( 'post', $revision->ID, $field, true ) );
+	if ( empty( $footnotes ) ) {
+		return $revision_field;
+	}
+	$footnotes_html = '';
+	$x = 1;
+	foreach( $footnotes as $footnote ) {
+		$footnotes_html .= sprintf(
+			"%s.  %s\n",
+			$x++,
+			$footnote->content
+		);
+	}
+	return $footnotes_html;
 }
-add_filter( 'wp_post_revision_field_footnotes', 'wp_get_footnotes_from_revision', 10, 3 );
+add_filter( '_wp_post_revision_field_footnotes', 'wp_get_footnotes_from_revision', 10, 3 );
