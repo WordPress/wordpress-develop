@@ -641,7 +641,7 @@ switch ( $wp_list_table->current_action() ) {
 						$message = _n( 'Password reset links sent to %s user.', 'Password reset links sent to %s users.', $reset_count );
 					}
 
-					// Check if the transient flag for email failure exists
+					// Check if the transient flag for email failure exists.
 					if ( get_transient( 'reset_password_email_failure' ) ) {
 						$message = __( '<strong>Error:</strong> The email could not be sent. Your site may not be correctly configured to send emails. <a href="%s">Get support for resetting your password</a>.' );
 						$messages[] = '<div id="message" class="notice error is-dismissible"><p>' . sprintf( $message, esc_url('https://wordpress.org/documentation/article/reset-your-password') ) . '</p></div>';
