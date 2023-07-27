@@ -83,6 +83,7 @@ class Tests_Template extends WP_UnitTestCase {
 		parent::set_up();
 
 		$this->orig_theme_dir = $wp_theme_directories;
+		$wp_theme_directories = array( WP_CONTENT_DIR . '/themes' );
 
 		register_post_type(
 			'cpt',
@@ -102,6 +103,13 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
+		global $wp_theme_directories;
+
+		$wp_theme_directories = $this->orig_theme_dir;
+
+		remove_filter( 'theme_root', array( $this, 'filter_to_test_theme_root' ) );
+		remove_filter( 'stylesheet_root', array( $this, 'filter_to_test_theme_root' ) );
+		remove_filter( 'template_root', array( $this, 'filter_to_test_theme_root' ) );
 		unregister_post_type( 'cpt' );
 		unregister_taxonomy( 'taxo' );
 		$this->set_permalink_structure( '' );
@@ -665,7 +673,6 @@ class Tests_Template extends WP_UnitTestCase {
 		switch_theme( $theme['Template'], $theme['Stylesheet'] );
 		$file_path = locate_template( 'style.css' );
 		$this->assertStringContainsString( 'themedir1/page-templates/style.css', $file_path );
-		$this->tear_down_test_theme_root();
 	}
 
 	/**
@@ -678,7 +685,6 @@ class Tests_Template extends WP_UnitTestCase {
 		switch_theme( $theme['Template'], $theme['Stylesheet'] );
 		$file_path = locate_template( 'style.css' );
 		$this->assertStringContainsString( 'themedir1/page-templates-child/style.css', $file_path );
-		$this->tear_down_test_theme_root();
 	}
 
 	protected static function get_query_template_conditions() {
@@ -727,23 +733,12 @@ class Tests_Template extends WP_UnitTestCase {
 	/**
 	 * Switch to premade test theme directory which contains a parent and a child theme.
 	 */
-	public function set_up_test_theme_root() {
+	private function set_up_test_theme_root() {
 		global $wp_theme_directories;
 		$wp_theme_directories = array( WP_CONTENT_DIR . '/themes', self::TEST_THEME_ROOT );
 		add_filter( 'theme_root', array( $this, 'filter_to_test_theme_root' ) );
 		add_filter( 'stylesheet_root', array( $this, 'filter_to_test_theme_root' ) );
 		add_filter( 'template_root', array( $this, 'filter_to_test_theme_root' ) );
-	}
-
-	/**
-	 * Switch back to original theme directory.
-	 */
-	public function tear_down_test_theme_root() {
-		global $wp_theme_directories;
-		$wp_theme_directories = $this->orig_theme_dir;
-		remove_filter( 'theme_root', array( $this, 'filter_to_test_theme_root' ) );
-		remove_filter( 'stylesheet_root', array( $this, 'filter_to_test_theme_root' ) );
-		remove_filter( 'template_root', array( $this, 'filter_to_test_theme_root' ) );
 	}
 
 	/**
