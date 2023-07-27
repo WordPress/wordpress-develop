@@ -3148,8 +3148,8 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertSame( 200, $response->get_status() );
 
 		// Get the last revision.
-		$revisions     = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
-		$revision_id   = array_shift( $revisions )->ID;
+		$revisions   = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
+		$revision_id = array_shift( $revisions )->ID;
 
 		// @todo Ensure the revisions endpoint returns the correct meta values
 		// Check that the revision has the correct meta value.
