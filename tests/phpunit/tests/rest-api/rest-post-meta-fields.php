@@ -3174,7 +3174,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		// Get the last revision.
 		$revisions     = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
@@ -3200,6 +3200,8 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 				),
 			)
 		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
 
 		// Get the last revision.
 		$revisions     = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
