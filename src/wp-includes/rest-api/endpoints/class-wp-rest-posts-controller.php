@@ -673,6 +673,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
+		// Don't save the post meta revision because they aren't stored yet.
+		remove_action( '_wp_put_post_revision', 'wp_save_revisioned_meta_fields', 10, 2 );
+
 		$post_id = wp_insert_post( wp_slash( (array) $prepared_post ), true, false );
 
 		if ( is_wp_error( $post_id ) ) {
@@ -744,9 +747,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 			// Update the revision meta as well.
 			$revisions = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
-			$revision  = array_shift( $revisions );
 			if ( ! empty( $revisions ) ) {
-				wp_save_revisioned_meta_fields( $post_id, $revision->ID );
+				$revision  = array_shift( $revisions );
+				wp_save_revisioned_meta_fields( $revision->ID, $post_id );
 			}
 		}
 
@@ -883,6 +886,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
+		// Don't save the post meta revision because they aren't stored yet.
+		remove_action( '_wp_put_post_revision', 'wp_save_revisioned_meta_fields', 10, 2 );
+
 		// Convert the post object to an array, otherwise wp_update_post() will expect non-escaped input.
 		$post_id = wp_update_post( wp_slash( (array) $post ), true, false );
 
@@ -937,9 +943,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 			// Update the revision meta as well.
 			$revisions = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
-			$revision  = array_shift( $revisions );
 			if ( ! empty( $revisions ) ) {
-				wp_save_revisioned_meta_fields( $post_id, $revision->ID );
+				$revision  = array_shift( $revisions );
+				wp_save_revisioned_meta_fields( $revision->ID, $post_id );
 			}
 		}
 
