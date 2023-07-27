@@ -59,6 +59,9 @@ class Tests_Theme extends WP_UnitTestCase {
 		$wp_theme_directories = $this->orig_theme_dir;
 
 		remove_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
+		remove_filter( 'theme_root', array( $this, 'filter_to_test_theme_root' ) );
+		remove_filter( 'stylesheet_root', array( $this, 'filter_to_test_theme_root' ) );
+		remove_filter( 'template_root', array( $this, 'filter_to_test_theme_root' ) );
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 
@@ -874,7 +877,6 @@ class Tests_Theme extends WP_UnitTestCase {
 		$theme = wp_get_theme( 'page-templates' );
 		switch_theme( $theme['Template'], $theme['Stylesheet'] );
 		$this->assertFalse( is_child_theme() );
-		$this->tear_down_test_theme_root();
 	}
 
 	/**
@@ -885,8 +887,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->set_up_test_theme_root();
 		$theme = wp_get_theme( 'page-templates-child' );
 		switch_theme( $theme['Template'], $theme['Stylesheet'] );
-		$this->assertFalse( is_child_theme() );
-		$this->tear_down_test_theme_root();
+		$this->assertTrue( is_child_theme() );
 	}
 
 	/**
@@ -916,23 +917,12 @@ class Tests_Theme extends WP_UnitTestCase {
 	/**
 	 * Switch to premade test theme directory which contains a parent and a child theme.
 	 */
-	public function set_up_test_theme_root() {
+	private function set_up_test_theme_root() {
 		global $wp_theme_directories;
 		$wp_theme_directories = array( WP_CONTENT_DIR . '/themes', self::TEST_THEME_ROOT );
 		add_filter( 'theme_root', array( $this, 'filter_to_test_theme_root' ) );
 		add_filter( 'stylesheet_root', array( $this, 'filter_to_test_theme_root' ) );
 		add_filter( 'template_root', array( $this, 'filter_to_test_theme_root' ) );
-	}
-
-	/**
-	 * Switch back to original theme directory.
-	 */
-	public function tear_down_test_theme_root() {
-		global $wp_theme_directories;
-		$wp_theme_directories = $this->orig_theme_dir;
-		remove_filter( 'theme_root', array( $this, 'filter_to_test_theme_root' ) );
-		remove_filter( 'stylesheet_root', array( $this, 'filter_to_test_theme_root' ) );
-		remove_filter( 'template_root', array( $this, 'filter_to_test_theme_root' ) );
 	}
 
 	/**
