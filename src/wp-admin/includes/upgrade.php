@@ -2536,6 +2536,7 @@ function maybe_create_table( $table_name, $create_ddl ) {
 	}
 
 	// Didn't find it, so try to create it.
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	$wpdb->query( $create_ddl );
 
 	// We cannot directly tell that whether this succeeded!
@@ -2564,11 +2565,11 @@ function drop_index( $table, $index ) {
 
 	$wpdb->hide_errors();
 
-	$wpdb->query( "ALTER TABLE `$table` DROP INDEX `$index`" );
+	$wpdb->query( $wpdb->prepare( 'ALTER TABLE %i DROP INDEX %i', $table, $index ) );
 
 	// Now we need to take out all the extra ones we may have created.
 	for ( $i = 0; $i < 25; $i++ ) {
-		$wpdb->query( "ALTER TABLE `$table` DROP INDEX `{$index}_$i`" );
+		$wpdb->query( $wpdb->prepare( 'ALTER TABLE %i DROP INDEX %i', $table, "{$index}_$i" ) );
 	}
 
 	$wpdb->show_errors();
@@ -2591,7 +2592,7 @@ function add_clean_index( $table, $index ) {
 	global $wpdb;
 
 	drop_index( $table, $index );
-	$wpdb->query( "ALTER TABLE `$table` ADD INDEX ( `$index` )" );
+	$wpdb->query( $wpdb->prepare( 'ALTER TABLE %i ADD INDEX ( %i )', $table, $index ) );
 
 	return true;
 }
@@ -2611,7 +2612,9 @@ function add_clean_index( $table, $index ) {
 function maybe_add_column( $table_name, $column_name, $create_ddl ) {
 	global $wpdb;
 
-	foreach ( $wpdb->get_col( "DESC $table_name", 0 ) as $column ) {
+	$columns = $wpdb->get_col( $wpdb->prepare( 'DESC %i', $table_name ), 0 );
+
+	foreach ( $columns as $column ) {
 		if ( $column === $column_name ) {
 			return true;
 		}
@@ -2620,8 +2623,10 @@ function maybe_add_column( $table_name, $column_name, $create_ddl ) {
 	// Didn't find it, so try to create it.
 	$wpdb->query( $create_ddl );
 
+	$columns = $wpdb->get_col( $wpdb->prepare( 'DESC %i', $table_name ), 0 );
+
 	// We cannot directly tell that whether this succeeded!
-	foreach ( $wpdb->get_col( "DESC $table_name", 0 ) as $column ) {
+	foreach ( $columns as $column ) {
 		if ( $column === $column_name ) {
 			return true;
 		}
@@ -2643,7 +2648,7 @@ function maybe_add_column( $table_name, $column_name, $create_ddl ) {
 function maybe_convert_table_to_utf8mb4( $table ) {
 	global $wpdb;
 
-	$results = $wpdb->get_results( "SHOW FULL COLUMNS FROM `$table`" );
+	$results = $wpdb->get_results( $wpdb->prepare( 'SHOW FULL COLUMNS FROM %i', $table ) );
 	if ( ! $results ) {
 		return false;
 	}
@@ -2659,7 +2664,7 @@ function maybe_convert_table_to_utf8mb4( $table ) {
 		}
 	}
 
-	$table_details = $wpdb->get_row( "SHOW TABLE STATUS LIKE '$table'" );
+	$table_details = $wpdb->get_row( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $table ) );
 	if ( ! $table_details ) {
 		return false;
 	}
@@ -2685,7 +2690,10 @@ function maybe_convert_table_to_utf8mb4( $table ) {
 function get_alloptions_110() {
 	global $wpdb;
 	$all_options = new stdClass();
-	$options     = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options" );
+	$options     = $wpdb->get_results(
+		$wpdb->prepare( 'SELECT option_name, option_value FROM %i', $wpdb->options )
+	);
+
 	if ( $options ) {
 		foreach ( $options as $option ) {
 			if ( 'siteurl' === $option->option_name || 'home' === $option->option_name || 'category_base' === $option->option_name ) {
@@ -2869,7 +2877,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 
 		// Fetch the table column structure from the database.
 		$suppress    = $wpdb->suppress_errors();
-		$tablefields = $wpdb->get_results( "DESCRIBE {$table};" );
+		$tablefields = $wpdb->get_results( $wpdb->prepare( 'DESCRIBE %i', $table ) );
 		$wpdb->suppress_errors( $suppress );
 
 		if ( ! $tablefields ) {
@@ -3116,7 +3124,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 		}
 
 		// Index stuff goes here. Fetch the table index structure from the database.
-		$tableindices = $wpdb->get_results( "SHOW INDEX FROM {$table};" );
+		$tableindices = $wpdb->get_results( $wpdb->prepare( 'SHOW INDEX FROM %i', $table ) );
 
 		if ( $tableindices ) {
 			// Clear the index array.
@@ -3199,6 +3207,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 	$allqueries = array_merge( $cqueries, $iqueries );
 	if ( $execute ) {
 		foreach ( $allqueries as $query ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			$wpdb->query( $query );
 		}
 	}
