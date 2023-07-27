@@ -280,23 +280,25 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
-			'valid_classnames_deduped'                     => array(
-				'block_styles'    => array(
-					'color'      => array(
-						'text'       => 'var:preset|color|copper-socks',
-						'background' => 'var:preset|color|splendid-carrot',
-						'gradient'   => 'var:preset|gradient|like-wow-dude',
-					),
-					'typography' => array(
-						'fontSize'   => 'var:preset|font-size|fantastic',
-						'fontFamily' => 'var:preset|font-family|totally-awesome',
-					),
-				),
-				'options'         => array( 'convert_vars_to_classnames' => true ),
-				'expected_output' => array(
-					'classnames' => 'has-text-color has-copper-socks-color has-background has-splendid-carrot-background-color has-like-wow-dude-gradient-background has-fantastic-font-size has-totally-awesome-font-family',
-				),
-			),
+			'valid_classnames_deduped' => array(
+		            'block_styles' => array(
+		                'color' => array(
+		                    'text' => 'var:preset|color|copper-socks',
+		                    'background' => 'var:preset|color|splendid-carrot',
+		                    'gradient' => 'var:preset|gradient|like-wow-dude',
+		                ),
+		                'typography' => array(
+		                    'fontSize' => 'var:preset|font-size|fantastic',
+		                    'fontFamily' => 'var:preset|font-family|totally-awesome',
+		                ),
+		            ),
+		            'options' => array('convert_vars_to_classnames' => true),
+		            'expected_output' => array(
+		                'css' => '',
+		                'declarations' => array(),
+		                'classnames' => 'has-text-color has-copper-socks-color has-background has-splendid-carrot-background-color has-like-wow-dude-gradient-background has-fantastic-font-size has-totally-awesome-font-family',
+		            ),
+		        ),
 
 			'valid_classnames_and_css_vars'                => array(
 				'block_styles'    => array(
