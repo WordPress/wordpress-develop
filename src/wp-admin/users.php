@@ -652,7 +652,7 @@ switch ( $wp_list_table->current_action() ) {
 					}
 				
 					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $reset_count ) ) . '</p></div>';
-					break;				
+					break;
 				case 'promote':
 					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . __( 'Changed roles.' ) . '</p></div>';
 					break;
