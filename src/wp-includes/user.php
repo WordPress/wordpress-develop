@@ -3275,6 +3275,7 @@ function retrieve_password( $user_login = null ) {
 				esc_url( __( 'https://wordpress.org/documentation/article/reset-your-password/' ) )
 			)
 		);
+		set_transient( 'reset_password_email_failure', true, 60 );
 		return $errors;
 	}
 
