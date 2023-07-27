@@ -638,7 +638,7 @@ switch ( $wp_list_table->current_action() ) {
 						$message = __( 'Password reset link sent.' );
 					} else {
 						/* translators: %s: Number of users. */
-						$message = _n( 'Password reset link sent to %s user.', 'Password reset links sent to %s users.', $reset_count );
+						$message = _n( 'Password reset links sent to %s user.', 'Password reset links sent to %s users.', $reset_count );
 					}
 
 					// Check if the transient flag for email failure exists
