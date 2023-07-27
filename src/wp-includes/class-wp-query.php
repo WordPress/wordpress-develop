@@ -2020,7 +2020,7 @@ class WP_Query {
 		}
 
 		if ( isset( $q['page'] ) ) {
-			$qv['page']    = is_scalar( $qv['page'] ) ? trim( $q['page'], '/' )  : '';
+			$qv['page']    = is_scalar( $qv['page'] ) ? trim( $q['page'], '/' ) : '';
 			$qv['page']    = is_scalar( $qv['page'] ) ? absint( $qv['page'] ) : 0;
 		}
 
