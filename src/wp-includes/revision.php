@@ -356,18 +356,17 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
 		return $revision_id;
 	}
 
-	// Save any revisioned post meta.
-	wp_save_revisioned_meta_fields( $post['post_parent'], $revision_id );
-
 	if ( $revision_id ) {
 		/**
 		 * Fires once a revision has been saved.
 		 *
 		 * @since 2.6.0
+		 * @since 6.4.0 The post_id parameter was added.
 		 *
 		 * @param int $revision_id Post revision ID.
+		 * @param int $post_id     Post ID.
 		 */
-		do_action( '_wp_put_post_revision', $revision_id );
+		do_action( '_wp_put_post_revision', $revision_id, $post['post_parent'] );
 	}
 
 	return $revision_id;
@@ -377,12 +376,12 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
 /**
  * Save the revisioned meta fields.
  *
- * @param int $post_id     The ID of the post the revision is associated with.
  * @param int $revision_id The ID of the revision to save the meta to.
+ * @param int $post_id     The ID of the post the revision is associated with.
  *
  * @since 6.4.0
  */
-function wp_save_revisioned_meta_fields( $post_id, $revision_id ) {
+function wp_save_revisioned_meta_fields( $revision_id, $post_id ) {
 
 	// Save revisioned meta fields.
 	foreach ( wp_post_revision_meta_keys() as $meta_key ) {
