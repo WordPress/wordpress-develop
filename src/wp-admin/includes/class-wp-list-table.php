@@ -27,41 +27,46 @@ class WP_List_Table {
 	 * Various information about the current table.
 	 *
 	 * @since 3.1.0
+	 * @since 6.4.0 Made public for backward compatibility.
 	 * @var array
 	 */
-	protected $_args;
+	public $_args;
 
 	/**
 	 * Various information needed for displaying the pagination.
 	 *
 	 * @since 3.1.0
+	 * @since 6.4.0 Made public for backward compatibility.
 	 * @var array
 	 */
-	protected $_pagination_args = array();
+	public $_pagination_args = array();
 
 	/**
 	 * The current screen.
 	 *
 	 * @since 3.1.0
+	 * @since 6.4.0 Made public for backward compatibility.
 	 * @var WP_Screen
 	 */
-	protected $screen;
+	public $screen;
 
 	/**
 	 * Cached bulk actions.
 	 *
 	 * @since 3.1.0
+	 * @since 6.4.0 Made public for backward compatibility.
 	 * @var array
 	 */
-	private $_actions;
+	public $_actions;
 
 	/**
 	 * Cached pagination output.
 	 *
 	 * @since 3.1.0
+	 * @since 6.4.0 Made public for backward compatibility.
 	 * @var string
 	 */
-	private $_pagination;
+	public $_pagination;
 
 	/**
 	 * The view switcher modes.
@@ -78,13 +83,6 @@ class WP_List_Table {
 	 * @var array
 	 */
 	protected $_column_headers;
-
-	/**
-	 * {@internal Missing Summary}
-	 *
-	 * @var array
-	 */
-	protected $compat_fields = array( '_args', '_pagination_args', 'screen', '_actions', '_pagination' );
 
 	/**
 	 * {@internal Missing Summary}
@@ -173,61 +171,93 @@ class WP_List_Table {
 	}
 
 	/**
-	 * Makes private properties readable for backward compatibility.
+	 * Unused. Deprecated for backward compatibility.
+	 *
+	 * This magic method is retained in case a plugin or theme has a dynamic (undefined) property.
 	 *
 	 * @since 4.0.0
+	 * @deprecated 6.4.0 Getting a dynamic property is deprecated.
 	 *
 	 * @param string $name Property to get.
-	 * @return mixed Property.
+	 * @return null Does not return dynamic property value.
 	 */
 	public function __get( $name ) {
-		if ( in_array( $name, $this->compat_fields, true ) ) {
-			return $this->$name;
-		}
+		trigger_error(
+			sprintf(
+				/* translators: 1: The property name. */
+				__( 'Getting the dynamic (undefined) property %1$s is <strong>deprecated</strong> since version 6.4.0! Instead, define the %1$s property on the class.' ),
+				$name
+			),
+			E_USER_DEPRECATED
+		);
+		return null;
 	}
 
 	/**
-	 * Makes private properties settable for backward compatibility.
+	 * Unused. Deprecated for backward compatibility.
+	 *
+	 * This magic method is retained in case a plugin or theme has a dynamic (undefined) property.
 	 *
 	 * @since 4.0.0
+	 * @deprecated 6.4.0 Setting a dynamic property is deprecated.
 	 *
 	 * @param string $name  Property to check if set.
 	 * @param mixed  $value Property value.
-	 * @return mixed Newly-set property.
 	 */
 	public function __set( $name, $value ) {
-		if ( in_array( $name, $this->compat_fields, true ) ) {
-			return $this->$name = $value;
-		}
+		trigger_error(
+			sprintf(
+				/* translators: 1: The property name. */
+				__( 'Setting the dynamic (undefined) property %1$s is <strong>deprecated</strong> since version 6.4.0! Instead, define the %1$s property on the class.' ),
+				$name
+			),
+			E_USER_DEPRECATED
+		);
 	}
 
 	/**
-	 * Makes private properties checkable for backward compatibility.
+	 * Unused. Deprecated for backward compatibility.
+	 *
+	 * This magic method is retained in case a plugin or theme has a dynamic (undefined) property.
 	 *
 	 * @since 4.0.0
+	 * @deprecated 6.4.0 Checking a dynamic property is deprecated.
 	 *
 	 * @param string $name Property to check if set.
-	 * @return bool Whether the property is a back-compat property and it is set.
+	 * @return bool False, as a dynamic property.
 	 */
 	public function __isset( $name ) {
-		if ( in_array( $name, $this->compat_fields, true ) ) {
-			return isset( $this->$name );
-		}
-
+		trigger_error(
+			sprintf(
+				/* translators: 1: The property name, 2: isset(). */
+				__( 'Checking %2$s on the dynamic (undefined) property %1$s is <strong>deprecated</strong> since version 6.4.0! Instead, define the %1$s property on the class.' ),
+				$name,
+				'<code>isset()</code>'
+			),
+			E_USER_DEPRECATED
+		);
 		return false;
 	}
 
 	/**
-	 * Makes private properties un-settable for backward compatibility.
+	 * Unused. Deprecated for backward compatibility.
+	 *
+	 * This magic method is retained in case a plugin or theme has a dynamic (undefined) property.
 	 *
 	 * @since 4.0.0
+	 * @deprecated 6.4.0 Unsetting a dynamic property is deprecated.
 	 *
 	 * @param string $name Property to unset.
 	 */
 	public function __unset( $name ) {
-		if ( in_array( $name, $this->compat_fields, true ) ) {
-			unset( $this->$name );
-		}
+		trigger_error(
+			sprintf(
+				/* translators: 1: The property name. */
+				__( 'Unsetting the dynamic (undefined) property %1$s is <strong>deprecated</strong> since version 6.4.0! Instead, define the %1$s property on the class.' ),
+				$name
+			),
+			E_USER_DEPRECATED
+		);
 	}
 
 	/**

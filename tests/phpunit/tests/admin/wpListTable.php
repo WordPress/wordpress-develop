@@ -344,4 +344,48 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__get()
+	 */
+	public function test_get_dynamic_property_should_throw_deprecation_return_null() {
+		$this->expectDeprecation();
+		$this->expectDeprecationMessage( 'Getting the dynamic (undefined) property undefined_property is <strong>deprecated</strong> since version 6.4.0! Instead, define the undefined_property property on the class.' );
+		$this->assertNull( static::$list_table->undefined_property, 'Getting a dynamic property should return null from WP_List_Table::__get()' );
+	}
+
+	/**
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__set()
+	 */
+	public function test_set_of_dynamic_property_should_throw_deprecation() {
+		$this->expectDeprecation();
+		$this->expectDeprecationMessage( 'Setting the dynamic (undefined) property undefined_property is <strong>deprecated</strong> since version 6.4.0! Instead, define the undefined_property property on the class.' );
+		static::$list_table->undefined_property = 'some value';
+	}
+
+	/**
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__isset()
+	 */
+	public function test_isset_of_dynamic_property_should_throw_deprecation() {
+		$this->expectDeprecation();
+		$this->expectDeprecationMessage( 'Checking <code>isset()</code> on the dynamic (undefined) property undefined_property is <strong>deprecated</strong> since version 6.4.0! Instead, define the undefined_property property on the class.' );
+		$this->assertFalse( isset( static::$list_table->undefined_property ) );
+	}
+
+	/**
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__unset()
+	 */
+	public function test_unset_of_dynamic_property_should_throw_deprecation() {
+		$this->expectDeprecation();
+		$this->expectDeprecationMessage( 'Unsetting the dynamic (undefined) property undefined_property is <strong>deprecated</strong> since version 6.4.0! Instead, define the undefined_property property on the class.' );
+		unset( static::$list_table->undefined_property );
+	}
 }
