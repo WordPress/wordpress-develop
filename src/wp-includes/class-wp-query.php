@@ -2021,7 +2021,7 @@ class WP_Query {
 
 		if ( isset( $q['page'] ) ) {
 			$q['page'] = is_scalar( $q['page'] ) ? trim( $q['page'], '/' ) : '';
-			$q['page'] = is_scalar( $q['page'] ) ? absint( $q['page'] ) : 0;
+			$q['page'] = absint( $q['page'] );
 		}
 
 		// If true, forcibly turns off SQL_CALC_FOUND_ROWS even when limits are present.
