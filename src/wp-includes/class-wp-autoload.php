@@ -140,10 +140,16 @@ final class WP_Autoload {
 		'wpdb'                                        => 'wp-includes/class-wpdb.php', // Defines some constants.
 
 		/* Classes in the wp-includes/html-api/ folder. */
+		'wp_html_active_formatting_elements'          => 'wp-includes/html-api/class-wp-html-active-formatting-elements.php',
 		'wp_html_attribute_token'                     => 'wp-includes/html-api/class-wp-html-attribute-token.php',
+		'wp_html_open_elements'                       => 'wp-includes/html-api/class-wp-html-open-elements.php',
+		'wp_html_processor_state'                     => 'wp-includes/html-api/class-wp-html-processor-state.php',
+		'wp_html_processor'                           => 'wp-includes/html-api/class-wp-html-processor.php',
 		'wp_html_span'                                => 'wp-includes/html-api/class-wp-html-span.php',
 		'wp_html_tag_processor'                       => 'wp-includes/html-api/class-wp-html-tag-processor.php',
 		'wp_html_text_replacement'                    => 'wp-includes/html-api/class-wp-html-text-replacement.php',
+		'wp_html_token'                               => 'wp-includes/html-api/class-wp-html-token.php',
+		'wp_html_unsupported_exception'               => 'wp-includes/html-api/class-wp-html-unsupported-exception.php',
 
 		/* Classes in the wp-includes/customize/ folder. */
 		'wp_customize_background_image_control'       => 'wp-includes/customize/class-wp-customize-background-image-control.php',
