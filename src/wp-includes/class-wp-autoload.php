@@ -472,7 +472,7 @@ final class WP_Autoload {
 		$class_name = strtolower( $class_name );
 
 		// Bail early if the class is not a WP class.
-		if ( ! array_key_exists( $class_name, static::CLASSES_PATHS ) ) {
+		if ( ! isset( static::CLASSES_PATHS[ $class_name ] ) ) {
 			return false;
 		}
 
