@@ -243,7 +243,6 @@ final class WP_Post {
 			$_post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d LIMIT 1", $post_id ) );
 
 			if ( ! $_post ) {
-				var_dump($post_id);
 				return false;
 			}
 
