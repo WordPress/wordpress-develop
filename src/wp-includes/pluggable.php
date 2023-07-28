@@ -3016,7 +3016,7 @@ if ( ! function_exists( 'wp_text_diff' ) ) :
 	 * }
 	 * @return string Empty string if strings are equivalent or HTML with differences.
 	 */
-	function wp_text_diff( $left_string, $right_string, $args = null ) {
+	function gwp_text_diff( $left_string, $right_string, $args = null ) {
 		$defaults = array(
 			'title'           => '',
 			'title_left'      => '',
