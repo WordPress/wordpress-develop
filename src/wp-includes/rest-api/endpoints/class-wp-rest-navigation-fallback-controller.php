@@ -145,12 +145,12 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Add additional fields to the embeddable links of the Navigation Fallback REST endpoint.
+	 * Adds additional fields to the embeddable links of the Navigation Fallback REST endpoint.
 	 *
-	 * @since 6.x.x
+	 * @since 6.3.0
 	 *
-	 * @param array $schema the schema for the `wp_navigation` post.
-	 * @return array the modified schema.
+	 * @param array $schema The schema for the `wp_navigation` post.
+	 * @return array The modified schema.
 	 */
 	public function add_fields_to_navigation_fallback_embedded_links( $schema ) {
 		// Expose top level fields.
