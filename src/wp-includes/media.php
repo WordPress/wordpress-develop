@@ -5644,6 +5644,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * The key function logic starts here.
 	 */
 	$in_viewport          = null;
+	$increase_count       = false;
 	$maybe_increase_count = false;
 
 	// Logic to handle a `loading` attribute that is already provided.
@@ -5687,11 +5688,9 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	}
 
 	if ( null === $in_viewport ) {
-		$header_area = WP_TEMPLATE_PART_AREA_HEADER;
-
 		switch ( $context ) {
 			// Consider elements with these header-specific contexts to be in viewport.
-			case "template_part_{$header_area}":
+			case 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER:
 			case 'get_header_image_tag':
 				$in_viewport          = true;
 				$maybe_increase_count = true;
@@ -5702,8 +5701,16 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			case 'do_shortcode':
 				// Only elements within the main query loop have special handling.
 				if ( ! is_admin() && in_the_loop() && is_main_query() ) {
-					// Increase the counter since this is a main query content element.
-					$content_media_count = wp_increase_content_media_count();
+					/*
+					 * Get the content media count, since this is a main query
+					 * content element. This is accomplished by "increasing"
+					 * the count by zero, as the only way to get the count is
+					 * to call this function.
+					 * The actual count increase happens further below, based
+					 * on the `$increase_count` flag set here.
+					 */
+					$content_media_count = wp_increase_content_media_count( 0 );
+					$increase_count      = true;
 
 					// If the count so far is below the threshold, `loading` attribute is omitted.
 					if ( $content_media_count <= wp_omit_loading_attr_threshold() ) {
@@ -5759,9 +5766,12 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 
 	/*
 	 * If flag was set based on contextual logic above, increase the content
-	 * media count if the image size is larger than the threshold.
+	 * media count, either unconditionally, or based on whether the image size
+	 * is larger than the threshold.
 	 */
-	if ( $maybe_increase_count ) {
+	if ( $increase_count ) {
+		wp_increase_content_media_count();
+	} elseif ( $maybe_increase_count ) {
 		/** This filter is documented in wp-admin/includes/media.php */
 		$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 50000 );
 
