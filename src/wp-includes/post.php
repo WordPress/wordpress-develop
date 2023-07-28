@@ -1026,7 +1026,6 @@ function get_post( $post = null, $output = OBJECT, $filter = 'raw' ) {
 		}
 	} else {
 		$_post = WP_Post::get_instance( $post );
-
 	}
 
 	if ( ! $_post ) {
