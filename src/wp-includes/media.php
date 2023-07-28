@@ -1323,7 +1323,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 			'height' => $image_meta['height'],
 			'file'   => $image_basename,
 		);
-	} elseif ( strpos( $image_src, $image_meta['file'] ) ) {
+	} elseif ( str_contains( $image_src, $image_meta['file'] ) ) {
 		return false;
 	}
 
@@ -1709,9 +1709,9 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 	}
 
 	// Bail early if an image has been inserted and later edited.
-	if ( preg_match( '/-e[0-9]{13}/', $image_meta['file'], $img_edit_hash ) &&
-		 ! str_contains( wp_basename( $image_src ), $img_edit_hash[0] ) ) {
-
+	if ( preg_match( '/-e[0-9]{13}/', $image_meta['file'], $img_edit_hash )
+		&& ! str_contains( wp_basename( $image_src ), $img_edit_hash[0] )
+	) {
 		return $image;
 	}
 
@@ -5620,6 +5620,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		}
 		return $loading_attributes;
 	};
+
 	// Closure to increase media count for images with certain minimum threshold, mostly used for header images.
 	$maybe_increase_content_media_count = static function() use ( $attr ) {
 		/** This filter is documented in wp-admin/includes/media.php */
@@ -5725,9 +5726,10 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 
 	/*
 	 * The first elements in 'the_content' or 'the_post_thumbnail' should not be lazy-loaded,
-	 * as they are likely above the fold.
+	 * as they are likely above the fold. Shortcodes are processed after content images, so if
+	 * thresholds haven't already been met, apply the same logic to those as well.
 	 */
-	if ( 'the_content' === $context || 'the_post_thumbnail' === $context ) {
+	if ( 'the_content' === $context || 'the_post_thumbnail' === $context || 'do_shortcode' === $context ) {
 		// Only elements within the main query loop have special handling.
 		if ( is_admin() || ! in_the_loop() || ! is_main_query() ) {
 			$loading_attrs['loading'] = 'lazy';

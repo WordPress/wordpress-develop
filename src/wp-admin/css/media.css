@@ -899,15 +899,10 @@ border color while dragging a file over the uploader drop area */
 }
 
 .imgedit-panel-content {
-	display: grid;
-	grid-template-columns: 1fr;
+	display: flex;
+	flex-wrap: wrap;
 	gap: 20px;
-}
-
-@media screen and (min-width: 1200px) {
-	.imgedit-panel-content.imgedit-panel-tools {
-		grid-template-columns: 50% 50%;
-	}
+	margin-bottom: 20px;
 }
 
 .imgedit-settings {
@@ -1001,6 +996,7 @@ border color while dragging a file over the uploader drop area */
 	padding: 0 10px;
 }
 
+.imgedit-menu .button:after,
 .imgedit-menu .button:before {
 	font: normal 16px/1 dashicons;
 	margin-right: 8px;
@@ -1010,6 +1006,16 @@ border color while dragging a file over the uploader drop area */
 	top: -2px;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+}
+
+.imgedit-menu .imgedit-rotate.button:after {
+	content: '\f140';
+	margin-left: 2px;
+	margin-right: 0;
+}
+
+.imgedit-menu .imgedit-rotate.button[aria-expanded="true"]:after {
+	content: '\f142';
 }
 
 .imgedit-menu .button.disabled {
@@ -1118,19 +1124,25 @@ border color while dragging a file over the uploader drop area */
 	display: flex;
 	column-gap: 4px;
 	align-items: start;
+	flex-wrap: wrap;
 }
 
 .imgedit-popup-menu {
-	width: fit-content;
+	width: calc( 100% - 20px );
 	position: absolute;
-	left: calc( 100% + 4px );
-	top: -3px;
+	background: #fff;
+	padding: 10px;
+	box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
 }
 
 .image-editor .imgedit-menu .imgedit-popup-menu button {
 	display: block;
 	margin: 2px 0;
 	width: 100%;
+	white-space: break-spaces;
+	line-height: 1.5;
+	padding-top: 3px;
+	padding-bottom: 2px;
 }
 
 .imgedit-rotate-menu-container {
@@ -1259,7 +1271,6 @@ audio, video {
  * HiDPI Displays
  */
 @media print,
-  (-webkit-min-device-pixel-ratio: 1.25),
   (min-resolution: 120dpi) {
 	.imgedit-wait:before {
 		background-image: url(../images/spinner-2x.gif);
