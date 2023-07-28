@@ -5713,7 +5713,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 					$increase_count      = true;
 
 					// If the count so far is below the threshold, `loading` attribute is omitted.
-					if ( $content_media_count <= wp_omit_loading_attr_threshold() ) {
+					if ( $content_media_count < wp_omit_loading_attr_threshold() ) {
 						$in_viewport = true;
 					} else {
 						$in_viewport = false;
