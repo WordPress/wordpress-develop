@@ -1102,7 +1102,7 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 	}
 
 	// It's seriously malformed.
-	if ( ! preg_match( '%^<\s*(/\s*)?([a-zA-Z0-9-]+)([^>]*)>?$%', $content, $matches ) ) {
+	if ( ! preg_match( '%^<\s*(/\s*)?([a-zA-Z0-9-:]+)([^>]*)>?$%', $content, $matches ) ) {
 		return '';
 	}
 
