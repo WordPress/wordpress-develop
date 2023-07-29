@@ -138,7 +138,7 @@
 		"@wordpress/warning": "2.35.1",
 		"@wordpress/widgets": "3.12.11",
 		"@wordpress/wordcount": "3.35.1",
-		"backbone": "1.4.1",
+		"backbone": "1.5.0",
 		"clipboard": "2.0.11",
 		"core-js-url-browser": "3.6.4",
 		"element-closest": "^3.0.2",
