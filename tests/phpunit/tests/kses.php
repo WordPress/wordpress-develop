@@ -551,8 +551,7 @@ EOF;
 	/**
 	 * @ticket #58921
 	 */
-	public function test_tag_with_colon_in_name()
-	{
+	public function test_tag_with_colon_in_name() {
 		$content = '<esi:include src="http://example.com/1.html" alt="http://bak.example.com/2.html" onerror="continue"/>';
 		$custom_tags = array(
 			'esi:include' => array(
