@@ -564,8 +564,8 @@ EOF;
 		$expect_stripped_content = '';
 		$expect_valid_content = '<esi:include src="http://example.com/1.html" alt="http://bak.example.com/2.html" onerror="continue" />';
 
-		$this->assertSame($expect_stripped_content, wp_kses_post($content));
-		$this->assertSame($expect_valid_content, wp_kses($content, $custom_tags));
+		$this->assertSame( $expect_stripped_content, wp_kses_post( $content ) );
+		$this->assertSame( $expect_valid_content, wp_kses( $content, $custom_tags ) );
 	}
 
 	/**
