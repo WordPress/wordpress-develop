@@ -188,7 +188,7 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 	 * Tests printing out 'unoptimized' CSS, that is, uncombined selectors and duplicate CSS rules.
 	 *
 	 * This is the Default: @ticket 58811
-	 * 
+	 *
 	 * @ticket 56467
 	 *
 	 * @covers ::get_css
