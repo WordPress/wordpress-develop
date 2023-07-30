@@ -884,8 +884,10 @@ function seems_utf8( $str ) {
 	mbstring_binary_safe_encoding();
 	$length = strlen( $str );
 	reset_mbstring_encoding();
+
 	for ( $i = 0; $i < $length; $i++ ) {
 		$c = ord( $str[ $i ] );
+
 		if ( $c < 0x80 ) {
 			$n = 0; // 0bbbbbbb
 		} elseif ( ( $c & 0xE0 ) === 0xC0 ) {
@@ -901,12 +903,14 @@ function seems_utf8( $str ) {
 		} else {
 			return false; // Does not match any model.
 		}
+
 		for ( $j = 0; $j < $n; $j++ ) { // n bytes matching 10bbbbbb follow ?
 			if ( ( ++$i === $length ) || ( ( ord( $str[ $i ] ) & 0xC0 ) !== 0x80 ) ) {
 				return false;
 			}
 		}
 	}
+
 	return true;
 }
 
@@ -2910,8 +2914,10 @@ function urldecode_deep( $value ) {
  */
 function antispambot( $email_address, $hex_encoding = 0 ) {
 	$email_no_spam_address = '';
+
 	for ( $i = 0, $len = strlen( $email_address ); $i < $len; $i++ ) {
 		$j = rand( 0, 1 + $hex_encoding );
+
 		if ( 0 === $j ) {
 			$email_no_spam_address .= '&#' . ord( $email_address[ $i ] ) . ';';
 		} elseif ( 1 === $j ) {
@@ -5230,6 +5236,7 @@ function wp_sprintf( $pattern, ...$args ) {
 	$start     = 0;
 	$result    = '';
 	$arg_index = 0;
+
 	while ( $len > $start ) {
 		// Last character: append and break.
 		if ( strlen( $pattern ) - 1 === $start ) {
@@ -5274,6 +5281,7 @@ function wp_sprintf( $pattern, ...$args ) {
 			 * @param string $arg      The argument.
 			 */
 			$_fragment = apply_filters( 'wp_sprintf', $fragment, $arg );
+
 			if ( $_fragment !== $fragment ) {
 				$fragment = $_fragment;
 			} else {
@@ -5381,6 +5389,7 @@ function wp_html_excerpt( $str, $count, $more = null ) {
 
 	// Remove part of an entity at the end.
 	$excerpt = preg_replace( '/&[^;\s]{0,6}$/', '', $excerpt );
+
 	if ( $str !== $excerpt ) {
 		$excerpt = trim( $excerpt ) . $more;
 	}
