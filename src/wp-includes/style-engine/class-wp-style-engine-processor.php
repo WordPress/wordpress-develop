@@ -86,11 +86,13 @@ class WP_Style_Engine_Processor {
 	 *
 	 * @since 6.1.0
 	 *
+	 * Since 6.3.0 Optimization is no longer the default.
+	 * 
 	 * @param array $options   {
 	 *     Optional. An array of options. Default empty array.
 	 *
 	 *     @type bool $optimize Whether to optimize the CSS output, e.g. combine rules.
-	 *                          Default true.
+	 *                          Default false.
 	 *     @type bool $prettify Whether to add new lines and indents to output.
 	 *                          Defaults to whether the `SCRIPT_DEBUG` constant is defined.
 	 * }
