@@ -3152,13 +3152,13 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$revision_id = array_shift( $revisions )->ID;
 
 		// @todo Ensure the revisions endpoint returns the correct meta values
-		// Check that the revision has the correct meta value.
-		/*
+		// Check that the revisions endpoint returns the correct meta value.
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 'bar', $response->get_data()['meta']['foo'] );
-		*/
+		$data = $response->get_data();
+		$this->assertSame( array( 'bar' ), $response->get_data()['meta']['foo'] );
+
 
 		// Check that the post meta is set correctly.
 		$this->assertSame( 'bar', get_post_meta( $revision_id, 'foo', true ) );
@@ -3180,13 +3180,13 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$revisions     = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
 		$revision_id_2 = array_shift( $revisions )->ID;
 
-		/*
+
 		// Check that the revision has the correct meta value.
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id_2 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 'baz', $response->get_data()['meta']['foo'] );
-		*/
+		$this->assertSame( array( 'baz' ), $response->get_data()['meta']['foo'] );
+
 		// Check that the post meta is set correctly.
 		$this->assertSame( 'baz', get_post_meta( $revision_id_2, 'foo', true ) );
 
@@ -3207,13 +3207,13 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$revisions     = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
 		$revision_id_3 = array_shift( $revisions )->ID;
 
-		/*
+
 		// Check that the revision has the correct meta value.
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id_3 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 'qux', $response->get_data()['meta']['foo'] );
-		*/
+		$this->assertSame( array( 'qux' ), $response->get_data()['meta']['foo'] );
+
 		// Check that the post meta is set correctly.
 		$this->assertSame( 'qux', get_post_meta( $revision_id_3, 'foo', true ) );
 
