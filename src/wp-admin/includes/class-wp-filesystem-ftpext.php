@@ -85,7 +85,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	public function connect() {
 		/*
 		* Returning false early if the hostname, username or the password is empty.
-		* 
+		*
 		* @ticket 58940
 		*/
 		if ( empty( $this->options['hostname'] ) || empty( $this->options['username'] ) || empty( $this->options['password'] ) ) {
@@ -238,10 +238,10 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	public function cwd() {
 		/*
 		* Check if the FTP connection gets failed, and returning false.
-		* 
+		*
 		* @ticket 58940
 		*/
-		if ( ! $this->link) {
+		if ( ! $this->link ) {
 			return false;
 		}
 
@@ -448,12 +448,12 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 		 * it checks the current working directory and may return true.
 		 *
 		 * See https://core.trac.wordpress.org/ticket/33058.
-		 * 
+		 *
 		 * Check if the FTP connection gets failed, and returning false.
-		 * 
+		 *
 		 * @ticket 58940
 		 */
-		if ( '' === $path || ! $this->link) {
+		if ( '' === $path || ! $this->link ) {
 			return false;
 		}
 
@@ -785,10 +785,10 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
 		/*
 		* Check if the FTP connection gets failed, and returning false.
-		* 
+		*
 		* @ticket 58940
 		*/
-		if ( ! $this->link) {
+		if ( ! $this->link ) {
 			return false;
 		}
 
