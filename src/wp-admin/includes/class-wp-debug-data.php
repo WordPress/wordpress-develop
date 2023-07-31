@@ -700,8 +700,8 @@ class WP_Debug_Data {
 			$php_version_debug .= ' 64bit';
 		}
 
-		if ( function_exists( 'php_sapi_name' ) ) {
-			$php_sapi = php_sapi_name();
+		if ( defined( 'PHP_SAPI' ) ) {
+			$php_sapi = PHP_SAPI;
 		} else {
 			$php_sapi = 'unknown';
 		}
