@@ -377,10 +377,10 @@ function _register_theme_block_patterns() {
 
 	foreach ( $themes as $theme ) {
 		$dirpath = $theme->get_stylesheet_directory() . '/patterns/';
-		if ( ! is_dir( $dirpath ) || ! is_readable( $dirpath ) ) {
+
+		if ( ! is_readable( $dirpath ) ) {
 			continue;
-		}
-		if ( file_exists( $dirpath ) ) {
+		} else {
 			$files = glob( $dirpath . '*.php' );
 			if ( $files ) {
 				foreach ( $files as $file ) {
