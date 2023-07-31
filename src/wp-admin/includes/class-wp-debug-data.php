@@ -700,12 +700,6 @@ class WP_Debug_Data {
 			$php_version_debug .= ' 64bit';
 		}
 
-		if ( defined( 'PHP_SAPI' ) ) {
-			$php_sapi = PHP_SAPI;
-		} else {
-			$php_sapi = 'unknown';
-		}
-
 		$info['wp-server']['fields']['server_architecture'] = array(
 			'label' => __( 'Server architecture' ),
 			'value' => ( 'unknown' !== $server_architecture ? $server_architecture : __( 'Unable to determine server architecture' ) ),
@@ -723,8 +717,8 @@ class WP_Debug_Data {
 		);
 		$info['wp-server']['fields']['php_sapi']            = array(
 			'label' => __( 'PHP SAPI' ),
-			'value' => ( 'unknown' !== $php_sapi ? $php_sapi : __( 'Unable to determine PHP SAPI' ) ),
-			'debug' => $php_sapi,
+			'value' => PHP_SAPI,
+			'debug' => PHP_SAPI,
 		);
 
 		// Some servers disable `ini_set()` and `ini_get()`, we check this before trying to get configuration values.
