@@ -172,6 +172,7 @@ function wp_initial_constants() {
 function wp_plugin_directory_constants() {
 	if ( ! defined( 'WP_CONTENT_URL' ) ) {
 		define( 'WP_CONTENT_URL', get_option( 'siteurl' ) . '/wp-content' ); // Full URL - WP_CONTENT_DIR is defined further up.
+		define( 'WP_DYNAMIC_CONTENT_URL', true ); // Flag to differentiate if WP_CONTENT_URL was explicitly set in wp-config.php or not.
 	}
 
 	/**
