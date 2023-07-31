@@ -187,8 +187,9 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 	/**
 	 * Tests printing out 'unoptimized' CSS, that is, uncombined selectors and duplicate CSS rules.
 	 *
-	 * This is the Default: @ticket 58811
+	 * This is the default.
 	 *
+	 * @ticket 58811
 	 * @ticket 56467
 	 *
 	 * @covers ::get_css
@@ -235,6 +236,7 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 	/**
 	 * Tests that 'optimized' CSS is output, that is, that duplicate CSS rules are combined under their corresponding selectors.
 	 *
+	 * @ticket 58811
 	 * @ticket 56467
 	 *
 	 * @covers ::get_css
@@ -268,7 +270,8 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 	/**
 	 * Tests that incoming CSS rules are optimized and merged with existing CSS rules.
 	 *
-	 * @ticket 58811, 56467
+	 * @ticket 58811
+	 * @ticket 56467
 	 *
 	 * @covers ::add_rules
 	 */

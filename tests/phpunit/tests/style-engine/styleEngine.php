@@ -654,7 +654,8 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	/**
 	 * Tests that incoming styles are deduped and merged.
 	 *
-	 * @ticket 58811, 56467
+	 * @ticket 58811
+	 * @ticket 56467
 	 *
 	 * @covers ::wp_style_engine_get_stylesheet_from_css_rules
 	 */
