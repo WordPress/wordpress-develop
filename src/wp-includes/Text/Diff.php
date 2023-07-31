@@ -81,8 +81,7 @@ class Text_Diff {
     {
         $count = 0;
         foreach ($this->_edits as $edit) {
-            if (is_a($edit, 'Text_Diff_Op_add') ||
-                is_a($edit, 'Text_Diff_Op_change')) {
+            if ($edit instanceof Text_Diff_Op_add || $edit instanceof Text_Diff_Op_change) {
                 $count += $edit->nfinal();
             }
         }
@@ -100,13 +99,12 @@ class Text_Diff {
     {
         $count = 0;
         foreach ($this->_edits as $edit) {
-            if (is_a($edit, 'Text_Diff_Op_delete') ||
-                is_a($edit, 'Text_Diff_Op_change')) {
+            if ($edit instanceof Text_Diff_Op_delete || $edit instanceof Text_Diff_Op_change) {
                 $count += $edit->norig();
             }
         }
         return $count;
-    }
+    }    
 
     /**
      * Computes a reversed diff.
@@ -144,12 +142,12 @@ class Text_Diff {
     function isEmpty()
     {
         foreach ($this->_edits as $edit) {
-            if (!is_a($edit, 'Text_Diff_Op_copy')) {
+            if (!($edit instanceof Text_Diff_Op_copy)) {
                 return false;
             }
         }
         return true;
-    }
+    }    
 
     /**
      * Computes the length of the Longest Common Subsequence (LCS).
@@ -162,12 +160,12 @@ class Text_Diff {
     {
         $lcs = 0;
         foreach ($this->_edits as $edit) {
-            if (is_a($edit, 'Text_Diff_Op_copy')) {
+            if ($edit instanceof Text_Diff_Op_copy) {
                 $lcs += count($edit->orig);
             }
         }
         return $lcs;
-    }
+    }    
 
     /**
      * Gets the original set of lines.

@@ -348,17 +348,17 @@ function wp_remote_retrieve_cookie( $response, $name ) {
  *
  * @param array|WP_Error $response HTTP response.
  * @param string         $name     The name of the cookie to retrieve.
- * @return string The value of the cookie, or empty string
+ * @return string The value of the cookie, or an empty string
  *                if the cookie is not present in the response.
  */
 function wp_remote_retrieve_cookie_value( $response, $name ) {
 	$cookie = wp_remote_retrieve_cookie( $response, $name );
 
-	if ( ! is_a( $cookie, 'WP_Http_Cookie' ) ) {
-		return '';
+	if ( $cookie instanceof WP_Http_Cookie ) {
+		return $cookie->value;
 	}
 
-	return $cookie->value;
+	return '';
 }
 
 /**
