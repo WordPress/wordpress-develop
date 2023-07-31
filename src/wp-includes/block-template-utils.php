@@ -364,12 +364,7 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 			 * The child theme items (stylesheet) are processed before the parent theme's (template).
 			 * If a child theme defines a template, prevent the parent template from being added to the list as well.
 			 */
-			$slug_already_present = false !== array_search(
-				$template_slug,
-				wp_list_pluck( $template_files, 'slug' ),
-				true
-			);
-			if ( $slug_already_present ) {
+			if ( isset( $template_files[ $template_slug ]) ) {
 				continue;
 			}
 
@@ -383,7 +378,7 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 			if ( 'wp_template_part' === $template_type ) {
 				$candidate = _add_block_template_part_area_info( $new_template_item );
 				if ( ! isset( $area ) || ( isset( $area ) && $area === $candidate['area'] ) ) {
-					$template_files[] = $candidate;
+					$template_files[ $template_slug ] = $candidate;
 				}
 			}
 
@@ -393,13 +388,13 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 					! $post_type ||
 					( $post_type && isset( $candidate['postTypes'] ) && in_array( $post_type, $candidate['postTypes'], true ) )
 				) {
-					$template_files[] = $candidate;
+					$template_files[ $template_slug ] = $candidate;
 				}
 			}
 		}
 	}
 
-	return $template_files;
+	return array_values( $template_files );
 }
 
 /**
