@@ -114,7 +114,7 @@ class IXR_IntrospectionServer extends IXR_Server
                     break;
                 case 'date':
                 case 'dateTime.iso8601':
-                    if (!($arg instanceof IXR_Date)) {
+                    if (!is_a($arg, 'IXR_Date')) {
                         $ok = false;
                     }
                     break;
