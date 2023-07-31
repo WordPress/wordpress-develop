@@ -61,7 +61,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<div class="about__section has-2-columns">
-			<div class="column">
+			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
 					<img src="https://s.w.org/images/core/6.3/1-site-editor.webp" alt="" />
 				</div>
@@ -77,7 +77,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<h3><?php _e( 'Create and sync patterns' ); ?></h3>
 				<p><?php _e( 'Arrange blocks in unlimited ways and save them as Patterns for use throughout your site. You can even specify whether to sync your patterns (previously referred to as “reusable blocks”) so that one change applies to all parts of your site. Or, utilize patterns as a starting point with the ability to customize each instance.' ); ?></p>
 			</div>
-			<div class="column">
+			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
 					<img src="https://s.w.org/images/core/6.3/2-create-patterns.webp" alt="" />
 				</div>
@@ -85,7 +85,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<div class="about__section has-2-columns">
-			<div class="column">
+			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
 					<img src="https://s.w.org/images/core/6.3/3-command-palette.webp" alt="" />
 				</div>
@@ -101,7 +101,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<h3><?php _e( 'Sharpen your designs with new tools' ); ?></h3>
 				<p><?php _e( 'New design controls bring more versatility for fine-tuning designs, starting with the ability to customize your caption&#8217;s styles from the Styles Interface without coding. You can manage your duotone filters in Styles for supported blocks and pick from the options provided by your theme or disable them entirely. The Cover block gets added settings for text color, layout controls, and border options, making this powerful block even more handy.' ); ?></p>
 			</div>
-			<div class="column">
+			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
 					<img src="https://s.w.org/images/core/6.3/4-design-tools.webp" alt="" />
 				</div>
