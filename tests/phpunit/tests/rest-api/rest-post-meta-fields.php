@@ -3207,7 +3207,6 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$revisions     = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
 		$revision_id_3 = array_shift( $revisions )->ID;
 
-
 		// Check that the revision has the correct meta value.
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id_3 ) );
 		$response = rest_get_server()->dispatch( $request );
