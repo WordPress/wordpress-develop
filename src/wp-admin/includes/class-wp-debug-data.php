@@ -96,7 +96,7 @@ class WP_Debug_Data {
 				),
 				'permalink'              => array(
 					'label' => __( 'Permalink structure' ),
-					'value' => $permalink_structure ? $permalink_structure : __( 'No permalink structure set' ),
+					'value' => $permalink_structure ?: __( 'No permalink structure set' ),
 					'debug' => $permalink_structure,
 				),
 				'https_status'           => array(
@@ -325,7 +325,7 @@ class WP_Debug_Data {
 				),
 				'WP_DEVELOPMENT_MODE' => array(
 					'label' => 'WP_DEVELOPMENT_MODE',
-					'value' => WP_DEVELOPMENT_MODE ? WP_DEVELOPMENT_MODE : __( 'Disabled' ),
+					'value' => WP_DEVELOPMENT_MODE ?: __( 'Disabled' ),
 					'debug' => WP_DEVELOPMENT_MODE,
 				),
 				'DB_CHARSET'          => array(
@@ -533,7 +533,7 @@ class WP_Debug_Data {
 
 		$info['wp-media']['fields']['imagick_version'] = array(
 			'label' => __( 'Imagick version' ),
-			'value' => ( $imagick_version ) ? $imagick_version : __( 'Not available' ),
+			'value' => $imagick_version ?: __( 'Not available' ),
 		);
 
 		if ( ! function_exists( 'ini_get' ) ) {
@@ -1157,8 +1157,8 @@ class WP_Debug_Data {
 			),
 			'author_website' => array(
 				'label' => __( 'Author website' ),
-				'value' => ( $active_theme_author_uri ? $active_theme_author_uri : __( 'Undefined' ) ),
-				'debug' => ( $active_theme_author_uri ? $active_theme_author_uri : '(undefined)' ),
+				'value' => $active_theme_author_uri ?: __( 'Undefined' ),
+				'debug' => $active_theme_author_uri ?: '(undefined)',
 			),
 			'parent_theme'   => array(
 				'label' => __( 'Parent theme' ),
@@ -1252,8 +1252,8 @@ class WP_Debug_Data {
 				),
 				'author_website' => array(
 					'label' => __( 'Author website' ),
-					'value' => ( $parent_theme_author_uri ? $parent_theme_author_uri : __( 'Undefined' ) ),
-					'debug' => ( $parent_theme_author_uri ? $parent_theme_author_uri : '(undefined)' ),
+					'value' => $parent_theme_author_uri ?: __( 'Undefined' ),
+					'debug' => $parent_theme_author_uri ?: '(undefined)',
 				),
 				'theme_path'     => array(
 					'label' => __( 'Theme directory location' ),

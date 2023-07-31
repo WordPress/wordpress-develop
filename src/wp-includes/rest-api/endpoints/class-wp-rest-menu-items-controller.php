@@ -436,7 +436,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 		// If post type archive, check if post type exists.
 		if ( 'post_type_archive' === $prepared_nav_item['menu-item-type'] ) {
-			$post_type = $prepared_nav_item['menu-item-object'] ? $prepared_nav_item['menu-item-object'] : false;
+			$post_type = $prepared_nav_item['menu-item-object'] ?: FALSE;
 			$original  = get_post_type_object( $post_type );
 			if ( ! $original ) {
 				$error->add( 'rest_post_invalid_type', __( 'Invalid post type.' ), array( 'status' => 400 ) );

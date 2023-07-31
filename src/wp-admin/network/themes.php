@@ -206,7 +206,7 @@ if ( $action ) {
 				);
 			}
 
-			$paged = ( $_REQUEST['paged'] ) ? $_REQUEST['paged'] : 1;
+			$paged = ( $_REQUEST['paged'] ) ?: 1;
 			wp_redirect(
 				add_query_arg(
 					array(

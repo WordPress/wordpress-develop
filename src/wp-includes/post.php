@@ -3994,10 +3994,10 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 		foreach ( $results as $key => $result ) {
 			$results[ $key ] = get_object_vars( $result );
 		}
-		return $results ? $results : array();
+		return $results ?: array();
 	}
 
-	return $results ? $results : false;
+	return $results ?: FALSE;
 
 }
 
@@ -5631,7 +5631,7 @@ function trackback_url_list( $tb_list, $post_id ) {
 		$postdata = get_post( $post_id, ARRAY_A );
 
 		// Form an excerpt.
-		$excerpt = strip_tags( $postdata['post_excerpt'] ? $postdata['post_excerpt'] : $postdata['post_content'] );
+		$excerpt = strip_tags( $postdata['post_excerpt'] ?: $postdata['post_content'] );
 
 		if ( strlen( $excerpt ) > 255 ) {
 			$excerpt = substr( $excerpt, 0, 252 ) . '&hellip;';

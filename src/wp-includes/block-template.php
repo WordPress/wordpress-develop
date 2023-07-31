@@ -313,7 +313,7 @@ function _resolve_template_for_new_post( $wp_query ) {
 	// Posts, including custom post types.
 	$p = isset( $wp_query->query['p'] ) ? $wp_query->query['p'] : null;
 
-	$post_id = $page_id ? $page_id : $p;
+	$post_id = $page_id ?: $p;
 	$post    = get_post( $post_id );
 
 	if (

@@ -84,7 +84,7 @@ function block_core_gallery_render( $attributes, $content ) {
 	// --gallery-block--gutter-size is deprecated. --wp--style--gallery-gap-default should be used by themes that want to set a default
 	// gap on the gallery.
 	$fallback_gap = 'var( --wp--style--gallery-gap-default, var( --gallery-block--gutter-size, var( --wp--style--block-gap, 0.5em ) ) )';
-	$gap_value    = $gap ? $gap : $fallback_gap;
+	$gap_value    = $gap ?: $fallback_gap;
 	$gap_column   = $gap_value;
 
 	if ( is_array( $gap_value ) ) {

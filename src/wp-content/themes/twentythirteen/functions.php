@@ -702,7 +702,7 @@ function twentythirteen_get_link_url() {
 	$content = get_the_content();
 	$has_url = get_url_in_content( $content );
 
-	return ( $has_url ) ? $has_url : apply_filters( 'the_permalink', get_permalink() );
+	return ( $has_url ) ?: apply_filters( 'the_permalink', get_permalink() );
 }
 
 if ( ! function_exists( 'twentythirteen_excerpt_more' ) && ! is_admin() ) :

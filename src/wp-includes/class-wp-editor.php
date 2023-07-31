@@ -181,7 +181,7 @@ final class _WP_Editors {
 			$autocomplete = ' autocomplete="off"';
 
 			if ( self::$this_quicktags ) {
-				$default_editor = $set['default_editor'] ? $set['default_editor'] : wp_default_editor();
+				$default_editor = $set['default_editor'] ?: wp_default_editor();
 				// 'html' is used for the "Text" editor tab.
 				if ( 'html' !== $default_editor ) {
 					$default_editor = 'tinymce';

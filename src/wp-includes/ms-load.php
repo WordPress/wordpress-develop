@@ -369,7 +369,7 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 		// Find the site by the domain and at most the first path segment.
 		$current_blog = get_site_by_path( $domain, $path, 1 );
 		if ( $current_blog ) {
-			$current_site = WP_Network::get_instance( $current_blog->site_id ? $current_blog->site_id : 1 );
+			$current_site = WP_Network::get_instance( $current_blog->site_id ?: 1 );
 		} else {
 			// If you don't have a site with the same domain/path as a network, you're pretty screwed, but:
 			$current_site = WP_Network::get_by_path( $domain, $path, 1 );

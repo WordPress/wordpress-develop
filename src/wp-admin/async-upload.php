@@ -60,7 +60,7 @@ if ( isset( $_REQUEST['attachment_id'] ) && (int) $_REQUEST['attachment_id'] && 
 					// Title shouldn't ever be empty, but use filename just in case.
 					$file     = get_attached_file( $post->ID );
 					$file_url = wp_get_attachment_url( $post->ID );
-					$title    = $post->post_title ? $post->post_title : wp_basename( $file );
+					$title    = $post->post_title ?: wp_basename( $file );
 					?>
 					<div class="filename new">
 						<span class="media-list-title"><strong><?php echo esc_html( wp_html_excerpt( $title, 60, '&hellip;' ) ); ?></strong></span>

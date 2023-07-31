@@ -775,7 +775,7 @@ function wp_tiny_mce( $teeny = false, $settings = false ) {
 
 	$set = array(
 		'teeny' => $teeny,
-		'tinymce' => $settings ? $settings : true,
+		'tinymce' => $settings ?: TRUE,
 		'quicktags' => false
 	);
 

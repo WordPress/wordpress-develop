@@ -108,7 +108,7 @@ function get_user_locale( $user = 0 ) {
 
 	$locale = $user_object->locale;
 
-	return $locale ? $locale : get_locale();
+	return $locale ?: get_locale();
 }
 
 /**

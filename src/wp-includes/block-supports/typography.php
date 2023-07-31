@@ -125,7 +125,7 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 		$custom_font_size                    = isset( $block_attributes['style']['typography']['fontSize'] )
 			? $block_attributes['style']['typography']['fontSize']
 			: null;
-		$typography_block_styles['fontSize'] = $preset_font_size ? $preset_font_size : wp_get_typography_font_size_value(
+		$typography_block_styles['fontSize'] = $preset_font_size ?: wp_get_typography_font_size_value(
 			array(
 				'size' => $custom_font_size,
 			)
@@ -139,7 +139,7 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 		$custom_font_family                    = isset( $block_attributes['style']['typography']['fontFamily'] )
 			? wp_typography_get_preset_inline_style_value( $block_attributes['style']['typography']['fontFamily'], 'font-family' )
 			: null;
-		$typography_block_styles['fontFamily'] = $preset_font_family ? $preset_font_family : $custom_font_family;
+		$typography_block_styles['fontFamily'] = $preset_font_family ?: $custom_font_family;
 	}
 
 	if (

@@ -2587,7 +2587,7 @@ function get_submit_button( $text = '', $type = 'primary large', $name = 'submit
 	// Remove empty items, remove duplicate items, and finally build a string.
 	$class = implode( ' ', array_unique( array_filter( $classes ) ) );
 
-	$text = $text ? $text : __( 'Save Changes' );
+	$text = $text ?: __( 'Save Changes' );
 
 	// Default the id attribute to $name unless an id was specifically provided in $other_attributes.
 	$id = $name;

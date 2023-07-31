@@ -6415,7 +6415,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 
 	// Load translations for continents and cities.
 	if ( ! $mo_loaded || $locale !== $locale_loaded ) {
-		$locale_loaded = $locale ? $locale : get_locale();
+		$locale_loaded = $locale ?: get_locale();
 		$mofile        = WP_LANG_DIR . '/continents-cities-' . $locale_loaded . '.mo';
 		unload_textdomain( 'continents-cities' );
 		load_textdomain( 'continents-cities', $mofile, $locale_loaded );

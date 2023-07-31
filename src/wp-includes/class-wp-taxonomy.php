@@ -571,7 +571,7 @@ final class WP_Taxonomy {
 			return null;
 		}
 
-		$class = $this->rest_controller_class ? $this->rest_controller_class : WP_REST_Terms_Controller::class;
+		$class = $this->rest_controller_class ?: WP_REST_Terms_Controller::class;
 
 		if ( ! class_exists( $class ) ) {
 			return null;
