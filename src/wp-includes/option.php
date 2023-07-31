@@ -325,7 +325,7 @@ function wp_load_alloptions( $force_cache = false ) {
 
 	if ( ! $alloptions ) {
 		$suppress      = $wpdb->suppress_errors();
-		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload = 'yes'" );
+		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload IN ( 'yes', 'default' ) " );
 		if ( ! $alloptions_db ) {
 			$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options" );
 		}
@@ -429,7 +429,7 @@ function wp_load_core_site_options( $network_id = null ) {
  * @param string|bool $autoload Optional. Whether to load the option when WordPress starts up. For existing options,
  *                              `$autoload` can only be updated using `update_option()` if `$value` is also changed.
  *                              Accepts 'yes'|true to enable or 'no'|false to disable. For non-existent options,
- *                              the default value is 'yes'. Default null.
+ *                              the default value is 'default'. Default null.
  * @return bool True if the value was updated, false otherwise.
  */
 function update_option( $option, $value, $autoload = null ) {
@@ -517,7 +517,7 @@ function update_option( $option, $value, $autoload = null ) {
 	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
 		// Default setting for new options is 'yes'.
 		if ( null === $autoload ) {
-			$autoload = 'yes';
+			$autoload = 'default';
 		}
 
 		return add_option( $option, $value, '', $autoload );
@@ -542,6 +542,14 @@ function update_option( $option, $value, $autoload = null ) {
 
 	if ( null !== $autoload ) {
 		$update_args['autoload'] = ( 'no' === $autoload || false === $autoload ) ? 'no' : 'yes';
+
+		if( 'no' === $autoload || false === $autoload ){
+			$update_args['autoload'] = 'no';
+		} elseif ( 'default' === $autoload || null === $autoload  ){
+			$update_args['autoload'] = 'default';
+		} else {
+			$update_args['autoload'] = 'yes';
+		}
 	}
 
 	$result = $wpdb->update( $wpdb->options, $update_args, array( 'option_name' => $option ) );
@@ -618,7 +626,7 @@ function update_option( $option, $value, $autoload = null ) {
  *                                Default is enabled. Accepts 'no' to disable for legacy reasons.
  * @return bool True if the option was added, false otherwise.
  */
-function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' ) {
+function add_option( $option, $value = '', $deprecated = '', $autoload = 'default' ) {
 	global $wpdb;
 
 	if ( ! empty( $deprecated ) ) {
@@ -678,7 +686,11 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 	}
 
 	$serialized_value = maybe_serialize( $value );
-	$autoload         = ( 'no' === $autoload || false === $autoload ) ? 'no' : 'yes';
+    if( 'no' === $autoload || false === $autoload ){
+		$autoload = 'no';
+	} elseif('default' !== $autoload ){
+		$autoload = 'yes';
+	}
 
 	/**
 	 * Fires before an option is added.
@@ -696,7 +708,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 	}
 
 	if ( ! wp_installing() ) {
-		if ( 'yes' === $autoload ) {
+		if ( 'yes' === $autoload || 'default' === $autoload ) {
 			$alloptions            = wp_load_alloptions( true );
 			$alloptions[ $option ] = $serialized_value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -780,7 +792,7 @@ function delete_option( $option ) {
 	$result = $wpdb->delete( $wpdb->options, array( 'option_name' => $option ) );
 
 	if ( ! wp_installing() ) {
-		if ( 'yes' === $row->autoload ) {
+		if ( 'yes' === $row->autoload || 'default' === $row->autoload ) {
 			$alloptions = wp_load_alloptions( true );
 			if ( is_array( $alloptions ) && isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
@@ -993,7 +1005,7 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 		$transient_option  = '_transient_' . $transient;
 
 		if ( false === get_option( $transient_option ) ) {
-			$autoload = 'yes';
+			$autoload = 'default';
 			if ( $expiration ) {
 				$autoload = 'no';
 				add_option( $transient_timeout, time() + $expiration, '', 'no' );
