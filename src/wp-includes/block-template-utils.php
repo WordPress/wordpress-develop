@@ -364,7 +364,7 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 			 * The child theme items (stylesheet) are processed before the parent theme's (template).
 			 * If a child theme defines a template, prevent the parent template from being added to the list as well.
 			 */
-			if ( isset( $template_files[ $template_slug ]) ) {
+			if ( isset( $template_files[ $template_slug ] ) ) {
 				continue;
 			}
 
