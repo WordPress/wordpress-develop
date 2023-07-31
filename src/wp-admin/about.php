@@ -63,7 +63,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" />
+					<img src="https://s.w.org/images/core/6.3/1-site-editor.webp" alt="" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">
@@ -79,7 +79,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" />
+					<img src="https://s.w.org/images/core/6.3/2-create-patterns.webp" alt="" />
 				</div>
 			</div>
 		</div>
@@ -87,7 +87,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" />
+					<img src="https://s.w.org/images/core/6.3/3-command-palette.webp" alt="" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">
@@ -103,7 +103,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" />
+					<img src="https://s.w.org/images/core/6.3/4-design-tools.webp" alt="" />
 				</div>
 			</div>
 		</div>
@@ -111,21 +111,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-3-columns">
 			<div class="column">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='100' height='100' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" />
+					<img src="https://s.w.org/images/core/6.3/5-style-revisions.webp" alt="" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Track design changes with Style Revisions' ); ?></h3>
 				<p><?php _e( 'You can now see how your site looked at a specific time. Visualize these revisions in a timeline and access a one-click option to restore prior styles.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='100' height='100' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" />
+					<img src="https://s.w.org/images/core/6.3/6-footnotes-block.webp" alt="" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Annotate with the Footnotes block' ); ?></h3>
 				<p><?php _e( 'Footnotes add convenient annotations throughout your content. Now you can add and link footnotes for any paragraph.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='100' height='100' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" />
+					<img src="https://s.w.org/images/core/6.3/7-details-block.webp" alt="" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Show or hide content with the Details block' ); ?></h3>
 				<p><?php _e( 'Use the block to avoid spoiling a surprise, create an interactive Q&A section, or hide a long paragraph under a heading.' ); ?></p>
