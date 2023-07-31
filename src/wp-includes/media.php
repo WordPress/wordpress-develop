@@ -2349,6 +2349,12 @@ add_shortcode( 'caption', 'img_caption_shortcode' );
  * @return string HTML content to display the caption.
  */
 function img_caption_shortcode( $attr, $content = '' ) {
+	// validate input parameter type for compatibility with newer versions of PHP
+	// (this maintains behavior consistent with how this function worked on 
+	// PHP versions 7.0 and older.)
+	if (!isset($attr) || !is_array($attr)) {
+		$attr = array();
+	}
 	// New-style shortcode with the caption inside the shortcode with the link and image tags.
 	if ( ! isset( $attr['caption'] ) ) {
 		if ( preg_match( '#((?:<a [^>]+>\s*)?<img [^>]+>(?:\s*</a>)?)(.*)#is', $content, $matches ) ) {
