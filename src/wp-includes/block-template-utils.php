@@ -360,6 +360,17 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 				continue;
 			}
 
+			// The child theme items (stylesheet) are processed before the parent theme's (template).
+			// If a child theme defines a template, prevent the parent template from being added to the list as well.
+			$slug_already_present = false !== array_search(
+				$template_slug,
+				wp_list_pluck( $template_files, 'slug' ),
+				true
+			);
+			if ( $slug_already_present ) {
+				continue;
+			}
+
 			$new_template_item = array(
 				'slug'  => $template_slug,
 				'path'  => $template_file,
