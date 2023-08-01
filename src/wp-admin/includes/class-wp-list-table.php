@@ -179,7 +179,7 @@ class WP_List_Table {
 	 * @deprecated 6.4.0 Getting a dynamic property is deprecated.
 	 *
 	 * @param string $name Property to get.
-	 * @return null Does not return dynamic property value.
+	 * @return null Does not get a dynamic property's value.
 	 */
 	public function __get( $name ) {
 		trigger_error(
@@ -224,7 +224,7 @@ class WP_List_Table {
 	 * @deprecated 6.4.0 Checking a dynamic property is deprecated.
 	 *
 	 * @param string $name Property to check if set.
-	 * @return bool False, as a dynamic property.
+	 * @return bool False, does not check a dynamic property.
 	 */
 	public function __isset( $name ) {
 		trigger_error(
