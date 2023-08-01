@@ -250,6 +250,7 @@ class WP_List_Table {
 	public function __unset( $name ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			unset( $this->$name );
+			return;
 		}
 
 		trigger_error(

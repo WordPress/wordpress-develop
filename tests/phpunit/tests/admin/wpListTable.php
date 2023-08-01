@@ -363,46 +363,22 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_should_allow_predefined_dynamic_properties
-	 * @ticket       58896
+	 * @dataProvider data_compat_fields
+	 * @ticket 58896
 	 *
-	 * @covers WP_List_Table::__set
-	 * @covers WP_List_Table::__get
+	 * @covers WP_List_Table::__get()
 	 *
-	 * @param string $property_name Name of the class property.
+	 * @param string $property_name Property name to get.
+	 * @param mixed $expected       Expected value.
 	 */
-	public function test_should_allow_predefined_dynamic_properties( $property_name ) {
-		$value = uniqid();
+	public function test_should_get_compat_fields_defined_property( $property_name, $expected ) {
+		$list_table = new WP_List_Table( array( 'plural' => '_wp_tests__get' ) );
 
-		// Calling the getter first to make sure it doesn't cause errors.
-		static::$list_table->$property_name;
-
-		static::$list_table->$property_name = $value;
-		$this->assertSame( $value, static::$list_table->$property_name );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array
-	 */
-	public function data_should_allow_predefined_dynamic_properties() {
-		// This code doesn't have access to self::$list_table, so the WP_List_Table object has to be called this way.
-		$list_table             = new WP_List_Table();
-		$compat_fields_property = new ReflectionProperty( $list_table, 'compat_fields' );
-		$compat_fields_property->setAccessible( true );
-
-		$predefined_properties = $compat_fields_property->getValue( $list_table );
-
-		$compat_fields_property->setAccessible( false );
-		$predefined_properties = array_map(
-			function ( $property_name ) {
-				return array( $property_name );
-			},
-			$predefined_properties
-		);
-
-		return $predefined_properties;
+		if ( 'screen' === $property_name ) {
+			$this->assertInstanceOf( $expected, $list_table->$property_name );
+		} else {
+			$this->assertSame( $expected, $list_table->$property_name );
+		}
 	}
 
 	/**
@@ -410,13 +386,28 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 * @covers WP_List_Table::__get()
 	 */
-	public function test_get_dynamic_property_should_throw_deprecation_return_null() {
+	public function test_should_throw_deprecation_when_getting_dynamic_property() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
 			'The property `undefined_property` is not defined. Getting a dynamic (undefined) property is ' .
 			'deprecated since version 6.4.0! Instead, define the property on the class.'
 		);
-		$this->assertNull( static::$list_table->undefined_property, 'Getting a dynamic property should return null from WP_List_Table::__get()' );
+		$this->assertNull( $this->list_table->undefined_property, 'Getting a dynamic property should return null from WP_List_Table::__get()' );
+	}
+
+	/**
+	 * @dataProvider data_compat_fields
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__set()
+	 *
+	 * @param string $property_name Property name to set.
+	 */
+	public function test_should_set_compat_fields_defined_property( $property_name ) {
+		$value                            = uniqid();
+		$this->list_table->$property_name = $value;
+
+		$this->assertSame( $value, $this->list_table->$property_name );
 	}
 
 	/**
@@ -424,13 +415,31 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 * @covers WP_List_Table::__set()
 	 */
-	public function test_set_of_dynamic_property_should_throw_deprecation() {
+	public function test_should_throw_deprecation_when_setting_dynamic_property() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
 			'The property `undefined_property` is not defined. Setting a dynamic (undefined) property is ' .
 			'deprecated since version 6.4.0! Instead, define the property on the class.'
 		);
-		static::$list_table->undefined_property = 'some value';
+		$this->list_table->undefined_property = 'some value';
+	}
+
+	/**
+	 * @dataProvider data_compat_fields
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__isset()
+	 *
+	 * @param string $property_name Property name to check.
+	 * @param mixed $expected       Expected value.
+	 */
+	public function test_should_isset_compat_fields_defined_property( $property_name, $expected ) {
+		$actual = isset( $this->list_table->$property_name );
+		if ( is_null( $expected ) ) {
+			$this->assertFalse( $actual );
+		} else {
+			$this->assertTrue( $actual );
+		}
 	}
 
 	/**
@@ -438,13 +447,26 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 * @covers WP_List_Table::__isset()
 	 */
-	public function test_isset_of_dynamic_property_should_throw_deprecation() {
+	public function test_should_throw_deprecation_when_isset_of_dynamic_property() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
 			'The property `undefined_property` is not defined. Checking `isset()` on a dynamic (undefined) property ' .
-			'is deprecated since version 6.4.0! Instead, define the property on the class.',
+			'is deprecated since version 6.4.0! Instead, define the property on the class.'
 		);
-		$this->assertFalse( isset( static::$list_table->undefined_property ), 'Checking a dyanmic property should return false from WP_List_Table::__isset()' );
+		$this->assertFalse( isset( $this->list_table->undefined_property ), 'Checking a dyanmic property should return false from WP_List_Table::__isset()' );
+	}
+
+	/**
+	 * @dataProvider data_compat_fields
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__unset()
+	 *
+	 * @param string $property_name Property name to unset.
+	 */
+	public function test_should_unset_compat_fields_defined_property( $property_name ) {
+		unset( $this->list_table->$property_name );
+		$this->assertFalse( isset( $this->list_table->$property_name ) );
 	}
 
 	/**
@@ -452,12 +474,47 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 * @covers WP_List_Table::__unset()
 	 */
-	public function test_unset_of_dynamic_property_should_throw_deprecation() {
+	public function test_should_throw_deprecation_when_unset_of_dynamic_property() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
 			'A property `undefined_property` is not defined. Unsetting a dynamic (undefined) property is ' .
-			'deprecated since version 6.4.0! Instead, define the property on the class.',
+			'deprecated since version 6.4.0! Instead, define the property on the class.'
 		);
-		unset( static::$list_table->undefined_property );
+		unset( $this->list_table->undefined_property );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_compat_fields() {
+		return array(
+			'_args'            => array(
+				'property_name' => '_args',
+				'expected'      => array(
+					'plural'   => '_wp_tests__get',
+					'singular' => '',
+					'ajax'     => false,
+					'screen'   => null,
+				),
+			),
+			'_pagination_args' => array(
+				'property_name' => '_pagination_args',
+				'expected'      => array(),
+			),
+			'screen'           => array(
+				'property_name' => 'screen',
+				'expected'      => WP_Screen::class,
+			),
+			'_actions'         => array(
+				'property_name' => '_actions',
+				'expected'      => null,
+			),
+			'_pagination'      => array(
+				'property_name' => '_pagination',
+				'expected'      => null,
+			),
+		);
 	}
 }
