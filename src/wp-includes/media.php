@@ -5643,7 +5643,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	/*
 	 * The key function logic starts here.
 	 */
-	$in_viewport          = null;
+	$maybe_in_viewport    = null;
 	$increase_count       = false;
 	$maybe_increase_count = false;
 
@@ -5655,9 +5655,9 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		 * to force-omit the attribute are other potential values).
 		 */
 		if ( 'lazy' === $attr['loading'] ) {
-			$in_viewport = false;
+			$maybe_in_viewport = false;
 		} else {
-			$in_viewport = true;
+			$maybe_in_viewport = true;
 		}
 	}
 
@@ -5670,7 +5670,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		 * the most important in-viewport image should have `fetchpriority` set
 		 * to "high".
 		 */
-		if ( false === $in_viewport ) {
+		if ( false === $maybe_in_viewport ) {
 			_doing_it_wrong(
 				__FUNCTION__,
 				__( 'An image should not be lazy-loaded and marked as high priority at the same time.' ),
@@ -5683,16 +5683,16 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			 */
 			$loading_attrs['fetchpriority'] = 'high';
 		} else {
-			$in_viewport = true;
+			$maybe_in_viewport = true;
 		}
 	}
 
-	if ( null === $in_viewport ) {
+	if ( null === $maybe_in_viewport ) {
 		switch ( $context ) {
 			// Consider elements with these header-specific contexts to be in viewport.
 			case 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER:
 			case 'get_header_image_tag':
-				$in_viewport          = true;
+				$maybe_in_viewport    = true;
 				$maybe_increase_count = true;
 				break;
 			// Count main content elements and detect whether in viewport.
@@ -5714,9 +5714,9 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 
 					// If the count so far is below the threshold, `loading` attribute is omitted.
 					if ( $content_media_count < wp_omit_loading_attr_threshold() ) {
-						$in_viewport = true;
+						$maybe_in_viewport = true;
 					} else {
-						$in_viewport = false;
+						$maybe_in_viewport = false;
 					}
 				}
 				/*
@@ -5725,7 +5725,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 				 * break statement here if the viewport has not been
 				 * determined.
 				 */
-				if ( 'the_post_thumbnail' !== $context || null !== $in_viewport ) {
+				if ( 'the_post_thumbnail' !== $context || null !== $maybe_in_viewport ) {
 					break;
 				}
 			// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect
@@ -5742,7 +5742,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 					 */
 					&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
 				) {
-					$in_viewport          = true;
+					$maybe_in_viewport    = true;
 					$maybe_increase_count = true;
 				}
 				break;
@@ -5755,7 +5755,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * is not not in the viewport (`false`) or it is unknown (`null`), add
 	 * `loading` with a value of "lazy".
 	 */
-	if ( $in_viewport ) {
+	if ( $maybe_in_viewport ) {
 		$loading_attrs = wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr );
 	} else {
 		// Only add `loading="lazy"` if the feature is enabled.
