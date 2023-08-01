@@ -408,40 +408,56 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	/**
 	 * @ticket 58896
 	 *
-	 * @covers WP_List_Table::__get
+	 * @covers WP_List_Table::__get()
 	 */
-	public function test_should_not_allow_to_get_dynamic_properties() {
-		$this->enable_doing_it_wrong_error();
-		$property_name = uniqid();
-		$this->setExpectedIncorrectUsage( 'WP_List_Table::__get' );
-		$this->expectNotice();
-		$this->expectNoticeMessageMatches( '/^.+' . $property_name . '.+$/' );
-
-		// Invoking WP_List_Table::__get.
-		static::$list_table->$property_name;
+	public function test_get_dynamic_property_should_throw_deprecation_return_null() {
+		$this->expectDeprecation();
+		$this->expectDeprecationMessage(
+			'The property `undefined_property` is not defined. Getting a dynamic (undefined) property is ' .
+			'deprecated since version 6.4.0! Instead, define the property on the class.'
+		);
+		$this->assertNull( static::$list_table->undefined_property, 'Getting a dynamic property should return null from WP_List_Table::__get()' );
 	}
 
 	/**
 	 * @ticket 58896
 	 *
-	 * @covers WP_List_Table::__set
+	 * @covers WP_List_Table::__set()
 	 */
-	public function test_should_not_allow_to_set_dynamic_properties() {
-		$this->enable_doing_it_wrong_error();
-		$property_name = uniqid();
-		$this->setExpectedIncorrectUsage( 'WP_List_Table::__set' );
-		$this->expectNotice();
-		$this->expectNoticeMessageMatches( '/^.+' . $property_name . '.+$/' );
-
-		// Invoking WP_List_Table::__set.
-		static::$list_table->$property_name = 'value';
+	public function test_set_of_dynamic_property_should_throw_deprecation() {
+		$this->expectDeprecation();
+		$this->expectDeprecationMessage(
+			'The property `undefined_property` is not defined. Setting a dynamic (undefined) property is ' .
+			'deprecated since version 6.4.0! Instead, define the property on the class.'
+		);
+		static::$list_table->undefined_property = 'some value';
 	}
 
 	/**
-	 * This function is needed to remove the filter and disable triggering
-	 * the "doing it wrong" error.
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__isset()
 	 */
-	private function enable_doing_it_wrong_error() {
-		add_filter( 'doing_it_wrong_trigger_error', '__return_true', 9999 );
+	public function test_isset_of_dynamic_property_should_throw_deprecation() {
+		$this->expectDeprecation();
+		$this->expectDeprecationMessage(
+			'The property `undefined_property` is not defined. Checking `isset()` on a dynamic (undefined) property ' .
+			'is deprecated since version 6.4.0! Instead, define the property on the class.',
+		);
+		$this->assertFalse( isset( static::$list_table->undefined_property ), 'Checking a dyanmic property should return false from WP_List_Table::__isset()' );
+	}
+
+	/**
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__unset()
+	 */
+	public function test_unset_of_dynamic_property_should_throw_deprecation() {
+		$this->expectDeprecation();
+		$this->expectDeprecationMessage(
+			'A property `undefined_property` is not defined. Unsetting a dynamic (undefined) property is ' .
+			'deprecated since version 6.4.0! Instead, define the property on the class.',
+		);
+		unset( static::$list_table->undefined_property );
 	}
 }
