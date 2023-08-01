@@ -744,13 +744,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			if ( is_wp_error( $meta_update ) ) {
 				return $meta_update;
 			}
+		}
 
-			// Update the revision meta as well.
-			$revisions = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
-			if ( ! empty( $revisions ) ) {
-				$revision  = array_shift( $revisions );
-				wp_save_revisioned_meta_fields( $revision->ID, $post_id );
-			}
+		// Update any revisioned meta.
+		$revisions = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
+		if ( ! empty( $revisions ) ) {
+			$revision  = array_shift( $revisions );
+			wp_save_revisioned_meta_fields( $revision->ID, $post_id );
 		}
 
 		$post          = get_post( $post_id );
@@ -940,13 +940,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			if ( is_wp_error( $meta_update ) ) {
 				return $meta_update;
 			}
-
-			// Update the revision meta as well.
-			$revisions = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
-			if ( ! empty( $revisions ) ) {
-				$revision  = array_shift( $revisions );
-				wp_save_revisioned_meta_fields( $revision->ID, $post_id );
-			}
+		}
+		// Update any revisioned meta.
+		$revisions = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
+		if ( ! empty( $revisions ) ) {
+			$revision  = array_shift( $revisions );
+			wp_save_revisioned_meta_fields( $revision->ID, $post_id );
 		}
 
 		$post          = get_post( $post_id );
