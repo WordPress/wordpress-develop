@@ -3159,7 +3159,6 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$data = $response->get_data();
 		$this->assertSame( array( 'bar' ), $response->get_data()['meta']['foo'] );
 
-
 		// Check that the post meta is set correctly.
 		$this->assertSame( 'bar', get_post_meta( $revision_id, 'foo', true ) );
 
@@ -3179,7 +3178,6 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		// Get the last revision.
 		$revisions     = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
 		$revision_id_2 = array_shift( $revisions )->ID;
-
 
 		// Check that the revision has the correct meta value.
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id_2 ) );
