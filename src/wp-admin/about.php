@@ -63,7 +63,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.3/1-site-editor.webp" alt="" />
+					<img src="https://s.w.org/images/core/6.3/1-site-editor.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">
@@ -79,7 +79,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.3/2-create-patterns.webp" alt="" />
+					<img src="https://s.w.org/images/core/6.3/2-create-patterns.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 		</div>
@@ -87,7 +87,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.3/3-command-palette.webp" alt="" />
+					<img src="https://s.w.org/images/core/6.3/3-command-palette.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">
@@ -103,7 +103,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.3/4-design-tools.webp" alt="" />
+					<img src="https://s.w.org/images/core/6.3/4-design-tools.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 		</div>
@@ -111,21 +111,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-3-columns">
 			<div class="column">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.3/5-style-revisions.webp" alt="" />
+					<img src="https://s.w.org/images/core/6.3/5-style-revisions.webp" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Track design changes with Style Revisions' ); ?></h3>
 				<p><?php _e( 'You can now see how your site looked at a specific time. Visualize these revisions in a timeline and access a one-click option to restore prior styles.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.3/6-footnotes-block.webp" alt="" />
+					<img src="https://s.w.org/images/core/6.3/6-footnotes-block.webp" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Annotate with the Footnotes block' ); ?></h3>
 				<p><?php _e( 'Footnotes add convenient annotations throughout your content. Now you can add and link footnotes for any paragraph.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.3/7-details-block.webp" alt="" />
+					<img src="https://s.w.org/images/core/6.3/7-details-block.webp" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Show or hide content with the Details block' ); ?></h3>
 				<p><?php _e( 'Use the block to avoid spoiling a surprise, create an interactive Q&A section, or hide a long paragraph under a heading.' ); ?></p>
@@ -233,7 +233,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section has-3-columns">
 			<div class="column about__image is-vertically-aligned-top">
-				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=6.3' ) ); ?>" alt="" />
+				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=6.3' ) ); ?>" alt="" height="270" width="270" />
 			</div>
 			<div class="column is-vertically-aligned-center" style="grid-column-end:span 2">
 				<h3>
