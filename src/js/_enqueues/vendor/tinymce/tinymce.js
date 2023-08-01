@@ -24930,13 +24930,13 @@
       var bodyId, bodyClass, iframeHTML;
       iframeHTML = Settings.getDocType(editor) + '<html><head>';
       if (Settings.getDocumentBaseUrl(editor) !== editor.documentBaseUrl) {
-        iframeHTML += '<base href="' + editor.documentBaseURI.getURI() + '" />';
+        iframeHTML += '<base href="' + editor.documentBaseURI.getURI() + '">';
       }
-      iframeHTML += '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />';
+      iframeHTML += '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">';
       bodyId = Settings.getBodyId(editor);
       bodyClass = Settings.getBodyClass(editor);
       if (Settings.getContentSecurityPolicy(editor)) {
-        iframeHTML += '<meta http-equiv="Content-Security-Policy" content="' + Settings.getContentSecurityPolicy(editor) + '" />';
+        iframeHTML += '<meta http-equiv="Content-Security-Policy" content="' + Settings.getContentSecurityPolicy(editor) + '">';
       }
       iframeHTML += '</head><body id="' + bodyId + '" class="mce-content-body ' + bodyClass + '" data-id="' + editor.id + '"><br></body></html>';
       return iframeHTML;
