@@ -1040,7 +1040,6 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		list( $src, $width, $height ) = $image;
 
 		$attachment = get_post( $attachment_id );
-		$hwstring   = image_hwstring( $width, $height );
 		$size_class = $size;
 
 		if ( is_array( $size_class ) ) {
@@ -1053,6 +1052,12 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			'alt'      => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
 			'decoding' => 'async',
 		);
+		if ( $width ) {
+			$default_attr['width'] = (int) $width;
+		}
+		if ( $height ) {
+			$default_attr['height'] = (int) $height;
+		}
 
 		/**
 		 * Filters the context in which wp_get_attachment_image() is used.
@@ -1064,12 +1069,9 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		$context = apply_filters( 'wp_get_attachment_image_context', 'wp_get_attachment_image' );
 		$attr    = wp_parse_args( $attr, $default_attr );
 
-		$loading_attr              = $attr;
-		$loading_attr['width']     = $width;
-		$loading_attr['height']    = $height;
 		$loading_optimization_attr = wp_get_loading_optimization_attributes(
 			'img',
-			$loading_attr,
+			$attr,
 			$context
 		);
 
@@ -1126,8 +1128,15 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		 */
 		$attr = apply_filters( 'wp_get_attachment_image_attributes', $attr, $attachment, $size );
 
+		if ( ! isset( $attr['width'] ) ) {
+			$attr['width'] = (int) $width;
+		}
+		if ( ! isset( $attr['height'] ) ) {
+			$attr['height'] = (int) $height;
+		}
+
 		$attr = array_map( 'esc_attr', $attr );
-		$html = rtrim( "<img $hwstring" );
+		$html = '<img ';
 
 		foreach ( $attr as $name => $value ) {
 			$html .= " $name=" . '"' . $value . '"';
@@ -5609,7 +5618,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * It is here to avoid duplicate logic in many places below, without having
 	 * to introduce a very specific private global function.
 	 */
-	$postprocess = static function( $loading_attributes, $with_fetchpriority = false ) use ( $tag_name, $attr, $context ) {
+	$postprocess   = static function( $loading_attributes, $with_fetchpriority = false ) use ( $tag_name, $attr, $context ) {
 		// Potentially add `fetchpriority="high"`.
 		if ( $with_fetchpriority ) {
 			$loading_attributes = wp_maybe_add_fetchpriority_high_attr( $loading_attributes, $tag_name, $attr );
