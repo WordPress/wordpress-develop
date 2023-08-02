@@ -214,7 +214,6 @@ class WP_List_Table {
 			'deprecated since version 6.4.0! Instead, define the property on the class.',
 			E_USER_DEPRECATED
 		);
-		return null;
 	}
 
 	/**
