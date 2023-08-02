@@ -98,10 +98,8 @@
 	};
 
 	function onLoad() {
-		var isIE10 = -1 !== navigator.appVersion.indexOf( 'MSIE 10' ),
-			isIE11 = !!navigator.userAgent.match( /Trident.*rv:11\./ ),
-			iframes = document.querySelectorAll( 'iframe.wp-embedded-content' ),
-			iframeClone, i, source, secret;
+		var iframes = document.querySelectorAll( 'iframe.wp-embedded-content' ),
+			i, source, secret;
 
 		for ( i = 0; i < iframes.length; i++ ) {
 			/** @var {IframeElement} */
@@ -113,13 +111,6 @@
 				secret = Math.random().toString( 36 ).substr( 2, 10 );
 				source.src += '#?secret=' + secret;
 				source.setAttribute( 'data-secret', secret );
-			}
-
-			/* Remove security attribute from iframes in IE10 and IE11. */
-			if ( ( isIE10 || isIE11 ) ) {
-				iframeClone = source.cloneNode( true );
-				iframeClone.removeAttribute( 'security' );
-				source.parentNode.replaceChild( iframeClone, source );
 			}
 
 			/*
