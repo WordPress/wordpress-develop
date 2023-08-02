@@ -33,12 +33,6 @@ if ( isset( $_GET['import'] ) && ! defined( 'WP_LOAD_IMPORTERS' ) ) {
 
 require_once dirname( __DIR__ ) . '/wp-load.php';
 
-// Redirect to the admin dashboard when "/admin.php" is accessed without any query parameters.
-if ( strpos( $_SERVER['REQUEST_URI'], 'wp-admin/admin.php' ) !== false && empty( $_SERVER['QUERY_STRING'] ) ) {
-	wp_redirect( admin_url() );
-	exit;
-}
-
 nocache_headers();
 
 if ( get_option( 'db_upgraded' ) ) {
@@ -423,4 +417,10 @@ if ( ! empty( $_REQUEST['action'] ) ) {
 	 * @since 2.6.0
 	 */
 	do_action( "admin_action_{$action}" );
+} else {
+	// Checks if the request URI is /wp-admin/admin.php without any query parameters
+	if ( $_SERVER['REQUEST_URI'] === '/wp-admin/admin.php' && empty( $_SERVER['QUERY_STRING'] ) ) {
+		wp_safe_redirect( admin_url() );
+		exit;
+	}
 }
