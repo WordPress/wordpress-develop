@@ -547,7 +547,7 @@ function create_initial_post_types() {
 				'edit_posts'             => 'edit_theme_options',
 			),
 			'rest_base'             => 'navigation',
-			'rest_controller_class' => 'WP_REST_Posts_Controller',
+			'rest_controller_class' => 'WP_REST_Navigation_Controller',
 			'supports'              => array(
 				'title',
 				'editor',
