@@ -17,30 +17,18 @@
  */
 class WP_REST_Navigation_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	protected static $post_id;
-	protected static $superadmin_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$post_id = $factory->post->create();
-
-		self::$superadmin_id = $factory->user->create(
-			array(
-				'role'       => 'administrator',
-				'user_login' => 'superadmin',
-			)
-		);
-
 		self::$post_id = $factory->post->create(
 			array(
 				'post_type'  => 'wp_navigation',
-				'post_title' => WP_TESTS_DOMAIN . ' Privacy Policy',
+				'post_title' => 'Test Navigation',
 			)
 		);
 	}
 
 	public static function wpTearDownAfterClass() {
 		wp_delete_post( self::$post_id, true );
-
-		self::delete_user( self::$superadmin_id );
 	}
 	/**
 	 * Tests that the correct fields are returned by the context parameter.
@@ -50,7 +38,7 @@ class WP_REST_Navigation_Controller_Test extends WP_Test_REST_Controller_Testcas
 	 * to the embedded Navigation Post, when the navigation fallback endpoint
 	 * is called with the `_embed` param.
 	 *
-	 * @ticket 58557
+	 * @ticket 58910
 	 *
 	 * @covers WP_REST_Navigation_Controller::get_item
 	 *
@@ -77,7 +65,7 @@ class WP_REST_Navigation_Controller_Test extends WP_Test_REST_Controller_Testcas
 	}
 
 	/**
-	 * @ticket 58557
+	 * @ticket 58910
 	 *
 	 * @covers WP_REST_Navigation_Controller::get_item_schema
 	 *
