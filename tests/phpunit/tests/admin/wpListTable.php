@@ -12,17 +12,34 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 * @var WP_List_Table $list_table
 	 */
-	protected static $list_table;
+	private $list_table;
+
+	/**
+	 * Original value of $GLOBALS['hook_suffix'].
+	 *
+	 * @var string
+	 */
+	private static $original_hook_suffix;
 
 	public static function set_up_before_class() {
-		global $hook_suffix;
-
 		parent::set_up_before_class();
 
-		require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+		static::$original_hook_suffix = $GLOBALS['hook_suffix'];
 
+		require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+	}
+
+	public function set_up() {
+		parent::set_up();
+		global $hook_suffix;
 		$hook_suffix      = '_wp_tests';
-		self::$list_table = new WP_List_Table();
+		$this->list_table = new WP_List_Table();
+	}
+
+	public function clean_up_global_scope() {
+		global $hook_suffix;
+		$hook_suffix = static::$original_hook_suffix;
+		parent::clean_up_global_scope();
 	}
 
 	/**
@@ -142,10 +159,10 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 * @param array $expected
 	 */
 	public function test_get_views_links( $link_data, $expected ) {
-		$get_views_links = new ReflectionMethod( self::$list_table, 'get_views_links' );
+		$get_views_links = new ReflectionMethod( $this->list_table, 'get_views_links' );
 		$get_views_links->setAccessible( true );
 
-		$actual = $get_views_links->invokeArgs( self::$list_table, array( $link_data ) );
+		$actual = $get_views_links->invokeArgs( $this->list_table, array( $link_data ) );
 
 		$this->assertSameSetsWithIndex( $expected, $actual );
 	}
@@ -257,9 +274,9 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 * }
 	 */
 	public function test_get_views_links_doing_it_wrong( $link_data ) {
-		$get_views_links = new ReflectionMethod( self::$list_table, 'get_views_links' );
+		$get_views_links = new ReflectionMethod( $this->list_table, 'get_views_links' );
 		$get_views_links->setAccessible( true );
-		$get_views_links->invokeArgs( self::$list_table, array( $link_data ) );
+		$get_views_links->invokeArgs( $this->list_table, array( $link_data ) );
 	}
 
 	/**
