@@ -322,7 +322,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * be found or if content in the document caused the processor
 	 * to give up and abort processing.
 	 *
-	 * Example
+	 * Example:
 	 *
 	 *     $processor = WP_HTML_Processor::create_fragment( '<template><strong><button><em><p><em>' );
 	 *     false === $processor->next_tag();
@@ -474,6 +474,93 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Returns the raw HTML content inside a matched tag.
+	 *
+	 * "Markup" differs from inner HTML in that it returns the raw HTML inside the matched tag.
+	 * This means that it's possible this returns HTML without matching tags, or with HTML attributes
+	 * serialized differently than a DOM API would return.
+	 *
+	 * Example:
+	 *
+	 *     $processor = WP_HTML_Processor::createFragment( '<div><p>Inside <em>P</em> <i>tags</div>' );
+	 *     $processor->next_tag( 'P' );
+	 *     'Inside <em>P</em> <i>tags' === $processor->get_raw_inner_markup();
+	 *
+	 * @since 6.4.0
+	 *
+	 * @throws Exception When unable to allocate a bookmark for internal tracking of the open tag.
+	 *
+	 * @return string|null The inner markup if available, else NULL.
+	 */
+	public function get_raw_inner_markup() {
+		if ( null === $this->get_tag() ) {
+			return null;
+		}
+
+		$this->set_bookmark( 'start' );
+		$found_tag = $this->step_until_tag_is_closed();
+		$this->set_bookmark( 'end' );
+
+		if ( $found_tag ) {
+			$inner_markup = $this->substr_bookmarks( 'after', 'start', 'before', 'end' );
+		} else {
+			// If there's no closing tag then the inner markup continues to the end of the document.
+			$inner_markup = $this->substr_bookmark( 'after', 'start' );
+		}
+
+		$this->seek( 'start' );
+		$this->release_bookmark( 'start' );
+		$this->release_bookmark( 'end' );
+
+		return $inner_markup;
+	}
+
+	/**
+	 * Returns the raw HTML content around a matched tag, including the tag itself.
+	 *
+	 * "Markup" differs from outer HTML in that it returns the raw HTML inside the matched tag.
+	 * This means that it's possible this returns HTML without matching tags, or with HTML attributes
+	 * serialized differently than a DOM API would return.
+	 *
+	 * Example:
+	 *
+	 *     $processor = WP_HTML_Processor::createFragment( '<div><p>Inside <em>P</em> <i>tags</div>' );
+	 *     $processor->next_tag( 'P' );
+	 *     '<p>Inside <em>P</em> <i>tags' === $processor->get_raw_inner_markup();
+	 *
+	 * @since 6.4.0
+	 *
+	 * @throws Exception When unable to allocate a bookmark for internal tracking of the open tag.
+	 *
+	 * @return string|null The outer markup if available, else NULL.
+	 */
+	public function get_raw_outer_markup() {
+		if ( null === $this->get_tag() ) {
+			return null;
+		}
+
+		$this->set_bookmark( 'start' );
+		$start_tag = $this->current_token->node_name;
+		$found_tag = $this->step_until_tag_is_closed();
+		$this->set_bookmark( 'end' );
+
+		if ( $found_tag ) {
+			$did_close    = $this->get_tag() === $start_tag && $this->is_tag_closer();
+			$end_position = $did_close ? 'after' : 'before';
+			$outer_markup = $this->substr_bookmarks( 'before', 'start', $end_position, 'end' );
+		} else {
+			// If there's no closing tag then the outer markup continues to the end of the document.
+			$outer_markup = $this->substr_bookmark( 'before', 'start' );
+		}
+
+		$this->seek( 'start' );
+		$this->release_bookmark( 'start' );
+		$this->release_bookmark( 'end' );
+
+		return $outer_markup;
+	}
+
+	/**
 	 * Steps through the HTML document and stop at the next tag, if any.
 	 *
 	 * @since 6.4.0
@@ -512,12 +599,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->state->stack_of_open_elements->pop();
 			}
 
-			parent::next_tag( self::VISIT_EVERYTHING );
-		}
-
-		// Finish stepping when there are no more tokens in the document.
-		if ( null === $this->get_tag() ) {
-			return false;
+			if ( ! parent::next_tag( self::VISIT_EVERYTHING ) ) {
+				return false;
+			}
 		}
 
 		$this->state->current_token = new WP_HTML_Token(
@@ -555,7 +639,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *       to avoid creating the array copy on tag iteration. If this is done, it would likely
 	 *       be more useful to walk up the stack when yielding instead of starting at the top.
 	 *
-	 * Example
+	 * Example:
 	 *
 	 *     $processor = WP_HTML_Processor::create_fragment( '<p><strong><em><img></em></strong></p>' );
 	 *     $processor->next_tag( 'IMG' );
@@ -798,6 +882,98 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		return "{$this->bookmark_counter}";
+	}
+
+	/**
+	 * Steps through the HTML document until the current open tag is closed.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @throws Exception When unable to allocate bookmark for internal tracking.
+	 *
+	 * @return bool|null true if a closing tag was found, false if not, and null if not starting at a matched tag.
+	 */
+	private function step_until_tag_is_closed() {
+		if ( null === $this->get_tag() ) {
+			return null;
+		}
+
+		/** @var WP_HTML_Token $start Reference to the opening tag when calling this function. */
+		$start = $this->current_token;
+
+		/** @var bool $keep_searching Whether to continue scanning for a point where the opening tag is closed. */
+		$keep_searching = true;
+
+		/**
+		 * Sets a flag indicating that the starting tag has been closed once
+		 * it's popped from the stack of open elements. This is a listener function.
+		 *
+		 * @since 6.4.0
+		 *
+		 * @see WP_HTML_Open_Elements::with_pop_listener()
+		 *
+		 * @param WP_HTML_Token $node Node that was popped.
+		 */
+		$tag_is_closed = function ( $node ) use ( &$keep_searching, $start ) {
+			if ( $node === $start ) {
+				$keep_searching = false;
+			}
+		};
+
+		/*
+		 * Normally, when stepping into each new elements, it would be required to walk up the
+		 * stack of open elements and look to see if the starting tag is still open, if it's
+		 * on the stack. By listening for elements that are popped from the stack, however, it's
+		 * possible to know if the starting tag has been closed without anything more than a
+		 * constant boolean access, as the listener is called for each tag that's closed.
+		 *
+		 * The use of the `foreach` here creates a context which ensures that the listener is
+		 * properly removed and cleaned up without having to manually remove it.
+		 */
+		foreach ( $this->state->stack_of_open_elements->with_pop_listener( $tag_is_closed ) as $_ ) {
+			// Find where the tag is closed by stepping forward until it's no longer on the stack of open elements.
+			do {
+				$found_tag       = $this->step();
+			} while ( $found_tag && $keep_searching );
+		}
+
+		return $found_tag;
+	}
+
+	/**
+	 * Returns a substring of the input HTML document from a bookmark until the end.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $start_position "before" to clip before bookmark, "after" to clip after.
+	 * @param string $start          Bookmark name at which to start clipping.
+	 * @return string Clipped substring of input HTMl document.
+	 */
+	private function substr_bookmark( $start_position, $start ) {
+		$start_bookmark = $this->bookmarks[ "_{$start}" ];
+		$start_offset   = 'before' === $start_position ? $start_bookmark->start : $start_bookmark->end + 1;
+
+		return substr( $this->html, $start_offset );
+	}
+
+	/**
+	 * Returns a substring of the input HTML document delimited by bookmarks.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $start_position "before" to clip before bookmark, "after" to clip after.
+	 * @param string $start          Bookmark name at which to start clipping.
+	 * @param string $end_position   "before" to clip before bookmark, "after" to clip after.
+	 * @param string $end            Bookmark name at which to end clipping.
+	 * @return string Clipped substring of input HTMl document.
+	 */
+	private function substr_bookmarks( $start_position, $start, $end_position, $end ) {
+		$start_bookmark = $this->bookmarks[ "_{$start}" ];
+		$end_bookmark   = $this->bookmarks[ "_{$end}" ];
+		$start_offset   = 'before' === $start_position ? $start_bookmark->start : $start_bookmark->end + 1;
+		$end_offset     = 'before' === $end_position ? $end_bookmark->start : $end_bookmark->end + 1;
+
+		return substr( $this->html, $start_offset, $end_offset - $start_offset );
 	}
 
 	/*
