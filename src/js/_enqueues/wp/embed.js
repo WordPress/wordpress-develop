@@ -108,7 +108,7 @@
 			secret = source.getAttribute( 'data-secret' );
 			if ( ! secret ) {
 				/* Add secret to iframe */
-				secret = Math.random().toString( 36 ).substr( 2, 10 );
+				secret = Math.random().toString( 36 ).substring( 2, 12 );
 				source.src += '#?secret=' + secret;
 				source.setAttribute( 'data-secret', secret );
 			}
