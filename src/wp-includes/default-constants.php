@@ -327,7 +327,7 @@ function wp_cookie_constants() {
 	 * @since 2.0.0
 	 */
 	if ( ! defined( 'COOKIE_DOMAIN' ) ) {
-		define('COOKIE_DOMAIN', '');
+		define( 'COOKIE_DOMAIN', '' );
 	}
 
 	if ( ! defined( 'RECOVERY_MODE_COOKIE' ) ) {
