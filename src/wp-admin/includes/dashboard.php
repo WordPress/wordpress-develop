@@ -976,7 +976,7 @@ function wp_dashboard_site_activity() {
  */
 function wp_dashboard_recent_posts( $args ) {
 	$query_args = array(
-		'post_type'      => 'post',
+		'post_type'      => !empty($args['post_type']) ? $args['post_type'] : 'post',
 		'post_status'    => $args['status'],
 		'orderby'        => 'date',
 		'order'          => $args['order'],
