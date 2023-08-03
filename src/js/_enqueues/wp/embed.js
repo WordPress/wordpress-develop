@@ -4,10 +4,6 @@
  * @since 4.4.0
  * @output wp-includes/js/wp-embed.js
  *
- * This file cannot have ampersands in it. This is to ensure
- * it can be embedded in older versions of WordPress.
- * See https://core.trac.wordpress.org/changeset/35708.
- *
  * Single line comments should not be used since they will break
  * the script when inlined in get_post_embed_html(), specifically
  * when the comments are not stripped out due to SCRIPT_DEBUG
