@@ -74,22 +74,17 @@
 	 */
 	function getSessionSupportTests() {
 		try {
+			/** @type {SessionSupportTests} */
+			var item = JSON.parse(
+				sessionStorage.getItem( sessionStorageKey )
+			);
 			if (
-				typeof sessionStorage !== 'undefined' &&
-				sessionStorageKey in sessionStorage
+				typeof item === 'object' &&
+				typeof item.timestamp === 'number' &&
+				new Date().valueOf() < item.timestamp + 604800 && // Note: Number is a week in seconds.
+				typeof item.supportTests === 'object'
 			) {
-				/** @type {SessionSupportTests} */
-				var item = JSON.parse(
-					sessionStorage.getItem( sessionStorageKey )
-				);
-				if (
-					typeof item === 'object' &&
-					typeof item.timestamp === 'number' &&
-					new Date().valueOf() < item.timestamp + 604800 && // Note: Number is a week in seconds.
-					typeof item.supportTests === 'object'
-				) {
-					return item.supportTests;
-				}
+				return item.supportTests;
 			}
 		} catch ( e ) {}
 		return null;
@@ -106,18 +101,16 @@
 	 */
 	function setSessionSupportTests( supportTests ) {
 		try {
-			if ( typeof sessionStorage !== 'undefined' ) {
-				/** @type {SessionSupportTests} */
-				var item = {
-					supportTests: supportTests,
-					timestamp: new Date().valueOf()
-				};
+			/** @type {SessionSupportTests} */
+			var item = {
+				supportTests: supportTests,
+				timestamp: new Date().valueOf()
+			};
 
-				sessionStorage.setItem(
-					sessionStorageKey,
-					JSON.stringify( item )
-				);
-			}
+			sessionStorage.setItem(
+				sessionStorageKey,
+				JSON.stringify( item )
+			);
 		} catch ( e ) {}
 	}
 
