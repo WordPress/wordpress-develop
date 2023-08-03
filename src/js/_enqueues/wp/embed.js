@@ -7,11 +7,16 @@
  * This file cannot have ampersands in it. This is to ensure
  * it can be embedded in older versions of WordPress.
  * See https://core.trac.wordpress.org/changeset/35708.
+ *
+ * Single line comments should not be used since they will break
+ * the script when inlined in get_post_embed_html(), specifically
+ * when the comments are not stripped out due to SCRIPT_DEBUG
+ * being turned on.
  */
 (function ( window, document ) {
 	'use strict';
 
-	// Abort for ancient browsers.
+	/* Abort for ancient browsers. */
 	if ( ! document.querySelector || ! window.addEventListener || typeof URL === 'undefined' ) {
 		return;
 	}
@@ -19,7 +24,7 @@
 	/** @namespace wp */
 	window.wp = window.wp || {};
 
-	// Abort if script was already executed.
+	/* Abort if script was already executed. */
 	if ( !! window.wp.receiveEmbedMessage ) {
 		return;
 	}
@@ -32,7 +37,7 @@
 	window.wp.receiveEmbedMessage = function( e ) {
 		var data = e.data;
 
-		// Verify shape of message.
+		/* Verify shape of message. */
 		if (
 			! ( data || data.secret || data.message || data.value ) ||
 			/[^a-zA-Z0-9]/.test( data.secret )
@@ -59,7 +64,7 @@
 			source.removeAttribute( 'style' );
 
 			if ( 'height' === data.message ) {
-				// Resize the iframe on request.
+				/* Resize the iframe on request. */
 				height = parseInt( data.value, 10 );
 				if ( height > 1000 ) {
 					height = 1000;
@@ -69,7 +74,7 @@
 
 				source.height = height;
 			} else if ( 'link' === data.message ) {
-				// Link to a specific URL on request.
+				/* Link to a specific URL on request. */
 				sourceURL = new URL( source.getAttribute( 'src' ) );
 				targetURL = new URL( data.value );
 
