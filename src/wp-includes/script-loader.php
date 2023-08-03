@@ -1007,6 +1007,7 @@ function wp_default_scripts( $scripts ) {
 	did_action( 'init' ) && $scripts->localize( 'swfupload-handlers', 'swfuploadL10n', $uploader_l10n );
 
 	$scripts->add( 'comment-reply', "/wp-includes/js/comment-reply$suffix.js", array(), false, 1 );
+	did_action( 'init' ) && $scripts->add_data( 'comment-reply', 'strategy', 'async' );
 
 	$scripts->add( 'json2', "/wp-includes/js/json2$suffix.js", array(), '2015-05-03' );
 	did_action( 'init' ) && $scripts->add_data( 'json2', 'conditional', 'lt IE 8' );
@@ -3399,7 +3400,7 @@ function _wp_theme_json_webfonts_handler() {
 		}
 
 		// Check the font-display.
-		if ( ! in_array( $webfont['font-display'], array( 'auto', 'block', 'fallback', 'swap' ), true ) ) {
+		if ( ! in_array( $webfont['font-display'], array( 'auto', 'block', 'fallback', 'optional', 'swap' ), true ) ) {
 			$webfont['font-display'] = 'fallback';
 		}
 
