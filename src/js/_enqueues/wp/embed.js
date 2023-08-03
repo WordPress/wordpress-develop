@@ -32,15 +32,11 @@
 	window.wp.receiveEmbedMessage = function( e ) {
 		var data = e.data;
 
-		if ( ! data ) {
-			return;
-		}
-
-		if ( ! ( data.secret || data.message || data.value ) ) {
-			return;
-		}
-
-		if ( /[^a-zA-Z0-9]/.test( data.secret ) ) {
+		// Verify shape of message.
+		if (
+			! ( data || data.secret || data.message || data.value ) ||
+			/[^a-zA-Z0-9]/.test( data.secret )
+		) {
 			return;
 		}
 
@@ -62,8 +58,8 @@
 
 			source.removeAttribute( 'style' );
 
-			/* Resize the iframe on request. */
 			if ( 'height' === data.message ) {
+				// Resize the iframe on request.
 				height = parseInt( data.value, 10 );
 				if ( height > 1000 ) {
 					height = 1000;
@@ -72,23 +68,17 @@
 				}
 
 				source.height = height;
-			}
-
-			/* Link to a specific URL on request. */
-			if ( 'link' === data.message ) {
+			} else if ( 'link' === data.message ) {
+				// Link to a specific URL on request.
 				sourceURL = new URL( source.getAttribute( 'src' ) );
 				targetURL = new URL( data.value );
 
-				/* Only follow link if the protocol is in the allow list. */
-				if ( ! allowedProtocols.test( targetURL.protocol ) ) {
-					continue;
-				}
-
-				/* Only continue if link hostname matches iframe's hostname. */
-				if ( targetURL.host === sourceURL.host ) {
-					if ( document.activeElement === source ) {
-						window.top.location.href = data.value;
-					}
+				if (
+					allowedProtocols.test( targetURL.protocol ) &&
+					targetURL.host === sourceURL.host &&
+					document.activeElement === source
+				) {
+					window.top.location.href = data.value;
 				}
 			}
 		}
