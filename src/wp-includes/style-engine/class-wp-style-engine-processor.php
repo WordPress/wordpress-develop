@@ -86,7 +86,9 @@ class WP_Style_Engine_Processor {
 	 *
 	 * @since 6.1.0
 	 *
-	 * Since 6.3.0 Optimization is no longer the default.
+	 * Optimization is no longer the default.
+	 * 
+	 * @since 6.3.0
 	 *
 	 * @param array $options   {
 	 *     Optional. An array of options. Default empty array.
