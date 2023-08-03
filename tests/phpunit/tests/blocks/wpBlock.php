@@ -683,6 +683,38 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58532
+	 */
+	public function test_block_has_support_string_true() {
+		$this->registry->register( 'core/example', array() );
+		$block_type  = $this->registry->get_registered( 'core/example' );
+		$has_support = block_has_support( $block_type, 'color' );
+		$this->assertFalse( $has_support );
+	}
+
+	/**
+	 * @ticket 58532
+	 */
+	public function test_block_has_support_string_false() {
+		$this->registry->register(
+			'core/example',
+			array(
+				'supports' => array(
+					'align'    => array( 'wide', 'full' ),
+					'fontSize' => true,
+					'color'    => array(
+						'link'     => true,
+						'gradient' => false,
+					),
+				),
+			)
+		);
+		$block_type    = $this->registry->get_registered( 'core/example' );
+		$align_support = block_has_support( $block_type, 'align' );
+		$this->assertTrue( $align_support );
+	}
+
+	/**
 	 * @ticket 51612
 	 */
 	public function test_block_filters_for_inner_blocks() {
