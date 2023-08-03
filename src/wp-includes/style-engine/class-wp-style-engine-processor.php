@@ -85,7 +85,7 @@ class WP_Style_Engine_Processor {
 	 * Gets the CSS rules as a string.
 	 *
 	 * @since 6.1.0
-	 * 
+	 *
 	 * @since 6.3.0 The Optimization is no longer the default.
 	 *
 	 * @param array $options   {
