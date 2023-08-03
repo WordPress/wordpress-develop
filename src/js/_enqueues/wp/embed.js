@@ -12,7 +12,7 @@
 	'use strict';
 
 	// Abort for ancient browsers.
-	if ( ! document.querySelector || ! window.addEventListener ) {
+	if ( ! document.querySelector || ! window.addEventListener || typeof URL === 'undefined' ) {
 		return;
 	}
 
