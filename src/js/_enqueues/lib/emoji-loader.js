@@ -73,11 +73,11 @@
 	 * @returns {?SupportTests} Support tests, or null if not set or older than 1 week.
 	 */
 	function getSessionSupportTests() {
-		if (
-			typeof sessionStorage !== 'undefined' &&
-			sessionStorageKey in sessionStorage
-		) {
-			try {
+		try {
+			if (
+				typeof sessionStorage !== 'undefined' &&
+				sessionStorageKey in sessionStorage
+			) {
 				/** @type {SessionSupportTests} */
 				var item = JSON.parse(
 					sessionStorage.getItem( sessionStorageKey )
@@ -90,8 +90,8 @@
 				) {
 					return item.supportTests;
 				}
-			} catch ( e ) {}
-		}
+			}
+		} catch ( e ) {}
 		return null;
 	}
 
@@ -105,8 +105,8 @@
 	 * @param {SupportTests} supportTests Support tests.
 	 */
 	function setSessionSupportTests( supportTests ) {
-		if ( typeof sessionStorage !== 'undefined' ) {
-			try {
+		try {
+			if ( typeof sessionStorage !== 'undefined' ) {
 				/** @type {SessionSupportTests} */
 				var item = {
 					supportTests: supportTests,
@@ -117,8 +117,8 @@
 					sessionStorageKey,
 					JSON.stringify( item )
 				);
-			} catch ( e ) {}
-		}
+			}
+		} catch ( e ) {}
 	}
 
 	/**
