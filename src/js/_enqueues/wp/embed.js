@@ -76,11 +76,8 @@
 
 			/* Link to a specific URL on request. */
 			if ( 'link' === data.message ) {
-				sourceURL = document.createElement( 'a' );
-				targetURL = document.createElement( 'a' );
-
-				sourceURL.href = source.getAttribute( 'src' );
-				targetURL.href = data.value;
+				sourceURL = new URL( source.getAttribute( 'src' ) );
+				targetURL = new URL( data.value );
 
 				/* Only follow link if the protocol is in the allow list. */
 				if ( ! allowedProtocols.test( targetURL.protocol ) ) {
