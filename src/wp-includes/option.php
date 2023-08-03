@@ -430,6 +430,13 @@ function wp_load_core_site_options( $network_id = null ) {
  *                              `$autoload` can only be updated using `update_option()` if `$value` is also changed.
  *                              Accepts 'yes'|true to enable or 'no'|false to disable. For non-existent options,
  *                              the default value is 'yes'. Default null.
+ *                              When an option is autoloaded, it means it will be automatically retrieved
+ *                              from the database and cached in memory on every page load. Autoloading
+ *                              too many options can lead to performance problems, especially if the options
+ *                              are not frequently used.
+ *                              Use 'no'|false for options that are rarely used or when the value is large,
+ *                              and set it to 'yes'|true only for options that need to be accessed
+ *                              regularly and quickly.
  * @return bool True if the value was updated, false otherwise.
  */
 function update_option( $option, $value, $autoload = null ) {
@@ -614,8 +621,17 @@ function update_option( $option, $value, $autoload = null ) {
  * @param mixed       $value      Optional. Option value. Must be serializable if non-scalar.
  *                                Expected to not be SQL-escaped.
  * @param string      $deprecated Optional. Description. Not used anymore.
- * @param string|bool $autoload   Optional. Whether to load the option when WordPress starts up.
- *                                Default is enabled. Accepts 'no' to disable for legacy reasons.
+ * @param string|bool $autoload Optional. Whether to load the option when WordPress starts up. For existing options,
+ *                              `$autoload` can only be updated using `update_option()` if `$value` is also changed.
+ *                              Accepts 'yes'|true to enable or 'no'|false to disable. For non-existent options,
+ *                              the default value is 'yes'. Default null.
+ *                              When an option is autoloaded, it means it will be automatically retrieved
+ *                              from the database and cached in memory on every page load. Autoloading
+ *                              too many options can lead to performance problems, especially if the options
+ *                              are not frequently used.
+ *                              Use 'no'|false for options that are rarely used or when the value is large,
+ *                              and set it to 'yes'|true only for options that need to be accessed
+ *                              regularly and quickly.
  * @return bool True if the option was added, false otherwise.
  */
 function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' ) {
