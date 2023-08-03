@@ -874,6 +874,9 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
  *              passed, whether the current user has the given meta capability for the given object.
  */
 function current_user_can( $capability, ...$args ) {
+	if ( ! function_exists( 'wp_get_current_user' ) ) {
+		return false;
+	}
 	return user_can( wp_get_current_user(), $capability, ...$args );
 }
 
