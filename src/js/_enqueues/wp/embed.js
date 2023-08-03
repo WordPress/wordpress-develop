@@ -73,11 +73,12 @@
 				sourceURL = new URL( source.getAttribute( 'src' ) );
 				targetURL = new URL( data.value );
 
-				if (
-					allowedProtocols.test( targetURL.protocol ) &&
-					targetURL.host === sourceURL.host &&
-					document.activeElement === source
-				) {
+				// Note: Ampersands cannot be used per #34698.
+				if ( ! (
+					! allowedProtocols.test( targetURL.protocol ) ||
+					targetURL.host !== sourceURL.host ||
+					document.activeElement !== source
+				) ) {
 					window.top.location.href = data.value;
 				}
 			}
