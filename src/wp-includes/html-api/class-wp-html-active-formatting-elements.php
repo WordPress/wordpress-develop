@@ -148,7 +148,7 @@ class WP_HTML_Active_Formatting_Elements {
 	 *     > EM -> STRONG -> A ->
 	 *
 	 * To start with the most-recently added element and walk towards the top,
-	 * {@see WP_HTML_Active_Formatting_Elements::walk_up}.
+	 * see WP_HTML_Active_Formatting_Elements::walk_up().
 	 *
 	 * @since 6.4.0
 	 */
@@ -175,7 +175,7 @@ class WP_HTML_Active_Formatting_Elements {
 	 *     > A -> STRONG -> EM ->
 	 *
 	 * To start with the first added element and walk towards the bottom,
-	 * {@see WP_HTML_Active_Formatting_Elements::walk_down}.
+	 * see WP_HTML_Active_Formatting_Elements::walk_down().
 	 *
 	 * @since 6.4.0
 	 */

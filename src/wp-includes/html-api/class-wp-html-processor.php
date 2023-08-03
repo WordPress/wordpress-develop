@@ -16,7 +16,7 @@
  * unsupported markup, it aborts early to avoid unintentionally breaking
  * the document. The HTML Processor should never break an HTML document.
  *
- * While the {@see WP_HTML_Tag_Processor} is a valuable tool for modifying
+ * While the `WP_HTML_Tag_Processor` is a valuable tool for modifying
  * attributes on individual HTML tags, the HTML Processor is more capable
  * and useful for the following operations:
  *
@@ -47,7 +47,7 @@
  *
  * Breadcrumbs represent the stack of open elements from the root
  * of the document or fragment down to the currently-matched node,
- * if one is currently selected. Call {@see WP_HTML_Processor::get_breadcrumbs}
+ * if one is currently selected. Call WP_HTML_Processor::get_breadcrumbs()
  * to inspect the breadcrumbs for a matched tag.
  *
  * Breadcrumbs can specify nested HTML structure and are equivalent
@@ -121,6 +121,7 @@
  *
  * @since 6.4.0
  *
+ * @see WP_HTML_Tag_Processor
  * @see https://html.spec.whatwg.org/
  */
 class WP_HTML_Processor extends WP_HTML_Tag_Processor {
@@ -926,10 +927,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Closes elements that have implied end tags, thoroughly.
 	 *
 	 * See the HTML specification for an explanation why this is
-	 * different from {@see WP_HTML_Processor::generate_implied_end_tags}.
+	 * different from generating end tags in the normal sense.
 	 *
 	 * @since 6.4.0
 	 *
+	 * @see WP_HTML_Processor::generate_implied_end_tags
 	 * @see https://html.spec.whatwg.org/#generate-implied-end-tags
 	 */
 	private function generate_implied_end_tags_thoroughly() {
@@ -1306,7 +1308,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Unlock code that must be passed into the constructor to create this class.
 	 *
-	 * This class extends {@see WP_HTML_Tag_Processor}, which has a public class
+	 * This class extends the WP_HTML_Tag_Processor, which has a public class
 	 * constructor. Therefore, it's not possible to have a private constructor here.
 	 *
 	 * This unlock code is used to ensure that anyone calling the constructor is
