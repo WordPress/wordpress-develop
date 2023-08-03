@@ -4,23 +4,25 @@
  * @since 4.4.0
  * @output wp-includes/js/wp-embed.js
  *
- * Single line comments should not be used since they will break
- * the script when inlined in get_post_embed_html(), specifically
- * when the comments are not stripped out due to SCRIPT_DEBUG
- * being turned on.
+ * This file cannot have ampersands in it. This is to ensure
+ * it can be embedded in older versions of WordPress.
+ * See https://core.trac.wordpress.org/changeset/35708.
  */
 (function ( window, document ) {
 	'use strict';
 
-	/* Abort for ancient browsers. */
-	if ( ! document.querySelector || ! window.addEventListener || typeof URL === 'undefined' ) {
-		return;
-	}
+	var supportedBrowser = false,
+		loaded = false;
+
+		if ( document.querySelector ) {
+			if ( window.addEventListener ) {
+				supportedBrowser = true;
+			}
+		}
 
 	/** @namespace wp */
 	window.wp = window.wp || {};
 
-	/* Abort if script was already executed. */
 	if ( !! window.wp.receiveEmbedMessage ) {
 		return;
 	}
@@ -33,11 +35,15 @@
 	window.wp.receiveEmbedMessage = function( e ) {
 		var data = e.data;
 
-		/* Verify shape of message. */
-		if (
-			! ( data || data.secret || data.message || data.value ) ||
-			/[^a-zA-Z0-9]/.test( data.secret )
-		) {
+		if ( ! data ) {
+			return;
+		}
+
+		if ( ! ( data.secret || data.message || data.value ) ) {
+			return;
+		}
+
+		if ( /[^a-zA-Z0-9]/.test( data.secret ) ) {
 			return;
 		}
 
@@ -59,8 +65,8 @@
 
 			source.removeAttribute( 'style' );
 
+			/* Resize the iframe on request. */
 			if ( 'height' === data.message ) {
-				/* Resize the iframe on request. */
 				height = parseInt( data.value, 10 );
 				if ( height > 1000 ) {
 					height = 1000;
@@ -69,25 +75,42 @@
 				}
 
 				source.height = height;
-			} else if ( 'link' === data.message ) {
-				/* Link to a specific URL on request. */
-				sourceURL = new URL( source.getAttribute( 'src' ) );
-				targetURL = new URL( data.value );
+			}
 
-				if (
-					allowedProtocols.test( targetURL.protocol ) &&
-					targetURL.host === sourceURL.host &&
-					document.activeElement === source
-				) {
-					window.top.location.href = data.value;
+			/* Link to a specific URL on request. */
+			if ( 'link' === data.message ) {
+				sourceURL = document.createElement( 'a' );
+				targetURL = document.createElement( 'a' );
+
+				sourceURL.href = source.getAttribute( 'src' );
+				targetURL.href = data.value;
+
+				/* Only follow link if the protocol is in the allow list. */
+				if ( ! allowedProtocols.test( targetURL.protocol ) ) {
+					continue;
+				}
+
+				/* Only continue if link hostname matches iframe's hostname. */
+				if ( targetURL.host === sourceURL.host ) {
+					if ( document.activeElement === source ) {
+						window.top.location.href = data.value;
+					}
 				}
 			}
 		}
 	};
 
 	function onLoad() {
-		var iframes = document.querySelectorAll( 'iframe.wp-embedded-content' ),
-			i, source, secret;
+		if ( loaded ) {
+			return;
+		}
+
+		loaded = true;
+
+		var isIE10 = -1 !== navigator.appVersion.indexOf( 'MSIE 10' ),
+			isIE11 = !!navigator.userAgent.match( /Trident.*rv:11\./ ),
+			iframes = document.querySelectorAll( 'iframe.wp-embedded-content' ),
+			iframeClone, i, source, secret;
 
 		for ( i = 0; i < iframes.length; i++ ) {
 			/** @var {IframeElement} */
@@ -96,9 +119,16 @@
 			secret = source.getAttribute( 'data-secret' );
 			if ( ! secret ) {
 				/* Add secret to iframe */
-				secret = Math.random().toString( 36 ).substring( 2, 12 );
+				secret = Math.random().toString( 36 ).substr( 2, 10 );
 				source.src += '#?secret=' + secret;
 				source.setAttribute( 'data-secret', secret );
+			}
+
+			/* Remove security attribute from iframes in IE10 and IE11. */
+			if ( ( isIE10 || isIE11 ) ) {
+				iframeClone = source.cloneNode( true );
+				iframeClone.removeAttribute( 'security' );
+				source.parentNode.replaceChild( iframeClone, source );
 			}
 
 			/*
@@ -113,6 +143,9 @@
 		}
 	}
 
-	window.addEventListener( 'message', window.wp.receiveEmbedMessage, false );
-	document.addEventListener( 'DOMContentLoaded', onLoad, false );
+	if ( supportedBrowser ) {
+		window.addEventListener( 'message', window.wp.receiveEmbedMessage, false );
+		document.addEventListener( 'DOMContentLoaded', onLoad, false );
+		window.addEventListener( 'load', onLoad, false );
+	}
 })( window, document );

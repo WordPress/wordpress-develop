@@ -343,4 +343,15 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		wp_maybe_enqueue_oembed_host_js( $post_embed );
 		$this->assertFalse( $scripts->query( 'wp-embed', 'enqueued' ) );
 	}
+
+	/**
+	 * Confirms that no ampersands exist in src/wp-includes/js/wp-embed.js.
+	 *
+	 * See also the `verify:wp-embed` Grunt task for verifying the built file.
+	 *
+	 * @ticket 34698
+	 */
+	public function test_js_no_ampersands() {
+		$this->assertStringNotContainsString( '&', file_get_contents( ABSPATH . WPINC . '/js/wp-embed.js' ) );
+	}
 }
