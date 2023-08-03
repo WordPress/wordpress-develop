@@ -371,7 +371,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 * @param string $property_name Property name to get.
 	 * @param mixed $expected       Expected value.
 	 */
-	public function test_should_get_compat_fields_defined_property( $property_name, $expected ) {
+	public function test_should_get_compat_fields( $property_name, $expected ) {
 		$list_table = new WP_List_Table( array( 'plural' => '_wp_tests__get' ) );
 
 		if ( 'screen' === $property_name ) {
@@ -389,10 +389,10 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	public function test_should_throw_deprecation_when_getting_dynamic_property() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
-			'The property `undefined_property` is not defined. Getting a dynamic (undefined) property is ' .
-			'deprecated since version 6.4.0! Instead, define the property on the class.'
+			'The property `undeclared_property` is not declared. Getting a dynamic property is ' .
+			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
-		$this->assertNull( $this->list_table->undefined_property, 'Getting a dynamic property should return null from WP_List_Table::__get()' );
+		$this->assertNull( $this->list_table->undeclared_property, 'Getting a dynamic property should return null from WP_List_Table::__get()' );
 	}
 
 	/**
@@ -418,10 +418,10 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	public function test_should_throw_deprecation_when_setting_dynamic_property() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
-			'The property `undefined_property` is not defined. Setting a dynamic (undefined) property is ' .
-			'deprecated since version 6.4.0! Instead, define the property on the class.'
+			'The property `undeclared_property` is not declared. Setting a dynamic property is ' .
+			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
-		$this->list_table->undefined_property = 'some value';
+		$this->list_table->undeclared_property = 'some value';
 	}
 
 	/**
@@ -433,7 +433,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 * @param string $property_name Property name to check.
 	 * @param mixed $expected       Expected value.
 	 */
-	public function test_should_isset_compat_fields_defined_property( $property_name, $expected ) {
+	public function test_should_isset_compat_fields( $property_name, $expected ) {
 		$actual = isset( $this->list_table->$property_name );
 		if ( is_null( $expected ) ) {
 			$this->assertFalse( $actual );
@@ -450,10 +450,10 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	public function test_should_throw_deprecation_when_isset_of_dynamic_property() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
-			'The property `undefined_property` is not defined. Checking `isset()` on a dynamic (undefined) property ' .
-			'is deprecated since version 6.4.0! Instead, define the property on the class.'
+			'The property `undeclared_property` is not declared. Checking `isset()` on a dynamic property ' .
+			'is deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
-		$this->assertFalse( isset( $this->list_table->undefined_property ), 'Checking a dyanmic property should return false from WP_List_Table::__isset()' );
+		$this->assertFalse( isset( $this->list_table->undeclared_property ), 'Checking a dynamic property should return false from WP_List_Table::__isset()' );
 	}
 
 	/**
@@ -477,10 +477,10 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	public function test_should_throw_deprecation_when_unset_of_dynamic_property() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
-			'A property `undefined_property` is not defined. Unsetting a dynamic (undefined) property is ' .
-			'deprecated since version 6.4.0! Instead, define the property on the class.'
+			'A property `undeclared_property` is not declared. Unsetting a dynamic property is ' .
+			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
-		unset( $this->list_table->undefined_property );
+		unset( $this->list_table->undeclared_property );
 	}
 
 	/**
