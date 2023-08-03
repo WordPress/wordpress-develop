@@ -106,10 +106,14 @@ function export_wp( $args = array() ) {
 		$where = $wpdb->prepare( "{$wpdb->posts}.post_type = %s", $args['content'] );
 	} else {
 		$post_types = get_post_types( array( 'can_export' => true ) );
-		$esses      = array_fill( 0, count( $post_types ), '%s' );
 
-		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.NotPrepared
-		$where = $wpdb->prepare( "{$wpdb->posts}.post_type IN (" . implode( ',', $esses ) . ')', $post_types );
+		$where = $wpdb->prepare(
+			sprintf(
+				"{$wpdb->posts}.post_type IN (%s)",
+				implode( ',', array_fill( 0, count( $post_types ), '%s' ) )
+			),
+			$post_types
+		);
 	}
 
 	if ( $args['status'] && ( 'post' === $args['content'] || 'page' === $args['content'] ) ) {
@@ -359,17 +363,30 @@ function export_wp( $args = array() ) {
 	function wxr_authors_list( array $post_ids = null ) {
 		global $wpdb;
 
-		$and = '';
-
 		if ( ! empty( $post_ids ) ) {
 			$post_ids = array_map( 'absint', $post_ids );
-			$and      = 'AND ID IN ( ' . implode( ', ', $post_ids ) . ')';
+			$results  = $wpdb->get_results(
+				$wpdb->prepare(
+					sprintf(
+						"SELECT DISTINCT post_author
+						FROM $wpdb->posts
+						WHERE post_status != 'auto-draft'
+						AND ID IN ( %s )",
+						implode( ',', array_fill( 0, count( $post_ids ), '%d' ) )
+					),
+					$post_ids
+				);
+			);
+		} else {
+			$results = $wpdb->get_results(
+				"SELECT DISTINCT post_author
+				FROM $wpdb->posts
+				WHERE post_status != 'auto-draft'"
+			);
 		}
 
 		$authors = array();
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$results = $wpdb->get_results( "SELECT DISTINCT post_author FROM $wpdb->posts WHERE post_status != 'auto-draft' $and" );
 		foreach ( (array) $results as $result ) {
 			$authors[] = get_userdata( $result->post_author );
 		}
@@ -545,10 +562,15 @@ function export_wp( $args = array() ) {
 
 		// Fetch 20 posts at a time rather than loading the entire table into memory.
 		while ( $next_posts = array_splice( $post_ids, 0, 20 ) ) {
-			$where = 'WHERE ID IN (' . implode( ',', $next_posts ) . ')';
-			// Using $wpdb->prepare() would add extra quotes here, which is not needed.
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$posts = $wpdb->get_results( "SELECT * FROM {$wpdb->posts} $where" );
+			$posts = $wpdb->get_results(
+				$wpdb->prepare(
+					sprintf(
+						"SELECT * FROM {$wpdb->posts} WHERE ID IN ( %s )",
+						implode( ',', array_fill( 0, count( $next_posts ), '%d' ) )
+					),
+					$next_posts
+				)
+			);
 
 			// Begin Loop.
 			foreach ( $posts as $post ) {
