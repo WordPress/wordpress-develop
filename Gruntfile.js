@@ -764,20 +764,7 @@ module.exports = function(grunt) {
 					'!wp-admin/js/custom-header.js', // Why? We should minify this.
 					'!wp-admin/js/farbtastic.js',
 					'!wp-includes/js/swfobject.js',
-					'!wp-includes/js/wp-embed.js' // We have extra options for this, see uglify:embed.
 				]
-			},
-			embed: {
-				options: {
-					compress: {
-						conditionals: false
-					}
-				},
-				expand: true,
-				cwd: WORKING_DIR,
-				dest: WORKING_DIR,
-				ext: '.min.js',
-				src: ['wp-includes/js/wp-embed.js']
 			},
 			'jquery-ui': {
 				options: {
@@ -1461,7 +1448,6 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'uglify:all', [
 		'uglify:core',
-		'uglify:embed',
 		'uglify:jquery-ui',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
