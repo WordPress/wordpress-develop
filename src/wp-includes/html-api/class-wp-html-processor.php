@@ -1016,7 +1016,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		foreach ( $this->state->stack_of_open_elements->with_pop_listener( $tag_is_closed ) as $_ ) {
 			// Find where the tag is closed by stepping forward until it's no longer on the stack of open elements.
 			do {
-				$found_tag       = $this->step();
+				$found_tag = $this->step();
 			} while ( $found_tag && $keep_searching );
 		}
 
