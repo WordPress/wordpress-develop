@@ -36,7 +36,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 
 		$data       = $response->get_data();
 		$post_types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
-		$this->assertSame( count( $post_types ), count( $data ) );
+		$this->assertCount( count( $post_types ), $data );
 		$this->assertSame( $post_types['post']->name, $data['post']['slug'] );
 		$this->check_post_type_obj( 'view', $post_types['post'], $data['post'], $data['post']['_links'] );
 		$this->assertSame( $post_types['page']->name, $data['page']['slug'] );

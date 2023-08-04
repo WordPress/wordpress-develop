@@ -236,7 +236,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 
 		$selective_refreshable_widgets = $this->manager->widgets->get_selective_refreshable_widgets();
 		$this->assertIsArray( $selective_refreshable_widgets );
-		$this->assertSame( count( $wp_widget_factory->widgets ), count( $selective_refreshable_widgets ) );
+		$this->assertCount( count( $wp_widget_factory->widgets ), $selective_refreshable_widgets );
 		$this->assertArrayHasKey( 'text', $selective_refreshable_widgets );
 		$this->assertTrue( $selective_refreshable_widgets['text'] );
 		$this->assertArrayHasKey( 'search', $selective_refreshable_widgets );

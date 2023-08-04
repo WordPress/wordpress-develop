@@ -151,56 +151,47 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->assertNotEquals( $this->author->user_login, $u[0]->user_login );
 
 		// Test EXISTS and NOT EXISTS together, no users should be found.
-		$this->assertSame(
-			0,
-			count(
-				get_users(
-					array(
-						'meta_query' => array(
-							array(
-								'key'     => 'meta_key',
-								'compare' => 'NOT EXISTS',
-							),
-							array(
-								'key'     => 'delete_meta_key',
-								'compare' => 'EXISTS',
-							),
+		$this->assertCount(
+			0, get_users(
+				array(
+					'meta_query' => array(
+						array(
+							'key'     => 'meta_key',
+							'compare' => 'NOT EXISTS',
 						),
-					)
+						array(
+							'key'     => 'delete_meta_key',
+							'compare' => 'EXISTS',
+						),
+					),
 				)
 			)
 		);
 
-		$this->assertSame(
-			2,
-			count(
-				get_users(
-					array(
-						'meta_query' => array(
-							array(
-								'key'     => 'non_existing_meta',
-								'compare' => 'NOT EXISTS',
-							),
+		$this->assertCount(
+			2, get_users(
+				array(
+					'meta_query' => array(
+						array(
+							'key'     => 'non_existing_meta',
+							'compare' => 'NOT EXISTS',
 						),
-					)
+					),
 				)
 			)
 		);
 
 		delete_metadata( 'user', $this->author->ID, 'meta_key' );
 
-		$this->assertSame(
-			2,
-			count(
-				get_users(
-					array(
-						'meta_query' => array(
-							array(
-								'key'     => 'meta_key',
-								'compare' => 'NOT EXISTS',
-							),
+		$this->assertCount(
+			2, get_users(
+				array(
+					'meta_query' => array(
+						array(
+							'key'     => 'meta_key',
+							'compare' => 'NOT EXISTS',
 						),
-					)
+					),
 				)
 			)
 		);

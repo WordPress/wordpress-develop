@@ -743,7 +743,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertSame( 18, count( $properties ) );
+		$this->assertCount( 18, $properties );
 		$this->assertArrayHasKey( 'type_label', $properties );
 		$this->assertArrayHasKey( 'attr_title', $properties );
 		$this->assertArrayHasKey( 'classes', $properties );

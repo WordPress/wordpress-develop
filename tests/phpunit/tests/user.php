@@ -2085,15 +2085,12 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertCount( 12, $actual['data'][0]['data'] );
 
 		// Check that the item added by the filter was retained.
-		$this->assertSame(
-			1,
-			count(
-				wp_list_filter(
-					$actual['data'][0]['data'],
-					array(
-						'name'  => 'Test Additional Data Name',
-						'value' => 'Test Additional Data Value',
-					)
+		$this->assertCount(
+			1, wp_list_filter(
+				$actual['data'][0]['data'],
+				array(
+					'name'  => 'Test Additional Data Name',
+					'value' => 'Test Additional Data Value',
 				)
 			)
 		);
@@ -2117,28 +2114,22 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertCount( 12, $actual['data'][0]['data'] );
 
 		// Check that the duplicate 'name' => 'User ID' was stripped.
-		$this->assertSame(
-			1,
-			count(
-				wp_list_filter(
-					$actual['data'][0]['data'],
-					array(
-						'name' => 'User ID',
-					)
+		$this->assertCount(
+			1, wp_list_filter(
+				$actual['data'][0]['data'],
+				array(
+					'name' => 'User ID',
 				)
 			)
 		);
 
 		// Check that the item added by the filter was retained.
-		$this->assertSame(
-			1,
-			count(
-				wp_list_filter(
-					$actual['data'][0]['data'],
-					array(
-						'name'  => 'Test Additional Data Name',
-						'value' => 'Test Additional Data Value',
-					)
+		$this->assertCount(
+			1, wp_list_filter(
+				$actual['data'][0]['data'],
+				array(
+					'name'  => 'Test Additional Data Name',
+					'value' => 'Test Additional Data Value',
 				)
 			)
 		);

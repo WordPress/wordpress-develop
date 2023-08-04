@@ -161,7 +161,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 		$this->assertNotEmpty( $block_templates, 'get_block_templates() must return a non-empty value.' );
 
 		$block_template_ids = wp_list_pluck( $block_templates, 'id' );
-		$this->assertSame( count( array_unique( $block_template_ids ) ), count( $block_template_ids ), $error_message );
+		$this->assertCount( count( array_unique( $block_template_ids ) ), $block_template_ids, $error_message );
 	}
 
 	/**

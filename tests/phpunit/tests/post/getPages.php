@@ -274,25 +274,19 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		add_post_meta( $posts[1], 'some-meta-key', '' );
 		add_post_meta( $posts[2], 'some-meta-key', '1' );
 
-		$this->assertSame(
-			1,
-			count(
-				get_pages(
-					array(
-						'meta_key'   => 'some-meta-key',
-						'meta_value' => '0',
-					)
+		$this->assertCount(
+			1, get_pages(
+				array(
+					'meta_key'   => 'some-meta-key',
+					'meta_value' => '0',
 				)
 			)
 		);
-		$this->assertSame(
-			1,
-			count(
-				get_pages(
-					array(
-						'meta_key'   => 'some-meta-key',
-						'meta_value' => '1',
-					)
+		$this->assertCount(
+			1, get_pages(
+				array(
+					'meta_key'   => 'some-meta-key',
+					'meta_value' => '1',
 				)
 			)
 		);
