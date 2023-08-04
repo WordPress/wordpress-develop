@@ -160,7 +160,7 @@ function export_wp( $args = array() ) {
 		$tags       = (array) get_tags( array( 'get' => 'all' ) );
 
 		$custom_taxonomies = get_taxonomies( array( '_builtin' => false ) );
-		$custom_terms      = (array) get_terms(
+		$custom_terms      = empty( $custom_taxonomies ) ? array() : (array) get_terms(
 			array(
 				'taxonomy' => $custom_taxonomies,
 				'get'      => 'all',
