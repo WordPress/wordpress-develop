@@ -561,6 +561,45 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Replaces the raw HTML of the currently-matched tag with new HTML.
+	 * This replaces the entire contents of the tag including the tag itself.
+	 *
+	 * @param string $new_html
+	 * @return bool|null Whether the contents were updated.
+	 */
+	public function set_raw_outer_markup( $new_html ) {
+		if ( null === $this->get_tag() ) {
+			return null;
+		}
+
+		$this->set_bookmark( 'start' );
+		$start_tag = $this->current_token->node_name;
+
+		if ( self::is_void( $start_tag ) ) {
+			$this->replace_using_bookmarks( $new_html, 'before', 'start', 'after', 'start' );
+			$this->release_bookmark( 'start' );
+			return true;
+		}
+
+		$found_tag = $this->step_until_tag_is_closed();
+		$this->set_bookmark( 'end' );
+
+		if ( $found_tag ) {
+			$did_close    = $this->get_tag() === $start_tag && $this->is_tag_closer();
+			$end_position = $did_close ? 'after' : 'before';
+			$this->replace_using_bookmarks( $new_html, 'before', 'start', $end_position, 'end' );
+		} else {
+			// If there's no closing tag then the outer markup continues to the end of the document.
+			$this->replace_using_bookmark( $new_html, 'before', 'start' );
+		}
+
+		$this->seek( 'start' );
+		$this->release_bookmark( 'start' );
+		$this->release_bookmark( 'end' );
+		return true;
+	}
+
+	/**
 	 * Steps through the HTML document and stop at the next tag, if any.
 	 *
 	 * @since 6.4.0
@@ -941,16 +980,54 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Replaces content in the HTML document from a bookmark to the end of the document.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $html                New HTML to insert into document.
+	 * @param string $start_position      "before" to clip before bookmark, "after" to clip after.
+	 * @param string $start_bookmark_name Bookmark name at which to start clipping.
+	 */
+	private function replace_using_bookmark( $html, $start_position, $start_bookmark_name ) {
+		$start_bookmark = $this->bookmarks[ "_{$start_bookmark_name}" ];
+		$start_offset   = 'before' === $start_position ? $start_bookmark->start : $start_bookmark->end + 1;
+
+		$this->lexical_updates[] = new WP_HTML_Text_Replacement( $start_offset, strlen( $this->html ), $html );
+		$this->apply_attributes_updates();
+	}
+
+	/**
+	 * Replaces content in the HTML document from one bookmark to another.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $html                New HTML to insert into document.
+	 * @param string $start_position      "before" to clip before bookmark, "after" to clip after.
+	 * @param string $start_bookmark_name Bookmark name at which to start clipping.
+	 * @param string $end_position        "before" to clip before bookmark, "after" to clip after.
+	 * @param string $end_bookmark_name   Bookmark name at which to end clipping.
+	 */
+	private function replace_using_bookmarks( $html, $start_position, $start_bookmark_name, $end_position, $end_bookmark_name ) {
+		$start_bookmark = $this->bookmarks[ "_{$start_bookmark_name}" ];
+		$end_bookmark   = $this->bookmarks[ "_{$end_bookmark_name}" ];
+		$start_offset   = 'before' === $start_position ? $start_bookmark->start : $start_bookmark->end + 1;
+		$end_offset     = 'before' === $end_position ? $end_bookmark->start : $end_bookmark->end + 1;
+
+		$this->lexical_updates[] = new WP_HTML_Text_Replacement( $start_offset, $end_offset, $html );
+		$this->apply_attributes_updates();
+	}
+
+	/**
 	 * Returns a substring of the input HTML document from a bookmark until the end.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param string $start_position "before" to clip before bookmark, "after" to clip after.
-	 * @param string $start          Bookmark name at which to start clipping.
+	 * @param string $start_position      "before" to clip before bookmark, "after" to clip after.
+	 * @param string $start_bookmark_name Bookmark name at which to start clipping.
 	 * @return string Clipped substring of input HTMl document.
 	 */
-	private function substr_bookmark( $start_position, $start ) {
-		$start_bookmark = $this->bookmarks[ "_{$start}" ];
+	private function substr_bookmark( $start_position, $start_bookmark_name ) {
+		$start_bookmark = $this->bookmarks[ "_{$start_bookmark_name}" ];
 		$start_offset   = 'before' === $start_position ? $start_bookmark->start : $start_bookmark->end + 1;
 
 		return substr( $this->html, $start_offset );
@@ -961,15 +1038,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param string $start_position "before" to clip before bookmark, "after" to clip after.
-	 * @param string $start          Bookmark name at which to start clipping.
-	 * @param string $end_position   "before" to clip before bookmark, "after" to clip after.
-	 * @param string $end            Bookmark name at which to end clipping.
+	 * @param string $start_position      "before" to clip before bookmark, "after" to clip after.
+	 * @param string $start_bookmark_name Bookmark name at which to start clipping.
+	 * @param string $end_position        "before" to clip before bookmark, "after" to clip after.
+	 * @param string $end_bookmark_name   Bookmark name at which to end clipping.
 	 * @return string Clipped substring of input HTMl document.
 	 */
-	private function substr_bookmarks( $start_position, $start, $end_position, $end ) {
-		$start_bookmark = $this->bookmarks[ "_{$start}" ];
-		$end_bookmark   = $this->bookmarks[ "_{$end}" ];
+	private function substr_bookmarks( $start_position, $start_bookmark_name, $end_position, $end_bookmark_name ) {
+		$start_bookmark = $this->bookmarks[ "_{$start_bookmark_name}" ];
+		$end_bookmark   = $this->bookmarks[ "_{$end_bookmark_name}" ];
 		$start_offset   = 'before' === $start_position ? $start_bookmark->start : $start_bookmark->end + 1;
 		$end_offset     = 'before' === $end_position ? $end_bookmark->start : $end_bookmark->end + 1;
 

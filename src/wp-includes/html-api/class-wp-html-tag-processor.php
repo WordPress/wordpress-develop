@@ -1584,7 +1584,7 @@ class WP_HTML_Tag_Processor {
 	 * @param int $shift_this_point Accumulate and return shift for this position.
 	 * @return int How many bytes the given pointer moved in response to the updates.
 	 */
-	private function apply_attributes_updates( $shift_this_point = 0 ) {
+	protected function apply_attributes_updates( $shift_this_point = 0 ) {
 		if ( ! count( $this->lexical_updates ) ) {
 			return 0;
 		}
