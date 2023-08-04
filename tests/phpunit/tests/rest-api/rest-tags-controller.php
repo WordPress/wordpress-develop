@@ -1409,7 +1409,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			'hide_empty' => false,
 		);
 		$tags = get_terms( 'post_tag', $args );
-		$this->assertSame( count( $tags ), count( $data ) );
+		$this->assertCount( count( $tags ), $data );
 		$this->assertSame( $tags[0]->term_id, $data[0]['id'] );
 		$this->assertSame( $tags[0]->name, $data[0]['name'] );
 		$this->assertSame( $tags[0]->slug, $data[0]['slug'] );
