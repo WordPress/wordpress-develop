@@ -497,20 +497,20 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		$this->set_bookmark( 'start' );
+		$this->set_bookmark( 'opener' );
 		$found_tag = $this->step_until_tag_is_closed();
-		$this->set_bookmark( 'end' );
+		$this->set_bookmark( 'closer' );
 
 		if ( $found_tag ) {
-			$inner_markup = $this->substr_bookmarks( 'after', 'start', 'before', 'end' );
+			$inner_markup = $this->substr_bookmarks( 'after', 'opener', 'before', 'closer' );
 		} else {
 			// If there's no closing tag then the inner markup continues to the end of the document.
-			$inner_markup = $this->substr_bookmark( 'after', 'start' );
+			$inner_markup = $this->substr_bookmark( 'after', 'opener' );
 		}
 
-		$this->seek( 'start' );
-		$this->release_bookmark( 'start' );
-		$this->release_bookmark( 'end' );
+		$this->seek( 'opener' );
+		$this->release_bookmark( 'opener' );
+		$this->release_bookmark( 'closer' );
 
 		return $inner_markup;
 	}
@@ -539,30 +539,74 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		$this->set_bookmark( 'start' );
+		$this->set_bookmark( 'opener' );
 		$start_tag = $this->current_token->node_name;
 		$found_tag = $this->step_until_tag_is_closed();
-		$this->set_bookmark( 'end' );
+		$this->set_bookmark( 'closer' );
 
 		if ( $found_tag ) {
 			$did_close    = $this->get_tag() === $start_tag && $this->is_tag_closer();
 			$end_position = $did_close ? 'after' : 'before';
-			$outer_markup = $this->substr_bookmarks( 'before', 'start', $end_position, 'end' );
+			$outer_markup = $this->substr_bookmarks( 'before', 'opener', $end_position, 'closer' );
 		} else {
 			// If there's no closing tag then the outer markup continues to the end of the document.
-			$outer_markup = $this->substr_bookmark( 'before', 'start' );
+			$outer_markup = $this->substr_bookmark( 'before', 'opener' );
 		}
 
-		$this->seek( 'start' );
-		$this->release_bookmark( 'start' );
-		$this->release_bookmark( 'end' );
+		$this->seek( 'opener' );
+		$this->release_bookmark( 'opener' );
+		$this->release_bookmark( 'closer' );
 
 		return $outer_markup;
 	}
 
 	/**
+	 * Replaces the raw HTML of the currently-matched tag's inner markup with new HTML.
+	 * This replaces the content between the tag opener and tag closer.
+	 *
+	 * @throws Exception When unable to set bookmark for internal tracking.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $new_html
+	 * @return bool|null Whether the contents were updated.
+	 */
+	public function set_raw_inner_markup( $new_html ) {
+		if ( null === $this->get_tag() ) {
+			return null;
+		}
+
+		$this->set_bookmark( 'opener' );
+		$start_tag = $this->current_token->node_name;
+
+		if ( self::is_void( $start_tag ) ) {
+			$this->release_bookmark( 'opener' );
+			return true;
+		}
+
+		$found_tag = $this->step_until_tag_is_closed();
+		$this->set_bookmark( 'closer' );
+
+		if ( $found_tag ) {
+			$this->replace_using_bookmarks( $new_html, 'after', 'opener', 'before', 'closer' );
+		} else {
+			// If there's no closing tag then the inner markup continues to the end of the document.
+			$this->replace_using_bookmark( $new_html, 'after', 'opener' );
+		}
+
+		$this->seek( 'opener' );
+		$this->release_bookmark( 'opener' );
+		$this->release_bookmark( 'closer' );
+		return true;
+	}
+
+	/**
 	 * Replaces the raw HTML of the currently-matched tag with new HTML.
 	 * This replaces the entire contents of the tag including the tag itself.
+	 *
+	 * @throws Exception When unable to set bookmark for internal tracking.
+	 *
+	 * @since 6.4.0
 	 *
 	 * @param string $new_html
 	 * @return bool|null Whether the contents were updated.
@@ -572,30 +616,30 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		$this->set_bookmark( 'start' );
+		$this->set_bookmark( 'opener' );
 		$start_tag = $this->current_token->node_name;
 
 		if ( self::is_void( $start_tag ) ) {
-			$this->replace_using_bookmarks( $new_html, 'before', 'start', 'after', 'start' );
-			$this->release_bookmark( 'start' );
+			$this->replace_using_bookmarks( $new_html, 'before', 'opener', 'after', 'opener' );
+			$this->release_bookmark( 'opener' );
 			return true;
 		}
 
 		$found_tag = $this->step_until_tag_is_closed();
-		$this->set_bookmark( 'end' );
+		$this->set_bookmark( 'closer' );
 
 		if ( $found_tag ) {
 			$did_close    = $this->get_tag() === $start_tag && $this->is_tag_closer();
 			$end_position = $did_close ? 'after' : 'before';
-			$this->replace_using_bookmarks( $new_html, 'before', 'start', $end_position, 'end' );
+			$this->replace_using_bookmarks( $new_html, 'before', 'opener', $end_position, 'closer' );
 		} else {
 			// If there's no closing tag then the outer markup continues to the end of the document.
-			$this->replace_using_bookmark( $new_html, 'before', 'start' );
+			$this->replace_using_bookmark( $new_html, 'before', 'opener' );
 		}
 
-		$this->seek( 'start' );
-		$this->release_bookmark( 'start' );
-		$this->release_bookmark( 'end' );
+		$this->seek( 'opener' );
+		$this->release_bookmark( 'opener' );
+		$this->release_bookmark( 'closer' );
 		return true;
 	}
 
