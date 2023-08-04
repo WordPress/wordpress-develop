@@ -1061,12 +1061,15 @@ function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urle
 		if ( $urlencode ) {
 			$k = urlencode( $k );
 		}
+
 		if ( is_int( $k ) && null !== $prefix ) {
 			$k = $prefix . $k;
 		}
+
 		if ( ! empty( $key ) ) {
 			$k = $key . '%5B' . $k . '%5D';
 		}
+
 		if ( null === $v ) {
 			continue;
 		} elseif ( false === $v ) {
@@ -1772,15 +1775,18 @@ function is_blog_installed() {
 	}
 
 	$suppress = $wpdb->suppress_errors();
+
 	if ( ! wp_installing() ) {
 		$alloptions = wp_load_alloptions();
 	}
+
 	// If siteurl is not set to autoload, check it specifically.
 	if ( ! isset( $alloptions['siteurl'] ) ) {
 		$installed = $wpdb->get_var( "SELECT option_value FROM $wpdb->options WHERE option_name = 'siteurl'" );
 	} else {
 		$installed = $alloptions['siteurl'];
 	}
+
 	$wpdb->suppress_errors( $suppress );
 
 	$installed = ! empty( $installed );
@@ -1808,6 +1814,7 @@ function is_blog_installed() {
 		if ( defined( 'CUSTOM_USER_TABLE' ) && CUSTOM_USER_TABLE === $table ) {
 			continue;
 		}
+
 		if ( defined( 'CUSTOM_USER_META_TABLE' ) && CUSTOM_USER_META_TABLE === $table ) {
 			continue;
 		}
@@ -3125,6 +3132,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 				if ( $new_filename !== $filename ) {
 					$proper_filename = $new_filename; // Mark that it changed.
 				}
+
 				// Redefine the extension / MIME.
 				$wp_filetype = wp_check_filetype( $new_filename, $mimes );
 				$ext         = $wp_filetype['ext'];
@@ -4792,11 +4800,13 @@ function smilies_init() {
 				$wp_smiliessearch .= ')(?=' . $spaces . '|$)';  // End previous "subpattern".
 				$wp_smiliessearch .= '|(?<=' . $spaces . '|^)'; // Begin another "subpattern".
 			}
+
 			$subchar           = $firstchar;
 			$wp_smiliessearch .= preg_quote( $firstchar, '/' ) . '(?:';
 		} else {
 			$wp_smiliessearch .= '|';
 		}
+
 		$wp_smiliessearch .= preg_quote( $rest, '/' );
 	}
 
@@ -6347,6 +6357,7 @@ function wp_timezone_override_offset() {
 	if ( false === $timezone_object || false === $datetime_object ) {
 		return false;
 	}
+
 	return round( timezone_offset_get( $timezone_object, $datetime_object ) / HOUR_IN_SECONDS, 2 );
 }
 
@@ -6367,33 +6378,42 @@ function _wp_timezone_choice_usort_callback( $a, $b ) {
 		if ( str_starts_with( $a['city'], 'GMT+' ) && str_starts_with( $b['city'], 'GMT+' ) ) {
 			return -1 * ( strnatcasecmp( $a['city'], $b['city'] ) );
 		}
+
 		if ( 'UTC' === $a['city'] ) {
 			if ( str_starts_with( $b['city'], 'GMT+' ) ) {
 				return 1;
 			}
+
 			return -1;
 		}
+
 		if ( 'UTC' === $b['city'] ) {
 			if ( str_starts_with( $a['city'], 'GMT+' ) ) {
 				return -1;
 			}
+
 			return 1;
 		}
+
 		return strnatcasecmp( $a['city'], $b['city'] );
 	}
+
 	if ( $a['t_continent'] === $b['t_continent'] ) {
 		if ( $a['t_city'] === $b['t_city'] ) {
 			return strnatcasecmp( $a['t_subcity'], $b['t_subcity'] );
 		}
+
 		return strnatcasecmp( $a['t_city'], $b['t_city'] );
 	} else {
 		// Force Etc to the bottom of the list.
 		if ( 'Etc' === $a['continent'] ) {
 			return 1;
 		}
+
 		if ( 'Etc' === $b['continent'] ) {
 			return -1;
 		}
+
 		return strnatcasecmp( $a['t_continent'], $b['t_continent'] );
 	}
 }
