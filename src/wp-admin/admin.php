@@ -419,7 +419,7 @@ if ( ! empty( $_REQUEST['action'] ) ) {
 	do_action( "admin_action_{$action}" );
 } else {
 	// Checks if the request URI is /wp-admin/admin.php without any query parameters
-	if ( $_SERVER['REQUEST_URI'] === '/wp-admin/admin.php' && empty( $_SERVER['QUERY_STRING'] ) ) {
+	if ( '/wp-admin/admin.php' === $_SERVER['REQUEST_URI'] && empty( $_SERVER['QUERY_STRING'] ) ) {
 		wp_safe_redirect( admin_url() );
 		exit;
 	}
