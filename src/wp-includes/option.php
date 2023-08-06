@@ -430,11 +430,11 @@ function wp_load_core_site_options( $network_id = null ) {
  *                              `$autoload` can only be updated using `update_option()` if `$value` is also changed.
  *                              Accepts 'yes'|true to enable or 'no'|false to disable. For non-existent options,
  *                              the default value is 'yes'. Default null.
- *                              Autoloading too many options can lead to performance problems, especially if the 
- * 								options are not frequently used. For options which are accessed across several places 
- * 								in the frontend, it is recommended to autoload them, by using 'yes'|true. 
- * 								For options which are accessed only on few specific URLs, it is recommended 
- * 								to not autoload them, by using 'no'|false.
+ *                              Autoloading too many options can lead to performance problems, especially if the
+ *                              options are not frequently used. For options which are accessed across several places
+ *                              in the frontend, it is recommended to autoload them, by using 'yes'|true.
+ *                              For options which are accessed only on few specific URLs, it is recommended
+ *                              to not autoload them, by using 'no'|false.
  * @return bool True if the value was updated, false otherwise.
  */
 function update_option( $option, $value, $autoload = null ) {
@@ -621,10 +621,10 @@ function update_option( $option, $value, $autoload = null ) {
  * @param string      $deprecated Optional. Description. Not used anymore.
  * @param string|bool $autoload   Optional. Whether to load the option when WordPress starts up.
  *                                Default is enabled. Accepts 'no' to disable for legacy reasons.
- *                                Autoloading too many options can lead to performance problems, especially if the 
- * 		   						  options are not frequently used. For options which are accessed across several places 
- * 								  in the frontend, it is recommended to autoload them, by using 'yes'|true. 
- * 								  For options which are accessed only on few specific URLs, it is recommended 
+ *                                Autoloading too many options can lead to performance problems, especially if the
+ *                                options are not frequently used. For options which are accessed across several places
+ * 								  in the frontend, it is recommended to autoload them, by using 'yes'|true.
+ * 								  For options which are accessed only on few specific URLs, it is recommended
  * 								  to not autoload them, by using 'no'|false.
  * @return bool True if the option was added, false otherwise.
  */
