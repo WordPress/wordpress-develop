@@ -623,9 +623,9 @@ function update_option( $option, $value, $autoload = null ) {
  *                                Default is enabled. Accepts 'no' to disable for legacy reasons.
  *                                Autoloading too many options can lead to performance problems, especially if the
  *                                options are not frequently used. For options which are accessed across several places
- * 								  in the frontend, it is recommended to autoload them, by using 'yes'|true.
- * 								  For options which are accessed only on few specific URLs, it is recommended
- * 								  to not autoload them, by using 'no'|false.
+ *                                in the frontend, it is recommended to autoload them, by using 'yes'|true.
+ *                                For options which are accessed only on few specific URLs, it is recommended
+ *                                to not autoload them, by using 'no'|false.
  * @return bool True if the option was added, false otherwise.
  */
 function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' ) {
