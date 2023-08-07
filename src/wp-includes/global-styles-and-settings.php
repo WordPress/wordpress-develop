@@ -425,6 +425,7 @@ function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_global_settings_custom', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_settings_theme', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_styles_custom_css', 'theme_json' );
+	wp_cache_delete( 'wp_get_theme_template_part_metada', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
 }
 
