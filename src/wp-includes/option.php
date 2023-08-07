@@ -254,6 +254,74 @@ function get_option( $option, $default_value = false ) {
 }
 
 /**
+ * Prime specific options into the cache with a single database query.
+ *
+ * @since 6.4.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param array $options An array of option names to be primed.
+ */
+function prime_options( $options ) {
+	$alloptions       = wp_load_alloptions();
+	$options_to_prime = array_diff( $options, array_keys( $alloptions ) );
+
+	if ( ! empty( $options_to_prime ) ) {
+		global $wpdb;
+		$option_names = implode( "','", array_map( 'esc_sql', $options_to_prime ) );
+		$query   = "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name IN ('$option_names')";
+		$results = $wpdb->get_results( $query, OBJECT_K );
+
+		foreach ( $results as $result ) {
+			$alloptions[ $result->option_name ] = maybe_unserialize( $result->option_value );
+		}
+
+		wp_cache_set( 'alloptions', $alloptions, 'options' );
+	}
+}
+
+/**
+ * Wrapper function to prime all options registered with a specific option group.
+ *
+ * @since 6.4.0
+ *
+ * @param string $option_group The option group to prime options for.
+ */
+function prime_options_by_group( $option_group ) {
+	$options            = array();
+	$registered_options = wp_load_alloptions();
+
+	foreach ( $registered_options as $option_name => $option_value ) {
+		if ( str_starts_with( $option_name, $option_group . '_' ) ) {
+			$options[] = $option_name;
+		}
+	}
+
+	if ( ! empty( $options ) ) {
+		prime_options( $options );
+	}
+}
+
+/**
+ * Retrieve multiple options.
+ *
+ * @since 6.4.0
+ *
+ * @param array $options An array of option names to retrieve.
+ * @return array An array of key-value pairs for the requested options.
+ */
+function get_options( $options ) {
+	prime_options( $options );
+
+	$result = array();
+	foreach ( $options as $option ) {
+		$result[ $option ] = get_option( $option );
+	}
+
+	return $result;
+}
+
+/**
  * Protects WordPress special option from being modified.
  *
  * Will die if $option is in protected list. Protected options are 'alloptions'
