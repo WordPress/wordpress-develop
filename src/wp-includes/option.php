@@ -620,7 +620,7 @@ function update_option( $option, $value, $autoload = null ) {
  *                                Expected to not be SQL-escaped.
  * @param string      $deprecated Optional. Description. Not used anymore.
  * @param string|bool $autoload   Optional. Whether to load the option when WordPress starts up.
- *                                Default is enabled. Accepts 'no' to disable for legacy reasons.
+ *                                Accepts 'yes'|true to enable or 'no'|false to disable. Default 'yes'.
  *                                Autoloading too many options can lead to performance problems, especially if the
  *                                options are not frequently used. For options which are accessed across several places
  *                                in the frontend, it is recommended to autoload them, by using 'yes'|true.
