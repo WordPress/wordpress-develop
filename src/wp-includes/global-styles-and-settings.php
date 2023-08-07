@@ -441,6 +441,17 @@ function wp_get_theme_directory_pattern_slugs() {
 }
 
 /**
+ * Returns the metadata for the template parts defined by the theme.
+ *
+ * @since 6.4.0
+ *
+ * return string[]
+ */
+function wp_get_theme_template_part_metadata() {
+	return WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_template_parts();
+}
+
+/**
  * Determines the CSS selector for the block type and property provided,
  * returning it if available.
  *
