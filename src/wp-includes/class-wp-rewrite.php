@@ -1485,11 +1485,13 @@ class WP_Rewrite {
 	 *
 	 * @since 1.5.0
 	 *
+	 * @param boolean $should_flush Whether or not the rules should be flushed. Default false.
 	 * @return string[] Array of rewrite rules keyed by their regex pattern.
 	 */
-	public function wp_rewrite_rules() {
+	public function wp_rewrite_rules( $should_flush = false ) {
 		$this->rules = get_option( 'rewrite_rules' );
-		if ( empty( $this->rules ) ) {
+		if ( empty( $this->rules ) || $should_flush ) {
+			$this->rules   = '';
 			$this->matches = 'matches';
 			$this->rewrite_rules();
 			if ( ! did_action( 'wp_loaded' ) ) {
@@ -1864,8 +1866,7 @@ class WP_Rewrite {
 			unset( $do_hard_later );
 		}
 
-		update_option( 'rewrite_rules', '' );
-		$this->wp_rewrite_rules();
+		$this->wp_rewrite_rules( true );
 
 		/**
 		 * Filters whether a "hard" rewrite rule flush should be performed when requested.
