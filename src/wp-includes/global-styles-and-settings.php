@@ -425,7 +425,7 @@ function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_global_settings_custom', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_settings_theme', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_styles_custom_css', 'theme_json' );
-	wp_cache_delete( 'wp_get_theme_template_part_metada', 'theme_json' );
+	wp_cache_delete( 'wp_get_theme_data_template_parts', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
 }
 
@@ -448,9 +448,9 @@ function wp_get_theme_directory_pattern_slugs() {
  *
  * return string[]
  */
-function wp_get_theme_template_part_metadata() {
+function wp_get_theme_data_template_parts() {
 	$cache_group    = 'theme_json';
-	$cache_key      = 'wp_get_theme_template_part_metadata';
+	$cache_key      = 'wp_get_theme_data_template_parts';
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
 
 	$metadata = false;

@@ -431,7 +431,7 @@ function _add_block_template_info( $template_item ) {
  */
 function _add_block_template_part_area_info( $template_info ) {
 	if ( wp_theme_has_theme_json() ) {
-		$theme_data = wp_get_theme_template_part_metadata();
+		$theme_data = wp_get_theme_data_template_parts();
 	}
 
 	if ( isset( $theme_data[ $template_info['slug'] ]['area'] ) ) {
