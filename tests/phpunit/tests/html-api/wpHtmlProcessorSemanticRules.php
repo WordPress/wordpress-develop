@@ -20,7 +20,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * Verifies that when encountering an end tag for which there is no corresponding
 	 * element in scope, that it skips the tag entirely.
 	 *
-	 * @ticket {TICKET_NUMBER}
+	 * @ticket 58961
 	 *
 	 * @since 6.4.0
 	 *
@@ -33,6 +33,10 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		$this->assertEquals( 'DIV', $p->get_tag(), 'Did not stop at initial DIV tag.' );
 		$this->assertFalse( $p->is_tag_closer(), 'Did not find that initial DIV tag is an opener.' );
 
+		/*
+		 * When encountering the BUTTON closing tag, there is no BUTTON in the stack of open elements.
+		 * It should be ignored as there's no BUTTON to close.
+		 */
 		$this->assertTrue( $p->step(), 'Found no further tags when it should have found the closing DIV' );
 		$this->assertEquals( 'DIV', $p->get_tag(), "Did not skip unexpected BUTTON; stopped at {$p->get_tag()}." );
 		$this->assertTrue( $p->is_tag_closer(), 'Did not find that the terminal DIV tag is a closer.' );
@@ -54,6 +58,11 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		$this->assertTrue( $p->get_attribute( 'one' ), 'Failed to match expected attribute on first button.' );
 		$this->assertSame( array( 'HTML', 'BODY', 'DIV', 'P', 'BUTTON' ), $p->get_breadcrumbs(), 'Failed to produce expected DOM nesting for first button.' );
 
+		/*
+		 * There's nothing special about this HTML construction, but it's important to verify that
+		 * the HTML Processor can find a BUTTON under normal and normative scenarios, not just the
+		 * malformed and unexpected ones.
+		 */
 		$this->assertTrue( $p->next_tag( 'BUTTON' ), 'Could not find expected second button.' );
 		$this->assertTrue( $p->get_attribute( 'two' ), 'Failed to match expected attribute on second button.' );
 		$this->assertSame( array( 'HTML', 'BODY', 'BUTTON' ), $p->get_breadcrumbs(), 'Failed to produce expected DOM nesting for second button.' );
@@ -76,10 +85,18 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		$this->assertTrue( $p->get_attribute( 'one' ), 'Failed to match expected attribute on first button.' );
 		$this->assertSame( array( 'HTML', 'BODY', 'DIV', 'P', 'BUTTON' ), $p->get_breadcrumbs(), 'Failed to produce expected DOM nesting for first button.' );
 
+		/*
+		 * A naive parser might skip the second BUTTON because it's looking for the close of the first one,
+		 * or it may place it as a child of the first one, but it implicitly closes the open BUTTON.
+		 */
 		$this->assertTrue( $p->next_tag( 'BUTTON' ), 'Could not find expected second button.' );
 		$this->assertTrue( $p->get_attribute( 'two' ), 'Failed to match expected attribute on second button.' );
 		$this->assertSame( array( 'HTML', 'BODY', 'DIV', 'P', 'BUTTON' ), $p->get_breadcrumbs(), 'Failed to produce expected DOM nesting for second button.' );
 
+		/*
+		 * This is another form of the test for the second button, but from a different side. The test is
+		 * looking for proper handling of the open and close sequence for the BUTTON tags.
+		 */
 		$this->assertTrue( $p->next_tag( 'BUTTON' ), 'Could not find expected third button.' );
 		$this->assertTrue( $p->get_attribute( 'three' ), 'Failed to match expected attribute on third button.' );
 		$this->assertSame( array( 'HTML', 'BODY', 'BUTTON' ), $p->get_breadcrumbs(), 'Failed to produce expected DOM nesting for third button.' );
@@ -106,7 +123,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 
 		/*
 		 * Because the second button appears while a BUTTON is in scope, it generates implied end tags and closes
-		 * the BUTTON, P, and SPAN elements. It looks like the BUTTON is inside the SPAN, but we have another case
+		 * the BUTTON, P, and SPAN elements. It looks like the BUTTON is inside the SPAN, but it's another case
 		 * of an unexpected closing SPAN tag because the SPAN was closed by the second BUTTON. This element finds
 		 * itself a child of the most-recent open element above the most-recent BUTTON, or the DIV.
 		 */
