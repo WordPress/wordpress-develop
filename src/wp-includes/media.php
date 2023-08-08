@@ -5635,7 +5635,8 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		case 'the_post_thumbnail':
 		case 'wp_get_attachment_image':
 		case 'widget_media_image':
-			if ( doing_filter( 'the_content' ) ) {
+		case 'do_shortcode':
+			if ( doing_filter( 'the_content' ) || doing_filter( 'widget_text_content' ) || doing_filter( 'widget_block_content' ) ) {
 				return $loading_attrs;
 			}
 	}
@@ -5698,7 +5699,6 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			// Count main content elements and detect whether in viewport.
 			case 'the_content':
 			case 'the_post_thumbnail':
-			case 'do_shortcode':
 				// Only elements within the main query loop have special handling.
 				if ( ! is_admin() && in_the_loop() && is_main_query() ) {
 					/*

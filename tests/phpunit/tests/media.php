@@ -4664,6 +4664,122 @@ EOF;
 		$this->assertStringContainsString( $expected_image_tag, $output );
 	}
 
+	/**
+	 * @ticket 58853
+	 *
+	 * @covers ::wp_filter_content_tags
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_filter_content_tags_handles_shortcode_images_within_the_content() {
+		global $wp_query, $wp_the_query;
+
+		// Add shortcode that prints a large image, and a block type that wraps it.
+		add_shortcode(
+			'full_image',
+			static function( $atts ) {
+				$atts = shortcode_atts(
+					array(
+						'id' => 0,
+					),
+					$atts,
+					'full_image'
+				);
+				return wp_get_attachment_image( (int) $atts['id'], 'full' );
+			}
+		);
+		register_block_type(
+			'core/full-image-shortcode',
+			array(
+				'render_callback' => static function( $atts ) {
+					if ( empty( $atts['id'] ) ) {
+						return '';
+					}
+					return do_shortcode( '[full_image id="' . $atts['id'] . '"]' );
+				},
+			)
+		);
+
+		/*
+		 * Include the following images:
+		 * 1. Using gallery shortcode. Expected `fetchpriority="high"`.
+		 * 2. Regular hard-coded image.
+		 * 3. Using custom shortcode within block.
+		 * 4. Regular hard-coded image. Expected `loading="lazy"`.
+		 */
+		$post_content  = '[gallery ids="' . self::$large_id . '" size="large"]' . "\n";
+		$post_content .= '<img decoding="async" src="example.jpg" width="800" height="600">' . "\n";
+		$post_content .= '<p>Some text.</p>' . "\n";
+		$post_content .= '<!-- wp:core/full-image-shortcode {"id":' . self::$large_id . '} --><!-- /wp:core/full-image-shortcode -->' . "\n";
+		$post_content .= '<img decoding="async" src="example2.jpg" width="800" height="600">';
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_content' => $post_content,
+				'post_excerpt' => '',
+			)
+		);
+
+		// Get shortcode output with increased ID since the instance count below will be 1 higher.
+		$shortcode_output = preg_replace_callback(
+			'/gallery-(\d+)/',
+			static function( $match ) {
+				return 'gallery-' . ( (int) $match[1] + 1 );
+			},
+			do_shortcode( '[gallery ids="' . self::$large_id . '" size="large" id="' . $post_id . '"]' )
+		);
+
+		$expected_content = $post_content;
+		$expected_content = str_replace(
+			'[gallery ids="' . self::$large_id . '" size="large"]',
+			// Fix gallery ID and expect `fetchpriority="high"`.
+			str_replace(
+				array( ' loading="lazy"', '<img ' ),
+				array( '', '<img fetchpriority="high" ' ),
+				$shortcode_output
+			),
+			$expected_content
+		);
+		$expected_content = str_replace(
+			'<!-- wp:core/full-image-shortcode {"id":' . self::$large_id . '} --><!-- /wp:core/full-image-shortcode -->',
+			wp_get_attachment_image(
+				self::$large_id,
+				'full',
+				false,
+				array(
+					'fetchpriority' => false,
+					'loading'       => false,
+				)
+			),
+			$expected_content
+		);
+		$expected_content = str_replace(
+			'<img decoding="async" src="example2.jpg"',
+			'<img decoding="async" loading="lazy" src="example2.jpg"',
+			$expected_content
+		);
+
+		/*
+		 * We have to run a main query loop so that the first 'the_content' context image is not
+		 * lazy-loaded.
+		 * Without the fix from 58089, the image would still be lazy-loaded since the check for the
+		 * separately invoked 'wp_get_attachment_image' context would lead to that.
+		 */
+		$wp_query     = new WP_Query( array( 'post__in' => array( $post_id ) ) );
+		$wp_the_query = $wp_query;
+
+		$content = '';
+		while ( have_posts() ) {
+			the_post();
+			$content = get_echo( 'the_content' );
+		}
+
+		// Cleanup.
+		remove_shortcode( 'full_image' );
+		unregister_block_type( 'core/full-image-shortcode' );
+
+		$this->assertSame( $expected_content, $content );
+	}
+
 	private function reset_content_media_count() {
 		// Get current value without increasing.
 		$content_media_count = wp_increase_content_media_count( 0 );
@@ -5007,63 +5123,17 @@ EOF;
 
 	/**
 	 * @ticket 58681
-	 *
-	 * @dataProvider data_wp_get_loading_optimization_attributes_in_shortcodes
 	 */
-	public function test_wp_get_loading_optimization_attributes_in_shortcodes( $setup, $expected, $message ) {
+	public function test_wp_get_loading_optimization_attributes_in_shortcodes() {
 		$attr = $this->get_width_height_for_high_priority();
-		$setup();
 
-		// The first image processed in a shortcode should have fetchpriority set to high.
+		// Shortcodes processed outside of content blobs like 'the_content' always get `loading="lazy"`.
 		$this->assertSame(
-			$expected,
+			array(
+				'loading' => 'lazy',
+			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'do_shortcode' ),
-			$message
-		);
-	}
-
-	public function data_wp_get_loading_optimization_attributes_in_shortcodes() {
-		return array(
-			'main_shortcode_image_should_have_fetchpriority_high'  => array(
-				'setup'    => function () {
-					global $wp_query;
-
-					// Set WP_Query to be in the loop and the main query.
-					$wp_query->in_the_loop = true;
-					$this->set_main_query( $wp_query );
-				},
-				'expected' => array(
-					'fetchpriority' => 'high',
-				),
-				'message'  => 'Fetch priority not applied to during shortcode rendering.',
-			),
-			'main_shortcode_image_after_threshold_is_loading_lazy' => array(
-				'setup'    => function () {
-					global $wp_query;
-
-					// Set WP_Query to be in the loop and the main query.
-					$wp_query->in_the_loop = true;
-					$this->set_main_query( $wp_query );
-
-					// Set internal flags so lazy should be applied.
-					wp_high_priority_element_flag( false );
-					wp_increase_content_media_count( 3 );
-				},
-				'expected' => array(
-					'loading' => 'lazy',
-				),
-				'message'  => 'Lazy-loading not applied to during shortcode rendering.',
-			),
-			'shortcode_image_outside_of_the_loop_are_loaded_lazy'  => array(
-				'setup'    => function () {
-					// Avoid setting up the WP_Query object for the loop.
-					return;
-				},
-				'expected' => array(
-					'loading' => 'lazy',
-				),
-				'message'  => 'Lazy-loading not applied to shortcodes outside the loop.',
-			),
+			'Lazy-loading not applied to shortcodes outside the loop.'
 		);
 	}
 
