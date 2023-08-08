@@ -254,7 +254,9 @@ function get_option( $option, $default_value = false ) {
 }
 
 /**
- * Prime specific options into the cache with a single database query.
+ * Primes specific options into the cache with a single database query.
+ *
+ * Only options that do not already exist in cache will be primed.
  *
  * @since 6.4.0
  *
@@ -263,8 +265,16 @@ function get_option( $option, $default_value = false ) {
  * @param array $options An array of option names to be primed.
  */
 function prime_options( $options ) {
-	$alloptions       = wp_load_alloptions();
-	$options_to_prime = array_diff( $options, array_keys( $alloptions ) );
+	$alloptions     = wp_load_alloptions();
+	$cached_options = wp_cache_get_multiple( $options, 'options' );
+
+	// Filter options that are not in the cache.
+	$options_to_prime = array();
+	foreach ( $options as $option ) {
+		if ( ! isset( $cached_options[ $option ] ) && ! isset( $alloptions[ $option ] ) ) {
+			$options_to_prime[] = $option;
+		}
+	}
 
 	if ( ! empty( $options_to_prime ) ) {
 		global $wpdb;
@@ -277,6 +287,13 @@ function prime_options( $options ) {
 		}
 
 		wp_cache_set( 'alloptions', $alloptions, 'options' );
+
+		$option_values = array();
+		foreach ( $results as $result ) {
+			$option_values[ $result->option_name ] = maybe_unserialize( $result->option_value );
+		}
+
+		wp_cache_set_multiple( $option_values, 'options' );
 	}
 }
 
@@ -285,25 +302,22 @@ function prime_options( $options ) {
  *
  * @since 6.4.0
  *
+ * @global array $new_allowed_options
+ *
  * @param string $option_group The option group to prime options for.
  */
 function prime_options_by_group( $option_group ) {
-	$options            = array();
-	$registered_options = wp_load_alloptions();
+	global $new_allowed_options;
 
-	foreach ( $registered_options as $option_name => $option_value ) {
-		if ( str_starts_with( $option_name, $option_group . '_' ) ) {
-			$options[] = $option_name;
-		}
-	}
-
-	if ( ! empty( $options ) ) {
-		prime_options( $options );
+	if ( isset( $new_allowed_options[ $option_group ] ) ) {
+		prime_options( $new_allowed_options[ $option_group ] );
 	}
 }
 
 /**
- * Retrieve multiple options.
+ * Retrieves multiple options.
+ *
+ * Options are primed as necessary first in order to use a single database query at most.
  *
  * @since 6.4.0
  *
