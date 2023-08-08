@@ -75,13 +75,6 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 				),
 				'expected' => '<div class="notice notice-success"><p>A "success" notice.</p></div>',
 			),
-			'an "updated" notice'                       => array(
-				'message'  => 'An "updated" notice is converted to a "success" notice.',
-				'args'     => array(
-					'type' => 'updated',
-				),
-				'expected' => '<div class="notice notice-success"><p>An "updated" notice is converted to a "success" notice.</p></div>',
-			),
 			'a "warning" notice'                        => array(
 				'message'  => 'A "warning" notice.',
 				'args'     => array(
@@ -101,21 +94,7 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 				'args'     => array(
 					'type' => 'notice-info',
 				),
-				'expected' => '<div class="notice notice-info"><p>A type that already starts with "notice-".</p></div>',
-			),
-			'an unknown type'                           => array(
-				'message'  => 'An unknown type.',
-				'args'     => array(
-					'type' => 'unknown',
-				),
-				'expected' => '<div class="notice unknown"><p>An unknown type.</p></div>',
-			),
-			'a type containing spaces'                  => array(
-				'message'  => 'A type containing spaces.',
-				'args'     => array(
-					'type' => 'first second third fourth',
-				),
-				'expected' => '<div class="notice first second third fourth"><p>A type containing spaces.</p></div>',
+				'expected' => '<div class="notice notice-notice-info"><p>A type that already starts with "notice-".</p></div>',
 			),
 			'a dismissible notice'                      => array(
 				'message'  => 'A dismissible notice.',
@@ -240,6 +219,27 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 				),
 				'expected' => '<div class="notice"><p>A notice with paragraph wrapping as a falsy value rather than (bool) false.</p></div>',
 			),
+		);
+	}
+
+	/**
+	 * Tests that `_doing_it_wrong()` is thrown when a 'type' containing spaces is passed.
+	 *
+	 * @ticket 57791
+	 *
+	 * @expectedIncorrectUsage wp_get_admin_notice
+	 */
+	public function test_should_throw_doing_it_wrong_with_a_type_containing_spaces() {
+		ob_start();
+		wp_admin_notice(
+			'A type containing spaces.',
+			array( 'type' => 'first second third fourth' )
+		);
+		$actual = ob_get_clean();
+
+		$this->assertSame(
+			'<div class="notice notice-first second third fourth"><p>A type containing spaces.</p></div>',
+			$actual
 		);
 	}
 
