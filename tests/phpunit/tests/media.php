@@ -4758,12 +4758,7 @@ EOF;
 			$expected_content
 		);
 
-		/*
-		 * We have to run a main query loop so that the first 'the_content' context image is not
-		 * lazy-loaded.
-		 * Without the fix from 58089, the image would still be lazy-loaded since the check for the
-		 * separately invoked 'wp_get_attachment_image' context would lead to that.
-		 */
+		// We have to run a main query loop so that the first 'the_content' context images are not lazy-loaded.
 		$wp_query     = new WP_Query( array( 'post__in' => array( $post_id ) ) );
 		$wp_the_query = $wp_query;
 
