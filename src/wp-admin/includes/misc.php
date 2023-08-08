@@ -1688,7 +1688,7 @@ function wp_get_admin_notice( $message, $args = array() ) {
 		$trimmed_id = trim( $args['id'] );
 
 		if ( '' !== $trimmed_id ) {
-			$id = 'id="' . esc_attr( $trimmed_id ) . '" ';
+			$id = 'id="' . $trimmed_id . '" ';
 		}
 	}
 
@@ -1727,7 +1727,7 @@ function wp_get_admin_notice( $message, $args = array() ) {
 		$message = "<p>$message</p>";
 	}
 
-	$markup = sprintf( '<div %1$sclass="%2$s">%3$s</div>', $id, esc_attr( $classes ), $message );
+	$markup = sprintf( '<div %1$sclass="%2$s">%3$s</div>', $id, $classes, $message );
 
 	/**
 	 * Filters the markup for an admin notice.
