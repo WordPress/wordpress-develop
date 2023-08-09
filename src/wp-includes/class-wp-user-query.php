@@ -1071,7 +1071,7 @@ class WP_User_Query {
 		if ( isset( $args['blog_id'] ) ) {
 			$blog_id = absint( $args['blog_id'] );
 		}
-		if ( ( $args['has_published_posts'] && $blog_id ) || in_array( 'post_count', $ordersby, true ) ) {
+		if ( $args['has_published_posts'] || in_array( 'post_count', $ordersby, true ) ) {
 			$switch = $blog_id && get_current_blog_id() !== $blog_id;
 			if ( $switch ) {
 				switch_to_blog( $blog_id );
