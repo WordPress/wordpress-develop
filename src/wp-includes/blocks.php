@@ -1248,6 +1248,7 @@ function unregister_block_style( $block_name, $block_style_name ) {
  * Checks whether the current block type supports the feature requested.
  *
  * @since 5.8.0
+ * @since 6.4.0 The `$feature` parameter now supports a string.
  *
  * @param WP_Block_Type $block_type    Block type to check for support.
  * @param string|array  $feature       Feature slug, or path to a specific feature to check support for.
@@ -1261,10 +1262,10 @@ function block_has_support( $block_type, $feature, $default_value = false ) {
 			$feature = $feature[0];
 		}
 
-		if( is_array( $feature ) ) {
+		if ( is_array( $feature ) ) {
 			$block_support = _wp_array_get( $block_type->supports, $feature, $default_value );
-		} else {
-			$block_support = isset( $block_type->supports[ $feature ] ) ? $block_type->supports[ $feature ] : $default_value;
+		} elseif ( isset( $block_type->supports[ $feature ] ) ) {
+			$block_support = $block_type->supports[ $feature ];
 		}
 	}
 
