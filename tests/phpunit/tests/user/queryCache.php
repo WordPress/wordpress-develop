@@ -619,6 +619,24 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verify orderby post_count doesn't fatal.
+	 * @ticket 59011
+	 */
+	public function test_generate_cache_key_post_count() {
+		global $wpdb;
+		$query = new WP_User_Query(
+			array(
+				'fields'  => 'ID',
+				'orderby' => 'post_count',
+				'order'   => 'DESC',
+				'who'     => 'authors',
+			)
+		);
+
+		$this->assertTrue( true );
+	}
+
+	/**
 	 * @ticket 40613
 	 * @group ms-required
 	 * @covers ::query
