@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_HTML_Processor
  */
-class Tests_HtmlApi_wpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
+class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	/**
 	 * @ticket 58517
 	 *
@@ -49,6 +49,7 @@ class Tests_HtmlApi_wpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'IMG',
 			'P',
 			'SMALL',
+			'SPAN',
 			'STRIKE',
 			'STRONG',
 			'TT',
@@ -191,7 +192,6 @@ class Tests_HtmlApi_wpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'SLOT',
 			'SOURCE',
 			'SPACER', // Deprecated
-			'SPAN',
 			'STYLE',
 			'SUB',
 			'SUMMARY',
