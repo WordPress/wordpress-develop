@@ -446,7 +446,7 @@ function wp_get_theme_directory_pattern_slugs() {
  *
  * @since 6.4.0
  *
- * return string[]
+ * return array Associative array of `$part_name => $part_data` pairs, with `$part_data` having "title" and "area" fields.
  */
 function wp_get_theme_data_template_parts() {
 	$cache_group    = 'theme_json';
