@@ -3248,7 +3248,7 @@ function _wp_theme_json_webfonts_handler() {
 	 */
 	$fn_get_webfonts_from_theme_json = static function() {
 		// Get settings from theme.json.
-		$settings = WP_Theme_JSON_Resolver::get_merged_data()->get_settings();
+		$settings = wp_get_global_settings();
 
 		// If in the editor, add webfonts defined in variations.
 		if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
