@@ -695,7 +695,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->registry->register( 'core/example', $block_data );
 		$block_type  = $this->registry->get_registered( 'core/example' );
 		$has_support = block_has_support( $block_type, $support );
-		$this->assertEquals( $expected, $has_support );
+		$this->assertEquals( $expected, $has_support, $message );
 	}
 
 	/**
