@@ -1695,23 +1695,20 @@ function wp_get_admin_notice( $message, $args = array() ) {
 	if ( is_string( $args['type'] ) ) {
 		$type = trim( $args['type'] );
 
-		if ( '' !== $type ) {
-			if ( 'updated' === $type ) {
-				$type = 'success';
-			}
+		if ( str_contains( $type, ' ' ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: %s: The "type" key. */
+					__( 'The %s key must be a string without spaces.' ),
+					'<code>type</code>'
+				),
+				'6.4.0'
+			);
+		}
 
-			if (
-				// Don't add "notice-" when it already exists.
-				str_starts_with( $type, 'notice-' ) ||
-				// Don't add "notice-" for a type containing spaces.
-				str_contains( $type, ' ' ) ||
-				// Don't add "notice-" for unknown types.
-				! in_array( $type, array( 'error', 'success', 'warning', 'info' ), true )
-			) {
-				$classes .= ' ' . $type;
-			} else {
-				$classes .= ' notice-' . $type;
-			}
+		if ( '' !== $type ) {
+			$classes .= ' notice-' . $type;
 		}
 	}
 
