@@ -1250,7 +1250,7 @@ function unregister_block_style( $block_name, $block_style_name ) {
  * @since 5.8.0
  *
  * @param WP_Block_Type $block_type    Block type to check for support.
- * @param string|array  $feature       Path to a specific feature to check support for.
+ * @param string|array  $feature       Feature slug, or path to a specific feature to check support for.
  * @param mixed         $default_value Optional. Fallback value for feature support. Default false.
  * @return bool Whether the feature is supported.
  */
