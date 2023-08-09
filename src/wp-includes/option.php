@@ -279,7 +279,7 @@ function prime_options( $options ) {
 	if ( ! empty( $options_to_prime ) ) {
 		global $wpdb;
 		$option_names = implode( "','", array_map( 'esc_sql', $options_to_prime ) );
-		$query   = $wpdb->prepare( "SELECT option_name, option_value FROM $wpdb->options WHERE option_name IN ('%s')", $option_names );
+		$query   = $wpdb->prepare( "SELECT option_name, option_value FROM $wpdb->options WHERE option_name IN (%s)", $option_names );
 		$results = $wpdb->get_results( $query );
 
 		$option_values = array();
@@ -296,15 +296,15 @@ function prime_options( $options ) {
  *
  * @since 6.4.0
  *
- * @global array $new_allowed_options
+ * @global array $allowed_options
  *
  * @param string $option_group The option group to prime options for.
  */
 function prime_options_by_group( $option_group ) {
-	global $new_allowed_options;
+	global $allowed_options;
 
-	if ( isset( $new_allowed_options[ $option_group ] ) ) {
-		prime_options( $new_allowed_options[ $option_group ] );
+	if ( isset( $allowed_options[ $option_group ] ) ) {
+		prime_options( $allowed_options[ $option_group ] );
 	}
 }
 
