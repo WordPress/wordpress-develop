@@ -7,8 +7,8 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"engines": {
-		"node": ">=14.15.0",
-		"npm": ">=6.14.8 <7"
+		"node": ">=16.19.1",
+		"npm": ">=8.19.3 <9"
 	},
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
@@ -37,7 +37,7 @@
 		"cssnano": "5.1.14",
 		"dotenv": "16.0.3",
 		"dotenv-expand": "10.0.0",
-		"grunt": "~1.5.3",
+		"grunt": "~1.6.1",
 		"grunt-banner": "^0.6.0",
 		"grunt-contrib-clean": "~2.0.1",
 		"grunt-contrib-concat": "2.1.0",
@@ -58,7 +58,7 @@
 		"grunt-webpack": "5.0.0",
 		"ink-docstrap": "1.3.2",
 		"install-changed": "1.1.0",
-		"jest-image-snapshot": "3.0.1",
+		"jest-image-snapshot": "^6.1.0",
 		"matchdep": "~2.0.0",
 		"postcss": "8.4.24",
 		"prettier": "npm:wp-prettier@2.6.2",
