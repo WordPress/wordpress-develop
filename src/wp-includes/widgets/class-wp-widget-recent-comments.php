@@ -190,7 +190,7 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 	 * @param array $instance Current settings.
 	 */
 	public function form( $instance ) {
-		$title  = isset( $instance['title'] ) ? $instance['title'] : '';
+		$title  = $instance['title'] ?? '';
 		$number = isset( $instance['number'] ) ? absint( $instance['number'] ) : 5;
 		?>
 		<p>

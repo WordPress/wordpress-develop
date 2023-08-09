@@ -606,8 +606,8 @@ class Theme_Upgrader extends WP_Upgrader {
 			);
 		}
 
-		$requires_php = isset( $info['RequiresPHP'] ) ? $info['RequiresPHP'] : null;
-		$requires_wp  = isset( $info['RequiresWP'] ) ? $info['RequiresWP'] : null;
+		$requires_php = $info['RequiresPHP'] ?? null;
+		$requires_wp  = $info['RequiresWP'] ?? null;
 
 		if ( ! is_php_version_compatible( $requires_php ) ) {
 			$error = sprintf(
@@ -652,7 +652,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			return $response;
 		}
 
-		$theme = isset( $theme['theme'] ) ? $theme['theme'] : '';
+		$theme = $theme['theme'] ?? '';
 
 		// Only run if active theme.
 		if ( get_stylesheet() !== $theme ) {
@@ -684,7 +684,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			return $response;
 		}
 
-		$theme = isset( $theme['theme'] ) ? $theme['theme'] : '';
+		$theme = $theme['theme'] ?? '';
 
 		// Only run if active theme.
 		if ( get_stylesheet() !== $theme ) {

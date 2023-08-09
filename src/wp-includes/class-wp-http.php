@@ -670,7 +670,7 @@ class WP_Http {
 
 		return array(
 			'headers' => $response[0],
-			'body'    => isset( $response[1] ) ? $response[1] : '',
+			'body'    => $response[1] ?? '',
 		);
 	}
 

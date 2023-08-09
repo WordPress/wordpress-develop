@@ -707,8 +707,8 @@ class WP_Debug_Data {
 		);
 		$info['wp-server']['fields']['httpd_software']      = array(
 			'label' => __( 'Web server' ),
-			'value' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : __( 'Unable to determine what web server software is used' ) ),
-			'debug' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : 'unknown' ),
+			'value' => $_SERVER['SERVER_SOFTWARE'] ?? __( 'Unable to determine what web server software is used' ),
+			'debug' => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
 		);
 		$info['wp-server']['fields']['php_version']         = array(
 			'label' => __( 'PHP version' ),

@@ -170,7 +170,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 		// Restores the more descriptive, specific name for use within this method.
 		$location  = $item;
 		$locations = get_nav_menu_locations();
-		$menu      = isset( $locations[ $location->name ] ) ? $locations[ $location->name ] : 0;
+		$menu      = $locations[ $location->name ] ?? 0;
 
 		$fields = $this->get_fields_for_response( $request );
 		$data   = array();
@@ -231,7 +231,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 		);
 
 		$locations = get_nav_menu_locations();
-		$menu      = isset( $locations[ $location->name ] ) ? $locations[ $location->name ] : 0;
+		$menu      = $locations[ $location->name ] ?? 0;
 		if ( $menu ) {
 			$path = rest_get_route_for_term( $menu );
 			if ( $path ) {

@@ -1177,8 +1177,8 @@ class WP_Theme_JSON {
 		foreach ( $this->theme_json['customTemplates'] as $item ) {
 			if ( isset( $item['name'] ) ) {
 				$custom_templates[ $item['name'] ] = array(
-					'title'     => isset( $item['title'] ) ? $item['title'] : '',
-					'postTypes' => isset( $item['postTypes'] ) ? $item['postTypes'] : array( 'page' ),
+					'title'     => $item['title'] ?? '',
+					'postTypes' => $item['postTypes'] ?? array( 'page' ),
 				);
 			}
 		}
@@ -1201,8 +1201,8 @@ class WP_Theme_JSON {
 		foreach ( $this->theme_json['templateParts'] as $item ) {
 			if ( isset( $item['name'] ) ) {
 				$template_parts[ $item['name'] ] = array(
-					'title' => isset( $item['title'] ) ? $item['title'] : '',
-					'area'  => isset( $item['area'] ) ? $item['area'] : '',
+					'title' => $item['title'] ?? '',
+					'area'  => $item['area'] ?? '',
 				);
 			}
 		}
@@ -1268,7 +1268,7 @@ class WP_Theme_JSON {
 			}
 		}
 
-		$selector                 = isset( $block_metadata['selector'] ) ? $block_metadata['selector'] : '';
+		$selector                 = $block_metadata['selector'] ?? '';
 		$has_block_gap_support    = _wp_array_get( $this->theme_json, array( 'settings', 'spacing', 'blockGap' ) ) !== null;
 		$has_fallback_gap_support = ! $has_block_gap_support; // This setting isn't useful yet: it exists as a placeholder for a future explicit fallback gap styles support.
 		$node                     = _wp_array_get( $this->theme_json, $block_metadata['path'], array() );
@@ -2370,7 +2370,7 @@ class WP_Theme_JSON {
 			)
 		);
 
-		$pseudo_selector = isset( $pseudo_matches[0] ) ? $pseudo_matches[0] : null;
+		$pseudo_selector = $pseudo_matches[0] ?? null;
 
 		/*
 		 * If the current selector is a pseudo selector that's defined in the allow list for the current
@@ -2463,9 +2463,9 @@ class WP_Theme_JSON {
 		* as custom properties on the body element so all blocks can use them.
 		*/
 		if ( isset( $settings['layout']['contentSize'] ) || isset( $settings['layout']['wideSize'] ) ) {
-			$content_size = isset( $settings['layout']['contentSize'] ) ? $settings['layout']['contentSize'] : $settings['layout']['wideSize'];
+			$content_size = $settings['layout']['contentSize'] ?? $settings['layout']['wideSize'];
 			$content_size = static::is_safe_css_declaration( 'max-width', $content_size ) ? $content_size : 'initial';
-			$wide_size    = isset( $settings['layout']['wideSize'] ) ? $settings['layout']['wideSize'] : $settings['layout']['contentSize'];
+			$wide_size    = $settings['layout']['wideSize'] ?? $settings['layout']['contentSize'];
 			$wide_size    = static::is_safe_css_declaration( 'max-width', $wide_size ) ? $wide_size : 'initial';
 			$css         .= '--wp--style--global--content-size: ' . $content_size . ';';
 			$css         .= '--wp--style--global--wide-size: ' . $wide_size . ';';
@@ -3681,8 +3681,8 @@ class WP_Theme_JSON {
 								$fallback,
 							),
 							array(
-								isset( $values[ $key_in_values ] ) ? $values[ $key_in_values ] : $rule_to_replace,
-								isset( $values[ $fallback ] ) ? $values[ $fallback ] : $fallback,
+								$values[ $key_in_values ] ?? $rule_to_replace,
+								$values[ $fallback ] ?? $fallback,
 							),
 							$resolved_style
 						);

@@ -531,7 +531,7 @@ function list_plugin_updates() {
 			}
 		}
 
-		$requires_php   = isset( $plugin_data->update->requires_php ) ? $plugin_data->update->requires_php : null;
+		$requires_php   = $plugin_data->update->requires_php ?? null;
 		$compatible_php = is_php_version_compatible( $requires_php );
 
 		if ( ! $compatible_php && current_user_can( 'update_php' ) ) {
@@ -676,8 +676,8 @@ function list_theme_updates() {
 	}
 
 	foreach ( $themes as $stylesheet => $theme ) {
-		$requires_wp  = isset( $theme->update['requires'] ) ? $theme->update['requires'] : null;
-		$requires_php = isset( $theme->update['requires_php'] ) ? $theme->update['requires_php'] : null;
+		$requires_wp  = $theme->update['requires'] ?? null;
+		$requires_php = $theme->update['requires_php'] ?? null;
 
 		$compatible_wp  = is_wp_version_compatible( $requires_wp );
 		$compatible_php = is_php_version_compatible( $requires_php );
@@ -843,8 +843,8 @@ function do_core_upgrade( $reinstall = false ) {
 	}
 	$url = wp_nonce_url( $url, 'upgrade-core' );
 
-	$version = isset( $_POST['version'] ) ? $_POST['version'] : false;
-	$locale  = isset( $_POST['locale'] ) ? $_POST['locale'] : 'en_US';
+	$version = $_POST['version'] ?? false;
+	$locale  = $_POST['locale'] ?? 'en_US';
 	$update  = find_core_update( $version, $locale );
 	if ( ! $update ) {
 		return;
@@ -936,8 +936,8 @@ function do_core_upgrade( $reinstall = false ) {
  * @since 2.7.0
  */
 function do_dismiss_core_update() {
-	$version = isset( $_POST['version'] ) ? $_POST['version'] : false;
-	$locale  = isset( $_POST['locale'] ) ? $_POST['locale'] : 'en_US';
+	$version = $_POST['version'] ?? false;
+	$locale  = $_POST['locale'] ?? 'en_US';
 	$update  = find_core_update( $version, $locale );
 	if ( ! $update ) {
 		return;
@@ -953,8 +953,8 @@ function do_dismiss_core_update() {
  * @since 2.7.0
  */
 function do_undismiss_core_update() {
-	$version = isset( $_POST['version'] ) ? $_POST['version'] : false;
-	$locale  = isset( $_POST['locale'] ) ? $_POST['locale'] : 'en_US';
+	$version = $_POST['version'] ?? false;
+	$locale  = $_POST['locale'] ?? 'en_US';
 	$update  = find_core_update( $version, $locale );
 	if ( ! $update ) {
 		return;
@@ -964,7 +964,7 @@ function do_undismiss_core_update() {
 	exit;
 }
 
-$action = isset( $_GET['action'] ) ? $_GET['action'] : 'upgrade-core';
+$action = $_GET['action'] ?? 'upgrade-core';
 
 $upgrade_error = false;
 if ( ( 'do-theme-upgrade' === $action || ( 'do-plugin-upgrade' === $action && ! isset( $_GET['plugins'] ) ) )

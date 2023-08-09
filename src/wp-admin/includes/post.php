@@ -421,7 +421,7 @@ function edit_post( $post_data = null ) {
 			}
 		}
 
-		$attachment_data = isset( $post_data['attachments'][ $post_id ] ) ? $post_data['attachments'][ $post_id ] : array();
+		$attachment_data = $post_data['attachments'][ $post_id ] ?? array();
 
 		/** This filter is documented in wp-admin/includes/media.php */
 		$translated = apply_filters( 'attachment_fields_to_save', $translated, $attachment_data );
@@ -980,7 +980,7 @@ function add_meta( $post_id ) {
 
 	$metakeyselect = isset( $_POST['metakeyselect'] ) ? wp_unslash( trim( $_POST['metakeyselect'] ) ) : '';
 	$metakeyinput  = isset( $_POST['metakeyinput'] ) ? wp_unslash( trim( $_POST['metakeyinput'] ) ) : '';
-	$metavalue     = isset( $_POST['metavalue'] ) ? $_POST['metavalue'] : '';
+	$metavalue     = $_POST['metavalue'] ?? '';
 	if ( is_string( $metavalue ) ) {
 		$metavalue = trim( $metavalue );
 	}
@@ -1690,7 +1690,7 @@ function wp_check_post_lock( $post ) {
 
 	$lock = explode( ':', $lock );
 	$time = $lock[0];
-	$user = isset( $lock[1] ) ? $lock[1] : get_post_meta( $post->ID, '_edit_last', true );
+	$user = $lock[1] ?? get_post_meta( $post->ID, '_edit_last', true );
 
 	if ( ! get_userdata( $user ) ) {
 		return false;
