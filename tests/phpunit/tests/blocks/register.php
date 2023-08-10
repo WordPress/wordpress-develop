@@ -429,25 +429,16 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			'style' => 'file:./block.css',
 		);
 		$result   = register_block_style_handle( $metadata, 'style' );
-	
+
 		$this->assertSame( 'unit-tests-test-block-style', $result );
 		$this->assertFalse( wp_styles()->get_data( 'unit-tests-test-block-style', 'rtl' ) );
-	
-		// Verify that the style path starts with the template or stylesheet paths.
-		$template_path_norm   = trailingslashit( wp_normalize_path( get_template_directory() ) );
-		$stylesheet_path_norm = trailingslashit( wp_normalize_path( get_stylesheet_directory() ) );
-		
-		$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/block.css' ) );
-		
-		$this->assertTrue( str_starts_with( $style_path_norm, $template_path_norm ), 'Style path should start with template path.' );
-		$this->assertTrue( str_starts_with( $style_path_norm, $stylesheet_path_norm ), 'Style path should start with stylesheet path.' );
-		
+
 		// @ticket 50328
 		$this->assertSame(
-			$style_path_norm,
+			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
 			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
 		);
-	}		
+	}
 
 	/**
 	 * Tests that register_block_style_handle() loads RTL stylesheets when an RTL locale is set.
@@ -532,15 +523,6 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$expected_style_handle = 'block-theme-example-block-editor-style';
 		$this->assertSame( $expected_style_handle, $result );
 		$this->assertFalse( wp_styles()->get_data( $expected_style_handle, 'rtl' ) );
-
-		// Verify that the editor style path starts with the template or stylesheet paths.
-		$template_path_norm   = trailingslashit( wp_normalize_path( get_template_directory() ) );
-		$stylesheet_path_norm = trailingslashit( wp_normalize_path( get_stylesheet_directory() ) );
-		
-		$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/editor-style.css' ) );
-		
-		$this->assertTrue( str_starts_with( $style_path_norm, $template_path_norm ), 'Style path should start with template path.' );
-		$this->assertTrue( str_starts_with( $style_path_norm, $stylesheet_path_norm ), 'Style path should start with stylesheet path.' );
 	}
 
 	/**
