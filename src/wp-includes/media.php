@@ -2086,6 +2086,9 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
  * @return string Converted `img` tag with `decoding` attribute added.
  */
 function wp_img_tag_add_decoding_attr( $image, $context ) {
+	# see https://core.trac.wordpress.org/ticket/58892
+	_deprecated_function( __FUNCTION__, 'n.e.x.t', 'wp_get_loading_optimization_attributes()' );
+
 	/*
 	 * Only apply the decoding attribute to images that have a src attribute that
 	 * starts with a double quote, ensuring escaped JSON is also excluded.
@@ -2100,6 +2103,7 @@ function wp_img_tag_add_decoding_attr( $image, $context ) {
 	 * Returning a falsey value will omit the attribute.
 	 *
 	 * @since 6.1.0
+	 * @deprecated n.e.x.t Use {@see 'wp_decoding_value'} instead.
 	 *
 	 * @param string|false|null $value   The `decoding` attribute value. Returning a falsey value
 	 *                                   will result in the attribute being omitted for the image.
@@ -2108,7 +2112,7 @@ function wp_img_tag_add_decoding_attr( $image, $context ) {
 	 * @param string            $context Additional context about how the function was called
 	 *                                   or where the img tag is.
 	 */
-	$value = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
+	$value = apply_filters_deprecated( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
 
 	if ( in_array( $value, array( 'async', 'sync', 'auto' ), true ) ) {
 		$image = str_replace( '<img ', '<img decoding="' . esc_attr( $value ) . '" ', $image );
