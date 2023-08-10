@@ -1799,7 +1799,7 @@ function wp_lazy_loading_enabled( $tag_name, $context ) {
 /**
  * Determines whether to add the `decoding` attribute to the specified tag in the specified context.
  *
- * @since n.e.x.t
+ * @since 6.4.0
  *
  * @param string $tag_name The tag name.
  * @param string $context  Additional context, like the current filter name
@@ -1816,7 +1816,7 @@ function wp_decoding_enabled( $tag_name, $context ) {
 	/**
 	 * Filters whether to add the `decoding` attribute to the specified tag in the specified context.
 	 *
-	 * @since n.e.x.t
+	 * @since 6.4.0
 	 *
 	 * @param bool   $default  Default value.
 	 * @param string $tag_name The tag name.
@@ -2087,7 +2087,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
  */
 function wp_img_tag_add_decoding_attr( $image, $context ) {
 	# see https://core.trac.wordpress.org/ticket/58892
-	_deprecated_function( __FUNCTION__, 'n.e.x.t', 'wp_get_loading_optimization_attributes()' );
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_get_loading_optimization_attributes()' );
 
 	/*
 	 * Only apply the decoding attribute to images that have a src attribute that
@@ -2103,7 +2103,7 @@ function wp_img_tag_add_decoding_attr( $image, $context ) {
 	 * Returning a falsey value will omit the attribute.
 	 *
 	 * @since 6.1.0
-	 * @deprecated n.e.x.t Use {@see 'wp_decoding_value'} instead.
+	 * @deprecated 6.4.0 Use {@see 'wp_decoding_value'} instead.
 	 *
 	 * @param string|false|null $value   The `decoding` attribute value. Returning a falsey value
 	 *                                   will result in the attribute being omitted for the image.
@@ -5835,7 +5835,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			 * @param string            $context  Additional context about how the function was called
 			 *                                    or where the img tag is.
 			 *
-			 * @since n.e.x.t
+			 * @since 6.4.0
 			 *
 			 */
 			$decoding = apply_filters( 'wp_decoding_value', $decoding, $tag_name, $context );
