@@ -2263,7 +2263,6 @@ EOF;
 			$respimg_xhtml,
 			$respimg_html5
 		);
-		$content_filtered = wp_img_tag_add_decoding_attr( $content_filtered, 'the_content' );
 
 		// Do not add width, height, and loading.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
@@ -2289,7 +2288,6 @@ EOF;
 	public function test_wp_filter_content_tags_srcset_sizes_wrong() {
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
-		$img = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 
 		// Replace the src URL.
 		$image_wrong_src = preg_replace( '|src="[^"]+"|', 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/foo.jpg"', $img );
@@ -2304,7 +2302,6 @@ EOF;
 		// Generate HTML and add a dummy srcset attribute.
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
-		$img = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 		$img = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . 'srcset="image2x.jpg 2x" />', $img );
 
 		// The content filter should return the image unchanged.
@@ -2377,7 +2374,6 @@ EOF;
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
-		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 
 		add_filter(
 			'wp_content_img_tag',
@@ -2480,7 +2476,6 @@ EOF;
 			$respimg_https,
 			$respimg_relative
 		);
-		$expected = wp_img_tag_add_decoding_attr( $expected, 'the_content' );
 
 		$actual = wp_filter_content_tags( $unfiltered );
 
@@ -2973,7 +2968,6 @@ EOF;
 			$img_no_width,
 			$img_no_height
 		);
-		$content_filtered = wp_img_tag_add_decoding_attr( $content_filtered, 'the_content' );
 
 		// Do not add loading, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
@@ -3054,7 +3048,6 @@ EOF;
 			$iframe_eager,
 			$iframe_no_width_height
 		);
-		$content_filtered = wp_img_tag_add_decoding_attr( $content_filtered, 'the_content' );
 
 		// Do not add width, height, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
@@ -3074,7 +3067,6 @@ EOF;
 	public function test_wp_filter_content_tags_loading_lazy_opted_in() {
 		$img         = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$lazy_img    = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
-		$lazy_img    = wp_img_tag_add_decoding_attr( $lazy_img, 'the_content' );
 		$iframe      = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$lazy_iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
@@ -3104,7 +3096,6 @@ EOF;
 	 */
 	public function test_wp_filter_content_tags_loading_lazy_opted_out() {
 		$img    = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$img    = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 
 		$content = '
@@ -3189,7 +3180,6 @@ EOF;
 	 */
 	public function test_wp_img_tag_add_decoding_attr_with_single_quotes() {
 		$img = "<img src='example.png' alt='' width='300' height='225' />";
-		$img = wp_img_tag_add_decoding_attr( $img, 'test' );
 		$this->assertStringNotContainsString( ' decoding="async"', $img );
 	}
 
@@ -3777,7 +3767,6 @@ EOF;
 		// Following the threshold of 2, the first two content media elements should not be lazy-loaded.
 		$content_unfiltered = $img1 . $iframe1 . $img2 . $img3 . $iframe2;
 		$content_expected   = $prio_img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2;
-		$content_expected   = wp_img_tag_add_decoding_attr( $content_expected, 'the_content' );
 
 		$query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $query );
@@ -3969,7 +3958,6 @@ EOF;
 
 		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
-		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 		$this->force_omit_loading_attr_threshold( 1 );
 
 		$img1      = get_image_tag( self::$large_id, '', '', '', 'large' );
@@ -4017,7 +4005,6 @@ EOF;
 
 		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
-		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 		add_filter(
 			'wp_get_attachment_image_attributes',
 			static function ( $attr ) {
@@ -4084,7 +4071,6 @@ EOF;
 
 		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
-		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 
 		// Use a single image for each header and footer template parts.
 		$header_img = get_image_tag( self::$large_id, '', '', '', 'large' );
