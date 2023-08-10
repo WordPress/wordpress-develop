@@ -2934,7 +2934,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			$extra_attr .= "loading='{$args['loading']}'";
 		}
 
-		if ( in_array( $args['decoding'], array( 'async', 'sync', 'auto' ), true )
+		if ( ! empty( $args['decoding'] )
 			&& ! preg_match( '/\bdecoding\s*=/', $extra_attr )
 		) {
 			if ( ! empty( $extra_attr ) ) {
