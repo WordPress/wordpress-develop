@@ -753,6 +753,10 @@
 	text-align: center;
 }
 
+.about__section .wp-person a:focus {
+	box-shadow: none;
+}
+
 .about__section .compact .wp-person {
 	height: auto;
 	width: 20%;
