@@ -3451,6 +3451,184 @@ EOF;
 	}
 
 	/**
+	 * Test whether wp_decoding_enabled() returns the expected value.
+	 *
+	 * @ticket       58892
+	 * @dataProvider data_wp_decoding_enabled_tag_name_defaults
+	 *
+	 * @covers ::wp_decoding_enabled
+	 *
+	 * @param string $tag_name Tag name.
+	 * @param bool   $expected Expected return value.
+	 */
+	public function test_wp_decoding_enabled( $tag_name, $expected ) {
+		if ( $expected ) {
+			$this->assertTrue( wp_decoding_enabled( $tag_name, 'the_content' ) );
+		} else {
+			$this->assertFalse( wp_decoding_enabled( $tag_name, 'the_content' ) );
+		}
+	}
+
+	/**
+	 * Data provider for test_wp_decoding_enabled().
+	 *
+	 * @return array {
+	 *  @type array $test {
+	 *      @type string  $tag_name The tag name.
+	 *      @type bool    $expected Whether tag name is supported.
+	 *  }
+	 * }
+	 */
+	public function data_wp_decoding_enabled_tag_name_defaults() {
+		return array(
+			'img => true'            => array( 'img', true ),
+			'iframe => false'        => array( 'iframe', false ),
+			'arbitrary tag => false' => array( 'blink', false ),
+		);
+	}
+
+	/**
+	 * Tests that the `wp_get_loading_optimization_attributes()` function should add
+	 * the 'decoding' attribute.
+	 *
+	 * @ticket 58892
+	 *
+	 * @dataProvider data_add_decoding_attr
+	 *
+	 * @param string $tag_name The tag name.
+	 * @param string $decoding The value for the 'decoding' attribute. 'no value' for default.
+	 * @param string $expected The expected `img` tag.
+	 */
+	public function test_add_decoding_attr( $tag_name, $decoding, $expected ) {
+			add_filter(
+				'wp_decoding_value',
+				static function( $value ) use ( $decoding ) {
+					return $decoding;
+				}
+			);
+
+		$this->assertEquals(
+			$expected,
+			wp_get_loading_optimization_attributes(
+				$tag_name,
+				array(
+					'width'  => 1,
+					'height' => 1,
+				),
+				''
+			)
+		);
+	}
+
+	/**
+	 * Data provider for test_add_decoding_attr().
+	 *
+	 * @return array {
+	 *  @type array $test {
+	 *      @type string  $tag_name The tag name.
+	 *      @type string  $decoding The value to test.  Additional context to pass to the filters.
+	 *      @type array   $expected The expected value.
+	 *  }
+	 * }
+	 */
+	public function data_add_decoding_attr() {
+		return array(
+			// Happy path.
+			'async'                   => array(
+				'tag_name' => 'img',
+				'decoding' => 'async',
+				'expected' => array(
+					'decoding' => 'async',
+					'loading'  => 'lazy',
+				),
+			),
+			'sync'                    => array(
+				'tag_name' => 'img',
+				'decoding' => 'sync',
+				'expected' => array(
+					'decoding' => 'sync',
+					'loading'  => 'lazy',
+				),
+			),
+			'auto'                    => array(
+				'tag_name' => 'img',
+				'decoding' => 'auto',
+				'expected' => array(
+					'decoding' => 'auto',
+					'loading'  => 'lazy',
+				),
+			),
+
+			// Unhappy paths.
+			'lazy (unaccepted value)' => array(
+				'tag_name' => 'img',
+				'decoding' => 'lazy',
+				'expected' => array(
+					'loading' => 'lazy',
+				),
+			),
+			'a non-string value'      => array(
+				'tag_name' => 'img',
+				'decoding' => array( 'sync' ),
+				'expected' => array(
+					'loading' => 'lazy',
+				),
+			),
+
+			// Falsy values.
+			'false'                   => array(
+				'tag_name' => 'img',
+				'decoding' => false,
+				'expected' => array(
+					'loading' => 'lazy',
+				),
+			),
+			'null'                    => array(
+				'tag_name' => 'img',
+				'decoding' => null,
+				'expected' => array(
+					'loading' => 'lazy',
+				),
+			),
+			'empty string'            => array(
+				'tag_name' => 'img',
+				'decoding' => '',
+				'expected' => array(
+					'loading' => 'lazy',
+				),
+			),
+			'empty array'             => array(
+				'tag_name' => 'img',
+				'decoding' => array(),
+				'expected' => array(
+					'loading' => 'lazy',
+				),
+			),
+			'0 int'                   => array(
+				'tag_name' => 'img',
+				'decoding' => 0,
+				'expected' => array(
+					'loading' => 'lazy',
+				),
+			),
+			'0 string'                => array(
+				'tag_name' => 'img',
+				'decoding' => '0',
+				'expected' => array(
+					'loading' => 'lazy',
+				),
+			),
+			'0.0 float'               => array(
+				'tag_name' => 'img',
+				'decoding' => 0.0,
+				'expected' => array(
+					'loading' => 'lazy',
+				),
+			),
+		);
+	}
+
+	/**
 	 * @ticket 44427
 	 * @ticket 50425
 	 * @ticket 50756
