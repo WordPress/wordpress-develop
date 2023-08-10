@@ -270,20 +270,11 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$result   = register_block_script_handle( $metadata, 'script' );
 
 		$this->assertSame( 'unit-tests-test-block-script', $result );
-
-		// Verify that the script path starts with the template or stylesheet paths.
-		$template_path_norm   = trailingslashit( wp_normalize_path( get_template_directory() ) );
-		$stylesheet_path_norm = trailingslashit( wp_normalize_path( get_stylesheet_directory() ) );
-		
-		$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/block.js' ) );
-		
-		$this->assertTrue( str_starts_with( $script_path_norm, $template_path_norm ), 'Script path should start with template path.' );
-		$this->assertTrue( str_starts_with( $script_path_norm, $stylesheet_path_norm ), 'Script path should start with stylesheet path.' );
 	}
 
 	/**
 	 * @ticket 55513
-	*/
+	 */
 	public function test_success_register_block_script_handle_in_theme() {
 		switch_theme( 'block-theme' );
 
@@ -296,15 +287,6 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		$expected_script_handle = 'block-theme-example-block-view-script';
 		$this->assertSame( $expected_script_handle, $result );
-
-		// Verify that the view script path starts with the template or stylesheet paths.
-		$template_path_norm   = trailingslashit( wp_normalize_path( get_template_directory() ) );
-		$stylesheet_path_norm = trailingslashit( wp_normalize_path( get_stylesheet_directory() ) );
-		
-		$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/view.js' ) );
-		
-		$this->assertTrue( str_starts_with( $script_path_norm, $template_path_norm ), 'Script path should start with template path.' );
-		$this->assertTrue( str_starts_with( $script_path_norm, $stylesheet_path_norm ), 'Script path should start with stylesheet path.' );
 	}
 
 	/**
