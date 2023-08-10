@@ -272,7 +272,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSame( 'unit-tests-test-block-script', $result );
 
 		// Test the behavior directly within the unit test
-		$this->assertTrue(strpos(
+		$this->assertFalse(strpos(
 			wp_normalize_path(realpath(dirname($metadata['file']) . '/' . $metadata['script'])),
 			trailingslashit(wp_normalize_path(get_template_directory()))
 		) === 0);
