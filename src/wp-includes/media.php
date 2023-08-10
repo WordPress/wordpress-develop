@@ -1797,6 +1797,36 @@ function wp_lazy_loading_enabled( $tag_name, $context ) {
 }
 
 /**
+ * Determines whether to add the `decoding` attribute to the specified tag in the specified context.
+ *
+ * @since n.e.x.t
+ *
+ * @param string $tag_name The tag name.
+ * @param string $context  Additional context, like the current filter name
+ *                         or the function name from where this was called.
+ * @return bool Whether to add the attribute.
+ */
+function wp_decoding_enabled( $tag_name, $context ) {
+	/*
+	 * By default add to all 'img' tags.
+	 * See https://html.spec.whatwg.org/multipage/embedded-content.html#attr-img-decoding
+	 */
+	$default = ( 'img' === $tag_name );
+
+	/**
+	 * Filters whether to add the `decoding` attribute to the specified tag in the specified context.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @param bool   $default  Default value.
+	 * @param string $tag_name The tag name.
+	 * @param string $context  Additional context, like the current filter name
+	 *                         or the function name from where this was called.
+	 */
+	return (bool) apply_filters( 'wp_decoding_enabled', $default, $tag_name, $context );
+}
+
+/**
  * Filters specific tags in post content and modifies their markup.
  *
  * Modifies HTML tags in post content to include new browser and HTML technologies
