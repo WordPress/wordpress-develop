@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_HTML_Tag_Processor
  */
-class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
+class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	const HTML_SIMPLE       = '<div id="first"><span id="second">Text</span></div>';
 	const HTML_WITH_CLASSES = '<div class="main with-border" id="first"><span class="not-main bold with-border" id="second">Text</span></div>';
 	const HTML_MALFORMED    = '<div><span class="d-md-none" Notifications</span><span class="d-none d-md-inline">Back to notifications</span></div>';
