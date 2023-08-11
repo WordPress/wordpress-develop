@@ -179,7 +179,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				),
 			),
 		);
-		$this->assertSame( $actual, $expected );
+		$this->assertSame( $expected, $actual );
 	}
 
 	public function test_register_meta_with_current_sanitize_callback_returns_true() {
@@ -521,11 +521,11 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$object_property_name = $object_type . '_id';
 		$object_id            = self::$$object_property_name;
 		$default_value        = get_metadata_default( $object_type, $object_id, $meta_key, $single );
-		$this->assertSame( $default_value, $expected );
+		$this->assertSame( $expected, $default_value );
 
 		// Check for default value.
 		$value = get_metadata( $object_type, $object_id, $meta_key, $single );
-		$this->assertSame( $value, $expected );
+		$this->assertSame( $expected, $value );
 
 		// Set value to check default is not being returned by mistake.
 		$meta_value = 'dibble';
@@ -536,7 +536,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		// Delete meta, make sure the default is returned.
 		delete_metadata( $object_type, $object_id, $meta_key );
 		$value = get_metadata( $object_type, $object_id, $meta_key, $single );
-		$this->assertSame( $value, $expected );
+		$this->assertSame( $expected, $value );
 
 		// Set other meta key, to make sure other keys are not effects.
 		$meta_value = 'hibble';
@@ -568,7 +568,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$object_property_name = $object_type . '_id';
 		$object_id            = self::$$object_property_name;
 		$default_value        = get_metadata_default( $object_type, $object_id, $meta_key, $single );
-		$this->assertSame( $default_value, $expected );
+		$this->assertSame( $expected, $default_value );
 	}
 
 	public function filter_get_object_subtype_for_customtype( $subtype, $object_id ) {

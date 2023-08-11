@@ -6,6 +6,14 @@
 class Tests_Meta extends WP_UnitTestCase {
 	protected $updated_mids = array();
 
+	/**
+	 * @var \WP_User
+	 */
+	private $author;
+
+	private $meta_id;
+	private $delete_meta_id;
+
 	public function set_up() {
 		parent::set_up();
 		$this->author         = new WP_User( self::factory()->user->create( array( 'role' => 'author' ) ) );
@@ -393,7 +401,7 @@ class Tests_Meta extends WP_UnitTestCase {
 	 * @ticket 15030
 	 */
 	public function test_get_metadata_with_empty_key_object_value() {
-		$data      = new stdClass;
+		$data      = new stdClass();
 		$data->foo = 'bar';
 		$value     = serialize( $data );
 		add_metadata( 'user', $this->author->ID, 'foo', $data );

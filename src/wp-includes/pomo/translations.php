@@ -11,6 +11,7 @@ require_once __DIR__ . '/plural-forms.php';
 require_once __DIR__ . '/entry.php';
 
 if ( ! class_exists( 'Translations', false ) ) :
+	#[AllowDynamicProperties]
 	class Translations {
 		public $entries = array();
 		public $headers = array();
@@ -119,7 +120,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 * @param int $count number of items
 		 */
 		public function select_plural_form( $count ) {
-			return 1 == $count ? 0 : 1;
+			return 1 === (int) $count ? 0 : 1;
 		}
 
 		/**
@@ -151,7 +152,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 				isset( $translated->translations[ $index ] ) ) {
 				return $translated->translations[ $index ];
 			} else {
-				return 1 == $count ? $singular : $plural;
+				return 1 === (int) $count ? $singular : $plural;
 			}
 		}
 
@@ -159,7 +160,6 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 * Merge $other in the current object.
 		 *
 		 * @param Object $other Another Translation object, whose translations will be merged in this one (passed by reference).
-		 * @return void
 		 */
 		public function merge_with( &$other ) {
 			foreach ( $other->entries as $entry ) {
@@ -182,6 +182,21 @@ if ( ! class_exists( 'Translations', false ) ) :
 	}
 
 	class Gettext_Translations extends Translations {
+
+		/**
+		 * Number of plural forms.
+		 *
+		 * @var int
+		 */
+		public $_nplurals;
+
+		/**
+		 * Callback to retrieve the plural form.
+		 *
+		 * @var callable
+		 */
+		public $_gettext_select_plural_form;
+
 		/**
 		 * The gettext implementation of select_plural_form.
 		 *
@@ -300,6 +315,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 	/**
 	 * Provides the same interface as Translations, but doesn't do anything
 	 */
+	#[AllowDynamicProperties]
 	class NOOP_Translations {
 		public $entries = array();
 		public $headers = array();
@@ -350,7 +366,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 		 * @return bool
 		 */
 		public function select_plural_form( $count ) {
-			return 1 == $count ? 0 : 1;
+			return 1 === (int) $count ? 0 : 1;
 		}
 
 		/**
@@ -367,7 +383,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 		 * @param string $context
 		 */
 		public function translate_plural( $singular, $plural, $count, $context = null ) {
-			return 1 == $count ? $singular : $plural;
+			return 1 === (int) $count ? $singular : $plural;
 		}
 
 		/**

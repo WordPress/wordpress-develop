@@ -23,8 +23,8 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 			array(
 				'post_author'  => self::$author->ID,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
+				'post_content' => 'content',
+				'post_title'   => 'title',
 			)
 		);
 
@@ -32,8 +32,8 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 			array(
 				'post_author'  => self::$author->ID,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
+				'post_content' => 'content',
+				'post_title'   => 'title',
 			)
 		);
 	}
@@ -169,7 +169,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$mid = add_post_meta( self::$post_id, 'get_post_meta_by_key', 'get_post_meta_by_key_value', true );
 		$this->assertIsInt( $mid );
 
-		$mobj             = new stdClass;
+		$mobj             = new stdClass();
 		$mobj->meta_id    = $mid;
 		$mobj->post_id    = self::$post_id;
 		$mobj->meta_key   = 'get_post_meta_by_key';
@@ -248,7 +248,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$this->assertIsInt( add_post_meta( self::$post_id, 'test_funky_post_meta', $funky_meta, true ) );
 
 		// Check it exists.
-		$this->assertEquals( $funky_meta, get_post_meta( self::$post_id, 'test_funky_post_meta', true ) );
+		$this->assertEqualSets( $funky_meta, get_post_meta( self::$post_id, 'test_funky_post_meta', true ) );
 
 	}
 

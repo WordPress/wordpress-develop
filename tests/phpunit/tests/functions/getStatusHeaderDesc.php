@@ -11,13 +11,13 @@
 class Tests_Functions_GetStatusHeaderDesc extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider _status_strings
+	 * @dataProvider data_get_status_header_desc
 	 *
 	 * @param int    $code     HTTP status code.
 	 * @param string $expected Status description.
 	 */
 	public function test_get_status_header_desc( $code, $expected ) {
-		$this->assertSame( get_status_header_desc( $code ), $expected );
+		$this->assertSame( $expected, get_status_header_desc( $code ) );
 	}
 
 	/**
@@ -25,7 +25,7 @@ class Tests_Functions_GetStatusHeaderDesc extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function _status_strings() {
+	public function data_get_status_header_desc() {
 		return array(
 			array( 200, 'OK' ),
 			array( 301, 'Moved Permanently' ),

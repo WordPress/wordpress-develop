@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_REST_Block_Types_Controller tests.
+ * Unit tests covering WP_REST_Block_Types_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.5.0
- */
-
-/**
- * Tests for WP_REST_Block_Types_Controller.
- *
  * @since 5.5.0
  *
  * @covers WP_REST_Block_Types_Controller
@@ -202,6 +196,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @ticket 57585
 	 */
 	public function test_get_item_invalid() {
 		$block_type = 'fake/invalid';
@@ -221,8 +216,10 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'keywords'         => 'invalid_keywords',
 			'example'          => 'invalid_example',
 			'parent'           => 'invalid_parent',
+			'ancestor'         => 'invalid_ancestor',
+			'selectors'        => 'invalid_selectors',
 			'supports'         => 'invalid_supports',
-			'styles'           => 'invalid_styles',
+			'styles'           => array(),
 			'render_callback'  => 'invalid_callback',
 			'textdomain'       => true,
 			'variations'       => 'invalid_variations',
@@ -236,16 +233,23 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( '1', $data['title'] );
 		$this->assertSame( '1', $data['description'] );
 		$this->assertNull( $data['icon'] );
-		$this->assertNull( $data['editor_script'] );
-		$this->assertNull( $data['script'] );
-		$this->assertNull( $data['view_script'] );
-		$this->assertNull( $data['editor_style'] );
-		$this->assertNull( $data['style'] );
+		$this->assertSameSets( array(), $data['editor_script_handles'] );
+		$this->assertSameSets( array(), $data['script_handles'] );
+		$this->assertSameSets( array(), $data['view_script_handles'] );
+		$this->assertSameSets( array(), $data['editor_style_handles'] );
+		$this->assertSameSets( array(), $data['style_handles'] );
 		$this->assertSameSets( array(), $data['provides_context'] );
-		$this->assertSameSets( array(), $data['attributes'] );
+		$this->assertSameSetsWithIndex(
+			array(
+				'lock' => array( 'type' => 'object' ),
+			),
+			$data['attributes']
+		);
 		$this->assertSameSets( array( 'invalid_uses_context' ), $data['uses_context'] );
 		$this->assertSameSets( array( 'invalid_keywords' ), $data['keywords'] );
 		$this->assertSameSets( array( 'invalid_parent' ), $data['parent'] );
+		$this->assertSameSets( array( 'invalid_ancestor' ), $data['ancestor'] );
+		$this->assertSameSets( array(), $data['selectors'], 'invalid selectors defaults to empty array' );
 		$this->assertSameSets( array(), $data['supports'] );
 		$this->assertSameSets( array(), $data['styles'] );
 		$this->assertNull( $data['example'] );
@@ -253,10 +257,18 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['textdomain'] );
 		$this->assertFalse( $data['is_dynamic'] );
 		$this->assertSameSets( array( array() ), $data['variations'] );
+		// Deprecated properties.
+		$this->assertNull( $data['editor_script'] );
+		$this->assertNull( $data['script'] );
+		$this->assertNull( $data['view_script'] );
+		$this->assertNull( $data['editor_style'] );
+		$this->assertNull( $data['style'] );
+
 	}
 
 	/**
 	 * @ticket 47620
+	 * @ticket 57585
 	 */
 	public function test_get_item_defaults() {
 		$block_type = 'fake/false';
@@ -275,6 +287,8 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'style'            => false,
 			'keywords'         => false,
 			'parent'           => false,
+			'ancestor'         => false,
+			'selectors'        => false,
 			'supports'         => false,
 			'styles'           => false,
 			'render_callback'  => false,
@@ -291,16 +305,23 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( '', $data['title'] );
 		$this->assertSame( '', $data['description'] );
 		$this->assertNull( $data['icon'] );
-		$this->assertNull( $data['editor_script'] );
-		$this->assertNull( $data['script'] );
-		$this->assertNull( $data['view_script'] );
-		$this->assertNull( $data['editor_style'] );
-		$this->assertNull( $data['style'] );
-		$this->assertSameSets( array(), $data['attributes'] );
+		$this->assertSameSets( array(), $data['editor_script_handles'] );
+		$this->assertSameSets( array(), $data['script_handles'] );
+		$this->assertSameSets( array(), $data['view_script_handles'] );
+		$this->assertSameSets( array(), $data['editor_style_handles'] );
+		$this->assertSameSets( array(), $data['style_handles'] );
+		$this->assertSameSetsWithIndex(
+			array(
+				'lock' => array( 'type' => 'object' ),
+			),
+			$data['attributes']
+		);
 		$this->assertSameSets( array(), $data['provides_context'] );
 		$this->assertSameSets( array(), $data['uses_context'] );
 		$this->assertSameSets( array(), $data['keywords'] );
 		$this->assertSameSets( array(), $data['parent'] );
+		$this->assertSameSets( array(), $data['ancestor'] );
+		$this->assertSameSets( array(), $data['selectors'], 'selectors defaults to empty array' );
 		$this->assertSameSets( array(), $data['supports'] );
 		$this->assertSameSets( array(), $data['styles'] );
 		$this->assertNull( $data['example'] );
@@ -309,6 +330,154 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['textdomain'] );
 		$this->assertFalse( $data['is_dynamic'] );
 		$this->assertSameSets( array(), $data['variations'] );
+		// Deprecated properties.
+		$this->assertNull( $data['editor_script'] );
+		$this->assertNull( $data['script'] );
+		$this->assertNull( $data['view_script'] );
+		$this->assertNull( $data['editor_style'] );
+		$this->assertNull( $data['style'] );
+	}
+
+	/**
+	 * @ticket 56733
+	 */
+	public function test_get_item_deprecated() {
+		$block_type = 'fake/deprecated';
+		$settings   = array(
+			'editor_script' => 'hello_world',
+			'script'        => 'gutenberg',
+			'view_script'   => 'foo_bar',
+			'editor_style'  => 'guten_tag',
+			'style'         => 'out_of_style',
+		);
+		register_block_type( $block_type, $settings );
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSameSets(
+			array( 'hello_world' ),
+			$data['editor_script_handles'],
+			"Endpoint doesn't return correct array for editor_script_handles."
+		);
+		$this->assertSameSets(
+			array( 'gutenberg' ),
+			$data['script_handles'],
+			"Endpoint doesn't return correct array for script_handles."
+		);
+		$this->assertSameSets(
+			array( 'foo_bar' ),
+			$data['view_script_handles'],
+			"Endpoint doesn't return correct array for view_script_handles."
+		);
+		$this->assertSameSets(
+			array( 'guten_tag' ),
+			$data['editor_style_handles'],
+			"Endpoint doesn't return correct array for editor_style_handles."
+		);
+		$this->assertSameSets(
+			array( 'out_of_style' ),
+			$data['style_handles'],
+			"Endpoint doesn't return correct array for style_handles."
+		);
+		// Deprecated properties.
+		$this->assertSame(
+			'hello_world',
+			$data['editor_script'],
+			"Endpoint doesn't return correct string for editor_script."
+		);
+		$this->assertSame(
+			'gutenberg',
+			$data['script'],
+			"Endpoint doesn't return correct string for script."
+		);
+		$this->assertSame(
+			'foo_bar',
+			$data['view_script'],
+			"Endpoint doesn't return correct string for view_script."
+		);
+		$this->assertSame(
+			'guten_tag',
+			$data['editor_style'],
+			"Endpoint doesn't return correct string for editor_style."
+		);
+		$this->assertSame(
+			'out_of_style',
+			$data['style'],
+			"Endpoint doesn't return correct string for style."
+		);
+	}
+
+	/**
+	 * @ticket 56733
+	 */
+	public function test_get_item_deprecated_with_arrays() {
+		$block_type = 'fake/deprecated-with-arrays';
+		$settings   = array(
+			'editor_script' => array( 'hello', 'world' ),
+			'script'        => array( 'gutenberg' ),
+			'view_script'   => array( 'foo', 'bar' ),
+			'editor_style'  => array( 'guten', 'tag' ),
+			'style'         => array( 'out', 'of', 'style' ),
+		);
+		register_block_type( $block_type, $settings );
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSameSets(
+			$settings['editor_script'],
+			$data['editor_script_handles'],
+			"Endpoint doesn't return correct array for editor_script_handles."
+		);
+		$this->assertSameSets(
+			$settings['script'],
+			$data['script_handles'],
+			"Endpoint doesn't return correct array for script_handles."
+		);
+		$this->assertSameSets(
+			$settings['view_script'],
+			$data['view_script_handles'],
+			"Endpoint doesn't return correct array for view_script_handles."
+		);
+		$this->assertSameSets(
+			$settings['editor_style'],
+			$data['editor_style_handles'],
+			"Endpoint doesn't return correct array for editor_style_handles."
+		);
+		$this->assertSameSets(
+			$settings['style'],
+			$data['style_handles'],
+			"Endpoint doesn't return correct array for style_handles."
+		);
+		// Deprecated properties.
+		// Since the schema only allows strings or null (but no arrays), we return the first array item.
+		// Deprecated properties.
+		$this->assertSame(
+			'hello',
+			$data['editor_script'],
+			"Endpoint doesn't return first array element for editor_script."
+		);
+		$this->assertSame(
+			'gutenberg',
+			$data['script'],
+			"Endpoint doesn't return first array element for script."
+		);
+		$this->assertSame(
+			'foo',
+			$data['view_script'],
+			"Endpoint doesn't return first array element for view_script."
+		);
+		$this->assertSame(
+			'guten',
+			$data['editor_style'],
+			"Endpoint doesn't return first array element for editor_style."
+		);
+		$this->assertSame(
+			'out',
+			$data['style'],
+			"Endpoint doesn't return first array element for style."
+		);
 	}
 
 	public function test_get_variation() {
@@ -371,6 +540,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @ticket 57585
 	 */
 	public function test_get_item_schema() {
 		wp_set_current_user( self::$admin_id );
@@ -378,7 +548,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 22, $properties );
+		$this->assertCount( 29, $properties );
 		$this->assertArrayHasKey( 'api_version', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'icon', $properties );
@@ -388,19 +558,28 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'textdomain', $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'attributes', $properties );
+		$this->assertArrayHasKey( 'selectors', $properties, 'schema must contain selectors' );
 		$this->assertArrayHasKey( 'supports', $properties );
 		$this->assertArrayHasKey( 'category', $properties );
 		$this->assertArrayHasKey( 'is_dynamic', $properties );
-		$this->assertArrayHasKey( 'editor_script', $properties );
-		$this->assertArrayHasKey( 'script', $properties );
-		$this->assertArrayHasKey( 'view_script', $properties );
-		$this->assertArrayHasKey( 'editor_style', $properties );
-		$this->assertArrayHasKey( 'style', $properties );
+		$this->assertArrayHasKey( 'editor_script_handles', $properties );
+		$this->assertArrayHasKey( 'script_handles', $properties );
+		$this->assertArrayHasKey( 'view_script_handles', $properties );
+		$this->assertArrayHasKey( 'editor_style_handles', $properties );
+		$this->assertArrayHasKey( 'style_handles', $properties );
 		$this->assertArrayHasKey( 'parent', $properties );
 		$this->assertArrayHasKey( 'example', $properties );
 		$this->assertArrayHasKey( 'uses_context', $properties );
 		$this->assertArrayHasKey( 'provides_context', $properties );
 		$this->assertArrayHasKey( 'variations', $properties );
+		$this->assertArrayHasKey( 'ancestor', $properties );
+		// Deprecated properties.
+		$this->assertArrayHasKey( 'editor_script', $properties );
+		$this->assertArrayHasKey( 'script', $properties );
+		$this->assertArrayHasKey( 'view_script', $properties );
+		$this->assertArrayHasKey( 'editor_style', $properties );
+		$this->assertArrayHasKey( 'style', $properties );
+
 	}
 
 	/**
@@ -447,15 +626,15 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 47620
 	 */
 	public function test_prepare_item() {
-		$registry = new WP_Block_Type_Registry;
+		$registry = new WP_Block_Type_Registry();
 		$settings = array(
 			'icon'            => 'text',
 			'render_callback' => '__return_null',
 		);
 		$registry->register( 'fake/line', $settings );
 		$block_type = $registry->get_registered( 'fake/line' );
-		$endpoint   = new WP_REST_Block_Types_Controller;
-		$request    = new WP_REST_Request;
+		$endpoint   = new WP_REST_Block_Types_Controller();
+		$request    = new WP_REST_Request();
 		$request->set_param( 'context', 'edit' );
 		$response = $endpoint->prepare_item_for_response( $block_type, $request );
 		$this->check_block_type_object( $block_type, $response->get_data(), $response->get_links() );
@@ -465,15 +644,15 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 47620
 	 */
 	public function test_prepare_item_limit_fields() {
-		$registry = new WP_Block_Type_Registry;
+		$registry = new WP_Block_Type_Registry();
 		$settings = array(
 			'icon'            => 'text',
 			'render_callback' => '__return_null',
 		);
 		$registry->register( 'fake/line', $settings );
 		$block_type = $registry->get_registered( 'fake/line' );
-		$request    = new WP_REST_Request;
-		$endpoint   = new WP_REST_Block_Types_Controller;
+		$request    = new WP_REST_Request();
+		$endpoint   = new WP_REST_Block_Types_Controller();
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( '_fields', 'name' );
 		$response = $endpoint->prepare_item_for_response( $block_type, $request );
@@ -503,11 +682,11 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'api_version',
 			'name',
 			'category',
-			'editor_script',
-			'script',
-			'view_script',
-			'editor_style',
-			'style',
+			'editor_script_handles',
+			'script_handles',
+			'view_script_handles',
+			'editor_style_handles',
+			'style_handles',
 			'title',
 			'icon',
 			'description',
@@ -519,6 +698,12 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'styles',
 			'textdomain',
 			'example',
+			// Deprecated fields.
+			'editor_script',
+			'script',
+			'view_script',
+			'editor_style',
+			'style',
 		);
 
 		foreach ( $extra_fields as $extra_field ) {
@@ -536,17 +721,29 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The test_create_item() method does not exist for block types.
+	 * The create_item() method does not exist for block types.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_create_item() {}
+	public function test_create_item() {
+		// Controller does not implement create_item().
+	}
 
 	/**
-	 * The test_update_item() method does not exist for block types.
+	 * The update_item() method does not exist for block types.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_update_item() {}
+	public function test_update_item() {
+		// Controller does not implement create_item().
+	}
 
 	/**
-	 * The test_delete_item() method does not exist for block types.
+	 * The delete_item() method does not exist for block types.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_delete_item() {}
+	public function test_delete_item() {
+		// Controller does not implement delete_item().
+	}
 }

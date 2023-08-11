@@ -1,0 +1,8 @@
+{
+	"apiVersion": 2,
+	"title": "Example Theme Block",
+	"name": "block-theme/example-block",
+	"description": "Custom block registered from within a theme",
+	"editorScript": "file:./index.js",
+	"style": "file:./style.css"
+}

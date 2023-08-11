@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_Block_Type tests
+ * Tests for WP_Block_Type.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.0.0
- */
-
-/**
- * Tests for WP_Block_Type.
- *
  * @since 5.0.0
  *
  * @group blocks
@@ -82,6 +76,46 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 		$this->assertSame( $name, $block_type->name );
 		$this->assertSame( $args['render_callback'], $block_type->render_callback );
 		$this->assertSame( $args['foo'], $block_type->foo );
+	}
+
+	/*
+	 * @ticket 55567
+	 * @covers WP_Block_Type::set_props
+	 */
+	public function test_core_attributes() {
+		$block_type = new WP_Block_Type( 'core/fake', array() );
+
+		$this->assertSameSetsWithIndex(
+			array(
+				'lock' => array( 'type' => 'object' ),
+			),
+			$block_type->attributes
+		);
+	}
+
+	/*
+	 * @ticket 55567
+	 * @covers WP_Block_Type::set_props
+	 */
+	public function test_core_attributes_matches_custom() {
+		$block_type = new WP_Block_Type(
+			'core/fake',
+			array(
+				'attributes' => array(
+					'lock' => array(
+						'type' => 'string',
+					),
+				),
+			)
+		);
+
+		// Backward compatibility: Don't override attributes with the same name.
+		$this->assertSameSetsWithIndex(
+			array(
+				'lock' => array( 'type' => 'string' ),
+			),
+			$block_type->attributes
+		);
 	}
 
 	/**
@@ -200,7 +234,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 		$prepared_attributes = $block_type->prepare_attributes_for_render( $attributes );
 
-		$this->assertEquals(
+		$this->assertSameSetsWithIndex(
 			array(
 				'correct'            => 'include',
 				/* wrongType */

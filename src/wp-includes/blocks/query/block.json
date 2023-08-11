@@ -1,5 +1,6 @@
 {
-	"apiVersion": 2,
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
 	"name": "core/query",
 	"title": "Query Loop",
 	"category": "theme",
@@ -16,26 +17,23 @@
 				"pages": 0,
 				"offset": 0,
 				"postType": "post",
-				"categoryIds": [],
-				"tagIds": [],
 				"order": "desc",
 				"orderBy": "date",
 				"author": "",
 				"search": "",
 				"exclude": [],
 				"sticky": "",
-				"inherit": true
+				"inherit": true,
+				"taxQuery": null,
+				"parents": []
 			}
 		},
 		"tagName": {
 			"type": "string",
 			"default": "div"
 		},
-		"displayLayout": {
-			"type": "object",
-			"default": {
-				"type": "list"
-			}
+		"namespace": {
+			"type": "string"
 		}
 	},
 	"providesContext": {
@@ -46,11 +44,7 @@
 	"supports": {
 		"align": [ "wide", "full" ],
 		"html": false,
-		"color": {
-			"gradients": true,
-			"link": true
-		},
-		"__experimentalLayout": true
+		"layout": true
 	},
 	"editorStyle": "wp-block-query-editor"
 }

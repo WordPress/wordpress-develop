@@ -2,6 +2,8 @@
 /**
  * @group taxonomy
  * @group category.php
+ *
+ * @covers ::wp_dropdown_categories
  */
 class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 	/**

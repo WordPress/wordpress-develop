@@ -101,6 +101,22 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests hooking into wp_set_password().
+	 *
+	 * @ticket 57436
+	 *
+	 * @covers ::wp_set_password
+	 */
+	public function test_wp_set_password_action() {
+		$action = new MockAction();
+
+		add_action( 'wp_set_password', array( $action, 'action' ) );
+		wp_set_password( 'A simple password', self::$user_id );
+
+		$this->assertSame( 1, $action->get_call_count() );
+	}
+
+	/**
 	 * Test wp_hash_password trims whitespace
 	 *
 	 * This is similar to test_password_trimming but tests the "lower level"
@@ -407,7 +423,7 @@ class Tests_Auth extends WP_UnitTestCase {
 			'user_email' => 'mail@example.com',
 			'user_pass'  => 'password',
 		);
-		$this->factory->user->create( $user_args );
+		self::factory()->user->create( $user_args );
 
 		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_email'], $user_args['user_pass'] ) );
 		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_login'], $user_args['user_pass'] ) );
@@ -421,11 +437,30 @@ class Tests_Auth extends WP_UnitTestCase {
 			'user_email' => "mail\'@example.com",
 			'user_pass'  => 'password',
 		);
-		$this->factory()->user->create( $user_args );
+		self::factory()->user->create( $user_args );
 
 		$_POST['log'] = $user_args['user_email'];
 		$_POST['pwd'] = $user_args['user_pass'];
 		$this->assertInstanceOf( 'WP_User', wp_signon() );
+	}
+
+	/**
+	 * Tests that PHP 8.1 "passing null to non-nullable" deprecation notices
+	 * are not thrown when `user_login` and `user_password` parameters are empty.
+	 *
+	 * The notices that we should not see:
+	 * `Deprecated: preg_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated`.
+	 * `Deprecated: trim(): Passing null to parameter #1 ($string) of type string is deprecated`.
+	 *
+	 * @ticket 56850
+	 */
+	public function test_wp_signon_does_not_throw_deprecation_notices_with_default_parameters() {
+		$error = wp_signon();
+		$this->assertWPError( $error, 'The result should be an instance of WP_Error.' );
+
+		$error_codes = $error->get_error_codes();
+		$this->assertContains( 'empty_username', $error_codes, 'The "empty_username" error code should be present.' );
+		$this->assertContains( 'empty_password', $error_codes, 'The "empty_password" error code should be present.' );
 	}
 
 	/**
@@ -436,7 +471,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @covers ::wp_validate_application_password
 	 */
 	public function test_application_password_authentication() {
-		$user_id = $this->factory()->user->create(
+		$user_id = self::factory()->user->create(
 			array(
 				'user_login' => 'http_auth_login',
 				'user_pass'  => 'http_auth_pass', // Shouldn't be allowed for API login.
@@ -634,5 +669,45 @@ class Tests_Auth extends WP_UnitTestCase {
 		unset( $_SERVER['PHP_AUTH_PW'] );
 
 		$this->assertNull( wp_validate_application_password( null ) );
+	}
+
+	/**
+	 * @ticket 53386
+	 * @dataProvider data_application_passwords_can_use_capability_checks_to_determine_feature_availability
+	 */
+	public function test_application_passwords_can_use_capability_checks_to_determine_feature_availability( $role, $authenticated ) {
+		$user = self::factory()->user->create_and_get( array( 'role' => $role ) );
+
+		list( $password ) = WP_Application_Passwords::create_new_application_password( $user->ID, array( 'name' => 'phpunit' ) );
+
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+		add_filter(
+			'wp_is_application_passwords_available_for_user',
+			static function ( $available, WP_User $user ) {
+				return user_can( $user, 'edit_posts' );
+			},
+			10,
+			2
+		);
+
+		$_SERVER['PHP_AUTH_USER'] = $user->user_login;
+		$_SERVER['PHP_AUTH_PW']   = $password;
+
+		unset( $GLOBALS['current_user'] );
+		$current = get_current_user_id();
+
+		if ( $authenticated ) {
+			$this->assertSame( $user->ID, $current );
+		} else {
+			$this->assertSame( 0, $current );
+		}
+	}
+
+	public function data_application_passwords_can_use_capability_checks_to_determine_feature_availability() {
+		return array(
+			'allowed'     => array( 'editor', true ),
+			'not allowed' => array( 'subscriber', false ),
+		);
 	}
 }

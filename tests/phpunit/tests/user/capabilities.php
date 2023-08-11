@@ -30,6 +30,15 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 */
 	protected static $block_id;
 
+	/**
+	 * Temporary storage for roles for tests using filter callbacks.
+	 *
+	 * Used in the `test_wp_roles_init_action()` method.
+	 *
+	 * @var array
+	 */
+	private $role_test_wp_roles_init;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$users       = array(
 			'anonymous'     => new WP_User( 0 ),
@@ -58,6 +67,15 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		// Keep track of users we create.
 		$this->flush_roles();
 
+	}
+
+	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		unset( $this->role_test_wp_roles_init );
+
+		parent::tear_down();
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -1296,13 +1314,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		}
 	}
 
-	public function authorless_post_statuses() {
-		return array( array( 'draft' ), array( 'private' ), array( 'publish' ) );
-	}
-
 	/**
 	 * @ticket 27020
-	 * @dataProvider authorless_post_statuses
+	 * @dataProvider data_authorless_post
 	 */
 	public function test_authorless_post( $status ) {
 		// Make a post without an author.
@@ -1329,6 +1343,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( $contributor->has_cap( 'edit_post', $post ) );
 		$this->assertFalse( $contributor->has_cap( 'delete_post', $post ) );
 		$this->assertSame( 'publish' === $status, $contributor->has_cap( 'read_post', $post ) );
+	}
+
+	public function data_authorless_post() {
+		return array( array( 'draft' ), array( 'private' ), array( 'publish' ) );
 	}
 
 	/**
@@ -1595,6 +1613,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$editor = self::$users['editor'];
 
+		$this->setExpectedIncorrectUsage( 'map_meta_cap' );
 		foreach ( $caps as $cap ) {
 			// `null` represents a non-existent term ID.
 			$this->assertFalse( user_can( $editor->ID, $cap, null ) );
@@ -1623,9 +1642,27 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$user = self::$users['administrator'];
 		$caps = $user->caps;
 		$this->assertNotEmpty( $user->caps );
+
 		$user->set_role( 'administrator' );
 		$this->assertNotEmpty( $user->caps );
 		$this->assertSame( $caps, $user->caps );
+	}
+
+	/**
+	 * @ticket 54164
+	 */
+	public function test_set_role_fires_remove_user_role_and_add_user_role_hooks() {
+		$user = self::$users['administrator'];
+
+		$remove_user_role = new MockAction();
+		$add_user_role    = new MockAction();
+		add_action( 'remove_user_role', array( $remove_user_role, 'action' ) );
+		add_action( 'add_user_role', array( $add_user_role, 'action' ) );
+
+		$user->set_role( 'editor' );
+		$user->set_role( 'administrator' );
+		$this->assertSame( 2, $remove_user_role->get_call_count() );
+		$this->assertSame( 2, $add_user_role->get_call_count() );
 	}
 
 	public function test_current_user_can_for_blog() {
@@ -1670,7 +1707,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	public function nullify_current_user() {
-		// Prevents fatal errors in ::tearDown()'s and other uses of restore_current_blog().
+		// Prevents fatal errors in ::tear_down()'s and other uses of restore_current_blog().
 		$function_stack = wp_debug_backtrace_summary( null, 0, false );
 		if ( in_array( 'restore_current_blog', $function_stack, true ) ) {
 			return;
@@ -1791,7 +1828,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$contributor = self::$users['contributor'];
 
 		// Give them a scheduled post.
-		$post = $this->factory->post->create_and_get(
+		$post = self::factory()->post->create_and_get(
 			array(
 				'post_author' => $contributor->ID,
 				'post_status' => 'future',
@@ -1977,13 +2014,11 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	}
 
-
-	protected $_role_test_wp_roles_role;
 	/**
 	 * @ticket 23016
 	 */
 	public function test_wp_roles_init_action() {
-		$this->_role_test_wp_roles_init = array(
+		$this->role_test_wp_roles_init = array(
 			'role' => 'test_wp_roles_init',
 			'info' => array(
 				'name'         => 'Test WP Roles Init',
@@ -1996,16 +2031,16 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		remove_action( 'wp_roles_init', array( $this, '_hook_wp_roles_init' ) );
 
-		$expected = new WP_Role( $this->_role_test_wp_roles_init['role'], $this->_role_test_wp_roles_init['info']['capabilities'] );
+		$expected = new WP_Role( $this->role_test_wp_roles_init['role'], $this->role_test_wp_roles_init['info']['capabilities'] );
 
-		$role = $wp_roles->get_role( $this->_role_test_wp_roles_init['role'] );
+		$role = $wp_roles->get_role( $this->role_test_wp_roles_init['role'] );
 
 		$this->assertEquals( $expected, $role );
-		$this->assertContains( $this->_role_test_wp_roles_init['info']['name'], $wp_roles->role_names );
+		$this->assertContains( $this->role_test_wp_roles_init['info']['name'], $wp_roles->role_names );
 	}
 
 	public function _hook_wp_roles_init( $wp_roles ) {
-		$wp_roles->add_role( $this->_role_test_wp_roles_init['role'], $this->_role_test_wp_roles_init['info']['name'], $this->_role_test_wp_roles_init['info']['capabilities'] );
+		$wp_roles->add_role( $this->role_test_wp_roles_init['role'], $this->role_test_wp_roles_init['info']['name'], $this->role_test_wp_roles_init['info']['capabilities'] );
 	}
 
 	/**

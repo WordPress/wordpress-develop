@@ -9,10 +9,12 @@
  */
 
 if ( ! class_exists( 'POMO_Reader', false ) ) :
+	#[AllowDynamicProperties]
 	class POMO_Reader {
 
 		public $endian = 'little';
-		public $_post  = '';
+		public $_pos;
+		public $is_overloaded;
 
 		/**
 		 * PHP5 constructor.
@@ -58,7 +60,7 @@ if ( ! class_exists( 'POMO_Reader', false ) ) :
 		 */
 		public function readint32() {
 			$bytes = $this->read( 4 );
-			if ( 4 != $this->strlen( $bytes ) ) {
+			if ( 4 !== $this->strlen( $bytes ) ) {
 				return false;
 			}
 			$endian_letter = ( 'big' === $this->endian ) ? 'N' : 'V';
@@ -75,7 +77,7 @@ if ( ! class_exists( 'POMO_Reader', false ) ) :
 		 */
 		public function readint32array( $count ) {
 			$bytes = $this->read( 4 * $count );
-			if ( 4 * $count != $this->strlen( $bytes ) ) {
+			if ( 4 * $count !== $this->strlen( $bytes ) ) {
 				return false;
 			}
 			$endian_letter = ( 'big' === $this->endian ) ? 'N' : 'V';
@@ -83,46 +85,46 @@ if ( ! class_exists( 'POMO_Reader', false ) ) :
 		}
 
 		/**
-		 * @param string $string
+		 * @param string $input_string
 		 * @param int    $start
 		 * @param int    $length
 		 * @return string
 		 */
-		public function substr( $string, $start, $length ) {
+		public function substr( $input_string, $start, $length ) {
 			if ( $this->is_overloaded ) {
-				return mb_substr( $string, $start, $length, 'ascii' );
+				return mb_substr( $input_string, $start, $length, 'ascii' );
 			} else {
-				return substr( $string, $start, $length );
+				return substr( $input_string, $start, $length );
 			}
 		}
 
 		/**
-		 * @param string $string
+		 * @param string $input_string
 		 * @return int
 		 */
-		public function strlen( $string ) {
+		public function strlen( $input_string ) {
 			if ( $this->is_overloaded ) {
-				return mb_strlen( $string, 'ascii' );
+				return mb_strlen( $input_string, 'ascii' );
 			} else {
-				return strlen( $string );
+				return strlen( $input_string );
 			}
 		}
 
 		/**
-		 * @param string $string
+		 * @param string $input_string
 		 * @param int    $chunk_size
 		 * @return array
 		 */
-		public function str_split( $string, $chunk_size ) {
+		public function str_split( $input_string, $chunk_size ) {
 			if ( ! function_exists( 'str_split' ) ) {
-				$length = $this->strlen( $string );
+				$length = $this->strlen( $input_string );
 				$out    = array();
 				for ( $i = 0; $i < $length; $i += $chunk_size ) {
-					$out[] = $this->substr( $string, $i, $chunk_size );
+					$out[] = $this->substr( $input_string, $i, $chunk_size );
 				}
 				return $out;
 			} else {
-				return str_split( $string, $chunk_size );
+				return str_split( $input_string, $chunk_size );
 			}
 		}
 
@@ -151,6 +153,13 @@ endif;
 
 if ( ! class_exists( 'POMO_FileReader', false ) ) :
 	class POMO_FileReader extends POMO_Reader {
+
+		/**
+		 * File pointer resource.
+		 *
+		 * @var resource|false
+		 */
+		public $_f;
 
 		/**
 		 * @param string $filename
@@ -185,7 +194,7 @@ if ( ! class_exists( 'POMO_FileReader', false ) ) :
 		 * @return bool
 		 */
 		public function seekto( $pos ) {
-			if ( -1 == fseek( $this->_f, $pos, SEEK_SET ) ) {
+			if ( -1 === fseek( $this->_f, $pos, SEEK_SET ) ) {
 				return false;
 			}
 			$this->_pos = $pos;
@@ -217,11 +226,7 @@ if ( ! class_exists( 'POMO_FileReader', false ) ) :
 		 * @return string
 		 */
 		public function read_all() {
-			$all = '';
-			while ( ! $this->feof() ) {
-				$all .= $this->read( 4096 );
-			}
-			return $all;
+			return stream_get_contents( $this->_f );
 		}
 	}
 endif;

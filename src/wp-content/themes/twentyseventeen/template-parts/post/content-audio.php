@@ -46,7 +46,7 @@
 		$audio   = false;
 
 		// Only get audio from the content if a playlist isn't present.
-	if ( false === strpos( $content, 'wp-playlist-script' ) ) {
+	if ( ! str_contains( $content, 'wp-playlist-script' ) ) {
 		$audio = get_media_embedded_in_content( $content, array( 'audio' ) );
 	}
 
@@ -79,7 +79,7 @@
 
 			the_content(
 				sprintf(
-					/* translators: %s: Post title. */
+					/* translators: %s: Post title. Only visible to screen readers. */
 					__( 'Continue reading<span class="screen-reader-text"> "%s"</span>', 'twentyseventeen' ),
 					get_the_title()
 				)

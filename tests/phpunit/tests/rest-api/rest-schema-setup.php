@@ -6,9 +6,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  * @group restapi-jsclient
  */
@@ -20,7 +18,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
-		$wp_rest_server = new Spy_REST_Server;
+		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
 
 		add_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10, 3 );
@@ -34,8 +32,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		parent::tear_down();
 	}
 
-	public function mock_embed_request( $preempt, $r, $url ) {
-		unset( $preempt, $r );
+	public function mock_embed_request( $response, $parsed_args, $url ) {
+		unset( $response, $parsed_args );
 
 		// Mock request to YouTube Embed.
 		if ( false !== strpos( $url, self::YOUTUBE_VIDEO_ID ) ) {
@@ -69,6 +67,9 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		}
 	}
 
+	/**
+	 * @ticket 54596
+	 */
 	public function test_expected_routes_in_schema() {
 		$routes = rest_get_server()->get_routes();
 
@@ -89,6 +90,14 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/posts/(?P<parent>[\\d]+)/revisions/(?P<id>[\\d]+)',
 			'/wp/v2/posts/(?P<id>[\\d]+)/autosaves',
 			'/wp/v2/posts/(?P<parent>[\\d]+)/autosaves/(?P<id>[\\d]+)',
+			'/wp/v2/menu-items',
+			'/wp/v2/menu-items/(?P<id>[\d]+)',
+			'/wp/v2/menu-items/(?P<id>[\d]+)/autosaves',
+			'/wp/v2/menu-items/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
+			'/wp/v2/menu-locations',
+			'/wp/v2/menu-locations/(?P<location>[\w-]+)',
+			'/wp/v2/menus',
+			'/wp/v2/menus/(?P<id>[\d]+)',
 			'/wp/v2/pages',
 			'/wp/v2/pages/(?P<id>[\\d]+)',
 			'/wp/v2/pages/(?P<parent>[\\d]+)/revisions',
@@ -124,36 +133,58 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/(?P<uuid>[\\w\\-]+)',
 			'/wp/v2/comments',
 			'/wp/v2/comments/(?P<id>[\\d]+)',
+			'/wp/v2/global-styles/(?P<id>[\/\w-]+)',
+			'/wp/v2/global-styles/(?P<parent>[\d]+)/revisions',
+			'/wp/v2/global-styles/themes/(?P<stylesheet>[\/\s%\w\.\(\)\[\]\@_\-]+)/variations',
+			'/wp/v2/global-styles/themes/(?P<stylesheet>[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
 			'/wp/v2/search',
 			'/wp/v2/block-renderer/(?P<name>[a-z0-9-]+/[a-z0-9-]+)',
 			'/wp/v2/block-types',
 			'/wp/v2/block-types/(?P<namespace>[a-zA-Z0-9_-]+)',
 			'/wp/v2/block-types/(?P<namespace>[a-zA-Z0-9_-]+)/(?P<name>[a-zA-Z0-9_-]+)',
 			'/wp/v2/settings',
+			'/wp/v2/template-parts',
+			'/wp/v2/template-parts/(?P<id>[\d]+)/autosaves',
+			'/wp/v2/template-parts/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)',
+			'/wp/v2/template-parts/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
+			'/wp/v2/template-parts/(?P<parent>[\d]+)/revisions',
+			'/wp/v2/template-parts/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
+			'/wp/v2/template-parts/lookup',
 			'/wp/v2/templates',
-			'/wp/v2/templates/(?P<id>[\/\w-]+)',
 			'/wp/v2/templates/(?P<id>[\d]+)/autosaves',
+			'/wp/v2/templates/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)',
 			'/wp/v2/templates/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
 			'/wp/v2/templates/(?P<parent>[\d]+)/revisions',
 			'/wp/v2/templates/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
+			'/wp/v2/templates/lookup',
 			'/wp/v2/themes',
-			'/wp/v2/themes/(?P<stylesheet>[^.\/]+(?:\/[^.\/]+)?)',
+			'/wp/v2/themes/(?P<stylesheet>[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
 			'/wp/v2/plugins',
 			'/wp/v2/plugins/(?P<plugin>[^.\/]+(?:\/[^.\/]+)?)',
 			'/wp/v2/block-directory/search',
+			'/wp/v2/block-patterns/categories',
+			'/wp/v2/block-patterns/patterns',
 			'/wp/v2/sidebars',
 			'/wp/v2/sidebars/(?P<id>[\w-]+)',
 			'/wp/v2/widget-types',
 			'/wp/v2/widget-types/(?P<id>[a-zA-Z0-9_-]+)',
 			'/wp/v2/widget-types/(?P<id>[a-zA-Z0-9_-]+)/encode',
+			'/wp/v2/widget-types/(?P<id>[a-zA-Z0-9_-]+)/render',
 			'/wp/v2/widgets',
 			'/wp/v2/widgets/(?P<id>[\w\-]+)',
+			'/wp/v2/navigation',
+			'/wp/v2/navigation/(?P<id>[\d]+)',
+			'/wp/v2/navigation/(?P<id>[\d]+)/autosaves',
+			'/wp/v2/navigation/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
+			'/wp/v2/navigation/(?P<parent>[\d]+)/revisions',
+			'/wp/v2/navigation/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
 			'/wp-site-health/v1',
 			'/wp-site-health/v1/tests/background-updates',
 			'/wp-site-health/v1/tests/loopback-requests',
 			'/wp-site-health/v1/tests/https-status',
 			'/wp-site-health/v1/tests/dotorg-communication',
 			'/wp-site-health/v1/tests/authorization-header',
+			'/wp-site-health/v1/tests/page-cache',
 			'/wp-site-health/v1/directory-sizes',
 		);
 
@@ -175,7 +206,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		// fixture file will be different between runs of PHPUnit tests, which
 		// is not desirable.
 
-		$administrator_id = $this->factory->user->create(
+		$administrator_id = self::factory()->user->create(
 			array(
 				'role'          => 'administrator',
 				'display_name'  => 'REST API Client Fixture: User',
@@ -185,7 +216,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		);
 		wp_set_current_user( $administrator_id );
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_name'    => 'restapi-client-fixture-post',
 				'post_title'   => 'REST API Client Fixture: Post',
@@ -213,7 +244,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			)
 		);
 
-		$page_id = $this->factory->post->create(
+		$page_id = self::factory()->post->create(
 			array(
 				'post_type'     => 'page',
 				'post_name'     => 'restapi-client-fixture-page',
@@ -243,7 +274,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			)
 		);
 
-		$tag_id = $this->factory->tag->create(
+		$tag_id = self::factory()->tag->create(
 			array(
 				'name'        => 'REST API Client Fixture: Tag',
 				'slug'        => 'restapi-client-fixture-tag',
@@ -251,7 +282,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			)
 		);
 
-		$media_id = $this->factory->attachment->create_object(
+		$media_id = self::factory()->attachment->create_object(
 			get_temp_dir() . 'canola.jpg',
 			0,
 			array(
@@ -265,7 +296,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			)
 		);
 
-		$comment_id = $this->factory->comment->create(
+		$comment_id = self::factory()->comment->create(
 			array(
 				'comment_approved'     => 1,
 				'comment_post_ID'      => $post_id,
@@ -491,7 +522,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		wp_delete_post( $post_id, true );
 		wp_delete_post( $page_id, true );
 		wp_delete_term( $tag_id, 'tags' );
-		wp_delete_attachment( $media_id );
+		wp_delete_attachment( $media_id, true );
 		wp_delete_comment( $comment_id );
 	}
 

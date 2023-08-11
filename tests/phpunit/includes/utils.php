@@ -56,6 +56,8 @@ function strip_ws( $txt ) {
  *
  *     $ma = new MockAction();
  *     add_action( 'foo', array( &$ma, 'action' ) );
+ *
+ * @since UT (3.7.0)
  */
 class MockAction {
 	public $events;
@@ -63,140 +65,221 @@ class MockAction {
 
 	/**
 	 * PHP5 constructor.
+	 *
+	 * @since UT (3.7.0)
 	 */
 	public function __construct( $debug = 0 ) {
 		$this->reset();
 		$this->debug = $debug;
 	}
 
+	/**
+	 * @since UT (3.7.0)
+	 */
 	public function reset() {
 		$this->events = array();
 	}
 
+	/**
+	 * @since UT (3.7.0)
+	 */
 	public function current_filter() {
+		global $wp_actions;
+
 		if ( is_callable( 'current_filter' ) ) {
 			return current_filter();
 		}
-		global $wp_actions;
+
 		return end( $wp_actions );
 	}
 
+	/**
+	 * @since UT (3.7.0)
+	 */
 	public function action( $arg ) {
+		$current_filter = $this->current_filter();
+
 		if ( $this->debug ) {
-			dmp( __FUNCTION__, $this->current_filter() );
+			dmp( __FUNCTION__, $current_filter );
 		}
-		$args           = func_get_args();
+
 		$this->events[] = array(
-			'action' => __FUNCTION__,
-			'tag'    => $this->current_filter(),
-			'args'   => $args,
+			'action'    => __FUNCTION__,
+			'hook_name' => $current_filter,
+			'tag'       => $current_filter, // Back compat.
+			'args'      => func_get_args(),
 		);
+
 		return $arg;
 	}
 
+	/**
+	 * @since UT (3.7.0)
+	 */
 	public function action2( $arg ) {
+		$current_filter = $this->current_filter();
+
 		if ( $this->debug ) {
-			dmp( __FUNCTION__, $this->current_filter() );
+			dmp( __FUNCTION__, $current_filter );
 		}
 
-		$args           = func_get_args();
 		$this->events[] = array(
-			'action' => __FUNCTION__,
-			'tag'    => $this->current_filter(),
-			'args'   => $args,
+			'action'    => __FUNCTION__,
+			'hook_name' => $current_filter,
+			'tag'       => $current_filter, // Back compat.
+			'args'      => func_get_args(),
 		);
+
 		return $arg;
 	}
 
+	/**
+	 * @since UT (3.7.0)
+	 */
 	public function filter( $arg ) {
+		$current_filter = $this->current_filter();
+
 		if ( $this->debug ) {
-			dmp( __FUNCTION__, $this->current_filter() );
+			dmp( __FUNCTION__, $current_filter );
 		}
 
-		$args           = func_get_args();
 		$this->events[] = array(
-			'filter' => __FUNCTION__,
-			'tag'    => $this->current_filter(),
-			'args'   => $args,
+			'filter'    => __FUNCTION__,
+			'hook_name' => $current_filter,
+			'tag'       => $current_filter, // Back compat.
+			'args'      => func_get_args(),
 		);
+
 		return $arg;
 	}
 
+	/**
+	 * @since UT (3.7.0)
+	 */
 	public function filter2( $arg ) {
+		$current_filter = $this->current_filter();
+
 		if ( $this->debug ) {
-			dmp( __FUNCTION__, $this->current_filter() );
+			dmp( __FUNCTION__, $current_filter );
 		}
 
-		$args           = func_get_args();
 		$this->events[] = array(
-			'filter' => __FUNCTION__,
-			'tag'    => $this->current_filter(),
-			'args'   => $args,
+			'filter'    => __FUNCTION__,
+			'hook_name' => $current_filter,
+			'tag'       => $current_filter, // Back compat.
+			'args'      => func_get_args(),
 		);
+
 		return $arg;
 	}
 
+	/**
+	 * @since UT (3.7.0)
+	 */
 	public function filter_append( $arg ) {
+		$current_filter = $this->current_filter();
+
 		if ( $this->debug ) {
-			dmp( __FUNCTION__, $this->current_filter() );
+			dmp( __FUNCTION__, $current_filter );
 		}
 
-		$args           = func_get_args();
 		$this->events[] = array(
-			'filter' => __FUNCTION__,
-			'tag'    => $this->current_filter(),
-			'args'   => $args,
+			'filter'    => __FUNCTION__,
+			'hook_name' => $current_filter,
+			'tag'       => $current_filter, // Back compat.
+			'args'      => func_get_args(),
 		);
+
 		return $arg . '_append';
 	}
 
-	public function filterall( $tag, ...$args ) {
-		// This one doesn't return the result, so it's safe to use with the new 'all' filter.
+	/**
+	 * Does not return the result, so it's safe to use with the 'all' filter.
+	 *
+	 * @since UT (3.7.0)
+	 */
+	public function filterall( $hook_name, ...$args ) {
+		$current_filter = $this->current_filter();
+
 		if ( $this->debug ) {
-			dmp( __FUNCTION__, $this->current_filter() );
+			dmp( __FUNCTION__, $current_filter );
 		}
 
 		$this->events[] = array(
-			'filter' => __FUNCTION__,
-			'tag'    => $tag,
-			'args'   => $args,
+			'filter'    => __FUNCTION__,
+			'hook_name' => $hook_name,
+			'tag'       => $hook_name, // Back compat.
+			'args'      => $args,
 		);
 	}
 
-	// Return a list of all the actions, tags and args.
+	/**
+	 * Returns a list of all the actions, hook names and args.
+	 *
+	 * @since UT (3.7.0)
+	 */
 	public function get_events() {
 		return $this->events;
 	}
 
-	// Return a count of the number of times the action was called since the last reset.
-	public function get_call_count( $tag = '' ) {
-		if ( $tag ) {
+	/**
+	 * Returns a count of the number of times the action was called since the last reset.
+	 *
+	 * @since UT (3.7.0)
+	 */
+	public function get_call_count( $hook_name = '' ) {
+		if ( $hook_name ) {
 			$count = 0;
+
 			foreach ( $this->events as $e ) {
-				if ( $e['action'] === $tag ) {
+				if ( $e['action'] === $hook_name ) {
 					++$count;
 				}
 			}
+
 			return $count;
 		}
+
 		return count( $this->events );
 	}
 
-	// Return an array of the tags that triggered calls to this action.
-	public function get_tags() {
+	/**
+	 * Returns an array of the hook names that triggered calls to this action.
+	 *
+	 * @since 6.1.0
+	 */
+	public function get_hook_names() {
 		$out = array();
+
 		foreach ( $this->events as $e ) {
-			$out[] = $e['tag'];
+			$out[] = $e['hook_name'];
 		}
+
 		return $out;
 	}
 
-	// Return an array of args passed in calls to this action.
+	/**
+	 * Returns an array of the hook names that triggered calls to this action.
+	 *
+	 * @since UT (3.7.0)
+	 * @since 6.1.0 Turned into an alias for ::get_hook_names().
+	 */
+	public function get_tags() {
+		return $this->get_hook_names();
+	}
+
+	/**
+	 * Returns an array of args passed in calls to this action.
+	 *
+	 * @since UT (3.7.0)
+	 */
 	public function get_args() {
 		$out = array();
+
 		foreach ( $this->events as $e ) {
 			$out[] = $e['args'];
 		}
+
 		return $out;
 	}
 }
@@ -348,16 +431,17 @@ function dmp_filter( $a ) {
 	return $a;
 }
 
-function get_echo( $callable, $args = array() ) {
+function get_echo( $callback, $args = array() ) {
 	ob_start();
-	call_user_func_array( $callable, $args );
+	call_user_func_array( $callback, $args );
 	return ob_get_clean();
 }
 
 // Recursively generate some quick assertEquals() tests based on an array.
-function gen_tests_array( $name, $array ) {
+function gen_tests_array( $name, $expected_data ) {
 	$out = array();
-	foreach ( $array as $k => $v ) {
+
+	foreach ( $expected_data as $k => $v ) {
 		if ( is_numeric( $k ) ) {
 			$index = (string) $k;
 		} else {
@@ -372,16 +456,17 @@ function gen_tests_array( $name, $array ) {
 			$out[] = gen_tests_array( "{$name}[{$index}]", $v );
 		}
 	}
+
 	return implode( "\n", $out ) . "\n";
 }
 
 /**
- * Use to create objects by yourself
+ * Use to create objects by yourself.
  */
-class MockClass {}
+class MockClass extends stdClass {}
 
 /**
- * Drops all tables from the WordPress database
+ * Drops all tables from the WordPress database.
  */
 function drop_tables() {
 	global $wpdb;

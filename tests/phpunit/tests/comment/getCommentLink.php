@@ -2,6 +2,8 @@
 
 /**
  * @group comment
+ *
+ * @covers ::get_comment_link
  */
 class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 	protected static $p;
