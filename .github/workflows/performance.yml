@@ -70,6 +70,7 @@ jobs:
   # - Build WordPress.
   # - Run performance tests (previous/target commit).
   # - Print target performance tests results.
+  # - Reset to original commit.
   # - Set the environment to the baseline version.
   # - Run baseline performance tests.
   # - Print baseline performance tests results.
@@ -187,6 +188,9 @@ jobs:
 
       - name: Print target performance tests results
         run: node ./tests/performance/results.js --prefix=before
+
+      - name: Reset to original commit
+        run: git reset --hard $GITHUB_SHA
 
       - name: Set the environment to the baseline version
         run: |
