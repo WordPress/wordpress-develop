@@ -75,9 +75,9 @@ jobs:
   # - Run baseline performance tests.
   # - Print baseline performance tests results.
   # - Compare results with base.
+  # - Add workflow summary
   # - Check if a comment was already made
   # - Comment on PR with test results
-  # - Add workflow summary
   # - Set the base sha.
   # - Set commit details.
   # - Publish performance results.
@@ -206,6 +206,9 @@ jobs:
       - name: Compare results with base
         run: node ./tests/performance/compare-results.js ${{ runner.temp }}/summary.md
 
+      - name: Add workflow summary
+        run: cat ${{ runner.temp }}/summary.md >> $GITHUB_STEP_SUMMARY
+
       - name: Check if a comment was already made
         id: find-comment
         uses: peter-evans/find-comment@a54c31d7fa095754bfef525c0c8e5e5674c4b4b1
@@ -221,9 +224,6 @@ jobs:
           edit-mode: replace
           body-path: ${{ runner.temp }}/summary.md
           token: ${{ secrets.PR_COMMENT_TOKEN }}
-
-      - name: Add workflow summary
-        run: cat ${{ runner.temp }}/summary.md >> $GITHUB_STEP_SUMMARY
 
       - name: Set the base sha
         # Only needed when publishing results.
