@@ -753,10 +753,6 @@
 	text-align: center;
 }
 
-.about__section .wp-person a:focus {
-	box-shadow: none;
-}
-
 .about__section .compact .wp-person {
 	height: auto;
 	width: 20%;
@@ -787,6 +783,7 @@
 	font-size: 1.4em;
 	font-weight: 600;
 	text-decoration: none;
+	display: block;
 }
 
 .about__section .wp-person .web:hover {
