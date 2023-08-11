@@ -92,8 +92,8 @@ for ( const key of testSuites ) {
 		const percentage = Math.round( ( delta / value ) * 100 );
 		rows.push( {
 			Metric: metric,
-			Before: `${ prevValue } ms`,
-			After: `${ value } ms`,
+			Before: `${ prevValue.toFixed( 2 ) } ms`,
+			After: `${ value.toFixed( 2 ) } ms`,
 			'Diff abs.': `${ delta.toFixed( 2 ) } ms`,
 			'Diff %': `${ percentage.toFixed( 2 ) } %`,
 		} );
