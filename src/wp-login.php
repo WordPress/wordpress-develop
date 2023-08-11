@@ -1434,7 +1434,7 @@ switch ( $action ) {
 					<input type="password" name="pwd" id="user_pass"<?php echo $aria_describedby; ?> class="input password-input" value="" size="20" autocomplete="current-password" spellcheck="false" required="required" />
 					<button type="button" class="button button-secondary wp-hide-pw pwd-toggle hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
 						<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
-						<span class="text hidden" aria-hidden="true"></span>
+						<span class="text hidden"></span>
 					</button>
 				</div>
 			</div>
