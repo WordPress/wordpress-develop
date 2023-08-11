@@ -848,6 +848,7 @@ var tb_pathToImage = "<?php echo esc_js( includes_url( 'js/thickbox/loadingAnima
 
 /**
  * @param array $users
+ * @return bool
  */
 function confirm_delete_users( $users ) {
 	$current_user = wp_get_current_user();
@@ -1004,8 +1005,10 @@ function network_settings_add_js() {
 jQuery( function($) {
 	var languageSelect = $( '#WPLANG' );
 	$( 'form' ).on( 'submit', function() {
-		// Don't show a spinner for English and installed languages,
-		// as there is nothing to download.
+		/*
+		 * Don't show a spinner for English and installed languages,
+		 * as there is nothing to download.
+		 */
 		if ( ! languageSelect.find( 'option:selected' ).data( 'installed' ) ) {
 			$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active" />' );
 		}

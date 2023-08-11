@@ -425,7 +425,7 @@ function get_comment_author_url_link( $link_text = '', $before = '', $after = ''
 	$display = str_replace( 'http://www.', '', $display );
 	$display = str_replace( 'http://', '', $display );
 
-	if ( '/' === substr( $display, -1 ) ) {
+	if ( str_ends_with( $display, '/' ) ) {
 		$display = substr( $display, 0, -1 );
 	}
 
@@ -970,13 +970,13 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 				$text = trim( strip_tags( $text ), '% ' );
 
 				// Replace '% Comments' with a proper plural form.
-				if ( $text && ! preg_match( '/[0-9]+/', $text ) && false !== strpos( $more, '%' ) ) {
+				if ( $text && ! preg_match( '/[0-9]+/', $text ) && str_contains( $more, '%' ) ) {
 					/* translators: %s: Number of comments. */
 					$new_text = _n( '%s Comment', '%s Comments', $comments_number );
 					$new_text = trim( sprintf( $new_text, '' ) );
 
 					$more = str_replace( $text, $new_text, $more );
-					if ( false === strpos( $more, '%' ) ) {
+					if ( ! str_contains( $more, '%' ) ) {
 						$more = '% ' . $more;
 					}
 				}
@@ -1440,12 +1440,11 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 	$comment_author_url = esc_url( $commenter['comment_author_url'] );
 
 	$comment_args = array(
-		'orderby'                   => 'comment_date_gmt',
-		'order'                     => 'ASC',
-		'status'                    => 'approve',
-		'post_id'                   => $post->ID,
-		'no_found_rows'             => false,
-		'update_comment_meta_cache' => false, // We lazy-load comment meta for performance.
+		'orderby'       => 'comment_date_gmt',
+		'order'         => 'ASC',
+		'status'        => 'approve',
+		'post_id'       => $post->ID,
+		'no_found_rows' => false,
 	);
 
 	if ( get_option( 'thread_comments' ) ) {
@@ -2380,8 +2379,6 @@ function wp_list_comments( $args = array(), $comments = null ) {
 		$parsed_args['reverse_top_level'] = ( 'desc' === get_option( 'comment_order' ) );
 	}
 
-	wp_queue_comments_for_comment_meta_lazyload( $_comments );
-
 	if ( empty( $parsed_args['walker'] ) ) {
 		$walker = new Walker_Comment();
 	} else {
@@ -2654,7 +2651,7 @@ function comment_form( $args = array(), $post = null ) {
 	$args = array_merge( $defaults, $args );
 
 	// Remove `aria-describedby` from the email field if there's no associated description.
-	if ( isset( $args['fields']['email'] ) && false === strpos( $args['comment_notes_before'], 'id="email-notes"' ) ) {
+	if ( isset( $args['fields']['email'] ) && ! str_contains( $args['comment_notes_before'], 'id="email-notes"' ) ) {
 		$args['fields']['email'] = str_replace(
 			' aria-describedby="email-notes"',
 			'',
