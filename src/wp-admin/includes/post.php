@@ -135,8 +135,10 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 
 	$published_statuses = array( 'publish', 'future' );
 
-	// Posts 'submitted for approval' are submitted to $_POST the same as if they were being published.
-	// Change status from 'publish' to 'pending' if user lacks permissions to publish or to resave published posts.
+	/*
+	 * Posts 'submitted for approval' are submitted to $_POST the same as if they were being published.
+	 * Change status from 'publish' to 'pending' if user lacks permissions to publish or to resave published posts.
+	 */
 	if ( isset( $post_data['post_status'] )
 		&& ( in_array( $post_data['post_status'], $published_statuses, true )
 		&& ! current_user_can( $ptype->cap->publish_posts ) )
@@ -668,6 +670,15 @@ function bulk_edit_posts( $post_data = null ) {
 		// Prevent wp_insert_post() from overwriting post format with the old data.
 		unset( $post_data['tax_input']['post_format'] );
 
+		// Reset post date of scheduled post to be published.
+		if (
+			in_array( $post->post_status, array( 'future', 'draft' ), true ) &&
+			'publish' === $post_data['post_status']
+		) {
+			$post_data['post_date']     = current_time( 'mysql' );
+			$post_data['post_date_gmt'] = '';
+		}
+
 		$post_id = wp_update_post( $post_data );
 		update_post_meta( $post_id, '_edit_last', get_current_user_id() );
 		$updated[] = $post_id;
@@ -680,6 +691,16 @@ function bulk_edit_posts( $post_data = null ) {
 			}
 		}
 	}
+
+	/**
+	 * Fires after processing the post data for bulk edit.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param int[] $updated          An array of updated post IDs.
+	 * @param array $shared_post_data Associative array containing the post data.
+	 */
+	do_action( 'bulk_edit_posts', $updated, $shared_post_data );
 
 	return array(
 		'updated' => $updated,
@@ -1424,8 +1445,10 @@ function get_sample_permalink( $post, $title = null, $name = null ) {
 		$post->post_name   = sanitize_title( $post->post_name ? $post->post_name : $post->post_title, $post->ID );
 	}
 
-	// If the user wants to set a new name -- override the current one.
-	// Note: if empty name is supplied -- use the title instead, see #6072.
+	/*
+	 * If the user wants to set a new name -- override the current one.
+	 * Note: if empty name is supplied -- use the title instead, see #6072.
+	 */
 	if ( ! is_null( $name ) ) {
 		$post->post_name = sanitize_title( $name ? $name : $title, $post->ID );
 	}
@@ -2054,8 +2077,10 @@ function wp_autosave( $post_data ) {
 		// Drafts and auto-drafts are just overwritten by autosave for the same user if the post is not locked.
 		return edit_post( wp_slash( $post_data ) );
 	} else {
-		// Non-drafts or other users' drafts are not overwritten.
-		// The autosave is stored in a special post revision for each user.
+		/*
+		 * Non-drafts or other users' drafts are not overwritten.
+		 * The autosave is stored in a special post revision for each user.
+		 */
 		return wp_create_post_autosave( wp_slash( $post_data ) );
 	}
 }

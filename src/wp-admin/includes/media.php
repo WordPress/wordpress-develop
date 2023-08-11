@@ -422,14 +422,18 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 	$attachment_id = wp_insert_attachment( $attachment, $file, $post_id, true );
 
 	if ( ! is_wp_error( $attachment_id ) ) {
-		// Set a custom header with the attachment_id.
-		// Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+		/*
+		 * Set a custom header with the attachment_id.
+		 * Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+		 */
 		if ( ! headers_sent() ) {
 			header( 'X-WP-Upload-Attachment-ID: ' . $attachment_id );
 		}
 
-		// The image sub-sizes are created during wp_generate_attachment_metadata().
-		// This is generally slow and may cause timeouts or out of memory errors.
+		/*
+		 * The image sub-sizes are created during wp_generate_attachment_metadata().
+		 * This is generally slow and may cause timeouts or out of memory errors.
+		 */
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $file ) );
 	}
 
@@ -831,7 +835,7 @@ function media_upload_form_handler() {
 		if ( ! empty( $attachment['url'] ) ) {
 			$rel = '';
 
-			if ( strpos( $attachment['url'], 'attachment_id' ) || get_attachment_link( $send_id ) == $attachment['url'] ) {
+			if ( str_contains( $attachment['url'], 'attachment_id' ) || get_attachment_link( $send_id ) === $attachment['url'] ) {
 				$rel = " rel='attachment wp-att-" . esc_attr( $send_id ) . "'";
 			}
 
@@ -1359,7 +1363,7 @@ function image_media_send_to_editor( $html, $attachment_id, $attachment ) {
 		$align = ! empty( $attachment['align'] ) ? $attachment['align'] : 'none';
 		$size  = ! empty( $attachment['image-size'] ) ? $attachment['image-size'] : 'medium';
 		$alt   = ! empty( $attachment['image_alt'] ) ? $attachment['image_alt'] : '';
-		$rel   = ( strpos( $url, 'attachment_id' ) || get_attachment_link( $attachment_id ) === $url );
+		$rel   = ( str_contains( $url, 'attachment_id' ) || get_attachment_link( $attachment_id ) === $url );
 
 		return get_image_send_to_editor( $attachment_id, $attachment['post_excerpt'], $attachment['post_title'], $align, $url, $rel, $size, $alt );
 	}
