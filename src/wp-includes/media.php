@@ -5772,7 +5772,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	if ( $increase_count ) {
 		wp_increase_content_media_count();
 	} elseif ( $maybe_increase_count ) {
-		/** This filter is documented in wp-admin/includes/media.php */
+		/** This filter is documented in wp-includes/media.php */
 		$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 50000 );
 
 		if ( $wp_min_priority_img_pixels <= $attr['width'] * $attr['height'] ) {
