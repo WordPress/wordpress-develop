@@ -3,7 +3,11 @@
  */
 const { basename, join } = require( 'path' );
 const { writeFileSync } = require( 'fs' );
-const { getResultsFilename } = require( './../utils' );
+const {
+	getResultsFilename,
+	getTimeToFirstByte,
+	getLargestContentfulPaint,
+} = require( './../utils' );
 
 /**
  * WordPress dependencies.
@@ -52,36 +56,8 @@ describe( 'Server Timing - Twenty Twenty Three', () => {
 			);
 			results.wpTotal.push( navigationTiming.serverTiming[ 2 ].duration );
 
-			const ttfb = await page.evaluate(
-				() =>
-					new Promise( ( resolve ) => {
-						new PerformanceObserver( ( entryList ) => {
-							const [ pageNav ] =
-								entryList.getEntriesByType( 'navigation' );
-
-							resolve( pageNav.responseStart );
-						} ).observe( {
-							type: 'navigation',
-							buffered: true,
-						} );
-					} )
-			);
-
-			const lcp = await page.evaluate(
-				() =>
-					new Promise( ( resolve ) => {
-						new PerformanceObserver( ( entryList ) => {
-							const entries = entryList.getEntries();
-							// The last entry is the largest contentful paint.
-							const largestPaintEntry = entries.at( -1 );
-
-							resolve( largestPaintEntry?.startTime || 0 );
-						} ).observe( {
-							type: 'largest-contentful-paint',
-							buffered: true,
-						} );
-					} )
-			);
+			const ttfb = await getTimeToFirstByte();
+			const lcp = await getLargestContentfulPaint();
 
 			results.ttfb.push( ttfb );
 			results.lcp.push( lcp );

@@ -21,13 +21,67 @@ function median( array ) {
  * @return {string} Result file name.
  */
 function getResultsFilename( fileName ) {
-	const prefixArg = process.argv.find( ( arg ) => arg.startsWith( '--prefix' ) );
-	const fileNamePrefix = prefixArg ? `${prefixArg.split( '=' )[1]}-` : '';
+	const prefixArg = process.argv.find( ( arg ) =>
+		arg.startsWith( '--prefix' )
+	);
+	const fileNamePrefix = prefixArg ? `${ prefixArg.split( '=' )[ 1 ] }-` : '';
 	const resultsFilename = fileNamePrefix + fileName + '.results.json';
 	return resultsFilename;
+}
+
+/**
+ * Returns time to first byte (TTFB) using the Navigation Timing API.
+ *
+ * @see https://web.dev/ttfb/#measure-ttfb-in-javascript
+ *
+ * @return {Promise<number>}
+ */
+async function getTimeToFirstByte() {
+	return page.evaluate(
+		() =>
+			new Promise( ( resolve ) => {
+				new PerformanceObserver( ( entryList ) => {
+					const [ pageNav ] =
+						entryList.getEntriesByType( 'navigation' );
+
+					resolve( pageNav.responseStart );
+				} ).observe( {
+					type: 'navigation',
+					buffered: true,
+				} );
+			} )
+	);
+}
+
+/**
+ * Returns the Largest Contentful Paint (LCP) value using the dedicated API.
+ *
+ * @see https://w3c.github.io/largest-contentful-paint/
+ * @see https://web.dev/lcp/#measure-lcp-in-javascript
+ *
+ * @return {Promise<number>}
+ */
+async function getLargestContentfulPaint() {
+	return page.evaluate(
+		() =>
+			new Promise( ( resolve ) => {
+				new PerformanceObserver( ( entryList ) => {
+					const entries = entryList.getEntries();
+					// The last entry is the largest contentful paint.
+					const largestPaintEntry = entries.at( -1 );
+
+					resolve( largestPaintEntry?.startTime || 0 );
+				} ).observe( {
+					type: 'largest-contentful-paint',
+					buffered: true,
+				} );
+			} )
+	);
 }
 
 module.exports = {
 	median,
 	getResultsFilename,
+	getTimeToFirstByte,
+	getLargestContentfulPaint,
 };
