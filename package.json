@@ -164,7 +164,7 @@
 		"regenerator-runtime": "0.13.11",
 		"tslib": "2.6.0",
 		"underscore": "1.13.6",
-		"whatwg-fetch": "3.6.2",
+		"whatwg-fetch": "3.6.17",
 		"wicg-inert": "3.1.2"
 	},
 	"scripts": {
