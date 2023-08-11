@@ -39,7 +39,7 @@ const prevResults = Object.fromEntries(
 
 const args = process.argv.slice( 2 );
 
-const summaryFile = args[ 1 ];
+const summaryFile = args[ 0 ];
 
 function formatAsMarkdownTable( rows ) {
 	let result = '';
