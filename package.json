@@ -158,7 +158,7 @@
 		"moment": "2.29.4",
 		"objectFitPolyfill": "2.3.5",
 		"path-to-regexp": "6.2.1",
-		"polyfill-library": "4.7.0",
+		"polyfill-library": "4.8.0",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
 		"regenerator-runtime": "0.13.11",
