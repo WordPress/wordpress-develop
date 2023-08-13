@@ -53,6 +53,14 @@ class Tests_HtmlApi_WpHtmlProcessorSetInnerMarkup extends WP_UnitTestCase {
 			'Unclosed nested element'             => array( '<div><p target>One thought<p>And another', '', '<div><p target><p>And another' ),
 			'Partially-closed element'            => array( '<div target>This is <em>all</em> inside the DIV</div', '', '<div target>' ),
 			'Implicitly-closed element'           => array( '<div><p target>Inside the P</div>Outside the P</p>', '', '<div><p target></div>Outside the P</p>' ),
+
+			'Text markup'                         => array( '<span target></span>', 'Today is the best day to start.', '<span target>Today is the best day to start.</span>' ),
+			'Text with ampersand (raw)'           => array( '<span target></span>', 'Today & yesterday are the best days to start.', '<span target>Today & yesterday are the best days to start.</span>' ),
+			'Text with tag (raw)'                 => array( '<span target></span>', 'Yesterday <em>was</em> the best day to start.', '<span target>Yesterday <em>was</em> the best day to start.</span>' ),
+			'Text with unclosed tag (raw)'        => array( '<span target></span>', 'Yesterday <em>was the best day to start.', '<span target>Yesterday <em>was the best day to start.</span>' ),
+			'Text with ending tag (raw)'          => array( '<span target></span>', 'Here is no </div>', '<span target>Here is no </div></span>' ),
+			'Text with scope-creating tag (raw)'  => array( '<span target></span>', '<p>Start<p>Finish<p>Repeat', '<span target><p>Start<p>Finish<p>Repeat</span>' ),
+			'Text with scope-ending tag (raw)'    => array( '<span target></span>', 'Sneaky closing </span> No more span.', '<span target>Sneaky closing </span> No more span.</span>' ),
 		);
 
 		$inner_html = <<<HTML
