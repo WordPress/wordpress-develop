@@ -5906,3 +5906,49 @@ function wp_high_priority_element_flag( $value = null ) {
 	}
 	return $high_priority_element;
 }
+
+
+/**
+ * Register one or more image CDN handlers
+ *
+ * Each CND can register a set of image types and the URL prefix they should use.
+ *
+ * Media URLs will be rewritetn based on the registered CDN's. Wheere more than one CDN is
+ * registered for a single mime_type, a random CDN will be used.
+ *
+ * The `handle` parameter is a unique handle for the CDN.
+ * The `mime_types_url_mapping` maps mime types to URL prefixes, enabling different
+ * prefixes depending on the mime type.
+ *
+ * @param $handle                  string The unique handle for the CDN
+ * @param $mime_types_url_mapping array  An array of mime types and URL prefixes
+ */
+function wp_register_mime_cdn_handler( $handle, $mime_types_url_mapping ) {
+	global $wp_mime_cdn_handlers;
+
+	if ( ! is_array( $wp_mime_cdn_handlers ) ) {
+		$wp_mime_cdn_handlers = array();
+	}
+
+	// If the mapping is false, remove the handler.
+	if ( false === $mime_types_url_mapping ) {
+		unset( $wp_mime_cdn_handlers[ $handle ] );
+		return;
+	}
+
+	$wp_mime_cdn_handlers[ $handle ] = $mime_types_url_mapping;
+}
+
+/**
+ * Gets the CDN URL mapping for a specific mime_type.
+ */
+function wp_get_mime_cdn_mapping( $mime_type ) {
+	global $wp_mime_cdn_handlers;
+
+	if ( ! is_array( $wp_mime_cdn_handlers ) ) {
+		return false;
+	}
+
+	return $wp_mime_cdn_handlers[ $mime_type ];
+}
+
