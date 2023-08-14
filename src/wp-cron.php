@@ -168,7 +168,7 @@ foreach ( $crons as $timestamp => $cronhooks ) {
 				);
 
 				/**
-				 * Fires when an error happens unscheduling a cron event.
+				 * Fires when an error happens when unscheduling a cron event.
 				 *
 				 * @since 6.1.0
 				 *
