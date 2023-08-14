@@ -313,7 +313,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 
 					if ( $deleted ) {
 						$count++;
-					} elseif ( $deleted === null ) {
+					} elseif ( null === $deleted ) {
 						$already_done++;
 					} else {
 						$failures++;
