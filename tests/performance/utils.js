@@ -44,7 +44,7 @@ async function getTimeToFirstByte() {
 					const [ pageNav ] =
 						entryList.getEntriesByType( 'navigation' );
 
-					resolve( pageNav.responseStart );
+					resolve( pageNav.responseStart - pageNav.startTime );
 				} ).observe( {
 					type: 'navigation',
 					buffered: true,
