@@ -228,8 +228,9 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 			return;
 		}
 
-		$count    = 0;
-		$failures = 0;
+		$count        = 0;
+		$failures 	  = 0;
+		$already_done = 0;
 
 		check_admin_referer( 'bulk-privacy_requests' );
 
@@ -308,11 +309,32 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 
 			case 'delete':
 				foreach ( $request_ids as $request_id ) {
-					if ( wp_delete_post( $request_id, true ) ) {
+					$deleted = wp_delete_post( $request_id, true );
+
+					if ( $deleted ) {
 						$count++;
+					} elseif ($deleted === null) {
+						$already_done++;
 					} else {
 						$failures++;
 					}
+				}
+
+				if ( $already_done ) {
+					add_settings_error(
+						'bulk_action',
+						'bulk_action',
+						sprintf(
+						/* translators: %d: Number of requests. */
+							_n(
+								'%d request already deleted.',
+								'%d requests already deleted.',
+								$already_done
+							),
+							$already_done
+						),
+						'warning'
+					);
 				}
 
 				if ( $failures ) {
