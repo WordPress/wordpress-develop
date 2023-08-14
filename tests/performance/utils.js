@@ -37,20 +37,11 @@ function getResultsFilename( fileName ) {
  * @return {Promise<number>}
  */
 async function getTimeToFirstByte() {
-	return page.evaluate(
-		() =>
-			new Promise( ( resolve ) => {
-				new PerformanceObserver( ( entryList ) => {
-					const [ pageNav ] =
-						entryList.getEntriesByType( 'navigation' );
-
-					resolve( pageNav.responseStart - pageNav.startTime );
-				} ).observe( {
-					type: 'navigation',
-					buffered: true,
-				} );
-			} )
-	);
+	return page.evaluate( () => {
+		const { responseStart, startTime } =
+			performance.getEntriesByType( 'navigation' )[ 0 ];
+		return responseStart - startTime;
+	} );
 }
 
 /**
