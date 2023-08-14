@@ -229,7 +229,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 		}
 
 		$count        = 0;
-		$failures 	  = 0;
+		$failures     = 0;
 		$already_done = 0;
 
 		check_admin_referer( 'bulk-privacy_requests' );
@@ -313,7 +313,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 
 					if ( $deleted ) {
 						$count++;
-					} elseif ($deleted === null) {
+					} elseif ( $deleted === null ) {
 						$already_done++;
 					} else {
 						$failures++;
