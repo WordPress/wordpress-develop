@@ -111,7 +111,7 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 
 	wp_set_auth_cookie( $user->ID, $credentials['remember'], $secure_cookie );
 
-	// Flush `user_activation_key` after successful login
+	// Flush `user_activation_key` after successful login.
 	global $wpdb;
 	$wpdb->update(
 		$wpdb->users,
