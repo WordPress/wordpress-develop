@@ -278,16 +278,41 @@ function prime_options( $options ) {
 
 	if ( ! empty( $options_to_prime ) ) {
 		global $wpdb;
-		$option_names = implode( "','", array_map( 'esc_sql', $options_to_prime ) );
-		$query   = $wpdb->prepare( "SELECT option_name, option_value FROM $wpdb->options WHERE option_name IN (%s)", $option_names );
-		$results = $wpdb->get_results( $query );
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				sprintf(
+					"SELECT option_name, option_value FROM $wpdb->options WHERE option_name IN (%s)",
+					implode( ',', array_fill( 0, count( $options_to_prime ), '%s' ) )
+				),
+				$options_to_prime
+			)
+		);
 
-		$option_values = array();
+		$options_not_found = $options_to_prime;
 		foreach ( $results as $result ) {
-			$option_values[ $result->option_name ] = maybe_unserialize( $result->option_value );
+			wp_cache_set( $result->option_name, maybe_unserialize( $result->option_value ), 'options' );
+			unset( $options_not_found[ array_search( $result->option_name, $options_not_found, true ) ] );
 		}
 
-		wp_cache_set_multiple( $option_values, 'options' );
+		$notoptions = wp_cache_get( 'notoptions', 'options' );
+
+		// Make a copy to check later if any change was made.
+		$new_notoptions = $notoptions;
+
+		// Add the options that were not found to the cache.
+		if ( ! is_array( $new_notoptions ) ) {
+			$new_notoptions = array();
+		}
+		foreach ( $options_not_found as $option_name ) {
+			if ( ! isset( $new_notoptions[ $option_name ] ) ) {
+				$new_notoptions[ $option_name ] = true;
+			}
+		}
+
+		// Only update the cache if it was modified.
+		if ( $new_notoptions !== $notoptions ) {
+			wp_cache_set( 'notoptions', $new_notoptions, 'options' );
+		}
 	}
 }
 
@@ -296,15 +321,15 @@ function prime_options( $options ) {
  *
  * @since 6.4.0
  *
- * @global array $allowed_options
+ * @global array $new_allowed_options
  *
  * @param string $option_group The option group to prime options for.
  */
 function prime_options_by_group( $option_group ) {
-	global $allowed_options;
+	global $new_allowed_options;
 
-	if ( isset( $allowed_options[ $option_group ] ) ) {
-		prime_options( $allowed_options[ $option_group ] );
+	if ( isset( $new_allowed_options[ $option_group ] ) ) {
+		prime_options( $new_allowed_options[ $option_group ] );
 	}
 }
 
