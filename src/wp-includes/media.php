@@ -5920,23 +5920,34 @@ function wp_high_priority_element_flag( $value = null ) {
  * The `mime_types_url_mapping` maps mime types to URL prefixes, enabling different
  * prefixes depending on the mime type.
  *
- * @param $handle                  string The unique handle for the CDN
- * @param $mime_types_url_mapping array  An array of mime types and URL prefixes
+ * @param $handle     string The unique handle for the CDN
+ * @param $mime_types array  An array of supported mime types
+ * @param $callback   string The callback function to use to rewrite the URL.
  */
-function wp_register_mime_cdn_handler( $handle, $mime_types_url_mapping ) {
+function wp_register_mime_cdn_handler( $handle, $mime_types, $callback ) {
 	global $wp_mime_cdn_handlers;
 
 	if ( ! is_array( $wp_mime_cdn_handlers ) ) {
 		$wp_mime_cdn_handlers = array();
 	}
 
-	// If the mapping is false, remove the handler.
-	if ( false === $mime_types_url_mapping ) {
-		unset( $wp_mime_cdn_handlers[ $handle ] );
-		return;
+	// If  mime_types is false, remove the handler.
+	if ( empty( $mime_types ) ) {
+		foreach ( $wp_mime_cdn_handlers as $mime_type => $handler ) {
+			if ( $handler['handle'] === $handle ) {
+				unset( $wp_mime_cdn_handlers[ $mime_type ] );
+			}
+		}
+
 	}
 
-	$wp_mime_cdn_handlers[ $handle ] = $mime_types_url_mapping;
+	// Map each mime type to its handler for quick lookup. Each type can only have one handler.
+	foreach ( $mime_types as $mime_type ) {
+		$wp_mime_cdn_handlers[ $mime_type ] = array(
+			'handle'     => $handle,
+			'callback'   => $callback,
+		);
+	}
 }
 
 /**
@@ -5951,4 +5962,3 @@ function wp_get_mime_cdn_mapping( $mime_type ) {
 
 	return $wp_mime_cdn_handlers[ $mime_type ];
 }
-
