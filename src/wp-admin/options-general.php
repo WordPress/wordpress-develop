@@ -139,7 +139,7 @@ if ( ! is_multisite() ) {
 <p class="description" id="new-admin-email-description"><?php _e( 'This address is used for admin purposes. If you change this, an email will be sent to your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?></p>
 <?php
 $new_admin_email = get_option( 'new_admin_email' );
-if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) :
+if ( $new_admin_email && 0 !== strcasecmp( get_option( 'admin_email' ), $new_admin_email ) ) :
 	?>
 	<div class="updated inline">
 	<p>

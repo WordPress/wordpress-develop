@@ -1129,7 +1129,7 @@ final class WP_Screen {
 				update_user_meta( get_current_user_id(), 'show_welcome_panel', $welcome_checked );
 			} else {
 				$welcome_checked = (int) get_user_meta( get_current_user_id(), 'show_welcome_panel', true );
-				if ( 2 === $welcome_checked && wp_get_current_user()->user_email !== get_option( 'admin_email' ) ) {
+				if ( 2 === $welcome_checked && 0 !== strcasecmp( wp_get_current_user()->user_email, get_option( 'admin_email' ) ) ) {
 					$welcome_checked = false;
 				}
 			}

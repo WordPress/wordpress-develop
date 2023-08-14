@@ -2364,7 +2364,7 @@ function wp_insert_user( $userdata ) {
 	}
 
 	if ( $update ) {
-		if ( $user_email !== $old_user_data->user_email || $user_pass !== $old_user_data->user_pass ) {
+		if ( 0 !== strcasecmp( $user_email, $old_user_data->user_email ) || $user_pass !== $old_user_data->user_pass ) {
 			$data['user_activation_key'] = '';
 		}
 		$wpdb->update( $wpdb->users, $data, array( 'ID' => $user_id ) );
@@ -2565,7 +2565,7 @@ function wp_update_user( $userdata ) {
 		$send_password_change_email = apply_filters( 'send_password_change_email', true, $user, $userdata );
 	}
 
-	if ( isset( $userdata['user_email'] ) && $user['user_email'] !== $userdata['user_email'] ) {
+	if ( isset( $userdata['user_email'] ) && 0 !== strcasecmp( $user['user_email'], $userdata['user_email'] ) ) {
 		/**
 		 * Filters whether to send the email change email.
 		 *
