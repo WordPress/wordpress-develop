@@ -42,7 +42,7 @@ jobs:
             });
 
             // Only rerun after the first run attempt.
-            if ( workflow_run.data.run_attempt > 1 || ( workflow_run.data.run_attempt > 3 && 'End-to-end Tests' === workflow_run.data.name ) ) {
+            if ( ( workflow_run.data.run_attempt > 1 && 'End-to-end Tests' !== workflow_run.data.name ) || workflow_run.data.run_attempt > 3  ) {
               return;
             }
 
