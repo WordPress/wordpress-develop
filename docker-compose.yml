@@ -53,7 +53,7 @@ services:
     command: /bin/sh -c "if [ $LOCAL_PHP_MEMCACHED = true ]; then cp -n /var/www/tests/phpunit/includes/object-cache.php /var/www/src/wp-content/object-cache.php; else rm -f /var/www/src/wp-content/object-cache.php; fi && exec php-fpm"
 
     depends_on:
-      - mysql
+      - database
 
     # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
     init: true
@@ -62,9 +62,9 @@ services:
       - localhost:host-gateway
 
   ##
-  # The MySQL container.
+  # The database container.
   ##
-  mysql:
+  database:
     image: amd64/${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
 
     networks:
@@ -77,8 +77,8 @@ services:
       MYSQL_ROOT_PASSWORD: password
 
     volumes:
-      - ./tools/local-env/mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init.sql
-      - mysql:/var/lib/mysql
+      - ./tools/local-env/database-init.sql:/docker-entrypoint-initdb.d/database-init.sql
+      - database:/var/lib/${LOCAL_DB_TYPE-mysql}
 
     # For compatibility with PHP versions that don't support the caching_sha2_password auth plugin used in MySQL 8.0.
     command: --default-authentication-plugin=mysql_native_password
@@ -121,7 +121,7 @@ services:
 
 volumes:
   # So that sites aren't wiped every time containers are restarted, MySQL uses a persistent volume.
-  mysql: {}
+  database: {}
 
 networks:
   # Creating our own network allows us to connect between containers using their service name.

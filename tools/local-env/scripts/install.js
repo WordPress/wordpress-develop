@@ -7,7 +7,7 @@ const { renameSync, readFileSync, writeFileSync } = require( 'fs' );
 dotenvExpand.expand( dotenv.config() );
 
 // Create wp-config.php.
-wp_cli( 'config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --path=/var/www/src --force' );
+wp_cli( 'config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=database --path=/var/www/src --force' );
 
 // Add the debug settings to wp-config.php.
 // Windows requires this to be done as an additional step, rather than using the --extra-php option in the previous step.
@@ -28,7 +28,7 @@ const testConfig = readFileSync( 'wp-tests-config-sample.php', 'utf8' )
 	.replace( 'youremptytestdbnamehere', 'wordpress_develop_tests' )
 	.replace( 'yourusernamehere', 'root' )
 	.replace( 'yourpasswordhere', 'password' )
-	.replace( 'localhost', 'mysql' )
+	.replace( 'localhost', 'database' )
 	.concat( "\ndefine( 'FS_METHOD', 'direct' );\n" );
 
 writeFileSync( 'wp-tests-config.php', testConfig );
