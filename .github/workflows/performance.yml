@@ -205,6 +205,8 @@ jobs:
 
       - name: Compare results with base
         run: node ./tests/performance/compare-results.js ${{ runner.temp }}/summary.md
+        env:
+          TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
 
       - name: Add workflow summary
         run: cat ${{ runner.temp }}/summary.md >> $GITHUB_STEP_SUMMARY

@@ -71,6 +71,10 @@ if ( process.env.GITHUB_SHA ) {
 	summaryMarkdown += `Performance test results are in 🛎️!\n\n`;
 }
 
+if ( process.env.TARGET_SHA ) {
+	summaryMarkdown += `This compares the results from this commit with the ones from ${ process.env.TARGET_SHA }.\n\n`;
+}
+
 console.log( 'Performance Test Results\n' );
 
 for ( const key of testSuites ) {
