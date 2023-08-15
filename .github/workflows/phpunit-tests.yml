@@ -89,17 +89,9 @@ jobs:
         exclude:
           # MySQL and MariaDB have different valid versions. Exclude combinations that don't exist.
           - db_type: 'mysql'
-            db_version: '10.4'
-          - db_type: 'mysql'
-            db_version: '10.6'
-          - db_type: 'mysql'
-            db_version: '10.11'
-          - db_type: 'mysql'
-            db_version: '11.0'
+            db_version: [ '10.4', '10.6', '10.11', '11.0' ]
           - db_type: 'mariadb'
-            db_version: '5.7'
-          - db_type: 'mariadb'
-            db_version: '8.0'
+            db_version: [ '5.7', '8.0' ]
 
     env:
       LOCAL_PHP: ${{ matrix.php }}-fpm
