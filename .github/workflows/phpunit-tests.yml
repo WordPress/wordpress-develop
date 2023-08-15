@@ -69,8 +69,6 @@ jobs:
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0' ]
         multisite: [ false, true ]
-        memcached: [ false ]
-        report: [ false ]
 
         includes:
           # Include jobs for PHP 7.4 with memcached.
