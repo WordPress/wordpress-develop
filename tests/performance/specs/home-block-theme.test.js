@@ -19,8 +19,8 @@ describe( 'Server Timing - Twenty Twenty Three', () => {
 		wpBeforeTemplate: [],
 		wpTemplate: [],
 		wpTotal: [],
-		lcp: [],
-		ttfb: [],
+		timeToFirstByte: [],
+		largestContentfulPaint: [],
 		lcpMinusTtfb: [],
 	};
 
@@ -59,8 +59,8 @@ describe( 'Server Timing - Twenty Twenty Three', () => {
 			const ttfb = await getTimeToFirstByte();
 			const lcp = await getLargestContentfulPaint();
 
-			results.ttfb.push( ttfb );
-			results.lcp.push( lcp );
+			results.timeToFirstByte.push( ttfb );
+			results.largestContentfulPaint.push( lcp );
 			results.lcpMinusTtfb.push( lcp - ttfb );
 		}
 	} );
