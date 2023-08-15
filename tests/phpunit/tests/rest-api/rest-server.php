@@ -4,12 +4,33 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class Tests_REST_Server extends WP_Test_REST_TestCase {
+	protected static $icon_id;
+
+	/**
+	 * Called before setting up all tests.
+	 */
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		// Require files that need to load once.
+		require_once DIR_TESTROOT . '/includes/mock-invokable.php';
+	}
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		$filename      = DIR_TESTDATA . '/images/test-image-large.jpg';
+		self::$icon_id = $factory->attachment->create_upload_object( $filename );
+	}
+
+	public static function tear_down_after_class() {
+		wp_delete_attachment( self::$icon_id, true );
+
+		parent::tear_down_after_class();
+	}
+
 	public function set_up() {
 		parent::set_up();
 
@@ -26,6 +47,10 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		unset( $_REQUEST['_wpnonce'] );
 
 		parent::tear_down();
+	}
+
+	public function filter_wp_rest_server_class() {
+		return 'Spy_REST_Server';
 	}
 
 	public function test_envelope() {
@@ -56,6 +81,62 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$enveloped = $envelope_response->get_data();
 
 		$this->assertSame( $data, $enveloped['body'] );
+		$this->assertSame( $status, $enveloped['status'] );
+		$this->assertSame( $headers, $enveloped['headers'] );
+	}
+
+	/**
+	 * @dataProvider data_envelope_params
+	 * @ticket 54015
+	 */
+	public function test_envelope_param( $_embed ) {
+		// Register our testing route.
+		rest_get_server()->register_route(
+			'test',
+			'/test/embeddable',
+			array(
+				'methods'  => 'GET',
+				'callback' => array( $this, 'embedded_response_callback' ),
+			)
+		);
+		$data    = array(
+			'amount of arbitrary data' => 'alot',
+		);
+		$status  = 987;
+		$headers = array(
+			'Arbitrary-Header' => 'value',
+			'Multiple'         => 'maybe, yes',
+		);
+
+		$response = new WP_REST_Response( $data, $status );
+		$response->header( 'Arbitrary-Header', 'value' );
+
+		// Check header concatenation as well.
+		$response->header( 'Multiple', 'maybe' );
+		$response->header( 'Multiple', 'yes', false );
+
+		// All others should be embedded.
+		$response->add_link( 'alternate', rest_url( '/test/embeddable' ), array( 'embeddable' => true ) );
+
+		$embed             = rest_parse_embed_param( $_embed );
+		$envelope_response = rest_get_server()->envelope_response( $response, $embed );
+
+		// The envelope should still be a response, but with defaults.
+		$this->assertInstanceOf( WP_REST_Response::class, $envelope_response );
+		$this->assertSame( 200, $envelope_response->get_status() );
+		$this->assertEmpty( $envelope_response->get_headers() );
+		$this->assertEmpty( $envelope_response->get_links() );
+
+		$enveloped = $envelope_response->get_data();
+
+		$this->assertArrayHasKey( 'body', $enveloped );
+		$this->assertArrayHasKey( '_links', $enveloped['body'] );
+		$this->assertArrayHasKey( '_embedded', $enveloped['body'] );
+		$this->assertArrayHasKey( 'alternate', $enveloped['body']['_embedded'] );
+
+		$alternate = $enveloped['body']['_embedded']['alternate'];
+		$this->assertCount( 1, $alternate );
+
 		$this->assertSame( $status, $enveloped['status'] );
 		$this->assertSame( $headers, $enveloped['headers'] );
 	}
@@ -370,6 +451,38 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( $sent_headers['Allow'], 'POST' );
 	}
 
+	/**
+	 * @ticket 53063
+	 */
+	public function test_batched_options() {
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				array(
+					'methods'             => array( 'GET' ),
+					'callback'            => '__return_null',
+					'permission_callback' => '__return_true',
+				),
+				array(
+					'methods'             => array( 'POST' ),
+					'callback'            => '__return_null',
+					'permission_callback' => '__return_null',
+					'allow_batch'         => false,
+				),
+				'allow_batch' => array( 'v1' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'OPTIONS', '/test-ns/test' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$data = $response->get_data();
+
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
+		$this->assertArrayNotHasKey( 'allow_batch', $data['endpoints'][1] );
+	}
+
 	public function test_allow_header_sent_on_options_request() {
 		register_rest_route(
 			'test-ns',
@@ -482,8 +595,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	public function test_json_error_with_status() {
 		$stub = $this->getMockBuilder( 'Spy_REST_Server' )
-					->setMethods( array( 'set_status' ) )
-					->getMock();
+			->setMethods( array( 'set_status' ) )
+			->getMock();
 
 		$stub->expects( $this->once() )
 			->method( 'set_status' )
@@ -811,11 +924,35 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$data   = array(
 			'untouched' => 'data',
 		);
-		$result = rest_get_server()->embed_links( $data );
+		$result = rest_get_server()->embed_links( $data, true );
 
-		$this->assertArrayNotHasKey( '_links', $data );
-		$this->assertArrayNotHasKey( '_embedded', $data );
-		$this->assertSame( 'data', $data['untouched'] );
+		$this->assertArrayNotHasKey( '_links', $result );
+		$this->assertArrayNotHasKey( '_embedded', $result );
+		$this->assertSame( 'data', $result['untouched'] );
+	}
+
+	/**
+	 * Ensure embed_links handles WP_Error objects returned by dispatch
+	 *
+	 * @ticket 56566
+	 */
+	public function test_link_embedding_returning_wp_error() {
+		$return_wp_error = static function() {
+			return new WP_Error( 'some-error', 'This is not valid!' );
+		};
+		add_filter( 'rest_pre_dispatch', $return_wp_error );
+
+		$mock = new MockAction();
+		add_filter( 'rest_post_dispatch', array( $mock, 'filter' ) );
+
+		$response = new WP_REST_Response();
+		$response->add_link( 'author', rest_url( 'test' ), array( 'embeddable' => true ) );
+
+		$data = rest_get_server()->response_to_data( $response, true );
+
+		$this->assertArrayHasKey( '_links', $data );
+		$this->assertCount( 1, $mock->get_events() );
+		$this->assertSame( 'some-error', $data['_embedded']['author'][0]['code'] );
 	}
 
 	public function embedded_response_callback( $request ) {
@@ -871,7 +1008,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @dataProvider _dp_response_to_data_embedding
+	 * @dataProvider data_response_to_data_embedding
 	 */
 	public function test_response_to_data_embedding( $expected, $embed ) {
 		$response = new WP_REST_Response();
@@ -889,7 +1026,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		}
 	}
 
-	public function _dp_response_to_data_embedding() {
+	public function data_response_to_data_embedding() {
 		return array(
 			array(
 				array( 'author', 'wp:term', 'https://wordpress.org' ),
@@ -975,6 +1112,39 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$this->assertArrayHasKey( 'help', $index->get_links() );
 		$this->assertArrayNotHasKey( 'wp:active-theme', $index->get_links() );
+
+		// Check site logo and icon.
+		$this->assertArrayHasKey( 'site_logo', $data );
+		$this->assertArrayHasKey( 'site_icon', $data );
+		$this->assertArrayHasKey( 'site_icon_url', $data );
+	}
+
+	/**
+	 * @ticket 50152
+	 */
+	public function test_index_includes_link_to_active_theme_if_authenticated() {
+		$server = new WP_REST_Server();
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+
+		$this->assertArrayHasKey( 'https://api.w.org/active-theme', $index->get_links() );
+	}
+
+	/**
+	 * @ticket 52321
+	 */
+	public function test_index_includes_site_icon() {
+		$server = new WP_REST_Server();
+		update_option( 'site_icon', self::$icon_id );
+
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+
+		$this->assertArrayHasKey( 'site_icon', $data );
+		$this->assertSame( self::$icon_id, $data['site_icon'] );
 	}
 
 	public function test_get_namespace_index() {
@@ -1102,7 +1272,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$result  = rest_get_server()->serve_request( '/' );
 		$headers = rest_get_server()->sent_headers;
 
-		$this->assertSame( '<' . esc_url_raw( $api_root ) . '>; rel="https://api.w.org/"', $headers['Link'] );
+		$this->assertSame( '<' . sanitize_url( $api_root ) . '>; rel="https://api.w.org/"', $headers['Link'] );
 	}
 
 	public function test_nocache_headers_on_authenticated_requests() {
@@ -1293,10 +1463,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$result = rest_get_server()->serve_request( '/test/data\\with\\slashes' );
 		$this->assertSame( 'data\\with\\slashes', rest_get_server()->last_request->get_header( 'x_my_header' ) );
-	}
-
-	public function filter_wp_rest_server_class() {
-		return 'Spy_REST_Server';
 	}
 
 	/**
@@ -1573,9 +1739,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * @ticket 50244
 	 */
 	public function test_callbacks_are_not_executed_if_request_validation_fails() {
-		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback = $this->createPartialMock( 'Mock_Invokable', array( '__invoke' ) );
 		$callback->expects( self::never() )->method( '__invoke' );
-		$permission_callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$permission_callback = $this->createPartialMock( 'Mock_Invokable', array( '__invoke' ) );
 		$permission_callback->expects( self::never() )->method( '__invoke' );
 
 		register_rest_route(
@@ -2013,16 +2179,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 50152
-	 */
-	public function test_index_includes_link_to_active_theme_if_authenticated() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-
-		$index = rest_do_request( '/' );
-		$this->assertArrayHasKey( 'https://api.w.org/active-theme', $index->get_links() );
-	}
-
-	/**
 	 * @ticket 53056
 	 */
 	public function test_json_encode_error_results_in_500_status_code() {
@@ -2032,7 +2188,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			array(
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
-					'callback'            => function() {
+					'callback'            => static function() {
 						return new \WP_REST_Response( INF );
 					},
 					'permission_callback' => '__return_true',
@@ -2042,6 +2198,36 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 		rest_get_server()->serve_request( '/test-ns/v1/test' );
 		$this->assertSame( 500, rest_get_server()->status );
+	}
+
+	/**
+	 * @ticket 57752
+	 */
+	public function test_rest_exposed_cors_headers_filter_receives_request_object() {
+		$mock_hook = new MockAction();
+		add_filter( 'rest_exposed_cors_headers', array( $mock_hook, 'filter' ), 10, 2 );
+
+		rest_get_server()->serve_request( '/test-exposed-cors-headers' );
+
+		$this->assertCount( 1, $mock_hook->get_events() );
+		$this->assertCount( 2, $mock_hook->get_events()[0]['args'] );
+		$this->assertInstanceOf( 'WP_REST_Request', $mock_hook->get_events()[0]['args'][1] );
+		$this->assertSame( '/test-exposed-cors-headers', $mock_hook->get_events()[0]['args'][1]->get_route() );
+	}
+
+	/**
+	 * @ticket 57752
+	 */
+	public function test_rest_allowed_cors_headers_filter_receives_request_object() {
+		$mock_hook = new MockAction();
+		add_filter( 'rest_allowed_cors_headers', array( $mock_hook, 'filter' ), 10, 2 );
+
+		rest_get_server()->serve_request( '/test-allowed-cors-headers' );
+
+		$this->assertCount( 1, $mock_hook->get_events() );
+		$this->assertCount( 2, $mock_hook->get_events()[0]['args'] );
+		$this->assertInstanceOf( 'WP_REST_Request', $mock_hook->get_events()[0]['args'][1] );
+		$this->assertSame( '/test-allowed-cors-headers', $mock_hook->get_events()[0]['args'][1]->get_route() );
 	}
 
 	public function _validate_as_integer_123( $value, $request, $key ) {
@@ -2101,5 +2287,20 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$result  = rest_get_server()->serve_request( '/' );
 
 		return rest_get_server()->sent_headers;
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_envelope_params() {
+		return array(
+			array( '1' ),
+			array( 'true' ),
+			array( false ),
+			array( 'alternate' ),
+			array( array( 'alternate' ) ),
+		);
 	}
 }

@@ -8,15 +8,14 @@
  */
 
 /**
- * Core class used to implement SimpliePie feed sanitization.
+ * Core class used to implement SimplePie feed sanitization.
  *
  * Extends the SimplePie_Sanitize class to use KSES, because
  * we cannot universally count on DOMDocument being available.
  *
  * @since 3.5.0
- *
- * @see SimplePie_Sanitize
  */
+#[AllowDynamicProperties]
 class WP_SimplePie_Sanitize_KSES extends SimplePie_Sanitize {
 
 	/**

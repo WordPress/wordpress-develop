@@ -2,6 +2,8 @@
 
 /**
  * @group comment
+ *
+ * @covers ::check_comment
  */
 class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	public function test_should_return_true_when_comment_previously_approved_is_disabled() {
@@ -68,7 +70,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 		$this->assertTrue( $results );
 	}
 
-	public function test_should_return_false_when_content_matches_moderation_key() {
+	public function test_should_return_false_when_content_matches_moderation_keys() {
 		update_option( 'comment_previously_approved', 0 );
 
 		$author       = 'WendytheBuilder';
@@ -80,6 +82,25 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 		$comment_type = '';
 
 		update_option( 'moderation_keys', "foo\nbar\nscoop" );
+		$results = check_comment( $author, $author_email, $author_url, $comment, $author_ip, $user_agent, $comment_type );
+		$this->assertFalse( $results );
+	}
+
+	/**
+	 * @ticket 57207
+	 */
+	public function test_should_return_false_when_content_with_non_latin_words_matches_moderation_keys() {
+		update_option( 'comment_previously_approved', 0 );
+
+		$author       = 'Setup';
+		$author_email = 'setup@example.com';
+		$author_url   = 'http://example.com';
+		$comment      = 'Установка';
+		$author_ip    = '192.168.0.1';
+		$user_agent   = '';
+		$comment_type = '';
+
+		update_option( 'moderation_keys', "установка\nfoo" );
 		$results = check_comment( $author, $author_email, $author_url, $comment, $author_ip, $user_agent, $comment_type );
 		$this->assertFalse( $results );
 	}
@@ -136,7 +157,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	 * @ticket 28603
 	 */
 	public function test_should_return_true_when_comment_previously_approved_is_enabled_and_user_has_previously_approved_comments_with_different_email() {
-		$subscriber_id = $this->factory()->user->create(
+		$subscriber_id = self::factory()->user->create(
 			array(
 				'role'  => 'subscriber',
 				'email' => 'sub@example.com',
@@ -144,7 +165,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 		);
 
 		// Make sure comment author has an approved comment.
-		$this->factory->comment->create(
+		self::factory()->comment->create(
 			array(
 				'user_id'              => $subscriber_id,
 				'comment_approved'     => '1',
@@ -168,7 +189,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	 * @ticket 28603
 	 */
 	public function test_should_return_false_when_comment_previously_approved_is_enabled_and_user_does_not_have_a_previously_approved_comment_with_any_email() {
-		$subscriber_id = $this->factory()->user->create(
+		$subscriber_id = self::factory()->user->create(
 			array(
 				'role'  => 'subscriber',
 				'email' => 'zig@example.com',

@@ -8,9 +8,9 @@
  *
  * @since 4.6.0
  *
- * @method int create( $args = array(), $generation_definitions = null )
- * @method object create_and_get( $args = array(), $generation_definitions = null )
- * @method int[] create_many( $count, $args = array(), $generation_definitions = null )
+ * @method int|WP_Error     create( $args = array(), $generation_definitions = null )
+ * @method object|WP_Error  create_and_get( $args = array(), $generation_definitions = null )
+ * @method (int|WP_Error)[] create_many( $count, $args = array(), $generation_definitions = null )
  */
 class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 
@@ -22,15 +22,52 @@ class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 		);
 	}
 
+	/**
+	 * Creates a link object.
+	 *
+	 * @since 4.6.0
+	 * @since 6.2.0 Returns a WP_Error object on failure.
+	 *
+	 * @param array $args Arguments for the link object.
+	 *
+	 * @return int|WP_Error The link ID on success, WP_Error object on failure.
+	 */
 	public function create_object( $args ) {
-		return wp_insert_link( $args );
+		return wp_insert_link( $args, true );
 	}
 
+	/**
+	 * Updates a link object.
+	 *
+	 * @since 4.6.0
+	 * @since 6.2.0 Returns a WP_Error object on failure.
+	 *
+	 * @param int   $link_id ID of the link to update.
+	 * @param array $fields  The fields to update.
+	 *
+	 * @return int|WP_Error The link ID on success, WP_Error object on failure.
+	 */
 	public function update_object( $link_id, $fields ) {
 		$fields['link_id'] = $link_id;
-		return wp_update_link( $fields );
+
+		$result = wp_update_link( $fields );
+
+		if ( 0 === $result ) {
+			return new WP_Error( 'link_update_error', __( 'Could not update link.' ) );
+		}
+
+		return $result;
 	}
 
+	/**
+	 * Retrieves a link by a given ID.
+	 *
+	 * @since 4.6.0
+	 *
+	 * @param int $link_id ID of the link to retrieve.
+	 *
+	 * @return object|null The link object on success, null on failure.
+	 */
 	public function get_object_by_id( $link_id ) {
 		return get_bookmark( $link_id );
 	}

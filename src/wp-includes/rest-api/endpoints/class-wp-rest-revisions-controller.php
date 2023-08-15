@@ -48,16 +48,18 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @param string $parent_post_type Post type of the parent.
 	 */
 	public function __construct( $parent_post_type ) {
-		$this->parent_post_type  = $parent_post_type;
+		$this->parent_post_type = $parent_post_type;
+		$post_type_object       = get_post_type_object( $parent_post_type );
+		$parent_controller      = $post_type_object->get_rest_controller();
+
+		if ( ! $parent_controller ) {
+			$parent_controller = new WP_REST_Posts_Controller( $parent_post_type );
+		}
+
+		$this->parent_controller = $parent_controller;
 		$this->rest_base         = 'revisions';
-		$post_type_object        = get_post_type_object( $parent_post_type );
 		$this->parent_base       = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
 		$this->namespace         = ! empty( $post_type_object->rest_namespace ) ? $post_type_object->rest_namespace : 'wp/v2';
-		$this->parent_controller = $post_type_object->get_rest_controller();
-
-		if ( ! $this->parent_controller ) {
-			$this->parent_controller = new WP_REST_Posts_Controller( $parent_post_type );
-		}
 	}
 
 	/**
@@ -134,25 +136,29 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.2
 	 *
-	 * @param int $parent Supplied ID.
+	 * @param int $parent_post_id Supplied ID.
 	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
 	 */
-	protected function get_parent( $parent ) {
+	protected function get_parent( $parent_post_id ) {
 		$error = new WP_Error(
 			'rest_post_invalid_parent',
 			__( 'Invalid post parent ID.' ),
 			array( 'status' => 404 )
 		);
-		if ( (int) $parent <= 0 ) {
+
+		if ( (int) $parent_post_id <= 0 ) {
 			return $error;
 		}
 
-		$parent = get_post( (int) $parent );
-		if ( empty( $parent ) || empty( $parent->ID ) || $this->parent_post_type !== $parent->post_type ) {
+		$parent_post = get_post( (int) $parent_post_id );
+
+		if ( empty( $parent_post ) || empty( $parent_post->ID )
+			|| $this->parent_post_type !== $parent_post->post_type
+		) {
 			return $error;
 		}
 
-		return $parent;
+		return $parent_post;
 	}
 
 	/**
@@ -334,7 +340,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
 		$request_params = $request->get_query_params();
-		$base           = add_query_arg( urlencode_deep( $request_params ), rest_url( sprintf( '%s/%s/%d/%s', $this->namespace, $this->parent_base, $request['parent'], $this->rest_base ) ) );
+		$base_path      = rest_url( sprintf( '%s/%s/%d/%s', $this->namespace, $this->parent_base, $request['parent'], $this->rest_base ) );
+		$base           = add_query_arg( urlencode_deep( $request_params ), $base_path );
 
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
@@ -404,8 +411,6 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		if ( is_wp_error( $parent ) ) {
 			return $parent;
 		}
-
-		$parent_post_type = get_post_type_object( $parent->post_type );
 
 		if ( ! current_user_can( 'delete_post', $parent->ID ) ) {
 			return new WP_Error(
@@ -620,7 +625,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		$response = rest_ensure_response( $data );
 
 		if ( ! empty( $data['parent'] ) ) {
-			$response->add_link( 'parent', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->parent_base, $data['parent'] ) ) );
+			$response->add_link( 'parent', rest_url( rest_get_route_for_post( $data['parent'] ) ) );
 		}
 
 		/**

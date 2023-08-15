@@ -41,7 +41,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 				'edit_media'                 => _x( 'Edit Image', 'label for button in the image widget; should preferably not be longer than ~13 characters long' ),
 				'missing_attachment'         => sprintf(
 					/* translators: %s: URL to media library. */
-					__( 'We can&#8217;t find that image. Check your <a href="%s">media library</a> and make sure it wasn&#8217;t deleted.' ),
+					__( 'That image cannot be found. Check your <a href="%s">media library</a> and make sure it was not deleted.' ),
 					esc_url( admin_url( 'upload.php' ) )
 				),
 				/* translators: %d: Widget count. */
@@ -239,14 +239,31 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 				$instance['height'] = '';
 			}
 
-			$image = sprintf(
-				'<img class="%1$s" src="%2$s" alt="%3$s" width="%4$s" height="%5$s" />',
-				esc_attr( $classes ),
-				esc_url( $instance['url'] ),
-				esc_attr( $instance['alt'] ),
-				esc_attr( $instance['width'] ),
-				esc_attr( $instance['height'] )
+			$attr = array(
+				'class'    => $classes,
+				'src'      => $instance['url'],
+				'alt'      => $instance['alt'],
+				'width'    => $instance['width'],
+				'height'   => $instance['height'],
+				'decoding' => 'async',
 			);
+
+			$loading_optimization_attr = wp_get_loading_optimization_attributes(
+				'img',
+				$attr,
+				'widget_media_image'
+			);
+
+			$attr = array_merge( $attr, $loading_optimization_attr );
+
+			$attr  = array_map( 'esc_attr', $attr );
+			$image = '<img';
+
+			foreach ( $attr as $name => $value ) {
+				$image .= ' ' . $name . '="' . $value . '"';
+			}
+
+			$image .= ' />';
 		} // End if().
 
 		$url = '';

@@ -311,6 +311,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			$prepared_args['has_published_posts'] = get_post_types( array( 'show_in_rest' => true ), 'names' );
 		}
 
+		if ( ! empty( $request['has_published_posts'] ) ) {
+			$prepared_args['has_published_posts'] = ( true === $request['has_published_posts'] )
+				? get_post_types( array( 'show_in_rest' => true ), 'names' )
+				: (array) $request['has_published_posts'];
+		}
+
 		if ( ! empty( $prepared_args['search'] ) ) {
 			$prepared_args['search'] = '*' . $prepared_args['search'] . '*';
 		}
@@ -677,8 +683,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 			$request_params = array_keys( $request->get_params() );
 			sort( $request_params );
-			// If only 'id' and 'roles' are specified (we are only trying to
-			// edit roles), then only the 'promote_user' cap is required.
+			/*
+			 * If only 'id' and 'roles' are specified (we are only trying to
+			 * edit roles), then only the 'promote_user' cap is required.
+			 */
 			if ( array( 'id', 'roles' ) === $request_params ) {
 				return true;
 			}
@@ -711,15 +719,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$id = $user->ID;
 
-		if ( ! $user ) {
-			return new WP_Error(
-				'rest_user_invalid_id',
-				__( 'Invalid user ID.' ),
-				array( 'status' => 404 )
-			);
+		$owner_id = false;
+		if ( is_string( $request['email'] ) ) {
+			$owner_id = email_exists( $request['email'] );
 		}
-
-		$owner_id = email_exists( $request['email'] );
 
 		if ( $owner_id && $owner_id !== $id ) {
 			return new WP_Error(
@@ -732,7 +735,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		if ( ! empty( $request['username'] ) && $request['username'] !== $user->user_login ) {
 			return new WP_Error(
 				'rest_user_invalid_argument',
-				__( "Username isn't editable." ),
+				__( 'Username is not editable.' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -1066,7 +1069,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$response->add_links( $this->prepare_links( $user ) );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $user ) );
+		}
 
 		/**
 		 * Filters user data returned from the REST API.
@@ -1110,7 +1115,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @return object User object.
 	 */
 	protected function prepare_item_for_database( $request ) {
-		$prepared_user = new stdClass;
+		$prepared_user = new stdClass();
 
 		$schema = $this->get_item_schema();
 
@@ -1302,7 +1307,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( false !== strpos( $password, '\\' ) ) {
+		if ( str_contains( $password, '\\' ) ) {
 			return new WP_Error(
 				'rest_user_invalid_password',
 				sprintf(
@@ -1577,6 +1582,15 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'type'        => 'string',
 			'enum'        => array(
 				'authors',
+			),
+		);
+
+		$query_params['has_published_posts'] = array(
+			'description' => __( 'Limit result set to users who have published posts.' ),
+			'type'        => array( 'boolean', 'array' ),
+			'items'       => array(
+				'type' => 'string',
+				'enum' => get_post_types( array( 'show_in_rest' => true ), 'names' ),
 			),
 		);
 

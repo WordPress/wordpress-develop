@@ -3,6 +3,8 @@
 /**
  * @group l10n
  * @group i18n
+ *
+ * @covers ::get_locale
  */
 class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	public function test_should_respect_locale_global() {

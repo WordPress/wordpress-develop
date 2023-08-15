@@ -73,7 +73,7 @@ class WPProfiler {
 
 		if ( isset( $this->profile[ $name ] ) ) {
 			$this->profile[ $name ]['time'] += $time;
-			$this->profile[ $name ]['calls'] ++;
+			$this->profile[ $name ]['calls']++;
 			$this->profile[ $name ]['cache_cold_hits']    += ( $wp_object_cache->cold_cache_hits - $item['cache_cold_hits'] );
 			$this->profile[ $name ]['cache_warm_hits']    += ( $wp_object_cache->warm_cache_hits - $item['cache_warm_hits'] );
 			$this->profile[ $name ]['cache_misses']       += ( $wp_object_cache->cache_misses - $item['cache_misses'] );
@@ -143,7 +143,7 @@ class WPProfiler {
 			$sql = preg_replace( '/(WHERE \w+ =) \d+/', '$1 x', $sql );
 			$sql = preg_replace( '/(WHERE \w+ =) \'\[-\w]+\'/', '$1 \'xxx\'', $sql );
 
-			$out[ $sql ] ++;
+			$out[ $sql ]++;
 		}
 		asort( $out );
 		return;

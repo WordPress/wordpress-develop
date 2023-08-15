@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcase {
@@ -68,7 +66,9 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_param( 'context', 'edit' );
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
-		$taxonomies = $this->get_public_taxonomies( get_taxonomies( '', 'objects' ) );
+		$taxonomies = get_taxonomies( '', 'objects' );
+		unset( $taxonomies['nav_menu'] ); // Menus are not editable by contributors.
+		$taxonomies = $this->get_public_taxonomies( $taxonomies );
 		$this->assertSame( count( $taxonomies ), count( $data ) );
 		$this->assertSame( 'Categories', $data['category']['name'] );
 		$this->assertSame( 'category', $data['category']['slug'] );
@@ -110,7 +110,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_get_item_edit_context() {
-		$editor_id = $this->factory->user->create( array( 'role' => 'editor' ) );
+		$editor_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $editor_id );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies/category' );
 		$request->set_param( 'context', 'edit' );
@@ -172,8 +172,8 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function test_prepare_item() {
 		$tax      = get_taxonomy( 'category' );
-		$endpoint = new WP_REST_Taxonomies_Controller;
-		$request  = new WP_REST_Request;
+		$endpoint = new WP_REST_Taxonomies_Controller();
+		$request  = new WP_REST_Request();
 		$request->set_param( 'context', 'edit' );
 		$response = $endpoint->prepare_item_for_response( $tax, $request );
 		$this->check_taxonomy_object( 'edit', $tax, $response->get_data(), $response->get_links() );
@@ -181,8 +181,8 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function test_prepare_item_limit_fields() {
 		$tax      = get_taxonomy( 'category' );
-		$request  = new WP_REST_Request;
-		$endpoint = new WP_REST_Taxonomies_Controller;
+		$request  = new WP_REST_Request();
+		$endpoint = new WP_REST_Taxonomies_Controller();
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( '_fields', 'id,name' );
 		$response = $endpoint->prepare_item_for_response( $tax, $request );

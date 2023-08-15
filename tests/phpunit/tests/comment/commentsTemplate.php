@@ -4,6 +4,8 @@
  * @group comment
  *
  * Testing items that are only testable by grabbing the markup of `comments_template()` from the output buffer.
+ *
+ * @covers ::comments_template
  */
 class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 

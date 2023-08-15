@@ -137,7 +137,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * @see WP_Customize_Setting::value()
 	 */
 	public function test_preview_standard_types_non_multidimensional() {
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		$_POST['customized'] = wp_slash( wp_json_encode( $this->post_data_overrides ) );
 
 		// Try non-multidimensional settings.
@@ -216,7 +216,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * @see WP_Customize_Setting::value()
 	 */
 	public function test_preview_standard_types_multidimensional() {
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		$_POST['customized'] = wp_slash( wp_json_encode( $this->post_data_overrides ) );
 
 		foreach ( $this->standard_type_configs as $type => $type_options ) {
@@ -316,13 +316,13 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 */
 	protected $custom_type_data_previewed;
 
-	private function custom_type_getter( $name, $default = null ) {
+	private function custom_type_getter( $name, $default_value = null ) {
 		if ( did_action( "customize_preview_{$name}" ) && array_key_exists( $name, $this->custom_type_data_previewed ) ) {
 			$value = $this->custom_type_data_previewed[ $name ];
 		} elseif ( array_key_exists( $name, $this->custom_type_data_saved ) ) {
 			$value = $this->custom_type_data_saved[ $name ];
 		} else {
-			$value = $default;
+			$value = $default_value;
 		}
 		return $value;
 	}
@@ -334,17 +334,17 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	/**
 	 * Filter for `customize_value_{$id_base}`.
 	 *
-	 * @param mixed $default
+	 * @param mixed $default_value
 	 * @param WP_Customize_Setting $setting
 	 *
 	 * @return mixed|null
 	 */
-	public function custom_type_value_filter( $default, $setting = null ) {
+	public function custom_type_value_filter( $default_value, $setting = null ) {
 		$name = preg_replace( '/^customize_value_/', '', current_filter() );
 		$this->assertInstanceOf( 'WP_Customize_Setting', $setting );
 		$id_data = $setting->id_data();
 		$this->assertSame( $name, $id_data['base'] );
-		return $this->custom_type_getter( $name, $default );
+		return $this->custom_type_getter( $name, $default_value );
 	}
 
 	/**
@@ -362,7 +362,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * @see WP_Customize_Setting::preview()
 	 */
 	public function test_preview_custom_type() {
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		$type                = 'custom_type';
 		$post_data_overrides = array(
 			"unset_{$type}_with_post_value" => "unset_{$type}_without_post_value\\o/",
@@ -551,7 +551,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * @ticket 31428
 	 */
 	public function test_is_current_blog_previewed() {
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		$type       = 'option';
 		$name       = 'blogname';
 		$post_value = __FUNCTION__;
@@ -743,7 +743,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * @ticket 37294
 	 */
 	public function test_multidimensional_value_when_previewed() {
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		WP_Customize_Setting::reset_aggregated_multidimensionals();
 
 		$initial_value = 456;

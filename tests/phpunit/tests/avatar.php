@@ -169,7 +169,7 @@ class Tests_Avatar extends WP_UnitTestCase {
 
 	public function test_get_avatar() {
 		$img = get_avatar( 1 );
-		$this->assertSame( preg_match( "|^<img alt='[^']*' src='[^']*' srcset='[^']*' class='[^']*' height='[^']*' width='[^']*' loading='lazy'/>$|", $img ), 1 );
+		$this->assertSame( preg_match( "|^<img alt='[^']*' src='[^']*' srcset='[^']*' class='[^']*' height='[^']*' width='[^']*' loading='lazy' decoding='async'/>$|", $img ), 1 );
 	}
 
 	public function test_get_avatar_size() {

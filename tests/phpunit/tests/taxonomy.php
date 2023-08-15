@@ -17,7 +17,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 */
 	public function test_get_unknown_taxonomies() {
 		// Taxonomies for an unknown object type.
-		$this->assertSame( array(), get_object_taxonomies( rand_str() ) );
+		$this->assertSame( array(), get_object_taxonomies( 'unknown' ) );
 		$this->assertSame( array(), get_object_taxonomies( '' ) );
 		$this->assertSame( array(), get_object_taxonomies( 0 ) );
 		$this->assertSame( array(), get_object_taxonomies( null ) );
@@ -128,6 +128,41 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertFalse( taxonomy_exists( null ) );
 	}
 
+	/**
+	 * Tests that `taxonomy_exists()` returns `false` when the `$taxonomy`
+	 * argument is not a string.
+	 *
+	 * @ticket 56338
+	 *
+	 * @covers ::taxonomy_exists
+	 *
+	 * @dataProvider data_taxonomy_exists_should_return_false_with_non_string_taxonomy
+	 *
+	 * @param mixed $taxonomy The non-string taxonomy.
+	 */
+	public function test_taxonomy_exists_should_return_false_with_non_string_taxonomy( $taxonomy ) {
+		$this->assertFalse( taxonomy_exists( $taxonomy ) );
+	}
+
+	/**
+	 * Data provider with non-string values.
+	 *
+	 * @return array
+	 */
+	public function data_taxonomy_exists_should_return_false_with_non_string_taxonomy() {
+		return array(
+			'array'        => array( array() ),
+			'object'       => array( new stdClass() ),
+			'bool (true)'  => array( true ),
+			'bool (false)' => array( false ),
+			'null'         => array( null ),
+			'integer (0)'  => array( 0 ),
+			'integer (1)'  => array( 1 ),
+			'float (0.0)'  => array( 0.0 ),
+			'float (1.1)'  => array( 1.1 ),
+		);
+	}
+
 	public function test_is_taxonomy_hierarchical() {
 		$this->assertTrue( is_taxonomy_hierarchical( 'category' ) );
 		$this->assertFalse( is_taxonomy_hierarchical( 'post_tag' ) );
@@ -144,7 +179,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	public function test_register_taxonomy() {
 
 		// Make up a new taxonomy name, and ensure it's unused.
-		$tax = rand_str();
+		$tax = 'tax_new';
 		$this->assertFalse( taxonomy_exists( $tax ) );
 
 		register_taxonomy( $tax, 'post' );
@@ -158,7 +193,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	public function test_register_hierarchical_taxonomy() {
 
 		// Make up a new taxonomy name, and ensure it's unused.
-		$tax = rand_str();
+		$tax = 'tax_new';
 		$this->assertFalse( taxonomy_exists( $tax ) );
 
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
@@ -219,6 +254,22 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		$tax_2 = get_taxonomy( 'wptests_tax_2' );
 		$this->assertFalse( $tax_2->show_in_quick_edit );
+	}
+
+	/**
+	 * @ticket 53212
+	 */
+	public function test_register_taxonomy_fires_registered_actions() {
+		$taxonomy = 'taxonomy53212';
+		$action   = new MockAction();
+
+		add_action( 'registered_taxonomy', array( $action, 'action' ) );
+		add_action( "registered_taxonomy_{$taxonomy}", array( $action, 'action' ) );
+
+		register_taxonomy( $taxonomy, 'post' );
+		register_taxonomy( 'random', 'post' );
+
+		$this->assertSame( 3, $action->get_call_count() );
 	}
 
 	/**
@@ -630,13 +681,13 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 				'publicly_queryable' => false,
 			)
 		);
-		$t = $this->factory->term->create_and_get(
+		$t = self::factory()->term->create_and_get(
 			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
 
-		$p = $this->factory->post->create();
+		$p = self::factory()->post->create();
 		wp_set_object_terms( $p, $t->slug, 'wptests_tax' );
 
 		add_filter( 'do_parse_request', array( $this, 'register_query_var' ) );
@@ -1028,9 +1079,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		wp_set_object_terms( $post_id, array(), $tax );
 		$term = wp_get_post_terms( $post_id, $tax );
 		$this->assertSame( array(), $term );
-
-		unregister_taxonomy( $tax );
-		$this->assertSame( get_option( 'default_term_' . $tax ), false );
 	}
 
 	/**

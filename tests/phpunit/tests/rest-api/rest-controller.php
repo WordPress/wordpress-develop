@@ -4,12 +4,15 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
+
+	/**
+	 * @var WP_REST_Request
+	 */
+	private $request;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Load the WP_REST_Test_Controller class if not already loaded.
@@ -386,6 +389,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 				'somedefault',
 				'somearray',
 				'someobject',
+				'_links',
 			),
 			$fields
 		);
@@ -421,9 +425,21 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 					'somedefault',
 					'somearray',
 					'someobject',
+					'_links',
 				),
 			),
 		);
+	}
+
+	public function test_get_fields_for_response_respects_embed() {
+		$controller = new WP_REST_Test_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp/v2/testroute' );
+
+		$this->assertNotContains( '_embedded', $controller->get_fields_for_response( $request ) );
+
+		$request->set_param( '_embed', 1 );
+
+		$this->assertContains( '_embedded', $controller->get_fields_for_response( $request ) );
 	}
 
 	public function test_get_fields_for_response_filters_by_context() {

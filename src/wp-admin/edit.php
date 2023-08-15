@@ -9,6 +9,11 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+/**
+ * @global string $typenow The post type of the current screen.
+ */
+global $typenow;
+
 if ( ! $typenow ) {
 	wp_die( __( 'Invalid post type.' ) );
 }
@@ -76,7 +81,7 @@ if ( $doaction ) {
 		$sendback = admin_url( $parent_file );
 	}
 	$sendback = add_query_arg( 'paged', $pagenum, $sendback );
-	if ( strpos( $sendback, 'post.php' ) !== false ) {
+	if ( str_contains( $sendback, 'post.php' ) ) {
 		$sendback = admin_url( $post_new_file );
 	}
 
@@ -87,6 +92,11 @@ if ( $doaction ) {
 		$post_status = preg_replace( '/[^a-z0-9_-]+/i', '', $_REQUEST['post_status'] );
 		// Validate the post status exists.
 		if ( get_post_status_object( $post_status ) ) {
+			/**
+			 * @global wpdb $wpdb WordPress database abstraction object.
+			 */
+			global $wpdb;
+
 			$post_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_type=%s AND post_status = %s", $post_type, $post_status ) );
 		}
 		$doaction = 'delete';
@@ -284,8 +294,8 @@ if ( 'post' === $post_type ) {
 
 	get_current_screen()->set_help_sidebar(
 		'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/article/posts-screen/">Documentation on Managing Posts</a>' ) . '</p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+		'<p>' . __( '<a href="https://wordpress.org/documentation/article/posts-screen/">Documentation on Managing Posts</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 	);
 
 } elseif ( 'page' === $post_type ) {
@@ -309,8 +319,8 @@ if ( 'post' === $post_type ) {
 
 	get_current_screen()->set_help_sidebar(
 		'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/article/pages-screen/">Documentation on Managing Pages</a>' ) . '</p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+		'<p>' . __( '<a href="https://wordpress.org/documentation/article/pages-screen/">Documentation on Managing Pages</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 	);
 
 }
@@ -432,8 +442,13 @@ foreach ( $bulk_counts as $message => $count ) {
 	}
 
 	if ( 'trashed' === $message && isset( $_REQUEST['ids'] ) ) {
-		$ids        = preg_replace( '/[^0-9,]/', '', $_REQUEST['ids'] );
-		$messages[] = '<a href="' . esc_url( wp_nonce_url( "edit.php?post_type=$post_type&doaction=undo&action=untrash&ids=$ids", 'bulk-posts' ) ) . '">' . __( 'Undo' ) . '</a>';
+		$ids = preg_replace( '/[^0-9,]/', '', $_REQUEST['ids'] );
+
+		$messages[] = sprintf(
+			'<a href="%1$s">%2$s</a>',
+			esc_url( wp_nonce_url( "edit.php?post_type=$post_type&doaction=undo&action=untrash&ids=$ids", 'bulk-posts' ) ),
+			__( 'Undo' )
+		);
 	}
 
 	if ( 'untrashed' === $message && isset( $_REQUEST['ids'] ) ) {
@@ -450,7 +465,10 @@ foreach ( $bulk_counts as $message => $count ) {
 }
 
 if ( $messages ) {
-	echo '<div id="message" class="updated notice is-dismissible"><p>' . implode( ' ', $messages ) . '</p></div>';
+	printf(
+		'<div id="message" class="updated notice is-dismissible"><p>%s</p></div>',
+		implode( ' ', $messages )
+	);
 }
 unset( $messages );
 

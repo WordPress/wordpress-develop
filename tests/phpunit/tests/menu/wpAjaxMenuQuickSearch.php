@@ -104,7 +104,7 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 	public function test_search_should_return_unassigned_term_items() {
 		register_taxonomy( 'wptests_tax', 'post' );
 
-		$this->factory->term->create(
+		self::factory()->term->create(
 			array(
 				'taxonomy' => 'wptests_tax',
 				'name'     => 'foobar',

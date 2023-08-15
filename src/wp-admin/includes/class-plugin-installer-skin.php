@@ -46,7 +46,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Action to perform before installing a plugin.
+	 * Performs an action before installing a plugin.
 	 *
 	 * @since 2.8.0
 	 */
@@ -66,7 +66,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	 * @since 5.5.0
 	 *
 	 * @param WP_Error $wp_error WP_Error object.
-	 * @return bool
+	 * @return bool True if the error should be hidden, false otherwise.
 	 */
 	public function hide_process_failed( $wp_error ) {
 		if (
@@ -81,7 +81,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Action to perform following a plugin install.
+	 * Performs an action following a plugin install.
 	 *
 	 * @since 2.8.0
 	 */
@@ -177,7 +177,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Check if the plugin can be overwritten and output the HTML for overwriting a plugin on upload.
+	 * Checks if the plugin can be overwritten and outputs the HTML for overwriting a plugin on upload.
 	 *
 	 * @since 5.5.0
 	 *
@@ -266,7 +266,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$error = sprintf(
 				/* translators: 1: Current PHP version, 2: Version required by the uploaded plugin. */
 				__( 'The PHP version on your server is %1$s, however the uploaded plugin requires %2$s.' ),
-				phpversion(),
+				PHP_VERSION,
 				$requires_php
 			);
 
@@ -293,13 +293,13 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 				$warning = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'You are uploading an older version of a current plugin. You can continue to install the older version, but be sure to <a href="%s">back up your database and files</a> first.' ),
-					__( 'https://wordpress.org/support/article/wordpress-backups/' )
+					__( 'https://wordpress.org/documentation/article/wordpress-backups/' )
 				);
 			} else {
 				$warning = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'You are updating a plugin. Be sure to <a href="%s">back up your database and files</a> first.' ),
-					__( 'https://wordpress.org/support/article/wordpress-backups/' )
+					__( 'https://wordpress.org/documentation/article/wordpress-backups/' )
 				);
 			}
 
