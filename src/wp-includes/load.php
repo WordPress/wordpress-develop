@@ -166,7 +166,7 @@ function wp_check_php_mysql_versions() {
 	// This runs before default constants are defined, so we can't assume WP_CONTENT_DIR is set yet.
 	$wp_content_dir = defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
 
-	if ( ! function_exists( 'mysqli_connect' ) && ! function_exists( 'mysql_connect' )
+	if ( ! function_exists( 'mysqli_connect' )
 		&& ! file_exists( $wp_content_dir . '/db.php' )
 	) {
 		require_once ABSPATH . WPINC . '/functions.php';
