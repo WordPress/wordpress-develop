@@ -87,6 +87,19 @@ jobs:
             memcached: false
             multisite: false
             report: true
+        exclude:
+          - db_type: 'mysql'
+            db_version: '10.4'
+          - db_type: 'mysql'
+            db_version: '10.6'
+          - db_type: 'mysql'
+            db_version: '10.11'
+          - db_type: 'mysql'
+            db_version: '11.0'
+          - db_type: 'mariadb'
+            db_version: '5.7'
+          - db_type: 'mariadb'
+            db_version: '8.0'
 
     env:
       LOCAL_PHP: ${{ matrix.php }}-fpm
