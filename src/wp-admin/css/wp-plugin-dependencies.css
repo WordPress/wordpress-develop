@@ -4,7 +4,7 @@
  * It won't be necessary when merging to Core, as Core's markup will be
  * modified to achieve what the kludge does here.
  */
-.plugin-card .column-description {
+ .plugin-card .column-description {
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-start;
@@ -26,28 +26,24 @@
 	display: none;
 }
 
-/*.plugin-card .plugin-dependency-name:before {
-	font: normal 20px/.5 dashicons;
-	position: relative;
-	top: 4px;
-	left: -2px;
-}
-.plugin-card .plugin-dependencies .plugin-dependency-compatible:before {
-	content: "\f147";
-	color: #007017;
-}
-.plugin-card .plugin-dependencies .plugin-dependency-incompatible:before {
-	content: "\f158";
-	color: #d63638;
-}*/
-
 .plugin-card .desc {
 	margin-inline: 0;
 }
 
 .plugin-card .desc > p {
 	margin-left: 148px;
-	margin-right: 128px;
+}
+
+@media (min-width: 1101px) {
+	.plugin-card .desc > p {
+		margin-right: 128px;
+	}
+}
+
+@media (min-width: 481px) and (max-width: 781px) {
+	.plugin-card .desc > p {
+		margin-right: 128px;
+	}
 }
 
 .plugin-card .plugin-dependencies {
