@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - trunk
-      - expanded-db-testing-one-workflow
       - '3.[7-9]'
       - '[4-9].[0-9]'
     tags:
@@ -61,7 +60,7 @@ jobs:
     permissions:
       contents: read
     timeout-minutes: 20
-    if: ${{ github.repository == 'desrosj/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
