@@ -120,7 +120,7 @@ services:
       - 11211:11211
 
 volumes:
-  # So that sites aren't wiped every time containers are restarted, MySQL uses a persistent volume.
+  # So that sites aren't wiped every time containers are restarted, the database uses a persistent volume.
   database: {}
 
 networks:
