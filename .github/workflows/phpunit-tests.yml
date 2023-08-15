@@ -56,7 +56,7 @@ jobs:
   # - Submit the test results to the WordPress.org host test results.
 
   test-with-mysql:
-    name: PHP ${{ matrix.php }} / ${{ matrix.db-type }} ${{ matrix.db-version }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }}
+    name: PHP ${{ matrix.php }}
     uses: desrosj/wordpress-develop/.github/workflows/phpunit-tests-run.yml@expanded-db-testing-callable-workflow
     permissions:
       contents: read
@@ -78,14 +78,14 @@ jobs:
             php: '7.4'
             db-type: 'mysql'
             db-version: '8.0'
-            memcached: true
             multisite: false
+            memcached: true
           - os: ubuntu-latest
             php: '7.4'
             db-type: 'mysql'
             db-version: '8.0'
-            memcached: true
             multisite: true
+            memcached: true
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -119,14 +119,14 @@ jobs:
           php: '7.4'
           db-type: 'mariadb'
           db-version: '11.0'
-          memcached: true
           multisite: false
+          memcached: true
         - os: ubuntu-latest
           php: '7.4'
           db-type: 'mariadb'
           db-version: '11.0'
-          memcached: true
           multisite: true
+          memcached: true
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
