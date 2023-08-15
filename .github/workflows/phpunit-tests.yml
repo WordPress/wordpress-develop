@@ -12,6 +12,7 @@ on:
   pull_request:
     branches:
       - trunk
+      - expanded-db-testing-one-workflow
       - '3.[7-9]'
       - '[4-9].[0-9]'
   workflow_dispatch:
@@ -55,7 +56,7 @@ jobs:
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
   test-php:
-    name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
+    name: PHP ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }} with ${{ matrix.db_type }} ${{ matrix.db_version || '5.7' }}
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -65,6 +66,8 @@ jobs:
       fail-fast: false
       matrix:
         php: [ '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2' ]
+        db_type: [ 'mysql', 'mariadb' ]
+        db_version: [ '5.7', '8.0', '10.4', '10.6', '10.11', '11.0'  ]
         os: [ ubuntu-latest ]
         memcached: [ false ]
         multisite: [ false, true ]
@@ -87,6 +90,8 @@ jobs:
 
     env:
       LOCAL_PHP: ${{ matrix.php }}-fpm
+      LOCAL_DB_TYPE: ${{ matrix.db_type || 'mysql' }}
+      LOCAL_DB_VERSION: ${{ matrix.db_version || '5.7' }}
       LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
       PHPUNIT_CONFIG: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
 
