@@ -71,23 +71,6 @@ jobs:
         multisite: [ false, true ]
         memcached: [ false ]
         report: [ false ]
-
-        includes:
-          # Include jobs for PHP 7.4 with memcached.
-          - os: ubuntu-latest
-            php: '7.4'
-            db-type: 'mysql'
-            db-version: '5.7'
-            multisite: false
-            memcached: true
-            report: false
-          - os: ubuntu-latest
-            php: '7.4'
-            db-type: 'mysql'
-            db-version: '5.7'
-            multisite: true
-            memcached: true
-            report: false
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -114,23 +97,6 @@ jobs:
         multisite: [ false, true ]
         memcached: [ false ]
         report: [ false ]
-
-        includes:
-        # Include jobs for PHP 7.4 with memcached.
-        - os: ubuntu-latest
-          php: '7.4'
-          db-type: 'mariadb'
-          db-version: '11.0'
-          multisite: false
-          memcached: true
-          report: false
-        - os: ubuntu-latest
-          php: '7.4'
-          db-type: 'mariadb'
-          db-version: '11.0'
-          multisite: true
-          memcached: true
-          report: false
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
