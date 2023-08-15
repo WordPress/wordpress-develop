@@ -56,7 +56,7 @@ jobs:
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
   test-php:
-    name: PHP ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }} with ${{ 'mariadb' == matrix.db_type && 'MariaDB' || 'MySQL' }} ${{ matrix.db_version || '5.7' }}
+    name: PHP/${{ 'mariadb' == matrix.db_type && 'MariaDB' || 'MySQL' }} ${{ matrix.db_version }}${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }}
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -88,6 +88,7 @@ jobs:
             multisite: false
             report: true
         exclude:
+          # MySQL and MariaDB have different valid versions. Exclude combinations that don't exist.
           - db_type: 'mysql'
             db_version: '10.4'
           - db_type: 'mysql'
@@ -170,7 +171,7 @@ jobs:
 
       - name: WordPress Docker container debug information
         run: |
-          docker-compose run --rm mysql mysql --version
+          docker-compose run --rm mysql ${{ env.LOCAL_DB_TYPE }} --version
           docker-compose run --rm php php --version
           docker-compose run --rm php php -m
           docker-compose run --rm php php -i
