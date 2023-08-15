@@ -166,16 +166,16 @@ jobs:
 
       - name: Check out target commit (target branch or previous commit)
         run: |
-          if [[ -z "$BASE_REF" ]]; then
-          git fetch -n origin $BASE_SHA
-          git reset --hard $BASE_SHA
+          if [[ -z "$TARGET_REF" ]]; then
+          git fetch -n origin $TARGET_SHA
+          git reset --hard $TARGET_SHA
           else
-          git fetch -n origin $BASE_REF
-          git reset --hard $BASE_SHA
+          git fetch -n origin $TARGET_REF
+          git reset --hard $TARGET_SHA
           fi
         env:
-          BASE_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || '' }}
-          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          TARGET_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || '' }}
+          TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
 
       - name: Install npm dependencies
         run: npm ci
