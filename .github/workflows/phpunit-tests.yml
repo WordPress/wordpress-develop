@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - trunk
+      - expanded-db-testing-one-workflow
       - '3.[7-9]'
       - '[4-9].[0-9]'
     tags:
@@ -12,7 +13,6 @@ on:
   pull_request:
     branches:
       - trunk
-      - expanded-db-testing-one-workflow
       - '3.[7-9]'
       - '[4-9].[0-9]'
   workflow_dispatch:
