@@ -57,7 +57,7 @@ jobs:
 
   test-with-mysql:
     name: PHP ${{ matrix.php }} / ${{ matrix.db-type }} ${{ matrix.db-version }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }}
-    uses: desrosj/wordpress-develop/.github/workflows/phpunit-tests-run.yml@expanded-db-testing-one-workflow
+    uses: desrosj/wordpress-develop/.github/workflows/phpunit-tests-run.yml@expanded-db-testing-callable-workflow
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -98,7 +98,7 @@ jobs:
 
   test-with-mariadb:
     name: PHP ${{ matrix.php }} / ${{ matrix.db-type }} ${{ matrix.db-version }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }}
-    uses: desrosj/wordpress-develop/.github/workflows/phpunit-tests-run.yml@expanded-db-testing-one-workflow
+    uses: desrosj/wordpress-develop/.github/workflows/phpunit-tests-run.yml@expanded-db-testing-callable-workflow
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
