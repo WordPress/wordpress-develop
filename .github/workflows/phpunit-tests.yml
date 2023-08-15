@@ -33,6 +33,7 @@ permissions: {}
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
   LOCAL_PHP_MEMCACHED: ${{ false }}
+  LOCAL_DB_TYPE: 'mysql'
 
 jobs:
   # Runs the PHPUnit tests for WordPress.
@@ -152,7 +153,7 @@ jobs:
 
       - name: WordPress Docker container debug information
         run: |
-          docker-compose run --rm database mysql --version
+          docker-compose run --rm database ${{ env.LOCAL_DB_TYPE }} --version
           docker-compose run --rm php php --version
           docker-compose run --rm php php -m
           docker-compose run --rm php php -i
