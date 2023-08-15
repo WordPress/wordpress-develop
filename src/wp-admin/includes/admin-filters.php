@@ -104,7 +104,6 @@ add_action( 'install_plugins_recommended', 'display_plugins_table' );
 add_action( 'install_plugins_new', 'display_plugins_table' );
 add_action( 'install_plugins_beta', 'display_plugins_table' );
 add_action( 'install_plugins_favorites', 'display_plugins_table' );
-add_action( 'install_plugins_dependencies', 'display_plugins_table' );
 add_action( 'install_plugins_pre_plugin-information', 'install_plugin_information' );
 
 // Template hooks.
