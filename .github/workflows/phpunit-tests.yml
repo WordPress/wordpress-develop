@@ -99,7 +99,7 @@ jobs:
       report: ${{ matrix.report }}
 
   test-with-mariadb:
-    name: PHP ${{ matrix.php }} / ${{ matrix.db-type }} ${{ matrix.db-version }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }}
+    name: PHP ${{ matrix.php }}
     uses: desrosj/wordpress-develop/.github/workflows/phpunit-tests-run.yml@expanded-db-testing-callable-workflow
     permissions:
       contents: read
