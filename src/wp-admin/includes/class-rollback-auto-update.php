@@ -67,24 +67,6 @@ class WP_Rollback_Auto_Update {
 	private static $current_themes;
 
 	/**
-	 * Stores get_plugins().
-	 *
-	 * @since 6.4.0
-	 *
-	 * @var array
-	 */
-	private static $plugins;
-
-	/**
-	 * Stores wp_get_themes().
-	 *
-	 * @since 6.4.0
-	 *
-	 * @var array
-	 */
-	private static $themes;
-
-	/**
 	 * Stores instance of Plugin_Upgrader.
 	 *
 	 * @since 6.4.0
@@ -125,6 +107,8 @@ class WP_Rollback_Auto_Update {
 	/**
 	 * Stores bool if email has been sent.
 	 *
+	 * @since 6.4.0
+	 *
 	 * @var bool
 	 */
 	private static $email_sent = false;
@@ -151,8 +135,6 @@ class WP_Rollback_Auto_Update {
 
 		self::$current_plugins = get_site_transient( 'update_plugins' );
 		self::$current_themes  = get_site_transient( 'update_themes' );
-		self::$plugins         = get_plugins();
-		self::$themes          = wp_get_themes();
 
 		/*
 		 * This possibly helps to avoid a potential race condition on servers that may start to
@@ -233,7 +215,6 @@ class WP_Rollback_Auto_Update {
 	 * @since 6.4.0
 	 *
 	 * @param Throwable $exception Exception object.
-	 *
 	 * @return void
 	 */
 	public function exception_handler( Throwable $exception ) {
@@ -262,8 +243,9 @@ class WP_Rollback_Auto_Update {
 	/**
 	 * Check for errors only caused by an active plugin using 'include()'.
 	 *
-	 * @param string $error_msg Error message from handler.
+	 * @since 6.4.0
 	 *
+	 * @param string $error_msg Error message from handler.
 	 * @return array|bool
 	 */
 	private function check_passing_errors( $error_msg ) {
@@ -445,6 +427,8 @@ class WP_Rollback_Auto_Update {
 	/**
 	 * Restart updates and send update result email.
 	 *
+	 * @since 6.4.0
+	 *
 	 * @return void
 	 */
 	private function restart_updates_and_send_email() {
@@ -469,27 +453,39 @@ class WP_Rollback_Auto_Update {
 		if ( self::$email_sent ) {
 			return;
 		}
-		$successful = array();
-		$failed     = array();
+		$result         = true;
+		$update_results = array();
 
 		$plugin_theme_email_data = array(
-			'plugin' => array( 'data' => self::$plugins ),
-			'theme'  => array( 'data' => self::$themes ),
+			'plugin' => array( 'data' => get_plugins() ),
+			'theme'  => array( 'data' => wp_get_themes() ),
 		);
 
 		foreach ( $plugin_theme_email_data as $type => $data ) {
 			$current_items = 'plugin' === $type ? self::$current_plugins : self::$current_themes;
 
 			foreach ( array_keys( $current_items->response ) as $file ) {
+				if ( ! in_array( $file, self::$processed, true ) ) {
+					continue;
+				}
+
 				$item            = $current_items->response[ $file ];
-				$current_version = $current_items->checked[ $file ];
+				$current_version = property_exists( $current_items, 'checked' ) ? $current_items->checked[ $file ] : __( 'unavailable' );
+				$success         = array_diff( self::$processed, self::$fatals );
+
+				if ( in_array( $file, $success, true ) ) {
+					$result = true;
+				} elseif ( in_array( $file, self::$fatals, true ) ) {
+					$result = false;
+				}
 
 				if ( 'plugin' === $type ) {
 					$name                  = $data['data'][ $file ]['Name'];
 					$item->current_version = $current_version;
 					$type_result           = (object) array(
-						'name' => $name,
-						'item' => $item,
+						'name'   => $name,
+						'item'   => $item,
+						'result' => $result,
 					);
 				}
 
@@ -497,30 +493,22 @@ class WP_Rollback_Auto_Update {
 					$name                    = $data['data'][ $file ]->get( 'Name' );
 					$item['current_version'] = $current_version;
 					$type_result             = (object) array(
-						'name' => $name,
-						'item' => (object) $item,
+						'name'   => $name,
+						'item'   => (object) $item,
+						'result' => $result,
 					);
 				}
 
-				$success = array_diff( self::$processed, self::$fatals );
-
-				if ( in_array( $file, $success, true ) ) {
-					$successful[ $type ][] = $type_result;
-					continue;
-				}
-
-				if ( in_array( $file, self::$fatals, true ) ) {
-					$failed[ $type ][] = $type_result;
-				}
+				$update_results[ $type ][] = $type_result;
 			}
 		}
 
 		add_filter( 'auto_plugin_theme_update_email', array( $this, 'auto_update_rollback_message' ), 10, 4 );
 
 		$automatic_upgrader      = new WP_Automatic_Updater();
-		$send_plugin_theme_email = new ReflectionMethod( $automatic_upgrader, 'send_plugin_theme_email' );
+		$send_plugin_theme_email = new ReflectionMethod( $automatic_upgrader, 'after_plugin_theme_update' );
 		$send_plugin_theme_email->setAccessible( true );
-		$send_plugin_theme_email->invoke( $automatic_upgrader, 'mixed', $successful, $failed );
+		$send_plugin_theme_email->invoke( $automatic_upgrader, $update_results );
 
 		remove_filter( 'auto_plugin_theme_update_email', array( $this, 'auto_update_rollback_message' ), 10 );
 		self::$email_sent = true;
@@ -543,11 +531,10 @@ class WP_Rollback_Auto_Update {
 	 * @param string $type               The type of email being sent. Can be one of 'success', 'fail', 'mixed'.
 	 * @param array  $successful_updates A list of updates that succeeded.
 	 * @param array  $failed_updates     A list of updates that failed.
-	 *
 	 * @return array
 	 */
 	public function auto_update_rollback_message( $email, $type, $successful_updates, $failed_updates ) {
-		if ( empty( $failed_updates ) ) {
+		if ( empty( $failed_updates ) || 'success' === $type ) {
 			return $email;
 		}
 		$body   = explode( "\n", $email['body'] );
