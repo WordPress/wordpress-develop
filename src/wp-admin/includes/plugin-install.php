@@ -422,9 +422,6 @@ function display_plugins_table() {
 				return;
 			}
 			break;
-		case 'install_plugins_dependencies':
-			echo '<p>' . __( 'These suggestions are based on dependencies required by installed plugins.' ) . '</p>';
-			break;
 	}
 	?>
 	<form id="plugin-filter" method="post">
@@ -930,7 +927,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 	$button           = '';
 	$data             = (object) $data;
 	$status           = install_plugin_install_status( $data );
-	$requires_plugins = isset( $data->requires_plugins ) ? $data->requires_plugins : array();
+	$requires_plugins = $data->requires_plugins ?? array();
 
 	// Determine the status of plugin dependencies.
 	$installed_plugins                   = get_plugins();
@@ -953,10 +950,6 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 	}
 	$all_plugin_dependencies_installed = $installed_plugin_dependencies_count === $plugin_dependencies_count;
 	$all_plugin_dependencies_active    = $active_plugin_dependencies_count === $plugin_dependencies_count;
-
-	if ( apply_filters( 'pd_simple_card', false ) ) {
-		$plugin_dependency_met = true;
-	}
 
 	sprintf(
 		'<a class="install-now button" data-slug="%s" href="%s" aria-label="%s" data-name="%s">%s</a>',
@@ -984,8 +977,8 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						);
 					} else {
 						$button = sprintf(
-							'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
-							_x( 'Cannot Install', 'plugin' )
+							'<button type="button" class="install-now button button-disabled" disabled="disabled">%s</button>',
+							_x( 'Install Now', 'plugin' )
 						);
 					}
 				}
@@ -1007,7 +1000,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 					} else {
 						$button = sprintf(
 							'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
-							_x( 'Cannot Update', 'plugin' )
+							_x( 'Update Now', 'plugin' )
 						);
 					}
 				}
@@ -1050,7 +1043,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 					} else {
 						$button = sprintf(
 							'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
-							_x( 'Cannot Activate', 'plugin' )
+							is_network_admin() ? _x( 'Network Activate %s', 'plugin' ) : _x( 'Activate', 'plugin' )
 						);
 					}
 				} else {

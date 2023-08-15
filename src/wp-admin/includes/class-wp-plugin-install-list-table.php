@@ -109,11 +109,10 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			$tabs['beta'] = _x( 'Beta Testing', 'Plugin Installer' );
 		}
 
-		$tabs['featured']     = _x( 'Featured', 'Plugin Installer' );
-		$tabs['popular']      = _x( 'Popular', 'Plugin Installer' );
-		$tabs['recommended']  = _x( 'Recommended', 'Plugin Installer' );
-		$tabs['favorites']    = _x( 'Favorites', 'Plugin Installer' );
-		$tabs['dependencies'] = _x( 'Dependencies', 'Plugin Installer' );
+		$tabs['featured']    = _x( 'Featured', 'Plugin Installer' );
+		$tabs['popular']     = _x( 'Popular', 'Plugin Installer' );
+		$tabs['recommended'] = _x( 'Recommended', 'Plugin Installer' );
+		$tabs['favorites']   = _x( 'Favorites', 'Plugin Installer' );
 
 		if ( current_user_can( 'upload_plugins' ) ) {
 			// No longer a real tab. Here for filter compatibility.
@@ -179,7 +178,6 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			case 'popular':
 			case 'new':
 			case 'beta':
-			case 'dependencies':
 				$args['browse'] = $tab;
 				break;
 			case 'recommended':

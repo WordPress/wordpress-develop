@@ -7,26 +7,32 @@
  * @group admin
  * @group plugins
  */
-
 class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
-	protected static $plugin_dir;
+	/**
+	 * Stored the plugins directory.
+	 *
+	 * @var string
+	 */
+	protected static $plugins_dir;
 
-	public static function wpSetUpBeforeClass() {
-		self::$plugin_dir = WP_PLUGIN_DIR . '/wp_plugin_dependencies_plugin';
-		@mkdir( self::$plugin_dir );
-	}
-
-	public static function wpTearDownAfterClass() {
-		array_map( 'unlink', array_filter( (array) glob( self::$plugin_dir . '/*' ) ) );
-		rmdir( self::$plugin_dir );
+	/**
+	 * Sets up the plugins directory before any tests run.
+	 */
+	public static function set_up_before_class() {
+		self::$plugins_dir = WP_PLUGIN_DIR . '/wp_plugin_dependencies_plugin';
+		@mkdir( self::$plugins_dir );
 	}
 
 	/**
-	 * Helper method.
-	 *
-	 * This creates a single-file plugin.
-	 *
-	 * @access private
+	 * Removes the plugins directory after all tests run.
+	 */
+	public static function tear_down_after_class() {
+		array_map( 'unlink', array_filter( (array) glob( self::$plugins_dir . '/*' ) ) );
+		rmdir( self::$plugins_dir );
+	}
+
+	/**
+	 * Creates a single-file plugin.
 	 *
 	 * @param string $data     Optional. Data for the plugin file. Default is a dummy plugin header.
 	 * @param string $filename Optional. Filename for the plugin file. Default is a random string.
@@ -35,7 +41,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 	 */
 	private function create_plugin( $filename, $data = "<?php\n/*\nPlugin Name: Test\n*/", $dir_path = false ) {
 		if ( false === $filename ) {
-			$filename = __FUNCTION__ . '.php';
+			$filename = 'create_plugin.php';
 		}
 
 		if ( false === $dir_path ) {
@@ -53,9 +59,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Helper method.
-	 *
-	 * This makes a class property accessible.
+	 * Makes a class property accessible.
 	 *
 	 * @param object|string $obj_or_class The object or class.
 	 * @param string        $prop         The property.
@@ -68,77 +72,80 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Helper method.
-	 *
-	 * Makes a class function accessible.
+	 * Makes a class method accessible.
 	 *
 	 * @param object|string $obj_or_class The object or class.
-	 * @param string        $function     The class method.
+	 * @param string        $method     The class method.
 	 * @return ReflectionMethod The accessible method.
 	 */
-	private function make_method_accessible( $obj_or_class, $function ) {
-		$method = new ReflectionMethod( $obj_or_class, $function );
+	private function make_method_accessible( $obj_or_class, $method ) {
+		$method = new ReflectionMethod( $obj_or_class, $method );
 		$method->setAccessible( true );
 		return $method;
 	}
 
 	/**
-	 * @covers WP_Plugin_Dependencies::__construct()
+	 * Tests that the `$requires_plugins` and `$plugin_data` properties are set to
+	 * empty arrays on instantiation.
+	 *
+	 * @covers WP_Plugin_Dependencies::__construct
 	 */
-	public function test__construct() {
+	public function test_construct_should_set_requires_plugins_and_plugin_data_to_empty_arrays() {
 		$dependencies     = new WP_Plugin_Dependencies();
 		$requires_plugins = $this->make_prop_accessible( $dependencies, 'requires_plugins' );
 		$plugin_data      = $this->make_prop_accessible( $dependencies, 'plugin_data' );
 
-		$actual = $requires_plugins->getValue( $dependencies );
+		$actual_requires_plugins = $requires_plugins->getValue( $dependencies );
+		$actual_plugin_data      = $plugin_data->getValue( $dependencies );
 
-		$this->assertIsArray( $actual, '$requires_plugins is not an array' );
-		$this->assertEmpty( $actual, '$requires_plugins is not empty' );
-
-		$actual = $plugin_data->getValue( $dependencies );
-
-		$this->assertIsArray( $actual, '$plugin_data is not an array' );
-		$this->assertEmpty( $actual, '$plugin_data is not empty' );
+		$this->assertIsArray( $actual_requires_plugins, '$requires_plugins is not an array.' );
+		$this->assertEmpty( $actual_requires_plugins, '$requires_plugins is not empty.' );
+		$this->assertIsArray( $actual_plugin_data, '$plugin_data is not an array.' );
+		$this->assertEmpty( $actual_plugin_data, '$plugin_data is not empty.' );
 	}
 
 	/**
+	 * Tests that `::get_plugins()` returns an array of plugin data.
+	 *
 	 * @covers WP_Plugin_Dependencies::get_plugins
 	 */
-	public function test_get_plugins() {
+	public function test_get_plugins_should_return_an_array_of_plugin_data() {
 		$dependencies = new WP_Plugin_Dependencies();
 		$get_plugins  = $this->make_method_accessible( $dependencies, 'get_plugins' );
 		$actual       = $get_plugins->invoke( $dependencies );
 
-		$this->assertIsArray( $actual, 'Did not return an array' );
-		$this->assertNotEmpty( $actual, 'The plugins array is empty' );
+		$this->assertIsArray( $actual, 'Did not return an array.' );
+		$this->assertNotEmpty( $actual, 'The plugin data array is empty.' );
 	}
 
 	/**
+	 * Tests that plugin headers are correctly parsed.
+	 *
 	 * @dataProvider data_parse_plugin_headers
 	 *
 	 * @covers WP_Plugin_Dependencies::parse_plugin_headers
 	 *
-	 * @param array    $headers .
+	 * @param array    $plugins_data Raw plugins data.
 	 * @param stdClass $expected     The expected parsed headers.
 	 */
-	public function test_parse_plugin_headers( $headers, $expected ) {
+	public function test_parse_plugin_headers( $plugins_data, $expected ) {
 		$plugin_names = array();
 
-		foreach ( $headers as $plugin_name => $plugin ) {
+		foreach ( $plugins_data as $name => $data ) {
 			$plugin_data = array_map(
 				static function( $value, $header ) {
 					return $header . ': ' . $value;
 				},
-				$plugin,
-				array_keys( $plugin )
+				$data,
+				array_keys( $data )
 			);
 
 			$plugin_data = "<?php\n/*\n" . implode( "\n", $plugin_data ) . "\n*/\n";
 
 			$plugin_file = $this->create_plugin(
-				$plugin_name . '.php',
+				$name . '.php',
 				$plugin_data,
-				self::$plugin_dir
+				self::$plugins_dir
 			);
 
 			$plugin_names[] = $plugin_file[1];
@@ -148,13 +155,13 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 
 		$dependencies = new WP_Plugin_Dependencies();
 		$plugins      = $this->make_prop_accessible( $dependencies, 'plugins' );
-		$plugins->setValue( $dependencies, $headers );
+		$plugins->setValue( $dependencies, $plugins_data );
 
 		$parse_plugin_headers = $this->make_method_accessible( $dependencies, 'parse_plugin_headers' );
 		$actual               = $parse_plugin_headers->invoke( $dependencies );
 
 		// Remove any non testing data, may be single file plugins in test environment.
-		$test_plugin = basename( self::$plugin_dir ) . '/' . $plugin_file[0];
+		$test_plugin = basename( self::$plugins_dir ) . '/' . $plugin_file[0];
 		$actual      = array_filter(
 			$actual,
 			function( $key ) use ( $test_plugin ) {
@@ -174,9 +181,9 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data Provider.
+	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_parse_plugin_headers() {
 		return array(
@@ -319,6 +326,8 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that slugs are correctly sanitized from the 'RequiresPlugins' header.
+	 *
 	 * @dataProvider data_slug_sanitization
 	 *
 	 * @covers WP_Plugin_Dependencies::sanitize_required_headers
@@ -326,18 +335,18 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 	 * @param string $requires_plugins The unsanitized dependency slug(s).
 	 * @param array  $expected         The sanitized dependency slug(s).
 	 */
-	public function test_slug_sanitization( $requires_plugins, $expected ) {
+	public function test_slugs_are_correctly_sanitized_from_the_requiresplugins_header( $requires_plugins, $expected ) {
 		$dependencies = new WP_Plugin_Dependencies();
 		$sanitize     = $this->make_method_accessible( $dependencies, 'sanitize_required_headers' );
 		$headers      = array( 'test-plugin' => array( 'RequiresPlugins' => $requires_plugins ) );
 		$actual       = $sanitize->invoke( $dependencies, $headers );
-		$this->assertSameSetsWithIndex( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_slug_sanitization() {
 		return array(
@@ -440,9 +449,9 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_get_dependency_filepaths().
+	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_get_dependency_filepaths() {
 		return array(
@@ -563,5 +572,128 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 		$dependency_dirnames->setValue( $dependencies, $expected );
 
 		$this->assertSame( $expected, $get_filepaths->invoke( $dependencies ) );
+	}
+
+	/**
+	 * Tests that dependency slugs are returned correctly.
+	 *
+	 * @covers WP_Plugin_Dependencies_2::split_slug
+	 *
+	 * @dataProvider data_split_slug_should_return_correct_slug
+	 *
+	 * @param string $slug     A slug string.
+	 * @param array  $expected A string of expected slug results.
+	 */
+	public function test_split_slug_should_return_correct_slug( $slug, $expected ) {
+		$this->markTestSkipped('must be revisited.');
+
+		$dependencies2 = new WP_Plugin_Dependencies_2();
+		$split_slug    = $this->make_method_accessible( $dependencies2, 'split_slug' );
+
+		// The slug is trimmed before being passed to the 'wp_plugin_dependencies_slug' filter.
+		$actual = $split_slug->invoke( $dependencies2, trim( $slug ) );
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_split_slug_should_return_correct_slug() {
+		return array(
+			'no slug, an endpoint, and one pipe at the start' => array(
+				'slug'     => '|endpoint',
+				'expected' => '|endpoint',
+			),
+			'no slug, an endpoint, and two pipes at the start' => array(
+				'slug'     => '||endpoint',
+				'expected' => '||endpoint',
+			),
+			'a slug, an endpoint, and one pipe in the middle' => array(
+				'slug'     => 'slug|endpoint',
+				'expected' => 'slug',
+			),
+			'a slug, an endpoint, and two pipes in the middle' => array(
+				'slug'     => 'slug||endpoint',
+				'expected' => 'slug||endpoint',
+			),
+			'a slug, no endpoint, and one pipe at the end' => array(
+				'slug'     => 'slug|',
+				'expected' => 'slug|',
+			),
+			'a slug, no endpoint, and two pipes at the end' => array(
+				'slug'     => 'slug||',
+				'expected' => 'slug||',
+			),
+			'a slug, no endpoint, and one pipe at the start and end' => array(
+				'slug'     => '|slug|',
+				'expected' => '|slug|',
+			),
+			'a slug, no endpoint, and two pipes at the start and end' => array(
+				'slug'     => '||slug||',
+				'expected' => '||slug||',
+			),
+			'a slug, an endpoint, and two pipes in the middle' => array(
+				'slug'     => 'slug||endpoint',
+				'expected' => 'slug||endpoint',
+			),
+			'a slug, an endpoint, and one pipe at the start, in the middle, and at the end' => array(
+				'slug'     => '|slug|endpoint|',
+				'expected' => '|slug|endpoint|',
+			),
+			'a slug, an endpoint, and one pipe at the start and end, and two pipes in the middle' => array(
+				'slug'     => '|slug||endpoint|',
+				'expected' => '|slug||endpoint|',
+			),
+			'a slug, an endpoint, and two pipes at the start and end, and one pipe in the middle' => array(
+				'slug'     => '||slug|endpoint||',
+				'expected' => '||slug|endpoint||',
+			),
+			'a slug, an endpoint, and two pipes at the start and end, and two pipes in the middle' => array(
+				'slug'     => '||slug||endpoint||',
+				'expected' => '||slug||endpoint||',
+			),
+			'a slug, an endpoint, and one pipe at the start and in the middle' => array(
+				'slug'     => '|slug|endpoint',
+				'expected' => '|slug|endpoint',
+			),
+			'a slug, an endpoint, and one pipe in the middle and at the end' => array(
+				'slug'     => 'slug|endpoint|',
+				'expected' => 'slug|endpoint|',
+			),
+			'a slug, an endpoint, and two spaces and a pipe at the start, and a pipe in the middle' => array(
+				'slug'     => '  |slug|endpoint',
+				'expected' => '|slug|endpoint',
+			),
+			'a slug, an endpoint, and two spaces before a pipe in the middle' => array(
+				'slug'     => 'slug  |endpoint',
+				'expected' => 'slug',
+			),
+			'a slug, an endpoint, and two spaces after a pipe in the middle' => array(
+				'slug'     => 'slug|  endpoint',
+				'expected' => 'slug',
+			),
+			'a slug, an endpoint, and a pipe in the middle, a pipe at the end, and two spaces at the end' => array(
+				'slug'     => 'slug|endpoint|  ',
+				'expected' => 'slug|endpoint|',
+			),
+			'a slug, an endpoint, and spaces pipe at front pipe in middle' => array(
+				'slug'     => '     |slug|endpoint',
+				'expected' => '|slug|endpoint',
+			),
+			'no slug, no endpoint, and one pipe'           => array(
+				'slug'     => '|',
+				'expected' => '|',
+			),
+			'no slug, no endpoint, and two pipes'          => array(
+				'slug'     => '||',
+				'expected' => '||',
+			),
+			'an empty slug'                                => array(
+				'slug'     => '',
+				'expected' => '',
+			),
+		);
 	}
 }
