@@ -307,6 +307,7 @@ function create_initial_post_types() {
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'show_ui'               => true,
 			'show_in_menu'          => false,
+			'show_in_admin_bar'     => true,
 			'rewrite'               => false,
 			'show_in_rest'          => true,
 			'rest_base'             => 'blocks',
