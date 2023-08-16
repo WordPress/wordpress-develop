@@ -35,26 +35,9 @@ env:
   LOCAL_PHP_MEMCACHED: ${{ false }}
 
 jobs:
-  # Runs the PHPUnit tests for WordPress.
   #
-  # Performs the following steps:
-  # - Sets environment variables.
-  # - Checks out the repository.
-  # - Sets up Node.js.
-  # - Sets up PHP.
-  # - Installs Composer dependencies.
-  # - Installs npm dependencies
-  # - Logs general debug information about the runner.
-  # - Logs Docker debug information (about the Docker installation within the runner).
-  # - Starts the WordPress Docker container.
-  # - Logs the running Docker containers.
-  # - Logs debug information about what's installed within the WordPress Docker containers.
-  # - Install WordPress within the Docker container.
-  # - Run the PHPUnit tests.
-  # - Ensures version-controlled files are not modified or deleted.
-  # - Checks out the WordPress Test reporter repository.
-  # - Submit the test results to the WordPress.org host test results.
-
+  # Creates a PHPUnit test job for each PHP/MySQL combination.
+  #
   test-with-mysql:
     name: PHP ${{ matrix.php }}
     uses: desrosj/wordpress-develop/.github/workflows/phpunit-tests-run.yml@expanded-db-testing-callable-workflow
@@ -106,6 +89,9 @@ jobs:
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       report: ${{ matrix.report }}
 
+  #
+  # Creates a PHPUnit test job for each PHP/MariaDB combination.
+  #
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
     uses: desrosj/wordpress-develop/.github/workflows/phpunit-tests-run.yml@expanded-db-testing-callable-workflow

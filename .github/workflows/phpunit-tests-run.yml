@@ -1,5 +1,5 @@
 ##
-# Sets up and runs the WordPress PHPUnit test suite.
+# A callable workflow that runs the PHPUnit test suite with the specified configuration.
 ##
 name: Run PHPUnit tests
 
