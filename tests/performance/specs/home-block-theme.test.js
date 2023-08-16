@@ -3,7 +3,11 @@
  */
 const { basename, join } = require( 'path' );
 const { writeFileSync } = require( 'fs' );
-const { getResultsFilename } = require( './../utils' );
+const {
+	getResultsFilename,
+	getTimeToFirstByte,
+	getLargestContentfulPaint,
+} = require( './../utils' );
 
 /**
  * WordPress dependencies.
@@ -15,6 +19,9 @@ describe( 'Server Timing - Twenty Twenty Three', () => {
 		wpBeforeTemplate: [],
 		wpTemplate: [],
 		wpTotal: [],
+		timeToFirstByte: [],
+		largestContentfulPaint: [],
+		lcpMinusTtfb: [],
 	};
 
 	beforeAll( async () => {
@@ -22,7 +29,9 @@ describe( 'Server Timing - Twenty Twenty Three', () => {
 	} );
 
 	afterAll( async () => {
-		const resultsFilename = getResultsFilename( basename( __filename, '.js' ) );
+		const resultsFilename = getResultsFilename(
+			basename( __filename, '.js' )
+		);
 		writeFileSync(
 			join( __dirname, resultsFilename ),
 			JSON.stringify( results, null, 2 )
@@ -40,14 +49,19 @@ describe( 'Server Timing - Twenty Twenty Three', () => {
 			const [ navigationTiming ] = JSON.parse( navigationTimingJson );
 
 			results.wpBeforeTemplate.push(
-				navigationTiming.serverTiming[0].duration
+				navigationTiming.serverTiming[ 0 ].duration
 			);
 			results.wpTemplate.push(
-				navigationTiming.serverTiming[1].duration
+				navigationTiming.serverTiming[ 1 ].duration
 			);
-			results.wpTotal.push(
-				navigationTiming.serverTiming[2].duration
-			);
+			results.wpTotal.push( navigationTiming.serverTiming[ 2 ].duration );
+
+			const ttfb = await getTimeToFirstByte();
+			const lcp = await getLargestContentfulPaint();
+
+			results.timeToFirstByte.push( ttfb );
+			results.largestContentfulPaint.push( lcp );
+			results.lcpMinusTtfb.push( lcp - ttfb );
 		}
 	} );
 } );
