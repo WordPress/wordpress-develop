@@ -75,9 +75,9 @@ jobs:
   # - Run baseline performance tests.
   # - Print baseline performance tests results.
   # - Compare results with base.
-  # - Add workflow summary
-  # - Check if a comment was already made
-  # - Comment on PR with test results
+  # - Add workflow summary.
+  # - Check if a comment was already made.
+  # - Comment on PR with test results.
   # - Set the base sha.
   # - Set commit details.
   # - Publish performance results.

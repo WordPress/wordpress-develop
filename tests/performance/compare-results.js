@@ -29,7 +29,7 @@ const testResults = Object.fromEntries(
 	] )
 );
 
-// The previous commit's results
+// The previous commit's results.
 const prevResults = Object.fromEntries(
 	testSuites.map( ( key ) => [
 		key,
