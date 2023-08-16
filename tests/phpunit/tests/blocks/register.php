@@ -467,7 +467,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 				wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $metadata['style'] ) ),
 				trailingslashit( wp_normalize_path( get_stylesheet_directory() ) )
 			) === 0
-	    );
+		);
 	}
 
 	/**
