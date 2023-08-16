@@ -274,7 +274,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		// Test the behavior directly within the unit test
 		$this->assertFalse(
 			strpos(
-				wp_normalize_path( realpath( dirname( $metadata[ 'file' ]) . '/' . $metadata[ 'script' ])),
+				wp_normalize_path( realpath( dirname( $metadata['file']) . '/' . $metadata['script'] ) ),
 				trailingslashit(wp_normalize_path(get_template_directory()))
 			) === 0
 		);
