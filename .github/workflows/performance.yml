@@ -35,7 +35,7 @@ env:
   SCRIPT_DEBUG: false
   SAVEQUERIES : false
   WP_DEVELOPMENT_MODE: ''
-  
+
   # This workflow takes two sets of measurements — one for the current commit,
   # and another against a consistent version that is used as a baseline measurement.
   # This is done to isolate variance in measurements caused by the GitHub runners
@@ -87,7 +87,7 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
       - name: Set up Node.js
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
@@ -168,7 +168,7 @@ jobs:
       - name: Set the base sha
         # Only needed when publishing results.
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
-        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         id: base-sha
         with:
             github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -179,7 +179,7 @@ jobs:
       - name: Set commit details
         # Only needed when publishing results.
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
-        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         id: commit-timestamp
         with:
             github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -221,7 +221,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
-    needs: [ performance, slack-notifications ]
+    needs: [ slack-notifications ]
     if: |
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
@@ -233,7 +233,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         with:
           retries: 2
           retry-exempt-status-codes: 418
