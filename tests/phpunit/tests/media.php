@@ -3461,9 +3461,10 @@ EOF;
 	 *
 	 * @param string $tag_name Tag name.
 	 * @param bool   $expected Expected return value.
+	 * @param string $message  The test message.
 	 */
-	public function test_wp_decoding_enabled( $tag_name, $expected ) {
-		$this->assertSame( $expected, wp_decoding_enabled( $tag_name, 'the_content' ) );
+	public function test_wp_decoding_enabled( $tag_name, $expected, $message ) {
+		$this->assertSame( $expected, wp_decoding_enabled( $tag_name, 'the_content' ), $message );
 	}
 
 	/**
@@ -3478,9 +3479,9 @@ EOF;
 	 */
 	public function data_wp_decoding_enabled_tag_name_defaults() {
 		return array(
-			'img => true'            => array( 'img', true ),
-			'iframe => false'        => array( 'iframe', false ),
-			'arbitrary tag => false' => array( 'blink', false ),
+			'img => true'            => array( 'img', true, 'IMG tag should be supported.' ),
+			'iframe => false'        => array( 'iframe', false, 'IFRAME tag should not be supported.' ),
+			'arbitrary tag => false' => array( 'blink', false, 'Random tags should not be supported.' ),
 		);
 	}
 
@@ -3495,8 +3496,9 @@ EOF;
 	 * @param string $tag_name The tag name.
 	 * @param string $decoding The value for the 'decoding' attribute. 'no value' for default.
 	 * @param string $expected The expected `img` tag.
+	 * @param string $message  The test message.
 	 */
-	public function test_add_decoding_attr( $tag_name, $decoding, $expected ) {
+	public function test_add_decoding_attr( $tag_name, $decoding, $expected, $message ) {
 		add_filter(
 			'wp_decoding_value',
 			static function ( $value ) use ( $decoding ) {
@@ -3513,7 +3515,8 @@ EOF;
 					'height' => 1,
 				),
 				''
-			)
+			),
+			$message
 		);
 	}
 
@@ -3538,6 +3541,7 @@ EOF;
 					'decoding' => 'async',
 					'loading'  => 'lazy',
 				),
+				'message'  => 'The decoding attribute should accept `async` string.',
 			),
 			'sync'                    => array(
 				'tag_name' => 'img',
@@ -3546,6 +3550,7 @@ EOF;
 					'decoding' => 'sync',
 					'loading'  => 'lazy',
 				),
+				'message'  => 'The decoding attribute should accept `sync`string.',
 			),
 			'auto'                    => array(
 				'tag_name' => 'img',
@@ -3554,6 +3559,7 @@ EOF;
 					'decoding' => 'auto',
 					'loading'  => 'lazy',
 				),
+				'message'  => 'The decoding attribute should accept `auto` string.',
 			),
 
 			// Unhappy paths.
@@ -3563,6 +3569,7 @@ EOF;
 				'expected' => array(
 					'loading' => 'lazy',
 				),
+				'message'  => 'The decoding attribute should not accept `lazy` string.',
 			),
 			'a non-string value'      => array(
 				'tag_name' => 'img',
@@ -3570,6 +3577,7 @@ EOF;
 				'expected' => array(
 					'loading' => 'lazy',
 				),
+				'message'  => 'The decoding attribute should not accept non-string values.',
 			),
 
 			// Falsy values.
@@ -3579,6 +3587,7 @@ EOF;
 				'expected' => array(
 					'loading' => 'lazy',
 				),
+				'message'  => 'The decoding attribute should not accept `false`.',
 			),
 			'null'                    => array(
 				'tag_name' => 'img',
@@ -3586,6 +3595,7 @@ EOF;
 				'expected' => array(
 					'loading' => 'lazy',
 				),
+				'message'  => 'The decoding attribute should not accept `null`.',
 			),
 			'empty string'            => array(
 				'tag_name' => 'img',
@@ -3593,6 +3603,7 @@ EOF;
 				'expected' => array(
 					'loading' => 'lazy',
 				),
+				'message'  => 'The decoding attribute should not accept empty string.',
 			),
 			'empty array'             => array(
 				'tag_name' => 'img',
@@ -3600,6 +3611,7 @@ EOF;
 				'expected' => array(
 					'loading' => 'lazy',
 				),
+				'message'  => 'The decoding attribute should not accept empty array.',
 			),
 			'0 int'                   => array(
 				'tag_name' => 'img',
@@ -3607,6 +3619,7 @@ EOF;
 				'expected' => array(
 					'loading' => 'lazy',
 				),
+				'message'  => 'The decoding attribute should not accept `0`.',
 			),
 			'0 string'                => array(
 				'tag_name' => 'img',
@@ -3614,6 +3627,7 @@ EOF;
 				'expected' => array(
 					'loading' => 'lazy',
 				),
+				'message'  => 'The decoding attribute should not accept `0` string.',
 			),
 			'0.0 float'               => array(
 				'tag_name' => 'img',
@@ -3621,6 +3635,7 @@ EOF;
 				'expected' => array(
 					'loading' => 'lazy',
 				),
+				'message'  => 'The decoding attribute should not accept `0.0` float.',
 			),
 		);
 	}
