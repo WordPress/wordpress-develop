@@ -162,7 +162,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [ prepare ]
-    if: ${{ ( inputs.calling_status == 'failure' || failure() ) && steps.previous-attempt-result.outputs.result != 'first-failure' }}
+    if: ${{ ( inputs.calling_status == 'failure' || failure() ) && needs.prepare.outputs.previous_conclusion != 'first-failure' }}
 
     steps:
       - name: Post failure notifications to Slack
