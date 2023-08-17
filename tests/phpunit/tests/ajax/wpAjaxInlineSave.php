@@ -89,9 +89,9 @@ class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * When updating a draft in quick edit mode, it should not set the publish date of the post when this one will be published.
+	 * When updating a draft in quick edit mode, it should set the post date if the date submitted.
 	 *
-	 * @ticket 19907
+	 * @ticket 59125
 	 *
 	 * @covers ::edit_post
 	 */
@@ -140,6 +140,6 @@ class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 
 		$post = get_post( $post->ID );
 
-		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+		$this->assertEquals( '2020-09-11 19:20:11', $post->post_date_gmt );
 	}
 }
