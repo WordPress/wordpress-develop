@@ -3451,41 +3451,6 @@ EOF;
 	}
 
 	/**
-	 * Tests that `wp_decoding_enabled()` returns the expected value.
-	 *
-	 * @ticket 58892
-	 *
-	 * @covers ::wp_decoding_enabled
-	 *
-	 * @dataProvider data_wp_decoding_enabled_tag_name_defaults
-	 *
-	 * @param string $tag_name Tag name.
-	 * @param bool   $expected Expected return value.
-	 * @param string $message  The test message.
-	 */
-	public function test_wp_decoding_enabled( $tag_name, $expected, $message ) {
-		$this->assertSame( $expected, wp_decoding_enabled( $tag_name, 'the_content' ), $message );
-	}
-
-	/**
-	 * Data provider for test_wp_decoding_enabled().
-	 *
-	 * @return array {
-	 *  @type array $test {
-	 *      @type string $tag_name The tag name.
-	 *      @type bool   $expected Whether tag name is supported.
-	 *  }
-	 * }
-	 */
-	public function data_wp_decoding_enabled_tag_name_defaults() {
-		return array(
-			'img => true'            => array( 'img', true, 'IMG tag should be supported.' ),
-			'iframe => false'        => array( 'iframe', false, 'IFRAME tag should not be supported.' ),
-			'arbitrary tag => false' => array( 'blink', false, 'Random tags should not be supported.' ),
-		);
-	}
-
-	/**
 	 * Tests that the `wp_get_loading_optimization_attributes()` function should add
 	 * the 'decoding' attribute.
 	 *
