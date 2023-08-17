@@ -276,48 +276,51 @@ function prime_options( $options ) {
 		}
 	}
 
-	if ( ! empty( $options_to_prime ) ) {
-		global $wpdb;
-		$results = $wpdb->get_results(
-			$wpdb->prepare(
-				sprintf(
-					"SELECT option_name, option_value FROM $wpdb->options WHERE option_name IN (%s)",
-					implode( ',', array_fill( 0, count( $options_to_prime ), '%s' ) )
-				),
-				$options_to_prime
-			)
-		);
+	// Bail early if there are no options to be primed.
+	if ( empty( $options_to_prime ) ) {
+		return;
+	}
 
-		$options_not_found = $options_to_prime;
-		foreach ( $results as $result ) {
-			wp_cache_set( $result->option_name, maybe_unserialize( $result->option_value ), 'options' );
-			unset( $options_not_found[ array_search( $result->option_name, $options_not_found, true ) ] );
+	global $wpdb;
+	$results = $wpdb->get_results(
+		$wpdb->prepare(
+			sprintf(
+				"SELECT option_name, option_value FROM $wpdb->options WHERE option_name IN (%s)",
+				implode( ',', array_fill( 0, count( $options_to_prime ), '%s' ) )
+			),
+			$options_to_prime
+		)
+	);
+
+	$options_not_found = $options_to_prime;
+	foreach ( $results as $result ) {
+		wp_cache_set( $result->option_name, maybe_unserialize( $result->option_value ), 'options' );
+		unset( $options_not_found[ array_search( $result->option_name, $options_not_found, true ) ] );
+	}
+
+	$notoptions = wp_cache_get( 'notoptions', 'options' );
+
+	// Make a copy to check later if any change was made.
+	$new_notoptions = $notoptions;
+
+	// Add the options that were not found to the cache.
+	if ( ! is_array( $new_notoptions ) ) {
+		$new_notoptions = array();
+	}
+	foreach ( $options_not_found as $option_name ) {
+		if ( ! isset( $new_notoptions[ $option_name ] ) ) {
+			$new_notoptions[ $option_name ] = true;
 		}
+	}
 
-		$notoptions = wp_cache_get( 'notoptions', 'options' );
-
-		// Make a copy to check later if any change was made.
-		$new_notoptions = $notoptions;
-
-		// Add the options that were not found to the cache.
-		if ( ! is_array( $new_notoptions ) ) {
-			$new_notoptions = array();
-		}
-		foreach ( $options_not_found as $option_name ) {
-			if ( ! isset( $new_notoptions[ $option_name ] ) ) {
-				$new_notoptions[ $option_name ] = true;
-			}
-		}
-
-		// Only update the cache if it was modified.
-		if ( $new_notoptions !== $notoptions ) {
-			wp_cache_set( 'notoptions', $new_notoptions, 'options' );
-		}
+	// Only update the cache if it was modified.
+	if ( $new_notoptions !== $notoptions ) {
+		wp_cache_set( 'notoptions', $new_notoptions, 'options' );
 	}
 }
 
 /**
- * Wrapper function to prime all options registered with a specific option group.
+ * Primes all options registered with a specific option group.
  *
  * @since 6.4.0
  *
