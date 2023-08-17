@@ -24,7 +24,7 @@ on:
         description: 'Database version'
         required: false
         type: 'string'
-        default: '5.6'
+        default: '5.7'
       multisite:
         description: 'Whether to run tests as multisite'
         required: false
