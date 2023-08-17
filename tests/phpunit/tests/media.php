@@ -3463,11 +3463,7 @@ EOF;
 	 * @param bool   $expected Expected return value.
 	 */
 	public function test_wp_decoding_enabled( $tag_name, $expected ) {
-		if ( $expected ) {
-			$this->assertTrue( wp_decoding_enabled( $tag_name, 'the_content' ) );
-		} else {
-			$this->assertFalse( wp_decoding_enabled( $tag_name, 'the_content' ) );
-		}
+		$this->assertSame( $expected, wp_decoding_enabled( $tag_name, 'the_content' ) );
 	}
 
 	/**
