@@ -697,6 +697,12 @@ class WP_Theme_JSON_Resolver {
 			'theme'  => array(),
 			'user'   => array(),
 		);
+		static::$merged                   = array(
+			'default' => null,
+			'blocks'  => null,
+			'theme'   => null,
+			'custom'  => null,
+		);
 		static::$theme                    = null;
 		static::$user                     = null;
 		static::$user_custom_post_type_id = null;
