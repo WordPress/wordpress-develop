@@ -171,6 +171,16 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 		}
 	}
 
+	if ( isset( $post_data['action'] ) && 'inline-save' === $post_data['action'] ) {
+		$post_data['edit_date'] = '1';
+		foreach ( array( 'aa', 'mm', 'jj', 'hh', 'mn' ) as $timeunit ) {
+			if ( ! isset( $post_data[ $timeunit ] ) ) {
+				$post_data['edit_date'] = false;
+				break;
+			}
+		}
+	}
+
 	if ( isset( $post_data['edit_date'] ) && 'false' === $post_data['edit_date'] ) {
 		$post_data['edit_date'] = false;
 	}
