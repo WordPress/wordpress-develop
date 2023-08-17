@@ -5830,6 +5830,10 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		if ( wp_decoding_enabled( $tag_name, $context ) ) {
 			$decoding = array_key_exists( 'decoding', $attr ) ? $attr['decoding'] : 'async';
 
+			// This filter is applied to ensure backward-compatibility.
+			/** This action is documented in wp-includes/media.php */
+			$decoding = apply_filters( 'wp_img_tag_add_decoding_attr', $decoding, $tag_name, $context );
+
 			/**
 			 * Filters the `decoding` attribute value to add to an image. Default `async`.
 			 *
