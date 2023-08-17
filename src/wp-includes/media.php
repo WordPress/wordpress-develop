@@ -1797,36 +1797,6 @@ function wp_lazy_loading_enabled( $tag_name, $context ) {
 }
 
 /**
- * Determines whether to add the `decoding` attribute to the specified tag in the specified context.
- *
- * @since 6.4.0
- *
- * @param string $tag_name The tag name.
- * @param string $context  Additional context, like the current filter name
- *                         or the function name from where this was called.
- * @return bool Whether to add the attribute.
- */
-function wp_decoding_enabled( $tag_name, $context ) {
-	/*
-	 * By default add to all 'img' tags.
-	 * See https://html.spec.whatwg.org/multipage/embedded-content.html#attr-img-decoding
-	 */
-	$default = ( 'img' === $tag_name );
-
-	/**
-	 * Filters whether to add the `decoding` attribute to the specified tag in the specified context.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param bool   $default  Default value.
-	 * @param string $tag_name The tag name.
-	 * @param string $context  Additional context, like the current filter name
-	 *                         or the function name from where this was called.
-	 */
-	return (bool) apply_filters( 'wp_decoding_enabled', $default, $tag_name, $context );
-}
-
-/**
  * Filters specific tags in post content and modifies their markup.
  *
  * Modifies HTML tags in post content to include new browser and HTML technologies
@@ -5827,7 +5797,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		$loading_attrs = wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr );
 	} else {
 		// Only add `decoding` attribute if the feature is enabled.
-		if ( wp_decoding_enabled( $tag_name, $context ) ) {
+		if ( 'img' === $tag_name ) {
 			$decoding = array_key_exists( 'decoding', $attr ) ? $attr['decoding'] : 'async';
 
 			// This filter is applied to ensure backward-compatibility.
