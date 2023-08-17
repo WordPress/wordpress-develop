@@ -66,6 +66,19 @@ class WP_Theme_JSON_Resolver {
 	protected static $user = null;
 
 	/**
+	 * Container for merged data.
+	 *
+	 * @since n.e.x.t
+	 * @var WP_Theme_JSON
+	 */
+	protected static $merged = array(
+		'default' => null,
+		'blocks'  => null,
+		'theme'   => null,
+		'custom'  => null,
+	);
+
+	/**
 	 * Stores the ID of the custom post type
 	 * that holds the user data.
 	 *
@@ -576,6 +589,14 @@ class WP_Theme_JSON_Resolver {
 			_deprecated_argument( __FUNCTION__, '5.9.0' );
 		}
 
+		if ( ! in_array( $origin, WP_Theme_JSON::VALID_ORIGINS, true ) ) {
+			$origin = 'custom';
+		}
+
+		if ( null !== static::$merged[ $origin ] ) {
+			return static::$merged[ $origin ];
+		}
+
 		$result = new WP_Theme_JSON();
 		$result->merge( static::get_core_data() );
 		if ( 'default' === $origin ) {
@@ -596,6 +617,8 @@ class WP_Theme_JSON_Resolver {
 
 		$result->merge( static::get_user_data() );
 		$result->set_spacing_sizes();
+
+		static::$merged[ $origin ] = $result;
 
 		return $result;
 	}
