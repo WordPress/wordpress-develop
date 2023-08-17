@@ -3497,12 +3497,12 @@ EOF;
 	 * @param string $expected The expected `img` tag.
 	 */
 	public function test_add_decoding_attr( $tag_name, $decoding, $expected ) {
-			add_filter(
-				'wp_decoding_value',
-				static function( $value ) use ( $decoding ) {
-					return $decoding;
-				}
-			);
+		add_filter(
+			'wp_decoding_value',
+			static function ( $value ) use ( $decoding ) {
+				return $decoding;
+			}
+		);
 
 		$this->assertEquals(
 			$expected,
