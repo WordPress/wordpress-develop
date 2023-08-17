@@ -3451,12 +3451,13 @@ EOF;
 	}
 
 	/**
-	 * Test whether wp_decoding_enabled() returns the expected value.
+	 * Tests that `wp_decoding_enabled()` returns the expected value.
 	 *
-	 * @ticket       58892
-	 * @dataProvider data_wp_decoding_enabled_tag_name_defaults
+	 * @ticket 58892
 	 *
 	 * @covers ::wp_decoding_enabled
+	 *
+	 * @dataProvider data_wp_decoding_enabled_tag_name_defaults
 	 *
 	 * @param string $tag_name Tag name.
 	 * @param bool   $expected Expected return value.
@@ -3474,8 +3475,8 @@ EOF;
 	 *
 	 * @return array {
 	 *  @type array $test {
-	 *      @type string  $tag_name The tag name.
-	 *      @type bool    $expected Whether tag name is supported.
+	 *      @type string $tag_name The tag name.
+	 *      @type bool   $expected Whether tag name is supported.
 	 *  }
 	 * }
 	 */
@@ -3525,9 +3526,9 @@ EOF;
 	 *
 	 * @return array {
 	 *  @type array $test {
-	 *      @type string  $tag_name The tag name.
-	 *      @type string  $decoding The value to test.  Additional context to pass to the filters.
-	 *      @type array   $expected The expected value.
+	 *      @type string $tag_name The tag name.
+	 *      @type string $decoding The value to test. Additional context to pass to the filters.
+	 *      @type array  $expected The expected value.
 	 *  }
 	 * }
 	 */
