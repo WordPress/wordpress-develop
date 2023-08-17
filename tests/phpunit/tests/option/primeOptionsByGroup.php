@@ -5,13 +5,13 @@
  * @group option
  *
  * @covers ::prime_options_by_group
- *
- * @ticket 58962
  */
 class Tests_Option_PrimeOptionsByGroup extends WP_UnitTestCase {
 
 	/**
 	 * Tests that prime_options_by_group() only primes options in the specified group.
+	 *
+	 * @ticket 58962
 	 */
 	public function test_prime_options_by_group() {
 		global $new_allowed_options;
@@ -57,6 +57,8 @@ class Tests_Option_PrimeOptionsByGroup extends WP_UnitTestCase {
 
 	/**
 	 * Tests prime_options_by_group() with a nonexistent option group.
+	 *
+	 * @ticket 58962
 	 */
 	public function test_prime_options_by_group_with_nonexistent_group() {
 		// Make sure options are not in cache or database initially.

@@ -5,13 +5,13 @@
  * @group option
  *
  * @covers ::prime_options
- *
- * @ticket 58962
  */
 class Tests_Option_PrimeOptions extends WP_UnitTestCase {
 
 	/**
 	 * Tests that prime_options() primes multiple options.
+	 *
+	 * @ticket 58962
 	 */
 	public function test_prime_options() {
 		// Create some options to prime.
@@ -63,6 +63,8 @@ class Tests_Option_PrimeOptions extends WP_UnitTestCase {
 
 	/**
 	 * Tests prime_options() with options that do not exist in the database.
+	 *
+	 * @ticket 58962
 	 */
 	public function test_prime_options_with_nonexistent_options() {
 		// Create some options to prime.

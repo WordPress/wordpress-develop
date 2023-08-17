@@ -5,13 +5,13 @@
  * @group option
  *
  * @covers ::get_options
- *
- * @ticket 58962
  */
 class Tests_Option_GetOptions extends WP_UnitTestCase {
 
 	/**
 	 * Tests that get_options() retrieves specified options.
+	 *
+	 * @ticket 58962
 	 */
 	public function test_get_options() {
 		// Create some options to prime.
@@ -46,6 +46,8 @@ class Tests_Option_GetOptions extends WP_UnitTestCase {
 
 	/**
 	 * Tests get_options() with an empty input array.
+	 *
+	 * @ticket 58962
 	 */
 	public function test_get_options_with_empty_array() {
 		// Call the get_options function with an empty array.
