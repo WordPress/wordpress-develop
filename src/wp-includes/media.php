@@ -1084,7 +1084,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			$context
 		);
 
-		// The `decoding` attribute is nown managed within `$loading_optimization_attr`.
+		// The `decoding` attribute is now managed within `$loading_optimization_attr`.
 		if ( array_key_exists( 'decoding', $attr ) ) {
 			unset( $attr['decoding'] );
 		}
