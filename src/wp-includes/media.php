@@ -2113,7 +2113,13 @@ function wp_img_tag_add_decoding_attr( $image, $context ) {
 	 * @param string            $context Additional context about how the function was called
 	 *                                   or where the img tag is.
 	 */
-	$value = apply_filters_deprecated( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
+	$value = apply_filters_deprecated(
+		'wp_img_tag_add_decoding_attr',
+		array( 'async', $image, $context ),
+		'6.4.0',
+		'wp_decoding_value',
+		__( 'This filter was introduced with `wp_img_tag_add_decoding_attr` which became deprecated. The `decoding` attribute is now managed by `wp_img_tag_add_loading_optimization_attrs`.' )
+	);
 
 	if ( in_array( $value, array( 'async', 'sync', 'auto' ), true ) ) {
 		$image = str_replace( '<img ', '<img decoding="' . esc_attr( $value ) . '" ', $image );
