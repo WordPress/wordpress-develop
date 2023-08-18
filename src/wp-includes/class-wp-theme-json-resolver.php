@@ -593,7 +593,18 @@ class WP_Theme_JSON_Resolver {
 			$origin = 'custom';
 		}
 
-		if ( null !== static::$merged[ $origin ] ) {
+		// Map origins to block cache values.
+		$cache_map = array(
+			'default' => 'core',
+			'blocks'  => 'blocks',
+			'theme'   => 'theme',
+			'custom'  => 'user',
+		);
+
+		if (
+			null !== static::$merged[ $origin ]
+			&& static::has_same_registered_blocks( $cache_map[ $origin ] )
+		) {
 			return static::$merged[ $origin ];
 		}
 
