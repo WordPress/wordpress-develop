@@ -181,7 +181,6 @@ require ABSPATH . WPINC . '/class-wp-block-template.php';
 require ABSPATH . WPINC . '/block-template-utils.php';
 require ABSPATH . WPINC . '/block-template.php';
 require ABSPATH . WPINC . '/theme-templates.php';
-require ABSPATH . WPINC . '/theme-previews.php';
 require ABSPATH . WPINC . '/template.php';
 require ABSPATH . WPINC . '/https-detection.php';
 require ABSPATH . WPINC . '/https-migration.php';
@@ -482,6 +481,9 @@ unset( $plugin, $_wp_plugin_file );
 // Load pluggable functions.
 require ABSPATH . WPINC . '/pluggable.php';
 require ABSPATH . WPINC . '/pluggable-deprecated.php';
+
+// This should be after the pluggable functions are loaded since it runs `wp_get_current_user`.
+require ABSPATH . WPINC . '/theme-previews.php';
 
 // Set internal encoding.
 wp_set_internal_encoding();
