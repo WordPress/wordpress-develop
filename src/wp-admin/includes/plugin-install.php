@@ -337,7 +337,7 @@ function install_search_form( $deprecated = true ) {
 			_e( 'Search Plugins' );
 			?>
 		</label>
-		<input type="search" name="s" id="search-plugins" value="<?php echo esc_attr( $term ); ?>" class="wp-filter-search" placeholder="<?php esc_attr_e( 'Search plugins...' ); ?>" />
+		<input type="search" name="s" id="search-plugins" value="<?php echo esc_attr( urldecode( $term ) ); ?>" class="wp-filter-search" placeholder="<?php esc_attr_e( 'Search plugins...' ); ?>" />
 		<?php submit_button( __( 'Search Plugins' ), 'hide-if-js', false, false, array( 'id' => 'search-submit' ) ); ?>
 	</form>
 	<?php
