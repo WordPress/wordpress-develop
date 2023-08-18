@@ -5796,24 +5796,6 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			 */
 			$decoding = apply_filters( 'wp_img_tag_add_decoding_attr', $decoding, $tag_name, $context );
 
-			/**
-			 * Filters the `decoding` attribute value to add to an image. Default `async`.
-			 *
-			 * Returning a falsy value will omit the attribute.
-			 *
-			 * @since 6.4.0
-			 *
-			 * @param string|false|null $value    The `decoding` attribute value. Returning a falsy value
-			 *                                    will result in the attribute being omitted for the image.
-			 *                                    Otherwise, it may be: 'async' (default), 'sync', or 'auto'.
-			 * @param string            $tag_name The tag name of the element.
-			 * @param string            $context  Additional context about how the function was called
-			 *                                    or where the img tag is.
-			 *
-			 *
-			 */
-			$decoding = apply_filters( 'wp_decoding_value', $decoding, $tag_name, $context );
-
 			// Validate the `decoding` attribute according to the spec.
 			if ( ! empty( $decoding ) && in_array( $decoding, array( 'async', 'sync', 'auto' ), true ) ) {
 				$loading_attrs['decoding'] = $decoding;
