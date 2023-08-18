@@ -958,19 +958,19 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertNotWPError( $user_id, 'The test user could not be created.' );
 
 		$user_id = wp_update_user(
-				array(
-						'ID'            => $user_id,
-						'user_login'    => $new_email,
-						'user_email'    => $new_email,
-						'user_nicename' => 'new-nicename',
-				)
+			array(
+				'ID'            => $user_id,
+				'user_login'    => $new_email,
+				'user_email'    => $new_email,
+				'user_nicename' => 'new-nicename',
+			)
 		);
 
 		$this->assertNotWPError( $user_id, 'An error should not have been returned.' );
 		$this->assertSame(
-				'new-nicename',
-				get_userdata( $user_id )->user_nicename,
-				'The user_nicename should have been updated.'
+			'new-nicename',
+			get_userdata( $user_id )->user_nicename,
+			'The user_nicename should have been updated.'
 		);
 	}
 
