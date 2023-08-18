@@ -332,7 +332,7 @@ function login_footer( $input_id = '' ) {
 
 					<label for="language-switcher-locales">
 						<span class="dashicons dashicons-translation" aria-hidden="true"></span>
-						<span class="screen-reader-text"><?php esc_html_e( 'Language' ); ?></span>
+						<span class="screen-reader-text"><?php _e( 'Language' ); ?></span>
 					</label>
 
 					<?php
