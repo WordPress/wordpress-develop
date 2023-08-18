@@ -1548,7 +1548,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		}
 
 		if ( isset( $actions['inline hide-if-no-js'] ) ) {
-			echo get_inline_data( $post );
+			get_inline_data( $post );
 		}
 
 		return $this->row_actions( $actions );
