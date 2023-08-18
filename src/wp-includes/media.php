@@ -2068,28 +2068,8 @@ function wp_img_tag_add_decoding_attr( $image, $context ) {
 		return $image;
 	}
 
-	/**
-	 * Filters the `decoding` attribute value to add to an image. Default `async`.
-	 *
-	 * Returning a falsey value will omit the attribute.
-	 *
-	 * @since 6.1.0
-	 * @deprecated 6.4.0 Use {@see 'wp_decoding_value'} instead.
-	 *
-	 * @param string|false|null $value   The `decoding` attribute value. Returning a falsey value
-	 *                                   will result in the attribute being omitted for the image.
-	 *                                   Otherwise, it may be: 'async' (default), 'sync', or 'auto'.
-	 * @param string            $image   The HTML `img` tag to be filtered.
-	 * @param string            $context Additional context about how the function was called
-	 *                                   or where the img tag is.
-	 */
-	$value = apply_filters_deprecated(
-		'wp_img_tag_add_decoding_attr',
-		array( 'async', $image, $context ),
-		'6.4.0',
-		'wp_decoding_value',
-		__( 'This filter was introduced with `wp_img_tag_add_decoding_attr` which became deprecated. The `decoding` attribute is now managed by `wp_img_tag_add_loading_optimization_attrs`.' )
-	);
+	/** This action is documented in wp-includes/media.php */
+	$value = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
 
 	if ( in_array( $value, array( 'async', 'sync', 'auto' ), true ) ) {
 		$image = str_replace( '<img ', '<img decoding="' . esc_attr( $value ) . '" ', $image );
@@ -5800,8 +5780,20 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		if ( 'img' === $tag_name ) {
 			$decoding = array_key_exists( 'decoding', $attr ) ? $attr['decoding'] : 'async';
 
-			// This filter is applied to ensure backward-compatibility.
-			/** This action is documented in wp-includes/media.php */
+			/**
+			 * Filters the `decoding` attribute value to add to an image. Default `async`.
+			 *
+			 * Returning a falsey value will omit the attribute.
+			 *
+			 * @since 6.1.0
+			 *
+			 * @param string|false|null $value   The `decoding` attribute value. Returning a falsey value
+			 *                                   will result in the attribute being omitted for the image.
+			 *                                   Otherwise, it may be: 'async' (default), 'sync', or 'auto'.
+			 * @param string            $image   The HTML `img` tag to be filtered.
+			 * @param string            $context Additional context about how the function was called
+			 *                                   or where the img tag is.
+			 */
 			$decoding = apply_filters( 'wp_img_tag_add_decoding_attr', $decoding, $tag_name, $context );
 
 			/**
