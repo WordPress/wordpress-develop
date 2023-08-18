@@ -191,8 +191,17 @@ function edit_user( $user_id = 0 ) {
 		$errors->add( 'user_login', __( '<strong>Error:</strong> This username is invalid because it uses illegal characters. Please enter a valid username.' ) );
 	}
 
-	if ( ! $update && username_exists( $user->user_login ) ) {
-		$errors->add( 'user_login', __( '<strong>Error:</strong> This username is already registered. Please choose another one.' ) );
+	if ( ! $update ) {
+
+		// Username must be unique.
+		if ( username_exists( $user->user_login ) ) {
+			$errors->add( 'user_login', __( '<strong>Error:</strong> This username is already registered. Please choose another one.' ) );
+		}
+
+		// Username must not match an existing user email.
+		if ( email_exists( $user->user_login ) ) {
+			$errors->add( 'user_login', __( '<strong>Error:</strong> This username is not available. Please choose another one.' ) );
+		}
 	}
 
 	/** This filter is documented in wp-includes/user.php */
