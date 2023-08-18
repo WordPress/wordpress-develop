@@ -446,7 +446,8 @@ function wp_get_theme_directory_pattern_slugs() {
  *
  * @since 6.4.0
  *
- * @return array Associative array of `$template_name => $template_data` pairs, with `$template_data` having "title" and "postTypes" fields.
+ * @return array Associative array of `$template_name => $template_data` pairs,
+ *               with `$template_data` having "title" and "postTypes" fields.
  */
 function wp_get_theme_data_custom_templates() {
 	return WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_custom_templates();
