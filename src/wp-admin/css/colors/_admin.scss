@@ -786,17 +786,3 @@ div#wp-responsive-toggle a:before {
 		color: $link;
 	}
 }
-
-/* Welcome Panel */
-.welcome-panel {
-	background-color: $dashboard-accent-1;
-}
-
-.welcome-panel-header-image circle {
-	stroke: $dashboard-accent-2;
-	fill: $dashboard-accent-1;
-}
-
-[class*="welcome-panel-icon"] {
-	background-color: $dashboard-icon-background;
-}

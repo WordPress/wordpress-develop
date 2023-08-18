@@ -114,8 +114,10 @@ function wp_insert_site( array $data ) {
 			$meta['WPLANG'] = get_network_option( $new_site->network_id, 'WPLANG' );
 		}
 
-		// Rebuild the data expected by the `wpmu_new_blog` hook prior to 5.1.0 using allowed keys.
-		// The `$allowed_data_fields` matches the one used in `wpmu_create_blog()`.
+		/*
+		 * Rebuild the data expected by the `wpmu_new_blog` hook prior to 5.1.0 using allowed keys.
+		 * The `$allowed_data_fields` matches the one used in `wpmu_create_blog()`.
+		 */
 		$allowed_data_fields = array( 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
 		$meta                = array_merge( array_intersect_key( $data, array_flip( $allowed_data_fields ) ), $meta );
 
@@ -340,6 +342,7 @@ function get_site( $site = null ) {
  * @since 4.6.0
  * @since 5.1.0 Introduced the `$update_meta_cache` parameter.
  * @since 6.1.0 This function is no longer marked as "private".
+ * @since 6.3.0 Use wp_lazyload_site_meta() for lazy-loading of site meta.
  *
  * @see update_site_cache()
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -354,8 +357,27 @@ function _prime_site_caches( $ids, $update_meta_cache = true ) {
 	if ( ! empty( $non_cached_ids ) ) {
 		$fresh_sites = $wpdb->get_results( sprintf( "SELECT * FROM $wpdb->blogs WHERE blog_id IN (%s)", implode( ',', array_map( 'intval', $non_cached_ids ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-		update_site_cache( $fresh_sites, $update_meta_cache );
+		update_site_cache( $fresh_sites, false );
 	}
+
+	if ( $update_meta_cache ) {
+		wp_lazyload_site_meta( $ids );
+	}
+}
+
+/**
+ * Queue site meta for lazy-loading.
+ *
+ * @since 6.3.0
+ *
+ * @param array $site_ids List of site IDs.
+ */
+function wp_lazyload_site_meta( array $site_ids ) {
+	if ( empty( $site_ids ) ) {
+		return;
+	}
+	$lazyloader = wp_metadata_lazyloader();
+	$lazyloader->queue_objects( 'blog', $site_ids );
 }
 
 /**
@@ -988,7 +1010,7 @@ function clean_blog_cache( $blog ) {
 	 */
 	do_action( 'clean_site_cache', $blog_id, $blog, $domain_path_key );
 
-	wp_cache_set( 'last_changed', microtime(), 'sites' );
+	wp_cache_set_sites_last_changed();
 
 	/**
 	 * Fires after the blog details cache is cleared.
@@ -1281,7 +1303,7 @@ function wp_update_blog_public_option_on_site_update( $site_id, $is_public ) {
  * @since 5.1.0
  */
 function wp_cache_set_sites_last_changed() {
-	wp_cache_set( 'last_changed', microtime(), 'sites' );
+	wp_cache_set_last_changed( 'sites' );
 }
 
 /**

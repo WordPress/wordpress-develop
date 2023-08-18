@@ -1282,7 +1282,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	/**
 	 * Ensure lazy loading term meta queries all term meta in a single query.
 	 *
-	 * @since 6.1.2
+	 * @since 6.2.0
+	 *
 	 * @ticket 57163
 	 * @ticket 22176
 	 */

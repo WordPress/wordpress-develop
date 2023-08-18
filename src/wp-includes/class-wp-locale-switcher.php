@@ -17,7 +17,7 @@ class WP_Locale_Switcher {
 	/**
 	 * Locale switching stack.
 	 *
-	 * @since 4.7.0
+	 * @since 6.2.0
 	 * @var array
 	 */
 	private $stack = array();
@@ -255,8 +255,10 @@ class WP_Locale_Switcher {
 				continue;
 			}
 
-			// Unload current text domain but allow them to be reloaded
-			// after switching back or to another locale.
+			/*
+			 * Unload current text domain but allow them to be reloaded
+			 * after switching back or to another locale.
+			 */
 			unload_textdomain( $domain, true );
 			get_translations_for_domain( $domain );
 		}

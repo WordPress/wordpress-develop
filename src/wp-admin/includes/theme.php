@@ -711,16 +711,21 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		$is_block_theme         = $theme->is_block_theme();
 
 		if ( $is_block_theme && $can_edit_theme_options ) {
-			$customize_action = esc_url( admin_url( 'site-editor.php' ) );
+			$customize_action = admin_url( 'site-editor.php' );
+			if ( $current_theme !== $slug ) {
+				$customize_action = add_query_arg( 'wp_theme_preview', $slug, $customize_action );
+			}
 		} elseif ( ! $is_block_theme && $can_customize && $can_edit_theme_options ) {
-			$customize_action = esc_url(
-				add_query_arg(
-					array(
-						'return' => urlencode( sanitize_url( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
-					),
-					wp_customize_url( $slug )
-				)
+			$customize_action = wp_customize_url( $slug );
+		}
+		if ( null !== $customize_action ) {
+			$customize_action = add_query_arg(
+				array(
+					'return' => urlencode( sanitize_url( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
+				),
+				$customize_action
 			);
+			$customize_action = esc_url( $customize_action );
 		}
 
 		$update_requires_wp  = isset( $updates[ $slug ]['requires'] ) ? $updates[ $slug ]['requires'] : null;
@@ -820,9 +825,24 @@ function customize_themes_print_templates() {
 		<div class="theme-backdrop"></div>
 		<div class="theme-wrap wp-clearfix" role="document">
 			<div class="theme-header">
-				<button type="button" class="left dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Show previous theme' ); ?></span></button>
-				<button type="button" class="right dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Show next theme' ); ?></span></button>
-				<button type="button" class="close dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Close details dialog' ); ?></span></button>
+				<button type="button" class="left dashicons dashicons-no"><span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Show previous theme' );
+					?>
+				</span></button>
+				<button type="button" class="right dashicons dashicons-no"><span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Show next theme' );
+					?>
+				</span></button>
+				<button type="button" class="close dashicons dashicons-no"><span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Close details dialog' );
+					?>
+				</span></button>
 			</div>
 			<div class="theme-about wp-clearfix">
 				<div class="theme-screenshots">
@@ -859,7 +879,7 @@ function customize_themes_print_templates() {
 									'%1$s <span class="screen-reader-text">%2$s</span>',
 									/* translators: %s: Number of ratings. */
 									sprintf( __( '(%s ratings)' ), '{{ data.num_ratings }}' ),
-									/* translators: Accessibility text. */
+									/* translators: Hidden accessibility text. */
 									__( '(opens in a new tab)' )
 								);
 								?>
@@ -1147,9 +1167,9 @@ function resume_theme( $theme, $redirect = '' ) {
 	 */
 	if ( ! empty( $redirect ) ) {
 		$functions_path = '';
-		if ( strpos( STYLESHEETPATH, $extension ) ) {
+		if ( str_contains( STYLESHEETPATH, $extension ) ) {
 			$functions_path = STYLESHEETPATH . '/functions.php';
-		} elseif ( strpos( TEMPLATEPATH, $extension ) ) {
+		} elseif ( str_contains( TEMPLATEPATH, $extension ) ) {
 			$functions_path = TEMPLATEPATH . '/functions.php';
 		}
 

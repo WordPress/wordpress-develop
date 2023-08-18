@@ -125,11 +125,14 @@ function network_step1( $errors = false ) {
 
 	$active_plugins = get_option( 'active_plugins' );
 	if ( ! empty( $active_plugins ) ) {
-		echo '<div class="notice notice-warning"><p><strong>' . __( 'Warning:' ) . '</strong> ' . sprintf(
-			/* translators: %s: URL to Plugins screen. */
-			__( 'Please <a href="%s">deactivate your plugins</a> before enabling the Network feature.' ),
-			admin_url( 'plugins.php?plugin_status=active' )
-		) . '</p></div>';
+		wp_admin_notice(
+			'<strong>' . __( 'Warning:' ) . '</strong> ' . sprintf(
+				/* translators: %s: URL to Plugins screen. */
+				__( 'Please <a href="%s">deactivate your plugins</a> before enabling the Network feature.' ),
+				admin_url( 'plugins.php?plugin_status=active' )
+			),
+			array( 'type' => 'warning' )
+		);
 		echo '<p>' . __( 'Once the network is created, you may reactivate your plugins.' ) . '</p>';
 		echo '</div>';
 		require_once ABSPATH . 'wp-admin/admin-footer.php';
@@ -263,7 +266,7 @@ function network_step1( $errors = false ) {
 		echo '<div class="error inline"><p><strong>' . __( 'Warning:' ) . '</strong> ' . __( 'Subdirectory networks may not be fully compatible with custom wp-content directories.' ) . '</p></div>';
 	}
 
-	$is_www = ( 0 === strpos( $hostname, 'www.' ) );
+	$is_www = str_starts_with( $hostname, 'www.' );
 	if ( $is_www ) :
 		?>
 		<h3><?php esc_html_e( 'Server Address' ); ?></h3>
@@ -394,7 +397,7 @@ function network_step2( $errors = false ) {
 	$base              = parse_url( $slashed_home, PHP_URL_PATH );
 	$document_root_fix = str_replace( '\\', '/', realpath( $_SERVER['DOCUMENT_ROOT'] ) );
 	$abspath_fix       = str_replace( '\\', '/', ABSPATH );
-	$home_path         = 0 === strpos( $abspath_fix, $document_root_fix ) ? $document_root_fix . $base : get_home_path();
+	$home_path         = str_starts_with( $abspath_fix, $document_root_fix ) ? $document_root_fix . $base : get_home_path();
 	$wp_siteurl_subdir = preg_replace( '#^' . preg_quote( $home_path, '#' ) . '#', '', $abspath_fix );
 	$rewrite_base      = ! empty( $wp_siteurl_subdir ) ? ltrim( trailingslashit( $wp_siteurl_subdir ), '/' ) : '';
 
@@ -438,35 +441,36 @@ function network_step2( $errors = false ) {
 		?>
 		<h3><?php esc_html_e( 'Enabling the Network' ); ?></h3>
 		<p><?php _e( 'Complete the following steps to enable the features for creating a network of sites.' ); ?></p>
-		<div class="notice notice-warning inline"><p>
 		<?php
+		$notice_message = '<strong>' . __( 'Caution:' ) . '</strong> ';
+		$notice_args    = array(
+			'type'               => 'warning',
+			'additional_classes' => array( 'inline' ),
+		);
+
 		if ( file_exists( $home_path . '.htaccess' ) ) {
-			echo '<strong>' . __( 'Caution:' ) . '</strong> ';
-			printf(
+			$notice_message .= sprintf(
 				/* translators: 1: wp-config.php, 2: .htaccess */
 				__( 'You should back up your existing %1$s and %2$s files.' ),
 				'<code>wp-config.php</code>',
 				'<code>.htaccess</code>'
 			);
 		} elseif ( file_exists( $home_path . 'web.config' ) ) {
-			echo '<strong>' . __( 'Caution:' ) . '</strong> ';
-			printf(
+			$notice_message .= sprintf(
 				/* translators: 1: wp-config.php, 2: web.config */
 				__( 'You should back up your existing %1$s and %2$s files.' ),
 				'<code>wp-config.php</code>',
 				'<code>web.config</code>'
 			);
 		} else {
-			echo '<strong>' . __( 'Caution:' ) . '</strong> ';
-			printf(
+			$notice_message .= sprintf(
 				/* translators: %s: wp-config.php */
 				__( 'You should back up your existing %s file.' ),
 				'<code>wp-config.php</code>'
 			);
 		}
-		?>
-		</p></div>
-		<?php
+
+		wp_admin_notice( $notice_message, $notice_args );
 	}
 	?>
 	<ol>
@@ -645,7 +649,7 @@ define( 'BLOG_ID_CURRENT_SITE', 1 );
 		printf(
 			/* translators: %s: Documentation URL. */
 			__( 'It seems your network is running with Nginx web server. <a href="%s">Learn more about further configuration</a>.' ),
-			__( 'https://wordpress.org/support/article/nginx/' )
+			__( 'https://wordpress.org/documentation/article/nginx/' )
 		);
 		echo '</p></li>';
 

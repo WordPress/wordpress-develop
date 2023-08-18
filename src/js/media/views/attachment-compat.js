@@ -25,8 +25,10 @@ AttachmentCompat = View.extend(/** @lends wp.media.view.AttachmentCompat.prototy
 	},
 
 	initialize: function() {
-		this.listenTo( this.model, 'change:compat', this.render );
+		// Render the view when a new item is added.
+		this.listenTo( this.model, 'add', this.render );
 	},
+
 	/**
 	 * @return {wp.media.view.AttachmentCompat} Returns itself to allow chaining.
 	 */

@@ -12,10 +12,16 @@ on:
     - cron: '0 0 1 * *'
     - cron: '0 0 15 * *'
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 jobs:
   dispatch-workflows-for-old-branches:
     name: ${{ matrix.workflow }} for ${{ matrix.branch }}
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     strategy:
@@ -28,12 +34,16 @@ jobs:
             'test-npm.yml'
         ]
         branch: [
-            '6.1','6.0',
+            '6.3', '6.2', '6.1','6.0',
             '5.9', '5.8', '5.7', '5.6', '5.5', '5.4', '5.3', '5.2', '5.1', '5.0',
             '4.9', '4.8', '4.7', '4.6', '4.5', '4.4', '4.3', '4.2', '4.1'
         ]
         include:
           # PHP Compatibility testing was introduced in 5.5.
+          - branch: '6.3'
+            workflow: 'php-compatibility.yml'
+          - branch: '6.2'
+            workflow: 'php-compatibility.yml'
           - branch: '6.1'
             workflow: 'php-compatibility.yml'
           - branch: '6.0'
@@ -52,6 +62,10 @@ jobs:
           # End-to-end testing was introduced in 5.3 but was later removed as there were no meaningful assertions.
           # Starting in 5.8 with #52905, some additional tests with real assertions were introduced.
           # Branches 5.8 and newer should be tested to confirm no regressions are introduced.
+          - branch: '6.3'
+            workflow: 'end-to-end-tests.yml'
+          - branch: '6.2'
+            workflow: 'end-to-end-tests.yml'
           - branch: '6.1'
             workflow: 'end-to-end-tests.yml'
           - branch: '6.0'
@@ -61,11 +75,17 @@ jobs:
           - branch: '5.8'
             workflow: 'end-to-end-tests.yml'
 
+          # Performance testing was introduced in 6.2.
+          - branch: '6.3'
+            workflow: 'performance.yml'
+          - branch: '6.2'
+            workflow: 'performance.yml'
+
     # Run all branches monthly, but only the currently supported one twice per month.
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
-        if: ${{ github.event_name == 'push' || github.event.schedule == '0 0 15 * *' || matrix.branch == '6.1' }}
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        if: ${{ github.event_name == 'push' || github.event.schedule == '0 0 15 * *' || matrix.branch == '6.3' }}
         with:
           retries: 2
           retry-exempt-status-codes: 418
@@ -80,6 +100,9 @@ jobs:
   slack-notifications:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    permissions:
+      actions: read
+      contents: read
     needs: [ dispatch-workflows-for-old-branches ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:

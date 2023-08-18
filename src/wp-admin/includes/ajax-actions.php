@@ -12,7 +12,7 @@
 //
 
 /**
- * Ajax handler for the Heartbeat API in the no-privilege context.
+ * Handles the Heartbeat API in the no-privilege context via AJAX .
  *
  * Runs when the user is not logged in.
  *
@@ -76,7 +76,7 @@ function wp_ajax_nopriv_heartbeat() {
 //
 
 /**
- * Ajax handler for fetching a list table.
+ * Handles fetching a list table via AJAX.
  *
  * @since 3.1.0
  */
@@ -99,7 +99,7 @@ function wp_ajax_fetch_list() {
 }
 
 /**
- * Ajax handler for tag search.
+ * Handles tag search via AJAX.
  *
  * @since 3.1.0
  */
@@ -126,7 +126,7 @@ function wp_ajax_ajax_tag_search() {
 		$search = str_replace( $comma, ',', $search );
 	}
 
-	if ( false !== strpos( $search, ',' ) ) {
+	if ( str_contains( $search, ',' ) ) {
 		$search = explode( ',', $search );
 		$search = $search[ count( $search ) - 1 ];
 	}
@@ -178,7 +178,7 @@ function wp_ajax_ajax_tag_search() {
 }
 
 /**
- * Ajax handler for compression testing.
+ * Handles compression testing via AJAX.
  *
  * @since 3.1.0
  */
@@ -188,7 +188,12 @@ function wp_ajax_wp_compression_test() {
 	}
 
 	if ( ini_get( 'zlib.output_compression' ) || 'ob_gzhandler' === ini_get( 'output_handler' ) ) {
-		update_site_option( 'can_compress_scripts', 0 );
+		// Use `update_option()` on single site to mark the option for autoloading.
+		if ( is_multisite() ) {
+			update_site_option( 'can_compress_scripts', 0 );
+		} else {
+			update_option( 'can_compress_scripts', 0, 'yes' );
+		}
 		wp_die( 0 );
 	}
 
@@ -222,10 +227,20 @@ function wp_ajax_wp_compression_test() {
 			wp_die();
 		} elseif ( 'no' === $_GET['test'] ) {
 			check_ajax_referer( 'update_can_compress_scripts' );
-			update_site_option( 'can_compress_scripts', 0 );
+			// Use `update_option()` on single site to mark the option for autoloading.
+			if ( is_multisite() ) {
+				update_site_option( 'can_compress_scripts', 0 );
+			} else {
+				update_option( 'can_compress_scripts', 0, 'yes' );
+			}
 		} elseif ( 'yes' === $_GET['test'] ) {
 			check_ajax_referer( 'update_can_compress_scripts' );
-			update_site_option( 'can_compress_scripts', 1 );
+			// Use `update_option()` on single site to mark the option for autoloading.
+			if ( is_multisite() ) {
+				update_site_option( 'can_compress_scripts', 1 );
+			} else {
+				update_option( 'can_compress_scripts', 1, 'yes' );
+			}
 		}
 	}
 
@@ -233,7 +248,7 @@ function wp_ajax_wp_compression_test() {
 }
 
 /**
- * Ajax handler for image editor previews.
+ * Handles image editor previews via AJAX.
  *
  * @since 3.1.0
  */
@@ -245,7 +260,7 @@ function wp_ajax_imgedit_preview() {
 
 	check_ajax_referer( "image_editor-$post_id" );
 
-	include_once ABSPATH . 'wp-admin/includes/image-edit.php';
+	require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
 	if ( ! stream_preview_image( $post_id ) ) {
 		wp_die( -1 );
@@ -255,7 +270,7 @@ function wp_ajax_imgedit_preview() {
 }
 
 /**
- * Ajax handler for oEmbed caching.
+ * Handles oEmbed caching via AJAX.
  *
  * @since 3.1.0
  *
@@ -267,7 +282,7 @@ function wp_ajax_oembed_cache() {
 }
 
 /**
- * Ajax handler for user autocomplete.
+ * Handles user autocomplete via AJAX.
  *
  * @since 3.4.0
  */
@@ -283,16 +298,20 @@ function wp_ajax_autocomplete_user() {
 
 	$return = array();
 
-	// Check the type of request.
-	// Current allowed values are `add` and `search`.
+	/*
+	 * Check the type of request.
+	 * Current allowed values are `add` and `search`.
+	 */
 	if ( isset( $_REQUEST['autocomplete_type'] ) && 'search' === $_REQUEST['autocomplete_type'] ) {
 		$type = $_REQUEST['autocomplete_type'];
 	} else {
 		$type = 'add';
 	}
 
-	// Check the desired field for value.
-	// Current allowed values are `user_email` and `user_login`.
+	/*
+	 * Check the desired field for value.
+	 * Current allowed values are `user_email` and `user_login`.
+	 */
 	if ( isset( $_REQUEST['autocomplete_field'] ) && 'user_email' === $_REQUEST['autocomplete_field'] ) {
 		$field = $_REQUEST['autocomplete_field'];
 	} else {
@@ -394,7 +413,7 @@ function wp_ajax_get_community_events() {
 }
 
 /**
- * Ajax handler for dashboard widgets.
+ * Handles dashboard widgets via AJAX.
  *
  * @since 3.4.0
  */
@@ -415,7 +434,7 @@ function wp_ajax_dashboard_widgets() {
 }
 
 /**
- * Ajax handler for Customizer preview logged-in status.
+ * Handles Customizer preview logged-in status via AJAX.
  *
  * @since 3.4.0
  */
@@ -563,7 +582,7 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 //
 
 /**
- * Ajax handler for adding a hierarchical term.
+ * Handles adding a hierarchical term via AJAX.
  *
  * @since 3.1.0
  * @access private
@@ -693,7 +712,7 @@ function _wp_ajax_add_hierarchical_term() {
 }
 
 /**
- * Ajax handler for deleting a comment.
+ * Handles deleting a comment via AJAX.
  *
  * @since 3.1.0
  */
@@ -763,7 +782,7 @@ function wp_ajax_delete_comment() {
 }
 
 /**
- * Ajax handler for deleting a tag.
+ * Handles deleting a tag via AJAX.
  *
  * @since 3.1.0
  */
@@ -790,7 +809,7 @@ function wp_ajax_delete_tag() {
 }
 
 /**
- * Ajax handler for deleting a link.
+ * Handles deleting a link via AJAX.
  *
  * @since 3.1.0
  */
@@ -816,7 +835,7 @@ function wp_ajax_delete_link() {
 }
 
 /**
- * Ajax handler for deleting meta.
+ * Handles deleting meta via AJAX.
  *
  * @since 3.1.0
  */
@@ -842,7 +861,7 @@ function wp_ajax_delete_meta() {
 }
 
 /**
- * Ajax handler for deleting a post.
+ * Handles deleting a post via AJAX.
  *
  * @since 3.1.0
  *
@@ -872,7 +891,7 @@ function wp_ajax_delete_post( $action ) {
 }
 
 /**
- * Ajax handler for sending a post to the Trash.
+ * Handles sending a post to the Trash via AJAX.
  *
  * @since 3.1.0
  *
@@ -908,7 +927,7 @@ function wp_ajax_trash_post( $action ) {
 }
 
 /**
- * Ajax handler to restore a post from the Trash.
+ * Handles restoring a post from the Trash via AJAX.
  *
  * @since 3.1.0
  *
@@ -923,7 +942,7 @@ function wp_ajax_untrash_post( $action ) {
 }
 
 /**
- * Ajax handler to delete a page.
+ * Handles deleting a page via AJAX.
  *
  * @since 3.1.0
  *
@@ -953,7 +972,7 @@ function wp_ajax_delete_page( $action ) {
 }
 
 /**
- * Ajax handler to dim a comment.
+ * Handles dimming a comment via AJAX.
  *
  * @since 3.1.0
  */
@@ -1009,7 +1028,7 @@ function wp_ajax_dim_comment() {
 }
 
 /**
- * Ajax handler for adding a link category.
+ * Handles adding a link category via AJAX.
  *
  * @since 3.1.0
  *
@@ -1062,7 +1081,7 @@ function wp_ajax_add_link_category( $action ) {
 }
 
 /**
- * Ajax handler to add a tag.
+ * Handles adding a tag via AJAX.
  *
  * @since 3.1.0
  */
@@ -1154,7 +1173,7 @@ function wp_ajax_add_tag() {
 }
 
 /**
- * Ajax handler for getting a tagcloud.
+ * Handles getting a tagcloud via AJAX.
  *
  * @since 3.1.0
  */
@@ -1214,7 +1233,7 @@ function wp_ajax_get_tagcloud() {
 }
 
 /**
- * Ajax handler for getting comments.
+ * Handles getting comments via AJAX.
  *
  * @since 3.1.0
  *
@@ -1277,7 +1296,7 @@ function wp_ajax_get_comments( $action ) {
 }
 
 /**
- * Ajax handler for replying to a comment.
+ * Handles replying to a comment via AJAX.
  *
  * @since 3.1.0
  *
@@ -1437,7 +1456,7 @@ function wp_ajax_replyto_comment( $action ) {
 }
 
 /**
- * Ajax handler for editing a comment.
+ * Handles editing a comment via AJAX.
  *
  * @since 3.1.0
  */
@@ -1492,7 +1511,7 @@ function wp_ajax_edit_comment() {
 }
 
 /**
- * Ajax handler for adding a menu item.
+ * Handles adding a menu item via AJAX.
  *
  * @since 3.1.0
  */
@@ -1505,8 +1524,10 @@ function wp_ajax_add_menu_item() {
 
 	require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 
-	// For performance reasons, we omit some object properties from the checklist.
-	// The following is a hacky way to restore them when adding non-custom items.
+	/*
+	 * For performance reasons, we omit some object properties from the checklist.
+	 * The following is a hacky way to restore them when adding non-custom items.
+	 */
 	$menu_items_data = array();
 
 	foreach ( (array) $_POST['menu-item'] as $menu_item_data ) {
@@ -1580,7 +1601,7 @@ function wp_ajax_add_menu_item() {
 }
 
 /**
- * Ajax handler for adding meta.
+ * Handles adding meta via AJAX.
  *
  * @since 3.1.0
  */
@@ -1702,7 +1723,7 @@ function wp_ajax_add_meta() {
 }
 
 /**
- * Ajax handler for adding a user.
+ * Handles adding a user via AJAX.
  *
  * @since 3.1.0
  *
@@ -1757,7 +1778,7 @@ function wp_ajax_add_user( $action ) {
 }
 
 /**
- * Ajax handler for closed post boxes.
+ * Handles closed post boxes via AJAX.
  *
  * @since 3.1.0
  */
@@ -1794,7 +1815,7 @@ function wp_ajax_closed_postboxes() {
 }
 
 /**
- * Ajax handler for hidden columns.
+ * Handles hidden columns via AJAX.
  *
  * @since 3.1.0
  */
@@ -1818,7 +1839,7 @@ function wp_ajax_hidden_columns() {
 }
 
 /**
- * Ajax handler for updating whether to display the welcome panel.
+ * Handles updating whether to display the welcome panel via AJAX.
  *
  * @since 3.1.0
  */
@@ -1835,7 +1856,7 @@ function wp_ajax_update_welcome_panel() {
 }
 
 /**
- * Ajax handler for retrieving menu meta boxes.
+ * Handles for retrieving menu meta boxes via AJAX.
  *
  * @since 3.1.0
  */
@@ -1886,7 +1907,7 @@ function wp_ajax_menu_get_metabox() {
 }
 
 /**
- * Ajax handler for internal linking.
+ * Handles internal linking via AJAX.
  *
  * @since 3.1.0
  */
@@ -1922,7 +1943,7 @@ function wp_ajax_wp_link_ajax() {
 }
 
 /**
- * Ajax handler for menu locations save.
+ * Handles saving menu locations via AJAX.
  *
  * @since 3.1.0
  */
@@ -1942,7 +1963,7 @@ function wp_ajax_menu_locations_save() {
 }
 
 /**
- * Ajax handler for saving the meta box order.
+ * Handles saving the meta box order via AJAX.
  *
  * @since 3.1.0
  */
@@ -1978,7 +1999,7 @@ function wp_ajax_meta_box_order() {
 }
 
 /**
- * Ajax handler for menu quick searching.
+ * Handles menu quick searching via AJAX.
  *
  * @since 3.1.0
  */
@@ -1995,7 +2016,7 @@ function wp_ajax_menu_quick_search() {
 }
 
 /**
- * Ajax handler to retrieve a permalink.
+ * Handles retrieving a permalink via AJAX.
  *
  * @since 3.1.0
  */
@@ -2006,7 +2027,7 @@ function wp_ajax_get_permalink() {
 }
 
 /**
- * Ajax handler to retrieve a sample permalink.
+ * Handles retrieving a sample permalink via AJAX.
  *
  * @since 3.1.0
  */
@@ -2019,7 +2040,7 @@ function wp_ajax_sample_permalink() {
 }
 
 /**
- * Ajax handler for Quick Edit saving a post from a list table.
+ * Handles Quick Edit saving a post from a list table via AJAX.
  *
  * @since 3.1.0
  *
@@ -2034,19 +2055,19 @@ function wp_ajax_inline_save() {
 		wp_die();
 	}
 
-	$post_ID = (int) $_POST['post_ID'];
+	$post_id = (int) $_POST['post_ID'];
 
 	if ( 'page' === $_POST['post_type'] ) {
-		if ( ! current_user_can( 'edit_page', $post_ID ) ) {
+		if ( ! current_user_can( 'edit_page', $post_id ) ) {
 			wp_die( __( 'Sorry, you are not allowed to edit this page.' ) );
 		}
 	} else {
-		if ( ! current_user_can( 'edit_post', $post_ID ) ) {
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
 			wp_die( __( 'Sorry, you are not allowed to edit this post.' ) );
 		}
 	}
 
-	$last = wp_check_post_lock( $post_ID );
+	$last = wp_check_post_lock( $post_id );
 	if ( $last ) {
 		$last_user      = get_userdata( $last );
 		$last_user_name = $last_user ? $last_user->display_name : __( 'Someone' );
@@ -2065,7 +2086,7 @@ function wp_ajax_inline_save() {
 
 	$data = &$_POST;
 
-	$post = get_post( $post_ID, ARRAY_A );
+	$post = get_post( $post_id, ARRAY_A );
 
 	// Since it's coming from the database.
 	$post = wp_slash( $post );
@@ -2138,7 +2159,7 @@ function wp_ajax_inline_save() {
 }
 
 /**
- * Ajax handler for quick edit saving for a term.
+ * Handles Quick Edit saving for a term via AJAX.
  *
  * @since 3.1.0
  */
@@ -2198,7 +2219,7 @@ function wp_ajax_inline_save_tax() {
 }
 
 /**
- * Ajax handler for querying posts for the Find Posts modal.
+ * Handles querying posts for the Find Posts modal via AJAX.
  *
  * @see window.findPosts
  *
@@ -2267,7 +2288,7 @@ function wp_ajax_find_posts() {
 }
 
 /**
- * Ajax handler for saving the widgets order.
+ * Handles saving the widgets order via AJAX.
  *
  * @since 3.1.0
  */
@@ -2291,7 +2312,7 @@ function wp_ajax_widgets_order() {
 				$val = explode( ',', $val );
 
 				foreach ( $val as $k => $v ) {
-					if ( strpos( $v, 'widget-' ) === false ) {
+					if ( ! str_contains( $v, 'widget-' ) ) {
 						continue;
 					}
 
@@ -2309,7 +2330,7 @@ function wp_ajax_widgets_order() {
 }
 
 /**
- * Ajax handler for saving a widget.
+ * Handles saving a widget via AJAX.
  *
  * @since 3.1.0
  *
@@ -2418,7 +2439,7 @@ function wp_ajax_save_widget() {
 }
 
 /**
- * Ajax handler for updating a widget.
+ * Handles updating a widget via AJAX.
  *
  * @since 3.9.0
  *
@@ -2430,7 +2451,7 @@ function wp_ajax_update_widget() {
 }
 
 /**
- * Ajax handler for removing inactive widgets.
+ * Handles removing inactive widgets via AJAX.
  *
  * @since 4.4.0
  */
@@ -2467,7 +2488,7 @@ function wp_ajax_delete_inactive_widgets() {
 }
 
 /**
- * Ajax handler for creating missing image sub-sizes for just uploaded images.
+ * Handles creating missing image sub-sizes for just uploaded images via AJAX.
  *
  * @since 5.3.0
  */
@@ -2497,14 +2518,18 @@ function wp_ajax_media_create_image_subsizes() {
 		}
 	}
 
-	// Set a custom header with the attachment_id.
-	// Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+	/*
+	 * Set a custom header with the attachment_id.
+	 * Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+	 */
 	if ( ! headers_sent() ) {
 		header( 'X-WP-Upload-Attachment-ID: ' . $attachment_id );
 	}
 
-	// This can still be pretty slow and cause timeout or out of memory errors.
-	// The js that handles the response would need to also handle HTTP 500 errors.
+	/*
+	 * This can still be pretty slow and cause timeout or out of memory errors.
+	 * The js that handles the response would need to also handle HTTP 500 errors.
+	 */
 	wp_update_image_subsizes( $attachment_id );
 
 	if ( ! empty( $_POST['_legacy_support'] ) ) {
@@ -2524,7 +2549,7 @@ function wp_ajax_media_create_image_subsizes() {
 }
 
 /**
- * Ajax handler for uploading attachments
+ * Handles uploading attachments via AJAX.
  *
  * @since 3.3.0
  */
@@ -2637,7 +2662,7 @@ function wp_ajax_upload_attachment() {
 }
 
 /**
- * Ajax handler for image editing.
+ * Handles image editing via AJAX.
  *
  * @since 3.1.0
  */
@@ -2649,7 +2674,7 @@ function wp_ajax_image_editor() {
 	}
 
 	check_ajax_referer( "image_editor-$attachment_id" );
-	include_once ABSPATH . 'wp-admin/includes/image-edit.php';
+	require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
 	$msg = false;
 
@@ -2692,37 +2717,37 @@ function wp_ajax_image_editor() {
 }
 
 /**
- * Ajax handler for setting the featured image.
+ * Handles setting the featured image via AJAX.
  *
  * @since 3.1.0
  */
 function wp_ajax_set_post_thumbnail() {
 	$json = ! empty( $_REQUEST['json'] ); // New-style request.
 
-	$post_ID = (int) $_POST['post_id'];
-	if ( ! current_user_can( 'edit_post', $post_ID ) ) {
+	$post_id = (int) $_POST['post_id'];
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
 		wp_die( -1 );
 	}
 
 	$thumbnail_id = (int) $_POST['thumbnail_id'];
 
 	if ( $json ) {
-		check_ajax_referer( "update-post_$post_ID" );
+		check_ajax_referer( "update-post_$post_id" );
 	} else {
-		check_ajax_referer( "set_post_thumbnail-$post_ID" );
+		check_ajax_referer( "set_post_thumbnail-$post_id" );
 	}
 
 	if ( '-1' == $thumbnail_id ) {
-		if ( delete_post_thumbnail( $post_ID ) ) {
-			$return = _wp_post_thumbnail_html( null, $post_ID );
+		if ( delete_post_thumbnail( $post_id ) ) {
+			$return = _wp_post_thumbnail_html( null, $post_id );
 			$json ? wp_send_json_success( $return ) : wp_die( $return );
 		} else {
 			wp_die( 0 );
 		}
 	}
 
-	if ( set_post_thumbnail( $post_ID, $thumbnail_id ) ) {
-		$return = _wp_post_thumbnail_html( $thumbnail_id, $post_ID );
+	if ( set_post_thumbnail( $post_id, $thumbnail_id ) ) {
+		$return = _wp_post_thumbnail_html( $thumbnail_id, $post_id );
 		$json ? wp_send_json_success( $return ) : wp_die( $return );
 	}
 
@@ -2730,16 +2755,16 @@ function wp_ajax_set_post_thumbnail() {
 }
 
 /**
- * Ajax handler for retrieving HTML for the featured image.
+ * Handles retrieving HTML for the featured image via AJAX.
  *
  * @since 4.6.0
  */
 function wp_ajax_get_post_thumbnail_html() {
-	$post_ID = (int) $_POST['post_id'];
+	$post_id = (int) $_POST['post_id'];
 
-	check_ajax_referer( "update-post_$post_ID" );
+	check_ajax_referer( "update-post_$post_id" );
 
-	if ( ! current_user_can( 'edit_post', $post_ID ) ) {
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
 		wp_die( -1 );
 	}
 
@@ -2750,12 +2775,12 @@ function wp_ajax_get_post_thumbnail_html() {
 		$thumbnail_id = null;
 	}
 
-	$return = _wp_post_thumbnail_html( $thumbnail_id, $post_ID );
+	$return = _wp_post_thumbnail_html( $thumbnail_id, $post_id );
 	wp_send_json_success( $return );
 }
 
 /**
- * Ajax handler for setting the featured image for an attachment.
+ * Handles setting the featured image for an attachment via AJAX.
  *
  * @since 4.0.0
  *
@@ -2768,6 +2793,10 @@ function wp_ajax_set_attachment_thumbnail() {
 
 	$thumbnail_id = (int) $_POST['thumbnail_id'];
 	if ( empty( $thumbnail_id ) ) {
+		wp_send_json_error();
+	}
+
+	if ( false === check_ajax_referer( 'set-attachment-thumbnail', '_ajax_nonce', false ) ) {
 		wp_send_json_error();
 	}
 
@@ -2806,7 +2835,7 @@ function wp_ajax_set_attachment_thumbnail() {
 }
 
 /**
- * Ajax handler for date formatting.
+ * Handles formatting a date via AJAX.
  *
  * @since 3.1.0
  */
@@ -2815,7 +2844,7 @@ function wp_ajax_date_format() {
 }
 
 /**
- * Ajax handler for time formatting.
+ * Handles formatting a time via AJAX.
  *
  * @since 3.1.0
  */
@@ -2824,7 +2853,7 @@ function wp_ajax_time_format() {
 }
 
 /**
- * Ajax handler for saving posts from the fullscreen editor.
+ * Handles saving posts from the fullscreen editor via AJAX.
  *
  * @since 3.1.0
  * @deprecated 4.3.0
@@ -2868,7 +2897,7 @@ function wp_ajax_wp_fullscreen_save_post() {
 }
 
 /**
- * Ajax handler for removing a post lock.
+ * Handles removing a post lock via AJAX.
  *
  * @since 3.1.0
  */
@@ -2910,7 +2939,7 @@ function wp_ajax_wp_remove_post_lock() {
 }
 
 /**
- * Ajax handler for dismissing a WordPress pointer.
+ * Handles dismissing a WordPress pointer via AJAX.
  *
  * @since 3.1.0
  */
@@ -2937,7 +2966,7 @@ function wp_ajax_dismiss_wp_pointer() {
 }
 
 /**
- * Ajax handler for getting an attachment.
+ * Handles getting an attachment via AJAX.
  *
  * @since 3.5.0
  */
@@ -2973,7 +3002,7 @@ function wp_ajax_get_attachment() {
 }
 
 /**
- * Ajax handler for querying attachments.
+ * Handles querying attachments via AJAX.
  *
  * @since 3.5.0
  */
@@ -3064,7 +3093,7 @@ function wp_ajax_query_attachments() {
 }
 
 /**
- * Ajax handler for updating attachment attributes.
+ * Handles updating attachment attributes via AJAX.
  *
  * @since 3.5.0
  */
@@ -3144,24 +3173,13 @@ function wp_ajax_save_attachment() {
 		wp_delete_post( $id );
 	} else {
 		wp_update_post( $post );
-
-		/**
-		 * Fires after an attachment has been updated via the Ajax handler
-		 * and before the JSON response is sent.
-		 *
-		 * @since 6.2.0
-		 *
-		 * @param array $post    The attachment data.
-		 * @param array $changes An array containing the updated attachment attributes.
-		 */
-		do_action( 'wp_ajax_save_attachment', $post, $changes );
 	}
 
 	wp_send_json_success();
 }
 
 /**
- * Ajax handler for saving backward compatible attachment attributes.
+ * Handles saving backward compatible attachment attributes via AJAX.
  *
  * @since 3.5.0
  */
@@ -3219,7 +3237,7 @@ function wp_ajax_save_attachment_compat() {
 }
 
 /**
- * Ajax handler for saving the attachment order.
+ * Handles saving the attachment order via AJAX.
  *
  * @since 3.5.0
  */
@@ -3272,7 +3290,7 @@ function wp_ajax_save_attachment_order() {
 }
 
 /**
- * Ajax handler for sending an attachment to the editor.
+ * Handles sending an attachment to the editor via AJAX.
  *
  * Generates the HTML to send an attachment to the editor.
  * Backward compatible with the {@see 'media_send_to_editor'} filter
@@ -3311,11 +3329,11 @@ function wp_ajax_send_attachment_to_editor() {
 	}
 
 	$url = empty( $attachment['url'] ) ? '' : $attachment['url'];
-	$rel = ( strpos( $url, 'attachment_id' ) || get_attachment_link( $id ) == $url );
+	$rel = ( str_contains( $url, 'attachment_id' ) || get_attachment_link( $id ) === $url );
 
 	remove_filter( 'media_send_to_editor', 'image_media_send_to_editor' );
 
-	if ( 'image' === substr( $post->post_mime_type, 0, 5 ) ) {
+	if ( str_starts_with( $post->post_mime_type, 'image' ) ) {
 		$align = isset( $attachment['align'] ) ? $attachment['align'] : 'none';
 		$size  = isset( $attachment['image-size'] ) ? $attachment['image-size'] : 'medium';
 		$alt   = isset( $attachment['image_alt'] ) ? $attachment['image_alt'] : '';
@@ -3346,7 +3364,7 @@ function wp_ajax_send_attachment_to_editor() {
 }
 
 /**
- * Ajax handler for sending a link to the editor.
+ * Handles sending a link to the editor via AJAX.
  *
  * Generates the HTML to send a non-image embed link to the editor.
  *
@@ -3418,7 +3436,7 @@ function wp_ajax_send_link_to_editor() {
 }
 
 /**
- * Ajax handler for the Heartbeat API.
+ * Handles the Heartbeat API via AJAX.
  *
  * Runs when the user is logged in.
  *
@@ -3505,7 +3523,7 @@ function wp_ajax_heartbeat() {
 }
 
 /**
- * Ajax handler for getting revision diffs.
+ * Handles getting revision diffs via AJAX.
  *
  * @since 3.6.0
  */
@@ -3528,7 +3546,10 @@ function wp_ajax_get_revision_diffs() {
 	}
 
 	$return = array();
-	set_time_limit( 0 );
+
+	if ( function_exists( 'set_time_limit' ) ) {
+		set_time_limit( 0 );
+	}
 
 	foreach ( $_REQUEST['compare'] as $compare_key ) {
 		list( $compare_from, $compare_to ) = explode( ':', $compare_key ); // from:to
@@ -3542,8 +3563,8 @@ function wp_ajax_get_revision_diffs() {
 }
 
 /**
- * Ajax handler for auto-saving the selected color scheme for
- * a user's own profile.
+ * Handles auto-saving the selected color scheme for
+ * a user's own profile via AJAX.
  *
  * @since 3.8.0
  *
@@ -3572,7 +3593,7 @@ function wp_ajax_save_user_color_scheme() {
 }
 
 /**
- * Ajax handler for getting themes from themes_api().
+ * Handles getting themes from themes_api() via AJAX.
  *
  * @since 3.9.0
  *
@@ -3703,7 +3724,7 @@ function wp_ajax_query_themes() {
 }
 
 /**
- * Apply [embed] Ajax handlers to a string.
+ * Applies [embed] Ajax handlers to a string.
  *
  * @since 4.0.0
  *
@@ -3757,9 +3778,11 @@ function wp_ajax_parse_embed() {
 		$wp_embed->usecache = false;
 	}
 
-	if ( is_ssl() && 0 === strpos( $url, 'http://' ) ) {
-		// Admin is ssl and the user pasted non-ssl URL.
-		// Check if the provider supports ssl embeds and use that for the preview.
+	if ( is_ssl() && str_starts_with( $url, 'http://' ) ) {
+		/*
+		 * Admin is ssl and the user pasted non-ssl URL.
+		 * Check if the provider supports ssl embeds and use that for the preview.
+		 */
 		$ssl_shortcode = preg_replace( '%^(\\[embed[^\\]]*\\])http://%i', '$1https://', $shortcode );
 		$parsed        = $wp_embed->run_shortcode( $ssl_shortcode );
 
@@ -3830,7 +3853,7 @@ function wp_ajax_parse_embed() {
 		'attr' => $wp_embed->last_attr,
 	);
 
-	if ( strpos( $parsed, 'class="wp-embedded-content' ) ) {
+	if ( str_contains( $parsed, 'class="wp-embedded-content' ) ) {
 		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
 			$script_src = includes_url( 'js/wp-embed.js' );
 		} else {
@@ -3915,7 +3938,7 @@ function wp_ajax_parse_media_shortcode() {
 }
 
 /**
- * Ajax handler for destroying multiple open sessions for a user.
+ * Handles destroying multiple open sessions for a user via AJAX.
  *
  * @since 4.1.0
  */
@@ -3953,7 +3976,7 @@ function wp_ajax_destroy_sessions() {
 }
 
 /**
- * Ajax handler for cropping an image.
+ * Handles cropping an image via AJAX.
  *
  * @since 4.3.0
  */
@@ -4092,7 +4115,7 @@ function wp_ajax_crop_image() {
 }
 
 /**
- * Ajax handler for generating a password.
+ * Handles generating a password via AJAX.
  *
  * @since 4.4.0
  */
@@ -4101,7 +4124,7 @@ function wp_ajax_generate_password() {
 }
 
 /**
- * Ajax handler for generating a password in the no-privilege context.
+ * Handles generating a password in the no-privilege context via AJAX.
  *
  * @since 5.7.0
  */
@@ -4110,7 +4133,7 @@ function wp_ajax_nopriv_generate_password() {
 }
 
 /**
- * Ajax handler for saving the user's WordPress.org username.
+ * Handles saving the user's WordPress.org username via AJAX.
  *
  * @since 4.4.0
  */
@@ -4131,7 +4154,7 @@ function wp_ajax_save_wporg_username() {
 }
 
 /**
- * Ajax handler for installing a theme.
+ * Handles installing a theme via AJAX.
  *
  * @since 4.6.0
  *
@@ -4165,7 +4188,7 @@ function wp_ajax_install_theme() {
 	}
 
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-	include_once ABSPATH . 'wp-admin/includes/theme.php';
+	require_once ABSPATH . 'wp-admin/includes/theme.php';
 
 	$api = themes_api(
 		'theme_information',
@@ -4257,7 +4280,7 @@ function wp_ajax_install_theme() {
 }
 
 /**
- * Ajax handler for updating a theme.
+ * Handles updating a theme via AJAX.
  *
  * @since 4.6.0
  *
@@ -4352,7 +4375,7 @@ function wp_ajax_update_theme() {
 }
 
 /**
- * Ajax handler for deleting a theme.
+ * Handles deleting a theme via AJAX.
  *
  * @since 4.6.0
  *
@@ -4410,7 +4433,7 @@ function wp_ajax_delete_theme() {
 		wp_send_json_error( $status );
 	}
 
-	include_once ABSPATH . 'wp-admin/includes/theme.php';
+	require_once ABSPATH . 'wp-admin/includes/theme.php';
 
 	$result = delete_theme( $stylesheet );
 
@@ -4426,7 +4449,7 @@ function wp_ajax_delete_theme() {
 }
 
 /**
- * Ajax handler for installing a plugin.
+ * Handles installing a plugin via AJAX.
  *
  * @since 4.6.0
  *
@@ -4458,7 +4481,7 @@ function wp_ajax_install_plugin() {
 	}
 
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-	include_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+	require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 
 	$api = plugins_api(
 		'plugin_information',
@@ -4535,7 +4558,7 @@ function wp_ajax_install_plugin() {
 }
 
 /**
- * Ajax handler for updating a plugin.
+ * Handles updating a plugin via AJAX.
  *
  * @since 4.2.0
  *
@@ -4643,7 +4666,7 @@ function wp_ajax_update_plugin() {
 }
 
 /**
- * Ajax handler for deleting a plugin.
+ * Handles deleting a plugin via AJAX.
  *
  * @since 4.6.0
  *
@@ -4720,7 +4743,7 @@ function wp_ajax_delete_plugin() {
 }
 
 /**
- * Ajax handler for searching plugins.
+ * Handles searching plugins via AJAX.
  *
  * @since 4.6.0
  *
@@ -4777,7 +4800,7 @@ function wp_ajax_search_plugins() {
 }
 
 /**
- * Ajax handler for searching plugins to install.
+ * Handles searching plugins to install via AJAX.
  *
  * @since 4.6.0
  */
@@ -4827,7 +4850,7 @@ function wp_ajax_search_install_plugins() {
 }
 
 /**
- * Ajax handler for editing a theme or plugin file.
+ * Handles editing a theme or plugin file via AJAX.
  *
  * @since 4.9.0
  *
@@ -4856,7 +4879,7 @@ function wp_ajax_edit_theme_plugin_file() {
 }
 
 /**
- * Ajax handler for exporting a user's personal data.
+ * Handles exporting a user's personal data via AJAX.
  *
  * @since 4.9.6
  */
@@ -5046,7 +5069,7 @@ function wp_ajax_wp_privacy_export_personal_data() {
 }
 
 /**
- * Ajax handler for erasing personal data.
+ * Handles erasing personal data via AJAX.
  *
  * @since 4.9.6
  */
@@ -5275,7 +5298,7 @@ function wp_ajax_wp_privacy_erase_personal_data() {
 }
 
 /**
- * Ajax handler for site health checks on server communication.
+ * Handles site health checks on server communication via AJAX.
  *
  * @since 5.2.0
  * @deprecated 5.6.0 Use WP_REST_Site_Health_Controller::test_dotorg_communication()
@@ -5308,7 +5331,7 @@ function wp_ajax_health_check_dotorg_communication() {
 }
 
 /**
- * Ajax handler for site health checks on background updates.
+ * Handles site health checks on background updates via AJAX.
  *
  * @since 5.2.0
  * @deprecated 5.6.0 Use WP_REST_Site_Health_Controller::test_background_updates()
@@ -5341,7 +5364,7 @@ function wp_ajax_health_check_background_updates() {
 }
 
 /**
- * Ajax handler for site health checks on loopback requests.
+ * Handles site health checks on loopback requests via AJAX.
  *
  * @since 5.2.0
  * @deprecated 5.6.0 Use WP_REST_Site_Health_Controller::test_loopback_requests()
@@ -5374,7 +5397,7 @@ function wp_ajax_health_check_loopback_requests() {
 }
 
 /**
- * Ajax handler for site health check to update the result status.
+ * Handles site health check to update the result status via AJAX.
  *
  * @since 5.2.0
  */
@@ -5391,7 +5414,7 @@ function wp_ajax_health_check_site_status_result() {
 }
 
 /**
- * Ajax handler for site health check to get directories and database sizes.
+ * Handles site health check to get directories and database sizes via AJAX.
  *
  * @since 5.2.0
  * @deprecated 5.6.0 Use WP_REST_Site_Health_Controller::get_directory_sizes()
@@ -5457,7 +5480,7 @@ function wp_ajax_health_check_get_sizes() {
 }
 
 /**
- * Ajax handler to renew the REST API nonce.
+ * Handles renewing the REST API nonce via AJAX.
  *
  * @since 5.3.0
  */
@@ -5466,7 +5489,7 @@ function wp_ajax_rest_nonce() {
 }
 
 /**
- * Ajax handler to enable or disable plugin and theme auto-updates.
+ * Handles enabling or disable plugin and theme auto-updates via AJAX.
  *
  * @since 5.5.0
  */
@@ -5536,7 +5559,7 @@ function wp_ajax_toggle_auto_updates() {
 }
 
 /**
- * Ajax handler sends a password reset link.
+ * Handles sending a password reset link via AJAX.
  *
  * @since 5.7.0
  */
