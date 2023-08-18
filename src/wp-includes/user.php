@@ -2125,7 +2125,7 @@ function wp_insert_user( $userdata ) {
 	} elseif ( mb_strlen( $user_login ) > 60 ) {
 		return new WP_Error( 'user_login_too_long', __( 'Username may not be longer than 60 characters.' ) );
 	}
-	
+
 	if ( ! $update ) {
 
 		// Username must be unique.
