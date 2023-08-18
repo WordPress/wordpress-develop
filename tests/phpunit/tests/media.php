@@ -3465,7 +3465,7 @@ EOF;
 	 */
 	public function test_add_decoding_attr( $tag_name, $decoding, $expected, $message ) {
 		add_filter(
-			'wp_decoding_value',
+			'wp_img_tag_add_decoding_attr',
 			static function ( $value ) use ( $decoding ) {
 				return $decoding;
 			}
