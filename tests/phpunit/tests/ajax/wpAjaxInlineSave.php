@@ -95,7 +95,7 @@ class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 	 *
 	 * @covers ::edit_post
 	 */
-	public function test_quick_edit_draft_should_not_set_publish_date() {
+	public function test_quick_edit_draft_should_set_post_date() {
 		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
