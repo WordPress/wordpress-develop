@@ -449,7 +449,7 @@ function wp_get_theme_directory_pattern_slugs() {
  * @return array
  */
 function wp_get_theme_data_custom_templates() {
-	WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_custom_templates();
+	return WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_custom_templates();
 }
 
 /**
