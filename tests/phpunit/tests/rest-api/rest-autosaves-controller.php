@@ -215,12 +215,12 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			'author',
 			'date',
 			'date_gmt',
+			'id',
 			'modified',
 			'modified_gmt',
-			'guid',
-			'id',
 			'parent',
 			'slug',
+			'guid',
 			'title',
 			'excerpt',
 			'content',
@@ -303,6 +303,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'preview_link', $properties );
+		$this->assertArrayHasKey( 'meta', $properties );
 	}
 
 	public function test_create_item() {
