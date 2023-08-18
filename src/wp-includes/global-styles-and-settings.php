@@ -442,6 +442,17 @@ function wp_get_theme_directory_pattern_slugs() {
 }
 
 /**
+ * Returns the metadata for the custom templates defined by the theme via theme.json.
+ *
+ * @since 6.4.0
+ *
+ * @return array
+ */
+function wp_get_theme_data_custom_templates() {
+	WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_custom_templates();
+}
+
+/**
  * Returns the metadata for the template parts defined by the theme.
  *
  * @since 6.4.0
