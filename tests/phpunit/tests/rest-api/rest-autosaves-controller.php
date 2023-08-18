@@ -216,6 +216,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			'date',
 			'date_gmt',
 			'id',
+			'meta',
 			'modified',
 			'modified_gmt',
 			'parent',
