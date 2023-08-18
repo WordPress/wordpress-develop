@@ -753,6 +753,9 @@ class WP_Plugin_Dependencies {
 
 				if ( '.' !== $dirname ) {
 					$this->plugin_dirnames[ $dirname ] = $plugin;
+				} else {
+					// Single file plugin.
+					$this->plugin_dirnames[ $plugin ] = $plugin;
 				}
 			}
 		}
