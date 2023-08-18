@@ -115,8 +115,8 @@ function wp_get_footnotes_from_revision( $revision_field, $field, $revision ) {
 		return $revision_field;
 	}
 	$footnotes_html = '';
-	$x = 1;
-	foreach( $footnotes as $footnote ) {
+	$x              = 1;
+	foreach ( $footnotes as $footnote ) {
 		$footnotes_html .= sprintf(
 			"%s.  %s\n",
 			$x++,
