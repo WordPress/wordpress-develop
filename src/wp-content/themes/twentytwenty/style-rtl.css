@@ -3356,6 +3356,14 @@ hr.wp-block-separator {
 
 /* Block: Table ------------------------------ */
 
+.wp-block-table table * {
+	border-color: inherit;
+}
+
+.wp-block-table table:where(.has-text-color) * {
+	border-color: currentColor;
+}
+
 .wp-block-table.is-style-stripes tbody tr:nth-child(odd) {
 	background: #dcd7ca;
 }
