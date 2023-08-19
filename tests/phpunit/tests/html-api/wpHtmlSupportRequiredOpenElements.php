@@ -176,8 +176,6 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'FOREIGNOBJECT' );
 		$this->ensure_support_is_added_everywhere( 'DESC' );
 		$this->ensure_support_is_added_everywhere( 'TITLE' );
-
-		$this->ensure_support_is_added_everywhere( 'BUTTON' );
 	}
 
 	/**
@@ -218,9 +216,6 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'FOREIGNOBJECT' );
 		$this->ensure_support_is_added_everywhere( 'DESC' );
 		$this->ensure_support_is_added_everywhere( 'TITLE' );
-
-		// This element is specific to BUTTON scope.
-		$this->ensure_support_is_added_everywhere( 'BUTTON' );
 	}
 
 	/**
@@ -261,8 +256,6 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'FOREIGNOBJECT' );
 		$this->ensure_support_is_added_everywhere( 'DESC' );
 		$this->ensure_support_is_added_everywhere( 'TITLE' );
-
-		$this->ensure_support_is_added_everywhere( 'BUTTON' );
 	}
 
 	/**
