@@ -2,10 +2,12 @@
 <ruleset name="WordPress PHP Compatibility">
 	<description>Apply PHP compatibility checks to all WordPress Core files</description>
 
-	<rule ref="PHPCompatibilityWP"/>
-
-	<!-- WordPress Core currently supports PHP 7.0+. -->
-	<config name="testVersion" value="7.0-"/>
+	<!--
+	#############################################################################
+	COMMAND LINE ARGUMENTS
+	https://github.com/squizlabs/PHP_CodeSniffer/wiki/Annotated-Ruleset
+	#############################################################################
+	-->
 
 	<!-- Only scan PHP files. -->
 	<arg name="extensions" value="php"/>
@@ -28,6 +30,13 @@
 	<!-- Show sniff codes in all reports. -->
 	<arg value="ps"/>
 
+	<!--
+	#############################################################################
+	FILE SELECTION
+	Set which files will be subject to the scans executed using this ruleset.
+	#############################################################################
+	-->
+
 	<!-- For now, only the files in src are scanned. -->
 	<file>./src/</file>
 
@@ -40,13 +49,13 @@
 	-->
 	<exclude-pattern>/vendor/*</exclude-pattern>
 
-	<!-- Must-Use plugins. -->
+	<!-- But not Must-Use plugins. -->
 	<exclude-pattern>/src/wp-content/mu-plugins/*</exclude-pattern>
 
-	<!-- Plugins. -->
+	<!-- Nor Plugins. -->
 	<exclude-pattern>/src/wp-content/plugins/*</exclude-pattern>
 
-	<!-- Themes except the twenty* themes. -->
+	<!-- Nor Themes except the twenty* themes. -->
 	<exclude-pattern>/src/wp-content/themes/(?!twenty)*</exclude-pattern>
 
 	<!--
@@ -54,6 +63,24 @@
 		However, because these files are included in a non-standard path, false positives are triggered in WordPress Core.
 	-->
 	<exclude-pattern>src/wp-includes/sodium_compat/lib/php72compat_const\.php$</exclude-pattern>
+
+	<!--
+	#############################################################################
+	SET UP THE RULESET
+	#############################################################################
+	-->
+
+	<rule ref="PHPCompatibilityWP"/>
+
+	<!-- WordPress Core currently supports PHP 7.0+. -->
+	<config name="testVersion" value="7.0-"/>
+
+	<!--
+	#############################################################################
+	SELECTIVE EXCLUSIONS
+	Exclude specific files for specific sniffs and/or exclude sub-groups in sniffs.
+	#############################################################################
+	-->
 
 	<rule ref="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_sign_keypair_from_secretkey_and_publickeyFound">
 		<exclude-pattern>/sodium_compat/src/Compat\.php$</exclude-pattern>
@@ -81,4 +108,5 @@
 	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.mcrypt_create_ivDeprecatedRemoved">
 		<exclude-pattern>/random_compat/random_bytes_mcrypt\.php$</exclude-pattern>
 	</rule>
+
 </ruleset>
