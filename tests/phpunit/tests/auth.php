@@ -448,19 +448,35 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @ticket 52529
 	 */
 	public function test_reset_password_with_apostrophe_in_email() {
+		global $wpdb;
+
+		// Create a user with an email containing an apostrophe
 		$user_args = array(
-			'user_email' => "mail@example.com",
+			'user_email' => "john@example.com",
 			'user_pass'  => 'password',
 		);
 		$user_id = self::factory()->user->create( $user_args );
 
-		$key = get_password_reset_key( get_user_by( 'id', $user_id ) );
+		// Generate a valid activation key for the user
+		$key = wp_generate_password( 20, false );
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'user_activation_key' => strtotime( '-1 hour' ) . ':' . self::$wp_hasher->HashPassword( $key ),
+			),
+			array(
+				'ID' => $user_id,
+			)
+		);
+		clean_user_cache( $user_id );
 
+		// Check if the activation key can be validated
 		$check = check_password_reset_key( $key, $user_args['user_email'] );
 		$this->assertNotWPError( $check );
 		$this->assertInstanceOf( 'WP_User', $check );
 		$this->assertSame( $user_id, $check->ID );
 	}
+
 
 	/**
 	 * Tests that PHP 8.1 "passing null to non-nullable" deprecation notices
