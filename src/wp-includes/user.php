@@ -2978,6 +2978,8 @@ function check_password_reset_key( $key, $login ) {
 
 	$user = get_user_by( 'login', $login );
 
+	$login = wp_unslash( $login );
+
 	if ( ! $user ) {
 		return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
 	}
