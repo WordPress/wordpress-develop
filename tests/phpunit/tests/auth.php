@@ -445,6 +445,24 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 52529
+	 */
+	public function test_reset_password_with_apostrophe_in_email() {
+		$user_args = array(
+			'user_email' => "mail\'@example.com",
+			'user_pass'  => 'password',
+		);
+		$user_id = self::factory()->user->create( $user_args );
+
+		$key = get_password_reset_key( get_user_by( 'id', $user_id ) );
+
+		$check = check_password_reset_key( $key, $user_args['user_email'] );
+		$this->assertNotWPError( $check );
+		$this->assertInstanceOf( 'WP_User', $check );
+		$this->assertSame( $user_id, $check->ID );
+	}
+
+	/**
 	 * Tests that PHP 8.1 "passing null to non-nullable" deprecation notices
 	 * are not thrown when `user_login` and `user_password` parameters are empty.
 	 *
