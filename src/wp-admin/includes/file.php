@@ -1697,6 +1697,9 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 		}
 	}
 
+	// Enough space to unzip the file and copy its contents, with a 10% buffer.
+	$required_space = $uncompressed_size * 2.1;
+
 	/*
 	 * disk_free_space() could return false. Assume that any falsey value is an error.
 	 * A disk that has zero free bytes has bigger problems.
@@ -1705,7 +1708,7 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 	if ( wp_doing_cron() ) {
 		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR ) : false;
 
-		if ( $available_space && ( $uncompressed_size * 2.1 ) > $available_space ) {
+		if ( $available_space && $required_space > $available_space ) {
 			return new WP_Error(
 				'disk_full_unzip_file',
 				__( 'Could not copy files. You may have run out of disk space.' ),
@@ -1746,7 +1749,18 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 			return new WP_Error( 'mkdir_failed_ziparchive', __( 'Could not create directory.' ), $_dir );
 		}
 	}
-	unset( $needed_dirs );
+
+	/**
+	 * Fires before a ZIP archive is extracted.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string   $file           Full path and filename of ZIP archive.
+	 * @param string   $to             Full path on the filesystem to extract archive to.
+	 * @param string[] $needed_dirs    A full list of required folders that need to be created.
+	 * @param float    $required_space The space required to unzip the file and copy its contents, with a 10% buffer.
+	 */
+	do_action( 'before_unzip_file', $file, $to, $needed_dirs, $required_space );
 
 	for ( $i = 0; $i < $z->numFiles; $i++ ) {
 		$info = $z->statIndex( $i );
@@ -1780,6 +1794,20 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 	}
 
 	$z->close();
+
+	/**
+	 * Fires after a ZIP archive has been extracted.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string   $file           Full path and filename of ZIP archive.
+	 * @param string   $to             Full path on the filesystem the archive was extracted to.
+	 * @param string[] $needed_dirs    A full list of required folders that were created.
+	 * @param float    $required_space The space required to unzip the file and copy its contents, with a 10% buffer.
+	 */
+	do_action( 'after_unzip_file', $file, $to, $needed_dirs, $required_space );
+
+	unset( $needed_dirs );
 
 	return true;
 }
@@ -1838,6 +1866,9 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 		$needed_dirs[] = $to . untrailingslashit( $file['folder'] ? $file['filename'] : dirname( $file['filename'] ) );
 	}
 
+	// Enough space to unzip the file and copy its contents, with a 10% buffer.
+	$required_space = $uncompressed_size * 2.1;
+
 	/*
 	 * disk_free_space() could return false. Assume that any falsey value is an error.
 	 * A disk that has zero free bytes has bigger problems.
@@ -1846,7 +1877,7 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 	if ( wp_doing_cron() ) {
 		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR ) : false;
 
-		if ( $available_space && ( $uncompressed_size * 2.1 ) > $available_space ) {
+		if ( $available_space && $required_space > $available_space ) {
 			return new WP_Error(
 				'disk_full_unzip_file',
 				__( 'Could not copy files. You may have run out of disk space.' ),
@@ -1887,7 +1918,9 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 			return new WP_Error( 'mkdir_failed_pclzip', __( 'Could not create directory.' ), $_dir );
 		}
 	}
-	unset( $needed_dirs );
+
+	/** This action is documented in src/wp-admin/includes/file.php */
+	do_action( 'before_unzip_file', $file, $to, $needed_dirs, $required_space );
 
 	// Extract the files from the zip.
 	foreach ( $archive_files as $file ) {
@@ -1908,6 +1941,11 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 			return new WP_Error( 'copy_failed_pclzip', __( 'Could not copy file.' ), $file['filename'] );
 		}
 	}
+
+	/** This action is documented in src/wp-admin/includes/file.php */
+	do_action( 'after_unzip_file', $file, $to, $needed_dirs, $required_space );
+
+	unset( $needed_dirs );
 
 	return true;
 }
