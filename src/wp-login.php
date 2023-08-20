@@ -228,21 +228,32 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	}
 
 	if ( $wp_error->has_errors() ) {
-		$errors   = '';
-		$messages = '';
+		$error_list = array();
+		$messages   = '';
 
 		foreach ( $wp_error->get_error_codes() as $code ) {
 			$severity = $wp_error->get_error_data( $code );
 			foreach ( $wp_error->get_error_messages( $code ) as $error_message ) {
 				if ( 'message' === $severity ) {
-					$messages .= '	' . $error_message . "<br />\n";
+					$messages .= '<p>' . $error_message . "</p>\n";
 				} else {
-					$errors .= '	' . $error_message . "<br />\n";
+					$error_list[] = $error_message;
 				}
 			}
 		}
 
-		if ( ! empty( $errors ) ) {
+		if ( ! empty( $error_list ) ) {
+			$errors = '';
+			if ( count( $error_list ) > 1 ) {
+				$errors .= '<ul class="login-error-list">';
+				foreach ( $error_list as $error ) {
+					$errors .= '<li>' . $error_message . "</li>\n";
+				}
+				$errors .= "</ul>\n";
+			} else {
+				$errors .= '<p>' . $error_message . "</p>\n";
+			}
+
 			/**
 			 * Filters the error messages displayed above the login form.
 			 *
@@ -261,7 +272,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 			 *
 			 * @param string $messages Login messages.
 			 */
-			echo '<p class="message" id="login-message">' . apply_filters( 'login_messages', $messages ) . "</p>\n";
+			echo '<div class="message" id="login-message">' . apply_filters( 'login_messages', $messages ) . "</div>\n";
 		}
 	}
 } // End of login_header().
