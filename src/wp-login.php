@@ -246,8 +246,8 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 			$errors = '';
 			if ( count( $error_list ) > 1 ) {
 				$errors .= '<ul class="login-error-list">';
-				foreach ( $error_list as $error ) {
-					$errors .= '<li>' . $error_message . "</li>\n";
+				foreach ( $error_list as $item ) {
+					$errors .= '<li>' . $item . "</li>\n";
 				}
 				$errors .= "</ul>\n";
 			} else {
