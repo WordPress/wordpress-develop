@@ -39,7 +39,7 @@ jobs:
   # Creates a PHPUnit test job for each PHP/MySQL combination.
   #
   test-with-mysql:
-    name: PHP ${{ matrix.php }}
+    name: ${{ matrix.report && 'Test reporter - ' || '' }}PHP ${{ matrix.php }}
     uses: desrosj/wordpress-develop/.github/workflows/phpunit-tests-run.yml@expanded-db-testing-callable-workflow
     permissions:
       contents: read
@@ -93,7 +93,7 @@ jobs:
   # Creates a PHPUnit test job for each PHP/MariaDB combination.
   #
   test-with-mariadb:
-    name: PHP ${{ matrix.php }}
+    name: ${{ matrix.report && 'Test reporter - ' || '' }}PHP ${{ matrix.php }}
     uses: desrosj/wordpress-develop/.github/workflows/phpunit-tests-run.yml@expanded-db-testing-callable-workflow
     permissions:
       contents: read
