@@ -168,6 +168,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setIteratorIndex( 0 );
 			}
 
+			if ( 'pdf' === $file_extension ) {
+				$this->remove_pdf_alpha_channel();
+			}
+
 			$this->mime_type = $this->get_mime_type( $this->image->getImageFormat() );
 		} catch ( Exception $e ) {
 			return new WP_Error( 'invalid_image', $e->getMessage(), $this->file );
@@ -268,6 +272,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * This function, which is expected to be run before heavy image routines, resolves
 	 * point 1 above by aligning Imagick's timeout with PHP's timeout, assuming it is set.
 	 *
+	 * However seems it introduces more problems than it fixes,
+	 * see https://core.trac.wordpress.org/ticket/58202.
+	 *
 	 * Note:
 	 *  - Imagick resource exhaustion does not issue catchable exceptions (yet).
 	 *    See https://github.com/Imagick/imagick/issues/333.
@@ -275,10 +282,13 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *    image operations within the time of the HTTP request.
 	 *
 	 * @since 6.2.0
+	 * @since 6.3.0 This method was deprecated.
 	 *
 	 * @return int|null The new limit on success, null on failure.
 	 */
 	public static function set_imagick_time_limit() {
+		_deprecated_function( __METHOD__, '6.3.0' );
+
 		if ( ! defined( 'Imagick::RESOURCETYPE_TIME' ) ) {
 			return null;
 		}
@@ -310,7 +320,14 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *
 	 * @param int|null   $max_w Image width.
 	 * @param int|null   $max_h Image height.
-	 * @param bool|array $crop
+	 * @param bool|array $crop  {
+	 *     Optional. Image cropping behavior. If false, the image will be scaled (default).
+	 *     If true, image will be cropped to the specified dimensions using center positions.
+	 *     If an array, the image will be cropped using the array to specify the crop location:
+	 *
+	 *     @type string $0 The x crop position. Accepts 'left' 'center', or 'right'.
+	 *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
+	 * }
 	 * @return true|WP_Error
 	 */
 	public function resize( $max_w, $max_h, $crop = false ) {
@@ -328,8 +345,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		if ( $crop ) {
 			return $this->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h );
 		}
-
-		self::set_imagick_time_limit();
 
 		// Execute the resize.
 		$thumb_result = $this->thumbnail_image( $dst_w, $dst_h );
@@ -597,8 +612,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$src_h -= $src_y;
 		}
 
-		self::set_imagick_time_limit();
-
 		try {
 			$this->image->cropImage( $src_w, $src_h, $src_x, $src_y );
 			$this->image->setImagePage( $src_w, $src_h, 0, 0 );
@@ -747,6 +760,24 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		return $saved;
+	}
+
+	/**
+	 * Removes PDF alpha after it's been read.
+	 *
+	 * @since 6.4.0
+	 */
+	protected function remove_pdf_alpha_channel() {
+		$version = Imagick::getVersion();
+		// Remove alpha channel if possible to avoid black backgrounds for Ghostscript >= 9.14. RemoveAlphaChannel added in ImageMagick 6.7.5.
+		if ( $version['versionNumber'] >= 0x675 ) {
+			try {
+				// Imagick::ALPHACHANNEL_REMOVE mapped to RemoveAlphaChannel in PHP imagick 3.2.0b2.
+				$this->image->setImageAlphaChannel( defined( 'Imagick::ALPHACHANNEL_REMOVE' ) ? Imagick::ALPHACHANNEL_REMOVE : 12 );
+			} catch ( Exception $e ) {
+				return new WP_Error( 'pdf_alpha_process_failed', $e->getMessage() );
+			}
+		}
 	}
 
 	/**

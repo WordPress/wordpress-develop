@@ -320,26 +320,57 @@ function wp_add_global_styles_for_blocks() {
 
 		// The likes of block element styles from theme.json do not have  $metadata['name'] set.
 		if ( ! isset( $metadata['name'] ) && ! empty( $metadata['path'] ) ) {
-			$result = array_values(
-				array_filter(
-					$metadata['path'],
-					static function ( $item ) {
-						if ( str_contains( $item, 'core/' ) ) {
-							return true;
-						}
-						return false;
-					}
-				)
-			);
-			if ( isset( $result[0] ) ) {
-				if ( str_starts_with( $result[0], 'core/' ) ) {
-					$block_name        = str_replace( 'core/', '', $result[0] );
+			$block_name = wp_get_block_name_from_theme_json_path( $metadata['path'] );
+			if ( $block_name ) {
+				if ( str_starts_with( $block_name, 'core/' ) ) {
+					$block_name        = str_replace( 'core/', '', $block_name );
 					$stylesheet_handle = 'wp-block-' . $block_name;
 				}
 				wp_add_inline_style( $stylesheet_handle, $block_css );
 			}
 		}
 	}
+}
+
+/**
+ * Gets the block name from a given theme.json path.
+ *
+ * @since 6.3.0
+ * @access private
+ *
+ * @param array $path An array of keys describing the path to a property in theme.json.
+ * @return string Identified block name, or empty string if none found.
+ */
+function wp_get_block_name_from_theme_json_path( $path ) {
+	// Block name is expected to be the third item after 'styles' and 'blocks'.
+	if (
+		count( $path ) >= 3
+		&& 'styles' === $path[0]
+		&& 'blocks' === $path[1]
+		&& str_contains( $path[2], '/' )
+	) {
+		return $path[2];
+	}
+
+	/*
+	 * As fallback and for backward compatibility, allow any core block to be
+	 * at any position.
+	 */
+	$result = array_values(
+		array_filter(
+			$path,
+			static function ( $item ) {
+				if ( str_contains( $item, 'core/' ) ) {
+					return true;
+				}
+				return false;
+			}
+		)
+	);
+	if ( isset( $result[0] ) ) {
+		return $result[0];
+	}
+	return '';
 }
 
 /**
@@ -394,6 +425,7 @@ function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_global_settings_custom', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_settings_theme', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_styles_custom_css', 'theme_json' );
+	wp_cache_delete( 'wp_get_theme_data_template_parts', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
 }
 
@@ -407,6 +439,49 @@ function wp_clean_theme_json_cache() {
  */
 function wp_get_theme_directory_pattern_slugs() {
 	return WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_patterns();
+}
+
+/**
+ * Returns the metadata for the custom templates defined by the theme via theme.json.
+ *
+ * @since 6.4.0
+ *
+ * @return array Associative array of `$template_name => $template_data` pairs,
+ *               with `$template_data` having "title" and "postTypes" fields.
+ */
+function wp_get_theme_data_custom_templates() {
+	return WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_custom_templates();
+}
+
+/**
+ * Returns the metadata for the template parts defined by the theme.
+ *
+ * @since 6.4.0
+ *
+ * @return array Associative array of `$part_name => $part_data` pairs,
+ *               with `$part_data` having "title" and "area" fields.
+ */
+function wp_get_theme_data_template_parts() {
+	$cache_group    = 'theme_json';
+	$cache_key      = 'wp_get_theme_data_template_parts';
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
+
+	$metadata = false;
+	if ( $can_use_cached ) {
+		$metadata = wp_cache_get( $cache_key, $cache_group );
+		if ( false !== $metadata ) {
+			return $metadata;
+		}
+	}
+
+	if ( false === $metadata ) {
+		$metadata = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_template_parts();
+		if ( $can_use_cached ) {
+			wp_cache_set( $cache_key, $metadata, $cache_group );
+		}
+	}
+
+	return $metadata;
 }
 
 /**

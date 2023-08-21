@@ -1943,10 +1943,6 @@ class WP_Site_Health {
 	public function get_test_available_updates_disk_space() {
 		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR . '/upgrade/' ) : false;
 
-		$available_space = false !== $available_space
-			? (int) $available_space
-			: 0;
-
 		$result = array(
 			'label'       => __( 'Disk space available to safely perform updates' ),
 			'status'      => 'good',
@@ -1963,18 +1959,14 @@ class WP_Site_Health {
 			'test'        => 'available_updates_disk_space',
 		);
 
-		if ( $available_space < 100 * MB_IN_BYTES ) {
-			$result['description'] = __( 'Available disk space is low, less than 100 MB available.' );
+		if ( false === $available_space ) {
+			$result['description'] = __( 'Could not determine available disk space for updates.' );
 			$result['status']      = 'recommended';
-		}
-
-		if ( $available_space < 20 * MB_IN_BYTES ) {
+		} elseif ( $available_space < 20 * MB_IN_BYTES ) {
 			$result['description'] = __( 'Available disk space is critically low, less than 20 MB available. Proceed with caution, updates may fail.' );
 			$result['status']      = 'critical';
-		}
-
-		if ( ! $available_space ) {
-			$result['description'] = __( 'Could not determine available disk space for updates.' );
+		} elseif ( $available_space < 100 * MB_IN_BYTES ) {
+			$result['description'] = __( 'Available disk space is low, less than 100 MB available.' );
 			$result['status']      = 'recommended';
 		}
 
@@ -2009,9 +2001,19 @@ class WP_Site_Health {
 			'test'        => 'update_temp_backup_writable',
 		);
 
-		if ( ! $wp_filesystem ) {
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
 			require_once ABSPATH . '/wp-admin/includes/file.php';
-			WP_Filesystem();
+		}
+
+		ob_start();
+		$credentials = request_filesystem_credentials( '' );
+		ob_end_clean();
+
+		if ( false === $credentials || ! WP_Filesystem( $credentials ) ) {
+			$result['status']      = 'recommended';
+			$result['label']       = __( 'Could not access filesystem' );
+			$result['description'] = __( 'Unable to connect to the filesystem. Please confirm your credentials.' );
+			return $result;
 		}
 
 		$wp_content = $wp_filesystem->wp_content_dir();
