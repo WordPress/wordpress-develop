@@ -164,13 +164,19 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 			: get_theme_file_uri( str_replace( $stylesheet_path_norm, '', $script_path_norm ) );
 	}
 
+	$script_args = array();
+	if ( 'viewScript' === $field_name ) {
+		$script_args['strategy'] = 'defer';
+	}
+
 	$script_asset        = require $script_asset_path;
 	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
 	$result              = wp_register_script(
 		$script_handle,
 		$script_uri,
 		$script_dependencies,
-		isset( $script_asset['version'] ) ? $script_asset['version'] : false
+		isset( $script_asset['version'] ) ? $script_asset['version'] : false,
+		$script_args
 	);
 	if ( ! $result ) {
 		return false;

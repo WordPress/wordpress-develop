@@ -165,7 +165,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
-    needs: [ test-build-scripts, bundle-theme, slack-notifications ]
+    needs: [ slack-notifications ]
     if: |
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&

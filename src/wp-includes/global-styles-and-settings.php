@@ -442,11 +442,24 @@ function wp_get_theme_directory_pattern_slugs() {
 }
 
 /**
+ * Returns the metadata for the custom templates defined by the theme via theme.json.
+ *
+ * @since 6.4.0
+ *
+ * @return array Associative array of `$template_name => $template_data` pairs,
+ *               with `$template_data` having "title" and "postTypes" fields.
+ */
+function wp_get_theme_data_custom_templates() {
+	return WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_custom_templates();
+}
+
+/**
  * Returns the metadata for the template parts defined by the theme.
  *
  * @since 6.4.0
  *
- * return array Associative array of `$part_name => $part_data` pairs, with `$part_data` having "title" and "area" fields.
+ * @return array Associative array of `$part_name => $part_data` pairs,
+ *               with `$part_data` having "title" and "area" fields.
  */
 function wp_get_theme_data_template_parts() {
 	$cache_group    = 'theme_json';
