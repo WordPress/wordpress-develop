@@ -21,7 +21,7 @@ const parseFile = ( fileName ) =>
 // The list of test suites to log.
 const testSuites = [ 'home-block-theme', 'home-classic-theme' ];
 
-// // The current commit's results.
+// The current commit's results.
 const testResults = Object.fromEntries(
 	testSuites.map( ( key ) => [
 		key,
