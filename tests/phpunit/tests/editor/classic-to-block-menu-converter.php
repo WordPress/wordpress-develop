@@ -212,9 +212,7 @@ class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
 
 		$blocks = WP_Classic_To_Block_Menu_Converter::convert( $classic_nav_menu );
 
-		$this->assertEmpty( $blocks, 'Result should be empty.' );
-
-		$this->assertIsString( $blocks, 'Result should be empty string.' );
+		$this->assertSame( '', $blocks, 'Result should be empty string.' );
 
 		wp_delete_nav_menu( $menu_id );
 	}
