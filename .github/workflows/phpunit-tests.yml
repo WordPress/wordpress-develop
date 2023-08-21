@@ -39,7 +39,7 @@ jobs:
   # Creates a PHPUnit test job for each PHP/MySQL combination.
   #
   test-with-mysql:
-    name: ${{ matrix.report && 'Test reporter - ' || '' }}PHP ${{ matrix.php }}
+    name: PHP ${{ matrix.php }}
     uses: desrosj/wordpress-develop/.github/workflows/phpunit-tests-run.yml@expanded-db-testing-callable-workflow
     permissions:
       contents: read
@@ -53,7 +53,6 @@ jobs:
         db-version: [ '5.7', '8.0' ]
         multisite: [ false, true ]
         memcached: [ false ]
-        report: [ false ]
 
         include:
           # Include jobs for PHP 7.4 with memcached.
@@ -63,14 +62,12 @@ jobs:
             db-version: '5.7'
             multisite: false
             memcached: true
-            report: false
           - os: ubuntu-latest
             php: '7.4'
             db-type: 'mysql'
             db-version: '5.7'
             multisite: true
             memcached: true
-            report: false
           # Report the results of the PHP 7.4 without memcached job.
           - os: ubuntu-latest
             php: '7.4'
@@ -87,13 +84,13 @@ jobs:
       multisite: ${{ matrix.multisite }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
-      report: ${{ matrix.report }}
+      report: ${{ matrix.report || false }}
 
   #
   # Creates a PHPUnit test job for each PHP/MariaDB combination.
   #
   test-with-mariadb:
-    name: ${{ matrix.report && 'Test reporter - ' || '' }}PHP ${{ matrix.php }}
+    name: PHP ${{ matrix.php }}
     uses: desrosj/wordpress-develop/.github/workflows/phpunit-tests-run.yml@expanded-db-testing-callable-workflow
     permissions:
       contents: read
