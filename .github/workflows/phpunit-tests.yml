@@ -55,7 +55,7 @@ jobs:
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
   test-php:
-    name: PHP ${{ matrix.php }} / ${{ 'mariadb' == matrix.db_type && 'MariaDB' || 'MySQL' }} ${{ matrix.db_version }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }}
+    name: PHP ${{ matrix.php }} / ${{ 'mariadb' == matrix.db_type && 'MariaDB' || 'MySQL' }} ${{ matrix.db_version }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }}${{ matrix.report && ' (test reporting enabled)' || '' }}
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
