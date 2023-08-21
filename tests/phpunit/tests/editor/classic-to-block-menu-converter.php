@@ -205,7 +205,7 @@ class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
 	 * @ticket 58557
 	 * @covers WP_Classic_To_Block_Menu_Converter::convert
 	 */
-	public function test_returns_empty_array_for_menus_with_no_items() {
+	public function test_returns_empty_string_for_menus_with_no_items() {
 		$menu_id = wp_create_nav_menu( 'Empty Menu' );
 
 		$classic_nav_menu = wp_get_nav_menu_object( $menu_id );
@@ -214,7 +214,7 @@ class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
 
 		$this->assertEmpty( $blocks, 'Result should be empty.' );
 
-		$this->assertIsArray( $blocks, 'Result should be empty array.' );
+		$this->assertIsString( $blocks, 'Result should be empty string.' );
 
 		wp_delete_nav_menu( $menu_id );
 	}
