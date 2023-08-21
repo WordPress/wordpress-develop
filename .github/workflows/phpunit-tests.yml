@@ -55,7 +55,7 @@ jobs:
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
   test-php:
-    name: PHP ${{ matrix.php }} / ${{ 'mariadb' == matrix.db_type && 'MariaDB' || 'MySQL' }} ${{ matrix.db_version }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }}
+    name: ${{ matrix.report && 'Test reporter - ' || '' }}PHP ${{ matrix.php }} / ${{ 'mariadb' == matrix.db_type && 'MariaDB' || 'MySQL' }} ${{ matrix.db_version }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }}
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -71,18 +71,37 @@ jobs:
         memcached: [ false ]
         multisite: [ false, true ]
         include:
-          # Include jobs for PHP 7.4 with memcached.
+          # Include jobs for PHP 7.4 with memcached and MySQL.
           - php: '7.4'
             os: ubuntu-latest
+            db_type: 'mysql'
+            db_version: '5.7'
             memcached: true
             multisite: false
           - php: '7.4'
             os: ubuntu-latest
+            db_type: 'mysql'
+            db_version: '5.7'
+            memcached: true
+            multisite: true
+          # Include jobs for PHP 7.4 with memcached and MariaDB.
+          - php: '7.4'
+            os: ubuntu-latest
+            db_type: 'mariadb'
+            db_version: '11.0'
+            memcached: true
+            multisite: false
+          - php: '7.4'
+            os: ubuntu-latest
+            db_type: 'mariadb'
+            db_version: '11.0'
             memcached: true
             multisite: true
           # Report the results of the PHP 7.4 without memcached job.
           - php: '7.4'
             os: ubuntu-latest
+            db_type: 'mysql'
+            db_version: '5.7'
             memcached: false
             multisite: false
             report: true
