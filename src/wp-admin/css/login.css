@@ -61,6 +61,10 @@ p {
 	border-left-color: #d63638;
 }
 
+.login .login-error-list {
+	list-style: none;
+}
+
 #loginform p.submit,
 .login-action-lostpassword p.submit {
 	border: none;
