@@ -70,6 +70,7 @@ jobs:
         os: [ ubuntu-latest ]
         memcached: [ false ]
         multisite: [ false, true ]
+        report: [ false ]
         include:
           # Include jobs for PHP 7.4 with memcached and MySQL.
           - php: '7.4'
@@ -78,12 +79,14 @@ jobs:
             db_version: '5.7'
             memcached: true
             multisite: false
+            report: false
           - php: '7.4'
             os: ubuntu-latest
             db_type: 'mysql'
             db_version: '5.7'
             memcached: true
             multisite: true
+            report: false
           # Include jobs for PHP 7.4 with memcached and MariaDB.
           - php: '7.4'
             os: ubuntu-latest
@@ -91,12 +94,14 @@ jobs:
             db_version: '11.0'
             memcached: true
             multisite: false
+            report: false
           - php: '7.4'
             os: ubuntu-latest
             db_type: 'mariadb'
             db_version: '11.0'
             memcached: true
             multisite: true
+            report: false
           # Report the results of the PHP 7.4 without memcached job.
           - php: '7.4'
             os: ubuntu-latest
