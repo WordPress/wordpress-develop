@@ -43,6 +43,40 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Once stepping to the end of the document, WP_HTML_Processor::get_tag
+	 * should no longer report a tag. It should report `null` because there
+	 * is no tag matched or open.
+	 *
+	 * @ticket {TICKET_NUMBER}
+	 *
+	 * @covers WP_HTML_Processor::get_tag
+	 */
+	public function test_get_tag_is_null_once_document_is_finished() {
+		$p = WP_HTML_Processor::createFragment( '<div class="test">Test</div>' );
+		$p->next_tag();
+		$this->assertSame( 'DIV', $p->get_tag() );
+
+		$this->assertFalse( $p->next_tag() );
+		$this->assertNull( $p->get_tag() );
+	}
+
+	/**
+	 * Ensures that if the HTML Processor encounters inputs that it can't properly handle,
+	 * that it stops processing the rest of the document. This prevents data corruption.
+	 *
+	 * @ticket {TICKET_NUMBER}
+	 *
+	 * @covers WP_HTML_Processor::next_tag
+	 */
+	public function test_stops_processing_after_unsupported_elements() {
+		$p = WP_HTML_Processor::createFragment( '<p><x-not-supported></p><p></p>' );
+		$p->next_tag( 'P' );
+		$this->assertFalse( $p->next_tag(), 'Stepped into a tag after encountering X-NOT-SUPPORTED element when it should have aborted.' );
+		$this->assertNull( $p->get_tag(), "Should have aborted processing, but still reported tag {$p->get_tag()} after properly failing to step into tag." );
+		$this->assertFalse( $p->next_tag( 'P' ), 'Stepped into normal P element after X-NOT-SUPPORTED element when it should have aborted.' );
+	}
+
+	/**
 	 * Ensures that the HTML Processor maintains its internal state through seek calls.
 	 *
 	 * Because the HTML Processor must track a stack of open elements and active formatting
