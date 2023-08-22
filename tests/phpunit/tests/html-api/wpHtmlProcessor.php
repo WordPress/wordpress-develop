@@ -47,7 +47,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * should no longer report a tag. It should report `null` because there
 	 * is no tag matched or open.
 	 *
-	 * @ticket {TICKET_NUMBER}
+	 * @ticket 59167
 	 *
 	 * @covers WP_HTML_Processor::get_tag
 	 */
@@ -64,7 +64,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * Ensures that if the HTML Processor encounters inputs that it can't properly handle,
 	 * that it stops processing the rest of the document. This prevents data corruption.
 	 *
-	 * @ticket {TICKET_NUMBER}
+	 * @ticket 59167
 	 *
 	 * @covers WP_HTML_Processor::next_tag
 	 */
