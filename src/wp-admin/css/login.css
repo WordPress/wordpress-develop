@@ -65,6 +65,10 @@ p {
 	list-style: none;
 }
 
+.login .login-error-list li + li {
+	margin-top: 4px;
+}
+
 #loginform p.submit,
 .login-action-lostpassword p.submit {
 	border: none;
