@@ -438,11 +438,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->state->stack_of_open_elements->pop();
 			}
 
-			parent::next_tag( self::VISIT_EVERYTHING );
+			$found_tag = parent::next_tag( self::VISIT_EVERYTHING );
+		} else {
+			$found_tag = true;
 		}
 
 		// Finish stepping when there are no more tokens in the document.
-		if ( null === $this->get_tag() ) {
+		if ( ! $found_tag ) {
 			return false;
 		}
 

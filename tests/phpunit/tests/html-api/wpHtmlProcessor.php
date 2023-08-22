@@ -115,4 +115,52 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$this->assertTrue( $p->next_tag( 'EM' ), 'Could not find first EM.' );
 		$this->assertFalse( $p->next_tag( 'EM' ), 'Should have aborted before finding second EM as it required reconstructing the first EM.' );
 	}
+
+	/**
+	 *
+	 * @ticket {TICKET NUMBER}
+	 *
+	 * @covers WP_HTML_Processor::extend_input
+	 */
+	public function test_continues_processing_after_extending_input() {
+		$p = WP_HTML_Processor::createFragment( '<div><p><em>This</em> is' );
+
+		$p->next_tag( 'EM' );
+		$this->assertFalse( $p->next_tag(), "Expected to reach end of document and pause, but found {$p->get_tag()} instad." );
+		$this->assertNull( $p->get_last_error(), "Should not have encountered any errors, but found '{$p->get_last_error()}'." );
+
+		$p->extend_input( ' <strong>incomplete.</strong></p><img></div>' );
+
+		// Find the strong.
+		$this->assertTrue( $p->next_tag() );
+		$this->assertSame( array( 'HTML', 'BODY', 'DIV', 'P', 'STRONG' ), $p->get_breadcrumbs() );
+
+		// Find the image.
+		$this->assertTrue( $p->next_tag() );
+		$this->assertSame( array( 'HTML', 'BODY', 'DIV', 'IMG' ), $p->get_breadcrumbs() );
+	}
+
+	/**
+	 *
+	 * @ticket {TICKET NUMBER}
+	 *
+	 * @covers WP_HTML_Processor::extend_input
+	 */
+	public function test_continues_processing_after_extending_truncated_input() {
+		$p = WP_HTML_Processor::createFragment( '<div><p><em>This</em> is <str' );
+
+		$p->next_tag( 'EM' );
+		$this->assertFalse( $p->next_tag(), "Expected to reach end of document and pause, but found {$p->get_tag()} instad." );
+		$this->assertNull( $p->get_last_error(), "Should not have encountered any errors, but found '{$p->get_last_error()}'." );
+
+		$p->extend_input( 'ong>incomplete.</strong></p><img></div>' );
+
+		// Find the strong.
+		$this->assertTrue( $p->next_tag() );
+		$this->assertSame( array( 'HTML', 'BODY', 'DIV', 'P', 'STRONG' ), $p->get_breadcrumbs() );
+
+		// Find the image.
+		$this->assertTrue( $p->next_tag() );
+		$this->assertSame( array( 'HTML', 'BODY', 'DIV', 'IMG' ), $p->get_breadcrumbs() );
+	}
 }

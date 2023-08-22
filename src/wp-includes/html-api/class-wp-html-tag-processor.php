@@ -326,6 +326,8 @@ class WP_HTML_Tag_Processor {
 	 */
 	private $bytes_already_parsed = 0;
 
+	private $previously_parsed = 0;
+
 	/**
 	 * Byte offset in input document where current tag name starts.
 	 *
@@ -507,6 +509,14 @@ class WP_HTML_Tag_Processor {
 		$this->html = $html;
 	}
 
+	public function extend_input( $html ) {
+		if ( $this->bytes_already_parsed >= strlen( $this->html ) ) {
+			$this->bytes_already_parsed = $this->previously_parsed;
+		}
+
+		$this->html .= $html;
+	}
+
 	/**
 	 * Finds the next tag matching the $query.
 	 *
@@ -527,6 +537,7 @@ class WP_HTML_Tag_Processor {
 	public function next_tag( $query = null ) {
 		$this->parse_query( $query );
 		$already_found = 0;
+		$this->previously_parsed = $this->bytes_already_parsed;
 
 		do {
 			if ( $this->bytes_already_parsed >= strlen( $this->html ) ) {
