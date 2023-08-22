@@ -410,7 +410,6 @@ function login_footer( $input_id = '' ) {
 	do_action( 'login_footer' );
 
 	?>
-	<div class="clear"></div>
 	</body>
 	</html>
 	<?php
@@ -996,7 +995,6 @@ switch ( $action ) {
 			</p>
 
 			<p class="description indicator-hint"><?php echo wp_get_password_hint(); ?></p>
-			<br class="clear" />
 
 			<?php
 
@@ -1115,7 +1113,6 @@ switch ( $action ) {
 			<p id="reg_passmail">
 				<?php _e( 'Registration confirmation will be emailed to you.' ); ?>
 			</p>
-			<br class="clear" />
 			<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>" />
 			<p class="submit">
 				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Register' ); ?>" />
