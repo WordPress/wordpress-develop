@@ -243,16 +243,11 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 		}
 
 		if ( ! empty( $error_list ) ) {
-			$errors = '';
-			if ( count( $error_list ) > 1 ) {
-				$errors .= '<ul class="login-error-list">';
-				foreach ( $error_list as $item ) {
-					$errors .= '<li>' . $item . "</li>\n";
-				}
-				$errors .= "</ul>\n";
-			} else {
-				$errors .= '<p>' . $error_message . "</p>\n";
+			$errors = '<ul class="login-error-list">';
+			foreach ( $error_list as $item ) {
+				$errors .= '<li>' . $item . "</li>\n";
 			}
+			$errors .= "</ul>\n";
 
 			/**
 			 * Filters the error messages displayed above the login form.
