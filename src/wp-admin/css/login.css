@@ -41,9 +41,9 @@ p {
 	line-height: 1.5;
 }
 
+.login .notice,
 .login .message,
-.login .success,
-.login #login_error {
+.login .success {
 	border-left: 4px solid #72aee6;
 	padding: 12px;
 	margin-left: 0;
@@ -57,7 +57,7 @@ p {
 	border-left-color: #00a32a;
 }
 
-.login #login_error {
+.login .notice-error {
 	border-left-color: #d63638;
 }
 
