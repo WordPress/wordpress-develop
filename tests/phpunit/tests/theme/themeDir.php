@@ -186,7 +186,6 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Block Theme [1.0.0] in subdirectory',
 			'Block Theme Deprecated Path',
 			'Block Theme with defined Typography Fonts',
-			'Webfonts theme',
 			'Empty `fontFace` in theme.json - no webfonts defined',
 			'A theme with the Update URI header',
 		);
