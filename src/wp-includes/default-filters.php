@@ -719,4 +719,7 @@ add_action( 'init', 'wp_register_persisted_preferences_meta' );
 // CPT wp_block custom postmeta field.
 add_action( 'init', 'wp_create_initial_post_meta' );
 
+// Font management.
+add_action( 'wp_head', 'wp_print_font_faces', 50 );
+
 unset( $filter, $action );
