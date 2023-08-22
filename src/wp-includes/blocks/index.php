@@ -49,8 +49,34 @@ function register_core_block_style_handles() {
 		$files          = get_transient( $transient_name );
 		if ( ! $files ) {
 			$files = glob( wp_normalize_path( __DIR__ . '/**/**.css' ) );
+
+			/*
+			 * Make CSS files path relative before storing them in transient.
+			 *
+			 * Remove the `wp-includes` part to avoid issue when moving site (and the database) to another server :
+			 * /path/to/wp-includes/blocks/xxx/yyy.css => blocks/xxx/yyy.css
+			 */
+			$files = array_map(
+				function ( $file ) use ( $includes_path ) {
+					return str_replace( $includes_path, '', $file );
+				},
+				$files
+			);
 			set_transient( $transient_name, $files );
 		}
+
+		/*
+		 * Rebuild the full path for all CSS file when loading them from transient.
+		 *
+		 * Add the `wp-includes` part back :
+		 * blocks/xxx/yyy.css => /path/to/wp-includes/blocks/xxx/yyy.css
+		 */
+		$files = array_map(
+			function ( $file ) use ( $includes_path ) {
+				return $includes_path . $file;
+			},
+			$files
+		);
 	} else {
 		$files = glob( wp_normalize_path( __DIR__ . '/**/**.css' ) );
 	}
