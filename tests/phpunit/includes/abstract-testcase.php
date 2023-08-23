@@ -1396,7 +1396,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	public function remove_added_uploads() {
 		$uploads = wp_upload_dir();
-		$this->rmdir( $uploads['basedir'] );
+		if ( is_dir( $uploads['basedir'] ) ) {
+			$this->rmdir( $uploads['basedir'] );
+		}
 	}
 
 	/**
