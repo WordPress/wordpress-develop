@@ -3501,7 +3501,7 @@ function get_site_url( $blog_id = null, $path = '', $scheme = null ) {
 		$url = $site->domain . $site->path;
 
 		// If the network has a custom domain, use that instead.
-		if ( \get_network()->domain !== $site->domain ) {
+		if ( get_network()->domain !== $site->domain ) {
 			$url = get_network()->domain . $site->path;
 		}
 	}
