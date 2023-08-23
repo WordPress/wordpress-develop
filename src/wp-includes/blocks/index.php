@@ -72,7 +72,7 @@ function register_core_block_style_handles() {
 		 * blocks/xxx/yyy.css => /path/to/wp-includes/blocks/xxx/yyy.css
 		 */
 		$files = array_map(
-			function ( $file ) use ( $includes_path ) {
+			static function ( $file ) use ( $includes_path ) {
 				return $includes_path . $file;
 			},
 			$files
