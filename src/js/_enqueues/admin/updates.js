@@ -1,4 +1,4 @@
-(function( $, wp ) {
+(function( $, wp, pagenow ) {
     var $document = $( document ),
 		__ = wp.i18n.__,
 		_x = wp.i18n._x,
