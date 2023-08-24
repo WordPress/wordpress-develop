@@ -105,7 +105,7 @@ function _wp_post_revision_data( $post = array(), $autosave = false ) {
  * @param bool    $update  Whether this insert is updating an existing post.
  */
 function wp_save_post_revision_on_insert( $post_id, $post, $update ) {
-	if ( $update ) {
+	if ( ! $update ) {
 		return;
 	}
 
