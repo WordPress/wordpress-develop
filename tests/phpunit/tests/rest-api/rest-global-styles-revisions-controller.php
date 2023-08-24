@@ -132,7 +132,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 			),
 		);
 
-		wp_update_post( $new_styles_post, true, false );
+		wp_update_post( $new_styles_post, true );
 
 		$new_styles_post = array(
 			'ID'           => self::$global_styles_id,
@@ -162,7 +162,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 			),
 		);
 
-		wp_update_post( $new_styles_post, true, false );
+		wp_update_post( $new_styles_post, true );
 
 		$new_styles_post = array(
 			'ID'           => self::$global_styles_id,
@@ -192,7 +192,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 			),
 		);
 
-		wp_update_post( $new_styles_post, true, false );
+		wp_update_post( $new_styles_post, true );
 		wp_set_current_user( 0 );
 	}
 
@@ -326,7 +326,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 			'post_content' => wp_json_encode( $config ),
 		);
 
-		wp_update_post( $updated_styles_post, true, false );
+		wp_update_post( $updated_styles_post, true );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
 		$response = rest_get_server()->dispatch( $request );
