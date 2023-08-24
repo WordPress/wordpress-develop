@@ -84,13 +84,33 @@ jobs:
             memcached: false
             multisite: false
             report: true
-
+    outputs:
+      "8.1": ${{ steps.test.outputs['php-8.1'] }}
+      "8.0": ${{ steps.test.outputs['php-8.0'] }}
+      "7.4": ${{ steps.test.outputs['php-7.4'] }}
+      "7.3": ${{ steps.test.outputs['php-7.3'] }}
+      "7.2": ${{ steps.test.outputs['php-7.2'] }}
+      "7.1": ${{ steps.test.outputs['php-7.1'] }}
+      "7.0": ${{ steps.test.outputs['php-7.0'] }}
+      "5.6": ${{ steps.test.outputs['php-5.6'] }}
     env:
       LOCAL_PHP: ${{ matrix.php }}-fpm
       LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
       PHPUNIT_CONFIG: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
 
     steps:
+      - name: Summary Table
+        id: summary-table
+        #run: echo '### Hello world! :rocket:' >> $GITHUB_STEP_SUMMARY
+        # tests were identified as risky.
+        # x - tests were skipped.
+        # tests encountered errors.
+        # total tests were found.
+        # assertions were made.
+        run: |
+          echo '### PHP Results Summary Table :rocket:' >> $GITHUB_STEP_SUMMARY
+          echo '::set-output name=php-${{ matrix.php }}::${{ matrix.php }}' >> $GITHUB_STEP_SUMMARY
+
       - name: Configure environment variables
         run: |
           echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
@@ -104,6 +124,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: npm
+          writeToJobSummary: true
 
       ##
       # This allows Composer dependencies to be installed using a single step.
@@ -194,6 +215,23 @@ jobs:
         env:
           WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
         run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+
+  results:
+    needs: [test-php]
+    name: PHP Results
+    runs-on: ubuntu-18.04
+    timeout-minutes: 1
+    steps:
+      - name: PHP Output Summary
+        run: |
+          echo ${{ needs.test-php.outputs['8.1'] }} >> $GITHUB_STEP_SUMMARY
+          echo ${{ needs.test-php.outputs['8.0'] }} >> $GITHUB_STEP_SUMMARY
+          echo ${{ needs.test-php.outputs['7.4'] }} >> $GITHUB_STEP_SUMMARY
+          echo ${{ needs.test-php.outputs['7.3'] }} >> $GITHUB_STEP_SUMMARY
+          echo ${{ needs.test-php.outputs['7.2'] }} >> $GITHUB_STEP_SUMMARY
+          echo ${{ needs.test-php.outputs['7.1'] }} >> $GITHUB_STEP_SUMMARY
+          echo ${{ needs.test-php.outputs['7.0'] }} >> $GITHUB_STEP_SUMMARY
+          echo ${{ needs.test-php.outputs['5.6'] }} >> $GITHUB_STEP_SUMMARY
 
   slack-notifications:
     name: Slack Notifications
