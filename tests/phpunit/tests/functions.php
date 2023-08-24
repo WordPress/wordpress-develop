@@ -497,7 +497,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		}
 
 		$qs_urls = array(
-			'baz=1', // #WP4903
+			'?baz=1', // #WP4903
 			'/?baz',
 			'/2012/07/30/?baz',
 			'edit.php?baz',
