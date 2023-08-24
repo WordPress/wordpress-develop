@@ -242,7 +242,7 @@ abstract class WP_Image_Editor {
 	 * @param string $hash
 	 * @return true
 	 */
-	protected function create_crop_hash( $hash = null ) {
+	protected function update_crop_hash( $hash = null ) {
 		$this->hash = $hash;
 		return true;
 	}
