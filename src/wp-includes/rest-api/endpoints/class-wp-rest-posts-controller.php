@@ -743,13 +743,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		// Update any revisioned meta.
-		$revisions = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
-		if ( ! empty( $revisions ) ) {
-			$revision  = array_shift( $revisions );
-			wp_save_revisioned_meta_fields( $revision->ID, $post_id );
-		}
-
 		$post          = get_post( $post_id );
 		$fields_update = $this->update_additional_fields_for_object( $post, $request );
 
@@ -934,12 +927,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			if ( is_wp_error( $meta_update ) ) {
 				return $meta_update;
 			}
-		}
-		// Update any revisioned meta.
-		$revisions = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
-		if ( ! empty( $revisions ) ) {
-			$revision  = array_shift( $revisions );
-			wp_save_revisioned_meta_fields( $revision->ID, $post_id );
 		}
 
 		$post          = get_post( $post_id );
