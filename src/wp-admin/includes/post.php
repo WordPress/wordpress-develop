@@ -1972,7 +1972,7 @@ function wp_create_post_autosave( $post_data ) {
 	$revision = _wp_put_post_revision( $post_data, true );
 
 	// Update the revisioned meta data as well.
-	wp_autosave_post_revisioned_meta_fields( $revision );
+	wp_autosave_post_revisioned_meta_fields( get_post( $revision, ARRAY_A ) );
 	return $revision;
 }
 
@@ -1984,7 +1984,7 @@ function wp_create_post_autosave( $post_data ) {
  *
  * @since 6.4.0
  *
- * @param Post object $new_autosave The new post being autosaved.
+ * @param array $new_autosave The new post data being autosaved.
  */
 function wp_autosave_post_revisioned_meta_fields( $new_autosave ) {
 	/*
