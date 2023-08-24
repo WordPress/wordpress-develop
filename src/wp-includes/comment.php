@@ -2794,13 +2794,14 @@ function wp_update_comment_count_now( $post_id ) {
  * The check for the rel="pingback" has more overhead than just the header.
  *
  * @since 1.5.0
+ * @since 2.7.0 The `$timeout_bytes` parameter was deprecated.
  *
  * @param string $url        URL to ping.
  * @param string $deprecated Not Used.
  * @return string|false String containing URI on success, false on failure.
  */
 function discover_pingback_server_uri( $url, $deprecated = '' ) {
-	if ( ! empty( $deprecated ) ) {
+	if ( ! $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '2.7.0' );
 	}
 

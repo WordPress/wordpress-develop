@@ -314,7 +314,11 @@ function install_dashboard() {
  *
  * @param bool $deprecated Not used.
  */
-function install_search_form( $deprecated = true ) {
+function install_search_form( $deprecated = false ) {
+	if ( ! $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '4.6.0' );
+	}
+
 	$type = isset( $_REQUEST['type'] ) ? wp_unslash( $_REQUEST['type'] ) : 'term';
 	$term = isset( $_REQUEST['s'] ) ? wp_unslash( $_REQUEST['s'] ) : '';
 	?>

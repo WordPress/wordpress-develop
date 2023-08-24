@@ -14,6 +14,7 @@
  * Retrieves the author of the current post.
  *
  * @since 1.5.0
+ * @since 2.0.5 The `$idmode` parameter was deprecated.
  *
  * @global WP_User $authordata The current author's data.
  *
@@ -23,8 +24,8 @@
 function get_the_author( $deprecated = '' ) {
 	global $authordata;
 
-	if ( ! empty( $deprecated ) ) {
-		_deprecated_argument( __FUNCTION__, '2.1.0' );
+	if ( ! $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '2.0.5' );
 	}
 
 	/**
@@ -337,13 +338,14 @@ function get_the_author_posts_link() {
  * Displays an HTML link to the author page of the current post's author.
  *
  * @since 1.2.0
+ * @since 2.0.5 The parameter `$idmode` was deprecated.
  * @since 4.4.0 Converted into a wrapper for get_the_author_posts_link()
  *
  * @param string $deprecated Unused.
  */
 function the_author_posts_link( $deprecated = '' ) {
-	if ( ! empty( $deprecated ) ) {
-		_deprecated_argument( __FUNCTION__, '2.1.0' );
+	if ( ! $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '2.0.5' );
 	}
 	echo get_the_author_posts_link();
 }

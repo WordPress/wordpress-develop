@@ -2285,7 +2285,7 @@ function kses_init() {
  * @return string Filtered string of CSS rules.
  */
 function safecss_filter_attr( $css, $deprecated = '' ) {
-	if ( ! empty( $deprecated ) ) {
+	if ( ! $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '2.8.1' ); // Never implemented.
 	}
 

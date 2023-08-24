@@ -403,15 +403,20 @@ class WP_Widget {
 	 * Handles changed settings (Do NOT override).
 	 *
 	 * @since 2.8.0
+	 * @since 3.9.0 The `$widget_args` parameter was deprecated.
 	 *
 	 * @global array $wp_registered_widgets
 	 *
 	 * @param int $deprecated Not used.
 	 */
-	public function update_callback( $deprecated = 1 ) {
+	public function update_callback( $deprecated = 0 ) {
 		global $wp_registered_widgets;
 
 		$all_instances = $this->get_settings();
+
+		if ( ! $deprecated ) {
+			_deprecated_argument( __FUNCTION__, '3.9.0' );
+		}
 
 		// We need to update the data.
 		if ( $this->updated ) {

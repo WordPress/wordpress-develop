@@ -44,9 +44,9 @@ function get_category_link( $category ) {
  * @param array  $deprecated  Not used.
  * @return string|WP_Error A list of category parents on success, WP_Error on failure.
  */
-function get_category_parents( $category_id, $link = false, $separator = '/', $nicename = false, $deprecated = array() ) {
+function get_category_parents( $category_id, $link = false, $separator = '/', $nicename = false, $deprecated = null ) {
 
-	if ( ! empty( $deprecated ) ) {
+	if ( ! $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '4.8.0' );
 	}
 
@@ -1268,6 +1268,10 @@ function term_description( $term = 0, $deprecated = null ) {
 		if ( $term ) {
 			$term = $term->term_id;
 		}
+	}
+
+	if ( ! $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '4.9.2' );
 	}
 
 	$description = get_term_field( 'description', $term );

@@ -416,6 +416,7 @@ class WP_Object_Cache {
 	 * If the cache key does not exist in the group, then nothing will happen.
 	 *
 	 * @since 2.0.0
+	 * @since 3.9.0 The `$force` parameter was deprecated.
 	 *
 	 * @param int|string $key        What the contents in the cache are called.
 	 * @param string     $group      Optional. Where the cache contents are grouped. Default 'default'.
@@ -425,6 +426,10 @@ class WP_Object_Cache {
 	public function delete( $key, $group = 'default', $deprecated = false ) {
 		if ( ! $this->is_valid_key( $key ) ) {
 			return false;
+		}
+
+		if ( ! $deprecated ) {
+			_deprecated_argument( __FUNCTION__, '3.9.0' );
 		}
 
 		if ( empty( $group ) ) {

@@ -449,6 +449,7 @@ function delete_blog_option( $id, $option ) {
  * Updates an option for a particular blog.
  *
  * @since MU (3.0.0)
+ * @since 3.1.0 The `$refresh` parameter was deprecated.
  *
  * @param int    $id         The blog ID.
  * @param string $option     The option key.
@@ -485,6 +486,7 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
  *
  * @see restore_current_blog()
  * @since MU (3.0.0)
+ * @since 3.1.0 The `$validate` parameter was deprecated.
  *
  * @global wpdb            $wpdb               WordPress database abstraction object.
  * @global int             $blog_id
@@ -499,6 +501,10 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
  */
 function switch_to_blog( $new_blog_id, $deprecated = null ) {
 	global $wpdb;
+
+	if ( ! $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '3.1.0' );
+	}
 
 	$prev_blog_id = get_current_blog_id();
 	if ( empty( $new_blog_id ) ) {
@@ -743,6 +749,7 @@ function update_archived( $id, $archived ) {
  * Updates a blog details field.
  *
  * @since MU (3.0.0)
+ * @since 3.1.0 The `$refresh` parameter was deprecated.
  * @since 5.1.0 Use wp_update_site() internally.
  *
  * @global wpdb $wpdb WordPress database abstraction object.

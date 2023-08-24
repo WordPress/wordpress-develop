@@ -1625,6 +1625,7 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 	 * Notifies an author (and/or others) of a comment/trackback/pingback on a post.
 	 *
 	 * @since 1.0.0
+	 * @since 3.8.0 The `$comment_type` parameter was deprecated.
 	 *
 	 * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
 	 * @param string         $deprecated Not used.

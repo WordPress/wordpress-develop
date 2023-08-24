@@ -22,6 +22,10 @@
 function _wp_post_revision_fields( $post = array(), $deprecated = false ) {
 	static $fields = null;
 
+	if ( ! $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '4.5.0' );
+	}
+
 	if ( ! is_array( $post ) ) {
 		$post = get_post( $post, ARRAY_A );
 	}

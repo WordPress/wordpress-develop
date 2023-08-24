@@ -2443,7 +2443,7 @@ function sanitize_html_class( $classname, $fallback = '' ) {
  * @return string Converted string.
  */
 function convert_chars( $content, $deprecated = '' ) {
-	if ( ! empty( $deprecated ) ) {
+	if ( ! $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '0.71' );
 	}
 
@@ -3479,13 +3479,14 @@ function convert_smilies( $text ) {
  * Does not grok i18n domains. Not RFC compliant.
  *
  * @since 0.71
+ * @since 3.0.0 The `$check_dns` parameter was deprecated.
  *
  * @param string $email      Email address to verify.
  * @param bool   $deprecated Deprecated.
  * @return string|false Valid email address on success, false on failure.
  */
 function is_email( $email, $deprecated = false ) {
-	if ( ! empty( $deprecated ) ) {
+	if ( ! $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '3.0.0' );
 	}
 

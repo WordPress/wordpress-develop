@@ -1347,7 +1347,11 @@ function delete_all_user_settings() {
  * @param bool   $deprecated    Whether to use cache. Multisite only. Always set to true.
  * @return mixed Value set for the option.
  */
-function get_site_option( $option, $default_value = false, $deprecated = true ) {
+function get_site_option( $option, $default_value = false, $deprecated = false ) {
+	if ( ! $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '4.4.0' );
+	}
+
 	return get_network_option( null, $option, $default_value );
 }
 

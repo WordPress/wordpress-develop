@@ -867,10 +867,10 @@ function get_comments_link( $post = 0 ) {
  * @param string $deprecated_2 Not Used.
  */
 function comments_link( $deprecated = '', $deprecated_2 = '' ) {
-	if ( ! empty( $deprecated ) ) {
+	if ( ! $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '0.72' );
 	}
-	if ( ! empty( $deprecated_2 ) ) {
+	if ( ! $deprecated_2 ) {
 		_deprecated_argument( __FUNCTION__, '1.3.0' );
 	}
 	echo esc_url( get_comments_link() );
@@ -1238,11 +1238,12 @@ function trackback_url( $deprecated_echo = true ) {
  * Deprecated in 3.0.0, and restored in 3.0.1.
  *
  * @since 0.71
+ * @since 2.5.0 The `$timezone` parameter was deprecated.
  *
  * @param int|string $deprecated Not used (Was $timezone = 0).
  */
 function trackback_rdf( $deprecated = '' ) {
-	if ( ! empty( $deprecated ) ) {
+	if ( ! $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '2.5.0' );
 	}
 

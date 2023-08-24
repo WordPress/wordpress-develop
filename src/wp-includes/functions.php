@@ -973,13 +973,14 @@ function do_enclose( $content, $post ) {
  * Retrieves HTTP Headers from URL.
  *
  * @since 1.5.1
+ * @since 2.7.0 The `$red` parameter was deprecated.
  *
  * @param string $url        URL to retrieve HTTP headers from.
  * @param bool   $deprecated Not Used.
  * @return \WpOrg\Requests\Utility\CaseInsensitiveDictionary|false Headers on success, false on failure.
  */
 function wp_get_http_headers( $url, $deprecated = false ) {
-	if ( ! empty( $deprecated ) ) {
+	if ( ! $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '2.7.0' );
 	}
 

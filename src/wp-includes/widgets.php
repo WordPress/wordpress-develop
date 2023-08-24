@@ -998,6 +998,7 @@ function is_active_sidebar( $index ) {
  * needed.
  *
  * @since 2.2.0
+ * @since 2.8.1 The `$sidebars_widgets` parameter was deprecated.
  * @access private
  *
  * @global array $_wp_sidebars_widgets
@@ -1006,8 +1007,8 @@ function is_active_sidebar( $index ) {
  * @param bool $deprecated Not used (argument deprecated).
  * @return array Upgraded list of widgets to version 3 array format when called from the admin.
  */
-function wp_get_sidebars_widgets( $deprecated = true ) {
-	if ( true !== $deprecated ) {
+function wp_get_sidebars_widgets( $deprecated = false ) {
+	if ( ! $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '2.8.1' );
 	}
 

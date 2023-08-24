@@ -651,6 +651,7 @@ function get_current_user_id() {
  * The option will first check for the per site name and then the per Network name.
  *
  * @since 2.0.0
+ * @since 3.0.0 The `$check_blog_options` parameter was deprecated.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -662,7 +663,7 @@ function get_current_user_id() {
 function get_user_option( $option, $user = 0, $deprecated = '' ) {
 	global $wpdb;
 
-	if ( ! empty( $deprecated ) ) {
+	if ( ! $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '3.0.0' );
 	}
 

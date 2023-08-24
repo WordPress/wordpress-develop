@@ -2105,6 +2105,7 @@ function _admin_search_query() {
  * Generic Iframe header for use with Thickbox.
  *
  * @since 2.7.0
+ * @since 4.2 The `$limit_styles` parameter was deprecated.
  *
  * @global string    $hook_suffix
  * @global string    $admin_body_class
@@ -2119,6 +2120,10 @@ function iframe_header( $title = '', $deprecated = false ) {
 	$admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
 
 	$current_screen = get_current_screen();
+
+	if ( ! $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '4.2.0' );
+	}
 
 	header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
 	_wp_admin_html_begin();

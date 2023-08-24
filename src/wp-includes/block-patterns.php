@@ -194,7 +194,7 @@ function wp_normalize_remote_block_pattern( $pattern ) {
  * @param WP_Screen $deprecated Unused. Formerly the screen that the current request was triggered from.
  */
 function _load_remote_block_patterns( $deprecated = null ) {
-	if ( ! empty( $deprecated ) ) {
+	if ( ! $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '5.9.0' );
 		$current_screen = $deprecated;
 		if ( ! $current_screen->is_block_editor ) {

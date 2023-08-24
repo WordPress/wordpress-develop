@@ -1257,7 +1257,7 @@ function link_target_meta_box( $link ) {
 function xfn_check( $xfn_relationship, $xfn_value = '', $deprecated = '' ) {
 	global $link;
 
-	if ( ! empty( $deprecated ) ) {
+	if ( ! $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '2.5.0' ); // Never implemented.
 	}
 

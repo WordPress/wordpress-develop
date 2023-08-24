@@ -1397,6 +1397,10 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
 function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	global $wp_meta_keys;
 
+	if ( ! $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '4.6.0' );
+	}
+
 	if ( ! is_array( $wp_meta_keys ) ) {
 		$wp_meta_keys = array();
 	}

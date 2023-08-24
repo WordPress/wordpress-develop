@@ -881,6 +881,7 @@ function activate_plugins( $plugins, $redirect = '', $network_wide = false, $sil
  * Removes directory and files of a plugin for a list of plugins.
  *
  * @since 2.6.0
+ * @since 4.0.0 The `$redirect` parameter was deprecated.
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
@@ -894,6 +895,10 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 
 	if ( empty( $plugins ) ) {
 		return false;
+	}
+
+	if ( ! $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '4.0.0' );
 	}
 
 	$checked = array();
