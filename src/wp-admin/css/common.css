@@ -643,9 +643,6 @@ code {
 	line-height: 2.15384615;
 	min-height: 30px;
 	padding: 0 10px;
-	cursor: pointer;
-	border-width: 1px;
-	border-style: solid;
 	-webkit-appearance: none;
 	border-radius: 3px;
 	white-space: nowrap;
