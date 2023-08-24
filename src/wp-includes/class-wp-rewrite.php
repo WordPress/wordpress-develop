@@ -1509,8 +1509,10 @@ class WP_Rewrite {
 		$this->rewrite_rules();
 
 		if ( ! did_action( 'wp_loaded' ) ) {
-			// Is not safe to save the results right now, as the rules may be partial.
-			// Need to give all rules the chance to register.
+			/*
+			 * Is not safe to save the results right now, as the rules may be partial.
+			 * Need to give all rules the chance to register.
+			 */
 			add_action( 'wp_loaded', array( $this, 'flush_rules' ) );
 		} else {
 			update_option( 'rewrite_rules', $this->rules );
