@@ -821,22 +821,22 @@ function wp_uninitialize_site( $site_id ) {
 		switch_to_blog( $site->id );
 	}
 
-	$uploads = wp_get_upload_dir();
-
-	$tables = $wpdb->tables( 'blog' );
+	$prep_query = $wpdb->prepare( 'SELECT table_name FROM information_schema.TABLES WHERE table_name LIKE %s;', $wpdb->esc_like( "{$wpdb->base_prefix}{$site->id}_" ) . '%' );
+	$tables     = $wpdb->get_results( $prep_query, ARRAY_A );
 
 	/**
 	 * Filters the tables to drop when the site is deleted.
 	 *
 	 * @since MU (3.0.0)
 	 *
-	 * @param string[] $tables  Array of names of the site tables to be dropped.
-	 * @param int      $site_id The ID of the site to drop tables for.
+	* @param string[] $drop_tables Array of names of the site tables to be dropped.
+	* @param object   $site        Contains the objects related to the subsite like the multisite site id that will be used to reference the drop tables for.
 	 */
 	$drop_tables = apply_filters( 'wpmu_drop_tables', $tables, $site->id );
 
 	foreach ( (array) $drop_tables as $table ) {
-		$wpdb->query( "DROP TABLE IF EXISTS `$table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$table_name = $table['table_name'];
+		$wpdb->query( "DROP TABLE IF EXISTS `$table_name`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 
 	/**
@@ -844,48 +844,16 @@ function wp_uninitialize_site( $site_id ) {
 	 *
 	 * @since MU (3.0.0)
 	 *
-	 * @param string $basedir Uploads path without subdirectory. See {@see wp_upload_dir()}.
-	 * @param int    $site_id The site ID.
+	 * @param object $uploads Uploads path object. @see wp_upload_dir()
+	 * @param string $dir Filtered actual subsite directory path to be deleted.
 	 */
+	$uploads = wp_get_upload_dir();
 	$dir     = apply_filters( 'wpmu_delete_blog_upload_dir', $uploads['basedir'], $site->id );
-	$dir     = rtrim( $dir, DIRECTORY_SEPARATOR );
-	$top_dir = $dir;
-	$stack   = array( $dir );
-	$index   = 0;
 
-	while ( $index < count( $stack ) ) {
-		// Get indexed directory from stack.
-		$dir = $stack[ $index ];
-
-		// phpcs:disable WordPress.PHP.NoSilencedErrors.Discouraged
-		$dh = @opendir( $dir );
-		if ( $dh ) {
-			$file = @readdir( $dh );
-			while ( false !== $file ) {
-				if ( '.' === $file || '..' === $file ) {
-					$file = @readdir( $dh );
-					continue;
-				}
-
-				if ( @is_dir( $dir . DIRECTORY_SEPARATOR . $file ) ) {
-					$stack[] = $dir . DIRECTORY_SEPARATOR . $file;
-				} elseif ( @is_file( $dir . DIRECTORY_SEPARATOR . $file ) ) {
-					@unlink( $dir . DIRECTORY_SEPARATOR . $file );
-				}
-
-				$file = @readdir( $dh );
-			}
-			@closedir( $dh );
-		}
-		$index++;
-	}
-
-	$stack = array_reverse( $stack ); // Last added directories are deepest.
-	foreach ( (array) $stack as $dir ) {
-		if ( $dir !== $top_dir ) {
-			@rmdir( $dir );
-		}
-	}
+	require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+	require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+	$file_system_direct = new WP_Filesystem_Direct( false );
+	$file_system_direct->rmdir( $dir, true );
 
 	// phpcs:enable WordPress.PHP.NoSilencedErrors.Discouraged
 	if ( $switch ) {
