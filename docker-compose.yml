@@ -84,7 +84,7 @@ services:
     command: --default-authentication-plugin=mysql_native_password
 
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      test: [ "CMD-SHELL", "if [ \"$LOCAL_DB_TYPE\" = \"mariadb\" ]; then mariadb-admin ping -h localhost; else mysqladmin ping -h localhost; fi" ]
       timeout: 5s
       interval: 5s
       retries: 10
