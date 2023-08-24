@@ -556,7 +556,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			'file'      => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
 			'width'     => $this->size['width'],
 			'height'    => $this->size['height'],
-			'hash'    	=> $this->hash,
+			'hash'      => $this->hash,
 			'mime-type' => $mime_type,
 			'filesize'  => wp_filesize( $filename ),
 		);
