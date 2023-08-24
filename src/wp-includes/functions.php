@@ -73,7 +73,7 @@ function mysql2date( $format, $date, $translate = true ) {
 function current_time( $type, $gmt = 0 ) {
 	// Don't use non-GMT timestamp, unless you know the difference and really need to.
 	if ( 'timestamp' === $type || 'U' === $type ) {
-		return $gmt ? time() : time() + (int) ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
+		return $gmt ? time() : time() + (int) ( current_gmt_offset() * HOUR_IN_SECONDS );
 	}
 
 	if ( 'mysql' === $type ) {
@@ -95,6 +95,19 @@ function current_time( $type, $gmt = 0 ) {
  */
 function current_datetime() {
 	return new DateTimeImmutable( 'now', wp_timezone() );
+}
+
+/**
+ * Retrieves the current GMT offset set for the site.
+ *
+ *  - Default to 0 if the option is not set or invalid
+ *
+ * @since 6.4.0
+ *
+ * @return float
+ */
+function current_gmt_offset() {
+	return (float) get_option( 'gmt_offset', 0 );
 }
 
 /**
@@ -123,7 +136,7 @@ function wp_timezone_string() {
 		return $timezone_string;
 	}
 
-	$offset  = (float) get_option( 'gmt_offset' );
+	$offset  = current_gmt_offset();
 	$hours   = (int) $offset;
 	$minutes = ( $offset - $hours );
 

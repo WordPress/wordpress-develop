@@ -444,7 +444,7 @@ function wp_default_packages_inline_scripts( $scripts ) {
 						'datetimeAbbreviated' => __( 'M j, Y g:i a' ),
 					),
 					'timezone' => array(
-						'offset' => (float) get_option( 'gmt_offset', 0 ),
+						'offset' => current_gmt_offset(),
 						'string' => $timezone_string,
 						'abbr'   => $timezone_abbr,
 					),

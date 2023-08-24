@@ -230,7 +230,7 @@ if ( ! empty( $languages ) || ! empty( $translations ) ) {
 ?>
 <tr>
 <?php
-$current_offset = get_option( 'gmt_offset' );
+$current_offset = current_gmt_offset();
 $tzstring       = get_option( 'timezone_string' );
 
 $check_zone_info = true;

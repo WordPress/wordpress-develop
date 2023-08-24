@@ -1265,7 +1265,7 @@ class WP_REST_Server {
 			'description'     => get_option( 'blogdescription' ),
 			'url'             => get_option( 'siteurl' ),
 			'home'            => home_url(),
-			'gmt_offset'      => get_option( 'gmt_offset' ),
+			'gmt_offset'      => current_gmt_offset(),
 			'timezone_string' => get_option( 'timezone_string' ),
 			'namespaces'      => array_keys( $this->namespaces ),
 			'authentication'  => array(),

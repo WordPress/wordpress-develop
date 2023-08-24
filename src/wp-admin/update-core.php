@@ -1079,7 +1079,7 @@ if ( 'upgrade-core' === $action ) {
 	$current           = get_site_transient( 'update_core' );
 
 	if ( $current && isset( $current->last_checked ) ) {
-		$last_update_check = $current->last_checked + get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
+		$last_update_check = $current->last_checked + current_gmt_offset() * HOUR_IN_SECONDS;
 	}
 
 	echo '<h2 class="wp-current-version">';
