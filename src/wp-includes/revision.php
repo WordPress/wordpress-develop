@@ -409,7 +409,7 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
 function wp_save_revisioned_meta_fields( $revision_id, $post_id ) {
 
 	// Save revisioned meta fields.
-	foreach ( wp_post_revision_meta_keys() as $meta_key ) {
+	foreach ( wp_post_revision_meta_keys( get_post_type( $post_id ) ) as $meta_key ) {
 		if ( metadata_exists( 'post', $post_id, $meta_key ) ) {
 			_wp_copy_post_meta( $post_id, $revision_id, $meta_key );
 		}
@@ -523,7 +523,7 @@ function wp_restore_post_revision( $revision, $fields = null ) {
 function wp_restore_post_revision_meta( $post_id, $revision_id ) {
 
 	// Restore revisioned meta fields.
-	foreach ( (array) wp_post_revision_meta_keys() as $meta_key ) {
+	foreach ( wp_post_revision_meta_keys( get_post_type( $post_id ) ) as $meta_key ) {
 
 		// Clear any existing meta.
 		delete_post_meta( $post_id, $meta_key );
@@ -557,19 +557,35 @@ function _wp_copy_post_meta( $source_post_id, $target_post_id, $meta_key ) {
  *
  * @since 6.4.0
  *
+ * @param string $post_type The post type being revisioned.
+ *
  * @return array An array of meta keys to be revisioned.
  */
-function wp_post_revision_meta_keys() {
-	global $wp_revisioned_meta_keys;
+function wp_post_revision_meta_keys( $post_type ) {
+	$registered_meta = array_merge(
+		get_registered_meta_keys( 'post' ),
+		get_registered_meta_keys( 'post', $post_type )
+	);
+
+	$wp_revisioned_meta_keys = array();
+
+	foreach ( $registered_meta as $name => $args ) {
+		if ( $args['revisions_enabled'] ) {
+			$wp_revisioned_meta_keys[ $name ] = true;
+		}
+	}
+
+	$wp_revisioned_meta_keys = array_keys( $wp_revisioned_meta_keys );
 
 	/**
 	 * Filter the list of post meta keys to be revisioned.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param array $keys An array of meta fields to be revisioned.
+	 * @param array $keys       An array of meta fields to be revisioned.
+	 * @param string $post_type The post type being revisioned.
 	 */
-	return apply_filters( 'wp_post_revision_meta_keys', $wp_revisioned_meta_keys );
+	return apply_filters( 'wp_post_revision_meta_keys', $wp_revisioned_meta_keys, $post_type );
 }
 
 /**
@@ -582,7 +598,7 @@ function wp_post_revision_meta_keys() {
  * @since 6.4.0
  */
 function wp_check_revisioned_meta_fields_have_changed( $post_has_changed, WP_Post $last_revision, WP_Post $post ) {
-	foreach ( wp_post_revision_meta_keys() as $meta_key ) {
+	foreach ( wp_post_revision_meta_keys( $post->post_type ) as $meta_key ) {
 		if ( get_post_meta( $post->ID, $meta_key ) !== get_post_meta( $last_revision->ID, $meta_key ) ) {
 			$post_has_changed = true;
 			break;
@@ -1097,7 +1113,7 @@ function _wp_preview_meta_filter( $value, $object_id, $meta_key, $single ) {
 	if (
 		empty( $post ) ||
 		$post->ID !== $object_id ||
-		! in_array( $meta_key, wp_post_revision_meta_keys(), true ) ||
+		! in_array( $meta_key, wp_post_revision_meta_keys( $post->post_type ), true ) ||
 		'revision' === $post->post_type
 	) {
 		return $value;

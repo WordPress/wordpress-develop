@@ -1999,12 +1999,14 @@ function wp_autosave_post_revisioned_meta_fields( $new_autosave ) {
 	$posted_data = isset( $_POST['data']['wp_autosave'] ) ? $_POST['data']['wp_autosave'] : $_POST;
 	// phpcs:enable
 
+	$post_type = get_post_type( $new_autosave['post_parent'] );
+
 	/*
 	 * Go thru the revisioned meta keys and save them as part of the autosave, if
 	 * the meta key is part of the posted data, the meta value is not blank and
 	 * the the meta value has changes from the last autosaved value.
 	 */
-	foreach ( wp_post_revision_meta_keys() as $meta_key ) {
+	foreach ( wp_post_revision_meta_keys( $post_type ) as $meta_key ) {
 
 		if (
 		isset( $posted_data[ $meta_key ] ) &&

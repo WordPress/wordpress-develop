@@ -1393,7 +1393,8 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *                                         support for custom fields for registered meta to be accessible via REST.
  *                                         When registering complex meta values this argument may optionally be an
  *                                         array with 'schema' or 'prepare_callback' keys instead of a boolean.
- *     @type bool       $revisions_enabled Whether to enable revisions support for this meta_key.
+ *     @type bool       $revisions_enabled Whether to enable revisions support for this meta_key. Can only be used when the
+ *                                         object type is 'post'.
  * }
  * @param string|array $deprecated Deprecated. Use `$args` instead.
  * @return bool True if the meta key was successfully registered in the global array, false if not.
@@ -1402,14 +1403,9 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  */
 function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	global $wp_meta_keys;
-	global $wp_revisioned_meta_keys;
 
 	if ( ! is_array( $wp_meta_keys ) ) {
 		$wp_meta_keys = array();
-	}
-
-	if ( ! is_array( $wp_revisioned_meta_keys ) ) {
-		$wp_revisioned_meta_keys = array();
 	}
 
 	$defaults = array(
@@ -1465,11 +1461,6 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 
 			return false;
 		}
-	}
-
-	// Store the revisioned meta fields.
-	if ( isset( $args['revisions_enabled'] ) && $args['revisions_enabled'] && ! in_array( $meta_key, $wp_revisioned_meta_keys ) ) {
-		array_push( $wp_revisioned_meta_keys, $meta_key );
 	}
 
 	$object_subtype = ! empty( $args['object_subtype'] ) ? $args['object_subtype'] : '';
