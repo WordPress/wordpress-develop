@@ -236,7 +236,7 @@ class Tests_Post extends WP_UnitTestCase {
 		register_post_status( 'test' );
 
 		$counts = wp_count_posts();
-		$this->assertObjectHasAttribute( 'test', $counts );
+		$this->assertObjectHasProperty( 'test', $counts );
 		$this->assertSame( 0, $counts->test );
 	}
 
