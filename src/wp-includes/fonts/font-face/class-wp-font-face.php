@@ -78,23 +78,6 @@ class WP_Font_Face {
 	 * @since 6.4.0
 	 */
 	public function __construct() {
-		/**
-		 * Filters the font-face property defaults.
-		 *
-		 * @since 6.4.0
-		 *
-		 * @param array $defaults {
-		 *     An array of required font-face properties and defaults.
-		 *
-		 *     @type string $provider     The provider ID. Default 'local'.
-		 *     @type string $font-family  The font-family property. Default empty string.
-		 *     @type string $font-style   The font-style property. Default 'normal'.
-		 *     @type string $font-weight  The font-weight property. Default '400'.
-		 *     @type string $font-display The font-display property. Default 'fallback'.
-		 * }
-		 */
-		$this->font_face_property_defaults = apply_filters( 'wp_font_face_property_defaults', $this->font_face_property_defaults );
-
 		if (
 			function_exists( 'is_admin' ) && ! is_admin()
 			&&
