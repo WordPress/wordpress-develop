@@ -365,6 +365,157 @@ function get_options( $options ) {
 }
 
 /**
+ * Sets the autoload value for an option in the database.
+ *
+ * Autoloading too many options can lead to performance problems, especially if the options are not frequently used.
+ * This function allows modifying the autoload value for an option without changing the actual option value. This is
+ * for example recommended for plugin activation and deactivation hooks, to ensure any options exclusively used by the
+ * plugin which are generally autoloaded can be set to not autoload when the plugin is inactive.
+ *
+ * Alternatively, {@see wp_set_options_autoload()} can be used to set the autoload value for multiple options at once.
+ *
+ * @since 6.4.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string      $option   Name of the option. Expected to not be SQL-escaped.
+ * @param string|bool $autoload Autoload value to control whether to load the option when WordPress starts up.
+ *                              Accepts 'yes'|true to enable or 'no'|false to disable.
+ * @return bool True if the autoload value was modified, false otherwise.
+ */
+function wp_set_option_autoload( $option, $autoload ) {
+	global $wpdb;
+
+	$autoload = ( 'no' === $autoload || false === $autoload ) ? 'no' : 'yes';
+
+	/*
+	 * Determine the current autoload value for the option.
+	 * If the value is empty, it means the option does not exist in the database.
+	 * If the old and new value are the same, no need to update.
+	 */
+	$old_autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $option ) );
+	if ( ! $old_autoload || $old_autoload === $autoload ) {
+		return false;
+	}
+
+	// Update the autoload value.
+	$result = $wpdb->update(
+		$wpdb->options,
+		array( 'autoload' => $autoload ),
+		array( 'option_name' => $option )
+	);
+	if ( ! $result ) {
+		return false;
+	}
+
+	// Update caches as necessary based on the autoload change.
+	$alloptions = wp_load_alloptions( true );
+	if ( 'no' === $autoload ) {
+		// If set in alloptions, remove and migrate to individual cache.
+		if ( isset( $alloptions[ $option ] ) ) {
+			wp_cache_set( $option, $alloptions[ $option ], 'options' );
+			unset( $alloptions[ $option ] );
+			wp_cache_set( 'alloptions', $alloptions, 'options' );
+		}
+	} else {
+		// If set in cache, migrate to alloptions and delete individual cache.
+		$value = wp_cache_get( $option, 'options' );
+		if ( false !== $value ) {
+			$alloptions[ $option ] = $value;
+			wp_cache_delete( $option, 'options' );
+			wp_cache_set( 'alloptions', $alloptions, 'options' );
+		}
+	}
+
+	return true;
+}
+
+/**
+ * Sets the autoload value for multiple options in the database.
+ *
+ * Autoloading too many options can lead to performance problems, especially if the options are not frequently used.
+ * This function allows modifying the autoload value for multiple options without changing the actual option value.
+ * This is for example recommended for plugin activation and deactivation hooks, to ensure any options exclusively used
+ * by the plugin which are generally autoloaded can be set to not autoload when the plugin is inactive.
+ *
+ * @since 6.4.0
+ * @see wp_set_option_autoload()
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param array       $options  List of option names. Expected to not be SQL-escaped.
+ * @param string|bool $autoload Autoload value to control whether to load the options when WordPress starts up.
+ *                              Accepts 'yes'|true to enable or 'no'|false to disable.
+ * @return array Associative array of all provided $options as keys and boolean values for whether their autoload value
+ *               was updated.
+ */
+function wp_set_options_autoload( $options, $autoload ) {
+	global $wpdb;
+
+	$autoload = ( 'no' === $autoload || false === $autoload ) ? 'no' : 'yes';
+
+	$results = array();
+	foreach ( $options as $option ) {
+		$results[ $option ] = false;
+	}
+
+	/*
+	 * Determine the relevant options that do not already use the given autoload value.
+	 * If no options are returned, no need to update.
+	 */
+	$placeholders      = trim( str_repeat( '%s,', count( $options ) ), ',' );
+	$options_to_update = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE autoload != %s AND option_name IN ($placeholders)" , $autoload, ...$options ) );
+	if ( ! $options_to_update ) {
+		return $results;
+	}
+
+	// Run query to update autoload value for all the options where it is needed.
+	$placeholders = trim( str_repeat( '%s,', count( $options_to_update ) ), ',' );
+	$success = $wpdb->query( $wpdb->prepare( "UPDATE $wpdb->options SET autoload = %s WHERE option_name IN ($placeholders)", $autoload, ...$options_to_update ) );
+	if ( ! $success ) {
+		return $results;
+	}
+
+	// Assume that on success all options were updated, which should be the case given only new values are sent.
+	foreach ( $options_to_update as $option ) {
+		$results[ $option ] = true;
+	}
+
+	// Update caches as necessary based on the autoload change.
+	$alloptions = wp_load_alloptions( true );
+	$update     = false;
+	if ( 'no' === $autoload ) {
+		$cache_values = array();
+		foreach ( $options_to_update as $option ) {
+			// If set in alloptions, remove and migrate to individual cache.
+			if ( isset( $alloptions[ $option ] ) ) {
+				$cache_values[ $option ] = $alloptions[ $option ];
+				unset( $alloptions[ $option ] );
+				$update = true;
+			}
+		}
+		wp_cache_set_multiple( $cache_values, 'options' );
+	} else {
+		$cache_values = wp_cache_get_multiple( $options_to_update, 'options' );
+		foreach ( $options_to_update as $option ) {
+			// If set in cache, migrate to alloptions and delete individual cache.
+			if ( isset( $cache_values[ $option ] ) && false !== $cache_values[ $option ] ) {
+				$alloptions[ $option ] = $cache_values[ $option ];
+				$update                = true;
+			} else {
+				unset( $cache_values[ $option ] );
+			}
+		}
+		wp_cache_delete_multiple( array_keys( $cache_values ), 'options' );
+	}
+	if ( $update ) {
+		wp_cache_set( 'alloptions', $alloptions, 'options' );
+	}
+
+	return $results;
+}
+
+/**
  * Protects WordPress special option from being modified.
  *
  * Will die if $option is in protected list. Protected options are 'alloptions'
