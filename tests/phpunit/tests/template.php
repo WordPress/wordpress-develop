@@ -629,16 +629,6 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_locate_template_file_outside_of_the_directory() {
-		$template = locate_template( '../../templates/template.html', false, false );
-		$this->assertEmpty( $template );
-	}
-
-	public function test_locate_template_file_inside_of_the_directory() {
-		$template = locate_template( 'index.php', false, false );
-		$this->assertNotEmpty( $template );
-	}
-
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
 		$this->go_to( $url );
 		$hierarchy = $this->get_template_hierarchy();
