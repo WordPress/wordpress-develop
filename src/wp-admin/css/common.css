@@ -639,15 +639,7 @@ code {
 	background: #f6f7f7;
 	cursor: pointer;
 
-	display: inline-block;
-	line-height: 2.15384615;
-	min-height: 30px;
-	padding: 0 10px;
-	-webkit-appearance: none;
-	border-radius: 3px;
-	white-space: nowrap;
-	box-sizing: border-box;
-	font-weight: 400;
+
 	
 }
 
