@@ -2589,3 +2589,39 @@ function filter_default_option( $default_value, $option, $passed_default ) {
 
 	return $registered[ $option ]['default'];
 }
+
+/**
+ * Sets an option autoload value
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string      $option   Name of the option to update the autoload value. Expected to not be SQL-escaped.
+ * @param string|bool $autoload Value to set the autoload to.
+ *                              Accepts 'yes'|true to enable or 'no'|false to disable.
+ * @return bool True if the autoload value was updated, false otherwise.
+ */
+function wp_set_option_autoload( $option, $autoload ) {
+	global $wpdb;
+
+	if ( is_scalar( $option ) ) {
+		$option = trim( $option );
+	}
+
+	if ( empty( $option ) ) {
+		return false;
+	}
+
+	wp_protect_special_option( $option );
+
+	$update_args = array(
+		'autoload' => ( 'no' === $autoload || false === $autoload ) ? 'no' : 'yes',
+	);
+
+	$result = $wpdb->update( $wpdb->options, $update_args, array( 'option_name' => $option ) );
+
+	if ( ! $result ) {
+		return false;
+	}
+
+	return true;
+}
