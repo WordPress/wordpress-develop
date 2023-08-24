@@ -1261,7 +1261,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$result = json_decode( rest_get_server()->sent_body );
 
-		$this->assertObjectNotHasAttribute( 'code', $result );
+		$this->assertObjectNotHasProperty( 'code', $result );
 	}
 
 	public function test_link_header_on_requests() {
@@ -2198,6 +2198,36 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 		rest_get_server()->serve_request( '/test-ns/v1/test' );
 		$this->assertSame( 500, rest_get_server()->status );
+	}
+
+	/**
+	 * @ticket 57752
+	 */
+	public function test_rest_exposed_cors_headers_filter_receives_request_object() {
+		$mock_hook = new MockAction();
+		add_filter( 'rest_exposed_cors_headers', array( $mock_hook, 'filter' ), 10, 2 );
+
+		rest_get_server()->serve_request( '/test-exposed-cors-headers' );
+
+		$this->assertCount( 1, $mock_hook->get_events() );
+		$this->assertCount( 2, $mock_hook->get_events()[0]['args'] );
+		$this->assertInstanceOf( 'WP_REST_Request', $mock_hook->get_events()[0]['args'][1] );
+		$this->assertSame( '/test-exposed-cors-headers', $mock_hook->get_events()[0]['args'][1]->get_route() );
+	}
+
+	/**
+	 * @ticket 57752
+	 */
+	public function test_rest_allowed_cors_headers_filter_receives_request_object() {
+		$mock_hook = new MockAction();
+		add_filter( 'rest_allowed_cors_headers', array( $mock_hook, 'filter' ), 10, 2 );
+
+		rest_get_server()->serve_request( '/test-allowed-cors-headers' );
+
+		$this->assertCount( 1, $mock_hook->get_events() );
+		$this->assertCount( 2, $mock_hook->get_events()[0]['args'] );
+		$this->assertInstanceOf( 'WP_REST_Request', $mock_hook->get_events()[0]['args'][1] );
+		$this->assertSame( '/test-allowed-cors-headers', $mock_hook->get_events()[0]['args'][1]->get_route() );
 	}
 
 	public function _validate_as_integer_123( $value, $request, $key ) {

@@ -683,6 +683,81 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58532
+	 *
+	 * @dataProvider data_block_has_support_string
+	 *
+	 * @param array  $block_data Block data.
+	 * @param string $support    Support string to check.
+	 * @param bool   $expected   Expected result.
+	 */
+	public function test_block_has_support_string( $block_data, $support, $expected, $message ) {
+		$this->registry->register( 'core/example', $block_data );
+		$block_type  = $this->registry->get_registered( 'core/example' );
+		$has_support = block_has_support( $block_type, $support );
+		$this->assertEquals( $expected, $has_support, $message );
+	}
+
+	/**
+	 * Data provider for test_block_has_support_string
+	 */
+	public function data_block_has_support_string() {
+		return array(
+			array(
+				array(),
+				'color',
+				false,
+				'Block with empty support array.',
+			),
+			array(
+				array(
+					'supports' => array(
+						'align'    => array( 'wide', 'full' ),
+						'fontSize' => true,
+						'color'    => array(
+							'link'     => true,
+							'gradient' => false,
+						),
+					),
+				),
+				'align',
+				true,
+				'Feature present in support array.',
+			),
+			array(
+				array(
+					'supports' => array(
+						'align'    => array( 'wide', 'full' ),
+						'fontSize' => true,
+						'color'    => array(
+							'link'     => true,
+							'gradient' => false,
+						),
+					),
+				),
+				'anchor',
+				false,
+				'Feature not present in support array.',
+			),
+			array(
+				array(
+					'supports' => array(
+						'align'    => array( 'wide', 'full' ),
+						'fontSize' => true,
+						'color'    => array(
+							'link'     => true,
+							'gradient' => false,
+						),
+					),
+				),
+				array( 'align' ),
+				true,
+				'Feature present in support array, single element array.',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 51612
 	 */
 	public function test_block_filters_for_inner_blocks() {
