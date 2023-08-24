@@ -55,10 +55,6 @@ services:
     # Copy or delete the Memcached dropin plugin file as appropriate.
     command: /bin/sh -c "if [ $LOCAL_PHP_MEMCACHED = true ]; then cp -n /var/www/tests/phpunit/includes/object-cache.php /var/www/src/wp-content/object-cache.php; else rm -f /var/www/src/wp-content/object-cache.php; fi && exec php-fpm"
 
-    depends_on:
-      mysql:
-        condition: service_healthy
-
     # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
     init: true
 
