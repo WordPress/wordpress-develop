@@ -3992,11 +3992,11 @@ class wpdb {
 	}
 
 	/**
-	 * Retrieves full database server information.
+	 * Returns the version of the MySQL server.
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return string|false Server info on success, false on failure.
+	 * @return string Server version as a string.
 	 */
 	public function db_server_info() {
 			$server_info = mysqli_get_server_info( $this->dbh );
