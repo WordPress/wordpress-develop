@@ -7866,8 +7866,21 @@ function wp_cache_set_posts_last_changed() {
 function get_available_post_mime_types( $type = 'attachment' ) {
 	global $wpdb;
 
-	$types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );
-	return $types;
+	/**
+	 * Filters the list of available post MIME types.
+	 * 
+	 * @since 6.4.0
+	 * 
+	 * @param string[]|null $mime_types An array of MIME types. Default null.
+	 * @param string        $type       The post type. Default 'attachment'.
+	 */
+	$mime_types = apply_filters( 'get_available_post_mime_types', null, $type );
+
+	if ( ! is_array( $mime_types ) ) {
+		$mime_types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );
+	}
+
+	return $mime_types;
 }
 
 /**
