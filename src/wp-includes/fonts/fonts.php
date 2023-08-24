@@ -25,7 +25,6 @@
  *             @type string          $font_style              Optional. The font-style property. Default 'normal'.
  *             @type string          $font-weight             Optional. The font-weight property. Default '400'.
  *             @type string          $font-display            Optional. The font-display property. Default 'fallback'.
- *             The following font-face properties are optional and will not be generated if not provided.
  *             @type string          $ascent-override         Optional. The ascent-override property.
  *             @type string          $descent-override        Optional. The descent-override property.
  *             @type string          $font-stretch            Optional. The font-stretch property.
