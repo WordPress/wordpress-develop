@@ -237,8 +237,3 @@ media.query = function( props ) {
 		props: _.extend( _.defaults( props || {}, { orderby: 'date' } ), { query: true } )
 	});
 };
-
-// Clean up. Prevents mobile browsers caching.
-$(window).on('pagehide', function(){
-	window.wp = null;
-});
