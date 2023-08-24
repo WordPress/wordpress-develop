@@ -1186,8 +1186,7 @@ function upgrade_160() {
 	$old_user_fields = array( 'user_firstname', 'user_lastname', 'user_icq', 'user_aim', 'user_msn', 'user_yim', 'user_idmode', 'user_ip', 'user_domain', 'user_browser', 'user_description', 'user_nickname', 'user_level' );
 	$wpdb->hide_errors();
 	foreach ( $old_user_fields as $old ) {
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$wpdb->query( "ALTER TABLE $wpdb->users DROP $old" );
+		$wpdb->query( $wpdb->prepare( "ALTER TABLE $wpdb->users DROP %1s", $old ) );
 	}
 	$wpdb->show_errors();
 
