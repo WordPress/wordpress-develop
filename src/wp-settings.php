@@ -306,7 +306,6 @@ require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-comment-meta-fields.ph
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-post-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-term-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-user-meta-fields.php';
-require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-revision-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/search/class-wp-rest-search-handler.php';
 require ABSPATH . WPINC . '/rest-api/search/class-wp-rest-post-search-handler.php';
 require ABSPATH . WPINC . '/rest-api/search/class-wp-rest-term-search-handler.php';
