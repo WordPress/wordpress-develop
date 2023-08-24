@@ -3115,11 +3115,11 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 
 	/**
-	 * Test that post meta is revisioned when saving to the posts REST API endpoint.
+	 * Test that single post meta is revisioned when saving to the posts REST API endpoint.
 	 *
 	 * @ticket 20564
 	 */
-	public function test_revisioned_post_meta_with_posts_endpoint() {
+	public function test_revisioned_single_post_meta_with_posts_endpoint() {
 		$this->grant_write_permission();
 
 		register_post_meta(
@@ -3157,7 +3157,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertSame( array( 'bar' ), $response->get_data()['meta']['foo'] );
+		$this->assertSame( 'bar', $response->get_data()['meta']['foo'] );
 
 		// Check that the post meta is set correctly.
 		$this->assertSame( 'bar', get_post_meta( $revision_id, 'foo', true ) );
@@ -3183,7 +3183,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id_2 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( array( 'baz' ), $response->get_data()['meta']['foo'] );
+		$this->assertSame( 'baz', $response->get_data()['meta']['foo'] );
 
 		// Check that the post meta is set correctly.
 		$this->assertSame( 'baz', get_post_meta( $revision_id_2, 'foo', true ) );
@@ -3209,7 +3209,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id_3 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( array( 'qux' ), $response->get_data()['meta']['foo'] );
+		$this->assertSame( 'qux', $response->get_data()['meta']['foo'] );
 
 		// Check that the post meta is set correctly.
 		$this->assertSame( 'qux', get_post_meta( $revision_id_3, 'foo', true ) );
@@ -3221,23 +3221,43 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		// Restore Revision 2 and verify the post gets the correct meta value.
 		wp_restore_post_revision( $revision_id_2 );
 		$this->assertSame( 'baz', get_post_meta( $post_id, 'foo', true ) );
+	}
 
-		// Test with multiple meta values. Note that the posts endpoint doesn't accept multiple meta values, so we'll add those manually.
+	/**
+	 * Test that multi-post meta is revisioned when saving to the posts REST API endpoint.
+	 *
+	 * @ticket 20564
+	 */
+	public function test_revisioned_multiple_post_meta_with_posts_endpoint() {
+		$this->grant_write_permission();
+
+		register_post_meta(
+			'post',
+			'foo',
+			array(
+				'single'            => false,
+				'show_in_rest'      => true,
+				'revisions_enabled' => true,
+			)
+		);
+
+		$post_id = self::$post_id;
+
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
 		$request->set_body_params(
 			array(
-				'title' => 'Revision 4',
+				'title' => 'Revision 1',
 				'meta'  => array(
-					'foo' => 'bar',
+					'foo' => array(
+						'bar',
+						'bat',
+						'baz',
+					),
 				),
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
-
-		// Add additional meta values.
-		add_post_meta( $post_id, 'foo', 'bat' );
-		add_post_meta( $post_id, 'foo', 'baz' );
 
 		// Log the current post meta.
 		$meta = get_post_meta( $post_id );
@@ -3246,7 +3266,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
 		$request->set_body_params(
 			array(
-				'title' => 'Revision 4 update',
+				'title' => 'Revision 1 update',
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
@@ -3254,10 +3274,10 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 		// Get the last revision.
 		$revisions     = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
-		$revision_id_4 = array_shift( $revisions )->ID;
+		$revision_id_1 = array_shift( $revisions )->ID;
 
 		// Check that the revision has the correct meta value.
-		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id_4 ) );
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id_1 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 
@@ -3265,6 +3285,74 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			array( 'bar', 'bat', 'baz' ),
 			$response->get_data()['meta']['foo']
 		);
+		$this->assertSame(
+			array( 'bar', 'bat', 'baz' ),
+			get_post_meta( $revision_id_1, 'foo' )
+		);
 
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 2',
+				'meta'  => array(
+					'foo' => array(
+						'car',
+						'cat',
+					),
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// Get the last revision.
+		$revisions     = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
+		$revision_id_2 = array_shift( $revisions )->ID;
+
+		// Check that the revision has the correct meta value.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id_2 ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertSame(
+			array( 'car', 'cat' ),
+			$response->get_data()['meta']['foo']
+		);
+		$this->assertSame( array( 'car', 'cat' ), get_post_meta( $revision_id_2, 'foo' ) );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 3',
+				'meta'  => array(
+					'foo' => null,
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// Get the last revision.
+		$revisions     = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
+		$revision_id_3 = array_shift( $revisions )->ID;
+
+		// Check that the revision has the correct meta value.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id_3 ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertSame(
+			array(),
+			$response->get_data()['meta']['foo']
+		);
+		$this->assertSame( array(), get_post_meta( $revision_id_3, 'foo' ) );
+
+		// Restore Revision 3 and verify the post gets the correct meta value.
+		wp_restore_post_revision( $revision_id_3 );
+		$this->assertSame( array(), get_post_meta( $post_id, 'foo' ) );
+
+		// Restore Revision 2 and verify the post gets the correct meta value.
+		wp_restore_post_revision( $revision_id_2 );
+		$this->assertSame( array( 'car', 'cat' ), get_post_meta( $post_id, 'foo' ) );
 	}
 }

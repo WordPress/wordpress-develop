@@ -68,7 +68,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		$this->rest_base         = 'revisions';
 		$this->parent_base       = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
 		$this->namespace         = ! empty( $post_type_object->rest_namespace ) ? $post_type_object->rest_namespace : 'wp/v2';
-		$this->meta              = new WP_REST_Revision_Meta_Fields( 'revision' );
+		$this->meta              = new WP_REST_Revision_Meta_Fields( $parent_post_type );
 	}
 
 	/**
