@@ -638,6 +638,20 @@ code {
 	color: #2271b1; /* use the standard color used for buttons */
 	background: #f6f7f7;
 	cursor: pointer;
+
+	display: inline-block;
+	line-height: 2.15384615;
+	min-height: 30px;
+	padding: 0 10px;
+	cursor: pointer;
+	border-width: 1px;
+	border-style: solid;
+	-webkit-appearance: none;
+	border-radius: 3px;
+	white-space: nowrap;
+	box-sizing: border-box;
+	font-weight: 400;
+	
 }
 
 .wrap .wp-heading-inline + .page-title-action {
