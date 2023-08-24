@@ -556,7 +556,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 	 * @param string $meta_key The meta key to check for.
 	 */
 	protected function assertPostHasMetaKey( $post_id, $meta_key ) {
-		$this->assertEquals( $expect, $stored_array );
+		$this->assertArrayHasKey( $meta_key, get_metadata( 'post', $post_id ) );
 	}
 
 	/**
