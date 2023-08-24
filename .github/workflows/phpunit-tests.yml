@@ -39,6 +39,7 @@ jobs:
     uses: WordPress/wordpress-develop/.github/workflows/phpunit-tests-run.yml@trunk
     permissions:
       contents: read
+    secrets: inherit
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
@@ -90,6 +91,7 @@ jobs:
     uses: WordPress/wordpress-develop/.github/workflows/phpunit-tests-run.yml@trunk
     permissions:
       contents: read
+    secrets: inherit
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
