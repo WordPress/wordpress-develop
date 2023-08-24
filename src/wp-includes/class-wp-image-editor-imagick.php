@@ -312,7 +312,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	/**
 	 * Sets or updates current image size.
 	 *
-	 * @since 5.1.0
+	 * @since 6.4.0
 	 *
 	 * @param bool|array $crop
 	 * @param int $dst_w

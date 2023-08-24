@@ -237,7 +237,7 @@ abstract class WP_Image_Editor {
 	/**
 	 * Sets current image hash (when crop position has been set).
 	 *
-	 * @since 5.1.0
+	 * @since 6.4.0
 	 *
 	 * @param string $hash
 	 * @return true
