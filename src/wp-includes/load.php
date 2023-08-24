@@ -14,9 +14,11 @@
  */
 function wp_get_server_protocol() {
 	$protocol = isset( $_SERVER['SERVER_PROTOCOL'] ) ? $_SERVER['SERVER_PROTOCOL'] : '';
+
 	if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0', 'HTTP/3' ), true ) ) {
 		$protocol = 'HTTP/1.0';
 	}
+
 	return $protocol;
 }
 
@@ -58,7 +60,7 @@ function wp_fix_server_vars() {
 
 			// Some IIS + PHP configurations put the script-name in the path-info (no need to append it twice).
 			if ( isset( $_SERVER['PATH_INFO'] ) ) {
-				if ( $_SERVER['PATH_INFO'] == $_SERVER['SCRIPT_NAME'] ) {
+				if ( $_SERVER['PATH_INFO'] === $_SERVER['SCRIPT_NAME'] ) {
 					$_SERVER['REQUEST_URI'] = $_SERVER['PATH_INFO'];
 				} else {
 					$_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'] . $_SERVER['PATH_INFO'];
@@ -73,14 +75,12 @@ function wp_fix_server_vars() {
 	}
 
 	// Fix for PHP as CGI hosts that set SCRIPT_FILENAME to something ending in php.cgi for all requests.
-	if ( isset( $_SERVER['SCRIPT_FILENAME'] )
-		&& ( strpos( $_SERVER['SCRIPT_FILENAME'], 'php.cgi' ) === strlen( $_SERVER['SCRIPT_FILENAME'] ) - 7 )
-	) {
+	if ( isset( $_SERVER['SCRIPT_FILENAME'] ) && str_ends_with( $_SERVER['SCRIPT_FILENAME'], 'php.cgi' ) ) {
 		$_SERVER['SCRIPT_FILENAME'] = $_SERVER['PATH_TRANSLATED'];
 	}
 
 	// Fix for Dreamhost and other PHP as CGI hosts.
-	if ( isset( $_SERVER['SCRIPT_NAME'] ) && ( strpos( $_SERVER['SCRIPT_NAME'], 'php.cgi' ) !== false ) ) {
+	if ( isset( $_SERVER['SCRIPT_NAME'] ) && str_contains( $_SERVER['SCRIPT_NAME'], 'php.cgi' ) ) {
 		unset( $_SERVER['PATH_INFO'] );
 	}
 
@@ -147,6 +147,7 @@ function wp_populate_basic_auth_from_authorization_header() {
  */
 function wp_check_php_mysql_versions() {
 	global $required_php_version, $wp_version;
+
 	$php_version = PHP_VERSION;
 
 	if ( version_compare( $required_php_version, $php_version, '>' ) ) {
@@ -165,8 +166,7 @@ function wp_check_php_mysql_versions() {
 	// This runs before default constants are defined, so we can't assume WP_CONTENT_DIR is set yet.
 	$wp_content_dir = defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
 
-	if ( ! function_exists( 'mysqli_connect' )
-		&& ! function_exists( 'mysql_connect' )
+	if ( ! function_exists( 'mysqli_connect' ) && ! function_exists( 'mysql_connect' )
 		&& ! file_exists( $wp_content_dir . '/db.php' )
 	) {
 		require_once ABSPATH . WPINC . '/functions.php';
@@ -268,13 +268,19 @@ function wp_get_environment_type() {
 /**
  * Retrieves the current development mode.
  *
- * The development mode affects how certain parts of the WordPress application behave, which is relevant when
- * developing for WordPress.
+ * The development mode affects how certain parts of the WordPress application behave,
+ * which is relevant when developing for WordPress.
  *
- * Valid developer modes are 'core', 'plugin', 'theme', or an empty string to disable developer mode.
+ * Development mode can be set via the `WP_DEVELOPMENT_MODE` constant in `wp-config.php`.
+ * Possible values are 'core', 'plugin', 'theme', 'all', or an empty string to disable
+ * development mode. 'all' is a special value to signify that all three development modes
+ * ('core', 'plugin', and 'theme') are enabled.
  *
- * Developer mode is considered separately from `WP_DEBUG` and {@see wp_get_environment_type()}. It does not affect
- * debugging output, but rather functional nuances in WordPress.
+ * Development mode is considered separately from `WP_DEBUG` and wp_get_environment_type().
+ * It does not affect debugging output, but rather functional nuances in WordPress.
+ *
+ * This function retrieves the currently set development mode value. To check whether
+ * a specific development mode is enabled, use wp_is_development_mode().
  *
  * @since 6.3.0
  *
@@ -289,7 +295,7 @@ function wp_get_development_mode() {
 
 	$development_mode = WP_DEVELOPMENT_MODE;
 
-	// Exclusively for core tests, rely on a global `$_wp_tests_development_mode`.
+	// Exclusively for core tests, rely on the `$_wp_tests_development_mode` global.
 	if ( defined( 'WP_RUN_CORE_TESTS' ) && isset( $GLOBALS['_wp_tests_development_mode'] ) ) {
 		$development_mode = $GLOBALS['_wp_tests_development_mode'];
 	}
@@ -298,8 +304,10 @@ function wp_get_development_mode() {
 		'core',
 		'plugin',
 		'theme',
+		'all',
 		'',
 	);
+
 	if ( ! in_array( $development_mode, $valid_modes, true ) ) {
 		$development_mode = '';
 	}
@@ -307,6 +315,29 @@ function wp_get_development_mode() {
 	$current_mode = $development_mode;
 
 	return $current_mode;
+}
+
+/**
+ * Checks whether the site is in the given development mode.
+ *
+ * @since 6.3.0
+ *
+ * @param string $mode Development mode to check for. Either 'core', 'plugin', 'theme', or 'all'.
+ * @return bool True if the given mode is covered by the current development mode, false otherwise.
+ */
+function wp_is_development_mode( $mode ) {
+	$current_mode = wp_get_development_mode();
+	if ( empty( $current_mode ) ) {
+		return false;
+	}
+
+	// Return true if the current mode encompasses all modes.
+	if ( 'all' === $current_mode ) {
+		return true;
+	}
+
+	// Return true if the current mode is the given mode.
+	return $mode === $current_mode;
 }
 
 /**
@@ -378,6 +409,7 @@ function wp_is_maintenance_mode() {
 	}
 
 	require ABSPATH . '.maintenance';
+
 	// If the $upgrading timestamp is older than 10 minutes, consider maintenance over.
 	if ( ( time() - $upgrading ) >= 10 * MINUTE_IN_SECONDS ) {
 		return false;
@@ -429,7 +461,9 @@ function timer_float() {
  */
 function timer_start() {
 	global $timestart;
+
 	$timestart = microtime( true );
+
 	return true;
 }
 
@@ -450,12 +484,20 @@ function timer_start() {
  */
 function timer_stop( $display = 0, $precision = 3 ) {
 	global $timestart, $timeend;
+
 	$timeend   = microtime( true );
 	$timetotal = $timeend - $timestart;
-	$r         = ( function_exists( 'number_format_i18n' ) ) ? number_format_i18n( $timetotal, $precision ) : number_format( $timetotal, $precision );
+
+	if ( function_exists( 'number_format_i18n' ) ) {
+		$r = number_format_i18n( $timetotal, $precision );
+	} else {
+		$r = number_format( $timetotal, $precision );
+	}
+
 	if ( $display ) {
 		echo $r;
 	}
+
 	return $r;
 }
 
@@ -551,10 +593,10 @@ function wp_debug_mode() {
 		error_reporting( E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_ERROR | E_WARNING | E_PARSE | E_USER_ERROR | E_USER_WARNING | E_RECOVERABLE_ERROR );
 	}
 
-	if (
-		defined( 'XMLRPC_REQUEST' ) || defined( 'REST_REQUEST' ) || defined( 'MS_FILES_REQUEST' ) ||
-		( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) ||
-		wp_doing_ajax() || wp_is_json_request() ) {
+	if ( defined( 'XMLRPC_REQUEST' ) || defined( 'REST_REQUEST' ) || defined( 'MS_FILES_REQUEST' )
+		|| ( defined( 'WP_INSTALLING' ) && WP_INSTALLING )
+		|| wp_doing_ajax() || wp_is_json_request()
+	) {
 		ini_set( 'display_errors', 0 );
 	}
 }
@@ -574,7 +616,9 @@ function wp_debug_mode() {
  */
 function wp_set_lang_dir() {
 	if ( ! defined( 'WP_LANG_DIR' ) ) {
-		if ( file_exists( WP_CONTENT_DIR . '/languages' ) && @is_dir( WP_CONTENT_DIR . '/languages' ) || ! @is_dir( ABSPATH . WPINC . '/languages' ) ) {
+		if ( file_exists( WP_CONTENT_DIR . '/languages' ) && @is_dir( WP_CONTENT_DIR . '/languages' )
+			|| ! @is_dir( ABSPATH . WPINC . '/languages' )
+		) {
 			/**
 			 * Server path of the language directory.
 			 *
@@ -583,6 +627,7 @@ function wp_set_lang_dir() {
 			 * @since 2.1.0
 			 */
 			define( 'WP_LANG_DIR', WP_CONTENT_DIR . '/languages' );
+
 			if ( ! defined( 'LANGDIR' ) ) {
 				// Old static relative path maintained for limited backward compatibility - won't work in some cases.
 				define( 'LANGDIR', 'wp-content/languages' );
@@ -596,6 +641,7 @@ function wp_set_lang_dir() {
 			 * @since 2.1.0
 			 */
 			define( 'WP_LANG_DIR', ABSPATH . WPINC . '/languages' );
+
 			if ( ! defined( 'LANGDIR' ) ) {
 				// Old relative path maintained for backward compatibility.
 				define( 'LANGDIR', WPINC . '/languages' );
@@ -646,6 +692,7 @@ function require_wp_db() {
  */
 function wp_set_wpdb_vars() {
 	global $wpdb, $table_prefix;
+
 	if ( ! empty( $wpdb->error ) ) {
 		dead_db();
 	}
@@ -716,10 +763,13 @@ function wp_set_wpdb_vars() {
  */
 function wp_using_ext_object_cache( $using = null ) {
 	global $_wp_using_ext_object_cache;
+
 	$current_using = $_wp_using_ext_object_cache;
+
 	if ( null !== $using ) {
 		$_wp_using_ext_object_cache = $using;
 	}
+
 	return $current_using;
 }
 
@@ -763,6 +813,7 @@ function wp_start_object_cache() {
 			 */
 			if ( file_exists( WP_CONTENT_DIR . '/object-cache.php' ) ) {
 				require_once WP_CONTENT_DIR . '/object-cache.php';
+
 				if ( function_exists( 'wp_cache_init' ) ) {
 					wp_using_ext_object_cache( true );
 				}
@@ -873,19 +924,24 @@ function wp_not_installed() {
  */
 function wp_get_mu_plugins() {
 	$mu_plugins = array();
+
 	if ( ! is_dir( WPMU_PLUGIN_DIR ) ) {
 		return $mu_plugins;
 	}
+
 	$dh = opendir( WPMU_PLUGIN_DIR );
 	if ( ! $dh ) {
 		return $mu_plugins;
 	}
+
 	while ( ( $plugin = readdir( $dh ) ) !== false ) {
-		if ( '.php' === substr( $plugin, -4 ) ) {
+		if ( str_ends_with( $plugin, '.php' ) ) {
 			$mu_plugins[] = WPMU_PLUGIN_DIR . '/' . $plugin;
 		}
 	}
+
 	closedir( $dh );
+
 	sort( $mu_plugins );
 
 	return $mu_plugins;
@@ -923,11 +979,11 @@ function wp_get_active_and_valid_plugins() {
 
 	foreach ( $active_plugins as $plugin ) {
 		if ( ! validate_file( $plugin )                     // $plugin must validate as file.
-			&& '.php' === substr( $plugin, -4 )             // $plugin must end with '.php'.
+			&& str_ends_with( $plugin, '.php' )             // $plugin must end with '.php'.
 			&& file_exists( WP_PLUGIN_DIR . '/' . $plugin ) // $plugin must exist.
 			// Not already included as a network plugin.
 			&& ( ! $network_plugins || ! in_array( WP_PLUGIN_DIR . '/' . $plugin, $network_plugins, true ) )
-			) {
+		) {
 			$plugins[] = WP_PLUGIN_DIR . '/' . $plugin;
 		}
 	}
@@ -1356,6 +1412,7 @@ function is_multisite() {
  */
 function get_current_blog_id() {
 	global $blog_id;
+
 	return absint( $blog_id );
 }
 
@@ -1398,11 +1455,12 @@ function get_current_network_id() {
  */
 function wp_load_translations_early() {
 	global $wp_textdomain_registry, $wp_locale;
-
 	static $loaded = false;
+
 	if ( $loaded ) {
 		return;
 	}
+
 	$loaded = true;
 
 	if ( function_exists( 'did_action' ) && did_action( 'init' ) ) {
@@ -1471,9 +1529,11 @@ function wp_load_translations_early() {
 			foreach ( $locations as $location ) {
 				if ( file_exists( $location . '/' . $locale . '.mo' ) ) {
 					load_textdomain( 'default', $location . '/' . $locale . '.mo', $locale );
+
 					if ( defined( 'WP_SETUP_CONFIG' ) && file_exists( $location . '/admin-' . $locale . '.mo' ) ) {
 						load_textdomain( 'default', $location . '/admin-' . $locale . '.mo', $locale );
 					}
+
 					break 2;
 				}
 			}
@@ -1508,6 +1568,7 @@ function wp_installing( $is_installing = null ) {
 	if ( ! is_null( $is_installing ) ) {
 		$old_installing = $installing;
 		$installing     = $is_installing;
+
 		return (bool) $old_installing;
 	}
 
@@ -1528,12 +1589,13 @@ function is_ssl() {
 			return true;
 		}
 
-		if ( '1' == $_SERVER['HTTPS'] ) {
+		if ( '1' === (string) $_SERVER['HTTPS'] ) {
 			return true;
 		}
-	} elseif ( isset( $_SERVER['SERVER_PORT'] ) && ( '443' == $_SERVER['SERVER_PORT'] ) ) {
+	} elseif ( isset( $_SERVER['SERVER_PORT'] ) && ( '443' === (string) $_SERVER['SERVER_PORT'] ) ) {
 		return true;
 	}
+
 	return false;
 }
 
@@ -1553,11 +1615,11 @@ function wp_convert_hr_to_bytes( $value ) {
 	$value = strtolower( trim( $value ) );
 	$bytes = (int) $value;
 
-	if ( false !== strpos( $value, 'g' ) ) {
+	if ( str_contains( $value, 'g' ) ) {
 		$bytes *= GB_IN_BYTES;
-	} elseif ( false !== strpos( $value, 'm' ) ) {
+	} elseif ( str_contains( $value, 'm' ) ) {
 		$bytes *= MB_IN_BYTES;
-	} elseif ( false !== strpos( $value, 'k' ) ) {
+	} elseif ( str_contains( $value, 'k' ) ) {
 		$bytes *= KB_IN_BYTES;
 	}
 
@@ -1587,7 +1649,9 @@ function wp_is_ini_value_changeable( $setting ) {
 	}
 
 	// Bit operator to workaround https://bugs.php.net/bug.php?id=44936 which changes access level to 63 in PHP 5.2.6 - 5.2.17.
-	if ( isset( $ini_all[ $setting ]['access'] ) && ( INI_ALL === ( $ini_all[ $setting ]['access'] & 7 ) || INI_USER === ( $ini_all[ $setting ]['access'] & 7 ) ) ) {
+	if ( isset( $ini_all[ $setting ]['access'] )
+		&& ( INI_ALL === ( $ini_all[ $setting ]['access'] & 7 ) || INI_USER === ( $ini_all[ $setting ]['access'] & 7 ) )
+	) {
 		return true;
 	}
 
@@ -1709,6 +1773,7 @@ function wp_start_scraping_edited_file_errors() {
 	if ( ! isset( $_REQUEST['wp_scrape_key'] ) || ! isset( $_REQUEST['wp_scrape_nonce'] ) ) {
 		return;
 	}
+
 	$key   = substr( sanitize_key( wp_unslash( $_REQUEST['wp_scrape_key'] ) ), 0, 32 );
 	$nonce = wp_unslash( $_REQUEST['wp_scrape_nonce'] );
 
@@ -1723,9 +1788,11 @@ function wp_start_scraping_edited_file_errors() {
 		echo "###### wp_scraping_result_end:$key ######";
 		die();
 	}
+
 	if ( ! defined( 'WP_SANDBOX_SCRAPING' ) ) {
 		define( 'WP_SANDBOX_SCRAPING', true );
 	}
+
 	register_shutdown_function( 'wp_finalize_scraping_edited_file_errors', $key );
 }
 
@@ -1738,13 +1805,18 @@ function wp_start_scraping_edited_file_errors() {
  */
 function wp_finalize_scraping_edited_file_errors( $scrape_key ) {
 	$error = error_get_last();
+
 	echo "\n###### wp_scraping_result_start:$scrape_key ######\n";
-	if ( ! empty( $error ) && in_array( $error['type'], array( E_CORE_ERROR, E_COMPILE_ERROR, E_ERROR, E_PARSE, E_USER_ERROR, E_RECOVERABLE_ERROR ), true ) ) {
+
+	if ( ! empty( $error )
+		&& in_array( $error['type'], array( E_CORE_ERROR, E_COMPILE_ERROR, E_ERROR, E_PARSE, E_USER_ERROR, E_RECOVERABLE_ERROR ), true )
+	) {
 		$error = str_replace( ABSPATH, '', $error );
 		echo wp_json_encode( $error );
 	} else {
 		echo wp_json_encode( true );
 	}
+
 	echo "\n###### wp_scraping_result_end:$scrape_key ######\n";
 }
 
@@ -1757,7 +1829,6 @@ function wp_finalize_scraping_edited_file_errors( $scrape_key ) {
  *              False otherwise.
  */
 function wp_is_json_request() {
-
 	if ( isset( $_SERVER['HTTP_ACCEPT'] ) && wp_is_json_media_type( $_SERVER['HTTP_ACCEPT'] ) ) {
 		return true;
 	}
@@ -1767,7 +1838,6 @@ function wp_is_json_request() {
 	}
 
 	return false;
-
 }
 
 /**
@@ -1836,7 +1906,7 @@ function wp_is_xml_request() {
 
 	if ( isset( $_SERVER['HTTP_ACCEPT'] ) ) {
 		foreach ( $accepted as $type ) {
-			if ( false !== strpos( $_SERVER['HTTP_ACCEPT'], $type ) ) {
+			if ( str_contains( $_SERVER['HTTP_ACCEPT'], $type ) ) {
 				return true;
 			}
 		}
