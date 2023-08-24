@@ -153,48 +153,13 @@ function wp_update_https_detection_errors() {
 		}
 	}
 
-	// If https is working, reduce the `wp_https_detection` cron check frequency to weekly.
+	// Remove the previously scheduled https check.
 	$scheduled = wp_get_scheduled_event( 'wp_https_detection' );
-	if ( false === $support_errors->errors && 'weekly' !== $scheduled->schedule ) {
+	if ( false !== $scheduled->schedule ) {
 		wp_unschedule_event( $scheduled->timestamp, $scheduled->schedule, 'wp_https_detection' );
-		wp_schedule_event( time(), 'weekly', 'wp_https_detection' );
 	}
 
 	update_option( 'https_detection_errors', $support_errors->errors );
-}
-
-/**
- * Schedules the Cron hook for detecting HTTPS support.
- *
- * @since 5.7.0
- * @access private
- */
-function wp_schedule_https_detection() {
-	if ( wp_installing() ) {
-		return;
-	}
-
-	if ( ! wp_next_scheduled( 'wp_https_detection' ) ) {
-		wp_schedule_event( time(), 'twicedaily', 'wp_https_detection' );
-	}
-}
-
-/**
- * Disables SSL verification if the 'cron_request' arguments include an HTTPS URL.
- *
- * This prevents an issue if HTTPS breaks, where there would be a failed attempt to verify HTTPS.
- *
- * @since 5.7.0
- * @access private
- *
- * @param array $request The cron request arguments.
- * @return array The filtered cron request arguments.
- */
-function wp_cron_conditionally_prevent_sslverify( $request ) {
-	if ( 'https' === wp_parse_url( $request['url'], PHP_URL_SCHEME ) ) {
-		$request['args']['sslverify'] = false;
-	}
-	return $request;
 }
 
 /**

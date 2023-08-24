@@ -143,35 +143,6 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47577
-	 */
-	public function test_wp_schedule_https_detection() {
-		wp_schedule_https_detection();
-		$this->assertSame( 'twicedaily', wp_get_schedule( 'wp_https_detection' ) );
-	}
-
-	/**
-	 * @ticket 47577
-	 */
-	public function test_wp_cron_conditionally_prevent_sslverify() {
-		// If URL is not using HTTPS, don't set 'sslverify' to false.
-		$request = array(
-			'url'  => 'http://example.com/',
-			'args' => array( 'sslverify' => true ),
-		);
-		$this->assertSame( $request, wp_cron_conditionally_prevent_sslverify( $request ) );
-
-		// If URL is using HTTPS, set 'sslverify' to false.
-		$request                       = array(
-			'url'  => 'https://example.com/',
-			'args' => array( 'sslverify' => true ),
-		);
-		$expected                      = $request;
-		$expected['args']['sslverify'] = false;
-		$this->assertSame( $expected, wp_cron_conditionally_prevent_sslverify( $request ) );
-	}
-
-	/**
-	 * @ticket 47577
 	 * @ticket 52542
 	 */
 	public function test_wp_is_local_html_output_via_rsd_link() {
