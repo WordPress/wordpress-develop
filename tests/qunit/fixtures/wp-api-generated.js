@@ -18,13 +18,7 @@ mockedApiResponse.Schema = {
         "wp-site-health/v1",
         "wp-block-editor/v1"
     ],
-    "authentication": {
-        "application-passwords": {
-            "endpoints": {
-                "authorization": "http://example.org/wp-admin/authorize-application.php"
-            }
-        }
-    },
+    "authentication": [],
     "routes": {
         "/": {
             "namespace": "",
@@ -11417,6 +11411,7 @@ mockedApiResponse.postRevisions = [
         "excerpt": {
             "rendered": ""
         },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -11446,6 +11441,7 @@ mockedApiResponse.postRevisions = [
         "excerpt": {
             "rendered": "<p>REST API Client Fixture: Post</p>\n"
         },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -11476,7 +11472,8 @@ mockedApiResponse.revision = {
     },
     "excerpt": {
         "rendered": "<p>REST API Client Fixture: Post</p>\n"
-    }
+    },
+    "meta": []
 };
 
 mockedApiResponse.postAutosaves = [
@@ -11501,6 +11498,7 @@ mockedApiResponse.postAutosaves = [
         "excerpt": {
             "rendered": ""
         },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -11531,7 +11529,8 @@ mockedApiResponse.autosave = {
     },
     "excerpt": {
         "rendered": ""
-    }
+    },
+    "meta": []
 };
 
 mockedApiResponse.PagesCollection = [
@@ -11677,6 +11676,7 @@ mockedApiResponse.pageRevisions = [
         "excerpt": {
             "rendered": ""
         },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -11706,6 +11706,7 @@ mockedApiResponse.pageRevisions = [
         "excerpt": {
             "rendered": "<p>REST API Client Fixture: Page</p>\n"
         },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -11736,7 +11737,8 @@ mockedApiResponse.pageRevision = {
     },
     "excerpt": {
         "rendered": "<p>REST API Client Fixture: Page</p>\n"
-    }
+    },
+    "meta": []
 };
 
 mockedApiResponse.pageAutosaves = [
@@ -11761,6 +11763,7 @@ mockedApiResponse.pageAutosaves = [
         "excerpt": {
             "rendered": ""
         },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -11791,7 +11794,8 @@ mockedApiResponse.pageAutosave = {
     },
     "excerpt": {
         "rendered": ""
-    }
+    },
+    "meta": []
 };
 
 mockedApiResponse.MediaCollection = [
