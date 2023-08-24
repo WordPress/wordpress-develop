@@ -557,7 +557,20 @@ jQuery( function($) {
 			data: data,
 			url: ajaxurl
 		});
-	});
+	}).on(
+		'pageshow.edit-post',
+		/**
+		 * Makes sure post lock is re-established when editor is restored from bfcache.
+		 *
+		 * @param {jQuery.Event} event
+		 * @param {PageTransitionEvent} event.originalEvent
+		 */
+		function ( event ) {
+			if ( event.originalEvent.persisted ) {
+				window.location.reload();
+			}
+		}
+	);
 
 	// Multiple taxonomies.
 	if ( $('#tagsdiv-post_tag').length ) {
