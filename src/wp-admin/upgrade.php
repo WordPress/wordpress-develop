@@ -133,8 +133,8 @@ else :
 		case 0:
 			$goback = wp_get_referer();
 			if ( $goback ) {
-				$goback = sanitize_url( $goback );
-				$goback = urlencode( $goback );
+				$goback = esc_url_raw( $goback );
+				$goback = rawurlencode( $goback );
 			}
 			?>
 	<h1><?php _e( 'Database Update Required' ); ?></h1>
@@ -147,12 +147,11 @@ else :
 			wp_upgrade();
 
 			$backto = ! empty( $_GET['backto'] ) ? wp_unslash( urldecode( $_GET['backto'] ) ) : __get_option( 'home' ) . '/';
-			$backto = esc_url( $backto );
-			$backto = wp_validate_redirect( $backto, __get_option( 'home' ) . '/' );
+			$backto = wp_validate_redirect( esc_url_raw( $backto ), __get_option( 'home' ) . '/' );
 			?>
 	<h1><?php _e( 'Update Complete' ); ?></h1>
 	<p><?php _e( 'Your WordPress database has been successfully updated!' ); ?></p>
-	<p class="step"><a class="button button-large" href="<?php echo $backto; ?>"><?php _e( 'Continue' ); ?></a></p>
+	<p class="step"><a class="button button-large" href="<?php echo esc_url( $backto ); ?>"><?php _e( 'Continue' ); ?></a></p>
 			<?php
 			break;
 endswitch;
