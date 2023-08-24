@@ -96,6 +96,27 @@ function _wp_post_revision_data( $post = array(), $autosave = false ) {
 }
 
 /**
+ * Saves revisions for a post after all changes have been made.
+ *
+ * @since 6.4.0
+ *
+ * @param int     $post_id The post id that was inserted.
+ * @param WP_Post $post    The post object that was inserted.
+ * @param bool    $update  Whether this insert is updating an existing post.
+ */
+function wp_save_post_revision_on_insert( $post_id, $post, $update ) {
+	if ( $update ) {
+		return;
+	}
+
+	if ( ! has_action( 'post_updated', 'wp_save_post_revision' ) ) {
+		return;
+	}
+
+	wp_save_post_revision( $post_id );
+}
+
+/**
  * Creates a revision for the current version of a post.
  *
  * Typically used immediately after a post update, as every update is a revision,
