@@ -738,12 +738,12 @@ class WP_Date_Query {
 		// Range queries.
 		if ( ! empty( $query['after'] ) ) {
 			// The placeholder ignores can be removed when %i is supported by WPCS.
-			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedIdentifierPlaceholder, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$where_parts[] = $wpdb->prepare( "%i $gt %s", $column, $this->build_mysql_datetime( $query['after'], ! $inclusive ) );
 		}
 		if ( ! empty( $query['before'] ) ) {
 			// The placeholder ignores can be removed when %i is supported by WPCS.
-			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedIdentifierPlaceholder, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$where_parts[] = $wpdb->prepare( "%i $lt %s", $column, $this->build_mysql_datetime( $query['before'], $inclusive ) );
 		}
 		// Specific value queries.
@@ -1053,7 +1053,7 @@ class WP_Date_Query {
 		}
 
 		// The placeholder ignores can be removed when %i is supported by WPCS.
-		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedIdentifierPlaceholder, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		return $wpdb->prepare( "DATE_FORMAT( %i, %s ) $compare %f", $column, $format, $time );
 	}
 
