@@ -132,6 +132,10 @@ function wp_save_post_revision( $post_id ) {
 		return;
 	}
 
+	if ( doing_action( 'post_updated' ) ) {
+		return;
+	}
+
 	$post = get_post( $post_id );
 
 	if ( ! $post ) {
