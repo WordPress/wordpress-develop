@@ -223,7 +223,7 @@
 				settings.checkFocusTimer = window.setInterval( checkFocus, 10000 );
 			}
 
-			$(window).on( 'unload.wp-heartbeat', function() {
+			$(window).on( 'pagehide.wp-heartbeat', function() {
 				// Don't connect anymore.
 				settings.suspend = true;
 
