@@ -673,9 +673,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// Don't save the post meta revision because they aren't stored yet.
-		remove_action( '_wp_put_post_revision', 'wp_save_revisioned_meta_fields', 10, 2 );
-
 		$post_id = wp_insert_post( wp_slash( (array) $prepared_post ), true, false );
 
 		if ( is_wp_error( $post_id ) ) {
@@ -885,9 +882,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				$post_parent
 			);
 		}
-
-		// Don't save the post meta revision because they aren't stored yet.
-		remove_action( '_wp_put_post_revision', 'wp_save_revisioned_meta_fields', 10, 2 );
 
 		// Convert the post object to an array, otherwise wp_update_post() will expect non-escaped input.
 		$post_id = wp_update_post( wp_slash( (array) $post ), true, false );
