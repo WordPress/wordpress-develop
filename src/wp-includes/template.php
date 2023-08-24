@@ -714,9 +714,9 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 		} elseif ( is_child_theme() && file_exists( $template ) && 0 === validate_file( $template ) ) {
 			$located = TEMPLATEPATH . '/' . $template_name;
 			break;
-		 } elseif ( file_exists( $template_compat ) && 0 === validate_file( $template_compat ) ) {
+		} elseif ( file_exists( $template_compat ) && 0 === validate_file( $template_compat ) ) {
 			$located = $template_compat;
-		 }
+		}
 	}
 
 	if ( $load && '' !== $located ) {
