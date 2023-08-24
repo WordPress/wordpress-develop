@@ -1186,6 +1186,7 @@ function upgrade_160() {
 	$old_user_fields = array( 'user_firstname', 'user_lastname', 'user_icq', 'user_aim', 'user_msn', 'user_yim', 'user_idmode', 'user_ip', 'user_domain', 'user_browser', 'user_description', 'user_nickname', 'user_level' );
 	$wpdb->hide_errors();
 	foreach ( $old_user_fields as $old ) {
+		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnquotedComplexPlaceholder
 		$wpdb->query( $wpdb->prepare( "ALTER TABLE $wpdb->users DROP %1s", $old ) );
 	}
 	$wpdb->show_errors();
@@ -1370,13 +1371,22 @@ function upgrade_230() {
 		}
 	}
 
-	$select = 'post_id, category_id';
+	$fields = array( 'post_id', 'category_id' );
 	if ( $have_tags ) {
-		$select .= ', rel_type';
+		$fields[] = 'rel_type';
 	}
 
-	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-	$posts = $wpdb->get_results( "SELECT $select FROM $wpdb->post2cat GROUP BY post_id, category_id" );
+	$posts = $wpdb->get_results(
+		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+		$wpdb->prepare(
+			sprintf(
+				"SELECT %s FROM $wpdb->post2cat GROUP BY post_id, category_id",
+				implode( ', ', array_fill( 0, count( $fields ), '%s' ) )
+			),
+			$fields
+		)
+	);
+
 	foreach ( $posts as $post ) {
 		$post_id  = (int) $post->post_id;
 		$term_id  = (int) $post->category_id;
@@ -1643,8 +1653,10 @@ function upgrade_280() {
 	if ( is_multisite() ) {
 		$start = 0;
 		while ( $rows = $wpdb->get_results(
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			"SELECT option_name, option_value FROM $wpdb->options ORDER BY option_id LIMIT $start, 20"
+			$wpdb->prepare(
+				"SELECT option_name, option_value FROM $wpdb->options ORDER BY option_id LIMIT %d, 20",
+				$start
+			)
 		) ) {
 			foreach ( $rows as $row ) {
 				$value = maybe_unserialize( $row->option_value );
@@ -1881,9 +1893,15 @@ function upgrade_350() {
 			}
 		}
 		if ( $meta_keys ) {
-			$meta_keys = implode( "', '", $meta_keys );
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$wpdb->query( "DELETE FROM $wpdb->usermeta WHERE meta_key IN ('$meta_keys')" );
+			$wpdb->query(
+				$wpdb->prepare(
+					sprintf(
+						"DELETE FROM $wpdb->usermeta WHERE meta_key IN (%s)",
+						implode( ', ', array_fill( 0, count( $meta_keys ), '%s' ) )
+					),
+					$meta_keys
+				)
+			);
 		}
 	}
 
@@ -2050,12 +2068,16 @@ function upgrade_430_fix_comments() {
 	$allowed_length = (int) $content_length['length'] - 10;
 
 	$comments = $wpdb->get_results(
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		"SELECT `comment_ID` FROM `{$wpdb->comments}`
-			WHERE `comment_date_gmt` > '2015-04-26'
-			AND LENGTH( `comment_content` ) >= {$allowed_length}
-			AND ( `comment_content` LIKE '%<%' OR `comment_content` LIKE '%>%' )"
-		// phpcs:enable
+		// todo: Double-check the %<% and %>% replacements.
+		$wpdb->prepare(
+			"SELECT `comment_ID` FROM `{$wpdb->comments}`
+				WHERE `comment_date_gmt` > '2015-04-26'
+				AND LENGTH( `comment_content` ) >= %d
+				AND ( `comment_content` LIKE %s OR `comment_content` LIKE %s )",
+			$allowed_length,
+			'%<%',
+			'%>%'
+		)
 	);
 
 	foreach ( $comments as $comment ) {
@@ -2570,10 +2592,14 @@ function drop_index( $table, $index ) {
 
 	$wpdb->hide_errors();
 
+	// The placeholder ignores can be removed when %i is supported by WPCS.
+	// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 	$wpdb->query( $wpdb->prepare( 'ALTER TABLE %i DROP INDEX %i', $table, $index ) );
 
 	// Now we need to take out all the extra ones we may have created.
 	for ( $i = 0; $i < 25; $i++ ) {
+		// The placeholder ignores can be removed when %i is supported by WPCS.
+		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 		$wpdb->query( $wpdb->prepare( 'ALTER TABLE %i DROP INDEX %i', $table, "{$index}_$i" ) );
 	}
 
@@ -2597,6 +2623,8 @@ function add_clean_index( $table, $index ) {
 	global $wpdb;
 
 	drop_index( $table, $index );
+	// The placeholder ignores can be removed when %i is supported by WPCS.
+	// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 	$wpdb->query( $wpdb->prepare( 'ALTER TABLE %i ADD INDEX ( %i )', $table, $index ) );
 
 	return true;
@@ -2617,6 +2645,8 @@ function add_clean_index( $table, $index ) {
 function maybe_add_column( $table_name, $column_name, $create_ddl ) {
 	global $wpdb;
 
+	// The placeholder ignores can be removed when %i is supported by WPCS.
+	// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 	$columns = $wpdb->get_col( $wpdb->prepare( 'DESC %i', $table_name ), 0 );
 
 	foreach ( $columns as $column ) {
@@ -2628,6 +2658,8 @@ function maybe_add_column( $table_name, $column_name, $create_ddl ) {
 	// Didn't find it, so try to create it.
 	$wpdb->query( $create_ddl );
 
+	// The placeholder ignores can be removed when %i is supported by WPCS.
+	// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 	$columns = $wpdb->get_col( $wpdb->prepare( 'DESC %i', $table_name ), 0 );
 
 	// We cannot directly tell that whether this succeeded!
@@ -2653,6 +2685,8 @@ function maybe_add_column( $table_name, $column_name, $create_ddl ) {
 function maybe_convert_table_to_utf8mb4( $table ) {
 	global $wpdb;
 
+	// The placeholder ignores can be removed when %i is supported by WPCS.
+	// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 	$results = $wpdb->get_results( $wpdb->prepare( 'SHOW FULL COLUMNS FROM %i', $table ) );
 	if ( ! $results ) {
 		return false;
