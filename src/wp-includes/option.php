@@ -307,23 +307,22 @@ function prime_options( $options ) {
 
 	$notoptions = wp_cache_get( 'notoptions', 'options' );
 
-	// Make a copy to check later if any change was made.
-	$new_notoptions = $notoptions;
-
-	// Add the options that were not found to the cache.
-	if ( ! is_array( $new_notoptions ) ) {
-		$new_notoptions = array();
+	if ( ! is_array( $notoptions ) ) {
+		$notoptions = array();
 	}
 
+	// Add the options that were not found to the cache.
+	$update_notoptions = false;
 	foreach ( $options_not_found as $option_name ) {
-		if ( ! isset( $new_notoptions[ $option_name ] ) ) {
-			$new_notoptions[ $option_name ] = true;
+		if ( ! isset( $notoptions[ $option_name ] ) ) {
+			$notoptions[ $option_name ] = true;
+			$update_notoptions          = true;
 		}
 	}
 
 	// Only update the cache if it was modified.
-	if ( $new_notoptions !== $notoptions ) {
-		wp_cache_set( 'notoptions', $new_notoptions, 'options' );
+	if ( $update_notoptions ) {
+		wp_cache_set( 'notoptions', $notoptions, 'options' );
 	}
 }
 
