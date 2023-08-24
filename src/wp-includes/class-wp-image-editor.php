@@ -15,7 +15,7 @@
 abstract class WP_Image_Editor {
 	protected $file              = null;
 	protected $size              = null;
-	protected $hash         	 = null;
+	protected $hash              = null;
 	protected $mime_type         = null;
 	protected $output_mime_type  = null;
 	protected $default_mime_type = 'image/jpeg';
