@@ -464,7 +464,7 @@ function wp_set_options_autoload( $options, $autoload ) {
 	 * If no options are returned, no need to update.
 	 */
 	$placeholders      = trim( str_repeat( '%s,', count( $options ) ), ',' );
-	$options_to_update = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE autoload != %s AND option_name IN ($placeholders)" , $autoload, ...$options ) );
+	$options_to_update = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE autoload != %s AND option_name IN ($placeholders)", $autoload, ...$options ) );
 	if ( ! $options_to_update ) {
 		return $results;
 	}
