@@ -663,7 +663,7 @@
 					} );
 				}
 
-				$( iframeWin ).on( 'load', resize ).on( 'unload', reload );
+				$( iframeWin ).on( 'load', resize ).on( 'pagehide', reload );
 
 				MutationObserver = iframeWin.MutationObserver || iframeWin.WebKitMutationObserver || iframeWin.MozMutationObserver;
 

@@ -7491,7 +7491,7 @@ function wp_delete_file_from_directory( $file, $directory ) {
 }
 
 /**
- * Outputs a small JS snippet on preview tabs/windows to remove `window.name` on unload.
+ * Outputs a small JS snippet on preview tabs/windows to remove `window.name` when a user is navigating to another page.
  *
  * This prevents reusing the same tab for a preview when the user has navigated away.
  *
@@ -7519,7 +7519,7 @@ function wp_post_preview_js() {
 		}
 
 		if ( window.addEventListener ) {
-			window.addEventListener( 'unload', function() { window.name = ''; }, false );
+			window.addEventListener( 'pagehide', function() { window.name = ''; } );
 		}
 	}());
 	</script>

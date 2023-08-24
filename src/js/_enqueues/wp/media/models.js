@@ -239,6 +239,6 @@ media.query = function( props ) {
 };
 
 // Clean up. Prevents mobile browsers caching.
-$(window).on('unload', function(){
+$(window).on('pagehide', function(){
 	window.wp = null;
 });
