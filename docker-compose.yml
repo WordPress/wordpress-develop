@@ -26,6 +26,7 @@ services:
 
     depends_on:
       - php
+      - mysql
 
   ##
   # The PHP container.
@@ -83,6 +84,12 @@ services:
     # For compatibility with PHP versions that don't support the caching_sha2_password auth plugin used in MySQL 8.0.
     command: --default-authentication-plugin=mysql_native_password
 
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 10s
+      interval: 30s
+      retries: 10
+
   ##
   # The WP CLI container.
   ##
@@ -107,6 +114,10 @@ services:
     extra_hosts:
       - localhost:host-gateway
 
+    depends_on:
+      - php
+      - mysql
+
   ##
   # The Memcached container.
   ##
@@ -118,6 +129,9 @@ services:
 
     ports:
       - 11211:11211
+
+    depends_on:
+      - php
 
 volumes:
   # So that sites aren't wiped every time containers are restarted, MySQL uses a persistent volume.
