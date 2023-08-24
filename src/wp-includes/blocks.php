@@ -154,7 +154,6 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	$is_child_theme_block  = str_starts_with( $script_path_norm, $stylesheet_path_norm );
 	$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
 
-	// Initialize variable.
 	$script_uri = '';
 	if ( $is_core_block ) {
 		$script_uri = includes_url( str_replace( $wpinc_path_norm, '', $script_path_norm ) );
