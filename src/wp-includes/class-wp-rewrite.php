@@ -1500,7 +1500,7 @@ class WP_Rewrite {
 	 * Refreshes the rewrite rules, saving the fresh value to the database.
 	 * If the `wp_loaded` action has not occurred yet, will postpone saving to the database.
 	 *
-	 * @return void
+	 * @since 6.4.0
 	 */
 	private function refresh_rewrite_rules() {
 		$this->rules   = '';
