@@ -153,13 +153,89 @@ function wp_update_https_detection_errors() {
 		}
 	}
 
+	update_option( 'https_detection_errors', $support_errors->errors );
+}
+
+
+/**
+ * Runs a remote HTTPS request to detect whether HTTPS supported, and stores potential errors.
+ *
+ * This internal function is called by a regular Cron hook to ensure HTTPS support is detected and maintained.
+ *
+ * @since 6.4.0
+ * @access private
+ */
+function wp_get_https_detection_errors() {
+	/**
+	 * Short-circuits the process of detecting errors related to HTTPS support.
+	 *
+	 * Returning a `WP_Error` from the filter will effectively short-circuit the default logic of trying a remote
+	 * request to the site over HTTPS, storing the errors array from the returned `WP_Error` instead.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param null|WP_Error $pre Error object to short-circuit detection,
+	 *                           or null to continue with the default behavior.
+	 * @return null|WP_Error Error object if HTTPS detection errors are found, null otherwise.
+	 */
+	$support_errors = apply_filters( 'pre_wp_get_https_detection_errors', null );
+	if ( is_wp_error( $support_errors ) ) {
+		return $support_errors->errors;
+	}
+
+	$support_errors = new WP_Error();
+
+	$response = wp_remote_request(
+		home_url( '/', 'https' ),
+		array(
+			'headers'   => array(
+				'Cache-Control' => 'no-cache',
+			),
+			'sslverify' => true,
+		)
+	);
+
+	if ( is_wp_error( $response ) ) {
+		$unverified_response = wp_remote_request(
+			home_url( '/', 'https' ),
+			array(
+				'headers'   => array(
+					'Cache-Control' => 'no-cache',
+				),
+				'sslverify' => false,
+			)
+		);
+
+		if ( is_wp_error( $unverified_response ) ) {
+			$support_errors->add(
+				'https_request_failed',
+				__( 'HTTPS request failed.' )
+			);
+		} else {
+			$support_errors->add(
+				'ssl_verification_failed',
+				__( 'SSL verification failed.' )
+			);
+		}
+
+		$response = $unverified_response;
+	}
+
+	if ( ! is_wp_error( $response ) ) {
+		if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			$support_errors->add( 'bad_response_code', wp_remote_retrieve_response_message( $response ) );
+		} elseif ( false === wp_is_local_html_output( wp_remote_retrieve_body( $response ) ) ) {
+			$support_errors->add( 'bad_response_source', __( 'It looks like the response did not come from this site.' ) );
+		}
+	}
+
 	// Remove the previously cron scheduled https check (since version 6.4).
 	$scheduled = wp_get_scheduled_event( 'wp_https_detection' );
 	if ( $scheduled && false !== $scheduled->schedule ) {
 		wp_unschedule_event( $scheduled->timestamp, $scheduled->schedule, 'wp_https_detection' );
 	}
 
-	update_option( 'https_detection_errors', $support_errors->errors );
+	return $support_errors->errors;
 }
 
 /**
