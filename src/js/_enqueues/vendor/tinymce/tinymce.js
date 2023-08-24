@@ -1251,17 +1251,7 @@
       document = doc;
       docElem = doc.documentElement;
       documentIsHTML = !isXML(doc);
-      if (parent && parent !== getTop(parent)) {
-        if (parent.addEventListener) {
-          parent.addEventListener('unload', function () {
-            setDocument();
-          }, false);
-        } else if (parent.attachEvent) {
-          parent.attachEvent('onunload', function () {
-            setDocument();
-          });
-        }
-      }
+
       support.attributes = true;
       support.getElementsByTagName = true;
       support.getElementsByClassName = rnative.test(doc.getElementsByClassName);
