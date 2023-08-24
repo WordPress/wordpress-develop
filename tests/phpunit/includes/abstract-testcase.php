@@ -869,7 +869,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$this->assertNotEmpty( $fields, $message . ' Fields array is empty.' );
 
 		foreach ( $fields as $field_name => $field_value ) {
-			$this->assertObjectHasAttribute( $field_name, $actual, $message . " Property $field_name does not exist on the object." );
+			$this->assertObjectHasProperty( $field_name, $actual, $message . " Property $field_name does not exist on the object." );
 			$this->assertSame( $field_value, $actual->$field_name, $message . " Value of property $field_name is not $field_value." );
 		}
 	}
