@@ -24,7 +24,7 @@ on:
         description: 'Database version'
         required: false
         type: 'string'
-        default: '5.7'
+        default: '8.0'
       multisite:
         description: 'Whether to run tests as multisite'
         required: false
@@ -41,7 +41,7 @@ on:
         type: 'string'
         default: 'phpunit.xml.dist'
       report:
-        description: 'Whether to report results to WordPress.org hosting tests'
+        description: 'Whether to report results to WordPress.org Hosting Tests'
         required: false
         type: 'boolean'
         default: false
@@ -51,6 +51,7 @@ env:
   LOCAL_DB_VERSION: ${{ inputs.db-version }}
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   PHPUNIT_CONFIG: ${{ inputs.phpunit-config }}
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
 
 jobs:
   # Runs the PHPUnit tests for WordPress.
