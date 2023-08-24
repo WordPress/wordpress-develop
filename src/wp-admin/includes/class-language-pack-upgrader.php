@@ -153,7 +153,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param object[] $language_updates Optional. Array of language packs to update. @see wp_get_translation_updates().
+	 * @param object[] $language_updates Optional. Array of language packs to update. See {@see wp_get_translation_updates()}.
 	 *                                   Default empty array.
 	 * @param array    $args {
 	 *     Other arguments for upgrading multiple language packs. Default empty array.
@@ -336,9 +336,9 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		$po = false;
 		$mo = false;
 		foreach ( (array) $files as $file => $filedata ) {
-			if ( '.po' === substr( $file, -3 ) ) {
+			if ( str_ends_with( $file, '.po' ) ) {
 				$po = true;
-			} elseif ( '.mo' === substr( $file, -3 ) ) {
+			} elseif ( str_ends_with( $file, '.mo' ) ) {
 				$mo = true;
 			}
 		}

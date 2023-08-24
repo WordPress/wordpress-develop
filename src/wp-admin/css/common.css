@@ -138,6 +138,11 @@
 	height: auto; /* Fixes a Safari+VoiceOver bug, see ticket #42006 */
 }
 
+.screen-reader-text + .dashicons-external {
+	margin-top: -1px;
+	margin-left: 2px;
+}
+
 .screen-reader-shortcut {
 	position: absolute;
 	top: -1000em;
@@ -553,6 +558,14 @@ code {
 	margin-left: 0;
 }
 
+.js-update-details-toggle .dashicons {
+	text-decoration: none;
+}
+
+.js-update-details-toggle[aria-expanded="true"] .dashicons::before {
+	content: "\f142";
+}
+
 .no-js .widefat thead .check-column input,
 .no-js .widefat tfoot .check-column input {
 	display: none;
@@ -571,10 +584,6 @@ code {
 
 .wrap {
 	margin: 10px 20px 0 2px;
-}
-
-.wrap.block-editor-no-js {
-	padding-left: 20px;
 }
 
 .wrap > h2:first-child, /* Back-compat for pre-4.4 */
@@ -615,20 +624,26 @@ code {
 .wrap .add-new-h2:active, /* deprecated */
 .wrap .page-title-action,
 .wrap .page-title-action:active {
-	margin-left: 4px;
-	padding: 4px 8px;
+	display: inline-block;
 	position: relative;
-	top: -3px;
-	text-decoration: none;
-	border: 1px solid #2271b1;
-	border-radius: 2px;
-	text-shadow: none;
-	font-weight: 600;
-	font-size: 13px;
-	line-height: normal; /* IE8-IE11 need this for buttons */
-	color: #2271b1; /* use the standard color used for buttons */
-	background: #f6f7f7;
+	box-sizing: border-box;
 	cursor: pointer;
+	white-space: nowrap;
+	text-decoration: none;
+	text-shadow: none;
+	top: -3px;
+	margin-left: 4px;
+	border: 1px solid #2271b1;
+	border-radius: 3px;
+	background: #f6f7f7;
+	font-size: 13px;
+	font-weight: 400;
+	line-height: 2.15384615;
+	color: #2271b1; /* use the standard color used for buttons */
+	padding: 0 10px;
+	min-height: 30px;
+	-webkit-appearance: none;
+
 }
 
 .wrap .wp-heading-inline + .page-title-action {
@@ -1081,7 +1096,6 @@ th.action-links {
 }
 
 .wp-filter .search-form input[type="search"] {
-	margin: 1px 0;
 	width: 280px;
 	max-width: 100%;
 }
@@ -3006,7 +3020,6 @@ div.action-links {
 }
 
 @media print,
-	(-webkit-min-device-pixel-ratio: 1.25),
 	(min-resolution: 120dpi) {
 
 	#TB_window.plugin-details-modal.thickbox-loading:before {
@@ -3749,7 +3762,6 @@ img {
  * HiDPI Displays
  */
 @media print,
-  (-webkit-min-device-pixel-ratio: 1.25),
   (min-resolution: 120dpi) {
 	/* Back-compat for pre-3.8 */
 	div.star-holder,
@@ -4063,6 +4075,7 @@ img {
 	}
 
 	.wp-filter .search-form input[type="search"] {
+		width: 100%;
 		font-size: 1rem;
 	}
 
@@ -4116,9 +4129,16 @@ img {
 	.nav-tab-active:focus:active {
 		border-bottom: 1px solid #c3c4c7;
 	}
+}
 
-	.wp-filter .search-form input[type="search"] {
-		width: 100%;
+@media screen and (max-width: 480px) {
+	.metabox-prefs-container {
+		display: grid;
+	}
+
+	.metabox-prefs-container > * {
+		display: inline-block;
+		padding: 2px;
 	}
 }
 
