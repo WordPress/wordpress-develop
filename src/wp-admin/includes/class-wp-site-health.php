@@ -1356,8 +1356,8 @@ class WP_Site_Health {
 			}
 		}
 
-			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_client_info
-			$mysql_client_version = mysqli_get_client_info();
+		// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_client_info
+		$mysql_client_version = mysqli_get_client_info();
 
 		/*
 		 * libmysql has supported utf8mb4 since 5.5.3, same as the MySQL server.
