@@ -131,9 +131,11 @@ jobs:
           docker -v
           docker-compose -v
 
+      - name: Pull Docker containers
+        run: npm run env:pull
+
       - name: Start Docker environment
-        run: |
-          npm run env:start
+        run: npm run env:start
 
       - name: Log running Docker containers
         run: docker ps -a
