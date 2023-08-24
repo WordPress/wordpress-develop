@@ -5391,6 +5391,7 @@ function wp_update_https_detection_errors() {
 	 * request to the site over HTTPS, storing the errors array from the returned `WP_Error` instead.
 	 *
 	 * @since 5.7.0
+	 * @deprecated 6.4.0 The `wp_update_https_detection_errors` filter is no longer used and has been replaced by `pre_wp_get_https_detection_errors`.
 	 *
 	 * @param null|WP_Error $pre Error object to short-circuit detection,
 	 *                           or null to continue with the default behavior.
