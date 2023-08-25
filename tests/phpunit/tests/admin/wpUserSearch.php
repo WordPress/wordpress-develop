@@ -2,7 +2,7 @@
 /**
  * @coversDefaultClass WP_User_Search
  */
-class Tests_Admin_wpUserSearch extends WP_UnitTestCase{
+class Tests_Admin_wpUserSearch extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::__construct()
