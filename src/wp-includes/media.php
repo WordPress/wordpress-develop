@@ -2028,6 +2028,10 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		if ( ! empty( $optimization_attrs['loading'] ) ) {
 			$image = str_replace( '<img', '<img loading="' . esc_attr( $optimization_attrs['loading'] ) . '"', $image );
 		}
+
+		if ( ! empty( $optimization_attrs['decoding'] ) ) {
+			$image = str_replace( '<img', '<img decoding="' . esc_attr( $optimization_attrs['decoding'] ) . '"', $image );
+		}
 	}
 
 	if ( empty( $fetchpriority_val ) && ! empty( $optimization_attrs['fetchpriority'] ) ) {
