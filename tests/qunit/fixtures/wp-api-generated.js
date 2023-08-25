@@ -10,7 +10,7 @@ mockedApiResponse.Schema = {
     "description": "",
     "url": "http://example.org",
     "home": "http://example.org",
-    "gmt_offset": "0",
+    "gmt_offset": 0,
     "timezone_string": "",
     "namespaces": [
         "oembed/1.0",
