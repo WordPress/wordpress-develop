@@ -3170,6 +3170,11 @@ class WP_Query {
 			$id_query_is_cacheable = false;
 		}
 
+		// Don't cache the query if it's for id=>parent relationships for all posts.
+		if ( 'id=>parent' === $q['fields'] && -1 === $q['posts_per_page'] ) {
+			$id_query_is_cacheable = false;
+		}
+
 		if ( $q['cache_results'] && $id_query_is_cacheable ) {
 			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
 			$cache_key   = $this->generate_cache_key( $q, $new_request );
