@@ -66,6 +66,9 @@ class Tests_Post_UpdatePostAuthorCaches extends WP_UnitTestCase {
 		while ( $q->have_posts() ) {
 			$q->the_post();
 		}
+		foreach ( self::$user_ids as $user_id ) {
+			get_user_meta( $user_id );
+		}
 
 		$args      = $action->get_args();
 		$last_args = end( $args );

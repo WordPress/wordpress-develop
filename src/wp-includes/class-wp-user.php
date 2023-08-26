@@ -322,11 +322,7 @@ class WP_User {
 		}
 
 		if ( in_array( $key, array( 'caps', 'allcaps', 'roles' ), true ) ) {
-			if( ! $this->loaded_caps ){
-				$this->caps = $this->get_caps_data();
-				$this->get_role_caps();
-				$this->loaded_caps = true;
-			}
+			$this->load_capablity_data();
 			return $this->$key;
 		}
 
@@ -524,6 +520,10 @@ class WP_User {
 
 		$wp_roles = wp_roles();
 
+		if ( ! $this->loaded_caps ) {
+			$this->caps = $this->get_caps_data();
+		}
+
 		// Filter out caps that are not role names and assign to $this->roles.
 		if ( is_array( $this->caps ) ) {
 			$this->roles = array_filter( array_keys( $this->caps ), array( $wp_roles, 'is_role' ) );
@@ -557,6 +557,7 @@ class WP_User {
 		if ( empty( $role ) ) {
 			return;
 		}
+		$this->load_capablity_data();
 
 		if ( in_array( $role, $this->roles, true ) ) {
 			return;
@@ -586,6 +587,7 @@ class WP_User {
 	 * @param string $role Role name.
 	 */
 	public function remove_role( $role ) {
+		$this->load_capablity_data();
 		if ( ! in_array( $role, $this->roles, true ) ) {
 			return;
 		}
@@ -618,6 +620,7 @@ class WP_User {
 	 * @param string $role Role name.
 	 */
 	public function set_role( $role ) {
+		$this->load_capablity_data();
 		if ( 1 === count( $this->roles ) && current( $this->roles ) === $role ) {
 			return;
 		}
@@ -719,6 +722,7 @@ class WP_User {
 	 * @param bool   $grant Whether to grant capability to user.
 	 */
 	public function add_cap( $cap, $grant = true ) {
+		$this->load_capablity_data();
 		$this->caps[ $cap ] = $grant;
 		update_user_meta( $this->ID, $this->cap_key, $this->caps );
 		$this->get_role_caps();
@@ -733,6 +737,7 @@ class WP_User {
 	 * @param string $cap Capability name.
 	 */
 	public function remove_cap( $cap ) {
+		$this->load_capablity_data();
 		if ( ! isset( $this->caps[ $cap ] ) ) {
 			return;
 		}
@@ -785,12 +790,7 @@ class WP_User {
 	 *              the given capability for that object.
 	 */
 	public function has_cap( $cap, ...$args ) {
-
-		if( ! $this->loaded_caps ){
-			$this->caps = $this->get_caps_data();
-			$this->get_role_caps();
-			$this->loaded_caps = true;
-		}
+		$this->load_capablity_data();
 
 		if ( is_numeric( $cap ) ) {
 			_deprecated_argument( __FUNCTION__, '2.0.0', __( 'Usage of user levels is deprecated. Use capabilities instead.' ) );
@@ -924,5 +924,18 @@ class WP_User {
 		}
 
 		return $caps;
+	}
+
+	/**
+	 * Load capability data.
+	 *
+	 * @since 6.4.0
+	 */
+	private function load_capablity_data() {
+		if ( ! $this->loaded_caps ) {
+			$this->caps = $this->get_caps_data();
+			$this->get_role_caps();
+			$this->loaded_caps = true;
+		}
 	}
 }
