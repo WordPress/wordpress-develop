@@ -270,6 +270,7 @@ function wp_register_development_scripts( $scripts ) {
  */
 function wp_default_packages_scripts( $scripts ) {
 	$suffix = defined( 'WP_RUN_CORE_TESTS' ) ? '.min' : wp_scripts_get_suffix();
+	$suffix = '.min';
 	/*
 	 * Expects multidimensional array like:
 	 *
