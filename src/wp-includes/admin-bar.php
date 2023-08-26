@@ -495,7 +495,7 @@ function wp_admin_bar_customize_menu( $wp_admin_bar ) {
 		return;
 	}
 
-	$current_url = ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+	$current_url = network_home_url( $_SERVER['REQUEST_URI'] );
 	if ( is_customize_preview() && $wp_customize->changeset_uuid() ) {
 		$current_url = remove_query_arg( 'customize_changeset_uuid', $current_url );
 	}
