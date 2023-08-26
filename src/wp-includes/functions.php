@@ -5144,7 +5144,7 @@ function _wp_to_kebab_case( $input_string ) {
 
 	preg_match_all( $regexp, str_replace( "'", '', $input_string ), $matches );
 	return strtolower( implode( '-', $matches[0] ) );
-	//phpcs:enable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
+	// phpcs:enable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
 }
 
 /**
@@ -5413,9 +5413,8 @@ function absint( $maybeint ) {
 /**
  * Marks a function as deprecated and inform when it has been used.
  *
- * There is a hook {@see 'deprecated_function_run'} that will be called that can be used
- * to get the backtrace up to what file and function called the deprecated
- * function.
+ * There is a {@see 'deprecated_function_run'} hook that will be called that can be used
+ * to get the backtrace up to what file and function called the deprecated function.
  *
  * The current behavior is to trigger a user error if `WP_DEBUG` is true.
  *
@@ -5502,11 +5501,11 @@ function _deprecated_function( $function_name, $version, $replacement = '' ) {
  * Marks a constructor as deprecated and informs when it has been used.
  *
  * Similar to _deprecated_function(), but with different strings. Used to
- * remove PHP4 style constructors.
+ * remove PHP4-style constructors.
  *
  * The current behavior is to trigger a user error if `WP_DEBUG` is true.
  *
- * This function is to be used in every PHP4 style constructor method that is deprecated.
+ * This function is to be used in every PHP4-style constructor method that is deprecated.
  *
  * @since 4.3.0
  * @since 4.5.0 Added the `$parent_class` parameter.
@@ -5596,11 +5595,97 @@ function _deprecated_constructor( $class_name, $version, $parent_class = '' ) {
 }
 
 /**
+ * Marks a class as deprecated and informs when it has been used.
+ *
+ * There is a {@see 'deprecated_class_run'} hook that will be called that can be used
+ * to get the backtrace up to what file and function called the deprecated class.
+ *
+ * The current behavior is to trigger a user error if `WP_DEBUG` is true.
+ *
+ * This function is to be used in the class constructor for every deprecated class.
+ * See {@see _deprecated_constructor()} for deprecating PHP4-style constructors.
+ *
+ * @since 6.4.0
+ *
+ * @param string $class       The class being instantiated.
+ * @param string $version     The version of WordPress that deprecated the class.
+ * @param string $replacement Optional. The class or function that should have been called.
+ *                            Default empty string.
+ */
+function _deprecated_class( $class, $version, $replacement = '' ) {
+
+	/**
+	 * Fires when a deprecated class is called.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $class       The class being instantiated.
+	 * @param string $replacement The class or function that should have been called.
+	 * @param string $version     The version of WordPress that deprecated the class.
+	 */
+	do_action( 'deprecated_class_run', $class, $replacement, $version );
+
+	/**
+	 * Filters whether to trigger an error for a deprecated class.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param bool $trigger Whether to trigger an error for a deprecated class. Default true.
+	 */
+	if ( WP_DEBUG && apply_filters( 'deprecated_class_trigger_error', true ) ) {
+		if ( function_exists( '__' ) ) {
+			if ( $replacement ) {
+				trigger_error(
+					sprintf(
+						/* translators: 1: PHP class name, 2: Version number, 3: Alternative class or function name. */
+						__( 'Class %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+						$class,
+						$version,
+						$replacement
+					),
+					E_USER_DEPRECATED
+				);
+			} else {
+				trigger_error(
+					sprintf(
+						/* translators: 1: PHP class name, 2: Version number. */
+						__( 'Class %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+						$class,
+						$version
+					),
+					E_USER_DEPRECATED
+				);
+			}
+		} else {
+			if ( $replacement ) {
+				trigger_error(
+					sprintf(
+						'Class %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
+						$class,
+						$version,
+						$replacement
+					),
+					E_USER_DEPRECATED
+				);
+			} else {
+				trigger_error(
+					sprintf(
+						'Class %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
+						$class,
+						$version
+					),
+					E_USER_DEPRECATED
+				);
+			}
+		}
+	}
+}
+
+/**
  * Marks a file as deprecated and inform when it has been used.
  *
- * There is a hook {@see 'deprecated_file_included'} that will be called that can be used
- * to get the backtrace up to what file and function included the deprecated
- * file.
+ * There is a {@see 'deprecated_file_included'} hook that will be called that can be used
+ * to get the backtrace up to what file and function included the deprecated file.
  *
  * The current behavior is to trigger a user error if `WP_DEBUG` is true.
  *
@@ -5693,15 +5778,15 @@ function _deprecated_file( $file, $version, $replacement = '', $message = '' ) {
  * This function is to be used whenever a deprecated function argument is used.
  * Before this function is called, the argument must be checked for whether it was
  * used by comparing it to its default value or evaluating whether it is empty.
+ *
  * For example:
  *
  *     if ( ! empty( $deprecated ) ) {
  *         _deprecated_argument( __FUNCTION__, '3.0.0' );
  *     }
  *
- * There is a hook deprecated_argument_run that will be called that can be used
- * to get the backtrace up to what file and function used the deprecated
- * argument.
+ * There is a {@see 'deprecated_argument_run'} hook that will be called that can be used
+ * to get the backtrace up to what file and function used the deprecated argument.
  *
  * The current behavior is to trigger a user error if WP_DEBUG is true.
  *
@@ -5854,9 +5939,8 @@ function _deprecated_hook( $hook, $version, $replacement = '', $message = '' ) {
 /**
  * Marks something as being incorrectly called.
  *
- * There is a hook {@see 'doing_it_wrong_run'} that will be called that can be used
- * to get the backtrace up to what file and function called the deprecated
- * function.
+ * There is a {@see 'doing_it_wrong_run'} hook that will be called that can be used
+ * to get the backtrace up to what file and function called the deprecated function.
  *
  * The current behavior is to trigger a user error if `WP_DEBUG` is true.
  *
@@ -8600,7 +8684,7 @@ function is_php_version_compatible( $required ) {
  *
  * @param int|float $expected  The expected value.
  * @param int|float $actual    The actual number.
- * @param int|float $precision The allowed variation.
+ * @param int|float $precision Optional. The allowed variation. Default 1.
  * @return bool Whether the numbers match within the specified precision.
  */
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {

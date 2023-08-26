@@ -1261,7 +1261,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$result = json_decode( rest_get_server()->sent_body );
 
-		$this->assertObjectNotHasAttribute( 'code', $result );
+		$this->assertObjectNotHasProperty( 'code', $result );
 	}
 
 	public function test_link_header_on_requests() {
