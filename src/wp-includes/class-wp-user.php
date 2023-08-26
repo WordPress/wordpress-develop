@@ -61,7 +61,7 @@ class WP_User {
 	 * @var bool[] Array of key/value pairs where keys represent a capability name
 	 *             and boolean values represent whether the user has that capability.
 	 */
-	public $caps = array();
+	protected $caps = array();
 
 	/**
 	 * User metadata option name.
@@ -77,7 +77,7 @@ class WP_User {
 	 * @since 2.0.0
 	 * @var string[]
 	 */
-	public $roles = array();
+	protected $roles = array();
 
 	/**
 	 * All capabilities the user has, including individual and role based.
@@ -86,7 +86,7 @@ class WP_User {
 	 * @var bool[] Array of key/value pairs where keys represent a capability name
 	 *             and boolean values represent whether the user has that capability.
 	 */
-	public $allcaps = array();
+	protected $allcaps = array();
 
 	/**
 	 * The filter context applied to user data fields.
@@ -103,6 +103,9 @@ class WP_User {
 	 * @var int
 	 */
 	private $site_id = 0;
+
+
+	private $loaded_caps = false;
 
 	/**
 	 * @since 3.3.0
@@ -281,6 +284,10 @@ class WP_User {
 			$key = 'ID';
 		}
 
+		if ( in_array( $key, array( 'caps', 'allcaps', 'roles' ), true ) ) {
+			return isset( $this->$key );
+		}
+
 		if ( isset( $this->data->$key ) ) {
 			return true;
 		}
@@ -312,6 +319,15 @@ class WP_User {
 				)
 			);
 			return $this->ID;
+		}
+
+		if ( in_array( $key, array( 'caps', 'allcaps', 'roles' ), true ) ) {
+			if( ! $this->loaded_caps ){
+				$this->caps = $this->get_caps_data();
+				$this->get_role_caps();
+				$this->loaded_caps = true;
+			}
+			return $this->$key;
 		}
 
 		if ( isset( $this->data->$key ) ) {
@@ -769,6 +785,13 @@ class WP_User {
 	 *              the given capability for that object.
 	 */
 	public function has_cap( $cap, ...$args ) {
+
+		if( ! $this->loaded_caps ){
+			$this->caps = $this->get_caps_data();
+			$this->get_role_caps();
+			$this->loaded_caps = true;
+		}
+
 		if ( is_numeric( $cap ) ) {
 			_deprecated_argument( __FUNCTION__, '2.0.0', __( 'Usage of user levels is deprecated. Use capabilities instead.' ) );
 			$cap = $this->translate_level_to_cap( $cap );
@@ -870,10 +893,6 @@ class WP_User {
 		}
 
 		$this->cap_key = $wpdb->get_blog_prefix( $this->site_id ) . 'capabilities';
-
-		$this->caps = $this->get_caps_data();
-
-		$this->get_role_caps();
 	}
 
 	/**
