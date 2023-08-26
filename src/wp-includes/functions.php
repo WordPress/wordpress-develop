@@ -1132,13 +1132,13 @@ function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urle
 function add_query_arg( ...$args ) {
 	if ( is_array( $args[0] ) ) {
 		if ( count( $args ) < 2 || false === $args[1] ) {
-			$uri = $_SERVER['REQUEST_URI'];
+			$uri = network_home_url();
 		} else {
 			$uri = $args[1];
 		}
 	} else {
 		if ( count( $args ) < 3 || false === $args[2] ) {
-			$uri = $_SERVER['REQUEST_URI'];
+			$uri = network_home_url();
 		} else {
 			$uri = $args[2];
 		}
@@ -1917,7 +1917,7 @@ function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $dis
  */
 function wp_referer_field( $display = true ) {
 	$request_url   = remove_query_arg( '_wp_http_referer' );
-	$referer_field = '<input type="hidden" name="_wp_http_referer" value="' . esc_url( $request_url ) . '" />';
+	$referer_field = '<input type="hidden" name="_wp_http_referer"  debug="kurt1w" value="' . esc_url( $request_url ) . '" />';
 
 	if ( $display ) {
 		echo $referer_field;
