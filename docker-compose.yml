@@ -20,6 +20,11 @@ services:
     volumes:
       - ./tools/local-env/default.template:/etc/nginx/conf.d/default.template
       - ./:/var/www
+      - /home/oberon/Development/SailCom/next-it/Sailcom/wp-content/plugins/sailcom:/var/www/src/wp-content/plugins/sailcom
+      - /home/oberon/Development/SailCom/next-it/Sailcom/wp-content/plugins/woocommerce-rental-and-booking:/var/www/src/wp-content/plugins/woocommerce-rental-and-booking
+      - /home/oberon/Development/SailCom/next-it/Sailcom/CI/require-dev/sailcom-debug-plugin/:/var/www/src/wp-content/plugins/sailcom-debug-plugin
+      - /home/oberon/Development/SailCom/next-it/Sailcom/wp-content/themes/hello-theme-child-master/:/var/www/src/wp-content/themes/hello-theme-child-master/
+      - /home/oberon/Development/SailCom/next-it/Sailcom/wp-content/plugins/woocommerce-runmyaccounts/:/var/www/src/wp-content/plugins/run-my-accounts-for-woocommerce
 
     # Load our config file, substituting environment variables into the config.
     command: /bin/sh -c "envsubst '$$LOCAL_DIR' < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
@@ -40,9 +45,12 @@ services:
       - wpdevnet
 
     environment:
-      - LOCAL_PHP_XDEBUG=${LOCAL_PHP_XDEBUG-false}
-      - XDEBUG_MODE=${LOCAL_PHP_XDEBUG_MODE-develop,debug}
-      - LOCAL_PHP_MEMCACHED=${LOCAL_PHP_MEMCACHED-false}
+      # - LOCAL_PHP_XDEBUG=${LOCAL_PHP_XDEBUG-false}
+      # - XDEBUG_MODE=develop,debug
+      - XDEBUG_MODE=profile
+      - LOCAL_PHP_XDEBUG=true
+      # - LOCAL_PHP_MEMCACHED=${LOCAL_PHP_MEMCACHED-false}
+      - LOCAL_PHP_MEMCACHED=false
       - PHP_FPM_UID=${PHP_FPM_UID-1000}
       - PHP_FPM_GID=${PHP_FPM_GID-1000}
       - GITHUB_REF=${GITHUB_REF-false}
@@ -51,6 +59,13 @@ services:
     volumes:
       - ./tools/local-env/php-config.ini:/usr/local/etc/php/conf.d/php-config.ini
       - ./:/var/www
+      - ./tools/tmp:/tmp
+      - /home/oberon/Development/SailCom/next-it/Sailcom/wp-content/plugins/sailcom:/var/www/src/wp-content/plugins/sailcom
+      - /home/oberon/Development/SailCom/next-it/Sailcom/wp-content/plugins/woocommerce-rental-and-booking:/var/www/src/wp-content/plugins/woocommerce-rental-and-booking
+      - /home/oberon/Development/SailCom/next-it/Sailcom/CI/require-dev/sailcom-debug-plugin/:/var/www/src/wp-content/plugins/sailcom-debug-plugin
+      - /home/oberon/Development/SailCom/next-it/Sailcom/wp-content/themes/hello-theme-child-master/:/var/www/src/wp-content/themes/hello-theme-child-master/
+      - /home/oberon/Development/SailCom/next-it/Sailcom/wp-content/plugins/woocommerce-runmyaccounts/:/var/www/src/wp-content/plugins/run-my-accounts-for-woocommerce
+#      - /home/oberon/Development/SailCom/2022_blocks:/var/www/src/wp-content/plugins/2022_blocks
 
     # Copy or delete the Memcached dropin plugin file as appropriate.
     command: /bin/sh -c "if [ $LOCAL_PHP_MEMCACHED = true ]; then cp -n /var/www/tests/phpunit/includes/object-cache.php /var/www/src/wp-content/object-cache.php; else rm -f /var/www/src/wp-content/object-cache.php; fi && exec php-fpm"
@@ -60,6 +75,7 @@ services:
 
     extra_hosts:
       - localhost:host-gateway
+      - docker-host:host-gateway
 
   ##
   # The MySQL container.
@@ -112,6 +128,19 @@ services:
 
     extra_hosts:
       - localhost:host-gateway
+      - docker-host:host-gateway
+
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    depends_on:
+      - mysql
+    networks:
+      - wpdevnet
+    ports:
+      - 8887:80
+    environment:
+      PMA_HOST: mysql
 
     depends_on:
       php:
