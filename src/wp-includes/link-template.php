@@ -4600,12 +4600,15 @@ function get_parent_theme_file_uri( $file = '' ) {
 function get_theme_file_path( $file = '' ) {
 	$file = ltrim( $file, '/' );
 
+	$stylesheet_directory = get_stylesheet_directory();
+	$template_directory   = get_template_directory();
+
 	if ( empty( $file ) ) {
-		$path = get_stylesheet_directory();
-	} elseif ( file_exists( get_stylesheet_directory() . '/' . $file ) ) {
-		$path = get_stylesheet_directory() . '/' . $file;
+		$path = $stylesheet_directory;
+	} elseif ( $stylesheet_directory !== $template_directory && file_exists( $stylesheet_directory . '/' . $file ) ) {
+		$path = $stylesheet_directory . '/' . $file;
 	} else {
-		$path = get_template_directory() . '/' . $file;
+		$path = $template_directory . '/' . $file;
 	}
 
 	/**
