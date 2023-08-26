@@ -499,6 +499,17 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 */
+	public function test_next_tag_matches_decoded_class_names() {
+		$p = new WP_HTML_Tag_Processor( '<div class="&lt;egg&gt;">' );
+
+		$this->assertTrue( $p->next_tag( array( 'class_name' => '<egg>' ) ), 'Failed to find tag with HTML-encoded class name.' );
+	}
+
+	/**
 	 * @ticket 56299
 	 * @ticket 57852
 	 *
@@ -1954,6 +1965,150 @@ HTML;
 			'NOSCRIPT'         => array( '<noscript><span>This assumes that scripting mode is enabled.</span></noscript><p target>' ),
 			'STYLE'            => array( '<style>* { margin: 0 }</style><div target>' ),
 			'STYLE hiding DIV' => array( '<style>li::before { content: "<div non-target>" }</style><div target>' ),
+		);
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_empty_when_missing_class() {
+		$p = new WP_HTML_Tag_Processor( '<div>' );
+		$p->next_tag();
+
+		$found_classes = false;
+		foreach ( $p->class_list() as $class ) {
+			$found_classes = true;
+		}
+
+		$this->assertFalse( $found_classes, 'Found classes when none exist.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_empty_when_class_is_boolean() {
+		$p = new WP_HTML_Tag_Processor( '<div class>' );
+		$p->next_tag();
+
+		$found_classes = false;
+		foreach ( $p->class_list() as $class ) {
+			$found_classes = true;
+		}
+
+		$this->assertFalse( $found_classes, 'Found classes when none exist.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_empty_when_class_is_empty() {
+		$p = new WP_HTML_Tag_Processor( '<div class="">' );
+		$p->next_tag();
+
+		$found_classes = false;
+		foreach ( $p->class_list() as $class ) {
+			$found_classes = true;
+		}
+
+		$this->assertFalse( $found_classes, 'Found classes when none exist.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_visits_each_class_in_order() {
+		$p = new WP_HTML_Tag_Processor( '<div class="one two three">' );
+		$p->next_tag();
+
+		$found_classes = array();
+		foreach ( $p->class_list() as $class ) {
+			$found_classes[] = $class;
+		}
+
+		$this->assertSame( array( 'one', 'two', 'three' ), $found_classes, 'Failed to visit the class names in their original order.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_decodes_class_names() {
+		$p = new WP_HTML_Tag_Processor( '<div class="&notin;-class &lt;egg&gt; &#xff03;">' );
+		$p->next_tag();
+
+		$found_classes = array();
+		foreach ( $p->class_list() as $class ) {
+			$found_classes[] = $class;
+		}
+
+		$this->assertSame( array( '∉-class', '<egg>', "\u{ff03}" ), $found_classes, 'Failed to report class names in their decoded form.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_visits_unique_class_names_only_once() {
+		$p = new WP_HTML_Tag_Processor( '<div class="one one &#x6f;ne">' );
+		$p->next_tag();
+
+		$found_classes = array();
+		foreach ( $p->class_list() as $class ) {
+			$found_classes[] = $class;
+		}
+
+		$this->assertSame( array( 'one' ), $found_classes, 'Visited multiple copies of the same class name when it should have skipped the duplicates.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::has_class
+	 *
+	 * @dataProvider data_html_with_variations_of_class_values_and_sought_class_names
+	 *
+	 * @param string $html         Contains a tag optionally containing a `class` attribute.
+	 * @param string $sought_class Name of class to find in the input tag's `class`.
+	 * @param bool   $has_class    Whether the sought class exists in the given HTML.
+	 */
+	public function test_has_class_handles_expected_class_name_variations( $html, $sought_class, $has_class ) {
+		$p = new WP_HTML_Tag_Processor( $html );
+		$p->next_tag();
+
+		if ( $has_class ) {
+			$this->assertTrue( $p->has_class( $sought_class ), "Failed to find expected class {$sought_class}." );
+		} else {
+			$this->assertFalse( $p->has_class( $sought_class ), "Found class {$sought_class} when it doesn't exist." );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_html_with_variations_of_class_values_and_sought_class_names() {
+		return array(
+			'Tag without any classes'      => array( '<div>', 'foo', false ),
+			'Tag with boolean class'       => array( '<img class>', 'foo', false ),
+			'Tag with empty class'         => array( '<p class="">', 'foo', false ),
+			'Tag with exact match'         => array( '<button class="foo">', 'foo', true ),
+			'Tag with duplicate matches'   => array( '<span class="foo bar foo">', 'foo', true ),
+			'Tag with non-initial match'   => array( '<section class="bar foo">', 'foo', true ),
+			'Tag with encoded match'       => array( '<main class="&hellip;">', '…', true ),
+			'Class with tab separator'     => array( "<div class='one\ttwo'>", 'two', true ),
+			'Class with newline separator' => array( "<div class='one\ntwo\n'>", 'two', true ),
+			'False duplicate attribute'    => array( '<img class=dog class=cat>', 'cat', false ),
 		);
 	}
 
