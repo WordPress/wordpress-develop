@@ -893,6 +893,8 @@ class WP_User {
 		}
 
 		$this->cap_key = $wpdb->get_blog_prefix( $this->site_id ) . 'capabilities';
+
+		wp_lazyload_user_meta( array( $this->ID ) );
 	}
 
 	/**
