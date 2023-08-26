@@ -1354,7 +1354,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 	 * (which is to say, when they share the domain name of the current request).
 	 */
 	if ( is_ssl() && ! str_starts_with( $image_baseurl, 'https' ) && parse_url( $image_baseurl, PHP_URL_HOST ) === $_SERVER['HTTP_HOST'] ) {
-		$image_baseurl = network_home_url( $image_baseurl );
+		$image_baseurl = set_url_scheme( $image_baseurl, 'https' );
 	}
 
 	/*
