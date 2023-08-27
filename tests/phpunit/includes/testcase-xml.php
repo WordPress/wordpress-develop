@@ -41,7 +41,7 @@ abstract class WP_Test_XML_TestCase extends WP_UnitTestCase {
 	 */
 	public function normalizeXML( $xml, $options = 0 ) {
 		if ( ! class_exists( 'XSLTProcessor' ) ) {
-			$this->markTestSkipped( 'This test requires the XSL extension.' );
+			$this->fail( 'This test requires the XSL extension.' );
 		}
 
 		static $xslt_proc;

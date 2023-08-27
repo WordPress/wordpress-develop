@@ -424,7 +424,7 @@ class Tests_File extends WP_UnitTestCase {
 
 		// Check to see if the system parameters prevent signature verifications.
 		if ( is_wp_error( $verify ) && 'signature_verification_unsupported' === $verify->get_error_code() ) {
-			$this->markTestSkipped( 'This system does not support Signature Verification.' );
+			$this->fail( 'This system does not support Signature Verification.' );
 		}
 
 		$this->assertNotWPError( $verify );
@@ -444,7 +444,7 @@ class Tests_File extends WP_UnitTestCase {
 		unlink( $file );
 
 		if ( is_wp_error( $verify ) && 'signature_verification_unsupported' === $verify->get_error_code() ) {
-			$this->markTestSkipped( 'This system does not support Signature Verification.' );
+			$this->fail( 'This system does not support Signature Verification.' );
 		}
 
 		$this->assertWPError( $verify );

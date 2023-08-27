@@ -867,14 +867,14 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		// Skip if the block theme is not available.
 		if ( ! wp_get_theme( $block_theme )->exists() ) {
-			$this->markTestSkipped( "$block_theme must be available." );
+			$this->fail( "$block_theme must be available." );
 		}
 
 		switch_theme( $block_theme );
 
 		// Skip if we could not switch to the block theme.
 		if ( wp_get_theme()->stylesheet !== $block_theme ) {
-			$this->markTestSkipped( "Could not switch to $block_theme." );
+			$this->fail( "Could not switch to $block_theme." );
 		}
 	}
 }

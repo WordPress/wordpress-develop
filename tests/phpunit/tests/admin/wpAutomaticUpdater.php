@@ -69,7 +69,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 		$has_failed     = ! empty( $failed );
 
 		if ( ! $has_successful && ! $has_failed ) {
-			$this->markTestSkipped( 'This test requires at least one successful or failed plugin update object.' );
+			$this->fail( 'This test requires at least one successful or failed plugin update object.' );
 		}
 
 		$type = $has_successful && $has_failed ? 'mixed' : ( ! $has_failed ? 'success' : 'fail' );
@@ -337,7 +337,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 		$has_failed     = ! empty( $failed );
 
 		if ( ! $has_successful && ! $has_failed ) {
-			$this->markTestSkipped( 'This test requires at least one successful or failed plugin update object.' );
+			$this->fail( 'This test requires at least one successful or failed plugin update object.' );
 		}
 
 		$type = $has_successful && $has_failed ? 'mixed' : ( ! $has_failed ? 'success' : 'fail' );
