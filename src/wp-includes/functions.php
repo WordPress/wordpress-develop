@@ -1132,13 +1132,13 @@ function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urle
 function add_query_arg( ...$args ) {
 	if ( is_array( $args[0] ) ) {
 		if ( count( $args ) < 2 || false === $args[1] ) {
-			$uri = network_home_url();
+			$uri = network_home_url( $_SERVER['REQUEST_URI'] );
 		} else {
 			$uri = $args[1];
 		}
 	} else {
 		if ( count( $args ) < 3 || false === $args[2] ) {
-			$uri = network_home_url();
+			$uri = network_home_url( $_SERVER['REQUEST_URI'] );
 		} else {
 			$uri = $args[2];
 		}
