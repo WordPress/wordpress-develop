@@ -741,7 +741,7 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
  *                               Default empty array.
  */
 function load_template( $_template_file, $load_once = true, $args = array() ) {
-	global  $wp_query;
+	global $wp_query;
 
 	if ( is_array( $wp_query->query_vars ) ) {
 		/*
