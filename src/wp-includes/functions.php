@@ -1917,7 +1917,7 @@ function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $dis
  */
 function wp_referer_field( $display = true ) {
 	$request_url   = remove_query_arg( '_wp_http_referer' );
-	$referer_field = '<input type="hidden" name="_wp_http_referer"  debug="kurt1w" value="' . esc_url( $request_url ) . '" />';
+	$referer_field = '<input type="hidden" name="_wp_http_referer" value="' . esc_url( $request_url ) . '" />';
 
 	if ( $display ) {
 		echo $referer_field;
