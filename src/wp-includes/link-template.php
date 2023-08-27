@@ -4539,9 +4539,11 @@ function get_avatar_data( $id_or_email, $args = null ) {
 function get_theme_file_uri( $file = '' ) {
 	$file = ltrim( $file, '/' );
 
+	$stylesheet_directory = get_stylesheet_directory();
+
 	if ( empty( $file ) ) {
 		$url = get_stylesheet_directory_uri();
-	} elseif ( file_exists( get_stylesheet_directory() . '/' . $file ) ) {
+	} elseif ( $stylesheet_directory !== get_template_directory() && file_exists( $stylesheet_directory . '/' . $file ) ) {
 		$url = get_stylesheet_directory_uri() . '/' . $file;
 	} else {
 		$url = get_template_directory_uri() . '/' . $file;
