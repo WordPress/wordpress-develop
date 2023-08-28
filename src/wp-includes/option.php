@@ -390,6 +390,7 @@ function wp_set_options_autoload( $options, $autoload ) {
 
 	$results = array();
 	foreach ( $options as $option ) {
+		wp_protect_special_option( $option ); // Ensure only valid options can be passed.
 		$results[ $option ] = false;
 	}
 
