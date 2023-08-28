@@ -365,72 +365,6 @@ function get_options( $options ) {
 }
 
 /**
- * Sets the autoload value for an option in the database.
- *
- * Autoloading too many options can lead to performance problems, especially if the options are not frequently used.
- * This function allows modifying the autoload value for an option without changing the actual option value. This is
- * for example recommended for plugin activation and deactivation hooks, to ensure any options exclusively used by the
- * plugin which are generally autoloaded can be set to not autoload when the plugin is inactive.
- *
- * Alternatively, {@see wp_set_options_autoload()} can be used to set the autoload value for multiple options at once.
- *
- * @since 6.4.0
- *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
- * @param string      $option   Name of the option. Expected to not be SQL-escaped.
- * @param string|bool $autoload Autoload value to control whether to load the option when WordPress starts up.
- *                              Accepts 'yes'|true to enable or 'no'|false to disable.
- * @return bool True if the autoload value was modified, false otherwise.
- */
-function wp_set_option_autoload( $option, $autoload ) {
-	global $wpdb;
-
-	$autoload = ( 'no' === $autoload || false === $autoload ) ? 'no' : 'yes';
-
-	/*
-	 * Determine the current autoload value for the option.
-	 * If the value is empty, it means the option does not exist in the database.
-	 * If the old and new value are the same, no need to update.
-	 */
-	$old_autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $option ) );
-	if ( ! $old_autoload || $old_autoload === $autoload ) {
-		return false;
-	}
-
-	// Update the autoload value.
-	$result = $wpdb->update(
-		$wpdb->options,
-		array( 'autoload' => $autoload ),
-		array( 'option_name' => $option )
-	);
-	if ( ! $result ) {
-		return false;
-	}
-
-	// Update caches as necessary based on the autoload change.
-	$alloptions = wp_load_alloptions( true );
-	if ( 'no' === $autoload ) {
-		// If set in alloptions, remove and migrate to individual cache.
-		if ( isset( $alloptions[ $option ] ) ) {
-			wp_cache_set( $option, $alloptions[ $option ], 'options' );
-			unset( $alloptions[ $option ] );
-			wp_cache_set( 'alloptions', $alloptions, 'options' );
-		}
-	} else {
-		// If set in cache, migrate to alloptions and delete individual cache.
-		$value = wp_cache_get( $option, 'options' );
-		if ( false !== $value ) {
-			$alloptions[ $option ] = $value;
-			wp_cache_delete( $option, 'options' );
-			wp_cache_set( 'alloptions', $alloptions, 'options' );
-		}
-	}
-
-	return true;
-}
-
-/**
  * Sets the autoload value for multiple options in the database.
  *
  * Autoloading too many options can lead to performance problems, especially if the options are not frequently used.
@@ -513,6 +447,28 @@ function wp_set_options_autoload( $options, $autoload ) {
 	}
 
 	return $results;
+}
+
+/**
+ * Sets the autoload value for an option in the database.
+ *
+ * This is a wrapper for {@see wp_set_options_autoload()}, which can be used to set the autoload value for multiple
+ * options at once.
+ *
+ * @since 6.4.0
+ * @see wp_set_options_autoload()
+ *
+ * @param string      $option   Name of the option. Expected to not be SQL-escaped.
+ * @param string|bool $autoload Autoload value to control whether to load the option when WordPress starts up.
+ *                              Accepts 'yes'|true to enable or 'no'|false to disable.
+ * @return bool True if the autoload value was modified, false otherwise.
+ */
+function wp_set_option_autoload( $option, $autoload ) {
+	$result = wp_set_options_autoload( array( $option ), $autoload );
+	if ( isset( $result[ $option ] ) ) {
+		return $result[ $option ];
+	}
+	return false;
 }
 
 /**
