@@ -228,7 +228,25 @@ function get_the_block_template_html() {
 	$content = $wp_embed->autoembed( $content );
 	$content = shortcode_unautop( $content );
 	$content = do_shortcode( $content );
-	$content = do_blocks( $content );
+
+	/*
+	 * Most block themes omit the `core/query` and `core/post-template` blocks in their singular content templates.
+	 * While this technically still works since singular content templates are always for only one post, it results in
+	 * the main query loop never being entered which causes bugs in core and the plugin ecosystem.
+	 *
+	 * The workaround below ensures that the loop is started even for those singular templates without the relevant
+	 * blocks. The while loop will by definition only go through a single iteration, i.e. `do_blocks()` is only called
+	 * once.
+	 */
+	if ( is_singular() && ! has_block( 'core/post-template', $content ) ) {
+		while ( have_posts() ) {
+			the_post();
+			$content = do_blocks( $content );
+		}
+	} else {
+		$content = do_blocks( $content );
+	}
+
 	$content = wptexturize( $content );
 	$content = convert_smilies( $content );
 	$content = wp_filter_content_tags( $content, 'template' );
