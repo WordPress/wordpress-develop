@@ -488,5 +488,39 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$this->assertNotWPError( $res );
 	}
 
+	/**
+	 * @ticket 53513
+	 */
+	public function test_http_protocol_version_10() {
+		$url = 'http://example.org';
 
+		$response = wp_remote_head(
+			$url,
+			array(
+				'httpversion' => '1.0',
+			)
+		);
+
+		$this->skipTestOnTimeout( $response );
+
+		$this->assertSame( 1.0, $response['http_response']->get_response_object()->protocol_version );
+	}
+
+	/**
+	 * @ticket 53513
+	 */
+	public function test_http_protocol_version_11() {
+		$url = 'http://example.org';
+
+		$response = wp_remote_head(
+			$url,
+			array(
+				'httpversion' => '1.1',
+			)
+		);
+
+		$this->skipTestOnTimeout( $response );
+
+		$this->assertSame( 1.1, $response['http_response']->get_response_object()->protocol_version );
+	}
 }

@@ -377,6 +377,9 @@ class WP_Http {
 		 */
 		$options['verify'] = apply_filters( 'https_ssl_verify', $options['verify'], $url );
 
+		// HTTP protocol version.
+		$options['protocol_version'] = (float) $parsed_args['httpversion'];
+
 		// Check for proxies.
 		$proxy = new WP_HTTP_Proxy();
 		if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) {
