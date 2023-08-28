@@ -428,33 +428,33 @@ function wp_default_packages_inline_scripts( $scripts ) {
 						'meridiem'      => (object) $wp_locale->meridiem,
 						'relative'      => array(
 							/* translators: %s: Duration. */
-							'future' => __( '%s from now', 'default' ),
+							'future' => __( '%s from now' ),
 							/* translators: %s: Duration. */
-							'past'   => __( '%s ago', 'default' ),
+							'past'   => __( '%s ago' ),
 							/* translators: One second from or to a particular datetime, e.g., "a second ago" or "a second from now". */
-							's'      => __( 'a second', 'default' ),
+							's'      => __( 'a second' ),
 							/* translators: %s: Duration in seconds from or to a particular datetime, e.g., "4 seconds ago" or "4 seconds from now". */
-							'ss'     => __( '%d seconds', 'default' ),
+							'ss'     => __( '%d seconds' ),
 							/* translators: One minute from or to a particular datetime, e.g., "a minute ago" or "a minute from now". */
-							'm'      => __( 'a minute', 'default' ),
+							'm'      => __( 'a minute' ),
 							/* translators: %s: Duration in minutes from or to a particular datetime, e.g., "4 minutes ago" or "4 minutes from now". */
-							'mm'     => __( '%d minutes', 'default' ),
+							'mm'     => __( '%d minutes' ),
 							/* translators: %s: One hour from or to a particular datetime, e.g., "an hour ago" or "an hour from now". */
-							'h'      => __( 'an hour', 'default' ),
+							'h'      => __( 'an hour' ),
 							/* translators: %s: Duration in hours from or to a particular datetime, e.g., "4 hours ago" or "4 hours from now". */
-							'hh'     => __( '%d hours', 'default' ),
+							'hh'     => __( '%d hours' ),
 							/* translators: %s: One day from or to a particular datetime, e.g., "a day ago" or "a day from now". */
-							'd'      => __( 'a day', 'default' ),
+							'd'      => __( 'a day' ),
 							/* translators: %s: Duration in days from or to a particular datetime, e.g., "4 days ago" or "4 days from now". */
-							'dd'     => __( '%d days', 'default' ),
+							'dd'     => __( '%d days' ),
 							/* translators: %s: One month from or to a particular datetime, e.g., "a month ago" or "a month from now". */
-							'M'      => __( 'a month', 'default' ),
+							'M'      => __( 'a month' ),
 							/* translators: %s: Duration in months from or to a particular datetime, e.g., "4 months ago" or "4 months from now". */
-							'MM'     => __( '%d months', 'default' ),
+							'MM'     => __( '%d months' ),
 							/* translators: %s: One year from or to a particular datetime, e.g., "a year ago" or "a year from now". */
-							'y'      => __( 'a year', 'default' ),
+							'y'      => __( 'a year' ),
 							/* translators: %s: Duration in years from or to a particular datetime, e.g., "4 years ago" or "4 years from now". */
-							'yy'     => __( '%d years', 'default' ),
+							'yy'     => __( '%d years' ),
 						),
 						'startOfWeek'   => (int) get_option( 'start_of_week', 0 ),
 					),
