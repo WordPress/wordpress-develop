@@ -5938,14 +5938,13 @@ function wp_register_mime_cdn_handler( $handle, $mime_types, $callback ) {
 				unset( $wp_mime_cdn_handlers[ $mime_type ] );
 			}
 		}
-
 	}
 
 	// Map each mime type to its handler for quick lookup. Each type can only have one handler.
 	foreach ( $mime_types as $mime_type ) {
 		$wp_mime_cdn_handlers[ $mime_type ] = array(
-			'handle'     => $handle,
-			'callback'   => $callback,
+			'handle'   => $handle,
+			'callback' => $callback,
 		);
 	}
 }
