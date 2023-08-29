@@ -98,7 +98,7 @@ class WP_Plugin_Dependencies {
 
 		$required_headers = $this->parse_plugin_headers();
 		$this->slugs      = $this->sanitize_required_headers( $required_headers );
-		$this->get_dot_org_data();
+		$this->get_plugin_api_data();
 		$this->deactivate_unmet_dependencies();
 	}
 
@@ -227,7 +227,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @return void
 	 */
-	public function get_dot_org_data() {
+	public function get_plugin_api_data() {
 		global $pagenow;
 
 		if ( ! wp_doing_ajax() && ! in_array( $pagenow, array( 'plugin-install.php', 'plugins.php' ), true ) ) {
