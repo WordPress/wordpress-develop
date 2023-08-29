@@ -6072,12 +6072,16 @@ function get_pages( $args = array() ) {
 	 * it to `post_modified` which should result in the same order given the two dates in the fields match.
 	 */
 	$orderby = wp_parse_list( $parsed_args['sort_column'] );
-	$orderby = array_map( 'trim', $orderby );
-	foreach ( $orderby as $index => $orderby_field ) {
-		if ( 'post_modified_gmt' === $orderby_field || 'modified_gmt' === $orderby_field ) {
-			$orderby[ $index ] = str_replace( '_gmt', '', $orderby_field );
-		}
-	}
+	$orderby = array_map(
+		static function( $orderby_field ) {
+			$orderby_field = trim( $orderby_field );
+			if ( 'post_modified_gmt' === $orderby_field || 'modified_gmt' === $orderby_field ) {
+				$orderby_field = str_replace( '_gmt', '', $orderby_field );
+			}
+			return $orderby_field;
+		},
+		$orderby
+	);
 	if ( $orderby ) {
 		$query_args['orderby'] = array_fill_keys( $orderby, $parsed_args['sort_order'] );
 	}
