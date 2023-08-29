@@ -245,7 +245,8 @@ p {
 	margin-bottom: 0;
 }
 
-#login form .indicator-hint {
+#login form .indicator-hint,
+#login #reg_passmail {
 	margin-bottom: 16px;
 }
 
