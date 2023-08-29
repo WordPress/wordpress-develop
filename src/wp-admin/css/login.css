@@ -245,6 +245,10 @@ p {
 	margin-bottom: 0;
 }
 
+#login form .indicator-hint {
+	margin-bottom: 16px;
+}
+
 #login form p.submit {
 	margin: 0;
 	padding: 0;
