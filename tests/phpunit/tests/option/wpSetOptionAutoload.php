@@ -23,8 +23,8 @@ class Tests_Option_WpSetOptionAutoload extends WP_UnitTestCase {
 
 		$this->assertTrue( wp_set_option_autoload( $option, 'yes' ), 'Function did not succeed' );
 		$this->assertSame( 'yes', $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $option ) ), 'Option autoload value not updated in database' );
-		$this->assertArrayHasKey( $option, wp_cache_get( 'alloptions', 'options' ), 'Option not migrated to alloptions cache' );
 		$this->assertFalse( wp_cache_get( $option, 'options' ), 'Option not deleted from individual cache' );
+		$this->assertFalse( wp_cache_get( 'alloptions', 'options' ), 'Alloptions cache not cleared' );
 	}
 
 	/**
@@ -43,7 +43,6 @@ class Tests_Option_WpSetOptionAutoload extends WP_UnitTestCase {
 		$this->assertTrue( wp_set_option_autoload( $option, 'no' ), 'Function did not succeed' );
 		$this->assertSame( 'no', $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $option ) ), 'Option autoload value not updated in database' );
 		$this->assertArrayNotHasKey( $option, wp_cache_get( 'alloptions', 'options' ), 'Option not deleted from alloptions cache' );
-		$this->assertSame( $value, wp_cache_get( $option, 'options' ), 'Option not migrated to individual cache' );
 	}
 
 	/**

@@ -416,35 +416,21 @@ function wp_set_options_autoload( $options, $autoload ) {
 		$results[ $option ] = true;
 	}
 
-	// Update caches as necessary based on the autoload change.
-	$alloptions = wp_load_alloptions( true );
-	$update     = false;
+	/*
+	 * If set to 'no', delete from 'alloptions' cache.
+	 * If set to 'yes', delete from individual cache, and delete 'alloptions' cache so that it is refreshed as needed.
+	 */
 	if ( 'no' === $autoload ) {
-		$cache_values = array();
+		$alloptions = wp_load_alloptions( true );
 		foreach ( $options_to_update as $option ) {
-			// If set in alloptions, remove and migrate to individual cache.
 			if ( isset( $alloptions[ $option ] ) ) {
-				$cache_values[ $option ] = $alloptions[ $option ];
 				unset( $alloptions[ $option ] );
-				$update = true;
 			}
 		}
-		wp_cache_set_multiple( $cache_values, 'options' );
-	} else {
-		$cache_values = wp_cache_get_multiple( $options_to_update, 'options' );
-		foreach ( $options_to_update as $option ) {
-			// If set in cache, migrate to alloptions and delete individual cache.
-			if ( isset( $cache_values[ $option ] ) && false !== $cache_values[ $option ] ) {
-				$alloptions[ $option ] = $cache_values[ $option ];
-				$update                = true;
-			} else {
-				unset( $cache_values[ $option ] );
-			}
-		}
-		wp_cache_delete_multiple( array_keys( $cache_values ), 'options' );
-	}
-	if ( $update ) {
 		wp_cache_set( 'alloptions', $alloptions, 'options' );
+	} else {
+		wp_cache_delete_multiple( $options_to_update , 'options' );
+		wp_cache_delete( 'alloptions', 'options' );
 	}
 
 	return $results;

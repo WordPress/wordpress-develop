@@ -32,9 +32,9 @@ class Tests_Option_WpSetOptionsAutoload extends WP_UnitTestCase {
 		$this->assertSame( $num_queries + 2, get_num_queries(), 'Updating options autoload value ran too many queries' );
 		$this->assertSame( array( 'yes', 'yes' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
 		foreach ( $options as $option => $value ) {
-			$this->assertArrayHasKey( $option, wp_cache_get( 'alloptions', 'options' ), sprintf( 'Option %s not migrated to alloptions cache', $option ) );
 			$this->assertFalse( wp_cache_get( $option, 'options' ), sprintf( 'Option %s not deleted from individual cache', $option ) );
 		}
+		$this->assertFalse( wp_cache_get( 'alloptions', 'options' ), 'Alloptions cache not cleared' );
 	}
 
 	/**
@@ -62,7 +62,6 @@ class Tests_Option_WpSetOptionsAutoload extends WP_UnitTestCase {
 		$this->assertSame( array( 'no', 'no' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
 		foreach ( $options as $option => $value ) {
 			$this->assertArrayNotHasKey( $option, wp_cache_get( 'alloptions', 'options' ), sprintf( 'Option %s not deleted from alloptions cache', $option ) );
-			$this->assertSame( $value, wp_cache_get( $option, 'options' ), sprintf( 'Option %s not migrated to individual cache', $option ) );
 		}
 	}
 
@@ -136,8 +135,8 @@ class Tests_Option_WpSetOptionsAutoload extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_set_options_autoload( array_keys( $options ), 'yes' ), 'Function produced unexpected result' );
 		$this->assertSame( array( 'yes', 'yes' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
 		foreach ( $options as $option => $value ) {
-			$this->assertArrayHasKey( $option, wp_cache_get( 'alloptions', 'options' ), sprintf( 'Option %s not migrated to alloptions cache', $option ) );
 			$this->assertFalse( wp_cache_get( $option, 'options' ), sprintf( 'Option %s not deleted from individual cache', $option ) );
 		}
+		$this->assertFalse( wp_cache_get( 'alloptions', 'options' ), 'Alloptions cache not cleared' );
 	}
 }
