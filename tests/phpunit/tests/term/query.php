@@ -729,7 +729,6 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$terms1 = $q1->query( $args );
 		$q2     = new WP_Term_Query();
 		$terms2 = $q2->query( $args );
-		remove_filter( 'terms_clauses', array( $this, 'filter_fields_terms_clauses' ) );
 		$this->assertSameSets( wp_list_pluck( $terms1, 'term_id' ), wp_list_pluck( $terms2, 'term_id' ), 'Check the term ids match' );
 		$this->assertSameSets( wp_list_pluck( $terms1, 'count' ), wp_list_pluck( $terms2, 'count' ), 'Check the term ids match' );
 	}
