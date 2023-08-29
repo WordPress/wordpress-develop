@@ -393,7 +393,7 @@ function wp_set_option_autoload_values( array $options ) {
 		'yes' => array(),
 		'no'  => array(),
 	);
-	$results        = array();
+	$results         = array();
 	foreach ( $options as $option => $autoload ) {
 		wp_protect_special_option( $option ); // Ensure only valid options can be passed.
 		if ( 'no' === $autoload || false === $autoload ) { // Sanitize autoload value and categorize accordingly.
@@ -423,6 +423,7 @@ function wp_set_option_autoload_values( array $options ) {
 	 * Determine the relevant options that do not already use the given autoload value.
 	 * If no options are returned, no need to update.
 	 */
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 	$options_to_update = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options $where", ...$where_args ) );
 	if ( ! $options_to_update ) {
 		return $results;
@@ -441,6 +442,7 @@ function wp_set_option_autoload_values( array $options ) {
 
 		// Run query to update autoload value for all the options where it is needed.
 		$placeholders = trim( str_repeat( '%s,', count( $grouped_options[ $autoload ] ) ), ',' );
+		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		$success = $wpdb->query( $wpdb->prepare( "UPDATE $wpdb->options SET autoload = %s WHERE option_name IN ($placeholders)", $autoload, ...$grouped_options[ $autoload ] ) );
 		if ( ! $success ) {
 			// Set option list to an empty array to indicate no options were updated.
