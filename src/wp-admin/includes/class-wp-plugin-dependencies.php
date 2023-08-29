@@ -88,7 +88,6 @@ class WP_Plugin_Dependencies {
 		if ( is_admin() ) {
 			add_filter( 'plugin_install_description', array( $this, 'plugin_install_description_uninstalled' ), 10, 2 );
 			add_filter( 'plugin_install_description', array( $this, 'set_plugin_card_data' ), 10, 1 );
-			add_filter( 'plugin_install_action_links', array( $this, 'empty_package_remove_install_button' ), 10, 2 );
 
 			add_action( 'admin_init', array( $this, 'modify_plugin_row' ), 15 );
 			add_action( 'admin_notices', array( $this, 'admin_notices' ) );
@@ -373,30 +372,6 @@ class WP_Plugin_Dependencies {
 		print '<script>';
 		print 'jQuery("tr[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .plugin-version-author-uri").append("<br><br><strong>' . esc_html__( 'Requires:' ) . '</strong> ' . wp_kses_post( $links ) . '");';
 		print '</script>';
-	}
-
-	/**
-	 * Disable 'Install Now' for empty packages.
-	 *
-	 * @global $pagenow Current page.
-	 *
-	 * @param array $action_links Array of plugin install action links.
-	 * @param array $plugin       Array of plugin data.
-	 * @return array
-	 */
-	public function empty_package_remove_install_button( $action_links, $plugin ) {
-		global $pagenow;
-
-		if ( 'plugin-install.php' !== $pagenow
-			|| ! empty( $plugin['download_link'] ) || ! str_contains( $action_links[0], 'install-now' )
-		) {
-			return $action_links;
-		}
-
-		$action_links[0] .= '<span class="screen-reader-text">' . __( 'Cannot install due to empty package' ) . '</span>';
-		$action_links[0]  = str_replace( 'install-now', 'install-now button-disabled', $action_links[0] );
-
-		return $action_links;
 	}
 
 	/**
