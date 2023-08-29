@@ -234,11 +234,14 @@ function get_the_block_template_html() {
 	 * While this technically still works since singular content templates are always for only one post, it results in
 	 * the main query loop never being entered which causes bugs in core and the plugin ecosystem.
 	 *
-	 * The workaround below ensures that the loop is started even for those singular templates without the relevant
-	 * blocks. The while loop will by definition only go through a single iteration, i.e. `do_blocks()` is only called
-	 * once.
+	 * The workaround below ensures that the loop is started even for those singular templates. The while loop will by
+	 * definition only go through a single iteration, i.e. `do_blocks()` is only called once.
+	 *
+	 * Even if the block template contained a `core/query` and `core/post-template` block referencing the main query
+	 * loop, it would not cause errors since it would use a cloned instance and go through the same loop of a single
+	 * post, within the actual main query loop.
 	 */
-	if ( is_singular() && ! has_block( 'core/post-template', $content ) ) {
+	if ( is_singular() ) {
 		while ( have_posts() ) {
 			the_post();
 			$content = do_blocks( $content );
