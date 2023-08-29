@@ -27,7 +27,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @var array
 	 */
-	protected $slugs;
+	protected static $slugs;
 
 	/**
 	 * Holds 'plugins_api()' data for plugin dependencies.
@@ -48,7 +48,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @var array
 	 */
-	protected $plugin_api_data;
+	protected static $plugin_api_data;
 
 	/**
 	 * Holds plugin directory names to compare with cache.
@@ -86,8 +86,8 @@ class WP_Plugin_Dependencies {
 	 */
 	public function start() {
 		if ( is_admin() ) {
-			add_filter( 'plugin_install_description', array( $this, 'plugin_install_description_uninstalled' ), 10, 2 );
-			add_filter( 'plugin_install_description', array( $this, 'set_plugin_card_data' ), 10, 1 );
+			add_filter( 'plugin_install_description', array( __CLASS__, 'plugin_install_description_uninstalled' ), 10, 2 );
+			add_filter( 'plugin_install_description', array( __CLASS__, 'set_plugin_card_data' ), 10, 1 );
 
 			add_action( 'admin_init', array( $this, 'modify_plugin_row' ), 15 );
 			add_action( 'admin_notices', array( $this, 'admin_notices' ) );
@@ -97,7 +97,7 @@ class WP_Plugin_Dependencies {
 		}
 
 		$required_headers = $this->parse_plugin_headers();
-		$this->slugs      = $this->sanitize_required_headers( $required_headers );
+		self::$slugs      = $this->sanitize_required_headers( $required_headers );
 		$this->get_plugin_api_data();
 		$this->deactivate_unmet_dependencies();
 	}
@@ -235,7 +235,7 @@ class WP_Plugin_Dependencies {
 		}
 
 		$this->plugin_data = (array) get_site_transient( 'wp_plugin_dependencies_plugin_data' );
-		foreach ( $this->slugs as $slug ) {
+		foreach ( self::$slugs as $slug ) {
 			// Set transient for individual data, remove from $this->plugin_data if transient expired.
 			if ( ! get_site_transient( "wp_plugin_dependencies_plugin_timeout_{$slug}" ) ) {
 				unset( $this->plugin_data[ $slug ] );
@@ -271,7 +271,7 @@ class WP_Plugin_Dependencies {
 		}
 
 		// Remove from $this->plugin_data if slug no longer a dependency.
-		$differences = array_diff( array_keys( $this->plugin_data ), $this->slugs );
+		$differences = array_diff( array_keys( $this->plugin_data ), self::$slugs );
 		if ( ! empty( $differences ) ) {
 			foreach ( $differences as $difference ) {
 				unset( $this->plugin_data[ $difference ] );
@@ -381,19 +381,19 @@ class WP_Plugin_Dependencies {
 	 * @param array  $plugin      Array of plugin data.
 	 * @return string
 	 */
-	public function plugin_install_description_uninstalled( $description, $plugin ) {
+	public static function plugin_install_description_uninstalled( $description, $plugin ) {
 		if ( empty( $plugin['requires_plugins'] ) ) {
 			return $description;
 		}
 
-		$this->plugin_api_data = (array) get_site_transient( 'wp_plugin_dependencies_plugin_api_data' );
+		self::$plugin_api_data = (array) get_site_transient( 'wp_plugin_dependencies_plugin_api_data' );
 		foreach ( $plugin['requires_plugins'] as $slug ) {
 			// Don't hit plugins API if data exists.
-			if ( array_key_exists( $slug, (array) $this->plugin_api_data ) ) {
+			if ( array_key_exists( $slug, (array) self::$plugin_api_data ) ) {
 				continue;
 			}
 
-			$this->slugs[] = $slug;
+			self::$slugs[] = $slug;
 			if ( ! function_exists( 'plugins_api' ) ) {
 				require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 			}
@@ -410,14 +410,14 @@ class WP_Plugin_Dependencies {
 				continue;
 			}
 
-			$this->plugin_api_data[ $response->slug ] = (array) $response;
-			ksort( $this->plugin_api_data );
-			unset( $this->plugin_api_data[0] );
-			set_site_transient( 'wp_plugin_dependencies_plugin_api_data', $this->plugin_api_data, WEEK_IN_SECONDS );
+			self::$plugin_api_data[ $response->slug ] = (array) $response;
+			ksort( self::$plugin_api_data );
+			unset( self::$plugin_api_data[0] );
+			set_site_transient( 'wp_plugin_dependencies_plugin_api_data', self::$plugin_api_data, WEEK_IN_SECONDS );
 		}
 
 		foreach ( $plugin['requires_plugins'] as $slug ) {
-			$plugin_data = $this->plugin_api_data[ $slug ];
+			$plugin_data = self::$plugin_api_data[ $slug ];
 			$url         = network_admin_url( 'plugin-install.php' );
 			$url         = add_query_arg(
 				array(
@@ -610,9 +610,9 @@ class WP_Plugin_Dependencies {
 			} else {
 				// More dependencies to install.
 				$installed_slugs = array_map( 'dirname', array_keys( $this->plugins ) );
-				$intersect       = array_intersect( $this->slugs, $installed_slugs );
+				$intersect       = array_intersect( self::$slugs, $installed_slugs );
 				asort( $intersect );
-				if ( $intersect !== $this->slugs ) {
+				if ( $intersect !== self::$slugs ) {
 					$message_html = __( 'There are additional plugin dependencies that must be installed.' );
 
 					printf(
@@ -643,8 +643,8 @@ class WP_Plugin_Dependencies {
 	protected function get_circular_dependencies() {
 		$circular_dependencies = array( 'names' => array() );
 		foreach ( $this->requires_plugins as $file => $requires ) {
-			if ( in_array( dirname( $file ), $this->slugs, true )
-				&& in_array( $requires['RequiresPlugins'], $this->slugs, true )
+			if ( in_array( dirname( $file ), self::$slugs, true )
+				&& in_array( $requires['RequiresPlugins'], self::$slugs, true )
 				&& isset( $this->plugin_data[ $requires['RequiresPlugins'] ]['name'] ) // Needed for WP-CLI.
 			) {
 				$slug                                   = $requires['RequiresPlugins'];
@@ -683,11 +683,14 @@ class WP_Plugin_Dependencies {
 
 				if ( '.' !== $dirname ) {
 					$this->plugin_dirnames[ $dirname ] = $plugin;
+				} else {
+					// Single file plugin.
+					$this->plugin_dirnames[ $plugin ] = $plugin;
 				}
 			}
 		}
 
-		foreach ( $this->slugs as $slug ) {
+		foreach ( self::$slugs as $slug ) {
 			if ( isset( $this->plugin_dirnames[ $slug ] ) ) {
 				$dependency_filepaths[ $slug ] = $this->plugin_dirnames[ $slug ];
 				continue;
