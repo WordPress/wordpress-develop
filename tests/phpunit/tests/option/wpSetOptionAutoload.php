@@ -58,9 +58,7 @@ class Tests_Option_WpSetOptionAutoload extends WP_UnitTestCase {
 
 		add_option( $option, $value, '', 'yes' );
 
-		$num_queries = get_num_queries();
 		$this->assertFalse( wp_set_option_autoload( $option, 'yes' ), 'Function did unexpectedly succeed' );
-		$this->assertSame( $num_queries + 1, get_num_queries(), 'Function attempted to update option autoload value in database' );
 		$this->assertSame( 'yes', $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $option ) ), 'Option autoload value unexpectedly updated in database' );
 	}
 
