@@ -967,7 +967,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 		switch ( $status['status'] ) {
 			case 'install':
 				if ( $status['url'] ) {
-					if ( $compatible_php && $compatible_wp && $all_plugin_dependencies_installed && ! empty($data->download_link) ) {
+					if ( $compatible_php && $compatible_wp && $all_plugin_dependencies_installed && ! empty( $data->download_link ) ) {
 						$button = sprintf(
 							'<a class="install-now button" data-slug="%s" href="%s" aria-label="%s" data-name="%s">%s</a>',
 							esc_attr( $data->slug ),
