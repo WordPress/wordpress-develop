@@ -41,8 +41,8 @@ p {
 	line-height: 1.5;
 }
 
-.login .notice,
 .login .message,
+.login .notice,
 .login .success {
 	border-left: 4px solid #72aee6;
 	padding: 12px;
