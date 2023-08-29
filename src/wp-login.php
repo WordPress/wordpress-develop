@@ -244,9 +244,11 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 
 		if ( ! empty( $error_list ) ) {
 			$errors = '<ul class="login-error-list">';
+
 			foreach ( $error_list as $item ) {
 				$errors .= '<li>' . $item . '</li>';
 			}
+
 			$errors .= '</ul>';
 
 			/**
