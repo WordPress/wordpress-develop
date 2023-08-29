@@ -834,7 +834,7 @@ switch ( $action ) {
 		 */
 		do_action( 'lost_password', $errors );
 
-		login_header( __( 'Lost Password' ), '<p class="message">' . __( 'Please enter your username or email address. You will receive an email message with instructions on how to reset your password.' ) . '</p>', $errors );
+		login_header( __( 'Lost Password' ), '<div class="message notice notice-info"><p>' . __( 'Please enter your username or email address. You will receive an email message with instructions on how to reset your password.' ) . '</p></div>', $errors );
 
 		$user_login = '';
 
@@ -951,7 +951,7 @@ switch ( $action ) {
 		if ( ( ! $errors->has_errors() ) && isset( $_POST['pass1'] ) && ! empty( $_POST['pass1'] ) ) {
 			reset_password( $user, $_POST['pass1'] );
 			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
-			login_header( __( 'Password Reset' ), '<p class="message reset-pass">' . __( 'Your password has been reset.' ) . ' <a href="' . esc_url( wp_login_url() ) . '">' . __( 'Log in' ) . '</a></p>' );
+			login_header( __( 'Password Reset' ), '<div class="message notice notice-info reset-pass"><p>' . __( 'Your password has been reset.' ) . ' <a href="' . esc_url( wp_login_url() ) . '">' . __( 'Log in' ) . '</a></p></div>' );
 			login_footer();
 			exit;
 		}
@@ -959,7 +959,7 @@ switch ( $action ) {
 		wp_enqueue_script( 'utils' );
 		wp_enqueue_script( 'user-profile' );
 
-		login_header( __( 'Reset Password' ), '<p class="message reset-pass">' . __( 'Enter your new password below or generate one.' ) . '</p>', $errors );
+		login_header( __( 'Reset Password' ), '<div class="message notice notice-info reset-pass"><p>' . __( 'Enter your new password below or generate one.' ) . '</p></div>', $errors );
 
 		?>
 		<form name="resetpassform" id="resetpassform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=resetpass', 'login_post' ) ); ?>" method="post" autocomplete="off">
@@ -1083,7 +1083,7 @@ switch ( $action ) {
 		 */
 		$redirect_to = apply_filters( 'registration_redirect', $registration_redirect, $errors );
 
-		login_header( __( 'Registration Form' ), '<p class="message register">' . __( 'Register For This Site' ) . '</p>', $errors );
+		login_header( __( 'Registration Form' ), '<div class="message notice notice-info register"><p>' . __( 'Register For This Site' ) . '</p></div>', $errors );
 
 		?>
 		<form name="registerform" id="registerform" action="<?php echo esc_url( site_url( 'wp-login.php?action=register', 'login_post' ) ); ?>" method="post" novalidate="novalidate">
