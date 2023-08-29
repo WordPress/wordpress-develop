@@ -3409,7 +3409,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 				'meta'  => array(
 					'foo' => $passed,
 				),
-			),
+			)
 		);
 
 		$response = rest_get_server()->dispatch( $request );
