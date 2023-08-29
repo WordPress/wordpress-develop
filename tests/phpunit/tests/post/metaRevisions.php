@@ -73,7 +73,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		// Restore the previous revision.
 		$revisions = (array) wp_get_post_revisions( $post_id );
 
-		// Go back two to load the previous revision.
+		// Go back to load the previous revision.
 		array_shift( $revisions );
 		$last_revision = array_shift( $revisions );
 
@@ -81,7 +81,6 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		wp_restore_post_revision( $last_revision->ID );
 
 		$this->assertEquals( $expected, get_post_meta( $post_id, 'meta_revision_test', true ) );
-		remove_filter( 'wp_post_revision_meta_keys', array( $this, 'add_revisioned_keys' ) );
 	}
 
 	/**
@@ -567,5 +566,82 @@ class MetaRevisionTests extends WP_UnitTestCase {
 	 */
 	protected function assertPostNotHasMetaKey( $post_id, $meta_key ) {
 		$this->assertArrayNotHasKey( $meta_key, get_metadata( 'post', $post_id ) );
+	}
+
+	/**
+	 * Test post meta revisioning with a custom post type, as well as the "page" post type.
+	 *
+	 * @dataProvider page_post_type_data_provider
+	 */
+	public function test_revisions_stores_meta_values_page_and_cpt( $passed, $expected, $post_type, $supports_revisions = false ) {
+
+		// If the post type doesn't exist, create it, potentially supporting revisions.
+		if ( ! post_type_exists( $post_type ) ) {
+			register_post_type(
+				$post_type,
+				array(
+					'public'   => true,
+					'supports' => $supports_revisions ? array( 'revisions' ) : array(),
+				)
+			);
+		}
+
+		// Create a test post.
+		$page_id = $this->factory->post->create(
+			array(
+				'post_type'    => $post_type,
+				'post_content' => 'some initial content',
+			)
+		);
+
+		// Add the revisioning filter.
+		add_filter( 'wp_post_revision_meta_keys', array( $this, 'add_revisioned_keys' ) );
+
+		// Test revisioning.
+		update_post_meta( $page_id, 'meta_revision_test', wp_slash( $passed ) );
+
+		// Update the post, storing a revision.
+		wp_update_post(
+			array(
+				'post_content' => 'some more content',
+				'ID'           => $page_id,
+			)
+		);
+
+		// Retrieve the created revision.
+		$revisions = (array) wp_get_post_revisions( $page_id );
+
+		if ( $expected ) {
+			// Go back to load the previous revision.
+			$last_revision = array_shift( $revisions );
+				wp_restore_post_revision( $last_revision->ID );
+			$this->assertEquals( $expected, get_post_meta( $page_id, 'meta_revision_test', true ) );
+		} else {
+			$this->assertEmpty( $revisions );
+		}
+	}
+
+	/**
+	 * Provide data for the page post type tests.
+	 */
+	public function page_post_type_data_provider() {
+		return array(
+			array(
+				'Test string',
+				'Test string',
+				'page',
+			),
+			array(
+				'Test string',
+				false,
+				'custom_type',
+			),
+			array(
+				'Test string',
+				'Test string',
+				'custom_type',
+				true,
+			),
+		);
 	}
 }

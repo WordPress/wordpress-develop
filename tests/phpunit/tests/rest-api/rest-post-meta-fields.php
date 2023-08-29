@@ -17,7 +17,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			'cpt',
 			array(
 				'show_in_rest' => true,
-				'supports'     => array( 'custom-fields' ),
+				'supports'     => array( 'custom-fields', 'revisions' ),
 			)
 		);
 
@@ -157,7 +157,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			'cpt',
 			array(
 				'show_in_rest' => true,
-				'supports'     => array( 'custom-fields' ),
+				'supports'     => array( 'custom-fields', 'revisions' ),
 			)
 		);
 
@@ -1376,8 +1376,6 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	 * @dataProvider data_update_value_return_success_with_same_value
 	 */
 	public function test_update_value_return_success_with_same_value( $meta_key, $meta_value ) {
-		add_post_meta( self::$post_id, $meta_key, $meta_value );
-
 		$this->grant_write_permission();
 
 		$data = array(
@@ -1392,6 +1390,13 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
+
+		// Verify the returned meta value is correct.
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+		$this->assertArrayHasKey( $meta_key, $data['meta'] );
+		$this->assertSame( $meta_value, $data['meta'][ $meta_key ] );
+
 	}
 
 	public function data_update_value_return_success_with_same_value() {
@@ -3354,5 +3359,117 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		// Restore Revision 2 and verify the post gets the correct meta value.
 		wp_restore_post_revision( $revision_id_2 );
 		$this->assertSame( array( 'car', 'cat' ), get_post_meta( $post_id, 'foo' ) );
+	}
+
+	/**
+	 * Test post meta revisions with a custom post type and the page post type.
+	 *
+	 * @group revision
+	 * @dataProvider test_revisioned_single_post_meta_with_posts_endpoint_page_and_cpt_data_provider
+	 */
+	public function test_revisioned_single_post_meta_with_posts_endpoint_page_and_cpt( $passed, $expected, $post_type ) {
+
+		$this->grant_write_permission();
+
+		// Create the custom meta.
+		register_post_meta(
+			$post_type,
+			'foo',
+			array(
+				'show_in_rest'      => true,
+				'revisions_enabled' => true,
+				'single'            => true,
+				'type'              => 'string',
+			)
+		);
+
+		// Set up a new post.
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => 'initial content',
+				'post_type'    => $post_type,
+				'meta_input'   => array(
+					'foo' => 'foo',
+				),
+			)
+		);
+
+		$plural_mapping = array(
+			'page' => 'pages',
+			'cpt'  => 'cpt',
+		);
+		$request        = new WP_REST_Request( 'GET', sprintf( '/wp/v2/%s', $plural_mapping[ $post_type ] ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/%s/%d', $plural_mapping[ $post_type ], $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 1',
+				'meta'  => array(
+					'foo' => $passed,
+				),
+			),
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// Update the post.
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/%s/%d', $plural_mapping[ $post_type ], $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 1 update',
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// Get the last revision.
+		$revisions = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
+
+		$revision_id_1 = array_shift( $revisions )->ID;
+
+		// Check that the revision has the correct meta value.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/%s/%d/revisions/%d', $plural_mapping[ $post_type ], $post_id, $revision_id_1 ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertSame(
+			$passed,
+			$response->get_data()['meta']['foo']
+		);
+
+		$this->assertSame(
+			array( $passed ),
+			get_post_meta( $revision_id_1, 'foo' )
+		);
+
+		unregister_post_meta( $post_type, 'foo' );
+		wp_delete_post( $post_id, true );
+	}
+
+	/**
+	 * Provide data for the meta revision checks.
+	 */
+	public function test_revisioned_single_post_meta_with_posts_endpoint_page_and_cpt_data_provider() {
+		return array(
+			array(
+				'Test string',
+				'Test string',
+				'cpt',
+			),
+			array(
+				'Test string',
+				'Test string',
+				'page',
+			),
+			array(
+				'Test string',
+				false,
+				'cpt',
+			),
+
+		);
 	}
 }
