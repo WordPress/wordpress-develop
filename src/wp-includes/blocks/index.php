@@ -47,6 +47,12 @@ function register_core_block_style_handles() {
 	if ( ! wp_is_development_mode( 'core' ) ) {
 		$transient_name = 'wp_core_block_css_files';
 		$files          = get_transient( $transient_name );
+
+		// Invalid cache if file's path from transient doesn't match the current includes path.
+		if ( is_array( $files ) && ! str_starts_with( reset( $files ), $includes_path ) ) {
+			$files = false;
+		}
+
 		if ( ! $files ) {
 			$files = glob( wp_normalize_path( __DIR__ . '/**/**.css' ) );
 			set_transient( $transient_name, $files );
