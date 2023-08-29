@@ -733,6 +733,9 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$this->assertSameSets( wp_list_pluck( $terms1, 'count' ), wp_list_pluck( $terms2, 'count' ), 'Term counts are expected to match' );
 	}
 
+        /**
+         * Filter `terms_clauses` to change the field requested. The filter is from example code given in #58116. 
+         */
 	public function filter_fields_terms_clauses( $clauses, $taxonomies, $args ) {
 		global $wpdb;
 
