@@ -79,7 +79,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
 
@@ -133,7 +133,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
 
@@ -165,7 +165,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
-    needs: [ test-build-scripts, bundle-theme, slack-notifications ]
+    needs: [ slack-notifications ]
     if: |
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
@@ -178,7 +178,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         with:
           retries: 2
           retry-exempt-status-codes: 418

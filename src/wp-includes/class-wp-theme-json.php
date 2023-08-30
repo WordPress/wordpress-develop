@@ -1263,7 +1263,7 @@ class WP_Theme_JSON {
 
 		if ( isset( $block_metadata['name'] ) ) {
 			$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_metadata['name'] );
-			if ( ! block_has_support( $block_type, array( 'layout' ), false ) && ! block_has_support( $block_type, array( '__experimentalLayout' ), false ) ) {
+			if ( ! block_has_support( $block_type, 'layout', false ) && ! block_has_support( $block_type, '__experimentalLayout', false ) ) {
 				return $block_rules;
 			}
 		}
@@ -2685,7 +2685,7 @@ class WP_Theme_JSON {
 	 * @param array      $theme_json The theme.json like structure to inspect.
 	 * @param array      $path       Path to inspect.
 	 * @param bool|array $override   Data to compute whether to override the preset.
-	 * @return boolean
+	 * @return bool
 	 */
 	protected static function should_override_preset( $theme_json, $path, $override ) {
 		_deprecated_function( __METHOD__, '6.0.0', 'get_metadata_boolean' );
