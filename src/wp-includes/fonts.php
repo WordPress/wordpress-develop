@@ -49,12 +49,7 @@ function wp_print_font_faces( $fonts = array() ) {
 		return;
 	}
 
-	if (
-		null === $wp_font_face ||
-
-		// Ignore cache when automated test suites are running.
-		( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS )
-	) {
+	if ( null === $wp_font_face ) {
 		$wp_font_face = new WP_Font_Face();
 	}
 
