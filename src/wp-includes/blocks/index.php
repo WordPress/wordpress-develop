@@ -49,13 +49,6 @@ function register_core_block_style_handles() {
 		$files          = get_transient( $transient_name );
 		if ( ! $files ) {
 			$files = glob( wp_normalize_path( __DIR__ . '/**/**.css' ) );
-
-			/*
-			 * Make CSS files path relative before storing them in transient.
-			 *
-			 * Remove the `wp-includes` part to avoid issue when moving site (and the database) to another server :
-			 * /path/to/wp-includes/blocks/xxx/yyy.css => blocks/xxx/yyy.css
-			 */
 			$files = array_map(
 				static function ( $file ) use ( $includes_path ) {
 					return str_replace( $includes_path, '', $file );
@@ -64,28 +57,21 @@ function register_core_block_style_handles() {
 			);
 			set_transient( $transient_name, $files );
 		}
-
-		/*
-		 * Rebuild the full path for all CSS file when loading them from transient.
-		 *
-		 * Add the `wp-includes` part back :
-		 * blocks/xxx/yyy.css => /path/to/wp-includes/blocks/xxx/yyy.css
-		 */
+	} else {
+		$files = glob( wp_normalize_path( __DIR__ . '/**/**.css' ) );
 		$files = array_map(
 			static function ( $file ) use ( $includes_path ) {
-				return $includes_path . $file;
+				return str_replace( $includes_path, '', $file );
 			},
 			$files
 		);
-	} else {
-		$files = glob( wp_normalize_path( __DIR__ . '/**/**.css' ) );
 	}
 
 	$register_style = static function( $name, $filename, $style_handle ) use ( $includes_path, $includes_url, $suffix, $wp_styles, $files ) {
 		$style_path = "blocks/{$name}/{$filename}{$suffix}.css";
 		$path       = wp_normalize_path( $includes_path . $style_path );
 
-		if ( ! in_array( $path, $files, true ) ) {
+		if ( ! in_array( $style_path, $files, true ) ) {
 			$wp_styles->add(
 				$style_handle,
 				false
