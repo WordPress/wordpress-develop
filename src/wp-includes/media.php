@@ -2062,7 +2062,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
  */
 function wp_img_tag_add_decoding_attr( $image, $context ) {
 	# see https://core.trac.wordpress.org/ticket/58892
-	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_get_loading_optimization_attributes()' );
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_img_tag_add_loading_optimization_attrs()' );
 
 	/*
 	 * Only apply the decoding attribute to images that have a src attribute that
