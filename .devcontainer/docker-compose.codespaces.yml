@@ -13,3 +13,7 @@ services:
   # Allow access to MySQL container from everywhere.
   mysql:
     command: --default-authentication-plugin=mysql_native_password --bind-address=0.0.0.0
+
+    environment:
+      # Force initialization of root user.
+      MYSQL_ROOT_HOST: "%"
