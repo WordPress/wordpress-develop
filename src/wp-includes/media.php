@@ -2053,7 +2053,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
  * to remove the attribute or set it to another accepted value.
  *
  * @since 6.1.0
- * @deprecated 6.4.0 Use wp_get_loading_optimization_attributes()
+ * @deprecated 6.4.0 Use wp_img_tag_add_loading_optimization_attrs() instead.
  *
  * @param string $image   The HTML `img` tag where the attribute should be added.
  * @param string $context Additional context to pass to the filters.
