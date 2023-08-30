@@ -95,7 +95,6 @@ class WP_Font_Face {
 	 * @param array[][] $fonts Optional. The font-families and their font variations.
 	 *                         See {@see wp_print_font_faces()} for the supported fields.
 	 *                         Default empty array.
-	 * }
 	 */
 	public function generate_and_print( array $fonts ) {
 		$fonts = $this->validate_fonts( $fonts );
@@ -143,7 +142,7 @@ class WP_Font_Face {
 	 * @since 6.4.0
 	 *
 	 * @param array $font_face Font face properties to validate.
-	 * @return false|array Validated font-face on success. Else, false.
+	 * @return array|false Validated font-face on success, or false on failure.
 	 */
 	private function validate_font_face_properties( array $font_face ) {
 		$font_face = wp_parse_args( $font_face, $this->font_face_property_defaults );
@@ -171,17 +170,15 @@ class WP_Font_Face {
 		}
 
 		// Validate the 'src' property.
-		if ( ! empty( $font_face['src'] ) ) {
-			foreach ( (array) $font_face['src'] as $src ) {
-				if ( empty( $src ) || ! is_string( $src ) ) {
-					// @todo replace with `wp_trigger_error()`.
-					_doing_it_wrong(
-						__METHOD__,
-						__( 'Each font src must be a non-empty string.' ),
-						'6.4.0'
-					);
-					return false;
-				}
+		foreach ( (array) $font_face['src'] as $src ) {
+			if ( empty( $src ) || ! is_string( $src ) ) {
+				// @todo replace with `wp_trigger_error()`.
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'Each font src must be a non-empty string.' ),
+					'6.4.0'
+				);
+				return false;
 			}
 		}
 
@@ -202,9 +199,9 @@ class WP_Font_Face {
 		}
 
 		// Remove invalid properties.
-		foreach ( $font_face as $prop => $value ) {
-			if ( ! in_array( $prop, $this->valid_font_face_properties, true ) ) {
-				unset( $font_face[ $prop ] );
+		foreach ( $font_face as $property => $value ) {
+			if ( ! in_array( $property, $this->valid_font_face_properties, true ) ) {
+				unset( $font_face[ $property ] );
 			}
 		}
 
@@ -212,7 +209,7 @@ class WP_Font_Face {
 	}
 
 	/**
-	 * Gets the `<style>` element for wrapping the `@font-face` CSS.
+	 * Gets the style element for wrapping the `@font-face` CSS.
 	 *
 	 * @since 6.4.0
 	 *
@@ -350,8 +347,10 @@ class WP_Font_Face {
 	private function build_font_face_css( array $font_face ) {
 		$css = '';
 
-		// Wrap font-family in quotes if it contains spaces
-		// and is not already wrapped in quotes.
+		/*
+		 * Wrap font-family in quotes if it contains spaces
+		 * and is not already wrapped in quotes.
+		 */
 		if (
 			str_contains( $font_face['font-family'], ' ' ) &&
 			! str_contains( $font_face['font-family'], '"' ) &&

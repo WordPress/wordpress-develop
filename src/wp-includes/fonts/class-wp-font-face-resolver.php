@@ -29,7 +29,7 @@ class WP_Font_Face_Resolver {
 		$settings = wp_get_global_settings();
 
 		// Bail out early if there are no font settings.
-		if ( empty( $settings['typography'] ) || empty( $settings['typography']['fontFamilies'] ) ) {
+		if ( empty( $settings['typography']['fontFamilies'] ) ) {
 			return array();
 		}
 
