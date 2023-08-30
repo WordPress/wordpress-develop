@@ -26,9 +26,12 @@ if ( process.env.CODESPACES ) {
 	// Add our custom Codespaces host mapping code.
 	const fixHost = `
 		// Use forwarded host if available.
-        if ( ! empty( $_SERVER['HTTP_X_FORWARDED_HOST'] ) ) {
-          $_SERVER['HTTP_HOST'] = $_SERVER['HTTP_X_FORWARDED_HOST'];
-        }
+		if ( ! empty( $_SERVER['HTTP_X_FORWARDED_HOST'] ) ) {
+			$_SERVER['HTTP_HOST'] = $_SERVER['HTTP_X_FORWARDED_HOST'];
+		}
+		if ( ! empty( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && strpos( $_SERVER['HTTP_X_FORWARDED_PROTO'], 'https' ) !== false ) {
+			$_SERVER['HTTPS'] = 'on';
+		}
 	`;
 
 	const endMarker = "/* That's all, stop editing! Happy publishing. */";
