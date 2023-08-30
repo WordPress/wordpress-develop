@@ -5790,7 +5790,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			 * Returning a falsey value will omit the attribute.
 			 *
 			 * @since 6.1.0
-			 * @since 6.4.0 Added the `$attr` parameter
+			 * @since 6.4.0 Added the `$attr` parameter.
 			 *
 			 * @param string|false|null $value      The `decoding` attribute value. Returning a falsey value
 			 *                                      will result in the attribute being omitted for the image.
