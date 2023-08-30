@@ -134,7 +134,7 @@ class WP_Font_Face {
 
 		foreach ( $fonts as $font_faces ) {
 			foreach ( $font_faces as $font_face ) {
-				$font_face = $this->validate_font_face_properties( $font_face );
+				$font_face = $this->validate_font_face_declarations( $font_face );
 				// Skip if failed validation.
 				if ( false === $font_face ) {
 					continue;
@@ -148,14 +148,14 @@ class WP_Font_Face {
 	}
 
 	/**
-	 * Validates each font-face property.
+	 * Validates each font-face declaration (property and value pairing).
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param array $font_face Font face properties to validate.
+	 * @param array $font_face Font face property and value pairings to validate.
 	 * @return array|false Validated font-face on success, or false on failure.
 	 */
-	private function validate_font_face_properties( array $font_face ) {
+	private function validate_font_face_declarations( array $font_face ) {
 		$font_face = wp_parse_args( $font_face, $this->font_face_property_defaults );
 
 		// Check the font-family.
