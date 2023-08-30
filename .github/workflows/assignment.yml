@@ -1,6 +1,6 @@
 name: PHPUnit Tests
 
-on: [push] # You can customize the triggers based on your needs
+on: [push]
 
 jobs:
   test:
@@ -15,8 +15,11 @@ jobs:
         with:
           php-version: '7.4' # Adjust the PHP version as needed
 
-      - name: Install dependencies
+      - name: Install Composer dependencies
         run: composer install
 
+      - name: Copy PHPUnit configuration
+        run: cp phpunit.xml.dist phpunit.xml
+
       - name: Run PHPUnit tests
-        run: vendor/bin/phpunit --configuration phpunit.xml tests/phpunit
+        run: php vendor/phpunit/phpunit/phpunit --configuration phpunit.xml tests
