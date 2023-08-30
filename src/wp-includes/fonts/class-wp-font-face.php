@@ -150,13 +150,23 @@ class WP_Font_Face {
 
 		// Check the font-family.
 		if ( empty( $font_face['font-family'] ) || ! is_string( $font_face['font-family'] ) ) {
-			trigger_error( 'Font font-family must be a non-empty string.' );
+			// @todo replace with `wp_trigger_error()`.
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Font font-family must be a non-empty string.' ),
+				'6.4.0'
+			);
 			return false;
 		}
 
 		// Make sure that local fonts have 'src' defined.
 		if ( empty( $font_face['src'] ) || ( ! is_string( $font_face['src'] ) && ! is_array( $font_face['src'] ) ) ) {
-			trigger_error( 'Font src must be a non-empty string or an array of strings.' );
+			// @todo replace with `wp_trigger_error()`.
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Font src must be a non-empty string or an array of strings.' ),
+				'6.4.0'
+			);
 			return false;
 		}
 
@@ -164,7 +174,12 @@ class WP_Font_Face {
 		if ( ! empty( $font_face['src'] ) ) {
 			foreach ( (array) $font_face['src'] as $src ) {
 				if ( empty( $src ) || ! is_string( $src ) ) {
-					trigger_error( 'Each font src must be a non-empty string.' );
+					// @todo replace with `wp_trigger_error()`.
+					_doing_it_wrong(
+						__METHOD__,
+						__( 'Each font src must be a non-empty string.' ),
+						'6.4.0'
+					);
 					return false;
 				}
 			}
@@ -172,7 +187,12 @@ class WP_Font_Face {
 
 		// Check the font-weight.
 		if ( ! is_string( $font_face['font-weight'] ) && ! is_int( $font_face['font-weight'] ) ) {
-			trigger_error( 'Font font-weight must be a properly formatted string or integer.' );
+			// @todo replace with `wp_trigger_error()`.
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Font font-weight must be a properly formatted string or integer.' ),
+				'6.4.0'
+			);
 			return false;
 		}
 
