@@ -1,0 +1,15 @@
+# Extends the base docker-compose configuration for devcontainer-specific tools.
+# https://docs.docker.com/compose/multiple-compose-files/merge/
+
+services:
+  devcontainer:
+    image: mcr.microsoft.com/devcontainers/base:ubuntu
+
+    command: sleep infinity
+
+    networks:
+      - wpdevnet
+
+  # Allow access to MySQL container from everywhere.
+  mysql:
+    command: --default-authentication-plugin=mysql_native_password --bind-address=0.0.0.0
