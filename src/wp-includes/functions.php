@@ -5982,42 +5982,117 @@ function _doing_it_wrong( $function_name, $message, $version ) {
 				$version = sprintf( __( '(This message was added in version %s.)' ), $version );
 			}
 
-			$message .= ' ' . sprintf(
-				/* translators: %s: Documentation URL. */
-				__( 'Please see <a href="%s">Debugging in WordPress</a> for more information.' ),
-				__( 'https://wordpress.org/documentation/article/debugging-in-wordpress/' )
-			);
-
-			trigger_error(
-				sprintf(
-					/* translators: Developer debugging message. 1: PHP function name, 2: Explanatory message, 3: WordPress version number. */
-					__( 'Function %1$s was called <strong>incorrectly</strong>. %2$s %3$s' ),
-					$function_name,
-					$message,
-					$version
-				),
-				E_USER_NOTICE
-			);
+			$error = __( 'The function was called <strong>incorrectly</strong>.' );
 		} else {
 			if ( $version ) {
 				$version = sprintf( '(This message was added in version %s.)', $version );
 			}
 
-			$message .= sprintf(
-				' Please see <a href="%s">Debugging in WordPress</a> for more information.',
-				'https://wordpress.org/documentation/article/debugging-in-wordpress/'
-			);
+			$error = 'The function was called <strong>incorrectly</strong>.';
+		}
 
-			trigger_error(
-				sprintf(
-					'Function %1$s was called <strong>incorrectly</strong>. %2$s %3$s',
-					$function_name,
-					$message,
-					$version
-				),
-				E_USER_NOTICE
+		$message = $error . ' ' . $message;
+
+		if ( $version ) {
+			$message .= ' ' . $version;
+		}
+
+		wp_trigger_error( $function_name, $message );
+	}
+}
+
+/**
+ * Triggers a PHP error.
+ *
+ * The current behavior is to trigger a user error if `WP_DEBUG` is true,
+ * and to include a simple backtrace when `WP_DEVELOPMENT_MODE` is true.
+ *
+ * @since 6.4.0
+ *
+ * @param string $where       The function where the error occured.
+ * @param string $message     A message explaining what went wrong.
+ * @param int    $error_level The PHP error level that will be triggered.
+ */
+function wp_trigger_error( $where, $message, $error_level = E_USER_NOTICE ) {
+	/**
+	 * Allows overriding of the output from wp_trigger_error().
+	 *
+	 * Can also be used to log the errors in production environment where WP_DEBUG is false.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param bool   $trigger     Whether to run the rest of the function. Default true.
+	 * @param string $where       The function where the error was triggered.
+	 * @param string $message     A message explaining what went wrong.
+	 * @param int    $error_level The PHP error level that will be triggered.
+	 */
+	if ( true !== apply_filters( 'wp_trigger_error', true, $where, $message, $error_level ) ) {
+		return;
+	}
+
+	if ( ! WP_DEBUG ) {
+		return;
+	}
+
+	if ( function_exists( '__' ) ) {
+		/*
+		 * Add more info if the message is not too long. PHP's `trigger_error()` truncates messages longer than 1024 bytes.
+		 * The 800 bytes length is arbitrarily based on 2 times the length of the additional text in English.
+		 */
+		if ( strlen( $message ) < 800 ) {
+			$message .= ' ' . sprintf(
+				/* translators: %s: Documentation URL. */
+				__( 'Please see <a href="%s">Debugging in WordPress</a> for more information.' ),
+				__( 'https://wordpress.org/documentation/article/debugging-in-wordpress/' )
 			);
 		}
+
+		trigger_error(
+			sprintf(
+				/* translators: Developer debugging message. 1: PHP function name, 2: Explanatory message. */
+				__( 'An error was triggered in %1$s. %2$s' ),
+				$where,
+				$message
+			),
+			$error_level
+		);
+	} else {
+		// Maximum length of $message is 1024 bytes, see above.
+		if ( strlen( $message ) < 880 ) {
+			$message .= ' ' . sprintf(
+				'Please see <a href="%s">Debugging in WordPress</a> for more information.',
+				'https://wordpress.org/documentation/article/debugging-in-wordpress/'
+			);
+		}
+
+		trigger_error(
+			sprintf(
+				'An error was triggered in %1$s. %2$s',
+				$where,
+				$message
+			),
+			$error_level
+		);
+	}
+
+	if ( WP_DEVELOPMENT_MODE ) {
+		// Output a simple backtrace.
+		ob_start();
+		debug_print_backtrace();
+		$backtrace = ob_get_contents();
+		ob_end_clean();
+
+		// This may be called very early. See above about use of `__()`.
+		if ( function_exists( 'esc_html' ) ) {
+			$backtrace = esc_html( $backtrace );
+		}
+
+		// Space it a bit for better readability.
+		$backtrace = str_replace( "\n", "\n\n", $backtrace );
+
+		echo '<p style="white-space: pre-wrap;">';
+		echo $backtrace;
+		echo '</p>';
 	}
 }
 
