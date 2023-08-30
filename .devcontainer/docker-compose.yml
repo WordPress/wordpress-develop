@@ -13,6 +13,7 @@ services:
       WORDPRESS_DB_NAME: exampledb
     volumes:
       - ../..:/workspaces:cached
+      - ../src:/var/www/html
 
   db:
     image: mariadb
