@@ -1060,9 +1060,10 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		}
 
 		$default_attr = array(
-			'src'   => $src,
-			'class' => "attachment-$size_class size-$size_class",
-			'alt'   => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
+			'src'      => $src,
+			'class'    => "attachment-$size_class size-$size_class",
+			'alt'      => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
+			'decoding' => 'async',
 		);
 
 		/**
@@ -1084,13 +1085,13 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			$context
 		);
 
-		// The `decoding` attribute is now managed within `$loading_optimization_attr`.
-		if ( array_key_exists( 'decoding', $attr ) ) {
-			unset( $attr['decoding'] );
-		}
-
 		// Add loading optimization attributes if not available.
 		$attr = array_merge( $attr, $loading_optimization_attr );
+
+		// Omit the `decoding` attribute if the value is invalid according to the spec.
+		if ( empty( $attr['decoding'] ) || ! in_array( $attr['decoding'], array( 'async', 'sync', 'auto' ), true ) ) {
+			unset( $attr['decoding'] );
+		}
 
 		/*
 		 * If the default value of `lazy` for the `loading` attribute is overridden
@@ -1890,6 +1891,11 @@ function wp_filter_content_tags( $content, $context = null ) {
 
 			// Add loading optimization attributes if applicable.
 			$filtered_image = wp_img_tag_add_loading_optimization_attrs( $filtered_image, $context );
+
+			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
+			if ( ! str_contains( $filtered_image, ' decoding=' ) ) {
+				$filtered_image = wp_img_tag_add_decoding_attr( $filtered_image, $context );
+			}
 
 			/**
 			 * Filters an img tag within the content for a given context.
