@@ -3,7 +3,7 @@ name: WordPress CI
 on:
   push:
     branches:
-      - master
+      - trunk
 
 jobs:
   build:
