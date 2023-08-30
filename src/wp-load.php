@@ -78,6 +78,7 @@ if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
 	if ( ! str_contains( $_SERVER['REQUEST_URI'], 'setup-config' ) ) {
 		header( 'Location: ' . $path );
 		exit;
+		
 	}
 
 	wp_load_translations_early();
