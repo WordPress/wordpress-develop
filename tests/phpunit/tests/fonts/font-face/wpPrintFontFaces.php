@@ -41,6 +41,32 @@ class Tests_Fonts_WpPrintFontFaces extends WP_Font_Face_UnitTestCase {
 		wp_print_font_faces( $fonts );
 	}
 
+	public function test_should_escape_tags() {
+		$uri   = get_stylesheet_directory_uri() . '/assets/fonts/';
+		$fonts = array(
+			'Source Serif Pro' => array(
+				array(
+					'src'          => array( $uri . 'source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2' ),
+					'font-family'  => 'Source Serif Pro',
+					'font-stretch' => 'normal',
+					'font-style'   => 'normal',
+					'font-weight'  => '200 900</style><script>console.log("Hello")</script><style>',
+				),
+				array(
+					'src'          => array( $uri . 'source-serif-pro/SourceSerif4Variable-Italic.ttf.woff2' ),
+					'font-family'  => 'Source Serif Pro',
+					'font-stretch' => 'normal',
+					'font-style'   => 'italic',
+					'font-weight'  => '200 900',
+				),
+			),
+		);
+
+		$expected_output = '';
+		$this->expectOutputString( $expected_output );
+		wp_print_font_faces( $fonts );
+	}
+
 	public function test_should_print_fonts_in_merged_data() {
 		switch_theme( static::FONTS_THEME );
 

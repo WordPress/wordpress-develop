@@ -104,10 +104,21 @@ class WP_Font_Face {
 			return;
 		}
 
-		printf(
-			$this->get_style_element(),
-			$this->get_css( $fonts )
-		);
+		$css = $this->get_css( $fonts );
+
+		/*
+		 * The font-face CSS is contained within <style> tags and can only be interpreted
+		 * as CSS in the browser. Using wp_strip_all_tags() is sufficient escaping
+		 * to avoid malicious attempts to close </style> and open a <script>.
+		 */
+		$css = wp_strip_all_tags( $css );
+
+		// Bail out if there is no CSS to print.
+		if ( empty( $css ) ) {
+			return;
+		}
+
+		printf( $this->get_style_element(), $css );
 	}
 
 	/**
