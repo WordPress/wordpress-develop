@@ -6075,6 +6075,7 @@ function wp_trigger_error( $where, $message, $error_level = E_USER_NOTICE ) {
 		);
 	}
 
+	// TO-DO: needed?
 	if ( WP_DEVELOPMENT_MODE ) {
 		// Output a simple backtrace.
 		ob_start();
