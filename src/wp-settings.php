@@ -362,7 +362,7 @@ require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-rules-store.p
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-processor.php';
 require ABSPATH . WPINC . '/fonts/class-wp-font-face-resolver.php';
 require ABSPATH . WPINC . '/fonts/class-wp-font-face.php';
-require ABSPATH . WPINC . '/fonts/fonts.php';
+require ABSPATH . WPINC . '/fonts.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 
