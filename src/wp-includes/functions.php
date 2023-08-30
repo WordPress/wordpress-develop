@@ -6004,8 +6004,7 @@ function _doing_it_wrong( $function_name, $message, $version ) {
 /**
  * Triggers a PHP error.
  *
- * The current behavior is to trigger a user error if `WP_DEBUG` is true,
- * and to include a simple backtrace when `WP_DEVELOPMENT_MODE` is true.
+ * The current behavior is to trigger a user error if `WP_DEBUG` is true.
  *
  * @since 6.4.0
  *
@@ -6073,27 +6072,6 @@ function wp_trigger_error( $where, $message, $error_level = E_USER_NOTICE ) {
 			),
 			$error_level
 		);
-	}
-
-	// TO-DO: needed?
-	if ( WP_DEVELOPMENT_MODE ) {
-		// Output a simple backtrace.
-		ob_start();
-		debug_print_backtrace();
-		$backtrace = ob_get_contents();
-		ob_end_clean();
-
-		// This may be called very early. See above about use of `__()`.
-		if ( function_exists( 'esc_html' ) ) {
-			$backtrace = esc_html( $backtrace );
-		}
-
-		// Space it a bit for better readability.
-		$backtrace = str_replace( "\n", "\n\n", $backtrace );
-
-		echo '<p style="white-space: pre-wrap;">';
-		echo $backtrace;
-		echo '</p>';
 	}
 }
 
