@@ -691,7 +691,7 @@ class WP_Scripts extends WP_Dependencies {
 JS;
 
 		if ( $display ) {
-			wp_print_inline_script_tag( $output, array( 'id' => "{$handle}--js-translations" ) );
+			wp_print_inline_script_tag( $output, array( 'id' => "{$handle}-js-translations" ) );
 		}
 
 		return $output;
