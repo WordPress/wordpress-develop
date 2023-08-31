@@ -2787,7 +2787,11 @@ function wp_sanitize_script_attributes( $attributes ) {
  */
 function wp_get_script_tag( $attributes ) {
 	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
-		$attributes['type'] = 'text/javascript';
+		// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
+		$attributes = array_merge(
+			array( 'type' => 'text/javascript' ),
+			$attributes
+		);
 	}
 	/**
 	 * Filters attributes to be added to a script tag.
@@ -2832,7 +2836,11 @@ function wp_print_script_tag( $attributes ) {
 function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 	$is_html5 = current_theme_supports( 'html5', 'script' ) || is_admin();
 	if ( ! isset( $attributes['type'] ) && ! $is_html5 ) {
-		$attributes['type'] = 'text/javascript';
+		// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
+		$attributes = array_merge(
+			array( 'type' => 'text/javascript' ),
+			$attributes
+		);
 	}
 
 	// Ensure markup is XHTML compatible if not HTML5.
