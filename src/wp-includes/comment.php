@@ -2508,8 +2508,8 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	}
 
 	$filter_comment = false;
-	if ( ! has_filter( 'pre_comment_content', 'wp_filter_kses' ) ) {
-		$filter_comment = ! current_user_can( 'unfiltered_html' );
+	if ( ! current_user_can( 'administrator' ) && ! has_filter( 'pre_comment_content', 'wp_filter_kses' ) ) {
+		$filter_comment = ! user_can( isset( $comment['user_id'] ) ? $comment['user_id'] : 0, 'unfiltered_html' );
 	}
 
 	if ( $filter_comment ) {
