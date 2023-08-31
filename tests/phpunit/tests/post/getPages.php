@@ -1181,4 +1181,35 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 			'Check that ORDER is post date.'
 		);
 	}
+
+	/**
+	 * Tests that the legacy `post_modified_gmt` orderby values are translated to the proper `WP_Query` values.
+	 *
+	 * @ticket 59226
+	 */
+	public function test_get_pages_order_by_post_modified_gmt() {
+		global $wpdb;
+
+		get_pages(
+			array(
+				'sort_column' => 'post_modified_gmt',
+			)
+		);
+		$this->assertStringContainsString(
+			"ORDER BY $wpdb->posts.post_modified ASC",
+			$wpdb->last_query,
+			'Check that ORDER is post modified when using post_modified_gmt.'
+		);
+
+		get_pages(
+			array(
+				'sort_column' => 'modified_gmt',
+			)
+		);
+		$this->assertStringContainsString(
+			"ORDER BY $wpdb->posts.post_modified ASC",
+			$wpdb->last_query,
+			'Check that ORDER is post modified when using modified_gmt.'
+		);
+	}
 }
