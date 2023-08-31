@@ -111,7 +111,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'regenerator-runtime'         => '0.13.11',
 		'moment'                      => '2.29.4',
 		'lodash'                      => '4.17.19',
-		'wp-polyfill-fetch'           => '3.6.2',
+		'wp-polyfill-fetch'           => '3.6.17',
 		'wp-polyfill-formdata'        => '4.0.10',
 		'wp-polyfill-node-contains'   => '4.6.0',
 		'wp-polyfill-url'             => '3.6.4',
@@ -329,6 +329,7 @@ function wp_default_packages_scripts( $scripts ) {
  * Adds inline scripts required for the WordPress JavaScript packages.
  *
  * @since 5.0.0
+ * @since 6.4.0 Added relative time strings for the `wp-date` inline script output.
  *
  * @global WP_Locale $wp_locale WordPress date and time locale object.
  * @global wpdb      $wpdb      WordPress database abstraction object.
@@ -430,6 +431,30 @@ function wp_default_packages_inline_scripts( $scripts ) {
 							'future' => __( '%s from now' ),
 							/* translators: %s: Duration. */
 							'past'   => __( '%s ago' ),
+							/* translators: One second from or to a particular datetime, e.g., "a second ago" or "a second from now". */
+							's'      => __( 'a second' ),
+							/* translators: %s: Duration in seconds from or to a particular datetime, e.g., "4 seconds ago" or "4 seconds from now". */
+							'ss'     => __( '%d seconds' ),
+							/* translators: One minute from or to a particular datetime, e.g., "a minute ago" or "a minute from now". */
+							'm'      => __( 'a minute' ),
+							/* translators: %s: Duration in minutes from or to a particular datetime, e.g., "4 minutes ago" or "4 minutes from now". */
+							'mm'     => __( '%d minutes' ),
+							/* translators: %s: One hour from or to a particular datetime, e.g., "an hour ago" or "an hour from now". */
+							'h'      => __( 'an hour' ),
+							/* translators: %s: Duration in hours from or to a particular datetime, e.g., "4 hours ago" or "4 hours from now". */
+							'hh'     => __( '%d hours' ),
+							/* translators: %s: One day from or to a particular datetime, e.g., "a day ago" or "a day from now". */
+							'd'      => __( 'a day' ),
+							/* translators: %s: Duration in days from or to a particular datetime, e.g., "4 days ago" or "4 days from now". */
+							'dd'     => __( '%d days' ),
+							/* translators: %s: One month from or to a particular datetime, e.g., "a month ago" or "a month from now". */
+							'M'      => __( 'a month' ),
+							/* translators: %s: Duration in months from or to a particular datetime, e.g., "4 months ago" or "4 months from now". */
+							'MM'     => __( '%d months' ),
+							/* translators: %s: One year from or to a particular datetime, e.g., "a year ago" or "a year from now". */
+							'y'      => __( 'a year' ),
+							/* translators: %s: Duration in years from or to a particular datetime, e.g., "4 years ago" or "4 years from now". */
+							'yy'     => __( '%d years' ),
 						),
 						'startOfWeek'   => (int) get_option( 'start_of_week', 0 ),
 					),
@@ -833,8 +858,8 @@ function wp_default_scripts( $scripts ) {
 	 * jQuery.
 	 * The unminified jquery.js and jquery-migrate.js are included to facilitate debugging.
 	 */
-	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.7.0' );
-	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.7.0' );
+	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.7.1' );
+	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.7.1' );
 	$scripts->add( 'jquery-migrate', "/wp-includes/js/jquery/jquery-migrate$suffix.js", array(), '3.4.1' );
 
 	/*
@@ -929,7 +954,7 @@ function wp_default_scripts( $scripts ) {
 	 * Masonry v2 depended on jQuery. v3 does not. The older jquery-masonry handle is a shiv.
 	 * It sets jQuery as a dependency, as the theme may have been implicitly loading it this way.
 	 */
-	$scripts->add( 'imagesloaded', '/wp-includes/js/imagesloaded.min.js', array(), '4.1.4', 1 );
+	$scripts->add( 'imagesloaded', '/wp-includes/js/imagesloaded.min.js', array(), '5.0.0', 1 );
 	$scripts->add( 'masonry', '/wp-includes/js/masonry.min.js', array( 'imagesloaded' ), '4.2.2', 1 );
 	$scripts->add( 'jquery-masonry', '/wp-includes/js/jquery/jquery.masonry.min.js', array( 'jquery', 'masonry' ), '3.1.2b', 1 );
 
@@ -1013,7 +1038,7 @@ function wp_default_scripts( $scripts ) {
 	did_action( 'init' ) && $scripts->add_data( 'json2', 'conditional', 'lt IE 8' );
 
 	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.4', 1 );
-	$scripts->add( 'backbone', "/wp-includes/js/backbone$dev_suffix.js", array( 'underscore', 'jquery' ), '1.4.1', 1 );
+	$scripts->add( 'backbone', "/wp-includes/js/backbone$dev_suffix.js", array( 'underscore', 'jquery' ), '1.5.0', 1 );
 
 	$scripts->add( 'wp-util', "/wp-includes/js/wp-util$suffix.js", array( 'underscore', 'jquery' ), false, 1 );
 	did_action( 'init' ) && $scripts->localize(
