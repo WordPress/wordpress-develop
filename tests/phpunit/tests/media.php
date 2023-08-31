@@ -3878,6 +3878,7 @@ EOF;
 	/**
 	 * @ticket 53675
 	 * @ticket 58235
+	 * @ticket 58892
 	 */
 	public function test_wp_omit_loading_attr_threshold_filter() {
 		// Using a smaller image here.
