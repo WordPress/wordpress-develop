@@ -287,7 +287,7 @@ function create_initial_post_types() {
 				'add_new'                  => _x( 'Add New', 'Pattern' ),
 				'add_new_item'             => __( 'Add new Pattern' ),
 				'new_item'                 => __( 'New Pattern' ),
-				'edit_item'                => __( 'Edit Pattern' ),
+				'edit_item'                => __( 'Edit Block Pattern' ),
 				'view_item'                => __( 'View Pattern' ),
 				'view_items'               => __( 'View Patterns' ),
 				'all_items'                => __( 'All Patterns' ),
@@ -3034,7 +3034,8 @@ function _count_posts_cache_key( $type = 'post', $perm = '' ) {
  *
  * @param string $type Optional. Post type to retrieve count. Default 'post'.
  * @param string $perm Optional. 'readable' or empty. Default empty.
- * @return stdClass Number of posts for each status.
+ * @return stdClass An object containing the number of posts for each status,
+ *                  or an empty object if the post type does not exist.
  */
 function wp_count_posts( $type = 'post', $perm = '' ) {
 	global $wpdb;
@@ -4973,8 +4974,8 @@ function check_and_publish_future_post( $post ) {
  *
  * @since 5.7.0
  *
- * @param string $post_date     The date in mysql format.
- * @param string $post_date_gmt The GMT date in mysql format.
+ * @param string $post_date     The date in mysql format (`Y-m-d H:i:s`).
+ * @param string $post_date_gmt The GMT date in mysql format (`Y-m-d H:i:s`).
  * @return string|false A valid Gregorian-calendar date string, or false on failure.
  */
 function wp_resolve_post_date( $post_date = '', $post_date_gmt = '' ) {
@@ -6065,8 +6066,22 @@ function get_pages( $args = array() ) {
 		$query_args['post_parent'] = $parent;
 	}
 
+	/*
+	 * Maintain backward compatibility for `sort_column` key.
+	 * Additionally to `WP_Query`, it has been supporting the `post_modified_gmt` field, so this logic will translate
+	 * it to `post_modified` which should result in the same order given the two dates in the fields match.
+	 */
 	$orderby = wp_parse_list( $parsed_args['sort_column'] );
-	$orderby = array_map( 'trim', $orderby );
+	$orderby = array_map(
+		static function( $orderby_field ) {
+			$orderby_field = trim( $orderby_field );
+			if ( 'post_modified_gmt' === $orderby_field || 'modified_gmt' === $orderby_field ) {
+				$orderby_field = str_replace( '_gmt', '', $orderby_field );
+			}
+			return $orderby_field;
+		},
+		$orderby
+	);
 	if ( $orderby ) {
 		$query_args['orderby'] = array_fill_keys( $orderby, $parsed_args['sort_order'] );
 	}
@@ -6090,8 +6105,8 @@ function get_pages( $args = array() ) {
 	 */
 	$query_args = apply_filters( 'get_pages_query_args', $query_args, $parsed_args );
 
-	$query = new WP_Query( $query_args );
-	$pages = $query->get_posts();
+	$pages = new WP_Query();
+	$pages = $pages->query( $query_args );
 
 	if ( $child_of || $hierarchical ) {
 		$pages = get_page_children( $child_of, $pages );
@@ -6613,8 +6628,10 @@ function wp_get_attachment_caption( $post_id = 0 ) {
 function wp_get_attachment_thumb_url( $post_id = 0 ) {
 	$post_id = (int) $post_id;
 
-	// This uses image_downsize() which also looks for the (very) old format $image_meta['thumb']
-	// when the newer format $image_meta['sizes']['thumbnail'] doesn't exist.
+	/*
+	 * This uses image_downsize() which also looks for the (very) old format $image_meta['thumb']
+	 * when the newer format $image_meta['sizes']['thumbnail'] doesn't exist.
+	 */
 	$thumbnail_url = wp_get_attachment_image_url( $post_id, 'thumbnail' );
 
 	if ( empty( $thumbnail_url ) ) {
@@ -7863,8 +7880,21 @@ function wp_cache_set_posts_last_changed() {
 function get_available_post_mime_types( $type = 'attachment' ) {
 	global $wpdb;
 
-	$types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );
-	return $types;
+	/**
+	 * Filters the list of available post MIME types for the given post type.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string[]|null $mime_types An array of MIME types. Default null.
+	 * @param string        $type       The post type name. Usually 'attachment' but can be any post type.
+	 */
+	$mime_types = apply_filters( 'get_available_post_mime_types', null, $type );
+
+	if ( ! is_array( $mime_types ) ) {
+		$mime_types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );
+	}
+
+	return $mime_types;
 }
 
 /**
@@ -8040,14 +8070,14 @@ function use_block_editor_for_post_type( $post_type ) {
 /**
  * Registers any additional post meta fields.
  *
- * @since 6.3.0 Adds sync_status meta field to the wp_block post type so an unsynced option can be added.
+ * @since 6.3.0 Adds `wp_pattern_sync_status` meta field to the wp_block post type so an unsynced option can be added.
  *
  * @link https://github.com/WordPress/gutenberg/pull/51144
  */
 function wp_create_initial_post_meta() {
 	register_post_meta(
 		'wp_block',
-		'sync_status',
+		'wp_pattern_sync_status',
 		array(
 			'sanitize_callback' => 'sanitize_text_field',
 			'single'            => true,

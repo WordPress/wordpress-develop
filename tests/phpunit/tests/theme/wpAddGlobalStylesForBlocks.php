@@ -139,6 +139,88 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 57868
+	 */
+	public function test_third_party_blocks_inline_styles_for_elements_get_rendered_when_per_block() {
+		$this->set_up_third_party_block();
+		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+
+		wp_register_style( 'global-styles', false, array(), true, true );
+		wp_enqueue_style( 'global-styles' );
+		wp_add_global_styles_for_blocks();
+
+		$actual = get_echo( 'wp_print_styles' );
+
+		$this->assertStringContainsString(
+			'.wp-block-my-third-party-block cite{color: white;}',
+			$actual
+		);
+	}
+
+	/**
+	 * @ticket 57868
+	 */
+	public function test_third_party_blocks_inline_styles_for_elements_get_rendered() {
+		wp_register_style( 'global-styles', false, array(), true, true );
+		wp_enqueue_style( 'global-styles' );
+		wp_add_global_styles_for_blocks();
+
+		$actual = get_echo( 'wp_print_styles' );
+
+		$this->assertStringContainsString(
+			'.wp-block-my-third-party-block cite{color: white;}',
+			$actual
+		);
+	}
+
+	/**
+	 * @ticket 57868
+	 *
+	 * @dataProvider data_wp_get_block_name_from_theme_json_path
+	 *
+	 * @param array  $path     An array of keys describing the path to a property in theme.json.
+	 * @param string $expected The expected block name.
+	 */
+	public function test_wp_get_block_name_from_theme_json_path( $path, $expected ) {
+		$block_name = wp_get_block_name_from_theme_json_path( $path );
+		$this->assertSame( $expected, $block_name );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_get_block_name_from_theme_json_path() {
+		return array(
+			'core block styles'             => array(
+				array( 'styles', 'blocks', 'core/navigation' ),
+				'core/navigation',
+			),
+			'core block element styles'     => array(
+				array( 'styles', 'blocks', 'core/navigation', 'elements', 'link' ),
+				'core/navigation',
+			),
+			'custom block styles'           => array(
+				array( 'styles', 'blocks', 'my/third-party-block' ),
+				'my/third-party-block',
+			),
+			'custom block element styles'   => array(
+				array( 'styles', 'blocks', 'my/third-party-block', 'elements', 'cite' ),
+				'my/third-party-block',
+			),
+			'custom block wrong format'     => array(
+				array( 'styles', 'my/third-party-block' ),
+				'',
+			),
+			'invalid path but works for BC' => array(
+				array( 'something', 'core/image' ),
+				'core/image',
+			),
+		);
+	}
+
 	private function set_up_third_party_block() {
 		switch_theme( 'block-theme' );
 

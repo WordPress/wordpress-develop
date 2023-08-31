@@ -1572,7 +1572,16 @@ function _wp_privacy_settings_filter_draft_page_titles( $title, $page ) {
  * @since 5.1.0
  * @since 5.1.1 Added the {@see 'wp_is_php_version_acceptable'} filter.
  *
- * @return array|false Array of PHP version data. False on failure.
+ * @return array|false {
+ *     Array of PHP version data. False on failure.
+ *
+ *     @type string $recommended_version The PHP version recommended by WordPress.
+ *     @type string $minimum_version     The minimum required PHP version.
+ *     @type bool   $is_supported        Whether the PHP version is actively supported.
+ *     @type bool   $is_secure           Whether the PHP version receives security updates.
+ *     @type bool   $is_acceptable       Whether the PHP version is still acceptable or warnings
+ *                                       should be shown and an update recommended.
+ * }
  */
 function wp_check_php_version() {
 	$version = PHP_VERSION;
@@ -1595,14 +1604,6 @@ function wp_check_php_version() {
 			return false;
 		}
 
-		/**
-		 * Response should be an array with:
-		 *  'recommended_version' - string - The PHP version recommended by WordPress.
-		 *  'is_supported' - boolean - Whether the PHP version is actively supported.
-		 *  'is_secure' - boolean - Whether the PHP version receives security updates.
-		 *  'is_acceptable' - boolean - Whether the PHP version is still acceptable or warnings
-		 *                              should be shown and an update recommended.
-		 */
 		$response = json_decode( wp_remote_retrieve_body( $response ), true );
 
 		if ( ! is_array( $response ) ) {
@@ -1640,4 +1641,132 @@ function wp_check_php_version() {
 	}
 
 	return $response;
+}
+
+/**
+ * Creates and returns the markup for an admin notice.
+ *
+ * @since 6.4.0
+ *
+ * @param string $message The message.
+ * @param array  $args {
+ *     Optional. An array of arguments for the admin notice. Default empty array.
+ *
+ *     @type string   $type               Optional. The type of admin notice.
+ *                                        For example, 'error', 'success', 'warning', 'info'.
+ *                                        Default empty string.
+ *     @type bool     $dismissible        Optional. Whether the admin notice is dismissible. Default false.
+ *     @type string   $id                 Optional. The value of the admin notice's ID attribute. Default empty string.
+ *     @type string[] $additional_classes Optional. A string array of class names. Default empty array.
+ *     @type bool     $paragraph_wrap     Optional. Whether to wrap the message in paragraph tags. Default true.
+ * }
+ * @return string The markup for an admin notice.
+ */
+function wp_get_admin_notice( $message, $args = array() ) {
+	$defaults = array(
+		'type'               => '',
+		'dismissible'        => false,
+		'id'                 => '',
+		'additional_classes' => array(),
+		'paragraph_wrap'     => true,
+	);
+
+	$args = wp_parse_args( $args, $defaults );
+
+	/**
+	 * Filters the arguments for an admin notice.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array  $args    The arguments for the admin notice.
+	 * @param string $message The message for the admin notice.
+	 */
+	$args    = apply_filters( 'wp_admin_notice_args', $args, $message );
+	$id      = '';
+	$classes = 'notice';
+
+	if ( is_string( $args['id'] ) ) {
+		$trimmed_id = trim( $args['id'] );
+
+		if ( '' !== $trimmed_id ) {
+			$id = 'id="' . $trimmed_id . '" ';
+		}
+	}
+
+	if ( is_string( $args['type'] ) ) {
+		$type = trim( $args['type'] );
+
+		if ( str_contains( $type, ' ' ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: %s: The "type" key. */
+					__( 'The %s key must be a string without spaces.' ),
+					'<code>type</code>'
+				),
+				'6.4.0'
+			);
+		}
+
+		if ( '' !== $type ) {
+			$classes .= ' notice-' . $type;
+		}
+	}
+
+	if ( true === $args['dismissible'] ) {
+		$classes .= ' is-dismissible';
+	}
+
+	if ( is_array( $args['additional_classes'] ) && ! empty( $args['additional_classes'] ) ) {
+		$classes .= ' ' . implode( ' ', $args['additional_classes'] );
+	}
+
+	if ( false !== $args['paragraph_wrap'] ) {
+		$message = "<p>$message</p>";
+	}
+
+	$markup = sprintf( '<div %1$sclass="%2$s">%3$s</div>', $id, $classes, $message );
+
+	/**
+	 * Filters the markup for an admin notice.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $markup  The HTML markup for the admin notice.
+	 * @param string $message The message for the admin notice.
+	 * @param array  $args    The arguments for the admin notice.
+	 */
+	return apply_filters( 'wp_admin_notice_markup', $markup, $message, $args );
+}
+
+/**
+ * Outputs an admin notice.
+ *
+ * @since 6.4.0
+ *
+ * @param string $message The message to output.
+ * @param array  $args {
+ *     Optional. An array of arguments for the admin notice. Default empty array.
+ *
+ *     @type string   $type               Optional. The type of admin notice.
+ *                                        For example, 'error', 'success', 'warning', 'info'.
+ *                                        Default empty string.
+ *     @type bool     $dismissible        Optional. Whether the admin notice is dismissible. Default false.
+ *     @type string   $id                 Optional. The value of the admin notice's ID attribute. Default empty string.
+ *     @type string[] $additional_classes Optional. A string array of class names. Default empty array.
+ *     @type bool     $paragraph_wrap     Optional. Whether to wrap the message in paragraph tags. Default true.
+ * }
+ */
+function wp_admin_notice( $message, $args = array() ) {
+	/**
+	 * Fires before an admin notice is output.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $message The message for the admin notice.
+	 * @param array  $args    The arguments for the admin notice.
+	 */
+	do_action( 'wp_admin_notice', $message, $args );
+
+	echo wp_kses_post( wp_get_admin_notice( $message, $args ) );
 }

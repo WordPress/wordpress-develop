@@ -406,9 +406,10 @@ class WP_REST_Server {
 		 * Filters the list of response headers that are exposed to REST API CORS requests.
 		 *
 		 * @since 5.5.0
+		 * @since 6.3.0 The `$request` parameter was added.
 		 *
-		 * @param string[] $expose_headers The list of response headers to expose.
-		 * @param WP_REST_Request The request in context.
+		 * @param string[]        $expose_headers The list of response headers to expose.
+		 * @param WP_REST_Request $request        The request in context.
 		 */
 		$expose_headers = apply_filters( 'rest_exposed_cors_headers', $expose_headers, $request );
 
@@ -431,9 +432,10 @@ class WP_REST_Server {
 		 * As well as the Authorization and Nonce headers for allowing authentication.
 		 *
 		 * @since 5.5.0
+		 * @since 6.3.0 The `$request` parameter was added.
 		 *
-		 * @param string[] $allow_headers The list of request headers to allow.
-		 * @param WP_REST_Request The request in context.
+		 * @param string[]        $allow_headers The list of request headers to allow.
+		 * @param WP_REST_Request $request       The request in context.
 		 */
 		$allow_headers = apply_filters( 'rest_allowed_cors_headers', $allow_headers, $request );
 
@@ -699,8 +701,10 @@ class WP_REST_Server {
 		$embedded = array();
 
 		foreach ( $data['_links'] as $rel => $links ) {
-			// If a list of relations was specified, and the link relation
-			// is not in the list of allowed relations, don't process the link.
+			/*
+			 * If a list of relations was specified, and the link relation
+			 * is not in the list of allowed relations, don't process the link.
+			 */
 			if ( is_array( $embed ) && ! in_array( $rel, $embed, true ) ) {
 				continue;
 			}

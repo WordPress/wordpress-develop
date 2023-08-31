@@ -114,8 +114,10 @@ function wp_insert_site( array $data ) {
 			$meta['WPLANG'] = get_network_option( $new_site->network_id, 'WPLANG' );
 		}
 
-		// Rebuild the data expected by the `wpmu_new_blog` hook prior to 5.1.0 using allowed keys.
-		// The `$allowed_data_fields` matches the one used in `wpmu_create_blog()`.
+		/*
+		 * Rebuild the data expected by the `wpmu_new_blog` hook prior to 5.1.0 using allowed keys.
+		 * The `$allowed_data_fields` matches the one used in `wpmu_create_blog()`.
+		 */
 		$allowed_data_fields = array( 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
 		$meta                = array_merge( array_intersect_key( $data, array_flip( $allowed_data_fields ) ), $meta );
 
@@ -842,7 +844,7 @@ function wp_uninitialize_site( $site_id ) {
 	 *
 	 * @since MU (3.0.0)
 	 *
-	 * @param string $basedir Uploads path without subdirectory. @see wp_upload_dir()
+	 * @param string $basedir Uploads path without subdirectory. See {@see wp_upload_dir()}.
 	 * @param int    $site_id The site ID.
 	 */
 	$dir     = apply_filters( 'wpmu_delete_blog_upload_dir', $uploads['basedir'], $site->id );
@@ -880,7 +882,7 @@ function wp_uninitialize_site( $site_id ) {
 
 	$stack = array_reverse( $stack ); // Last added directories are deepest.
 	foreach ( (array) $stack as $dir ) {
-		if ( $dir != $top_dir ) {
+		if ( $dir !== $top_dir ) {
 			@rmdir( $dir );
 		}
 	}
@@ -1128,7 +1130,7 @@ function wp_maybe_update_network_site_counts_on_update( $new_site, $old_site = n
 		return;
 	}
 
-	if ( $new_site->network_id != $old_site->network_id ) {
+	if ( $new_site->network_id !== $old_site->network_id ) {
 		wp_maybe_update_network_site_counts( $new_site->network_id );
 		wp_maybe_update_network_site_counts( $old_site->network_id );
 	}
@@ -1151,8 +1153,8 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 		$old_site = new WP_Site( new stdClass() );
 	}
 
-	if ( $new_site->spam != $old_site->spam ) {
-		if ( 1 == $new_site->spam ) {
+	if ( $new_site->spam !== $old_site->spam ) {
+		if ( '1' === $new_site->spam ) {
 
 			/**
 			 * Fires when the 'spam' status is added to a site.
@@ -1175,8 +1177,8 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 		}
 	}
 
-	if ( $new_site->mature != $old_site->mature ) {
-		if ( 1 == $new_site->mature ) {
+	if ( $new_site->mature !== $old_site->mature ) {
+		if ( '1' === $new_site->mature ) {
 
 			/**
 			 * Fires when the 'mature' status is added to a site.
@@ -1199,8 +1201,8 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 		}
 	}
 
-	if ( $new_site->archived != $old_site->archived ) {
-		if ( 1 == $new_site->archived ) {
+	if ( $new_site->archived !== $old_site->archived ) {
+		if ( '1' === $new_site->archived ) {
 
 			/**
 			 * Fires when the 'archived' status is added to a site.
@@ -1223,8 +1225,8 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 		}
 	}
 
-	if ( $new_site->deleted != $old_site->deleted ) {
-		if ( 1 == $new_site->deleted ) {
+	if ( $new_site->deleted !== $old_site->deleted ) {
+		if ( '1' === $new_site->deleted ) {
 
 			/**
 			 * Fires when the 'deleted' status is added to a site.
@@ -1247,7 +1249,7 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 		}
 	}
 
-	if ( $new_site->public != $old_site->public ) {
+	if ( $new_site->public !== $old_site->public ) {
 
 		/**
 		 * Fires after the current blog's 'public' setting is updated.

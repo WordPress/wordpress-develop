@@ -190,8 +190,10 @@ function wp_save_post_revision( $post_id ) {
 
 	$return = _wp_put_post_revision( $post );
 
-	// If a limit for the number of revisions to keep has been set,
-	// delete the oldest ones.
+	/*
+	 * If a limit for the number of revisions to keep has been set,
+	 * delete the oldest ones.
+	 */
 	$revisions_to_keep = wp_revisions_to_keep( $post );
 
 	if ( $revisions_to_keep < 0 ) {
@@ -766,7 +768,7 @@ function _wp_preview_terms_filter( $terms, $post_id, $taxonomy ) {
 		return $terms;
 	}
 
-	if ( empty( $_REQUEST['post_format'] ) || $post->ID != $post_id
+	if ( empty( $_REQUEST['post_format'] ) || $post->ID !== $post_id
 		|| 'post_format' !== $taxonomy || 'revision' === $post->post_type
 	) {
 		return $terms;
@@ -776,6 +778,7 @@ function _wp_preview_terms_filter( $terms, $post_id, $taxonomy ) {
 		$terms = array();
 	} else {
 		$term = get_term_by( 'slug', 'post-format-' . sanitize_key( $_REQUEST['post_format'] ), 'post_format' );
+
 		if ( $term ) {
 			$terms = array( $term ); // Can only have one post format.
 		}
@@ -802,13 +805,10 @@ function _wp_preview_post_thumbnail_filter( $value, $post_id, $meta_key ) {
 		return $value;
 	}
 
-	if ( empty( $_REQUEST['_thumbnail_id'] ) ||
-		empty( $_REQUEST['preview_id'] ) ||
-		$post->ID != $post_id ||
-		'_thumbnail_id' !== $meta_key ||
-		'revision' === $post->post_type ||
-		$post_id != $_REQUEST['preview_id'] ) {
-
+	if ( empty( $_REQUEST['_thumbnail_id'] ) || empty( $_REQUEST['preview_id'] )
+		|| $post->ID !== $post_id || $post_id !== (int) $_REQUEST['preview_id']
+		|| '_thumbnail_id' !== $meta_key || 'revision' === $post->post_type
+	) {
 		return $value;
 	}
 
@@ -869,8 +869,10 @@ function _wp_upgrade_revisions_of_post( $post, $revisions ) {
 		$locked = get_option( $lock );
 
 		if ( ! $locked ) {
-			// Can't write to the lock, and can't read the lock.
-			// Something broken has happened.
+			/*
+			 * Can't write to the lock, and can't read the lock.
+			 * Something broken has happened.
+			 */
 			return false;
 		}
 
@@ -899,8 +901,10 @@ function _wp_upgrade_revisions_of_post( $post, $revisions ) {
 			continue;
 		}
 
-		// 1 is the latest revision version, so we're already up to date.
-		// No need to add a copy of the post as latest revision.
+		/*
+		 * 1 is the latest revision version, so we're already up to date.
+		 * No need to add a copy of the post as latest revision.
+		 */
 		if ( 0 < $this_revision_version ) {
 			$add_last = false;
 			continue;

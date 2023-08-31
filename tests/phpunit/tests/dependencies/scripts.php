@@ -2952,7 +2952,24 @@ HTML
 
 		$actual = get_echo( 'wp_print_scripts', array( array( 'wp-tinymce' ) ) );
 
-		$this->assertStringNotContainsString( 'async', $actual );
+		$this->assertStringNotContainsString( 'async', $actual, 'TinyMCE should not have an async attribute.' );
+		$this->assertStringNotContainsString( 'defer', $actual, 'TinyMCE should not have a defer attribute.' );
+	}
+
+	/**
+	 * Make sure scripts with a loading strategy that are printed
+	 * without being enqueued are handled properly.
+	 *
+	 * @ticket 58648
+	 *
+	 * @dataProvider data_provider_delayed_strategies
+	 */
+	public function test_printing_non_enqueued_scripts( $strategy ) {
+		wp_register_script( 'test-script', 'test-script.js', array(), false, array( 'strategy' => $strategy ) );
+
+		$actual = get_echo( 'wp_print_scripts', array( array( 'test-script' ) ) );
+
+		$this->assertStringContainsString( $strategy, $actual );
 	}
 
 	/**

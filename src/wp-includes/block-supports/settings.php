@@ -40,7 +40,7 @@ function _wp_add_block_level_presets_class( $block_content, $block ) {
 
 	// return early if the block doesn't have support for settings.
 	$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
-	if ( ! block_has_support( $block_type, array( '__experimentalSettings' ), false ) ) {
+	if ( ! block_has_support( $block_type, '__experimentalSettings', false ) ) {
 		return $block_content;
 	}
 
@@ -77,7 +77,7 @@ function _wp_add_block_level_presets_class( $block_content, $block ) {
 function _wp_add_block_level_preset_styles( $pre_render, $block ) {
 	// Return early if the block has not support for descendent block styles.
 	$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
-	if ( ! block_has_support( $block_type, array( '__experimentalSettings' ), false ) ) {
+	if ( ! block_has_support( $block_type, '__experimentalSettings', false ) ) {
 		return null;
 	}
 
@@ -97,9 +97,9 @@ function _wp_add_block_level_preset_styles( $pre_render, $block ) {
 	$blocks                  = $registry->get_all_registered();
 	foreach ( $blocks as $block_type ) {
 		/*
-		* We only want to append selectors for block's using custom selectors
-		* i.e. not `wp-block-<name>`.
-		*/
+		 * We only want to append selectors for blocks using custom selectors
+		 * i.e. not `wp-block-<name>`.
+		 */
 		$has_custom_selector =
 			( isset( $block_type->supports['__experimentalSelector'] ) && is_string( $block_type->supports['__experimentalSelector'] ) ) ||
 			( isset( $block_type->selectors['root'] ) && is_string( $block_type->selectors['root'] ) );

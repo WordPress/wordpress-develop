@@ -700,12 +700,6 @@ class WP_Debug_Data {
 			$php_version_debug .= ' 64bit';
 		}
 
-		if ( function_exists( 'php_sapi_name' ) ) {
-			$php_sapi = php_sapi_name();
-		} else {
-			$php_sapi = 'unknown';
-		}
-
 		$info['wp-server']['fields']['server_architecture'] = array(
 			'label' => __( 'Server architecture' ),
 			'value' => ( 'unknown' !== $server_architecture ? $server_architecture : __( 'Unable to determine server architecture' ) ),
@@ -723,8 +717,8 @@ class WP_Debug_Data {
 		);
 		$info['wp-server']['fields']['php_sapi']            = array(
 			'label' => __( 'PHP SAPI' ),
-			'value' => ( 'unknown' !== $php_sapi ? $php_sapi : __( 'Unable to determine PHP SAPI' ) ),
-			'debug' => $php_sapi,
+			'value' => PHP_SAPI,
+			'debug' => PHP_SAPI,
 		);
 
 		// Some servers disable `ini_set()` and `ini_get()`, we check this before trying to get configuration values.
@@ -846,11 +840,12 @@ class WP_Debug_Data {
 
 		// Server time.
 		$date = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
-		$info['wp-server']['fields']['current'] = array(
+
+		$info['wp-server']['fields']['current']     = array(
 			'label' => __( 'Current time' ),
 			'value' => $date->format( DateTime::ATOM ),
 		);
-		$info['wp-server']['fields']['utc-time'] = array(
+		$info['wp-server']['fields']['utc-time']    = array(
 			'label' => __( 'Current UTC time' ),
 			'value' => $date->format( DateTime::RFC850 ),
 		);
@@ -860,10 +855,7 @@ class WP_Debug_Data {
 		);
 
 		// Populate the database debug fields.
-		if ( is_resource( $wpdb->dbh ) ) {
-			// Old mysql extension.
-			$extension = 'mysql';
-		} elseif ( is_object( $wpdb->dbh ) ) {
+		if ( is_object( $wpdb->dbh ) ) {
 			// mysqli or PDO.
 			$extension = get_class( $wpdb->dbh );
 		} else {
@@ -873,16 +865,7 @@ class WP_Debug_Data {
 
 		$server = $wpdb->get_var( 'SELECT VERSION()' );
 
-		if ( isset( $wpdb->use_mysqli ) && $wpdb->use_mysqli ) {
-			$client_version = $wpdb->dbh->client_info;
-		} else {
-			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_client_info,PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved
-			if ( preg_match( '|[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}|', mysql_get_client_info(), $matches ) ) {
-				$client_version = $matches[0];
-			} else {
-				$client_version = null;
-			}
-		}
+		$client_version = $wpdb->dbh->client_info;
 
 		$info['wp-database']['fields']['extension'] = array(
 			'label' => __( 'Extension' ),
@@ -1619,20 +1602,26 @@ class WP_Debug_Data {
 			$max_execution_time = ini_get( 'max_execution_time' );
 		}
 
-		// The max_execution_time defaults to 0 when PHP runs from cli.
-		// We still want to limit it below.
+		/*
+		 * The max_execution_time defaults to 0 when PHP runs from cli.
+		 * We still want to limit it below.
+		 */
 		if ( empty( $max_execution_time ) ) {
 			$max_execution_time = 30; // 30 seconds.
 		}
 
 		if ( $max_execution_time > 20 ) {
-			// If the max_execution_time is set to lower than 20 seconds, reduce it a bit to prevent
-			// edge-case timeouts that may happen after the size loop has finished running.
+			/*
+			 * If the max_execution_time is set to lower than 20 seconds, reduce it a bit to prevent
+			 * edge-case timeouts that may happen after the size loop has finished running.
+			 */
 			$max_execution_time -= 2;
 		}
 
-		// Go through the various installation directories and calculate their sizes.
-		// No trailing slashes.
+		/*
+		 * Go through the various installation directories and calculate their sizes.
+		 * No trailing slashes.
+		 */
 		$paths = array(
 			'wordpress_size' => untrailingslashit( ABSPATH ),
 			'themes_size'    => get_theme_root(),
