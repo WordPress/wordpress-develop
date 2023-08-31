@@ -220,8 +220,6 @@ $_old_files = array(
 	'wp-admin/wp-admin.css',
 	'wp-admin/wp-admin.dev.css',
 	'wp-includes/js/codepress',
-	'wp-includes/js/codepress/engines/khtml.js',
-	'wp-includes/js/codepress/engines/older.js',
 	'wp-includes/js/jquery/autocomplete.dev.js',
 	'wp-includes/js/jquery/autocomplete.js',
 	'wp-includes/js/jquery/interface.js',
