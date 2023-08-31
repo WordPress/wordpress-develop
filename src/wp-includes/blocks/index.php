@@ -28,7 +28,7 @@ function register_core_block_style_handles() {
 
 	static $core_blocks_meta;
 	if ( ! $core_blocks_meta ) {
-		$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
+		$core_blocks_meta = require BLOCKS_PATH . 'blocks-json.php';
 	}
 
 	$includes_url  = includes_url();
