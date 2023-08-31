@@ -39,12 +39,13 @@ jobs:
     uses: WordPress/wordpress-develop/.github/workflows/phpunit-tests-run.yml@trunk
     permissions:
       contents: read
+    secrets: inherit
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        php: [ '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2' ]
+        php: [ '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0' ]
         multisite: [ false, true ]
@@ -90,12 +91,13 @@ jobs:
     uses: WordPress/wordpress-develop/.github/workflows/phpunit-tests-run.yml@trunk
     permissions:
       contents: read
+    secrets: inherit
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        php: [ '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2' ]
+        php: [ '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
         db-type: [ 'mariadb' ]
         db-version: [ '10.4', '10.6', '10.11', '11.0' ]
         multisite: [ false, true ]
