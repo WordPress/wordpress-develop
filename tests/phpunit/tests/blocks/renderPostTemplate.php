@@ -7,6 +7,8 @@
  * @since 6.4.0
  *
  * @group blocks
+ *
+ * @covers ::render_block_core_post_template
  */
 class Tests_Blocks_RenderPostTemplate extends WP_UnitTestCase {
 

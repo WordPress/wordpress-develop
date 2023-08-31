@@ -193,6 +193,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 *
 	 * @ticket 58154
 	 * @ticket 59225
+	 * @covers ::get_the_block_template_html
 	 */
 	public function test_get_the_block_template_html_enforces_singular_query_loop_without_causing_conflict() {
 		global $_wp_current_template_content, $wp_query, $wp_the_query;
