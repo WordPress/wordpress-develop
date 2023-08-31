@@ -184,4 +184,70 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$resolved_template_path = locate_block_template( '', 'search', array() );
 		$this->assertSame( '', $resolved_template_path );
 	}
+
+	/**
+	 * Tests that the `get_the_block_template_html()` singular query loop does not conflict with another main query
+	 * loop triggered by the template.
+	 *
+	 * This scenario does not make any sense in reality, but is an edge-case to protect against.
+	 *
+	 * @ticket 58154
+	 * @ticket 59225
+	 */
+	public function test_get_the_block_template_html_enforces_singular_query_loop_without_causing_conflict() {
+		global $_wp_current_template_content, $wp_query, $wp_the_query;
+
+		// Register test block to log `in_the_loop()` results.
+		$in_the_loop_logs = array();
+		$this->register_in_the_loop_logger_block( $in_the_loop_logs );
+
+		// Set main query to single post.
+		$post_id      = self::factory()->post->create( array( 'post_title' => 'A single post' ) );
+		$wp_query     = new WP_Query( array( 'p' => $post_id ) );
+		$wp_the_query = $wp_query;
+
+		// Use block template that re-triggers the main query itself, with post title and the above test block.
+		$_wp_current_template_content  = '<!-- wp:query {"query":{"inherit":true}} -->';
+		$_wp_current_template_content .= '<!-- wp:post-template -->';
+		$_wp_current_template_content .= '<!-- wp:post-title /--><!-- wp:test/in-the-loop-logger /-->';
+		$_wp_current_template_content .= '<!-- /wp:post-template -->';
+		$_wp_current_template_content .= '<!-- /wp:query -->';
+
+		$expected  = '<div class="wp-site-blocks">';
+		$expected .= '<ul class="wp-block-post-template is-layout-flow wp-block-post-template-is-layout-flow wp-block-query-is-layout-flow">';
+		$expected .= '<li class="wp-block-post post-' . $post_id . ' post type-post status-publish format-standard hentry category-uncategorized">';
+		$expected .= '<h2 class="wp-block-post-title">A single post</h2>';
+		$expected .= '</li>';
+		$expected .= '</ul>';
+		$expected .= '</div>';
+
+		$output = get_the_block_template_html();
+		$this->unregister_in_the_loop_logger_block();
+		$this->assertSame( $expected, $output, 'Unexpected block template output' );
+		$this->assertSame( array( true ), $in_the_loop_logs, 'Main query loop was not triggered' );
+	}
+
+	/**
+	 * Registers a test block to log `in_the_loop()` results.
+	 *
+	 * @param array $in_the_loop_logs Array to log function results in. Passed by reference.
+	 */
+	private function register_in_the_loop_logger_block( array &$in_the_loop_logs ) {
+		register_block_type(
+			'test/in-the-loop-logger',
+			array(
+				'render_callback' => function() use ( &$in_the_loop_logs ) {
+					$in_the_loop_logs[] = in_the_loop();
+					return '';
+				},
+			)
+		);
+	}
+
+	/**
+	 * Unregisters the test block registered by the `register_in_the_loop_logger_block()` method.
+	 */
+	private function unregister_in_the_loop_logger_block() {
+		unregister_block_type( 'test/in-the-loop-logger' );
+	}
 }
