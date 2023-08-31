@@ -192,6 +192,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * since there is only a single post in the main query loop in such cases anyway.
 	 *
 	 * @ticket 58154
+	 * @covers ::get_the_block_template_html
 	 */
 	public function test_get_the_block_template_html_enforces_singular_query_loop() {
 		global $_wp_current_template_content, $wp_query, $wp_the_query;
@@ -222,6 +223,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * Tests that `get_the_block_template_html()` does not start the main query loop generally.
 	 *
 	 * @ticket 58154
+	 * @covers ::get_the_block_template_html
 	 */
 	public function test_get_the_block_template_html_does_not_generally_enforce_loop() {
 		global $_wp_current_template_content, $wp_query, $wp_the_query;
