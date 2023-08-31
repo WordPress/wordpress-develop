@@ -2194,6 +2194,8 @@ EOF;
 	/**
 	 * @ticket 33641
 	 * @requires function imagejpeg
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_srcset_sizes() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -2287,6 +2289,8 @@ EOF;
 	 *
 	 * @ticket 34898
 	 * @ticket 33641
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_srcset_sizes_wrong() {
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
@@ -2301,6 +2305,8 @@ EOF;
 
 	/**
 	 * @ticket 33641
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_srcset_sizes_with_preexisting_srcset() {
 		// Generate HTML and add a dummy srcset attribute.
@@ -2315,6 +2321,8 @@ EOF;
 
 	/**
 	 * @ticket 55347
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_has_filter() {
 		$filter = new MockAction();
@@ -2328,6 +2336,8 @@ EOF;
 	/**
 	 * @ticket 55510
 	 * @covers ::wp_filter_content_tags
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_handles_duplicate_img_and_iframe_tags_once() {
 		$img     = get_image_tag( self::$large_id, '', '', '', 'large' );
@@ -2371,6 +2381,8 @@ EOF;
 	/**
 	 * @ticket 55510
 	 * @covers ::wp_filter_content_tags
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_filter_with_identical_image_tags_disabled_core_filters() {
 		$img     = get_image_tag( self::$large_id, '', '', '', 'large' );
@@ -2440,6 +2452,8 @@ EOF;
 	 * @ticket 35045
 	 * @ticket 33641
 	 * @requires function imagejpeg
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_schemes() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -2931,6 +2945,8 @@ EOF;
 	/**
 	 * @ticket 50367
 	 * @requires function imagejpeg
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_width_height() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -2995,6 +3011,8 @@ EOF;
 	 * @ticket 50756
 	 * @ticket 58235
 	 * @requires function imagejpeg
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_loading_lazy() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -3074,6 +3092,8 @@ EOF;
 	 * @ticket 44427
 	 * @ticket 50756
 	 * @ticket 58235
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_loading_lazy_opted_in() {
 		$img         = get_image_tag( self::$large_id, '', '', '', 'medium' );
@@ -3105,6 +3125,8 @@ EOF;
 	/**
 	 * @ticket 44427
 	 * @ticket 50756
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_loading_lazy_opted_out() {
 		$img    = get_image_tag( self::$large_id, '', '', '', 'medium' );
@@ -3190,6 +3212,8 @@ EOF;
 	 * Test that decoding="async" is not applied to img tags with single quotes.
 	 *
 	 * @ticket 56969
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_img_tag_add_decoding_attr_with_single_quotes() {
 		$img = "<img src='example.png' alt='' width='300' height='225' />";
@@ -3201,6 +3225,8 @@ EOF;
 	 * Test that decoding="async" is not applied to img tags inside JSON.
 	 *
 	 * @ticket 56969
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_decoding_async_not_applied_to_json() {
 		$content = '{"image": "<img src=\"example.png\" alt=\"\" width=\"300\" height=\"225\" />"}';
@@ -3476,6 +3502,8 @@ EOF;
 	 * @param string $decoding The value for the 'decoding' attribute. 'no value' for default.
 	 * @param string $expected The expected `img` tag.
 	 * @param string $message  The test message.
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_add_decoding_attr( $tag_name, $decoding, $expected, $message ) {
 		add_filter(
@@ -3922,6 +3950,8 @@ EOF;
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_img_tag_add_loading_optimization_attrs
 	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_with_loading_optimization_attrs() {
 		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );
@@ -4126,6 +4156,8 @@ EOF;
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_img_tag_add_loading_optimization_attrs
 	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_first_image_in_block_theme() {
 		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
@@ -4174,6 +4206,8 @@ EOF;
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_img_tag_add_loading_optimization_attrs
 	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_first_featured_image_in_block_theme() {
 		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
@@ -4241,6 +4275,8 @@ EOF;
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_img_tag_add_loading_optimization_attrs
 	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_images_in_header() {
 		global $_wp_current_template_content;
@@ -4294,6 +4330,8 @@ EOF;
 	 *
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_does_not_apply_loading_optimization_to_special_images_within_the_content() {
 		global $wp_query, $wp_the_query;
