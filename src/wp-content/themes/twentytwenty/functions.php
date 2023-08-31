@@ -625,7 +625,7 @@ function twentytwenty_customize_controls_enqueue_scripts() {
 	$theme_version = wp_get_theme()->get( 'Version' );
 
 	// Add main customizer js file.
-	wp_enqueue_script( 'twentytwenty-customize', get_template_directory_uri() . '/assets/js/customize.js', array( 'jquery' ), $theme_version, array( 'in_footer' => false ) );
+	wp_enqueue_script( 'twentytwenty-customize', get_template_directory_uri() . '/assets/js/customize.js', array( 'jquery' ), $theme_version );
 
 	// Add script for color calculations.
 	wp_enqueue_script( 'twentytwenty-color-calculations', get_template_directory_uri() . '/assets/js/color-calculations.js', array( 'wp-color-picker' ), $theme_version );
