@@ -777,7 +777,9 @@ class WP_Plugin_Dependencies {
 		}
 
 		if ( str_contains( $data, '.php' ) ) {
-			$requires = $this->plugins[ $data ]['RequiresPlugins'];
+			$requires = isset( $this->plugins[ $data ]['RequiresPlugins'] )
+				? $this->plugins[ $data ]['RequiresPlugins']
+				: array();
 			sort( $requires );
 		}
 		foreach ( $requires as $require ) {
