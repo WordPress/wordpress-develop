@@ -66,6 +66,7 @@ class Tests_Blocks_RenderPostTemplate extends WP_UnitTestCase {
 		);
 
 		$output = do_blocks( $content );
+		unregister_block_type( 'test/in-the-loop-logger' );
 		$this->assertSame( $expected, $output, 'Unexpected parsed blocks content' );
 		$this->assertSame( array( true ), $in_the_loop_logs, 'Unexpected in_the_loop() result' );
 	}
