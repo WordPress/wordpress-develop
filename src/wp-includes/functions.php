@@ -3150,6 +3150,11 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 		$real_mime = finfo_file( $finfo, $file );
 		finfo_close( $finfo );
 
+		// finfo_file() returns redudant mime type for Google docs, see #57898.
+		if ( 'application/vnd.openxmlformats-officedocument.wordprocessingml.documentapplication/vnd.openxmlformats-officedocument.wordprocessingml.document' === $real_mime ) {
+			$real_mime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+		}
+
 		// fileinfo often misidentifies obscure files as one of these types.
 		$nonspecific_types = array(
 			'application/octet-stream',
@@ -3613,7 +3618,7 @@ function wp_nonce_ays( $action ) {
 
 		if ( wp_get_referer() ) {
 			$wp_http_referer = remove_query_arg( 'updated', wp_get_referer() );
-			$wp_http_referer = wp_validate_redirect( esc_url_raw( $wp_http_referer ) );
+			$wp_http_referer = wp_validate_redirect( sanitize_url( $wp_http_referer ) );
 
 			$html .= '</p><p>';
 			$html .= sprintf(
