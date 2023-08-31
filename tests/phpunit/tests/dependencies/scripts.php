@@ -3006,11 +3006,11 @@ HTML
 	 */
 	protected function assertEqualMarkup( $expected, $actual, $message = '' ) {
 		$expected = str_replace( " type='text/javascript'", '', $expected );
-		$expected = str_replace( " type=\"text/javascript\"", '', $expected );
+		$expected = str_replace( ' type="text/javascript"', '', $expected );
 		$expected = str_replace( "/* <![CDATA[ */\n", '', $expected );
 		$expected = str_replace( "\n/* ]]> */", '', $expected );
 		$actual = str_replace( " type='text/javascript'", '', $actual );
-		$actual = str_replace( " type=\"text/javascript\"", '', $actual );
+		$actual = str_replace( ' type="text/javascript"', '', $actual );
 		$actual = str_replace( "/* <![CDATA[ */\n", '', $actual );
 		$actual = str_replace( "\n/* ]]> */", '', $actual );
 
