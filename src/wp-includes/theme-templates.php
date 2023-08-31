@@ -160,6 +160,7 @@ function the_block_template_skip_link() {
 	/**
 	 * Print the skip-link script.
 	 */
+	ob_start();
 	?>
 	<script>
 	( function() {
@@ -202,6 +203,7 @@ function the_block_template_skip_link() {
 	}() );
 	</script>
 	<?php
+	wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
 }
 
 /**
