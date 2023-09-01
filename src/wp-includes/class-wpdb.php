@@ -2489,6 +2489,100 @@ class wpdb {
 	}
 
 	/**
+	 * Inserts multiple rows into the table in one query.
+	 *
+	 * Examples:
+	 *
+	 *     $wpdb->insert_multiple(
+	 *         'table',
+	 *         array(
+	 *             'column1',
+	 *             'column2',
+	 *         ),
+	 *         array(
+	 *             array(
+	 *                 'column 1 value 1',
+	 *                 'column 2 value 1',
+	 *             ),
+	 *             array(
+	 *                 'column 1 value 2',
+	 *                 'column 2 value 2',
+	 *             ),
+	 *             array(
+	 *                 'column 1 value 3',
+	 *                 'column 2 value 3',
+	 *             ),
+	 *         )
+	 *     );
+	 *     $wpdb->insert_multiple(
+	 *         'table',
+	 *         array(
+	 *             'column1',
+	 *             'column2',
+	 *         ),
+	 *         array(
+	 *             array(
+	 *                 'column 1 value 1',
+	 *                 1,
+	 *             ),
+	 *             array(
+	 *                 'column 1 value 2',
+	 *                 2,
+	 *             ),
+	 *             array(
+	 *                 'column 1 value 3',
+	 *                 3,
+	 *             ),
+	 *         ),
+	 *         array(
+	 *             '%s',
+	 *             '%d',
+	 *         )
+	 *     );
+	 *
+	 * @since x.y.z
+	 *
+	 * @param string          $table  Table name.
+	 * @todo
+	 * @return int|false The number of rows inserted, or false on error.
+	 */
+	public function insert_multiple( $table, array $columns, array $datas, array $format = null ) {
+		$this->insert_id = 0;
+
+		$values_sql = array();
+		$values     = array(
+			$table,
+		);
+
+		foreach ( $datas as $data ) {
+			$data = $this->process_fields( $table, $data, $format );
+			if ( false === $data ) {
+				return false;
+			}
+
+			$formats = array();
+			foreach ( $data as $value ) {
+				if ( is_null( $value['value'] ) ) {
+					$formats[] = 'NULL';
+					continue;
+				}
+
+				$formats[] = $value['format'];
+				$values[]  = $value['value'];
+			}
+
+			$values_sql[] = '(' . implode( ', ', $formats ) . ')';
+		}
+
+		$all_formats = implode( ', ', $values_sql );
+		$fields      = implode( '`, `', $columns );
+		$sql         = "INSERT INTO %i (`$fields`) VALUES $all_formats";
+
+		$this->check_current_query = false;
+		return $this->query( $this->prepare( $sql, $values ) );
+	}
+
+	/**
 	 * Replaces a row in the table or inserts it if it does not exist, based on a PRIMARY KEY or a UNIQUE index.
 	 *
 	 * A REPLACE works exactly like an INSERT, except that if an old row in the table has the same value as a new row
