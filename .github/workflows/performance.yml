@@ -44,6 +44,8 @@ env:
   # changed if we want to normalize results against a different baseline.
   BASE_TAG: '6.1.1'
   LOCAL_DIR: build
+  TARGET_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || '' }}
+  TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
 
 jobs:
   # Runs the performance test suite.
@@ -65,9 +67,17 @@ jobs:
   # - Install MU plugin.
   # - Run performance tests (current commit).
   # - Print performance tests results.
+  # - Check out target commit (target branch or previous commit).
+  # - Install npm dependencies.
+  # - Build WordPress.
+  # - Run performance tests (previous/target commit).
+  # - Print target performance tests results.
+  # - Reset to original commit.
   # - Set the environment to the baseline version.
   # - Run baseline performance tests.
-  # - Print base line performance tests results.
+  # - Print baseline performance tests results.
+  # - Compare results with base.
+  # - Add workflow summary.
   # - Set the base sha.
   # - Set commit details.
   # - Publish performance results.
@@ -152,7 +162,31 @@ jobs:
         run: npm run test:performance
 
       - name: Print performance tests results
-        run: "node ./tests/performance/results.js"
+        run: node ./tests/performance/results.js
+
+      - name: Check out target commit (target branch or previous commit)
+        run: |
+          if [[ -z "$TARGET_REF" ]]; then
+            git fetch -n origin $TARGET_SHA
+          else
+            git fetch -n origin $TARGET_REF
+          fi
+          git reset --hard $TARGET_SHA
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Run target performance tests (base/previous commit)
+        run: npm run test:performance -- --prefix=before
+
+      - name: Print target performance tests results
+        run: node ./tests/performance/results.js --prefix=before
+
+      - name: Reset to original commit
+        run: git reset --hard $GITHUB_SHA
 
       - name: Set the environment to the baseline version
         run: |
@@ -162,8 +196,14 @@ jobs:
       - name: Run baseline performance tests
         run: npm run test:performance -- --prefix=base
 
-      - name: Print base line performance tests results
-        run: "node ./tests/performance/results.js --prefix=base"
+      - name: Print baseline performance tests results
+        run: node ./tests/performance/results.js --prefix=base
+
+      - name: Compare results with base
+        run: node ./tests/performance/compare-results.js ${{ runner.temp }}/summary.md
+
+      - name: Add workflow summary
+        run: cat ${{ runner.temp }}/summary.md >> $GITHUB_STEP_SUMMARY
 
       - name: Set the base sha
         # Only needed when publishing results.
