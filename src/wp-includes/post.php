@@ -6066,8 +6066,22 @@ function get_pages( $args = array() ) {
 		$query_args['post_parent'] = $parent;
 	}
 
+	/*
+	 * Maintain backward compatibility for `sort_column` key.
+	 * Additionally to `WP_Query`, it has been supporting the `post_modified_gmt` field, so this logic will translate
+	 * it to `post_modified` which should result in the same order given the two dates in the fields match.
+	 */
 	$orderby = wp_parse_list( $parsed_args['sort_column'] );
-	$orderby = array_map( 'trim', $orderby );
+	$orderby = array_map(
+		static function( $orderby_field ) {
+			$orderby_field = trim( $orderby_field );
+			if ( 'post_modified_gmt' === $orderby_field || 'modified_gmt' === $orderby_field ) {
+				$orderby_field = str_replace( '_gmt', '', $orderby_field );
+			}
+			return $orderby_field;
+		},
+		$orderby
+	);
 	if ( $orderby ) {
 		$query_args['orderby'] = array_fill_keys( $orderby, $parsed_args['sort_order'] );
 	}
@@ -6091,8 +6105,8 @@ function get_pages( $args = array() ) {
 	 */
 	$query_args = apply_filters( 'get_pages_query_args', $query_args, $parsed_args );
 
-	$query = new WP_Query( $query_args );
-	$pages = $query->get_posts();
+	$pages = new WP_Query();
+	$pages = $pages->query( $query_args );
 
 	if ( $child_of || $hierarchical ) {
 		$pages = get_page_children( $child_of, $pages );
@@ -7866,8 +7880,21 @@ function wp_cache_set_posts_last_changed() {
 function get_available_post_mime_types( $type = 'attachment' ) {
 	global $wpdb;
 
-	$types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );
-	return $types;
+	/**
+	 * Filters the list of available post MIME types for the given post type.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string[]|null $mime_types An array of MIME types. Default null.
+	 * @param string        $type       The post type name. Usually 'attachment' but can be any post type.
+	 */
+	$mime_types = apply_filters( 'get_available_post_mime_types', null, $type );
+
+	if ( ! is_array( $mime_types ) ) {
+		$mime_types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );
+	}
+
+	return $mime_types;
 }
 
 /**
