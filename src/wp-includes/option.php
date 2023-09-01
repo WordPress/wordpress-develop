@@ -410,7 +410,7 @@ function wp_set_option_autoload_values( array $options ) {
 		if ( ! $options ) {
 			continue;
 		}
-		$placeholders = trim( str_repeat( '%s,', count( $options ) ), ',' );
+		$placeholders = implode( ',', array_fill( 0, count( $options ), '%s' ) );
 		$where[]      = "autoload != '%s' AND option_name IN ($placeholders)";
 		$where_args[] = $autoload;
 		foreach ( $options as $option ) {
@@ -424,7 +424,7 @@ function wp_set_option_autoload_values( array $options ) {
 	 * If no options are returned, no need to update.
 	 */
 	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
-	$options_to_update = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options $where", ...$where_args ) );
+	$options_to_update = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options $where", $where_args ) );
 	if ( ! $options_to_update ) {
 		return $results;
 	}
@@ -441,9 +441,15 @@ function wp_set_option_autoload_values( array $options ) {
 		}
 
 		// Run query to update autoload value for all the options where it is needed.
-		$placeholders = trim( str_repeat( '%s,', count( $grouped_options[ $autoload ] ) ), ',' );
-		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
-		$success = $wpdb->query( $wpdb->prepare( "UPDATE $wpdb->options SET autoload = %s WHERE option_name IN ($placeholders)", $autoload, ...$grouped_options[ $autoload ] ) );
+		$success = $wpdb->query(
+			$wpdb->prepare(
+				"UPDATE $wpdb->options SET autoload = %s WHERE option_name IN (" . implode( ',', array_fill( 0, count( $grouped_options[ $autoload ] ), '%s' ) ) . ')',
+				array_merge(
+					array( $autoload ),
+					$grouped_options[ $autoload ]
+				)
+			)
+		);
 		if ( ! $success ) {
 			// Set option list to an empty array to indicate no options were updated.
 			$grouped_options[ $autoload ] = array();
@@ -456,7 +462,7 @@ function wp_set_option_autoload_values( array $options ) {
 		}
 	}
 
-	/**
+	/*
 	 * If any options were changed to 'yes', delete their individual caches, and delete 'alloptions' cache so that it
 	 * is refreshed as needed.
 	 * If no options were changed to 'yes' but any options were changed to 'no', delete them from the 'alloptions'
