@@ -40,6 +40,7 @@ wp-tests-config.php
 /packagehash.txt
 /artifacts
 /setup.log
+/.phpbench
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
