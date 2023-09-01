@@ -95,7 +95,7 @@ function formatAsMarkdownTable( rows ) {
  * Returns a Markdown link to a Git commit on the current GitHub repository.
  *
  * For example, turns `a5c3785ed8d6a35868bc169f07e40e889087fd2e`
- * into [https://github.com/wordpress/wordpress-develop/commit/36fe58a8c64dcc83fc21bddd5fcf054aef4efb27](36fe58a).
+ * into (https://github.com/wordpress/wordpress-develop/commit/36fe58a8c64dcc83fc21bddd5fcf054aef4efb27)[36fe58a].
  *
  * @param {string} sha Commit SHA.
  * @return string Link
