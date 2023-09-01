@@ -139,4 +139,52 @@ class Tests_Option_WpSetOptionsAutoload extends WP_UnitTestCase {
 		}
 		$this->assertFalse( wp_cache_get( 'alloptions', 'options' ), 'Alloptions cache not cleared' );
 	}
+
+	/**
+	 * Tests setting option's autoload value with boolean true.
+	 *
+	 * @ticket 58964
+	 */
+	public function test_wp_set_options_autoload_true() {
+		global $wpdb;
+
+		$options = array(
+			'test_option1' => 'value1',
+			'test_option2' => 'value2',
+		);
+
+		add_option( 'test_option1', $options['test_option1'], '', false );
+		add_option( 'test_option2', $options['test_option2'], '', false );
+		$expected = array(
+			'test_option1' => true,
+			'test_option2' => true,
+		);
+
+		$this->assertSame( $expected, wp_set_options_autoload( array_keys( $options ), true ), 'Function produced unexpected result' );
+		$this->assertSame( array( 'yes', 'yes' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
+	}
+
+	/**
+	 * Tests setting option's autoload value with boolean false.
+	 *
+	 * @ticket 58964
+	 */
+	public function test_wp_set_options_autoload_false() {
+		global $wpdb;
+
+		$options = array(
+			'test_option1' => 'value1',
+			'test_option2' => 'value2',
+		);
+
+		add_option( 'test_option1', $options['test_option1'], '', true );
+		add_option( 'test_option2', $options['test_option2'], '', true );
+		$expected = array(
+			'test_option1' => true,
+			'test_option2' => true,
+		);
+
+		$this->assertSame( $expected, wp_set_options_autoload( array_keys( $options ), false ), 'Function produced unexpected result' );
+		$this->assertSame( array( 'no', 'no' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
+	}
 }

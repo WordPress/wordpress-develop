@@ -124,7 +124,7 @@ class Tests_Option_WpSetOptionAutoloadValues extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 		$this->assertSame( $expected, wp_set_option_autoload_values( $options ), 'Function produced unexpected result' );
 		$this->assertSame( $num_queries + 3, get_num_queries(), 'Function made unexpected amount of database queries' );
-		$this->assertEqualSets( array( 'yes', 'no', 'yes' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
+		$this->assertSameSets( array( 'yes', 'no', 'yes' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
 		foreach ( $options as $option => $autoload ) {
 			$this->assertFalse( wp_cache_get( $option, 'options' ), sprintf( 'Option %s not deleted from individual cache', $option ) );
 		}
@@ -158,7 +158,7 @@ class Tests_Option_WpSetOptionAutoloadValues extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 		$this->assertSame( $expected, wp_set_option_autoload_values( $options ), 'Function produced unexpected result' );
 		$this->assertSame( $num_queries + 2, get_num_queries(), 'Function made unexpected amount of database queries' );
-		$this->assertEqualSets( array( 'yes', 'no', 'yes' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
+		$this->assertSameSets( array( 'yes', 'no', 'yes' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
 		foreach ( $options as $option => $autoload ) {
 			if ( 'no' === $autoload ) {
 				$this->assertArrayNotHasKey( $option, wp_cache_get( 'alloptions', 'options' ), sprintf( 'Option %s not deleted from alloptions cache', $option ) );
@@ -166,6 +166,31 @@ class Tests_Option_WpSetOptionAutoloadValues extends WP_UnitTestCase {
 				$this->assertArrayHasKey( $option, wp_cache_get( 'alloptions', 'options' ), sprintf( 'Option %s unexpectedly deleted from alloptions cache', $option ) );
 			}
 		}
+	}
+
+	/**
+	 * Tests setting options' autoload with boolean values.
+	 *
+	 * @ticket 58964
+	 */
+	public function test_wp_set_option_autoload_values_with_bool() {
+		global $wpdb;
+
+		$options = array(
+			'test_option1' => true,
+			'test_option2' => false,
+		);
+		add_option( 'test_option1', 'value1', '', false );
+		add_option( 'test_option2', 'value2', '', true );
+		$expected = array(
+			'test_option1' => true,
+			'test_option2' => true,
+		);
+
+		$num_queries = get_num_queries();
+		$this->assertSame( $expected, wp_set_option_autoload_values( $options ), 'Function produced unexpected result' );
+		$this->assertSame( $num_queries + 3, get_num_queries(), 'Function made unexpected amount of database queries' );
+		$this->assertSameSets( array( 'yes', 'no' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
 	}
 
 	/**

@@ -77,4 +77,38 @@ class Tests_Option_WpSetOptionAutoload extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( $option, wp_cache_get( 'alloptions', 'options' ), 'Missing option found in alloptions cache' );
 		$this->assertFalse( wp_cache_get( $option, 'options' ), 'Missing option found in individual cache' );
 	}
+
+	/**
+	 * Tests setting an option's autoload value to boolean true.
+	 *
+	 * @ticket 58964
+	 */
+	public function test_wp_set_option_autoload_true() {
+		global $wpdb;
+
+		$option = 'test_option';
+		$value  = 'value';
+
+		add_option( $option, $value, '', false );
+
+		$this->assertTrue( wp_set_option_autoload( $option, true ), 'Function did not succeed' );
+		$this->assertSame( 'yes', $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $option ) ), 'Option autoload value not updated in database' );
+	}
+
+	/**
+	 * Tests setting an option's autoload value to boolean false.
+	 *
+	 * @ticket 58964
+	 */
+	public function test_wp_set_option_autoload_false() {
+		global $wpdb;
+
+		$option = 'test_option';
+		$value  = 'value';
+
+		add_option( $option, $value, '', true );
+
+		$this->assertTrue( wp_set_option_autoload( $option, false ), 'Function did not succeed' );
+		$this->assertSame( 'no', $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $option ) ), 'Option autoload value not updated in database' );
+	}
 }
