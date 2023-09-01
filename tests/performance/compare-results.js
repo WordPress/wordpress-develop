@@ -63,12 +63,12 @@ function formatAsMarkdownTable( rows ) {
 	return result;
 }
 
-let summaryMarkdown = `**Performance Test Results**\n\n`;
+let summaryMarkdown = `# Performance Test Results\n\n`;
 
 if ( process.env.GITHUB_SHA ) {
-	summaryMarkdown += `Performance test results for ${ process.env.GITHUB_SHA } are in 🛎️!\n\n`;
+	summaryMarkdown += `🛎️ Performance test results for ${ process.env.GITHUB_SHA } are in!\n\n`;
 } else {
-	summaryMarkdown += `Performance test results are in 🛎️!\n\n`;
+	summaryMarkdown += `🛎️ Performance test results are in!\n\n`;
 }
 
 if ( process.env.TARGET_SHA ) {
@@ -107,7 +107,7 @@ for ( const key of testSuites ) {
 		} );
 	}
 
-	summaryMarkdown += `**${ title }**\n\n`;
+	summaryMarkdown += `## ${ title }\n\n`;
 	summaryMarkdown += `${ formatAsMarkdownTable( rows ) }\n`;
 
 	console.log( title );
