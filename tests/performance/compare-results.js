@@ -91,16 +91,31 @@ function formatAsMarkdownTable( rows ) {
 	return result;
 }
 
+/**
+ * Returns a Markdown link to a Git commit on the current GitHub repository.
+ *
+ * For example, turns `a5c3785ed8d6a35868bc169f07e40e889087fd2e`
+ * into [https://github.com/wordpress/wordpress-develop/commit/36fe58a8c64dcc83fc21bddd5fcf054aef4efb27](36fe58a).
+ *
+ * @param {string} sha Commit SHA.
+ * @return string Link
+ */
+function linkToSha(sha) {
+	const repoName = process.env.GITHUB_REPOSITORY || 'wordpress/wordpress-develop';
+
+	return `[https://github.com/${repoName}/commit/${sha}](${sha.slice(0, 7)})`;
+}
+
 let summaryMarkdown = `# Performance Test Results\n\n`;
 
 if ( process.env.GITHUB_SHA ) {
-	summaryMarkdown += `🛎️ Performance test results for ${ process.env.GITHUB_SHA } are in!\n\n`;
+	summaryMarkdown += `🛎️ Performance test results for ${ linkToSha( process.env.GITHUB_SHA ) } are in!\n\n`;
 } else {
 	summaryMarkdown += `🛎️ Performance test results are in!\n\n`;
 }
 
 if ( process.env.TARGET_SHA ) {
-	summaryMarkdown += `This compares the results from this commit with the ones from ${ process.env.TARGET_SHA }.\n\n`;
+	summaryMarkdown += `This compares the results from this commit with the ones from ${ linkToSha( process.env.TARGET_SHA ) }.\n\n`;
 }
 
 summaryMarkdown += `**Note:** Due to the nature of how GitHub Actions work, some variance in the results is expected.\n\n`;
