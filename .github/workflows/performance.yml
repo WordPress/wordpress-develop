@@ -44,6 +44,8 @@ env:
   # changed if we want to normalize results against a different baseline.
   BASE_TAG: '6.1.1'
   LOCAL_DIR: build
+  TARGET_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || '' }}
+  TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
 
 jobs:
   # Runs the performance test suite.
@@ -170,9 +172,6 @@ jobs:
             git fetch -n origin $TARGET_REF
           fi
           git reset --hard $TARGET_SHA
-        env:
-          TARGET_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || '' }}
-          TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
 
       - name: Install npm dependencies
         run: npm ci
@@ -202,8 +201,6 @@ jobs:
 
       - name: Compare results with base
         run: node ./tests/performance/compare-results.js ${{ runner.temp }}/summary.md
-        env:
-          TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
 
       - name: Add workflow summary
         run: cat ${{ runner.temp }}/summary.md >> $GITHUB_STEP_SUMMARY
