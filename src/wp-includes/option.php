@@ -486,6 +486,7 @@ function wp_set_option_autoload_values( array $options ) {
  * each option at once.
  *
  * @since 6.4.0
+ *
  * @see wp_set_option_autoload_values()
  *
  * @param array       $options  List of option names. Expected to not be SQL-escaped.
@@ -507,6 +508,7 @@ function wp_set_options_autoload( array $options, $autoload ) {
  * multiple options at once.
  *
  * @since 6.4.0
+ *
  * @see wp_set_option_autoload_values()
  *
  * @param string      $option   Name of the option. Expected to not be SQL-escaped.
