@@ -2210,7 +2210,7 @@ final class WP_Customize_Manager {
 		}
 
 		wp_print_inline_script_tag(
-			static function () use ( $settings ) {
+			function () use ( $settings ) {
 				?>
 				<script>
 				var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
@@ -4989,7 +4989,7 @@ final class WP_Customize_Manager {
 		}
 
 		wp_print_inline_script_tag(
-			static function () use ( $settings ) {
+			function () use ( $settings ) {
 				?>
 				<script>
 				var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
