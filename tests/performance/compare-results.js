@@ -103,7 +103,7 @@ function formatAsMarkdownTable( rows ) {
 function linkToSha(sha) {
 	const repoName = process.env.GITHUB_REPOSITORY || 'wordpress/wordpress-develop';
 
-	return `[https://github.com/${repoName}/commit/${sha}](${sha.slice(0, 7)})`;
+	return `[${sha.slice(0, 7)}](https://github.com/${repoName}/commit/${sha})`;
 }
 
 let summaryMarkdown = `# Performance Test Results\n\n`;
