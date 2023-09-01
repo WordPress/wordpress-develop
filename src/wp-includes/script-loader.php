@@ -2828,9 +2828,10 @@ function wp_print_script_tag( $attributes ) {
  * Automatically injects type attribute if needed.
  *
  * @since 5.7.0
+ * @since 6.4.0 The $javascript argument can also be a Closure.
  *
- * @param string $javascript Inline JavaScript code.
- * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+ * @param string|Closure $javascript Inline JavaScript code, or a Closure prints a string starting with `<script>` and ending with `</script>`.
+ * @param array          $attributes Optional. Key-value pairs representing `<script>` tag attributes.
  * @return string String containing inline JavaScript code wrapped around `<script>` tag.
  */
 function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
@@ -2841,6 +2842,25 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 			array( 'type' => 'text/javascript' ),
 			$attributes
 		);
+	}
+
+	// Accommodate inline scripts in PHP files to retain IDE checks.
+	if ( $javascript instanceof Closure ) {
+		ob_start();
+		$javascript();
+		$javascript = trim( ob_get_clean() );
+
+		if ( '<script>' === strtolower( substr( $javascript, 0, 8 ) ) ) {
+			$javascript = substr( $javascript, 8 );
+		} else {
+			_doing_it_wrong( __FUNCTION__, __( 'Closure output expected to start with script start tag (without any attributes).' ), '6.4' );
+		}
+
+		if ( '</script>' === strtolower( substr( $javascript, strlen( $javascript ) - 9, 9 ) ) ) {
+			$javascript = substr( $javascript, 0, strlen( $javascript ) - 9 );
+		} else {
+			_doing_it_wrong( __FUNCTION__, __( 'Closure output expected to end with script end tag.' ), '6.4' );
+		}
 	}
 
 	// Ensure markup is XHTML compatible if not HTML5.
@@ -2872,9 +2892,10 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
  * Automatically injects type attribute if needed.
  *
  * @since 5.7.0
+ * @since 6.4.0 The $javascript argument can also be a Closure.
  *
- * @param string $javascript Inline JavaScript code.
- * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+ * @param string|Closure $javascript Inline JavaScript code, or a Closure prints a string starting with `<script>` and ending with `</script>`.
+ * @param array          $attributes Optional. Key-value pairs representing `<script>` tag attributes.
  */
 function wp_print_inline_script_tag( $javascript, $attributes = array() ) {
 	echo wp_get_inline_script_tag( $javascript, $attributes );

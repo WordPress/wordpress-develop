@@ -381,14 +381,16 @@ function login_footer( $input_id = '' ) {
 	<?php
 
 	if ( ! empty( $input_id ) ) {
-		ob_start();
-		?>
-		<script>
-		try{document.getElementById('<?php echo $input_id; ?>').focus();}catch(e){}
-		if(typeof wpOnload==='function')wpOnload();
-		</script>
-		<?php
-		wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
+		wp_print_inline_script_tag(
+			static function () use ( $input_id ) {
+				?>
+				<script>
+				try{document.getElementById('<?php echo $input_id; ?>').focus();}catch(e){}
+				if(typeof wpOnload==='function')wpOnload();
+				</script>
+				<?php
+			}
+		);
 	}
 
 	/**

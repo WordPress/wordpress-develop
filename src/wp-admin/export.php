@@ -25,25 +25,27 @@ $title = __( 'Export' );
  * @since 3.5.0
  */
 function export_add_js() {
-	ob_start();
-	?>
-<script>
-	jQuery( function($) {
-		var form = $('#export-filters'),
-			filters = form.find('.export-filters');
-		filters.hide();
-		form.find('input:radio').on( 'change', function() {
-			filters.slideUp('fast');
-			switch ( $(this).val() ) {
-				case 'attachment': $('#attachment-filters').slideDown(); break;
-				case 'posts': $('#post-filters').slideDown(); break;
-				case 'pages': $('#page-filters').slideDown(); break;
-			}
-		});
-	} );
-</script>
-	<?php
-	wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
+	wp_print_inline_script_tag(
+		static function () {
+			?>
+			<script>
+				jQuery( function($) {
+					var form = $('#export-filters'),
+						filters = form.find('.export-filters');
+					filters.hide();
+					form.find('input:radio').on( 'change', function() {
+						filters.slideUp('fast');
+						switch ( $(this).val() ) {
+							case 'attachment': $('#attachment-filters').slideDown(); break;
+							case 'posts': $('#post-filters').slideDown(); break;
+							case 'pages': $('#page-filters').slideDown(); break;
+						}
+					});
+				} );
+			</script>
+			<?php
+		}
+	);
 }
 add_action( 'admin_head', 'export_add_js' );
 

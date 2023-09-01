@@ -96,20 +96,22 @@ wp_enqueue_script( 'svg-painter' );
 
 $admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
 
-ob_start();
-?>
-<script>
-addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
-var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
-	pagenow = '<?php echo esc_js( $current_screen->id ); ?>',
-	typenow = '<?php echo esc_js( $current_screen->post_type ); ?>',
-	adminpage = '<?php echo esc_js( $admin_body_class ); ?>',
-	thousandsSeparator = '<?php echo esc_js( $wp_locale->number_format['thousands_sep'] ); ?>',
-	decimalPoint = '<?php echo esc_js( $wp_locale->number_format['decimal_point'] ); ?>',
-	isRtl = <?php echo (int) is_rtl(); ?>;
-</script>
-<?php
-wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
+wp_print_inline_script_tag(
+	static function () use ( $current_screen, $admin_body_class, $wp_locale ) {
+		?>
+		<script>
+		addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
+		var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
+			pagenow = '<?php echo esc_js( $current_screen->id ); ?>',
+			typenow = '<?php echo esc_js( $current_screen->post_type ); ?>',
+			adminpage = '<?php echo esc_js( $admin_body_class ); ?>',
+			thousandsSeparator = '<?php echo esc_js( $wp_locale->number_format['thousands_sep'] ); ?>',
+			decimalPoint = '<?php echo esc_js( $wp_locale->number_format['decimal_point'] ); ?>',
+			isRtl = <?php echo (int) is_rtl(); ?>;
+		</script>
+		<?php
+	}
+);
 
 /**
  * Fires when enqueuing scripts for all admin pages.

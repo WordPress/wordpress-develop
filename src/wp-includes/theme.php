@@ -3742,25 +3742,27 @@ function wp_customize_support_script() {
 	$admin_origin = parse_url( admin_url() );
 	$home_origin  = parse_url( home_url() );
 	$cross_domain = ( strtolower( $admin_origin['host'] ) !== strtolower( $home_origin['host'] ) );
-	ob_start();
-	?>
-	<script>
-		(function() {
-			var request, b = document.body, c = 'className', cs = 'customize-support', rcs = new RegExp('(^|\\s+)(no-)?'+cs+'(\\s+|$)');
+	wp_print_inline_script_tag(
+		static function () use ( $cross_domain ) {
+			?>
+			<script>
+			(function() {
+				var request, b = document.body, c = 'className', cs = 'customize-support', rcs = new RegExp('(^|\\s+)(no-)?'+cs+'(\\s+|$)');
 
-	<?php	if ( $cross_domain ) : ?>
-			request = (function(){ var xhr = new XMLHttpRequest(); return ('withCredentials' in xhr); })();
-	<?php	else : ?>
-			request = true;
-	<?php	endif; ?>
+				<?php if ( $cross_domain ) : ?>
+					request = (function(){ var xhr = new XMLHttpRequest(); return ('withCredentials' in xhr); })();
+				<?php else : ?>
+					request = true;
+				<?php endif; ?>
 
-			b[c] = b[c].replace( rcs, ' ' );
-			// The customizer requires postMessage and CORS (if the site is cross domain).
-			b[c] += ( window.postMessage && request ? ' ' : ' no-' ) + cs;
-		}());
-	</script>
-	<?php
-	wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
+				b[c] = b[c].replace( rcs, ' ' );
+				// The customizer requires postMessage and CORS (if the site is cross domain).
+				b[c] += ( window.postMessage && request ? ' ' : ' no-' ) + cs;
+			}());
+			</script>
+			<?php
+		}
+	);
 }
 
 /**

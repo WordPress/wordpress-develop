@@ -547,15 +547,17 @@ function wp_iframe( $content_func, ...$args ) {
 		wp_enqueue_style( 'deprecated-media' );
 	}
 
-	ob_start();
-	?>
-	<script>
-	addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
-	var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>', pagenow = 'media-upload-popup', adminpage = 'media-upload-popup',
-	isRtl = <?php echo (int) is_rtl(); ?>;
-	</script>
-	<?php
-	wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
+	wp_print_inline_script_tag(
+		static function () {
+			?>
+			<script>
+			addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
+			var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>', pagenow = 'media-upload-popup', adminpage = 'media-upload-popup',
+			isRtl = <?php echo (int) is_rtl(); ?>;
+			</script>
+			<?php
+		}
+	);
 
 	/** This action is documented in wp-admin/admin-header.php */
 	do_action( 'admin_enqueue_scripts', 'media-upload-popup' );
