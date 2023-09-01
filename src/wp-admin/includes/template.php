@@ -2124,8 +2124,9 @@ function iframe_header( $title = '', $deprecated = false ) {
 <title><?php bloginfo( 'name' ); ?> &rsaquo; <?php echo $title; ?> &#8212; <?php _e( 'WordPress' ); ?></title>
 	<?php
 	wp_enqueue_style( 'colors' );
+	ob_start();
 	?>
-<script type="text/javascript">
+<script>
 addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
 function tb_close(){var win=window.dialogArguments||opener||parent||top;win.tb_remove();}
 var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
@@ -2137,6 +2138,8 @@ var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?
 	isRtl = <?php echo (int) is_rtl(); ?>;
 </script>
 	<?php
+	wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
+
 	/** This action is documented in wp-admin/admin-header.php */
 	do_action( 'admin_enqueue_scripts', $hook_suffix );
 
@@ -2216,7 +2219,7 @@ function iframe_footer() {
 	do_action( 'admin_print_footer_scripts' );
 	?>
 	</div>
-<script type="text/javascript">if(typeof wpOnload==='function')wpOnload();</script>
+	<?php wp_print_inline_script_tag( "if(typeof wpOnload==='function')wpOnload();" ); ?>
 </body>
 </html>
 	<?php

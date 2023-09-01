@@ -193,9 +193,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	?>
 	</head>
 	<body class="login no-js <?php echo esc_attr( implode( ' ', $classes ) ); ?>">
-	<script type="text/javascript">
-		document.body.className = document.body.className.replace('no-js','js');
-	</script>
+	<?php wp_print_inline_script_tag( "document.body.className = document.body.className.replace('no-js','js');" ); ?>
 	<?php
 	/**
 	 * Fires in the login page header after the body tag is opened.
@@ -383,12 +381,14 @@ function login_footer( $input_id = '' ) {
 	<?php
 
 	if ( ! empty( $input_id ) ) {
+		ob_start();
 		?>
-		<script type="text/javascript">
+		<script>
 		try{document.getElementById('<?php echo $input_id; ?>').focus();}catch(e){}
 		if(typeof wpOnload==='function')wpOnload();
 		</script>
 		<?php
+		wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
 	}
 
 	/**

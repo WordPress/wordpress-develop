@@ -95,8 +95,10 @@ wp_enqueue_script( 'utils' );
 wp_enqueue_script( 'svg-painter' );
 
 $admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
+
+ob_start();
 ?>
-<script type="text/javascript">
+<script>
 addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
 var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
 	pagenow = '<?php echo esc_js( $current_screen->id ); ?>',
@@ -107,6 +109,7 @@ var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?
 	isRtl = <?php echo (int) is_rtl(); ?>;
 </script>
 <?php
+wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
 
 /**
  * Fires when enqueuing scripts for all admin pages.
@@ -243,9 +246,8 @@ $admin_body_classes = apply_filters( 'admin_body_class', '' );
 $admin_body_classes = ltrim( $admin_body_classes . ' ' . $admin_body_class );
 ?>
 <body class="wp-admin wp-core-ui no-js <?php echo esc_attr( $admin_body_classes ); ?>">
-<script type="text/javascript">
-	document.body.className = document.body.className.replace('no-js','js');
-</script>
+
+<?php wp_print_inline_script_tag( "document.body.className = document.body.className.replace('no-js','js');" ); ?>
 
 <?php
 // Make sure the customize body classes are correct as early as possible.

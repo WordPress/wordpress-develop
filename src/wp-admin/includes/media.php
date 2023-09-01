@@ -547,13 +547,16 @@ function wp_iframe( $content_func, ...$args ) {
 		wp_enqueue_style( 'deprecated-media' );
 	}
 
+	ob_start();
 	?>
-	<script type="text/javascript">
+	<script>
 	addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
 	var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>', pagenow = 'media-upload-popup', adminpage = 'media-upload-popup',
 	isRtl = <?php echo (int) is_rtl(); ?>;
 	</script>
 	<?php
+	wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
+
 	/** This action is documented in wp-admin/admin-header.php */
 	do_action( 'admin_enqueue_scripts', 'media-upload-popup' );
 
@@ -610,9 +613,7 @@ function wp_iframe( $content_func, ...$args ) {
 	?>
 	</head>
 	<body<?php echo $body_id_attr; ?> class="wp-core-ui no-js">
-	<script type="text/javascript">
-	document.body.className = document.body.className.replace('no-js', 'js');
-	</script>
+	<?php wp_print_inline_script_tag( "document.body.className = document.body.className.replace('no-js','js');" ); ?>
 	<?php
 
 	call_user_func_array( $content_func, $args );
@@ -621,7 +622,7 @@ function wp_iframe( $content_func, ...$args ) {
 	do_action( 'admin_print_footer_scripts' );
 
 	?>
-	<script type="text/javascript">if(typeof wpOnload==='function')wpOnload();</script>
+	<?php wp_print_inline_script_tag( "if(typeof wpOnload==='function')wpOnload();" ); ?>
 	</body>
 	</html>
 	<?php
