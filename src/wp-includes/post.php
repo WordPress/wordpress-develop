@@ -2471,6 +2471,24 @@ function add_post_meta( $post_id, $meta_key, $meta_value, $unique = false ) {
 }
 
 /**
+ * Adds multiple items of meta data to a post.
+ *
+ * This function will always insert all of the provided metadata even if meta data with
+ * matching keys already exist. If the insert fails, no metadata will be inserted. It's
+ * not possible for some rows to be inserted and not others.
+ *
+ * @since x.y.z
+ *
+ * @param int    $post_id    Post ID.
+ * @param string $meta_key   Metadata name.
+ * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
+ * @return bool True on success, false on failure.
+ */
+function bulk_add_post_meta( $post_id, array $meta_fields ) {
+	return bulk_add_metadata( 'post', $post_id, $meta_fields );
+}
+
+/**
  * Deletes a post meta field for the given post ID.
  *
  * You can match based on the key, or key and value. Removing based on key and
