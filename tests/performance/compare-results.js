@@ -118,7 +118,9 @@ if ( process.env.TARGET_SHA ) {
 	summaryMarkdown += `This compares the results from this commit with the ones from ${ linkToSha( process.env.TARGET_SHA ) }.\n\n`;
 }
 
-summaryMarkdown += `**Note:** Due to the nature of how GitHub Actions work, some variance in the results is expected.\n\n`;
+if ( process.env.GITHUB_SHA ) {
+	summaryMarkdown += `**Note:** Due to the nature of how GitHub Actions work, some variance in the results is expected.\n\n`;
+}
 
 console.log( 'Performance Test Results\n' );
 
