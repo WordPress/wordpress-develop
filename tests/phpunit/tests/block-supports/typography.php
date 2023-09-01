@@ -699,6 +699,11 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 				'theme_slug'      => 'block-theme-child-with-fluid-typography-config',
 				'expected_output' => 'font-size:15px;',
 			),
+			'returns clamp value using default config if layout is fluid' => array(
+				'font_size_value' => '15px',
+				'theme_slug'      => 'block-theme-child-with-fluid-layout',
+				'expected_output' => 'font-size:clamp(14px, 0.875rem + ((1vw - 3.2px) * 0.078), 15px);',
+			),
 		);
 	}
 
