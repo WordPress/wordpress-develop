@@ -41,6 +41,34 @@ const args = process.argv.slice( 2 );
 
 const summaryFile = args[ 0 ];
 
+/**
+ * Formats an array of objects as a Markdown table.
+ *
+ * For example, this array:
+ *
+ * [
+ * 	{
+ * 	    foo: 123,
+ * 	    bar: 456,
+ * 	    baz: 'Yes',
+ * 	},
+ * 	{
+ * 	    foo: 777,
+ * 	    bar: 999,
+ * 	    baz: 'No',
+ * 	}
+ * ]
+ *
+ * Will result in the following table:
+ *
+ * | foo | bar | baz |
+ * |-----|-----|-----|
+ * | 123 | 456 | Yes |
+ * | 777 | 999 | No  |
+ *
+ * @param {Array<Object>} rows Table rows.
+ * @returns {string} Markdown table content.
+ */
 function formatAsMarkdownTable( rows ) {
 	let result = '';
 	const headers = Object.keys( rows[ 0 ] );
