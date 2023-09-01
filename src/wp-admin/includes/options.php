@@ -120,18 +120,18 @@ function options_reading_add_js() {
 	wp_print_inline_script_tag(
 		static function () {
 			?>
-<script>
-	jQuery( function($) {
-		var section = $('#front-static-pages'),
-			staticPage = section.find('input:radio[value="page"]'),
-			selects = section.find('select'),
-			check_disabled = function(){
-				selects.prop( 'disabled', ! staticPage.prop('checked') );
-			};
-		check_disabled();
-		section.find( 'input:radio' ).on( 'change', check_disabled );
-	} );
-</script>
+			<script>
+				jQuery( function($) {
+					var section = $('#front-static-pages'),
+						staticPage = section.find('input:radio[value="page"]'),
+						selects = section.find('select'),
+						check_disabled = function(){
+							selects.prop( 'disabled', ! staticPage.prop('checked') );
+						};
+					check_disabled();
+					section.find( 'input:radio' ).on( 'change', check_disabled );
+				} );
+			</script>
 			<?php
 		}
 	);

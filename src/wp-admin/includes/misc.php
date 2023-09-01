@@ -1406,11 +1406,11 @@ function wp_admin_canonical_url() {
 	wp_print_inline_script_tag(
 		static function () {
 			?>
-	<script>
-		if ( window.history.replaceState ) {
-			window.history.replaceState( null, null, document.getElementById( 'wp-admin-canonical' ).href + window.location.hash );
-		}
-	</script>
+			<script>
+				if ( window.history.replaceState ) {
+					window.history.replaceState( null, null, document.getElementById( 'wp-admin-canonical' ).href + window.location.hash );
+				}
+			</script>
 			<?php
 		}
 	);

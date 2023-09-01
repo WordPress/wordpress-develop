@@ -564,19 +564,23 @@ function default_password_nag() {
  * @access private
  */
 function delete_users_add_js() {
-	?>
-<script>
-jQuery( function($) {
-	var submit = $('#submit').prop('disabled', true);
-	$('input[name="delete_option"]').one('change', function() {
-		submit.prop('disabled', false);
-	});
-	$('#reassign_user').focus( function() {
-		$('#delete_option1').prop('checked', true).trigger('change');
-	});
-} );
-</script>
-	<?php
+	wp_print_inline_script_tag(
+		static function () {
+			?>
+			<script>
+			jQuery( function($) {
+				var submit = $('#submit').prop('disabled', true);
+				$('input[name="delete_option"]').one('change', function() {
+					submit.prop('disabled', false);
+				});
+				$('#reassign_user').focus( function() {
+					$('#delete_option1').prop('checked', true).trigger('change');
+				});
+			} );
+			</script>
+			<?php
+		}
+	);
 }
 
 /**
