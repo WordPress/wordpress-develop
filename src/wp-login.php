@@ -193,7 +193,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	?>
 	</head>
 	<body class="login no-js <?php echo esc_attr( implode( ' ', $classes ) ); ?>">
-	<?php wp_print_inline_script_tag( "document.body.className = document.body.className.replace('no-js','js');" ); ?>
+	<?php wp_print_inline_script_tag( /** @lang JavaScript */ "document.body.className = document.body.className.replace('no-js','js');" ); ?>
 	<?php
 	/**
 	 * Fires in the login page header after the body tag is opened.

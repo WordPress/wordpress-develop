@@ -2227,7 +2227,7 @@ function iframe_footer() {
 	do_action( 'admin_print_footer_scripts' );
 	?>
 	</div>
-	<?php wp_print_inline_script_tag( "if(typeof wpOnload==='function')wpOnload();" ); ?>
+	<?php wp_print_inline_script_tag( /** @lang JavaScript */ "if(typeof wpOnload==='function')wpOnload();" ); ?>
 </body>
 </html>
 	<?php

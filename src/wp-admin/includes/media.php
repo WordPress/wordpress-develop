@@ -615,7 +615,7 @@ function wp_iframe( $content_func, ...$args ) {
 	?>
 	</head>
 	<body<?php echo $body_id_attr; ?> class="wp-core-ui no-js">
-	<?php wp_print_inline_script_tag( "document.body.className = document.body.className.replace('no-js','js');" ); ?>
+	<?php wp_print_inline_script_tag( /** @lang JavaScript */ "document.body.className = document.body.className.replace('no-js','js');" ); ?>
 	<?php
 
 	call_user_func_array( $content_func, $args );
@@ -624,7 +624,7 @@ function wp_iframe( $content_func, ...$args ) {
 	do_action( 'admin_print_footer_scripts' );
 
 	?>
-	<?php wp_print_inline_script_tag( "if(typeof wpOnload==='function')wpOnload();" ); ?>
+	<?php wp_print_inline_script_tag( /** @lang JavaScript */ "if(typeof wpOnload==='function')wpOnload();" ); ?>
 	</body>
 	</html>
 	<?php

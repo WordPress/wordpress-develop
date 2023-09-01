@@ -249,7 +249,7 @@ $admin_body_classes = ltrim( $admin_body_classes . ' ' . $admin_body_class );
 ?>
 <body class="wp-admin wp-core-ui no-js <?php echo esc_attr( $admin_body_classes ); ?>">
 
-<?php wp_print_inline_script_tag( "document.body.className = document.body.className.replace('no-js','js');" ); ?>
+<?php wp_print_inline_script_tag( /** @lang JavaScript */ "document.body.className = document.body.className.replace('no-js','js');" ); ?>
 
 <?php
 // Make sure the customize body classes are correct as early as possible.
