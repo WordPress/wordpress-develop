@@ -910,14 +910,20 @@ switch ( $action ) {
 		<?php
 		break;
 }
+
+ob_start();
 ?>
-<script type="text/javascript">
+<script>
 	if (window.location.hash == '#password') {
 		document.getElementById('pass1').focus();
 	}
 </script>
+<?php
+wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
 
-<script type="text/javascript">
+ob_start();
+?>
+<script>
 	jQuery( function( $ ) {
 		var languageSelect = $( '#locale' );
 		$( 'form' ).on( 'submit', function() {
@@ -931,6 +937,7 @@ switch ( $action ) {
 		});
 	} );
 </script>
+<?php wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) ); ?>
 
 <?php if ( isset( $application_passwords_list_table ) ) : ?>
 	<script type="text/html" id="tmpl-new-application-password">

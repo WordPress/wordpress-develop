@@ -7598,6 +7598,7 @@ function wp_post_preview_js() {
 	// Has to match the window name used in post_submit_meta_box().
 	$name = 'wp-preview-' . (int) $post->ID;
 
+	ob_start();
 	?>
 	<script>
 	( function() {
@@ -7613,6 +7614,7 @@ function wp_post_preview_js() {
 	}());
 	</script>
 	<?php
+	wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
 }
 
 /**

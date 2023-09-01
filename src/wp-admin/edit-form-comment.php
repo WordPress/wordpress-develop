@@ -282,9 +282,7 @@ $referer = wp_get_referer();
 </div>
 </form>
 
-<?php if ( ! wp_is_mobile() ) : ?>
-<script type="text/javascript">
-try{document.post.name.focus();}catch(e){}
-</script>
-	<?php
-endif;
+<?php
+if ( ! wp_is_mobile() ) {
+	wp_print_inline_script_tag( 'try{document.post.name.focus();}catch(e){}' );
+}

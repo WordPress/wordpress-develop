@@ -25,8 +25,9 @@ $title = __( 'Export' );
  * @since 3.5.0
  */
 function export_add_js() {
+	ob_start();
 	?>
-<script type="text/javascript">
+<script>
 	jQuery( function($) {
 		var form = $('#export-filters'),
 			filters = form.find('.export-filters');
@@ -42,6 +43,7 @@ function export_add_js() {
 	} );
 </script>
 	<?php
+	wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
 }
 add_action( 'admin_head', 'export_add_js' );
 

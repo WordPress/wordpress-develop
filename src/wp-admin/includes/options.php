@@ -13,6 +13,7 @@
  * @since 4.2.0
  */
 function options_discussion_add_js() {
+	ob_start();
 	?>
 	<script>
 	(function($){
@@ -24,6 +25,7 @@ function options_discussion_add_js() {
 	})(jQuery);
 	</script>
 	<?php
+	wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
 }
 
 /**
@@ -32,8 +34,9 @@ function options_discussion_add_js() {
  * @since 3.5.0
  */
 function options_general_add_js() {
+	ob_start();
 	?>
-<script type="text/javascript">
+<script>
 	jQuery( function($) {
 		var $siteName = $( '#wp-admin-bar-site-name' ).children( 'a' ).first(),
 			homeURL = ( <?php echo wp_json_encode( get_home_url() ); ?> || '' ).replace( /^(https?:\/\/)?(www\.)?/, '' );
@@ -101,6 +104,7 @@ function options_general_add_js() {
 	} );
 </script>
 	<?php
+	wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
 }
 
 /**
@@ -109,8 +113,9 @@ function options_general_add_js() {
  * @since 3.5.0
  */
 function options_reading_add_js() {
+	ob_start();
 	?>
-<script type="text/javascript">
+<script>
 	jQuery( function($) {
 		var section = $('#front-static-pages'),
 			staticPage = section.find('input:radio[value="page"]'),
@@ -123,6 +128,7 @@ function options_reading_add_js() {
 	} );
 </script>
 	<?php
+	wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
 }
 
 /**

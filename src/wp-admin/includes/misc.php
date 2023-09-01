@@ -1444,6 +1444,7 @@ function wp_admin_headers() {
  * @since 4.6.0
  */
 function wp_page_reload_on_back_button_js() {
+	ob_start();
 	?>
 	<script>
 		if ( typeof performance !== 'undefined' && performance.navigation && performance.navigation.type === 2 ) {
@@ -1451,6 +1452,7 @@ function wp_page_reload_on_back_button_js() {
 		}
 	</script>
 	<?php
+	wp_print_inline_script_tag( trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) );
 }
 
 /**
