@@ -169,6 +169,40 @@ class Tests_Option_WpSetOptionAutoloadValues extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests setting options' autoload with a simulated SQL query failure.
+	 *
+	 * @ticket 58964
+	 */
+	public function test_wp_set_option_autoload_values_with_sql_query_failure() {
+		global $wpdb;
+
+		$options = array(
+			'test_option1' => 'yes',
+			'test_option2' => 'yes',
+		);
+		add_option( 'test_option1', 'value1', '', 'no' );
+		add_option( 'test_option2', 'value2', '', 'no' );
+
+		// Force UPDATE queries to fail, leading to no autoload values being updated.
+		add_filter(
+			'query',
+			static function( $query ) {
+				if ( str_starts_with( $query, 'UPDATE ' ) ) {
+					return '';
+				}
+				return $query;
+			}
+		);
+		$expected = array(
+			'test_option1' => false,
+			'test_option2' => false,
+		);
+
+		$this->assertSame( $expected, wp_set_option_autoload_values( $options ), 'Function produced unexpected result' );
+		$this->assertSame( array( 'no', 'no' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
+	}
+
+	/**
 	 * Tests setting options' autoload with boolean values.
 	 *
 	 * @ticket 58964
