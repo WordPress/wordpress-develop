@@ -75,7 +75,11 @@ if ( process.env.TARGET_SHA ) {
 	summaryMarkdown += `This compares the results from this commit with the ones from ${ process.env.TARGET_SHA }.\n\n`;
 }
 
+summaryMarkdown += `**Note:** Due to the nature of how GitHub Actions work, some variance in the results is expected.\n\n`;
+
 console.log( 'Performance Test Results\n' );
+
+console.log( 'Note: Due to the nature of how GitHub Actions work, some variance in the results is expected.\n' );
 
 for ( const key of testSuites ) {
 	const current = testResults[ key ];
