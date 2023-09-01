@@ -88,7 +88,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 *
 	 * @ticket 56180
 	 *
-	 * @covers get_header_image
+	 * @covers ::get_header_image
 	 *
 	 * @dataProvider data_filter_header_image
 	 *

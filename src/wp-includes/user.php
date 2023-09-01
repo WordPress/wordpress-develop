@@ -2431,9 +2431,16 @@ function wp_insert_user( $userdata ) {
 
 	$meta = array_merge( $meta, $custom_meta );
 
-	// Update user meta.
-	foreach ( $meta as $key => $value ) {
-		update_user_meta( $user_id, $key, $value );
+	if ( $update ) {
+		// Update user meta.
+		foreach ( $meta as $key => $value ) {
+			update_user_meta( $user_id, $key, $value );
+		}
+	} else {
+		// Add user meta.
+		foreach ( $meta as $key => $value ) {
+			add_user_meta( $user_id, $key, $value );
+		}
 	}
 
 	foreach ( wp_get_user_contact_methods( $user ) as $key => $value ) {
@@ -2953,7 +2960,6 @@ function get_password_reset_key( $user ) {
  *
  * @since 3.1.0
  *
- * @global wpdb         $wpdb      WordPress database object for queries.
  * @global PasswordHash $wp_hasher Portable PHP password hashing framework instance.
  *
  * @param string $key       Hash to validate sending user's password.
@@ -2961,7 +2967,7 @@ function get_password_reset_key( $user ) {
  * @return WP_User|WP_Error WP_User object on success, WP_Error object for invalid or expired keys.
  */
 function check_password_reset_key( $key, $login ) {
-	global $wpdb, $wp_hasher;
+	global $wp_hasher;
 
 	$key = preg_replace( '/[^a-z0-9]/i', '', $key );
 
@@ -3801,7 +3807,12 @@ function wp_register_user_personal_data_exporter( $exporters ) {
  * @since 5.4.0 Added 'Session Tokens' group to the export data.
  *
  * @param string $email_address  The user's email address.
- * @return array An array of personal data.
+ * @return array {
+ *     An array of personal data.
+ *
+ *     @type array[] $data An array of personal data arrays.
+ *     @type bool    $done Whether the exporter is finished.
+ * }
  */
 function wp_user_personal_data_exporter( $email_address ) {
 	$email_address = trim( $email_address );
@@ -4032,7 +4043,7 @@ function _wp_privacy_account_request_confirmed( $request_id ) {
 function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 	$request = wp_get_user_request( $request_id );
 
-	if ( ! is_a( $request, 'WP_User_Request' ) || 'request-confirmed' !== $request->status ) {
+	if ( ! ( $request instanceof WP_User_Request ) || 'request-confirmed' !== $request->status ) {
 		return;
 	}
 
@@ -4244,7 +4255,7 @@ All at ###SITENAME###
 function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	$request = wp_get_user_request( $request_id );
 
-	if ( ! is_a( $request, 'WP_User_Request' ) || 'request-completed' !== $request->status ) {
+	if ( ! ( $request instanceof WP_User_Request ) || 'request-completed' !== $request->status ) {
 		return;
 	}
 

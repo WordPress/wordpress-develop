@@ -720,7 +720,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		$registry   = WP_Block_Type_Registry::get_instance();
 		$block_type = $registry->get_registered( 'core/test-static' );
-		$this->assertObjectHasAttribute( 'editor_script_handles', $block_type );
+		$this->assertObjectHasProperty( 'editor_script_handles', $block_type );
 		$actual_script         = $block_type->editor_script;
 		$actual_script_handles = $block_type->editor_script_handles;
 
@@ -786,7 +786,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		$registry   = WP_Block_Type_Registry::get_instance();
 		$block_type = $registry->get_registered( 'core/test-static' );
-		$this->assertObjectHasAttribute( 'editor_script_handles', $block_type );
+		$this->assertObjectHasProperty( 'editor_script_handles', $block_type );
 		$actual_script         = $block_type->editor_script;
 		$actual_script_handles = $block_type->editor_script_handles;
 
