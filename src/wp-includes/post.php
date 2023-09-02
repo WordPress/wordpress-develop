@@ -4592,8 +4592,12 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	}
 
 	if ( ! empty( $postarr['meta_input'] ) ) {
-		foreach ( $postarr['meta_input'] as $field => $value ) {
-			update_post_meta( $post_id, $field, $value );
+		if ( $update ) {
+			foreach ( $postarr['meta_input'] as $field => $value ) {
+				update_post_meta( $post_id, $field, $value );
+			}
+		} else {
+			bulk_add_post_meta( $post_id, $postarr['meta_input'] );
 		}
 	}
 

@@ -2070,9 +2070,7 @@ function wp_insert_comment( $commentdata ) {
 
 	// If metadata is provided, store it.
 	if ( isset( $commentdata['comment_meta'] ) && is_array( $commentdata['comment_meta'] ) ) {
-		foreach ( $commentdata['comment_meta'] as $meta_key => $meta_value ) {
-			add_comment_meta( $comment->comment_ID, $meta_key, $meta_value, true );
-		}
+		bulk_add_comment_meta( $comment->comment_ID, $commentdata['comment_meta'] );
 	}
 
 	/**

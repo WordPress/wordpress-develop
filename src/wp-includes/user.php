@@ -2454,9 +2454,7 @@ function wp_insert_user( $userdata ) {
 		}
 	} else {
 		// Add user meta.
-		foreach ( $meta as $key => $value ) {
-			add_user_meta( $user_id, $key, $value );
-		}
+		bulk_add_user_meta( $user_id, $meta );
 	}
 
 	foreach ( wp_get_user_contact_methods( $user ) as $key => $value ) {
