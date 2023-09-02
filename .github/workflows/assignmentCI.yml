@@ -2,13 +2,12 @@ name: Build CI
 
 on:
   push:
-    branches: [ "trunk" ]
+    branches-ignore: [ ]  # Run on all branches
   pull_request:
-    branches: [ "trunk" ]
+    branches-ignore: [ ]  # Run on all branches
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -27,8 +26,21 @@ jobs:
       with:
         node-version: 16
 
-    - name: Install Dependencies and Run Tests
+    - name: Install Dependencies
       run: |
-        # Replace these commands with the actual commands needed to install dependencies and run your tests.
+        # Replace these commands with the actual commands needed to install your project's dependencies.
         npm install  # Install project dependencies
-        npm test     # Run your tests
+
+    - name: Run PHPUnit Tests
+      run: |
+        # Set up the database for PHPUnit testing (adjust credentials as needed).
+        mysql -u root -e 'CREATE DATABASE my_test_database;'
+        mysql -u root -e "GRANT ALL PRIVILEGES ON my_test_database.* TO 'my_test_user'@'localhost' IDENTIFIED BY 'my_test_password';"
+        
+        # Run PHPUnit tests.
+        phpunit
+        
+    - name: Clean Up PHPUnit Database
+      run: |
+        # Clean up the database after PHPUnit tests (optional).
+        mysql -u root -e 'DROP DATABASE my_test_database;'
