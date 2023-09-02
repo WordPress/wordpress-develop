@@ -38,7 +38,7 @@ jobs:
       run: |
         # Attempt MySQL connection with diagnostic output.
         echo "Attempting MySQL connection..."
-        mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST -e "SELECT 1;"
+        mysql -u $MYSQL_USER -p $MYSQL_PASSWORD -h $MYSQL_HOST -e "SELECT 1;"
 
     - name: Run Tests (Customizable)
       run: |
