@@ -161,18 +161,22 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 /**
  * Adds multiple items of metadata for the specified object.
  *
- * For historial reasons the data should be slashed.
+ * For historial reasons the metadata values should be slashed.
  *
  * This is more performant than calling `add_metadata()` multiple times because it
  * only queries the database once and only clears the meta cache once.
  *
- * This function will always insert all of the provided metadata even if meta data with
- * matching keys already exist. If the insert fails, no metadata will be inserted. It's
- * not possible for some rows to be inserted and not others.
+ * This function will always insert all of the provided metadata even if matching keys
+ * already exist. This behaviour matches that of add_metadata() when its `$unique`
+ * parameter is set to false.
+ *
+ * If the insert fails, no metadata will be inserted. It's not possible for some rows
+ * to be inserted and not others.
  *
  * @todo:
  *
  * [X] change this function so it returns the array of mids instead of true
+ * [ ] reinstate slashed data handling
  * [ ] need to account for the return value of "add_{$meta_type}_metadata" for each key
  * [ ] need tests to cover when the "add_{$meta_type}_metadata" filter returns a value for a key
  * [ ] confirm that the method of getting the mids via `range()` is reliable
@@ -211,7 +215,6 @@ function bulk_add_metadata( $meta_type, $object_id, array $meta_fields ) {
 
 	foreach ( $meta_fields as $meta_key => $meta_value ) {
 		$meta_value = sanitize_meta( $meta_key, $meta_value, $meta_type, $meta_subtype );
-		// @todo reinstate slashed data handling
 
 		/** This filter is documented in wp-includes/meta.php */
 		$check = apply_filters( "add_{$meta_type}_metadata", null, $object_id, $meta_key, $meta_value, false );

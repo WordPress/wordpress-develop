@@ -2477,7 +2477,7 @@ class wpdb {
 	 *                                Both `$data` columns and `$data` values should be "raw" (neither should be SQL escaped).
 	 *                                Sending a null value will cause the column to be set to NULL - the corresponding
 	 *                                format is ignored in this case.
-	 * @param string[]|string $format Optional. An array of formats to be mapped to each of the value in `$data`.
+	 * @param string[]|string $format Optional. An array of formats to be mapped to each of the values in `$data`.
 	 *                                If string, that format will be used for all of the values in `$data`.
 	 *                                A format is one of '%d', '%f', '%s' (integer, float, string).
 	 *                                If omitted, all values in `$data` will be treated as strings unless otherwise
@@ -2490,6 +2490,9 @@ class wpdb {
 
 	/**
 	 * Inserts multiple rows into the table in one query.
+	 *
+	 * If the insert fails, no rows will be inserted. It's not possible for some rows
+	 * to be inserted and not others.
 	 *
 	 * Examples:
 	 *
@@ -2542,11 +2545,19 @@ class wpdb {
 	 *
 	 * @since x.y.z
 	 *
-	 * @param string          $table  Table name.
-	 * @todo
+	 * @param string          $table   Table name.
+	 * @param string[]        $columns Array of column names.
+	 * @param array[]         $rows    Array of rows of values to insert. Values should be "raw" (should not be SQL escaped).
+	 *                                 Sending a null value will cause the column to be set to NULL - the corresponding
+	 *                                 format is ignored in this case.
+	 * @param string[]|string $format  Optional. An array of formats to be mapped to each of the values in each row.
+	 *                                 If string, that format will be used for all of the values in `$data`.
+	 *                                 A format is one of '%d', '%f', '%s' (integer, float, string).
+	 *                                 If omitted, all values in `$data` will be treated as strings unless otherwise
+	 *                                 specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows inserted, or false on error.
 	 */
-	public function insert_multiple( $table, array $columns, array $datas, array $format = null ) {
+	public function insert_multiple( $table, array $columns, array $rows, array $format = null ) {
 		$this->insert_id = 0;
 
 		$values_sql = array();
@@ -2554,7 +2565,7 @@ class wpdb {
 			$table,
 		);
 
-		foreach ( $datas as $data ) {
+		foreach ( $rows as $data ) {
 			$data = $this->process_fields( $table, $data, $format );
 			if ( false === $data ) {
 				return false;
