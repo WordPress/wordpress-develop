@@ -6,6 +6,7 @@ require_once dirname( __DIR__, 2 ) . '/src/wp-load.php';
 
 /**
  * @BeforeMethods("setUp")
+ * @AfterMethods("tearDown")
  */
 class InsertMultipleBench {
 	public $post_id;
@@ -17,6 +18,10 @@ class InsertMultipleBench {
 				'post_status' => 'publish',
 			]
 		);
+	}
+
+	public function tearDown(): void {
+		wp_delete_post( $this->post_id, true );
 	}
 
 	/**
