@@ -1,0 +1,7 @@
+{
+	"$schema": "./vendor/phpbench/phpbench/phpbench.schema.json",
+	"runner.env_enabled_providers": [
+		"sampler",
+		"php"
+	]
+}
