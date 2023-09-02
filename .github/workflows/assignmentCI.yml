@@ -38,14 +38,14 @@ jobs:
       run: |
         # Attempt MySQL connection with diagnostic output.
         echo "Attempting MySQL connection..."
-        mysql -u $MYSQL_USER -p $MYSQL_PASSWORD -h $MYSQL_HOST -e "SELECT 1;"
+        mysql -u $MYSQL_USER -h $MYSQL_HOST -e "SELECT 1;"
 
     - name: Run Tests (Customizable)
       run: |
         # Here, you can define the commands to run your tests. This can vary depending on your project and testing framework.
         # Example for PHPUnit tests:
         mysql -u root -e 'CREATE DATABASE my_test_database;'
-        mysql -u root -e "GRANT ALL PRIVILEGES ON my_test_database.* TO 'my_test_user'@'localhost' IDENTIFIED BY 'my_test_password';"
+        mysql -u root -e "GRANT ALL PRIVILEGES ON my_test_database.* TO 'my_test_user'@'localhost';"
         phpunit
 
     - name: Clean Up (Customizable)
