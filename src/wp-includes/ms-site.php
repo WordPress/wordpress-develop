@@ -1040,6 +1040,22 @@ function add_site_meta( $site_id, $meta_key, $meta_value, $unique = false ) {
 }
 
 /**
+ * Adds multiple items of meta data to a site.
+ *
+ * @todo docs
+ *
+ * @since x.y.z
+ *
+ * @param int    $site_id    Site ID.
+ * @param string $meta_key   Metadata name.
+ * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
+ * @return int[]|false Array of meta IDs on success, false on failure.
+ */
+function bulk_add_site_meta( $site_id, array $meta_fields ) {
+	return bulk_add_metadata( 'site', $site_id, $meta_fields );
+}
+
+/**
  * Removes metadata matching criteria from a site.
  *
  * You can match based on the key, or key and value. Removing based on key and
