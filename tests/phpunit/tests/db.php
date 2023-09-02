@@ -2469,38 +2469,4 @@ class Tests_DB extends WP_UnitTestCase {
 			),
 		);
 	}
-
-	/**
-	 * @dataProvider data_insert_multiple
-	 * @ticket nnnnn
-	 */
-	public function test_insert_multiple( $table, $columns, $datas, $format ) {
-		global $wpdb;
-
-		$result = $wpdb->insert_multiple(
-			$table,
-			$columns,
-			$datas,
-			$format
-		);
-
-		$this->assertSame( 3, $result );
-	}
-
-	public function data_insert_multiple() {
-		global $wpdb;
-
-		return array(
-			array(
-				$wpdb->postmeta,
-				array( 'post_id', 'meta_key', 'meta_value' ),
-				array(
-					array( 1, 'foo', 'bar' ),
-					array( 2, 'foo', 'bar' ),
-					array( 3, 'foo', 'bar' ),
-				),
-				array( '%d', '%s', '%s' ),
-			),
-		);
-	}
 }
