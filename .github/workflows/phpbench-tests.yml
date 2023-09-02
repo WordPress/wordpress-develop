@@ -100,5 +100,8 @@ jobs:
       - name: Install WordPress
         run: npm run env:install
 
+      - name: Build WordPress
+        run: npm run build:dev
+
       - name: Run PHPBench tests
         run: composer run bench
