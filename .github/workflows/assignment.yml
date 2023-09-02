@@ -1,4 +1,12 @@
-name: TestsPerformed
+FROM node:16.11.0
+WORKDIR /
+COPY package.json .
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD ["npm", "start"] 
+.github/workflow
+name: Build CI
 
 on:
   push:
@@ -7,34 +15,17 @@ on:
     branches: [ "trunk" ]
 
 jobs:
-  # Runs the QUnit tests for WordPress.
-  #
-  # Performs the following steps:
-  # - Checks out the repository.
-  # - Sets up Node.js.
-  # - Logs debug information about the GitHub Action runner.
-  # - Installs npm dependencies.
-  # - Run the WordPress QUnit tests.
-  # - Ensures version-controlled files are not modified or deleted.
-  test-js:
-    name: QUnit Tests
+  build:
+
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+    - uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Install Grunt
-        run: npm install -g grunt-cli
-
-      - name: Install npm Dependencies
-        run: npm ci
-
-      - name: Run QUnit tests
-        run: npm run grunt qunit:compiled
+    - name: Build and Push Docker Image
+      uses: mr-smithers-excellent/docker-build-push@v6
+      with:
+        image: zlyoong/scc_assgm2
+        registry: docker.io
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
