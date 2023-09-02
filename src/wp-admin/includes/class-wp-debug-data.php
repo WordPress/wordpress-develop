@@ -557,7 +557,7 @@ class WP_Debug_Data {
 			$info['wp-media']['fields']['file_uploads']        = array(
 				'label' => __( 'File uploads' ),
 				'value' => empty( ini_get( 'file_uploads' ) ) ? __( 'Disabled' ) : __( 'Enabled' ),
-				'debug' => 'File uploads is turned off',
+				'debug' => empty( ini_get( 'file_uploads' ) ) ? 'disabled' : 'enabled',
 			);
 			$info['wp-media']['fields']['post_max_size']       = array(
 				'label' => __( 'Max size of post data allowed' ),
