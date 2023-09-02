@@ -71,11 +71,11 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param null|bool $check      Whether to allow adding metadata for the given type.
-	 * @param int       $object_id  ID of the object metadata is for.
-	 * @param string    $meta_key   Metadata key.
-	 * @param mixed     $meta_value Metadata value. Must be serializable if non-scalar.
-	 * @param bool      $unique     Whether the specified meta key should be unique for the object.
+	 * @param null|int|false $check      Whether to allow adding metadata for the given type. @todo improve description
+	 * @param int            $object_id  ID of the object metadata is for.
+	 * @param string         $meta_key   Metadata key.
+	 * @param mixed          $meta_value Metadata value. Must be serializable if non-scalar.
+	 * @param bool           $unique     Whether the specified meta key should be unique for the object.
 	 */
 	$check = apply_filters( "add_{$meta_type}_metadata", null, $object_id, $meta_key, $meta_value, $unique );
 	if ( null !== $check ) {
@@ -161,10 +161,9 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 /**
  * Adds multiple items of metadata for the specified object.
  *
- * For historial reasons the metadata values should be slashed.
- *
- * This is more performant than calling `add_metadata()` multiple times because it
- * only queries the database once and only clears the meta cache once.
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes
+ * escaped) on input. This means if the data is coming from user-generated
+ * content you will need to wp_slash() it before passing it to this function.
  *
  * This function will always insert all of the provided metadata even if matching keys
  * already exist. This behaviour matches that of add_metadata() when its `$unique`
@@ -172,6 +171,9 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
  *
  * If the insert fails, no metadata will be inserted. It's not possible for some rows
  * to be inserted and not others.
+ *
+ * This is more performant than calling `add_metadata()` multiple times because it
+ * only queries the database once and only clears the meta cache once.
  *
  * @todo:
  *
