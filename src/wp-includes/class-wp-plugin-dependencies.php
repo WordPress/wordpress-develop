@@ -307,9 +307,9 @@ class WP_Plugin_Dependencies {
 	 */
 	public static function modify_dependency_plugin_row( $plugin_file ) {
 		add_filter( 'post_plugin_row_meta', array( __CLASS__, 'modify_plugin_row_elements' ), 10, 3 );
+		add_filter( 'plugin_row_hide_checkbox_' . $plugin_file, '__return_true', 10, 2 );
 		add_filter( 'plugin_action_links_' . $plugin_file, array( __CLASS__, 'unset_action_links' ), 10, 2 );
 		add_filter( 'network_admin_plugin_action_links_' . $plugin_file, array( __CLASS__, 'unset_action_links' ), 10, 2 );
-		add_filter( 'plugin_row_hide_checkbox_' . $plugin_file, '__return_true', 10, 2 );
 	}
 
 	/**
