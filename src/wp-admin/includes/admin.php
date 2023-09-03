@@ -49,7 +49,6 @@ require_once ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php';
 require_once ABSPATH . 'wp-admin/includes/options.php';
 
 /** WordPress Plugin Administration API */
-require_once ABSPATH . 'wp-admin/includes/class-wp-plugin-dependencies.php';
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 /** WordPress Post Administration API */
