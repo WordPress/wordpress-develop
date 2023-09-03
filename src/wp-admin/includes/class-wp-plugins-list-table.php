@@ -989,7 +989,19 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$class       = $is_active ? 'active' : 'inactive';
 		$checkbox_id = 'checkbox_' . md5( $plugin_file );
 
-		if ( $restrict_network_active || $restrict_network_only || in_array( $status, array( 'mustuse', 'dropins' ), true ) || ! $compatible_php ) {
+		/**
+		 * Filters hiding the plugin row checkbox for a specific plugin.
+		 *
+		 * @since 6.4.0
+		 *
+		 * The dynamic portion of the hook name, `$plugin_file`, refers to the path
+		 * to the plugin file, relative to the plugins directory.
+		 *
+		 * @param bool Default is false.
+		 */
+		$hide_checkbox = apply_filters( "plugin_row_hide_checkbox_{$plugin_file}", false );
+
+		if ( $restrict_network_active || $restrict_network_only || in_array( $status, array( 'mustuse', 'dropins' ), true ) || ! $compatible_php || $hide_checkbox ) {
 			$checkbox = '';
 		} else {
 			$checkbox = sprintf(
