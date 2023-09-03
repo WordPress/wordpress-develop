@@ -461,7 +461,7 @@ class WP_Plugin_Dependencies {
 	 * @param string $description Plugin card description.
 	 * @return string
 	 */
-	public function set_plugin_card_data( $description ) {
+	public static function set_plugin_card_data( $description ) {
 		if ( ! empty( self::$plugin_card_data ) ) {
 			self::$plugin_card_data = array_filter( self::$plugin_card_data );
 			$data                   = implode( '<br>', self::$plugin_card_data );
