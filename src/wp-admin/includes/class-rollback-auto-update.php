@@ -98,6 +98,7 @@ class WP_Rollback_Auto_Update {
 	private static $error_exceptions = array(
 		'Cannot declare class', // class defined in main plugin file.
 		'Constant([ _A-Z]+)already defined', // constant defined in main plugin file.
+		'Cannot redeclare', // function defined in main plugin file.
 		'mkdir\(\): File exists', // constant defined in main plugin file.
 		'Passing null to parameter(.*)of type(.*)is deprecated', // PHP8 deprecation error.
 		'Trying to access array offset on value of type null', // PHP8 deprecation error.
