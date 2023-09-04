@@ -745,7 +745,7 @@ function update_option( $option, $value, $autoload = null ) {
 				$deprecated_keys[ $option ]
 			)
 		);
-		$autoload = get_autoload_value( $autoload, $deprecated_keys[ $option ], $value );
+
 		return update_option( $deprecated_keys[ $option ], $value, $autoload );
 	}
 
@@ -935,7 +935,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 				$deprecated_keys[ $option ]
 			)
 		);
-		$autoload = get_autoload_value( $autoload, $deprecated_keys[ $option ], $value );
+
 		return add_option( $deprecated_keys[ $option ], $value, $deprecated, $autoload );
 	}
 
@@ -1142,7 +1142,7 @@ function get_autoload_value( $autoload, $name, $value ) {
 	 * @param string $name             The name of the option.
 	 * @param mixed  $value            The value of the option.
 	 */
-	$max_option_size = apply_filters( 'max_option_size', 150000, $name, $value );
+	$max_option_size = (int) apply_filters( 'max_option_size', 150000, $name, $value );
 
 	if ( $size > $max_option_size ) {
 		return 'no';
@@ -1346,7 +1346,7 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 		$transient_option  = '_transient_' . $transient;
 
 		if ( false === get_option( $transient_option ) ) {
-			$autoload = get_autoload_value( null, $transient_option, $value );
+			$autoload = null;
 			if ( $expiration ) {
 				$autoload = 'no';
 				add_option( $transient_timeout, time() + $expiration, '', 'no' );
