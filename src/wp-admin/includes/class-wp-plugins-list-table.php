@@ -1162,15 +1162,14 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					echo '</div>';
 
 					/**
-					 * Add text at end of plugin row meta.
+					 * Fires after plugin row meta.
 					 *
 					 * @since 6.4.0
 					 *
-					 * @param string null         Text to add after plugin row meta.
-					 * @param string $plugin_file Refer to 'plugin_row_meta' filter.
-					 * @param array  $plguin_data Refer to 'plugin_row_meta' filter.
+					 * @param string $plugin_file Refer to {@see 'plugin_row_meta'} filter.
+					 * @param array  $plguin_data Refer to {@see 'plugin_row_meta'} filter.
 					 */
-					echo apply_filters( 'post_plugin_row_meta', null, $plugin_file, $plugin_data );
+					do_action( 'after_plugin_row_meta', $plugin_file, $plugin_data );
 
 					if ( $paused ) {
 						$notice_text = __( 'This plugin failed to load properly and is paused during recovery mode.' );
