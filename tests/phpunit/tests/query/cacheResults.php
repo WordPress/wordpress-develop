@@ -1340,6 +1340,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertSame( 0, $num_queries, 'Unexpected number of queries during second query of term meta.' );
 	}
 
+	/**
+	 * @ticket 58599
+	 */
 	public function test_filter_posts_fields_request() {
 		$filter = new MockAction();
 		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
@@ -1357,7 +1360,6 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query_posts       = $query->query( array() );
 		$num_queries       = get_num_queries() - $num_queries_start;
 
-		//var_dump($query_posts);
 		$this->assertSame( 5, $num_queries );
 
 		$post_ids = wp_list_pluck( $query_posts, 'ID' );
