@@ -20,35 +20,35 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @var array
 	 */
-	protected static $plugins;
+	protected static $plugins = array();
 
 	/**
 	 * Holds an array of sanitized plugin dependency slugs.
 	 *
 	 * @var array
 	 */
-	protected static $slugs;
+	protected static $slugs = array();
 
 	/**
 	 * Holds 'plugins_api()' data for plugin dependencies.
 	 *
 	 * @var array
 	 */
-	protected static $plugin_data;
+	protected static $plugin_data = array();
 
 	/**
 	 * Holds plugin filepath of plugins with dependencies.
 	 *
 	 * @var array
 	 */
-	protected static $requires_plugins;
+	protected static $requires_plugins = array();
 
 	/**
 	 * Holds 'plugin_api()' data for uninstalled plugin dependencies.
 	 *
 	 * @var array
 	 */
-	protected static $plugin_api_data;
+	protected static $plugin_api_data = array();
 
 	/**
 	 * Holds plugin directory names to compare with cache.
@@ -70,14 +70,6 @@ class WP_Plugin_Dependencies {
 	 * @var array
 	 */
 	protected static $plugin_card_data = array();
-
-	/**
-	 * Constructor.
-	 */
-	public function __construct() {
-		self::$requires_plugins = array();
-		self::$plugin_data      = array();
-	}
 
 	/**
 	 * Initialize, load filters, and get started.
