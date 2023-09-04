@@ -8,13 +8,21 @@ on:
     branches:
       - '*'  
 
+name: Build CI
+
+on:
+  push:
+    branches: [ "trunk" ]
+  pull_request:
+    branches: [ "trunk" ]
+
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Build and Push Docker Image
       uses: mr-smithers-excellent/docker-build-push@v6
@@ -22,13 +30,4 @@ jobs:
         image: syy25/scc-assignment
         registry: docker.io
         username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: 16
-
-    - name: Install Dependencies
-      run: |
-        npm install  
+        password: ${{ secrets.DOCKER_PASSWORD }}
