@@ -739,34 +739,57 @@
 		if ( response.activateUrl ) {
 			setTimeout( function() {
 
-				// Transform the 'Install' button into an 'Activate' button.
-				$message.removeClass( 'install-now installed button-disabled updated-message' )
-					.addClass( 'activate-now button-primary' )
-					.attr( 'href', response.activateUrl );
+				wp.updates.ajax(
+					'check_plugin_dependencies',
+					{
+							slug: response.slug,
+							success: function() {
+								// Transform the 'Install' button into an 'Activate' button.
+								$message.removeClass( 'install-now installed button-disabled updated-message' )
+								.addClass( 'activate-now button-primary' )
+								.attr( 'href', response.activateUrl );
 
-				if ( 'plugins-network' === pagenow ) {
-					$message
-						.attr(
-							'aria-label',
-							sprintf(
-								/* translators: %s: Plugin name. */
-								_x( 'Network Activate %s', 'plugin' ),
-								response.pluginName
-							)
-						)
-						.text( __( 'Network Activate' ) );
-				} else {
-					$message
-						.attr(
-							'aria-label',
-							sprintf(
-								/* translators: %s: Plugin name. */
-								_x( 'Activate %s', 'plugin' ),
-								response.pluginName
-							)
-						)
-						.text( __( 'Activate' ) );
-				}
+								if ( 'plugins-network' === pagenow ) {
+									$message
+									.attr(
+										'aria-label',
+										sprintf(
+										/* translators: %s: Plugin name. */
+											_x( 'Network Activate %s', 'plugin' ),
+											response.pluginName
+										)
+									)
+									  .text( __( 'Network Activate' ) );
+								} else {
+									$message
+									.attr(
+										'aria-label',
+										sprintf(
+										/* translators: %s: Plugin name. */
+											_x( 'Activate %s', 'plugin' ),
+											response.pluginName
+										)
+									)
+									.text( __( 'Activate' ) );
+								}
+							},
+							error: function( error ) {
+								$message
+								.removeClass( 'install-now installed updated-message' )
+								.addClass( 'activate-now button-primary' )
+								.attr(
+									'aria-label',
+									sprintf(
+									/* translators: 1: Plugin name, 2. The reason the plugin cannot be activated. */
+										_x( 'Cannot activate %1$s. %2$s', 'plugin' ),
+										response.pluginName,
+										error.errorMessage
+									)
+								)
+								.text( __( 'Activate' ) );
+						}
+					}
+				);
 			}, 1000 );
 		}
 	};
