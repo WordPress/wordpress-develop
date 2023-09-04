@@ -7,15 +7,7 @@ on:
   pull_request:
     branches:
       - '*'  
-
-name: Build CI
-
-on:
-  push:
-    branches: [ "trunk" ]
-  pull_request:
-    branches: [ "trunk" ]
-
+      
 jobs:
   build:
 
