@@ -14,7 +14,7 @@ jobs:
   #
   test-with-mysql:
     name: PHP ${{ matrix.php }}
-    uses: zlyoong/SCC-ASSGM2/.github/workflows/phpunit-tests-run.yml@trunk
+    uses: syy25/wordpress-develop/.github/workflows/phpunit-tests-run.yml@trunk
     permissions:
       contents: read
     secrets: inherit
@@ -65,7 +65,7 @@ jobs:
   #
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
-    uses: zlyoong/SCC-ASSGM2/.github/workflows/phpunit-tests-run.yml@trunk
+    uses: syy25/wordpress-develop/.github/workflows/phpunit-tests-run.yml@trunk
     permissions:
       contents: read
     secrets: inherit
