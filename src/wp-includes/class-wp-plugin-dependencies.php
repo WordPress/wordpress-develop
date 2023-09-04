@@ -341,9 +341,9 @@ class WP_Plugin_Dependencies {
 			return $message;
 		}
 
-		$message = '<div style="margin-top: 1em;"><strong>' . esc_html__( 'Required by:' ) . '</strong> ' . esc_html( $sources ) . '</div>';
+		$message = '<div style="margin-top: 1em;"><strong>' . __( 'Required by:' ) . '</strong> ' . $sources . '</div>';
 
-		print( wp_kses_post( $message ) );
+		echo( wp_kses_post( $message ) );
 	}
 
 	/**
@@ -365,9 +365,9 @@ class WP_Plugin_Dependencies {
 
 		$links = self::get_view_details_links( $plugin_file, $names );
 
-		$message = '<div style="margin-top: 1em;"><strong>' . esc_html__( 'Requires:' ) . '</strong> ' . wp_kses_post( $links ) . '</div>';
+		$message = '<div style="margin-top: 1em;"><strong>' . __( 'Requires:' ) . '</strong> ' . $links . '</div>';
 
-		print( wp_kses_post( $message ) );
+		echo( wp_kses_post( $message ) );
 	}
 
 	/**
