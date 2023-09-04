@@ -154,7 +154,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	$is_child_theme_block  = str_starts_with( $script_path_norm, $stylesheet_path_norm );
 	$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
 
-	$script_uri = plugins_url( $script_path, $metadata['file'] );
+	$script_uri = '';
 	if ( $is_core_block ) {
 		$script_uri = includes_url( str_replace( $wpinc_path_norm, '', $script_path_norm ) );
 	} elseif ( $is_theme_block ) {
@@ -162,6 +162,14 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		$script_uri = $is_parent_theme_block
 			? get_theme_file_uri( str_replace( $template_path_norm, '', $script_path_norm ) )
 			: get_theme_file_uri( str_replace( $stylesheet_path_norm, '', $script_path_norm ) );
+	} else {
+		// Fallback to plugins_url().
+		$script_uri = plugins_url( $script_path, $metadata['file'] );
+	}
+
+	$script_args = array();
+	if ( 'viewScript' === $field_name ) {
+		$script_args['strategy'] = 'defer';
 	}
 
 	$script_asset        = require $script_asset_path;
@@ -170,7 +178,8 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		$script_handle,
 		$script_uri,
 		$script_dependencies,
-		isset( $script_asset['version'] ) ? $script_asset['version'] : false
+		isset( $script_asset['version'] ) ? $script_asset['version'] : false,
+		$script_args
 	);
 	if ( ! $result ) {
 		return false;
@@ -1248,16 +1257,25 @@ function unregister_block_style( $block_name, $block_style_name ) {
  * Checks whether the current block type supports the feature requested.
  *
  * @since 5.8.0
+ * @since 6.4.0 The `$feature` parameter now supports a string.
  *
  * @param WP_Block_Type $block_type    Block type to check for support.
- * @param array         $feature       Path to a specific feature to check support for.
+ * @param string|array  $feature       Feature slug, or path to a specific feature to check support for.
  * @param mixed         $default_value Optional. Fallback value for feature support. Default false.
  * @return bool Whether the feature is supported.
  */
 function block_has_support( $block_type, $feature, $default_value = false ) {
 	$block_support = $default_value;
 	if ( $block_type && property_exists( $block_type, 'supports' ) ) {
-		$block_support = _wp_array_get( $block_type->supports, $feature, $default_value );
+		if ( is_array( $feature ) && count( $feature ) === 1 ) {
+			$feature = $feature[0];
+		}
+
+		if ( is_array( $feature ) ) {
+			$block_support = _wp_array_get( $block_type->supports, $feature, $default_value );
+		} elseif ( isset( $block_type->supports[ $feature ] ) ) {
+			$block_support = $block_type->supports[ $feature ];
+		}
 	}
 
 	return true === $block_support || is_array( $block_support );
