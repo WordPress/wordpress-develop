@@ -746,7 +746,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 42469
 	 */
 	public function test_found_posts_should_be_integer_not_string() {
-		$post_id = self::factory()->post->create();
+		self::factory()->post->create();
 
 		$q = new WP_Query(
 			array(
@@ -761,7 +761,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 42469
 	 */
 	public function test_found_posts_should_be_integer_even_if_found_posts_filter_returns_string_value() {
-		$post_id = self::factory()->post->create();
+		self::factory()->post->create();
 
 		add_filter( 'found_posts', '__return_empty_string' );
 
@@ -775,4 +775,550 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$this->assertIsInt( $q->found_posts );
 	}
+
+	/**
+	 * @ticket 47280
+	 */
+	public function test_found_posts_are_correct_for_empty_query() {
+		self::factory()->post->create_many( 12 );
+
+		$q = new WP_Query();
+
+		$this->assertSame( 0, $q->post_count, 'Post count is expected to be zero' );
+		$this->assertSame( 0, $q->found_posts, 'Total found posts is expected to be zero' );
+		$this->assertSame( 0, $q->max_num_pages, 'Number of pages is expected to be zero' );
+	}
+
+	/**
+	 * @ticket 47280
+	 *
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_for_query_with_no_results( $fields ) {
+		$q = new WP_Query(
+			array(
+				'fields'       => $fields,
+				'posts_status' => 'draft',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 0, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertSame( 0, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
+	 *
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_for_basic_query( $fields ) {
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+			)
+		);
+
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
+	 *
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_for_query_with_no_limit( $fields ) {
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => -1,
+			)
+		);
+
+		$this->assertSame( 5, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		// You would expect this to be 1 but historically it's 0 for posts without paging.
+		$this->assertSame( 0, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
+	 *
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_for_query_with_no_paging( $fields ) {
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'fields'   => $fields,
+				'nopaging' => true,
+			)
+		);
+
+		$this->assertSame( 5, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		// You would expect this to be 1 but historically it's 0 for posts without paging.
+		$this->assertSame( 0, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
+	 *
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_for_query_with_no_found_rows( $fields ) {
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'fields'        => $fields,
+				'no_found_rows' => true,
+			)
+		);
+
+		$this->assertSame( 5, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 0, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertSame( 0, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
+	 *
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_for_paged_query( $fields ) {
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+				'paged'          => 3,
+			)
+		);
+
+		$this->assertSame( 1, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
+	 *
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_for_author_queries( $fields ) {
+		$author = self::factory()->user->create();
+		self::factory()->post->create_many( 5 );
+		self::factory()->post->create_many(
+			5,
+			array(
+				'post_author' => $author,
+			)
+		);
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+				'author'         => $author,
+			)
+		);
+
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * A query for the following triggers an additional LEFT JOIN on `wp_posts`:
+	 *
+	 *  - Custom taxonomy query
+	 *  - `post_status` specified
+	 *  - `post_type` not specified
+	 *
+	 * @ticket 47280
+	 *
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_for_query_that_performs_post_status_join( $fields ) {
+		$taxonomy = 'post_status_join_tax';
+		register_taxonomy( $taxonomy, 'post' );
+		$term = self::factory()->term->create_and_get(
+			array(
+				'taxonomy' => $taxonomy,
+			)
+		);
+		self::factory()->post->create_many( 5 );
+		$ids = self::factory()->post->create_many( 5 );
+
+		foreach ( $ids as $id ) {
+			wp_set_post_terms( $id, $term->slug, $taxonomy );
+		}
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+				'taxonomy'       => $taxonomy,
+				'term'           => $term->slug,
+				'post_status'    => 'publish',
+			)
+		);
+
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
+	 *
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_for_tax_queries( $fields ) {
+		$term = self::factory()->term->create_and_get();
+		self::factory()->post->create_many( 5 );
+		$ids = self::factory()->post->create_many( 5 );
+
+		foreach ( $ids as $id ) {
+			wp_set_post_terms( $id, $term->slug );
+		}
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+				'tag'            => $term->slug,
+			)
+		);
+
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
+	 *
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_for_meta_queries( $fields ) {
+		self::factory()->post->create_many( 5 );
+		$ids = self::factory()->post->create_many( 5 );
+
+		foreach ( $ids as $id ) {
+			add_post_meta( $id, 'my_meta', 'foo' );
+		}
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+				'meta_key'       => 'my_meta',
+			)
+		);
+
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
+	 *
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_for_multiple_meta_queries( $fields ) {
+		self::factory()->post->create_many( 5 );
+		$ids = self::factory()->post->create_many( 5 );
+
+		foreach ( $ids as $id ) {
+			add_post_meta( $id, 'field_1', 'foo' );
+			add_post_meta( $id, 'field_2', 'bar' );
+		}
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+				'meta_query'     => array(
+					array(
+						'key' => 'field_1',
+					),
+					array(
+						'key' => 'field_2',
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
+	 *
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_for_OR_meta_queries( $fields ) {
+		self::factory()->post->create_many( 5 );
+		$ids = self::factory()->post->create_many( 5 );
+
+		// Add a mixture of meta values so all 5 posts match the meta query.
+		add_post_meta( $ids[0], 'field_1', 'foo' );
+		add_post_meta( $ids[0], 'field_2', 'bar' );
+		add_post_meta( $ids[1], 'field_1', 'foo' );
+		add_post_meta( $ids[2], 'field_1', 'foo' );
+		add_post_meta( $ids[3], 'field_2', 'bar' );
+		add_post_meta( $ids[4], 'field_2', 'bar' );
+
+		/*
+		 * This query results in a `GROUP BY wp_posts.ID` clause, which means the
+		 * count query must count `DISTINCT wp_posts.ID` to eliminate duplicates.
+		 */
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+				'meta_query'     => array(
+					'relation' => 'OR',
+					array(
+						'key' => 'field_1',
+					),
+					array(
+						'key' => 'field_2',
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
+	 *
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_for_group_by_queries( $fields ) {
+		$user1 = self::factory()->user->create();
+		$user2 = self::factory()->user->create();
+
+		self::factory()->post->create_many(
+			5,
+			array(
+				'post_author' => $user1,
+			)
+		);
+		self::factory()->post->create_many(
+			5,
+			array(
+				'post_author' => $user2,
+			)
+		);
+
+		/**
+		 * Adds a GROUP BY clause to the query.
+		 */
+		add_filter(
+			'posts_groupby_request',
+			function() {
+				return "{$GLOBALS['wpdb']->posts}.post_author";
+			}
+		);
+
+		/*
+		 * This query results in a `GROUP BY wp_posts.post_author` clause, which means the
+		 * count query must count `DISTINCT wp_posts.post_author` to eliminate duplicates.
+		 */
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+			)
+		);
+
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		// There is a total of two distinct authors in the results.
+		$this->assertSame( 2, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 1, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
+	 * @group ms-required
+	 *
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_when_switching_between_sites( $fields ) {
+		$blog = self::factory()->blog->create();
+		self::factory()->post->create_many( 5 );
+
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+			)
+		);
+
+		// Switch to another site.
+		switch_to_blog( $blog );
+
+		/*
+		 * Count the posts from the original site. This works because the SQL query
+		 * and its table names has already been formed during the original query.
+		 */
+		$post_count    = $q->post_count;
+		$found_posts   = $q->found_posts;
+		$max_num_pages = $q->max_num_pages;
+
+		// Switch back.
+		restore_current_blog();
+
+		$this->assertSame( 2, $post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * Ensures the count is correct when the query includes an `SQL_CALC_FOUND_ROWS` modifier.
+	 *
+	 * @ticket 47280
+	 *
+	 * @expectedDeprecated The posts_request filter
+	 */
+	public function test_posts_are_counted_with_select_found_rows_when_query_includes_sql_calc_found_rows_modifier() {
+		// Create five published posts.
+		self::factory()->post->create_many( 5 );
+		// Create ten draft posts.
+		self::factory()->post->create_many(
+			10,
+			array(
+				'post_status' => 'draft',
+			)
+		);
+
+		add_filter(
+			'posts_request',
+			static function( $request ) {
+				global $wpdb;
+
+				return "
+					SELECT SQL_CALC_FOUND_ROWS {$wpdb->posts}.ID
+					FROM {$wpdb->posts}
+					WHERE 1=1
+					AND {$wpdb->posts}.post_type = 'post'
+					AND {$wpdb->posts}.post_status = 'draft'
+					ORDER BY {$wpdb->posts}.post_date
+					DESC LIMIT 0, 2
+				";
+			}
+		);
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 2,
+			)
+		);
+
+		// These results should now reflect the results for draft posts, as set by the filter.
+		$this->assertStringContainsString( 'SELECT FOUND_ROWS()', $q->count_request, self::get_count_message( $q ) );
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 10, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 5, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * Data provider for tests which need to run once for each possible value of the fields argument.
+	 *
+	 * @return array[] Test data.
+	 */
+	public function data_fields() {
+		return array(
+			'posts'   => array(
+				'',
+			),
+			'ids'     => array(
+				'ids',
+			),
+			'parents' => array(
+				'id=>parent',
+			),
+		);
+	}
+
+	/**
+	 * Helper method which returns a readable representation of the SQL queries performed.
+	 *
+	 * @param WP_Query $query The current query instance.
+	 * @return string The formatted message.
+	 */
+	protected static function get_count_message( WP_Query $query ) {
+		global $wpdb;
+
+		return sprintf(
+			"Request SQL:\n%s\nCount SQL:\n\n%s\n",
+			self::format_sql( $wpdb->remove_placeholder_escape( $query->request ) ),
+			self::format_sql( $wpdb->remove_placeholder_escape( $query->count_request ) )
+		);
+	}
+
+	/**
+	 * Applies some basic formatting to an SQL query to make it more readable during a test failure.
+	 *
+	 * @param string $sql The SQL query to be formatted.
+	 * @return string     The formatted SQL query.
+	 */
+	protected static function format_sql( $sql ) {
+		$sql = preg_replace(
+			'# (FROM|INNER JOIN|LEFT JOIN|ON|WHERE|AND|GROUP BY|ORDER BY|LIMIT) #',
+			"\n\$1 ",
+			$sql
+		);
+		$sql = preg_replace( '#^\t+#m', '', $sql );
+
+		return $sql;
+	}
+
 }

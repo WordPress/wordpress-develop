@@ -85,6 +85,14 @@ class WP_Query {
 	public $request;
 
 	/**
+	 * Get post database count query.
+	 *
+	 * @since x.x.x
+	 * @var string
+	 */
+	public $count_request;
+
+	/**
 	 * Array of post objects or post IDs.
 	 *
 	 * @since 1.5.0
@@ -2024,7 +2032,7 @@ class WP_Query {
 			$q['page'] = absint( $q['page'] );
 		}
 
-		// If true, forcibly turns off SQL_CALC_FOUND_ROWS even when limits are present.
+		// If true, forcibly turns off the query to count found rows even when limits are present.
 		if ( isset( $q['no_found_rows'] ) ) {
 			$q['no_found_rows'] = (bool) $q['no_found_rows'];
 		} else {
@@ -3093,20 +3101,19 @@ class WP_Query {
 			$limits   = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
 		}
 
+		$count_field = "{$wpdb->posts}.ID";
+
 		if ( ! empty( $groupby ) ) {
+			$count_field = $groupby;
+
 			$groupby = 'GROUP BY ' . $groupby;
 		}
 		if ( ! empty( $orderby ) ) {
 			$orderby = 'ORDER BY ' . $orderby;
 		}
 
-		$found_rows = '';
-		if ( ! $q['no_found_rows'] && ! empty( $limits ) ) {
-			$found_rows = 'SQL_CALC_FOUND_ROWS';
-		}
-
 		$old_request = "
-			SELECT $found_rows $distinct $fields
+			SELECT $distinct $fields
 			FROM {$wpdb->posts} $join
 			WHERE 1=1 $where
 			$groupby
@@ -3115,17 +3122,38 @@ class WP_Query {
 		";
 
 		$this->request = $old_request;
+		$this->count_request = "
+			SELECT COUNT(DISTINCT {$count_field})
+			FROM {$wpdb->posts} $join
+			WHERE 1=1 $where
+		";
 
 		if ( ! $q['suppress_filters'] ) {
 			/**
 			 * Filters the completed SQL query before sending.
 			 *
 			 * @since 2.0.0
+			 * @since x.x.x This query no longer contains a `SQL_CALC_FOUND_ROWS` modifier by default.
 			 *
 			 * @param string   $request The complete SQL query.
 			 * @param WP_Query $query   The WP_Query instance (passed by reference).
 			 */
 			$this->request = apply_filters_ref_array( 'posts_request', array( $this->request, &$this ) );
+
+			if ( is_string( $this->request ) && str_contains( $this->request, 'SQL_CALC_FOUND_ROWS' ) ) {
+				_deprecated_argument(
+					'The posts_request filter',
+					'x.x.x',
+					sprintf(
+						/* translators: 1: SQL query modifier 2: SQL query */
+						__( 'The %1$s query modifier should no longer be added to queries because results are no longer counted with %2$s by default.' ),
+						'<code>SQL_CALC_FOUND_ROWS</code>',
+						'<code>SELECT FOUND_ROWS()</code>'
+					)
+				);
+
+				$this->count_request = 'SELECT FOUND_ROWS()';
+			}
 		}
 
 		/**
@@ -3291,7 +3319,7 @@ class WP_Query {
 				// First get the IDs and then fill in the objects.
 
 				$this->request = "
-					SELECT $found_rows $distinct {$wpdb->posts}.ID
+					SELECT $distinct {$wpdb->posts}.ID
 					FROM {$wpdb->posts} $join
 					WHERE 1=1 $where
 					$groupby
@@ -3303,6 +3331,7 @@ class WP_Query {
 				 * Filters the Post IDs SQL request before sending.
 				 *
 				 * @since 3.4.0
+				 * @since x.x.x This query now no longer contains a `SQL_CALC_FOUND_ROWS` modifier.
 				 *
 				 * @param string   $request The post ID request.
 				 * @param WP_Query $query   The WP_Query instance.
@@ -3570,11 +3599,13 @@ class WP_Query {
 			 * Filters the query to run for retrieving the found posts.
 			 *
 			 * @since 2.1.0
+			 * @since x.x.x This query was changed from `SELECT FOUND_ROWS()` to a more
+			 *              efficient `COUNT` query.
 			 *
 			 * @param string   $found_posts_query The query to run to find the found posts.
 			 * @param WP_Query $query             The WP_Query instance (passed by reference).
 			 */
-			$found_posts_query = apply_filters_ref_array( 'found_posts_query', array( 'SELECT FOUND_ROWS()', &$this ) );
+			$found_posts_query = apply_filters_ref_array( 'found_posts_query', array( $this->count_request, &$this ) );
 
 			$this->found_posts = (int) $wpdb->get_var( $found_posts_query );
 		} else {
