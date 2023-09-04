@@ -30,6 +30,12 @@ concurrency:
 permissions: {}
 
 env:
+  # Performance testing should be performed in an environment reflecting a standard production environment.
+  WP_DEBUG: false
+  SCRIPT_DEBUG: false
+  SAVEQUERIES : false
+  WP_DEVELOPMENT_MODE: ''
+
   # This workflow takes two sets of measurements — one for the current commit,
   # and another against a consistent version that is used as a baseline measurement.
   # This is done to isolate variance in measurements caused by the GitHub runners
@@ -38,6 +44,8 @@ env:
   # changed if we want to normalize results against a different baseline.
   BASE_TAG: '6.1.1'
   LOCAL_DIR: build
+  TARGET_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || '' }}
+  TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
 
 jobs:
   # Runs the performance test suite.
@@ -59,9 +67,17 @@ jobs:
   # - Install MU plugin.
   # - Run performance tests (current commit).
   # - Print performance tests results.
+  # - Check out target commit (target branch or previous commit).
+  # - Install npm dependencies.
+  # - Build WordPress.
+  # - Run performance tests (previous/target commit).
+  # - Print target performance tests results.
+  # - Reset to original commit.
   # - Set the environment to the baseline version.
   # - Run baseline performance tests.
-  # - Print base line performance tests results.
+  # - Print baseline performance tests results.
+  # - Compare results with base.
+  # - Add workflow summary.
   # - Set the base sha.
   # - Set commit details.
   # - Publish performance results.
@@ -81,7 +97,7 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
       - name: Set up Node.js
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
@@ -146,7 +162,31 @@ jobs:
         run: npm run test:performance
 
       - name: Print performance tests results
-        run: "node ./tests/performance/results.js"
+        run: node ./tests/performance/results.js
+
+      - name: Check out target commit (target branch or previous commit)
+        run: |
+          if [[ -z "$TARGET_REF" ]]; then
+            git fetch -n origin $TARGET_SHA
+          else
+            git fetch -n origin $TARGET_REF
+          fi
+          git reset --hard $TARGET_SHA
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Run target performance tests (base/previous commit)
+        run: npm run test:performance -- --prefix=before
+
+      - name: Print target performance tests results
+        run: node ./tests/performance/results.js --prefix=before
+
+      - name: Reset to original commit
+        run: git reset --hard $GITHUB_SHA
 
       - name: Set the environment to the baseline version
         run: |
@@ -156,13 +196,19 @@ jobs:
       - name: Run baseline performance tests
         run: npm run test:performance -- --prefix=base
 
-      - name: Print base line performance tests results
-        run: "node ./tests/performance/results.js --prefix=base"
+      - name: Print baseline performance tests results
+        run: node ./tests/performance/results.js --prefix=base
+
+      - name: Compare results with base
+        run: node ./tests/performance/compare-results.js ${{ runner.temp }}/summary.md
+
+      - name: Add workflow summary
+        run: cat ${{ runner.temp }}/summary.md >> $GITHUB_STEP_SUMMARY
 
       - name: Set the base sha
         # Only needed when publishing results.
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
-        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         id: base-sha
         with:
             github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -173,7 +219,7 @@ jobs:
       - name: Set commit details
         # Only needed when publishing results.
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
-        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         id: commit-timestamp
         with:
             github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -215,7 +261,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
-    needs: [ performance, slack-notifications ]
+    needs: [ slack-notifications ]
     if: |
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
@@ -227,7 +273,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         with:
           retries: 2
           retry-exempt-status-codes: 418
