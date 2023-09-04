@@ -416,19 +416,17 @@ class WP_Plugin_Dependencies {
 
 			if ( isset( $plugin_data['name'] ) && ! empty( $plugin_data['version'] ) ) {
 				$more_details_link[ $slug ] = sprintf(
-					'<a href="%1$s" class="alignright thickbox open-plugin-details-modal" aria-label="%2$s" data-title="%3$s">%4$s</a>',
+					'<a href="%1$s" class="more-details-link thickbox open-plugin-details-modal" aria-label="%2$s" data-title="%3$s">%4$s</a>',
 					esc_url( $url ),
 					/* translators: %s: Plugin name. */
 					esc_attr( sprintf( __( 'More information about %s' ), $plugin_data['name'] ) ),
 					esc_attr( $plugin_data['name'] ),
 					__( 'More details' )
 				);
-				$more_details_link[ $slug ] = esc_attr( $plugin_data['name'] ) . '&nbsp' . $more_details_link[ $slug ];
+				$more_details_link[ $slug ] = '<span class="plugin-dependency-name">' . esc_attr( $plugin_data['name'] ) . '</span>' . $more_details_link[ $slug ];
 			}
 		}
 
-		$header = '<strong>' . __( 'Additional plugins are required' ) . '</strong>';
-		array_unshift( self::$plugin_card_data, $header );
 		self::$plugin_card_data = array_merge( self::$plugin_card_data, $more_details_link );
 
 		return $description;
@@ -443,8 +441,9 @@ class WP_Plugin_Dependencies {
 	public static function set_plugin_card_data( $description ) {
 		if ( ! empty( self::$plugin_card_data ) ) {
 			self::$plugin_card_data = array_filter( self::$plugin_card_data );
-			$data                   = implode( '<br>', self::$plugin_card_data );
-			$notice                 = '<div class="plugin-dependencies"><p class="plugin-dependencies-explainer-text">' . $data . '</p></div>';
+			$data                   = '<div class="plugin-dependency">' . implode( '</div><div class="plugin-dependency">', self::$plugin_card_data ) . '</div>';
+			$header                 = '<strong>' . __( 'Additional plugins are required' ) . '</strong>';
+			$notice                 = '<div class="plugin-dependencies"><p class="plugin-dependencies-explainer-text">' . $header . '</p>' . $data . '</div>';
 			$description            = $description . $notice;
 		}
 
