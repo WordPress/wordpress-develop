@@ -5799,34 +5799,6 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	if ( $maybe_in_viewport ) {
 		$loading_attrs = wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr );
 	} else {
-		// Only add `decoding` attribute if the feature is enabled.
-		if ( 'img' === $tag_name ) {
-			$decoding = array_key_exists( 'decoding', $attr ) ? $attr['decoding'] : 'async';
-
-			/**
-			 * Filters the `decoding` attribute value to add to an image. Default `async`.
-			 *
-			 * Returning a falsey value will omit the attribute.
-			 *
-			 * @since 6.1.0
-			 * @since 6.4.0 Added the `$attr` parameter.
-			 *
-			 * @param string|false|null $value      The `decoding` attribute value. Returning a falsey value
-			 *                                      will result in the attribute being omitted for the image.
-			 *                                      Otherwise, it may be: 'async' (default), 'sync', or 'auto'.
-			 * @param string            $deprecated Deprecated. Not used.
-			 * @param string            $context    Additional context about how the function was called
-			 *                                      or where the img tag is.
-			 * @param array             $attr       Array of the attributes for the image.
-			 */
-			$decoding = apply_filters( 'wp_img_tag_add_decoding_attr', $decoding, '', $context, $attr );
-
-			// Validate the `decoding` attribute according to the spec.
-			if ( ! empty( $decoding ) && in_array( $decoding, array( 'async', 'sync', 'auto' ), true ) ) {
-				$loading_attrs['decoding'] = $decoding;
-			}
-		}
-
 		// Only add `loading="lazy"` if the feature is enabled.
 		if ( wp_lazy_loading_enabled( $tag_name, $context ) ) {
 			$loading_attrs['loading'] = 'lazy';
