@@ -84,7 +84,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @return void
 	 */
-	public static function initialize() {
+	public function initialize() {
 		$required_headers = self::parse_plugin_headers();
 		self::$slugs      = self::sanitize_required_headers( $required_headers );
 		self::get_plugin_api_data();
@@ -835,5 +835,3 @@ class WP_Plugin_Dependencies {
 		wp_send_json_success( $status );
 	}
 }
-
-( new WP_Plugin_Dependencies() )::initialize();
