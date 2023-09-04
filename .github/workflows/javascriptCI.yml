@@ -2,9 +2,11 @@ name: JavaScript Tests
 
 on:
   push:
-    branches: [ "trunk" ]
+    branches:
+      - '*'  
   pull_request:
-    branches: [ "trunk" ]
+    branches:
+      - '*'  
 
 jobs:
   # Runs the QUnit tests for WordPress.
