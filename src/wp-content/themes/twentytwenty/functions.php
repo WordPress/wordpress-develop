@@ -434,7 +434,11 @@ function twentytwenty_block_editor_styles() {
 	wp_enqueue_script( 'twentytwenty-block-editor-script', get_theme_file_uri( '/assets/js/editor-script-block.js' ), array( 'wp-blocks', 'wp-dom' ), wp_get_theme()->get( 'Version' ), true );
 }
 
-add_action( 'enqueue_block_editor_assets', 'twentytwenty_block_editor_styles', 1, 1 );
+if ( is_admin() && version_compare( $GLOBALS['wp_version'], '6.3', '>=' ) ) {
+   add_action( 'enqueue_block_assets', 'twentytwenty_block_editor_styles', 1, 1 );
+} else {
+   add_action( 'enqueue_block_editor_assets', 'twentytwenty_block_editor_styles', 1, 1 );
+}
 
 /**
  * Enqueue classic editor styles.
