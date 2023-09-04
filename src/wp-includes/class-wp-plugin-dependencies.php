@@ -306,7 +306,7 @@ class WP_Plugin_Dependencies {
 	 * @return void
 	 */
 	public static function modify_dependency_plugin_row( $plugin_file ) {
-		add_filter( 'post_plugin_row_meta', array( __CLASS__, 'modify_plugin_row_elements' ), 10, 3 );
+		add_action( 'after_plugin_row_meta', array( __CLASS__, 'modify_plugin_row_elements' ), 10, 3 );
 		add_filter( 'plugin_row_hide_checkbox_' . $plugin_file, '__return_true', 10, 2 );
 		add_filter( 'plugin_action_links_' . $plugin_file, array( __CLASS__, 'unset_action_links' ), 10, 2 );
 		add_filter( 'network_admin_plugin_action_links_' . $plugin_file, array( __CLASS__, 'unset_action_links' ), 10, 2 );
@@ -319,7 +319,7 @@ class WP_Plugin_Dependencies {
 	 * @return void
 	 */
 	public static function modify_requires_plugin_row( $plugin_file ) {
-		add_filter( 'post_plugin_row_meta', array( __CLASS__, 'modify_plugin_row_elements_requires' ), 10, 2 );
+		add_action( 'after_plugin_row_meta', array( __CLASS__, 'modify_plugin_row_elements_requires' ), 10, 2 );
 		add_filter( 'plugin_action_links_' . $plugin_file, array( __CLASS__, 'cannot_activate_unmet_dependencies' ), 10, 2 );
 		add_filter( 'network_admin_plugin_action_links_' . $plugin_file, array( __CLASS__, 'cannot_activate_unmet_dependencies' ), 10, 2 );
 	}
@@ -329,21 +329,21 @@ class WP_Plugin_Dependencies {
 	 * Removes plugin row checkbox.
 	 * Adds 'Required by: ...' information.
 	 *
-	 * @param string $message     Text to add after plugin row meta.
 	 * @param string $plugin_file Plugin file.
 	 * @param array  $plugin_data Array of plugin data.
 	 * @return string
 	 */
-	public static function modify_plugin_row_elements( $message, $plugin_file, $plugin_data ) {
+	public static function modify_plugin_row_elements( $plugin_file, $plugin_data ) {
 		$sources = self::get_dependency_sources( $plugin_data );
+		$message = '';
 
 		if ( empty( $sources ) ) {
 			return $message;
 		}
 
-		$message .= '<div style="margin-top: 1em;"><strong>' . esc_html__( 'Required by:' ) . '</strong> ' . esc_html( $sources ) . '</div>';
+		$message = '<div style="margin-top: 1em;"><strong>' . esc_html__( 'Required by:' ) . '</strong> ' . esc_html( $sources ) . '</div>';
 
-		return $message;
+		print( wp_kses_post( $message ) );
 	}
 
 	/**
@@ -352,12 +352,12 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param string $message     Text to add after plugin row meta.
 	 * @param string $plugin_file Plugin file.
 	 * @return string
 	 */
-	public static function modify_plugin_row_elements_requires( $message, $plugin_file ) {
-		$names = self::get_requires_plugins_names( $plugin_file );
+	public static function modify_plugin_row_elements_requires( $plugin_file ) {
+		$names   = self::get_requires_plugins_names( $plugin_file );
+		$message = '';
 
 		if ( empty( $names ) ) {
 			return $message;
@@ -365,9 +365,9 @@ class WP_Plugin_Dependencies {
 
 		$links = self::get_view_details_links( $plugin_file, $names );
 
-		$message .= '<div style="margin-top: 1em;"><strong>' . esc_html__( 'Requires:' ) . '</strong> ' . wp_kses_post( $links ) . '</div>';
+		$message = '<div style="margin-top: 1em;"><strong>' . esc_html__( 'Requires:' ) . '</strong> ' . wp_kses_post( $links ) . '</div>';
 
-		return $message;
+		print( wp_kses_post( $message ) );
 	}
 
 	/**
