@@ -3,10 +3,10 @@ name: PHPUnit Tests
 on:
   push:
     branches:
-      - trunk
+      - '*'  
   pull_request:
     branches:
-      - trunk
+      - '*'  
       
 jobs:
   #
