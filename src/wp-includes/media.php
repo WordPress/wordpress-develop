@@ -1892,11 +1892,6 @@ function wp_filter_content_tags( $content, $context = null ) {
 			// Add loading optimization attributes if applicable.
 			$filtered_image = wp_img_tag_add_loading_optimization_attrs( $filtered_image, $context );
 
-			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
-			if ( ! str_contains( $filtered_image, ' decoding=' ) ) {
-				$filtered_image = wp_img_tag_add_decoding_attr( $filtered_image, $context );
-			}
-
 			/**
 			 * Filters an img tag within the content for a given context.
 			 *
