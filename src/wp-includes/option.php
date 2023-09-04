@@ -783,15 +783,42 @@ function update_option( $option, $value, $autoload = null ) {
 	$value = apply_filters( 'pre_update_option', $value, $option, $old_value );
 
 	/*
-	 * If the new and old values are the same, no need to update.
-	 *
 	 * Unserialized values will be adequate in most cases. If the unserialized
 	 * data differs, the (maybe) serialized data is checked to avoid
 	 * unnecessary database calls for otherwise identical object instances.
 	 *
 	 * See https://core.trac.wordpress.org/ticket/38903
 	 */
-	if ( $value === $old_value || maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
+
+	if ( maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
+		return false;
+	}
+
+	/*
+ 	 * If the new and old values are the same, no need to update.
+ 	 * Scalar values in the cache will always be strings, so we must compare string values.
+ 	 */
+ 	$values = array(
+		'old' => $old_value,
+		'new' => $value,
+	);
+
+	foreach ( $values as $_key => &$_value ) {
+		// Special handling for false-ish values.
+		if ( false === $_value ) {
+			$_value = '0';
+
+		// Empty strings in the database should be seen as equivalent to false-ish cache values.
+		} elseif ( 'old' === $_key && '' === $_value ) {
+			$_value = '0';
+
+		// Cast scalars to a string so type discrepancies don't result in cache misses.
+		} elseif ( is_scalar( $_value ) ) {
+			$_value = (string) $_value;
+		}
+	}
+
+	if ( $values['old'] === $values['new'] ) {
 		return false;
 	}
 
