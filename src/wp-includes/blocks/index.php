@@ -20,15 +20,14 @@ require BLOCKS_PATH . 'require-dynamic-blocks.php';
  * avoids unnecessary logic and filesystem lookups in the other function.
  *
  * @since 6.3.0
+ *
+ * @global string $wp_version The WordPress version string.
  */
 function register_core_block_style_handles() {
+	global $wp_version;
+
 	if ( ! wp_should_load_separate_core_block_assets() ) {
 		return;
-	}
-
-	static $core_blocks_meta;
-	if ( ! $core_blocks_meta ) {
-		$core_blocks_meta = require BLOCKS_PATH . 'blocks-json.php';
 	}
 
 	$includes_url  = includes_url();
@@ -40,30 +39,37 @@ function register_core_block_style_handles() {
 		'editorStyle' => 'editor',
 	);
 
+	static $core_blocks_meta;
+	if ( ! $core_blocks_meta ) {
+		$core_blocks_meta = require $includes_path . 'blocks/blocks-json.php';
+	}
+
+	$files          = false;
+	$transient_name = 'wp_core_block_css_files';
 	/*
 	 * Ignore transient cache when the development mode is set to 'core'. Why? To avoid interfering with
 	 * the core developer's workflow.
 	 */
 	if ( ! wp_is_development_mode( 'core' ) ) {
-		$transient_name = 'wp_core_block_css_files';
-		$files          = get_transient( $transient_name );
+		$cached_files = get_transient( $transient_name );
 
-		// Ensure cached values use relative paths.
-		if ( is_array( $files ) && ! str_starts_with( reset( $files ), 'blocks/' ) ) {
-			$files = false;
+		/*
+		 * Check the validity of cached values.
+		 *  - Should match the current WordPress version
+		 *  - Should use relative paths for the files
+		 */
+		if ( is_array( $cached_files ) ) {
+			if ( ! isset( $cached_files['version'] ) || $cached_files['version'] !== $wp_version ) {
+				$files = false;
+			} elseif ( ! isset( $cached_files['files'] ) || empty( $cached_files['files'] ) || ! str_starts_with( reset( $cached_files['files'] ), 'blocks/' ) ) {
+				$files = false;
+			} else {
+				$files = $cached_files['files'];
+			}
 		}
+	}
 
-		if ( ! $files ) {
-			$files = glob( wp_normalize_path( __DIR__ . '/**/**.css' ) );
-			$files = array_map(
-				static function ( $file ) use ( $includes_path ) {
-					return str_replace( $includes_path, '', $file );
-				},
-				$files
-			);
-			set_transient( $transient_name, $files );
-		}
-	} else {
+	if ( ! $files ) {
 		$files = glob( wp_normalize_path( __DIR__ . '/**/**.css' ) );
 		$files = array_map(
 			static function ( $file ) use ( $includes_path ) {
@@ -71,6 +77,17 @@ function register_core_block_style_handles() {
 			},
 			$files
 		);
+
+		// Save core block style paths in cache when not in development mode.
+		if ( ! wp_is_development_mode( 'core' ) ) {
+			set_transient(
+				$transient_name,
+				array(
+					'version' => $wp_version,
+					'files'   => $files,
+				)
+			);
+		}
 	}
 
 	$register_style = static function( $name, $filename, $style_handle ) use ( $includes_path, $includes_url, $suffix, $wp_styles, $files ) {
