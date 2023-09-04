@@ -1134,13 +1134,13 @@ function get_autoload_value( $autoload, $name, $value ) {
 	$size             = strlen( $serialized_value );
 
 	/**
-	 * The maximum size of option value in bytes.
+	 * Filters the maximum size of option value in bytes.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param int    $max_option_size  The option-size threshold, in bytes. Default 150000.
-	 * @param string $name             The name of the option.
-	 * @param mixed  $value            The value of the option.
+	 * @param int    $max_option_size The option-size threshold, in bytes. Default 150000.
+	 * @param string $name            The name of the option.
+	 * @param mixed  $value           The value of the option.
 	 */
 	$max_option_size = (int) apply_filters( 'max_option_size', 150000, $name, $value );
 

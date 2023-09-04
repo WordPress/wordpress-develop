@@ -2,19 +2,18 @@
 
 /**
  * @group option
- *
  */
 class Tests_Option_Autoload_Value extends WP_UnitTestCase {
 
 	/**
-	 * @covers ::get_autoload_value
 	 * @ticket 42441
+	 *
+	 * @covers ::get_autoload_value
 	 *
 	 * @dataProvider data_values
 	 *
 	 * @param $autoload
 	 * @param $expected
-	 * @return void
 	 */
 	public function test_get_autoload_value_values( $autoload, $expected ) {
 		$test = get_autoload_value( $autoload, 'foo', 'bar' );
