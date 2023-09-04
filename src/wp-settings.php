@@ -389,7 +389,7 @@ $GLOBALS['wp_plugin_paths'] = array();
 
 // Load and initialize WP_Plugin_Dendencies.
 require_once ABSPATH . WPINC . '/class-wp-plugin-dependencies.php';
-( new WP_Plugin_Dependencies() )->initialize();
+WP_Plugin_Dependencies::initialize();
 
 // Load must-use plugins.
 foreach ( wp_get_mu_plugins() as $mu_plugin ) {

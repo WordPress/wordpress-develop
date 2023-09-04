@@ -84,7 +84,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @return void
 	 */
-	public function initialize() {
+	public static function initialize() {
 		$required_headers = self::parse_plugin_headers();
 		self::$slugs      = self::sanitize_required_headers( $required_headers );
 		self::get_plugin_api_data();
