@@ -764,7 +764,12 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$post_type = $this->screen->post_type;
 
 		if ( 'page' === $post_type ) {
-			$title_orderby_text = isset( $_GET['orderby'] ) ? __( 'Table ordered by Title.' ) : __( 'Table ordered by Hierarchical Menu Order and Title.' );
+			if ( isset( $_GET['orderby'] ) ) {
+				$title_orderby_text = __( 'Table ordered by Title.' );
+			} else {
+				$title_orderby_text = __( 'Table ordered by Hierarchical Menu Order and Title.' );
+			}
+
 			$sortables = array(
 				'title'    => array( 'title', false, __( 'Title' ), $title_orderby_text, 'asc' ),
 				'parent'   => array( 'parent', false ),
@@ -1223,7 +1228,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		}
 
 		/**
-		 * Filters the published time of the post.
+		 * Filters the published, scheduled, or unpublished time of the post.
 		 *
 		 * @since 2.5.1
 		 * @since 5.5.0 Removed the difference between 'excerpt' and 'list' modes.

@@ -764,20 +764,7 @@ module.exports = function(grunt) {
 					'!wp-admin/js/custom-header.js', // Why? We should minify this.
 					'!wp-admin/js/farbtastic.js',
 					'!wp-includes/js/swfobject.js',
-					'!wp-includes/js/wp-embed.js' // We have extra options for this, see uglify:embed.
 				]
-			},
-			embed: {
-				options: {
-					compress: {
-						conditionals: false
-					}
-				},
-				expand: true,
-				cwd: WORKING_DIR,
-				dest: WORKING_DIR,
-				ext: '.min.js',
-				src: ['wp-includes/js/wp-embed.js']
 			},
 			'jquery-ui': {
 				options: {
@@ -1461,7 +1448,6 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'uglify:all', [
 		'uglify:core',
-		'uglify:embed',
 		'uglify:jquery-ui',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
@@ -1507,37 +1493,9 @@ module.exports = function(grunt) {
 	 * Build verification tasks.
 	 */
 	grunt.registerTask( 'verify:build', [
-		'verify:wp-embed',
 		'verify:old-files',
 		'verify:source-maps',
 	] );
-
-	/**
-	 * Build assertions for wp-embed.min.js.
-	 *
-	 * @ticket 34698
-	 */
-	grunt.registerTask( 'verify:wp-embed', function() {
-		const file = `${ BUILD_DIR }/wp-includes/js/wp-embed.min.js`;
-
-		assert(
-			fs.existsSync( file ),
-			'The build/wp-includes/js/wp-embed.min.js file does not exist.'
-		);
-
-		const contents = fs.readFileSync( file, {
-			encoding: 'utf8',
-		} );
-
-		assert(
-			contents.length > 0,
-			'The build/wp-includes/js/wp-embed.min.js file must not be empty.'
-		);
-		assert(
-			false === contents.includes( '&' ),
-			'The build/wp-includes/js/wp-embed.min.js file must not contain ampersands.'
-		);
-	} );
 
 	/**
 	 * Build assertions to ensure no project files are inside `$_old_files` in the build directory.
@@ -1840,8 +1798,10 @@ module.exports = function(grunt) {
 			// Clean up only those files that were deleted.
 			grunt.config( [ 'clean', 'dynamic', 'src' ], src );
 		} else {
-			// Otherwise copy over only the changed file.
-			grunt.config( [ 'copy', 'dynamic', 'src' ], src );
+			if ( ! grunt.option( 'dev' ) ) {
+				// Otherwise copy over only the changed file.
+				grunt.config(['copy', 'dynamic', 'src'], src);
+			}
 
 			// For javascript also minify and validate the changed file.
 			if ( target === 'js-enqueues' ) {
