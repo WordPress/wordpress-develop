@@ -1167,7 +1167,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					 * @since 6.4.0
 					 *
 					 * @param string $plugin_file Refer to {@see 'plugin_row_meta'} filter.
-					 * @param array  $plguin_data Refer to {@see 'plugin_row_meta'} filter.
+					 * @param array  $plugin_data Refer to {@see 'plugin_row_meta'} filter.
 					 */
 					do_action( 'after_plugin_row_meta', $plugin_file, $plugin_data );
 
