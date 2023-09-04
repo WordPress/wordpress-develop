@@ -2113,7 +2113,7 @@ $( function( $ ) {
  *
  * @since 6.4
  */
-var wpFreezeAnimatedPluginIcons = (function() {
+(function() {
 	// Private variables and methods
 	var priv = {};
 	var pub = {};
@@ -2122,7 +2122,7 @@ var wpFreezeAnimatedPluginIcons = (function() {
 	// Initialize pauseAll to false; it will be set to true if reduced motion is preferred.
 	priv.pauseAll = false;
 	if (window.matchMedia) {
-		mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+		mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 		if (!mediaQuery || mediaQuery.matches) {
 			priv.pauseAll = true;
 		}
