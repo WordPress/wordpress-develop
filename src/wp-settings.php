@@ -387,7 +387,8 @@ wp_plugin_directory_constants();
 
 $GLOBALS['wp_plugin_paths'] = array();
 
-require ABSPATH . WPINC . '/class-wp-plugin-dependencies.php';
+// Load and initialize WP_Plugin_Dendencies.
+require_once ABSPATH . WPINC . '/class-wp-plugin-dependencies.php';
 ( new WP_Plugin_Dependencies() )->initialize();
 
 // Load must-use plugins.
