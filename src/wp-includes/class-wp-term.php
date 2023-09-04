@@ -103,13 +103,14 @@ final class WP_Term {
 	 * Retrieve WP_Term instance.
 	 *
 	 * @since 4.4.0
+	 * @since 6.4.0 Added the `$filter` parameter.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param int    $term_id  Term ID.
 	 * @param string $taxonomy Optional. Limit matched terms to those matching `$taxonomy`. Only used for
 	 *                         disambiguating potentially shared terms.
-	 * @param string $filter   Optional. How to sanitize term fields. Default 'raw'.
+	 * @param string|false $filter   Optional. How to sanitize term fields. Default 'raw'.
 	 * @return WP_Term|WP_Error|false Term object, if found. WP_Error if `$term_id` is shared between taxonomies and
 	 *                                there's insufficient data to distinguish which term is intended.
 	 *                                False for other failures.
@@ -197,7 +198,14 @@ final class WP_Term {
 	 * @param WP_Term|object $term Term object.
 	 */
 	public function __construct( $term ) {
+		$int_fields = array( 'parent', 'term_id', 'count', 'term_group', 'term_taxonomy_id', 'object_id' );
 		foreach ( get_object_vars( $term ) as $key => $value ) {
+			if ( in_array( $key, $int_fields, true ) ) {
+				$value = (int) $value;
+				if ( $value < 0 ) {
+					$value = 0;
+				}
+			}
 			$this->$key = $value;
 		}
 	}

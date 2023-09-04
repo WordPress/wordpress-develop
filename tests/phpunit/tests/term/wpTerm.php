@@ -5,6 +5,7 @@
  */
 class Tests_Term_WpTerm extends WP_UnitTestCase {
 	protected static $term_id;
+
 	/**
 	 * @var string[]
 	 */
