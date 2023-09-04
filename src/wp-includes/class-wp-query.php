@@ -3521,8 +3521,20 @@ class WP_Query {
 			/** @var WP_Post[] */
 			$this->posts = array_map( 'get_post', $this->posts );
 
-			if ( $q['cache_results'] ) {
-				update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+			if ( $q['cache_results'] && $id_query_is_cacheable ) {
+				update_post_cache( $this->posts );
+			}
+
+			$post_ids = wp_list_pluck( $this->posts, 'ID' );
+
+			if ( $q['update_post_meta_cache'] ) {
+				update_postmeta_cache( $post_ids );
+			}
+
+			if ( $q['update_post_term_cache'] ) {
+				$post_types = array_map( 'get_post_type', $this->posts );
+				$post_types = array_unique( $post_types );
+				update_object_term_cache( $post_ids, $post_types );
 			}
 
 			/** @var WP_Post */

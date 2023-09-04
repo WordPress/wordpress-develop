@@ -1339,4 +1339,59 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		// No additional queries expected.
 		$this->assertSame( 0, $num_queries, 'Unexpected number of queries during second query of term meta.' );
 	}
+
+	public function test_filter_posts_fields_request() {
+		$filter = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+		$args = array(
+			'post_type'        => 'page',
+			'post_status'      => 'publish',
+			'posts_per_page'   => 1,
+			'suppress_filters' => false,
+		);
+
+		add_filter( 'posts_fields_request', array( $this, 'filter_allowed_fields' ), 20, 2 );
+		$query = new WP_Query();
+
+		$num_queries_start = get_num_queries();
+		$query_posts       = $query->query( array() );
+		$num_queries       = get_num_queries() - $num_queries_start;
+
+		//var_dump($query_posts);
+		$this->assertSame( 5, $num_queries );
+
+		$post_ids = wp_list_pluck( $query_posts, 'ID' );
+
+		$raw_posts     = array_map( 'get_post', $post_ids );
+		$args          = $filter->get_args();
+		$first         = reset( $args );
+		$post_meta_ids = end( $first );
+		$this->assertSameSets( $post_ids, $post_meta_ids );
+		$this->assertNotSame( $query_posts, $raw_posts );
+	}
+
+	public function filter_allowed_fields( $fields, $wp_query ) {
+		global $wpdb;
+
+		$allowed_fields = array(
+			'ID',
+			'post_title',
+			'post_name',
+			'post_parent',
+			'post_type',
+			'guid',
+			'menu_order',
+		);
+
+		$new_fields = '';
+		foreach ( $allowed_fields as $i => $field ) {
+			$new_fields .= "{$wpdb->prefix}posts.{$field}";
+
+			if ( $i + 1 < count( $allowed_fields ) ) {
+				$new_fields .= ', ';
+			}
+		}
+
+		return $new_fields;
+	}
 }
