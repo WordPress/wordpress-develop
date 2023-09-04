@@ -106,14 +106,6 @@ add_action( 'install_plugins_beta', 'display_plugins_table' );
 add_action( 'install_plugins_favorites', 'display_plugins_table' );
 add_action( 'install_plugins_pre_plugin-information', 'install_plugin_information' );
 
-// Plugin Dependency hooks.
-add_filter( 'plugin_install_description', array( 'WP_Plugin_Dependencies', 'plugin_install_description_uninstalled' ), 10, 2 );
-add_filter( 'plugin_install_description', array( 'WP_Plugin_Dependencies', 'set_plugin_card_data' ), 10, 1 );
-add_action( 'admin_init', array( 'WP_Plugin_Dependencies', 'modify_plugin_row' ), 15 );
-add_action( 'admin_notices', array( 'WP_Plugin_Dependencies', 'admin_notices' ) );
-add_action( 'network_admin_notices', array( 'WP_Plugin_Dependencies', 'admin_notices' ) );
-add_action( 'wp_ajax_check_plugin_dependencies', array( 'WP_Plugin_Dependencies', 'check_plugin_dependencies' ) );
-
 // Template hooks.
 add_action( 'admin_enqueue_scripts', array( 'WP_Internal_Pointers', 'enqueue_scripts' ) );
 add_action( 'user_register', array( 'WP_Internal_Pointers', 'dismiss_pointers_for_new_users' ) );

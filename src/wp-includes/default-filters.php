@@ -719,4 +719,12 @@ add_action( 'init', 'wp_register_persisted_preferences_meta' );
 // CPT wp_block custom postmeta field.
 add_action( 'init', 'wp_create_initial_post_meta' );
 
+// Plugin Dependency hooks.
+add_filter( 'plugin_install_description', array( 'WP_Plugin_Dependencies', 'plugin_install_description_uninstalled' ), 10, 2 );
+add_filter( 'plugin_install_description', array( 'WP_Plugin_Dependencies', 'set_plugin_card_data' ), 10, 1 );
+add_action( 'wp_ajax_check_plugin_dependencies', array( 'WP_Plugin_Dependencies', 'check_plugin_dependencies' ) );
+add_action( 'admin_init', array( 'WP_Plugin_Dependencies', 'modify_plugin_row' ), 15 );
+add_action( 'admin_notices', array( 'WP_Plugin_Dependencies', 'admin_notices' ) );
+add_action( 'network_admin_notices', array( 'WP_Plugin_Dependencies', 'admin_notices' ) );
+
 unset( $filter, $action );
