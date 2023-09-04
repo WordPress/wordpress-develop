@@ -1626,6 +1626,11 @@ div.action-links,
 	}
 }
 
+.plugins #the-list .required-by,
+.plugins #the-list .requires {
+	margin-top: 1em;
+}
+
 .plugin-card .action-links {
 	position: absolute;
 	top: 20px;
