@@ -733,9 +733,9 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$this->assertSameSets( wp_list_pluck( $terms1, 'count' ), wp_list_pluck( $terms2, 'count' ), 'Term counts are expected to match' );
 	}
 
-        /**
-         * Filter `terms_clauses` to change the field requested. The filter is from example code given in #58116. 
-         */
+	/**
+	 * Filter `terms_clauses` to change the field requested. The filter is from example code given in #58116.
+	 */
 	public function filter_fields_terms_clauses( $clauses, $taxonomies, $args ) {
 		global $wpdb;
 
@@ -752,6 +752,48 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			$clauses['where'] .= " AND (p.post_status = '" . $args['post_status'] . "')";
 		}
 		return $clauses;
+	}
+
+	/**
+	 * If fields have filtered, cached results should work.
+	 *
+	 * @ticket 58116
+	 */
+	public function test_query_filter_select_fields() {
+		$post_id = self::factory()->post->create();
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		wp_set_object_terms( $post_id, array( $term_id ), 'wptests_tax' );
+		$post_draft_id = self::factory()->post->create( array( 'post_type' => 'draft' ) );
+		wp_set_object_terms( $post_draft_id, array( $term_id ), 'wptests_tax' );
+
+		add_filter( 'get_terms_fields', array( $this, 'filter_get_terms_fields' ) );
+
+		$args = array(
+			'taxonomy'    => 'wptests_tax',
+			'hide_empty'  => false,
+			'post_type'   => 'post',
+			'post_status' => 'publish',
+		);
+
+		$q1     = new WP_Term_Query();
+		$terms1 = $q1->query( $args );
+		$q2     = new WP_Term_Query();
+		$terms2 = $q2->query( $args );
+		$this->assertSameSets( wp_list_pluck( $terms1, 'term_id' ), wp_list_pluck( $terms2, 'term_id' ), 'Term IDs are expected to match' );
+		$this->assertSameSets( wp_list_pluck( $terms1, 'parent' ), wp_list_pluck( $terms2, 'parent' ), 'Term parent are expected to match' );
+	}
+
+	/**
+	 * Filter `get_terms_fields` to change the field requested.
+	 */
+	public function filter_get_terms_fields( $select ) {
+		return array( 't.term_id', 'tt.parent' );
 	}
 
 	/**

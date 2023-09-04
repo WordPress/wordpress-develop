@@ -730,8 +730,6 @@ class WP_Term_Query {
 		 */
 		$clauses = apply_filters( 'terms_clauses', compact( $pieces ), $taxonomies, $args );
 
-		$fields_is_filtered = $fields !== $clauses['fields'];
-
 		$fields   = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
 		$join     = isset( $clauses['join'] ) ? $clauses['join'] : '';
 		$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
@@ -739,6 +737,8 @@ class WP_Term_Query {
 		$orderby  = isset( $clauses['orderby'] ) ? $clauses['orderby'] : '';
 		$order    = isset( $clauses['order'] ) ? $clauses['order'] : '';
 		$limits   = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
+
+		$fields_is_filtered = implode( ', ', $selects ) !== $fields;
 
 		if ( $where ) {
 			$where = "WHERE $where";
