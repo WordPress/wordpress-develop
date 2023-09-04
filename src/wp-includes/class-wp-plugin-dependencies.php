@@ -335,15 +335,12 @@ class WP_Plugin_Dependencies {
 	 */
 	public static function modify_plugin_row_elements( $plugin_file, $plugin_data ) {
 		$sources = self::get_dependency_sources( $plugin_data );
-		$message = '';
 
 		if ( empty( $sources ) ) {
-			return $message;
+			return '';
 		}
 
-		$message = '<div style="margin-top: 1em;"><strong>' . __( 'Required by:' ) . '</strong> ' . $sources . '</div>';
-
-		echo( wp_kses_post( $message ) );
+		echo( wp_kses_post( '<div class="required-by"><strong>' . __( 'Required by:' ) . '</strong> ' . $sources . '</div>' ) );
 	}
 
 	/**
@@ -356,18 +353,15 @@ class WP_Plugin_Dependencies {
 	 * @return string
 	 */
 	public static function modify_plugin_row_elements_requires( $plugin_file ) {
-		$names   = self::get_requires_plugins_names( $plugin_file );
-		$message = '';
+		$names = self::get_requires_plugins_names( $plugin_file );
 
 		if ( empty( $names ) ) {
-			return $message;
+			return '';
 		}
 
 		$links = self::get_view_details_links( $plugin_file, $names );
 
-		$message = '<div style="margin-top: 1em;"><strong>' . __( 'Requires:' ) . '</strong> ' . $links . '</div>';
-
-		echo( wp_kses_post( $message ) );
+		echo( wp_kses_post( '<div class="requires"><strong>' . __( 'Requires:' ) . '</strong> ' . $links . '</div>' ) );
 	}
 
 	/**
