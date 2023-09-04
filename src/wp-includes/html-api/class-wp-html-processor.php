@@ -280,7 +280,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
- 	 * @see WP_HTML_Processor::createFragment()
+	 * @see WP_HTML_Processor::createFragment()
 	 *
 	 * @param string      $html                                  HTML to process.
 	 * @param string|null $use_the_static_create_methods_instead This constructor should not be called manually.
