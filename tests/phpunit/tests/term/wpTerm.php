@@ -114,7 +114,7 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 		wp_cache_add( 999, $obj, 'terms' );
 		$term = WP_Term::get_instance( 999, 'wptests_tax', false );
 		foreach ( self::$int_fields as $int_field ) {
-			$this->assertIsString( $term->$int_field );
+			$this->assertIsInt( $term->$int_field );
 		}
 	}
 
