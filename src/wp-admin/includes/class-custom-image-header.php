@@ -336,9 +336,9 @@ class Custom_Image_Header {
 			echo '<label><input name="default-header" type="radio" value="' . esc_attr( $header_key ) . '" ' . checked( $header_url, get_theme_mod( 'header_image' ), false ) . ' />';
 			$width = '';
 			if ( ! empty( $header['attachment_id'] ) ) {
-				$width = ' width="230"';
+				$width = 230;
 			}
-			echo '<img src="' . esc_url( set_url_scheme( $header_thumbnail ) ) . '" alt="' . esc_attr( $header_alt_text ) . '"' . $width . ' /></label>';
+			echo '<img src="' . esc_url( set_url_scheme( $header_thumbnail ) ) . '" alt="' . esc_attr( $header_alt_text ) . '" width="' . esc_attr( $width ) . '" /></label>';
 			echo '</div>';
 		}
 
