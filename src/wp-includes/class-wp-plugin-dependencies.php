@@ -736,26 +736,27 @@ class WP_Plugin_Dependencies {
 		self::$plugin_data = get_site_transient( 'wp_plugin_dependencies_plugin_data' );
 
 		// Exit if no plugin data found.
-		if ( empty( self::$plugin_data ) ) {
-			return;
+		if ( empty( self::$plugin_data ) || ! str_contains( $data, '.php' ) ) {
+			return '';
 		}
 
-		if ( str_contains( $data, '.php' ) ) {
-			$requires = is_array( self::$plugins[ $data ]['RequiresPlugins'] )
-				? self::$plugins[ $data ]['RequiresPlugins']
-				: array();
-			sort( $requires );
+		$dependencies = self::$plugins[ $data ]['RequiresPlugins'];
+
+		// Bail if there are no dependencies.
+		if ( ! is_array( $dependencies ) ) {
+			return '';
 		}
-		foreach ( $requires as $require ) {
-			if ( isset( self::$plugin_data[ $require ] ) ) {
-				$names[] = self::$plugin_data[ $require ]['name'];
+
+		sort( $dependencies );
+
+		$dependency_names = array();
+		foreach ( $dependencies as $dependency ) {
+			if ( isset( self::$plugin_data[ $dependency ] ) ) {
+				$dependency_names[] = self::$plugin_data[ $dependency ]['name'];
 			}
 		}
-		if ( ! empty( $names ) ) {
-			$names = implode( ', ', $names );
-		}
 
-		return $names ?? '';
+		return implode( ', ', $dependency_names );
 	}
 
 	/**
