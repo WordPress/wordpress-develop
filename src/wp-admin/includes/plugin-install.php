@@ -867,40 +867,14 @@ function install_plugin_information() {
 	echo "</div>\n"; // #plugin-information-scrollable
 	echo "<div id='$tab-footer'>\n";
 	if ( ! empty( $api->download_link ) && ( current_user_can( 'install_plugins' ) || current_user_can( 'update_plugins' ) ) ) {
-		$status = install_plugin_install_status( $api );
-		switch ( $status['status'] ) {
-			case 'install':
-				if ( $status['url'] ) {
-					if ( $compatible_php && $compatible_wp ) {
-						echo '<a data-slug="' . esc_attr( $api->slug ) . '" id="plugin_install_from_iframe" class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . __( 'Install Now' ) . '</a>';
-					} else {
-						printf(
-							'<button type="button" class="button button-primary button-disabled right" disabled="disabled">%s</button>',
-							_x( 'Cannot Install', 'plugin' )
-						);
-					}
-				}
-				break;
-			case 'update_available':
-				if ( $status['url'] ) {
-					if ( $compatible_php ) {
-						echo '<a data-slug="' . esc_attr( $api->slug ) . '" data-plugin="' . esc_attr( $status['file'] ) . '" id="plugin_update_from_iframe" class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . __( 'Install Update Now' ) . '</a>';
-					} else {
-						printf(
-							'<button type="button" class="button button-primary button-disabled right" disabled="disabled">%s</button>',
-							_x( 'Cannot Update', 'plugin' )
-						);
-					}
-				}
-				break;
-			case 'newer_installed':
-				/* translators: %s: Plugin version. */
-				echo '<a class="button button-primary right disabled">' . sprintf( __( 'Newer Version (%s) Installed' ), esc_html( $status['version'] ) ) . '</a>';
-				break;
-			case 'latest_installed':
-				echo '<a class="button button-primary right disabled">' . __( 'Latest Version Installed' ) . '</a>';
-				break;
+		$button = wp_get_plugin_action_button( $api->name, $api, $compatible_php, $compatible_wp );
+		$button = str_replace( 'class="', 'class="right ', $button );
+
+		if ( ! str_contains( $button, __( 'Activate' ) ) ) {
+			$button = str_replace( 'class="', 'id="plugin_install_from_iframe" class="', $button );
 		}
+
+		echo wp_kses_post( $button );
 	}
 	echo "</div>\n";
 
