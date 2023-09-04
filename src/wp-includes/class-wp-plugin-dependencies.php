@@ -340,7 +340,7 @@ class WP_Plugin_Dependencies {
 			return '';
 		}
 
-		echo( wp_kses_post( '<div class="required-by"><strong>' . __( 'Required by:' ) . '</strong> ' . $sources . '</div>' ) );
+		echo wp_kses_post( '<div class="required-by"><strong>' . __( 'Required by:' ) . '</strong> ' . $sources . '</div>' );
 	}
 
 	/**
@@ -361,7 +361,7 @@ class WP_Plugin_Dependencies {
 
 		$links = self::get_view_details_links( $plugin_file, $names );
 
-		echo( wp_kses_post( '<div class="requires"><strong>' . __( 'Requires:' ) . '</strong> ' . $links . '</div>' ) );
+		echo wp_kses_post( '<div class="requires"><strong>' . __( 'Requires:' ) . '</strong> ' . $links . '</div>' );
 	}
 
 	/**
