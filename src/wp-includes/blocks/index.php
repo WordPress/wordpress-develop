@@ -52,7 +52,7 @@ function register_core_block_style_handles() {
 	 * the core developer's workflow.
 	 */
 	$can_use_cached = ! wp_is_development_mode( 'core' );
-	
+
 	if ( $can_use_cached ) {
 		$cached_files = get_transient( $transient_name );
 
