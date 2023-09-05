@@ -421,7 +421,7 @@ class WP_Plugin_Dependencies {
 					/* translators: %s: Plugin name. */
 					esc_attr( sprintf( __( 'More information about %s' ), $plugin_data['name'] ) ),
 					esc_attr( $plugin_data['name'] ),
-					__( 'More details' )
+					__( 'More Details' )
 				);
 				$more_details_link[ $slug ] = '<span class="plugin-dependency-name">' . esc_attr( $plugin_data['name'] ) . '</span>' . $more_details_link[ $slug ];
 			}
