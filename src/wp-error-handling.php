@@ -73,7 +73,7 @@ function _wp_error_handler_printer( $errno, $errstr, $errfile, $errline ) {
 	$v = ini_get( 'display_errors' );
 	if ( 'wp' !== $v ) {
 		// Adapted from https://github.com/php/php-src/blob/2d3bff38bbe607067de96f86f79dfebf3fb395cf/main/main.c#L429-L460
-		$v = strtolower( $v );
+		$v = is_string( $v ) ? strtolower( $v ) : $v;
 		if ( 'stderr' === $v || 2 === (int) $v ) {
 			$display_errors_ini_value = 'stderr';
 			ini_set( 'display_errors', 'wp' );
@@ -90,11 +90,22 @@ function _wp_error_handler_printer( $errno, $errstr, $errfile, $errline ) {
 		return;
 	}
 
+	$ini_get_bool = function ( $setting ) {
+		$v = ini_get( $setting );
+		if ( is_string( $v ) ) {
+			$v = strtolower( $v );
+			if ( 'on' === $v || 'yes' === $v || 'true' === $v ) {
+				return true;
+			}
+		}
+		return 0 !== (int) $v;
+	};
+
 	// From https://github.com/php/php-src/blob/3f38105740d160e448881b268ebc44bfed20c7db/main/main.c#L1236-L1250
-	if ( ini_get( 'ignore_repeated_errors' ) ) {
+	if ( $ini_get_bool( 'ignore_repeated_errors' ) ) {
 		$last = error_get_last();
 		if ( $last && $last['message'] === $errstr && (
-			ini_get( 'ignore_repeated_source' ) ||
+			$ini_get_bool( 'ignore_repeated_source' ) ||
 			(int) $last['line'] === (int) $errline && $last['file'] === $errfile
 		) ) {
 			return;
@@ -143,7 +154,7 @@ function _wp_error_handler_printer( $errno, $errstr, $errfile, $errline ) {
 
 	// Adapted from https://github.com/php/php-src/blob/3f38105740d160e448881b268ebc44bfed20c7db/main/main.c#L1352-L1379
 	// with the addition of some `htmlspecialchars()` calls.
-	if ( ini_get( 'xmlrpc_errors' ) ) {
+	if ( $ini_get_bool( 'xmlrpc_errors' ) ) {
 		printf(
 			'<?xml version="1.0"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><int>%d</int></value></member><member><name>faultString</name><value><string>%s:%s in %s on line %u</string></value></member></struct></value></fault></methodResponse>',
 			ini_get( 'xmlrpc_error_number' ),
@@ -161,7 +172,7 @@ function _wp_error_handler_printer( $errno, $errstr, $errfile, $errline ) {
 			$errfile = htmlspecialchars( $errfile, ENT_QUOTES | ENT_HTML401 );
 		}
 
-		if ( ini_get( 'html_errors' ) ) {
+		if ( $ini_get_bool( 'html_errors' ) ) {
 			printf( "%s<br />\n<b>%s</b>:  %s in <b>%s</b> on line <b>%u</b><br />\n%s", $error_prepend_string, $type_str, $errstr, $errfile, $errline, $error_append_string );
 		} elseif ( 'stderr' === $display_errors_ini_value && ( PHP_SAPI === 'cli' || PHP_SAPI === 'cgi' || PHP_SAPI === 'phpdbg' ) ) {
 			fprintf( STDERR, "%s: %s in %s on line %u\n", $type_str, $errstr, $errfile, $errline );
