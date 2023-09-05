@@ -55,8 +55,18 @@ function wp_error_handler( $errno, $errstr, $errfile, $errline ) {
 
 	$v = ini_get( 'display_errors' );
 	if ( 'wp' !== $v ) {
-		$display_errors = strtolower( $v ) === 'stderr' ? 'stderr' : (bool) $v;
-		ini_set( 'display_errors', 'wp' );
+		// Adapted from https://github.com/php/php-src/blob/2d3bff38bbe607067de96f86f79dfebf3fb395cf/main/main.c#L429-L460
+		$v = strtolower( $v );
+		if ( 'stderr' === $v || 2 === (int) $v ) {
+			$display_errors = 'stderr';
+			ini_set( 'display_errors', 'wp' );
+		} elseif ( 'on' === $v || 'yes' === $v || 'true' === $v || 'stdout' === $v || 0 !== (int) $v ) {
+			$display_errors = true;
+			ini_set( 'display_errors', 'wp' );
+		} elseif ( $display_errors ) {
+			$display_errors = false;
+			// Don't replace other falsey values with "wp", in case someone else is doing like we are.
+		}
 	}
 
 	if ( $display_errors && ( error_reporting() & $errno ) !== 0 ) {
