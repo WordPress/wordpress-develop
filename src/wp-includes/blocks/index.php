@@ -46,26 +46,24 @@ function register_core_block_style_handles() {
 
 	$files          = false;
 	$transient_name = 'wp_core_block_css_files';
+
 	/*
 	 * Ignore transient cache when the development mode is set to 'core'. Why? To avoid interfering with
 	 * the core developer's workflow.
 	 */
-	if ( ! wp_is_development_mode( 'core' ) ) {
+	$can_use_cached = ! wp_is_development_mode( 'core' );
+	
+	if ( $can_use_cached ) {
 		$cached_files = get_transient( $transient_name );
 
-		/*
-		 * Check the validity of cached values.
-		 *  - Should match the current WordPress version
-		 *  - Should use relative paths for the files
-		 */
-		if ( is_array( $cached_files ) ) {
-			if ( ! isset( $cached_files['version'] ) || $cached_files['version'] !== $wp_version ) {
-				$files = false;
-			} elseif ( ! isset( $cached_files['files'] ) || empty( $cached_files['files'] ) || ! str_starts_with( reset( $cached_files['files'] ), 'blocks/' ) ) {
-				$files = false;
-			} else {
-				$files = $cached_files['files'];
-			}
+		// Check the validity of cached values by checking against the current WordPress version.
+		if (
+			is_array( $cached_files )
+			&& isset( $cached_files['version'] )
+			&& $cached_files['version'] === $wp_version
+			&& isset( $cached_files['files'] )
+		) {
+			$files = $cached_files['files'];
 		}
 	}
 
@@ -79,7 +77,7 @@ function register_core_block_style_handles() {
 		);
 
 		// Save core block style paths in cache when not in development mode.
-		if ( ! wp_is_development_mode( 'core' ) ) {
+		if ( $can_use_cached ) {
 			set_transient(
 				$transient_name,
 				array(
