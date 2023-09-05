@@ -795,7 +795,7 @@ final class WP_Post_Type {
 			return null;
 		}
 
-		$class = $this->rest_controller_class ? $this->rest_controller_class : WP_REST_Posts_Controller::class;
+		$class = $this->rest_controller_class ?: WP_REST_Posts_Controller::class;
 
 		if ( ! class_exists( $class ) ) {
 			return null;

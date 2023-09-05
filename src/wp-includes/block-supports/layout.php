@@ -275,8 +275,8 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 		$wide_size       = isset( $layout['wideSize'] ) ? $layout['wideSize'] : '';
 		$justify_content = isset( $layout['justifyContent'] ) ? $layout['justifyContent'] : 'center';
 
-		$all_max_width_value  = $content_size ? $content_size : $wide_size;
-		$wide_max_width_value = $wide_size ? $wide_size : $content_size;
+		$all_max_width_value  = $content_size ?: $wide_size;
+		$wide_max_width_value = $wide_size ?: $content_size;
 
 		// Make sure there is a single CSS rule, and all tags are stripped for security.
 		$all_max_width_value  = safecss_filter_attr( explode( ';', $all_max_width_value )[0] );

@@ -319,7 +319,7 @@ final class WP_Screen {
 					break;
 				case 'edit-tags':
 				case 'term':
-					if ( null === $post_type && is_object_in_taxonomy( 'post', $taxonomy ? $taxonomy : 'post_tag' ) ) {
+					if ( null === $post_type && is_object_in_taxonomy( 'post', $taxonomy ?: 'post_tag') ) {
 						$post_type = 'post';
 					}
 					break;

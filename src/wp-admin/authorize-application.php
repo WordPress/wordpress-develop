@@ -127,7 +127,7 @@ wp_localize_script(
 		'site_url'   => site_url(),
 		'user_login' => $user->user_login,
 		'success'    => $success_url,
-		'reject'     => $reject_url ? $reject_url : admin_url(),
+		'reject'     => $reject_url ?: admin_url(),
 	)
 );
 

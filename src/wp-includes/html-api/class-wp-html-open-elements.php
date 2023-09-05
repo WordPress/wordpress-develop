@@ -91,7 +91,7 @@ class WP_HTML_Open_Elements {
 	public function current_node() {
 		$current_node = end( $this->stack );
 
-		return $current_node ? $current_node : null;
+		return $current_node ?: NULL;
 	}
 
 	/**

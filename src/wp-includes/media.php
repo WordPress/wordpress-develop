@@ -4336,7 +4336,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 	$author = new WP_User( $attachment->post_author );
 
 	if ( $author->exists() ) {
-		$author_name            = $author->display_name ? $author->display_name : $author->nickname;
+		$author_name            = $author->display_name ?: $author->nickname;
 		$response['authorName'] = html_entity_decode( $author_name, ENT_QUOTES, get_bloginfo( 'charset' ) );
 		$response['authorLink'] = get_edit_user_link( $author->ID );
 	} else {
@@ -4346,7 +4346,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 	if ( $attachment->post_parent ) {
 		$post_parent = get_post( $attachment->post_parent );
 		if ( $post_parent ) {
-			$response['uploadedToTitle'] = $post_parent->post_title ? $post_parent->post_title : __( '(no title)' );
+			$response['uploadedToTitle'] = $post_parent->post_title ?: __( '(no title)' );
 			$response['uploadedToLink']  = get_edit_post_link( $attachment->post_parent, 'raw' );
 		}
 	}
@@ -4367,7 +4367,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 	}
 
 	$context             = get_post_meta( $attachment->ID, '_wp_attachment_context', true );
-	$response['context'] = ( $context ) ? $context : '';
+	$response['context'] = ( $context ) ?: '';
 
 	if ( current_user_can( 'edit_post', $attachment->ID ) ) {
 		$response['nonces']['update'] = wp_create_nonce( 'update-post_' . $attachment->ID );
@@ -4734,7 +4734,7 @@ function wp_enqueue_media( $args = array() ) {
 
 		if ( $thumbnail_support ) {
 			$featured_image_id                   = get_post_meta( $post->ID, '_thumbnail_id', true );
-			$settings['post']['featuredImageId'] = $featured_image_id ? $featured_image_id : -1;
+			$settings['post']['featuredImageId'] = $featured_image_id ?: -1;
 		}
 	}
 

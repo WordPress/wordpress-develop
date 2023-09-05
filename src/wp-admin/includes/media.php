@@ -3312,7 +3312,7 @@ function attachment_submitbox_metadata() {
 	$uploaded_by_link = '';
 
 	if ( $author->exists() ) {
-		$uploaded_by_name = $author->display_name ? $author->display_name : $author->nickname;
+		$uploaded_by_name = $author->display_name ?: $author->nickname;
 		$uploaded_by_link = get_edit_user_link( $author->ID );
 	}
 	?>
@@ -3328,7 +3328,7 @@ function attachment_submitbox_metadata() {
 	if ( $post->post_parent ) {
 		$post_parent = get_post( $post->post_parent );
 		if ( $post_parent ) {
-			$uploaded_to_title = $post_parent->post_title ? $post_parent->post_title : __( '(no title)' );
+			$uploaded_to_title = $post_parent->post_title ?: __( '(no title)' );
 			$uploaded_to_link  = get_edit_post_link( $post->post_parent, 'raw' );
 			?>
 			<div class="misc-pub-section misc-pub-uploadedto">

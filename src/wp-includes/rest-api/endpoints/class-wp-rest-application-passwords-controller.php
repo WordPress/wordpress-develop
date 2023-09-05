@@ -618,7 +618,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 			'name'      => $item['name'],
 			'created'   => gmdate( 'Y-m-d\TH:i:s', $item['created'] ),
 			'last_used' => $item['last_used'] ? gmdate( 'Y-m-d\TH:i:s', $item['last_used'] ) : null,
-			'last_ip'   => $item['last_ip'] ? $item['last_ip'] : null,
+			'last_ip'   => $item['last_ip'] ?: NULL,
 		);
 
 		if ( isset( $item['new_password'] ) ) {

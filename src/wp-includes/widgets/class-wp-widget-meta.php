@@ -63,7 +63,7 @@ class WP_Widget_Meta extends WP_Widget {
 		if ( 'html5' === $format ) {
 			// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
 			$title      = trim( strip_tags( $title ) );
-			$aria_label = $title ? $title : $default_title;
+			$aria_label = $title ?: $default_title;
 			echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
 		}
 		?>

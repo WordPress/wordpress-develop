@@ -46,13 +46,13 @@ function create_initial_taxonomies() {
 		$rewrite          = array(
 			'category'    => array(
 				'hierarchical' => true,
-				'slug'         => get_option( 'category_base' ) ? get_option( 'category_base' ) : 'category',
+				'slug'         => get_option( 'category_base' ) ?: 'category',
 				'with_front'   => ! get_option( 'category_base' ) || $wp_rewrite->using_index_permalinks(),
 				'ep_mask'      => EP_CATEGORIES,
 			),
 			'post_tag'    => array(
 				'hierarchical' => false,
-				'slug'         => get_option( 'tag_base' ) ? get_option( 'tag_base' ) : 'tag',
+				'slug'         => get_option( 'tag_base' ) ?: 'tag',
 				'with_front'   => ! get_option( 'tag_base' ) || $wp_rewrite->using_index_permalinks(),
 				'ep_mask'      => EP_TAGS,
 			),

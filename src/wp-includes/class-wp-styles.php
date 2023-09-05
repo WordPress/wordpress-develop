@@ -158,7 +158,7 @@ class WP_Styles extends WP_Dependencies {
 		if ( null === $obj->ver ) {
 			$ver = '';
 		} else {
-			$ver = $obj->ver ? $obj->ver : $this->default_version;
+			$ver = $obj->ver ?: $this->default_version;
 		}
 
 		if ( isset( $this->args[ $handle ] ) ) {

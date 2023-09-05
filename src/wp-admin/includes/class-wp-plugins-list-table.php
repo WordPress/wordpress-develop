@@ -1003,7 +1003,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		}
 
 		if ( 'dropins' !== $context ) {
-			$description = '<p>' . ( $plugin_data['Description'] ? $plugin_data['Description'] : '&nbsp;' ) . '</p>';
+			$description = '<p>' . ( $plugin_data['Description'] ?: '&nbsp;' ) . '</p>';
 			$plugin_name = $plugin_data['Name'];
 		}
 

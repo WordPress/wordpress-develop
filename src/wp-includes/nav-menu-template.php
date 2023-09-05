@@ -252,7 +252,7 @@ function wp_nav_menu( $args = array() ) {
 	}
 	$menu_id_slugs[] = $wrap_id;
 
-	$wrap_class = $args->menu_class ? $args->menu_class : '';
+	$wrap_class = $args->menu_class ?: '';
 
 	/**
 	 * Filters the HTML list content for navigation menus.

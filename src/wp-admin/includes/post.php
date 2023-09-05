@@ -130,7 +130,7 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 	$previous_status = $post_id ? get_post_field( 'post_status', $post_id ) : false;
 
 	if ( isset( $post_data['post_status'] ) && 'private' === $post_data['post_status'] && ! current_user_can( $ptype->cap->publish_posts ) ) {
-		$post_data['post_status'] = $previous_status ? $previous_status : 'pending';
+		$post_data['post_status'] = $previous_status ?: 'pending';
 	}
 
 	$published_statuses = array( 'publish', 'future' );
@@ -1442,7 +1442,7 @@ function get_sample_permalink( $post, $title = null, $name = null ) {
 	// Hack: get_permalink() would return plain permalink for drafts, so we will fake that our post is published.
 	if ( in_array( $post->post_status, array( 'draft', 'pending', 'future' ), true ) ) {
 		$post->post_status = 'publish';
-		$post->post_name   = sanitize_title( $post->post_name ? $post->post_name : $post->post_title, $post->ID );
+		$post->post_name   = sanitize_title( $post->post_name ?: $post->post_title, $post->ID );
 	}
 
 	/*
@@ -1450,7 +1450,7 @@ function get_sample_permalink( $post, $title = null, $name = null ) {
 	 * Note: if empty name is supplied -- use the title instead, see #6072.
 	 */
 	if ( ! is_null( $name ) ) {
-		$post->post_name = sanitize_title( $name ? $name : $title, $post->ID );
+		$post->post_name = sanitize_title( $name ?: $title, $post->ID );
 	}
 
 	$post->post_name = wp_unique_post_slug( $post->post_name, $post->ID, $post->post_status, $post->post_type, $post->post_parent );
@@ -1650,7 +1650,7 @@ function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
 		}
 	}
 
-	$content .= '<input type="hidden" id="_thumbnail_id" name="_thumbnail_id" value="' . esc_attr( $thumbnail_id ? $thumbnail_id : '-1' ) . '" />';
+	$content .= '<input type="hidden" id="_thumbnail_id" name="_thumbnail_id" value="' . esc_attr( $thumbnail_id ?: '-1' ) . '" />';
 
 	/**
 	 * Filters the admin post thumbnail HTML markup to return.

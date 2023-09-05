@@ -103,7 +103,7 @@ function wp_apply_border_support( $block_type, $block_attributes ) {
 	) {
 		$preset_border_color          = array_key_exists( 'borderColor', $block_attributes ) ? "var:preset|color|{$block_attributes['borderColor']}" : null;
 		$custom_border_color          = _wp_array_get( $block_attributes, array( 'style', 'border', 'color' ), null );
-		$border_block_styles['color'] = $preset_border_color ? $preset_border_color : $custom_border_color;
+		$border_block_styles['color'] = $preset_border_color ?: $custom_border_color;
 	}
 
 	// Generates styles for individual border sides.

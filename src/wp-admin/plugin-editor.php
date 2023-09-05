@@ -189,7 +189,7 @@ $content = esc_textarea( $content );
 <?php elseif ( is_wp_error( $edit_error ) ) : ?>
 	<div id="message" class="notice notice-error">
 		<p><?php _e( 'There was an error while trying to update the file. You may need to fix something and try updating again.' ); ?></p>
-		<pre><?php echo esc_html( $edit_error->get_error_message() ? $edit_error->get_error_message() : $edit_error->get_error_code() ); ?></pre>
+		<pre><?php echo esc_html( $edit_error->get_error_message() ?: $edit_error->get_error_code() ); ?></pre>
 	</div>
 <?php endif; ?>
 
