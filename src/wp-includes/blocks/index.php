@@ -30,18 +30,17 @@ function register_core_block_style_handles() {
 		return;
 	}
 
-	$includes_url  = includes_url();
-	$includes_path = ABSPATH . WPINC . '/';
-	$suffix        = wp_scripts_get_suffix();
-	$wp_styles     = wp_styles();
-	$style_fields  = array(
+	$includes_url = includes_url();
+	$suffix       = wp_scripts_get_suffix();
+	$wp_styles    = wp_styles();
+	$style_fields = array(
 		'style'       => 'style',
 		'editorStyle' => 'editor',
 	);
 
 	static $core_blocks_meta;
 	if ( ! $core_blocks_meta ) {
-		$core_blocks_meta = require $includes_path . 'blocks/blocks-json.php';
+		$core_blocks_meta = require BLOCKS_PATH . 'blocks-json.php';
 	}
 
 	$files          = false;
@@ -68,10 +67,10 @@ function register_core_block_style_handles() {
 	}
 
 	if ( ! $files ) {
-		$files = glob( wp_normalize_path( __DIR__ . '/**/**.css' ) );
+		$files = glob( wp_normalize_path( BLOCKS_PATH . '**/**.css' ) );
 		$files = array_map(
-			static function ( $file ) use ( $includes_path ) {
-				return str_replace( $includes_path, '', $file );
+			static function ( $file ) {
+				return str_replace( BLOCKS_PATH, '', $file );
 			},
 			$files
 		);
@@ -88,9 +87,9 @@ function register_core_block_style_handles() {
 		}
 	}
 
-	$register_style = static function( $name, $filename, $style_handle ) use ( $includes_path, $includes_url, $suffix, $wp_styles, $files ) {
-		$style_path = "blocks/{$name}/{$filename}{$suffix}.css";
-		$path       = wp_normalize_path( $includes_path . $style_path );
+	$register_style = static function( $name, $filename, $style_handle ) use ( $includes_url, $suffix, $wp_styles, $files ) {
+		$style_path = "{$name}/{$filename}{$suffix}.css";
+		$path       = wp_normalize_path( BLOCKS_PATH . $style_path );
 
 		if ( ! in_array( $style_path, $files, true ) ) {
 			$wp_styles->add(
