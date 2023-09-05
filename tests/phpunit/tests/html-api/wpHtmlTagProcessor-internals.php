@@ -32,7 +32,8 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Internals extends WP_UnitTestCase {
 				<<<INTERNAL_ONLY
 			I understand that this is only for internal WordPress usage and something
 			will likely break if used elsewhere. This function comes with no warranty.
-INTERNAL_ONLY,
+INTERNAL_ONLY
+				,
 				'entire-tag'
 			),
 			'Failed to exactly extract raw HTML for matched tag.'
@@ -76,7 +77,8 @@ INTERNAL_ONLY,
 				<<<INTERNAL_ONLY
 			I understand that this is only for internal WordPress usage and something
 			will likely break if used elsewhere. This function comes with no warranty.
-INTERNAL_ONLY,
+INTERNAL_ONLY
+				,
 				'only-attributes'
 			),
 			'Failed to exactly extract raw HTML for matched tag.'
