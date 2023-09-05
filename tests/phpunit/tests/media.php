@@ -2194,6 +2194,8 @@ EOF;
 	/**
 	 * @ticket 33641
 	 * @requires function imagejpeg
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_srcset_sizes() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -2442,6 +2444,8 @@ EOF;
 	 * @ticket 35045
 	 * @ticket 33641
 	 * @requires function imagejpeg
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_schemes() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -2933,6 +2937,8 @@ EOF;
 	/**
 	 * @ticket 50367
 	 * @requires function imagejpeg
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_width_height() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -2995,6 +3001,8 @@ EOF;
 	 * @ticket 50756
 	 * @ticket 58235
 	 * @requires function imagejpeg
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_loading_lazy() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -3074,6 +3082,8 @@ EOF;
 	 * @ticket 44427
 	 * @ticket 50756
 	 * @ticket 58235
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_loading_lazy_opted_in() {
 		$img         = get_image_tag( self::$large_id, '', '', '', 'medium' );
@@ -3771,6 +3781,8 @@ EOF;
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_img_tag_add_loading_optimization_attrs
 	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_filter_content_tags_with_loading_optimization_attrs() {
 		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );
