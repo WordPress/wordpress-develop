@@ -95,7 +95,7 @@ INTERNAL_ONLY
 			'Tag at start of string'          => array( '<img target src="atat.png">', 'target src="atat.png"' ),
 			'Tag in middle of string'         => array( '<a href="#"><img target src="atat.png"></a>', 'target src="atat.png"' ),
 			'Tag at end of string'            => array( '<a href="#"><img src="atat.png"><div id="5" target class="dingy">', 'id="5" target class="dingy"' ),
-			'Tab after tag name'              => array( "<img\ttarget>", "target" ),
+			'Tab after tag name'              => array( "<img\ttarget>", 'target' ),
 			'Space after attributes'          => array( '<img target    >', 'target    ' ),
 			'Unquoted attribute'              => array( '<span id = 5 class=sunshine target>', 'id = 5 class=sunshine target' ),
 			'Value with character references' => array( '<a href="#" title="This is &gt; That" target>', 'href="#" title="This is &gt; That" target' ),
