@@ -312,4 +312,103 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( 'autoload_false', false, 'no' ),
 		);
 	}
+
+	/**
+	 * @ticket 22192
+	 */
+	public function test_add_option_with_value_of_false_should_store_false_in_the_cache() {
+		add_option( 'foo', false );
+		$a = wp_cache_get( 'alloptions', 'options' );
+		$this->assertSame( false, $a['foo'] );
+	}
+
+	/**
+	 * @ticket 22192
+	 */
+	public function test_add_option_with_value_of_false_should_store_empty_string_in_the_database() {
+		add_option( 'foo', false );
+
+		// Delete cache to ensure we pull from the database.
+		wp_cache_delete( 'alloptions', 'options' );
+
+		$this->assertSame( '', get_option( 'foo' ) );
+	}
+
+	/**
+	 * @ticket 22192
+	 *
+	 * @dataProvider data_update_option_type_juggling
+	 */
+	public function test_update_option_should_hit_cache_when_loosely_equal_to_existing_value_and_cached_values_are_faithful_to_original_type( $old_value, $new_value ) {
+		add_option( 'foo', $old_value );
+		$num_queries = get_num_queries();
+
+		$updated = update_option( 'foo', $new_value );
+
+		$this->assertFalse( $updated );
+		$this->assertSame( $num_queries, get_num_queries() );
+	}
+
+	/**
+	 * @ticket 22192
+	 *
+	 * @dataProvider data_update_option_type_juggling
+	 */
+	public function test_update_option_should_hit_cache_when_loosely_equal_to_existing_value_and_cached_values_are_pulled_from_the_database( $old_value, $new_value ) {
+		add_option( 'foo', $old_value );
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_load_alloptions();
+
+		$num_queries = get_num_queries();
+
+		$updated = update_option( 'foo', $new_value );
+
+		$this->assertFalse( $updated );
+		$this->assertSame( $num_queries, get_num_queries() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_update_option_type_juggling() {
+		return array(
+			// Truthy.
+			array( '1', '1' ),
+			array( '1', intval( 1 ) ),
+			array( '1', floatval( 1 ) ),
+			array( '1', true ),
+			array( 1, '1' ),
+			array( 1, intval( 1 ) ),
+			array( 1, floatval( 1 ) ),
+			array( 1, true ),
+			array( floatval( 1 ), '1' ),
+			array( floatval( 1 ), intval( 1 ) ),
+			array( floatval( 1 ), floatval( 1 ) ),
+			array( floatval( 1 ), true ),
+			array( true, '1' ),
+			array( true, intval( 1 ) ),
+			array( true, floatval( 1 ) ),
+			array( true, true ),
+
+			// Falsey
+			array( '0', '0' ),
+			array( '0', intval( 0 ) ),
+			array( '0', floatval( 0 ) ),
+			array( '0', false ),
+			array( 0, '0' ),
+			array( 0, intval( 0 ) ),
+			array( 0, floatval( 0 ) ),
+			array( 0, false ),
+			array( floatval( 0 ), '0' ),
+			array( floatval( 0 ), intval( 0 ) ),
+			array( floatval( 0 ), floatval( 0 ) ),
+			array( floatval( 0 ), false ),
+			array( false, '0' ),
+			array( false, intval( 0 ) ),
+			array( false, floatval( 0 ) ),
+			array( false, false ),
+		);
+	}
 }

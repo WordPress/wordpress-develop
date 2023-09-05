@@ -74,7 +74,7 @@ if ( is_multisite() ) :
 			$available = is_upload_space_available();
 			remove_filter( 'pre_get_space_used', array( $this, 'filter_space_used_small' ) );
 
-			$this->assertFalse( $available );
+			$this->assertTrue( $available );
 		}
 
 		public function test_is_upload_space_available_upload_space_negative() {
