@@ -1,4 +1,5 @@
 # WordPress
+# Scc Assignment
 
 Welcome to the WordPress development repository! Please check out the [contributor handbook](https://make.wordpress.org/core/handbook/) for information about how to open bug reports, contribute patches, test changes, write documentation, or get involved in any way you can.
 
