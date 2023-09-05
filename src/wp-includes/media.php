@@ -1970,6 +1970,34 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		$context
 	);
 
+	$unfiltered_decoding_val = $decoding_val;
+
+	/**
+	 * Filters the `decoding` attribute value to add to an image. Default `async`.
+	 *
+	 * Returning a falsey value will omit the attribute.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string|false|null $value      The `decoding` attribute value. Returning a falsey value
+	 *                                      will result in the attribute being omitted for the image.
+	 *                                      Otherwise, it may be: 'async' (default), 'sync', or 'auto'.
+	 * @param string            $image      The HTML `img` tag to be filtered.
+	 * @param string            $context    Additional context about how the function was called
+	 *                                      or where the img tag is.
+	 */
+	$decoding_val = apply_filters( 'wp_img_tag_add_decoding_attr', $decoding_val ?: 'async', $image, $context );
+
+	if (
+		( empty( $fetchpriority_val ) && empty( $optimization_attrs['fetchpriority'] ) )
+		&& empty( $unfiltered_decoding_val )
+		&& str_contains( $image, ' src="' )
+		&& in_array( $decoding_val, array( 'async', 'sync', 'auto' ), true )
+	) {
+		// Validate the `decoding` attribute according to the spec.
+		$image = str_replace( '<img', '<img decoding="' . esc_attr( $decoding_val ) . '"', $image );
+	}
+
 	// Images should have source and dimension attributes for the loading optimization attributes to be added.
 	if ( ! str_contains( $image, ' src="' ) || ! str_contains( $image, ' width="' ) || ! str_contains( $image, ' height="' ) ) {
 		return $image;
@@ -2030,31 +2058,6 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		if ( ! empty( $optimization_attrs['loading'] ) ) {
 			$image = str_replace( '<img', '<img loading="' . esc_attr( $optimization_attrs['loading'] ) . '"', $image );
 		}
-	}
-
-	$unfiltered_decoding_val = $decoding_val;
-
-	/**
-	 * Filters the `decoding` attribute value to add to an image. Default `async`.
-	 *
-	 * Returning a falsey value will omit the attribute.
-	 *
-	 * @since 6.1.0
-	 *
-	 * @param string|false|null $value      The `decoding` attribute value. Returning a falsey value
-	 *                                      will result in the attribute being omitted for the image.
-	 *                                      Otherwise, it may be: 'async' (default), 'sync', or 'auto'.
-	 * @param string            $image      The HTML `img` tag to be filtered.
-	 * @param string            $context    Additional context about how the function was called
-	 *                                      or where the img tag is.
-	 */
-	$decoding_val = apply_filters( 'wp_img_tag_add_decoding_attr', $decoding_val, $image, $context );
-
-	if ( empty( $fetchpriority_val ) && ! empty( $optimization_attrs['fetchpriority'] ) ) {
-		$image = str_replace( '<img', '<img fetchpriority="' . esc_attr( $optimization_attrs['fetchpriority'] ) . '"', $image );
-	} elseif ( empty( $unfiltered_decoding_val ) && in_array( $decoding_val, array( 'async', 'sync', 'auto' ), true ) ) {
-		// Validate the `decoding` attribute according to the spec.
-		$image = str_replace( '<img', '<img decoding="' . esc_attr( $decoding_val ) . '"', $image );
 	}
 
 	return $image;
