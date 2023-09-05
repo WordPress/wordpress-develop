@@ -1487,7 +1487,7 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 	do_action( 'wp_update_nav_menu', $nav_menu_selected_id );
 
 	/* translators: %s: Nav menu title. */
-	$message     = sprintf( __( '%s has been updated.' ), '<strong>' .  $nav_menu_selected_title . '</strong>' );
+	$message     = sprintf( __( '%s has been updated.' ), '<strong>' . $nav_menu_selected_title . '</strong>' );
 	$notice_args = array(
 		'id'                 => 'message',
 		'dismissible'        => true,
