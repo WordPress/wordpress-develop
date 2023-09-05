@@ -205,10 +205,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		if ( $new_password ) :
 			$message = '<p class="application-password-display">
 				<label for="new-application-password-value">' . sprintf(
-					/* translators: %s: Application name. */
-					esc_html__( 'Your new password for %s is:' ),
-					'<strong>' . esc_html( $app_name ) . '</strong>'
-				) . '
+				/* translators: %s: Application name. */
+				esc_html__( 'Your new password for %s is:' ),
+				'<strong>' . esc_html( $app_name ) . '</strong>'
+			) . '
 				</label>
 				<input id="new-application-password-value" type="text" class="code" readonly="readonly" value="' . esc_attr( WP_Application_Passwords::chunk_password( $new_password ) ) . '" />
 			</p>
@@ -234,7 +234,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			 */
 			do_action( 'wp_authorize_application_password_form_approved_no_js', $new_password, $request, $user );
 		else :
-		?>
+			?>
 			<form action="<?php echo esc_url( admin_url( 'authorize-application.php' ) ); ?>" method="post" class="form-wrap">
 				<?php wp_nonce_field( 'authorize_application_password' ); ?>
 				<input type="hidden" name="action" value="authorize_application_password" />
