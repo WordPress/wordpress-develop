@@ -68,25 +68,25 @@ $_wp_error_handling_previous_exception_handler = set_exception_handler( 'wp_exce
  * @param int         $errline Line number where the error was raised.
  */
 function _wp_error_handler_printer( $errno, $errstr, $errfile, $errline ) {
-	static $display_errors = false;
+	static $display_errors_ini_value = false;
 
 	$v = ini_get( 'display_errors' );
 	if ( 'wp' !== $v ) {
 		// Adapted from https://github.com/php/php-src/blob/2d3bff38bbe607067de96f86f79dfebf3fb395cf/main/main.c#L429-L460
 		$v = strtolower( $v );
 		if ( 'stderr' === $v || 2 === (int) $v ) {
-			$display_errors = 'stderr';
+			$display_errors_ini_value = 'stderr';
 			ini_set( 'display_errors', 'wp' );
 		} elseif ( 'on' === $v || 'yes' === $v || 'true' === $v || 'stdout' === $v || 0 !== (int) $v ) {
-			$display_errors = true;
+			$display_errors_ini_value = true;
 			ini_set( 'display_errors', 'wp' );
-		} elseif ( $display_errors ) {
-			$display_errors = false;
+		} elseif ( $display_errors_ini_value ) {
+			$display_errors_ini_value = false;
 			// Don't replace other falsey values with "wp", in case someone else is doing like we are.
 		}
 	}
 
-	if ( ! $display_errors || ( error_reporting() & $errno ) === 0 ) {
+	if ( ! $display_errors_ini_value || ( error_reporting() & $errno ) === 0 ) {
 		return;
 	}
 
@@ -163,7 +163,7 @@ function _wp_error_handler_printer( $errno, $errstr, $errfile, $errline ) {
 
 		if ( ini_get( 'html_errors' ) ) {
 			printf( "%s<br />\n<b>%s</b>:  %s in <b>%s</b> on line <b>%u</b><br />\n%s", $error_prepend_string, $type_str, $errstr, $errfile, $errline, $error_append_string );
-		} elseif ( 'stderr' === $display_errors && ( PHP_SAPI === 'cli' || PHP_SAPI === 'cgi' || PHP_SAPI === 'phpdbg' ) ) {
+		} elseif ( 'stderr' === $display_errors_ini_value && ( PHP_SAPI === 'cli' || PHP_SAPI === 'cgi' || PHP_SAPI === 'phpdbg' ) ) {
 			fprintf( STDERR, "%s: %s in %s on line %u\n", $type_str, $errstr, $errfile, $errline );
 			fflush( STDERR );
 		} else {
@@ -208,20 +208,20 @@ function wp_error_handler( $errno, $errstr, $errfile, $errline ) {
  *
  * @since 6.4.0
  *
- * @param Throwable $ex Object that was thrown.
+ * @param Throwable $throwable Object that was thrown.
  */
-function wp_exception_handler( Throwable $ex ) {
+function wp_exception_handler( Throwable $throwable ) {
 	global $_wp_error_handling_previous_exception_handler;
 
 	try {
 		// Adapted from https://github.com/php/php-src/blob/3f38105740d160e448881b268ebc44bfed20c7db/Zend/zend_exceptions.c#L954-L956
-		_wp_error_handler_printer( E_ERROR, "Uncaught {$ex->__toString()}\n  thrown", $ex->getFile(), $ex->getLine() );
+		_wp_error_handler_printer( E_ERROR, "Uncaught {$throwable->__toString()}\n  thrown", $throwable->getFile(), $throwable->getLine() );
 	} catch ( Throwable $t ) {
-		// Probably $ex->__toString() is broken. Let the default handler handle that.
+		// Probably $throwable->__toString() is broken. Let the default handler handle that.
 	}
 	if ( $_wp_error_handling_previous_exception_handler ) {
-		$_wp_error_handling_previous_exception_handler( $ex );
+		$_wp_error_handling_previous_exception_handler( $throwable );
 	} else {
-		throw $ex;
+		throw $throwable;
 	}
 }
