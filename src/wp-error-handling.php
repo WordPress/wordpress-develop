@@ -9,6 +9,10 @@
  * @package WordPress
  */
 
+namespace WpOrg\Error_Handling;
+
+use Throwable;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	die();
 }
@@ -35,7 +39,7 @@ if ( function_exists( 'error_reporting' ) ) {
  * @private
  * @var callable|null
  */
-$_wp_error_handling_previous_error_handler = set_error_handler( 'wp_error_handler' );
+$_wp_error_handling_previous_error_handler = set_error_handler( __NAMESPACE__ . '\\wp_error_handler' );
 
 /**
  * Previous exception handler for chaining. Private.
@@ -44,7 +48,7 @@ $_wp_error_handling_previous_error_handler = set_error_handler( 'wp_error_handle
  * @private
  * @var callable|null
  */
-$_wp_error_handling_previous_exception_handler = set_exception_handler( 'wp_exception_handler' );
+$_wp_error_handling_previous_exception_handler = set_exception_handler( __NAMESPACE__ . '\\wp_exception_handler' );
 
 /**
  * Display errors like PHP's `display_errors` would.
@@ -167,14 +171,15 @@ function _wp_error_handler_printer( $errno, $errstr, $errfile, $errline ) {
 		$error_prepend_string = (string) ini_get( 'error_prepend_string' );
 		$error_append_string  = (string) ini_get( 'error_append_string' );
 
-		if ( PHP_SAPI !== 'cli' && PHP_SAPI !== 'phpdbg' ) {
+		$sapi = php_sapi_name();
+		if ( 'cli' !== $sapi && 'phpdbg' !== $sapi ) {
 			$errstr  = htmlspecialchars( $errstr, ENT_QUOTES | ENT_HTML401 );
 			$errfile = htmlspecialchars( $errfile, ENT_QUOTES | ENT_HTML401 );
 		}
 
 		if ( $ini_get_bool( 'html_errors' ) ) {
 			printf( "%s<br />\n<b>%s</b>:  %s in <b>%s</b> on line <b>%u</b><br />\n%s", $error_prepend_string, $type_str, $errstr, $errfile, $errline, $error_append_string );
-		} elseif ( 'stderr' === $display_errors_ini_value && ( PHP_SAPI === 'cli' || PHP_SAPI === 'cgi' || PHP_SAPI === 'phpdbg' ) ) {
+		} elseif ( 'stderr' === $display_errors_ini_value && ( 'cli' === $sapi || 'cgi' === $sapi || 'phpdbg' === $sapi ) ) {
 			fprintf( STDERR, "%s: %s in %s on line %u\n", $type_str, $errstr, $errfile, $errline );
 			fflush( STDERR );
 		} else {
