@@ -1971,6 +1971,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 	);
 
 	$unfiltered_decoding_val = $decoding_val;
+	$decoding_val            = ! empty( $decoding_val ) ? $decoding_val : 'async';
 
 	/**
 	 * Filters the `decoding` attribute value to add to an image. Default `async`.
@@ -1986,7 +1987,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 	 * @param string            $context    Additional context about how the function was called
 	 *                                      or where the img tag is.
 	 */
-	$decoding_val = apply_filters( 'wp_img_tag_add_decoding_attr', $decoding_val ?: 'async', $image, $context );
+	$decoding_val = apply_filters( 'wp_img_tag_add_decoding_attr', $decoding_val, $image, $context );
 
 	if (
 		( empty( $fetchpriority_val ) && empty( $optimization_attrs['fetchpriority'] ) )
