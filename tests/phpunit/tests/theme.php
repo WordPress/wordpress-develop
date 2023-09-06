@@ -315,13 +315,24 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertSame( '', get_query_template( 'nonexistant' ) );
 
 				// Template files that do exist.
-				/*
 				foreach ( $theme['Template Files'] as $path ) {
-					$file = basename($path, '.php');
-					FIXME: untestable because get_query_template() uses TEMPLATEPATH.
-					$this->assertSame('', get_query_template($file));
+					$file = basename( $path, '.php' );
+
+					// Underscores are not supported by `locate_template()`.
+					if ( 'taxonomy-post_format' === $file ) {
+						$file = 'taxonomy';
+					}
+
+					$child_theme_file  = get_stylesheet_directory() . '/' . $file . '.php';
+					$parent_theme_file = get_template_directory() . '/' . $file . '.php';
+					if ( file_exists( $child_theme_file ) ) {
+						$this->assertSame( $child_theme_file, get_query_template( $file ) );
+					} elseif ( file_exists( $parent_theme_file ) ) {
+						$this->assertSame( $parent_theme_file, get_query_template( $file ) );
+					} else {
+						$this->assertSame( '', get_query_template( $file ) );
+					}
 				}
-				*/
 
 				// These are kind of tautologies but at least exercise the code.
 				$this->assertSame( get_404_template(), get_query_template( '404' ) );
