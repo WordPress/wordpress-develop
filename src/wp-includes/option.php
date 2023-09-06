@@ -796,10 +796,9 @@ function update_option( $option, $value, $autoload = null ) {
 		return false;
 	}
 
-	$autoload = get_autoload_value( $autoload, $option, $value );
-
 	/** This filter is documented in wp-includes/option.php */
 	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
+		$autoload = get_autoload_value( $autoload, $value );
 		return add_option( $option, $value, '', $autoload );
 	}
 
@@ -818,8 +817,12 @@ function update_option( $option, $value, $autoload = null ) {
 
 	$update_args = array(
 		'option_value' => $serialized_value,
-		'autoload'     => $autoload,
 	);
+
+	if ( func_num_args() > 2 ) {
+		$autoload = get_autoload_value( $autoload, $value );
+		$update_args['autoload'] = $autoload;
+	}
 
 	$result = $wpdb->update( $wpdb->options, $update_args, array( 'option_name' => $option ) );
 	if ( ! $result ) {
@@ -961,7 +964,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 	}
 
 	$serialized_value = maybe_serialize( $value );
-	$autoload         = get_autoload_value( $autoload, $option, $value );
+	$autoload         = get_autoload_value( $autoload, $value );
 
 	/**
 	 * Fires before an option is added.
@@ -1106,14 +1109,11 @@ function delete_option( $option ) {
  * Determines the autoload value for a given option.
  *
  * @param string|bool|null  $autoload The autoload value for the option. Can be 'yes', 'no', true, false, or null.
- * @param string $name                The name of the option.
  * @param mixed  $value               The value of the option.
  *
  * @return string The determined autoload value. Possible values: 'yes', 'no', 'default'.
  */
-function get_autoload_value( $autoload, $name, $value ) {
-	global $wpdb;
-
+function get_autoload_value( $autoload, $value ) {
 	// Check if autoload is explicitly set to 'no' or false.
 	if ( 'no' === $autoload || false === $autoload ) {
 		return 'no';
@@ -1142,31 +1142,10 @@ function get_autoload_value( $autoload, $name, $value ) {
 	 * @param string $name            The name of the option.
 	 * @param mixed  $value           The value of the option.
 	 */
-	$max_option_size = (int) apply_filters( 'max_option_size', 150000, $name, $value );
+	$max_option_size = (int) apply_filters( 'max_option_size', 150000, $value );
 
 	if ( $size > $max_option_size ) {
 		return 'no';
-	}
-
-	// Check if the option exists in the database and return the default autoload value if not found.
-	$value = get_option( $name );
-
-	if ( false === $value ) {
-		return 'default';
-	}
-
-	// Check if the option is present in the list of all autoloaded options.
-	$alloptions      = wp_load_alloptions();
-	$alloptions_keys = array_keys( $alloptions );
-	if ( $alloptions_keys && ! in_array( $name, $alloptions_keys, true ) ) {
-		return 'no';
-	}
-
-	// Retrieve the autoload value from the database if not explicitly set.
-	$autoload_raw = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $name ) );
-
-	if ( ! is_null( $autoload_raw ) ) {
-		return $autoload_raw;
 	}
 
 	return 'default';

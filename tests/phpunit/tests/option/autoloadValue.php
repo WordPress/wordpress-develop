@@ -16,7 +16,7 @@ class Tests_Option_Autoload_Value extends WP_UnitTestCase {
 	 * @param $expected
 	 */
 	public function test_get_autoload_value_values( $autoload, $expected ) {
-		$test = get_autoload_value( $autoload, 'foo', 'bar' );
+		$test = get_autoload_value( $autoload, 'foo' );
 		$this->assertSame( $expected, $test );
 	}
 	/**
@@ -31,7 +31,7 @@ class Tests_Option_Autoload_Value extends WP_UnitTestCase {
 	 */
 	public function test_existing_option( $autoload, $expected ) {
 		add_option( 'foo', 'bar', '', $autoload );
-		$test = get_autoload_value( null, 'foo', 'bar' );
+		$test = get_autoload_value( null, 'bar' );
 		$this->assertSame( $expected, $test );
 	}
 
@@ -48,7 +48,7 @@ class Tests_Option_Autoload_Value extends WP_UnitTestCase {
 	public function test_existing_option_with_filter( $autoload, $expected ) {
 		add_option( 'foo', 'bar', '', $autoload );
 		add_filter( 'pre_wp_load_alloptions', '__return_empty_array' );
-		$test = get_autoload_value( null, 'foo', 'bar' );
+		$test = get_autoload_value( null, 'foo' );
 		$this->assertSame( $expected, $test );
 	}
 
@@ -61,7 +61,7 @@ class Tests_Option_Autoload_Value extends WP_UnitTestCase {
 	public function test_large_option() {
 		add_filter( 'max_option_size', array( $this, 'filter_max_option_size' ) );
 		$value = file( DIR_TESTDATA . '/formatting/entities.txt' );
-		$test  = get_autoload_value( null, 'foo', $value );
+		$test  = get_autoload_value( null, $value );
 		remove_filter( 'max_option_size', array( $this, 'filter_max_option_size' ) );
 		$this->assertSame( 'no', $test );
 	}
@@ -74,7 +74,7 @@ class Tests_Option_Autoload_Value extends WP_UnitTestCase {
 	public function test_large_option_json() {
 		add_filter( 'max_option_size', array( $this, 'filter_max_option_size' ) );
 		$value = file( DIR_TESTDATA . '/themedir1/block-theme/theme.json' );
-		$test  = get_autoload_value( null, 'foo', $value );
+		$test  = get_autoload_value( null, $value );
 		remove_filter( 'max_option_size', array( $this, 'filter_max_option_size' ) );
 		$this->assertSame( 'no', $test );
 	}
