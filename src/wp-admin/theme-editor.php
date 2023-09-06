@@ -189,31 +189,44 @@ if ( $file_description !== $file_show ) {
 <div class="wrap">
 <h1><?php echo esc_html( $title ); ?></h1>
 
-<?php if ( isset( $_GET['a'] ) ) : ?>
-	<div id="message" class="updated notice is-dismissible">
-		<p><?php _e( 'File edited successfully.' ); ?></p>
-	</div>
-<?php elseif ( is_wp_error( $edit_error ) ) : ?>
-	<div id="message" class="notice notice-error">
-		<p><?php _e( 'There was an error while trying to update the file. You may need to fix something and try updating again.' ); ?></p>
-		<pre><?php echo esc_html( $edit_error->get_error_message() ? $edit_error->get_error_message() : $edit_error->get_error_code() ); ?></pre>
-	</div>
-<?php endif; ?>
+<?php
+if ( isset( $_GET['a'] ) ) :
+	wp_admin_notice(
+		__( 'File edited successfully.' ),
+		array(
+			'id'                 => 'message',
+			'is-dismissible'     => true,
+			'additional_classes' => array( 'updated' ),
+		)
+	);
+elseif ( is_wp_error( $edit_error ) ) :
+	$message = '<p>' . __( 'There was an error while trying to update the file. You may need to fix something and try updating again.' ) . '</p>
+	<pre>' . esc_html( $edit_error->get_error_message() ? $edit_error->get_error_message() : $edit_error->get_error_code() ) . '</pre>';
+	wp_admin_notice(
+		$message,
+		array(
+			'type' => 'error',
+			'id'   => 'message',
+		)
+	);
+endif;
 
-<?php if ( preg_match( '/\.css$/', $file ) && ! wp_is_block_theme() && current_user_can( 'customize' ) ) : ?>
-	<div id="message" class="notice-info notice">
-		<p><strong><?php _e( 'Did you know?' ); ?></strong></p>
-		<p>
-			<?php
-			printf(
-				/* translators: %s: Link to Custom CSS section in the Customizer. */
-				__( 'There is no need to change your CSS here &mdash; you can edit and live preview CSS changes in the <a href="%s">built-in CSS editor</a>.' ),
-				esc_url( add_query_arg( 'autofocus[section]', 'custom_css', admin_url( 'customize.php' ) ) )
-			);
-			?>
-		</p>
-	</div>
-<?php endif; ?>
+if ( preg_match( '/\.css$/', $file ) && ! wp_is_block_theme() && current_user_can( 'customize' ) ) :
+	$message = '<p><strong>' . __( 'Did you know?' ) . '</strong></p>
+	<p>' . printf(
+	/* translators: %s: Link to Custom CSS section in the Customizer. */
+	__( 'There is no need to change your CSS here &mdash; you can edit and live preview CSS changes in the <a href="%s">built-in CSS editor</a>.' ),
+	esc_url( add_query_arg( 'autofocus[section]', 'custom_css', admin_url( 'customize.php' ) ) )
+	) . '</p>';
+	wp_admin_notice(
+		$message,
+		array(
+			'type' => 'info',
+			'id'   => 'message',
+		)
+	);
+endif;
+?>
 
 <div class="fileedit-sub">
 <div class="alignleft">
