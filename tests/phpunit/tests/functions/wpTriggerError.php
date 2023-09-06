@@ -3,8 +3,6 @@
 /**
  * Test cases for the `wp_trigger_error()` function.
  *
- * @package WordPress\UnitTests
- *
  * @since 6.4.0
  *
  * @group functions.php
@@ -13,6 +11,8 @@
 class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 
 	/**
+	 * @ticket 57686
+	 *
 	 * @dataProvider data_should_trigger_error
 	 *
 	 * @param string $function_name    The function name to test.
@@ -27,6 +27,8 @@ class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57686
+	 *
 	 * @dataProvider data_should_trigger_error
 	 *
 	 * @param string $function_name    The function name to test.
@@ -41,6 +43,8 @@ class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57686
+	 *
 	 * @dataProvider data_should_trigger_error
 	 *
 	 * @param string $function_name    The function name to test.
@@ -55,6 +59,8 @@ class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57686
+	 *
 	 * @dataProvider data_should_trigger_error
 	 *
 	 * @param string $function_name    The function name to test.
@@ -94,6 +100,8 @@ class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57686
+	 *
 	 * @dataProvider data_should_use_default_error_level_when_invalid
 	 *
 	 * @param mixed $error_level Invalid error level to test.
