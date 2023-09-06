@@ -292,11 +292,17 @@ endif;
 
 	<?php if ( is_writable( $real_file ) ) : ?>
 		<div class="editor-notices">
-		<?php if ( in_array( $plugin, (array) get_option( 'active_plugins', array() ), true ) ) { ?>
-			<div class="notice notice-warning inline active-plugin-edit-warning">
-				<p><?php _e( '<strong>Warning:</strong> Making changes to active plugins is not recommended.' ); ?></p>
-			</div>
-		<?php } ?>
+		<?php
+		if ( in_array( $plugin, (array) get_option( 'active_plugins', array() ), true ) ) {
+			wp_admin_notice(
+				__( '<strong>Warning:</strong> Making changes to active plugins is not recommended.' ),
+				array(
+					'type' => 'warning',
+					'additional_classes' => array( 'inline', 'active-plugin-edit-warning' ),
+				)
+			);
+		}
+		?>
 		</div>
 		<p class="submit">
 			<?php submit_button( __( 'Update File' ), 'primary', 'submit', false ); ?>

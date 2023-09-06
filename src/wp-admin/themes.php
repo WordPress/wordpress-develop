@@ -700,6 +700,13 @@ if ( ! is_multisite() && $broken_themes ) {
  * @return string The template for displaying the auto-update setting link.
  */
 function wp_theme_auto_update_setting_template() {
+	$notice   = wp_get_admin_notice(
+		'',
+		array(
+			'type'               => 'error',
+			'additional_classes' => array( 'notice-alt', 'inline', 'hidden' ),
+		)
+	);
 	$template = '
 		<div class="theme-autoupdate">
 			<# if ( data.autoupdate.supported ) { #>
@@ -725,7 +732,7 @@ function wp_theme_auto_update_setting_template() {
 				<# } #>
 				<br />' . wp_get_auto_update_message() . '</span>
 			<# } #>
-			<div class="notice notice-error notice-alt inline hidden"><p></p></div>
+			' . $notice . '
 		</div>
 	';
 

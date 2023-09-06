@@ -317,16 +317,19 @@ else :
 
 		<div>
 			<div class="editor-notices">
-				<?php if ( is_child_theme() && $theme->get_stylesheet() === get_template() ) : ?>
-					<div class="notice notice-warning inline">
-						<p>
-							<?php if ( is_writable( $file ) ) : ?>
-								<strong><?php _e( 'Caution:' ); ?></strong>
-							<?php endif; ?>
-							<?php _e( 'This is a file in your current parent theme.' ); ?>
-						</p>
-					</div>
-				<?php endif; ?>
+				<?php
+				if ( is_child_theme() && $theme->get_stylesheet() === get_template() ) :
+					$message  = ( is_writable( $file ) ) : '<strong>' . __( 'Caution:' ) . '</strong> ' ? '';
+					$message .= __( 'This is a file in your current parent theme.' );
+					wp_admin_notice(
+						$message,
+						array(
+							'type'               => 'warning',
+							'additional_classes' => array( 'inline' ),
+						)
+					);
+				endif;
+				?>
 			</div>
 			<?php if ( is_writable( $file ) ) : ?>
 				<p class="submit">
