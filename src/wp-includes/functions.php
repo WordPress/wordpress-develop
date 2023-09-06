@@ -5561,53 +5561,43 @@ function _deprecated_constructor( $class_name, $version, $parent_class = '' ) {
 	if ( WP_DEBUG && apply_filters( 'deprecated_constructor_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
 			if ( $parent_class ) {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP class name, 2: PHP parent class name, 3: Version number, 4: __construct() method. */
-						__( 'The called constructor method for %1$s class in %2$s is <strong>deprecated</strong> since version %3$s! Use %4$s instead.' ),
-						$class_name,
-						$parent_class,
-						$version,
-						'<code>__construct()</code>'
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP class name, 2: PHP parent class name, 3: Version number, 4: __construct() method. */
+					__( 'The called constructor method for %1$s class in %2$s is <strong>deprecated</strong> since version %3$s! Use %4$s instead.' ),
+					$class_name,
+					$parent_class,
+					$version,
+					'<code>__construct()</code>'
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP class name, 2: Version number, 3: __construct() method. */
-						__( 'The called constructor method for %1$s class is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-						$class_name,
-						$version,
-						'<code>__construct()</code>'
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP class name, 2: Version number, 3: __construct() method. */
+					__( 'The called constructor method for %1$s class is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+					$class_name,
+					$version,
+					'<code>__construct()</code>'
 				);
 			}
 		} else {
 			if ( $parent_class ) {
-				trigger_error(
-					sprintf(
-						'The called constructor method for %1$s class in %2$s is <strong>deprecated</strong> since version %3$s! Use %4$s instead.',
-						$class_name,
-						$parent_class,
-						$version,
-						'<code>__construct()</code>'
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'The called constructor method for %1$s class in %2$s is <strong>deprecated</strong> since version %3$s! Use %4$s instead.',
+					$class_name,
+					$parent_class,
+					$version,
+					'<code>__construct()</code>'
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						'The called constructor method for %1$s class is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
-						$class_name,
-						$version,
-						'<code>__construct()</code>'
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'The called constructor method for %1$s class is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
+					$class_name,
+					$version,
+					'<code>__construct()</code>'
 				);
 			}
 		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 
 }
