@@ -6058,16 +6058,6 @@ function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTIC
 		return;
 	}
 
-	// If invalid, set the error level to the default.
-	if (
-			E_USER_ERROR !== $error_level &&
-			E_USER_WARNING !== $error_level &&
-			E_USER_NOTICE !== $error_level &&
-			E_USER_DEPRECATED !== $error_level
-	) {
-		$error_level = E_USER_NOTICE;
-	}
-
 	/**
 	 * Fires when the given function triggers a user-level error/warning/notice/deprecation message.
 	 *

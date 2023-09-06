@@ -98,40 +98,4 @@ class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 			),
 		);
 	}
-
-	/**
-	 * @ticket 57686
-	 *
-	 * @dataProvider data_should_use_default_error_level_when_invalid
-	 *
-	 * @param mixed $error_level Invalid error level to test.
-	 */
-	public function test_should_use_default_error_level_when_invalid( $error_level ) {
-		$message          = 'Should use E_USER_NOTICE when given invalid error level';
-		$expected_message = sprintf(
-			'%s(): %s',
-			__METHOD__,
-			$message
-		);
-
-		$this->expectNotice();
-		$this->expectNoticeMessage( $expected_message );
-
-		wp_trigger_error( __METHOD__, $message, $error_level );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array
-	 */
-	public function data_should_use_default_error_level_when_invalid() {
-		return array(
-			'E_WARNING'           => array( E_WARNING ),
-			'E_PARSE'             => array( E_PARSE ),
-			'E_NOTICE'            => array( E_NOTICE ),
-			'E_DEPRECATED'        => array( E_DEPRECATED ),
-			'string E_USER_ERROR' => array( 'E_USER_ERROR' ),
-		);
-	}
 }
