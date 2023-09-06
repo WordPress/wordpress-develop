@@ -182,16 +182,28 @@ $content = esc_textarea( $content );
 <div class="wrap">
 <h1><?php echo esc_html( $title ); ?></h1>
 
-<?php if ( isset( $_GET['a'] ) ) : ?>
-	<div id="message" class="updated notice is-dismissible">
-		<p><?php _e( 'File edited successfully.' ); ?></p>
-	</div>
-<?php elseif ( is_wp_error( $edit_error ) ) : ?>
-	<div id="message" class="notice notice-error">
-		<p><?php _e( 'There was an error while trying to update the file. You may need to fix something and try updating again.' ); ?></p>
-		<pre><?php echo esc_html( $edit_error->get_error_message() ? $edit_error->get_error_message() : $edit_error->get_error_code() ); ?></pre>
-	</div>
-<?php endif; ?>
+<?php
+if ( isset( $_GET['a'] ) ) :
+	wp_admin_notice(
+		__( 'File edited successfully.' ),
+		array(
+			'additional_classes' => array( 'updated', 'is-dismissible' ),
+			'id'                 => 'message',
+		)
+	);
+elseif ( is_wp_error( $edit_error ) ) :
+	$message = '<p>' . __( 'There was an error while trying to update the file. You may need to fix something and try updating again.' ) . '</p>
+	<pre>' . esc_html( $edit_error->get_error_message() ? $edit_error->get_error_message() : $edit_error->get_error_code() ) . '</pre>';
+	wp_admin_notice(
+		$message,
+		array(
+			'type'           => 'error',
+			'id'             => 'message',
+			'paragraph_wrap' => false,
+		)
+	);
+endif;
+?>
 
 <div class="fileedit-sub">
 <div class="alignleft">
