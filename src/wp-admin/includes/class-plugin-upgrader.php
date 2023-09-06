@@ -343,6 +343,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 			$this->skin->plugin_active = is_plugin_active( $plugin );
 
+			add_filter( 'upgrader_source_selection', array( $this, 'check_package' ) );
 			$result = $this->run(
 				array(
 					'package'           => $r->package,
@@ -360,6 +361,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 					),
 				)
 			);
+			remove_filter( 'upgrader_source_selection', array( $this, 'check_package' ) );
 
 			$results[ $plugin ] = $result;
 
