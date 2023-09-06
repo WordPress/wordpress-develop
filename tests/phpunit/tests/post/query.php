@@ -555,11 +555,9 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 36687
 	 */
 	public function test_posts_pre_query_filter_should_bypass_database_query() {
-		global $wpdb;
-
 		add_filter( 'posts_pre_query', array( __CLASS__, 'filter_posts_pre_query' ) );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$q           = new WP_Query(
 			array(
 				'fields'        => 'ids',
@@ -569,7 +567,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		remove_filter( 'posts_pre_query', array( __CLASS__, 'filter_posts_pre_query' ) );
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertSame( array( 12345 ), $q->posts );
 	}
 
@@ -776,5 +774,22 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		remove_filter( 'found_posts', '__return_empty_string' );
 
 		$this->assertIsInt( $q->found_posts );
+	}
+
+	/**
+	 * @ticket 57296
+	 * @covers WP_Query::get_posts
+	 */
+	public function test_split_the_query_object_cache() {
+		$filter = new MockAction();
+		add_filter( 'split_the_query', array( $filter, 'filter' ) );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 501,
+			)
+		);
+
+		$this->assertSame( (bool) wp_using_ext_object_cache(), $filter->get_args()[0][0] );
 	}
 }

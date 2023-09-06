@@ -142,15 +142,18 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * After a test method runs, resets any state in WordPress the test method might have changed.
 	 */
 	public function tear_down() {
-		global $wpdb, $wp_query, $wp;
+		global $wpdb, $wp_the_query, $wp_query, $wp;
 		$wpdb->query( 'ROLLBACK' );
 		if ( is_multisite() ) {
 			while ( ms_is_switched() ) {
 				restore_current_blog();
 			}
 		}
-		$wp_query = new WP_Query();
-		$wp       = new WP();
+
+		// Reset query, main query, and WP globals similar to wp-settings.php.
+		$wp_the_query = new WP_Query();
+		$wp_query     = $wp_the_query;
+		$wp           = new WP();
 
 		// Reset globals related to the post loop and `setup_postdata()`.
 		$post_globals = array( 'post', 'id', 'authordata', 'currentday', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages' );
@@ -281,6 +284,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$lazyloader = wp_metadata_lazyloader();
 		$lazyloader->reset_queue( 'term' );
 		$lazyloader->reset_queue( 'comment' );
+		$lazyloader->reset_queue( 'blog' );
 	}
 
 	/**
@@ -387,12 +391,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	public static function flush_cache() {
 		global $wp_object_cache;
 
-		$wp_object_cache->group_ops      = array();
-		$wp_object_cache->stats          = array();
-		$wp_object_cache->memcache_debug = array();
-		$wp_object_cache->cache          = array();
+		wp_cache_flush_runtime();
 
-		if ( method_exists( $wp_object_cache, '__remoteset' ) ) {
+		if ( is_object( $wp_object_cache ) && method_exists( $wp_object_cache, '__remoteset' ) ) {
 			$wp_object_cache->__remoteset();
 		}
 
@@ -415,10 +416,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 				'rss',
 				'users',
 				'user-queries',
+				'user_meta',
 				'useremail',
 				'userlogins',
-				'usermeta',
-				'user_meta',
 				'userslugs',
 			)
 		);
@@ -568,12 +568,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		add_action( 'deprecated_function_run', array( $this, 'deprecated_function_run' ), 10, 3 );
 		add_action( 'deprecated_argument_run', array( $this, 'deprecated_function_run' ), 10, 3 );
+		add_action( 'deprecated_class_run', array( $this, 'deprecated_function_run' ), 10, 3 );
 		add_action( 'deprecated_file_included', array( $this, 'deprecated_function_run' ), 10, 4 );
 		add_action( 'deprecated_hook_run', array( $this, 'deprecated_function_run' ), 10, 4 );
 		add_action( 'doing_it_wrong_run', array( $this, 'doing_it_wrong_run' ), 10, 3 );
 
 		add_action( 'deprecated_function_trigger_error', '__return_false' );
 		add_action( 'deprecated_argument_trigger_error', '__return_false' );
+		add_action( 'deprecated_class_trigger_error', '__return_false' );
 		add_action( 'deprecated_file_trigger_error', '__return_false' );
 		add_action( 'deprecated_hook_trigger_error', '__return_false' );
 		add_action( 'doing_it_wrong_trigger_error', '__return_false' );
@@ -746,6 +748,23 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 					}
 					break;
 
+				case 'deprecated_class_run':
+					if ( $replacement ) {
+						$message = sprintf(
+							'Class %1$s is deprecated since version %2$s! Use %3$s instead.',
+							$function_name,
+							$version,
+							$replacement
+						);
+					} else {
+						$message = sprintf(
+							'Class %1$s is deprecated since version %2$s with no alternative available.',
+							$function_name,
+							$version
+						);
+					}
+					break;
+
 				case 'deprecated_file_included':
 					if ( $replacement ) {
 						$message = sprintf(
@@ -869,7 +888,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$this->assertNotEmpty( $fields, $message . ' Fields array is empty.' );
 
 		foreach ( $fields as $field_name => $field_value ) {
-			$this->assertObjectHasAttribute( $field_name, $actual, $message . " Property $field_name does not exist on the object." );
+			$this->assertObjectHasProperty( $field_name, $actual, $message . " Property $field_name does not exist on the object." );
 			$this->assertSame( $field_value, $actual->$field_name, $message . " Value of property $field_name is not $field_value." );
 		}
 	}

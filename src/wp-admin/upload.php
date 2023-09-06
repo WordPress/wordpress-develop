@@ -141,7 +141,15 @@ if ( 'grid' === $mode ) {
 	wp_enqueue_script( 'media-grid' );
 	wp_enqueue_script( 'media' );
 
-	remove_action( 'admin_head', 'wp_admin_canonical_url' );
+	// Remove the error parameter added by deprecation of wp-admin/media.php.
+	add_filter(
+		'removable_query_args',
+		function() {
+			return array( 'error' );
+		},
+		10,
+		0
+	);
 
 	$q = $_GET;
 	// Let JS handle this.
@@ -203,7 +211,7 @@ if ( 'grid' === $mode ) {
 		<?php
 		if ( current_user_can( 'upload_files' ) ) {
 			?>
-			<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action aria-button-if-js"><?php echo esc_html_x( 'Add New', 'file' ); ?></a>
+			<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action aria-button-if-js"><?php echo esc_html__( 'Add New Media File' ); ?></a>
 			<?php
 		}
 		?>
@@ -255,7 +263,7 @@ if ( $doaction ) {
 	$location = 'upload.php';
 	$referer  = wp_get_referer();
 	if ( $referer ) {
-		if ( false !== strpos( $referer, 'upload.php' ) ) {
+		if ( str_contains( $referer, 'upload.php' ) ) {
 			$location = remove_query_arg( array( 'trashed', 'untrashed', 'deleted', 'message', 'ids', 'posted' ), $referer );
 		}
 	}
@@ -401,7 +409,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <?php
 if ( current_user_can( 'upload_files' ) ) {
 	?>
-	<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html_x( 'Add New', 'file' ); ?></a>
+	<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html__( 'Add New Media File' ); ?></a>
 						<?php
 }
 

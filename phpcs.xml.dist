@@ -68,7 +68,9 @@
 
 				<!-- From DOMDocument. -->
 				<element value="childNodes"/>
+				<element value="firstChild"/>
 				<element value="formatOutput"/>
+				<element value="lastChild"/>
 				<element value="nodeName"/>
 				<element value="nodeType"/>
 				<element value="parentNode"/>
@@ -116,14 +118,14 @@
 	<exclude-pattern>/src/wp-includes/class-requests\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-simplepie\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-snoopy\.php</exclude-pattern>
-	<exclude-pattern>/src/wp-includes/class-wp-block-parser\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/ms-deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/pluggable-deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/rss\.php</exclude-pattern>
 
 	<exclude-pattern>/src/wp-includes/assets/*</exclude-pattern>
-	<exclude-pattern>/src/wp-includes/blocks/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/blocks/*/*.asset.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/blocks/blocks-json.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/ID3/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/IXR/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/js/*</exclude-pattern>
@@ -183,6 +185,18 @@
 	<rule ref="WordPress.DB.PreparedSQL.NotPrepared">
 		<exclude-pattern>/tests/phpunit/tests/admin/includesSchema\.php</exclude-pattern>
 		<exclude-pattern>/tests/phpunit/tests/multisite/site\.php</exclude-pattern>
+	</rule>
+
+	<!-- Allow non-snake-case vars & properties for block-related classes. -->
+	<rule ref="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase">
+		<exclude-pattern>/src/wp-includes/class-wp-block-parser\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.NamingConventions.ValidVariableName.PropertyNotSnakeCase">
+		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase">
+		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
 	</rule>
 
 	<!-- Allow the I18n functions file for issues identified by the I18n sniff
@@ -245,6 +259,7 @@
 				<element value="WP_Test_Adjacent_Image_Link_TestCase"/>
 				<element value="WP_Tests_Image_Resize_UnitTestCase"/>
 				<element value="WP_Theme_UnitTestCase"/>
+				<element value="WP_Font_Face_UnitTestCase"/>
 
 				<!-- Mock classes. -->
 				<element value="Spy_REST_Server"/>

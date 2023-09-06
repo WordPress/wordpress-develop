@@ -136,7 +136,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 				$ok_to_comment = $wpdb->get_var( $wpdb->prepare( "SELECT comment_approved FROM $wpdb->comments WHERE comment_author = %s AND comment_author_email = %s and comment_approved = '1' LIMIT 1", $author, $email ) );
 			}
 			if ( ( 1 == $ok_to_comment ) &&
-				( empty( $mod_keys ) || false === strpos( $email, $mod_keys ) ) ) {
+				( empty( $mod_keys ) || ! str_contains( $email, $mod_keys ) ) ) {
 					return true;
 			} else {
 				return false;
@@ -485,6 +485,21 @@ function get_comment_meta( $comment_id, $key = '', $single = false ) {
 }
 
 /**
+ * Queue comment meta for lazy-loading.
+ *
+ * @since 6.3.0
+ *
+ * @param array $comment_ids List of comment IDs.
+ */
+function wp_lazyload_comment_meta( array $comment_ids ) {
+	if ( empty( $comment_ids ) ) {
+		return;
+	}
+	$lazyloader = wp_metadata_lazyloader();
+	$lazyloader->queue_objects( 'comment', $comment_ids );
+}
+
+/**
  * Updates comment meta field based on comment ID.
  *
  * Use the $prev_value parameter to differentiate between meta fields with the
@@ -508,30 +523,6 @@ function get_comment_meta( $comment_id, $key = '', $single = false ) {
  */
 function update_comment_meta( $comment_id, $meta_key, $meta_value, $prev_value = '' ) {
 	return update_metadata( 'comment', $comment_id, $meta_key, $meta_value, $prev_value );
-}
-
-/**
- * Queues comments for metadata lazy-loading.
- *
- * @since 4.5.0
- *
- * @param WP_Comment[] $comments Array of comment objects.
- */
-function wp_queue_comments_for_comment_meta_lazyload( $comments ) {
-	// Don't use `wp_list_pluck()` to avoid by-reference manipulation.
-	$comment_ids = array();
-	if ( is_array( $comments ) ) {
-		foreach ( $comments as $comment ) {
-			if ( $comment instanceof WP_Comment ) {
-				$comment_ids[] = $comment->comment_ID;
-			}
-		}
-	}
-
-	if ( $comment_ids ) {
-		$lazyloader = wp_metadata_lazyloader();
-		$lazyloader->queue_objects( 'comment', $comment_ids );
-	}
 }
 
 /**
@@ -660,8 +651,10 @@ function sanitize_comment_cookies() {
 function wp_allow_comment( $commentdata, $wp_error = false ) {
 	global $wpdb;
 
-	// Simple duplicate check.
-	// expected_slashed ($comment_post_ID, $comment_author, $comment_author_email, $comment_content)
+	/*
+	 * Simple duplicate check.
+	 * expected_slashed ($comment_post_ID, $comment_author, $comment_author_email, $comment_content)
+	 */
 	$dupe = $wpdb->prepare(
 		"SELECT comment_ID FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_parent = %s AND comment_approved != 'trash' AND ( comment_author = %s ",
 		wp_unslash( $commentdata['comment_post_ID'] ),
@@ -1361,8 +1354,7 @@ function wp_check_comment_disallowed_list( $author, $email, $url, $comment, $use
 		if ( empty( $word ) ) {
 			continue; }
 
-		// Do some escaping magic so that '#' chars
-		// in the spam words don't break things:
+		// Do some escaping magic so that '#' chars in the spam words don't break things:
 		$word = preg_quote( $word, '#' );
 
 		$pattern = "#$word#iu";
@@ -2966,6 +2958,7 @@ function do_all_trackbacks() {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|WP_Post $post Post ID or object to do trackbacks on.
+ * @return void|false Returns false on failure.
  */
 function do_trackbacks( $post ) {
 	global $wpdb;
@@ -3331,6 +3324,7 @@ function update_comment_cache( $comments, $update_meta_cache = true ) {
  *
  * @since 4.4.0
  * @since 6.1.0 This function is no longer marked as "private".
+ * @since 6.3.0 Use wp_lazyload_comment_meta() for lazy-loading of comment meta.
  *
  * @see update_comment_cache()
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -3345,7 +3339,11 @@ function _prime_comment_caches( $comment_ids, $update_meta_cache = true ) {
 	if ( ! empty( $non_cached_ids ) ) {
 		$fresh_comments = $wpdb->get_results( sprintf( "SELECT $wpdb->comments.* FROM $wpdb->comments WHERE comment_ID IN (%s)", implode( ',', array_map( 'intval', $non_cached_ids ) ) ) );
 
-		update_comment_cache( $fresh_comments, $update_meta_cache );
+		update_comment_cache( $fresh_comments, false );
+	}
+
+	if ( $update_meta_cache ) {
+		wp_lazyload_comment_meta( $comment_ids );
 	}
 }
 
@@ -3686,8 +3684,8 @@ function wp_handle_comment_submission( $comment_data ) {
  *
  * @since 4.9.6
  *
- * @param array $exporters An array of personal data exporters.
- * @return array An array of personal data exporters.
+ * @param array[] $exporters An array of personal data exporters.
+ * @return array[] An array of personal data exporters.
  */
 function wp_register_comment_personal_data_exporter( $exporters ) {
 	$exporters['wordpress-comments'] = array(
@@ -3704,8 +3702,13 @@ function wp_register_comment_personal_data_exporter( $exporters ) {
  * @since 4.9.6
  *
  * @param string $email_address The comment author email address.
- * @param int    $page          Comment page.
- * @return array An array of personal data.
+ * @param int    $page          Comment page number.
+ * @return array {
+ *     An array of personal data.
+ *
+ *     @type array[] $data An array of personal data arrays.
+ *     @type bool    $done Whether the exporter is finished.
+ * }
  */
 function wp_comments_personal_data_exporter( $email_address, $page = 1 ) {
 	// Limit us to 500 comments at a time to avoid timing out.
@@ -3816,8 +3819,15 @@ function wp_register_comment_personal_data_eraser( $erasers ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $email_address The comment author email address.
- * @param int    $page          Comment page.
- * @return array
+ * @param int    $page          Comment page number.
+ * @return array {
+ *     Data removal results.
+ *
+ *     @type bool     $items_removed  Whether items were actually removed.
+ *     @type bool     $items_retained Whether items were retained.
+ *     @type string[] $messages       An array of messages to add to the personal data export file.
+ *     @type bool     $done           Whether the eraser is finished.
+ * }
  */
 function wp_comments_personal_data_eraser( $email_address, $page = 1 ) {
 	global $wpdb;

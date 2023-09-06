@@ -103,11 +103,15 @@ final class WP_Privacy_Policy_Content {
 		sort( $old );
 		sort( $new );
 
-		// The == operator (equal, not identical) was used intentionally.
-		// See https://www.php.net/manual/en/language.operators.array.php
+		/*
+		 * The == operator (equal, not identical) was used intentionally.
+		 * See https://www.php.net/manual/en/language.operators.array.php
+		 */
 		if ( $new != $old ) {
-			// A plugin was activated or deactivated, or some policy text has changed.
-			// Show a notice on the relevant screens to inform the admin.
+			/*
+			 * A plugin was activated or deactivated, or some policy text has changed.
+			 * Show a notice on the relevant screens to inform the admin.
+			 */
 			add_action( 'admin_notices', array( 'WP_Privacy_Policy_Content', 'policy_text_changed_notice' ) );
 			$state = 'changed';
 		} else {
@@ -126,12 +130,8 @@ final class WP_Privacy_Policy_Content {
 	 * Outputs a warning when some privacy info has changed.
 	 *
 	 * @since 4.9.6
-	 *
-	 * @global WP_Post $post Global post object.
 	 */
 	public static function policy_text_changed_notice() {
-		global $post;
-
 		$screen = get_current_screen()->id;
 
 		if ( 'privacy' !== $screen ) {
