@@ -535,7 +535,7 @@ class Tests_Actions extends WP_UnitTestCase {
 		foreach ( $hook as $priority => $filter ) {
 			foreach ( $filter as $identifier => $function ) {
 				if ( is_array( $function )
-					&& is_a( $function['function'][0], 'MockAction' )
+					&& $function['function'][0] instanceof MockAction
 					&& 'action' === $function['function'][1]
 				) {
 					remove_filter(

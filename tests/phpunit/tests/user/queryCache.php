@@ -778,4 +778,26 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 
 		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs when using wpdb placeholder.' );
 	}
+
+	/**
+	 * Verifies that generate_cache_key() does not throw a fatal error for switch_to_blog()
+	 * with 'orderby' => 'post_count' and the deprecated 'who' => 'authors' parameter.
+	 *
+	 * @ticket 59011
+	 * @covers ::generate_cache_key
+	 *
+	 * @expectedDeprecated WP_User_Query
+	 */
+	public function test_generate_cache_key_with_orderby_post_count_and_deprecated_who_parameter() {
+		$query = new WP_User_Query(
+			array(
+				'fields'  => 'ID',
+				'orderby' => 'post_count',
+				'order'   => 'DESC',
+				'who'     => 'authors',
+			)
+		);
+
+		$this->assertNotEmpty( $query->get_results() );
+	}
 }
