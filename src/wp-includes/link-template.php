@@ -4543,7 +4543,7 @@ function get_theme_file_uri( $file = '' ) {
 
 	if ( empty( $file ) ) {
 		$url = get_stylesheet_directory_uri();
-	} elseif ( get_template_directory()  !== $stylesheet_directory && file_exists( $stylesheet_directory . '/' . $file ) ) {
+	} elseif ( get_template_directory() !== $stylesheet_directory && file_exists( $stylesheet_directory . '/' . $file ) ) {
 		$url = get_stylesheet_directory_uri() . '/' . $file;
 	} else {
 		$url = get_template_directory_uri() . '/' . $file;
