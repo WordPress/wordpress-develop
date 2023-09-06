@@ -5469,49 +5469,39 @@ function _deprecated_function( $function_name, $version, $replacement = '' ) {
 	if ( WP_DEBUG && apply_filters( 'deprecated_function_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
 			if ( $replacement ) {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP function name, 2: Version number, 3: Alternative function name. */
-						__( 'Function %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-						$function_name,
-						$version,
-						$replacement
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP function name, 2: Version number, 3: Alternative function name. */
+					__( 'Function %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+					$function_name,
+					$version,
+					$replacement
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP function name, 2: Version number. */
-						__( 'Function %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-						$function_name,
-						$version
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP function name, 2: Version number. */
+					__( 'Function %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+					$function_name,
+					$version
 				);
 			}
 		} else {
 			if ( $replacement ) {
-				trigger_error(
-					sprintf(
-						'Function %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
-						$function_name,
-						$version,
-						$replacement
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'Function %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
+					$function_name,
+					$version,
+					$replacement
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						'Function %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
-						$function_name,
-						$version
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'Function %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
+					$function_name,
+					$version
 				);
 			}
 		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
 
