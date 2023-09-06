@@ -1405,7 +1405,7 @@ function wp_comment_form_unfiltered_html_nonce() {
  *                                  Default false.
  */
 function comments_template( $file = '/comments.php', $separate_comments = false ) {
-	global $wp_query, $withcomments, $post, $wpdb, $id, $comment, $user_login, $user_identity, $overridden_cpage;
+	global $wp_query, $withcomments, $post, $wpdb, $id, $comment, $user_login, $user_identity, $overridden_cpage, $templatepath, $stylesheetpath;
 
 	if ( ! ( is_single() || is_page() || $withcomments ) || empty( $post ) ) {
 		return;
@@ -1600,7 +1600,7 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 		define( 'COMMENTS_TEMPLATE', true );
 	}
 
-	$theme_template = STYLESHEETPATH . $file;
+	$theme_template = $stylesheetpath . $file;
 
 	/**
 	 * Filters the path to the theme template file used for the comments template.
@@ -1613,8 +1613,8 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 
 	if ( file_exists( $include ) ) {
 		require $include;
-	} elseif ( file_exists( TEMPLATEPATH . $file ) ) {
-		require TEMPLATEPATH . $file;
+	} elseif ( file_exists( $templatepath . $file ) ) {
+		require $templatepath . $file;
 	} else { // Backward compat code will be removed in a future release.
 		require ABSPATH . WPINC . '/theme-compat/comments.php';
 	}
