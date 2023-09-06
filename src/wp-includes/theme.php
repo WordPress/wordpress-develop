@@ -833,6 +833,9 @@ function switch_theme( $stylesheet ) {
 	}
 
 	update_option( 'theme_switched', $old_theme->get_stylesheet() );
+	
+	// Update template globals.
+	wp_templating_constants();
 
 	/**
 	 * Fires after the theme is switched.
