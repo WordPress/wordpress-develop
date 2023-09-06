@@ -5653,49 +5653,39 @@ function _deprecated_class( $class_name, $version, $replacement = '' ) {
 	if ( WP_DEBUG && apply_filters( 'deprecated_class_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
 			if ( $replacement ) {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP class name, 2: Version number, 3: Alternative class or function name. */
-						__( 'Class %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-						$class_name,
-						$version,
-						$replacement
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP class name, 2: Version number, 3: Alternative class or function name. */
+					__( 'Class %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+					$class_name,
+					$version,
+					$replacement
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP class name, 2: Version number. */
-						__( 'Class %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-						$class_name,
-						$version
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP class name, 2: Version number. */
+					__( 'Class %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+					$class_name,
+					$version
 				);
 			}
 		} else {
 			if ( $replacement ) {
-				trigger_error(
-					sprintf(
-						'Class %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
-						$class_name,
-						$version,
-						$replacement
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'Class %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
+					$class_name,
+					$version,
+					$replacement
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						'Class %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
-						$class_name,
-						$version
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'Class %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
+					$class_name,
+					$version
 				);
 			}
 		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
 
