@@ -1159,6 +1159,8 @@ function wp_get_theme_error( $theme ) {
  *                       `WP_Error` on failure.
  */
 function resume_theme( $theme, $redirect = '' ) {
+	global $templatepath, $stylesheetpath;
+
 	list( $extension ) = explode( '/', $theme );
 
 	/*
@@ -1167,10 +1169,10 @@ function resume_theme( $theme, $redirect = '' ) {
 	 */
 	if ( ! empty( $redirect ) ) {
 		$functions_path = '';
-		if ( str_contains( STYLESHEETPATH, $extension ) ) {
-			$functions_path = STYLESHEETPATH . '/functions.php';
-		} elseif ( str_contains( TEMPLATEPATH, $extension ) ) {
-			$functions_path = TEMPLATEPATH . '/functions.php';
+		if ( str_contains( $stylesheetpath, $extension ) ) {
+			$functions_path = $stylesheetpath . '/functions.php';
+		} elseif ( str_contains( $templatepath, $extension ) ) {
+			$functions_path = $templatepath . '/functions.php';
 		}
 
 		if ( ! empty( $functions_path ) ) {

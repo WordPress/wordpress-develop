@@ -406,16 +406,18 @@ function wp_templating_constants() {
 	/**
 	 * Filesystem path to the current active template directory.
 	 *
-	 * @since 1.5.0
+	 * @global $templatepath .
+	 * @since TODO
 	 */
-	define( 'TEMPLATEPATH', get_template_directory() );
+	$GLOBALS['templatepath'] = get_template_directory();
 
 	/**
 	 * Filesystem path to the current active template stylesheet directory.
 	 *
-	 * @since 2.1.0
+	 * @global $stylesheetpath .
+	 * @since TODO
 	 */
-	define( 'STYLESHEETPATH', get_stylesheet_directory() );
+	$GLOBALS['stylesheetpath'] = get_stylesheet_directory();
 
 	/**
 	 * Slug of the default theme for this installation.
