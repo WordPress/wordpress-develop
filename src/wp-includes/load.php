@@ -1041,7 +1041,7 @@ function wp_skip_paused_plugins( array $plugins ) {
  * @return string[] Array of absolute paths to theme directories.
  */
 function wp_get_active_and_valid_themes() {
-	global $pagenow;
+	global $pagenow, $templatepath, $stylesheetpath;
 
 	$themes = array();
 
@@ -1049,11 +1049,11 @@ function wp_get_active_and_valid_themes() {
 		return $themes;
 	}
 
-	if ( TEMPLATEPATH !== STYLESHEETPATH ) {
-		$themes[] = STYLESHEETPATH;
+	if ( $templatepath !== $stylesheetpath ) {
+		$themes[] = $stylesheetpath;
 	}
 
-	$themes[] = TEMPLATEPATH;
+	$themes[] = $templatepath;
 
 	/*
 	 * Remove themes from the list of active themes when we're on an endpoint
