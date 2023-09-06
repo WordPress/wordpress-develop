@@ -6006,15 +6006,12 @@ function _doing_it_wrong( $function_name, $message, $version ) {
 				__( 'https://wordpress.org/documentation/article/debugging-in-wordpress/' )
 			);
 
-			trigger_error(
-				sprintf(
-					/* translators: Developer debugging message. 1: PHP function name, 2: Explanatory message, 3: WordPress version number. */
-					__( 'Function %1$s was called <strong>incorrectly</strong>. %2$s %3$s' ),
-					$function_name,
-					$message,
-					$version
-				),
-				E_USER_NOTICE
+			$message = sprintf(
+				/* translators: Developer debugging message. 1: PHP function name, 2: Explanatory message, 3: WordPress version number. */
+				__( 'Function %1$s was called <strong>incorrectly</strong>. %2$s %3$s' ),
+				$function_name,
+				$message,
+				$version
 			);
 		} else {
 			if ( $version ) {
@@ -6026,16 +6023,15 @@ function _doing_it_wrong( $function_name, $message, $version ) {
 				'https://wordpress.org/documentation/article/debugging-in-wordpress/'
 			);
 
-			trigger_error(
-				sprintf(
-					'Function %1$s was called <strong>incorrectly</strong>. %2$s %3$s',
-					$function_name,
-					$message,
-					$version
-				),
-				E_USER_NOTICE
+			$message = sprintf(
+				'Function %1$s was called <strong>incorrectly</strong>. %2$s %3$s',
+				$function_name,
+				$message,
+				$version
 			);
 		}
+
+		wp_trigger_error( $function_name, $message );
 	}
 }
 
