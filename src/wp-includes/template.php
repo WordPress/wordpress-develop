@@ -699,16 +699,18 @@ function get_attachment_template() {
  * @return string The template filename if one is located.
  */
 function locate_template( $template_names, $load = false, $load_once = true, $args = array() ) {
+	global $templatepath, $stylesheetpath;
+
 	$located = '';
 	foreach ( (array) $template_names as $template_name ) {
 		if ( ! $template_name ) {
 			continue;
 		}
-		if ( file_exists( STYLESHEETPATH . '/' . $template_name ) ) {
-			$located = STYLESHEETPATH . '/' . $template_name;
+		if ( file_exists( $stylesheetpath . '/' . $template_name ) ) {
+			$located = $stylesheetpath . '/' . $template_name;
 			break;
-		} elseif ( is_child_theme() && file_exists( TEMPLATEPATH . '/' . $template_name ) ) {
-			$located = TEMPLATEPATH . '/' . $template_name;
+		} elseif ( is_child_theme() && file_exists( $templatepath . '/' . $template_name ) ) {
+			$located = $templatepath . '/' . $template_name;
 			break;
 		} elseif ( file_exists( ABSPATH . WPINC . '/theme-compat/' . $template_name ) ) {
 			$located = ABSPATH . WPINC . '/theme-compat/' . $template_name;
