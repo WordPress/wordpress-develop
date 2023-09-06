@@ -5839,49 +5839,39 @@ function _deprecated_argument( $function_name, $version, $message = '' ) {
 	if ( WP_DEBUG && apply_filters( 'deprecated_argument_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
 			if ( $message ) {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP function name, 2: Version number, 3: Optional message regarding the change. */
-						__( 'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s' ),
-						$function_name,
-						$version,
-						$message
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP function name, 2: Version number, 3: Optional message regarding the change. */
+					__( 'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s' ),
+					$function_name,
+					$version,
+					$message
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP function name, 2: Version number. */
-						__( 'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-						$function_name,
-						$version
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP function name, 2: Version number. */
+					__( 'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+					$function_name,
+					$version
 				);
 			}
 		} else {
 			if ( $message ) {
-				trigger_error(
-					sprintf(
-						'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s',
-						$function_name,
-						$version,
-						$message
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s',
+					$function_name,
+					$version,
+					$message
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.',
-						$function_name,
-						$version
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.',
+					$function_name,
+					$version
 				);
 			}
 		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
 
