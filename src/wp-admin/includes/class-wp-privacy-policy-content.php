@@ -392,8 +392,14 @@ final class WP_Privacy_Policy_Content {
 				$badge_title = sprintf( __( 'Removed %s.' ), $date );
 
 				/* translators: %s: Date of plugin deactivation. */
-				$removed = __( 'You deactivated this plugin on %s and may no longer need this policy.' );
-				$removed = '<div class="notice notice-info inline"><p>' . sprintf( $removed, $date ) . '</p></div>';
+				$removed = sprintf( __( 'You deactivated this plugin on %s and may no longer need this policy.' ), $date );
+				$removed = wp_get_admin_notice(
+					$removed,
+					array(
+						'type'               => 'info',
+						'additional_classes' => array( 'inline' ),
+					)
+				);
 			} elseif ( ! empty( $section['updated'] ) ) {
 				$badge_class = ' blue';
 				$date        = date_i18n( $date_format, $section['updated'] );
