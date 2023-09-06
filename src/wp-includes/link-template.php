@@ -2855,19 +2855,20 @@ function get_the_posts_navigation( $args = array() ) {
 			$args['aria_label'] = $args['screen_reader_text'];
 		}
 
+		// Since the base order is DESC - the previous page contains newer posts and the next page contains older posts.
 		$args = wp_parse_args(
 			$args,
 			array(
-				'prev_text'          => __( 'Older posts' ),
-				'next_text'          => __( 'Newer posts' ),
+				'prev_text'          => __( 'Newer posts' ),
+				'next_text'          => __( 'Older posts' ),
 				'screen_reader_text' => __( 'Posts navigation' ),
 				'aria_label'         => __( 'Posts' ),
 				'class'              => 'posts-navigation',
 			)
 		);
 
-		$next_link = get_previous_posts_link( $args['next_text'] );
-		$prev_link = get_next_posts_link( $args['prev_text'] );
+		$next_link = get_next_posts_link( $args['next_text'] );
+		$prev_link = get_previous_posts_link( $args['prev_text'] );
 
 		if ( $prev_link ) {
 			$navigation .= '<div class="nav-previous">' . $prev_link . '</div>';
