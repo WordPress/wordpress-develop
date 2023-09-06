@@ -1224,7 +1224,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_raise_memory_limit() {
 		if ( -1 !== WP_MAX_MEMORY_LIMIT ) {
-			$this->markTestSkipped( 'WP_MAX_MEMORY_LIMIT should be set to -1.' );
+			$this->fail( 'WP_MAX_MEMORY_LIMIT should be set to -1.' );
 		}
 
 		$ini_limit_before = ini_get( 'memory_limit' );
@@ -1338,7 +1338,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_get_image_mime( $file, $expected ) {
 		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
-			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
+			$this->fail( 'The exif PHP extension is not loaded.' );
 		}
 
 		$this->assertSame( $expected, wp_get_image_mime( $file ) );
@@ -1405,7 +1405,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_getimagesize( $file, $expected ) {
 		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
-			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
+			$this->fail( 'The exif PHP extension is not loaded.' );
 		}
 
 		$result = wp_getimagesize( $file );
@@ -1927,7 +1927,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_is_stream( $path, $expected ) {
 		if ( ! extension_loaded( 'openssl' ) && false !== strpos( $path, 'https://' ) ) {
-			$this->markTestSkipped( 'The openssl PHP extension is not loaded.' );
+			$this->fail( 'The openssl PHP extension is not loaded.' );
 		}
 
 		$this->assertSame( $expected, wp_is_stream( $path ) );

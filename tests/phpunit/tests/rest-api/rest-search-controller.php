@@ -424,7 +424,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_prepare_item_limit_fields() {
 		if ( ! method_exists( 'WP_REST_Controller', 'get_fields_for_response' ) ) {
-			$this->markTestSkipped( 'Limiting fields requires the WP_REST_Controller::get_fields_for_response() method.' );
+			$this->fail( 'Limiting fields requires the WP_REST_Controller::get_fields_for_response() method.' );
 		}
 
 		$response = $this->do_request_with_params(
@@ -533,7 +533,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_custom_search_handler_prepare_item_limit_fields() {
 		if ( ! method_exists( 'WP_REST_Controller', 'get_fields_for_response' ) ) {
-			$this->markTestSkipped( 'Limiting fields requires the WP_REST_Controller::get_fields_for_response() method.' );
+			$this->fail( 'Limiting fields requires the WP_REST_Controller::get_fields_for_response() method.' );
 		}
 
 		$controller = new WP_REST_Search_Controller( array( new WP_REST_Test_Search_Handler( 10 ) ) );

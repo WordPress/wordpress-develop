@@ -753,7 +753,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$editor = wp_get_image_editor( $test_file );
 		if ( is_wp_error( $editor ) ) {
-			$this->markTestSkipped( $editor->get_error_message() );
+			$this->fail( $editor->get_error_message() );
 		}
 
 		$attachment_id = self::factory()->attachment->create_object(
@@ -831,7 +831,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$editor = wp_get_image_editor( $test_file );
 		if ( is_wp_error( $editor ) ) {
-			$this->markTestSkipped( $editor->get_error_message() );
+			$this->fail( $editor->get_error_message() );
 		}
 
 		$attachment_id = self::factory()->attachment->create_object(
@@ -905,7 +905,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$editor = wp_get_image_editor( $test_file );
 		if ( is_wp_error( $editor ) ) {
-			$this->markTestSkipped( $editor->get_error_message() );
+			$this->fail( $editor->get_error_message() );
 		}
 
 		$attachment_id = self::factory()->attachment->create_object(
@@ -980,7 +980,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$editor = wp_get_image_editor( $pdf_path );
 		if ( is_wp_error( $editor ) ) {
-			$this->markTestSkipped( $editor->get_error_message() );
+			$this->fail( $editor->get_error_message() );
 		}
 
 		$attachment_id = self::factory()->attachment->create_object(

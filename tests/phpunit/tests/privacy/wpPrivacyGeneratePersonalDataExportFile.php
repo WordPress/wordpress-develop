@@ -71,7 +71,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$this->export_file_name = '';
 
 		if ( ! $this->remove_exports_dir() ) {
-			$this->markTestSkipped( 'Existing exports directory could not be removed. Skipping test.' );
+			$this->fail( 'Existing exports directory could not be removed. Skipping test.' );
 		}
 
 		// We need to override the die handler. Otherwise, the unit tests will die too.
