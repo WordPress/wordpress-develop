@@ -216,6 +216,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			$args = array(
 				'type'               => 'success',
 				'additional_classes' => array( 'notice-alt', 'below-h2' ),
+				'paragraph_wrap'     => false,
 			);
 			wp_admin_notice( $message, $args );
 
