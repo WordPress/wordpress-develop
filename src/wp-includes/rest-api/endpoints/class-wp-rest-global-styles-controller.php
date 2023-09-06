@@ -664,7 +664,6 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.0.0
 	 * @since 6.2.0 Returns parent theme variations, if they exist.
-	 * @since 6.4.0 Removed unnecessary local variable.
 	 *
 	 * @param WP_REST_Request $request The request instance.
 	 *
