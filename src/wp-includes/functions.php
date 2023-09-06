@@ -5745,49 +5745,39 @@ function _deprecated_file( $file, $version, $replacement = '', $message = '' ) {
 
 		if ( function_exists( '__' ) ) {
 			if ( $replacement ) {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP file name, 2: Version number, 3: Alternative file name. */
-						__( 'File %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-						$file,
-						$version,
-						$replacement
-					) . $message,
-					E_USER_DEPRECATED
-				);
+				$message = sprintf(
+					/* translators: 1: PHP file name, 2: Version number, 3: Alternative file name. */
+					__( 'File %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+					$file,
+					$version,
+					$replacement
+				) . $message;
 			} else {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP file name, 2: Version number. */
-						__( 'File %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-						$file,
-						$version
-					) . $message,
-					E_USER_DEPRECATED
-				);
+				$message = sprintf(
+					/* translators: 1: PHP file name, 2: Version number. */
+					__( 'File %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+					$file,
+					$version
+				) . $message;
 			}
 		} else {
 			if ( $replacement ) {
-				trigger_error(
-					sprintf(
-						'File %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
-						$file,
-						$version,
-						$replacement
-					) . $message,
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'File %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
+					$file,
+					$version,
+					$replacement
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						'File %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
-						$file,
-						$version
-					) . $message,
-					E_USER_DEPRECATED
-				);
+				$message = sprintf(
+					'File %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
+					$file,
+					$version
+				) . $message;
 			}
 		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
 /**
