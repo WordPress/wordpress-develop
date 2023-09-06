@@ -325,7 +325,9 @@ class Tests_Theme extends WP_UnitTestCase {
 
 					$child_theme_file  = get_stylesheet_directory() . '/' . $file . '.php';
 					$parent_theme_file = get_template_directory() . '/' . $file . '.php';
-					if ( file_exists( $child_theme_file ) ) {
+					if ( wp_is_block_theme() ) {
+						$this->assertSame( ABSPATH . WPINC . '/template-canvas.php', get_query_template( $file ) );
+					} elseif ( file_exists( $child_theme_file ) ) {
 						$this->assertSame( $child_theme_file, get_query_template( $file ) );
 					} elseif ( file_exists( $parent_theme_file ) ) {
 						$this->assertSame( $parent_theme_file, get_query_template( $file ) );
