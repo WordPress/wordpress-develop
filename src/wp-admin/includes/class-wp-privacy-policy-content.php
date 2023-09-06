@@ -352,22 +352,20 @@ final class WP_Privacy_Policy_Content {
 				'after'
 			);
 		} else {
-			?>
-			<div class="notice notice-warning inline wp-pp-notice">
-				<p>
-				<?php
-				echo $message;
-				printf(
-					' <a href="%s" target="_blank">%s <span class="screen-reader-text">%s</span></a>',
-					$url,
-					$label,
-					/* translators: Hidden accessibility text. */
-					__( '(opens in a new tab)' )
-				);
-				?>
-				</p>
-			</div>
-			<?php
+			$message .= sprintf(
+				' <a href="%s" target="_blank">%s <span class="screen-reader-text">%s</span></a>',
+				$url,
+				$label,
+				/* translators: Hidden accessibility text. */
+				__( '(opens in a new tab)' )
+			);
+			wp_admin_notice(
+				$message,
+				array(
+					'type'               => 'warning',
+					'additional_classes' => array( 'inline', 'wp-pp-notice' ),
+				)
+			);
 		}
 	}
 
