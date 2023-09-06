@@ -5930,27 +5930,23 @@ function _deprecated_hook( $hook, $version, $replacement = '', $message = '' ) {
 		$message = empty( $message ) ? '' : ' ' . $message;
 
 		if ( $replacement ) {
-			trigger_error(
-				sprintf(
-					/* translators: 1: WordPress hook name, 2: Version number, 3: Alternative hook name. */
-					__( 'Hook %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-					$hook,
-					$version,
-					$replacement
-				) . $message,
-				E_USER_DEPRECATED
-			);
+			$message = sprintf(
+				/* translators: 1: WordPress hook name, 2: Version number, 3: Alternative hook name. */
+				__( 'Hook %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+				$hook,
+				$version,
+				$replacement
+			) . $message;
 		} else {
-			trigger_error(
-				sprintf(
-					/* translators: 1: WordPress hook name, 2: Version number. */
-					__( 'Hook %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-					$hook,
-					$version
-				) . $message,
-				E_USER_DEPRECATED
-			);
+			$message = sprintf(
+				/* translators: 1: WordPress hook name, 2: Version number. */
+				__( 'Hook %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+				$hook,
+				$version
+			) . $message;
 		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
 
