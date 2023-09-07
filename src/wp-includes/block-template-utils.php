@@ -514,23 +514,41 @@ function _inject_theme_attribute_in_block_template_content( $template_content ) 
 }
 
 /**
- * Injects the active theme's stylesheet as a `theme` attribute
- * into a given template part block.
+ * Returns a function that...
  *
  * @since 6.4.0
  * @access private
  *
- * @param array $block a parsed block.
- * @return array Updated block.
+ * @param WP_Block_Template $block_template a block template.
+ * @return callable A function that returns a block.
  */
-function _inject_theme_attribute_in_template_part_block( $block ) {
-	if (
-		'core/template-part' === $block['blockName'] &&
-		! isset( $block['attrs']['theme'] )
-	) {
-		$block['attrs']['theme'] = get_stylesheet();
-	}
-	return $block;
+function _parsed_block_visitor( $block_template ) {
+	return function( $block ) use ( $block_template ) {
+		if (
+			'core/template-part' === $block['blockName'] &&
+			! isset( $block['attrs']['theme'] )
+		) {
+			$block['attrs']['theme'] = get_stylesheet();
+		}
+
+		$hooked_blocks = get_hooked_blocks( $block['blockName'] );
+		foreach ( $hooked_blocks as $hooked_block_type => $relative_position ) {
+			$hooked_block = array(
+				'blockName'    => $hooked_block_type,
+				'attrs'        => array(),
+				'innerHTML'    => '',
+				'innerContent' => array(),
+				'innerBlocks'  => array(),
+			);
+			// Need to pass full current block, (potentially its parent -- for sibiling insertion), relative position, and hooked_block.
+			$block = insert_hooked_block( $hooked_block, $relative_position, $block );
+			/**
+			 * This filter allows modifiying the auto-inserting behavior...
+			 */
+			$block = apply_filters( 'insert_hooked_block', $block, $hooked_blocks[ $hooked_block_type ], $block_template );
+		}
+		return $block;
+	};
 }
 
 /**
@@ -609,7 +627,8 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	}
 
 	$blocks            = parse_blocks( $template_content );
-	$template->content = serialize_blocks( $blocks, '_inject_theme_attribute_in_template_part_block' );
+	$visitor           = _parsed_block_visitor( $template );
+	$template->content = serialize_blocks( $blocks, $visitor );
 
 	return $template;
 }
