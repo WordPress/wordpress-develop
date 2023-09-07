@@ -399,6 +399,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	 * @param string $remote_destination The location on the remote filesystem to be cleared.
 	 * @return bool|WP_Error True upon success, WP_Error on failure.
 	 */
+	#[\Override]
 	public function clear_destination( $remote_destination ) {
 		global $wp_filesystem;
 
