@@ -330,12 +330,16 @@ else :
 				endif;
 				?>
 			</div>
-			<?php if ( is_writable( $file ) ) : ?>
+			<?php
+			if ( is_writable( $file ) ) {
+				?>
 				<p class="submit">
 					<?php submit_button( __( 'Update File' ), 'primary', 'submit', false ); ?>
 					<span class="spinner"></span>
 				</p>
-			<?php else : ?>
+				<?php
+			} else {
+			?>
 				<p>
 					<?php
 					printf(
@@ -345,7 +349,9 @@ else :
 					);
 					?>
 				</p>
-			<?php endif; ?>
+				<?php
+			}
+			?>
 		</div>
 
 		<?php wp_print_file_editor_templates(); ?>
