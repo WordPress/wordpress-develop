@@ -461,7 +461,7 @@ add_action( 'wp_enqueue_scripts', 'twenty_twenty_one_scripts' );
 /**
  * Enqueues responsive embeds script if content contains iframe.
  *
- * @since n.e.x.t
+ * @since Twenty Twenty-One 2.0
  *
  * @param string $content Content
  * @return string Unmodified content.
