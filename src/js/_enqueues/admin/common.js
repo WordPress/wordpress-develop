@@ -2147,8 +2147,9 @@ $( function( $ ) {
 
 			if ( isInsideUpdateTable ) {
 				// Transfer computed styles from image to canvas.
-				var computedStyles = window.getComputedStyle( img );
-				for ( var i = 0, var max = computedStyles.length; i < max; i++ ) {
+				var computedStyles = window.getComputedStyle( img ),
+					i, max;
+				for ( i = 0, max = computedStyles.length; i < max; i++ ) {
 					var propName = computedStyles[ i ];
 					var propValue = computedStyles.getPropertyValue( propName );
 					canvas.style[ propName ] = propValue;
@@ -2196,7 +2197,7 @@ $( function( $ ) {
 
 	// Listen for jQuery AJAX events.
 	( function( $ ) {
-		$.ajaxComplete( function( event, xhr, settings ) {
+		$( document ).ajaxComplete( function( event, xhr, settings ) {
 			// Check if this is the 'search-install-plugins' request.
 			if ( settings.data && settings.data.includes( 'action=search-install-plugins' ) ) {
 				// Recheck if the user prefers reduced motion.
