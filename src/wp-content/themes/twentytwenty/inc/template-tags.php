@@ -659,7 +659,7 @@ add_filter( 'walker_nav_menu_start_el', 'twentytwenty_nav_menu_social_icons', 10
 function twentytwenty_no_js_class() {
 
 	?>
-	<script>document.documentElement.className = document.documentElement.className.replace( 'no-js', 'js' );</script>
+	<script>document.documentElement.classList.remove("no-js");</script>
 	<?php
 
 }
