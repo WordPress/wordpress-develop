@@ -27,6 +27,7 @@
  */
 class ftp_sockets extends ftp_base {
 
+	#[\Override]
 	function __construct($verb=FALSE, $le=FALSE) {
 		parent::__construct(true, $verb, $le);
 	}
