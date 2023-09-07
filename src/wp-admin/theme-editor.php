@@ -339,7 +339,7 @@ else :
 				</p>
 				<?php
 			} else {
-			?>
+				?>
 				<p>
 					<?php
 					printf(
@@ -363,7 +363,7 @@ endif; // End if $error.
 </div>
 <?php
 $dismissed_pointers = explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
-if ( ! in_array( 'theme_editor_notice', $dismissed_pointers, true ) ) :
+if ( ! in_array( 'theme_editor_notice', $dismissed_pointers, true ) ) {
 	// Get a back URL.
 	$referer = wp_get_referer();
 
@@ -409,6 +409,6 @@ if ( ! in_array( 'theme_editor_notice', $dismissed_pointers, true ) ) :
 		</div>
 	</div>
 	<?php
-endif; // Editor warning notice.
+} // Editor warning notice.
 
 require_once ABSPATH . 'wp-admin/admin-footer.php';
