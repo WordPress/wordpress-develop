@@ -851,6 +851,10 @@ html:lang(he-il) .rtl #wpadminbar * {
 		top: -3px;
 	}
 
+	.php-error #wpadminbar #wp-admin-bar-wp-logo > .ab-item .ab-icon:before {
+		top: 9px;
+	}
+
 	#wpadminbar .ab-icon,
 	#wpadminbar .ab-item:before {
 		padding: 0;
@@ -1109,6 +1113,10 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar .ab-top-menu > .menupop li > .ab-sub-wrapper {
 		position: static;
 		box-shadow: none;
+	}
+
+	.php-error #wpadminbar {
+		position: fixed;
 	}
 }
 
