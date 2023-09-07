@@ -75,7 +75,7 @@ add_action( 'wp_head', 'twenty_twenty_one_pingback_header' );
 function twenty_twenty_one_supports_js() {
 	echo '<script>document.documentElement.classList.remove("no-js");</script>';
 }
-add_action( 'wp_head', 'twenty_twenty_one_supports_js' );
+add_action( 'wp_head', 'twenty_twenty_one_supports_js', 0 );
 
 /**
  * Changes comment form default fields.
