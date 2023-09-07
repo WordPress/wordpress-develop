@@ -129,14 +129,6 @@ function twentytwenty_theme_support() {
 
 	// Add theme support for selective refresh for widgets.
 	add_theme_support( 'customize-selective-refresh-widgets' );
-
-	/*
-	 * Adds `async` and `defer` support for scripts registered or enqueued
-	 * by the theme.
-	 */
-	$loader = new TwentyTwenty_Script_Loader();
-	add_filter( 'script_loader_tag', array( $loader, 'filter_script_loader_tag' ), 10, 2 );
-
 }
 
 add_action( 'after_setup_theme', 'twentytwenty_theme_support' );
@@ -213,9 +205,16 @@ function twentytwenty_register_scripts() {
 		wp_enqueue_script( 'comment-reply' );
 	}
 
-	wp_enqueue_script( 'twentytwenty-js', get_template_directory_uri() . '/assets/js/index.js', array(), $theme_version );
-	wp_script_add_data( 'twentytwenty-js', 'async', true );
-
+	wp_enqueue_script(
+		'twentytwenty-js',
+		get_template_directory_uri() . '/assets/js/index.js',
+		array(),
+		$theme_version,
+		array(
+			'in_footer' => false,
+			'strategy'  => 'defer',
+		)
+	);
 }
 
 add_action( 'wp_enqueue_scripts', 'twentytwenty_register_scripts' );

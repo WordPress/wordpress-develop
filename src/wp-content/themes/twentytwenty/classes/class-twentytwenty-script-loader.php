@@ -9,6 +9,7 @@
  * @package WordPress
  * @subpackage Twenty_Twenty
  * @since Twenty Twenty 1.0
+ * @deprecated Use script loading strategies in WordPress core.
  */
 
 if ( ! class_exists( 'TwentyTwenty_Script_Loader' ) ) {
@@ -16,6 +17,7 @@ if ( ! class_exists( 'TwentyTwenty_Script_Loader' ) ) {
 	 * A class that provides a way to add `async` or `defer` attributes to scripts.
 	 *
 	 * @since Twenty Twenty 1.0
+	 * @deprecated Use script loading strategies in WordPress core.
 	 */
 	class TwentyTwenty_Script_Loader {
 
@@ -33,6 +35,7 @@ if ( ! class_exists( 'TwentyTwenty_Script_Loader' ) ) {
 		 * @return string Script HTML string.
 		 */
 		public function filter_script_loader_tag( $tag, $handle ) {
+			_deprecated_function( __METHOD__, __( 'Use script loading strategies in WordPress core.', 'twentytwenty' ) );
 			foreach ( array( 'async', 'defer' ) as $attr ) {
 				if ( ! wp_scripts()->get_data( $handle, $attr ) ) {
 					continue;
