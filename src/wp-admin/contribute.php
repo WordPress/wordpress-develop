@@ -90,8 +90,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</ul>
 			<p><?php _e( 'WordPress embraces new technologies, while being committed to backward compatibility. The WordPress project uses the following languages and libraries:' ); ?></p>
 			<ul>
-				<li><?php _e( 'Core and Block Editor: HTML, CSS, PHP, SQL, JavaScript, and React.' ); ?></li>
-				<li><?php _e( 'WordPress app: Kotlin, Java, Swift, Objective-C, Vue, Python, and TypeScript.' ); ?></li>
+				<li><?php _e( 'Core and Block Editor: HTML, CSS, PHP, SQL, JavaScript, and React' ); ?></li>
+				<li><?php _e( 'WordPress app: Kotlin, Java, Swift, Objective-C, Vue, Python, and TypeScript' ); ?></li>
 			</ul>
 		</div>
 	</div>
