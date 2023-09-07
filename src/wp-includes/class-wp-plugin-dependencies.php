@@ -210,7 +210,7 @@ class WP_Plugin_Dependencies {
 						self::get_dependency_filepaths();
 					}
 
-					$dependency_file = isset( self::$plugin_dirnames[ $slug ] )
+					$dependency_file = ! empty( self::$plugin_dirnames[ $slug ] )
 						? self::$plugin_dirnames[ $slug ]
 						: $slug;
 					if ( isset( self::$plugins[ $dependency_file ] ) ) {
