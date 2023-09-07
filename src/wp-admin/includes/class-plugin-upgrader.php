@@ -187,6 +187,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * }
 	 * @return bool|WP_Error True if the upgrade was successful, false or a WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function upgrade( $plugin, $args = array() ) {
 		$defaults    = array(
 			'clear_update_cache' => true,
