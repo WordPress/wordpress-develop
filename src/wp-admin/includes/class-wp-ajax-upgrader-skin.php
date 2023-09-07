@@ -61,6 +61,7 @@ class WP_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 	 *                    override default options. See WP_Upgrader_Skin::__construct().
 	 *                    Default empty array.
 	 */
+	#[\Override]
 	public function __construct( $args = array() ) {
 		parent::__construct( $args );
 
@@ -111,6 +112,7 @@ class WP_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 	 * @param string|WP_Error $errors  Errors.
 	 * @param mixed           ...$args Optional text replacements.
 	 */
+	#[\Override]
 	public function error( $errors, ...$args ) {
 		if ( is_string( $errors ) ) {
 			$string = $errors;
@@ -147,6 +149,7 @@ class WP_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 	 * @param string|array|WP_Error $feedback Message data.
 	 * @param mixed                 ...$args  Optional text replacements.
 	 */
+	#[\Override]
 	public function feedback( $feedback, ...$args ) {
 		if ( is_wp_error( $feedback ) ) {
 			foreach ( $feedback->get_error_codes() as $error_code ) {
