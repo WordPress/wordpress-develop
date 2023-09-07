@@ -1655,3 +1655,79 @@ function get_hooked_blocks( $name ) {
 	}
 	return $hooked_blocks;
 }
+
+function insert_hooked_blocks( $block ) {
+	$hooked_blocks = get_hooked_blocks( $block['blockName'] );
+	foreach ( $hooked_blocks as $hooked_block_type => $relative_position ) {
+		$hooked_block = array(
+			'blockName'    => $hooked_block_type,
+			'attrs'        => array(),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+		// Need to pass full current block, (possibly its parent), relative position, and hooked_block.
+		$block = insert_hooked_block( $hooked_block, $relative_position, $block );
+	}
+	return $block;
+}
+
+/**
+ * Auto-insert a block next to a given "anchor" block.
+ *
+ * This is a helper function used in the implementation of block hooks.
+ * It is not meant for public use.
+ *
+ * The auto-inserted block can be inserted before or after the anchor block,
+ * or as the first or last child of the anchor block.
+ *
+ * Note that the this mutates the automatically inserted block's
+ * designated parent block by inserting into the parent's `innerBlocks` array,
+ * and by updating the parent's `innerContent` array accordingly.
+ *
+ * @param array  $inserted_block    The block to insert.
+ * @param string $relative_position The position relative to the given block.
+ *                                  Can be 'before', 'after', 'first_child', or 'last_child'.
+ * @param array $anchor_block       The automatically inserted block will be inserted next to instances of this block type.
+ * @return array The modified anchor block.
+ */
+function insert_hooked_block( $inserted_block, $relative_position, $anchor_block ) {
+	if ( 'first_child' === $relative_position ) {
+		array_unshift( $anchor_block['innerBlocks'], $inserted_block );
+		// Since WP_Block::render() iterates over `inner_content` (rather than `inner_blocks`)
+		// when rendering blocks, we also need to prepend a value (`null`, to mark a block
+		// location) to that array.
+		array_unshift( $anchor_block['innerContent'], null );
+	} elseif ( 'last_child' === $relative_position ) {
+		array_push( $anchor_block['innerBlocks'], $inserted_block );
+		// Since WP_Block::render() iterates over `inner_content` (rather than `inner_blocks`)
+		// when rendering blocks, we also need to prepend a value (`null`, to mark a block
+		// location) to that array.
+		array_push( $anchor_block['innerContent'], null );
+	}
+	return $anchor_block;
+
+	// TODO: Implement sibling insertion. We might need to pass the anchor's parent block for this to work.
+	//
+	// $anchor_block_index = array_search( $anchor_block, $anchor_block_parent['innerBlocks'], true ); // Will this work?
+	// if ( false !== $anchor_block_index && ( 'after' === $relative_position || 'before' === $relative_position ) ) {
+	// 	if ( 'after' === $relative_position ) {
+	// 		$anchor_block_index++;
+	// 	}
+	// 	array_splice( $anchor_block_parent['innerBlocks'], $anchor_block_index, 0, array( $inserted_block ) );
+
+	// 	// Find matching `innerContent` chunk index.
+	// 	$chunk_index = 0;
+	// 	while ( $anchor_block_index > 0 ) {
+	// 		if ( ! is_string( $anchor_block_parent['innerContent'][ $chunk_index ] ) ) {
+	// 			$anchor_block_index--;
+	// 		}
+	// 		$chunk_index++;
+	// 	}
+	// 	// Since WP_Block::render() iterates over `inner_content` (rather than `inner_blocks`)
+	// 	// when rendering blocks, we also need to insert a value (`null`, to mark a block
+	// 	// location) into that array.
+	// 	array_splice( $anchor_block_parent['innerContent'], $chunk_index, 0, array( null ) );
+	// }
+	// return $anchor_block;
+}
