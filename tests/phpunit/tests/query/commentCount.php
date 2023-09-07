@@ -371,4 +371,3 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $found_post_ids );
 	}
 }
-
