@@ -628,6 +628,10 @@ add_action( 'customize_controls_enqueue_scripts', 'twentytwentyone_customize_con
  * @return void
  */
 function twentytwentyone_the_html_classes() {
+
+	// Helps detect if JS is enabled or not.
+	$classes = 'no-js ';
+
 	/**
 	 * Filters the classes for the main <html> element.
 	 *
@@ -635,11 +639,11 @@ function twentytwentyone_the_html_classes() {
 	 *
 	 * @param string $classes The list of classes. Default empty string.
 	 */
-	$classes = apply_filters( 'twentytwentyone_html_classes', '' );
+	$classes = apply_filters( 'twentytwentyone_html_classes', $classes );
 	if ( ! $classes ) {
 		return;
 	}
-	echo 'class="' . esc_attr( $classes ) . '"';
+	echo 'class="' . esc_attr( trim( $classes ) ) . '"';
 }
 
 /**

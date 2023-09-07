@@ -17,9 +17,6 @@
  */
 function twenty_twenty_one_body_classes( $classes ) {
 
-	// Helps detect if JS is enabled or not.
-	$classes[] = 'no-js';
-
 	// Adds `singular` to singular pages, and `hfeed` to all other pages.
 	$classes[] = is_singular() ? 'singular' : 'hfeed';
 
@@ -75,9 +72,9 @@ add_action( 'wp_head', 'twenty_twenty_one_pingback_header' );
  * @return void
  */
 function twenty_twenty_one_supports_js() {
-	echo '<script>document.body.classList.remove("no-js");</script>';
+	echo '<script>document.documentElement.classList.remove("no-js");</script>';
 }
-add_action( 'wp_body_open', 'twenty_twenty_one_supports_js' );
+add_action( 'wp_head', 'twenty_twenty_one_supports_js' );
 
 /**
  * Changes comment form default fields.
