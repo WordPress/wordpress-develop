@@ -424,20 +424,19 @@ class WP_Plugin_Dependencies {
 				$url
 			);
 
-			if ( isset( $plugin_data['Name'] ) && ! empty( $plugin_data['version'] ) ) {
+			if ( isset( $plugin_data['name'] ) && ! empty( $plugin_data['version'] ) ) {
 				$more_details_link[ $slug ] = sprintf(
 					'<a href="%1$s" class="more-details-link thickbox open-plugin-details-modal" aria-label="%2$s" data-title="%3$s">%4$s</a>',
 					esc_url( $url ),
 					/* translators: %s: Plugin name. */
-					esc_attr( sprintf( __( 'More information about %s' ), $plugin_data['Name'] ) ),
-					esc_attr( $plugin_data['Name'] ),
+					esc_attr( sprintf( __( 'More information about %s' ), $plugin_data['name'] ) ),
+					esc_attr( $plugin_data['name'] ),
 					__( 'More Details' )
 				);
-				$more_details_link[ $slug ] = '<span class="plugin-dependency-name">' . esc_html( $plugin_data['Name'] ) . '</span>' . $more_details_link[ $slug ];
+				$more_details_link[ $slug ] = '<span class="plugin-dependency-name">' . esc_html( $plugin_data['name'] ) . '</span>' . $more_details_link[ $slug ];
 			}
 		}
 
-		array_unshift( self::$plugin_card_data );
 		self::$plugin_card_data = array_merge( self::$plugin_card_data, $more_details_link );
 
 		return $description;
