@@ -2194,6 +2194,25 @@ $( function( $ ) {
 		pub.freezeAll();
 	}
 
+	// Listen for jQuery AJAX events
+	jQuery(document).ajaxComplete(function(event, xhr, settings) {
+		// Check if this is the 'search-install-plugins' request
+		if (settings.data && settings.data.includes('action=search-install-plugins')) {
+			// Recheck if the user prefers reduced motion
+			if (window.matchMedia) {
+				var mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+				if (mediaQuery.matches) {
+					pub.freezeAll();
+				}
+			} else {
+				// Fallback for browsers that don't support matchMedia
+				if (true === priv.pauseAll) {
+					pub.freezeAll();
+				}
+			}
+		}
+	});
+
 	// Expose public methods
 	return pub;
 })();
