@@ -3166,7 +3166,8 @@ class WP_Query {
 			"{$wpdb->posts}.ID",
 		);
 
-		if ( ! in_array( $fields, $cacheable_field_values, true ) ) {
+		$id_posts_are_cacheable = in_array( $fields, $cacheable_field_values, true );
+		if ( ! $id_posts_are_cacheable ) {
 			$id_query_is_cacheable = false;
 		}
 
@@ -3528,7 +3529,7 @@ class WP_Query {
 			/** @var WP_Post[] */
 			$this->posts = array_map( 'get_post', $this->posts );
 
-			if ( $q['cache_results'] && $id_query_is_cacheable ) {
+			if ( $q['cache_results'] && $id_posts_are_cacheable ) {
 				update_post_cache( $this->posts );
 			}
 
