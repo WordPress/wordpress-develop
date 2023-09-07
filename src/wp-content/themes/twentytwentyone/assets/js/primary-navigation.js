@@ -69,7 +69,6 @@ function twentytwentyoneSubmenuPosition( li ) {
  * Handle clicks on submenu toggles.
  *
  * @since Twenty Twenty-One 1.0
- * @todo This should be attached with event delegation to avoid using a non-passive inline event handler.
  *
  * @param {Element} el - The element.
  */
