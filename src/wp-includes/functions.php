@@ -5977,7 +5977,7 @@ function _doing_it_wrong( $function_name, $message, $version ) {
 			);
 		}
 
-		wp_trigger_error( $function_name, $message );
+		wp_trigger_error( '', $message );
 	}
 }
 
