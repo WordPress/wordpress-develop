@@ -331,7 +331,7 @@ class Tests_Theme extends WP_UnitTestCase {
 
 					$child_theme_file  = get_stylesheet_directory() . '/' . $file . '.php';
 					$parent_theme_file = get_template_directory() . '/' . $file . '.php';
-					if ( wp_is_block_theme() && current_theme_supports( 'block-templates' ) && 'index' === $file ) {
+					if ( wp_is_block_theme() && current_theme_supports( 'block-templates' ) ) {
 						$this->assertSame( ABSPATH . WPINC . '/template-canvas.php', get_query_template( $file ) );
 					} elseif ( file_exists( $child_theme_file ) ) {
 						$this->assertSame( $child_theme_file, get_query_template( $file ) );
