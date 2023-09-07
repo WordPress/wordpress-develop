@@ -67,7 +67,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
-          show-progress: ${{ runner.debug == '1' && true || false }}
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Set up PHP
         uses: shivammathur/setup-php@d30ad8b1843ace22e6698ab99bbafaa747b6bd0d # v2.24.0
