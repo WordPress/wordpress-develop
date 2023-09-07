@@ -54,6 +54,7 @@ class Plugin_Upgrader_Skin extends WP_Upgrader_Skin {
 	 * @param array $args Optional. The plugin upgrader skin arguments to
 	 *                    override default options. Default empty array.
 	 */
+	#[\Override]
 	public function __construct( $args = array() ) {
 		$defaults = array(
 			'url'    => '',
@@ -76,6 +77,7 @@ class Plugin_Upgrader_Skin extends WP_Upgrader_Skin {
 	 *
 	 * @since 2.8.0
 	 */
+	#[\Override]
 	public function after() {
 		$this->plugin = $this->upgrader->plugin_info();
 		if ( ! empty( $this->plugin ) && ! is_wp_error( $this->result ) && $this->plugin_active ) {
