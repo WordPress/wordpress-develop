@@ -36,8 +36,9 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		parent::set_up();
 
+		// Sets up the `wp-content/themes/` directory to ensure consistency when running tests.
 		$this->orig_theme_dir = $wp_theme_directories;
-		$wp_theme_directories = array( WP_CONTENT_DIR . '/themes' );
+		$wp_theme_directories = array( WP_CONTENT_DIR . '/themes', realpath( DIR_TESTDATA . '/themedir1' ) );
 
 		add_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
@@ -282,6 +283,11 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		for ( $i = 0; $i < 3; $i++ ) {
 			foreach ( $themes as $name => $theme ) {
+				// Skip invalid theme directory names (such as `block_theme-[0.4.0]`).
+				if ( ! preg_match( '/^[a-z0-9-]+$/', $theme['Stylesheet'] ) ) {
+					continue;
+				}
+
 				// Switch to this theme.
 				if ( 2 === $i ) {
 					switch_theme( $theme['Template'], $theme['Stylesheet'] );
@@ -289,16 +295,16 @@ class Tests_Theme extends WP_UnitTestCase {
 					switch_theme( $theme['Stylesheet'] );
 				}
 
-				$this->assertSame( $name, get_current_theme() );
+				$this->assertSame( $theme['Name'], get_current_theme() );
 
 				// Make sure the various get_* functions return the correct values.
 				$this->assertSame( $theme['Template'], get_template() );
 				$this->assertSame( $theme['Stylesheet'], get_stylesheet() );
 
-				$root_fs = get_theme_root();
+				$root_fs = $theme->get_theme_root();
 				$this->assertTrue( is_dir( $root_fs ) );
 
-				$root_uri = get_theme_root_uri();
+				$root_uri = $theme->get_theme_root_uri();
 				$this->assertNotEmpty( $root_uri );
 
 				$this->assertSame( $root_fs . '/' . get_stylesheet(), get_stylesheet_directory() );
@@ -325,7 +331,7 @@ class Tests_Theme extends WP_UnitTestCase {
 
 					$child_theme_file  = get_stylesheet_directory() . '/' . $file . '.php';
 					$parent_theme_file = get_template_directory() . '/' . $file . '.php';
-					if ( wp_is_block_theme() && 'index' === $file ) {
+					if ( wp_is_block_theme() && current_theme_supports( 'block-templates' ) && 'index' === $file ) {
 						$this->assertSame( ABSPATH . WPINC . '/template-canvas.php', get_query_template( $file ) );
 					} elseif ( file_exists( $child_theme_file ) ) {
 						$this->assertSame( $child_theme_file, get_query_template( $file ) );
@@ -865,6 +871,60 @@ class Tests_Theme extends WP_UnitTestCase {
 			wp_should_load_separate_core_block_assets(),
 			'Block themes do not load separate core block assets by default.'
 		);
+	}
+
+	/**
+	 * Tests that a theme in the custom test data theme directory is recognized.
+	 *
+	 * @ticket 18298
+	 */
+	public function test_theme_in_custom_theme_dir_is_valid() {
+		switch_theme( 'block-theme' );
+		$this->assertTrue( wp_get_theme()->exists() );
+	}
+
+	/**
+	 * Tests that `is_child_theme()` returns true for child theme.
+	 *
+	 * @ticket 18298
+	 * @covers ::is_child_theme
+	 */
+	public function test_is_child_theme_true() {
+		switch_theme( 'block-theme-child' );
+		$this->assertTrue( is_child_theme() );
+	}
+
+	/**
+	 * Tests that `is_child_theme()` returns false for parent theme.
+	 *
+	 * @ticket 18298
+	 * @covers ::is_child_theme
+	 */
+	public function test_is_child_theme_false() {
+		switch_theme( 'block-theme' );
+		$this->assertFalse( is_child_theme() );
+	}
+
+	/**
+	 * Tests that the child theme directory is correctly detected.
+	 *
+	 * @ticket 18298
+	 * @covers ::get_stylesheet_directory
+	 */
+	public function test_get_stylesheet_directory() {
+		switch_theme( 'block-theme-child' );
+		$this->assertSame( realpath( DIR_TESTDATA ) . '/themedir1/block-theme-child', get_stylesheet_directory() );
+	}
+
+	/**
+	 * Tests that the parent theme directory is correctly detected.
+	 *
+	 * @ticket 18298
+	 * @covers ::get_template_directory
+	 */
+	public function test_get_template_directory() {
+		switch_theme( 'block-theme-child' );
+		$this->assertSame( realpath( DIR_TESTDATA ) . '/themedir1/block-theme', get_template_directory() );
 	}
 
 	/**
