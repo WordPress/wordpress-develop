@@ -69,6 +69,7 @@ function twentytwentyoneSubmenuPosition( li ) {
  * Handle clicks on submenu toggles.
  *
  * @since Twenty Twenty-One 1.0
+ * @todo This should be attached with event delegation to avoid using a non-passive inline event handler.
  *
  * @param {Element} el - The element.
  */
@@ -115,7 +116,7 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 			mobileButton.onclick = function() {
 				wrapper.classList.toggle( id + '-navigation-open' );
 				wrapper.classList.toggle( 'lock-scrolling' );
-				twentytwentyoneToggleAriaExpanded( mobileButton );
+				twentytwentyoneToggleAriaExpanded( mobileButton, false );
 				mobileButton.focus();
 			};
 		}
@@ -146,7 +147,7 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 			if ( escKey ) {
 				event.preventDefault();
 				wrapper.classList.remove( id + '-navigation-open', 'lock-scrolling' );
-				twentytwentyoneToggleAriaExpanded( mobileButton );
+				twentytwentyoneToggleAriaExpanded( mobileButton, false );
 				mobileButton.focus();
 			}
 
@@ -176,7 +177,7 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 			// If target onclick is <a> with # within the href attribute
 			if ( event.target.hash ) {
 				wrapper.classList.remove( id + '-navigation-open', 'lock-scrolling' );
-				twentytwentyoneToggleAriaExpanded( mobileButton );
+				twentytwentyoneToggleAriaExpanded( mobileButton, false );
 				// Wait 550 and scroll to the anchor.
 				setTimeout(function () {
 					var anchor = document.getElementById(event.target.hash.slice(1));
