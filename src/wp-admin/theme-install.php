@@ -326,6 +326,7 @@ if ( $tab ) {
 				'additional_classes' => array( 'notice-alt' ),
 			)
 		);
+		?>
 	<# } #>
 
 	<# if ( ! data.compatible_wp || ! data.compatible_php ) { #>

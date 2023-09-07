@@ -190,7 +190,7 @@ if ( $file_description !== $file_show ) {
 <h1><?php echo esc_html( $title ); ?></h1>
 
 <?php
-if ( isset( $_GET['a'] ) ) :
+if ( isset( $_GET['a'] ) ) {
 	wp_admin_notice(
 		__( 'File edited successfully.' ),
 		array(
@@ -199,7 +199,7 @@ if ( isset( $_GET['a'] ) ) :
 			'additional_classes' => array( 'updated' ),
 		)
 	);
-elseif ( is_wp_error( $edit_error ) ) :
+} elseif ( is_wp_error( $edit_error ) ) {
 	$message = '<p>' . __( 'There was an error while trying to update the file. You may need to fix something and try updating again.' ) . '</p>
 	<pre>' . esc_html( $edit_error->get_error_message() ? $edit_error->get_error_message() : $edit_error->get_error_code() ) . '</pre>';
 	wp_admin_notice(
@@ -209,14 +209,13 @@ elseif ( is_wp_error( $edit_error ) ) :
 			'id'   => 'message',
 		)
 	);
-endif;
+}
 
-if ( preg_match( '/\.css$/', $file ) && ! wp_is_block_theme() && current_user_can( 'customize' ) ) :
-	$message = '<p><strong>' . __( 'Did you know?' ) . '</strong></p>
-	<p>' . printf(
-	/* translators: %s: Link to Custom CSS section in the Customizer. */
-	__( 'There is no need to change your CSS here &mdash; you can edit and live preview CSS changes in the <a href="%s">built-in CSS editor</a>.' ),
-	esc_url( add_query_arg( 'autofocus[section]', 'custom_css', admin_url( 'customize.php' ) ) )
+if ( preg_match( '/\.css$/', $file ) && ! wp_is_block_theme() && current_user_can( 'customize' ) ) {
+	$message = '<p><strong>' . __( 'Did you know?' ) . '</strong></p><p>' . sprintf(
+		/* translators: %s: Link to Custom CSS section in the Customizer. */
+		__( 'There is no need to change your CSS here &mdash; you can edit and live preview CSS changes in the <a href="%s">built-in CSS editor</a>.' ),
+		esc_url( add_query_arg( 'autofocus[section]', 'custom_css', admin_url( 'customize.php' ) ) )
 	) . '</p>';
 	wp_admin_notice(
 		$message,
@@ -225,7 +224,7 @@ if ( preg_match( '/\.css$/', $file ) && ! wp_is_block_theme() && current_user_ca
 			'id'   => 'message',
 		)
 	);
-endif;
+}
 ?>
 
 <div class="fileedit-sub">
