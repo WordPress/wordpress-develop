@@ -214,6 +214,18 @@ class WP_Block_Type {
 	public $style_handles = array();
 
 	/**
+	 * Block hooks for this block type.
+	 *
+	 * A block hook is specified by a block type and a relative position.
+	 * The hooked block will be automatically inserted in the given position
+	 * next to the "anchor" block whenever the latter is encountered.
+	 *
+	 * @since 6.4.0
+	 * @var array|null
+	 */
+	public $block_hooks = array();
+
+	/**
 	 * Deprecated block type properties for script and style handles.
 	 *
 	 * @since 6.1.0
@@ -254,6 +266,7 @@ class WP_Block_Type {
 	 *              `editor_style_handles`, and `style_handles` properties.
 	 *              Deprecated the `editor_script`, `script`, `view_script`, `editor_style`, and `style` properties.
 	 * @since 6.3.0 Added the `selectors` property.
+	 * @since 6.4.0 Added the `block_hooks` property.
 	 *
 	 * @see register_block_type()
 	 *
@@ -279,6 +292,7 @@ class WP_Block_Type {
 	 *     @type array[]       $variations               Block variations.
 	 *     @type array         $selectors                Custom CSS selectors for theme.json style generation.
 	 *     @type array|null    $supports                 Supported features.
+	 *     @type array|null    $block_hooks              Block hooks.
 	 *     @type array|null    $example                  Structured data for the block preview.
 	 *     @type callable|null $render_callback          Block type render callback.
 	 *     @type array|null    $attributes               Block type attributes property schemas.
