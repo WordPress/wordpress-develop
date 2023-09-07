@@ -36,6 +36,7 @@ class Theme_Upgrader_Skin extends WP_Upgrader_Skin {
 	 * @param array $args Optional. The theme upgrader skin arguments to
 	 *                    override default options. Default empty array.
 	 */
+	#[\Override]
 	public function __construct( $args = array() ) {
 		$defaults = array(
 			'url'   => '',
@@ -55,6 +56,7 @@ class Theme_Upgrader_Skin extends WP_Upgrader_Skin {
 	 *
 	 * @since 2.8.0
 	 */
+	#[\Override]
 	public function after() {
 		$this->decrement_update_count( 'theme' );
 
