@@ -2253,6 +2253,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_User_Query::__get(): ' .
 			'The property `undefined_property` is not declared. Getting a dynamic property is ' .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -2285,6 +2286,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_User_Query::__set(): ' .
 			'The property `undefined_property` is not declared. Setting a dynamic property is ' .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -2321,6 +2323,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_User_Query::__isset(): ' .
 			'The property `undefined_property` is not declared. Checking `isset()` on a dynamic property ' .
 			'is deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -2352,6 +2355,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_User_Query::__unset(): ' .
 			'A property `undefined_property` is not declared. Unsetting a dynamic property is ' .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
