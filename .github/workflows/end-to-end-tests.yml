@@ -126,3 +126,34 @@ jobs:
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    needs: [ e2e-tests ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        needs.e2e-tests.result == 'cancelled' || needs.e2e-tests.result == 'failure'
+      )
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: '${{ github.run_id }}'
+              }
+            });
