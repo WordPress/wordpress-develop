@@ -1633,3 +1633,25 @@ function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
 	}
 	return null;
 }
+
+/**
+ * Retrieves block types (and positions) hooked into the given block.
+ *
+ * @since 6.4.0
+ *
+ * @param string $name Block type name including namespace.
+ * @return array Associative array of `$block_type_name => $position` pairs.
+ */
+function get_hooked_blocks( $name ) {
+	$block_types = WP_Block_Type_Registry::get_instance()->get_all_registered();
+	$hooked_blocks = array();
+	foreach ( $block_types as $block_type ) {
+		foreach ( $block_type->block_hooks as $anchor_block_type => $relative_position ) {
+			echo "$anchor_block_type $name\n";
+			if ( $anchor_block_type === $name ) {
+				$hooked_blocks[ $block_type->name ] = $relative_position;
+			}
+		}
+	}
+	return $hooked_blocks;
+}
