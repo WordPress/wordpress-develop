@@ -25,6 +25,7 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 	/**
 	 * @param array $args
 	 */
+	#[\Override]
 	public function __construct( $args = array() ) {
 		$defaults = array(
 			'url'   => '',
@@ -37,6 +38,7 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 
 	/**
 	 */
+	#[\Override]
 	public function add_strings() {
 		$this->upgrader->strings['skin_upgrade_start'] = __( 'The update process is starting. This process may take a while on some hosts, so please be patient.' );
 		/* translators: 1: Title of an update, 2: Error message. */
@@ -54,6 +56,7 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 	 * @param string $feedback Message data.
 	 * @param mixed  ...$args  Optional text replacements.
 	 */
+	#[\Override]
 	public function feedback( $feedback, ...$args ) {
 		if ( isset( $this->upgrader->strings[ $feedback ] ) ) {
 			$feedback = $this->upgrader->strings[ $feedback ];
@@ -78,12 +81,14 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 
 	/**
 	 */
+	#[\Override]
 	public function header() {
 		// Nothing. This will be displayed within an iframe.
 	}
 
 	/**
 	 */
+	#[\Override]
 	public function footer() {
 		// Nothing. This will be displayed within an iframe.
 	}
@@ -93,6 +98,7 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 	 *
 	 * @param string|WP_Error $errors Errors.
 	 */
+	#[\Override]
 	public function error( $errors ) {
 		if ( is_string( $errors ) && isset( $this->upgrader->strings[ $errors ] ) ) {
 			$this->error = $this->upgrader->strings[ $errors ];
@@ -114,12 +120,14 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 
 	/**
 	 */
+	#[\Override]
 	public function bulk_header() {
 		$this->feedback( 'skin_upgrade_start' );
 	}
 
 	/**
 	 */
+	#[\Override]
 	public function bulk_footer() {
 		$this->feedback( 'skin_upgrade_end' );
 	}
@@ -127,6 +135,7 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 	/**
 	 * @param string $title
 	 */
+	#[\Override]
 	public function before( $title = '' ) {
 		$this->in_loop = true;
 		printf( '<h2>' . $this->upgrader->strings['skin_before_update_header'] . ' <span class="spinner waiting-' . $this->upgrader->update_current . '"></span></h2>', $title, $this->upgrader->update_current, $this->upgrader->update_count );
@@ -139,6 +148,7 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 	/**
 	 * @param string $title
 	 */
+	#[\Override]
 	public function after( $title = '' ) {
 		echo '</p></div>';
 		if ( $this->error || ! $this->result ) {
