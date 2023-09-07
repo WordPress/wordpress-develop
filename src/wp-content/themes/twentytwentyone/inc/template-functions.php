@@ -69,7 +69,6 @@ add_action( 'wp_head', 'twenty_twenty_one_pingback_header' );
  * @since Twenty Twenty-One 1.0
  * @since Twenty Twenty-One 2.0 Moved from wp_footer to wp_head.
  *
- * @todo Move this to an earlier priority so it runs before the stylesheet is loaded?
  * @return void
  */
 function twenty_twenty_one_supports_js() {
