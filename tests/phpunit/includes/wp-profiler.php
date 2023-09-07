@@ -220,5 +220,3 @@ function wppf_results() {
 function wppf_print_summary() {
 	$GLOBALS['wppf']->print_summary();
 }
-
-
