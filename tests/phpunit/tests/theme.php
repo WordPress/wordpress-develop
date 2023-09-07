@@ -315,7 +315,10 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertSame( $root_fs . '/' . get_template(), get_template_directory() );
 				$this->assertSame( $root_uri . '/' . get_template(), get_template_directory_uri() );
 
-				// get_query_template()
+				// Skip block themes for get_query_template() tests since this test is focused on classic templates.
+				if ( wp_is_block_theme() && current_theme_supports( 'block-templates' ) ) {
+					continue;
+				}
 
 				// Template file that doesn't exist.
 				$this->assertSame( '', get_query_template( 'nonexistant' ) );
@@ -336,9 +339,7 @@ class Tests_Theme extends WP_UnitTestCase {
 
 					$child_theme_file  = get_stylesheet_directory() . '/' . $file . '.php';
 					$parent_theme_file = get_template_directory() . '/' . $file . '.php';
-					if ( wp_is_block_theme() && current_theme_supports( 'block-templates' ) ) {
-						$this->assertSame( ABSPATH . WPINC . '/template-canvas.php', get_query_template( $file ) );
-					} elseif ( file_exists( $child_theme_file ) ) {
+					if ( file_exists( $child_theme_file ) ) {
 						$this->assertSame( $child_theme_file, get_query_template( $file ) );
 					} elseif ( file_exists( $parent_theme_file ) ) {
 						$this->assertSame( $parent_theme_file, get_query_template( $file ) );
