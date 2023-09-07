@@ -324,6 +324,11 @@ class Tests_Theme extends WP_UnitTestCase {
 				foreach ( $theme['Template Files'] as $path ) {
 					$file = basename( $path, '.php' );
 
+					// The functions.php file is not a template.
+					if ( 'functions' === $file ) {
+						continue;
+					}
+
 					// Underscores are not supported by `locate_template()`.
 					if ( 'taxonomy-post_format' === $file ) {
 						$file = 'taxonomy';
