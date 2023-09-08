@@ -178,6 +178,11 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	$script_path_norm = wp_normalize_path( realpath( $path . '/' . $script_path ) );
 	$script_uri       = get_block_asset_uri( $script_path_norm, $metadata['file'] );
 
+	$script_args = array();
+	if ( 'viewScript' === $field_name ) {
+		$script_args['strategy'] = 'defer';
+	}
+
 	$script_asset        = require $script_asset_path;
 	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
 	$result              = wp_register_script(
