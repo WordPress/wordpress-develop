@@ -6045,7 +6045,8 @@ function _doing_it_wrong( $function_name, $message, $version ) {
  * @since 6.4.0
  *
  * @param string $function_name The function that triggered the error.
- * @param string $message       The message explaining the error.
+ * @param string $message       The message explaining the error. If it contains HTML or dynamic content,
+ *                              it should be escaped for browser output before passing to this function.
  * @param int    $error_level   Optional. The designated error type for this error.
  *                              Only works with E_USER family of constants. Default E_USER_NOTICE.
  */
