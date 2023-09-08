@@ -177,6 +177,7 @@ class WP_Plugin_Dependencies {
 				$sanitized_slugs[] = $slug;
 			}
 		}
+		$sanitized_slugs = array_unique( $sanitized_slugs );
 		sort( $sanitized_slugs );
 
 		return $sanitized_slugs;
