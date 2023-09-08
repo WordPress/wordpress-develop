@@ -639,7 +639,7 @@
 		 * @return {void}
 		 */
 		custom_css: function( value ) {
-			$( '#wp-custom-css' ).text( value );
+			$( '#wp-custom-inline-css' ).text( value );
 		},
 
 		/**
