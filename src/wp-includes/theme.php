@@ -1923,17 +1923,12 @@ body.custom-background { <?php echo trim( $style ); ?> }
  */
 function wp_custom_css_cb() {
 	$styles = wp_get_custom_css();
-	if ( $styles || is_customize_preview() ) :
-		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-		?>
-		<style<?php echo $type_attr; ?> id="wp-custom-css">
-			<?php
-			// Note that esc_html() cannot be used because `div &gt; span` is not interpreted properly.
-			echo strip_tags( $styles );
-			?>
-		</style>
-		<?php
-	endif;
+	if ( $styles || is_customize_preview() ) {
+		$handle = 'wp-custom';
+		wp_register_style( $handle, false );
+		wp_add_inline_style( $handle, strip_tags( $styles ) );
+		wp_enqueue_style( $handle );
+	}
 }
 
 /**
