@@ -19,13 +19,10 @@ class Tests_Admin_WPPluginDependencies_GetPlugins extends WP_PluginDependencies_
 	 * Tests that `::get_plugins()` sets the `$plugins` property.
 	 */
 	public function test_get_plugins_should_return_an_array_of_plugin_data() {
-		$get_plugins = $this->make_method_accessible( 'get_plugins' );
-		$get_plugins->invoke( self::$instance );
-		$get_plugins->setAccessible( false );
+		$this->call_method( 'get_plugins' );
 		$actual = $this->get_property_value( 'plugins' );
 
 		$this->assertIsArray( $actual, 'Did not return an array.' );
 		$this->assertNotEmpty( $actual, 'The plugin data array is empty.' );
 	}
-
 }

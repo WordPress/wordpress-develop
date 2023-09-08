@@ -89,5 +89,4 @@ class Tests_Admin_WPPluginDependencies_AddDependentsToDependencyPluginRow extend
 			),
 		);
 	}
-
 }

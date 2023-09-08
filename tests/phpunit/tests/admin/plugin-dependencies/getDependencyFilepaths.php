@@ -28,11 +28,7 @@ class Tests_Admin_WPPluginDependencies_GetDependencyFilepaths extends WP_PluginD
 		$this->set_property_value( 'dependency_slugs', $slugs );
 		$this->set_property_value( 'plugins', array_flip( $plugins ) );
 
-		$get_dependency_filepaths = $this->make_method_accessible( 'get_dependency_filepaths' );
-		$actual                   = $get_dependency_filepaths->invoke( self::$instance );
-		$get_dependency_filepaths->setAccessible( false );
-
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $this->call_method( 'get_dependency_filepaths' ) );
 	}
 
 	/**
@@ -127,8 +123,7 @@ class Tests_Admin_WPPluginDependencies_GetDependencyFilepaths extends WP_PluginD
 	 * it does not match the list of current plugins.
 	 */
 	public function test_get_dependency_filepaths_with_unmatched_dirnames_and_dirnames_cache() {
-		$get_dependency_filepaths = $this->make_method_accessible( 'get_dependency_filepaths' );
-		$expected                 = array(
+		$expected = array(
 			'plugin1' => 'plugin1/plugin1.php',
 			'plugin2' => 'plugin2/plugin2.php',
 			'plugin3' => 'plugin3/plugin3.php',
@@ -161,10 +156,6 @@ class Tests_Admin_WPPluginDependencies_GetDependencyFilepaths extends WP_PluginD
 			)
 		);
 
-		$actual = $get_dependency_filepaths->invoke( self::$instance );
-		$get_dependency_filepaths->setAccessible( false );
-
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $this->call_method( 'get_dependency_filepaths' ) );
 	}
-
 }

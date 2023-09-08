@@ -16,6 +16,12 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	 */
 	protected static $instance;
 
+	/**
+	 * Stores a list of static properties and their default values.
+	 * for resetting after each test runs.
+	 *
+	 * @var array
+	 */
 	protected static $static_properties = array(
 		'plugins'                         => array(),
 		'plugin_dirnames'                 => array(),
@@ -95,14 +101,18 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Makes a class method accessible.
+	 * Temporarily modifies the accessibility of a method to invoke it
+	 * and return its result.
 	 *
-	 * @param string $method The class method.
-	 * @return ReflectionMethod The accessible method.
+	 * @param string $method  The method's name.
+	 * @param mixed  ...$args Arguments for the method.
+	 * @return mixed The result of the method call.
 	 */
-	protected function make_method_accessible( $method ) {
-		$method = new ReflectionMethod( self::$instance, $method );
-		$method->setAccessible( true );
-		return $method;
+	protected function call_method( $method, ...$args ) {
+		$reflection_method = new ReflectionMethod( self::$instance, $method );
+		$reflection_method->setAccessible( true );
+		$value = $reflection_method->invokeArgs( self::$instance, $args );
+		$reflection_method->setAccessible( false );
+		return $value;
 	}
 }

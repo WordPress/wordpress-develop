@@ -30,9 +30,9 @@ class Tests_Admin_WPPluginDependencies_AddDependenciesToDependentPluginRow exten
 	 *
 	 * @dataProvider data_should_output_the_dependency_slug_when_the_dependency_name_is_not_available
 	 *
-	 * @param array  $dependency_slugs    An array of dependency slugs.
-	 * @param array  $plugins             An array of data for all plugins.
-	 * @param string $expected            The expected dependency names.
+	 * @param array  $dependency_slugs An array of dependency slugs.
+	 * @param array  $plugins          An array of data for all plugins.
+	 * @param string $expected         The expected dependency names.
 	 */
 	public function test_should_output_the_dependency_slug_when_the_dependency_name_is_not_available( $dependency_slugs, $plugins, $expected ) {
 		$this->set_property_value( 'dependency_slugs', $dependency_slugs );
@@ -74,5 +74,4 @@ class Tests_Admin_WPPluginDependencies_AddDependenciesToDependentPluginRow exten
 			),
 		);
 	}
-
 }

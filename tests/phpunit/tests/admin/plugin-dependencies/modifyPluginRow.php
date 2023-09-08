@@ -20,7 +20,7 @@ class Tests_Admin_WPPluginDependencies_ModifyPluginRow extends WP_PluginDependen
 	 *
 	 * @dataProvider data_filters
 	 *
-	 * @param string       $hook The hook name.
+	 * @param string       $hook     The hook name.
 	 * @param string|array $callback The callback.
 	 */
 	public function test_should_not_cause_filters_to_be_set_if_not_currently_on_plugins_php( $hook, $callback ) {
@@ -50,7 +50,7 @@ class Tests_Admin_WPPluginDependencies_ModifyPluginRow extends WP_PluginDependen
 	 *
 	 * @dataProvider data_actions
 	 *
-	 * @param string       $hook The hook name.
+	 * @param string       $hook     The hook name.
 	 * @param string|array $callback The callback.
 	 */
 	public function test_should_not_cause_actions_to_be_set_if_not_currently_on_plugins_php( $hook, $callback ) {
@@ -80,7 +80,7 @@ class Tests_Admin_WPPluginDependencies_ModifyPluginRow extends WP_PluginDependen
 	 *
 	 * @dataProvider data_filters
 	 *
-	 * @param string       $hook The hook name.
+	 * @param string       $hook     The hook name.
 	 * @param string|array $callback The callback.
 	 */
 	public function test_should_cause_filters_to_be_set_if_currently_on_plugins_php( $hook, $callback ) {
@@ -121,7 +121,7 @@ class Tests_Admin_WPPluginDependencies_ModifyPluginRow extends WP_PluginDependen
 	 *
 	 * @dataProvider data_actions
 	 *
-	 * @param string       $hook The hook name.
+	 * @param string       $hook     The hook name.
 	 * @param string|array $callback The callback.
 	 */
 	public function test_should_cause_actions_to_be_set_if_currently_on_plugins_php( $hook, $callback ) {
@@ -212,5 +212,4 @@ class Tests_Admin_WPPluginDependencies_ModifyPluginRow extends WP_PluginDependen
 			),
 		);
 	}
-
 }

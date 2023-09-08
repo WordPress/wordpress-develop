@@ -24,10 +24,7 @@ class Tests_Admin_WPPluginDependencies_AddDependencyPluginRowHooks extends WP_Pl
 	 * @param string|array $callback The callback.
 	 */
 	public function test_should_hook_callback( $hook, $callback ) {
-		$add_dependency_plugin_row_hooks = $this->make_method_accessible( 'add_dependency_plugin_row_hooks' );
-		$add_dependency_plugin_row_hooks->invoke( self::$instance, 'plugin1/plugin1.php' );
-		$add_dependency_plugin_row_hooks->setAccessible( false );
-
+		$this->call_method( 'add_dependency_plugin_row_hooks', 'plugin1/plugin1.php' );
 		$this->assertIsInt( has_filter( $hook, $callback ) );
 	}
 
@@ -65,5 +62,4 @@ class Tests_Admin_WPPluginDependencies_AddDependencyPluginRowHooks extends WP_Pl
 			),
 		);
 	}
-
 }

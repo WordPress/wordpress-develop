@@ -24,11 +24,7 @@ class Tests_Admin_WPPluginDependencies_SanitizeDependencySlugs extends WP_Plugin
 	 * @param array  $expected         The sanitized dependency slug(s).
 	 */
 	public function test_should_return_sanitized_slugs( $requires_plugins, $expected ) {
-		$sanitize_dependency_slugs = $this->make_method_accessible( 'sanitize_dependency_slugs' );
-		$actual                    = $sanitize_dependency_slugs->invoke( self::$instance, $requires_plugins );
-		$sanitize_dependency_slugs->setAccessible( false );
-
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $this->call_method( 'sanitize_dependency_slugs', $requires_plugins ) );
 	}
 
 	/**
@@ -89,9 +85,7 @@ class Tests_Admin_WPPluginDependencies_SanitizeDependencySlugs extends WP_Plugin
 	 * @param string $requires_plugins The unsanitized dependency slug(s).
 	 */
 	public function test_should_return_an_empty_array_for_invalid_slugs( $requires_plugins ) {
-		$sanitize_dependency_slugs = $this->make_method_accessible( 'sanitize_dependency_slugs' );
-		$actual                    = $sanitize_dependency_slugs->invoke( self::$instance, $requires_plugins );
-		$sanitize_dependency_slugs->setAccessible( false );
+		$actual = $this->call_method( 'sanitize_dependency_slugs', $requires_plugins );
 
 		$this->assertIsArray( $actual, 'An array was not returned.' );
 		$this->assertEmpty( $actual, 'An empty array was not returned.' );
@@ -142,5 +136,4 @@ class Tests_Admin_WPPluginDependencies_SanitizeDependencySlugs extends WP_Plugin
 			),
 		);
 	}
-
 }

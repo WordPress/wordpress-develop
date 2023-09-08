@@ -29,5 +29,4 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 		$this->assertIsArray( $dependency_api_data, '$dependency_api_data is not an array.' );
 		$this->assertEmpty( $dependency_api_data, '$dependency_api_data is not empty.' );
 	}
-
 }
