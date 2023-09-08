@@ -5657,6 +5657,27 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		return $loading_attrs;
 	}
 
+	/**
+	 * Filters whether to short-circuit loading optimization attributes.
+	 *
+	 * Returning an array from the filter will effectively short-circuit the loading of optimization attributes,
+	 * returning that value instead.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param false|array $loading_attrs The loading optimization attributes.
+	 * @param array       $attr          Array of the attributes for the tag.
+	 * @param string      $context       Context for the element for which the loading optimization attribute is requested.
+	 */
+	$loading_attrs = apply_filters( 'wp_pre_get_loading_optimization_attributes', false, $attr, $context );
+
+	if ( is_array( $loading_attrs ) ) {
+		return $loading_attrs;
+	}
+
+	// Resets the loading attributes.
+	$loading_attrs = array();
+
 	/*
 	 * The key function logic starts here.
 	 */
@@ -5788,6 +5809,17 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			wp_increase_content_media_count();
 		}
 	}
+
+	/**
+	 * Filters the loading optimization attributes.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array  $loading_attrs The loading optimization attributes.
+	 * @param array  $attr          Array of the attributes for the tag.
+	 * @param string $context       Context for the element for which the loading optimization attribute is requested.
+	 */
+	$loading_attrs = apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $attr, $context );
 
 	return $loading_attrs;
 }
