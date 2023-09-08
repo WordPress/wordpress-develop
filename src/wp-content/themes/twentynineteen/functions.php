@@ -265,7 +265,7 @@ function twentynineteen_scripts() {
 			array(),
 			'20200129',
 			array(
-				'in_footer' => false,
+				'in_footer' => false, // Because involves header.
 				'strategy'  => 'defer',
 			)
 		);
@@ -275,7 +275,7 @@ function twentynineteen_scripts() {
 			array(),
 			'20230621',
 			array(
-				'in_footer' => false,
+				'in_footer' => true,
 				'strategy'  => 'defer',
 			)
 		);
