@@ -461,7 +461,7 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 	<legend>
 		<span class="hidden" id="editlegend"><?php _e( 'Edit Comment' ); ?></span>
 		<span class="hidden" id="replyhead"><?php _e( 'Reply to Comment' ); ?></span>
-		<span class="hidden" id="addhead"><?php _e( 'Add new Comment' ); ?></span>
+		<span class="hidden" id="addhead"><?php _e( 'Add New Comment' ); ?></span>
 	</legend>
 
 	<div id="replycontainer">
@@ -900,7 +900,7 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
  * @since 4.7.0 Added the `$post_type` parameter.
  *
  * @param string $default_template Optional. The template file name. Default empty.
- * @param string $post_type        Optional. Post type to get templates for. Default 'post'.
+ * @param string $post_type        Optional. Post type to get templates for. Default 'page'.
  */
 function page_template_dropdown( $default_template = '', $post_type = 'page' ) {
 	$templates = get_page_templates( null, $post_type );

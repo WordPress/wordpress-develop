@@ -1065,8 +1065,10 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
 		$user_id = get_current_user_id();
 	}
 
-	// Technically not needed, but does save calls to get_site() and get_user_meta()
-	// in the event that the function is called when a user isn't logged in.
+	/*
+	 * Technically not needed, but does save calls to get_site() and get_user_meta()
+	 * in the event that the function is called when a user isn't logged in.
+	 */
 	if ( empty( $user_id ) ) {
 		return false;
 	} else {
@@ -2429,9 +2431,16 @@ function wp_insert_user( $userdata ) {
 
 	$meta = array_merge( $meta, $custom_meta );
 
-	// Update user meta.
-	foreach ( $meta as $key => $value ) {
-		update_user_meta( $user_id, $key, $value );
+	if ( $update ) {
+		// Update user meta.
+		foreach ( $meta as $key => $value ) {
+			update_user_meta( $user_id, $key, $value );
+		}
+	} else {
+		// Add user meta.
+		foreach ( $meta as $key => $value ) {
+			add_user_meta( $user_id, $key, $value );
+		}
 	}
 
 	foreach ( wp_get_user_contact_methods( $user ) as $key => $value ) {
@@ -2723,8 +2732,10 @@ All at ###SITENAME###
 		if ( isset( $plaintext_pass ) ) {
 			wp_clear_auth_cookie();
 
-			// Here we calculate the expiration length of the current auth cookie and compare it to the default expiration.
-			// If it's greater than this, then we know the user checked 'Remember Me' when they logged in.
+			/*
+			 * Here we calculate the expiration length of the current auth cookie and compare it to the default expiration.
+			 * If it's greater than this, then we know the user checked 'Remember Me' when they logged in.
+			 */
 			$logged_in_cookie = wp_parse_auth_cookie( '', 'logged_in' );
 			/** This filter is documented in wp-includes/pluggable.php */
 			$default_cookie_life = apply_filters( 'auth_cookie_expiration', ( 2 * DAY_IN_SECONDS ), $user_id, false );
@@ -2949,7 +2960,6 @@ function get_password_reset_key( $user ) {
  *
  * @since 3.1.0
  *
- * @global wpdb         $wpdb      WordPress database object for queries.
  * @global PasswordHash $wp_hasher Portable PHP password hashing framework instance.
  *
  * @param string $key       Hash to validate sending user's password.
@@ -2957,7 +2967,7 @@ function get_password_reset_key( $user ) {
  * @return WP_User|WP_Error WP_User object on success, WP_Error object for invalid or expired keys.
  */
 function check_password_reset_key( $key, $login ) {
-	global $wpdb, $wp_hasher;
+	global $wp_hasher;
 
 	$key = preg_replace( '/[^a-z0-9]/i', '', $key );
 
@@ -3797,7 +3807,12 @@ function wp_register_user_personal_data_exporter( $exporters ) {
  * @since 5.4.0 Added 'Session Tokens' group to the export data.
  *
  * @param string $email_address  The user's email address.
- * @return array An array of personal data.
+ * @return array {
+ *     An array of personal data.
+ *
+ *     @type array[] $data An array of personal data arrays.
+ *     @type bool    $done Whether the exporter is finished.
+ * }
  */
 function wp_user_personal_data_exporter( $email_address ) {
 	$email_address = trim( $email_address );
@@ -4028,7 +4043,7 @@ function _wp_privacy_account_request_confirmed( $request_id ) {
 function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 	$request = wp_get_user_request( $request_id );
 
-	if ( ! is_a( $request, 'WP_User_Request' ) || 'request-confirmed' !== $request->status ) {
+	if ( ! ( $request instanceof WP_User_Request ) || 'request-confirmed' !== $request->status ) {
 		return;
 	}
 
@@ -4240,7 +4255,7 @@ All at ###SITENAME###
 function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	$request = wp_get_user_request( $request_id );
 
-	if ( ! is_a( $request, 'WP_User_Request' ) || 'request-completed' !== $request->status ) {
+	if ( ! ( $request instanceof WP_User_Request ) || 'request-completed' !== $request->status ) {
 		return;
 	}
 

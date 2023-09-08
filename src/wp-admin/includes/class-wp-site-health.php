@@ -746,7 +746,7 @@ class WP_Site_Health {
 				)
 			),
 			'actions'     => sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				esc_url( wp_get_update_php_url() ),
 				__( 'Learn more about updating PHP' ),
 				/* translators: Hidden accessibility text. */
@@ -894,7 +894,7 @@ class WP_Site_Health {
 					esc_url( __( 'https://make.wordpress.org/hosting/handbook/handbook/server-environment/#php-extensions' ) ),
 					'target="_blank" rel="noopener"',
 					sprintf(
-						' <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
+						'<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
 						/* translators: Hidden accessibility text. */
 						__( '(opens in a new tab)' )
 					)
@@ -1218,7 +1218,7 @@ class WP_Site_Health {
 				__( 'The SQL server is a required piece of software for the database WordPress uses to store all your site&#8217;s content and settings.' )
 			),
 			'actions'     => sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				/* translators: Localized version of WordPress requirements if one exists. */
 				esc_url( __( 'https://wordpress.org/about/requirements/' ) ),
 				__( 'Learn more about what WordPress requires to run.' ),
@@ -1356,13 +1356,8 @@ class WP_Site_Health {
 			}
 		}
 
-		if ( $wpdb->use_mysqli ) {
-			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_client_info
-			$mysql_client_version = mysqli_get_client_info();
-		} else {
-			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_client_info,PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved
-			$mysql_client_version = mysql_get_client_info();
-		}
+		// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_client_info
+		$mysql_client_version = mysqli_get_client_info();
 
 		/*
 		 * libmysql has supported utf8mb4 since 5.5.3, same as the MySQL server.
@@ -1458,7 +1453,7 @@ class WP_Site_Health {
 			);
 
 			$result['actions'] = sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				/* translators: Localized Support reference. */
 				esc_url( __( 'https://wordpress.org/support/forums/' ) ),
 				__( 'Get help resolving this issue.' ),
@@ -1496,7 +1491,7 @@ class WP_Site_Health {
 				__( 'Debug mode is often enabled to gather more details about an error or site failure, but may contain sensitive information which should not be available on a publicly available website.' )
 			),
 			'actions'     => sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				/* translators: Documentation explaining debugging in WordPress. */
 				esc_url( __( 'https://wordpress.org/documentation/article/debugging-in-wordpress/' ) ),
 				__( 'Learn more about debugging in WordPress.' ),
@@ -1943,10 +1938,6 @@ class WP_Site_Health {
 	public function get_test_available_updates_disk_space() {
 		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR . '/upgrade/' ) : false;
 
-		$available_space = false !== $available_space
-			? (int) $available_space
-			: 0;
-
 		$result = array(
 			'label'       => __( 'Disk space available to safely perform updates' ),
 			'status'      => 'good',
@@ -1963,18 +1954,14 @@ class WP_Site_Health {
 			'test'        => 'available_updates_disk_space',
 		);
 
-		if ( $available_space < 100 * MB_IN_BYTES ) {
-			$result['description'] = __( 'Available disk space is low, less than 100 MB available.' );
+		if ( false === $available_space ) {
+			$result['description'] = __( 'Could not determine available disk space for updates.' );
 			$result['status']      = 'recommended';
-		}
-
-		if ( $available_space < 20 * MB_IN_BYTES ) {
+		} elseif ( $available_space < 20 * MB_IN_BYTES ) {
 			$result['description'] = __( 'Available disk space is critically low, less than 20 MB available. Proceed with caution, updates may fail.' );
 			$result['status']      = 'critical';
-		}
-
-		if ( ! $available_space ) {
-			$result['description'] = __( 'Could not determine available disk space for updates.' );
+		} elseif ( $available_space < 100 * MB_IN_BYTES ) {
+			$result['description'] = __( 'Available disk space is low, less than 100 MB available.' );
 			$result['status']      = 'recommended';
 		}
 
@@ -2009,9 +1996,19 @@ class WP_Site_Health {
 			'test'        => 'update_temp_backup_writable',
 		);
 
-		if ( ! $wp_filesystem ) {
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
 			require_once ABSPATH . '/wp-admin/includes/file.php';
-			WP_Filesystem();
+		}
+
+		ob_start();
+		$credentials = request_filesystem_credentials( '' );
+		ob_end_clean();
+
+		if ( false === $credentials || ! WP_Filesystem( $credentials ) ) {
+			$result['status']      = 'recommended';
+			$result['label']       = __( 'Could not access filesystem' );
+			$result['description'] = __( 'Unable to connect to the filesystem. Please confirm your credentials.' );
+			return $result;
 		}
 
 		$wp_content = $wp_filesystem->wp_content_dir();
@@ -2478,7 +2475,7 @@ class WP_Site_Health {
 			);
 		} else {
 			$result['actions'] .= sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				__( 'https://developer.wordpress.org/rest-api/frequently-asked-questions/#why-is-authentication-not-working' ),
 				__( 'Learn how to configure the Authorization header.' ),
 				/* translators: Hidden accessibility text. */
@@ -2511,7 +2508,7 @@ class WP_Site_Health {
 			'status'      => 'good',
 			'label'       => '',
 			'actions'     => sprintf(
-				'<p><a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				__( 'https://wordpress.org/documentation/article/optimization/#Caching' ),
 				__( 'Learn more about page cache' ),
 				/* translators: Hidden accessibility text. */
@@ -2637,7 +2634,7 @@ class WP_Site_Health {
 				__( 'A persistent object cache makes your site&#8217;s database more efficient, resulting in faster load times because WordPress can retrieve your site&#8217;s content and settings much more quickly.' )
 			),
 			'actions'     => sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				esc_url( $action_url ),
 				__( 'Learn more about persistent object caching.' ),
 				/* translators: Hidden accessibility text. */

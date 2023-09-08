@@ -3271,7 +3271,14 @@ class WP_Query {
 		}
 
 		if ( null === $this->posts ) {
-			$split_the_query = ( $old_request == $this->request && "{$wpdb->posts}.*" === $fields && ! empty( $limits ) && $q['posts_per_page'] < 500 );
+			$split_the_query = (
+				$old_request == $this->request
+				&& "{$wpdb->posts}.*" === $fields
+				&& (
+					wp_using_ext_object_cache()
+					|| ( ! empty( $limits ) && $q['posts_per_page'] < 500 )
+				)
+			);
 
 			/**
 			 * Filters whether to split the query.
@@ -4312,7 +4319,7 @@ class WP_Query {
 	 * If you set a static page for the front page of your site, this function will return
 	 * true when viewing that page.
 	 *
-	 * Otherwise the same as @see WP_Query::is_home()
+	 * Otherwise the same as {@see WP_Query::is_home()}.
 	 *
 	 * @since 3.1.0
 	 *

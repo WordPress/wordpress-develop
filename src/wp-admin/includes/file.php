@@ -689,7 +689,25 @@ function wp_tempnam( $filename = '', $dir = '' ) {
 	// Suffix some random data to avoid filename conflicts.
 	$temp_filename .= '-' . wp_generate_password( 6, false );
 	$temp_filename .= '.tmp';
-	$temp_filename  = $dir . wp_unique_filename( $dir, $temp_filename );
+	$temp_filename  = wp_unique_filename( $dir, $temp_filename );
+
+	/*
+	 * Filesystems typically have a limit of 255 characters for a filename.
+	 *
+	 * If the generated unique filename exceeds this, truncate the initial
+	 * filename and try again.
+	 *
+	 * As it's possible that the truncated filename may exist, producing a
+	 * suffix of "-1" or "-10" which could exceed the limit again, truncate
+	 * it to 252 instead.
+	 */
+	$characters_over_limit = strlen( $temp_filename ) - 252;
+	if ( $characters_over_limit > 0 ) {
+		$filename = substr( $filename, 0, -$characters_over_limit );
+		return wp_tempnam( $filename, $dir );
+	}
+
+	$temp_filename = $dir . $temp_filename;
 
 	$fp = @fopen( $temp_filename, 'x' );
 
@@ -759,9 +777,9 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  *     An array of override parameters for this file, or boolean false if none are provided.
  *
  *     @type callable $upload_error_handler     Function to call when there is an error during the upload process.
- *                                              @see wp_handle_upload_error().
+ *                                              See {@see wp_handle_upload_error()}.
  *     @type callable $unique_filename_callback Function to call when determining a unique file name for the file.
- *                                              @see wp_unique_filename().
+ *                                              See {@see wp_unique_filename()}.
  *     @type string[] $upload_error_strings     The strings that describe the error indicated in
  *                                              `$_FILES[{form field}]['error']`.
  *     @type bool     $test_form                Whether to test that the `$_POST['action']` parameter is as expected.
@@ -827,7 +845,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	 * @since 5.7.0
 	 *
 	 * @param array|false $overrides An array of override parameters for this file. Boolean false if none are
-	 *                               provided. @see _wp_handle_upload().
+	 *                               provided. See {@see _wp_handle_upload()}.
 	 * @param array       $file      {
 	 *     Reference to a single element from `$_FILES`.
 	 *

@@ -470,8 +470,10 @@ function get_page_template() {
 	$pagename = get_query_var( 'pagename' );
 
 	if ( ! $pagename && $id ) {
-		// If a static page is set as the front page, $pagename will not be set.
-		// Retrieve it from the queried object.
+		/*
+		 * If a static page is set as the front page, $pagename will not be set.
+		 * Retrieve it from the queried object.
+		 */
 		$post = get_queried_object();
 		if ( $post ) {
 			$pagename = $post->post_name;
@@ -705,7 +707,7 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 		if ( file_exists( STYLESHEETPATH . '/' . $template_name ) ) {
 			$located = STYLESHEETPATH . '/' . $template_name;
 			break;
-		} elseif ( file_exists( TEMPLATEPATH . '/' . $template_name ) ) {
+		} elseif ( is_child_theme() && file_exists( TEMPLATEPATH . '/' . $template_name ) ) {
 			$located = TEMPLATEPATH . '/' . $template_name;
 			break;
 		} elseif ( file_exists( ABSPATH . WPINC . '/theme-compat/' . $template_name ) ) {

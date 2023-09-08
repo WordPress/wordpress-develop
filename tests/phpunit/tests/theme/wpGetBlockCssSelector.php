@@ -353,4 +353,3 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		$this->assertEquals( '.found', $selector );
 	}
 }
-
