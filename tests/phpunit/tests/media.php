@@ -4663,12 +4663,111 @@ EOF;
 	}
 
 	/**
+	 * Tests that wp_filter_content_tags() and more specifically wp_get_loading_optimization_attributes() correctly
+	 * handle shortcodes images together with the content that it is part of.
+	 *
+	 * Images within shortcodes as part of the content should be ignored by wp_get_loading_optimization_attributes() to
+	 * avoid double processing. They should instead only be processed together with any other images as part of the
+	 * content, to correctly count the original sequencing of those images.
+	 *
 	 * @ticket 58853
 	 *
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_get_loading_optimization_attributes
 	 */
-	public function test_wp_filter_content_tags_handles_shortcode_images_within_the_content() {
+	public function test_wp_filter_content_tags_handles_shortcode_image_together_with_the_content() {
+		global $wp_query, $wp_the_query;
+
+		// Add shortcode that prints a large image, and a block type that wraps it.
+		add_shortcode(
+			'full_image',
+			static function( $atts ) {
+				$atts = shortcode_atts(
+					array(
+						'id' => 0,
+					),
+					$atts,
+					'full_image'
+				);
+				return wp_get_attachment_image( (int) $atts['id'], 'full' );
+			}
+		);
+
+		/*
+		 * Even though `do_shortcode()` runs before `wp_filter_content_tags()`, the image from the shortcode should not
+		 * receive any loading optimization attributes because it needs to be considered together with the rest of the
+		 * post content, within `wp_filter_content_tags()`.
+		 * Since the hard-coded image appears before the shortcode image, it should receive `fetchpriority="high"`,
+		 * despite the shortcode image being parsed before it.
+		 */
+		$post_content  = '<img decoding="async" src="example.jpg" width="800" height="600">' . "\n";
+		$post_content .= '[full_image id="' . self::$large_id . '"]';
+		$post_content  = wpautop( $post_content );
+
+		/*
+		 * Prepare the expected output:
+		 * 1. On the first image (hard-coded in the content), expect `fetchpriority="high"`.
+		 * 2. Replace the shortcode with its expected output, i.e. the full image. Expect neither
+		 * `fetchpriority="high"` nor `loading="lazy"`.
+		 */
+		$expected_content = $post_content;
+		$expected_content = str_replace(
+			'<img decoding="async" src="example.jpg"',
+			'<img decoding="async" fetchpriority="high" src="example.jpg"',
+			$expected_content
+		);
+		$expected_content = str_replace(
+			'[full_image id="' . self::$large_id . '"]',
+			wp_get_attachment_image(
+				self::$large_id,
+				'full',
+				false,
+				array(
+					'fetchpriority' => false,
+					'loading'       => false,
+				)
+			),
+			$expected_content
+		);
+
+		// Create post with the content.
+		$post_id = self::factory()->post->create(
+			array(
+				'post_content' => $post_content,
+				'post_excerpt' => '',
+			)
+		);
+
+		// We have to run a main query loop so that the first 'the_content' context images are not lazy-loaded.
+		$wp_query     = new WP_Query( array( 'post__in' => array( $post_id ) ) );
+		$wp_the_query = $wp_query;
+
+		$content = '';
+		while ( have_posts() ) {
+			the_post();
+			$content = get_echo( 'the_content' );
+		}
+
+		// Cleanup.
+		remove_shortcode( 'full_image' );
+
+		$this->assertSame( $expected_content, $content );
+	}
+
+	/**
+	 * Tests that wp_filter_content_tags() and more specifically wp_get_loading_optimization_attributes() correctly
+	 * handle shortcodes images within the content, including within a block.
+	 *
+	 * Images within shortcodes as part of the content should be ignored by wp_get_loading_optimization_attributes() to
+	 * avoid double processing. They should instead only be processed together with any other images as part of the
+	 * content, to correctly count the original sequencing of those images.
+	 *
+	 * @ticket 58853
+	 *
+	 * @covers ::wp_filter_content_tags
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_filter_content_tags_handles_shortcode_images_also_in_blocks_within_the_content() {
 		global $wp_query, $wp_the_query;
 
 		// Add shortcode that prints a large image, and a block type that wraps it.
@@ -4703,6 +4802,23 @@ EOF;
 		 * 2. Regular hard-coded image.
 		 * 3. Using custom shortcode within block.
 		 * 4. Regular hard-coded image. Expected `loading="lazy"`.
+		 *
+		 * The first image is expected to be prioritized because it is the first (large enough) content image.
+		 * The first three images are expected to not have lazy-loading because that is the default threshold for
+		 * omitting the attribute.
+		 * The fourth image is expected to be lazy-loaded as it is past the default threshold.
+		 *
+		 * The results will only be correct if all images are considered together. For example:
+		 * * If the image within the shortcode would only be parsed after the rest of the content, it would miss the
+		 * `fetchpriority="high"` attribute and instead incorrectly receive `loading="lazy"`. The second image would as
+		 * a result incorrectly receive `fetchpriority="high"`.
+		 * * If the image within the block would be parsed before the rest of the content, it would incorrectly receive
+		 * the `fetchpriority="high"` attribute. Then the first image would no longer receive the attribute.
+		 *
+		 * To ensure that this works:
+		 * * `wp_filter_content_tags()` must run after `do_blocks()` and `do_shortcode()`.
+		 * * `wp_get_loading_optimization_attributes()` must bail early if any images from the content blob are being
+		 * considered under a different context name than 'the_content'.
 		 */
 		$post_content  = '[gallery ids="' . self::$large_id . '" size="large"]' . "\n";
 		$post_content .= '<img decoding="async" src="example.jpg" width="800" height="600">' . "\n";
@@ -4717,23 +4833,28 @@ EOF;
 			)
 		);
 
-		// Get shortcode output with increased ID since the instance count below will be 1 higher.
-		$shortcode_output = preg_replace_callback(
-			'/gallery-(\d+)/',
-			static function( $match ) {
-				return 'gallery-' . ( (int) $match[1] + 1 );
-			},
-			do_shortcode( '[gallery ids="' . self::$large_id . '" size="large" id="' . $post_id . '"]' )
-		);
-
+		/*
+		 * Prepare the expected output:
+		 * 1. Replace the shortcode with its expected output (ID increased by 1 because of static variable within
+		 * the gallery_shortcode() function). Expect `fetchpriority="high"`, but not `loading="lazy"`.
+		 * 2. Do not modify the second image as it is hard-coded in the content and expected to be unchanged.
+		 * 3. Replace the block with its expected output, i.e. the full image from the shortcode within. Expect neither
+		 * `fetchpriority="high"` nor `loading="lazy"`.
+		 * 4. On the fourth image (hard-coded in the content), expect `loading="lazy"`.
+		 */
 		$expected_content = $post_content;
 		$expected_content = str_replace(
 			'[gallery ids="' . self::$large_id . '" size="large"]',
-			// Fix gallery ID and expect `fetchpriority="high"`.
 			str_replace(
 				array( ' loading="lazy"', '<img ' ),
 				array( '', '<img fetchpriority="high" ' ),
-				$shortcode_output
+				preg_replace_callback(
+					'/gallery-(\d+)/',
+					static function( $match ) {
+						return 'gallery-' . ( (int) $match[1] + 1 );
+					},
+					do_shortcode( '[gallery ids="' . self::$large_id . '" size="large" id="' . $post_id . '"]' )
+				)
 			),
 			$expected_content
 		);
@@ -5115,7 +5236,12 @@ EOF;
 	}
 
 	/**
+	 * Tests that the `do_shortcode` context results in a lazy-loaded image by default.
+	 *
 	 * @ticket 58681
+	 * @ticket 58853
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_get_loading_optimization_attributes_in_shortcodes() {
 		$attr = $this->get_width_height_for_high_priority();
@@ -5127,6 +5253,50 @@ EOF;
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'do_shortcode' ),
 			'Lazy-loading not applied to shortcodes outside the loop.'
+		);
+	}
+
+	/**
+	 * Tests that the `do_shortcode` context does not result in loading optimization changes when used within a content
+	 * blob.
+	 *
+	 * @ticket 58853
+	 * @dataProvider data_get_filters_with_do_shortcode_callback
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_get_loading_optimization_attributes_in_shortcodes_within_content_blob( $filter_name ) {
+		$result = null;
+
+		remove_all_filters( $filter_name );
+		add_filter(
+			$filter_name,
+			function( $content ) use ( &$result ) {
+				$attr   = $this->get_width_height_for_high_priority();
+				$result = wp_get_loading_optimization_attributes( 'img', $attr, 'do_shortcode' );
+				return $content;
+			}
+		);
+		apply_filters( $filter_name, '' );
+
+		// Shortcodes processed within content blobs like 'the_content' should never get any loading optimization attributes.
+		$this->assertSame(
+			array(),
+			$result,
+			'Loading optimization unexpectedly applied to shortcodes within content blob.'
+		);
+	}
+
+	/**
+	 * Gets filters for content blobs that by default have a `do_shortcode()` callback.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_filters_with_do_shortcode_callback() {
+		return array(
+			array( 'the_content' ),
+			array( 'widget_text_content' ),
+			array( 'widget_block_content' ),
 		);
 	}
 
