@@ -1911,7 +1911,7 @@ function _custom_background_cb() {
 
 		$style .= $image . $position . $size . $repeat . $attachment;
 	}
-	wp_add_inline_style( $handle, 'body.custom-background { '. trim( $style ).' }' );
+	wp_add_inline_style( $handle, 'body.custom-background { ' . trim( $style ) . ' }' );
 	wp_enqueue_style( $handle );
 }
 
