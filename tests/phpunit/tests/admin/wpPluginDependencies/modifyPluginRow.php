@@ -147,7 +147,6 @@ class Tests_Admin_WPPluginDependencies_ModifyPluginRow extends WP_PluginDependen
 			array( 'dependency1' )
 		);
 
-
 		self::$instance->modify_plugin_row();
 
 		$pagenow = $pagenow_backup;
@@ -204,11 +203,11 @@ class Tests_Admin_WPPluginDependencies_ModifyPluginRow extends WP_PluginDependen
 	public function data_actions() {
 		return array(
 			'after_plugin_row_meta (dependency)' => array(
-				'hook' => 'after_plugin_row_meta',
+				'hook'     => 'after_plugin_row_meta',
 				'callback' => array( 'WP_Plugin_Dependencies', 'add_dependents_to_dependency_plugin_row' ),
 			),
-			'after_plugin_row_meta (dependent)' => array(
-				'hook' => 'after_plugin_row_meta',
+			'after_plugin_row_meta (dependent)'  => array(
+				'hook'     => 'after_plugin_row_meta',
 				'callback' => array( 'WP_Plugin_Dependencies', 'add_dependencies_to_dependent_plugin_row' ),
 			),
 		);

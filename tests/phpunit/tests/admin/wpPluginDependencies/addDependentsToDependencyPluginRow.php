@@ -45,7 +45,7 @@ class Tests_Admin_WPPluginDependencies_AddDependentsToDependencyPluginRow extend
 			array( self::$instance, 'add_dependents_to_dependency_plugin_row' ),
 			array(
 				'plugin1/plugin1.php',
-				$plugin_data
+				$plugin_data,
 			)
 		);
 
@@ -59,23 +59,23 @@ class Tests_Admin_WPPluginDependencies_AddDependentsToDependencyPluginRow extend
 	 */
 	public function data_should_output_dependent_names() {
 		return array(
-			'one dependent' => array(
+			'one dependent'  => array(
 				'plugin_data' => array(
 					'slug' => 'dependency1',
 				),
-				'plugins' => array(
+				'plugins'     => array(
 					'dependent1/dependent1.php' => array(
 						'Name'            => 'Dependent 1',
 						'RequiresPlugins' => array( 'dependency1' ),
 					),
 				),
-				'expected' => 'Dependent 1',
+				'expected'    => 'Dependent 1',
 			),
 			'two dependents' => array(
 				'plugin_data' => array(
 					'slug' => 'dependency1',
 				),
-				'plugins' => array(
+				'plugins'     => array(
 					'dependent1/dependent1.php' => array(
 						'Name'            => 'Dependent 1',
 						'RequiresPlugins' => array( 'dependency1' ),
@@ -85,7 +85,7 @@ class Tests_Admin_WPPluginDependencies_AddDependentsToDependencyPluginRow extend
 						'RequiresPlugins' => array( 'dependency1' ),
 					),
 				),
-				'expected' => 'Dependent 1, Dependent 2',
+				'expected'    => 'Dependent 1, Dependent 2',
 			),
 		);
 	}

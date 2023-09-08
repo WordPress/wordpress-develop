@@ -38,7 +38,7 @@ class Tests_Admin_WPPluginDependencies_AddDependencyPluginRowHooks extends WP_Pl
 	 */
 	public function data_should_hook_callback() {
 		return array(
-			'after_plugin_row_meta' => array(
+			'after_plugin_row_meta'                        => array(
 				'hook'     => 'after_plugin_row_meta',
 				'callback' => array(
 					'WP_Plugin_Dependencies',
@@ -49,7 +49,7 @@ class Tests_Admin_WPPluginDependencies_AddDependencyPluginRowHooks extends WP_Pl
 				'hook'     => 'plugin_row_hide_checkbox_plugin1/plugin1.php',
 				'callback' => '__return_true',
 			),
-			'plugin_action_links_plugin1/plugin1.php' => array(
+			'plugin_action_links_plugin1/plugin1.php'      => array(
 				'hook'     => 'plugin_action_links_plugin1/plugin1.php',
 				'callback' => array(
 					'WP_Plugin_Dependencies',

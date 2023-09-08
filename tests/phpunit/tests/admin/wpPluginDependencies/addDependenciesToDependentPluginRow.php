@@ -34,7 +34,7 @@ class Tests_Admin_WPPluginDependencies_AddDependenciesToDependentPluginRow exten
 	 * @param array  $plugins             An array of data for all plugins.
 	 * @param string $expected            The expected dependency names.
 	 */
-	public function test_should_output_the_dependency_slug_when_the_dependency_name_is_not_available( $dependency_slugs, $plugins,  $expected ) {
+	public function test_should_output_the_dependency_slug_when_the_dependency_name_is_not_available( $dependency_slugs, $plugins, $expected ) {
 		$this->set_property_value( 'dependency_slugs', $dependency_slugs );
 		$this->set_property_value( 'plugins', $plugins );
 		$this->set_property_value(
@@ -59,18 +59,18 @@ class Tests_Admin_WPPluginDependencies_AddDependenciesToDependentPluginRow exten
 		return array(
 			'one dependency' => array(
 				'dependency_slugs' => array( 'dependency1' ),
-				'plugins' => array(
+				'plugins'          => array(
 					'dependency1/dependency1.php' => array(),
 				),
-				'expected' => 'dependency1',
+				'expected'         => 'dependency1',
 			),
 			'two dependents' => array(
 				'plugin_data' => array( 'dependency1', 'dependency2' ),
-				'plugins' => array(
+				'plugins'     => array(
 					'dependency1/dependency1.php' => array(),
 					'dependency2/dependency2.php' => array(),
 				),
-				'expected' => 'dependency1, dependency2',
+				'expected'    => 'dependency1, dependency2',
 			),
 		);
 	}

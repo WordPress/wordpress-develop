@@ -38,7 +38,7 @@ class Tests_Admin_WPPluginDependencies_AddDependentPluginRowHooks extends WP_Plu
 	 */
 	public function data_should_hook_callback() {
 		return array(
-			'after_plugin_row_meta' => array(
+			'after_plugin_row_meta'                   => array(
 				'hook'     => 'after_plugin_row_meta',
 				'callback' => array(
 					'WP_Plugin_Dependencies',
