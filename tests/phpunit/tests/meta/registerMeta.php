@@ -551,7 +551,6 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		update_metadata( $object_type, $object_id, $meta_key, $meta_value );
 		$value = get_metadata( $object_type, $object_id, $meta_key, true );
 		$this->assertSame( $value, $meta_value );
-
 	}
 
 	/**

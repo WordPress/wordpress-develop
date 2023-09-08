@@ -102,5 +102,4 @@ class Tests_Blocks_wpBlockList extends WP_UnitTestCase {
 
 		$this->assertCount( 1, $blocks );
 	}
-
 }

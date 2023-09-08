@@ -369,7 +369,6 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 
 		$this->assertSame( array( 'edit_others_posts', 'edit_published_posts' ), map_meta_cap( 'edit_post', $editor, $post_id ) );
 		$this->assertSame( array( 'delete_others_posts', 'delete_published_posts' ), map_meta_cap( 'delete_post', $editor, $post_id ) );
-
 	}
 
 	/**

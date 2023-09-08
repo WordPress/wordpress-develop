@@ -3150,6 +3150,24 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 		$real_mime = finfo_file( $finfo, $file );
 		finfo_close( $finfo );
 
+		$google_docs_types = array(
+			'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+		);
+
+		foreach ( $google_docs_types as $google_docs_type ) {
+			/*
+			 * finfo_file() can return duplicate mime type for Google docs,
+			 * this conditional reduces it to a single instance.
+			 *
+			 * @see https://bugs.php.net/bug.php?id=77784
+			 * @see https://core.trac.wordpress.org/ticket/57898
+			 */
+			if ( 2 === substr_count( $real_mime, $google_docs_type ) ) {
+				$real_mime = $google_docs_type;
+			}
+		}
+
 		// fileinfo often misidentifies obscure files as one of these types.
 		$nonspecific_types = array(
 			'application/octet-stream',
@@ -3613,7 +3631,7 @@ function wp_nonce_ays( $action ) {
 
 		if ( wp_get_referer() ) {
 			$wp_http_referer = remove_query_arg( 'updated', wp_get_referer() );
-			$wp_http_referer = wp_validate_redirect( esc_url_raw( $wp_http_referer ) );
+			$wp_http_referer = wp_validate_redirect( sanitize_url( $wp_http_referer ) );
 
 			$html .= '</p><p>';
 			$html .= sprintf(
@@ -4811,7 +4829,6 @@ function smilies_init() {
 	}
 
 	$wp_smiliessearch .= ')(?=' . $spaces . '|$)/m';
-
 }
 
 /**
@@ -5591,7 +5608,6 @@ function _deprecated_constructor( $class_name, $version, $parent_class = '' ) {
 			}
 		}
 	}
-
 }
 
 /**
@@ -5607,23 +5623,23 @@ function _deprecated_constructor( $class_name, $version, $parent_class = '' ) {
  *
  * @since 6.4.0
  *
- * @param string $class       The class being instantiated.
+ * @param string $class_name  The name of the class being instantiated.
  * @param string $version     The version of WordPress that deprecated the class.
  * @param string $replacement Optional. The class or function that should have been called.
  *                            Default empty string.
  */
-function _deprecated_class( $class, $version, $replacement = '' ) {
+function _deprecated_class( $class_name, $version, $replacement = '' ) {
 
 	/**
 	 * Fires when a deprecated class is called.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param string $class       The class being instantiated.
+	 * @param string $class_name  The name of the class being instantiated.
 	 * @param string $replacement The class or function that should have been called.
 	 * @param string $version     The version of WordPress that deprecated the class.
 	 */
-	do_action( 'deprecated_class_run', $class, $replacement, $version );
+	do_action( 'deprecated_class_run', $class_name, $replacement, $version );
 
 	/**
 	 * Filters whether to trigger an error for a deprecated class.
@@ -5639,7 +5655,7 @@ function _deprecated_class( $class, $version, $replacement = '' ) {
 					sprintf(
 						/* translators: 1: PHP class name, 2: Version number, 3: Alternative class or function name. */
 						__( 'Class %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-						$class,
+						$class_name,
 						$version,
 						$replacement
 					),
@@ -5650,7 +5666,7 @@ function _deprecated_class( $class, $version, $replacement = '' ) {
 					sprintf(
 						/* translators: 1: PHP class name, 2: Version number. */
 						__( 'Class %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-						$class,
+						$class_name,
 						$version
 					),
 					E_USER_DEPRECATED
@@ -5661,7 +5677,7 @@ function _deprecated_class( $class, $version, $replacement = '' ) {
 				trigger_error(
 					sprintf(
 						'Class %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
-						$class,
+						$class_name,
 						$version,
 						$replacement
 					),
@@ -5671,7 +5687,7 @@ function _deprecated_class( $class, $version, $replacement = '' ) {
 				trigger_error(
 					sprintf(
 						'Class %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
-						$class,
+						$class_name,
 						$version
 					),
 					E_USER_DEPRECATED
@@ -6019,6 +6035,52 @@ function _doing_it_wrong( $function_name, $message, $version ) {
 			);
 		}
 	}
+}
+
+/**
+ * Generates a user-level error/warning/notice/deprecation message.
+ *
+ * Generates the message when `WP_DEBUG` is true.
+ *
+ * @since 6.4.0
+ *
+ * @param string $function_name The function that triggered the error.
+ * @param string $message       The message explaining the error.
+ * @param int    $error_level   Optional. The designated error type for this error.
+ *                              Only works with E_USER family of constants. Default E_USER_NOTICE.
+ */
+function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTICE ) {
+
+	// Bail out if WP_DEBUG is not turned on.
+	if ( ! WP_DEBUG ) {
+		return;
+	}
+
+	/**
+	 * Fires when the given function triggers a user-level error/warning/notice/deprecation message.
+	 *
+	 * Can be used for debug backtracking.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $function_name The function that was called.
+	 * @param string $message       A message explaining what has been done incorrectly.
+	 * @param int    $error_level   The designated error type for this error.
+	 */
+	do_action( 'wp_trigger_error_run', $function_name, $message, $error_level );
+
+	if ( ! empty( $function_name ) ) {
+		$message = sprintf( '%s(): %s', $function_name, $message );
+	}
+
+	/*
+	 * If the message appears in the browser, then it needs to be escaped.
+	 * Note the warning in the `trigger_error()` PHP manual.
+	 * @link https://www.php.net/manual/en/function.trigger-error.php
+	 */
+	$message = esc_html( $message );
+
+	trigger_error( $message, $error_level );
 }
 
 /**
@@ -8582,7 +8644,8 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 
 	// Only write the transient on the top level call and not on recursive calls.
 	if ( $save_cache ) {
-		set_transient( 'dirsize_cache', $directory_cache );
+		$expiration = ( wp_using_ext_object_cache() ) ? 0 : 10 * YEAR_IN_SECONDS;
+		set_transient( 'dirsize_cache', $directory_cache, $expiration );
 	}
 
 	return $size;
@@ -8617,12 +8680,13 @@ function clean_dirsize_cache( $path ) {
 		return;
 	}
 
+	$expiration = ( wp_using_ext_object_cache() ) ? 0 : 10 * YEAR_IN_SECONDS;
 	if (
 		! str_contains( $path, '/' ) &&
 		! str_contains( $path, '\\' )
 	) {
 		unset( $directory_cache[ $path ] );
-		set_transient( 'dirsize_cache', $directory_cache );
+		set_transient( 'dirsize_cache', $directory_cache, $expiration );
 		return;
 	}
 
@@ -8641,7 +8705,7 @@ function clean_dirsize_cache( $path ) {
 		unset( $directory_cache[ $path ] );
 	}
 
-	set_transient( 'dirsize_cache', $directory_cache );
+	set_transient( 'dirsize_cache', $directory_cache, $expiration );
 }
 
 /**

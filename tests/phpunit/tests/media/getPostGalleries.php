@@ -870,7 +870,6 @@ BLOB;
 			),
 			$galleries
 		);
-
 	}
 
 	/**
@@ -937,7 +936,6 @@ BLOB;
 			),
 			$galleries
 		);
-
 	}
 
 	/**

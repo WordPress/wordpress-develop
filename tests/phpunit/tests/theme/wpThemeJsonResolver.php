@@ -81,8 +81,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	public static function tear_down_after_class() {
-		static::$property_blocks_cache->setValue( WP_Theme_JSON_Resolver::class, static::$property_blocks_cache_orig_value );
-		static::$property_core->setValue( WP_Theme_JSON_Resolver::class, static::$property_core_orig_value );
+		static::$property_blocks_cache->setValue( null, static::$property_blocks_cache_orig_value );
+		static::$property_core->setValue( null, static::$property_core_orig_value );
 		parent::tear_down_after_class();
 	}
 
@@ -759,7 +759,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		// Force-unset $i18n_schema property to "unload" translation schema.
 		$property = new ReflectionProperty( $theme_json_resolver, 'i18n_schema' );
 		$property->setAccessible( true );
-		$property->setValue( null );
+		$property->setValue( null, null );
 
 		// A completely empty theme.json data set still has the 'version' key when parsed.
 		$empty_theme_json = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA );
@@ -846,7 +846,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$this->assertSame( $block_styles, count( $styles ) === 1, $block_styles_text );
 		$this->assertSame( $theme_palette, isset( $settings['color']['palette']['theme'] ), $theme_palette_text );
 		$this->assertSame( $user_palette, isset( $settings['color']['palette']['custom'] ), $user_palette_text );
-
 	}
 
 	/**

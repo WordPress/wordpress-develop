@@ -358,7 +358,6 @@ add_action( 'start_previewing_theme', 'wp_clean_theme_json_cache' );
 add_action( 'after_switch_theme', '_wp_menus_changed' );
 add_action( 'after_switch_theme', '_wp_sidebars_changed' );
 add_action( 'wp_print_styles', 'print_emoji_styles' );
-add_action( 'plugins_loaded', '_wp_theme_json_webfonts_handler' );
 
 if ( isset( $_GET['replytocom'] ) ) {
 	add_filter( 'wp_robots', 'wp_robots_no_robots' );
@@ -533,6 +532,9 @@ add_action( 'transition_post_status', '_wp_customize_publish_changeset', 10, 3 )
 add_action( 'admin_enqueue_scripts', '_wp_customize_loader_settings' );
 add_action( 'delete_attachment', '_delete_attachment_theme_mod' );
 add_action( 'transition_post_status', '_wp_keep_alive_customize_changeset_dependent_auto_drafts', 20, 3 );
+
+// Block Theme Previews.
+add_action( 'plugins_loaded', 'initialize_theme_preview_hooks', 1 );
 
 // Calendar widget cache.
 add_action( 'save_post', 'delete_get_calendar_cache' );
@@ -721,9 +723,11 @@ add_action( 'init', 'wp_register_persisted_preferences_meta' );
 add_action( 'init', 'wp_create_initial_post_meta' );
 
 // Including revisioned meta when considering whether a post revision has changed.
+// Font management.
 add_filter( 'wp_save_post_revision_post_has_changed', 'wp_check_revisioned_meta_fields_have_changed', 10, 3 );
 
 // Save revisioned post meta immediately after a revision is saved
 add_action( '_wp_put_post_revision', 'wp_save_revisioned_meta_fields', 10, 2 );
+add_action( 'wp_head', 'wp_print_font_faces', 50 );
 
 unset( $filter, $action );
