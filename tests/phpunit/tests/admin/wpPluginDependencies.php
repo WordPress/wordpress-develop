@@ -115,7 +115,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 		$get_plugins->invoke( $wppd );
 
 		$plugins = $this->make_prop_accessible( $wppd, 'plugins' );
-		$actual = $plugins->getValue( $wppd );
+		$actual  = $plugins->getValue( $wppd );
 
 		$this->assertIsArray( $actual, 'Did not return an array.' );
 		$this->assertNotEmpty( $actual, 'The plugin data array is empty.' );
@@ -149,59 +149,59 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 		return array(
 			'no dependencies'                        => array(
 				'',
-				'expected'     => array(),
+				'expected' => array(),
 			),
 			'one dependency'                         => array(
 				'requires_plugins' => 'hello-dolly',
-				'expected'     => array( 'hello-dolly' ),
+				'expected'         => array( 'hello-dolly' ),
 			),
 			'two dependencies in alphabetical order' => array(
 				'requires_plugins' => 'hello-dolly, woocommerce',
-				'expected'     => array( 'hello-dolly', 'woocommerce' ),
+				'expected'         => array( 'hello-dolly', 'woocommerce' ),
 			),
 			'two dependencies in reverse alphabetical order' => array(
 				'requires_plugins' => 'woocommerce, hello-dolly',
-				'expected'     => array( 'woocommerce', 'hello-dolly' ),
+				'expected'         => array( 'woocommerce', 'hello-dolly' ),
 			),
 			'two dependencies with a space'          => array(
 				'requires_plugins' => 'hello-dolly , woocommerce',
-				'expected'     => array( 'hello-dolly', 'woocommerce' ),
+				'expected'         => array( 'hello-dolly', 'woocommerce' ),
 			),
 			'a repeated dependency'                  => array(
 				'requires_plugins' => 'hello-dolly, woocommerce, hello-dolly',
-				'expected'     => array( 'hello-dolly', 'woocommerce' ),
+				'expected'         => array( 'hello-dolly', 'woocommerce' ),
 			),
 			'a dependency with an underscore'        => array(
 				'requires_plugins' => 'hello_dolly',
-				'expected'     => array(),
+				'expected'         => array(),
 			),
 			'a dependency with a space'              => array(
 				'requires_plugins' => 'hello dolly',
-				'expected'     => array(),
+				'expected'         => array(),
 			),
 			'a dependency in quotes'                 => array(
 				'requires_plugins' => '"hello-dolly"',
-				'expected'     => array(),
+				'expected'         => array(),
 			),
 			'two dependencies in quotes'             => array(
 				'requires_plugins' => '"hello-dolly, woocommerce"',
-				'expected'     => array(),
+				'expected'         => array(),
 			),
 			'cyrillic dependencies'                  => array(
 				'requires_plugins' => 'я-делюсь',
-				'expected'     => array(),
+				'expected'         => array(),
 			),
 			'arabic dependencies'                    => array(
 				'requires_plugins' => 'لينوكس-ويكى',
-				'expected'     => array(),
+				'expected'         => array(),
 			),
 			'chinese dependencies'                   => array(
 				'requires_plugins' => '唐诗宋词chinese-poem,社交登录,腾讯微博一键登录,豆瓣秀-for-wordpress',
-				'expected'     => array(),
+				'expected'         => array(),
 			),
 			'symbol dependencies'                    => array(
 				'requires_plugins' => '★-wpsymbols-★',
-				'expected'     => array(),
+				'expected'         => array(),
 			),
 		);
 	}
