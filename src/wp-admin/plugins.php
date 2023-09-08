@@ -654,7 +654,8 @@ if ( isset( $_GET['error'] ) ) {
 		$errmsg .= '<iframe style="border:0" width="100%" height="70px" src="' . esc_url( $iframe_url ) . '"></iframe>';
 	}
 
-	wp_admin_notice( $errmsg,
+	wp_admin_notice(
+		$errmsg,
 		array(
 			'id'                 => 'message',
 			'additional_classes' => array( 'error' ),
@@ -682,9 +683,9 @@ if ( isset( $_GET['error'] ) ) {
 		);
 	} else {
 		$updated_args = array(
-				'id'                 => 'message',
-				'additional_classes' => array( 'updated' ),
-				'dismissible'        => true,
+			'id'                 => 'message',
+			'additional_classes' => array( 'updated' ),
+			'dismissible'        => true,
 		);
 		if ( 1 === (int) $_GET['deleted'] ) {
 			$plugins_deleted_message = __( 'The selected plugin has been deleted.' );

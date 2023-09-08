@@ -413,7 +413,7 @@ if ( isset( $_GET['message'] ) && isset( $messages[ $_GET['message'] ] ) ) {
 			'dismissible'        => true,
 		)
 	);
-} 
+}
 if ( isset( $_GET['error'] ) && isset( $errors[ $_GET['error'] ] ) ) {
 	wp_admin_notice(
 		$errors[ $_GET['error'] ],
