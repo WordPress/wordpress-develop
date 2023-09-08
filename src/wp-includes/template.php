@@ -702,6 +702,7 @@ function get_attachment_template() {
 function locate_template( $template_names, $load = false, $load_once = true, $args = array() ) {
 	$stylesheet_path = get_stylesheet_directory();
 	$template_path   = get_template_directory();
+	$is_child_theme  = is_child_theme();
 
 	$located = '';
 	foreach ( (array) $template_names as $template_name ) {
@@ -711,7 +712,7 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 		if ( file_exists( $stylesheet_path . '/' . $template_name ) ) {
 			$located = $stylesheet_path . '/' . $template_name;
 			break;
-		} elseif ( is_child_theme() && file_exists( $template_path . '/' . $template_name ) ) {
+		} elseif ( $is_child_theme && file_exists( $template_path . '/' . $template_name ) ) {
 			$located = $template_path . '/' . $template_name;
 			break;
 		} elseif ( file_exists( ABSPATH . WPINC . '/theme-compat/' . $template_name ) ) {
