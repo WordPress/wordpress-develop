@@ -1342,10 +1342,13 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 58599
+	 * @covers ::update_post_term_caches
 	 */
 	public function test_filter_posts_fields_request() {
-		$filter = new MockAction();
-		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+		$filter1 = new MockAction();
+		$filter2 = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $filter1, 'filter' ), 10, 2 );
+		add_filter( 'get_object_terms', array( $filter2, 'filter' ), 10, 3 );
 		$args = array(
 			'post_type'        => 'page',
 			'post_status'      => 'publish',
@@ -1360,16 +1363,22 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query_posts       = $query->query( array() );
 		$num_queries       = get_num_queries() - $num_queries_start;
 
-		$this->assertSame( 5, $num_queries );
+		$this->assertSame( 5, $num_queries, 'Only 5 queries should be run' );
 
 		$post_ids = wp_list_pluck( $query_posts, 'ID' );
 
-		$raw_posts     = array_map( 'get_post', $post_ids );
-		$args          = $filter->get_args();
-		$first         = reset( $args );
-		$post_meta_ids = end( $first );
-		$this->assertSameSets( $post_ids, $post_meta_ids );
-		$this->assertNotSame( $query_posts, $raw_posts );
+		$raw_posts       = array_map( 'get_post', $post_ids );
+		$args1           = $filter1->get_args();
+		$first           = array_shift( $args1 );
+		$args2           = $filter2->get_args();
+		$post_meta_ids   = array_pop( $first );
+		$first           = array_shift( $args2 );
+		$post_taxonomies = array_pop( $first );
+		$post_term_ids   = array_pop( $first );
+		$this->assertSameSets( $post_ids, $post_meta_ids, 'This array of posts should have had it\'s meta data primed' );
+		$this->assertSameSets( $post_ids, $post_term_ids, 'This array of posts should have had it\'s terms primed' );
+		$this->assertSameSets( $post_taxonomies, get_object_taxonomies( 'post', 'names' ), 'The prime taxonomies should match this array' );
+		$this->assertNotSame( $query_posts, $raw_posts, 'Raw posts should not match the queries posts because of the filter' );
 	}
 
 	public function filter_allowed_fields( $fields, $wp_query ) {
