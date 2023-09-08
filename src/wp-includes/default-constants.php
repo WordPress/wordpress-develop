@@ -431,5 +431,4 @@ function wp_templating_constants() {
 	if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
 		define( 'WP_DEFAULT_THEME', 'twentytwentythree' );
 	}
-
 }

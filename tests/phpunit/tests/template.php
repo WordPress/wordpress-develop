@@ -714,5 +714,4 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->hierarchy = array_merge( $this->hierarchy, $hierarchy );
 		return $hierarchy;
 	}
-
 }

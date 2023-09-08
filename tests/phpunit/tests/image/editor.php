@@ -363,5 +363,4 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			),
 		);
 	}
-
 }

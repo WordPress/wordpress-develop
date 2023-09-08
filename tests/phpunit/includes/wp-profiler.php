@@ -56,7 +56,6 @@ class WPProfiler {
 			'filters'             => array(),
 			'queries'             => array(),
 		);
-
 	}
 
 	public function stop() {

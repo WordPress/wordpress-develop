@@ -3669,5 +3669,4 @@ class Test_Setting_Without_Applying_Validate_Filter extends WP_Customize_Setting
 		}
 		return true;
 	}
-
 }

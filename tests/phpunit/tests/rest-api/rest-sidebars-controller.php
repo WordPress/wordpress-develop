@@ -311,7 +311,6 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 			),
 			$data
 		);
-
 	}
 
 	/**
