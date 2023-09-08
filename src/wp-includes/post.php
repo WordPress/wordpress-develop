@@ -7298,10 +7298,10 @@ function clean_post_cache( $post ) {
  *
  * @since 1.5.0
  *
- * @param WP_Post[] $posts             Array of post objects (passed by reference).
- * @param string    $post_type         Optional. Post type. Default 'post'.
- * @param bool      $update_term_cache Optional. Whether to update the term cache. Default true.
- * @param bool      $update_meta_cache Optional. Whether to update the meta cache. Default true.
+ * @param WP_Post[]    $posts               Array of post objects (passed by reference).
+ * @param string|array $post_type           Optional. Post type and array of post types. Default 'post'.
+ * @param bool         $update_term_cache   Optional. Whether to update the term cache. Default true.
+ * @param bool         $update_meta_cache   Optional. Whether to update the meta cache. Default true.
  */
 function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = true, $update_meta_cache = true ) {
 	// No point in doing all this work if we didn't match any posts.
@@ -7326,8 +7326,8 @@ function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = 
  *
  * @since 6.4.0
  *
- * @param WP_Post[] $posts     Array of post objects.
- * @param string    $post_type Optional. Post type. Default 'any'.
+ * @param WP_Post[]     $posts     Array of post objects.
+ * @param string|array  $post_type Optional. Post type and array of post types. Default 'any'.
  */
 function update_post_term_caches( $posts, $post_type = 'any' ) {
 	$post_ids = wp_list_pluck( $posts, 'ID' );
