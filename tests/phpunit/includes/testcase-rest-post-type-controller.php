@@ -196,7 +196,6 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 				$num++;
 			}
 		}
-
 	}
 
 	protected function check_get_posts_response( $response, $context = 'view' ) {
@@ -240,7 +239,6 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		$data = $response->get_data();
 		$post = get_post( $data['id'] );
 		$this->check_post_data( $post, $data, $context, $response->get_links() );
-
 	}
 
 	protected function check_create_post_response( $response ) {

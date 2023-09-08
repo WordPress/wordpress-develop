@@ -445,5 +445,4 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertStringMatchesFormat( '%d', $result );
 		$this->assertSame( $date_string, $fetched_post->post_date_gmt );
 	}
-
 }

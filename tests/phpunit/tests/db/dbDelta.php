@@ -311,7 +311,6 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 		);
 
 		$this->assertTableRowHasValue( 'column_1', 'wcphilly2015', $wpdb->prefix . 'dbdelta_test' );
-
 	}
 
 	/**

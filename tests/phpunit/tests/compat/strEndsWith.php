@@ -34,7 +34,6 @@ class Tests_Compat_StrEndsWith extends WP_UnitTestCase {
 				str_ends_with( $haystack, $needle )
 			);
 		}
-
 	}
 
 	/**

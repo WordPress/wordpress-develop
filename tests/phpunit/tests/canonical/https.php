@@ -65,5 +65,4 @@ class Tests_Canonical_HTTPS extends WP_Canonical_UnitTestCase {
 
 		remove_filter( 'home_url', array( $this, 'set_https' ) );
 	}
-
 }

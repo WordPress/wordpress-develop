@@ -448,7 +448,6 @@ if ( is_multisite() ) :
 
 			$wp_roles->remove_role( $role );
 		}
-
 	}
 
 endif;

@@ -64,7 +64,6 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		// Assign a tagline option.
 		update_option( 'blogdescription', 'Just another WordPress site' );
-
 	}
 
 	/**
@@ -506,7 +505,6 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 			array( '/?feed=rss2', 'rss' ),
 			array( '/?feed=commentsrss2', 'rss' ),
 		);
-
 	}
 
 	/**
