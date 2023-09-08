@@ -129,6 +129,17 @@ function twentytwenty_theme_support() {
 
 	// Add theme support for selective refresh for widgets.
 	add_theme_support( 'customize-selective-refresh-widgets' );
+
+	/*
+	 * Adds `async` and `defer` support for scripts registered or enqueued
+	 * by the theme.
+	 */
+	$loader = new TwentyTwenty_Script_Loader();
+	if ( version_compare( $GLOBALS['wp_version'], '6.3', '<' ) ) {
+		add_filter( 'script_loader_tag', array( $loader, 'filter_script_loader_tag' ), 10, 2 );
+	} else {
+		add_filter( 'print_scripts_array', array( $loader, 'migrate_legacy_strategy_script_data' ), 100 );
+	}
 }
 
 add_action( 'after_setup_theme', 'twentytwenty_theme_support' );
