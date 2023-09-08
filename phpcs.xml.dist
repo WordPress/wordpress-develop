@@ -256,6 +256,7 @@
 				<element value="WP_HTTP_UnitTestCase"/>
 				<element value="WP_Image_UnitTestCase"/>
 				<element value="WP_Import_UnitTestCase"/>
+				<element value="WP_PluginDependencies_UnitTestCase"/>
 				<element value="WP_Test_Adjacent_Image_Link_TestCase"/>
 				<element value="WP_Tests_Image_Resize_UnitTestCase"/>
 				<element value="WP_Theme_UnitTestCase"/>
