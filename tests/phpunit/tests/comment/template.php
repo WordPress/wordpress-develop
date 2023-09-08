@@ -199,5 +199,4 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

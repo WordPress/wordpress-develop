@@ -1283,5 +1283,4 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertWPError( $unscheduled );
 		$this->assertSame( 'could_not_set', $unscheduled->get_error_code() );
 	}
-
 }

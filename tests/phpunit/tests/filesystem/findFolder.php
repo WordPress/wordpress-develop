@@ -113,5 +113,4 @@ class WP_Filesystem_Find_Folder_Test extends WP_Filesystem_UnitTestCase {
 		$path = $fs->find_folder( '/var/www/example.com/sub/wp-content/plugins/' );
 		$this->assertSame( '/example.com/sub/wp-content/plugins/', $path );
 	}
-
 }

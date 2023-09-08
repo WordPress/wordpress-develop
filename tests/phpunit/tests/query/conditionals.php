@@ -1692,5 +1692,4 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 			array( 'the_comment', null ),
 		);
 	}
-
 }

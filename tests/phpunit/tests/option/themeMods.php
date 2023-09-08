@@ -129,5 +129,4 @@ class Tests_Option_ThemeMods extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

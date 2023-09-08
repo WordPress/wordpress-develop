@@ -364,5 +364,4 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 
 		return $navs_in_db->posts ? $navs_in_db->posts : array();
 	}
-
 }

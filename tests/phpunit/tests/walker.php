@@ -314,7 +314,6 @@ class Tests_Walker extends WP_UnitTestCase {
 		$this->assertSame( '<li>2</li>', $output );
 
 	}
-
 }
 
 class Walker_Test extends Walker {
@@ -340,5 +339,4 @@ class Walker_Test extends Walker {
 	public function end_el( &$output, $page, $depth = 0, $args = array() ) {
 		$output .= '</li>';
 	}
-
 }

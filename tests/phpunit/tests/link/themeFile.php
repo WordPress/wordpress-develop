@@ -182,5 +182,4 @@ class Tests_Link_ThemeFile extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }
