@@ -340,6 +340,7 @@ class WP_Theme_JSON {
 	 * @since 6.2.0 Added `dimensions.minHeight`, 'shadow.presets', 'shadow.defaultPresets',
 	 *              `position.fixed` and `position.sticky`.
 	 * @since 6.3.0 Added support for `typography.textColumns`, removed `layout.definitions`.
+	 * @since 6.4.0 Added `layout.allowEditing`.
 	 *
 	 * @var array
 	 */
@@ -374,8 +375,9 @@ class WP_Theme_JSON {
 			'minHeight' => null,
 		),
 		'layout'                        => array(
-			'contentSize' => null,
-			'wideSize'    => null,
+			'contentSize'  => null,
+			'wideSize'     => null,
+			'allowEditing' => null,
 		),
 		'position'                      => array(
 			'fixed'  => null,
@@ -1311,7 +1313,7 @@ class WP_Theme_JSON {
 						continue;
 					}
 
-					$class_name    = sanitize_title( _wp_array_get( $layout_definition, array( 'className' ), false ) );
+					$class_name    = _wp_array_get( $layout_definition, array( 'className' ), false );
 					$spacing_rules = _wp_array_get( $layout_definition, array( 'spacingStyles' ), array() );
 
 					if (
@@ -1368,7 +1370,7 @@ class WP_Theme_JSON {
 		) {
 			$valid_display_modes = array( 'block', 'flex', 'grid' );
 			foreach ( $layout_definitions as $layout_definition ) {
-				$class_name       = sanitize_title( _wp_array_get( $layout_definition, array( 'className' ), false ) );
+				$class_name       = _wp_array_get( $layout_definition, array( 'className' ), false );
 				$base_style_rules = _wp_array_get( $layout_definition, array( 'baseStyles' ), array() );
 
 				if (
@@ -1565,6 +1567,9 @@ class WP_Theme_JSON {
 
 		$stylesheet = '';
 		foreach ( static::PRESETS_METADATA as $preset_metadata ) {
+			if ( empty( $preset_metadata['classes'] ) ) {
+				continue;
+			}
 			$slugs = static::get_settings_slugs( $settings, $preset_metadata, $origins );
 			foreach ( $preset_metadata['classes'] as $class => $property ) {
 				foreach ( $slugs as $slug ) {
@@ -1762,6 +1767,9 @@ class WP_Theme_JSON {
 	protected static function compute_preset_vars( $settings, $origins ) {
 		$declarations = array();
 		foreach ( static::PRESETS_METADATA as $preset_metadata ) {
+			if ( empty( $preset_metadata['css_vars'] ) ) {
+				continue;
+			}
 			$values_by_slug = static::get_settings_values_by_slug( $settings, $preset_metadata, $origins );
 			foreach ( $values_by_slug as $slug => $value ) {
 				$declarations[] = array(
@@ -2485,7 +2493,7 @@ class WP_Theme_JSON {
 			// The above rule is negated for alignfull children of nested containers.
 			$css .= '.has-global-padding :where(.has-global-padding) > .alignfull { margin-right: 0; margin-left: 0; }';
 			// Some of the children of alignfull blocks without content width should also get padding: text blocks and non-alignfull container blocks.
-			$css .= '.has-global-padding > .alignfull:where(:not(.has-global-padding)) > :where([class*="wp-block-"]:not(.alignfull):not([class*="__"]),p,h1,h2,h3,h4,h5,h6,ul,ol) { padding-right: var(--wp--style--root--padding-right); padding-left: var(--wp--style--root--padding-left); }';
+			$css .= '.has-global-padding > .alignfull:where(:not(.has-global-padding):not(.is-layout-flex):not(.is-layout-grid)) > :where([class*="wp-block-"]:not(.alignfull):not([class*="__"]),p,h1,h2,h3,h4,h5,h6,ul,ol) { padding-right: var(--wp--style--root--padding-right); padding-left: var(--wp--style--root--padding-left); }';
 			// The above rule also has to be negated for blocks inside nested `.has-global-padding` blocks.
 			$css .= '.has-global-padding :where(.has-global-padding) > .alignfull:where(:not(.has-global-padding)) > :where([class*="wp-block-"]:not(.alignfull):not([class*="__"]),p,h1,h2,h3,h4,h5,h6,ul,ol) { padding-right: 0; padding-left: 0; }';
 		}

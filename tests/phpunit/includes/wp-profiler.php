@@ -56,7 +56,6 @@ class WPProfiler {
 			'filters'             => array(),
 			'queries'             => array(),
 		);
-
 	}
 
 	public function stop() {
@@ -220,5 +219,3 @@ function wppf_results() {
 function wppf_print_summary() {
 	$GLOBALS['wppf']->print_summary();
 }
-
-

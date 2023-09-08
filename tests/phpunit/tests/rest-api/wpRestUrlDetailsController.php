@@ -284,7 +284,6 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 
 		$expected = strtolower( 'Unable to retrieve body from response at this URL' );
 		$this->assertStringContainsString( $expected, strtolower( $data['message'] ), 'Response "message" does not contain "' . $expected . '"' );
-
 	}
 
 	/**
@@ -382,7 +381,6 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 				);
 
 				return $response;
-
 			}
 		);
 

@@ -846,7 +846,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$this->assertSame( $block_styles, count( $styles ) === 1, $block_styles_text );
 		$this->assertSame( $theme_palette, isset( $settings['color']['palette']['theme'] ), $theme_palette_text );
 		$this->assertSame( $user_palette, isset( $settings['color']['palette']['custom'] ), $user_palette_text );
-
 	}
 
 	/**

@@ -279,5 +279,4 @@ class Tests_Avatar extends WP_UnitTestCase {
 		$this->assertFalse( is_avatar_comment_type( $comment_type ) );
 		$this->assertFalse( $actual_data['url'] );
 	}
-
 }
