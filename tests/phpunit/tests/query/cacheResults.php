@@ -1356,7 +1356,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			'suppress_filters' => false,
 		);
 
-		add_filter( 'posts_fields_request', array( $this, 'filter_allowed_fields' ), 20, 2 );
+		add_filter( 'posts_fields_request', array( $this, 'filter_allowed_fields' ) );
 		$query = new WP_Query();
 
 		$num_queries_start = get_num_queries();
@@ -1381,7 +1381,10 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertNotSame( $query_posts, $raw_posts, 'Raw posts should not match the queries posts because of the filter' );
 	}
 
-	public function filter_allowed_fields( $fields, $wp_query ) {
+	/**
+	 * A filter used in the test_filter_posts_fields_request test.
+	 */
+	public function filter_allowed_fields( $fields ) {
 		global $wpdb;
 
 		$allowed_fields = array(
@@ -1394,15 +1397,11 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			'menu_order',
 		);
 
-		$new_fields = '';
+		$new_fields = array();
 		foreach ( $allowed_fields as $i => $field ) {
-			$new_fields .= "{$wpdb->prefix}posts.{$field}";
-
-			if ( $i + 1 < count( $allowed_fields ) ) {
-				$new_fields .= ', ';
-			}
+			$new_fields[] = sprintf( '%s.%s', $wpdb->posts, $field );
 		}
 
-		return $new_fields;
+		return implode( ', ', $new_fields );
 	}
 }
