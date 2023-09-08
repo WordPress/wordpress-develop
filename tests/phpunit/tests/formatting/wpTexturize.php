@@ -32,7 +32,6 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 
 		$invalid_nest = '<pre></code>"baba"</pre>';
 		$this->assertSame( $invalid_nest, wptexturize( $invalid_nest ) );
-
 	}
 
 	/**

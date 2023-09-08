@@ -103,4 +103,3 @@ class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 		);
 	}
 }
-

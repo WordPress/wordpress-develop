@@ -202,7 +202,6 @@ CAP;
 			)
 		);
 		$this->assertSame( 1, substr_count( $result, 'wp-caption alignnone some-class another-class' ) );
-
 	}
 
 	public function test_new_img_caption_shortcode_with_html_caption() {
@@ -1743,7 +1742,6 @@ EOF;
 			$expected_srcset = $this->src_first( $_expected, $image_url, $size_array[0] );
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
-
 	}
 
 	/**

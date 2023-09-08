@@ -56,7 +56,6 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 
 		// Assign a tagline option.
 		update_option( 'blogdescription', 'Just another WordPress site' );
-
 	}
 
 	/**
