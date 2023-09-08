@@ -35,4 +35,3 @@ class Tests_Formatting_Utf8UriEncode extends WP_UnitTestCase {
 		return $data_provided;
 	}
 }
-

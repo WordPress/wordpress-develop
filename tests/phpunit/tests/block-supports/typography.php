@@ -994,4 +994,3 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 		);
 	}
 }
-
