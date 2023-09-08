@@ -789,9 +789,7 @@ class WP_Plugin_Dependencies {
 		}
 
 		// Cache the plugin directory names.
-		if ( empty( self::$plugin_dirnames )
-			|| ( ! empty( self::$plugin_dirnames ) && self::$plugin_dirnames_cache !== self::$plugins )
-		) {
+		if ( empty( self::$plugin_dirnames ) || self::$plugin_dirnames_cache !== self::$plugin_dirnames ) {
 			self::$plugin_dirnames       = array();
 			self::$plugin_dirnames_cache = self::$plugins;
 
