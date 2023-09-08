@@ -7311,37 +7311,41 @@ function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = 
 
 	update_post_cache( $posts );
 
-	$post_ids = array();
-	foreach ( $posts as $post ) {
-		$post_ids[] = $post->ID;
+	if ( $update_term_cache ) {
+		update_post_term_caches( $posts, $post_type );
 	}
+
+	if ( $update_meta_cache ) {
+		$post_ids = wp_list_pluck( $posts, 'ID' );
+		update_postmeta_cache( $post_ids );
+	}
+}
+
+/**
+ * Updates the cache for the given list of post objects.
+ *
+ * @since 6.4.0
+ *
+ * @param WP_Post[] $posts     Array of post objects.
+ * @param string    $post_type Optional. Post type. Default 'any'.
+ */
+function update_post_term_caches( $posts, $post_type = 'any' ) {
+	$post_ids = wp_list_pluck( $posts, 'ID' );
 
 	if ( ! $post_type ) {
 		$post_type = 'any';
 	}
 
-	if ( $update_term_cache ) {
-		if ( is_array( $post_type ) ) {
-			$ptypes = $post_type;
-		} elseif ( 'any' === $post_type ) {
-			$ptypes = array();
-			// Just use the post_types in the supplied posts.
-			foreach ( $posts as $post ) {
-				$ptypes[] = $post->post_type;
-			}
-			$ptypes = array_unique( $ptypes );
-		} else {
-			$ptypes = array( $post_type );
-		}
-
-		if ( ! empty( $ptypes ) ) {
-			update_object_term_cache( $post_ids, $ptypes );
-		}
+	if ( is_array( $post_type ) ) {
+		$ptypes = $post_type;
+	} elseif ( 'any' === $post_type ) {
+		$ptypes = wp_list_pluck( $posts, 'post_type' );
+		$ptypes = array_unique( $ptypes );
+	} else {
+		$ptypes = array( $post_type );
 	}
 
-	if ( $update_meta_cache ) {
-		update_postmeta_cache( $post_ids );
-	}
+	update_object_term_cache( $post_ids, $ptypes );
 }
 
 /**
