@@ -633,6 +633,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 * Tests that `locate_template()` uses the current theme even after switching the theme.
 	 *
 	 * @ticket 18298
+	 *
 	 * @covers ::locate_template
 	 */
 	public function test_locate_template_uses_current_theme() {

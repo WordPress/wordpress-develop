@@ -893,6 +893,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Tests that `is_child_theme()` returns true for child theme.
 	 *
 	 * @ticket 18298
+	 *
 	 * @covers ::is_child_theme
 	 */
 	public function test_is_child_theme_true() {
@@ -904,6 +905,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Tests that `is_child_theme()` returns false for parent theme.
 	 *
 	 * @ticket 18298
+	 *
 	 * @covers ::is_child_theme
 	 */
 	public function test_is_child_theme_false() {
@@ -915,6 +917,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Tests that the child theme directory is correctly detected.
 	 *
 	 * @ticket 18298
+	 *
 	 * @covers ::get_stylesheet_directory
 	 */
 	public function test_get_stylesheet_directory() {
@@ -926,6 +929,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Tests that the parent theme directory is correctly detected.
 	 *
 	 * @ticket 18298
+	 *
 	 * @covers ::get_template_directory
 	 */
 	public function test_get_template_directory() {
