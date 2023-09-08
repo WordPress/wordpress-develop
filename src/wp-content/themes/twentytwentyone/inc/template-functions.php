@@ -17,6 +17,9 @@
  */
 function twenty_twenty_one_body_classes( $classes ) {
 
+	// Helps detect if JS is enabled or not.
+	$classes[] = 'no-js';
+
 	// Adds `singular` to singular pages, and `hfeed` to all other pages.
 	$classes[] = is_singular() ? 'singular' : 'hfeed';
 
@@ -67,14 +70,13 @@ add_action( 'wp_head', 'twenty_twenty_one_pingback_header' );
  * Remove the `no-js` class from body if JS is supported.
  *
  * @since Twenty Twenty-One 1.0
- * @since Twenty Twenty-One 2.0 Moved from wp_footer to wp_head.
  *
  * @return void
  */
 function twenty_twenty_one_supports_js() {
-	echo '<script>document.documentElement.classList.remove("no-js");</script>';
+	echo '<script>document.body.classList.remove("no-js");</script>';
 }
-add_action( 'wp_head', 'twenty_twenty_one_supports_js' );
+add_action( 'wp_footer', 'twenty_twenty_one_supports_js' );
 
 /**
  * Changes comment form default fields.

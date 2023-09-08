@@ -8,7 +8,6 @@
  * Add max-width & max-height to <iframe> elements, depending on their width & height props.
  *
  * @since Twenty Twenty-One 1.0
- * @todo This may be obsolete now that aspect-ratio is a thing.
  *
  * @return {void}
  */

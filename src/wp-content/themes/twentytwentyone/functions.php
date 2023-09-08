@@ -424,7 +424,7 @@ function twenty_twenty_one_scripts() {
 		array( 'in_footer' => true )
 	);
 
-	// Register the IE11 polyfill loader. This is no longer used but it is retained if any child theme or plugin uses them.
+	// Register the IE11 polyfill loader.
 	wp_register_script(
 		'twenty-twenty-one-ie11-polyfills',
 		null,
@@ -447,7 +447,7 @@ function twenty_twenty_one_scripts() {
 		wp_enqueue_script(
 			'twenty-twenty-one-primary-navigation-script',
 			get_template_directory_uri() . '/assets/js/primary-navigation.js',
-			array(),
+			array( 'twenty-twenty-one-ie11-polyfills' ),
 			wp_get_theme()->get( 'Version' ),
 			array(
 				'in_footer' => false,
@@ -455,37 +455,17 @@ function twenty_twenty_one_scripts() {
 			)
 		);
 	}
+
+	// Responsive embeds script.
+	wp_enqueue_script(
+		'twenty-twenty-one-responsive-embeds-script',
+		get_template_directory_uri() . '/assets/js/responsive-embeds.js',
+		array( 'twenty-twenty-one-ie11-polyfills' ),
+		wp_get_theme()->get( 'Version' ),
+		array( 'in_footer' => true )
+	);
 }
 add_action( 'wp_enqueue_scripts', 'twenty_twenty_one_scripts' );
-
-/**
- * Enqueues responsive embeds script if content contains iframe.
- *
- * @since Twenty Twenty-One 2.0
- *
- * @param string $content Content
- * @return string Unmodified content.
- */
-function twentytwentyone_enqueue_responsive_embeds_script_if_needed( $content ) {
-	if (
-		! wp_script_is( 'twenty-twenty-one-responsive-embeds-script' ) &&
-		strpos( $content, '<iframe' ) !== false // @todo Also require width and height?
-	) {
-		wp_enqueue_script(
-			'twenty-twenty-one-responsive-embeds-script',
-			get_template_directory_uri() . '/assets/js/responsive-embeds.js',
-			array(),
-			wp_get_theme()->get( 'Version' ),
-			array(
-				'in_footer' => true,
-				'strategy'  => 'defer',
-			)
-		);
-	}
-	return $content;
-}
-add_filter( 'the_content', 'twentytwentyone_enqueue_responsive_embeds_script_if_needed', 100 );
-
 
 /**
  * Enqueues block editor script.
@@ -628,29 +608,24 @@ add_action( 'customize_controls_enqueue_scripts', 'twentytwentyone_customize_con
  * @return void
  */
 function twentytwentyone_the_html_classes() {
-
-	// Helps detect if JS is enabled or not.
-	$classes = 'no-js ';
-
 	/**
 	 * Filters the classes for the main <html> element.
 	 *
 	 * @since Twenty Twenty-One 1.0
 	 *
-	 * @param string $classes The list of classes. Default empty string.
+	 * @param string The list of classes. Default empty string.
 	 */
-	$classes = apply_filters( 'twentytwentyone_html_classes', $classes );
+	$classes = apply_filters( 'twentytwentyone_html_classes', '' );
 	if ( ! $classes ) {
 		return;
 	}
-	echo 'class="' . esc_attr( trim( $classes ) ) . '"';
+	echo 'class="' . esc_attr( $classes ) . '"';
 }
 
 /**
  * Adds "is-IE" class to body if the user is on Internet Explorer.
  *
  * @since Twenty Twenty-One 1.0
- * @deprecated Twenty Twenty-One 2.0 Removed from wp_footer action.
  *
  * @return void
  */
@@ -663,6 +638,7 @@ function twentytwentyone_add_ie_class() {
 	</script>
 	<?php
 }
+add_action( 'wp_footer', 'twentytwentyone_add_ie_class' );
 
 if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 	/**

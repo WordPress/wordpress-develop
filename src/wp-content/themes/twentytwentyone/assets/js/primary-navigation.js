@@ -115,7 +115,7 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 			mobileButton.onclick = function() {
 				wrapper.classList.toggle( id + '-navigation-open' );
 				wrapper.classList.toggle( 'lock-scrolling' );
-				twentytwentyoneToggleAriaExpanded( mobileButton, false );
+				twentytwentyoneToggleAriaExpanded( mobileButton );
 				mobileButton.focus();
 			};
 		}
@@ -146,7 +146,7 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 			if ( escKey ) {
 				event.preventDefault();
 				wrapper.classList.remove( id + '-navigation-open', 'lock-scrolling' );
-				twentytwentyoneToggleAriaExpanded( mobileButton, false );
+				twentytwentyoneToggleAriaExpanded( mobileButton );
 				mobileButton.focus();
 			}
 
@@ -176,7 +176,7 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 			// If target onclick is <a> with # within the href attribute
 			if ( event.target.hash ) {
 				wrapper.classList.remove( id + '-navigation-open', 'lock-scrolling' );
-				twentytwentyoneToggleAriaExpanded( mobileButton, false );
+				twentytwentyoneToggleAriaExpanded( mobileButton );
 				// Wait 550 and scroll to the anchor.
 				setTimeout(function () {
 					var anchor = document.getElementById(event.target.hash.slice(1));
@@ -198,7 +198,7 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 		} );
 	};
 
-	document.addEventListener( 'DOMContentLoaded', function() {
+	window.addEventListener( 'load', function() {
 		new navMenu( 'primary' );
 	} );
 }() );
