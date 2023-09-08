@@ -184,7 +184,8 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		$script_handle,
 		$script_uri,
 		$script_dependencies,
-		isset( $script_asset['version'] ) ? $script_asset['version'] : false
+		isset( $script_asset['version'] ) ? $script_asset['version'] : false,
+		$script_args
 	);
 	if ( ! $result ) {
 		return false;
@@ -261,7 +262,40 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 
 	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
 	$has_style_file  = '' !== $style_path_norm;
+<<<<<<< HEAD
 	$style_uri       = $has_style_file ? get_block_asset_uri( $style_path_norm, $metadata['file'] ) : false;
+=======
+
+	if ( $has_style_file ) {
+		$style_uri = plugins_url( $style_path, $metadata['file'] );
+
+		// Cache $template_path_norm and $stylesheet_path_norm to avoid unnecessary additional calls.
+		static $template_path_norm   = '';
+		static $stylesheet_path_norm = '';
+		if ( ! $template_path_norm || ! $stylesheet_path_norm ) {
+			$template_path_norm   = wp_normalize_path( get_template_directory() );
+			$stylesheet_path_norm = wp_normalize_path( get_stylesheet_directory() );
+		}
+
+		// Determine if the block style was registered in a theme, by checking if the script path starts with either
+		// the parent (template) or child (stylesheet) directory path.
+		$is_parent_theme_block = str_starts_with( $style_path_norm, trailingslashit( $template_path_norm ) );
+		$is_child_theme_block  = str_starts_with( $style_path_norm, trailingslashit( $stylesheet_path_norm ) );
+		$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
+
+		if ( $is_core_block ) {
+			// All possible $style_path variants for core blocks are hard-coded above.
+			$style_uri = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . '/' . $style_path );
+		} elseif ( $is_theme_block ) {
+			// Get the script path deterministically based on whether or not it was registered in a parent or child theme.
+			$style_uri = $is_parent_theme_block
+				? get_theme_file_uri( str_replace( $template_path_norm, '', $style_path_norm ) )
+				: get_theme_file_uri( str_replace( $stylesheet_path_norm, '', $style_path_norm ) );
+		}
+	} else {
+		$style_uri = false;
+	}
+>>>>>>> trunk
 
 	$version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$result  = wp_register_style(
@@ -995,6 +1029,27 @@ function excerpt_remove_blocks( $content ) {
 }
 
 /**
+ * Parses footnotes markup out of a content string,
+ * and renders those appropriate for the excerpt.
+ *
+ * @since 6.3.0
+ *
+ * @param string $content The content to parse.
+ * @return string The parsed and filtered content.
+ */
+function excerpt_remove_footnotes( $content ) {
+	if ( ! str_contains( $content, 'data-fn=' ) ) {
+		return $content;
+	}
+
+	return preg_replace(
+		'_<sup data-fn="[^"]+" class="[^"]+">\s*<a href="[^"]+" id="[^"]+">\d+</a>\s*</sup>_',
+		'',
+		$content
+	);
+}
+
+/**
  * Renders inner blocks from the allowed wrapper blocks
  * for generating an excerpt.
  *
@@ -1212,16 +1267,25 @@ function unregister_block_style( $block_name, $block_style_name ) {
  * Checks whether the current block type supports the feature requested.
  *
  * @since 5.8.0
+ * @since 6.4.0 The `$feature` parameter now supports a string.
  *
  * @param WP_Block_Type $block_type    Block type to check for support.
- * @param array         $feature       Path to a specific feature to check support for.
+ * @param string|array  $feature       Feature slug, or path to a specific feature to check support for.
  * @param mixed         $default_value Optional. Fallback value for feature support. Default false.
  * @return bool Whether the feature is supported.
  */
 function block_has_support( $block_type, $feature, $default_value = false ) {
 	$block_support = $default_value;
 	if ( $block_type && property_exists( $block_type, 'supports' ) ) {
-		$block_support = _wp_array_get( $block_type->supports, $feature, $default_value );
+		if ( is_array( $feature ) && count( $feature ) === 1 ) {
+			$feature = $feature[0];
+		}
+
+		if ( is_array( $feature ) ) {
+			$block_support = _wp_array_get( $block_type->supports, $feature, $default_value );
+		} elseif ( isset( $block_type->supports[ $feature ] ) ) {
+			$block_support = $block_type->supports[ $feature ];
+		}
 	}
 
 	return true === $block_support || is_array( $block_support );

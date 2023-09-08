@@ -288,7 +288,11 @@ if ( 'post' === $post_type ) {
 			'title'   => __( 'Bulk actions' ),
 			'content' =>
 					'<p>' . __( 'You can also edit or move multiple posts to the Trash at once. Select the posts you want to act on using the checkboxes, then select the action you want to take from the Bulk actions menu and click Apply.' ) . '</p>' .
-							'<p>' . __( 'When using Bulk Edit, you can change the metadata (categories, author, etc.) for all selected posts at once. To remove a post from the grouping, just click the x next to its name in the Bulk Edit area that appears.' ) . '</p>',
+					'<p>' . sprintf(
+						/* translators: %s: The dismiss dashicon used for buttons that dismiss or remove. */
+						__( 'When using Bulk Edit, you can change the metadata (categories, author, etc.) for all selected posts at once. To remove a post from the grouping, just click the %s<span class="screen-reader-text">remove</span> button next to its name in the Bulk Edit area that appears.' ),
+						'<span class="dashicons dashicons-dismiss" aria-hidden="true" style="font-size: 16px; width: 16px; vertical-align: middle;"></span>'
+					) . '</p>',
 		)
 	);
 
@@ -482,7 +486,7 @@ $_SERVER['REQUEST_URI'] = remove_query_arg( array( 'locked', 'skipped', 'updated
 <?php $wp_list_table->search_box( $post_type_object->labels->search_items, 'post' ); ?>
 
 <input type="hidden" name="post_status" class="post_status_page" value="<?php echo ! empty( $_REQUEST['post_status'] ) ? esc_attr( $_REQUEST['post_status'] ) : 'all'; ?>" />
-<input type="hidden" name="post_type" class="post_type_page" value="<?php echo $post_type; ?>" />
+<input type="hidden" name="post_type" class="post_type_page" value="<?php echo esc_attr( $post_type ); ?>" />
 
 <?php if ( ! empty( $_REQUEST['author'] ) ) { ?>
 <input type="hidden" name="author" value="<?php echo esc_attr( $_REQUEST['author'] ); ?>" />

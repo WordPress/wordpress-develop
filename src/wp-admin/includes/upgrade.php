@@ -440,8 +440,10 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 			$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->usermeta WHERE user_id != %d AND meta_key = %s", $user_id, $table_prefix . 'user_level' ) );
 			$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->usermeta WHERE user_id != %d AND meta_key = %s", $user_id, $table_prefix . 'capabilities' ) );
 
-			// Delete any caps that snuck into the previously active blog. (Hardcoded to blog 1 for now.)
-			// TODO: Get previous_blog_id.
+			/*
+			 * Delete any caps that snuck into the previously active blog. (Hardcoded to blog 1 for now.)
+			 * TODO: Get previous_blog_id.
+			 */
 			if ( ! is_super_admin( $user_id ) && 1 != $user_id ) {
 				$wpdb->delete(
 					$wpdb->usermeta,
@@ -623,10 +625,9 @@ if ( ! function_exists( 'wp_upgrade' ) ) :
 	 *
 	 * @global int  $wp_current_db_version The old (current) database version.
 	 * @global int  $wp_db_version         The new database version.
-	 * @global wpdb $wpdb                  WordPress database abstraction object.
 	 */
 	function wp_upgrade() {
-		global $wp_current_db_version, $wp_db_version, $wpdb;
+		global $wp_current_db_version, $wp_db_version;
 
 		$wp_current_db_version = __get_option( 'db_version' );
 
@@ -1644,8 +1645,10 @@ function upgrade_290() {
 	global $wp_current_db_version;
 
 	if ( $wp_current_db_version < 11958 ) {
-		// Previously, setting depth to 1 would redundantly disable threading,
-		// but now 2 is the minimum depth to avoid confusion.
+		/*
+		 * Previously, setting depth to 1 would redundantly disable threading,
+		 * but now 2 is the minimum depth to avoid confusion.
+		 */
 		if ( get_option( 'thread_comments_depth' ) == '1' ) {
 			update_option( 'thread_comments_depth', 2 );
 			update_option( 'thread_comments', 0 );
@@ -2316,7 +2319,7 @@ function upgrade_630() {
 			$can_compress_scripts = get_option( 'can_compress_scripts', false );
 			if ( false !== $can_compress_scripts ) {
 				delete_option( 'can_compress_scripts' );
-				add_option( 'can_compress_scripts', $can_compress_scripts, 'yes' );
+				add_option( 'can_compress_scripts', $can_compress_scripts, '', 'yes' );
 			}
 		}
 	}
@@ -2481,7 +2484,7 @@ function upgrade_network() {
 /**
  * Creates a table in the database, if it doesn't already exist.
  *
- * This method checks for an existing database and creates a new one if it's not
+ * This method checks for an existing database table and creates a new one if it's not
  * already present. It doesn't rely on MySQL's "IF NOT EXISTS" statement, but chooses
  * to query all tables first and then run the SQL statement creating the table.
  *
@@ -3331,8 +3334,10 @@ function make_site_theme_from_default( $theme_name, $template ) {
 	$site_dir    = WP_CONTENT_DIR . "/themes/$template";
 	$default_dir = WP_CONTENT_DIR . '/themes/' . WP_DEFAULT_THEME;
 
-	// Copy files from the default theme to the site theme.
-	// $files = array( 'index.php', 'comments.php', 'comments-popup.php', 'footer.php', 'header.php', 'sidebar.php', 'style.css' );
+	/*
+	 * Copy files from the default theme to the site theme.
+	 * $files = array( 'index.php', 'comments.php', 'comments-popup.php', 'footer.php', 'header.php', 'sidebar.php', 'style.css' );
+	 */
 
 	$theme_dir = @opendir( $default_dir );
 	if ( $theme_dir ) {

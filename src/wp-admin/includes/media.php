@@ -422,14 +422,18 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 	$attachment_id = wp_insert_attachment( $attachment, $file, $post_id, true );
 
 	if ( ! is_wp_error( $attachment_id ) ) {
-		// Set a custom header with the attachment_id.
-		// Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+		/*
+		 * Set a custom header with the attachment_id.
+		 * Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+		 */
 		if ( ! headers_sent() ) {
 			header( 'X-WP-Upload-Attachment-ID: ' . $attachment_id );
 		}
 
-		// The image sub-sizes are created during wp_generate_attachment_metadata().
-		// This is generally slow and may cause timeouts or out of memory errors.
+		/*
+		 * The image sub-sizes are created during wp_generate_attachment_metadata().
+		 * This is generally slow and may cause timeouts or out of memory errors.
+		 */
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $file ) );
 	}
 
@@ -2079,13 +2083,11 @@ function media_upload_header() {
  *
  * @global string $type
  * @global string $tab
- * @global bool   $is_IE
- * @global bool   $is_opera
  *
  * @param array $errors
  */
 function media_upload_form( $errors = null ) {
-	global $type, $tab, $is_IE, $is_opera;
+	global $type, $tab;
 
 	if ( ! _device_can_upload() ) {
 		echo '<p>' . sprintf(
