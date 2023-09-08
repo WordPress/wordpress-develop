@@ -265,8 +265,9 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		$style_path = ( 'editorStyle' === $field_name ) ? "editor{$suffix}.css" : "style{$suffix}.css";
 	}
 
-	$script_path_norm = wp_normalize_path( realpath( $path . '/' . $script_path ) );
-	$script_uri       = get_block_asset_uri( $script_path_norm, $metadata['file'] );
+	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
+	$has_style_file  = '' !== $style_path_norm;
+	$style_uri       = $has_style_file ? get_block_asset_uri( $style_path_norm, $metadata['file'] ) : false;
 
 	$version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$result  = wp_register_style(
