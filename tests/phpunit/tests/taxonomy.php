@@ -318,7 +318,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		unset( $GLOBALS['wp_taxonomies'][ $tax ] );
 		_unregister_post_type( $post_type );
-
 	}
 
 	/**

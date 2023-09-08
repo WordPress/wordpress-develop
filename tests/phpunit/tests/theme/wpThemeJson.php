@@ -765,7 +765,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'body{--wp--preset--color--grey: grey;--wp--preset--color--dark-grey: grey;--wp--preset--color--light-grey: grey;--wp--preset--color--white-2-black: grey;--wp--custom--white-2-black: value;}',
 			$theme_json->get_stylesheet( array( 'variables' ) )
 		);
-
 	}
 
 	/**
@@ -3769,7 +3768,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$sanitized_theme_json = $theme_json->get_raw_data();
 		$this->assertIsArray( $sanitized_theme_json, 'Sanitized theme.json is not an array data type' );
 		$this->assertArrayNotHasKey( 'styles', $sanitized_theme_json, 'Sanitized theme.json should not have a "styles" key' );
-
 	}
 
 	/**
@@ -4762,7 +4760,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$this->assertEquals( 'var(--wp--preset--font-size--s)', $styles['blocks']['core/quote']['variations']['plain']['typography']['fontSize'], 'Style variations: Assert the originally correct values are still correct.' );
 		$this->assertEquals( 'var(--wp--preset--color--s)', $styles['blocks']['core/quote']['variations']['plain']['color']['background'], 'Style variations: Assert the internal variables are convert to CSS custom variables.' );
-
 	}
 
 	public function test_resolve_variables() {

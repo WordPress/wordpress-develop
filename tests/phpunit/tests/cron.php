@@ -53,7 +53,6 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		// It's a non-recurring event.
 		$this->assertFalse( wp_get_schedule( $hook ) );
-
 	}
 
 	/**
@@ -708,7 +707,6 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertFalse( wp_get_scheduled_event( $hook, $args, strtotime( '+30 minutes' ) ) );
 		// - Invalid timestamp.
 		$this->assertFalse( wp_get_scheduled_event( $hook, $args, 'Words Fail!' ) );
-
 	}
 
 	/**
@@ -767,7 +765,6 @@ class Tests_Cron extends WP_UnitTestCase {
 		$subsequent = wp_schedule_single_event( $ts3, $hook, $args, true );
 		$this->assertWPError( $subsequent );
 		$this->assertSame( 'duplicate_event', $subsequent->get_error_code() );
-
 	}
 
 	/**

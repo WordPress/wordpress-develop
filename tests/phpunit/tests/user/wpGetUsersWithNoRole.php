@@ -42,7 +42,6 @@ class Tests_User_wpGetUsersWithNoRole extends WP_UnitTestCase {
 			),
 			$users
 		);
-
 	}
 
 	/**

@@ -73,7 +73,6 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 				$this->put_contents( $path, 'This is a test file' );
 			}
 		}
-
 	}
 
 	/**

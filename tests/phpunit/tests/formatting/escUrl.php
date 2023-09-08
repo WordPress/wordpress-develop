@@ -151,7 +151,6 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 				)
 			)
 		);
-
 	}
 
 	/**

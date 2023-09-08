@@ -1162,7 +1162,6 @@ if ( is_multisite() ) :
 			remove_action( 'clean_site_cache', array( $this, 'action_database_insert_on_clean_site_cache' ) );
 
 			$this->assertIsInt( $site_id );
-
 		}
 
 		public function action_database_insert_on_clean_site_cache() {
@@ -2194,7 +2193,6 @@ if ( is_multisite() ) :
 			$fetched_site = get_site( $new_site_id );
 			$this->assertInstanceOf( 'WP_Site', $fetched_site );
 			$this->assertEquals( $new_site_id, $fetched_site->blog_id );
-
 		}
 
 		/**

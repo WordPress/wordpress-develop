@@ -129,7 +129,6 @@ class Tests_Link_ThemeFile extends WP_UnitTestCase {
 		} else {
 			$this->assertFileDoesNotExist( WP_CONTENT_DIR . "/themes/theme-file-parent/{$file}" );
 		}
-
 	}
 
 	/**

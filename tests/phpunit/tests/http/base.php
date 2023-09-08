@@ -314,7 +314,6 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
 		$this->assertSame( $size, $filesize ); // Check that the file is written to disk correctly without any extra characters.
-
 	}
 
 	/**
@@ -408,7 +407,6 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->skipTestOnTimeout( $res );
 		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
-
 	}
 
 	/**

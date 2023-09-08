@@ -47,7 +47,6 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 			$i++;
 
 		}
-
 	}
 
 	/**
@@ -66,7 +65,6 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 			$this->assertTrue( function_exists( $function ), $msg );
 			$this->assertContains( $function, $defined, $msg );
 		}
-
 	}
 
 	/**
@@ -113,7 +111,6 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 		}
 
 		return $data;
-
 	}
 
 	/**

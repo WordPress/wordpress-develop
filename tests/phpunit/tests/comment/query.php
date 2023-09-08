@@ -245,7 +245,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSameSets( array( $c2, $c3 ), $found );
-
 	}
 
 	/**
@@ -289,7 +288,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSameSets( array( $c2, $c3 ), $found );
-
 	}
 
 	/**
@@ -1748,7 +1746,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$this->assertEquals( $users[0], $comments[0]->user_id );
 		$this->assertEquals( $users[0], $comments[1]->user_id );
 		$this->assertEquals( $users[1], $comments[2]->user_id );
-
 	}
 
 	/**
@@ -3931,7 +3928,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( array( $c2, $c3 ), $ids->comments );
-
 	}
 
 	/**
