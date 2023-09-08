@@ -42,7 +42,6 @@ require_once ABSPATH . 'wp-settings.php';
 require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 require_once ABSPATH . 'wp-includes/class-wpdb.php';
 
-$wpdb->query( 'DROP TABLE wibble' );
 if ( $wpdb->last_error ) {
 	printf(
 		'Error: exiting unit tests because of the following database error: %s.' . PHP_EOL,
