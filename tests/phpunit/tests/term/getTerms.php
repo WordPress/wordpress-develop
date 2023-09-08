@@ -3029,6 +3029,43 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 52710
+	 */
+	public function test_get_terms_without_update_get_terms_cache() {
+		global $wpdb;
+
+		$this->set_up_three_posts_and_tags();
+
+		$num_queries = $wpdb->num_queries;
+
+		// last_changed and num_queries should bump.
+		$terms = get_terms(
+			'post_tag',
+			array(
+				'cache_results'          => false,
+				'update_term_meta_cache' => false,
+			)
+		);
+		$this->assertSame( 3, count( $terms ) );
+		$this->assertEmpty( wp_cache_get( 'last_changed', 'terms' ) );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+
+		$num_queries = $wpdb->num_queries;
+
+		// last_changed and num_queries should bump again.
+		$terms = get_terms(
+			'post_tag',
+			array(
+				'cache_results'          => false,
+				'update_term_meta_cache' => false,
+			)
+		);
+		$this->assertSame( 3, count( $terms ) );
+		$this->assertEmpty( wp_cache_get( 'last_changed', 'terms' ) );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+	}
+
+	/**
 	 * @ticket 35935
 	 */
 	public function test_hierarchical_offset_exceeds_available_count() {
