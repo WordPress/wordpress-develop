@@ -6073,13 +6073,6 @@ function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTIC
 		$message = sprintf( '%s(): %s', $function_name, $message );
 	}
 
-	/*
-	 * If the message appears in the browser, then it needs to be escaped.
-	 * Note the warning in the `trigger_error()` PHP manual.
-	 * @link https://www.php.net/manual/en/function.trigger-error.php
-	 */
-	$message = esc_html( $message );
-
 	trigger_error( $message, $error_level );
 }
 
