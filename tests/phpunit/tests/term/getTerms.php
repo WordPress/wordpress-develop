@@ -3032,11 +3032,9 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	 * @ticket 52710
 	 */
 	public function test_get_terms_without_update_get_terms_cache() {
-		global $wpdb;
-
 		$this->set_up_three_posts_and_tags();
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		// last_changed and num_queries should bump.
 		$terms = get_terms(
@@ -3047,10 +3045,10 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 		$this->assertSame( 3, count( $terms ) );
-		$this->assertEmpty( wp_cache_get( 'last_changed', 'terms' ) );
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertEmpty( wp_cache_get_last_changed( 'terms' ) );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		// last_changed and num_queries should bump again.
 		$terms = get_terms(
@@ -3061,8 +3059,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 		$this->assertSame( 3, count( $terms ) );
-		$this->assertEmpty( wp_cache_get( 'last_changed', 'terms' ) );
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertEmpty( wp_cache_get_last_changed( 'terms' ) );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 	}
 
 	/**
