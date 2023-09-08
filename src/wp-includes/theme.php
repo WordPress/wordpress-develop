@@ -2901,7 +2901,7 @@ function _custom_header_background_just_in_time() {
 
 		$args = get_theme_support( 'custom-header' );
 		if ( $args[0]['wp-head-callback'] ) {
-			add_action( 'wp_head', $args[0]['wp-head-callback'] );
+			add_action( 'wp_head', $args[0]['wp-head-callback'], -1 );
 		}
 
 		if ( is_admin() ) {
@@ -2915,7 +2915,7 @@ function _custom_header_background_just_in_time() {
 		add_theme_support( 'custom-background', array( '__jit' => true ) );
 
 		$args = get_theme_support( 'custom-background' );
-		add_action( 'wp_head', $args[0]['wp-head-callback'] );
+		add_action( 'wp_head', $args[0]['wp-head-callback'], -1 );
 
 		if ( is_admin() ) {
 			require_once ABSPATH . 'wp-admin/includes/class-custom-background.php';
@@ -2943,7 +2943,7 @@ function _custom_logo_header_styles() {
 		position: absolute;
 		clip: rect(1px, 1px, 1px, 1px);
 		}';
-		$handle          = 'custom-logo-css';
+		$handle          = 'custom-logo';
 
 		wp_register_style( $handle, false );
 		wp_add_inline_style( $handle, $custom_logo_css );
