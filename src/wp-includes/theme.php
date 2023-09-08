@@ -1852,11 +1852,13 @@ function _custom_background_cb() {
 		$color = false;
 	}
 
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	$handle = 'custom-background';
+	wp_register_style( $handle, false );
 
 	if ( ! $background && ! $color ) {
 		if ( is_customize_preview() ) {
-			printf( '<style%s id="custom-background-css"></style>', $type_attr );
+			wp_add_inline_style( $handle, '' );
+			wp_enqueue_style( $handle );
 		}
 		return;
 	}
@@ -1909,11 +1911,8 @@ function _custom_background_cb() {
 
 		$style .= $image . $position . $size . $repeat . $attachment;
 	}
-	?>
-<style<?php echo $type_attr; ?> id="custom-background-css">
-body.custom-background { <?php echo trim( $style ); ?> }
-</style>
-	<?php
+	wp_add_inline_style( $handle, 'body.custom-background { '. trim( $style ).' }' );
+	wp_enqueue_style( $handle );
 }
 
 /**

@@ -673,7 +673,7 @@
 				css += 'background-attachment: ' + settings.attachment() + ';';
 			}
 
-			$( '#custom-background-css' ).text( 'body.custom-background { ' + css + ' }' );
+			$( '#custom-background-inline-css' ).text( 'body.custom-background { ' + css + ' }' );
 		}
 	};
 
