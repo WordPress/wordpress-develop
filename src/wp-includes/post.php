@@ -7336,13 +7336,11 @@ function update_post_term_caches( $posts, $post_type = 'any' ) {
 		$post_type = 'any';
 	}
 
-	if ( is_array( $post_type ) ) {
-		$ptypes = $post_type;
-	} elseif ( 'any' === $post_type ) {
+	if ( 'any' === $post_type ) {
 		$ptypes = wp_list_pluck( $posts, 'post_type' );
 		$ptypes = array_unique( $ptypes );
 	} else {
-		$ptypes = array( $post_type );
+		$ptypes = (array) $post_type;
 	}
 
 	update_object_term_cache( $post_ids, $ptypes );
