@@ -847,6 +847,13 @@ class WP_Plugin_Dependencies {
 		return $circular_dependencies;
 	}
 
+	/**
+	 * Checks for circular dependencies.
+	 *
+	 * @param array $dependents   Array of dependent plugins.
+	 * @param array $dependencies Array of plugins dependencies.
+	 * @return array
+	 */
 	public static function check_for_circular_dependencies( $dependents, $dependencies ) {
 		$circular_dependencies = array();
 
