@@ -107,7 +107,6 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 
 			$this->assertSame( $expected_results, $response );
 		}
-
 	}
 
 	/**
@@ -291,7 +290,6 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 		// Get the results.
 		$response = json_decode( $this->_last_response, true );
 		$this->assertSame( $success_status, $response['success'] );
-
 	}
 
 	/**

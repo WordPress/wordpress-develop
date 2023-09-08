@@ -187,7 +187,6 @@ function twentytwenty_register_styles() {
 
 	// Add print CSS.
 	wp_enqueue_style( 'twentytwenty-print-style', get_template_directory_uri() . '/print.css', null, $theme_version, 'print' );
-
 }
 
 add_action( 'wp_enqueue_scripts', 'twentytwenty_register_styles' );
@@ -329,7 +328,6 @@ function twentytwenty_get_custom_logo( $html ) {
 	}
 
 	return $html;
-
 }
 
 add_filter( 'get_custom_logo', 'twentytwenty_get_custom_logo' );
@@ -401,7 +399,6 @@ function twentytwenty_sidebar_registration() {
 			)
 		)
 	);
-
 }
 
 add_action( 'widgets_init', 'twentytwenty_sidebar_registration' );
@@ -447,7 +444,6 @@ function twentytwenty_classic_editor_styles() {
 	);
 
 	add_editor_style( $classic_editor_styles );
-
 }
 
 add_action( 'init', 'twentytwenty_classic_editor_styles' );
@@ -476,7 +472,6 @@ function twentytwenty_add_classic_editor_customizer_styles( $mce_init ) {
 	}
 
 	return $mce_init;
-
 }
 
 add_filter( 'tiny_mce_before_init', 'twentytwenty_add_classic_editor_customizer_styles' );
@@ -504,7 +499,6 @@ function twentytwenty_add_classic_editor_non_latin_styles( $mce_init ) {
 	}
 
 	return $mce_init;
-
 }
 
 add_filter( 'tiny_mce_before_init', 'twentytwenty_add_classic_editor_non_latin_styles' );
@@ -596,7 +590,6 @@ function twentytwenty_block_editor_settings() {
 	if ( '#ffffff' === strtolower( twentytwenty_get_color_for_area( 'content', 'text' ) ) ) {
 		add_theme_support( 'dark-editor-style' );
 	}
-
 }
 
 add_action( 'after_setup_theme', 'twentytwenty_block_editor_settings' );

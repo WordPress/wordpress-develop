@@ -81,7 +81,6 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 
 		$count = get_user_count();
 		$this->assertSame( $start_count + 1, $count );
-
 	}
 
 	/**

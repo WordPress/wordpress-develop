@@ -390,6 +390,5 @@ class WP_PHPUnit_Util_Getopt {
 			echo PHP_EOL;
 		}
 	}
-
 }
 new WP_PHPUnit_Util_Getopt( $_SERVER['argv'] );

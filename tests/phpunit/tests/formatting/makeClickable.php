@@ -518,5 +518,4 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

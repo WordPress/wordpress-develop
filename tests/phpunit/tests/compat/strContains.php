@@ -34,7 +34,6 @@ class Tests_Compat_strContains extends WP_UnitTestCase {
 				str_contains( $haystack, $needle )
 			);
 		}
-
 	}
 
 	/**
