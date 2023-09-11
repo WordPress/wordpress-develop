@@ -150,6 +150,23 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `wp_trim_excerpt()` does process valid blocks.
+	 *
+	 * @ticket 58682
+	 */
+	public function test_wp_trim_excerpt_check_if_block_renders() {
+		$post = self::factory()->post->create(
+			array(
+				'post_content' => '<!-- wp:paragraph --> <p>A test paragraph</p> <!-- /wp:paragraph -->',
+			)
+		);
+
+		$output_text = wp_trim_excerpt( '', $post );
+
+		$this->assertSame( 'A test paragraph', $output_text, 'wp_trim_excerpt() did not process paragraph block.' );
+	}
+
+	/**
 	 * Tests that `wp_trim_excerpt()` unhooks `do_blocks()` from 'the_content' filter.
 	 *
 	 * @ticket 58682
