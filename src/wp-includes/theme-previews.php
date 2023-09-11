@@ -76,6 +76,36 @@ function wp_block_theme_activate_nonce() {
 }
 
 /**
+ * Add `_doing_it_wrong()` notice if the theme is requested before `pluggable.php` is loaded.
+ *
+ * @since 6.3.2
+ * @param string $current The current theme's stylesheet or template path.
+ * @return string Return the current theme's stylesheet or template path as is.
+ */
+function wp_theme_preview_maybe_doing_it_wrong( $current ) {
+	if ( ! empty( $_GET['wp_theme_preview'] ) && ! function_exists( 'wp_get_current_user' ) ) {
+		if ( current_filter() === 'template' ) {
+			$function_name = 'get_template()';
+		} else {
+			$function_name = 'get_stylesheet()';
+		}
+
+		_doing_it_wrong(
+			$function_name,
+			sprintf(
+				/* translators: translators: Developer debugging message. 1: PHP function name */
+				__( 'Calling %s before pluggable.php has loaded can result in getting the current theme instead of the previewed theme. Please ensure that you are using these functions after the plugins_loaded action has fired if this is not intended.' ),
+				$function_name
+			),
+			'6.3.2'
+		);
+	}
+	return $current;
+}
+add_filter( 'stylesheet', 'wp_theme_preview_maybe_doing_it_wrong' );
+add_filter( 'template', 'wp_theme_preview_maybe_doing_it_wrong' );
+
+/**
  * Add filters and actions to enable Block Theme Previews in the Site Editor.
  *
  * The filters and actions should be added after `pluggable.php` is included as they may
