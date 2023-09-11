@@ -221,7 +221,7 @@ class WP_Block_Type {
 	 * next to the "anchor" block whenever the latter is encountered.
 	 *
 	 * @since 6.4.0
-	 * @var array|null
+	 * @var array
 	 */
 	public $block_hooks = array();
 
@@ -292,7 +292,7 @@ class WP_Block_Type {
 	 *     @type array[]       $variations               Block variations.
 	 *     @type array         $selectors                Custom CSS selectors for theme.json style generation.
 	 *     @type array|null    $supports                 Supported features.
-	 *     @type array|null    $block_hooks              Block hooks.
+	 *     @type array         $block_hooks              Block hooks.
 	 *     @type array|null    $example                  Structured data for the block preview.
 	 *     @type callable|null $render_callback          Block type render callback.
 	 *     @type array|null    $attributes               Block type attributes property schemas.
