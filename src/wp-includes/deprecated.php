@@ -4253,7 +4253,7 @@ function wp_render_duotone_filter_preset( $preset ) {
 function wp_skip_border_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$border_support = _wp_array_get( $block_type->supports, array( '__experimentalBorder' ), false );
+	$border_support = isset( $block_type->supports['__experimentalBorder'] ) ? $block_type->supports['__experimentalBorder'] : false;
 
 	return is_array( $border_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $border_support ) &&
@@ -4275,7 +4275,7 @@ function wp_skip_border_serialization( $block_type ) {
 function wp_skip_dimensions_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$dimensions_support = _wp_array_get( $block_type->supports, array( '__experimentalDimensions' ), false );
+	$dimensions_support = isset( $block_type->supports['__experimentalDimensions'] ) ? $block_type->supports['__experimentalDimensions'] : false;
 
 	return is_array( $dimensions_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $dimensions_support ) &&
@@ -4297,7 +4297,7 @@ function wp_skip_dimensions_serialization( $block_type ) {
 function wp_skip_spacing_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$spacing_support = _wp_array_get( $block_type->supports, array( 'spacing' ), false );
+	$spacing_support = isset( $block_type->supports['spacing'] ) ? $block_type->supports[ 'spacing'] : false;
 
 	return is_array( $spacing_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $spacing_support ) &&
@@ -4478,7 +4478,7 @@ function wp_typography_get_css_variable_inline_style( $attributes, $feature, $cs
 	_deprecated_function( __FUNCTION__, '6.1.0', 'wp_style_engine_get_styles()' );
 
 	// Retrieve current attribute value or skip if not found.
-	$style_value = _wp_array_get( $attributes, array( 'style', 'typography', $feature ), false );
+	$style_value = isset( $attributes['style']['typography'][ $feature ]) ? $attributes['style']['typography'][ $feature ] : false;
 	if ( ! $style_value ) {
 		return;
 	}

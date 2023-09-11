@@ -910,7 +910,9 @@ class WP_Theme_JSON {
 
 			// Keep backwards compatibility for support.color.__experimentalDuotone.
 			if ( null === $duotone_selector ) {
-				$duotone_support = _wp_array_get( $block_type->supports, array( 'color', '__experimentalDuotone' ), null );
+				$duotone_support = isset( $block_type->supports['color']['__experimentalDuotone'] )
+					? $block_type->supports['color']['__experimentalDuotone']
+					: null;
 
 				if ( $duotone_support ) {
 					$root_selector    = wp_get_block_css_selector( $block_type );
@@ -1147,12 +1149,12 @@ class WP_Theme_JSON {
 	 */
 	public function get_custom_css() {
 		// Add the global styles root CSS.
-		$stylesheet = _wp_array_get( $this->theme_json, array( 'styles', 'css' ), '' );
+		$stylesheet = isset( $this->theme_json['styles']['css'] ) ? $this->theme_json['styles']['css'] : '';
 
 		// Add the global styles block CSS.
 		if ( isset( $this->theme_json['styles']['blocks'] ) ) {
 			foreach ( $this->theme_json['styles']['blocks'] as $name => $node ) {
-				$custom_block_css = _wp_array_get( $this->theme_json, array( 'styles', 'blocks', $name, 'css' ) );
+				$custom_block_css = isset( $this->theme_json['styles']['blocks'][ $name ]['css'] ) ? $this->theme_json['styles']['blocks'][ $name ]['css'] : null;
 				if ( $custom_block_css ) {
 					$selector    = static::$blocks_metadata[ $name ]['selector'];
 					$stylesheet .= $this->process_blocks_custom_css( $custom_block_css, $selector );
@@ -1271,7 +1273,7 @@ class WP_Theme_JSON {
 		}
 
 		$selector                 = isset( $block_metadata['selector'] ) ? $block_metadata['selector'] : '';
-		$has_block_gap_support    = _wp_array_get( $this->theme_json, array( 'settings', 'spacing', 'blockGap' ) ) !== null;
+		$has_block_gap_support    = isset( $this->theme_json['settings']['spacing']['blockGap'] );
 		$has_fallback_gap_support = ! $has_block_gap_support; // This setting isn't useful yet: it exists as a placeholder for a future explicit fallback gap styles support.
 		$node                     = _wp_array_get( $this->theme_json, $block_metadata['path'], array() );
 		$layout_definitions       = wp_get_layout_definitions();
@@ -1287,7 +1289,9 @@ class WP_Theme_JSON {
 			if ( ! $has_block_gap_support ) {
 				$block_gap_value = static::ROOT_BLOCK_SELECTOR === $selector ? '0.5em' : null;
 				if ( ! empty( $block_type ) ) {
-					$block_gap_value = _wp_array_get( $block_type->supports, array( 'spacing', 'blockGap', '__experimentalDefault' ), null );
+					$block_gap_value = isset( $block_type->supports['spacing']['blockGap']['__experimentalDefault'] )
+						? $block_type->supports['spacing']['blockGap']['__experimentalDefault']
+						: null;
 				}
 			} else {
 				$block_gap_value = static::get_property_value( $node, array( 'spacing', 'blockGap' ) );
@@ -1313,8 +1317,8 @@ class WP_Theme_JSON {
 						continue;
 					}
 
-					$class_name    = _wp_array_get( $layout_definition, array( 'className' ), false );
-					$spacing_rules = _wp_array_get( $layout_definition, array( 'spacingStyles' ), array() );
+					$class_name    = isset( $layout_definition['className'] ) ? $layout_definition['className'] : false;
+					$spacing_rules = isset( $layout_definition['spacingStyles'] ) ? $layout_definition['spacingStyles'] : array();
 
 					if (
 						! empty( $class_name ) &&
@@ -1370,8 +1374,8 @@ class WP_Theme_JSON {
 		) {
 			$valid_display_modes = array( 'block', 'flex', 'grid' );
 			foreach ( $layout_definitions as $layout_definition ) {
-				$class_name       = _wp_array_get( $layout_definition, array( 'className' ), false );
-				$base_style_rules = _wp_array_get( $layout_definition, array( 'baseStyles' ), array() );
+				$class_name       = isset( $layout_definition['className'] ) ? $layout_definition['className'] : false;
+				$base_style_rules = isset( $layout_definition['baseStyles'] ) ? $layout_definition['baseStyles'] : array();
 
 				if (
 					! empty( $class_name ) &&
@@ -1799,7 +1803,7 @@ class WP_Theme_JSON {
 	 */
 	protected static function compute_theme_vars( $settings ) {
 		$declarations  = array();
-		$custom_values = _wp_array_get( $settings, array( 'custom' ), array() );
+		$custom_values = isset( $settings['custom'] ) ? $settings['custom'] : array();
 		$css_vars      = static::flatten_tree( $custom_values );
 		foreach ( $css_vars as $key => $value ) {
 			$declarations[] = array(
@@ -2313,7 +2317,7 @@ class WP_Theme_JSON {
 		$node                 = _wp_array_get( $this->theme_json, $block_metadata['path'], array() );
 		$use_root_padding     = isset( $this->theme_json['settings']['useRootPaddingAwareAlignments'] ) && true === $this->theme_json['settings']['useRootPaddingAwareAlignments'];
 		$selector             = $block_metadata['selector'];
-		$settings             = _wp_array_get( $this->theme_json, array( 'settings' ) );
+		$settings             = isset( $this->theme_json['settings'] ) ? $this->theme_json['settings'] : array();
 		$feature_declarations = static::get_feature_declarations_for_node( $block_metadata, $node );
 
 		// If there are style variations, generate the declarations for them, including any feature selectors the block may have.
@@ -2453,7 +2457,7 @@ class WP_Theme_JSON {
 	 */
 	public function get_root_layout_rules( $selector, $block_metadata ) {
 		$css              = '';
-		$settings         = _wp_array_get( $this->theme_json, array( 'settings' ) );
+		$settings         = isset( $this->theme_json['settings'] ) ? $this->theme_json['settings'] : array();
 		$use_root_padding = isset( $this->theme_json['settings']['useRootPaddingAwareAlignments'] ) && true === $this->theme_json['settings']['useRootPaddingAwareAlignments'];
 
 		/*
@@ -2502,8 +2506,8 @@ class WP_Theme_JSON {
 		$css .= '.wp-site-blocks > .alignright { float: right; margin-left: 2em; }';
 		$css .= '.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
 
-		$block_gap_value       = _wp_array_get( $this->theme_json, array( 'styles', 'spacing', 'blockGap' ), '0.5em' );
-		$has_block_gap_support = _wp_array_get( $this->theme_json, array( 'settings', 'spacing', 'blockGap' ) ) !== null;
+		$block_gap_value       = isset( $this->theme_json['styles']['spacing']['blockGap'] ) ? $this->theme_json['styles']['spacing']['blockGap'] : '0.5em';
+		$has_block_gap_support = isset( $this->theme_json['settings']['spacing']['blockGap'] );
 		if ( $has_block_gap_support ) {
 			$block_gap_value = static::get_property_value( $this->theme_json, array( 'styles', 'spacing', 'blockGap' ) );
 			$css            .= ":where(.wp-site-blocks) > * { margin-block-start: $block_gap_value; margin-block-end: 0; }";
@@ -3342,7 +3346,9 @@ class WP_Theme_JSON {
 	 * @return null|void
 	 */
 	public function set_spacing_sizes() {
-		$spacing_scale = _wp_array_get( $this->theme_json, array( 'settings', 'spacing', 'spacingScale' ), array() );
+		$spacing_scale = isset( $this->theme_json['settings']['spacing']['spacingScale'] )
+			? $this->theme_json['settings']['spacing']['spacingScale']
+			: array();
 
 		if ( ! isset( $spacing_scale['steps'] )
 			|| ! is_numeric( $spacing_scale['steps'] )
@@ -3581,7 +3587,7 @@ class WP_Theme_JSON {
 			return $declarations;
 		}
 
-		$settings = _wp_array_get( $this->theme_json, array( 'settings' ) );
+		$settings = isset( $this->theme_json['settings'] ) ? $this->theme_json['settings'] : null;
 
 		foreach ( $metadata['selectors'] as $feature => $feature_selectors ) {
 			/*

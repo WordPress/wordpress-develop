@@ -61,8 +61,12 @@ function wp_apply_spacing_support( $block_type, $block_attributes ) {
 	$skip_padding                    = wp_should_skip_block_supports_serialization( $block_type, 'spacing', 'padding' );
 	$skip_margin                     = wp_should_skip_block_supports_serialization( $block_type, 'spacing', 'margin' );
 	$spacing_block_styles            = array();
-	$spacing_block_styles['padding'] = $has_padding_support && ! $skip_padding ? _wp_array_get( $block_styles, array( 'spacing', 'padding' ), null ) : null;
-	$spacing_block_styles['margin']  = $has_margin_support && ! $skip_margin ? _wp_array_get( $block_styles, array( 'spacing', 'margin' ), null ) : null;
+	$spacing_block_styles['padding'] = $has_padding_support && ! $skip_padding && isset( $block_styles['spacing']['padding'] )
+		? $block_styles['spacing']['padding']
+		: null;
+	$spacing_block_styles['margin']  = $has_margin_support && ! $skip_margin && isset( $block_styles['spacing']['margin'] )
+		? $block_styles['spacing']['margin']
+		: null;
 	$styles                          = wp_style_engine_get_styles( array( 'spacing' => $spacing_block_styles ) );
 
 	if ( ! empty( $styles['css'] ) ) {

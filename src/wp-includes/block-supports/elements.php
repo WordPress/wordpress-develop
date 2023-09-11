@@ -43,12 +43,16 @@ function wp_render_elements_support( $block_content, $block ) {
 
 	$link_color = null;
 	if ( ! empty( $block['attrs'] ) ) {
-		$link_color = _wp_array_get( $block['attrs'], array( 'style', 'elements', 'link', 'color', 'text' ), null );
+		$link_color = isset( $block['attrs']['style']['elements']['link']['color']['text'] )
+			? $block['attrs']['style']['elements']['link']['color']['text']
+			: null;
 	}
 
 	$hover_link_color = null;
 	if ( ! empty( $block['attrs'] ) ) {
-		$hover_link_color = _wp_array_get( $block['attrs'], array( 'style', 'elements', 'link', ':hover', 'color', 'text' ), null );
+		$hover_link_color = isset( $block['attrs']['style']['elements']['link'][':hover']['color']['text'] )
+			? $block['attrs']['style']['elements']['link'][':hover']['color']['text']
+			: null;
 	}
 
 	/*
