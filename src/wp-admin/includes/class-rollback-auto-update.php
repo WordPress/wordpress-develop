@@ -167,6 +167,8 @@ class WP_Rollback_Auto_Update {
 		wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $hook_extra['plugin'] );
 		include WP_PLUGIN_DIR . '/' . $hook_extra['plugin'];
 
+		activate_plugins( self::$is_active );
+
 		return $result;
 	}
 
