@@ -863,8 +863,8 @@ function serialize_block( $block, $callback = null ) {
  * @since 5.3.1
  * @since 6.4.0 The `$callback` parameter was added.
  *
- * @param array[] $blocks An array of representative arrays of parsed block objects. See serialize_block().
- * @param string $callback Optional. Callback to run on the blocks before serialization.
+ * @param array[] $blocks   An array of representative arrays of parsed block objects. See serialize_block().
+ * @param string  $callback Optional. Callback to run on the blocks before serialization. Default null.
  * @return string String of rendered HTML.
  */
 function serialize_blocks( $blocks, $callback = null ) {
