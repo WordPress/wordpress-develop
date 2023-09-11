@@ -898,12 +898,14 @@ class WP_Term_Query {
 		} else {
 			$term_cache = wp_list_pluck( $term_objects, 'term_id' );
 		}
+
 		if ( $args['cache_results'] ) {
 			wp_cache_add( $cache_key, $term_cache, 'term-queries' );
 		}
-			$this->terms = $this->format_terms( $term_objects, $_fields );
 
-			return $this->terms;
+		$this->terms = $this->format_terms( $term_objects, $_fields );
+
+		return $this->terms;
 	}
 
 	/**
