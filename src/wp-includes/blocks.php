@@ -1725,9 +1725,11 @@ function insert_hooked_blocks( $block ) {
 function insert_hooked_block( $inserted_block, $relative_position, $anchor_block ) {
 	if ( 'first_child' === $relative_position ) {
 		array_unshift( $anchor_block['innerBlocks'], $inserted_block );
-		// Since WP_Block::render() iterates over `inner_content` (rather than `inner_blocks`)
-		// when rendering blocks, we also need to prepend a value (`null`, to mark a block
-		// location) to that array.
+		/*
+		 * Since WP_Block::render() iterates over `inner_content` (rather than `inner_blocks`)
+		 * when rendering blocks, we also need to prepend a value (`null`, to mark a block
+		 * location) to that array.
+		 */
 		array_unshift( $anchor_block['innerContent'], null );
 	} elseif ( 'last_child' === $relative_position ) {
 		array_push( $anchor_block['innerBlocks'], $inserted_block );
