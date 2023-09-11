@@ -221,7 +221,7 @@ function twentytwenty_register_scripts() {
 		array(),
 		$theme_version,
 		array(
-			'in_footer' => false,
+			'in_footer' => false, // Because involves header.
 			'strategy'  => 'defer',
 		)
 	);

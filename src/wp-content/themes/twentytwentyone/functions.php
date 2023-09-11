@@ -450,7 +450,7 @@ function twenty_twenty_one_scripts() {
 			array( 'twenty-twenty-one-ie11-polyfills' ),
 			wp_get_theme()->get( 'Version' ),
 			array(
-				'in_footer' => false,
+				'in_footer' => false, // Because involves header.
 				'strategy'  => 'defer',
 			)
 		);
