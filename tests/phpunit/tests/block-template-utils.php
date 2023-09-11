@@ -198,6 +198,12 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				'template-with-template-part-with-existing-theme-attribute.html',
 				'<!-- wp:template-part {"slug":"header","theme":"fake-theme","align":"full", "tagName":"header","className":"site-header"} /-->',
 			),
+			array(
+				'template.html',
+				'<!-- wp:paragraph -->
+<p>Just a paragraph</p>
+<!-- /wp:paragraph -->',
+			),
 		);
 	}
 
