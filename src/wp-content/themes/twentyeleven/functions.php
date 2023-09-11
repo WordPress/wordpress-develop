@@ -79,8 +79,15 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 		 * If you're building a theme based on Twenty Eleven, use
 		 * a find and replace to change 'twentyeleven' to the name
 		 * of your theme in all the template files.
+		 *
+		 * Manual loading of text domain is not required after the introduction of
+		 * just in time translation loading in WordPress version 4.6.
+		 *
+		 * @ticket 58318
 		 */
-		load_theme_textdomain( 'twentyeleven', get_template_directory() . '/languages' );
+		if ( version_compare( $GLOBALS['wp_version'], '4.6', '<' ) ) {
+			load_theme_textdomain( 'twentyeleven', get_template_directory() . '/languages' );
+		}
 
 		// This theme styles the visual editor with editor-style.css to match the theme style.
 		add_editor_style();
@@ -660,15 +667,15 @@ function twentyeleven_footer_sidebar_class() {
 	$count = 0;
 
 	if ( is_active_sidebar( 'sidebar-3' ) ) {
-		$count++;
+		++$count;
 	}
 
 	if ( is_active_sidebar( 'sidebar-4' ) ) {
-		$count++;
+		++$count;
 	}
 
 	if ( is_active_sidebar( 'sidebar-5' ) ) {
-		$count++;
+		++$count;
 	}
 
 	$class = '';

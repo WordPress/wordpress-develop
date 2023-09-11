@@ -51,8 +51,15 @@ function twentytwelve_setup() {
 	 * Translations can be filed at WordPress.org. See: https://translate.wordpress.org/projects/wp-themes/twentytwelve
 	 * If you're building a theme based on Twenty Twelve, use a find and replace
 	 * to change 'twentytwelve' to the name of your theme in all the template files.
+	 *
+	 * Manual loading of text domain is not required after the introduction of
+	 * just in time translation loading in WordPress version 4.6.
+	 *
+	 * @ticket 58318
 	 */
-	load_theme_textdomain( 'twentytwelve' );
+	if ( version_compare( $GLOBALS['wp_version'], '4.6', '<' ) ) {
+		load_theme_textdomain( 'twentytwelve' );
+	}
 
 	// This theme styles the visual editor with editor-style.css to match the theme style.
 	add_editor_style();
@@ -181,7 +188,7 @@ function twentytwelve_scripts_styles() {
 	}
 
 	// Adds JavaScript for handling the navigation menu hide-and-show behavior.
-	wp_enqueue_script( 'twentytwelve-navigation', get_template_directory_uri() . '/js/navigation.js', array( 'jquery' ), '20141205', true );
+	wp_enqueue_script( 'twentytwelve-navigation', get_template_directory_uri() . '/js/navigation.js', array( 'jquery' ), '20141205', array( 'in_footer' => true ) );
 
 	$font_url = twentytwelve_get_font_url();
 	if ( ! empty( $font_url ) ) {
@@ -190,7 +197,7 @@ function twentytwelve_scripts_styles() {
 	}
 
 	// Loads our main stylesheet.
-	wp_enqueue_style( 'twentytwelve-style', get_stylesheet_uri(), array(), '20230328' );
+	wp_enqueue_style( 'twentytwelve-style', get_stylesheet_uri(), array(), '20230808' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentytwelve-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentytwelve-style' ), '20230213' );
@@ -685,7 +692,7 @@ function twentytwelve_customize_partial_blogdescription() {
  * @since Twenty Twelve 1.0
  */
 function twentytwelve_customize_preview_js() {
-	wp_enqueue_script( 'twentytwelve-customizer', get_template_directory_uri() . '/js/theme-customizer.js', array( 'customize-preview' ), '20200516', true );
+	wp_enqueue_script( 'twentytwelve-customizer', get_template_directory_uri() . '/js/theme-customizer.js', array( 'customize-preview' ), '20200516', array( 'in_footer' => true ) );
 }
 add_action( 'customize_preview_init', 'twentytwelve_customize_preview_js' );
 

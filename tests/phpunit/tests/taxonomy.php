@@ -284,7 +284,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		// Create a post type to test with.
 		$post_type = 'test_cpt';
 		$this->assertFalse( get_post_type( $post_type ) );
-		$this->assertObjectHasAttribute( 'name', register_post_type( $post_type ) );
+		$this->assertObjectHasProperty( 'name', register_post_type( $post_type ) );
 
 		// Core taxonomy, core post type.
 		$this->assertTrue( unregister_taxonomy_for_object_type( 'category', 'post' ) );
@@ -318,7 +318,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		unset( $GLOBALS['wp_taxonomies'][ $tax ] );
 		_unregister_post_type( $post_type );
-
 	}
 
 	/**

@@ -48,7 +48,7 @@ class WP_Customize_Themes_Section extends WP_Customize_Section {
 	public $filter_type = 'local';
 
 	/**
-	 * Get section parameters for JS.
+	 * Gets section parameters for JS.
 	 *
 	 * @since 4.9.0
 	 * @return array Exported parameters.
@@ -62,7 +62,7 @@ class WP_Customize_Themes_Section extends WP_Customize_Section {
 	}
 
 	/**
-	 * Render a themes section as a JS template.
+	 * Renders a themes section as a JS template.
 	 *
 	 * The template is only rendered by PHP once, so all actions are prepared at once on the server side.
 	 *
@@ -112,10 +112,10 @@ class WP_Customize_Themes_Section extends WP_Customize_Section {
 	}
 
 	/**
-	 * Render the filter bar portion of a themes section as a JS template.
+	 * Renders the filter bar portion of a themes section as a JS template.
 	 *
 	 * The template is only rendered by PHP once, so all actions are prepared at once on the server side.
-	 * The filter bar container is rendered by @see `render_template()`.
+	 * The filter bar container is rendered by {@see render_template()}.
 	 *
 	 * @since 4.9.0
 	 */
@@ -177,15 +177,17 @@ class WP_Customize_Themes_Section extends WP_Customize_Section {
 	}
 
 	/**
-	 * Render the filter drawer portion of a themes section as a JS template.
+	 * Renders the filter drawer portion of a themes section as a JS template.
 	 *
-	 * The filter bar container is rendered by @see `render_template()`.
+	 * The filter bar container is rendered by {@see render_template()}.
 	 *
 	 * @since 4.9.0
 	 */
 	protected function filter_drawer_content_template() {
-		// @todo Use the .org API instead of the local core feature list.
-		// The .org API is currently outdated and will be reconciled when the .org themes directory is next redesigned.
+		/*
+		 * @todo Use the .org API instead of the local core feature list.
+		 * The .org API is currently outdated and will be reconciled when the .org themes directory is next redesigned.
+		 */
 		$feature_list = get_theme_feature_list( false );
 		?>
 		<# if ( 'wporg' === data.action ) { #>

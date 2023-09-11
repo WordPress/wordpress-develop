@@ -21,7 +21,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 			switch ( $char ) {
 				case '?':
 					$res .= ' ? (';
-					$depth++;
+					++$depth;
 					break;
 				case ':':
 					$res .= ') : (';

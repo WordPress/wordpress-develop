@@ -139,7 +139,7 @@ unset( $phpunit_polyfills_autoloader, $phpunit_polyfills_error, $phpunit_polyfil
  * Minimum version of the PHPUnit Polyfills package as declared in `composer.json`.
  * Only needs updating when new polyfill features start being used in the test suite.
  */
-$phpunit_polyfills_minimum_version = '1.0.1';
+$phpunit_polyfills_minimum_version = '1.1.0';
 if ( class_exists( '\Yoast\PHPUnitPolyfills\Autoload' )
 	&& ( defined( '\Yoast\PHPUnitPolyfills\Autoload::VERSION' ) === false
 	|| version_compare( Yoast\PHPUnitPolyfills\Autoload::VERSION, $phpunit_polyfills_minimum_version, '<' ) )
@@ -390,6 +390,5 @@ class WP_PHPUnit_Util_Getopt {
 			echo PHP_EOL;
 		}
 	}
-
 }
 new WP_PHPUnit_Util_Getopt( $_SERVER['argv'] );

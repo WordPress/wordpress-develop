@@ -58,14 +58,10 @@ function check_upload_size( $file ) {
  * @since 3.0.0
  * @since 5.1.0 Use wp_delete_site() internally to delete the site row from the database.
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
  * @param int  $blog_id Site ID.
  * @param bool $drop    True if site's database tables should be dropped. Default false.
  */
 function wpmu_delete_blog( $blog_id, $drop = false ) {
-	global $wpdb;
-
 	$blog_id = (int) $blog_id;
 
 	$switch = false;
@@ -738,7 +734,7 @@ function avoid_blog_page_permalink_collision( $data, $postarr ) {
 
 	while ( $c < 10 && get_id_from_blogname( $post_name ) ) {
 		$post_name .= mt_rand( 1, 10 );
-		$c++;
+		++$c;
 	}
 
 	if ( $post_name !== $data['post_name'] ) {
@@ -1005,8 +1001,10 @@ function network_settings_add_js() {
 jQuery( function($) {
 	var languageSelect = $( '#WPLANG' );
 	$( 'form' ).on( 'submit', function() {
-		// Don't show a spinner for English and installed languages,
-		// as there is nothing to download.
+		/*
+		 * Don't show a spinner for English and installed languages,
+		 * as there is nothing to download.
+		 */
 		if ( ! languageSelect.find( 'option:selected' ).data( 'installed' ) ) {
 			$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active" />' );
 		}

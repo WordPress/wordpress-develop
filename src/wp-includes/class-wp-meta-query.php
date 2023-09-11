@@ -374,7 +374,7 @@ class WP_Meta_Query {
 		 * If any JOINs are LEFT JOINs (as in the case of NOT EXISTS), then all JOINs should
 		 * be LEFT. Otherwise posts with no metadata will be excluded from results.
 		 */
-		if ( false !== strpos( $sql['join'], 'LEFT JOIN' ) ) {
+		if ( str_contains( $sql['join'], 'LEFT JOIN' ) ) {
 			$sql['join'] = str_replace( 'INNER JOIN', 'LEFT JOIN', $sql['join'] );
 		}
 
@@ -633,7 +633,7 @@ class WP_Meta_Query {
 		$clause_key_base = $clause_key;
 		while ( isset( $this->clauses[ $clause_key ] ) ) {
 			$clause_key = $clause_key_base . '-' . $iterator;
-			$iterator++;
+			++$iterator;
 		}
 
 		// Store the clause in our flat array.

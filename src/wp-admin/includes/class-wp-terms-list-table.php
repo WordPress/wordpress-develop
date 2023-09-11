@@ -63,7 +63,6 @@ class WP_Terms_List_Table extends WP_List_Table {
 		if ( empty( $post_type ) || ! in_array( $post_type, get_post_types( array( 'show_ui' => true ) ), true ) ) {
 			$post_type = 'post';
 		}
-
 	}
 
 	/**
@@ -208,12 +207,20 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @return array
 	 */
 	protected function get_sortable_columns() {
+		$taxonomy = $this->screen->taxonomy;
+
+		if ( ! isset( $_GET['orderby'] ) && is_taxonomy_hierarchical( $taxonomy ) ) {
+			$name_orderby_text = __( 'Table ordered hierarchically.' );
+		} else {
+			$name_orderby_text = __( 'Table ordered by Name.' );
+		}
+
 		return array(
-			'name'        => 'name',
-			'description' => 'description',
-			'slug'        => 'slug',
-			'posts'       => 'count',
-			'links'       => 'count',
+			'name'        => array( 'name', false, _x( 'Name', 'term name' ), $name_orderby_text, 'asc' ),
+			'description' => array( 'description', false, __( 'Description' ), __( 'Table ordered by Description.' ) ),
+			'slug'        => array( 'slug', false, __( 'Slug' ), __( 'Table ordered by Slug.' ) ),
+			'posts'       => array( 'count', false, _x( 'Count', 'Number/count of items' ), __( 'Table ordered by Posts Count.' ) ),
+			'links'       => array( 'count', false, __( 'Links' ), __( 'Table ordered by Links.' ) ),
 		);
 	}
 
@@ -303,7 +310,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 				while ( $my_parent = array_pop( $my_parents ) ) {
 					echo "\t";
 					$this->single_row( $my_parent, $level - $num_parents );
-					$num_parents--;
+					--$num_parents;
 				}
 			}
 
@@ -357,7 +364,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 		if ( current_user_can( 'delete_term', $tag->term_id ) ) {
 			return sprintf(
-				'<label class="screen-reader-text" for="cb-select-%1$s">%2$s</label>' .
+				'<label class="label-covers-full-cell" for="cb-select-%1$s"><span class="screen-reader-text">%2$s</span></label>' .
 				'<input type="checkbox" name="delete_tags[]" value="%1$s" id="cb-select-%1$s" />',
 				$tag->term_id,
 				/* translators: Hidden accessibility text. %s: Taxonomy term name. */
