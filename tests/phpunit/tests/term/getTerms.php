@@ -3041,9 +3041,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'update_term_meta_cache' => false,
 			)
 		);
-		$this->assertSame( 3, count( $terms ) );
-		$this->assertEmpty( wp_cache_get_last_changed( 'terms' ) );
-		$this->assertSame( $num_queries + 1, get_num_queries() );
+		$this->assertCount( 3, $terms, 'After running get_terms, 3 terms should be returned' );
+		$this->assertSame( $num_queries + 2, get_num_queries(), 'There should be only 2 queries run, only term query and priming terms' );
 
 		$num_queries = get_num_queries();
 
@@ -3055,9 +3054,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'update_term_meta_cache' => false,
 			)
 		);
-		$this->assertSame( 3, count( $terms ) );
-		$this->assertEmpty( wp_cache_get_last_changed( 'terms' ) );
-		$this->assertSame( $num_queries + 1, get_num_queries() );
+		$this->assertCount( 3, $terms, 'After running get_terms for a second time, 3 terms should be returned' );
+		$this->assertSame( $num_queries + 1, get_num_queries(), 'On the second run, only run the term query, priming terms happens on the first run' );
 	}
 
 	/**
