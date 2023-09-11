@@ -213,5 +213,4 @@ OPTIONS;
 		);
 		$this->assertSame( $expected, $this->table->get_views() );
 	}
-
 }

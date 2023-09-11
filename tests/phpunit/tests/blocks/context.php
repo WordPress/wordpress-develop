@@ -205,5 +205,4 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 
 		$this->assertSame( array( 'example' => 'ok' ), $provided_context[0] );
 	}
-
 }

@@ -653,7 +653,6 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		} else {
 			$this->assertNotSame( $result_1, $result_2, $message );
 		}
-
 	}
 
 	/**

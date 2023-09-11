@@ -138,7 +138,6 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSameSets( array( $block_styles ), $data['styles'] );
-
 	}
 
 	/**
@@ -179,7 +178,6 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			),
 		);
 		$this->assertSameSets( $expected, $data['styles'] );
-
 	}
 
 	/**
@@ -263,7 +261,6 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['view_script'] );
 		$this->assertNull( $data['editor_style'] );
 		$this->assertNull( $data['style'] );
-
 	}
 
 	/**
@@ -579,7 +576,6 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'view_script', $properties );
 		$this->assertArrayHasKey( 'editor_style', $properties );
 		$this->assertArrayHasKey( 'style', $properties );
-
 	}
 
 	/**
