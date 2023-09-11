@@ -2,6 +2,7 @@
 
 /**
  * @group pluggable
+ *
  * @covers ::wp_rand
  */
 class Tests_Pluggable_wpRand extends WP_UnitTestCase {
@@ -19,7 +20,7 @@ class Tests_Pluggable_wpRand extends WP_UnitTestCase {
 		$this->assertGreaterThanOrEqual(
 			0,
 			wp_rand( $min, $max ),
-			'The value was not greater than or equal 0'
+			'The value was not greater than or equal to 0'
 		);
 
 		$this->assertLessThan(

@@ -13,7 +13,7 @@ require __DIR__ . '/wp-load.php';
 
 // Redirect to HTTPS login if forced to use SSL.
 if ( force_ssl_admin() && ! is_ssl() ) {
-	if ( 0 === strpos( $_SERVER['REQUEST_URI'], 'http' ) ) {
+	if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
 		wp_safe_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
 		exit;
 	} else {
@@ -23,7 +23,7 @@ if ( force_ssl_admin() && ! is_ssl() ) {
 }
 
 /**
- * Output the login page header.
+ * Outputs the login page header.
  *
  * @since 2.1.0
  *
@@ -107,7 +107,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	}
 
 	/**
-	 * Enqueue scripts and styles for the login page.
+	 * Enqueues scripts and styles for the login page.
 	 *
 	 * @since 3.1.0
 	 */
@@ -261,7 +261,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 			 *
 			 * @param string $messages Login messages.
 			 */
-			echo '<p class="message">' . apply_filters( 'login_messages', $messages ) . "</p>\n";
+			echo '<p class="message" id="login-message">' . apply_filters( 'login_messages', $messages ) . "</p>\n";
 		}
 	}
 } // End of login_header().
@@ -294,7 +294,7 @@ function login_footer( $input_id = '' ) {
 				)
 			);
 			/**
-			 * Filter the "Go to site" link displayed in the login page footer.
+			 * Filters the "Go to site" link displayed in the login page footer.
 			 *
 			 * @since 5.7.0
 			 *
@@ -315,11 +315,11 @@ function login_footer( $input_id = '' ) {
 	if (
 		! $interim_login &&
 		/**
-		 * Filters the Languages select input activation on the login screen.
+		 * Filters whether to display the Language selector on the login screen.
 		 *
 		 * @since 5.9.0
 		 *
-		 * @param bool Whether to display the Languages select input on the login screen.
+		 * @param bool $display Whether to display the Language selector on the login screen.
 		 */
 		apply_filters( 'login_display_language_dropdown', true )
 	) {
@@ -332,7 +332,12 @@ function login_footer( $input_id = '' ) {
 
 					<label for="language-switcher-locales">
 						<span class="dashicons dashicons-translation" aria-hidden="true"></span>
-						<span class="screen-reader-text"><?php _e( 'Language' ); ?></span>
+						<span class="screen-reader-text">
+							<?php
+							/* translators: Hidden accessibility text. */
+							_e( 'Language' );
+							?>
+						</span>
 					</label>
 
 					<?php
@@ -347,6 +352,8 @@ function login_footer( $input_id = '' ) {
 
 					/**
 					 * Filters default arguments for the Languages select input on the login screen.
+					 *
+					 * The arguments get passed to the wp_dropdown_languages() function.
 					 *
 					 * @since 5.9.0
 					 *
@@ -423,7 +430,9 @@ function wp_login_viewport_meta() {
 }
 
 /*
- * Main part: check the request and redirect or display a form based on the current action.
+ * Main part.
+ *
+ * Check the request and redirect or display a form based on the current action.
  */
 
 $action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'login';
@@ -642,10 +651,13 @@ switch ( $action ) {
 				<?php
 
 				/* translators: URL to the WordPress help section about admin email. */
-				$admin_email_help_url = __( 'https://wordpress.org/support/article/settings-general-screen/#email-address' );
+				$admin_email_help_url = __( 'https://wordpress.org/documentation/article/settings-general-screen/#email-address' );
 
-				/* translators: Accessibility text. */
-				$accessibility_text = sprintf( '<span class="screen-reader-text"> %s</span>', __( '(opens in a new tab)' ) );
+				$accessibility_text = sprintf(
+					'<span class="screen-reader-text"> %s</span>',
+					/* translators: Hidden accessibility text. */
+					__( '(opens in a new tab)' )
+				);
 
 				printf(
 					'<a href="%s" rel="noopener" target="_blank">%s%s</a>',
@@ -830,7 +842,7 @@ switch ( $action ) {
 		<form name="lostpasswordform" id="lostpasswordform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=lostpassword', 'login_post' ) ); ?>" method="post">
 			<p>
 				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
-				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" />
+				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
 			</p>
 			<?php
 
@@ -954,7 +966,7 @@ switch ( $action ) {
 				</p>
 
 				<div class="wp-pwd">
-					<input type="password" data-reveal="1" data-pw="<?php echo esc_attr( wp_generate_password( 16 ) ); ?>" name="pass1" id="pass1" class="input password-input" size="24" value="" autocomplete="new-password" aria-describedby="pass-strength-result" />
+					<input type="password" name="pass1" id="pass1" class="input password-input" size="24" value="" autocomplete="new-password" spellcheck="false" data-reveal="1" data-pw="<?php echo esc_attr( wp_generate_password( 16 ) ); ?>" aria-describedby="pass-strength-result" />
 
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 						<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
@@ -969,7 +981,7 @@ switch ( $action ) {
 
 			<p class="user-pass2-wrap">
 				<label for="pass2"><?php _e( 'Confirm new password' ); ?></label>
-				<input type="password" name="pass2" id="pass2" class="input" size="20" value="" autocomplete="new-password" />
+				<input type="password" name="pass2" id="pass2" class="input" size="20" value="" autocomplete="new-password" spellcheck="false" />
 			</p>
 
 			<p class="description indicator-hint"><?php echo wp_get_password_hint(); ?></p>
@@ -1073,11 +1085,11 @@ switch ( $action ) {
 		<form name="registerform" id="registerform" action="<?php echo esc_url( site_url( 'wp-login.php?action=register', 'login_post' ) ); ?>" method="post" novalidate="novalidate">
 			<p>
 				<label for="user_login"><?php _e( 'Username' ); ?></label>
-				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( wp_unslash( $user_login ) ); ?>" size="20" autocapitalize="off" autocomplete="username" />
+				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( wp_unslash( $user_login ) ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
 			</p>
 			<p>
 				<label for="user_email"><?php _e( 'Email' ); ?></label>
-				<input type="email" name="user_email" id="user_email" class="input" value="<?php echo esc_attr( wp_unslash( $user_email ) ); ?>" size="25" autocomplete="email" />
+				<input type="email" name="user_email" id="user_email" class="input" value="<?php echo esc_attr( wp_unslash( $user_email ) ); ?>" size="25" autocomplete="email" required="required" />
 			</p>
 			<?php
 
@@ -1101,8 +1113,16 @@ switch ( $action ) {
 
 		<p id="nav">
 			<a href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log in' ); ?></a>
-				<?php echo esc_html( $login_link_separator ); ?>
-			<a href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php _e( 'Lost your password?' ); ?></a>
+			<?php
+
+			echo esc_html( $login_link_separator );
+
+			$html_link = sprintf( '<a href="%s">%s</a>', esc_url( wp_lostpassword_url() ), __( 'Lost your password?' ) );
+
+			/** This filter is documented in wp-login.php */
+			echo apply_filters( 'lost_password_html_link', $html_link );
+
+			?>
 		</p>
 		<?php
 
@@ -1209,7 +1229,7 @@ switch ( $action ) {
 		if ( isset( $_REQUEST['redirect_to'] ) ) {
 			$redirect_to = $_REQUEST['redirect_to'];
 			// Redirect to HTTPS if user wants SSL.
-			if ( $secure_cookie && false !== strpos( $redirect_to, 'wp-admin' ) ) {
+			if ( $secure_cookie && str_contains( $redirect_to, 'wp-admin' ) ) {
 				$redirect_to = preg_replace( '|^http://|', 'https://', $redirect_to );
 			}
 		} else {
@@ -1227,18 +1247,18 @@ switch ( $action ) {
 					sprintf(
 						/* translators: 1: Browser cookie documentation URL, 2: Support forums URL. */
 						__( '<strong>Error:</strong> Cookies are blocked due to unexpected output. For help, please see <a href="%1$s">this documentation</a> or try the <a href="%2$s">support forums</a>.' ),
-						__( 'https://wordpress.org/support/article/cookies/' ),
+						__( 'https://wordpress.org/documentation/article/cookies/' ),
 						__( 'https://wordpress.org/support/forums/' )
 					)
 				);
 			} elseif ( isset( $_POST['testcookie'] ) && empty( $_COOKIE[ TEST_COOKIE ] ) ) {
-				// If cookies are disabled, we can't log in even with a valid user and password.
+				// If cookies are disabled, the user can't log in even with a valid username and password.
 				$user = new WP_Error(
 					'test_cookie',
 					sprintf(
 						/* translators: %s: Browser cookie documentation URL. */
 						__( '<strong>Error:</strong> Cookies are blocked or not supported by your browser. You must <a href="%s">enable cookies</a> to use WordPress.' ),
-						__( 'https://wordpress.org/support/article/cookies/#enable-cookies-in-your-browser' )
+						__( 'https://wordpress.org/documentation/article/cookies/#enable-cookies-in-your-browser' )
 					)
 				);
 			}
@@ -1283,7 +1303,7 @@ switch ( $action ) {
 			}
 
 			// Check if it is time to add a redirect to the admin email confirmation screen.
-			if ( is_a( $user, 'WP_User' ) && $user->exists() && $user->has_cap( 'manage_options' ) ) {
+			if ( $user instanceof WP_User && $user->exists() && $user->has_cap( 'manage_options' ) ) {
 				$admin_email_lifespan = (int) get_option( 'admin_email_lifespan' );
 
 				/*
@@ -1342,11 +1362,11 @@ switch ( $action ) {
 				$errors->add( 'loggedout', __( 'You are now logged out.' ), 'message' );
 			} elseif ( isset( $_GET['registration'] ) && 'disabled' === $_GET['registration'] ) {
 				$errors->add( 'registerdisabled', __( '<strong>Error:</strong> User registration is currently not allowed.' ) );
-			} elseif ( strpos( $redirect_to, 'about.php?updated' ) ) {
+			} elseif ( str_contains( $redirect_to, 'about.php?updated' ) ) {
 				$errors->add( 'updated', __( '<strong>You have successfully updated WordPress!</strong> Please log back in to see what&#8217;s new.' ), 'message' );
 			} elseif ( WP_Recovery_Mode_Link_Service::LOGIN_ACTION_ENTERED === $action ) {
 				$errors->add( 'enter_recovery_mode', __( 'Recovery Mode Initialized. Please log in to continue.' ), 'message' );
-			} elseif ( isset( $_GET['redirect_to'] ) && false !== strpos( $_GET['redirect_to'], 'wp-admin/authorize-application.php' ) ) {
+			} elseif ( isset( $_GET['redirect_to'] ) && str_contains( $_GET['redirect_to'], 'wp-admin/authorize-application.php' ) ) {
 				$query_component = wp_parse_url( $_GET['redirect_to'], PHP_URL_QUERY );
 				$query           = array();
 				if ( $query_component ) {
@@ -1388,10 +1408,15 @@ switch ( $action ) {
 
 		$rememberme = ! empty( $_POST['rememberme'] );
 
-		if ( $errors->has_errors() ) {
-			$aria_describedby_error = ' aria-describedby="login_error"';
-		} else {
-			$aria_describedby_error = '';
+		$aria_describedby = '';
+		$has_errors       = $errors->has_errors();
+
+		if ( $has_errors ) {
+			$aria_describedby = ' aria-describedby="login_error"';
+		}
+
+		if ( $has_errors && 'message' === $errors->get_error_data() ) {
+			$aria_describedby = ' aria-describedby="login-message"';
 		}
 
 		wp_enqueue_script( 'user-profile' );
@@ -1400,13 +1425,13 @@ switch ( $action ) {
 		<form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
 			<p>
 				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
-				<input type="text" name="log" id="user_login"<?php echo $aria_describedby_error; ?> class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" />
+				<input type="text" name="log" id="user_login"<?php echo $aria_describedby; ?> class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
 			</p>
 
 			<div class="user-pass-wrap">
 				<label for="user_pass"><?php _e( 'Password' ); ?></label>
 				<div class="wp-pwd">
-					<input type="password" name="pwd" id="user_pass"<?php echo $aria_describedby_error; ?> class="input password-input" value="" size="20" autocomplete="current-password" />
+					<input type="password" name="pwd" id="user_pass"<?php echo $aria_describedby; ?> class="input password-input" value="" size="20" autocomplete="current-password" spellcheck="false" required="required" />
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
 						<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
 					</button>
@@ -1464,8 +1489,18 @@ switch ( $action ) {
 					echo esc_html( $login_link_separator );
 				}
 
+				$html_link = sprintf( '<a href="%s">%s</a>', esc_url( wp_lostpassword_url() ), __( 'Lost your password?' ) );
+
+				/**
+				 * Filters the link that allows the user to reset the lost password.
+				 *
+				 * @since 6.1.0
+				 *
+				 * @param string $html_link HTML link to the lost password form.
+				 */
+				echo apply_filters( 'lost_password_html_link', $html_link );
+
 				?>
-				<a href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php _e( 'Lost your password?' ); ?></a>
 			</p>
 			<?php
 		}

@@ -11,6 +11,7 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 	/**
 	 * Translation_Entry class encapsulates a translatable string.
 	 */
+	#[AllowDynamicProperties]
 	class Translation_Entry {
 
 		/**
@@ -86,10 +87,10 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		/**
 		 * Generates a unique key for this entry.
 		 *
-		 * @return string|false The key or false if the entry is empty.
+		 * @return string|false The key or false if the entry is null.
 		 */
 		public function key() {
-			if ( null === $this->singular || '' === $this->singular ) {
+			if ( null === $this->singular ) {
 				return false;
 			}
 
@@ -107,10 +108,9 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		public function merge_with( &$other ) {
 			$this->flags      = array_unique( array_merge( $this->flags, $other->flags ) );
 			$this->references = array_unique( array_merge( $this->references, $other->references ) );
-			if ( $this->extracted_comments != $other->extracted_comments ) {
+			if ( $this->extracted_comments !== $other->extracted_comments ) {
 				$this->extracted_comments .= $other->extracted_comments;
 			}
-
 		}
 	}
 endif;

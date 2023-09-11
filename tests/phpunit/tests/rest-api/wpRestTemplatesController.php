@@ -1,13 +1,9 @@
 <?php
 /**
- * Unit tests covering the templates endpoint..
+ * Unit tests covering WP_REST_Templates_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
- * Tests for REST API for templates.
  *
  * @covers WP_REST_Templates_Controller
  *
@@ -56,6 +52,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @covers WP_REST_Templates_Controller::register_routes
 	 * @ticket 54596
+	 * @ticket 56467
 	 */
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
@@ -65,9 +62,14 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			'Templates route does not exist'
 		);
 		$this->assertArrayHasKey(
-			'/wp/v2/templates/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w-]+)',
+			'/wp/v2/templates/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)',
 			$routes,
 			'Single template based on the given ID route does not exist'
+		);
+		$this->assertArrayHasKey(
+			'/wp/v2/templates/lookup',
+			$routes,
+			'Get template fallback content route does not exist'
 		);
 	}
 
@@ -116,6 +118,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'has_theme_file' => false,
 				'is_custom'      => true,
 				'author'         => 0,
+				'modified'       => mysql_to_rfc3339( self::$post->post_modified ),
 			),
 			$this->find_and_normalize_template_by_id( $data, 'default//my_template' )
 		);
@@ -160,6 +163,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'has_theme_file' => false,
 				'is_custom'      => true,
 				'author'         => 0,
+				'modified'       => mysql_to_rfc3339( self::$post->post_modified ),
 			),
 			$data
 		);
@@ -167,7 +171,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 54507
-	 * @dataProvider get_template_endpoint_urls
+	 * @dataProvider data_get_item_works_with_a_single_slash
 	 */
 	public function test_get_item_works_with_a_single_slash( $endpoint_url ) {
 		wp_set_current_user( self::$admin_id );
@@ -196,12 +200,13 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'has_theme_file' => false,
 				'is_custom'      => true,
 				'author'         => 0,
+				'modified'       => mysql_to_rfc3339( self::$post->post_modified ),
 			),
 			$data
 		);
 	}
 
-	public function get_template_endpoint_urls() {
+	public function data_get_item_works_with_a_single_slash() {
 		return array(
 			array( '/wp/v2/templates/default/my_template' ),
 			array( '/wp/v2/templates/default//my_template' ),
@@ -255,6 +260,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'has_theme_file' => false,
 				'is_custom'      => true,
 				'author'         => self::$admin_id,
+				'modified'       => mysql_to_rfc3339( $post->post_modified ),
 			),
 			$data
 		);
@@ -286,6 +292,46 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 					'post_title'   => 'Home Page Template',
 					'post_content' => file_get_contents( $theme_root_dir . 'block-theme/templates/page-home.html' ),
 					'post_excerpt' => 'Description of page home template.',
+				),
+			),
+			'template parts: parent theme with non latin characters' => array(
+				'theme_dir' => 'themedir1/block-theme-non-latin',
+				'template'  => 'small-header-%cf%84%ce%b5%cf%83%cf%84',
+				'args'      => array(
+					'post_name'    => 'small-header-τεστ',
+					'post_title'   => 'Small Header τεστ Template',
+					'post_content' => file_get_contents( $theme_root_dir . '/block-theme-non-latin/parts/small-header-test.html' ),
+					'post_excerpt' => 'Description of small header τεστ template.',
+				),
+			),
+			'template: parent theme with non latin name'  => array(
+				'theme_dir' => 'themedir1/block-theme-non-latin',
+				'template'  => 'page-%cf%84%ce%b5%cf%83%cf%84',
+				'args'      => array(
+					'post_name'    => 'page-τεστ',
+					'post_title'   => 'τεστ Page Template',
+					'post_content' => file_get_contents( $theme_root_dir . 'block-theme-non-latin/templates/page-test.html' ),
+					'post_excerpt' => 'Description of page τεστ template.',
+				),
+			),
+			'template parts: parent theme with chinese characters' => array(
+				'theme_dir' => 'themedir1/block-theme-non-latin',
+				'template'  => 'small-header-%e6%b5%8b%e8%af%95',
+				'args'      => array(
+					'post_name'    => 'small-header-测试',
+					'post_title'   => 'Small Header 测试 Template',
+					'post_content' => file_get_contents( $theme_root_dir . '/block-theme-non-latin/parts/small-header-test.html' ),
+					'post_excerpt' => 'Description of small header 测试 template.',
+				),
+			),
+			'template: parent theme with non latin name using chinese characters' => array(
+				'theme_dir' => 'themedir1/block-theme-non-latin',
+				'template'  => 'page-%e6%b5%8b%e8%af%95',
+				'args'      => array(
+					'post_name'    => 'page-测试',
+					'post_title'   => '测试 Page Template',
+					'post_content' => file_get_contents( $theme_root_dir . 'block-theme-non-latin/templates/page-test.html' ),
+					'post_excerpt' => 'Description of page 测试 template.',
 				),
 			),
 			'template: parent theme deprecated path'      => array(
@@ -333,17 +379,17 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 54507
-	 * @dataProvider get_template_ids_to_sanitize
+	 * @dataProvider data_sanitize_template_id
 	 */
 	public function test_sanitize_template_id( $input_id, $sanitized_id ) {
 		$endpoint = new WP_REST_Templates_Controller( 'wp_template' );
-		$this->assertEquals(
+		$this->assertSame(
 			$sanitized_id,
 			$endpoint->_sanitize_template_id( $input_id )
 		);
 	}
 
-	public function get_template_ids_to_sanitize() {
+	public function data_sanitize_template_id() {
 		return array(
 			array( 'tt1-blocks/index', 'tt1-blocks//index' ),
 			array( 'tt1-blocks//index', 'tt1-blocks//index' ),
@@ -371,6 +417,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$modified = get_post( $data['wp_id'] )->post_modified;
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
 
@@ -394,6 +441,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'has_theme_file' => false,
 				'is_custom'      => true,
 				'author'         => self::$admin_id,
+				'modified'       => mysql_to_rfc3339( $modified ),
 			),
 			$data
 		);
@@ -417,6 +465,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$modified = get_post( $data['wp_id'] )->post_modified;
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
 
@@ -440,6 +489,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'has_theme_file' => false,
 				'is_custom'      => false,
 				'author'         => self::$admin_id,
+				'modified'       => mysql_to_rfc3339( $modified ),
 			),
 			$data
 		);
@@ -467,6 +517,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$modified = get_post( $data['wp_id'] )->post_modified;
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
 
@@ -490,6 +541,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'has_theme_file' => false,
 				'is_custom'      => true,
 				'author'         => self::$admin_id,
+				'modified'       => mysql_to_rfc3339( $modified ),
 			),
 			$data
 		);
@@ -614,8 +666,11 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertErrorResponse( 'rest_template_not_found', $response, 404 );
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_prepare_item() {
-		// TODO: Implement test_prepare_item() method.
+		// Controller does not implement prepare_item().
 	}
 
 	public function test_prepare_item_limit_fields() {
@@ -645,7 +700,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 14, $properties );
+		$this->assertCount( 15, $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
@@ -661,6 +716,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertArrayHasKey( 'has_theme_file', $properties );
 		$this->assertArrayHasKey( 'is_custom', $properties );
 		$this->assertArrayHasKey( 'author', $properties );
+		$this->assertArrayHasKey( 'modified', $properties );
 	}
 
 	protected function find_and_normalize_template_by_id( $templates, $id ) {
@@ -675,4 +731,158 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		return null;
 	}
 
+	/**
+	 * @dataProvider data_create_item_with_is_wp_suggestion
+	 * @ticket 56467
+	 * @covers WP_REST_Templates_Controller::create_item
+	 *
+	 * @param array $body_params Data set to test.
+	 * @param array $expected    Expected results.
+	 */
+	public function test_create_item_with_is_wp_suggestion( array $body_params, array $expected ) {
+		// Set up the user.
+		$body_params['author'] = self::$admin_id;
+		$expected['author']    = self::$admin_id;
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/templates' );
+		$request->set_body_params( $body_params );
+		$response             = rest_get_server()->dispatch( $request );
+		$data                 = $response->get_data();
+		$modified             = get_post( $data['wp_id'] )->post_modified;
+		$expected['modified'] = mysql_to_rfc3339( $modified );
+		unset( $data['_links'] );
+		unset( $data['wp_id'] );
+
+		$this->assertSame( $expected, $data );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_create_item_with_is_wp_suggestion() {
+		$expected = array(
+			'id'             => 'default//page-rigas',
+			'theme'          => 'default',
+			'content'        => array(
+				'raw' => 'Content',
+			),
+			'slug'           => 'page-rigas',
+			'source'         => 'custom',
+			'origin'         => null,
+			'type'           => 'wp_template',
+			'description'    => 'Just a description',
+			'title'          => array(
+				'raw'      => 'My Template',
+				'rendered' => 'My Template',
+			),
+			'status'         => 'publish',
+			'has_theme_file' => false,
+			'is_custom'      => false,
+			'author'         => null,
+		);
+
+		return array(
+			'is_wp_suggestion: true'  => array(
+				'body_params' => array(
+					'slug'             => 'page-rigas',
+					'description'      => 'Just a description',
+					'title'            => 'My Template',
+					'content'          => 'Content',
+					'is_wp_suggestion' => true,
+					'author'           => null,
+				),
+				'expected'    => $expected,
+			),
+			'is_wp_suggestion: false' => array(
+				'body_params' => array(
+					'slug'             => 'page-hi',
+					'description'      => 'Just a description',
+					'title'            => 'My Template',
+					'content'          => 'Content',
+					'is_wp_suggestion' => false,
+					'author'           => null,
+				),
+				'expected'    => array_merge(
+					$expected,
+					array(
+						'id'        => 'default//page-hi',
+						'slug'      => 'page-hi',
+						'is_custom' => true,
+					)
+				),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 56467
+	 * @covers WP_REST_Templates_Controller::get_template_fallback
+	 */
+	public function test_get_template_fallback() {
+		wp_set_current_user( self::$admin_id );
+		switch_theme( 'block-theme' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/templates/lookup' );
+		// Should fallback to `index.html`.
+		$request->set_param( 'slug', 'tag-status' );
+		$request->set_param( 'is_custom', false );
+		$request->set_param( 'template_prefix', 'tag' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 'index', $response->get_data()['slug'], 'Should fallback to `index.html`.' );
+		// Should fallback to `page.html`.
+		$request->set_param( 'slug', 'page-hello' );
+		$request->set_param( 'is_custom', false );
+		$request->set_param( 'template_prefix', 'page' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 'page', $response->get_data()['slug'], 'Should fallback to `page.html`.' );
+		// Should fallback to `index.html`.
+		$request->set_param( 'slug', 'author' );
+		$request->set_param( 'ignore_empty', true );
+		$request->set_param( 'template_prefix', 'tag' );
+		$request->set_param( 'is_custom', false );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 'index', $response->get_data()['slug'], 'Should fallback to `index.html` when  ignore_empty is `true`.' );
+	}
+
+	/**
+	 * @ticket 57851
+	 *
+	 * @covers WP_REST_Templates_Controller::prepare_item_for_database
+	 */
+	public function test_prepare_item_for_database() {
+		$endpoint = new WP_REST_Templates_Controller( 'wp_template_part' );
+
+		$prepare_item_for_database = new ReflectionMethod( $endpoint, 'prepare_item_for_database' );
+		$prepare_item_for_database->setAccessible( true );
+
+		$body_params = array(
+			'title'   => 'Untitled Template Part',
+			'slug'    => 'untitled-template-part',
+			'content' => '',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/template-parts' );
+		$request->set_body_params( $body_params );
+
+		$prepared = $prepare_item_for_database->invoke( $endpoint, $request );
+
+		$this->assertInstanceOf( 'stdClass', $prepared, 'The item could not be prepared for the database.' );
+
+		$this->assertObjectHasProperty( 'post_type', $prepared, 'The "post_type" was not included in the prepared template part.' );
+		$this->assertObjectHasProperty( 'post_status', $prepared, 'The "post_status" was not included in the prepared template part.' );
+		$this->assertObjectHasProperty( 'tax_input', $prepared, 'The "tax_input" was not included in the prepared template part.' );
+		$this->assertArrayHasKey( 'wp_theme', $prepared->tax_input, 'The "wp_theme" tax was not included in the prepared template part.' );
+		$this->assertArrayHasKey( 'wp_template_part_area', $prepared->tax_input, 'The "wp_template_part_area" tax was not included in the prepared template part.' );
+		$this->assertObjectHasProperty( 'post_content', $prepared, 'The "post_content" was not included in the prepared template part.' );
+		$this->assertObjectHasProperty( 'post_title', $prepared, 'The "post_title" was not included in the prepared template part.' );
+
+		$this->assertSame( 'wp_template_part', $prepared->post_type, 'The "post_type" in the prepared template part should be "wp_template_part".' );
+		$this->assertSame( 'publish', $prepared->post_status, 'The post status in the prepared template part should be "publish".' );
+		$this->assertSame( WP_TEMPLATE_PART_AREA_UNCATEGORIZED, $prepared->tax_input['wp_template_part_area'], 'The area in the prepared template part should be uncategorized.' );
+		$this->assertSame( 'Untitled Template Part', $prepared->post_title, 'The title was not correct in the prepared template part.' );
+
+		$this->assertEmpty( $prepared->post_content, 'The content was not correct in the prepared template part.' );
+	}
 }

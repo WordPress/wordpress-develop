@@ -14,6 +14,7 @@
  *
  * @see WP_User_Query::prepare_query() for information on accepted arguments.
  */
+#[AllowDynamicProperties]
 class WP_User_Query {
 
 	/**
@@ -66,11 +67,12 @@ class WP_User_Query {
 	public $query_limit;
 
 	/**
-	 * PHP5 constructor.
+	 * Constructor.
 	 *
 	 * @since 3.1.0
 	 *
 	 * @param null|string|array $query Optional. The query variables.
+	 *                                 See WP_User_Query::prepare_query() for information on accepted arguments.
 	 */
 	public function __construct( $query = null ) {
 		if ( ! empty( $query ) ) {
@@ -84,7 +86,7 @@ class WP_User_Query {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $args Query vars, as passed to `WP_User_Query`.
+	 * @param string|array $args Query vars, as passed to `WP_User_Query`.
 	 * @return array Complete query variables with undefined ones filled in with defaults.
 	 */
 	public static function fill_query_vars( $args ) {
@@ -118,6 +120,7 @@ class WP_User_Query {
 			'login'               => '',
 			'login__in'           => array(),
 			'login__not_in'       => array(),
+			'cache_results'       => true,
 		);
 
 		return wp_parse_args( $args, $defaults );
@@ -139,12 +142,13 @@ class WP_User_Query {
 	 * @since 5.1.0 Introduced the 'meta_compare_key' parameter.
 	 * @since 5.3.0 Introduced the 'meta_type_key' parameter.
 	 * @since 5.9.0 Added 'capability', 'capability__in', and 'capability__not_in' parameters.
+	 * @since 6.3.0 Added 'cache_results' parameter.
 	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 * @global int  $blog_id
+	 * @global wpdb     $wpdb     WordPress database abstraction object.
+	 * @global WP_Roles $wp_roles WordPress role management object.
 	 *
 	 * @param string|array $query {
-	 *     Optional. Array or string of Query parameters.
+	 *     Optional. Array or string of query parameters.
 	 *
 	 *     @type int             $blog_id             The site ID. Default is the current site.
 	 *     @type string|string[] $role                An array or a comma-separated list of role names that users must match
@@ -235,8 +239,8 @@ class WP_User_Query {
 	 *                                                - 'user_status'
 	 *                                                - 'spam' (only available on multisite installs)
 	 *                                                - 'deleted' (only available on multisite installs)
-	 *                                                - 'all' for all fields
-	 *                                                - 'all_with_meta' to include meta fields.
+	 *                                                - 'all' for all fields and loads user meta.
+	 *                                                - 'all_with_meta' Deprecated. Use 'all'.
 	 *                                                Default 'all'.
 	 *     @type string          $who                 Type of users to query. Accepts 'authors'.
 	 *                                                Default empty (all users).
@@ -253,10 +257,11 @@ class WP_User_Query {
 	 *                                                logins will be included in results. Default empty array.
 	 *     @type string[]        $login__not_in       An array of logins to exclude. Users matching one of these
 	 *                                                logins will not be included in results. Default empty array.
+	 *     @type bool            $cache_results       Whether to cache user information. Default true.
 	 * }
 	 */
 	public function prepare_query( $query = array() ) {
-		global $wpdb;
+		global $wpdb, $wp_roles;
 
 		if ( empty( $this->query_vars ) || ! empty( $query ) ) {
 			$this->query_limit = null;
@@ -310,9 +315,7 @@ class WP_User_Query {
 				$this->query_fields[] = "$wpdb->users.$field";
 			}
 			$this->query_fields = implode( ',', $this->query_fields );
-		} elseif ( 'all' === $qv['fields'] ) {
-			$this->query_fields = "$wpdb->users.*";
-		} elseif ( ! in_array( $qv['fields'], $allowed_fields, true ) ) {
+		} elseif ( 'all_with_meta' === $qv['fields'] || 'all' === $qv['fields'] || ! in_array( $qv['fields'], $allowed_fields, true ) ) {
 			$this->query_fields = "$wpdb->users.ID";
 		} else {
 			$field              = 'id' === strtolower( $qv['fields'] ) ? 'ID' : sanitize_key( $qv['fields'] );
@@ -450,8 +453,6 @@ class WP_User_Query {
 		$available_roles = array();
 
 		if ( ! empty( $qv['capability'] ) || ! empty( $qv['capability__in'] ) || ! empty( $qv['capability__not_in'] ) ) {
-			global $wp_roles;
-
 			$wp_roles->for_site( $blog_id );
 			$available_roles = $wp_roles->roles;
 		}
@@ -692,8 +693,8 @@ class WP_User_Query {
 		}
 
 		if ( $search ) {
-			$leading_wild  = ( ltrim( $search, '*' ) != $search );
-			$trailing_wild = ( rtrim( $search, '*' ) != $search );
+			$leading_wild  = ( ltrim( $search, '*' ) !== $search );
+			$trailing_wild = ( rtrim( $search, '*' ) !== $search );
 			if ( $leading_wild && $trailing_wild ) {
 				$wild = 'both';
 			} elseif ( $leading_wild ) {
@@ -712,7 +713,7 @@ class WP_User_Query {
 				$search_columns = array_intersect( $qv['search_columns'], array( 'ID', 'user_login', 'user_email', 'user_url', 'user_nicename', 'display_name' ) );
 			}
 			if ( ! $search_columns ) {
-				if ( false !== strpos( $search, '@' ) ) {
+				if ( str_contains( $search, '@' ) ) {
 					$search_columns = array( 'user_email' );
 				} elseif ( is_numeric( $search ) ) {
 					$search_columns = array( 'user_login', 'ID' );
@@ -779,7 +780,24 @@ class WP_User_Query {
 	public function query() {
 		global $wpdb;
 
+		if ( ! did_action( 'plugins_loaded' ) ) {
+			_doing_it_wrong(
+				'WP_User_Query::query',
+				sprintf(
+				/* translators: %s: plugins_loaded */
+					__( 'User queries should not be run before the %s hook.' ),
+					'<code>plugins_loaded</code>'
+				),
+				'6.1.1'
+			);
+		}
+
 		$qv =& $this->query_vars;
+
+		// Do not cache results if more than 3 fields are requested.
+		if ( is_array( $qv['fields'] ) && count( $qv['fields'] ) > 3 ) {
+			$qv['cache_results'] = false;
+		}
 
 		/**
 		 * Filters the users array before the query takes place.
@@ -807,28 +825,47 @@ class WP_User_Query {
 				{$this->query_orderby}
 				{$this->query_limit}
 			";
-
-			if ( is_array( $qv['fields'] ) || 'all' === $qv['fields'] ) {
-				$this->results = $wpdb->get_results( $this->request );
-			} else {
-				$this->results = $wpdb->get_col( $this->request );
+			$cache_value   = false;
+			$cache_key     = $this->generate_cache_key( $qv, $this->request );
+			$cache_group   = 'user-queries';
+			if ( $qv['cache_results'] ) {
+				$cache_value = wp_cache_get( $cache_key, $cache_group );
 			}
+			if ( false !== $cache_value ) {
+				$this->results     = $cache_value['user_data'];
+				$this->total_users = $cache_value['total_users'];
+			} else {
 
-			if ( isset( $qv['count_total'] ) && $qv['count_total'] ) {
-				/**
-				 * Filters SELECT FOUND_ROWS() query for the current WP_User_Query instance.
-				 *
-				 * @since 3.2.0
-				 * @since 5.1.0 Added the `$this` parameter.
-				 *
-				 * @global wpdb $wpdb WordPress database abstraction object.
-				 *
-				 * @param string        $sql   The SELECT FOUND_ROWS() query for the current WP_User_Query.
-				 * @param WP_User_Query $query The current WP_User_Query instance.
-				 */
-				$found_users_query = apply_filters( 'found_users_query', 'SELECT FOUND_ROWS()', $this );
+				if ( is_array( $qv['fields'] ) ) {
+					$this->results = $wpdb->get_results( $this->request );
+				} else {
+					$this->results = $wpdb->get_col( $this->request );
+				}
 
-				$this->total_users = (int) $wpdb->get_var( $found_users_query );
+				if ( isset( $qv['count_total'] ) && $qv['count_total'] ) {
+					/**
+					 * Filters SELECT FOUND_ROWS() query for the current WP_User_Query instance.
+					 *
+					 * @since 3.2.0
+					 * @since 5.1.0 Added the `$this` parameter.
+					 *
+					 * @global wpdb $wpdb WordPress database abstraction object.
+					 *
+					 * @param string        $sql   The SELECT FOUND_ROWS() query for the current WP_User_Query.
+					 * @param WP_User_Query $query The current WP_User_Query instance.
+					 */
+					$found_users_query = apply_filters( 'found_users_query', 'SELECT FOUND_ROWS()', $this );
+
+					$this->total_users = (int) $wpdb->get_var( $found_users_query );
+				}
+
+				if ( $qv['cache_results'] ) {
+					$cache_value = array(
+						'user_data'   => $this->results,
+						'total_users' => $this->total_users,
+					);
+					wp_cache_add( $cache_key, $cache_value, $cache_group );
+				}
 			}
 		}
 
@@ -842,19 +879,21 @@ class WP_User_Query {
 			foreach ( $this->results as $result ) {
 				$result->id = $result->ID;
 			}
-		} elseif ( 'all_with_meta' === $qv['fields'] ) {
-			cache_users( $this->results );
+		} elseif ( 'all_with_meta' === $qv['fields'] || 'all' === $qv['fields'] ) {
+			if ( function_exists( 'cache_users' ) ) {
+				cache_users( $this->results );
+			}
 
 			$r = array();
 			foreach ( $this->results as $userid ) {
-				$r[ $userid ] = new WP_User( $userid, '', $qv['blog_id'] );
+				if ( 'all_with_meta' === $qv['fields'] ) {
+					$r[ $userid ] = new WP_User( $userid, '', $qv['blog_id'] );
+				} else {
+					$r[] = new WP_User( $userid, '', $qv['blog_id'] );
+				}
 			}
 
 			$this->results = $r;
-		} elseif ( 'all' === $qv['fields'] ) {
-			foreach ( $this->results as $key => $user ) {
-				$this->results[ $key ] = new WP_User( $user, '', $qv['blog_id'] );
-			}
 		}
 	}
 
@@ -970,12 +1009,11 @@ class WP_User_Query {
 				FROM $wpdb->posts
 				$where
 				GROUP BY post_author
-			) p ON ({$wpdb->users}.ID = p.post_author)
-			";
+			) p ON ({$wpdb->users}.ID = p.post_author)";
 			$_orderby          = 'post_count';
 		} elseif ( 'ID' === $orderby || 'id' === $orderby ) {
 			$_orderby = 'ID';
-		} elseif ( 'meta_value' === $orderby || $this->get( 'meta_key' ) == $orderby ) {
+		} elseif ( 'meta_value' === $orderby || $this->get( 'meta_key' ) === $orderby ) {
 			$_orderby = "$wpdb->usermeta.meta_value";
 		} elseif ( 'meta_value_num' === $orderby ) {
 			$_orderby = "$wpdb->usermeta.meta_value+0";
@@ -997,6 +1035,57 @@ class WP_User_Query {
 		}
 
 		return $_orderby;
+	}
+
+	/**
+	 * Generate cache key.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param array  $args Query arguments.
+	 * @param string $sql  SQL statement.
+	 * @return string Cache key.
+	 */
+	protected function generate_cache_key( array $args, $sql ) {
+		global $wpdb;
+
+		// Replace wpdb placeholder in the SQL statement used by the cache key.
+		$sql = $wpdb->remove_placeholder_escape( $sql );
+
+		$key          = md5( $sql );
+		$last_changed = wp_cache_get_last_changed( 'users' );
+
+		if ( empty( $args['orderby'] ) ) {
+			// Default order is by 'user_login'.
+			$ordersby = array( 'user_login' => '' );
+		} elseif ( is_array( $args['orderby'] ) ) {
+			$ordersby = $args['orderby'];
+		} else {
+			// 'orderby' values may be a comma- or space-separated list.
+			$ordersby = preg_split( '/[,\s]+/', $args['orderby'] );
+		}
+
+		$blog_id = 0;
+		if ( isset( $args['blog_id'] ) ) {
+			$blog_id = absint( $args['blog_id'] );
+		}
+
+		if ( $args['has_published_posts'] || in_array( 'post_count', $ordersby, true ) ) {
+			$switch = $blog_id && get_current_blog_id() !== $blog_id;
+			if ( $switch ) {
+				switch_to_blog( $blog_id );
+			}
+
+			$last_changed .= wp_cache_get_last_changed( 'posts' );
+
+			if ( $switch ) {
+				restore_current_blog();
+			}
+		}
+
+		return "get_users:$key:$last_changed";
 	}
 
 	/**
@@ -1023,6 +1112,7 @@ class WP_User_Query {
 	 * Makes private properties readable for backward compatibility.
 	 *
 	 * @since 4.0.0
+	 * @since 6.4.0 Getting a dynamic property is deprecated.
 	 *
 	 * @param string $name Property to get.
 	 * @return mixed Property.
@@ -1031,27 +1121,44 @@ class WP_User_Query {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return $this->$name;
 		}
+
+		wp_trigger_error(
+			__METHOD__,
+			"The property `{$name}` is not declared. Getting a dynamic property is " .
+			'deprecated since version 6.4.0! Instead, declare the property on the class.',
+			E_USER_DEPRECATED
+		);
+		return null;
 	}
 
 	/**
 	 * Makes private properties settable for backward compatibility.
 	 *
 	 * @since 4.0.0
+	 * @since 6.4.0 Setting a dynamic property is deprecated.
 	 *
 	 * @param string $name  Property to check if set.
 	 * @param mixed  $value Property value.
-	 * @return mixed Newly-set property.
 	 */
 	public function __set( $name, $value ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
-			return $this->$name = $value;
+			$this->$name = $value;
+			return;
 		}
+
+		wp_trigger_error(
+			__METHOD__,
+			"The property `{$name}` is not declared. Setting a dynamic property is " .
+			'deprecated since version 6.4.0! Instead, declare the property on the class.',
+			E_USER_DEPRECATED
+		);
 	}
 
 	/**
 	 * Makes private properties checkable for backward compatibility.
 	 *
 	 * @since 4.0.0
+	 * @since 6.4.0 Checking a dynamic property is deprecated.
 	 *
 	 * @param string $name Property to check if set.
 	 * @return bool Whether the property is set.
@@ -1060,19 +1167,36 @@ class WP_User_Query {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return isset( $this->$name );
 		}
+
+		wp_trigger_error(
+			__METHOD__,
+			"The property `{$name}` is not declared. Checking `isset()` on a dynamic property " .
+			'is deprecated since version 6.4.0! Instead, declare the property on the class.',
+			E_USER_DEPRECATED
+		);
+		return false;
 	}
 
 	/**
 	 * Makes private properties un-settable for backward compatibility.
 	 *
 	 * @since 4.0.0
+	 * @since 6.4.0 Unsetting a dynamic property is deprecated.
 	 *
 	 * @param string $name Property to unset.
 	 */
 	public function __unset( $name ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			unset( $this->$name );
+			return;
 		}
+
+		wp_trigger_error(
+			__METHOD__,
+			"A property `{$name}` is not declared. Unsetting a dynamic property is " .
+			'deprecated since version 6.4.0! Instead, declare the property on the class.',
+			E_USER_DEPRECATED
+		);
 	}
 
 	/**

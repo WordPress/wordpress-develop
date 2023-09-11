@@ -21,6 +21,7 @@
  *
  * @since 2.0.0
  */
+#[AllowDynamicProperties]
 class WP_Object_Cache {
 
 	/**
@@ -51,7 +52,7 @@ class WP_Object_Cache {
 	 * List of global cache groups.
 	 *
 	 * @since 3.0.0
-	 * @var array
+	 * @var string[]
 	 */
 	protected $global_groups = array();
 
@@ -130,6 +131,43 @@ class WP_Object_Cache {
 	}
 
 	/**
+	 * Serves as a utility function to determine whether a key is valid.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param int|string $key Cache key to check for validity.
+	 * @return bool Whether the key is valid.
+	 */
+	protected function is_valid_key( $key ) {
+		if ( is_int( $key ) ) {
+			return true;
+		}
+
+		if ( is_string( $key ) && trim( $key ) !== '' ) {
+			return true;
+		}
+
+		$type = gettype( $key );
+
+		if ( ! function_exists( '__' ) ) {
+			wp_load_translations_early();
+		}
+
+		$message = is_string( $key )
+			? __( 'Cache key must not be an empty string.' )
+			/* translators: %s: The type of the given cache key. */
+			: sprintf( __( 'Cache key must be an integer or a non-empty string, %s given.' ), $type );
+
+		_doing_it_wrong(
+			sprintf( '%s::%s', __CLASS__, debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 )[1]['function'] ),
+			$message,
+			'6.1.0'
+		);
+
+		return false;
+	}
+
+	/**
 	 * Serves as a utility function to determine whether a key exists in the cache.
 	 *
 	 * @since 3.4.0
@@ -160,6 +198,10 @@ class WP_Object_Cache {
 	 */
 	public function add( $key, $data, $group = 'default', $expire = 0 ) {
 		if ( wp_suspend_cache_addition() ) {
+			return false;
+		}
+
+		if ( ! $this->is_valid_key( $key ) ) {
 			return false;
 		}
 
@@ -216,6 +258,10 @@ class WP_Object_Cache {
 	 * @return bool True if contents were replaced, false if original value does not exist.
 	 */
 	public function replace( $key, $data, $group = 'default', $expire = 0 ) {
+		if ( ! $this->is_valid_key( $key ) ) {
+			return false;
+		}
+
 		if ( empty( $group ) ) {
 			$group = 'default';
 		}
@@ -245,14 +291,19 @@ class WP_Object_Cache {
 	 * more for cache plugins which use files.
 	 *
 	 * @since 2.0.0
+	 * @since 6.1.0 Returns false if cache key is invalid.
 	 *
 	 * @param int|string $key    What to call the contents in the cache.
 	 * @param mixed      $data   The contents to store in the cache.
 	 * @param string     $group  Optional. Where to group the cache contents. Default 'default'.
 	 * @param int        $expire Optional. Not used.
-	 * @return true Always returns true.
+	 * @return bool True if contents were set, false if key is invalid.
 	 */
 	public function set( $key, $data, $group = 'default', $expire = 0 ) {
+		if ( ! $this->is_valid_key( $key ) ) {
+			return false;
+		}
+
 		if ( empty( $group ) ) {
 			$group = 'default';
 		}
@@ -310,6 +361,10 @@ class WP_Object_Cache {
 	 * @return mixed|false The cache contents on success, false on failure to retrieve contents.
 	 */
 	public function get( $key, $group = 'default', $force = false, &$found = null ) {
+		if ( ! $this->is_valid_key( $key ) ) {
+			return false;
+		}
+
 		if ( empty( $group ) ) {
 			$group = 'default';
 		}
@@ -368,6 +423,10 @@ class WP_Object_Cache {
 	 * @return bool True on success, false if the contents were not deleted.
 	 */
 	public function delete( $key, $group = 'default', $deprecated = false ) {
+		if ( ! $this->is_valid_key( $key ) ) {
+			return false;
+		}
+
 		if ( empty( $group ) ) {
 			$group = 'default';
 		}
@@ -416,6 +475,10 @@ class WP_Object_Cache {
 	 * @return int|false The item's new value on success, false on failure.
 	 */
 	public function incr( $key, $offset = 1, $group = 'default' ) {
+		if ( ! $this->is_valid_key( $key ) ) {
+			return false;
+		}
+
 		if ( empty( $group ) ) {
 			$group = 'default';
 		}
@@ -455,6 +518,10 @@ class WP_Object_Cache {
 	 * @return int|false The item's new value on success, false on failure.
 	 */
 	public function decr( $key, $offset = 1, $group = 'default' ) {
+		if ( ! $this->is_valid_key( $key ) ) {
+			return false;
+		}
+
 		if ( empty( $group ) ) {
 			$group = 'default';
 		}
@@ -491,6 +558,20 @@ class WP_Object_Cache {
 	 */
 	public function flush() {
 		$this->cache = array();
+
+		return true;
+	}
+
+	/**
+	 * Removes all cache items in a group.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $group Name of group to remove from cache.
+	 * @return true Always returns true.
+	 */
+	public function flush_group( $group ) {
+		unset( $this->cache[ $group ] );
 
 		return true;
 	}

@@ -305,7 +305,7 @@ window.wp = window.wp || {};
 		if ( !$(':input[name="post_author"] option[value="' + $('.post_author', rowData).text() + '"]', editRow).val() ) {
 
 			// The post author no longer has edit capabilities, so we need to add them to the list of authors.
-			$(':input[name="post_author"]', editRow).prepend('<option value="' + $('.post_author', rowData).text() + '">' + $('#' + t.type + '-' + id + ' .author').text() + '</option>');
+			$(':input[name="post_author"]', editRow).prepend('<option value="' + $('.post_author', rowData).text() + '">' + $('#post-' + id + ' .author').text() + '</option>');
 		}
 		if ( $( ':input[name="post_author"] option', editRow ).length === 1 ) {
 			$('label.inline-edit-author', editRow).hide();
@@ -376,9 +376,14 @@ window.wp = window.wp || {};
 		});
 
 		// Handle the post status.
+		var post_date_string = $(':input[name="aa"]').val() + '-' + $(':input[name="mm"]').val() + '-' + $(':input[name="jj"]').val();
+		post_date_string += ' ' + $(':input[name="hh"]').val() + ':' + $(':input[name="mn"]').val() + ':' + $(':input[name="ss"]').val();
+		var post_date = new Date( post_date_string );
 		status = $('._status', rowData).text();
-		if ( 'future' !== status ) {
+		if ( 'future' !== status && Date.now() > post_date ) {
 			$('select[name="_status"] option[value="future"]', editRow).remove();
+		} else {
+			$('select[name="_status"] option[value="publish"]', editRow).remove();
 		}
 
 		pw = $( '.inline-edit-password-input' ).prop( 'disabled', false );
@@ -444,6 +449,13 @@ window.wp = window.wp || {};
 		};
 
 		fields = $('#edit-'+id).find(':input').serialize();
+
+		var status = $(':input[name="_status"]').val();
+
+		if ( [ 'draft', 'pending', 'auto-draft' ].includes( status ) ) {
+			params.edit_date = 'false';
+		}
+
 		params = fields + '&' + $.param(params);
 
 		// Make Ajax request.

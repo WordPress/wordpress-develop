@@ -53,7 +53,6 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		// It's a non-recurring event.
 		$this->assertFalse( wp_get_schedule( $hook ) );
-
 	}
 
 	/**
@@ -117,20 +116,21 @@ class Tests_Cron extends WP_UnitTestCase {
 
 	/**
 	 * Tests that a call to wp_schedule_event() on a site without any scheduled events
-	 * does not result in a PHP deprecation warning on PHP 8.1 or higher.
+	 * does not result in a PHP deprecation notice on PHP 8.1 or higher.
 	 *
-	 * The warning that we should not see:
+	 * The notice that we should not see:
 	 * `Deprecated: Automatic conversion of false to array is deprecated`.
 	 *
 	 * @ticket 53635
 	 *
 	 * @covers ::wp_schedule_event
 	 */
-	public function test_wp_schedule_event_without_cron_option_does_not_throw_warning() {
+	public function test_wp_schedule_event_without_cron_option_does_not_throw_deprecation_notice() {
 		delete_option( 'cron' );
 
 		// Verify that the cause of the error is in place.
-		$this->assertFalse( _get_cron_array(), '_get_cron_array() does not return false' );
+		$this->assertIsArray( _get_cron_array(), '_get_cron_array() does not return an array.' );
+		$this->assertEmpty( _get_cron_array(), '_get_cron_array() does not return an empty array.' );
 
 		$hook      = __FUNCTION__;
 		$timestamp = strtotime( '+10 minutes' );
@@ -151,7 +151,8 @@ class Tests_Cron extends WP_UnitTestCase {
 		delete_option( 'cron' );
 
 		// Verify that the cause of the error is in place.
-		$this->assertFalse( _get_cron_array(), '_get_cron_array() does not return false' );
+		$this->assertIsArray( _get_cron_array(), '_get_cron_array() does not return an array.' );
+		$this->assertEmpty( _get_cron_array(), '_get_cron_array() does not return an empty array.' );
 
 		$hook      = __FUNCTION__;
 		$timestamp = strtotime( '+10 minutes' );
@@ -454,7 +455,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * Filter the scheduling of events to use the preflight array.
 	 */
-	public function filter_pre_schedule_event_filter( $null, $event ) {
+	public function filter_pre_schedule_event_filter( $result, $event ) {
 		$key = md5( serialize( $event->args ) );
 
 		$this->preflight_cron_array[ $event->timestamp ][ $event->hook ][ $key ] = array(
@@ -463,6 +464,7 @@ class Tests_Cron extends WP_UnitTestCase {
 			'args'     => $event->args,
 		);
 		uksort( $this->preflight_cron_array, 'strnatcasecmp' );
+
 		return true;
 	}
 
@@ -705,7 +707,6 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertFalse( wp_get_scheduled_event( $hook, $args, strtotime( '+30 minutes' ) ) );
 		// - Invalid timestamp.
 		$this->assertFalse( wp_get_scheduled_event( $hook, $args, 'Words Fail!' ) );
-
 	}
 
 	/**
@@ -764,7 +765,6 @@ class Tests_Cron extends WP_UnitTestCase {
 		$subsequent = wp_schedule_single_event( $ts3, $hook, $args, true );
 		$this->assertWPError( $subsequent );
 		$this->assertSame( 'duplicate_event', $subsequent->get_error_code() );
-
 	}
 
 	/**
@@ -1280,5 +1280,4 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertWPError( $unscheduled );
 		$this->assertSame( 'could_not_set', $unscheduled->get_error_code() );
 	}
-
 }

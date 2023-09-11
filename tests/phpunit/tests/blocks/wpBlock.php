@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_Block tests
+ * Tests for WP_Block.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.5.0
- */
-
-/**
- * Tests for WP_Block.
- *
  * @since 5.5.0
  *
  * @group blocks
@@ -437,6 +431,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'categoryIds' => array( 56 ),
 				'orderBy'     => 'title',
 				'tagIds'      => array( 3, 11, 10 ),
+				'parents'     => array( 1, 2 ),
 			),
 		);
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
@@ -445,11 +440,11 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->assertSame(
 			$query,
 			array(
-				'post_type'    => 'page',
-				'order'        => 'DESC',
-				'orderby'      => 'title',
-				'post__not_in' => array( 1, 2 ),
-				'tax_query'    => array(
+				'post_type'       => 'page',
+				'order'           => 'DESC',
+				'orderby'         => 'title',
+				'post__not_in'    => array( 1, 2 ),
+				'tax_query'       => array(
 					array(
 						'taxonomy'         => 'category',
 						'terms'            => array( 56 ),
@@ -461,6 +456,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 						'include_children' => false,
 					),
 				),
+				'post_parent__in' => array( 1, 2 ),
 			)
 		);
 	}
@@ -585,6 +581,47 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 56467
+	 */
+	public function test_query_loop_block_query_vars_filter() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'postType' => 'page',
+				'orderBy'  => 'title',
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		add_filter(
+			'query_loop_block_query_vars',
+			static function( $query, $block, $page ) {
+				$query['post_type'] = 'book';
+				return $query;
+			},
+			10,
+			3
+		);
+
+		$query = build_query_vars_from_query_block( $block, 1 );
+		$this->assertSame(
+			$query,
+			array(
+				'post_type'    => 'book',
+				'order'        => 'DESC',
+				'orderby'      => 'title',
+				'post__not_in' => array(),
+			)
+		);
+	}
+
+	/**
 	 * @ticket 52991
 	 */
 	public function test_block_has_support() {
@@ -646,6 +683,81 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58532
+	 *
+	 * @dataProvider data_block_has_support_string
+	 *
+	 * @param array  $block_data Block data.
+	 * @param string $support    Support string to check.
+	 * @param bool   $expected   Expected result.
+	 */
+	public function test_block_has_support_string( $block_data, $support, $expected, $message ) {
+		$this->registry->register( 'core/example', $block_data );
+		$block_type  = $this->registry->get_registered( 'core/example' );
+		$has_support = block_has_support( $block_type, $support );
+		$this->assertEquals( $expected, $has_support, $message );
+	}
+
+	/**
+	 * Data provider for test_block_has_support_string
+	 */
+	public function data_block_has_support_string() {
+		return array(
+			array(
+				array(),
+				'color',
+				false,
+				'Block with empty support array.',
+			),
+			array(
+				array(
+					'supports' => array(
+						'align'    => array( 'wide', 'full' ),
+						'fontSize' => true,
+						'color'    => array(
+							'link'     => true,
+							'gradient' => false,
+						),
+					),
+				),
+				'align',
+				true,
+				'Feature present in support array.',
+			),
+			array(
+				array(
+					'supports' => array(
+						'align'    => array( 'wide', 'full' ),
+						'fontSize' => true,
+						'color'    => array(
+							'link'     => true,
+							'gradient' => false,
+						),
+					),
+				),
+				'anchor',
+				false,
+				'Feature not present in support array.',
+			),
+			array(
+				array(
+					'supports' => array(
+						'align'    => array( 'wide', 'full' ),
+						'fontSize' => true,
+						'color'    => array(
+							'link'     => true,
+							'gradient' => false,
+						),
+					),
+				),
+				array( 'align' ),
+				true,
+				'Feature present in support array, single element array.',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 51612
 	 */
 	public function test_block_filters_for_inner_blocks() {
@@ -656,7 +768,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->registry->register(
 			'core/outer',
 			array(
-				'render_callback' => function( $block_attributes, $content ) {
+				'render_callback' => static function( $block_attributes, $content ) {
 					return $content;
 				},
 			)
@@ -665,7 +777,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->registry->register(
 			'core/inner',
 			array(
-				'render_callback' => function() {
+				'render_callback' => static function() {
 					return 'b';
 				},
 			)

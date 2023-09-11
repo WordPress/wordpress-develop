@@ -11,21 +11,21 @@ class Tests_Kses extends WP_UnitTestCase {
 	 * @dataProvider data_wp_filter_post_kses_address
 	 * @ticket 20210
 	 *
-	 * @param string $string        Test string for kses.
-	 * @param string $expect_string Expected result after passing through kses.
+	 * @param string $content  Test string for kses.
+	 * @param string $expected Expected result after passing through kses.
 	 */
-	public function test_wp_filter_post_kses_address( $string, $expect_string ) {
+	public function test_wp_filter_post_kses_address( $content, $expected ) {
 		global $allowedposttags;
 
-		$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
 	 * Data provider for test_wp_filter_post_kses_address.
 	 *
 	 * @return array[] Arguments {
-	 *     @type string $string        Test string for kses.
-	 *     @type string $expect_string Expected result after passing through kses.
+	 *     @type string $content  Test string for kses.
+	 *     @type string $expected Expected result after passing through kses.
 	 * }
 	 */
 	public function data_wp_filter_post_kses_address() {
@@ -45,10 +45,10 @@ class Tests_Kses extends WP_UnitTestCase {
 
 		foreach ( $attributes as $name => $values ) {
 			foreach ( (array) $values as $value ) {
-				$string        = "<address $name='$value'>1 WordPress Avenue, The Internet.</address>";
-				$expect_string = "<address $name='" . str_replace( '; ', ';', trim( $value, ';' ) ) . "'>1 WordPress Avenue, The Internet.</address>";
+				$content  = "<address $name='$value'>1 WordPress Avenue, The Internet.</address>";
+				$expected = "<address $name='" . str_replace( '; ', ';', trim( $value, ';' ) ) . "'>1 WordPress Avenue, The Internet.</address>";
 
-				$data[] = array( $string, $expect_string );
+				$data[] = array( $content, $expected );
 			}
 		}
 
@@ -59,21 +59,21 @@ class Tests_Kses extends WP_UnitTestCase {
 	 * @dataProvider data_wp_filter_post_kses_a
 	 * @ticket 20210
 	 *
-	 * @param string $string        Test string for kses.
-	 * @param string $expect_string Expected result after passing through kses.
+	 * @param string $content  Test string for kses.
+	 * @param string $expected Expected result after passing through kses.
 	 */
-	public function test_wp_filter_post_kses_a( $string, $expect_string ) {
+	public function test_wp_filter_post_kses_a( $content, $expected ) {
 		global $allowedposttags;
 
-		$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
 	 * Data provider for test_wp_filter_post_kses_a.
 	 *
 	 * @return array[] Arguments {
-	 *     @type string $string        Test string for kses.
-	 *     @type string $expect_string Expected result after passing through kses.
+	 *     @type string $content  Test string for kses.
+	 *     @type string $expected Expected result after passing through kses.
 	 * }
 	 */
 	public function data_wp_filter_post_kses_a() {
@@ -100,9 +100,9 @@ class Tests_Kses extends WP_UnitTestCase {
 				$attr          = $name;
 				$expected_attr = $name;
 			}
-			$string        = "<a $attr>I link this</a>";
-			$expect_string = "<a $expected_attr>I link this</a>";
-			$data[]        = array( $string, $expect_string );
+			$content  = "<a $attr>I link this</a>";
+			$expected = "<a $expected_attr>I link this</a>";
+			$data[]   = array( $content, $expected );
 		}
 
 		return $data;
@@ -120,8 +120,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	 * @param string $expected Expected output following KSES parsing.
 	 */
 	public function test_wp_kses_video( $source, $context, $expected ) {
-		$actual = wp_kses( $source, $context );
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, wp_kses( $source, $context ) );
 	}
 
 	/**
@@ -166,21 +165,21 @@ class Tests_Kses extends WP_UnitTestCase {
 	 * @dataProvider data_wp_filter_post_kses_abbr
 	 * @ticket 20210
 	 *
-	 * @param string $string        Test string for kses.
-	 * @param string $expect_string Expected result after passing through kses.
+	 * @param string $content  Test string for kses.
+	 * @param string $expected Expected result after passing through kses.
 	 */
-	public function test_wp_filter_post_kses_abbr( $string, $expect_string ) {
+	public function test_wp_filter_post_kses_abbr( $content, $expected ) {
 		global $allowedposttags;
 
-		$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
 	 * Data provider for data_wp_filter_post_kses_abbr.
 	 *
 	 * @return array[] Arguments {
-	 *     @type string $string        Test string for kses.
-	 *     @type string $expect_string Expected result after passing through kses.
+	 *     @type string $content  Test string for kses.
+	 *     @type string $expected Expected result after passing through kses.
 	 * }
 	 */
 	public function data_wp_filter_post_kses_abbr() {
@@ -194,9 +193,9 @@ class Tests_Kses extends WP_UnitTestCase {
 		$data = array();
 
 		foreach ( $attributes as $name => $value ) {
-			$string        = "<abbr $name='$value'>WP</abbr>";
-			$expect_string = "<abbr $name='" . trim( $value, ';' ) . "'>WP</abbr>";
-			$data[]        = array( $string, $expect_string );
+			$content  = "<abbr $name='$value'>WP</abbr>";
+			$expected = "<abbr $name='" . trim( $value, ';' ) . "'>WP</abbr>";
+			$data[]   = array( $content, $expected );
 		}
 
 		return $data;
@@ -535,17 +534,18 @@ EOF;
 	}
 
 	public function test_hyphenated_tag() {
-		$string                 = '<hyphenated-tag attribute="value" otherattribute="value2">Alot of hyphens.</hyphenated-tag>';
-		$custom_tags            = array(
+		$content     = '<hyphenated-tag attribute="value" otherattribute="value2">Alot of hyphens.</hyphenated-tag>';
+		$custom_tags = array(
 			'hyphenated-tag' => array(
 				'attribute' => true,
 			),
 		);
-		$expect_stripped_string = 'Alot of hyphens.';
 
-		$expect_valid_string = '<hyphenated-tag attribute="value">Alot of hyphens.</hyphenated-tag>';
-		$this->assertSame( $expect_stripped_string, wp_kses_post( $string ) );
-		$this->assertSame( $expect_valid_string, wp_kses( $string, $custom_tags ) );
+		$expect_stripped_content = 'Alot of hyphens.';
+		$expect_valid_content    = '<hyphenated-tag attribute="value">Alot of hyphens.</hyphenated-tag>';
+
+		$this->assertSame( $expect_stripped_content, wp_kses_post( $content ) );
+		$this->assertSame( $expect_valid_content, wp_kses( $content, $custom_tags ) );
 	}
 
 	/**
@@ -569,10 +569,10 @@ EOF;
 	 * @ticket 28506
 	 * @dataProvider data_ctrl_removal
 	 */
-	public function test_ctrl_removal( $input, $output ) {
+	public function test_ctrl_removal( $content, $expected ) {
 		global $allowedposttags;
 
-		return $this->assertSame( $output, wp_kses( $input, $allowedposttags ) );
+		return $this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	public function data_ctrl_removal() {
@@ -606,10 +606,10 @@ EOF;
 	 * @ticket 28699
 	 * @dataProvider data_slash_zero_removal
 	 */
-	public function test_slash_zero_removal( $input, $output ) {
+	public function test_slash_zero_removal( $content, $expected ) {
 		global $allowedposttags;
 
-		return $this->assertSame( $output, wp_kses( $input, $allowedposttags ) );
+		return $this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	public function data_slash_zero_removal() {
@@ -862,9 +862,9 @@ EOF;
 	public function test_bdo_tag_allowed() {
 		global $allowedposttags;
 
-		$input = '<p>This is <bdo dir="rtl">a BDO tag</bdo>. Weird, <bdo dir="ltr">right?</bdo></p>';
+		$content = '<p>This is <bdo dir="rtl">a BDO tag</bdo>. Weird, <bdo dir="ltr">right?</bdo></p>';
 
-		$this->assertSame( $input, wp_kses( $input, $allowedposttags ) );
+		$this->assertSame( $content, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -873,9 +873,9 @@ EOF;
 	public function test_ruby_tag_allowed() {
 		global $allowedposttags;
 
-		$input = '<ruby>✶<rp>: </rp><rt>Star</rt><rp>, </rp><rt lang="fr">Étoile</rt><rp>.</rp></ruby>';
+		$content = '<ruby>✶<rp>: </rp><rt>Star</rt><rp>, </rp><rt lang="fr">Étoile</rt><rp>.</rp></ruby>';
 
-		$this->assertSame( $input, wp_kses( $input, $allowedposttags ) );
+		$this->assertSame( $content, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -884,9 +884,9 @@ EOF;
 	public function test_ol_reversed_attribute_allowed() {
 		global $allowedposttags;
 
-		$input = '<ol reversed="reversed"><li>Item 1</li><li>Item 2</li><li>Item 3</li></ol>';
+		$content = '<ol reversed="reversed"><li>Item 1</li><li>Item 2</li><li>Item 3</li></ol>';
 
-		$this->assertSame( $input, wp_kses( $input, $allowedposttags ) );
+		$this->assertSame( $content, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -935,7 +935,10 @@ EOF;
 	 * @ticket 37248
 	 * @ticket 42729
 	 * @ticket 48376
-	 * @dataProvider data_test_safecss_filter_attr
+	 * @ticket 55966
+	 * @ticket 56122
+	 * @ticket 58551
+	 * @dataProvider data_safecss_filter_attr
 	 *
 	 * @param string $css      A string of CSS rules.
 	 * @param string $expected Expected string of CSS rules.
@@ -945,7 +948,7 @@ EOF;
 	}
 
 	/**
-	 * Data Provider for test_safecss_filter_attr().
+	 * Data provider for test_safecss_filter_attr().
 	 *
 	 * @return array {
 	 *     @type array {
@@ -954,7 +957,7 @@ EOF;
 	 *     }
 	 * }
 	 */
-	public function data_test_safecss_filter_attr() {
+	public function data_safecss_filter_attr() {
 		return array(
 			// Empty input, empty output.
 			array(
@@ -1033,8 +1036,8 @@ EOF;
 			),
 			// `flex` and related attributes introduced in 5.3.
 			array(
-				'css'      => 'flex: 0 1 auto;flex-basis: 75%;flex-direction: row-reverse;flex-flow: row-reverse nowrap;flex-grow: 2;flex-shrink: 1',
-				'expected' => 'flex: 0 1 auto;flex-basis: 75%;flex-direction: row-reverse;flex-flow: row-reverse nowrap;flex-grow: 2;flex-shrink: 1',
+				'css'      => 'flex: 0 1 auto;flex-basis: 75%;flex-direction: row-reverse;flex-flow: row-reverse nowrap;flex-grow: 2;flex-shrink: 1;flex-wrap: nowrap',
+				'expected' => 'flex: 0 1 auto;flex-basis: 75%;flex-direction: row-reverse;flex-flow: row-reverse nowrap;flex-grow: 2;flex-shrink: 1;flex-wrap: nowrap',
 			),
 			// `grid` and related attributes introduced in 5.3.
 			array(
@@ -1045,9 +1048,9 @@ EOF;
 				'css'      => 'grid-template-rows: 40px 4em 40px;grid-auto-rows: min-content;grid-row-start: -1;grid-row-end: 3;grid-row-gap: 1em',
 				'expected' => 'grid-template-rows: 40px 4em 40px;grid-auto-rows: min-content;grid-row-start: -1;grid-row-end: 3;grid-row-gap: 1em',
 			),
-			// `grid` does not yet support functions or `\`.
+			// `grid` does not yet support `\`.
 			array(
-				'css'      => 'grid-template-columns: repeat(2, 50px 1fr);grid-template: 1em / 20% 20px 1fr',
+				'css'      => 'grid-template: 1em / 20% 20px 1fr',
 				'expected' => '',
 			),
 			// `flex` and `grid` alignments introduced in 5.3.
@@ -1105,6 +1108,16 @@ EOF;
 				'css'      => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
 				'expected' => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
 			),
+			// `object-position` introduced in 5.7.1.
+			array(
+				'css'      => 'object-position: right top',
+				'expected' => 'object-position: right top',
+			),
+			// `object-fit` introduced in 6.1.
+			array(
+				'css'      => 'object-fit: cover',
+				'expected' => 'object-fit: cover',
+			),
 			// Expressions are not allowed.
 			array(
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
@@ -1118,6 +1131,214 @@ EOF;
 			// RGBA color values are not allowed.
 			array(
 				'css'      => 'color: rgb( 100, 100, 100, .4 )',
+				'expected' => '',
+			),
+			// Allow min().
+			array(
+				'css'      => 'width: min(50%, 400px)',
+				'expected' => 'width: min(50%, 400px)',
+			),
+			// Allow max().
+			array(
+				'css'      => 'width: max(50%, 40rem)',
+				'expected' => 'width: max(50%, 40rem)',
+			),
+			// Allow minmax().
+			array(
+				'css'      => 'width: minmax(100px, 50%)',
+				'expected' => 'width: minmax(100px, 50%)',
+			),
+			// Allow clamp().
+			array(
+				'css'      => 'width: clamp(100px, 50%, 100vw)',
+				'expected' => 'width: clamp(100px, 50%, 100vw)',
+			),
+			// Allow two functions in the same CSS.
+			array(
+				'css'      => 'width: clamp(min(100px, 350px), 50%, 500px), 600px)',
+				'expected' => 'width: clamp(min(100px, 350px), 50%, 500px), 600px)',
+			),
+			// Allow gradient() function.
+			array(
+				'css'      => 'background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%)',
+				'expected' => 'background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%)',
+			),
+			// Combined CSS function names.
+			array(
+				'css'      => 'width: calcmax(100px + 50%)',
+				'expected' => '',
+			),
+			// Allow calc().
+			array(
+				'css'      => 'width: calc(2em + 3px)',
+				'expected' => 'width: calc(2em + 3px)',
+			),
+			// Allow calc() with nested brackets.
+			array(
+				'css'      => 'width: calc(3em + (10px * 2))',
+				'expected' => 'width: calc(3em + (10px * 2))',
+			),
+			// Allow var().
+			array(
+				'css'      => 'padding: var(--wp-var1) var(--wp-var2)',
+				'expected' => 'padding: var(--wp-var1) var(--wp-var2)',
+			),
+			// Allow var() with fallback (commas).
+			array(
+				'css'      => 'padding: var(--wp-var1, 10px)',
+				'expected' => 'padding: var(--wp-var1, 10px)',
+			),
+			// Allow var() with fallback (percentage).
+			array(
+				'css'      => 'padding: var(--wp-var1, 50%)',
+				'expected' => 'padding: var(--wp-var1, 50%)',
+			),
+			// Allow var() with fallback var().
+			array(
+				'css'      => 'background-color: var(--wp-var, var(--wp-var-fallback, pink))',
+				'expected' => 'background-color: var(--wp-var, var(--wp-var-fallback, pink))',
+			),
+			// Allow var() with square brackets.
+			array(
+				'css'      => 'background-color: var(--wp-var, [pink])',
+				'expected' => 'background-color: var(--wp-var, [pink])',
+			),
+			// Allow calc() with var().
+			array(
+				'css'      => 'margin-top: calc(var(--wp-var1) * 3 + 2em)',
+				'expected' => 'margin-top: calc(var(--wp-var1) * 3 + 2em)',
+			),
+			// Malformed min, no closing `)`.
+			array(
+				'css'      => 'width: min(3em + 10px',
+				'expected' => '',
+			),
+			// Malformed max, no closing `)`.
+			array(
+				'css'      => 'width: max(3em + 10px',
+				'expected' => '',
+			),
+			// Malformed minmax, no closing `)`.
+			array(
+				'css'      => 'width: minmax(3em + 10px',
+				'expected' => '',
+			),
+			// Malformed calc, no closing `)`.
+			array(
+				'css'      => 'width: calc(3em + 10px',
+				'expected' => '',
+			),
+			// Malformed var, no closing `)`.
+			array(
+				'css'      => 'width: var(--wp-var1',
+				'expected' => '',
+			),
+			// Malformed calc, mismatching brackets.
+			array(
+				'css'      => 'width: calc(3em + (10px * 2)',
+				'expected' => '',
+			),
+			// Malformed var, mismatching brackets.
+			array(
+				'css'      => 'background-color: var(--wp-var, var(--wp-var-fallback, pink)',
+				'expected' => '',
+			),
+			// Don't allow expressions outside of a calc().
+			array(
+				'css'      => 'width: (3em + (10px * 2))',
+				'expected' => '',
+			),
+			// Gap introduced in 6.1.
+			array(
+				'css'      => 'gap: 10px;column-gap: 5px;row-gap: 20px',
+				'expected' => 'gap: 10px;column-gap: 5px;row-gap: 20px',
+			),
+			// Margin and padding logical properties introduced in 6.1.
+			array(
+				'css'      => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;',
+				'expected' => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px',
+			),
+			array(
+				'css'      => 'padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px;',
+				'expected' => 'padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px',
+			),
+			// Assigning values to CSS variables introduced in 6.1.
+			array(
+				'css'      => '--wp--medium-width: 100px; --var_with_underscores: #cccccc;',
+				'expected' => '--wp--medium-width: 100px;--var_with_underscores: #cccccc',
+			),
+			array(
+				'css'      => '--miXeD-CAse: red; --with-numbers-3_56: red; --with-url-value: url("foo.jpg");',
+				'expected' => '--miXeD-CAse: red;--with-numbers-3_56: red;--with-url-value: url("foo.jpg")',
+			),
+			array(
+				'css'      => '--with-gradient: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);',
+				'expected' => '--with-gradient: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%)',
+			),
+			array(
+				'css'      => '--?><.%-not-allowed: red;',
+				'expected' => '',
+			),
+			// Position properties introduced in 6.2.
+			array(
+				'css'      => 'position: sticky;top: 0;left: 0;right: 0;bottom: 0;z-index: 10;',
+				'expected' => 'position: sticky;top: 0;left: 0;right: 0;bottom: 0;z-index: 10',
+			),
+			// `aspect-ratio` introduced in 6.2.
+			array(
+				'css'      => 'aspect-ratio: auto;',
+				'expected' => 'aspect-ratio: auto',
+			),
+			array(
+				'css'      => 'aspect-ratio: 0.5;',
+				'expected' => 'aspect-ratio: 0.5',
+			),
+			array(
+				'css'      => 'aspect-ratio: 1;',
+				'expected' => 'aspect-ratio: 1',
+			),
+			array(
+				'css'      => 'aspect-ratio: 16 / 9;',
+				'expected' => 'aspect-ratio: 16 / 9',
+			),
+			array(
+				'css'      => 'aspect-ratio: expression( 16 / 9 );',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'aspect-ratio: calc( 16 / 9;',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'aspect-ratio: calc( 16 / 9 );',
+				'expected' => 'aspect-ratio: calc( 16 / 9 )',
+			),
+			array(
+				'css'      => 'aspect-ratio: url( https://wordpress.org/wp-content/uploads/aspect-ratio.jpg );',
+				'expected' => '',
+			),
+			// URL support for `filter` introduced in 6.3.
+			array(
+				'css'      => 'filter: url( my-file.svg#svg-blur );',
+				'expected' => 'filter: url( my-file.svg#svg-blur )',
+			),
+			// Support for `repeat` function.
+			array(
+				'css'      => 'grid-template-columns: repeat(4, minmax(0, 1fr))',
+				'expected' => 'grid-template-columns: repeat(4, minmax(0, 1fr))',
+			),
+			array(
+				'css'      => 'grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr))',
+				'expected' => 'grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr))',
+			),
+			// Malformed repeat, no closing `)`.
+			array(
+				'css'      => 'grid-template-columns: repeat(4, minmax(0, 1fr)',
+				'expected' => '',
+			),
+			// Malformed repeat, contains unsupported function.
+			array(
+				'css'      => 'grid-template-columns: repeat(4, unsupported(0, 1fr)',
 				'expected' => '',
 			),
 		);
@@ -1148,10 +1369,10 @@ EOF;
 			),
 		);
 
-		$string   = '<div datamelformed-prefix="gone" data="gone" data-="gone" onclick="alert(1)">Malformed attributes</div>';
+		$content  = '<div datamelformed-prefix="gone" data="gone" data-="gone" onclick="alert(1)">Malformed attributes</div>';
 		$expected = '<div>Malformed attributes</div>';
 
-		$actual = wp_kses( $string, $allowed_html );
+		$actual = wp_kses( $content, $allowed_html );
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -1168,10 +1389,10 @@ EOF;
 			),
 		);
 
-		$string   = '<div data-wp-id="pens-and-pencils">Well formed attribute</div>';
+		$content  = '<div data-wp-id="pens-and-pencils">Well formed attribute</div>';
 		$expected = '<div data-wp-id="pens-and-pencils">Well formed attribute</div>';
 
-		$actual = wp_kses( $string, $allowed_html );
+		$actual = wp_kses( $content, $allowed_html );
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -1301,24 +1522,6 @@ EOF;
 				'background: red',
 			),
 
-			// CSS calc().
-			array(
-				'width: calc(2em + 3px)',
-				'width: calc(2em + 3px)',
-			),
-
-			// CSS variable.
-			array(
-				'padding: var(--wp-var1) var(--wp-var2)',
-				'padding: var(--wp-var1) var(--wp-var2)',
-			),
-
-			// CSS calc() with var().
-			array(
-				'margin-top: calc(var(--wp-var1) * 3 + 2em)',
-				'margin-top: calc(var(--wp-var1) * 3 + 2em)',
-			),
-
 			/*
 			 * Invalid use cases.
 			 */
@@ -1382,18 +1585,6 @@ EOF;
 				'background-image: url( "http://example.com );',
 				'',
 			),
-
-			// Malformed calc, no closing `)`.
-			array(
-				'width: calc(3em + 10px',
-				'',
-			),
-
-			// Malformed var, no closing `)`.
-			array(
-				'width: var(--wp-var1',
-				'',
-			),
 		);
 	}
 
@@ -1402,7 +1593,7 @@ EOF;
 	 *
 	 * @ticket 37134
 	 *
-	 * @dataProvider data_test_safecss_filter_attr_filtered
+	 * @dataProvider data_safecss_filter_attr_filtered
 	 *
 	 * @param string $css      A string of CSS rules.
 	 * @param string $expected Expected string of CSS rules.
@@ -1414,7 +1605,7 @@ EOF;
 	}
 
 	/**
-	 * Data Provider for test_safecss_filter_attr_filtered().
+	 * Data provider for test_safecss_filter_attr_filtered().
 	 *
 	 * @return array {
 	 *     @type array {
@@ -1423,7 +1614,7 @@ EOF;
 	 *     }
 	 * }
 	 */
-	public function data_test_safecss_filter_attr_filtered() {
+	public function data_safecss_filter_attr_filtered() {
 		return array(
 
 			// A single attribute name, with a single value.
@@ -1519,14 +1710,14 @@ EOF;
 	 * @param string $html     A string of HTML to test.
 	 * @param string $expected The expected result from KSES.
 	 */
-	function test_wp_kses_object_tag_allowed( $html, $expected ) {
+	public function test_wp_kses_object_tag_allowed( $html, $expected ) {
 		$this->assertSame( $expected, wp_kses_post( $html ) );
 	}
 
 	/**
 	 * Data provider for test_wp_kses_object_tag_allowed().
 	 */
-	function data_wp_kses_object_tag_allowed() {
+	public function data_wp_kses_object_tag_allowed() {
 		return array(
 			'valid value for type'                    => array(
 				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
@@ -1629,7 +1820,7 @@ EOF;
 	 * @param string $html     A string of HTML to test.
 	 * @param string $expected The expected result from KSES.
 	 */
-	function test_wp_kses_object_data_url_with_port_number_allowed( $html, $expected ) {
+	public function test_wp_kses_object_data_url_with_port_number_allowed( $html, $expected ) {
 		add_filter( 'upload_dir', array( $this, 'wp_kses_upload_dir_filter' ), 10, 2 );
 		$this->assertSame( $expected, wp_kses_post( $html ) );
 	}
@@ -1637,7 +1828,7 @@ EOF;
 	/**
 	 * Data provider for test_wp_kses_object_data_url_with_port_number_allowed().
 	 */
-	function data_wp_kses_object_data_url_with_port_number_allowed() {
+	public function data_wp_kses_object_data_url_with_port_number_allowed() {
 		return array(
 			'url with port number'                   => array(
 				'<object type="application/pdf" data="https://example.org:8888/cat/foo.pdf" />',
@@ -1676,7 +1867,7 @@ EOF;
 	 *
 	 * @ticket 54261
 	 */
-	function test_wp_kses_object_added_in_html_filter() {
+	public function test_wp_kses_object_added_in_html_filter() {
 		$html = <<<HTML
 <object type="application/pdf" data="https://wordpress.org/foo.pdf" />
 <object type="application/x-shockwave-flash" data="https://wordpress.org/foo.swf">
@@ -1693,7 +1884,7 @@ HTML;
 		$this->assertSame( $html, $filtered_html );
 	}
 
-	function filter_wp_kses_object_added_in_html_filter( $tags, $context ) {
+	public function filter_wp_kses_object_added_in_html_filter( $tags, $context ) {
 		if ( 'post' === $context ) {
 			$tags['object'] = array(
 				'type' => true,
@@ -1716,18 +1907,18 @@ HTML;
 	 *
 	 * @dataProvider data_wp_kses_allowed_values_list
 	 *
-	 * @param string $html         A string of HTML to test.
+	 * @param string $content      A string of HTML to test.
 	 * @param string $expected     The expected result from KSES.
 	 * @param array  $allowed_html The allowed HTML to pass to KSES.
 	 */
-	function test_wp_kses_allowed_values_list( $html, $expected, $allowed_html ) {
-		$this->assertSame( $expected, wp_kses( $html, $allowed_html ) );
+	public function test_wp_kses_allowed_values_list( $content, $expected, $allowed_html ) {
+		$this->assertSame( $expected, wp_kses( $content, $allowed_html ) );
 	}
 
 	/**
 	 * Data provider for test_wp_kses_allowed_values_list().
 	 */
-	function data_wp_kses_allowed_values_list() {
+	public function data_wp_kses_allowed_values_list() {
 		$data = array(
 			'valid dir attribute value'             => array(
 				'<p dir="ltr">foo</p>',
@@ -1752,7 +1943,7 @@ HTML;
 		);
 
 		return array_map(
-			function ( $datum ) {
+			static function ( $datum ) {
 				$datum[] = array(
 					'p' => array(
 						'dir' => array(
@@ -1774,18 +1965,18 @@ HTML;
 	 *
 	 * @dataProvider data_wp_kses_required_attribute
 	 *
-	 * @param string $html         A string of HTML to test.
+	 * @param string $content      A string of HTML to test.
 	 * @param string $expected     The expected result from KSES.
 	 * @param array  $allowed_html The allowed HTML to pass to KSES.
 	 */
-	function test_wp_kses_required_attribute( $html, $expected, $allowed_html ) {
-		$this->assertSame( $expected, wp_kses( $html, $allowed_html ) );
+	public function test_wp_kses_required_attribute( $content, $expected, $allowed_html ) {
+		$this->assertSame( $expected, wp_kses( $content, $allowed_html ) );
 	}
 
 	/**
 	 * Data provider for test_wp_kses_required_attribute().
 	 */
-	function data_wp_kses_required_attribute() {
+	public function data_wp_kses_required_attribute() {
 		$data = array(
 			'valid dir attribute value'             => array(
 				'<p dir="ltr">foo</p>', // Test HTML.
@@ -1964,10 +2155,10 @@ HTML;
 	 *
 	 * @ticket 54060
 	 *
-	 * @param string $global The name of the global variable.
+	 * @param string $global_name The name of the global variable.
 	 */
-	public function test_kses_globals_are_defined( $global ) {
-		$this->assertArrayHasKey( $global, $GLOBALS );
+	public function test_kses_globals_are_defined( $global_name ) {
+		$this->assertArrayHasKey( $global_name, $GLOBALS );
 	}
 
 	/**
@@ -1976,19 +2167,13 @@ HTML;
 	 * @return array
 	 */
 	public function data_kses_globals_are_defined() {
-		return array(
-			'allowedposttags'       => array(
-				'global' => 'allowedposttags',
-			),
-			'allowedtags'           => array(
-				'global' => 'allowedtags',
-			),
-			'allowedentitynames'    => array(
-				'global' => 'allowedentitynames',
-			),
-			'allowedxmlentitynames' => array(
-				'global' => 'allowedxmlentitynames',
-			),
+		$required_kses_globals = array(
+			'allowedposttags',
+			'allowedtags',
+			'allowedentitynames',
+			'allowedxmlentitynames',
 		);
+
+		return $this->text_array_to_dataprovider( $required_kses_globals );
 	}
 }

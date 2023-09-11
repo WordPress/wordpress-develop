@@ -11,7 +11,6 @@
  * Core class used to implement displaying users in a list table for the network admin.
  *
  * @since 3.1.0
- * @access private
  *
  * @see WP_List_Table
  */
@@ -137,13 +136,10 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		$super_admins = get_super_admins();
 		$total_admins = count( $super_admins );
 
-		$current_link_attributes = 'super' !== $role ? ' class="current" aria-current="page"' : '';
-		$role_links              = array();
-		$role_links['all']       = sprintf(
-			'<a href="%s"%s>%s</a>',
-			network_admin_url( 'users.php' ),
-			$current_link_attributes,
-			sprintf(
+		$role_links        = array();
+		$role_links['all'] = array(
+			'url'     => network_admin_url( 'users.php' ),
+			'label'   => sprintf(
 				/* translators: Number of users. */
 				_nx(
 					'All <span class="count">(%s)</span>',
@@ -152,14 +148,13 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 					'users'
 				),
 				number_format_i18n( $total_users )
-			)
+			),
+			'current' => 'super' !== $role,
 		);
-		$current_link_attributes = 'super' === $role ? ' class="current" aria-current="page"' : '';
-		$role_links['super']     = sprintf(
-			'<a href="%s"%s>%s</a>',
-			network_admin_url( 'users.php?role=super' ),
-			$current_link_attributes,
-			sprintf(
+
+		$role_links['super'] = array(
+			'url'     => network_admin_url( 'users.php?role=super' ),
+			'label'   => sprintf(
 				/* translators: Number of users. */
 				_n(
 					'Super Admin <span class="count">(%s)</span>',
@@ -167,10 +162,11 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 					$total_admins
 				),
 				number_format_i18n( $total_admins )
-			)
+			),
+			'current' => 'super' === $role,
 		);
 
-		return $role_links;
+		return $this->get_views_links( $role_links );
 	}
 
 	/**
@@ -189,7 +185,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		$users_columns = array(
@@ -216,10 +212,10 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 */
 	protected function get_sortable_columns() {
 		return array(
-			'username'   => 'login',
-			'name'       => 'name',
-			'email'      => 'email',
-			'registered' => 'id',
+			'username'   => array( 'login', false, __( 'Username' ), __( 'Table ordered by Username.' ), 'asc' ),
+			'name'       => array( 'name', false, __( 'Name' ), __( 'Table ordered by Name.' ) ),
+			'email'      => array( 'email', false, __( 'E-mail' ), __( 'Table ordered by E-mail.' ) ),
+			'registered' => array( 'id', false, _x( 'Registered', 'user' ), __( 'Table ordered by User Registered Date.' ) ),
 		);
 	}
 
@@ -239,11 +235,13 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 			return;
 		}
 		?>
-		<label class="screen-reader-text" for="blog_<?php echo $user->ID; ?>">
+		<label class="label-covers-full-cell" for="blog_<?php echo $user->ID; ?>">
+			<span class="screen-reader-text">
 			<?php
-			/* translators: %s: User login. */
+			/* translators: Hidden accessibility text. %s: User login. */
 			printf( __( 'Select %s' ), $user->user_login );
 			?>
+			</span>
 		</label>
 		<input type="checkbox" id="blog_<?php echo $user->ID; ?>" name="allusers[]" value="<?php echo esc_attr( $user->ID ); ?>" />
 		<?php
@@ -313,7 +311,10 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		} elseif ( $user->last_name ) {
 			echo $user->last_name;
 		} else {
-			echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . _x( 'Unknown', 'name' ) . '</span>';
+			echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' .
+				/* translators: Hidden accessibility text. */
+				_x( 'Unknown', 'name' ) .
+			'</span>';
 		}
 	}
 
@@ -438,12 +439,12 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 			foreach ( $actions as $action => $link ) {
 				++$i;
 
-				$sep = ( $i < $action_count ) ? ' | ' : '';
+				$separator = ( $i < $action_count ) ? ' | ' : '';
 
-				echo "<span class='$action'>$link$sep</span>";
+				echo "<span class='$action'>{$link}{$separator}</span>";
 			}
 
-			echo '</small></span><br/>';
+			echo '</small></span><br />';
 		}
 	}
 

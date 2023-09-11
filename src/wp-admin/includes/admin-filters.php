@@ -80,6 +80,7 @@ add_filter( 'heartbeat_received', 'wp_refresh_post_lock', 10, 3 );
 add_filter( 'heartbeat_received', 'heartbeat_autosave', 500, 2 );
 
 add_filter( 'wp_refresh_nonces', 'wp_refresh_post_nonces', 10, 3 );
+add_filter( 'wp_refresh_nonces', 'wp_refresh_metabox_loader_nonces', 10, 2 );
 add_filter( 'wp_refresh_nonces', 'wp_refresh_heartbeat_nonces' );
 
 add_filter( 'heartbeat_settings', 'wp_heartbeat_set_suspension' );
@@ -167,3 +168,6 @@ add_action( 'post_updated', array( 'WP_Privacy_Policy_Content', '_policy_page_up
 
 // Append '(Draft)' to draft page titles in the privacy page dropdown.
 add_filter( 'list_pages', '_wp_privacy_settings_filter_draft_page_titles', 10, 2 );
+
+// Font management.
+add_action( 'admin_print_styles', 'wp_print_font_faces', 50 );

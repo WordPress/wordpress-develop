@@ -44,7 +44,7 @@ class WP_Widget_Text extends WP_Widget {
 	}
 
 	/**
-	 * Add hooks for enqueueing assets when registering all widget instances of this widget class.
+	 * Adds hooks for enqueueing assets when registering all widget instances of this widget class.
 	 *
 	 * @param int $number Optional. The unique order number of this widget instance
 	 *                    compared to other instances of the same class. Default -1.
@@ -56,18 +56,20 @@ class WP_Widget_Text extends WP_Widget {
 		}
 		$this->registered = true;
 
-		wp_add_inline_script( 'text-widgets', sprintf( 'wp.textWidgets.idBases.push( %s );', wp_json_encode( $this->id_base ) ) );
-
 		if ( $this->is_preview() ) {
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_preview_scripts' ) );
 		}
 
-		// Note that the widgets component in the customizer will also do
-		// the 'admin_print_scripts-widgets.php' action in WP_Customize_Widgets::print_scripts().
+		/*
+		 * Note that the widgets component in the customizer will also do
+		 * the 'admin_print_scripts-widgets.php' action in WP_Customize_Widgets::print_scripts().
+		 */
 		add_action( 'admin_print_scripts-widgets.php', array( $this, 'enqueue_admin_scripts' ) );
 
-		// Note that the widgets component in the customizer will also do
-		// the 'admin_footer-widgets.php' action in WP_Customize_Widgets::print_footer_scripts().
+		/*
+		 * Note that the widgets component in the customizer will also do
+		 * the 'admin_footer-widgets.php' action in WP_Customize_Widgets::print_footer_scripts().
+		 */
 		add_action( 'admin_footer-widgets.php', array( 'WP_Widget_Text', 'render_control_template_scripts' ) );
 	}
 
@@ -103,7 +105,7 @@ class WP_Widget_Text extends WP_Widget {
 		}
 
 		$wpautop         = ! empty( $instance['filter'] );
-		$has_line_breaks = ( false !== strpos( trim( $instance['text'] ), "\n" ) );
+		$has_line_breaks = ( str_contains( trim( $instance['text'] ), "\n" ) );
 
 		// If auto-paragraphs are not enabled and there are line breaks, then ensure legacy mode.
 		if ( ! $wpautop && $has_line_breaks ) {
@@ -111,7 +113,7 @@ class WP_Widget_Text extends WP_Widget {
 		}
 
 		// If an HTML comment is present, assume legacy mode.
-		if ( false !== strpos( $instance['text'], '<!--' ) ) {
+		if ( str_contains( $instance['text'], '<!--' ) ) {
 			return true;
 		}
 
@@ -342,7 +344,7 @@ class WP_Widget_Text extends WP_Widget {
 	}
 
 	/**
-	 * Inject max-width and remove height for videos too constrained to fit inside sidebars on frontend.
+	 * Injects max-width and removes height for videos too constrained to fit inside sidebars on frontend.
 	 *
 	 * @since 4.9.0
 	 *
@@ -412,7 +414,7 @@ class WP_Widget_Text extends WP_Widget {
 	}
 
 	/**
-	 * Enqueue preview scripts.
+	 * Enqueues preview scripts.
 	 *
 	 * These scripts normally are enqueued just-in-time when a playlist shortcode is used.
 	 * However, in the customizer, a playlist shortcode may be used in a text widget and
@@ -436,6 +438,7 @@ class WP_Widget_Text extends WP_Widget {
 		wp_enqueue_editor();
 		wp_enqueue_media();
 		wp_enqueue_script( 'text-widgets' );
+		wp_add_inline_script( 'text-widgets', sprintf( 'wp.textWidgets.idBases.push( %s );', wp_json_encode( $this->id_base ) ) );
 		wp_add_inline_script( 'text-widgets', 'wp.textWidgets.init();', 'after' );
 	}
 
@@ -511,7 +514,7 @@ class WP_Widget_Text extends WP_Widget {
 	}
 
 	/**
-	 * Render form template scripts.
+	 * Renders form template scripts.
 	 *
 	 * @since 4.8.0
 	 * @since 4.9.0 The method is now static.
@@ -561,7 +564,7 @@ class WP_Widget_Text extends WP_Widget {
 			<?php endif; ?>
 
 			<p>
-				<label for="{{ elementIdPrefix }}text" class="screen-reader-text"><?php esc_html_e( 'Content:' ); ?></label>
+				<label for="{{ elementIdPrefix }}text" class="screen-reader-text"><?php /* translators: Hidden accessibility text. */ esc_html_e( 'Content:' ); ?></label>
 				<textarea id="{{ elementIdPrefix }}text" class="widefat text wp-editor-area" style="height: 200px" rows="16" cols="20"></textarea>
 			</p>
 		</script>

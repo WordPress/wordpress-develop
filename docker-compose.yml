@@ -25,7 +25,10 @@ services:
     command: /bin/sh -c "envsubst '$$LOCAL_DIR' < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
 
     depends_on:
-      - php
+      php:
+        condition: service_started
+      mysql:
+        condition: service_healthy
 
   ##
   # The PHP container.
@@ -49,14 +52,20 @@ services:
       - ./tools/local-env/php-config.ini:/usr/local/etc/php/conf.d/php-config.ini
       - ./:/var/www
 
-    depends_on:
-      - mysql
+    # Copy or delete the Memcached dropin plugin file as appropriate.
+    command: /bin/sh -c "if [ $LOCAL_PHP_MEMCACHED = true ]; then cp -n /var/www/tests/phpunit/includes/object-cache.php /var/www/src/wp-content/object-cache.php; else rm -f /var/www/src/wp-content/object-cache.php; fi && exec php-fpm"
+
+    # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
+    init: true
+
+    extra_hosts:
+      - localhost:host-gateway
 
   ##
   # The MySQL container.
   ##
   mysql:
-    image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
+    image: amd64/${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
 
     networks:
       - wpdevnet
@@ -73,6 +82,12 @@ services:
 
     # For compatibility with PHP versions that don't support the caching_sha2_password auth plugin used in MySQL 8.0.
     command: --default-authentication-plugin=mysql_native_password
+
+    healthcheck:
+      test: [ "CMD-SHELL", "if [ \"$LOCAL_DB_TYPE\" = \"mariadb\" ]; then mariadb-admin ping -h localhost; else mysqladmin ping -h localhost; fi" ]
+      timeout: 5s
+      interval: 5s
+      retries: 10
 
   ##
   # The WP CLI container.
@@ -94,6 +109,31 @@ services:
 
     # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
     init: true
+
+    extra_hosts:
+      - localhost:host-gateway
+
+    depends_on:
+      php:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+
+  ##
+  # The Memcached container.
+  ##
+  memcached:
+    image: memcached
+
+    networks:
+      - wpdevnet
+
+    ports:
+      - 11211:11211
+
+    depends_on:
+      php:
+        condition: service_started
 
 volumes:
   # So that sites aren't wiped every time containers are restarted, MySQL uses a persistent volume.

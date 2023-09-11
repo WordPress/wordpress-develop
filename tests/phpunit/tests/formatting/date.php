@@ -7,6 +7,17 @@
 class Tests_Formatting_Date extends WP_UnitTestCase {
 
 	/**
+	 * Cleans up.
+	 */
+	public function tear_down() {
+		// Reset changed options to their default value.
+		update_option( 'gmt_offset', 0 );
+		update_option( 'timezone_string', '' );
+
+		parent::tear_down();
+	}
+
+	/**
 	 * Unpatched, this test passes only when Europe/London is not observing DST.
 	 *
 	 * @ticket 20328
@@ -119,11 +130,11 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 	/**
 	 * @ticket 31809
 	 *
-	 * @dataProvider timezone_provider
+	 * @dataProvider data_timezone_provider
 	 *
 	 * @covers ::get_gmt_from_date
 	 */
-	public function test_gmt_from_date_correct_time( $timezone_string, $gmt_offset ) {
+	public function test_get_gmt_from_date_correct_time( $timezone_string, $gmt_offset ) {
 		update_option( 'timezone_string', $timezone_string );
 		update_option( 'gmt_offset', $gmt_offset );
 
@@ -137,11 +148,11 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 	/**
 	 * @ticket 31809
 	 *
-	 * @dataProvider timezone_provider
+	 * @dataProvider data_timezone_provider
 	 *
 	 * @covers ::get_date_from_gmt
 	 */
-	public function test_date_from_gmt_correct_time( $timezone_string, $gmt_offset ) {
+	public function test_get_date_from_gmt_correct_time( $timezone_string, $gmt_offset ) {
 		update_option( 'timezone_string', $timezone_string );
 		update_option( 'gmt_offset', $gmt_offset );
 
@@ -155,7 +166,7 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 	/**
 	 * @ticket 31809
 	 *
-	 * @dataProvider timezone_provider
+	 * @dataProvider data_timezone_provider
 	 *
 	 * @covers ::iso8601_to_datetime
 	 */
@@ -219,15 +230,20 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function timezone_provider() {
+	public function data_timezone_provider() {
 		return array(
 			array(
-				'timezone_string' => 'Europe/Kiev',
+				'timezone_string' => 'Europe/Helsinki',
 				'gmt_offset'      => 3,
 			),
 			array(
 				'timezone_string' => '',
 				'gmt_offset'      => 3,
+			),
+			// @ticket 56468.
+			'deprecated timezone string and no GMT offset set' => array(
+				'timezone_string' => 'America/Buenos_Aires',
+				'gmt_offset'      => 0,
 			),
 		);
 	}

@@ -6,10 +6,6 @@ const { renameSync, readFileSync, writeFileSync } = require( 'fs' );
 
 dotenvExpand.expand( dotenv.config() );
 
-if ( process.arch === 'arm64' ) {
-	process.env.LOCAL_DB_TYPE = `amd64/${process.env.LOCAL_DB_TYPE}`;
-}
-
 // Create wp-config.php.
 wp_cli( 'config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --path=/var/www/src --force' );
 
@@ -20,6 +16,7 @@ wp_cli( `config set WP_DEBUG_LOG ${process.env.LOCAL_WP_DEBUG_LOG} --raw --type=
 wp_cli( `config set WP_DEBUG_DISPLAY ${process.env.LOCAL_WP_DEBUG_DISPLAY} --raw --type=constant` );
 wp_cli( `config set SCRIPT_DEBUG ${process.env.LOCAL_SCRIPT_DEBUG} --raw --type=constant` );
 wp_cli( `config set WP_ENVIRONMENT_TYPE ${process.env.LOCAL_WP_ENVIRONMENT_TYPE} --type=constant` );
+wp_cli( `config set WP_DEVELOPMENT_MODE ${process.env.LOCAL_WP_DEVELOPMENT_MODE} --type=constant` );
 
 // Move wp-config.php to the base directory, so it doesn't get mixed up in the src or build directories.
 renameSync( 'src/wp-config.php', 'wp-config.php' );

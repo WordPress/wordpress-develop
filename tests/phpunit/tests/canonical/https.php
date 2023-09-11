@@ -6,6 +6,21 @@
  * @group query
  */
 class Tests_Canonical_HTTPS extends WP_Canonical_UnitTestCase {
+
+	/**
+	 * Dummy HTTP URL.
+	 *
+	 * @var string
+	 */
+	private $http = '';
+
+	/**
+	 * Dummy HTTPS URL.
+	 *
+	 * @var string
+	 */
+	private $https = '';
+
 	public function set_up() {
 		parent::set_up();
 
@@ -50,5 +65,4 @@ class Tests_Canonical_HTTPS extends WP_Canonical_UnitTestCase {
 
 		remove_filter( 'home_url', array( $this, 'set_https' ) );
 	}
-
 }

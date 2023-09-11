@@ -461,48 +461,62 @@ table.media .column-title .filename {
 	width: 160px;
 }
 
+.sorting-indicators {
+	display: grid;
+}
+
 .sorting-indicator {
 	display: block;
-	visibility: hidden;
 	width: 10px;
 	height: 4px;
-	margin-top: 8px;
+	margin-top: 4px;
 	margin-left: 7px;
 }
 
 .sorting-indicator:before {
-	content: "\f142";
 	font: normal 20px/1 dashicons;
 	speak: never;
 	display: inline-block;
 	padding: 0;
 	top: -4px;
 	left: -8px;
-	color: #3c434a;
 	line-height: 0.5;
 	position: relative;
 	vertical-align: top;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	text-decoration: none !important;
-	color: #3c434a;
+	color: #a7aaad;
 }
 
-.column-comments .sorting-indicator:before {
-	top: 0;
-	left: -10px;
-}
-
-th.sorted.asc .sorting-indicator:before,
-th.desc:hover span.sorting-indicator:before,
-th.desc a:focus span.sorting-indicator:before {
+.sorting-indicator.asc:before {
 	content: "\f142";
 }
 
-th.sorted.desc .sorting-indicator:before,
-th.asc:hover span.sorting-indicator:before,
-th.asc a:focus span.sorting-indicator:before {
+.sorting-indicator.desc:before {
 	content: "\f140";
+}
+
+th.sorted.desc .sorting-indicator.desc:before {
+	color: #1d2327;
+}
+
+th.sorted.asc .sorting-indicator.asc:before {
+	color: #1d2327;
+}
+
+th.sorted.asc a:focus .sorting-indicator.asc:before,
+th.sorted.asc:hover .sorting-indicator.asc:before,
+th.sorted.desc a:focus .sorting-indicator.desc:before,
+th.sorted.desc:hover .sorting-indicator.desc:before {
+	color: #a7aaad;
+}
+
+th.sorted.asc a:focus .sorting-indicator.desc:before,
+th.sorted.asc:hover .sorting-indicator.desc:before,
+th.sorted.desc a:focus .sorting-indicator.asc:before,
+th.sorted.desc:hover .sorting-indicator.asc:before {
+	color: #1d2327;
 }
 
 .wp-list-table .toggle-row {
@@ -552,6 +566,28 @@ th.asc a:focus span.sorting-indicator:before {
 	content: "\f142";
 }
 
+.check-column {
+	position: relative;
+}
+
+.check-column .label-covers-full-cell {
+	width: 100%;
+	height: 100%;
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.check-column .label-covers-full-cell + input {
+	position: relative;
+	z-index: 1;
+}
+
+.check-column .label-covers-full-cell:hover + input {
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
 .locked-indicator {
 	display: none;
 	margin-left: 6px;
@@ -591,10 +627,6 @@ tr.wp-locked .row-actions .trash {
 	display: none;
 }
 
-.fixed .column-comments .sorting-indicator {
-	margin-top: 3px;
-}
-
 #menu-locations-wrap .widefat {
 	width: 60%;
 }
@@ -620,14 +652,6 @@ th.sortable a span,
 th.sorted a span {
 	float: left;
 	cursor: pointer;
-}
-
-th.sorted .sorting-indicator,
-th.desc:hover span.sorting-indicator,
-th.desc a:focus span.sorting-indicator,
-th.asc:hover span.sorting-indicator,
-th.asc a:focus span.sorting-indicator {
-	visibility: visible;
 }
 
 .tablenav-pages .current-page {
@@ -1344,7 +1368,7 @@ ul.cat-checklist {
 }
 
 .plugins tr.paused th.check-column {
-	border-left: 4px solid #d63638;
+	border-left: 4px solid #b32d2e;
 }
 
 .plugins tr.paused th,
@@ -1354,7 +1378,7 @@ ul.cat-checklist {
 
 .plugins tr.paused .plugin-title,
 .plugins .paused .dashicons-warning {
-	color: #d63638;
+	color: #b32d2e;
 }
 
 .plugins .paused .error-display p,
@@ -1364,7 +1388,7 @@ ul.cat-checklist {
 }
 
 .plugins .resume-link {
-	color: #d63638;
+	color: #b32d2e;
 }
 
 .plugin-card .update-now:before {
@@ -1372,11 +1396,11 @@ ul.cat-checklist {
 	content: "\f463";
 	display: inline-block;
 	font: normal 20px/1 dashicons;
-	margin: 3px 5px 0 -2px;
+	margin: -3px 5px 0 -2px;
 	speak: never;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	vertical-align: top;
+	vertical-align: middle;
 }
 
 .plugin-card .updating-message:before {
@@ -1396,6 +1420,17 @@ ul.cat-checklist {
 .plugin-card .updated-message:before {
 	color: #68de7c;
 	content: "\f147";
+}
+
+.plugin-install-php #the-list {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.plugin-install-php .plugin-card {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 }
 
 .plugin-install-php h2 {
@@ -1625,6 +1660,7 @@ div.action-links,
 	font-style: normal;
 	margin: 0;
 	padding: 100px 0 0;
+	width: 100%;
 	text-align: center;
 }
 
@@ -1750,6 +1786,15 @@ div.action-links,
 
 	.tablenav.top .tablenav-pages.one-page {
 		display: none;
+	}
+
+	.tablenav.bottom .actions select {
+		margin-bottom: 5px;
+	}
+
+	.tablenav.bottom .actions.alignleft + .actions.alignleft {
+		clear: left;
+		margin-top: 10px;
 	}
 
 	.tablenav.bottom .tablenav-pages.one-page {

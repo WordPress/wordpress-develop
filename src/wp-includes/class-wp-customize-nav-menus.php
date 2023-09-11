@@ -16,6 +16,7 @@
  *
  * @see WP_Customize_Manager
  */
+#[AllowDynamicProperties]
 final class WP_Customize_Nav_Menus {
 
 	/**
@@ -1075,7 +1076,7 @@ final class WP_Customize_Nav_Menus {
 						<button type="button" class="button-link item-add">
 							<span class="screen-reader-text">
 							<?php
-								/* translators: 1: Title of a menu item, 2: Type of a menu item. */
+								/* translators: Hidden accessibility text. 1: Title of a menu item, 2: Type of a menu item. */
 								printf( __( 'Add to menu: %1$s (%2$s)' ), '{{ data.title || wp.customize.Menus.data.l10n.untitled }}', '{{ data.type_label }}' );
 							?>
 							</span>
@@ -1143,7 +1144,12 @@ final class WP_Customize_Nav_Menus {
 		<div id="available-menu-items" class="accordion-container">
 			<div class="customize-section-title">
 				<button type="button" class="customize-section-back" tabindex="-1">
-					<span class="screen-reader-text"><?php _e( 'Back' ); ?></span>
+					<span class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Back' );
+						?>
+					</span>
 				</button>
 				<h3>
 					<span class="customize-action">
@@ -1157,13 +1163,28 @@ final class WP_Customize_Nav_Menus {
 			</div>
 			<div id="available-menu-items-search" class="accordion-section cannot-expand">
 				<div class="accordion-section-title">
-					<label class="screen-reader-text" for="menu-items-search"><?php _e( 'Search Menu Items' ); ?></label>
+					<label class="screen-reader-text" for="menu-items-search">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Search Menu Items' );
+						?>
+					</label>
 					<input type="text" id="menu-items-search" placeholder="<?php esc_attr_e( 'Search menu items&hellip;' ); ?>" aria-describedby="menu-items-search-desc" />
-					<p class="screen-reader-text" id="menu-items-search-desc"><?php _e( 'The search results will be updated as you type.' ); ?></p>
+					<p class="screen-reader-text" id="menu-items-search-desc">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'The search results will be updated as you type.' );
+						?>
+					</p>
 					<span class="spinner"></span>
 				</div>
 				<div class="search-icon" aria-hidden="true"></div>
-				<button type="button" class="clear-results"><span class="screen-reader-text"><?php _e( 'Clear Results' ); ?></span></button>
+				<button type="button" class="clear-results"><span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Clear Results' );
+					?>
+				</span></button>
 				<ul class="accordion-section-content available-menu-items-list" data-type="search"></ul>
 			</div>
 			<?php
@@ -1246,7 +1267,12 @@ final class WP_Customize_Nav_Menus {
 			<h4 class="accordion-section-title" role="presentation">
 				<?php _e( 'Custom Links' ); ?>
 				<button type="button" class="button-link" aria-expanded="false">
-					<span class="screen-reader-text"><?php _e( 'Toggle section: Custom Links' ); ?></span>
+					<span class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Toggle section: Custom Links' );
+						?>
+					</span>
 					<span class="toggle-indicator" aria-hidden="true"></span>
 				</button>
 			</h4>
@@ -1322,7 +1348,7 @@ final class WP_Customize_Nav_Menus {
 		add_action( 'wp_enqueue_scripts', array( $this, 'customize_preview_enqueue_deps' ) );
 		add_filter( 'wp_nav_menu_args', array( $this, 'filter_wp_nav_menu_args' ), 1000 );
 		add_filter( 'wp_nav_menu', array( $this, 'filter_wp_nav_menu' ), 10, 2 );
-		add_filter( 'wp_footer', array( $this, 'export_preview_data' ), 1 );
+		add_action( 'wp_footer', array( $this, 'export_preview_data' ), 1 );
 		add_filter( 'customize_render_partials_response', array( $this, 'export_partial_rendered_nav_menu_instances' ) );
 	}
 
@@ -1446,7 +1472,7 @@ final class WP_Customize_Nav_Menus {
 			(
 				! empty( $args['container'] )
 				||
-				( isset( $args['items_wrap'] ) && '<' === substr( $args['items_wrap'], 0, 1 ) )
+				( isset( $args['items_wrap'] ) && str_starts_with( $args['items_wrap'], '<' ) )
 			)
 		);
 		$args['can_partial_refresh'] = $can_partial_refresh;

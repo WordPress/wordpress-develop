@@ -7,6 +7,7 @@
  * @since 4.9.6
  */
 
+#[AllowDynamicProperties]
 final class WP_Privacy_Policy_Content {
 
 	private static $policy_content = array();
@@ -19,7 +20,7 @@ final class WP_Privacy_Policy_Content {
 	private function __construct() {}
 
 	/**
-	 * Add content to the postbox shown when editing the privacy policy.
+	 * Adds content to the postbox shown when editing the privacy policy.
 	 *
 	 * Plugins and themes should suggest text for inclusion in the site's privacy policy.
 	 * The suggested text should contain information about any functionality that affects user privacy,
@@ -48,7 +49,7 @@ final class WP_Privacy_Policy_Content {
 	}
 
 	/**
-	 * Quick check if any privacy info has changed.
+	 * Performs a quick check to determine whether any privacy info has changed.
 	 *
 	 * @since 4.9.6
 	 */
@@ -102,11 +103,15 @@ final class WP_Privacy_Policy_Content {
 		sort( $old );
 		sort( $new );
 
-		// The == operator (equal, not identical) was used intentionally.
-		// See http://php.net/manual/en/language.operators.array.php
+		/*
+		 * The == operator (equal, not identical) was used intentionally.
+		 * See https://www.php.net/manual/en/language.operators.array.php
+		 */
 		if ( $new != $old ) {
-			// A plugin was activated or deactivated, or some policy text has changed.
-			// Show a notice on the relevant screens to inform the admin.
+			/*
+			 * A plugin was activated or deactivated, or some policy text has changed.
+			 * Show a notice on the relevant screens to inform the admin.
+			 */
 			add_action( 'admin_notices', array( 'WP_Privacy_Policy_Content', 'policy_text_changed_notice' ) );
 			$state = 'changed';
 		} else {
@@ -122,15 +127,11 @@ final class WP_Privacy_Policy_Content {
 	}
 
 	/**
-	 * Output a warning when some privacy info has changed.
+	 * Outputs a warning when some privacy info has changed.
 	 *
 	 * @since 4.9.6
-	 *
-	 * @global WP_Post $post Global post object.
 	 */
 	public static function policy_text_changed_notice() {
-		global $post;
-
 		$screen = get_current_screen()->id;
 
 		if ( 'privacy' !== $screen ) {
@@ -153,7 +154,7 @@ final class WP_Privacy_Policy_Content {
 	}
 
 	/**
-	 * Update the cached policy info when the policy page is updated.
+	 * Updates the cached policy info when the policy page is updated.
 	 *
 	 * @since 4.9.6
 	 * @access private
@@ -202,7 +203,7 @@ final class WP_Privacy_Policy_Content {
 	}
 
 	/**
-	 * Check for updated, added or removed privacy policy information from plugins.
+	 * Checks for updated, added or removed privacy policy information from plugins.
 	 *
 	 * Caches the current info in post_meta of the policy page.
 	 *
@@ -300,7 +301,7 @@ final class WP_Privacy_Policy_Content {
 	}
 
 	/**
-	 * Add a notice with a link to the guide when editing the privacy policy page.
+	 * Adds a notice with a link to the guide when editing the privacy policy page.
 	 *
 	 * @since 4.9.6
 	 * @since 5.0.0 The `$post` parameter was made optional.
@@ -360,7 +361,7 @@ final class WP_Privacy_Policy_Content {
 					' <a href="%s" target="_blank">%s <span class="screen-reader-text">%s</span></a>',
 					$url,
 					$label,
-					/* translators: Accessibility text. */
+					/* translators: Hidden accessibility text. */
 					__( '(opens in a new tab)' )
 				);
 				?>
@@ -371,7 +372,7 @@ final class WP_Privacy_Policy_Content {
 	}
 
 	/**
-	 * Output the privacy policy guide together with content from the theme and plugins.
+	 * Outputs the privacy policy guide together with content from the theme and plugins.
 	 *
 	 * @since 4.9.6
 	 */
@@ -427,7 +428,7 @@ final class WP_Privacy_Policy_Content {
 						<span aria-hidden="true"><?php _e( 'Copy suggested policy text to clipboard' ); ?></span>
 						<span class="screen-reader-text">
 							<?php
-							/* translators: %s: Plugin name. */
+							/* translators: Hidden accessibility text. %s: Plugin name. */
 							printf( __( 'Copy suggested policy text from %s.' ), $plugin_name );
 							?>
 						</span>
@@ -440,7 +441,7 @@ final class WP_Privacy_Policy_Content {
 	}
 
 	/**
-	 * Return the default suggested privacy policy content.
+	 * Returns the default suggested privacy policy content.
 	 *
 	 * @since 4.9.6
 	 * @since 5.0.0 Added the `$blocks` parameter.
@@ -655,11 +656,11 @@ final class WP_Privacy_Policy_Content {
 
 		if ( $blocks ) {
 			foreach ( $strings as $key => $string ) {
-				if ( 0 === strpos( $string, '<p>' ) ) {
+				if ( str_starts_with( $string, '<p>' ) ) {
 					$strings[ $key ] = '<!-- wp:paragraph -->' . $string . '<!-- /wp:paragraph -->';
 				}
 
-				if ( 0 === strpos( $string, '<h2>' ) ) {
+				if ( str_starts_with( $string, '<h2>' ) ) {
 					$strings[ $key ] = '<!-- wp:heading -->' . $string . '<!-- /wp:heading -->';
 				}
 			}
@@ -689,7 +690,7 @@ final class WP_Privacy_Policy_Content {
 	}
 
 	/**
-	 * Add the suggested privacy policy text to the policy postbox.
+	 * Adds the suggested privacy policy text to the policy postbox.
 	 *
 	 * @since 4.9.6
 	 */

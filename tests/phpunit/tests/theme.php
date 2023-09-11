@@ -21,15 +21,23 @@ class Tests_Theme extends WP_UnitTestCase {
 		'twentytwenty',
 		'twentytwentyone',
 		'twentytwentytwo',
+		'twentytwentythree',
 	);
+
+	/**
+	 * Original theme directory.
+	 *
+	 * @var string[]
+	 */
+	private $orig_theme_dir;
 
 	public function set_up() {
 		global $wp_theme_directories;
 
 		parent::set_up();
 
-		$backup_wp_theme_directories = $wp_theme_directories;
-		$wp_theme_directories        = array( WP_CONTENT_DIR . '/themes' );
+		$this->orig_theme_dir = $wp_theme_directories;
+		$wp_theme_directories = array( WP_CONTENT_DIR . '/themes' );
 
 		add_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
@@ -39,7 +47,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	public function tear_down() {
 		global $wp_theme_directories;
 
-		$wp_theme_directories = $this->wp_theme_directories;
+		$wp_theme_directories = $this->orig_theme_dir;
 
 		remove_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
@@ -348,7 +356,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertNotFalse( $theme->errors() );
 		$this->assertFalse( $theme->exists() );
 
-		// These return the bogus name - perhaps not ideal behaviour?
+		// These return the bogus name - perhaps not ideal behavior?
 		$this->assertSame( $template, get_template() );
 		$this->assertSame( $style, get_stylesheet() );
 	}
@@ -359,7 +367,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @covers ::_wp_keep_alive_customize_changeset_dependent_auto_drafts
 	 */
 	public function test_wp_keep_alive_customize_changeset_dependent_auto_drafts() {
-		$nav_created_post_ids = $this->factory()->post->create_many(
+		$nav_created_post_ids = self::factory()->post->create_many(
 			2,
 			array(
 				'post_status' => 'auto-draft',

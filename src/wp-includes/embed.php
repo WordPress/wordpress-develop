@@ -510,11 +510,13 @@ function get_post_embed_html( $width, $height, $post = null ) {
 		esc_attr( $secret )
 	);
 
-	// Note that the script must be placed after the <blockquote> and <iframe> due to a regexp parsing issue in
-	// `wp_filter_oembed_result()`. Because of the regex pattern starts with `|(<blockquote>.*?</blockquote>)?.*|`
-	// wherein the <blockquote> is marked as being optional, if it is not at the beginning of the string then the group
-	// will fail to match and everything will be matched by `.*` and not included in the group. This regex issue goes
-	// back to WordPress 4.4, so in order to not break older installs this script must come at the end.
+	/*
+	 * Note that the script must be placed after the <blockquote> and <iframe> due to a regexp parsing issue in
+	 * `wp_filter_oembed_result()`. Because of the regex pattern starts with `|(<blockquote>.*?</blockquote>)?.*|`
+	 * wherein the <blockquote> is marked as being optional, if it is not at the beginning of the string then the group
+	 * will fail to match and everything will be matched by `.*` and not included in the group. This regex issue goes
+	 * back to WordPress 4.4, so in order to not break older installs this script must come at the end.
+	 */
 	$output .= wp_get_inline_script_tag(
 		file_get_contents( ABSPATH . WPINC . '/js/wp-embed' . wp_scripts_get_suffix() . '.js' )
 	);
@@ -537,7 +539,7 @@ function get_post_embed_html( $width, $height, $post = null ) {
  *
  * @since 4.4.0
  *
- * @param WP_Post|int $post  Post object or ID.
+ * @param WP_Post|int $post  Post ID or post object.
  * @param int         $width The requested width.
  * @return array|false Response data on success, false if post doesn't exist
  *                     or is not publicly viewable.
@@ -1151,29 +1153,35 @@ function print_embed_sharing_dialog() {
 	if ( is_404() ) {
 		return;
 	}
+
+	$unique_suffix            = get_the_ID() . '-' . wp_rand();
+	$share_tab_wordpress_id   = 'wp-embed-share-tab-wordpress-' . $unique_suffix;
+	$share_tab_html_id        = 'wp-embed-share-tab-html-' . $unique_suffix;
+	$description_wordpress_id = 'wp-embed-share-description-wordpress-' . $unique_suffix;
+	$description_html_id      = 'wp-embed-share-description-html-' . $unique_suffix;
 	?>
 	<div class="wp-embed-share-dialog hidden" role="dialog" aria-label="<?php esc_attr_e( 'Sharing options' ); ?>">
 		<div class="wp-embed-share-dialog-content">
 			<div class="wp-embed-share-dialog-text">
 				<ul class="wp-embed-share-tabs" role="tablist">
 					<li class="wp-embed-share-tab-button wp-embed-share-tab-button-wordpress" role="presentation">
-						<button type="button" role="tab" aria-controls="wp-embed-share-tab-wordpress" aria-selected="true" tabindex="0"><?php esc_html_e( 'WordPress Embed' ); ?></button>
+						<button type="button" role="tab" aria-controls="<?php echo $share_tab_wordpress_id; ?>" aria-selected="true" tabindex="0"><?php esc_html_e( 'WordPress Embed' ); ?></button>
 					</li>
 					<li class="wp-embed-share-tab-button wp-embed-share-tab-button-html" role="presentation">
-						<button type="button" role="tab" aria-controls="wp-embed-share-tab-html" aria-selected="false" tabindex="-1"><?php esc_html_e( 'HTML Embed' ); ?></button>
+						<button type="button" role="tab" aria-controls="<?php echo $share_tab_html_id; ?>" aria-selected="false" tabindex="-1"><?php esc_html_e( 'HTML Embed' ); ?></button>
 					</li>
 				</ul>
-				<div id="wp-embed-share-tab-wordpress" class="wp-embed-share-tab" role="tabpanel" aria-hidden="false">
-					<input type="text" value="<?php the_permalink(); ?>" class="wp-embed-share-input" aria-describedby="wp-embed-share-description-wordpress" tabindex="0" readonly/>
+				<div id="<?php echo $share_tab_wordpress_id; ?>" class="wp-embed-share-tab" role="tabpanel" aria-hidden="false">
+					<input type="text" value="<?php the_permalink(); ?>" class="wp-embed-share-input" aria-label="<?php esc_attr_e( 'URL' ); ?>" aria-describedby="<?php echo $description_wordpress_id; ?>" tabindex="0" readonly/>
 
-					<p class="wp-embed-share-description" id="wp-embed-share-description-wordpress">
+					<p class="wp-embed-share-description" id="<?php echo $description_wordpress_id; ?>">
 						<?php _e( 'Copy and paste this URL into your WordPress site to embed' ); ?>
 					</p>
 				</div>
-				<div id="wp-embed-share-tab-html" class="wp-embed-share-tab" role="tabpanel" aria-hidden="true">
-					<textarea class="wp-embed-share-input" aria-describedby="wp-embed-share-description-html" tabindex="0" readonly><?php echo esc_textarea( get_post_embed_html( 600, 400 ) ); ?></textarea>
+				<div id="<?php echo $share_tab_html_id; ?>" class="wp-embed-share-tab" role="tabpanel" aria-hidden="true">
+					<textarea class="wp-embed-share-input" aria-label="<?php esc_attr_e( 'HTML' ); ?>" aria-describedby="<?php echo $description_html_id; ?>" tabindex="0" readonly><?php echo esc_textarea( get_post_embed_html( 600, 400 ) ); ?></textarea>
 
-					<p class="wp-embed-share-description" id="wp-embed-share-description-html">
+					<p class="wp-embed-share-description" id="<?php echo $description_html_id; ?>">
 						<?php _e( 'Copy and paste this code into your site to embed' ); ?>
 					</p>
 				</div>

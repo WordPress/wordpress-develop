@@ -74,19 +74,11 @@
 	--global--color-white: #fff;
 	--global--color-white-50: rgba(255, 255, 255, 0.5);
 	--global--color-white-90: rgba(255, 255, 255, 0.9);
-	--global--color-primary: var(--global--color-dark-gray);
-
-	/* Body text color, site title, footer text color. */
-	--global--color-secondary: var(--global--color-gray);
-
-	/* Headings */
+	--global--color-primary: var(--global--color-dark-gray); /* Body text color, site title, footer text color. */
+	--global--color-secondary: var(--global--color-gray); /* Headings */
 	--global--color-primary-hover: var(--global--color-primary);
-	--global--color-background: var(--global--color-green);
-
-	/* Mint, default body background */
-	--global--color-border: var(--global--color-primary);
-
-	/* Used for borders (separators) */
+	--global--color-background: var(--global--color-green); /* Mint, default body background */
+	--global--color-border: var(--global--color-primary); /* Used for borders (separators) */
 
 	/* Spacing */
 	--global--spacing-unit: 20px;
@@ -308,6 +300,11 @@
 		margin-left: auto;
 		margin-right: auto;
 	}
+}
+
+b,
+strong {
+	font-weight: 700;
 }
 
 blockquote {
@@ -772,7 +769,6 @@ a:hover {
 	letter-spacing: var(--heading--letter-spacing-h2);
 	line-height: var(--heading--line-height-h2);
 	padding: 0;
-	max-width: inherit;
 	text-align: inherit;
 }
 
@@ -938,19 +934,6 @@ a:hover {
 
 .wp-block-gallery figcaption a {
 	color: var(--global--color-white);
-}
-
-.wp-block-group {
-	display: block;
-	clear: both;
-	display: flow-root;
-}
-
-.wp-block-group:before,
-.wp-block-group:after {
-	content: "";
-	display: block;
-	clear: both;
 }
 
 .wp-block-group.has-background {
@@ -1385,13 +1368,13 @@ dt {
 	border: calc(3 * var(--separator--height)) solid var(--global--color-border);
 }
 
-.wp-block-navigation .wp-block-navigation__container {
-	background: var(--global--color-background);
-	padding: 0;
+.wp-block-navigation [data-block] {
+	margin-top: revert;
+	margin-bottom: revert;
 }
 
-.wp-block-navigation .wp-block-navigation-link .wp-block-navigation-link__content {
-	padding: var(--primary-nav--padding);
+.wp-block-navigation .wp-block-navigation__container {
+	background: var(--global--color-background);
 }
 
 .wp-block-navigation .wp-block-navigation-link .wp-block-navigation-link__label {
@@ -1436,6 +1419,11 @@ pre.wp-block-preformatted {
 	color: currentColor;
 	border-color: currentColor;
 	position: relative;
+	font-weight: 700;
+	font-style: var(--pullquote--font-style);
+	font-family: var(--pullquote--font-family);
+	letter-spacing: var(--pullquote--letter-spacing);
+	line-height: var(--pullquote--line-height);
 }
 
 .wp-block-pullquote blockquote::before {
@@ -1450,12 +1438,12 @@ pre.wp-block-preformatted {
 }
 
 .wp-block-pullquote p {
-	font-family: var(--pullquote--font-family);
-	font-size: var(--pullquote--font-size);
-	font-style: var(--pullquote--font-style);
-	font-weight: 700;
-	letter-spacing: var(--pullquote--letter-spacing);
-	line-height: var(--pullquote--line-height);
+	font-family: inherit;
+	font-size: inherit;
+	font-style: inherit;
+	font-weight: inherit;
+	letter-spacing: inherit;
+	line-height: inherit;
 	margin: 0;
 }
 

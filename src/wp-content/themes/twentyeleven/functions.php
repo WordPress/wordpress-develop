@@ -79,8 +79,15 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 		 * If you're building a theme based on Twenty Eleven, use
 		 * a find and replace to change 'twentyeleven' to the name
 		 * of your theme in all the template files.
+		 *
+		 * Manual loading of text domain is not required after the introduction of
+		 * just in time translation loading in WordPress version 4.6.
+		 *
+		 * @ticket 58318
 		 */
-		load_theme_textdomain( 'twentyeleven', get_template_directory() . '/languages' );
+		if ( version_compare( $GLOBALS['wp_version'], '4.6', '<' ) ) {
+			load_theme_textdomain( 'twentyeleven', get_template_directory() . '/languages' );
+		}
 
 		// This theme styles the visual editor with editor-style.css to match the theme style.
 		add_editor_style();
@@ -297,7 +304,7 @@ endif; // twentyeleven_setup()
  */
 function twentyeleven_scripts_styles() {
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentyeleven-block-style', get_template_directory_uri() . '/blocks.css', array(), '20190102' );
+	wp_enqueue_style( 'twentyeleven-block-style', get_template_directory_uri() . '/blocks.css', array(), '20230122' );
 }
 add_action( 'wp_enqueue_scripts', 'twentyeleven_scripts_styles' );
 
@@ -308,7 +315,7 @@ add_action( 'wp_enqueue_scripts', 'twentyeleven_scripts_styles' );
  */
 function twentyeleven_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyeleven-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20201208' );
+	wp_enqueue_style( 'twentyeleven-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20220927' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyeleven_block_editor_styles' );
 
@@ -322,7 +329,7 @@ if ( ! function_exists( 'twentyeleven_header_style' ) ) :
 		$text_color = get_header_textcolor();
 
 		// If no custom options for text are set, let's bail.
-		if ( HEADER_TEXTCOLOR == $text_color ) {
+		if ( HEADER_TEXTCOLOR === $text_color ) {
 			return;
 		}
 
@@ -386,7 +393,7 @@ if ( ! function_exists( 'twentyeleven_admin_header_style' ) ) :
 	}
 		<?php
 		// If the user has set a custom color for the text, use that.
-		if ( get_header_textcolor() != HEADER_TEXTCOLOR ) :
+		if ( get_header_textcolor() !== HEADER_TEXTCOLOR ) :
 			?>
 	#site-title a,
 	#site-description {
@@ -660,15 +667,15 @@ function twentyeleven_footer_sidebar_class() {
 	$count = 0;
 
 	if ( is_active_sidebar( 'sidebar-3' ) ) {
-		$count++;
+		++$count;
 	}
 
 	if ( is_active_sidebar( 'sidebar-4' ) ) {
-		$count++;
+		++$count;
 	}
 
 	if ( is_active_sidebar( 'sidebar-5' ) ) {
-		$count++;
+		++$count;
 	}
 
 	$class = '';
@@ -724,7 +731,7 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 					<?php
 					$avatar_size = 68;
 
-					if ( '0' != $comment->comment_parent ) {
+					if ( '0' !== $comment->comment_parent ) {
 						$avatar_size = 39;
 					}
 
@@ -756,7 +763,7 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 					}
 					?>
 
-					<?php if ( '0' == $comment->comment_approved ) : ?>
+					<?php if ( '0' === $comment->comment_approved ) : ?>
 					<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
 					<br />
 					<?php endif; ?>

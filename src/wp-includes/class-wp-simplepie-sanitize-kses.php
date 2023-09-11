@@ -14,9 +14,8 @@
  * we cannot universally count on DOMDocument being available.
  *
  * @since 3.5.0
- *
- * @see SimplePie_Sanitize
  */
+#[AllowDynamicProperties]
 class WP_SimplePie_Sanitize_KSES extends SimplePie_Sanitize {
 
 	/**

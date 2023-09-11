@@ -19,6 +19,7 @@
  *
  * @since 3.1.0
  */
+#[AllowDynamicProperties]
 class WP_Tax_Query {
 
 	/**
@@ -122,7 +123,7 @@ class WP_Tax_Query {
 	}
 
 	/**
-	 * Ensure the 'tax_query' argument passed to the class constructor is well-formed.
+	 * Ensures the 'tax_query' argument passed to the class constructor is well-formed.
 	 *
 	 * Ensures that each query-level clause has a 'relation' key, and that
 	 * each first-order clause contains all the necessary keys from `$defaults`.
@@ -196,7 +197,7 @@ class WP_Tax_Query {
 	}
 
 	/**
-	 * Sanitize a 'relation' operator.
+	 * Sanitizes a 'relation' operator.
 	 *
 	 * @since 4.1.0
 	 *
@@ -212,7 +213,7 @@ class WP_Tax_Query {
 	}
 
 	/**
-	 * Determine whether a clause is first-order.
+	 * Determines whether a clause is first-order.
 	 *
 	 * A "first-order" clause is one that contains any of the first-order
 	 * clause keys ('terms', 'taxonomy', 'include_children', 'field',
@@ -251,7 +252,7 @@ class WP_Tax_Query {
 	}
 
 	/**
-	 * Generate SQL clauses to be appended to a main query.
+	 * Generates SQL clauses to be appended to a main query.
 	 *
 	 * Called by the public WP_Tax_Query::get_sql(), this method
 	 * is abstracted out to maintain parity with the other Query classes.
@@ -281,7 +282,7 @@ class WP_Tax_Query {
 	}
 
 	/**
-	 * Generate SQL clauses for a single query array.
+	 * Generates SQL clauses for a single query array.
 	 *
 	 * If nested subqueries are found, this method recurses the tree to
 	 * produce the properly nested SQL.
@@ -365,7 +366,7 @@ class WP_Tax_Query {
 	}
 
 	/**
-	 * Generate SQL JOIN and WHERE clauses for a "first-order" query clause.
+	 * Generates SQL JOIN and WHERE clauses for a "first-order" query clause.
 	 *
 	 * @since 4.1.0
 	 *
@@ -373,11 +374,11 @@ class WP_Tax_Query {
 	 *
 	 * @param array $clause       Query clause (passed by reference).
 	 * @param array $parent_query Parent query array.
-	 * @return string[] {
+	 * @return array {
 	 *     Array containing JOIN and WHERE SQL clauses to append to a first-order query.
 	 *
-	 *     @type string $join  SQL fragment to append to the main JOIN clause.
-	 *     @type string $where SQL fragment to append to the main WHERE clause.
+	 *     @type string[] $join  Array of SQL fragments to append to the main JOIN clause.
+	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
 	 * }
 	 */
 	public function get_sql_for_clause( &$clause, $parent_query ) {
@@ -465,13 +466,13 @@ class WP_Tax_Query {
 
 			$where = $wpdb->prepare(
 				"$operator (
-				SELECT 1
-				FROM $wpdb->term_relationships
-				INNER JOIN $wpdb->term_taxonomy
-				ON $wpdb->term_taxonomy.term_taxonomy_id = $wpdb->term_relationships.term_taxonomy_id
-				WHERE $wpdb->term_taxonomy.taxonomy = %s
-				AND $wpdb->term_relationships.object_id = $this->primary_table.$this->primary_id_column
-			)",
+					SELECT 1
+					FROM $wpdb->term_relationships
+					INNER JOIN $wpdb->term_taxonomy
+					ON $wpdb->term_taxonomy.term_taxonomy_id = $wpdb->term_relationships.term_taxonomy_id
+					WHERE $wpdb->term_taxonomy.taxonomy = %s
+					AND $wpdb->term_relationships.object_id = $this->primary_table.$this->primary_id_column
+				)",
 				$clause['taxonomy']
 			);
 
@@ -483,7 +484,7 @@ class WP_Tax_Query {
 	}
 
 	/**
-	 * Identify an existing table alias that is compatible with the current query clause.
+	 * Identifies an existing table alias that is compatible with the current query clause.
 	 *
 	 * We avoid unnecessary table joins by allowing each clause to look for
 	 * an existing table alias that is compatible with the query that it
@@ -588,8 +589,6 @@ class WP_Tax_Query {
 	 *
 	 * @since 3.2.0
 	 *
-	 * @global wpdb $wpdb The WordPress database abstraction object.
-	 *
 	 * @param array  $query           The single query. Passed by reference.
 	 * @param string $resulting_field The resulting field. Accepts 'slug', 'name', 'term_taxonomy_id',
 	 *                                or 'term_id'. Default 'term_id'.
@@ -599,7 +598,7 @@ class WP_Tax_Query {
 			return;
 		}
 
-		if ( $query['field'] == $resulting_field ) {
+		if ( $query['field'] === $resulting_field ) {
 			return;
 		}
 

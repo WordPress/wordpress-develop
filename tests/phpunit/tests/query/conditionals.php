@@ -395,7 +395,6 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 			$this->go_to( "/{$feed}/" );
 			$this->assertQueryTrue( 'is_feed' );
 		}
-
 	}
 
 	public function test_main_feed() {
@@ -440,7 +439,6 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 				$this->go_to( "/comments/{$type}" );
 				$this->assertQueryTrue( 'is_feed', 'is_comment_feed' );
 		}
-
 	}
 
 	// 'search/(.+)/feed/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?s=$matches[1]&feed=$matches[2]',
@@ -771,7 +769,6 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $post_id ) . '2/' );
 		// Should is_paged be true also?
 		$this->assertQueryTrue( 'is_single', 'is_singular' );
-
 	}
 
 	// '[0-9]{4}/[0-9]{1,2}/[0-9]{1,2}/[^/]+/([^/]+)/?$' => 'index.php?attachment=$matches[1]',
@@ -978,13 +975,13 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	public function test_is_single_with_slug_that_clashes_with_attachment() {
 		$this->set_permalink_structure( '/%postname%/' );
 
-		$attachment_id = $this->factory->post->create(
+		$attachment_id = self::factory()->post->create(
 			array(
 				'post_type' => 'attachment',
 			)
 		);
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_title' => get_post( $attachment_id )->post_title,
 			)
@@ -1692,5 +1689,4 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 			array( 'the_comment', null ),
 		);
 	}
-
 }

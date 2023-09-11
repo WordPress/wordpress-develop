@@ -21,6 +21,7 @@
  * @property int $id
  * @property int $site_id
  */
+#[AllowDynamicProperties]
 class WP_Network {
 
 	/**
@@ -227,6 +228,7 @@ class WP_Network {
 		 * @param WP_Network $network      The network object for which the main site was detected.
 		 */
 		$main_site_id = (int) apply_filters( 'pre_get_main_site_id', null, $this );
+
 		if ( 0 < $main_site_id ) {
 			return $main_site_id;
 		}
@@ -235,8 +237,10 @@ class WP_Network {
 			return (int) $this->blog_id;
 		}
 
-		if ( ( defined( 'DOMAIN_CURRENT_SITE' ) && defined( 'PATH_CURRENT_SITE' ) && DOMAIN_CURRENT_SITE === $this->domain && PATH_CURRENT_SITE === $this->path )
-			|| ( defined( 'SITE_ID_CURRENT_SITE' ) && SITE_ID_CURRENT_SITE == $this->id ) ) {
+		if ( ( defined( 'DOMAIN_CURRENT_SITE' ) && defined( 'PATH_CURRENT_SITE' )
+			&& DOMAIN_CURRENT_SITE === $this->domain && PATH_CURRENT_SITE === $this->path )
+			|| ( defined( 'SITE_ID_CURRENT_SITE' ) && (int) SITE_ID_CURRENT_SITE === $this->id )
+		) {
 			if ( defined( 'BLOG_ID_CURRENT_SITE' ) ) {
 				$this->blog_id = (string) BLOG_ID_CURRENT_SITE;
 
@@ -254,9 +258,8 @@ class WP_Network {
 		if ( $site->domain === $this->domain && $site->path === $this->path ) {
 			$main_site_id = (int) $site->id;
 		} else {
-			$cache_key = 'network:' . $this->id . ':main_site';
 
-			$main_site_id = wp_cache_get( $cache_key, 'site-options' );
+			$main_site_id = get_network_option( $this->id, 'main_site' );
 			if ( false === $main_site_id ) {
 				$_sites       = get_sites(
 					array(
@@ -269,7 +272,7 @@ class WP_Network {
 				);
 				$main_site_id = ! empty( $_sites ) ? array_shift( $_sites ) : 0;
 
-				wp_cache_add( $cache_key, $main_site_id, 'site-options' );
+				update_network_option( $this->id, 'main_site', $main_site_id );
 			}
 		}
 
@@ -306,7 +309,7 @@ class WP_Network {
 		}
 
 		$this->cookie_domain = $this->domain;
-		if ( 'www.' === substr( $this->cookie_domain, 0, 4 ) ) {
+		if ( str_starts_with( $this->cookie_domain, 'www.' ) ) {
 			$this->cookie_domain = substr( $this->cookie_domain, 4 );
 		}
 	}

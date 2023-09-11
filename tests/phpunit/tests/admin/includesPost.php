@@ -294,6 +294,72 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 31635
+	 */
+	public function test_bulk_edit_posts_should_publish_scheduled_post() {
+		wp_set_current_user( self::$admin_id );
+
+		$post = self::factory()->post->create(
+			array(
+				'post_author'    => self::$author_ids[0],
+				'comment_status' => 'closed',
+				'ping_status'    => 'closed',
+				'post_status'    => 'future',
+				'post_date'      => gmdate( 'Y-m-d H:i:s', strtotime( '+1 month' ) ),
+			)
+		);
+
+		$request = array(
+			'post_type'      => 'post',
+			'post_author'    => -1,
+			'ping_status'    => -1,
+			'comment_status' => -1,
+			'_status'        => 'publish',
+			'post'           => array( $post ),
+		);
+
+		bulk_edit_posts( $request );
+
+		$this->assertSame( 'publish', get_post_status( $post ) );
+		$this->assertLessThanOrEqual( gmdate( 'Y-m-d H:i:s' ), get_post_time( 'Y-m-d H:i:s', false, $post ) );
+	}
+	/**
+	 * @ticket 31635
+	 */
+	public function test_bulk_edit_posts_should_publish_draft_immediately() {
+		wp_set_current_user( self::$admin_id );
+
+		// Create draft last edited a month ago
+		$post = self::factory()->post->create(
+			array(
+				'post_author'    => self::$author_ids[0],
+				'comment_status' => 'closed',
+				'ping_status'    => 'closed',
+				'post_status'    => 'draft',
+				'post_date'      => gmdate( 'Y-m-d H:i:s', strtotime( '-1 month' ) ),
+			)
+		);
+
+		$request = array(
+			'post_type'      => 'post',
+			'post_author'    => -1,
+			'ping_status'    => -1,
+			'comment_status' => -1,
+			'_status'        => 'publish',
+			'post'           => array( $post ),
+		);
+
+		bulk_edit_posts( $request );
+
+		$this->assertSame( 'publish', get_post_status( $post ) );
+
+		// Expect to be published within the last minute (to consider slow testing environment).
+		$minute_before = gmdate( 'Y-m-d H:i:s', strtotime( '-1 minute' ) );
+		$this->assertGreaterThanOrEqual( $minute_before, get_post_time( 'Y-m-d H:i:s', false, $post ) );
+		$this->assertLessThanOrEqual( gmdate( 'Y-m-d H:i:s' ), get_post_time( 'Y-m-d H:i:s', false, $post ) );
+	}
+
+	/**
 	 * @ticket 41396
 	 */
 	public function test_bulk_edit_posts_should_set_post_format_before_wp_update_post_runs() {
@@ -316,6 +382,31 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		if ( self::$post_id === $post_id ) {
 			$this->assertSame( 'aside', get_post_format( $post_id ) );
 		}
+	}
+
+	/**
+	 * Tests that `bulk_edit_posts()` fires the 'bulk_edit_posts' action.
+	 *
+	 * @ticket 28112
+	 *
+	 * @covers ::bulk_edit_posts
+	 */
+	public function test_bulk_edit_posts_should_fire_bulk_edit_posts_action() {
+		wp_set_current_user( self::$admin_id );
+
+		$action = new MockAction();
+		add_action( 'bulk_edit_posts', array( $action, 'action' ) );
+
+		bulk_edit_posts(
+			array(
+				'post'      => self::$post_id,
+				'post_type' => 'post',
+				'_status'   => 1,
+
+			)
+		);
+
+		$this->assertSame( 1, $action->get_call_count() );
 	}
 
 	/**
@@ -686,6 +777,36 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( 'child-page', $actual[1] );
 	}
 
+	/**
+	 * Tests that get_sample_permalink() preserves the original WP_Post properties.
+	 *
+	 * @ticket 54736
+	 *
+	 * @covers ::get_sample_permalink
+	 */
+	public function test_get_sample_permalink_should_preserve_the_original_post_properties() {
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'draft',
+			)
+		);
+
+		$post_original = clone $post;
+
+		add_filter(
+			'get_sample_permalink',
+			function( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
+				$this->assertEquals( $post_original, $post, 'Modified post object passed to get_sample_permalink filter.' );
+				return $permalink;
+			},
+			10,
+			5
+		);
+
+		get_sample_permalink( $post );
+		$this->assertEquals( $post_original, $post, 'get_sample_permalink() modifies the post object.' );
+	}
+
 	public function test_post_exists_should_match_title() {
 		$p = self::factory()->post->create(
 			array(
@@ -796,6 +917,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 			'category'        => 'common',
 			'render_callback' => 'foo',
 			'ancestor'        => array( 'core/test-ancestor' ),
+			'selectors'       => array( 'root' => '.wp-block-test' ),
 		);
 
 		register_block_type( $name, $settings );
@@ -815,6 +937,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 					'lock' => array( 'type' => 'object' ),
 				),
 				'usesContext' => array(),
+				'selectors'   => array( 'root' => '.wp-block-test' ),
 				'category'    => 'common',
 				'styles'      => array(),
 				'ancestor'    => array( 'core/test-ancestor' ),
@@ -827,8 +950,10 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43559
+	 *
+	 * @covers ::add_meta
 	 */
-	public function test_post_add_meta_empty_is_allowed() {
+	public function test_add_meta_allows_empty_values() {
 		$p = self::factory()->post->create();
 
 		$_POST = array(
@@ -1013,5 +1138,43 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		$this->assertSame( 0, post_exists( $title, null, null, $post_type, 'draft' ) );
 		$this->assertSame( 0, post_exists( $title, null, null, 'wp_tests', $post_status ) );
+	}
+
+	/**
+	 * Test refreshed nonce for metabox loader.
+	 *
+	 * @return void
+	 */
+	public function test_user_get_refreshed_metabox_nonce() {
+
+		// Create a post by the current user.
+		wp_set_current_user( self::$editor_id );
+
+		$post_data = array(
+			'post_content' => 'Test post content',
+			'post_title'   => 'Test post title',
+			'post_excerpt' => 'Test post excerpt',
+			'post_author'  => self::$editor_id,
+			'post_status'  => 'draft',
+		);
+		$post_id   = wp_insert_post( $post_data );
+
+		// Simulate the $_POST data from the heartbeat.
+		$data = array(
+			'wp-refresh-metabox-loader-nonces' => array(
+				'post_id' => (string) $post_id,
+			),
+			'wp-refresh-post-lock'             => array(
+				'lock'    => '1658203298:1',
+				'post_id' => (string) $post_id,
+			),
+		);
+
+		// Call the function we're testing.
+		$response = wp_refresh_metabox_loader_nonces( array(), $data );
+
+		// Ensure that both nonces were created.
+		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['_wpnonce'] );
+		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['metabox_loader_nonce'] );
 	}
 }

@@ -14,6 +14,7 @@
  *
  * @since 3.7.0
  */
+#[AllowDynamicProperties]
 class WP_Date_Query {
 	/**
 	 * Array of date queries.
@@ -149,8 +150,8 @@ class WP_Date_Query {
 			return;
 		}
 
-		if ( isset( $date_query['relation'] ) && 'OR' === strtoupper( $date_query['relation'] ) ) {
-			$this->relation = 'OR';
+		if ( isset( $date_query['relation'] ) ) {
+			$this->relation = $this->sanitize_relation( $date_query['relation'] );
 		} else {
 			$this->relation = 'AND';
 		}
@@ -219,6 +220,9 @@ class WP_Date_Query {
 			$this->validate_date_values( $queries );
 		}
 
+		// Sanitize the relation parameter.
+		$queries['relation'] = $this->sanitize_relation( $queries['relation'] );
+
 		foreach ( $queries as $key => $q ) {
 			if ( ! is_array( $q ) || in_array( $key, $this->time_keys, true ) ) {
 				// This is a first-order query. Trust the values and sanitize when building SQL.
@@ -233,7 +237,7 @@ class WP_Date_Query {
 	}
 
 	/**
-	 * Determine whether this is a first-order clause.
+	 * Determines whether this is a first-order clause.
 	 *
 	 * Checks to see if the current clause has any time-related keys.
 	 * If so, it's first-order.
@@ -276,7 +280,7 @@ class WP_Date_Query {
 	 * @since 4.1.0
 	 *
 	 * @param array $date_query The date_query array.
-	 * @return bool  True if all values in the query are valid, false if one or more fail.
+	 * @return bool True if all values in the query are valid, false if one or more fail.
 	 */
 	public function validate_date_values( $date_query = array() ) {
 		if ( empty( $date_query ) ) {
@@ -469,6 +473,8 @@ class WP_Date_Query {
 	 *
 	 * @since 3.7.0
 	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
 	 * @param string $column The user-supplied column name.
 	 * @return string A validated column name value.
 	 */
@@ -488,7 +494,7 @@ class WP_Date_Query {
 		);
 
 		// Attempt to detect a table prefix.
-		if ( false === strpos( $column, '.' ) ) {
+		if ( ! str_contains( $column, '.' ) ) {
 			/**
 			 * Filters the list of valid date query columns.
 			 *
@@ -539,7 +545,7 @@ class WP_Date_Query {
 	}
 
 	/**
-	 * Generate WHERE clause to be appended to a main query.
+	 * Generates WHERE clause to be appended to a main query.
 	 *
 	 * @since 3.7.0
 	 *
@@ -562,7 +568,7 @@ class WP_Date_Query {
 	}
 
 	/**
-	 * Generate SQL clauses to be appended to a main query.
+	 * Generates SQL clauses to be appended to a main query.
 	 *
 	 * Called by the public WP_Date_Query::get_sql(), this method is abstracted
 	 * out to maintain parity with the other Query classes.
@@ -587,7 +593,7 @@ class WP_Date_Query {
 	}
 
 	/**
-	 * Generate SQL clauses for a single query array.
+	 * Generates SQL clauses for a single query array.
 	 *
 	 * If nested subqueries are found, this method recurses the tree to
 	 * produce the properly nested SQL.
@@ -679,11 +685,11 @@ class WP_Date_Query {
 	 * @since 3.7.0
 	 *
 	 * @param array $query Date query arguments.
-	 * @return string[] {
+	 * @return array {
 	 *     Array containing JOIN and WHERE SQL clauses to append to the main query.
 	 *
-	 *     @type string $join  SQL fragment to append to the main JOIN clause.
-	 *     @type string $where SQL fragment to append to the main WHERE clause.
+	 *     @type string[] $join  Array of SQL fragments to append to the main JOIN clause.
+	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
 	 * }
 	 */
 	protected function get_sql_for_subquery( $query ) {
@@ -695,13 +701,15 @@ class WP_Date_Query {
 	 *
 	 * @since 4.1.0
 	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
 	 * @param array $query        Date query clause.
 	 * @param array $parent_query Parent query of the current date query.
-	 * @return string[] {
+	 * @return array {
 	 *     Array containing JOIN and WHERE SQL clauses to append to the main query.
 	 *
-	 *     @type string $join  SQL fragment to append to the main JOIN clause.
-	 *     @type string $where SQL fragment to append to the main WHERE clause.
+	 *     @type string[] $join  Array of SQL fragments to append to the main JOIN clause.
+	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
 	 * }
 	 */
 	protected function get_sql_for_clause( $query, $parent_query ) {
@@ -858,12 +866,12 @@ class WP_Date_Query {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param string|array $datetime       An array of parameters or a strotime() string
+	 * @param string|array $datetime       An array of parameters or a strotime() string.
 	 * @param bool         $default_to_max Whether to round up incomplete dates. Supported by values
 	 *                                     of $datetime that are arrays, or string values that are a
 	 *                                     subset of MySQL date format ('Y', 'Y-m', 'Y-m-d', 'Y-m-d H:i').
 	 *                                     Default: false.
-	 * @return string|false A MySQL format date/time or false on failure
+	 * @return string|false A MySQL format date/time or false on failure.
 	 */
 	public function build_mysql_datetime( $datetime, $default_to_max = false ) {
 		if ( ! is_array( $datetime ) ) {
@@ -957,6 +965,8 @@ class WP_Date_Query {
 	 *
 	 * @since 3.7.0
 	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
 	 * @param string   $column  The column to query against. Needs to be pre-validated!
 	 * @param string   $compare The comparison operator. Needs to be pre-validated!
 	 * @param int|null $hour    Optional. An hour value (0-23).
@@ -1039,5 +1049,21 @@ class WP_Date_Query {
 		}
 
 		return $wpdb->prepare( "DATE_FORMAT( $column, %s ) $compare %f", $format, $time );
+	}
+
+	/**
+	 * Sanitizes a 'relation' operator.
+	 *
+	 * @since 6.0.3
+	 *
+	 * @param string $relation Raw relation key from the query argument.
+	 * @return string Sanitized relation ('AND' or 'OR').
+	 */
+	public function sanitize_relation( $relation ) {
+		if ( 'OR' === strtoupper( $relation ) ) {
+			return 'OR';
+		} else {
+			return 'AND';
+		}
 	}
 }

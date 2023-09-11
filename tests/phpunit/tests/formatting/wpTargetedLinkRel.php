@@ -89,7 +89,7 @@ class Tests_Formatting_wpTargetedLinkRel extends WP_UnitTestCase {
 		$content  = '<p>Links: <a href="/" target="_blank">No rel</a></p>';
 		$expected = '<p>Links: <a href="/" target="_blank" rel="noopener">No rel</a></p>';
 
-		$post = $this->factory()->post->create_and_get(
+		$post = self::factory()->post->create_and_get(
 			array(
 				'post_content' => $content,
 			)
@@ -136,5 +136,4 @@ class Tests_Formatting_wpTargetedLinkRel extends WP_UnitTestCase {
 		$expected = '<p>Links: <a href="/" target="_blank" rel="ugc noopener">No rel</a></p>';
 		$this->assertSame( $expected, wp_targeted_link_rel( $content ) );
 	}
-
 }

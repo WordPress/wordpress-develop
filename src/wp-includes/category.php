@@ -149,7 +149,8 @@ function get_category_by_path( $category_path, $full_match = true, $output = OBJ
 	foreach ( $categories as $category ) {
 		$path        = '/' . $leaf_path;
 		$curcategory = $category;
-		while ( ( 0 != $curcategory->parent ) && ( $curcategory->parent != $curcategory->term_id ) ) {
+
+		while ( ( 0 !== $curcategory->parent ) && ( $curcategory->parent !== $curcategory->term_id ) ) {
 			$curcategory = get_term( $curcategory->parent, 'category' );
 
 			if ( is_wp_error( $curcategory ) ) {
@@ -159,7 +160,7 @@ function get_category_by_path( $category_path, $full_match = true, $output = OBJ
 			$path = '/' . $curcategory->slug . $path;
 		}
 
-		if ( $path == $full_path ) {
+		if ( $path === $full_path ) {
 			$category = get_term( $category->term_id, 'category', $output );
 			_make_cat_compat( $category );
 
@@ -269,7 +270,7 @@ function sanitize_category( $category, $context = 'display' ) {
  * @param mixed  $value   Category value to sanitize.
  * @param int    $cat_id  Category ID.
  * @param string $context What filter to use, 'raw', 'display', etc.
- * @return mixed Same type as $value after $value has been sanitized.
+ * @return mixed Value after $value has been sanitized.
  */
 function sanitize_category_field( $field, $value, $cat_id, $context ) {
 	return sanitize_term_field( $field, $value, $cat_id, 'category', $context );
@@ -306,7 +307,7 @@ function get_tags( $args = '' ) {
 		 *
 		 * @param WP_Term[]|int|WP_Error $tags Array of 'post_tag' term objects, a count thereof,
 		 *                                     or WP_Error if any of the taxonomies do not exist.
-		 * @param array                  $args An array of arguments. @see get_terms()
+		 * @param array                  $args An array of arguments. See {@see get_terms()}.
 		 */
 		$tags = apply_filters( 'get_tags', $tags, $args );
 	}

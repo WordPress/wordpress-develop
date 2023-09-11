@@ -1,12 +1,8 @@
 <?php
 /**
- * Tests_Block_Template class
+ * Tests for the block template loading algorithm.
  *
  * @package WordPress
- */
-
-/**
- * Tests for the block template loading algorithm.
  *
  * @group block-templates
  */
@@ -28,7 +24,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-	function test_page_home_block_template_takes_precedence_over_less_specific_block_templates() {
+	public function test_page_home_block_template_takes_precedence_over_less_specific_block_templates() {
 		global $_wp_current_template_content;
 		$type                   = 'page';
 		$templates              = array(
@@ -41,7 +37,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/templates/page-home.html', $_wp_current_template_content );
 	}
 
-	function test_page_block_template_takes_precedence() {
+	public function test_page_block_template_takes_precedence() {
 		global $_wp_current_template_content;
 		$type                   = 'page';
 		$templates              = array(
@@ -54,7 +50,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/templates/page.html', $_wp_current_template_content );
 	}
 
-	function test_block_template_takes_precedence_over_equally_specific_php_template() {
+	public function test_block_template_takes_precedence_over_equally_specific_php_template() {
 		global $_wp_current_template_content;
 		$type                   = 'index';
 		$templates              = array(
@@ -71,7 +67,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 *
 	 * Covers https://github.com/WordPress/gutenberg/pull/29026.
 	 */
-	function test_more_specific_php_template_takes_precedence_over_less_specific_block_template() {
+	public function test_more_specific_php_template_takes_precedence_over_less_specific_block_template() {
 		$page_id_template       = 'page-1.php';
 		$page_id_template_path  = get_stylesheet_directory() . '/' . $page_id_template;
 		$type                   = 'page';
@@ -93,7 +89,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * Covers https://core.trac.wordpress.org/ticket/54515.
 	 *
 	 */
-	function test_child_theme_php_template_takes_precedence_over_equally_specific_parent_theme_block_template() {
+	public function test_child_theme_php_template_takes_precedence_over_equally_specific_parent_theme_block_template() {
 		switch_theme( 'block-theme-child' );
 
 		$page_slug_template      = 'page-home.php';
@@ -108,7 +104,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$this->assertSame( $page_slug_template_path, $resolved_template_path );
 	}
 
-	function test_child_theme_block_template_takes_precedence_over_equally_specific_parent_theme_php_template() {
+	public function test_child_theme_block_template_takes_precedence_over_equally_specific_parent_theme_php_template() {
 		global $_wp_current_template_content;
 
 		switch_theme( 'block-theme-child' );
@@ -190,40 +186,116 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Covers: https://github.com/WordPress/gutenberg/pull/38817.
+	 * Tests that `get_the_block_template_html()` wraps block parsing into the query loop when on a singular template.
 	 *
-	 * @ticket 55505
+	 * This is necessary since block themes do not include the necessary blocks to trigger the main query loop, and
+	 * since there is only a single post in the main query loop in such cases anyway.
+	 *
+	 * @ticket 58154
+	 * @covers ::get_the_block_template_html
 	 */
-	public function test_resolve_home_block_template_default_hierarchy() {
-		$template = _resolve_home_block_template();
+	public function test_get_the_block_template_html_enforces_singular_query_loop() {
+		global $_wp_current_template_content, $wp_query, $wp_the_query;
 
-		$this->assertSame( 'wp_template', $template['postType'] );
-		$this->assertSame( get_stylesheet() . '//index', $template['postId'] );
+		// Register test block to log `in_the_loop()` results.
+		$in_the_loop_logs = array();
+		$this->register_in_the_loop_logger_block( $in_the_loop_logs );
+
+		// Set main query to single post.
+		$post_id      = self::factory()->post->create( array( 'post_title' => 'A single post' ) );
+		$wp_query     = new WP_Query( array( 'p' => $post_id ) );
+		$wp_the_query = $wp_query;
+
+		// Use block template that just renders post title and the above test block.
+		$_wp_current_template_content = '<!-- wp:post-title /--><!-- wp:test/in-the-loop-logger /-->';
+
+		$expected  = '<div class="wp-site-blocks">';
+		$expected .= '<h2 class="wp-block-post-title">A single post</h2>';
+		$expected .= '</div>';
+
+		$output = get_the_block_template_html();
+		$this->unregister_in_the_loop_logger_block();
+		$this->assertSame( $expected, $output, 'Unexpected block template output' );
+		$this->assertSame( array( true ), $in_the_loop_logs, 'Main query loop was not triggered' );
 	}
 
 	/**
-	 * @ticket 55505
+	 * Tests that `get_the_block_template_html()` does not start the main query loop generally.
+	 *
+	 * @ticket 58154
+	 * @covers ::get_the_block_template_html
 	 */
-	public function test_resolve_home_block_template_static_homepage() {
-		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
-		update_option( 'show_on_front', 'page' );
-		update_option( 'page_on_front', $post_id );
+	public function test_get_the_block_template_html_does_not_generally_enforce_loop() {
+		global $_wp_current_template_content, $wp_query, $wp_the_query;
 
-		$template = _resolve_home_block_template();
+		// Register test block to log `in_the_loop()` results.
+		$in_the_loop_logs = array();
+		$this->register_in_the_loop_logger_block( $in_the_loop_logs );
 
-		$this->assertSame( 'page', $template['postType'] );
-		$this->assertSame( $post_id, $template['postId'] );
+		// Set main query to a general post query (i.e. not for a specific post).
+		$post_id      = self::factory()->post->create(
+			array(
+				'post_title'   => 'A single post',
+				'post_content' => 'The content.',
+			)
+		);
+		$wp_query     = new WP_Query(
+			array(
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+			)
+		);
+		$wp_the_query = $wp_query;
 
-		delete_option( 'show_on_front', 'page' );
+		/*
+		 * Use block template that renders the above test block, followed by a main query loop.
+		 * `get_the_block_template_html()` should not start the loop, but the `core/query` and `core/post-template`
+		 * blocks should.
+		 */
+		$_wp_current_template_content  = '<!-- wp:test/in-the-loop-logger /-->';
+		$_wp_current_template_content .= '<!-- wp:query {"query":{"inherit":true}} -->';
+		$_wp_current_template_content .= '<!-- wp:post-template -->';
+		$_wp_current_template_content .= '<!-- wp:post-title /-->';
+		$_wp_current_template_content .= '<!-- wp:post-content /--><!-- wp:test/in-the-loop-logger /-->';
+		$_wp_current_template_content .= '<!-- /wp:post-template -->';
+		$_wp_current_template_content .= '<!-- /wp:query -->';
+
+		$expected  = '<div class="wp-site-blocks">';
+		$expected .= '<ul class="wp-block-post-template is-layout-flow wp-block-post-template-is-layout-flow wp-block-query-is-layout-flow">';
+		$expected .= '<li class="wp-block-post post-' . $post_id . ' post type-post status-publish format-standard hentry category-uncategorized">';
+		$expected .= '<h2 class="wp-block-post-title">A single post</h2>';
+		$expected .= '<div class="entry-content wp-block-post-content is-layout-flow wp-block-post-content-is-layout-flow">' . wpautop( 'The content.' ) . '</div>';
+		$expected .= '</li>';
+		$expected .= '</ul>';
+		$expected .= '</div>';
+
+		$output = get_the_block_template_html();
+		$this->unregister_in_the_loop_logger_block();
+		$this->assertSame( $expected, $output, 'Unexpected block template output' );
+		$this->assertSame( array( false, true ), $in_the_loop_logs, 'Main query loop was triggered incorrectly' );
 	}
 
 	/**
-	 * @ticket 55505
+	 * Registers a test block to log `in_the_loop()` results.
+	 *
+	 * @param array $in_the_loop_logs Array to log function results in. Passed by reference.
 	 */
-	public function test_resolve_home_block_template_no_resolution() {
-		switch_theme( 'stylesheetonly' );
-		$template = _resolve_home_block_template();
+	private function register_in_the_loop_logger_block( array &$in_the_loop_logs ) {
+		register_block_type(
+			'test/in-the-loop-logger',
+			array(
+				'render_callback' => function() use ( &$in_the_loop_logs ) {
+					$in_the_loop_logs[] = in_the_loop();
+					return '';
+				},
+			)
+		);
+	}
 
-		$this->assertNull( $template );
+	/**
+	 * Unregisters the test block registered by the `register_in_the_loop_logger_block()` method.
+	 */
+	private function unregister_in_the_loop_logger_block() {
+		unregister_block_type( 'test/in-the-loop-logger' );
 	}
 }

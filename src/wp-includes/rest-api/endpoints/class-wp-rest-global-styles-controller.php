@@ -34,8 +34,6 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * Registers the controllers routes.
 	 *
 	 * @since 5.9.0
-	 *
-	 * @return void
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -63,8 +61,10 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 			sprintf(
 				'/%s/themes/(?P<stylesheet>%s)',
 				$this->rest_base,
-				// Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
-				// Excludes invalid directory name characters: `/:<>*?"|`.
+				/*
+				 * Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+				 * Excludes invalid directory name characters: `/:<>*?"|`.
+				 */
 				'[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?'
 			),
 			array(
@@ -123,6 +123,34 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 */
 	public function _sanitize_global_styles_callback( $id_or_stylesheet ) {
 		return urldecode( $id_or_stylesheet );
+	}
+
+	/**
+	 * Get the post, if the ID is valid.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param int $id Supplied ID.
+	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
+	 */
+	protected function get_post( $id ) {
+		$error = new WP_Error(
+			'rest_global_styles_not_found',
+			__( 'No global styles config exist with that id.' ),
+			array( 'status' => 404 )
+		);
+
+		$id = (int) $id;
+		if ( $id <= 0 ) {
+			return $error;
+		}
+
+		$post = get_post( $id );
+		if ( empty( $post ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
+			return $error;
+		}
+
+		return $post;
 	}
 
 	/**
@@ -240,7 +268,11 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		}
 
 		$changes = $this->prepare_item_for_database( $request );
-		$result  = wp_update_post( wp_slash( (array) $changes ), true, false );
+		if ( is_wp_error( $changes ) ) {
+			return $changes;
+		}
+
+		$result = wp_update_post( wp_slash( (array) $changes ), true, false );
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
@@ -262,9 +294,10 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * Prepares a single global styles config for update.
 	 *
 	 * @since 5.9.0
+	 * @since 6.2.0 Added validation of styles.css property.
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 * @return stdClass Changes to pass to wp_update_post.
+	 * @return stdClass|WP_Error Prepared item on success. WP_Error on when the custom CSS is not valid.
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$changes     = new stdClass();
@@ -284,6 +317,12 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		if ( isset( $request['styles'] ) || isset( $request['settings'] ) ) {
 			$config = array();
 			if ( isset( $request['styles'] ) ) {
+				if ( isset( $request['styles']['css'] ) ) {
+					$css_validation_result = $this->validate_custom_css( $request['styles']['css'] );
+					if ( is_wp_error( $css_validation_result ) ) {
+						return $css_validation_result;
+					}
+				}
 				$config['styles'] = $request['styles'];
 			} elseif ( isset( $existing_config['styles'] ) ) {
 				$config['styles'] = $existing_config['styles'];
@@ -364,13 +403,15 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$links = $this->prepare_links( $post->ID );
-		$response->add_links( $links );
-		if ( ! empty( $links['self']['href'] ) ) {
-			$actions = $this->get_available_actions();
-			$self    = $links['self']['href'];
-			foreach ( $actions as $rel ) {
-				$response->add_link( $rel, $self );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$links = $this->prepare_links( $post->ID );
+			$response->add_links( $links );
+			if ( ! empty( $links['self']['href'] ) ) {
+				$actions = $this->get_available_actions();
+				$self    = $links['self']['href'];
+				foreach ( $actions as $rel ) {
+					$response->add_link( $rel, $self );
+				}
 			}
 		}
 
@@ -378,38 +419,10 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Get the post, if the ID is valid.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param int $id Supplied ID.
-	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
-	 */
-	protected function get_post( $id ) {
-		$error = new WP_Error(
-			'rest_global_styles_not_found',
-			__( 'No global styles config exist with that id.' ),
-			array( 'status' => 404 )
-		);
-
-		$id = (int) $id;
-		if ( $id <= 0 ) {
-			return $error;
-		}
-
-		$post = get_post( $id );
-		if ( empty( $post ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
-			return $error;
-		}
-
-		return $post;
-	}
-
-
-	/**
 	 * Prepares links for the request.
 	 *
 	 * @since 5.9.0
+	 * @since 6.3.0 Adds revisions count and rest URL href to version-history.
 	 *
 	 * @param integer $id ID.
 	 * @return array Links for the given post.
@@ -423,6 +436,16 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 			),
 		);
 
+		if ( post_type_supports( $this->post_type, 'revisions' ) ) {
+			$revisions                = wp_get_latest_revision_id_and_total_count( $id );
+			$revisions_count          = ! is_wp_error( $revisions ) ? $revisions['count'] : 0;
+			$revisions_base           = sprintf( '/%s/%d/revisions', $base, $id );
+			$links['version-history'] = array(
+				'href'  => rest_url( $revisions_base ),
+				'count' => $revisions_count,
+			);
+		}
+
 		return $links;
 	}
 
@@ -430,6 +453,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * Get the link relations available for the post and current user.
 	 *
 	 * @since 5.9.0
+	 * @since 6.2.0 Added 'edit-css' action.
 	 *
 	 * @return array List of link relations.
 	 */
@@ -439,6 +463,10 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		$post_type = get_post_type_object( $this->post_type );
 		if ( current_user_can( $post_type->cap->publish_posts ) ) {
 			$rels[] = 'https://api.w.org/action-publish';
+		}
+
+		if ( current_user_can( 'edit_css' ) ) {
+			$rels[] = 'https://api.w.org/action-edit-css';
 		}
 
 		return $rels;
@@ -539,8 +567,10 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_theme_item_permissions_check( $request ) {
-		// Verify if the current user has edit_theme_options capability.
-		// This capability is required to edit/view/delete templates.
+		/*
+		 * Verify if the current user has edit_theme_options capability.
+		 * This capability is required to edit/view/delete templates.
+		 */
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new WP_Error(
 				'rest_cannot_manage_global_styles',
@@ -563,7 +593,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_theme_item( $request ) {
-		if ( wp_get_theme()->get_stylesheet() !== $request['stylesheet'] ) {
+		if ( get_stylesheet() !== $request['stylesheet'] ) {
 			// This endpoint only supports the active theme for now.
 			return new WP_Error(
 				'rest_theme_not_found',
@@ -591,13 +621,14 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 
 		$response = rest_ensure_response( $data );
 
-		$links = array(
-			'self' => array(
-				'href' => rest_url( sprintf( '%s/%s/themes/%s', $this->namespace, $this->rest_base, $request['stylesheet'] ) ),
-			),
-		);
-
-		$response->add_links( $links );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$links = array(
+				'self' => array(
+					'href' => rest_url( sprintf( '%s/%s/themes/%s', $this->namespace, $this->rest_base, $request['stylesheet'] ) ),
+				),
+			);
+			$response->add_links( $links );
+		}
 
 		return $response;
 	}
@@ -611,8 +642,10 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_theme_items_permissions_check( $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-		// Verify if the current user has edit_theme_options capability.
-		// This capability is required to edit/view/delete templates.
+		/*
+		 * Verify if the current user has edit_theme_options capability.
+		 * This capability is required to edit/view/delete templates.
+		 */
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new WP_Error(
 				'rest_cannot_manage_global_styles',
@@ -636,7 +669,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_theme_items( $request ) {
-		if ( wp_get_theme()->get_stylesheet() !== $request['stylesheet'] ) {
+		if ( get_stylesheet() !== $request['stylesheet'] ) {
 			// This endpoint only supports the active theme for now.
 			return new WP_Error(
 				'rest_theme_not_found',
@@ -649,5 +682,26 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		$response   = rest_ensure_response( $variations );
 
 		return $response;
+	}
+
+	/**
+	 * Validate style.css as valid CSS.
+	 *
+	 * Currently just checks for invalid markup.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param string $css CSS to validate.
+	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.
+	 */
+	private function validate_custom_css( $css ) {
+		if ( preg_match( '#</?\w+#', $css ) ) {
+			return new WP_Error(
+				'rest_custom_css_illegal_markup',
+				__( 'Markup is not allowed in CSS.' ),
+				array( 'status' => 400 )
+			);
+		}
+		return true;
 	}
 }

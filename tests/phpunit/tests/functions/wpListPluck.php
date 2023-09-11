@@ -11,7 +11,18 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	public $array_list  = array();
 
 	public function set_up() {
-		parent::set_up();
+		/*
+		 * This method deliberately does not call parent::set_up(). Why?
+		 *
+		 * The call stack for WP_UnitTestCase_Base::set_up() includes a call to
+		 * WP_List_Util::pluck(), which creates an inaccurate coverage report
+		 * for this method.
+		 *
+		 * To ensure that deprecation and incorrect usage notices continue to be
+		 * detectable, this method uses WP_UnitTestCase_Base::expectDeprecated().
+		 */
+		$this->expectDeprecated();
+
 		$this->array_list['foo'] = array(
 			'name'   => 'foo',
 			'id'     => 'f',
@@ -193,18 +204,18 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_test_wp_list_pluck
+	 * @dataProvider data_wp_list_pluck
 	 *
-	 * @param array      $list      List of objects or arrays.
-	 * @param int|string $field     Field from the object to place instead of the entire object
-	 * @param int|string $index_key Field from the object to use as keys for the new array.
-	 * @param array      $expected  Expected result.
+	 * @param array      $input_list List of objects or arrays.
+	 * @param int|string $field      Field from the object to place instead of the entire object
+	 * @param int|string $index_key  Field from the object to use as keys for the new array.
+	 * @param array      $expected   Expected result.
 	 */
-	public function test_wp_list_pluck( $list, $field, $index_key, $expected ) {
-		$this->assertSameSetsWithIndex( $expected, wp_list_pluck( $list, $field, $index_key ) );
+	public function test_wp_list_pluck( $input_list, $field, $index_key, $expected ) {
+		$this->assertSameSetsWithIndex( $expected, wp_list_pluck( $input_list, $field, $index_key ) );
 	}
 
-	public function data_test_wp_list_pluck() {
+	public function data_wp_list_pluck() {
 		return array(
 			'arrays'                         => array(
 				array(

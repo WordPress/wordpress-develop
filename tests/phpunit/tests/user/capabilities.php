@@ -30,6 +30,15 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 */
 	protected static $block_id;
 
+	/**
+	 * Temporary storage for roles for tests using filter callbacks.
+	 *
+	 * Used in the `test_wp_roles_init_action()` method.
+	 *
+	 * @var array
+	 */
+	private $role_test_wp_roles_init;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$users       = array(
 			'anonymous'     => new WP_User( 0 ),
@@ -57,7 +66,15 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		parent::set_up();
 		// Keep track of users we create.
 		$this->flush_roles();
+	}
 
+	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		unset( $this->role_test_wp_roles_init );
+
+		parent::tear_down();
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -164,7 +181,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'subscriber'              => array( 'subscriber' ),
 
 		);
-
 	}
 
 	private function _getMultiSitePrimitiveCaps() {
@@ -247,7 +263,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'subscriber'              => array( 'subscriber' ),
 
 		);
-
 	}
 
 	private function _getSingleSiteMetaCaps() {
@@ -435,7 +450,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$this->assertSame( array(), $diff, "User with {$role} role has capabilities that aren't being tested" );
 
 		}
-
 	}
 
 	/**
@@ -729,7 +743,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		update_option( 'link_manager_enabled', '0' );
 		$this->assertSame( '0', get_option( 'link_manager_enabled' ) );
-
 	}
 
 	/**
@@ -743,7 +756,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$this->assertFalse( $user->has_cap( 'unfiltered_upload' ), "User with the {$role} role should not have the unfiltered_upload capability" );
 			$this->assertFalse( user_can( $user, 'unfiltered_upload' ), "User with the {$role} role should not have the unfiltered_upload capability" );
 		}
-
 	}
 
 	/**
@@ -899,7 +911,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$user->remove_role( 'contributor' );
 		// User should have one role now.
 		$this->assertSame( array( 'subscriber' ), $user->roles );
-
 	}
 
 	/**
@@ -1019,7 +1030,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		remove_role( $role_name );
 		$this->flush_roles();
 		$this->assertFalse( $wp_roles->is_role( $role_name ) );
-
 	}
 
 	/**
@@ -1064,7 +1074,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		remove_role( $role_name );
 		$this->flush_roles();
 		$this->assertFalse( $wp_roles->is_role( $role_name ) );
-
 	}
 
 	/**
@@ -1103,7 +1112,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 				$this->assertFalse( $user_1->has_cap( $cap ), "User should not have the {$cap} capability" );
 			}
 		}
-
 	}
 
 	/**
@@ -1135,7 +1143,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		// Check the removed cap on both users.
 		$this->assertFalse( $user_1->has_cap( 'publish_posts' ) );
 		$this->assertFalse( $user_2->has_cap( 'publish_posts' ) );
-
 	}
 
 	/**
@@ -1199,7 +1206,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		// User level should be empty.
 		$this->assertEmpty( $user->user_level );
-
 	}
 
 	/**
@@ -1296,13 +1302,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		}
 	}
 
-	public function authorless_post_statuses() {
-		return array( array( 'draft' ), array( 'private' ), array( 'publish' ) );
-	}
-
 	/**
 	 * @ticket 27020
-	 * @dataProvider authorless_post_statuses
+	 * @dataProvider data_authorless_post
 	 */
 	public function test_authorless_post( $status ) {
 		// Make a post without an author.
@@ -1329,6 +1331,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( $contributor->has_cap( 'edit_post', $post ) );
 		$this->assertFalse( $contributor->has_cap( 'delete_post', $post ) );
 		$this->assertSame( 'publish' === $status, $contributor->has_cap( 'read_post', $post ) );
+	}
+
+	public function data_authorless_post() {
+		return array( array( 'draft' ), array( 'private' ), array( 'publish' ) );
 	}
 
 	/**
@@ -1529,7 +1535,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 				"Role: {$role}"
 			);
 		}
-
 	}
 
 	public function dataTaxonomies() {
@@ -1689,7 +1694,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	public function nullify_current_user() {
-		// Prevents fatal errors in ::tearDown()'s and other uses of restore_current_blog().
+		// Prevents fatal errors in ::tear_down()'s and other uses of restore_current_blog().
 		$function_stack = wp_debug_backtrace_summary( null, 0, false );
 		if ( in_array( 'restore_current_blog', $function_stack, true ) ) {
 			return;
@@ -1810,7 +1815,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$contributor = self::$users['contributor'];
 
 		// Give them a scheduled post.
-		$post = $this->factory->post->create_and_get(
+		$post = self::factory()->post->create_and_get(
 			array(
 				'post_author' => $contributor->ID,
 				'post_status' => 'future',
@@ -1832,7 +1837,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		// Ensure contributor can't edit, un-trash, or delete the post.
 		$this->assertFalse( user_can( $contributor->ID, 'edit_post', $post->ID ) );
 		$this->assertFalse( user_can( $contributor->ID, 'delete_post', $post->ID ) );
-
 	}
 
 	/**
@@ -1963,7 +1967,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( user_can( $contributor->ID, 'edit_post', $author_post->ID ) );
 
 		_unregister_post_type( 'page_capability' );
-
 	}
 
 	public function test_non_logged_in_users_have_no_capabilities() {
@@ -1993,16 +1996,13 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		wp_logout();
 
 		$this->assertSame( 0, get_current_user_id() );
-
 	}
 
-
-	protected $_role_test_wp_roles_role;
 	/**
 	 * @ticket 23016
 	 */
 	public function test_wp_roles_init_action() {
-		$this->_role_test_wp_roles_init = array(
+		$this->role_test_wp_roles_init = array(
 			'role' => 'test_wp_roles_init',
 			'info' => array(
 				'name'         => 'Test WP Roles Init',
@@ -2015,16 +2015,16 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		remove_action( 'wp_roles_init', array( $this, '_hook_wp_roles_init' ) );
 
-		$expected = new WP_Role( $this->_role_test_wp_roles_init['role'], $this->_role_test_wp_roles_init['info']['capabilities'] );
+		$expected = new WP_Role( $this->role_test_wp_roles_init['role'], $this->role_test_wp_roles_init['info']['capabilities'] );
 
-		$role = $wp_roles->get_role( $this->_role_test_wp_roles_init['role'] );
+		$role = $wp_roles->get_role( $this->role_test_wp_roles_init['role'] );
 
 		$this->assertEquals( $expected, $role );
-		$this->assertContains( $this->_role_test_wp_roles_init['info']['name'], $wp_roles->role_names );
+		$this->assertContains( $this->role_test_wp_roles_init['info']['name'], $wp_roles->role_names );
 	}
 
 	public function _hook_wp_roles_init( $wp_roles ) {
-		$wp_roles->add_role( $this->_role_test_wp_roles_init['role'], $this->_role_test_wp_roles_init['info']['name'], $this->_role_test_wp_roles_init['info']['capabilities'] );
+		$wp_roles->add_role( $this->role_test_wp_roles_init['role'], $this->role_test_wp_roles_init['info']['name'], $this->role_test_wp_roles_init['info']['capabilities'] );
 	}
 
 	/**

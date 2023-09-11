@@ -116,7 +116,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 	public function test_constructor_in_customize_preview() {
 		global $wp_customize;
 		wp_set_current_user(
-			$this->factory()->user->create(
+			self::factory()->user->create(
 				array(
 					'role' => 'administrator',
 				)
@@ -159,7 +159,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 		$this->assertFalse( $widget->is_attachment_with_mime_type( 0, 'image' ) );
 		$this->assertFalse( $widget->is_attachment_with_mime_type( -123, 'image' ) );
 
-		$post_id = $this->factory()->post->create();
+		$post_id = self::factory()->post->create();
 		$this->assertFalse( $widget->is_attachment_with_mime_type( $post_id, 'image' ) );
 		$this->assertFalse( $widget->is_attachment_with_mime_type( $attachment_id, 'video' ) );
 		$this->assertTrue( $widget->is_attachment_with_mime_type( $attachment_id, 'image' ) );
@@ -343,7 +343,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 		$this->widget_instance_filter_args = array();
 		$widget->widget( $args, $instance );
 		$this->assertCount( 3, $this->widget_instance_filter_args );
-		$this->assertEquals( $instance, $this->widget_instance_filter_args[0] );
+		$this->assertSameSetsWithIndex( $instance, $this->widget_instance_filter_args[0] );
 		$this->assertSame( $args, $this->widget_instance_filter_args[1] );
 		$this->assertSame( $widget, $this->widget_instance_filter_args[2] );
 		$output = ob_get_clean();
@@ -383,10 +383,10 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 	 *
 	 * @param array           $instance Instance data.
 	 * @param array           $args     Widget args.
-	 * @param WP_Widget_Media $object   Widget object.
+	 * @param WP_Widget_Media $widget   Widget object.
 	 * @return array Instance.
 	 */
-	public function filter_widget_mocked_instance( $instance, $args, $object ) {
+	public function filter_widget_mocked_instance( $instance, $args, $widget ) {
 		$this->widget_instance_filter_args = func_get_args();
 		return $instance;
 	}

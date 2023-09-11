@@ -11,6 +11,7 @@
  *
  * @package WordPress
  */
+#[AllowDynamicProperties]
 class WP_Application_Passwords {
 
 	/**
@@ -23,7 +24,7 @@ class WP_Application_Passwords {
 	const USERMETA_KEY_APPLICATION_PASSWORDS = '_application_passwords';
 
 	/**
-	 * The option name used to store whether application passwords is in use.
+	 * The option name used to store whether application passwords are in use.
 	 *
 	 * @since 5.6.0
 	 *
@@ -41,9 +42,9 @@ class WP_Application_Passwords {
 	const PW_LENGTH = 24;
 
 	/**
-	 * Checks if Application Passwords are being used by the site.
+	 * Checks if application passwords are being used by the site.
 	 *
-	 * This returns true if at least one Application Password has ever been created.
+	 * This returns true if at least one application password has ever been created.
 	 *
 	 * @since 5.6.0
 	 *
@@ -67,8 +68,22 @@ class WP_Application_Passwords {
 	 *     @type string $name   The name of the application password.
 	 *     @type string $app_id A UUID provided by the application to uniquely identify it.
 	 * }
-	 * @return array|WP_Error The first key in the array is the new password, the second is its detailed information.
-	 *                        A WP_Error instance is returned on error.
+	 * @return array|WP_Error {
+	 *     Application password details, or a WP_Error instance if an error occurs.
+	 *
+	 *     @type string $0 The unhashed generated application password.
+	 *     @type array  $1 {
+	 *         The details about the created password.
+	 *
+	 *         @type string $uuid      The unique identifier for the application password.
+	 *         @type string $app_id    A UUID provided by the application to uniquely identify it.
+	 *         @type string $name      The name of the application password.
+	 *         @type string $password  A one-way hash of the password.
+	 *         @type int    $created   Unix timestamp of when the password was created.
+	 *         @type null   $last_used Null.
+	 *         @type null   $last_ip   Null.
+	 *     }
+	 * }
 	 */
 	public static function create_new_application_password( $user_id, $args = array() ) {
 		if ( ! empty( $args['name'] ) ) {
@@ -312,7 +327,7 @@ class WP_Application_Passwords {
 			return true;
 		}
 
-		// Specified Application Password not found!
+		// Specified application password not found!
 		return new WP_Error( 'application_password_not_found', __( 'Could not find an application password with that id.' ) );
 	}
 

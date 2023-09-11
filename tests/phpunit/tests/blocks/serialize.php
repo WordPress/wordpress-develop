@@ -1,14 +1,9 @@
 <?php
 /**
- * Block serialization tests
+ * Tests for block serialization functions.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.3.3
- */
-
-/**
- * Tests for block serialization functions.
  *
  * @since 5.3.3
  *
@@ -59,5 +54,4 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 		$this->assertSame( 'example', strip_core_block_namespace( 'core/example' ) );
 		$this->assertSame( 'plugin/example', strip_core_block_namespace( 'plugin/example' ) );
 	}
-
 }

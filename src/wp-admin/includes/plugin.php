@@ -102,7 +102,7 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 	// If no text domain is defined fall back to the plugin slug.
 	if ( ! $plugin_data['TextDomain'] ) {
 		$plugin_slug = dirname( plugin_basename( $plugin_file ) );
-		if ( '.' !== $plugin_slug && false === strpos( $plugin_slug, '/' ) ) {
+		if ( '.' !== $plugin_slug && ! str_contains( $plugin_slug, '/' ) ) {
 			$plugin_data['TextDomain'] = $plugin_slug;
 		}
 	}
@@ -127,7 +127,7 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
  * @access private
  *
  * @param string $plugin_file Path to the main plugin file.
- * @param array  $plugin_data An array of plugin data. See `get_plugin_data()`.
+ * @param array  $plugin_data An array of plugin data. See get_plugin_data().
  * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
  *                            Default true.
  * @param bool   $translate   Optional. If the returned data should be translated. Default true.
@@ -178,8 +178,10 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 		'title' => true,
 	);
 
-	// Name is marked up inside <a> tags. Don't allow these.
-	// Author is too, but some plugins have used <a> here (omitting Author URI).
+	/*
+	 * Name is marked up inside <a> tags. Don't allow these.
+	 * Author is too, but some plugins have used <a> here (omitting Author URI).
+	 */
 	$plugin_data['Name']   = wp_kses( $plugin_data['Name'], $allowed_tags_in_links );
 	$plugin_data['Author'] = wp_kses( $plugin_data['Author'], $allowed_tags );
 
@@ -269,7 +271,7 @@ function get_plugin_files( $plugin ) {
  * @since 1.5.0
  *
  * @param string $plugin_folder Optional. Relative path to single plugin folder.
- * @return array[] Array of arrays of plugin data, keyed by plugin file name. See `get_plugin_data()`.
+ * @return array[] Array of arrays of plugin data, keyed by plugin file name. See get_plugin_data().
  */
 function get_plugins( $plugin_folder = '' ) {
 
@@ -294,7 +296,7 @@ function get_plugins( $plugin_folder = '' ) {
 
 	if ( $plugins_dir ) {
 		while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
-			if ( '.' === substr( $file, 0, 1 ) ) {
+			if ( str_starts_with( $file, '.' ) ) {
 				continue;
 			}
 
@@ -303,11 +305,11 @@ function get_plugins( $plugin_folder = '' ) {
 
 				if ( $plugins_subdir ) {
 					while ( ( $subfile = readdir( $plugins_subdir ) ) !== false ) {
-						if ( '.' === substr( $subfile, 0, 1 ) ) {
+						if ( str_starts_with( $subfile, '.' ) ) {
 							continue;
 						}
 
-						if ( '.php' === substr( $subfile, -4 ) ) {
+						if ( str_ends_with( $subfile, '.php' ) ) {
 							$plugin_files[] = "$file/$subfile";
 						}
 					}
@@ -315,7 +317,7 @@ function get_plugins( $plugin_folder = '' ) {
 					closedir( $plugins_subdir );
 				}
 			} else {
-				if ( '.php' === substr( $file, -4 ) ) {
+				if ( str_ends_with( $file, '.php' ) ) {
 					$plugin_files[] = $file;
 				}
 			}
@@ -357,7 +359,7 @@ function get_plugins( $plugin_folder = '' ) {
  * WordPress only includes mu-plugin files in the base mu-plugins directory (wp-content/mu-plugins).
  *
  * @since 3.0.0
- * @return array[] Array of arrays of mu-plugin data, keyed by plugin file name. See `get_plugin_data()`.
+ * @return array[] Array of arrays of mu-plugin data, keyed by plugin file name. See get_plugin_data().
  */
 function get_mu_plugins() {
 	$wp_plugins   = array();
@@ -371,7 +373,7 @@ function get_mu_plugins() {
 	$plugins_dir = @opendir( WPMU_PLUGIN_DIR );
 	if ( $plugins_dir ) {
 		while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
-			if ( '.php' === substr( $file, -4 ) ) {
+			if ( str_ends_with( $file, '.php' ) ) {
 				$plugin_files[] = $file;
 			}
 		}
@@ -429,7 +431,7 @@ function _sort_uname_callback( $a, $b ) {
  * Checks the wp-content directory and retrieve all drop-ins with any plugin data.
  *
  * @since 3.0.0
- * @return array[] Array of arrays of dropin plugin data, keyed by plugin file name. See `get_plugin_data()`.
+ * @return array[] Array of arrays of dropin plugin data, keyed by plugin file name. See get_plugin_data().
  */
 function get_dropins() {
 	$dropins      = array();
@@ -852,7 +854,7 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
  * @param bool            $network_wide Whether to enable the plugin for all sites in the network.
  *                                      Default false.
  * @param bool            $silent       Prevent calling activation hooks. Default false.
- * @return bool|WP_Error True when finished or WP_Error if there were errors during a plugin activation.
+ * @return true|WP_Error True when finished or WP_Error if there were errors during a plugin activation.
  */
 function activate_plugins( $plugins, $redirect = '', $network_wide = false, $silent = false ) {
 	if ( ! is_array( $plugins ) ) {
@@ -969,8 +971,10 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 
 		$this_plugin_dir = trailingslashit( dirname( $plugins_dir . $plugin_file ) );
 
-		// If plugin is in its own directory, recursively delete the directory.
-		// Base check on if plugin includes directory separator AND that it's not the root plugin folder.
+		/*
+		 * If plugin is in its own directory, recursively delete the directory.
+		 * Base check on if plugin includes directory separator AND that it's not the root plugin folder.
+		 */
 		if ( strpos( $plugin_file, '/' ) && $this_plugin_dir !== $plugins_dir ) {
 			$deleted = $wp_filesystem->delete( $this_plugin_dir, true );
 		} else {
@@ -1935,7 +1939,7 @@ function get_admin_page_parent( $parent_page = '' ) {
 				$parent_file = $parent_page;
 				return $parent_page;
 			} elseif ( empty( $typenow ) && $pagenow === $submenu_array[2]
-				&& ( empty( $parent_file ) || false === strpos( $parent_file, '?' ) )
+				&& ( empty( $parent_file ) || ! str_contains( $parent_file, '?' ) )
 			) {
 				$parent_file = $parent_page;
 				return $parent_page;
@@ -2436,7 +2440,7 @@ function wp_get_plugin_error( $plugin ) {
  *
  * @param string $plugin   Single plugin to resume.
  * @param string $redirect Optional. URL to redirect to. Default empty string.
- * @return bool|WP_Error True on success, false if `$plugin` was not paused,
+ * @return true|WP_Error True on success, false if `$plugin` was not paused,
  *                       `WP_Error` on failure.
  */
 function resume_plugin( $plugin, $redirect = '' ) {

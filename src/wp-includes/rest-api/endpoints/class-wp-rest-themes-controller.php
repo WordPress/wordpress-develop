@@ -118,7 +118,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @since 5.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error True if the request has read access for the item, otherwise WP_Error object.
+	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
 	public function get_item_permissions_check( $request ) {
 		if ( current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' ) ) {
@@ -144,7 +144,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.7.0
 	 *
-	 * @return bool|WP_Error Whether the theme can be read.
+	 * @return true|WP_Error True if the theme can be read, WP_Error object otherwise.
 	 */
 	protected function check_read_active_theme_permission() {
 		if ( current_user_can( 'edit_posts' ) ) {
@@ -326,12 +326,18 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			}
 		}
 
+		if ( rest_is_field_included( 'is_block_theme', $fields ) ) {
+			$data['is_block_theme'] = $theme->is_block_theme();
+		}
+
 		$data = $this->add_additional_fields_to_object( $data, $request );
 
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$response->add_links( $this->prepare_links( $theme ) );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $theme ) );
+		}
 
 		/**
 		 * Filters theme data returned from the REST API.
@@ -491,6 +497,11 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 							'type'        => 'string',
 						),
 					),
+				),
+				'is_block_theme' => array(
+					'description' => __( 'Whether the theme is a block-based theme.' ),
+					'type'        => 'boolean',
+					'readonly'    => true,
 				),
 				'name'           => array(
 					'description' => __( 'The name of the theme.' ),
