@@ -1704,7 +1704,7 @@ function insert_hooked_blocks( $block ) {
 }
 
 /**
- * Auto-insert a block next to a given "anchor" block.
+ * Auto-inserts a block next to a given "anchor" block.
  *
  * This is a helper function used in the implementation of block hooks.
  * It is not meant for public use.
