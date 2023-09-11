@@ -3535,7 +3535,7 @@ class WP_Query {
 
 			if ( $q['update_post_meta_cache'] ) {
 				$post_ids = array();
-				foreach ( $posts as $post ) {
+				foreach ( $this->posts as $post ) {
 					$post_ids[] = $post->ID;
 				}
 				update_postmeta_cache( $post_ids );
