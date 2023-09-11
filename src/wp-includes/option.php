@@ -783,18 +783,6 @@ function update_option( $option, $value, $autoload = null ) {
 	$value = apply_filters( 'pre_update_option', $value, $option, $old_value );
 
 	/*
-	 * Unserialized values will be adequate in most cases. If the unserialized
-	 * data differs, the (maybe) serialized data is checked to avoid
-	 * unnecessary database calls for otherwise identical object instances.
-	 *
-	 * See https://core.trac.wordpress.org/ticket/38903
-	 */
-
-	if ( maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
-		return false;
-	}
-
-	/*
 	 * If the new and old values are the same, no need to update.
 	 * Scalar values in the cache will always be strings, so we must compare string values.
 	 */
@@ -819,6 +807,18 @@ function update_option( $option, $value, $autoload = null ) {
 	}
 
 	if ( $values['old'] === $values['new'] ) {
+		return false;
+	}
+
+	/*
+	 * Unserialized values will be adequate in most cases. If the unserialized
+	 * data differs, the (maybe) serialized data is checked to avoid
+	 * unnecessary database calls for otherwise identical object instances.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/38903
+	 */
+
+	if ( maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
 		return false;
 	}
 
@@ -2133,17 +2133,6 @@ function update_network_option( $network_id, $option, $value ) {
 	$value = apply_filters( "pre_update_site_option_{$option}", $value, $old_value, $option, $network_id );
 
 	/*
-	 * Unserialized values will be adequate in most cases. If the unserialized
-	 * data differs, the (maybe) serialized data is checked to avoid
-	 * unnecessary database calls for otherwise identical object instances.
-	 *
-	 * See https://core.trac.wordpress.org/ticket/44956
-	 */
-	if ( maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
-		return false;
-	}
-
-	/*
 	 * If the new and old values are the same, no need to update.
 	 * Scalar values in the cache will always be strings, so we must compare string values.
 	 */
@@ -2152,7 +2141,7 @@ function update_network_option( $network_id, $option, $value ) {
 		'new' => $value,
 	);
 
-	foreach ( $values as $_key => $_value ) {
+	foreach ( $values as $_key => &$_value ) {
 		// Special handling for false-ish values.
 		if ( false === $_value ) {
 			$_value = '0';
@@ -2168,6 +2157,17 @@ function update_network_option( $network_id, $option, $value ) {
 	}
 
 	if ( $values['old'] === $values['new'] ) {
+		return false;
+	}
+
+	/*
+	 * Unserialized values will be adequate in most cases. If the unserialized
+	 * data differs, the (maybe) serialized data is checked to avoid
+	 * unnecessary database calls for otherwise identical object instances.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/44956
+	 */
+	if ( maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
 		return false;
 	}
 

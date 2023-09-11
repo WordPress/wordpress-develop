@@ -315,6 +315,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22192
+	 *
+	 * @covers ::add_option
 	 */
 	public function test_add_option_with_value_of_false_should_store_false_in_the_cache() {
 		add_option( 'foo', false );
@@ -324,6 +326,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22192
+	 *
+	 * @covers ::add_option
 	 */
 	public function test_add_option_with_value_of_false_should_store_empty_string_in_the_database() {
 		add_option( 'foo', false );
@@ -337,7 +341,13 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	/**
 	 * @ticket 22192
 	 *
+	 * @covers ::add_option
+	 * @covers ::update_option
+	 *
 	 * @dataProvider data_update_option_type_juggling
+	 *
+	 * @param mixed $old_value One of the values to compare.
+	 * @param mixed $new_value The other value to compare.
 	 */
 	public function test_update_option_should_hit_cache_when_loosely_equal_to_existing_value_and_cached_values_are_faithful_to_original_type( $old_value, $new_value ) {
 		add_option( 'foo', $old_value );
@@ -345,14 +355,20 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$updated = update_option( 'foo', $new_value );
 
-		$this->assertFalse( $updated );
-		$this->assertSame( $num_queries, get_num_queries() );
+		$this->assertFalse( $updated, 'update_option should not return true when values are loosely equal.' );
+		$this->assertSame( $num_queries, get_num_queries(), 'The number of database queries should not change.' );
 	}
 
 	/**
 	 * @ticket 22192
 	 *
+	 * @covers ::add_option
+	 * @covers ::update_option
+	 *
 	 * @dataProvider data_update_option_type_juggling
+	 *
+	 * @param mixed $old_value One of the values to compare.
+	 * @param mixed $new_value The other value to compare.
 	 */
 	public function test_update_option_should_hit_cache_when_loosely_equal_to_existing_value_and_cached_values_are_pulled_from_the_database( $old_value, $new_value ) {
 		add_option( 'foo', $old_value );
@@ -363,8 +379,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$updated = update_option( 'foo', $new_value );
 
-		$this->assertFalse( $updated );
-		$this->assertSame( $num_queries, get_num_queries() );
+		$this->assertFalse( $updated, 'update_option should not return true when values are loosely equal.' );
+		$this->assertSame( $num_queries, get_num_queries(), 'The number of database queries should not change.' );
 	}
 
 	/**
@@ -392,7 +408,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( true, floatval( 1 ) ),
 			array( true, true ),
 
-			// Falsey
+			// Falsey.
 			array( '0', '0' ),
 			array( '0', intval( 0 ) ),
 			array( '0', floatval( 0 ) ),
