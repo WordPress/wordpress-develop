@@ -36,4 +36,3 @@ class Tests_Formatting_Ent2ncr extends WP_UnitTestCase {
 		return $data_provided;
 	}
 }
-
