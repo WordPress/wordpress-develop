@@ -7333,7 +7333,10 @@ function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = 
  * @param string|array  $post_type Optional. Post type or an array of post types. If 'any' is passed then post type is read from post objects. . Default 'any'.
  */
 function update_post_term_caches( $posts, $post_type = 'any' ) {
-	$post_ids = wp_list_pluck( $posts, 'ID' );
+	$post_ids = array();
+	foreach ( $posts as $post ) {
+		$post_ids[] = $post->ID;
+	}
 
 	if ( ! $post_type ) {
 		$post_type = 'any';
