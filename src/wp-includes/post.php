@@ -7758,6 +7758,7 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
  *
  * @since 3.4.0
  * @since 6.1.0 This function is no longer marked as "private".
+ * @since 6.2.0 The first parameter can now alternatively be a list of post objects.
  *
  * @see update_post_cache()
  * @see update_postmeta_cache()
@@ -7765,16 +7766,50 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int[] $ids               ID list.
- * @param bool  $update_term_cache Optional. Whether to update the term cache. Default true.
- * @param bool  $update_meta_cache Optional. Whether to update the meta cache. Default true.
+ * @param int[]|WP_Post[] $posts             List of post IDs or post objects.
+ * @param bool            $update_term_cache Optional. Whether to update the term cache. Default true.
+ * @param bool            $update_meta_cache Optional. Whether to update the meta cache. Default true.
  */
-function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache = true ) {
+function _prime_post_caches( $posts, $update_term_cache = true, $update_meta_cache = true ) {
 	global $wpdb;
+
+	$ids     = array();
+	$objects = array();
+	foreach ( $posts as $post ) {
+		if ( is_object( $post ) ) {
+			$ids[]                = $post->ID;
+			$objects[ $post->ID ] = $post;
+		} else {
+			$ids[] = $post;
+		}
+	}
 
 	$non_cached_ids = _get_non_cached_ids( $ids, 'posts' );
 	if ( ! empty( $non_cached_ids ) ) {
-		$fresh_posts = $wpdb->get_results( sprintf( "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN (%s)", implode( ',', $non_cached_ids ) ) );
+		$fresh_posts = array();
+
+		/*
+		 * If post objects were passed, check those first for the non cached IDs.
+		 * If post objects are present for all non cached IDs, no additional database query
+		 * needs to be made.
+		 */
+		if ( ! empty( $objects ) ) {
+			$fresh_posts  = array_intersect_key( $objects, array_flip( $non_cached_ids ) );
+			$ids_to_query = array_diff( $non_cached_ids, array_keys( $fresh_posts ) );
+			$fresh_posts  = array_values( $fresh_posts );
+		} else {
+			$ids_to_query = $non_cached_ids;
+		}
+
+		// Only make the database query if there are IDs that aren't present as objects already.
+		if ( ! empty( $ids_to_query ) ) {
+			$queried_fresh_posts = $wpdb->get_results( sprintf( "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN (%s)", implode( ',', $ids_to_query ) ) );
+			if ( $queried_fresh_posts ) {
+				foreach ( $queried_fresh_posts as $post ) {
+					$fresh_posts[] = $post;
+				}
+			}
+		}
 
 		if ( $fresh_posts ) {
 			// Despite the name, update_post_cache() expects an array rather than a single post.

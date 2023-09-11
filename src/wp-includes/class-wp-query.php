@@ -3529,7 +3529,7 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 
 			if ( $q['cache_results'] ) {
-				update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				_prime_post_caches( $this->posts, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 			}
 
 			/** @var WP_Post */

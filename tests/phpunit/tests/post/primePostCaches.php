@@ -226,4 +226,61 @@ class Tests_Post_PrimePostCaches extends WP_UnitTestCase {
 
 		$this->assertSame( 0, $num_queries, 'Unexpected number of queries.' );
 	}
+
+	/**
+	 * @ticket 57498
+	 */
+	public function test_prime_post_caches_with_objects_does_not_make_query() {
+		// Get post objects, then invalidate cache to simulate them not being in cache.
+		$post_objects = array_map( 'get_post', self::$posts );
+		foreach ( self::$posts as $post_id ) {
+			wp_cache_delete( $post_id, 'posts' );
+		}
+		$this->assertSame( self::$posts, _get_non_cached_ids( self::$posts, 'posts' ), 'Posts are already cached.' );
+
+		// Because we are passing the objects, no query should be made to get them from the database.
+		$before_num_queries = get_num_queries();
+		_prime_post_caches( $post_objects, false, false );
+		$num_queries = get_num_queries() - $before_num_queries;
+
+		$this->assertSame( 0, $num_queries, 'Unexpected number of queries.' );
+	}
+
+	/**
+	 * @ticket 57498
+	 */
+	public function test_prime_post_caches_with_objects_queries_only_those_needed() {
+		global $wpdb;
+
+		// Get first post object, then invalidate cache to simulate it not being in cache.
+		$first_post_object = get_post( self::$posts[0] );
+		wp_cache_delete( self::$posts[0], 'posts' );
+		$this->assertSame( self::$posts, _get_non_cached_ids( self::$posts, 'posts' ), 'Posts are already cached.' );
+
+		// Because we pass one post as an object, the query should be made only for the other two.
+		$before_num_queries = get_num_queries();
+		$query              = '';
+		add_filter(
+			'query',
+			function( $q ) use ( &$query ) {
+				$query = $q;
+				return $q;
+			}
+		);
+		_prime_post_caches(
+			array(
+				$first_post_object,
+				self::$posts[1],
+				self::$posts[2],
+			),
+			false,
+			false
+		);
+		$num_queries = get_num_queries() - $before_num_queries;
+
+		$this->assertSame( 1, $num_queries, 'Unexpected number of queries.' );
+
+		$expected_query = sprintf( "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN (%s)", implode( ',', array( self::$posts[1], self::$posts[2] ) ) );
+		$this->assertSame( $expected_query, $query, 'Query included unnecessary post IDs.' );
+	}
 }
