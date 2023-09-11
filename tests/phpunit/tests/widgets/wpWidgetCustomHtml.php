@@ -353,5 +353,4 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
 		$this->assertStringNotContainsString( 'rel="noopener"', $output );
 	}
-
 }

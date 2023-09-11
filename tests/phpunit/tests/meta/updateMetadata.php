@@ -105,5 +105,4 @@ class Tests_Meta_UpdateMetadata extends WP_UnitTestCase {
 		$found = get_metadata( 'post', $post_id, 'key', true );
 		$this->assertSame( 'value2', $found );
 	}
-
 }

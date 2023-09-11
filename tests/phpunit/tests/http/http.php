@@ -292,7 +292,6 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		get_status_header_desc( 200 );
 
 		$this->assertSame( array_keys( $wp_header_to_desc ), array_values( $constants ) );
-
 	}
 
 	/**
