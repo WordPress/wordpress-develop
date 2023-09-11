@@ -736,7 +736,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 					)
 				);
 
-				$latest_revision_id++;
+				++$latest_revision_id;
 			}
 		}
 
@@ -784,7 +784,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 					)
 				);
 
-				$latest_revision_id++;
+				++$latest_revision_id;
 			}
 		}
 
