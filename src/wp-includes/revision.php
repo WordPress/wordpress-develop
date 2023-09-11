@@ -377,7 +377,7 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
 	$post = _wp_post_revision_data( $post, $autosave );
 	$post = wp_slash( $post ); // Since data is from DB.
 
-	$revision_id = wp_insert_post( $post, true, false );
+	$revision_id = wp_insert_post( $post, true );
 	if ( is_wp_error( $revision_id ) ) {
 		return $revision_id;
 	}
