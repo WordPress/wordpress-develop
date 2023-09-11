@@ -60,7 +60,7 @@ if ( ! class_exists( 'TwentyTwenty_Script_Loader' ) ) {
 				'defer' => (bool) wp_scripts()->get_data( $handle, 'defer' ),
 			);
 			$strategy   = wp_scripts()->get_data( $handle, 'strategy' );
-			if ( in_array( $strategy, array( 'async', 'defer' ), true ) ) {
+			if ( $strategy && isset( $strategies[ $strategy ] ) ) {
 				$strategies[ $strategy ] = true;
 			}
 
