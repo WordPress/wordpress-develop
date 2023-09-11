@@ -393,7 +393,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$expected_filter_count = did_filter( 'wp_theme_json_data_default' );
 		$actual                = WP_Theme_JSON_Resolver::get_core_data();
 		if ( $should_fire_filter ) {
-			$expected_filter_count++;
+			++$expected_filter_count;
 		}
 
 		$this->assertSame( $expected_filter_count, did_filter( 'wp_theme_json_data_default' ), 'The filter "wp_theme_json_data_default" should fire the given number of times' );
