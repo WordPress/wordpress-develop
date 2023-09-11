@@ -1168,16 +1168,54 @@ function parse_blocks( $content ) {
  * Parses dynamic blocks out of `post_content` and re-renders them.
  *
  * @since 5.0.0
+ * @since 6.4.0 The $context parameter was added.
+ *
+ * @global WP_Query $wp_query
  *
  * @param string $content Post content.
+ * @param string $context Optional. Additional context to parse blocks.
+ *                        Defaults to `current_filter()` when not set.
  * @return string Updated post content.
  */
-function do_blocks( $content ) {
-	$blocks = parse_blocks( $content );
-	$output = '';
+function do_blocks( $content, $context = null ) {
+	global $wp_query;
 
-	foreach ( $blocks as $block ) {
-		$output .= render_block( $block );
+	if ( null === $context ) {
+		$context = current_filter();
+	}
+
+	/*
+	 * Most block themes omit the `core/query` and `core/post-template` blocks in their singular content templates.
+	 * While this technically still works since singular content templates are always for only one post, it results in
+	 * the main query loop never being entered which causes bugs in core and the plugin ecosystem.
+	 *
+	 * The workaround below ensures that the loop is started even for those singular templates. The while loop will by
+	 * definition only go through a single iteration, i.e. `do_blocks()` is only called once. Additional safeguard
+	 * checks are included to ensure the main query loop has not been tampered with and really only encompasses a
+	 * single post.
+	 *
+	 * Even if the block template contained a `core/query` and `core/post-template` block referencing the main query
+	 * loop, it would not cause errors since it would use a cloned instance and go through the same loop of a single
+	 * post, within the actual main query loop.
+	 */
+	if ( 'template' === $context && is_singular() && 1 === $wp_query->post_count && have_posts() ) {
+		while ( have_posts() ) {
+			the_post();
+
+			$blocks = parse_blocks( $content );
+			$output = '';
+
+			foreach ( $blocks as $block ) {
+				$output .= render_block( $block );
+			}
+		}
+	} else {
+		$blocks = parse_blocks( $content );
+		$output = '';
+
+		foreach ( $blocks as $block ) {
+			$output .= render_block( $block );
+		}
 	}
 
 	// If there are blocks in this content, we shouldn't run wpautop() on it later.
