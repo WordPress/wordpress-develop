@@ -270,6 +270,21 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$result   = register_block_script_handle( $metadata, 'script' );
 
 		$this->assertSame( 'unit-tests-test-block-script', $result );
+
+		// Test the behavior directly within the unit test
+		$this->assertFalse(
+			strpos(
+				wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $metadata['script'] ) ),
+				trailingslashit( wp_normalize_path( get_template_directory() ) )
+			) === 0
+		);
+
+		$this->assertFalse(
+			strpos(
+				wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $metadata['script'] ) ),
+				trailingslashit( wp_normalize_path( get_stylesheet_directory() ) )
+			) === 0
+		);
 	}
 
 	/**
@@ -437,6 +452,21 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSame(
 			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
 			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
+		);
+
+		// Test the behavior directly within the unit test
+		$this->assertFalse(
+			strpos(
+				wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $metadata['style'] ) ),
+				trailingslashit( wp_normalize_path( get_template_directory() ) )
+			) === 0
+		);
+
+		$this->assertFalse(
+			strpos(
+				wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $metadata['style'] ) ),
+				trailingslashit( wp_normalize_path( get_stylesheet_directory() ) )
+			) === 0
 		);
 	}
 
