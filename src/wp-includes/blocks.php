@@ -432,7 +432,6 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'usesContext'     => 'uses_context',
 		'selectors'       => 'selectors',
 		'supports'        => 'supports',
-		'blockHooks'      => 'block_hooks',
 		'styles'          => 'styles',
 		'variations'      => 'variations',
 		'example'         => 'example',
@@ -511,6 +510,39 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 				}
 			}
 			$settings[ $settings_field_name ] = $processed_styles;
+		}
+	}
+
+	if ( ! empty( $metadata['blockHooks'] ) ) {
+		/**
+		 * Map camelCased position string (from block.json) to snake_cased block type position.
+		 *
+		 * @var array
+		 */
+		$position_mappings = array(
+			'before'     => 'before',
+			'after'      => 'after',
+			'firstChild' => 'first_child',
+			'lastChild'  => 'last_child',
+		);
+
+		$settings['block_hooks'] = array();
+		foreach ( $metadata['blockHooks'] as $anchor_block_name => $position ) {
+			// Avoid infinite recursion (hooking to itself).
+			if ( $metadata['name'] === $anchor_block_name ) {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'Cannot hook block to itself.', 'gutenberg' ),
+					'6.4.0'
+				);
+				continue;
+			}
+
+			if ( ! isset( $position_mappings[ $position ] ) ) {
+				continue;
+			}
+
+			$settings['block_hooks'][ $anchor_block_name ] = $position_mappings[ $position ];
 		}
 	}
 
