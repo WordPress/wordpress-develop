@@ -1647,7 +1647,6 @@ function get_hooked_blocks( $name ) {
 	$hooked_blocks = array();
 	foreach ( $block_types as $block_type ) {
 		foreach ( $block_type->block_hooks as $anchor_block_type => $relative_position ) {
-			echo "$anchor_block_type $name\n";
 			if ( $anchor_block_type === $name ) {
 				$hooked_blocks[ $block_type->name ] = $relative_position;
 			}
