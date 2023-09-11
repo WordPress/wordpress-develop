@@ -702,6 +702,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	 * If fields have filtered, cached results should work.
 	 *
 	 * @ticket 58116
+	 * @group cache
 	 */
 	public function test_query_filter_fields() {
 		$post_id = self::factory()->post->create();
@@ -758,6 +759,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	 * If fields have filtered, cached results should work.
 	 *
 	 * @ticket 58116
+	 * @group cache
 	 */
 	public function test_query_filter_select_fields() {
 		$post_id = self::factory()->post->create();
