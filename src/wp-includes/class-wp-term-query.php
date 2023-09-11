@@ -739,6 +739,8 @@ class WP_Term_Query {
 		$order    = isset( $clauses['order'] ) ? $clauses['order'] : '';
 		$limits   = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
 
+		$fields_is_filtered = implode( ', ', $selects ) !== $fields;
+
 		if ( $where ) {
 			$where = "WHERE $where";
 		}
@@ -784,391 +786,387 @@ class WP_Term_Query {
 					$cache = array_map( 'intval', $cache );
 				} elseif ( 'count' !== $_fields ) {
 					if ( ( 'all_with_object_id' === $_fields && ! empty( $args['object_ids'] ) )
-						|| ( 'all' === $_fields && $args['pad_counts'] )
+					|| ( 'all' === $_fields && $args['pad_counts'] || $fields_is_filtered )
 					) {
 						$term_ids = wp_list_pluck( $cache, 'term_id' );
 					} else {
 						$term_ids = array_map( 'intval', $cache );
 					}
 
-					_prime_term_caches( $term_ids, $args['update_term_meta_cache'] );
-
-					$term_objects = $this->populate_terms( $cache );
-					$cache        = $this->format_terms( $term_objects, $_fields );
-				}
-
-				$this->terms = $cache;
-				return $this->terms;
-			}
-		}
-
-		if ( 'count' === $_fields ) {
-			$count = $wpdb->get_var( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-			if ( $args['cache_results'] ) {
-				wp_cache_set( $cache_key, $count, 'term-queries' );
-			}
-			return $count;
-		}
-
-		$terms = $wpdb->get_results( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-
-		if ( empty( $terms ) ) {
-			if ( $args['cache_results'] ) {
-				wp_cache_add( $cache_key, array(), 'term-queries' );
-			}
-			return array();
-		}
-
-		$term_ids = wp_list_pluck( $terms, 'term_id' );
-		_prime_term_caches( $term_ids, false );
-		$term_objects = $this->populate_terms( $terms );
-
-		if ( $child_of ) {
-			foreach ( $taxonomies as $_tax ) {
-				$children = _get_term_hierarchy( $_tax );
-				if ( ! empty( $children ) ) {
-					$term_objects = _get_term_children( $child_of, $term_objects, $_tax );
+					$this->terms = $cache;
+					return $this->terms;
 				}
 			}
-		}
 
-		// Update term counts to include children.
-		if ( $args['pad_counts'] && 'all' === $_fields ) {
-			foreach ( $taxonomies as $_tax ) {
-				_pad_term_counts( $term_objects, $_tax );
+			if ( 'count' === $_fields ) {
+				$count = $wpdb->get_var( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				if ( $args['cache_results'] ) {
+					wp_cache_set( $cache_key, $count, 'term-queries' );
+				}
+				return $count;
 			}
-		}
 
-		// Make sure we show empty categories that have children.
-		if ( $hierarchical && $args['hide_empty'] && is_array( $term_objects ) ) {
-			foreach ( $term_objects as $k => $term ) {
-				if ( ! $term->count ) {
-					$children = get_term_children( $term->term_id, $term->taxonomy );
+			$terms = $wpdb->get_results( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-					if ( is_array( $children ) ) {
-						foreach ( $children as $child_id ) {
-							$child = get_term( $child_id, $term->taxonomy );
-							if ( $child->count ) {
-								continue 2;
+			if ( empty( $terms ) ) {
+				if ( $args['cache_results'] ) {
+					wp_cache_add( $cache_key, array(), 'term-queries' );
+				}
+				return array();
+			}
+
+			$term_ids = wp_list_pluck( $terms, 'term_id' );
+			_prime_term_caches( $term_ids, false );
+			$term_objects = $this->populate_terms( $terms );
+
+			if ( $child_of ) {
+				foreach ( $taxonomies as $_tax ) {
+					$children = _get_term_hierarchy( $_tax );
+					if ( ! empty( $children ) ) {
+						$term_objects = _get_term_children( $child_of, $term_objects, $_tax );
+					}
+				}
+			}
+
+			// Update term counts to include children.
+			if ( $args['pad_counts'] && 'all' === $_fields ) {
+				foreach ( $taxonomies as $_tax ) {
+					_pad_term_counts( $term_objects, $_tax );
+				}
+			}
+
+			// Make sure we show empty categories that have children.
+			if ( $hierarchical && $args['hide_empty'] && is_array( $term_objects ) ) {
+				foreach ( $term_objects as $k => $term ) {
+					if ( ! $term->count ) {
+						$children = get_term_children( $term->term_id, $term->taxonomy );
+
+						if ( is_array( $children ) ) {
+							foreach ( $children as $child_id ) {
+								$child = get_term( $child_id, $term->taxonomy );
+								if ( $child->count ) {
+									continue 2;
+								}
 							}
 						}
-					}
 
-					// It really is empty.
-					unset( $term_objects[ $k ] );
+						// It really is empty.
+						unset( $term_objects[ $k ] );
+					}
 				}
 			}
-		}
 
-		// Hierarchical queries are not limited, so 'offset' and 'number' must be handled now.
-		if ( $hierarchical && $number && is_array( $term_objects ) ) {
-			if ( $offset >= count( $term_objects ) ) {
-				$term_objects = array();
+			// Hierarchical queries are not limited, so 'offset' and 'number' must be handled now.
+			if ( $hierarchical && $number && is_array( $term_objects ) ) {
+				if ( $offset >= count( $term_objects ) ) {
+					$term_objects = array();
+				} else {
+					$term_objects = array_slice( $term_objects, $offset, $number, true );
+				}
+			}
+
+			// Prime termmeta cache.
+			if ( $args['update_term_meta_cache'] ) {
+				$term_ids = wp_list_pluck( $term_objects, 'term_id' );
+				wp_lazyload_term_meta( $term_ids );
+			}
+
+			if ( 'all_with_object_id' === $_fields && ! empty( $args['object_ids'] ) ) {
+				$term_cache = array();
+				foreach ( $term_objects as $term ) {
+					$object            = new stdClass();
+					$object->term_id   = $term->term_id;
+					$object->object_id = $term->object_id;
+					$term_cache[]      = $object;
+				}
+			} elseif ( 'all' === $_fields && $args['pad_counts'] ) {
+				$term_cache = array();
+				foreach ( $term_objects as $term ) {
+					$object          = new stdClass();
+					$object->term_id = $term->term_id;
+					$object->count   = $term->count;
+					$term_cache[]    = $object;
+				}
+			} elseif ( $fields_is_filtered ) {
+				$term_cache = $term_objects;
 			} else {
-				$term_objects = array_slice( $term_objects, $offset, $number, true );
+				$term_cache = wp_list_pluck( $term_objects, 'term_id' );
 			}
-		}
-
-		// Prime termmeta cache.
-		if ( $args['update_term_meta_cache'] ) {
-			$term_ids = wp_list_pluck( $term_objects, 'term_id' );
-			wp_lazyload_term_meta( $term_ids );
-		}
-
-		if ( 'all_with_object_id' === $_fields && ! empty( $args['object_ids'] ) ) {
-			$term_cache = array();
-			foreach ( $term_objects as $term ) {
-				$object            = new stdClass();
-				$object->term_id   = $term->term_id;
-				$object->object_id = $term->object_id;
-				$term_cache[]      = $object;
+			if ( $args['cache_results'] ) {
+				wp_cache_add( $cache_key, $term_cache, 'term-queries' );
 			}
-		} elseif ( 'all' === $_fields && $args['pad_counts'] ) {
-			$term_cache = array();
-			foreach ( $term_objects as $term ) {
-				$object          = new stdClass();
-				$object->term_id = $term->term_id;
-				$object->count   = $term->count;
-				$term_cache[]    = $object;
-			}
-		} else {
-			$term_cache = wp_list_pluck( $term_objects, 'term_id' );
-		}
-		if ( $args['cache_results'] ) {
-			wp_cache_add( $cache_key, $term_cache, 'term-queries' );
-		}
-		$this->terms = $this->format_terms( $term_objects, $_fields );
+			$this->terms = $this->format_terms( $term_objects, $_fields );
 
-		return $this->terms;
-	}
-
-	/**
-	 * Parse and sanitize 'orderby' keys passed to the term query.
-	 *
-	 * @since 4.6.0
-	 *
-	 * @param string $orderby_raw Alias for the field to order by.
-	 * @return string|false Value to used in the ORDER clause. False otherwise.
-	 */
-	protected function parse_orderby( $orderby_raw ) {
-		$_orderby           = strtolower( $orderby_raw );
-		$maybe_orderby_meta = false;
-
-		if ( in_array( $_orderby, array( 'term_id', 'name', 'slug', 'term_group' ), true ) ) {
-			$orderby = "t.$_orderby";
-		} elseif ( in_array( $_orderby, array( 'count', 'parent', 'taxonomy', 'term_taxonomy_id', 'description' ), true ) ) {
-			$orderby = "tt.$_orderby";
-		} elseif ( 'term_order' === $_orderby ) {
-			$orderby = 'tr.term_order';
-		} elseif ( 'include' === $_orderby && ! empty( $this->query_vars['include'] ) ) {
-			$include = implode( ',', wp_parse_id_list( $this->query_vars['include'] ) );
-			$orderby = "FIELD( t.term_id, $include )";
-		} elseif ( 'slug__in' === $_orderby && ! empty( $this->query_vars['slug'] ) && is_array( $this->query_vars['slug'] ) ) {
-			$slugs   = implode( "', '", array_map( 'sanitize_title_for_query', $this->query_vars['slug'] ) );
-			$orderby = "FIELD( t.slug, '" . $slugs . "')";
-		} elseif ( 'none' === $_orderby ) {
-			$orderby = '';
-		} elseif ( empty( $_orderby ) || 'id' === $_orderby || 'term_id' === $_orderby ) {
-			$orderby = 't.term_id';
-		} else {
-			$orderby = 't.name';
-
-			// This may be a value of orderby related to meta.
-			$maybe_orderby_meta = true;
+			return $this->terms;
 		}
 
 		/**
-		 * Filters the ORDERBY clause of the terms query.
+		 * Parse and sanitize 'orderby' keys passed to the term query.
 		 *
-		 * @since 2.8.0
+		 * @since 4.6.0
 		 *
-		 * @param string   $orderby    `ORDERBY` clause of the terms query.
-		 * @param array    $args       An array of term query arguments.
-		 * @param string[] $taxonomies An array of taxonomy names.
+		 * @param string $orderby_raw Alias for the field to order by.
+		 * @return string|false Value to used in the ORDER clause. False otherwise.
 		 */
-		$orderby = apply_filters( 'get_terms_orderby', $orderby, $this->query_vars, $this->query_vars['taxonomy'] );
+		protected function parse_orderby( $orderby_raw ) {
+			$_orderby           = strtolower( $orderby_raw );
+			$maybe_orderby_meta = false;
 
-		// Run after the 'get_terms_orderby' filter for backward compatibility.
-		if ( $maybe_orderby_meta ) {
-			$maybe_orderby_meta = $this->parse_orderby_meta( $_orderby );
+			if ( in_array( $_orderby, array( 'term_id', 'name', 'slug', 'term_group' ), true ) ) {
+				$orderby = "t.$_orderby";
+			} elseif ( in_array( $_orderby, array( 'count', 'parent', 'taxonomy', 'term_taxonomy_id', 'description' ), true ) ) {
+				$orderby = "tt.$_orderby";
+			} elseif ( 'term_order' === $_orderby ) {
+				$orderby = 'tr.term_order';
+			} elseif ( 'include' === $_orderby && ! empty( $this->query_vars['include'] ) ) {
+				$include = implode( ',', wp_parse_id_list( $this->query_vars['include'] ) );
+				$orderby = "FIELD( t.term_id, $include )";
+			} elseif ( 'slug__in' === $_orderby && ! empty( $this->query_vars['slug'] ) && is_array( $this->query_vars['slug'] ) ) {
+				$slugs   = implode( "', '", array_map( 'sanitize_title_for_query', $this->query_vars['slug'] ) );
+				$orderby = "FIELD( t.slug, '" . $slugs . "')";
+			} elseif ( 'none' === $_orderby ) {
+				$orderby = '';
+			} elseif ( empty( $_orderby ) || 'id' === $_orderby || 'term_id' === $_orderby ) {
+				$orderby = 't.term_id';
+			} else {
+				$orderby = 't.name';
+
+				// This may be a value of orderby related to meta.
+				$maybe_orderby_meta = true;
+			}
+
+			/**
+			 * Filters the ORDERBY clause of the terms query.
+			 *
+			 * @since 2.8.0
+			 *
+			 * @param string   $orderby    `ORDERBY` clause of the terms query.
+			 * @param array    $args       An array of term query arguments.
+			 * @param string[] $taxonomies An array of taxonomy names.
+			 */
+			$orderby = apply_filters( 'get_terms_orderby', $orderby, $this->query_vars, $this->query_vars['taxonomy'] );
+
+			// Run after the 'get_terms_orderby' filter for backward compatibility.
 			if ( $maybe_orderby_meta ) {
-				$orderby = $maybe_orderby_meta;
+				$maybe_orderby_meta = $this->parse_orderby_meta( $_orderby );
+				if ( $maybe_orderby_meta ) {
+					$orderby = $maybe_orderby_meta;
+				}
 			}
-		}
 
-		return $orderby;
-	}
-
-	/**
-	 * Format response depending on field requested.
-	 *
-	 * @since 6.0.0
-	 *
-	 * @param WP_Term[] $term_objects Array of term objects.
-	 * @param string    $_fields      Field to format.
-	 *
-	 * @return WP_Term[]|int[]|string[] Array of terms / strings / ints depending on field requested.
-	 */
-	protected function format_terms( $term_objects, $_fields ) {
-		$_terms = array();
-		if ( 'id=>parent' === $_fields ) {
-			foreach ( $term_objects as $term ) {
-				$_terms[ $term->term_id ] = $term->parent;
-			}
-		} elseif ( 'ids' === $_fields ) {
-			foreach ( $term_objects as $term ) {
-				$_terms[] = (int) $term->term_id;
-			}
-		} elseif ( 'tt_ids' === $_fields ) {
-			foreach ( $term_objects as $term ) {
-				$_terms[] = (int) $term->term_taxonomy_id;
-			}
-		} elseif ( 'names' === $_fields ) {
-			foreach ( $term_objects as $term ) {
-				$_terms[] = $term->name;
-			}
-		} elseif ( 'slugs' === $_fields ) {
-			foreach ( $term_objects as $term ) {
-				$_terms[] = $term->slug;
-			}
-		} elseif ( 'id=>name' === $_fields ) {
-			foreach ( $term_objects as $term ) {
-				$_terms[ $term->term_id ] = $term->name;
-			}
-		} elseif ( 'id=>slug' === $_fields ) {
-			foreach ( $term_objects as $term ) {
-				$_terms[ $term->term_id ] = $term->slug;
-			}
-		} elseif ( 'all' === $_fields || 'all_with_object_id' === $_fields ) {
-			$_terms = $term_objects;
-		}
-
-		return $_terms;
-	}
-
-	/**
-	 * Generate the ORDER BY clause for an 'orderby' param that is potentially related to a meta query.
-	 *
-	 * @since 4.6.0
-	 *
-	 * @param string $orderby_raw Raw 'orderby' value passed to WP_Term_Query.
-	 * @return string ORDER BY clause.
-	 */
-	protected function parse_orderby_meta( $orderby_raw ) {
-		$orderby = '';
-
-		// Tell the meta query to generate its SQL, so we have access to table aliases.
-		$this->meta_query->get_sql( 'term', 't', 'term_id' );
-		$meta_clauses = $this->meta_query->get_clauses();
-		if ( ! $meta_clauses || ! $orderby_raw ) {
 			return $orderby;
 		}
 
-		$allowed_keys       = array();
-		$primary_meta_key   = null;
-		$primary_meta_query = reset( $meta_clauses );
-		if ( ! empty( $primary_meta_query['key'] ) ) {
-			$primary_meta_key = $primary_meta_query['key'];
-			$allowed_keys[]   = $primary_meta_key;
-		}
-		$allowed_keys[] = 'meta_value';
-		$allowed_keys[] = 'meta_value_num';
-		$allowed_keys   = array_merge( $allowed_keys, array_keys( $meta_clauses ) );
+		/**
+		 * Format response depending on field requested.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param WP_Term[] $term_objects Array of term objects.
+		 * @param string    $_fields      Field to format.
+		 *
+		 * @return WP_Term[]|int[]|string[] Array of terms / strings / ints depending on field requested.
+		 */
+		protected function format_terms( $term_objects, $_fields ) {
+			$_terms = array();
+			if ( 'id=>parent' === $_fields ) {
+				foreach ( $term_objects as $term ) {
+					$_terms[ $term->term_id ] = $term->parent;
+				}
+			} elseif ( 'ids' === $_fields ) {
+				foreach ( $term_objects as $term ) {
+					$_terms[] = (int) $term->term_id;
+				}
+			} elseif ( 'tt_ids' === $_fields ) {
+				foreach ( $term_objects as $term ) {
+					$_terms[] = (int) $term->term_taxonomy_id;
+				}
+			} elseif ( 'names' === $_fields ) {
+				foreach ( $term_objects as $term ) {
+					$_terms[] = $term->name;
+				}
+			} elseif ( 'slugs' === $_fields ) {
+				foreach ( $term_objects as $term ) {
+					$_terms[] = $term->slug;
+				}
+			} elseif ( 'id=>name' === $_fields ) {
+				foreach ( $term_objects as $term ) {
+					$_terms[ $term->term_id ] = $term->name;
+				}
+			} elseif ( 'id=>slug' === $_fields ) {
+				foreach ( $term_objects as $term ) {
+					$_terms[ $term->term_id ] = $term->slug;
+				}
+			} elseif ( 'all' === $_fields || 'all_with_object_id' === $_fields ) {
+				$_terms = $term_objects;
+			}
 
-		if ( ! in_array( $orderby_raw, $allowed_keys, true ) ) {
+			return $_terms;
+		}
+
+		/**
+		 * Generate the ORDER BY clause for an 'orderby' param that is potentially related to a meta query.
+		 *
+		 * @since 4.6.0
+		 *
+		 * @param string $orderby_raw Raw 'orderby' value passed to WP_Term_Query.
+		 * @return string ORDER BY clause.
+		 */
+		protected function parse_orderby_meta( $orderby_raw ) {
+			$orderby = '';
+
+			// Tell the meta query to generate its SQL, so we have access to table aliases.
+			$this->meta_query->get_sql( 'term', 't', 'term_id' );
+			$meta_clauses = $this->meta_query->get_clauses();
+			if ( ! $meta_clauses || ! $orderby_raw ) {
+				return $orderby;
+			}
+
+			$allowed_keys       = array();
+			$primary_meta_key   = null;
+			$primary_meta_query = reset( $meta_clauses );
+			if ( ! empty( $primary_meta_query['key'] ) ) {
+				$primary_meta_key = $primary_meta_query['key'];
+				$allowed_keys[]   = $primary_meta_key;
+			}
+			$allowed_keys[] = 'meta_value';
+			$allowed_keys[] = 'meta_value_num';
+			$allowed_keys   = array_merge( $allowed_keys, array_keys( $meta_clauses ) );
+
+			if ( ! in_array( $orderby_raw, $allowed_keys, true ) ) {
+				return $orderby;
+			}
+
+			switch ( $orderby_raw ) {
+				case $primary_meta_key:
+				case 'meta_value':
+					if ( ! empty( $primary_meta_query['type'] ) ) {
+						$orderby = "CAST({$primary_meta_query['alias']}.meta_value AS {$primary_meta_query['cast']})";
+					} else {
+						$orderby = "{$primary_meta_query['alias']}.meta_value";
+					}
+					break;
+
+				case 'meta_value_num':
+					$orderby = "{$primary_meta_query['alias']}.meta_value+0";
+					break;
+
+				default:
+					if ( array_key_exists( $orderby_raw, $meta_clauses ) ) {
+						// $orderby corresponds to a meta_query clause.
+						$meta_clause = $meta_clauses[ $orderby_raw ];
+						$orderby     = "CAST({$meta_clause['alias']}.meta_value AS {$meta_clause['cast']})";
+					}
+					break;
+			}
+
 			return $orderby;
 		}
 
-		switch ( $orderby_raw ) {
-			case $primary_meta_key:
-			case 'meta_value':
-				if ( ! empty( $primary_meta_query['type'] ) ) {
-					$orderby = "CAST({$primary_meta_query['alias']}.meta_value AS {$primary_meta_query['cast']})";
+		/**
+		 * Parse an 'order' query variable and cast it to ASC or DESC as necessary.
+		 *
+		 * @since 4.6.0
+		 *
+		 * @param string $order The 'order' query variable.
+		 * @return string The sanitized 'order' query variable.
+		 */
+		protected function parse_order( $order ) {
+			if ( ! is_string( $order ) || empty( $order ) ) {
+				return 'DESC';
+			}
+
+			if ( 'ASC' === strtoupper( $order ) ) {
+				return 'ASC';
+			} else {
+				return 'DESC';
+			}
+		}
+
+		/**
+		 * Used internally to generate a SQL string related to the 'search' parameter.
+		 *
+		 * @since 4.6.0
+		 *
+		 * @global wpdb $wpdb WordPress database abstraction object.
+		 *
+		 * @param string $search Search string.
+		 * @return string Search SQL.
+		 */
+		protected function get_search_sql( $search ) {
+			global $wpdb;
+
+			$like = '%' . $wpdb->esc_like( $search ) . '%';
+
+			return $wpdb->prepare( '((t.name LIKE %s) OR (t.slug LIKE %s))', $like, $like );
+		}
+
+		/**
+		 * Creates an array of term objects from an array of term IDs.
+		 *
+		 * Also discards invalid term objects.
+		 *
+		 * @since 4.9.8
+		 *
+		 * @param Object[]|int[] $terms List of objects or term ids.
+		 * @return WP_Term[] Array of `WP_Term` objects.
+		 */
+		protected function populate_terms( $terms ) {
+			$term_objects = array();
+			if ( ! is_array( $terms ) ) {
+				return $term_objects;
+			}
+
+			foreach ( $terms as $key => $term_data ) {
+				if ( is_object( $term_data ) && property_exists( $term_data, 'term_id' ) ) {
+					$term = get_term( $term_data->term_id );
+					if ( property_exists( $term_data, 'object_id' ) ) {
+						$term->object_id = (int) $term_data->object_id;
+					}
+					if ( property_exists( $term_data, 'count' ) ) {
+						$term->count = (int) $term_data->count;
+					}
 				} else {
-					$orderby = "{$primary_meta_query['alias']}.meta_value";
+					$term = get_term( $term_data );
 				}
-				break;
 
-			case 'meta_value_num':
-				$orderby = "{$primary_meta_query['alias']}.meta_value+0";
-				break;
-
-			default:
-				if ( array_key_exists( $orderby_raw, $meta_clauses ) ) {
-					// $orderby corresponds to a meta_query clause.
-					$meta_clause = $meta_clauses[ $orderby_raw ];
-					$orderby     = "CAST({$meta_clause['alias']}.meta_value AS {$meta_clause['cast']})";
+				if ( $term instanceof WP_Term ) {
+					$term_objects[ $key ] = $term;
 				}
-				break;
-		}
+			}
 
-		return $orderby;
-	}
-
-	/**
-	 * Parse an 'order' query variable and cast it to ASC or DESC as necessary.
-	 *
-	 * @since 4.6.0
-	 *
-	 * @param string $order The 'order' query variable.
-	 * @return string The sanitized 'order' query variable.
-	 */
-	protected function parse_order( $order ) {
-		if ( ! is_string( $order ) || empty( $order ) ) {
-			return 'DESC';
-		}
-
-		if ( 'ASC' === strtoupper( $order ) ) {
-			return 'ASC';
-		} else {
-			return 'DESC';
-		}
-	}
-
-	/**
-	 * Used internally to generate a SQL string related to the 'search' parameter.
-	 *
-	 * @since 4.6.0
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
-	 * @param string $search Search string.
-	 * @return string Search SQL.
-	 */
-	protected function get_search_sql( $search ) {
-		global $wpdb;
-
-		$like = '%' . $wpdb->esc_like( $search ) . '%';
-
-		return $wpdb->prepare( '((t.name LIKE %s) OR (t.slug LIKE %s))', $like, $like );
-	}
-
-	/**
-	 * Creates an array of term objects from an array of term IDs.
-	 *
-	 * Also discards invalid term objects.
-	 *
-	 * @since 4.9.8
-	 *
-	 * @param Object[]|int[] $terms List of objects or term ids.
-	 * @return WP_Term[] Array of `WP_Term` objects.
-	 */
-	protected function populate_terms( $terms ) {
-		$term_objects = array();
-		if ( ! is_array( $terms ) ) {
 			return $term_objects;
 		}
 
-		foreach ( $terms as $key => $term_data ) {
-			if ( is_object( $term_data ) && property_exists( $term_data, 'term_id' ) ) {
-				$term = get_term( $term_data->term_id );
-				if ( property_exists( $term_data, 'object_id' ) ) {
-					$term->object_id = (int) $term_data->object_id;
-				}
-				if ( property_exists( $term_data, 'count' ) ) {
-					$term->count = (int) $term_data->count;
-				}
-			} else {
-				$term = get_term( $term_data );
+		/**
+		 * Generate cache key.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @global wpdb $wpdb WordPress database abstraction object.
+		 *
+		 * @param array  $args WP_Term_Query arguments.
+		 * @param string $sql  SQL statement.
+		 *
+		 * @return string Cache key.
+		 */
+		protected function generate_cache_key( array $args, $sql ) {
+			global $wpdb;
+			// $args can be anything. Only use the args defined in defaults to compute the key.
+			$cache_args = wp_array_slice_assoc( $args, array_keys( $this->query_var_defaults ) );
+
+			unset( $cache_args['update_term_meta_cache'] );
+
+			if ( 'count' !== $args['fields'] && 'all_with_object_id' !== $args['fields'] ) {
+				$cache_args['fields'] = 'all';
 			}
+			$taxonomies = (array) $args['taxonomy'];
 
-			if ( $term instanceof WP_Term ) {
-				$term_objects[ $key ] = $term;
-			}
+			// Replace wpdb placeholder in the SQL statement used by the cache key.
+			$sql = $wpdb->remove_placeholder_escape( $sql );
+
+			$key          = md5( serialize( $cache_args ) . serialize( $taxonomies ) . $sql );
+			$last_changed = wp_cache_get_last_changed( 'terms' );
+			return "get_terms:$key:$last_changed";
 		}
-
-		return $term_objects;
 	}
-
-	/**
-	 * Generate cache key.
-	 *
-	 * @since 6.2.0
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
-	 * @param array  $args WP_Term_Query arguments.
-	 * @param string $sql  SQL statement.
-	 *
-	 * @return string Cache key.
-	 */
-	protected function generate_cache_key( array $args, $sql ) {
-		global $wpdb;
-		// $args can be anything. Only use the args defined in defaults to compute the key.
-		$cache_args = wp_array_slice_assoc( $args, array_keys( $this->query_var_defaults ) );
-
-		unset( $cache_args['update_term_meta_cache'] );
-
-		if ( 'count' !== $args['fields'] && 'all_with_object_id' !== $args['fields'] ) {
-			$cache_args['fields'] = 'all';
-		}
-		$taxonomies = (array) $args['taxonomy'];
-
-		// Replace wpdb placeholder in the SQL statement used by the cache key.
-		$sql = $wpdb->remove_placeholder_escape( $sql );
-
-		$key          = md5( serialize( $cache_args ) . serialize( $taxonomies ) . $sql );
-		$last_changed = wp_cache_get_last_changed( 'terms' );
-		return "get_terms:$key:$last_changed";
-	}
-}
