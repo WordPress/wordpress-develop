@@ -422,7 +422,7 @@ if ( is_multisite() ) :
 		public function test_get_blog_details_when_site_does_not_exist() {
 			// Create an unused site so that we can then assume an invalid site ID.
 			$blog_id = self::factory()->blog->create();
-			$blog_id++;
+			++$blog_id;
 
 			// Prime the cache for an invalid site.
 			get_blog_details( $blog_id );

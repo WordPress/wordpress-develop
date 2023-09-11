@@ -1662,8 +1662,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		// 3rd page.
 		self::factory()->post->create();
-		$total_posts++;
-		$total_pages++;
+		++$total_posts;
+		++$total_pages;
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );
@@ -2279,7 +2279,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_prepare_item_filters_content_when_needed() {
 		$filter_count   = 0;
 		$filter_content = static function() use ( &$filter_count ) {
-			$filter_count++;
+			++$filter_count;
 			return '<p>Filtered content.</p>';
 		};
 		add_filter( 'the_content', $filter_content );
@@ -2315,7 +2315,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_prepare_item_skips_content_filter_if_not_needed() {
 		$filter_count   = 0;
 		$filter_content = static function() use ( &$filter_count ) {
-			$filter_count++;
+			++$filter_count;
 			return '<p>Filtered content.</p>';
 		};
 		add_filter( 'the_content', $filter_content );
