@@ -3534,7 +3534,10 @@ class WP_Query {
 			}
 
 			if ( $q['update_post_meta_cache'] ) {
-				$post_ids = wp_list_pluck( $this->posts, 'ID' );
+				$post_ids = array();
+				foreach ( $posts as $post ) {
+					$post_ids[] = $post->ID;
+				}
 				update_postmeta_cache( $post_ids );
 			}
 

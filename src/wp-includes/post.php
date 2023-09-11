@@ -7316,7 +7316,10 @@ function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = 
 	}
 
 	if ( $update_meta_cache ) {
-		$post_ids = wp_list_pluck( $posts, 'ID' );
+		$post_ids = array();
+		foreach ( $posts as $post ) {
+			$post_ids[] = $post->ID;
+		}
 		update_postmeta_cache( $post_ids );
 	}
 }
@@ -7337,7 +7340,11 @@ function update_post_term_caches( $posts, $post_type = 'any' ) {
 	}
 
 	if ( 'any' === $post_type ) {
-		$ptypes = wp_list_pluck( $posts, 'post_type' );
+		$ptypes = array();
+		// Just use the post_types in the supplied posts.
+		foreach ( $posts as $post ) {
+			$ptypes[] = $post->post_type;
+		}
 		$ptypes = array_unique( $ptypes );
 	} else {
 		$ptypes = (array) $post_type;
