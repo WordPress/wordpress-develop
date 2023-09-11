@@ -3976,11 +3976,16 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		$text = excerpt_remove_footnotes( $text );
 
 		/*
-		 * Temporarily unhook wp_filter_content_tags() and do_blocks() since any tags
+		 * Temporarily unhook wp_filter_content_tags() since any tags
 		 * within the excerpt are stripped out. Modifying the tags here
 		 * is wasteful and can lead to bugs in the image counting logic.
 		 */
 		$filter_image_removed = remove_filter( 'the_content', 'wp_filter_content_tags' );
+
+		/**
+		 * Temporarily unhook do_blocks() since excerpt_remove_blocks( $text )
+		 * handels block rendering need for excerpt.
+		 */
 		$filter_block_removed = remove_filter( 'the_content', 'do_blocks', 9 );
 
 		/** This filter is documented in wp-includes/post-template.php */
