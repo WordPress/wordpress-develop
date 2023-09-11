@@ -829,8 +829,8 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  * @since 5.3.1
  * @since 6.4.0 The `$callback` parameter was added.
  *
- * @param array $block A representative array of a single parsed block object. See WP_Block_Parser_Block.
- * @param string $callback Optional. Callback to run on the block before serialization.
+ * @param array  $block    A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ * @param string $callback Optional. Callback to run on the block before serialization. Default null.
  * @return string String of rendered HTML.
  */
 function serialize_block( $block, $callback = null ) {
