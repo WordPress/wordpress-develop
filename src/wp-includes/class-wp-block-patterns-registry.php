@@ -165,7 +165,11 @@ final class WP_Block_Patterns_Registry {
 			return null;
 		}
 
-		return $this->registered_patterns[ $pattern_name ];
+		$pattern            = $this->registered_patterns[ $pattern_name ];
+		$blocks             = parse_blocks( $pattern['content'] );
+		$visitor            = _parsed_block_visitor( $pattern ); // TODO: Should we use different functions for template vs pattern?
+		$pattern['content'] = serialize_blocks( $blocks, $visitor );
+		return $pattern;
 	}
 
 	/**
