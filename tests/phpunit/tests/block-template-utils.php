@@ -183,7 +183,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				sprintf(
 					'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /-->',
 					$theme
-				)
+				),
 			),
 			array(
 				'template-with-nested-template-part.html',
@@ -192,11 +192,11 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 <!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /-->
 <!-- /wp:group -->',
 					$theme
-				)
+				),
 			),
 			array(
 				'template-with-template-part-with-existing-theme-attribute.html',
-				'<!-- wp:template-part {"slug":"header","theme":"fake-theme","align":"full", "tagName":"header","className":"site-header"} /-->'
+				'<!-- wp:template-part {"slug":"header","theme":"fake-theme","align":"full", "tagName":"header","className":"site-header"} /-->',
 			),
 		);
 	}
