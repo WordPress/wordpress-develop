@@ -182,11 +182,19 @@ final class WP_Block_Patterns_Registry {
 	 *                 and per style.
 	 */
 	public function get_all_registered( $outside_init_only = false ) {
-		return array_values(
+		$patterns = array_values(
 			$outside_init_only
 				? $this->registered_patterns_outside_init
 				: $this->registered_patterns
 		);
+
+		foreach ( $patterns as $index => $pattern ) {
+			$blocks                        = parse_blocks( $pattern['content'] );
+			$visitor                       = _parsed_block_visitor( $pattern ); // TODO: Should we use different functions for template vs pattern?
+			$patterns[ $index ]['content'] = serialize_blocks( $blocks, $visitor );
+		}
+
+		return $patterns;
 	}
 
 	/**
