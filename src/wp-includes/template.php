@@ -702,7 +702,7 @@ function get_attachment_template() {
 function locate_template( $template_names, $load = false, $load_once = true, $args = array() ) {
 	$stylesheet_path = get_stylesheet_directory();
 	$template_path   = get_template_directory();
-	$is_child_theme  = is_child_theme();
+	$is_child_theme  = $stylesheet_path !== $template_path;
 
 	$located = '';
 	foreach ( (array) $template_names as $template_name ) {
