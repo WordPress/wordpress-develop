@@ -1857,7 +1857,7 @@ function _custom_background_cb() {
 
 	if ( ! $background && ! $color ) {
 		if ( is_customize_preview() ) {
-			wp_add_inline_style( $handle, '' );
+			wp_add_inline_style( $handle, '/*...*/' );
 			wp_enqueue_style( $handle );
 		}
 		return;
@@ -2940,8 +2940,8 @@ function _custom_logo_header_styles() {
 		$classes = '.' . implode( ', .', $classes );
 
 		$custom_logo_css = $classes . '{
-		position: absolute;
-		clip: rect(1px, 1px, 1px, 1px);
+		     position: absolute;
+		     clip: rect(1px, 1px, 1px, 1px);
 		}';
 		$handle          = 'custom-logo';
 

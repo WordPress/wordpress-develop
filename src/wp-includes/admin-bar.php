@@ -1231,7 +1231,7 @@ function wp_admin_bar_add_secondary_groups( $wp_admin_bar ) {
  * @since 3.1.0
  */
 function wp_admin_bar_header() {
-	wp_add_inline_style( 'admin-bar', ' @media print { #wpadminbar { display:none; } }' );
+	wp_add_inline_style( 'admin-bar', /* language=CSS */ '@media print { #wpadminbar { display:none; } }' );
 }
 
 /**
