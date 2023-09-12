@@ -57,7 +57,6 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		// After falling back, the markup should not include whitespace around <li>'s.
 		$this->assertDoesNotMatchRegularExpression( '/\s<li.*>|<\/li>\s/U', $menu );
 		$this->assertMatchesRegularExpression( '/><li.*>|<\/li></U', $menu );
-
 	}
 
 	/**
@@ -215,7 +214,6 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$custom_item = wp_filter_object_list( $menu_items, array( 'db_id' => $custom_item_id ) );
 		$custom_item = array_pop( $custom_item );
 		$this->assertSame( 'WordPress.org', $custom_item->title );
-
 	}
 
 	public function test_wp_get_nav_menu_items_with_taxonomy_term() {
@@ -763,7 +761,6 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		remove_filter( 'nav_menu_item_title', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
 
 		remove_filter( 'walker_nav_menu_start_el', array( $this, 'confirm_forth_param_args_object' ), 10, 4 );
-
 	}
 
 	/**

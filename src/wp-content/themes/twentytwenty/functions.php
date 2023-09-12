@@ -135,8 +135,11 @@ function twentytwenty_theme_support() {
 	 * by the theme.
 	 */
 	$loader = new TwentyTwenty_Script_Loader();
-	add_filter( 'script_loader_tag', array( $loader, 'filter_script_loader_tag' ), 10, 2 );
-
+	if ( version_compare( $GLOBALS['wp_version'], '6.3', '<' ) ) {
+		add_filter( 'script_loader_tag', array( $loader, 'filter_script_loader_tag' ), 10, 2 );
+	} else {
+		add_filter( 'print_scripts_array', array( $loader, 'migrate_legacy_strategy_script_data' ), 100 );
+	}
 }
 
 add_action( 'after_setup_theme', 'twentytwenty_theme_support' );
@@ -195,7 +198,6 @@ function twentytwenty_register_styles() {
 
 	// Add print CSS.
 	wp_enqueue_style( 'twentytwenty-print-style', get_template_directory_uri() . '/print.css', null, $theme_version, 'print' );
-
 }
 
 add_action( 'wp_enqueue_scripts', 'twentytwenty_register_styles' );
@@ -213,9 +215,16 @@ function twentytwenty_register_scripts() {
 		wp_enqueue_script( 'comment-reply' );
 	}
 
-	wp_enqueue_script( 'twentytwenty-js', get_template_directory_uri() . '/assets/js/index.js', array(), $theme_version );
-	wp_script_add_data( 'twentytwenty-js', 'async', true );
-
+	wp_enqueue_script(
+		'twentytwenty-js',
+		get_template_directory_uri() . '/assets/js/index.js',
+		array(),
+		$theme_version,
+		array(
+			'in_footer' => false, // Because involves header.
+			'strategy'  => 'defer',
+		)
+	);
 }
 
 add_action( 'wp_enqueue_scripts', 'twentytwenty_register_scripts' );
@@ -330,7 +339,6 @@ function twentytwenty_get_custom_logo( $html ) {
 	}
 
 	return $html;
-
 }
 
 add_filter( 'get_custom_logo', 'twentytwenty_get_custom_logo' );
@@ -402,7 +410,6 @@ function twentytwenty_sidebar_registration() {
 			)
 		)
 	);
-
 }
 
 add_action( 'widgets_init', 'twentytwenty_sidebar_registration' );
@@ -448,7 +455,6 @@ function twentytwenty_classic_editor_styles() {
 	);
 
 	add_editor_style( $classic_editor_styles );
-
 }
 
 add_action( 'init', 'twentytwenty_classic_editor_styles' );
@@ -477,7 +483,6 @@ function twentytwenty_add_classic_editor_customizer_styles( $mce_init ) {
 	}
 
 	return $mce_init;
-
 }
 
 add_filter( 'tiny_mce_before_init', 'twentytwenty_add_classic_editor_customizer_styles' );
@@ -505,7 +510,6 @@ function twentytwenty_add_classic_editor_non_latin_styles( $mce_init ) {
 	}
 
 	return $mce_init;
-
 }
 
 add_filter( 'tiny_mce_before_init', 'twentytwenty_add_classic_editor_non_latin_styles' );
@@ -597,7 +601,6 @@ function twentytwenty_block_editor_settings() {
 	if ( '#ffffff' === strtolower( twentytwenty_get_color_for_area( 'content', 'text' ) ) ) {
 		add_theme_support( 'dark-editor-style' );
 	}
-
 }
 
 add_action( 'after_setup_theme', 'twentytwenty_block_editor_settings' );

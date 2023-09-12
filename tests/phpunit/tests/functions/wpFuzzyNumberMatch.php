@@ -108,5 +108,4 @@ class Tests_Functions_wpFuzzyNumberMatch extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

@@ -2696,7 +2696,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 					);
 
 					$number = $new_number;
-					$i++;
+					++$i;
 				}
 			}
 		}
@@ -2769,7 +2769,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 					);
 
 					$number = $new_number;
-					$i++;
+					++$i;
 				}
 			}
 		}
@@ -4829,7 +4829,6 @@ function smilies_init() {
 	}
 
 	$wp_smiliessearch .= ')(?=' . $spaces . '|$)/m';
-
 }
 
 /**
@@ -5609,7 +5608,6 @@ function _deprecated_constructor( $class_name, $version, $parent_class = '' ) {
 			}
 		}
 	}
-
 }
 
 /**
@@ -7165,7 +7163,7 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
 	$trace       = debug_backtrace( false );
 	$caller      = array();
 	$check_class = ! is_null( $ignore_class );
-	$skip_frames++; // Skip this function.
+	++$skip_frames; // Skip this function.
 
 	if ( ! isset( $truncate_paths ) ) {
 		$truncate_paths = array(
@@ -7176,7 +7174,7 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
 
 	foreach ( $trace as $call ) {
 		if ( $skip_frames > 0 ) {
-			$skip_frames--;
+			--$skip_frames;
 		} elseif ( isset( $call['class'] ) ) {
 			if ( $check_class && $ignore_class === $call['class'] ) {
 				continue; // Filter out calls.
