@@ -182,6 +182,11 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( $expected, $template->content );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_build_block_template_result_from_file_injects_theme_attribute() {
 		$theme = 'block-theme';
 		return array(
