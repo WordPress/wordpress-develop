@@ -754,8 +754,9 @@ function update_option( $option, $value, $autoload = null ) {
 		$value = clone $value;
 	}
 
-	$value     = sanitize_option( $option, $value );
-	$old_value = get_option( $option );
+	$value         = sanitize_option( $option, $value );
+	$old_value     = get_option( $option );
+	$option_exists = false !== $old_value;
 
 	/**
 	 * Filters a specific option before its value is (maybe) serialized and updated.
@@ -782,43 +783,8 @@ function update_option( $option, $value, $autoload = null ) {
 	 */
 	$value = apply_filters( 'pre_update_option', $value, $option, $old_value );
 
-	/*
-	 * If the new and old values are the same, no need to update.
-	 * Scalar values in the cache will always be strings, so we must compare string values.
-	 */
-	$values = array(
-		'old' => $old_value,
-		'new' => $value,
-	);
-
-	foreach ( $values as $_key => &$_value ) {
-		// Special handling for false-ish values.
-		if ( false === $_value ) {
-			$_value = '0';
-
-			// Empty strings in the database should be seen as equivalent to false-ish cache values.
-		} elseif ( 'old' === $_key && '' === $_value ) {
-			$_value = '0';
-
-			// Cast scalars to a string so type discrepancies don't result in cache misses.
-		} elseif ( is_scalar( $_value ) ) {
-			$_value = (string) $_value;
-		}
-	}
-
-	if ( $values['old'] === $values['new'] ) {
-		return false;
-	}
-
-	/*
-	 * Unserialized values will be adequate in most cases. If the unserialized
-	 * data differs, the (maybe) serialized data is checked to avoid
-	 * unnecessary database calls for otherwise identical object instances.
-	 *
-	 * See https://core.trac.wordpress.org/ticket/38903
-	 */
-
-	if ( maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
+	// If the new and old values are the same, no need to update.
+	if ( $option_exists && is_equal_database_value( $old_value, $value ) ) {
 		return false;
 	}
 
@@ -2113,7 +2079,8 @@ function update_network_option( $network_id, $option, $value ) {
 
 	wp_protect_special_option( $option );
 
-	$old_value = get_network_option( $network_id, $option, false );
+	$old_value     = get_network_option( $network_id, $option, false );
+	$option_exists = false !== $old_value;
 
 	/**
 	 * Filters a specific network option before its value is updated.
@@ -2132,42 +2099,8 @@ function update_network_option( $network_id, $option, $value ) {
 	 */
 	$value = apply_filters( "pre_update_site_option_{$option}", $value, $old_value, $option, $network_id );
 
-	/*
-	 * If the new and old values are the same, no need to update.
-	 * Scalar values in the cache will always be strings, so we must compare string values.
-	 */
-	$values = array(
-		'old' => $old_value,
-		'new' => $value,
-	);
-
-	foreach ( $values as $_key => &$_value ) {
-		// Special handling for false-ish values.
-		if ( false === $_value ) {
-			$_value = '0';
-
-			// Empty strings in the database should be seen as equivalent to false-ish cache values.
-		} elseif ( 'old' === $_key && '' === $_value ) {
-			$_value = '0';
-
-			// Cast scalars to a string so type discrepancies don't result in cache misses.
-		} elseif ( is_scalar( $_value ) ) {
-			$_value = (string) $_value;
-		}
-	}
-
-	if ( $values['old'] === $values['new'] ) {
-		return false;
-	}
-
-	/*
-	 * Unserialized values will be adequate in most cases. If the unserialized
-	 * data differs, the (maybe) serialized data is checked to avoid
-	 * unnecessary database calls for otherwise identical object instances.
-	 *
-	 * See https://core.trac.wordpress.org/ticket/44956
-	 */
-	if ( maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
+	// If the new and old values are the same, no need to update.
+	if ( $option_exists && is_equal_database_value( $old_value, $value ) ) {
 		return false;
 	}
 
@@ -2945,4 +2878,51 @@ function filter_default_option( $default_value, $option, $passed_default ) {
 	}
 
 	return $registered[ $option ]['default'];
+}
+
+/**
+ * Check if two database values are equal.
+ *
+ * @since 6.4.0
+ * @access private
+ *
+ * @param mixed $old_value The old value to compare.
+ * @param mixed $new_value The new value to compare.
+ * @return bool True if the values are equal, false otherwise.
+ */
+function is_equal_database_value( $old_value, $new_value ) {
+	$values = array(
+		'old' => $old_value,
+		'new' => $new_value,
+	);
+
+	foreach ( $values as $_key => &$_value ) {
+		// Special handling for false-ish values.
+		if ( false === $_value ) {
+			$_value = '0';
+
+		// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect
+		// Empty strings in the database should be seen as equivalent to false-ish cache values.
+		} elseif ( 'old' === $_key && '' === $_value ) {
+			$_value = '0';
+
+		// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect
+		// Cast scalars to a string so type discrepancies don't result in cache misses.
+		} elseif ( is_scalar( $_value ) ) {
+			$_value = (string) $_value;
+		}
+	}
+
+	if ( $values['old'] === $values['new'] ) {
+		return true;
+	}
+
+	/*
+	 * Unserialized values will be adequate in most cases. If the unserialized
+	 * data differs, the (maybe) serialized data is checked to avoid
+	 * unnecessary database calls for otherwise identical object instances.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/38903
+	 */
+	return maybe_serialize( $old_value ) === maybe_serialize( $new_value );
 }
