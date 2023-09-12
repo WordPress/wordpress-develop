@@ -234,8 +234,8 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			 */
 			$autosave_id = wp_update_post( wp_slash( (array) $prepared_post ), true );
 		} else {
-			// Non-draft posts: create or update the post autosave.
-			$autosave_id = $this->create_post_autosave( (array) $prepared_post );
+			// Non-draft posts: create or update the post autosave. Pass the meta data.
+			$autosave_id = $this->create_post_autosave( (array) $prepared_post, $request->get_param( 'meta' ) );
 		}
 
 		if ( is_wp_error( $autosave_id ) ) {
@@ -348,11 +348,13 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * From wp-admin/post.php.
 	 *
 	 * @since 5.0.0
+	 * @since 6.4.0 The `$meta` parameter was added.
 	 *
 	 * @param array $post_data Associative array containing the post data.
+	 * @param array $meta      Associative array containing the post meta data.
 	 * @return mixed The autosave revision ID or WP_Error.
 	 */
-	public function create_post_autosave( $post_data ) {
+	public function create_post_autosave( $post_data, $meta = array() ) {
 
 		$post_id = (int) $post_data['ID'];
 		$post    = get_post( $post_id );
@@ -367,6 +369,18 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 
 		foreach ( array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) ) as $field ) {
 			if ( normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) ) {
+				$autosave_is_different = true;
+				break;
+			}
+		}
+
+		// Check if meta values have changed.
+		$revisioned_meda_keys = wp_post_revision_meta_keys( $post->post_type );
+		foreach ( $revisioned_meda_keys as $meta_key ) {
+			$old_meta = get_post_meta( $post_id, $meta_key, true );
+			$new_meta = isset( $meta[ $meta_key ] ) ? $meta[ $meta_key ] : '';
+
+			if ( $new_meta !== $old_meta ) {
 				$autosave_is_different = true;
 				break;
 			}
@@ -390,11 +404,21 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			do_action( 'wp_creating_autosave', $new_autosave );
 
 			// wp_update_post() expects escaped array.
-			return wp_update_post( wp_slash( $new_autosave ) );
+			$revision_id = wp_update_post( wp_slash( $new_autosave ) );
+		} else {
+			// Create the new autosave as a special post revision.
+			$revision_id = _wp_put_post_revision( $post_data, true );
 		}
 
-		// Create the new autosave as a special post revision.
-		return _wp_put_post_revision( $post_data, true );
+		// Attached any passed meta values that have revisioning enabled.
+		if ( $revision_id ) {
+			foreach ( $revisioned_meda_keys as $meta_key ) {
+				if ( isset( $meta[ $meta_key ] ) ) {
+					update_metadata( 'post', $revision_id, $meta_key, $meta[ $meta_key ] );
+				}
+			}
+		}
+		return $revision_id;
 	}
 
 	/**
