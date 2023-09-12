@@ -883,7 +883,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_revisions_to_keep',
-			static function() {
+			static function () {
 				return 1;
 			}
 		);
