@@ -104,9 +104,9 @@
 					<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
 						<?php
 						$custom_header = get_custom_header();
-						$attrs                   = array(
-							'alt'   => get_bloginfo( 'name', 'display' ),
-							'sizes' => $custom_header_sizes,
+						$attrs         = array(
+							'alt'    => get_bloginfo( 'name', 'display' ),
+							'sizes'  => $custom_header_sizes,
 							'height' => $custom_header->height,
 							'width'  => $custom_header->width,
 						);
