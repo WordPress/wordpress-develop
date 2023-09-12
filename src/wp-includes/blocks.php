@@ -134,17 +134,42 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
 	}
 
-	$theme_path_norm  = wp_normalize_path( get_theme_file_path() );
+	// Cache $template_path_norm and $stylesheet_path_norm to avoid unnecessary additional calls.
+	static $template_path_norm   = '';
+	static $stylesheet_path_norm = '';
+	if ( ! $template_path_norm || ! $stylesheet_path_norm ) {
+		$template_path_norm   = wp_normalize_path( get_template_directory() );
+		$stylesheet_path_norm = wp_normalize_path( get_stylesheet_directory() );
+	}
+
 	$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $script_path ) );
 
-	$is_core_block  = isset( $metadata['file'] ) && str_starts_with( $metadata['file'], $wpinc_path_norm );
-	$is_theme_block = str_starts_with( $script_path_norm, $theme_path_norm );
+	$is_core_block = isset( $metadata['file'] ) && str_starts_with( $metadata['file'], $wpinc_path_norm );
 
-	$script_uri = plugins_url( $script_path, $metadata['file'] );
+	/*
+	 * Determine if the block script was registered in a theme, by checking if the script path starts with either
+	 * the parent (template) or child (stylesheet) directory path.
+	 */
+	$is_parent_theme_block = str_starts_with( $script_path_norm, trailingslashit( $template_path_norm ) );
+	$is_child_theme_block  = str_starts_with( $script_path_norm, trailingslashit( $stylesheet_path_norm ) );
+	$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
+
+	$script_uri = '';
 	if ( $is_core_block ) {
 		$script_uri = includes_url( str_replace( $wpinc_path_norm, '', $script_path_norm ) );
 	} elseif ( $is_theme_block ) {
-		$script_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $script_path_norm ) );
+		// Get the script path deterministically based on whether or not it was registered in a parent or child theme.
+		$script_uri = $is_parent_theme_block
+			? get_theme_file_uri( str_replace( $template_path_norm, '', $script_path_norm ) )
+			: get_theme_file_uri( str_replace( $stylesheet_path_norm, '', $script_path_norm ) );
+	} else {
+		// Fallback to plugins_url().
+		$script_uri = plugins_url( $script_path, $metadata['file'] );
+	}
+
+	$script_args = array();
+	if ( 'viewScript' === $field_name ) {
+		$script_args['strategy'] = 'defer';
 	}
 
 	$script_asset        = require $script_asset_path;
@@ -153,7 +178,8 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		$script_handle,
 		$script_uri,
 		$script_dependencies,
-		isset( $script_asset['version'] ) ? $script_asset['version'] : false
+		isset( $script_asset['version'] ) ? $script_asset['version'] : false,
+		$script_args
 	);
 	if ( ! $result ) {
 		return false;
@@ -234,19 +260,28 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	if ( $has_style_file ) {
 		$style_uri = plugins_url( $style_path, $metadata['file'] );
 
-		// Cache $theme_path_norm to avoid calling get_theme_file_path() multiple times.
-		static $theme_path_norm = '';
-		if ( ! $theme_path_norm ) {
-			$theme_path_norm = wp_normalize_path( get_theme_file_path() );
+		// Cache $template_path_norm and $stylesheet_path_norm to avoid unnecessary additional calls.
+		static $template_path_norm   = '';
+		static $stylesheet_path_norm = '';
+		if ( ! $template_path_norm || ! $stylesheet_path_norm ) {
+			$template_path_norm   = wp_normalize_path( get_template_directory() );
+			$stylesheet_path_norm = wp_normalize_path( get_stylesheet_directory() );
 		}
 
-		$is_theme_block = str_starts_with( $style_path_norm, $theme_path_norm );
+		// Determine if the block style was registered in a theme, by checking if the script path starts with either
+		// the parent (template) or child (stylesheet) directory path.
+		$is_parent_theme_block = str_starts_with( $style_path_norm, trailingslashit( $template_path_norm ) );
+		$is_child_theme_block  = str_starts_with( $style_path_norm, trailingslashit( $stylesheet_path_norm ) );
+		$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
 
-		if ( $is_theme_block ) {
-			$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
-		} elseif ( $is_core_block ) {
+		if ( $is_core_block ) {
 			// All possible $style_path variants for core blocks are hard-coded above.
 			$style_uri = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . '/' . $style_path );
+		} elseif ( $is_theme_block ) {
+			// Get the script path deterministically based on whether or not it was registered in a parent or child theme.
+			$style_uri = $is_parent_theme_block
+				? get_theme_file_uri( str_replace( $template_path_norm, '', $style_path_norm ) )
+				: get_theme_file_uri( str_replace( $stylesheet_path_norm, '', $style_path_norm ) );
 		}
 	} else {
 		$style_uri = false;
@@ -497,7 +532,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			 *
 			 * @return string Returns the block content.
 			 */
-			$settings['render_callback'] = static function( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 				ob_start();
 				require $template_path;
 				return ob_get_clean();
@@ -759,16 +794,22 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  * instead preserve the markup as parsed.
  *
  * @since 5.3.1
+ * @since 6.4.0 The `$callback` parameter was added.
  *
- * @param array $block A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ * @param array         $block    A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ * @param callable|null $callback Optional. Callback to run on each block in the tree before serialization. Default null.
  * @return string String of rendered HTML.
  */
-function serialize_block( $block ) {
+function serialize_block( $block, $callback = null ) {
+	if ( is_callable( $callback ) ) {
+		$block = call_user_func( $callback, $block );
+	}
+
 	$block_content = '';
 
 	$index = 0;
 	foreach ( $block['innerContent'] as $chunk ) {
-		$block_content .= is_string( $chunk ) ? $chunk : serialize_block( $block['innerBlocks'][ $index++ ] );
+		$block_content .= is_string( $chunk ) ? $chunk : serialize_block( $block['innerBlocks'][ $index++ ], $callback );
 	}
 
 	if ( ! is_array( $block['attrs'] ) ) {
@@ -787,12 +828,18 @@ function serialize_block( $block ) {
  * parsed blocks.
  *
  * @since 5.3.1
+ * @since 6.4.0 The `$callback` parameter was added.
  *
- * @param array[] $blocks An array of representative arrays of parsed block objects. See serialize_block().
+ * @param array[]       $blocks   An array of representative arrays of parsed block objects. See serialize_block().
+ * @param callable|null $callback Optional. Callback to run on each block in the tree before serialization. Default null.
  * @return string String of rendered HTML.
  */
-function serialize_blocks( $blocks ) {
-	return implode( '', array_map( 'serialize_block', $blocks ) );
+function serialize_blocks( $blocks, $callback = null ) {
+	$result = '';
+	foreach ( $blocks as $block ) {
+		$result .= serialize_block( $block, $callback );
+	};
+	return $result;
 }
 
 /**
@@ -909,6 +956,10 @@ function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = ar
  * @return string The parsed and filtered content.
  */
 function excerpt_remove_blocks( $content ) {
+	if ( ! has_blocks( $content ) ) {
+		return $content;
+	}
+
 	$allowed_inner_blocks = array(
 		// Classic blocks have their blockName set to null.
 		null,
@@ -981,6 +1032,27 @@ function excerpt_remove_blocks( $content ) {
 	}
 
 	return $output;
+}
+
+/**
+ * Parses footnotes markup out of a content string,
+ * and renders those appropriate for the excerpt.
+ *
+ * @since 6.3.0
+ *
+ * @param string $content The content to parse.
+ * @return string The parsed and filtered content.
+ */
+function excerpt_remove_footnotes( $content ) {
+	if ( ! str_contains( $content, 'data-fn=' ) ) {
+		return $content;
+	}
+
+	return preg_replace(
+		'_<sup data-fn="[^"]+" class="[^"]+">\s*<a href="[^"]+" id="[^"]+">\d+</a>\s*</sup>_',
+		'',
+		$content
+	);
 }
 
 /**
@@ -1201,16 +1273,25 @@ function unregister_block_style( $block_name, $block_style_name ) {
  * Checks whether the current block type supports the feature requested.
  *
  * @since 5.8.0
+ * @since 6.4.0 The `$feature` parameter now supports a string.
  *
  * @param WP_Block_Type $block_type    Block type to check for support.
- * @param array         $feature       Path to a specific feature to check support for.
+ * @param string|array  $feature       Feature slug, or path to a specific feature to check support for.
  * @param mixed         $default_value Optional. Fallback value for feature support. Default false.
  * @return bool Whether the feature is supported.
  */
 function block_has_support( $block_type, $feature, $default_value = false ) {
 	$block_support = $default_value;
 	if ( $block_type && property_exists( $block_type, 'supports' ) ) {
-		$block_support = _wp_array_get( $block_type->supports, $feature, $default_value );
+		if ( is_array( $feature ) && count( $feature ) === 1 ) {
+			$feature = $feature[0];
+		}
+
+		if ( is_array( $feature ) ) {
+			$block_support = _wp_array_get( $block_type->supports, $feature, $default_value );
+		} elseif ( isset( $block_type->supports[ $feature ] ) ) {
+			$block_support = $block_type->supports[ $feature ];
+		}
 	}
 
 	return true === $block_support || is_array( $block_support );

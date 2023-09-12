@@ -31,7 +31,7 @@ $current_screen->is_block_editor( true );
 // Default to is-fullscreen-mode to avoid jumps in the UI.
 add_filter(
 	'admin_body_class',
-	static function( $classes ) {
+	static function ( $classes ) {
 		return "$classes is-fullscreen-mode";
 	}
 );
@@ -319,7 +319,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<?php // JavaScript is disabled. ?>
 	<div class="wrap hide-if-js block-editor-no-js">
 		<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
-		<div class="notice notice-error notice-alt">
+		<div class="notice notice-error">
 			<p>
 				<?php
 					$message = sprintf(

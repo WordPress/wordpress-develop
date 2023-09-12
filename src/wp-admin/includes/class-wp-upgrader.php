@@ -185,10 +185,11 @@ class WP_Upgrader {
 	 * @since 2.8.0
 	 */
 	public function generic_strings() {
-		$this->strings['bad_request']       = __( 'Invalid data provided.' );
-		$this->strings['fs_unavailable']    = __( 'Could not access filesystem.' );
-		$this->strings['fs_error']          = __( 'Filesystem error.' );
-		$this->strings['fs_no_root_dir']    = __( 'Unable to locate WordPress root directory.' );
+		$this->strings['bad_request']    = __( 'Invalid data provided.' );
+		$this->strings['fs_unavailable'] = __( 'Could not access filesystem.' );
+		$this->strings['fs_error']       = __( 'Filesystem error.' );
+		$this->strings['fs_no_root_dir'] = __( 'Unable to locate WordPress root directory.' );
+		/* translators: %s: Directory name. */
 		$this->strings['fs_no_content_dir'] = sprintf( __( 'Unable to locate WordPress content directory (%s).' ), 'wp-content' );
 		$this->strings['fs_no_plugins_dir'] = __( 'Unable to locate WordPress plugin directory.' );
 		$this->strings['fs_no_themes_dir']  = __( 'Unable to locate WordPress theme directory.' );
@@ -563,8 +564,10 @@ class WP_Upgrader {
 			// There are no files?
 			return new WP_Error( 'incompatible_archive_empty', $this->strings['incompatible_archive'], $this->strings['no_files'] );
 		} else {
-			// It's only a single file, the upgrader will use the folder name of this file as the destination folder.
-			// Folder name is based on zip filename.
+			/*
+			 * It's only a single file, the upgrader will use the folder name of this file as the destination folder.
+			 * Folder name is based on zip filename.
+			 */
 			$source = trailingslashit( $args['source'] );
 		}
 
@@ -641,8 +644,10 @@ class WP_Upgrader {
 				return $removed;
 			}
 		} elseif ( $args['abort_if_destination_exists'] && $wp_filesystem->exists( $remote_destination ) ) {
-			// If we're not clearing the destination folder and something exists there already, bail.
-			// But first check to see if there are actually any files in the folder.
+			/*
+			 * If we're not clearing the destination folder and something exists there already, bail.
+			 * But first check to see if there are actually any files in the folder.
+			 */
 			$_files = $wp_filesystem->dirlist( $remote_destination );
 			if ( ! empty( $_files ) ) {
 				$wp_filesystem->delete( $remote_source, true ); // Clear out the source files.
@@ -821,8 +826,10 @@ class WP_Upgrader {
 		 */
 		$download = $this->download_package( $options['package'], true, $options['hook_extra'] );
 
-		// Allow for signature soft-fail.
-		// WARNING: This may be removed in the future.
+		/*
+		 * Allow for signature soft-fail.
+		 * WARNING: This may be removed in the future.
+		 */
 		if ( is_wp_error( $download ) && $download->get_error_data( 'softfail-filename' ) ) {
 
 			// Don't output the 'no signature could be found' failure message for now.
@@ -1200,8 +1207,7 @@ class WP_Upgrader {
 			if ( ! $wp_filesystem->delete( $temp_backup_dir, true ) ) {
 				$errors->add(
 					'temp_backup_delete_failed',
-					sprintf( $this->strings['temp_backup_delete_failed'] ),
-					$args['slug']
+					sprintf( $this->strings['temp_backup_delete_failed'], $args['slug'] )
 				);
 				continue;
 			}

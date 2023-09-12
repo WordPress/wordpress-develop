@@ -74,7 +74,6 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 		$locale = $old_locale;
 
 		$this->assertSame( 'es_ES', $found );
-
 	}
 
 	public function test_should_fall_back_on_en_US() {

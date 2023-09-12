@@ -415,7 +415,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$i = 0;
 		foreach ( $tags as $tag ) {
 			$this->assertSame( $tag['name'], "Tag {$i}" );
-			$i++;
+			++$i;
 		}
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
@@ -430,7 +430,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 
 		foreach ( $tags as $tag ) {
 			$this->assertSame( $tag['name'], "Tag {$i}" );
-			$i++;
+			++$i;
 		}
 	}
 
@@ -599,8 +599,8 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 
 		// 3rd page.
 		self::factory()->tag->create();
-		$total_tags++;
-		$total_pages++;
+		++$total_tags;
+		++$total_pages;
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );

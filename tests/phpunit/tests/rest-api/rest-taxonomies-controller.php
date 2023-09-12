@@ -316,5 +316,4 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 			get_taxonomy( 'test' )->get_rest_controller()
 		);
 	}
-
 }

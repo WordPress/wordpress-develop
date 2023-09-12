@@ -961,7 +961,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$this->setup_app_password_authenticated_request();
 		add_action(
 			'application_password_did_authenticate',
-			static function() {
+			static function () {
 				$GLOBALS['wp_rest_application_password_uuid'] = 'invalid_uuid';
 			}
 		);

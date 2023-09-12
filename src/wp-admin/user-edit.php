@@ -238,9 +238,9 @@ switch ( $action ) {
 
 			<?php if ( ! IS_PROFILE_PAGE ) : ?>
 				<?php if ( current_user_can( 'create_users' ) ) : ?>
-					<a href="user-new.php" class="page-title-action"><?php echo esc_html_x( 'Add New', 'user' ); ?></a>
+					<a href="user-new.php" class="page-title-action"><?php echo esc_html__( 'Add New User' ); ?></a>
 				<?php elseif ( is_multisite() && current_user_can( 'promote_users' ) ) : ?>
-					<a href="user-new.php" class="page-title-action"><?php echo esc_html_x( 'Add Existing', 'user' ); ?></a>
+					<a href="user-new.php" class="page-title-action"><?php echo esc_html__( 'Add Existing User' ); ?></a>
 				<?php endif; ?>
 			<?php endif; ?>
 
@@ -681,7 +681,7 @@ switch ( $action ) {
 							<?php endif; // End Show Password Fields. ?>
 
 							<?php // Allow admins to send reset password link. ?>
-							<?php if ( ! IS_PROFILE_PAGE ) : ?>
+							<?php if ( ! IS_PROFILE_PAGE && true === wp_is_password_reset_allowed_for_user( $profile_user ) ) : ?>
 								<tr class="user-generate-reset-link-wrap hide-if-no-js">
 									<th><?php _e( 'Password Reset' ); ?></th>
 									<td>
@@ -921,8 +921,10 @@ switch ( $action ) {
 	jQuery( function( $ ) {
 		var languageSelect = $( '#locale' );
 		$( 'form' ).on( 'submit', function() {
-			// Don't show a spinner for English and installed languages,
-			// as there is nothing to download.
+			/*
+			 * Don't show a spinner for English and installed languages,
+			 * as there is nothing to download.
+			 */
 			if ( ! languageSelect.find( 'option:selected' ).data( 'installed' ) ) {
 				$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active" />' );
 			}

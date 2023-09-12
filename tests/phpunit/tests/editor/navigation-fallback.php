@@ -57,6 +57,26 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58750
+	 *
+	 * @covers WP_REST_Navigation_Fallback_Controller::get_fallback
+	 */
+	public function test_should_not_automatically_create_fallback_if_filter_is_falsey() {
+
+		add_filter( 'wp_navigation_should_create_fallback', '__return_false' );
+
+		$data = WP_Navigation_Fallback::get_fallback();
+
+		$this->assertEmpty( $data );
+
+		$navs_in_db = $this->get_navigations_in_database();
+
+		$this->assertCount( 0, $navs_in_db, 'The fallback Navigation post should not have been created.' );
+
+		remove_filter( 'wp_navigation_should_create_fallback', '__return_false' );
+	}
+
+	/**
 	 * @ticket 58557
 	 * @covers WP_REST_Navigation_Fallback_Controller::get_fallback
 	 */
@@ -171,7 +191,6 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 		// Check that only a single Navigation fallback was created.
 		$navs_in_db = $this->get_navigations_in_database();
 		$this->assertCount( 1, $navs_in_db, 'A single Navigation menu should be present in the database.' );
-
 	}
 
 	/**
@@ -328,7 +347,6 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 		$navs_in_db = $this->get_navigations_in_database();
 
 		$this->assertCount( 1, $navs_in_db, 'Only the existing Navigation menus should be present in the database.' );
-
 	}
 
 	private function get_navigations_in_database() {
@@ -344,5 +362,4 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 
 		return $navs_in_db->posts ? $navs_in_db->posts : array();
 	}
-
 }

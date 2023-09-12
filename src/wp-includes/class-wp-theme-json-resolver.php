@@ -170,7 +170,7 @@ class WP_Theme_JSON_Resolver {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
+		 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 		 */
 		$theme_json   = apply_filters( 'wp_theme_json_data_default', new WP_Theme_JSON_Data( $config, 'default' ) );
 		$config       = $theme_json->get_data();
@@ -252,7 +252,7 @@ class WP_Theme_JSON_Resolver {
 			 *
 			 * @since 6.1.0
 			 *
-			 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
+			 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 			 */
 			$theme_json      = apply_filters( 'wp_theme_json_data_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
 			$theme_json_data = $theme_json->get_data();
@@ -358,8 +358,10 @@ class WP_Theme_JSON_Resolver {
 				isset( $block_type->supports['spacing']['blockGap']['__experimentalDefault'] ) &&
 				null === _wp_array_get( $config, array( 'styles', 'blocks', $block_name, 'spacing', 'blockGap' ), null )
 			) {
-				// Ensure an empty placeholder value exists for the block, if it provides a default blockGap value.
-				// The real blockGap value to be used will be determined when the styles are rendered for output.
+				/*
+				 * Ensure an empty placeholder value exists for the block, if it provides a default blockGap value.
+				 * The real blockGap value to be used will be determined when the styles are rendered for output.
+				 */
 				$config['styles']['blocks'][ $block_name ]['spacing']['blockGap'] = null;
 			}
 		}
@@ -369,7 +371,7 @@ class WP_Theme_JSON_Resolver {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
+		 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 		 */
 		$theme_json = apply_filters( 'wp_theme_json_data_blocks', new WP_Theme_JSON_Data( $config, 'blocks' ) );
 		$config     = $theme_json->get_data();
@@ -505,15 +507,17 @@ class WP_Theme_JSON_Resolver {
 				 *
 				 * @since 6.1.0
 				 *
-				 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
+				 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 				 */
 				$theme_json = apply_filters( 'wp_theme_json_data_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
 				$config     = $theme_json->get_data();
 				return new WP_Theme_JSON( $config, 'custom' );
 			}
 
-			// Very important to verify that the flag isGlobalStylesUserThemeJSON is true.
-			// If it's not true then the content was not escaped and is not safe.
+			/*
+			 * Very important to verify that the flag isGlobalStylesUserThemeJSON is true.
+			 * If it's not true then the content was not escaped and is not safe.
+			 */
 			if (
 				is_array( $decoded_data ) &&
 				isset( $decoded_data['isGlobalStylesUserThemeJSON'] ) &&

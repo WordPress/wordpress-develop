@@ -574,8 +574,10 @@ function wp_edit_theme_plugin_file( $args ) {
 		}
 
 		if ( function_exists( 'session_status' ) && PHP_SESSION_ACTIVE === session_status() ) {
-			// Close any active session to prevent HTTP requests from timing out
-			// when attempting to connect back to the site.
+			/*
+			 * Close any active session to prevent HTTP requests from timing out
+			 * when attempting to connect back to the site.
+			 */
 			session_write_close();
 		}
 
@@ -687,7 +689,25 @@ function wp_tempnam( $filename = '', $dir = '' ) {
 	// Suffix some random data to avoid filename conflicts.
 	$temp_filename .= '-' . wp_generate_password( 6, false );
 	$temp_filename .= '.tmp';
-	$temp_filename  = $dir . wp_unique_filename( $dir, $temp_filename );
+	$temp_filename  = wp_unique_filename( $dir, $temp_filename );
+
+	/*
+	 * Filesystems typically have a limit of 255 characters for a filename.
+	 *
+	 * If the generated unique filename exceeds this, truncate the initial
+	 * filename and try again.
+	 *
+	 * As it's possible that the truncated filename may exist, producing a
+	 * suffix of "-1" or "-10" which could exceed the limit again, truncate
+	 * it to 252 instead.
+	 */
+	$characters_over_limit = strlen( $temp_filename ) - 252;
+	if ( $characters_over_limit > 0 ) {
+		$filename = substr( $filename, 0, -$characters_over_limit );
+		return wp_tempnam( $filename, $dir );
+	}
+
+	$temp_filename = $dir . $temp_filename;
 
 	$fp = @fopen( $temp_filename, 'x' );
 
@@ -757,9 +777,9 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  *     An array of override parameters for this file, or boolean false if none are provided.
  *
  *     @type callable $upload_error_handler     Function to call when there is an error during the upload process.
- *                                              @see wp_handle_upload_error().
+ *                                              See {@see wp_handle_upload_error()}.
  *     @type callable $unique_filename_callback Function to call when determining a unique file name for the file.
- *                                              @see wp_unique_filename().
+ *                                              See {@see wp_unique_filename()}.
  *     @type string[] $upload_error_strings     The strings that describe the error indicated in
  *                                              `$_FILES[{form field}]['error']`.
  *     @type bool     $test_form                Whether to test that the `$_POST['action']` parameter is as expected.
@@ -825,7 +845,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	 * @since 5.7.0
 	 *
 	 * @param array|false $overrides An array of override parameters for this file. Boolean false if none are
-	 *                               provided. @see _wp_handle_upload().
+	 *                               provided. See {@see _wp_handle_upload()}.
 	 * @param array       $file      {
 	 *     Reference to a single element from `$_FILES`.
 	 *
@@ -1251,8 +1271,10 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		$signature = wp_remote_retrieve_header( $response, 'X-Content-Signature' );
 
 		if ( ! $signature ) {
-			// Retrieve signatures from a file if the header wasn't included.
-			// WordPress.org stores signatures at $package_url.sig.
+			/*
+			 * Retrieve signatures from a file if the header wasn't included.
+			 * WordPress.org stores signatures at $package_url.sig.
+			 */
 
 			$signature_url = false;
 
@@ -1386,8 +1408,10 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 		in_array( PHP_VERSION_ID, array( 70200, 70201, 70202 ), true ) &&
 		extension_loaded( 'opcache' )
 	) {
-		// Sodium_Compat isn't compatible with PHP 7.2.0~7.2.2 due to a bug in the PHP Opcache extension, bail early as it'll fail.
-		// https://bugs.php.net/bug.php?id=75938
+		/*
+		 * Sodium_Compat isn't compatible with PHP 7.2.0~7.2.2 due to a bug in the PHP Opcache extension, bail early as it'll fail.
+		 * https://bugs.php.net/bug.php?id=75938
+		 */
 		return new WP_Error(
 			'signature_verification_unsupported',
 			sprintf(
@@ -1420,8 +1444,10 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 			// phpcs:enable
 		}
 
-		// This cannot be performed in a reasonable amount of time.
-		// https://github.com/paragonie/sodium_compat#help-sodium_compat-is-slow-how-can-i-make-it-fast
+		/*
+		 * This cannot be performed in a reasonable amount of time.
+		 * https://github.com/paragonie/sodium_compat#help-sodium_compat-is-slow-how-can-i-make-it-fast
+		 */
 		if ( ! $sodium_compat_is_fast ) {
 			return new WP_Error(
 				'signature_verification_unsupported',
@@ -1467,7 +1493,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 
 		// Ensure only valid-length signatures are considered.
 		if ( SODIUM_CRYPTO_SIGN_BYTES !== strlen( $signature_raw ) ) {
-			$skipped_signature++;
+			++$skipped_signature;
 			continue;
 		}
 
@@ -1476,7 +1502,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 
 			// Only pass valid public keys through.
 			if ( SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES !== strlen( $key_raw ) ) {
-				$skipped_key++;
+				++$skipped_key;
 				continue;
 			}
 
@@ -2327,8 +2353,10 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 		'private_key' => 'FTP_PRIKEY',
 	);
 
-	// If defined, set it to that. Else, if POST'd, set it to that. If not, set it to an empty string.
-	// Otherwise, keep it as it previously was (saved details in option).
+	/*
+	 * If defined, set it to that. Else, if POST'd, set it to that. If not, set it to an empty string.
+	 * Otherwise, keep it as it previously was (saved details in option).
+	 */
 	foreach ( $ftp_constants as $key => $constant ) {
 		if ( defined( $constant ) ) {
 			$credentials[ $key ] = constant( $constant );
@@ -2531,8 +2559,10 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 		}
 	}
 
-	// Make sure the `submit_button()` function is available during the REST API call
-	// from WP_Site_Health_Auto_Updates::test_check_wp_filesystem_method().
+	/*
+	 * Make sure the `submit_button()` function is available during the REST API call
+	 * from WP_Site_Health_Auto_Updates::test_check_wp_filesystem_method().
+	 */
 	if ( ! function_exists( 'submit_button' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/template.php';
 	}
@@ -2696,7 +2726,7 @@ function wp_opcache_invalidate_directory( $dir ) {
 	 *                        with sub-directories represented as nested arrays.
 	 * @param string $path    Absolute path to the directory.
 	 */
-	$invalidate_directory = static function( $dirlist, $path ) use ( &$invalidate_directory ) {
+	$invalidate_directory = static function ( $dirlist, $path ) use ( &$invalidate_directory ) {
 		$path = trailingslashit( $path );
 
 		foreach ( $dirlist as $name => $details ) {

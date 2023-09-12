@@ -85,7 +85,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 					'form_data' => array(
 						'description'       => __( 'Serialized widget form data to encode into instance settings.' ),
 						'type'              => 'string',
-						'sanitize_callback' => static function( $form_data ) {
+						'sanitize_callback' => static function ( $form_data ) {
 							$array = array();
 							wp_parse_str( $form_data, $array );
 							return $array;
@@ -464,8 +464,10 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// Set the widget's number so that the id attributes in the HTML that we
-		// return are predictable.
+		/*
+		 * Set the widget's number so that the id attributes in the HTML that we
+		 * return are predictable.
+		 */
 		if ( isset( $request['number'] ) && is_numeric( $request['number'] ) ) {
 			$widget_object->_set( (int) $request['number'] );
 		} else {

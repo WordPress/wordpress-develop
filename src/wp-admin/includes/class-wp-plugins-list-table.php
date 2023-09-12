@@ -261,8 +261,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				}
 			} elseif ( ( ! $screen->in_admin( 'network' ) && is_plugin_active( $plugin_file ) )
 				|| ( $screen->in_admin( 'network' ) && is_plugin_active_for_network( $plugin_file ) ) ) {
-				// On the non-network screen, populate the active list with plugins that are individually activated.
-				// On the network admin screen, populate the active list with plugins that are network-activated.
+				/*
+				 * On the non-network screen, populate the active list with plugins that are individually activated.
+				 * On the network admin screen, populate the active list with plugins that are network-activated.
+				 */
 				$plugins['active'][ $plugin_file ] = $plugin_data;
 
 				if ( ! $screen->in_admin( 'network' ) && is_plugin_paused( $plugin_file ) ) {
@@ -726,7 +728,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$suffix = 2;
 		while ( in_array( $plugin_id_attr, $plugin_id_attrs, true ) ) {
 			$plugin_id_attr = "$plugin_slug-$suffix";
-			$suffix++;
+			++$suffix;
 		}
 
 		$plugin_id_attrs[] = $plugin_id_attr;

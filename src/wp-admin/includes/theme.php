@@ -156,7 +156,7 @@ function get_page_templates( $post = null, $post_type = 'page' ) {
  * @return string
  */
 function _get_template_edit_filename( $fullpath, $containingfolder ) {
-	return str_replace( dirname( dirname( $containingfolder ) ), '', $fullpath );
+	return str_replace( dirname( $containingfolder, 2 ), '', $fullpath );
 }
 
 /**
@@ -1167,9 +1167,9 @@ function resume_theme( $theme, $redirect = '' ) {
 	 */
 	if ( ! empty( $redirect ) ) {
 		$functions_path = '';
-		if ( strpos( STYLESHEETPATH, $extension ) ) {
+		if ( str_contains( STYLESHEETPATH, $extension ) ) {
 			$functions_path = STYLESHEETPATH . '/functions.php';
-		} elseif ( strpos( TEMPLATEPATH, $extension ) ) {
+		} elseif ( str_contains( TEMPLATEPATH, $extension ) ) {
 			$functions_path = TEMPLATEPATH . '/functions.php';
 		}
 

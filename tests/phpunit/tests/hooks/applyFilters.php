@@ -42,5 +42,4 @@ class Tests_Hooks_ApplyFilters extends WP_UnitTestCase {
 		$this->assertSame( $returned_two, $arg );
 		$this->assertSame( 2, $a->get_call_count() );
 	}
-
 }

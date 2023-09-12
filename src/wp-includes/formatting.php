@@ -136,8 +136,10 @@ function wptexturize( $text, $reset = false ) {
 		$static_characters   = array_merge( array( '...', '``', '\'\'', ' (tm)' ), $cockney );
 		$static_replacements = array_merge( array( '&#8230;', $opening_quote, $closing_quote, ' &#8482;' ), $cockneyreplace );
 
-		// Pattern-based replacements of characters.
-		// Sort the remaining patterns into several arrays for performance tuning.
+		/*
+		 * Pattern-based replacements of characters.
+		 * Sort the remaining patterns into several arrays for performance tuning.
+		 */
 		$dynamic_characters   = array(
 			'apos'  => array(),
 			'quote' => array(),
@@ -340,8 +342,10 @@ function wptexturize_primes( $haystack, $needle, $prime, $open_quote, $close_quo
 						// Assume the rightmost quote-period match is the end of quotation.
 						$pos = strrpos( $sentence, "$flag." );
 					} else {
-						// When all else fails, make the rightmost candidate a closing quote.
-						// This is most likely to be problematic in the context of bug #18549.
+						/*
+						 * When all else fails, make the rightmost candidate a closing quote.
+						 * This is most likely to be problematic in the context of bug #18549.
+						 */
 						$pos = strrpos( $sentence, $flag );
 					}
 					$sentence = substr_replace( $sentence, $close_quote, $pos, strlen( $flag ) );
@@ -350,7 +354,7 @@ function wptexturize_primes( $haystack, $needle, $prime, $open_quote, $close_quo
 				$sentence = preg_replace( $prime_pattern, $prime, $sentence );
 				$sentence = preg_replace( $flag_after_digit, $prime, $sentence );
 				$sentence = str_replace( $flag, $close_quote, $sentence );
-			} elseif ( 1 == $count ) {
+			} elseif ( 1 === $count ) {
 				// Found only one closing quote candidate, so give it priority over primes.
 				$sentence = str_replace( $flag, $close_quote, $sentence );
 				$sentence = preg_replace( $prime_pattern, $prime, $sentence );
@@ -418,7 +422,7 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
 			 */
 
 			array_push( $stack, $tag );
-		} elseif ( end( $stack ) == $tag ) {
+		} elseif ( end( $stack ) === $tag ) {
 			array_pop( $stack );
 		}
 	}
@@ -472,7 +476,7 @@ function wpautop( $text, $br = true ) {
 			$pre_tags[ $name ] = substr( $text_part, $start ) . '</pre>';
 
 			$text .= substr( $text_part, 0, $start ) . $name;
-			$i++;
+			++$i;
 		}
 
 		$text .= $last_part;
@@ -880,29 +884,33 @@ function seems_utf8( $str ) {
 	mbstring_binary_safe_encoding();
 	$length = strlen( $str );
 	reset_mbstring_encoding();
+
 	for ( $i = 0; $i < $length; $i++ ) {
 		$c = ord( $str[ $i ] );
+
 		if ( $c < 0x80 ) {
 			$n = 0; // 0bbbbbbb
-		} elseif ( ( $c & 0xE0 ) == 0xC0 ) {
+		} elseif ( ( $c & 0xE0 ) === 0xC0 ) {
 			$n = 1; // 110bbbbb
-		} elseif ( ( $c & 0xF0 ) == 0xE0 ) {
+		} elseif ( ( $c & 0xF0 ) === 0xE0 ) {
 			$n = 2; // 1110bbbb
-		} elseif ( ( $c & 0xF8 ) == 0xF0 ) {
+		} elseif ( ( $c & 0xF8 ) === 0xF0 ) {
 			$n = 3; // 11110bbb
-		} elseif ( ( $c & 0xFC ) == 0xF8 ) {
+		} elseif ( ( $c & 0xFC ) === 0xF8 ) {
 			$n = 4; // 111110bb
-		} elseif ( ( $c & 0xFE ) == 0xFC ) {
+		} elseif ( ( $c & 0xFE ) === 0xFC ) {
 			$n = 5; // 1111110b
 		} else {
 			return false; // Does not match any model.
 		}
+
 		for ( $j = 0; $j < $n; $j++ ) { // n bytes matching 10bbbbbb follow ?
-			if ( ( ++$i === $length ) || ( ( ord( $str[ $i ] ) & 0xC0 ) != 0x80 ) ) {
+			if ( ( ++$i === $length ) || ( ( ord( $str[ $i ] ) & 0xC0 ) !== 0x80 ) ) {
 				return false;
 			}
 		}
 	}
+
 	return true;
 }
 
@@ -976,8 +984,10 @@ function _wp_specialchars( $text, $quote_style = ENT_NOQUOTES, $charset = false,
 	}
 
 	if ( ! $double_encode ) {
-		// Guarantee every &entity; is valid, convert &garbage; into &amp;garbage;
-		// This is required for PHP < 5.4.0 because ENT_HTML401 flag is unavailable.
+		/*
+		 * Guarantee every &entity; is valid, convert &garbage; into &amp;garbage;
+		 * This is required for PHP < 5.4.0 because ENT_HTML401 flag is unavailable.
+		 */
 		$text = wp_kses_normalize_entities( $text, ( $quote_style & ENT_XML1 ) ? 'xml' : 'html' );
 	}
 
@@ -1601,8 +1611,10 @@ function remove_accents( $text, $locale = '' ) {
 
 	if ( seems_utf8( $text ) ) {
 
-		// Unicode sequence normalization from NFD (Normalization Form Decomposed)
-		// to NFC (Normalization Form [Pre]Composed), the encoding used in this function.
+		/*
+		 * Unicode sequence normalization from NFD (Normalization Form Decomposed)
+		 * to NFC (Normalization Form [Pre]Composed), the encoding used in this function.
+		 */
 		if ( function_exists( 'normalizer_is_normalized' )
 			&& function_exists( 'normalizer_normalize' )
 		) {
@@ -1817,8 +1829,7 @@ function remove_accents( $text, $locale = '' ) {
 			'€' => 'E',
 			// GBP (Pound) sign.
 			'£' => '',
-			// Vowels with diacritic (Vietnamese).
-			// Unmarked.
+			// Vowels with diacritic (Vietnamese). Unmarked.
 			'Ơ' => 'O',
 			'ơ' => 'o',
 			'Ư' => 'U',
@@ -2646,14 +2657,14 @@ function force_balance_tags( $text ) {
 			} elseif ( $tagstack[ $stacksize - 1 ] === $tag ) { // Found closing tag.
 				$tag = '</' . $tag . '>'; // Close tag.
 				array_pop( $tagstack );
-				$stacksize--;
+				--$stacksize;
 			} else { // Closing tag not at top, search for it.
 				for ( $j = $stacksize - 1; $j >= 0; $j-- ) {
 					if ( $tagstack[ $j ] === $tag ) {
 						// Add tag to tagqueue.
 						for ( $k = $stacksize - 1; $k >= $j; $k-- ) {
 							$tagqueue .= '</' . array_pop( $tagstack ) . '>';
-							$stacksize--;
+							--$stacksize;
 						}
 						break;
 					}
@@ -2661,20 +2672,27 @@ function force_balance_tags( $text ) {
 				$tag = '';
 			}
 		} else { // Begin tag.
-			if ( $has_self_closer ) { // If it presents itself as a self-closing tag...
-				// ...but it isn't a known single-entity self-closing tag, then don't let it be treated as such
-				// and immediately close it with a closing tag (the tag will encapsulate no text as a result).
+			if ( $has_self_closer ) {
+				/*
+				 * If it presents itself as a self-closing tag, but it isn't a known single-entity self-closing tag,
+				 * then don't let it be treated as such and immediately close it with a closing tag.
+				 * The tag will encapsulate no text as a result.
+				 */
 				if ( ! $is_single_tag ) {
 					$attributes = trim( substr( $attributes, 0, -1 ) ) . "></$tag";
 				}
-			} elseif ( $is_single_tag ) { // Else if it's a known single-entity tag but it doesn't close itself, do so.
+			} elseif ( $is_single_tag ) {
+				// Else if it's a known single-entity tag but it doesn't close itself, do so.
 				$pre_attribute_ws = ' ';
 				$attributes      .= '/';
-			} else { // It's not a single-entity tag.
-				// If the top of the stack is the same as the tag we want to push, close previous tag.
+			} else {
+				/*
+				 * It's not a single-entity tag.
+				 * If the top of the stack is the same as the tag we want to push, close previous tag.
+				 */
 				if ( $stacksize > 0 && ! in_array( $tag, $nestable_tags, true ) && $tagstack[ $stacksize - 1 ] === $tag ) {
 					$tagqueue = '</' . array_pop( $tagstack ) . '>';
-					$stacksize--;
+					--$stacksize;
 				}
 				$stacksize = array_push( $tagstack, $tag );
 			}
@@ -2896,13 +2914,15 @@ function urldecode_deep( $value ) {
  */
 function antispambot( $email_address, $hex_encoding = 0 ) {
 	$email_no_spam_address = '';
+
 	for ( $i = 0, $len = strlen( $email_address ); $i < $len; $i++ ) {
 		$j = rand( 0, 1 + $hex_encoding );
-		if ( 0 == $j ) {
+
+		if ( 0 === $j ) {
 			$email_no_spam_address .= '&#' . ord( $email_address[ $i ] ) . ';';
-		} elseif ( 1 == $j ) {
+		} elseif ( 1 === $j ) {
 			$email_no_spam_address .= $email_address[ $i ];
-		} elseif ( 2 == $j ) {
+		} elseif ( 2 === $j ) {
 			$email_no_spam_address .= '%' . zeroise( dechex( ord( $email_address[ $i ] ) ), 2 );
 		}
 	}
@@ -2925,8 +2945,10 @@ function _make_url_clickable_cb( $matches ) {
 	$url = $matches[2];
 
 	if ( ')' === $matches[3] && strpos( $url, '(' ) ) {
-		// If the trailing character is a closing parethesis, and the URL has an opening parenthesis in it,
-		// add the closing parenthesis to the URL. Then we can let the parenthesis balancer do its thing below.
+		/*
+		 * If the trailing character is a closing parethesis, and the URL has an opening parenthesis in it,
+		 * add the closing parenthesis to the URL. Then we can let the parenthesis balancer do its thing below.
+		 */
 		$url   .= $matches[3];
 		$suffix = '';
 	} else {
@@ -3061,7 +3083,7 @@ function make_clickable( $text ) {
 			|| preg_match( '|^<script[\s>]|i', $piece )
 			|| preg_match( '|^<style[\s>]|i', $piece )
 		) {
-			$nested_code_pre++;
+			++$nested_code_pre;
 		} elseif ( $nested_code_pre
 			&& ( '</code>' === strtolower( $piece )
 				|| '</pre>' === strtolower( $piece )
@@ -3069,7 +3091,7 @@ function make_clickable( $text ) {
 				|| '</style>' === strtolower( $piece )
 			)
 		) {
-			$nested_code_pre--;
+			--$nested_code_pre;
 		}
 
 		if ( $nested_code_pre
@@ -3106,8 +3128,10 @@ function make_clickable( $text ) {
 				)
 				(\)?)                                          # 3: Trailing closing parenthesis (for parethesis balancing post processing).
 			~xS';
-			// The regex is a non-anchored pattern and does not have a single fixed starting character.
-			// Tell PCRE to spend more time optimizing since, when used on a page load, it will probably be used several times.
+			/*
+			 * The regex is a non-anchored pattern and does not have a single fixed starting character.
+			 * Tell PCRE to spend more time optimizing since, when used on a page load, it will probably be used several times.
+			 */
 
 			$ret = preg_replace_callback( $url_clickable, '_make_url_clickable_cb', $ret );
 
@@ -3235,7 +3259,7 @@ function wp_rel_nofollow( $text ) {
 	$text = stripslashes( $text );
 	$text = preg_replace_callback(
 		'|<a (.+?)>|i',
-		static function( $matches ) {
+		static function ( $matches ) {
 			return wp_rel_callback( $matches, 'nofollow' );
 		},
 		$text
@@ -3269,7 +3293,7 @@ function wp_rel_ugc( $text ) {
 	$text = stripslashes( $text );
 	$text = preg_replace_callback(
 		'|<a (.+?)>|i',
-		static function( $matches ) {
+		static function ( $matches ) {
 			return wp_rel_callback( $matches, 'nofollow ugc' );
 		},
 		$text
@@ -3556,15 +3580,19 @@ function is_email( $email, $deprecated = false ) {
 	// Split out the local and domain parts.
 	list( $local, $domain ) = explode( '@', $email, 2 );
 
-	// LOCAL PART
-	// Test for invalid characters.
+	/*
+	 * LOCAL PART
+	 * Test for invalid characters.
+	 */
 	if ( ! preg_match( '/^[a-zA-Z0-9!#$%&\'*+\/=?^_`{|}~\.-]+$/', $local ) ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'is_email', false, $email, 'local_invalid_chars' );
 	}
 
-	// DOMAIN PART
-	// Test for sequences of periods.
+	/*
+	 * DOMAIN PART
+	 * Test for sequences of periods.
+	 */
 	if ( preg_match( '/\.{2,}/', $domain ) ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'is_email', false, $email, 'domain_period_sequence' );
@@ -3766,16 +3794,20 @@ function sanitize_email( $email ) {
 	// Split out the local and domain parts.
 	list( $local, $domain ) = explode( '@', $email, 2 );
 
-	// LOCAL PART
-	// Test for invalid characters.
+	/*
+	 * LOCAL PART
+	 * Test for invalid characters.
+	 */
 	$local = preg_replace( '/[^a-zA-Z0-9!#$%&\'*+\/=?^_`{|}~\.-]/', '', $local );
 	if ( '' === $local ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'sanitize_email', '', $email, 'local_invalid_chars' );
 	}
 
-	// DOMAIN PART
-	// Test for sequences of periods.
+	/*
+	 * DOMAIN PART
+	 * Test for sequences of periods.
+	 */
 	$domain = preg_replace( '/\.{2,}/', '', $domain );
 	if ( '' === $domain ) {
 		/** This filter is documented in wp-includes/formatting.php */
@@ -3926,6 +3958,7 @@ function human_time_diff( $from, $to = 0 ) {
  *
  * @since 1.5.0
  * @since 5.2.0 Added the `$post` parameter.
+ * @since 6.3.0 Removes footnotes markup from the excerpt content.
  *
  * @param string             $text Optional. The excerpt. If set to empty, an excerpt is generated.
  * @param WP_Post|object|int $post Optional. WP_Post instance or Post ID/object. Default null.
@@ -3940,24 +3973,36 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 
 		$text = strip_shortcodes( $text );
 		$text = excerpt_remove_blocks( $text );
+		$text = excerpt_remove_footnotes( $text );
 
 		/*
 		 * Temporarily unhook wp_filter_content_tags() since any tags
 		 * within the excerpt are stripped out. Modifying the tags here
 		 * is wasteful and can lead to bugs in the image counting logic.
 		 */
-		$filter_removed = remove_filter( 'the_content', 'wp_filter_content_tags' );
+		$filter_image_removed = remove_filter( 'the_content', 'wp_filter_content_tags' );
+
+		/*
+		 * Temporarily unhook do_blocks() since excerpt_remove_blocks( $text )
+		 * handels block rendering needed for excerpt.
+		 */
+		$filter_block_removed = remove_filter( 'the_content', 'do_blocks', 9 );
 
 		/** This filter is documented in wp-includes/post-template.php */
 		$text = apply_filters( 'the_content', $text );
 		$text = str_replace( ']]>', ']]&gt;', $text );
 
-		/**
+		// Restore the original filter if removed.
+		if ( $filter_block_removed ) {
+			add_filter( 'the_content', 'do_blocks', 9 );
+		}
+
+		/*
 		 * Only restore the filter callback if it was removed above. The logic
 		 * to unhook and restore only applies on the default priority of 10,
 		 * which is generally used for the filter callback in WordPress core.
 		 */
-		if ( $filter_removed ) {
+		if ( $filter_image_removed ) {
 			add_filter( 'the_content', 'wp_filter_content_tags' );
 		}
 
@@ -3982,6 +4027,7 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		 */
 		$excerpt_more = apply_filters( 'excerpt_more', ' ' . '[&hellip;]' );
 		$text         = wp_trim_words( $text, $excerpt_length, $excerpt_more );
+
 	}
 
 	/**
@@ -4721,7 +4767,7 @@ EOF;
 
 	$safe_text = (string) preg_replace_callback(
 		$regex,
-		static function( $matches ) {
+		static function ( $matches ) {
 			if ( ! isset( $matches[0] ) ) {
 				return '';
 			}
@@ -4863,7 +4909,7 @@ function sanitize_option( $option, $value ) {
 		case 'default_ping_status':
 		case 'default_comment_status':
 			// Options that if not there have 0 value but need to be something like "closed".
-			if ( '0' == $value || '' === $value ) {
+			if ( '0' === (string) $value || '' === $value ) {
 				$value = 'closed';
 			}
 			break;
@@ -5201,6 +5247,7 @@ function wp_sprintf( $pattern, ...$args ) {
 	$start     = 0;
 	$result    = '';
 	$arg_index = 0;
+
 	while ( $len > $start ) {
 		// Last character: append and break.
 		if ( strlen( $pattern ) - 1 === $start ) {
@@ -5245,7 +5292,8 @@ function wp_sprintf( $pattern, ...$args ) {
 			 * @param string $arg      The argument.
 			 */
 			$_fragment = apply_filters( 'wp_sprintf', $fragment, $arg );
-			if ( $_fragment != $fragment ) {
+
+			if ( $_fragment !== $fragment ) {
 				$fragment = $_fragment;
 			} else {
 				$fragment = sprintf( $fragment, (string) $arg );
@@ -5317,7 +5365,7 @@ function wp_sprintf_l( $pattern, $args ) {
 	$i = count( $args );
 	while ( $i ) {
 		$arg = array_shift( $args );
-		$i--;
+		--$i;
 		if ( 0 === $i ) {
 			$result .= $l['between_last_two'] . $arg;
 		} else {
@@ -5352,7 +5400,8 @@ function wp_html_excerpt( $str, $count, $more = null ) {
 
 	// Remove part of an entity at the end.
 	$excerpt = preg_replace( '/&[^;\s]{0,6}$/', '', $excerpt );
-	if ( $str != $excerpt ) {
+
+	if ( $str !== $excerpt ) {
 		$excerpt = trim( $excerpt ) . $more;
 	}
 

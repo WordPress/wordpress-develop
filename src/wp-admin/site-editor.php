@@ -23,7 +23,10 @@ if ( ! ( current_theme_supports( 'block-template-parts' ) || wp_is_block_theme()
 	wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
 }
 
-$is_template_part_editor = isset( $_GET['postType'] ) && 'wp_template_part' === sanitize_key( $_GET['postType'] );
+$is_template_part        = isset( $_GET['postType'] ) && 'wp_template_part' === sanitize_key( $_GET['postType'] );
+$is_template_part_path   = isset( $_GET['path'] ) && 'wp_template_partall' === sanitize_key( $_GET['path'] );
+$is_template_part_editor = $is_template_part || $is_template_part_path;
+
 if ( ! wp_is_block_theme() && ! $is_template_part_editor ) {
 	wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
 }
@@ -39,7 +42,7 @@ $current_screen->is_block_editor( true );
 // Default to is-fullscreen-mode to avoid jumps in the UI.
 add_filter(
 	'admin_body_class',
-	static function( $classes ) {
+	static function ( $classes ) {
 		return "$classes is-fullscreen-mode";
 	}
 );
@@ -100,22 +103,7 @@ $preload_paths = array(
 				'per_page'  => 100,
 				'order'     => 'desc',
 				'orderby'   => 'date',
-				'_locale'   => 'user',
 				// array indices are required to avoid query being encoded and not matching in cache.
-				'status[0]' => 'publish',
-				'status[1]' => 'draft',
-			),
-			$navigation_rest_route
-		),
-		'GET',
-	),
-	$preload_paths[] = array(
-		add_query_arg(
-			array(
-				'context'   => 'edit',
-				'per_page'  => 100,
-				'order'     => 'desc',
-				'orderby'   => 'date',
 				'status[0]' => 'publish',
 				'status[1]' => 'draft',
 			),
@@ -172,7 +160,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<?php // JavaScript is disabled. ?>
 	<div class="wrap hide-if-js site-editor-no-js">
 		<h1 class="wp-heading-inline"><?php _e( 'Edit site' ); ?></h1>
-		<div class="notice notice-error notice-alt">
+		<div class="notice notice-error">
 			<p>
 				<?php
 					/**

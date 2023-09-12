@@ -1643,6 +1643,16 @@ class Tests_Functions extends WP_UnitTestCase {
 							'proper_filename' => false,
 						),
 					),
+					// Google Docs file for which finfo_file() returns a duplicate mime type.
+					array(
+						DIR_TESTDATA . '/uploads/double-mime-type.docx',
+						'double-mime-type.docx',
+						array(
+							'ext'             => 'docx',
+							'type'            => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+							'proper_filename' => false,
+						),
+					),
 					// Non-image file with wrong sub-type.
 					array(
 						DIR_TESTDATA . '/uploads/pages-to-word.docx',
@@ -1716,7 +1726,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		add_filter(
 			'upload_mimes',
-			static function( $mimes ) {
+			static function ( $mimes ) {
 				$mimes['svg'] = 'image/svg+xml';
 				return $mimes;
 			}
@@ -1754,7 +1764,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		add_filter(
 			'upload_mimes',
-			static function( $mimes ) use ( $woff_mime_type ) {
+			static function ( $mimes ) use ( $woff_mime_type ) {
 				$mimes['woff'] = $woff_mime_type;
 				return $mimes;
 			}
@@ -2150,5 +2160,4 @@ class Tests_Functions extends WP_UnitTestCase {
 		);
 		$this->assertSameSetsWithIndex( $theme_json, $expected_theme_json );
 	}
-
 }

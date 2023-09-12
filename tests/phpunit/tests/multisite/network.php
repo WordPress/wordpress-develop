@@ -267,7 +267,7 @@ if ( is_multisite() ) :
 		}
 
 		public function helper_deactivate_hook() {
-			$this->plugin_hook_count++;
+			++$this->plugin_hook_count;
 		}
 
 		public function test_wp_schedule_update_network_counts() {

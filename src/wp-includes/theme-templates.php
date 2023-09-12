@@ -90,7 +90,7 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_id
 			$alt_post_name               = _truncate_post_slug( $override_slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 			$query_args['post_name__in'] = array( $alt_post_name );
 			$query                       = new WP_Query( $query_args );
-			$suffix++;
+			++$suffix;
 		} while ( count( $query->posts ) > 0 );
 		$override_slug = $alt_post_name;
 	}
@@ -173,8 +173,10 @@ function the_block_template_skip_link() {
 			return;
 		}
 
-		// Get the site wrapper.
-		// The skip-link will be injected in the beginning of it.
+		/*
+		 * Get the site wrapper.
+		 * The skip-link will be injected in the beginning of it.
+		 */
 		sibling = document.querySelector( '.wp-site-blocks' );
 
 		// Early exit if the root element was not found.
