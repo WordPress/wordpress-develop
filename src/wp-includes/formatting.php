@@ -3982,7 +3982,7 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		 */
 		$filter_image_removed = remove_filter( 'the_content', 'wp_filter_content_tags' );
 
-		/**
+		/*
 		 * Temporarily unhook do_blocks() since excerpt_remove_blocks( $text )
 		 * handels block rendering needed for excerpt.
 		 */
