@@ -153,6 +153,8 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 	 * Tests that `wp_trim_excerpt()` does process valid blocks.
 	 *
 	 * @ticket 58682
+	 *
+	 * @covers ::wp_trim_excerpt
 	 */
 	public function test_wp_trim_excerpt_check_if_block_renders() {
 		$post = self::factory()->post->create(
@@ -170,6 +172,8 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 	 * Tests that `wp_trim_excerpt()` unhooks `do_blocks()` from 'the_content' filter.
 	 *
 	 * @ticket 58682
+	 *
+	 * @covers ::wp_trim_excerpt
 	 */
 	public function test_wp_trim_excerpt_unhooks_do_blocks() {
 		$post = self::factory()->post->create();
@@ -196,6 +200,8 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 	 * Tests that `wp_trim_excerpt()` doesn't permanently unhook `do_blocks()` from 'the_content' filter.
 	 *
 	 * @ticket 58682
+	 *
+	 * @covers ::wp_trim_excerpt
 	 */
 	public function test_wp_trim_excerpt_should_not_permanently_unhook_do_blocks() {
 		$post = self::factory()->post->create();
@@ -209,6 +215,8 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 	 * Tests that `wp_trim_excerpt()` doesn't restore `do_blocks()` if it was previously unhooked.
 	 *
 	 * @ticket 58682
+	 *
+	 * @covers ::wp_trim_excerpt
 	 */
 	public function test_wp_trim_excerpt_does_not_restore_do_blocks_if_previously_unhooked() {
 		$post = self::factory()->post->create();
