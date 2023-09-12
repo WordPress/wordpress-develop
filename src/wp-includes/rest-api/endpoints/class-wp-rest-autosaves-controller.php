@@ -375,14 +375,16 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		}
 
 		// Check if meta values have changed.
-		$revisioned_meda_keys = wp_post_revision_meta_keys( $post->post_type );
-		foreach ( $revisioned_meda_keys as $meta_key ) {
-			$old_meta = get_post_meta( $post_id, $meta_key, true );
-			$new_meta = isset( $meta[ $meta_key ] ) ? $meta[ $meta_key ] : '';
+		if ( ! empty( $meta ) ) {
+			$revisioned_meta_keys = wp_post_revision_meta_keys( $post->post_type );
+			foreach ( $revisioned_meta_keys as $meta_key ) {
+				$old_meta = get_post_meta( $post_id, $meta_key, true );
+				$new_meta = isset( $meta[ $meta_key ] ) ? $meta[ $meta_key ] : '';
 
-			if ( $new_meta !== $old_meta ) {
-				$autosave_is_different = true;
-				break;
+				if ( $new_meta !== $old_meta ) {
+					$autosave_is_different = true;
+					break;
+				}
 			}
 		}
 
@@ -410,9 +412,9 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			$revision_id = _wp_put_post_revision( $post_data, true );
 		}
 
-		// Attached any passed meta values that have revisioning enabled.
-		if ( $revision_id ) {
-			foreach ( $revisioned_meda_keys as $meta_key ) {
+		// Attached any passed meta values that have revisions enabled.
+		if ( ! empty( $meta ) && $revision_id ) {
+			foreach ( $revisioned_meta_keys as $meta_key ) {
 				if ( isset( $meta[ $meta_key ] ) ) {
 					update_metadata( 'post', $revision_id, $meta_key, $meta[ $meta_key ] );
 				}
