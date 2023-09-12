@@ -63,7 +63,7 @@ if ( is_multisite() ) :
 				array( 'NAN', 'NAN', 100 ),
 
 				// These effectively disable uploads.
-				array( 0, 666, 666 ),
+				array( 0, 666, 0 ),
 				array( false, 0, 0 ),
 				array( 'NAN', 0, 0 ),
 			);
