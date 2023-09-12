@@ -162,7 +162,14 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59325
+	 *
+	 * @covers ::_build_block_template_result_from_file
+	 *
 	 * @dataProvider data_build_block_template_result_from_file_injects_theme_attribute
+	 *
+	 * @param string $filename         The template's filename.
+	 * @param string $expected_content The expected block markup.
 	 */
 	public function test_build_block_template_result_from_file_injects_theme_attribute( $filename, $expected_content ) {
 		$template = _build_block_template_result_from_file(
