@@ -175,7 +175,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$template = _build_block_template_result_from_file(
 			array(
 				'slug' => 'single',
-				'path' => __DIR__ . '/../data/templates/' . $filename,
+				'path' => DIR_TESTDATA . "/templates/$filename",
 			),
 			'wp_template'
 		);
