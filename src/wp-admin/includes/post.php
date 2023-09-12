@@ -1274,6 +1274,8 @@ function wp_edit_posts_query( $q = false ) {
 		$query['posts_per_page']         = -1;
 		$query['posts_per_archive_page'] = -1;
 		$query['fields']                 = 'id=>parent';
+		$query['update_post_meta_cache'] = false;
+		$query['update_post_term_cache'] = false;
 	}
 
 	if ( ! empty( $q['show_sticky'] ) ) {
