@@ -190,29 +190,29 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	public function data_build_block_template_result_from_file_injects_theme_attribute() {
 		$theme = 'block-theme';
 		return array(
-			array(
-				'template-with-template-part.html',
-				sprintf(
+			'a template with a template part block' => array(
+				'filename' => 'template-with-template-part.html',
+				'expected' => sprintf(
 					'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /-->',
 					$theme
 				),
 			),
-			array(
-				'template-with-nested-template-part.html',
-				sprintf(
+			'a template with a template part block nested inside another block' => array(
+				'filename' => 'template-with-nested-template-part.html',
+				'expected' => sprintf(
 					'<!-- wp:group -->
 <!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /-->
 <!-- /wp:group -->',
 					$theme
 				),
 			),
-			array(
-				'template-with-template-part-with-existing-theme-attribute.html',
-				'<!-- wp:template-part {"slug":"header","theme":"fake-theme","align":"full", "tagName":"header","className":"site-header"} /-->',
+			'a template with a template part block with an existing theme attribute' => array(
+				'filename' => 'template-with-template-part-with-existing-theme-attribute.html',
+				'expected' => '<!-- wp:template-part {"slug":"header","theme":"fake-theme","align":"full", "tagName":"header","className":"site-header"} /-->',
 			),
-			array(
-				'template.html',
-				'<!-- wp:paragraph -->
+			'a template with no template part block' => array(
+				'filename' => 'template.html',
+				'expected' => '<!-- wp:paragraph -->
 <p>Just a paragraph</p>
 <!-- /wp:paragraph -->',
 			),
