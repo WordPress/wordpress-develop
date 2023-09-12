@@ -190,7 +190,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	public function data_build_block_template_result_from_file_injects_theme_attribute() {
 		$theme = 'block-theme';
 		return array(
-			'a template with a template part block' => array(
+			'a template with a template part block'  => array(
 				'filename' => 'template-with-template-part.html',
 				'expected' => sprintf(
 					'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /-->',
