@@ -652,6 +652,8 @@ add_action( 'widgets_init', '_wp_block_theme_register_classic_sidebars', 1 );
 // Don't remove. Wrong way to disable.
 add_action( 'template_redirect', '_wp_admin_bar_init', 0 );
 add_action( 'admin_init', '_wp_admin_bar_init' );
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_styles');
+add_action( 'admin_enqueue_scripts', 'admin_enqueue_admin_bar_styles');
 add_action( 'before_signup_header', '_wp_admin_bar_init' );
 add_action( 'activate_header', '_wp_admin_bar_init' );
 add_action( 'wp_body_open', 'wp_admin_bar_render', 0 );
