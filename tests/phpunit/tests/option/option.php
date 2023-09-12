@@ -421,10 +421,42 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( floatval( 0 ), intval( 0 ) ),
 			array( floatval( 0 ), floatval( 0 ) ),
 			array( floatval( 0 ), false ),
-			array( false, '0' ),
-			array( false, intval( 0 ) ),
-			array( false, floatval( 0 ) ),
-			array( false, false ),
+		);
+	}
+
+	/**
+	 * @ticket 22192
+	 *
+	 * @covers ::add_option
+	 * @covers ::update_option
+	 *
+	 * @dataProvider data_update_option_type_falsey_values
+	 *
+	 * @param mixed $old_value One of the values to compare.
+	 * @param mixed $new_value The other value to compare.
+	 * @param int   $expected  The expected result.
+	 */
+	public function test_update_option_with_falsey_values( $old_value, $new_value, $expected ) {
+		add_option( 'foo', $old_value );
+		$num_queries = get_num_queries();
+
+		$updated = update_option( 'foo', $new_value );
+
+		$this->assertSame( $expected, $updated, 'update_option should not match expeted value when values are loosely equal.' );
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'The number of database queries should not change.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_update_option_type_falsey_values() {
+		return array(
+			array( false, '0', true ),
+			array( false, intval( 0 ), true ),
+			array( false, floatval( 0 ), true ),
+			array( false, false, false ),
 		);
 	}
 }
