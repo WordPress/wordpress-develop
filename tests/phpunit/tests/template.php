@@ -637,27 +637,28 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @covers ::locate_template
 	 */
 	public function test_locate_template_uses_current_theme() {
+		$themes = wp_get_themes();
+
 		// Look for parent themes with an index.php template.
-		$themes = array_values(
-			array_filter(
-				wp_get_themes(),
-				static function( $theme ) {
-					if ( $theme->get_stylesheet() !== $theme->get_template() ) {
-						return false;
-					}
-					$php_templates = $theme['Template Files'];
-					return isset( $php_templates['index.php'] );
-				}
-			)
-		);
-		if ( count( $themes ) < 2 ) {
+		$relevant_themes = array();
+		foreach ( $themes as $theme ) {
+			if ( $theme->get_stylesheet() !== $theme->get_template() ) {
+				continue;
+			}
+			$php_templates = $theme['Template Files'];
+			if ( ! isset( $php_templates['index.php'] ) ) {
+				continue;
+			}
+			$relevant_themes[] = $theme;
+		}
+		if ( count( $relevant_themes ) < 2 ) {
 			$this->markTestSkipped( 'Test requires at least two parent themes with an index.php template.' );
 		}
 
 		$template_names = array( 'index.php' );
 
-		$old_theme = $themes[0];
-		$new_theme = $themes[1];
+		$old_theme = $relevant_themes[0];
+		$new_theme = $relevant_themes[1];
 
 		switch_theme( $old_theme->get_stylesheet() );
 		$this->assertSame( $old_theme->get_stylesheet_directory() . '/index.php', locate_template( $template_names ), 'Incorrect index template found in initial theme.' );
