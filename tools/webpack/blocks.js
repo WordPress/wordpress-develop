@@ -65,15 +65,69 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	const config = {
 		...baseConfig( env ),
 		entry: {
-			'file/view': normalizeJoin(baseDir, `node_modules/@wordpress/block-library/build-module/file/view` ),
-			'navigation/view': normalizeJoin(baseDir, `node_modules/@wordpress/block-library/build-module/navigation/view` ),
-			'navigation/view-modal': normalizeJoin(baseDir, `node_modules/@wordpress/block-library/build-module/navigation/view-modal` ),
-			'search/view': normalizeJoin(baseDir, `node_modules/@wordpress/block-library/build-module/search/view` ),
+			// TODO before merging:
+			// - Rename to the final filenames, which should all be `view` and not `view-interactivity`.
+			// - Add the Search block file.
+			'navigation/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/navigation/view-interactivity' ),
+			'image/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/image/view-interactivity' ),
+			'query/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/query/view' ),
+			'file/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/file/view-interactivity' ),
 		},
 		output: {
 			devtoolNamespace: 'wp',
-			filename: `[name]${ suffix }.js`,
-			path: normalizeJoin(baseDir, `${ buildTarget }/blocks` ),
+			filename: `./blocks/[name]${ suffix }.js`,
+			path: normalizeJoin( baseDir, buildTarget ),
+			// TODO before merging: Remove this?
+			chunkLoadingGlobal: '__WordPressCorePrivateInteractivityAPI__',
+		},
+		resolve: {
+			alias: {
+				'@wordpress/interactivity': normalizeJoin( baseDir, 'node_modules/@wordpress/interactivity/src/index.js' ),
+			},
+		},
+		optimization: {
+			...baseConfig.optimization,
+			runtimeChunk: {
+				name: 'private-interactivity',
+			},
+			splitChunks: {
+				cacheGroups: {
+					interactivity: {
+						name: 'private-interactivity',
+						test: /^(?!.*[\\/]block-library[\\/]).*$/,
+						filename: `./js/dist/interactivity${suffix}.js`,
+						chunks: 'all',
+						minSize: 0,
+						priority: -10,
+					},
+				},
+			},
+		},
+		module: {
+			rules: [
+				{
+					test: /\.(j|t)sx?$/,
+					use: [
+						{
+							loader: require.resolve( 'babel-loader' ),
+							options: {
+								cacheDirectory: process.env.BABEL_CACHE_DIRECTORY || true,
+								babelrc: false,
+								configFile: false,
+								presets: [
+									[
+										'@babel/preset-react',
+										{
+											runtime: 'automatic',
+											importSource: 'preact',
+										},
+									],
+								],
+							},
+						},
+					],
+				},
+			],
 		},
 		plugins: [
 			new DefinePlugin( {
@@ -85,6 +139,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			} ),
 			new DependencyExtractionPlugin( {
 				injectPolyfill: false,
+				useDefaults: false,
 			} ),
 			new CopyWebpackPlugin( {
 				patterns: [
