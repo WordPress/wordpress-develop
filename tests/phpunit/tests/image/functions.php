@@ -692,7 +692,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_image_editors',
-			static function( $editors ) {
+			static function ( $editors ) {
 				return array( 'WP_Image_Editor_Mock' );
 			}
 		);
@@ -718,7 +718,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_wp_crop_image_should_return_correct_file_extension_if_output_format_was_modified() {
 		add_filter(
 			'image_editor_output_format',
-			static function() {
+			static function () {
 				return array_fill_keys( array( 'image/jpg', 'image/jpeg', 'image/png' ), 'image/webp' );
 			}
 		);

@@ -108,7 +108,7 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 		$has_filter = true;
 		add_filter(
 			'the_content',
-			static function( $content ) use ( &$has_filter ) {
+			static function ( $content ) use ( &$has_filter ) {
 				$has_filter = has_filter( 'the_content', 'wp_filter_content_tags' );
 				return $content;
 			}
