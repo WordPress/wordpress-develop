@@ -445,7 +445,7 @@ if ( ! function_exists( 'twentyeleven_header_image' ) ) :
 	/**
 	 * Custom header image markup displayed.
 	 *
-	 * @since Twenty Eleven 4.4
+	 * @since Twenty Eleven 4.5
 	 */
 	function twentyeleven_header_image() {
 		$attrs = array(

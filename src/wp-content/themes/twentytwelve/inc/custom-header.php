@@ -171,7 +171,7 @@ function twentytwelve_admin_header_image() {
 /**
  * Output markup to be displayed.
  *
- * @since Twenty Twelve 4.0
+ * @since Twenty Twelve 4.1
  */
 function twentytwelve_header_image() {
 	$custom_header = get_custom_header();
