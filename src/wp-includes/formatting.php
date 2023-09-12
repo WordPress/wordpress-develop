@@ -3997,7 +3997,7 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 			add_filter( 'the_content', 'do_blocks', 9 );
 		}
 
-		/**
+		/*
 		 * Only restore the filter callback if it was removed above. The logic
 		 * to unhook and restore only applies on the default priority of 10,
 		 * which is generally used for the filter callback in WordPress core.
