@@ -61,7 +61,6 @@ class WP_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 	 *                    override default options. See WP_Upgrader_Skin::__construct().
 	 *                    Default empty array.
 	 */
-	#[\Override]
 	public function __construct( $args = array() ) {
 		parent::__construct( $args );
 

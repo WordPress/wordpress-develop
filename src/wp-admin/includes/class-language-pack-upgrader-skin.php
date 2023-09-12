@@ -24,7 +24,6 @@ class Language_Pack_Upgrader_Skin extends WP_Upgrader_Skin {
 	/**
 	 * @param array $args
 	 */
-	#[\Override]
 	public function __construct( $args = array() ) {
 		$defaults = array(
 			'url'                => '',
