@@ -1852,13 +1852,11 @@ function _custom_background_cb() {
 		$color = false;
 	}
 
-	$handle = 'custom-background';
-	wp_register_style( $handle, false );
+	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 
 	if ( ! $background && ! $color ) {
 		if ( is_customize_preview() ) {
-			wp_add_inline_style( $handle, '/*...*/' );
-			wp_enqueue_style( $handle );
+			printf( '<style%s id="custom-background-css"></style>', $type_attr );
 		}
 		return;
 	}
@@ -1911,8 +1909,11 @@ function _custom_background_cb() {
 
 		$style .= $image . $position . $size . $repeat . $attachment;
 	}
-	wp_add_inline_style( $handle, 'body.custom-background { ' . trim( $style ) . ' }' );
-	wp_enqueue_style( $handle );
+	?>
+<style<?php echo $type_attr; ?> id="custom-background-css">
+body.custom-background { <?php echo trim( $style ); ?> }
+</style>
+	<?php
 }
 
 /**
@@ -1922,12 +1923,17 @@ function _custom_background_cb() {
  */
 function wp_custom_css_cb() {
 	$styles = wp_get_custom_css();
-	if ( $styles || is_customize_preview() ) {
-		$handle = 'wp-custom';
-		wp_register_style( $handle, false );
-		wp_add_inline_style( $handle, strip_tags( $styles ) );
-		wp_enqueue_style( $handle );
-	}
+	if ( $styles || is_customize_preview() ) :
+		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+		?>
+		<style<?php echo $type_attr; ?> id="wp-custom-css">
+			<?php
+			// Note that esc_html() cannot be used because `div &gt; span` is not interpreted properly.
+			echo strip_tags( $styles );
+			?>
+		</style>
+		<?php
+	endif;
 }
 
 /**
@@ -2901,7 +2907,7 @@ function _custom_header_background_just_in_time() {
 
 		$args = get_theme_support( 'custom-header' );
 		if ( $args[0]['wp-head-callback'] ) {
-			add_action( 'wp_head', $args[0]['wp-head-callback'], -1 );
+			add_action( 'wp_head', $args[0]['wp-head-callback'] );
 		}
 
 		if ( is_admin() ) {
@@ -2915,7 +2921,7 @@ function _custom_header_background_just_in_time() {
 		add_theme_support( 'custom-background', array( '__jit' => true ) );
 
 		$args = get_theme_support( 'custom-background' );
-		add_action( 'wp_head', $args[0]['wp-head-callback'], -1 );
+		add_action( 'wp_head', $args[0]['wp-head-callback'] );
 
 		if ( is_admin() ) {
 			require_once ABSPATH . 'wp-admin/includes/class-custom-background.php';
@@ -2939,15 +2945,16 @@ function _custom_logo_header_styles() {
 		$classes = array_map( 'sanitize_html_class', $classes );
 		$classes = '.' . implode( ', .', $classes );
 
-		$custom_logo_css = $classes . '{
-		     position: absolute;
-		     clip: rect(1px, 1px, 1px, 1px);
-		}';
-		$handle          = 'custom-logo';
-
-		wp_register_style( $handle, false );
-		wp_add_inline_style( $handle, $custom_logo_css );
-		wp_enqueue_style( $handle );
+		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+		?>
+		<!-- Custom Logo: hide header text -->
+		<style id="custom-logo-css"<?php echo $type_attr; ?>>
+			<?php echo $classes; ?> {
+				position: absolute;
+				clip: rect(1px, 1px, 1px, 1px);
+			}
+		</style>
+		<?php
 	}
 }
 

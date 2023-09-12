@@ -639,7 +639,7 @@
 		 * @return {void}
 		 */
 		custom_css: function( value ) {
-			$( '#wp-custom-inline-css' ).text( value );
+			$( '#wp-custom-css' ).text( value );
 		},
 
 		/**
@@ -673,7 +673,7 @@
 				css += 'background-attachment: ' + settings.attachment() + ';';
 			}
 
-			$( '#custom-background-inline-css' ).text( 'body.custom-background { ' + css + ' }' );
+			$( '#custom-background-css' ).text( 'body.custom-background { ' + css + ' }' );
 		}
 	};
 
