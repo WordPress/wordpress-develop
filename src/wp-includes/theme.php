@@ -210,7 +210,14 @@ function get_stylesheet_directory() {
 		 * @param string $stylesheet     Directory name of the active theme.
 		 * @param string $theme_root     Absolute path to themes directory.
 		 */
-		$wp_stylesheet_path = apply_filters( 'stylesheet_directory', $stylesheet_dir, $stylesheet, $theme_root );
+		$stylesheet_dir = apply_filters( 'stylesheet_directory', $stylesheet_dir, $stylesheet, $theme_root );
+
+		// If there are filter callbacks, force the logic to execute on every call.
+		if ( has_filter( 'stylesheet' ) || has_filter( 'theme_root' ) || has_filter( 'stylesheet_directory' ) ) {
+			return $stylesheet_dir;
+		}
+
+		$wp_stylesheet_path = $stylesheet_dir;
 	}
 
 	return $wp_stylesheet_path;
@@ -353,7 +360,14 @@ function get_template_directory() {
 		 * @param string $template     Directory name of the active theme.
 		 * @param string $theme_root   Absolute path to the themes directory.
 		 */
-		$wp_template_path = apply_filters( 'template_directory', $template_dir, $template, $theme_root );
+		$template_dir = apply_filters( 'template_directory', $template_dir, $template, $theme_root );
+
+		// If there are filter callbacks, force the logic to execute on every call.
+		if ( has_filter( 'template' ) || has_filter( 'theme_root' ) || has_filter( 'template_directory' ) ) {
+			return $template_dir;
+		}
+
+		$wp_template_path = $template_dir;
 	}
 
 	return $wp_template_path;
