@@ -251,7 +251,7 @@ class Tests_File extends WP_UnitTestCase {
 		// Create a conflict by removing the randomness of the generated password.
 		add_filter(
 			'random_password',
-			static function() {
+			static function () {
 				return '123456';
 			},
 			10,
@@ -285,7 +285,7 @@ class Tests_File extends WP_UnitTestCase {
 		// Force random passwords to 12 characters.
 		add_filter(
 			'random_password',
-			static function() {
+			static function () {
 				return '1a2b3c4d5e6f';
 			},
 			10,
@@ -321,7 +321,7 @@ class Tests_File extends WP_UnitTestCase {
 		// Make the filter send the filename over the limit.
 		add_filter(
 			'wp_unique_filename',
-			static function( $filename ) use ( &$filenames_over_limit ) {
+			static function ( $filename ) use ( &$filenames_over_limit ) {
 				if ( strlen( $filename ) === 252 ) {
 					$filename .= '1';
 					++$filenames_over_limit;
@@ -357,7 +357,7 @@ class Tests_File extends WP_UnitTestCase {
 		// Force random passwords to 12 characters.
 		add_filter(
 			'random_password',
-			static function() {
+			static function () {
 				return '1a2b3c4d5e6f';
 			},
 			10,
@@ -375,7 +375,7 @@ class Tests_File extends WP_UnitTestCase {
 		// Make the filter send the filename over the limit.
 		add_filter(
 			'wp_unique_filename',
-			static function( $filename ) use ( &$filenames_over_limit ) {
+			static function ( $filename ) use ( &$filenames_over_limit ) {
 				if ( strlen( $filename ) === 252 ) {
 					$filename .= '1';
 					++$filenames_over_limit;

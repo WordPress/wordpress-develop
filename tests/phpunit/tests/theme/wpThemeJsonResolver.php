@@ -600,7 +600,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$global_styles_query_count = 0;
 		add_filter(
 			'query',
-			static function( $query ) use ( &$global_styles_query_count ) {
+			static function ( $query ) use ( &$global_styles_query_count ) {
 				if ( preg_match( '#post_type = \'wp_global_styles\'#', $query ) ) {
 					$global_styles_query_count++;
 				}
@@ -836,7 +836,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$styles     = $theme_json->get_styles_block_nodes();
 		$styles     = array_filter(
 			$styles,
-			static function( $element ) {
+			static function ( $element ) {
 				return isset( $element['name'] ) && 'my/block-with-styles' === $element['name'];
 			}
 		);
