@@ -30,7 +30,7 @@ class WP_Embed {
 	 */
 	public function __construct() {
 		// Hack to get the [embed] shortcode to run before wpautop().
-		add_filter( 'template', array( $this, 'run_shortcode' ), 6 );
+		add_filter( 'the_block_template_html', array( $this, 'run_shortcode' ), 6 );
 		add_filter( 'the_content', array( $this, 'run_shortcode' ), 8 );
 		add_filter( 'widget_text_content', array( $this, 'run_shortcode' ), 8 );
 		add_filter( 'widget_block_content', array( $this, 'run_shortcode' ), 8 );
@@ -39,7 +39,7 @@ class WP_Embed {
 		add_shortcode( 'embed', '__return_false' );
 
 		// Attempts to embed all URLs in a post.
-		add_filter( 'template', array( $this, 'autoembed' ), 6 );
+		add_filter( 'the_block_template_html', array( $this, 'autoembed' ), 6 );
 		add_filter( 'the_content', array( $this, 'autoembed' ), 8 );
 		add_filter( 'widget_text_content', array( $this, 'autoembed' ), 8 );
 		add_filter( 'widget_block_content', array( $this, 'autoembed' ), 8 );

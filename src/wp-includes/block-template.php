@@ -207,7 +207,7 @@ function _block_template_render_title_tag() {
  *
  * @access private
  * @since 5.8.0
- * @since 6.4.0 Block template content now runs through a 'template' filter.
+ * @since 6.4.0 Block template content now runs through a 'the_block_template_html' filter.
  *
  * @global string $_wp_current_template_content
  *
@@ -232,12 +232,51 @@ function get_the_block_template_html() {
 	 *
 	 * @param string $content The entire block template HTML content.
 	 */
-	$content = apply_filters( 'template', $content );
+	$content = apply_filters( 'the_block_template_html', $content );
 	$content = str_replace( ']]>', ']]&gt;', $content );
 
 	// Wrap block template in .wp-site-blocks to allow for specific descendant styles
 	// (e.g. `.wp-site-blocks > *`).
 	return '<div class="wp-site-blocks">' . $content . '</div>';
+}
+
+/**
+ * Parses dynamic blocks from the block template and re-renders them.
+ *
+ * @since 6.4.0
+ *
+ * @global WP_Query $wp_query
+ *
+ * @param string $content Block template content.
+ * @return string Updated block template content.
+ */
+function do_block_template_blocks( $content ) {
+	global $wp_query;
+
+	/*
+	 * Most block themes omit the `core/query` and `core/post-template` blocks in their singular content templates.
+	 * While this technically still works since singular content templates are always for only one post, it results in
+	 * the main query loop never being entered which causes bugs in core and the plugin ecosystem.
+	 *
+	 * The workaround below ensures that the loop is started even for those singular templates. The while loop will by
+	 * definition only go through a single iteration, i.e. `do_blocks()` is only called once. Additional safeguard
+	 * checks are included to ensure the main query loop has not been tampered with and really only encompasses a
+	 * single post.
+	 *
+	 * Even if the block template contained a `core/query` and `core/post-template` block referencing the main query
+	 * loop, it would not cause errors since it would use a cloned instance and go through the same loop of a single
+	 * post, within the actual main query loop.
+	 */
+	if ( is_singular() && 1 === $wp_query->post_count && have_posts() ) {
+		while ( have_posts() ) {
+			the_post();
+
+			$content = do_blocks( $content );
+		}
+		return $content;
+	}
+
+	return do_blocks( $content );
 }
 
 /**

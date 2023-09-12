@@ -1822,6 +1822,11 @@ function wp_lazy_loading_enabled( $tag_name, $context ) {
 function wp_filter_content_tags( $content, $context = null ) {
 	if ( null === $context ) {
 		$context = current_filter();
+
+		// For backward compatibility, continue using the 'template' context for the block template.
+		if ( 'the_block_template_html' === $context ) {
+			$context = 'template';
+		}
 	}
 
 	$add_iframe_loading_attr = wp_lazy_loading_enabled( 'iframe', $context );
