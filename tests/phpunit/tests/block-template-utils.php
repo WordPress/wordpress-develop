@@ -168,10 +168,10 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_build_block_template_result_from_file_injects_theme_attribute
 	 *
-	 * @param string $filename         The template's filename.
-	 * @param string $expected_content The expected block markup.
+	 * @param string $filename The template's filename.
+	 * @param string $expected The expected block markup.
 	 */
-	public function test_build_block_template_result_from_file_injects_theme_attribute( $filename, $expected_content ) {
+	public function test_build_block_template_result_from_file_injects_theme_attribute( $filename, $expected ) {
 		$template = _build_block_template_result_from_file(
 			array(
 				'slug' => 'single',
@@ -179,7 +179,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			),
 			'wp_template'
 		);
-		$this->assertSame( $expected_content, $template->content );
+		$this->assertSame( $expected, $template->content );
 	}
 
 	public function data_build_block_template_result_from_file_injects_theme_attribute() {
