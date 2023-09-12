@@ -55,6 +55,11 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 		$this->assertSame( 'plugin/example', strip_core_block_namespace( 'plugin/example' ) );
 	}
 
+	/**
+	 * @ticket 59327
+	 *
+	 * @covers ::serialize_blocks
+	 */
 	public function test_callback_argument() {
 		$markup = "<!-- wp:outer --><!-- wp:inner {\"key\":\"value\"} -->Example.<!-- /wp:inner -->\n\nExample.\n\n<!-- wp:void /--><!-- /wp:outer -->";
 		$blocks = parse_blocks( $markup );
