@@ -101,6 +101,25 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58277
+	 *
+	 * @covers ::get_option
+	 */
+	public function test_get_option_notoptions_cache() {
+		$notoptions = array(
+			'invalid' => true,
+		);
+		wp_cache_set( 'notoptions', $notoptions, 'options' );
+
+		$before = get_num_queries();
+		$value  = get_option( 'invalid' );
+		$after  = get_num_queries();
+
+		$this->assertSame( 0, $after - $before );
+	}
+
+
+	/**
 	 * @covers ::get_option
 	 * @covers ::add_option
 	 * @covers ::delete_option
