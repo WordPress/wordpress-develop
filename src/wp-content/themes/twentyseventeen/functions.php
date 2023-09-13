@@ -480,7 +480,7 @@ function twentyseventeen_scripts() {
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Skip-link fix is no longer enqueued by default.
-	wp_register_script( 'twentyseventeen-skip-link-focus-fix', get_theme_file_uri( '/assets/js/skip-link-focus-fix.js' ), array(), '20161114', array( 'in_footer' => true ) );
+	wp_register_script( 'twentyseventeen-skip-link-focus-fix', get_theme_file_uri( '/assets/js/skip-link-focus-fix.js' ), array(), '20161114', true );
 
 	wp_enqueue_script(
 		'twentyseventeen-global',
