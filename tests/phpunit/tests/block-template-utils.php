@@ -208,7 +208,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			),
 			'a template with a template part block with an existing theme attribute' => array(
 				'filename' => 'template-with-template-part-with-existing-theme-attribute.html',
-				'expected' => '<!-- wp:template-part {"slug":"header","theme":"fake-theme","align":"full", "tagName":"header","className":"site-header"} /-->',
+				'expected' => '<!-- wp:template-part {"slug":"header","theme":"fake-theme","align":"full","tagName":"header","className":"site-header"} /-->',
 			),
 			'a template with no template part block' => array(
 				'filename' => 'template.html',
