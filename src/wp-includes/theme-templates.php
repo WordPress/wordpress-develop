@@ -211,7 +211,8 @@ function the_block_template_skip_link() {
  * @since 5.8.0
  */
 function wp_enable_block_templates() {
-	if ( wp_is_block_theme() || wp_theme_has_theme_json() ) {
+	$theme = wp_get_theme();
+	if ( $theme->is_block_theme() || $theme->has_json_support() ) {
 		add_theme_support( 'block-templates' );
 	}
 }

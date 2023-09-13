@@ -701,6 +701,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$post2 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
 		$this->assertIsArray( $post2 );
 		$this->assertSameSets( array(), $post2 );
+		$theme = wp_get_theme( 'block-theme' );
 		$post3 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme, true );
 		$this->assertIsArray( $post3 );
 		$this->assertArrayHasKey( 'ID', $post3 );
@@ -716,7 +717,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$theme = wp_get_theme( 'foo' );
 		$post1 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme, true, array( 'publish' ) );
 		$this->assertIsArray( $post1 );
-		$this->assertArrayHasKey( 'ID', $post1 );
+		$this->assertEmpty( $post1 );
 		$post2 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme, false, array( 'draft' ) );
 		$this->assertIsArray( $post2 );
 		$this->assertSameSets( array(), $post2 );

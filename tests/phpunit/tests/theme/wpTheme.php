@@ -343,7 +343,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$theme->cache_delete();
 		// Second run.
 		$this->assertTrue( $theme->is_block_theme(), 'is_block_theme should return true on second run' );
-		$this->assertCount( 2, $filter->get_events(), 'Should only be 4, as second run should not be cached' );
+		$this->assertCount( 3, $filter->get_events(), 'Should only be 4, as second run should not be cached' );
 	}
 
 	/**
@@ -521,5 +521,48 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$actual = $sanitize_header->invoke( $theme, 'UpdateURI', '<?php?><a href="http://example.org">http://example.org</a>' );
 
 		$this->assertSame( 'http://example.org', $actual );
+	}
+
+	/**
+	 * @ticket 56975
+	 *
+	 * @dataProvider data_theme_has_theme_json_reports_correctly
+	 *
+	 * @param string $theme    The slug of the theme to switch to.
+	 * @param bool   $expected The expected result.
+	 */
+	public function test_theme_has_theme_json_reports_correctly( $theme, $expected ) {
+		$wp_theme = new WP_Theme( $theme, $this->theme_root );
+		$this->assertSame( $expected, $wp_theme->has_json_support() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_theme_has_theme_json_reports_correctly() {
+		return array(
+			'a theme with theme.json'       => array(
+				'theme'    => 'block-theme',
+				'expected' => true,
+			),
+			'a theme without theme.json'    => array(
+				'theme'    => 'default',
+				'expected' => false,
+			),
+			'a child theme with theme.json' => array(
+				'theme'    => 'block-theme-child',
+				'expected' => true,
+			),
+			'a child theme without theme.json and parent theme with theme.json' => array(
+				'theme'    => 'block-theme-child-no-theme-json',
+				'expected' => true,
+			),
+			'a child theme without theme.json and parent theme without theme.json' => array(
+				'theme'    => 'default-child-no-theme-json',
+				'expected' => false,
+			),
+		);
 	}
 }
