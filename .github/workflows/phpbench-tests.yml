@@ -1,0 +1,107 @@
+name: PHPBench Tests
+
+on:
+  push:
+    branches:
+      - trunk
+  pull_request:
+    branches:
+      - trunk
+  workflow_dispatch:
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Runs the PHPBench tests for WordPress.
+  bench-php:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        php:
+          - '7.4'
+          - '8.2'
+
+    env:
+      LOCAL_PHP: ${{ matrix.php }}-fpm
+
+    steps:
+      - name: Configure environment variables
+        run: |
+          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
+          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      ##
+      # This allows Composer dependencies to be installed using a single step.
+      #
+      # Since the tests are currently run within the Docker containers where the PHP version varies,
+      # the same PHP version needs to be configured for the action runner machine so that the correct
+      # dependency versions are installed and cached.
+      ##
+      - name: Set up PHP
+        uses: shivammathur/setup-php@d30ad8b1843ace22e6698ab99bbafaa747b6bd0d # v2.24.0
+        with:
+          php-version: '${{ matrix.php }}'
+          coverage: none
+
+      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@83af392bf5f031813d25e6fe4cd626cdba9a2df6 # v2.2.0
+        with:
+          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: General debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+          composer --version
+          locale -a
+
+      - name: Docker debug information
+        run: |
+          docker -v
+          docker-compose -v
+
+      - name: Start Docker environment
+        run: |
+          npm run env:start
+
+      - name: Log running Docker containers
+        run: docker ps -a
+
+      - name: WordPress Docker container debug information
+        run: |
+          docker-compose run --rm mysql ${{ env.LOCAL_DB_TYPE }} --version
+          docker-compose run --rm php php --version
+          docker-compose run --rm php php -m
+          docker-compose run --rm php php -i
+          docker-compose run --rm php locale -a
+
+      - name: Install WordPress
+        run: npm run env:install
+
+      - name: Build WordPress
+        run: npm run build:dev
+
+      - name: Run PHPBench tests
+        run: composer run bench

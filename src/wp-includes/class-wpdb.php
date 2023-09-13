@@ -2477,7 +2477,7 @@ class wpdb {
 	 *                                Both `$data` columns and `$data` values should be "raw" (neither should be SQL escaped).
 	 *                                Sending a null value will cause the column to be set to NULL - the corresponding
 	 *                                format is ignored in this case.
-	 * @param string[]|string $format Optional. An array of formats to be mapped to each of the value in `$data`.
+	 * @param string[]|string $format Optional. An array of formats to be mapped to each of the values in `$data`.
 	 *                                If string, that format will be used for all of the values in `$data`.
 	 *                                A format is one of '%d', '%f', '%s' (integer, float, string).
 	 *                                If omitted, all values in `$data` will be treated as strings unless otherwise
@@ -2486,6 +2486,111 @@ class wpdb {
 	 */
 	public function insert( $table, $data, $format = null ) {
 		return $this->_insert_replace_helper( $table, $data, $format, 'INSERT' );
+	}
+
+	/**
+	 * Inserts multiple rows into the table in one query.
+	 *
+	 * If the insert fails, no rows will be inserted. It's not possible for some rows
+	 * to be inserted and not others.
+	 *
+	 * Examples:
+	 *
+	 *     $wpdb->insert_multiple(
+	 *         'table',
+	 *         array(
+	 *             'column1',
+	 *             'column2',
+	 *         ),
+	 *         array(
+	 *             array(
+	 *                 'column 1 value 1',
+	 *                 'column 2 value 1',
+	 *             ),
+	 *             array(
+	 *                 'column 1 value 2',
+	 *                 'column 2 value 2',
+	 *             ),
+	 *             array(
+	 *                 'column 1 value 3',
+	 *                 'column 2 value 3',
+	 *             ),
+	 *         )
+	 *     );
+	 *     $wpdb->insert_multiple(
+	 *         'table',
+	 *         array(
+	 *             'column1',
+	 *             'column2',
+	 *         ),
+	 *         array(
+	 *             array(
+	 *                 'column 1 value 1',
+	 *                 1,
+	 *             ),
+	 *             array(
+	 *                 'column 1 value 2',
+	 *                 2,
+	 *             ),
+	 *             array(
+	 *                 'column 1 value 3',
+	 *                 3,
+	 *             ),
+	 *         ),
+	 *         array(
+	 *             '%s',
+	 *             '%d',
+	 *         )
+	 *     );
+	 *
+	 * @since x.y.z
+	 *
+	 * @param string          $table   Table name.
+	 * @param string[]        $columns Array of column names.
+	 * @param array[]         $rows    Array of rows of values to insert. Values should be "raw" (should not be SQL escaped).
+	 *                                 Sending a null value will cause the column to be set to NULL - the corresponding
+	 *                                 format is ignored in this case.
+	 * @param string[]|string $format  Optional. An array of formats to be mapped to each of the values in each row.
+	 *                                 If string, that format will be used for all of the values in `$data`.
+	 *                                 A format is one of '%d', '%f', '%s' (integer, float, string).
+	 *                                 If omitted, all values in `$data` will be treated as strings unless otherwise
+	 *                                 specified in wpdb::$field_types. Default null.
+	 * @return int|false The number of rows inserted, or false on error.
+	 */
+	public function insert_multiple( $table, array $columns, array $rows, array $format = null ) {
+		$this->insert_id = 0;
+
+		$values_sql = array();
+		$values     = array(
+			$table,
+		);
+
+		foreach ( $rows as $data ) {
+			$data = $this->process_fields( $table, $data, $format );
+			if ( false === $data ) {
+				return false;
+			}
+
+			$formats = array();
+			foreach ( $data as $value ) {
+				if ( is_null( $value['value'] ) ) {
+					$formats[] = 'NULL';
+					continue;
+				}
+
+				$formats[] = $value['format'];
+				$values[]  = $value['value'];
+			}
+
+			$values_sql[] = '(' . implode( ', ', $formats ) . ')';
+		}
+
+		$all_formats = implode( ', ', $values_sql );
+		$fields      = implode( '`, `', $columns );
+		$sql         = "INSERT INTO %i (`$fields`) VALUES $all_formats";
+
+		$this->check_current_query = false;
+		return $this->query( $this->prepare( $sql, $values ) );
 	}
 
 	/**

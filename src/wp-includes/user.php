@@ -1129,6 +1129,22 @@ function add_user_meta( $user_id, $meta_key, $meta_value, $unique = false ) {
 }
 
 /**
+ * Adds multiple items of meta data to a user.
+ *
+ * @todo docs
+ *
+ * @since x.y.z
+ *
+ * @param int    $user_id    User ID.
+ * @param string $meta_key   Metadata name.
+ * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
+ * @return int[]|false Array of meta IDs on success, false on failure.
+ */
+function bulk_add_user_meta( $user_id, array $meta_fields ) {
+	return bulk_add_metadata( 'user', $user_id, $meta_fields );
+}
+
+/**
  * Removes metadata matching criteria from a user.
  *
  * You can match based on the key, or key and value. Removing based on key and
@@ -2438,9 +2454,7 @@ function wp_insert_user( $userdata ) {
 		}
 	} else {
 		// Add user meta.
-		foreach ( $meta as $key => $value ) {
-			add_user_meta( $user_id, $key, $value );
-		}
+		bulk_add_user_meta( $user_id, $meta );
 	}
 
 	foreach ( wp_get_user_contact_methods( $user ) as $key => $value ) {
