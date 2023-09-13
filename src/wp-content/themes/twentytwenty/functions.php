@@ -219,12 +219,9 @@ function twentytwenty_register_scripts() {
 		'twentytwenty-js',
 		get_template_directory_uri() . '/assets/js/index.js',
 		array(),
-		$theme_version,
-		array(
-			'in_footer' => false, // Because involves header.
-			'strategy'  => 'defer',
-		)
+		$theme_version
 	);
+	wp_script_add_data( 'twentytwenty-js', 'strategy', 'defer' );
 }
 
 add_action( 'wp_enqueue_scripts', 'twentytwenty_register_scripts' );
