@@ -95,23 +95,18 @@ wp_enqueue_script( 'utils' );
 wp_enqueue_script( 'svg-painter' );
 
 $admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
-
-wp_print_inline_script_tag(
-	static function () use ( $current_screen, $admin_body_class, $wp_locale ) {
-		?>
-		<script>
-		addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
-		var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
-			pagenow = '<?php echo esc_js( $current_screen->id ); ?>',
-			typenow = '<?php echo esc_js( $current_screen->post_type ); ?>',
-			adminpage = '<?php echo esc_js( $admin_body_class ); ?>',
-			thousandsSeparator = '<?php echo esc_js( $wp_locale->number_format['thousands_sep'] ); ?>',
-			decimalPoint = '<?php echo esc_js( $wp_locale->number_format['decimal_point'] ); ?>',
-			isRtl = <?php echo (int) is_rtl(); ?>;
-		</script>
-		<?php
-	}
-);
+?>
+<script type="text/javascript">
+addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
+var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
+	pagenow = '<?php echo esc_js( $current_screen->id ); ?>',
+	typenow = '<?php echo esc_js( $current_screen->post_type ); ?>',
+	adminpage = '<?php echo esc_js( $admin_body_class ); ?>',
+	thousandsSeparator = '<?php echo esc_js( $wp_locale->number_format['thousands_sep'] ); ?>',
+	decimalPoint = '<?php echo esc_js( $wp_locale->number_format['decimal_point'] ); ?>',
+	isRtl = <?php echo (int) is_rtl(); ?>;
+</script>
+<?php
 
 /**
  * Fires when enqueuing scripts for all admin pages.
@@ -248,8 +243,9 @@ $admin_body_classes = apply_filters( 'admin_body_class', '' );
 $admin_body_classes = ltrim( $admin_body_classes . ' ' . $admin_body_class );
 ?>
 <body class="wp-admin wp-core-ui no-js <?php echo esc_attr( $admin_body_classes ); ?>">
-
-<?php wp_print_inline_script_tag( /** @lang JavaScript */ "document.body.className = document.body.className.replace('no-js','js');" ); ?>
+<script type="text/javascript">
+	document.body.className = document.body.className.replace('no-js','js');
+</script>
 
 <?php
 // Make sure the customize body classes are correct as early as possible.

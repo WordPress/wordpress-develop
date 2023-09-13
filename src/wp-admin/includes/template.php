@@ -2123,24 +2123,19 @@ function iframe_header( $title = '', $deprecated = false ) {
 <title><?php bloginfo( 'name' ); ?> &rsaquo; <?php echo $title; ?> &#8212; <?php _e( 'WordPress' ); ?></title>
 	<?php
 	wp_enqueue_style( 'colors' );
-	wp_print_inline_script_tag(
-		static function () use ( $current_screen, $wp_locale, $admin_body_class ) {
-			?>
-			<script>
-			addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
-			function tb_close(){var win=window.dialogArguments||opener||parent||top;win.tb_remove();}
-			var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
-				pagenow = '<?php echo esc_js( $current_screen->id ); ?>',
-				typenow = '<?php echo esc_js( $current_screen->post_type ); ?>',
-				adminpage = '<?php echo esc_js( $admin_body_class ); ?>',
-				thousandsSeparator = '<?php echo esc_js( $wp_locale->number_format['thousands_sep'] ); ?>',
-				decimalPoint = '<?php echo esc_js( $wp_locale->number_format['decimal_point'] ); ?>',
-				isRtl = <?php echo (int) is_rtl(); ?>;
-			</script>
-			<?php
-		}
-	);
-
+	?>
+<script type="text/javascript">
+addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
+function tb_close(){var win=window.dialogArguments||opener||parent||top;win.tb_remove();}
+var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
+	pagenow = '<?php echo esc_js( $current_screen->id ); ?>',
+	typenow = '<?php echo esc_js( $current_screen->post_type ); ?>',
+	adminpage = '<?php echo esc_js( $admin_body_class ); ?>',
+	thousandsSeparator = '<?php echo esc_js( $wp_locale->number_format['thousands_sep'] ); ?>',
+	decimalPoint = '<?php echo esc_js( $wp_locale->number_format['decimal_point'] ); ?>',
+	isRtl = <?php echo (int) is_rtl(); ?>;
+</script>
+	<?php
 	/** This action is documented in wp-admin/admin-header.php */
 	do_action( 'admin_enqueue_scripts', $hook_suffix );
 
@@ -2181,20 +2176,14 @@ function iframe_header( $title = '', $deprecated = false ) {
 	$admin_body_classes = ltrim( $admin_body_classes . ' ' . $admin_body_class );
 	?>
 <body <?php echo $admin_body_id; ?>class="wp-admin wp-core-ui no-js iframe <?php echo esc_attr( $admin_body_classes ); ?>">
+<script type="text/javascript">
+(function(){
+var c = document.body.className;
+c = c.replace(/no-js/, 'js');
+document.body.className = c;
+})();
+</script>
 	<?php
-	wp_print_inline_script_tag(
-		static function () {
-			?>
-			<script>
-				(function(){
-				var c = document.body.className;
-				c = c.replace(/no-js/, 'js');
-				document.body.className = c;
-				})();
-			</script>
-			<?php
-		}
-	);
 }
 
 /**
@@ -2226,7 +2215,7 @@ function iframe_footer() {
 	do_action( 'admin_print_footer_scripts' );
 	?>
 	</div>
-	<?php wp_print_inline_script_tag( /** @lang JavaScript */ "if(typeof wpOnload==='function')wpOnload();" ); ?>
+<script type="text/javascript">if(typeof wpOnload==='function')wpOnload();</script>
 </body>
 </html>
 	<?php
@@ -2478,61 +2467,57 @@ function get_media_states( $post ) {
  * @since 2.8.0
  */
 function compression_test() {
-	wp_print_inline_script_tag(
-		static function () {
-			?>
-			<script>
-			var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ) ); ?>;
-			var testCompression = {
-				get : function(test) {
-					var x;
-					if ( window.XMLHttpRequest ) {
-						x = new XMLHttpRequest();
-					} else {
-						try{x=new ActiveXObject('Msxml2.XMLHTTP');}catch(e){try{x=new ActiveXObject('Microsoft.XMLHTTP');}catch(e){};}
+	?>
+	<script type="text/javascript">
+	var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ) ); ?>;
+	var testCompression = {
+		get : function(test) {
+			var x;
+			if ( window.XMLHttpRequest ) {
+				x = new XMLHttpRequest();
+			} else {
+				try{x=new ActiveXObject('Msxml2.XMLHTTP');}catch(e){try{x=new ActiveXObject('Microsoft.XMLHTTP');}catch(e){};}
+			}
+
+			if (x) {
+				x.onreadystatechange = function() {
+					var r, h;
+					if ( x.readyState == 4 ) {
+						r = x.responseText.substr(0, 18);
+						h = x.getResponseHeader('Content-Encoding');
+						testCompression.check(r, h, test);
 					}
+				};
 
-					if (x) {
-						x.onreadystatechange = function() {
-							var r, h;
-							if ( x.readyState == 4 ) {
-								r = x.responseText.substr(0, 18);
-								h = x.getResponseHeader('Content-Encoding');
-								testCompression.check(r, h, test);
-							}
-						};
+				x.open('GET', ajaxurl + '?action=wp-compression-test&test='+test+'&_ajax_nonce='+compressionNonce+'&'+(new Date()).getTime(), true);
+				x.send('');
+			}
+		},
 
-						x.open('GET', ajaxurl + '?action=wp-compression-test&test='+test+'&_ajax_nonce='+compressionNonce+'&'+(new Date()).getTime(), true);
-						x.send('');
-					}
-				},
+		check : function(r, h, test) {
+			if ( ! r && ! test )
+				this.get(1);
 
-				check : function(r, h, test) {
-					if ( ! r && ! test )
-						this.get(1);
+			if ( 1 == test ) {
+				if ( h && ( h.match(/deflate/i) || h.match(/gzip/i) ) )
+					this.get('no');
+				else
+					this.get(2);
 
-					if ( 1 == test ) {
-						if ( h && ( h.match(/deflate/i) || h.match(/gzip/i) ) )
-							this.get('no');
-						else
-							this.get(2);
+				return;
+			}
 
-						return;
-					}
-
-					if ( 2 == test ) {
-						if ( '"wpCompressionTest' === r )
-							this.get('yes');
-						else
-							this.get('no');
-					}
-				}
-			};
-			testCompression.check();
-			</script>
-			<?php
+			if ( 2 == test ) {
+				if ( '"wpCompressionTest' === r )
+					this.get('yes');
+				else
+					this.get('no');
+			}
 		}
-	);
+	};
+	testCompression.check();
+	</script>
+	<?php
 }
 
 /**

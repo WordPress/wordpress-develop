@@ -677,10 +677,12 @@ if ( $can_edit_terms ) {
 
 </div><!-- /wrap -->
 
-<?php
-if ( ! wp_is_mobile() ) {
-	wp_print_inline_script_tag( /** @lang JavaScript */ "try{document.forms.addtag['tag-name'].focus();}catch(e){}" );
-}
+<?php if ( ! wp_is_mobile() ) : ?>
+<script type="text/javascript">
+try{document.forms.addtag['tag-name'].focus();}catch(e){}
+</script>
+	<?php
+endif;
 
 $wp_list_table->inline_edit();
 

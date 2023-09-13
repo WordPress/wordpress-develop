@@ -61,7 +61,9 @@ if ( $wp_customize->changeset_post_id() ) {
 		ob_start();
 		?>
 		<?php wp_print_scripts( array( 'wp-util' ) ); ?>
-		<?php wp_print_inline_script_tag( sprintf( /** @lang JavaScript */ "wp.ajax.post( 'customize_save', %s );", wp_json_encode( $request_args ) ) ); ?>
+		<script>
+			wp.ajax.post( 'customize_save', <?php echo wp_json_encode( $request_args ); ?> );
+		</script>
 		<?php
 		$script = ob_get_clean();
 
