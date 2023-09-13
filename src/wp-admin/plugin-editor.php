@@ -298,7 +298,7 @@ endif;
 			wp_admin_notice(
 				__( '<strong>Warning:</strong> Making changes to active plugins is not recommended.' ),
 				array(
-					'type' => 'warning',
+					'type'               => 'warning',
 					'additional_classes' => array( 'inline', 'active-plugin-edit-warning' ),
 				)
 			);
