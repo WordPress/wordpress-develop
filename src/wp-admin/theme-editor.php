@@ -200,8 +200,9 @@ if ( isset( $_GET['a'] ) ) {
 		)
 	);
 } elseif ( is_wp_error( $edit_error ) ) {
-	$message = '<p>' . __( 'There was an error while trying to update the file. You may need to fix something and try updating again.' ) . '</p>
-	<pre>' . esc_html( $edit_error->get_error_message() ? $edit_error->get_error_message() : $edit_error->get_error_code() ) . '</pre>';
+	$error_code = esc_html( $edit_error->get_error_message() ? $edit_error->get_error_message() : $edit_error->get_error_code() );
+	$message    = '<p>' . __( 'There was an error while trying to update the file. You may need to fix something and try updating again.' ) . '</p>
+	<pre>' . $error_code . '</pre>';
 	wp_admin_notice(
 		$message,
 		array(
