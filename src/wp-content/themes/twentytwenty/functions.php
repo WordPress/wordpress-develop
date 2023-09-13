@@ -135,7 +135,9 @@ function twentytwenty_theme_support() {
 	 * by the theme.
 	 */
 	$loader = new TwentyTwenty_Script_Loader();
-	if ( version_compare( $GLOBALS['wp_version'], '6.3', '<' ) ) {
+	// Include an unmodified $wp_version to account to account for changes to the global.
+	require ABSPATH . WPINC . '/version.php';
+	if ( version_compare( $wp_version, '6.3', '<' ) ) {
 		add_filter( 'script_loader_tag', array( $loader, 'filter_script_loader_tag' ), 10, 2 );
 	} else {
 		add_filter( 'print_scripts_array', array( $loader, 'migrate_legacy_strategy_script_data' ), 100 );
