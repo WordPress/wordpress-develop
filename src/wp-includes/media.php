@@ -5715,13 +5715,13 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			$maybe_increase_count = true;
 		} elseif ( ! is_admin() && in_the_loop() && is_main_query() ) {
 			/*
-			* Get the content media count, since this is a main query
-			* content element. This is accomplished by "increasing"
-			* the count by zero, as the only way to get the count is
-			* to call this function.
-			* The actual count increase happens further below, based
-			* on the `$increase_count` flag set here.
-			*/
+			 * Get the content media count, since this is a main query
+			 * content element. This is accomplished by "increasing"
+			 * the count by zero, as the only way to get the count is
+			 * to call this function.
+			 * The actual count increase happens further below, based
+			 * on the `$increase_count` flag set here.
+			 */
 			$content_media_count = wp_increase_content_media_count( 0 );
 			$increase_count      = true;
 
