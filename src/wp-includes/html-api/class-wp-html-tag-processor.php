@@ -712,6 +712,41 @@ class WP_HTML_Tag_Processor {
 
 
 	/**
+	 * Allow internal WordPress code to extract raw HTML snippets associated with a matched tag.
+	 *
+	 * This is meant for internal use to support existing filters that pass segments of input HTML
+	 * for further analysis. Filters which rely on these values should be updated to interact with
+	 * the structural methods this class provides.
+	 *
+	 * @access private
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $internal_use_only Required to accept liability for exposing system internals through this function.
+	 * @param string $content           What portion of the raw HTML markup to return: 'entire-tag' or 'only-attributes'.
+	 * @return string|null Raw HTML markup from input document for matched tag, if matched, else NULL.
+	 */
+	public function _wp_internal_extract_raw_token_markup( $internal_use_only, $contents = 'entire-tag' ) {
+		$disclaimer = <<<INTERNAL_ONLY
+			I understand that this is only for internal WordPress usage and something
+			will likely break if used elsewhere. This function comes with no warranty.
+INTERNAL_ONLY;
+
+		if ( $internal_use_only !== $disclaimer || null === $this->tag_name_starts_at ) {
+			return null;
+		}
+
+		switch ( $contents ) {
+			case 'entire-tag':
+				return substr( $this->html, $this->tag_name_starts_at - 1, $this->tag_ends_at - $this->tag_name_starts_at + 2 );
+
+			case 'only-attributes':
+				return substr( $this->html, $this->tag_name_starts_at + $this->tag_name_length + 1, $this->tag_ends_at - $this->tag_name_starts_at - $this->tag_name_length - 1 );
+		}
+	}
+
+
+	/**
 	 * Skips contents of title and textarea tags.
 	 *
 	 * @since 6.2.0
