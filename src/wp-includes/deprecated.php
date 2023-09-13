@@ -5870,3 +5870,54 @@ function _wp_theme_json_webfonts_handler() {
 	add_action( 'wp_enqueue_scripts', $fn_generate_and_enqueue_styles );
 	add_action( 'admin_init', $fn_generate_and_enqueue_editor_styles );
 }
+
+/**
+ * Prints the CSS in the embed iframe header.
+ *
+ * @since 4.4.0
+ */
+function print_embed_styles() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'enqueue_embed_styles' );
+
+	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	$suffix    = SCRIPT_DEBUG ? '' : '.min';
+	?>
+	<style<?php echo $type_attr; ?>>
+		<?php echo file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ); ?>
+	</style>
+	<?php
+}
+
+/**
+ * Prints the important emoji-related styles.
+ *
+ * @since 4.2.0
+ */
+function print_emoji_styles() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'enqueue_emoji_styles' );
+	static $printed = false;
+
+	if ( $printed ) {
+		return;
+	}
+
+	$printed = true;
+
+	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	?>
+	<style<?php echo $type_attr; ?>>
+	img.wp-smiley,
+	img.emoji {
+	  display: inline !important;
+	  border: none !important;
+	  box-shadow: none !important;
+	  height: 1em !important;
+	  width: 1em !important;
+	  margin: 0 0.07em !important;
+	  vertical-align: -0.1em !important;
+	  background: none !important;
+	  padding: 0 !important;
+	}
+	</style>
+	<?php
+}

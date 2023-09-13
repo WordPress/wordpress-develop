@@ -5847,28 +5847,32 @@ function wp_spaces_regexp() {
 }
 
 /**
- * Prints the important emoji-related styles.
+ * Enqueue the important emoji-related styles.
  *
- * @since 4.2.0
+ * @since 6.4.0
  */
-function print_emoji_styles() {
-	$emoji_styles = '
-	img.wp-smiley,
-	img.emoji {
-		display: inline !important;
-		border: none !important;
-		box-shadow: none !important;
-		height: 1em !important;
-		width: 1em !important;
-		margin: 0 0.07em !important;
-		vertical-align: -0.1em !important;
-		background: none !important;
-		padding: 0 !important;
-	}';
-	$handle       = 'wp-emoji-styles';
-	wp_register_style( $handle, false );
-	wp_add_inline_style( $handle, $emoji_styles );
-	wp_enqueue_style( $handle );
+function enqueue_emoji_styles() {
+	$action = is_admin() ? 'admin_print_styles' : 'wp_print_styles';
+	if ( has_action( $action, 'print_emoji_styles' ) ) {
+		remove_action( $action, 'print_emoji_styles' );
+		$emoji_styles = '
+		img.wp-smiley,
+		img.emoji {
+			display: inline !important;
+			border: none !important;
+			box-shadow: none !important;
+			height: 1em !important;
+			width: 1em !important;
+			margin: 0 0.07em !important;
+			vertical-align: -0.1em !important;
+			background: none !important;
+			padding: 0 !important;
+		}';
+		$handle       = 'wp-emoji-styles';
+		wp_register_style( $handle, false );
+		wp_add_inline_style( $handle, $emoji_styles );
+		wp_enqueue_style( $handle );
+	}
 }
 
 /**

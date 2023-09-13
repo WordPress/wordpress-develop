@@ -1059,12 +1059,15 @@ function enqueue_embed_scripts() {
 }
 
 /**
- * Prints the CSS in the embed iframe header.
+ * Enqueue the CSS in the embed iframe header.
  *
- * @since 4.4.0
+ * @since 6.4.0
  */
-function print_embed_styles() {
-	wp_enqueue_style( 'wp-embed-template' );
+function enqueue_embed_styles() {
+	if ( has_action( 'embed_head', 'print_embed_styles' ) ) {
+		remove_action( 'embed_head', 'print_embed_styles' );
+		wp_enqueue_style( 'wp-embed-template' );
+	}
 }
 
 /**
