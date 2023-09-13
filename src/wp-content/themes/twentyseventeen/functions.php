@@ -447,6 +447,9 @@ add_action( 'wp_head', 'twentyseventeen_colors_css_wrap' );
  * Enqueues scripts and styles.
  */
 function twentyseventeen_scripts() {
+	// Include an unmodified $wp_version to account to account for changes to the global.
+	require ABSPATH . WPINC . '/version.php';
+
 	// Add custom fonts, used in the main stylesheet.
 	$font_version = ( 0 === strpos( (string) twentyseventeen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), $font_version );
@@ -484,11 +487,18 @@ function twentyseventeen_scripts() {
 		get_theme_file_uri( '/assets/js/global.js' ),
 		array( 'jquery' ),
 		'20211130',
-		array(
-			'in_footer' => false, // Because involves header.
-			'strategy'  => 'defer',
-		)
+		true
 	);
+	/*
+	 * In WP 6.3+ enqueue the script in the header and defer loading.
+	 *
+	 * This is added directly to the script data to maintain backwards
+	 * compatibility with older versions of WordPress.
+	 */
+	if ( version_compare( $wp_version, '6.3-alpha', '>=' ) ) {
+		wp_script_add_data( 'twentyseventeen-global', 'group', 0 );
+		wp_script_add_data( 'twentyseventeen-global', 'strategy', 'defer' );
+	}
 
 	$twentyseventeen_l10n = array(
 		'quote' => twentyseventeen_get_svg( array( 'icon' => 'quote-right' ) ),
@@ -500,11 +510,19 @@ function twentyseventeen_scripts() {
 			get_theme_file_uri( '/assets/js/navigation.js' ),
 			array( 'jquery' ),
 			'20210122',
-			array(
-				'in_footer' => false, // Because involves header.
-				'strategy'  => 'defer',
-			)
+			true
 		);
+		/*
+		 * In WP 6.3+ enqueue the script in the header and defer loading.
+		 *
+		 * This is added directly to the script data to maintain backwards
+		 * compatibility with older versions of WordPress.
+		 */
+		if ( version_compare( $wp_version, '6.3-alpha', '>=' ) ) {
+			wp_script_add_data( 'twentyseventeen-global', 'group', 0 );
+			wp_script_add_data( 'twentyseventeen-global', 'strategy', 'defer' );
+		}
+
 		$twentyseventeen_l10n['expand']   = __( 'Expand child menu', 'twentyseventeen' );
 		$twentyseventeen_l10n['collapse'] = __( 'Collapse child menu', 'twentyseventeen' );
 		$twentyseventeen_l10n['icon']     = twentyseventeen_get_svg(
@@ -522,11 +540,17 @@ function twentyseventeen_scripts() {
 		get_theme_file_uri( '/assets/js/jquery.scrollTo.js' ),
 		array( 'jquery' ),
 		'2.1.3',
-		array(
-			'in_footer' => true,
-			'strategy'  => 'defer',
-		)
+		true
 	);
+	/*
+	 * In WP 6.3+  defer loading.
+	 *
+	 * This is added directly to the script data to maintain backwards
+	 * compatibility with older versions of WordPress.
+	 */
+	if ( version_compare( $wp_version, '6.3-alpha', '>=' ) ) {
+		wp_script_add_data( 'jquery-scrollto', 'strategy', 'defer' );
+	}
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
