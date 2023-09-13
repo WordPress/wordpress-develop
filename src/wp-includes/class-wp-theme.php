@@ -195,6 +195,14 @@ final class WP_Theme implements ArrayAccess {
 	private $cache_hash;
 
 	/**
+	 * Block template folder.
+	 *
+	 * @since 6.4.0
+	 * @var array|null
+	 */
+	private $block_template_folders;
+
+	/**
 	 * Flag for whether the themes cache bucket should be persistently cached.
 	 *
 	 * Default is false. Can be set with the {@see 'wp_cache_themes_persistently'} filter.
@@ -1712,6 +1720,46 @@ final class WP_Theme implements ArrayAccess {
 
 		/** This filter is documented in wp-includes/class-wp-theme.php */
 		return (array) apply_filters( 'site_allowed_themes', $allowed_themes[ $blog_id ], $blog_id );
+	}
+
+	/**
+	 * Returns the folder names of the block template directories.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return string[] {
+	 *     Folder names used by block themes.
+	 *
+	 *     @type string $wp_template      Theme-relative directory name for block templates.
+	 *     @type string $wp_template_part Theme-relative directory name for block template parts.
+	 * }
+	 */
+	public function get_block_template_folders() {
+		if ( isset( $this->block_template_folders ) ) {
+			return $this->block_template_folders;
+		}
+
+		$paths_to_block_template_directories = array(
+			$this->theme_root . '/' . $this->template . '/block-template-parts',
+			$this->theme_root . '/' . $this->template . '/block-templates',
+		);
+
+		$this->block_template_folders = array(
+			'wp_template'      => 'templates',
+			'wp_template_part' => 'parts',
+		);
+
+		foreach ( $paths_to_block_template_directories as $path_to_block_template_directory ) {
+			if ( is_dir( $path_to_block_template_directory ) ) {
+				$this->block_template_folders = array(
+					'wp_template'      => 'block-templates',
+					'wp_template_part' => 'block-template-parts',
+				);
+				break;
+			}
+		}
+
+		return $this->block_template_folders;
 	}
 
 	/**
