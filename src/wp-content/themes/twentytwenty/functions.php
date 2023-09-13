@@ -220,11 +220,9 @@ function twentytwenty_register_scripts() {
 		get_template_directory_uri() . '/assets/js/index.js',
 		array(),
 		$theme_version,
-		array(
-			'in_footer' => false, // Because involves header.
-			'strategy'  => 'defer',
-		)
+		false // Because involves header. The $args array is not used here to avoid unintentional footer placement in WP<6.3.
 	);
+	wp_script_add_data( 'twentytwenty-js', 'strategy', 'defer' );
 }
 
 add_action( 'wp_enqueue_scripts', 'twentytwenty_register_scripts' );
