@@ -290,6 +290,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				'editor_style_handles',
 				'style_handles',
 				'variations',
+				'block_hooks',
 			),
 			$deprecated_fields
 		);
@@ -705,6 +706,17 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				),
 				'keywords'              => $keywords_definition,
 				'example'               => $example_definition,
+				'block_hooks'           => array(
+					'description' => __( 'Block hooks.' ),
+					'type'        => 'object',
+					'properties'  => array(),
+					'additionalProperties' => array(
+						'type' => 'string',
+					),
+					'default'     => array(),
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
+				),
 			),
 		);
 
