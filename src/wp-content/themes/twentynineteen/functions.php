@@ -253,6 +253,9 @@ add_action( 'after_setup_theme', 'twentynineteen_content_width', 0 );
  * Enqueue scripts and styles.
  */
 function twentynineteen_scripts() {
+	// Include an unmodified $wp_version to account to account for changes to the global.
+	require ABSPATH . WPINC . '/version.php';
+
 	wp_enqueue_style( 'twentynineteen-style', get_stylesheet_uri(), array(), wp_get_theme()->get( 'Version' ) );
 
 	wp_style_add_data( 'twentynineteen-style', 'rtl', 'replace' );
@@ -263,21 +266,27 @@ function twentynineteen_scripts() {
 			get_theme_file_uri( '/js/priority-menu.js' ),
 			array(),
 			'20200129',
-			array(
-				'in_footer' => false, // Because involves header.
-				'strategy'  => 'defer',
-			)
+			true
 		);
 		wp_enqueue_script(
 			'twentynineteen-touch-navigation',
 			get_theme_file_uri( '/js/touch-keyboard-navigation.js' ),
 			array(),
 			'20230621',
-			array(
-				'in_footer' => true,
-				'strategy'  => 'defer',
-			)
+			true
 		);
+		/*
+		 * In WP 6.3+ enqueue the scripts in the header and defer loading.
+		 *
+		 * This is added directly to the script data to maintain backwards
+		 * compatibility with older versions of WordPress.
+		 */
+		if ( version_compare( $wp_version, '6.3-alpha', '>=' ) ) {
+			wp_script_add_data( 'twentynineteen-priority-menu', 'group', 0 );
+			wp_script_add_data( 'twentynineteen-priority-menu', 'strategy', 'defer' );
+			wp_script_add_data( 'twentynineteen-touch-navigation', 'group', 0 );
+			wp_script_add_data( 'twentynineteen-touch-navigation', 'strategy', 'defer' );
+		}
 	}
 
 	wp_enqueue_style( 'twentynineteen-print-style', get_template_directory_uri() . '/print.css', array(), wp_get_theme()->get( 'Version' ), 'print' );
