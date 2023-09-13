@@ -2357,7 +2357,7 @@ EOF;
 
 		add_filter(
 			'wp_content_img_tag',
-			static function( $filtered_image ) {
+			static function ( $filtered_image ) {
 				return "<span>$filtered_image</span>";
 			}
 		);
@@ -2381,7 +2381,7 @@ EOF;
 
 		add_filter(
 			'wp_content_img_tag',
-			static function( $filtered_image ) {
+			static function ( $filtered_image ) {
 				return "<span>$filtered_image</span>";
 			}
 		);
@@ -4020,7 +4020,7 @@ EOF;
 		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 		add_filter(
 			'wp_get_attachment_image_attributes',
-			static function( $attr ) {
+			static function ( $attr ) {
 				unset( $attr['srcset'], $attr['sizes'], $attr['decoding'] );
 				return $attr;
 			}
@@ -4154,7 +4154,7 @@ EOF;
 		// Overwrite post content with an image.
 		add_filter(
 			'the_content',
-			static function() use ( &$image_within_content ) {
+			static function () use ( &$image_within_content ) {
 				// Replace content with an image tag, i.e. the 'wp_get_attachment_image' context is used while running 'the_content' filter.
 				$image_within_content = wp_get_attachment_image( self::$large_id, 'large', false );
 				return $image_within_content;
@@ -4221,7 +4221,7 @@ EOF;
 		$result = null;
 		add_filter(
 			'the_content',
-			static function( $content ) use ( &$result, $context ) {
+			static function ( $content ) use ( &$result, $context ) {
 				$result = wp_get_loading_attr_default( $context );
 				return $content;
 			}
@@ -4523,7 +4523,7 @@ EOF;
 		$result = null;
 		add_filter(
 			'the_content',
-			function( $content ) use ( &$result, $context ) {
+			function ( $content ) use ( &$result, $context ) {
 				$attr   = $this->get_width_height_for_high_priority();
 				$result = wp_get_loading_optimization_attributes( 'img', $attr, $context );
 				return $content;
@@ -5037,7 +5037,7 @@ EOF;
 		// Add a filter that modifies the context.
 		add_filter(
 			'wp_get_attachment_image_context',
-			static function() {
+			static function () {
 				return 'my_custom_context';
 			}
 		);
@@ -5443,7 +5443,7 @@ EOF;
 
 		add_filter(
 			'wp_min_priority_img_pixels',
-			static function( $res ) {
+			static function ( $res ) {
 				return 2500; // 50*50=2500
 			}
 		);
@@ -5516,7 +5516,7 @@ EOF;
 	private function track_last_attachment_image_context( &$last_context ) {
 		add_filter(
 			'wp_get_attachment_image_context',
-			static function( $context ) use ( &$last_context ) {
+			static function ( $context ) use ( &$last_context ) {
 				$last_context = $context;
 				return $context;
 			},
@@ -5571,7 +5571,7 @@ EOF;
 	public function force_omit_loading_attr_threshold( $threshold ) {
 		add_filter(
 			'wp_omit_loading_attr_threshold',
-			static function() use ( $threshold ) {
+			static function () use ( $threshold ) {
 				return $threshold;
 			}
 		);

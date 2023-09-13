@@ -96,7 +96,7 @@ class Tests_Admin_wpCommentsListTable extends WP_UnitTestCase {
 	public function test_bulk_action_menu_supports_options_and_optgroups() {
 		add_filter(
 			'bulk_actions-edit-comments',
-			static function() {
+			static function () {
 				return array(
 					'delete'       => 'Delete',
 					'Change State' => array(
