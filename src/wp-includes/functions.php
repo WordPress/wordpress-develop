@@ -7655,25 +7655,23 @@ function wp_post_preview_js() {
 	// Has to match the window name used in post_submit_meta_box().
 	$name = 'wp-preview-' . (int) $post->ID;
 
-	wp_print_inline_script_tag(
-		static function () use ( $name ) {
-			?>
-			<script>
-			( function() {
-				var query = document.location.search;
+	ob_start();
+	?>
+	<script>
+	( function() {
+		var query = document.location.search;
 
-				if ( query && query.indexOf( 'preview=true' ) !== -1 ) {
-					window.name = '<?php echo $name; ?>';
-				}
-
-				if ( window.addEventListener ) {
-					window.addEventListener( 'unload', function() { window.name = ''; }, false );
-				}
-			}());
-			</script>
-			<?php
+		if ( query && query.indexOf( 'preview=true' ) !== -1 ) {
+			window.name = '<?php echo $name; ?>';
 		}
-	);
+
+		if ( window.addEventListener ) {
+			window.addEventListener( 'unload', function() { window.name = ''; }, false );
+		}
+	}());
+	</script>
+	<?php
+	wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
 }
 
 /**

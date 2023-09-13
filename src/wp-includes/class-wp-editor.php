@@ -973,42 +973,38 @@ final class _WP_Editors {
 			$settings = '{}';
 		}
 
-		wp_print_inline_script_tag(
-			static function () use ( $settings, $user_can_richedit ) {
-				?>
-				<script>
-				window.wp = window.wp || {};
-				window.wp.editor = window.wp.editor || {};
-				window.wp.editor.getDefaultSettings = function() {
-					return {
-						tinymce: <?php echo $settings; ?>,
-						quicktags: {
-							buttons: 'strong,em,link,ul,ol,li,code'
-						}
-					};
-				};
-
-				<?php
-
-				if ( $user_can_richedit ) {
-					$suffix  = SCRIPT_DEBUG ? '' : '.min';
-					$baseurl = self::get_baseurl();
-
-					?>
-					var tinyMCEPreInit = {
-						baseURL: "<?php echo $baseurl; ?>",
-						suffix: "<?php echo $suffix; ?>",
-						mceInit: {},
-						qtInit: {},
-						load_ext: function(url,lang){var sl=tinymce.ScriptLoader;sl.markDone(url+'/langs/'+lang+'.js');sl.markDone(url+'/langs/'+lang+'_dlg.js');}
-					};
-					<?php
+		?>
+		<script type="text/javascript">
+		window.wp = window.wp || {};
+		window.wp.editor = window.wp.editor || {};
+		window.wp.editor.getDefaultSettings = function() {
+			return {
+				tinymce: <?php echo $settings; ?>,
+				quicktags: {
+					buttons: 'strong,em,link,ul,ol,li,code'
 				}
-				?>
-				</script>
-				<?php
-			}
-		);
+			};
+		};
+
+		<?php
+
+		if ( $user_can_richedit ) {
+			$suffix  = SCRIPT_DEBUG ? '' : '.min';
+			$baseurl = self::get_baseurl();
+
+			?>
+			var tinyMCEPreInit = {
+				baseURL: "<?php echo $baseurl; ?>",
+				suffix: "<?php echo $suffix; ?>",
+				mceInit: {},
+				qtInit: {},
+				load_ext: function(url,lang){var sl=tinymce.ScriptLoader;sl.markDone(url+'/langs/'+lang+'.js');sl.markDone(url+'/langs/'+lang+'_dlg.js');}
+			};
+			<?php
+		}
+		?>
+		</script>
+		<?php
 
 		if ( $user_can_richedit ) {
 			self::print_tinymce_scripts();
@@ -1564,7 +1560,7 @@ final class _WP_Editors {
 
 		wp_print_scripts( array( 'wp-tinymce' ) );
 
-		wp_print_inline_script_tag( self::wp_mce_translation() );
+		echo "<script type='text/javascript'>\n" . self::wp_mce_translation() . "</script>\n";
 	}
 
 	/**
@@ -1619,29 +1615,26 @@ final class _WP_Editors {
 		 * @param array $mce_settings TinyMCE settings array.
 		 */
 		do_action( 'before_wp_tiny_mce', self::$mce_settings );
-		wp_print_inline_script_tag(
-			static function () use ( $baseurl, $suffix, $mce_init, $qt_init, $ref ) {
-				?>
-				<script>
-				tinyMCEPreInit = {
-					baseURL: "<?php echo $baseurl; ?>",
-					suffix: "<?php echo $suffix; ?>",
-					<?php
+		?>
 
-					if ( self::$drag_drop_upload ) {
-						echo 'dragDropUpload: true,';
-					}
+		<script type="text/javascript">
+		tinyMCEPreInit = {
+			baseURL: "<?php echo $baseurl; ?>",
+			suffix: "<?php echo $suffix; ?>",
+			<?php
 
-					?>
-					mceInit: <?php echo $mce_init; ?>,
-					qtInit: <?php echo $qt_init; ?>,
-					ref: <?php echo self::_parse_init( $ref ); ?>,
-					load_ext: function(url,lang){var sl=tinymce.ScriptLoader;sl.markDone(url+'/langs/'+lang+'.js');sl.markDone(url+'/langs/'+lang+'_dlg.js');}
-				};
-				</script>
-				<?php
+			if ( self::$drag_drop_upload ) {
+				echo 'dragDropUpload: true,';
 			}
-		);
+
+			?>
+			mceInit: <?php echo $mce_init; ?>,
+			qtInit: <?php echo $qt_init; ?>,
+			ref: <?php echo self::_parse_init( $ref ); ?>,
+			load_ext: function(url,lang){var sl=tinymce.ScriptLoader;sl.markDone(url+'/langs/'+lang+'.js');sl.markDone(url+'/langs/'+lang+'_dlg.js');}
+		};
+		</script>
+		<?php
 
 		if ( $tmce_on ) {
 			self::print_tinymce_scripts();
@@ -1662,82 +1655,78 @@ final class _WP_Editors {
 		 */
 		do_action( 'wp_tiny_mce_init', self::$mce_settings );
 
-		wp_print_inline_script_tag(
-			static function () {
-				?>
-				<script>
-				<?php
+		?>
+		<script type="text/javascript">
+		<?php
 
-				if ( self::$ext_plugins ) {
-					echo self::$ext_plugins . "\n";
+		if ( self::$ext_plugins ) {
+			echo self::$ext_plugins . "\n";
+		}
+
+		if ( ! is_admin() ) {
+			echo 'var ajaxurl = "' . admin_url( 'admin-ajax.php', 'relative' ) . '";';
+		}
+
+		?>
+
+		( function() {
+			var initialized = [];
+			var initialize  = function() {
+				var init, id, inPostbox, $wrap;
+				var readyState = document.readyState;
+
+				if ( readyState !== 'complete' && readyState !== 'interactive' ) {
+					return;
 				}
 
-				if ( ! is_admin() ) {
-					echo 'var ajaxurl = "' . admin_url( 'admin-ajax.php', 'relative' ) . '";';
+				for ( id in tinyMCEPreInit.mceInit ) {
+					if ( initialized.indexOf( id ) > -1 ) {
+						continue;
+					}
+
+					init      = tinyMCEPreInit.mceInit[id];
+					$wrap     = tinymce.$( '#wp-' + id + '-wrap' );
+					inPostbox = $wrap.parents( '.postbox' ).length > 0;
+
+					if (
+						! init.wp_skip_init &&
+						( $wrap.hasClass( 'tmce-active' ) || ! tinyMCEPreInit.qtInit.hasOwnProperty( id ) ) &&
+						( readyState === 'complete' || ( ! inPostbox && readyState === 'interactive' ) )
+					) {
+						tinymce.init( init );
+						initialized.push( id );
+
+						if ( ! window.wpActiveEditor ) {
+							window.wpActiveEditor = id;
+						}
+					}
 				}
-
-				?>
-
-				( function() {
-					var initialized = [];
-					var initialize  = function() {
-						var init, id, inPostbox, $wrap;
-						var readyState = document.readyState;
-
-						if ( readyState !== 'complete' && readyState !== 'interactive' ) {
-							return;
-						}
-
-						for ( id in tinyMCEPreInit.mceInit ) {
-							if ( initialized.indexOf( id ) > -1 ) {
-								continue;
-							}
-
-							init      = tinyMCEPreInit.mceInit[id];
-							$wrap     = tinymce.$( '#wp-' + id + '-wrap' );
-							inPostbox = $wrap.parents( '.postbox' ).length > 0;
-
-							if (
-								! init.wp_skip_init &&
-								( $wrap.hasClass( 'tmce-active' ) || ! tinyMCEPreInit.qtInit.hasOwnProperty( id ) ) &&
-								( readyState === 'complete' || ( ! inPostbox && readyState === 'interactive' ) )
-							) {
-								tinymce.init( init );
-								initialized.push( id );
-
-								if ( ! window.wpActiveEditor ) {
-									window.wpActiveEditor = id;
-								}
-							}
-						}
-					}
-
-					if ( typeof tinymce !== 'undefined' ) {
-						if ( tinymce.Env.ie && tinymce.Env.ie < 11 ) {
-							tinymce.$( '.wp-editor-wrap ' ).removeClass( 'tmce-active' ).addClass( 'html-active' );
-						} else {
-							if ( document.readyState === 'complete' ) {
-								initialize();
-							} else {
-								document.addEventListener( 'readystatechange', initialize );
-							}
-						}
-					}
-
-					if ( typeof quicktags !== 'undefined' ) {
-						for ( id in tinyMCEPreInit.qtInit ) {
-							quicktags( tinyMCEPreInit.qtInit[id] );
-
-							if ( ! window.wpActiveEditor ) {
-								window.wpActiveEditor = id;
-							}
-						}
-					}
-				}());
-				</script>
-				<?php
 			}
-		);
+
+			if ( typeof tinymce !== 'undefined' ) {
+				if ( tinymce.Env.ie && tinymce.Env.ie < 11 ) {
+					tinymce.$( '.wp-editor-wrap ' ).removeClass( 'tmce-active' ).addClass( 'html-active' );
+				} else {
+					if ( document.readyState === 'complete' ) {
+						initialize();
+					} else {
+						document.addEventListener( 'readystatechange', initialize );
+					}
+				}
+			}
+
+			if ( typeof quicktags !== 'undefined' ) {
+				for ( id in tinyMCEPreInit.qtInit ) {
+					quicktags( tinyMCEPreInit.qtInit[id] );
+
+					if ( ! window.wpActiveEditor ) {
+						window.wpActiveEditor = id;
+					}
+				}
+			}
+		}());
+		</script>
+		<?php
 
 		if ( in_array( 'wplink', self::$plugins, true ) || in_array( 'link', self::$qt_buttons, true ) ) {
 			self::wp_link_dialog();

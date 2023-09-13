@@ -464,19 +464,17 @@ final class WP_Customize_Manager {
 				),
 				'error'         => $ajax_message,
 			);
-			wp_print_inline_script_tag(
-				static function () use ( $settings ) {
-					?>
-					<script>
-					( function( api, settings ) {
-						var preview = new api.Messenger( settings.messengerArgs );
-						preview.send( 'iframe-loading-error', settings.error );
-					} )( wp.customize, <?php echo wp_json_encode( $settings ); ?> );
-					</script>
-					<?php
-				}
-			);
 			$message .= ob_get_clean();
+			ob_start();
+			?>
+			<script>
+			( function( api, settings ) {
+				var preview = new api.Messenger( settings.messengerArgs );
+				preview.send( 'iframe-loading-error', settings.error );
+			} )( wp.customize, <?php echo wp_json_encode( $settings ); ?> );
+			</script>
+			<?php
+			$message .= wp_get_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
 		}
 
 		wp_die( $message );
@@ -2087,33 +2085,31 @@ final class WP_Customize_Manager {
 		if ( ! $this->messenger_channel ) {
 			return;
 		}
-		wp_print_inline_script_tag(
-			static function () {
-				?>
-				<script>
-				( function() {
-					var urlParser, oldQueryParams, newQueryParams, i;
-					if ( parent !== window ) {
-						return;
-					}
-					urlParser = document.createElement( 'a' );
-					urlParser.href = location.href;
-					oldQueryParams = urlParser.search.substr( 1 ).split( /&/ );
-					newQueryParams = [];
-					for ( i = 0; i < oldQueryParams.length; i += 1 ) {
-						if ( ! /^customize_messenger_channel=/.test( oldQueryParams[ i ] ) ) {
-							newQueryParams.push( oldQueryParams[ i ] );
-						}
-					}
-					urlParser.search = newQueryParams.join( '&' );
-					if ( urlParser.search !== location.search ) {
-						location.replace( urlParser.href );
-					}
-				} )();
-				</script>
-				<?php
+		ob_start();
+		?>
+		<script>
+		( function() {
+			var urlParser, oldQueryParams, newQueryParams, i;
+			if ( parent !== window ) {
+				return;
 			}
-		);
+			urlParser = document.createElement( 'a' );
+			urlParser.href = location.href;
+			oldQueryParams = urlParser.search.substr( 1 ).split( /&/ );
+			newQueryParams = [];
+			for ( i = 0; i < oldQueryParams.length; i += 1 ) {
+				if ( ! /^customize_messenger_channel=/.test( oldQueryParams[ i ] ) ) {
+					newQueryParams.push( oldQueryParams[ i ] );
+				}
+			}
+			urlParser.search = newQueryParams.join( '&' );
+			if ( urlParser.search !== location.search ) {
+				location.replace( urlParser.href );
+			}
+		} )();
+		</script>
+		<?php
+		wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
 	}
 
 	/**
@@ -2209,34 +2205,32 @@ final class WP_Customize_Manager {
 			}
 		}
 
-		wp_print_inline_script_tag(
-			function () use ( $settings ) {
-				?>
-				<script>
-				var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
-				_wpCustomizeSettings.values = {};
-				(function( v ) {
-					<?php
-					/*
-					 * Serialize settings separately from the initial _wpCustomizeSettings
-					 * serialization in order to avoid a peak memory usage spike.
-					 * @todo We may not even need to export the values at all since the pane syncs them anyway.
-					 */
-					foreach ( $this->settings as $id => $setting ) {
-						if ( $setting->check_capabilities() ) {
-							printf(
-								"v[%s] = %s;\n",
-								wp_json_encode( $id ),
-								wp_json_encode( $setting->js_value() )
-							);
-						}
-					}
-					?>
-				})( _wpCustomizeSettings.values );
-				</script>
+		ob_start();
+		?>
+		<script>
+			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
+			_wpCustomizeSettings.values = {};
+			(function( v ) {
 				<?php
-			}
-		);
+				/*
+				 * Serialize settings separately from the initial _wpCustomizeSettings
+				 * serialization in order to avoid a peak memory usage spike.
+				 * @todo We may not even need to export the values at all since the pane syncs them anyway.
+				 */
+				foreach ( $this->settings as $id => $setting ) {
+					if ( $setting->check_capabilities() ) {
+						printf(
+							"v[%s] = %s;\n",
+							wp_json_encode( $id ),
+							wp_json_encode( $setting->js_value() )
+						);
+					}
+				}
+				?>
+			})( _wpCustomizeSettings.values );
+		</script>
+		<?php
+		wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
 	}
 
 	/**
@@ -4988,46 +4982,44 @@ final class WP_Customize_Manager {
 			}
 		}
 
-		wp_print_inline_script_tag(
-			function () use ( $settings ) {
-				?>
-				<script>
-				var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
-				_wpCustomizeSettings.initialClientTimestamp = _.now();
-				_wpCustomizeSettings.controls = {};
-				_wpCustomizeSettings.settings = {};
-				<?php
+		ob_start();
+		?>
+		<script>
+			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
+			_wpCustomizeSettings.initialClientTimestamp = _.now();
+			_wpCustomizeSettings.controls = {};
+			_wpCustomizeSettings.settings = {};
+			<?php
 
-				// Serialize settings one by one to improve memory usage.
-				echo "(function ( s ){\n";
-				foreach ( $this->settings() as $setting ) {
-					if ( $setting->check_capabilities() ) {
-						printf(
-							"s[%s] = %s;\n",
-							wp_json_encode( $setting->id ),
-							wp_json_encode( $setting->json() )
-						);
-					}
+			// Serialize settings one by one to improve memory usage.
+			echo "(function ( s ){\n";
+			foreach ( $this->settings() as $setting ) {
+				if ( $setting->check_capabilities() ) {
+					printf(
+						"s[%s] = %s;\n",
+						wp_json_encode( $setting->id ),
+						wp_json_encode( $setting->json() )
+					);
 				}
-				echo "})( _wpCustomizeSettings.settings );\n";
-
-				// Serialize controls one by one to improve memory usage.
-				echo "(function ( c ){\n";
-				foreach ( $this->controls() as $control ) {
-					if ( $control->check_capabilities() ) {
-						printf(
-							"c[%s] = %s;\n",
-							wp_json_encode( $control->id ),
-							wp_json_encode( $control->json() )
-						);
-					}
-				}
-				echo "})( _wpCustomizeSettings.controls );\n";
-				?>
-				</script>
-				<?php
 			}
-		);
+			echo "})( _wpCustomizeSettings.settings );\n";
+
+			// Serialize controls one by one to improve memory usage.
+			echo "(function ( c ){\n";
+			foreach ( $this->controls() as $control ) {
+				if ( $control->check_capabilities() ) {
+					printf(
+						"c[%s] = %s;\n",
+						wp_json_encode( $control->id ),
+						wp_json_encode( $control->json() )
+					);
+				}
+			}
+			echo "})( _wpCustomizeSettings.controls );\n";
+			?>
+		</script>
+		<?php
+		wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
 	}
 
 	/**
