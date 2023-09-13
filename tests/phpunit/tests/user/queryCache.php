@@ -421,7 +421,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 
 		$q1       = new WP_User_Query( $args );
 		$found1   = $q1->get_results();
-		$callback = static function( $user ) {
+		$callback = static function ( $user ) {
 			return (array) $user;
 		};
 
