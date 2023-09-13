@@ -1224,65 +1224,32 @@ function wp_admin_bar_add_secondary_groups( $wp_admin_bar ) {
 	);
 }
 
-/**
- * Prints style and scripts for the admin bar.
- *
- * @since 3.1.0
- */
-function wp_admin_bar_header() {
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-	?>
-<style<?php echo $type_attr; ?> media="print">#wpadminbar { display:none; }</style>
-	<?php
-}
+
 
 /**
- * Prints default admin bar callback.
- *
- * @since 3.1.0
- */
-function _admin_bar_bump_cb() {
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-	?>
-<style<?php echo $type_attr; ?> media="screen">
-	html { margin-top: 32px !important; }
-	@media screen and ( max-width: 782px ) {
-		html { margin-top: 46px !important; }
-	}
-</style>
-	<?php
-}
-
-/**
- * Remove the `_admin_bar_bump_cb` and `wp_admin_bar_header` actions
- * and use `wp_add_inline_style` function to render inline styles.
+ * Remove the `wp_admin_bar_header` action and use `wp_add_inline_style` function to render inline styles.
  *
  * @since 6.4.0
  */
-function wp_enqueue_admin_bar_styles() {
+function wp_admin_bar_header_styles() {
+	$action = is_admin() ? 'admin_head' : 'wp_head';
+	if ( has_action( $action, 'wp_admin_bar_header' ) ) {
+		remove_action( $action, 'wp_admin_bar_header' );
+		wp_add_inline_style( 'admin-bar', /* language=CSS */ '@media print { #wpadminbar { display:none; } }' );
+	}
+}
+
+/**
+ * Remove the `wp_head` action and use `wp_add_inline_style` function to render inline styles.
+ *
+ * @since 6.4.0
+ */
+function wp_enqueue_admin_bar_bump_styles() {
 	if ( has_action( 'wp_head', '_admin_bar_bump_cb' ) ) {
 		remove_action( 'wp_head', '_admin_bar_bump_cb' );
 		$css = '@media screen { html { margin-top: 32px !important; } }
 	@media screen and ( max-width: 782px ) { html { margin-top: 46px !important; } }';
 		wp_add_inline_style( 'admin-bar', $css );
-	}
-
-	if ( has_action( 'wp_head', 'wp_admin_bar_header' ) ) {
-		remove_action( 'wp_head', 'wp_admin_bar_header' );
-		wp_add_inline_style( 'admin-bar', /* language=CSS */ '@media print { #wpadminbar { display:none; } }' );
-	}
-}
-
-/**
- * Remove the `wp_admin_bar_header` actions
- * and use `wp_add_inline_style` function to render inline styles.
- *
- * @since 6.4.0
- */
-function admin_enqueue_admin_bar_styles() {
-	if ( has_action( 'admin_head', 'wp_admin_bar_header' ) ) {
-		remove_action( 'admin_head', 'wp_admin_bar_header' );
-		wp_add_inline_style( 'admin-bar', /* language=CSS */ '@media print { #wpadminbar { display:none; } }' );
 	}
 }
 

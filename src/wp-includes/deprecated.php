@@ -5921,3 +5921,34 @@ function print_emoji_styles() {
 	</style>
 	<?php
 }
+
+/**
+ * Prints style and scripts for the admin bar.
+ *
+ * @since 3.1.0
+ */
+function wp_admin_bar_header() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_admin_bar_header_styles' );
+	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	?>
+	<style<?php echo $type_attr; ?> media="print">#wpadminbar { display:none; }</style>
+	<?php
+}
+
+/**
+ * Prints default admin bar callback.
+ *
+ * @since 3.1.0
+ */
+function _admin_bar_bump_cb() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_bump_styles' );
+	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	?>
+	<style<?php echo $type_attr; ?> media="screen">
+	html { margin-top: 32px !important; }
+	@media screen and ( max-width: 782px ) {
+	  html { margin-top: 46px !important; }
+	}
+	</style>
+	<?php
+}
