@@ -122,11 +122,14 @@ function wp_admin_bar_render() {
  */
 function wp_admin_bar_wp_menu( $wp_admin_bar ) {
 	if ( current_user_can( 'read' ) ) {
-		$about_url = self_admin_url( 'about.php' );
+		$about_url      = self_admin_url( 'about.php' );
+		$contribute_url = self_admin_url( 'contribute.php' );
 	} elseif ( is_multisite() ) {
-		$about_url = get_dashboard_url( get_current_user_id(), 'about.php' );
+		$about_url      = get_dashboard_url( get_current_user_id(), 'about.php' );
+		$contribute_url = get_dashboard_url( get_current_user_id(), 'contribute.php' );
 	} else {
-		$about_url = false;
+		$about_url      = false;
+		$contribute_url = false;
 	}
 
 	$wp_logo_menu_args = array(
@@ -155,6 +158,18 @@ function wp_admin_bar_wp_menu( $wp_admin_bar ) {
 				'id'     => 'about',
 				'title'  => __( 'About WordPress' ),
 				'href'   => $about_url,
+			)
+		);
+	}
+
+	if ( $contribute_url ) {
+		// Add contribute link.
+		$wp_admin_bar->add_node(
+			array(
+				'parent' => 'wp-logo',
+				'id'     => 'contribute',
+				'title'  => __( 'Get Involved' ),
+				'href'   => $contribute_url,
 			)
 		);
 	}
@@ -882,7 +897,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 					)
 				);
 			}
-		} elseif ( is_a( $current_object, 'WP_User' ) && current_user_can( 'edit_user', $current_object->ID ) ) {
+		} elseif ( $current_object instanceof WP_User && current_user_can( 'edit_user', $current_object->ID ) ) {
 			$edit_user_link = get_edit_user_link( $current_object->ID );
 			if ( $edit_user_link ) {
 				$wp_admin_bar->add_node(
@@ -1085,7 +1100,6 @@ function wp_admin_bar_appearance_menu( $wp_admin_bar ) {
 			)
 		);
 	}
-
 }
 
 /**

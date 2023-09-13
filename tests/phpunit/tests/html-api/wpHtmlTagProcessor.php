@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_HTML_Tag_Processor
  */
-class Tests_HtmlApi_wpHtmlTagProcessor extends WP_UnitTestCase {
+class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	const HTML_SIMPLE       = '<div id="first"><span id="second">Text</span></div>';
 	const HTML_WITH_CLASSES = '<div class="main with-border" id="first"><span class="not-main bold with-border" id="second">Text</span></div>';
 	const HTML_MALFORMED    = '<div><span class="d-md-none" Notifications</span><span class="d-none d-md-inline">Back to notifications</span></div>';
@@ -1868,6 +1868,43 @@ HTML;
 				'rcdata_then_div' => '<textarea class="d-md-none"></title></textarea><div></div>',
 				'rcdata_tag'      => 'TEXTAREA',
 			),
+		);
+	}
+
+	/**
+	 * @ticket 59292
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 *
+	 * @dataProvider data_next_tag_ignores_contents_of_rawtext_tags
+	 *
+	 * @param string $rawtext_element_then_target_node HTML starting with a RAWTEXT-specifying element such as STYLE,
+	 *                                                 then an element afterward containing the "target" attribute.
+	 */
+	public function test_next_tag_ignores_contents_of_rawtext_tags( $rawtext_element_then_target_node ) {
+		$processor = new WP_HTML_Tag_Processor( $rawtext_element_then_target_node );
+		$processor->next_tag();
+
+		$processor->next_tag();
+		$this->assertNotNull(
+			$processor->get_attribute( 'target' ),
+			"Expected to find element with target attribute but found {$processor->get_tag()} instead."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public function data_next_tag_ignores_contents_of_rawtext_tags() {
+		return array(
+			'IFRAME'           => array( '<iframe><section>Inside</section></iframe><section target>' ),
+			'NOEMBED'          => array( '<noembed><p></p></noembed><div target>' ),
+			'NOFRAMES'         => array( '<noframes><p>Check the rules here.</p></noframes><div target>' ),
+			'NOSCRIPT'         => array( '<noscript><span>This assumes that scripting mode is enabled.</span></noscript><p target>' ),
+			'STYLE'            => array( '<style>* { margin: 0 }</style><div target>' ),
+			'STYLE hiding DIV' => array( '<style>li::before { content: "<div non-target>" }</style><div target>' ),
 		);
 	}
 

@@ -937,7 +937,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * @ticket 56566
 	 */
 	public function test_link_embedding_returning_wp_error() {
-		$return_wp_error = static function() {
+		$return_wp_error = static function () {
 			return new WP_Error( 'some-error', 'This is not valid!' );
 		};
 		add_filter( 'rest_pre_dispatch', $return_wp_error );
@@ -1314,7 +1314,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$result = json_decode( rest_get_server()->sent_body );
 
-		$this->assertObjectNotHasAttribute( 'code', $result );
+		$this->assertObjectNotHasProperty( 'code', $result );
 	}
 
 	public function test_link_header_on_requests() {
@@ -1724,7 +1724,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test',
 			array(
 				'methods'             => array( 'GET' ),
-				'callback'            => static function() {
+				'callback'            => static function () {
 					return new WP_REST_Response( 'data', 204 );
 				},
 				'permission_callback' => '__return_true',
@@ -1735,7 +1735,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test',
 			array(
 				'methods'             => array( 'GET' ),
-				'callback'            => static function() {
+				'callback'            => static function () {
 					return new WP_REST_Response( 'data', 204 );
 				},
 				'permission_callback' => '__return_true',
@@ -2133,7 +2133,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	public function test_batch_v1_max_requests() {
 		add_filter(
 			'rest_get_max_batch_size',
-			static function() {
+			static function () {
 				return 5;
 			}
 		);
@@ -2241,7 +2241,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			array(
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
-					'callback'            => static function() {
+					'callback'            => static function () {
 						return new \WP_REST_Response( INF );
 					},
 					'permission_callback' => '__return_true',

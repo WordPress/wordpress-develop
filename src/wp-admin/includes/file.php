@@ -777,9 +777,9 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  *     An array of override parameters for this file, or boolean false if none are provided.
  *
  *     @type callable $upload_error_handler     Function to call when there is an error during the upload process.
- *                                              @see wp_handle_upload_error().
+ *                                              See {@see wp_handle_upload_error()}.
  *     @type callable $unique_filename_callback Function to call when determining a unique file name for the file.
- *                                              @see wp_unique_filename().
+ *                                              See {@see wp_unique_filename()}.
  *     @type string[] $upload_error_strings     The strings that describe the error indicated in
  *                                              `$_FILES[{form field}]['error']`.
  *     @type bool     $test_form                Whether to test that the `$_POST['action']` parameter is as expected.
@@ -845,7 +845,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	 * @since 5.7.0
 	 *
 	 * @param array|false $overrides An array of override parameters for this file. Boolean false if none are
-	 *                               provided. @see _wp_handle_upload().
+	 *                               provided. See {@see _wp_handle_upload()}.
 	 * @param array       $file      {
 	 *     Reference to a single element from `$_FILES`.
 	 *
@@ -1493,7 +1493,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 
 		// Ensure only valid-length signatures are considered.
 		if ( SODIUM_CRYPTO_SIGN_BYTES !== strlen( $signature_raw ) ) {
-			$skipped_signature++;
+			++$skipped_signature;
 			continue;
 		}
 
@@ -1502,7 +1502,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 
 			// Only pass valid public keys through.
 			if ( SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES !== strlen( $key_raw ) ) {
-				$skipped_key++;
+				++$skipped_key;
 				continue;
 			}
 
@@ -2726,7 +2726,7 @@ function wp_opcache_invalidate_directory( $dir ) {
 	 *                        with sub-directories represented as nested arrays.
 	 * @param string $path    Absolute path to the directory.
 	 */
-	$invalidate_directory = static function( $dirlist, $path ) use ( &$invalidate_directory ) {
+	$invalidate_directory = static function ( $dirlist, $path ) use ( &$invalidate_directory ) {
 		$path = trailingslashit( $path );
 
 		foreach ( $dirlist as $name => $details ) {

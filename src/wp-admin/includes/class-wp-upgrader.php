@@ -185,10 +185,11 @@ class WP_Upgrader {
 	 * @since 2.8.0
 	 */
 	public function generic_strings() {
-		$this->strings['bad_request']       = __( 'Invalid data provided.' );
-		$this->strings['fs_unavailable']    = __( 'Could not access filesystem.' );
-		$this->strings['fs_error']          = __( 'Filesystem error.' );
-		$this->strings['fs_no_root_dir']    = __( 'Unable to locate WordPress root directory.' );
+		$this->strings['bad_request']    = __( 'Invalid data provided.' );
+		$this->strings['fs_unavailable'] = __( 'Could not access filesystem.' );
+		$this->strings['fs_error']       = __( 'Filesystem error.' );
+		$this->strings['fs_no_root_dir'] = __( 'Unable to locate WordPress root directory.' );
+		/* translators: %s: Directory name. */
 		$this->strings['fs_no_content_dir'] = sprintf( __( 'Unable to locate WordPress content directory (%s).' ), 'wp-content' );
 		$this->strings['fs_no_plugins_dir'] = __( 'Unable to locate WordPress plugin directory.' );
 		$this->strings['fs_no_themes_dir']  = __( 'Unable to locate WordPress theme directory.' );
@@ -1206,8 +1207,7 @@ class WP_Upgrader {
 			if ( ! $wp_filesystem->delete( $temp_backup_dir, true ) ) {
 				$errors->add(
 					'temp_backup_delete_failed',
-					sprintf( $this->strings['temp_backup_delete_failed'] ),
-					$args['slug']
+					sprintf( $this->strings['temp_backup_delete_failed'], $args['slug'] )
 				);
 				continue;
 			}

@@ -246,5 +246,4 @@ abstract class WP_UnitTest_Factory_For_Thing {
 
 		return $value;
 	}
-
 }

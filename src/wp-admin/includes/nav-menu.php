@@ -432,8 +432,12 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 		$front_page = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_on_front' ) : 0;
 
 		$front_page_obj = null;
+
 		if ( ! empty( $front_page ) ) {
-			$front_page_obj                = get_post( $front_page );
+			$front_page_obj = get_post( $front_page );
+		}
+
+		if ( $front_page_obj ) {
 			$front_page_obj->front_or_home = true;
 
 			$important_pages[]   = $front_page_obj;
@@ -460,11 +464,14 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 		$posts_page = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_for_posts' ) : 0;
 
 		if ( ! empty( $posts_page ) ) {
-			$posts_page_obj             = get_post( $posts_page );
-			$posts_page_obj->posts_page = true;
+			$posts_page_obj = get_post( $posts_page );
 
-			$important_pages[]   = $posts_page_obj;
-			$suppress_page_ids[] = $posts_page_obj->ID;
+			if ( $posts_page_obj ) {
+				$front_page_obj->posts_page = true;
+
+				$important_pages[]   = $posts_page_obj;
+				$suppress_page_ids[] = $posts_page_obj->ID;
+			}
 		}
 
 		// Insert Privacy Policy Page.
@@ -1284,15 +1291,21 @@ function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
 		}
 
 		if ( $some_pending_menu_items ) {
-			$result .= '<div class="notice notice-info notice-alt inline"><p>'
-				. __( 'Click Save Menu to make pending menu items public.' )
-				. '</p></div>';
+			$message     = __( 'Click Save Menu to make pending menu items public.' );
+			$notice_args = array(
+				'type'               => 'info',
+				'additional_classes' => array( 'notice-alt', 'inline' ),
+			);
+			$result     .= wp_get_admin_notice( $message, $notice_args );
 		}
 
 		if ( $some_invalid_menu_items ) {
-			$result .= '<div class="notice notice-error notice-alt inline"><p>'
-				. __( 'There are some invalid menu items. Please check or delete them.' )
-				. '</p></div>';
+			$message     = __( 'There are some invalid menu items. Please check or delete them.' );
+			$notice_args = array(
+				'type'               => 'error',
+				'additional_classes' => array( 'notice-alt', 'inline' ),
+			);
+			$result     .= wp_get_admin_notice( $message, $notice_args );
 		}
 
 		$result .= '<ul class="menu" id="menu-to-edit"> ';
@@ -1307,7 +1320,6 @@ function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
 	} elseif ( is_wp_error( $menu ) ) {
 		return $menu;
 	}
-
 }
 
 /**
@@ -1473,12 +1485,15 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 	/** This action is documented in wp-includes/nav-menu.php */
 	do_action( 'wp_update_nav_menu', $nav_menu_selected_id );
 
-	$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' .
-		sprintf(
-			/* translators: %s: Nav menu title. */
-			__( '%s has been updated.' ),
-			'<strong>' . $nav_menu_selected_title . '</strong>'
-		) . '</p></div>';
+	/* translators: %s: Nav menu title. */
+	$message     = sprintf( __( '%s has been updated.' ), '<strong>' . $nav_menu_selected_title . '</strong>' );
+	$notice_args = array(
+		'id'                 => 'message',
+		'dismissible'        => true,
+		'additional_classes' => array( 'updated' ),
+	);
+
+	$messages[] = wp_get_admin_notice( $message, $notice_args );
 
 	unset( $menu_items, $unsorted_menu_items );
 

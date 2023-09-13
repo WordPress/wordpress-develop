@@ -78,8 +78,8 @@ CAP;
 	/**
 	 * Ensures that the static content media count, fetchpriority element flag and related filter are reset between tests.
 	 */
-	public function set_up() {
-		parent::set_up();
+	public function tear_down() {
+		parent::tear_down();
 
 		$this->reset_content_media_count();
 		$this->reset_omit_loading_attr_filter();
@@ -202,7 +202,6 @@ CAP;
 			)
 		);
 		$this->assertSame( 1, substr_count( $result, 'wp-caption alignnone some-class another-class' ) );
-
 	}
 
 	public function test_new_img_caption_shortcode_with_html_caption() {
@@ -1743,7 +1742,6 @@ EOF;
 			$expected_srcset = $this->src_first( $_expected, $image_url, $size_array[0] );
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
-
 	}
 
 	/**
@@ -2359,7 +2357,7 @@ EOF;
 
 		add_filter(
 			'wp_content_img_tag',
-			static function( $filtered_image ) {
+			static function ( $filtered_image ) {
 				return "<span>$filtered_image</span>";
 			}
 		);
@@ -2383,7 +2381,7 @@ EOF;
 
 		add_filter(
 			'wp_content_img_tag',
-			static function( $filtered_image ) {
+			static function ( $filtered_image ) {
 				return "<span>$filtered_image</span>";
 			}
 		);
@@ -4022,7 +4020,7 @@ EOF;
 		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 		add_filter(
 			'wp_get_attachment_image_attributes',
-			static function( $attr ) {
+			static function ( $attr ) {
 				unset( $attr['srcset'], $attr['sizes'], $attr['decoding'] );
 				return $attr;
 			}
@@ -4156,7 +4154,7 @@ EOF;
 		// Overwrite post content with an image.
 		add_filter(
 			'the_content',
-			static function() use ( &$image_within_content ) {
+			static function () use ( &$image_within_content ) {
 				// Replace content with an image tag, i.e. the 'wp_get_attachment_image' context is used while running 'the_content' filter.
 				$image_within_content = wp_get_attachment_image( self::$large_id, 'large', false );
 				return $image_within_content;
@@ -4223,7 +4221,7 @@ EOF;
 		$result = null;
 		add_filter(
 			'the_content',
-			static function( $content ) use ( &$result, $context ) {
+			static function ( $content ) use ( &$result, $context ) {
 				$result = wp_get_loading_attr_default( $context );
 				return $content;
 			}
@@ -4525,7 +4523,7 @@ EOF;
 		$result = null;
 		add_filter(
 			'the_content',
-			function( $content ) use ( &$result, $context ) {
+			function ( $content ) use ( &$result, $context ) {
 				$attr   = $this->get_width_height_for_high_priority();
 				$result = wp_get_loading_optimization_attributes( 'img', $attr, $context );
 				return $content;
@@ -4807,7 +4805,7 @@ EOF;
 		// Add a filter that modifies the context.
 		add_filter(
 			'wp_get_attachment_image_context',
-			static function() {
+			static function () {
 				return 'my_custom_context';
 			}
 		);
@@ -4956,7 +4954,7 @@ EOF;
 		$attr['loading']       = 'lazy';
 		$attr['fetchpriority'] = 'high';
 
-		$this->assertSame(
+		$this->assertEqualSetsWithIndex(
 			array(
 				'loading'       => 'lazy',
 				'fetchpriority' => 'high',
@@ -5002,6 +5000,122 @@ EOF;
 			array(),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'test' ),
 			'loading optimization attr array should be empty.'
+		);
+	}
+
+	/**
+	 * @ticket 58681
+	 *
+	 * @dataProvider data_wp_get_loading_optimization_attributes_in_shortcodes
+	 */
+	public function test_wp_get_loading_optimization_attributes_in_shortcodes( $setup, $expected, $message ) {
+		$attr = $this->get_width_height_for_high_priority();
+		$setup();
+
+		// The first image processed in a shortcode should have fetchpriority set to high.
+		$this->assertSame(
+			$expected,
+			wp_get_loading_optimization_attributes( 'img', $attr, 'do_shortcode' ),
+			$message
+		);
+	}
+
+	public function data_wp_get_loading_optimization_attributes_in_shortcodes() {
+		return array(
+			'main_shortcode_image_should_have_fetchpriority_high'  => array(
+				'setup'    => function () {
+					global $wp_query;
+
+					// Set WP_Query to be in the loop and the main query.
+					$wp_query->in_the_loop = true;
+					$this->set_main_query( $wp_query );
+				},
+				'expected' => array(
+					'fetchpriority' => 'high',
+				),
+				'message'  => 'Fetch priority not applied to during shortcode rendering.',
+			),
+			'main_shortcode_image_after_threshold_is_loading_lazy' => array(
+				'setup'    => function () {
+					global $wp_query;
+
+					// Set WP_Query to be in the loop and the main query.
+					$wp_query->in_the_loop = true;
+					$this->set_main_query( $wp_query );
+
+					// Set internal flags so lazy should be applied.
+					wp_high_priority_element_flag( false );
+					wp_increase_content_media_count( 3 );
+				},
+				'expected' => array(
+					'loading' => 'lazy',
+				),
+				'message'  => 'Lazy-loading not applied to during shortcode rendering.',
+			),
+			'shortcode_image_outside_of_the_loop_are_loaded_lazy'  => array(
+				'setup'    => function () {
+					// Avoid setting up the WP_Query object for the loop.
+					return;
+				},
+				'expected' => array(
+					'loading' => 'lazy',
+				),
+				'message'  => 'Lazy-loading not applied to shortcodes outside the loop.',
+			),
+		);
+	}
+
+	/**
+	 * @ticket 58681
+	 */
+	public function test_content_rendering_with_shortcodes() {
+		// The gallery shortcode will dynamically create image markup that should be optimized.
+		$content = "[gallery ids='" . self::$large_id . "' size='large']";
+		$actual  = apply_filters( 'the_content', $content );
+
+		$this->assertStringContainsString(
+			// Since the main query and loop isn't set, this should be lazily loaded.
+			'loading="lazy"',
+			$actual,
+			'Could not confirm shortcodes get optimizations applied.'
+		);
+	}
+
+	/**
+	 * @ticket 58681
+	 */
+	public function test_content_rendering_with_shortcodes_nested() {
+		global $wp_query;
+
+		// Set WP_Query to be in the loop and the main query.
+		$wp_query->in_the_loop = true;
+		$this->set_main_query( $wp_query );
+
+		add_shortcode(
+			'div',
+			function ( $atts, $content = null ) {
+				$parsed_atts = shortcode_atts(
+					array(
+						'class' => '',
+					),
+					$atts
+				);
+
+				$class = ! empty( $parsed_atts['class'] ) ? sprintf( ' class="%s"', $parsed_atts['class'] ) : null;
+
+				return sprintf( '<div %s>%s</div>', $class, do_shortcode( $content ) );
+			}
+		);
+
+		// The gallery shortcode will dynamically create image markup that should be optimized.
+		$content = "[div][gallery ids='" . self::$large_id . "' size='large'][div]";
+		$actual  = apply_filters( 'the_content', $content );
+
+		$this->assertStringContainsString(
+			// Since this is in the loop, it should have a high fetchpriority.
+			'fetchpriority="high"',
+			$actual,
+			'Could not confirm shortcodes get optimizations applied.'
 		);
 	}
 
@@ -5094,7 +5208,7 @@ EOF;
 
 		add_filter(
 			'wp_min_priority_img_pixels',
-			static function( $res ) {
+			static function ( $res ) {
 				return 2500; // 50*50=2500
 			}
 		);
@@ -5167,7 +5281,7 @@ EOF;
 	private function track_last_attachment_image_context( &$last_context ) {
 		add_filter(
 			'wp_get_attachment_image_context',
-			static function( $context ) use ( &$last_context ) {
+			static function ( $context ) use ( &$last_context ) {
 				$last_context = $context;
 				return $context;
 			},
@@ -5222,7 +5336,7 @@ EOF;
 	public function force_omit_loading_attr_threshold( $threshold ) {
 		add_filter(
 			'wp_omit_loading_attr_threshold',
-			static function() use ( $threshold ) {
+			static function () use ( $threshold ) {
 				return $threshold;
 			}
 		);
