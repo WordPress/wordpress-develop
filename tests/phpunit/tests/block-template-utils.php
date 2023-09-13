@@ -231,7 +231,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				'slug'      => 'header',
 				'align'     => 'full',
 				'tagName'   => 'header',
-				'className' => 'site-header'
+				'className' => 'site-header',
 			),
 			'innerHTML'    => '',
 			'innerContent' => array(),
