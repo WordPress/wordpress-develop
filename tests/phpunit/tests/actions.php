@@ -387,7 +387,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	 */
 	public function test_action_closure() {
 		$hook_name = __FUNCTION__;
-		$closure   = static function( $a, $b ) {
+		$closure   = static function ( $a, $b ) {
 			$GLOBALS[ $a ] = $b;
 		};
 		add_action( $hook_name, $closure, 10, 2 );
@@ -400,7 +400,7 @@ class Tests_Actions extends WP_UnitTestCase {
 		$this->assertSame( $GLOBALS[ $context[0] ], $context[1] );
 
 		$hook_name2 = __FUNCTION__ . '_2';
-		$closure2   = static function() {
+		$closure2   = static function () {
 			$GLOBALS['closure_no_args'] = true;
 		};
 		add_action( $hook_name2, $closure2 );

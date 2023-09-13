@@ -795,7 +795,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		add_filter(
 			'get_sample_permalink',
-			function( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
+			function ( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
 				$this->assertEquals( $post_original, $post, 'Modified post object passed to get_sample_permalink filter.' );
 				return $permalink;
 			},
