@@ -175,9 +175,14 @@ endif;
  * Enqueue scripts and styles for front end.
  *
  * @since Twenty Twelve 1.0
+ *
+ * @global WP_Scripts $wp_scripts WordPress Scripts object.
+ * @global WP_Styles  $wp_styles  WordPress Styles object.
  */
 function twentytwelve_scripts_styles() {
-	global $wp_styles;
+	global $wp_scripts, $wp_styles;
+	// Include an unmodified $wp_version to account to account for changes to the global.
+	require ABSPATH . WPINC . '/version.php';
 
 	/*
 	 * Adds JavaScript to pages with the comment form to support
@@ -193,11 +198,18 @@ function twentytwelve_scripts_styles() {
 		get_template_directory_uri() . '/js/navigation.js',
 		array( 'jquery' ),
 		'20141205',
-		array(
-			'in_footer' => false, // Because involves header.
-			'strategy'  => 'defer',
-		)
+		true
 	);
+	/*
+	 * In WP 6.3+ enqueue the script in the header and defer loading.
+	 *
+	 * This is added directly to the $wp_scripts global to maintain backwards
+	 * compatibility with older versions of WordPress.
+	 */
+	if ( version_compare( $wp_version, '6.3-alpha', '>=' ) ) {
+		$wp_scripts->add_data( 'twentytwelve-navigation', 'group', 0 );
+		$wp_scripts->add_data( 'twentytwelve-navigation', 'strategy', 'defer' );
+	}
 
 	$font_url = twentytwelve_get_font_url();
 	if ( ! empty( $font_url ) ) {
