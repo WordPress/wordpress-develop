@@ -510,8 +510,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * They always include the entire path from the root HTML node to the matched element.
 	 *
 	 * @TODO: It could be more efficient to expose a generator-based version of this function
-	 *         to avoid creating the array copy on tag iteration. If this is done, it would likely
-	 *         be more useful to walk up the stack when yielding instead of starting at the top.
+	 *        to avoid creating the array copy on tag iteration. If this is done, it would likely
+	 *        be more useful to walk up the stack when yielding instead of starting at the top.
 	 *
 	 * Example
 	 *
@@ -765,10 +765,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Returns the uppercase name of the matched tag.
 	 *
-	 * The semantic rules for HTML rename certain tags and reprocesses
-	 * them. Because of this, the tag name presented by the HTML Processor
-	 * may different from the one reported by the HTML Tag Processor,
-	 * which doesn't apply these semantic rules.
+	 * The semantic rules for HTML specify that certain tags be reprocessed
+	 * with a different tag name. Because of this, the tag name presented
+	 * by the HTML Processor may differ from the one reported by the HTML
+	 * Tag Processor, which doesn't apply these semantic rules.
 	 *
 	 * Example:
 	 *
