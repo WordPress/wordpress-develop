@@ -13,16 +13,16 @@
  */
 class Tests_HtmlApi_WpHtmlTagProcessor_Internals extends WP_UnitTestCase {
 	/**
-	 * @ticket {TICKET NUMBER}
+	 * @ticket 59291
 	 *
 	 * @dataProvider data_html_with_entire_tag_raw_markup
 	 *
 	 * @param string $html_with_target_element HTML with a tag containing "target" attribute.
-	 * @param string $expected_raw_markup      Expect full raw markup for targeted tag.
+	 * @param string $expected_raw_markup      Expected full raw markup for targeted tag.
 	 */
 	public function test_returns_raw_html_markup_for_entire_tag( $html_with_target_element, $expected_raw_markup ) {
 		$processor = new WP_HTML_Tag_Processor( $html_with_target_element );
-		while ( $processor->next_tag() && null == $processor->get_attribute( 'target' ) ) {
+		while ( $processor->next_tag() && null === $processor->get_attribute( 'target' ) ) {
 			continue;
 		}
 
@@ -58,16 +58,16 @@ INTERNAL_ONLY
 	}
 
 	/**
-	 * @ticket {TICKET NUMBER}
+	 * @ticket 59291
 	 *
 	 * @dataProvider data_html_with_only_attributes_raw_markup
 	 *
 	 * @param string $html_with_target_element HTML with a tag containing "target" attribute.
-	 * @param string $expected_raw_markup      Expect raw markup for targeted tag containing only the attributes.
+	 * @param string $expected_raw_markup      Expected raw markup for targeted tag containing only the attributes.
 	 */
 	public function test_returns_raw_html_markup_for_only_attributes( $html_with_target_element, $expected_raw_markup ) {
 		$processor = new WP_HTML_Tag_Processor( $html_with_target_element );
-		while ( $processor->next_tag() && null == $processor->get_attribute( 'target' ) ) {
+		while ( $processor->next_tag() && null === $processor->get_attribute( 'target' ) ) {
 			continue;
 		}
 
