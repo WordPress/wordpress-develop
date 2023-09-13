@@ -20,12 +20,15 @@ wp_enqueue_script(
 	'twentyeleven-showcase',
 	get_template_directory_uri() . '/js/showcase.js',
 	array( 'jquery' ),
-	'20211130',
-	array(
-		'in_footer' => false, // Because involves header.
-		'strategy'  => 'defer',
-	)
+	'20211130'
 );
+/*
+ * Defer loading of the script in WP 6.3+.
+ *
+ * This is added directly to the $wp_scripts global to maintain backwards
+ * compatibility with older versions of WordPress.
+ */
+$wp_scripts->add_data( 'twentyeleven-showcase', 'strategy', 'defer' );
 
 get_header(); ?>
 
