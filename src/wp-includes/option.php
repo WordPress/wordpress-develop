@@ -2879,7 +2879,7 @@ function filter_default_option( $default_value, $option, $passed_default ) {
 }
 
 /**
- * Check if two database values are equal.
+ * Checks if two database values are equal.
  *
  * @since 6.4.0
  * @access private
@@ -2895,17 +2895,15 @@ function _is_equal_database_value( $old_value, $new_value ) {
 	);
 
 	foreach ( $values as $_key => &$_value ) {
-		// Special handling for false-ish values.
+		/*
+		 * Special handling for false-ish values.
+		 * Empty strings in the database should be seen as equivalent to false-ish cache values.
+		 * Cast scalars to a string so type discrepancies don't result in cache misses.
+		 */
 		if ( false === $_value ) {
 			$_value = '0';
-
-		// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect
-		// Empty strings in the database should be seen as equivalent to false-ish cache values.
 		} elseif ( 'old' === $_key && '' === $_value ) {
 			$_value = '0';
-
-		// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect
-		// Cast scalars to a string so type discrepancies don't result in cache misses.
 		} elseif ( is_scalar( $_value ) ) {
 			$_value = (string) $_value;
 		}

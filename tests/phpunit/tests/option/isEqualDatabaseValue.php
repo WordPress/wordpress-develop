@@ -2,6 +2,8 @@
 /**
  * Test _is_equal_database_value().
  *
+ * @group option
+ *
  * @covers ::_is_equal_database_value
  */
 class Tests_Is_Equal_Database_Value extends WP_UnitTestCase {
@@ -16,7 +18,7 @@ class Tests_Is_Equal_Database_Value extends WP_UnitTestCase {
 	 * @param int   $expected  The expected result.
 	 */
 	public function test_is_equal_database_value( $old_value, $new_value, $expected ) {
-		$this->assertEquals( $expected, _is_equal_database_value( $old_value, $new_value ) );
+		$this->assertSame( $expected, _is_equal_database_value( $old_value, $new_value ) );
 	}
 
 	/**

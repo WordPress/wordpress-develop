@@ -321,7 +321,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	public function test_add_option_with_value_of_false_should_store_false_in_the_cache() {
 		add_option( 'foo', false );
 		$a = wp_cache_get( 'alloptions', 'options' );
-		$this->assertSame( false, $a['foo'] );
+		$this->assertFalse( $a['foo'] );
 	}
 
 	/**
@@ -341,7 +341,6 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	/**
 	 * @ticket 22192
 	 *
-	 * @covers ::add_option
 	 * @covers ::update_option
 	 *
 	 * @dataProvider data_update_option_type_juggling
@@ -362,7 +361,6 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	/**
 	 * @ticket 22192
 	 *
-	 * @covers ::add_option
 	 * @covers ::update_option
 	 *
 	 * @dataProvider data_update_option_type_juggling
@@ -392,42 +390,41 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		return array(
 			// Truthy.
 			array( '1', '1' ),
-			array( '1', intval( 1 ) ),
-			array( '1', floatval( 1 ) ),
+			array( '1', 1 ),
+			array( '1', 1.0 ),
 			array( '1', true ),
 			array( 1, '1' ),
-			array( 1, intval( 1 ) ),
-			array( 1, floatval( 1 ) ),
+			array( 1, 1 ),
+			array( 1, 1.0 ),
 			array( 1, true ),
-			array( floatval( 1 ), '1' ),
-			array( floatval( 1 ), intval( 1 ) ),
-			array( floatval( 1 ), floatval( 1 ) ),
-			array( floatval( 1 ), true ),
+			array( 1.0, '1' ),
+			array( 1.0, 1 ),
+			array( 1.0, 1.0 ),
+			array( 1.0, true ),
 			array( true, '1' ),
-			array( true, intval( 1 ) ),
-			array( true, floatval( 1 ) ),
+			array( true, 1 ),
+			array( true, 1 ),
 			array( true, true ),
 
 			// Falsey.
 			array( '0', '0' ),
-			array( '0', intval( 0 ) ),
-			array( '0', floatval( 0 ) ),
+			array( '0', 0 ),
+			array( '0', 0.0 ),
 			array( '0', false ),
 			array( 0, '0' ),
-			array( 0, intval( 0 ) ),
-			array( 0, floatval( 0 ) ),
+			array( 0, 0 ),
+			array( 0, 0.0 ),
 			array( 0, false ),
-			array( floatval( 0 ), '0' ),
-			array( floatval( 0 ), intval( 0 ) ),
-			array( floatval( 0 ), floatval( 0 ) ),
-			array( floatval( 0 ), false ),
+			array( 0.0, '0' ),
+			array( 0.0, 0 ),
+			array( 0.0, 0.0 ),
+			array( 0.0, false ),
 		);
 	}
 
 	/**
 	 * @ticket 22192
 	 *
-	 * @covers ::add_option
 	 * @covers ::update_option
 	 *
 	 * @dataProvider data_update_option_type_falsey_values
@@ -454,8 +451,11 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	public function data_update_option_type_falsey_values() {
 		return array(
 			array( false, '0', true ),
-			array( false, intval( 0 ), true ),
-			array( false, floatval( 0 ), true ),
+			array( false, 0, true ),
+			array( false, 0.0, true ),
+			array( false, '', false ),
+			array( false, null, false ),
+			array( false, array(), true ),
 			array( false, false, false ),
 		);
 	}
