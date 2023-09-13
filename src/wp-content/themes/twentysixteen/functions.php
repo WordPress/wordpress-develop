@@ -383,6 +383,9 @@ add_action( 'wp_head', 'twentysixteen_javascript_detection', 0 );
  * @since Twenty Sixteen 1.0
  */
 function twentysixteen_scripts() {
+	// Include an unmodified $wp_version to account to account for changes to the global.
+	require ABSPATH . WPINC . '/version.php';
+
 	// Add custom fonts, used in the main stylesheet.
 	$font_version = ( 0 === strpos( (string) twentysixteen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentysixteen-fonts', twentysixteen_fonts_url(), array(), $font_version );
@@ -428,11 +431,18 @@ function twentysixteen_scripts() {
 		get_template_directory_uri() . '/js/functions.js',
 		array( 'jquery' ),
 		'20230629',
-		array(
-			'in_footer' => false, // Because involves header.
-			'strategy'  => 'defer',
-		)
+		true
 	);
+	/*
+	 * In WP 6.3+ enqueue the script in the header and defer loading.
+	 *
+	 * This is added directly to the script data to maintain backwards
+	 * compatibility with older versions of WordPress.
+	 */
+	if ( version_compare( $wp_version, '6.3-alpha', '>=' ) ) {
+		wp_script_add_data( 'twentysixteen-script', 'group', 0 );
+		wp_script_add_data( 'twentysixteen-script', 'strategy', 'defer' );
+	}
 
 	wp_localize_script(
 		'twentysixteen-script',
