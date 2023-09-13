@@ -226,7 +226,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 */
 	public function test_inject_theme_attribute_in_template_part_block() {
 		$template_part_block_without_theme_attribute = array(
-			'blockName'    => 'wp:template-part',
+			'blockName'    => 'core/template-part',
 			'attrs'        => array(
 				'slug'      => 'header',
 				'align'     => 'full',
@@ -240,7 +240,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 		$actual   = _inject_theme_attribute_in_template_part_block( $template_part_block_without_theme_attribute );
 		$expected = array(
-			'blockName'    => 'wp:template-part',
+			'blockName'    => 'core/template-part',
 			'attrs'        => array(
 				'slug'      => 'header',
 				'align'     => 'full',
@@ -256,7 +256,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 		// Does not inject theme when there is an existing theme attribute.
 		$template_part_block_with_existing_theme_attribute = array(
-			'blockName'    => 'wp:template-part',
+			'blockName'    => 'core/template-part',
 			'attrs'        => array(
 				'slug'      => 'header',
 				'align'     => 'full',
@@ -274,7 +274,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 		// Does not inject theme when there is no template part.
 		$non_template_part_block = array(
-			'blockName'    => 'wp:post-content',
+			'blockName'    => 'core/post-content',
 			'attrs'        => array(),
 			'innerHTML'    => '',
 			'innerContent' => array(),
