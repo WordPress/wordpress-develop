@@ -174,6 +174,18 @@ class WP_Block_Type {
 	public $provides_context = null;
 
 	/**
+	 * Block hooks for this block type.
+	 *
+	 * A block hook is specified by a block type and a relative position.
+	 * The hooked block will be automatically inserted in the given position
+	 * next to the "anchor" block whenever the latter is encountered.
+	 *
+	 * @since 6.4.0
+	 * @var array|null
+	 */
+	public $block_hooks = array();
+
+	/**
 	 * Block type editor only script handles.
 	 *
 	 * @since 6.1.0
@@ -212,18 +224,6 @@ class WP_Block_Type {
 	 * @var string[]
 	 */
 	public $style_handles = array();
-
-	/**
-	 * Block hooks for this block type.
-	 *
-	 * A block hook is specified by a block type and a relative position.
-	 * The hooked block will be automatically inserted in the given position
-	 * next to the "anchor" block whenever the latter is encountered.
-	 *
-	 * @since 6.4.0
-	 * @var array|null
-	 */
-	public $block_hooks = array();
 
 	/**
 	 * Deprecated block type properties for script and style handles.
@@ -292,12 +292,12 @@ class WP_Block_Type {
 	 *     @type array[]       $variations               Block variations.
 	 *     @type array         $selectors                Custom CSS selectors for theme.json style generation.
 	 *     @type array|null    $supports                 Supported features.
-	 *     @type array|null    $block_hooks              Block hooks.
 	 *     @type array|null    $example                  Structured data for the block preview.
 	 *     @type callable|null $render_callback          Block type render callback.
 	 *     @type array|null    $attributes               Block type attributes property schemas.
 	 *     @type string[]      $uses_context             Context values inherited by blocks of this type.
 	 *     @type string[]|null $provides_context         Context provided by blocks of this type.
+	 *     @type array|null    $block_hooks              Block hooks.
 	 *     @type string[]      $editor_script_handles    Block type editor only script handles.
 	 *     @type string[]      $script_handles           Block type front end and editor script handles.
 	 *     @type string[]      $view_script_handles      Block type front end only script handles.
