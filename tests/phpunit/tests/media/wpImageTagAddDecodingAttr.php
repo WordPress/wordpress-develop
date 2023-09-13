@@ -25,7 +25,7 @@ class Tests_Media_Wp_Img_Tag_Add_Decoding_Attr extends WP_UnitTestCase {
 		if ( 'no value' !== $decoding ) {
 			add_filter(
 				'wp_img_tag_add_decoding_attr',
-				static function( $value ) use ( $decoding ) {
+				static function ( $value ) use ( $decoding ) {
 					return $decoding;
 				}
 			);
@@ -86,7 +86,7 @@ class Tests_Media_Wp_Img_Tag_Add_Decoding_Attr extends WP_UnitTestCase {
 		if ( 'no value' !== $decoding ) {
 			add_filter(
 				'wp_img_tag_add_decoding_attr',
-				static function( $value ) use ( $decoding ) {
+				static function ( $value ) use ( $decoding ) {
 					return $decoding;
 				}
 			);

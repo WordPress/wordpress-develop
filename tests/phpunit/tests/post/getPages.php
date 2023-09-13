@@ -344,7 +344,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		// Filter the query to return the wptests_pt post type.
 		add_filter(
 			'get_pages_query_args',
-			static function( $query_args, $parsed_args ) use ( &$query_args_values, &$parsed_args_values ) {
+			static function ( $query_args, $parsed_args ) use ( &$query_args_values, &$parsed_args_values ) {
 				$query_args['post_type'] = 'wptests_pt';
 				$query_args_values       = $query_args;
 				$parsed_args_values      = $parsed_args;

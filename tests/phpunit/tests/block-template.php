@@ -284,7 +284,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		register_block_type(
 			'test/in-the-loop-logger',
 			array(
-				'render_callback' => function() use ( &$in_the_loop_logs ) {
+				'render_callback' => function () use ( &$in_the_loop_logs ) {
 					$in_the_loop_logs[] = in_the_loop();
 					return '';
 				},
