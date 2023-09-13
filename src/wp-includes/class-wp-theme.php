@@ -1740,8 +1740,8 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		$paths_to_block_template_directories = array(
-			$this->theme_root . '/' . $this->template . '/block-template-parts',
-			$this->theme_root . '/' . $this->template . '/block-templates',
+			$this->theme_root . '/' . $this->stylesheet . '/block-template-parts',
+			$this->theme_root . '/' . $this->stylesheet . '/block-templates',
 		);
 
 		$this->block_template_folders = array(
