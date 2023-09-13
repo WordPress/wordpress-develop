@@ -219,6 +219,72 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 59338
+	 *
+	 * @covers ::test_inject_theme_attribute_in_template_part_block
+	 */
+	public function test_inject_theme_attribute_in_template_part_block() {
+		$template_part_block_without_theme_attribute = array(
+			'blockName'    => 'wp:template-part',
+			'attrs'        => array(
+				'slug'      => 'header',
+				'align'     => 'full',
+				'tagName'   => 'header',
+				'className' => 'site-header'
+			),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+
+		$actual   = _inject_theme_attribute_in_template_part_block( $template_part_block_without_theme_attribute );
+		$expected = array(
+			'blockName'    => 'wp:template-part',
+			'attrs'        => array(
+				'slug'      => 'header',
+				'align'     => 'full',
+				'tagName'   => 'header',
+				'className' => 'site-header',
+				'theme'     => get_stylesheet(),
+			),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+		$this->assertSame( $expected, $actual );
+
+		// Does not inject theme when there is an existing theme attribute.
+		$template_part_block_with_existing_theme_attribute = array(
+			'blockName'    => 'wp:template-part',
+			'attrs'        => array(
+				'slug'      => 'header',
+				'align'     => 'full',
+				'tagName'   => 'header',
+				'className' => 'site-header',
+				'theme'     => 'fake-theme',
+			),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+
+		$actual = _inject_theme_attribute_in_template_part_block( $template_part_block_with_existing_theme_attribute );
+		$this->assertSame( $template_part_block_with_existing_theme_attribute, $actual );
+
+		// Does not inject theme when there is no template part.
+		$non_template_part_block = array(
+			'blockName'    => 'wp:post-content',
+			'attrs'        => array(),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+
+		$actual = _inject_theme_attribute_in_template_part_block( $non_template_part_block );
+		$this->assertSame( $non_template_part_block, $actual );
+	}
+
 	public function test_inject_theme_attribute_in_block_template_content() {
 		$theme                           = get_stylesheet();
 		$content_without_theme_attribute = '<!-- wp:template-part {"slug":"header","align":"full", "tagName":"header","className":"site-header"} /-->';
