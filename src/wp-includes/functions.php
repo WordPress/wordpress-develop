@@ -846,7 +846,7 @@ function wp_extract_urls( $content ) {
 
 	$post_links = array_unique(
 		array_map(
-			static function( $link ) {
+			static function ( $link ) {
 				// Decode to replace valid entities, like &amp;.
 				$link = html_entity_decode( $link );
 				// Maintain backward compatibility by removing extraneous semi-colons (`;`).
@@ -2696,7 +2696,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 					);
 
 					$number = $new_number;
-					$i++;
+					++$i;
 				}
 			}
 		}
@@ -2769,7 +2769,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 					);
 
 					$number = $new_number;
-					$i++;
+					++$i;
 				}
 			}
 		}
@@ -4829,7 +4829,6 @@ function smilies_init() {
 	}
 
 	$wp_smiliessearch .= ')(?=' . $spaces . '|$)/m';
-
 }
 
 /**
@@ -5609,7 +5608,6 @@ function _deprecated_constructor( $class_name, $version, $parent_class = '' ) {
 			}
 		}
 	}
-
 }
 
 /**
@@ -6037,6 +6035,52 @@ function _doing_it_wrong( $function_name, $message, $version ) {
 			);
 		}
 	}
+}
+
+/**
+ * Generates a user-level error/warning/notice/deprecation message.
+ *
+ * Generates the message when `WP_DEBUG` is true.
+ *
+ * @since 6.4.0
+ *
+ * @param string $function_name The function that triggered the error.
+ * @param string $message       The message explaining the error.
+ * @param int    $error_level   Optional. The designated error type for this error.
+ *                              Only works with E_USER family of constants. Default E_USER_NOTICE.
+ */
+function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTICE ) {
+
+	// Bail out if WP_DEBUG is not turned on.
+	if ( ! WP_DEBUG ) {
+		return;
+	}
+
+	/**
+	 * Fires when the given function triggers a user-level error/warning/notice/deprecation message.
+	 *
+	 * Can be used for debug backtracking.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $function_name The function that was called.
+	 * @param string $message       A message explaining what has been done incorrectly.
+	 * @param int    $error_level   The designated error type for this error.
+	 */
+	do_action( 'wp_trigger_error_run', $function_name, $message, $error_level );
+
+	if ( ! empty( $function_name ) ) {
+		$message = sprintf( '%s(): %s', $function_name, $message );
+	}
+
+	/*
+	 * If the message appears in the browser, then it needs to be escaped.
+	 * Note the warning in the `trigger_error()` PHP manual.
+	 * @link https://www.php.net/manual/en/function.trigger-error.php
+	 */
+	$message = esc_html( $message );
+
+	trigger_error( $message, $error_level );
 }
 
 /**
@@ -7119,7 +7163,7 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
 	$trace       = debug_backtrace( false );
 	$caller      = array();
 	$check_class = ! is_null( $ignore_class );
-	$skip_frames++; // Skip this function.
+	++$skip_frames; // Skip this function.
 
 	if ( ! isset( $truncate_paths ) ) {
 		$truncate_paths = array(
@@ -7130,7 +7174,7 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
 
 	foreach ( $trace as $call ) {
 		if ( $skip_frames > 0 ) {
-			$skip_frames--;
+			--$skip_frames;
 		} elseif ( isset( $call['class'] ) ) {
 			if ( $check_class && $ignore_class === $call['class'] ) {
 				continue; // Filter out calls.

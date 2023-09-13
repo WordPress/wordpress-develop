@@ -393,7 +393,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$expected_filter_count = did_filter( 'wp_theme_json_data_default' );
 		$actual                = WP_Theme_JSON_Resolver::get_core_data();
 		if ( $should_fire_filter ) {
-			$expected_filter_count++;
+			++$expected_filter_count;
 		}
 
 		$this->assertSame( $expected_filter_count, did_filter( 'wp_theme_json_data_default' ), 'The filter "wp_theme_json_data_default" should fire the given number of times' );
@@ -600,7 +600,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$global_styles_query_count = 0;
 		add_filter(
 			'query',
-			static function( $query ) use ( &$global_styles_query_count ) {
+			static function ( $query ) use ( &$global_styles_query_count ) {
 				if ( preg_match( '#post_type = \'wp_global_styles\'#', $query ) ) {
 					$global_styles_query_count++;
 				}
@@ -836,7 +836,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$styles     = $theme_json->get_styles_block_nodes();
 		$styles     = array_filter(
 			$styles,
-			static function( $element ) {
+			static function ( $element ) {
 				return isset( $element['name'] ) && 'my/block-with-styles' === $element['name'];
 			}
 		);
@@ -846,7 +846,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$this->assertSame( $block_styles, count( $styles ) === 1, $block_styles_text );
 		$this->assertSame( $theme_palette, isset( $settings['color']['palette']['theme'] ), $theme_palette_text );
 		$this->assertSame( $user_palette, isset( $settings['color']['palette']['custom'] ), $user_palette_text );
-
 	}
 
 	/**

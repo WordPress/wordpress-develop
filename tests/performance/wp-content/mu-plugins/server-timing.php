@@ -2,7 +2,7 @@
 
 add_filter(
 	'template_include',
-	static function( $template ) {
+	static function ( $template ) {
 
 		global $timestart;
 
@@ -15,7 +15,7 @@ add_filter(
 
 		add_action(
 			'shutdown',
-			static function() use ( $server_timing_values, $template_start ) {
+			static function () use ( $server_timing_values, $template_start ) {
 
 				global $timestart;
 

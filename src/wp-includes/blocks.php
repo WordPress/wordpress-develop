@@ -150,8 +150,8 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	 * Determine if the block script was registered in a theme, by checking if the script path starts with either
 	 * the parent (template) or child (stylesheet) directory path.
 	 */
-	$is_parent_theme_block = str_starts_with( $script_path_norm, $template_path_norm );
-	$is_child_theme_block  = str_starts_with( $script_path_norm, $stylesheet_path_norm );
+	$is_parent_theme_block = str_starts_with( $script_path_norm, trailingslashit( $template_path_norm ) );
+	$is_child_theme_block  = str_starts_with( $script_path_norm, trailingslashit( $stylesheet_path_norm ) );
 	$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
 
 	$script_uri = '';
@@ -270,8 +270,8 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 
 		// Determine if the block style was registered in a theme, by checking if the script path starts with either
 		// the parent (template) or child (stylesheet) directory path.
-		$is_parent_theme_block = str_starts_with( $style_path_norm, $template_path_norm );
-		$is_child_theme_block  = str_starts_with( $style_path_norm, $stylesheet_path_norm );
+		$is_parent_theme_block = str_starts_with( $style_path_norm, trailingslashit( $template_path_norm ) );
+		$is_child_theme_block  = str_starts_with( $style_path_norm, trailingslashit( $stylesheet_path_norm ) );
 		$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
 
 		if ( $is_core_block ) {
@@ -532,7 +532,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			 *
 			 * @return string Returns the block content.
 			 */
-			$settings['render_callback'] = static function( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 				ob_start();
 				require $template_path;
 				return ob_get_clean();
@@ -794,16 +794,22 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  * instead preserve the markup as parsed.
  *
  * @since 5.3.1
+ * @since 6.4.0 The `$callback` parameter was added.
  *
- * @param array $block A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ * @param array         $block    A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ * @param callable|null $callback Optional. Callback to run on each block in the tree before serialization. Default null.
  * @return string String of rendered HTML.
  */
-function serialize_block( $block ) {
+function serialize_block( $block, $callback = null ) {
+	if ( is_callable( $callback ) ) {
+		$block = call_user_func( $callback, $block );
+	}
+
 	$block_content = '';
 
 	$index = 0;
 	foreach ( $block['innerContent'] as $chunk ) {
-		$block_content .= is_string( $chunk ) ? $chunk : serialize_block( $block['innerBlocks'][ $index++ ] );
+		$block_content .= is_string( $chunk ) ? $chunk : serialize_block( $block['innerBlocks'][ $index++ ], $callback );
 	}
 
 	if ( ! is_array( $block['attrs'] ) ) {
@@ -822,12 +828,18 @@ function serialize_block( $block ) {
  * parsed blocks.
  *
  * @since 5.3.1
+ * @since 6.4.0 The `$callback` parameter was added.
  *
- * @param array[] $blocks An array of representative arrays of parsed block objects. See serialize_block().
+ * @param array[]       $blocks   An array of representative arrays of parsed block objects. See serialize_block().
+ * @param callable|null $callback Optional. Callback to run on each block in the tree before serialization. Default null.
  * @return string String of rendered HTML.
  */
-function serialize_blocks( $blocks ) {
-	return implode( '', array_map( 'serialize_block', $blocks ) );
+function serialize_blocks( $blocks, $callback = null ) {
+	$result = '';
+	foreach ( $blocks as $block ) {
+		$result .= serialize_block( $block, $callback );
+	};
+	return $result;
 }
 
 /**
@@ -944,6 +956,10 @@ function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = ar
  * @return string The parsed and filtered content.
  */
 function excerpt_remove_blocks( $content ) {
+	if ( ! has_blocks( $content ) ) {
+		return $content;
+	}
+
 	$allowed_inner_blocks = array(
 		// Classic blocks have their blockName set to null.
 		null,
