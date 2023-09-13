@@ -305,8 +305,14 @@ endif;
  * Enqueue scripts and styles for the front end.
  *
  * @since Twenty Thirteen 1.0
+ *
+ * @global WP_Scripts $wp_scripts WordPress Scripts object.
  */
 function twentythirteen_scripts_styles() {
+	global $wp_scripts;
+	// Include an unmodified $wp_version to account to account for changes to the global.
+	require ABSPATH . WPINC . '/version.php';
+
 	/*
 	 * Adds JavaScript to pages with the comment form to support
 	 * sites with threaded comments (when in use).
@@ -326,11 +332,18 @@ function twentythirteen_scripts_styles() {
 		get_template_directory_uri() . '/js/functions.js',
 		array( 'jquery' ),
 		'20230526',
-		array(
-			'in_footer' => false, // Because involves header.
-			'strategy'  => 'defer',
-		)
+		true
 	);
+	/*
+	 * In WP 6.3+ enqueue the script in the header and defer loading.
+	 *
+	 * This is added directly to the $wp_scripts global to maintain backwards
+	 * compatibility with older versions of WordPress.
+	 */
+	if ( version_compare( $wp_version, '6.3-alpha', '>=' ) ) {
+		$wp_scripts->add_data( 'twentythirteen-script', 'group', 0 );
+		$wp_scripts->add_data( 'twentythirteen-script', 'strategy', 'defer' );
+	}
 
 	// Add Source Sans Pro and Bitter fonts, used in the main stylesheet.
 	$font_version = ( 0 === strpos( (string) twentythirteen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
