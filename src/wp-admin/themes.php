@@ -514,7 +514,6 @@ foreach ( $themes as $theme ) :
 				$message .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
 			}
 		}
-				echo '<div class="notice inline notice-error notice-alt"><p>';
 
 		wp_admin_notice(
 			$message,
