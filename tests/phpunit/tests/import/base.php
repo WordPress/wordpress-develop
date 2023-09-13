@@ -42,7 +42,7 @@ abstract class WP_Import_UnitTestCase extends WP_UnitTestCase {
 				$new[ $i ] = $map;
 			}
 
-			$i++;
+			++$i;
 		}
 
 		$_POST = array(

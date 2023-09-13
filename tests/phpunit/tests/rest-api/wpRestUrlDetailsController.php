@@ -284,7 +284,6 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 
 		$expected = strtolower( 'Unable to retrieve body from response at this URL' );
 		$this->assertStringContainsString( $expected, strtolower( $data['message'] ), 'Response "message" does not contain "' . $expected . '"' );
-
 	}
 
 	/**
@@ -297,7 +296,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 
 		add_filter(
 			'rest_url_details_http_request_args',
-			static function( $args, $url ) {
+			static function ( $args, $url ) {
 				return array_merge(
 					$args,
 					array(
@@ -340,7 +339,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 		// Force cache to return a known value as the remote URL http response body.
 		add_filter(
 			"pre_site_transient_{$transient_name}",
-			static function() {
+			static function () {
 				return '<html><head><title>This value from cache.</title></head><body></body></html>';
 			}
 		);
@@ -368,7 +367,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	public function test_allows_filtering_data_retrieved_for_a_given_url() {
 		add_filter(
 			'rest_prepare_url_details',
-			static function( $response ) {
+			static function ( $response ) {
 
 				$data = $response->get_data();
 
@@ -382,7 +381,6 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 				);
 
 				return $response;
-
 			}
 		);
 
@@ -419,7 +417,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 		 */
 		add_filter(
 			'rest_prepare_url_details',
-			static function( $response, $url ) {
+			static function ( $response, $url ) {
 				return new WP_REST_Response(
 					array(
 						'status'        => 418,

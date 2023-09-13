@@ -461,7 +461,7 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 	<legend>
 		<span class="hidden" id="editlegend"><?php _e( 'Edit Comment' ); ?></span>
 		<span class="hidden" id="replyhead"><?php _e( 'Reply to Comment' ); ?></span>
-		<span class="hidden" id="addhead"><?php _e( 'Add new Comment' ); ?></span>
+		<span class="hidden" id="addhead"><?php _e( 'Add New Comment' ); ?></span>
 	</legend>
 
 	<div id="replycontainer">
@@ -1355,7 +1355,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 						}
 					}
 
-					$i++;
+					++$i;
 					// get_hidden_meta_boxes() doesn't apply in the block editor.
 					$hidden_class = ( ! $screen->is_block_editor() && in_array( $box['id'], $hidden, true ) ) ? ' hide-if-js' : '';
 					echo '<div id="' . $box['id'] . '" class="postbox ' . postbox_classes( $box['id'], $page ) . $hidden_class . '" ' . '>' . "\n";
@@ -1451,7 +1451,6 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 	echo '</div>';
 
 	return $i;
-
 }
 
 /**
@@ -1551,7 +1550,7 @@ function do_accordion_sections( $screen, $context, $data_object ) {
 						continue;
 					}
 
-					$i++;
+					++$i;
 					$hidden_class = in_array( $box['id'], $hidden, true ) ? 'hide-if-js' : '';
 
 					$open_class = '';

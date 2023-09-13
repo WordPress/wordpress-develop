@@ -33,7 +33,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_short_circuit_no_string() {
 		add_filter(
 			'pre_determine_locale',
-			static function() {
+			static function () {
 				return 1234;
 			}
 		);
@@ -43,7 +43,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_short_circuit_string() {
 		add_filter(
 			'pre_determine_locale',
-			static function() {
+			static function () {
 					return 'myNewLocale';
 			}
 		);
@@ -53,7 +53,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_defaults_to_site_locale() {
 		add_filter(
 			'locale',
-			static function() {
+			static function () {
 				return 'siteLocale';
 			}
 		);
@@ -64,7 +64,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_is_admin_no_user() {
 		add_filter(
 			'locale',
-			static function() {
+			static function () {
 				return 'siteLocale';
 			}
 		);
@@ -77,7 +77,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_is_admin_user_locale() {
 		add_filter(
 			'locale',
-			static function() {
+			static function () {
 				return 'siteLocale';
 			}
 		);
@@ -91,7 +91,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_json_request_user_locale() {
 		add_filter(
 			'locale',
-			static function() {
+			static function () {
 				return 'siteLocale';
 			}
 		);
@@ -107,7 +107,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_json_request_user_locale_no_user() {
 		add_filter(
 			'locale',
-			static function() {
+			static function () {
 				return 'siteLocale';
 			}
 		);
@@ -121,7 +121,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_json_request_missing_get_param() {
 		add_filter(
 			'locale',
-			static function() {
+			static function () {
 				return 'siteLocale';
 			}
 		);
@@ -136,7 +136,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_json_request_incorrect_get_param() {
 		add_filter(
 			'locale',
-			static function() {
+			static function () {
 				return 'siteLocale';
 			}
 		);
@@ -152,7 +152,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_get_param_but_no_json_request() {
 		add_filter(
 			'locale',
-			static function() {
+			static function () {
 				return 'siteLocale';
 			}
 		);
@@ -167,7 +167,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_wp_login_get_param_not_on_login_page() {
 		add_filter(
 			'locale',
-			static function() {
+			static function () {
 				return 'siteLocale';
 			}
 		);
@@ -182,7 +182,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_wp_login_get_param_on_login_page() {
 		add_filter(
 			'locale',
-			static function() {
+			static function () {
 				return 'siteLocale';
 			}
 		);
@@ -198,7 +198,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_wp_login_get_param_on_login_page_empty_string() {
 		add_filter(
 			'locale',
-			static function() {
+			static function () {
 				return 'siteLocale';
 			}
 		);
@@ -214,7 +214,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_wp_login_get_param_on_login_page_incorrect_string() {
 		add_filter(
 			'locale',
-			static function() {
+			static function () {
 				return 'siteLocale';
 			}
 		);
@@ -230,7 +230,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_wp_login_cookie_not_on_login_page() {
 		add_filter(
 			'locale',
-			static function() {
+			static function () {
 				return 'siteLocale';
 			}
 		);
@@ -245,7 +245,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_wp_login_cookie_on_login_page() {
 		add_filter(
 			'locale',
-			static function() {
+			static function () {
 				return 'siteLocale';
 			}
 		);
@@ -261,7 +261,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	public function test_wp_login_cookie_on_login_page_empty_string() {
 		add_filter(
 			'locale',
-			static function() {
+			static function () {
 				return 'siteLocale';
 			}
 		);

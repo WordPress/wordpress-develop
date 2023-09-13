@@ -144,7 +144,7 @@ if ( 'grid' === $mode ) {
 	// Remove the error parameter added by deprecation of wp-admin/media.php.
 	add_filter(
 		'removable_query_args',
-		function() {
+		function () {
 			return array( 'error' );
 		},
 		10,
@@ -211,7 +211,7 @@ if ( 'grid' === $mode ) {
 		<?php
 		if ( current_user_can( 'upload_files' ) ) {
 			?>
-			<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action aria-button-if-js"><?php echo esc_html_x( 'Add New', 'file' ); ?></a>
+			<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action aria-button-if-js"><?php echo esc_html__( 'Add New Media File' ); ?></a>
 			<?php
 		}
 		?>
@@ -409,7 +409,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <?php
 if ( current_user_can( 'upload_files' ) ) {
 	?>
-	<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html_x( 'Add New', 'file' ); ?></a>
+	<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html__( 'Add New Media File' ); ?></a>
 						<?php
 }
 

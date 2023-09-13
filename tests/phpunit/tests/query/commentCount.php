@@ -190,7 +190,6 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 		}
 
 		$this->assertSameSets( $expected, $found_post_ids );
-
 	}
 	public function test_operator_equal_or_greater_than() {
 		$args = array(
@@ -371,4 +370,3 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $found_post_ids );
 	}
 }
-

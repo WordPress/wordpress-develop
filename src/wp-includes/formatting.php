@@ -476,7 +476,7 @@ function wpautop( $text, $br = true ) {
 			$pre_tags[ $name ] = substr( $text_part, $start ) . '</pre>';
 
 			$text .= substr( $text_part, 0, $start ) . $name;
-			$i++;
+			++$i;
 		}
 
 		$text .= $last_part;
@@ -2657,14 +2657,14 @@ function force_balance_tags( $text ) {
 			} elseif ( $tagstack[ $stacksize - 1 ] === $tag ) { // Found closing tag.
 				$tag = '</' . $tag . '>'; // Close tag.
 				array_pop( $tagstack );
-				$stacksize--;
+				--$stacksize;
 			} else { // Closing tag not at top, search for it.
 				for ( $j = $stacksize - 1; $j >= 0; $j-- ) {
 					if ( $tagstack[ $j ] === $tag ) {
 						// Add tag to tagqueue.
 						for ( $k = $stacksize - 1; $k >= $j; $k-- ) {
 							$tagqueue .= '</' . array_pop( $tagstack ) . '>';
-							$stacksize--;
+							--$stacksize;
 						}
 						break;
 					}
@@ -2692,7 +2692,7 @@ function force_balance_tags( $text ) {
 				 */
 				if ( $stacksize > 0 && ! in_array( $tag, $nestable_tags, true ) && $tagstack[ $stacksize - 1 ] === $tag ) {
 					$tagqueue = '</' . array_pop( $tagstack ) . '>';
-					$stacksize--;
+					--$stacksize;
 				}
 				$stacksize = array_push( $tagstack, $tag );
 			}
@@ -3083,7 +3083,7 @@ function make_clickable( $text ) {
 			|| preg_match( '|^<script[\s>]|i', $piece )
 			|| preg_match( '|^<style[\s>]|i', $piece )
 		) {
-			$nested_code_pre++;
+			++$nested_code_pre;
 		} elseif ( $nested_code_pre
 			&& ( '</code>' === strtolower( $piece )
 				|| '</pre>' === strtolower( $piece )
@@ -3091,7 +3091,7 @@ function make_clickable( $text ) {
 				|| '</style>' === strtolower( $piece )
 			)
 		) {
-			$nested_code_pre--;
+			--$nested_code_pre;
 		}
 
 		if ( $nested_code_pre
@@ -3259,7 +3259,7 @@ function wp_rel_nofollow( $text ) {
 	$text = stripslashes( $text );
 	$text = preg_replace_callback(
 		'|<a (.+?)>|i',
-		static function( $matches ) {
+		static function ( $matches ) {
 			return wp_rel_callback( $matches, 'nofollow' );
 		},
 		$text
@@ -3293,7 +3293,7 @@ function wp_rel_ugc( $text ) {
 	$text = stripslashes( $text );
 	$text = preg_replace_callback(
 		'|<a (.+?)>|i',
-		static function( $matches ) {
+		static function ( $matches ) {
 			return wp_rel_callback( $matches, 'nofollow ugc' );
 		},
 		$text
@@ -3980,18 +3980,29 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		 * within the excerpt are stripped out. Modifying the tags here
 		 * is wasteful and can lead to bugs in the image counting logic.
 		 */
-		$filter_removed = remove_filter( 'the_content', 'wp_filter_content_tags' );
+		$filter_image_removed = remove_filter( 'the_content', 'wp_filter_content_tags' );
+
+		/*
+		 * Temporarily unhook do_blocks() since excerpt_remove_blocks( $text )
+		 * handles block rendering needed for excerpt.
+		 */
+		$filter_block_removed = remove_filter( 'the_content', 'do_blocks', 9 );
 
 		/** This filter is documented in wp-includes/post-template.php */
 		$text = apply_filters( 'the_content', $text );
 		$text = str_replace( ']]>', ']]&gt;', $text );
 
-		/**
+		// Restore the original filter if removed.
+		if ( $filter_block_removed ) {
+			add_filter( 'the_content', 'do_blocks', 9 );
+		}
+
+		/*
 		 * Only restore the filter callback if it was removed above. The logic
 		 * to unhook and restore only applies on the default priority of 10,
 		 * which is generally used for the filter callback in WordPress core.
 		 */
-		if ( $filter_removed ) {
+		if ( $filter_image_removed ) {
 			add_filter( 'the_content', 'wp_filter_content_tags' );
 		}
 
@@ -4756,7 +4767,7 @@ EOF;
 
 	$safe_text = (string) preg_replace_callback(
 		$regex,
-		static function( $matches ) {
+		static function ( $matches ) {
 			if ( ! isset( $matches[0] ) ) {
 				return '';
 			}
@@ -5354,7 +5365,7 @@ function wp_sprintf_l( $pattern, $args ) {
 	$i = count( $args );
 	while ( $i ) {
 		$arg = array_shift( $args );
-		$i--;
+		--$i;
 		if ( 0 === $i ) {
 			$result .= $l['between_last_two'] . $arg;
 		} else {

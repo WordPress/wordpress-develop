@@ -34,7 +34,6 @@ class Tests_Compat_StrStartsWith extends WP_UnitTestCase {
 				str_starts_with( $haystack, $needle )
 			);
 		}
-
 	}
 
 	/**

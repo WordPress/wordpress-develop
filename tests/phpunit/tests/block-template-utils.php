@@ -161,6 +161,64 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertEmpty( $template_part->modified );
 	}
 
+	/**
+	 * @ticket 59325
+	 *
+	 * @covers ::_build_block_template_result_from_file
+	 *
+	 * @dataProvider data_build_block_template_result_from_file_injects_theme_attribute
+	 *
+	 * @param string $filename The template's filename.
+	 * @param string $expected The expected block markup.
+	 */
+	public function test_build_block_template_result_from_file_injects_theme_attribute( $filename, $expected ) {
+		$template = _build_block_template_result_from_file(
+			array(
+				'slug' => 'single',
+				'path' => DIR_TESTDATA . "/templates/$filename",
+			),
+			'wp_template'
+		);
+		$this->assertSame( $expected, $template->content );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_build_block_template_result_from_file_injects_theme_attribute() {
+		$theme = 'block-theme';
+		return array(
+			'a template with a template part block'  => array(
+				'filename' => 'template-with-template-part.html',
+				'expected' => sprintf(
+					'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /-->',
+					$theme
+				),
+			),
+			'a template with a template part block nested inside another block' => array(
+				'filename' => 'template-with-nested-template-part.html',
+				'expected' => sprintf(
+					'<!-- wp:group -->
+<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /-->
+<!-- /wp:group -->',
+					$theme
+				),
+			),
+			'a template with a template part block with an existing theme attribute' => array(
+				'filename' => 'template-with-template-part-with-existing-theme-attribute.html',
+				'expected' => '<!-- wp:template-part {"slug":"header","theme":"fake-theme","align":"full", "tagName":"header","className":"site-header"} /-->',
+			),
+			'a template with no template part block' => array(
+				'filename' => 'template.html',
+				'expected' => '<!-- wp:paragraph -->
+<p>Just a paragraph</p>
+<!-- /wp:paragraph -->',
+			),
+		);
+	}
+
 	public function test_inject_theme_attribute_in_block_template_content() {
 		$theme                           = get_stylesheet();
 		$content_without_theme_attribute = '<!-- wp:template-part {"slug":"header","align":"full", "tagName":"header","className":"site-header"} /-->';

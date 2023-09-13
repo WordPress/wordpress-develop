@@ -641,7 +641,7 @@ function wp_iframe( $content_func, ...$args ) {
  */
 function media_buttons( $editor_id = 'content' ) {
 	static $instance = 0;
-	$instance++;
+	++$instance;
 
 	$post = get_post();
 

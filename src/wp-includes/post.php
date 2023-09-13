@@ -75,7 +75,7 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name'           => _x( 'Media', 'post type general name' ),
 				'name_admin_bar' => _x( 'Media', 'add new from admin bar' ),
-				'add_new'        => _x( 'Add New', 'file' ),
+				'add_new'        => __( 'Add New Media File' ),
 				'edit_item'      => __( 'Edit Media' ),
 				'view_item'      => __( 'View Attachment Page' ),
 				'attributes'     => __( 'Attachment Attributes' ),
@@ -202,7 +202,7 @@ function create_initial_post_types() {
 			'labels'           => array(
 				'name'               => _x( 'Changesets', 'post type general name' ),
 				'singular_name'      => _x( 'Changeset', 'post type singular name' ),
-				'add_new'            => _x( 'Add New', 'Customize Changeset' ),
+				'add_new'            => __( 'Add New Changeset' ),
 				'add_new_item'       => __( 'Add New Changeset' ),
 				'new_item'           => __( 'New Changeset' ),
 				'edit_item'          => __( 'Edit Changeset' ),
@@ -284,8 +284,8 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name'                     => _x( 'Patterns', 'post type general name' ),
 				'singular_name'            => _x( 'Pattern', 'post type singular name' ),
-				'add_new'                  => _x( 'Add New', 'Pattern' ),
-				'add_new_item'             => __( 'Add new Pattern' ),
+				'add_new'                  => __( 'Add New Pattern' ),
+				'add_new_item'             => __( 'Add New Pattern' ),
 				'new_item'                 => __( 'New Pattern' ),
 				'edit_item'                => __( 'Edit Block Pattern' ),
 				'view_item'                => __( 'View Pattern' ),
@@ -347,7 +347,7 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name'                  => _x( 'Templates', 'post type general name' ),
 				'singular_name'         => _x( 'Template', 'post type singular name' ),
-				'add_new'               => _x( 'Add New', 'Template' ),
+				'add_new'               => __( 'Add New Template' ),
 				'add_new_item'          => __( 'Add New Template' ),
 				'new_item'              => __( 'New Template' ),
 				'edit_item'             => __( 'Edit Template' ),
@@ -408,7 +408,7 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name'                  => _x( 'Template Parts', 'post type general name' ),
 				'singular_name'         => _x( 'Template Part', 'post type singular name' ),
-				'add_new'               => _x( 'Add New', 'Template Part' ),
+				'add_new'               => __( 'Add New Template Part' ),
 				'add_new_item'          => __( 'Add New Template Part' ),
 				'new_item'              => __( 'New Template Part' ),
 				'edit_item'             => __( 'Edit Template Part' ),
@@ -505,7 +505,7 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name'                  => _x( 'Navigation Menus', 'post type general name' ),
 				'singular_name'         => _x( 'Navigation Menu', 'post type singular name' ),
-				'add_new'               => _x( 'Add New', 'Navigation Menu' ),
+				'add_new'               => __( 'Add New Navigation Menu' ),
 				'add_new_item'          => __( 'Add New Navigation Menu' ),
 				'new_item'              => __( 'New Navigation Menu' ),
 				'edit_item'             => __( 'Edit Navigation Menu' ),
@@ -1931,9 +1931,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * - `name` - General name for the post type, usually plural. The same and overridden
  *          by `$post_type_object->label`. Default is 'Posts' / 'Pages'.
  * - `singular_name` - Name for one object of this post type. Default is 'Post' / 'Page'.
- * - `add_new` - Default is 'Add New' for both hierarchical and non-hierarchical types.
- *             When internationalizing this string, please use a {@link https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/#disambiguation-by-context gettext context}
- *             matching your post type. Example: `_x( 'Add New', 'product', 'textdomain' );`.
+ * - `add_new` - Label for adding a new item. Default is 'Add New Post' / 'Add New Page'.
  * - `add_new_item` - Label for adding a new singular item. Default is 'Add New Post' / 'Add New Page'.
  * - `edit_item` - Label for editing a singular item. Default is 'Edit Post' / 'Edit Page'.
  * - `new_item` - Label for the new item page title. Default is 'New Post' / 'New Page'.
@@ -1992,6 +1990,8 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * @since 5.7.0 Added the `filter_by_date` label.
  * @since 5.8.0 Added the `item_link` and `item_link_description` labels.
  * @since 6.3.0 Added the `item_trashed` label.
+ * @since 6.4.0 Changed default values for the `add_new` label to include the type of content.
+ *              This matches `add_new_item` and provides more context for better accessibility.
  *
  * @access private
  *
@@ -2439,7 +2439,6 @@ function get_posts( $args = null ) {
 
 	$get_posts = new WP_Query();
 	return $get_posts->query( $parsed_args );
-
 }
 
 //
@@ -3998,7 +3997,6 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 	}
 
 	return $results ? $results : false;
-
 }
 
 /**
@@ -5075,7 +5073,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 			do {
 				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_id ) );
-				$suffix++;
+				++$suffix;
 			} while ( $post_name_check );
 			$slug = $alt_post_name;
 		}
@@ -5112,7 +5110,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 			do {
 				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_type, $post_id, $post_parent ) );
-				$suffix++;
+				++$suffix;
 			} while ( $post_name_check );
 			$slug = $alt_post_name;
 		}
@@ -5168,7 +5166,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 			do {
 				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_type, $post_id ) );
-				$suffix++;
+				++$suffix;
 			} while ( $post_name_check );
 			$slug = $alt_post_name;
 		}
@@ -5760,7 +5758,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 			 * ensuring each matches the post ancestry.
 			 */
 			while ( 0 != $p->post_parent && isset( $pages[ $p->post_parent ] ) ) {
-				$count++;
+				++$count;
 				$parent = $pages[ $p->post_parent ];
 				if ( ! isset( $revparts[ $count ] ) || $parent->post_name != $revparts[ $count ] ) {
 					break;
@@ -6073,7 +6071,7 @@ function get_pages( $args = array() ) {
 	 */
 	$orderby = wp_parse_list( $parsed_args['sort_column'] );
 	$orderby = array_map(
-		static function( $orderby_field ) {
+		static function ( $orderby_field ) {
 			$orderby_field = trim( $orderby_field );
 			if ( 'post_modified_gmt' === $orderby_field || 'modified_gmt' === $orderby_field ) {
 				$orderby_field = str_replace( '_gmt', '', $orderby_field );
