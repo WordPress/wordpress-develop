@@ -339,7 +339,7 @@ class Tests_URL extends WP_UnitTestCase {
 			$this->assertSame( $http_links[ $i ], set_url_scheme( $link, 'login' ) );
 			$this->assertSame( $http_links[ $i ], set_url_scheme( $link, 'rpc' ) );
 
-			$i++;
+			++$i;
 		}
 
 		force_ssl_admin( $forced_admin );

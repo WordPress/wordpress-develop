@@ -553,7 +553,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 		}
 	}
 
-	$sanitize_plugin_update_payload = static function( &$item ) {
+	$sanitize_plugin_update_payload = static function ( &$item ) {
 		$item = (object) $item;
 
 		unset( $item->translations, $item->compatibility );
@@ -754,7 +754,7 @@ function wp_update_themes( $extra_stats = array() ) {
 			continue;
 		}
 
-		$hostname = wp_parse_url( esc_url_raw( $theme_data['UpdateURI'] ), PHP_URL_HOST );
+		$hostname = wp_parse_url( sanitize_url( $theme_data['UpdateURI'] ), PHP_URL_HOST );
 
 		/**
 		 * Filters the update response for a given theme hostname.
@@ -1113,9 +1113,16 @@ function wp_delete_all_temp_backups() {
 function _wp_delete_all_temp_backups() {
 	global $wp_filesystem;
 
-	if ( ! $wp_filesystem ) {
+	if ( ! function_exists( 'WP_Filesystem' ) ) {
 		require_once ABSPATH . '/wp-admin/includes/file.php';
-		WP_Filesystem();
+	}
+
+	ob_start();
+	$credentials = request_filesystem_credentials( '' );
+	ob_end_clean();
+
+	if ( false === $credentials || ! WP_Filesystem( $credentials ) ) {
+		return new WP_Error( 'fs_unavailable', __( 'Could not access filesystem.' ) );
 	}
 
 	if ( ! $wp_filesystem->wp_content_dir() ) {

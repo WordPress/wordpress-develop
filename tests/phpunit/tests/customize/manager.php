@@ -3339,14 +3339,14 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$setting_id = 'dynamic';
 		$setting    = $manager->add_setting( $setting_id );
 		$this->assertSame( 'WP_Customize_Setting', get_class( $setting ) );
-		$this->assertObjectNotHasAttribute( 'custom', $setting );
+		$this->assertObjectNotHasProperty( 'custom', $setting );
 		$manager->remove_setting( $setting_id );
 
 		add_filter( 'customize_dynamic_setting_class', array( $this, 'return_dynamic_customize_setting_class' ), 10, 3 );
 		add_filter( 'customize_dynamic_setting_args', array( $this, 'return_dynamic_customize_setting_args' ), 10, 2 );
 		$setting = $manager->add_setting( $setting_id );
 		$this->assertSame( 'Test_Dynamic_Customize_Setting', get_class( $setting ) );
-		$this->assertObjectHasAttribute( 'custom', $setting );
+		$this->assertObjectHasProperty( 'custom', $setting );
 		$this->assertSame( 'foo', $setting->custom );
 	}
 
@@ -3669,5 +3669,4 @@ class Test_Setting_Without_Applying_Validate_Filter extends WP_Customize_Setting
 		}
 		return true;
 	}
-
 }

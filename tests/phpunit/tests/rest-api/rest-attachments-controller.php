@@ -1787,7 +1787,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		}
 
 		$this->assertSame( wp_get_attachment_url( $attachment->ID ), $data['source_url'] );
-
 	}
 
 	/**
@@ -1984,11 +1983,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function filter_rest_insert_attachment( $attachment ) {
-		self::$rest_insert_attachment_count++;
+		++self::$rest_insert_attachment_count;
 	}
 
 	public function filter_rest_after_insert_attachment( $attachment ) {
-		self::$rest_after_insert_attachment_count++;
+		++self::$rest_after_insert_attachment_count;
 	}
 
 	/**

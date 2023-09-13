@@ -31,7 +31,7 @@ class WP_Navigation_Fallback {
 		 *
 		 * @since 6.3.0
 		 *
-		 * @param bool Whether to create a fallback navigation menu. Default true.
+		 * @param bool $create Whether to create a fallback navigation menu. Default true.
 		 */
 		$should_create_fallback = apply_filters( 'wp_navigation_should_create_fallback', true );
 
@@ -105,6 +105,10 @@ class WP_Navigation_Fallback {
 		// If there is a classic menu then convert it to blocks.
 		$classic_nav_menu_blocks = WP_Classic_To_Block_Menu_Converter::convert( $classic_nav_menu );
 
+		if ( is_wp_error( $classic_nav_menu_blocks ) ) {
+			return $classic_nav_menu_blocks;
+		}
+
 		if ( empty( $classic_nav_menu_blocks ) ) {
 			return new WP_Error( 'cannot_convert_classic_menu', __( 'Unable to convert Classic Menu to blocks.' ) );
 		}
@@ -165,7 +169,7 @@ class WP_Navigation_Fallback {
 	private static function get_most_recently_created_nav_menu( $classic_nav_menus ) {
 		usort(
 			$classic_nav_menus,
-			static function( $a, $b ) {
+			static function ( $a, $b ) {
 				return $b->term_id - $a->term_id;
 			}
 		);
