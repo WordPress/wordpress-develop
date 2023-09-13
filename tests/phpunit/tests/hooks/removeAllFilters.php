@@ -18,6 +18,7 @@ class Tests_Hooks_RemoveAllFilters extends WP_UnitTestCase {
 		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 
 		$hook->remove_all_filters();
+		$this->check_priority_non_existent( $hook, $priority );
 
 		$this->assertFalse( $hook->has_filters() );
 	}
@@ -34,9 +35,18 @@ class Tests_Hooks_RemoveAllFilters extends WP_UnitTestCase {
 		$hook->add_filter( $hook_name, $callback_two, $priority + 1, $accepted_args );
 
 		$hook->remove_all_filters( $priority );
+		$this->check_priority_non_existent( $hook, $priority );
 
 		$this->assertFalse( $hook->has_filter( $hook_name, $callback_one ) );
 		$this->assertTrue( $hook->has_filters() );
 		$this->assertSame( $priority + 1, $hook->has_filter( $hook_name, $callback_two ) );
+	}
+
+	protected function check_priority_non_existent( $hook, $priority ) {
+		$reflection          = new ReflectionClass( $hook );
+		$reflection_property = $reflection->getProperty( 'priorities' );
+		$reflection_property->setAccessible( true );
+
+		$this->assertNotContains( $priority, $reflection_property->getValue( $hook ) );
 	}
 }

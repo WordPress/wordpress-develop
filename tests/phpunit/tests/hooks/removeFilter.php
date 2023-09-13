@@ -17,6 +17,7 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 
 		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 		$hook->remove_filter( $hook_name, $callback, $priority );
+		$this->check_priority_non_existent( $hook, $priority );
 
 		$this->assertArrayNotHasKey( $priority, $hook->callbacks );
 	}
@@ -31,6 +32,7 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 
 		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 		$hook->remove_filter( $hook_name, $callback, $priority );
+		$this->check_priority_non_existent( $hook, $priority );
 
 		$this->assertArrayNotHasKey( $priority, $hook->callbacks );
 	}
@@ -44,6 +46,7 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 
 		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 		$hook->remove_filter( $hook_name, $callback, $priority );
+		$this->check_priority_non_existent( $hook, $priority );
 
 		$this->assertArrayNotHasKey( $priority, $hook->callbacks );
 	}
@@ -76,7 +79,16 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 		$hook->add_filter( $hook_name, $callback_two, $priority + 1, $accepted_args );
 
 		$hook->remove_filter( $hook_name, $callback_one, $priority );
+		$this->check_priority_non_existent( $hook, $priority );
 		$this->assertArrayNotHasKey( $priority, $hook->callbacks );
 		$this->assertCount( 1, $hook->callbacks[ $priority + 1 ] );
+	}
+
+	protected function check_priority_non_existent( $hook, $priority ) {
+		$reflection          = new ReflectionClass( $hook );
+		$reflection_property = $reflection->getProperty( 'priorities' );
+		$reflection_property->setAccessible( true );
+
+		$this->assertNotContains( $priority, $reflection_property->getValue( $hook ) );
 	}
 }
