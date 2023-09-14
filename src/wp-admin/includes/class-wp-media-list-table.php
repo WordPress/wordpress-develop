@@ -55,6 +55,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	/**
 	 * @return bool
 	 */
+	#[\Override]
 	public function ajax_user_can() {
 		return current_user_can( 'upload_files' );
 	}
@@ -65,6 +66,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @global array    $post_mime_types
 	 * @global array    $avail_post_mime_types
 	 */
+	#[\Override]
 	public function prepare_items() {
 		global $mode, $wp_query, $post_mime_types, $avail_post_mime_types;
 
@@ -121,6 +123,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @global array $avail_post_mime_types
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_views() {
 		global $post_mime_types, $avail_post_mime_types;
 
@@ -176,6 +179,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	/**
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_bulk_actions() {
 		$actions = array();
 
@@ -200,6 +204,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	/**
 	 * @param string $which
 	 */
+	#[\Override]
 	protected function extra_tablenav( $which ) {
 		if ( 'bar' !== $which ) {
 			return;
@@ -229,6 +234,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	/**
 	 * @return string
 	 */
+	#[\Override]
 	public function current_action() {
 		if ( isset( $_REQUEST['found_post_id'] ) && isset( $_REQUEST['media'] ) ) {
 			return 'attach';
@@ -248,12 +254,14 @@ class WP_Media_List_Table extends WP_List_Table {
 	/**
 	 * @return bool
 	 */
+	#[\Override]
 	public function has_items() {
 		return have_posts();
 	}
 
 	/**
 	 */
+	#[\Override]
 	public function no_items() {
 		if ( $this->is_trash ) {
 			_e( 'No media files found in Trash.' );
@@ -267,6 +275,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 *
 	 * @global string $mode List table view mode.
 	 */
+	#[\Override]
 	public function views() {
 		global $mode;
 
@@ -330,6 +339,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	/**
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
+	#[\Override]
 	public function get_columns() {
 		$posts_columns       = array();
 		$posts_columns['cb'] = '<input type="checkbox" />';
@@ -395,6 +405,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	/**
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_sortable_columns() {
 		return array(
 			'title'    => array( 'title', false, _x( 'File', 'column name' ), __( 'Table ordered by File Name.' ) ),
@@ -413,6 +424,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 *
 	 * @param WP_Post $item The current WP_Post object.
 	 */
+	#[\Override]
 	public function column_cb( $item ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
@@ -654,6 +666,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @param WP_Post $item        The current WP_Post object.
 	 * @param string  $column_name Current column name.
 	 */
+	#[\Override]
 	public function column_default( $item, $column_name ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
@@ -711,6 +724,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @global WP_Post  $post     Global post object.
 	 * @global WP_Query $wp_query WordPress Query object.
 	 */
+	#[\Override]
 	public function display_rows() {
 		global $post, $wp_query;
 
@@ -746,6 +760,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 *
 	 * @return string Name of the default primary column, in this case, 'title'.
 	 */
+	#[\Override]
 	protected function get_default_primary_column_name() {
 		return 'title';
 	}
@@ -875,6 +890,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @return string Row actions output for media attachments, or an empty string
 	 *                if the current column is not the primary column.
 	 */
+	#[\Override]
 	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';
