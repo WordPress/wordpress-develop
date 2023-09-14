@@ -16,12 +16,12 @@ async function getFootnotes( page, withoutSave = false ) {
 	return JSON.parse( footnotes );
 }
 
-test.describe( 'Footnotes', () => {
-	test.beforeEach( async ( { admin } ) => {
+describe( 'Footnotes', () => {
+	beforeEach( async ( { admin } ) => {
 		await admin.createNewPost();
 	} );
 
-	test( 'can be inserted', async ( { editor, page } ) => {
+	it( 'can be inserted', async ( { editor, page } ) => {
 		await editor.canvas.click( 'role=button[name="Add default block"i]' );
 		await page.keyboard.type( 'first paragraph' );
 		await page.keyboard.press( 'Enter' );
@@ -180,7 +180,7 @@ test.describe( 'Footnotes', () => {
 		expect( await getFootnotes( page ) ).toMatchObject( [] );
 	} );
 
-	test( 'can be inserted in a list', async ( { editor, page } ) => {
+	it( 'can be inserted in a list', async ( { editor, page } ) => {
 		await editor.canvas.click( 'role=button[name="Add default block"i]' );
 		await page.keyboard.type( '* 1' );
 		await editor.clickBlockToolbarButton( 'More' );
@@ -217,7 +217,7 @@ test.describe( 'Footnotes', () => {
 		] );
 	} );
 
-	test( 'can be inserted in a table', async ( { editor, page } ) => {
+	it( 'can be inserted in a table', async ( { editor, page } ) => {
 		await editor.insertBlock( { name: 'core/table' } );
 		await editor.canvas.click( 'role=button[name="Create Table"i]' );
 		await page.keyboard.type( '1' );
@@ -276,7 +276,7 @@ test.describe( 'Footnotes', () => {
 		] );
 	} );
 
-	test( 'works with revisions', async ( { editor, page } ) => {
+	it( 'works with revisions', async ( { editor, page } ) => {
 		await editor.canvas.click( 'role=button[name="Add default block"i]' );
 		await page.keyboard.type( 'first paragraph' );
 		await page.keyboard.press( 'Enter' );
@@ -377,7 +377,7 @@ test.describe( 'Footnotes', () => {
 		await editorPage.bringToFront();
 	} );
 
-	test( 'can be previewed when published', async ( { editor, page } ) => {
+	it( 'can be previewed when published', async ( { editor, page } ) => {
 		await editor.canvas.click( 'role=button[name="Add default block"i]' );
 		await page.keyboard.type( 'a' );
 
