@@ -5652,7 +5652,8 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * can result in the first post content image being lazy-loaded or an image further down the page being marked as a
 	 * high priority.
 	 */
-	if ( 'the_content' !== $context && doing_filter( 'the_content' ) ) {
+	// TODO: Handle shortcode images together with the content (see https://core.trac.wordpress.org/ticket/58853).
+	if ( 'the_content' !== $context && 'do_shortcode' !== $context && doing_filter( 'the_content' ) ) {
 		return $loading_attrs;
 	}
 
@@ -5708,6 +5709,20 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			'template_part_' . WP_TEMPLATE_PART_AREA_HEADER => true,
 			'get_header_image_tag'                          => true,
 		);
+
+		/**
+		 * Filters the header-specific contexts.
+		 *
+		 * @since 6.4.0
+		 *
+		 * @param array $default_header_enforced_contexts {
+		 *     An array of default header-specific contexts.
+		 *
+		 *     @type string $context The header-specific context.
+		 *     @type bool   $enable  Whether to enable the context or not.
+		 * }
+		 */
+		$header_enforced_contexts = apply_filters( 'wp_loading_optimization_force_header_contexts', $header_enforced_contexts );
 
 		// Consider elements with these header-specific contexts to be in viewport.
 		if ( isset( $header_enforced_contexts[ $context ] ) ) {

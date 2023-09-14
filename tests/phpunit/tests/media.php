@@ -4301,15 +4301,6 @@ EOF;
 			// Set as main query.
 			$this->set_main_query( $query );
 
-			/*
-			 * For contexts other than for the main content, still return 'lazy' even in the loop
-			 * and in the main query, and do not increase the content media count.
-			 */
-			$this->assertSame(
-				array( 'loading' => 'lazy' ),
-				wp_get_loading_optimization_attributes( 'img', $attr, 'wp_get_attachment_image' )
-			);
-
 			// First three element are not lazy loaded. However, first image is loaded with fetchpriority high.
 			$this->assertSame(
 				array( 'fetchpriority' => 'high' ),
@@ -4337,6 +4328,175 @@ EOF;
 				wp_get_loading_optimization_attributes( 'img', $attr, $context )
 			);
 		}
+	}
+
+	/**
+	 * Tests that wp_get_loading_optimization_attributes() returns fetchpriority=high and increases the count for arbitrary contexts in the main loop.
+	 *
+	 * @ticket 58894
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @dataProvider data_wp_get_loading_optimization_attributes_arbitrary_contexts
+	 *
+	 * @param string $context
+	 */
+	public function test_wp_get_loading_optimization_attributes_with_arbitrary_contexts_in_main_loop( $context ) {
+		$attr = $this->get_width_height_for_high_priority();
+
+		// Return 'lazy' if not in the loop or the main query.
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
+			wp_get_loading_optimization_attributes( 'img', $attr, $context )
+		);
+
+		$query = $this->get_new_wp_query_for_published_post();
+
+		while ( have_posts() ) {
+			the_post();
+
+			// Set as main query.
+			$this->set_main_query( $query );
+
+			$this->assertSame(
+				array( 'fetchpriority' => 'high' ),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context )
+			);
+
+			// Images with a certain minimum size in the arbitrary contexts of the page are also counted towards the threshold.
+			$this->assertSame( 1, wp_increase_content_media_count( 0 ) );
+		}
+	}
+
+	/**
+	 * Tests that wp_get_loading_optimization_attributes() does not return lazy loading attributes when arbitrary contexts are used before the main query loop.
+	 *
+	 * @ticket 58894
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @dataProvider data_wp_get_loading_optimization_attributes_arbitrary_contexts
+	 *
+	 * @param string $context
+	 */
+	public function test_wp_get_loading_optimization_attributes_with_arbitrary_contexts_before_main_query_loop( $context ) {
+		$attr = $this->get_width_height_for_high_priority();
+
+		$query = $this->get_new_wp_query_for_published_post();
+
+		while ( have_posts() ) {
+			the_post();
+
+			// Return 'lazy' if in the loop but not in the main query.
+			$this->assertSame(
+				array( 'loading' => 'lazy' ),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context )
+			);
+
+			// Set as main query.
+			$this->set_main_query( $query );
+
+			// First three element are not lazy loaded. However, first image is loaded with fetchpriority high.
+			$this->assertSame(
+				array( 'fetchpriority' => 'high' ),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+				"Expected first image to not be lazy-loaded. First large image get's high fetchpriority."
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_get_loading_optimization_attributes_arbitrary_contexts() {
+		return array(
+			array( 'something_completely_arbitrary' ),
+		);
+	}
+
+	/**
+	 * Tests that wp_get_loading_optimization_attributes() returns empty array for arbitrary context.
+	 *
+	 * @ticket 58894
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_get_loading_optimization_attributes_should_return_empty_array_for_any_arbitrary_context() {
+		remove_all_filters( 'the_content' );
+
+		$result = null;
+		add_filter(
+			'the_content',
+			function( $content ) use ( &$result ) {
+				$attr   = $this->get_width_height_for_high_priority();
+				$result = wp_get_loading_optimization_attributes( 'img', $attr, 'something_completely_arbitrary' );
+				return $content;
+			}
+		);
+		apply_filters( 'the_content', '' );
+
+		$this->assertSame( array(), $result );
+	}
+
+	/**
+	 * @ticket 58894
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @dataProvider data_wp_get_loading_optimization_attributes_header_context
+	 *
+	 * @param string $context The context for the header.
+	 */
+	public function test_wp_get_loading_optimization_attributes_header_contexts( $context ) {
+		$attr = $this->get_width_height_for_high_priority();
+
+		$this->assertNotSame(
+			array( 'loading' => 'lazy' ),
+			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+			'Images in the header context should not be lazy-loaded.'
+		);
+
+		add_filter( 'wp_loading_optimization_force_header_contexts', '__return_empty_array' );
+
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
+			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+			'Images in the header context should get lazy-loaded after the wp_loading_optimization_force_header_contexts filter.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_get_loading_optimization_attributes_header_context() {
+		return array(
+			array( 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER ),
+			array( 'get_header_image_tag' ),
+		);
+	}
+
+	/**
+	 * @ticket 58894
+	 */
+	public function test_wp_loading_optimization_force_header_contexts_filter() {
+		$attr = $this->get_width_height_for_high_priority();
+
+		add_filter(
+			'wp_loading_optimization_force_header_contexts',
+			function( $context ) {
+				$contexts['something_completely_arbitrary'] = true;
+				return $contexts;
+			}
+		);
+
+		$this->assertSame(
+			array( 'fetchpriority' => 'high' ),
+			wp_get_loading_optimization_attributes( 'img', $attr, 'something_completely_arbitrary' )
+		);
 	}
 
 	/**
