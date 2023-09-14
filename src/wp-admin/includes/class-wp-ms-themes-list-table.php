@@ -72,6 +72,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	/**
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_table_classes() {
 		// @todo Remove and add CSS for .themes.
 		return array( 'widefat', 'plugins' );
@@ -80,6 +81,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	/**
 	 * @return bool
 	 */
+	#[\Override]
 	public function ajax_user_can() {
 		if ( $this->is_site_themes ) {
 			return current_user_can( 'manage_sites' );
@@ -96,6 +98,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * @global string $order
 	 * @global string $s
 	 */
+	#[\Override]
 	public function prepare_items() {
 		global $status, $totals, $page, $orderby, $order, $s;
 
@@ -313,6 +316,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 
 	/**
 	 */
+	#[\Override]
 	public function no_items() {
 		if ( $this->has_items ) {
 			_e( 'No themes found.' );
@@ -324,6 +328,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	/**
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
+	#[\Override]
 	public function get_columns() {
 		$columns = array(
 			'cb'          => '<input type="checkbox" />',
@@ -341,6 +346,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	/**
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_sortable_columns() {
 		return array(
 			'name' => array( 'name', false, __( 'Theme' ), __( 'Table ordered by Theme Name.' ), 'asc' ),
@@ -354,6 +360,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 *
 	 * @return string Unalterable name of the primary column name, in this case, 'name'.
 	 */
+	#[\Override]
 	protected function get_primary_column_name() {
 		return 'name';
 	}
@@ -363,6 +370,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * @global string $status
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_views() {
 		global $totals, $status;
 
@@ -459,6 +467,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 *
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_bulk_actions() {
 		global $status;
 
@@ -493,6 +502,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 
 	/**
 	 */
+	#[\Override]
 	public function display_rows() {
 		foreach ( $this->items as $theme ) {
 			$this->single_row( $theme );
@@ -507,6 +517,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 *
 	 * @param WP_Theme $item The current WP_Theme object.
 	 */
+	#[\Override]
 	public function column_cb( $item ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$theme       = $item;
@@ -877,6 +888,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * @param WP_Theme $item        The current WP_Theme object.
 	 * @param string   $column_name The current column name.
 	 */
+	#[\Override]
 	public function column_default( $item, $column_name ) {
 		/**
 		 * Fires inside each custom column of the Multisite themes list table.
@@ -978,6 +990,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 *
 	 * @param WP_Theme $theme
 	 */
+	#[\Override]
 	public function single_row( $theme ) {
 		global $status, $totals;
 
