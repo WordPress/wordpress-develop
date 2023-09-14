@@ -80,7 +80,7 @@ wp-tests-config.php
 /src/wp-content/themes/twentynineteen/node_modules
 /src/wp-content/themes/twentytwentyone/node_modules
 /src/wp-content/themes/twentytwenty/node_modules
-
+/.idea
 # Operating system specific files
 .DS_Store
 
