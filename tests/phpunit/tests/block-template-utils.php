@@ -257,8 +257,14 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			$actual,
 			'`theme` attribute was not correctly injected in template part block.'
 		);
+	}
 
-		// Does not inject theme when there is an existing theme attribute.
+	/**
+	 * @ticket 59338
+	 *
+	 * @covers ::_inject_theme_attribute_in_template_part_block
+	 */
+	public function test_not_inject_theme_attribute_in_template_part_block_theme_attribute_exists() {
 		$template_part_block_with_existing_theme_attribute = array(
 			'blockName'    => 'core/template-part',
 			'attrs'        => array(
@@ -279,8 +285,14 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			$actual,
 			'Existing `theme` attribute in template part block was not respected by attribute injection.'
 		);
+	}
 
-		// Does not inject theme when there is no template part.
+	/**
+	 * @ticket 59338
+	 *
+	 * @covers ::_inject_theme_attribute_in_template_part_block
+	 */
+	public function test_not_inject_theme_attribute_non_template_part_block() {
 		$non_template_part_block = array(
 			'blockName'    => 'core/post-content',
 			'attrs'        => array(),
