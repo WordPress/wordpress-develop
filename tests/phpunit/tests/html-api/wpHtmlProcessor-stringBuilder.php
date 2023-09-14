@@ -111,4 +111,61 @@ class Tests_HtmlApi_WpHtmlProcessor_StringBuilder extends WP_UnitTestCase {
 			'Text with comment inside it.'           => array( 'Ignore <!-- everything inside this --> comment.', 0, 'Ignore <!-- everything inside this --> comment.' ),
 		);
 	}
+
+	/**
+	 * @dataProvider data_html_with_locale_and_excerpt
+	 *
+	 * @param $html
+	 * @param $locale
+	 * @param $word_count
+	 * @return void
+	 */
+	public function test_excerpt_of_so_many_words( $html, $locale, $max_word_count, $html_excerpt ) {
+		$processor = new WP_HTML_Tag_Processor( $html );
+
+		$excerpt_text       = '';
+		$excerpt            = '';
+		$words              = IntlBreakIterator::createWordInstance( $locale );
+
+		while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
+			$word_count    = 0;
+			$excerpt_text .= $processor->get_previous_text_chunk();
+			$words->setText( $excerpt_text );
+
+			list( $html, $text ) = $processor->get_previous_html_chunk();
+			$excerpt .= $html;
+			foreach ( $words as $_ ) {
+				if ( IntlRuleBasedBreakIterator::WORD_NONE !== $words->getRuleStatus() ) {
+					$word_count++;
+				}
+
+				if ( $word_count > $max_word_count ) {
+					break 2;
+				}
+			}
+			$excerpt .= $text;
+		}
+		if ( $word_count <= $max_word_count ) {
+			list( $html, $text ) = $processor->get_previous_html_chunk();
+			$excerpt .= $html;
+		}
+
+		$this->assertEquals( $html_excerpt, $excerpt, 'Extracted wrong excerpt from document.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public function data_html_with_locale_and_excerpt() {
+		return array(
+			array( '<div>This is a <img> with <em>great</em> ability to inspire.</div>', 'en_US', 3, '<div>This is a <img>' ),
+			array( '<div>This is a <img> with <em>great</em> ability to inspire.</div>', 'en_US', 4, '<div>This is a <img> with <em>' ),
+			array( '<em>W</em>hat a <i>T</i>hing', 'en_US', 2, '<em>W</em>hat a <i>' ),
+			array( '<span>彼</span>は<em>アメリカ人</em>です。', 'jp_JP', 2, '<span>彼</span>は<em>' ),
+			array( '<span>彼</span>は<em>アメリカ人</em>です。', 'jp_JP', 4, '<span>彼</span>は<em>アメリカ人</em>' ),
+			array( '<div>שְׁמַע יִשְׂרָאֵל<br> יְהוָה אֱלֹהֵינוּ<br> יְהוָה אֶחָֽד</div>', 'he_IL', 2, '<div>שְׁמַע יִשְׂרָאֵל<br>' ),
+		);
+	}
 }
