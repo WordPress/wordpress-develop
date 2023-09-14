@@ -208,7 +208,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			),
 			'a template with a template part block with an existing theme attribute' => array(
 				'filename' => 'template-with-template-part-with-existing-theme-attribute.html',
-				'expected' => '<!-- wp:template-part {"slug":"header","theme":"fake-theme","align":"full", "tagName":"header","className":"site-header"} /-->',
+				'expected' => '<!-- wp:template-part {"slug":"header","theme":"fake-theme","align":"full","tagName":"header","className":"site-header"} /-->',
 			),
 			'a template with no template part block' => array(
 				'filename' => 'template.html',
@@ -216,6 +216,84 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 <p>Just a paragraph</p>
 <!-- /wp:paragraph -->',
 			),
+		);
+	}
+
+	/**
+	 * @ticket 59338
+	 *
+	 * @covers ::test_inject_theme_attribute_in_template_part_block
+	 */
+	public function test_inject_theme_attribute_in_template_part_block() {
+		$template_part_block_without_theme_attribute = array(
+			'blockName'    => 'core/template-part',
+			'attrs'        => array(
+				'slug'      => 'header',
+				'align'     => 'full',
+				'tagName'   => 'header',
+				'className' => 'site-header',
+			),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+
+		$actual   = _inject_theme_attribute_in_template_part_block( $template_part_block_without_theme_attribute );
+		$expected = array(
+			'blockName'    => 'core/template-part',
+			'attrs'        => array(
+				'slug'      => 'header',
+				'align'     => 'full',
+				'tagName'   => 'header',
+				'className' => 'site-header',
+				'theme'     => get_stylesheet(),
+			),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+		$this->assertSame(
+			$expected,
+			$actual,
+			'`theme` attribute was not correctly injected in template part block.'
+		);
+
+		// Does not inject theme when there is an existing theme attribute.
+		$template_part_block_with_existing_theme_attribute = array(
+			'blockName'    => 'core/template-part',
+			'attrs'        => array(
+				'slug'      => 'header',
+				'align'     => 'full',
+				'tagName'   => 'header',
+				'className' => 'site-header',
+				'theme'     => 'fake-theme',
+			),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+
+		$actual = _inject_theme_attribute_in_template_part_block( $template_part_block_with_existing_theme_attribute );
+		$this->assertSame(
+			$template_part_block_with_existing_theme_attribute,
+			$actual,
+			'Existing `theme` attribute in template part block was not respected by attribute injection.'
+		);
+
+		// Does not inject theme when there is no template part.
+		$non_template_part_block = array(
+			'blockName'    => 'core/post-content',
+			'attrs'        => array(),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+
+		$actual = _inject_theme_attribute_in_template_part_block( $non_template_part_block );
+		$this->assertSame(
+			$non_template_part_block,
+			$actual,
+			'`theme` attribute injection modified non-template-part block.'
 		);
 	}
 
