@@ -2511,7 +2511,7 @@ function wp_enqueue_global_styles() {
  * @since 6.2.0
  */
 function wp_enqueue_global_styles_custom_css() {
-	if ( ! wp_is_block_theme() ) {
+	if ( ! wp_is_block_theme() && ! wp_theme_has_theme_json() ) {
 		return;
 	}
 
