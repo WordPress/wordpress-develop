@@ -29,7 +29,7 @@ $is_patterns_editor      = $is_patterns || $is_patterns_path;
 if ( ! wp_is_block_theme() ) {
 	if ( ! current_theme_supports( 'block-template-parts' ) && $is_template_part_editor ) {
 		wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
-	} elseif ( ! $is_patterns_editor ) {
+	} elseif ( ! $is_patterns_editor && ! $is_template_part_editor ) {
 		wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
 	}
 }
