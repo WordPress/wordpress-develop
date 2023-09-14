@@ -1,8 +1,3 @@
-/**
- * WordPress dependencies
- */
-const { test, expect } = require( '@wordpress/e2e-test-utils-playwright' );
-
 async function getFootnotes( page, withoutSave = false ) {
 	// Save post so we can check meta.
 	if ( ! withoutSave ) {
