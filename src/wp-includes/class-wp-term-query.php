@@ -91,6 +91,7 @@ class WP_Term_Query {
 	 * @since 4.9.0 Added 'slug__in' support for 'orderby'.
 	 * @since 5.1.0 Introduced the 'meta_compare_key' parameter.
 	 * @since 5.3.0 Introduced the 'meta_type_key' parameter.
+	 * @since 6.4.0 Introduced the 'cache_results' parameter.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or query string of term query parameters. Default empty.
@@ -178,6 +179,7 @@ class WP_Term_Query {
 	 *                                                   Default false.
 	 *     @type string          $cache_domain           Unique cache key to be produced when this query is stored in
 	 *                                                   an object cache. Default 'core'.
+	*      @type bool            $cache_results          Whether to cache term information. Default true.
 	 *     @type bool            $update_term_meta_cache Whether to prime meta caches for matched terms. Default true.
 	 *     @type string|string[] $meta_key               Meta key or keys to filter by.
 	 *     @type string|string[] $meta_value             Meta value or values to filter by.

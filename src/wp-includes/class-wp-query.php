@@ -648,7 +648,7 @@ class WP_Query {
 	 * @since 5.3.0 Introduced the `$meta_type_key` parameter.
 	 * @since 6.1.0 Introduced the `$update_menu_item_cache` parameter.
 	 * @since 6.2.0 Introduced the `$search_columns` parameter.
-	 * @since 6.4.0 Added 'cache_results' parameter.
+	 * @since 6.3.0 Added 'cache_results' parameter.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or string of Query parameters.
