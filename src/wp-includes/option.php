@@ -176,9 +176,7 @@ function get_option( $option, $default_value = false ) {
 				if ( ! is_array( $notoptions ) ) {
 					$notoptions = array();
 					wp_cache_set( 'notoptions', $notoptions, 'options' );
-				}
-
-				if ( isset( $notoptions[ $option ] ) ) {
+				} elseif ( isset( $notoptions[ $option ] ) ) {
 					/**
 					 * Filters the default value for an option.
 					 *
@@ -203,10 +201,6 @@ function get_option( $option, $default_value = false ) {
 					$value = $row->option_value;
 					wp_cache_add( $option, $value, 'options' );
 				} else { // Option does not exist, so we must cache its non-existence.
-					if ( ! is_array( $notoptions ) ) {
-						$notoptions = array();
-					}
-
 					$notoptions[ $option ] = true;
 					wp_cache_set( 'notoptions', $notoptions, 'options' );
 
