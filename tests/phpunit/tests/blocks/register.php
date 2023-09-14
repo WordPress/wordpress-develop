@@ -1097,6 +1097,6 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSameSets(
 			array( 'tests/other-block' => 'last' ),
 			$block_type->block_hooks
-		 );
+		);
 	}
 }
