@@ -4339,15 +4339,15 @@ EOF;
 	 *
 	 * @dataProvider data_wp_get_loading_optimization_attributes_arbitrary_contexts
 	 *
-	 * @param string $context
+	 * @param string $context Context for the element for which the loading optimization attribute is requested.
 	 */
 	public function test_wp_get_loading_optimization_attributes_with_arbitrary_contexts_in_main_loop( $context ) {
 		$attr = $this->get_width_height_for_high_priority();
 
-		// Return 'lazy' if not in the loop or the main query.
 		$this->assertSame(
 			array( 'loading' => 'lazy' ),
-			wp_get_loading_optimization_attributes( 'img', $attr, $context )
+			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+			'The "loading" attribute should be "lazy" when not in the loop or the main query.'
 		);
 
 		$query = $this->get_new_wp_query_for_published_post();
@@ -4360,11 +4360,12 @@ EOF;
 
 			$this->assertSame(
 				array( 'fetchpriority' => 'high' ),
-				wp_get_loading_optimization_attributes( 'img', $attr, $context )
+				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+				'The "fetchpriority" attribute should be "high" while in the loop and the main query.'
 			);
 
 			// Images with a certain minimum size in the arbitrary contexts of the page are also counted towards the threshold.
-			$this->assertSame( 1, wp_increase_content_media_count( 0 ) );
+			$this->assertSame( 1, wp_increase_content_media_count( 0 ), 'The content media count should be 1.' );
 		}
 	}
 
@@ -4387,10 +4388,10 @@ EOF;
 		while ( have_posts() ) {
 			the_post();
 
-			// Return 'lazy' if in the loop but not in the main query.
 			$this->assertSame(
 				array( 'loading' => 'lazy' ),
-				wp_get_loading_optimization_attributes( 'img', $attr, $context )
+				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+				'The "loading" attribute should be "lazy" while in the loop but not in the main query.'
 			);
 
 			// Set as main query.
@@ -4400,7 +4401,7 @@ EOF;
 			$this->assertSame(
 				array( 'fetchpriority' => 'high' ),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
-				"Expected first image to not be lazy-loaded. First large image get's high fetchpriority."
+				'Expected first image to not be lazy-loaded. First large image gets high fetchpriority.'
 			);
 		}
 	}
@@ -4481,6 +4482,8 @@ EOF;
 
 	/**
 	 * @ticket 58894
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_loading_optimization_force_header_contexts_filter() {
 		$attr = $this->get_width_height_for_high_priority();
