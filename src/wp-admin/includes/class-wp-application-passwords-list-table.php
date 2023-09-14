@@ -23,6 +23,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 *
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
+	#[\Override]
 	public function get_columns() {
 		return array(
 			'name'      => __( 'Name' ),
@@ -40,6 +41,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 *
 	 * @global int $user_id User ID.
 	 */
+	#[\Override]
 	public function prepare_items() {
 		global $user_id;
 		$this->items = array_reverse( WP_Application_Passwords::get_user_application_passwords( $user_id ) );
@@ -127,6 +129,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 * @param array  $item        The current item.
 	 * @param string $column_name The current column name.
 	 */
+	#[\Override]
 	protected function column_default( $item, $column_name ) {
 		/**
 		 * Fires for each custom column in the Application Passwords list table.
@@ -148,6 +151,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 *
 	 * @param string $which The location of the bulk actions: 'top' or 'bottom'.
 	 */
+	#[\Override]
 	protected function display_tablenav( $which ) {
 		?>
 		<div class="tablenav <?php echo esc_attr( $which ); ?>">
@@ -175,6 +179,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 *
 	 * @param array $item The current item.
 	 */
+	#[\Override]
 	public function single_row( $item ) {
 		echo '<tr data-uuid="' . esc_attr( $item['uuid'] ) . '">';
 		$this->single_row_columns( $item );
@@ -188,6 +193,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 *
 	 * @return string Name of the default primary column, in this case, 'name'.
 	 */
+	#[\Override]
 	protected function get_default_primary_column_name() {
 		return 'name';
 	}
