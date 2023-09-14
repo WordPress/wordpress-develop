@@ -37,6 +37,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 *
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
+	#[\Override]
 	public function get_columns() {
 		$columns = array(
 			'cb'                => '<input type="checkbox" />',
@@ -72,6 +73,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 *
 	 * @return array Default sortable columns.
 	 */
+	#[\Override]
 	protected function get_sortable_columns() {
 		/*
 		 * The initial sorting is by 'Requested' (post_date) and descending.
@@ -93,6 +95,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 *
 	 * @return string Default primary column name.
 	 */
+	#[\Override]
 	protected function get_default_primary_column_name() {
 		return 'email';
 	}
@@ -143,6 +146,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 *
 	 * @return string[] An array of HTML links keyed by their view.
 	 */
+	#[\Override]
 	protected function get_views() {
 		$current_status = isset( $_REQUEST['filter-status'] ) ? sanitize_text_field( $_REQUEST['filter-status'] ) : '';
 		$statuses       = _wp_privacy_statuses();
@@ -206,6 +210,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 *
 	 * @return array Array of bulk action labels keyed by their action.
 	 */
+	#[\Override]
 	protected function get_bulk_actions() {
 		return array(
 			'resend'   => __( 'Resend confirmation requests' ),
@@ -359,6 +364,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * @since 4.9.6
 	 * @since 5.1.0 Added support for column sorting.
 	 */
+	#[\Override]
 	public function prepare_items() {
 		$this->items    = array();
 		$posts_per_page = $this->get_items_per_page( $this->request_type . '_requests_per_page' );
@@ -414,6 +420,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * @param WP_User_Request $item Item being shown.
 	 * @return string Checkbox column markup.
 	 */
+	#[\Override]
 	public function column_cb( $item ) {
 		return sprintf(
 			'<label class="label-covers-full-cell" for="requester_%1$s"><span class="screen-reader-text">%2$s</span></label>' .
@@ -493,6 +500,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * @param WP_User_Request $item        Item being shown.
 	 * @param string          $column_name Name of column being shown.
 	 */
+	#[\Override]
 	public function column_default( $item, $column_name ) {
 		/**
 		 * Fires for each custom column of a specific request type in the Requests list table.
@@ -548,6 +556,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 *
 	 * @param WP_User_Request $item The current item.
 	 */
+	#[\Override]
 	public function single_row( $item ) {
 		$status = $item->status;
 
