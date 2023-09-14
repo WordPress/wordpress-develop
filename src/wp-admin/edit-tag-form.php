@@ -148,7 +148,7 @@ if ( isset( $tag->name ) ) {
 		<tr class="form-field form-required term-name-wrap">
 			<th scope="row"><label for="name"><?php _ex( 'Name', 'term name' ); ?></label></th>
 			<td><input name="name" id="name" type="text" value="<?php echo $tag_name_value; ?>" size="40" aria-required="true" aria-describedby="name-description" />
-			<p class="description" id="name-description"><?php echo $tax->labels->name_field_description; ?></p></td>
+			<p class="description" id="name-description"><?php echo esc_html( $tax->labels->name_field_description ); ?></p></td>
 		</tr>
 		<tr class="form-field term-slug-wrap">
 			<th scope="row"><label for="slug"><?php _e( 'Slug' ); ?></label></th>
@@ -169,7 +169,7 @@ if ( isset( $tag->name ) ) {
 			$slug = isset( $tag->slug ) ? apply_filters( 'editable_slug', $tag->slug, $tag ) : '';
 			?>
 			<td><input name="slug" id="slug" type="text" value="<?php echo esc_attr( $slug ); ?>" size="40" aria-describedby="slug-description" />
-			<p class="description" id="slug-description"><?php echo $tax->labels->slug_field_description; ?></p></td>
+			<p class="description" id="slug-description"><?php echo esc_html( $tax->labels->slug_field_description ); ?></p></td>
 		</tr>
 <?php if ( is_taxonomy_hierarchical( $taxonomy ) ) : ?>
 		<tr class="form-field term-parent-wrap">
@@ -196,7 +196,7 @@ if ( isset( $tag->name ) ) {
 				<?php if ( 'category' === $taxonomy ) : ?>
 					<p class="description" id="parent-description"><?php _e( 'Categories, unlike tags, can have a hierarchy. You might have a Jazz category, and under that have children categories for Bebop and Big Band. Totally optional.' ); ?></p>
 				<?php else : ?>
-					<p class="description" id="parent-description"><?php echo $tax->labels->parent_field_description; ?></p>
+					<p class="description" id="parent-description"><?php echo esc_html( $tax->labels->parent_field_description ); ?></p>
 				<?php endif; ?>
 			</td>
 		</tr>
