@@ -518,9 +518,8 @@ foreach ( $themes as $theme ) :
 				)
 			);
 		endif;
-	<?php endif; ?>
+	endif;
 
-	<?php
 	if ( ! $theme['compatibleWP'] || ! $theme['compatiblePHP'] ) {
 		$message = '';
 		if ( ! $theme['compatibleWP'] && ! $theme['compatiblePHP'] ) {
@@ -576,9 +575,7 @@ foreach ( $themes as $theme ) :
 			)
 		);
 	}
-	?>
 
-	<?php
 	/* translators: %s: Theme name. */
 	$details_aria_label = sprintf( _x( 'View Theme Details for %s', 'theme' ), $theme['name'] );
 	?>
@@ -672,7 +669,9 @@ if ( ! is_multisite() && $broken_themes ) {
 			<td></td>
 		<?php } ?>
 	</tr>
-	<?php foreach ( $broken_themes as $broken_theme ) : ?>
+	<?php
+	foreach ( $broken_themes as $broken_theme ) :
+		?>
 		<tr>
 			<td><?php echo $broken_theme->get( 'Name' ) ? $broken_theme->display( 'Name' ) : esc_html( $broken_theme->get_stylesheet() ); ?></td>
 			<td><?php echo $broken_theme->errors()->get_error_message(); ?></td>
@@ -733,7 +732,9 @@ if ( ! is_multisite() && $broken_themes ) {
 			}
 			?>
 		</tr>
-	<?php endforeach; ?>
+		<?php
+	endforeach;
+	?>
 </table>
 </div>
 
