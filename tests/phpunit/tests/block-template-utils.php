@@ -222,7 +222,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	/**
 	 * @ticket 59338
 	 *
-	 * @covers ::test_inject_theme_attribute_in_template_part_block
+	 * @covers ::_inject_theme_attribute_in_template_part_block
 	 */
 	public function test_inject_theme_attribute_in_template_part_block() {
 		$template_part_block_without_theme_attribute = array(
