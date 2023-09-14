@@ -648,7 +648,6 @@ class WP_Query {
 	 * @since 5.3.0 Introduced the `$meta_type_key` parameter.
 	 * @since 6.1.0 Introduced the `$update_menu_item_cache` parameter.
 	 * @since 6.2.0 Introduced the `$search_columns` parameter.
-	 * @since 6.3.0 Added 'cache_results' parameter.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or string of Query parameters.
@@ -658,7 +657,7 @@ class WP_Query {
 	 *     @type string          $author_name            User 'user_nicename'.
 	 *     @type int[]           $author__in             An array of author IDs to query from.
 	 *     @type int[]           $author__not_in         An array of author IDs not to query from.
-	 *     @type bool            $cache_results          Whether to cache term information. Default true.
+	 *     @type bool            $cache_results          Whether to cache post information. Default true.
 	 *     @type int|string      $cat                    Category ID or comma-separated list of IDs (this or any children).
 	 *     @type int[]           $category__and          An array of category IDs (AND in).
 	 *     @type int[]           $category__in           An array of category IDs (OR in, no children).
@@ -3499,7 +3498,17 @@ class WP_Query {
 					)
 				);
 
-				var_dump($post_type, $q['post_type']);
+				var_dump(array(
+					'post__in'               => $sticky_posts,
+					'post_type'              => $post_type,
+					'post_status'            => 'publish',
+					'posts_per_page'         => count( $sticky_posts ),
+					'suppress_filters'       => $q['suppress_filters'],
+					'cache_results'          => $q['cache_results'],
+					'update_post_meta_cache' => $q['update_post_meta_cache'],
+					'update_post_term_cache' => $q['update_post_term_cache'],
+					'lazy_load_term_meta'    => $q['lazy_load_term_meta'],
+				));
 
 				foreach ( $stickies as $sticky_post ) {
 					array_splice( $this->posts, $sticky_offset, 0, array( $sticky_post ) );
