@@ -5715,12 +5715,9 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		 *
 		 * @since 6.4.0
 		 *
-		 * @param array $default_header_enforced_contexts {
-		 *     An array of default header-specific contexts.
-		 *
-		 *     @type string $context The header-specific context.
-		 *     @type bool   $enable  Whether to enable the context or not.
-		 * }
+		 * @param array $default_header_enforced_contexts Map of contexts for which elements should be considered
+		 *                                                in the header of the page, as $context => $enabled
+		 *                                                pairs. The $enabled should always be true.
 		 */
 		$header_enforced_contexts = apply_filters( 'wp_loading_optimization_force_header_contexts', $header_enforced_contexts );
 

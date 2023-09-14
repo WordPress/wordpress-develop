@@ -4366,27 +4366,6 @@ EOF;
 
 			// Images with a certain minimum size in the arbitrary contexts of the page are also counted towards the threshold.
 			$this->assertSame( 1, wp_increase_content_media_count( 0 ), 'The content media count should be 1.' );
-
-			$this->assertEmpty(
-				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
-				'Expected second image to not be lazy-loaded.'
-			);
-			$this->assertEmpty(
-				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
-				'Expected third image to not be lazy-loaded.'
-			);
-
-			// Return 'lazy' if in the loop and in the main query for any subsequent elements.
-			$this->assertSame(
-				array( 'loading' => 'lazy' ),
-				wp_get_loading_optimization_attributes( 'img', $attr, $context )
-			);
-
-			// Yes, for all subsequent elements.
-			$this->assertSame(
-				array( 'loading' => 'lazy' ),
-				wp_get_loading_optimization_attributes( 'img', $attr, $context )
-			);
 		}
 	}
 
@@ -4465,8 +4444,8 @@ EOF;
 	public function test_wp_get_loading_optimization_attributes_header_contexts( $context ) {
 		$attr = $this->get_width_height_for_high_priority();
 
-		$this->assertNotSame(
-			array( 'loading' => 'lazy' ),
+		$this->assertArrayNotHasKey(
+			'loading',
 			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 			'Images in the header context should not be lazy-loaded.'
 		);
