@@ -13,14 +13,22 @@ require_once __DIR__ . '/entry.php';
 if ( ! class_exists( 'Translations', false ) ) :
 	#[AllowDynamicProperties]
 	class Translations {
+
+		/**
+		 * @var array Contains Translation_Entry objects.
+		 */
 		public $entries = array();
+
+		/**
+		 * @var array Contains header information.
+		 */
 		public $headers = array();
 
 		/**
 		 * Add entry to the PO structure
 		 *
 		 * @param array|Translation_Entry $entry
-		 * @return bool true on success, false if the entry doesn't have a key
+		 * @return bool true on success, false if the entry doesn't have a key.
 		 */
 		public function add_entry( $entry ) {
 			if ( is_array( $entry ) ) {
@@ -55,9 +63,9 @@ if ( ! class_exists( 'Translations', false ) ) :
 		}
 
 		/**
-		 * Sets $header PO header to $value
+		 * Sets $header PO header to $value.
 		 *
-		 * If the header already exists, it will be overwritten
+		 * If the header already exists, it will be overwritten.
 		 *
 		 * TODO: this should be out of this class, it is gettext specific
 		 *
@@ -79,6 +87,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 
 		/**
 		 * @param string $header
+		 * @return mixed|false
 		 */
 		public function get_header( $header ) {
 			return isset( $this->headers[ $header ] ) ? $this->headers[ $header ] : false;
@@ -86,6 +95,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 
 		/**
 		 * @param Translation_Entry $entry
+		 * @return mixed|false
 		 */
 		public function translate_entry( &$entry ) {
 			$key = $entry->key();
@@ -135,6 +145,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 * @param string $plural
 		 * @param int    $count
 		 * @param string $context
+		 * @return string
 		 */
 		public function translate_plural( $singular, $plural, $count, $context = null ) {
 			$entry              = new Translation_Entry(
@@ -200,10 +211,11 @@ if ( ! class_exists( 'Translations', false ) ) :
 		/**
 		 * The gettext implementation of select_plural_form.
 		 *
-		 * It lives in this class, because there are more than one descendand, which will use it and
+		 * It lives in this class, because there are more than one descendant, which will use it and
 		 * they can't share it effectively.
 		 *
 		 * @param int $count
+		 * @return int
 		 */
 		public function gettext_select_plural_form( $count ) {
 			if ( ! isset( $this->_gettext_select_plural_form ) || is_null( $this->_gettext_select_plural_form ) ) {
@@ -234,6 +246,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 *
 		 * @param int    $nplurals
 		 * @param string $expression
+		 * @return callable
 		 */
 		public function make_plural_form_function( $nplurals, $expression ) {
 			try {
@@ -247,7 +260,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 
 		/**
 		 * Adds parentheses to the inner parts of ternary operators in
-		 * plural expressions, because PHP evaluates ternary oerators from left to right
+		 * plural expressions, because PHP evaluates ternary operators from left to right
 		 *
 		 * @param string $expression the expression without parentheses
 		 * @return string the expression with parentheses added
@@ -317,9 +330,20 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 	 */
 	#[AllowDynamicProperties]
 	class NOOP_Translations {
+		/**
+		 * @var array Contains Translation_Entry objects.
+		 */
 		public $entries = array();
+
+		/**
+		 * @var array Contains header information.
+		 */
 		public $headers = array();
 
+		/**
+		 * @param array|Translation_Entry $entry
+		 * @return bool
+		 */
 		public function add_entry( $entry ) {
 			return true;
 		}
@@ -381,6 +405,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 		 * @param string $plural
 		 * @param int    $count
 		 * @param string $context
+		 * @return string
 		 */
 		public function translate_plural( $singular, $plural, $count, $context = null ) {
 			return 1 === (int) $count ? $singular : $plural;
