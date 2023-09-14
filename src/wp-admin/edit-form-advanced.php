@@ -462,12 +462,17 @@ if ( $message ) :
 		)
 	);
 endif;
+
+$connection_lost_message = '<span class="spinner"></span> ' . __( '<strong>Connection lost.</strong> Saving has been disabled until you are reconnected.' ) . '<span class="hide-if-no-sessionstorage">' . __( 'This post is being backed up in your browser, just in case.' ) . '</span>';
+
+wp_admin_notice(
+	$connection_lost_message,
+	array(
+		'id'                 => 'lost-connection-error',
+		'additional_classes' => array( 'error', 'hidden' ),
+	)
+);
 ?>
-<div id="lost-connection-notice" class="error hidden">
-	<p><span class="spinner"></span> <?php _e( '<strong>Connection lost.</strong> Saving has been disabled until you are reconnected.' ); ?>
-	<span class="hide-if-no-sessionstorage"><?php _e( 'This post is being backed up in your browser, just in case.' ); ?></span>
-	</p>
-</div>
 <form name="post" action="post.php" method="post" id="post"
 <?php
 /**
