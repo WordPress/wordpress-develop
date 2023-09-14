@@ -195,6 +195,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 47620
 	 * @ticket 57585
+	 * @ticket 59346
 	 */
 	public function test_get_item_invalid() {
 		$block_type = 'fake/invalid';
@@ -205,6 +206,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'attributes'       => 'invalid_attributes',
 			'provides_context' => 'invalid_provides_context',
 			'uses_context'     => 'invalid_uses_context',
+			'block_hooks'      => 'invalid_block_hooks',
 			'category'         => true,
 			'editor_script'    => true,
 			'script'           => true,
@@ -244,6 +246,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			$data['attributes']
 		);
 		$this->assertSameSets( array( 'invalid_uses_context' ), $data['uses_context'] );
+		$this->assertSameSets( array(), $data['block_hooks'], 'invalid block_hooks defaults to empty array' );
 		$this->assertSameSets( array( 'invalid_keywords' ), $data['keywords'] );
 		$this->assertSameSets( array( 'invalid_parent' ), $data['parent'] );
 		$this->assertSameSets( array( 'invalid_ancestor' ), $data['ancestor'] );
@@ -266,6 +269,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 47620
 	 * @ticket 57585
+	 * @ticket 59346
 	 */
 	public function test_get_item_defaults() {
 		$block_type = 'fake/false';
@@ -276,6 +280,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'attributes'       => false,
 			'provides_context' => false,
 			'uses_context'     => false,
+			'block_hooks'      => false,
 			'category'         => false,
 			'editor_script'    => false,
 			'script'           => false,
@@ -314,6 +319,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			$data['attributes']
 		);
 		$this->assertSameSets( array(), $data['provides_context'] );
+		$this->assertSameSets( array(), $data['block_hooks'], 'block_hooks defaults to empty array' );
 		$this->assertSameSets( array(), $data['uses_context'] );
 		$this->assertSameSets( array(), $data['keywords'] );
 		$this->assertSameSets( array(), $data['parent'] );
@@ -538,6 +544,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 47620
 	 * @ticket 57585
+	 * @ticket 59346
 	 */
 	public function test_get_item_schema() {
 		wp_set_current_user( self::$admin_id );
@@ -545,7 +552,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 29, $properties );
+		$this->assertCount( 30, $properties );
 		$this->assertArrayHasKey( 'api_version', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'icon', $properties );
@@ -568,6 +575,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'example', $properties );
 		$this->assertArrayHasKey( 'uses_context', $properties );
 		$this->assertArrayHasKey( 'provides_context', $properties );
+		$this->assertArrayHasKey( 'block_hooks', $properties );
 		$this->assertArrayHasKey( 'variations', $properties );
 		$this->assertArrayHasKey( 'ancestor', $properties );
 		// Deprecated properties.
@@ -664,6 +672,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * Util check block type object against.
 	 *
 	 * @since 5.5.0
+	 * @since 6.4.0 Added the `block_hooks` extra field.
 	 *
 	 * @param WP_Block_Type $block_type Sample block type.
 	 * @param array         $data Data to compare against.
@@ -690,6 +699,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'parent',
 			'provides_context',
 			'uses_context',
+			'block_hooks',
 			'supports',
 			'styles',
 			'textdomain',

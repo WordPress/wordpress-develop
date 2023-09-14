@@ -644,6 +644,12 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			$result->selectors,
 			'Block type should contain selectors from metadata.'
 		);
+		// @ticket 59346
+		$this->assertSame(
+			array( 'core/post-content' => 'before' ),
+			$result->block_hooks,
+			'Block type should contain block hooks from metadata.'
+		);
 		$this->assertSame(
 			array(
 				'align'             => true,
