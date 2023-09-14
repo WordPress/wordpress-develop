@@ -247,12 +247,12 @@ if ( ! class_exists( 'Translations', false ) ) :
 
 		/**
 		 * Adds parentheses to the inner parts of ternary operators in
-		 * plural expressions, because PHP evaluates ternary oerators from left to right
+		 * plural expressions, because PHP evaluates ternary operators from left to right
 		 *
 		 * @param string $expression the expression without parentheses
 		 * @return string the expression with parentheses added
 		 */
-		public function parenthesize_plural_exression( $expression ) {
+		public function parenthesize_plural_expression( $expression ) {
 			$expression .= ';';
 			$res         = '';
 			$depth       = 0;
