@@ -21,6 +21,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	/**
 	 * @return bool
 	 */
+	#[\Override]
 	public function ajax_user_can() {
 		return current_user_can( 'install_themes' );
 	}
@@ -32,6 +33,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 * @global string $type
 	 * @global array  $theme_field_defaults
 	 */
+	#[\Override]
 	public function prepare_items() {
 		require ABSPATH . 'wp-admin/includes/theme-install.php';
 
@@ -171,6 +173,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 
 	/**
 	 */
+	#[\Override]
 	public function no_items() {
 		_e( 'No themes match your request.' );
 	}
@@ -180,6 +183,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 * @global string $tab
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_views() {
 		global $tabs, $tab;
 
@@ -202,6 +206,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 *
 	 * @since 3.1.0
 	 */
+	#[\Override]
 	public function display() {
 		wp_nonce_field( 'fetch-list-' . get_class( $this ), '_ajax_fetch_list_nonce' );
 		?>
@@ -230,6 +235,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 
 	/**
 	 */
+	#[\Override]
 	public function display_rows() {
 		$themes = $this->items;
 		foreach ( $themes as $theme ) {
@@ -268,6 +274,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 *     @type string $download_link  Theme ZIP download URL.
 	 * }
 	 */
+	#[\Override]
 	public function single_row( $theme ) {
 		global $themes_allowedtags;
 
