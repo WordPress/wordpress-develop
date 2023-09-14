@@ -260,43 +260,86 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<hr class="wp-header-end">
 <?php
 if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
-	?>
-	<div id="message1" class="updated notice is-dismissible"><p><?php _e( 'The active theme is broken. Reverting to the default theme.' ); ?></p></div>
-	<?php
+	wp_admin_notice(
+		__( 'The active theme is broken. Reverting to the default theme.' ),
+		array(
+			'id'                 => 'message1',
+			'additional_classes' => array( 'updated' ),
+			'dismissible'        => true,
+		)
+	);
 } elseif ( isset( $_GET['activated'] ) ) {
 	if ( isset( $_GET['previewed'] ) ) {
-		?>
-		<div id="message2" class="updated notice is-dismissible"><p><?php _e( 'Settings saved and theme activated.' ); ?> <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php _e( 'Visit site' ); ?></a></p></div>
-		<?php
+		wp_admin_notice(
+			__( 'Settings saved and theme activated.' ) . '<a href="' . esc_url( home_url( '/' ) ) . '">' . __( 'Visit site' ) . '</a>',
+			array(
+				'id'                 => 'message2',
+				'additional_classes' => array( 'updated' ),
+				'dismissible'        => true,
+			)
+		);
 	} else {
-		?>
-		<div id="message2" class="updated notice is-dismissible"><p><?php _e( 'New theme activated.' ); ?> <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php _e( 'Visit site' ); ?></a></p></div>
-		<?php
+		wp_admin_notice(
+			__( 'New theme activated.' ) . '<a href="' . esc_url( home_url( '/' ) ) . '">' . __( 'Visit site' ) . '</a>',
+			array(
+				'id'                 => 'message2',
+				'additional_classes' => array( 'updated' ),
+				'dismissible'        => true,
+			)
+		);
 	}
 } elseif ( isset( $_GET['deleted'] ) ) {
-	?>
-	<div id="message3" class="updated notice is-dismissible"><p><?php _e( 'Theme deleted.' ); ?></p></div>
-	<?php
+	wp_admin_notice(
+		__( 'Theme deleted.' ),
+		array(
+			'id'                 => 'message3',
+			'additional_classes' => array( 'updated' ),
+			'dismissible'        => true,
+		)
+	);
 } elseif ( isset( $_GET['delete-active-child'] ) ) {
-	?>
-	<div id="message4" class="error"><p><?php _e( 'You cannot delete a theme while it has an active child theme.' ); ?></p></div>
-	<?php
+	wp_admin_notice(
+		__( 'You cannot delete a theme while it has an active child theme.' ),
+		array(
+			'id'                 => 'message4',
+			'additional_classes' => array( 'error' ),
+		)
+	);
 } elseif ( isset( $_GET['resumed'] ) ) {
-	?>
-	<div id="message5" class="updated notice is-dismissible"><p><?php _e( 'Theme resumed.' ); ?></p></div>
-	<?php
+	wp_admin_notice(
+		__( 'Theme resumed.' ),
+		array(
+			'id'                 => 'message5',
+			'additional_classes' => array( 'updated' ),
+			'dismissible'        => true,
+		)
+	);
 } elseif ( isset( $_GET['error'] ) && 'resuming' === $_GET['error'] ) {
-	?>
-	<div id="message6" class="error"><p><?php _e( 'Theme could not be resumed because it triggered a <strong>fatal error</strong>.' ); ?></p></div>
-	<?php
+	wp_admin_notice(
+		__( 'Theme could not be resumed because it triggered a <strong>fatal error</strong>.' ),
+		array(
+			'id'                 => 'message6',
+			'additional_classes' => array( 'error' ),
+		)
+	);
 } elseif ( isset( $_GET['enabled-auto-update'] ) ) {
-	?>
-	<div id="message7" class="updated notice is-dismissible"><p><?php _e( 'Theme will be auto-updated.' ); ?></p></div>
-	<?php
+	wp_admin_notice(
+		__( 'Theme will be auto-updated.' ),
+		array(
+			'id'                 => 'message7',
+			'additional_classes' => array( 'updated' ),
+			'dismissible'        => true,
+		)
+	);
 } elseif ( isset( $_GET['disabled-auto-update'] ) ) {
-	?>
-	<div id="message8" class="updated notice is-dismissible"><p><?php _e( 'Theme will no longer be auto-updated.' ); ?></p></div>
-	<?php
+	wp_admin_notice(
+		__( 'Theme will no longer be auto-updated.' ),
+		array(
+			'id'                 => 'message8',
+			'additional_classes' => array( 'updated' ),
+			'dismissible'        => true,
+		)
+	);
 }
 
 $current_theme = wp_get_theme();
@@ -469,52 +512,59 @@ foreach ( $themes as $theme ) :
 
 	<?php
 	if ( ! $theme['compatibleWP'] || ! $theme['compatiblePHP'] ) {
-		echo '<div class="notice inline notice-error notice-alt"><p>';
+		$message = '';
 		if ( ! $theme['compatibleWP'] && ! $theme['compatiblePHP'] ) {
-			_e( 'This theme does not work with your versions of WordPress and PHP.' );
+			$message = __( 'This theme does not work with your versions of WordPress and PHP.' );
 			if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
-				printf(
+				$message .= sprintf(
 					/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
 					' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
 					self_admin_url( 'update-core.php' ),
 					esc_url( wp_get_update_php_url() )
 				);
-				wp_update_php_annotation( '</p><p><em>', '</em>' );
+				$message .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
 			} elseif ( current_user_can( 'update_core' ) ) {
-				printf(
+				$message .= sprintf(
 					/* translators: %s: URL to WordPress Updates screen. */
 					' ' . __( '<a href="%s">Please update WordPress</a>.' ),
 					self_admin_url( 'update-core.php' )
 				);
 			} elseif ( current_user_can( 'update_php' ) ) {
-				printf(
+				$message .= sprintf(
 					/* translators: %s: URL to Update PHP page. */
 					' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
 					esc_url( wp_get_update_php_url() )
 				);
-				wp_update_php_annotation( '</p><p><em>', '</em>' );
+				$message .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
 			}
 		} elseif ( ! $theme['compatibleWP'] ) {
-			_e( 'This theme does not work with your version of WordPress.' );
+			$message .= __( 'This theme does not work with your version of WordPress.' );
 			if ( current_user_can( 'update_core' ) ) {
-				printf(
+				$message .= sprintf(
 					/* translators: %s: URL to WordPress Updates screen. */
 					' ' . __( '<a href="%s">Please update WordPress</a>.' ),
 					self_admin_url( 'update-core.php' )
 				);
 			}
 		} elseif ( ! $theme['compatiblePHP'] ) {
-			_e( 'This theme does not work with your version of PHP.' );
+			$message .= __( 'This theme does not work with your version of PHP.' );
 			if ( current_user_can( 'update_php' ) ) {
-				printf(
+				$message .= sprintf(
 					/* translators: %s: URL to Update PHP page. */
 					' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
 					esc_url( wp_get_update_php_url() )
 				);
-				wp_update_php_annotation( '</p><p><em>', '</em>' );
+				$message .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
 			}
 		}
-		echo '</p></div>';
+
+		wp_admin_notice(
+			$message,
+			array(
+				'type'               => 'error',
+				'additional_classes' => array( 'inline', 'notice-alt' ),
+			)
+		);
 	}
 	?>
 
@@ -692,6 +742,13 @@ if ( ! is_multisite() && $broken_themes ) {
  * @return string The template for displaying the auto-update setting link.
  */
 function wp_theme_auto_update_setting_template() {
+	$notice   = wp_get_admin_notice(
+		'',
+		array(
+			'type'               => 'error',
+			'additional_classes' => array( 'notice-alt', 'inline', 'hidden' ),
+		)
+	);
 	$template = '
 		<div class="theme-autoupdate">
 			<# if ( data.autoupdate.supported ) { #>
@@ -717,7 +774,7 @@ function wp_theme_auto_update_setting_template() {
 				<# } #>
 				<br />' . wp_get_auto_update_message() . '</span>
 			<# } #>
-			<div class="notice notice-error notice-alt inline hidden"><p></p></div>
+			' . $notice . '
 		</div>
 	';
 
