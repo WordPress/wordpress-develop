@@ -610,7 +610,7 @@ switch ( $wp_list_table->current_action() ) {
 						/* translators: %s: Number of users. */
 						$message = _n( '%s user deleted.', '%s users deleted.', $delete_count );
 					}
-					$message = sprintf( $message, number_format_i18n( $delete_count ) );
+					$message    = sprintf( $message, number_format_i18n( $delete_count ) );
 					$messages[] = wp_get_admin_notice(
 						$message,
 						array(
@@ -622,7 +622,6 @@ switch ( $wp_list_table->current_action() ) {
 					break;
 				case 'add':
 					$message = __( 'New user created.' );
-
 					$user_id = isset( $_GET['id'] ) ? $_GET['id'] : false;
 					if ( $user_id && current_user_can( 'edit_user', $user_id ) ) {
 						$message .= sprintf(
@@ -655,7 +654,7 @@ switch ( $wp_list_table->current_action() ) {
 						/* translators: %s: Number of users. */
 						$message = _n( 'Password reset links sent to %s user.', 'Password reset links sent to %s users.', $reset_count );
 					}
-					$message = sprintf( $message, number_format_i18n( $reset_count ) );
+					$message    = sprintf( $message, number_format_i18n( $reset_count ) );
 					$messages[] = wp_get_admin_notice(
 						$message,
 						array(
