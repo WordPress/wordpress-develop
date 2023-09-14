@@ -1163,7 +1163,7 @@ class WP_Term_Query {
 		// $args can be anything. Only use the args defined in defaults to compute the key.
 		$cache_args = wp_array_slice_assoc( $args, array_keys( $this->query_var_defaults ) );
 
-		unset( $args['cache_results'], $cache_args['update_term_meta_cache'] );
+		unset( $cache_args['cache_results'], $cache_args['update_term_meta_cache'] );
 
 		if ( 'count' !== $args['fields'] && 'all_with_object_id' !== $args['fields'] ) {
 			$cache_args['fields'] = 'all';
