@@ -3498,18 +3498,6 @@ class WP_Query {
 					)
 				);
 
-				var_dump(array(
-					'post__in'               => $sticky_posts,
-					'post_type'              => $post_type,
-					'post_status'            => 'publish',
-					'posts_per_page'         => count( $sticky_posts ),
-					'suppress_filters'       => $q['suppress_filters'],
-					'cache_results'          => $q['cache_results'],
-					'update_post_meta_cache' => $q['update_post_meta_cache'],
-					'update_post_term_cache' => $q['update_post_term_cache'],
-					'lazy_load_term_meta'    => $q['lazy_load_term_meta'],
-				));
-
 				foreach ( $stickies as $sticky_post ) {
 					array_splice( $this->posts, $sticky_offset, 0, array( $sticky_post ) );
 					++$sticky_offset;
