@@ -417,7 +417,7 @@ if ( isset( $_REQUEST['approved'] )
 			}
 		}
 
-		wp_admin(
+		wp_admin_notice(
 			implode( "<br />\n", $messages ),
 			array(
 				'id'                 => 'moderated',
