@@ -150,11 +150,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$hook->add_filter( $hook_name, array( $b, 'action' ), 5, 1 );
 		$hook->add_filter( $hook_name, array( $c, 'action' ), 8, 1 );
 
-		$this->check_priority_exists( $hook, 10 );
-		$this->check_priority_exists( $hook, 5 );
-		$this->check_priority_exists( $hook, 8 );
-
-		$this->assertSame( array( 5, 8, 10 ), array_keys( $hook->callbacks ) );
+		$this->assertSame( array( 5, 8, 10 ), $this->get_priorities( $hook ) );
 	}
 
 	public function test_remove_and_add() {
@@ -167,6 +163,8 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->hook->add_filter( 'remove_and_add', array( $this, '_filter_remove_and_add4' ), 12, 1 );
 		$this->check_priority_exists( $this->hook, 12 );
 		$value = $this->hook->apply_filters( '', array() );
+
+		$this->assertSameSets( array( 10, 11, 12 ), $this->get_priorities( $this->hook ), 'The priorities should match this array' );
 
 		$this->assertSame( '24', $value );
 	}
@@ -182,6 +180,8 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->check_priority_exists( $this->hook, 12 );
 		$value = $this->hook->apply_filters( '', array() );
 
+		$this->assertSameSets( array( 10, 11, 12 ), $this->get_priorities( $this->hook ), 'The priorities should match this array' );
+
 		$this->assertSame( '12', $value );
 	}
 
@@ -196,9 +196,8 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 
 		$this->hook->add_filter( 'remove_and_add', array( $this, '_filter_remove_and_add4' ), 12, 1 );
 
-		$this->check_priority_exists( $this->hook, 10 );
-		$this->check_priority_exists( $this->hook, 11 );
-		$this->check_priority_exists( $this->hook, 12 );
+		$this->assertSameSets( array( 10, 11, 12 ), $this->get_priorities( $this->hook ), 'The priorities should match this array' );
+
 		$value = $this->hook->apply_filters( '', array() );
 
 		$this->assertSame( '1-134-234', $value );
@@ -309,10 +308,16 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 	}
 
 	protected function check_priority_exists( $hook, $priority ) {
+		$priorities = $this->get_priorities( $hook );
+
+		$this->assertContains( $priority, $priorities );
+	}
+
+	protected function get_priorities( $hook ) {
 		$reflection          = new ReflectionClass( $hook );
 		$reflection_property = $reflection->getProperty( 'priorities' );
 		$reflection_property->setAccessible( true );
 
-		$this->assertContains( $priority, $reflection_property->getValue( $hook ) );
+		return $reflection_property->getValue( $hook );
 	}
 }
