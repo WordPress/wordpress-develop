@@ -37,6 +37,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	/**
 	 * @return bool
 	 */
+	#[\Override]
 	public function ajax_user_can() {
 		return current_user_can( 'manage_links' );
 	}
@@ -47,6 +48,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	 * @global string $orderby
 	 * @global string $order
 	 */
+	#[\Override]
 	public function prepare_items() {
 		global $cat_id, $s, $orderby, $order;
 
@@ -75,6 +77,7 @@ class WP_Links_List_Table extends WP_List_Table {
 
 	/**
 	 */
+	#[\Override]
 	public function no_items() {
 		_e( 'No links found.' );
 	}
@@ -82,6 +85,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	/**
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_bulk_actions() {
 		$actions           = array();
 		$actions['delete'] = __( 'Delete' );
@@ -93,6 +97,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	 * @global int $cat_id
 	 * @param string $which
 	 */
+	#[\Override]
 	protected function extra_tablenav( $which ) {
 		global $cat_id;
 
@@ -126,6 +131,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	/**
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
+	#[\Override]
 	public function get_columns() {
 		return array(
 			'cb'         => '<input type="checkbox" />',
@@ -141,6 +147,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	/**
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_sortable_columns() {
 		return array(
 			'name'    => array( 'name', false, _x( 'Name', 'link name' ), __( 'Table ordered by Name.' ), 'asc' ),
@@ -157,6 +164,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	 *
 	 * @return string Name of the default primary column, in this case, 'name'.
 	 */
+	#[\Override]
 	protected function get_default_primary_column_name() {
 		return 'name';
 	}
@@ -169,6 +177,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	 *
 	 * @param object $item The current link object.
 	 */
+	#[\Override]
 	public function column_cb( $item ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$link = $item;
@@ -289,6 +298,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	 * @param object $item        Link object.
 	 * @param string $column_name Current column name.
 	 */
+	#[\Override]
 	public function column_default( $item, $column_name ) {
 		/**
 		 * Fires for each registered custom link column.
@@ -301,6 +311,7 @@ class WP_Links_List_Table extends WP_List_Table {
 		do_action( 'manage_link_custom_column', $column_name, $item->link_id );
 	}
 
+	#[\Override]
 	public function display_rows() {
 		foreach ( $this->items as $link ) {
 			$link                = sanitize_bookmark( $link );
@@ -326,6 +337,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	 * @return string Row actions output for links, or an empty string
 	 *                if the current column is not the primary column.
 	 */
+	#[\Override]
 	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';
