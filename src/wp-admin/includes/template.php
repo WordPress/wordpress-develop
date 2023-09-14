@@ -461,7 +461,7 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 	<legend>
 		<span class="hidden" id="editlegend"><?php _e( 'Edit Comment' ); ?></span>
 		<span class="hidden" id="replyhead"><?php _e( 'Reply to Comment' ); ?></span>
-		<span class="hidden" id="addhead"><?php _e( 'Add new Comment' ); ?></span>
+		<span class="hidden" id="addhead"><?php _e( 'Add New Comment' ); ?></span>
 	</legend>
 
 	<div id="replycontainer">
@@ -512,9 +512,16 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 			<button type="button" class="cancel button"><?php _e( 'Cancel' ); ?></button>
 			<span class="waiting spinner"></span>
 		</p>
-		<div class="notice notice-error notice-alt inline hidden">
-			<p class="error"></p>
-		</div>
+		<?php
+		wp_admin_notice(
+			'<p class="error"></p>',
+			array(
+				'type'               => 'error',
+				'additional_classes' => array( 'notice-alt', 'inline', 'hidden' ),
+				'paragraph_wrap'     => false,
+			)
+		);
+		?>
 	</div>
 
 	<input type="hidden" name="action" id="action" value="" />
@@ -1355,7 +1362,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 						}
 					}
 
-					$i++;
+					++$i;
 					// get_hidden_meta_boxes() doesn't apply in the block editor.
 					$hidden_class = ( ! $screen->is_block_editor() && in_array( $box['id'], $hidden, true ) ) ? ' hide-if-js' : '';
 					echo '<div id="' . $box['id'] . '" class="postbox ' . postbox_classes( $box['id'], $page ) . $hidden_class . '" ' . '>' . "\n";
@@ -1451,7 +1458,6 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 	echo '</div>';
 
 	return $i;
-
 }
 
 /**
@@ -1551,7 +1557,7 @@ function do_accordion_sections( $screen, $context, $data_object ) {
 						continue;
 					}
 
-					$i++;
+					++$i;
 					$hidden_class = in_array( $box['id'], $hidden, true ) ? 'hide-if-js' : '';
 
 					$open_class = '';
@@ -2777,9 +2783,12 @@ function wp_star_rating( $args = array() ) {
  * @since 4.2.0
  */
 function _wp_posts_page_notice() {
-	printf(
-		'<div class="notice notice-warning inline"><p>%s</p></div>',
-		__( 'You are currently editing the page that shows your latest posts.' )
+	wp_admin_notice(
+		__( 'You are currently editing the page that shows your latest posts.' ),
+		array(
+			'type'               => 'warning',
+			'additional_classes' => array( 'inline' ),
+		)
 	);
 }
 
