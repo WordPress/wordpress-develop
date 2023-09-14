@@ -62,7 +62,7 @@ class Tests_Admin_WpTermsListTable extends WP_UnitTestCase {
 	 * @covers WP_Terms_List_Table::handle_row_actions()
 	 */
 	public function test_handle_row_actions_should_generate_deprecation_notice() {
-		if ( ! PHP_VERSION_ID >= 80100 ) {
+		if ( PHP_VERSION_ID < 80100 ) {
 			$this->markTestSkipped( 'This test requires PHP 8.1 or higher.' );
 		}
 
