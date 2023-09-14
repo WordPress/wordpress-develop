@@ -1120,6 +1120,59 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 57902
+	 *
+	 * @covers WP_REST_Server::get_index
+	 */
+	public function test_get_index_fields_name() {
+		$server = new WP_REST_Server();
+
+		$request = new WP_REST_Request( 'GET', '/' );
+		$request->set_param( '_fields', 'name' );
+		$index = $server->dispatch( $request );
+		$index = rest_filter_response_fields( $index, $server, $request );
+		$data  = $index->get_data();
+		$links = $index->get_links();
+
+		$this->assertArrayHasKey( 'name', $data );
+		$this->assertArrayNotHasKey( 'help', $links );
+	}
+
+	/**
+	 * @ticket 57902
+	 *
+	 * @covers WP_REST_Server::get_index
+	 *
+	 * @dataProvider data_get_index_should_return_help_and_not_name
+	 *
+	 * @param string $field The field to add to the request.
+	 */
+	public function test_get_index_should_return_help_and_not_name( $field ) {
+		$server = new WP_REST_Server();
+
+		$request = new WP_REST_Request( 'GET', '/' );
+		$request->set_param( '_fields', $field );
+		$index = $server->dispatch( $request );
+		$index = rest_filter_response_fields( $index, $server, $request );
+		$data  = $index->get_data();
+		$links = $index->get_links();
+
+		$this->assertArrayNotHasKey( 'name', $data );
+		$this->assertArrayHasKey( 'help', $links );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @throws Exception
+	 *
+	 * @return array
+	 */
+	public function data_get_index_should_return_help_and_not_name() {
+		return self::text_array_to_dataprovider( array( '_links', '_embedded' ) );
+	}
+
+	/**
 	 * @ticket 50152
 	 */
 	public function test_index_includes_link_to_active_theme_if_authenticated() {

@@ -654,6 +654,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	/**
 	 * Tests that incoming styles are deduped and merged.
 	 *
+	 * @ticket 58811
 	 * @ticket 56467
 	 *
 	 * @covers ::wp_style_engine_get_stylesheet_from_css_rules
@@ -697,6 +698,6 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 
 		$compiled_stylesheet = wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'prettify' => false ) );
 
-		$this->assertSame( '.gandalf{color:white;height:190px;border-style:dotted;padding:10px;margin-bottom:100px;}.dumbledore,.rincewind{color:grey;height:90px;border-style:dotted;}', $compiled_stylesheet );
+		$this->assertSame( '.gandalf{color:white;height:190px;border-style:dotted;padding:10px;margin-bottom:100px;}.dumbledore{color:grey;height:90px;border-style:dotted;}.rincewind{color:grey;height:90px;border-style:dotted;}', $compiled_stylesheet );
 	}
 }
