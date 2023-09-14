@@ -4366,6 +4366,27 @@ EOF;
 
 			// Images with a certain minimum size in the arbitrary contexts of the page are also counted towards the threshold.
 			$this->assertSame( 1, wp_increase_content_media_count( 0 ), 'The content media count should be 1.' );
+
+			$this->assertEmpty(
+				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+				'Expected second image to not be lazy-loaded.'
+			);
+			$this->assertEmpty(
+				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+				'Expected third image to not be lazy-loaded.'
+			);
+
+			// Return 'lazy' if in the loop and in the main query for any subsequent elements.
+			$this->assertSame(
+				array( 'loading' => 'lazy' ),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context )
+			);
+
+			// Yes, for all subsequent elements.
+			$this->assertSame(
+				array( 'loading' => 'lazy' ),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context )
+			);
 		}
 	}
 
@@ -4393,16 +4414,6 @@ EOF;
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				'The "loading" attribute should be "lazy" while in the loop but not in the main query.'
 			);
-
-			// Set as main query.
-			$this->set_main_query( $query );
-
-			// First three element are not lazy loaded. However, first image is loaded with fetchpriority high.
-			$this->assertSame(
-				array( 'fetchpriority' => 'high' ),
-				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
-				'Expected first image to not be lazy-loaded. First large image gets high fetchpriority.'
-			);
 		}
 	}
 
@@ -4413,6 +4424,7 @@ EOF;
 	 */
 	public function data_wp_get_loading_optimization_attributes_arbitrary_contexts() {
 		return array(
+			array( 'wp_get_attachment_image' ),
 			array( 'something_completely_arbitrary' ),
 		);
 	}
