@@ -846,7 +846,7 @@ function wp_extract_urls( $content ) {
 
 	$post_links = array_unique(
 		array_map(
-			static function( $link ) {
+			static function ( $link ) {
 				// Decode to replace valid entities, like &amp;.
 				$link = html_entity_decode( $link );
 				// Maintain backward compatibility by removing extraneous semi-colons (`;`).
@@ -8318,15 +8318,23 @@ function wp_get_default_update_php_url() {
  *
  * @since 5.1.0
  * @since 5.2.0 Added the `$before` and `$after` parameters.
+ * @since 6.4.0 Added the `$echo` parameter.
  *
  * @param string $before Markup to output before the annotation. Default `<p class="description">`.
  * @param string $after  Markup to output after the annotation. Default `</p>`.
+ * @param bool   $echo   Markup should echo if true. Default `true`.
+ *
+ * @return string|void
  */
-function wp_update_php_annotation( $before = '<p class="description">', $after = '</p>' ) {
+function wp_update_php_annotation( $before = '<p class="description">', $after = '</p>', $echo = true ) {
 	$annotation = wp_get_update_php_annotation();
 
 	if ( $annotation ) {
-		echo $before . $annotation . $after;
+		if ( $echo ) {
+			echo $before . $annotation . $after;
+		} else {
+			return $before . $annotation . $after;
+		}
 	}
 }
 

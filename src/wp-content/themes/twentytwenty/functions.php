@@ -135,7 +135,11 @@ function twentytwenty_theme_support() {
 	 * by the theme.
 	 */
 	$loader = new TwentyTwenty_Script_Loader();
-	add_filter( 'script_loader_tag', array( $loader, 'filter_script_loader_tag' ), 10, 2 );
+	if ( version_compare( $GLOBALS['wp_version'], '6.3', '<' ) ) {
+		add_filter( 'script_loader_tag', array( $loader, 'filter_script_loader_tag' ), 10, 2 );
+	} else {
+		add_filter( 'print_scripts_array', array( $loader, 'migrate_legacy_strategy_script_data' ), 100 );
+	}
 }
 
 add_action( 'after_setup_theme', 'twentytwenty_theme_support' );
@@ -211,8 +215,14 @@ function twentytwenty_register_scripts() {
 		wp_enqueue_script( 'comment-reply' );
 	}
 
+	/*
+	 * This script is intentionally printed in the head because it involves the page header. The `defer` script loading
+	 * strategy ensures that it does not block rendering; being in the head it will start loading earlier so that it
+	 * will execute sooner once the DOM has loaded. The $args array is not used here to avoid unintentional footer
+	 * placement in WP<6.3; the wp_script_add_data() call is used instead.
+	 */
 	wp_enqueue_script( 'twentytwenty-js', get_template_directory_uri() . '/assets/js/index.js', array(), $theme_version );
-	wp_script_add_data( 'twentytwenty-js', 'async', true );
+	wp_script_add_data( 'twentytwenty-js', 'strategy', 'defer' );
 }
 
 add_action( 'wp_enqueue_scripts', 'twentytwenty_register_scripts' );

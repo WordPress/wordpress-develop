@@ -176,7 +176,7 @@ class Tests_Ajax_wpAjaxAjaxTagSearch extends WP_Ajax_UnitTestCase {
 		// Add the ajax_term_search_results filter.
 		add_filter(
 			'ajax_term_search_results',
-			static function( $results, $tax, $s ) {
+			static function ( $results, $tax, $s ) {
 				return array( 'ajax_term_search_results was applied' );
 			},
 			10,
