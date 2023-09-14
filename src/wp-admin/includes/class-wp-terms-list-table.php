@@ -335,6 +335,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @param WP_Term $tag   Term object.
 	 * @param int     $level
 	 */
+	#[\Override]
 	public function single_row( $tag, $level = 0 ) {
 		global $taxonomy;
 		$tag = sanitize_term( $tag, $taxonomy );
@@ -359,6 +360,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @param WP_Term $item Term object.
 	 * @return string
 	 */
+	#[\Override]
 	public function column_cb( $item ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$tag = $item;
@@ -443,6 +445,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 *
 	 * @return string Name of the default primary column, in this case, 'name'.
 	 */
+	#[\Override]
 	protected function get_default_primary_column_name() {
 		return 'name';
 	}
@@ -459,6 +462,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @return string Row actions output for terms, or an empty string
 	 *                if the current column is not the primary column.
 	 */
+	#[\Override]
 	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';
@@ -626,6 +630,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @param string  $column_name Name of the column.
 	 * @return string
 	 */
+	#[\Override]
 	public function column_default( $item, $column_name ) {
 		/**
 		 * Filters the displayed columns in the terms list table.
