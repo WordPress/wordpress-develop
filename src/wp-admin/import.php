@@ -63,13 +63,14 @@ $parent_file = 'tools.php';
 <?php
 if ( ! empty( $_GET['invalid'] ) ) :
 	$importer_not_installed = '<strong>' . __( 'Error:' ) . '</strong> ' . sprintf(
-			/* translators: %s: Importer slug. */
-			 __( 'The %s importer is invalid or is not installed.' ), '<strong>' . esc_html( $_GET['invalid'] ) . '</strong>'
+		/* translators: %s: Importer slug. */
+		__( 'The %s importer is invalid or is not installed.' ),
+		'<strong>' . esc_html( $_GET['invalid'] ) . '</strong>'
 	);
 	wp_admin_notice(
 		$importer_not_installed,
 		array(
-			'additional_classes' => array( 'error' )
+			'additional_classes' => array( 'error' ),
 		)
 	);
 endif;
