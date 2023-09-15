@@ -754,7 +754,7 @@ switch ( $wp_list_table->current_action() ) {
 				$error_message .= "<li>$err</li>\n";
 			}
 			wp_admin_notice(
-				$error_message,
+				'<ul>' . $error_message . '</ul>',
 				array(
 					'additional_classes' => array( 'error' ),
 				)
