@@ -315,4 +315,99 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( 'autoload_default_no', 'default-no', 'default-no' ),
 		);
 	}
+
+	/**
+	 *
+	 * @ticket 42441
+	 * @dataProvider data_option_autoloading_large_option
+	 *
+	 * @covers ::add_option
+	 */
+	public function test_add_option_autoloading_large_option( $autoload, $expected ) {
+		global $wpdb;
+		$name = 'foo';
+		add_filter( 'max_option_size', array( $this, 'filter_max_option_size' ) );
+		$value = file( DIR_TESTDATA . '/formatting/entities.txt' );
+		$added = add_option( $name, $value, '', $autoload );
+		$this->assertTrue( $added );
+
+		$actual = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name ) );
+		$this->assertSame( $expected, $actual->autoload );
+	}
+
+	/**
+	 *
+	 * @ticket 42441
+	 * @dataProvider data_option_autoloading_large_option
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_autoloading_large_option( $autoload, $expected ) {
+		global $wpdb;
+		$name  = 'foo';
+		$added = add_option( $name, 'bar' );
+		add_filter( 'max_option_size', array( $this, 'filter_max_option_size' ) );
+		$value = file( DIR_TESTDATA . '/formatting/entities.txt' );
+		$added = update_option( $name, $value, $autoload );
+		$this->assertTrue( $added );
+
+		$actual = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name ) );
+		$this->assertSame( $expected, $actual->autoload );
+	}
+
+	/**
+	 *
+	 * @ticket 42441
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_autoloading_large_option_no() {
+		global $wpdb;
+		$name  = 'foo';
+		$added = add_option( $name, 'bar', '', 'no' );
+		add_filter( 'max_option_size', array( $this, 'filter_max_option_size' ) );
+		$value = file( DIR_TESTDATA . '/formatting/entities.txt' );
+		$added = update_option( $name, $value );
+		$this->assertTrue( $added );
+
+		$actual = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name ) );
+		$this->assertSame( 'no', $actual->autoload );
+	}
+
+	public function data_option_autoloading_large_option() {
+		return array(
+			'yes'         => array(
+				'autoload' => 'yes',
+				'expected' => 'yes',
+			),
+			'true'        => array(
+				'autoload' => true,
+				'expected' => 'yes',
+			),
+			'no'          => array(
+				'autoload' => 'no',
+				'expected' => 'no',
+			),
+			'false'       => array(
+				'autoload' => false,
+				'expected' => 'no',
+			),
+			'default-yes' => array(
+				'autoload' => 'default-yes',
+				'expected' => 'default-yes',
+			),
+			'default-no'  => array(
+				'autoload' => 'default-no',
+				'expected' => 'default-no',
+			),
+			'null'        => array(
+				'autoload' => null,
+				'expected' => 'default-no',
+			),
+		);
+	}
+
+	public function filter_max_option_size( $current ) {
+		return 1000;
+	}
 }

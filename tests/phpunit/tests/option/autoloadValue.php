@@ -43,9 +43,9 @@ class Tests_Option_Autoload_Value extends WP_UnitTestCase {
 				'autoload' => 'default-yes',
 				'expected' => 'default-yes',
 			),
-			'default'     => array(
-				'autoload' => 'default-yes',
-				'expected' => 'default-yes',
+			'default-no'  => array(
+				'autoload' => 'default-no',
+				'expected' => 'default-no',
 			),
 			'null'        => array(
 				'autoload' => null,
