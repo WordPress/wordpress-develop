@@ -1126,22 +1126,20 @@ function delete_option( $option ) {
  * @return string The standardized autoload value: 'yes', 'no', 'default-yes', or 'default-no'.
  */
 function get_autoload_value( $autoload ) {
-	// Check if autoload is explicitly set to 'no' or false.
-	if ( false === $autoload ) {
-		return 'no';
+	// Check if autoload is a boolean.
+	if ( is_bool( $autoload ) ) {
+		return $autoload ? 'yes' : 'no';
 	}
 
-	// Check if autoload is explicitly set to 'yes' or true.
-	if ( true === $autoload ) {
-		return 'yes';
+	switch ( $autoload ) {
+		case 'no':
+		case 'yes':
+		case 'default-yes':
+		case 'default-no':
+			return $autoload;
+		default:
+			return 'default-yes';
 	}
-
-	$allow_values = array( 'no', 'yes', 'default-yes', 'default-no' );
-	if ( in_array( $autoload, $allow_values, true ) ) {
-		return $autoload;
-	}
-
-	return 'default-yes';
 }
 
 /**
@@ -1354,7 +1352,7 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 		$transient_option  = '_transient_' . $transient;
 
 		if ( false === get_option( $transient_option ) ) {
-			$autoload = 'yes'; // Consider using null, so default values are selected here. 
+			$autoload = 'yes'; // Consider using null, so default values are selected here.
 			if ( $expiration ) {
 				$autoload = 'no';
 				add_option( $transient_timeout, time() + $expiration, '', 'no' );
