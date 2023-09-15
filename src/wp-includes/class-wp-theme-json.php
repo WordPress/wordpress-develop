@@ -342,8 +342,8 @@ class WP_Theme_JSON {
 	 * @since 6.2.0 Added `dimensions.minHeight`, 'shadow.presets', 'shadow.defaultPresets',
 	 *              `position.fixed` and `position.sticky`.
 	 * @since 6.3.0 Added support for `typography.textColumns`, removed `layout.definitions`.
-	 * @since 6.4.0 Added `layout.allowEditing`, `background.backgroundImage`, and `typography.writingMode`.
-	 *
+	 * @since 6.4.0 Added support for `layout.allowEditing`, `background.backgroundImage`,
+	 *              and `typography.writingMode`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
