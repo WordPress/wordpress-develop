@@ -468,7 +468,7 @@ $connection_lost_message = '<span class="spinner"></span> ' . __( '<strong>Conne
 wp_admin_notice(
 	$connection_lost_message,
 	array(
-		'id'                 => 'lost-connection-error',
+		'id'                 => 'lost-connection-notice',
 		'additional_classes' => array( 'error', 'hidden' ),
 	)
 );
