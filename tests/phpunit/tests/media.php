@@ -4352,11 +4352,11 @@ EOF;
 
 		$query = $this->get_new_wp_query_for_published_post();
 
+		// Set as main query.
+		$this->set_main_query( $query );
+
 		while ( have_posts() ) {
 			the_post();
-
-			// Set as main query.
-			$this->set_main_query( $query );
 
 			$this->assertSame(
 				array( 'fetchpriority' => 'high' ),
@@ -4384,6 +4384,9 @@ EOF;
 		$attr = $this->get_width_height_for_high_priority();
 
 		$query = $this->get_new_wp_query_for_published_post();
+
+		// Set as main query.
+		$this->set_main_query( $query );
 
 		while ( have_posts() ) {
 			the_post();
