@@ -1344,11 +1344,16 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @group pwcc
 	 */
 	public function test_im_testing_things_correctly() {
-		$this->assertFalse( wp_cache_get( self::$pages[0], 'post_meta' ), 'Uncached meta' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Uncached meta' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Uncached term' );
 
-		update_meta_cache( 'post', array( self::$pages[0] ) );
-		$this->assertNotFalse( wp_cache_get( self::$pages[0], 'post_meta' ), 'Cached meta should not be false' );
-		$this->assertIsArray( wp_cache_get( self::$pages[0], 'post_meta' ), 'Cached meta should be an array' );
+		update_meta_cache( 'post', array( self::$posts[0] ) );
+		$this->assertNotFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Cached meta should not be false' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Cached meta should be an array' );
+
+		update_object_term_cache( array( self::$posts[0] ), 'post' );
+		$this->assertNotFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Cached term should not be false' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Cached term should be an array' );
 	}
 
 	/**
@@ -1358,26 +1363,28 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query_1 = new WP_Query(
 			array(
 				'fields' => 'ids',
-				'post_type' => 'page',
+				'post_type' => 'post',
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
 			)
 		);
 
 		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
-		$this->assertFalse( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q1 meta' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q1 meta' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q1 term' );
 
 		$query_2 = new WP_Query(
 			array(
 				'fields' => 'ids',
-				'post_type' => 'page',
+				'post_type' => 'post',
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
 			)
 		);
 
 		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
-		$this->assertFalse( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q2 meta' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q2 meta' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q2 term' );
 	}
 
 	/**
@@ -1387,26 +1394,28 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query_1 = new WP_Query(
 			array(
 				'fields' => 'ids',
-				'post_type' => 'page',
+				'post_type' => 'post',
 				'update_post_meta_cache' => true,
 				'update_post_term_cache' => true,
 			)
 		);
 
 		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
-		$this->assertIsArray( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q1 meta' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q1 meta' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q1 term' );
 
 		$query_2 = new WP_Query(
 			array(
 				'fields' => 'ids',
-				'post_type' => 'page',
+				'post_type' => 'post',
 				'update_post_meta_cache' => true,
 				'update_post_term_cache' => true,
 			)
 		);
 
 		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
-		$this->assertIsArray( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q2 meta' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q2 meta' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q2 term' );
 	}
 
 	/**
@@ -1416,26 +1425,28 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query_1 = new WP_Query(
 			array(
 				'fields' => 'ids',
-				'post_type' => 'page',
+				'post_type' => 'post',
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
 			)
 		);
 
 		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
-		$this->assertFalse( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q1 meta' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q1 meta' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q1 term' );
 
 		$query_2 = new WP_Query(
 			array(
 				'fields' => 'ids',
-				'post_type' => 'page',
+				'post_type' => 'post',
 				'update_post_meta_cache' => true,
 				'update_post_term_cache' => true,
 			)
 		);
 
 		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
-		$this->assertIsArray( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q2 meta' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q2 meta' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q2 term' );
 	}
 
 	/**
@@ -1445,26 +1456,28 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query_1 = new WP_Query(
 			array(
 				'fields' => 'id=>parent',
-				'post_type' => 'page',
+				'post_type' => 'post',
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
 			)
 		);
 
 		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
-		$this->assertFalse( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q1 meta' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q1 meta' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q1 term' );
 
 		$query_2 = new WP_Query(
 			array(
 				'fields' => 'id=>parent',
-				'post_type' => 'page',
+				'post_type' => 'post',
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
 			)
 		);
 
 		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
-		$this->assertFalse( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q2 meta' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q2 meta' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q2 term' );
 	}
 
 	/**
@@ -1474,26 +1487,28 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query_1 = new WP_Query(
 			array(
 				'fields' => 'id=>parent',
-				'post_type' => 'page',
+				'post_type' => 'post',
 				'update_post_meta_cache' => true,
 				'update_post_term_cache' => true,
 			)
 		);
 
 		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
-		$this->assertIsArray( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q1 meta' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q1 meta' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q1 term' );
 
 		$query_2 = new WP_Query(
 			array(
 				'fields' => 'id=>parent',
-				'post_type' => 'page',
+				'post_type' => 'post',
 				'update_post_meta_cache' => true,
 				'update_post_term_cache' => true,
 			)
 		);
 
 		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
-		$this->assertIsArray( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q2 meta' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q2 meta' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q2 term' );
 	}
 
 	/**
@@ -1503,25 +1518,27 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query_1 = new WP_Query(
 			array(
 				'fields' => 'id=>parent',
-				'post_type' => 'page',
+				'post_type' => 'post',
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
 			)
 		);
 
 		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
-		$this->assertFalse( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q1 meta' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q1 meta' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q1 term' );
 
 		$query_2 = new WP_Query(
 			array(
 				'fields' => 'id=>parent',
-				'post_type' => 'page',
+				'post_type' => 'post',
 				'update_post_meta_cache' => true,
 				'update_post_term_cache' => true,
 			)
 		);
 
 		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
-		$this->assertIsArray( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q2 meta' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q2 meta' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q2 term' );
 	}
 }
