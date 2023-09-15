@@ -165,7 +165,7 @@ class WP_Roles {
 			'capabilities' => $capabilities,
 		);
 		if ( $this->use_db ) {
-			update_option( $this->role_key, $this->roles, 'yes' );
+			update_option( $this->role_key, $this->roles );
 		}
 		$this->role_objects[ $role ] = new WP_Role( $role, $capabilities );
 		$this->role_names[ $role ]   = $display_name;
@@ -189,7 +189,7 @@ class WP_Roles {
 		unset( $this->roles[ $role ] );
 
 		if ( $this->use_db ) {
-			update_option( $this->role_key, $this->roles, 'yes' );
+			update_option( $this->role_key, $this->roles );
 		}
 
 		if ( get_option( 'default_role' ) === $role ) {
@@ -214,7 +214,7 @@ class WP_Roles {
 
 		$this->roles[ $role ]['capabilities'][ $cap ] = $grant;
 		if ( $this->use_db ) {
-			update_option( $this->role_key, $this->roles, 'yes' );
+			update_option( $this->role_key, $this->roles );
 		}
 	}
 
@@ -233,7 +233,7 @@ class WP_Roles {
 
 		unset( $this->roles[ $role ]['capabilities'][ $cap ] );
 		if ( $this->use_db ) {
-			update_option( $this->role_key, $this->roles, 'yes' );
+			update_option( $this->role_key, $this->roles );
 		}
 	}
 
