@@ -1116,11 +1116,16 @@ function delete_option( $option ) {
 }
 
 /**
- * Determines the autoload value for a given option.
+ * Determine the appropriate autoload value based on input.
  *
- * @param string|bool|null  $autoload The autoload value for the option. Can be 'yes', 'no', true, false, or null.
+ * This function checks the provided autoload value and returns a standardized
+ * value ('yes', 'no', 'default-yes', or 'default-no') based on specific conditions.
  *
- * @return string The determined autoload value. Possible values: 'yes', 'no', 'default'.
+ * @since 6.4.0
+ *
+ * @param mixed $autoload The autoload value to evaluate.
+ *
+ * @return string The standardized autoload value: 'yes', 'no', 'default-yes', or 'default-no'.
  */
 function get_autoload_value( $autoload ) {
 	// Check if autoload is explicitly set to 'no' or false.
@@ -1141,6 +1146,19 @@ function get_autoload_value( $autoload ) {
 	return 'default-yes';
 }
 
+/**
+ * Check the size of an option value and compare it to the maximum allowed size.
+ *
+ * This function serializes the given value and checks its size against the maximum allowed
+ * option size defined by the 'max_option_size' filter.
+ *
+ * @since 6.4.0
+ *
+ * @param mixed  $value The value of the option to be checked.
+ * @param string $name  The name of the option.
+ *
+ * @return string Returns 'default-no' if the size exceeds the maximum allowed size, or 'default-yes' otherwise.
+ */
 function check_option_size( $value, $name ) {
 	// Serialize the value and check its size against the maximum allowed option size.
 	$serialized_value = maybe_serialize( $value );
