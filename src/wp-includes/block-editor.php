@@ -457,7 +457,7 @@ function wp_get_post_content_block_attributes() {
 		$template_blocks    = parse_blocks( $current_template[0]->content );
 		$post_content_block = wp_get_first_block( $template_blocks, 'core/post-content' );
 
-		if ( ! empty( $post_content_block['attrs'] ) ) {
+		if ( isset( $post_content_block['attrs'] ) ) {
 			return $post_content_block['attrs'];
 		}
 	}
@@ -635,7 +635,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 
 	$post_content_block_attributes = wp_get_post_content_block_attributes();
 
-	if ( ! empty( $post_content_block_attributes ) ) {
+	if ( isset( $post_content_block_attributes ) ) {
 		$editor_settings['postContentAttributes'] = $post_content_block_attributes;
 	}
 
