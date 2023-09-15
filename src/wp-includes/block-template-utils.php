@@ -38,6 +38,12 @@ if ( ! defined( 'WP_TEMPLATE_PART_AREA_UNCATEGORIZED' ) ) {
  */
 function get_block_theme_folders( $theme_stylesheet = '' ) {
 	$theme      = wp_get_theme( $theme_name );
+	if( ! $theme->exists() ) {
+	    	return array(
+		    'wp_template'      => 'templates',
+		    'wp_template_part' => 'parts',
+	         );
+	}
 	return $theme->get_block_template_folders();
 }
 
