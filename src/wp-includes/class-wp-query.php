@@ -777,8 +777,8 @@ class WP_Query {
 	 *     @type array           $tax_query              An associative array of WP_Tax_Query arguments.
 	 *                                                   See WP_Tax_Query::__construct().
 	 *     @type string          $title                  Post title.
-	 *     @type bool            $update_post_meta_cache Whether to update the post meta cache. Default false if $fields = id=>parents otherwise true.
-	 *     @type bool            $update_post_term_cache Whether to update the post term cache. Default false if $fields = id=>parents otherwise true.
+	 *     @type bool            $update_post_meta_cache Whether to update the post meta cache. Default false if $fields = ids, id=>parent otherwise true.
+	 *     @type bool            $update_post_term_cache Whether to update the post term cache. Default false if $fields = ids, id=>parent otherwise true.
 	 *     @type bool            $update_menu_item_cache Whether to update the menu item cache. Default false.
 	 *     @type bool            $lazy_load_term_meta    Whether to lazy-load term meta. Setting to false will
 	 *                                                   disable cache priming for term meta, so that each
@@ -1950,7 +1950,7 @@ class WP_Query {
 		}
 
 		if ( ! isset( $q['update_post_term_cache'] ) ) {
-			if ( 'id=>parent' === $q['fields'] ) {
+			if ( 'id=>parent' === $q['fields'] || 'ids' === $q['fields'] ) {
 				$q['update_post_term_cache'] = false;
 			} else {
 				$q['update_post_term_cache'] = true;
@@ -1968,7 +1968,7 @@ class WP_Query {
 		}
 
 		if ( ! isset( $q['update_post_meta_cache'] ) ) {
-			if ( 'id=>parent' === $q['fields'] ) {
+			if ( 'id=>parent' === $q['fields'] || 'ids' === $q['fields'] ) {
 				$q['update_post_meta_cache'] = false;
 			} else {
 				$q['update_post_meta_cache'] = true;
