@@ -439,12 +439,12 @@ final class WP_Theme implements ArrayAccess {
 				$this->cache_add(
 					'theme',
 					array(
+						'block_template_folders' => $this->get_block_template_folders(),
 						'block_theme'            => $this->is_block_theme(),
 						'headers'                => $this->headers,
 						'errors'                 => $this->errors,
 						'stylesheet'             => $this->stylesheet,
 						'template'               => $this->template,
-						'block_template_folders' => $this->block_theme ? $this->get_block_template_folders() : null,
 					)
 				);
 				$this->parent = new WP_Theme( $this->template, $this->theme_root, $this );
@@ -1764,7 +1764,7 @@ final class WP_Theme implements ArrayAccess {
 		$block_templates_path      = $this->get_file_path( '/block-templates' );
 		$block_template_parts_path = $this->get_file_path( '/block-template-parts' );
 
-		if ( file_exists( $block_template_parts_path ) || file_exists( $block_templates_path ) ) {
+		if ( isset( $block_template_parts_path ) || file_exists( $block_templates_path ) ) {
 			$this->block_template_folders = array(
 				'wp_template'      => 'block-templates',
 				'wp_template_part' => 'block-template-parts',
