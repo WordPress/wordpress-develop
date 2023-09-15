@@ -152,47 +152,6 @@
 		<type>warning</type>
 	</rule>
 
-	<!-- Allow test classes for select sniffs. -->
-	<rule ref="WordPress.Files.FileName">
-		<properties>
-			<property name="custom_test_class_whitelist" type="array">
-				<!-- Test case parent classes in the "includes" folder, not yet accounted for in WPCS. -->
-				<element value="PHPUnit_Adapter_TestCase"/>
-				<element value="WP_Test_XML_TestCase"/>
-
-				<!-- Test case parent classes outside of the "includes" folder. -->
-				<element value="Tests_Query_Conditionals"/>
-				<element value="WP_Block_Templates_UnitTestCase"/>
-				<element value="WP_Filesystem_UnitTestCase"/>
-				<element value="WP_HTTP_UnitTestCase"/>
-				<element value="WP_Image_UnitTestCase"/>
-				<element value="WP_Import_UnitTestCase"/>
-				<element value="WP_Test_Adjacent_Image_Link_TestCase"/>
-				<element value="WP_Tests_Image_Resize_UnitTestCase"/>
-				<element value="WP_Theme_UnitTestCase"/>
-				<element value="WP_Font_Face_UnitTestCase"/>
-
-				<!-- Mock classes. -->
-				<element value="Spy_REST_Server"/>
-				<element value="WP_REST_Test_Controller"/>
-				<element value="WP_Image_Editor_Mock"/>
-				<element value="WP_Filesystem_MockFS"/>
-				<element value="Mock_Invokable"/>
-				<element value="MockPHPMailer"/>
-				<element value="MockAction"/>
-				<element value="WP_Object_Cache"/>
-
-				<!-- PHPUnit helpers. -->
-				<element value="TracTickets"/>
-				<element value="WP_PHPUnit_Util_Getopt"/>
-				<element value="PHPUnit_Util_Test"/>
-				<element value="WPProfiler"/>
-				<element value="PHPUnit_Framework_Exception"/>
-				<element value="Polyfill_TestCase"/>
-			</property>
-		</properties>
-	</rule>
-
 	<rule ref="WordPress.NamingConventions.ValidVariableName">
 		<properties>
 			<property name="customPropertiesWhitelist" type="array">
@@ -343,14 +302,14 @@
 		<exclude-pattern>/tests/phpunit/tests/multisite/site\.php</exclude-pattern>
 	</rule>
 
+	<!-- Exclude the unit tests from the file name rules. -->
+	<rule ref="WordPress.Files.FileName">
+		<exclude-pattern>/tests/phpunit/*</exclude-pattern>
+	</rule>
+
 	<!-- WPCS1620: template.php isn't a template tag file. -->
 	<rule ref="WordPress.Files.FileName.InvalidTemplateTagFileName">
 		<exclude-pattern>/src/wp-includes/template\.php</exclude-pattern>
-	</rule>
-
-	<!-- Exclude the unit tests from select sniffs. -->
-	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
-		<exclude-pattern>/tests/phpunit/tests/*</exclude-pattern>
 	</rule>
 
 	<!-- Exclude some incorrectly named files that won't be renamed. -->
