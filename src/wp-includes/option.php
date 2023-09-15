@@ -745,7 +745,6 @@ function update_option( $option, $value, $autoload = null ) {
 				$deprecated_keys[ $option ]
 			)
 		);
-
 		return update_option( $deprecated_keys[ $option ], $value, $autoload );
 	}
 
@@ -944,7 +943,6 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 				$deprecated_keys[ $option ]
 			)
 		);
-
 		return add_option( $deprecated_keys[ $option ], $value, $deprecated, $autoload );
 	}
 
@@ -1356,7 +1354,7 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 		$transient_option  = '_transient_' . $transient;
 
 		if ( false === get_option( $transient_option ) ) {
-			$autoload = 'yes';
+			$autoload = 'yes'; // Consider using null, so default values are selected here. 
 			if ( $expiration ) {
 				$autoload = 'no';
 				add_option( $transient_timeout, time() + $expiration, '', 'no' );
