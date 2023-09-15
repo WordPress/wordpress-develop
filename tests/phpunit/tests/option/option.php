@@ -132,8 +132,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$notoptions = wp_cache_get( 'notoptions', 'options' );
 
-		$this->assertSame( 0, $after - $before, 'No more queries should be run on second run on function' );
-		$this->assertArrayHasKey( 'invalid', $notoptions, 'Check that option name is in notoptions cache' );
+		$this->assertSame( 0, $after - $before, 'The notoptions cache was not hit on the second call to `get_option()`.' );
+		$this->assertArrayHasKey( 'invalid', $notoptions, 'The "invalid" option should be in the notoptions cache.' );
 	}
 
 	/**
@@ -151,8 +151,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$notoptions = wp_cache_get( 'notoptions', 'options' );
 
-		$this->assertSame( 0, $after - $before, 'No more queries should be run on second run on function' );
-		$this->assertFalse( $notoptions, 'Check notoptions cache is not set' );
+		$this->assertSame( 0, $after - $before, 'The options cache was not hit on the second call to `get_option()`.' );
+		$this->assertFalse( $notoptions, 'The notoptions cache should not be set.' );
 	}
 
 	/**
