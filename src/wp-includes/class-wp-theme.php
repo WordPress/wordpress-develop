@@ -1739,24 +1739,19 @@ final class WP_Theme implements ArrayAccess {
 			return $this->block_template_folders;
 		}
 
-		$paths_to_block_template_directories = array(
-			$this->theme_root . '/' . $this->stylesheet . '/block-template-parts',
-			$this->theme_root . '/' . $this->stylesheet . '/block-templates',
-		);
-
 		$this->block_template_folders = array(
 			'wp_template'      => 'templates',
 			'wp_template_part' => 'parts',
 		);
 
-		foreach ( $paths_to_block_template_directories as $path_to_block_template_directory ) {
-			if ( is_dir( $path_to_block_template_directory ) ) {
-				$this->block_template_folders = array(
-					'wp_template'      => 'block-templates',
-					'wp_template_part' => 'block-template-parts',
-				);
-				break;
-			}
+		$block_templates_path      = $this->get_file_path( '/block-templates' );
+		$block_template_parts_path = $this->get_file_path( '/block-template-parts' );
+
+		if ( file_exists( $block_template_parts_path ) || file_exists( $block_templates_path ) ) {
+			$this->block_template_folders = array(
+				'wp_template'      => 'block-templates',
+				'wp_template_part' => 'block-template-parts',
+			);
 		}
 
 		return $this->block_template_folders;
