@@ -615,7 +615,6 @@ final class WP_Style_Engine {
 	 *
 	 * @param array $style_value      A single raw style value from $block_styles array.
 	 * @param array $style_definition A single style definition from BLOCK_STYLE_DEFINITIONS_METADATA.
-	 *
 	 * @return string[] An associative array of CSS definitions, e.g., array( "$property" => "$value", "$property" => "$value" ).
 	 */
 	protected static function get_url_or_value_css_declaration( $style_value, $style_definition ) {
