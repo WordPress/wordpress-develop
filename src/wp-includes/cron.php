@@ -1239,7 +1239,7 @@ function _set_cron_array( $cron, $wp_error = false ) {
 
 	$cron['version'] = 2;
 
-	$result = update_option( 'cron', $cron );
+	$result = update_option( 'cron', $cron, 'yes' );
 
 	if ( $wp_error && ! $result ) {
 		return new WP_Error(
@@ -1279,7 +1279,7 @@ function _upgrade_cron_array( $cron ) {
 
 	$new_cron['version'] = 2;
 
-	update_option( 'cron', $new_cron );
+	update_option( 'cron', $new_cron, 'yes' );
 
 	return $new_cron;
 }

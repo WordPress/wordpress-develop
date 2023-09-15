@@ -1515,7 +1515,7 @@ class WP_Rewrite {
 			 */
 			add_action( 'wp_loaded', array( $this, 'flush_rules' ) );
 		} else {
-			update_option( 'rewrite_rules', $this->rules );
+			update_option( 'rewrite_rules', $this->rules, 'yes' );
 		}
 	}
 
