@@ -214,7 +214,8 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 		isset( $block_attributes['style']['typography']['writingMode'] )
 	) {
 		$typography_block_styles['writingMode'] = _wp_array_get(
-			$block_attributes, array( 'style', 'typography', 'writingMode' ),
+			$block_attributes,
+			array( 'style', 'typography', 'writingMode' ),
 			null
 		);
 	}
