@@ -269,3 +269,59 @@ function install_theme_information() {
 	iframe_footer();
 	exit;
 }
+
+/**
+ * Outputs JS template and conditionals for checking theme compatibility with WordPress and PHP.
+ *
+ * @since 6.4.0
+ *
+ * @return string
+ */
+function theme_compatibility_template() {
+	$compatibility_template  = '<# if ( ! data.compatible_wp && ! data.compatible_php ) { #>';
+	$compatibility_template .= __( 'This theme does not work with your versions of WordPress and PHP.' );
+	if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
+		$compatibility_template .= sprintf(
+			/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
+			' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
+			self_admin_url( 'update-core.php' ),
+			esc_url( wp_get_update_php_url() )
+		);
+		$compatibility_template .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
+	} elseif ( current_user_can( 'update_core' ) ) {
+		$compatibility_template .= sprintf(
+			/* translators: %s: URL to WordPress Updates screen. */
+			' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+			self_admin_url( 'update-core.php' )
+		);
+	} elseif ( current_user_can( 'update_php' ) ) {
+		$compatibility_template .= sprintf(
+			/* translators: %s: URL to Update PHP page. */
+			' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+			esc_url( wp_get_update_php_url() )
+		);
+		$compatibility_template .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
+	}
+	$compatibility_template .= '<# } else if ( ! data.compatible_wp ) { #>';
+	$compatibility_template .= __( 'This theme does not work with your version of WordPress.' );
+	if ( current_user_can( 'update_core' ) ) {
+		$compatibility_template .= sprintf(
+			/* translators: %s: URL to WordPress Updates screen. */
+			' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+			self_admin_url( 'update-core.php' )
+		);
+	}
+	$compatibility_template .= '<# } else if ( ! data.compatible_php ) { #>';
+	$compatibility_template .= __( 'This theme does not work with your version of PHP.' );
+	if ( current_user_can( 'update_php' ) ) {
+		$compatibility_template .= sprintf(
+			/* translators: %s: URL to Update PHP page. */
+			' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+			esc_url( wp_get_update_php_url() )
+		);
+		$compatibility_template .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
+	}
+	$compatibility_template .= '<# } #>';
+
+	return $compatibility_template;
+}
