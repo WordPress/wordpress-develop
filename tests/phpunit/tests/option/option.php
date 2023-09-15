@@ -133,6 +133,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$notoptions = wp_cache_get( 'notoptions', 'options' );
 
 		$this->assertSame( 0, $after - $before, 'The notoptions cache was not hit on the second call to `get_option()`.' );
+		$this->assertIsArray( $notoptions, 'The notoptions cache should be set.' );
 		$this->assertArrayHasKey( 'invalid', $notoptions, 'The "invalid" option should be in the notoptions cache.' );
 	}
 
