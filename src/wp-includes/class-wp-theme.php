@@ -295,13 +295,12 @@ final class WP_Theme implements ArrayAccess {
 			} else {
 				$this->errors = new WP_Error( 'theme_no_stylesheet', __( 'Stylesheet is missing.' ) );
 			}
-			$this->template               = $this->stylesheet;
-			$this->block_theme            = false;
-			$this->block_template_folders = null;
+			$this->template    = $this->stylesheet;
+			$this->block_theme = false;
 			$this->cache_add(
 				'theme',
 				array(
-					'block_template_folders' => $this->block_template_folders,
+					'block_template_folders' => null,
 					'block_theme'            => $this->block_theme,
 					'headers'                => $this->headers,
 					'errors'                 => $this->errors,
@@ -314,15 +313,14 @@ final class WP_Theme implements ArrayAccess {
 			}
 			return;
 		} elseif ( ! is_readable( $this->theme_root . '/' . $theme_file ) ) {
-			$this->headers['Name']        = $this->stylesheet;
-			$this->errors                 = new WP_Error( 'theme_stylesheet_not_readable', __( 'Stylesheet is not readable.' ) );
-			$this->template               = $this->stylesheet;
-			$this->block_theme            = false;
-			$this->block_template_folders = null;
+			$this->headers['Name'] = $this->stylesheet;
+			$this->errors          = new WP_Error( 'theme_stylesheet_not_readable', __( 'Stylesheet is not readable.' ) );
+			$this->template        = $this->stylesheet;
+			$this->block_theme     = false;
 			$this->cache_add(
 				'theme',
 				array(
-					'block_template_folders' => $this->block_template_folders,
+					'block_template_folders' => null,
 					'block_theme'            => $this->block_theme,
 					'headers'                => $this->headers,
 					'errors'                 => $this->errors,
