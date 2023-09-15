@@ -531,9 +531,10 @@ switch ( $action ) {
 			// Set menu locations.
 			set_theme_mod( 'nav_menu_locations', $menu_locations );
 
-			$messages[] = wp_admin_notice(
+			$messages[] = wp_get_admin_notice(
 				__( 'Menu locations updated.' ),
 				array(
+					'id'                 => 'message',
 					'additional_classes' => array( 'updated' ),
 					'dismissible'        => true,
 				)
