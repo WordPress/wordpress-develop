@@ -39,7 +39,7 @@ class Tests_Admin_WpTermsListTable extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Call a private method as if it was public.
+	 * Call an inaccessible (private or protected) method.
 	 *
 	 * @param object|string $object      Object instance or class string to call the method of.
 	 * @param string        $method_name Name of the method to call.
@@ -47,56 +47,26 @@ class Tests_Admin_WpTermsListTable extends WP_UnitTestCase {
 	 * @return mixed Return value of the method call.
 	 * @throws ReflectionException If the object could not be reflected upon.
 	 */
-	private function call_private_method( $object, $method_name, $args = array() ) {
+	private function call_inaccessible_method( $object, $method_name, $args = array() ) {
 		$method = ( new ReflectionClass( $object ) )->getMethod( $method_name );
 		$method->setAccessible( true );
 		return $method->invokeArgs( $object, $args );
 	}
 
 	/**
-	 * This test proves the existence and reproducibility of the deprecation warnings
-	 * caused by passing null as an argument to `add_query_arg()`
+	 * @covers WP_Terms_List_Table::handle_row_actions()
 	 *
 	 * @ticket 59336
-	 *
-	 * @covers WP_Terms_List_Table::handle_row_actions()
 	 */
-	public function test_handle_row_actions_should_generate_deprecation_notice() {
-		if ( PHP_VERSION_ID < 80100 ) {
-			$this->markTestSkipped( 'This test requires PHP 8.1 or higher.' );
-		}
-
-		wp_set_current_user( self::$admin_id );
-
-		$edit_link = add_query_arg(
-			'wp_http_referer',
-			admin_url( 'index.php' ),
-			get_edit_term_link( self::$term_object, self::CATEGORY_TAXONOMY, 'post' )
-		);
-
-		$this->assertStringContainsString( admin_url( 'term.php' ), $edit_link );
-
+	public function test_handle_row_actions_as_author() {
 		wp_set_current_user( self::$author_id );
 
-		set_error_handler(
-			static function ( $errno, $errstr ) {
-				throw new ErrorException( $errstr, $errno );
-			},
-			E_ALL
-		);
+		$actions = $this->call_inaccessible_method( $this->terms_list_table, 'handle_row_actions', array( self::$term_object, 'title', 'title' ) );
 
-		$this->expectException( ErrorException::class );
-		$this->expectExceptionMessageMatches( '/^strstr\(\): Passing null to parameter #1 \(\$haystack\) of type string is deprecated/' );
-
-		$edit_link = add_query_arg(
-			'wp_http_referer',
-			admin_url( 'index.php' ),
-			get_edit_term_link( self::$term_object, self::CATEGORY_TAXONOMY, 'post' )
-		);
-
-		$this->assertStringNotContainsString( admin_url( 'term.php' ), $edit_link );
-
-		restore_error_handler();
+		$this->assertStringContainsString( '<div class="row-actions">', $actions, 'Row actions should be displayed.' );
+		$this->assertStringContainsString( 'View', $actions, 'View action should be displayed to the author.' );
+		$this->assertStringNotContainsString( 'Edit', $actions, 'Edit action should not be displayed to the author.' );
+		$this->assertStringNotContainsString( 'Delete', $actions, 'Delete action should not be displayed to the author.' );
 	}
 
 	/**
@@ -104,24 +74,15 @@ class Tests_Admin_WpTermsListTable extends WP_UnitTestCase {
 	 *
 	 * @ticket 59336
 	 */
-	public function test_handle_row_actions() {
-		wp_set_current_user( self::$author_id );
-
-		$actions = $this->call_private_method( $this->terms_list_table, 'handle_row_actions', array( self::$term_object, 'title', 'title' ) );
-
-		$this->assertStringContainsString( '<div class="row-actions">', $actions );
-		$this->assertStringContainsString( 'View', $actions );
-		$this->assertStringNotContainsString( 'Edit', $actions );
-		$this->assertStringNotContainsString( 'Delete', $actions );
-
+	public function test_handle_row_actions_as_admin() {
 		wp_set_current_user( self::$admin_id );
 
-		$actions = $this->call_private_method( $this->terms_list_table, 'handle_row_actions', array( self::$term_object, 'title', 'title' ) );
+		$actions = $this->call_inaccessible_method( $this->terms_list_table, 'handle_row_actions', array( self::$term_object, 'title', 'title' ) );
 
-		$this->assertStringContainsString( '<div class="row-actions">', $actions );
-		$this->assertStringContainsString( 'View', $actions );
-		$this->assertStringContainsString( 'Edit', $actions );
-		$this->assertStringContainsString( 'Delete', $actions );
-		$this->assertStringContainsString( admin_url( 'term.php' ), $actions );
+		$this->assertStringContainsString( '<div class="row-actions">', $actions, 'Row actions should be displayed.' );
+		$this->assertStringContainsString( 'View', $actions, 'View action should be displayed to the admin.' );
+		$this->assertStringContainsString( 'Edit', $actions, 'Edit action should be displayed to the admin.' );
+		$this->assertStringContainsString( 'Delete', $actions, 'Delete action should be displayed to the admin.' );
+		$this->assertStringContainsString( admin_url( 'term.php' ), $actions, 'Edit term link should be displayed to the admin.' );
 	}
 }
