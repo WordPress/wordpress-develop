@@ -297,7 +297,10 @@ final class WP_Theme implements ArrayAccess {
 			}
 			$this->template               = $this->stylesheet;
 			$this->block_theme            = false;
-			$this->block_template_folders = $this->get_block_template_folders();
+			$this->block_template_folders = array(
+				'wp_template'      => 'templates',
+				'wp_template_part' => 'parts',
+			);
 			$this->cache_add(
 				'theme',
 				array(
@@ -318,7 +321,10 @@ final class WP_Theme implements ArrayAccess {
 			$this->errors                 = new WP_Error( 'theme_stylesheet_not_readable', __( 'Stylesheet is not readable.' ) );
 			$this->template               = $this->stylesheet;
 			$this->block_theme            = false;
-			$this->block_template_folders = $this->get_block_template_folders();
+			$this->block_template_folders = array(
+				'wp_template'      => 'templates',
+				'wp_template_part' => 'parts',
+			);
 			$this->cache_add(
 				'theme',
 				array(
