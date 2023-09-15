@@ -7,7 +7,7 @@ return array(
 	'categories' => array( 'pages', 'buttons' ),
 	'content'    => '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var(--wp--custom--spacing--small, 1.25rem)","bottom":"var(--wp--custom--spacing--small, 1.25rem)"}}},"layout":{"inherit":true}} -->
 					<div class="wp-block-group alignfull" style="padding-top:var(--wp--custom--spacing--small, 1.25rem);padding-bottom:var(--wp--custom--spacing--small, 1.25rem)"><!-- wp:image {"align":"wide","sizeSlug":"full","linkDestination":"none"} -->
-					<figure class="wp-block-image alignwide size-full"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-gray-b.jpg" alt=""/></figure>
+					<figure class="wp-block-image alignwide size-full"><img width="2100" height="1260" src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-gray-b.jpg" alt=""/></figure>
 					<!-- /wp:image -->
 
 					<!-- wp:columns {"align":"wide"} -->

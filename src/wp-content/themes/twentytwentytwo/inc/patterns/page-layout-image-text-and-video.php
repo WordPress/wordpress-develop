@@ -39,7 +39,7 @@ return array(
 					<!-- /wp:group -->
 
 					<!-- wp:image {"align":"full","style":{"color":{}}} -->
-					<figure class="wp-block-image alignfull"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-transparent-a.png" alt="' . esc_attr__( 'An illustration of a bird in flight', 'twentytwentytwo' ) . '"/></figure>
+					<figure class="wp-block-image alignfull"><img width="2400" height="1178" src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-transparent-a.png" alt="' . esc_attr__( 'An illustration of a bird in flight', 'twentytwentytwo' ) . '"/></figure>
 					<!-- /wp:image -->
 
 					<!-- wp:group {"align":"full","layout":{"inherit":true}} -->

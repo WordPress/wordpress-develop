@@ -23,7 +23,7 @@ return array(
 					<!-- wp:columns {"align":"wide","style":{"spacing":{"blockGap":"5%"}}} -->
 					<div class="wp-block-columns alignwide"><!-- wp:column {"width":"70%","style":{"spacing":{"padding":{"bottom":"32px"}}}} -->
 					<div class="wp-block-column" style="padding-bottom:32px;flex-basis:70%"><!-- wp:image {"sizeSlug":"full","linkDestination":"none"} -->
-					<figure class="wp-block-image size-full"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/bird-on-salmon.jpg" alt="' . esc_attr__( 'Image of a bird on a branch', 'twentytwentytwo' ) . '"/></figure>
+					<figure class="wp-block-image size-full"><img width="984" height="1426" src="' . esc_url( get_template_directory_uri() ) . '/assets/images/bird-on-salmon.jpg" alt="' . esc_attr__( 'Image of a bird on a branch', 'twentytwentytwo' ) . '"/></figure>
 					<!-- /wp:image --></div>
 					<!-- /wp:column -->
 
