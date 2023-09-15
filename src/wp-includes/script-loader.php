@@ -2717,7 +2717,7 @@ function enqueue_editor_block_styles_assets() {
 	$register_script_lines[] = '} )();';
 	$inline_script           = implode( "\n", $register_script_lines );
 
-	wp_register_script( 'wp-block-styles', false, array( 'wp-blocks' ), true, true );
+	wp_register_script( 'wp-block-styles', false, array( 'wp-blocks' ), true, array( 'in_footer' => true ) );
 	wp_add_inline_script( 'wp-block-styles', $inline_script );
 	wp_enqueue_script( 'wp-block-styles' );
 }
@@ -3053,7 +3053,7 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
  *     Default empty array.
  *
  *     @type bool $optimize Whether to optimize the CSS output, e.g., combine rules.
- *                          Default true.
+ *                          Default false.
  *     @type bool $prettify Whether to add new lines and indents to output.
  *                          Default to whether the `SCRIPT_DEBUG` constant is defined.
  * }

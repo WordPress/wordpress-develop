@@ -30,6 +30,9 @@
 	"selectors": {
 		"root": ".wp-block-notice"
 	},
+	"blockHooks": {
+		"core/post-content": "before"
+	},
 	"supports": {
 		"align": true,
 		"lightBlockWrapper": true
