@@ -1486,7 +1486,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 0, get_num_queries() - $start_queries, 'Second query should not make any database queries.' );
+		// The second query gets the posts and their parents by priming the post caches.
+		$this->assertSame( 1, get_num_queries() - $start_queries, 'Second query should make one database query.' );
 		$this->assertCount( count( self::$pages ), $query_2->posts, 'Second query should return correct number of posts.' );
 		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should not be cached on second query' );
 		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should not be cached on second query' );
@@ -1520,7 +1521,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 0, get_num_queries() - $start_queries, 'Second query should not make any database queries.' );
+		// The second query gets the posts and their parents by priming the post caches.
+		$this->assertSame( 1, get_num_queries() - $start_queries, 'Second query should make one database query.' );
 		$this->assertCount( count( self::$pages ), $query_2->posts, 'Second query should return correct number of posts.' );
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should be cached on second query' );
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should be cached on second query' );
@@ -1554,7 +1556,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 3, get_num_queries() - $start_queries, 'Second query should make three database queries.' );
+		// The second query gets the posts and their parents by priming the post caches.
+		$this->assertSame( 4, get_num_queries() - $start_queries, 'Second query should make four database queries.' );
 		$this->assertCount( count( self::$pages ), $query_2->posts, 'Second query should return correct number of posts.' );
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should be cached on second query' );
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should be cached on second query' );
