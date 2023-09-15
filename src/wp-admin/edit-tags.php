@@ -353,6 +353,7 @@ if ( $message ) :
 	wp_admin_notice(
 		$message,
 		array(
+			'id'                 => 'message',
 			'additional_classes' => array( $class ),
 			'dismissible'        => true,
 		)
