@@ -31,6 +31,17 @@ class Tests_Option_wpLoadAlloptions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_load_alloptions
+	 */
+	public function test_default_and_no() {
+		add_option( 'foo', 'bar', '', 'default-no' );
+		add_option( 'bar', 'foo', '', 'no' );
+		$alloptions = wp_load_alloptions();
+		$this->assertArrayNotHasKey( 'foo', $alloptions );
+		$this->assertArrayNotHasKey( 'bar', $alloptions );
+	}
+
+	/**
 	 * @depends test_if_alloptions_is_cached
 	 *
 	 * @covers ::wp_cache_delete
