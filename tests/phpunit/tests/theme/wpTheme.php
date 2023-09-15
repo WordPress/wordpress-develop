@@ -343,7 +343,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$theme->cache_delete();
 		// Second run.
 		$this->assertTrue( $theme->is_block_theme(), 'is_block_theme should return true on second run' );
-		$this->assertCount( 2, $filter->get_events(), 'Should only be 4, as second run should not be cached' );
+		$this->assertCount( 4, $filter->get_events(), 'Should only be 4, as second run should not be cached' );
 	}
 
 	/**
