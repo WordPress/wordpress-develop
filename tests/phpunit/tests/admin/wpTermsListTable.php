@@ -101,6 +101,8 @@ class Tests_Admin_WpTermsListTable extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Terms_List_Table::handle_row_actions()
+	 *
+	 * @ticket 59336
 	 */
 	public function test_handle_row_actions() {
 		wp_set_current_user( self::$author_id );
