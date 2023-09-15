@@ -2331,7 +2331,7 @@ function upgrade_630() {
 }
 
 /**
- * Executes changes made in WordPress 6.4.0.
+ * Execute changes made in WordPress 6.4.0.
  *
  * @ignore
  * @since 6.4.0
@@ -2345,7 +2345,7 @@ function upgrade_640() {
 		// Remove wp_https_detection, which is now part of a async site health check
 		$scheduled = wp_get_scheduled_event( 'wp_https_detection' );
 		if ( $scheduled ) {
-			wp_clear_scheduled_hook('wp_https_detection');
+			wp_clear_scheduled_hook( 'wp_https_detection' );
 		}
 	}
 }
