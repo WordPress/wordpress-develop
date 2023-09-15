@@ -1373,6 +1373,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should not be cached on first query' );
 		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should not be cached on first query' );
 
+		$start_queries = get_num_queries();
+
 		$query_2 = new WP_Query(
 			array(
 				'fields'                 => 'ids',
@@ -1382,6 +1384,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertSame( 0, get_num_queries() - $start_queries, 'Second query should not make any database queries.' );
 		$this->assertCount( count( self::$pages ), $query_2->posts, 'Second query should return correct number of posts.' );
 		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should not be cached on second query' );
 		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should not be cached on second query' );
@@ -1404,6 +1407,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should be cached on first query' );
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should be cached on first query' );
 
+		$start_queries = get_num_queries();
+
 		$query_2 = new WP_Query(
 			array(
 				'fields'                 => 'ids',
@@ -1413,6 +1418,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertSame( 0, get_num_queries() - $start_queries, 'Second query should not make any database queries.' );
 		$this->assertCount( count( self::$pages ), $query_2->posts, 'Second query should return correct number of posts.' );
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should be cached on second query' );
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should be cached on second query' );
@@ -1435,6 +1441,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should not be cached on first query' );
 		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should not be cached on first query' );
 
+		$start_queries = get_num_queries();
+
 		$query_2 = new WP_Query(
 			array(
 				'fields'                 => 'ids',
@@ -1444,6 +1452,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertSame( 3, get_num_queries() - $start_queries, 'Second query should make three database queries.' );
 		$this->assertCount( count( self::$pages ), $query_2->posts, 'Second query should return correct number of posts.' );
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should be cached on second query' );
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should be cached on second query' );
@@ -1466,6 +1475,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should not be cached on first query' );
 		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should not be cached on first query' );
 
+		$start_queries = get_num_queries();
+
 		$query_2 = new WP_Query(
 			array(
 				'fields'                 => 'id=>parent',
@@ -1475,6 +1486,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertSame( 0, get_num_queries() - $start_queries, 'Second query should not make any database queries.' );
 		$this->assertCount( count( self::$pages ), $query_2->posts, 'Second query should return correct number of posts.' );
 		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should not be cached on second query' );
 		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should not be cached on second query' );
@@ -1497,6 +1509,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q1 meta' );
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q1 term' );
 
+		$start_queries = get_num_queries();
+
 		$query_2 = new WP_Query(
 			array(
 				'fields'                 => 'id=>parent',
@@ -1506,6 +1520,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertSame( 0, get_num_queries() - $start_queries, 'Second query should not make any database queries.' );
 		$this->assertCount( count( self::$pages ), $query_2->posts, 'Second query should return correct number of posts.' );
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should be cached on second query' );
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should be cached on second query' );
@@ -1528,6 +1543,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should not be cached on first query' );
 		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should not be cached on first query' );
 
+		$start_queries = get_num_queries();
+
 		$query_2 = new WP_Query(
 			array(
 				'fields'                 => 'id=>parent',
@@ -1537,6 +1554,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertSame( 3, get_num_queries() - $start_queries, 'Second query should make three database queries.' );
 		$this->assertCount( count( self::$pages ), $query_2->posts, 'Second query should return correct number of posts.' );
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should be cached on second query' );
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should be cached on second query' );
