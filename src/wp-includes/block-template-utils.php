@@ -36,8 +36,7 @@ if ( ! defined( 'WP_TEMPLATE_PART_AREA_UNCATEGORIZED' ) ) {
  *     @type string $wp_template_part Theme-relative directory name for block template parts.
  * }
  */
-function get_block_theme_folders( $theme_stylesheet = null ) {
-	$theme_name = null === $theme_stylesheet ? get_stylesheet() : $theme_stylesheet;
+function get_block_theme_folders( $theme_stylesheet = '' ) {
 	$theme      = wp_get_theme( $theme_name );
 	return $theme->get_block_template_folders();
 }
