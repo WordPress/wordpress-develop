@@ -195,7 +195,7 @@ final class WP_Theme implements ArrayAccess {
 	private $cache_hash;
 
 	/**
-	 * Block template folder.
+	 * Block template folders.
 	 *
 	 * @since 6.4.0
 	 * @var array|null
