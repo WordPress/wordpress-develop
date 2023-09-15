@@ -1341,7 +1341,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group pwcc
+	 * @ticket 59188
 	 */
 	public function test_im_testing_things_correctly() {
 		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Uncached meta' );
@@ -1357,188 +1357,188 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group pwcc
+	 * @ticket 59188
 	 */
-	public function test_id_queries() {
+	public function test_id_queries_should_respect_cache_setting_not_to_prime_cache() {
 		$query_1 = new WP_Query(
 			array(
-				'fields' => 'ids',
-				'post_type' => 'post',
+				'fields'                 => 'ids',
+				'post_type'              => 'post',
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
 			)
 		);
 
-		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
-		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q1 meta' );
-		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q1 term' );
+		$this->assertCount( count( self::$pages ), $query_1->posts, 'First query should return correct number of posts' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should not be cached on first query' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should not be cached on first query' );
 
 		$query_2 = new WP_Query(
 			array(
-				'fields' => 'ids',
-				'post_type' => 'post',
+				'fields'                 => 'ids',
+				'post_type'              => 'post',
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
 			)
 		);
 
-		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
-		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q2 meta' );
-		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q2 term' );
+		$this->assertCount( count( self::$pages ), $query_2->posts, 'Second query should return correct number of posts.' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should not be cached on second query' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should not be cached on second query' );
 	}
 
 	/**
-	 * @group pwcc
+	 * @ticket 59188
 	 */
-	public function test_id_queries_prime() {
+	public function test_id_queries_should_respect_cache_setting_to_prime_cache() {
 		$query_1 = new WP_Query(
 			array(
-				'fields' => 'ids',
-				'post_type' => 'post',
+				'fields'                 => 'ids',
+				'post_type'              => 'post',
 				'update_post_meta_cache' => true,
 				'update_post_term_cache' => true,
 			)
 		);
 
-		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
+		$this->assertCount( count( self::$pages ), $query_1->posts, 'First query should return correct number of posts.' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should be cached on first query' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should be cached on first query' );
+
+		$query_2 = new WP_Query(
+			array(
+				'fields'                 => 'ids',
+				'post_type'              => 'post',
+				'update_post_meta_cache' => true,
+				'update_post_term_cache' => true,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_2->posts, 'Second query should return correct number of posts.' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should be cached on second query' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should be cached on second query' );
+	}
+
+	/**
+	 * @ticket 59188
+	 */
+	public function test_id_queries_should_respect_cache_setting_to_prime_cache_on_second_request() {
+		$query_1 = new WP_Query(
+			array(
+				'fields'                 => 'ids',
+				'post_type'              => 'post',
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_1->posts, 'First query should return correct number of posts.' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should not be cached on first query' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should not be cached on first query' );
+
+		$query_2 = new WP_Query(
+			array(
+				'fields'                 => 'ids',
+				'post_type'              => 'post',
+				'update_post_meta_cache' => true,
+				'update_post_term_cache' => true,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_2->posts, 'Second query should return correct number of posts.' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should be cached on second query' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should be cached on second query' );
+	}
+
+	/**
+	 * @ticket 59188
+	 */
+	public function test_id_parent_queries_should_respect_cache_setting_not_to_prime_cache() {
+		$query_1 = new WP_Query(
+			array(
+				'fields'                 => 'id=>parent',
+				'post_type'              => 'post',
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_1->posts, 'First query should return correct number of posts.' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should not be cached on first query' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should not be cached on first query' );
+
+		$query_2 = new WP_Query(
+			array(
+				'fields'                 => 'id=>parent',
+				'post_type'              => 'post',
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_2->posts, 'Second query should return correct number of posts.' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should not be cached on second query' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should not be cached on second query' );
+	}
+
+	/**
+	 * @ticket 59188
+	 */
+	public function test_id_parent_queries_should_respect_cache_setting_to_prime_cache() {
+		$query_1 = new WP_Query(
+			array(
+				'fields'                 => 'id=>parent',
+				'post_type'              => 'post',
+				'update_post_meta_cache' => true,
+				'update_post_term_cache' => true,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_1->posts, 'First query should return correct number of posts.' );
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q1 meta' );
 		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q1 term' );
 
 		$query_2 = new WP_Query(
 			array(
-				'fields' => 'ids',
-				'post_type' => 'post',
+				'fields'                 => 'id=>parent',
+				'post_type'              => 'post',
 				'update_post_meta_cache' => true,
 				'update_post_term_cache' => true,
 			)
 		);
 
-		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
-		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q2 meta' );
-		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q2 term' );
+		$this->assertCount( count( self::$pages ), $query_2->posts, 'Second query should return correct number of posts.' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should be cached on second query' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should be cached on second query' );
 	}
 
 	/**
-	 * @group pwcc
+	 * @ticket 59188
 	 */
-	public function test_id_queries_prime_second() {
+	public function test_id_parent_queries_should_respect_cache_setting_to_prime_cache_on_second_query() {
 		$query_1 = new WP_Query(
 			array(
-				'fields' => 'ids',
-				'post_type' => 'post',
+				'fields'                 => 'id=>parent',
+				'post_type'              => 'post',
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
 			)
 		);
 
-		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
-		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q1 meta' );
-		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q1 term' );
+		$this->assertCount( count( self::$pages ), $query_1->posts, 'First query should return correct number of posts.' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should not be cached on first query' );
+		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should not be cached on first query' );
 
 		$query_2 = new WP_Query(
 			array(
-				'fields' => 'ids',
-				'post_type' => 'post',
+				'fields'                 => 'id=>parent',
+				'post_type'              => 'post',
 				'update_post_meta_cache' => true,
 				'update_post_term_cache' => true,
 			)
 		);
 
-		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
-		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q2 meta' );
-		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q2 term' );
-	}
-
-	/**
-	 * @group pwcc
-	 */
-	public function test_id_parent_queries() {
-		$query_1 = new WP_Query(
-			array(
-				'fields' => 'id=>parent',
-				'post_type' => 'post',
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-			)
-		);
-
-		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
-		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q1 meta' );
-		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q1 term' );
-
-		$query_2 = new WP_Query(
-			array(
-				'fields' => 'id=>parent',
-				'post_type' => 'post',
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-			)
-		);
-
-		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
-		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q2 meta' );
-		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q2 term' );
-	}
-
-	/**
-	 * @group pwcc
-	 */
-	public function test_id_parent_queries_prime() {
-		$query_1 = new WP_Query(
-			array(
-				'fields' => 'id=>parent',
-				'post_type' => 'post',
-				'update_post_meta_cache' => true,
-				'update_post_term_cache' => true,
-			)
-		);
-
-		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
-		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q1 meta' );
-		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q1 term' );
-
-		$query_2 = new WP_Query(
-			array(
-				'fields' => 'id=>parent',
-				'post_type' => 'post',
-				'update_post_meta_cache' => true,
-				'update_post_term_cache' => true,
-			)
-		);
-
-		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
-		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q2 meta' );
-		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q2 term' );
-	}
-
-	/**
-	 * @group pwcc
-	 */
-	public function test_id_parent_queries_prime_second() {
-		$query_1 = new WP_Query(
-			array(
-				'fields' => 'id=>parent',
-				'post_type' => 'post',
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-			)
-		);
-
-		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
-		$this->assertFalse( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q1 meta' );
-		$this->assertFalse( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q1 term' );
-
-		$query_2 = new WP_Query(
-			array(
-				'fields' => 'id=>parent',
-				'post_type' => 'post',
-				'update_post_meta_cache' => true,
-				'update_post_term_cache' => true,
-			)
-		);
-
-		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
-		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Q2 meta' );
-		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'q2 term' );
+		$this->assertCount( count( self::$pages ), $query_2->posts, 'Second query should return correct number of posts.' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'post_meta' ), 'Meta should be cached on second query' );
+		$this->assertIsArray( wp_cache_get( self::$posts[0], 'category_relationships' ), 'Terms should be cached on second query' );
 	}
 }
