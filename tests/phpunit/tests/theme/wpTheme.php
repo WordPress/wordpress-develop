@@ -522,4 +522,90 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 
 		$this->assertSame( 'http://example.org', $actual );
 	}
+
+	/**
+	 * @ticket 58319
+	 *
+	 * @covers WP_Theme::get_block_template_folders
+	 * @covers WP_Theme::cache_get
+	 */
+	public function test_block_template_folders_is_not_called_after_cache() {
+		$filter = new MockAction();
+		add_filter( 'theme_file_path', array( $filter, 'filter' ) );
+
+		$expected = array(
+			'wp_template'      => 'templates',
+			'wp_template_part' => 'parts',
+		);
+
+		$theme1 = new WP_Theme( 'block-theme', $this->theme_root );
+
+		// First run.
+		$this->assertSame( $expected, $theme1->get_block_template_folders(), 'get_block_template_folders should return template array on first run' );
+
+		$theme2 = new WP_Theme( 'block-theme', $this->theme_root );
+		// Second run.
+		$this->assertSame( $expected, $theme2->get_block_template_folders(), 'get_block_template_folders should return template array on second run' );
+
+		// If not cached then the filter should have been called twice.
+		$this->assertCount( 0, $filter->get_events(), 'Should only be 0, as second run should be cached' );
+	}
+
+	/**
+	 * @ticket 58319
+	 *
+	 * @covers WP_Theme::get_block_template_folders
+	 * @covers WP_Theme::cache_get
+	 */
+	public function test_block_template_folders_called_cache_delete() {
+		$filter = new MockAction();
+		add_filter( 'theme_file_path', array( $filter, 'filter' ) );
+
+		$expected = array(
+			'wp_template'      => 'templates',
+			'wp_template_part' => 'parts',
+		);
+
+		$theme1 = new WP_Theme( 'block-theme', $this->theme_root );
+
+		// First run.
+		$this->assertSame( $expected, $theme1->get_block_template_folders(), 'get_block_template_folders should return template array on first run' );
+
+		// Delete cache.
+		$theme1->cache_delete();
+
+		$theme2 = new WP_Theme( 'block-theme', $this->theme_root );
+		// Second run.
+		$this->assertSame( $expected, $theme2->get_block_template_folders(), 'get_block_template_folders should return template array on second run' );
+
+		// If not cached then the filter should have been called twice.
+		$this->assertCount( 4, $filter->get_events(), 'Should only be 4, as second run should be cached' );
+	}
+
+	/**
+	 * @ticket 58319
+	 *
+	 * @covers WP_Theme::get_block_template_folders
+	 * @covers WP_Theme::cache_get
+	 */
+	public function test_block_template_folders_with_deprecated_block_theme_cache() {
+		$filter = new MockAction();
+		add_filter( 'theme_file_path', array( $filter, 'filter' ) );
+
+		$expected = array(
+			'wp_template'      => 'block-templates',
+			'wp_template_part' => 'block-template-parts',
+		);
+
+		$theme1 = new WP_Theme( 'block-theme-deprecated-path', $this->theme_root );
+		// First run.
+		$this->assertSame( $expected, $theme1->get_block_template_folders(), 'get_block_template_folders should return template array on first run' );
+
+		$theme2 = new WP_Theme( 'block-theme-deprecated-path', $this->theme_root );
+		// Second run.
+		$this->assertSame( $expected, $theme2->get_block_template_folders(), 'get_block_template_folders should return template array on second run' );
+
+		// If not cached then the filter should have been called twice.
+		$this->assertCount( 0, $filter->get_events(), 'Should only be 4, as second run should be cached' );
+	}
 }
