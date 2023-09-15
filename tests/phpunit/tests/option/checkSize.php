@@ -15,7 +15,6 @@ class Tests_Check_Size extends WP_UnitTestCase {
 	 * @ticket 42441
 	 */
 	public function test_small_option() {
-		$value = file( DIR_TESTDATA . '/formatting/entities.txt' );
 		$test  = check_option_size( 'bar', 'foo' );
 		$this->assertSame( 'default-yes', $test );
 	}
@@ -31,7 +30,6 @@ class Tests_Check_Size extends WP_UnitTestCase {
 		$this->assertSame( 'default-no', $test );
 	}
 
-
 	/**
 	 * @covers ::check_option_size
 	 *
@@ -42,6 +40,7 @@ class Tests_Check_Size extends WP_UnitTestCase {
 		$test  = check_option_size( $value, 'foo' );
 		$this->assertSame( 'default-no', $test );
 	}
+
 	public function filter_max_option_size( $current ) {
 		return 1000;
 	}

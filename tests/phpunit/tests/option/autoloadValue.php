@@ -20,7 +20,6 @@ class Tests_Option_Autoload_Value extends WP_UnitTestCase {
 		$this->assertSame( $expected, $test );
 	}
 
-
 	public function data_values() {
 		return array(
 			'yes'         => array(
