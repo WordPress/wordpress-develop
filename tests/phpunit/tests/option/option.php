@@ -305,11 +305,14 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		return array(
 			array( 'autoload_yes', 'yes', 'yes' ),
 			array( 'autoload_true', true, 'yes' ),
-			array( 'autoload_string', 'foo', 'yes' ),
-			array( 'autoload_int', 123456, 'yes' ),
-			array( 'autoload_array', array(), 'yes' ),
+			array( 'autoload_string', 'foo', 'default-yes' ),
+			array( 'autoload_int', 123456, 'default-yes' ),
+			array( 'autoload_array', array(), 'default-yes' ),
 			array( 'autoload_no', 'no', 'no' ),
 			array( 'autoload_false', false, 'no' ),
+			array( 'autoload_null', null, 'default-yes' ),
+			array( 'autoload_default_yes', 'default-yes', 'default-yes' ),
+			array( 'autoload_default_no', 'default-no', 'default-no' ),
 		);
 	}
 }

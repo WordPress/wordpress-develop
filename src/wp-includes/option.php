@@ -602,7 +602,7 @@ function wp_load_alloptions( $force_cache = false ) {
 
 	if ( ! $alloptions ) {
 		$suppress      = $wpdb->suppress_errors();
-		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload = 'yes' OR autoload = 'default'" );
+		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload = 'yes' OR autoload = 'default-yes'" );
 		if ( ! $alloptions_db ) {
 			$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options" );
 		}
@@ -798,7 +798,6 @@ function update_option( $option, $value, $autoload = null ) {
 
 	/** This filter is documented in wp-includes/option.php */
 	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
-		$autoload = get_autoload_value( $autoload, $value );
 		return add_option( $option, $value, '', $autoload );
 	}
 
@@ -819,9 +818,16 @@ function update_option( $option, $value, $autoload = null ) {
 		'option_value' => $serialized_value,
 	);
 
-	if ( func_num_args() > 2 ) {
-		$autoload = get_autoload_value( $autoload, $value );
+	if ( null !== $autoload ) {
+		$autoload                = get_autoload_value( $autoload );
 		$update_args['autoload'] = $autoload;
+	} else {
+		$raw_autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
+		$allow_values = array( 'default-yes', 'default-no' );
+		if ( in_array( $raw_autoload, $allow_values, true ) ) {
+			$autoload                = check_option_size( $serialized_value, $option );
+			$update_args['autoload'] = $autoload;
+		}
 	}
 
 	$result = $wpdb->update( $wpdb->options, $update_args, array( 'option_name' => $option ) );
@@ -964,7 +970,11 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 	}
 
 	$serialized_value = maybe_serialize( $value );
-	$autoload         = get_autoload_value( $autoload, $value );
+
+	if ( null === $autoload ) {
+		$autoload = check_option_size( $serialized_value, $option );
+	}
+	$autoload = get_autoload_value( $autoload );
 
 	/**
 	 * Fires before an option is added.
@@ -982,7 +992,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 	}
 
 	if ( ! wp_installing() ) {
-		if ( 'yes' === $autoload || 'default' === $autoload ) {
+		if ( 'yes' === $autoload || 'default-yes' === $autoload ) {
 			$alloptions            = wp_load_alloptions( true );
 			$alloptions[ $option ] = $serialized_value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -1066,7 +1076,7 @@ function delete_option( $option ) {
 	$result = $wpdb->delete( $wpdb->options, array( 'option_name' => $option ) );
 
 	if ( ! wp_installing() ) {
-		if ( 'yes' === $row->autoload || 'default' === $row->autoload ) {
+		if ( 'yes' === $row->autoload || 'default-yes' === $row->autoload ) {
 			$alloptions = wp_load_alloptions( true );
 			if ( is_array( $alloptions ) && isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
@@ -1109,26 +1119,29 @@ function delete_option( $option ) {
  * Determines the autoload value for a given option.
  *
  * @param string|bool|null  $autoload The autoload value for the option. Can be 'yes', 'no', true, false, or null.
- * @param mixed  $value               The value of the option.
  *
  * @return string The determined autoload value. Possible values: 'yes', 'no', 'default'.
  */
-function get_autoload_value( $autoload, $value ) {
+function get_autoload_value( $autoload ) {
 	// Check if autoload is explicitly set to 'no' or false.
-	if ( 'no' === $autoload || false === $autoload ) {
+	if ( false === $autoload ) {
 		return 'no';
 	}
 
 	// Check if autoload is explicitly set to 'yes' or true.
-	if ( 'yes' === $autoload || true === $autoload ) {
+	if ( true === $autoload ) {
 		return 'yes';
 	}
 
-	// Check if autoload is explicitly set to 'default' or true.
-	if ( 'default' === $autoload ) {
+	$allow_values = array( 'no', 'yes', 'default-yes', 'default-no' );
+	if ( in_array( $autoload, $allow_values, true ) ) {
 		return $autoload;
 	}
 
+	return 'default-yes';
+}
+
+function check_option_size( $value, $name ) {
 	// Serialize the value and check its size against the maximum allowed option size.
 	$serialized_value = maybe_serialize( $value );
 	$size             = strlen( $serialized_value );
@@ -1139,16 +1152,16 @@ function get_autoload_value( $autoload, $value ) {
 	 * @since 6.4.0
 	 *
 	 * @param int    $max_option_size The option-size threshold, in bytes. Default 150000.
-	 * @param string $name            The name of the option.
 	 * @param mixed  $value           The value of the option.
+	 * @param string $name            The name of the option.
 	 */
-	$max_option_size = (int) apply_filters( 'max_option_size', 150000, $value );
+	$max_option_size = (int) apply_filters( 'max_option_size', 150000, $value, $name );
 
 	if ( $size > $max_option_size ) {
-		return 'no';
+		return 'default-no';
 	}
 
-	return 'default';
+	return 'default-yes';
 }
 
 /**
