@@ -276,6 +276,82 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58319
+	 *
+	 * @covers ::get_block_theme_folders
+	 */
+	public function test_get_block_theme_folders_block_theme() {
+		$expected = array(
+			'wp_template'      => 'templates',
+			'wp_template_part' => 'parts',
+		);
+		$this->assertSame( $expected, get_block_theme_folders( 'block-theme' ), 'Expected `templates` and `parts` and `wp_template` and `wp_template_part` respectively.' );
+	}
+
+	/**
+	 * @ticket 58319
+	 *
+	 * @covers ::get_block_theme_folders
+	 */
+	public function test_get_block_theme_folders_deprecated_block_theme() {
+		$expected = array(
+			'wp_template'      => 'block-templates',
+			'wp_template_part' => 'block-template-parts',
+		);
+		$this->assertSame( $expected, get_block_theme_folders( 'block-theme-deprecated-path' ), 'Expected `block-templates` and `block-template-parts` and `wp_template` and `wp_template_part` respectively.' );
+	}
+
+	/**
+	 * @ticket 58319
+	 *
+	 * @covers ::get_block_theme_folders
+	 */
+	public function test_get_block_theme_folders_blank_theme() {
+		$expected = array(
+			'wp_template'      => 'templates',
+			'wp_template_part' => 'parts',
+		);
+		$this->assertSame( $expected, get_block_theme_folders(), 'Expected `templates` and `parts` and `wp_template` and `wp_template_part` respectively.' );
+	}
+
+	/**
+	 * @ticket 58319
+	 *
+	 * @covers ::get_block_theme_folders
+	 */
+	public function test_get_block_theme_folders_invalid_theme() {
+		$expected = array(
+			'wp_template'      => 'templates',
+			'wp_template_part' => 'parts',
+		);
+		$this->assertSame( $expected, get_block_theme_folders( 'this-is-an-invalid-theme' ), 'Expected `templates` and `parts` and `wp_template` and `wp_template_part` respectively.' );
+	}
+
+	/**
+	 * @ticket 58319
+	 *
+	 * @covers ::get_block_theme_folders
+	 * @covers WP_Theme::cache_get
+	 */
+	public function test_get_block_theme_folders_cache() {
+		$filter = new MockAction();
+		add_filter( 'theme_file_path', array( $filter, 'filter' ) );
+
+		$expected = array(
+			'wp_template'      => 'templates',
+			'wp_template_part' => 'parts',
+		);
+
+		// First run.
+		$this->assertSame( $expected, get_block_theme_folders( 'block-theme' ), 'get_block_template_folders should return template array on first run' );
+		// Second run.
+		$this->assertSame( $expected, get_block_theme_folders( 'block-theme' ), 'get_block_template_folders should return template array on second run' );
+
+		// If not cached then the filter gets called 4 times.
+		$this->assertCount( 0, $filter->get_events(), 'Should only be 0, as second run should be cached' );
+	}
+
+	/**
 	 * Registers a test block to log `in_the_loop()` results.
 	 *
 	 * @param array $in_the_loop_logs Array to log function results in. Passed by reference.

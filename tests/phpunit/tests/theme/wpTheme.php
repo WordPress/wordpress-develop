@@ -547,7 +547,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		// Second run.
 		$this->assertSame( $expected, $theme2->get_block_template_folders(), 'get_block_template_folders should return template array on second run' );
 
-		// If not cached then the filter should have been called twice.
+		// If not cached then the filter gets called 4 times.
 		$this->assertCount( 0, $filter->get_events(), 'Should only be 0, as second run should be cached' );
 	}
 
@@ -578,7 +578,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		// Second run.
 		$this->assertSame( $expected, $theme2->get_block_template_folders(), 'get_block_template_folders should return template array on second run' );
 
-		// If not cached then the filter should have been called twice.
+		// If not cached then the filter gets called 4 times.
 		$this->assertCount( 4, $filter->get_events(), 'Should only be 4, as second run should be cached' );
 	}
 
@@ -605,7 +605,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		// Second run.
 		$this->assertSame( $expected, $theme2->get_block_template_folders(), 'get_block_template_folders should return template array on second run' );
 
-		// If not cached then the filter should have been called twice.
+		// If not cached then the filter gets called 4 times.
 		$this->assertCount( 0, $filter->get_events(), 'Should only be 4, as second run should be cached' );
 	}
 }
