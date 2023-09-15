@@ -1339,4 +1339,189 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		// No additional queries expected.
 		$this->assertSame( 0, $num_queries, 'Unexpected number of queries during second query of term meta.' );
 	}
+
+	/**
+	 * @group pwcc
+	 */
+	public function test_im_testing_things_correctly() {
+		$this->assertFalse( wp_cache_get( self::$pages[0], 'post_meta' ), 'Uncached meta' );
+
+		update_meta_cache( 'post', array( self::$pages[0] ) );
+		$this->assertNotFalse( wp_cache_get( self::$pages[0], 'post_meta' ), 'Cached meta should not be false' );
+		$this->assertIsArray( wp_cache_get( self::$pages[0], 'post_meta' ), 'Cached meta should be an array' );
+	}
+
+	/**
+	 * @group pwcc
+	 */
+	public function test_id_queries() {
+		$query_1 = new WP_Query(
+			array(
+				'fields' => 'ids',
+				'post_type' => 'page',
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
+		$this->assertFalse( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q1 meta' );
+
+		$query_2 = new WP_Query(
+			array(
+				'fields' => 'ids',
+				'post_type' => 'page',
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
+		$this->assertFalse( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q2 meta' );
+	}
+
+	/**
+	 * @group pwcc
+	 */
+	public function test_id_queries_prime() {
+		$query_1 = new WP_Query(
+			array(
+				'fields' => 'ids',
+				'post_type' => 'page',
+				'update_post_meta_cache' => true,
+				'update_post_term_cache' => true,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
+		$this->assertIsArray( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q1 meta' );
+
+		$query_2 = new WP_Query(
+			array(
+				'fields' => 'ids',
+				'post_type' => 'page',
+				'update_post_meta_cache' => true,
+				'update_post_term_cache' => true,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
+		$this->assertIsArray( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q2 meta' );
+	}
+
+	/**
+	 * @group pwcc
+	 */
+	public function test_id_queries_prime_second() {
+		$query_1 = new WP_Query(
+			array(
+				'fields' => 'ids',
+				'post_type' => 'page',
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
+		$this->assertFalse( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q1 meta' );
+
+		$query_2 = new WP_Query(
+			array(
+				'fields' => 'ids',
+				'post_type' => 'page',
+				'update_post_meta_cache' => true,
+				'update_post_term_cache' => true,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
+		$this->assertIsArray( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q2 meta' );
+	}
+
+	/**
+	 * @group pwcc
+	 */
+	public function test_id_parent_queries() {
+		$query_1 = new WP_Query(
+			array(
+				'fields' => 'id=>parent',
+				'post_type' => 'page',
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
+		$this->assertFalse( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q1 meta' );
+
+		$query_2 = new WP_Query(
+			array(
+				'fields' => 'id=>parent',
+				'post_type' => 'page',
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
+		$this->assertFalse( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q2 meta' );
+	}
+
+	/**
+	 * @group pwcc
+	 */
+	public function test_id_parent_queries_prime() {
+		$query_1 = new WP_Query(
+			array(
+				'fields' => 'id=>parent',
+				'post_type' => 'page',
+				'update_post_meta_cache' => true,
+				'update_post_term_cache' => true,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
+		$this->assertIsArray( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q1 meta' );
+
+		$query_2 = new WP_Query(
+			array(
+				'fields' => 'id=>parent',
+				'post_type' => 'page',
+				'update_post_meta_cache' => true,
+				'update_post_term_cache' => true,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
+		$this->assertIsArray( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q2 meta' );
+	}
+
+	/**
+	 * @group pwcc
+	 */
+	public function test_id_parent_queries_prime_second() {
+		$query_1 = new WP_Query(
+			array(
+				'fields' => 'id=>parent',
+				'post_type' => 'page',
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_1->posts, 'Q1' );
+		$this->assertFalse( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q1 meta' );
+
+		$query_2 = new WP_Query(
+			array(
+				'fields' => 'id=>parent',
+				'post_type' => 'page',
+				'update_post_meta_cache' => true,
+				'update_post_term_cache' => true,
+			)
+		);
+
+		$this->assertCount( count( self::$pages ), $query_2->posts, 'Q2' );
+		$this->assertIsArray( wp_cache_get( self::$pages[0], 'post_meta' ), 'Q2 meta' );
+	}
 }
