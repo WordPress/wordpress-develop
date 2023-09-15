@@ -345,7 +345,12 @@ if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
 $current_theme = wp_get_theme();
 
 if ( $current_theme->errors() && ( ! is_multisite() || current_user_can( 'manage_network_themes' ) ) ) {
-	echo '<div class="error"><p>' . __( 'Error:' ) . ' ' . $current_theme->errors()->get_error_message() . '</p></div>';
+	wp_admin_notice(
+		__( 'Error:' ) . ' ' . $current_theme->errors()->get_error_message(),
+		array(
+			'additional_classes' => array( 'error' ),
+		)
+	);
 }
 
 $current_theme_actions = array();
