@@ -18,7 +18,7 @@ async function getFootnotes( page, withoutSave = false ) {
 
 describe( 'Footnotes', () => {
 	beforeEach( async ( { admin } ) => {
-		await admin.createNewPost();
+		await createNewPost();
 	} );
 
 	it( 'can be inserted', async ( { editor, page } ) => {
