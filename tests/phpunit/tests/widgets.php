@@ -596,7 +596,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		add_filter(
 			"pre_option_{$widget->option_name}",
-			static function() {
+			static function () {
 				return new ArrayObject(
 					array(
 						2              => array( 'title' => 'Test Title' ),

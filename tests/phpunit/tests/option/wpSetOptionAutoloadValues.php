@@ -186,7 +186,7 @@ class Tests_Option_WpSetOptionAutoloadValues extends WP_UnitTestCase {
 		// Force UPDATE queries to fail, leading to no autoload values being updated.
 		add_filter(
 			'query',
-			static function( $query ) {
+			static function ( $query ) {
 				if ( str_starts_with( $query, 'UPDATE ' ) ) {
 					return '';
 				}
