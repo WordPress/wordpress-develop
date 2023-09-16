@@ -183,6 +183,7 @@ function network_step1( $errors = false ) {
 			$network_created_error_message,
 			array(
 				'additional_classes' => array( 'error' ),
+				'paragraph_wrap'     => false,
 			)
 		);
 		$error_codes = $errors->get_error_codes();
