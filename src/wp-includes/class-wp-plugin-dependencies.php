@@ -18,12 +18,16 @@ class WP_Plugin_Dependencies {
 	/**
 	 * Holds 'get_plugins()'.
 	 *
+	 * @since 6.4.0
+	 *
 	 * @var array
 	 */
 	protected static $plugins = array();
 
 	/**
 	 * Holds plugin directory names to compare with cache.
+	 *
+	 * @since 6.4.0
 	 *
 	 * @var array
 	 */
@@ -32,13 +36,19 @@ class WP_Plugin_Dependencies {
 	/**
 	 * Holds cached plugin directory names.
 	 *
+	 * @since 6.4.0
+	 *
 	 * @var array
 	 */
 	protected static $plugin_dirnames_cache = array();
 
 	/**
-	 * Holds sanitized plugin dependency slugs,
-	 * keyed on their dependent plugin file name.
+	 * Holds sanitized plugin dependency slugs.
+	 *
+	 * Keyed on the dependent plugin's filepath,
+	 * relative to the plugins directory.
+	 *
+	 * @since 6.4.0
 	 *
 	 * @var array
 	 */
@@ -47,13 +57,19 @@ class WP_Plugin_Dependencies {
 	/**
 	 * Holds an array of sanitized plugin dependency slugs.
 	 *
+	 * @since 6.4.0
+	 *
 	 * @var array
 	 */
 	protected static $dependency_slugs = array();
 
 	/**
-	 * Holds an array of dependent plugin slugs,
-	 * keyed on the dependent plugin's file path.
+	 * Holds an array of dependent plugin slugs.
+	 *
+	 * Keyed on the dependent plugin's filepath,
+	 * relative to the plugins directory.
+	 *
+	 * @since 6.4.0
 	 *
 	 * @var array
 	 */
@@ -62,23 +78,22 @@ class WP_Plugin_Dependencies {
 	/**
 	 * Holds 'plugins_api()' data for plugin dependencies.
 	 *
+	 * @since 6.4.0
+	 *
 	 * @var array
 	 */
 	protected static $dependency_api_data = array();
 
 	/**
-	 * Holds 'plugin_api()' data for uninstalled plugin dependencies.
+	 * Holds plugin dependency filepaths, relative to the plugins directory.
+	 *
+	 * Keyed on the dependency's slug.
+	 *
+	 * @since 6.4.0
 	 *
 	 * @var array
 	 */
-	protected static $uninstalled_dependency_api_data = array();
-
-	/**
-	 * Holds data for plugin card.
-	 *
-	 * @var array
-	 */
-	protected static $plugin_card_data = array();
+	protected static $dependency_filepaths = array();
 
 	/**
 	 * Initializes by fetching plugin header and plugin API data,
@@ -90,6 +105,334 @@ class WP_Plugin_Dependencies {
 		self::read_dependencies_from_plugin_headers();
 		self::get_dependency_api_data();
 		self::deactivate_dependents_with_unmet_dependencies();
+	}
+
+	/**
+	 * Determines whether the plugin has plugins that depend on it.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $plugin_file The plugin's filepath, relative to the plugins directory.
+	 * @return bool Whether the plugin has plugins that depend on it.
+	 */
+	public static function has_dependents( $plugin_file ) {
+		$dependency_paths = self::get_dependency_filepaths();
+		return in_array( $plugin_file, $dependency_paths, true );
+	}
+
+	/**
+	 * Determines whether the plugin has plugin dependencies.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $plugin_file The plugin's filepath, relative to the plugins directory.
+	 * @return bool Whether a plugin has plugin dependencies.
+	 */
+	public static function has_dependencies( $plugin_file ) {
+		return isset( self::$dependencies[ $plugin_file ] );
+	}
+
+	/**
+	 * Determines whether the plugin has active dependents.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $plugin_file The plugin's filepath, relative to the plugins directory.
+	 * @return bool Whether the plugin has active dependents.
+	 */
+	public static function has_active_dependents( $plugin_file ) {
+		$dependents = self::get_dependents( dirname( $plugin_file ) );
+
+		foreach ( $dependents as $dependent ) {
+			if ( is_plugin_active( $dependent ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Determines whether the plugin has unmet dependencies.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $plugin_file The plugin's filepath, relative to the plugins directory.
+	 * @return bool Whether the plugin has unmet dependencies.
+	 */
+	public static function has_unmet_dependencies( $plugin_file ) {
+		if ( ! isset( self::$dependencies[ $plugin_file ] ) ) {
+			return false;
+		}
+
+		foreach ( self::$dependencies[ $plugin_file ] as $dependency ) {
+			$dependency_filepath = self::get_dependency_filepath( $dependency );
+
+			if ( false === $dependency_filepath || is_plugin_inactive( $dependency_filepath ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Gets the names of plugins that require the plugin.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array $plugin_data Array of plugin data.
+	 * @return array An array of dependent names.
+	 */
+	public static function get_dependent_names( $plugin_file ) {
+		$dependent_names = array();
+
+		if ( empty( self::$plugins ) ) {
+			self::$plugins = get_plugins();
+		}
+
+		$slug = str_contains( $plugin_file, '/' ) ? basename( dirname( $plugin_file ) ) : $plugin_file;
+
+		// Single file plugin.
+		if ( '.' === $slug ) {
+			$slug = basename( $plugin_file );
+		}
+
+		foreach ( self::get_dependents( $slug ) as $dependent ) {
+			if ( ! isset( $dependent_names[ $dependent ] ) ) {
+				$dependent_names[ $dependent ] = self::$plugins[ $dependent ]['Name'];
+			}
+		}
+		sort( $dependent_names );
+
+		return $dependent_names;
+	}
+
+	/**
+	 * Gets the names of plugins required by the plugin.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $plugin_file The dependent plugin's filepath, relative to the plugins directory.
+	 * @return array An array of dependency names.
+	 */
+	public static function get_dependency_names( $plugin_file ) {
+		if ( empty( self::$dependency_api_data ) ) {
+			self::get_dependency_api_data();
+		}
+
+		$dependencies         = self::get_dependencies( $plugin_file );
+		$dependency_filepaths = self::get_dependency_filepaths();
+
+		$dependency_names = array();
+		foreach ( $dependencies as $dependency ) {
+			if ( ! isset( $dependency_filepaths[ $dependency ] ) ) {
+				continue;
+			}
+
+			// Use the name if it's available, otherwise fall back to the slug.
+			if ( isset( self::$dependency_api_data[ $dependency ]['name'] ) ) {
+				$name = self::$dependency_api_data[ $dependency ]['name'];
+			} elseif ( isset( self::$plugin_dirnames[ $dependency ] ) ) {
+				$dependency_filepath = self::get_dependency_filepath( $dependency );
+				if ( false !== $dependency_filepath ) {
+					$name = self::$plugins[ $dependency_filepath ]['Name'];
+				}
+			} else {
+				$name = $dependency;
+			}
+
+			$dependency_names[ $dependency ] = $name;
+		}
+
+		return $dependency_names;
+	}
+
+	/**
+	 * Gets the filepath for a dependency, relative to the plugin's directory.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $slug The dependency's slug.
+	 * @return string|false If installed, the dependency's filepath relative to the plugins directory, otherwise false.
+	 */
+	public static function get_dependency_filepath( $slug ) {
+		if ( empty( self::$dependency_filepaths ) ) {
+			self::get_dependency_filepaths();
+		}
+
+		return self::$dependency_filepaths[ $slug ];
+	}
+
+	/**
+	 * Returns API data for the dependency.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $slug The dependency's slug.
+	 * @return array|false The dependency's API data on success, otherwise false.
+	 */
+	public static function get_dependency_data( $slug ) {
+		if ( empty( self::$dependency_api_data ) ) {
+			self::get_dependency_api_data();
+		}
+
+		if ( isset( self::$dependency_api_data[ $slug ] ) ) {
+			return self::$dependency_api_data[ $slug ];
+		}
+
+		return false;
+	}
+
+	/**
+	 * Displays an admin notice if dependencies are not installed.
+	 *
+	 * @since 6.4.0
+	 */
+	public static function display_admin_notice_for_unmet_dependencies() {
+		/*
+		 * Plugin deactivated if dependencies not met.
+		 * Transient on a 10 second timeout.
+		 */
+		$deactivate_requires = get_site_transient( 'wp_plugin_dependencies_deactivated_plugins' );
+		if ( ! empty( $deactivate_requires ) ) {
+			$deactivated_plugins = '';
+			foreach ( $deactivate_requires as $deactivated ) {
+				$deactivated_plugins .= '<li>' . esc_html( self::$plugins[ $deactivated ]['Name'] ) . '</li>';
+			}
+			wp_admin_notice(
+				sprintf(
+					/* translators: 1: plugin names */
+					__( 'The following plugin(s) have been deactivated due to uninstalled or inactive dependencies: %s' ),
+					"<ul>$deactivated_plugins</ul>"
+				),
+				array(
+					'type'        => 'error',
+					'dismissible' => true,
+				)
+			);
+		} else {
+			// More dependencies to install.
+			$installed_slugs = array_map( 'dirname', array_keys( self::$plugins ) );
+			$intersect       = array_intersect( self::$dependency_slugs, $installed_slugs );
+			asort( $intersect );
+			if ( $intersect !== self::$dependency_slugs ) {
+				wp_admin_notice(
+					__( 'There are additional plugin dependencies that must be installed.' ),
+					array(
+						'type' => 'info',
+					)
+				);
+			}
+		}
+
+		$circular_dependencies = self::get_circular_dependencies();
+		if ( ! empty( $circular_dependencies ) && count( $circular_dependencies ) > 1 ) {
+			$circular_dependencies = array_unique( $circular_dependencies, SORT_REGULAR );
+
+			if ( ! empty( $circular_dependencies ) && empty( self::$plugin_dirnames ) ) {
+				self::get_dependency_filepaths();
+			}
+
+			// Build output lines.
+			$circular_dependency_lines = '';
+			foreach ( $circular_dependencies as $circular_dependency ) {
+				$first_filepath             = self::$plugin_dirnames[ $circular_dependency[0] ];
+				$second_filepath            = self::$plugin_dirnames[ $circular_dependency[1] ];
+				$circular_dependency_lines .= sprintf(
+					/* translators: 1: First plugin name, 2: Second plugin name. */
+					'<li>' . _x( '%1$s -> %2$s', 'The first plugin requires the second plugin.' ) . '</li>',
+					'<strong>' . esc_html( self::$plugins[ $first_filepath ]['Name'] ) . '</strong>',
+					'<strong>' . esc_html( self::$plugins[ $second_filepath ]['Name'] ) . '</strong>'
+				);
+			}
+
+			wp_admin_notice(
+				sprintf(
+					'<p>%1$s</p><ul>%2$s</ul><p>%3$s</p>',
+					__( 'These plugins cannot be activated because their requirements form a loop: ' ),
+					$circular_dependency_lines,
+					__( 'Please contact the plugin developers and make them aware.' )
+				),
+				array(
+					'type'           => 'warning',
+					'paragraph_wrap' => false,
+				)
+			);
+		}
+	}
+
+	/**
+	 * Checks plugin dependencies after a plugin is installed via AJAX.
+	 *
+	 * @since 6.4.0
+	 */
+	public static function check_plugin_dependencies_during_ajax() {
+		check_ajax_referer( 'updates' );
+
+		if ( empty( $_POST['slug'] ) ) {
+			wp_send_json_error(
+				array(
+					'slug'         => '',
+					'errorCode'    => 'no_plugin_specified',
+					'errorMessage' => __( 'No plugin specified.' ),
+				)
+			);
+		}
+
+		$slug   = sanitize_key( wp_unslash( $_POST['slug'] ) );
+		$status = array( 'slug' => $slug );
+
+		self::get_plugins();
+		self::get_plugin_dirnames();
+
+		if ( ! isset( self::$plugin_dirnames[ $slug ] ) ) {
+			$status['errorCode']    = 'plugin_not_installed';
+			$status['errorMessage'] = __( 'The plugin is not installed.' );
+			wp_send_json_error( $status );
+		}
+
+		$plugin_file  = self::$plugin_dirnames[ $slug ];
+		$dependencies = self::get_dependencies( $plugin_file );
+
+		if ( empty( $dependencies ) ) {
+			$status['message'] = __( 'The plugin has no required plugins.' );
+			wp_send_json_success( $status );
+		}
+
+		$inactive_dependencies = array();
+		foreach ( $dependencies as $dependency ) {
+			if ( false === self::$plugin_dirnames[ $dependency ] || is_plugin_inactive( self::$plugin_dirnames[ $dependency ] ) ) {
+				$inactive_dependencies[] = $dependency;
+			}
+		}
+
+		if ( ! empty( $inactive_dependencies ) ) {
+			$inactive_dependency_names = array_map(
+				function ( $dependency ) {
+					if ( isset( self::$dependency_api_data[ $dependency ]['Name'] ) ) {
+						$inactive_dependency_name = self::$dependency_api_data[ $dependency ]['Name'];
+					} else {
+						$inactive_dependency_name = $dependency;
+					}
+					return $inactive_dependency_name;
+				},
+				$inactive_dependencies
+			);
+
+			$status['errorCode']    = 'inactive_dependencies';
+			$status['errorMessage'] = sprintf(
+				/* translators: %s: A list of inactive dependency plugin names. */
+				__( 'The following plugins must be activated first: %s.' ),
+				implode( ', ', $inactive_dependency_names )
+			);
+			$status['errorData'] = array_combine( $inactive_dependencies, $inactive_dependency_names );
+
+			wp_send_json_error( $status );
+		}
+
+		$status['message'] = __( 'All required plugins are installed and activated.' );
+		wp_send_json_success( $status );
 	}
 
 	/**
@@ -129,15 +472,10 @@ class WP_Plugin_Dependencies {
 			if ( '' === $header['RequiresPlugins'] ) {
 				continue;
 			}
-			$dependency_slugs = self::sanitize_dependency_slugs( $header['RequiresPlugins'] );
-			$requires         = $header['RequiresPlugins'];
-			$requires         = array_filter( explode( ',', $requires ) );
 
-			foreach ( $dependency_slugs as $slug ) {
-				self::$dependencies[ $plugin ][] = $slug;
-			}
-			self::$plugins[ $plugin ]['RequiresPlugins'] = $dependency_slugs;
-			self::$dependency_slugs                      = array_merge( self::$dependency_slugs, $dependency_slugs );
+			$dependency_slugs              = self::sanitize_dependency_slugs( $header['RequiresPlugins'] );
+			self::$dependencies[ $plugin ] = $dependency_slugs;
+			self::$dependency_slugs        = array_merge( self::$dependency_slugs, $dependency_slugs );
 		}
 
 		$dependent_keys         = array_keys( self::$dependencies );
@@ -146,7 +484,7 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
-	 * Sanitizes plugin dependency slugs.
+	 * Sanitizes slugs.
 	 *
 	 * @since 6.4.0
 	 *
@@ -184,19 +522,162 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
-	 * Retrieves and stores dependency plugin data from the WordPress.org Plugin API.
+	 * Gets the slugs of plugins that the dependent requires.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @global $pagenow Current page.
+	 * @param string $plugin_file The dependent plugin's filepath, relative to the plugins directory.
+	 * @return array An array of dependency plugin slugs.
 	 */
-	public static function get_dependency_api_data() {
-		global $pagenow;
-
-		if ( ! wp_doing_ajax() && ! in_array( $pagenow, array( 'plugin-install.php', 'plugins.php' ), true ) ) {
-			return;
+	protected static function get_dependencies( $plugin_file ) {
+		if ( isset( self::$dependencies[ $plugin_file ] ) ) {
+			return self::$dependencies[ $plugin_file ];
 		}
 
+		return array();
+	}
+
+	/**
+	 * Gets filepaths of plugins that require the dependency.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $slug The dependency's slug.
+	 * @return array An array of dependent plugin filepaths, relative to the plugins directory.
+	 */
+	protected static function get_dependents( $slug ) {
+		$dependents = array();
+
+		foreach ( self::$dependencies as $dependent => $dependencies ) {
+			if ( in_array( $slug, $dependencies, true ) ) {
+				$dependents[] = $dependent;
+			}
+		}
+
+		return $dependents;
+	}
+
+	/**
+	 * Gets plugin filepaths for active plugins that depend on the dependency.
+	 *
+	 * Recurses for each dependent that is also a dependency.
+	 *
+	 * @param string $plugin_file The dependency's filepath, relative to the plugin directory.
+	 * @return string[] An array of active dependent plugin filepaths, relative to the plugin directory.
+	 */
+	protected static function get_active_dependents_in_dependency_tree( $plugin_file ) {
+		$all_dependents = array();
+		$slug           = str_contains( $plugin_file, '/' ) ? basename( dirname( $plugin_file ) ) : $plugin_file;
+
+		// Single file plugin.
+		if ( '.' === $slug ) {
+			$slug = basename( $plugin_file );
+		}
+
+		$dependents = self::get_dependents( $slug );
+
+		if ( empty( $dependents ) ) {
+			return $all_dependents;
+		}
+
+		foreach ( $dependents as $dependent ) {
+			if ( is_plugin_active( $dependent ) ) {
+				$all_dependents[] = $dependent;
+				$all_dependents   = array_merge(
+					$all_dependents,
+					self::get_active_dependents_in_dependency_tree( $dependent )
+				);
+			}
+		}
+
+		return $all_dependents;
+	}
+
+	/**
+	 * Deactivates dependent plugins with unmet dependencies.
+	 *
+	 * @since 6.4.0
+	 */
+	protected static function deactivate_dependents_with_unmet_dependencies() {
+		$dependents_to_deactivate = array();
+		$circular_dependencies    = array_reduce(
+			self::get_circular_dependencies(),
+			function( $all_circular, $circular_pair ) {
+				return array_merge( $all_circular, $circular_pair );
+			},
+			array()
+		);
+
+		foreach ( self::$dependencies as $dependent => $dependencies ) {
+			// Skip dependents that are no longer installed or aren't active.
+			if ( ! array_key_exists( $dependent, self::$plugins ) || is_plugin_inactive( $dependent ) ) {
+				continue;
+			}
+
+			// Skip plugins within a circular dependency tree or plugins that have no unmet dependencies.
+			if ( in_array( $dependent, $circular_dependencies, true ) || ! self::has_unmet_dependencies( $dependent ) ) {
+				continue;
+			}
+
+			$dependents_to_deactivate[] = $dependent;
+
+			// Also add any plugins that rely on any of this plugin's dependents.
+			$dependents_to_deactivate = array_merge(
+				$dependents_to_deactivate,
+				self::get_active_dependents_in_dependency_tree( $dependent )
+			);
+		}
+
+		$dependents_to_deactivate = array_unique( $dependents_to_deactivate );
+
+		deactivate_plugins( $dependents_to_deactivate );
+		set_site_transient( 'wp_plugin_dependencies_deactivated_plugins', $dependents_to_deactivate, 10 );
+	}
+
+	/**
+	 * Gets the filepath of installed dependencies.
+	 * If a dependency is not installed, the filepath defaults to false.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return array An array of install dependencies filepaths, relative to the plugins directory.
+	 */
+	protected static function get_dependency_filepaths() {
+		if ( ! empty( self::$dependency_filepaths ) ) {
+			return self::$dependency_filepaths;
+		}
+
+		$dependency_filepaths = array();
+
+		if ( empty( self::$plugins ) ) {
+			return $dependency_filepaths;
+		}
+
+		$plugin_dirnames = self::get_plugin_dirnames();
+		if ( empty( $plugin_dirnames ) ) {
+			return $dependency_filepaths;
+		}
+
+		foreach ( self::$dependency_slugs as $slug ) {
+			if ( isset( $plugin_dirnames[ $slug ] ) ) {
+				$dependency_filepaths[ $slug ] = self::$plugin_dirnames[ $slug ];
+				continue;
+			}
+
+			$dependency_filepaths[ $slug ] = false;
+		}
+
+		self::$dependency_filepaths = $dependency_filepaths;
+
+		return self::$dependency_filepaths;
+	}
+
+	/**
+	 * Retrieves and stores dependency plugin data from the WordPress.org Plugin API.
+	 *
+	 * @since 6.4.0
+	 */
+	protected static function get_dependency_api_data() {
 		self::$dependency_api_data = (array) get_site_transient( 'wp_plugin_dependencies_plugin_data' );
 		foreach ( self::$dependency_slugs as $slug ) {
 			// Set transient for individual data, remove from self::$dependency_api_data if transient expired.
@@ -276,520 +757,15 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
-	 * Determines whether a plugin's row should be modified
-	 * to include dependencies, dependents, or both.
+	 * Gets plugin directory names.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @global $pagenow Current page.
+	 * @return array An array of plugin directory names.
 	 */
-	public static function modify_plugin_row() {
-		global $pagenow;
-		if ( 'plugins.php' !== $pagenow ) {
-			return;
-		}
-
-		$dependency_paths = self::get_dependency_filepaths();
-		foreach ( $dependency_paths as $plugin_file ) {
-			if ( $plugin_file ) {
-				self::add_dependency_plugin_row_hooks( $plugin_file );
-			}
-		}
-		foreach ( array_keys( self::$dependencies ) as $plugin_file ) {
-			self::add_dependent_plugin_row_hooks( $plugin_file );
-		}
-	}
-
-	/**
-	 * Adds hooks to modify a dependency's plugin row in 'plugins.php'.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param string $plugin_file Plugin file.
-	 */
-	public static function add_dependency_plugin_row_hooks( $plugin_file ) {
-		add_action( 'after_plugin_row_meta', array( __CLASS__, 'add_dependents_to_dependency_plugin_row' ), 10, 3 );
-		add_filter( 'plugin_row_hide_checkbox_' . $plugin_file, '__return_true', 10, 2 );
-		add_filter( 'plugin_action_links_' . $plugin_file, array( __CLASS__, 'unset_dependency_action_links' ), 10, 2 );
-		add_filter( 'network_admin_plugin_action_links_' . $plugin_file, array( __CLASS__, 'unset_dependency_action_links' ), 10, 2 );
-	}
-
-	/**
-	 * Adds hooks to modify a dependent's plugin row in 'plugins.php'.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param string $plugin_file Plugin file.
-	 */
-	public static function add_dependent_plugin_row_hooks( $plugin_file ) {
-		add_action( 'after_plugin_row_meta', array( __CLASS__, 'add_dependencies_to_dependent_plugin_row' ), 10, 2 );
-		add_filter( 'plugin_action_links_' . $plugin_file, array( __CLASS__, 'disable_activate_for_dependents_with_unmet_dependencies' ), 10, 2 );
-		add_filter( 'network_admin_plugin_action_links_' . $plugin_file, array( __CLASS__, 'disable_activate_for_dependents_with_unmet_dependencies' ), 10, 2 );
-	}
-
-	/**
-	 * Adds dependents to a dependency's plugin row in 'plugins.php'.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param string $plugin_file Plugin file.
-	 * @param array  $plugin_data Array of plugin data.
-	 */
-	public static function add_dependents_to_dependency_plugin_row( $plugin_file, $plugin_data ) {
-		$dependent_names = self::get_dependent_names( $plugin_data );
-
-		if ( array() === $dependent_names ) {
-			return;
-		}
-
-		echo wp_kses_post( '<div class="required-by"><strong>' . __( 'Required by:' ) . '</strong> ' . implode( ', ', $dependent_names ) . '</div>' );
-	}
-
-	/**
-	 * Adds dependencies to a dependent's plugin row in 'plugins.php'.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param string $plugin_file Plugin file.
-	 */
-	public static function add_dependencies_to_dependent_plugin_row( $plugin_file ) {
-		$dependency_names = self::get_dependency_names( $plugin_file );
-
-		if ( array() === $dependency_names ) {
-			return;
-		}
-
-		$links = self::get_view_details_links( $plugin_file, $dependency_names );
-
-		echo wp_kses_post( '<div class="requires"><strong>' . __( 'Requires:' ) . '</strong> ' . $links . '</div>' );
-	}
-
-	/**
-	 * Adds a list of dependencies to a dependent's plugin card in 'plugin-install.php'.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param string $description Short description of plugin.
-	 * @param array  $plugin      Array of plugin data.
-	 * @return string The modified plugin card description.
-	 */
-	public static function plugin_install_description_uninstalled( $description, $plugin ) {
-		// Skip plugins that don't have dependencies.
-		if ( empty( $plugin['requires_plugins'] ) ) {
-			return $description;
-		}
-
-		self::$uninstalled_dependency_api_data = (array) get_site_transient( 'wp_plugin_dependencies_plugin_api_data' );
-		foreach ( $plugin['requires_plugins'] as $slug ) {
-			// Don't hit the Plugins API if data exists.
-			if ( array_key_exists( $slug, (array) self::$uninstalled_dependency_api_data ) ) {
-				continue;
-			}
-
-			self::$dependency_slugs[] = $slug;
-			if ( ! function_exists( 'plugins_api' ) ) {
-				require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
-			}
-			$information = plugins_api(
-				'plugin_information',
-				array(
-					'slug'   => $slug,
-					'fields' => array(
-						'short_description' => true,
-						'icons'             => true,
-					),
-				)
-			);
-
-			if ( is_wp_error( $information ) ) {
-				continue;
-			}
-
-			self::$uninstalled_dependency_api_data[ $information->slug ] = (array) $information;
-			ksort( self::$uninstalled_dependency_api_data );
-			unset( self::$uninstalled_dependency_api_data[0] );
-			set_site_transient( 'wp_plugin_dependencies_plugin_api_data', self::$uninstalled_dependency_api_data, WEEK_IN_SECONDS );
-		}
-
-		foreach ( $plugin['requires_plugins'] as $slug ) {
-			$plugin_data = self::$uninstalled_dependency_api_data[ $slug ];
-			$url         = network_admin_url( 'plugin-install.php' );
-			$url         = add_query_arg(
-				array(
-					'tab'       => 'plugin-information',
-					'plugin'    => $plugin_data['slug'],
-					'TB_iframe' => 'true',
-					'width'     => '600',
-					'height'    => '550',
-				),
-				$url
-			);
-
-			if ( isset( $plugin_data['name'] ) && ! empty( $plugin_data['version'] ) ) {
-				$more_details_link[ $slug ] = sprintf(
-					'<a href="%1$s" class="more-details-link thickbox open-plugin-details-modal" aria-label="%2$s" data-title="%3$s">%4$s</a>',
-					esc_url( $url ),
-					/* translators: %s: Plugin name. */
-					esc_attr( sprintf( __( 'More information about %s' ), $plugin_data['name'] ) ),
-					esc_attr( $plugin_data['name'] ),
-					__( 'More Details' )
-				);
-				$more_details_link[ $slug ] = '<span class="plugin-dependency-name">' . esc_html( $plugin_data['name'] ) . '</span>' . $more_details_link[ $slug ];
-			}
-		}
-
-		self::$plugin_card_data = array_merge( self::$plugin_card_data, $more_details_link );
-
-		return $description;
-	}
-
-	/**
-	 * Adds a list of dependencies to a plugin card's description in 'plugin-install.php'.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param string $description Plugin card description.
-	 * @return string The modified plugin card description.
-	 */
-	public static function add_dependencies_to_dependent_plugin_card( $description ) {
-		if ( empty( self::$plugin_card_data ) ) {
-			return $description;
-		}
-
-		self::$plugin_card_data = array_filter( self::$plugin_card_data );
-
-		$dependency_list = '';
-		foreach ( self::$plugin_card_data as $data ) {
-			$dependency_list .= '<div class="plugin-dependency">' . $data . '</div>';
-		}
-
-		$header       = __( 'Additional plugins are required' );
-		$notice       = '<div class="plugin-dependencies">';
-		$notice      .= '<p class="plugin-dependencies-explainer-text"><strong>' . $header . '</strong></p>';
-		$notice      .= $dependency_list;
-		$notice      .= '</div>';
-		$description .= $notice;
-
-		self::$plugin_card_data = array();
-
-		return $description;
-	}
-
-	/**
-	 * Creates 'View details' like links for dependencies.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param string $dependent   Dependent plugin file name.
-	 * @param array  $names       An array of dependency names.
-	 * @return string 'View details' like links for dependencies.
-	 */
-	private static function get_view_details_links( $dependent, $names ) {
-		$details_links = array();
-		$dependencies  = self::$dependencies[ $dependent ];
-
-		foreach ( $dependencies as $dependency ) {
-			if ( ! isset( self::$dependency_api_data[ $dependency ] ) ) {
-				foreach ( $names as $name ) {
-					$details_links[ $name ] = $name;
-				}
-				continue;
-			}
-
-			$plugin_data = self::$dependency_api_data[ $dependency ];
-
-			foreach ( $names as $name ) {
-				if ( $name !== $plugin_data['Name'] ) {
-					continue;
-				}
-
-				if ( empty( $plugin_data['version'] ) ) {
-					$details_links[ $name ] = $name;
-					continue;
-				}
-
-				$name_attr              = esc_attr( $name );
-				$details_links[ $name ] = sprintf(
-					"<a href='%s' class='thickbox open-plugin-details-modal' aria-label='%s' data-title='%s'>%s</a>",
-					esc_url( network_admin_url( 'plugin-install.php?tab=plugin-information&plugin=' . $plugin_data['slug'] . '&TB_iframe=true&width=600&height=550' ) ),
-					/* translators: %s: Plugin name. */
-					sprintf( __( 'More information about %s' ), $name_attr ),
-					$name_attr,
-					$name
-				);
-			}
-		}
-
-		$details_links = implode( ', ', $details_links );
-
-		return $details_links;
-	}
-
-	/**
-	 * Unsets plugin action links so dependencies cannot be removed or deactivated
-	 * when the dependent is active.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param array  $actions     Action links.
-	 * @param string $plugin_file Plugin file.
-	 * @return array An array of modified action links.
-	 */
-	public static function unset_dependency_action_links( $actions, $plugin_file ) {
-		foreach ( self::$dependencies as $dependent => $dependencies ) {
-			if ( is_plugin_active( $dependent ) && in_array( dirname( $plugin_file ), $dependencies, true ) ) {
-				unset( $actions['delete'], $actions['deactivate'] );
-			}
-		}
-
-		return $actions;
-	}
-
-	/**
-	 * Displays an admin notice if dependencies are not installed.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @global $pagenow Current page.
-	 */
-	public static function display_admin_notice_for_unmet_dependencies() {
-		global $pagenow;
-
-		// Exit early if user unable to act on notice.
-		if ( ! current_user_can( 'install_plugins' ) ) {
-			return;
-		}
-
-		// Only display on specific pages.
-		if ( in_array( $pagenow, array( 'plugin-install.php', 'plugins.php' ), true ) ) {
-			/*
-			 * Plugin deactivated if dependencies not met.
-			 * Transient on a 10 second timeout.
-			 */
-			$deactivate_requires = get_site_transient( 'wp_plugin_dependencies_deactivated_plugins' );
-			if ( ! empty( $deactivate_requires ) ) {
-				foreach ( $deactivate_requires as $deactivated ) {
-					$deactivated_plugins[] = self::$plugins[ $deactivated ]['Name'];
-				}
-				$deactivated_plugins = implode( ', ', $deactivated_plugins );
-				wp_admin_notice(
-					sprintf(
-						/* translators: 1: plugin names */
-						esc_html__( '%1$s plugin(s) have been deactivated. There are uninstalled or inactive dependencies.' ),
-						'<strong>' . esc_html( $deactivated_plugins ) . '</strong>'
-					),
-					array(
-						'type'        => 'error',
-						'dismissible' => true,
-					)
-				);
-			} else {
-				// More dependencies to install.
-				$installed_slugs = array_map( 'dirname', array_keys( self::$plugins ) );
-				$intersect       = array_intersect( self::$dependency_slugs, $installed_slugs );
-				asort( $intersect );
-				if ( $intersect !== self::$dependency_slugs ) {
-					wp_admin_notice(
-						__( 'There are additional plugin dependencies that must be installed.' ),
-						array(
-							'type'        => 'warning',
-							'dismissible' => true,
-						)
-					);
-				}
-			}
-
-			$circular_dependencies = self::get_circular_dependencies();
-			if ( ! empty( $circular_dependencies ) && count( $circular_dependencies ) > 1 ) {
-				$circular_dependencies = array_unique( $circular_dependencies, SORT_REGULAR );
-				// Build output lines.
-				$circular_dependency_lines = array();
-				foreach ( $circular_dependencies as $circular_dependency ) {
-					$first_filepath              = self::$plugin_dirnames[ $circular_dependency[0] ];
-					$second_filepath             = self::$plugin_dirnames[ $circular_dependency[1] ];
-					$circular_dependency_lines[] = sprintf(
-						/* translators: 1: First plugin name, 2: Second plugin name. */
-						__( '%1$s -> %2$s' ),
-						'<strong>' . esc_html( self::$plugins[ $first_filepath ]['Name'] ) . '</strong>',
-						'<strong>' . esc_html( self::$plugins[ $second_filepath ]['Name'] ) . '</strong>'
-					);
-				}
-
-				wp_admin_notice(
-					sprintf(
-						/* translators: circular dependencies names */
-						__( 'You have circular dependencies with the following plugins: %s' ),
-						'<br>' . implode( '<br>', $circular_dependency_lines )
-					) . '<br>' . __( 'Please contact the plugin developers and make them aware.' ),
-					array(
-						'type'        => 'warning',
-						'dismissible' => true,
-					)
-				);
-			}
-		}
-	}
-
-	/**
-	 * Deactivates dependent plugins with unmet dependencies.
-	 *
-	 * @since 6.4.0
-	 */
-	protected static function deactivate_dependents_with_unmet_dependencies() {
-		$dependency_filepaths     = self::get_dependency_filepaths();
-		$circular_dependencies    = self::get_circular_dependencies();
-		$dependents_to_deactivate = array();
-
-		foreach ( self::$dependencies as $dependent => $dependencies ) {
-			// Skip dependents that are no longer installed.
-			if ( ! array_key_exists( $dependent, self::$plugins ) ) {
-				continue;
-			}
-
-			foreach ( $dependencies as $dependency ) {
-				// Skip dependents already marked for deactivation.
-				if ( isset( $dependents_to_deactivate[ $dependent ] ) ) {
-					continue;
-				}
-
-				// Skip inactive dependents and dependents within a circular dependency tree.
-				if ( is_plugin_inactive( $dependent ) || in_array( $dependent, $circular_dependencies, true ) ) {
-					continue;
-				}
-
-				// Detect dependencies that are not installed or are inactive.
-				if ( ! isset( $dependency_filepaths[ $dependency ] )
-					|| is_plugin_inactive( $dependency_filepaths[ $dependency ] )
-				) {
-					$dependents_to_deactivate[ $dependent ] = $dependent;
-				}
-			}
-		}
-
-		deactivate_plugins( $dependents_to_deactivate );
-		set_site_transient( 'wp_plugin_dependencies_deactivated_plugins', $dependents_to_deactivate, 10 );
-	}
-
-	/**
-	 * Disables a dependent's 'Activate' link if dependencies are not met.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param array  $actions     Plugin action links.
-	 * @param string $plugin_file Plugin file name.
-	 * @return array An array of modified action links.
-	 */
-	public static function disable_activate_for_dependents_with_unmet_dependencies( $actions, $plugin_file ) {
-		$dependencies        = self::get_dependency_filepaths();
-		$plugin_dependencies = self::$dependencies[ $plugin_file ];
-
-		if ( ! isset( $actions['activate'] ) ) {
-			return $actions;
-		}
-
-		foreach ( $plugin_dependencies as $plugin_dependency ) {
-			if ( ! $dependencies[ $plugin_dependency ] || is_plugin_inactive( $dependencies[ $plugin_dependency ] ) ) {
-				$activate  = _x( 'Activate', 'plugin' );
-				$activate .= '<span class="screen-reader-text">' . __( 'Cannot activate due to unmet dependency' ) . '</span>';
-				unset( $actions['activate'] );
-				$actions = array_merge( array( 'activate' => $activate ), $actions );
-
-				add_filter( 'plugin_row_hide_checkbox_' . $plugin_file, '__return_true', 10, 2 );
-				break;
-			}
-		}
-
-		return $actions;
-	}
-
-	/**
-	 * Gets dependent names.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param array $plugin_data Array of plugin data.
-	 * @return array An array of dependent names.
-	 */
-	protected static function get_dependent_names( $plugin_data ) {
-		$dependent_names = array();
-		foreach ( self::$plugins as $plugin ) {
-			if ( is_array( $plugin['RequiresPlugins'] ) ) {
-				// Default TextDomain derived from plugin directory name, should be slug equivalent.
-				if ( ! isset( $plugin_data['slug'] ) ) {
-					$plugin_data['slug'] = $plugin_data['TextDomain'];
-				}
-				if ( in_array( $plugin_data['slug'], $plugin['RequiresPlugins'], true ) ) {
-					$dependent_names[] = $plugin['Name'];
-				}
-			}
-		}
-		$dependent_names = array_unique( $dependent_names );
-		sort( $dependent_names );
-
-		return $dependent_names;
-	}
-
-	/**
-	 * Gets dependency names.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param string $dependent Dependent plugin file.
-	 * @return array An array of dependency names.
-	 */
-	protected static function get_dependency_names( $dependent ) {
-		if ( empty( self::$dependency_api_data ) ) {
-			self::get_dependency_api_data();
-		}
-
-		self::$dependency_api_data = get_site_transient( 'wp_plugin_dependencies_plugin_data' );
-
-		// Bail for an invalid plugin file or a plugin that isn't a dependent.
-		if ( ! str_contains( $dependent, '.php' ) || ! array_key_exists( $dependent, self::$dependencies ) ) {
-			return array();
-		}
-
-		$dependencies = self::$dependencies[ $dependent ];
-
-		// Bail if there are no dependencies.
-		if ( ! is_array( $dependencies ) ) {
-			return array();
-		}
-
-		$dependencies = array_unique( $dependencies );
-		sort( $dependencies );
-
-		$dependency_filepaths = self::get_dependency_filepaths();
-		$dependency_names     = array();
-		foreach ( $dependencies as $dependency ) {
-			if ( isset( $dependency_filepaths[ $dependency ] ) ) {
-				$filepath           = $dependency_filepaths[ $dependency ];
-				$dependency_names[] = isset( self::$dependency_api_data[ $dependency ]['Name'] )
-					? self::$dependency_api_data[ $dependency ]['Name']
-					: $dependency;
-			}
-		}
-
-		return $dependency_names;
-	}
-
-	/**
-	 * Gets the filepath of installed dependencies.
-	 * If a dependency is not installed, the filepath defaults to false.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @return array An array of install dependencies filepaths.
-	 */
-	protected static function get_dependency_filepaths() {
-		$dependency_filepaths = array();
-
-		if ( empty( self::$plugins ) ) {
-			return $dependency_filepaths;
-		}
-
+	protected static function get_plugin_dirnames() {
 		// Cache the plugin directory names.
-		if ( empty( self::$plugin_dirnames ) || self::$plugin_dirnames_cache !== self::$plugin_dirnames ) {
+		if ( empty( self::$plugin_dirnames ) || self::$plugin_dirnames_cache !== self::$plugins ) {
 			self::$plugin_dirnames       = array();
 			self::$plugin_dirnames_cache = self::$plugins;
 
@@ -805,16 +781,7 @@ class WP_Plugin_Dependencies {
 			}
 		}
 
-		foreach ( self::$dependency_slugs as $slug ) {
-			if ( isset( self::$plugin_dirnames[ $slug ] ) ) {
-				$dependency_filepaths[ $slug ] = self::$plugin_dirnames[ $slug ];
-				continue;
-			}
-
-			$dependency_filepaths[ $slug ] = false;
-		}
-
-		return $dependency_filepaths;
+		return self::$plugin_dirnames;
 	}
 
 	/**
@@ -822,9 +789,9 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return array An array of circular dependencies.
+	 * @return array[] An array of circular dependency pairings.
 	 */
-	public static function get_circular_dependencies() {
+	protected static function get_circular_dependencies() {
 		$circular_dependencies = array();
 		foreach ( self::$dependencies as $dependent => $dependencies ) {
 			/*
@@ -850,11 +817,13 @@ class WP_Plugin_Dependencies {
 	/**
 	 * Checks for circular dependencies.
 	 *
+	 * @since 6.4.0
+	 *
 	 * @param array $dependents   Array of dependent plugins.
 	 * @param array $dependencies Array of plugins dependencies.
-	 * @return array
+	 * @return array A circular dependency pairing, or an empty array if none exists.
 	 */
-	public static function check_for_circular_dependencies( $dependents, $dependencies ) {
+	protected static function check_for_circular_dependencies( $dependents, $dependencies ) {
 		$circular_dependencies = array();
 
 		// Check for a self-dependency.
@@ -911,70 +880,5 @@ class WP_Plugin_Dependencies {
 		}
 
 		return $circular_dependencies;
-	}
-
-	/**
-	 * Checks plugin dependencies after a plugin is installed via AJAX.
-	 *
-	 * @since 6.4.0
-	 */
-	public static function check_plugin_dependencies() {
-		check_ajax_referer( 'updates' );
-
-		if ( empty( $_POST['slug'] ) ) {
-			wp_send_json_error(
-				array(
-					'slug'         => '',
-					'errorCode'    => 'no_plugin_specified',
-					'errorMessage' => __( 'No plugin specified.' ),
-				)
-			);
-		}
-
-		$slug   = sanitize_key( wp_unslash( $_POST['slug'] ) );
-		$status = array( 'slug' => $slug );
-
-		if ( ! isset( self::$plugin_dirnames[ $slug ] ) ) {
-			$status['errorCode']    = 'plugin_not_installed';
-			$status['errorMessage'] = __( 'The plugin is not installed.' );
-			wp_send_json_error( $status );
-		}
-
-		$plugin_file = self::$plugin_dirnames[ $slug ];
-
-		if ( ! isset( self::$dependencies[ $plugin_file ]['RequiresPlugins'] ) ) {
-			$status['message'] = __( 'The plugin has no required plugins.' );
-			wp_send_json_success( $status );
-		}
-
-		$dependencies          = explode( ',', self::$dependencies[ $plugin_file ]['RequiresPlugins'] );
-		$inactive_dependencies = array();
-		foreach ( $dependencies as $dependency ) {
-			if ( is_plugin_inactive( self::$plugin_dirnames[ $dependency ] ) ) {
-				$inactive_dependencies[] = $dependency;
-			}
-		}
-
-		if ( ! empty( $inactive_dependencies ) ) {
-			$inactive_dependency_names = array_map(
-				function ( $dependency ) {
-					return self::$dependency_api_data[ $dependency ]['Name'];
-				},
-				$inactive_dependencies
-			);
-
-			$status['errorCode']    = 'inactive_dependencies';
-			$status['errorMessage'] = sprintf(
-				/* translators: %s: A list of inactive dependency plugin names. */
-				__( 'The following plugins must be activated first: %s.' ),
-				implode( ', ', $inactive_dependency_names )
-			);
-			$status['errorData'] = array_combine( $inactive_dependencies, $inactive_dependency_names );
-
-			wp_send_json_error( $status );
-		}
-
-		$status['message'] = __( 'All required plugins are installed and activated.' );
-		wp_send_json_success( $status );
 	}
 }
