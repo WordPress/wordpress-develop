@@ -544,9 +544,19 @@ class Plugin_Upgrader extends WP_Upgrader {
 		}
 
 		// Assume the requested plugin is the first in the list.
-		$pluginfiles = array_keys( $plugin );
+		$pluginfile = array_keys( $plugin )[0];
 
-		return $this->result['destination_name'] . '/' . $pluginfiles[0];
+		if ( false !== strpos( $pluginfile, '/' ) ) {
+			// Prefer first top-level file to remain consistent with
+			// get_plugins() default behavior with WP_PLUGIN_DIR.
+			foreach ( $plugin as $file => &$data ) {
+				if ( false === strpos( $file, '/' ) ) {
+					$pluginfile = $file;
+				}
+			}
+		}
+
+		return $this->result['destination_name'] . '/' . $pluginfile;
 	}
 
 	/**
