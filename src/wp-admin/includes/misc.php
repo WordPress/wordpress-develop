@@ -1683,9 +1683,10 @@ function wp_get_admin_notice( $message, $args = array() ) {
 	 * @param array  $args    The arguments for the admin notice.
 	 * @param string $message The message for the admin notice.
 	 */
-	$args    = apply_filters( 'wp_admin_notice_args', $args, $message );
-	$id      = '';
-	$classes = 'notice';
+	$args       = apply_filters( 'wp_admin_notice_args', $args, $message );
+	$id         = '';
+	$classes    = 'notice';
+	$attributes = '';
 
 	if ( is_string( $args['id'] ) ) {
 		$trimmed_id = trim( $args['id'] );
