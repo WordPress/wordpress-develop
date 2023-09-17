@@ -1730,9 +1730,9 @@ function wp_get_admin_notice( $message, $args = array() ) {
 			if ( is_bool( $val ) ) {
 				$attributes .= $val ? ' ' . $attr : '';
 			} elseif ( is_int( $attr ) ) {
-				$attributes .= ' ' . $val;
+				$attributes .= ' ' . esc_attr( trim( $val ) );
 			} elseif ( $val ) {
-				$attributes .= ' ' . $attr . '="' . esc_attr( $val ) . '"';
+				$attributes .= ' ' . $attr . '="' . esc_attr( trim( $val ) ) . '"';
 			}
 		}
 	}
