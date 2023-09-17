@@ -255,7 +255,7 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 				'args'     => array(
 					'attributes' => array( 'data-unsafe' => '<script>alert( "Howdy, admin!" );</script>' ),
 				),
-				'expected' => '<div class="notice"><p>A notice with an additional attribute with an unsafe value.</p></div>',
+				'expected' => '<div class="notice" data-unsafe="&lt;script&gt;alert( &quot;Howdy, admin!&quot; );&lt;/script&gt;"><p>A notice with an additional attribute with an unsafe value.</p></div>',
 			),
 			'additional invalid attribute' => array(
 				'message'  => 'A notice with an additional attribute that is invalid.',
