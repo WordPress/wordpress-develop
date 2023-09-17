@@ -1729,10 +1729,10 @@ function wp_get_admin_notice( $message, $args = array() ) {
 		foreach ( $args['attributes'] as $attr => $val ) {
 			if ( is_bool( $val ) ) {
 				$attributes .= $val ? ' ' . $attr : '';
-			} elseif ( $val ) {
-				$attributes .= ' ' . $attr . '="' . esc_attr( $val ) . '"';
 			} elseif ( is_int( $attr ) ) {
 				$attributes .= ' ' . $val;
+			} elseif ( $val ) {
+				$attributes .= ' ' . $attr . '="' . esc_attr( $val ) . '"';
 			}
 		}
 	}
