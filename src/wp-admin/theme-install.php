@@ -342,7 +342,6 @@ if ( $tab ) {
 			array(
 				'type'               => 'error',
 				'additional_classes' => array( 'notice-alt' ),
-				'paragraph_wrap'     => false,
 			)
 		);
 		?>
@@ -506,7 +505,6 @@ if ( $tab ) {
 								array(
 									'type'               => 'error',
 									'additional_classes' => array( 'notice-alt', 'notice-large' ),
-									'paragraph_wrap'     => false,
 								)
 							);
 							?>
