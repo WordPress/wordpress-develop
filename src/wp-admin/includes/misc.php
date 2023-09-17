@@ -1727,7 +1727,9 @@ function wp_get_admin_notice( $message, $args = array() ) {
 	if ( is_array( $args['attributes'] ) && ! empty( $args['attributes'] ) ) {
 		$attributes = '';
 		foreach ( $args['attributes'] as $attr => $val ) {
-			if ( $val ) {
+			if ( is_bool( $val ) ) {
+				$attributes .= $val ? ' ' . $attr : '';
+			} elseif ( $val ) {
 				$attributes .= ' ' . $attr . '="' . esc_attr( $val ) . '"';
 			} else {
 				$attributes .= ' ' . $attr;

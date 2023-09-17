@@ -222,9 +222,9 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 			'additional hidden attribute'               => array(
 				'message'  => 'A notice with the hidden attribute.',
 				'args'     => array(
-					'attributes' => array( 'hidden' => 'hidden' ),
+					'attributes' => array( 'hidden' => true ),
 				),
-				'expected' => '<div class="notice" hidden="hidden"><p>A notice with the hidden attribute.</p></div>',
+				'expected' => '<div class="notice" hidden><p>A notice with the hidden attribute.</p></div>',
 			),
 			'additional attribute with numeric value'   => array(
 				'message'  => 'A notice with an additional attribute with a numeric value.',
