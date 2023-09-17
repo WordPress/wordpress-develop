@@ -212,35 +212,35 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 				),
 				'expected' => '<div class="notice"><p>A notice with additional classes that are not an array.</p></div>',
 			),
-			'additional attribute with a value' => array(
+			'additional attribute with a value'         => array(
 				'message'  => 'A notice with an additional attribute with a value.',
 				'args'     => array(
 					'attributes' => array( 'aria-live' => 'assertive' ),
 				),
 				'expected' => '<div class="notice" aria-live="assertive"><p>A notice with an additional attribute with a value.</p></div>',
 			),
-			'additional attribute with no value' => array(
+			'additional attribute with no value'        => array(
 				'message'  => 'A notice with an additional attribute with no value.',
 				'args'     => array(
 					'attributes' => array( 'hidden' ),
 				),
 				'expected' => '<div class="notice" hidden><p>A notice with an additional attribute with no value.</p></div>',
 			),
-			'additional attribute with numeric value' => array(
+			'additional attribute with numeric value'   => array(
 				'message'  => 'A notice with an additional attribute with a numeric value.',
 				'args'     => array(
 					'attributes' => array( 'tabindex' => -1 ),
 				),
 				'expected' => '<div class="notice" tabindex="-1"><p>A notice with an additional attribute with a numeric value.</p></div>',
 			),
-			'additional attribute with role' => array(
+			'additional attribute with role'            => array(
 				'message'  => 'A notice with an additional attribute role.',
 				'args'     => array(
 					'attributes' => array( 'role' => 'alert' ),
 				),
 				'expected' => '<div class="notice" role="alert"><p>A notice with an additional attribute role.</p></div>',
 			),
-			'multiple additional attributes' => array(
+			'multiple additional attributes'            => array(
 				'message'  => 'A notice with multiple additional attributes.',
 				'args'     => array(
 					'attributes' => array(
@@ -250,14 +250,14 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 				),
 				'expected' => '<div class="notice" role="alert" tabindex="-1"><p>A notice with multiple additional attributes.</p></div>',
 			),
-			'data attribute with unsafe value' => array(
+			'data attribute with unsafe value'          => array(
 				'message'  => 'A notice with an additional attribute with an unsafe value.',
 				'args'     => array(
 					'attributes' => array( 'data-unsafe' => '<script>alert( "Howdy, admin!" );</script>' ),
 				),
 				'expected' => '<div class="notice" data-unsafe="&lt;script&gt;alert( &quot;Howdy, admin!&quot; );&lt;/script&gt;"><p>A notice with an additional attribute with an unsafe value.</p></div>',
 			),
-			'additional invalid attribute' => array(
+			'additional invalid attribute'              => array(
 				'message'  => 'A notice with an additional attribute that is invalid.',
 				'args'     => array(
 					'attributes' => array( 'not-valid' => 'not-valid' ),
