@@ -264,7 +264,7 @@ class Tests_Admin_WpGetAdminNotice extends WP_UnitTestCase {
 						'hidden',
 					),
 				),
-				'expected' => '<div class="notice" role="alert" disabled="disabled" data-name="my-name" data-id="1" hidden><p>A notice with multiple attributes with "role", invalid, "data-*", numeric, and boolean</p></div>',
+				'expected' => '<div class="notice" role="alert" disabled="disabled" data-name="my-name" data-id="1" hidden><p>A notice with multiple attributes with "role", invalid, "data-*", numeric, and boolean.</p></div>',
 			),
 			'paragraph wrapping as a falsy value rather than (bool) false' => array(
 				'message'  => 'A notice with paragraph wrapping as a falsy value rather than (bool) false.',
