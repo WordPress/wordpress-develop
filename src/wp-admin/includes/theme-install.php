@@ -271,11 +271,11 @@ function install_theme_information() {
 }
 
 /**
- * Outputs JS template and conditionals for checking theme compatibility with WordPress and PHP.
+ * Generates JS template and conditionals for checking theme compatibility with WordPress and PHP.
  *
  * @since 6.4.0
  *
- * @return string
+ * @return string The JS template.
  */
 function theme_compatibility_template() {
 	$compatibility_template  = '<# if ( ! data.compatible_wp && ! data.compatible_php ) { #>';
