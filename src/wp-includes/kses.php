@@ -2652,6 +2652,7 @@ function _wp_add_global_attributes( $value ) {
 		'class'            => true,
 		'data-*'           => true,
 		'dir'              => true,
+		'hidden'           => true,
 		'id'               => true,
 		'lang'             => true,
 		'style'            => true,
