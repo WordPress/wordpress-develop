@@ -1731,8 +1731,8 @@ function wp_get_admin_notice( $message, $args = array() ) {
 				$attributes .= $val ? ' ' . $attr : '';
 			} elseif ( $val ) {
 				$attributes .= ' ' . $attr . '="' . esc_attr( $val ) . '"';
-			} else {
-				$attributes .= ' ' . $attr;
+			} elseif ( is_int( $attr ) ) {
+				$attributes .= ' ' . $val;
 			}
 		}
 	}

@@ -226,6 +226,13 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 				),
 				'expected' => '<div class="notice" hidden><p>A notice with the hidden attribute.</p></div>',
 			),
+			'additional attribute no associative keys'  => array(
+				'message'  => 'A notice with a boolean attribute without an associative key.',
+				'args'     => array(
+					'attributes' => array( 'hidden' ),
+				),
+				'expected' => '<div class="notice" hidden><p>A notice with a boolean attribute without an associative key.</p></div>',
+			),
 			'additional attribute with numeric value'   => array(
 				'message'  => 'A notice with an additional attribute with a numeric value.',
 				'args'     => array(
