@@ -7,7 +7,7 @@
  */
 
 /**
- * Class representing a list of block instances.
+ * Class representing a list of block instanczes.
  *
  * @since 5.5.0
  */
