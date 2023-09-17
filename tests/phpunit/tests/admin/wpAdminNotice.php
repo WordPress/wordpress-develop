@@ -219,12 +219,12 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 				),
 				'expected' => '<div class="notice" aria-live="assertive"><p>A notice with an additional attribute with a value.</p></div>',
 			),
-			'additional attribute with no value'        => array(
-				'message'  => 'A notice with an additional attribute with no value.',
+			'additional hidden attribute'               => array(
+				'message'  => 'A notice with the hidden attribute.',
 				'args'     => array(
-					'attributes' => array( 'hidden' ),
+					'attributes' => array( 'hidden' => 'hidden' ),
 				),
-				'expected' => '<div class="notice" hidden><p>A notice with an additional attribute with no value.</p></div>',
+				'expected' => '<div class="notice" hidden="hidden"><p>A notice with the hidden attribute.</p></div>',
 			),
 			'additional attribute with numeric value'   => array(
 				'message'  => 'A notice with an additional attribute with a numeric value.',
