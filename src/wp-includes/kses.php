@@ -2656,7 +2656,6 @@ function _wp_add_global_attributes( $value ) {
 		'id'               => true,
 		'lang'             => true,
 		'style'            => true,
-		'tabindex'         => true,
 		'title'            => true,
 		'role'             => true,
 		'xml:lang'         => true,

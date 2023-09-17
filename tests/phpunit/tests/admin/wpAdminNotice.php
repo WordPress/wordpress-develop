@@ -233,13 +233,6 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 				),
 				'expected' => '<div class="notice" hidden><p>A notice with a boolean attribute without an associative key.</p></div>',
 			),
-			'additional attribute with numeric value'   => array(
-				'message'  => 'A notice with an additional attribute with a numeric value.',
-				'args'     => array(
-					'attributes' => array( 'tabindex' => -1 ),
-				),
-				'expected' => '<div class="notice" tabindex="-1"><p>A notice with an additional attribute with a numeric value.</p></div>',
-			),
 			'additional attribute with role'            => array(
 				'message'  => 'A notice with an additional attribute role.',
 				'args'     => array(
@@ -251,11 +244,11 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 				'message'  => 'A notice with multiple additional attributes.',
 				'args'     => array(
 					'attributes' => array(
-						'role'     => 'alert',
-						'tabindex' => '-1',
+						'role'      => 'alert',
+						'data-test' => -1,
 					),
 				),
-				'expected' => '<div class="notice" role="alert" tabindex="-1"><p>A notice with multiple additional attributes.</p></div>',
+				'expected' => '<div class="notice" role="alert" data-test="-1"><p>A notice with multiple additional attributes.</p></div>',
 			),
 			'data attribute with unsafe value'          => array(
 				'message'  => 'A notice with an additional attribute with an unsafe value.',
@@ -271,13 +264,6 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 				),
 				'expected' => '<div class="notice"><p>A notice with an additional attribute that is invalid.</p></div>',
 			),
-			'paragraph wrapping as a falsy value rather than (bool) false' => array(
-				'message'  => 'A notice with paragraph wrapping as a falsy value rather than (bool) false.',
-				'args'     => array(
-					'paragraph_wrap' => 0,
-				),
-				'expected' => '<div class="notice"><p>A notice with paragraph wrapping as a falsy value rather than (bool) false.</p></div>',
-			),
 			'multiple attributes with "role", boolean, verbose boolean, data-* and numeric' => array(
 				'message'  => 'A notice with multiple attributes with "role", boolean, verbose boolean, "data-*" and "numeric".',
 				'args'     => array(
@@ -285,11 +271,17 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 						'role'      => 'alert',
 						'disabled'  => 'disabled',
 						'data-name' => 'my-name',
-						'tabindex'  => -1,
 						'hidden',
 					),
 				),
-				'expected' => '<div class="notice" role="alert" data-name="my-name" tabindex="-1" hidden><p>A notice with multiple attributes with "role", boolean, verbose boolean, "data-*" and "numeric".</p></div>',
+				'expected' => '<div class="notice" role="alert" data-name="my-name" hidden><p>A notice with multiple attributes with "role", boolean, verbose boolean, "data-*" and "numeric".</p></div>',
+			),
+			'paragraph wrapping as a falsy value rather than (bool) false' => array(
+				'message'  => 'A notice with paragraph wrapping as a falsy value rather than (bool) false.',
+				'args'     => array(
+					'paragraph_wrap' => 0,
+				),
+				'expected' => '<div class="notice"><p>A notice with paragraph wrapping as a falsy value rather than (bool) false.</p></div>',
 			),
 		);
 	}
