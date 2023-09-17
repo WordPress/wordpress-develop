@@ -4855,7 +4855,7 @@ function wp_parse_args( $args, $defaults = array() ) {
 	}
 
 	if ( is_array( $defaults ) && $defaults ) {
-		return array_merge( $defaults, $parsed_args );
+		return array_replace_recursive( $defaults, $parsed_args );
 	}
 	return $parsed_args;
 }
