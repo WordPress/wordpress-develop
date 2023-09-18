@@ -13,60 +13,6 @@
 class WP_Rollback_Auto_Update {
 
 	/**
-	 * Stores handler parameters.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @var array
-	 */
-	private $handler_args = array();
-
-	/**
-	 * Stores successfully updated plugins.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @var array
-	 */
-	private static $processed = array();
-
-	/**
-	 * Stores fataling plugins.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @var array
-	 */
-	private static $fatals = array();
-
-	/**
-	 * Stores active state of plugins being updated.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @var array
-	 */
-	private static $is_active = array();
-
-	/**
-	 * Stores `update_plugins` transient.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @var stdClass
-	 */
-	private static $current_plugins;
-
-	/**
-	 * Stores `update_themes` transient.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @var stdClass
-	 */
-	private static $current_themes;
-
-	/**
 	 * Stores instance of Plugin_Upgrader.
 	 *
 	 * @since 6.4.0
@@ -76,7 +22,36 @@ class WP_Rollback_Auto_Update {
 	private static $plugin_upgrader;
 
 	/**
-	 * Stores error codes.
+	 * Stores update data for plugins with pending updates.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @var stdClass
+	 */
+	private static $plugin_updates;
+
+	/**
+	 * Stores update data for themes with pending updates.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @var stdClass
+	 */
+	private static $theme_updates;
+
+	/**
+	 * Stores plugins that were active before being updated.
+	 *
+	 * Used to reactivate plugins that were deactivated before testing.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @var string[]
+	 */
+	private static $previously_active_plugins = array();
+
+	/**
+	 * Stores error codes to be detected by the error handler.
 	 *
 	 * @since 6.4.0
 	 *
@@ -85,57 +60,120 @@ class WP_Rollback_Auto_Update {
 	private static $error_types = E_ERROR | E_PARSE | E_COMPILE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR;
 
 	/**
-	 * Stores array of regex for error exceptions.
-	 *
-	 * These errors occur because a plugin loaded in memory results in some errors
-	 * during 'include()' that do not occur during manual updating as a browser
-	 * redirect clears the memory.
+	 * Stores a map of error numbers to their constant name.
 	 *
 	 * @since 6.4.0
 	 *
 	 * @var array
 	 */
-	private static $error_exceptions = array(
-		'Cannot declare class', // class defined in main plugin file.
-		'Constant([ _A-Z]+)already defined', // constant defined in main plugin file.
-		'Cannot redeclare', // function defined in main plugin file.
-		'mkdir\(\): File exists', // constant defined in main plugin file.
-		'Passing null to parameter(.*)of type(.*)is deprecated', // PHP8 deprecation error.
-		'Trying to access array offset on value of type null', // PHP8 deprecation error.
-		'ReturnTypeWillChange', // PHP8 deprecation error.
+	private static $error_number_to_constant_map = array(
+		2     => 'E_WARNING',
+		8     => 'E_NOTICE',
+		512   => 'E_USER_WARNING',
+		1024  => 'E_USER_NOTICE',
+		4096  => 'E_RECOVERABLE_ERROR',
+		8192  => 'E_DEPRECATED',
+		16384 => 'E_USER_DEPRECATED',
 	);
 
 	/**
-	 * Stores bool if email has been sent.
+	 * Stores regex patterns to match acceptable error messages.
+	 *
+	 * Some of these errors can occur when an active plugin is loaded into memory prior to being tested.
+	 * They cannot be verified as errors in the plugin file, and must therefore be treated
+	 * as false positives.
+	 *
+	 * Manual updates do not experience these errors because the plugin is deactivated before
+	 * a browser redirect to a file that performs the checks. This class runs during cron,
+	 * where a browser redirect is not possible.
+	 *
+	 * Other errors may not be severe enough to roll back the plugin.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @var string[]
+	 */
+	private static $acceptable_errors = array(
+		// False positives.
+
+		// A class is defined in the main plugin file.
+		'Cannot declare class',
+		// A constant is defined in the main plugin file.
+		'Constant([ _A-Z]+)already defined',
+		// A function is defined in the main plugin file.
+		'Cannot redeclare',
+
+		// Errors that should not cause the plugin to be rolled back.
+
+		// An existing directory is created in the main plugin file.
+		'mkdir\(\): File exists',
+
+		// PHP8 deprecations.
+		'Passing null to parameter(.*)of type(.*)is deprecated',
+		'Trying to access array offset on value of type null',
+		'ReturnTypeWillChange',
+	);
+
+	/**
+	 * Stores the filepath of the current plugin being checked.
+	 *
+	 * The filepath is relative to the plugins directory.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @var string
+	 */
+	private $current_plugin = '';
+
+	/**
+	 * Stores plugins and themes that have been processed.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @var string[]
+	 */
+	private static $processed = array();
+
+	/**
+	 * Stores plugins that were rolled back.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @var string[]
+	 */
+	private static $rolled_back = array();
+
+	/**
+	 * Stores whether an email was sent.
 	 *
 	 * @since 6.4.0
 	 *
 	 * @var bool
 	 */
-	private static $email_sent = false;
+	private static $email_was_sent = false;
 
 	/**
-	 * Checks the validity of the updated plugin.
+	 * Checks the updated plugin for errors.
 	 *
 	 * @since 6.4.0
 	 *
 	 * @param array|WP_Error $result     Result from WP_Upgrader::install_package().
 	 * @param array          $hook_extra Extra arguments passed to hooked filters.
 	 * @param WP_Upgrader    $upgrader   WP_Upgrader or child class instance.
-	 * @return array|WP_Error
+	 * @return array|WP_Error The result from WP_Upgrader::install_package().
 	 */
-	public function auto_update_check( $result, $hook_extra, $upgrader ) {
+	public function check_plugin_for_errors( $result, $hook_extra, $upgrader ) {
 		if ( is_wp_error( $result ) || ! wp_doing_cron() || ! isset( $hook_extra['plugin'] ) ) {
 			return $result;
 		}
 
 		// Already processed.
-		if ( in_array( $hook_extra['plugin'], array_diff( self::$processed, self::$fatals ), true ) ) {
+		if ( in_array( $hook_extra['plugin'], array_diff( self::$processed, self::$rolled_back ), true ) ) {
 			return $result;
 		}
 
-		self::$current_plugins = get_site_transient( 'update_plugins' );
-		self::$current_themes  = get_site_transient( 'update_themes' );
+		self::$plugin_updates = get_site_transient( 'update_plugins' );
+		self::$theme_updates  = get_site_transient( 'update_themes' );
 
 		/*
 		 * This possibly helps to avoid a potential race condition on servers that may start to
@@ -145,137 +183,159 @@ class WP_Rollback_Auto_Update {
 		sleep( 2 );
 
 		static::$plugin_upgrader = $upgrader;
-		$this->handler_args      = array(
-			'handler_error' => '',
-			'result'        => $result,
-			'hook_extra'    => $hook_extra,
-		);
+		$this->current_plugin    = $hook_extra['plugin'];
+		self::$processed[]       = $this->current_plugin;
 
 		// Register exception and shutdown handlers.
 		$this->initialize_handlers();
 
-		self::$processed[] = $hook_extra['plugin'];
-		if ( is_plugin_active( $hook_extra['plugin'] ) ) {
-			self::$is_active[] = $hook_extra['plugin'];
-			deactivate_plugins( $hook_extra['plugin'] );
+		if ( is_plugin_active( $this->current_plugin ) ) {
+			self::$previously_active_plugins[] = $this->current_plugin;
+			deactivate_plugins( $this->current_plugin );
 		}
 
 		/*
 		 * Working parts of plugin_sandbox_scrape().
 		 * Must use 'include()' instead of 'include_once()' to surface errors.
 		 */
-		wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $hook_extra['plugin'] );
-		include WP_PLUGIN_DIR . '/' . $hook_extra['plugin'];
+		wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $this->current_plugin );
+		include WP_PLUGIN_DIR . '/' . $this->current_plugin;
 
-		activate_plugins( self::$is_active );
+		activate_plugins( self::$previously_active_plugins );
 
 		return $result;
 	}
 
 	/**
-	 * Initializes handlers.
+	 * Sets custom handlers for errors, exceptions and shutdown.
 	 *
 	 * @since 6.4.0
 	 */
 	private function initialize_handlers() {
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler
-		set_error_handler( array( $this, 'error_handler' ), ( E_ALL ^ self::$error_types ) );
-		set_exception_handler( array( $this, 'exception_handler' ) );
-		register_shutdown_function( array( $this, 'shutdown_function' ) );
+		set_error_handler( array( $this, 'handle_error' ), ( E_ALL ^ self::$error_types ) );
+		set_exception_handler( array( $this, 'handle_exception' ) );
+		register_shutdown_function( array( $this, 'resume_or_roll_back' ) );
 	}
 
 	/**
-	 * Handles Errors.
+	 * Checks whether an error is acceptable. otherwise rolls the plugin back to its
+	 * temporary backup.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param int    $errno  Error number.
-	 * @param string $errstr Error message.
-	 * @return array|void
+	 * @param int    $number  The error number.
+	 * @param string $message The error message.
 	 */
-	public function error_handler( $errno, $errstr ) {
-		$int_to_type = array(
-			2     => 'E_WARNING',
-			8     => 'E_NOTICE',
-			512   => 'E_USER_WARNING',
-			1024  => 'E_USER_NOTICE',
-			4096  => 'E_RECOVERABLE_ERROR',
-			8192  => 'E_DEPRECATED',
-			16384 => 'E_USER_DEPRECATED',
-		);
-		$result      = $this->check_passing_errors( $errstr );
-		if ( is_array( $result ) ) {
-			return $result;
+	public function handle_error( $number, $message ) {
+		if ( $this->is_acceptable_error( $message ) ) {
+			return;
 		}
-		$this->handler_args['handler_error'] = 'RAU Error Handler';
-		$this->handler_args['error_msg']     = $int_to_type[ $errno ] . ': ' . $errstr;
-		$this->handler();
+
+		$this->rollback( self::$error_number_to_constant_map[ $number ], $message );
 	}
 
 	/**
-	 * Handles Exceptions.
+	 * Sends the plugin to be rolled back to its temporary backup
+	 * due to an exception.
 	 *
 	 * @since 6.4.0
 	 *
 	 * @param Throwable $exception Exception object.
-	 * @return void
 	 */
-	public function exception_handler( Throwable $exception ) {
-		$this->handler_args['handler_error'] = 'RAU Exception Handler';
-		$this->handler_args['error_msg']     = $exception->getMessage();
-		$this->handler();
+	public function handle_exception( Throwable $exception ) {
+		$this->rollback( 'Exception', $exception->getMessage() );
 	}
 
 	/**
-	 * Shutdown function.
+	 * Determines whether to resume updates or roll back the plugin on shutdown.
 	 *
-	 * @return array|void
+	 * @since 6.4.0
 	 */
-	public function shutdown_function() {
+	public function resume_or_roll_back() {
 		$last_error = error_get_last();
-		$result     = $this->check_passing_errors( $last_error['message'] );
-		if ( is_array( $result ) ) {
-			$this->restart_updates_and_send_email();
+		if ( null === $last_error || $this->is_acceptable_error( $last_error['message'] ) ) {
+			$this->resume_updates_and_send_email();
 			exit();
 		}
-		$this->handler_args['handler_error'] = 'RAU Shutdown Function';
-		$this->handler_args['error_msg']     = $last_error['message'];
-		$this->handler();
+
+		$type = self::$error_number_to_constant_map[ $last_error['type'] ];
+		$this->rollback( $type, $last_error['message'] );
 	}
 
 	/**
-	 * Check for errors only caused by an active plugin using 'include()'.
+	 * Determines whether an error is acceptable.
+	 *
+	 * Acceptable errors are those that may be triggered when
+	 * a plugin is already in memory, or errors that are not
+	 * severe enough to cause a plugin to be rolled back.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param string $error_msg Error message from handler.
-	 * @return array|bool
+	 * @param string $message Error message from handler.
+	 * @return bool Whether the error is acceptable.
 	 */
-	private function check_passing_errors( $error_msg ) {
-		if ( empty( $error_msg ) ) {
-			return array();
-		}
-		preg_match( '/(' . implode( '|', static::$error_exceptions ) . ')/', $error_msg, $matches );
-		if ( ! empty( $matches ) ) {
-			return $this->handler_args['result'];
-		}
-
-		return false;
+	private function is_acceptable_error( $message ) {
+		return (bool) preg_match( '/(' . implode( '|', static::$acceptable_errors ) . ')/', $message, $matches );
 	}
 
 	/**
-	 * Handles errors by running Rollback.
+	 * Rolls back the plugin to its temporary backup.
 	 *
 	 * @since 6.4.0
+	 *
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 *
+	 * @param string $error_type    The error type.
+	 * @param string $error_message The error message.
 	 */
-	private function handler() {
-		error_log( var_export( $this->handler_args['handler_error'] . ' - ' . $this->handler_args['error_msg'], true ) );
-		if ( in_array( $this->handler_args['hook_extra']['plugin'], self::$fatals, true ) ) {
+	private function rollback( $error_type, $error_message ) {
+		global $wp_filesystem;
+
+		if ( WP_DEBUG ) {
+			trigger_error(
+				"$error_type - $error_message",
+				E_USER_WARNING
+			);
+		}
+
+		if ( in_array( $this->current_plugin, self::$rolled_back, true ) ) {
 			return;
 		}
-		self::$fatals[] = $this->handler_args['hook_extra']['plugin'];
+		self::$rolled_back[] = $this->current_plugin;
 
-		$this->cron_rollback();
+		$temp_backup = array(
+			'temp_backup' => array(
+				'dir'  => 'plugins',
+				'slug' => dirname( $this->current_plugin ),
+				'src'  => $wp_filesystem->wp_plugins_dir(),
+			),
+		);
+
+		/*
+		 * The WP_Upgrader class uses these properties with private visibility.
+		 *
+		 * As this class is effectively a bridge between WP_Automatic_Updater
+		 * and WP_Upgrader, the Reflection API is used to temporarily make these
+		 * properties accessible.
+		 *
+		 * The plugin's temporary backup is added, before the rollback is performed.
+		 */
+		$rollback_updater = new WP_Upgrader();
+
+		$temp_restores = new ReflectionProperty( $rollback_updater, 'temp_restores' );
+		$temp_restores->setAccessible( true );
+		$temp_restores->setValue( $rollback_updater, $temp_backup );
+		$temp_restores->setAccessible( false );
+
+		$temp_backups = new ReflectionProperty( $rollback_updater, 'temp_backups' );
+		$temp_backups->setAccessible( true );
+		$temp_backups->setValue( $rollback_updater, $temp_backup );
+		$temp_backups->setAccessible( false );
+
+		// Perform the rollback.
+		$rollback_updater->restore_temp_backup();
+		$rollback_updater->delete_temp_backup();
 
 		/*
 		 * This possibly helps to avoid a potential race condition on servers that may start to
@@ -293,52 +353,15 @@ class WP_Rollback_Auto_Update {
 		 */
 		remove_filter( 'upgrader_clear_destination', array( static::$plugin_upgrader, 'delete_old_plugin' ) );
 
-		$this->restart_updates_and_send_email();
+		$this->resume_updates_and_send_email();
 	}
 
 	/**
-	 * Rolls back during cron.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
-	 */
-	private function cron_rollback() {
-		global $wp_filesystem;
-
-		$temp_backup = array(
-			'temp_backup' => array(
-				'dir'  => 'plugins',
-				'slug' => dirname( $this->handler_args['hook_extra']['plugin'] ),
-				'src'  => $wp_filesystem->wp_plugins_dir(),
-			),
-		);
-
-		$rollback_updater = new WP_Upgrader();
-
-		// Set private $temp_restores variable.
-		$ref_temp_restores = new ReflectionProperty( $rollback_updater, 'temp_restores' );
-		$ref_temp_restores->setAccessible( true );
-		$ref_temp_restores->setValue( $rollback_updater, $temp_backup );
-
-		// Set private $temp_backups variable.
-		$ref_temp_backups = new ReflectionProperty( $rollback_updater, 'temp_backups' );
-		$ref_temp_backups->setAccessible( true );
-		$ref_temp_backups->setValue( $rollback_updater, $temp_backup );
-
-		// Call Rollback's restore_temp_backup().
-		$rollback_updater->restore_temp_backup();
-
-		// Call Rollback's delete_temp_backup().
-		$rollback_updater->delete_temp_backup();
-	}
-
-	/**
-	 * Restart update process for plugins that remain after a fatal.
+	 * Resumes the update process for plugins that remain after one is rolled back.
 	 *
 	 * @since 6.4.0
 	 */
-	private function restart_updates() {
+	private function resume_updates() {
 		$remaining_plugin_auto_updates = $this->get_remaining_plugin_auto_updates();
 		$remaining_theme_auto_updates  = $this->get_remaining_theme_auto_updates();
 		$skin                          = new Automatic_Upgrader_Skin();
@@ -361,11 +384,11 @@ class WP_Rollback_Auto_Update {
 	}
 
 	/**
-	 * Restart update process for core.
+	 * Resumes a core update, if present.
 	 *
 	 * @since 6.4.0
 	 */
-	private function restart_core_updates() {
+	private function resume_core_update() {
 		if ( ! function_exists( 'find_core_auto_update' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/update.php';
 		}
@@ -378,84 +401,78 @@ class WP_Rollback_Auto_Update {
 	}
 
 	/**
-	 * Get array of non-fataling plugin auto-updates remaining.
+	 * Gets remaining plugin auto-updates.
+	 *
+	 * Excludes plugins that were rolled back.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return array
+	 * @return array The remaining updates, excluding plugins that were processed or rolled back.
 	 */
 	private function get_remaining_plugin_auto_updates() {
-		if ( empty( $this->handler_args ) ) {
-			return array();
-		}
-
 		// Get array of plugins set for auto-updating.
 		$auto_updates    = (array) get_site_option( 'auto_update_plugins', array() );
-		$current_plugins = array_keys( self::$current_plugins->response );
+		$current_plugins = array_keys( self::$plugin_updates->response );
 
 		// Get all auto-updating plugins that have updates available.
 		$current_auto_updates = array_intersect( $auto_updates, $current_plugins );
 
-		// Get array of non-fatal auto-updates remaining.
-		$remaining_auto_updates = array_diff( $current_auto_updates, self::$processed, self::$fatals );
+		// Get array of remaining auto-updates, excluding plugins that were processed or rolled back.
+		$remaining_auto_updates = array_diff( $current_auto_updates, self::$processed, self::$rolled_back );
 
 		return $remaining_auto_updates;
 	}
 
 	/**
-	 * Get array of non-fataling theme auto-updates remaining.
+	 * Gets remaining theme auto-updates.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return array
+	 * @return array An array of remaining theme auto-updates.
 	 */
 	private function get_remaining_theme_auto_updates() {
-		if ( empty( $this->handler_args ) ) {
-			return array();
-		}
-
 		// Get array of themes set for auto-updating.
 		$auto_updates   = (array) get_site_option( 'auto_update_themes', array() );
-		$current_themes = array_keys( self::$current_themes->response );
+		$current_themes = array_keys( self::$theme_updates->response );
 
-		// Get all auto-updating plugins that have updates available.
-		$current_auto_updates = array_intersect( $auto_updates, $current_themes );
-
-		// Get array of non-fatal auto-updates remaining.
-		$remaining_auto_updates = array_diff( $current_auto_updates, self::$processed, self::$fatals );
+		// Get all auto-updating themes that have updates available.
+		$remaining_auto_updates = array_intersect( $auto_updates, $current_themes );
 
 		return $remaining_auto_updates;
 	}
 
 	/**
-	 * Restart updates and send update result email.
+	 * Resumes updates.
+	 *
+	 * Once updates have completed, previously active plugins will be reactivated,
+	 * and an email with update results will be sent.
 	 *
 	 * @since 6.4.0
-	 *
-	 * @return void
 	 */
-	private function restart_updates_and_send_email() {
-		$this->restart_updates();
-		$this->restart_core_updates();
+	private function resume_updates_and_send_email() {
+		$this->resume_updates();
+		$this->resume_core_update();
 
 		/*
 		 * The following commands only run once after the above commands have completed.
-		 * Specifically, 'restart_updates()' will re-run until there are no further
+		 * Specifically, 'resume_updates()' will re-run until there are no further
 		 * plugin or themes updates remaining.
 		 */
-		activate_plugins( self::$is_active );
+		activate_plugins( self::$previously_active_plugins );
+
 		$this->send_update_result_email();
 	}
 
 	/**
-	 * Sends an email noting successful and failed updates.
+	 * Sends an email noting successful and failed updates, if one was not already sent.
 	 *
 	 * @since 6.4.0
 	 */
 	private function send_update_result_email() {
-		if ( self::$email_sent ) {
+		if ( self::$email_was_sent ) {
 			return;
 		}
+
 		$result         = true;
 		$update_results = array();
 
@@ -465,7 +482,7 @@ class WP_Rollback_Auto_Update {
 		);
 
 		foreach ( $plugin_theme_email_data as $type => $data ) {
-			$current_items = 'plugin' === $type ? self::$current_plugins : self::$current_themes;
+			$current_items = 'plugin' === $type ? self::$plugin_updates : self::$theme_updates;
 
 			foreach ( array_keys( $current_items->response ) as $file ) {
 				if ( ! in_array( $file, self::$processed, true ) ) {
@@ -474,11 +491,11 @@ class WP_Rollback_Auto_Update {
 
 				$item            = $current_items->response[ $file ];
 				$current_version = property_exists( $current_items, 'checked' ) ? $current_items->checked[ $file ] : __( 'unavailable' );
-				$success         = array_diff( self::$processed, self::$fatals );
+				$success         = array_diff( self::$processed, self::$rolled_back );
 
 				if ( in_array( $file, $success, true ) ) {
 					$result = true;
-				} elseif ( in_array( $file, self::$fatals, true ) ) {
+				} elseif ( in_array( $file, self::$rolled_back, true ) ) {
 					$result = false;
 				}
 
@@ -506,19 +523,27 @@ class WP_Rollback_Auto_Update {
 			}
 		}
 
-		add_filter( 'auto_plugin_theme_update_email', array( $this, 'auto_update_rollback_message' ), 10, 4 );
+		add_filter( 'auto_plugin_theme_update_email', array( $this, 'append_auto_update_failure_message_to_email' ), 10, 4 );
 
+		/*
+		 * The WP_Automatic_Updater::after_plugin_theme_update() method has protected visibility.
+		 *
+		 * As this class is effectively a bridge between WP_Automatic_Updater and WP_Upgrader,
+		 * the Reflection API is used to temporarily make this method accessible.
+		 */
 		$automatic_upgrader      = new WP_Automatic_Updater();
 		$send_plugin_theme_email = new ReflectionMethod( $automatic_upgrader, 'after_plugin_theme_update' );
 		$send_plugin_theme_email->setAccessible( true );
 		$send_plugin_theme_email->invoke( $automatic_upgrader, $update_results );
+		$send_plugin_theme_email->setAccessible( false );
 
-		remove_filter( 'auto_plugin_theme_update_email', array( $this, 'auto_update_rollback_message' ), 10 );
-		self::$email_sent = true;
+		remove_filter( 'auto_plugin_theme_update_email', array( $this, 'append_auto_update_failure_message_to_email' ), 10 );
+
+		self::$email_was_sent = true;
 	}
 
 	/**
-	 * Add auto-update failure message to email.
+	 * Inserts an auto-update failure message to the email being sent.
 	 *
 	 * @since 6.4.0
 	 *
@@ -534,9 +559,9 @@ class WP_Rollback_Auto_Update {
 	 * @param string $type               The type of email being sent. Can be one of 'success', 'fail', 'mixed'.
 	 * @param array  $successful_updates A list of updates that succeeded.
 	 * @param array  $failed_updates     A list of updates that failed.
-	 * @return array
+	 * @return array The email arguments with the auto-update failure message appended.
 	 */
-	public function auto_update_rollback_message( $email, $type, $successful_updates, $failed_updates ) {
+	public function append_auto_update_failure_message_to_email( $email, $type, $successful_updates, $failed_updates ) {
 		if ( empty( $failed_updates ) || 'success' === $type ) {
 			return $email;
 		}
