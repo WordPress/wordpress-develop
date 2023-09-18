@@ -1759,7 +1759,7 @@ final class WP_Theme implements ArrayAccess {
 		if ( isset( $this->block_template_folders ) ) {
 			return $this->block_template_folders;
 		}
-		
+
 		$this->block_template_folders = $default_template_folders;
 
 		$stylesheet_directory = $this->get_stylesheet_directory();
