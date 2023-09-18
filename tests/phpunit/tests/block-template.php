@@ -284,13 +284,13 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	public function test_get_block_theme_folders( $theme, $expected, $message ) {
 		$this->assertSame( $expected, get_block_theme_folders( $theme ), $message );
 
-		$wp_theme             = wp_get_theme( $theme );
-		$cache_get_reflection = new ReflectionMethod( $wp_theme, 'cache_get' );
-		$cache_get_reflection->setAccessible( true );
-
-		$theme_cache  = $cache_get_reflection->invoke( $wp_theme, 'theme' );
+		$wp_theme = wp_get_theme( $theme );
+		$reflection = new ReflectionMethod( $wp_theme, 'cache_get' );
+		$reflection->setAccessible( true );
+		
+		$theme_cache = $reflection->invoke( $wp_theme, 'theme' );
 		$cached_value = $theme_cache['block_template_folders'];
-		$cache_get_reflection->setAccessible( false );
+		$reflection->setAccessible( false );
 
 		// Test for value stored in cache.
 		$wp_theme->cache_delete(); // clean up for next test.
