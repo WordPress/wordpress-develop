@@ -37,7 +37,7 @@ if ( ! defined( 'WP_TEMPLATE_PART_AREA_UNCATEGORIZED' ) ) {
  * }
  */
 function get_block_theme_folders( $theme_stylesheet = null ) {
-	$theme = wp_get_theme( $theme_stylesheet );
+	$theme = wp_get_theme( (string) $theme_stylesheet );
 	if ( ! $theme->exists() ) {
 		// Return the default folders if the theme doesn't exist.
 		return array(
