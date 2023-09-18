@@ -860,11 +860,15 @@ function serialize_block( $block, $callback = null ) {
 
 	$index = 0;
 	foreach ( $block['innerContent'] as $chunk ) {
-		$inner_block = $block['innerBlocks'][ $index++ ];
-		if ( is_callable( $callback ) ) {
-			$inner_block = call_user_func( $callback, $inner_block, $block );
+		if ( is_string( $chunk ) ) {
+			$block_content .= $chunk;
+		} else {
+			$inner_block = $block['innerBlocks'][ $index++ ];
+			if ( is_callable( $callback ) ) {
+				$inner_block = call_user_func( $callback, $inner_block, $block );
+			}
+			$block_content .= serialize_block( $inner_block, $callback );
 		}
-		$block_content .= is_string( $chunk ) ? $chunk : serialize_block( $inner_block, $callback );
 	}
 
 	if ( ! is_array( $block['attrs'] ) ) {
