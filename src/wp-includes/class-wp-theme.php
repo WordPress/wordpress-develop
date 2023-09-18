@@ -1759,15 +1759,17 @@ final class WP_Theme implements ArrayAccess {
 		if ( isset( $this->block_template_folders ) ) {
 			return $this->block_template_folders;
 		}
-		$stylesheet_directory = $this->get_stylesheet_directory();
+		
+		$this->block_template_folders = $default_template_folders;
 
+		$stylesheet_directory = $this->get_stylesheet_directory();
+		// If the theme uses deprecated block template folders.
 		if ( file_exists( $stylesheet_directory . '/block-templates' ) || file_exists( $stylesheet_directory . '/block-template-parts' ) ) {
 			$this->block_template_folders = array(
 				'wp_template'      => 'block-templates',
 				'wp_template_part' => 'block-template-parts',
 			);
 		}
-		$this->block_template_folders = $default_template_folders;
 		return $this->block_template_folders;
 	}
 
