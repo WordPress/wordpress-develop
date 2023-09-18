@@ -4511,7 +4511,10 @@ EOF;
 		add_filter( 'wp_loading_optimization_force_header_contexts', '__return_empty_array' );
 
 		$this->assertSame(
-			array( 'loading' => 'lazy' ),
+			array(
+					'loading'  => 'lazy',
+					'decoding' => 'async',
+				),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 			'Images in the header context should get lazy-loaded after the wp_loading_optimization_force_header_contexts filter.'
 		);
@@ -5129,10 +5132,11 @@ EOF;
 			'img'    => array(
 				'img',
 				array(
-					'decoding' => 'async',
-					'loading'  => 'lazy',
+					'decoding' => 'async','loading'  => 'lazy',
+					),
+				'decoding' => 'async',
 				),
-				'Expected `decoding="async"` and `loading="lazy"` for the img.',
+				'Expected `decoding="async"` and `loading="lazy"` and `decoding="async"` for the img.',
 			),
 			'iframe' => array(
 				'iframe',
@@ -5202,7 +5206,7 @@ EOF;
 				'fetchpriority' => 'high',
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'test' ),
-			'This should return both lazy-loading and high fetchpriority, but with doing_it_wrong message.'
+			'This should return lazy-loading, async decoding and high fetchpriority, but with doing_it_wrong message.'
 		);
 	}
 
@@ -5292,6 +5296,7 @@ EOF;
 				'expected' => array(
 					'decoding' => 'async',
 					'loading'  => 'lazy',
+					'decoding' => 'async',
 				),
 				'message'  => 'Lazy-loading or decoding not applied to during shortcode rendering.',
 			),
@@ -5303,6 +5308,7 @@ EOF;
 				'expected' => array(
 					'decoding' => 'async',
 					'loading'  => 'lazy',
+					'decoding' => 'async',
 				),
 				'message'  => 'Lazy-loading or decoding not applied to shortcodes outside the loop.',
 			),
@@ -5401,7 +5407,10 @@ EOF;
 				'high',
 			),
 			'image with loading=lazy'       => array(
-				array( 'loading' => 'lazy' ),
+				array(
+					'loading'  => 'lazy',
+					'decoding' => 'async',
+				),
 				'img',
 				$this->get_width_height_for_high_priority(),
 				false,
