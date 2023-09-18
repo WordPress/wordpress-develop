@@ -409,7 +409,7 @@ function wp_get_first_block( $blocks, $block_name ) {
  * Retrieves Post Content block attributes from the current post template.
  *
  * @since 6.3.0
- * @since 6.4.0 return null by default and return empty array when Post Content block exists. but has no attributes.
+ * @since 6.4.0 return null by default or an empty array when the Post Content block exists but has no attributes.
  * @access private
  *
  * @global int $post_ID
