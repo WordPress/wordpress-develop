@@ -29,7 +29,7 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 59313
+	 * @ticket 59383
 	 *
 	 * @covers ::get_hooked_blocks
 	 */
@@ -40,7 +40,7 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 59313
+	 * @ticket 59383
 	 *
 	 * @covers ::get_hooked_blocks
 	 */
