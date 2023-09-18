@@ -110,7 +110,7 @@ final class WP_Term {
 	 * @param int          $term_id  Term ID.
 	 * @param string       $taxonomy Optional. Limit matched terms to those matching `$taxonomy`. Only used for
 	 *                               disambiguating potentially shared terms.
-	 * @param string|false $filter Optional. How to sanitize term fields. Default 'raw'.
+	 * @param string       $filter Optional. How to sanitize term fields. Default 'raw'.
 	 * @return WP_Term|WP_Error|false Term object, if found. WP_Error if `$term_id` is shared between taxonomies and
 	 *                                there's insufficient data to distinguish which term is intended.
 	 *                                False for other failures.
@@ -184,7 +184,7 @@ final class WP_Term {
 		}
 
 		$term_obj = new WP_Term( $_term );
-		if ( $filter ) {
+		if ( $filter && 'raw' !== $filter ) {
 			$term_obj->filter( $filter );
 		}
 		return $term_obj;

@@ -104,33 +104,36 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 58329
+	 *
+	 * @dataProvider data_get_instance_with_sanitize
+	 *
+	 * @param string|false $sanitize Sanitize term fields.
 	 */
-	public function test_get_instance_no_sanitize() {
+	public function test_get_instance_with_sanitize( $sanitize ) {
 		$obj           = new stdClass();
 		$obj->taxonomy = 'wptests_tax';
 		foreach ( self::$int_fields as $int_field ) {
 			$obj->$int_field = 'test';
 		}
 		wp_cache_add( 999, $obj, 'terms' );
-		$term = WP_Term::get_instance( 999, 'wptests_tax', false );
+		$term = WP_Term::get_instance( 999, 'wptests_tax', $sanitize );
 		foreach ( self::$int_fields as $int_field ) {
 			$this->assertIsInt( $term->$int_field );
 		}
 	}
 
 	/**
-	 * @ticket 58329
+	 * Data provider.
+	 *
+	 * @return array[]
 	 */
-	public function test_get_instance_sanitize() {
-		$obj           = new stdClass();
-		$obj->taxonomy = 'wptests_tax';
-		foreach ( self::$int_fields as $int_field ) {
-			$obj->$int_field = 'test';
-		}
-		wp_cache_add( 999, $obj, 'terms' );
-		$term = WP_Term::get_instance( 999, 'wptests_tax' );
-		foreach ( self::$int_fields as $int_field ) {
-			$this->assertIsInt( $term->$int_field );
-		}
+	public function data_get_instance_with_sanitize() {
+		return array(
+			'check false value for sanitize'      => array( false ),
+			'check null value for sanitize'       => array( null ),
+			'check empty value for sanitize'      => array( '' ),
+			'check raw value for sanitize'        => array( 'raw' ),
+			'check any string value for sanitize' => array( 'test' ),
+		);
 	}
 }
