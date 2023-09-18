@@ -1046,6 +1046,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * @ticket 57897
+	 *
 	 * @requires function imagejpeg
 	 */
 	public function test_create_item_with_terms() {
