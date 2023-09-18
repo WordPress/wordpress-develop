@@ -4385,14 +4385,14 @@ EOF;
 
 		$query = $this->get_new_wp_query_for_published_post();
 
+		// Set as main query.
+		$this->set_main_query( $query );
+
 		$this->assertSame(
 			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
-			'The "loading" attribute should be "lazy" before main loop.'
+			'The "loading" attribute should be "lazy" before the main query loop.'
 		);
-
-		// Set as main query.
-		$this->set_main_query( $query );
 
 		while ( have_posts() ) {
 			the_post();
@@ -4406,7 +4406,7 @@ EOF;
 			$this->assertArrayNotHasKey(
 				'loading',
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
-				'The "loading" attribute should be "lazy" in the main query loop.'
+				'No "loading" attribute should be present on the second image in the main query loop.'
 			);
 		}
 	}
