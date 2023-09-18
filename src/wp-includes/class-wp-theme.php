@@ -468,12 +468,12 @@ final class WP_Theme implements ArrayAccess {
 				$_child->cache_add(
 					'theme',
 					array(
+						'block_template_folders' => $_child->get_block_template_folders(),
 						'block_theme'            => $_child->is_block_theme(),
 						'headers'                => $_child->headers,
 						'errors'                 => $_child->errors,
 						'stylesheet'             => $_child->stylesheet,
 						'template'               => $_child->template,
-						'block_template_folders' => $_child->block_theme ? $_child->get_block_template_folders() : null,
 					)
 				);
 				// The two themes actually reference each other with the Template header.
@@ -490,11 +490,11 @@ final class WP_Theme implements ArrayAccess {
 						'theme',
 						array(
 							'block_theme'            => $this->is_block_theme(),
+							'block_template_folders' => $this->get_block_template_folders(),
 							'headers'                => $this->headers,
 							'errors'                 => $this->errors,
 							'stylesheet'             => $this->stylesheet,
 							'template'               => $this->template,
-							'block_template_folders' => $this->block_theme ? $this->get_block_template_folders() : null,
 						)
 					);
 				}
@@ -512,11 +512,11 @@ final class WP_Theme implements ArrayAccess {
 		if ( ! is_array( $cache ) ) {
 			$cache = array(
 				'block_theme'            => $this->is_block_theme(),
+				'block_template_folders' => $this->get_block_template_folders(),
 				'headers'                => $this->headers,
 				'errors'                 => $this->errors,
 				'stylesheet'             => $this->stylesheet,
 				'template'               => $this->template,
-				'block_template_folders' => $this->block_theme ? $this->get_block_template_folders() : null,
 			);
 			// If the parent theme is in another root, we'll want to cache this. Avoids an entire branch of filesystem calls above.
 			if ( isset( $theme_root_template ) ) {
