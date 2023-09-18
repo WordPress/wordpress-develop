@@ -615,8 +615,6 @@ class WP_Theme_JSON_Resolver {
 	 * @return WP_Theme_JSON
 	 */
 	public static function get_merged_data( $origin = 'custom' ) {
-		global $_wp_theme_features;
-
 		if ( is_array( $origin ) ) {
 			_deprecated_argument( __FUNCTION__, '5.9.0' );
 		}
