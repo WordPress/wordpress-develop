@@ -136,7 +136,6 @@ class WP_Upgrader {
 	 * Construct the upgrader with a skin.
 	 *
 	 * @since 2.8.0
-	 * @since 6.4.0 Added the WP_Rollback_Auto_Update::auto_update_check().
 	 *
 	 * @param WP_Upgrader_Skin $skin The upgrader skin to use. Default is a WP_Upgrader_Skin
 	 *                               instance.
@@ -147,8 +146,6 @@ class WP_Upgrader {
 		} else {
 			$this->skin = $skin;
 		}
-
-		add_filter( 'upgrader_install_package_result', array( new WP_Rollback_Auto_Update(), 'auto_update_check' ), 15, 3 );
 	}
 
 	/**
