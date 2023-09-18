@@ -557,11 +557,12 @@ class WP_Rollback_Auto_Update {
 		if ( empty( $failed_updates ) || 'success' === $type ) {
 			return $email;
 		}
-		$body   = explode( "\n", $email['body'] );
-		$failed = __( 'These plugins failed to update and should have been restored from a temporary backup due to detection of a fatal error:' );
-		array_splice( $body, 6, 1, $failed );
-		$body          = implode( "\n", $body );
-		$email['body'] = $body;
+
+		$email['body'] = str_replace(
+			__( 'These plugins failed to update:' ),
+			__( 'These plugins failed to update or may have been restored from a temporary backup due to detection of a fatal error:' ),
+			$email['body']
+		);
 
 		return $email;
 	}

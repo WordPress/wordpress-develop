@@ -1163,7 +1163,13 @@ class WP_Automatic_Updater {
 
 			// List failed plugin updates.
 			if ( ! empty( $failed_updates['plugin'] ) ) {
-				$body[] = __( 'These plugins failed to update:' );
+
+			/*
+			 * If this string changes, the `str_replace()` call in
+			 * `WP_Rollback_Auto_Update::auto_update_rollback_message()`
+			 * should also be changed.
+			 */
+			$body[] = __( 'These plugins failed to update:' );
 
 				foreach ( $failed_updates['plugin'] as $item ) {
 					$body_message = '';
