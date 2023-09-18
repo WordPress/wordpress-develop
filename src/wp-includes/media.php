@@ -2129,13 +2129,6 @@ function wp_img_tag_add_decoding_attr( $image, $context ) {
 		return $image;
 	}
 
-	/*
-	 * Only apply the decoding attribute to images that don't already have a decoding attribute.
-	 */
-	if ( str_contains( $image, ' decoding=' ) ) {
-		return $image;
-	}
-
 	/** This action is documented in wp-includes/media.php */
 	$value = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
 
