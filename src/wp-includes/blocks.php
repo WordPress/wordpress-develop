@@ -863,10 +863,11 @@ function serialize_block( $block, $callback = null ) {
 		if ( is_string( $chunk ) ) {
 			$block_content .= $chunk;
 		} else {
-			$inner_block = $block['innerBlocks'][ $index++ ];
+			$inner_block = $block['innerBlocks'][ $index ];
 			if ( is_callable( $callback ) ) {
 				$inner_block = call_user_func( $callback, $inner_block, $block );
 			}
+			$index++;
 			$block_content .= serialize_block( $inner_block, $callback );
 		}
 	}
