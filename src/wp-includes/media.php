@@ -1996,7 +1996,12 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		 * @param string            $context    Additional context about how the function was called
 		 *                                      or where the img tag is.
 		 */
-		$filtered_decoding_attr = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
+		$filtered_decoding_attr = apply_filters(
+			'wp_img_tag_add_decoding_attr',
+			isset( $optimization_attrs['decoding'] ) ? $optimization_attrs['decoding'] : false,
+			$image,
+			$context
+		);
 
 		// Validate the values after filtering.
 		if ( isset( $optimization_attrs['decoding'] ) && ! $filtered_decoding_attr ) {
