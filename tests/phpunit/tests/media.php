@@ -5433,6 +5433,8 @@ EOF;
 	 * @dataProvider data_get_filters_with_do_shortcode_callback
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @param string $filter_name The name of the filter to hook.
 	 */
 	public function test_wp_get_loading_optimization_attributes_in_shortcodes_within_content_blob( $filter_name ) {
 		$result = null;
@@ -5462,10 +5464,12 @@ EOF;
 	 * @return array[]
 	 */
 	public function data_get_filters_with_do_shortcode_callback() {
-		return array(
-			array( 'the_content' ),
-			array( 'widget_text_content' ),
-			array( 'widget_block_content' ),
+		return self::text_array_to_dataprovider(
+			array(
+				'the_content',
+				'widget_text_content',
+				'widget_block_content',
+			)
 		);
 	}
 
