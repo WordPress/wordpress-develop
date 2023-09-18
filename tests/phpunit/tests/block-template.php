@@ -296,7 +296,9 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for `test_get_block_theme_folders()`.
+	 * Data provider.
+	 *
+	 * @return array[]
 	 */
 	public function data_get_block_theme_folders() {
 		return array(
