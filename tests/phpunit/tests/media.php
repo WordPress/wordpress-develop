@@ -5087,19 +5087,23 @@ EOF;
 					'decoding' => 'async',
 					'loading'  => 'lazy',
 				),
-				'Expected default `decoding="async"` and `loading="lazy"`.',
+				'Expected default `decoding="async"` and `loading="lazy" and `decoding="async"`.',
 			),
 			'img_without_height' => array(
 				'img',
 				array( 'width' => 100 ),
-				array(),
-				'Expected blank array as height is required.',
+				array(
+					'decoding' => 'async',
+				),
+				'Only `decoding` is set as height is required for `loading` attribute.',
 			),
 			'img_without_width'  => array(
 				'img',
 				array( 'height' => 100 ),
-				array(),
-				'Expected blank array as width is required.',
+				array(
+					'decoding' => 'async',
+				),
+				'Only `decoding` is set as width is required for `loading` attribute.',
 			),
 		);
 	}
