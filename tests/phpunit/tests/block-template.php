@@ -281,26 +281,19 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * @covers ::get_block_theme_folders
 	 * @dataProvider data_get_block_theme_folders
 	 */
-	public function test_get_block_theme_folders( $theme, $expected, $message, $has_cache, $cache_message ) {
-		global $wp_theme_directories;
-
+	public function test_get_block_theme_folders( $theme, $expected, $message ) {
 		$this->assertSame( $expected, get_block_theme_folders( $theme ), $message );
 
+		// Test that the result is cached.
 		if ( empty( $theme ) ) {
 			$theme = get_stylesheet();
 		}
-
-		// Test that the result is cached.
-		$cache_key   = 'theme-' . md5( $wp_theme_directories[0] . '/' . $theme );
-		$theme_cache = wp_cache_get( $cache_key, 'themes' );
-		$this->assertSame( $has_cache, isset( $theme_cache['block_template_folders'] ), $cache_message );
-
-		// Also test for cached values.
-		if ( $has_cache ) {
-			$cached_value = $theme_cache['block_template_folders'];
-			wp_cache_delete( $cache_key );
-			$this->assertSame( $expected, $cached_value, $message . ' to be cached' );
-		}
+		$cache_key    = 'theme-' . md5( get_theme_root( $theme ) . '/' . $theme );
+		$theme_cache  = wp_cache_get( $cache_key, 'themes' );
+		$cached_value = $theme_cache['block_template_folders'];
+		// Test for value stored in cache.
+		wp_cache_delete( $cache_key ); // clean up for next test.
+		$this->assertSame( $expected, $cached_value, $message . ' to be cached' );
 	}
 
 	/**
@@ -315,8 +308,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template_part' => 'parts',
 				),
 				'For block-theme, expected `templates` and `parts` and `wp_template` and `wp_template_part` respectively',
-				true,
-				'Caching set for block-theme',
 			),
 			'block-theme-deprecated-path'       => array(
 				'block-theme-deprecated-path',
@@ -325,8 +316,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template_part' => 'block-template-parts',
 				),
 				'For block-theme-deprecated-path, expected `block-templates` and `block-template-parts` and `wp_template` and `wp_template_part` respectively',
-				true,
-				'Caching set for block-theme-deprecated-path.',
 			),
 			'block-theme-child'                 => array(
 				'block-theme-child',
@@ -335,8 +324,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template_part' => 'parts',
 				),
 				'For block-theme-child, expected `templates` and `parts` and `wp_template` and `wp_template_part` respectively',
-				true,
-				'Caching set for block-theme-child.',
 			),
 			'block-theme-child-deprecated-path' => array(
 				'block-theme-child-deprecated-path',
@@ -345,8 +332,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template_part' => 'block-template-parts',
 				),
 				'For block-theme-child-deprecated-path, expected `block-templates` and `block-template-parts` and `wp_template` and `wp_template_part` respectively',
-				true,
-				'Caching set for block-theme-child-deprecated-path.',
 			),
 			'this-is-an-invalid-theme'          => array(
 				'this-is-an-invalid-theme',
@@ -355,8 +340,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template_part' => 'parts',
 				),
 				'For invalid theme, expected default values `templates` and `parts` and `wp_template` and `wp_template_part` respectively',
-				false,
-				'Caching not set for this-is-an-invalid-theme.',
 			),
 			'null'                              => array(
 				null,
@@ -365,8 +348,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template_part' => 'parts',
 				),
 				'For no theme, expected default values `templates` and `parts` and `wp_template` and `wp_template_part` respectively',
-				true,
-				'Caching set for default theme as null value was passed.',
 			),
 		);
 	}
