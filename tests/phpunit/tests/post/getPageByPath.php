@@ -343,7 +343,7 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 
 		$found = get_page_by_path( 'foo', OBJECT, 'wptests_pt' );
 		$this->assertSame( $p2, $found->ID );
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
@@ -373,7 +373,7 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 
 		$found = get_page_by_path( 'bar' );
 		$this->assertSame( $page, $found->ID );
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries() );
 	}
 

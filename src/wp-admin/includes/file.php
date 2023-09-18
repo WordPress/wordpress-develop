@@ -1493,7 +1493,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 
 		// Ensure only valid-length signatures are considered.
 		if ( SODIUM_CRYPTO_SIGN_BYTES !== strlen( $signature_raw ) ) {
-			$skipped_signature++;
+			++$skipped_signature;
 			continue;
 		}
 
@@ -1502,7 +1502,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 
 			// Only pass valid public keys through.
 			if ( SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES !== strlen( $key_raw ) ) {
-				$skipped_key++;
+				++$skipped_key;
 				continue;
 			}
 
@@ -2426,7 +2426,13 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 		if ( is_wp_error( $error ) ) {
 			$error_string = esc_html( $error->get_error_message() );
 		}
-		echo '<div id="message" class="error"><p>' . $error_string . '</p></div>';
+		wp_admin_notice(
+			$error_string,
+			array(
+				'id'                 => 'message',
+				'additional_classes' => array( 'error' ),
+			)
+		);
 	}
 
 	$types = array();
@@ -2726,7 +2732,7 @@ function wp_opcache_invalidate_directory( $dir ) {
 	 *                        with sub-directories represented as nested arrays.
 	 * @param string $path    Absolute path to the directory.
 	 */
-	$invalidate_directory = static function( $dirlist, $path ) use ( &$invalidate_directory ) {
+	$invalidate_directory = static function ( $dirlist, $path ) use ( &$invalidate_directory ) {
 		$path = trailingslashit( $path );
 
 		foreach ( $dirlist as $name => $details ) {
