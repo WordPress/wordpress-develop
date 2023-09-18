@@ -54,7 +54,6 @@ class Tests_Hooks_RemoveAllFilters extends WP_UnitTestCase {
 
 		$this->assertContains( $priority, $priorities );
 	}
-	
 	protected function get_priorities( $hook ) {
 		$reflection          = new ReflectionClass( $hook );
 		$reflection_property = $reflection->getProperty( 'priorities' );
