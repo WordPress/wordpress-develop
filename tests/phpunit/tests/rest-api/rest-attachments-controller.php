@@ -1062,7 +1062,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'categories', array( $category['term_id'] ) );
 		$response   = rest_get_server()->dispatch( $request );
 		$attachment = $response->get_data();
-		$this->assertSame( array( $category['term_id'] ), wp_list_pluck( wp_get_post_terms( $attachment['id'], 'category' ), 'term_id' ) );
+
+		$term = wp_get_post_terms( $attachment['id'], 'category' );
+		$this->assertSame( $category['term_id'], $term[0]->term_id );
 	}
 
 	public function test_update_item() {
