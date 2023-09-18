@@ -1966,41 +1966,71 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 			'height'        => $height,
 			'loading'       => $loading_val,
 			'fetchpriority' => $fetchpriority_val,
+			'decoding'      => $decoding_val,
 		),
 		$context
 	);
 
-	$unfiltered_decoding_val = $decoding_val;
-	$decoding_val            = ! empty( $decoding_val ) ? $decoding_val : 'async';
-
-	/**
-	 * Filters the `decoding` attribute value to add to an image. Default `async`.
-	 *
-	 * Returning a falsey value will omit the attribute.
-	 *
-	 * @since 6.1.0
-	 *
-	 * @param string|false|null $value      The `decoding` attribute value. Returning a falsey value
-	 *                                      will result in the attribute being omitted for the image.
-	 *                                      Otherwise, it may be: 'async' (default), 'sync', or 'auto'.
-	 * @param string            $image      The HTML `img` tag to be filtered.
-	 * @param string            $context    Additional context about how the function was called
-	 *                                      or where the img tag is.
-	 */
-	$decoding_val = apply_filters( 'wp_img_tag_add_decoding_attr', $decoding_val, $image, $context );
-
-	if (
-		( empty( $fetchpriority_val ) && empty( $optimization_attrs['fetchpriority'] ) )
-		&& empty( $unfiltered_decoding_val )
-		&& str_contains( $image, ' src="' )
-		&& in_array( $decoding_val, array( 'async', 'sync', 'auto' ), true )
-	) {
-		// Validate the `decoding` attribute according to the spec.
-		$image = str_replace( '<img', '<img decoding="' . esc_attr( $decoding_val ) . '"', $image );
+	// Images should have source for the decoding and the loading optimization attributes to be added.
+	if ( ! str_contains( $image, ' src="' ) ) {
+		return $image;
 	}
 
-	// Images should have source and dimension attributes for the loading optimization attributes to be added.
-	if ( ! str_contains( $image, ' src="' ) || ! str_contains( $image, ' width="' ) || ! str_contains( $image, ' height="' ) ) {
+	if ( empty( $decoding_val ) ) {
+		/**
+		 * Filters the `decoding` attribute value to add to an image. Default `async`.
+		 *
+		 * Returning a falsey value will omit the attribute.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param string|false|null $value      The `decoding` attribute value. Returning a falsey value
+		 *                                      will result in the attribute being omitted for the image.
+		 *                                      Otherwise, it may be: 'async' (default), 'sync', or 'auto'.
+		 * @param string            $image      The HTML `img` tag to be filtered.
+		 * @param string            $context    Additional context about how the function was called
+		 *                                      or where the img tag is.
+		 */
+		$filtered_decoding_attr = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
+
+		// Validate the values after filtering.
+		if ( isset( $optimization_attrs['decoding'] ) && ! $filtered_decoding_attr ) {
+			// Unset `decoding` attribute if `$filtered_decoding_attr` is set to `false`.
+			unset( $optimization_attrs['decoding'] );
+		} elseif ( in_array( $filtered_decoding_attr, array( 'async', 'sync', 'auto' ), true ) ) {
+			/*
+			 * If the filter changed the decoding attribute to "async" when a fetchpriority attribute
+			 * with value "high" is already present, trigger a warning since those two attributes
+			 * values should be mutually exclusive.
+			 *
+			 * The same warning is present in `wp_get_loading_optimization_attributes()`, and here it
+			 * is only intended for the specific scenario where the above filtered caused the problem.
+			 */
+			if ( isset( $optimization_attrs['fetchpriority'] ) && 'high' === $optimization_attrs['fetchpriority'] &&
+				( isset( $optimization_attrs['decoding'] ) ? $optimization_attrs['decoding'] : false ) !== $filtered_decoding_attr &&
+				'async' === $filtered_decoding_attr
+			) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					__( 'An image should not be decoding async and marked as high priority at the same time.' ),
+					'6.4.0'
+				);
+
+				// The filtered value will still be respected.
+				$optimization_attrs['decoding'] = $filtered_decoding_attr;
+			}
+		}
+
+		if (
+			! empty( $optimization_attrs['decoding'] )
+			&& in_array( $optimization_attrs['decoding'], array( 'async', 'sync', 'auto' ), true )
+		) {
+			$image = str_replace( '<img', '<img decoding="' . esc_attr( $optimization_attrs['decoding'] ) . '"', $image );
+		}
+	}
+
+	// Images should have dimension attributes for the loading optimization attributes to be added.
+	if ( ! str_contains( $image, ' width="' ) || ! str_contains( $image, ' height="' ) ) {
 		return $image;
 	}
 
