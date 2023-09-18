@@ -43,13 +43,8 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 	 * @ticket 59313
 	 *
 	 * @covers ::get_hooked_blocks
-	 *
-	 * @dataProvider data_block_hooked_blocks
-	 *
-	 * @param string $block_name Block name.
-	 * @param array  $expected   Expected hooked blocks.
 	 */
-	public function test_get_hooked_blocks_matches_found( $block_name, $expected ) {
+	public function test_get_hooked_blocks_matches_found() {
 		register_block_type(
 			'tests/my-block',
 			array(
@@ -72,49 +67,34 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			$expected,
-			get_hooked_blocks( $block_name )
+			array(
+				'tests/my-block'           => 'before',
+				'tests/my-container-block' => 'before',
+			),
+			get_hooked_blocks( 'tests/hooked-before' ),
+			'block hooked at the before position'
 		);
-	}
-
-	/**
-	 * Data provider for hooked blocks.
-	 *
-	 * @return array {
-	 *     @type array {
-	 *         @type string Block name.
-	 *         @type array  Expected hooked blocks.
-	 *     }
-	 * }
-	 */
-	public function data_block_hooked_blocks() {
-		return array(
-			'block hooked at the before position'      => array(
-				'tests/hooked-before',
-				array(
-					'tests/my-block'           => 'before',
-					'tests/my-container-block' => 'before',
-				),
+		$this->assertSame(
+			array(
+				'tests/my-block'           => 'after',
+				'tests/my-container-block' => 'after',
 			),
-			'block hooked at the after position'       => array(
-				'tests/hooked-after',
-				array(
-					'tests/my-block'           => 'after',
-					'tests/my-container-block' => 'after',
-				),
+			get_hooked_blocks( 'tests/hooked-after' ),
+			'block hooked at the after position'
+		);
+		$this->assertSame(
+			array(
+				'tests/my-container-block' => 'first_child',
 			),
-			'block hooked at the first child position' => array(
-				'tests/hooked-first-child',
-				array(
-					'tests/my-container-block' => 'first_child',
-				),
+			get_hooked_blocks( 'tests/hooked-first-child' ),
+			'block hooked at the first child position'
+		);
+		$this->assertSame(
+			array(
+				'tests/my-container-block' => 'last_child',
 			),
-			'block hooked at the last child position'  => array(
-				'tests/hooked-last-child',
-				array(
-					'tests/my-container-block' => 'last_child',
-				),
-			),
+			get_hooked_blocks( 'tests/hooked-last-child' ),
+			'block hooked at the last child position'
 		);
 	}
 }
