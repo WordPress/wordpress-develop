@@ -455,11 +455,9 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	public function test_wp_get_post_content_block_attributes_no_layout() {
-		$attributes_empty = array();
-
 		switch_theme( 'block-theme-post-content-default' );
 
-		$this->assertSame( $attributes_empty, wp_get_post_content_block_attributes() );
+		$this->assertSame( array(), wp_get_post_content_block_attributes() );
 	}
 
 	/**
