@@ -5696,6 +5696,20 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		return apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $tag_name, $attr, $context );
 	}
 
+	/*
+	 * Add `decoding` with a value of "async" for every image unless it has a
+	 * conflicting `decoding` attribute already present.
+	 */
+	if ( 'img' === $tag_name ) {
+		if ( isset( $attr['decoding'] ) ) {
+			if ( 'async' === $attr['decoding'] ) {
+				$loading_attrs['decoding'] = 'async';
+			}
+		} else {
+			$loading_attrs['decoding'] = 'async';
+		}
+	}
+
 	// For any resources, width and height must be provided, to avoid layout shifts.
 	if ( ! isset( $attr['width'], $attr['height'] ) ) {
 		/** This filter is documented in wp-includes/media.php */
