@@ -1755,16 +1755,13 @@ final class WP_Theme implements ArrayAccess {
 		if ( isset( $this->block_template_folders ) ) {
 			return $this->block_template_folders;
 		}
-
+		$stylesheet_directory         = $this->get_stylesheet_directory();
 		$this->block_template_folders = array(
 			'wp_template'      => 'templates',
 			'wp_template_part' => 'parts',
 		);
 
-		$block_templates_path      = $this->get_file_path( '/block-templates' );
-		$block_template_parts_path = $this->get_file_path( '/block-template-parts' );
-
-		if ( isset( $block_template_parts_path ) || file_exists( $block_templates_path ) ) {
+		if ( file_exists( $stylesheet_directory . '/block-templates' ) || file_exists( $stylesheet_directory . '/block-template-parts' ) ) {
 			$this->block_template_folders = array(
 				'wp_template'      => 'block-templates',
 				'wp_template_part' => 'block-template-parts',
