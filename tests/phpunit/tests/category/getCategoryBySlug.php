@@ -34,6 +34,5 @@ class Tests_Category_GetCategoryBySlug extends WP_UnitTestCase {
 
 		// Validate unknown category returns false.
 		$this->assertFalse( get_category_by_slug( 'testcat3' ) );
-
 	}
 }

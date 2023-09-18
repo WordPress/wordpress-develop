@@ -330,5 +330,4 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $actual );
 	}
-
 }
