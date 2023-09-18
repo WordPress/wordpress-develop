@@ -3814,7 +3814,7 @@ function sanitize_email( $email ) {
 	 * LOCAL PART
 	 * Test for invalid characters.
 	 */
-	$local = preg_replace( '/[^a-zA-Z0-9!#$%&\'*+\/=?^_`{|}~\.-]/', '', $local );
+	$local = preg_replace( '/[^a-zA-Z0-9!#$%&\'*+\/=?^_`{|}~\.\x80-\xff-]/', '', $local );
 	if ( '' === $local ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'sanitize_email', '', $email, 'local_invalid_chars' );
@@ -3855,7 +3855,7 @@ function sanitize_email( $email ) {
 		$sub = trim( $sub, " \t\n\r\0\x0B-" );
 
 		// Test for invalid characters.
-		$sub = preg_replace( '/[^a-z0-9-]+/i', '', $sub );
+		$sub = preg_replace( '/[^a-z0-9\x80-\xff-]+/i', '', $sub );
 
 		// If there's anything left, add it to the valid subs.
 		if ( '' !== $sub ) {
