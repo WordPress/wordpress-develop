@@ -246,8 +246,9 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$block_type = $item;
-		$fields     = $this->get_fields_for_response( $request );
-		$data       = array();
+
+		$fields = $this->get_fields_for_response( $request );
+		$data   = array();
 
 		if ( rest_is_field_included( 'attributes', $fields ) ) {
 			$data['attributes'] = $block_type->get_attributes();
@@ -290,6 +291,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				'editor_style_handles',
 				'style_handles',
 				'variations',
+				'block_hooks',
 			),
 			$deprecated_fields
 		);
@@ -705,6 +707,19 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				),
 				'keywords'              => $keywords_definition,
 				'example'               => $example_definition,
+				'block_hooks'           => array(
+					'description'       => __( 'This block is automatically inserted near any occurence of the block types used as keys of this map, into a relative position given by the corresponding value.' ),
+					'type'              => 'object',
+					'patternProperties' => array(
+						'^[a-zA-Z0-9-]+/[a-zA-Z0-9-]+$' => array(
+							'type' => 'string',
+							'enum' => array( 'before', 'after', 'first_child', 'last_child' ),
+						),
+					),
+					'default'           => array(),
+					'context'           => array( 'embed', 'view', 'edit' ),
+					'readonly'          => true,
+				),
 			),
 		);
 
@@ -767,5 +782,4 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 			),
 		);
 	}
-
 }

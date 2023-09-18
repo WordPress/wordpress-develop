@@ -308,10 +308,10 @@ function _get_block_template_file( $template_type, $slug ) {
  * @param array  $query {
  *     Arguments to retrieve templates. Optional, empty by default.
  *
- *     @type array  $slug__in     List of slugs to include.
- *     @type array  $slug__not_in List of slugs to skip.
- *     @type string $area         A 'wp_template_part_area' taxonomy value to filter by (for 'wp_template_part' template type only).
- *     @type string $post_type    Post type to get the templates for.
+ *     @type string[] $slug__in     List of slugs to include.
+ *     @type string[] $slug__not_in List of slugs to skip.
+ *     @type string   $area         A 'wp_template_part_area' taxonomy value to filter by (for 'wp_template_part' template type only).
+ *     @type string   $post_type    Post type to get the templates for.
  * }
  *
  * @return array Template
@@ -411,7 +411,7 @@ function _add_block_template_info( $template_item ) {
 		return $template_item;
 	}
 
-	$theme_data = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_custom_templates();
+	$theme_data = wp_get_theme_data_custom_templates();
 	if ( isset( $theme_data[ $template_item['slug'] ] ) ) {
 		$template_item['title']     = $theme_data[ $template_item['slug'] ]['title'];
 		$template_item['postTypes'] = $theme_data[ $template_item['slug'] ]['postTypes'];
@@ -514,6 +514,26 @@ function _inject_theme_attribute_in_block_template_content( $template_content ) 
 }
 
 /**
+ * Injects the active theme's stylesheet as a `theme` attribute
+ * into a given template part block.
+ *
+ * @since 6.4.0
+ * @access private
+ *
+ * @param array $block a parsed block.
+ * @return array Updated block.
+ */
+function _inject_theme_attribute_in_template_part_block( $block ) {
+	if (
+		'core/template-part' === $block['blockName'] &&
+		! isset( $block['attrs']['theme'] )
+	) {
+		$block['attrs']['theme'] = get_stylesheet();
+	}
+	return $block;
+}
+
+/**
  * Parses a block template and removes the theme attribute from each template part.
  *
  * @since 5.9.0
@@ -565,7 +585,6 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	$template                 = new WP_Block_Template();
 	$template->id             = $theme . '//' . $template_file['slug'];
 	$template->theme          = $theme;
-	$template->content        = _inject_theme_attribute_in_block_template_content( $template_content );
 	$template->slug           = $template_file['slug'];
 	$template->source         = 'theme';
 	$template->type           = $template_type;
@@ -588,6 +607,9 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	if ( 'wp_template_part' === $template_type && isset( $template_file['area'] ) ) {
 		$template->area = $template_file['area'];
 	}
+
+	$blocks            = parse_blocks( $template_content );
+	$template->content = serialize_blocks( $blocks, '_inject_theme_attribute_in_template_part_block' );
 
 	return $template;
 }

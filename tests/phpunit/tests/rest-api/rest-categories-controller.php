@@ -631,8 +631,8 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 
 		// 3rd page.
 		self::factory()->category->create();
-		$total_categories++;
-		$total_pages++;
+		++$total_categories;
+		++$total_pages;
 		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );

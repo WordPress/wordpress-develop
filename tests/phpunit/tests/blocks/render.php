@@ -521,5 +521,4 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 
 		return $content;
 	}
-
 }

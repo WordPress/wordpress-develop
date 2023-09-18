@@ -283,12 +283,14 @@ function image_downsize( $id, $size = 'medium' ) {
  * @param string     $name   Image size identifier.
  * @param int        $width  Optional. Image width in pixels. Default 0.
  * @param int        $height Optional. Image height in pixels. Default 0.
- * @param bool|array $crop   Optional. Image cropping behavior. If false, the image will be scaled (default),
- *                           If true, image will be cropped to the specified dimensions using center positions.
- *                           If an array, the image will be cropped using the array to specify the crop location.
- *                           Array values must be in the format: array( x_crop_position, y_crop_position ) where:
- *                               - x_crop_position accepts: 'left', 'center', or 'right'.
- *                               - y_crop_position accepts: 'top', 'center', or 'bottom'.
+ * @param bool|array $crop   {
+ *     Optional. Image cropping behavior. If false, the image will be scaled (default).
+ *     If true, image will be cropped to the specified dimensions using center positions.
+ *     If an array, the image will be cropped using the array to specify the crop location:
+ *
+ *     @type string $0 The x crop position. Accepts 'left' 'center', or 'right'.
+ *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
+ * }
  */
 function add_image_size( $name, $width = 0, $height = 0, $crop = false ) {
 	global $_wp_additional_image_sizes;
@@ -343,8 +345,14 @@ function remove_image_size( $name ) {
  *
  * @param int        $width  Image width in pixels.
  * @param int        $height Image height in pixels.
- * @param bool|array $crop   Optional. Whether to crop images to specified width and height or resize.
- *                           An array can specify positioning of the crop area. Default false.
+ * @param bool|array $crop   {
+ *     Optional. Image cropping behavior. If false, the image will be scaled (default).
+ *     If true, image will be cropped to the specified dimensions using center positions.
+ *     If an array, the image will be cropped using the array to specify the crop location:
+ *
+ *     @type string $0 The x crop position. Accepts 'left' 'center', or 'right'.
+ *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
+ * }
  */
 function set_post_thumbnail_size( $width = 0, $height = 0, $crop = false ) {
 	add_image_size( 'post-thumbnail', $width, $height, $crop );
@@ -511,22 +519,20 @@ function wp_constrain_dimensions( $current_width, $current_height, $max_width = 
  * Calculates dimensions and coordinates for a resized image that fits
  * within a specified width and height.
  *
- * Cropping behavior is dependent on the value of $crop:
- * 1. If false (default), images will not be cropped.
- * 2. If an array in the form of array( x_crop_position, y_crop_position ):
- *    - x_crop_position accepts 'left' 'center', or 'right'.
- *    - y_crop_position accepts 'top', 'center', or 'bottom'.
- *    Images will be cropped to the specified dimensions within the defined crop area.
- * 3. If true, images will be cropped to the specified dimensions using center positions.
- *
  * @since 2.5.0
  *
  * @param int        $orig_w Original width in pixels.
  * @param int        $orig_h Original height in pixels.
  * @param int        $dest_w New width in pixels.
  * @param int        $dest_h New height in pixels.
- * @param bool|array $crop   Optional. Whether to crop image to specified width and height or resize.
- *                           An array can specify positioning of the crop area. Default false.
+ * @param bool|array $crop   {
+ *     Optional. Image cropping behavior. If false, the image will be scaled (default).
+ *     If true, image will be cropped to the specified dimensions using center positions.
+ *     If an array, the image will be cropped using the array to specify the crop location:
+ *
+ *     @type string $0 The x crop position. Accepts 'left' 'center', or 'right'.
+ *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
+ * }
  * @return array|false Returned array matches parameters for `imagecopyresampled()`. False on failure.
  */
 function image_resize_dimensions( $orig_w, $orig_h, $dest_w, $dest_h, $crop = false ) {
@@ -670,11 +676,17 @@ function image_resize_dimensions( $orig_w, $orig_h, $dest_w, $dest_h, $crop = fa
  *
  * @since 2.5.0
  *
- * @param string $file   File path.
- * @param int    $width  Image width.
- * @param int    $height Image height.
- * @param bool   $crop   Optional. Whether to crop image to specified width and height or resize.
- *                       Default false.
+ * @param string     $file   File path.
+ * @param int        $width  Image width.
+ * @param int        $height Image height.
+ * @param bool|array $crop   {
+ *     Optional. Image cropping behavior. If false, the image will be scaled (default).
+ *     If true, image will be cropped to the specified dimensions using center positions.
+ *     If an array, the image will be cropped using the array to specify the crop location:
+ *
+ *     @type string $0 The x crop position. Accepts 'left' 'center', or 'right'.
+ *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
+ * }
  * @return array|false Metadata array on success. False if no image was created.
  */
 function image_make_intermediate_size( $file, $width, $height, $crop = false ) {
@@ -2349,6 +2361,10 @@ add_shortcode( 'caption', 'img_caption_shortcode' );
  * @return string HTML content to display the caption.
  */
 function img_caption_shortcode( $attr, $content = '' ) {
+	if ( ! $attr ) {
+		$attr = array();
+	}
+
 	// New-style shortcode with the caption inside the shortcode with the link and image tags.
 	if ( ! isset( $attr['caption'] ) ) {
 		if ( preg_match( '#((?:<a [^>]+>\s*)?<img [^>]+>(?:\s*</a>)?)(.*)#is', $content, $matches ) ) {
@@ -2536,7 +2552,7 @@ function gallery_shortcode( $attr ) {
 	$post = get_post();
 
 	static $instance = 0;
-	$instance++;
+	++$instance;
 
 	if ( ! empty( $attr['ids'] ) ) {
 		// 'ids' is explicitly ordered, unless you specify otherwise.
@@ -2883,7 +2899,7 @@ function wp_playlist_shortcode( $attr ) {
 	$post = get_post();
 
 	static $instance = 0;
-	$instance++;
+	++$instance;
 
 	if ( ! empty( $attr['ids'] ) ) {
 		// 'ids' is explicitly ordered, unless you specify otherwise.
@@ -3197,7 +3213,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 	$post_id = get_post() ? get_the_ID() : 0;
 
 	static $instance = 0;
-	$instance++;
+	++$instance;
 
 	/**
 	 * Filters the default audio shortcode output.
@@ -3207,7 +3223,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 	 * @since 3.6.0
 	 *
 	 * @param string $html     Empty variable to be replaced with shortcode markup.
-	 * @param array  $attr     Attributes of the shortcode. @see wp_audio_shortcode()
+	 * @param array  $attr     Attributes of the shortcode. See {@see wp_audio_shortcode()}.
 	 * @param string $content  Shortcode content.
 	 * @param int    $instance Unique numeric ID of this audio shortcode instance.
 	 */
@@ -3416,7 +3432,7 @@ function wp_video_shortcode( $attr, $content = '' ) {
 	$post_id = get_post() ? get_the_ID() : 0;
 
 	static $instance = 0;
-	$instance++;
+	++$instance;
 
 	/**
 	 * Filters the default video shortcode output.
@@ -3429,7 +3445,7 @@ function wp_video_shortcode( $attr, $content = '' ) {
 	 * @see wp_video_shortcode()
 	 *
 	 * @param string $html     Empty variable to be replaced with shortcode markup.
-	 * @param array  $attr     Attributes of the shortcode. @see wp_video_shortcode()
+	 * @param array  $attr     Attributes of the shortcode. See {@see wp_video_shortcode()}.
 	 * @param string $content  Video shortcode content.
 	 * @param int    $instance Unique numeric ID of this video shortcode instance.
 	 */
@@ -4501,7 +4517,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param array       $response   Array of prepared attachment data. @see wp_prepare_attachment_for_js().
+	 * @param array       $response   Array of prepared attachment data. See {@see wp_prepare_attachment_for_js()}.
 	 * @param WP_Post     $attachment Attachment object.
 	 * @param array|false $meta       Array of attachment meta data, or false if there is none.
 	 */
@@ -5347,8 +5363,13 @@ function wp_register_media_personal_data_exporter( $exporters ) {
  * @since 4.9.6
  *
  * @param string $email_address The attachment owner email address.
- * @param int    $page          Attachment page.
- * @return array An array of personal data.
+ * @param int    $page          Attachment page number.
+ * @return array {
+ *     An array of personal data.
+ *
+ *     @type array[] $data An array of personal data arrays.
+ *     @type bool    $done Whether the exporter is finished.
+ * }
  */
 function wp_media_personal_data_exporter( $email_address, $page = 1 ) {
 	// Limit us to 50 attachments at a time to avoid timing out.
@@ -5631,13 +5652,9 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * can result in the first post content image being lazy-loaded or an image further down the page being marked as a
 	 * high priority.
 	 */
-	switch ( $context ) {
-		case 'the_post_thumbnail':
-		case 'wp_get_attachment_image':
-		case 'widget_media_image':
-			if ( doing_filter( 'the_content' ) ) {
-				return $loading_attrs;
-			}
+	// TODO: Handle shortcode images together with the content (see https://core.trac.wordpress.org/ticket/58853).
+	if ( 'the_content' !== $context && 'do_shortcode' !== $context && doing_filter( 'the_content' ) ) {
+		return $loading_attrs;
 	}
 
 	/*
@@ -5688,64 +5705,56 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	}
 
 	if ( null === $maybe_in_viewport ) {
-		switch ( $context ) {
-			// Consider elements with these header-specific contexts to be in viewport.
-			case 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER:
-			case 'get_header_image_tag':
-				$maybe_in_viewport    = true;
-				$maybe_increase_count = true;
-				break;
-			// Count main content elements and detect whether in viewport.
-			case 'the_content':
-			case 'the_post_thumbnail':
-			case 'do_shortcode':
-				// Only elements within the main query loop have special handling.
-				if ( ! is_admin() && in_the_loop() && is_main_query() ) {
-					/*
-					 * Get the content media count, since this is a main query
-					 * content element. This is accomplished by "increasing"
-					 * the count by zero, as the only way to get the count is
-					 * to call this function.
-					 * The actual count increase happens further below, based
-					 * on the `$increase_count` flag set here.
-					 */
-					$content_media_count = wp_increase_content_media_count( 0 );
-					$increase_count      = true;
+		$header_enforced_contexts = array(
+			'template_part_' . WP_TEMPLATE_PART_AREA_HEADER => true,
+			'get_header_image_tag'                          => true,
+		);
 
-					// If the count so far is below the threshold, `loading` attribute is omitted.
-					if ( $content_media_count < wp_omit_loading_attr_threshold() ) {
-						$maybe_in_viewport = true;
-					} else {
-						$maybe_in_viewport = false;
-					}
-				}
-				/*
-				 * For the 'the_post_thumbnail' context, the following case
-				 * clause needs to be considered as well, therefore skip the
-				 * break statement here if the viewport has not been
-				 * determined.
-				 */
-				if ( 'the_post_thumbnail' !== $context || null !== $maybe_in_viewport ) {
-					break;
-				}
-			// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect
-			// Consider elements before the loop as being in viewport.
-			case 'wp_get_attachment_image':
-			case 'widget_media_image':
-				if (
-					// Only apply for main query but before the loop.
-					$wp_query->before_loop && $wp_query->is_main_query()
-					/*
-					 * Any image before the loop, but after the header has started should not be lazy-loaded,
-					 * except when the footer has already started which can happen when the current template
-					 * does not include any loop.
-					 */
-					&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
-				) {
-					$maybe_in_viewport    = true;
-					$maybe_increase_count = true;
-				}
-				break;
+		/**
+		 * Filters the header-specific contexts.
+		 *
+		 * @since 6.4.0
+		 *
+		 * @param array $default_header_enforced_contexts Map of contexts for which elements should be considered
+		 *                                                in the header of the page, as $context => $enabled
+		 *                                                pairs. The $enabled should always be true.
+		 */
+		$header_enforced_contexts = apply_filters( 'wp_loading_optimization_force_header_contexts', $header_enforced_contexts );
+
+		// Consider elements with these header-specific contexts to be in viewport.
+		if ( isset( $header_enforced_contexts[ $context ] ) ) {
+			$maybe_in_viewport    = true;
+			$maybe_increase_count = true;
+		} elseif ( ! is_admin() && in_the_loop() && is_main_query() ) {
+			/*
+			 * Get the content media count, since this is a main query
+			 * content element. This is accomplished by "increasing"
+			 * the count by zero, as the only way to get the count is
+			 * to call this function.
+			 * The actual count increase happens further below, based
+			 * on the `$increase_count` flag set here.
+			 */
+			$content_media_count = wp_increase_content_media_count( 0 );
+			$increase_count      = true;
+
+			// If the count so far is below the threshold, `loading` attribute is omitted.
+			if ( $content_media_count < wp_omit_loading_attr_threshold() ) {
+				$maybe_in_viewport = true;
+			} else {
+				$maybe_in_viewport = false;
+			}
+		} elseif (
+			// Only apply for main query but before the loop.
+			$wp_query->before_loop && $wp_query->is_main_query()
+			/*
+			 * Any image before the loop, but after the header has started should not be lazy-loaded,
+			 * except when the footer has already started which can happen when the current template
+			 * does not include any loop.
+			 */
+			&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
+			) {
+			$maybe_in_viewport    = true;
+			$maybe_increase_count = true;
 		}
 	}
 
