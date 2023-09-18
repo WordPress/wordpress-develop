@@ -46,54 +46,54 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 	 */
 	public function test_get_hooked_blocks_matches_found() {
 		register_block_type(
-			'tests/my-block',
+			'tests/injected-one',
 			array(
 				'block_hooks' => array(
-					'tests/hooked-before' => 'before',
-					'tests/hooked-after'  => 'after',
+					'tests/hooked-at-before' => 'before',
+					'tests/hooked-at-after'  => 'after',
 				),
 			)
 		);
 		register_block_type(
-			'tests/my-container-block',
+			'tests/injected-two',
 			array(
 				'block_hooks' => array(
-					'tests/hooked-before'      => 'before',
-					'tests/hooked-after'       => 'after',
-					'tests/hooked-first-child' => 'first_child',
-					'tests/hooked-last-child'  => 'last_child',
+					'tests/hooked-at-before'      => 'before',
+					'tests/hooked-at-after'       => 'after',
+					'tests/hooked-at-first-child' => 'first_child',
+					'tests/hooked-at-last-child'  => 'last_child',
 				),
 			)
 		);
 
 		$this->assertSame(
 			array(
-				'tests/my-block'           => 'before',
-				'tests/my-container-block' => 'before',
+				'tests/injected-one' => 'before',
+				'tests/injected-two' => 'before',
 			),
-			get_hooked_blocks( 'tests/hooked-before' ),
+			get_hooked_blocks( 'tests/hooked-at-before' ),
 			'block hooked at the before position'
 		);
 		$this->assertSame(
 			array(
-				'tests/my-block'           => 'after',
-				'tests/my-container-block' => 'after',
+				'tests/injected-one' => 'after',
+				'tests/injected-two' => 'after',
 			),
-			get_hooked_blocks( 'tests/hooked-after' ),
+			get_hooked_blocks( 'tests/hooked-at-after' ),
 			'block hooked at the after position'
 		);
 		$this->assertSame(
 			array(
-				'tests/my-container-block' => 'first_child',
+				'tests/injected-two' => 'first_child',
 			),
-			get_hooked_blocks( 'tests/hooked-first-child' ),
+			get_hooked_blocks( 'tests/hooked-at-first-child' ),
 			'block hooked at the first child position'
 		);
 		$this->assertSame(
 			array(
-				'tests/my-container-block' => 'last_child',
+				'tests/injected-two' => 'last_child',
 			),
-			get_hooked_blocks( 'tests/hooked-last-child' ),
+			get_hooked_blocks( 'tests/hooked-at-last-child' ),
 			'block hooked at the last child position'
 		);
 	}
