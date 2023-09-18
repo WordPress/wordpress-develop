@@ -5054,7 +5054,6 @@ EOF;
 	 * Tests tag restriction for `wp_get_loading_optimization_attributes()`.
 	 *
 	 * @ticket 58235
-	 * @ticket 58892
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
 	 *
