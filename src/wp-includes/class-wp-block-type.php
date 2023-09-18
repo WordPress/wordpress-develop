@@ -522,20 +522,6 @@ class WP_Block_Type {
 		$args = apply_filters( 'register_block_type_args', $args, $this->name );
 
 		foreach ( $args as $property_name => $property_value ) {
-			// Avoid infinite recursion in block hooks (hooking to itself).
-			if ( 'block_hooks' === $property_name ) {
-				if ( ! is_array( $property_value ) ) {
-					continue;
-				}
-				if ( array_key_exists( $this->name, $property_value ) ) {
-					_doing_it_wrong(
-						__METHOD__,
-						__( 'Cannot hook block to itself.' ),
-						'6.4.0'
-					);
-					unset( $property_value[ $this->name ] );
-				}
-			}
 			$this->$property_name = $property_value;
 		}
 	}

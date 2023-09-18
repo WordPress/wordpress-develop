@@ -1080,22 +1080,15 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 *
 	 * @covers ::register_block_type
 	 *
-	 * @expectedIncorrectUsage WP_Block_Type::set_props
+	 * @expectedIncorrectUsage register_block_type_from_metadata
 	 */
 	public function test_register_block_hooks_targeting_itself() {
-		$block_name = 'tests/block-name';
 		$block_type = register_block_type(
-			$block_name,
-			array(
-				'block_hooks' => array(
-					$block_name         => 'first',
-					'tests/other-block' => 'last',
-				),
-			)
+			DIR_TESTDATA . '/blocks/hooked-block-error'
 		);
 
-		$this->assertSameSets(
-			array( 'tests/other-block' => 'last' ),
+		$this->assertSame(
+			array( 'tests/other-block' => 'after' ),
 			$block_type->block_hooks
 		);
 	}
