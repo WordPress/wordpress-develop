@@ -3783,6 +3783,7 @@ EOF;
 	 * @covers ::wp_get_loading_optimization_attributes
 	 *
 	 * @expectedDeprecated wp_img_tag_add_decoding_attr
+	 * @expectedIncorrectUsage wp_img_tag_add_loading_optimization_attrs
 	 */
 	public function test_wp_filter_content_tags_with_loading_optimization_attrs() {
 		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );
