@@ -211,7 +211,7 @@ class WP_Rollback_Auto_Update {
 	}
 
 	/**
-	 * Checks whether an error is acceptable. otherwise rolls the plugin back to its
+	 * Checks whether an error is acceptable, otherwise rolls the plugin back to its
 	 * temporary backup.
 	 *
 	 * @since 6.4.0
@@ -399,7 +399,7 @@ class WP_Rollback_Auto_Update {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return array The remaining updates, excluding plugins that were processed or rolled back.
+	 * @return array The remaining plugin auto-updates, excluding plugins that were processed or rolled back.
 	 */
 	private function get_remaining_plugin_auto_updates() {
 		// Get array of plugins set for auto-updating.
@@ -420,7 +420,7 @@ class WP_Rollback_Auto_Update {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return array An array of remaining theme auto-updates.
+	 * @return array The remaining theme auto-updates.
 	 */
 	private function get_remaining_theme_auto_updates() {
 		// Get array of themes set for auto-updating.
