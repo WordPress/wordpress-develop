@@ -824,7 +824,7 @@ function update_option( $option, $value, $autoload = null ) {
 		$raw_autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
 		$allow_values = array( 'default-yes', 'default-no' );
 		if ( in_array( $raw_autoload, $allow_values, true ) ) {
-			$autoload                = check_option_size( $serialized_value, $option );
+			$autoload                = check_option_size( $option, $serialized_value );
 			$update_args['autoload'] = $autoload;
 		}
 	}
@@ -970,7 +970,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 	$serialized_value = maybe_serialize( $value );
 
 	if ( null === $autoload ) {
-		$autoload = check_option_size( $serialized_value, $option );
+		$autoload = check_option_size( $option, $serialized_value );
 	}
 	$autoload = get_autoload_value( $autoload );
 
@@ -1150,12 +1150,12 @@ function get_autoload_value( $autoload ) {
  *
  * @since 6.4.0
  *
- * @param mixed  $value The value of the option to be checked.
  * @param string $name  The name of the option.
+ * @param mixed  $value The value of the option to be checked.
  *
  * @return string Returns 'default-no' if the size exceeds the maximum allowed size, or 'default-yes' otherwise.
  */
-function check_option_size( $value, $name ) {
+function check_option_size( $name, $value ) {
 	// Serialize the value and check its size against the maximum allowed option size.
 	$serialized_value = maybe_serialize( $value );
 	$size             = strlen( $serialized_value );
@@ -1166,10 +1166,10 @@ function check_option_size( $value, $name ) {
 	 * @since 6.4.0
 	 *
 	 * @param int    $max_option_size The option-size threshold, in bytes. Default 150000.
-	 * @param mixed  $value           The value of the option.
 	 * @param string $name            The name of the option.
+	 * @param mixed  $value           The value of the option.
 	 */
-	$max_option_size = (int) apply_filters( 'max_option_size', 150000, $value, $name );
+	$max_option_size = (int) apply_filters( 'max_option_size', 150000, $name, $value );
 
 	if ( $size > $max_option_size ) {
 		return 'default-no';

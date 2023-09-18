@@ -15,7 +15,7 @@ class Tests_Check_Size extends WP_UnitTestCase {
 	 * @ticket 42441
 	 */
 	public function test_small_option() {
-		$test  = check_option_size( 'bar', 'foo' );
+		$test  = check_option_size( 'foo', 'bar' );
 		$this->assertSame( 'default-yes', $test );
 	}
 
@@ -26,7 +26,7 @@ class Tests_Check_Size extends WP_UnitTestCase {
 	 */
 	public function test_large_option() {
 		$value = file( DIR_TESTDATA . '/formatting/entities.txt' );
-		$test  = check_option_size( $value, 'foo' );
+		$test  = check_option_size( 'foo', $value );
 		$this->assertSame( 'default-no', $test );
 	}
 
@@ -37,7 +37,7 @@ class Tests_Check_Size extends WP_UnitTestCase {
 	 */
 	public function test_large_option_json() {
 		$value = file( DIR_TESTDATA . '/themedir1/block-theme/theme.json' );
-		$test  = check_option_size( $value, 'foo' );
+		$test  = check_option_size( 'foo', $value );
 		$this->assertSame( 'default-no', $test );
 	}
 
