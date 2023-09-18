@@ -1976,7 +1976,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		$context
 	);
 
-	// Images should have source for the decoding and the loading optimization attributes to be added.
+	// Images should have source for the loading optimization attributes to be added.
 	if ( ! str_contains( $image, ' src="' ) ) {
 		return $image;
 	}
