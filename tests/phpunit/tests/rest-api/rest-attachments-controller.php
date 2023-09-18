@@ -1045,6 +1045,24 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertStringNotContainsString( ABSPATH, get_post_meta( $attachment['id'], '_wp_attached_file', true ) );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
+	public function test_create_item_with_terms() {
+		wp_set_current_user( self::$author_id );
+		register_taxonomy_for_object_type( 'category', 'attachment' );
+		$category = wp_insert_term( 'Media Category', 'category' );
+		$request  = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$request->set_param( 'categories', array( $category['term_id'] ) );
+		$response   = rest_get_server()->dispatch( $request );
+		$attachment = $response->get_data();
+		$this->assertSame( array( $category['term_id'] ), wp_list_pluck( wp_get_post_terms( $attachment['id'], 'category' ), 'term_id' ) );
+	}
+
 	public function test_update_item() {
 		wp_set_current_user( self::$editor_id );
 		$attachment_id = self::factory()->attachment->create_object(
