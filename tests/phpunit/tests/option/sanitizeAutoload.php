@@ -3,12 +3,12 @@
 /**
  * @group option
  */
-class Tests_Option_Autoload_Value extends WP_UnitTestCase {
+class Tests_Aanitize_Autoload extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 42441
 	 *
-	 * @covers ::get_autoload_value
+	 * @covers ::sanitize_autoload
 	 *
 	 * @dataProvider data_values
 	 *
@@ -16,7 +16,7 @@ class Tests_Option_Autoload_Value extends WP_UnitTestCase {
 	 * @param $expected
 	 */
 	public function test_get_autoload_value_values( $autoload, $expected ) {
-		$test = get_autoload_value( $autoload );
+		$test = sanitize_autoload( $autoload );
 		$this->assertSame( $expected, $test );
 	}
 
