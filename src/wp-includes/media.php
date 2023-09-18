@@ -2011,10 +2011,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 			$optimization_attrs['decoding'] = $filtered_decoding_attr;
 		}
 
-		if (
-			! empty( $optimization_attrs['decoding'] )
-			&& in_array( $optimization_attrs['decoding'], array( 'async', 'sync', 'auto' ), true )
-		) {
+		if ( ! empty( $optimization_attrs['decoding'] ) ) {
 			$image = str_replace( '<img', '<img decoding="' . esc_attr( $optimization_attrs['decoding'] ) . '"', $image );
 		}
 	}
