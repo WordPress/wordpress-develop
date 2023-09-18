@@ -918,6 +918,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 			'render_callback' => 'foo',
 			'ancestor'        => array( 'core/test-ancestor' ),
 			'selectors'       => array( 'root' => '.wp-block-test' ),
+			'block_hooks'     => array( 'core/post-content' => 'before' ),
 		);
 
 		register_block_type( $name, $settings );
@@ -937,6 +938,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 					'lock' => array( 'type' => 'object' ),
 				),
 				'usesContext' => array(),
+				'blockHooks'  => array( 'core/post-content' => 'before' ),
 				'selectors'   => array( 'root' => '.wp-block-test' ),
 				'category'    => 'common',
 				'styles'      => array(),

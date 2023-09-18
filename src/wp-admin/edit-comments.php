@@ -301,7 +301,13 @@ if ( isset( $_REQUEST['error'] ) ) {
 			break;
 	}
 	if ( $error_msg ) {
-		echo '<div id="moderated" class="error"><p>' . $error_msg . '</p></div>';
+		wp_admin_notice(
+			$error_msg,
+			array(
+				'id'                 => 'moderated',
+				'additional_classes' => array( 'error' ),
+			)
+		);
 	}
 }
 
@@ -411,9 +417,13 @@ if ( isset( $_REQUEST['approved'] )
 			}
 		}
 
-		printf(
-			'<div id="moderated" class="updated notice is-dismissible"><p>%s</p></div>',
-			implode( "<br />\n", $messages )
+		wp_admin_notice(
+			implode( "<br />\n", $messages ),
+			array(
+				'id'                 => 'moderated',
+				'additional_classes' => array( 'updated' ),
+				'dismissible'        => true,
+			)
 		);
 	}
 }
