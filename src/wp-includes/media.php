@@ -2116,6 +2116,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
  *
  * @since 6.1.0
  * @deprecated 6.4.0 Use wp_img_tag_add_loading_optimization_attrs() instead.
+ * @see wp_img_tag_add_loading_optimization_attrs()
  *
  * @param string $image   The HTML `img` tag where the attribute should be added.
  * @param string $context Additional context to pass to the filters.
