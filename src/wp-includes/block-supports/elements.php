@@ -23,6 +23,7 @@ function wp_get_elements_class_name( $block ) {
  * Updates the block content with elements class names.
  *
  * @since 5.8.0
+ * @since 6.4.0 Added support for button and heading element styling.
  * @access private
  *
  * @param string $block_content Rendered block content.
@@ -178,7 +179,7 @@ function wp_render_elements_support_styles( $pre_render, $block ) {
 
 		// Process primary element type styles.
 		if ( $element_style_object ) {
-			gutenberg_style_engine_get_styles(
+			wp_style_engine_get_styles(
 				$element_style_object,
 				array(
 					'selector' => $element_config['selector'],
@@ -187,7 +188,7 @@ function wp_render_elements_support_styles( $pre_render, $block ) {
 			);
 
 			if ( isset( $element_style_object[':hover'] ) ) {
-				gutenberg_style_engine_get_styles(
+				wp_style_engine_get_styles(
 					$element_style_object[':hover'],
 					array(
 						'selector' => $element_config['hover_selector'],
@@ -203,7 +204,7 @@ function wp_render_elements_support_styles( $pre_render, $block ) {
 				$element_style_object = _wp_array_get( $element_block_styles, array( $element ), null );
 
 				if ( $element_style_object ) {
-					gutenberg_style_engine_get_styles(
+					wp_style_engine_get_styles(
 						$element_style_object,
 						array(
 							'selector' => ".$class_name $element",
