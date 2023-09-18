@@ -446,7 +446,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 				'type' => 'constrained',
 			),
 		);
-		// With no block theme, expect an empty array.
+		// With no block theme, expect null.
 		$this->assertNull( wp_get_post_content_block_attributes() );
 
 		switch_theme( 'block-theme' );
