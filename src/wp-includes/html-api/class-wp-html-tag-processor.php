@@ -1916,7 +1916,6 @@ class WP_HTML_Tag_Processor {
 	public function get_previous_text_chunk() {
 		if ( $this->bytes_already_parsed >= strlen( $this->html ) ) {
 			$chunk = substr( $this->html, $this->last_position->end === 0 ? 0 : $this->last_position->end + 1 );
-			$chunk = preg_replace( '/<[^a-z].*>/i', '', $chunk );
 			return html_entity_decode( $chunk, ENT_HTML5 | ENT_QUOTES | ENT_SUBSTITUTE );
 		}
 
@@ -1927,7 +1926,6 @@ class WP_HTML_Tag_Processor {
 		$chunk_start = $this->last_position->end === 0 ? 0 : $this->last_position->end + 1;
 		$chunk_end   = $this->is_tag_closer() ? $this->tag_name_starts_at - 2 : $this->tag_name_starts_at - 1;
 		$chunk       = substr( $this->html, $chunk_start, $chunk_end - $chunk_start );
-		$chunk = preg_replace( '/<[^a-z].*>/i', '', $chunk );
 		return html_entity_decode( $chunk, ENT_HTML5 | ENT_QUOTES | ENT_SUBSTITUTE );
 	}
 
