@@ -515,9 +515,6 @@ class WP_Rollback_Auto_Update {
 			}
 		}
 
-		// TODO: remove for PR.
-		delete_option( 'auto_plugin_theme_update_emails' );
-
 		add_filter( 'auto_plugin_theme_update_email', array( $this, 'append_auto_update_failure_message_to_email' ), 10, 4 );
 
 		/*
