@@ -856,15 +856,15 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  * @return string String of rendered HTML.
  */
 function serialize_block( $block, $callback = null ) {
-	if ( is_callable( $callback ) ) {
-		$block = call_user_func( $callback, $block );
-	}
-
 	$block_content = '';
 
 	$index = 0;
 	foreach ( $block['innerContent'] as $chunk ) {
-		$block_content .= is_string( $chunk ) ? $chunk : serialize_block( $block['innerBlocks'][ $index++ ], $callback );
+		$inner_block = $block['innerBlocks'][ $index++ ];
+		if ( is_callable( $callback ) ) {
+			$inner_block = call_user_func( $callback, $inner_block );
+		}
+		$block_content .= is_string( $chunk ) ? $chunk : serialize_block( $inner_block, $callback );
 	}
 
 	if ( ! is_array( $block['attrs'] ) ) {
@@ -892,6 +892,9 @@ function serialize_block( $block, $callback = null ) {
 function serialize_blocks( $blocks, $callback = null ) {
 	$result = '';
 	foreach ( $blocks as $block ) {
+		if ( is_callable( $callback ) ) {
+			$block = call_user_func( $callback, $block );
+		}
 		$result .= serialize_block( $block, $callback );
 	}
 	return $result;
