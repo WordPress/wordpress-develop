@@ -2016,7 +2016,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		}
 	}
 
-	// Images should have dimension attributes for the loading optimization attributes to be added.
+	// Images should have dimension attributes for the 'loading' and 'fetchpriority' attributes to be added.
 	if ( ! str_contains( $image, ' width="' ) || ! str_contains( $image, ' height="' ) ) {
 		return $image;
 	}
