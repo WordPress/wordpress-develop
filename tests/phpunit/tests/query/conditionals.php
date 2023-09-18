@@ -1641,14 +1641,14 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		// Get the list of `is_*()` conditional tags.
 		$functions = array_filter(
 			get_class_methods( 'WP_Query' ),
-			static function( $function_name ) {
+			static function ( $function_name ) {
 				return str_starts_with( $function_name, 'is_' );
 			}
 		);
 
 		// Wrap each function name in an array.
 		$functions = array_map(
-			static function( $function_name ) {
+			static function ( $function_name ) {
 				return array( $function_name );
 			},
 			$functions

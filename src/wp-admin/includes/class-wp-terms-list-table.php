@@ -310,7 +310,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 				while ( $my_parent = array_pop( $my_parents ) ) {
 					echo "\t";
 					$this->single_row( $my_parent, $level - $num_parents );
-					$num_parents--;
+					--$num_parents;
 				}
 			}
 
@@ -425,12 +425,17 @@ class WP_Terms_List_Table extends WP_List_Table {
 			$name
 		);
 
-		$output .= '<div class="hidden" id="inline_' . $qe_data->term_id . '">';
-		$output .= '<div class="name">' . $qe_data->name . '</div>';
+		/** This filter is documented in wp-admin/includes/class-wp-terms-list-table.php */
+		$quick_edit_enabled = apply_filters( 'quick_edit_enabled_for_taxonomy', true, $taxonomy );
 
-		/** This filter is documented in wp-admin/edit-tag-form.php */
-		$output .= '<div class="slug">' . apply_filters( 'editable_slug', $qe_data->slug, $qe_data ) . '</div>';
-		$output .= '<div class="parent">' . $qe_data->parent . '</div></div>';
+		if ( $quick_edit_enabled ) {
+			$output .= '<div class="hidden" id="inline_' . $qe_data->term_id . '">';
+			$output .= '<div class="name">' . $qe_data->name . '</div>';
+
+			/** This filter is documented in wp-admin/edit-tag-form.php */
+			$output .= '<div class="slug">' . apply_filters( 'editable_slug', $qe_data->slug, $qe_data ) . '</div>';
+			$output .= '<div class="parent">' . $qe_data->parent . '</div></div>';
+		}
 
 		return $output;
 	}
@@ -464,7 +469,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 		}
 
 		// Restores the more descriptive, specific name for use within this method.
-		$tag      = $item;
+		$tag = $item;
+
 		$taxonomy = $this->screen->taxonomy;
 		$uri      = wp_doing_ajax() ? wp_get_referer() : $_SERVER['REQUEST_URI'];
 
@@ -484,12 +490,25 @@ class WP_Terms_List_Table extends WP_List_Table {
 				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $tag->name ) ),
 				__( 'Edit' )
 			);
-			$actions['inline hide-if-no-js'] = sprintf(
-				'<button type="button" class="button-link editinline" aria-label="%s" aria-expanded="false">%s</button>',
-				/* translators: %s: Taxonomy term name. */
-				esc_attr( sprintf( __( 'Quick edit &#8220;%s&#8221; inline' ), $tag->name ) ),
-				__( 'Quick&nbsp;Edit' )
-			);
+
+			/**
+			 * Filters whether Quick Edit should be enabled for the given taxonomy.
+			 *
+			 * @since 6.4.0
+			 *
+			 * @param bool   $enable   Whether to enable the Quick Edit functionality. Default true.
+			 * @param string $taxonomy Taxonomy name.
+			 */
+			$quick_edit_enabled = apply_filters( 'quick_edit_enabled_for_taxonomy', true, $taxonomy );
+
+			if ( $quick_edit_enabled ) {
+				$actions['inline hide-if-no-js'] = sprintf(
+					'<button type="button" class="button-link editinline" aria-label="%s" aria-expanded="false">%s</button>',
+					/* translators: %s: Taxonomy term name. */
+					esc_attr( sprintf( __( 'Quick edit &#8220;%s&#8221; inline' ), $tag->name ) ),
+					__( 'Quick&nbsp;Edit' )
+				);
+			}
 		}
 
 		if ( current_user_can( 'delete_term', $tag->term_id ) ) {
@@ -626,6 +645,9 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @return string
 	 */
 	public function column_default( $item, $column_name ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$tag = $item;
+
 		/**
 		 * Filters the displayed columns in the terms list table.
 		 *
@@ -643,7 +665,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 		 * @param string $column_name Name of the column.
 		 * @param int    $term_id     Term ID.
 		 */
-		return apply_filters( "manage_{$this->screen->taxonomy}_custom_column", '', $column_name, $item->term_id );
+		return apply_filters( "manage_{$this->screen->taxonomy}_custom_column", '', $column_name, $tag->term_id );
 	}
 
 	/**
@@ -711,9 +733,16 @@ class WP_Terms_List_Table extends WP_List_Table {
 				<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $this->screen->taxonomy ); ?>" />
 				<input type="hidden" name="post_type" value="<?php echo esc_attr( $this->screen->post_type ); ?>" />
 
-				<div class="notice notice-error notice-alt inline hidden">
-					<p class="error"></p>
-				</div>
+				<?php
+				wp_admin_notice(
+					'<p class="error"></p>',
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'notice-alt', 'inline', 'hidden' ),
+						'paragraph_wrap'     => false,
+					)
+				);
+				?>
 			</div>
 			</div>
 

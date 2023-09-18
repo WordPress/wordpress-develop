@@ -2552,7 +2552,7 @@ function gallery_shortcode( $attr ) {
 	$post = get_post();
 
 	static $instance = 0;
-	$instance++;
+	++$instance;
 
 	if ( ! empty( $attr['ids'] ) ) {
 		// 'ids' is explicitly ordered, unless you specify otherwise.
@@ -2899,7 +2899,7 @@ function wp_playlist_shortcode( $attr ) {
 	$post = get_post();
 
 	static $instance = 0;
-	$instance++;
+	++$instance;
 
 	if ( ! empty( $attr['ids'] ) ) {
 		// 'ids' is explicitly ordered, unless you specify otherwise.
@@ -3213,7 +3213,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 	$post_id = get_post() ? get_the_ID() : 0;
 
 	static $instance = 0;
-	$instance++;
+	++$instance;
 
 	/**
 	 * Filters the default audio shortcode output.
@@ -3432,7 +3432,7 @@ function wp_video_shortcode( $attr, $content = '' ) {
 	$post_id = get_post() ? get_the_ID() : 0;
 
 	static $instance = 0;
-	$instance++;
+	++$instance;
 
 	/**
 	 * Filters the default video shortcode output.
@@ -5646,20 +5646,18 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	}
 
 	/*
-	 * Skip programmatically created images within post content as they need to be handled together with the other
-	 * images within the post content.
+	 * Skip programmatically created images within content blobs as they need to be handled together with the other
+	 * images within the post content or widget content.
 	 * Without this clause, they would already be considered within their own context which skews the image count and
 	 * can result in the first post content image being lazy-loaded or an image further down the page being marked as a
 	 * high priority.
 	 */
-	switch ( $context ) {
-		case 'the_post_thumbnail':
-		case 'wp_get_attachment_image':
-		case 'widget_media_image':
-		case 'do_shortcode':
-			if ( doing_filter( 'the_content' ) || doing_filter( 'widget_text_content' ) || doing_filter( 'widget_block_content' ) ) {
-				return $loading_attrs;
-			}
+	if (
+		'the_content' !== $context && doing_filter( 'the_content' ) ||
+		'widget_text_content' !== $context && doing_filter( 'widget_text_content' ) ||
+		'widget_block_content' !== $context && doing_filter( 'widget_block_content' )
+	) {
+		return $loading_attrs;
 	}
 
 	/*
@@ -5710,63 +5708,56 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	}
 
 	if ( null === $maybe_in_viewport ) {
-		switch ( $context ) {
-			// Consider elements with these header-specific contexts to be in viewport.
-			case 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER:
-			case 'get_header_image_tag':
-				$maybe_in_viewport    = true;
-				$maybe_increase_count = true;
-				break;
-			// Count main content elements and detect whether in viewport.
-			case 'the_content':
-			case 'the_post_thumbnail':
-				// Only elements within the main query loop have special handling.
-				if ( ! is_admin() && in_the_loop() && is_main_query() ) {
-					/*
-					 * Get the content media count, since this is a main query
-					 * content element. This is accomplished by "increasing"
-					 * the count by zero, as the only way to get the count is
-					 * to call this function.
-					 * The actual count increase happens further below, based
-					 * on the `$increase_count` flag set here.
-					 */
-					$content_media_count = wp_increase_content_media_count( 0 );
-					$increase_count      = true;
+		$header_enforced_contexts = array(
+			'template_part_' . WP_TEMPLATE_PART_AREA_HEADER => true,
+			'get_header_image_tag'                          => true,
+		);
 
-					// If the count so far is below the threshold, `loading` attribute is omitted.
-					if ( $content_media_count < wp_omit_loading_attr_threshold() ) {
-						$maybe_in_viewport = true;
-					} else {
-						$maybe_in_viewport = false;
-					}
-				}
-				/*
-				 * For the 'the_post_thumbnail' context, the following case
-				 * clause needs to be considered as well, therefore skip the
-				 * break statement here if the viewport has not been
-				 * determined.
-				 */
-				if ( 'the_post_thumbnail' !== $context || null !== $maybe_in_viewport ) {
-					break;
-				}
-			// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect
-			// Consider elements before the loop as being in viewport.
-			case 'wp_get_attachment_image':
-			case 'widget_media_image':
-				if (
-					// Only apply for main query but before the loop.
-					$wp_query->before_loop && $wp_query->is_main_query()
-					/*
-					 * Any image before the loop, but after the header has started should not be lazy-loaded,
-					 * except when the footer has already started which can happen when the current template
-					 * does not include any loop.
-					 */
-					&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
-				) {
-					$maybe_in_viewport    = true;
-					$maybe_increase_count = true;
-				}
-				break;
+		/**
+		 * Filters the header-specific contexts.
+		 *
+		 * @since 6.4.0
+		 *
+		 * @param array $default_header_enforced_contexts Map of contexts for which elements should be considered
+		 *                                                in the header of the page, as $context => $enabled
+		 *                                                pairs. The $enabled should always be true.
+		 */
+		$header_enforced_contexts = apply_filters( 'wp_loading_optimization_force_header_contexts', $header_enforced_contexts );
+
+		// Consider elements with these header-specific contexts to be in viewport.
+		if ( isset( $header_enforced_contexts[ $context ] ) ) {
+			$maybe_in_viewport    = true;
+			$maybe_increase_count = true;
+		} elseif ( ! is_admin() && in_the_loop() && is_main_query() ) {
+			/*
+			 * Get the content media count, since this is a main query
+			 * content element. This is accomplished by "increasing"
+			 * the count by zero, as the only way to get the count is
+			 * to call this function.
+			 * The actual count increase happens further below, based
+			 * on the `$increase_count` flag set here.
+			 */
+			$content_media_count = wp_increase_content_media_count( 0 );
+			$increase_count      = true;
+
+			// If the count so far is below the threshold, `loading` attribute is omitted.
+			if ( $content_media_count < wp_omit_loading_attr_threshold() ) {
+				$maybe_in_viewport = true;
+			} else {
+				$maybe_in_viewport = false;
+			}
+		} elseif (
+			// Only apply for main query but before the loop.
+			$wp_query->before_loop && $wp_query->is_main_query()
+			/*
+			 * Any image before the loop, but after the header has started should not be lazy-loaded,
+			 * except when the footer has already started which can happen when the current template
+			 * does not include any loop.
+			 */
+			&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
+			) {
+			$maybe_in_viewport    = true;
+			$maybe_increase_count = true;
 		}
 	}
 

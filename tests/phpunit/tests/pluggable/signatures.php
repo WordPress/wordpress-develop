@@ -44,7 +44,7 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 
 			$this->assertSame( $name, $param_ref->getName(), $msg );
 
-			$i++;
+			++$i;
 
 		}
 	}

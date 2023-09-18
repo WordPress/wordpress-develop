@@ -339,8 +339,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		// 3rd page.
 		self::factory()->user->create();
-		$total_users++;
-		$total_pages++;
+		++$total_users;
+		++$total_pages;
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );

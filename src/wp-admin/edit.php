@@ -124,7 +124,7 @@ if ( $doaction ) {
 				}
 
 				if ( wp_check_post_lock( $post_id ) ) {
-					$locked++;
+					++$locked;
 					continue;
 				}
 
@@ -132,7 +132,7 @@ if ( $doaction ) {
 					wp_die( __( 'Error in moving the item to Trash.' ) );
 				}
 
-				$trashed++;
+				++$trashed;
 			}
 
 			$sendback = add_query_arg(
@@ -160,7 +160,7 @@ if ( $doaction ) {
 					wp_die( __( 'Error in restoring the item from Trash.' ) );
 				}
 
-				$untrashed++;
+				++$untrashed;
 			}
 			$sendback = add_query_arg( 'untrashed', $untrashed, $sendback );
 
@@ -185,7 +185,7 @@ if ( $doaction ) {
 						wp_die( __( 'Error in deleting the item.' ) );
 					}
 				}
-				$deleted++;
+				++$deleted;
 			}
 			$sendback = add_query_arg( 'deleted', $deleted, $sendback );
 			break;
@@ -381,17 +381,17 @@ $bulk_messages['page']     = array(
 	'untrashed' => _n( '%s page restored from the Trash.', '%s pages restored from the Trash.', $bulk_counts['untrashed'] ),
 );
 $bulk_messages['wp_block'] = array(
-	/* translators: %s: Number of blocks. */
-	'updated'   => _n( '%s block updated.', '%s blocks updated.', $bulk_counts['updated'] ),
-	'locked'    => ( 1 === $bulk_counts['locked'] ) ? __( '1 block not updated, somebody is editing it.' ) :
-					/* translators: %s: Number of blocks. */
-					_n( '%s block not updated, somebody is editing it.', '%s blocks not updated, somebody is editing them.', $bulk_counts['locked'] ),
-	/* translators: %s: Number of blocks. */
-	'deleted'   => _n( '%s block permanently deleted.', '%s blocks permanently deleted.', $bulk_counts['deleted'] ),
-	/* translators: %s: Number of blocks. */
-	'trashed'   => _n( '%s block moved to the Trash.', '%s blocks moved to the Trash.', $bulk_counts['trashed'] ),
-	/* translators: %s: Number of blocks. */
-	'untrashed' => _n( '%s block restored from the Trash.', '%s blocks restored from the Trash.', $bulk_counts['untrashed'] ),
+	/* translators: %s: Number of patterns. */
+	'updated'   => _n( '%s pattern updated.', '%s patterns updated.', $bulk_counts['updated'] ),
+	'locked'    => ( 1 === $bulk_counts['locked'] ) ? __( '1 pattern not updated, somebody is editing it.' ) :
+					/* translators: %s: Number of patterns. */
+					_n( '%s pattern not updated, somebody is editing it.', '%s patterns not updated, somebody is editing them.', $bulk_counts['locked'] ),
+	/* translators: %s: Number of patterns. */
+	'deleted'   => _n( '%s pattern permanently deleted.', '%s patterns permanently deleted.', $bulk_counts['deleted'] ),
+	/* translators: %s: Number of patterns. */
+	'trashed'   => _n( '%s pattern moved to the Trash.', '%s patterns moved to the Trash.', $bulk_counts['trashed'] ),
+	/* translators: %s: Number of patterns. */
+	'untrashed' => _n( '%s pattern restored from the Trash.', '%s patterns restored from the Trash.', $bulk_counts['untrashed'] ),
 );
 
 /**
@@ -469,9 +469,13 @@ foreach ( $bulk_counts as $message => $count ) {
 }
 
 if ( $messages ) {
-	printf(
-		'<div id="message" class="updated notice is-dismissible"><p>%s</p></div>',
-		implode( ' ', $messages )
+	wp_admin_notice(
+		implode( ' ', $messages ),
+		array(
+			'id'                 => 'message',
+			'additional_classes' => array( 'updated' ),
+			'dismissible'        => true,
+		)
 	);
 }
 unset( $messages );

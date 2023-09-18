@@ -212,6 +212,71 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 				),
 				'expected' => '<div class="notice"><p>A notice with additional classes that are not an array.</p></div>',
 			),
+			'additional attribute with a value'         => array(
+				'message'  => 'A notice with an additional attribute with a value.',
+				'args'     => array(
+					'attributes' => array( 'aria-live' => 'assertive' ),
+				),
+				'expected' => '<div class="notice" aria-live="assertive"><p>A notice with an additional attribute with a value.</p></div>',
+			),
+			'additional hidden attribute'               => array(
+				'message'  => 'A notice with the hidden attribute.',
+				'args'     => array(
+					'attributes' => array( 'hidden' => true ),
+				),
+				'expected' => '<div class="notice" hidden><p>A notice with the hidden attribute.</p></div>',
+			),
+			'additional attribute no associative keys'  => array(
+				'message'  => 'A notice with a boolean attribute without an associative key.',
+				'args'     => array(
+					'attributes' => array( 'hidden' ),
+				),
+				'expected' => '<div class="notice" hidden><p>A notice with a boolean attribute without an associative key.</p></div>',
+			),
+			'additional attribute with role'            => array(
+				'message'  => 'A notice with an additional attribute role.',
+				'args'     => array(
+					'attributes' => array( 'role' => 'alert' ),
+				),
+				'expected' => '<div class="notice" role="alert"><p>A notice with an additional attribute role.</p></div>',
+			),
+			'multiple additional attributes'            => array(
+				'message'  => 'A notice with multiple additional attributes.',
+				'args'     => array(
+					'attributes' => array(
+						'role'      => 'alert',
+						'data-test' => -1,
+					),
+				),
+				'expected' => '<div class="notice" role="alert" data-test="-1"><p>A notice with multiple additional attributes.</p></div>',
+			),
+			'data attribute with unsafe value'          => array(
+				'message'  => 'A notice with an additional attribute with an unsafe value.',
+				'args'     => array(
+					'attributes' => array( 'data-unsafe' => '<script>alert( "Howdy, admin!" );</script>' ),
+				),
+				'expected' => '<div class="notice" data-unsafe="&lt;script&gt;alert( &quot;Howdy, admin!&quot; );&lt;/script&gt;"><p>A notice with an additional attribute with an unsafe value.</p></div>',
+			),
+			'additional invalid attribute'              => array(
+				'message'  => 'A notice with an additional attribute that is invalid.',
+				'args'     => array(
+					'attributes' => array( 'not-valid' => 'not-valid' ),
+				),
+				'expected' => '<div class="notice"><p>A notice with an additional attribute that is invalid.</p></div>',
+			),
+			'multiple attributes with "role", invalid, data-*, numeric, and boolean' => array(
+				'message'  => 'A notice with multiple attributes with "role", invalid, "data-*", numeric, and boolean.',
+				'args'     => array(
+					'attributes' => array(
+						'role'      => 'alert',
+						'disabled'  => 'disabled',
+						'data-name' => 'my-name',
+						'data-id'   => 1,
+						'hidden',
+					),
+				),
+				'expected' => '<div class="notice" role="alert" data-name="my-name" data-id="1" hidden><p>A notice with multiple attributes with "role", invalid, "data-*", numeric, and boolean.</p></div>',
+			),
 			'paragraph wrapping as a falsy value rather than (bool) false' => array(
 				'message'  => 'A notice with paragraph wrapping as a falsy value rather than (bool) false.',
 				'args'     => array(

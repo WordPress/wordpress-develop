@@ -4769,7 +4769,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertSameSets( array( $c ), $q->comments );
 	}
@@ -4805,7 +4805,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertSameSets( array(), $q->comments );
 	}
@@ -4841,7 +4841,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertSameSets( array(), $q->comments );
 	}
@@ -4879,7 +4879,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertSameSets( array( $c ), $q->comments );
 	}
@@ -4915,7 +4915,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertSameSets( array(), $q->comments );
 	}
@@ -4953,7 +4953,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertSameSets( array( $c ), $q->comments );
 	}
