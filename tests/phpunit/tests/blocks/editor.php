@@ -447,7 +447,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			),
 		);
 		// With no block theme, expect an empty array.
-		$this->assertSame( array(), wp_get_post_content_block_attributes() );
+		$this->assertSame( null, wp_get_post_content_block_attributes() );
 
 		switch_theme( 'block-theme' );
 

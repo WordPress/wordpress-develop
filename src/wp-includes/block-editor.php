@@ -414,7 +414,7 @@ function wp_get_first_block( $blocks, $block_name ) {
  *
  * @global int $post_ID
  *
- * @return array Post Content block attributes or empty array if they don't exist.
+ * @return array|null Post Content block attributes array or null if Post Content block doesn't exist.
  */
 function wp_get_post_content_block_attributes() {
 	global $post_ID;
@@ -422,7 +422,7 @@ function wp_get_post_content_block_attributes() {
 	$is_block_theme = wp_is_block_theme();
 
 	if ( ! $is_block_theme || ! $post_ID ) {
-		return array();
+		return null;
 	}
 
 	$template_slug = get_page_template_slug( $post_ID );
