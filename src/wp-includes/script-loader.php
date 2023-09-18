@@ -1684,6 +1684,7 @@ function wp_default_styles( $styles ) {
 		'wp-block-library',
 		'wp-reusable-blocks',
 		'wp-block-editor-content',
+		'wp-patterns',
 	);
 
 	// Only load the default layout and margin styles for themes without theme.json file.
@@ -1726,10 +1727,12 @@ function wp_default_styles( $styles ) {
 			'wp-components',
 			'wp-block-editor',
 			'wp-reusable-blocks',
+			'wp-patterns',
 		),
 		'format-library'       => array(),
 		'list-reusable-blocks' => array( 'wp-components' ),
 		'reusable-blocks'      => array( 'wp-components' ),
+		'patterns'             => array( 'wp-components' ),
 		'nux'                  => array( 'wp-components' ),
 		'widgets'              => array(
 			'wp-components',
@@ -1740,6 +1743,7 @@ function wp_default_styles( $styles ) {
 			'wp-edit-blocks',
 			'wp-block-library',
 			'wp-reusable-blocks',
+			'wp-patterns',
 		),
 		'customize-widgets'    => array(
 			'wp-widgets',
@@ -1747,6 +1751,7 @@ function wp_default_styles( $styles ) {
 			'wp-edit-blocks',
 			'wp-block-library',
 			'wp-reusable-blocks',
+			'wp-patterns',
 		),
 		'edit-site'            => array(
 			'wp-components',
@@ -1818,6 +1823,7 @@ function wp_default_styles( $styles ) {
 		'wp-format-library',
 		'wp-list-reusable-blocks',
 		'wp-reusable-blocks',
+		'wp-patterns',
 		'wp-nux',
 		'wp-widgets',
 		// Deprecated CSS.
