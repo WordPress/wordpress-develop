@@ -297,10 +297,7 @@ final class WP_Theme implements ArrayAccess {
 			}
 			$this->template               = $this->stylesheet;
 			$this->block_theme            = false;
-			$this->block_template_folders = array(
-				'wp_template'      => 'templates',
-				'wp_template_part' => 'parts',
-			);
+			$this->block_template_folders = $this->get_block_template_folders( true ); // set to default value.
 			$this->cache_add(
 				'theme',
 				array(
@@ -321,10 +318,7 @@ final class WP_Theme implements ArrayAccess {
 			$this->errors                 = new WP_Error( 'theme_stylesheet_not_readable', __( 'Stylesheet is not readable.' ) );
 			$this->template               = $this->stylesheet;
 			$this->block_theme            = false;
-			$this->block_template_folders = array(
-				'wp_template'      => 'templates',
-				'wp_template_part' => 'parts',
-			);
+			$this->block_template_folders = $this->get_block_template_folders( true ); // set to default value.
 			$this->cache_add(
 				'theme',
 				array(
@@ -1744,6 +1738,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 6.4.0
 	 *
+	 * @param bool $default Optional. Whether to return the default values. Default false.
 	 * @return string[] {
 	 *     Folder names used by block themes.
 	 *
@@ -1751,15 +1746,20 @@ final class WP_Theme implements ArrayAccess {
 	 *     @type string $wp_template_part Theme-relative directory name for block template parts.
 	 * }
 	 */
-	public function get_block_template_folders() {
-		if ( isset( $this->block_template_folders ) ) {
-			return $this->block_template_folders;
-		}
-		$stylesheet_directory         = $this->get_stylesheet_directory();
-		$this->block_template_folders = array(
+	public function get_block_template_folders( $default = false ) {
+		$default_template_folders = array(
 			'wp_template'      => 'templates',
 			'wp_template_part' => 'parts',
 		);
+		if ( $default ) {
+			return $default_template_folders;
+		}
+
+		// Return set/cached value if available.
+		if ( isset( $this->block_template_folders ) ) {
+			return $this->block_template_folders;
+		}
+		$stylesheet_directory = $this->get_stylesheet_directory();
 
 		if ( file_exists( $stylesheet_directory . '/block-templates' ) || file_exists( $stylesheet_directory . '/block-template-parts' ) ) {
 			$this->block_template_folders = array(
@@ -1767,7 +1767,7 @@ final class WP_Theme implements ArrayAccess {
 				'wp_template_part' => 'block-template-parts',
 			);
 		}
-
+		$this->block_template_folders = $default_template_folders;
 		return $this->block_template_folders;
 	}
 
