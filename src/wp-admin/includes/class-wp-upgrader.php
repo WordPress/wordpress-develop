@@ -887,17 +887,21 @@ class WP_Upgrader {
 			)
 		);
 
+		// Run Rollback check for auto-updates.
+		if ( isset( $options['hook_extra']['plugin'] ) && $this instanceof Plugin_Upgrader && ! is_wp_error( $result ) && wp_doing_cron() ) {
+			$rollback_auto_update = new WP_Rollback_Auto_Update();
+			$rollback_auto_update->check_plugin_for_errors( $options['hook_extra']['plugin'], $this );
+		}
+
 		/**
 		 * Filters the result of WP_Upgrader::install_package().
 		 *
 		 * @since 5.7.0
-		 * @since 6.4.0 Added the `$this` parameter.
 		 *
 		 * @param array|WP_Error $result     Result from WP_Upgrader::install_package().
 		 * @param array          $hook_extra Extra arguments passed to hooked filters.
-		 * @param WP_Upgrader    $upgrader   The WP_Upgrader instance.
 		 */
-		$result = apply_filters( 'upgrader_install_package_result', $result, $options['hook_extra'], $this );
+		$result = apply_filters( 'upgrader_install_package_result', $result, $options['hook_extra'] );
 
 		$this->skin->set_result( $result );
 

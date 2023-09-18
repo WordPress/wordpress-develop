@@ -157,19 +157,13 @@ class WP_Rollback_Auto_Update {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param array|WP_Error $result     Result from WP_Upgrader::install_package().
-	 * @param array          $hook_extra Extra arguments passed to hooked filters.
-	 * @param WP_Upgrader    $upgrader   WP_Upgrader or child class instance.
-	 * @return array|WP_Error The result from WP_Upgrader::install_package().
+	 * @param array           $plugin   Current plugin filepath from $hook_extra.
+	 * @param Plugin_Upgrader $upgrader Plugin_Upgrader instance.
 	 */
-	public function check_plugin_for_errors( $result, $hook_extra, $upgrader ) {
-		if ( is_wp_error( $result ) || ! wp_doing_cron() || ! isset( $hook_extra['plugin'] ) ) {
-			return $result;
-		}
-
+	public function check_plugin_for_errors( $plugin, $upgrader ) {
 		// Already processed.
-		if ( in_array( $hook_extra['plugin'], array_diff( self::$processed, self::$rolled_back ), true ) ) {
-			return $result;
+		if ( in_array( $plugin, array_diff( self::$processed, self::$rolled_back ), true ) ) {
+			return;
 		}
 
 		self::$plugin_updates = get_site_transient( 'update_plugins' );
@@ -183,7 +177,7 @@ class WP_Rollback_Auto_Update {
 		sleep( 2 );
 
 		static::$plugin_upgrader = $upgrader;
-		$this->current_plugin    = $hook_extra['plugin'];
+		$this->current_plugin    = $plugin;
 		self::$processed[]       = $this->current_plugin;
 
 		// Register exception and shutdown handlers.
@@ -202,8 +196,6 @@ class WP_Rollback_Auto_Update {
 		include WP_PLUGIN_DIR . '/' . $this->current_plugin;
 
 		activate_plugins( self::$previously_active_plugins );
-
-		return $result;
 	}
 
 	/**
@@ -522,6 +514,9 @@ class WP_Rollback_Auto_Update {
 				$update_results[ $type ][] = $type_result;
 			}
 		}
+
+		// TODO: remove for PR.
+		delete_option( 'auto_plugin_theme_update_emails' );
 
 		add_filter( 'auto_plugin_theme_update_email', array( $this, 'append_auto_update_failure_message_to_email' ), 10, 4 );
 
