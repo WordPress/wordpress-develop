@@ -17,9 +17,12 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 	 * @since 6.4.0
 	 */
 	public function tear_down() {
-		$registry = WP_Block_Type_Registry::get_instance();
-
-		foreach ( array( 'tests/my-block', 'tests/my-container-block' ) as $block_name ) {
+		$registry    = WP_Block_Type_Registry::get_instance();
+		$block_names = array(
+			'tests/injected-one',
+			'tests/injected-two',
+		);
+		foreach ( $block_names as $block_name ) {
 			if ( $registry->is_registered( $block_name ) ) {
 				$registry->unregister( $block_name );
 			}
@@ -96,5 +99,50 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 			get_hooked_blocks( 'tests/hooked-at-last-child' ),
 			'block hooked at the last child position'
 		);
+	}
+
+	/**
+	 * @ticket 59313
+	 *
+	 * @covers serialize_blocks
+	 */
+	public function test_serialize_blocks_with_hooked_block_before() {
+		register_block_type(
+			'tests/injected-one',
+			array(
+				'block_hooks' => array(
+					'tests/hooked-at-before' => 'before',
+				),
+			)
+		);
+		register_block_type(
+			'tests/injected-two',
+			array(
+				'block_hooks' => array(
+					'tests/hooked-at-before-container' => 'before',
+				),
+			)
+		);
+
+		$content = <<<HTML
+<!-- wp:tests/hooked-at-before /-->
+<!-- wp:tests/hooked-at-before-container -->
+	<!-- wp:tests/hooked-at-before /-->
+<!-- /wp:tests/hooked-at-before-container -->
+HTML;
+		$result  = serialize_blocks(
+			parse_blocks( $content )
+		);
+
+		$expected = <<<HTML
+<!-- wp:tests/injected-one /-->
+<!-- wp:tests/hooked-at-before /-->
+<!-- wp:tests/injected-two /-->
+<!-- wp:tests/hooked-at-before-container -->
+	<!-- wp:tests/injected-one /-->
+	<!-- wp:tests/hooked-at-before /-->
+<!-- /wp:tests/hooked-at-before-container -->
+HTML;
+		$this->assertSame( $expected, $result );
 	}
 }
