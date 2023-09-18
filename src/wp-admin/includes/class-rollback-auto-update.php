@@ -395,7 +395,7 @@ class WP_Rollback_Auto_Update {
 	/**
 	 * Gets remaining plugin auto-updates.
 	 *
-	 * Excludes plugins that were rolled back.
+	 * Excludes plugins that were processed or rolled back.
 	 *
 	 * @since 6.4.0
 	 *
