@@ -4378,7 +4378,7 @@ EOF;
 	 *
 	 * @dataProvider data_wp_get_loading_optimization_attributes_arbitrary_contexts
 	 *
-	 * @param string $context
+	 * @param string $context Context for the element for which the loading optimization attribute is requested.
 	 */
 	public function test_wp_get_loading_optimization_attributes_with_arbitrary_contexts_before_main_query_loop( $context ) {
 		$attr = $this->get_width_height_for_high_priority();
