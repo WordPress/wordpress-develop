@@ -58,6 +58,13 @@ class WP_Theme_JSON_Resolver {
 	protected static $theme = null;
 
 	/**
+	 * Container to cache theme support data.
+	 *
+	 * @since n.e.x.t
+	 */
+	protected static $theme_support_data = null;
+
+	/**
 	 * Container for data coming from the user.
 	 *
 	 * @since 5.9.0
@@ -293,6 +300,29 @@ class WP_Theme_JSON_Resolver {
 			return static::$theme;
 		}
 
+		$theme_support_data = self::get_theme_supports_data();
+
+		// If no support data has changed, return the previously cached object.
+		if ( $theme_support_data === static::$theme_support_data ) {
+			return static::$theme;
+		}
+
+		// Cache the merged theme support data for future use.
+		static::$theme_support_data = $theme_support_data;
+
+		$with_theme_supports = new WP_Theme_JSON( $theme_support_data );
+		$with_theme_supports->merge( static::$theme );
+		return $with_theme_supports;
+	}
+
+	/**
+	 * Get merged theme supports data
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @return array Config that adheres to the theme.json schema.
+	 */
+	private static function get_theme_supports_data() {
 		/*
 		 * We want the presets and settings declared in theme.json
 		 * to override the ones declared via theme supports.
@@ -300,6 +330,7 @@ class WP_Theme_JSON_Resolver {
 		 * and merge the static::$theme upon that.
 		 */
 		$theme_support_data = WP_Theme_JSON::get_from_editor_settings( get_classic_theme_supports_block_editor_settings() );
+
 		if ( ! wp_theme_has_theme_json() ) {
 			if ( ! isset( $theme_support_data['settings']['color'] ) ) {
 				$theme_support_data['settings']['color'] = array();
@@ -341,9 +372,8 @@ class WP_Theme_JSON_Resolver {
 				$theme_support_data['settings']['border']['width']  = true;
 			}
 		}
-		$with_theme_supports = new WP_Theme_JSON( $theme_support_data );
-		$with_theme_supports->merge( static::$theme );
-		return $with_theme_supports;
+
+		return $theme_support_data;
 	}
 
 	/**
@@ -585,6 +615,8 @@ class WP_Theme_JSON_Resolver {
 	 * @return WP_Theme_JSON
 	 */
 	public static function get_merged_data( $origin = 'custom' ) {
+		global $_wp_theme_features;
+
 		if ( is_array( $origin ) ) {
 			_deprecated_argument( __FUNCTION__, '5.9.0' );
 		}
@@ -604,6 +636,7 @@ class WP_Theme_JSON_Resolver {
 		if (
 			null !== static::$merged[ $origin ]
 			&& static::has_same_registered_blocks( $cache_map[ $origin ] )
+			&& static::get_theme_supports_data() === static::$theme_support_data
 		) {
 			return static::$merged[ $origin ];
 		}
