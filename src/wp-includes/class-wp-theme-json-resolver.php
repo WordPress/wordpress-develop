@@ -300,17 +300,10 @@ class WP_Theme_JSON_Resolver {
 			return static::$theme;
 		}
 
-		$theme_support_data = self::get_theme_supports_data();
+		// Save theme supports data for future use.
+		static::$theme_support_data = self::get_theme_supports_data();
 
-		// If no support data has changed, return the previously cached object.
-		if ( $theme_support_data === static::$theme_support_data ) {
-			return static::$theme;
-		}
-
-		// Cache the merged theme support data for future use.
-		static::$theme_support_data = $theme_support_data;
-
-		$with_theme_supports = new WP_Theme_JSON( $theme_support_data );
+		$with_theme_supports = new WP_Theme_JSON( static::$theme_support_data );
 		$with_theme_supports->merge( static::$theme );
 		return $with_theme_supports;
 	}
