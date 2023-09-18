@@ -862,7 +862,7 @@ function serialize_block( $block, $callback = null ) {
 	foreach ( $block['innerContent'] as $chunk ) {
 		$inner_block = $block['innerBlocks'][ $index++ ];
 		if ( is_callable( $callback ) ) {
-			$inner_block = call_user_func( $callback, $inner_block );
+			$inner_block = call_user_func( $callback, $inner_block, $block );
 		}
 		$block_content .= is_string( $chunk ) ? $chunk : serialize_block( $inner_block, $callback );
 	}
