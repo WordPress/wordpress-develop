@@ -2994,6 +2994,7 @@ EOF;
 	public function test_wp_filter_content_tags_loading_lazy() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$size_array = $this->get_image_size_array_from_meta( $image_meta, 'medium' );
+
 		$img                    = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img_xhtml              = str_replace( ' />', '/>', $img );
 		$img_html5              = str_replace( ' />', '>', $img );
