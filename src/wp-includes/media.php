@@ -1986,7 +1986,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		 *
 		 * @param string|false|null $value      The `decoding` attribute value. Returning a falsey value
 		 *                                      will result in the attribute being omitted for the image.
-		 *                                      Otherwise, it may be: 'async' (default), 'sync', or 'auto'.
+		 *                                      Otherwise, it may be: 'async', 'sync', or 'auto'. Defaults to false.
 		 * @param string            $image      The HTML `img` tag to be filtered.
 		 * @param string            $context    Additional context about how the function was called
 		 *                                      or where the img tag is.
