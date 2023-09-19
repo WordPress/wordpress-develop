@@ -5625,8 +5625,6 @@ function wp_get_webp_info( $filename ) {
 function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	global $wp_query;
 
-	$loading_attrs = array();
-
 	/**
 	 * Filters whether to short-circuit loading optimization attributes.
 	 *
@@ -5645,6 +5643,8 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	if ( is_array( $loading_attrs ) ) {
 		return $loading_attrs;
 	}
+
+	$loading_attrs = array();
 
 	/*
 	 * Skip lazy-loading for the overall block template, as it is handled more granularly.
