@@ -285,10 +285,7 @@ final class WP_Rollback_Auto_Update {
 		global $wp_filesystem;
 
 		if ( WP_DEBUG ) {
-			trigger_error(
-				"$error_type - $error_message",
-				E_USER_WARNING
-			);
+			error_log( "$error_type - $error_message" );
 		}
 
 		if ( in_array( $this->current_plugin, self::$rolled_back, true ) ) {
