@@ -760,6 +760,29 @@ function get_hooked_blocks( $name ) {
 	return $hooked_blocks;
 }
 
+function insert_hooked_blocks( $block, $parent, $block_index, $chunk_index ) {
+	$hooked_blocks = get_hooked_blocks( $block['blockName'] );
+	foreach ( $hooked_blocks as $hooked_block_type => $relative_position ) {
+		$hooked_block = array(
+			'blockName'    => $hooked_block_type,
+			'attrs'        => array(),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+		if ( 'before' === $relative_position ) {
+			insert_inner_block( $parent, $block_index, $chunk_index, $hooked_block );
+		} elseif ( 'after' === $relative_position ) {
+			insert_inner_block( $parent, $block_index + 1, $chunk_index, $hooked_block );
+		} elseif ( 'first_child' === $relative_position ) {
+			prepend_inner_block( $block, $hooked_block );
+		} elseif ( 'last_child' === $relative_position ) {
+			append_inner_block( $block, $hooked_block );
+		}
+	}
+	return $block;
+}
+
 /**
  * Insert a parsed block into a parent block's inner blocks.
  *
