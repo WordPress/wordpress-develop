@@ -306,7 +306,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template'      => 'templates',
 					'wp_template_part' => 'parts',
 				),
-				'For block-theme, expected `templates` and `parts` and `wp_template` and `wp_template_part` respectively',
+				'For block-theme, expected `wp_template` to be `templates` and `wp_template_part` to be `parts`.',
 			),
 			'block-theme-deprecated-path'       => array(
 				'block-theme-deprecated-path',
@@ -314,7 +314,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template'      => 'block-templates',
 					'wp_template_part' => 'block-template-parts',
 				),
-				'For block-theme-deprecated-path, expected `block-templates` and `block-template-parts` and `wp_template` and `wp_template_part` respectively',
+				'For block-theme-deprecated-path, expected `wp_template` to be `block-templates` and `block-template-parts` to be `parts`.',
 			),
 			'block-theme-child'                 => array(
 				'block-theme-child',
@@ -322,7 +322,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template'      => 'templates',
 					'wp_template_part' => 'parts',
 				),
-				'For block-theme-child, expected `templates` and `parts` and `wp_template` and `wp_template_part` respectively',
+				'For block-theme-child, expected `wp_template` to be `templates` and `wp_template_part` to be `parts`.',
 			),
 			'block-theme-child-deprecated-path' => array(
 				'block-theme-child-deprecated-path',
@@ -330,7 +330,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template'      => 'block-templates',
 					'wp_template_part' => 'block-template-parts',
 				),
-				'For block-theme-child-deprecated-path, expected `block-templates` and `block-template-parts` and `wp_template` and `wp_template_part` respectively',
+				'For block-theme-child-deprecated-path, expected `wp_template` to be `block-templates` and `block-template-parts` to be `parts`.',
 			),
 			'this-is-an-invalid-theme'          => array(
 				'this-is-an-invalid-theme',
@@ -338,7 +338,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template'      => 'templates',
 					'wp_template_part' => 'parts',
 				),
-				'For invalid theme, expected default values `templates` and `parts` and `wp_template` and `wp_template_part` respectively',
+				'For invalid theme, expected default values `wp_template` to be `templates` and `wp_template_part` to be `parts`.',
 			),
 			'null'                              => array(
 				null,
@@ -346,7 +346,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template'      => 'templates',
 					'wp_template_part' => 'parts',
 				),
-				'For no theme, expected default values `templates` and `parts` and `wp_template` and `wp_template_part` respectively',
+				'For no theme, expected default values `wp_template` to be `templates` and `wp_template_part` to be `parts`.',
 			),
 		);
 	}
