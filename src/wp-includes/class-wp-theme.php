@@ -198,7 +198,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Block template folders.
 	 *
 	 * @since 6.4.0
-	 * @var array|null
+	 * @var string[]
 	 */
 	private $block_template_folders;
 
@@ -206,7 +206,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Default values for template folders.
 	 *
 	 * @since 6.4.0
-	 * @var array
+	 * @var string[]
 	 */
 	private $default_template_folders = array(
 		'wp_template'      => 'templates',
