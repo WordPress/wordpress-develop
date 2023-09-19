@@ -284,20 +284,19 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 *
 	 * @param string   $theme    The theme's stylesheet.
 	 * @param string[] $expected The expected associative array of block theme folders.
-	 * @param string   $message  The message for when an assertion fails.
 	 */
-	public function test_get_block_theme_folders( $theme, $expected, $message ) {
+	public function test_get_block_theme_folders( $theme, $expected ) {
 		$wp_theme = wp_get_theme( $theme );
 		$wp_theme->cache_delete(); // Clear cache.
 
-		$this->assertSame( $expected, get_block_theme_folders( $theme ), $message );
+		$this->assertSame( $expected, get_block_theme_folders( $theme ), 'Incorrect block theme folders were retrieved.' );
 		$reflection = new ReflectionMethod( $wp_theme, 'cache_get' );
 		$reflection->setAccessible( true );
 		$theme_cache  = $reflection->invoke( $wp_theme, 'theme' );
 		$cached_value = $theme_cache['block_template_folders'];
 		$reflection->setAccessible( false );
 
-		$this->assertSame( $expected, $cached_value, "The cached value is incorrect: $message" );
+		$this->assertSame( $expected, $cached_value, 'The cached value is incorrect.' );
 	}
 
 	/**
@@ -313,7 +312,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template'      => 'templates',
 					'wp_template_part' => 'parts',
 				),
-				'For block-theme, expected `wp_template` to be `templates` and `wp_template_part` to be `parts`.',
 			),
 			'block-theme-deprecated-path'       => array(
 				'block-theme-deprecated-path',
@@ -321,7 +319,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template'      => 'block-templates',
 					'wp_template_part' => 'block-template-parts',
 				),
-				'For block-theme-deprecated-path, expected `wp_template` to be `block-templates` and `block-template-parts` to be `parts`.',
 			),
 			'block-theme-child'                 => array(
 				'block-theme-child',
@@ -329,7 +326,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template'      => 'templates',
 					'wp_template_part' => 'parts',
 				),
-				'For block-theme-child, expected `wp_template` to be `templates` and `wp_template_part` to be `parts`.',
 			),
 			'block-theme-child-deprecated-path' => array(
 				'block-theme-child-deprecated-path',
@@ -337,7 +333,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template'      => 'block-templates',
 					'wp_template_part' => 'block-template-parts',
 				),
-				'For block-theme-child-deprecated-path, expected `wp_template` to be `block-templates` and `block-template-parts` to be `parts`.',
 			),
 			'this-is-an-invalid-theme'          => array(
 				'this-is-an-invalid-theme',
@@ -345,7 +340,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template'      => 'templates',
 					'wp_template_part' => 'parts',
 				),
-				'For invalid theme, expected default values `wp_template` to be `templates` and `wp_template_part` to be `parts`.',
 			),
 			'null'                              => array(
 				null,
@@ -353,7 +347,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 					'wp_template'      => 'templates',
 					'wp_template_part' => 'parts',
 				),
-				'For no theme, expected default values `wp_template` to be `templates` and `wp_template_part` to be `parts`.',
 			),
 		);
 	}
