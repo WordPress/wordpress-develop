@@ -858,7 +858,7 @@ function serialize_block( $block ) {
 
 	$index = 0;
 	foreach ( $block['innerContent'] as $chunk ) {
-		$block_content .= is_string( $chunk ) ? $chunk : serialize_block( $block['innerBlocks'][ $index++ ], $callback );
+		$block_content .= is_string( $chunk ) ? $chunk : serialize_block( $block['innerBlocks'][ $index++ ] );
 	}
 
 	if ( ! is_array( $block['attrs'] ) ) {
