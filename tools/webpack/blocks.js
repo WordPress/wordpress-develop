@@ -65,13 +65,11 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	const config = {
 		...baseConfig( env ),
 		entry: {
-			// TODO before merging:
-			// - Rename to the final filenames, which should all be `view` and not `view-interactivity`.
-			// - Add the Search block file.
-			'navigation/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/navigation/view-interactivity' ),
-			'image/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/image/view-interactivity' ),
+			'navigation/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/navigation/view' ),
+			'image/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/image/view' ),
 			'query/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/query/view' ),
-			'file/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/file/view-interactivity' ),
+			'file/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/file/view' ),
+			'search/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/file/view' ),
 		},
 		output: {
 			devtoolNamespace: 'wp',
