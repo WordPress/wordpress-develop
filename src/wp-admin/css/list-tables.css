@@ -584,7 +584,7 @@ th.sorted.desc:hover .sorting-indicator.asc:before {
 	z-index: 1;
 }
 
-.check-column .label-covers-full-cell:hover + input {
+.check-column .label-covers-full-cell:hover + input:not(:disabled) {
 	box-shadow: 0 0 0 1px #2271b1;
 }
 
@@ -1613,8 +1613,11 @@ div.action-links,
 }
 
 .plugin-card .plugin-dependency .more-details-link {
-	flex-basis: 25%;
-	text-align: right;
+	margin-left: auto;
+}
+
+.rtl .plugin-card .plugin-dependency .more-details-link {
+	margin-right: auto;
 }
 
 @media (max-width: 939px) {
@@ -1622,7 +1625,6 @@ div.action-links,
 		flex-basis: 69%;
 	}
 	.plugin-card .plugin-dependency .more-details-link {
-		flex-basis: 30%;
 	}
 }
 

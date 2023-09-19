@@ -518,6 +518,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			// Remove any HTML from the description.
 			$description = strip_tags( $plugin['short_description'] );
 
+			$description .= $this->get_dependencies_notice( $plugin );
+
 			/**
 			 * Filters the plugin card description on the Add Plugins screen.
 			 *
@@ -718,5 +720,88 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		if ( ! empty( $group ) ) {
 			echo '</div></div>';
 		}
+	}
+
+	/**
+	 * Returns a notice containing a list of dependencies required by the plugin.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array  $plugin_data An array of plugin data. See {@see plugins_api()}
+	 *                            for the list of possible values.
+	 * @return string A notice containing a list of dependencies required by the plugin,
+	 *                or an empty string if none is required.
+	 */
+	protected function get_dependencies_notice( $plugin_data ) {
+		if ( empty( $plugin_data['requires_plugins'] ) ) {
+			return '';
+		}
+
+		$no_name_markup  = '<div class="plugin-dependency"><span class="plugin-dependency-name">%s</span></div>';
+		$has_name_markup = '<div class="plugin-dependency"><span class="plugin-dependency-name">%s</span> %s</div>';
+
+		$dependencies_list = '';
+		foreach ( $plugin_data['requires_plugins'] as $dependency ) {
+			if ( false === WP_Plugin_Dependencies::get_dependency_filepath( $dependency ) ) {
+				$dependencies_list .= sprintf( $no_name_markup, esc_html( $dependency ) );
+				continue;
+			}
+
+			$dependency_data = WP_Plugin_Dependencies::get_dependency_data( $dependency );
+
+			if ( false === $dependency_data ) {
+				$dependencies_list .= sprintf( $no_name_markup, esc_html( $dependency ) );
+				continue;
+			}
+
+			if ( empty( $dependency_data['version'] ) || empty( $dependency_data['name'] ) || empty( $dependency_data['slug'] ) ) {
+				$dependencies_list .= sprintf( $no_name_markup, esc_html( $dependency ) );
+				continue;
+			}
+
+			$more_details_link  = $this->get_more_details_link( $dependency_data['name'], $dependency_data['slug'] );
+			$dependencies_list .= sprintf( $has_name_markup, esc_html( $dependency_data['name'] ), $more_details_link );
+		}
+
+		$dependencies_notice = sprintf(
+			'<div class="plugin-dependencies"><p class="plugin-dependencies-explainer-text">%s</p> %s</div>',
+			'<strong>' . __( 'Additional plugins are required' ) . '</strong>',
+			$dependencies_list
+		);
+
+		return $dependencies_notice;
+	}
+
+	/**
+	 * Creates a 'More details' link for the plugin.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array  $plugin_data An array of plugin data. See {@see plugins_api()}
+	 *                            for the list of possible values.
+	 * @return string The 'More details' link for the plugin.
+	 */
+	protected function get_more_details_link( $name, $slug ) {
+		$url = add_query_arg(
+			array(
+				'tab'       => 'plugin-information',
+				'plugin'    => $slug,
+				'TB_iframe' => 'true',
+				'width'     => '600',
+				'height'    => '550',
+			),
+			network_admin_url( 'plugin-install.php' )
+		);
+
+		$more_details_link = sprintf(
+			'<a href="%1$s" class="more-details-link thickbox open-plugin-details-modal" aria-label="%2$s" data-title="%3$s">%4$s</a>',
+			esc_url( $url ),
+			/* translators: %s: Plugin name. */
+			sprintf( __( 'More information about %s' ), esc_html( $name ) ),
+			esc_attr( $name ),
+			__( 'More Details' )
+		);
+
+		return $more_details_link;
 	}
 }

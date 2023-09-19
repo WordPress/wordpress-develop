@@ -716,6 +716,8 @@ elseif ( isset( $_GET['deleted'] ) ) :
 	<div id="message" class="updated notice is-dismissible"><p><?php _e( 'Selected plugins will no longer be auto-updated.' ); ?></p></div>
 <?php endif; ?>
 
+<?php WP_Plugin_Dependencies::display_admin_notice_for_unmet_dependencies(); ?>
+
 <div class="wrap">
 <h1 class="wp-heading-inline">
 <?php
