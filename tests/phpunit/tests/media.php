@@ -552,8 +552,8 @@ https://w.org</a>',
 			$ids2_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 		}
 
-		$ids1_joined = join( ',', array_slice( $ids1, 0, 3 ) );
-		$ids2_joined = join( ',', array_slice( $ids2, 3, 3 ) );
+		$ids1_joined = implode( ',', array_slice( $ids1, 0, 3 ) );
+		$ids2_joined = implode( ',', array_slice( $ids2, 3, 3 ) );
 
 		$blob    = <<<BLOB
 [gallery ids="$ids1_joined"]
@@ -638,8 +638,8 @@ BLOB;
 			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 		}
 
-		$imgs1_joined = join( "\n", array_slice( $imgs, 0, 3 ) );
-		$imgs2_joined = join( "\n", array_slice( $imgs, 3, 3 ) );
+		$imgs1_joined = implode( "\n", array_slice( $imgs, 0, 3 ) );
+		$imgs2_joined = implode( "\n", array_slice( $imgs, 3, 3 ) );
 
 		$blob    = <<<BLOB
 <!-- wp:gallery -->
@@ -677,8 +677,8 @@ BLOB;
 
 		}
 
-		$ids1_joined = join( ',', array_slice( $ids, 0, 3 ) );
-		$ids2_joined = join( ',', array_slice( $ids, 3, 3 ) );
+		$ids1_joined = implode( ',', array_slice( $ids, 0, 3 ) );
+		$ids2_joined = implode( ',', array_slice( $ids, 3, 3 ) );
 
 		$blob    = <<<BLOB
 <!-- wp:gallery {"ids":[$ids1_joined]} -->
@@ -718,9 +718,9 @@ BLOB;
 			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 		}
 
-		$ids1_joined  = join( "\n", array_slice( $ids, 0, 3 ) );
-		$ids2_joined  = join( "\n", array_slice( $ids, 3, 3 ) );
-		$imgs2_joined = join( "\n", array_slice( $imgs, 3, 3 ) );
+		$ids1_joined  = implode( "\n", array_slice( $ids, 0, 3 ) );
+		$ids2_joined  = implode( "\n", array_slice( $ids, 3, 3 ) );
+		$imgs2_joined = implode( "\n", array_slice( $imgs, 3, 3 ) );
 
 		$blob    = <<<BLOB
 [gallery ids="$ids1_joined"]
@@ -762,7 +762,7 @@ BLOB;
 
 		}
 
-		$imgs_joined = join( "\n", $imgs );
+		$imgs_joined = implode( "\n", $imgs );
 
 		$blob    = <<<BLOB
 <!-- wp:columns -->
@@ -805,7 +805,7 @@ BLOB;
 
 		}
 
-		$imgs_joined = join( "\n", $imgs );
+		$imgs_joined = implode( "\n", $imgs );
 
 		$blob    = <<<BLOB
 <!-- wp:gallery -->
