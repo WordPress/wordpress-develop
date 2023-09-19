@@ -900,6 +900,7 @@ function serialize_blocks( $blocks, $callback = null ) {
 	$result = '';
 	foreach ( $blocks as $block ) {
 		if ( is_callable( $callback ) ) {
+			// At the top level, there is no parent block, block index, or chunk index to pass to the callback.
 			$block = call_user_func( $callback, $block );
 		}
 		$result .= serialize_block( $block, $callback );
