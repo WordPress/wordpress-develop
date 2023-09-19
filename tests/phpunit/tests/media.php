@@ -5136,9 +5136,8 @@ EOF;
 			'img'    => array(
 				'img',
 				array(
-					'decoding' => 'async','loading'  => 'lazy',
-					),
-				'decoding' => 'async',
+					'decoding' => 'async',
+					'loading'  => 'lazy',
 				),
 				'Expected `decoding="async"` and `loading="lazy"` and `decoding="async"` for the img.',
 			),
@@ -5300,7 +5299,6 @@ EOF;
 				'expected' => array(
 					'decoding' => 'async',
 					'loading'  => 'lazy',
-					'decoding' => 'async',
 				),
 				'message'  => 'Lazy-loading or decoding not applied to during shortcode rendering.',
 			),
@@ -5312,7 +5310,6 @@ EOF;
 				'expected' => array(
 					'decoding' => 'async',
 					'loading'  => 'lazy',
-					'decoding' => 'async',
 				),
 				'message'  => 'Lazy-loading or decoding not applied to shortcodes outside the loop.',
 			),
