@@ -54,7 +54,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	public function test_send_plugin_theme_email_should_append_plugin_urls( $urls, $successful, $failed ) {
 		add_filter(
 			'wp_mail',
-			function( $args ) use ( $urls ) {
+			function ( $args ) use ( $urls ) {
 				foreach ( $urls as $url ) {
 					$this->assertStringContainsString(
 						$url,
@@ -322,7 +322,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	public function test_send_plugin_theme_email_should_not_append_plugin_urls( $urls, $successful, $failed ) {
 		add_filter(
 			'wp_mail',
-			function( $args ) use ( $urls ) {
+			function ( $args ) use ( $urls ) {
 				foreach ( $urls as $url ) {
 					$this->assertStringNotContainsString(
 						$url,
