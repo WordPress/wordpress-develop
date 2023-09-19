@@ -2267,6 +2267,7 @@ function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {
  *
  * @since 5.0.0
  * @since 6.3.0 Added `selectors` field.
+ * @since 6.4.0 Added `block_hooks` field.
  *
  * @return array An associative array of registered block data.
  */
@@ -2281,6 +2282,7 @@ function get_block_editor_server_block_settings() {
 		'attributes'       => 'attributes',
 		'provides_context' => 'providesContext',
 		'uses_context'     => 'usesContext',
+		'block_hooks'      => 'blockHooks',
 		'selectors'        => 'selectors',
 		'supports'         => 'supports',
 		'category'         => 'category',

@@ -509,30 +509,37 @@ class Custom_Image_Header {
 <div class="wrap">
 <h1><?php _e( 'Custom Header' ); ?></h1>
 
-		<?php if ( current_user_can( 'customize' ) ) { ?>
-<div class="notice notice-info hide-if-no-customize">
-	<p>
-			<?php
-			printf(
+		<?php
+		if ( current_user_can( 'customize' ) ) {
+			$message = sprintf(
 				/* translators: %s: URL to header image configuration in Customizer. */
 				__( 'You can now manage and live-preview Custom Header in the <a href="%s">Customizer</a>.' ),
 				admin_url( 'customize.php?autofocus[control]=header_image' )
 			);
-			?>
-	</p>
-</div>
-		<?php } ?>
+			wp_admin_notice(
+				$message,
+				array(
+					'type'               => 'info',
+					'additional_classes' => array( 'hide-if-no-customize' ),
+				)
+			);
+		}
 
-		<?php if ( ! empty( $this->updated ) ) { ?>
-<div id="message" class="updated">
-	<p>
-			<?php
-			/* translators: %s: Home URL. */
-			printf( __( 'Header updated. <a href="%s">Visit your site</a> to see how it looks.' ), esc_url( home_url( '/' ) ) );
-			?>
-	</p>
-</div>
-		<?php } ?>
+		if ( ! empty( $this->updated ) ) {
+			$updated_message = sprintf(
+				/* translators: %s: Home URL. */
+				__( 'Header updated. <a href="%s">Visit your site</a> to see how it looks.' ),
+				esc_url( home_url( '/' ) )
+			);
+			wp_admin_notice(
+				$updated_message,
+				array(
+					'id'                 => 'message',
+					'additional_classes' => array( 'updated' ),
+				)
+			);
+		}
+		?>
 
 <h2><?php _e( 'Header Image' ); ?></h2>
 

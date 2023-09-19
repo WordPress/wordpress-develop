@@ -22,6 +22,7 @@
  * @access private
  * @since 6.1.0
  * @since 6.3.0 Added support for text-columns.
+ * @since 6.4.0 Added support for background.backgroundImage.
  */
 #[AllowDynamicProperties]
 final class WP_Style_Engine {
@@ -51,6 +52,21 @@ final class WP_Style_Engine {
 	 * @var array
 	 */
 	const BLOCK_STYLE_DEFINITIONS_METADATA = array(
+		'background' => array(
+			'backgroundImage' => array(
+				'property_keys' => array(
+					'default' => 'background-image',
+				),
+				'value_func'    => array( self::class, 'get_url_or_value_css_declaration' ),
+				'path'          => array( 'background', 'backgroundImage' ),
+			),
+			'backgroundSize'  => array(
+				'property_keys' => array(
+					'default' => 'background-size',
+				),
+				'path'          => array( 'background', 'backgroundSize' ),
+			),
+		),
 		'color'      => array(
 			'text'       => array(
 				'property_keys' => array(
@@ -70,6 +86,9 @@ final class WP_Style_Engine {
 					'default' => 'background-color',
 				),
 				'path'          => array( 'color', 'background' ),
+				'css_vars'      => array(
+					'color' => '--wp--preset--color--$slug',
+				),
 				'classnames'    => array(
 					'has-background'             => true,
 					'has-$slug-background-color' => 'color',
@@ -80,6 +99,9 @@ final class WP_Style_Engine {
 					'default' => 'background',
 				),
 				'path'          => array( 'color', 'gradient' ),
+				'css_vars'      => array(
+					'gradient' => '--wp--preset--gradient--$slug',
+				),
 				'classnames'    => array(
 					'has-background'                => true,
 					'has-$slug-gradient-background' => 'gradient',
@@ -584,6 +606,42 @@ final class WP_Style_Engine {
 	}
 
 	/**
+	 * Style value parser that constructs a CSS definition array comprising a single CSS property and value.
+	 * If the provided value is an array containing a `url` property, the function will return a CSS definition array
+	 * with a single property and value, with `url` escaped and injected into a CSS `url()` function,
+	 * e.g., array( 'background-image' => "url( '...' )" ).
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array $style_value      A single raw style value from $block_styles array.
+	 * @param array $style_definition A single style definition from BLOCK_STYLE_DEFINITIONS_METADATA.
+	 * @return string[] An associative array of CSS definitions, e.g., array( "$property" => "$value", "$property" => "$value" ).
+	 */
+	protected static function get_url_or_value_css_declaration( $style_value, $style_definition ) {
+		if ( empty( $style_value ) ) {
+			return array();
+		}
+
+		$css_declarations = array();
+
+		if ( isset( $style_definition['property_keys']['default'] ) ) {
+			$value = null;
+
+			if ( ! empty( $style_value['url'] ) ) {
+				$value = "url('" . $style_value['url'] . "')";
+			} elseif ( is_string( $style_value ) ) {
+				$value = $style_value;
+			}
+
+			if ( null !== $value ) {
+				$css_declarations[ $style_definition['property_keys']['default'] ] = $value;
+			}
+		}
+
+		return $css_declarations;
+	}
+
+	/**
 	 * Returns compiled CSS from CSS declarations.
 	 *
 	 * @since 6.1.0
@@ -624,7 +682,7 @@ final class WP_Style_Engine {
 	 *                                 e.g. 'block-supports' or 'global-styles'. Default 'block-supports'.
 	 *                                 When set, the style engine will attempt to store the CSS rules.
 	 *     @type bool        $optimize Whether to optimize the CSS output, e.g. combine rules.
-	 *                                 Default true.
+	 *                                 Default false.
 	 *     @type bool        $prettify Whether to add new lines and indents to output.
 	 *                                 Defaults to whether the `SCRIPT_DEBUG` constant is defined.
 	 * }
