@@ -1477,7 +1477,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			|| $name === $slug
 			|| $name !== $dependency_data['name']
 			|| empty( $dependency_data['version'] )
-			|| $name !== $dependency_data['name']
 		) {
 			return $name;
 		}
