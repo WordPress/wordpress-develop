@@ -1088,15 +1088,21 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$args = array(
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
+			'no_found_rows'          => true,
 		);
 
 		add_filter( 'posts_fields_request', array( $this, 'filter_posts_fields_request' ) );
+
+		$before = get_num_queries();
 		$query1 = new WP_Query();
 		$posts1 = $query1->query( $args );
+		$after  = get_num_queries();
 
 		foreach ( $posts1 as $_post ) {
 			$this->assertNotSame( get_post( $_post->ID )->post_content, $_post->post_content );
 		}
+
+		$this->assertSame( 2, $after - $before, 'There should only be 2 queries run, one for request and one prime post objects.' );
 
 		$this->assertStringContainsString(
 			"SELECT $wpdb->posts.*",
