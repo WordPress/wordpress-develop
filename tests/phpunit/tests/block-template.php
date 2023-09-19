@@ -284,7 +284,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 *
 	 * @param string   $theme    The theme's stylesheet.
 	 * @param string[] $expected The expected associative array of block theme folders.
-	 * @param string   $message The message for when an assertion fails.
+	 * @param string   $message  The message for when an assertion fails.
 	 */
 	public function test_get_block_theme_folders( $theme, $expected, $message ) {
 		$wp_theme = wp_get_theme( $theme );
