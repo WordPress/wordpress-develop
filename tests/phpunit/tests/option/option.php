@@ -368,4 +368,111 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( 'autoload_false', false, 'no' ),
 		);
 	}
+
+	/**
+	 * Ensure the database is getting updated when type changes, but not otherwise.
+	 *
+	 * @ticket 22192
+	 * @group test
+	 *
+	 * @covers ::add_option
+	 *
+	 * @dataProvider data_update_option_type_juggling
+	 */
+	public function test_update_loosey_options( $old_value, $new_value ) {
+		add_option( 'foo', $old_value );
+
+		// Comparison will happen against value cached during add_option() above.
+		$updated = update_option( 'foo', $new_value );
+
+		$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+	}
+
+	/**
+	 * Ensure the database is getting updated when type changes, but not otherwise.
+	 *
+	 * @ticket 22192
+	 * @group test
+	 *
+	 * @covers ::add_option
+	 *
+	 * @dataProvider data_update_option_type_juggling
+	 */
+	public function test_update_loosey_options_from_db( $old_value, $new_value ) {
+		add_option( 'foo', $old_value );
+
+		// Delete cache.
+		wp_cache_delete( 'alloptions', 'options' );
+		$updated = update_option( 'foo', $new_value );
+
+		$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+	}
+
+	/**
+	 * Ensure the database is getting updated when type changes, but not otherwise.
+	 *
+	 * @ticket 22192
+	 * @group test
+	 *
+	 * @covers ::add_option
+	 *
+	 * @dataProvider data_update_option_type_juggling
+	 */
+	public function test_update_loosey_options_from_refreshed_cache( $old_value, $new_value ) {
+		add_option( 'foo', $old_value );
+
+		// Delete and refresh cache from DB.
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_load_alloptions();
+
+		$updated = update_option( 'foo', $new_value );
+
+		$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+	}
+
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_update_option_type_juggling() {
+		return array(
+			// Truthy.
+			array( '1', '1' ),
+			array( '1', 1 ),
+			array( '1', 1.0 ),
+			array( '1', true ),
+			array( 1, '1' ),
+			array( 1, 1 ),
+			array( 1, 1.0 ),
+			array( 1, true ),
+			array( 1.0, '1' ),
+			array( 1.0, 1 ),
+			array( 1.0, 1.0 ),
+			array( 1.0, true ),
+			array( true, '1' ),
+			array( true, 1 ),
+			array( true, 1.0 ),
+			array( true, true ),
+
+			// Falsey.
+			array( '0', '0' ),
+			array( '0', 0 ),
+			array( '0', 0.0 ),
+			array( '0', false ),
+			array( 0, '0' ),
+			array( 0, 0 ),
+			array( 0, 0.0 ),
+			array( 0, false ),
+			array( 0.0, '0' ),
+			array( 0.0, 0 ),
+			array( 0.0, 0.0 ),
+			array( 0.0, false ),
+			array( false, '0' ),
+			array( false, 0 ),
+			array( false, 0.0 ),
+			array( false, false ),
+		);
+	}
 }
