@@ -1954,17 +1954,6 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 	$fetchpriority_val = preg_match( '/ fetchpriority=["\']([A-Za-z]+)["\']/', $image, $match_fetchpriority ) ? $match_fetchpriority[1] : null;
 	$decoding_val      = preg_match( '/ decoding=["\']([A-Za-z]+)["\']/', $image, $match_decoding ) ? $match_decoding[1] : null;
 
-	$args = array(
-		'width'         => $width,
-		'height'        => $height,
-		'loading'       => $loading_val,
-		'fetchpriority' => $fetchpriority_val,
-	);
-
-	if ( $decoding_val ) {
-		$args['decoding'] = $decoding_val;
-	}
-
 	/*
 	 * Get loading optimization attributes to use.
 	 * This must occur before the conditional check below so that even images
@@ -1972,7 +1961,13 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 	 */
 	$optimization_attrs = wp_get_loading_optimization_attributes(
 		'img',
-		$args,
+		array(
+			'width'         => $width,
+			'height'        => $height,
+			'loading'       => $loading_val,
+			'fetchpriority' => $fetchpriority_val,
+			'decoding'      => $decoding_val,
+		),
 		$context
 	);
 
