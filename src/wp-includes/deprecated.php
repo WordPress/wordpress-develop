@@ -5877,7 +5877,7 @@ function _wp_theme_json_webfonts_handler() {
  * @since 4.4.0
  */
 function print_embed_styles() {
-	_deprecated_function( __FUNCTION__, '6.4.0', 'enqueue_embed_styles' );
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_embed_styles' );
 
 	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 	$suffix    = SCRIPT_DEBUG ? '' : '.min';
@@ -5894,7 +5894,7 @@ function print_embed_styles() {
  * @since 4.2.0
  */
 function print_emoji_styles() {
-	_deprecated_function( __FUNCTION__, '6.4.0', 'enqueue_emoji_styles' );
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_emoji_styles' );
 	static $printed = false;
 
 	if ( $printed ) {
@@ -5928,7 +5928,7 @@ function print_emoji_styles() {
  * @since 3.1.0
  */
 function wp_admin_bar_header() {
-	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_admin_bar_header_styles' );
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_header_styles' );
 	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 	?>
 	<style<?php echo $type_attr; ?> media="print">#wpadminbar { display:none; }</style>

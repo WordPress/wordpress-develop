@@ -5862,7 +5862,7 @@ function wp_spaces_regexp() {
  *
  * @since 6.4.0
  */
-function enqueue_emoji_styles() {
+function wp_enqueue_emoji_styles() {
 	$action = is_admin() ? 'admin_print_styles' : 'wp_print_styles';
 	if ( has_action( $action, 'print_emoji_styles' ) ) {
 		remove_action( $action, 'print_emoji_styles' );

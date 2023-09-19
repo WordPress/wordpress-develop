@@ -1231,7 +1231,7 @@ function wp_admin_bar_add_secondary_groups( $wp_admin_bar ) {
  *
  * @since 6.4.0
  */
-function wp_admin_bar_header_styles() {
+function wp_enqueue_admin_bar_header_styles() {
 	$action = is_admin() ? 'admin_head' : 'wp_head';
 	if ( has_action( $action, 'wp_admin_bar_header' ) ) {
 		remove_action( $action, 'wp_admin_bar_header' );
