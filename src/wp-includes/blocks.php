@@ -896,9 +896,9 @@ function serialize_blocks( $blocks ) {
  *
  * @see serialize_block()
  *
- * @param array         $block    A representative array of a single parsed block object. See WP_Block_Parser_Block.
- * @param callable|null $callback Callback to run on each block in the tree before serialization.
- *                                It is called with the following arguments: $block, $parent_block, $block_index, $chunk_index.
+ * @param array    $block    A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ * @param callable $callback Callback to run on each block in the tree before serialization.
+ *                           It is called with the following arguments: $block, $parent_block, $block_index, $chunk_index.
  * @return string String of rendered HTML.
  */
 function traverse_and_serialize_block( $block, $callback ) {
