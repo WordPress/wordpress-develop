@@ -821,7 +821,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 									esc_attr( $plugin_id_attr ),
 									/* translators: %s: Plugin name. */
 									esc_attr( sprintf( _x( 'Network Activate %s', 'plugin' ), $plugin_data['Name'] ) ),
-									__( 'Network Activate' ),
+									__( 'Network Activate' )
 								);
 							}
 						} else {
