@@ -168,6 +168,43 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 52738
+	 */
+	public function test_map_deep_should_not_fail_on_null_byte_php_7_or_greater() {
+		if ( version_compare( PHP_VERSION, '7.0.0', '<' ) ) {
+			$this->markTestSkipped( 'This test can only run on PHP 7.0 or greater due to illegal member variable name.' );
+		}
+
+		$this->assertEquals(
+			(object) array(
+				'var0'   => 'ababa',
+				chr( 0 ) => (object) array(
+					'var0'   => 'b',
+					chr( 0 ) => 'untouched',
+				),
+				'var1'   => (object) array(
+					'var0'   => 'cbaba',
+					chr( 0 ) => 'untouched',
+				),
+			),
+			map_deep(
+				(object) array(
+					'var0'   => 'a',
+					chr( 0 ) => (object) array(
+						'var0'   => 'b',
+						chr( 0 ) => 'untouched',
+					),
+					'var1'   => (object) array(
+						'var0'   => 'c',
+						chr( 0 ) => 'untouched',
+					),
+				),
+				array( $this, 'append_baba' )
+			)
+		);
+	}
+
 	public function append_baba( $value ) {
 		return $value . 'baba';
 	}

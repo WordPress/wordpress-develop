@@ -4763,7 +4763,7 @@ function smilies_init() {
 			':-|'       => "\xf0\x9f\x98\x90",
 			';-)'       => "\xf0\x9f\x98\x89",
 			// This one transformation breaks regular text with frequency.
-			//     '8)' => "\xf0\x9f\x98\x8e",
+			// '8)' => "\xf0\x9f\x98\x8e",
 			'8O'        => "\xf0\x9f\x98\xaf",
 			':('        => "\xf0\x9f\x99\x81",
 			':)'        => "\xf0\x9f\x99\x82",
@@ -6155,7 +6155,8 @@ function iis7_supports_permalinks() {
 
 	$supports_permalinks = false;
 	if ( $is_iis7 ) {
-		/* First we check if the DOMDocument class exists. If it does not exist, then we cannot
+		/*
+		 First we check if the DOMDocument class exists. If it does not exist, then we cannot
 		 * easily update the xml configuration file, hence we just bail out and tell user that
 		 * pretty permalinks cannot be used.
 		 *
@@ -8761,4 +8762,23 @@ function is_php_version_compatible( $required ) {
  */
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
+}
+
+/**
+ * Gets the properties of the given object.
+ * Removes array element with null-byte key from the result.
+ *
+ * @since 6.3.0
+ *
+ * @param object $object An object instance.
+ * @return array
+ */
+function wp_get_object_vars( $object ) {
+	return array_filter(
+		get_object_vars( $object ),
+		function( $key ) {
+			return ord( $key ) !== 0;
+		},
+		ARRAY_FILTER_USE_KEY
+	);
 }

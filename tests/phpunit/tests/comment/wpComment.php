@@ -62,4 +62,45 @@ class Tests_Comment_WpComment extends WP_UnitTestCase {
 
 		$this->assertEquals( 1, $found->comment_ID );
 	}
+
+
+	/**
+	 * @dataProvider data_test_wp_comment_null_byte
+	 * @ticket 52738
+	 */
+	public function test_wp_comment_null_byte_php_7_or_greater( $comment_data, $expected ) {
+		if ( version_compare( PHP_VERSION, '7.0.0', '<' ) ) {
+			$this->markTestSkipped( 'This test can only run on PHP 7.0 or greater due to illegal member variable name.' );
+		}
+
+		$comment = new WP_Comment( $comment_data );
+
+		$this->assertSame( $comment->comment_content, $expected );
+	}
+
+	public function data_test_wp_comment_null_byte() {
+		return array(
+			array(
+				(object) array(
+					'comment_content' => 'Foo1',
+					chr( 0 )          => 'null-byte',
+				),
+				'Foo1',
+			),
+			array(
+				(object) array(
+					'comment_content' => 'Foo2',
+					chr( 0 ) . 'prop' => 'Starts with null-byte',
+				),
+				'Foo2',
+			),
+			array(
+				(object) array(
+					'comment_content' => 'Foo3',
+					'prop' . chr( 0 ) => 'Ends with null-byte',
+				),
+				'Foo3',
+			),
+		);
+	}
 }

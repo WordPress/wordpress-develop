@@ -213,7 +213,7 @@ final class WP_Comment {
 	 * @param WP_Comment $comment Comment object.
 	 */
 	public function __construct( $comment ) {
-		foreach ( get_object_vars( $comment ) as $key => $value ) {
+		foreach ( wp_get_object_vars( $comment ) as $key => $value ) {
 			$this->$key = $value;
 		}
 	}
