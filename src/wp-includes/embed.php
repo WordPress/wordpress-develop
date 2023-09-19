@@ -1068,7 +1068,11 @@ function wp_enqueue_embed_styles() {
 		return;
 	}
 	remove_action( 'embed_head', 'print_embed_styles' );
-	wp_enqueue_style( 'wp-embed-template' );
+	$suffix = wp_scripts_get_suffix();
+	$handle = 'wp-embed-template';
+	wp_register_style( $handle, false );
+	wp_add_inline_style( $handle, file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ) );
+	wp_enqueue_style( $handle );
 }
 
 /**
