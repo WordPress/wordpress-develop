@@ -1949,12 +1949,10 @@ class WP_Query {
 			$q['cache_results'] = true;
 		}
 
+		$request_part_object = ( 'id=>parent' === $q['fields'] || 'ids' === $q['fields'] );
+
 		if ( ! isset( $q['update_post_term_cache'] ) ) {
-			if ( 'id=>parent' === $q['fields'] || 'ids' === $q['fields'] ) {
-				$q['update_post_term_cache'] = false;
-			} else {
-				$q['update_post_term_cache'] = true;
-			}
+			$q['update_post_term_cache'] = ! $request_part_object;
 		}
 
 		if ( ! isset( $q['update_menu_item_cache'] ) ) {
@@ -1968,11 +1966,7 @@ class WP_Query {
 		}
 
 		if ( ! isset( $q['update_post_meta_cache'] ) ) {
-			if ( 'id=>parent' === $q['fields'] || 'ids' === $q['fields'] ) {
-				$q['update_post_meta_cache'] = false;
-			} else {
-				$q['update_post_meta_cache'] = true;
-			}
+			$q['update_post_term_cache'] = ! $request_part_object;
 		}
 
 		if ( ! isset( $q['post_type'] ) ) {
