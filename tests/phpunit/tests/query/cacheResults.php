@@ -1080,7 +1080,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 22176
+	 * @ticket 58599
 	 */
 	public function test_query_posts_fields_request() {
 		global $wpdb;
