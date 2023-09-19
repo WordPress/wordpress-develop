@@ -1247,8 +1247,10 @@ function wp_admin_bar_header_styles() {
 function wp_enqueue_admin_bar_bump_styles() {
 	if ( has_action( 'wp_head', '_admin_bar_bump_cb' ) ) {
 		remove_action( 'wp_head', '_admin_bar_bump_cb' );
-		$css = '@media screen { html { margin-top: 32px !important; } }
-	@media screen and ( max-width: 782px ) { html { margin-top: 46px !important; } }';
+		$css = /* language=CSS */ '
+			@media screen { html { margin-top: 32px !important; } }
+			@media screen and ( max-width: 782px ) { html { margin-top: 46px !important; } }
+		';
 		wp_add_inline_style( 'admin-bar', $css );
 	}
 }

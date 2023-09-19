@@ -5855,7 +5855,7 @@ function enqueue_emoji_styles() {
 	$action = is_admin() ? 'admin_print_styles' : 'wp_print_styles';
 	if ( has_action( $action, 'print_emoji_styles' ) ) {
 		remove_action( $action, 'print_emoji_styles' );
-		$emoji_styles = '
+		$emoji_styles = /* language=CSS */ '
 		img.wp-smiley,
 		img.emoji {
 			display: inline !important;

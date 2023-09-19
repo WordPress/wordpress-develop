@@ -119,7 +119,7 @@ function the_block_template_skip_link() {
 		return;
 	}
 
-	$skip_link_styles = '
+	$skip_link_styles = /* language=CSS */ '
 		.skip-link.screen-reader-text {
 			border: 0;
 			clip: rect(1px,1px,1px,1px);
