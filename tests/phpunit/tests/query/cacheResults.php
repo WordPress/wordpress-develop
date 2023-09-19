@@ -1082,6 +1082,37 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	/**
 	 * @ticket 22176
 	 */
+	public function test_query_posts_fields_request() {
+		global $wpdb;
+
+		$args = array(
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+		);
+
+		add_filter( 'posts_fields_request', array( $this, 'filter_posts_fields_request' ) );
+		$query1 = new WP_Query();
+		$posts1 = $query1->query( $args );
+
+		foreach ( $posts1 as $_post ) {
+			$this->assertNotSame( get_post( $_post->ID )->post_content, $_post->post_content );
+		}
+
+		$this->assertStringContainsString(
+			"SELECT $wpdb->posts.*",
+			$wpdb->last_query,
+			'Check that _prime_post_caches is called.'
+		);
+	}
+
+	public function filter_posts_fields_request( $fields ) {
+		global $wpdb;
+		return "{$wpdb->posts}.ID";
+	}
+
+	/**
+	 * @ticket 22176
+	 */
 	public function test_query_cache_should_exclude_post_with_excluded_term() {
 		$term_id = self::$t1;
 		// Post 0 has the term applied

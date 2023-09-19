@@ -3270,10 +3270,11 @@ class WP_Query {
 			return $post_parents;
 		}
 
+		$unfiltered_query = $old_request == $this->request && "{$wpdb->posts}.*" === $fields;
+
 		if ( null === $this->posts ) {
 			$split_the_query = (
-				$old_request == $this->request
-				&& "{$wpdb->posts}.*" === $fields
+				$unfiltered_query
 				&& (
 					wp_using_ext_object_cache()
 					|| ( ! empty( $limits ) && $q['posts_per_page'] < 500 )
@@ -3529,7 +3530,12 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 
 			if ( $q['cache_results'] ) {
-				update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				if ( $unfiltered_query ) {
+					update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				} else {
+					$post_ids = wp_list_pluck( $this->posts, 'ID' );
+					_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				}
 			}
 
 			/** @var WP_Post */
