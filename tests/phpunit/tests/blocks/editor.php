@@ -65,7 +65,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	public function filter_set_block_editor_settings_post( $editor_settings, $post ) {
 		if ( empty( $post ) ) {
-			return $allowed_block_types;
+			return $editor_settings;
 		}
 
 		return array(
