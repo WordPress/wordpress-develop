@@ -3767,8 +3767,6 @@ EOF;
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_img_tag_add_loading_optimization_attrs
 	 * @covers ::wp_get_loading_optimization_attributes
-	 *
-	 * @expectedIncorrectUsage wp_img_tag_add_loading_optimization_attrs
 	 */
 	public function test_wp_filter_content_tags_with_loading_optimization_attrs() {
 		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );
@@ -4510,10 +4508,8 @@ EOF;
 		$this->assertSame(
 			array(
 				'decoding' => 'async',
-				'loading'  => 'lazy'
-			,
-					'decoding' => 'async',
-				),
+				'loading'  => 'lazy',
+			),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 			'Images in the header context should get lazy-loaded after the wp_loading_optimization_force_header_contexts filter.'
 		);
@@ -5205,7 +5201,6 @@ EOF;
 	 */
 	public function test_wp_get_loading_optimization_attributes_incorrect_loading_attrs() {
 		$attr                  = $this->get_width_height_for_high_priority();
-		$attr['decoding']      = 'async';
 		$attr['loading']       = 'lazy';
 		$attr['fetchpriority'] = 'high';
 
