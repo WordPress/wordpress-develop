@@ -5875,6 +5875,7 @@ function _wp_theme_json_webfonts_handler() {
  * Prints the CSS in the embed iframe header.
  *
  * @since 4.4.0
+ * @deprecated 6.4.0 Use wp_enqueue_embed_styles() instead.
  */
 function print_embed_styles() {
 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_embed_styles' );
@@ -5892,6 +5893,7 @@ function print_embed_styles() {
  * Prints the important emoji-related styles.
  *
  * @since 4.2.0
+ * @deprecated 6.4.0 Use wp_enqueue_emoji_styles() instead.
  */
 function print_emoji_styles() {
 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_emoji_styles' );
@@ -5926,6 +5928,7 @@ function print_emoji_styles() {
  * Prints style and scripts for the admin bar.
  *
  * @since 3.1.0
+ * @deprecated 6.4.0 Use wp_enqueue_admin_bar_header_styles() instead.
  */
 function wp_admin_bar_header() {
 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_header_styles' );
@@ -5939,6 +5942,7 @@ function wp_admin_bar_header() {
  * Prints default admin bar callback.
  *
  * @since 3.1.0
+ * @deprecated 6.4.0 Use wp_enqueue_admin_bar_bump_styles() instead.
  */
 function _admin_bar_bump_cb() {
 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_bump_styles' );
