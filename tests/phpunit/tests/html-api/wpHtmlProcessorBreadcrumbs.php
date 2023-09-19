@@ -353,6 +353,45 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket {TICKET_NUMBER}
+	 *
+	 * @dataProvider data_html_with_breadcrumbs_of_various_specificity
+	 *
+	 * @param string   $html_with_target_node HTML with a node containing a "target" attribute.
+	 * @param string[] $breadcrumbs           Breadcrumbs to test at the target node.
+	 * @param bool     $should_match          Whether the target node should match the breadcrumbs.
+	 */
+	public function test_reports_if_tag_matches_breadcrumbs_of_various_specificity( $html_with_target_node, $breadcrumbs, $should_match ) {
+		$processor = WP_HTML_Processor::createFragment( $html_with_target_node );
+		while ( $processor->next_tag() && null === $processor->get_attribute( 'target' ) ) {
+			continue;
+		}
+
+		$matches = $processor->matches_breadcrumbs( $breadcrumbs );
+		$path    = implode( ', ', $breadcrumbs );
+		if ( $should_match ) {
+			$this->assertTrue( $matches, "HTML tag {$processor->get_tag()} should have matched breadcrumbs but didn't: {$path}." );
+		} else {
+			$this->assertFalse( $matches, "HTML tag {$processor->get_tag()} should not have matched breadcrumbs but did: {$path}." );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public function data_html_with_breadcrumbs_of_various_specificity() {
+		return array(
+			'Inner IMG'                  => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'figure', 'img' ), true ),
+			'Inner IMG wildcard'         => array( '<div><span><figure><img target></figure></span></div>', array( 'span', '*', 'img' ), true ),
+			'Inner IMG no wildcard'      => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'img' ), false ),
+			'Full specification'         => array( '<div><span><figure><img target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'img' ), true ),
+			'Invalid Full specification' => array( '<div><span><figure><img target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'img' ), false ),
+		);
+	}
+
+	/**
 	 * Ensures that the ability to set attributes isn't broken by the HTML Processor.
 	 *
 	 * @since 6.4.0
