@@ -777,8 +777,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param array  $plugin_data An array of plugin data. See {@see plugins_api()}
-	 *                            for the list of possible values.
+	 * @param string $name The plugin's name.
+	 * @param string $slug The plugin's slug.
 	 * @return string The 'More details' link for the plugin.
 	 */
 	protected function get_more_details_link( $name, $slug ) {
