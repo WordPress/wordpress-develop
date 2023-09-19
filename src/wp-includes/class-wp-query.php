@@ -1966,7 +1966,7 @@ class WP_Query {
 		}
 
 		if ( ! isset( $q['update_post_meta_cache'] ) ) {
-			$q['update_post_term_cache'] = ! $request_part_object;
+			$q['update_post_meta_cache'] = ! $request_part_object;
 		}
 
 		if ( ! isset( $q['post_type'] ) ) {
