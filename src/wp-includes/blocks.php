@@ -858,16 +858,16 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
 function serialize_block( $block, $callback = null ) {
 	$block_content = '';
 
-	$index = 0;
+	$block_index = 0;
 	foreach ( $block['innerContent'] as $chunk ) {
 		if ( is_string( $chunk ) ) {
 			$block_content .= $chunk;
 		} else {
-			$inner_block = $block['innerBlocks'][ $index ];
+			$inner_block = $block['innerBlocks'][ $block_index ];
 			if ( is_callable( $callback ) ) {
-				$inner_block = call_user_func( $callback, $inner_block, $block, $index );
+				$inner_block = call_user_func( $callback, $inner_block, $block, $block_index );
 			}
-			$index++;
+			$block_index++;
 			$block_content .= serialize_block( $inner_block, $callback );
 		}
 	}
