@@ -842,7 +842,7 @@ switch ( $action ) {
 		<form name="lostpasswordform" id="lostpasswordform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=lostpassword', 'login_post' ) ); ?>" method="post">
 			<p>
 				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
-				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
+				<input type="text" name="user_login" id="user_login" class="input ltr" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
 			</p>
 			<?php
 
@@ -966,7 +966,7 @@ switch ( $action ) {
 				</p>
 
 				<div class="wp-pwd">
-					<input type="password" name="pass1" id="pass1" class="input password-input" size="24" value="" autocomplete="new-password" spellcheck="false" data-reveal="1" data-pw="<?php echo esc_attr( wp_generate_password( 16 ) ); ?>" aria-describedby="pass-strength-result" />
+					<input type="password" name="pass1" id="pass1" class="input password-input ltr" size="24" value="" autocomplete="new-password" spellcheck="false" data-reveal="1" data-pw="<?php echo esc_attr( wp_generate_password( 16 ) ); ?>" aria-describedby="pass-strength-result" />
 
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 						<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
@@ -1085,7 +1085,7 @@ switch ( $action ) {
 		<form name="registerform" id="registerform" action="<?php echo esc_url( site_url( 'wp-login.php?action=register', 'login_post' ) ); ?>" method="post" novalidate="novalidate">
 			<p>
 				<label for="user_login"><?php _e( 'Username' ); ?></label>
-				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( wp_unslash( $user_login ) ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
+				<input type="text" name="user_login" id="user_login" class="input ltr" value="<?php echo esc_attr( wp_unslash( $user_login ) ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
 			</p>
 			<p>
 				<label for="user_email"><?php _e( 'Email' ); ?></label>
@@ -1425,13 +1425,13 @@ switch ( $action ) {
 		<form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
 			<p>
 				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
-				<input type="text" name="log" id="user_login"<?php echo $aria_describedby; ?> class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
+				<input type="text" name="log" id="user_login"<?php echo $aria_describedby; ?> class="input ltr" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
 			</p>
 
 			<div class="user-pass-wrap">
 				<label for="user_pass"><?php _e( 'Password' ); ?></label>
 				<div class="wp-pwd">
-					<input type="password" name="pwd" id="user_pass"<?php echo $aria_describedby; ?> class="input password-input" value="" size="20" autocomplete="current-password" spellcheck="false" required="required" />
+					<input type="password" name="pwd" id="user_pass"<?php echo $aria_describedby; ?> class="input password-input ltr" value="" size="20" autocomplete="current-password" spellcheck="false" required="required" />
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
 						<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
 					</button>

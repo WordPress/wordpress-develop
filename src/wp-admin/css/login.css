@@ -80,6 +80,7 @@ p {
 	margin-bottom: 15px;
 }
 
+/* rtl:ignore */
 .login .button.wp-hide-pw {
 	background: transparent;
 	border: 1px solid transparent;
@@ -342,6 +343,7 @@ p {
 	font-family: Consolas, Monaco, monospace;
 }
 
+/* rtl:ignore */
 .js.login input.password-input,
 .js.login-action-rp form .input,
 .js.login-action-rp input[type="text"] {
