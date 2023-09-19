@@ -282,7 +282,7 @@ function wp_default_packages_scripts( $scripts ) {
 	// Add the private version of the Interactivity API manually.
 	$assets[ "interactivity{$suffix}.js" ] = array(
 		'dependencies' => array(),
-		'version' => '6.4.0'
+		'version' => '6.4.0',
 	);
 
 	foreach ( $assets as $file_name => $package_data ) {
@@ -663,6 +663,7 @@ function wp_default_packages( $scripts ) {
 	wp_register_development_scripts( $scripts );
 	wp_register_tinymce_scripts( $scripts );
 	wp_default_packages_scripts( $scripts );
+	wp_register_interactivity_dependencies( $scripts );
 
 	if ( did_action( 'init' ) ) {
 		wp_default_packages_inline_scripts( $scripts );
