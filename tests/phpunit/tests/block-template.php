@@ -297,7 +297,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$cached_value = $theme_cache['block_template_folders'];
 		$reflection->setAccessible( false );
 
-		$this->assertSame( $expected, $cached_value, 'Cache - ' . $message );
+		$this->assertSame( $expected, $cached_value, $message );
 	}
 
 	/**
