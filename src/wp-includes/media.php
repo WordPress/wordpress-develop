@@ -5814,10 +5814,11 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * @since 6.4.0
 	 *
 	 * @param array  $loading_attrs The loading optimization attributes.
+	 * @param string $tag_name      The tag name.
 	 * @param array  $attr          Array of the attributes for the tag.
 	 * @param string $context       Context for the element for which the loading optimization attribute is requested.
 	 */
-	$loading_attrs = apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $attr, $context );
+	$loading_attrs = apply_filters( 'wp_get_loading_optimization_attributes', $tag_name, $loading_attrs, $attr, $context );
 
 	return $loading_attrs;
 }
