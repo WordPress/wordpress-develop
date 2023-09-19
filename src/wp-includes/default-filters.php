@@ -357,7 +357,7 @@ add_action( 'switch_theme', 'wp_clean_theme_json_cache' );
 add_action( 'start_previewing_theme', 'wp_clean_theme_json_cache' );
 add_action( 'after_switch_theme', '_wp_menus_changed' );
 add_action( 'after_switch_theme', '_wp_sidebars_changed' );
-add_action( 'wp_enqueue_scripts', 'wp_enqueue_emoji_styles');
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_emoji_styles' );
 add_action( 'wp_print_styles', 'print_emoji_styles' ); // Retained for backwards-compatibility. Unhooked by wp_enqueue_emoji_styles().
 
 if ( isset( $_GET['replytocom'] ) ) {
@@ -654,8 +654,8 @@ add_action( 'widgets_init', '_wp_block_theme_register_classic_sidebars', 1 );
 add_action( 'template_redirect', '_wp_admin_bar_init', 0 );
 add_action( 'admin_init', '_wp_admin_bar_init' );
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_bump_styles' );
-add_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles');
-add_action( 'admin_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles');
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles' );
+add_action( 'admin_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles' );
 add_action( 'before_signup_header', '_wp_admin_bar_init' );
 add_action( 'activate_header', '_wp_admin_bar_init' );
 add_action( 'wp_body_open', 'wp_admin_bar_render', 0 );
