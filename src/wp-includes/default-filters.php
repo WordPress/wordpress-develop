@@ -358,7 +358,7 @@ add_action( 'start_previewing_theme', 'wp_clean_theme_json_cache' );
 add_action( 'after_switch_theme', '_wp_menus_changed' );
 add_action( 'after_switch_theme', '_wp_sidebars_changed' );
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_emoji_styles');
-add_action( 'wp_print_styles', 'print_emoji_styles' );
+add_action( 'wp_print_styles', 'print_emoji_styles' ); // Retained for backwards-compatibility. Unhooked by wp_enqueue_emoji_styles().
 
 if ( isset( $_GET['replytocom'] ) ) {
 	add_filter( 'wp_robots', 'wp_robots_no_robots' );
@@ -678,7 +678,7 @@ add_filter( 'embed_oembed_html', 'wp_maybe_enqueue_oembed_host_js' );
 add_action( 'embed_head', 'enqueue_embed_scripts', 1 );
 add_action( 'embed_head', 'print_emoji_detection_script' );
 add_action( 'embed_head', 'wp_enqueue_embed_styles', 9 );
-add_action( 'embed_head', 'print_embed_styles' );
+add_action( 'embed_head', 'print_embed_styles' ); // Retained for backwards-compatibility. Unhooked by wp_enqueue_embed_styles().
 add_action( 'embed_head', 'wp_print_head_scripts', 20 );
 add_action( 'embed_head', 'wp_print_styles', 20 );
 add_action( 'embed_head', 'wp_robots' );
