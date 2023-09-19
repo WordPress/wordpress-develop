@@ -4546,7 +4546,7 @@ EOF;
 		$this->assertSame(
 			array(
 				'decoding'      => 'async',
-				'fetchpriority' => 'high'
+				'fetchpriority' => 'high',
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'something_completely_arbitrary' )
 		);
@@ -4640,7 +4640,7 @@ EOF;
 		$this->assertSame(
 			array(
 				'decoding'      => 'async',
-				'fetchpriority' => 'high'
+				'fetchpriority' => 'high',
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 			'Expected first image to not be lazy-loaded. First large image is loaded with high fetchpriority.'
@@ -5185,7 +5185,7 @@ EOF;
 		$this->assertSame(
 			array(
 				'decoding'      => 'async',
-				'fetchpriority' => 'high'
+				'fetchpriority' => 'high',
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER ),
 			'Images in the header block template part should not be lazy-loaded and first large image is set high fetchpriority.'
