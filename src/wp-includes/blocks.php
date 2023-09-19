@@ -865,7 +865,7 @@ function serialize_block( $block, $callback = null ) {
 		} else {
 			$inner_block = $block['innerBlocks'][ $index ];
 			if ( is_callable( $callback ) ) {
-				$inner_block = call_user_func( $callback, $inner_block, $block );
+				$inner_block = call_user_func( $callback, $inner_block, $block, $index );
 			}
 			$index++;
 			$block_content .= serialize_block( $inner_block, $callback );
