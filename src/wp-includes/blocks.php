@@ -761,6 +761,84 @@ function get_hooked_blocks( $name ) {
 }
 
 /**
+ * Insert a parsed block into a parent block's inner blocks.
+ *
+ * Given a parsed block, a block index, and a chunk index, insert another parsed block
+ * into the parent block at the given indices.
+ *
+ * Note that the this mutates the parent block by inserting into the parent's `innerBlocks`
+ * array, and by updating the parent's `innerContent` array accordingly.
+ *
+ * @since 6.4.0
+ *
+ * @param array $parent_block   The parent block.
+ * @param int   $block_index    The index specifying the insertion position among the parent block's inner blocks.
+ * @param int   $chunk_index    The index specifying the insertion position among the parent block's inner content chunks.
+ * @param array $inserted_block The block to insert.
+ * @return void
+ */
+function insert_inner_block( &$parent_block, $block_index, $chunk_index, $inserted_block ) {
+	array_splice( $parent_block['innerBlocks'], $block_index, 0, array( $inserted_block ) );
+
+	/*
+	 * Since WP_Block::render() iterates over `inner_content` (rather than `inner_blocks`)
+	 * when rendering blocks, we also need to insert a value (`null`, to mark a block
+	 * location) into that array.
+	 */
+	array_splice( $parent_block['innerContent'], $chunk_index, 0, array( null ) );
+}
+
+/**
+ * Prepend a parsed block to a parent block's inner blocks.
+ *
+ * Given a parsed block, prepend another parsed block to the parent block's inner blocks.
+ *
+ * Note that the this mutates the parent block by inserting into the parent's `innerBlocks`
+ * array, and by updating the parent's `innerContent` array accordingly.
+ *
+ * @since 6.4.0
+ *
+ * @param array  $parent_block   The parent block.
+ * @param array  $inserted_block The block to insert.
+ * @return void
+ */
+function prepend_inner_block( &$parent_block, $inserted_block ) {
+	$chunk_index = 0;
+	for ( $index = 0; $index < count( $parent_block['innerContent'] ); $index++ ) {
+		if ( is_null( $parent_block['innerContent'][ $index ] ) ) {
+			$chunk_index = $index;
+			break;
+		}
+	}
+	insert_inner_block( $parent_block, 0, $chunk_index, $inserted_block );
+}
+
+/**
+ * Append a parsed block to a parent block's inner blocks.
+ *
+ * Given a parsed block, append another parsed block to the parent block's inner blocks.
+ *
+ * Note that the this mutates the parent block by inserting into the parent's `innerBlocks`
+ * array, and by updating the parent's `innerContent` array accordingly.
+ *
+ * @since 6.4.0
+ *
+ * @param array  $parent_block   The parent block.
+ * @param array  $inserted_block The block to insert.
+ * @return void
+ */
+function append_inner_block( &$parent_block, $inserted_block ) {
+	$chunk_index = count( $parent_block['innerContent'] );
+	for ( $index = count( $parent_block['innerContent'] ); $index > 0; $index-- ) {
+		if ( is_null( $parent_block['innerContent'][ $index - 1 ] ) ) {
+			$chunk_index = $index;
+			break;
+		}
+	}
+	insert_inner_block( $parent_block, count( $parent_block['innerBlocks'] ), $chunk_index, $inserted_block );
+}
+
+/**
  * Given an array of attributes, returns a string in the serialized attributes
  * format prepared for post content.
  *
@@ -849,22 +927,16 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  * instead preserve the markup as parsed.
  *
  * @since 5.3.1
- * @since 6.4.0 The `$callback` parameter was added.
  *
- * @param array         $block    A representative array of a single parsed block object. See WP_Block_Parser_Block.
- * @param callable|null $callback Optional. Callback to run on each block in the tree before serialization. Default null.
+ * @param array $block A representative array of a single parsed block object. See WP_Block_Parser_Block.
  * @return string String of rendered HTML.
  */
-function serialize_block( $block, $callback = null ) {
-	if ( is_callable( $callback ) ) {
-		$block = call_user_func( $callback, $block );
-	}
-
+function serialize_block( $block ) {
 	$block_content = '';
 
 	$index = 0;
 	foreach ( $block['innerContent'] as $chunk ) {
-		$block_content .= is_string( $chunk ) ? $chunk : serialize_block( $block['innerBlocks'][ $index++ ], $callback );
+		$block_content .= is_string( $chunk ) ? $chunk : serialize_block( $block['innerBlocks'][ $index++ ] );
 	}
 
 	if ( ! is_array( $block['attrs'] ) ) {
@@ -883,16 +955,83 @@ function serialize_block( $block, $callback = null ) {
  * parsed blocks.
  *
  * @since 5.3.1
- * @since 6.4.0 The `$callback` parameter was added.
  *
- * @param array[]       $blocks   An array of representative arrays of parsed block objects. See serialize_block().
- * @param callable|null $callback Optional. Callback to run on each block in the tree before serialization. Default null.
+ * @param array[] $blocks An array of representative arrays of parsed block objects. See serialize_block().
  * @return string String of rendered HTML.
  */
-function serialize_blocks( $blocks, $callback = null ) {
+function serialize_blocks( $blocks ) {
+	return implode( '', array_map( 'serialize_block', $blocks ) );
+}
+
+/**
+ * Traverses the block applying transformations using the callback provided and returns the content of a block,
+ * including comment delimiters, serializing all attributes from the given parsed block.
+ *
+ * This should be used when there is a need to modify the saved block.
+ * Prefer `serialize_block` when preparing a block to be saved to post content.
+ *
+ * @since 6.4.0
+ *
+ * @see serialize_block()
+ *
+ * @param array    $block    A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ * @param callable $callback Callback to run on each block in the tree before serialization.
+ *                           It is called with the following arguments: $block, $parent_block, $block_index, $chunk_index.
+ * @return string String of rendered HTML.
+ */
+function traverse_and_serialize_block( $block, $callback ) {
+	$block_content = '';
+	$block_index   = 0;
+
+	foreach ( $block['innerContent'] as $chunk_index => $chunk ) {
+		if ( is_string( $chunk ) ) {
+			$block_content .= $chunk;
+		} else {
+			$inner_block = call_user_func(
+				$callback,
+				$block['innerBlocks'][ $block_index ],
+				$block,
+				$block_index,
+				$chunk_index
+			);
+			$block_index++;
+			$block_content .= traverse_and_serialize_block( $inner_block, $callback );
+		}
+	}
+
+	if ( ! is_array( $block['attrs'] ) ) {
+		$block['attrs'] = array();
+	}
+
+	return get_comment_delimited_block_content(
+		$block['blockName'],
+		$block['attrs'],
+		$block_content
+	);
+}
+
+/**
+ * Traverses the blocks applying transformations using the callback provided,
+ * and returns a joined string of the aggregate serialization of the given parsed blocks.
+ *
+ * This should be used when there is a need to modify the saved blocks.
+ * Prefer `serialize_blocks` when preparing blocks to be saved to post content.
+ *
+ * @since 6.4.0
+ *
+ * @see serialize_blocks()
+ *
+ * @param array[]  $blocks   An array of representative arrays of parsed block objects. See serialize_block().
+ * @param callable $callback Callback to run on each block in the tree before serialization.
+ *                           It is called with the following arguments: $block, $parent_block, $block_index, $chunk_index.
+ * @return string String of rendered HTML.
+ */
+function traverse_and_serialize_blocks( $blocks, $callback ) {
 	$result = '';
 	foreach ( $blocks as $block ) {
-		$result .= serialize_block( $block, $callback );
+		// At the top level, there is no parent block, block index, or chunk index to pass to the callback.
+		$block = call_user_func( $callback, $block );
+		$result .= traverse_and_serialize_block( $block, $callback );
 	}
 	return $result;
 }
