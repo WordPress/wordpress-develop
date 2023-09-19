@@ -10,7 +10,7 @@
 /**
  * Core class for rolling back auto-update plugin failures.
  */
-class WP_Rollback_Auto_Update {
+final class WP_Rollback_Auto_Update {
 
 	/**
 	 * Stores instance of Plugin_Upgrader.
