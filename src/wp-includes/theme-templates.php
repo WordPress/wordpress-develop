@@ -158,7 +158,7 @@ function the_block_template_skip_link() {
 	</style>
 	<?php
 	/**
-	 * Print the skip-link script.
+	 * Enqueue the skip-link script.
 	 */
 	ob_start();
 	?>
@@ -203,7 +203,11 @@ function the_block_template_skip_link() {
 	}() );
 	</script>
 	<?php
-	wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
+	$skip_link_script = str_replace( array( '<script>', '</script>' ), '', ob_get_clean() );
+	$script_handle    = 'wp-block-template-skip-link';
+	wp_register_script( $script_handle, false );
+	wp_add_inline_script( $script_handle, $skip_link_script );
+	wp_enqueue_script( $script_handle );
 }
 
 /**
