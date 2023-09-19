@@ -3,7 +3,6 @@
  */
 const { DefinePlugin } = require( 'webpack' );
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
-const { writeFileSync } = require( 'fs' );
 
 /**
  * WordPress dependencies
@@ -19,22 +18,6 @@ const {
 	toDirectoryName,
 	getStableBlocksMetadata,
 } = require( '../release/sync-stable-blocks' );
-
-class InteractivityAssetsPHP {
-	constructor( buildTarget, suffix ) {
-		this.buildTarget = buildTarget;
-		this.suffix = suffix;
-	}
-
-  apply( compiler ) {
-    compiler.hooks.done.tap( 'Interactivity Script Loader', ( stats ) => {
-      const content = `<?php return array( 'dependencies' => array(), 'version' => '${ stats.hash }' );`;
-			const filename = normalizeJoin( baseDir, this.buildTarget, './assets/script-loader-interactivity' );
-      writeFileSync( `${ filename }.php`, content );
-      if ( this.suffix ) writeFileSync( `${ filename }${ this.suffix }.php`, content );
-    } );
-  }
-}
 
 module.exports = function( env = { environment: 'production', watch: false, buildTarget: false } ) {
 	const mode = env.environment;
@@ -165,7 +148,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					...blockStylesheetCopies,
 				],
 			} ),
-			new InteractivityAssetsPHP( buildTarget, suffix ),
 		],
 	};
 

@@ -259,34 +259,6 @@ function wp_register_development_scripts( $scripts ) {
 }
 
 /**
- * Registers extra scripts that are not registered through the DependencyExtractionPlugin.
- *
- * @since 6.4.0
- *
- * @param WP_Scripts $scripts WP_Scripts object.
- */
-function wp_register_extra_scripts( $scripts ) {
-	$suffix = defined( 'WP_RUN_CORE_TESTS' ) ? '.min' : wp_scripts_get_suffix();
-
-	$extra_scripts = array(
-		'interactivity'
-	);
-
-	foreach ( $extra_scripts as $script_name ) {
-		$assets = include ABSPATH . WPINC . '/assets/script-loader-' . $script_name . $suffix . '.php';
-		if ( ! is_array( $assets ) ) {
-			return;
-		}
-		$scripts->add(
-			'wp-' . $script_name,
-			'/wp-includes/js/dist/' . $script_name . $suffix . '.js',
-			$assets['dependencies'],
-			$assets['version']
-		);
-	}
-}
-
-/**
  * Registers all the WordPress packages scripts that are in the standardized
  * `js/dist/` location.
  *
@@ -683,7 +655,6 @@ function wp_tinymce_inline_scripts() {
 function wp_default_packages( $scripts ) {
 	wp_default_packages_vendor( $scripts );
 	wp_register_development_scripts( $scripts );
-	wp_register_extra_scripts( $scripts );
 	wp_register_tinymce_scripts( $scripts );
 	wp_default_packages_scripts( $scripts );
 
