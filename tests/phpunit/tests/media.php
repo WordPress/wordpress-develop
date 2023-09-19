@@ -5466,7 +5466,22 @@ EOF;
 		);
 
 		// Clean up the filter.
+		add_filter( 'pre_wp_get_loading_optimization_attributes', '__return_false' );
+
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
+			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
+			'The filter did not return the default attributes.'
+		);
+
+		// Return no loading attributes.
 		add_filter( 'pre_wp_get_loading_optimization_attributes', '__return_empty_array' );
+
+		$this->assertSame(
+			array(),
+			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
+			'The filter did not clean up all attributes.'
+		);
 
 		// Modify the loading attributes with any custom attributes.
 		add_filter(
