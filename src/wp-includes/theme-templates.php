@@ -150,7 +150,7 @@ function the_block_template_skip_link() {
 			z-index: 100000;
 		}';
 
-	$handle = 'skip-link-styles';
+	$handle = 'wp-block-template-skip-link';
 
 	wp_register_style( $handle, false );
 	wp_add_inline_style( $handle, $skip_link_styles );
