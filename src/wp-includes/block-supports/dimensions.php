@@ -72,7 +72,7 @@ function wp_apply_dimensions_support( $block_type, $block_attributes ) { // phpc
 	if ( $has_min_height_support && ! $skip_min_height ) {
 		$dimensions_block_styles['minHeight'] = $block_styles['dimensions']['minHeight'] ?? null;
 	}
-	$styles = gutenberg_style_engine_get_styles( array( 'dimensions' => $dimensions_block_styles ) );
+	$styles = wp_style_engine_get_styles( array( 'dimensions' => $dimensions_block_styles ) );
 
 	if ( ! empty( $styles['css'] ) ) {
 		$attributes['style'] = $styles['css'];
