@@ -5651,17 +5651,20 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * The skip is also applicable for `fetchpriority`.
 	 */
 	if ( 'template' === $context ) {
-		return $loading_attrs;
+		/** This filter is documented in wp-includes/media.php */
+		return apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $tag_name, $attr, $context );
 	}
 
 	// For now this function only supports images and iframes.
 	if ( 'img' !== $tag_name && 'iframe' !== $tag_name ) {
-		return $loading_attrs;
+		/** This filter is documented in wp-includes/media.php */
+		return apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $tag_name, $attr, $context );
 	}
 
 	// For any resources, width and height must be provided, to avoid layout shifts.
 	if ( ! isset( $attr['width'], $attr['height'] ) ) {
-		return $loading_attrs;
+		/** This filter is documented in wp-includes/media.php */
+		return apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $tag_name, $attr, $context );
 	}
 
 	/*
@@ -5673,7 +5676,8 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 */
 	// TODO: Handle shortcode images together with the content (see https://core.trac.wordpress.org/ticket/58853).
 	if ( 'the_content' !== $context && 'do_shortcode' !== $context && doing_filter( 'the_content' ) ) {
-		return $loading_attrs;
+		/** This filter is documented in wp-includes/media.php */
+		return apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $tag_name, $attr, $context );
 	}
 
 	/*
