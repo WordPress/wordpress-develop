@@ -494,8 +494,8 @@ final class WP_Theme implements ArrayAccess {
 					$this->cache_add(
 						'theme',
 						array(
-							'block_theme'            => $this->is_block_theme(),
 							'block_template_folders' => $this->get_block_template_folders(),
+							'block_theme'            => $this->is_block_theme(),
 							'headers'                => $this->headers,
 							'errors'                 => $this->errors,
 							'stylesheet'             => $this->stylesheet,
