@@ -663,7 +663,6 @@ function wp_default_packages( $scripts ) {
 	wp_register_development_scripts( $scripts );
 	wp_register_tinymce_scripts( $scripts );
 	wp_default_packages_scripts( $scripts );
-	wp_register_interactivity_dependencies( $scripts );
 
 	if ( did_action( 'init' ) ) {
 		wp_default_packages_inline_scripts( $scripts );
