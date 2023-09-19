@@ -760,7 +760,7 @@ function get_hooked_blocks( $name ) {
 	return $hooked_blocks;
 }
 
-function insert_hooked_blocks( $block, $parent, $block_index, $chunk_index ) {
+function insert_hooked_blocks( $block, $parent = null, $block_index = null, $chunk_index = null ) {
 	$hooked_blocks = get_hooked_blocks( $block['blockName'] );
 	foreach ( $hooked_blocks as $hooked_block_type => $relative_position ) {
 		$hooked_block = array(
