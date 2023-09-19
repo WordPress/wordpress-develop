@@ -353,7 +353,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket {TICKET_NUMBER}
+	 * @ticket 59400
 	 *
 	 * @dataProvider data_html_with_breadcrumbs_of_various_specificity
 	 *
@@ -383,11 +383,26 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 */
 	public function data_html_with_breadcrumbs_of_various_specificity() {
 		return array(
-			'Inner IMG'                  => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'figure', 'img' ), true ),
-			'Inner IMG wildcard'         => array( '<div><span><figure><img target></figure></span></div>', array( 'span', '*', 'img' ), true ),
-			'Inner IMG no wildcard'      => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'img' ), false ),
-			'Full specification'         => array( '<div><span><figure><img target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'img' ), true ),
-			'Invalid Full specification' => array( '<div><span><figure><img target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'img' ), false ),
+			// Test with void elements.
+			'Inner IMG'                      => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'figure', 'img' ), true ),
+			'Inner IMG wildcard'             => array( '<div><span><figure><img target></figure></span></div>', array( 'span', '*', 'img' ), true ),
+			'Inner IMG no wildcard'          => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'img' ), false ),
+			'Full specification'             => array( '<div><span><figure><img target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'img' ), true ),
+			'Invalid Full specification'     => array( '<div><span><figure><img target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'img' ), false ),
+
+			// Test also with non-void elements that open and close.
+			'Inner P'                        => array( '<div><span><figure><p target></figure></span></div>', array( 'span', 'figure', 'p' ), true ),
+			'Inner P wildcard'               => array( '<div><span><figure><p target></figure></span></div>', array( 'span', '*', 'p' ), true ),
+			'Inner P no wildcard'            => array( '<div><span><figure><p target></figure></span></div>', array( 'span', 'p' ), false ),
+			'Full specification (P)'         => array( '<div><span><figure><p target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'p' ), true ),
+			'Invalid Full specification (P)' => array( '<div><span><figure><p target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'p' ), false ),
+
+			// Ensure that matches aren't on tag closers.
+			'Inner P'                        => array( '<div><span><figure></p target></figure></span></div>', array( 'span', 'figure', 'p' ), false ),
+			'Inner P wildcard'               => array( '<div><span><figure></p target></figure></span></div>', array( 'span', '*', 'p' ), false ),
+			'Inner P no wildcard'            => array( '<div><span><figure></p target></figure></span></div>', array( 'span', 'p' ), false ),
+			'Full specification (P)'         => array( '<div><span><figure></p target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'p' ), false ),
+			'Invalid Full specification (P)' => array( '<div><span><figure></p target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'p' ), false ),
 		);
 	}
 
