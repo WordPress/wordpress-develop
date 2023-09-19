@@ -534,6 +534,19 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59358
+	 */
+	public function test_get_block_editor_settings_without_post_content_block() {
+
+		$post_editor_context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
+
+		$settings = get_block_editor_settings( array(), $post_editor_context );
+
+		$this->assertArrayNotHasKey( 'postContentAttributes', $settings );
+
+	}
+
+	/**
 	 * @ticket 52920
 	 * @expectedDeprecated block_editor_settings
 	 */
