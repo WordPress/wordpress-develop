@@ -859,13 +859,13 @@ function serialize_block( $block, $callback = null ) {
 	$block_content = '';
 
 	$block_index = 0;
-	foreach ( $block['innerContent'] as $chunk ) {
+	foreach ( $block['innerContent'] as $chunk_index => $chunk ) {
 		if ( is_string( $chunk ) ) {
 			$block_content .= $chunk;
 		} else {
 			$inner_block = $block['innerBlocks'][ $block_index ];
 			if ( is_callable( $callback ) ) {
-				$inner_block = call_user_func( $callback, $inner_block, $block, $block_index );
+				$inner_block = call_user_func( $callback, $inner_block, $block, $block_index, $chunk_index );
 			}
 			$block_index++;
 			$block_content .= serialize_block( $inner_block, $callback );
