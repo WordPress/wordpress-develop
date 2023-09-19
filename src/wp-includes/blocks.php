@@ -853,6 +853,7 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  *
  * @param array         $block    A representative array of a single parsed block object. See WP_Block_Parser_Block.
  * @param callable|null $callback Optional. Callback to run on each block in the tree before serialization. Default null.
+ *                                It is called with the following arguments: $block, $parent_block, $block_index, $chunk_index.
  * @return string String of rendered HTML.
  */
 function serialize_block( $block, $callback = null ) {
@@ -892,6 +893,7 @@ function serialize_block( $block, $callback = null ) {
  *
  * @param array[]       $blocks   An array of representative arrays of parsed block objects. See serialize_block().
  * @param callable|null $callback Optional. Callback to run on each block in the tree before serialization. Default null.
+ *                                It is called with the following arguments: $block, $parent_block, $block_index, $chunk_index.
  * @return string String of rendered HTML.
  */
 function serialize_blocks( $blocks, $callback = null ) {
