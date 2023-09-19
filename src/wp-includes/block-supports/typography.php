@@ -20,21 +20,21 @@ function wp_register_typography_support( $block_type ) {
 		return;
 	}
 
-	$typography_supports = _wp_array_get( $block_type->supports, array( 'typography' ), false );
+	$typography_supports = $block_type->supports['typography'] ?? false;
 	if ( ! $typography_supports ) {
 		return;
 	}
 
-	$has_font_family_support     = _wp_array_get( $typography_supports, array( '__experimentalFontFamily' ), false );
-	$has_font_size_support       = _wp_array_get( $typography_supports, array( 'fontSize' ), false );
-	$has_font_style_support      = _wp_array_get( $typography_supports, array( '__experimentalFontStyle' ), false );
-	$has_font_weight_support     = _wp_array_get( $typography_supports, array( '__experimentalFontWeight' ), false );
-	$has_letter_spacing_support  = _wp_array_get( $typography_supports, array( '__experimentalLetterSpacing' ), false );
-	$has_line_height_support     = _wp_array_get( $typography_supports, array( 'lineHeight' ), false );
-	$has_text_columns_support    = _wp_array_get( $typography_supports, array( 'textColumns' ), false );
-	$has_text_decoration_support = _wp_array_get( $typography_supports, array( '__experimentalTextDecoration' ), false );
-	$has_text_transform_support  = _wp_array_get( $typography_supports, array( '__experimentalTextTransform' ), false );
-	$has_writing_mode_support    = _wp_array_get( $typography_supports, array( '__experimentalWritingMode' ), false );
+	$has_font_family_support     = $typography_supports['__experimentalFontFamily'] ?? false;
+	$has_font_size_support       = $typography_supports['fontSize'] ?? false;
+	$has_font_style_support      = $typography_supports['__experimentalFontStyle'] ?? false;
+	$has_font_weight_support     = $typography_supports['__experimentalFontWeight'] ?? false;
+	$has_letter_spacing_support  = $typography_supports['__experimentalLetterSpacing'] ?? false;
+	$has_line_height_support     = $typography_supports['lineHeight'] ?? false;
+	$has_text_columns_support    = $typography_supports['textColumns'] ?? false;
+	$has_text_decoration_support = $typography_supports['__experimentalTextDecoration'] ?? false;
+	$has_text_transform_support  = $typography_supports['__experimentalTextTransform'] ?? false;
+	$has_writing_mode_support    = $typography_supports['__experimentalWritingMode'] ?? false;
 
 	$has_typography_support = $has_font_family_support
 		|| $has_font_size_support
@@ -89,7 +89,7 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 		return array();
 	}
 
-	$typography_supports = _wp_array_get( $block_type->supports, array( 'typography' ), false );
+	$typography_supports = $block_type->supports['typography'] ?? false;
 	if ( ! $typography_supports ) {
 		return array();
 	}
@@ -98,16 +98,16 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 		return array();
 	}
 
-	$has_font_family_support     = _wp_array_get( $typography_supports, array( '__experimentalFontFamily' ), false );
-	$has_font_size_support       = _wp_array_get( $typography_supports, array( 'fontSize' ), false );
-	$has_font_style_support      = _wp_array_get( $typography_supports, array( '__experimentalFontStyle' ), false );
-	$has_font_weight_support     = _wp_array_get( $typography_supports, array( '__experimentalFontWeight' ), false );
-	$has_letter_spacing_support  = _wp_array_get( $typography_supports, array( '__experimentalLetterSpacing' ), false );
-	$has_line_height_support     = _wp_array_get( $typography_supports, array( 'lineHeight' ), false );
-	$has_text_columns_support    = _wp_array_get( $typography_supports, array( 'textColumns' ), false );
-	$has_text_decoration_support = _wp_array_get( $typography_supports, array( '__experimentalTextDecoration' ), false );
-	$has_text_transform_support  = _wp_array_get( $typography_supports, array( '__experimentalTextTransform' ), false );
-	$has_writing_mode_support    = _wp_array_get( $typography_supports, array( '__experimentalWritingMode' ), false );
+	$has_font_family_support     = $typography_supports['__experimentalFontFamily'] ?? false;
+	$has_font_size_support       = $typography_supports['fontSize'] ?? false;
+	$has_font_style_support      = $typography_supports['__experimentalFontStyle'] ?? false;
+	$has_font_weight_support     = $typography_supports['__experimentalFontWeight'] ?? false;
+	$has_letter_spacing_support  = $typography_supports['__experimentalLetterSpacing'] ?? false;
+	$has_line_height_support     = $typography_supports['lineHeight'] ?? false;
+	$has_text_columns_support    = $typography_supports['textColumns'] ?? false;
+	$has_text_decoration_support = $typography_supports['__experimentalTextDecoration'] ?? false;
+	$has_text_transform_support  = $typography_supports['__experimentalTextTransform'] ?? false;
+	$has_writing_mode_support    = $typography_supports['__experimentalWritingMode'] ?? false;
 
 	// Whether to skip individual block support features.
 	$should_skip_font_size       = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'fontSize' );
@@ -169,11 +169,11 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 	}
 
 	if ( $has_line_height_support && ! $should_skip_line_height ) {
-		$typography_block_styles['lineHeight'] = _wp_array_get( $block_attributes, array( 'style', 'typography', 'lineHeight' ) );
+		$typography_block_styles['lineHeight'] = $block_attributes['style']['typography']['lineHeight'] ?? null;
 	}
 
 	if ( $has_text_columns_support && ! $should_skip_text_columns && isset( $block_attributes['style']['typography']['textColumns'] ) ) {
-		$typography_block_styles['textColumns'] = _wp_array_get( $block_attributes, array( 'style', 'typography', 'textColumns' ), null );
+		$typography_block_styles['textColumns'] = $block_attributes['style']['typography']['textColumns'] ?? null;
 	}
 
 	if (
@@ -213,11 +213,7 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 		! $should_skip_writing_mode &&
 		isset( $block_attributes['style']['typography']['writingMode'] )
 	) {
-		$typography_block_styles['writingMode'] = _wp_array_get(
-			$block_attributes,
-			array( 'style', 'typography', 'writingMode' ),
-			null
-		);
+		$typography_block_styles['writingMode'] = $block_attributes['style']['typography']['writingMode'] ?? null;
 	}
 
 	$attributes = array();

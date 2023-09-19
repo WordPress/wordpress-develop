@@ -749,7 +749,7 @@ function get_dynamic_block_names() {
  * @return array Associative array of `$block_type_name => $position` pairs.
  */
 function get_hooked_blocks( $name, $relative_position = '' ) {
-	$block_types = WP_Block_Type_Registry::get_instance()->get_all_registered();
+	$block_types   = WP_Block_Type_Registry::get_instance()->get_all_registered();
 	$hooked_blocks = array();
 	foreach ( $block_types as $block_type ) {
 		if ( ! property_exists( $block_type, 'block_hooks' ) || ! is_array( $block_type->block_hooks ) ) {
@@ -1631,7 +1631,7 @@ function wp_migrate_old_typography_shape( $metadata ) {
 	);
 
 	foreach ( $typography_keys as $typography_key ) {
-		$support_for_key = _wp_array_get( $metadata['supports'], array( $typography_key ), null );
+		$support_for_key = $metadata['supports'][ $typography_key ] ?? null;
 
 		if ( null !== $support_for_key ) {
 			_doing_it_wrong(

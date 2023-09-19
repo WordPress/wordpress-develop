@@ -235,7 +235,7 @@ function wp_register_layout_support( $block_type ) {
  * @return string CSS styles on success. Else, empty string.
  */
 function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false, $gap_value = null, $should_skip_gap_serialization = false, $fallback_gap_value = '0.5em', $block_spacing = null ) {
-	$layout_type   = isset( $layout['type'] ) ? $layout['type'] : 'default';
+	$layout_type   = $layout['type'] ?? 'default';
 	$layout_styles = array();
 
 	if ( 'default' === $layout_type ) {
@@ -414,7 +414,10 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 			$gap_sides          = is_array( $gap_value ) ? array( 'top', 'left' ) : array( 'top' );
 
 			foreach ( $gap_sides as $gap_side ) {
-				$process_value = is_string( $gap_value ) ? $gap_value : _wp_array_get( $gap_value, array( $gap_side ), $fallback_gap_value );
+				$process_value = $gap_value;
+				if ( is_array( $gap_value ) ) {
+					$process_value = $gap_value[ $gap_side ] ?? $fallback_gap_value;
+				}
 				// Get spacing CSS variable from preset value if provided.
 				if ( is_string( $process_value ) && str_contains( $process_value, 'var:preset|spacing|' ) ) {
 					$index_to_splice = strrpos( $process_value, '|' ) + 1;
@@ -495,7 +498,10 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 			$gap_sides          = is_array( $gap_value ) ? array( 'top', 'left' ) : array( 'top' );
 
 			foreach ( $gap_sides as $gap_side ) {
-				$process_value = is_string( $gap_value ) ? $gap_value : _wp_array_get( $gap_value, array( $gap_side ), $fallback_gap_value );
+				$process_value = $gap_value;
+				if ( is_array( $gap_value ) ) {
+					$process_value = $gap_value[ $gap_side ] ?? $fallback_gap_value;
+				}
 				// Get spacing CSS variable from preset value if provided.
 				if ( is_string( $process_value ) && str_contains( $process_value, 'var:preset|spacing|' ) ) {
 					$index_to_splice = strrpos( $process_value, '|' ) + 1;
@@ -598,8 +604,11 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	}
 
 	$global_settings = wp_get_global_settings();
-	$fallback_layout = ! empty( _wp_array_get( $block_type->supports, array( 'layout', 'default' ), array() ) ) ? _wp_array_get( $block_type->supports, array( 'layout', 'default' ), array() ) : _wp_array_get( $block_type->supports, array( '__experimentalLayout', 'default' ), array() );
-	$used_layout     = isset( $block['attrs']['layout'] ) ? $block['attrs']['layout'] : $fallback_layout;
+	$fallback_layout = $block_type->supports['layout']['default'] ?? array();
+	if ( empty( $fallback_layout ) ) {
+		$fallback_layout = $block_type->supports['__experimentalLayout']['default'] ?? array();
+	}
+	$used_layout = isset( $block['attrs']['layout'] ) ? $block['attrs']['layout'] : $fallback_layout;
 
 	$class_names        = array();
 	$layout_definitions = wp_get_layout_definitions();
@@ -611,7 +620,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		$used_layout['type'] = 'constrained';
 	}
 
-	$root_padding_aware_alignments = _wp_array_get( $global_settings, array( 'useRootPaddingAwareAlignments' ), false );
+	$root_padding_aware_alignments = $global_settings['useRootPaddingAwareAlignments'] ?? false;
 
 	if (
 		$root_padding_aware_alignments &&
@@ -641,9 +650,9 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 
 	// Get classname for layout type.
 	if ( isset( $used_layout['type'] ) ) {
-		$layout_classname = _wp_array_get( $layout_definitions, array( $used_layout['type'], 'className' ), '' );
+		$layout_classname = $layout_definitions[ $used_layout['type'] ]['className'] ?? '';
 	} else {
-		$layout_classname = _wp_array_get( $layout_definitions, array( 'default', 'className' ), '' );
+		$layout_classname = $layout_definitions['default']['className'] ?? '';
 	}
 
 	if ( $layout_classname && is_string( $layout_classname ) ) {
@@ -656,7 +665,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	 */
 	if ( ! current_theme_supports( 'disable-layout-styles' ) ) {
 
-		$gap_value = _wp_array_get( $block, array( 'attrs', 'style', 'spacing', 'blockGap' ) );
+		$gap_value = $block['attrs']['style']['spacing']['blockGap'] ?? null;
 		/*
 		 * Skip if gap value contains unsupported characters.
 		 * Regex for CSS value borrowed from `safecss_filter_attr`, and used here
@@ -670,8 +679,8 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 			$gap_value = $gap_value && preg_match( '%[\\\(&=}]|/\*%', $gap_value ) ? null : $gap_value;
 		}
 
-		$fallback_gap_value = _wp_array_get( $block_type->supports, array( 'spacing', 'blockGap', '__experimentalDefault' ), '0.5em' );
-		$block_spacing      = _wp_array_get( $block, array( 'attrs', 'style', 'spacing' ), null );
+		$fallback_gap_value = $block_type->supports['spacing']['blockGap']['__experimentalDefault'] ?? '0.5em';
+		$block_spacing      = $block['attrs']['style']['spacing'] ?? null;
 
 		/*
 		 * If a block's block.json skips serialization for spacing or spacing.blockGap,
@@ -679,7 +688,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		 */
 		$should_skip_gap_serialization = wp_should_skip_block_supports_serialization( $block_type, 'spacing', 'blockGap' );
 
-		$block_gap             = _wp_array_get( $global_settings, array( 'spacing', 'blockGap' ), null );
+		$block_gap             = $global_settings['spacing']['blockGap'] ?? null;
 		$has_block_gap_support = isset( $block_gap );
 
 		$style = wp_get_layout_style(
