@@ -849,17 +849,11 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  * instead preserve the markup as parsed.
  *
  * @since 5.3.1
- * @since 6.4.0 The `$callback` parameter was added.
  *
- * @param array         $block    A representative array of a single parsed block object. See WP_Block_Parser_Block.
- * @param callable|null $callback Optional. Callback to run on each block in the tree before serialization. Default null.
+ * @param array $block A representative array of a single parsed block object. See WP_Block_Parser_Block.
  * @return string String of rendered HTML.
  */
-function serialize_block( $block, $callback = null ) {
-	if ( is_callable( $callback ) ) {
-		$block = call_user_func( $callback, $block );
-	}
-
+function serialize_block( $block ) {
 	$block_content = '';
 
 	$index = 0;
@@ -883,16 +877,69 @@ function serialize_block( $block, $callback = null ) {
  * parsed blocks.
  *
  * @since 5.3.1
- * @since 6.4.0 The `$callback` parameter was added.
  *
- * @param array[]       $blocks   An array of representative arrays of parsed block objects. See serialize_block().
- * @param callable|null $callback Optional. Callback to run on each block in the tree before serialization. Default null.
+ * @param array[] $blocks An array of representative arrays of parsed block objects. See serialize_block().
  * @return string String of rendered HTML.
  */
-function serialize_blocks( $blocks, $callback = null ) {
+function serialize_blocks( $blocks ) {
+	return implode( '', array_map( 'serialize_block', $blocks ) );
+}
+
+/**
+ * Traverses the block applying transformations using the callback provided and returns the content of a block,
+ * including comment delimiters, serializing all attributes from the given parsed block.
+ *
+ * This should be used when there is a need to modify the saved block.
+ * Prefer `serialize_block` when preparing a block to be saved to post content.
+ *
+ * @since 6.4.0
+ *
+ * @see serialize_block()
+ *
+ * @param array         $block    A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ * @param callable|null $callback Callback to run on each block in the tree before serialization.
+ * @return string String of rendered HTML.
+ */
+function traverse_and_serialize_block( $block, $callback  ) {
+	$block = call_user_func( $callback, $block );
+
+	$block_content = '';
+
+	$index = 0;
+	foreach ( $block['innerContent'] as $chunk ) {
+		$block_content .= is_string( $chunk )? $chunk : traverse_and_serialize_block( $block['innerBlocks'][ $index++ ], $callback );
+	}
+
+	if ( ! is_array( $block['attrs'] ) ) {
+		$block['attrs'] = array();
+	}
+
+	return get_comment_delimited_block_content(
+		$block['blockName'],
+		$block['attrs'],
+		$block_content
+	);
+}
+
+/**
+ * Traverses the blocks applying transformations using the callback provided,
+ * and returns a joined string of the aggregate serialization of the given parsed blocks.
+ *
+ * This should be used when there is a need to modify the saved blocks.
+ * Prefer `serialize_blocks` when preparing blocks to be saved to post content.
+ *
+ * @since 6.4.0
+ *
+ * @see serialize_blocks()
+ *
+ * @param array[]  $blocks   An array of representative arrays of parsed block objects. See serialize_block().
+ * @param callable $callback Callback to run on each block in the tree before serialization.
+ * @return string String of rendered HTML.
+ */
+function traverse_and_serialize_blocks( $blocks, $callback ) {
 	$result = '';
 	foreach ( $blocks as $block ) {
-		$result .= serialize_block( $block, $callback );
+		$result .= traverse_and_serialize_block( $block, $callback );
 	}
 	return $result;
 }
