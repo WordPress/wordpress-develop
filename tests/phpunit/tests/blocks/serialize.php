@@ -19,10 +19,9 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	public function test_serialize_identity_from_parsed( $original ) {
 		$blocks = parse_blocks( $original );
 
-		$actual   = serialize_blocks( $blocks );
-		$expected = $original;
+		$actual = serialize_blocks( $blocks );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $original, $actual );
 	}
 
 	public function data_serialize_identity_from_parsed() {
