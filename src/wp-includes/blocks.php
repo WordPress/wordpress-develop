@@ -900,14 +900,16 @@ function serialize_blocks( $blocks ) {
  * @param callable|null $callback Callback to run on each block in the tree before serialization.
  * @return string String of rendered HTML.
  */
-function traverse_and_serialize_block( $block, $callback  ) {
+function traverse_and_serialize_block( $block, $callback ) {
 	$block = call_user_func( $callback, $block );
 
 	$block_content = '';
 
 	$index = 0;
 	foreach ( $block['innerContent'] as $chunk ) {
-		$block_content .= is_string( $chunk )? $chunk : traverse_and_serialize_block( $block['innerBlocks'][ $index++ ], $callback );
+		$block_content .= is_string( $chunk ) ?
+			$chunk :
+			traverse_and_serialize_block( $block['innerBlocks'][ $index++ ], $callback );
 	}
 
 	if ( ! is_array( $block['attrs'] ) ) {

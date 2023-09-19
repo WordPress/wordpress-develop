@@ -93,7 +93,12 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	public function test_traverse_and_serialize_identity_from_parsed( $original ) {
 		$blocks = parse_blocks( $original );
 
-		$actual   = traverse_and_serialize_blocks( $blocks, function ( $block ) { return $block; } );
+		$actual   = traverse_and_serialize_blocks(
+			$blocks,
+			function ( $block ) {
+				return $block;
+			}
+		);
 		$expected = $original;
 
 		$this->assertSame( $expected, $actual );
