@@ -898,18 +898,27 @@ function serialize_blocks( $blocks ) {
  *
  * @param array         $block    A representative array of a single parsed block object. See WP_Block_Parser_Block.
  * @param callable|null $callback Callback to run on each block in the tree before serialization.
+ *                                It is called with the following arguments: $block, $parent_block, $block_index, $chunk_index.
  * @return string String of rendered HTML.
  */
 function traverse_and_serialize_block( $block, $callback ) {
-	$block = call_user_func( $callback, $block );
-
 	$block_content = '';
+	$block_index   = 0;
 
-	$index = 0;
-	foreach ( $block['innerContent'] as $chunk ) {
-		$block_content .= is_string( $chunk ) ?
-			$chunk :
-			traverse_and_serialize_block( $block['innerBlocks'][ $index++ ], $callback );
+	foreach ( $block['innerContent'] as $chunk_index => $chunk ) {
+		if ( is_string( $chunk ) ) {
+			$block_content .= $chunk;
+		} else {
+			$inner_block = call_user_func(
+				$callback,
+				$block['innerBlocks'][ $block_index ],
+				$block,
+				$block_index,
+				$chunk_index
+			);
+			$block_index++;
+			$block_content .= traverse_and_serialize_block( $inner_block, $callback );
+		}
 	}
 
 	if ( ! is_array( $block['attrs'] ) ) {
@@ -936,11 +945,14 @@ function traverse_and_serialize_block( $block, $callback ) {
  *
  * @param array[]  $blocks   An array of representative arrays of parsed block objects. See serialize_block().
  * @param callable $callback Callback to run on each block in the tree before serialization.
+ *                           It is called with the following arguments: $block, $parent_block, $block_index, $chunk_index.
  * @return string String of rendered HTML.
  */
 function traverse_and_serialize_blocks( $blocks, $callback ) {
 	$result = '';
 	foreach ( $blocks as $block ) {
+		// At the top level, there is no parent block, block index, or chunk index to pass to the callback.
+		$block = call_user_func( $callback, $block );
 		$result .= traverse_and_serialize_block( $block, $callback );
 	}
 	return $result;
