@@ -3757,7 +3757,10 @@ EOF;
 
 			// Due to the filter, now the first five elements should not be lazy-loaded, i.e. return `false`.
 			for ( $i = 0; $i < 5; $i++ ) {
-				$this->assertEmpty(
+				$this->assertSame(
+					array(
+						'decoding' => 'async',
+					),
 					wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 					'Expected second image to not be lazy-loaded.'
 				);
@@ -4389,7 +4392,10 @@ EOF;
 		$attr = $this->get_width_height_for_high_priority();
 
 		$this->assertSame(
-			array( 'loading' => 'lazy' ),
+			array(
+				'decoding' => 'async',
+				'loading'  => 'lazy'
+			),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 			'The "loading" attribute should be "lazy" when not in the loop or the main query.'
 		);
@@ -4403,7 +4409,10 @@ EOF;
 			the_post();
 
 			$this->assertSame(
-				array( 'fetchpriority' => 'high' ),
+				array(
+					'decoding'      => 'async',
+					'fetchpriority' => 'high'
+				),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				'The "fetchpriority" attribute should be "high" while in the loop and the main query.'
 			);
@@ -4433,7 +4442,10 @@ EOF;
 		$this->set_main_query( $query );
 
 		$this->assertSame(
-			array( 'loading' => 'lazy' ),
+			array(
+				'decoding' => 'async',
+				'loading'  => 'lazy',
+			),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 			'The "loading" attribute should be "lazy" before the main query loop.'
 		);
@@ -4442,7 +4454,10 @@ EOF;
 			the_post();
 
 			$this->assertSame(
-				array( 'fetchpriority' => 'high' ),
+				array(
+					'decoding'      => 'async',
+					'fetchpriority' => 'high',
+				),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				'The "fetchpriority" attribute should be "high" while in the loop and the main query.'
 			);
@@ -4488,7 +4503,7 @@ EOF;
 		);
 		apply_filters( 'the_content', '' );
 
-		$this->assertSame( array(), $result );
+		$this->assertSame( array( 'decoding' => 'async' ), $result );
 	}
 
 	/**
@@ -4513,7 +4528,9 @@ EOF;
 
 		$this->assertSame(
 			array(
-					'loading'  => 'lazy',
+				'decoding' => 'async',
+				'loading'  => 'lazy'
+			,
 					'decoding' => 'async',
 				),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
@@ -4550,7 +4567,10 @@ EOF;
 		);
 
 		$this->assertSame(
-			array( 'fetchpriority' => 'high' ),
+			array(
+				'decoding'      => 'async',
+				'fetchpriority' => 'high'
+			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'something_completely_arbitrary' )
 		);
 	}
@@ -4641,7 +4661,10 @@ EOF;
 
 		// First image is loaded with high fetchpriority.
 		$this->assertSame(
-			array( 'fetchpriority' => 'high' ),
+			array(
+				'decoding'      => 'async',
+				'fetchpriority' => 'high'
+			),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 			'Expected first image to not be lazy-loaded. First large image is loaded with high fetchpriority.'
 		);
@@ -4767,7 +4790,7 @@ EOF;
 		);
 		apply_filters( 'the_content', '' );
 
-		$this->assertSame( array(), $result );
+		$this->assertSame( array( 'decoding' => 'async' ), $result );
 	}
 
 	/**
@@ -5183,7 +5206,10 @@ EOF;
 
 		// Skip logic if context is `template`.
 		$this->assertSame(
-			array( 'fetchpriority' => 'high' ),
+			array(
+				'decoding'      => 'async',
+				'fetchpriority' => 'high'
+			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER ),
 			'Images in the header block template part should not be lazy-loaded and first large image is set high fetchpriority.'
 		);
@@ -5225,6 +5251,7 @@ EOF;
 		// Check fetchpriority high logic if loading attribute is present.
 		$this->assertSame(
 			array(
+				'decoding'      => 'async',
 				'fetchpriority' => 'high',
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'test' ),
@@ -5246,7 +5273,9 @@ EOF;
 
 		// fetchpriority not set as image is of lower resolution.
 		$this->assertSame(
-			array(),
+			array(
+				'decoding' => 'async',
+			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'test' ),
 			'loading optimization attr array should be empty.'
 		);
@@ -5280,6 +5309,7 @@ EOF;
 					$this->set_main_query( $wp_query );
 				},
 				'expected' => array(
+					'decoding'      => 'async',
 					'fetchpriority' => 'high',
 				),
 				'message'  => 'Fetch priority not applied to during shortcode rendering.',
