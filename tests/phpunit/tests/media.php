@@ -5216,7 +5216,7 @@ EOF;
 				'fetchpriority' => 'high',
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'test' ),
-			'This should return lazy-loading, async decoding and high fetchpriority, but with doing_it_wrong message.'
+			'This should return both lazy-loading and high fetchpriority, but with doing_it_wrong message.'
 		);
 	}
 

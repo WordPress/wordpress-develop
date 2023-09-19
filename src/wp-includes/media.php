@@ -5640,8 +5640,8 @@ function wp_get_webp_info( $filename ) {
  * - `decoding` attribute with a value of "async"
  *
  * If any of these attributes are already present in the given attributes, they will not be modified. Note that no
- * element should have both `loading="lazy"` and `fetchpriority="high"` or `decoding="async"` and `fetchpriority="high"`,
- * so the function will trigger a warning in case any of these conditions are present with those values.
+ * element should have both `loading="lazy"` and `fetchpriority="high"`, so the function will trigger a warning in case
+ * both attributes are present with those values.
  *
  * @since 6.3.0
  *
@@ -5757,7 +5757,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		if ( false === $maybe_in_viewport ) {
 			_doing_it_wrong(
 				__FUNCTION__,
-				__( 'An image should not be lazy-loaded or decoded async and marked as high priority at the same time.' ),
+				__( 'An image should not be lazy-loaded and marked as high priority at the same time.' ),
 				'6.3.0'
 			);
 			/*
@@ -5829,7 +5829,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * If the element is in the viewport (`true`), potentially add
 	 * `fetchpriority` with a value of "high". Otherwise, i.e. if the element
 	 * is not not in the viewport (`false`) or it is unknown (`null`), add
-	 * `loading` with a value of "lazy" and `decoding` with a value of "async".
+	 * `loading` with a value of "lazy".
 	 */
 	if ( $maybe_in_viewport ) {
 		$loading_attrs = wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr );
