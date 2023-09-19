@@ -262,6 +262,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$actual   = $theme_json->get_settings();
 		$expected = array(
+			'background' => array(
+				'backgroundImage' => true,
+			),
 			'border'     => array(
 				'width'  => true,
 				'style'  => true,
@@ -295,6 +298,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 				),
 				'core/group'     => array(
+					'background' => array(
+						'backgroundImage' => true,
+					),
 					'border'     => array(
 						'width'  => true,
 						'style'  => true,
