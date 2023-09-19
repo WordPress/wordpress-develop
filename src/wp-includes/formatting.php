@@ -5864,9 +5864,11 @@ function wp_spaces_regexp() {
  */
 function wp_enqueue_emoji_styles() {
 	$action = is_admin() ? 'admin_print_styles' : 'wp_print_styles';
-	if ( has_action( $action, 'print_emoji_styles' ) ) {
-		remove_action( $action, 'print_emoji_styles' );
-		$emoji_styles = /* language=CSS */ '
+	if ( ! has_action( $action, 'print_emoji_styles' ) ) {
+		return;
+	}
+	remove_action( $action, 'print_emoji_styles' );
+	$emoji_styles = /* language=CSS */ '
 		img.wp-smiley,
 		img.emoji {
 			display: inline !important;
@@ -5879,11 +5881,10 @@ function wp_enqueue_emoji_styles() {
 			background: none !important;
 			padding: 0 !important;
 		}';
-		$handle       = 'wp-emoji-styles';
-		wp_register_style( $handle, false );
-		wp_add_inline_style( $handle, $emoji_styles );
-		wp_enqueue_style( $handle );
-	}
+	$handle       = 'wp-emoji-styles';
+	wp_register_style( $handle, false );
+	wp_add_inline_style( $handle, $emoji_styles );
+	wp_enqueue_style( $handle );
 }
 
 /**

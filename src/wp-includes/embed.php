@@ -1064,10 +1064,11 @@ function enqueue_embed_scripts() {
  * @since 6.4.0
  */
 function wp_enqueue_embed_styles() {
-	if ( has_action( 'embed_head', 'print_embed_styles' ) ) {
-		remove_action( 'embed_head', 'print_embed_styles' );
-		wp_enqueue_style( 'wp-embed-template' );
+	if ( ! has_action( 'embed_head', 'print_embed_styles' ) ) {
+		return;
 	}
+	remove_action( 'embed_head', 'print_embed_styles' );
+	wp_enqueue_style( 'wp-embed-template' );
 }
 
 /**
