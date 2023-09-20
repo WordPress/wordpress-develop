@@ -106,4 +106,68 @@ class Tests_Block_Supports_Elements extends WP_UnitTestCase {
 			'<p class="wp-elements-1" id="anchor">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>'
 		);
 	}
+
+	/**
+	 * Test wp_render_elements_support() with a group block that has a button
+	 * element color set.
+	 *
+	 * @ticket 59309
+	 */
+	public function test_group_with_button_element_style() {
+		$result = self::make_unique_id_one(
+			wp_render_elements_support(
+				'<div class="wp-block-group"><div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex"><div class="wp-block-button"><a class="wp-block-button__link wp-element-button">Button</a></div></div></div>',
+				array(
+					'blockName' => 'core/group',
+					'attrs'     => array(
+						'style' => array(
+							'elements' => array(
+								'button' => array(
+									'color' => array(
+										'text' => 'var:preset|color|vivid-red',
+									),
+								),
+							),
+						),
+					),
+				)
+			)
+		);
+		$this->assertSame(
+			$result,
+			'<div class="wp-block-group wp-elements-1"><div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex"><div class="wp-block-button"><a class="wp-block-button__link wp-element-button">Button</a></div></div></div>'
+		);
+	}
+
+	/**
+	 * Test wp_render_elements_support() with a group block that has a heading
+	 * element color set.
+	 *
+	 * @ticket 59309
+	 */
+	public function test_group_with_heading_element_style() {
+		$result = self::make_unique_id_one(
+			wp_render_elements_support(
+				'<div class="wp-block-group"><h2 class="wp-block-heading">Test</h2></div>',
+				array(
+					'blockName' => 'core/group',
+					'attrs'     => array(
+						'style' => array(
+							'elements' => array(
+								'heading' => array(
+									'color' => array(
+										'text' => 'var:preset|color|vivid-red',
+									),
+								),
+							),
+						),
+					),
+				)
+			)
+		);
+		$this->assertSame(
+			$result,
+			'<div class="wp-block-group wp-elements-1"><h2 class="wp-block-heading">Test</h2></div>'
+		);
+	}
 }

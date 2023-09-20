@@ -108,7 +108,7 @@ function wp_default_packages_vendor( $scripts ) {
 	$vendor_scripts_versions = array(
 		'react'                       => '18.2.0',
 		'react-dom'                   => '18.2.0',
-		'regenerator-runtime'         => '0.13.11',
+		'regenerator-runtime'         => '0.14.0',
 		'moment'                      => '2.29.4',
 		'lodash'                      => '4.17.19',
 		'wp-polyfill-fetch'           => '3.6.17',
@@ -3068,7 +3068,7 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
  *     Default empty array.
  *
  *     @type bool $optimize Whether to optimize the CSS output, e.g., combine rules.
- *                          Default true.
+ *                          Default false.
  *     @type bool $prettify Whether to add new lines and indents to output.
  *                          Default to whether the `SCRIPT_DEBUG` constant is defined.
  * }
