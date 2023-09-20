@@ -116,8 +116,7 @@ class WP_Plugin_Dependencies {
 	 * @return bool Whether the plugin has plugins that depend on it.
 	 */
 	public static function has_dependents( $plugin_file ) {
-		$slug = str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : $plugin_file;
-		return in_array( $slug, self::$dependency_slugs, true );
+		return in_array( self::convert_to_slug( $plugin_file ), self::$dependency_slugs, true );
 	}
 
 	/**
@@ -141,7 +140,7 @@ class WP_Plugin_Dependencies {
 	 * @return bool Whether the plugin has active dependents.
 	 */
 	public static function has_active_dependents( $plugin_file ) {
-		$dependents = self::get_dependents( dirname( $plugin_file ) );
+		$dependents = self::get_dependents( self::convert_to_slug( $plugin_file ) );
 
 		foreach ( $dependents as $dependent ) {
 			if ( is_plugin_active( $dependent ) ) {
@@ -150,6 +149,59 @@ class WP_Plugin_Dependencies {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Gets filepaths of plugins that require the dependency.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $slug The dependency's slug.
+	 * @return array An array of dependent plugin filepaths, relative to the plugins directory.
+	 */
+	public static function get_dependents( $slug ) {
+		$dependents = array();
+
+		foreach ( self::$dependencies as $dependent => $dependencies ) {
+			if ( in_array( $slug, $dependencies, true ) ) {
+				$dependents[] = $dependent;
+			}
+		}
+
+		return $dependents;
+	}
+
+	/**
+	 * Gets the slugs of plugins that the dependent requires.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $plugin_file The dependent plugin's filepath, relative to the plugins directory.
+	 * @return array An array of dependency plugin slugs.
+	 */
+	public static function get_dependencies( $plugin_file ) {
+		if ( isset( self::$dependencies[ $plugin_file ] ) ) {
+			return self::$dependencies[ $plugin_file ];
+		}
+
+		return array();
+	}
+
+	/**
+	 * Gets a dependent plugin's filepath.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $slug  The dependent plugin's slug.
+	 * @return string|false The dependent plugin's filepath, relative to the plugins directory,
+	 *                      or false if the plugin has no dependencies.
+	 */
+	public static function get_dependent_filepath( $slug ) {
+		if ( ! isset( self::$dependent_slugs[ $slug ] ) ) {
+			return false;
+		}
+
+		return self::$dependent_slugs[ $slug ];
 	}
 
 	/**
@@ -191,12 +243,7 @@ class WP_Plugin_Dependencies {
 			self::$plugins = get_plugins();
 		}
 
-		$slug = str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : $plugin_file;
-
-		// Single file plugin.
-		if ( '.' === $slug ) {
-			$slug = basename( $plugin_file );
-		}
+		$slug = self::convert_to_slug( $plugin_file );
 
 		foreach ( self::get_dependents( $slug ) as $dependent ) {
 			if ( ! isset( $dependent_names[ $dependent ] ) ) {
@@ -261,6 +308,10 @@ class WP_Plugin_Dependencies {
 			self::get_dependency_filepaths();
 		}
 
+		if ( ! isset( self::$dependency_filepaths[ $slug ] ) ) {
+			return false;
+		}
+
 		return self::$dependency_filepaths[ $slug ];
 	}
 
@@ -315,7 +366,7 @@ class WP_Plugin_Dependencies {
 			// More dependencies to install.
 			$installed_slugs = array();
 			foreach ( array_keys( self::$plugins ) as $plugin ) {
-				$installed_slugs[] = str_contains( $plugin, '/' ) ? dirname( $plugin ) : $plugin;
+				$installed_slugs[] = self::convert_to_slug( $plugin );
 			}
 			$intersect = array_intersect( self::$dependency_slugs, $installed_slugs );
 			asort( $intersect );
@@ -479,13 +530,10 @@ class WP_Plugin_Dependencies {
 			$dependency_slugs              = self::sanitize_dependency_slugs( $header['RequiresPlugins'] );
 			self::$dependencies[ $plugin ] = $dependency_slugs;
 			self::$dependency_slugs        = array_merge( self::$dependency_slugs, $dependency_slugs );
-		}
 
-		$dependent_keys = array();
-		foreach ( array_keys( self::$dependencies ) as $dependency ) {
-			$dependent_keys[] = str_contains( $dependency, '/' ) ? dirname( $dependency ) : $dependency;
+			$dependent_slug                           = self::convert_to_slug( $plugin );
+			self::$dependent_slugs[ $dependent_slug ] = $plugin;
 		}
-		self::$dependent_slugs  = array_combine( $dependent_keys, array_map( 'dirname', $dependent_keys ) );
 		self::$dependency_slugs = array_unique( self::$dependency_slugs );
 	}
 
@@ -528,42 +576,6 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
-	 * Gets the slugs of plugins that the dependent requires.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param string $plugin_file The dependent plugin's filepath, relative to the plugins directory.
-	 * @return array An array of dependency plugin slugs.
-	 */
-	protected static function get_dependencies( $plugin_file ) {
-		if ( isset( self::$dependencies[ $plugin_file ] ) ) {
-			return self::$dependencies[ $plugin_file ];
-		}
-
-		return array();
-	}
-
-	/**
-	 * Gets filepaths of plugins that require the dependency.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param string $slug The dependency's slug.
-	 * @return array An array of dependent plugin filepaths, relative to the plugins directory.
-	 */
-	protected static function get_dependents( $slug ) {
-		$dependents = array();
-
-		foreach ( self::$dependencies as $dependent => $dependencies ) {
-			if ( in_array( $slug, $dependencies, true ) ) {
-				$dependents[] = $dependent;
-			}
-		}
-
-		return $dependents;
-	}
-
-	/**
 	 * Gets plugin filepaths for active plugins that depend on the dependency.
 	 *
 	 * Recurses for each dependent that is also a dependency.
@@ -573,9 +585,7 @@ class WP_Plugin_Dependencies {
 	 */
 	protected static function get_active_dependents_in_dependency_tree( $plugin_file ) {
 		$all_dependents = array();
-		$slug           = str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : $plugin_file;
-
-		$dependents = self::get_dependents( $slug );
+		$dependents     = self::get_dependents( self::convert_to_slug( $plugin_file ) );
 
 		if ( empty( $dependents ) ) {
 			return $all_dependents;
@@ -649,10 +659,6 @@ class WP_Plugin_Dependencies {
 		}
 
 		$dependency_filepaths = array();
-
-		if ( empty( self::$plugins ) ) {
-			return $dependency_filepaths;
-		}
 
 		$plugin_dirnames = self::get_plugin_dirnames();
 		if ( empty( $plugin_dirnames ) ) {
@@ -771,7 +777,7 @@ class WP_Plugin_Dependencies {
 			self::$plugin_dirnames_cache = self::$plugins;
 
 			foreach ( array_keys( self::$plugins ) as $plugin ) {
-				$slug                           = str_contains( $plugin, '/' ) ? dirname( $plugin ) : $plugin;
+				$slug                           = self::convert_to_slug( $plugin );
 				self::$plugin_dirnames[ $slug ] = $plugin;
 			}
 		}
@@ -794,7 +800,7 @@ class WP_Plugin_Dependencies {
 			 *
 			 * Convert $dependent to slug format for checking.
 			 */
-			$dependent_slug = str_contains( $dependent, '/' ) ? dirname( $dependent ) : $dependent;
+			$dependent_slug = self::convert_to_slug( $dependent );
 
 			$circular_dependencies = array_merge(
 				$circular_dependencies,
@@ -875,5 +881,17 @@ class WP_Plugin_Dependencies {
 		}
 
 		return $circular_dependencies;
+	}
+
+	/**
+	 * Converts a plugin filepath to a slug.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $plugin_file The plugin's filepath, relative to the plugins directory.
+	 * @return string The plugin's slug.
+	 */
+	private static function convert_to_slug( $plugin_file ) {
+		return str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : str_replace( '.php', '', $plugin_file );
 	}
 }
