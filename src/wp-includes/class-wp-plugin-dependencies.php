@@ -481,7 +481,10 @@ class WP_Plugin_Dependencies {
 			self::$dependency_slugs        = array_merge( self::$dependency_slugs, $dependency_slugs );
 		}
 
-		$dependent_keys         = array_keys( self::$dependencies );
+		$dependent_keys = array();
+		foreach ( array_keys( self::$dependencies ) as $dependency ) {
+			$dependent_keys[] = str_contains( $dependency , '/' ) ? dirname( $dependency ) : $dependency;
+		}
 		self::$dependent_slugs  = array_combine( $dependent_keys, array_map( 'dirname', $dependent_keys ) );
 		self::$dependency_slugs = array_unique( self::$dependency_slugs );
 	}
