@@ -2979,7 +2979,7 @@ HTML
 	 * Parse an HTML markup fragment.
 	 *
 	 * @param string $markup Markup.
-	 * @return DOMElement Body element wrapping supplied markup fragment.
+	 * @return DOMDocument Document containing the normalized markup fragment.
 	 */
 	protected function parse_markup_fragment( $markup ) {
 		$dom = new DOMDocument();
@@ -2997,34 +2997,52 @@ HTML
 			}
 		}
 
-		return $body;
+		return $dom;
 	}
 
 	/**
-	 * Assert markup is equal.
+	 * Assert markup is equal after normalizing script tags.
 	 *
 	 * @param string $expected Expected markup.
 	 * @param string $actual   Actual markup.
 	 * @param string $message  Message.
 	 */
 	protected function assertEqualMarkup( $expected, $actual, $message = '' ) {
-		$expected = str_replace( " type='text/javascript'", '', $expected );
-		$expected = str_replace( ' type="text/javascript"', '', $expected );
-		$expected = str_replace( "/* <![CDATA[ */\n", '', $expected );
-		$expected = str_replace( "\n/* ]]> */", '', $expected );
-		$expected = str_replace( ' defer="defer"', ' defer', $expected );
-		$expected = str_replace( ' async="async"', ' async', $expected );
+		$expected_dom = $this->parse_markup_fragment( $expected );
+		$actual_dom   = $this->parse_markup_fragment( $actual );
+		foreach ( array( $expected_dom, $actual_dom ) as $dom ) {
+			$xpath = new DOMXPath( $dom );
+			/** @var DOMElement $script */
 
-		$actual = str_replace( " type='text/javascript'", '', $actual );
-		$actual = str_replace( ' type="text/javascript"', '', $actual );
-		$actual = str_replace( "/* <![CDATA[ */\n", '', $actual );
-		$actual = str_replace( "\n/* ]]> */", '', $actual );
-		$actual = str_replace( ' defer="defer"', ' defer', $actual );
-		$actual = str_replace( ' async="async"', ' async', $actual );
+			// Normalize type attribute. When missing, it defaults to text/javascript.
+			foreach ( $xpath->query( '//script[ not( @type ) ]' ) as $script ) {
+				$script->setAttribute( 'type', 'text/javascript' );
+			}
+
+			// Normalize script contents to remove CDATA wrapper.
+			foreach ( $xpath->query( '//script[ contains( text(), "<![CDATA[" ) ]' ) as $script ) {
+				$script->textContent = str_replace(
+					array(
+						"/* <![CDATA[ */\n",
+						"\n/* ]]> */",
+					),
+					'',
+					$script->textContent
+				);
+			}
+
+			// Normalize XHTML-compatible boolean attributes to HTML5 ones.
+			foreach ( array( 'async', 'defer' ) as $attribute ) {
+				foreach ( iterator_to_array( $xpath->query( "//script[ @{$attribute} = '{$attribute}' ]" ) ) as $script ) {
+					$script->removeAttribute( $attribute );
+					$script->setAttributeNode( $dom->createAttribute( $attribute ) );
+				}
+			}
+		}
 
 		$this->assertEquals(
-			$this->parse_markup_fragment( $expected ),
-			$this->parse_markup_fragment( $actual ),
+			$expected_dom->getElementsByTagName( 'body' )->item( 0 ),
+			$actual_dom->getElementsByTagName( 'body' )->item( 0 ),
 			$message
 		);
 	}
