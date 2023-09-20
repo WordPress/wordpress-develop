@@ -561,42 +561,6 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
-	 * Gets the slugs of plugins that the dependent requires.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param string $plugin_file The dependent plugin's filepath, relative to the plugins directory.
-	 * @return array An array of dependency plugin slugs.
-	 */
-	protected static function get_dependencies( $plugin_file ) {
-		if ( isset( self::$dependencies[ $plugin_file ] ) ) {
-			return self::$dependencies[ $plugin_file ];
-		}
-
-		return array();
-	}
-
-	/**
-	 * Gets filepaths of plugins that require the dependency.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param string $slug The dependency's slug.
-	 * @return array An array of dependent plugin filepaths, relative to the plugins directory.
-	 */
-	protected static function get_dependents( $slug ) {
-		$dependents = array();
-
-		foreach ( self::$dependencies as $dependent => $dependencies ) {
-			if ( in_array( $slug, $dependencies, true ) ) {
-				$dependents[] = $dependent;
-			}
-		}
-
-		return $dependents;
-	}
-
-	/**
 	 * Gets plugin filepaths for active plugins that depend on the dependency.
 	 *
 	 * Recurses for each dependent that is also a dependency.
