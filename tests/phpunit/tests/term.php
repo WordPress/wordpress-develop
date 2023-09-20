@@ -315,14 +315,14 @@ class Tests_Term extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_get_term_filter
 	 *
-	 * @param string $filter Term to filter.
+	 * @param string $filter How to sanitize term fields.
 	 */
-	public function test_get_term_filter( $filter ) {
+	public function test_get_term_should_set_term_filter_property_to_filter_argument( $filter ) {
 		$cat_id1 = self::factory()->category->create();
 
 		$term = get_term( $cat_id1, '', OBJECT, $filter );
 
-		$this->assertSame( $filter, $term->filter, 'Sanitize should match' );
+		$this->assertSame( $filter, $term->filter, "The term's 'filter' property should be set to '$filter'." );
 	}
 
 	/**
@@ -330,7 +330,7 @@ class Tests_Term extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_get_term_filter
 	 *
-	 * @param string $filter Term to filter.
+	 * @param string $filter How to sanitize term fields.
 	 */
 	public function test_get_term_filtered( $filter ) {
 		$cat_id1 = self::factory()->category->create();
@@ -344,7 +344,7 @@ class Tests_Term extends WP_UnitTestCase {
 
 		$term = get_term( $cat_id1, '', OBJECT, $filter );
 
-		$this->assertSame( $filter, $term->filter, 'Sanitize should match' );
+		$this->assertSame( $filter, $term->filter, "The term's 'filter' property should be set to '$filter'." );
 		$this->assertSame( $term, $cat, 'The returned term should match the filtered term' );
 	}
 
