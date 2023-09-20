@@ -30,47 +30,28 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 		'dependency_slugs'      => array(),
 		'dependent_slugs'       => array(),
 		'dependency_api_data'   => array(),
+		'dependency_filepaths'  => array(),
 	);
 
 	/**
-	 * Stores the plugins directory.
-	 *
-	 * @var string
-	 */
-	protected static $plugins_dir;
-
-	/**
-	 * Sets up the WP_Plugin_Dependencies instance and plugins directory before any tests run.
+	 * Sets up the WP_Plugin_Dependencies instance before any tests run.
 	 */
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
 		require_once ABSPATH . WPINC . '/class-wp-plugin-dependencies.php';
-
-		self::$instance    = new WP_Plugin_Dependencies();
-		self::$plugins_dir = WP_PLUGIN_DIR . '/wp_plugin_dependencies_plugin';
-		@mkdir( self::$plugins_dir );
-	}
-
-	/**
-	 * Removes the plugins directory after all tests run.
-	 */
-	public static function tear_down_after_class() {
-		array_map( 'unlink', array_filter( (array) glob( self::$plugins_dir . '/*' ) ) );
-		rmdir( self::$plugins_dir );
-
-		parent::tear_down_after_class();
+		self::$instance = new WP_Plugin_Dependencies();
 	}
 
 	/**
 	 * Resets all static properties to a default value after each test.
 	 */
-	public function tear_down() {
+	public function set_up() {
+		parent::set_up();
+
 		foreach ( self::$static_properties as $name => $default_value ) {
 			$this->set_property_value( $name, $default_value );
 		}
-
-		parent::tear_down();
 	}
 
 	/**
