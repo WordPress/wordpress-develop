@@ -313,7 +313,10 @@ class WP_Plugin_Dependencies {
 			);
 		} else {
 			// More dependencies to install.
-			$installed_slugs = array_map( 'dirname', array_keys( self::$plugins ) );
+			$installed_slugs = array();
+			foreach ( array_keys( self::$plugins ) as $plugin ) {
+				$installed_slugs[] = str_contains( $plugin, '/' ) ? dirname( $plugin ) : $plugin;
+			}
 			$intersect       = array_intersect( self::$dependency_slugs, $installed_slugs );
 			asort( $intersect );
 			if ( $intersect !== self::$dependency_slugs ) {
