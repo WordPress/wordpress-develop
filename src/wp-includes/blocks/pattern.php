@@ -41,7 +41,17 @@ function render_block_core_pattern( $attributes ) {
 	}
 
 	$pattern = $registry->get_registered( $slug );
-	return do_blocks( $pattern['content'] );
+	$content = _inject_theme_attribute_in_block_template_content( $pattern['content'] );
+
+	// This can be removed when the minimum supported WordPress is >= 6.4.
+	if ( defined( 'IS_GUTENBERG_PLUGIN' ) && IS_GUTENBERG_PLUGIN ) {
+		// TODO: In the long run, we'd likely want to have a filter in the `WP_Block_Patterns_Registry` class
+		// instead to allow us plugging in code like this.
+		$blocks  = parse_blocks( $content );
+		$content = gutenberg_serialize_blocks( $blocks );
+	}
+
+	return do_blocks( $content );
 }
 
 add_action( 'init', 'register_block_core_pattern' );
