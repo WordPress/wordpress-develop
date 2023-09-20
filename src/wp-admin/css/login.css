@@ -53,8 +53,15 @@ p {
 	word-wrap: break-word;
 }
 
-.login .success {
+/* Match border colors from common.css */
+
+.login .success,
+.login .notice-success {
 	border-left-color: #00a32a;
+}
+
+.login .notice-warning {
+	border-left-color: #dba617;
 }
 
 .login .notice-error {
