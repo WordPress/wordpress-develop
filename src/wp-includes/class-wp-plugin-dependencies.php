@@ -479,13 +479,10 @@ class WP_Plugin_Dependencies {
 			$dependency_slugs              = self::sanitize_dependency_slugs( $header['RequiresPlugins'] );
 			self::$dependencies[ $plugin ] = $dependency_slugs;
 			self::$dependency_slugs        = array_merge( self::$dependency_slugs, $dependency_slugs );
-		}
 
-		$dependent_keys = array();
-		foreach ( array_keys( self::$dependencies ) as $dependency ) {
-			$dependent_keys[] = str_contains( $dependency, '/' ) ? dirname( $dependency ) : $dependency;
+			$dependent_slug                           = str_contains( $plugin, '/' ) ? dirname( $plugin ) : $plugin;
+			self::$dependent_slugs[ $dependent_slug ] = $plugin;
 		}
-		self::$dependent_slugs  = array_combine( $dependent_keys, array_map( 'dirname', $dependent_keys ) );
 		self::$dependency_slugs = array_unique( self::$dependency_slugs );
 	}
 
