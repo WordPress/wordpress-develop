@@ -573,7 +573,7 @@ class WP_Plugin_Dependencies {
 	 */
 	protected static function get_active_dependents_in_dependency_tree( $plugin_file ) {
 		$all_dependents = array();
-		$slug           = str_contains( $plugin_file, '/' ) ? basename( dirname( $plugin_file ) ) : $plugin_file;
+		$slug           = str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : $plugin_file;
 
 		// Single file plugin.
 		if ( '.' === $slug ) {
