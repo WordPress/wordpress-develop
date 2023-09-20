@@ -1037,7 +1037,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				},
 				'/fantasy-dir/block-theme',
 			),
-			'with theme_root filter'           => array(
+			'with theme_root filter'         => array(
 				'block-theme',
 				'theme_root',
 				static function () {
