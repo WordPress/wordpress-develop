@@ -317,7 +317,7 @@ class WP_Plugin_Dependencies {
 			foreach ( array_keys( self::$plugins ) as $plugin ) {
 				$installed_slugs[] = str_contains( $plugin, '/' ) ? dirname( $plugin ) : $plugin;
 			}
-			$intersect       = array_intersect( self::$dependency_slugs, $installed_slugs );
+			$intersect = array_intersect( self::$dependency_slugs, $installed_slugs );
 			asort( $intersect );
 			if ( $intersect !== self::$dependency_slugs ) {
 				wp_admin_notice(
@@ -483,7 +483,7 @@ class WP_Plugin_Dependencies {
 
 		$dependent_keys = array();
 		foreach ( array_keys( self::$dependencies ) as $dependency ) {
-			$dependent_keys[] = str_contains( $dependency , '/' ) ? dirname( $dependency ) : $dependency;
+			$dependent_keys[] = str_contains( $dependency, '/' ) ? dirname( $dependency ) : $dependency;
 		}
 		self::$dependent_slugs  = array_combine( $dependent_keys, array_map( 'dirname', $dependent_keys ) );
 		self::$dependency_slugs = array_unique( self::$dependency_slugs );
@@ -771,7 +771,7 @@ class WP_Plugin_Dependencies {
 			self::$plugin_dirnames_cache = self::$plugins;
 
 			foreach ( array_keys( self::$plugins ) as $plugin ) {
-				$slug = str_contains( $plugin, '/' ) ? dirname( $plugin ) : $plugin;
+				$slug                           = str_contains( $plugin, '/' ) ? dirname( $plugin ) : $plugin;
 				self::$plugin_dirnames[ $slug ] = $plugin;
 			}
 		}
