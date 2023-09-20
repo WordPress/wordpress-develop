@@ -495,6 +495,33 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( false, 0, true ), // Should update.
 			array( false, 0.0, true ), // Should update.
 			array( false, false ),
+
+			/*
+			 * Non scalar values.
+			 * Loosely equal non-scalar values should almost always result in an update.
+			 */
+			array( false, array(), true ),
+			array( 'false', array(), true ),
+			array( '', array(), true ),
+			array( 0, array(), true ),
+			array( '0', array(), true ),
+			array( false, null ), // Does not update.
+			array( 'false', null, true ),
+			array( '', null ), // Does not update.
+			array( 0, null, true ),
+			array( '0', null, true ),
+			array( array(), false, true ),
+			array( array(), 'false', true ),
+			array( array(), '', true ),
+			array( array(), 0, true ),
+			array( array(), '0', true ),
+			array( array(), null, true ),
+			array( null, false ), // Does not update.
+			array( null, 'false', true ),
+			array( null, '' ), // Does not update.
+			array( null, 0, true ),
+			array( null, '0', true ),
+			array( null, array(), true ),
 		);
 	}
 }
