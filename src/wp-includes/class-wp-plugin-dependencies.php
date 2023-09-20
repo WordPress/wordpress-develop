@@ -188,6 +188,23 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
+	 * Gets a dependent plugin's filepath.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $slug  The dependent plugin's slug.
+	 * @return string|false The dependent plugin's filepath, relative to the plugins directory,
+	 *                      or false if the plugin has no dependencies.
+	 */
+	public static function get_dependent_filepath( $slug ) {
+		if ( ! isset( self::$dependent_slugs[ $slug ] ) ) {
+			return false;
+		}
+
+		return self::$dependent_slugs[ $slug ];
+	}
+
+	/**
 	 * Determines whether the plugin has unmet dependencies.
 	 *
 	 * @since 6.4.0
