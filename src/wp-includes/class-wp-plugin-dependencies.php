@@ -575,11 +575,6 @@ class WP_Plugin_Dependencies {
 		$all_dependents = array();
 		$slug           = str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : $plugin_file;
 
-		// Single file plugin.
-		if ( '.' === $slug ) {
-			$slug = basename( $plugin_file );
-		}
-
 		$dependents = self::get_dependents( $slug );
 
 		if ( empty( $dependents ) ) {
