@@ -373,52 +373,57 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * Ensure the database is getting updated when type changes, but not otherwise.
 	 *
 	 * @ticket 22192
-	 * @group test
 	 *
-	 * @covers ::add_option
+	 * @covers ::update_option
 	 *
 	 * @dataProvider data_update_option_type_juggling
 	 */
-	public function test_update_loosey_options( $old_value, $new_value ) {
+	public function test_update_loosey_options( $old_value, $new_value, $update = false ) {
 		add_option( 'foo', $old_value );
 
 		// Comparison will happen against value cached during add_option() above.
 		$updated = update_option( 'foo', $new_value );
 
-		$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+		if ( $update ) {
+			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
+		} else {
+			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+		}
 	}
 
 	/**
 	 * Ensure the database is getting updated when type changes, but not otherwise.
 	 *
 	 * @ticket 22192
-	 * @group test
 	 *
-	 * @covers ::add_option
+	 * @covers ::update_option
 	 *
 	 * @dataProvider data_update_option_type_juggling
 	 */
-	public function test_update_loosey_options_from_db( $old_value, $new_value ) {
+	public function test_update_loosey_options_from_db( $old_value, $new_value, $update = false ) {
 		add_option( 'foo', $old_value );
 
 		// Delete cache.
 		wp_cache_delete( 'alloptions', 'options' );
 		$updated = update_option( 'foo', $new_value );
 
-		$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+		if ( $update ) {
+			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
+		} else {
+			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+		}
 	}
 
 	/**
 	 * Ensure the database is getting updated when type changes, but not otherwise.
 	 *
 	 * @ticket 22192
-	 * @group test
 	 *
-	 * @covers ::add_option
+	 * @covers ::update_option
 	 *
 	 * @dataProvider data_update_option_type_juggling
 	 */
-	public function test_update_loosey_options_from_refreshed_cache( $old_value, $new_value ) {
+	public function test_update_loosey_options_from_refreshed_cache( $old_value, $new_value, $update = false ) {
 		add_option( 'foo', $old_value );
 
 		// Delete and refresh cache from DB.
@@ -427,7 +432,11 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$updated = update_option( 'foo', $new_value );
 
-		$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+		if ( $update ) {
+			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
+		} else {
+			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+		}
 	}
 
 
@@ -438,7 +447,10 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 */
 	public function data_update_option_type_juggling() {
 		return array(
-			// Truthy.
+			/*
+			 * Truthy values.
+			 * Loosely equal truthy scalar values should never result in a DB update.
+			 */
 			array( '1', '1' ),
 			array( '1', 1 ),
 			array( '1', 1.0 ),
@@ -456,29 +468,32 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( true, 1.0 ),
 			array( true, true ),
 
-			// Falsey.
+			/*
+			 * Falsey values.
+			 * Loosely equal falsey scalar values only sometimes result in a DB update.
+			 */
 			array( '0', '0' ),
 			array( '0', 0 ),
 			array( '0', 0.0 ),
-			array( '0', false ),
+			array( '0', false, true ), // Should update.
 			array( '', '' ),
-			array( '', 0 ),
-			array( '', 0.0 ),
+			array( '', 0, true ), // Should update.
+			array( '', 0.0, true ), // Should update.
 			array( '', false ),
 			array( 0, '0' ),
-			array( 0, '' ),
+			array( 0, '', true ), // Should update.
 			array( 0, 0 ),
 			array( 0, 0.0 ),
-			array( 0, false ),
+			array( 0, false, true ), // Should update.
 			array( 0.0, '0' ),
-			array( 0.0, '' ),
+			array( 0.0, '', true ), // Should update.
 			array( 0.0, 0 ),
 			array( 0.0, 0.0 ),
-			array( 0.0, false ),
-			array( false, '0' ),
+			array( 0.0, false, true ), // Should update.
+			array( false, '0', true ), // Should update.
 			array( false, '' ),
-			array( false, 0 ),
-			array( false, 0.0 ),
+			array( false, 0, true ), // Should update.
+			array( false, 0.0, true ), // Should update.
 			array( false, false ),
 		);
 	}
