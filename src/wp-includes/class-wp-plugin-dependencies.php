@@ -291,6 +291,10 @@ class WP_Plugin_Dependencies {
 			self::get_dependency_filepaths();
 		}
 
+		if ( ! isset( self::$dependency_filepaths[ $slug ] ) ) {
+			return false;
+		}
+
 		return self::$dependency_filepaths[ $slug ];
 	}
 
