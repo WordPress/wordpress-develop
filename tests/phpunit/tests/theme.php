@@ -938,6 +938,126 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that get_stylesheet_directory() behaves correctly with filters.
+	 *
+	 * @ticket 18298
+	 * @dataProvider data_get_stylesheet_directory_with_filter
+	 *
+	 * @covers ::get_stylesheet_directory
+	 *
+	 * @param string   $theme     Theme slug / directory name.
+	 * @param string   $hook_name Filter hook name.
+	 * @param callable $callback  Filter callback.
+	 * @param string   $expected  Expected stylesheet directory with the filter active.
+	 */
+	public function test_get_stylesheet_directory_with_filter( $theme, $hook_name, $callback, $expected ) {
+		switch_theme( $theme );
+
+		// Add filter, then call get_stylesheet_directory() to compute value.
+		add_filter( $hook_name, $callback );
+		$this->assertSame( $expected, get_stylesheet_directory(), 'Stylesheet directory returned incorrect result not considering filters' );
+
+		// Remove filter again, then ensure result is recalculated and not the same as before.
+		remove_filter( $hook_name, $callback );
+		$this->assertNotSame( $expected, get_stylesheet_directory(), 'Stylesheet directory returned previous value even though filters were removed' );
+	}
+
+	/**
+	 * Data provider for `test_get_stylesheet_directory_with_filter()`.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_stylesheet_directory_with_filter() {
+		return array(
+			'with stylesheet_directory filter' => array(
+				'block-theme',
+				'stylesheet_directory',
+				static function ( $dir ) {
+					return str_replace( realpath( DIR_TESTDATA ) . '/themedir1', '/fantasy-dir', $dir );
+				},
+				'/fantasy-dir/block-theme',
+			),
+			'with theme_root filter'           => array(
+				'block-theme',
+				'theme_root',
+				static function () {
+					return '/fantasy-dir';
+				},
+				'/fantasy-dir/block-theme',
+			),
+			'with stylesheet filter'           => array(
+				'block-theme',
+				'stylesheet',
+				static function () {
+					return 'another-theme';
+				},
+				// Because the theme does not exist, `get_theme_root()` returns the default themes directory.
+				WP_CONTENT_DIR . '/themes/another-theme',
+			),
+		);
+	}
+
+	/**
+	 * Tests that get_template_directory() behaves correctly with filters.
+	 *
+	 * @ticket 18298
+	 * @dataProvider data_get_template_directory_with_filter
+	 *
+	 * @covers ::get_template_directory
+	 *
+	 * @param string   $theme     Theme slug / directory name.
+	 * @param string   $hook_name Filter hook name.
+	 * @param callable $callback  Filter callback.
+	 * @param string   $expected  Expected template directory with the filter active.
+	 */
+	public function test_get_template_directory_with_filter( $theme, $hook_name, $callback, $expected ) {
+		switch_theme( $theme );
+
+		// Add filter, then call get_template_directory() to compute value.
+		add_filter( $hook_name, $callback );
+		$this->assertSame( $expected, get_template_directory(), 'Template directory returned incorrect result not considering filters' );
+
+		// Remove filter again, then ensure result is recalculated and not the same as before.
+		remove_filter( $hook_name, $callback );
+		$this->assertNotSame( $expected, get_template_directory(), 'Template directory returned previous value even though filters were removed' );
+	}
+
+	/**
+	 * Data provider for `test_get_template_directory_with_filter()`.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_template_directory_with_filter() {
+		return array(
+			'with template_directory filter' => array(
+				'block-theme',
+				'template_directory',
+				static function ( $dir ) {
+					return str_replace( realpath( DIR_TESTDATA ) . '/themedir1', '/fantasy-dir', $dir );
+				},
+				'/fantasy-dir/block-theme',
+			),
+			'with theme_root filter'           => array(
+				'block-theme',
+				'theme_root',
+				static function () {
+					return '/fantasy-dir';
+				},
+				'/fantasy-dir/block-theme',
+			),
+			'with template filter'           => array(
+				'block-theme',
+				'template',
+				static function () {
+					return 'another-theme';
+				},
+				// Because the theme does not exist, `get_theme_root()` returns the default themes directory.
+				WP_CONTENT_DIR . '/themes/another-theme',
+			),
+		);
+	}
+
+	/**
 	 * Helper function to ensure that a block theme is available and active.
 	 */
 	private function helper_requires_block_theme() {
