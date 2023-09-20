@@ -556,7 +556,6 @@ class WpdbExposedMethodsForTesting extends wpdb {
 	public function __construct() {
 		global $wpdb;
 		$this->dbh         = $wpdb->dbh;
-		$this->use_mysqli  = $wpdb->use_mysqli;
 		$this->is_mysql    = $wpdb->is_mysql;
 		$this->ready       = true;
 		$this->field_types = $wpdb->field_types;

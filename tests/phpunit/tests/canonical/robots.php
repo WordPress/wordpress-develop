@@ -12,5 +12,4 @@ class Tests_Canonical_Robots extends WP_Canonical_UnitTestCase {
 		$this->assertCanonical( '/robots.txt', '/robots.txt' );
 		$this->assertCanonical( '/robots.txt/', '/robots.txt' );
 	}
-
 }

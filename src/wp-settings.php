@@ -340,6 +340,7 @@ require ABSPATH . WPINC . '/block-patterns.php';
 require ABSPATH . WPINC . '/class-wp-block-supports.php';
 require ABSPATH . WPINC . '/block-supports/utils.php';
 require ABSPATH . WPINC . '/block-supports/align.php';
+require ABSPATH . WPINC . '/block-supports/background.php';
 require ABSPATH . WPINC . '/block-supports/border.php';
 require ABSPATH . WPINC . '/block-supports/colors.php';
 require ABSPATH . WPINC . '/block-supports/custom-classname.php';
@@ -360,6 +361,9 @@ require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-declarations.
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-rule.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-rules-store.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-processor.php';
+require ABSPATH . WPINC . '/fonts/class-wp-font-face-resolver.php';
+require ABSPATH . WPINC . '/fonts/class-wp-font-face.php';
+require ABSPATH . WPINC . '/fonts.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 

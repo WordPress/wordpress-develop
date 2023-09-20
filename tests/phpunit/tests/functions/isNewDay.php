@@ -33,5 +33,4 @@ class Tests_Functions_IsNewDate extends WP_UnitTestCase {
 			array( '21.05.19', false, 1 ),
 		);
 	}
-
 }
