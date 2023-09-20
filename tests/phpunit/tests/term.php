@@ -312,7 +312,10 @@ class Tests_Term extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 58329
+	 *
 	 * @dataProvider data_get_term_filter
+	 *
+	 * @param string $filter Term to filter.
 	 */
 	public function test_get_term_filter( $filter ) {
 		$cat_id1 = self::factory()->category->create();
@@ -324,14 +327,17 @@ class Tests_Term extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 58329
+	 *
 	 * @dataProvider data_get_term_filter
+	 *
+	 * @param string $filter Term to filter.
 	 */
 	public function test_get_term_filtered( $filter ) {
 		$cat_id1 = self::factory()->category->create();
 		$cat     = self::factory()->category->create_and_get();
 		add_filter(
 			'get_term',
-			function() use ( $cat ) {
+			static function () use ( $cat ) {
 				return $cat;
 			}
 		);
