@@ -153,6 +153,26 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
+	 * Gets filepaths of plugins that require the dependency.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $slug The dependency's slug.
+	 * @return array An array of dependent plugin filepaths, relative to the plugins directory.
+	 */
+	public static function get_dependents( $slug ) {
+		$dependents = array();
+
+		foreach ( self::$dependencies as $dependent => $dependencies ) {
+			if ( in_array( $slug, $dependencies, true ) ) {
+				$dependents[] = $dependent;
+			}
+		}
+
+		return $dependents;
+	}
+
+	/**
 	 * Determines whether the plugin has unmet dependencies.
 	 *
 	 * @since 6.4.0
