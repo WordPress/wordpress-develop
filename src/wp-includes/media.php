@@ -5633,10 +5633,10 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param array|false  $loading_attrs False by default, or array of loading optimization attributes to short-circuit.
-	 * @param string       $tag_name      The tag name.
-	 * @param array        $attr          Array of the attributes for the tag.
-	 * @param string       $context       Context for the element for which the loading optimization attribute is requested.
+	 * @param array|false $loading_attrs False by default, or array of loading optimization attributes to short-circuit.
+	 * @param string      $tag_name      The tag name.
+	 * @param array       $attr          Array of the attributes for the tag.
+	 * @param string      $context       Context for the element for which the loading optimization attribute is requested.
 	 */
 	$loading_attrs = apply_filters( 'pre_wp_get_loading_optimization_attributes', false, $tag_name, $attr, $context );
 
