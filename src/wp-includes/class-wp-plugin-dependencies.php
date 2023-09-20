@@ -116,8 +116,8 @@ class WP_Plugin_Dependencies {
 	 * @return bool Whether the plugin has plugins that depend on it.
 	 */
 	public static function has_dependents( $plugin_file ) {
-		$dependency_paths = self::get_dependency_filepaths();
-		return in_array( $plugin_file, $dependency_paths, true );
+		$slug = str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : $plugin_file;
+		return in_array( $slug, self::$dependency_slugs, true );
 	}
 
 	/**
