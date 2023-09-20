@@ -150,8 +150,8 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	 * Determine if the block script was registered in a theme, by checking if the script path starts with either
 	 * the parent (template) or child (stylesheet) directory path.
 	 */
-	$is_parent_theme_block = str_starts_with( $script_path_norm, $template_path_norm );
-	$is_child_theme_block  = str_starts_with( $script_path_norm, $stylesheet_path_norm );
+	$is_parent_theme_block = str_starts_with( $script_path_norm, trailingslashit( $template_path_norm ) );
+	$is_child_theme_block  = str_starts_with( $script_path_norm, trailingslashit( $stylesheet_path_norm ) );
 	$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
 
 	$script_uri = '';
@@ -270,8 +270,8 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 
 		// Determine if the block style was registered in a theme, by checking if the script path starts with either
 		// the parent (template) or child (stylesheet) directory path.
-		$is_parent_theme_block = str_starts_with( $style_path_norm, $template_path_norm );
-		$is_child_theme_block  = str_starts_with( $style_path_norm, $stylesheet_path_norm );
+		$is_parent_theme_block = str_starts_with( $style_path_norm, trailingslashit( $template_path_norm ) );
+		$is_child_theme_block  = str_starts_with( $style_path_norm, trailingslashit( $stylesheet_path_norm ) );
 		$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
 
 		if ( $is_core_block ) {
@@ -342,6 +342,7 @@ function get_block_metadata_i18n_schema() {
  * @since 5.9.0 Added support for `variations` and `viewScript` fields.
  * @since 6.1.0 Added support for `render` field.
  * @since 6.3.0 Added `selectors` field.
+ * @since 6.4.0 Added support for `blockHooks` field.
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
@@ -513,6 +514,39 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		}
 	}
 
+	if ( ! empty( $metadata['blockHooks'] ) ) {
+		/**
+		 * Map camelCased position string (from block.json) to snake_cased block type position.
+		 *
+		 * @var array
+		 */
+		$position_mappings = array(
+			'before'     => 'before',
+			'after'      => 'after',
+			'firstChild' => 'first_child',
+			'lastChild'  => 'last_child',
+		);
+
+		$settings['block_hooks'] = array();
+		foreach ( $metadata['blockHooks'] as $anchor_block_name => $position ) {
+			// Avoid infinite recursion (hooking to itself).
+			if ( $metadata['name'] === $anchor_block_name ) {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'Cannot hook block to itself.' ),
+					'6.4.0'
+				);
+				continue;
+			}
+
+			if ( ! isset( $position_mappings[ $position ] ) ) {
+				continue;
+			}
+
+			$settings['block_hooks'][ $anchor_block_name ] = $position_mappings[ $position ];
+		}
+	}
+
 	if ( ! empty( $metadata['render'] ) ) {
 		$template_path = wp_normalize_path(
 			realpath(
@@ -532,7 +566,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			 *
 			 * @return string Returns the block content.
 			 */
-			$settings['render_callback'] = static function( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 				ob_start();
 				require $template_path;
 				return ob_get_clean();
@@ -706,6 +740,105 @@ function get_dynamic_block_names() {
 }
 
 /**
+ * Retrieves block types (and positions) hooked into the given block.
+ *
+ * @since 6.4.0
+ *
+ * @param string $name Block type name including namespace.
+ * @return array Associative array of `$block_type_name => $position` pairs.
+ */
+function get_hooked_blocks( $name ) {
+	$block_types = WP_Block_Type_Registry::get_instance()->get_all_registered();
+	$hooked_blocks = array();
+	foreach ( $block_types as $block_type ) {
+		foreach ( $block_type->block_hooks as $anchor_block_type => $relative_position ) {
+			if ( $anchor_block_type === $name ) {
+				$hooked_blocks[ $block_type->name ] = $relative_position;
+			}
+		}
+	}
+	return $hooked_blocks;
+}
+
+/**
+ * Insert a parsed block into a parent block's inner blocks.
+ *
+ * Given a parsed block, a block index, and a chunk index, insert another parsed block
+ * into the parent block at the given indices.
+ *
+ * Note that the this mutates the parent block by inserting into the parent's `innerBlocks`
+ * array, and by updating the parent's `innerContent` array accordingly.
+ *
+ * @since 6.4.0
+ *
+ * @param array $parent_block   The parent block.
+ * @param int   $block_index    The index specifying the insertion position among the parent block's inner blocks.
+ * @param int   $chunk_index    The index specifying the insertion position among the parent block's inner content chunks.
+ * @param array $inserted_block The block to insert.
+ * @return void
+ */
+function insert_inner_block( &$parent_block, $block_index, $chunk_index, $inserted_block ) {
+	array_splice( $parent_block['innerBlocks'], $block_index, 0, array( $inserted_block ) );
+
+	/*
+	 * Since WP_Block::render() iterates over `inner_content` (rather than `inner_blocks`)
+	 * when rendering blocks, we also need to insert a value (`null`, to mark a block
+	 * location) into that array.
+	 */
+	array_splice( $parent_block['innerContent'], $chunk_index, 0, array( null ) );
+}
+
+/**
+ * Prepend a parsed block to a parent block's inner blocks.
+ *
+ * Given a parsed block, prepend another parsed block to the parent block's inner blocks.
+ *
+ * Note that the this mutates the parent block by inserting into the parent's `innerBlocks`
+ * array, and by updating the parent's `innerContent` array accordingly.
+ *
+ * @since 6.4.0
+ *
+ * @param array  $parent_block   The parent block.
+ * @param array  $inserted_block The block to insert.
+ * @return void
+ */
+function prepend_inner_block( &$parent_block, $inserted_block ) {
+	$chunk_index = 0;
+	for ( $index = 0; $index < count( $parent_block['innerContent'] ); $index++ ) {
+		if ( is_null( $parent_block['innerContent'][ $index ] ) ) {
+			$chunk_index = $index;
+			break;
+		}
+	}
+	insert_inner_block( $parent_block, 0, $chunk_index, $inserted_block );
+}
+
+/**
+ * Append a parsed block to a parent block's inner blocks.
+ *
+ * Given a parsed block, append another parsed block to the parent block's inner blocks.
+ *
+ * Note that the this mutates the parent block by inserting into the parent's `innerBlocks`
+ * array, and by updating the parent's `innerContent` array accordingly.
+ *
+ * @since 6.4.0
+ *
+ * @param array  $parent_block   The parent block.
+ * @param array  $inserted_block The block to insert.
+ * @return void
+ */
+function append_inner_block( &$parent_block, $inserted_block ) {
+	$chunk_index = count( $parent_block['innerContent'] );
+	for ( $index = count( $parent_block['innerContent'] ); $index > 0; $index-- ) {
+		if ( is_null( $parent_block['innerContent'][ $index - 1 ] ) ) {
+			$chunk_index = $index;
+			break;
+		}
+	}
+	insert_inner_block( $parent_block, count( $parent_block['innerBlocks'] ), $chunk_index, $inserted_block );
+}
+
+/**
  * Given an array of attributes, returns a string in the serialized attributes
  * format prepared for post content.
  *
@@ -831,6 +964,79 @@ function serialize_blocks( $blocks ) {
 }
 
 /**
+ * Traverses the block applying transformations using the callback provided and returns the content of a block,
+ * including comment delimiters, serializing all attributes from the given parsed block.
+ *
+ * This should be used when there is a need to modify the saved block.
+ * Prefer `serialize_block` when preparing a block to be saved to post content.
+ *
+ * @since 6.4.0
+ *
+ * @see serialize_block()
+ *
+ * @param array    $block    A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ * @param callable $callback Callback to run on each block in the tree before serialization.
+ *                           It is called with the following arguments: $block, $parent_block, $block_index, $chunk_index.
+ * @return string String of rendered HTML.
+ */
+function traverse_and_serialize_block( $block, $callback ) {
+	$block_content = '';
+	$block_index   = 0;
+
+	foreach ( $block['innerContent'] as $chunk_index => $chunk ) {
+		if ( is_string( $chunk ) ) {
+			$block_content .= $chunk;
+		} else {
+			$inner_block = call_user_func(
+				$callback,
+				$block['innerBlocks'][ $block_index ],
+				$block,
+				$block_index,
+				$chunk_index
+			);
+			$block_index++;
+			$block_content .= traverse_and_serialize_block( $inner_block, $callback );
+		}
+	}
+
+	if ( ! is_array( $block['attrs'] ) ) {
+		$block['attrs'] = array();
+	}
+
+	return get_comment_delimited_block_content(
+		$block['blockName'],
+		$block['attrs'],
+		$block_content
+	);
+}
+
+/**
+ * Traverses the blocks applying transformations using the callback provided,
+ * and returns a joined string of the aggregate serialization of the given parsed blocks.
+ *
+ * This should be used when there is a need to modify the saved blocks.
+ * Prefer `serialize_blocks` when preparing blocks to be saved to post content.
+ *
+ * @since 6.4.0
+ *
+ * @see serialize_blocks()
+ *
+ * @param array[]  $blocks   An array of representative arrays of parsed block objects. See serialize_block().
+ * @param callable $callback Callback to run on each block in the tree before serialization.
+ *                           It is called with the following arguments: $block, $parent_block, $block_index, $chunk_index.
+ * @return string String of rendered HTML.
+ */
+function traverse_and_serialize_blocks( $blocks, $callback ) {
+	$result = '';
+	foreach ( $blocks as $block ) {
+		// At the top level, there is no parent block, block index, or chunk index to pass to the callback.
+		$block = call_user_func( $callback, $block );
+		$result .= traverse_and_serialize_block( $block, $callback );
+	}
+	return $result;
+}
+
+/**
  * Filters and sanitizes block content to remove non-allowable HTML
  * from parsed block attribute values.
  *
@@ -944,6 +1150,10 @@ function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = ar
  * @return string The parsed and filtered content.
  */
 function excerpt_remove_blocks( $content ) {
+	if ( ! has_blocks( $content ) ) {
+		return $content;
+	}
+
 	$allowed_inner_blocks = array(
 		// Classic blocks have their blockName set to null.
 		null,

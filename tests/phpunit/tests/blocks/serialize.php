@@ -13,14 +13,15 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_serialize_identity_from_parsed
+	 *
+	 * @param string $original Original block markup.
 	 */
 	public function test_serialize_identity_from_parsed( $original ) {
 		$blocks = parse_blocks( $original );
 
-		$actual   = serialize_blocks( $blocks );
-		$expected = $original;
+		$actual = serialize_blocks( $blocks );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $original, $actual );
 	}
 
 	public function data_serialize_identity_from_parsed() {
@@ -55,4 +56,49 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 		$this->assertSame( 'plugin/example', strip_core_block_namespace( 'plugin/example' ) );
 	}
 
+	/**
+	 * @ticket 59327
+	 *
+	 * @covers ::traverse_and_serialize_blocks
+	 */
+	public function test_traverse_and_serialize_blocks() {
+		$markup = "<!-- wp:outer --><!-- wp:inner {\"key\":\"value\"} -->Example.<!-- /wp:inner -->\n\nExample.\n\n<!-- wp:void /--><!-- /wp:outer -->";
+		$blocks = parse_blocks( $markup );
+
+		$actual = traverse_and_serialize_blocks( $blocks, array( __CLASS__, 'add_attribute_to_inner_block' ) );
+
+		$this->assertSame(
+			"<!-- wp:outer --><!-- wp:inner {\"key\":\"value\",\"myattr\":\"myvalue\"} -->Example.<!-- /wp:inner -->\n\nExample.\n\n<!-- wp:void /--><!-- /wp:outer -->",
+			$actual
+		);
+	}
+
+	public static function add_attribute_to_inner_block( $block ) {
+		if ( 'core/inner' === $block['blockName'] ) {
+			$block['attrs']['myattr'] = 'myvalue';
+		}
+		return $block;
+	}
+
+	/**
+	 * @ticket 59327
+	 *
+	 * @covers ::traverse_and_serialize_blocks
+	 *
+	 * @dataProvider data_serialize_identity_from_parsed
+	 *
+	 * @param string $original Original block markup.
+	 */
+	public function test_traverse_and_serialize_identity_from_parsed( $original ) {
+		$blocks = parse_blocks( $original );
+
+		$actual = traverse_and_serialize_blocks(
+			$blocks,
+			function ( $block ) {
+				return $block;
+			}
+		);
+
+		$this->assertSame( $original, $actual );
+	}
 }

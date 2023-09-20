@@ -202,7 +202,6 @@ CAP;
 			)
 		);
 		$this->assertSame( 1, substr_count( $result, 'wp-caption alignnone some-class another-class' ) );
-
 	}
 
 	public function test_new_img_caption_shortcode_with_html_caption() {
@@ -553,8 +552,8 @@ https://w.org</a>',
 			$ids2_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 		}
 
-		$ids1_joined = join( ',', array_slice( $ids1, 0, 3 ) );
-		$ids2_joined = join( ',', array_slice( $ids2, 3, 3 ) );
+		$ids1_joined = implode( ',', array_slice( $ids1, 0, 3 ) );
+		$ids2_joined = implode( ',', array_slice( $ids2, 3, 3 ) );
 
 		$blob    = <<<BLOB
 [gallery ids="$ids1_joined"]
@@ -639,8 +638,8 @@ BLOB;
 			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 		}
 
-		$imgs1_joined = join( "\n", array_slice( $imgs, 0, 3 ) );
-		$imgs2_joined = join( "\n", array_slice( $imgs, 3, 3 ) );
+		$imgs1_joined = implode( "\n", array_slice( $imgs, 0, 3 ) );
+		$imgs2_joined = implode( "\n", array_slice( $imgs, 3, 3 ) );
 
 		$blob    = <<<BLOB
 <!-- wp:gallery -->
@@ -678,8 +677,8 @@ BLOB;
 
 		}
 
-		$ids1_joined = join( ',', array_slice( $ids, 0, 3 ) );
-		$ids2_joined = join( ',', array_slice( $ids, 3, 3 ) );
+		$ids1_joined = implode( ',', array_slice( $ids, 0, 3 ) );
+		$ids2_joined = implode( ',', array_slice( $ids, 3, 3 ) );
 
 		$blob    = <<<BLOB
 <!-- wp:gallery {"ids":[$ids1_joined]} -->
@@ -719,9 +718,9 @@ BLOB;
 			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 		}
 
-		$ids1_joined  = join( "\n", array_slice( $ids, 0, 3 ) );
-		$ids2_joined  = join( "\n", array_slice( $ids, 3, 3 ) );
-		$imgs2_joined = join( "\n", array_slice( $imgs, 3, 3 ) );
+		$ids1_joined  = implode( "\n", array_slice( $ids, 0, 3 ) );
+		$ids2_joined  = implode( "\n", array_slice( $ids, 3, 3 ) );
+		$imgs2_joined = implode( "\n", array_slice( $imgs, 3, 3 ) );
 
 		$blob    = <<<BLOB
 [gallery ids="$ids1_joined"]
@@ -763,7 +762,7 @@ BLOB;
 
 		}
 
-		$imgs_joined = join( "\n", $imgs );
+		$imgs_joined = implode( "\n", $imgs );
 
 		$blob    = <<<BLOB
 <!-- wp:columns -->
@@ -806,7 +805,7 @@ BLOB;
 
 		}
 
-		$imgs_joined = join( "\n", $imgs );
+		$imgs_joined = implode( "\n", $imgs );
 
 		$blob    = <<<BLOB
 <!-- wp:gallery -->
@@ -1743,7 +1742,6 @@ EOF;
 			$expected_srcset = $this->src_first( $_expected, $image_url, $size_array[0] );
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
-
 	}
 
 	/**
@@ -2359,7 +2357,7 @@ EOF;
 
 		add_filter(
 			'wp_content_img_tag',
-			static function( $filtered_image ) {
+			static function ( $filtered_image ) {
 				return "<span>$filtered_image</span>";
 			}
 		);
@@ -2383,7 +2381,7 @@ EOF;
 
 		add_filter(
 			'wp_content_img_tag',
-			static function( $filtered_image ) {
+			static function ( $filtered_image ) {
 				return "<span>$filtered_image</span>";
 			}
 		);
@@ -4022,7 +4020,7 @@ EOF;
 		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 		add_filter(
 			'wp_get_attachment_image_attributes',
-			static function( $attr ) {
+			static function ( $attr ) {
 				unset( $attr['srcset'], $attr['sizes'], $attr['decoding'] );
 				return $attr;
 			}
@@ -4156,7 +4154,7 @@ EOF;
 		// Overwrite post content with an image.
 		add_filter(
 			'the_content',
-			static function() use ( &$image_within_content ) {
+			static function () use ( &$image_within_content ) {
 				// Replace content with an image tag, i.e. the 'wp_get_attachment_image' context is used while running 'the_content' filter.
 				$image_within_content = wp_get_attachment_image( self::$large_id, 'large', false );
 				return $image_within_content;
@@ -4223,7 +4221,7 @@ EOF;
 		$result = null;
 		add_filter(
 			'the_content',
-			static function( $content ) use ( &$result, $context ) {
+			static function ( $content ) use ( &$result, $context ) {
 				$result = wp_get_loading_attr_default( $context );
 				return $content;
 			}
@@ -4303,15 +4301,6 @@ EOF;
 			// Set as main query.
 			$this->set_main_query( $query );
 
-			/*
-			 * For contexts other than for the main content, still return 'lazy' even in the loop
-			 * and in the main query, and do not increase the content media count.
-			 */
-			$this->assertSame(
-				array( 'loading' => 'lazy' ),
-				wp_get_loading_optimization_attributes( 'img', $attr, 'wp_get_attachment_image' )
-			);
-
 			// First three element are not lazy loaded. However, first image is loaded with fetchpriority high.
 			$this->assertSame(
 				array( 'fetchpriority' => 'high' ),
@@ -4339,6 +4328,184 @@ EOF;
 				wp_get_loading_optimization_attributes( 'img', $attr, $context )
 			);
 		}
+	}
+
+	/**
+	 * Tests that wp_get_loading_optimization_attributes() returns fetchpriority=high and increases the count for arbitrary contexts in the main loop.
+	 *
+	 * @ticket 58894
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @dataProvider data_wp_get_loading_optimization_attributes_arbitrary_contexts
+	 *
+	 * @param string $context Context for the element for which the loading optimization attribute is requested.
+	 */
+	public function test_wp_get_loading_optimization_attributes_with_arbitrary_contexts_in_main_loop( $context ) {
+		$attr = $this->get_width_height_for_high_priority();
+
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
+			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+			'The "loading" attribute should be "lazy" when not in the loop or the main query.'
+		);
+
+		$query = $this->get_new_wp_query_for_published_post();
+
+		// Set as main query.
+		$this->set_main_query( $query );
+
+		while ( have_posts() ) {
+			the_post();
+
+			$this->assertSame(
+				array( 'fetchpriority' => 'high' ),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+				'The "fetchpriority" attribute should be "high" while in the loop and the main query.'
+			);
+
+			// Images with a certain minimum size in the arbitrary contexts of the page are also counted towards the threshold.
+			$this->assertSame( 1, wp_increase_content_media_count( 0 ), 'The content media count should be 1.' );
+		}
+	}
+
+	/**
+	 * Tests that wp_get_loading_optimization_attributes() does not return lazy loading attributes when arbitrary contexts are used before the main query loop.
+	 *
+	 * @ticket 58894
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @dataProvider data_wp_get_loading_optimization_attributes_arbitrary_contexts
+	 *
+	 * @param string $context Context for the element for which the loading optimization attribute is requested.
+	 */
+	public function test_wp_get_loading_optimization_attributes_with_arbitrary_contexts_before_main_query_loop( $context ) {
+		$attr = $this->get_width_height_for_high_priority();
+
+		$query = $this->get_new_wp_query_for_published_post();
+
+		// Set as main query.
+		$this->set_main_query( $query );
+
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
+			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+			'The "loading" attribute should be "lazy" before the main query loop.'
+		);
+
+		while ( have_posts() ) {
+			the_post();
+
+			$this->assertSame(
+				array( 'fetchpriority' => 'high' ),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+				'The "fetchpriority" attribute should be "high" while in the loop and the main query.'
+			);
+
+			$this->assertArrayNotHasKey(
+				'loading',
+				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+				'No "loading" attribute should be present on the second image in the main query loop.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_get_loading_optimization_attributes_arbitrary_contexts() {
+		return array(
+			array( 'wp_get_attachment_image' ),
+			array( 'something_completely_arbitrary' ),
+		);
+	}
+
+	/**
+	 * Tests that wp_get_loading_optimization_attributes() returns empty array for arbitrary context.
+	 *
+	 * @ticket 58894
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_get_loading_optimization_attributes_should_return_empty_array_for_any_arbitrary_context() {
+		remove_all_filters( 'the_content' );
+
+		$result = null;
+		add_filter(
+			'the_content',
+			function( $content ) use ( &$result ) {
+				$attr   = $this->get_width_height_for_high_priority();
+				$result = wp_get_loading_optimization_attributes( 'img', $attr, 'something_completely_arbitrary' );
+				return $content;
+			}
+		);
+		apply_filters( 'the_content', '' );
+
+		$this->assertSame( array(), $result );
+	}
+
+	/**
+	 * @ticket 58894
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @dataProvider data_wp_get_loading_optimization_attributes_header_context
+	 *
+	 * @param string $context The context for the header.
+	 */
+	public function test_wp_get_loading_optimization_attributes_header_contexts( $context ) {
+		$attr = $this->get_width_height_for_high_priority();
+
+		$this->assertArrayNotHasKey(
+			'loading',
+			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+			'Images in the header context should not be lazy-loaded.'
+		);
+
+		add_filter( 'wp_loading_optimization_force_header_contexts', '__return_empty_array' );
+
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
+			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+			'Images in the header context should get lazy-loaded after the wp_loading_optimization_force_header_contexts filter.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_get_loading_optimization_attributes_header_context() {
+		return array(
+			array( 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER ),
+			array( 'get_header_image_tag' ),
+		);
+	}
+
+	/**
+	 * @ticket 58894
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_loading_optimization_force_header_contexts_filter() {
+		$attr = $this->get_width_height_for_high_priority();
+
+		add_filter(
+			'wp_loading_optimization_force_header_contexts',
+			function( $context ) {
+				$contexts['something_completely_arbitrary'] = true;
+				return $contexts;
+			}
+		);
+
+		$this->assertSame(
+			array( 'fetchpriority' => 'high' ),
+			wp_get_loading_optimization_attributes( 'img', $attr, 'something_completely_arbitrary' )
+		);
 	}
 
 	/**
@@ -4525,7 +4692,7 @@ EOF;
 		$result = null;
 		add_filter(
 			'the_content',
-			function( $content ) use ( &$result, $context ) {
+			function ( $content ) use ( &$result, $context ) {
 				$attr   = $this->get_width_height_for_high_priority();
 				$result = wp_get_loading_optimization_attributes( 'img', $attr, $context );
 				return $content;
@@ -4807,7 +4974,7 @@ EOF;
 		// Add a filter that modifies the context.
 		add_filter(
 			'wp_get_attachment_image_context',
-			static function() {
+			static function () {
 				return 'my_custom_context';
 			}
 		);
@@ -5210,7 +5377,7 @@ EOF;
 
 		add_filter(
 			'wp_min_priority_img_pixels',
-			static function( $res ) {
+			static function ( $res ) {
 				return 2500; // 50*50=2500
 			}
 		);
@@ -5283,7 +5450,7 @@ EOF;
 	private function track_last_attachment_image_context( &$last_context ) {
 		add_filter(
 			'wp_get_attachment_image_context',
-			static function( $context ) use ( &$last_context ) {
+			static function ( $context ) use ( &$last_context ) {
 				$last_context = $context;
 				return $context;
 			},
@@ -5338,7 +5505,7 @@ EOF;
 	public function force_omit_loading_attr_threshold( $threshold ) {
 		add_filter(
 			'wp_omit_loading_attr_threshold',
-			static function() use ( $threshold ) {
+			static function () use ( $threshold ) {
 				return $threshold;
 			}
 		);

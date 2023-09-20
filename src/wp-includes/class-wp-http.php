@@ -463,7 +463,7 @@ class WP_Http {
 			if ( $value instanceof WP_Http_Cookie ) {
 				$attributes                 = array_filter(
 					$value->get_attributes(),
-					static function( $attr ) {
+					static function ( $attr ) {
 						return null !== $attr;
 					}
 				);
@@ -919,7 +919,6 @@ class WP_Http {
 		} else {
 			return ! in_array( $check['host'], $accessible_hosts, true ); // Inverse logic, if it's in the array, then don't block it.
 		}
-
 	}
 
 	/**
@@ -1102,5 +1101,4 @@ class WP_Http {
 
 		return false;
 	}
-
 }

@@ -359,7 +359,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 	private function mock_remote_request( array $expected ) {
 		add_filter(
 			'pre_http_request',
-			static function() use ( $expected ) {
+			static function () use ( $expected ) {
 				$default = array(
 					'headers'  => array(),
 					'response' => array(

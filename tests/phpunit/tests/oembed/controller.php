@@ -171,7 +171,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		}
 		$this->assertIsString( $url );
 		$this->assertIsArray( $args );
-		$this->oembed_result_filter_count++;
+		++$this->oembed_result_filter_count;
 		return $data;
 	}
 
