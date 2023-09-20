@@ -3984,7 +3984,7 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 
 		/*
 		 * Temporarily unhook do_blocks() since excerpt_remove_blocks( $text )
-		 * handels block rendering needed for excerpt.
+		 * handles block rendering needed for excerpt.
 		 */
 		$filter_block_removed = remove_filter( 'the_content', 'do_blocks', 9 );
 
@@ -4522,7 +4522,7 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 		$url = str_replace( "'", '&#039;', $url );
 	}
 
-	if ( ( str_contains( $url, '[' ) ) || ( str_contains( $url, ']' ) ) ) {
+	if ( str_contains( $url, '[' ) || str_contains( $url, ']' ) ) {
 
 		$parsed = wp_parse_url( $url );
 		$front  = '';

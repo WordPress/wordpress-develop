@@ -320,6 +320,8 @@ function create_initial_post_types() {
 				'edit_posts'             => 'edit_posts',
 				'edit_published_posts'   => 'edit_published_posts',
 				'delete_published_posts' => 'delete_published_posts',
+				// Enables trashing draft posts as well.
+				'delete_posts'           => 'delete_posts',
 				'edit_others_posts'      => 'edit_others_posts',
 				'delete_others_posts'    => 'delete_others_posts',
 			),
@@ -7886,7 +7888,7 @@ function get_available_post_mime_types( $type = 'attachment' ) {
 	 * @param string[]|null $mime_types An array of MIME types. Default null.
 	 * @param string        $type       The post type name. Usually 'attachment' but can be any post type.
 	 */
-	$mime_types = apply_filters( 'get_available_post_mime_types', null, $type );
+	$mime_types = apply_filters( 'pre_get_available_post_mime_types', null, $type );
 
 	if ( ! is_array( $mime_types ) ) {
 		$mime_types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );

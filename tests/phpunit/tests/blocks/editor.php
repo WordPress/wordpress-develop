@@ -65,7 +65,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	public function filter_set_block_editor_settings_post( $editor_settings, $post ) {
 		if ( empty( $post ) ) {
-			return $allowed_block_types;
+			return $editor_settings;
 		}
 
 		return array(
@@ -446,12 +446,18 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 				'type' => 'constrained',
 			),
 		);
-		// With no block theme, expect an empty array.
-		$this->assertSame( array(), wp_get_post_content_block_attributes() );
+		// With no block theme, expect null.
+		$this->assertNull( wp_get_post_content_block_attributes() );
 
 		switch_theme( 'block-theme' );
 
 		$this->assertSame( $attributes_with_layout, wp_get_post_content_block_attributes() );
+	}
+
+	public function test_wp_get_post_content_block_attributes_no_layout() {
+		switch_theme( 'block-theme-post-content-default' );
+
+		$this->assertSame( array(), wp_get_post_content_block_attributes() );
 	}
 
 	/**
@@ -525,6 +531,19 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		);
 
 		switch_theme( WP_DEFAULT_THEME );
+	}
+
+	/**
+	 * @ticket 59358
+	 */
+	public function test_get_block_editor_settings_without_post_content_block() {
+
+		$post_editor_context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
+
+		$settings = get_block_editor_settings( array(), $post_editor_context );
+
+		$this->assertArrayNotHasKey( 'postContentAttributes', $settings );
+
 	}
 
 	/**

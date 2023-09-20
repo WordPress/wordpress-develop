@@ -161,7 +161,7 @@
 		"polyfill-library": "4.7.0",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
-		"regenerator-runtime": "0.13.11",
+		"regenerator-runtime": "0.14.0",
 		"tslib": "2.6.0",
 		"underscore": "1.13.6",
 		"whatwg-fetch": "3.6.17",
