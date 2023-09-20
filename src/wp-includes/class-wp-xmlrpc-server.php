@@ -1067,6 +1067,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			'description'      => $media_item->post_content,
 			'metadata'         => wp_get_attachment_metadata( $media_item->ID ),
 			'type'             => $media_item->post_mime_type,
+			'alt'              => get_post_meta( $media_item->ID, '_wp_attachment_image_alt', true ),
 		);
 
 		$thumbnail_src = image_downsize( $media_item->ID, $thumbnail_size );
@@ -6370,8 +6371,6 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @since 1.5.0
 	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
 	 *
@@ -6383,8 +6382,6 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @return array|IXR_Error
 	 */
 	public function mw_newMediaObject( $args ) {
-		global $wpdb;
-
 		$username = $this->escape( $args[1] );
 		$password = $this->escape( $args[2] );
 		$data     = $args[3];

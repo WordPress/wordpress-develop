@@ -1397,7 +1397,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param WP_REST_Request $request       Request object.
 		 */
 		return apply_filters( "rest_pre_insert_{$this->post_type}", $prepared_post, $request );
-
 	}
 
 	/**
@@ -1496,7 +1495,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		} else {
 			return delete_post_thumbnail( $post_id );
 		}
-
 	}
 
 	/**
@@ -1750,7 +1748,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
-		$post            = $item;
+		$post = $item;
+
 		$GLOBALS['post'] = $post;
 
 		setup_postdata( $post );

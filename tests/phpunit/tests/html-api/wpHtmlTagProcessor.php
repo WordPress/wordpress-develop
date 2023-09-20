@@ -1872,6 +1872,43 @@ HTML;
 	}
 
 	/**
+	 * @ticket 59292
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 *
+	 * @dataProvider data_next_tag_ignores_contents_of_rawtext_tags
+	 *
+	 * @param string $rawtext_element_then_target_node HTML starting with a RAWTEXT-specifying element such as STYLE,
+	 *                                                 then an element afterward containing the "target" attribute.
+	 */
+	public function test_next_tag_ignores_contents_of_rawtext_tags( $rawtext_element_then_target_node ) {
+		$processor = new WP_HTML_Tag_Processor( $rawtext_element_then_target_node );
+		$processor->next_tag();
+
+		$processor->next_tag();
+		$this->assertNotNull(
+			$processor->get_attribute( 'target' ),
+			"Expected to find element with target attribute but found {$processor->get_tag()} instead."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public function data_next_tag_ignores_contents_of_rawtext_tags() {
+		return array(
+			'IFRAME'           => array( '<iframe><section>Inside</section></iframe><section target>' ),
+			'NOEMBED'          => array( '<noembed><p></p></noembed><div target>' ),
+			'NOFRAMES'         => array( '<noframes><p>Check the rules here.</p></noframes><div target>' ),
+			'NOSCRIPT'         => array( '<noscript><span>This assumes that scripting mode is enabled.</span></noscript><p target>' ),
+			'STYLE'            => array( '<style>* { margin: 0 }</style><div target>' ),
+			'STYLE hiding DIV' => array( '<style>li::before { content: "<div non-target>" }</style><div target>' ),
+		);
+	}
+
+	/**
 	 * Ensures that the invalid comment closing syntax "--!>" properly closes a comment.
 	 *
 	 * @ticket 58007
