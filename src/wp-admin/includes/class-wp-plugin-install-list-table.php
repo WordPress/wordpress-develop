@@ -740,8 +740,10 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		$no_name_markup  = '<div class="plugin-dependency"><span class="plugin-dependency-name">%s</span></div>';
 		$has_name_markup = '<div class="plugin-dependency"><span class="plugin-dependency-name">%s</span> %s</div>';
 
+		$plugin_file       = WP_Plugin_Dependencies::get_dependent_filepath( $plugin_data['slug'] );
+		$dependencies      = WP_Plugin_Dependencies::get_dependencies( $plugin_file );
 		$dependencies_list = '';
-		foreach ( $plugin_data['requires_plugins'] as $dependency ) {
+		foreach ( $dependencies as $dependency ) {
 			if ( false === WP_Plugin_Dependencies::get_dependency_filepath( $dependency ) ) {
 				$dependencies_list .= sprintf( $no_name_markup, esc_html( $dependency ) );
 				continue;
