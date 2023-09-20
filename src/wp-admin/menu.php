@@ -63,10 +63,9 @@ $menu[4] = array( '', 'read', 'separator1', '', 'wp-menu-separator' );
 
 // $menu[5] = Posts.
 
-$menu[10]                     = array( __( 'Media' ), 'upload_files', 'upload.php', '', 'menu-top menu-icon-media', 'menu-media', 'dashicons-admin-media' );
-	$submenu['upload.php'][5] = array( __( 'Library' ), 'upload_files', 'upload.php' );
-	/* translators: Add new file. */
-	$submenu['upload.php'][10] = array( _x( 'Add New', 'file' ), 'upload_files', 'media-new.php' );
+$menu[10]                      = array( __( 'Media' ), 'upload_files', 'upload.php', '', 'menu-top menu-icon-media', 'menu-media', 'dashicons-admin-media' );
+	$submenu['upload.php'][5]  = array( __( 'Library' ), 'upload_files', 'upload.php' );
+	$submenu['upload.php'][10] = array( __( 'Add New Media File' ), 'upload_files', 'media-new.php' );
 	$i                         = 15;
 foreach ( get_taxonomies_for_attachments( 'objects' ) as $tax ) {
 	if ( ! $tax->show_ui || ! $tax->show_in_menu ) {
@@ -77,10 +76,9 @@ foreach ( get_taxonomies_for_attachments( 'objects' ) as $tax ) {
 }
 	unset( $tax, $i );
 
-$menu[15]                           = array( __( 'Links' ), 'manage_links', 'link-manager.php', '', 'menu-top menu-icon-links', 'menu-links', 'dashicons-admin-links' );
-	$submenu['link-manager.php'][5] = array( _x( 'All Links', 'admin menu' ), 'manage_links', 'link-manager.php' );
-	/* translators: Add new links. */
-	$submenu['link-manager.php'][10] = array( _x( 'Add New', 'link' ), 'manage_links', 'link-add.php' );
+$menu[15]                            = array( __( 'Links' ), 'manage_links', 'link-manager.php', '', 'menu-top menu-icon-links', 'menu-links', 'dashicons-admin-links' );
+	$submenu['link-manager.php'][5]  = array( _x( 'All Links', 'admin menu' ), 'manage_links', 'link-manager.php' );
+	$submenu['link-manager.php'][10] = array( __( 'Add New Link' ), 'manage_links', 'link-add.php' );
 	$submenu['link-manager.php'][15] = array( __( 'Link Categories' ), 'manage_categories', 'edit-tags.php?taxonomy=link_category' );
 
 // $menu[20] = Pages.
@@ -163,7 +161,7 @@ foreach ( array_merge( $builtin, $types ) as $ptype ) {
 	 */
 	$core_menu_positions = array( 59, 60, 65, 70, 75, 80, 85, 99 );
 	while ( isset( $menu[ $ptype_menu_position ] ) || in_array( $ptype_menu_position, $core_menu_positions, true ) ) {
-		$ptype_menu_position++;
+		++$ptype_menu_position;
 	}
 
 	$menu[ $ptype_menu_position ] = array( esc_attr( $ptype_obj->labels->menu_name ), $ptype_obj->cap->edit_posts, $ptype_file, '', $menu_class, $ptype_menu_id, $menu_icon );
@@ -304,8 +302,7 @@ $menu[65] = array( sprintf( __( 'Plugins %s' ), $count ), 'activate_plugins', 'p
 $submenu['plugins.php'][5] = array( __( 'Installed Plugins' ), 'activate_plugins', 'plugins.php' );
 
 if ( ! is_multisite() ) {
-	/* translators: Add new plugin. */
-	$submenu['plugins.php'][10] = array( _x( 'Add New', 'plugin' ), 'install_plugins', 'plugin-install.php' );
+	$submenu['plugins.php'][10] = array( __( 'Add New Plugin' ), 'install_plugins', 'plugin-install.php' );
 	if ( wp_is_block_theme() ) {
 		// Place the menu item below the Theme File Editor menu item.
 		add_action( 'admin_menu', '_add_plugin_file_editor_to_tools', 101 );
@@ -326,9 +323,9 @@ if ( current_user_can( 'list_users' ) ) {
 	$_wp_real_parent_file['profile.php'] = 'users.php'; // Back-compat for plugins adding submenus to profile.php.
 	$submenu['users.php'][5]             = array( __( 'All Users' ), 'list_users', 'users.php' );
 	if ( current_user_can( 'create_users' ) ) {
-		$submenu['users.php'][10] = array( _x( 'Add New', 'user' ), 'create_users', 'user-new.php' );
+		$submenu['users.php'][10] = array( __( 'Add New User' ), 'create_users', 'user-new.php' );
 	} elseif ( is_multisite() ) {
-		$submenu['users.php'][10] = array( _x( 'Add New', 'user' ), 'promote_users', 'user-new.php' );
+		$submenu['users.php'][10] = array( __( 'Add New User' ), 'promote_users', 'user-new.php' );
 	}
 
 	$submenu['users.php'][15] = array( __( 'Profile' ), 'read', 'profile.php' );

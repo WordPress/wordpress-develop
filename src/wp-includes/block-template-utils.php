@@ -37,21 +37,15 @@ if ( ! defined( 'WP_TEMPLATE_PART_AREA_UNCATEGORIZED' ) ) {
  * }
  */
 function get_block_theme_folders( $theme_stylesheet = null ) {
-	$theme_name = null === $theme_stylesheet ? get_stylesheet() : $theme_stylesheet;
-	$root_dir   = get_theme_root( $theme_name );
-	$theme_dir  = "$root_dir/$theme_name";
-
-	if ( file_exists( $theme_dir . '/block-templates' ) || file_exists( $theme_dir . '/block-template-parts' ) ) {
+	$theme = wp_get_theme( (string) $theme_stylesheet );
+	if ( ! $theme->exists() ) {
+		// Return the default folders if the theme doesn't exist.
 		return array(
-			'wp_template'      => 'block-templates',
-			'wp_template_part' => 'block-template-parts',
+			'wp_template'      => 'templates',
+			'wp_template_part' => 'parts',
 		);
 	}
-
-	return array(
-		'wp_template'      => 'templates',
-		'wp_template_part' => 'parts',
-	);
+	return $theme->get_block_template_folders();
 }
 
 /**
@@ -514,6 +508,26 @@ function _inject_theme_attribute_in_block_template_content( $template_content ) 
 }
 
 /**
+ * Injects the active theme's stylesheet as a `theme` attribute
+ * into a given template part block.
+ *
+ * @since 6.4.0
+ * @access private
+ *
+ * @param array $block a parsed block.
+ * @return array Updated block.
+ */
+function _inject_theme_attribute_in_template_part_block( $block ) {
+	if (
+		'core/template-part' === $block['blockName'] &&
+		! isset( $block['attrs']['theme'] )
+	) {
+		$block['attrs']['theme'] = get_stylesheet();
+	}
+	return $block;
+}
+
+/**
  * Parses a block template and removes the theme attribute from each template part.
  *
  * @since 5.9.0
@@ -565,7 +579,6 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	$template                 = new WP_Block_Template();
 	$template->id             = $theme . '//' . $template_file['slug'];
 	$template->theme          = $theme;
-	$template->content        = _inject_theme_attribute_in_block_template_content( $template_content );
 	$template->slug           = $template_file['slug'];
 	$template->source         = 'theme';
 	$template->type           = $template_type;
@@ -588,6 +601,9 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	if ( 'wp_template_part' === $template_type && isset( $template_file['area'] ) ) {
 		$template->area = $template_file['area'];
 	}
+
+	$blocks            = parse_blocks( $template_content );
+	$template->content = traverse_and_serialize_blocks( $blocks, '_inject_theme_attribute_in_template_part_block' );
 
 	return $template;
 }

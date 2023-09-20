@@ -65,10 +65,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@d30ad8b1843ace22e6698ab99bbafaa747b6bd0d # v2.24.0
+        uses: shivammathur/setup-php@4bd44f22a98a19e0950cbad5f31095157cc9621b # v2.25.4
         with:
           php-version: '7.4'
           coverage: none
@@ -85,7 +87,7 @@ jobs:
         run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> $GITHUB_OUTPUT
 
       - name: Cache PHP compatibility scan cache
-        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
         with:
           path: .cache/phpcompat.json
           key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcompat-cache-${{ hashFiles('**/composer.json', 'phpcompat.xml.dist') }}

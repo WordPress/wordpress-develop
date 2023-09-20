@@ -828,8 +828,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_post_ID' => self::$post_id,
 			)
 		);
-		$total_comments++;
-		$total_pages++;
+		++$total_comments;
+		++$total_pages;
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );
