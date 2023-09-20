@@ -2845,6 +2845,7 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 
 	// Ensure markup is XHTML compatible if not HTML5.
 	if ( ! $is_html5 ) {
+		$javascript = str_replace( ']]>', ']]]]><![CDATA[>', $javascript ); // Escape any existing CDATA section.
 		$javascript = sprintf( "/* <![CDATA[ */\n%s\n/* ]]> */", $javascript );
 	}
 
