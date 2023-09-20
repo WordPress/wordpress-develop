@@ -97,20 +97,39 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.8.0
 	 * @since 6.1.0 Added caching.
+	 * @since 6.4.0 Added persistent caching using object cache.
 	 *
 	 * @param string $file_path Path to file. Empty if no file.
+	 * @param string $cache_key Optional. Key to cache the result under. Omitting the parameter results in no caching
+	 *                          being used. Default empty string.
 	 * @return array Contents that adhere to the theme.json schema.
 	 */
-	protected static function read_json_file( $file_path ) {
+	protected static function read_json_file( $file_path, $cache_key = '' ) {
 		if ( $file_path ) {
 			if ( array_key_exists( $file_path, static::$theme_json_file_cache ) ) {
 				return static::$theme_json_file_cache[ $file_path ];
 			}
 
-			$decoded_file = wp_json_file_decode( $file_path, array( 'associative' => true ) );
-			if ( is_array( $decoded_file ) ) {
-				static::$theme_json_file_cache[ $file_path ] = $decoded_file;
-				return static::$theme_json_file_cache[ $file_path ];
+			$cache_group = 'theme_json_files';
+			if ( $cache_key ) {
+				$decoded_file = wp_cache_get( $cache_key, $cache_group );
+				if ( false !== $decoded_file ) {
+					static::$theme_json_file_cache[ $file_path ] = $decoded_file;
+					return static::$theme_json_file_cache[ $file_path ];
+				}
+			}
+
+			if ( ! isset( static::$theme_json_file_cache[ $file_path ] ) ) {
+				$decoded_file = wp_json_file_decode( $file_path, array( 'associative' => true ) );
+				if ( is_array( $decoded_file ) ) {
+					static::$theme_json_file_cache[ $file_path ] = $decoded_file;
+
+					if ( $cache_key ) {
+						wp_cache_set( $cache_key, static::$theme_json_file_cache[ $file_path ], $cache_group );
+					}
+
+					return static::$theme_json_file_cache[ $file_path ];
+				}
 			}
 		}
 
@@ -143,8 +162,29 @@ class WP_Theme_JSON_Resolver {
 	 */
 	protected static function translate( $theme_json, $domain = 'default' ) {
 		if ( null === static::$i18n_schema ) {
-			$i18n_schema         = wp_json_file_decode( __DIR__ . '/theme-i18n.json' );
-			static::$i18n_schema = null === $i18n_schema ? array() : $i18n_schema;
+			// Only use cache when not currently developing for core.
+			$can_use_cached = ! wp_is_development_mode( 'core' );
+			if ( $can_use_cached ) {
+				// Include an unmodified $wp_version.
+				require ABSPATH . WPINC . '/version.php';
+
+				$cache_group    = 'theme_json_files';
+				$cache_key      = "i18n_schema_{$wp_version}";
+
+				$i18n_schema = wp_cache_get( $cache_key, $cache_group );
+				if ( false !== $i18n_schema ) {
+					static::$i18n_schema = $i18n_schema;
+				}
+			}
+
+			if ( null === static::$i18n_schema ) {
+				$i18n_schema         = wp_json_file_decode( __DIR__ . '/theme-i18n.json' );
+				static::$i18n_schema = null === $i18n_schema ? array() : $i18n_schema;
+
+				if ( $can_use_cached ) {
+					wp_cache_set( $cache_key, static::$i18n_schema, $cache_group );
+				}
+			}
 		}
 
 		return translate_settings_using_i18n_schema( static::$i18n_schema, $theme_json, $domain );
@@ -162,7 +202,16 @@ class WP_Theme_JSON_Resolver {
 			return static::$core;
 		}
 
-		$config = static::read_json_file( __DIR__ . '/theme.json' );
+		// Only use cache when not currently developing for core.
+		$cache_key = '';
+		if ( ! wp_is_development_mode( 'core' ) ) {
+			// Include an unmodified $wp_version.
+			require ABSPATH . WPINC . '/version.php';
+
+			$cache_key = "core_{$wp_version}";
+		}
+
+		$config = static::read_json_file( __DIR__ . '/theme.json', $cache_key );
 		$config = static::translate( $config );
 
 		/**
@@ -238,14 +287,10 @@ class WP_Theme_JSON_Resolver {
 		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
 
 		if ( null === static::$theme || ! static::has_same_registered_blocks( 'theme' ) ) {
-			$wp_theme        = wp_get_theme();
-			$theme_json_file = $wp_theme->get_file_path( 'theme.json' );
-			if ( is_readable( $theme_json_file ) ) {
-				$theme_json_data = static::read_json_file( $theme_json_file );
-				$theme_json_data = static::translate( $theme_json_data, $wp_theme->get( 'TextDomain' ) );
-			} else {
-				$theme_json_data = array();
-			}
+			$wp_theme = wp_get_theme();
+
+			// Read main theme.json (which may also come from the parent theme).
+			$raw_theme_json_data = static::read_theme_theme_json_data( $wp_theme );
 
 			/**
 			 * Filters the data provided by the theme for global styles and settings.
@@ -254,17 +299,15 @@ class WP_Theme_JSON_Resolver {
 			 *
 			 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 			 */
-			$theme_json      = apply_filters( 'wp_theme_json_data_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
+			$theme_json      = apply_filters( 'wp_theme_json_data_theme', new WP_Theme_JSON_Data( $raw_theme_json_data, 'theme' ) );
 			$theme_json_data = $theme_json->get_data();
 			static::$theme   = new WP_Theme_JSON( $theme_json_data );
 
 			if ( $wp_theme->parent() ) {
-				// Get parent theme.json.
-				$parent_theme_json_file = $wp_theme->parent()->get_file_path( 'theme.json' );
-				if ( $theme_json_file !== $parent_theme_json_file && is_readable( $parent_theme_json_file ) ) {
-					$parent_theme_json_data = static::read_json_file( $parent_theme_json_file );
-					$parent_theme_json_data = static::translate( $parent_theme_json_data, $wp_theme->parent()->get( 'TextDomain' ) );
-					$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
+				// Read parent theme.json, and only merge it if successful and different from main theme.json data.
+				$raw_parent_theme_json_data = static::read_theme_theme_json_data( $wp_theme->parent() );
+				if ( $raw_parent_theme_json_data && $raw_theme_json_data !== $raw_parent_theme_json_data ) {
+					$parent_theme = new WP_Theme_JSON( $raw_parent_theme_json_data );
 
 					/*
 					 * Merge the child theme.json into the parent theme.json.
@@ -378,6 +421,46 @@ class WP_Theme_JSON_Resolver {
 
 		static::$blocks = new WP_Theme_JSON( $config, 'blocks' );
 		return static::$blocks;
+	}
+
+	/**
+	 * Returns theme.json data for the given theme.
+	 *
+	 * If the theme has a parent theme, the data may also come from the parent theme's theme.json.
+	 *
+	 * Data will be cached for the theme that the theme.json file belongs to.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param WP_Theme $wp_theme Theme instance.
+	 * @return array Raw array of data read from theme.json, or empty array if not readable.
+	 */
+	protected static function read_theme_json_data_for_theme( $wp_theme ) {
+		$theme_json_file = $wp_theme->get_file_path( 'theme.json' );
+
+		if ( ! is_readable( $theme_json_file ) ) {
+			return array();
+		}
+
+		// If the file found is actually from the parent theme, cache it for the parent theme instead.
+		if ( $wp_theme->parent() ) {
+			$parent_theme_json_file = $wp_theme->parent()->get_file_path( 'theme.json' );
+			if ( $theme_json_file === $parent_theme_json_file ) {
+				$theme_json_file = $parent_theme_json_file;
+				$wp_theme        = $wp_theme->parent();
+			}
+		}
+
+		// Only use cache when not currently developing the theme.
+		$cache_key = '';
+		if ( ! wp_is_development_mode( 'theme' ) ) {
+			$cache_key = "theme_{$wp_theme->stylesheet}_{$wp_theme->version}";
+		}
+
+		$theme_json_data = static::read_json_file( $theme_json_file, $cache_key );
+		$theme_json_data = static::translate( $theme_json_data, $wp_theme->get( 'TextDomain' ) );
+
+		return $theme_json_data;
 	}
 
 	/**
