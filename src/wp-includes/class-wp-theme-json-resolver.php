@@ -290,7 +290,7 @@ class WP_Theme_JSON_Resolver {
 			$wp_theme = wp_get_theme();
 
 			// Read main theme.json (which may also come from the parent theme).
-			$raw_theme_json_data = static::read_theme_theme_json_data( $wp_theme );
+			$raw_theme_json_data = static::read_theme_json_data_for_theme( $wp_theme );
 
 			/**
 			 * Filters the data provided by the theme for global styles and settings.
@@ -305,7 +305,7 @@ class WP_Theme_JSON_Resolver {
 
 			if ( $wp_theme->parent() ) {
 				// Read parent theme.json, and only merge it if successful and different from main theme.json data.
-				$raw_parent_theme_json_data = static::read_theme_theme_json_data( $wp_theme->parent() );
+				$raw_parent_theme_json_data = static::read_theme_json_data_for_theme( $wp_theme->parent() );
 				if ( $raw_parent_theme_json_data && $raw_theme_json_data !== $raw_parent_theme_json_data ) {
 					$parent_theme = new WP_Theme_JSON( $raw_parent_theme_json_data );
 
