@@ -5472,7 +5472,7 @@ EOF;
 		// Clean up the filter.
 		add_filter( 'pre_wp_get_loading_optimization_attributes', '__return_false' );
 
-		$this->assertSame(
+		$this->assertSameSets(
 			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'The filter did not return the default attributes.'
@@ -5481,7 +5481,7 @@ EOF;
 		// Return no loading attributes.
 		add_filter( 'pre_wp_get_loading_optimization_attributes', '__return_empty_array' );
 
-		$this->assertSame(
+		$this->assertSameSets(
 			array(),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'The filter did not clean up all attributes.'
@@ -5503,7 +5503,7 @@ EOF;
 			1
 		);
 
-		$this->assertSame(
+		$this->assertSameSets(
 			array( 'custom_attr' => 'custom_value' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'The filter did not return custom attributes.'
@@ -5518,7 +5518,7 @@ EOF;
 	public function test_wp_get_loading_optimization_attributes_filter() {
 		$attr = $this->get_width_height_for_high_priority();
 
-		$this->assertSame(
+		$this->assertSameSets(
 			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'Before the filter it will not return the loading attribute.'
@@ -5536,7 +5536,7 @@ EOF;
 			1
 		);
 
-		$this->assertSame(
+		$this->assertSameSets(
 			array( 'fetchpriority' => 'high' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'After the filter it will not return the fetchpriority attribute.'
