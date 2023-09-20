@@ -308,4 +308,46 @@ class Tests_Term extends WP_UnitTestCase {
 		$cat_id2 = self::factory()->category->create( array( 'parent' => $cat_id1 ) );
 		$this->assertWPError( $cat_id2 );
 	}
+
+
+	/**
+	 * @ticket 58329
+	 * @dataProvider data_get_term_filter
+	 */
+	public function test_get_term_filter( $filter ) {
+		$cat_id1 = self::factory()->category->create();
+
+		$term = get_term( $cat_id1, '', OBJECT, $filter );
+
+		$this->assertSame( $filter, $term->filter, 'Sanitize should match' );
+	}
+
+	/**
+	 * @ticket 58329
+	 * @dataProvider data_get_term_filter
+	 */
+	public function test_get_term_filtered( $filter ) {
+		$cat_id1 = self::factory()->category->create();
+		$cat     = self::factory()->category->create_and_get();
+		add_filter(
+			'get_term',
+			function() use ( $cat ) {
+				return $cat;
+			}
+		);
+
+		$term = get_term( $cat_id1, '', OBJECT, $filter );
+
+		$this->assertSame( $filter, $term->filter, 'Sanitize should match' );
+		$this->assertSame( $term, $cat, 'The returned term should match the filtered term' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_term_filter() {
+		return self::text_array_to_dataprovider( array( 'edit', 'db', 'display', 'attribute', 'js', 'rss', 'raw' ) );
+	}
 }
