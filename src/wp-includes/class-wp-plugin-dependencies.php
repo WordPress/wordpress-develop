@@ -191,7 +191,7 @@ class WP_Plugin_Dependencies {
 			self::$plugins = get_plugins();
 		}
 
-		$slug = str_contains( $plugin_file, '/' ) ? basename( dirname( $plugin_file ) ) : $plugin_file;
+		$slug = str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : $plugin_file;
 
 		// Single file plugin.
 		if ( '.' === $slug ) {
