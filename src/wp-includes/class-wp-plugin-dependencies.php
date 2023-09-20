@@ -771,14 +771,8 @@ class WP_Plugin_Dependencies {
 			self::$plugin_dirnames_cache = self::$plugins;
 
 			foreach ( array_keys( self::$plugins ) as $plugin ) {
-				$dirname = dirname( $plugin );
-
-				if ( '.' !== $dirname ) {
-					self::$plugin_dirnames[ $dirname ] = $plugin;
-				} else {
-					// Single file plugin.
-					self::$plugin_dirnames[ $plugin ] = $plugin;
-				}
+				$slug = str_contains( $plugin, '/' ) ? dirname( $plugin ) : $plugin;
+				self::$plugin_dirnames[ $slug ] = $plugin;
 			}
 		}
 
