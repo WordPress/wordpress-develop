@@ -971,8 +971,9 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 
 	if ( null === $autoload ) {
 		$autoload = sanitize_option_size( $option, $serialized_value );
+	} else {
+		$autoload = sanitize_autoload( $autoload );
 	}
-	$autoload = sanitize_autoload( $autoload );
 
 	/**
 	 * Fires before an option is added.
@@ -1122,7 +1123,6 @@ function delete_option( $option ) {
  * @since 6.4.0
  *
  * @param mixed $autoload The autoload value to evaluate.
- *
  * @return string The standardized autoload value: 'yes', 'no', 'default-yes', or 'default-no'.
  */
 function sanitize_autoload( $autoload ) {
@@ -1149,13 +1149,13 @@ function sanitize_autoload( $autoload ) {
  * option size defined by the 'max_option_size' filter.
  *
  * @since 6.4.0
+ * @access private
  *
- * @param string $name  The name of the option.
- * @param mixed  $value The value of the option to be checked.
- *
+ * @param string $option The name of the option.
+ * @param mixed  $value  The value of the option to be checked.
  * @return string Returns 'default-no' if the size exceeds the maximum allowed size, or 'default-yes' otherwise.
  */
-function sanitize_option_size($name, $value ) {
+function sanitize_option_size( $option, $value ) {
 	// Serialize the value and check its size against the maximum allowed option size.
 	$serialized_value = maybe_serialize( $value );
 	$size             = strlen( $serialized_value );
@@ -1166,10 +1166,10 @@ function sanitize_option_size($name, $value ) {
 	 * @since 6.4.0
 	 *
 	 * @param int    $max_option_size The option-size threshold, in bytes. Default 150000.
-	 * @param string $name            The name of the option.
+	 * @param string $option          The name of the option.
 	 * @param mixed  $value           The value of the option.
 	 */
-	$max_option_size = (int) apply_filters( 'max_option_size', 150000, $name, $value );
+	$max_option_size = (int) apply_filters( 'max_option_size', 150000, $option, $value );
 
 	if ( $size > $max_option_size ) {
 		return 'default-no';
