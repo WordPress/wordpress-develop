@@ -5449,6 +5449,10 @@ EOF;
 		add_filter(
 			'pre_wp_get_loading_optimization_attributes',
 			static function ( $loading_attrs ) {
+				if ( false === $loading_attrs ) {
+					// Initialize as an empty array.
+					$loading_attrs = array();
+				}
 				$loading_attrs['fetchpriority'] = 'high';
 
 				return $loading_attrs;
