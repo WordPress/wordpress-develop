@@ -800,7 +800,7 @@ class WP_Plugin_Dependencies {
 			 *
 			 * Convert $dependent to slug format for checking.
 			 */
-			$dependent_slug = dirname( $dependent );
+			$dependent_slug = str_contains( $dependent, '/' ) ? dirname( $dependent ) : $dependent;
 
 			$circular_dependencies = array_merge(
 				$circular_dependencies,
