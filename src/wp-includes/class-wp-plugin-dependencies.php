@@ -643,10 +643,6 @@ class WP_Plugin_Dependencies {
 
 		$dependency_filepaths = array();
 
-		if ( empty( self::$plugins ) ) {
-			return $dependency_filepaths;
-		}
-
 		$plugin_dirnames = self::get_plugin_dirnames();
 		if ( empty( $plugin_dirnames ) ) {
 			return $dependency_filepaths;
