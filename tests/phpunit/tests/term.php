@@ -312,6 +312,8 @@ class Tests_Term extends WP_UnitTestCase {
 	/**
 	 * @ticket 58329
 	 *
+	 * @covers ::get_term
+	 *
 	 */
 	public function test_get_term_sanitize_once() {
 		$cat_id1 = self::factory()->category->create();
@@ -345,6 +347,8 @@ class Tests_Term extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 58329
+	 *
+	 * @covers ::get_term
 	 *
 	 * @dataProvider data_get_term_filter
 	 *
