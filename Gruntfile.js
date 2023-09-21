@@ -1132,6 +1132,14 @@ module.exports = function(grunt) {
 							BUILD_DIR + 'wp-includes/js/dist/block-editor.js',
 						],
 						dest: BUILD_DIR + 'wp-includes/js/dist/'
+					},
+					{
+						expand: true,
+						flatten: true,
+						src: [
+							BUILD_DIR + 'wp-includes/js/dist/sync.js',
+						],
+						dest: BUILD_DIR + 'wp-includes/js/dist/'
 					}
 				]
 			}
