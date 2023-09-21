@@ -309,7 +309,6 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertWPError( $cat_id2 );
 	}
 
-
 	/**
 	 * @ticket 58329
 	 *
