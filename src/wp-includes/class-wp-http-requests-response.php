@@ -62,6 +62,7 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 	 *
 	 * @return \WpOrg\Requests\Utility\CaseInsensitiveDictionary Map of header name to header value.
 	 */
+	#[\Override]
 	public function get_headers() {
 		// Ensure headers remain case-insensitive.
 		$converted = new WpOrg\Requests\Utility\CaseInsensitiveDictionary();
@@ -84,6 +85,7 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 	 *
 	 * @param array $headers Map of header name to header value.
 	 */
+	#[\Override]
 	public function set_headers( $headers ) {
 		$this->response->headers = new WpOrg\Requests\Response\Headers( $headers );
 	}
@@ -98,6 +100,7 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 	 * @param bool   $replace Optional. Whether to replace an existing header of the same name.
 	 *                        Default true.
 	 */
+	#[\Override]
 	public function header( $key, $value, $replace = true ) {
 		if ( $replace ) {
 			unset( $this->response->headers[ $key ] );
@@ -113,6 +116,7 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 	 *
 	 * @return int The 3-digit HTTP status code.
 	 */
+	#[\Override]
 	public function get_status() {
 		return $this->response->status_code;
 	}
@@ -124,6 +128,7 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 	 *
 	 * @param int $code HTTP status.
 	 */
+	#[\Override]
 	public function set_status( $code ) {
 		$this->response->status_code = absint( $code );
 	}
@@ -135,6 +140,7 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 	 *
 	 * @return string Response data.
 	 */
+	#[\Override]
 	public function get_data() {
 		return $this->response->body;
 	}
@@ -146,6 +152,7 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 	 *
 	 * @param string $data Response data.
 	 */
+	#[\Override]
 	public function set_data( $data ) {
 		$this->response->body = $data;
 	}
