@@ -100,4 +100,3 @@ wp-tests-config.php
 
 # Visual regression test diffs
 tests/visual-regression/specs/__image_snapshots__
-.idea
