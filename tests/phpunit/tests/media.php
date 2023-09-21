@@ -4280,14 +4280,14 @@ EOF;
 		$attr = $this->get_width_height_for_high_priority();
 
 		// Return 'lazy' by default.
-		$this->assertSameSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding' => 'async',
 				'loading'  => 'lazy',
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'test' )
 		);
-		$this->assertSameSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding' => 'async',
 				'loading'  => 'lazy',
@@ -4296,7 +4296,7 @@ EOF;
 		);
 
 		// Return 'lazy' if not in the loop or the main query.
-		$this->assertSameSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding' => 'async',
 				'loading'  => 'lazy',
@@ -4310,7 +4310,7 @@ EOF;
 			the_post();
 
 			// Return 'lazy' if in the loop but not in the main query.
-			$this->assertSameSets(
+			$this->assertSameSetsWithIndex(
 				array(
 					'decoding' => 'async',
 					'loading'  => 'lazy',
@@ -4322,7 +4322,7 @@ EOF;
 			$this->set_main_query( $query );
 
 			// First three element are not lazy loaded. However, first image is loaded with fetchpriority high.
-			$this->assertSameSets(
+			$this->assertSameSetsWithIndex(
 				array(
 					'decoding'      => 'async',
 					'fetchpriority' => 'high',
@@ -4330,14 +4330,14 @@ EOF;
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				"Expected first image to not be lazy-loaded. First large image get's high fetchpriority."
 			);
-			$this->assertSameSets(
+			$this->assertSameSetsWithIndex(
 				array(
 					'decoding' => 'async',
 				),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				'Expected second image to not be lazy-loaded.'
 			);
-			$this->assertSameSets(
+			$this->assertSameSetsWithIndex(
 				array(
 					'decoding' => 'async',
 				),
@@ -4346,7 +4346,7 @@ EOF;
 			);
 
 			// Return 'lazy' if in the loop and in the main query for any subsequent elements.
-			$this->assertSameSets(
+			$this->assertSameSetsWithIndex(
 				array(
 					'decoding' => 'async',
 					'loading'  => 'lazy',
@@ -4355,7 +4355,7 @@ EOF;
 			);
 
 			// Yes, for all subsequent elements.
-			$this->assertSameSets(
+			$this->assertSameSetsWithIndex(
 				array(
 					'decoding' => 'async',
 					'loading'  => 'lazy',
@@ -4379,7 +4379,7 @@ EOF;
 	public function test_wp_get_loading_optimization_attributes_with_arbitrary_contexts_in_main_loop( $context ) {
 		$attr = $this->get_width_height_for_high_priority();
 
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding' => 'async',
 				'loading'  => 'lazy',
@@ -4396,7 +4396,7 @@ EOF;
 		while ( have_posts() ) {
 			the_post();
 
-			$this->assertSame(
+			$this->assertSameSetsWithIndex(
 				array(
 					'decoding'      => 'async',
 					'fetchpriority' => 'high',
@@ -4429,7 +4429,7 @@ EOF;
 		// Set as main query.
 		$this->set_main_query( $query );
 
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding' => 'async',
 				'loading'  => 'lazy',
@@ -4441,7 +4441,7 @@ EOF;
 		while ( have_posts() ) {
 			the_post();
 
-			$this->assertSame(
+			$this->assertSameSetsWithIndex(
 				array(
 					'decoding'      => 'async',
 					'fetchpriority' => 'high',
@@ -4514,7 +4514,7 @@ EOF;
 
 		add_filter( 'wp_loading_optimization_force_header_contexts', '__return_empty_array' );
 
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding' => 'async',
 				'loading'  => 'lazy',
@@ -4552,7 +4552,7 @@ EOF;
 			}
 		);
 
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding'      => 'async',
 				'fetchpriority' => 'high',
@@ -4584,7 +4584,7 @@ EOF;
 		$attr = $this->get_width_height_for_high_priority();
 
 		// Lazy if not main query.
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding' => 'async',
 				'loading'  => 'lazy',
@@ -4615,7 +4615,7 @@ EOF;
 		$attr = $this->get_width_height_for_high_priority();
 
 		// Lazy if header not called.
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding' => 'async',
 				'loading'  => 'lazy',
@@ -4646,7 +4646,7 @@ EOF;
 		$attr = $this->get_width_height_for_high_priority();
 
 		// First image is loaded with high fetchpriority.
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding'      => 'async',
 				'fetchpriority' => 'high',
@@ -4682,7 +4682,7 @@ EOF;
 		}
 
 		$attr = $this->get_width_height_for_high_priority();
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding' => 'async',
 				'loading'  => 'lazy',
@@ -4717,7 +4717,7 @@ EOF;
 		$attr = $this->get_width_height_for_high_priority();
 
 		// Load lazy if the there is no loop and footer was called.
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding' => 'async',
 				'loading'  => 'lazy',
@@ -4741,7 +4741,7 @@ EOF;
 	 */
 	public function test_wp_get_loading_optimization_attributes_should_return_lazy_for_special_contexts_outside_of_the_content( $context ) {
 		$attr = $this->get_width_height_for_high_priority();
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding' => 'async',
 				'loading'  => 'lazy',
@@ -5191,7 +5191,7 @@ EOF;
 		$attr = $this->get_width_height_for_high_priority();
 
 		// Skip logic if context is `template`.
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding'      => 'async',
 				'fetchpriority' => 'high',
@@ -5234,7 +5234,7 @@ EOF;
 		$attr['loading'] = 'eager';
 
 		// Check fetchpriority high logic if loading attribute is present.
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding'      => 'async',
 				'fetchpriority' => 'high',
@@ -5276,7 +5276,7 @@ EOF;
 		$setup();
 
 		// The first image processed in a shortcode should have fetchpriority set to high.
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			$expected,
 			wp_get_loading_optimization_attributes( 'img', $attr, 'do_shortcode' ),
 			$message
@@ -5563,7 +5563,7 @@ EOF;
 
 		$attr = $this->get_width_height_for_high_priority();
 
-		$this->assertSameSets(
+		$this->assertSameSetsWithIndex(
 			array( 'fetchpriority' => 'high' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'The filter did not return early fetchpriority attribute'
@@ -5572,7 +5572,7 @@ EOF;
 		// Clean up the filter.
 		add_filter( 'pre_wp_get_loading_optimization_attributes', '__return_false' );
 
-		$this->assertSameSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding' => 'async',
 				'loading'  => 'lazy',
@@ -5584,7 +5584,7 @@ EOF;
 		// Return no loading attributes.
 		add_filter( 'pre_wp_get_loading_optimization_attributes', '__return_empty_array' );
 
-		$this->assertSameSets(
+		$this->assertSameSetsWithIndex(
 			array(),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'The filter did not clean up all attributes.'
@@ -5606,7 +5606,7 @@ EOF;
 			1
 		);
 
-		$this->assertSameSets(
+		$this->assertSameSetsWithIndex(
 			array( 'custom_attr' => 'custom_value' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'The filter did not return custom attributes.'
@@ -5621,7 +5621,7 @@ EOF;
 	public function test_wp_get_loading_optimization_attributes_filter() {
 		$attr = $this->get_width_height_for_high_priority();
 
-		$this->assertSameSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding' => 'async',
 				'loading'  => 'lazy',
@@ -5642,7 +5642,7 @@ EOF;
 			1
 		);
 
-		$this->assertSameSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'decoding'      => 'async',
 				'fetchpriority' => 'high'
