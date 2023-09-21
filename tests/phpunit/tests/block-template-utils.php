@@ -225,7 +225,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * @covers ::_inject_theme_attribute_in_template_part_block
 	 */
 	public function test_inject_theme_attribute_in_template_part_block() {
-		$template_part_block_without_theme_attribute = array(
+		$template_part_block = array(
 			'blockName'    => 'core/template-part',
 			'attrs'        => array(
 				'slug'      => 'header',
@@ -238,7 +238,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			'innerBlocks'  => array(),
 		);
 
-		$actual   = _inject_theme_attribute_in_template_part_block( $template_part_block_without_theme_attribute );
+		_inject_theme_attribute_in_template_part_block( $template_part_block );
 		$expected = array(
 			'blockName'    => 'core/template-part',
 			'attrs'        => array(
@@ -254,7 +254,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			$expected,
-			$actual,
+			$template_part_block,
 			'`theme` attribute was not correctly injected in template part block.'
 		);
 	}
@@ -265,7 +265,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * @covers ::_inject_theme_attribute_in_template_part_block
 	 */
 	public function test_not_inject_theme_attribute_in_template_part_block_theme_attribute_exists() {
-		$template_part_block_with_existing_theme_attribute = array(
+		$template_part_block = array(
 			'blockName'    => 'core/template-part',
 			'attrs'        => array(
 				'slug'      => 'header',
@@ -279,10 +279,11 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			'innerBlocks'  => array(),
 		);
 
-		$actual = _inject_theme_attribute_in_template_part_block( $template_part_block_with_existing_theme_attribute );
+		$expected = $template_part_block;
+		_inject_theme_attribute_in_template_part_block( $template_part_block );
 		$this->assertSame(
-			$template_part_block_with_existing_theme_attribute,
-			$actual,
+			$expected,
+			$template_part_block,
 			'Existing `theme` attribute in template part block was not respected by attribute injection.'
 		);
 	}
@@ -301,10 +302,11 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			'innerBlocks'  => array(),
 		);
 
-		$actual = _inject_theme_attribute_in_template_part_block( $non_template_part_block );
+		$expected = $non_template_part_block;
+		_inject_theme_attribute_in_template_part_block( $non_template_part_block );
 		$this->assertSame(
+			$expected,
 			$non_template_part_block,
-			$actual,
 			'`theme` attribute injection modified non-template-part block.'
 		);
 	}
