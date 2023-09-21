@@ -3,11 +3,11 @@
 /**
  * Tests for `wp_get_admin_notice()`.
  *
- * @group admin
+ * @group functions.php
  *
  * @covers ::wp_get_admin_notice
  */
-class Tests_Admin_WpGetAdminNotice extends WP_UnitTestCase {
+class Tests_Functions_WpGetAdminNotice extends WP_UnitTestCase {
 
 	/**
 	 * Tests that `wp_get_admin_notice()` returns the expected admin notice markup.
