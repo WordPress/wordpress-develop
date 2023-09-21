@@ -5858,16 +5858,18 @@ function wp_spaces_regexp() {
 }
 
 /**
- * Enqueue the important emoji-related styles.
+ * Enqueues the important emoji-related styles.
  *
  * @since 6.4.0
  */
 function wp_enqueue_emoji_styles() {
+	// Back-compat for plugins that disable functionality by unhooking this action.
 	$action = is_admin() ? 'admin_print_styles' : 'wp_print_styles';
 	if ( ! has_action( $action, 'print_emoji_styles' ) ) {
 		return;
 	}
 	remove_action( $action, 'print_emoji_styles' );
+
 	$emoji_styles = /* language=CSS */ '
 	img.wp-smiley, img.emoji {
 		display: inline !important;
