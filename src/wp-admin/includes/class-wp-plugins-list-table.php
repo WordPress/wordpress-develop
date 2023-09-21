@@ -998,7 +998,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				esc_attr( $plugin_file ),
 				$checkbox_id,
 				/* translators: Hidden accessibility text. %s: Plugin name. */
-				sprintf( __( 'Select %s' ), $plugin_data['Name'] ),
+				sprintf( __( 'Select %s' ), $plugin_data['Name'] )
 			);
 		}
 
