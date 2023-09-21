@@ -115,7 +115,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-formdata'        => '4.0.10',
 		'wp-polyfill-node-contains'   => '4.8.0',
 		'wp-polyfill-url'             => '3.6.4',
-		'wp-polyfill-dom-rect'        => '4.7.0',
+		'wp-polyfill-dom-rect'        => '4.8.0',
 		'wp-polyfill-element-closest' => '3.0.2',
 		'wp-polyfill-object-fit'      => '2.3.5',
 		'wp-polyfill-inert'           => '3.1.2',
