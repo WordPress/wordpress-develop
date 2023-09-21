@@ -408,6 +408,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$updated = update_option( 'foo', $new_value );
 
+		$this->assertSame( (string) $old_value, get_option( 'foo' ), 'The value should not have been changed.' );
 		$this->assertFalse( $updated, 'update_option should not return true when values are loosely equal.' );
 		$this->assertSame( $num_queries, get_num_queries(), 'The number of database queries should not change.' );
 	}
@@ -458,11 +459,11 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 *
 	 * @covers ::update_option
 	 *
-	 * @dataProvider data_update_option_type_falsey_values
+	 * @dataProvider data_update_option_values_loosely_equal_to_false
 	 *
 	 * @param mixed $old_value One of the values to compare.
 	 * @param mixed $new_value The other value to compare.
-	 * @param int   $expected  The expected result.
+	 * @param bool  $expected  The expected result.
 	 */
 	public function test_update_option_with_falsey_values( $old_value, $new_value, $expected ) {
 		add_option( 'foo', $old_value );
@@ -470,8 +471,13 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$updated = update_option( 'foo', $new_value );
 
-		$this->assertSame( $expected, $updated, 'update_option should not match expeted value when values are loosely equal.' );
-		$this->assertSame( 1, get_num_queries() - $num_queries, 'The number of database queries should not change.' );
+		if ( $expected ) {
+			$this->assertSame( $new_value, get_option( 'foo' ), 'The value should have been changed.' );
+		} else {
+			$this->assertSame( $old_value, get_option( 'foo' ), 'The value should not have been changed.' );
+		}
+		$this->assertSame( $expected, $updated, 'update_option should have returned ' . ( $expected ? 'true' : 'false' ) );
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'There should be one additional database query to update the option.' );
 	}
 
 	/**
@@ -479,7 +485,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_update_option_type_falsey_values() {
+	public function data_update_option_values_loosely_equal_to_false() {
 		return array(
 			array( false, '0', true ),
 			array( false, 0, true ),
@@ -487,7 +493,6 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( false, array(), true ),
 			array( false, '', false ),
 			array( false, null, false ),
-			array( false, false, false ),
 		);
 	}
 }
