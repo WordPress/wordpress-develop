@@ -139,7 +139,6 @@ class WP_Themes_List_Table extends WP_List_Table {
 	/**
 	 * @param string $which
 	 */
-	#[\Override]
 	public function tablenav( $which = 'top' ) {
 		if ( $this->get_pagination_arg( 'total_pages' ) <= 1 ) {
 			return;
