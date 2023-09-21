@@ -113,7 +113,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'lodash'                      => '4.17.19',
 		'wp-polyfill-fetch'           => '3.6.17',
 		'wp-polyfill-formdata'        => '4.0.10',
-		'wp-polyfill-node-contains'   => '4.7.0',
+		'wp-polyfill-node-contains'   => '4.8.0',
 		'wp-polyfill-url'             => '3.6.4',
 		'wp-polyfill-dom-rect'        => '4.7.0',
 		'wp-polyfill-element-closest' => '3.0.2',
