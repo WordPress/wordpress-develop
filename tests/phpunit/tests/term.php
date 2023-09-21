@@ -312,6 +312,23 @@ class Tests_Term extends WP_UnitTestCase {
 	/**
 	 * @ticket 58329
 	 *
+	 */
+	public function test_get_term_sanitize_once() {
+		$cat_id1 = self::factory()->category->create();
+		$_term   = get_term( $cat_id1, '', OBJECT, 'edit' );
+
+		$filter = new MockAction();
+		add_filter( 'edit_term_slug', array( $filter, 'filter' ) );
+
+		$term = get_term( $_term, '', OBJECT, 'edit' );
+
+		$this->assertSame( 0, $filter->get_call_count(), 'This filter should not have run again' );
+		$this->assertSame( $_term, $term, 'Both terms should match' );
+	}
+
+	/**
+	 * @ticket 58329
+	 *
 	 * @dataProvider data_get_term_filter
 	 *
 	 * @param string $filter How to sanitize term fields.
