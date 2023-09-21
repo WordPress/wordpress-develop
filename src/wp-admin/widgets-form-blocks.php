@@ -78,7 +78,7 @@ do_action( 'widgets_admin_page' );
 	<div class="wrap hide-if-js widgets-editor-no-js">
 		<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
 		<?php
-		if ( file_exists( WP_PLUGIN_DIR . '/classic-widgets/classic-widgets.php' )) {
+		if ( file_exists( WP_PLUGIN_DIR . '/classic-widgets/classic-widgets.php' ) ) {
 			// If Classic Widgets is already installed, provide a link to activate the plugin.
 			$plugin_activate_url = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=classic-widgets/classic-widgets.php', 'activate-plugin_classic-widgets/classic-widgets.php' );
 			$message             = sprintf(
@@ -86,7 +86,7 @@ do_action( 'widgets_admin_page' );
 				__( 'The block widgets require JavaScript. Please enable JavaScript in your browser settings, or <a href="%s">Activate the Classic Widgets</a> plugin.' ),
 				esc_url( $plugin_activate_url )
 			);
-		  } else {
+		} else {
 			// If Classic Widgets is not installed, provide a link to install it.
 			$plugin_install_url = wp_nonce_url( self_admin_url( 'update.php?action=install-plugin&plugin=classic-widgets' ), 'install-plugin_classic-widgets' );
 			$message            = sprintf(
