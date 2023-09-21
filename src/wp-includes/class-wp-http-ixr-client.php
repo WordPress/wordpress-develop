@@ -53,6 +53,7 @@ class WP_HTTP_IXR_Client extends IXR_Client {
 	 *
 	 * @return bool
 	 */
+	#[\Override]
 	public function query( ...$args ) {
 		$method  = array_shift( $args );
 		$request = new IXR_Request( $method, $args );
