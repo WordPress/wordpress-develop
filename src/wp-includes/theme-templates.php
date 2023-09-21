@@ -155,9 +155,8 @@ function the_block_template_skip_link() {
 	wp_register_style( $handle, false );
 	wp_add_inline_style( $handle, $skip_link_styles );
 	wp_enqueue_style( $handle );
-	?>
 
-	<?php
+
 	/**
 	 * Print the skip-link script.
 	 */
