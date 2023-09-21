@@ -381,13 +381,17 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	public function test_update_loosey_options( $old_value, $new_value, $update = false ) {
 		add_option( 'foo', $old_value );
 
+		$num_queries = get_num_queries();
+
 		// Comparison will happen against value cached during add_option() above.
 		$updated = update_option( 'foo', $new_value );
 
 		if ( $update ) {
 			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
+			$this->assertSame( 1, get_num_queries() - $num_queries, 'There should be one additional database query to update the option.' );
 		} else {
 			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+			$this->assertSame( $num_queries, get_num_queries(), 'The number of database queries should not change.' );
 		}
 	}
 
@@ -403,14 +407,18 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	public function test_update_loosey_options_from_db( $old_value, $new_value, $update = false ) {
 		add_option( 'foo', $old_value );
 
+		$num_queries = get_num_queries();
+
 		// Delete cache.
 		wp_cache_delete( 'alloptions', 'options' );
 		$updated = update_option( 'foo', $new_value );
 
 		if ( $update ) {
 			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
+			$this->assertSame( 1, get_num_queries() - $num_queries, 'There should be one additional database query to update the option.' );
 		} else {
 			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+			$this->assertSame( $num_queries, get_num_queries(), 'The number of database queries should not change.' );
 		}
 	}
 
@@ -426,6 +434,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	public function test_update_loosey_options_from_refreshed_cache( $old_value, $new_value, $update = false ) {
 		add_option( 'foo', $old_value );
 
+		$num_queries = get_num_queries();
+
 		// Delete and refresh cache from DB.
 		wp_cache_delete( 'alloptions', 'options' );
 		wp_load_alloptions();
@@ -434,8 +444,10 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		if ( $update ) {
 			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
+			$this->assertSame( 1, get_num_queries() - $num_queries, 'There should be one additional database query to update the option.' );
 		} else {
 			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+			$this->assertSame( $num_queries, get_num_queries(), 'The number of database queries should not change.' );
 		}
 	}
 
