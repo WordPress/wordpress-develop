@@ -83,7 +83,7 @@ do_action( 'widgets_admin_page' );
 			$plugin_activate_url = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=classic-widgets/classic-widgets.php', 'activate-plugin_classic-widgets/classic-widgets.php' );
 			$message             = sprintf(
 				/* translators: %s: Link to activate the Classic Widgets plugin. */
-				__( 'The block widgets require JavaScript. Please enable JavaScript in your browser settings, or <a href="%s">Activate the Classic Widgets</a> plugin.' ),
+				__( 'The block widgets require JavaScript. Please enable JavaScript in your browser settings, or activate the <a href="%s">Classic Widgets plugin</a>.' ),
 				esc_url( $plugin_activate_url )
 			);
 		} else {
@@ -91,7 +91,7 @@ do_action( 'widgets_admin_page' );
 			$plugin_install_url = wp_nonce_url( self_admin_url( 'update.php?action=install-plugin&plugin=classic-widgets' ), 'install-plugin_classic-widgets' );
 			$message            = sprintf(
 				/* translators: %s: A link to install the Classic Widgets plugin. */
-				__( 'The block widgets require JavaScript. Please enable JavaScript in your browser settings, or <a href="%s">Install the Classic Widgets</a> plugin.' ),
+				__( 'The block widgets require JavaScript. Please enable JavaScript in your browser settings, or install the <a href="%s">Classic Widgets plugin</a>.' ),
 				esc_url( $plugin_install_url )
 			);
 		}
