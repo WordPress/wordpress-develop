@@ -403,6 +403,10 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'Inner P no wildcard'            => array( '<div><span><figure></p target></figure></span></div>', array( 'span', 'p' ), false ),
 			'Full specification (P)'         => array( '<div><span><figure></p target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'p' ), false ),
 			'Invalid Full specification (P)' => array( '<div><span><figure></p target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'p' ), false ),
+
+			// Test wildcard behaviors.
+			'Single wildcard element'        => array( '<figure><code><div><p><span><img target></span></p></div></code></figure>', array( '*' ), true ),
+			'Child of wildcard element'      => array( '<figure><code><div><p><span><img target></span></p></div></code></figure>', array( 'SPAN', '*' ), true ),
 		);
 	}
 

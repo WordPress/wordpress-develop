@@ -454,7 +454,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		// Start at the last crumb.
 		$crumb = end( $breadcrumbs );
 
-		if ( $this->get_tag() !== strtoupper( $crumb ) ) {
+		if ( '*' !== $crumb && $this->get_tag() !== strtoupper( $crumb ) ) {
 			return false;
 		}
 
