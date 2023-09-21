@@ -357,6 +357,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *                                     Defaults to first tag.
 	 *     @type string|null $class_name   Tag must contain this whole class name to match.
 	 *     @type string[]    $breadcrumbs  DOM sub-path at which element is found, e.g. `array( 'FIGURE', 'IMG' )`.
+	 *                                     May also contain the wildcard `*` which matches a single element, e.g. `array( 'SECTION', '*' )`.
 	 * }
 	 * @return bool Whether a tag was matched.
 	 */
@@ -436,7 +437,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param string[] $breadcrumbs list of HTML tag names representing nested structure.
+	 * @param string[] $breadcrumbs DOM sub-path at which element is found, e.g. `array( 'FIGURE', 'IMG' )`.
+	 *                              May also contain the wildcard `*` which matches a single element, e.g. `array( 'SECTION', '*' )`.
 	 * @return bool Whether the currently-matched tag is found at the given nested structure.
 	 */
 	public function matches_breadcrumbs( $breadcrumbs ) {
@@ -450,20 +452,20 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		// Start at the last crumb.
-		$crumb_at = count( $breadcrumbs ) - 1;
+		$crumb = end( $breadcrumbs );
 
-		if ( $this->get_tag() !== strtoupper( $breadcrumbs[ $crumb_at ] ) ) {
+		if ( $this->get_tag() !== strtoupper( $crumb ) ) {
 			return false;
 		}
 
 		foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
-			$crumb = strtoupper( $breadcrumbs[ $crumb_at ] );
+			$crumb = strtoupper( current( $breadcrumbs ) );
 
 			if ( '*' !== $crumb && $node->node_name !== $crumb ) {
 				return false;
 			}
 
-			if ( --$crumb_at < 0 ) {
+			if ( false === prev( $breadcrumbs ) ) {
 				return true;
 			}
 		}
