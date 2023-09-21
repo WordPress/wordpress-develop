@@ -74,15 +74,15 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 }
 
 /**
- * Get url to block assets.
+ * Get the URL to a block asset.
  *
- * @since 6.3.0
- * @param string $path Path to assert.
- * @param string $file Path to block.json file.
+ * @since 6.4.0
+ * @param string $path A normalized path to a block asset.
+ * @param string $file The path to the block.json file.
  *
- * @return string|null
+ * @return string The URL to the block asset.
  */
-function get_block_asset_uri( $path, $file ) {
+function get_block_asset_url( $path, $file ) {
 	// Path needs to be normalized to work in Windows env.
 	static $wpinc_path_norm = '';
 	if ( ! $wpinc_path_norm ) {
@@ -176,7 +176,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	}
 
 	$script_path_norm = wp_normalize_path( realpath( $path . '/' . $script_path ) );
-	$script_uri       = get_block_asset_uri( $script_path_norm, $metadata['file'] );
+	$script_uri       = get_block_asset_url( $script_path_norm, $metadata['file'] );
 
 	$script_args = array();
 	if ( 'viewScript' === $field_name ) {
@@ -267,7 +267,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 
 	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
 	$has_style_file  = '' !== $style_path_norm;
-	$style_uri       = $has_style_file ? get_block_asset_uri( $style_path_norm, $metadata['file'] ) : false;
+	$style_uri       = $has_style_file ? get_block_asset_url( $style_path_norm, $metadata['file'] ) : false;
 
 	$version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$result  = wp_register_style(
