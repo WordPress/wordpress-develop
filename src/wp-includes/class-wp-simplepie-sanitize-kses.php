@@ -31,6 +31,7 @@ class WP_SimplePie_Sanitize_KSES extends SimplePie_Sanitize {
 	 *                      URLs to absolute ones. Default empty.
 	 * @return mixed Sanitized data.
 	 */
+	#[\Override]
 	public function sanitize( $data, $type, $base = '' ) {
 		$data = trim( $data );
 		if ( $type & SIMPLEPIE_CONSTRUCT_MAYBE_HTML ) {
