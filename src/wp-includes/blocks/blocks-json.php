@@ -2221,10 +2221,10 @@
         '__experimentalRole' => 'content'
       ),
       'width' => array(
-        'type' => 'number'
+        'type' => 'string'
       ),
       'height' => array(
-        'type' => 'number'
+        'type' => 'string'
       ),
       'aspectRatio' => array(
         'type' => 'string'
@@ -4883,6 +4883,7 @@
       ),
       'html' => false
     ),
+    'viewScript' => 'file:./view.min.js',
     'editorStyle' => 'wp-block-search-editor',
     'style' => 'wp-block-search'
   ),

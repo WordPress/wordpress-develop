@@ -68,5 +68,4 @@ class Tests_Attachment_Slashes extends WP_UnitTestCase {
 		$this->assertSame( wp_unslash( self::SLASH_4 ), $post->post_content_filtered );
 		$this->assertSame( wp_unslash( self::SLASH_6 ), $post->post_excerpt );
 	}
-
 }

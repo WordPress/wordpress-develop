@@ -32,7 +32,6 @@ class Tests_Compat_arrayKeyFirst extends WP_UnitTestCase {
 				array_key_first( $arr )
 			);
 		}
-
 	}
 
 	/**

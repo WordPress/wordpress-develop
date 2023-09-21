@@ -1341,6 +1341,11 @@ EOF;
 				'css'      => 'grid-template-columns: repeat(4, unsupported(0, 1fr)',
 				'expected' => '',
 			),
+			// `writing-mode` introduced in 6.4.
+			array(
+				'css'      => 'writing-mode: vertical-rl',
+				'expected' => 'writing-mode: vertical-rl',
+			),
 		);
 	}
 

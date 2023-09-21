@@ -861,11 +861,11 @@ switch ( $action ) {
 		</form>
 
 		<p id="nav">
-			<a href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log in' ); ?></a>
+			<a class="wp-login-log-in" href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log in' ); ?></a>
 			<?php
 
 			if ( get_option( 'users_can_register' ) ) {
-				$registration_url = sprintf( '<a href="%s">%s</a>', esc_url( wp_registration_url() ), __( 'Register' ) );
+				$registration_url = sprintf( '<a class="wp-login-register" href="%s">%s</a>', esc_url( wp_registration_url() ), __( 'Register' ) );
 
 				echo esc_html( $login_link_separator );
 
@@ -1007,11 +1007,11 @@ switch ( $action ) {
 		</form>
 
 		<p id="nav">
-			<a href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log in' ); ?></a>
+			<a class="wp-login-log-in" href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log in' ); ?></a>
 			<?php
 
 			if ( get_option( 'users_can_register' ) ) {
-				$registration_url = sprintf( '<a href="%s">%s</a>', esc_url( wp_registration_url() ), __( 'Register' ) );
+				$registration_url = sprintf( '<a class="wp-login-register" href="%s">%s</a>', esc_url( wp_registration_url() ), __( 'Register' ) );
 
 				echo esc_html( $login_link_separator );
 
@@ -1112,12 +1112,12 @@ switch ( $action ) {
 		</form>
 
 		<p id="nav">
-			<a href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log in' ); ?></a>
+			<a class="wp-login-log-in" href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log in' ); ?></a>
 			<?php
 
 			echo esc_html( $login_link_separator );
 
-			$html_link = sprintf( '<a href="%s">%s</a>', esc_url( wp_lostpassword_url() ), __( 'Lost your password?' ) );
+			$html_link = sprintf( '<a class="wp-login-lost-password" href="%s">%s</a>', esc_url( wp_lostpassword_url() ), __( 'Lost your password?' ) );
 
 			/** This filter is documented in wp-login.php */
 			echo apply_filters( 'lost_password_html_link', $html_link );
@@ -1303,7 +1303,7 @@ switch ( $action ) {
 			}
 
 			// Check if it is time to add a redirect to the admin email confirmation screen.
-			if ( is_a( $user, 'WP_User' ) && $user->exists() && $user->has_cap( 'manage_options' ) ) {
+			if ( $user instanceof WP_User && $user->exists() && $user->has_cap( 'manage_options' ) ) {
 				$admin_email_lifespan = (int) get_option( 'admin_email_lifespan' );
 
 				/*
@@ -1362,7 +1362,7 @@ switch ( $action ) {
 				$errors->add( 'loggedout', __( 'You are now logged out.' ), 'message' );
 			} elseif ( isset( $_GET['registration'] ) && 'disabled' === $_GET['registration'] ) {
 				$errors->add( 'registerdisabled', __( '<strong>Error:</strong> User registration is currently not allowed.' ) );
-			} elseif ( strpos( $redirect_to, 'about.php?updated' ) ) {
+			} elseif ( str_contains( $redirect_to, 'about.php?updated' ) ) {
 				$errors->add( 'updated', __( '<strong>You have successfully updated WordPress!</strong> Please log back in to see what&#8217;s new.' ), 'message' );
 			} elseif ( WP_Recovery_Mode_Link_Service::LOGIN_ACTION_ENTERED === $action ) {
 				$errors->add( 'enter_recovery_mode', __( 'Recovery Mode Initialized. Please log in to continue.' ), 'message' );
@@ -1481,7 +1481,7 @@ switch ( $action ) {
 				<?php
 
 				if ( get_option( 'users_can_register' ) ) {
-					$registration_url = sprintf( '<a href="%s">%s</a>', esc_url( wp_registration_url() ), __( 'Register' ) );
+					$registration_url = sprintf( '<a class="wp-login-register" href="%s">%s</a>', esc_url( wp_registration_url() ), __( 'Register' ) );
 
 					/** This filter is documented in wp-includes/general-template.php */
 					echo apply_filters( 'register', $registration_url );
@@ -1489,7 +1489,7 @@ switch ( $action ) {
 					echo esc_html( $login_link_separator );
 				}
 
-				$html_link = sprintf( '<a href="%s">%s</a>', esc_url( wp_lostpassword_url() ), __( 'Lost your password?' ) );
+				$html_link = sprintf( '<a class="wp-login-lost-password" href="%s">%s</a>', esc_url( wp_lostpassword_url() ), __( 'Lost your password?' ) );
 
 				/**
 				 * Filters the link that allows the user to reset the lost password.

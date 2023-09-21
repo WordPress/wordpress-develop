@@ -641,4 +641,54 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$this->assertNotWPError( $saved );
 	}
+
+	/**
+	 * Tests that the alpha channel of PDFs is removed from PDF previews.
+	 *
+	 * Only affects systems with Ghostscript version >= 9.14.
+	 *
+	 * @ticket 39216
+	 *
+	 * @covers WP_Image_Editor_Imagick::remove_pdf_alpha_channel
+	 */
+	public function test_remove_pdf_alpha_channel_should_remove_the_alpha_channel_in_preview() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
+			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
+		}
+
+		$test_file     = DIR_TESTDATA . '/images/test-alpha.pdf';
+		$attachment_id = $this->factory->attachment->create_upload_object( $test_file );
+		$this->assertNotEmpty( $attachment_id, 'The attachment was not created before testing.' );
+
+		$attached_file = get_attached_file( $attachment_id );
+		$this->assertNotEmpty( $attached_file, 'The attached file was not returned.' );
+
+		$rgb = array(
+			'r' => true,
+			'g' => true,
+			'b' => true,
+		);
+
+		// White.
+		$expected = array(
+			'r' => 1,
+			'g' => 1,
+			'b' => 1,
+		);
+
+		$check = image_get_intermediate_size( $attachment_id, 'full' );
+		$this->assertIsArray( $check, 'The intermediate size could not be retrieved.' );
+		$this->assertArrayHasKey( 'file', $check, 'The intermediate size file was not found.' );
+
+		$check_file = path_join( dirname( $attached_file ), $check['file'] );
+		$imagick    = new Imagick( $check_file );
+		$output     = array_map(
+			static function ( $value ) {
+				return (int) round( $value );
+			},
+			array_intersect_key( $imagick->getImagePixelColor( 100, 100 )->getColor( true /* normalized */ ), $rgb )
+		);
+		$imagick->destroy();
+		$this->assertSame( $expected, $output, 'The image color of the generated thumb does not match expected opaque background.' ); // Allow for floating point equivalence.
+	}
 }

@@ -284,7 +284,6 @@ function wp_dashboard() {
 	<?php
 	wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false );
 	wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false );
-
 }
 
 //
@@ -574,9 +573,16 @@ function wp_dashboard_quick_press( $error_msg = false ) {
 
 	<form name="post" action="<?php echo esc_url( admin_url( 'post.php' ) ); ?>" method="post" id="quick-press" class="initial-form hide-if-no-js">
 
-		<?php if ( $error_msg ) : ?>
-		<div class="error"><?php echo $error_msg; ?></div>
-		<?php endif; ?>
+		<?php
+		if ( $error_msg ) {
+			wp_admin_notice(
+				$error_msg,
+				array(
+					'additional_classes' => array( 'error' ),
+				)
+			);
+		}
+		?>
 
 		<div class="input-text-wrap" id="title-wrap">
 			<label for="title">
@@ -1158,8 +1164,15 @@ function wp_dashboard_rss_output( $widget_id ) {
  * @return bool True on success, false on failure.
  */
 function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = array(), ...$args ) {
-	$loading    = '<p class="widget-loading hide-if-no-js">' . __( 'Loading&hellip;' ) . '</p><div class="hide-if-js notice notice-error inline"><p>' . __( 'This widget requires JavaScript.' ) . '</p></div>';
 	$doing_ajax = wp_doing_ajax();
+	$loading    = '<p class="widget-loading hide-if-no-js">' . __( 'Loading&hellip;' ) . '</p>';
+	$loading   .= wp_get_admin_notice(
+		__( 'This widget requires JavaScript.' ),
+		array(
+			'type'               => 'error',
+			'additional_classes' => array( 'inline', 'hide-if-js' ),
+		)
+	);
 
 	if ( empty( $check_urls ) ) {
 		$widgets = get_option( 'dashboard_widget_options' );
@@ -1341,25 +1354,19 @@ function wp_dashboard_events_news() {
  * @since 4.8.0
  */
 function wp_print_community_events_markup() {
-	?>
+	$community_events_notice  = '<p class="hide-if-js">' . ( 'This widget requires JavaScript.' ) . '</p>';
+	$community_events_notice .= '<p class="community-events-error-occurred" aria-hidden="true">' . __( 'An error occurred. Please try again.' ) . '</p>';
+	$community_events_notice .= '<p class="community-events-could-not-locate" aria-hidden="true"></p>';
 
-	<div class="community-events-errors notice notice-error inline hide-if-js">
-		<p class="hide-if-js">
-			<?php _e( 'This widget requires JavaScript.' ); ?>
-		</p>
+	wp_admin_notice(
+		$community_events_notice,
+		array(
+			'type'               => 'error',
+			'additional_classes' => array( 'community-events-errors', 'inline', 'hide-if-js' ),
+			'paragraph_wrap'     => false,
+		)
+	);
 
-		<p class="community-events-error-occurred" aria-hidden="true">
-			<?php _e( 'An error occurred. Please try again.' ); ?>
-		</p>
-
-		<p class="community-events-could-not-locate" aria-hidden="true"></p>
-	</div>
-
-	<div class="community-events-loading hide-if-no-js">
-		<?php _e( 'Loading&hellip;' ); ?>
-	</div>
-
-	<?php
 	/*
 	 * Hide the main element when the page first loads, because the content
 	 * won't be ready until wp.communityEvents.renderEventsTemplate() has run.
@@ -2098,6 +2105,7 @@ function wp_welcome_panel() {
 			<?php if ( $is_block_theme ) : ?>
 				<h3><?php _e( 'Switch up your site&#8217;s look & feel with Styles' ); ?></h3>
 				<p><?php _e( 'Tweak your site, or give it a whole new look! Get creative &#8212; how about a new color palette or font?' ); ?></p>
+				<a href="<?php echo esc_url( admin_url( '/site-editor.php?path=%2Fwp_global_styles' ) ); ?>"><?php _e( 'Edit styles' ); ?></a>
 			<?php else : ?>
 				<h3><?php _e( 'Discover a new way to build your site.' ); ?></h3>
 				<p><?php _e( 'There is a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ?></p>

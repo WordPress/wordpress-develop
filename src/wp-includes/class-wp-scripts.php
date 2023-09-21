@@ -914,7 +914,10 @@ JS;
 			return '';
 		}
 
-		// If the intended strategy is 'defer', limit the initial list of eligibles.
+		/*
+		 * If the intended strategy is 'defer', limit the initial list of eligible
+		 * strategies, since 'async' can fallback to 'defer', but not vice-versa.
+		 */
 		$initial = ( 'defer' === $intended ) ? array( 'defer' ) : null;
 
 		$eligible = $this->filter_eligible_strategies( $handle, $initial );
@@ -961,7 +964,7 @@ JS;
 			return $eligible;
 		}
 
-		$is_alias = (bool) ! $this->registered[ $handle ]->src;
+		$is_alias          = (bool) ! $this->registered[ $handle ]->src;
 		$intended_strategy = $this->get_data( $handle, 'strategy' );
 
 		// For non-alias handles, an empty intended strategy filters all strategies.
