@@ -148,6 +148,7 @@ class WP_Styles extends WP_Dependencies {
 	 *                          Default false.
 	 * @return bool True on success, false on failure.
 	 */
+	#[\Override]
 	public function do_item( $handle, $group = false ) {
 		if ( ! parent::do_item( $handle ) ) {
 			return false;
@@ -367,6 +368,7 @@ class WP_Styles extends WP_Dependencies {
 	 *                                   Default false.
 	 * @return bool True on success, false on failure.
 	 */
+	#[\Override]
 	public function all_deps( $handles, $recursion = false, $group = false ) {
 		$r = parent::all_deps( $handles, $recursion, $group );
 		if ( ! $recursion ) {
