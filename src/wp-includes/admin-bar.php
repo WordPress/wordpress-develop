@@ -1248,11 +1248,24 @@ function wp_enqueue_admin_bar_header_styles() {
  * @since 6.4.0
  */
 function wp_enqueue_admin_bar_bump_styles() {
-	// Back-compat for plugins that disable functionality by unhooking this action.
-	if ( ! has_action( 'wp_head', '_admin_bar_bump_cb' ) ) {
+	if ( current_theme_supports( 'admin-bar' ) ) {
+		$admin_bar_args  = get_theme_support( 'admin-bar' );
+		$header_callback = $admin_bar_args[0]['callback'];
+	}
+
+	if ( empty( $header_callback ) ) {
+		$header_callback = '_admin_bar_bump_cb';
+	}
+
+	if ( '_admin_bar_bump_cb' !== $header_callback ) {
 		return;
 	}
-	remove_action( 'wp_head', '_admin_bar_bump_cb' );
+
+	// Back-compat for plugins that disable functionality by unhooking this action.
+	if ( ! has_action( 'wp_head', $header_callback ) ) {
+		return;
+	}
+	remove_action( 'wp_head', $header_callback );
 
 	$css = /* language=CSS */ '
 		@media screen { html { margin-top: 32px !important; } }
