@@ -52,6 +52,7 @@ class Walker_Page extends Walker {
 	 * @param array  $args   Optional. Arguments for outputting the next level.
 	 *                       Default empty array.
 	 */
+	#[\Override]
 	public function start_lvl( &$output, $depth = 0, $args = array() ) {
 		if ( isset( $args['item_spacing'] ) && 'preserve' === $args['item_spacing'] ) {
 			$t = "\t";
@@ -76,6 +77,7 @@ class Walker_Page extends Walker {
 	 * @param array  $args   Optional. Arguments for outputting the end of the current level.
 	 *                       Default empty array.
 	 */
+	#[\Override]
 	public function end_lvl( &$output, $depth = 0, $args = array() ) {
 		if ( isset( $args['item_spacing'] ) && 'preserve' === $args['item_spacing'] ) {
 			$t = "\t";
@@ -102,6 +104,7 @@ class Walker_Page extends Walker {
 	 * @param array   $args              Optional. Array of arguments. Default empty array.
 	 * @param int     $current_object_id Optional. ID of the current page. Default 0.
 	 */
+	#[\Override]
 	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$page            = $data_object;
@@ -231,6 +234,7 @@ class Walker_Page extends Walker {
 	 * @param int     $depth       Optional. Depth of page. Default 0 (unused).
 	 * @param array   $args        Optional. Array of arguments. Default empty array.
 	 */
+	#[\Override]
 	public function end_el( &$output, $data_object, $depth = 0, $args = array() ) {
 		if ( isset( $args['item_spacing'] ) && 'preserve' === $args['item_spacing'] ) {
 			$t = "\t";
