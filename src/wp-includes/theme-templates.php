@@ -152,10 +152,12 @@ function the_block_template_skip_link() {
 
 	$handle = 'wp-block-template-skip-link';
 
+	/**
+	 * Print the skip-link styles.
+	 */
 	wp_register_style( $handle, false );
 	wp_add_inline_style( $handle, $skip_link_styles );
 	wp_enqueue_style( $handle );
-
 
 	/**
 	 * Print the skip-link script.
