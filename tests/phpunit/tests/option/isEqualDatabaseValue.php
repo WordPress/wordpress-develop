@@ -49,8 +49,8 @@ class Tests_Is_Equal_Database_Value extends WP_UnitTestCase {
 			array( 0, '0', true ),
 			array( 0.0, '0', true ),
 			array( '0', '0', true ),
-			array( '', '0', true ),
-			array( false, '0', true ),
+			array( '', '0', false ),
+			array( false, '0', false ),
 			array( null, '0', false ),
 			array( array(), '0', false ),
 
