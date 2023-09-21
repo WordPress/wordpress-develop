@@ -323,7 +323,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		if ( file_exists( WP_PLUGIN_DIR . '/classic-editor/classic-editor.php' ) ) {
 			// If Classic Editor is already installed, provide a link to activate the plugin.
 			$plugin_activate_url = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=classic-editor/classic-editor.php', 'activate-plugin_classic-editor/classic-editor.php' );
- 			$message             = sprintf(
+			$message             = sprintf(
 				/* translators: %s: Link to activate the Classic Editor plugin. */
 				__( 'The block editor requires JavaScript. Please enable JavaScript in your browser settings, or activate the <a href="%s">Classic Editor plugin</a>.' ),
 				esc_url( $plugin_activate_url )
