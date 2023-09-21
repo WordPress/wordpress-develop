@@ -779,9 +779,19 @@ function update_option( $option, $value, $autoload = null ) {
 	/** This filter is documented in wp-includes/option.php */
 	$default_value = apply_filters( "default_option_{$option}", false, $option, false );
 
+	/*
+	 * If the new and old values are the same, no need to update.
+	 *
+	 * An exception applies when no value is set in the database, i.e. the old value is the default.
+	 * In that case, the new value should always be added as it may be intentional to store it rather than relying on the default.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/38903 and https://core.trac.wordpress.org/ticket/22192.
+	 */
 	if ( $old_value !== $default_value && _is_equal_database_value( $old_value, $value ) ) {
 		return false;
-	} elseif ( $old_value === $default_value ) {
+	}
+
+	if ( $old_value === $default_value ) {
 
 		// Default setting for new options is 'yes'.
 		if ( null === $autoload ) {
