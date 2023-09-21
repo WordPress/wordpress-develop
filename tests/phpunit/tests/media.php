@@ -5087,7 +5087,7 @@ EOF;
 					'decoding' => 'async',
 					'loading'  => 'lazy',
 				),
-				'Expected default `decoding="async"` and `loading="lazy" and `decoding="async"`.',
+				'Expected default `decoding="async"` and `loading="lazy"`.',
 			),
 			'img_without_height' => array(
 				'img',
