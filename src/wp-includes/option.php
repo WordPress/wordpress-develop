@@ -776,13 +776,13 @@ function update_option( $option, $value, $autoload = null ) {
 	 */
 	$value = apply_filters( 'pre_update_option', $value, $option, $old_value );
 
-	// If the new and old values are the same, no need to update.
-	if ( false !== $old_value && _is_equal_database_value( $old_value, $value ) ) {
-		return false;
-	}
-
 	/** This filter is documented in wp-includes/option.php */
-	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
+	$default_value = apply_filters( "default_option_{$option}", false, $option, false );
+
+	if ( $old_value !== $default_value && _is_equal_database_value( $old_value, $value ) ) {
+		return false;
+	} elseif ( $old_value === $default_value ) {
+
 		// Default setting for new options is 'yes'.
 		if ( null === $autoload ) {
 			$autoload = 'yes';
