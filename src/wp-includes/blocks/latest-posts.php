@@ -50,15 +50,15 @@ function render_block_core_latest_posts( $attributes ) {
 
 	$filter_latest_posts_excerpt_more = static function( $more ) use ( $attributes ) {
 		$use_excerpt = 'excerpt' === $attributes['displayPostContentRadio'];
-				if ( $use_excerpt ) {
-					/* translators: %1$s is a URL to a post, excerpt truncation character, default … */
-					return sprintf(
-						' [&hellip;] <a href="%1$s" rel="noopener noreferrer">%2$s</a>',
-						esc_url( get_permalink() ),
-						__( 'Read more' )
-					);
+		if ( $use_excerpt ) {
+			/* translators: %1$s is a URL to a post, excerpt truncation character, default … */
+			return sprintf(
+				' [&hellip;] <a href="%1$s" rel="noopener noreferrer">%2$s</a>',
+				esc_url( get_permalink() ),
+				__( 'Read more' )
+			);
 		} else {
-					return $more;
+			return $more;
 		}
 	};
 
