@@ -322,12 +322,14 @@ class Tests_Term extends WP_UnitTestCase {
 
 		$term = get_term( $_term, '', OBJECT, 'edit' );
 
-		$this->assertSame( 0, $filter->get_call_count(), 'This filter should not have run again' );
+		$this->assertSame( 0, $filter->get_call_count(), 'The term was filtered more than once' );
 		$this->assertSame( $_term, $term, 'Both terms should match' );
 	}
 
 	/**
 	 * @ticket 58329
+	 *
+	 * @covers ::get_term
 	 *
 	 * @dataProvider data_get_term_filter
 	 *
