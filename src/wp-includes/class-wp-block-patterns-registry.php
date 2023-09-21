@@ -45,6 +45,7 @@ final class WP_Block_Patterns_Registry {
 	 * @since 5.8.0 Added support for the `blockTypes` property.
 	 * @since 6.1.0 Added support for the `postTypes` property.
 	 * @since 6.2.0 Added support for the `templateTypes` property.
+	 * @since 6.2.0 Added `_doing_it_wrong()` when hooked, but not on `init`.
 	 *
 	 * @param string $pattern_name       Block pattern name including namespace.
 	 * @param array  $pattern_properties {
@@ -83,6 +84,19 @@ final class WP_Block_Patterns_Registry {
 	 * @return bool True if the pattern was registered with success and false otherwise.
 	 */
 	public function register( $pattern_name, $pattern_properties ) {
+		if ( ! doing_action( 'init' ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: The "init" action hook. */
+					__( 'Block Pattern registration can only be hooked on the "%s" action hook.' ),
+					'init'
+				),
+				'6.2.0'
+			);
+			return false;
+		}
+
 		if ( ! isset( $pattern_name ) || ! is_string( $pattern_name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
