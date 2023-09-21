@@ -5573,7 +5573,10 @@ EOF;
 		add_filter( 'pre_wp_get_loading_optimization_attributes', '__return_false' );
 
 		$this->assertSameSets(
-			array( 'loading' => 'lazy' ),
+			array(
+				'decoding' => 'async',
+				'loading'  => 'lazy',
+			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'The filter did not return the default attributes.'
 		);
@@ -5619,7 +5622,10 @@ EOF;
 		$attr = $this->get_width_height_for_high_priority();
 
 		$this->assertSameSets(
-			array( 'loading' => 'lazy' ),
+			array(
+				'decoding' => 'async',
+				'loading'  => 'lazy',
+			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'Before the filter it will not return the loading attribute.'
 		);
@@ -5637,7 +5643,10 @@ EOF;
 		);
 
 		$this->assertSameSets(
-			array( 'fetchpriority' => 'high' ),
+			array(
+				'decoding'      => 'async',
+				'fetchpriority' => 'high'
+			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'After the filter it will not return the fetchpriority attribute.'
 		);
