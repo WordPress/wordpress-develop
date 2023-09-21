@@ -224,6 +224,12 @@ function _filter_block_template_part_area( $type ) {
  * @return string[] A list of paths to all template part files.
  */
 function _get_block_templates_paths( $base_directory ) {
+	$cache_key = 'block_templates_paths_'. $base_directory;
+    $path_list = wp_cache_get( $cache_key );
+	if ( false !== $path_list ) {
+		return $path_list;
+	}
+
 	$path_list = array();
 	if ( file_exists( $base_directory ) ) {
 		$nested_files      = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base_directory ) );
@@ -231,6 +237,7 @@ function _get_block_templates_paths( $base_directory ) {
 		foreach ( $nested_html_files as $path => $file ) {
 			$path_list[] = $path;
 		}
+		wp_cache_set( $cache_key, $path_list );
 	}
 	return $path_list;
 }
