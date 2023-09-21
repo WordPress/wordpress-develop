@@ -570,47 +570,6 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
-	 *
-	 * @return array
-	 */
-	public function data_update_option_type_juggling() {
-		return array(
-			// Truthy.
-			array( '1', '1' ),
-			array( '1', 1 ),
-			array( '1', 1.0 ),
-			array( '1', true ),
-			array( 1, '1' ),
-			array( 1, 1 ),
-			array( 1, 1.0 ),
-			array( 1, true ),
-			array( 1.0, '1' ),
-			array( 1.0, 1 ),
-			array( 1.0, 1.0 ),
-			array( 1.0, true ),
-			array( true, '1' ),
-			array( true, 1 ),
-			array( true, 1 ),
-			array( true, true ),
-
-			// Falsey.
-			array( '0', '0' ),
-			array( '0', 0 ),
-			array( '0', 0.0 ),
-			array( '0', false ),
-			array( 0, '0' ),
-			array( 0, 0 ),
-			array( 0, 0.0 ),
-			array( 0, false ),
-			array( 0.0, '0' ),
-			array( 0.0, 0 ),
-			array( 0.0, 0.0 ),
-			array( 0.0, false ),
-		);
-	}
-
-	/**
 	 * @ticket 22192
 	 *
 	 * @covers ::update_option
