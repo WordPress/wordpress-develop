@@ -3003,6 +3003,8 @@ EOF;
 		$iframe                 = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$iframe_no_width_height = '<iframe src="https://www.example.com"></iframe>';
 
+		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
+
 		$lazy_img       = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
 		$lazy_img_xhtml = wp_img_tag_add_loading_optimization_attrs( $img_xhtml, 'test' );
 		$lazy_img_html5 = wp_img_tag_add_loading_optimization_attrs( $img_html5, 'test' );
@@ -3057,7 +3059,6 @@ EOF;
 		// Do not add width, height, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
-		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 
 		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
 
@@ -3770,6 +3771,7 @@ EOF;
 	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_filter_content_tags_with_loading_optimization_attrs() {
+		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );
 		$iframe1      = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$img2         = get_image_tag( self::$large_id, '', '', '', 'medium' );
@@ -3797,6 +3799,7 @@ EOF;
 			$content_filtered = wp_filter_content_tags( $content_unfiltered, 'the_content' );
 			remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
 		}
+		remove_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 
 		// After filtering, the first image should not be lazy-loaded while the other ones should be.
 		$this->assertSame( $content_expected, $content_filtered );
