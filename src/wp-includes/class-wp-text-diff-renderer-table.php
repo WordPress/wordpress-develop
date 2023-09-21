@@ -94,6 +94,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @param string $header
 	 * @return string
 	 */
+	#[\Override]
 	public function _startBlock( $header ) {
 		return '';
 	}
@@ -104,6 +105,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @param array  $lines
 	 * @param string $prefix
 	 */
+	#[\Override]
 	public function _lines( $lines, $prefix = ' ' ) {
 	}
 
@@ -163,6 +165,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @param bool  $encode
 	 * @return string
 	 */
+	#[\Override]
 	public function _added( $lines, $encode = true ) {
 		$r = '';
 		foreach ( $lines as $line ) {
@@ -201,6 +204,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @param bool  $encode
 	 * @return string
 	 */
+	#[\Override]
 	public function _deleted( $lines, $encode = true ) {
 		$r = '';
 		foreach ( $lines as $line ) {
@@ -226,6 +230,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @param bool  $encode
 	 * @return string
 	 */
+	#[\Override]
 	public function _context( $lines, $encode = true ) {
 		$r = '';
 		foreach ( $lines as $line ) {
@@ -256,6 +261,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @param array $final
 	 * @return string
 	 */
+	#[\Override]
 	public function _changed( $orig, $final ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.finalFound
 		$r = '';
 
