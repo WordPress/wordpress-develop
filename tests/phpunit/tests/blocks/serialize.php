@@ -58,6 +58,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 59327
+	 * @ticket 59412
 	 *
 	 * @covers ::traverse_and_serialize_blocks
 	 */
@@ -73,15 +74,15 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 		);
 	}
 
-	public static function add_attribute_to_inner_block( $block ) {
+	public static function add_attribute_to_inner_block( &$block ) {
 		if ( 'core/inner' === $block['blockName'] ) {
 			$block['attrs']['myattr'] = 'myvalue';
 		}
-		return $block;
 	}
 
 	/**
 	 * @ticket 59327
+	 * @ticket 59412
 	 *
 	 * @covers ::traverse_and_serialize_blocks
 	 *
@@ -92,12 +93,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	public function test_traverse_and_serialize_identity_from_parsed( $original ) {
 		$blocks = parse_blocks( $original );
 
-		$actual = traverse_and_serialize_blocks(
-			$blocks,
-			function ( $block ) {
-				return $block;
-			}
-		);
+		$actual = traverse_and_serialize_blocks( $blocks );
 
 		$this->assertSame( $original, $actual );
 	}
