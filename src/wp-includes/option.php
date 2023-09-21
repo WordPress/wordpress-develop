@@ -2907,16 +2907,8 @@ function _is_equal_database_value( $old_value, $new_value ) {
 	);
 
 	foreach ( $values as $_key => &$_value ) {
-		/*
-		 * Special handling for false-ish values.
-		 * Empty strings in the database should be seen as equivalent to false-ish cache values.
-		 * Cast scalars to a string so type discrepancies don't result in cache misses.
-		 */
-		if ( false === $_value ) {
-			$_value = '0';
-		} elseif ( 'old' === $_key && '' === $_value ) {
-			$_value = '0';
-		} elseif ( is_scalar( $_value ) ) {
+		// Cast scalars or null to a string so type discrepancies don't result in cache misses.
+		if ( null === $_value || is_scalar( $_value ) ) {
 			$_value = (string) $_value;
 		}
 	}
