@@ -282,7 +282,7 @@ function wp_default_packages_scripts( $scripts ) {
 	// Add the private version of the Interactivity API manually.
 	$scripts->add(
 		'wp-interactivity',
-		 '/wp-includes/js/dist/interactivity.min.js',
+		'/wp-includes/js/dist/interactivity.min.js',
 		array(),
 		'6.4.0',
 		1
