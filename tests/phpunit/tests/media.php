@@ -4280,14 +4280,14 @@ EOF;
 		$attr = $this->get_width_height_for_high_priority();
 
 		// Return 'lazy' by default.
-		$this->assertSame(
+		$this->assertSameSets(
 			array(
 				'decoding' => 'async',
 				'loading'  => 'lazy',
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'test' )
 		);
-		$this->assertSame(
+		$this->assertSameSets(
 			array(
 				'decoding' => 'async',
 				'loading'  => 'lazy',
@@ -4296,7 +4296,7 @@ EOF;
 		);
 
 		// Return 'lazy' if not in the loop or the main query.
-		$this->assertSame(
+		$this->assertSameSets(
 			array(
 				'decoding' => 'async',
 				'loading'  => 'lazy',
@@ -4310,7 +4310,7 @@ EOF;
 			the_post();
 
 			// Return 'lazy' if in the loop but not in the main query.
-			$this->assertSame(
+			$this->assertSameSets(
 				array(
 					'decoding' => 'async',
 					'loading'  => 'lazy',
@@ -4322,22 +4322,31 @@ EOF;
 			$this->set_main_query( $query );
 
 			// First three element are not lazy loaded. However, first image is loaded with fetchpriority high.
-			$this->assertSame(
-				array( 'fetchpriority' => 'high' ),
+			$this->assertSameSets(
+				array(
+					'decoding'      => 'async',
+					'fetchpriority' => 'high',
+				),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				"Expected first image to not be lazy-loaded. First large image get's high fetchpriority."
 			);
-			$this->assertEmpty(
+			$this->assertSameSets(
+				array(
+					'decoding' => 'async',
+				),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				'Expected second image to not be lazy-loaded.'
 			);
-			$this->assertEmpty(
+			$this->assertSameSets(
+				array(
+					'decoding' => 'async',
+				),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				'Expected third image to not be lazy-loaded.'
 			);
 
 			// Return 'lazy' if in the loop and in the main query for any subsequent elements.
-			$this->assertSame(
+			$this->assertSameSets(
 				array(
 					'decoding' => 'async',
 					'loading'  => 'lazy',
@@ -4346,7 +4355,7 @@ EOF;
 			);
 
 			// Yes, for all subsequent elements.
-			$this->assertSame(
+			$this->assertSameSets(
 				array(
 					'decoding' => 'async',
 					'loading'  => 'lazy',
@@ -5554,7 +5563,7 @@ EOF;
 
 		$attr = $this->get_width_height_for_high_priority();
 
-		$this->assertSame(
+		$this->assertSameSets(
 			array( 'fetchpriority' => 'high' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'The filter did not return early fetchpriority attribute'
