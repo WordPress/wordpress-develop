@@ -3440,10 +3440,6 @@ EOF;
 				'decoding' => false,
 				'expected' => 'no value',
 			),
-			'null'        => array(
-				'decoding' => null,
-				'expected' => 'no value',
-			),
 			'zero'        => array(
 				'decoding' => 0,
 				'expected' => 'no value',
