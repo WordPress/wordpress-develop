@@ -751,6 +751,9 @@ function get_hooked_blocks( $name ) {
 	$block_types = WP_Block_Type_Registry::get_instance()->get_all_registered();
 	$hooked_blocks = array();
 	foreach ( $block_types as $block_type ) {
+		if ( ! property_exists( $block_type, 'block_hooks' ) || ! is_array( $block_type->block_hooks ) ) {
+			continue;
+		}
 		foreach ( $block_type->block_hooks as $anchor_block_type => $relative_position ) {
 			if ( $anchor_block_type === $name ) {
 				$hooked_blocks[ $block_type->name ] = $relative_position;
@@ -758,6 +761,128 @@ function get_hooked_blocks( $name ) {
 		}
 	}
 	return $hooked_blocks;
+}
+
+/**
+ * Returns a function that injects the theme attribute into, and hooked blocks before, a given block.
+ *
+ * The returned function can be used as `$pre_callback` argument to `traverse_and_serialize_block(s)`,
+ * where it will inject the `theme` attribute into all Template Part blocks, and prepend the markup for
+ * any blocks hooked `before` the given block and as its parent's `first_child`, respectively.
+ *
+ * @since 6.4.0
+ * @access private
+ *
+ * @param WP_Block_Template|array $context A block template, template part, or pattern that the blocks belong to.
+ * @return callable A function that returns the serialized markup for the given block,
+ *                  including the markup for any hooked blocks before it.
+ */
+function make_before_block_visitor( $context ) {
+	/**
+	 * Injects hooked blocks before the given block, injects the `theme` attribute into Template Part blocks, and returns the serialized markup.
+	 *
+	 * If the current block is a Template Part block, inject the `theme` attribute.
+	 * Furthermore, prepend the markup for any blocks hooked `before` the given block and as its parent's
+	 * `first_child`, respectively, to the serialized markup for the given block.
+	 *
+	 * @param array $block  The block to inject the theme attribute into, and hooked blocks before.
+	 * @param array $parent The parent block of the given block.
+	 * @param array $prev   The previous sibling block of the given block.
+	 * @return string The serialized markup for the given block, with the markup for any hooked blocks prepended to it.
+	 */
+	return function( &$block, $parent = null, $prev = null ) use ( $context ) {
+		_inject_theme_attribute_in_template_part_block( $block );
+
+		$markup = '';
+
+		if ( $parent && ! $prev ) {
+			// Candidate for first-child insertion.
+			$hooked_blocks_for_parent = get_hooked_blocks( $parent['blockName'] );
+			foreach ( $hooked_blocks_for_parent as $hooked_block_type => $relative_position ) {
+				if ( 'first_child' === $relative_position ) {
+					$hooked_block_markup = get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+					/** This filter is documented in wp-includes/blocks.php */
+					$markup .= apply_filters( 'inject_hooked_block_markup', $hooked_block_markup, $hooked_block_type, $relative_position, $parent, $context );
+				}
+			}
+		}
+
+		$hooked_blocks = get_hooked_blocks( $block['blockName'] );
+		foreach ( $hooked_blocks as $hooked_block_type => $relative_position ) {
+			if ( 'before' === $relative_position ) {
+				$hooked_block_markup = get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+				/**
+				 * Filters the serialized markup of a hooked block.
+				 *
+				 * @since 6.4.0
+				 *
+				 * @param string                  $hooked_block_markup The serialized markup of the hooked block.
+				 * @param string                  $hooked_block_type   The type of the hooked block.
+				 * @param string                  $relative_position   The relative position of the hooked block.
+				 *                                                     Can be one of 'before', 'after', 'first_child', or 'last_child'.
+				 * @param array                   $block               The anchor block.
+				 * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
+				 */
+				$markup .= apply_filters( 'inject_hooked_block_markup', $hooked_block_markup, $hooked_block_type, $relative_position, $block, $context );
+			}
+		}
+
+		return $markup;
+	};
+}
+
+/**
+ * Returns a function that injects the hooked blocks after a given block.
+ *
+ * The returned function can be used as `$post_callback` argument to `traverse_and_serialize_block(s)`,
+ * where it will append the markup for any blocks hooked `after` the given block and as its parent's
+ * `last_child`, respectively.
+ *
+ * @since 6.4.0
+ * @access private
+ *
+ * @param WP_Block_Template|array $context A block template, template part, or pattern that the blocks belong to.
+ * @return callable A function that returns the serialized markup for the given block,
+ *                  including the markup for any hooked blocks after it.
+ */
+function make_after_block_visitor( $context ) {
+	/**
+	 * Injects hooked blocks after the given block, and returns the serialized markup.
+	 *
+	 * Append the markup for any blocks hooked `after` the given block and as its parent's
+	 * `last_child`, respectively, to the serialized markup for the given block.
+	 *
+	 * @param array $block  The block to inject the hooked blocks after.
+	 * @param array $parent The parent block of the given block.
+	 * @param array $next   The next sibling block of the given block.
+	 * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
+	 */
+	return function( &$block, $parent = null, $next = null ) use ( $context ) {
+		$markup = '';
+
+		$hooked_blocks = get_hooked_blocks( $block['blockName'] );
+		foreach ( $hooked_blocks as $hooked_block_type => $relative_position ) {
+			if ( 'after' === $relative_position ) {
+				$hooked_block_markup = get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+				/** This filter is documented in wp-includes/blocks.php */
+				$markup .= apply_filters( 'inject_hooked_block_markup', $hooked_block_markup, $hooked_block_type, $relative_position, $block, $context );
+			}
+		}
+
+		if ( $parent && ! $next ) {
+			// Candidate for last-child insertion.
+			$hooked_blocks_for_parent = get_hooked_blocks( $parent['blockName'] );
+			foreach ( $hooked_blocks_for_parent as $hooked_block_type => $relative_position ) {
+				if ( 'last_child' === $relative_position ) {
+					$hooked_block_markup = get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+					/** This filter is documented in wp-includes/blocks.php */
+					$markup .= apply_filters( 'inject_hooked_block_markup', $hooked_block_markup, $hooked_block_type, $relative_position, $parent, $context );
+				}
+			}
+		}
+
+		return $markup;
+	};
 }
 
 /**
@@ -849,22 +974,16 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  * instead preserve the markup as parsed.
  *
  * @since 5.3.1
- * @since 6.4.0 The `$callback` parameter was added.
  *
- * @param array         $block    A representative array of a single parsed block object. See WP_Block_Parser_Block.
- * @param callable|null $callback Optional. Callback to run on each block in the tree before serialization. Default null.
+ * @param array $block A representative array of a single parsed block object. See WP_Block_Parser_Block.
  * @return string String of rendered HTML.
  */
-function serialize_block( $block, $callback = null ) {
-	if ( is_callable( $callback ) ) {
-		$block = call_user_func( $callback, $block );
-	}
-
+function serialize_block( $block ) {
 	$block_content = '';
 
 	$index = 0;
 	foreach ( $block['innerContent'] as $chunk ) {
-		$block_content .= is_string( $chunk ) ? $chunk : serialize_block( $block['innerBlocks'][ $index++ ], $callback );
+		$block_content .= is_string( $chunk ) ? $chunk : serialize_block( $block['innerBlocks'][ $index++ ] );
 	}
 
 	if ( ! is_array( $block['attrs'] ) ) {
@@ -883,16 +1002,145 @@ function serialize_block( $block, $callback = null ) {
  * parsed blocks.
  *
  * @since 5.3.1
- * @since 6.4.0 The `$callback` parameter was added.
  *
- * @param array[]       $blocks   An array of representative arrays of parsed block objects. See serialize_block().
- * @param callable|null $callback Optional. Callback to run on each block in the tree before serialization. Default null.
+ * @param array[] $blocks An array of representative arrays of parsed block objects. See serialize_block().
  * @return string String of rendered HTML.
  */
-function serialize_blocks( $blocks, $callback = null ) {
+function serialize_blocks( $blocks ) {
+	return implode( '', array_map( 'serialize_block', $blocks ) );
+}
+
+/**
+ * Traverses a parsed block tree and applies callbacks before and after serializing it.
+ *
+ * Recursively traverses the block and its inner blocks and applies the two callbacks provided as
+ * arguments, the first one before serializing the block, and the second one after serializing it.
+ * If either callback returns a string value, it will be prepended and appended to the serialized
+ * block markup, respectively.
+ *
+ * The callbacks will receive a reference to the current block as their first argument, so that they
+ * can also modify it, and the current block's parent block as second argument. Finally, the
+ * `$pre_callback` receives the previous block, whereas the `$post_callback` receives
+ * the next block as third argument.
+ *
+ * Serialized blocks are returned including comment delimiters, and with all attributes serialized.
+ *
+ * This function should be used when there is a need to modify the saved block, or to inject markup
+ * into the return value. Prefer `serialize_block` when preparing a block to be saved to post content.
+ *
+ * @since 6.4.0
+ *
+ * @see serialize_block()
+ *
+ * @param array    $block         A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ * @param callable $pre_callback  Callback to run on each block in the tree before it is traversed and serialized.
+ *                                It is called with the following arguments: &$block, $parent_block, $previous_block.
+ *                                Its string return value will be prepended to the serialized block markup.
+ * @param callable $post_callback Callback to run on each block in the tree after it is traversed and serialized.
+ *                                It is called with the following arguments: &$block, $parent_block, $next_block.
+ *                                Its string return value will be appended to the serialized block markup.
+ * @return string Serialized block markup.
+ */
+function traverse_and_serialize_block( $block, $pre_callback = null, $post_callback = null ) {
+	$block_content = '';
+	$block_index   = 0;
+
+	foreach ( $block['innerContent'] as $chunk ) {
+		if ( is_string( $chunk ) ) {
+			$block_content .= $chunk;
+		} else {
+			$inner_block = $block['innerBlocks'][ $block_index ];
+
+			if ( is_callable( $pre_callback ) ) {
+				$prev = 0 === $block_index
+					? null
+					: $block['innerBlocks'][ $block_index - 1 ];
+				$block_content .= call_user_func_array(
+					$pre_callback,
+					array( &$inner_block, $block, $prev )
+				);
+			}
+
+			$block_content .= traverse_and_serialize_block( $inner_block, $pre_callback, $post_callback );
+
+			if ( is_callable( $post_callback ) ) {
+				$next = count( $block['innerBlocks'] ) - 1 === $block_index
+					? null
+					: $block['innerBlocks'][ $block_index + 1 ];
+				$block_content .= call_user_func_array(
+					$post_callback,
+					array( &$inner_block, $block, $next )
+				);
+			}
+			$block_index++;
+		}
+	}
+
+	if ( ! is_array( $block['attrs'] ) ) {
+		$block['attrs'] = array();
+	}
+
+	return get_comment_delimited_block_content(
+		$block['blockName'],
+		$block['attrs'],
+		$block_content
+	);
+}
+
+/**
+ * Given an array of parsed block trees, applies callbacks before and after serializing them and
+ * returns their concatenated output.
+ *
+ * Recursively traverses the blocks and their inner blocks and applies the two callbacks provided as
+ * arguments, the first one before serializing a block, and the second one after serializing.
+ * If either callback returns a string value, it will be prepended and appended to the serialized
+ * block markup, respectively.
+ *
+ * The callbacks will receive a reference to the current block as their first argument, so that they
+ * can also modify it, and the current block's parent block as second argument. Finally, the
+ * `$pre_callback` receives the previous block, whereas the `$post_callback` receives
+ * the next block as third argument.
+ *
+ * Serialized blocks are returned including comment delimiters, and with all attributes serialized.
+ *
+ * This function should be used when there is a need to modify the saved blocks, or to inject markup
+ * into the return value. Prefer `serialize_blocks` when preparing blocks to be saved to post content.
+ *
+ * @since 6.4.0
+ *
+ * @see serialize_blocks()
+ *
+ * @param array[]  $blocks        An array of parsed blocks. See WP_Block_Parser_Block.
+ * @param callable $pre_callback  Callback to run on each block in the tree before it is traversed and serialized.
+ *                                It is called with the following arguments: &$block, $parent_block, $previous_block.
+ *                                Its string return value will be prepended to the serialized block markup.
+ * @param callable $post_callback Callback to run on each block in the tree after it is traversed and serialized.
+ *                                It is called with the following arguments: &$block, $parent_block, $next_block.
+ *                                Its string return value will be appended to the serialized block markup.
+ * @return string Serialized block markup.
+ */
+function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_callback = null ) {
 	$result = '';
-	foreach ( $blocks as $block ) {
-		$result .= serialize_block( $block, $callback );
+	foreach ( $blocks as $index => $block ) {
+		if ( is_callable( $pre_callback ) ) {
+			$prev = 0 === $index
+				? null
+				: $blocks[ $index - 1 ];
+			$result .= call_user_func_array(
+				$pre_callback,
+				array( &$block, null, $prev ) // At the top level, there is no parent block to pass to the callback.
+			);
+		}
+		$result .= traverse_and_serialize_block( $block, $pre_callback, $post_callback );
+		if ( is_callable( $post_callback ) ) {
+			$next = count( $blocks ) - 1 === $index
+				? null
+				: $blocks[ $index + 1 ];
+			$result .= call_user_func_array(
+				$post_callback,
+				array( &$block, null, $next ) // At the top level, there is no parent block to pass to the callback.
+			);
+		}
 	}
 	return $result;
 }
