@@ -1059,15 +1059,17 @@ function enqueue_embed_scripts() {
 }
 
 /**
- * Enqueue the CSS in the embed iframe header.
+ * Enqueues the CSS in the embed iframe header.
  *
  * @since 6.4.0
  */
 function wp_enqueue_embed_styles() {
+	// Back-compat for plugins that disable functionality by unhooking this action.
 	if ( ! has_action( 'embed_head', 'print_embed_styles' ) ) {
 		return;
 	}
 	remove_action( 'embed_head', 'print_embed_styles' );
+
 	$suffix = wp_scripts_get_suffix();
 	$handle = 'wp-embed-template';
 	wp_register_style( $handle, false );

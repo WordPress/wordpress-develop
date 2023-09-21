@@ -1227,29 +1227,33 @@ function wp_admin_bar_add_secondary_groups( $wp_admin_bar ) {
 
 
 /**
- * Remove the `wp_admin_bar_header` action and use `wp_add_inline_style` function to render inline styles.
+ * Enqueues inline style to hide the admin bar when printing.
  *
  * @since 6.4.0
  */
 function wp_enqueue_admin_bar_header_styles() {
+	// Back-compat for plugins that disable functionality by unhooking this action.
 	$action = is_admin() ? 'admin_head' : 'wp_head';
 	if ( ! has_action( $action, 'wp_admin_bar_header' ) ) {
 		return;
 	}
 	remove_action( $action, 'wp_admin_bar_header' );
+
 	wp_add_inline_style( 'admin-bar', /* language=CSS */ '@media print { #wpadminbar { display:none; } }' );
 }
 
 /**
- * Remove the `wp_head` action and use `wp_add_inline_style` function to render inline styles.
+ * Enqueues inline bump styles to make room for the admin bar.
  *
  * @since 6.4.0
  */
 function wp_enqueue_admin_bar_bump_styles() {
+	// Back-compat for plugins that disable functionality by unhooking this action.
 	if ( ! has_action( 'wp_head', '_admin_bar_bump_cb' ) ) {
 		return;
 	}
 	remove_action( 'wp_head', '_admin_bar_bump_cb' );
+
 	$css = /* language=CSS */ '
 		@media screen { html { margin-top: 32px !important; } }
 		@media screen and ( max-width: 782px ) { html { margin-top: 46px !important; } }
