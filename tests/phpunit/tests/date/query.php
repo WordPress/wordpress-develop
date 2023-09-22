@@ -579,7 +579,6 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		$message = "Expected {$expected}, got {$found}";
 		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
-
 	}
 
 	public function data_build_mysql_datetime_with_custom_timezone() {
@@ -1021,7 +1020,6 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		foreach ( $seconds as $second ) {
 			$this->assertFalse( $this->q->validate_date_values( array( 'second' => $second ) ) );
 		}
-
 	}
 
 	/**

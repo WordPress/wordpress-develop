@@ -2552,7 +2552,7 @@ function gallery_shortcode( $attr ) {
 	$post = get_post();
 
 	static $instance = 0;
-	$instance++;
+	++$instance;
 
 	if ( ! empty( $attr['ids'] ) ) {
 		// 'ids' is explicitly ordered, unless you specify otherwise.
@@ -2899,7 +2899,7 @@ function wp_playlist_shortcode( $attr ) {
 	$post = get_post();
 
 	static $instance = 0;
-	$instance++;
+	++$instance;
 
 	if ( ! empty( $attr['ids'] ) ) {
 		// 'ids' is explicitly ordered, unless you specify otherwise.
@@ -3213,7 +3213,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 	$post_id = get_post() ? get_the_ID() : 0;
 
 	static $instance = 0;
-	$instance++;
+	++$instance;
 
 	/**
 	 * Filters the default audio shortcode output.
@@ -3432,7 +3432,7 @@ function wp_video_shortcode( $attr, $content = '' ) {
 	$post_id = get_post() ? get_the_ID() : 0;
 
 	static $instance = 0;
-	$instance++;
+	++$instance;
 
 	/**
 	 * Filters the default video shortcode output.
@@ -5625,6 +5625,25 @@ function wp_get_webp_info( $filename ) {
 function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	global $wp_query;
 
+	/**
+	 * Filters whether to short-circuit loading optimization attributes.
+	 *
+	 * Returning an array from the filter will effectively short-circuit the loading of optimization attributes,
+	 * returning that value instead.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array|false $loading_attrs False by default, or array of loading optimization attributes to short-circuit.
+	 * @param string      $tag_name      The tag name.
+	 * @param array       $attr          Array of the attributes for the tag.
+	 * @param string      $context       Context for the element for which the loading optimization attribute is requested.
+	 */
+	$loading_attrs = apply_filters( 'pre_wp_get_loading_optimization_attributes', false, $tag_name, $attr, $context );
+
+	if ( is_array( $loading_attrs ) ) {
+		return $loading_attrs;
+	}
+
 	$loading_attrs = array();
 
 	/*
@@ -5632,17 +5651,20 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * The skip is also applicable for `fetchpriority`.
 	 */
 	if ( 'template' === $context ) {
-		return $loading_attrs;
+		/** This filter is documented in wp-includes/media.php */
+		return apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $tag_name, $attr, $context );
 	}
 
 	// For now this function only supports images and iframes.
 	if ( 'img' !== $tag_name && 'iframe' !== $tag_name ) {
-		return $loading_attrs;
+		/** This filter is documented in wp-includes/media.php */
+		return apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $tag_name, $attr, $context );
 	}
 
 	// For any resources, width and height must be provided, to avoid layout shifts.
 	if ( ! isset( $attr['width'], $attr['height'] ) ) {
-		return $loading_attrs;
+		/** This filter is documented in wp-includes/media.php */
+		return apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $tag_name, $attr, $context );
 	}
 
 	/*
@@ -5652,13 +5674,10 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * can result in the first post content image being lazy-loaded or an image further down the page being marked as a
 	 * high priority.
 	 */
-	switch ( $context ) {
-		case 'the_post_thumbnail':
-		case 'wp_get_attachment_image':
-		case 'widget_media_image':
-			if ( doing_filter( 'the_content' ) ) {
-				return $loading_attrs;
-			}
+	// TODO: Handle shortcode images together with the content (see https://core.trac.wordpress.org/ticket/58853).
+	if ( 'the_content' !== $context && 'do_shortcode' !== $context && doing_filter( 'the_content' ) ) {
+		/** This filter is documented in wp-includes/media.php */
+		return apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $tag_name, $attr, $context );
 	}
 
 	/*
@@ -5709,64 +5728,56 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	}
 
 	if ( null === $maybe_in_viewport ) {
-		switch ( $context ) {
-			// Consider elements with these header-specific contexts to be in viewport.
-			case 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER:
-			case 'get_header_image_tag':
-				$maybe_in_viewport    = true;
-				$maybe_increase_count = true;
-				break;
-			// Count main content elements and detect whether in viewport.
-			case 'the_content':
-			case 'the_post_thumbnail':
-			case 'do_shortcode':
-				// Only elements within the main query loop have special handling.
-				if ( ! is_admin() && in_the_loop() && is_main_query() ) {
-					/*
-					 * Get the content media count, since this is a main query
-					 * content element. This is accomplished by "increasing"
-					 * the count by zero, as the only way to get the count is
-					 * to call this function.
-					 * The actual count increase happens further below, based
-					 * on the `$increase_count` flag set here.
-					 */
-					$content_media_count = wp_increase_content_media_count( 0 );
-					$increase_count      = true;
+		$header_enforced_contexts = array(
+			'template_part_' . WP_TEMPLATE_PART_AREA_HEADER => true,
+			'get_header_image_tag'                          => true,
+		);
 
-					// If the count so far is below the threshold, `loading` attribute is omitted.
-					if ( $content_media_count < wp_omit_loading_attr_threshold() ) {
-						$maybe_in_viewport = true;
-					} else {
-						$maybe_in_viewport = false;
-					}
-				}
-				/*
-				 * For the 'the_post_thumbnail' context, the following case
-				 * clause needs to be considered as well, therefore skip the
-				 * break statement here if the viewport has not been
-				 * determined.
-				 */
-				if ( 'the_post_thumbnail' !== $context || null !== $maybe_in_viewport ) {
-					break;
-				}
-			// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect
-			// Consider elements before the loop as being in viewport.
-			case 'wp_get_attachment_image':
-			case 'widget_media_image':
-				if (
-					// Only apply for main query but before the loop.
-					$wp_query->before_loop && $wp_query->is_main_query()
-					/*
-					 * Any image before the loop, but after the header has started should not be lazy-loaded,
-					 * except when the footer has already started which can happen when the current template
-					 * does not include any loop.
-					 */
-					&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
-				) {
-					$maybe_in_viewport    = true;
-					$maybe_increase_count = true;
-				}
-				break;
+		/**
+		 * Filters the header-specific contexts.
+		 *
+		 * @since 6.4.0
+		 *
+		 * @param array $default_header_enforced_contexts Map of contexts for which elements should be considered
+		 *                                                in the header of the page, as $context => $enabled
+		 *                                                pairs. The $enabled should always be true.
+		 */
+		$header_enforced_contexts = apply_filters( 'wp_loading_optimization_force_header_contexts', $header_enforced_contexts );
+
+		// Consider elements with these header-specific contexts to be in viewport.
+		if ( isset( $header_enforced_contexts[ $context ] ) ) {
+			$maybe_in_viewport    = true;
+			$maybe_increase_count = true;
+		} elseif ( ! is_admin() && in_the_loop() && is_main_query() ) {
+			/*
+			 * Get the content media count, since this is a main query
+			 * content element. This is accomplished by "increasing"
+			 * the count by zero, as the only way to get the count is
+			 * to call this function.
+			 * The actual count increase happens further below, based
+			 * on the `$increase_count` flag set here.
+			 */
+			$content_media_count = wp_increase_content_media_count( 0 );
+			$increase_count      = true;
+
+			// If the count so far is below the threshold, `loading` attribute is omitted.
+			if ( $content_media_count < wp_omit_loading_attr_threshold() ) {
+				$maybe_in_viewport = true;
+			} else {
+				$maybe_in_viewport = false;
+			}
+		} elseif (
+			// Only apply for main query but before the loop.
+			$wp_query->before_loop && $wp_query->is_main_query()
+			/*
+			 * Any image before the loop, but after the header has started should not be lazy-loaded,
+			 * except when the footer has already started which can happen when the current template
+			 * does not include any loop.
+			 */
+			&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
+			) {
+			$maybe_in_viewport    = true;
+			$maybe_increase_count = true;
 		}
 	}
 
@@ -5801,7 +5812,17 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		}
 	}
 
-	return $loading_attrs;
+	/**
+	 * Filters the loading optimization attributes.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array  $loading_attrs The loading optimization attributes.
+	 * @param string $tag_name      The tag name.
+	 * @param array  $attr          Array of the attributes for the tag.
+	 * @param string $context       Context for the element for which the loading optimization attribute is requested.
+	 */
+	return apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $tag_name, $attr, $context );
 }
 
 /**

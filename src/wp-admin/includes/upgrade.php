@@ -839,6 +839,10 @@ function upgrade_all() {
 		upgrade_630();
 	}
 
+	if ( $wp_current_db_version < 56657 ) {
+		upgrade_640();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -995,7 +999,6 @@ function upgrade_110() {
 		$wpdb->query( "UPDATE $wpdb->comments SET comment_date_gmt = DATE_ADD(comment_date, INTERVAL '$add_hours:$add_minutes' HOUR_MINUTE)" );
 		$wpdb->query( "UPDATE $wpdb->users SET user_registered = DATE_ADD(user_registered, INTERVAL '$add_hours:$add_minutes' HOUR_MINUTE)" );
 	}
-
 }
 
 /**
@@ -1293,7 +1296,7 @@ function upgrade_230() {
 			$num        = 2;
 			do {
 				$alt_slug = $slug . "-$num";
-				$num++;
+				++$num;
 				$slug_check = $wpdb->get_var( $wpdb->prepare( "SELECT slug FROM $wpdb->terms WHERE slug = %s", $alt_slug ) );
 			} while ( $slug_check );
 
@@ -1545,7 +1548,6 @@ function upgrade_250() {
 	if ( $wp_current_db_version < 6689 ) {
 		populate_roles_250();
 	}
-
 }
 
 /**
@@ -1704,7 +1706,6 @@ function upgrade_300() {
 			)
 		);
 	}
-
 }
 
 /**
@@ -2322,6 +2323,23 @@ function upgrade_630() {
 				add_option( 'can_compress_scripts', $can_compress_scripts, '', 'yes' );
 			}
 		}
+	}
+}
+
+/**
+ * Executes changes made in WordPress 6.4.0.
+ *
+ * @ignore
+ * @since 6.4.0
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_640() {
+	global $wp_current_db_version;
+
+	if ( $wp_current_db_version < 56657 ) {
+		// Enable attachment pages.
+		update_option( 'wp_attachment_pages_enabled', 1 );
 	}
 }
 

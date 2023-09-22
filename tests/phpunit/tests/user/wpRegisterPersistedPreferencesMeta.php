@@ -57,5 +57,4 @@ class Tests_User_WpRegisterPersistedPreferencesMeta extends WP_UnitTestCase {
 			'The registered metadata did not have the expected structure'
 		);
 	}
-
 }

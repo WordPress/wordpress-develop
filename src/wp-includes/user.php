@@ -1316,11 +1316,11 @@ function count_users( $strategy = 'time', $site_id = null ) {
 				continue;
 			}
 			if ( empty( $b_roles ) ) {
-				$avail_roles['none']++;
+				++$avail_roles['none'];
 			}
 			foreach ( $b_roles as $b_role => $val ) {
 				if ( isset( $avail_roles[ $b_role ] ) ) {
-					$avail_roles[ $b_role ]++;
+					++$avail_roles[ $b_role ];
 				} else {
 					$avail_roles[ $b_role ] = 1;
 				}
@@ -2177,7 +2177,7 @@ function wp_insert_user( $userdata ) {
 			$base_length         = 49 - mb_strlen( $suffix );
 			$alt_user_nicename   = mb_substr( $user_nicename, 0, $base_length ) . "-$suffix";
 			$user_nicename_check = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE user_nicename = %s AND user_login != %s LIMIT 1", $alt_user_nicename, $user_login ) );
-			$suffix++;
+			++$suffix;
 		}
 		$user_nicename = $alt_user_nicename;
 	}
@@ -3761,8 +3761,12 @@ function new_user_email_admin_notice() {
 	if ( 'profile.php' === $pagenow && isset( $_GET['updated'] ) ) {
 		$email = get_user_meta( get_current_user_id(), '_new_email', true );
 		if ( $email ) {
-			/* translators: %s: New email address. */
-			echo '<div class="notice notice-info"><p>' . sprintf( __( 'Your email address has not been updated yet. Please check your inbox at %s for a confirmation email.' ), '<code>' . esc_html( $email['newemail'] ) . '</code>' ) . '</p></div>';
+			$message = sprintf(
+				/* translators: %s: New email address. */
+				__( 'Your email address has not been updated yet. Please check your inbox at %s for a confirmation email.' ),
+				'<code>' . esc_html( $email['newemail'] ) . '</code>'
+			);
+			wp_admin_notice( $message, array( 'type' => 'info' ) );
 		}
 	}
 }
@@ -3899,7 +3903,7 @@ function wp_user_personal_data_exporter( $email_address ) {
 		// Remove items that use reserved names.
 		$extra_data = array_filter(
 			$_extra_data,
-			static function( $item ) use ( $reserved_names ) {
+			static function ( $item ) use ( $reserved_names ) {
 				return ! in_array( $item['name'], $reserved_names, true );
 			}
 		);
