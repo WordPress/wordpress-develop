@@ -92,17 +92,25 @@ function get_block_asset_url( $path ) {
 		return includes_url( str_replace( $wpinc_path_norm, '', $path ) );
 	}
 
-	$template_path_norm = wp_normalize_path( get_template_directory() );
+	static $template_paths_norm = array();
 
-	if ( str_starts_with( $path, trailingslashit( $template_path_norm ) ) ) {
-		return get_theme_file_uri( str_replace( $template_path_norm, '', $path ) );
+	$template = get_template();
+	if ( ! isset( $template_paths_norm[ $template ] ) ) {
+		$template_paths_norm[ $template ] = wp_normalize_path( get_template_directory() );
+	}
+
+	if ( str_starts_with( $path, trailingslashit( $template_paths_norm[ $template ] ) ) ) {
+		return get_theme_file_uri( str_replace( $template_paths_norm[ $template ], '', $path ) );
 	}
 
 	if ( is_child_theme() ) {
-		$stylesheet_path_norm = wp_normalize_path( get_stylesheet_directory() );
+		$stylesheet = get_stylesheet();
+		if ( ! isset( $template_paths_norm[ $stylesheet ] ) ) {
+			$template_paths_norm[ $stylesheet ] = wp_normalize_path( get_stylesheet_directory() );
+		}
 
-		if ( str_starts_with( $path, trailingslashit( $stylesheet_path_norm ) ) ) {
-			return get_theme_file_uri( str_replace( $stylesheet_path_norm, '', $path ) );
+		if ( str_starts_with( $path, trailingslashit( $template_paths_norm[ $stylesheet ] ) ) ) {
+			return get_theme_file_uri( str_replace( $template_paths_norm[ $stylesheet ], '', $path ) );
 		}
 	}
 
@@ -1095,7 +1103,7 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 	$result = '';
 	foreach ( $blocks as $index => $block ) {
 		if ( is_callable( $pre_callback ) ) {
-			$prev = 0 === $index
+			$prev    = 0 === $index
 				? null
 				: $blocks[ $index - 1 ];
 			$result .= call_user_func_array(
