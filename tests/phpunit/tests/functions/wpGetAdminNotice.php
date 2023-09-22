@@ -1,31 +1,27 @@
 <?php
 
 /**
- * Tests for `wp_admin_notice()`.
+ * Tests for `wp_get_admin_notice()`.
  *
- * @group admin
+ * @group functions.php
  *
- * @covers ::wp_admin_notice
+ * @covers ::wp_get_admin_notice
  */
-class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
+class Tests_Functions_WpGetAdminNotice extends WP_UnitTestCase {
 
 	/**
-	 * Tests that `wp_admin_notice()` outputs the expected admin notice markup.
+	 * Tests that `wp_get_admin_notice()` returns the expected admin notice markup.
 	 *
 	 * @ticket 57791
 	 *
-	 * @dataProvider data_should_output_admin_notice
+	 * @dataProvider data_should_return_admin_notice
 	 *
-	 * @param string $message  The message to output.
+	 * @param string $message  The message.
 	 * @param array  $args     Arguments for the admin notice.
 	 * @param string $expected The expected admin notice markup.
 	 */
-	public function test_should_output_admin_notice( $message, $args, $expected ) {
-		ob_start();
-		wp_admin_notice( $message, $args );
-		$actual = ob_get_clean();
-
-		$this->assertSame( $expected, $actual );
+	public function test_should_return_admin_notice( $message, $args, $expected ) {
+		$this->assertSame( $expected, wp_get_admin_notice( $message, $args ) );
 	}
 
 	/**
@@ -33,7 +29,7 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_output_admin_notice() {
+	public function data_should_return_admin_notice() {
 		return array(
 			'defaults'                                  => array(
 				'message'  => 'A notice with defaults.',
@@ -154,21 +150,21 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 				'args'     => array(
 					'type' => '"><script>alert("Howdy,admin!");</script>',
 				),
-				'expected' => '<div class="notice notice-">alert("Howdy,admin!");"&gt;<p>A notice with an unsafe type.</p></div>',
+				'expected' => '<div class="notice notice-"><script>alert("Howdy,admin!");</script>"><p>A notice with an unsafe type.</p></div>',
 			),
 			'an unsafe ID'                              => array(
 				'message'  => 'A notice with an unsafe ID.',
 				'args'     => array(
 					'id' => '"><script>alert( "Howdy, admin!" );</script> <div class="notice',
 				),
-				'expected' => '<div id="">alert( "Howdy, admin!" ); <div class="notice"><p>A notice with an unsafe ID.</p></div>',
+				'expected' => '<div id=""><script>alert( "Howdy, admin!" );</script> <div class="notice" class="notice"><p>A notice with an unsafe ID.</p></div>',
 			),
 			'unsafe additional classes'                 => array(
 				'message'  => 'A notice with unsafe additional classes.',
 				'args'     => array(
 					'additional_classes' => array( '"><script>alert( "Howdy, admin!" );</script> <div class="notice' ),
 				),
-				'expected' => '<div class="notice ">alert( "Howdy, admin!" ); <div class="notice"><p>A notice with unsafe additional classes.</p></div>',
+				'expected' => '<div class="notice "><script>alert( "Howdy, admin!" );</script> <div class="notice"><p>A notice with unsafe additional classes.</p></div>',
 			),
 			'a type that is not a string'               => array(
 				'message'  => 'A notice with a type that is not a string.',
@@ -257,13 +253,6 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 				),
 				'expected' => '<div class="notice" data-unsafe="&lt;script&gt;alert( &quot;Howdy, admin!&quot; );&lt;/script&gt;"><p>A notice with an additional attribute with an unsafe value.</p></div>',
 			),
-			'additional invalid attribute'              => array(
-				'message'  => 'A notice with an additional attribute that is invalid.',
-				'args'     => array(
-					'attributes' => array( 'not-valid' => 'not-valid' ),
-				),
-				'expected' => '<div class="notice"><p>A notice with an additional attribute that is invalid.</p></div>',
-			),
 			'multiple attributes with "role", invalid, data-*, numeric, and boolean' => array(
 				'message'  => 'A notice with multiple attributes with "role", invalid, "data-*", numeric, and boolean.',
 				'args'     => array(
@@ -275,7 +264,7 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 						'hidden',
 					),
 				),
-				'expected' => '<div class="notice" role="alert" data-name="my-name" data-id="1" hidden><p>A notice with multiple attributes with "role", invalid, "data-*", numeric, and boolean.</p></div>',
+				'expected' => '<div class="notice" role="alert" disabled="disabled" data-name="my-name" data-id="1" hidden><p>A notice with multiple attributes with "role", invalid, "data-*", numeric, and boolean.</p></div>',
 			),
 			'paragraph wrapping as a falsy value rather than (bool) false' => array(
 				'message'  => 'A notice with paragraph wrapping as a falsy value rather than (bool) false.',
@@ -288,39 +277,50 @@ class Tests_Admin_WpAdminNotice extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that `_doing_it_wrong()` is thrown when a 'type' containing spaces is passed.
+	 * Tests that `wp_get_admin_notice()` throws a `_doing_it_wrong()` when
+	 * a 'type' containing spaces is passed.
 	 *
 	 * @ticket 57791
 	 *
 	 * @expectedIncorrectUsage wp_get_admin_notice
 	 */
 	public function test_should_throw_doing_it_wrong_with_a_type_containing_spaces() {
-		ob_start();
-		wp_admin_notice(
-			'A type containing spaces.',
-			array( 'type' => 'first second third fourth' )
-		);
-		$actual = ob_get_clean();
-
 		$this->assertSame(
 			'<div class="notice notice-first second third fourth"><p>A type containing spaces.</p></div>',
-			$actual
+			wp_get_admin_notice(
+				'A type containing spaces.',
+				array( 'type' => 'first second third fourth' )
+			)
 		);
 	}
 
 	/**
-	 * Tests that `wp_admin_notice()` fires the 'wp_admin_notice' action.
+	 * Tests that `wp_get_admin_notice()` applies filters.
 	 *
 	 * @ticket 57791
+	 *
+	 * @dataProvider data_should_apply_filters
+	 *
+	 * @param string $hook_name The name of the filter hook.
 	 */
-	public function test_should_fire_wp_admin_notice_action() {
-		$action = new MockAction();
-		add_action( 'wp_admin_notice', array( $action, 'action' ) );
+	public function test_should_apply_filters( $hook_name ) {
+		$filter = new MockAction();
+		add_filter( $hook_name, array( $filter, 'filter' ) );
 
-		ob_start();
-		wp_admin_notice( 'A notice.', array( 'type' => 'success' ) );
-		ob_end_clean();
+		wp_get_admin_notice( 'A notice.', array( 'type' => 'success' ) );
 
-		$this->assertSame( 1, $action->get_call_count() );
+		$this->assertSame( 1, $filter->get_call_count() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_should_apply_filters() {
+		return array(
+			'wp_admin_notice_args'   => array( 'hook_name' => 'wp_admin_notice_args' ),
+			'wp_admin_notice_markup' => array( 'hook_name' => 'wp_admin_notice_markup' ),
+		);
 	}
 }

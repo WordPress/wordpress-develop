@@ -4440,6 +4440,92 @@ mockedApiResponse.Schema = {
                                 "type": "string"
                             },
                             "required": false
+                        },
+                        "tax_relation": {
+                            "description": "Limit result set based on relationship between multiple taxonomies.",
+                            "type": "string",
+                            "enum": [
+                                "AND",
+                                "OR"
+                            ],
+                            "required": false
+                        },
+                        "wp_pattern_category": {
+                            "description": "Limit result set to items with specific terms assigned in the wp_pattern_category taxonomy.",
+                            "type": [
+                                "object",
+                                "array"
+                            ],
+                            "oneOf": [
+                                {
+                                    "title": "Term ID List",
+                                    "description": "Match terms with the listed IDs.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
+                                    }
+                                },
+                                {
+                                    "title": "Term ID Taxonomy Query",
+                                    "description": "Perform an advanced term query.",
+                                    "type": "object",
+                                    "properties": {
+                                        "terms": {
+                                            "description": "Term IDs.",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "integer"
+                                            },
+                                            "default": []
+                                        },
+                                        "operator": {
+                                            "description": "Whether items must be assigned all or any of the specified terms.",
+                                            "type": "string",
+                                            "enum": [
+                                                "AND",
+                                                "OR"
+                                            ],
+                                            "default": "OR"
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            ],
+                            "required": false
+                        },
+                        "wp_pattern_category_exclude": {
+                            "description": "Limit result set to items except those with specific terms assigned in the wp_pattern_category taxonomy.",
+                            "type": [
+                                "object",
+                                "array"
+                            ],
+                            "oneOf": [
+                                {
+                                    "title": "Term ID List",
+                                    "description": "Match terms with the listed IDs.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
+                                    }
+                                },
+                                {
+                                    "title": "Term ID Taxonomy Query",
+                                    "description": "Perform an advanced term query.",
+                                    "type": "object",
+                                    "properties": {
+                                        "terms": {
+                                            "description": "Term IDs.",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "integer"
+                                            },
+                                            "default": []
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            ],
+                            "required": false
                         }
                     }
                 },
@@ -4548,6 +4634,14 @@ mockedApiResponse.Schema = {
                         "template": {
                             "description": "The theme file to use to display the post.",
                             "type": "string",
+                            "required": false
+                        },
+                        "wp_pattern_category": {
+                            "description": "The terms assigned to the post in the wp_pattern_category taxonomy.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
                             "required": false
                         }
                     }
@@ -4710,6 +4804,14 @@ mockedApiResponse.Schema = {
                         "template": {
                             "description": "The theme file to use to display the post.",
                             "type": "string",
+                            "required": false
+                        },
+                        "wp_pattern_category": {
+                            "description": "The terms assigned to the post in the wp_pattern_category taxonomy.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
                             "required": false
                         }
                     }
@@ -5032,6 +5134,14 @@ mockedApiResponse.Schema = {
                         "template": {
                             "description": "The theme file to use to display the post.",
                             "type": "string",
+                            "required": false
+                        },
+                        "wp_pattern_category": {
+                            "description": "The terms assigned to the post in the wp_pattern_category taxonomy.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
                             "required": false
                         }
                     }
@@ -8281,6 +8391,260 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/wp_pattern_category": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "allow_batch": {
+                        "v1": true
+                    },
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "search": {
+                            "description": "Limit results to those matching a string.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "exclude": {
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "include": {
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "offset": {
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "order": {
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string",
+                            "default": "asc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "required": false
+                        },
+                        "orderby": {
+                            "description": "Sort collection by term attribute.",
+                            "type": "string",
+                            "default": "name",
+                            "enum": [
+                                "id",
+                                "include",
+                                "name",
+                                "slug",
+                                "include_slugs",
+                                "term_group",
+                                "description",
+                                "count"
+                            ],
+                            "required": false
+                        },
+                        "hide_empty": {
+                            "description": "Whether to hide terms not assigned to any posts.",
+                            "type": "boolean",
+                            "default": false,
+                            "required": false
+                        },
+                        "post": {
+                            "description": "Limit result set to terms assigned to a specific post.",
+                            "type": "integer",
+                            "default": null,
+                            "required": false
+                        },
+                        "slug": {
+                            "description": "Limit result set to terms with one or more specific slugs.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "allow_batch": {
+                        "v1": true
+                    },
+                    "args": {
+                        "description": {
+                            "description": "HTML description of the term.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "name": {
+                            "description": "HTML title for the term.",
+                            "type": "string",
+                            "required": true
+                        },
+                        "slug": {
+                            "description": "An alphanumeric identifier for the term unique to its type.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/wp_pattern_category"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/wp_pattern_category/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "allow_batch": {
+                        "v1": true
+                    },
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the term.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "allow_batch": {
+                        "v1": true
+                    },
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the term.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "description": {
+                            "description": "HTML description of the term.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "name": {
+                            "description": "HTML title for the term.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "slug": {
+                            "description": "An alphanumeric identifier for the term unique to its type.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "allow_batch": {
+                        "v1": true
+                    },
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the term.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "force": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Required to be true, as terms do not support trashing.",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/users": {
             "namespace": "wp/v2",
             "methods": [
@@ -9452,6 +9816,7 @@ mockedApiResponse.Schema = {
                                     "page",
                                     "category",
                                     "post_tag",
+                                    "wp_pattern_category",
                                     "any"
                                 ],
                                 "type": "string"
@@ -12056,7 +12421,9 @@ mockedApiResponse.TypesCollection = {
         "name": "Patterns",
         "slug": "wp_block",
         "icon": null,
-        "taxonomies": [],
+        "taxonomies": [
+            "wp_pattern_category"
+        ],
         "rest_base": "blocks",
         "rest_namespace": "wp/v2",
         "_links": {
@@ -12361,6 +12728,36 @@ mockedApiResponse.TaxonomiesCollection = {
             "wp:items": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/menus"
+                }
+            ],
+            "curies": [
+                {
+                    "name": "wp",
+                    "href": "https://api.w.org/{rel}",
+                    "templated": true
+                }
+            ]
+        }
+    },
+    "wp_pattern_category": {
+        "name": "Pattern Categories",
+        "slug": "wp_pattern_category",
+        "description": "",
+        "types": [
+            "wp_block"
+        ],
+        "hierarchical": false,
+        "rest_base": "wp_pattern_category",
+        "rest_namespace": "wp/v2",
+        "_links": {
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/taxonomies"
+                }
+            ],
+            "wp:items": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/wp_pattern_category"
                 }
             ],
             "curies": [
