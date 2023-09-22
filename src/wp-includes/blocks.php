@@ -78,11 +78,10 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
  *
  * @since 6.4.0
  * @param string $path A normalized path to a block asset.
- * @param string $file The path to the block.json file.
  *
  * @return string The URL to the block asset.
  */
-function get_block_asset_url( $path, $file ) {
+function get_block_asset_url( $path ) {
 	// Path needs to be normalized to work in Windows env.
 	static $wpinc_path_norm = '';
 	if ( ! $wpinc_path_norm ) {
@@ -93,30 +92,27 @@ function get_block_asset_url( $path, $file ) {
 		return includes_url( str_replace( $wpinc_path_norm, '', $path ) );
 	}
 
-	// Cache $theme_path_norm to avoid calling get_theme_file_path() multiple times.
-	static $template_path_norm = '', $stylesheet_path_norm = '';
-	if ( ! $template_path_norm || ! $stylesheet_path_norm ) {
-		$template_path_norm   = wp_normalize_path( get_template_directory() );
-		$stylesheet_path_norm = wp_normalize_path( get_stylesheet_directory() );
+	static $template_path_norm = '';
+	if ( ! $template_path_norm ) {
+		$template_path_norm = wp_normalize_path( get_template_directory() );
 	}
 
-	/*
-	 * Determine if the block script was registered in a theme, by checking if the script path starts with either
-	 * the parent (template) or child (stylesheet) directory path.
-	 */
-	$is_parent_theme_block = str_starts_with( $path, trailingslashit( $template_path_norm ) );
-	$is_child_theme_block  = str_starts_with( $path, trailingslashit( $stylesheet_path_norm ) );
-	$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
-
-	if ( $is_theme_block ) {
-		$uri = $is_parent_theme_block
-			? get_theme_file_uri( str_replace( $template_path_norm, '', $path ) )
-			: get_theme_file_uri( str_replace( $stylesheet_path_norm, '', $path ) );
-	} else {
-		$uri = plugins_url( $path, $file );
+	if ( str_starts_with( $path, trailingslashit( $template_path_norm ) ) ) {
+		return get_theme_file_uri( str_replace( $template_path_norm, '', $path ) );
 	}
 
-	return $uri;
+	if ( is_child_theme() ) {
+		static $stylesheet_path_norm = '';
+		if ( ! $stylesheet_path_norm ) {
+			$stylesheet_path_norm = wp_normalize_path( get_stylesheet_directory() );
+		}
+
+		if ( str_starts_with( $path, trailingslashit( $stylesheet_path_norm ) ) ) {
+			return get_theme_file_uri( str_replace( $stylesheet_path_norm, '', $path ) );
+		}
+	}
+
+	return plugins_url( basename( $path ), $path );
 }
 
 /**
@@ -176,7 +172,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	}
 
 	$script_path_norm = wp_normalize_path( realpath( $path . '/' . $script_path ) );
-	$script_uri       = get_block_asset_url( $script_path_norm, $metadata['file'] );
+	$script_uri       = get_block_asset_url( $script_path_norm );
 
 	$script_args = array();
 	if ( 'viewScript' === $field_name ) {
@@ -267,7 +263,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 
 	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
 	$has_style_file  = '' !== $style_path_norm;
-	$style_uri       = $has_style_file ? get_block_asset_url( $style_path_norm, $metadata['file'] ) : false;
+	$style_uri       = $has_style_file ? get_block_asset_url( $style_path_norm ) : false;
 
 	$version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$result  = wp_register_style(
