@@ -1396,7 +1396,7 @@ class WP_Automatic_Updater {
 			} else {
 				/* translators: %s: WordPress version. */
 				$body[] = sprintf( __( 'FAILED: WordPress failed to update to %s' ), $result->name );
-				$failures++;
+				++$failures;
 			}
 
 			$body[] = '';
@@ -1438,7 +1438,7 @@ class WP_Automatic_Updater {
 					if ( ! $item->result || is_wp_error( $item->result ) ) {
 						/* translators: %s: Name of plugin / theme / translation. */
 						$body[] = ' * ' . sprintf( __( 'FAILED: %s' ), $item->name );
-						$failures++;
+						++$failures;
 					}
 				}
 			}

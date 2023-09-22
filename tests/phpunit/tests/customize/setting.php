@@ -765,4 +765,3 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		$this->assertSame( $override_value, $setting->value() );
 	}
 }
-

@@ -367,8 +367,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		}
 
 		// Base fields for every post.
-		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
+		$data   = array();
 
 		if ( rest_is_field_included( 'id', $fields ) ) {
 			$data['id'] = $post->ID;
@@ -603,8 +603,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		}
 
 		$theme  = WP_Theme_JSON_Resolver::get_merged_data( 'theme' );
-		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
+		$data   = array();
 
 		if ( rest_is_field_included( 'settings', $fields ) ) {
 			$data['settings'] = $theme->get_settings();
@@ -663,6 +663,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * Returns the given theme global styles variations.
 	 *
 	 * @since 6.0.0
+	 * @since 6.2.0 Returns parent theme variations, if they exist.
 	 *
 	 * @param WP_REST_Request $request The request instance.
 	 *
@@ -679,9 +680,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		}
 
 		$variations = WP_Theme_JSON_Resolver::get_style_variations();
-		$response   = rest_ensure_response( $variations );
 
-		return $response;
+		return rest_ensure_response( $variations );
 	}
 
 	/**
@@ -690,11 +690,12 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * Currently just checks for invalid markup.
 	 *
 	 * @since 6.2.0
+	 * @since 6.4.0 Changed method visibility to protected.
 	 *
 	 * @param string $css CSS to validate.
 	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.
 	 */
-	private function validate_custom_css( $css ) {
+	protected function validate_custom_css( $css ) {
 		if ( preg_match( '#</?\w+#', $css ) ) {
 			return new WP_Error(
 				'rest_custom_css_illegal_markup',

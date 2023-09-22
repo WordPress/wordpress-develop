@@ -1798,8 +1798,10 @@ module.exports = function(grunt) {
 			// Clean up only those files that were deleted.
 			grunt.config( [ 'clean', 'dynamic', 'src' ], src );
 		} else {
-			// Otherwise copy over only the changed file.
-			grunt.config( [ 'copy', 'dynamic', 'src' ], src );
+			if ( ! grunt.option( 'dev' ) ) {
+				// Otherwise copy over only the changed file.
+				grunt.config(['copy', 'dynamic', 'src'], src);
+			}
 
 			// For javascript also minify and validate the changed file.
 			if ( target === 'js-enqueues' ) {

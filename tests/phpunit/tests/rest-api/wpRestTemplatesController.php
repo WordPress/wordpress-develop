@@ -870,13 +870,13 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 		$this->assertInstanceOf( 'stdClass', $prepared, 'The item could not be prepared for the database.' );
 
-		$this->assertObjectHasAttribute( 'post_type', $prepared, 'The "post_type" was not included in the prepared template part.' );
-		$this->assertObjectHasAttribute( 'post_status', $prepared, 'The "post_status" was not included in the prepared template part.' );
-		$this->assertObjectHasAttribute( 'tax_input', $prepared, 'The "tax_input" was not included in the prepared template part.' );
+		$this->assertObjectHasProperty( 'post_type', $prepared, 'The "post_type" was not included in the prepared template part.' );
+		$this->assertObjectHasProperty( 'post_status', $prepared, 'The "post_status" was not included in the prepared template part.' );
+		$this->assertObjectHasProperty( 'tax_input', $prepared, 'The "tax_input" was not included in the prepared template part.' );
 		$this->assertArrayHasKey( 'wp_theme', $prepared->tax_input, 'The "wp_theme" tax was not included in the prepared template part.' );
 		$this->assertArrayHasKey( 'wp_template_part_area', $prepared->tax_input, 'The "wp_template_part_area" tax was not included in the prepared template part.' );
-		$this->assertObjectHasAttribute( 'post_content', $prepared, 'The "post_content" was not included in the prepared template part.' );
-		$this->assertObjectHasAttribute( 'post_title', $prepared, 'The "post_title" was not included in the prepared template part.' );
+		$this->assertObjectHasProperty( 'post_content', $prepared, 'The "post_content" was not included in the prepared template part.' );
+		$this->assertObjectHasProperty( 'post_title', $prepared, 'The "post_title" was not included in the prepared template part.' );
 
 		$this->assertSame( 'wp_template_part', $prepared->post_type, 'The "post_type" in the prepared template part should be "wp_template_part".' );
 		$this->assertSame( 'publish', $prepared->post_status, 'The post status in the prepared template part should be "publish".' );

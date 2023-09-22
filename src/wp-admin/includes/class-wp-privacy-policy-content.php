@@ -130,31 +130,28 @@ final class WP_Privacy_Policy_Content {
 	 * Outputs a warning when some privacy info has changed.
 	 *
 	 * @since 4.9.6
-	 *
-	 * @global WP_Post $post Global post object.
 	 */
 	public static function policy_text_changed_notice() {
-		global $post;
-
 		$screen = get_current_screen()->id;
 
 		if ( 'privacy' !== $screen ) {
 			return;
 		}
 
-		?>
-		<div class="policy-text-updated notice notice-warning is-dismissible">
-			<p>
-			<?php
-				printf(
-					/* translators: %s: Privacy Policy Guide URL. */
-					__( 'The suggested privacy policy text has changed. Please <a href="%s">review the guide</a> and update your privacy policy.' ),
-					esc_url( admin_url( 'privacy-policy-guide.php?tab=policyguide' ) )
-				);
-			?>
-			</p>
-		</div>
-		<?php
+		$privacy_message = sprintf(
+			/* translators: %s: Privacy Policy Guide URL. */
+			__( 'The suggested privacy policy text has changed. Please <a href="%s">review the guide</a> and update your privacy policy.' ),
+			esc_url( admin_url( 'privacy-policy-guide.php?tab=policyguide' ) )
+		);
+
+		wp_admin_notice(
+			$privacy_message,
+			array(
+				'type'               => 'warning',
+				'additional_classes' => array( 'policy-text-updated' ),
+				'dismissible'        => true,
+			)
+		);
 	}
 
 	/**
@@ -356,22 +353,20 @@ final class WP_Privacy_Policy_Content {
 				'after'
 			);
 		} else {
-			?>
-			<div class="notice notice-warning inline wp-pp-notice">
-				<p>
-				<?php
-				echo $message;
-				printf(
-					' <a href="%s" target="_blank">%s <span class="screen-reader-text">%s</span></a>',
-					$url,
-					$label,
-					/* translators: Hidden accessibility text. */
-					__( '(opens in a new tab)' )
-				);
-				?>
-				</p>
-			</div>
-			<?php
+			$message .= sprintf(
+				' <a href="%s" target="_blank">%s <span class="screen-reader-text">%s</span></a>',
+				$url,
+				$label,
+				/* translators: Hidden accessibility text. */
+				__( '(opens in a new tab)' )
+			);
+			wp_admin_notice(
+				$message,
+				array(
+					'type'               => 'warning',
+					'additional_classes' => array( 'inline', 'wp-pp-notice' ),
+				)
+			);
 		}
 	}
 
@@ -398,8 +393,14 @@ final class WP_Privacy_Policy_Content {
 				$badge_title = sprintf( __( 'Removed %s.' ), $date );
 
 				/* translators: %s: Date of plugin deactivation. */
-				$removed = __( 'You deactivated this plugin on %s and may no longer need this policy.' );
-				$removed = '<div class="notice notice-info inline"><p>' . sprintf( $removed, $date ) . '</p></div>';
+				$removed = sprintf( __( 'You deactivated this plugin on %s and may no longer need this policy.' ), $date );
+				$removed = wp_get_admin_notice(
+					$removed,
+					array(
+						'type'               => 'info',
+						'additional_classes' => array( 'inline' ),
+					)
+				);
 			} elseif ( ! empty( $section['updated'] ) ) {
 				$badge_class = ' blue';
 				$date        = date_i18n( $date_format, $section['updated'] );
