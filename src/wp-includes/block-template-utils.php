@@ -37,21 +37,15 @@ if ( ! defined( 'WP_TEMPLATE_PART_AREA_UNCATEGORIZED' ) ) {
  * }
  */
 function get_block_theme_folders( $theme_stylesheet = null ) {
-	$theme_name = null === $theme_stylesheet ? get_stylesheet() : $theme_stylesheet;
-	$root_dir   = get_theme_root( $theme_name );
-	$theme_dir  = "$root_dir/$theme_name";
-
-	if ( file_exists( $theme_dir . '/block-templates' ) || file_exists( $theme_dir . '/block-template-parts' ) ) {
+	$theme = wp_get_theme( (string) $theme_stylesheet );
+	if ( ! $theme->exists() ) {
+		// Return the default folders if the theme doesn't exist.
 		return array(
-			'wp_template'      => 'block-templates',
-			'wp_template_part' => 'block-template-parts',
+			'wp_template'      => 'templates',
+			'wp_template_part' => 'parts',
 		);
 	}
-
-	return array(
-		'wp_template'      => 'templates',
-		'wp_template_part' => 'parts',
-	);
+	return $theme->get_block_template_folders();
 }
 
 /**
@@ -609,7 +603,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	}
 
 	$blocks            = parse_blocks( $template_content );
-	$template->content = serialize_blocks( $blocks, '_inject_theme_attribute_in_template_part_block' );
+	$template->content = traverse_and_serialize_blocks( $blocks, '_inject_theme_attribute_in_template_part_block' );
 
 	return $template;
 }
