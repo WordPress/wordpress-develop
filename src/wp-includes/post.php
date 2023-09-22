@@ -729,7 +729,7 @@ function create_initial_post_types() {
 		array(
 			'public'       => false,
 			'_builtin'     => true,  /* internal use only. don't use this when registering your own post type. */
-			'label'        => 'Font Library',
+			'label'        =>  __( 'Font Library' ),
 			'show_in_rest' => true,
 		)
 	);

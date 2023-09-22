@@ -9,7 +9,6 @@
  * @since      6.4.0
  */
 
-
 if ( ! function_exists( 'wp_register_font_collection' ) ) {
 	/**
 	 * Registers a new Font Collection in the Font Library.
@@ -40,7 +39,7 @@ add_action(
 $default_font_collection = array(
 	'id'          => 'default-font-collection',
 	'name'        => 'Google Fonts',
-	'description' => __( 'Add from Google Fonts. Fonts are copied to and served from your site.', 'gutenberg' ),
+	'description' => __( 'Add from Google Fonts. Fonts are copied to and served from your site.', 'default' ),
 	'src'         => 'https://raw.githubusercontent.com/WordPress/google-fonts-to-wordpress-collection/main/output/google-fonts-with-previews.json',
 );
 

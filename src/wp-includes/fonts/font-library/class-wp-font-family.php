@@ -108,7 +108,7 @@ class WP_Font_Family {
 		if ( null === $post ) {
 			return new WP_Error(
 				'font_family_not_found',
-				__( 'The font family could not be found.', 'gutenberg' )
+				__( 'The font family could not be found.', 'default' )
 			);
 		}
 
@@ -118,7 +118,7 @@ class WP_Font_Family {
 		) {
 			return new WP_Error(
 				'font_family_not_deleted',
-				__( 'The font family could not be deleted.', 'gutenberg' )
+				__( 'The font family could not be deleted.', 'default' )
 			);
 		}
 
@@ -490,7 +490,7 @@ class WP_Font_Family {
 		if ( 0 === $post_id || is_wp_error( $post_id ) ) {
 			return new WP_Error(
 				'font_post_creation_failed',
-				__( 'Font post creation failed', 'gutenberg' )
+				__( 'Font post creation failed', 'default' )
 			);
 		}
 
@@ -559,7 +559,7 @@ class WP_Font_Family {
 		if ( 0 === $post_id || is_wp_error( $post_id ) ) {
 			return new WP_Error(
 				'font_post_update_failed',
-				__( 'Font post update failed', 'gutenberg' )
+				__( 'Font post update failed', 'default' )
 			);
 		}
 
@@ -604,7 +604,7 @@ class WP_Font_Family {
 		if ( ! $were_assets_written ) {
 			return new WP_Error(
 				'font_face_download_failed',
-				__( 'The font face assets could not be written.', 'gutenberg' )
+				__( 'The font face assets could not be written.', 'default' )
 			);
 		}
 
