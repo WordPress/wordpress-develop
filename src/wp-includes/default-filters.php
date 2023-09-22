@@ -724,4 +724,7 @@ add_action( 'init', 'wp_create_initial_post_meta' );
 // Font management.
 add_action( 'wp_head', 'wp_print_font_faces', 50 );
 
+// Font Library.
+add_action( 'init', 'wp_register_default_font_collection' );
+
 unset( $filter, $action );
