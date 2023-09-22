@@ -1071,12 +1071,15 @@ class WP_User_Query {
 		if ( isset( $args['blog_id'] ) ) {
 			$blog_id = absint( $args['blog_id'] );
 		}
-		if ( ( $args['has_published_posts'] && $blog_id ) || in_array( 'post_count', $ordersby, true ) ) {
-			$switch = get_current_blog_id() !== $blog_id;
+
+		if ( $args['has_published_posts'] || in_array( 'post_count', $ordersby, true ) ) {
+			$switch = $blog_id && get_current_blog_id() !== $blog_id;
 			if ( $switch ) {
 				switch_to_blog( $blog_id );
 			}
+
 			$last_changed .= wp_cache_get_last_changed( 'posts' );
+
 			if ( $switch ) {
 				restore_current_blog();
 			}
@@ -1119,7 +1122,8 @@ class WP_User_Query {
 			return $this->$name;
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			"The property `{$name}` is not declared. Getting a dynamic property is " .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.',
 			E_USER_DEPRECATED
@@ -1142,7 +1146,8 @@ class WP_User_Query {
 			return;
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			"The property `{$name}` is not declared. Setting a dynamic property is " .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.',
 			E_USER_DEPRECATED
@@ -1163,7 +1168,8 @@ class WP_User_Query {
 			return isset( $this->$name );
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			"The property `{$name}` is not declared. Checking `isset()` on a dynamic property " .
 			'is deprecated since version 6.4.0! Instead, declare the property on the class.',
 			E_USER_DEPRECATED
@@ -1185,7 +1191,8 @@ class WP_User_Query {
 			return;
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			"A property `{$name}` is not declared. Unsetting a dynamic property is " .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.',
 			E_USER_DEPRECATED

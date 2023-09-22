@@ -86,6 +86,15 @@ class WP_HTML_Processor_State {
 	public $active_formatting_elements = null;
 
 	/**
+	 * Refers to the currently-matched tag, if any.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @var WP_HTML_Token|null
+	 */
+	public $current_token = null;
+
+	/**
 	 * Tree construction insertion mode.
 	 *
 	 * @since 6.4.0
@@ -106,6 +115,19 @@ class WP_HTML_Processor_State {
 	 * @var [string, array]|null
 	 */
 	public $context_node = null;
+
+	/**
+	 * The frameset-ok flag indicates if a `FRAMESET` element is allowed in the current state.
+	 *
+	 * > The frameset-ok flag is set to "ok" when the parser is created. It is set to "not ok" after certain tokens are seen.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @see https://html.spec.whatwg.org/#frameset-ok-flag
+	 *
+	 * @var bool
+	 */
+	public $frameset_ok = true;
 
 	/**
 	 * Constructor - creates a new and empty state value.

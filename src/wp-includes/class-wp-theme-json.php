@@ -203,6 +203,7 @@ class WP_Theme_JSON {
 	 *              removed the `--wp--style--block-gap` property.
 	 * @since 6.2.0 Added `outline-*`, and `min-height` properties.
 	 * @since 6.3.0 Added `column-count` property.
+	 * @since 6.4.0 Added `writing-mode` property.
 	 *
 	 * @var array
 	 */
@@ -261,6 +262,7 @@ class WP_Theme_JSON {
 		'text-transform'                    => array( 'typography', 'textTransform' ),
 		'filter'                            => array( 'filter', 'duotone' ),
 		'box-shadow'                        => array( 'shadow' ),
+		'writing-mode'                      => array( 'typography', 'writingMode' ),
 	);
 
 	/**
@@ -340,12 +342,16 @@ class WP_Theme_JSON {
 	 * @since 6.2.0 Added `dimensions.minHeight`, 'shadow.presets', 'shadow.defaultPresets',
 	 *              `position.fixed` and `position.sticky`.
 	 * @since 6.3.0 Added support for `typography.textColumns`, removed `layout.definitions`.
-	 *
+	 * @since 6.4.0 Added support for `layout.allowEditing`, `background.backgroundImage`,
+	 *              `typography.writingMode`, `lightbox.enabled` and `lightbox.allowEditing`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
 		'appearanceTools'               => null,
 		'useRootPaddingAwareAlignments' => null,
+		'background'                    => array(
+			'backgroundImage' => null,
+		),
 		'border'                        => array(
 			'color'  => null,
 			'radius' => null,
@@ -374,8 +380,13 @@ class WP_Theme_JSON {
 			'minHeight' => null,
 		),
 		'layout'                        => array(
-			'contentSize' => null,
-			'wideSize'    => null,
+			'contentSize'  => null,
+			'wideSize'     => null,
+			'allowEditing' => null,
+		),
+		'lightbox'                      => array(
+			'enabled'      => null,
+			'allowEditing' => null,
 		),
 		'position'                      => array(
 			'fixed'  => null,
@@ -407,6 +418,7 @@ class WP_Theme_JSON {
 			'textColumns'    => null,
 			'textDecoration' => null,
 			'textTransform'  => null,
+			'writingMode'    => null,
 		),
 	);
 
@@ -469,6 +481,7 @@ class WP_Theme_JSON {
 			'textColumns'    => null,
 			'textDecoration' => null,
 			'textTransform'  => null,
+			'writingMode'    => null,
 		),
 		'css'        => null,
 	);
@@ -557,9 +570,11 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.0.0
 	 * @since 6.2.0 Added `dimensions.minHeight` and `position.sticky`.
+	 * @since 6.4.0 Added `background.backgroundImage`.
 	 * @var array
 	 */
 	const APPEARANCE_TOOLS_OPT_INS = array(
+		array( 'background', 'backgroundImage' ),
 		array( 'border', 'color' ),
 		array( 'border', 'radius' ),
 		array( 'border', 'style' ),
@@ -1263,7 +1278,7 @@ class WP_Theme_JSON {
 
 		if ( isset( $block_metadata['name'] ) ) {
 			$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_metadata['name'] );
-			if ( ! block_has_support( $block_type, array( 'layout' ), false ) && ! block_has_support( $block_type, array( '__experimentalLayout' ), false ) ) {
+			if ( ! block_has_support( $block_type, 'layout', false ) && ! block_has_support( $block_type, '__experimentalLayout', false ) ) {
 				return $block_rules;
 			}
 		}
@@ -1311,7 +1326,7 @@ class WP_Theme_JSON {
 						continue;
 					}
 
-					$class_name    = sanitize_title( _wp_array_get( $layout_definition, array( 'className' ), false ) );
+					$class_name    = _wp_array_get( $layout_definition, array( 'className' ), false );
 					$spacing_rules = _wp_array_get( $layout_definition, array( 'spacingStyles' ), array() );
 
 					if (
@@ -1368,7 +1383,7 @@ class WP_Theme_JSON {
 		) {
 			$valid_display_modes = array( 'block', 'flex', 'grid' );
 			foreach ( $layout_definitions as $layout_definition ) {
-				$class_name       = sanitize_title( _wp_array_get( $layout_definition, array( 'className' ), false ) );
+				$class_name       = _wp_array_get( $layout_definition, array( 'className' ), false );
 				$base_style_rules = _wp_array_get( $layout_definition, array( 'baseStyles' ), array() );
 
 				if (
@@ -1565,6 +1580,9 @@ class WP_Theme_JSON {
 
 		$stylesheet = '';
 		foreach ( static::PRESETS_METADATA as $preset_metadata ) {
+			if ( empty( $preset_metadata['classes'] ) ) {
+				continue;
+			}
 			$slugs = static::get_settings_slugs( $settings, $preset_metadata, $origins );
 			foreach ( $preset_metadata['classes'] as $class => $property ) {
 				foreach ( $slugs as $slug ) {
@@ -1762,6 +1780,9 @@ class WP_Theme_JSON {
 	protected static function compute_preset_vars( $settings, $origins ) {
 		$declarations = array();
 		foreach ( static::PRESETS_METADATA as $preset_metadata ) {
+			if ( empty( $preset_metadata['css_vars'] ) ) {
+				continue;
+			}
 			$values_by_slug = static::get_settings_values_by_slug( $settings, $preset_metadata, $origins );
 			foreach ( $values_by_slug as $slug => $value ) {
 				$declarations[] = array(
@@ -2326,7 +2347,7 @@ class WP_Theme_JSON {
 					// Prepend the variation selector to the current selector.
 					$split_selectors    = explode( ',', $shortened_selector );
 					$updated_selectors  = array_map(
-						static function( $split_selector ) use ( $clean_style_variation_selector ) {
+						static function ( $split_selector ) use ( $clean_style_variation_selector ) {
 							return $clean_style_variation_selector . $split_selector;
 						},
 						$split_selectors
@@ -2364,7 +2385,7 @@ class WP_Theme_JSON {
 		$pseudo_matches = array_values(
 			array_filter(
 				$element_pseudo_allowed,
-				static function( $pseudo_selector ) use ( $selector ) {
+				static function ( $pseudo_selector ) use ( $selector ) {
 					return str_contains( $selector, $pseudo_selector );
 				}
 			)
@@ -2479,13 +2500,13 @@ class WP_Theme_JSON {
 			// Right and left padding are applied to the first container with `.has-global-padding` class.
 			$css .= '.has-global-padding { padding-right: var(--wp--style--root--padding-right); padding-left: var(--wp--style--root--padding-left); }';
 			// Nested containers with `.has-global-padding` class do not get padding.
-			$css .= '.has-global-padding :where(.has-global-padding) { padding-right: 0; padding-left: 0; }';
+			$css .= '.has-global-padding :where(.has-global-padding:not(.wp-block-block)) { padding-right: 0; padding-left: 0; }';
 			// Alignfull children of the container with left and right padding have negative margins so they can still be full width.
 			$css .= '.has-global-padding > .alignfull { margin-right: calc(var(--wp--style--root--padding-right) * -1); margin-left: calc(var(--wp--style--root--padding-left) * -1); }';
 			// The above rule is negated for alignfull children of nested containers.
-			$css .= '.has-global-padding :where(.has-global-padding) > .alignfull { margin-right: 0; margin-left: 0; }';
+			$css .= '.has-global-padding :where(.has-global-padding:not(.wp-block-block)) > .alignfull { margin-right: 0; margin-left: 0; }';
 			// Some of the children of alignfull blocks without content width should also get padding: text blocks and non-alignfull container blocks.
-			$css .= '.has-global-padding > .alignfull:where(:not(.has-global-padding)) > :where([class*="wp-block-"]:not(.alignfull):not([class*="__"]),p,h1,h2,h3,h4,h5,h6,ul,ol) { padding-right: var(--wp--style--root--padding-right); padding-left: var(--wp--style--root--padding-left); }';
+			$css .= '.has-global-padding > .alignfull:where(:not(.has-global-padding):not(.is-layout-flex):not(.is-layout-grid)) > :where([class*="wp-block-"]:not(.alignfull):not([class*="__"]),p,h1,h2,h3,h4,h5,h6,ul,ol) { padding-right: var(--wp--style--root--padding-right); padding-left: var(--wp--style--root--padding-left); }';
 			// The above rule also has to be negated for blocks inside nested `.has-global-padding` blocks.
 			$css .= '.has-global-padding :where(.has-global-padding) > .alignfull:where(:not(.has-global-padding)) > :where([class*="wp-block-"]:not(.alignfull):not([class*="__"]),p,h1,h2,h3,h4,h5,h6,ul,ol) { padding-right: 0; padding-left: 0; }';
 		}
@@ -2685,7 +2706,7 @@ class WP_Theme_JSON {
 	 * @param array      $theme_json The theme.json like structure to inspect.
 	 * @param array      $path       Path to inspect.
 	 * @param bool|array $override   Data to compute whether to override the preset.
-	 * @return boolean
+	 * @return bool
 	 */
 	protected static function should_override_preset( $theme_json, $path, $override ) {
 		_deprecated_function( __METHOD__, '6.0.0', 'get_metadata_boolean' );
@@ -2821,6 +2842,7 @@ class WP_Theme_JSON {
 	 * Removes insecure data from theme.json.
 	 *
 	 * @since 5.9.0
+	 * @since 6.3.1 Preserves global styles block variations when securing styles.
 	 *
 	 * @param array $theme_json Structure to sanitize.
 	 * @return array Sanitized structure.
@@ -2878,6 +2900,20 @@ class WP_Theme_JSON {
 
 			if ( ! empty( $output ) ) {
 				_wp_array_set( $sanitized, $metadata['path'], $output );
+			}
+
+			if ( isset( $metadata['variations'] ) ) {
+				foreach ( $metadata['variations'] as $variation ) {
+					$variation_input = _wp_array_get( $theme_json, $variation['path'], array() );
+					if ( empty( $variation_input ) ) {
+						continue;
+					}
+
+					$variation_output = static::remove_insecure_styles( $variation_input );
+					if ( ! empty( $variation_output ) ) {
+						_wp_array_set( $sanitized, $variation['path'], $variation_output );
+					}
+				}
 			}
 		}
 
@@ -3376,7 +3412,7 @@ class WP_Theme_JSON {
 			}
 
 			if ( $below_midpoint_count < $steps_mid_point - 2 ) {
-				$x_small_count++;
+				++$x_small_count;
 			}
 
 			$slug -= 10;
@@ -3413,7 +3449,7 @@ class WP_Theme_JSON {
 			}
 
 			if ( $above_midpoint_count > 1 ) {
-				$x_large_count++;
+				++$x_large_count;
 			}
 
 			$slug += 10;
@@ -3710,7 +3746,7 @@ class WP_Theme_JSON {
 		$theme_vars  = static::compute_theme_vars( $settings );
 		$vars        = array_reduce(
 			array_merge( $preset_vars, $theme_vars ),
-			function( $carry, $item ) {
+			function ( $carry, $item ) {
 				$name                    = $item['name'];
 				$carry[ "var({$name})" ] = $item['value'];
 				return $carry;

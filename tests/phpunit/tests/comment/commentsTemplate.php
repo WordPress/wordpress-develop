@@ -10,6 +10,14 @@
 class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 
 	/**
+	 * Performs setup tasks for every test.
+	 */
+	public function set_up() {
+		parent::set_up();
+		switch_theme( 'default' );
+	}
+
+	/**
 	 * @ticket 8071
 	 */
 	public function test_should_respect_comment_order_asc_when_default_comments_page_is_newest() {
