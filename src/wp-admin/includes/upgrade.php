@@ -2340,6 +2340,7 @@ function upgrade_640() {
 	if ( $wp_current_db_version < 56657 ) {
 		// Enable attachment pages.
 		update_option( 'wp_attachment_pages_enabled', 1 );
+
 		// Remove the wp_https_detection cron. Https status is checked directly in an async Site Health check.
 		$scheduled = wp_get_scheduled_event( 'wp_https_detection' );
 		if ( $scheduled ) {
