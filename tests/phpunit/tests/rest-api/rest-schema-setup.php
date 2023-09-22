@@ -188,6 +188,10 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp-site-health/v1/directory-sizes',
 			'/wp/v2/wp_pattern_category',
 			'/wp/v2/wp_pattern_category/(?P<id>[\d]+)',
+			'/wp/v2/fonts',
+			'/wp/v2/fonts/collections',
+			'/wp/v2/fonts/collections/(?P<id>[\/\w-]+)',
+			''
 		);
 
 		$this->assertSameSets( $expected_routes, $routes );
