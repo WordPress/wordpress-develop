@@ -92,20 +92,14 @@ function get_block_asset_url( $path ) {
 		return includes_url( str_replace( $wpinc_path_norm, '', $path ) );
 	}
 
-	static $template_path_norm = '';
-	if ( ! $template_path_norm ) {
-		$template_path_norm = wp_normalize_path( get_template_directory() );
-	}
+	$template_path_norm = wp_normalize_path( get_template_directory() );
 
 	if ( str_starts_with( $path, trailingslashit( $template_path_norm ) ) ) {
 		return get_theme_file_uri( str_replace( $template_path_norm, '', $path ) );
 	}
 
 	if ( is_child_theme() ) {
-		static $stylesheet_path_norm = '';
-		if ( ! $stylesheet_path_norm ) {
-			$stylesheet_path_norm = wp_normalize_path( get_stylesheet_directory() );
-		}
+		$stylesheet_path_norm = wp_normalize_path( get_stylesheet_directory() );
 
 		if ( str_starts_with( $path, trailingslashit( $stylesheet_path_norm ) ) ) {
 			return get_theme_file_uri( str_replace( $stylesheet_path_norm, '', $path ) );
