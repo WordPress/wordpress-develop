@@ -5955,7 +5955,7 @@ function wp_high_priority_element_flag( $value = null ) {
 
 
 /**
- * Register one or more image CDN handlers
+ * Register one or more image CDN handlers.
  *
  * Each CND can register a set of image types and the URL prefix they should use.
  *
