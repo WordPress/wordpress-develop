@@ -4776,7 +4776,53 @@ EOF;
 		);
 		apply_filters( 'the_content', '' );
 
-		$this->assertSame( array( 'decoding' => 'async' ), $result );
+		$this->assertSame( array(), $result );
+	}
+
+	/**
+	 * Tests to cover the decoding attribute within wp_get_loading_optimization_attributes().
+	 *
+	 * @ticket 58892
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_get_loading_optimization_attributes_decoding_attribute() {
+
+		$this->assertSameSetsWithIndex(
+			array(
+				'decoding' => 'async',
+			),
+			wp_get_loading_optimization_attributes( 'img', array(), 'the_content' ),
+			'Expected decoding attribute to be async.'
+		);
+
+		$this->assertSameSetsWithIndex(
+			array(
+				'decoding' => 'auto',
+			),
+			wp_get_loading_optimization_attributes( 'img', array( 'decoding' => 'auto' ), 'the_content' ),
+			'Expected decoding attribute to be auto.'
+		);
+
+		$result = null;
+		add_filter(
+			'the_content',
+			static function ( $content ) use ( &$result ) {
+				$result = wp_get_loading_optimization_attributes( 'img', array(), 'something_completely_arbitrary' );
+				return $content;
+			}
+		);
+		apply_filters( 'the_content', '' );
+
+		$this->assertEmpty(
+			$result,
+			'Expected decoding attribute to be empty for img on arbitrary context, while running the_content.'
+		);
+
+		$this->assertEmpty(
+			wp_get_loading_optimization_attributes( 'iframe', array(), 'the_content' ),
+			'Expected decoding attribute to be empty for iframe.'
+		);
 	}
 
 	/**
