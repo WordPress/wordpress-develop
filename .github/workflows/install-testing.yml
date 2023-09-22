@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       wp-version:
-        description: 'The version to test installing. Major releases must not end with ".0".'
+        description: 'The version to test installing. Accepts major and minor versions, "latest", or "nightly". Major releases must not end with ".0".'
         type: string
         default: 'latest'
 
