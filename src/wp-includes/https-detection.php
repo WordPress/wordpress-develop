@@ -153,12 +153,6 @@ function wp_get_https_detection_errors() {
 		}
 	}
 
-	// Remove the previously cron scheduled https check (since version 6.4).
-	$scheduled = wp_get_scheduled_event( 'wp_https_detection' );
-	if ( $scheduled && false !== $scheduled->schedule ) {
-		wp_unschedule_event( $scheduled->timestamp, $scheduled->schedule, 'wp_https_detection' );
-	}
-
 	return $support_errors->errors;
 }
 
