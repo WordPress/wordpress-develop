@@ -1,0 +1,19 @@
+<documentation title="Safe Redirect">
+    <standard>
+    <![CDATA[
+    wp_safe_redirect() should be used whenever possible to prevent open redirect vulnerabilities. One of the main uses of an open redirect vulnerability is to make phishing attacks more credible. In this case the user sees your (trusted) domain and might get redirected to an attacker controlled website aimed at stealing private information.
+    ]]>
+    </standard>
+    <code_comparison>
+        <code title="Valid: Redirect can only go to allowed domains.">
+        <![CDATA[
+<em>wp_safe_redirect</em>( $location );
+        ]]>
+        </code>
+        <code title="Invalid: Unsafe redirect, can be abused.">
+        <![CDATA[
+<em>wp_redirect</em>( $location );
+        ]]>
+        </code>
+    </code_comparison>
+</documentation>

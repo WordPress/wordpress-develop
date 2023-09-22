@@ -1,0 +1,244 @@
+<?xml version="1.0"?>
+<ruleset name="PHPCompatibilityParagonieSodiumCompat">
+    <description>PHPCompatibility ruleset for PHP_CodeSniffer which accounts for polyfills provided by the Paragonie sodium_compat library.</description>
+
+    <!--
+        Note: this ruleset does **not** contain excludes for the `sodium_pwhash()` and
+        the sodium_memzero() functions as, while those functions do exist in the polyfill,
+        they do not work and are explicitly excluded features.
+        See: https://github.com/paragonie/sodium_compat#features-excluded-from-this-polyfill
+
+        With that in mind, these functions should not be used in code which intends to be
+        PHP cross-version compatible.
+    -->
+
+    <!-- https://github.com/paragonie/sodium_compat/blob/master/composer.json -->
+    <rule ref="PHPCompatibilityParagonieRandomCompat"/>
+
+    <rule ref="PHPCompatibility">
+        <!-- https://github.com/paragonie/sodium_compat/blob/master/src/SodiumException.php -->
+        <exclude name="PHPCompatibility.Classes.NewClasses.sodiumexceptionFound"/>
+
+        <!-- https://github.com/paragonie/sodium_compat/blob/master/lib/php72compat.php -->
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_base64_variant_originalFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_base64_variant_original_no_paddingFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_base64_variant_urlsafeFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_base64_variant_urlsafe_no_paddingFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_aead_aes256gcm_keybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_aead_aes256gcm_nsecbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_aead_aes256gcm_npubbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_aead_aes256gcm_abytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_aead_chacha20poly1305_keybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_aead_chacha20poly1305_nsecbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_aead_chacha20poly1305_npubbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_aead_chacha20poly1305_abytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_aead_chacha20poly1305_ietf_keybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_aead_chacha20poly1305_ietf_nsecbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_aead_chacha20poly1305_ietf_npubbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_aead_chacha20poly1305_ietf_abytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_aead_xchacha20poly1305_ietf_keybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_aead_xchacha20poly1305_ietf_nsecbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_aead_xchacha20poly1305_ietf_npubbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_aead_xchacha20poly1305_ietf_abytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_auth_bytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_auth_keybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_box_sealbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_box_secretkeybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_box_publickeybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_box_keypairbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_box_macbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_box_noncebytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_box_seedbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_kdf_bytes_minFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_kdf_bytes_maxFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_kdf_contextbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_kdf_keybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_kx_bytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_kx_keypairbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_kx_publickeybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_kx_secretkeybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_kx_seedbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_kx_sessionkeybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_generichash_bytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_generichash_bytes_minFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_generichash_bytes_maxFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_generichash_keybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_generichash_keybytes_minFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_generichash_keybytes_maxFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_pwhash_saltbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_pwhash_strprefixFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_pwhash_alg_argon2i13Found"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_pwhash_alg_argon2id13Found"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_pwhash_memlimit_interactiveFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_pwhash_opslimit_interactiveFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_pwhash_memlimit_moderateFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_pwhash_opslimit_moderateFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_pwhash_memlimit_sensitiveFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_pwhash_opslimit_sensitiveFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_pwhash_scryptsalsa208sha256_saltbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_pwhash_scryptsalsa208sha256_strprefixFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_pwhash_scryptsalsa208sha256_opslimit_interactiveFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_pwhash_scryptsalsa208sha256_memlimit_interactiveFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_pwhash_scryptsalsa208sha256_opslimit_sensitiveFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_pwhash_scryptsalsa208sha256_memlimit_sensitiveFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_scalarmult_bytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_scalarmult_scalarbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_secretstream_xchacha20poly1305_abytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_secretstream_xchacha20poly1305_headerbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_secretstream_xchacha20poly1305_keybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_secretstream_xchacha20poly1305_messagebytes_maxFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_secretstream_xchacha20poly1305_tag_pushFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_secretstream_xchacha20poly1305_tag_rekeyFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_secretstream_xchacha20poly1305_tag_finalFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_shorthash_bytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_shorthash_keybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_secretbox_keybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_secretbox_macbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_secretbox_noncebytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_sign_bytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_sign_seedbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_sign_publickeybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_sign_secretkeybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_sign_keypairbytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_stream_keybytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_crypto_stream_noncebytesFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_library_versionFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_library_major_versionFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.sodium_library_minor_versionFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_addFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_base642binFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_bin2base64Found"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_bin2hexFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_compareFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_aead_aes256gcm_decryptFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_aead_aes256gcm_encryptFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_aead_aes256gcm_is_availableFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_aead_chacha20poly1305_decryptFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_aead_chacha20poly1305_encryptFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_aead_chacha20poly1305_keygenFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_aead_chacha20poly1305_ietf_decryptFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_aead_chacha20poly1305_ietf_encryptFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_aead_chacha20poly1305_ietf_keygenFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_aead_xchacha20poly1305_ietf_decryptFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_aead_xchacha20poly1305_ietf_encryptFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_aead_xchacha20poly1305_ietf_keygenFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_authFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_auth_keygenFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_auth_verifyFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_boxFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_box_keypairFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_box_keypair_from_secretkey_and_publickeyFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_box_openFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_box_publickeyFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_box_publickey_from_secretkeyFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_box_sealFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_box_seal_openFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_box_secretkeyFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_box_seed_keypairFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_generichashFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_generichash_finalFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_generichash_initFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_generichash_keygenFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_generichash_updateFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_kdf_derive_from_keyFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_kdf_keygenFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_kxFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_kx_client_session_keysFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_kx_keypairFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_kx_publickeyFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_kx_secretkeyFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_kx_seed_keypairFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_kx_server_session_keysFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_pwhash_strFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_pwhash_str_needs_rehashFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_pwhash_str_verifyFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_pwhash_scryptsalsa208sha256Found"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_pwhash_scryptsalsa208sha256_strFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_pwhash_scryptsalsa208sha256_str_verifyFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_scalarmultFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_scalarmult_baseFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_secretboxFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_secretbox_keygenFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_secretbox_openFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_secretstream_xchacha20poly1305_keygenFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_secretstream_xchacha20poly1305_init_pullFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_secretstream_xchacha20poly1305_init_pushFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_secretstream_xchacha20poly1305_pullFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_secretstream_xchacha20poly1305_pushFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_secretstream_xchacha20poly1305_rekeyFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_shorthashFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_shorthash_keygenFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_signFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_sign_detachedFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_sign_keypairFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_sign_keypair_from_secretkey_and_publickeyFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_sign_openFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_sign_publickeyFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_sign_publickey_from_secretkeyFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_sign_secretkeyFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_sign_seed_keypairFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_sign_verify_detachedFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_sign_ed25519_pk_to_curve25519Found"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_sign_ed25519_sk_to_curve25519Found"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_streamFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_stream_keygenFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_stream_xorFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_hex2binFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_incrementFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_library_versionFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_library_version_majorFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_library_version_minorFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_version_stringFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_memcmpFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_padFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_randombytes_bufFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_randombytes_uniformFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_randombytes_random16Found"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.sodium_unpadFound"/>
+    </rule>
+
+    <!-- Prevent false positives being thrown when run over the code of sodium_compat itself. -->
+    <rule ref="PHPCompatibility.FunctionUse.NewFunctionParameters.assert_descriptionFound">
+        <exclude-pattern>/sodium_compat/autoload\.php$</exclude-pattern>
+    </rule>
+    <rule ref="PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__debuginfoFound">
+        <exclude-pattern>/sodium_compat/src/Core(32)?/Curve25519/Fe\.php$</exclude-pattern>
+    </rule>
+    <rule ref="PHPCompatibility.FunctionUse.NewFunctions.hash_equalsFound">
+        <exclude-pattern>/sodium_compat/src/Core/Util\.php$</exclude-pattern>
+    </rule>
+    <rule ref="PHPCompatibility.ParameterValues.NewPackFormat.NewFormatFound">
+        <exclude-pattern>/sodium_compat/src/Core/Util\.php$</exclude-pattern>
+    </rule>
+    <rule ref="PHPCompatibility.FunctionUse.NewFunctionParameters.openssl_decrypt_ivFound">
+        <exclude-pattern>/sodium_compat/src/Compat\.php$</exclude-pattern>
+    </rule>
+    <rule ref="PHPCompatibility.FunctionUse.NewFunctionParameters.openssl_decrypt_tagFound">
+        <exclude-pattern>/sodium_compat/src/Compat\.php$</exclude-pattern>
+    </rule>
+    <rule ref="PHPCompatibility.FunctionUse.NewFunctionParameters.openssl_decrypt_aadFound">
+        <exclude-pattern>/sodium_compat/src/Compat\.php$</exclude-pattern>
+    </rule>
+    <rule ref="PHPCompatibility.FunctionUse.NewFunctionParameters.openssl_encrypt_ivFound">
+        <exclude-pattern>/sodium_compat/src/Compat\.php$</exclude-pattern>
+    </rule>
+    <rule ref="PHPCompatibility.FunctionUse.NewFunctionParameters.openssl_encrypt_tagFound">
+        <exclude-pattern>/sodium_compat/src/Compat\.php$</exclude-pattern>
+    </rule>
+    <rule ref="PHPCompatibility.FunctionUse.NewFunctionParameters.openssl_encrypt_aadFound">
+        <exclude-pattern>/sodium_compat/src/Compat\.php$</exclude-pattern>
+    </rule>
+    <rule ref="PHPCompatibility.Constants.NewConstants.openssl_raw_dataFound">
+        <exclude-pattern>/sodium_compat/src/Compat\.php$</exclude-pattern>
+    </rule>
+    <rule ref="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_pwhashFound">
+        <exclude-pattern>/sodium_compat/src/Compat\.php$</exclude-pattern>
+    </rule>
+    <rule ref="PHPCompatibility.FunctionUse.NewFunctions.sodium_memzeroFound">
+        <exclude-pattern>/sodium_compat/src/Compat\.php$</exclude-pattern>
+    </rule>
+    <rule ref="PHPCompatibility.IniDirectives.RemovedIniDirectives.mbstring_func_overloadDeprecated">
+        <exclude-pattern>/sodium_compat/src/Core/Util\.php$</exclude-pattern>
+    </rule>
+
+</ruleset>

@@ -1,0 +1,56 @@
+{
+	"name": "wp-coding-standards/wpcs",
+	"type": "phpcodesniffer-standard",
+	"description": "PHP_CodeSniffer rules (sniffs) to enforce WordPress coding conventions",
+	"keywords": [
+		"phpcs",
+		"standards",
+		"WordPress"
+	],
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Contributors",
+			"homepage": "https://github.com/WordPress/WordPress-Coding-Standards/graphs/contributors"
+		}
+	],
+	"require": {
+		"php": ">=5.4",
+		"squizlabs/php_codesniffer": "^3.3.1"
+	},
+	"require-dev": {
+		"dealerdirect/phpcodesniffer-composer-installer": "^0.5 || ^0.6",
+		"phpcompatibility/php-compatibility": "^9.0",
+		"phpunit/phpunit": "^4.0 || ^5.0 || ^6.0 || ^7.0",
+		"phpcsstandards/phpcsdevtools": "^1.0"
+	},
+	"suggest": {
+		"dealerdirect/phpcodesniffer-composer-installer": "^0.6 || This Composer plugin will sort out the PHPCS 'installed_paths' automatically."
+	},
+	"minimum-stability": "RC",
+	"scripts": {
+		"check-cs": [
+			"@php ./vendor/squizlabs/php_codesniffer/bin/phpcs"
+		],
+		"fix-cs": [
+			"@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf"
+		],
+		"install-codestandards": [
+			"Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run"
+		],
+		"run-tests": [
+			"@php ./vendor/phpunit/phpunit/phpunit --filter WordPress --bootstrap=\"./vendor/squizlabs/php_codesniffer/tests/bootstrap.php\" ./vendor/squizlabs/php_codesniffer/tests/AllTests.php"
+		],
+		"check-complete": [
+			"@php ./vendor/phpcsstandards/phpcsdevtools/bin/phpcs-check-feature-completeness -q ./WordPress"
+		],
+		"check-complete-strict": [
+			"@php ./vendor/phpcsstandards/phpcsdevtools/bin/phpcs-check-feature-completeness ./WordPress"
+		]
+	},
+	"support": {
+		"issues": "https://github.com/WordPress/WordPress-Coding-Standards/issues",
+		"wiki": "https://github.com/WordPress/WordPress-Coding-Standards/wiki",
+		"source": "https://github.com/WordPress/WordPress-Coding-Standards"
+	}
+}

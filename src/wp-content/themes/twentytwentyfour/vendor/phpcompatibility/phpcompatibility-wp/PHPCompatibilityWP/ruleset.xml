@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<ruleset name="PHPCompatibilityWP">
+    <description>WordPress specific ruleset which checks for PHP cross version compatibility.</description>
+
+    <!--
+    The WordPress minimum PHP requirement was 5.2.4 up to WP 5.1.
+    As of WP 5.2, the new minimum PHP requirement is PHP 5.6.20.
+    Add the following in your project PHP_CodeSniffer ruleset to enforce this:
+    <config name="testVersion" value="5.6-"/>
+
+    This directive is not included in this ruleset as individual projects may use
+    a different (higher) minimum PHP version.
+    -->
+
+    <rule ref="PHPCompatibility">
+        <!--
+        Contained in /wp-includes/compat.php.
+
+        History of the polyfills in WP:
+        * hash_hmac(): since WP 3.2.0.
+        * json_encode() and json_decode(): since unknown.
+        * hash_equals(): since WP 3.9.2.
+        * JSON_PRETTY_PRINT: since WP 4.1.0.
+        * json_last_error_msg(): since WP 4.4.0.
+        * JsonSerializable: since WP 4.4.0.
+        * array_replace_recursive(): since WP 4.5.3 up to 5.2.x. The polyfill was removed in WP 5.3.
+        * is_iterable(): since WP 4.9.6
+        * is_countable(): since WP 4.9.6
+        * IMAGETYPE_WEBP and IMG_WEBP: since WP 5.8.0.
+        * array_key_first(): since WP 5.9.0
+        * array_key_last(): since WP 5.9.0
+        * str_contains(): since WP 5.9.0
+        * str_starts_with(): since WP 5.9.0
+        * str_ends_with(): since WP 5.9.0
+        -->
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.hash_hmacFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.json_encodeFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.json_decodeFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.hash_equalsFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.json_pretty_printFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.json_last_error_msgFound"/>
+        <exclude name="PHPCompatibility.Interfaces.NewInterfaces.jsonserializableFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.array_replace_recursiveFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.is_iterableFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.is_countableFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.imagetype_webpFound"/>
+        <exclude name="PHPCompatibility.Constants.NewConstants.img_webpFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.array_key_firstFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.array_key_lastFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.str_containsFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.str_starts_withFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.str_ends_withFound"/>
+
+        <!--
+        Contained in /wp-includes/spl-autoload-compat.php.
+
+        History of the polyfills in WP:
+        * spl_autoload_register(), spl_autoload_unregister() and spl_autoload_functions() were
+          introduced in WP 4.6.0 and available up to WP 5.2.x. The polyfills were removed in WP 5.3.
+        -->
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.spl_autoload_registerFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.spl_autoload_unregisterFound"/>
+        <exclude name="PHPCompatibility.FunctionUse.NewFunctions.spl_autoload_functionsFound"/>
+    </rule>
+
+    <!--
+    The ParagonieSodiumCompat ruleset includes the ParagonieRandomCompat ruleset.
+
+    RancomCompat is contained in /wp-includes/random_compat/ since WP 4.4.0
+    SodiumCompat is contained in /wp-includes/sodium_compat/ since WP 5.2.0
+    -->
+    <rule ref="PHPCompatibilityParagonieSodiumCompat"/>
+
+    <!-- Whitelist the WP Core mysql_to_rfc3339() function. -->
+    <rule ref="PHPCompatibility.Extensions.RemovedExtensions">
+        <properties>
+            <!-- Contained in /wp-includes/functions.php. -->
+            <property name="functionWhitelist" type="array" value="mysql_to_rfc3339"/>
+        </properties>
+    </rule>
+
+</ruleset>

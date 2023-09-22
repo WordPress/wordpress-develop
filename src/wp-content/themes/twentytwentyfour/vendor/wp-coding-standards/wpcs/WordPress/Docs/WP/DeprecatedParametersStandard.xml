@@ -1,0 +1,36 @@
+<documentation title="Deprecated Function Parameters">
+    <standard>
+    <![CDATA[
+    Please refrain from passing deprecated WordPress function parameters.
+	In case, you need to pass an optional parameter positioned <em>after</em> the deprecated parameter, only ever pass the default value.
+    ]]>
+    </standard>
+    <code_comparison>
+        <code title="Valid: not passing a deprecated parameter.">
+        <![CDATA[
+// First - and only - parameter deprecated.
+get_the_author();
+        ]]>
+        </code>
+        <code title="Invalid: passing a deprecated parameter.">
+        <![CDATA[
+// First - and only - parameter deprecated.
+get_the_author( <em>$string</em> );
+        ]]>
+        </code>
+    </code_comparison>
+    <code_comparison>
+        <code title="Valid: passing default value for a deprecated parameter.">
+        <![CDATA[
+// Third parameter deprecated in WP 2.3.0.
+add_option( 'option_name', 123, <em>''</em>, 'yes' );
+        ]]>
+        </code>
+        <code title="Invalid: not passing the default value for a deprecated parameter.">
+        <![CDATA[
+// Third parameter deprecated in WP 2.3.0.
+add_option( 'my_name', 123, <em>'oops'</em>, 'yes' );
+        ]]>
+        </code>
+    </code_comparison>
+</documentation>

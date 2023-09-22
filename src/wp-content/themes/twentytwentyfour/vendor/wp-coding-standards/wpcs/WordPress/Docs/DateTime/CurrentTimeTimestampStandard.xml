@@ -1,0 +1,31 @@
+<documentation title="Current Time Timestamp">
+    <standard>
+    <![CDATA[
+    Don't use current_time() to get a timestamp as it doesn't produce a Unix (UTC) timestamp, but a "WordPress timestamp", i.e. a Unix timestamp with current timezone offset.
+    ]]>
+    </standard>
+    <code_comparison>
+        <code title="Valid: using time() to get a Unix (UTC) timestamp.">
+        <![CDATA[
+$timestamp = <em>time()</em>;
+        ]]>
+        </code>
+        <code title="Invalid: using current_time() to get a Unix (UTC) timestamp.">
+        <![CDATA[
+$timestamp = <em>current_time( 'timestamp', true )</em>;
+        ]]>
+        </code>
+    </code_comparison>
+    <code_comparison>
+        <code title="Valid: using current_time() with a non-timestamp format.">
+        <![CDATA[
+$timestamp = current_time( <em>'Y-m-d'</em> );
+        ]]>
+        </code>
+        <code title="Invalid: using current_time() to get a timezone corrected timestamp.">
+        <![CDATA[
+$timestamp = <em>current_time( 'U', false )</em>;
+        ]]>
+        </code>
+    </code_comparison>
+</documentation>

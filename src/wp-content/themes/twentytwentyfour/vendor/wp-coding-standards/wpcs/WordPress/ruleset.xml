@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="WordPress" namespace="WordPressCS\WordPress" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/squizlabs/PHP_CodeSniffer/master/phpcs.xsd">
+
+	<description>WordPress Coding Standards</description>
+
+	<!--
+	Included via WordPress-Extra.
+	<rule ref="WordPress-Core"/>
+	-->
+	<rule ref="WordPress-Docs"/>
+	<rule ref="WordPress-Extra">
+		<!-- Prevent duplicate messages + deprecation notice from deprecated sniff. -->
+		<exclude name="WordPress.WP.TimezoneChange.timezone_change_date_default_timezone_set"/>
+		<exclude name="WordPress.WP.TimezoneChange.DeprecatedSniff"/>
+	</rule>
+
+</ruleset>

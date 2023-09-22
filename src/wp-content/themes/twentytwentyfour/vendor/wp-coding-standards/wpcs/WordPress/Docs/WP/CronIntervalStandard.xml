@@ -1,0 +1,41 @@
+<documentation title="Cron interval">
+    <standard>
+    <![CDATA[
+    Cron schedules running more often than once every 15 minutes are discouraged. Crons running that frequently can negatively impact the performance of a site.
+    ]]>
+    </standard>
+    <code_comparison>
+        <code title="Valid: Cron schedule is created to run once every hour.">
+        <![CDATA[
+function adjust_schedules( $schedules ) {
+    $schedules['every_hour'] = array(
+        'interval' => <em>HOUR_IN_SECONDS</em>,
+        'display'  => __( 'Every hour' )
+    );
+    return $schedules;
+} 
+
+add_filter( 
+    'cron_schedules', 
+    'adjust_schedules'
+); 
+        ]]>
+        </code>
+        <code title="Invalid: Cron schedule is added to run more than once per 15 minutes.">
+        <![CDATA[
+function adjust_schedules( $schedules ) {
+    $schedules['every_9_mins'] = array(
+        'interval' => <em>9 * 60</em>,
+        'display'  => __( 'Every 9 minutes' )
+    );
+    return $schedules;
+} 
+
+add_filter( 
+    'cron_schedules', 
+    'adjust_schedules'
+);
+        ]]>
+        </code>
+    </code_comparison>
+</documentation>

@@ -1,0 +1,25 @@
+<documentation title="Disallow Inline Tabs">
+    <standard>
+    <![CDATA[
+    Use spaces for inline alignment.
+    ]]>
+    </standard>
+    <code_comparison>
+        <code title="Valid: spaces used for inline alignment.">
+        <![CDATA[
+$a = array(
+    'abc'<em>[space]</em>=> 'lor',
+    'b'<em>[space][space][space]</em>=> 'em',
+);
+        ]]>
+        </code>
+        <code title="Invalid: tabs used for inline alignment.">
+        <![CDATA[
+$a = array(
+    'abc'<em>[tab]</em>=> 'lor',
+    'b'<em>[tab]</em>=> 'em',
+);
+        ]]>
+        </code>
+    </code_comparison>
+</documentation>

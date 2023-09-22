@@ -1,0 +1,31 @@
+<documentation title="Precision Alignment">
+    <standard>
+    <![CDATA[
+    Line indentation should only use tabs. Precision alignment with spaces after the tabs is strongly discouraged.
+    ]]>
+    </standard>
+    <code_comparison>
+        <code title="Valid: only tabstops used for indentation.">
+        <![CDATA[
+<em>[tab]</em>$var = true;
+        ]]>
+        </code>
+        <code title="Invalid: precision alignment of 2 spaces.">
+        <![CDATA[
+<em>[space][space]</em>$var = true;
+        ]]>
+        </code>
+    </code_comparison>
+    <code_comparison>
+        <code title="Valid: four spaces counts as a tab, the replacement of these will be handled by another sniff.">
+        <![CDATA[
+<em>[tab][space][space][space][space]</em>$var = true;
+        ]]>
+        </code>
+        <code title="Invalid: precision alignment of 3 spaces.">
+        <![CDATA[
+<em>[tab][space][space][space]</em>$var = true;
+        ]]>
+        </code>
+    </code_comparison>
+</documentation>

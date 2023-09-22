@@ -1,0 +1,53 @@
+<documentation title="Enqueued Resources">
+    <standard>
+    <![CDATA[
+    Scripts must be registered/enqueued via wp_enqueue_script().
+    ]]>
+    </standard>
+    <code_comparison>
+        <code title="Valid: Script registered and enqueued correctly.">
+        <![CDATA[
+<em>wp_enqueue_script</em>( 
+    'someScript-js', 
+    $path_to_file, 
+    array( 'jquery' ),
+    '1.0.0',
+    true
+);
+        ]]>
+        </code>
+        <code title="Invalid: Script is directly embedded in HTML.">
+        <![CDATA[
+printf( 
+    '<em><script src="%s"></script></em>',
+    esc_url( $path_to_file )
+);
+        ]]>
+        </code>
+    </code_comparison>
+    <standard>
+    <![CDATA[
+    Stylesheets must be registered/enqueued via wp_enqueue_style().
+    ]]>
+    </standard>
+    <code_comparison>
+        <code title="Valid: Stylesheet registered and enqueued correctly.">
+        <![CDATA[
+<em>wp_enqueue_style</em>( 
+    'style-name', 
+    $path_to_file, 
+    array(), 
+    '1.0.0'
+);
+        ]]>
+        </code>
+        <code title="Invalid: Stylesheet is directly embedded in HTML.">
+        <![CDATA[
+printf( 
+    '<em><link rel="stylesheet" href="%s" /></em>',
+    esc_url( $path_to_file )
+);
+        ]]>
+        </code>
+    </code_comparison>
+</documentation>

@@ -1,0 +1,171 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="WPThemeReview" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/squizlabs/PHP_CodeSniffer/master/phpcs.xsd">
+
+	<!-- For more information: https://make.wordpress.org/themes/handbook/review/ -->
+	<description>Standards any Theme to be published on wordpress.org should comply with.</description>
+
+	<!-- Themes should be compatible with PHP 5.2 and higher. -->
+	<config name="testVersion" value="5.2-"/>
+	<rule ref="PHPCompatibilityWP">
+		<include-pattern>*\.(php|inc)$</include-pattern>
+	</rule>
+
+	<!-- No PHP short open tags allowed. -->
+	<!-- Covers: https://github.com/Otto42/theme-check/blob/master/checks/phpshort.php -->
+	<rule ref="Generic.PHP.DisallowShortOpenTag"/>
+
+	<!-- Alternative PHP open tags not allowed. -->
+	<rule ref="Generic.PHP.DisallowAlternativePHPTags"/>
+
+	<!-- Files which start with a PHP open tag should have no whitespace preceding it. -->
+	<rule ref="Squiz.WhiteSpace.SuperfluousWhitespace.StartFile">
+		<message>To help prevent PHP "headers already sent" errors, whitespace before the PHP open tag should be removed.</message>
+	</rule>
+
+	<!-- Files should omit the closing PHP tag at the end of a file. -->
+	<rule ref="PSR2.Files.ClosingTag.NotAllowed">
+		<type>warning</type>
+		<message>To help prevent PHP "headers already sent" errors, the PHP closing tag at the end of the file should be removed.</message>
+	</rule>
+
+	<!-- Mixed line endings are not allowed. -->
+	<!-- Covers: https://github.com/Otto42/theme-check/blob/master/checks/lineendings.php -->
+	<rule ref="Internal.LineEndings.Mixed">
+		<type>error</type>
+	</rule>
+
+	<!-- No minification of scripts or files unless you provide original files. -->
+	<!-- Covers: https://make.wordpress.org/themes/handbook/review/required/#stylesheets-and-scripts -->
+	<rule ref="Internal.Tokenizer.Exception">
+		<message>File appears to be minified and cannot be processed. The non-minified file must be included too.</message>
+	</rule>
+
+	<!-- No ByteOrderMark allowed - important to prevent issues with content being sent before headers. -->
+	<rule ref="Generic.Files.ByteOrderMark"/>
+
+	<!-- Control structures which don't do anything are not very useful. -->
+	<rule ref="Generic.CodeAnalysis.EmptyStatement"/>
+
+	<!-- PHP tags without anything between them is just sloppy. -->
+	<!-- Internal: this should be replaced with the PHPCS native version of the same sniff
+		 `Generic.CodeAnalysis.EmptyPHPStatement`, once the minimum required PHPCS version has gone up to 3.4.0. -->
+	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
+
+	<!-- No removal of the admin bar allowed -->
+	<!-- Covers: https://github.com/wordpress/theme-check/blob/master/checks/adminbar.php -->
+	<rule ref="WPThemeReview.PluginTerritory.AdminBarRemoval">
+		<properties>
+			<property name="remove_only" value="false"/>
+		</properties>
+	</rule>
+
+	<!-- Check that the I18N functions are used correctly. -->
+	<!-- This sniff can also check the text domain, provided it's passed to PHPCS. -->
+	<rule ref="WordPress.WP.I18n"/>
+
+	<!-- No hard coding of scripts and styles. Everything should be enqueued. -->
+	<rule ref="WordPress.WP.EnqueuedResources"/>
+
+	<!-- Prevent path disclosure when using add_theme_page(). -->
+	<rule ref="WordPress.Security.PluginMenuSlug"/>
+
+	<!-- Do not silence error notices. e.g. Error Control Operator @.. -->
+	<rule ref="Generic.PHP.NoSilencedErrors">
+		<properties>
+			<property name="error" value="true"/>
+		</properties>
+	</rule>
+
+	<!-- While most themes shouldn't query the database directly, if they do, it should be done correctly. -->
+	<!-- Don't use the PHP database functions and classes, use the WP abstraction layer instead. -->
+	<rule ref="WordPress.DB.RestrictedClasses"/>
+	<rule ref="WordPress.DB.RestrictedFunctions"/>
+
+	<!-- All SQL queries should be prepared as close to the time of querying the database as possible. -->
+	<rule ref="WordPress.DB.PreparedSQL"/>
+
+	<!-- Verify that placeholders in prepared queries are used correctly. -->
+	<rule ref="WordPress.DB.PreparedSQLPlaceholders"/>
+
+	<!-- Validate and/or sanitize untrusted data before entering into the database. -->
+	<rule ref="WordPress.Security.ValidatedSanitizedInput">
+		<type>warning</type>
+	</rule>
+
+	<!-- All untrusted data should be escaped before output. -->
+	<rule ref="WordPress.Security.EscapeOutput">
+		<type>warning</type>
+	</rule>
+
+	<!-- Prohibit the use of the backtick operator. -->
+	<rule ref="Generic.PHP.BacktickOperator"/>
+
+	<!-- Prohibit overwriting of WordPress global variables. -->
+	<rule ref="WordPress.WP.GlobalVariablesOverride"/>
+
+	<!-- Prohibit the use of the eval() PHP language construct. -->
+	<rule ref="Squiz.PHP.Eval.Discouraged">
+		<type>error</type>
+		<message>eval() is a security risk so not allowed.</message>
+	</rule>
+
+	<!-- Prohibit the use of the `goto` PHP language construct. -->
+	<rule ref="Generic.PHP.DiscourageGoto.Found">
+		<type>error</type>
+		<message>The "goto" language construct should not be used.</message>
+	</rule>
+
+	<!-- Check for use of deprecated WordPress classes, functions and function parameters. -->
+	<rule ref="WordPress.WP.DeprecatedClasses"/>
+	<rule ref="WordPress.WP.DeprecatedFunctions"/>
+	<rule ref="WordPress.WP.DeprecatedParameters"/>
+
+	<!-- Check for deprecated WordPress constants. -->
+	<rule ref="WordPress.WP.DiscouragedConstants">
+		<type>error</type>
+	</rule>
+
+	<!-- Check for usage of deprecated parameter values in WP functions and provide alternative based on the parameter passed. -->
+	<rule ref="WordPress.WP.DeprecatedParameterValues"/>
+
+	<!-- Verify that everything in the global namespace is prefixed. -->
+	<!-- Covers: https://make.wordpress.org/themes/handbook/review/required/#code - last bullet. -->
+	<!-- NOTE: this sniff needs a custom property to be set for it to be activated. -->
+	<!-- See: https://github.com/WordPress/WordPress-Coding-Standards/wiki/Customizable-sniff-properties#naming-conventions-prefix-everything-in-the-global-namespace -->
+	<rule ref="WPThemeReview.CoreFunctionality.PrefixAllGlobals">
+		<properties>
+			<property name="allowed_folders" type="array">
+				<element value="template-parts"/>
+				<element value="templates"/>
+				<element value="partials"/>
+				<element value="page-templates"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Check for correct spelling of WordPress. -->
+	<!-- Covers: https://make.wordpress.org/themes/handbook/review/required/#naming - third bullet. -->
+	<rule ref="WordPress.WP.CapitalPDangit">
+		<type>error</type>
+	</rule>
+
+	<!-- If TGMPA is used, verify that the version is up to date. -->
+	<rule ref="WPThemeReview.Plugins.CorrectTGMPAVersion">
+		<!-- Require that the Custom Generator is used to download & adjust TGMPA. -->
+		<properties>
+			<property name="required_flavour" value="wporg"/>
+		</properties>
+	</rule>
+
+	<!-- Themes should not use the PHP session functions nor access the $_SESSION variable. -->
+	<!-- Covered by the WPThemeReview.PluginTerritory.SessionFunctionsUsage and WPThemeReview.PluginTerritory.SessionVariableUsage sniffs. -->
+
+	<!-- Themes should never touch the timezone. -->
+	<rule ref="WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set"/>
+
+	<!-- Themes shouldn't change ini configuration during runtime. -->
+	<rule ref="WordPress.PHP.IniSet">
+		<type>error</type>
+	</rule>
+
+</ruleset>

@@ -1,0 +1,23 @@
+<documentation title="Cast Structure Spacing">
+    <standard>
+    <![CDATA[
+    A type cast should be preceded by whitespace.
+    There is only one exception to this rule: when the cast is preceded by the spread operator there should be no space between the spread operator and the cast.
+    ]]>
+    </standard>
+    <code_comparison>
+        <code title="Valid: space before typecast.">
+        <![CDATA[
+$a =<em> </em>(int) '420';
+
+// No space between spread operator and cast.
+$a = function_call( <em>...(array)</em> $mixed );
+        ]]>
+        </code>
+        <code title="Invalid: no space before typecast.">
+        <![CDATA[
+$a <em>=(</em>int) '420';
+        ]]>
+        </code>
+    </code_comparison>
+</documentation>

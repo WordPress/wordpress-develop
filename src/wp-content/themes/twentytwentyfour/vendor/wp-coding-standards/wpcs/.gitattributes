@@ -1,0 +1,25 @@
+#
+# Exclude these files from release archives.
+# This will also make them unavailable when using Composer with `--prefer-dist`.
+# If you develop for WPCS using Composer, use `--prefer-source`.
+# https://blog.madewithlove.be/post/gitattributes/
+#
+/.travis.yml export-ignore
+/.phpcs.xml.dist export-ignore
+/phpunit.xml.dist export-ignore
+/.github export-ignore
+/bin export-ignore
+/WordPress/Tests export-ignore
+
+#
+# Auto detect text files and perform LF normalization
+# http://davidlaing.com/2012/09/19/customise-your-gitattributes-to-become-a-git-ninja/
+#
+* text=auto
+
+#
+# The above will handle all files NOT found below
+#
+*.md text
+*.php text
+*.inc text

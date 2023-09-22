@@ -1,0 +1,75 @@
+{
+	"name"       : "wptrt/wpthemereview",
+	"description": "PHP_CodeSniffer rules (sniffs) to verify theme compliance with the rules for theme hosting on wordpress.org",
+	"type"       : "phpcodesniffer-standard",
+	"keywords"   : [
+		"phpcs",
+		"standards",
+		"WordPress",
+		"Themes"
+	],
+	"homepage"   : "https://make.wordpress.org/themes/handbook/review/",
+	"license"    : "MIT",
+	"authors"    : [
+		{
+			"name"    : "Theme Review Team",
+			"homepage": "https://make.wordpress.org/themes/handbook/",
+			"role"    : "Strategy and rule setting"
+		},
+		{
+			"name"    : "Ulrich Pogson",
+			"homepage": "https://github.com/grappler",
+			"role"    : "Lead developer"
+		},
+		{
+			"name"    : "Juliette Reinders Folmer",
+			"homepage": "https://github.com/jrfnl",
+			"role"    : "Lead developer"
+		},
+		{
+			"name"    : "Denis Žoljom",
+			"homepage": "https://github.com/dingo-d",
+			"role"    : "Plugin integration lead"
+		},
+		{
+			"name"    : "Contributors",
+			"homepage": "https://github.com/WPTRT/WPThemeReview/graphs/contributors"
+		}
+	],
+	"require"    : {
+		"php"                      : ">=5.4",
+		"squizlabs/php_codesniffer": "^3.3.1",
+		"wp-coding-standards/wpcs" : "^2.2.0",
+		"phpcompatibility/phpcompatibility-wp": "^2.0"
+	},
+	"require-dev": {
+		"phpunit/phpunit"                   : "^4.0 || ^5.0 || ^6.0 || ^7.0",
+		"phpcompatibility/php-compatibility": "^9.0",
+		"roave/security-advisories"         : "dev-master",
+		"dealerdirect/phpcodesniffer-composer-installer": "^0.5.0"
+	},
+	"suggest"    : {
+		"dealerdirect/phpcodesniffer-composer-installer": "^0.5.0 || This Composer plugin will sort out the PHPCS 'installed_paths' automatically."
+	},
+	"scripts"    : {
+		"install-standards": [
+			"@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --config-set installed_paths ../../..,../../wp-coding-standards/wpcs,../../phpcompatibility/phpcompatibility-wp,../../phpcompatibility/phpcompatibility-paragonie"
+		],
+		"run-tests": [
+			"@php ./vendor/phpunit/phpunit/phpunit --filter WPThemeReview ./vendor/squizlabs/php_codesniffer/tests/AllTests.php"
+		],
+		"phpcs-i": [
+			"@php ./vendor/squizlabs/php_codesniffer/bin/phpcs -i"
+		],
+		"check-cs": [
+			"@php ./vendor/squizlabs/php_codesniffer/bin/phpcs"
+		],
+		"fix-cs": [
+			"@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf"
+		]
+	},
+	"support"    : {
+		"issues": "https://github.com/WPTRT/WPThemeReview/issues",
+		"source": "https://github.com/WPTRT/WPThemeReview"
+	}
+}

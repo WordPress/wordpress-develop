@@ -1,0 +1,38 @@
+{
+  "name" : "phpcompatibility/phpcompatibility-paragonie",
+  "description" : "A set of rulesets for PHP_CodeSniffer to check for PHP cross-version compatibility issues in projects, while accounting for polyfills provided by the Paragonie polyfill libraries.",
+  "type" : "phpcodesniffer-standard",
+  "keywords" : [ "compatibility", "phpcs", "standards", "static analysis", "paragonie", "polyfill" ],
+  "homepage" : "http://phpcompatibility.com/",
+  "license" : "LGPL-3.0-or-later",
+  "authors" : [ {
+    "name" : "Wim Godden",
+    "role" : "lead"
+  },
+  {
+    "name" : "Juliette Reinders Folmer",
+    "role" : "lead"
+  } ],
+  "support" : {
+    "issues" : "https://github.com/PHPCompatibility/PHPCompatibilityParagonie/issues",
+    "source" : "https://github.com/PHPCompatibility/PHPCompatibilityParagonie"
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  },
+  "require" : {
+    "phpcompatibility/php-compatibility" : "^9.0"
+  },
+  "require-dev" : {
+    "dealerdirect/phpcodesniffer-composer-installer": "^0.7",
+    "paragonie/random_compat": "dev-master",
+    "paragonie/sodium_compat": "dev-master"
+  },
+  "suggest" : {
+    "dealerdirect/phpcodesniffer-composer-installer": "^0.7 || This Composer plugin will sort out the PHP_CodeSniffer 'installed_paths' automatically.",
+    "roave/security-advisories": "dev-master || Helps prevent installing dependencies with known security issues."
+  },
+  "prefer-stable" : true
+}
