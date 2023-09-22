@@ -27,7 +27,7 @@ class Tests_Get_Block_Asset_Url extends WP_UnitTestCase {
 	public function test_parent_theme() {
 		switch_theme( 'block-theme' );
 
-		$path = get_template_directory() . '/blocks/example-block/view.js';
+		$path = wp_normalize_path( get_template_directory() ) . '/blocks/example-block/view.js';
 		$url  = get_block_asset_url( $path );
 
 		$this->assertSame( get_template_directory_uri() . '/blocks/example-block/view.js', $url );
@@ -39,7 +39,7 @@ class Tests_Get_Block_Asset_Url extends WP_UnitTestCase {
 	public function test_child_theme() {
 		switch_theme( 'block-theme-child' );
 
-		$path = get_stylesheet_directory() . '/blocks/example-block/view.js';
+		$path = wp_normalize_path( get_stylesheet_directory() ) . '/blocks/example-block/view.js';
 		$url  = get_block_asset_url( $path );
 
 		$this->assertSame( get_stylesheet_directory_uri() . '/blocks/example-block/view.js', $url );
