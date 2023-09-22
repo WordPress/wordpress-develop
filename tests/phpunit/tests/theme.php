@@ -36,8 +36,9 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		parent::set_up();
 
+		// Sets up the `wp-content/themes/` directory to ensure consistency when running tests.
 		$this->orig_theme_dir = $wp_theme_directories;
-		$wp_theme_directories = array( WP_CONTENT_DIR . '/themes' );
+		$wp_theme_directories = array( WP_CONTENT_DIR . '/themes', realpath( DIR_TESTDATA . '/themedir1' ) );
 
 		add_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
@@ -282,6 +283,11 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		for ( $i = 0; $i < 3; $i++ ) {
 			foreach ( $themes as $name => $theme ) {
+				// Skip invalid theme directory names (such as `block_theme-[0.4.0]`).
+				if ( ! preg_match( '/^[a-z0-9-]+$/', $theme['Stylesheet'] ) ) {
+					continue;
+				}
+
 				// Switch to this theme.
 				if ( 2 === $i ) {
 					switch_theme( $theme['Template'], $theme['Stylesheet'] );
@@ -289,16 +295,16 @@ class Tests_Theme extends WP_UnitTestCase {
 					switch_theme( $theme['Stylesheet'] );
 				}
 
-				$this->assertSame( $name, get_current_theme() );
+				$this->assertSame( $theme['Name'], get_current_theme() );
 
 				// Make sure the various get_* functions return the correct values.
 				$this->assertSame( $theme['Template'], get_template() );
 				$this->assertSame( $theme['Stylesheet'], get_stylesheet() );
 
-				$root_fs = get_theme_root();
+				$root_fs = $theme->get_theme_root();
 				$this->assertTrue( is_dir( $root_fs ) );
 
-				$root_uri = get_theme_root_uri();
+				$root_uri = $theme->get_theme_root_uri();
 				$this->assertNotEmpty( $root_uri );
 
 				$this->assertSame( $root_fs . '/' . get_stylesheet(), get_stylesheet_directory() );
@@ -309,19 +315,38 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertSame( $root_fs . '/' . get_template(), get_template_directory() );
 				$this->assertSame( $root_uri . '/' . get_template(), get_template_directory_uri() );
 
-				// get_query_template()
+				// Skip block themes for get_query_template() tests since this test is focused on classic templates.
+				if ( wp_is_block_theme() && current_theme_supports( 'block-templates' ) ) {
+					continue;
+				}
 
 				// Template file that doesn't exist.
 				$this->assertSame( '', get_query_template( 'nonexistant' ) );
 
 				// Template files that do exist.
-				/*
 				foreach ( $theme['Template Files'] as $path ) {
-					$file = basename($path, '.php');
-					FIXME: untestable because get_query_template() uses TEMPLATEPATH.
-					$this->assertSame('', get_query_template($file));
+					$file = basename( $path, '.php' );
+
+					// The functions.php file is not a template.
+					if ( 'functions' === $file ) {
+						continue;
+					}
+
+					// Underscores are not supported by `locate_template()`.
+					if ( 'taxonomy-post_format' === $file ) {
+						$file = 'taxonomy';
+					}
+
+					$child_theme_file  = get_stylesheet_directory() . '/' . $file . '.php';
+					$parent_theme_file = get_template_directory() . '/' . $file . '.php';
+					if ( file_exists( $child_theme_file ) ) {
+						$this->assertSame( $child_theme_file, get_query_template( $file ) );
+					} elseif ( file_exists( $parent_theme_file ) ) {
+						$this->assertSame( $parent_theme_file, get_query_template( $file ) );
+					} else {
+						$this->assertSame( '', get_query_template( $file ) );
+					}
 				}
-				*/
 
 				// These are kind of tautologies but at least exercise the code.
 				$this->assertSame( get_404_template(), get_query_template( '404' ) );
@@ -851,6 +876,184 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertTrue(
 			wp_should_load_separate_core_block_assets(),
 			'Block themes do not load separate core block assets by default.'
+		);
+	}
+
+	/**
+	 * Tests that a theme in the custom test data theme directory is recognized.
+	 *
+	 * @ticket 18298
+	 */
+	public function test_theme_in_custom_theme_dir_is_valid() {
+		switch_theme( 'block-theme' );
+		$this->assertTrue( wp_get_theme()->exists() );
+	}
+
+	/**
+	 * Tests that `is_child_theme()` returns true for child theme.
+	 *
+	 * @ticket 18298
+	 *
+	 * @covers ::is_child_theme
+	 */
+	public function test_is_child_theme_true() {
+		switch_theme( 'block-theme-child' );
+		$this->assertTrue( is_child_theme() );
+	}
+
+	/**
+	 * Tests that `is_child_theme()` returns false for parent theme.
+	 *
+	 * @ticket 18298
+	 *
+	 * @covers ::is_child_theme
+	 */
+	public function test_is_child_theme_false() {
+		switch_theme( 'block-theme' );
+		$this->assertFalse( is_child_theme() );
+	}
+
+	/**
+	 * Tests that the child theme directory is correctly detected.
+	 *
+	 * @ticket 18298
+	 *
+	 * @covers ::get_stylesheet_directory
+	 */
+	public function test_get_stylesheet_directory() {
+		switch_theme( 'block-theme-child' );
+		$this->assertSame( realpath( DIR_TESTDATA ) . '/themedir1/block-theme-child', get_stylesheet_directory() );
+	}
+
+	/**
+	 * Tests that the parent theme directory is correctly detected.
+	 *
+	 * @ticket 18298
+	 *
+	 * @covers ::get_template_directory
+	 */
+	public function test_get_template_directory() {
+		switch_theme( 'block-theme-child' );
+		$this->assertSame( realpath( DIR_TESTDATA ) . '/themedir1/block-theme', get_template_directory() );
+	}
+
+	/**
+	 * Tests that get_stylesheet_directory() behaves correctly with filters.
+	 *
+	 * @ticket 18298
+	 * @dataProvider data_get_stylesheet_directory_with_filter
+	 *
+	 * @covers ::get_stylesheet_directory
+	 *
+	 * @param string   $theme     Theme slug / directory name.
+	 * @param string   $hook_name Filter hook name.
+	 * @param callable $callback  Filter callback.
+	 * @param string   $expected  Expected stylesheet directory with the filter active.
+	 */
+	public function test_get_stylesheet_directory_with_filter( $theme, $hook_name, $callback, $expected ) {
+		switch_theme( $theme );
+
+		// Add filter, then call get_stylesheet_directory() to compute value.
+		add_filter( $hook_name, $callback );
+		$this->assertSame( $expected, get_stylesheet_directory(), 'Stylesheet directory returned incorrect result not considering filters' );
+
+		// Remove filter again, then ensure result is recalculated and not the same as before.
+		remove_filter( $hook_name, $callback );
+		$this->assertNotSame( $expected, get_stylesheet_directory(), 'Stylesheet directory returned previous value even though filters were removed' );
+	}
+
+	/**
+	 * Data provider for `test_get_stylesheet_directory_with_filter()`.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_stylesheet_directory_with_filter() {
+		return array(
+			'with stylesheet_directory filter' => array(
+				'block-theme',
+				'stylesheet_directory',
+				static function ( $dir ) {
+					return str_replace( realpath( DIR_TESTDATA ) . '/themedir1', '/fantasy-dir', $dir );
+				},
+				'/fantasy-dir/block-theme',
+			),
+			'with theme_root filter'           => array(
+				'block-theme',
+				'theme_root',
+				static function () {
+					return '/fantasy-dir';
+				},
+				'/fantasy-dir/block-theme',
+			),
+			'with stylesheet filter'           => array(
+				'block-theme',
+				'stylesheet',
+				static function () {
+					return 'another-theme';
+				},
+				// Because the theme does not exist, `get_theme_root()` returns the default themes directory.
+				WP_CONTENT_DIR . '/themes/another-theme',
+			),
+		);
+	}
+
+	/**
+	 * Tests that get_template_directory() behaves correctly with filters.
+	 *
+	 * @ticket 18298
+	 * @dataProvider data_get_template_directory_with_filter
+	 *
+	 * @covers ::get_template_directory
+	 *
+	 * @param string   $theme     Theme slug / directory name.
+	 * @param string   $hook_name Filter hook name.
+	 * @param callable $callback  Filter callback.
+	 * @param string   $expected  Expected template directory with the filter active.
+	 */
+	public function test_get_template_directory_with_filter( $theme, $hook_name, $callback, $expected ) {
+		switch_theme( $theme );
+
+		// Add filter, then call get_template_directory() to compute value.
+		add_filter( $hook_name, $callback );
+		$this->assertSame( $expected, get_template_directory(), 'Template directory returned incorrect result not considering filters' );
+
+		// Remove filter again, then ensure result is recalculated and not the same as before.
+		remove_filter( $hook_name, $callback );
+		$this->assertNotSame( $expected, get_template_directory(), 'Template directory returned previous value even though filters were removed' );
+	}
+
+	/**
+	 * Data provider for `test_get_template_directory_with_filter()`.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_template_directory_with_filter() {
+		return array(
+			'with template_directory filter' => array(
+				'block-theme',
+				'template_directory',
+				static function ( $dir ) {
+					return str_replace( realpath( DIR_TESTDATA ) . '/themedir1', '/fantasy-dir', $dir );
+				},
+				'/fantasy-dir/block-theme',
+			),
+			'with theme_root filter'         => array(
+				'block-theme',
+				'theme_root',
+				static function () {
+					return '/fantasy-dir';
+				},
+				'/fantasy-dir/block-theme',
+			),
+			'with template filter'           => array(
+				'block-theme',
+				'template',
+				static function () {
+					return 'another-theme';
+				},
+				// Because the theme does not exist, `get_theme_root()` returns the default themes directory.
+				WP_CONTENT_DIR . '/themes/another-theme',
+			),
 		);
 	}
 
