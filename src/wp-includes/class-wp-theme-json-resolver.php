@@ -61,6 +61,7 @@ class WP_Theme_JSON_Resolver {
 	 * Container to cache theme support data.
 	 *
 	 * @since n.e.x.t
+	 * @var array
 	 */
 	protected static $theme_support_data = null;
 
@@ -627,7 +628,8 @@ class WP_Theme_JSON_Resolver {
 		if (
 			null !== static::$merged[ $origin ]
 			&& static::has_same_registered_blocks( $cache_map[ $origin ] )
-			&& static::get_theme_supports_data() === static::$theme_support_data
+			// Ensure theme supports data is fresh before returning cached data for theme and custom origins.
+			&& ( ! in_array( $origin, array( 'theme', 'custom' ), true ) || static::get_theme_supports_data() === static::$theme_support_data )
 		) {
 			return static::$merged[ $origin ];
 		}
@@ -636,17 +638,25 @@ class WP_Theme_JSON_Resolver {
 		$result->merge( static::get_core_data() );
 		if ( 'default' === $origin ) {
 			$result->set_spacing_sizes();
+
+			static::$merged[ $origin ] = $result;
+
 			return $result;
 		}
 
 		$result->merge( static::get_block_data() );
 		if ( 'blocks' === $origin ) {
+			static::$merged[ $origin ] = $result;
+
 			return $result;
 		}
 
 		$result->merge( static::get_theme_data() );
 		if ( 'theme' === $origin ) {
 			$result->set_spacing_sizes();
+
+			static::$merged[ $origin ] = $result;
+
 			return $result;
 		}
 
