@@ -242,7 +242,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	 * @covers ::traverse_and_serialize_blocks
 	 */
 	public function test_traverse_and_serialize_blocks_do_not_insert_in_void_block() {
-		$markup = "<!-- wp:void /-->";
+		$markup = '<!-- wp:void /-->';
 		$blocks = parse_blocks( $markup );
 
 		$actual = traverse_and_serialize_blocks(
@@ -260,7 +260,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	 * @covers ::traverse_and_serialize_blocks
 	 */
 	public function test_traverse_and_serialize_blocks_do_not_insert_in_empty_parent_block() {
-		$markup = "<!-- wp:outer --><div class=\"wp-block-outer\"></div><!-- /wp:outer -->";
+		$markup = '<!-- wp:outer --><div class="wp-block-outer"></div><!-- /wp:outer -->';
 		$blocks = parse_blocks( $markup );
 
 		$actual = traverse_and_serialize_blocks(
