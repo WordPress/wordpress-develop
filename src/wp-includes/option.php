@@ -2891,7 +2891,7 @@ function filter_default_option( $default_value, $option, $passed_default ) {
 }
 
 /**
- * Checks if two database values are equal.
+ * Determines whether two values will be equal when stored in the database.
  *
  * @since 6.4.0
  * @access private

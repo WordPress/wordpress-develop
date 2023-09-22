@@ -526,7 +526,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that update_option() store an option that uses
+	 * Tests that update_option() stores an option that uses
 	 * an unfiltered default value of (bool) false.
 	 *
 	 * @ticket 22192
@@ -550,7 +550,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that update_option() store an option that uses
+	 * Tests that update_option() stores an option that uses
 	 * a filtered default value.
 	 *
 	 * @ticket 22192

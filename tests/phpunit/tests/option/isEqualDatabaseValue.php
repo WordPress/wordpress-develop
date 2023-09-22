@@ -1,12 +1,12 @@
 <?php
 /**
- * Test _is_equal_database_value().
+ * Tests for _is_equal_database_value().
  *
  * @group option
  *
  * @covers ::_is_equal_database_value
  */
-class Tests_Is_Equal_Database_Value extends WP_UnitTestCase {
+class Tests_Option_IsEqualDatabaseValue extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22192
@@ -15,7 +15,7 @@ class Tests_Is_Equal_Database_Value extends WP_UnitTestCase {
 	 *
 	 * @param mixed $old_value The old value to compare.
 	 * @param mixed $new_value The new value to compare.
-	 * @param int   $expected  The expected result.
+	 * @param bool  $expected  The expected result.
 	 */
 	public function test_is_equal_database_value( $old_value, $new_value, $expected ) {
 		$this->assertSame( $expected, _is_equal_database_value( $old_value, $new_value ) );
