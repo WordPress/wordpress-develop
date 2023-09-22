@@ -561,10 +561,27 @@ function create_initial_post_types() {
 	register_post_type(
 		'wp_font_family',
 		array(
+			'label'        => _x( 'Font Family', 'post type general name' ),
+			'description'  => __( 'Font Family definition for installed fonts.' ),
 			'public'       => false,
-			'_builtin'     => true,  /* internal use only. don't use this when registering your own post type. */
-			'label'        =>  __( 'Font Library' ),
-			'show_in_rest' => true,
+			'_builtin'     => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'   => '/site-editor.php?canvas=edit', /* internal use only. don't use this when registering your own post type. */
+			'show_ui'      => false,
+			'show_in_rest' => false,
+			'rewrite'      => false,
+			'capabilities' => array(
+				'read'                   => 'edit_theme_options',
+				'create_posts'           => 'edit_theme_options',
+				'edit_posts'             => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+				'edit_others_posts'      => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+			),
+			'map_meta_cap' => true,
+			'supports'     => array(
+				'title',
+			),
 		)
 	);
 
