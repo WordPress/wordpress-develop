@@ -369,7 +369,6 @@ require ABSPATH . WPINC . '/fonts/font-library/class-wp-font-library.php';
 require ABSPATH . WPINC . '/fonts/font-library/class-wp-font-family-utils.php';
 require ABSPATH . WPINC . '/fonts/font-library/class-wp-font-family.php';
 require ABSPATH . WPINC . '/fonts/font-library/class-wp-rest-font-library-controller.php';
-require ABSPATH . WPINC . '/fonts/font-library/font-library.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 
