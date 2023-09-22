@@ -4491,7 +4491,7 @@ EOF;
 		);
 		apply_filters( 'the_content', '' );
 
-		$this->assertSame( array( 'decoding' => 'async' ), $result );
+		$this->assertSame( array(), $result );
 	}
 
 	/**
