@@ -558,6 +558,16 @@ function create_initial_post_types() {
 		)
 	);
 
+	register_post_type(
+		'wp_font_family',
+		array(
+			'public'       => false,
+			'_builtin'     => true,  /* internal use only. don't use this when registering your own post type. */
+			'label'        =>  __( 'Font Library' ),
+			'show_in_rest' => true,
+		)
+	);
+
 	register_post_status(
 		'publish',
 		array(
