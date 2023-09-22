@@ -5796,14 +5796,6 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		if ( wp_lazy_loading_enabled( $tag_name, $context ) ) {
 			$loading_attrs['loading'] = 'lazy';
 		}
-
-		// Do not override `decoding` if it is already set.
-		if ( 'img' === $tag_name ) {
-			$loading_attrs['decoding'] = 'async';
-			if ( array_key_exists( 'decoding', $attr ) ) {
-				$loading_attrs['decoding'] = $attr['decoding'];
-			}
-		}
 	}
 
 	/*
