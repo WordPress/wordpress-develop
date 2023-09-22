@@ -2338,7 +2338,7 @@ function upgrade_640() {
 	global $wp_current_db_version;
 
 	if ( $wp_current_db_version < 56544 ) {
-		// Remove wp_https_detection, which is now part of a async site health check
+		// Remove the wp_https_detection cron. Https status is checked directly in an async Site Health check.
 		$scheduled = wp_get_scheduled_event( 'wp_https_detection' );
 		if ( $scheduled ) {
 			wp_clear_scheduled_hook( 'wp_https_detection' );
