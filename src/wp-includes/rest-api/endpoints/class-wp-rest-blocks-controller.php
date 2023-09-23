@@ -9,10 +9,11 @@
 
 /**
  * Controller which provides a REST endpoint for the editor to read, create,
- * edit and delete reusable blocks. Blocks are stored as posts with the wp_block
- * post type.
+ * edit and delete patterns (previously referred to as reusable blocks). Patterns are
+ * stored as posts with the wp_block post type.
  *
  * @since 5.0.0
+ * @since 6.3.0 Reusable Blocks renamed to Patterns.
  *
  * @see WP_REST_Posts_Controller
  * @see WP_REST_Controller
@@ -20,12 +21,13 @@
 class WP_REST_Blocks_Controller extends WP_REST_Posts_Controller {
 
 	/**
-	 * Checks if a block can be read.
+	 * Checks if a pattern (previously referred to as reusable block) can be read.
 	 *
 	 * @since 5.0.0
+   * @since 6.3.0 Reusable Blocks renamed to Patterns.
 	 *
 	 * @param WP_Post $post Post object that backs the block.
-	 * @return bool Whether the block can be read.
+	 * @return bool Whether the pattern (previously referred to as reusable block) can be read.
 	 */
 	public function check_read_permission( $post ) {
 		// By default the read_post capability is mapped to edit_posts.
@@ -41,6 +43,7 @@ class WP_REST_Blocks_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 5.0.0
 	 * @since 6.3.0 Adds the `wp_pattern_sync_status` postmeta property to the top level of response.
+	 * @since 6.3.0 Reusable Blocks renamed to Patterns.
 	 *
 	 * @param array  $data    Response data to filter.
 	 * @param string $context Context defined in the schema.
@@ -64,9 +67,11 @@ class WP_REST_Blocks_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Retrieves the block's schema, conforming to JSON Schema.
+	 * Retrieves the patterns (previously referred to as reusable blocks) schema, conforming
+	 * to JSON Schema.
 	 *
 	 * @since 5.0.0
+	 * @since 6.3.0 Reusable Blocks renamed to Patterns.
 	 *
 	 * @return array Item schema data.
 	 */

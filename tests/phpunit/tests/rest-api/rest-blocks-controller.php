@@ -98,11 +98,13 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 
 	/**
 	 * Exhaustively check that each role either can or cannot create, edit,
-	 * update, and delete reusable blocks.
+	 * update, and delete patterns (previously referred to as reusable blocks).
 	 *
 	 * @ticket 45098
 	 *
 	 * @dataProvider data_capabilities
+	 *
+	 * @since 6.3.0 Reusable Blocks renamed to Patterns.
 	 *
 	 * @param string $action          Action to perform in the test.
 	 * @param string $role            User role to test.
