@@ -884,6 +884,62 @@ class WP_Upgrader {
 			)
 		);
 
+		// Check plugin auto-updates for fatal errors.
+		$is_plugin_auto_update = isset( $options['hook_extra']['plugin'] ) && $this instanceof Plugin_Upgrader && ! is_wp_error( $result ) && wp_doing_cron();
+		if ( $is_plugin_auto_update && is_plugin_active( $options['hook_extra']['plugin'] ) ) {
+
+			/*
+			 * This condition is separated to ensure that the `sleep()` call afterwards runs
+			 * to avoid a race condition.
+			 */
+			if ( $this->fatal_error_detected() ) {
+				$temp_backup = array(
+					'dir'  => 'plugins',
+					'slug' => dirname( $options['hook_extra']['plugin'] ),
+					'src'  => WP_PLUGIN_DIR,
+				);
+
+				// Add the temporary backup data to the rollback properties.
+				$this->temp_restores[] = $temp_backup;
+				$this->temp_backups[]  = $temp_backup;
+
+				// Perform the rollback.
+				$this->restore_temp_backup();
+				$this->delete_temp_backup();
+
+				$plugin_auto_update_failure_message = sprintf(
+					/* translators: %s: The plugin filepath, relative to the plugins directory. */
+					__( 'The update for %s contained a fatal error, and was restored to the previously installed version.' ),
+					$options['hook_extra']['plugin']
+				);
+
+				$result = new WP_Error( 'plugin_auto_update_rolled_back', $plugin_auto_update_failure_message );
+
+				/*
+				 * This must be set to populate automatic update result emails
+				 * with the failure data for this plugin.
+				 */
+				$this->result = $result;
+
+				/*
+				 * Should emails not be working, log the message so that
+				 * the log file contains context for the fatal error,
+				 * and that a rollback was performed.
+				 *
+				 * `trigger_error()` is not used as it outputs a stack trace
+				 * to this location rather than to the fatal error, which will
+				 * appear above this message in the log file.
+				 */
+				error_log( $plugin_auto_update_failure_message );
+			}
+
+			/*
+			 * This helps to avoid a race condition when the next auto-update runs
+			 * before the error scrape and potential rollback have been performed.
+			 */
+			sleep( 2 );
+		}
+
 		/**
 		 * Filters the result of WP_Upgrader::install_package().
 		 *
@@ -897,7 +953,8 @@ class WP_Upgrader {
 		$this->skin->set_result( $result );
 
 		if ( is_wp_error( $result ) ) {
-			if ( ! empty( $options['hook_extra']['temp_backup'] ) ) {
+			// An automatic plugin update will have already performed its rollback.
+			if ( ! $is_plugin_auto_update && ! empty( $options['hook_extra']['temp_backup'] ) ) {
 				$this->temp_restores[] = $options['hook_extra']['temp_backup'];
 
 				/*
