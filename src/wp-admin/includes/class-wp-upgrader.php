@@ -1215,6 +1215,81 @@ class WP_Upgrader {
 
 		return $errors->has_errors() ? $errors : true;
 	}
+
+	/**
+	 * Performs two loopback requests, one to the dashboard and one to the homepage,
+	 * to check for potential fatal errors.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return bool Whether a fatal error was detected.
+	 */
+	protected function fatal_error_detected() {
+		$scrape_key   = md5( rand() );
+		$transient    = 'scrape_key_' . $scrape_key;
+		$scrape_nonce = (string) rand();
+		// It shouldn't take more than 60 seconds to make the two loopback requests.
+		set_transient( $transient, $scrape_nonce, 60 );
+
+		$cookies       = wp_unslash( $_COOKIE );
+		$scrape_params = array(
+			'wp_scrape_key'   => $scrape_key,
+			'wp_scrape_nonce' => $scrape_nonce,
+		);
+		$headers       = array(
+			'Cache-Control' => 'no-cache',
+		);
+
+		/** This filter is documented in wp-includes/class-wp-http-streams.php */
+		$sslverify = apply_filters( 'https_local_ssl_verify', false );
+
+		// Include Basic auth in loopback requests.
+		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
+			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
+		}
+
+		// Make sure PHP process doesn't die before loopback requests complete.
+		if ( function_exists( 'set_time_limit' ) ) {
+			set_time_limit( 5 * MINUTE_IN_SECONDS );
+		}
+
+		// Time to wait for loopback requests to finish.
+		$timeout = 100; // 100 seconds.
+
+		$needle_start           = "###### wp_scraping_result_start:$scrape_key ######";
+		$needle_end             = "###### wp_scraping_result_end:$scrape_key ######";
+		$url                    = add_query_arg( $scrape_params, admin_url() );
+		$r                      = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
+		$body                   = wp_remote_retrieve_body( $r );
+		$scrape_result_position = strpos( $body, $needle_start );
+		$result                 = null;
+
+		if ( false !== $scrape_result_position ) {
+			$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
+			$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
+			$result       = json_decode( trim( $error_output ), true );
+		}
+
+		// Try making request to homepage as well to see if visitors have been whitescreened.
+		if ( true === $result ) {
+			$url                    = home_url( '/' );
+			$url                    = add_query_arg( $scrape_params, $url );
+			$r                      = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
+			$body                   = wp_remote_retrieve_body( $r );
+			$scrape_result_position = strpos( $body, $needle_start );
+
+			if ( false !== $scrape_result_position ) {
+				$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
+				$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
+				$result       = json_decode( trim( $error_output ), true );
+			}
+		}
+
+		delete_transient( $transient );
+
+		// Only fatal errors will result in a 'type' key.
+		return isset( $result['type'] );
+	}
 }
 
 /** Plugin_Upgrader class */
