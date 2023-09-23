@@ -30,17 +30,17 @@ class Tests_Filesystem_UnzipFileZiparchive extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that _unzip_file_ziparchive() fires the "before_unzip_file" action.
+	 * Tests that _unzip_file_ziparchive() applies "pre_unzip_file" filters.
 	 *
 	 * @ticket 37719
 	 */
-	public function test_should_fire_before_unzip_file_action() {
+	public function test_should_apply_pre_unzip_file_filters() {
 		if ( ! class_exists( 'ZipArchive' ) ) {
 			$this->markTestSkipped( 'This test requires the ZipArchive class.' );
 		}
 
-		$action = new MockAction();
-		add_action( 'before_unzip_file', array( $action, 'action' ) );
+		$filter = new MockAction();
+		add_filter( 'pre_unzip_file', array( $filter, 'filter' ) );
 
 		// Prepare test environment.
 		$unzip_destination = self::$test_data_dir . 'archive/';
@@ -52,21 +52,21 @@ class Tests_Filesystem_UnzipFileZiparchive extends WP_UnitTestCase {
 		$this->rmdir( $unzip_destination );
 		$this->delete_folders( $unzip_destination );
 
-		$this->assertSame( 1, $action->get_call_count() );
+		$this->assertSame( 1, $filter->get_call_count() );
 	}
 
 	/**
-	 * Tests that _unzip_file_ziparchive() fires the "after_unzip_file" action.
+	 * Tests that _unzip_file_ziparchive() applies "unzip_file" filters.
 	 *
 	 * @ticket 37719
 	 */
-	public function test_should_fire_after_unzip_file_action() {
+	public function test_should_apply_unzip_file_filters() {
 		if ( ! class_exists( 'ZipArchive' ) ) {
 			$this->markTestSkipped( 'This test requires the ZipArchive class.' );
 		}
 
-		$action = new MockAction();
-		add_action( 'after_unzip_file', array( $action, 'action' ) );
+		$filter = new MockAction();
+		add_filter( 'unzip_file', array( $filter, 'filter' ) );
 
 		// Prepare test environment.
 		$unzip_destination = self::$test_data_dir . 'archive/';
@@ -78,7 +78,7 @@ class Tests_Filesystem_UnzipFileZiparchive extends WP_UnitTestCase {
 		$this->rmdir( $unzip_destination );
 		$this->delete_folders( $unzip_destination );
 
-		$this->assertSame( 1, $action->get_call_count() );
+		$this->assertSame( 1, $filter->get_call_count() );
 	}
 
 }
