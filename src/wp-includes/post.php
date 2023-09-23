@@ -567,7 +567,7 @@ function create_initial_post_types() {
 			'_builtin'     => true, /* internal use only. don't use this when registering your own post type. */
 			'_edit_link'   => '/site-editor.php?canvas=edit', /* internal use only. don't use this when registering your own post type. */
 			'show_ui'      => false,
-			'show_in_rest' => false,
+			'show_in_rest' => true,
 			'rewrite'      => false,
 			'capabilities' => array(
 				'read'                   => 'edit_theme_options',
@@ -581,6 +581,8 @@ function create_initial_post_types() {
 			'map_meta_cap' => true,
 			'supports'     => array(
 				'title',
+				'slug',
+				'editor',
 			),
 		)
 	);
