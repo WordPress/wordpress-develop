@@ -1751,16 +1751,21 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 	}
 
 	/**
-	 * Fires before a ZIP archive is extracted.
+	 * Filters archive unzipping to override with a custom process.
 	 *
-	 * @since 6.3.0
+	 * @since 6.4.0
 	 *
-	 * @param string   $file           Full path and filename of ZIP archive.
-	 * @param string   $to             Full path on the filesystem to extract archive to.
-	 * @param string[] $needed_dirs    A full list of required folders that need to be created.
-	 * @param float    $required_space The space required to unzip the file and copy its contents, with a 10% buffer.
+	 * @param null|true|WP_Error $result         The result of the override. True on success, otherwise WP Error. Defautl null.
+	 * @param string             $file           Full path and filename of ZIP archive.
+	 * @param string             $to             Full path on the filesystem to extract archive to.
+	 * @param string[]           $needed_dirs    A full list of required folders that need to be created.
+	 * @param float              $required_space The space required to unzip the file and copy its contents, with a 10% buffer.
 	 */
-	do_action( 'before_unzip_file', $file, $to, $needed_dirs, $required_space );
+	$pre = apply_filters( 'pre_unzip_file', null, $file, $to, $needed_dirs, $required_space );
+
+	if ( null !== $pre ) {
+		return $pre;
+	}
 
 	for ( $i = 0; $i < $z->numFiles; $i++ ) {
 		$info = $z->statIndex( $i );
@@ -1796,20 +1801,21 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 	$z->close();
 
 	/**
-	 * Fires after a ZIP archive has been extracted.
+	 * Filters the result of unzipping an archive.
 	 *
-	 * @since 6.3.0
+	 * @since 6.4.0
 	 *
-	 * @param string   $file           Full path and filename of ZIP archive.
-	 * @param string   $to             Full path on the filesystem the archive was extracted to.
-	 * @param string[] $needed_dirs    A full list of required folders that were created.
-	 * @param float    $required_space The space required to unzip the file and copy its contents, with a 10% buffer.
+	 * @param true|WP_Error $result         The result of unzipping the archive. True on success, otherwise WP_Error. Default true.
+	 * @param string        $file           Full path and filename of ZIP archive.
+	 * @param string        $to             Full path on the filesystem the archive was extracted to.
+	 * @param string[]      $needed_dirs    A full list of required folders that were created.
+	 * @param float         $required_space The space required to unzip the file and copy its contents, with a 10% buffer.
 	 */
-	do_action( 'after_unzip_file', $file, $to, $needed_dirs, $required_space );
+	$result = apply_filters( 'unzip_file', true, $file, $to, $needed_dirs, $required_space );
 
 	unset( $needed_dirs );
 
-	return true;
+	return $result;
 }
 
 /**
@@ -1919,8 +1925,12 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 		}
 	}
 
-	/** This action is documented in src/wp-admin/includes/file.php */
-	do_action( 'before_unzip_file', $file, $to, $needed_dirs, $required_space );
+	/** This filter is documented in src/wp-admin/includes/file.php */
+	$pre = apply_filters( 'pre_unzip_file', null, $file, $to, $needed_dirs, $required_space );
+
+	if ( null !== $pre ) {
+		return $pre;
+	}
 
 	// Extract the files from the zip.
 	foreach ( $archive_files as $file ) {
@@ -1943,11 +1953,11 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 	}
 
 	/** This action is documented in src/wp-admin/includes/file.php */
-	do_action( 'after_unzip_file', $file, $to, $needed_dirs, $required_space );
+	$result = apply_filters( 'unzip_file', true, $file, $to, $needed_dirs, $required_space );
 
 	unset( $needed_dirs );
 
-	return true;
+	return $result;
 }
 
 /**
