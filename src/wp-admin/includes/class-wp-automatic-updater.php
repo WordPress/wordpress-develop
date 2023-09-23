@@ -1163,7 +1163,7 @@ class WP_Automatic_Updater {
 
 			// List failed plugin updates.
 			if ( ! empty( $failed_updates['plugin'] ) ) {
-				$body[] = __( 'These plugins failed to update:' );
+				$body[] = __( 'The following plugins failed to update. If there was a fatal error in the update, the previously installed version has been restored.' );
 
 				foreach ( $failed_updates['plugin'] as $item ) {
 					$body_message = '';
