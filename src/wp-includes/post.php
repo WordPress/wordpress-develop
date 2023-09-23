@@ -569,6 +569,7 @@ function create_initial_post_types() {
 			'show_ui'      => false,
 			'show_in_rest' => true,
 			'rewrite'      => false,
+			'hierarchical' => false,
 			'capabilities' => array(
 				'read'                   => 'edit_theme_options',
 				'create_posts'           => 'edit_theme_options',
