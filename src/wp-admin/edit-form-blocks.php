@@ -322,6 +322,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<?php
 		if ( file_exists( WP_PLUGIN_DIR . '/classic-editor/classic-editor.php' ) ) {
 			// If Classic Editor is already installed, provide a link to activate the plugin.
+			$installed           = true;
 			$plugin_activate_url = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=classic-editor/classic-editor.php', 'activate-plugin_classic-editor/classic-editor.php' );
 			$message             = sprintf(
 				/* translators: %s: Link to activate the Classic Editor plugin. */
@@ -330,6 +331,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			);
 		} else {
 			// If Classic Editor is not installed, provide a link to install it.
+			$installed          = false;
 			$plugin_install_url = wp_nonce_url( self_admin_url( 'update.php?action=install-plugin&plugin=classic-editor' ), 'install-plugin_classic-editor' );
 			$message            = sprintf(
 				/* translators: %s: Link to install the Classic Editor plugin. */
@@ -343,9 +345,11 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		 * not enabled in the browser.
 		 *
 		 * @since 5.0.3
+		 * @since 6.4.0 Added `$installed` parameter.
 		 *
-		 * @param string  $message The message being displayed.
-		 * @param WP_Post $post    The post being edited.
+		 * @param string  $message   The message being displayed.
+		 * @param WP_Post $post      The post being edited.
+		 * @param bool    $installed Whether the classic editor is installed.
 		 */
 		$message = apply_filters( 'block_editor_no_javascript_message', $message, $post );
 		wp_admin_notice(
