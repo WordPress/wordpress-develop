@@ -3738,7 +3738,7 @@ EOF;
 
 			// Due to the filter, now the first five elements should not be lazy-loaded, i.e. return `false`.
 			for ( $i = 0; $i < 5; $i++ ) {
-				$this->assertSame(
+				$this->assertSameSetsWithIndex(
 					array(
 						'decoding' => 'async',
 					),
