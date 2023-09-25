@@ -446,7 +446,7 @@ function login_footer( $input_id = '' ) {
  * @since 3.0.0
  */
 function wp_shake_js() {
-	wp_print_inline_script_tag( /* language=JavaScript */ "document.querySelector('form').classList.add('shake');" );
+	wp_print_inline_script_tag( "document.querySelector('form').classList.add('shake');" );
 }
 
 /**
