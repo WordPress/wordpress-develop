@@ -723,6 +723,9 @@ add_filter( 'wp_save_post_revision_post_has_changed', 'wp_check_revisioned_meta_
 // Save revisioned post meta immediately after a revision is saved
 add_action( '_wp_put_post_revision', 'wp_save_revisioned_meta_fields', 10, 2 );
 
+// Include revisioned meta when creating or updating an autosave revision.
+add_action( 'wp_creating_autosave', 'wp_autosave_post_revisioned_meta_fields' );
+
 // Font management.
 add_action( 'wp_head', 'wp_print_font_faces', 50 );
 

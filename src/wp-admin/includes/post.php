@@ -1957,11 +1957,12 @@ function wp_create_post_autosave( $post_data ) {
 		 * Fires before an autosave is stored.
 		 *
 		 * @since 4.1.0
+		 * @since 6.4.0 The `$is_update` parameter was added to indicate if the autosave is being updated or was newly created.
 		 *
 		 * @param array $new_autosave Post array - the autosave that is about to be saved.
+		 * @param bool  $is_update    Whether this is an existing autosave.
 		 */
-		do_action( 'wp_creating_autosave', $new_autosave );
-		wp_autosave_post_revisioned_meta_fields( $new_autosave );
+		do_action( 'wp_creating_autosave', $new_autosave, true );
 		return wp_update_post( $new_autosave );
 	}
 
@@ -1971,8 +1972,13 @@ function wp_create_post_autosave( $post_data ) {
 	// Otherwise create the new autosave as a special post revision.
 	$revision = _wp_put_post_revision( $post_data, true );
 
-	// Update the revisioned meta data as well.
-	wp_autosave_post_revisioned_meta_fields( get_post( $revision, ARRAY_A ) );
+	/**
+	 * Fires before an autosave is stored.
+	 *
+	 * This filter is documented in `src/wp-admin/includes/post.php`.
+	 */
+	do_action( 'wp_creating_autosave', get_post( $revision, ARRAY_A ), false );
+
 	return $revision;
 }
 
