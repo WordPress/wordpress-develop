@@ -413,7 +413,7 @@ function wp_save_revisioned_meta_fields( $revision_id, $post_id ) {
 		return;
 	}
 
-	foreach ( wp_post_revision_meta_keys( $post_type ) as $meta_key )  {
+	foreach ( wp_post_revision_meta_keys( $post_type ) as $meta_key ) {
 		if ( metadata_exists( 'post', $post_id, $meta_key ) ) {
 			_wp_copy_post_meta( $post_id, $revision_id, $meta_key );
 		}
