@@ -1708,7 +1708,7 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 	if ( wp_doing_cron() ) {
 		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR ) : false;
 
-		if ( $available_space && $required_space > $available_space ) {
+		if ( $available_space && ( $required_space > $available_space ) ) {
 			return new WP_Error(
 				'disk_full_unzip_file',
 				__( 'Could not copy files. You may have run out of disk space.' ),
@@ -1883,7 +1883,7 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 	if ( wp_doing_cron() ) {
 		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR ) : false;
 
-		if ( $available_space && $required_space > $available_space ) {
+		if ( $available_space && ( $required_space > $available_space ) ) {
 			return new WP_Error(
 				'disk_full_unzip_file',
 				__( 'Could not copy files. You may have run out of disk space.' ),
