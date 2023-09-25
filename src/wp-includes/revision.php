@@ -1121,7 +1121,7 @@ function _wp_preview_meta_filter( $value, $object_id, $meta_key, $single ) {
 	}
 
 	$preview = wp_get_post_autosave( $post->ID );
-	if ( ! is_object( $preview ) ) {
+	if ( false === $preview ) {
 		return $value;
 	}
 
