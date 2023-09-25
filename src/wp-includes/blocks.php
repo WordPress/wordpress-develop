@@ -74,11 +74,11 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 }
 
 /**
- * Get the URL to a block asset.
+ * Gets the URL to a block asset.
  *
  * @since 6.4.0
- * @param string $path A normalized path to a block asset.
  *
+ * @param string $path A normalized path to a block asset.
  * @return string The URL to the block asset.
  */
 function get_block_asset_url( $path ) {
