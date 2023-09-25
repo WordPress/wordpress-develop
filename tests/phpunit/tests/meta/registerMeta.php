@@ -1100,12 +1100,12 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		register_post_type(
 			'test_post_type',
 			array(
-				'supports'   => array( 'title', 'editor' ),
+				'supports' => array( 'title', 'editor' ),
 			)
 		);
 
-		$meta_key  = 'registered_key1';
-		$args      = array(
+		$meta_key = 'registered_key1';
+		$args     = array(
 			'revisions_enabled' => true,
 		);
 
