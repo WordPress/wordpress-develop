@@ -54,7 +54,7 @@ class WP_Font_Family_Utils {
 		if ( $font1['slug'] !== $font2['slug'] ) {
 			return new WP_Error(
 				'fonts_must_have_same_slug',
-				__( 'Fonts must have the same slug to be merged.', 'gutenberg' )
+				__( 'Fonts must have the same slug to be merged.' )
 			);
 		}
 

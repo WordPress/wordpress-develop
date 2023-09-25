@@ -143,13 +143,13 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 		$error_messages = array();
 
 		if ( ! is_array( $font_families ) ) {
-			$error_messages[] = __( 'fontFamilies should be an array of font families.', 'gutenberg' );
+			$error_messages[] = __( 'fontFamilies should be an array of font families.' );
 			return $error_messages;
 		}
 
 		// Checks if there is at least one font family.
 		if ( count( $font_families ) < 1 ) {
-			$error_messages[] = __( 'fontFamilies should have at least one font family definition.', 'gutenberg' );
+			$error_messages[] = __( 'fontFamilies should have at least one font family definition.' );
 			return $error_messages;
 		}
 
@@ -163,7 +163,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 			) {
 				$error_messages[] = sprintf(
 					// translators: 1: font family index.
-					__( 'Font family [%s] should have slug, name and fontFamily properties defined.', 'gutenberg' ),
+					__( 'Font family [%s] should have slug, name and fontFamily properties defined.' ),
 					$family_index
 				);
 			}
@@ -172,7 +172,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 				if ( ! is_array( $font_family['fontFace'] ) ) {
 					$error_messages[] = sprintf(
 						// translators: 1: font family index.
-						__( 'Font family [%s] should have fontFace property defined as an array.', 'gutenberg' ),
+						__( 'Font family [%s] should have fontFace property defined as an array.' ),
 						$family_index
 					);
 					continue;
@@ -181,7 +181,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 				if ( count( $font_family['fontFace'] ) < 1 ) {
 					$error_messages[] = sprintf(
 						// translators: 1: font family index.
-						__( 'Font family [%s] should have at least one font face definition.', 'gutenberg' ),
+						__( 'Font family [%s] should have at least one font face definition.' ),
 						$family_index
 					);
 				}
@@ -193,7 +193,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 						if ( ! isset( $font_face['fontWeight'] ) || ! isset( $font_face['fontStyle'] ) ) {
 							$error_messages[] = sprintf(
 								// translators: 1: font family index, 2: font face index.
-								__( 'Font family [%1$s] Font face [%2$s] should have fontWeight and fontStyle properties defined.', 'gutenberg' ),
+								__( 'Font family [%1$s] Font face [%2$s] should have fontWeight and fontStyle properties defined.' ),
 								$family_index,
 								$face_index
 							);
@@ -202,7 +202,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 						if ( isset( $font_face['downloadFromUrl'] ) && isset( $font_face['uploadedFile'] ) ) {
 							$error_messages[] = sprintf(
 								// translators: 1: font family index, 2: font face index.
-								__( 'Font family [%1$s] Font face [%2$s] should have only one of the downloadFromUrl or uploadedFile properties defined and not both.', 'gutenberg' ),
+								__( 'Font family [%1$s] Font face [%2$s] should have only one of the downloadFromUrl or uploadedFile properties defined and not both.' ),
 								$family_index,
 								$face_index
 							);
@@ -212,7 +212,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 							if ( ! isset( $files[ $font_face['uploadedFile'] ] ) ) {
 								$error_messages[] = sprintf(
 									// translators: 1: font family index, 2: font face index.
-									__( 'Font family [%1$s] Font face [%2$s] file is not defined in the request files.', 'gutenberg' ),
+									__( 'Font family [%1$s] Font face [%2$s] file is not defined in the request files.' ),
 									$family_index,
 									$face_index
 								);
@@ -258,7 +258,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 		return array(
 			'fontFamilies' => array(
 				'type'        => 'array',
-				'description' => __( 'The font families to install.', 'gutenberg' ),
+				'description' => __( 'The font families to install.' ),
 				'required'    => true,
 				'minItems'    => 1,
 				'items'       => array(
@@ -267,7 +267,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 					'properties' => array(
 						'slug' => array(
 							'type'        => 'string',
-							'description' => __( 'The font family slug.', 'gutenberg' ),
+							'description' => __( 'The font family slug.' ),
 							'required'    => true,
 						),
 					),
@@ -297,7 +297,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 			}
 		}
 
-		return new WP_REST_Response( __( 'Font family uninstalled successfully.', 'gutenberg' ), 200 );
+		return new WP_REST_Response( __( 'Font family uninstalled successfully.' ), 200 );
 	}
 
 	/**
@@ -311,7 +311,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new WP_Error(
 				'rest_cannot_update_font_library',
-				__( 'Sorry, you are not allowed to update the Font Library on this site.', 'gutenberg' ),
+				__( 'Sorry, you are not allowed to update the Font Library on this site.' ),
 				array(
 					'status' => rest_authorization_required_code(),
 				)
@@ -324,7 +324,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 		if ( ! is_writable( $temp_dir ) || ! wp_is_writable( $upload_dir ) ) {
 			return new WP_Error(
 				'rest_cannot_write_fonts_folder',
-				__( 'Error: WordPress does not have permission to write the fonts folder on your server.', 'gutenberg' ),
+				__( 'Error: WordPress does not have permission to write the fonts folder on your server.' ),
 				array(
 					'status' => 500,
 				)
@@ -360,7 +360,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 		if ( empty( $fonts_to_install ) ) {
 			return new WP_Error(
 				'no_fonts_to_install',
-				__( 'No fonts to install', 'gutenberg' ),
+				__( 'No fonts to install' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -379,7 +379,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 		if ( empty( $fonts_installed ) ) {
 			return new WP_Error(
 				'error_installing_fonts',
-				__( 'Error installing fonts. No font was installed.', 'gutenberg' ),
+				__( 'Error installing fonts. No font was installed.' ),
 				array( 'status' => 500 )
 			);
 		}
