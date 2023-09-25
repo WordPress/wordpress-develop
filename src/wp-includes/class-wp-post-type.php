@@ -401,7 +401,7 @@ final class WP_Post_Type {
 	 *
 	 * Custom controllers must extend WP_REST_Controller.
 	 *
-	 * @since 6.2.0
+	 * @since 6.4.0
 	 * @var string|bool $rest_controller_class
 	 */
 	public $revisions_rest_controller_class;
@@ -411,7 +411,7 @@ final class WP_Post_Type {
 	 *
 	 * Lazily computed. Should be accessed using {@see WP_Post_Type::get_rest_controller()}.
 	 *
-	 * @since 6.2.0
+	 * @since 6.4.0
 	 * @var WP_REST_Controller $rest_controller
 	 */
 	public $revisions_rest_controller;
@@ -422,7 +422,7 @@ final class WP_Post_Type {
 	 *
 	 * Custom controllers must extend WP_REST_Controller.
 	 *
-	 * @since 6.2.0
+	 * @since 6.4.0
 	 * @var string|bool $rest_controller_class
 	 */
 	public $autosave_rest_controller_class;
@@ -432,7 +432,7 @@ final class WP_Post_Type {
 	 *
 	 * Lazily computed. Should be accessed using {@see WP_Post_Type::get_rest_controller()}.
 	 *
-	 * @since 6.2.0
+	 * @since 6.4.0
 	 * @var WP_REST_Controller $rest_controller
 	 */
 	public $autosave_rest_controller;
@@ -534,6 +534,8 @@ final class WP_Post_Type {
 			'rest_base'             => false,
 			'rest_namespace'        => false,
 			'rest_controller_class' => false,
+			'autosave_rest_controller_class' => false,
+			'revisions_rest_controller_class' => false,
 			'template'              => array(),
 			'template_lock'         => false,
 			'_builtin'              => false,
@@ -868,6 +870,7 @@ final class WP_Post_Type {
 	 *                                 is set not to show in rest.
 	 */
 	public function get_revisions_rest_controller() {
+
 		if ( ! $this->show_in_rest ) {
 			return null;
 		}
@@ -877,7 +880,6 @@ final class WP_Post_Type {
 		}
 
 		$class = $this->revisions_rest_controller_class ? $this->revisions_rest_controller_class : WP_REST_Revisions_Controller::class;
-
 		if ( ! class_exists( $class ) ) {
 			return null;
 		}
@@ -915,6 +917,7 @@ final class WP_Post_Type {
 		if ( 'attachment' !== $this->name  ) {
 			return null;
 		}
+
 
 		$class = $this->autosave_rest_controller_class ? $this->autosave_rest_controller_class : WP_REST_Autosaves_Controller::class;
 
