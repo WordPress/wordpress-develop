@@ -1239,7 +1239,7 @@ function wp_enqueue_admin_bar_header_styles() {
 	}
 	remove_action( $action, 'wp_admin_bar_header' );
 
-	wp_add_inline_style( 'admin-bar', /* language=CSS */ '@media print { #wpadminbar { display:none; } }' );
+	wp_add_inline_style( 'admin-bar', '@media print { #wpadminbar { display:none; } }' );
 }
 
 /**
@@ -1267,7 +1267,7 @@ function wp_enqueue_admin_bar_bump_styles() {
 	}
 	remove_action( 'wp_head', $header_callback );
 
-	$css = /* language=CSS */ '
+	$css = '
 		@media screen { html { margin-top: 32px !important; } }
 		@media screen and ( max-width: 782px ) { html { margin-top: 46px !important; } }
 	';

@@ -5870,7 +5870,7 @@ function wp_enqueue_emoji_styles() {
 	}
 	remove_action( $action, 'print_emoji_styles' );
 
-	$emoji_styles = /* language=CSS */ '
+	$emoji_styles = '
 	img.wp-smiley, img.emoji {
 		display: inline !important;
 		border: none !important;
