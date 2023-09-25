@@ -7813,7 +7813,7 @@ function _prime_post_parents_caches( $ids ) {
 		if ( $fresh_posts ) {
 			$post_parrent_data = array();
 			foreach ( $fresh_posts as $fresh_post ) {
-				$post_parrent_data[ $fresh_post->ID ] = $fresh_post->post_parent;
+				$post_parrent_data[ (int) $fresh_post->ID ] = (int) $fresh_post->post_parent;
 			}
 
 			wp_cache_add_multiple( $post_parrent_data, 'post_parent' );
