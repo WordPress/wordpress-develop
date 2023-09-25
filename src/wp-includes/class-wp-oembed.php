@@ -4,7 +4,7 @@
  *
  * Used internally by the WP_Embed class, but is designed to be generic.
  *
- * @link https://wordpress.org/support/article/embeds/
+ * @link https://wordpress.org/documentation/article/embeds/
  * @link http://oembed.com/
  *
  * @package WordPress
@@ -54,6 +54,7 @@ class WP_oEmbed {
 			'#https?://((m|www)\.)?youtube\.com/watch.*#i' => array( 'https://www.youtube.com/oembed', true ),
 			'#https?://((m|www)\.)?youtube\.com/playlist.*#i' => array( 'https://www.youtube.com/oembed', true ),
 			'#https?://((m|www)\.)?youtube\.com/shorts/*#i' => array( 'https://www.youtube.com/oembed', true ),
+			'#https?://((m|www)\.)?youtube\.com/live/*#i'  => array( 'https://www.youtube.com/oembed', true ),
 			'#https?://youtu\.be/.*#i'                     => array( 'https://www.youtube.com/oembed', true ),
 			'#https?://(.+\.)?vimeo\.com/.*#i'             => array( 'https://vimeo.com/api/oembed.{format}', true ),
 			'#https?://(www\.)?dailymotion\.com/.*#i'      => array( 'https://www.dailymotion.com/services/oembed', true ),
@@ -63,6 +64,7 @@ class WP_oEmbed {
 			'#https?://(.+\.)?smugmug\.com/.*#i'           => array( 'https://api.smugmug.com/services/oembed/', true ),
 			'#https?://(www\.)?scribd\.com/(doc|document)/.*#i' => array( 'https://www.scribd.com/services/oembed', true ),
 			'#https?://wordpress\.tv/.*#i'                 => array( 'https://wordpress.tv/oembed/', true ),
+			'#https?://(.+\.)?crowdsignal\.net/.*#i'       => array( 'https://api.crowdsignal.com/oembed', true ),
 			'#https?://(.+\.)?polldaddy\.com/.*#i'         => array( 'https://api.crowdsignal.com/oembed', true ),
 			'#https?://poll\.fm/.*#i'                      => array( 'https://api.crowdsignal.com/oembed', true ),
 			'#https?://(.+\.)?survey\.fm/.*#i'             => array( 'https://api.crowdsignal.com/oembed', true ),
@@ -77,10 +79,10 @@ class WP_oEmbed {
 			'#https?://(open|play)\.spotify\.com/.*#i'     => array( 'https://embed.spotify.com/oembed/', true ),
 			'#https?://(.+\.)?imgur\.com/.*#i'             => array( 'https://api.imgur.com/oembed', true ),
 			'#https?://(www\.)?issuu\.com/.+/docs/.+#i'    => array( 'https://issuu.com/oembed_wp', true ),
-			'#https?://(www\.)?mixcloud\.com/.*#i'         => array( 'https://www.mixcloud.com/oembed', true ),
+			'#https?://(www\.)?mixcloud\.com/.*#i'         => array( 'https://app.mixcloud.com/oembed/', true ),
 			'#https?://(www\.|embed\.)?ted\.com/talks/.*#i' => array( 'https://www.ted.com/services/v1/oembed.{format}', true ),
 			'#https?://(www\.)?(animoto|video214)\.com/play/.*#i' => array( 'https://animoto.com/oembeds/create', true ),
-			'#https?://(.+)\.tumblr\.com/.*#i'        => array( 'https://www.tumblr.com/oembed/1.0', true ),
+			'#https?://(.+)\.tumblr\.com/.*#i'             => array( 'https://www.tumblr.com/oembed/1.0', true ),
 			'#https?://(www\.)?kickstarter\.com/projects/.*#i' => array( 'https://www.kickstarter.com/services/oembed', true ),
 			'#https?://kck\.st/.*#i'                       => array( 'https://www.kickstarter.com/services/oembed', true ),
 			'#https?://cloudup\.com/.*#i'                  => array( 'https://cloudup.com/oembed', true ),
@@ -103,9 +105,11 @@ class WP_oEmbed {
 			'#https?://www\.someecards\.com/usercards/viewcard/.+#i' => array( 'https://www.someecards.com/v2/oembed/', true ),
 			'#https?://some\.ly\/.+#i'                     => array( 'https://www.someecards.com/v2/oembed/', true ),
 			'#https?://(www\.)?tiktok\.com/.*/video/.*#i'  => array( 'https://www.tiktok.com/oembed', true ),
+			'#https?://(www\.)?tiktok\.com/@.*#i'          => array( 'https://www.tiktok.com/oembed', true ),
 			'#https?://([a-z]{2}|www)\.pinterest\.com(\.(au|mx))?/.*#i' => array( 'https://www.pinterest.com/oembed.json', true ),
 			'#https?://(www\.)?wolframcloud\.com/obj/.+#i' => array( 'https://www.wolframcloud.com/oembed', true ),
 			'#https?://pca\.st/.+#i'                       => array( 'https://pca.st/oembed.json', true ),
+			'#https?://((play|www)\.)?anghami\.com/.*#i'   => array( 'https://api.anghami.com/rest/v1/oembed.view', true ),
 		);
 
 		if ( ! empty( self::$early_providers['add'] ) ) {
@@ -184,6 +188,8 @@ class WP_oEmbed {
 		 * | Pinterest    | pinterest.com                             | 5.9.0   |
 		 * | WolframCloud | wolframcloud.com                          | 5.9.0   |
 		 * | Pocket Casts | pocketcasts.com                           | 6.1.0   |
+		 * | Crowdsignal  | crowdsignal.net                           | 6.2.0   |
+		 * | Anghami      | anghami.com                               | 6.3.0   |
 		 *
 		 * No longer supported providers:
 		 *
@@ -233,6 +239,7 @@ class WP_oEmbed {
 		if ( in_array( $name, $this->compat_methods, true ) ) {
 			return $this->$name( ...$arguments );
 		}
+
 		return false;
 	}
 
@@ -511,7 +518,7 @@ class WP_oEmbed {
 	}
 
 	/**
-	 * Connects to a oEmbed provider and returns the result.
+	 * Connects to an oEmbed provider and returns the result.
 	 *
 	 * @since 2.9.0
 	 *
@@ -547,8 +554,10 @@ class WP_oEmbed {
 			if ( is_wp_error( $result ) && 'not-implemented' === $result->get_error_code() ) {
 				continue;
 			}
+
 			return ( $result && ! is_wp_error( $result ) ) ? $result : false;
 		}
+
 		return false;
 	}
 
@@ -568,14 +577,18 @@ class WP_oEmbed {
 		$args = apply_filters( 'oembed_remote_get_args', array(), $provider_url_with_args );
 
 		$response = wp_safe_remote_get( $provider_url_with_args, $args );
-		if ( 501 == wp_remote_retrieve_response_code( $response ) ) {
+
+		if ( 501 === wp_remote_retrieve_response_code( $response ) ) {
 			return new WP_Error( 'not-implemented' );
 		}
+
 		$body = wp_remote_retrieve_body( $response );
 		if ( ! $body ) {
 			return false;
 		}
+
 		$parse_method = "_parse_$format";
+
 		return $this->$parse_method( $body );
 	}
 
@@ -589,6 +602,7 @@ class WP_oEmbed {
 	 */
 	private function _parse_json( $response_body ) {
 		$data = json_decode( trim( $response_body ) );
+
 		return ( $data && is_object( $data ) ) ? $data : false;
 	}
 
@@ -606,9 +620,10 @@ class WP_oEmbed {
 		}
 
 		if ( PHP_VERSION_ID < 80000 ) {
-			// This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading
-			// is disabled by default, so this function is no longer needed to protect against XXE attacks.
-			// phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.libxml_disable_entity_loaderDeprecated
+			/*
+			 * This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading
+			 * is disabled by default, so this function is no longer needed to protect against XXE attacks.
+			 */
 			$loader = libxml_disable_entity_loader( true );
 		}
 
@@ -639,7 +654,7 @@ class WP_oEmbed {
 			return false;
 		}
 
-		$dom     = new DOMDocument;
+		$dom     = new DOMDocument();
 		$success = $dom->loadXML( $response_body );
 		if ( ! $success ) {
 			return false;
@@ -660,7 +675,7 @@ class WP_oEmbed {
 			return false;
 		}
 
-		$return = new stdClass;
+		$return = new stdClass();
 		foreach ( $xml as $key => $value ) {
 			$return->$key = (string) $value;
 		}
@@ -740,7 +755,7 @@ class WP_oEmbed {
 	 * @return string Possibly modified $html
 	 */
 	public function _strip_newlines( $html, $data, $url ) {
-		if ( false === strpos( $html, "\n" ) ) {
+		if ( ! str_contains( $html, "\n" ) ) {
 			return $html;
 		}
 

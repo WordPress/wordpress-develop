@@ -3,7 +3,8 @@
 /**
  * Test WPDB _real_escape() method.
  *
- * @group  wpdb
+ * @group wpdb
+ *
  * @covers wpdb::_real_escape
  */
 class Tests_DB_RealEscape extends WP_UnitTestCase {

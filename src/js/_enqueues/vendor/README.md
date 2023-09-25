@@ -11,7 +11,7 @@ In this directory you'll find vendor JavaScript packages that cannot be installe
 - mediaelement: https://github.com/mediaelement/mediaelement
 - plupload: https://github.com/moxiecode/plupload
 - swfupload: https://github.com/WordPress/secure-swfupload
-- thickbox: http://codylindley.com/thickbox/
+- thickbox: https://codylindley.com/thickbox/
 - tinymce: https://www.tiny.cloud/get-tiny/self-hosted/
   - Download "TinyMCE Dev Package". This package is needed because it includes
     the `compat3x` plugin.

@@ -196,6 +196,8 @@ class WP_Block {
 	 *
 	 * @since 5.5.0
 	 *
+	 * @global WP_Post $post Global post object.
+	 *
 	 * @param array $options {
 	 *     Optional options object.
 	 *
@@ -242,7 +244,7 @@ class WP_Block {
 						$block_content .= $inner_block->render();
 					}
 
-					$index++;
+					++$index;
 				}
 			}
 		}
@@ -307,5 +309,4 @@ class WP_Block {
 
 		return $block_content;
 	}
-
 }

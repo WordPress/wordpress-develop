@@ -22,7 +22,7 @@ class Tests_Date_wpTimezone extends WP_UnitTestCase {
 	/**
 	 * @ticket 24730
 	 *
-	 * @dataProvider timezone_offset_provider
+	 * @dataProvider data_should_convert_gmt_offset
 	 *
 	 * @param float  $gmt_offset Numeric offset from UTC.
 	 * @param string $tz_name    Expected timezone name.
@@ -39,40 +39,11 @@ class Tests_Date_wpTimezone extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 24730
-	 */
-	public function test_should_return_timezone_string() {
-		update_option( 'timezone_string', 'Europe/Helsinki' );
-
-		$this->assertSame( 'Europe/Helsinki', wp_timezone_string() );
-
-		$timezone = wp_timezone();
-
-		$this->assertSame( 'Europe/Helsinki', $timezone->getName() );
-	}
-
-	/**
-	 * Ensures that deprecated timezone strings are handled correctly.
-	 *
-	 * @ticket 56468
-	 */
-	public function test_should_return_deprecated_timezone_string() {
-		$tz_string = 'America/Buenos_Aires'; // This timezone was deprecated pre-PHP 5.6.
-		update_option( 'timezone_string', $tz_string );
-
-		$this->assertSame( $tz_string, wp_timezone_string() );
-
-		$timezone = wp_timezone();
-
-		$this->assertSame( $tz_string, $timezone->getName() );
-	}
-
-	/**
 	 * Data provider to test numeric offset conversion.
 	 *
 	 * @return array
 	 */
-	public function timezone_offset_provider() {
+	public function data_should_convert_gmt_offset() {
 		return array(
 			array( -12, '-12:00' ),
 			array( -11.5, '-11:30' ),
@@ -133,5 +104,34 @@ class Tests_Date_wpTimezone extends WP_UnitTestCase {
 			array( 13.75, '+13:45' ),
 			array( 14, '+14:00' ),
 		);
+	}
+
+	/**
+	 * @ticket 24730
+	 */
+	public function test_should_return_timezone_string() {
+		update_option( 'timezone_string', 'Europe/Helsinki' );
+
+		$this->assertSame( 'Europe/Helsinki', wp_timezone_string() );
+
+		$timezone = wp_timezone();
+
+		$this->assertSame( 'Europe/Helsinki', $timezone->getName() );
+	}
+
+	/**
+	 * Ensures that deprecated timezone strings are handled correctly.
+	 *
+	 * @ticket 56468
+	 */
+	public function test_should_return_deprecated_timezone_string() {
+		$tz_string = 'America/Buenos_Aires'; // This timezone was deprecated pre-PHP 5.6.
+		update_option( 'timezone_string', $tz_string );
+
+		$this->assertSame( $tz_string, wp_timezone_string() );
+
+		$timezone = wp_timezone();
+
+		$this->assertSame( $tz_string, $timezone->getName() );
 	}
 }

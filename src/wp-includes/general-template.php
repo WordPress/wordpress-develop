@@ -10,7 +10,7 @@
  * Loads header template.
  *
  * Includes the header template for a theme or if a name is specified then a
- * specialised header will be included.
+ * specialized header will be included.
  *
  * For the parameter, if the file is called "header-special.php" then specify
  * "special".
@@ -19,7 +19,7 @@
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $name The name of the specialised header.
+ * @param string $name The name of the specialized header.
  * @param array  $args Optional. Additional arguments passed to the header template.
  *                     Default empty array.
  * @return void|false Void on success, false if the template does not exist.
@@ -54,7 +54,7 @@ function get_header( $name = null, $args = array() ) {
  * Loads footer template.
  *
  * Includes the footer template for a theme or if a name is specified then a
- * specialised footer will be included.
+ * specialized footer will be included.
  *
  * For the parameter, if the file is called "footer-special.php" then specify
  * "special".
@@ -63,7 +63,7 @@ function get_header( $name = null, $args = array() ) {
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $name The name of the specialised footer.
+ * @param string $name The name of the specialized footer.
  * @param array  $args Optional. Additional arguments passed to the footer template.
  *                     Default empty array.
  * @return void|false Void on success, false if the template does not exist.
@@ -98,7 +98,7 @@ function get_footer( $name = null, $args = array() ) {
  * Loads sidebar template.
  *
  * Includes the sidebar template for a theme or if a name is specified then a
- * specialised sidebar will be included.
+ * specialized sidebar will be included.
  *
  * For the parameter, if the file is called "sidebar-special.php" then specify
  * "special".
@@ -107,7 +107,7 @@ function get_footer( $name = null, $args = array() ) {
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $name The name of the specialised sidebar.
+ * @param string $name The name of the specialized sidebar.
  * @param array  $args Optional. Additional arguments passed to the sidebar template.
  *                     Default empty array.
  * @return void|false Void on success, false if the template does not exist.
@@ -145,7 +145,7 @@ function get_sidebar( $name = null, $args = array() ) {
  * in the theme.
  *
  * Includes the named template part for a theme or if a name is specified then a
- * specialised part will be included. If the theme contains no {slug}.php file
+ * specialized part will be included. If the theme contains no {slug}.php file
  * then no template will be included.
  *
  * The template is included using require, not require_once, so you may include the
@@ -158,10 +158,10 @@ function get_sidebar( $name = null, $args = array() ) {
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $slug The slug name for the generic template.
- * @param string $name The name of the specialised template.
- * @param array  $args Optional. Additional arguments passed to the template.
- *                     Default empty array.
+ * @param string      $slug The slug name for the generic template.
+ * @param string|null $name Optional. The name of the specialized template.
+ * @param array       $args Optional. Additional arguments passed to the template.
+ *                          Default empty array.
  * @return void|false Void on success, false if the template does not exist.
  */
 function get_template_part( $slug, $name = null, $args = array() ) {
@@ -175,7 +175,8 @@ function get_template_part( $slug, $name = null, $args = array() ) {
 	 * @since 5.5.0 The `$args` parameter was added.
 	 *
 	 * @param string      $slug The slug name for the generic template.
-	 * @param string|null $name The name of the specialized template.
+	 * @param string|null $name The name of the specialized template or null if
+	 *                          there is none.
 	 * @param array       $args Additional arguments passed to the template.
 	 */
 	do_action( "get_template_part_{$slug}", $slug, $name, $args );
@@ -195,7 +196,8 @@ function get_template_part( $slug, $name = null, $args = array() ) {
 	 * @since 5.5.0 The `$args` parameter was added.
 	 *
 	 * @param string   $slug      The slug name for the generic template.
-	 * @param string   $name      The name of the specialized template.
+	 * @param string   $name      The name of the specialized template or an empty
+	 *                            string if there is none.
 	 * @param string[] $templates Array of template files to search for, in order.
 	 * @param array    $args      Additional arguments passed to the template.
 	 */
@@ -322,7 +324,10 @@ function get_search_form( $args = array() ) {
 		if ( 'html5' === $format ) {
 			$form = '<form role="search" ' . $aria_label . 'method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">
 				<label>
-					<span class="screen-reader-text">' . _x( 'Search for:', 'label' ) . '</span>
+					<span class="screen-reader-text">' .
+					/* translators: Hidden accessibility text. */
+					_x( 'Search for:', 'label' ) .
+					'</span>
 					<input type="search" class="search-field" placeholder="' . esc_attr_x( 'Search &hellip;', 'placeholder' ) . '" value="' . get_search_query() . '" name="s" />
 				</label>
 				<input type="submit" class="search-submit" value="' . esc_attr_x( 'Search', 'submit button' ) . '" />
@@ -330,7 +335,10 @@ function get_search_form( $args = array() ) {
 		} else {
 			$form = '<form role="search" ' . $aria_label . 'method="get" id="searchform" class="searchform" action="' . esc_url( home_url( '/' ) ) . '">
 				<div>
-					<label class="screen-reader-text" for="s">' . _x( 'Search for:', 'label' ) . '</label>
+					<label class="screen-reader-text" for="s">' .
+					/* translators: Hidden accessibility text. */
+					_x( 'Search for:', 'label' ) .
+					'</label>
 					<input type="text" value="' . get_search_query() . '" name="s" id="s" />
 					<input type="submit" id="searchsubmit" value="' . esc_attr_x( 'Search', 'submit button' ) . '" />
 				</div>
@@ -370,17 +378,17 @@ function get_search_form( $args = array() ) {
  * @since 1.5.0
  *
  * @param string $redirect Optional path to redirect to on login/logout.
- * @param bool   $echo     Default to echo and not return the link.
- * @return void|string Void if `$echo` argument is true, log in/out link if `$echo` is false.
+ * @param bool   $display  Default to echo and not return the link.
+ * @return void|string Void if `$display` argument is true, log in/out link if `$display` is false.
  */
-function wp_loginout( $redirect = '', $echo = true ) {
+function wp_loginout( $redirect = '', $display = true ) {
 	if ( ! is_user_logged_in() ) {
 		$link = '<a href="' . esc_url( wp_login_url( $redirect ) ) . '">' . __( 'Log in' ) . '</a>';
 	} else {
 		$link = '<a href="' . esc_url( wp_logout_url( $redirect ) ) . '">' . __( 'Log out' ) . '</a>';
 	}
 
-	if ( $echo ) {
+	if ( $display ) {
 		/**
 		 * Filters the HTML output for the Log In/Log Out link.
 		 *
@@ -595,7 +603,7 @@ function wp_login_form( $args = array() ) {
 		sprintf(
 			'<p class="login-password">
 				<label for="%1$s">%2$s</label>
-				<input type="password" name="pwd" id="%1$s" autocomplete="current-password" class="input" value="" size="20" />
+				<input type="password" name="pwd" id="%1$s" autocomplete="current-password" spellcheck="false" class="input" value="" size="20" />
 			</p>',
 			esc_attr( $args['id_password'] ),
 			esc_html( $args['label_password'] )
@@ -646,7 +654,7 @@ function wp_lostpassword_url( $redirect = '' ) {
 	}
 
 	if ( is_multisite() ) {
-		$blog_details  = get_blog_details();
+		$blog_details  = get_site();
 		$wp_login_path = $blog_details->path . 'wp-login.php';
 	} else {
 		$wp_login_path = 'wp-login.php';
@@ -673,13 +681,13 @@ function wp_lostpassword_url( $redirect = '' ) {
  *
  * @since 1.5.0
  *
- * @param string $before Text to output before the link. Default `<li>`.
- * @param string $after  Text to output after the link. Default `</li>`.
- * @param bool   $echo   Default to echo and not return the link.
- * @return void|string Void if `$echo` argument is true, registration or admin link
- *                     if `$echo` is false.
+ * @param string $before  Text to output before the link. Default `<li>`.
+ * @param string $after   Text to output after the link. Default `</li>`.
+ * @param bool   $display Default to echo and not return the link.
+ * @return void|string Void if `$display` argument is true, registration or admin link
+ *                     if `$display` is false.
  */
-function wp_register( $before = '<li>', $after = '</li>', $echo = true ) {
+function wp_register( $before = '<li>', $after = '</li>', $display = true ) {
 	if ( ! is_user_logged_in() ) {
 		if ( get_option( 'users_can_register' ) ) {
 			$link = $before . '<a href="' . esc_url( wp_registration_url() ) . '">' . __( 'Register' ) . '</a>' . $after;
@@ -704,7 +712,7 @@ function wp_register( $before = '<li>', $after = '</li>', $echo = true ) {
 	 */
 	$link = apply_filters( 'register', $link );
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $link;
 	} else {
 		return $link;
@@ -755,7 +763,7 @@ function bloginfo( $show = '' ) {
  * - 'admin_email' - Admin email (set in Settings > General)
  * - 'charset' - The "Encoding for pages and feeds"  (set in Settings > Reading)
  * - 'version' - The current WordPress version
- * - 'html_type' - The content-type (default: "text/html"). Themes and plugins
+ * - 'html_type' - The Content-Type (default: "text/html"). Themes and plugins
  *   can override the default value using the {@see 'pre_option_html_type'} filter
  * - 'text_direction' - The text direction determined by the site's language. is_rtl()
  *   should be used instead
@@ -899,9 +907,11 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 	}
 
 	$url = true;
-	if ( strpos( $show, 'url' ) === false &&
-		strpos( $show, 'directory' ) === false &&
-		strpos( $show, 'home' ) === false ) {
+
+	if ( ! str_contains( $show, 'url' )
+		&& ! str_contains( $show, 'directory' )
+		&& ! str_contains( $show, 'home' )
+	) {
 		$url = false;
 	}
 
@@ -950,7 +960,7 @@ function get_site_icon_url( $size = 512, $url = '', $blog_id = 0 ) {
 		$switched_blog = true;
 	}
 
-	$site_icon_id = get_option( 'site_icon' );
+	$site_icon_id = (int) get_option( 'site_icon' );
 
 	if ( $site_icon_id ) {
 		if ( $size >= 512 ) {
@@ -2048,10 +2058,10 @@ function wp_get_archives( $args = '' ) {
 		$query   = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date), MONTH(post_date) ORDER BY post_date $order $limit";
 		$key     = md5( $query );
 		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'posts' );
+		$results = wp_cache_get( $key, 'post-queries' );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'posts' );
+			wp_cache_set( $key, $results, 'post-queries' );
 		}
 		if ( $results ) {
 			$after = $parsed_args['after'];
@@ -2073,10 +2083,10 @@ function wp_get_archives( $args = '' ) {
 		$query   = "SELECT YEAR(post_date) AS `year`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date) ORDER BY post_date $order $limit";
 		$key     = md5( $query );
 		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'posts' );
+		$results = wp_cache_get( $key, 'post-queries' );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'posts' );
+			wp_cache_set( $key, $results, 'post-queries' );
 		}
 		if ( $results ) {
 			$after = $parsed_args['after'];
@@ -2097,10 +2107,10 @@ function wp_get_archives( $args = '' ) {
 		$query   = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, DAYOFMONTH(post_date) AS `dayofmonth`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date), MONTH(post_date), DAYOFMONTH(post_date) ORDER BY post_date $order $limit";
 		$key     = md5( $query );
 		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'posts' );
+		$results = wp_cache_get( $key, 'post-queries' );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'posts' );
+			wp_cache_set( $key, $results, 'post-queries' );
 		}
 		if ( $results ) {
 			$after = $parsed_args['after'];
@@ -2123,10 +2133,10 @@ function wp_get_archives( $args = '' ) {
 		$query   = "SELECT DISTINCT $week AS `week`, YEAR( `post_date` ) AS `yr`, DATE_FORMAT( `post_date`, '%Y-%m-%d' ) AS `yyyymmdd`, count( `ID` ) AS `posts` FROM `$wpdb->posts` $join $where GROUP BY $week, YEAR( `post_date` ) ORDER BY `post_date` $order $limit";
 		$key     = md5( $query );
 		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'posts' );
+		$results = wp_cache_get( $key, 'post-queries' );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'posts' );
+			wp_cache_set( $key, $results, 'post-queries' );
 		}
 		$arc_w_last = '';
 		if ( $results ) {
@@ -2162,10 +2172,10 @@ function wp_get_archives( $args = '' ) {
 		$query   = "SELECT * FROM $wpdb->posts $join $where ORDER BY $orderby $limit";
 		$key     = md5( $query );
 		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'posts' );
+		$results = wp_cache_get( $key, 'post-queries' );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'posts' );
+			wp_cache_set( $key, $results, 'post-queries' );
 		}
 		if ( $results ) {
 			foreach ( (array) $results as $result ) {
@@ -2220,10 +2230,10 @@ function calendar_week_mod( $num ) {
  * @global array     $posts
  *
  * @param bool $initial Optional. Whether to use initial calendar names. Default true.
- * @param bool $echo    Optional. Whether to display the calendar output. Default true.
- * @return void|string Void if `$echo` argument is true, calendar HTML if `$echo` is false.
+ * @param bool $display Optional. Whether to display the calendar output. Default true.
+ * @return void|string Void if `$display` argument is true, calendar HTML if `$display` is false.
  */
-function get_calendar( $initial = true, $echo = true ) {
+function get_calendar( $initial = true, $display = true ) {
 	global $wpdb, $m, $monthnum, $year, $wp_locale, $posts;
 
 	$key   = md5( $m . $monthnum . $year );
@@ -2233,7 +2243,7 @@ function get_calendar( $initial = true, $echo = true ) {
 		/** This filter is documented in wp-includes/general-template.php */
 		$output = apply_filters( 'get_calendar', $cache[ $key ] );
 
-		if ( $echo ) {
+		if ( $display ) {
 			echo $output;
 			return;
 		}
@@ -2292,16 +2302,16 @@ function get_calendar( $initial = true, $echo = true ) {
 		FROM $wpdb->posts
 		WHERE post_date < '$thisyear-$thismonth-01'
 		AND post_type = 'post' AND post_status = 'publish'
-			ORDER BY post_date DESC
-			LIMIT 1"
+		ORDER BY post_date DESC
+		LIMIT 1"
 	);
 	$next     = $wpdb->get_row(
 		"SELECT MONTH(post_date) AS month, YEAR(post_date) AS year
 		FROM $wpdb->posts
 		WHERE post_date > '$thisyear-$thismonth-{$last_day} 23:59:59'
 		AND post_type = 'post' AND post_status = 'publish'
-			ORDER BY post_date ASC
-			LIMIT 1"
+		ORDER BY post_date ASC
+		LIMIT 1"
 	);
 
 	/* translators: Calendar caption: 1: Month name, 2: 4-digit year. */
@@ -2430,7 +2440,7 @@ function get_calendar( $initial = true, $echo = true ) {
 	$cache[ $key ] = $calendar_output;
 	wp_cache_set( 'get_calendar', $cache, 'calendar' );
 
-	if ( $echo ) {
+	if ( $display ) {
 		/**
 		 * Filters the HTML calendar output.
 		 *
@@ -2511,13 +2521,13 @@ function the_date_xml() {
  * @global string $currentday  The day of the current post in the loop.
  * @global string $previousday The day of the previous post in the loop.
  *
- * @param string $format Optional. PHP date format. Defaults to the 'date_format' option.
- * @param string $before Optional. Output before the date. Default empty.
- * @param string $after  Optional. Output after the date. Default empty.
- * @param bool   $echo   Optional. Whether to echo the date or return it. Default true.
+ * @param string $format  Optional. PHP date format. Defaults to the 'date_format' option.
+ * @param string $before  Optional. Output before the date. Default empty.
+ * @param string $after   Optional. Output after the date. Default empty.
+ * @param bool   $display Optional. Whether to echo the date or return it. Default true.
  * @return string|void String if retrieving.
  */
-function the_date( $format = '', $before = '', $after = '', $echo = true ) {
+function the_date( $format = '', $before = '', $after = '', $display = true ) {
 	global $currentday, $previousday;
 
 	$the_date = '';
@@ -2539,7 +2549,7 @@ function the_date( $format = '', $before = '', $after = '', $echo = true ) {
 	 */
 	$the_date = apply_filters( 'the_date', $the_date, $format, $before, $after );
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $the_date;
 	} else {
 		return $the_date;
@@ -2586,13 +2596,13 @@ function get_the_date( $format = '', $post = null ) {
  *
  * @since 2.1.0
  *
- * @param string $format Optional. PHP date format. Defaults to the 'date_format' option.
- * @param string $before Optional. Output before the date. Default empty.
- * @param string $after  Optional. Output after the date. Default empty.
- * @param bool   $echo   Optional. Whether to echo the date or return it. Default true.
+ * @param string $format  Optional. PHP date format. Defaults to the 'date_format' option.
+ * @param string $before  Optional. Output before the date. Default empty.
+ * @param string $after   Optional. Output after the date. Default empty.
+ * @param bool   $display Optional. Whether to echo the date or return it. Default true.
  * @return string|void String if retrieving.
  */
-function the_modified_date( $format = '', $before = '', $after = '', $echo = true ) {
+function the_modified_date( $format = '', $before = '', $after = '', $display = true ) {
 	$the_modified_date = $before . get_the_modified_date( $format ) . $after;
 
 	/**
@@ -2607,12 +2617,11 @@ function the_modified_date( $format = '', $before = '', $after = '', $echo = tru
 	 */
 	$the_modified_date = apply_filters( 'the_modified_date', $the_modified_date, $format, $before, $after );
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $the_modified_date;
 	} else {
 		return $the_modified_date;
 	}
-
 }
 
 /**
@@ -3088,11 +3097,11 @@ function feed_links( $args = array() ) {
 	}
 
 	$defaults = array(
-		/* translators: Separator between blog name and feed type in feed links. */
+		/* translators: Separator between site name and feed type in feed links. */
 		'separator' => _x( '&raquo;', 'feed link' ),
-		/* translators: 1: Blog title, 2: Separator (raquo). */
+		/* translators: 1: Site title, 2: Separator (raquo). */
 		'feedtitle' => __( '%1$s %2$s Feed' ),
-		/* translators: 1: Blog title, 2: Separator (raquo). */
+		/* translators: 1: Site title, 2: Separator (raquo). */
 		'comstitle' => __( '%1$s %2$s Comments Feed' ),
 	);
 
@@ -3140,21 +3149,21 @@ function feed_links( $args = array() ) {
  */
 function feed_links_extra( $args = array() ) {
 	$defaults = array(
-		/* translators: Separator between blog name and feed type in feed links. */
+		/* translators: Separator between site name and feed type in feed links. */
 		'separator'     => _x( '&raquo;', 'feed link' ),
-		/* translators: 1: Blog name, 2: Separator (raquo), 3: Post title. */
+		/* translators: 1: Site name, 2: Separator (raquo), 3: Post title. */
 		'singletitle'   => __( '%1$s %2$s %3$s Comments Feed' ),
-		/* translators: 1: Blog name, 2: Separator (raquo), 3: Category name. */
+		/* translators: 1: Site name, 2: Separator (raquo), 3: Category name. */
 		'cattitle'      => __( '%1$s %2$s %3$s Category Feed' ),
-		/* translators: 1: Blog name, 2: Separator (raquo), 3: Tag name. */
+		/* translators: 1: Site name, 2: Separator (raquo), 3: Tag name. */
 		'tagtitle'      => __( '%1$s %2$s %3$s Tag Feed' ),
-		/* translators: 1: Blog name, 2: Separator (raquo), 3: Term name, 4: Taxonomy singular name. */
+		/* translators: 1: Site name, 2: Separator (raquo), 3: Term name, 4: Taxonomy singular name. */
 		'taxtitle'      => __( '%1$s %2$s %3$s %4$s Feed' ),
-		/* translators: 1: Blog name, 2: Separator (raquo), 3: Author name. */
+		/* translators: 1: Site name, 2: Separator (raquo), 3: Author name. */
 		'authortitle'   => __( '%1$s %2$s Posts by %3$s Feed' ),
-		/* translators: 1: Blog name, 2: Separator (raquo), 3: Search query. */
+		/* translators: 1: Site name, 2: Separator (raquo), 3: Search query. */
 		'searchtitle'   => __( '%1$s %2$s Search Results for &#8220;%3$s&#8221; Feed' ),
-		/* translators: 1: Blog name, 2: Separator (raquo), 3: Post type name. */
+		/* translators: 1: Site name, 2: Separator (raquo), 3: Post type name. */
 		'posttypetitle' => __( '%1$s %2$s %3$s Feed' ),
 	);
 
@@ -3363,19 +3372,6 @@ function rsd_link() {
 	printf(
 		'<link rel="EditURI" type="application/rsd+xml" title="RSD" href="%s" />' . "\n",
 		esc_url( site_url( 'xmlrpc.php?rsd', 'rpc' ) )
-	);
-}
-
-/**
- * Displays the link to the Windows Live Writer manifest file.
- *
- * @link https://msdn.microsoft.com/en-us/library/bb463265.aspx
- * @since 2.3.1
- */
-function wlwmanifest_link() {
-	printf(
-		'<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="%s" />' . "\n",
-		includes_url( 'wlwmanifest.xml' )
 	);
 }
 
@@ -3683,6 +3679,9 @@ function wp_preload_resources() {
  *
  * @since 4.6.0
  *
+ * @global WP_Scripts $wp_scripts The WP_Scripts object for printing scripts.
+ * @global WP_Styles  $wp_styles  The WP_Styles object for printing styles.
+ *
  * @return string[] A list of unique hosts of enqueued scripts and styles.
  */
 function wp_dependencies_unique_hosts() {
@@ -3740,7 +3739,7 @@ function user_can_richedit() {
 			if ( $is_safari ) {
 				$wp_rich_edit = ! wp_is_mobile() || ( preg_match( '!AppleWebKit/(\d+)!', $_SERVER['HTTP_USER_AGENT'], $match ) && (int) $match[1] >= 534 );
 			} elseif ( $is_IE ) {
-				$wp_rich_edit = ( strpos( $_SERVER['HTTP_USER_AGENT'], 'Trident/7.0;' ) !== false );
+				$wp_rich_edit = str_contains( $_SERVER['HTTP_USER_AGENT'], 'Trident/7.0;' );
 			} elseif ( $is_gecko || $is_chrome || $is_edge || ( $is_opera && ! wp_is_mobile() ) ) {
 				$wp_rich_edit = true;
 			}
@@ -4023,7 +4022,7 @@ function wp_get_code_editor_settings( $args ) {
 		if ( 'application/x-patch' === $type || 'text/x-patch' === $type ) {
 			$type = 'text/x-diff';
 		}
-	} elseif ( isset( $args['file'] ) && false !== strpos( basename( $args['file'] ), '.' ) ) {
+	} elseif ( isset( $args['file'] ) && str_contains( basename( $args['file'] ), '.' ) ) {
 		$extension = strtolower( pathinfo( $args['file'], PATHINFO_EXTENSION ) );
 		foreach ( wp_get_mime_types() as $exts => $mime ) {
 			if ( preg_match( '!^(' . $exts . ')$!i', $extension ) ) {
@@ -4159,7 +4158,7 @@ function wp_get_code_editor_settings( $args ) {
 				'matchBrackets'     => true,
 			)
 		);
-	} elseif ( false !== strpos( $type, 'json' ) ) {
+	} elseif ( str_contains( $type, 'json' ) ) {
 		$settings['codemirror'] = array_merge(
 			$settings['codemirror'],
 			array(
@@ -4176,7 +4175,7 @@ function wp_get_code_editor_settings( $args ) {
 		} else {
 			$settings['codemirror']['mode']['json'] = true;
 		}
-	} elseif ( false !== strpos( $type, 'jsx' ) ) {
+	} elseif ( str_contains( $type, 'jsx' ) ) {
 		$settings['codemirror'] = array_merge(
 			$settings['codemirror'],
 			array(
@@ -4222,7 +4221,7 @@ function wp_get_code_editor_settings( $args ) {
 				'matchBrackets'     => true,
 			)
 		);
-	} elseif ( false !== strpos( $type, 'xml' ) ) {
+	} elseif ( str_contains( $type, 'xml' ) ) {
 		$settings['codemirror'] = array_merge(
 			$settings['codemirror'],
 			array(
@@ -4810,7 +4809,6 @@ function register_admin_color_schemes() {
 			'current' => '#fff',
 		)
 	);
-
 }
 
 /**
@@ -4864,7 +4862,7 @@ function wp_admin_css_uri( $file = 'wp-admin' ) {
  */
 function wp_admin_css( $file = 'wp-admin', $force_echo = false ) {
 	// For backward compatibility.
-	$handle = 0 === strpos( $file, 'css/' ) ? substr( $file, 4 ) : $file;
+	$handle = str_starts_with( $file, 'css/' ) ? substr( $file, 4 ) : $file;
 
 	if ( wp_styles()->query( $handle ) ) {
 		if ( $force_echo || did_action( 'wp_print_styles' ) ) {
@@ -5063,12 +5061,12 @@ function get_the_generator( $type = '' ) {
  * @param mixed $checked One of the values to compare.
  * @param mixed $current Optional. The other value to compare if not just true.
  *                       Default true.
- * @param bool  $echo    Optional. Whether to echo or just return the string.
+ * @param bool  $display Optional. Whether to echo or just return the string.
  *                       Default true.
  * @return string HTML attribute or empty string.
  */
-function checked( $checked, $current = true, $echo = true ) {
-	return __checked_selected_helper( $checked, $current, $echo, 'checked' );
+function checked( $checked, $current = true, $display = true ) {
+	return __checked_selected_helper( $checked, $current, $display, 'checked' );
 }
 
 /**
@@ -5081,12 +5079,12 @@ function checked( $checked, $current = true, $echo = true ) {
  * @param mixed $selected One of the values to compare.
  * @param mixed $current  Optional. The other value to compare if not just true.
  *                        Default true.
- * @param bool  $echo     Optional. Whether to echo or just return the string.
+ * @param bool  $display  Optional. Whether to echo or just return the string.
  *                        Default true.
  * @return string HTML attribute or empty string.
  */
-function selected( $selected, $current = true, $echo = true ) {
-	return __checked_selected_helper( $selected, $current, $echo, 'selected' );
+function selected( $selected, $current = true, $display = true ) {
+	return __checked_selected_helper( $selected, $current, $display, 'selected' );
 }
 
 /**
@@ -5099,12 +5097,12 @@ function selected( $selected, $current = true, $echo = true ) {
  * @param mixed $disabled One of the values to compare.
  * @param mixed $current  Optional. The other value to compare if not just true.
  *                        Default true.
- * @param bool  $echo     Optional. Whether to echo or just return the string.
+ * @param bool  $display  Optional. Whether to echo or just return the string.
  *                        Default true.
  * @return string HTML attribute or empty string.
  */
-function disabled( $disabled, $current = true, $echo = true ) {
-	return __checked_selected_helper( $disabled, $current, $echo, 'disabled' );
+function disabled( $disabled, $current = true, $display = true ) {
+	return __checked_selected_helper( $disabled, $current, $display, 'disabled' );
 }
 
 /**
@@ -5114,15 +5112,15 @@ function disabled( $disabled, $current = true, $echo = true ) {
  *
  * @since 5.9.0
  *
- * @param mixed $readonly One of the values to compare.
- * @param mixed $current  Optional. The other value to compare if not just true.
- *                        Default true.
- * @param bool  $echo     Optional. Whether to echo or just return the string.
- *                        Default true.
+ * @param mixed $readonly_value One of the values to compare.
+ * @param mixed $current        Optional. The other value to compare if not just true.
+ *                              Default true.
+ * @param bool  $display        Optional. Whether to echo or just return the string.
+ *                              Default true.
  * @return string HTML attribute or empty string.
  */
-function wp_readonly( $readonly, $current = true, $echo = true ) {
-	return __checked_selected_helper( $readonly, $current, $echo, 'readonly' );
+function wp_readonly( $readonly_value, $current = true, $display = true ) {
+	return __checked_selected_helper( $readonly_value, $current, $display, 'readonly' );
 }
 
 /*
@@ -5145,18 +5143,18 @@ if ( PHP_VERSION_ID < 80100 ) {
  *
  * @param mixed  $helper  One of the values to compare.
  * @param mixed  $current The other value to compare if not just true.
- * @param bool   $echo    Whether to echo or just return the string.
+ * @param bool   $display Whether to echo or just return the string.
  * @param string $type    The type of checked|selected|disabled|readonly we are doing.
  * @return string HTML attribute or empty string.
  */
-function __checked_selected_helper( $helper, $current, $echo, $type ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
+function __checked_selected_helper( $helper, $current, $display, $type ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	if ( (string) $helper === (string) $current ) {
 		$result = " $type='$type'";
 	} else {
 		$result = '';
 	}
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $result;
 	}
 

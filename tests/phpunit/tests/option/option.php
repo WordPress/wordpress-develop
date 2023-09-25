@@ -101,6 +101,62 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58277
+	 *
+	 * @covers ::get_option
+	 */
+	public function test_get_option_notoptions_cache() {
+		$notoptions = array(
+			'invalid' => true,
+		);
+		wp_cache_set( 'notoptions', $notoptions, 'options' );
+
+		$before = get_num_queries();
+		$value  = get_option( 'invalid' );
+		$after  = get_num_queries();
+
+		$this->assertSame( 0, $after - $before );
+	}
+
+	/**
+	 * @ticket 58277
+	 *
+	 * @covers ::get_option
+	 */
+	public function test_get_option_notoptions_set_cache() {
+		get_option( 'invalid' );
+
+		$before = get_num_queries();
+		$value  = get_option( 'invalid' );
+		$after  = get_num_queries();
+
+		$notoptions = wp_cache_get( 'notoptions', 'options' );
+
+		$this->assertSame( 0, $after - $before, 'The notoptions cache was not hit on the second call to `get_option()`.' );
+		$this->assertIsArray( $notoptions, 'The notoptions cache should be set.' );
+		$this->assertArrayHasKey( 'invalid', $notoptions, 'The "invalid" option should be in the notoptions cache.' );
+	}
+
+	/**
+	 * @ticket 58277
+	 *
+	 * @covers ::get_option
+	 */
+	public function test_get_option_notoptions_do_not_load_cache() {
+		add_option( 'foo', 'bar', '', 'no' );
+		wp_cache_delete( 'notoptions', 'options' );
+
+		$before = get_num_queries();
+		$value  = get_option( 'foo' );
+		$after  = get_num_queries();
+
+		$notoptions = wp_cache_get( 'notoptions', 'options' );
+
+		$this->assertSame( 0, $after - $before, 'The options cache was not hit on the second call to `get_option()`.' );
+		$this->assertFalse( $notoptions, 'The notoptions cache should not be set.' );
+	}
+
+	/**
 	 * @covers ::get_option
 	 * @covers ::add_option
 	 * @covers ::delete_option
@@ -310,6 +366,162 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( 'autoload_array', array(), 'yes' ),
 			array( 'autoload_no', 'no', 'no' ),
 			array( 'autoload_false', false, 'no' ),
+		);
+	}
+
+	/**
+	 * Ensure the database is getting updated when type changes, but not otherwise.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 *
+	 * @dataProvider data_update_option_type_juggling
+	 */
+	public function test_update_loosey_options( $old_value, $new_value, $update = false ) {
+		add_option( 'foo', $old_value );
+
+		// Comparison will happen against value cached during add_option() above.
+		$updated = update_option( 'foo', $new_value );
+
+		if ( $update ) {
+			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
+		} else {
+			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+		}
+	}
+
+	/**
+	 * Ensure the database is getting updated when type changes, but not otherwise.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 *
+	 * @dataProvider data_update_option_type_juggling
+	 */
+	public function test_update_loosey_options_from_db( $old_value, $new_value, $update = false ) {
+		add_option( 'foo', $old_value );
+
+		// Delete cache.
+		wp_cache_delete( 'alloptions', 'options' );
+		$updated = update_option( 'foo', $new_value );
+
+		if ( $update ) {
+			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
+		} else {
+			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+		}
+	}
+
+	/**
+	 * Ensure the database is getting updated when type changes, but not otherwise.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 *
+	 * @dataProvider data_update_option_type_juggling
+	 */
+	public function test_update_loosey_options_from_refreshed_cache( $old_value, $new_value, $update = false ) {
+		add_option( 'foo', $old_value );
+
+		// Delete and refresh cache from DB.
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_load_alloptions();
+
+		$updated = update_option( 'foo', $new_value );
+
+		if ( $update ) {
+			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
+		} else {
+			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+		}
+	}
+
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_update_option_type_juggling() {
+		return array(
+			/*
+			 * Truthy values.
+			 * Loosely equal truthy scalar values should never result in a DB update.
+			 */
+			array( '1', '1' ),
+			array( '1', 1 ),
+			array( '1', 1.0 ),
+			array( '1', true ),
+			array( 1, '1' ),
+			array( 1, 1 ),
+			array( 1, 1.0 ),
+			array( 1, true ),
+			array( 1.0, '1' ),
+			array( 1.0, 1 ),
+			array( 1.0, 1.0 ),
+			array( 1.0, true ),
+			array( true, '1' ),
+			array( true, 1 ),
+			array( true, 1.0 ),
+			array( true, true ),
+
+			/*
+			 * Falsey values.
+			 * Loosely equal falsey scalar values only sometimes result in a DB update.
+			 */
+			array( '0', '0' ),
+			array( '0', 0 ),
+			array( '0', 0.0 ),
+			array( '0', false, true ), // Should update.
+			array( '', '' ),
+			array( '', 0, true ), // Should update.
+			array( '', 0.0, true ), // Should update.
+			array( '', false ),
+			array( 0, '0' ),
+			array( 0, '', true ), // Should update.
+			array( 0, 0 ),
+			array( 0, 0.0 ),
+			array( 0, false, true ), // Should update.
+			array( 0.0, '0' ),
+			array( 0.0, '', true ), // Should update.
+			array( 0.0, 0 ),
+			array( 0.0, 0.0 ),
+			array( 0.0, false, true ), // Should update.
+			array( false, '0', true ), // Should update.
+			array( false, '' ),
+			array( false, 0, true ), // Should update.
+			array( false, 0.0, true ), // Should update.
+			array( false, false ),
+
+			/*
+			 * Non scalar values.
+			 * Loosely equal non-scalar values should almost always result in an update.
+			 */
+			array( false, array(), true ),
+			array( 'false', array(), true ),
+			array( '', array(), true ),
+			array( 0, array(), true ),
+			array( '0', array(), true ),
+			array( false, null ), // Does not update.
+			array( 'false', null, true ),
+			array( '', null ), // Does not update.
+			array( 0, null, true ),
+			array( '0', null, true ),
+			array( array(), false, true ),
+			array( array(), 'false', true ),
+			array( array(), '', true ),
+			array( array(), 0, true ),
+			array( array(), '0', true ),
+			array( array(), null, true ),
+			array( null, false ), // Does not update.
+			array( null, 'false', true ),
+			array( null, '' ), // Does not update.
+			array( null, 0, true ),
+			array( null, '0', true ),
+			array( null, array(), true ),
 		);
 	}
 }

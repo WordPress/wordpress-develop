@@ -473,6 +473,8 @@ class WP_Date_Query {
 	 *
 	 * @since 3.7.0
 	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
 	 * @param string $column The user-supplied column name.
 	 * @return string A validated column name value.
 	 */
@@ -492,7 +494,7 @@ class WP_Date_Query {
 		);
 
 		// Attempt to detect a table prefix.
-		if ( false === strpos( $column, '.' ) ) {
+		if ( ! str_contains( $column, '.' ) ) {
 			/**
 			 * Filters the list of valid date query columns.
 			 *
@@ -683,11 +685,11 @@ class WP_Date_Query {
 	 * @since 3.7.0
 	 *
 	 * @param array $query Date query arguments.
-	 * @return string[] {
+	 * @return array {
 	 *     Array containing JOIN and WHERE SQL clauses to append to the main query.
 	 *
-	 *     @type string $join  SQL fragment to append to the main JOIN clause.
-	 *     @type string $where SQL fragment to append to the main WHERE clause.
+	 *     @type string[] $join  Array of SQL fragments to append to the main JOIN clause.
+	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
 	 * }
 	 */
 	protected function get_sql_for_subquery( $query ) {
@@ -699,13 +701,15 @@ class WP_Date_Query {
 	 *
 	 * @since 4.1.0
 	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
 	 * @param array $query        Date query clause.
 	 * @param array $parent_query Parent query of the current date query.
-	 * @return string[] {
+	 * @return array {
 	 *     Array containing JOIN and WHERE SQL clauses to append to the main query.
 	 *
-	 *     @type string $join  SQL fragment to append to the main JOIN clause.
-	 *     @type string $where SQL fragment to append to the main WHERE clause.
+	 *     @type string[] $join  Array of SQL fragments to append to the main JOIN clause.
+	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
 	 * }
 	 */
 	protected function get_sql_for_clause( $query, $parent_query ) {
@@ -960,6 +964,8 @@ class WP_Date_Query {
 	 * in order to be able to accurately compare against.
 	 *
 	 * @since 3.7.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string   $column  The column to query against. Needs to be pre-validated!
 	 * @param string   $compare The comparison operator. Needs to be pre-validated!

@@ -28,6 +28,9 @@ if ( ! current_user_can( 'edit_theme_options' ) ) {
 	);
 }
 
+// Used in the HTML title tag.
+$title = __( 'Menus' );
+
 wp_enqueue_script( 'nav-menu' );
 
 if ( wp_is_mobile() ) {
@@ -117,6 +120,10 @@ switch ( $action ) {
 						if ( ! is_wp_error( $parent_object ) ) {
 							$parent_data                        = (array) $parent_object;
 							$menu_item_data['menu_item_parent'] = $parent_data['menu_item_parent'];
+
+							// Reset invalid `menu_item_parent`.
+							$menu_item_data = _wp_reset_invalid_menu_item_parent( $menu_item_data );
+
 							update_post_meta( $menu_item_data['ID'], '_menu_item_menu_item_parent', (int) $menu_item_data['menu_item_parent'] );
 						}
 
@@ -126,6 +133,10 @@ switch ( $action ) {
 						$menu_item_data['menu_order'] = $menu_item_data['menu_order'] + 1;
 
 						$menu_item_data['menu_item_parent'] = $next_item_data['ID'];
+
+						// Reset invalid `menu_item_parent`.
+						$menu_item_data = _wp_reset_invalid_menu_item_parent( $menu_item_data );
+
 						update_post_meta( $menu_item_data['ID'], '_menu_item_menu_item_parent', (int) $menu_item_data['menu_item_parent'] );
 
 						wp_update_post( $menu_item_data );
@@ -137,6 +148,10 @@ switch ( $action ) {
 					&& in_array( (int) $menu_item_data['menu_item_parent'], $orders_to_dbids, true )
 				) {
 					$menu_item_data['menu_item_parent'] = (int) get_post_meta( $menu_item_data['menu_item_parent'], '_menu_item_menu_item_parent', true );
+
+					// Reset invalid `menu_item_parent`.
+					$menu_item_data = _wp_reset_invalid_menu_item_parent( $menu_item_data );
+
 					update_post_meta( $menu_item_data['ID'], '_menu_item_menu_item_parent', (int) $menu_item_data['menu_item_parent'] );
 				}
 			}
@@ -247,6 +262,10 @@ switch ( $action ) {
 					) {
 						// Just make it a child of the previous; keep the order.
 						$menu_item_data['menu_item_parent'] = (int) $orders_to_dbids[ $dbids_to_orders[ $menu_item_id ] - 1 ];
+
+						// Reset invalid `menu_item_parent`.
+						$menu_item_data = _wp_reset_invalid_menu_item_parent( $menu_item_data );
+
 						update_post_meta( $menu_item_data['ID'], '_menu_item_menu_item_parent', (int) $menu_item_data['menu_item_parent'] );
 						wp_update_post( $menu_item_data );
 					}
@@ -262,7 +281,14 @@ switch ( $action ) {
 		check_admin_referer( 'delete-menu_item_' . $menu_item_id );
 
 		if ( is_nav_menu_item( $menu_item_id ) && wp_delete_post( $menu_item_id, true ) ) {
-			$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . __( 'The menu item has been successfully deleted.' ) . '</p></div>';
+			$messages[] = wp_get_admin_notice(
+				__( 'The menu item has been successfully deleted.' ),
+				array(
+					'id'                 => 'message',
+					'additional_classes' => array( 'updated' ),
+					'dismissible'        => true,
+				)
+			);
 		}
 
 		break;
@@ -283,9 +309,23 @@ switch ( $action ) {
 		}
 
 		if ( is_wp_error( $deletion ) ) {
-			$messages[] = '<div id="message" class="error notice is-dismissible"><p>' . $deletion->get_error_message() . '</p></div>';
+			$messages[] = wp_get_admin_notice(
+				$deletion->get_error_message(),
+				array(
+					'id'                 => 'message',
+					'additional_classes' => array( 'error' ),
+					'dismissible'        => true,
+				)
+			);
 		} else {
-			$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . __( 'The menu has been successfully deleted.' ) . '</p></div>';
+			$messages[] = wp_get_admin_notice(
+				__( 'The menu has been successfully deleted.' ),
+				array(
+					'id'                 => 'message',
+					'additional_classes' => array( 'updated' ),
+					'dismissible'        => true,
+				)
+			);
 		}
 
 		break;
@@ -301,13 +341,27 @@ switch ( $action ) {
 			$deletion = wp_delete_nav_menu( $menu_id_to_delete );
 
 			if ( is_wp_error( $deletion ) ) {
-				$messages[]     = '<div id="message" class="error notice is-dismissible"><p>' . $deletion->get_error_message() . '</p></div>';
+				$messages[]     = wp_get_admin_notice(
+					$deletion->get_error_message(),
+					array(
+						'id'                 => 'message',
+						'additional_classes' => array( 'error' ),
+						'dismissible'        => true,
+					)
+				);
 				$deletion_error = true;
 			}
 		}
 
 		if ( empty( $deletion_error ) ) {
-			$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . __( 'Selected menus have been successfully deleted.' ) . '</p></div>';
+			$messages[] = wp_get_admin_notice(
+				__( 'Selected menus have been successfully deleted.' ),
+				array(
+					'id'                 => 'message',
+					'additional_classes' => array( 'updated' ),
+					'dismissible'        => true,
+				)
+			);
 		}
 
 		break;
@@ -330,7 +384,14 @@ switch ( $action ) {
 				$_nav_menu_selected_id = wp_update_nav_menu_object( 0, array( 'menu-name' => $new_menu_title ) );
 
 				if ( is_wp_error( $_nav_menu_selected_id ) ) {
-					$messages[] = '<div id="message" class="error notice is-dismissible"><p>' . $_nav_menu_selected_id->get_error_message() . '</p></div>';
+					$messages[] = wp_get_admin_notice(
+						$_nav_menu_selected_id->get_error_message(),
+						array(
+							'id'                 => 'message',
+							'additional_classes' => array( 'error' ),
+							'dismissible'        => true,
+						)
+					);
 				} else {
 					$_menu_object            = wp_get_nav_menu_object( $_nav_menu_selected_id );
 					$nav_menu_selected_id    = $_nav_menu_selected_id;
@@ -381,7 +442,14 @@ switch ( $action ) {
 					exit;
 				}
 			} else {
-				$messages[] = '<div id="message" class="error notice is-dismissible"><p>' . __( 'Please enter a valid menu name.' ) . '</p></div>';
+				$messages[] = wp_get_admin_notice(
+					__( 'Please enter a valid menu name.' ),
+					array(
+						'id'                 => 'message',
+						'additional_classes' => array( 'error' ),
+						'dismissible'        => true,
+					)
+				);
 			}
 
 			// Update existing menu.
@@ -403,7 +471,14 @@ switch ( $action ) {
 			$menu_title = trim( esc_html( $_POST['menu-name'] ) );
 
 			if ( ! $menu_title ) {
-				$messages[] = '<div id="message" class="error notice is-dismissible"><p>' . __( 'Please enter a valid menu name.' ) . '</p></div>';
+				$messages[] = wp_get_admin_notice(
+					__( 'Please enter a valid menu name.' ),
+					array(
+						'id'                 => 'message',
+						'additional_classes' => array( 'error' ),
+						'dismissible'        => true,
+					)
+				);
 				$menu_title = $_menu_object->name;
 			}
 
@@ -412,7 +487,14 @@ switch ( $action ) {
 
 				if ( is_wp_error( $_nav_menu_selected_id ) ) {
 					$_menu_object = $_nav_menu_selected_id;
-					$messages[]   = '<div id="message" class="error notice is-dismissible"><p>' . $_nav_menu_selected_id->get_error_message() . '</p></div>';
+					$messages[]   = wp_get_admin_notice(
+						$_nav_menu_selected_id->get_error_message(),
+						array(
+							'id'                 => 'message',
+							'additional_classes' => array( 'error' ),
+							'dismissible'        => true,
+						)
+					);
 				} else {
 					$_menu_object            = wp_get_nav_menu_object( $_nav_menu_selected_id );
 					$nav_menu_selected_title = $_menu_object->name;
@@ -449,7 +531,14 @@ switch ( $action ) {
 			// Set menu locations.
 			set_theme_mod( 'nav_menu_locations', $menu_locations );
 
-			$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . __( 'Menu locations updated.' ) . '</p></div>';
+			$messages[] = wp_get_admin_notice(
+				__( 'Menu locations updated.' ),
+				array(
+					'id'                 => 'message',
+					'additional_classes' => array( 'updated' ),
+					'dismissible'        => true,
+				)
+			);
 		}
 
 		break;
@@ -595,11 +684,19 @@ wp_nav_menu_setup();
 wp_initial_nav_menu_meta_boxes();
 
 if ( ! current_theme_supports( 'menus' ) && ! $num_locations ) {
-	$messages[] = '<div id="message" class="updated"><p>' . sprintf(
+	$message_no_theme_support = sprintf(
 		/* translators: %s: URL to Widgets screen. */
 		__( 'Your theme does not natively support menus, but you can use them in sidebars by adding a &#8220;Navigation Menu&#8221; widget on the <a href="%s">Widgets</a> screen.' ),
 		admin_url( 'widgets.php' )
-	) . '</p></div>';
+	);
+	$messages[] = wp_get_admin_notice(
+		$message_no_theme_support,
+		array(
+			'id'                 => 'message',
+			'additional_classes' => array( 'updated' ),
+			'dismissible'        => true,
+		)
+	);
 }
 
 if ( ! $locations_screen ) : // Main tab.
@@ -667,8 +764,8 @@ endif;
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/appearance-menus-screen/">Documentation on Menus</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/appearance-menus-screen/">Documentation on Menus</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 // Get the admin header.
@@ -789,7 +886,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 									);
 									?>
 									">
-										<span aria-hidden="true"><?php _ex( 'Edit', 'menu' ); ?></span><span class="screen-reader-text"><?php _e( 'Edit selected menu' ); ?></span>
+										<span aria-hidden="true"><?php _ex( 'Edit', 'menu' ); ?></span><span class="screen-reader-text">
+											<?php
+											/* translators: Hidden accessibility text. */
+											_e( 'Edit selected menu' );
+											?>
+										</span>
 									</a>
 								</span>
 								<?php endif; ?>
@@ -835,7 +937,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<?php if ( $menu_count < 1 ) : ?>
 		<span class="first-menu-message">
 			<?php _e( 'Create your first menu below.' ); ?>
-			<span class="screen-reader-text"><?php _e( 'Fill in the Menu Name and click the Create Menu button to create your first menu.' ); ?></span>
+			<span class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Fill in the Menu Name and click the Create Menu button to create your first menu.' );
+				?>
+			</span>
 		</span><!-- /first-menu-message -->
 		<?php elseif ( $menu_count < 2 ) : ?>
 		<span class="add-edit-menu-action">
@@ -854,7 +961,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				)
 			);
 			?>
-			<span class="screen-reader-text"><?php _e( 'Click the Save Menu button to save your changes.' ); ?></span>
+			<span class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Click the Save Menu button to save your changes.' );
+				?>
+			</span>
 		</span><!-- /add-edit-menu-action -->
 		<?php else : ?>
 			<form method="get" action="<?php echo esc_url( admin_url( 'nav-menus.php' ) ); ?>">
@@ -919,7 +1031,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					)
 				);
 				?>
-				<span class="screen-reader-text"><?php _e( 'Click the Save Menu button to save your changes.' ); ?></span>
+				<span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Click the Save Menu button to save your changes.' );
+					?>
+				</span>
 			</span><!-- /add-new-menu-action -->
 		</form>
 			<?php
@@ -1040,7 +1157,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 										<input type="checkbox" id="bulk-select-switcher-bottom" name="bulk-select-switcher-top" class="bulk-select-switcher">
 										<span class="bulk-select-button-label"><?php _e( 'Bulk Select' ); ?></span>
 									</label>
-									<input type="button" class="deletion menu-items-delete disabled" value="<?php _e( 'Remove Selected Items' ); ?>">
+									<input type="button" class="deletion menu-items-delete disabled" value="<?php esc_attr_e( 'Remove Selected Items' ); ?>">
 									<div id="pending-menu-items-to-delete">
 										<p><?php _e( 'List of menu items selected for deletion:' ); ?></p>
 										<ul></ul>
@@ -1110,7 +1227,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						</div><!-- /#post-body-content -->
 					</div><!-- /#post-body -->
 					<div id="nav-menu-footer">
-						<div class="major-publishing-actions wp-clearfix">
+						<div class="major-publishing-actions">
+							<div class="publishing-action">
+								<?php submit_button( empty( $nav_menu_selected_id ) ? __( 'Create Menu' ) : __( 'Save Menu' ), 'primary large menu-save', 'save_menu', false, array( 'id' => 'save_menu_footer' ) ); ?>
+							</div><!-- END .publishing-action -->
 							<?php if ( $menu_count > 0 ) : ?>
 
 								<?php if ( $add_new_screen ) : ?>
@@ -1139,9 +1259,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 								<?php endif; ?>
 
 							<?php endif; ?>
-							<div class="publishing-action">
-								<?php submit_button( empty( $nav_menu_selected_id ) ? __( 'Create Menu' ) : __( 'Save Menu' ), 'primary large menu-save', 'save_menu', false, array( 'id' => 'save_menu_footer' ) ); ?>
-							</div><!-- END .publishing-action -->
 						</div><!-- END .major-publishing-actions -->
 					</div><!-- /#nav-menu-footer -->
 				</div><!-- /.menu-edit -->

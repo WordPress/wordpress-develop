@@ -220,8 +220,6 @@ if ( is_multisite() ) :
 		}
 
 		public function test_update_site_meta_cache() {
-			global $wpdb;
-
 			if ( ! is_site_meta_supported() ) {
 				$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
 			}
@@ -229,14 +227,12 @@ if ( is_multisite() ) :
 			update_site_meta( self::$site_id, 'foo', 'bar' );
 			update_sitemeta_cache( array( self::$site_id ) );
 
-			$num_queries = $wpdb->num_queries;
+			$num_queries = get_num_queries();
 			get_site_meta( self::$site_id, 'foo', true );
-			$this->assertSame( $num_queries, $wpdb->num_queries );
+			$this->assertSame( $num_queries, get_num_queries() );
 		}
 
 		public function test_query_update_site_meta_cache_true() {
-			global $wpdb;
-
 			if ( ! is_site_meta_supported() ) {
 				$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
 			}
@@ -250,14 +246,84 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$num_queries = $wpdb->num_queries;
+			$num_queries = get_num_queries();
 			get_site_meta( self::$site_id, 'foo', true );
-			$this->assertSame( $num_queries, $wpdb->num_queries );
+			$this->assertSame( 1, get_num_queries() - $num_queries );
+		}
+
+		/**
+		 * @ticket 58185
+		 */
+		public function test_lazy_load_site_meta() {
+			if ( ! is_site_meta_supported() ) {
+				$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
+			}
+
+			$filter = new MockAction();
+			add_filter( 'update_blog_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+
+			$q = new WP_Site_Query(
+				array(
+					'ID' => self::$site_id,
+				)
+			);
+
+			$this->assertSameSets( array( (string) self::$site_id ), wp_list_pluck( $q->sites, 'blog_id' ), 'Site query should return the first test site' );
+
+			$q = new WP_Site_Query(
+				array(
+					'ID' => self::$site_id2,
+				)
+			);
+
+			$this->assertSameSets( array( (string) self::$site_id2 ), wp_list_pluck( $q->sites, 'blog_id' ), 'Site query should return the second test site' );
+
+			get_site_meta( self::$site_id2 );
+
+			$args     = $filter->get_args();
+			$first    = reset( $args );
+			$site_ids = end( $first );
+			$this->assertSameSets( $site_ids, array( self::$site_id, self::$site_id2 ), 'This should have two site\'s meta' );
+		}
+
+		/**
+		 * @ticket 58185
+		 */
+		public function test_lazy_load_site_meta_fields_id() {
+			if ( ! is_site_meta_supported() ) {
+				$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
+			}
+
+			$filter = new MockAction();
+			add_filter( 'update_blog_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+
+			$q = new WP_Site_Query(
+				array(
+					'ID'     => self::$site_id,
+					'fields' => 'ids',
+				)
+			);
+
+			$this->assertSameSets( array( self::$site_id ), $q->sites, 'Site query should return the first test site' );
+
+			$q = new WP_Site_Query(
+				array(
+					'ID'     => self::$site_id2,
+					'fields' => 'ids',
+				)
+			);
+
+			$this->assertSameSets( array( self::$site_id2 ), $q->sites, 'Site query should return the second test site' );
+
+			get_site_meta( self::$site_id2 );
+
+			$args     = $filter->get_args();
+			$first    = reset( $args );
+			$site_ids = end( $first );
+			$this->assertSameSets( $site_ids, array( self::$site_id, self::$site_id2 ), 'This should have two sites meta' );
 		}
 
 		public function test_query_update_site_meta_cache_false() {
-			global $wpdb;
-
 			if ( ! is_site_meta_supported() ) {
 				$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
 			}
@@ -271,9 +337,9 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$num_queries = $wpdb->num_queries;
+			$num_queries = get_num_queries();
 			get_site_meta( self::$site_id, 'foo', true );
-			$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+			$this->assertSame( 1, get_num_queries() - $num_queries );
 		}
 
 		/**

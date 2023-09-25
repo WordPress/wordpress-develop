@@ -97,7 +97,7 @@ if ( ! empty( $autofocus ) && is_array( $autofocus ) ) {
 }
 
 $registered             = $wp_scripts->registered;
-$wp_scripts             = new WP_Scripts;
+$wp_scripts             = new WP_Scripts();
 $wp_scripts->registered = $registered;
 
 add_action( 'customize_controls_print_scripts', 'print_head_scripts', 20 );
@@ -116,7 +116,7 @@ wp_enqueue_script( 'customize-controls' );
 wp_enqueue_style( 'customize-controls' );
 
 /**
- * Enqueue Customizer control scripts.
+ * Fires when enqueuing Customizer control scripts.
  *
  * @since 3.4.0
  */
@@ -207,7 +207,12 @@ do_action( 'customize_controls_head' );
 				<span class="preview"><?php _e( 'Preview' ); ?></span>
 			</button>
 			<a class="customize-controls-close" href="<?php echo esc_url( $wp_customize->get_return_url() ); ?>">
-				<span class="screen-reader-text"><?php _e( 'Close the Customizer and go back to the previous page' ); ?></span>
+				<span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Close the Customizer and go back to the previous page' );
+					?>
+				</span>
 			</a>
 		</div>
 
@@ -230,7 +235,12 @@ do_action( 'customize_controls_head' );
 							printf( __( 'You are customizing %s' ), '<strong class="panel-title site-title">' . get_bloginfo( 'name', 'display' ) . '</strong>' );
 						?>
 						</span>
-						<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text"><?php _e( 'Help' ); ?></span></button>
+						<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text">
+							<?php
+							/* translators: Hidden accessibility text. */
+							_e( 'Help' );
+							?>
+						</span></button>
 					</div>
 					<div class="customize-panel-description">
 						<p>
@@ -240,7 +250,7 @@ do_action( 'customize_controls_head' );
 						</p>
 						<p>
 							<?php
-							_e( '<a href="https://wordpress.org/support/article/appearance-customize-screen/">Documentation on Customizer</a>' );
+							_e( '<a href="https://wordpress.org/documentation/article/customizer/">Documentation on Customizer</a>' );
 							?>
 						</p>
 					</div>

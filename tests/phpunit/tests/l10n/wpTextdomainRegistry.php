@@ -28,7 +28,7 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 		$reflection_property = $reflection->getProperty( 'cached_mo_files' );
 		$reflection_property->setAccessible( true );
 
-		$this->assertNull(
+		$this->assertEmpty(
 			$reflection_property->getValue( $this->instance ),
 			'Cache not empty by default'
 		);
@@ -75,28 +75,6 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 			WP_LANG_DIR . '/plugins',
 			$reflection_property->getValue( $this->instance ),
 			'Default plugins path missing from cache'
-		);
-	}
-
-	/**
-	 * @covers ::get_path_from_lang_dir
-	 */
-	public function test_get_does_not_check_themes_directory_for_plugin() {
-		$reflection          = new ReflectionClass( $this->instance );
-		$reflection_property = $reflection->getProperty( 'cached_mo_files' );
-		$reflection_property->setAccessible( true );
-
-		$this->instance->get( 'internationalized-plugin', 'de_DE' );
-
-		$this->assertArrayHasKey(
-			WP_LANG_DIR . '/plugins',
-			$reflection_property->getValue( $this->instance ),
-			'Default plugins path missing from cache'
-		);
-		$this->assertArrayNotHasKey(
-			WP_LANG_DIR . '/themes',
-			$reflection_property->getValue( $this->instance ),
-			'Default themes path should not be in cache'
 		);
 	}
 

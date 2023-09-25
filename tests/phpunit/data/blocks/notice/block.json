@@ -27,6 +27,15 @@
 			"type": "string"
 		}
 	},
+	"selectors": {
+		"root": ".wp-block-notice"
+	},
+	"blockHooks": {
+		"tests/before": "before",
+		"tests/after": "after",
+		"tests/first-child": "firstChild",
+		"tests/last-child": "lastChild"
+	},
 	"supports": {
 		"align": true,
 		"lightBlockWrapper": true

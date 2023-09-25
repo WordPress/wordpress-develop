@@ -249,6 +249,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'parent'         => 'post_parent__in',
 			'parent_exclude' => 'post_parent__not_in',
 			'search'         => 's',
+			'search_columns' => 'search_columns',
 			'slug'           => 'post_name__in',
 			'status'         => 'post_status',
 		);
@@ -474,7 +475,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
+	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object or false otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$post = $this->get_post( $request['id'] );
@@ -659,11 +660,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			&& in_array( $prepared_post->post_status, array( 'draft', 'pending' ), true )
 		) {
 			/*
-			 * `wp_unique_post_slug()` returns the same
-			 * slug for 'draft' or 'pending' posts.
+			 * `wp_unique_post_slug()` returns the same slug for 'draft' or 'pending' posts.
 			 *
-			 * To ensure that a unique slug is generated,
-			 * pass the post data with the 'publish' status.
+			 * To ensure that a unique slug is generated, pass the post data with the 'publish' status.
 			 */
 			$prepared_post->post_name = wp_unique_post_slug(
 				$prepared_post->post_name,
@@ -862,15 +861,19 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		/*
-		 * `wp_unique_post_slug()` returns the same
-		 * slug for 'draft' or 'pending' posts.
+		 * `wp_unique_post_slug()` returns the same slug for 'draft' or 'pending' posts.
 		 *
-		 * To ensure that a unique slug is generated,
-		 * pass the post data with the 'publish' status.
+		 * To ensure that a unique slug is generated, pass the post data with the 'publish' status.
 		 */
 		if ( ! empty( $post->post_name ) && in_array( $post_status, array( 'draft', 'pending' ), true ) ) {
 			$post_parent     = ! empty( $post->post_parent ) ? $post->post_parent : 0;
-			$post->post_name = wp_unique_post_slug( $post->post_name, $post->ID, 'publish', $post->post_type, $post_parent );
+			$post->post_name = wp_unique_post_slug(
+				$post->post_name,
+				$post->ID,
+				'publish',
+				$post->post_type,
+				$post_parent
+			);
 		}
 
 		// Convert the post object to an array, otherwise wp_update_post() will expect non-escaped input.
@@ -1060,8 +1063,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				);
 			}
 
-			// (Note that internally this falls through to `wp_delete_post()`
-			// if the Trash is disabled.)
+			/*
+			 * (Note that internally this falls through to `wp_delete_post()`
+			 * if the Trash is disabled.)
+			 */
 			$result   = wp_trash_post( $id );
 			$post     = get_post( $id );
 			$response = $this->prepare_item_for_response( $post, $request );
@@ -1266,8 +1271,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		// Sending a null date or date_gmt value resets date and date_gmt to their
-		// default values (`0000-00-00 00:00:00`).
+		/*
+		 * Sending a null date or date_gmt value resets date and date_gmt to their
+		 * default values (`0000-00-00 00:00:00`).
+		 */
 		if (
 			( ! empty( $schema['properties']['date_gmt'] ) && $request->has_param( 'date_gmt' ) && null === $request['date_gmt'] ) ||
 			( ! empty( $schema['properties']['date'] ) && $request->has_param( 'date' ) && null === $request['date'] )
@@ -1390,7 +1397,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param WP_REST_Request $request       Request object.
 		 */
 		return apply_filters( "rest_pre_insert_{$this->post_type}", $prepared_post, $request );
-
 	}
 
 	/**
@@ -1489,7 +1495,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		} else {
 			return delete_post_thumbnail( $post_id );
 		}
-
 	}
 
 	/**
@@ -1499,7 +1504,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @param string          $template Page template filename.
 	 * @param WP_REST_Request $request  Request.
-	 * @return bool|WP_Error True if template is still valid or if the same as existing value, or false if template not supported.
+	 * @return true|WP_Error True if template is still valid or if the same as existing value, or a WP_Error if template not supported.
 	 */
 	public function check_template( $template, $request ) {
 
@@ -1743,7 +1748,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
-		$post            = $item;
+		$post = $item;
+
 		$GLOBALS['post'] = $post;
 
 		setup_postdata( $post );
@@ -1795,7 +1801,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			 * with the site's timezone offset applied.
 			 */
 			if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
-				$post_modified_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $post->post_modified ) - ( get_option( 'gmt_offset' ) * 3600 ) );
+				$post_modified_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $post->post_modified ) - ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) );
 			} else {
 				$post_modified_gmt = $post->post_modified_gmt;
 			}
@@ -2889,10 +2895,20 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
+		$query_params['search_columns'] = array(
+			'default'     => array(),
+			'description' => __( 'Array of column names to be searched.' ),
+			'type'        => 'array',
+			'items'       => array(
+				'enum' => array( 'post_title', 'post_content', 'post_excerpt' ),
+				'type' => 'string',
+			),
+		);
+
 		$query_params['slug'] = array(
-			'description'       => __( 'Limit result set to posts with one or more specific slugs.' ),
-			'type'              => 'array',
-			'items'             => array(
+			'description' => __( 'Limit result set to posts with one or more specific slugs.' ),
+			'type'        => 'array',
+			'items'       => array(
 				'type' => 'string',
 			),
 		);

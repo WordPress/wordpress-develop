@@ -2,6 +2,7 @@
 
 /**
  * @group wp
+ *
  * @covers WP::send_headers
  */
 class Tests_WP_SendHeaders extends WP_UnitTestCase {

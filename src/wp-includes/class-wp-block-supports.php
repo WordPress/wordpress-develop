@@ -91,7 +91,7 @@ class WP_Block_Supports {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @return string[] Array of HTML attributes.
+	 * @return string[] Array of HTML attribute values keyed by their name.
 	 */
 	public function apply_block_supports() {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered(
@@ -181,7 +181,7 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 
 	// This is hardcoded on purpose.
 	// We only support a fixed list of attributes.
-	$attributes_to_merge = array( 'style', 'class' );
+	$attributes_to_merge = array( 'style', 'class', 'id' );
 	$attributes          = array();
 	foreach ( $attributes_to_merge as $attribute_name ) {
 		if ( empty( $new_attributes[ $attribute_name ] ) && empty( $extra_attributes[ $attribute_name ] ) ) {

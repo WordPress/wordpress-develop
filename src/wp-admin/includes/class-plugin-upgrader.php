@@ -49,7 +49,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	public $new_plugin_data = array();
 
 	/**
-	 * Initialize the upgrade strings.
+	 * Initializes the upgrade strings.
 	 *
 	 * @since 2.8.0
 	 */
@@ -57,7 +57,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 		$this->strings['up_to_date'] = __( 'The plugin is at the latest version.' );
 		$this->strings['no_package'] = __( 'Update package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package']  = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code">%s</span>' );
+		$this->strings['downloading_package']  = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code pre">%s</span>' );
 		$this->strings['unpack_package']       = __( 'Unpacking the update&#8230;' );
 		$this->strings['remove_old']           = __( 'Removing the old version of the plugin&#8230;' );
 		$this->strings['remove_old_failed']    = __( 'Could not remove the old plugin.' );
@@ -67,14 +67,14 @@ class Plugin_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Initialize the installation strings.
+	 * Initializes the installation strings.
 	 *
 	 * @since 2.8.0
 	 */
 	public function install_strings() {
 		$this->strings['no_package'] = __( 'Installation package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code">%s</span>' );
+		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code pre">%s</span>' );
 		$this->strings['unpack_package']      = __( 'Unpacking the package&#8230;' );
 		$this->strings['installing_package']  = __( 'Installing the plugin&#8230;' );
 		$this->strings['remove_old']          = __( 'Removing the current plugin&#8230;' );
@@ -173,7 +173,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Upgrade a plugin.
+	 * Upgrades a plugin.
 	 *
 	 * @since 2.8.0
 	 * @since 3.7.0 The `$args` parameter was added, making clearing the plugin update cache optional.
@@ -212,8 +212,10 @@ class Plugin_Upgrader extends WP_Upgrader {
 		add_filter( 'upgrader_pre_install', array( $this, 'active_before' ), 10, 2 );
 		add_filter( 'upgrader_clear_destination', array( $this, 'delete_old_plugin' ), 10, 4 );
 		add_filter( 'upgrader_post_install', array( $this, 'active_after' ), 10, 2 );
-		// There's a Trac ticket to move up the directory for zips which are made a bit differently, useful for non-.org plugins.
-		// 'source_selection' => array( $this, 'source_selection' ),
+		/*
+		 * There's a Trac ticket to move up the directory for zips which are made a bit differently, useful for non-.org plugins.
+		 * 'source_selection' => array( $this, 'source_selection' ),
+		 */
 		if ( $parsed_args['clear_update_cache'] ) {
 			// Clear cache so wp_update_plugins() knows about the new plugin.
 			add_action( 'upgrader_process_complete', 'wp_clean_plugins_cache', 9, 0 );
@@ -226,14 +228,19 @@ class Plugin_Upgrader extends WP_Upgrader {
 				'clear_destination' => true,
 				'clear_working'     => true,
 				'hook_extra'        => array(
-					'plugin' => $plugin,
-					'type'   => 'plugin',
-					'action' => 'update',
+					'plugin'      => $plugin,
+					'type'        => 'plugin',
+					'action'      => 'update',
+					'temp_backup' => array(
+						'slug' => dirname( $plugin ),
+						'src'  => WP_PLUGIN_DIR,
+						'dir'  => 'plugins',
+					),
 				),
 			)
 		);
 
-		// Cleanup our hooks, in case something else does a upgrade on this connection.
+		// Cleanup our hooks, in case something else does an upgrade on this connection.
 		remove_action( 'upgrader_process_complete', 'wp_clean_plugins_cache', 9 );
 		remove_filter( 'upgrader_pre_install', array( $this, 'deactivate_plugin_before_upgrade' ) );
 		remove_filter( 'upgrader_pre_install', array( $this, 'active_before' ) );
@@ -247,8 +254,10 @@ class Plugin_Upgrader extends WP_Upgrader {
 		// Force refresh of plugin update information.
 		wp_clean_plugins_cache( $parsed_args['clear_update_cache'] );
 
-		// Ensure any future auto-update failures trigger a failure email by removing
-		// the last failure notification from the list when plugins update successfully.
+		/*
+		 * Ensure any future auto-update failures trigger a failure email by removing
+		 * the last failure notification from the list when plugins update successfully.
+		 */
 		$past_failure_emails = get_option( 'auto_plugin_theme_update_emails', array() );
 
 		if ( isset( $past_failure_emails[ $plugin ] ) ) {
@@ -260,10 +269,12 @@ class Plugin_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Bulk upgrade several plugins at once.
+	 * Upgrades several plugins at once.
 	 *
 	 * @since 2.8.0
 	 * @since 3.7.0 The `$args` parameter was added, making clearing the plugin update cache optional.
+	 *
+	 * @global string $wp_version The WordPress version string.
 	 *
 	 * @param string[] $plugins Array of paths to plugin files relative to the plugins directory.
 	 * @param array    $args {
@@ -274,6 +285,8 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @return array|false An array of results indexed by plugin file, or false if unable to connect to the filesystem.
 	 */
 	public function bulk_upgrade( $plugins, $args = array() ) {
+		global $wp_version;
+
 		$defaults    = array(
 			'clear_update_cache' => true,
 		);
@@ -317,7 +330,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 		$this->update_count   = count( $plugins );
 		$this->update_current = 0;
 		foreach ( $plugins as $plugin ) {
-			$this->update_current++;
+			++$this->update_current;
 			$this->skin->plugin_info = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin, false, true );
 
 			if ( ! isset( $current->response[ $plugin ] ) ) {
@@ -334,18 +347,55 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 			$this->skin->plugin_active = is_plugin_active( $plugin );
 
-			$result = $this->run(
-				array(
-					'package'           => $r->package,
-					'destination'       => WP_PLUGIN_DIR,
-					'clear_destination' => true,
-					'clear_working'     => true,
-					'is_multi'          => true,
-					'hook_extra'        => array(
-						'plugin' => $plugin,
-					),
-				)
-			);
+			if ( isset( $r->requires ) && ! is_wp_version_compatible( $r->requires ) ) {
+				$result = new WP_Error(
+					'incompatible_wp_required_version',
+					sprintf(
+						/* translators: 1: Current WordPress version, 2: WordPress version required by the new plugin version. */
+						__( 'Your WordPress version is %1$s, however the new plugin version requires %2$s.' ),
+						$wp_version,
+						$r->requires
+					)
+				);
+
+				$this->skin->before( $result );
+				$this->skin->error( $result );
+				$this->skin->after();
+			} elseif ( isset( $r->requires_php ) && ! is_php_version_compatible( $r->requires_php ) ) {
+				$result = new WP_Error(
+					'incompatible_php_required_version',
+					sprintf(
+						/* translators: 1: Current PHP version, 2: PHP version required by the new plugin version. */
+						__( 'The PHP version on your server is %1$s, however the new plugin version requires %2$s.' ),
+						PHP_VERSION,
+						$r->requires_php
+					)
+				);
+
+				$this->skin->before( $result );
+				$this->skin->error( $result );
+				$this->skin->after();
+			} else {
+				add_filter( 'upgrader_source_selection', array( $this, 'check_package' ) );
+				$result = $this->run(
+					array(
+						'package'           => $r->package,
+						'destination'       => WP_PLUGIN_DIR,
+						'clear_destination' => true,
+						'clear_working'     => true,
+						'is_multi'          => true,
+						'hook_extra'        => array(
+							'plugin'      => $plugin,
+							'temp_backup' => array(
+								'slug' => dirname( $plugin ),
+								'src'  => WP_PLUGIN_DIR,
+								'dir'  => 'plugins',
+							),
+						),
+					)
+				);
+				remove_filter( 'upgrader_source_selection', array( $this, 'check_package' ) );
+			}
 
 			$results[ $plugin ] = $result;
 
@@ -376,11 +426,13 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 		$this->skin->footer();
 
-		// Cleanup our hooks, in case something else does a upgrade on this connection.
+		// Cleanup our hooks, in case something else does an upgrade on this connection.
 		remove_filter( 'upgrader_clear_destination', array( $this, 'delete_old_plugin' ) );
 
-		// Ensure any future auto-update failures trigger a failure email by removing
-		// the last failure notification from the list when plugins update successfully.
+		/*
+		 * Ensure any future auto-update failures trigger a failure email by removing
+		 * the last failure notification from the list when plugins update successfully.
+		 */
 		$past_failure_emails = get_option( 'auto_plugin_theme_update_emails', array() );
 
 		foreach ( $results as $plugin => $result ) {
@@ -469,7 +521,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Retrieve the path to the file that contains the plugin info.
+	 * Retrieves the path to the file that contains the plugin info.
 	 *
 	 * This isn't used internally in the class, but is called by the skins.
 	 *
@@ -641,8 +693,10 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return $removed;
 		}
 
-		// If plugin is in its own directory, recursively delete the directory.
-		// Base check on if plugin includes directory separator AND that it's not the root plugin folder.
+		/*
+		 * If plugin is in its own directory, recursively delete the directory.
+		 * Base check on if plugin includes directory separator AND that it's not the root plugin folder.
+		 */
 		if ( strpos( $plugin, '/' ) && $this_plugin_dir !== $plugins_dir ) {
 			$deleted = $wp_filesystem->delete( $this_plugin_dir, true );
 		} else {
