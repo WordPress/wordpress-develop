@@ -531,7 +531,7 @@ function wp_restore_post_revision_meta( $post_id, $revision_id ) {
 	}
 
 	// Restore revisioned meta fields.
-	foreach ( wp_post_revision_meta_keys( $post_type as $meta_key ) {
+	foreach ( wp_post_revision_meta_keys( $post_type ) as $meta_key ) {
 
 		// Clear any existing meta.
 		delete_post_meta( $post_id, $meta_key );
