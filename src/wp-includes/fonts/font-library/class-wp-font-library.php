@@ -16,6 +16,11 @@
  */
 class WP_Font_Library {
 
+	/**
+	 * Fonts mime types allowed for each file type.
+	 * Each file type can have multiple mime types depending on the PHP version.
+	 * Currently wp_check_filetype_and_ext() only allows one mime type per file extension.
+	 */
 	const PHP_7_TTF_MIME_TYPE = PHP_VERSION_ID >= 70300 ? 'application/font-sfnt' : 'application/x-font-ttf';
 
 	const ALLOWED_FONT_MIME_TYPES = array(
