@@ -3136,7 +3136,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		ob_start();
 		$manager->remove_frameless_preview_messenger_channel();
 		$output = ob_get_clean();
-		$this->assertStringContainsString( '<script>', $output );
+		$this->assertStringContainsString( '<script', $output );
 	}
 
 	/**
