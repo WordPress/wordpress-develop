@@ -3256,7 +3256,7 @@ class WP_Query {
 				$post_parents[ (int) $post->ID ] = (int) $post->post_parent;
 				$post_ids[]                      = (int) $post->ID;
 			}
-
+			// Prime post parent caches, so that on second run, there is not another database query.
 			wp_cache_add_multiple( $post_parents, 'post_parent' );
 
 			if ( $q['cache_results'] && $id_query_is_cacheable ) {
