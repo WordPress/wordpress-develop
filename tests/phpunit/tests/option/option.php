@@ -378,7 +378,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_update_option_type_juggling
 	 */
-	public function test_update_loosey_options( $old_value, $new_value, $update = false ) {
+	public function test_update_loosey_options( $old_value, $new_value, $update = false, $additional_query = 1 ) {
 		add_option( 'foo', $old_value );
 
 		$num_queries = get_num_queries();
@@ -388,10 +388,10 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		if ( $update ) {
 			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
-			$this->assertSame( 1, get_num_queries() - $num_queries, 'There should be one additional database query to update the option.' );
+			$this->assertSame( $additional_query, get_num_queries() - $num_queries, 'There should be one additional database query to update the option.' );
 		} else {
 			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
-			$this->assertSame( $num_queries, get_num_queries(), 'The number of database queries should not change.' );
+			$this->assertSame( $additional_query, get_num_queries() - $num_queries, 'The number of database queries should not change.' );
 		}
 	}
 
@@ -404,7 +404,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_update_option_type_juggling
 	 */
-	public function test_update_loosey_options_from_db( $old_value, $new_value, $update = false ) {
+	public function test_update_loosey_options_from_db( $old_value, $new_value, $update = false, $additional_query = 1 ) {
 		add_option( 'foo', $old_value );
 
 		$num_queries = get_num_queries();
@@ -415,10 +415,10 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		if ( $update ) {
 			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
-			$this->assertSame( 1, get_num_queries() - $num_queries, 'There should be one additional database query to update the option.' );
+			$this->assertSame( $additional_query, get_num_queries() - $num_queries, 'There should be one additional database query to update the option.' );
 		} else {
 			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
-			$this->assertSame( $num_queries, get_num_queries(), 'The number of database queries should not change.' );
+			$this->assertSame( $additional_query, get_num_queries() - $num_queries, 'The number of database queries should not change.' );
 		}
 	}
 
@@ -431,7 +431,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_update_option_type_juggling
 	 */
-	public function test_update_loosey_options_from_refreshed_cache( $old_value, $new_value, $update = false ) {
+	public function test_update_loosey_options_from_refreshed_cache( $old_value, $new_value, $update = false, $additional_query = 1 ) {
 		add_option( 'foo', $old_value );
 
 		$num_queries = get_num_queries();
@@ -444,10 +444,10 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		if ( $update ) {
 			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
-			$this->assertSame( 1, get_num_queries() - $num_queries, 'There should be one additional database query to update the option.' );
+			$this->assertSame( $additional_query, get_num_queries() - $num_queries, 'There should be one additional database query to update the option.' );
 		} else {
 			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
-			$this->assertSame( $num_queries, get_num_queries(), 'The number of database queries should not change.' );
+			$this->assertSame( $additional_query, get_num_queries() - $num_queries, 'The number of database queries should not change.' );
 		}
 	}
 
@@ -463,50 +463,50 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			 * Truthy values.
 			 * Loosely equal truthy scalar values should never result in a DB update.
 			 */
-			array( '1', '1' ),
+			array( '1', '1', false, 0 ),
 			array( '1', 1 ),
 			array( '1', 1.0 ),
 			array( '1', true ),
 			array( 1, '1' ),
-			array( 1, 1 ),
+			array( 1, 1, false, 0 ),
 			array( 1, 1.0 ),
 			array( 1, true ),
 			array( 1.0, '1' ),
 			array( 1.0, 1 ),
-			array( 1.0, 1.0 ),
+			array( 1.0, 1.0, false, 0 ),
 			array( 1.0, true ),
 			array( true, '1' ),
 			array( true, 1 ),
 			array( true, 1.0 ),
-			array( true, true ),
+			array( true, true, false, 0 ),
 
 			/*
 			 * Falsey values.
 			 * Loosely equal falsey scalar values only sometimes result in a DB update.
 			 */
-			array( '0', '0' ),
+			array( '0', '0', false, 0 ),
 			array( '0', 0 ),
 			array( '0', 0.0 ),
 			array( '0', false, true ), // Should update.
-			array( '', '' ),
+			array( '', '', false, 0 ),
 			array( '', 0, true ), // Should update.
 			array( '', 0.0, true ), // Should update.
 			array( '', false ),
 			array( 0, '0' ),
 			array( 0, '', true ), // Should update.
-			array( 0, 0 ),
+			array( 0, 0, false, 0 ),
 			array( 0, 0.0 ),
 			array( 0, false, true ), // Should update.
 			array( 0.0, '0' ),
 			array( 0.0, '', true ), // Should update.
 			array( 0.0, 0 ),
-			array( 0.0, 0.0 ),
+			array( 0.0, 0.0, false, 0 ),
 			array( 0.0, false, true ), // Should update.
 			array( false, '0', true ), // Should update.
-			array( false, '' ),
+			array( false, '', false, 1 ),
 			array( false, 0, true ), // Should update.
 			array( false, 0.0, true ), // Should update.
-			array( false, false ),
+			array( false, false, false, 0 ),
 
 			/*
 			 * Non scalar values.
@@ -517,7 +517,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( '', array(), true ),
 			array( 0, array(), true ),
 			array( '0', array(), true ),
-			array( false, null ), // Does not update.
+			array( false, null, false, 1 ), // Does not update.
 			array( 'false', null, true ),
 			array( '', null ), // Does not update.
 			array( 0, null, true ),
@@ -528,12 +528,12 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( array(), 0, true ),
 			array( array(), '0', true ),
 			array( array(), null, true ),
-			array( null, false ), // Does not update.
-			array( null, 'false', true ),
-			array( null, '' ), // Does not update.
-			array( null, 0, true ),
-			array( null, '0', true ),
-			array( null, array(), true ),
+			array( null, false, false, 2 ), // Does not update.
+			array( null, 'false', true, 2 ),
+			array( null, '', false, 1 ), // Does not update.
+			array( null, 0, true, 2 ),
+			array( null, '0', true, 2 ),
+			array( null, array(), true, 2 ),
 		);
 	}
 }
