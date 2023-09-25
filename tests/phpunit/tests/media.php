@@ -4850,7 +4850,7 @@ EOF;
 		// Add shortcode that prints a large image, and a block type that wraps it.
 		add_shortcode(
 			'full_image',
-			static function( $atts ) {
+			static function ( $atts ) {
 				$atts = shortcode_atts(
 					array(
 						'id' => 0,
@@ -4942,7 +4942,7 @@ EOF;
 		// Add shortcode that prints a large image, and a block type that wraps it.
 		add_shortcode(
 			'full_image',
-			static function( $atts ) {
+			static function ( $atts ) {
 				$atts = shortcode_atts(
 					array(
 						'id' => 0,
@@ -4956,7 +4956,7 @@ EOF;
 		register_block_type(
 			'core/full-image-shortcode',
 			array(
-				'render_callback' => static function( $atts ) {
+				'render_callback' => static function ( $atts ) {
 					if ( empty( $atts['id'] ) ) {
 						return '';
 					}
@@ -5019,7 +5019,7 @@ EOF;
 				array( '', '<img fetchpriority="high" ' ),
 				preg_replace_callback(
 					'/gallery-(\d+)/',
-					static function( $match ) {
+					static function ( $match ) {
 						return 'gallery-' . ( (int) $match[1] + 1 );
 					},
 					do_shortcode( '[gallery ids="' . self::$large_id . '" size="large" id="' . $post_id . '"]' )
@@ -5430,9 +5430,10 @@ EOF;
 	 * blob.
 	 *
 	 * @ticket 58853
-	 * @dataProvider data_get_filters_with_do_shortcode_callback
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @dataProvider data_get_filters_with_do_shortcode_callback
 	 *
 	 * @param string $filter_name The name of the filter to hook.
 	 */
@@ -5442,7 +5443,7 @@ EOF;
 		remove_all_filters( $filter_name );
 		add_filter(
 			$filter_name,
-			function( $content ) use ( &$result ) {
+			function ( $content ) use ( &$result ) {
 				$attr   = $this->get_width_height_for_high_priority();
 				$result = wp_get_loading_optimization_attributes( 'img', $attr, 'do_shortcode' );
 				return $content;
