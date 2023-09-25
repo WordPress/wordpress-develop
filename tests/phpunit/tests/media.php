@@ -4814,7 +4814,8 @@ EOF;
 		);
 		apply_filters( 'the_content', '' );
 
-		$this->assertEmpty(
+		$this->assertSameSetsWithIndex(
+			array(),
 			$result,
 			'Expected decoding attribute to be empty for img on arbitrary context, while running the_content.'
 		);
