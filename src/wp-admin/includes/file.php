@@ -1764,6 +1764,9 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 	$pre = apply_filters( 'pre_unzip_file', null, $file, $to, $needed_dirs, $required_space );
 
 	if ( null !== $pre ) {
+		// Ensure the ZIP file archive has been closed.
+		$z->close();
+
 		return $pre;
 	}
 
