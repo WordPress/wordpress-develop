@@ -36,8 +36,7 @@ function wp_register_default_font_collection() {
 			'id'          => 'default-font-collection',
 			'name'        => 'Google Fonts',
 			'description' => __( 'Add from Google Fonts. Fonts are copied to and served from your site.' ),
-			/* TODO: This URL needs to change from the raw file to wporg CDN URL. */
-			'src'         => 'https://raw.githubusercontent.com/WordPress/google-fonts-to-wordpress-collection/main/output/google-fonts-with-previews.json',
+			'src'         => 'https://s.w.org/images/fonts/16.7/collections/google-fonts-with-preview.json',
 		)
 	);
 }
