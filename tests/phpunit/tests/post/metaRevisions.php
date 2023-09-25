@@ -492,6 +492,76 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		$this->assertEquals( '', $stored_data[0] );
 	}
 
+	/**
+	 * Test revisioning of meta with a default value.
+	 */
+	public function test_revisionining_of_meta_with_default_value() {
+
+		// Add a meta field to revision that includes a default value.
+		register_post_meta(
+			'post',
+			'meta_revision_test',
+			array(
+				'single'            => true,
+				'default'           => 'default value',
+				'revisions_enabled' => true,
+			)
+		);
+
+		// Set up a new post.
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => 'initial content',
+				'meta_input'   => array(
+					'meta_revision_test' => 'foo',
+				),
+			)
+		);
+
+		// Set the test meta to an empty string.
+		update_post_meta( $post_id, 'meta_revision_test', '' );
+
+		// Update to save.
+		wp_update_post( array( 'ID' => $post_id ) );
+
+		// Check that the meta is blank.
+		$stored_data = get_post_meta( $post_id, 'meta_revision_test', true );
+		$this->assertEquals( '', $stored_data );
+
+		// Also verify that the latest revision has blank stored for the meta.
+		$revisions      = wp_get_post_revisions( $post_id );
+		$last_revision  = array_shift( $revisions );
+		$stored_data    = get_post_meta( $last_revision->ID, 'meta_revision_test', true );
+		$this->assertEquals( '', $stored_data );
+
+		// Delete the meta.
+		delete_post_meta( $post_id, 'meta_revision_test' );
+
+		// Update to save.
+		wp_update_post( array( 'ID' => $post_id, 'post_content' => 'content update 1' ) );
+
+		// Check that the default meta value is returned.
+		$this->assertEquals( 'default value', get_post_meta( $post_id, 'meta_revision_test', true ) );
+
+		// Also verify that the latest revision has the default value returned for the meta.
+		$revisions      = wp_get_post_revisions( $post_id );
+		$last_revision  = array_shift( $revisions );
+
+		// No ,eta data should be stored in the revision.
+		$this->assertEquals( array(), get_post_meta( $last_revision->ID ) );
+
+		// Set the test meta again.
+		update_post_meta( $post_id, 'meta_revision_test', 'test' );
+
+		// Update to save.
+		wp_update_post( array( 'ID' => $post_id ) );
+
+		// Now restore the previous revision.
+		wp_restore_post_revision( $last_revision->ID );
+
+		// Verify the default meta value is still returned.
+		$this->assertEquals( 'default value', get_post_meta( $post_id, 'meta_revision_test', true ) );
+	}
 
 	/**
 	 * @dataProvider data_register_post_meta_supports_revisions
