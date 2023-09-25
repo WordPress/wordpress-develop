@@ -1080,6 +1080,85 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58599
+	 */
+	public function test_query_posts_fields_request() {
+		global $wpdb;
+
+		$args = array(
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'no_found_rows'          => true,
+		);
+
+		add_filter( 'posts_fields_request', array( $this, 'filter_posts_fields_request' ) );
+
+		$before = get_num_queries();
+		$query1 = new WP_Query();
+		$posts1 = $query1->query( $args );
+		$after  = get_num_queries();
+
+		foreach ( $posts1 as $_post ) {
+			$this->assertNotSame( get_post( $_post->ID )->post_content, $_post->post_content );
+		}
+
+		$this->assertSame( 2, $after - $before, 'There should only be 2 queries run, one for request and one prime post objects.' );
+
+		$this->assertStringContainsString(
+			"SELECT $wpdb->posts.*",
+			$wpdb->last_query,
+			'Check that _prime_post_caches is called.'
+		);
+	}
+
+	public function filter_posts_fields_request( $fields ) {
+		global $wpdb;
+		return "{$wpdb->posts}.ID";
+	}
+
+	/**
+	 * @ticket 58599
+	 * @dataProvider data_query_filter_posts_results
+	 */
+	public function test_query_filter_posts_results( $filter ) {
+		global $wpdb;
+
+		$args = array(
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'no_found_rows'          => true,
+		);
+
+		add_filter( $filter, array( $this, 'filter_posts_results' ) );
+
+		$before = get_num_queries();
+		$query1 = new WP_Query();
+		$posts1 = $query1->query( $args );
+		$after  = get_num_queries();
+
+		$this->assertCount( 1, $posts1 );
+
+		$this->assertSame( 2, $after - $before, 'There should only be 2 queries run, one for request and one prime post objects.' );
+
+		$this->assertStringContainsString(
+			"SELECT $wpdb->posts.*",
+			$wpdb->last_query,
+			'Check that _prime_post_caches is called.'
+		);
+	}
+
+	public function filter_posts_results() {
+		return array( get_post( self::$posts[0] ) );
+	}
+
+	public function data_query_filter_posts_results() {
+		return array(
+			array( 'posts_results' ),
+			array( 'the_posts' ),
+		);
+	}
+
+	/**
 	 * @ticket 22176
 	 */
 	public function test_query_cache_should_exclude_post_with_excluded_term() {

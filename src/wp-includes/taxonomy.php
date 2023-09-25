@@ -222,6 +222,27 @@ function create_initial_taxonomies() {
 			'show_in_rest'      => false,
 		)
 	);
+
+	register_taxonomy(
+		'wp_pattern_category',
+		array( 'wp_block' ),
+		array(
+			'public'             => true,
+			'publicly_queryable' => false,
+			'hierarchical'       => false,
+			'labels'             => array(
+				'name'           => _x( 'Pattern Categories', 'taxonomy general name' ),
+				'singular_name'  => _x( 'Pattern Category', 'taxonomy singular name' ),
+			),
+			'query_var'          => false,
+			'rewrite'            => false,
+			'show_ui'            => true,
+			'_builtin'           => true,
+			'show_in_nav_menus'  => false,
+			'show_in_rest'       => true,
+			'show_admin_column'  => true,
+		)
+	);
 }
 
 /**
@@ -959,6 +980,7 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 	// Ensure for filters that this is not empty.
 	$taxonomy = $_term->taxonomy;
 
+	$old_term = $_term;
 	/**
 	 * Filters a taxonomy term object.
 	 *
@@ -998,7 +1020,9 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 	}
 
 	// Sanitize term, according to the specified filter.
-	$_term->filter( $filter );
+	if ( $_term !== $old_term || $_term->filter !== $filter ) {
+		$_term->filter( $filter );
+	}
 
 	if ( ARRAY_A === $output ) {
 		return $_term->to_array();
