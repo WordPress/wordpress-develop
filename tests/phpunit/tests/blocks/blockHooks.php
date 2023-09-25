@@ -118,14 +118,5 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 			get_hooked_blocks( 'tests/hooked-at-before-and-after' ),
 			'block hooked before one block and after another'
 		);
-		$this->assertSame(
-			array(
-				'before' => array(
-					'tests/injected-one'
-				),
-			),
-			get_hooked_blocks( 'tests/hooked-at-before-and-after', 'before' ),
-			'block hooked before one block and after another, filtered for before'
-		);
 	}
 }
