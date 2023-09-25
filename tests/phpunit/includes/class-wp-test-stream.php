@@ -201,11 +201,12 @@ class WP_Test_Stream {
 	 */
 	public function mkdir( $path, $mode, $options ) {
 		$this->open( $path );
-		$plainfile = rtrim( $this->file, '/' );
+		$plainfile = trailingslashit( rtrim( $this->file, '/' ) );
 
-		if ( isset( WP_Test_Stream::$data[ $this->bucket ][ $file ] ) ) {
+		if ( isset( WP_Test_Stream::$data[ $this->bucket ][ $plainfile ] ) ) {
 			return false;
 		}
+
 		$dir_ref = & $this->get_directory_ref();
 		$dir_ref = 'DIRECTORY';
 		return true;
