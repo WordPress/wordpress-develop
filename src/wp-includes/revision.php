@@ -408,9 +408,12 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
  * @param int $post_id     The ID of the post the revision is associated with.
  */
 function wp_save_revisioned_meta_fields( $revision_id, $post_id ) {
+	$post_type = get_post_type( $post_id );
+	if ( ! $post_type ) {
+		return;
+	}
 
-	// Save revisioned meta fields.
-	foreach ( wp_post_revision_meta_keys( get_post_type( $post_id ) ) as $meta_key ) {
+	foreach ( wp_post_revision_meta_keys( $post_type ) as $meta_key )  {
 		if ( metadata_exists( 'post', $post_id, $meta_key ) ) {
 			_wp_copy_post_meta( $post_id, $revision_id, $meta_key );
 		}
