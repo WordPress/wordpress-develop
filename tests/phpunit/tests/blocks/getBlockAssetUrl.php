@@ -111,7 +111,6 @@ class Tests_Get_Block_Asset_Url extends WP_UnitTestCase {
 		$url = get_block_asset_url( '' );
 
 		$this->assertFalse( $url );
-
 	}
 
 }
