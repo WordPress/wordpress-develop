@@ -27,7 +27,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	/**
 	 * Instance of a revision meta fields object.
 	 *
-	 * @since 4.7.0
+	 * @since 6.4.0
 	 * @var WP_REST_Post_Meta_Fields
 	 */
 	protected $meta;
