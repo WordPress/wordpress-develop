@@ -383,8 +383,8 @@ class Tests_Term extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_get_raw_data_should_return_correct_values
 	 *
-	 * @param stdClass $actual An instance of stdClass containing the values to initialize the WP_Term object.
-	 * @param array $expected An array containing the expected values for the WP_Term object.
+	 * @param stdClass $actual   An instance of stdClass containing the values to initialize the WP_Term object.
+	 * @param array    $expected An array containing the expected values for the WP_Term object.
 	 */
 	public function test_get_raw_data_should_return_correct_values( stdClass $actual, array $expected ) {
 		$term     = new WP_Term( $actual );
