@@ -82,7 +82,6 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
  * @return string|false The URL to the block asset or false on failure.
  */
 function get_block_asset_url( $path ) {
-
 	if ( empty( $path ) ) {
 		return false;
 	}
