@@ -5693,7 +5693,7 @@ EOF;
 		$this->assertSameSetsWithIndex(
 			array(
 				'decoding'      => 'async',
-				'fetchpriority' => 'high'
+				'fetchpriority' => 'high',
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'After the filter it will not return the fetchpriority attribute.'
