@@ -70,7 +70,6 @@ class Tests_Fonts_WPRESTFontLibraryController_UninstallFonts extends WP_REST_Fon
 		$uninstall_request = new WP_REST_Request( 'DELETE', '/wp/v2/fonts' );
 		$uninstall_request->set_param( 'fontFamilies', $font_families_to_uninstall );
 		$response = rest_get_server()->dispatch( $uninstall_request );
-		echo ( print_r( $response->get_data(), true ) );
 		$this->assertSame( 200, $response->get_status(), 'The response status is not 200.' );
 	}
 
