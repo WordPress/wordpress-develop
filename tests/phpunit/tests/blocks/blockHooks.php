@@ -49,8 +49,9 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 			'tests/injected-one',
 			array(
 				'block_hooks' => array(
-					'tests/hooked-at-before' => 'before',
-					'tests/hooked-at-after'  => 'after',
+					'tests/hooked-at-before'           => 'before',
+					'tests/hooked-at-after'            => 'after',
+					'tests/hooked-at-before-and-after' => 'before',
 				),
 			)
 		);
@@ -58,10 +59,11 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 			'tests/injected-two',
 			array(
 				'block_hooks' => array(
-					'tests/hooked-at-before'      => 'before',
-					'tests/hooked-at-after'       => 'after',
-					'tests/hooked-at-first-child' => 'first_child',
-					'tests/hooked-at-last-child'  => 'last_child',
+					'tests/hooked-at-before'           => 'before',
+					'tests/hooked-at-after'            => 'after',
+					'tests/hooked-at-before-and-after' => 'after',
+					'tests/hooked-at-first-child'      => 'first_child',
+					'tests/hooked-at-last-child'       => 'last_child',
 				),
 			)
 		);
@@ -95,6 +97,21 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 			),
 			get_hooked_blocks( 'tests/hooked-at-last-child' ),
 			'block hooked at the last child position'
+		);
+		$this->assertSame(
+			array(
+				'tests/injected-one' => 'before',
+				'tests/injected-two' => 'after',
+			),
+			get_hooked_blocks( 'tests/hooked-at-before-and-after' ),
+			'block hooked before one block and after another'
+		);
+		$this->assertSame(
+			array(
+				'tests/injected-one' => 'before',
+			),
+			get_hooked_blocks( 'tests/hooked-at-before-and-after', 'before' ),
+			'block hooked before one block and after another, filtered for before'
 		);
 	}
 }
