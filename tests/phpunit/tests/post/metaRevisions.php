@@ -538,7 +538,12 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		delete_post_meta( $post_id, 'meta_revision_test' );
 
 		// Update to save.
-		wp_update_post( array( 'ID' => $post_id, 'post_content' => 'content update 1' ) );
+		wp_update_post(
+			array(
+				'ID' => $post_id,
+				'post_content' => 'content update 1',
+			)
+		);
 
 		// Check that the default meta value is returned.
 		$this->assertEquals( 'default value', get_post_meta( $post_id, 'meta_revision_test', true ) );
