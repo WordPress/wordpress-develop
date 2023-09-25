@@ -226,20 +226,54 @@ final class WP_Term {
 	 * Getter.
 	 *
 	 * @since 4.4.0
+	 * @since 6.4.0 The 'data' property was deprecated.
 	 *
 	 * @param string $key Property to get.
-	 * @return mixed Property value.
+	 * @return stdClass|null Property value.
 	 */
 	public function __get( $key ) {
-		switch ( $key ) {
-			case 'data':
-				$data    = new stdClass();
-				$columns = array( 'term_id', 'name', 'slug', 'term_group', 'term_taxonomy_id', 'taxonomy', 'description', 'parent', 'count' );
-				foreach ( $columns as $column ) {
-					$data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
-				}
+		if ( 'data' === $key ) {
+			_deprecated_argument(
+				'WP_Term::$data',
+				'6.4.0',
+				sprintf(
+				/* translators: %s: The method name to be used instead of the WP_Term::$data property. */
+					__( 'Use %s instead.' ),
+					'<code>WP_Term::get_raw_data()</code>'
+				)
+			);
 
-				return sanitize_term( $data, $data->taxonomy, 'raw' );
+			return $this->get_raw_data();
 		}
+
+		return null;
+	}
+
+	/**
+	 * Returns information about the term as it is stored in the database.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return stdClass
+	 */
+	public function get_raw_data() {
+		$class_properties = array(
+			'term_id',
+			'name',
+			'slug',
+			'term_group',
+			'term_taxonomy_id',
+			'taxonomy',
+			'description',
+			'parent',
+			'count',
+		);
+
+		$data = new stdClass();
+		foreach ( $class_properties as $class_property ) {
+			$data->{$class_property} = isset( $this->{$class_property} ) ? $this->{$class_property} : null;
+		}
+
+		return sanitize_term( $data, $data->taxonomy, 'raw' );
 	}
 }

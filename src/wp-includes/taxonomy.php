@@ -3215,7 +3215,7 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 		return new WP_Error( 'invalid_term', __( 'Empty Term.' ) );
 	}
 
-	$term = (array) $term->data;
+	$term = (array) $term->get_raw_data();
 
 	// Escape data pulled from DB.
 	$term = wp_slash( $term );

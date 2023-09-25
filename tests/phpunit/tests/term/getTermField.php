@@ -71,7 +71,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( 'WP_Term', $term );
 		$this->assertSame( $term->term_id, get_term_field( 'term_id', $term ) );
-		$this->assertSame( $term->term_id, get_term_field( 'term_id', $term->data ) );
+		$this->assertSame( $term->term_id, get_term_field( 'term_id', $term->get_raw_data() ) );
 		$this->assertSame( $term->term_id, get_term_field( 'term_id', $term->term_id ) );
 	}
 
@@ -105,7 +105,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 		$term = self::$term;
 
 		$this->assertSame( $term->term_id, get_term_field( 'term_id', $term ) );
-		$this->assertSame( $term->term_id, get_term_field( 'term_id', $term->data ) );
+		$this->assertSame( $term->term_id, get_term_field( 'term_id', $term->get_raw_data() ) );
 		$this->assertSame( $term->term_id, get_term_field( 'term_id', $term->term_id ) );
 	}
 
@@ -120,7 +120,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $name, get_term_field( 'name', $term ) );
-		$this->assertSame( $name, get_term_field( 'name', $term->data ) );
+		$this->assertSame( $name, get_term_field( 'name', $term->get_raw_data() ) );
 		$this->assertSame( $name, get_term_field( 'name', $term->term_id ) );
 	}
 
@@ -135,7 +135,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $slug, get_term_field( 'slug', $term ) );
-		$this->assertSame( $slug, get_term_field( 'slug', $term->data ) );
+		$this->assertSame( $slug, get_term_field( 'slug', $term->get_raw_data() ) );
 		$this->assertSame( $slug, get_term_field( 'slug', $term->term_id ) );
 	}
 
@@ -150,7 +150,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $name, get_term_field( 'slug', $term ) );
-		$this->assertSame( $name, get_term_field( 'slug', $term->data ) );
+		$this->assertSame( $name, get_term_field( 'slug', $term->get_raw_data() ) );
 		$this->assertSame( $name, get_term_field( 'slug', $term->term_id ) );
 	}
 
@@ -162,7 +162,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $term->slug, get_term_field( 'slug', $term ) );
-		$this->assertSame( $term->slug, get_term_field( 'slug', $term->data ) );
+		$this->assertSame( $term->slug, get_term_field( 'slug', $term->get_raw_data() ) );
 		$this->assertSame( $term->slug, get_term_field( 'slug', $term->term_id ) );
 	}
 
@@ -170,7 +170,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 		$term = self::$term;
 
 		$this->assertSame( self::$taxonomy, get_term_field( 'taxonomy', $term ) );
-		$this->assertSame( self::$taxonomy, get_term_field( 'taxonomy', $term->data ) );
+		$this->assertSame( self::$taxonomy, get_term_field( 'taxonomy', $term->get_raw_data() ) );
 		$this->assertSame( self::$taxonomy, get_term_field( 'taxonomy', $term->term_id ) );
 	}
 
@@ -180,7 +180,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 		$term = self::$term;
 
 		$this->assertSame( $description, get_term_field( 'description', $term ) );
-		$this->assertSame( $description, get_term_field( 'description', $term->data ) );
+		$this->assertSame( $description, get_term_field( 'description', $term->get_raw_data() ) );
 		$this->assertSame( $description, get_term_field( 'description', $term->term_id ) );
 	}
 
@@ -194,7 +194,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $parent->term_id, get_term_field( 'parent', $term ) );
-		$this->assertSame( $parent->term_id, get_term_field( 'parent', $term->data ) );
+		$this->assertSame( $parent->term_id, get_term_field( 'parent', $term->get_raw_data() ) );
 		$this->assertSame( $parent->term_id, get_term_field( 'parent', $term->term_id ) );
 	}
 }
