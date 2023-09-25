@@ -370,15 +370,21 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure the database is getting updated when type changes, but not otherwise.
+	 * Tests that update_option() triggers one additional query and returns true
+	 * for some loosely equal old and new values when the old value is retrieved from the cache.
+	 *
+	 * The additional query is triggered to update the value in the database.
 	 *
 	 * @ticket 22192
 	 *
 	 * @covers ::update_option
 	 *
-	 * @dataProvider data_update_option_type_juggling
+	 * @dataProvider data_update_option_loosely_equal_values_that_should_update
+	 *
+	 * @param mixed $old_value The old value.
+	 * @param mixed $new_value The new value to try to set.
 	 */
-	public function test_update_loosey_options( $old_value, $new_value, $update = false, $additional_query = 1 ) {
+	public function test_update_option_should_update_some_loosely_equal_values_from_cache( $old_value, $new_value ) {
 		add_option( 'foo', $old_value );
 
 		$num_queries = get_num_queries();
@@ -386,25 +392,28 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		// Comparison will happen against value cached during add_option() above.
 		$updated = update_option( 'foo', $new_value );
 
-		if ( $update ) {
-			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
-			$this->assertSame( $additional_query, get_num_queries() - $num_queries, 'There should be one additional database query to update the option.' );
-		} else {
-			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
-			$this->assertSame( $additional_query, get_num_queries() - $num_queries, 'The number of database queries should not change.' );
-		}
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run to update the value.' );
+		$this->assertTrue( $updated, 'update_option() should have returned true.' );
 	}
 
 	/**
-	 * Ensure the database is getting updated when type changes, but not otherwise.
+	 * Tests that update_option() triggers two additional queries and returns true
+	 * for some loosely equal old and new values when the old value is retrieved from the database.
+	 *
+	 * The two additional queries are triggered to:
+	 * 1. retrieve the old value from the database, as the option does not exist in the cache.
+	 * 2. update the value in the database.
 	 *
 	 * @ticket 22192
 	 *
 	 * @covers ::update_option
 	 *
-	 * @dataProvider data_update_option_type_juggling
+	 * @dataProvider data_update_option_loosely_equal_values_that_should_update
+	 *
+	 * @param mixed $old_value The old value.
+	 * @param mixed $new_value The new value to try to set.
 	 */
-	public function test_update_loosey_options_from_db( $old_value, $new_value, $update = false, $additional_query = 1 ) {
+	public function test_update_option_should_update_some_loosely_equal_values_from_db( $old_value, $new_value ) {
 		add_option( 'foo', $old_value );
 
 		$num_queries = get_num_queries();
@@ -413,127 +422,385 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		wp_cache_delete( 'alloptions', 'options' );
 		$updated = update_option( 'foo', $new_value );
 
-		if ( $update ) {
-			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
-			$this->assertSame( $additional_query, get_num_queries() - $num_queries, 'There should be one additional database query to update the option.' );
-		} else {
-			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
-			$this->assertSame( $additional_query, get_num_queries() - $num_queries, 'The number of database queries should not change.' );
-		}
+		$this->assertSame( 2, get_num_queries() - $num_queries, 'One additional query should have run to update the value.' );
+		$this->assertTrue( $updated, 'update_option() should have returned true.' );
 	}
 
 	/**
-	 * Ensure the database is getting updated when type changes, but not otherwise.
+	 * Tests that update_option() triggers one additional query and returns true
+	 * for some loosely equal old and new values when the old value is retrieved from a refreshed cache.
+	 *
+	 * The additional query is triggered to update the value in the database.
 	 *
 	 * @ticket 22192
 	 *
 	 * @covers ::update_option
 	 *
-	 * @dataProvider data_update_option_type_juggling
+	 * @dataProvider data_update_option_loosely_equal_values_that_should_update
+	 *
+	 * @param mixed $old_value The old value.
+	 * @param mixed $new_value The new value to try to set.
 	 */
-	public function test_update_loosey_options_from_refreshed_cache( $old_value, $new_value, $update = false, $additional_query = 1 ) {
+	public function test_update_option_should_update_some_loosely_equal_values_from_refreshed_cache( $old_value, $new_value ) {
 		add_option( 'foo', $old_value );
-
-		$num_queries = get_num_queries();
 
 		// Delete and refresh cache from DB.
 		wp_cache_delete( 'alloptions', 'options' );
 		wp_load_alloptions();
 
+		$num_queries = get_num_queries();
+
 		$updated = update_option( 'foo', $new_value );
 
-		if ( $update ) {
-			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
-			$this->assertSame( $additional_query, get_num_queries() - $num_queries, 'There should be one additional database query to update the option.' );
-		} else {
-			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
-			$this->assertSame( $additional_query, get_num_queries() - $num_queries, 'The number of database queries should not change.' );
-		}
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run to update the value.' );
+		$this->assertTrue( $updated, 'update_option() should have returned true.' );
 	}
-
 
 	/**
 	 * Data provider.
 	 *
 	 * @return array
 	 */
-	public function data_update_option_type_juggling() {
+	public function data_update_option_loosely_equal_values_that_should_update() {
 		return array(
-			/*
-			 * Truthy values.
-			 * Loosely equal truthy scalar values should never result in a DB update.
-			 */
-			array( '1', '1', false, 0 ),
-			array( '1', 1 ),
-			array( '1', 1.0 ),
-			array( '1', true ),
-			array( 1, '1' ),
-			array( 1, 1, false, 0 ),
-			array( 1, 1.0 ),
-			array( 1, true ),
-			array( 1.0, '1' ),
-			array( 1.0, 1 ),
-			array( 1.0, 1.0, false, 0 ),
-			array( 1.0, true ),
-			array( true, '1' ),
-			array( true, 1 ),
-			array( true, 1.0 ),
-			array( true, true, false, 0 ),
+			// Falsey values.
+			'(string) "0" to false'       => array( '0', false ),
+			'empty string to (int) 0'     => array( '', 0 ),
+			'empty string to (float) 0.0' => array( '', 0.0 ),
+			'(int) 0 to empty string'     => array( 0, '' ),
+			'(int) 0 to false'            => array( 0, false ),
+			'(float) 0.0 to empty string' => array( 0.0, '' ),
+			'(float) 0.0 to false'        => array( 0.0, false ),
+			'false to (string) "0"'       => array( false, '0' ),
+			'false to (int) 0'            => array( false, 0 ),
+			'false to (float) 0.0'        => array( false, 0.0 ),
 
-			/*
-			 * Falsey values.
-			 * Loosely equal falsey scalar values only sometimes result in a DB update.
-			 */
-			array( '0', '0', false, 0 ),
-			array( '0', 0 ),
-			array( '0', 0.0 ),
-			array( '0', false, true ), // Should update.
-			array( '', '', false, 0 ),
-			array( '', 0, true ), // Should update.
-			array( '', 0.0, true ), // Should update.
-			array( '', false ),
-			array( 0, '0' ),
-			array( 0, '', true ), // Should update.
-			array( 0, 0, false, 0 ),
-			array( 0, 0.0 ),
-			array( 0, false, true ), // Should update.
-			array( 0.0, '0' ),
-			array( 0.0, '', true ), // Should update.
-			array( 0.0, 0 ),
-			array( 0.0, 0.0, false, 0 ),
-			array( 0.0, false, true ), // Should update.
-			array( false, '0', true ), // Should update.
-			array( false, '', false, 1 ),
-			array( false, 0, true ), // Should update.
-			array( false, 0.0, true ), // Should update.
-			array( false, false, false, 0 ),
+			// Non-scalar values.
+			'false to array()'            => array( false, array() ),
+			'(string) "false" to array()' => array( 'false', array() ),
+			'empty string to array()'     => array( '', array() ),
+			'(int 0) to array()'          => array( 0, array() ),
+			'(string) "0" to array()'     => array( '0', array() ),
+			'(string) "false" to null'    => array( 'false', null ),
+			'(int) 0 to null'             => array( 0, null ),
+			'(string) "0" to null'        => array( '0', null ),
+			'array() to false'            => array( array(), false ),
+			'array() to (string) "false"' => array( array(), 'false' ),
+			'array() to empty string'     => array( array(), '' ),
+			'array() to (int) 0'          => array( array(), 0 ),
+			'array() to (string) "0"'     => array( array(), '0' ),
+			'array() to null'             => array( array(), null ),
+		);
+	}
 
-			/*
-			 * Non scalar values.
-			 * Loosely equal non-scalar values should almost always result in an update.
-			 */
-			array( false, array(), true ),
-			array( 'false', array(), true ),
-			array( '', array(), true ),
-			array( 0, array(), true ),
-			array( '0', array(), true ),
-			array( false, null, false, 1 ), // Does not update.
-			array( 'false', null, true ),
-			array( '', null ), // Does not update.
-			array( 0, null, true ),
-			array( '0', null, true ),
-			array( array(), false, true ),
-			array( array(), 'false', true ),
-			array( array(), '', true ),
-			array( array(), 0, true ),
-			array( array(), '0', true ),
-			array( array(), null, true ),
-			array( null, false, false, 2 ), // Does not update.
-			array( null, 'false', true, 2 ),
-			array( null, '', false, 1 ), // Does not update.
-			array( null, 0, true, 2 ),
-			array( null, '0', true, 2 ),
-			array( null, array(), true, 2 ),
+	/**
+	 * Tests that update_option() triggers no additional queries and returns false
+	 * for strictly equal old and new values when the old value is retrieved from the cache.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 *
+	 * @dataProvider data_update_option_strictly_equal_strings_that_should_not_update
+	 *
+	 * @param mixed $old_value The old value.
+	 * @param mixed $new_value The new value to try to set.
+	 */
+	public function test_update_option_should_not_trigger_an_additional_query_and_returns_false_for_some_strictly_equal_values_from_cache( $old_value, $new_value ) {
+		add_option( 'foo', $old_value );
+
+		$num_queries = get_num_queries();
+
+		// Comparison will happen against value cached during add_option() above.
+		$updated = update_option( 'foo', $new_value );
+
+		$this->assertSame( $num_queries, get_num_queries(), 'No additional queries should have run.' );
+		$this->assertFalse( $updated, 'update_option() should have returned false.' );
+	}
+
+	/**
+	 * Tests that update_option() triggers one additional query and returns false
+	 * for some loosely equal old and new values when the old value is retrieved from the database.
+	 *
+	 * The additional query is triggered to retrieve the old value from the database,
+	 * as the option does not exist in the cache.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 *
+	 * @dataProvider data_update_option_strictly_equal_strings_that_should_not_update
+	 *
+	 * @param mixed $old_value The old value.
+	 * @param mixed $new_value The new value to try to set.
+	 */
+	public function test_update_option_should_not_trigger_an_additional_query_and_returns_false_for_some_strictly_equal_values_from_db( $old_value, $new_value ) {
+		add_option( 'foo', $old_value );
+
+		// Delete cache.
+		wp_cache_delete( 'alloptions', 'options' );
+
+		$num_queries = get_num_queries();
+
+		$updated = update_option( 'foo', $new_value );
+
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run to retrieve the old value from the database.' );
+		$this->assertFalse( $updated, 'update_option() should have returned false.' );
+	}
+
+	/**
+	 * Tests that update_option() triggers no additional queries and returns false
+	 * for some loosely equal old and new values when the cache is refreshed.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 *
+	 * @dataProvider data_update_option_strictly_equal_strings_that_should_not_update
+	 *
+	 * @param mixed $old_value The old value.
+	 * @param mixed $new_value The new value to try to set.
+	 */
+	public function test_update_option_should_not_trigger_an_additional_query_and_returns_false_for_some_strictly_equal_values_from_refreshed_cache( $old_value, $new_value ) {
+		add_option( 'foo', $old_value );
+
+		// Delete and refresh cache from DB.
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_load_alloptions();
+
+		$num_queries = get_num_queries();
+		$updated     = update_option( 'foo', $new_value );
+
+		$this->assertSame( $num_queries, get_num_queries(), 'No additional queries should have run.' );
+		$this->assertFalse( $updated, 'update_option() should have returned false.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_update_option_strictly_equal_strings_that_should_not_update() {
+		return array(
+			// Truthy values.
+			'(string) "1"' => array( '1', '1' ),
+
+			// Falsey values.
+			'(string) "0"' => array( '0', '0' ),
+			'empty string' => array( '', '' ),
+		);
+	}
+
+	/**
+	 * Tests that update_option() triggers no additional queries and returns false
+	 * for strictly equal old and new values when the old value is retrieved from the cache.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 *
+	 * @dataProvider data_update_option_strictly_equal_values_that_should_not_update
+	 *
+	 * @param mixed $old_value The old value.
+	 * @param mixed $new_value The new value to try to set.
+	 */
+	public function test_update_option_should_trigger_no_additional_query_and_return_false_for_some_strictly_equal_values_from_cache( $old_value, $new_value ) {
+		add_option( 'foo', $old_value );
+
+		$num_queries = get_num_queries();
+
+		// Comparison will happen against value cached during add_option() above.
+		$updated = update_option( 'foo', $new_value );
+
+		$this->assertSame( $num_queries, get_num_queries(), 'No additional queries should have run.' );
+		$this->assertFalse( $updated, 'update_option() should have returned false.' );
+	}
+
+	/**
+	 * Tests that update_option() triggers two additional queries and returns false
+	 * for some loosely equal old and new values when the old value is retrieved from the database.
+	 *
+	 * The additional queries are triggered to:
+	 * - retrieve the old value from the database, as the option does not exist in the cache.
+	 * - attempt to update the value
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 *
+	 * @dataProvider data_update_option_strictly_equal_values_that_should_not_update
+	 *
+	 * @param mixed $old_value The old value.
+	 * @param mixed $new_value The new value to try to set.
+	 */
+	public function test_update_option_should_trigger_two_queries_and_return_false_for_some_strictly_equal_values_from_db( $old_value, $new_value ) {
+		global $wpdb;
+
+		add_option( 'foo', $old_value );
+
+		// Delete cache.
+		wp_cache_delete( 'alloptions', 'options' );
+
+		$num_queries = get_num_queries();
+
+		$updated = update_option( 'foo', $new_value );
+
+		$this->assertSame( 2, get_num_queries() - $num_queries, 'Two additional queries should have run to retrieve the old value from the database.' );
+		$this->assertSame( 0, $wpdb->rows_affected, 'No rows should have been affected as the database considered the values to be the same.' );
+		$this->assertFalse( $updated, 'update_option() should have returned false.' );
+	}
+
+	/**
+	 * Tests that update_option() triggers one additional query and returns false
+	 * for some strictly equal old and new values when the cache is refreshed.
+	 *
+	 *
+	 * The additional query is triggered to perform an UPDATE despite the values being strictly equal.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 *
+	 * @dataProvider data_update_option_strictly_equal_values_that_should_not_update
+	 *
+	 * @param mixed $old_value The old value.
+	 * @param mixed $new_value The new value to try to set.
+	 */
+	public function test_update_option_should_trigger_one_additional_query_and_return_false_for_some_strictly_equal_values_from_refreshed_cache( $old_value, $new_value ) {
+		add_option( 'foo', $old_value );
+
+		// Delete and refresh cache from DB.
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_load_alloptions();
+
+		$num_queries = get_num_queries();
+		$updated     = update_option( 'foo', $new_value );
+
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'No additional queries should have run.' );
+		$this->assertFalse( $updated, 'update_option() should have returned false.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_update_option_strictly_equal_values_that_should_not_update() {
+		return array(
+			// Truthy values.
+			'(int) 1'     => array( 1, 1 ),
+			'(float) 1.0' => array( 1.0, 1.0 ),
+			'true'        => array( true, true ),
+
+			// Falsey values.
+			'(int) 0'     => array( 0, 0 ),
+			'(float) 0.0' => array( 0.0, 0.0 ),
+			'false'       => array( false, false ),
+		);
+	}
+
+	/**
+	 * Tests that update_option() triggers one additional query and returns false
+	 * when there are unaffected database rows.
+	 *
+	 * This excludes old values that are null, as they trigger yet another additional query.
+	 *
+	 * The additional query is triggered to perform an UPDATE despite the values being loosely equal.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 *
+	 * @dataProvider data_update_option_loosely_equal_values_that_should_trigger_one_query_and_return_false
+	 *
+	 * @param mixed $old_value The old value.
+	 * @param mixed $new_value The new value to try to set.
+	 */
+	public function test_update_option_should_trigger_one_query_and_return_false_for_some_loosely_equal_values( $old_value, $new_value ) {
+		global $wpdb;
+
+		add_option( 'foo', $old_value );
+
+		$num_queries = get_num_queries();
+
+		// Comparison will happen against value cached during add_option() above.
+		$updated = update_option( 'foo', $new_value );
+
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run to update the value.' );
+		$this->assertSame( 0, $wpdb->rows_affected, 'No rows should have been affected as the database considered the values to be the same.' );
+		$this->assertFalse( $updated, 'update_option() should have returned false.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_update_option_loosely_equal_values_that_should_trigger_one_query_and_return_false() {
+		return array(
+			// Truthy values.
+			'(string) "1" to (int) 1'     => array( '1', 1 ),
+			'(string) "1" to (float) 1.0' => array( '1', 1.0 ),
+			'(string) "1" to true'        => array( '1', true ),
+			'(int) 1 to (string) "1"'     => array( 1, '1' ),
+			'1 to (float) 1.0'            => array( 1, 1.0 ),
+			'(int) 1 to true'             => array( 1, true ),
+			'(float) 1.0 to (string) "1"' => array( 1.0, '1' ),
+			'(float) 1.0 to (int) 1'      => array( 1.0, 1 ),
+			'1.0 to true'                 => array( 1.0, true ),
+			'true to (string) "1"'        => array( true, '1' ),
+			'true to 1'                   => array( true, 1 ),
+			'true to (float) 1.0'         => array( true, 1.0 ),
+
+			// Falsey values.
+			'(string) "0" to (int) 0'     => array( '0', 0 ),
+			'(string) "0" to (float) 0.0' => array( '0', 0.0 ),
+			'(int) 0 to (string) "0"'     => array( 0, '0' ),
+			'(int) 0 to (float) 0.0'      => array( 0, 0.0 ),
+			'(float) 0.0 to (string) "0"' => array( 0.0, '0' ),
+			'(float) 0.0 to (int) 0'      => array( 0.0, 0 ),
+			'false to empty string'       => array( false, '' ),
+			'false to null'               => array( false, null ),
+			'empty string to false'       => array( '', false ),
+			'empty string to null'        => array( '', null ),
+			'null to empty string'        => array( null, '' ),
+			// array( null, false ) behaves differently, triggering 2 queries and is not included in this dataset.
+		);
+	}
+
+	/**
+	 * Tests that update_option() triggers two additional queries and returns false
+	 * when the old value was null and the new value is loosely equal.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 *
+	 * @dataProvider data_update_option_should_trigger_two_queries_and_return_false_for_a_null_old_value_and_some_loosely_equal_new_values
+	 *
+	 * @param mixed $new_value The new value to try to set.
+	 */
+	public function test_update_option_should_trigger_two_queries_and_return_false_for_a_null_old_value_and_some_loosely_equal_new_values( $new_value ) {
+		add_option( 'foo', null );
+
+		$num_queries = get_num_queries();
+
+		// Comparison will happen against value cached during add_option() above.
+		$updated = update_option( 'foo', $new_value );
+
+		$this->assertSame( 2, get_num_queries() - $num_queries, 'Two additional queries should have run.' );
+		$this->assertFalse( $updated, 'update_option() should have returned false.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_update_option_should_trigger_two_queries_and_return_false_for_a_null_old_value_and_some_loosely_equal_new_values() {
+		return array(
+			'null to null'  => array( null ),
+			'null to false' => array( false ),
 		);
 	}
 }
