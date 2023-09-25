@@ -529,9 +529,9 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		$this->assertEquals( '', $stored_data );
 
 		// Also verify that the latest revision has blank stored for the meta.
-		$revisions      = wp_get_post_revisions( $post_id );
-		$last_revision  = array_shift( $revisions );
-		$stored_data    = get_post_meta( $last_revision->ID, 'meta_revision_test', true );
+		$revisions     = wp_get_post_revisions( $post_id );
+		$last_revision = array_shift( $revisions );
+		$stored_data   = get_post_meta( $last_revision->ID, 'meta_revision_test', true );
 		$this->assertEquals( '', $stored_data );
 
 		// Delete the meta.
@@ -540,7 +540,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		// Update to save.
 		wp_update_post(
 			array(
-				'ID' => $post_id,
+				'ID'           => $post_id,
 				'post_content' => 'content update 1',
 			)
 		);
@@ -549,8 +549,8 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		$this->assertEquals( 'default value', get_post_meta( $post_id, 'meta_revision_test', true ) );
 
 		// Also verify that the latest revision has the default value returned for the meta.
-		$revisions      = wp_get_post_revisions( $post_id );
-		$last_revision  = array_shift( $revisions );
+		$revisions     = wp_get_post_revisions( $post_id );
+		$last_revision = array_shift( $revisions );
 
 		// No ,eta data should be stored in the revision.
 		$this->assertEquals( array(), get_post_meta( $last_revision->ID ) );
