@@ -75,7 +75,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			devtoolNamespace: 'wp',
 			filename: `./blocks/[name]${ suffix }.js`,
 			path: normalizeJoin( baseDir, buildTarget ),
-			chunkLoadingGlobal: `__WordPressPrivateInteractivityAPI_${ Math.floor( Math.random() * 1000 ) }__`,
+			chunkLoadingGlobal: `__WordPressPrivateInteractivityAPI__`,
 		},
 		resolve: {
 			alias: {
