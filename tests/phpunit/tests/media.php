@@ -4996,7 +4996,7 @@ EOF;
 		 * Since the hard-coded image appears before the shortcode image, it should receive `fetchpriority="high"`,
 		 * despite the shortcode image being parsed before it.
 		 */
-		$post_content  = '<img decoding="async" src="example.jpg" width="800" height="600">' . "\n";
+		$post_content  = '<img src="example.jpg" width="800" height="600">' . "\n";
 		$post_content .= '[full_image id="' . self::$large_id . '"]';
 		$post_content  = wpautop( $post_content );
 
@@ -5008,19 +5008,24 @@ EOF;
 		 */
 		$expected_content = $post_content;
 		$expected_content = str_replace(
-			'<img decoding="async" src="example.jpg"',
-			'<img decoding="async" fetchpriority="high" src="example.jpg"',
+			'<img src="example.jpg"',
+			'<img fetchpriority="high" decoding="async" src="example.jpg"',
 			$expected_content
 		);
 		$expected_content = str_replace(
 			'[full_image id="' . self::$large_id . '"]',
-			wp_get_attachment_image(
-				self::$large_id,
-				'full',
-				false,
-				array(
-					'fetchpriority' => false,
-					'loading'       => false,
+			str_replace(
+				'<img ',
+				'<img decoding="async" ',
+				wp_get_attachment_image(
+					self::$large_id,
+					'full',
+					false,
+					array(
+						'decoding'      => false,
+						'fetchpriority' => false,
+						'loading'       => false,
+					)
 				)
 			),
 			$expected_content
@@ -5065,6 +5070,17 @@ EOF;
 	 */
 	public function test_wp_filter_content_tags_handles_shortcode_images_also_in_blocks_within_the_content() {
 		global $wp_query, $wp_the_query;
+
+		// Disable addition of `decoding="async"` as it is irrelevant for this test.
+		add_filter(
+			'wp_get_loading_optimization_attributes',
+			static function ( $loading_attrs ) {
+				if ( isset( $loading_attrs['decoding'] ) ) {
+					unset( $loading_attrs['decoding'] );
+				}
+				return $loading_attrs;
+			}
+		);
 
 		// Add shortcode that prints a large image, and a block type that wraps it.
 		add_shortcode(
@@ -5117,10 +5133,10 @@ EOF;
 		 * considered under a different context name than 'the_content'.
 		 */
 		$post_content  = '[gallery ids="' . self::$large_id . '" size="large"]' . "\n";
-		$post_content .= '<img decoding="async" src="example.jpg" width="800" height="600">' . "\n";
+		$post_content .= '<img src="example.jpg" width="800" height="600">' . "\n";
 		$post_content .= '<p>Some text.</p>' . "\n";
 		$post_content .= '<!-- wp:core/full-image-shortcode {"id":' . self::$large_id . '} --><!-- /wp:core/full-image-shortcode -->' . "\n";
-		$post_content .= '<img decoding="async" src="example2.jpg" width="800" height="600">';
+		$post_content .= '<img src="example2.jpg" width="800" height="600">';
 
 		$post_id = self::factory()->post->create(
 			array(
@@ -5168,8 +5184,8 @@ EOF;
 			$expected_content
 		);
 		$expected_content = str_replace(
-			'<img decoding="async" src="example2.jpg"',
-			'<img decoding="async" loading="lazy" src="example2.jpg"',
+			'<img src="example2.jpg"',
+			'<img loading="lazy" src="example2.jpg"',
 			$expected_content
 		);
 
@@ -5563,7 +5579,8 @@ EOF;
 		// Shortcodes processed outside of content blobs like 'the_content' always get `loading="lazy"`.
 		$this->assertSameSetsWithIndex(
 			array(
-				'loading' => 'lazy',
+				'decoding' => 'async',
+				'loading'  => 'lazy',
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'do_shortcode' ),
 			'Lazy-loading not applied to shortcodes outside the loop.'
