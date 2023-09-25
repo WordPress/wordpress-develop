@@ -4135,6 +4135,7 @@ EOF;
 	/**
 	 * @ticket 58089
 	 * @ticket 58235
+	 * @ticket 58892
 	 *
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_get_loading_optimization_attributes
@@ -4150,6 +4151,7 @@ EOF;
 			array(
 				'loading'       => false,
 				'fetchpriority' => false,
+				'decoding'      => false,
 			)
 		);
 
@@ -4188,7 +4190,7 @@ EOF;
 		$this->assertSame( $expected_image, $image_within_content, 'Image with wp_get_attachment_image context within post content should not receive loading optimization attributes' );
 
 		// Ensure that parsed content has the image with fetchpriority as it is the first large image.
-		$expected_content = wpautop( str_replace( '<img ', '<img fetchpriority="high" ', $expected_image ) );
+		$expected_content = wpautop( str_replace( '<img ', '<img fetchpriority="high" decoding="async" ', $expected_image ) );
 		$this->assertSame( $expected_content, $content, 'Post content with programmatically injected image is missing loading optimization attributes' );
 	}
 
@@ -4933,6 +4935,7 @@ EOF;
 			'post-thumbnail',
 			array(
 				'loading'       => false,
+				'decoding'      => 'async',
 				'fetchpriority' => 'high',
 			)
 		);
