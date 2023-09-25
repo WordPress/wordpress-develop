@@ -79,9 +79,14 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
  * @since 6.4.0
  *
  * @param string $path A normalized path to a block asset.
- * @return string The URL to the block asset.
+ * @return string|false The URL to the block asset or false on failure.
  */
 function get_block_asset_url( $path ) {
+
+	if ( empty( $path ) ) {
+		return false;
+	}
+
 	// Path needs to be normalized to work in Windows env.
 	static $wpinc_path_norm = '';
 	if ( ! $wpinc_path_norm ) {
@@ -729,7 +734,7 @@ function get_dynamic_block_names() {
  * @return array Associative array of `$block_type_name => $position` pairs.
  */
 function get_hooked_blocks( $name, $relative_position = '' ) {
-	$block_types = WP_Block_Type_Registry::get_instance()->get_all_registered();
+	$block_types   = WP_Block_Type_Registry::get_instance()->get_all_registered();
 	$hooked_blocks = array();
 	foreach ( $block_types as $block_type ) {
 		if ( ! property_exists( $block_type, 'block_hooks' ) || ! is_array( $block_type->block_hooks ) ) {
@@ -1036,7 +1041,7 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 			$inner_block = $block['innerBlocks'][ $block_index ];
 
 			if ( is_callable( $pre_callback ) ) {
-				$prev = 0 === $block_index
+				$prev           = 0 === $block_index
 					? null
 					: $block['innerBlocks'][ $block_index - 1 ];
 				$block_content .= call_user_func_array(
@@ -1048,7 +1053,7 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 			$block_content .= traverse_and_serialize_block( $inner_block, $pre_callback, $post_callback );
 
 			if ( is_callable( $post_callback ) ) {
-				$next = count( $block['innerBlocks'] ) - 1 === $block_index
+				$next           = count( $block['innerBlocks'] ) - 1 === $block_index
 					? null
 					: $block['innerBlocks'][ $block_index + 1 ];
 				$block_content .= call_user_func_array(
@@ -1117,7 +1122,7 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 		}
 		$result .= traverse_and_serialize_block( $block, $pre_callback, $post_callback );
 		if ( is_callable( $post_callback ) ) {
-			$next = count( $blocks ) - 1 === $index
+			$next    = count( $blocks ) - 1 === $index
 				? null
 				: $blocks[ $index + 1 ];
 			$result .= call_user_func_array(

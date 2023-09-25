@@ -103,4 +103,15 @@ class Tests_Get_Block_Asset_Url extends WP_UnitTestCase {
 		$this->assertSame( plugins_url( 'view.js', $path ), $url, 'The return block asset url should match plugin url.' );
 		$this->assertStringStartsWith( WPMU_PLUGIN_URL, $url, 'The return block asset url should contain the url that support with the mu plugin url.' );
 	}
+
+	/**
+	 * @ticket 58525
+	 */
+	public function test_empty() {
+		$url = get_block_asset_url( '' );
+
+		$this->assertFalse( $url );
+
+	}
+
 }
