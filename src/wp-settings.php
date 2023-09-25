@@ -365,10 +365,10 @@ require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-processor.php';
 require ABSPATH . WPINC . '/fonts/class-wp-font-face-resolver.php';
 require ABSPATH . WPINC . '/fonts/class-wp-font-face.php';
 require ABSPATH . WPINC . '/fonts.php';
-require ABSPATH . WPINC . '/fonts/font-library/class-wp-font-collection.php';
-require ABSPATH . WPINC . '/fonts/font-library/class-wp-font-library.php';
-require ABSPATH . WPINC . '/fonts/font-library/class-wp-font-family-utils.php';
-require ABSPATH . WPINC . '/fonts/font-library/class-wp-font-family.php';
+require ABSPATH . WPINC . '/fonts/class-wp-font-collection.php';
+require ABSPATH . WPINC . '/fonts/class-wp-font-library.php';
+require ABSPATH . WPINC . '/fonts/class-wp-font-family-utils.php';
+require ABSPATH . WPINC . '/fonts/class-wp-font-family.php';
 require ABSPATH . WPINC . '/font-library.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();
