@@ -74,6 +74,54 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 }
 
 /**
+ * Gets the URL to a block asset.
+ *
+ * @since 6.4.0
+ *
+ * @param string $path A normalized path to a block asset.
+ * @return string|false The URL to the block asset or false on failure.
+ */
+function get_block_asset_url( $path ) {
+	if ( empty( $path ) ) {
+		return false;
+	}
+
+	// Path needs to be normalized to work in Windows env.
+	static $wpinc_path_norm = '';
+	if ( ! $wpinc_path_norm ) {
+		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
+	}
+
+	if ( str_starts_with( $path, $wpinc_path_norm ) ) {
+		return includes_url( str_replace( $wpinc_path_norm, '', $path ) );
+	}
+
+	static $template_paths_norm = array();
+
+	$template = get_template();
+	if ( ! isset( $template_paths_norm[ $template ] ) ) {
+		$template_paths_norm[ $template ] = wp_normalize_path( get_template_directory() );
+	}
+
+	if ( str_starts_with( $path, trailingslashit( $template_paths_norm[ $template ] ) ) ) {
+		return get_theme_file_uri( str_replace( $template_paths_norm[ $template ], '', $path ) );
+	}
+
+	if ( is_child_theme() ) {
+		$stylesheet = get_stylesheet();
+		if ( ! isset( $template_paths_norm[ $stylesheet ] ) ) {
+			$template_paths_norm[ $stylesheet ] = wp_normalize_path( get_stylesheet_directory() );
+		}
+
+		if ( str_starts_with( $path, trailingslashit( $template_paths_norm[ $stylesheet ] ) ) ) {
+			return get_theme_file_uri( str_replace( $template_paths_norm[ $stylesheet ], '', $path ) );
+		}
+	}
+
+	return plugins_url( basename( $path ), $path );
+}
+
+/**
  * Finds a script handle for the selected block metadata field. It detects
  * when a path to file was provided and finds a corresponding asset file
  * with details necessary to register the script under automatically
@@ -107,7 +155,8 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		return $script_handle;
 	}
 
-	$script_asset_raw_path = dirname( $metadata['file'] ) . '/' . substr_replace( $script_path, '.asset.php', - strlen( '.js' ) );
+	$path                  = dirname( $metadata['file'] );
+	$script_asset_raw_path = $path . '/' . substr_replace( $script_path, '.asset.php', - strlen( '.js' ) );
 	$script_handle         = generate_block_asset_handle( $metadata['name'], $field_name, $index );
 	$script_asset_path     = wp_normalize_path(
 		realpath( $script_asset_raw_path )
@@ -128,44 +177,8 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		return false;
 	}
 
-	// Path needs to be normalized to work in Windows env.
-	static $wpinc_path_norm = '';
-	if ( ! $wpinc_path_norm ) {
-		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
-	}
-
-	// Cache $template_path_norm and $stylesheet_path_norm to avoid unnecessary additional calls.
-	static $template_path_norm   = '';
-	static $stylesheet_path_norm = '';
-	if ( ! $template_path_norm || ! $stylesheet_path_norm ) {
-		$template_path_norm   = wp_normalize_path( get_template_directory() );
-		$stylesheet_path_norm = wp_normalize_path( get_stylesheet_directory() );
-	}
-
-	$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $script_path ) );
-
-	$is_core_block = isset( $metadata['file'] ) && str_starts_with( $metadata['file'], $wpinc_path_norm );
-
-	/*
-	 * Determine if the block script was registered in a theme, by checking if the script path starts with either
-	 * the parent (template) or child (stylesheet) directory path.
-	 */
-	$is_parent_theme_block = str_starts_with( $script_path_norm, trailingslashit( $template_path_norm ) );
-	$is_child_theme_block  = str_starts_with( $script_path_norm, trailingslashit( $stylesheet_path_norm ) );
-	$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
-
-	$script_uri = '';
-	if ( $is_core_block ) {
-		$script_uri = includes_url( str_replace( $wpinc_path_norm, '', $script_path_norm ) );
-	} elseif ( $is_theme_block ) {
-		// Get the script path deterministically based on whether or not it was registered in a parent or child theme.
-		$script_uri = $is_parent_theme_block
-			? get_theme_file_uri( str_replace( $template_path_norm, '', $script_path_norm ) )
-			: get_theme_file_uri( str_replace( $stylesheet_path_norm, '', $script_path_norm ) );
-	} else {
-		// Fallback to plugins_url().
-		$script_uri = plugins_url( $script_path, $metadata['file'] );
-	}
+	$script_path_norm = wp_normalize_path( realpath( $path . '/' . $script_path ) );
+	$script_uri       = get_block_asset_url( $script_path_norm );
 
 	$script_args = array();
 	if ( 'viewScript' === $field_name ) {
@@ -255,37 +268,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	}
 
 	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
-	$has_style_file  = '' !== $style_path_norm;
-
-	if ( $has_style_file ) {
-		$style_uri = plugins_url( $style_path, $metadata['file'] );
-
-		// Cache $template_path_norm and $stylesheet_path_norm to avoid unnecessary additional calls.
-		static $template_path_norm   = '';
-		static $stylesheet_path_norm = '';
-		if ( ! $template_path_norm || ! $stylesheet_path_norm ) {
-			$template_path_norm   = wp_normalize_path( get_template_directory() );
-			$stylesheet_path_norm = wp_normalize_path( get_stylesheet_directory() );
-		}
-
-		// Determine if the block style was registered in a theme, by checking if the script path starts with either
-		// the parent (template) or child (stylesheet) directory path.
-		$is_parent_theme_block = str_starts_with( $style_path_norm, trailingslashit( $template_path_norm ) );
-		$is_child_theme_block  = str_starts_with( $style_path_norm, trailingslashit( $stylesheet_path_norm ) );
-		$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
-
-		if ( $is_core_block ) {
-			// All possible $style_path variants for core blocks are hard-coded above.
-			$style_uri = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . '/' . $style_path );
-		} elseif ( $is_theme_block ) {
-			// Get the script path deterministically based on whether or not it was registered in a parent or child theme.
-			$style_uri = $is_parent_theme_block
-				? get_theme_file_uri( str_replace( $template_path_norm, '', $style_path_norm ) )
-				: get_theme_file_uri( str_replace( $stylesheet_path_norm, '', $style_path_norm ) );
-		}
-	} else {
-		$style_uri = false;
-	}
+	$style_uri       = get_block_asset_url( $style_path_norm );
 
 	$version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$result  = wp_register_style(
@@ -298,7 +281,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		return false;
 	}
 
-	if ( $has_style_file ) {
+	if ( $style_uri ) {
 		wp_style_add_data( $style_handle_name, 'path', $style_path_norm );
 
 		if ( $is_core_block ) {
@@ -790,20 +773,20 @@ function make_before_block_visitor( $context ) {
 	 * Furthermore, prepend the markup for any blocks hooked `before` the given block and as its parent's
 	 * `first_child`, respectively, to the serialized markup for the given block.
 	 *
-	 * @param array $block  The block to inject the theme attribute into, and hooked blocks before.
-	 * @param array $parent The parent block of the given block.
-	 * @param array $prev   The previous sibling block of the given block.
+	 * @param array $block        The block to inject the theme attribute into, and hooked blocks before.
+	 * @param array $parent_block The parent block of the given block.
+	 * @param array $prev         The previous sibling block of the given block.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks prepended to it.
 	 */
-	return function( &$block, $parent = null, $prev = null ) use ( $context ) {
+	return function ( &$block, $parent_block = null, $prev = null ) use ( $context ) {
 		_inject_theme_attribute_in_template_part_block( $block );
 
 		$markup = '';
 
-		if ( $parent && ! $prev ) {
+		if ( $parent_block && ! $prev ) {
 			// Candidate for first-child insertion.
 			$relative_position  = 'first_child';
-			$anchor_block_type  = $parent['blockName'];
+			$anchor_block_type  = $parent_block['blockName'];
 			$hooked_block_types = array_keys( get_hooked_blocks( $anchor_block_type, $relative_position ) );
 			/**
 			 * Filters the list of hooked block types for a given anchor block type and relative position.
@@ -856,12 +839,12 @@ function make_after_block_visitor( $context ) {
 	 * Append the markup for any blocks hooked `after` the given block and as its parent's
 	 * `last_child`, respectively, to the serialized markup for the given block.
 	 *
-	 * @param array $block  The block to inject the hooked blocks after.
-	 * @param array $parent The parent block of the given block.
-	 * @param array $next   The next sibling block of the given block.
+	 * @param array $block        The block to inject the hooked blocks after.
+	 * @param array $parent_block The parent block of the given block.
+	 * @param array $next         The next sibling block of the given block.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
 	 */
-	return function( &$block, $parent = null, $next = null ) use ( $context ) {
+	return function ( &$block, $parent_block = null, $next = null ) use ( $context ) {
 		$markup = '';
 
 		$relative_position  = 'after';
@@ -873,10 +856,10 @@ function make_after_block_visitor( $context ) {
 			$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
 		}
 
-		if ( $parent && ! $next ) {
+		if ( $parent_block && ! $next ) {
 			// Candidate for last-child insertion.
 			$relative_position  = 'last_child';
-			$anchor_block_type  = $parent['blockName'];
+			$anchor_block_type  = $parent_block['blockName'];
 			$hooked_block_types = array_keys( get_hooked_blocks( $anchor_block_type, $relative_position ) );
 			/** This filter is documented in wp-includes/blocks.php */
 			$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
@@ -1059,6 +1042,7 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 				$prev = 0 === $block_index
 					? null
 					: $block['innerBlocks'][ $block_index - 1 ];
+
 				$block_content .= call_user_func_array(
 					$pre_callback,
 					array( &$inner_block, $block, $prev )
@@ -1071,12 +1055,13 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 				$next = count( $block['innerBlocks'] ) - 1 === $block_index
 					? null
 					: $block['innerBlocks'][ $block_index + 1 ];
+
 				$block_content .= call_user_func_array(
 					$post_callback,
 					array( &$inner_block, $block, $next )
 				);
 			}
-			$block_index++;
+			++$block_index;
 		}
 	}
 
@@ -1130,22 +1115,27 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 			$prev = 0 === $index
 				? null
 				: $blocks[ $index - 1 ];
+
 			$result .= call_user_func_array(
 				$pre_callback,
 				array( &$block, null, $prev ) // At the top level, there is no parent block to pass to the callback.
 			);
 		}
+
 		$result .= traverse_and_serialize_block( $block, $pre_callback, $post_callback );
+
 		if ( is_callable( $post_callback ) ) {
 			$next = count( $blocks ) - 1 === $index
 				? null
 				: $blocks[ $index + 1 ];
+
 			$result .= call_user_func_array(
 				$post_callback,
 				array( &$block, null, $next ) // At the top level, there is no parent block to pass to the callback.
 			);
 		}
 	}
+
 	return $result;
 }
 
