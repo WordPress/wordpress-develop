@@ -746,10 +746,10 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query2->query( $args );
 		$queries_after = get_num_queries();
 
-		$this->assertSame( 1, $queries_after - $queries_before );
-		$this->assertCount( 5, $query1->posts );
-		$this->assertCount( 5, $query2->posts );
-		$this->assertSame( $query1->found_posts, $query2->found_posts );
+		$this->assertSame( 1, $queries_after - $queries_before, 'There should be only one query to prime parents' );
+		$this->assertCount( 5, $query1->posts, 'There should be only 5 posts returned on first query' );
+		$this->assertCount( 5, $query2->posts, 'There should be only 5 posts returned on second query' );
+		$this->assertSame( $query1->found_posts, $query2->found_posts, 'Found posts should match on second query' );
 	}
 
 	/**
@@ -785,10 +785,10 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query2->query( $args );
 		$queries_after = get_num_queries();
 
-		$this->assertSame( self::$pages[0], $query1->posts[0]->post_parent );
-		$this->assertSame( self::$pages[1], $query2->posts[0]->post_parent );
-		$this->assertSame( 2, $queries_after - $queries_before );
-		$this->assertSame( $query1->found_posts, $query2->found_posts );
+		$this->assertSame( self::$pages[0], $query1->posts[0]->post_parent, 'Check post parent on first query' );
+		$this->assertSame( self::$pages[1], $query2->posts[0]->post_parent, 'Check post parent on second query' );
+		$this->assertSame( 2, $queries_after - $queries_before, 'There should be 2 queries, one for id=>parent' );
+		$this->assertSame( $query1->found_posts, $query2->found_posts, 'Found posts should match on second query' );
 	}
 
 	/**
@@ -824,10 +824,10 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query2->query( $args );
 		$queries_after = get_num_queries();
 
-		$this->assertSame( $parent_page_id, $query1->posts[0]->post_parent );
-		$this->assertSame( 0, $query2->posts[0]->post_parent );
-		$this->assertSame( 2, $queries_after - $queries_before );
-		$this->assertSame( $query1->found_posts, $query2->found_posts );
+		$this->assertSame( $parent_page_id, $query1->posts[0]->post_parent, 'Check post parent on first query' );
+		$this->assertSame( 0, $query2->posts[0]->post_parent, 'Check post parent on second query' );
+		$this->assertSame( 2, $queries_after - $queries_before, 'There should be 2 queries, one for id=>parent' );
+		$this->assertSame( $query1->found_posts, $query2->found_posts, 'Found posts should match on second query' );
 	}
 
 	/**
