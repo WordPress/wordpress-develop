@@ -1086,4 +1086,36 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 			array( 'user', 'user' ),
 		);
 	}
+
+	/**
+	 * Test that attempting to register meta with revisions_enabled set to true on a
+	 * post type that does not have revisions enabled fails and throws a `doing_it_wrong` notice.
+	 *
+	 * @ticket 20564
+	 */
+	public function test_register_meta_with_revisions_enabled_on_post_type_without_revisions() {
+		$this->setExpectedIncorrectUsage( 'register_meta' );
+
+		// Set up a custom post type with revisions disabled.
+		register_post_type(
+			'test_post_type',
+			array(
+				'supports'   => array( 'title', 'editor' ),
+			)
+		);
+
+		$meta_key  = 'registered_key1';
+		$args      = array(
+			'revisions_enabled' => true,
+		);
+
+		$register = register_meta(
+			'test_post_type',
+			$meta_key,
+			$args
+		);
+
+		$this->assertFalse( $register );
+	}
+
 }
