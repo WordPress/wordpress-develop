@@ -726,6 +726,9 @@ add_action( '_wp_put_post_revision', 'wp_save_revisioned_meta_fields', 10, 2 );
 // Include revisioned meta when creating or updating an autosave revision.
 add_action( 'wp_creating_autosave', 'wp_autosave_post_revisioned_meta_fields' );
 
+// When restoring revisions, also restore revisioned meta.
+add_action( 'wp_restore_post_revision', 'wp_restore_post_revision_meta', 10, 2 );
+
 // Font management.
 add_action( 'wp_head', 'wp_print_font_faces', 50 );
 
