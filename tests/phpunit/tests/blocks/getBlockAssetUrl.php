@@ -49,8 +49,8 @@ class Tests_Get_Block_Asset_Url extends WP_UnitTestCase {
 		$path = ABSPATH . WPINC . '/blocks/file/view.min.js';
 		$url  = get_block_asset_url( $path );
 
-		$this->assertStringNotContainsString( ABSPATH . WPINC, $url );
-		$this->assertSame( includes_url( '/blocks/file/view.min.js' ), $url );
+		$this->assertStringNotContainsString( ABSPATH . WPINC, 'The return block asset url should not contain include path.' );
+		$this->assertSame( includes_url( '/blocks/file/view.min.js' ), $url, 'The return block asset url should match includes url.' );
 	}
 
 	/**
@@ -86,9 +86,9 @@ class Tests_Get_Block_Asset_Url extends WP_UnitTestCase {
 		$path = WP_PLUGIN_DIR . '/test-plugin/blocks/example-block/view.js';
 		$url  = get_block_asset_url( $path );
 
-		$this->assertStringNotContainsString( WP_PLUGIN_DIR, $url );
-		$this->assertSame( plugins_url( 'view.js', $path ), $url );
-		$this->assertStringStartsWith( WP_PLUGIN_URL, $url );
+		$this->assertStringNotContainsString( WP_PLUGIN_DIR, $url, 'The return block asset url should not contain plugin path.' );
+		$this->assertSame( plugins_url( 'view.js', $path ), $url, 'The return block asset url should match plugin url.' );
+		$this->assertStringStartsWith( WP_PLUGIN_URL, $url, 'The return block asset url should contain the url that support with the mu plugin url.' );
 
 	}
 
@@ -99,8 +99,8 @@ class Tests_Get_Block_Asset_Url extends WP_UnitTestCase {
 		$path = WPMU_PLUGIN_DIR . '/test-plugin/example-block/view.js';
 		$url  = get_block_asset_url( $path );
 
-		$this->assertStringNotContainsString( WPMU_PLUGIN_DIR, $url );
-		$this->assertSame( plugins_url( 'view.js', $path ), $url );
-		$this->assertStringStartsWith( WPMU_PLUGIN_URL, $url );
+		$this->assertStringNotContainsString( WPMU_PLUGIN_DIR, $url, 'The return block asset url should not contain plugin path.' );
+		$this->assertSame( plugins_url( 'view.js', $path ), $url, 'The return block asset url should match plugin url.' );
+		$this->assertStringStartsWith( WPMU_PLUGIN_URL, $url, 'The return block asset url should contain the url that support with the mu plugin url.' );
 	}
 }
