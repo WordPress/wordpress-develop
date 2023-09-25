@@ -70,7 +70,8 @@ function render_block_core_categories( $attributes ) {
 function build_dropdown_script_block_core_categories( $dropdown_id ) {
 	ob_start();
 	?>
-	<script>
+	<script type='text/javascript'>
+	/* <![CDATA[ */
 	( function() {
 		var dropdown = document.getElementById( '<?php echo esc_js( $dropdown_id ); ?>' );
 		function onCatChange() {
@@ -80,9 +81,10 @@ function build_dropdown_script_block_core_categories( $dropdown_id ) {
 		}
 		dropdown.onchange = onCatChange;
 	})();
+	/* ]]> */
 	</script>
 	<?php
-	return wp_get_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
+	return ob_get_clean();
 }
 
 /**
