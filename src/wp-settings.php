@@ -301,6 +301,7 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-widgets-controller.
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-templates-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-url-details-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-navigation-fallback-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-library-controller.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-comment-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-post-meta-fields.php';
@@ -368,7 +369,6 @@ require ABSPATH . WPINC . '/fonts/font-library/class-wp-font-collection.php';
 require ABSPATH . WPINC . '/fonts/font-library/class-wp-font-library.php';
 require ABSPATH . WPINC . '/fonts/font-library/class-wp-font-family-utils.php';
 require ABSPATH . WPINC . '/fonts/font-library/class-wp-font-family.php';
-require ABSPATH . WPINC . '/fonts/font-library/class-wp-rest-font-library-controller.php';
 require ABSPATH . WPINC . '/font-library.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();
