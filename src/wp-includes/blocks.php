@@ -269,8 +269,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	}
 
 	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
-	$has_style_file  = '' !== $style_path_norm;
-	$style_uri       = $has_style_file ? get_block_asset_url( $style_path_norm ) : false;
+	$style_uri       = get_block_asset_url( $style_path_norm );
 
 	$version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$result  = wp_register_style(
@@ -283,7 +282,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		return false;
 	}
 
-	if ( $has_style_file ) {
+	if ( $style_uri ) {
 		wp_style_add_data( $style_handle_name, 'path', $style_path_norm );
 
 		if ( $is_core_block ) {
