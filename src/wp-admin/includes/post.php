@@ -1972,12 +1972,15 @@ function wp_create_post_autosave( $post_data ) {
 	// Otherwise create the new autosave as a special post revision.
 	$revision = _wp_put_post_revision( $post_data, true );
 
-	/**
-	 * Fires before an autosave is stored.
-	 *
-	 * This filter is documented in `src/wp-admin/includes/post.php`.
-	 */
-	do_action( 'wp_creating_autosave', get_post( $revision, ARRAY_A ), false );
+	if ( ! is_wp_error( $revision ) ) {
+
+		/**
+		 * Fires before an autosave is stored.
+		 *
+		 * This filter is documented in `src/wp-admin/includes/post.php`.
+		 */
+		do_action( 'wp_creating_autosave', get_post( $revision, ARRAY_A ), false );
+	}
 
 	return $revision;
 }

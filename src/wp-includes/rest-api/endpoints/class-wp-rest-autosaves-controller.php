@@ -413,7 +413,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		}
 
 		// Attached any passed meta values that have revisions enabled.
-		if ( ! empty( $meta ) && $revision_id ) {
+		if ( ! empty( $meta ) && $revision_id && ! is_wp_error( $revision_id ) ) {
 			foreach ( $revisioned_meta_keys as $meta_key ) {
 				if ( isset( $meta[ $meta_key ] ) ) {
 					update_metadata( 'post', $revision_id, $meta_key, $meta[ $meta_key ] );
