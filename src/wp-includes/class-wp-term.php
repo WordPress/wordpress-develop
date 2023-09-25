@@ -237,7 +237,7 @@ final class WP_Term {
 				'WP_Term::$data',
 				'6.4.0',
 				sprintf(
-				/* translators: %s: The method name to be used instead of the WP_Term::$data property. */
+					/* translators: %s: The method name to be used instead of the WP_Term::$data property. */
 					__( 'Use %s instead.' ),
 					'<code>WP_Term::get_raw_data()</code>'
 				)
