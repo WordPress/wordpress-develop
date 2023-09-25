@@ -3748,7 +3748,7 @@ EOF;
 			}
 
 			// For following elements, lazy-load them again.
-			$this->assertSame(
+			$this->assertSameSetsWithIndex(
 				array(
 					'decoding' => 'async',
 					'loading'  => 'lazy',
