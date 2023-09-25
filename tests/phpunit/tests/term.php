@@ -381,10 +381,10 @@ class Tests_Term extends WP_UnitTestCase {
 	 * @ticket 58087
 	 * @coversNothing
 	 *
+	 * @dataProvider data_get_raw_data_should_return_correct_values
+	 *
 	 * @param stdClass $actual An instance of stdClass containing the values to initialize the WP_Term object.
 	 * @param array $expected An array containing the expected values for the WP_Term object.
-	 *
-	 * @dataProvider data_get_raw_data_should_return_correct_values
 	 */
 	public function test_get_raw_data_should_return_correct_values( stdClass $actual, array $expected ) {
 		$term     = new WP_Term( $actual );
