@@ -22,7 +22,7 @@
  *                                     successfully, else WP_Error.
  */
 function wp_register_font_collection( $config ) {
-    return WP_Font_Library::register_font_collection( $config );
+	return WP_Font_Library::register_font_collection( $config );
 }
 
 /**
@@ -30,14 +30,14 @@ function wp_register_font_collection( $config ) {
  *
  * @since 6.4.0
  */
-function wp_register_default_font_collection () {
-    wp_register_font_collection(
-        array(
-            'id'          => 'default-font-collection',
-            'name'        => 'Google Fonts',
-            'description' => __( 'Add from Google Fonts. Fonts are copied to and served from your site.', 'gutenberg' ),
-            /* TODO: This URL needs to change from the raw file to wporg CDN URL. */
-            'src'         => 'https://raw.githubusercontent.com/WordPress/google-fonts-to-wordpress-collection/main/output/google-fonts-with-previews.json',
-        )
-    );
+function wp_register_default_font_collection() {
+	wp_register_font_collection(
+		array(
+			'id'          => 'default-font-collection',
+			'name'        => 'Google Fonts',
+			'description' => __( 'Add from Google Fonts. Fonts are copied to and served from your site.', 'gutenberg' ),
+			/* TODO: This URL needs to change from the raw file to wporg CDN URL. */
+			'src'         => 'https://raw.githubusercontent.com/WordPress/google-fonts-to-wordpress-collection/main/output/google-fonts-with-previews.json',
+		)
+	);
 }
