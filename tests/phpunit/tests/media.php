@@ -4820,7 +4820,8 @@ EOF;
 			'Expected decoding attribute to be empty for img on arbitrary context, while running the_content.'
 		);
 
-		$this->assertEmpty(
+		$this->assertSameSetsWithIndex(
+			array(),
 			wp_get_loading_optimization_attributes( 'iframe', array(), 'the_content' ),
 			'Expected decoding attribute to be empty for iframe.'
 		);
