@@ -41,7 +41,7 @@
 
 <!-- wp:column {"verticalAlignment":"center","width":"50%"} -->
 <div class="wp-block-column is-vertically-aligned-center" style="flex-basis:50%"><!-- wp:image {"aspectRatio":"4/3","scale":"cover","sizeSlug":"full","linkDestination":"none","style":{"color":{"duotone":"var:preset|duotone|duotone-1"}},"className":"is-style-rounded"} -->
-<figure class="wp-block-image size-full is-style-rounded"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/left-aligned-cta.webp" alt="<?php echo esc_attr__( 'An abstract Pattern Image', 'twentytwentyfour' ); ?>" style="aspect-ratio:4/3;object-fit:cover"/></figure>
+<figure class="wp-block-image size-full is-style-rounded"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/left-aligned-cta.webp" alt="<?php esc_attr_e( 'An abstract Pattern Image', 'twentytwentyfour' ); ?>" style="aspect-ratio:4/3;object-fit:cover"/></figure>
 <!-- /wp:image --></div>
 <!-- /wp:column --></div>
 <!-- /wp:columns --></div>

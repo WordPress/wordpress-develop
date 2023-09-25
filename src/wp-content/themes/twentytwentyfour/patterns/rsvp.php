@@ -33,7 +33,7 @@
 
 <!-- wp:column {"verticalAlignment":"top","width":"50%"} -->
 <div class="wp-block-column is-vertically-aligned-top" style="flex-basis:50%"><!-- wp:image {"aspectRatio":"3/4","scale":"cover","sizeSlug":"large","linkDestination":"none","className":"is-style-rounded"} -->
-<figure class="wp-block-image size-large is-style-rounded"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/rsvp.webp" alt="<?php echo esc_attr__( 'An abstract pattern image', 'twentytwentyfour' ); ?>" style="aspect-ratio:3/4;object-fit:cover"/></figure>
+<figure class="wp-block-image size-large is-style-rounded"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/rsvp.webp" alt="<?php esc_attr_e( 'An abstract pattern image', 'twentytwentyfour' ); ?>" style="aspect-ratio:3/4;object-fit:cover"/></figure>
 <!-- /wp:image --></div>
 <!-- /wp:column --></div>
 <!-- /wp:columns --></div>
