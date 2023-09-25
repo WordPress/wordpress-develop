@@ -5888,7 +5888,6 @@ function _wp_theme_json_webfonts_handler() {
  *
  * @param string $image   The HTML `img` tag where the attribute should be added.
  * @param string $context Additional context to pass to the filters.
- *
  * @return string Converted `img` tag with `decoding` attribute added.
  */
 function wp_img_tag_add_decoding_attr( $image, $context ) {
