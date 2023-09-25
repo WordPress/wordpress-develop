@@ -230,17 +230,6 @@ if ( 'grid' === $mode ) {
 			);
 		}
 
-		if ( ! empty( $message ) ) {
-			wp_admin_notice(
-				$message,
-				array(
-					'id'                 => 'message',
-					'additional_classes' => array( 'updated' ),
-					'dismissible'        => true,
-				)
-			);
-		}
-
 		$js_required_message = sprintf(
 			/* translators: %s: List view URL. */
 			__( 'The grid view for the Media Library requires JavaScript. <a href="%s">Switch to the list view</a>.' ),
@@ -249,7 +238,7 @@ if ( 'grid' === $mode ) {
 		wp_admin_notice(
 			$js_required_message,
 			array(
-				additional_classes( 'error', 'hide-if-js' ),
+				'additional_classes' => array( 'error', 'hide-if-js' ),
 			)
 		);
 		?>
