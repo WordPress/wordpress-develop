@@ -9,10 +9,6 @@
  * @since      6.4.0
  */
 
-if ( class_exists( 'WP_Font_Collection' ) ) {
-	return;
-}
-
 /**
  * Font Collection class.
  *

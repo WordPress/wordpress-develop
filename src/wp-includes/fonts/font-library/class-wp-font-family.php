@@ -9,10 +9,6 @@
  * @since      6.4.0
  */
 
-if ( class_exists( 'WP_Font_Family' ) ) {
-	return;
-}
-
 /**
  * Font Library class.
  *

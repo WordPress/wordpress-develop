@@ -9,10 +9,6 @@
  * @since      6.4.0
  */
 
-if ( class_exists( 'WP_REST_Font_Library_Controller' ) ) {
-	return;
-}
-
 /**
  * Font Library Controller class.
  *
