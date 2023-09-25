@@ -741,7 +741,7 @@ function get_hooked_blocks( $name ) {
 			if ( $anchor_block_type !== $name ) {
 				continue;
 			}
-			if ( ! array_key_exists( $relative_position, $hooked_blocks ) ) {
+			if ( ! isset( $hooked_blocks[ $relative_position ] ) ) {
 				$hooked_blocks[ $relative_position ] = array();
 			}
 			$hooked_blocks[ $relative_position ][] = $block_type->name;
@@ -788,7 +788,7 @@ function make_before_block_visitor( $context ) {
 			$anchor_block_type  = $parent_block['blockName'];
 			$hooked_block_types = get_hooked_blocks( $anchor_block_type );
 
-			if ( array_key_exists( $relative_position, $hooked_block_types ) ) {
+			if ( isset( $hooked_block_types[ $relative_position ] ) ) {
 				$hooked_block_types = $hooked_block_types[ $relative_position ];
 			} else {
 				$hooked_block_types = array();
@@ -815,7 +815,7 @@ function make_before_block_visitor( $context ) {
 		$anchor_block_type  = $block['blockName'];
 		$hooked_block_types = get_hooked_blocks( $anchor_block_type );
 
-		if ( array_key_exists( $relative_position, $hooked_block_types ) ) {
+		if ( isset( $hooked_block_types[ $relative_position ] ) ) {
 			$hooked_block_types = $hooked_block_types[ $relative_position ];
 		} else {
 			$hooked_block_types = array();
@@ -864,7 +864,7 @@ function make_after_block_visitor( $context ) {
 		$anchor_block_type  = $block['blockName'];
 		$hooked_block_types = get_hooked_blocks( $anchor_block_type );
 
-		if ( array_key_exists( $relative_position, $hooked_block_types ) ) {
+		if ( isset( $hooked_block_types[ $relative_position ] ) ) {
 			$hooked_block_types = $hooked_block_types[ $relative_position ];
 		} else {
 			$hooked_block_types = array();
@@ -882,7 +882,7 @@ function make_after_block_visitor( $context ) {
 			$anchor_block_type  = $parent_block['blockName'];
 			$hooked_block_types = get_hooked_blocks( $anchor_block_type );
 
-			if ( array_key_exists( $relative_position, $hooked_block_types ) ) {
+			if ( isset( $hooked_block_types[ $relative_position ] ) ) {
 				$hooked_block_types = $hooked_block_types[ $relative_position ];
 			} else {
 				$hooked_block_types = array();
