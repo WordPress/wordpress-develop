@@ -543,7 +543,6 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$settings = get_block_editor_settings( array(), $post_editor_context );
 
 		$this->assertArrayNotHasKey( 'postContentAttributes', $settings );
-
 	}
 
 	/**
