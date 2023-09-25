@@ -2642,10 +2642,8 @@ class WP_Query {
 				$queried_post_types = get_post_types( array( 'exclude_from_search' => false ) );
 			} elseif ( is_array( $post_type ) ) {
 				$queried_post_types = $post_type;
-			} elseif ( ! empty( $post_type ) ) {
-				$queried_post_types = array( $post_type );
 			} else {
-				$queried_post_types = array( 'post' );
+				$queried_post_types = array( $post_type );
 			}
 
 			if ( ! empty( $queried_post_types ) ) {
