@@ -413,7 +413,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			$revision_id = _wp_put_post_revision( $post_data, true );
 		}
 
-		if( is_wp_error( $revision_id ) || 0 === $revision_id ) {
+		if ( is_wp_error( $revision_id ) || 0 === $revision_id ) {
 			return $revision_id;
 		}
 
