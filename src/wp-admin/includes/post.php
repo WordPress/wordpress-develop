@@ -1984,7 +1984,7 @@ function wp_create_post_autosave( $post_data ) {
 /**
  * Autosave the revisioned meta fields.
  *
- * Iterates thru the revisioned meta fields and checks each to see if they are set,
+ * Iterates through the revisioned meta fields and checks each to see if they are set,
  * and have a changed value. If so, the meta value is saved and attached to the autosave.
  *
  * @since 6.4.0
