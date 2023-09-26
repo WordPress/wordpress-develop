@@ -888,5 +888,4 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			wp_list_pluck( $response->get_data(), 'id' )
 		);
 	}
-
 }

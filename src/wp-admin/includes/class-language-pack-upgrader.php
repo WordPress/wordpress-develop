@@ -153,7 +153,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param object[] $language_updates Optional. Array of language packs to update. @see wp_get_translation_updates().
+	 * @param object[] $language_updates Optional. Array of language packs to update. See {@see wp_get_translation_updates()}.
 	 *                                   Default empty array.
 	 * @param array    $args {
 	 *     Other arguments for upgrading multiple language packs. Default empty array.
@@ -238,7 +238,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 				$destination .= '/themes';
 			}
 
-			$this->update_current++;
+			++$this->update_current;
 
 			$options = array(
 				'package'                     => $language_update->package,

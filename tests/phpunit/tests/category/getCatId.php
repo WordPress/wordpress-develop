@@ -24,6 +24,5 @@ class Tests_Category_GetCatId extends WP_UnitTestCase {
 		$this->assertSame( $testcat->term_id, get_cat_ID( $testcat->name ) );
 		$this->assertSame( 0, get_cat_ID( 'NO CAT' ) );
 		$this->assertSame( 0, get_cat_ID( 12 ) );
-
 	}
 }

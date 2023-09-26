@@ -464,6 +464,8 @@ final class WP_Customize_Manager {
 				),
 				'error'         => $ajax_message,
 			);
+			$message .= ob_get_clean();
+			ob_start();
 			?>
 			<script>
 			( function( api, settings ) {
@@ -472,7 +474,7 @@ final class WP_Customize_Manager {
 			} )( wp.customize, <?php echo wp_json_encode( $settings ); ?> );
 			</script>
 			<?php
-			$message .= ob_get_clean();
+			$message .= wp_get_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
 		}
 
 		wp_die( $message );
@@ -1077,7 +1079,7 @@ final class WP_Customize_Manager {
 				continue;
 			}
 			if ( update_post_meta( $autosave_autodraft_post->ID, '_customize_restore_dismissed', true ) ) {
-				$dismissed++;
+				++$dismissed;
 			}
 		}
 		return $dismissed;
@@ -1479,7 +1481,7 @@ final class WP_Customize_Manager {
 
 			if ( ! $nav_menu_term_id ) {
 				while ( isset( $changeset_data[ sprintf( 'nav_menu[%d]', $placeholder_id ) ] ) ) {
-					$placeholder_id--;
+					--$placeholder_id;
 				}
 				$nav_menu_term_id    = $placeholder_id;
 				$nav_menu_setting_id = sprintf( 'nav_menu[%d]', $placeholder_id );
@@ -1909,6 +1911,7 @@ final class WP_Customize_Manager {
 		if ( ! headers_sent() ) {
 			nocache_headers();
 			header( 'X-Robots: noindex, nofollow, noarchive' );
+			header( 'X-Robots-Tag: noindex, nofollow, noarchive' );
 		}
 		add_filter( 'wp_robots', 'wp_robots_no_robots' );
 		add_filter( 'wp_headers', array( $this, 'filter_iframe_security_headers' ) );
@@ -2082,6 +2085,7 @@ final class WP_Customize_Manager {
 		if ( ! $this->messenger_channel ) {
 			return;
 		}
+		ob_start();
 		?>
 		<script>
 		( function() {
@@ -2105,6 +2109,7 @@ final class WP_Customize_Manager {
 		} )();
 		</script>
 		<?php
+		wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
 	}
 
 	/**
@@ -2200,8 +2205,9 @@ final class WP_Customize_Manager {
 			}
 		}
 
+		ob_start();
 		?>
-		<script type="text/javascript">
+		<script>
 			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
 			_wpCustomizeSettings.values = {};
 			(function( v ) {
@@ -2224,6 +2230,7 @@ final class WP_Customize_Manager {
 			})( _wpCustomizeSettings.values );
 		</script>
 		<?php
+		wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
 	}
 
 	/**
@@ -4975,8 +4982,9 @@ final class WP_Customize_Manager {
 			}
 		}
 
+		ob_start();
 		?>
-		<script type="text/javascript">
+		<script>
 			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
 			_wpCustomizeSettings.initialClientTimestamp = _.now();
 			_wpCustomizeSettings.controls = {};
@@ -5011,6 +5019,7 @@ final class WP_Customize_Manager {
 			?>
 		</script>
 		<?php
+		wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
 	}
 
 	/**

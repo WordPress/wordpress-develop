@@ -39,6 +39,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'A',
 			'B',
 			'BIG',
+			'BUTTON',
 			'CODE',
 			'DIV',
 			'EM',
@@ -49,6 +50,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'IMG',
 			'P',
 			'SMALL',
+			'SPAN',
 			'STRIKE',
 			'STRONG',
 			'TT',
@@ -110,7 +112,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'BLINK', // Deprecated
 			'BODY',
 			'BR',
-			'BUTTON',
 			'CANVAS',
 			'CAPTION',
 			'CENTER', // Neutralized
@@ -191,7 +192,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'SLOT',
 			'SOURCE',
 			'SPACER', // Deprecated
-			'SPAN',
 			'STYLE',
 			'SUB',
 			'SUMMARY',

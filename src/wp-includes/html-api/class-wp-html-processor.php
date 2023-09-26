@@ -16,7 +16,7 @@
  * unsupported markup, it aborts early to avoid unintentionally breaking
  * the document. The HTML Processor should never break an HTML document.
  *
- * While the {@see WP_HTML_Tag_Processor} is a valuable tool for modifying
+ * While the `WP_HTML_Tag_Processor` is a valuable tool for modifying
  * attributes on individual HTML tags, the HTML Processor is more capable
  * and useful for the following operations:
  *
@@ -27,6 +27,7 @@
  *  - Unwrapping a tag by removing its parent.
  *  - Inserting and removing nodes.
  *  - Reading and changing inner content.
+ *  - Navigating up or around HTML structure.
  *
  * ## Usage
  *
@@ -47,7 +48,7 @@
  *
  * Breadcrumbs represent the stack of open elements from the root
  * of the document or fragment down to the currently-matched node,
- * if one is currently selected. Call {@see WP_HTML_Processor::get_breadcrumbs}
+ * if one is currently selected. Call WP_HTML_Processor::get_breadcrumbs()
  * to inspect the breadcrumbs for a matched tag.
  *
  * Breadcrumbs can specify nested HTML structure and are equivalent
@@ -66,7 +67,7 @@
  * `array( 'IMG' )` matches all IMG elements and `array( 'P', 'IMG' )`
  * matches all IMG elements directly inside a P element. To ensure that no
  * partial matches erroneously match it's possible to specify in a query
- * the full breadcrumb match.
+ * the full breadcrumb match all the way down from the root HTML element.
  *
  * Example:
  *
@@ -76,7 +77,7 @@
  *
  *     $html = '<figure><img><figcaption>A <em>lovely</em> day outside</figcaption></figure>';
  *     //                                  ---- Matches here.
- *     $processor->next_tag( array( 'breadcrumbs' => array( 'FIGURE', 'IMG', 'FIGCAPTION', 'EM' ) ) );
+ *     $processor->next_tag( array( 'breadcrumbs' => array( 'FIGURE', 'FIGCAPTION', 'EM' ) ) );
  *
  *     $html = '<div><img></div><img>';
  *     //                       ----- Matches here, because IMG must be a direct child of the implicit BODY.
@@ -100,7 +101,8 @@
  *
  *  - Links: A.
  *  - The formatting elements: B, BIG, CODE, EM, FONT, I, SMALL, STRIKE, STRONG, TT, U.
- *  - Containers: DIV, FIGCAPTION, FIGURE.
+ *  - Containers: DIV, FIGCAPTION, FIGURE, SPAN.
+ *  - Form elements: BUTTON.
  *  - Paragraph: P.
  *  - Void elements: IMG.
  *
@@ -116,16 +118,22 @@
  *  - Markup involving only those tags listed above.
  *  - Fully-balanced and non-overlapping tags.
  *  - HTML with unexpected tag closers.
+ *  - Some unbalanced or overlapping tags.
  *  - P tags after unclosed P tags.
+ *  - BUTTON tags after unclosed BUTTON tags.
  *  - A tags after unclosed A tags that don't involve any active formatting elements.
  *
  * @since 6.4.0
  *
+ * @see WP_HTML_Tag_Processor
  * @see https://html.spec.whatwg.org/
  */
 class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
-	 * HTML processing requires more bookmarks than basic tag processing.
+	 * The maximum number of bookmarks allowed to exist at any given time.
+	 *
+	 * HTML processing requires more bookmarks than basic tag processing,
+	 * so this class constant from the Tag Processor is overwritten.
 	 *
 	 * @since 6.4.0
 	 *
@@ -135,6 +143,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 	/**
 	 * Static query for instructing the Tag Processor to visit every token.
+	 *
+	 * @access private
 	 *
 	 * @since 6.4.0
 	 *
@@ -157,20 +167,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Used to create unique bookmark names.
 	 *
+	 * This class sets a bookmark for every tag in the HTML document that it encounters.
+	 * The bookmark name is auto-generated and increments, starting with `1`. These are
+	 * internal bookmarks and are automatically released when the referring WP_HTML_Token
+	 * goes out of scope and is garbage-collected.
+	 *
 	 * @since 6.4.0
+	 *
+	 * @see WP_HTML_Processor::$release_internal_bookmark_on_destruct
 	 *
 	 * @var int
 	 */
 	private $bookmark_counter = 0;
-
-	/**
-	 * Refers to the currently-matched tag, if any.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @var WP_HTML_Token|null
-	 */
-	private $current_token = null;
 
 	/**
 	 * Stores an explanation for why something failed, if it did.
@@ -194,7 +202,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @var closure
 	 */
-	private $release_internal_bookmark = null;
+	private $release_internal_bookmark_on_destruct = null;
 
 	/*
 	 * Public Interface Functions
@@ -232,16 +240,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return WP_HTML_Processor|null The created processor if successful, otherwise null.
 	 */
 	public static function createFragment( $html, $context = '<body>', $encoding = 'UTF-8' ) {
-		if ( '<body>' !== $context ) {
+		if ( '<body>' !== $context || 'UTF-8' !== $encoding ) {
 			return null;
 		}
 
-		$p = new self( $html, self::CONSTRUCTOR_UNLOCK_CODE );
+		$p                        = new self( $html, self::CONSTRUCTOR_UNLOCK_CODE );
 		$p->state->context_node   = array( 'BODY', array() );
 		$p->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
 
 		// @TODO: Create "fake" bookmarks for non-existent but implied nodes.
-		$p->bookmarks['root-node'] = new WP_HTML_Span( 0, 0 );
+		$p->bookmarks['root-node']    = new WP_HTML_Span( 0, 0 );
 		$p->bookmarks['context-node'] = new WP_HTML_Span( 0, 0 );
 
 		$p->state->stack_of_open_elements->push(
@@ -266,9 +274,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Constructor.
 	 *
+	 * Do not use this method. Use the static creator methods instead.
+	 *
 	 * @access private
 	 *
 	 * @since 6.4.0
+	 *
+	 * @see WP_HTML_Processor::createFragment()
 	 *
 	 * @param string      $html                                  HTML to process.
 	 * @param string|null $use_the_static_create_methods_instead This constructor should not be called manually.
@@ -295,7 +307,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * a private method into WP_HTML_Token classes without
 		 * exposing it to any public API.
 		 */
-		$this->release_internal_bookmark = function ( $name ) {
+		$this->release_internal_bookmark_on_destruct = function ( $name ) {
 			parent::release_bookmark( $name );
 		};
 	}
@@ -306,13 +318,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Various situations lead to parsing failure but this class will
 	 * return `false` in all those cases. To determine why something
 	 * failed it's possible to request the last error. This can be
-	 * helpful to know if it's possible to fix something or to give up.
+	 * helpful to know to distinguish whether a given tag couldn't
+	 * be found or if content in the document caused the processor
+	 * to give up and abort processing.
 	 *
 	 * Example
 	 *
-	 *     $p = WP_HTML_Processor::createFragment( '<template><strong><button><em><p><em>' );
-	 *     false === $p->next_tag();
-	 *     WP_HTML_Processor::ERROR_UNSUPPORTED === $p->get_last_error();
+	 *     $processor = WP_HTML_Processor::createFragment( '<template><strong><button><em><p><em>' );
+	 *     false === $processor->next_tag();
+	 *     WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error();
 	 *
 	 * @since 6.4.0
 	 *
@@ -332,7 +346,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @throws WP_HTML_Unsupported_Exception
+	 * @throws Exception When unable to allocate a bookmark for the next token in the input HTML document.
 	 *
 	 * @param array|string|null $query {
 	 *     Optional. Which tag name to find, having which class, etc. Default is to find any tag.
@@ -348,7 +362,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function next_tag( $query = null ) {
 		if ( null === $query ) {
-			return $this->step();
+			while ( $this->step() ) {
+				if ( ! $this->is_tag_closer() ) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		if ( is_string( $query ) ) {
@@ -365,7 +385,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		if ( ! ( array_key_exists( 'breadcrumbs', $query ) && is_array( $query['breadcrumbs'] ) ) ) {
-			return $this->step();
+			while ( $this->step() ) {
+				if ( ! $this->is_tag_closer() ) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		if ( isset( $query['tag_closers'] ) && 'visit' === $query['tag_closers'] ) {
@@ -382,7 +408,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		$crumb  = end( $breadcrumbs );
 		$target = strtoupper( $crumb );
-		while ( $this->step() ) {
+		while ( $match_offset > 0 && $this->step() ) {
 			if ( $target !== $this->get_tag() ) {
 				continue;
 			}
@@ -394,7 +420,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				$crumb = prev( $breadcrumbs );
-				if ( false === $crumb && 0 === --$match_offset ) {
+				if ( false === $crumb && 0 === --$match_offset && ! $this->is_tag_closer() ) {
 					return true;
 				}
 			}
@@ -410,7 +436,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @throws Exception
+	 * @throws Exception When unable to allocate a bookmark for the next token in the input HTML document.
 	 *
 	 * @see self::PROCESS_NEXT_NODE
 	 * @see self::REPROCESS_CURRENT_NODE
@@ -419,7 +445,26 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether a tag was matched.
 	 */
 	public function step( $node_to_process = self::PROCESS_NEXT_NODE ) {
+		// Refuse to proceed if there was a previous error.
+		if ( null !== $this->last_error ) {
+			return false;
+		}
+
 		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
+			/*
+			 * Void elements still hop onto the stack of open elements even though
+			 * there's no corresponding closing tag. This is important for managing
+			 * stack-based operations such as "navigate to parent node" or checking
+			 * on an element's breadcrumbs.
+			 *
+			 * When moving on to the next node, therefore, if the bottom-most element
+			 * on the stack is a void element, it must be closed.
+			 *
+			 * @TODO: Once self-closing foreign elements and BGSOUND are supported,
+			 *        they must also be implicitly closed here too. BGSOUND is
+			 *        special since it's only self-closing if the self-closing flag
+			 *        is provided in the opening tag, otherwise it expects a tag closer.
+			 */
 			$top_node = $this->state->stack_of_open_elements->current_node();
 			if ( $top_node && self::is_void( $top_node->node_name ) ) {
 				$this->state->stack_of_open_elements->pop();
@@ -433,11 +478,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		$this->current_token = new WP_HTML_Token(
+		$this->state->current_token = new WP_HTML_Token(
 			$this->bookmark_tag(),
 			$this->get_tag(),
 			$this->is_tag_closer(),
-			$this->release_internal_bookmark
+			$this->release_internal_bookmark_on_destruct
 		);
 
 		try {
@@ -447,7 +492,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 				default:
 					$this->last_error = self::ERROR_UNSUPPORTED;
-					throw new WP_HTML_Unsupported_Exception( 'Cannot parse outside of the IN BODY insertion mode.' );
+					throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 			}
 		} catch ( WP_HTML_Unsupported_Exception $e ) {
 			/*
@@ -461,17 +506,22 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Computes the HTML breadcrumbs for the currently-matched node, if matched.
 	 *
-	 * Breadcrumbs start at the outer-most parent and descend toward the matched element.
+	 * Breadcrumbs start at the outermost parent and descend toward the matched element.
+	 * They always include the entire path from the root HTML node to the matched element.
+	 *
+	 * @TODO: It could be more efficient to expose a generator-based version of this function
+	 *        to avoid creating the array copy on tag iteration. If this is done, it would likely
+	 *        be more useful to walk up the stack when yielding instead of starting at the top.
 	 *
 	 * Example
 	 *
-	 *     $p = WP_HTML_Processor::createFragment( '<p><strong><em><img></em></strong></p>' );
-	 *     $p->next_tag( 'IMG' );
-	 *     $p->get_breadcrumbs() === array( 'HTML', 'BODY', 'P', 'STRONG', 'EM', 'IMG' );
+	 *     $processor = WP_HTML_Processor::createFragment( '<p><strong><em><img></em></strong></p>' );
+	 *     $processor->next_tag( 'IMG' );
+	 *     $processor->get_breadcrumbs() === array( 'HTML', 'BODY', 'P', 'STRONG', 'EM', 'IMG' );
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return string[]|null Array of tag-names representing path to matched node, if matched, otherwise null.
+	 * @return string[]|null Array of tag names representing path to matched node, if matched, otherwise NULL.
 	 */
 	public function get_breadcrumbs() {
 		if ( ! $this->get_tag() ) {
@@ -490,16 +540,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Parses next element in the 'in body' insertion mode.
 	 *
 	 * This internal function performs the 'in body' insertion mode
-	 * logic for the generalized `self::step()` function.
-	 *
-	 * @access private
+	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @throws WP_HTML_Unsupported_Exception
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#parsing-main-inbody
-	 * @see self::step
+	 * @see WP_HTML_Processor::step
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -509,6 +557,22 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$op       = "{$op_sigil}{$tag_name}";
 
 		switch ( $op ) {
+			/*
+			 * > A start tag whose tag name is "button"
+			 */
+			case '+BUTTON':
+				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'BUTTON' ) ) {
+					// @TODO: Indicate a parse error once it's possible. This error does not impact the logic here.
+					$this->generate_implied_end_tags();
+					$this->state->stack_of_open_elements->pop_until( 'BUTTON' );
+				}
+
+				$this->reconstruct_active_formatting_elements();
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->frameset_ok = false;
+
+				return true;
+
 			/*
 			 * > A start tag whose tag name is one of: "address", "article", "aside",
 			 * > "blockquote", "center", "details", "dialog", "dir", "div", "dl",
@@ -524,7 +588,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->close_a_p_element();
 				}
 
-				$this->insert_html_element( $this->current_token );
+				$this->insert_html_element( $this->state->current_token );
 				return true;
 
 			/*
@@ -534,15 +598,20 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > "menu", "nav", "ol", "pre", "search", "section", "summary", "ul"
 			 */
 			case '-BLOCKQUOTE':
+			case '-BUTTON':
 			case '-DIV':
 			case '-FIGCAPTION':
 			case '-FIGURE':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $tag_name ) ) {
+					// @TODO: Report parse error.
 					// Ignore the token.
 					return $this->step();
 				}
 
 				$this->generate_implied_end_tags();
+				if ( $this->state->stack_of_open_elements->current_node()->node_name !== $tag_name ) {
+					// @TODO: Record parse error: this error doesn't impact parsing.
+				}
 				$this->state->stack_of_open_elements->pop_until( $tag_name );
 				return true;
 
@@ -551,7 +620,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '-P':
 				if ( ! $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
-					$this->insert_html_element( $this->current_token );
+					$this->insert_html_element( $this->state->current_token );
 				}
 
 				$this->close_a_p_element();
@@ -573,8 +642,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				$this->reconstruct_active_formatting_elements();
-				$this->insert_html_element( $this->current_token );
-				$this->state->active_formatting_elements->push( $this->current_token );
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->active_formatting_elements->push( $this->state->current_token );
 				return true;
 
 			/*
@@ -594,8 +663,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TT':
 			case '+U':
 				$this->reconstruct_active_formatting_elements();
-				$this->insert_html_element( $this->current_token );
-				$this->state->active_formatting_elements->push( $this->current_token );
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->active_formatting_elements->push( $this->state->current_token );
 				return true;
 
 			/*
@@ -623,8 +692,39 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '+IMG':
 				$this->reconstruct_active_formatting_elements();
-				$this->insert_html_element( $this->current_token );
+				$this->insert_html_element( $this->state->current_token );
 				return true;
+
+			/*
+			 * > Any other start tag
+			 */
+			case '+SPAN':
+				$this->reconstruct_active_formatting_elements();
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * Any other end tag
+			 */
+			case '-SPAN':
+				foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
+					// > If node is an HTML element with the same tag name as the token, then:
+					if ( $item->node_name === $tag_name ) {
+						$this->generate_implied_end_tags( $tag_name );
+
+						// > If node is not the current node, then this is a parse error.
+
+						$this->state->stack_of_open_elements->pop_until( $tag_name );
+						return true;
+					}
+
+					// > Otherwise, if node is in the special category, then this is a parse error; ignore the token, and return.
+					if ( self::is_special( $item->node_name ) ) {
+						return $this->step();
+					}
+				}
+				// Execution should not reach here; if it does then something went wrong.
+				return false;
 
 			default:
 				$this->last_error = self::ERROR_UNSUPPORTED;
@@ -637,11 +737,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 
 	/**
-	 * Creates a new bookmark for the currently-matched tag and returns generated name.
+	 * Creates a new bookmark for the currently-matched tag and returns the generated name.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @throws Exception
+	 * @throws Exception When unable to allocate requested bookmark.
 	 *
 	 * @return string|false Name of created bookmark, or false if unable to create.
 	 */
@@ -665,20 +765,29 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Returns the uppercase name of the matched tag.
 	 *
+	 * The semantic rules for HTML specify that certain tags be reprocessed
+	 * with a different tag name. Because of this, the tag name presented
+	 * by the HTML Processor may differ from the one reported by the HTML
+	 * Tag Processor, which doesn't apply these semantic rules.
+	 *
 	 * Example:
 	 *
-	 *     $p = new WP_HTML_Tag_Processor( '<div class="test">Test</div>' );
-	 *     $p->next_tag() === true;
-	 *     $p->get_tag() === 'DIV';
+	 *     $processor = new WP_HTML_Tag_Processor( '<div class="test">Test</div>' );
+	 *     $processor->next_tag() === true;
+	 *     $processor->get_tag() === 'DIV';
 	 *
-	 *     $p->next_tag() === false;
-	 *     $p->get_tag() === null;
+	 *     $processor->next_tag() === false;
+	 *     $processor->get_tag() === null;
 	 *
 	 * @since 6.4.0
 	 *
 	 * @return string|null Name of currently matched tag in input HTML, or `null` if none found.
 	 */
 	public function get_tag() {
+		if ( null !== $this->last_error ) {
+			return null;
+		}
+
 		$tag_name = parent::get_tag();
 
 		switch ( $tag_name ) {
@@ -710,10 +819,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Moves the internal cursor in the Tag Processor to a given bookmark's location.
+	 * Moves the internal cursor in the HTML Processor to a given bookmark's location.
 	 *
 	 * In order to prevent accidental infinite loops, there's a
 	 * maximum limit on the number of times seek() can be called.
+	 *
+	 * @throws Exception When unable to allocate a bookmark for the next token in the input HTML document.
 	 *
 	 * @since 6.4.0
 	 *
@@ -722,7 +833,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function seek( $bookmark_name ) {
 		$actual_bookmark_name = "_{$bookmark_name}";
-		$processor_started_at = $this->current_token ? $this->bookmarks[ $this->current_token->bookmark_name ]->start : 0;
+		$processor_started_at = $this->state->current_token
+			? $this->bookmarks[ $this->state->current_token->bookmark_name ]->start
+			: 0;
 		$bookmark_starts_at   = $this->bookmarks[ $actual_bookmark_name ]->start;
 		$direction            = $bookmark_starts_at > $processor_started_at ? 'forward' : 'backward';
 
@@ -730,7 +843,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'forward':
 				// When moving forwards, re-parse the document until reaching the same location as the original bookmark.
 				while ( $this->step() ) {
-					if ( $bookmark_starts_at === $this->bookmarks[ $this->current_token->bookmark_name ]->start ) {
+					if ( $bookmark_starts_at === $this->bookmarks[ $this->state->current_token->bookmark_name ]->start ) {
 						return true;
 					}
 				}
@@ -859,7 +972,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @throws WP_HTML_Unsupported_Exception
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#close-a-p-element
 	 */
@@ -872,8 +985,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Closes elements that have implied end tags.
 	 *
 	 * @since 6.4.0
-	 *
-	 * @throws Exception
 	 *
 	 * @see https://html.spec.whatwg.org/#generate-implied-end-tags
 	 *
@@ -894,6 +1005,27 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Closes elements that have implied end tags, thoroughly.
+	 *
+	 * See the HTML specification for an explanation why this is
+	 * different from generating end tags in the normal sense.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @see WP_HTML_Processor::generate_implied_end_tags
+	 * @see https://html.spec.whatwg.org/#generate-implied-end-tags
+	 */
+	private function generate_implied_end_tags_thoroughly() {
+		$elements_with_implied_end_tags = array(
+			'P',
+		);
+
+		while ( in_array( $this->state->stack_of_open_elements->current_node(), $elements_with_implied_end_tags, true ) ) {
+			$this->state->stack_of_open_elements->pop();
+		}
+	}
+
+	/**
 	 * Reconstructs the active formatting elements.
 	 *
 	 * > This has the effect of reopening all the formatting elements that were opened
@@ -902,7 +1034,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @throws WP_HTML_Unsupported_Exception
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#reconstruct-the-active-formatting-elements
 	 *
@@ -919,6 +1051,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		$last_entry = $this->state->active_formatting_elements->current_node();
 		if (
+
 			/*
 			 * > If the last (most recently added) entry in the list of active formatting elements is a marker;
 			 * > stop this algorithm.
@@ -944,7 +1077,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @throws WP_HTML_Unsupported_Exception
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#adoption-agency-algorithm
 	 */
@@ -1165,7 +1298,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'WBR' === $tag_name ||
 			'XMP' === $tag_name ||
 
-			// MathML
+			// MathML.
 			'MI' === $tag_name ||
 			'MO' === $tag_name ||
 			'MN' === $tag_name ||
@@ -1173,7 +1306,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'MTEXT' === $tag_name ||
 			'ANNOTATION-XML' === $tag_name ||
 
-			// SVG
+			// SVG.
 			'FOREIGNOBJECT' === $tag_name ||
 			'DESC' === $tag_name ||
 			'TITLE' === $tag_name
@@ -1256,11 +1389,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Unlock code that must be passed into the constructor to create this class.
 	 *
-	 * This class extends {@see WP_HTML_Tag_Processor}, which has a public class
+	 * This class extends the WP_HTML_Tag_Processor, which has a public class
 	 * constructor. Therefore, it's not possible to have a private constructor here.
 	 *
 	 * This unlock code is used to ensure that anyone calling the constructor is
 	 * doing so with a full understanding that it's intended to be a private API.
+	 *
+	 * @access private
 	 */
 	const CONSTRUCTOR_UNLOCK_CODE = 'Use WP_HTML_Processor::createFragment instead of calling the class constructor directly.';
 }

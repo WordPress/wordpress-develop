@@ -90,7 +90,7 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_id
 			$alt_post_name               = _truncate_post_slug( $override_slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 			$query_args['post_name__in'] = array( $alt_post_name );
 			$query                       = new WP_Query( $query_args );
-			$suffix++;
+			++$suffix;
 		} while ( count( $query->posts ) > 0 );
 		$override_slug = $alt_post_name;
 	}
@@ -118,14 +118,8 @@ function the_block_template_skip_link() {
 	if ( ! $_wp_current_template_content ) {
 		return;
 	}
-	?>
 
-	<?php
-	/**
-	 * Print the skip-link styles.
-	 */
-	?>
-	<style id="skip-link-styles">
+	$skip_link_styles = '
 		.skip-link.screen-reader-text {
 			border: 0;
 			clip: rect(1px,1px,1px,1px);
@@ -154,12 +148,21 @@ function the_block_template_skip_link() {
 			top: 5px;
 			width: auto;
 			z-index: 100000;
-		}
-	</style>
-	<?php
+		}';
+
+	$handle = 'wp-block-template-skip-link';
+
 	/**
-	 * Print the skip-link script.
+	 * Print the skip-link styles.
 	 */
+	wp_register_style( $handle, false );
+	wp_add_inline_style( $handle, $skip_link_styles );
+	wp_enqueue_style( $handle );
+
+	/**
+	 * Enqueue the skip-link script.
+	 */
+	ob_start();
 	?>
 	<script>
 	( function() {
@@ -202,6 +205,11 @@ function the_block_template_skip_link() {
 	}() );
 	</script>
 	<?php
+	$skip_link_script = str_replace( array( '<script>', '</script>' ), '', ob_get_clean() );
+	$script_handle    = 'wp-block-template-skip-link';
+	wp_register_script( $script_handle, false );
+	wp_add_inline_script( $script_handle, $skip_link_script );
+	wp_enqueue_script( $script_handle );
 }
 
 /**
