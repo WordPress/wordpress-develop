@@ -8,7 +8,6 @@
  * Post Types: page, wp_template
  * Viewport width: 1100
  */
-
 ?>
 
 <!-- wp:cover {"overlayColor":"accent-3","minHeight":100,"minHeightUnit":"vh","isDark":false,"align":"full","style":{"spacing":{"padding":{"right":"var:preset|spacing|50","left":"var:preset|spacing|50","top":"var:preset|spacing|60","bottom":"var:preset|spacing|60"},"margin":{"top":"0","bottom":"0"}}},"layout":{"type":"constrained"}} -->

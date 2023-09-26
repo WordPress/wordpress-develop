@@ -4,7 +4,6 @@
  * Slug: twentytwentyfour/404
  * Inserter: no
  */
-
 ?>
 
 <!-- wp:heading {"level":1} -->

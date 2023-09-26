@@ -5,7 +5,6 @@
  * Categories: call-to-action
  * Viewport width: 1400
  */
-
 ?>
 
 <!-- wp:group {"align":"full","style":{"spacing":{"margin":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"},"padding":{"top":"0","bottom":"0","left":"var:preset|spacing|50","right":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} -->

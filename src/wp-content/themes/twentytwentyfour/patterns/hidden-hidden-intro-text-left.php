@@ -5,7 +5,6 @@
  * Categories: text
  * Inserter: no
  */
-
 ?>
 
 <!-- wp:spacer {"height":"var:preset|spacing|50","style":{"layout":{}}} -->
