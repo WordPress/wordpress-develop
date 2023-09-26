@@ -37,6 +37,16 @@ $_SERVER['PHP_SELF'] = '/index.php';
 
 tests_add_filter( 'wp_die_handler', '_wp_die_handler_filter_exit' );
 
+// Ensure block view scripts are present on disk to avoid realpath() returning false in get_block_asset_url().
+foreach ( glob( ABSPATH . 'wp-includes/blocks/*/block.json' ) as $block_json ) {
+	$metadata = json_decode( file_get_contents( $block_json ), true );
+	$prefix   = 'file:./';
+	if ( isset( $metadata['viewScript'] ) && 0 === strpos( $metadata['viewScript'], $prefix ) ) {
+		$file = dirname( $block_json ) . '/' . substr( $metadata['viewScript'], strlen( $prefix ) );
+		touch( $file );
+	}
+}
+
 require_once ABSPATH . 'wp-settings.php';
 
 require_once ABSPATH . 'wp-admin/includes/upgrade.php';
