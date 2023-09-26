@@ -31,6 +31,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	 * @param string $parent_post_type Post type of the parent.
 	 */
 	public function __construct( $parent_post_type ) {
+		parent::__construct( $parent_post_type );
 		$this->parent_post_type = $parent_post_type;
 		$post_type_object       = get_post_type_object( $parent_post_type );
 		$parent_controller      = $post_type_object->get_rest_controller();
@@ -49,7 +50,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 		register_rest_route(
 			$this->namespace,
 			sprintf(
-				'/%s/(?P<parent>%s%s)/%s',
+				'/%s/(?P<id>%s%s)/%s',
 				$this->parent_base,
 				/*
 				 * Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
@@ -62,7 +63,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 			),
 			array(
 				'args'   => array(
-					'parent' => array(
+					'id' => array(
 						'description'       => __( 'The id of a template' ),
 						'type'              => 'string',
 						'sanitize_callback' => array( $this->parent_controller, '_sanitize_template_id' ),
@@ -122,5 +123,54 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
+	}
+
+	/**
+	 * Get the parent post, if the ID is valid.
+	 *
+	 * @since 4.7.2
+	 *
+	 * @param int $parent_post_id Supplied ID.
+	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
+	 */
+	protected function get_parent( $parent_post_id ) {
+		$error = new WP_Error(
+			'rest_post_invalid_parent',
+			__( 'Invalid post parent ID!' ),
+			array( 'status' => 404 )
+		);
+
+		$template = get_block_template( $parent_post_id, $this->parent_post_type );
+
+		if ( ! $template ) {
+			return $error;
+		}
+
+		return $template;
+	}
+
+	/**
+	 * Checks if a given request has access to get autosaves.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+	 */
+	public function get_items_permissions_check( $request ) {
+		$parent = $this->get_parent( $request['id'] );
+		if ( is_wp_error( $parent ) ) {
+			return $parent;
+		}
+
+		if ( ! current_user_can( 'edit_post', $parent->wp_id ) ) {
+			return new WP_Error(
+				'rest_cannot_read',
+				__( 'Sorry, you are not allowed to view autosaves of this post.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
 	}
 }
