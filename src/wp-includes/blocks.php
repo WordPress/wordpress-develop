@@ -787,8 +787,9 @@ function make_before_block_visitor( $context ) {
 			$relative_position  = 'first_child';
 			$anchor_block_type  = $parent_block['blockName'];
 			$hooked_block_types = get_hooked_blocks( $anchor_block_type );
-
-			$hooked_block_types = isset( $hooked_block_types[ $relative_position ] ) ? $hooked_block_types[ $relative_position ] : array();
+			$hooked_block_types = isset( $hooked_block_types[ $relative_position ] )
+				? $hooked_block_types[ $relative_position ]
+				: array();
 
 			/**
 			 * Filters the list of hooked block types for a given anchor block type and relative position.
@@ -810,12 +811,9 @@ function make_before_block_visitor( $context ) {
 		$relative_position  = 'before';
 		$anchor_block_type  = $block['blockName'];
 		$hooked_block_types = get_hooked_blocks( $anchor_block_type );
-
-		if ( isset( $hooked_block_types[ $relative_position ] ) ) {
-			$hooked_block_types = $hooked_block_types[ $relative_position ];
-		} else {
-			$hooked_block_types = array();
-		}
+		$hooked_block_types = isset( $hooked_block_types[ $relative_position ] )
+			? $hooked_block_types[ $relative_position ]
+			: array();
 
 		/** This filter is documented in wp-includes/blocks.php */
 		$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
@@ -859,12 +857,9 @@ function make_after_block_visitor( $context ) {
 		$relative_position  = 'after';
 		$anchor_block_type  = $block['blockName'];
 		$hooked_block_types = get_hooked_blocks( $anchor_block_type );
-
-		if ( isset( $hooked_block_types[ $relative_position ] ) ) {
-			$hooked_block_types = $hooked_block_types[ $relative_position ];
-		} else {
-			$hooked_block_types = array();
-		}
+		$hooked_block_types = isset( $hooked_block_types[ $relative_position ] )
+			? $hooked_block_types[ $relative_position ]
+			: array();
 
 		/** This filter is documented in wp-includes/blocks.php */
 		$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
@@ -877,12 +872,9 @@ function make_after_block_visitor( $context ) {
 			$relative_position  = 'last_child';
 			$anchor_block_type  = $parent_block['blockName'];
 			$hooked_block_types = get_hooked_blocks( $anchor_block_type );
-
-			if ( isset( $hooked_block_types[ $relative_position ] ) ) {
-				$hooked_block_types = $hooked_block_types[ $relative_position ];
-			} else {
-				$hooked_block_types = array();
-			}
+			$hooked_block_types = isset( $hooked_block_types[ $relative_position ] )
+				? $hooked_block_types[ $relative_position ]
+				: array();
 
 			/** This filter is documented in wp-includes/blocks.php */
 			$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
