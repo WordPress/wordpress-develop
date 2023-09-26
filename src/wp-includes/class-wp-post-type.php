@@ -914,10 +914,6 @@ final class WP_Post_Type {
 			return null;
 		}
 
-		if ( 'attachment' !== $this->name  ) {
-			return null;
-		}
-
 
 		$class = $this->autosave_rest_controller_class ? $this->autosave_rest_controller_class : WP_REST_Autosaves_Controller::class;
 
