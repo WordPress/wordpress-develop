@@ -641,6 +641,7 @@ class WP_HTML_Tag_Processor {
 	 *     // Outputs: "free <egg> lang-en "
 	 */
 	public function class_list() {
+		/** @var string $class contains the string value of the class attribute, with character references decoded. */
 		$class = $this->get_attribute( 'class' );
 
 		if ( ! is_string( $class ) ) {
@@ -649,15 +650,27 @@ class WP_HTML_Tag_Processor {
 
 		$seen = array();
 
-		$at = strspn( $class, " \t\f\r\n" );
+		$at = 0;
 		while ( $at < strlen( $class ) ) {
+			// Skip past any initial boundary characters.
+			$at += strspn( $class, " \t\f\r\n", $at );
+			if ( $at >= strlen( $class ) ) {
+				return;
+			}
+
+			// Find the byte length until the next boundary.
 			$length = strcspn( $class, " \t\f\r\n", $at );
 			if ( 0 === $length ) {
 				return;
 			}
 
-			$name = substr( $class, $at, $length );
-			$at   = $at + $length + strspn( $class, " \t\f\r\n", $at + $length );
+			/*
+			 * CSS class names are case-insensitive in the ASCII range.
+			 *
+			 * @see https://www.w3.org/TR/CSS2/syndata.html#x1
+			 */
+			$name = strtolower( substr( $class, $at, $length ) );
+			$at  += $length;
 
 			/*
 			 * It's expected that the number of class names for a given tag is relatively small.
@@ -677,10 +690,12 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Returns if a matched tag contains the given class name.
 	 *
-	 * @param string $wanted_class Look for this CSS class name.
+	 * @param string $wanted_class Look for this CSS class name, ASCII case-insensitive.
 	 * @return bool|null Whether the matched tag contains the given class name, or null if not matched.
 	 */
 	public function has_class( $wanted_class ) {
+		$wanted_class = strtolower( $wanted_class );
+
 		if ( ! $this->tag_name_starts_at ) {
 			return null;
 		}
