@@ -38,11 +38,10 @@ $_SERVER['PHP_SELF'] = '/index.php';
 tests_add_filter( 'wp_die_handler', '_wp_die_handler_filter_exit' );
 
 // Ensure block view scripts are present on disk to avoid realpath() returning false in get_block_asset_url().
-foreach ( glob( ABSPATH . 'wp-includes/blocks/*/block.json' ) as $block_json ) {
-	$metadata = json_decode( file_get_contents( $block_json ), true );
-	$prefix   = 'file:./';
+foreach ( require ABSPATH . 'wp-includes/blocks/blocks-json.php' as $block_name => $metadata ) {
+	$prefix = 'file:./';
 	if ( isset( $metadata['viewScript'] ) && 0 === strpos( $metadata['viewScript'], $prefix ) ) {
-		$file = dirname( $block_json ) . '/' . substr( $metadata['viewScript'], strlen( $prefix ) );
+		$file = ABSPATH . "wp-includes/blocks/{$block_name}/" . substr( $metadata['viewScript'], strlen( $prefix ) );
 		touch( $file );
 	}
 }
