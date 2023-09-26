@@ -1303,7 +1303,11 @@ function wp_generate_block_templates_export_file() {
 	// Load templates into the zip file.
 	$templates = get_block_templates();
 	foreach ( $templates as $template ) {
-		$template->content = _remove_theme_attribute_in_block_template_content( $template->content );
+		$template_blocks   = parse_blocks( $template->content );
+		$template->content = traverse_and_serialize_blocks(
+			$template_blocks,
+			'_remove_theme_attribute_from_template_part_block'
+		)
 
 		$zip->addFromString(
 			'templates/' . $template->slug . '.html',
