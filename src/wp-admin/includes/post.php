@@ -1972,7 +1972,7 @@ function wp_create_post_autosave( $post_data ) {
 	// Otherwise create the new autosave as a special post revision.
 	$revision = _wp_put_post_revision( $post_data, true );
 
-	if ( ! is_wp_error( $revision ) ) {
+	if ( ! is_wp_error( $revision ) && 0 !== $revision ) {
 
 		/** This action is documented in wp-admin/includes/post.php */
 		do_action( 'wp_creating_autosave', get_post( $revision, ARRAY_A ), false );
