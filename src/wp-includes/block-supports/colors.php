@@ -16,7 +16,7 @@
  * @param WP_Block_Type $block_type Block Type.
  */
 function wp_register_colors_support( $block_type ) {
-	$color_support                 = property_exists( $block_type, 'supports' ) ? _wp_array_get( $block_type->supports, array( 'color' ), false ) : false;
+	$color_support                 = $block_type instanceof WP_Block_Type ? _wp_array_get( $block_type->supports, array( 'color' ), false ) : false;
 	$has_text_colors_support       = true === $color_support || ( is_array( $color_support ) && _wp_array_get( $color_support, array( 'text' ), true ) );
 	$has_background_colors_support = true === $color_support || ( is_array( $color_support ) && _wp_array_get( $color_support, array( 'background' ), true ) );
 	$has_gradients_support         = _wp_array_get( $color_support, array( 'gradients' ), false );

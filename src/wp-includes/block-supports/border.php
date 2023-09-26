@@ -152,10 +152,7 @@ function wp_apply_border_support( $block_type, $block_attributes ) {
  */
 function wp_has_border_feature_support( $block_type, $feature, $default_value = false ) {
 	// Check if all border support features have been opted into via `"__experimentalBorder": true`.
-	if (
-		property_exists( $block_type, 'supports' ) &&
-		( true === _wp_array_get( $block_type->supports, array( '__experimentalBorder' ), $default_value ) )
-	) {
+	if ( $block_type instanceof WP_Block_Type && ( true === _wp_array_get( $block_type->supports, array( '__experimentalBorder' ), $default_value ) )) {
 		return true;
 	}
 
