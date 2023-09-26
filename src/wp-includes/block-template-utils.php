@@ -1266,7 +1266,7 @@ function wp_generate_block_templates_export_file() {
 		$template->content = traverse_and_serialize_blocks(
 			parse_blocks( $template->content ),
 			'_remove_theme_attribute_from_template_part_block'
-		)
+		);
 
 		$zip->addFromString(
 			'templates/' . $template->slug . '.html',
