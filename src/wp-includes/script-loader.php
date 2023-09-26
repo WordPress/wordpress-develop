@@ -280,13 +280,8 @@ function wp_default_packages_scripts( $scripts ) {
 	$assets = include ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
 
 	// Add the private version of the Interactivity API manually.
-	$scripts->add(
-		'wp-interactivity',
-		'/wp-includes/js/dist/interactivity.min.js',
-		array(),
-		'6.4.0',
-		1
-	);
+	$scripts->add( 'wp-interactivity', '/wp-includes/js/dist/interactivity.min.js' );
+	did_action( 'init' ) && $scripts->add_data( 'wp-interactivity', 'strategy', 'defer' );
 
 	foreach ( $assets as $file_name => $package_data ) {
 		$basename = str_replace( $suffix . '.js', '', basename( $file_name ) );
