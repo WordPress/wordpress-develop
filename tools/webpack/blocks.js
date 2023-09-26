@@ -1,6 +1,7 @@
 /**
  * External dependencies
  */
+const { DefinePlugin } = require( 'webpack' );
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
 
 /**
@@ -11,7 +12,7 @@ const DependencyExtractionPlugin = require( '@wordpress/dependency-extraction-we
 /**
  * Internal dependencies
  */
-const { baseDir, getBaseConfig, normalizeJoin, stylesTransform } = require( './shared' );
+const { normalizeJoin, stylesTransform, baseConfig, baseDir } = require( './shared' );
 const {
 	isDynamic,
 	toDirectoryName,
@@ -61,9 +62,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		noErrorOnMissing: true,
 	} ) );
 
-	const baseConfig = getBaseConfig( env );
 	const config = {
-		...baseConfig,
+		...baseConfig( env ),
 		entry: {
 			'navigation/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/navigation/view' ),
 			'image/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/image/view' ),
@@ -127,7 +127,13 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			],
 		},
 		plugins: [
-			...baseConfig.plugins,
+			new DefinePlugin( {
+				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
+				'process.env.IS_GUTENBERG_PLUGIN': false,
+				'process.env.FORCE_REDUCED_MOTION': JSON.stringify(
+					process.env.FORCE_REDUCED_MOTION,
+				),
+			} ),
 			new DependencyExtractionPlugin( {
 				injectPolyfill: false,
 				useDefaults: false,

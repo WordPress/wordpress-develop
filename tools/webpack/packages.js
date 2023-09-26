@@ -1,6 +1,7 @@
 /**
  * External dependencies
  */
+const { DefinePlugin } = require( 'webpack' );
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
 const LiveReloadPlugin = require( 'webpack-livereload-plugin' );
 const UglifyJS = require( 'uglify-js' );
@@ -16,7 +17,7 @@ const DependencyExtractionPlugin = require( '@wordpress/dependency-extraction-we
 /**
  * Internal dependencies
  */
-const { baseDir, getBaseConfig, normalizeJoin, stylesTransform } = require( './shared' );
+const { normalizeJoin, stylesTransform, baseConfig, baseDir } = require( './shared' );
 const { dependencies } = require( '../../package' );
 
 const exportDefaultPackages = [
@@ -128,9 +129,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		to: normalizeJoin(baseDir, `src/${ phpFiles[ filename ] }` ),
 	} ) );
 
-	const baseConfig = getBaseConfig( env );
 	const config = {
-		...baseConfig,
+		...baseConfig( env ),
 		entry: packages.reduce( ( memo, packageName ) => {
 			memo[ packageName ] = {
 				import: normalizeJoin(baseDir, `node_modules/@wordpress/${ packageName }` ),
@@ -151,7 +151,15 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			path: normalizeJoin(baseDir, `${ buildTarget }/js/dist` ),
 		},
 		plugins: [
-			...baseConfig.plugins,
+			new DefinePlugin( {
+				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
+				'process.env.IS_GUTENBERG_PLUGIN': false,
+				// Inject the `IS_WORDPRESS_CORE` global, used for feature flagging.
+				'process.env.IS_WORDPRESS_CORE': true,
+				'process.env.FORCE_REDUCED_MOTION': JSON.stringify(
+					process.env.FORCE_REDUCED_MOTION
+				),
+			} ),
 			new DependencyExtractionPlugin( {
 				injectPolyfill: true,
 				combineAssets: true,
