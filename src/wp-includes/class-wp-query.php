@@ -2534,16 +2534,6 @@ class WP_Query {
 		}
 
 		$skip_post_status = false;
-
-		if ( empty( $post_type ) ) {
-			$post_type = 'post';
-			if ( $this->is_attachment ) {
-				$post_type = 'attachment';
-			} elseif ( $this->is_page ) {
-				$post_type = 'page';
-			}
-		}
-
 		if ( 'any' === $post_type ) {
 			$in_search_post_types = get_post_types( array( 'exclude_from_search' => false ) );
 			if ( empty( $in_search_post_types ) ) {
@@ -2552,11 +2542,20 @@ class WP_Query {
 			} else {
 				$post_type_where = " AND {$wpdb->posts}.post_type IN ('" . implode( "', '", array_map( 'esc_sql', $in_search_post_types ) ) . "')";
 			}
-		} elseif ( is_array( $post_type ) ) {
+		} elseif ( ! empty( $post_type ) && is_array( $post_type ) ) {
 			$post_type_where = " AND {$wpdb->posts}.post_type IN ('" . implode( "', '", esc_sql( $post_type ) ) . "')";
-		} else {
+		} elseif ( ! empty( $post_type ) ) {
 			$post_type_where  = $wpdb->prepare( " AND {$wpdb->posts}.post_type = %s", $post_type );
 			$post_type_object = get_post_type_object( $post_type );
+		} elseif ( $this->is_attachment ) {
+			$post_type_where  = " AND {$wpdb->posts}.post_type = 'attachment'";
+			$post_type_object = get_post_type_object( 'attachment' );
+		} elseif ( $this->is_page ) {
+			$post_type_where  = " AND {$wpdb->posts}.post_type = 'page'";
+			$post_type_object = get_post_type_object( 'page' );
+		} else {
+			$post_type_where  = " AND {$wpdb->posts}.post_type = 'post'";
+			$post_type_object = get_post_type_object( 'post' );
 		}
 
 		$edit_cap = 'edit_post';
@@ -2642,8 +2641,10 @@ class WP_Query {
 				$queried_post_types = get_post_types( array( 'exclude_from_search' => false ) );
 			} elseif ( is_array( $post_type ) ) {
 				$queried_post_types = $post_type;
-			} else {
+			} elseif ( ! empty( $post_type ) ) {
 				$queried_post_types = array( $post_type );
+			} else {
+				$queried_post_types = array( 'post' );
 			}
 
 			if ( ! empty( $queried_post_types ) ) {
@@ -4837,6 +4838,7 @@ class WP_Query {
 		global $wpdb;
 
 		unset(
+			$args['post_type'],
 			$args['cache_results'],
 			$args['fields'],
 			$args['lazy_load_term_meta'],
