@@ -63,7 +63,6 @@ class Tests_Get_Block_Asset_Url extends WP_UnitTestCase {
 		$url  = get_block_asset_url( $path );
 
 		$this->assertSame( get_template_directory_uri() . '/blocks/example-block/view.js', $url );
-
 	}
 
 	/**
@@ -76,7 +75,6 @@ class Tests_Get_Block_Asset_Url extends WP_UnitTestCase {
 		$url  = get_block_asset_url( $path );
 
 		$this->assertSame( get_stylesheet_directory_uri() . '/blocks/example-block/view.js', $url );
-
 	}
 
 	/**
@@ -89,7 +87,6 @@ class Tests_Get_Block_Asset_Url extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( WP_PLUGIN_DIR, $url, 'The return block asset url should not contain plugin path.' );
 		$this->assertSame( plugins_url( 'view.js', $path ), $url, 'The return block asset url should match plugin url.' );
 		$this->assertStringStartsWith( WP_PLUGIN_URL, $url, 'The return block asset url should contain the url that support with the mu plugin url.' );
-
 	}
 
 	/**
@@ -112,5 +109,4 @@ class Tests_Get_Block_Asset_Url extends WP_UnitTestCase {
 
 		$this->assertFalse( $url );
 	}
-
 }
