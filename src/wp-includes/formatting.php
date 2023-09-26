@@ -5858,34 +5858,36 @@ function wp_spaces_regexp() {
 }
 
 /**
- * Enqueues the important emoji-related styles.
+ * Prints the important emoji-related styles.
  *
- * @since 6.4.0
+ * @since 4.2.0
  */
-function wp_enqueue_emoji_styles() {
-	// Back-compat for plugins that disable functionality by unhooking this action.
-	$action = is_admin() ? 'admin_print_styles' : 'wp_print_styles';
-	if ( ! has_action( $action, 'print_emoji_styles' ) ) {
+function print_emoji_styles() {
+	static $printed = false;
+
+	if ( $printed ) {
 		return;
 	}
-	remove_action( $action, 'print_emoji_styles' );
 
-	$emoji_styles = '
-	img.wp-smiley, img.emoji {
-		display: inline !important;
-		border: none !important;
-		box-shadow: none !important;
-		height: 1em !important;
-		width: 1em !important;
-		margin: 0 0.07em !important;
-		vertical-align: -0.1em !important;
-		background: none !important;
-		padding: 0 !important;
-	}';
-	$handle       = 'wp-emoji-styles';
-	wp_register_style( $handle, false );
-	wp_add_inline_style( $handle, $emoji_styles );
-	wp_enqueue_style( $handle );
+	$printed = true;
+
+	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	?>
+<style<?php echo $type_attr; ?>>
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 0.07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<?php
 }
 
 /**

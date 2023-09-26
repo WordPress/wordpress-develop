@@ -118,8 +118,14 @@ function the_block_template_skip_link() {
 	if ( ! $_wp_current_template_content ) {
 		return;
 	}
+	?>
 
-	$skip_link_styles = '
+	<?php
+	/**
+	 * Print the skip-link styles.
+	 */
+	?>
+	<style id="skip-link-styles">
 		.skip-link.screen-reader-text {
 			border: 0;
 			clip: rect(1px,1px,1px,1px);
@@ -148,17 +154,9 @@ function the_block_template_skip_link() {
 			top: 5px;
 			width: auto;
 			z-index: 100000;
-		}';
-
-	$handle = 'wp-block-template-skip-link';
-
-	/**
-	 * Print the skip-link styles.
-	 */
-	wp_register_style( $handle, false );
-	wp_add_inline_style( $handle, $skip_link_styles );
-	wp_enqueue_style( $handle );
-
+		}
+	</style>
+	<?php
 	/**
 	 * Print the skip-link script.
 	 */

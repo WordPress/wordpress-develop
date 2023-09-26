@@ -1225,51 +1225,32 @@ function wp_admin_bar_add_secondary_groups( $wp_admin_bar ) {
 }
 
 /**
- * Enqueues inline style to hide the admin bar when printing.
+ * Prints style and scripts for the admin bar.
  *
- * @since 6.4.0
+ * @since 3.1.0
  */
-function wp_enqueue_admin_bar_header_styles() {
-	// Back-compat for plugins that disable functionality by unhooking this action.
-	$action = is_admin() ? 'admin_head' : 'wp_head';
-	if ( ! has_action( $action, 'wp_admin_bar_header' ) ) {
-		return;
-	}
-	remove_action( $action, 'wp_admin_bar_header' );
-
-	wp_add_inline_style( 'admin-bar', '@media print { #wpadminbar { display:none; } }' );
+function wp_admin_bar_header() {
+	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	?>
+<style<?php echo $type_attr; ?> media="print">#wpadminbar { display:none; }</style>
+	<?php
 }
 
 /**
- * Enqueues inline bump styles to make room for the admin bar.
+ * Prints default admin bar callback.
  *
- * @since 6.4.0
+ * @since 3.1.0
  */
-function wp_enqueue_admin_bar_bump_styles() {
-	if ( current_theme_supports( 'admin-bar' ) ) {
-		$admin_bar_args  = get_theme_support( 'admin-bar' );
-		$header_callback = $admin_bar_args[0]['callback'];
+function _admin_bar_bump_cb() {
+	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	?>
+<style<?php echo $type_attr; ?> media="screen">
+	html { margin-top: 32px !important; }
+	@media screen and ( max-width: 782px ) {
+		html { margin-top: 46px !important; }
 	}
-
-	if ( empty( $header_callback ) ) {
-		$header_callback = '_admin_bar_bump_cb';
-	}
-
-	if ( '_admin_bar_bump_cb' !== $header_callback ) {
-		return;
-	}
-
-	// Back-compat for plugins that disable functionality by unhooking this action.
-	if ( ! has_action( 'wp_head', $header_callback ) ) {
-		return;
-	}
-	remove_action( 'wp_head', $header_callback );
-
-	$css = '
-		@media screen { html { margin-top: 32px !important; } }
-		@media screen and ( max-width: 782px ) { html { margin-top: 46px !important; } }
-	';
-	wp_add_inline_style( 'admin-bar', $css );
+</style>
+	<?php
 }
 
 /**
