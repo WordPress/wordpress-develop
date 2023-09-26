@@ -831,7 +831,7 @@ function shortcode_unautop( $text ) {
 	$tagregexp = implode( '|', array_map( 'preg_quote', array_keys( $shortcode_tags ) ) );
 	$spaces    = wp_spaces_regexp();
 
-	// phpcs:disable Squiz.Strings.ConcatenationSpacing.PaddingFound,WordPress.WhiteSpace.PrecisionAlignment.Found -- don't remove regex indentation
+	// phpcs:disable Squiz.Strings.ConcatenationSpacing.PaddingFound,Universal.WhiteSpace.PrecisionAlignment.Found -- don't remove regex indentation
 	$pattern =
 		'/'
 		. '<p>'                              // Opening paragraph.
@@ -3980,7 +3980,7 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		 * within the excerpt are stripped out. Modifying the tags here
 		 * is wasteful and can lead to bugs in the image counting logic.
 		 */
-		$filter_image_removed = remove_filter( 'the_content', 'wp_filter_content_tags' );
+		$filter_image_removed = remove_filter( 'the_content', 'wp_filter_content_tags', 12 );
 
 		/*
 		 * Temporarily unhook do_blocks() since excerpt_remove_blocks( $text )
@@ -4003,7 +4003,7 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		 * which is generally used for the filter callback in WordPress core.
 		 */
 		if ( $filter_image_removed ) {
-			add_filter( 'the_content', 'wp_filter_content_tags' );
+			add_filter( 'the_content', 'wp_filter_content_tags', 12 );
 		}
 
 		/* translators: Maximum number of words used in a post excerpt. */
@@ -5683,7 +5683,7 @@ function wp_basename( $path, $suffix = '' ) {
 	return urldecode( basename( str_replace( array( '%2F', '%5C' ), '/', urlencode( $path ) ), $suffix ) );
 }
 
-// phpcs:disable WordPress.WP.CapitalPDangit.Misspelled, WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid -- 8-)
+// phpcs:disable WordPress.WP.CapitalPDangit.MisspelledInComment,WordPress.WP.CapitalPDangit.MisspelledInText,WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid -- 8-)
 /**
  * Forever eliminate "Wordpress" from the planet (or at least the little bit we can influence).
  *

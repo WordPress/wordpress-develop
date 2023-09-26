@@ -187,7 +187,7 @@ function get_stylesheet() {
  * Retrieves stylesheet directory path for the active theme.
  *
  * @since 1.5.0
- * @since 6.4.0 Memorizes filter execution so that it only runs once for the current theme.
+ * @since 6.4.0 Memoizes filter execution so that it only runs once for the current theme.
  *
  * @global string $wp_stylesheet_path Current theme stylesheet directory path.
  *
@@ -1288,11 +1288,10 @@ function get_header_image_tag( $attr = array() ) {
 	$attr = wp_parse_args(
 		$attr,
 		array(
-			'src'      => $header->url,
-			'width'    => $width,
-			'height'   => $height,
-			'alt'      => $alt,
-			'decoding' => 'async',
+			'src'    => $header->url,
+			'width'  => $width,
+			'height' => $height,
+			'alt'    => $alt,
 		)
 	);
 
@@ -3783,9 +3782,9 @@ function wp_customize_support_script() {
 	$admin_origin = parse_url( admin_url() );
 	$home_origin  = parse_url( home_url() );
 	$cross_domain = ( strtolower( $admin_origin['host'] ) !== strtolower( $home_origin['host'] ) );
-	$type_attr    = current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"';
+	ob_start();
 	?>
-	<script<?php echo $type_attr; ?>>
+	<script>
 		(function() {
 			var request, b = document.body, c = 'className', cs = 'customize-support', rcs = new RegExp('(^|\\s+)(no-)?'+cs+'(\\s+|$)');
 
@@ -3801,6 +3800,7 @@ function wp_customize_support_script() {
 		}());
 	</script>
 	<?php
+	wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
 }
 
 /**
