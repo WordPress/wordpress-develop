@@ -1056,7 +1056,7 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 			$inner_block = $block['innerBlocks'][ $block_index ];
 
 			if ( is_callable( $pre_callback ) ) {
-				$prev = 0 === $block_index
+				$prev           = 0 === $block_index
 					? null
 					: $block['innerBlocks'][ $block_index - 1 ];
 				$block_content .= call_user_func_array(
@@ -1068,7 +1068,7 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 			$block_content .= traverse_and_serialize_block( $inner_block, $pre_callback, $post_callback );
 
 			if ( is_callable( $post_callback ) ) {
-				$next = count( $block['innerBlocks'] ) - 1 === $block_index
+				$next           = count( $block['innerBlocks'] ) - 1 === $block_index
 					? null
 					: $block['innerBlocks'][ $block_index + 1 ];
 				$block_content .= call_user_func_array(
@@ -1127,7 +1127,7 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 	$result = '';
 	foreach ( $blocks as $index => $block ) {
 		if ( is_callable( $pre_callback ) ) {
-			$prev = 0 === $index
+			$prev    = 0 === $index
 				? null
 				: $blocks[ $index - 1 ];
 			$result .= call_user_func_array(
@@ -1137,7 +1137,7 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 		}
 		$result .= traverse_and_serialize_block( $block, $pre_callback, $post_callback );
 		if ( is_callable( $post_callback ) ) {
-			$next = count( $blocks ) - 1 === $index
+			$next    = count( $blocks ) - 1 === $index
 				? null
 				: $blocks[ $index + 1 ];
 			$result .= call_user_func_array(
@@ -1631,7 +1631,7 @@ function wp_migrate_old_typography_shape( $metadata ) {
 	);
 
 	foreach ( $typography_keys as $typography_key ) {
-		$support_for_key = $metadata['supports'][ $typography_key ] ?? null;
+		$support_for_key = isset( $metadata['supports'][ $typography_key ] ) ? $metadata['supports'][ $typography_key ] : null;
 
 		if ( null !== $support_for_key ) {
 			_doing_it_wrong(

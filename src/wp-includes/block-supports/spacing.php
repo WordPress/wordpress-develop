@@ -65,10 +65,10 @@ function wp_apply_spacing_support( $block_type, $block_attributes ) {
 		'margin'  => null,
 	);
 	if ( $has_padding_support && ! $skip_padding ) {
-		$spacing_block_styles['padding'] = $block_styles['spacing']['padding'] ?? null;
+		$spacing_block_styles['padding'] = isset( $block_styles['spacing']['padding'] ) ? $block_styles['spacing']['padding'] : null;
 	}
 	if ( $has_margin_support && ! $skip_margin ) {
-		$spacing_block_styles['margin'] = $block_styles['spacing']['margin'] ?? null;
+		$spacing_block_styles['margin'] = isset( $block_styles['spacing']['margin'] ) ? $block_styles['spacing']['margin'] : null;
 	}
 	$styles = wp_style_engine_get_styles( array( 'spacing' => $spacing_block_styles ) );
 
