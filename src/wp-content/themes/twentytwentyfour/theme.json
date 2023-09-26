@@ -204,7 +204,7 @@
 							"fontStyle": "normal",
 							"fontWeight": "300 900",
 							"src": [
-								"file:./assets/fonts/inter/Inter-VariableFont_slnt,wght.ttf"
+								"file:./assets/fonts/inter/Inter-VariableFont_slnt,wght.woff2"
 							]
 						}
 					],
@@ -584,7 +584,8 @@
 				},
 				"typography": {
 					"fontSize": "var(--wp--preset--font-size--small)"
-				}
+				},
+				"css":"& .wp-block-post-terms__prefix{color: var(--wp--preset--color--contrast-2);}"
 			},
 			"core/post-title": {
 				"elements": {
