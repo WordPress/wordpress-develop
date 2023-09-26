@@ -163,19 +163,17 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	);
 
 	if ( empty( $script_asset_path ) ) {
-		if ( ! defined( 'WP_RUN_CORE_TESTS' ) ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: 1: Asset file location, 2: Field name, 3: Block name.  */
-					__( 'The asset file (%1$s) for the "%2$s" defined in "%3$s" block definition is missing.' ),
-					$script_asset_raw_path,
-					$field_name,
-					$metadata['name']
-				),
-				'5.5.0'
-			);
-		}
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: Asset file location, 2: Field name, 3: Block name.  */
+				__( 'The asset file (%1$s) for the "%2$s" defined in "%3$s" block definition is missing.' ),
+				$script_asset_raw_path,
+				$field_name,
+				$metadata['name']
+			),
+			'5.5.0'
+		);
 		return false;
 	}
 
