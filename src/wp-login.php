@@ -101,11 +101,9 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	 * but maybe better if it's not removable by plugins.
 	 */
 	if ( 'loggedout' === $wp_error->get_error_code() ) {
-		ob_start();
 		?>
 		<script>if("sessionStorage" in window){try{for(var key in sessionStorage){if(key.indexOf("wp-autosave-")!=-1){sessionStorage.removeItem(key)}}}catch(e){}};</script>
 		<?php
-		wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
 	}
 
 	/**
@@ -195,10 +193,9 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	?>
 	</head>
 	<body class="login no-js <?php echo esc_attr( implode( ' ', $classes ) ); ?>">
-	<?php
-	wp_print_inline_script_tag( "document.body.className = document.body.className.replace('no-js','js');" );
-	?>
-
+	<script type="text/javascript">
+		document.body.className = document.body.className.replace('no-js','js');
+	</script>
 	<?php
 	/**
 	 * Fires in the login page header after the body tag is opened.
@@ -417,14 +414,12 @@ function login_footer( $input_id = '' ) {
 	<?php
 
 	if ( ! empty( $input_id ) ) {
-		ob_start();
 		?>
-		<script>
+		<script type="text/javascript">
 		try{document.getElementById('<?php echo $input_id; ?>').focus();}catch(e){}
 		if(typeof wpOnload==='function')wpOnload();
 		</script>
 		<?php
-		wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
 	}
 
 	/**
@@ -446,7 +441,11 @@ function login_footer( $input_id = '' ) {
  * @since 3.0.0
  */
 function wp_shake_js() {
-	wp_print_inline_script_tag( "document.querySelector('form').classList.add('shake');" );
+	?>
+	<script type="text/javascript">
+	document.querySelector('form').classList.add('shake');
+	</script>
+	<?php
 }
 
 /**
@@ -1358,11 +1357,9 @@ switch ( $action ) {
 				do_action( 'login_footer' );
 
 				if ( $customize_login ) {
-					ob_start();
 					?>
-					<script>setTimeout( function(){ new wp.customize.Messenger({ url: '<?php echo wp_customize_url(); ?>', channel: 'login' }).send('login') }, 1000 );</script>
+					<script type="text/javascript">setTimeout( function(){ new wp.customize.Messenger({ url: '<?php echo wp_customize_url(); ?>', channel: 'login' }).send('login') }, 1000 );</script>
 					<?php
-					wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
 				}
 
 				?>
@@ -1608,12 +1605,15 @@ switch ( $action ) {
 		// Run `wpOnload()` if defined.
 		$login_script .= "if ( typeof wpOnload === 'function' ) { wpOnload() }";
 
-		wp_print_inline_script_tag( $login_script );
+		?>
+		<script type="text/javascript">
+			<?php echo $login_script; ?>
+		</script>
+		<?php
 
 		if ( $interim_login ) {
-			ob_start();
 			?>
-			<script>
+			<script type="text/javascript">
 			( function() {
 				try {
 					var i, links = document.getElementsByTagName( 'a' );
@@ -1627,7 +1627,6 @@ switch ( $action ) {
 			}());
 			</script>
 			<?php
-			wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
 		}
 
 		login_footer();

@@ -123,6 +123,17 @@ class WP_Scripts extends WP_Dependencies {
 	public $default_dirs;
 
 	/**
+	 * Holds a string which contains the type attribute for script tag.
+	 *
+	 * If the active theme does not declare HTML5 support for 'script',
+	 * then it initializes as `type='text/javascript'`.
+	 *
+	 * @since 5.3.0
+	 * @var string
+	 */
+	private $type_attr = '';
+
+	/**
 	 * Holds a mapping of dependents (as handles) for a given script handle.
 	 * Used to optimize recursive dependency tree checks.
 	 *
@@ -156,6 +167,14 @@ class WP_Scripts extends WP_Dependencies {
 	 * @since 3.4.0
 	 */
 	public function init() {
+		if (
+			function_exists( 'is_admin' ) && ! is_admin()
+		&&
+			function_exists( 'current_theme_supports' ) && ! current_theme_supports( 'html5', 'script' )
+		) {
+			$this->type_attr = " type='text/javascript'";
+		}
+
 		/**
 		 * Fires when the WP_Scripts instance is initialized.
 		 *
@@ -226,7 +245,20 @@ class WP_Scripts extends WP_Dependencies {
 			return $output;
 		}
 
-		wp_print_inline_script_tag( $output, array( 'id' => "{$handle}-js-extra" ) );
+		printf( "<script%s id='%s-js-extra'>\n", $this->type_attr, esc_attr( $handle ) );
+
+		// CDATA is not needed for HTML 5.
+		if ( $this->type_attr ) {
+			echo "/* <![CDATA[ */\n";
+		}
+
+		echo "$output\n";
+
+		if ( $this->type_attr ) {
+			echo "/* ]]> */\n";
+		}
+
+		echo "</script>\n";
 
 		return true;
 	}
@@ -303,7 +335,7 @@ class WP_Scripts extends WP_Dependencies {
 
 		$translations = $this->print_translations( $handle, false );
 		if ( $translations ) {
-			$translations = wp_get_inline_script_tag( $translations, array( 'id' => "{$handle}-js-translations" ) );
+			$translations = sprintf( "<script%s id='%s-js-translations'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $translations );
 		}
 
 		if ( $this->do_concat ) {
@@ -371,24 +403,21 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		/** This filter is documented in wp-includes/class-wp-scripts.php */
-		$src = esc_url_raw( apply_filters( 'script_loader_src', $src, $handle ) );
+		$src = esc_url( apply_filters( 'script_loader_src', $src, $handle ) );
 
 		if ( ! $src ) {
 			return true;
 		}
 
-		$attr = array(
-			'src' => $src,
-			'id'  => "{$handle}-js",
-		);
-		if ( $strategy ) {
-			$attr[ $strategy ] = true;
-		}
-		if ( $intended_strategy ) {
-			$attr['data-wp-strategy'] = $intended_strategy;
-		}
 		$tag  = $translations . $cond_before . $before_script;
-		$tag .= wp_get_script_tag( $attr );
+		$tag .= sprintf(
+			"<script%s src='%s' id='%s-js'%s%s></script>\n",
+			$this->type_attr,
+			$src, // Value is escaped above.
+			esc_attr( $handle ),
+			$strategy ? " {$strategy}" : '',
+			$intended_strategy ? " data-wp-strategy='{$intended_strategy}'" : ''
+		);
 		$tag .= $after_script . $cond_after;
 
 		/**
@@ -691,7 +720,7 @@ class WP_Scripts extends WP_Dependencies {
 JS;
 
 		if ( $display ) {
-			wp_print_inline_script_tag( $output, array( 'id' => "{$handle}-js-translations" ) );
+			printf( "<script%s id='%s-js-translations'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $output );
 		}
 
 		return $output;
