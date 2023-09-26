@@ -108,14 +108,14 @@ function wp_default_packages_vendor( $scripts ) {
 	$vendor_scripts_versions = array(
 		'react'                       => '18.2.0',
 		'react-dom'                   => '18.2.0',
-		'regenerator-runtime'         => '0.13.11',
+		'regenerator-runtime'         => '0.14.0',
 		'moment'                      => '2.29.4',
 		'lodash'                      => '4.17.19',
 		'wp-polyfill-fetch'           => '3.6.17',
 		'wp-polyfill-formdata'        => '4.0.10',
-		'wp-polyfill-node-contains'   => '4.6.0',
+		'wp-polyfill-node-contains'   => '4.8.0',
 		'wp-polyfill-url'             => '3.6.4',
-		'wp-polyfill-dom-rect'        => '4.6.0',
+		'wp-polyfill-dom-rect'        => '4.8.0',
 		'wp-polyfill-element-closest' => '3.0.2',
 		'wp-polyfill-object-fit'      => '2.3.5',
 		'wp-polyfill-inert'           => '3.1.2',
@@ -2717,7 +2717,7 @@ function enqueue_editor_block_styles_assets() {
 	$register_script_lines[] = '} )();';
 	$inline_script           = implode( "\n", $register_script_lines );
 
-	wp_register_script( 'wp-block-styles', false, array( 'wp-blocks' ), true, true );
+	wp_register_script( 'wp-block-styles', false, array( 'wp-blocks' ), true, array( 'in_footer' => true ) );
 	wp_add_inline_script( 'wp-block-styles', $inline_script );
 	wp_enqueue_script( 'wp-block-styles' );
 }
@@ -2787,7 +2787,11 @@ function wp_sanitize_script_attributes( $attributes ) {
  */
 function wp_get_script_tag( $attributes ) {
 	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
-		$attributes['type'] = 'text/javascript';
+		// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
+		$attributes = array_merge(
+			array( 'type' => 'text/javascript' ),
+			$attributes
+		);
 	}
 	/**
 	 * Filters attributes to be added to a script tag.
@@ -2830,9 +2834,23 @@ function wp_print_script_tag( $attributes ) {
  * @return string String containing inline JavaScript code wrapped around `<script>` tag.
  */
 function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
-	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
-		$attributes['type'] = 'text/javascript';
+	$is_html5 = current_theme_supports( 'html5', 'script' ) || is_admin();
+	if ( ! isset( $attributes['type'] ) && ! $is_html5 ) {
+		// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
+		$attributes = array_merge(
+			array( 'type' => 'text/javascript' ),
+			$attributes
+		);
 	}
+
+	// Ensure markup is XHTML compatible if not HTML5.
+	if ( ! $is_html5 ) {
+		$javascript = str_replace( ']]>', ']]]]><![CDATA[>', $javascript ); // Escape any existing CDATA section.
+		$javascript = sprintf( "/* <![CDATA[ */\n%s\n/* ]]> */", $javascript );
+	}
+
+	$javascript = "\n" . trim( $javascript, "\n\r " ) . "\n";
+
 	/**
 	 * Filters attributes to be added to a script tag.
 	 *
@@ -2844,8 +2862,6 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 	 * @param string $javascript Inline JavaScript code.
 	 */
 	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $javascript );
-
-	$javascript = "\n" . trim( $javascript, "\n\r " ) . "\n";
 
 	return sprintf( "<script%s>%s</script>\n", wp_sanitize_script_attributes( $attributes ), $javascript );
 }
@@ -3053,7 +3069,7 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
  *     Default empty array.
  *
  *     @type bool $optimize Whether to optimize the CSS output, e.g., combine rules.
- *                          Default true.
+ *                          Default false.
  *     @type bool $prettify Whether to add new lines and indents to output.
  *                          Default to whether the `SCRIPT_DEBUG` constant is defined.
  * }
