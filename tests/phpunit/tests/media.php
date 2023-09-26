@@ -5162,8 +5162,8 @@ EOF;
 				array( '', '<img fetchpriority="high" ' ),
 				preg_replace_callback(
 					'/gallery-(\d+)/',
-					static function ( $match ) {
-						return 'gallery-' . ( (int) $match[1] + 1 );
+					static function ( $matches ) {
+						return 'gallery-' . ( (int) $matches[1] + 1 );
 					},
 					do_shortcode( '[gallery ids="' . self::$large_id . '" size="large" id="' . $post_id . '"]' )
 				)
