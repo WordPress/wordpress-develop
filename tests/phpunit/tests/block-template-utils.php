@@ -361,8 +361,11 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54448
+	 * @ticket 59460
 	 *
 	 * @dataProvider data_remove_theme_attribute_in_block_template_content
+	 *
+	 * @expectedDeprecated _remove_theme_attribute_in_block_template_content
 	 */
 	public function test_remove_theme_attribute_in_block_template_content( $template_content, $expected ) {
 		$this->assertSame( $expected, _remove_theme_attribute_in_block_template_content( $template_content ) );
