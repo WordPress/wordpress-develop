@@ -312,6 +312,10 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59452
+	 *
+	 * @covers ::_inject_theme_attribute_in_block_template_content
+	 *
 	 * @expectedDeprecated _inject_theme_attribute_in_block_template_content
 	 */
 	public function test_inject_theme_attribute_in_block_template_content() {
