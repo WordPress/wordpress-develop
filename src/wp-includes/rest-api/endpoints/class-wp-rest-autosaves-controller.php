@@ -235,7 +235,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			$autosave_id = wp_update_post( wp_slash( (array) $prepared_post ), true );
 		} else {
 			// Non-draft posts: create or update the post autosave. Pass the meta data.
-			$autosave_id = $this->create_post_autosave( (array) $prepared_post, $request->get_param( 'meta' ) );
+			$autosave_id = $this->create_post_autosave( (array) $prepared_post, (array) $request->get_param( 'meta' ) );
 		}
 
 		if ( is_wp_error( $autosave_id ) ) {
