@@ -311,6 +311,13 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 59452
+	 *
+	 * @covers ::_inject_theme_attribute_in_block_template_content
+	 *
+	 * @expectedDeprecated _inject_theme_attribute_in_block_template_content
+	 */
 	public function test_inject_theme_attribute_in_block_template_content() {
 		$theme                           = get_stylesheet();
 		$content_without_theme_attribute = '<!-- wp:template-part {"slug":"header","align":"full", "tagName":"header","className":"site-header"} /-->';
