@@ -80,4 +80,5 @@ class Tests_Filesystem_UnzipFileZiparchive extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $filter->get_call_count() );
 	}
+
 }
