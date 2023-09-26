@@ -1049,9 +1049,15 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * Removing an attribute that's listed many times, e.g. `<div id="a" id="b" />` should remove
 	 * all its instances and output just `<div />`.
 	 *
-	 * @since 6.3.2 Removes all duplicated attributes as expected.
+	 * Today, however, WP_HTML_Tag_Processor only removes the first such attribute. It seems like a corner case
+	 * and introducing additional complexity to correctly handle this scenario doesn't seem to be worth it.
+	 * Let's revisit if and when this becomes a problem.
 	 *
-	 * @ticket 58119
+	 * This test is in place to confirm this behavior, which while incorrect, is well-defined.
+	 * A later fix introduced to the Tag Processor should update this test to reflect the
+	 * wanted and correct behavior.
+	 *
+	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::remove_attribute
 	 */
@@ -1060,8 +1066,8 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$p->next_tag();
 		$p->remove_attribute( 'id' );
 
-		$this->assertStringNotContainsString(
-			'update-me',
+		$this->assertSame(
+			'<div  id="ignored-id"><span id="second">Text</span></div>',
 			$p->get_updated_html(),
 			'First attribute (when duplicates exist) was not removed'
 		);
@@ -1081,61 +1087,6 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'<div ><span id="second">Text</span></div>',
 			$p->get_updated_html(),
 			'Attribute was not removed'
-		);
-	}
-
-	/**
-	 * @ticket 58119
-	 *
-	 * @since 6.3.2 Removes all duplicated attributes as expected.
-	 *
-	 * @covers WP_HTML_Tag_Processor::remove_attribute
-	 *
-	 * @dataProvider data_html_with_duplicated_attributes
-	 */
-	public function test_remove_attribute_with_duplicated_attributes_removes_all_of_them( $html_with_duplicate_attributes, $attribute_to_remove ) {
-		$p = new WP_HTML_Tag_Processor( $html_with_duplicate_attributes );
-		$p->next_tag();
-
-		$p->remove_attribute( $attribute_to_remove );
-		$this->assertNull( $p->get_attribute( $attribute_to_remove ), 'Failed to remove all copies of an attribute when duplicated in modified source.' );
-
-		// Recreate a tag processor with the updated HTML after removing the attribute.
-		$p = new WP_HTML_Tag_Processor( $p->get_updated_html() );
-		$p->next_tag();
-		$this->assertNull( $p->get_attribute( $attribute_to_remove ), 'Failed to remove all copies of duplicated attributes when getting updated HTML.' );
-	}
-
-	/**
-	 * @ticket 58119
-	 *
-	 * @since 6.3.2 Removes all duplicated attributes as expected.
-	 *
-	 * @covers WP_HTML_Tag_Processor::remove_attribute
-	 */
-	public function test_previous_duplicated_attributes_are_not_removed_on_successive_tag_removal() {
-		$p = new WP_HTML_Tag_Processor( '<span id=one id=two id=three><span id=four>' );
-		$p->next_tag();
-		$p->next_tag();
-		$p->remove_attribute( 'id' );
-
-		$this->assertSame( '<span id=one id=two id=three><span >', $p->get_updated_html() );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @ticket 58119
-	 *
-	 * @return array[].
-	 */
-	public function data_html_with_duplicated_attributes() {
-		return array(
-			'Double attributes'               => array( '<div id=one id=two>', 'id' ),
-			'Triple attributes'               => array( '<div id=one id=two id=three>', 'id' ),
-			'Duplicates around another'       => array( '<img src="test.png" alt="kites flying in the wind" src="kites.jpg">', 'src' ),
-			'Case-variants of attribute'      => array( '<button disabled inert DISABLED dISaBled INERT DisABleD>', 'disabled' ),
-			'Case-variants of attribute name' => array( '<button disabled inert DISABLED dISaBled INERT DisABleD>', 'DISABLED' ),
 		);
 	}
 
