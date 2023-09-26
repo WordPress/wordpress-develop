@@ -77,7 +77,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@4bd44f22a98a19e0950cbad5f31095157cc9621b # v2.25.4
         with:
-          php-version: '7.4'
+          php-version: 'latest'
           coverage: none
           tools: cs2pr
 
