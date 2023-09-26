@@ -770,7 +770,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	 * @var string|null
 	 */
 	$inner_block_wrapper_classes = null;
-	$first_chunk                 = isset($block['innerContent'][0]) ? $block['innerContent'][0] : null;
+	$first_chunk                 = isset( $block['innerContent'][0] ) ? $block['innerContent'][0] : null;
 	if ( is_string( $first_chunk ) && count( $block['innerContent'] ) > 1 ) {
 		$first_chunk_processor = new WP_HTML_Tag_Processor( $first_chunk );
 		while ( $first_chunk_processor->next_tag() ) {
