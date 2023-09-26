@@ -1470,7 +1470,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 
 			return false;
 		} else if ( ! empty( $object_subtype ) && ! post_type_supports( $object_subtype, 'revisions' ) ) {
-			_doing_it_wrong( __FUNCTION__, __( 'Meta keys cannot enable revisions support unless the object type supports revisions.' ), '6.4.0' );
+			_doing_it_wrong( __FUNCTION__, __( 'Meta keys cannot enable revisions support unless the object subtype supports revisions.' ), '6.4.0' );
 
 			return false;
 		}
