@@ -41,16 +41,16 @@ class Tests_Admin_WpTermsListTable extends WP_UnitTestCase {
 	/**
 	 * Call an inaccessible (private or protected) method.
 	 *
-	 * @param object|string $instance    Object instance or class string to call the method of.
+	 * @param object|string $object      Object instance or class string to call the method of.
 	 * @param string        $method_name Name of the method to call.
 	 * @param array         $args        Optional. Array of arguments to pass to the method.
 	 * @return mixed Return value of the method call.
 	 * @throws ReflectionException If the object could not be reflected upon.
 	 */
-	private function call_inaccessible_method( $instance, $method_name, $args = array() ) {
-		$method = ( new ReflectionClass( $instance ) )->getMethod( $method_name );
+	private function call_inaccessible_method( $object, $method_name, $args = array() ) {
+		$method = ( new ReflectionClass( $object ) )->getMethod( $method_name );
 		$method->setAccessible( true );
-		return $method->invokeArgs( $instance, $args );
+		return $method->invokeArgs( $object, $args );
 	}
 
 	/**
