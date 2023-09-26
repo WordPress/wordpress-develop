@@ -63,11 +63,11 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 					padding-bottom: var(--wp--preset--spacing--10);
 					border-bottom: 1px solid rgba(255, 255, 255, 0.20);
 				}
-				
+
 				.is-style-arrow-icon-details summary {
 					list-style-type: "\2193\00a0\00a0\00a0";
 				}
-				
+
 				.is-style-arrow-icon-details[open]>summary {
 					list-style-type: "\2192\00a0\00a0\00a0";
 				}',
@@ -90,7 +90,7 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 					padding: 0.375rem 0.875rem;
 					border-radius: var(--wp--preset--spacing--20);
 				}
-				
+
 				.is-style-pill a:hover {
 					background-color: var(--wp--preset--color--contrast-3);
 				}',
@@ -109,7 +109,7 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 				ul.is-style-checkmark-list {
 					list-style-type: "\2713";
 				}
-				
+
 				ul.is-style-checkmark-list li {
 					padding-inline-start: 1ch;
 				}',
@@ -129,15 +129,15 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 					clip-path: path('M11.93.684v8.039l5.633-5.633 1.216 1.23-5.66 5.66h8.04v1.737H13.2l5.701 5.701-1.23 1.23-5.742-5.742V21h-1.737v-8.094l-5.77 5.77-1.23-1.217 5.743-5.742H.842V9.98h8.162l-5.701-5.7 1.23-1.231 5.66 5.66V.684h1.737Z');
 					display: block;
 				}
-				
+
 				.is-style-asterisk.has-text-align-center:before {
 					margin: 0 auto;
 				}
-				
+
 				.is-style-asterisk.has-text-align-right:before {
 					margin-left: auto;
 				}
-				
+
 				.rtl .is-style-asterisk.has-text-align-left:before {
 					margin-right: auto;
 				}",
@@ -147,3 +147,22 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 endif;
 
 add_action( 'init', 'twentytwentyfour_block_styles' );
+
+if ( ! function_exists( 'twentytwentyfour_img_tag_add_width_and_height_attr' ) ) :
+
+	function twentytwentyfour_img_tag_add_width_and_height_attr( $value, $image, $context, $attachment_id, $image_src ) {
+		$theme_dir = get_template_directory_uri();
+
+		switch ( $image_src ) {
+			case "{$theme_dir}/assets/images/business-hero.webp":
+				return array(
+					'width'  => 2560,
+					'height' => 1200,
+				);
+		}
+
+		return $value;
+	}
+endif;
+
+add_filter( 'wp_img_tag_add_width_and_height_attr', 'twentytwentyfour_img_tag_add_width_and_height_attr', 10, 5 );
