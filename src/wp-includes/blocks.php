@@ -788,11 +788,7 @@ function make_before_block_visitor( $context ) {
 			$anchor_block_type  = $parent_block['blockName'];
 			$hooked_block_types = get_hooked_blocks( $anchor_block_type );
 
-			if ( isset( $hooked_block_types[ $relative_position ] ) ) {
-				$hooked_block_types = $hooked_block_types[ $relative_position ];
-			} else {
-				$hooked_block_types = array();
-			}
+			$hooked_block_types = isset( $hooked_block_types[ $relative_position ] ) ? $hooked_block_types[ $relative_position ] : array();
 
 			/**
 			 * Filters the list of hooked block types for a given anchor block type and relative position.
