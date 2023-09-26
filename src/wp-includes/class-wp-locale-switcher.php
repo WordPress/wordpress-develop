@@ -283,6 +283,8 @@ class WP_Locale_Switcher {
 
 		$wp_locale = new WP_Locale();
 
+		Ginger_MO::instance()->set_locale( $locale );
+
 		/**
 		 * Fires when the locale is switched to or restored.
 		 *

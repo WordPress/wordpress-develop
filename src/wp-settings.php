@@ -114,6 +114,12 @@ require ABSPATH . WPINC . '/class-wp-matchesmapregex.php';
 require ABSPATH . WPINC . '/class-wp.php';
 require ABSPATH . WPINC . '/class-wp-error.php';
 require ABSPATH . WPINC . '/pomo/mo.php';
+require ABSPATH . WPINC . '/ginger-mo/class-ginger-mo.php';
+require ABSPATH . WPINC . '/ginger-mo/class-ginger-mo-translations.php';
+require ABSPATH . WPINC . '/ginger-mo/class-ginger-mo-translation-file.php';
+require ABSPATH . WPINC . '/ginger-mo/class-ginger-mo-translation-file-mo.php';
+require ABSPATH . WPINC . '/ginger-mo/class-ginger-mo-translation-file-json.php';
+require ABSPATH . WPINC . '/ginger-mo/class-ginger-mo-translation-file-php.php';
 
 /**
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -603,6 +609,8 @@ $GLOBALS['wp_locale'] = new WP_Locale();
  */
 $GLOBALS['wp_locale_switcher'] = new WP_Locale_Switcher();
 $GLOBALS['wp_locale_switcher']->init();
+
+Ginger_MO::instance()->set_locale( $locale );
 
 // Load the functions for the active theme, for both parent and child theme if applicable.
 foreach ( wp_get_active_and_valid_themes() as $theme ) {
