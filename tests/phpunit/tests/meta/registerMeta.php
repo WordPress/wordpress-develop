@@ -1117,5 +1117,4 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 
 		$this->assertFalse( $register );
 	}
-
 }

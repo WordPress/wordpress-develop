@@ -1464,12 +1464,12 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	}
 
 	$object_subtype = ! empty( $args['object_subtype'] ) ? $args['object_subtype'] : '';
-	if( $args['revisions_enabled'] ) {
-		if( 'post' !== $object_type ) {
+	if ( $args['revisions_enabled'] ) {
+		if ( 'post' !== $object_type ) {
 			_doing_it_wrong( __FUNCTION__, __( 'Meta keys cannot enable revisions support unless the object type supports revisions.' ), '6.4.0' );
 
 			return false;
-		} else if ( ! empty( $object_subtype ) && ! post_type_supports( $object_subtype, 'revisions' ) ) {
+		} elseif ( ! empty( $object_subtype ) && ! post_type_supports( $object_subtype, 'revisions' ) ) {
 			_doing_it_wrong( __FUNCTION__, __( 'Meta keys cannot enable revisions support unless the object subtype supports revisions.' ), '6.4.0' );
 
 			return false;

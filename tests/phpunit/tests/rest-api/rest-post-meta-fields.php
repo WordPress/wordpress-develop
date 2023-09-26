@@ -1396,7 +1396,6 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( 'meta', $data );
 		$this->assertArrayHasKey( $meta_key, $data['meta'] );
 		$this->assertSame( $meta_value, $data['meta'][ $meta_key ] );
-
 	}
 
 	public function data_update_value_return_success_with_same_value() {
