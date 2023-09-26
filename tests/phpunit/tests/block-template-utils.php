@@ -368,6 +368,29 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( $expected, _remove_theme_attribute_in_block_template_content( $template_content ) );
 	}
 
+	/**
+	 * @ticket 59460
+	 *
+	 * @covers ::_remove_theme_attribute_from_template_part_block
+	 * @covers ::traverse_and_serialize_blocks
+	 *
+	 * @dataProvider data_remove_theme_attribute_in_block_template_content
+	 *
+	 * @param string $template_content The template markup.
+	 * @param string $expected         The expected markup after removing the theme attribute from Template Part blocks.
+	 */
+	public function test_remove_theme_attribute_from_template_part_block( $template_content, $expected ) {
+		$template_content_parsed_blocks = parse_blocks( $template_content );
+
+		$this->assertSame(
+			$expected,
+			traverse_and_serialize_blocks(
+				$template_content_parsed_blocks,
+				'_remove_theme_attribute_from_template_part_block'
+			)
+		);
+	}
+
 	public function data_remove_theme_attribute_in_block_template_content() {
 		return array(
 			array(

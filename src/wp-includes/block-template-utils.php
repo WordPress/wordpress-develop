@@ -523,6 +523,24 @@ function _remove_theme_attribute_in_block_template_content( $template_content ) 
 }
 
 /**
+ * Removes the `theme` attribute from a given template part block.
+ *
+ * @since 6.4.0
+ * @access private
+ *
+ * @param array $block a parsed block.
+ * @return void
+ */
+function _remove_theme_attribute_from_template_part_block( &$block ) {
+	if (
+		'core/template-part' === $block['blockName'] &&
+		isset( $block['attrs']['theme'] )
+	) {
+		unset( $block['attrs']['theme'] );
+	}
+}
+
+/**
  * Builds a unified template object based on a theme file.
  *
  * @since 5.9.0
