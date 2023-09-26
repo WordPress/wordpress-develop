@@ -239,9 +239,7 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 	/**
 	 * @ticket 44941
 	 * @global array $wp_settings_errors
-	 * @dataProvider settings_errors_css_classes_provider
-	 *
-	 * @covers ::settings_errors
+
 	 */
 	public function test_settings_errors_css_classes( $type, $expected ) {
 		global $wp_settings_errors;
@@ -308,5 +306,4 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 		// This doesn't actually get removed due to the invalid priority.
 		remove_meta_box( 'dashboard2', 'dashboard', 'normal' );
 	}
-
 }

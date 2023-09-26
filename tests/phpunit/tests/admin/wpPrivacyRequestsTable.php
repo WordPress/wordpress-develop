@@ -5,15 +5,9 @@
  * @package WordPress\UnitTests
  *
  * @since 5.1.0
- */
-
-/**
- * Tests_Admin_wpPrivacyRequestsTable class.
  *
  * @group admin
  * @group privacy
- *
- * @since 5.1.0
  */
 class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 
@@ -79,8 +73,8 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	 * @param string|null $search   Search term.
 	 * @param string      $expected Expected in SQL query.
 
-	 * @dataProvider data_test_columns_should_be_sortable
-	 * @ticket 43960
+
+	 * @dataProvider data_columns_should_be_sortable
 	 *
 	 * @covers WP_Privacy_Requests_Table::prepare_items
 	 */
@@ -132,7 +126,7 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_test_columns_should_be_sortable() {
+	public function data_columns_should_be_sortable() {
 		return array(
 			// Default order (ID) DESC.
 			array(

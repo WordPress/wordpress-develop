@@ -27,6 +27,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
+	public function filter_wp_rest_server_class( $class_name ) {
+		return 'Spy_REST_Server';
+	}
+
 	/**
 	 * Checks that the main classes are loaded.
 	 *
@@ -891,7 +895,14 @@ class Tests_REST_API extends WP_UnitTestCase {
 		unset( $filter );
 	}
 
-	public function jsonp_callback_provider() {
+	/**
+	 * @dataProvider data_jsonp_callback_check
+	 */
+	public function test_jsonp_callback_check( $callback, $expected ) {
+		$this->assertSame( $expected, wp_check_jsonp_callback( $callback ) );
+	}
+
+	public function data_jsonp_callback_check() {
 		return array(
 			// Standard names.
 			array( 'Springfield', true ),
@@ -910,15 +921,15 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider jsonp_callback_provider
+	 * @dataProvider data_rest_parse_date
 	 *
 	 * @covers ::wp_check_jsonp_callback
 	 */
-	public function test_jsonp_callback_check( $callback, $valid ) {
-		$this->assertSame( $valid, wp_check_jsonp_callback( $callback ) );
+	public function test_rest_parse_date( $date, $expected ) {
+		$this->assertEquals( $expected, rest_parse_date( $date ) );
 	}
 
-	public function rest_date_provider() {
+	public function data_rest_parse_date() {
 		return array(
 			// Valid dates with timezones.
 			array( '2017-01-16T11:30:00-05:00', gmmktime( 11, 30, 0, 1, 16, 2017 ) + 5 * HOUR_IN_SECONDS ),
@@ -944,15 +955,15 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider rest_date_provider
+	 * @dataProvider data_rest_parse_date_force_utc
 	 *
 	 * @covers ::rest_parse_date
 	 */
-	public function test_rest_parse_date( $string, $value ) {
-		$this->assertEquals( $value, rest_parse_date( $string ) );
+	public function test_rest_parse_date_force_utc( $date, $expected ) {
+		$this->assertSame( $expected, rest_parse_date( $date, true ) );
 	}
 
-	public function rest_date_force_utc_provider() {
+	public function data_rest_parse_date_force_utc() {
 		return array(
 			// Valid dates with timezones.
 			array( '2017-01-16T11:30:00-05:00', gmmktime( 11, 30, 0, 1, 16, 2017 ) ),
@@ -975,19 +986,6 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array( '2017-01', false ),
 			array( '2017', false ),
 		);
-	}
-
-	/**
-	 * @dataProvider rest_date_force_utc_provider
-	 *
-	 * @covers ::rest_parse_date
-	 */
-	public function test_rest_parse_date_force_utc( $string, $value ) {
-		$this->assertSame( $value, rest_parse_date( $string, true ) );
-	}
-
-	public function filter_wp_rest_server_class( $class_name ) {
-		return 'Spy_REST_Server';
 	}
 
 	/**
@@ -1881,7 +1879,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider rest_ensure_response_data_provider
+	 * @dataProvider data_rest_ensure_response_returns_instance_of_wp_rest_response
 	 *
 	 * @param mixed $response      The response passed to rest_ensure_response().
 	 * @param mixed $expected_data The expected data a response should include.
@@ -1899,7 +1897,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function rest_ensure_response_data_provider() {
+	public function data_rest_ensure_response_returns_instance_of_wp_rest_response() {
 		return array(
 			array( null, null ),
 			array( array( 'chocolate' => 'cookies' ), array( 'chocolate' => 'cookies' ) ),
@@ -2651,10 +2649,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'description', $preload_data['/']['body'] );
 		$this->assertArrayHasKey( 'routes', $preload_data['/']['body'] );
 
-		// Filtered request only has the desired fields + links
+		// Filtered request only has the desired fields.
 		$this->assertSame(
 			array_keys( $preload_data['/?_fields=description']['body'] ),
-			array( 'description', '_links' )
+			array( 'description' )
 		);
 	}
 

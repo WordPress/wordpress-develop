@@ -770,7 +770,6 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			$this->assertIsInt( $post->ID );
 			$this->assertIsInt( $post->post_parent );
 		}
-
 	}
 
 	/**

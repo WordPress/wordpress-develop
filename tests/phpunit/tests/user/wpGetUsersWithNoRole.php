@@ -44,7 +44,6 @@ class Tests_User_wpGetUsersWithNoRole extends WP_UnitTestCase {
 			),
 			$users
 		);
-
 	}
 
 	/**
@@ -151,5 +150,4 @@ class Tests_User_wpGetUsersWithNoRole extends WP_UnitTestCase {
 
 		$this->assertEmpty( $users );
 	}
-
 }

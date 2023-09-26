@@ -397,7 +397,6 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 			$this->go_to( "/{$feed}/" );
 			$this->assertQueryTrue( 'is_feed' );
 		}
-
 	}
 
 	public function test_main_feed() {
@@ -442,7 +441,6 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 				$this->go_to( "/comments/{$type}" );
 				$this->assertQueryTrue( 'is_feed', 'is_comment_feed' );
 		}
-
 	}
 
 	// 'search/(.+)/feed/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?s=$matches[1]&feed=$matches[2]',
@@ -773,7 +771,6 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $post_id ) . '2/' );
 		// Should is_paged be true also?
 		$this->assertQueryTrue( 'is_single', 'is_singular' );
-
 	}
 
 	// '[0-9]{4}/[0-9]{1,2}/[0-9]{1,2}/[^/]+/([^/]+)/?$' => 'index.php?attachment=$matches[1]',
@@ -1646,14 +1643,14 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		// Get the list of `is_*()` conditional tags.
 		$functions = array_filter(
 			get_class_methods( 'WP_Query' ),
-			static function( $function_name ) {
+			static function ( $function_name ) {
 				return str_starts_with( $function_name, 'is_' );
 			}
 		);
 
 		// Wrap each function name in an array.
 		$functions = array_map(
-			static function( $function_name ) {
+			static function ( $function_name ) {
 				return array( $function_name );
 			},
 			$functions
@@ -1694,5 +1691,4 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 			array( 'the_comment', null ),
 		);
 	}
-
 }

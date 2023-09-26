@@ -56,7 +56,7 @@ if ( ! function_exists( 'mb_substr' ) ) :
 	 * @param string|null $encoding Optional. Character encoding to use. Default null.
 	 * @return string Extracted substring.
 	 */
-	function mb_substr( $string, $start, $length = null, $encoding = null ) {
+	function mb_substr( $string, $start, $length = null, $encoding = null ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.stringFound
 		return _mb_substr( $string, $start, $length, $encoding );
 	}
 endif;
@@ -148,7 +148,7 @@ if ( ! function_exists( 'mb_strlen' ) ) :
 	 * @param string|null $encoding Optional. Character encoding to use. Default null.
 	 * @return int String length of `$string`.
 	 */
-	function mb_strlen( $string, $encoding = null ) {
+	function mb_strlen( $string, $encoding = null ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.stringFound
 		return _mb_strlen( $string, $encoding );
 	}
 endif;
@@ -156,7 +156,7 @@ endif;
 /**
  * Internal compat function to mimic mb_strlen().
  *
- * Only understands UTF-8 and 8bit.  All other character sets will be treated as 8bit.
+ * Only understands UTF-8 and 8bit. All other character sets will be treated as 8bit.
  * For `$encoding === UTF-8`, the `$str` input is expected to be a valid UTF-8 byte
  * sequence. The behavior of this function for invalid inputs is undefined.
  *
@@ -203,7 +203,7 @@ function _mb_strlen( $str, $encoding = null ) {
 
 	do {
 		// We had some string left over from the last round, but we counted it in that last round.
-		$count--;
+		--$count;
 
 		/*
 		 * Split by UTF-8 character, limit to 1000 characters (last array element will contain
@@ -333,10 +333,6 @@ if ( ! function_exists( 'hash_equals' ) ) :
 	}
 endif;
 
-// random_int() was introduced in PHP 7.0.
-if ( ! function_exists( 'random_int' ) ) {
-	require ABSPATH . WPINC . '/random_compat/random.php';
-}
 // sodium_crypto_box() was introduced in PHP 7.2.
 if ( ! function_exists( 'sodium_crypto_box' ) ) {
 	require ABSPATH . WPINC . '/sodium_compat/autoload.php';
@@ -393,7 +389,7 @@ if ( ! function_exists( 'array_key_first' ) ) {
 	 * @return string|int|null The first key of array if the array
 	 *                         is not empty; `null` otherwise.
 	 */
-	function array_key_first( array $array ) {
+	function array_key_first( array $array ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
 		foreach ( $array as $key => $value ) {
 			return $key;
 		}
@@ -413,7 +409,7 @@ if ( ! function_exists( 'array_key_last' ) ) {
 	 * @return string|int|null The last key of array if the array
 	 *.                        is not empty; `null` otherwise.
 	 */
-	function array_key_last( array $array ) {
+	function array_key_last( array $array ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
 		if ( empty( $array ) ) {
 			return null;
 		}
@@ -434,11 +430,15 @@ if ( ! function_exists( 'str_contains' ) ) {
 	 * @since 5.9.0
 	 *
 	 * @param string $haystack The string to search in.
-	 * @param string $needle   The substring to search for in the haystack.
+	 * @param string $needle   The substring to search for in the `$haystack`.
 	 * @return bool True if `$needle` is in `$haystack`, otherwise false.
 	 */
 	function str_contains( $haystack, $needle ) {
-		return ( '' === $needle || false !== strpos( $haystack, $needle ) );
+		if ( '' === $needle ) {
+			return true;
+		}
+
+		return false !== strpos( $haystack, $needle );
 	}
 }
 
@@ -478,13 +478,13 @@ if ( ! function_exists( 'str_ends_with' ) ) {
 	 * @return bool True if `$haystack` ends with `$needle`, otherwise false.
 	 */
 	function str_ends_with( $haystack, $needle ) {
-		if ( '' === $haystack && '' !== $needle ) {
-			return false;
+		if ( '' === $haystack ) {
+			return '' === $needle;
 		}
 
 		$len = strlen( $needle );
 
-		return 0 === substr_compare( $haystack, $needle, -$len, $len );
+		return substr( $haystack, -$len, $len ) === $needle;
 	}
 }
 

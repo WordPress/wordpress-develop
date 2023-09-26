@@ -1922,7 +1922,6 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$this->assertSameSets( array( $posts[0] ), $q->posts );
-
 	}
 
 	/**

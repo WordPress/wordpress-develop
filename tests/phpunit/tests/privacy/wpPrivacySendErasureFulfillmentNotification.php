@@ -5,14 +5,8 @@
  * @package WordPress
  * @subpackage UnitTests
  * @since 5.1.0
- */
-
-/**
- * Tests_Privacy_wpPrivacySendErasureFulfillmentNotification class.
  *
  * @group privacy
- *
- * @since 5.1.0
  *
  * @covers ::_wp_privacy_send_erasure_fulfillment_notification
  */

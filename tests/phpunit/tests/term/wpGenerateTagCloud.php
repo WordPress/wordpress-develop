@@ -10,7 +10,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	/**
 	 * Testing when passed $tags array is empty
 	 *
-	 * @dataProvider empty_tags_data_provider
+	 * @dataProvider data_empty_tags
 	 *
 	 * @param $expected Expected output from `wp_generate_tag_cloud()`.
 	 * @param $args     Options for `wp_generate_tag_cloud()`.
@@ -23,7 +23,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	/**
 	 * Testing when no tags are found
 	 *
-	 * @dataProvider empty_tags_data_provider
+	 * @dataProvider data_empty_tags
 	 *
 	 * @param $expected Expected output from `wp_generate_tag_cloud()`.
 	 * @param $args     Options for `wp_generate_tag_cloud()`.
@@ -43,7 +43,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function empty_tags_data_provider() {
+	public function data_empty_tags() {
 		return array(
 			// When 'format' => 'array', we should be getting an empty array back.
 			array(

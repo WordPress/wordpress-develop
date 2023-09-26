@@ -1,15 +1,9 @@
 <?php
 /**
- * Block registration tests
+ * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names(), and register_block_style().
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.0.0
- */
-
-/**
- * Tests for register_block_type(), unregister_block_type(), get_dynamic_block_names(), and register_block_style().
- *
  * @since 5.0.0
  *
  * @group blocks
@@ -299,6 +293,21 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$result   = register_block_script_handle( $metadata, 'script' );
 
 		$this->assertSame( 'unit-tests-test-block-script', $result );
+
+		// Test the behavior directly within the unit test
+		$this->assertFalse(
+			strpos(
+				wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $metadata['script'] ) ),
+				trailingslashit( wp_normalize_path( get_template_directory() ) )
+			) === 0
+		);
+
+		$this->assertFalse(
+			strpos(
+				wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $metadata['script'] ) ),
+				trailingslashit( wp_normalize_path( get_stylesheet_directory() ) )
+			) === 0
+		);
 	}
 
 	/**
@@ -358,12 +367,83 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58605
+	 *
+	 * @dataProvider data_register_block_style_handle_uses_correct_core_stylesheet
+	 *
+	 * @param string      $block_json_path Path to the `block.json` file, relative to ABSPATH.
+	 * @param string      $style_field     Either 'style' or 'editorStyle'.
+	 * @param string|bool $expected_path   Expected path of registered stylesheet, relative to ABSPATH.
+	 */
+	public function test_register_block_style_handle_uses_correct_core_stylesheet( $block_json_path, $style_field, $expected_path ) {
+		$metadata_file = ABSPATH . $block_json_path;
+		$metadata      = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
+
+		$block_name = str_replace( 'core/', '', $metadata['name'] );
+
+		// Normalize metadata similar to `register_block_type_from_metadata()`.
+		$metadata['file'] = wp_normalize_path( realpath( $metadata_file ) );
+		if ( ! isset( $metadata['style'] ) ) {
+			$metadata['style'] = "wp-block-$block_name";
+		}
+		if ( ! isset( $metadata['editorStyle'] ) ) {
+			$metadata['editorStyle'] = "wp-block-{$block_name}-editor";
+		}
+
+		// Ensure block assets are separately registered.
+		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+
+		/*
+		 * Account for minified asset path and ensure the file exists.
+		 * This may not be the case in the testing environment since it requires the build process to place them.
+		 */
+		if ( is_string( $expected_path ) ) {
+			$expected_path = str_replace( '.css', wp_scripts_get_suffix() . '.css', $expected_path );
+			self::touch( ABSPATH . $expected_path );
+		}
+
+		$result = register_block_style_handle( $metadata, $style_field );
+		$this->assertSame( $metadata[ $style_field ], $result, 'Core block registration failed' );
+		if ( $expected_path ) {
+			$this->assertStringEndsWith( $expected_path, wp_styles()->registered[ $result ]->src, 'Core block stylesheet path incorrect' );
+		} else {
+			$this->assertFalse( wp_styles()->registered[ $result ]->src, 'Core block stylesheet src should be false' );
+		}
+	}
+
+	public function data_register_block_style_handle_uses_correct_core_stylesheet() {
+		return array(
+			'block with style'           => array(
+				WPINC . '/blocks/archives/block.json',
+				'style',
+				WPINC . '/blocks/archives/style.css',
+			),
+			'block with editor style'    => array(
+				WPINC . '/blocks/archives/block.json',
+				'editorStyle',
+				WPINC . '/blocks/archives/editor.css',
+			),
+			'block without style'        => array(
+				WPINC . '/blocks/widget-group/block.json',
+				'style',
+				false,
+			),
+			'block without editor style' => array(
+				WPINC . '/blocks/widget-group/block.json',
+				'editorStyle',
+				false,
+			),
+		);
+	}
+
+	/**
 	 * @ticket 50263
 	 *
 	 * @covers ::register_block_script_handle
 	 */
 	public function test_handle_passed_register_block_style_handle() {
 		$metadata = array(
+			'name'  => 'test-block',
 			'style' => 'test-style-handle',
 		);
 		$result   = register_block_style_handle( $metadata, 'style' );
@@ -373,6 +453,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 	public function test_handles_passed_register_block_style_handles() {
 		$metadata = array(
+			'name'  => 'test-block',
 			'style' => array( 'test-style-handle', 'test-style-handle-2' ),
 		);
 
@@ -405,6 +486,88 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
 			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
 		);
+
+		// Test the behavior directly within the unit test
+		$this->assertFalse(
+			strpos(
+				wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $metadata['style'] ) ),
+				trailingslashit( wp_normalize_path( get_template_directory() ) )
+			) === 0
+		);
+
+		$this->assertFalse(
+			strpos(
+				wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $metadata['style'] ) ),
+				trailingslashit( wp_normalize_path( get_stylesheet_directory() ) )
+			) === 0
+		);
+	}
+
+	/**
+	 * Tests that register_block_style_handle() loads RTL stylesheets when an RTL locale is set.
+	 *
+	 * @ticket 56325
+	 * @ticket 56797
+	 *
+	 * @covers ::register_block_style_handle
+	 */
+	public function test_register_block_style_handle_should_load_rtl_stylesheets_for_rtl_text_direction() {
+		global $wp_locale;
+
+		$metadata = array(
+			'file'  => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'  => 'unit-tests/test-block-rtl',
+			'style' => 'file:./block.css',
+		);
+
+		$orig_text_dir             = $wp_locale->text_direction;
+		$wp_locale->text_direction = 'rtl';
+
+		$handle       = register_block_style_handle( $metadata, 'style' );
+		$extra_rtl    = wp_styles()->get_data( 'unit-tests-test-block-rtl-style', 'rtl' );
+		$extra_suffix = wp_styles()->get_data( 'unit-tests-test-block-rtl-style', 'suffix' );
+		$extra_path   = wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-rtl-style', 'path' ) );
+
+		$wp_locale->text_direction = $orig_text_dir;
+
+		$this->assertSame(
+			'unit-tests-test-block-rtl-style',
+			$handle,
+			'The handle did not match the expected handle.'
+		);
+
+		$this->assertSame(
+			'replace',
+			$extra_rtl,
+			'The extra "rtl" data was not "replace".'
+		);
+
+		$this->assertSame(
+			'',
+			$extra_suffix,
+			'The extra "suffix" data was not an empty string.'
+		);
+
+		$this->assertSame(
+			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block-rtl.css' ) ),
+			$extra_path,
+			'The "path" did not match the expected path.'
+		);
+	}
+
+	/**
+	 * @ticket 56664
+	 */
+	public function test_register_nonexistent_stylesheet() {
+		$metadata = array(
+			'file'  => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'  => 'unit-tests/test-block-nonexistent-stylesheet',
+			'style' => 'file:./nonexistent.css',
+		);
+		register_block_style_handle( $metadata, 'style' );
+
+		global $wp_styles;
+		$this->assertFalse( $wp_styles->registered['unit-tests-test-block-nonexistent-stylesheet-style']->src );
 	}
 
 	/**
@@ -425,6 +588,26 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$expected_style_handle = 'block-theme-example-block-editor-style';
 		$this->assertSame( $expected_style_handle, $result );
 		$this->assertFalse( wp_styles()->get_data( $expected_style_handle, 'rtl' ) );
+	}
+
+	/**
+	 * @ticket 58528
+	 *
+	 * @covers ::register_block_style_handle
+	 */
+	public function test_success_register_block_style_handle_exists() {
+		$expected_style_handle = 'block-theme-example-block-editor-style';
+		wp_register_style( $expected_style_handle, false );
+		switch_theme( 'block-theme' );
+
+		$metadata = array(
+			'file'        => wp_normalize_path( get_theme_file_path( 'blocks/example-block/block.json' ) ),
+			'name'        => 'block-theme/example-block',
+			'editorStyle' => 'file:./editor-style.css',
+		);
+		$result   = register_block_style_handle( $metadata, 'editorStyle' );
+
+		$this->assertSame( $expected_style_handle, $result );
 	}
 
 	/**
@@ -496,6 +679,23 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			$result->provides_context
 		);
 		$this->assertSameSets( array( 'groupId' ), $result->uses_context );
+		// @ticket 57585
+		$this->assertSame(
+			array( 'root' => '.wp-block-notice' ),
+			$result->selectors,
+			'Block type should contain selectors from metadata.'
+		);
+		// @ticket 59346
+		$this->assertSameSets(
+			array(
+				'tests/before'      => 'before',
+				'tests/after'       => 'after',
+				'tests/first-child' => 'first_child',
+				'tests/last-child'  => 'last_child',
+			),
+			$result->block_hooks,
+			'Block type should contain block hooks from metadata.'
+		);
 		$this->assertSame(
 			array(
 				'align'             => true,
@@ -579,6 +779,134 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result );
 		$this->assertSame( 'tests/notice', $result->name );
+	}
+
+	/**
+	 * Tests that an array value for 'editor_script' is correctly set and retrieved.
+	 *
+	 * As 'editor_script' is now a deprecated property, this should also set
+	 * the value for the 'editor_script_handles' property.
+	 *
+	 * @ticket 56707
+	 *
+	 * @covers ::register_block_type
+	 * @covers WP_Block_Type::__set
+	 * @covers WP_Block_Type::__get
+	 *
+	 * @dataProvider data_register_block_type_accepts_editor_script_array
+	 *
+	 * @param array $editor_script The editor script array to register.
+	 * @param array $expected      The expected registered editor script.
+	 */
+	public function test_register_block_type_accepts_editor_script_array( $editor_script, $expected ) {
+		$settings = array( 'editor_script' => $editor_script );
+		register_block_type( 'core/test-static', $settings );
+
+		$registry   = WP_Block_Type_Registry::get_instance();
+		$block_type = $registry->get_registered( 'core/test-static' );
+		$this->assertObjectHasProperty( 'editor_script_handles', $block_type );
+		$actual_script         = $block_type->editor_script;
+		$actual_script_handles = $block_type->editor_script_handles;
+
+		$this->assertSame(
+			$expected,
+			$actual_script,
+			'editor_script was not set to the correct value.'
+		);
+
+		$this->assertSame(
+			(array) $expected,
+			$actual_script_handles,
+			'editor_script_handles was not set to the correct value.'
+		);
+	}
+
+	/**
+	 * Data provider for test_register_block_type_accepts_editor_script_array().
+	 *
+	 * @return array
+	 */
+	public function data_register_block_type_accepts_editor_script_array() {
+		return array(
+			'an empty array'      => array(
+				'editor_script' => array(),
+				'expected'      => null,
+			),
+			'a single item array' => array(
+				'editor_script' => array( 'hello' ),
+				'expected'      => 'hello',
+			),
+			'a multi-item array'  => array(
+				'editor_script' => array( 'hello', 'world' ),
+				'expected'      => array( 'hello', 'world' ),
+			),
+		);
+	}
+
+	/**
+	 * Tests that an array value for 'editor_script' containing invalid values
+	 * correctly triggers _doing_it_wrong(), filters the value, and sets the
+	 * property to the result.
+	 *
+	 * As 'editor_script' is now a deprecated property, this should also set
+	 * the value for the 'editor_script_handles' property.
+	 *
+	 * @ticket 56707
+	 *
+	 * @covers ::register_block_type
+	 * @covers WP_Block_Type::__set
+	 * @covers WP_Block_Type::__get
+	 *
+	 * @dataProvider data_register_block_type_throws_doing_it_wrong
+	 *
+	 * @expectedIncorrectUsage WP_Block_Type::__set
+	 *
+	 * @param array $editor_script The editor script array to register.
+	 * @param array $expected      The expected registered editor script.
+	 */
+	public function test_register_block_type_throws_doing_it_wrong( $editor_script, $expected ) {
+		$settings = array( 'editor_script' => $editor_script );
+		register_block_type( 'core/test-static', $settings );
+
+		$registry   = WP_Block_Type_Registry::get_instance();
+		$block_type = $registry->get_registered( 'core/test-static' );
+		$this->assertObjectHasProperty( 'editor_script_handles', $block_type );
+		$actual_script         = $block_type->editor_script;
+		$actual_script_handles = $block_type->editor_script_handles;
+
+		$this->assertSame(
+			$expected,
+			$actual_script,
+			'editor_script was not set to the correct value.'
+		);
+
+		$this->assertSame(
+			(array) $expected,
+			$actual_script_handles,
+			'editor_script_handles was not set to the correct value.'
+		);
+	}
+
+	/**
+	 * Data provider for test_register_block_type_throws_doing_it_wrong().
+	 *
+	 * @return array
+	 */
+	public function data_register_block_type_throws_doing_it_wrong() {
+		return array(
+			'a non-string array'     => array(
+				'editor_script' => array( null, false, true, -1, 0, 1, -1.0, 0.0, 1.0, INF, NAN, new stdClass() ),
+				'expected'      => null,
+			),
+			'a partial string array' => array(
+				'editor_script' => array( null, false, 'script.js', true, 0, 'actions.js', 1, INF ),
+				'expected'      => array( 'script.js', 'actions.js' ),
+			),
+			'a partial string array that results in one item with non-zero index' => array(
+				'editor_script' => array( null, false, 'script.js' ),
+				'expected'      => 'script.js',
+			),
+		);
 	}
 
 	/**
@@ -698,7 +1026,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @uses WP_Block_Type_Registry
 	 */
 	public function test_filter_block_registration() {
-		$filter_registration = static function( $args, $name ) {
+		$filter_registration = static function ( $args, $name ) {
 			$args['attributes'] = array( $name => array( 'type' => 'boolean' ) );
 			return $args;
 		};
@@ -718,7 +1046,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @covers ::register_block_type_from_metadata
 	 */
 	public function test_filter_block_registration_metadata() {
-		$filter_metadata_registration = static function( $metadata ) {
+		$filter_metadata_registration = static function ( $metadata ) {
 			$metadata['apiVersion'] = 3;
 			return $metadata;
 		};
@@ -738,7 +1066,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @covers ::register_block_type_from_metadata
 	 */
 	public function test_filter_block_registration_metadata_settings() {
-		$filter_metadata_registration = static function( $settings, $metadata ) {
+		$filter_metadata_registration = static function ( $settings, $metadata ) {
 			$settings['api_version'] = $metadata['apiVersion'] + 1;
 			return $settings;
 		};
@@ -807,5 +1135,23 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		$actual = register_block_style( 'core/query', $block_styles );
 		$this->assertTrue( $actual );
+	}
+
+	/**
+	 * @ticket 59346
+	 *
+	 * @covers ::register_block_type
+	 *
+	 * @expectedIncorrectUsage register_block_type_from_metadata
+	 */
+	public function test_register_block_hooks_targeting_itself() {
+		$block_type = register_block_type(
+			DIR_TESTDATA . '/blocks/hooked-block-error'
+		);
+
+		$this->assertSame(
+			array( 'tests/other-block' => 'after' ),
+			$block_type->block_hooks
+		);
 	}
 }

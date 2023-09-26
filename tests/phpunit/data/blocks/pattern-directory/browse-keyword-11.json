@@ -10,7 +10,8 @@
 			"spay_email": "",
 			"wpop_description": "A heading preceded by a chapter number, and followed by a paragraph.",
 			"wpop_keywords": "",
-			"wpop_viewport_width": 1000
+			"wpop_viewport_width": 1000,
+			"wpop_block_types": []
 		},
 		"category_slugs": [ "text" ],
 		"keyword_slugs": [ "core" ],
@@ -27,7 +28,8 @@
 			"spay_email": "",
 			"wpop_description": "A large hero section with an example background image and a heading in the center.",
 			"wpop_keywords": "",
-			"wpop_viewport_width": 1000
+			"wpop_viewport_width": 1000,
+			"wpop_block_types": []
 		},
 		"category_slugs": [ "header" ],
 		"keyword_slugs": [ "core" ],
@@ -44,7 +46,8 @@
 			"spay_email": "",
 			"wpop_description": "A large hero section with a bright gradient background, a big heading and a filled button.",
 			"wpop_keywords": "",
-			"wpop_viewport_width": 1000
+			"wpop_viewport_width": 1000,
+			"wpop_block_types": []
 		},
 		"category_slugs": [ "header" ],
 		"keyword_slugs": [ "core" ],

@@ -804,5 +804,4 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 		$this->assertWPError( $found );
 		$this->assertSame( 'invalid_term', $found->get_error_code() );
 	}
-
 }

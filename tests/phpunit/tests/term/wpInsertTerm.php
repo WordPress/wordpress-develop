@@ -148,7 +148,6 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		_unregister_taxonomy( 'wptests_tax' );
 
 		$this->assertSame( 'quality', $term->slug );
-
 	}
 
 	public function test_wp_insert_term_slug_whitespace_string() {
@@ -853,7 +852,6 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$term_2 = get_term( $t2, 'wptests_tax' );
 		$this->assertSame( $t2, $term_2->term_id );
 		$this->assertSame( 'Foo', $term_2->name );
-
 	}
 
 	/**

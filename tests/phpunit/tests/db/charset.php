@@ -47,7 +47,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		self::$db_server_info = self::$_wpdb->db_server_info();
 
 		// Account for MariaDB version being prefixed with '5.5.5-' on older PHP versions.
-		if ( str_contains( self::$db_server_info, 'MariaDB' ) && '5.5.5' === self::$db_version
+		if ( '5.5.5' === self::$db_version && str_contains( self::$db_server_info, 'MariaDB' )
 			&& PHP_VERSION_ID < 80016 // PHP 8.0.15 or older.
 		) {
 			// Strip the '5.5.5-' prefix and set the version to the correct value.
@@ -775,7 +775,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_test_get_table_charset() {
+	public function data_get_table_charset() {
 		$table_name = 'test_get_table_charset';
 
 		$vars = array();
@@ -790,7 +790,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_test_get_table_charset
+	 * @dataProvider data_get_table_charset
 	 * @ticket 21212
 	 *
 	 * @covers wpdb::get_table_charset
@@ -816,7 +816,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_test_get_column_charset() {
+	public function data_get_column_charset() {
 		$table_name = 'test_get_column_charset';
 
 		$vars = array();
@@ -831,7 +831,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_test_get_column_charset
+	 * @dataProvider data_get_column_charset
 	 * @ticket 21212
 	 *
 	 * @covers wpdb::get_col_charset
@@ -858,7 +858,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_test_get_column_charset
+	 * @dataProvider data_get_column_charset
 	 * @ticket 21212
 	 *
 	 * @covers wpdb::get_col_charset
@@ -885,7 +885,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_test_get_column_charset
+	 * @dataProvider data_get_column_charset
 	 * @ticket 33501
 	 *
 	 * @covers wpdb::get_col_charset
@@ -1190,5 +1190,21 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		$this->assertSame( 'utf8mb4_unicode_ci', $results[0]->Value, 'Collation should be set to utf8mb4_unicode_ci.' );
 
 		self::$_wpdb->set_charset( self::$_wpdb->dbh );
+	}
+
+	/**
+	 * @ticket 54841
+	 */
+	public function test_mariadb_supports_utf8mb4_520() {
+		global $wpdb;
+
+		// utf8mb4_520 is available in MariaDB since version 10.2.
+		if ( ! str_contains( self::$db_server_info, 'MariaDB' )
+			|| version_compare( self::$db_version, '10.2', '<' )
+		) {
+			$this->markTestSkipped( 'This test requires MariaDB 10.2 or later.' );
+		}
+
+		$this->assertTrue( $wpdb->has_cap( 'utf8mb4_520' ) );
 	}
 }

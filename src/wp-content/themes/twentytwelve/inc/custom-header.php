@@ -71,7 +71,7 @@ function twentytwelve_header_style() {
 	$text_color = get_header_textcolor();
 
 	// If no custom options for text are set, let's bail.
-	if ( get_theme_support( 'custom-header', 'default-text-color' ) == $text_color ) {
+	if ( get_theme_support( 'custom-header', 'default-text-color' ) === $text_color ) {
 		return;
 	}
 
@@ -164,5 +164,29 @@ function twentytwelve_admin_header_image() {
 			<img src="<?php echo esc_url( $header_image ); ?>" class="header-image" width="<?php echo esc_attr( get_custom_header()->width ); ?>" height="<?php echo esc_attr( get_custom_header()->height ); ?>" alt="" />
 		<?php endif; ?>
 	</div>
+	<?php
+}
+
+
+/**
+ * Output markup to be displayed.
+ *
+ * @since Twenty Twelve 4.1
+ */
+function twentytwelve_header_image() {
+	$custom_header = get_custom_header();
+	$attrs         = array(
+		'alt'    => get_bloginfo( 'name', 'display' ),
+		'class'  => 'header-image',
+		'height' => $custom_header->height,
+		'width'  => $custom_header->width,
+	);
+
+	if ( function_exists( 'the_header_image_tag' ) ) {
+		the_header_image_tag( $attrs );
+		return;
+	}
+	?>
+	<img src="<?php header_image(); ?>" class="<?php echo esc_attr( $attrs['class'] ); ?>" width="<?php echo esc_attr( $attrs['width'] ); ?>" height="<?php echo esc_attr( $attrs['height'] ); ?>" alt="<?php echo esc_attr( $attrs['alt'] ); ?>" />
 	<?php
 }

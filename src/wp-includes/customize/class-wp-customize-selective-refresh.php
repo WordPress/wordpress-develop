@@ -172,7 +172,7 @@ final class WP_Customize_Selective_Refresh {
 			}
 		}
 
-		$switched_locale = switch_to_locale( get_user_locale() );
+		$switched_locale = switch_to_user_locale( get_current_user_id() );
 		$l10n            = array(
 			'shiftClickToEdit' => __( 'Shift-click to edit this element.' ),
 			'clickEditMenu'    => __( 'Click to edit this menu.' ),
@@ -193,7 +193,7 @@ final class WP_Customize_Selective_Refresh {
 		);
 
 		// Export data to JS.
-		printf( '<script>var _customizePartialRefreshExports = %s;</script>', wp_json_encode( $exports ) );
+		wp_print_inline_script_tag( sprintf( 'var _customizePartialRefreshExports = %s;', wp_json_encode( $exports ) ) );
 	}
 
 	/**

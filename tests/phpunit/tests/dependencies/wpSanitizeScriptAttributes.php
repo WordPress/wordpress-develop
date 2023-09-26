@@ -129,5 +129,4 @@ class Tests_Functions_wpSanitizeScriptAttributes extends WP_UnitTestCase {
 
 		remove_theme_support( 'html5' );
 	}
-
 }

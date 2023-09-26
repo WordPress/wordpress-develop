@@ -67,7 +67,7 @@ class Tests_Sitemaps_Functions extends WP_UnitTestCase {
 	/**
 	 * Test get_sitemap_url() with plain permalinks.
 	 *
-	 * @dataProvider plain_permalinks_provider
+	 * @dataProvider data_get_sitemap_url_plain_permalinks
 	 *
 	 * @covers ::get_sitemap_url
 	 */
@@ -80,7 +80,7 @@ class Tests_Sitemaps_Functions extends WP_UnitTestCase {
 	/**
 	 * Test get_sitemap_url() with pretty permalinks.
 	 *
-	 * @dataProvider pretty_permalinks_provider
+	 * @dataProvider data_get_sitemap_url_pretty_permalinks
 	 *
 	 * @covers ::get_sitemap_url
 	 */
@@ -104,7 +104,7 @@ class Tests_Sitemaps_Functions extends WP_UnitTestCase {
 	 *     @type string|false $4 Sitemap URL.
 	 * }
 	 */
-	public function plain_permalinks_provider() {
+	public function data_get_sitemap_url_plain_permalinks() {
 		return array(
 			array( 'posts', 'post', 1, home_url( '/?sitemap=posts&sitemap-subtype=post&paged=1' ) ),
 			array( 'posts', 'post', 0, home_url( '/?sitemap=posts&sitemap-subtype=post&paged=1' ) ),
@@ -136,7 +136,7 @@ class Tests_Sitemaps_Functions extends WP_UnitTestCase {
 	 *     @type string|false $4 Sitemap URL.
 	 * }
 	 */
-	public function pretty_permalinks_provider() {
+	public function data_get_sitemap_url_pretty_permalinks() {
 		return array(
 			array( 'posts', 'post', 1, home_url( '/wp-sitemap-posts-post-1.xml' ) ),
 			array( 'posts', 'post', 0, home_url( '/wp-sitemap-posts-post-1.xml' ) ),

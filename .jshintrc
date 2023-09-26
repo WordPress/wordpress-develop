@@ -24,6 +24,10 @@
 		"wp": false,
 		"export": false,
 		"module": false,
-		"require": false
+		"require": false,
+		"WorkerGlobalScope": false,
+		"self": false,
+		"OffscreenCanvas": false,
+		"Promise": false
 	}
 }

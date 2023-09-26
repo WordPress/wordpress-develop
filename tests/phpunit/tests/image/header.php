@@ -33,7 +33,6 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		);
 		$this->assertSame( 1200, $dimensions['dst_width'] );
 		$this->assertSame( 230, $dimensions['dst_height'] );
-
 	}
 
 	/**
@@ -56,7 +55,6 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		);
 		$this->assertSame( 1200, $dimensions['dst_width'] );
 		$this->assertSame( 230, $dimensions['dst_height'] );
-
 	}
 
 	/**
@@ -79,7 +77,6 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		);
 		$this->assertSame( 1200, $dimensions['dst_width'] );
 		$this->assertSame( 900, $dimensions['dst_height'] );
-
 	}
 
 	/**
@@ -102,7 +99,6 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		);
 		$this->assertSame( 1500, $dimensions['dst_width'] ); // Max width.
 		$this->assertSame( 230, $dimensions['dst_height'] );
-
 	}
 
 	/**
@@ -125,7 +121,6 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		);
 		$this->assertSame( 1600, $dimensions['dst_width'] );
 		$this->assertSame( 1200, $dimensions['dst_height'] );
-
 	}
 
 	/**

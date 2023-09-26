@@ -423,7 +423,7 @@ class Tests_Meta extends WP_UnitTestCase {
 
 		$string_mid = "{$meta_id}.0";
 
-		// phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison -- intentional implicit casting check
+		// phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual -- intentional implicit casting check
 		$this->assertTrue( floor( $string_mid ) == $string_mid );
 		$this->assertNotFalse( get_metadata_by_mid( 'user', $string_mid ) );
 		$this->assertNotFalse( update_metadata_by_mid( 'user', $string_mid, 'meta_new_value_2' ) );
@@ -450,7 +450,7 @@ class Tests_Meta extends WP_UnitTestCase {
 	 * @covers ::get_metadata
 	 */
 	public function test_get_metadata_with_empty_key_object_value() {
-		$data      = new stdClass;
+		$data      = new stdClass();
 		$data->foo = 'bar';
 		$value     = serialize( $data );
 		add_metadata( 'user', $this->author->ID, 'foo', $data );

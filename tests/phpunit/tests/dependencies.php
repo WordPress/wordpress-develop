@@ -9,7 +9,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 * @covers WP_Dependencies::add
 	 */
 	public function test_add() {
-		$dep = new WP_Dependencies;
+		$dep = new WP_Dependencies();
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
 		$this->assertTrue( $dep->add( 'two', '' ) );
@@ -27,7 +27,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 * @covers WP_Dependencies::query
 	 */
 	public function test_remove() {
-		$dep = new WP_Dependencies;
+		$dep = new WP_Dependencies();
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
 		$this->assertTrue( $dep->add( 'two', '' ) );
@@ -36,7 +36,6 @@ class Tests_Dependencies extends WP_UnitTestCase {
 
 		$this->assertFalse( $dep->query( 'one' ) );
 		$this->assertInstanceOf( '_WP_Dependency', $dep->query( 'two' ) );
-
 	}
 
 	/**
@@ -45,7 +44,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 * @covers WP_Dependencies::query
 	 */
 	public function test_enqueue() {
-		$dep = new WP_Dependencies;
+		$dep = new WP_Dependencies();
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
 		$this->assertTrue( $dep->add( 'two', '' ) );
@@ -67,7 +66,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 * @covers WP_Dependencies::query
 	 */
 	public function test_dequeue() {
-		$dep = new WP_Dependencies;
+		$dep = new WP_Dependencies();
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
 		$this->assertTrue( $dep->add( 'two', '' ) );
@@ -92,7 +91,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 * @covers WP_Dependencies::query
 	 */
 	public function test_enqueue_args() {
-		$dep = new WP_Dependencies;
+		$dep = new WP_Dependencies();
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
 		$this->assertTrue( $dep->add( 'two', '' ) );
@@ -116,7 +115,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 * @covers WP_Dependencies::query
 	 */
 	public function test_dequeue_args() {
-		$dep = new WP_Dependencies;
+		$dep = new WP_Dependencies();
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
 		$this->assertTrue( $dep->add( 'two', '' ) );
@@ -148,7 +147,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 * @covers WP_Dependencies::remove
 	 */
 	public function test_query_and_registered_enqueued() {
-		$dep = new WP_Dependencies;
+		$dep = new WP_Dependencies();
 
 		$this->assertTrue( $dep->add( 'one', '' ) );
 		$this->assertInstanceOf( '_WP_Dependency', $dep->query( 'one' ) );
@@ -170,14 +169,13 @@ class Tests_Dependencies extends WP_UnitTestCase {
 
 		$dep->remove( 'one' );
 		$this->assertFalse( $dep->query( 'one' ) );
-
 	}
 
 	/**
 	 * @covers WP_Dependencies::enqueue
 	 */
-	function test_enqueue_before_register() {
-		$dep = new WP_Dependencies;
+	public function test_enqueue_before_register() {
+		$dep = new WP_Dependencies();
 
 		$this->assertArrayNotHasKey( 'one', $dep->registered );
 

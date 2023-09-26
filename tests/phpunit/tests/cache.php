@@ -273,7 +273,7 @@ class Tests_Cache extends WP_UnitTestCase {
 	 */
 	public function test_object_refs() {
 		$key           = __FUNCTION__ . '_1';
-		$object_a      = new stdClass;
+		$object_a      = new stdClass();
 		$object_a->foo = 'alpha';
 		$this->cache->set( $key, $object_a );
 		$object_a->foo = 'bravo';
@@ -283,7 +283,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertSame( 'bravo', $object_a->foo );
 
 		$key           = __FUNCTION__ . '_2';
-		$object_a      = new stdClass;
+		$object_a      = new stdClass();
 		$object_a->foo = 'alpha';
 		$this->cache->add( $key, $object_a );
 		$object_a->foo = 'bravo';

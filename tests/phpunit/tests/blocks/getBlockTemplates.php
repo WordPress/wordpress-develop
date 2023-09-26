@@ -101,7 +101,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	 */
 	private function get_template_ids( $templates ) {
 		return array_map(
-			static function( $template ) {
+			static function ( $template ) {
 				return $template->id;
 			},
 			$templates

@@ -5,14 +5,8 @@
  * @package WordPress
  * @subpackage UnitTests
  * @since 4.9.6
- */
-
-/**
- * Tests_Privacy_wpPrivacySendPersonalDataExportEmail class.
  *
  * @group privacy
- *
- * @since 4.9.6
  *
  * @covers ::wp_privacy_send_personal_data_export_email
  */

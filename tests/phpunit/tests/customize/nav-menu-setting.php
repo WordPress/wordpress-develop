@@ -17,7 +17,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	/**
 	 * Set up a test case.
 	 *
-	 * @see WP_UnitTestCase::setup()
+	 * @see WP_UnitTestCase_Base::set_up()
 	 */
 	public function set_up() {
 		parent::set_up();

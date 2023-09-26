@@ -5,14 +5,8 @@
  * @package WordPress
  * @subpackage UnitTests
  * @since 5.2.0
- */
-
-/**
- * Tests_Privacy_wpPrivacyGeneratePersonalDataExportGroupHtml class.
  *
  * @group privacy
- *
- * @since 5.2.0
  *
  * @covers ::wp_privacy_generate_personal_data_export_group_html
  */

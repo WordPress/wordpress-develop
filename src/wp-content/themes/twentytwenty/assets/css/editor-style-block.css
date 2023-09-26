@@ -462,6 +462,11 @@ Inter variable font. Usage:
 	padding-left: 0;
 }
 
+.editor-styles-wrapper ul.wp-block-latest-posts {
+	margin-left: auto;
+	margin-right: auto;
+}
+
 .editor-styles-wrapper ul.wp-block-categories__list ul {
 	margin: 0;
 }
@@ -623,12 +628,15 @@ hr.wp-block-separator:not(.is-style-dots)::after {
 	width: 1px;
 }
 
-hr.wp-block-separator::before {
+.editor-styles-wrapper hr.wp-block-separator::before {
 	left: calc(50% - 5px);
+	right: auto;
 }
 
-hr.wp-block-separator::after {
+.editor-styles-wrapper hr.wp-block-separator::after {
 	right: calc(50% - 5px);
+	left: auto;
+	border-radius: 0;
 }
 
 /* STYLE: DOTS */
@@ -684,10 +692,17 @@ hr.wp-block-separator.is-style-dots::before {
 	font-style: normal;
 }
 
+.editor-styles-wrapper .wp-block-quote.has-text-color cite,
+.editor-styles-wrapper .wp-block-quote.has-background cite,
+.editor-styles-wrapper .has-background .wp-block-quote cite {
+	color: inherit;
+}
+
 .editor-styles-wrapper .wp-block-quote p {
 	color: inherit;
 	font-weight: 400;
 	margin: 0 0 20px 0;
+	letter-spacing: inherit;
 }
 
 .editor-styles-wrapper .wp-block-quote.is-style-large {
@@ -884,6 +899,12 @@ hr.wp-block-separator.is-style-dots::before {
 	text-transform: none;
 }
 
+.editor-styles-wrapper .wp-block-pullquote.has-text-color cite,
+.editor-styles-wrapper .wp-block-pullquote.has-background cite,
+.editor-styles-wrapper .has-background .wp-block-pullquote cite {
+	color: inherit;
+}
+
 /* STYLE: SOLID COLOR */
 
 .editor-styles-wrapper .wp-block-pullquote.is-style-solid-color {
@@ -921,8 +942,8 @@ hr.wp-block-separator.is-style-dots::before {
 
 /* Block: Button ----------------------------- */
 
-.editor-styles-wrapper .wp-block-button__link,
-.editor-styles-wrapper .wp-block-file__button {
+:root .editor-styles-wrapper .wp-block-button__link,
+:root .editor-styles-wrapper .wp-block-file__button {
 	background: #cd2653;
 	border-radius: 0;
 	color: #fff;
@@ -934,8 +955,18 @@ hr.wp-block-separator.is-style-dots::before {
 	text-transform: uppercase;
 }
 
+.wp-block-buttons[style*="text-transform"] .wp-block-button__link,
+.wp-block-button[style*="text-transform"] .wp-block-button__link {
+	text-transform: inherit;
+}
+
 .editor-styles-wrapper .wp-block-button .wp-block-button__link.mce-content-body {
 	line-height: 1.1;
+}
+
+.editor-styles-wrapper .wp-block-button__link:hover,
+.editor-styles-wrapper .wp-block-file__button:hover {
+	text-decoration: underline;
 }
 
 /* BUTTON STYLE: OUTLINE */
@@ -960,7 +991,7 @@ hr.wp-block-separator.is-style-dots::before {
 
 .editor-styles-wrapper .wp-block-latest-comments {
 	font-family: inherit;
-	margin-left: 0;
+	margin-left: auto;
 }
 
 .editor-styles-wrapper .wp-block-latest-comments li.wp-block-latest-comments__comment {
@@ -1302,8 +1333,8 @@ hr.wp-block-separator.is-style-dots::before {
 
 	/* BLOCK: BUTTON */
 
-	.editor-styles-wrapper .wp-block-button__link,
-	.editor-styles-wrapper .wp-block-file__button {
+	:root .editor-styles-wrapper .wp-block-button__link,
+	:root .editor-styles-wrapper .wp-block-file__button {
 		font-size: 17px;
 	}
 

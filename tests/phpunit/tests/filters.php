@@ -48,7 +48,6 @@ class Tests_Filters extends WP_UnitTestCase {
 		$this->assertSame( $val, apply_filters( $hook_name, $val ) );
 		$this->assertSame( 1, $a->get_call_count() );
 		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
-
 	}
 
 	/**
@@ -202,7 +201,6 @@ class Tests_Filters extends WP_UnitTestCase {
 		// $hook_name1's count hasn't changed, $hook_name2 should be correct.
 		$this->assertSame( 1, did_filter( $hook_name1 ) );
 		$this->assertSame( $count, did_filter( $hook_name2 ) );
-
 	}
 
 	/**
@@ -231,7 +229,6 @@ class Tests_Filters extends WP_UnitTestCase {
 
 		remove_filter( 'all', array( $a, 'filterall' ) );
 		$this->assertFalse( has_filter( 'all', array( $a, 'filterall' ) ) );
-
 	}
 
 	/**
@@ -376,7 +373,6 @@ class Tests_Filters extends WP_UnitTestCase {
 		// Just in case we don't trust assertSame().
 		$obj->foo = true;
 		$this->assertNotEmpty( $args[0][1]->foo );
-
 	}
 
 	/**

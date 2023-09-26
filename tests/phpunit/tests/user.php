@@ -149,7 +149,6 @@ class Tests_User extends WP_UnitTestCase {
 		// Correct key: deleted.
 		delete_user_meta( self::$author_id, $key, $val );
 		$this->assertSame( '', get_user_meta( self::$author_id, $key, true ) );
-
 	}
 
 	/**
@@ -609,21 +608,21 @@ class Tests_User extends WP_UnitTestCase {
 
 		wp_set_current_user( self::$author_id );
 		$counts = count_many_users_posts( array( self::$author_id, $user_id_b ), 'post', false );
-		$this->assertEquals( 1, $counts[ self::$author_id ] );
-		$this->assertEquals( 1, $counts[ $user_id_b ] );
+		$this->assertSame( '1', $counts[ self::$author_id ] );
+		$this->assertSame( '1', $counts[ $user_id_b ] );
 
 		$counts = count_many_users_posts( array( self::$author_id, $user_id_b ), 'post', true );
-		$this->assertEquals( 1, $counts[ self::$author_id ] );
-		$this->assertEquals( 1, $counts[ $user_id_b ] );
+		$this->assertSame( '1', $counts[ self::$author_id ] );
+		$this->assertSame( '1', $counts[ $user_id_b ] );
 
 		wp_set_current_user( $user_id_b );
 		$counts = count_many_users_posts( array( self::$author_id, $user_id_b ), 'post', false );
-		$this->assertEquals( 1, $counts[ self::$author_id ] );
-		$this->assertEquals( 2, $counts[ $user_id_b ] );
+		$this->assertSame( '1', $counts[ self::$author_id ] );
+		$this->assertSame( '2', $counts[ $user_id_b ] );
 
 		$counts = count_many_users_posts( array( self::$author_id, $user_id_b ), 'post', true );
-		$this->assertEquals( 1, $counts[ self::$author_id ] );
-		$this->assertEquals( 1, $counts[ $user_id_b ] );
+		$this->assertSame( '1', $counts[ self::$author_id ] );
+		$this->assertSame( '1', $counts[ $user_id_b ] );
 	}
 
 	/**
@@ -2085,7 +2084,6 @@ class Tests_User extends WP_UnitTestCase {
 		// Contains location longitude.
 		$this->assertSame( 'Longitude', $actual['data'][1]['data'][3]['name'] );
 		$this->assertSame( '-84.5143900', $actual['data'][1]['data'][3]['value'] );
-
 	}
 
 	/**

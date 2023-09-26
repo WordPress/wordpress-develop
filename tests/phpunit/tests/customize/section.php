@@ -260,5 +260,4 @@ class Custom_Section_Test extends WP_Customize_Section {
 		</li>
 		<?php
 	}
-
 }

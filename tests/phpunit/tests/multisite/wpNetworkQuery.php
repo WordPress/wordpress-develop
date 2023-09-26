@@ -430,8 +430,6 @@ if ( is_multisite() ) :
 		 * @ticket 41347
 		 */
 		public function test_wp_network_query_cache_with_different_fields_no_count() {
-			global $wpdb;
-
 			$q                 = new WP_Network_Query();
 			$query_1           = $q->query(
 				array(
@@ -440,7 +438,7 @@ if ( is_multisite() ) :
 					'order'  => 'ASC',
 				)
 			);
-			$number_of_queries = $wpdb->num_queries;
+			$number_of_queries = get_num_queries();
 
 			$query_2 = $q->query(
 				array(
@@ -450,15 +448,13 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertSame( $number_of_queries, $wpdb->num_queries );
+			$this->assertSame( $number_of_queries, get_num_queries() );
 		}
 
 		/**
 		 * @ticket 41347
 		 */
 		public function test_wp_network_query_cache_with_different_fields_active_count() {
-			global $wpdb;
-
 			$q = new WP_Network_Query();
 
 			$query_1           = $q->query(
@@ -469,7 +465,7 @@ if ( is_multisite() ) :
 					'count'  => true,
 				)
 			);
-			$number_of_queries = $wpdb->num_queries;
+			$number_of_queries = get_num_queries();
 
 			$query_2 = $q->query(
 				array(
@@ -479,15 +475,13 @@ if ( is_multisite() ) :
 					'count'  => true,
 				)
 			);
-			$this->assertSame( $number_of_queries, $wpdb->num_queries );
+			$this->assertSame( $number_of_queries, get_num_queries() );
 		}
 
 		/**
 		 * @ticket 41347
 		 */
 		public function test_wp_network_query_cache_with_same_fields_different_count() {
-			global $wpdb;
-
 			$q = new WP_Network_Query();
 
 			$query_1 = $q->query(
@@ -498,7 +492,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$number_of_queries = $wpdb->num_queries;
+			$number_of_queries = get_num_queries();
 
 			$query_2 = $q->query(
 				array(
@@ -508,7 +502,7 @@ if ( is_multisite() ) :
 					'count'  => true,
 				)
 			);
-			$this->assertSame( $number_of_queries + 1, $wpdb->num_queries );
+			$this->assertSame( $number_of_queries + 1, get_num_queries() );
 		}
 
 		/**
@@ -570,11 +564,9 @@ if ( is_multisite() ) :
 		 * @ticket 47599
 		 */
 		public function test_networks_pre_query_filter_should_bypass_database_query() {
-			global $wpdb;
-
 			add_filter( 'networks_pre_query', array( __CLASS__, 'filter_networks_pre_query' ), 10, 2 );
 
-			$num_queries = $wpdb->num_queries;
+			$num_queries = get_num_queries();
 
 			$q       = new WP_Network_Query();
 			$results = $q->query( array() );
@@ -582,7 +574,7 @@ if ( is_multisite() ) :
 			remove_filter( 'networks_pre_query', array( __CLASS__, 'filter_networks_pre_query' ), 10, 2 );
 
 			// Make sure no queries were executed.
-			$this->assertSame( $num_queries, $wpdb->num_queries );
+			$this->assertSame( $num_queries, get_num_queries() );
 
 			// We manually inserted a non-existing site and overrode the results with it.
 			$this->assertSame( array( 555 ), $results );

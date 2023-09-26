@@ -1,18 +1,12 @@
 <?php
 /**
- * Test the `wp_create_user_request()` function.
+ * Test cases for the `wp_create_user_request()` function.
  *
  * @package WordPress
  * @subpackage UnitTests
  * @since 5.2.0
- */
-
-/**
- * Tests_Privacy_wpCreateUserRequest class.
  *
  * @group privacy
- *
- * @since 5.2.0
  *
  * @covers ::wp_create_user_request
  */

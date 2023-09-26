@@ -62,5 +62,4 @@ class Tests_Functions_AddMagicQuotes extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

@@ -143,7 +143,6 @@ if ( is_multisite() ) :
 
 			$this->assertNull( $result );
 		}
-
 	}
 
 endif;

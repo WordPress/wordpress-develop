@@ -152,7 +152,7 @@ function get_archive_template() {
 
 	$templates = array();
 
-	if ( count( $post_types ) == 1 ) {
+	if ( count( $post_types ) === 1 ) {
 		$post_type   = reset( $post_types );
 		$templates[] = "archive-{$post_type}.php";
 	}
@@ -437,7 +437,7 @@ function get_privacy_policy_template() {
 /**
  * Retrieves path of page template in current or parent template.
  *
- * Note: For block themes, use locate_block_template function instead.
+ * Note: For block themes, use locate_block_template() function instead.
  *
  * The hierarchy for this template looks like:
  *
@@ -470,8 +470,10 @@ function get_page_template() {
 	$pagename = get_query_var( 'pagename' );
 
 	if ( ! $pagename && $id ) {
-		// If a static page is set as the front page, $pagename will not be set.
-		// Retrieve it from the queried object.
+		/*
+		 * If a static page is set as the front page, $pagename will not be set.
+		 * Retrieve it from the queried object.
+		 */
 		$post = get_queried_object();
 		if ( $post ) {
 			$pagename = $post->post_name;
@@ -662,7 +664,7 @@ function get_attachment_template() {
 	$templates = array();
 
 	if ( $attachment ) {
-		if ( false !== strpos( $attachment->post_mime_type, '/' ) ) {
+		if ( str_contains( $attachment->post_mime_type, '/' ) ) {
 			list( $type, $subtype ) = explode( '/', $attachment->post_mime_type );
 		} else {
 			list( $type, $subtype ) = array( $attachment->post_mime_type, '' );
@@ -682,31 +684,36 @@ function get_attachment_template() {
 /**
  * Retrieves the name of the highest priority template file that exists.
  *
- * Searches in the STYLESHEETPATH before TEMPLATEPATH and wp-includes/theme-compat
- * so that themes which inherit from a parent theme can just overload one file.
+ * Searches in the stylesheet directory before the template directory and
+ * wp-includes/theme-compat so that themes which inherit from a parent theme
+ * can just overload one file.
  *
  * @since 2.7.0
  * @since 5.5.0 The `$args` parameter was added.
  *
  * @param string|array $template_names Template file(s) to search for, in order.
  * @param bool         $load           If true the template file will be loaded if it is found.
- * @param bool         $require_once   Whether to require_once or require. Has no effect if `$load` is false.
+ * @param bool         $load_once      Whether to require_once or require. Has no effect if `$load` is false.
  *                                     Default true.
  * @param array        $args           Optional. Additional arguments passed to the template.
  *                                     Default empty array.
  * @return string The template filename if one is located.
  */
-function locate_template( $template_names, $load = false, $require_once = true, $args = array() ) {
+function locate_template( $template_names, $load = false, $load_once = true, $args = array() ) {
+	$stylesheet_path = get_stylesheet_directory();
+	$template_path   = get_template_directory();
+	$is_child_theme  = $stylesheet_path !== $template_path;
+
 	$located = '';
 	foreach ( (array) $template_names as $template_name ) {
 		if ( ! $template_name ) {
 			continue;
 		}
-		if ( file_exists( STYLESHEETPATH . '/' . $template_name ) ) {
-			$located = STYLESHEETPATH . '/' . $template_name;
+		if ( file_exists( $stylesheet_path . '/' . $template_name ) ) {
+			$located = $stylesheet_path . '/' . $template_name;
 			break;
-		} elseif ( file_exists( TEMPLATEPATH . '/' . $template_name ) ) {
-			$located = TEMPLATEPATH . '/' . $template_name;
+		} elseif ( $is_child_theme && file_exists( $template_path . '/' . $template_name ) ) {
+			$located = $template_path . '/' . $template_name;
 			break;
 		} elseif ( file_exists( ABSPATH . WPINC . '/theme-compat/' . $template_name ) ) {
 			$located = ABSPATH . WPINC . '/theme-compat/' . $template_name;
@@ -715,7 +722,7 @@ function locate_template( $template_names, $load = false, $require_once = true, 
 	}
 
 	if ( $load && '' !== $located ) {
-		load_template( $located, $require_once, $args );
+		load_template( $located, $load_once, $args );
 	}
 
 	return $located;
@@ -744,11 +751,11 @@ function locate_template( $template_names, $load = false, $require_once = true, 
  * @global int        $user_ID
  *
  * @param string $_template_file Path to template file.
- * @param bool   $require_once   Whether to require_once or require. Default true.
+ * @param bool   $load_once      Whether to require_once or require. Default true.
  * @param array  $args           Optional. Additional arguments passed to the template.
  *                               Default empty array.
  */
-function load_template( $_template_file, $require_once = true, $args = array() ) {
+function load_template( $_template_file, $load_once = true, $args = array() ) {
 	global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $comment, $user_ID;
 
 	if ( is_array( $wp_query->query_vars ) ) {
@@ -774,12 +781,12 @@ function load_template( $_template_file, $require_once = true, $args = array() )
 	 * @since 6.1.0
 	 *
 	 * @param string $_template_file The full path to the template file.
-	 * @param bool   $require_once   Whether to require_once or require.
+	 * @param bool   $load_once      Whether to require_once or require.
 	 * @param array  $args           Additional arguments passed to the template.
 	 */
-	do_action( 'wp_before_load_template', $_template_file, $require_once, $args );
+	do_action( 'wp_before_load_template', $_template_file, $load_once, $args );
 
-	if ( $require_once ) {
+	if ( $load_once ) {
 		require_once $_template_file;
 	} else {
 		require $_template_file;
@@ -791,8 +798,8 @@ function load_template( $_template_file, $require_once = true, $args = array() )
 	 * @since 6.1.0
 	 *
 	 * @param string $_template_file The full path to the template file.
-	 * @param bool   $require_once   Whether to require_once or require.
+	 * @param bool   $load_once      Whether to require_once or require.
 	 * @param array  $args           Additional arguments passed to the template.
 	 */
-	do_action( 'wp_after_load_template', $_template_file, $require_once, $args );
+	do_action( 'wp_after_load_template', $_template_file, $load_once, $args );
 }

@@ -240,7 +240,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( '', get_post_format( $result ) );
+		$this->assertFalse( get_post_format( $result ) );
 	}
 
 	public function test_invalid_taxonomy() {
@@ -447,5 +447,4 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertStringMatchesFormat( '%d', $result );
 		$this->assertSame( $date_string, $fetched_post->post_date_gmt );
 	}
-
 }

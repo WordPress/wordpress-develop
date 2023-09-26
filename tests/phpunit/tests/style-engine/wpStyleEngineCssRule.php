@@ -156,6 +156,6 @@ class Tests_Style_Engine_wpStyleEngineCSSRule extends WP_UnitTestCase {
 	font-family: Detective Sans;
 }';
 
-		$this->assertSame( $expected, $css_rule->get_css( true ) );
+		$this->assertSameIgnoreEOL( $expected, $css_rule->get_css( true ) );
 	}
 }

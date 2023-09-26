@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
@@ -204,6 +202,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'page',
 				'per_page',
 				'search',
+				'search_columns',
 				'slug',
 				'status',
 				'sticky',
@@ -1528,7 +1527,40 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
+	 * Tests that Rest Post controller supports search columns.
+	 *
+	 * @ticket 43867
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_get_items_with_custom_search_columns() {
+		$id1 = self::factory()->post->create(
+			array(
+				'post_title'   => 'Title contain foo and bar',
+				'post_content' => 'Content contain bar',
+				'post_excerpt' => 'Excerpt contain baz',
+			)
+		);
+		$id2 = self::factory()->post->create(
+			array(
+				'post_title'   => 'Title contain baz',
+				'post_content' => 'Content contain foo and bar',
+				'post_excerpt' => 'Excerpt contain foo, bar and baz',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'search', 'foo bar' );
+		$request->set_param( 'search_columns', array( 'post_title' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response should have a status code 200.' );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data, 'Response should contain one result.' );
+		$this->assertSame( $id1, $data[0]['id'], 'Result should match expected value.' );
+	}
+
+	/**
 	 * @ticket 55592
+	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 * @covers ::update_post_thumbnail_cache
 	 */
@@ -1566,6 +1598,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	/**
 	 * @ticket 55593
+	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 * @covers ::update_post_parent_caches
 	 */
@@ -1629,8 +1662,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		// 3rd page.
 		self::factory()->post->create();
-		$total_posts++;
-		$total_pages++;
+		++$total_posts;
+		++$total_pages;
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );
@@ -1954,8 +1987,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_forbidden', $response, 401 );
 	}
 
+	/**
+	 * Tests that authenticated users are only allowed to read password protected content
+	 * if they have the 'edit_post' meta capability for the post.
+	 */
 	public function test_get_post_draft_edit_context() {
 		$post_content = 'Hello World!';
+
+		// Create a password protected post as an Editor.
 		self::factory()->post->create(
 			array(
 				'post_title'    => 'Hola',
@@ -1965,6 +2004,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_author'   => self::$editor_id,
 			)
 		);
+
+		// Create a draft with the Latest Posts block as a Contributor.
 		$draft_id = self::factory()->post->create(
 			array(
 				'post_status'  => 'draft',
@@ -1972,11 +2013,18 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_content' => '<!-- wp:latest-posts {"displayPostContent":true} /--> <!-- wp:latest-posts {"displayPostContent":true,"displayPostContentRadio":"full_post"} /-->',
 			)
 		);
+
+		// Set the current user to Contributor and request the draft for editing.
 		wp_set_current_user( self::$contributor_id );
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $draft_id ) );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+
+		/*
+		 * Verify that the content of a password protected post created by an Editor
+		 * is not viewable by a Contributor.
+		 */
 		$this->assertStringNotContainsString( $post_content, $data['content']['rendered'] );
 	}
 
@@ -2230,8 +2278,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_prepare_item_filters_content_when_needed() {
 		$filter_count   = 0;
-		$filter_content = static function() use ( &$filter_count ) {
-			$filter_count++;
+		$filter_content = static function () use ( &$filter_count ) {
+			++$filter_count;
 			return '<p>Filtered content.</p>';
 		};
 		add_filter( 'the_content', $filter_content );
@@ -2266,8 +2314,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_prepare_item_skips_content_filter_if_not_needed() {
 		$filter_count   = 0;
-		$filter_content = static function() use ( &$filter_count ) {
-			$filter_count++;
+		$filter_content = static function () use ( &$filter_count ) {
+			++$filter_count;
 			return '<p>Filtered content.</p>';
 		};
 		add_filter( 'the_content', $filter_content );
@@ -2309,7 +2357,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->check_create_post_response( $response );
 	}
 
-	public function post_dates_provider() {
+	public function data_post_dates() {
 		$all_statuses = array(
 			'draft',
 			'publish',
@@ -2380,7 +2428,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * @dataProvider post_dates_provider
+	 * @dataProvider data_post_dates
 	 */
 	public function test_create_post_date( $status, $params, $results ) {
 		wp_set_current_user( self::$editor_id );
@@ -3429,7 +3477,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * @dataProvider post_dates_provider
+	 * @dataProvider data_post_dates
 	 */
 	public function test_update_post_date( $status, $params, $results ) {
 		wp_set_current_user( self::$editor_id );
@@ -3984,7 +4032,17 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( $expected_output['excerpt']['raw'], $post->post_excerpt );
 	}
 
-	public static function post_roundtrip_provider() {
+	/**
+	 * @dataProvider data_post_roundtrip_as_author
+	 */
+	public function test_post_roundtrip_as_author( $raw, $expected ) {
+		wp_set_current_user( self::$author_id );
+
+		$this->assertFalse( current_user_can( 'unfiltered_html' ) );
+		$this->verify_post_roundtrip( $raw, $expected );
+	}
+
+	public static function data_post_roundtrip_as_author() {
 		return array(
 			array(
 				// Raw values.
@@ -4079,16 +4137,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				),
 			),
 		);
-	}
-
-	/**
-	 * @dataProvider post_roundtrip_provider
-	 */
-	public function test_post_roundtrip_as_author( $raw, $expected ) {
-		wp_set_current_user( self::$author_id );
-
-		$this->assertFalse( current_user_can( 'unfiltered_html' ) );
-		$this->verify_post_roundtrip( $raw, $expected );
 	}
 
 	public function test_post_roundtrip_as_editor_unfiltered_html() {
@@ -4254,7 +4302,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayNotHasKey( '/wp/v2/invalid-controller', $routes );
 		_unregister_post_type( 'invalid-controller' );
-
 	}
 
 	public function test_get_item_schema() {
@@ -4569,15 +4616,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$wp_rest_additional_fields = array();
 	}
 
-	public function additional_field_get_callback( $object ) {
-		return get_post_meta( $object['id'], 'my_custom_int', true );
+	public function additional_field_get_callback( $response_data, $field_name ) {
+		return get_post_meta( $response_data['id'], $field_name, true );
 	}
 
-	public function additional_field_update_callback( $value, $post ) {
+	public function additional_field_update_callback( $value, $post, $field_name ) {
 		if ( 'returnError' === $value ) {
 			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
 		}
-		update_post_meta( $post->ID, 'my_custom_int', $value );
+		update_post_meta( $post->ID, $field_name, $value );
 	}
 
 	public function test_publish_action_ldo_registered() {
@@ -4980,7 +5027,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayNotHasKey( 'permalink_template', $data );
 		$this->assertArrayNotHasKey( 'generated_slug', $data );
-
 	}
 
 	/**

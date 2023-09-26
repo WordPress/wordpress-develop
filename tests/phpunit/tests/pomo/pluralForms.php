@@ -21,7 +21,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 			switch ( $char ) {
 				case '?':
 					$res .= ' ? (';
-					$depth++;
+					++$depth;
 					break;
 				case ':':
 					$res .= ') : (';
@@ -39,17 +39,40 @@ class PluralFormsTest extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 41562
+	 * @dataProvider data_locales
 	 * @group external-http
 	 *
 	 * @covers GP_Locales::locales
 	 */
-	public function test_locales_provider() {
-		$locales = self::locales_provider();
+	public function test_regression( $lang, $nplurals, $expression ) {
+		require_once dirname( __DIR__, 2 ) . '/includes/plural-form-function.php';
+
+		$parenthesized = self::parenthesize_plural_expression( $expression );
+		$old_style     = tests_make_plural_form_function( $nplurals, $parenthesized );
+		$plural_forms  = new Plural_Forms( $expression );
+
+		$generated_old = array();
+		$generated_new = array();
+
+		foreach ( range( 0, 200 ) as $i ) {
+			$generated_old[] = $old_style( $i );
+			$generated_new[] = $plural_forms->get( $i );
+		}
+
+		$this->assertSame( $generated_old, $generated_new );
+	}
+
+	/**
+	 * @ticket 41562
+	 * @group external-http
+	 */
+	public function test_locales_file_not_empty() {
+		$locales = self::data_locales();
 
 		$this->assertNotEmpty( $locales, 'Unable to retrieve GP_Locales file' );
 	}
 
-	public static function locales_provider() {
+	public static function data_locales() {
 		if ( ! class_exists( 'GP_Locales' ) ) {
 			$filename = download_url( 'https://raw.githubusercontent.com/GlotPress/GlotPress-WP/develop/locales/locales.php' );
 			if ( is_wp_error( $filename ) ) {
@@ -72,30 +95,21 @@ class PluralFormsTest extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 41562
-	 * @dataProvider locales_provider
-	 * @group external-http
+	 * @dataProvider data_simple
 	 *
 	 * @covers Plural_Forms::__construct
 	 */
-	public function test_regression( $lang, $nplurals, $expression ) {
-		require_once dirname( dirname( __DIR__ ) ) . '/includes/plural-form-function.php';
-
-		$parenthesized = self::parenthesize_plural_expression( $expression );
-		$old_style     = tests_make_plural_form_function( $nplurals, $parenthesized );
-		$plural_forms  = new Plural_Forms( $expression );
-
-		$generated_old = array();
-		$generated_new = array();
-
-		foreach ( range( 0, 200 ) as $i ) {
-			$generated_old[] = $old_style( $i );
-			$generated_new[] = $plural_forms->get( $i );
+	public function test_simple( $expression, $expected ) {
+		$plural_forms = new Plural_Forms( $expression );
+		$actual       = array();
+		foreach ( array_keys( $expected ) as $num ) {
+			$actual[ $num ] = $plural_forms->get( $num );
 		}
 
-		$this->assertSame( $generated_old, $generated_new );
+		$this->assertSame( $expected, $actual );
 	}
 
-	public static function simple_provider() {
+	public static function data_simple() {
 		return array(
 			array(
 				// Simple equivalence.
@@ -147,19 +161,21 @@ class PluralFormsTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that an exception is thrown when an invalid plural form is encountered.
+	 *
 	 * @ticket 41562
-	 * @dataProvider simple_provider
+	 * @dataProvider data_exceptions
 	 *
 	 * @covers Plural_Forms::__construct
 	 */
-	public function test_simple( $expression, $expected ) {
-		$plural_forms = new Plural_Forms( $expression );
-		$actual       = array();
-		foreach ( array_keys( $expected ) as $num ) {
-			$actual[ $num ] = $plural_forms->get( $num );
-		}
+	public function test_exceptions( $expression, $expected_message, $call_get ) {
+		$this->expectException( 'Exception' );
+		$this->expectExceptionMessage( $expected_message );
 
-		$this->assertSame( $expected, $actual );
+		$plural_forms = new Plural_Forms( $expression );
+		if ( $call_get ) {
+			$plural_forms->get( 1 );
+		}
 	}
 
 	public function data_exceptions() {
@@ -203,25 +219,9 @@ class PluralFormsTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that an exception is thrown when an invalid plural form is encountered.
-	 *
 	 * @ticket 41562
-	 * @dataProvider data_exceptions
 	 *
 	 * @covers Plural_Forms::__construct
-	 */
-	public function test_exceptions( $expression, $expected_message, $call_get ) {
-		$this->expectException( 'Exception' );
-		$this->expectExceptionMessage( $expected_message );
-
-		$plural_forms = new Plural_Forms( $expression );
-		if ( $call_get ) {
-			$plural_forms->get( 1 );
-		}
-	}
-
-	/**
-	 * @ticket 41562
 	 */
 	public function test_cache() {
 		$mock = $this->getMockBuilder( 'Plural_Forms' )
