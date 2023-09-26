@@ -627,7 +627,7 @@ class WP_HTML_Tag_Processor {
 
 
 	/**
-	 * Steps through each of the class names for the matched tag.
+	 * Generator for a foreach loop to step through each class name for the matched tag.
 	 *
 	 * This generator function is designed to be used inside a "foreach" loop.
 	 *
@@ -639,6 +639,8 @@ class WP_HTML_Tag_Processor {
 	 *         echo "{$class_name} ";
 	 *     }
 	 *     // Outputs: "free <egg> lang-en "
+	 *
+	 * @since 6.4.0
 	 */
 	public function class_list() {
 		/** @var string $class contains the string value of the class attribute, with character references decoded. */
@@ -688,17 +690,19 @@ class WP_HTML_Tag_Processor {
 
 
 	/**
-	 * Returns if a matched tag contains the given class name.
+	 * Returns if a matched tag contains the given ASCII case-insensitive class name.
+	 *
+	 * @since 6.4.0
 	 *
 	 * @param string $wanted_class Look for this CSS class name, ASCII case-insensitive.
 	 * @return bool|null Whether the matched tag contains the given class name, or null if not matched.
 	 */
 	public function has_class( $wanted_class ) {
-		$wanted_class = strtolower( $wanted_class );
-
 		if ( ! $this->tag_name_starts_at ) {
 			return null;
 		}
+
+		$wanted_class = strtolower( $wanted_class );
 
 		foreach ( $this->class_list() as $class_name ) {
 			if ( $class_name === $wanted_class ) {
