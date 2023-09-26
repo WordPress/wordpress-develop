@@ -2263,17 +2263,16 @@ EOF;
 			$respimg_xhtml,
 			$respimg_html5
 		);
+		$content_filtered = wp_img_tag_add_decoding_attr( $content_filtered, 'the_content' );
 
 		// Do not add width, height, and loading.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
-		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 
 		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
 
 		remove_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		remove_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
-		remove_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 	}
 
 	/**
@@ -2290,6 +2289,7 @@ EOF;
 	public function test_wp_filter_content_tags_srcset_sizes_wrong() {
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
+		$img = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 
 		// Replace the src URL.
 		$image_wrong_src = preg_replace( '|src="[^"]+"|', 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/foo.jpg"', $img );
@@ -2304,6 +2304,7 @@ EOF;
 		// Generate HTML and add a dummy srcset attribute.
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
+		$img = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 		$img = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . 'srcset="image2x.jpg 2x" />', $img );
 
 		// The content filter should return the image unchanged.
@@ -2479,6 +2480,7 @@ EOF;
 			$respimg_https,
 			$respimg_relative
 		);
+		$expected = wp_img_tag_add_decoding_attr( $expected, 'the_content' );
 
 		$actual = wp_filter_content_tags( $unfiltered );
 
@@ -2971,17 +2973,16 @@ EOF;
 			$img_no_width,
 			$img_no_height
 		);
+		$content_filtered = wp_img_tag_add_decoding_attr( $content_filtered, 'the_content' );
 
 		// Do not add loading, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
-		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 
 		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
 
 		remove_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
-		remove_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 	}
 
 	/**
@@ -3002,8 +3003,6 @@ EOF;
 		$img_no_width_height    = str_replace( ' height="' . $size_array[1] . '"', '', $img_no_width_height );
 		$iframe                 = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$iframe_no_width_height = '<iframe src="https://www.example.com"></iframe>';
-
-		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 
 		$lazy_img       = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
 		$lazy_img_xhtml = wp_img_tag_add_loading_optimization_attrs( $img_xhtml, 'test' );
@@ -3055,6 +3054,7 @@ EOF;
 			$iframe_eager,
 			$iframe_no_width_height
 		);
+		$content_filtered = wp_img_tag_add_decoding_attr( $content_filtered, 'the_content' );
 
 		// Do not add width, height, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
@@ -3064,7 +3064,6 @@ EOF;
 
 		remove_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
-		remove_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 	}
 
 	/**
@@ -3075,6 +3074,7 @@ EOF;
 	public function test_wp_filter_content_tags_loading_lazy_opted_in() {
 		$img         = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$lazy_img    = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
+		$lazy_img    = wp_img_tag_add_decoding_attr( $lazy_img, 'the_content' );
 		$iframe      = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$lazy_iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
@@ -3104,6 +3104,7 @@ EOF;
 	 */
 	public function test_wp_filter_content_tags_loading_lazy_opted_out() {
 		$img    = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img    = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 
 		$content = '
@@ -3118,12 +3119,10 @@ EOF;
 
 		// Disable globally for all tags.
 		add_filter( 'wp_lazy_loading_enabled', '__return_false' );
-		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 
 		$this->assertSame( $content, wp_filter_content_tags( $content ) );
 		remove_filter( 'wp_lazy_loading_enabled', '__return_false' );
 		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
-		remove_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 	}
 
 	/**
@@ -3187,8 +3186,6 @@ EOF;
 	 * Test that decoding="async" is not applied to img tags with single quotes.
 	 *
 	 * @ticket 56969
-	 *
-	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_img_tag_add_decoding_attr_with_single_quotes() {
 		$img = "<img src='example.png' alt='' width='300' height='225' />";
@@ -3438,6 +3435,10 @@ EOF;
 			),
 			'false'       => array(
 				'decoding' => false,
+				'expected' => 'no value',
+			),
+			'null'        => array(
+				'decoding' => null,
 				'expected' => 'no value',
 			),
 			'zero'        => array(
@@ -3718,7 +3719,6 @@ EOF;
 	/**
 	 * @ticket 53675
 	 * @ticket 58235
-	 * @ticket 58892
 	 */
 	public function test_wp_omit_loading_attr_threshold_filter() {
 		// Using a smaller image here.
@@ -3738,21 +3738,15 @@ EOF;
 
 			// Due to the filter, now the first five elements should not be lazy-loaded, i.e. return `false`.
 			for ( $i = 0; $i < 5; $i++ ) {
-				$this->assertSameSetsWithIndex(
-					array(
-						'decoding' => 'async',
-					),
+				$this->assertEmpty(
 					wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 					'Expected second image to not be lazy-loaded.'
 				);
 			}
 
 			// For following elements, lazy-load them again.
-			$this->assertSameSetsWithIndex(
-				array(
-					'decoding' => 'async',
-					'loading'  => 'lazy',
-				),
+			$this->assertSame(
+				array( 'loading' => 'lazy' ),
 				wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' )
 			);
 		}
@@ -3767,7 +3761,6 @@ EOF;
 	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_filter_content_tags_with_loading_optimization_attrs() {
-		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );
 		$iframe1      = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$img2         = get_image_tag( self::$large_id, '', '', '', 'medium' );
@@ -3784,6 +3777,7 @@ EOF;
 		// Following the threshold of 2, the first two content media elements should not be lazy-loaded.
 		$content_unfiltered = $img1 . $iframe1 . $img2 . $img3 . $iframe2;
 		$content_expected   = $prio_img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2;
+		$content_expected   = wp_img_tag_add_decoding_attr( $content_expected, 'the_content' );
 
 		$query = $this->get_new_wp_query_for_published_post();
 		$this->set_main_query( $query );
@@ -3795,7 +3789,6 @@ EOF;
 			$content_filtered = wp_filter_content_tags( $content_unfiltered, 'the_content' );
 			remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
 		}
-		remove_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 
 		// After filtering, the first image should not be lazy-loaded while the other ones should be.
 		$this->assertSame( $content_expected, $content_filtered );
@@ -4135,7 +4128,6 @@ EOF;
 	/**
 	 * @ticket 58089
 	 * @ticket 58235
-	 * @ticket 58892
 	 *
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_get_loading_optimization_attributes
@@ -4151,7 +4143,6 @@ EOF;
 			array(
 				'loading'       => false,
 				'fetchpriority' => false,
-				'decoding'      => false,
 			)
 		);
 
@@ -4190,7 +4181,7 @@ EOF;
 		$this->assertSame( $expected_image, $image_within_content, 'Image with wp_get_attachment_image context within post content should not receive loading optimization attributes' );
 
 		// Ensure that parsed content has the image with fetchpriority as it is the first large image.
-		$expected_content = wpautop( str_replace( '<img ', '<img fetchpriority="high" decoding="async" ', $expected_image ) );
+		$expected_content = wpautop( str_replace( '<img ', '<img fetchpriority="high" ', $expected_image ) );
 		$this->assertSame( $expected_content, $content, 'Post content with programmatically injected image is missing loading optimization attributes' );
 	}
 
@@ -4270,7 +4261,6 @@ EOF;
 	 * @ticket 53675
 	 * @ticket 56930
 	 * @ticket 58235
-	 * @ticket 58892
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
 	 *
@@ -4282,27 +4272,18 @@ EOF;
 		$attr = $this->get_width_height_for_high_priority();
 
 		// Return 'lazy' by default.
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding' => 'async',
-				'loading'  => 'lazy',
-			),
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'test' )
 		);
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding' => 'async',
-				'loading'  => 'lazy',
-			),
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'wp_get_attachment_image' )
 		);
 
 		// Return 'lazy' if not in the loop or the main query.
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding' => 'async',
-				'loading'  => 'lazy',
-			),
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context )
 		);
 
@@ -4312,11 +4293,8 @@ EOF;
 			the_post();
 
 			// Return 'lazy' if in the loop but not in the main query.
-			$this->assertSameSetsWithIndex(
-				array(
-					'decoding' => 'async',
-					'loading'  => 'lazy',
-				),
+			$this->assertSame(
+				array( 'loading' => 'lazy' ),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context )
 			);
 
@@ -4324,44 +4302,29 @@ EOF;
 			$this->set_main_query( $query );
 
 			// First three element are not lazy loaded. However, first image is loaded with fetchpriority high.
-			$this->assertSameSetsWithIndex(
-				array(
-					'decoding'      => 'async',
-					'fetchpriority' => 'high',
-				),
+			$this->assertSame(
+				array( 'fetchpriority' => 'high' ),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				"Expected first image to not be lazy-loaded. First large image get's high fetchpriority."
 			);
-			$this->assertSameSetsWithIndex(
-				array(
-					'decoding' => 'async',
-				),
+			$this->assertEmpty(
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				'Expected second image to not be lazy-loaded.'
 			);
-			$this->assertSameSetsWithIndex(
-				array(
-					'decoding' => 'async',
-				),
+			$this->assertEmpty(
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				'Expected third image to not be lazy-loaded.'
 			);
 
 			// Return 'lazy' if in the loop and in the main query for any subsequent elements.
-			$this->assertSameSetsWithIndex(
-				array(
-					'decoding' => 'async',
-					'loading'  => 'lazy',
-				),
+			$this->assertSame(
+				array( 'loading' => 'lazy' ),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context )
 			);
 
 			// Yes, for all subsequent elements.
-			$this->assertSameSetsWithIndex(
-				array(
-					'decoding' => 'async',
-					'loading'  => 'lazy',
-				),
+			$this->assertSame(
+				array( 'loading' => 'lazy' ),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context )
 			);
 		}
@@ -4381,11 +4344,8 @@ EOF;
 	public function test_wp_get_loading_optimization_attributes_with_arbitrary_contexts_in_main_loop( $context ) {
 		$attr = $this->get_width_height_for_high_priority();
 
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding' => 'async',
-				'loading'  => 'lazy',
-			),
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 			'The "loading" attribute should be "lazy" when not in the loop or the main query.'
 		);
@@ -4398,11 +4358,8 @@ EOF;
 		while ( have_posts() ) {
 			the_post();
 
-			$this->assertSameSetsWithIndex(
-				array(
-					'decoding'      => 'async',
-					'fetchpriority' => 'high',
-				),
+			$this->assertSame(
+				array( 'fetchpriority' => 'high' ),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				'The "fetchpriority" attribute should be "high" while in the loop and the main query.'
 			);
@@ -4431,11 +4388,8 @@ EOF;
 		// Set as main query.
 		$this->set_main_query( $query );
 
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding' => 'async',
-				'loading'  => 'lazy',
-			),
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 			'The "loading" attribute should be "lazy" before the main query loop.'
 		);
@@ -4443,11 +4397,8 @@ EOF;
 		while ( have_posts() ) {
 			the_post();
 
-			$this->assertSameSetsWithIndex(
-				array(
-					'decoding'      => 'async',
-					'fetchpriority' => 'high',
-				),
+			$this->assertSame(
+				array( 'fetchpriority' => 'high' ),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				'The "fetchpriority" attribute should be "high" while in the loop and the main query.'
 			);
@@ -4516,11 +4467,8 @@ EOF;
 
 		add_filter( 'wp_loading_optimization_force_header_contexts', '__return_empty_array' );
 
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding' => 'async',
-				'loading'  => 'lazy',
-			),
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 			'Images in the header context should get lazy-loaded after the wp_loading_optimization_force_header_contexts filter.'
 		);
@@ -4554,11 +4502,8 @@ EOF;
 			}
 		);
 
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding'      => 'async',
-				'fetchpriority' => 'high',
-			),
+		$this->assertSame(
+			array( 'fetchpriority' => 'high' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'something_completely_arbitrary' )
 		);
 	}
@@ -4568,7 +4513,6 @@ EOF;
 	 *
 	 * @ticket 58211
 	 * @ticket 58235
-	 * @ticket 58892
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
 	 *
@@ -4586,11 +4530,8 @@ EOF;
 		$attr = $this->get_width_height_for_high_priority();
 
 		// Lazy if not main query.
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding' => 'async',
-				'loading'  => 'lazy',
-			),
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context )
 		);
 	}
@@ -4600,7 +4541,6 @@ EOF;
 	 *
 	 * @ticket 58211
 	 * @ticket 58235
-	 * @ticket 58892
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
 	 *
@@ -4617,11 +4557,8 @@ EOF;
 		$attr = $this->get_width_height_for_high_priority();
 
 		// Lazy if header not called.
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding' => 'async',
-				'loading'  => 'lazy',
-			),
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context )
 		);
 	}
@@ -4648,11 +4585,8 @@ EOF;
 		$attr = $this->get_width_height_for_high_priority();
 
 		// First image is loaded with high fetchpriority.
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding'      => 'async',
-				'fetchpriority' => 'high',
-			),
+		$this->assertSame(
+			array( 'fetchpriority' => 'high' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 			'Expected first image to not be lazy-loaded. First large image is loaded with high fetchpriority.'
 		);
@@ -4663,7 +4597,6 @@ EOF;
 	 *
 	 * @ticket 58211
 	 * @ticket 58235
-	 * @ticket 58892
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
 	 *
@@ -4684,11 +4617,8 @@ EOF;
 		}
 
 		$attr = $this->get_width_height_for_high_priority();
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding' => 'async',
-				'loading'  => 'lazy',
-			),
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context )
 		);
 	}
@@ -4698,7 +4628,6 @@ EOF;
 	 *
 	 * @ticket 58211
 	 * @ticket 58235
-	 * @ticket 58892
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
 	 *
@@ -4719,11 +4648,8 @@ EOF;
 		$attr = $this->get_width_height_for_high_priority();
 
 		// Load lazy if the there is no loop and footer was called.
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding' => 'async',
-				'loading'  => 'lazy',
-			),
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context )
 		);
 	}
@@ -4733,7 +4659,6 @@ EOF;
 	 *
 	 * @ticket 58089
 	 * @ticket 58235
-	 * @ticket 58892
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
 	 *
@@ -4743,11 +4668,8 @@ EOF;
 	 */
 	public function test_wp_get_loading_optimization_attributes_should_return_lazy_for_special_contexts_outside_of_the_content( $context ) {
 		$attr = $this->get_width_height_for_high_priority();
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding' => 'async',
-				'loading'  => 'lazy',
-			),
+		$this->assertSame(
+			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context )
 		);
 	}
@@ -4779,54 +4701,6 @@ EOF;
 		apply_filters( 'the_content', '' );
 
 		$this->assertSame( array(), $result );
-	}
-
-	/**
-	 * Tests to cover the decoding attribute within wp_get_loading_optimization_attributes().
-	 *
-	 * @ticket 58892
-	 *
-	 * @covers ::wp_get_loading_optimization_attributes
-	 */
-	public function test_wp_get_loading_optimization_attributes_decoding_attribute() {
-
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding' => 'async',
-			),
-			wp_get_loading_optimization_attributes( 'img', array(), 'the_content' ),
-			'Expected decoding attribute to be async.'
-		);
-
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding' => 'auto',
-			),
-			wp_get_loading_optimization_attributes( 'img', array( 'decoding' => 'auto' ), 'the_content' ),
-			'Expected decoding attribute to be auto.'
-		);
-
-		$result = null;
-		add_filter(
-			'the_content',
-			static function ( $content ) use ( &$result ) {
-				$result = wp_get_loading_optimization_attributes( 'img', array(), 'something_completely_arbitrary' );
-				return $content;
-			}
-		);
-		apply_filters( 'the_content', '' );
-
-		$this->assertSameSetsWithIndex(
-			array(),
-			$result,
-			'Expected decoding attribute to be empty for img on arbitrary context, while running the_content.'
-		);
-
-		$this->assertSameSetsWithIndex(
-			array(),
-			wp_get_loading_optimization_attributes( 'iframe', array(), 'the_content' ),
-			'Expected decoding attribute to be empty for iframe.'
-		);
 	}
 
 	/**
@@ -4935,7 +4809,6 @@ EOF;
 			'post-thumbnail',
 			array(
 				'loading'       => false,
-				'decoding'      => 'async',
 				'fetchpriority' => 'high',
 			)
 		);
@@ -5142,27 +5015,20 @@ EOF;
 					'width'  => 100,
 					'height' => 100,
 				),
-				array(
-					'decoding' => 'async',
-					'loading'  => 'lazy',
-				),
-				'Expected default `decoding="async"` and `loading="lazy"`.',
+				array( 'loading' => 'lazy' ),
+				'Expected default `loading="lazy"`.',
 			),
 			'img_without_height' => array(
 				'img',
 				array( 'width' => 100 ),
-				array(
-					'decoding' => 'async',
-				),
-				'Only `decoding` is set as height is required for `loading` attribute.',
+				array(),
+				'Expected blank array as height is required.',
 			),
 			'img_without_width'  => array(
 				'img',
 				array( 'height' => 100 ),
-				array(
-					'decoding' => 'async',
-				),
-				'Only `decoding` is set as width is required for `loading` attribute.',
+				array(),
+				'Expected blank array as width is required.',
 			),
 		);
 	}
@@ -5195,11 +5061,8 @@ EOF;
 		return array(
 			'img'    => array(
 				'img',
-				array(
-					'decoding' => 'async',
-					'loading'  => 'lazy',
-				),
-				'Expected `decoding="async"` and `loading="lazy"` and `decoding="async"` for the img.',
+				array( 'loading' => 'lazy' ),
+				'Expected `loading="lazy"` for the img.',
 			),
 			'iframe' => array(
 				'iframe',
@@ -5242,11 +5105,8 @@ EOF;
 		$attr = $this->get_width_height_for_high_priority();
 
 		// Skip logic if context is `template`.
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding'      => 'async',
-				'fetchpriority' => 'high',
-			),
+		$this->assertSame(
+			array( 'fetchpriority' => 'high' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER ),
 			'Images in the header block template part should not be lazy-loaded and first large image is set high fetchpriority.'
 		);
@@ -5254,7 +5114,6 @@ EOF;
 
 	/**
 	 * @ticket 58235
-	 * @ticket 58892
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
 	 * @expectedIncorrectUsage wp_get_loading_optimization_attributes
@@ -5266,7 +5125,6 @@ EOF;
 
 		$this->assertEqualSetsWithIndex(
 			array(
-				'decoding'      => 'async',
 				'loading'       => 'lazy',
 				'fetchpriority' => 'high',
 			),
@@ -5285,9 +5143,8 @@ EOF;
 		$attr['loading'] = 'eager';
 
 		// Check fetchpriority high logic if loading attribute is present.
-		$this->assertSameSetsWithIndex(
+		$this->assertSame(
 			array(
-				'decoding'      => 'async',
 				'fetchpriority' => 'high',
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'test' ),
@@ -5309,9 +5166,7 @@ EOF;
 
 		// fetchpriority not set as image is of lower resolution.
 		$this->assertSame(
-			array(
-				'decoding' => 'async',
-			),
+			array(),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'test' ),
 			'loading optimization attr array should be empty.'
 		);
@@ -5327,7 +5182,7 @@ EOF;
 		$setup();
 
 		// The first image processed in a shortcode should have fetchpriority set to high.
-		$this->assertSameSetsWithIndex(
+		$this->assertSame(
 			$expected,
 			wp_get_loading_optimization_attributes( 'img', $attr, 'do_shortcode' ),
 			$message
@@ -5345,7 +5200,6 @@ EOF;
 					$this->set_main_query( $wp_query );
 				},
 				'expected' => array(
-					'decoding'      => 'async',
 					'fetchpriority' => 'high',
 				),
 				'message'  => 'Fetch priority not applied to during shortcode rendering.',
@@ -5363,10 +5217,9 @@ EOF;
 					wp_increase_content_media_count( 3 );
 				},
 				'expected' => array(
-					'decoding' => 'async',
-					'loading'  => 'lazy',
+					'loading' => 'lazy',
 				),
-				'message'  => 'Lazy-loading or decoding not applied to during shortcode rendering.',
+				'message'  => 'Lazy-loading not applied to during shortcode rendering.',
 			),
 			'shortcode_image_outside_of_the_loop_are_loaded_lazy'  => array(
 				'setup'    => function () {
@@ -5374,10 +5227,9 @@ EOF;
 					return;
 				},
 				'expected' => array(
-					'decoding' => 'async',
-					'loading'  => 'lazy',
+					'loading' => 'lazy',
 				),
-				'message'  => 'Lazy-loading or decoding not applied to shortcodes outside the loop.',
+				'message'  => 'Lazy-loading not applied to shortcodes outside the loop.',
 			),
 		);
 	}
@@ -5474,10 +5326,7 @@ EOF;
 				'high',
 			),
 			'image with loading=lazy'       => array(
-				array(
-					'loading'  => 'lazy',
-					'decoding' => 'async',
-				),
+				array( 'loading' => 'lazy' ),
 				'img',
 				$this->get_width_height_for_high_priority(),
 				false,
@@ -5614,7 +5463,7 @@ EOF;
 
 		$attr = $this->get_width_height_for_high_priority();
 
-		$this->assertSameSetsWithIndex(
+		$this->assertSame(
 			array( 'fetchpriority' => 'high' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'The filter did not return early fetchpriority attribute'
@@ -5623,11 +5472,8 @@ EOF;
 		// Clean up the filter.
 		add_filter( 'pre_wp_get_loading_optimization_attributes', '__return_false' );
 
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding' => 'async',
-				'loading'  => 'lazy',
-			),
+		$this->assertSameSets(
+			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'The filter did not return the default attributes.'
 		);
@@ -5635,7 +5481,7 @@ EOF;
 		// Return no loading attributes.
 		add_filter( 'pre_wp_get_loading_optimization_attributes', '__return_empty_array' );
 
-		$this->assertSameSetsWithIndex(
+		$this->assertSameSets(
 			array(),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'The filter did not clean up all attributes.'
@@ -5657,7 +5503,7 @@ EOF;
 			1
 		);
 
-		$this->assertSameSetsWithIndex(
+		$this->assertSameSets(
 			array( 'custom_attr' => 'custom_value' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'The filter did not return custom attributes.'
@@ -5672,11 +5518,8 @@ EOF;
 	public function test_wp_get_loading_optimization_attributes_filter() {
 		$attr = $this->get_width_height_for_high_priority();
 
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding' => 'async',
-				'loading'  => 'lazy',
-			),
+		$this->assertSameSets(
+			array( 'loading' => 'lazy' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'Before the filter it will not return the loading attribute.'
 		);
@@ -5693,11 +5536,8 @@ EOF;
 			1
 		);
 
-		$this->assertSameSetsWithIndex(
-			array(
-				'decoding'      => 'async',
-				'fetchpriority' => 'high',
-			),
+		$this->assertSameSets(
+			array( 'fetchpriority' => 'high' ),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'After the filter it will not return the fetchpriority attribute.'
 		);
