@@ -69,7 +69,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			'image/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/image/view' ),
 			'query/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/query/view' ),
 			'file/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/file/view' ),
-			'search/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/file/view' ),
+			'search/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/search/view' ),
 		},
 		output: {
 			devtoolNamespace: 'wp',
