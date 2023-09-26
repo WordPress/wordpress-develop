@@ -475,12 +475,15 @@ function _flatten_blocks( &$blocks ) {
  * stylesheet as a theme attribute into each wp_template_part
  *
  * @since 5.9.0
+ * @deprecated 6.4.0 Use _inject_theme_attribute_in_template_part_block() with traverse_and_serialize_blocks() instead.
  * @access private
  *
  * @param string $template_content serialized wp_template content.
  * @return string Updated 'wp_template' content.
  */
 function _inject_theme_attribute_in_block_template_content( $template_content ) {
+	_deprecated_function( __FUNCTION__, '6.4.0' );
+
 	$has_updated_content = false;
 	$new_content         = '';
 	$template_blocks     = parse_blocks( $template_content );
