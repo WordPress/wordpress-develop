@@ -1345,7 +1345,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		// User saved as one who can bypass content_save_pre filter.
 		$this->assertStringContainsString( '<script>', get_option( 'custom_html_1' ) );
-		$this->assertStringContainsString( 'Wordpress', get_option( 'custom_html_1' ) ); // phpcs:ignore WordPress.WP.CapitalPDangit.MisspelledInText
+		$this->assertStringContainsString( 'Wordpress', get_option( 'custom_html_1' ) ); // phpcs:ignore WordPress.WP.CapitalPDangit.Misspelled
 
 		// User saved as one who cannot bypass content_save_pre filter.
 		$this->assertStringNotContainsString( '<script>', get_option( 'custom_html_2' ) );
