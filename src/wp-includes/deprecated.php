@@ -4253,7 +4253,9 @@ function wp_render_duotone_filter_preset( $preset ) {
 function wp_skip_border_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$border_support = _wp_array_get( $block_type->supports, array( '__experimentalBorder' ), false );
+	$border_support = isset( $block_type->supports['__experimentalBorder'] )
+		? $block_type->supports['__experimentalBorder']
+		: false;
 
 	return is_array( $border_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $border_support ) &&
@@ -4275,7 +4277,9 @@ function wp_skip_border_serialization( $block_type ) {
 function wp_skip_dimensions_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$dimensions_support = _wp_array_get( $block_type->supports, array( '__experimentalDimensions' ), false );
+	$dimensions_support = isset( $block_type->supports['__experimentalDimensions'] )
+		? $block_type->supports['__experimentalDimensions']
+		: false;
 
 	return is_array( $dimensions_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $dimensions_support ) &&
@@ -4297,7 +4301,9 @@ function wp_skip_dimensions_serialization( $block_type ) {
 function wp_skip_spacing_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$spacing_support = _wp_array_get( $block_type->supports, array( 'spacing' ), false );
+	$spacing_support = isset( $block_type->supports['spacing'] )
+		? $block_type->supports['spacing']
+		: false;
 
 	return is_array( $spacing_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $spacing_support ) &&
@@ -5869,4 +5875,168 @@ function _wp_theme_json_webfonts_handler() {
 	add_action( 'wp_loaded', $fn_register_webfonts );
 	add_action( 'wp_enqueue_scripts', $fn_generate_and_enqueue_styles );
 	add_action( 'admin_init', $fn_generate_and_enqueue_editor_styles );
+}
+
+/**
+ * Prints the CSS in the embed iframe header.
+ *
+ * @since 4.4.0
+ * @deprecated 6.4.0 Use wp_enqueue_embed_styles() instead.
+ */
+function print_embed_styles() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_embed_styles' );
+
+	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	$suffix    = SCRIPT_DEBUG ? '' : '.min';
+	?>
+	<style<?php echo $type_attr; ?>>
+		<?php echo file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ); ?>
+	</style>
+	<?php
+}
+
+/**
+ * Prints the important emoji-related styles.
+ *
+ * @since 4.2.0
+ * @deprecated 6.4.0 Use wp_enqueue_emoji_styles() instead.
+ */
+function print_emoji_styles() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_emoji_styles' );
+	static $printed = false;
+
+	if ( $printed ) {
+		return;
+	}
+
+	$printed = true;
+
+	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	?>
+	<style<?php echo $type_attr; ?>>
+	img.wp-smiley,
+	img.emoji {
+		display: inline !important;
+		border: none !important;
+		box-shadow: none !important;
+		height: 1em !important;
+		width: 1em !important;
+		margin: 0 0.07em !important;
+		vertical-align: -0.1em !important;
+		background: none !important;
+		padding: 0 !important;
+	}
+	</style>
+	<?php
+}
+
+/**
+ * Prints style and scripts for the admin bar.
+ *
+ * @since 3.1.0
+ * @deprecated 6.4.0 Use wp_enqueue_admin_bar_header_styles() instead.
+ */
+function wp_admin_bar_header() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_header_styles' );
+	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	?>
+	<style<?php echo $type_attr; ?> media="print">#wpadminbar { display:none; }</style>
+	<?php
+}
+
+/**
+ * Prints default admin bar callback.
+ *
+ * @since 3.1.0
+ * @deprecated 6.4.0 Use wp_enqueue_admin_bar_bump_styles() instead.
+ */
+function _admin_bar_bump_cb() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_bump_styles' );
+	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	?>
+	<style<?php echo $type_attr; ?> media="screen">
+	html { margin-top: 32px !important; }
+	@media screen and ( max-width: 782px ) {
+	  html { margin-top: 46px !important; }
+	}
+	</style>
+	<?php
+}
+
+/**
+ * Runs a remote HTTPS request to detect whether HTTPS supported, and stores potential errors.
+ *
+ * This internal function is called by a regular Cron hook to ensure HTTPS support is detected and maintained.
+ *
+ * @since 5.7.0
+ * @deprecated 6.4.0 The `wp_update_https_detection_errors()` function is no longer used and has been replaced by
+ *                   `wp_get_https_detection_errors()`. Previously the function was called by a regular Cron hook to
+ *                    update the `https_detection_errors` option, but this is no longer necessary as the errors are
+ *                    retrieved directly in Site Health and no longer used outside of Site Health.
+ * @access private
+ */
+function wp_update_https_detection_errors() {
+	_deprecated_function( __FUNCTION__, '6.4.0' );
+
+	/**
+	 * Short-circuits the process of detecting errors related to HTTPS support.
+	 *
+	 * Returning a `WP_Error` from the filter will effectively short-circuit the default logic of trying a remote
+	 * request to the site over HTTPS, storing the errors array from the returned `WP_Error` instead.
+	 *
+	 * @since 5.7.0
+	 * @deprecated 6.4.0 The `wp_update_https_detection_errors` filter is no longer used and has been replaced by `pre_wp_get_https_detection_errors`.
+	 *
+	 * @param null|WP_Error $pre Error object to short-circuit detection,
+	 *                           or null to continue with the default behavior.
+	 */
+	$support_errors = apply_filters( 'pre_wp_update_https_detection_errors', null );
+	if ( is_wp_error( $support_errors ) ) {
+		update_option( 'https_detection_errors', $support_errors->errors );
+		return;
+	}
+
+	$support_errors = wp_get_https_detection_errors();
+
+	update_option( 'https_detection_errors', $support_errors );
+}
+
+/**
+ * Adds `decoding` attribute to an `img` HTML tag.
+ *
+ * The `decoding` attribute allows developers to indicate whether the
+ * browser can decode the image off the main thread (`async`), on the
+ * main thread (`sync`) or as determined by the browser (`auto`).
+ *
+ * By default WordPress adds `decoding="async"` to images but developers
+ * can use the {@see 'wp_img_tag_add_decoding_attr'} filter to modify this
+ * to remove the attribute or set it to another accepted value.
+ *
+ * @since 6.1.0
+ * @deprecated 6.4.0 Use wp_img_tag_add_loading_optimization_attrs() instead.
+ * @see wp_img_tag_add_loading_optimization_attrs()
+ *
+ * @param string $image   The HTML `img` tag where the attribute should be added.
+ * @param string $context Additional context to pass to the filters.
+ * @return string Converted `img` tag with `decoding` attribute added.
+ */
+function wp_img_tag_add_decoding_attr( $image, $context ) {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_img_tag_add_loading_optimization_attrs()' );
+
+	/*
+	 * Only apply the decoding attribute to images that have a src attribute that
+	 * starts with a double quote, ensuring escaped JSON is also excluded.
+	 */
+	if ( ! str_contains( $image, ' src="' ) ) {
+		return $image;
+	}
+
+	/** This action is documented in wp-includes/media.php */
+	$value = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
+
+	if ( in_array( $value, array( 'async', 'sync', 'auto' ), true ) ) {
+		$image = str_replace( '<img ', '<img decoding="' . esc_attr( $value ) . '" ', $image );
+	}
+
+	return $image;
 }

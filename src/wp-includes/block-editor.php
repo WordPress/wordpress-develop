@@ -359,10 +359,23 @@ function _wp_get_iframed_editor_assets() {
 		}
 	}
 
+	/**
+	 * Remove the deprecated `print_emoji_styles` handler.
+	 * It avoids breaking style generation with a deprecation message.
+	 */
+	$has_emoji_styles = has_action( 'wp_print_styles', 'print_emoji_styles' );
+	if ( $has_emoji_styles ) {
+		remove_action( 'wp_print_styles', 'print_emoji_styles' );
+	}
+
 	ob_start();
 	wp_print_styles();
 	wp_print_font_faces();
 	$styles = ob_get_clean();
+
+	if ( $has_emoji_styles ) {
+		add_action( 'wp_print_styles', 'print_emoji_styles' );
+	}
 
 	ob_start();
 	wp_print_head_scripts();
@@ -409,11 +422,12 @@ function wp_get_first_block( $blocks, $block_name ) {
  * Retrieves Post Content block attributes from the current post template.
  *
  * @since 6.3.0
+ * @since 6.4.0 Return null if there is no post content block.
  * @access private
  *
  * @global int $post_ID
  *
- * @return array Post Content block attributes or empty array if they don't exist.
+ * @return array|null Post Content block attributes array or null if Post Content block doesn't exist.
  */
 function wp_get_post_content_block_attributes() {
 	global $post_ID;
@@ -421,7 +435,7 @@ function wp_get_post_content_block_attributes() {
 	$is_block_theme = wp_is_block_theme();
 
 	if ( ! $is_block_theme || ! $post_ID ) {
-		return array();
+		return null;
 	}
 
 	$template_slug = get_page_template_slug( $post_ID );
@@ -457,12 +471,12 @@ function wp_get_post_content_block_attributes() {
 		$template_blocks    = parse_blocks( $current_template[0]->content );
 		$post_content_block = wp_get_first_block( $template_blocks, 'core/post-content' );
 
-		if ( ! empty( $post_content_block['attrs'] ) ) {
+		if ( isset( $post_content_block['attrs'] ) ) {
 			return $post_content_block['attrs'];
 		}
 	}
 
-	return array();
+	return null;
 }
 
 /**
@@ -635,7 +649,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 
 	$post_content_block_attributes = wp_get_post_content_block_attributes();
 
-	if ( ! empty( $post_content_block_attributes ) ) {
+	if ( isset( $post_content_block_attributes ) ) {
 		$editor_settings['postContentAttributes'] = $post_content_block_attributes;
 	}
 
