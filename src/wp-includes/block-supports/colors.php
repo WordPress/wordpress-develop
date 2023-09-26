@@ -30,7 +30,6 @@ function wp_register_colors_support( $block_type ) {
 	$has_link_colors_support       = isset( $color_support['link'] ) ? $color_support['link'] : false;
 	$has_button_colors_support     = isset( $color_support['button'] ) ? $color_support['button'] : false;
 	$has_heading_colors_support    = isset( $color_support['heading'] ) ? $color_support['heading'] : false;
-
 	$has_color_support             = $has_text_colors_support ||
 		$has_background_colors_support ||
 		$has_gradients_support ||
