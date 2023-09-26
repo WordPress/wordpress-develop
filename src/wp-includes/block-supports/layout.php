@@ -549,7 +549,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 function wp_render_layout_support_flag( $block_content, $block ) {
 	$block_type            = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
 	$block_supports_layout = block_has_support( $block_type, 'layout', false ) || block_has_support( $block_type, '__experimentalLayout', false );
-	$layout_from_parent    = isset($block['attrs']['style']['layout']['selfStretch']) ? $block['attrs']['style']['layout']['selfStretch'] : null;
+	$layout_from_parent    = isset( $block['attrs']['style']['layout']['selfStretch'] ) ? $block['attrs']['style']['layout']['selfStretch'] : null;
 
 	if ( ! $block_supports_layout && ! $layout_from_parent ) {
 		return $block_content;
