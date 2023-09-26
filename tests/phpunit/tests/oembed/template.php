@@ -10,6 +10,8 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		global $wp_scripts;
 		$wp_scripts = null;
+
+		remove_action( 'wp_print_styles', 'print_emoji_styles' );
 	}
 
 	public function tear_down() {

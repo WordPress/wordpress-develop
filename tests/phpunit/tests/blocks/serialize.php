@@ -235,4 +235,40 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 
 		$this->assertSame( $original, $actual );
 	}
+
+	/**
+	 * @ticket 59313
+	 *
+	 * @covers ::traverse_and_serialize_blocks
+	 */
+	public function test_traverse_and_serialize_blocks_do_not_insert_in_void_block() {
+		$markup = '<!-- wp:void /-->';
+		$blocks = parse_blocks( $markup );
+
+		$actual = traverse_and_serialize_blocks(
+			$blocks,
+			array( __CLASS__, 'insert_next_to_child_blocks_callback' ),
+			array( __CLASS__, 'insert_next_to_child_blocks_callback' )
+		);
+
+		$this->assertSame( $markup, $actual );
+	}
+
+	/**
+	 * @ticket 59313
+	 *
+	 * @covers ::traverse_and_serialize_blocks
+	 */
+	public function test_traverse_and_serialize_blocks_do_not_insert_in_empty_parent_block() {
+		$markup = '<!-- wp:outer --><div class="wp-block-outer"></div><!-- /wp:outer -->';
+		$blocks = parse_blocks( $markup );
+
+		$actual = traverse_and_serialize_blocks(
+			$blocks,
+			array( __CLASS__, 'insert_next_to_child_blocks_callback' ),
+			array( __CLASS__, 'insert_next_to_child_blocks_callback' )
+		);
+
+		$this->assertSame( $markup, $actual );
+	}
 }
