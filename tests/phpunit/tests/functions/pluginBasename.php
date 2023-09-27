@@ -87,4 +87,30 @@ class Tests_Functions_PluginBasename extends WP_UnitTestCase {
 		$actual = plugin_basename( $plugin_project_root_directory . '/wordpress/wp-content/plugins/wordpress-importer/wordpress-importer.php' );
 		$this->assertSame( 'wordpress-importer/wordpress-importer.php', $actual, 'The basename returned is incorrect.' );
 	}
+
+	/**
+	 * Always record the plugin path in `wp_register_plugin_realpath()`.
+	 *
+	 * As of 6.3, `$wp_plugin_paths` acts only as a map when path and realpath differ, meaning it does not contain all
+	 * plugin paths.
+	 *
+	 * @ticket 42670
+	 */
+	public function test_wp_register_plugin_realpath_should_always_record_path() {
+		global $wp_plugin_paths;
+		$wp_plugin_paths = array();
+
+		$unzip = new ZipArchive();
+		$unzip->open( $this->wp_plugin_path . '/link-manager.zip' );
+		$unzip->extractTo( $this->wp_plugin_path );
+		$unzip->close();
+
+		wp_register_plugin_realpath( $this->wp_plugin_path . '/link-manager/link-manager.php' );
+
+		$this->assertArrayHasKey( $this->wp_plugin_path . '/link-manager', $wp_plugin_paths );
+		$this->assertContains( $this->wp_plugin_path . '/link-manager', $wp_plugin_paths );
+
+		$this->rmdir( $this->wp_plugin_path . '/link-manager' );
+		rmdir( $this->wp_plugin_path . '/link-manager' );
+	}
 }
