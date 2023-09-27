@@ -77,7 +77,7 @@ function create_initial_post_types() {
 				'name_admin_bar' => _x( 'Media', 'add new from admin bar' ),
 				'add_new'        => __( 'Add New Media File' ),
 				'edit_item'      => __( 'Edit Media' ),
-				'view_item'      => __( 'View Attachment Page' ),
+				'view_item'      => ( '1' === get_option( 'wp_attachment_pages_enabled' ) ) ? __( 'View Attachment Page' ) : __( 'View Media File' ),
 				'attributes'     => __( 'Attachment Attributes' ),
 			),
 			'public'                => true,
@@ -1412,7 +1412,7 @@ function register_post_status( $post_status, $args = array() ) {
 	}
 
 	if ( false === $args->label_count ) {
-		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingle,WordPress.WP.I18n.NonSingularStringLiteralPlural
+		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingular,WordPress.WP.I18n.NonSingularStringLiteralPlural
 		$args->label_count = _n_noop( $args->label, $args->label );
 	}
 

@@ -195,16 +195,17 @@ add_filter( 'the_content', 'convert_smilies', 20 );
 add_filter( 'the_content', 'wpautop' );
 add_filter( 'the_content', 'shortcode_unautop' );
 add_filter( 'the_content', 'prepend_attachment' );
-add_filter( 'the_content', 'wp_filter_content_tags' );
 add_filter( 'the_content', 'wp_replace_insecure_home_url' );
+add_filter( 'the_content', 'do_shortcode', 11 ); // AFTER wpautop().
+add_filter( 'the_content', 'wp_filter_content_tags', 12 ); // Runs after do_shortcode().
 
 add_filter( 'the_excerpt', 'wptexturize' );
 add_filter( 'the_excerpt', 'convert_smilies' );
 add_filter( 'the_excerpt', 'convert_chars' );
 add_filter( 'the_excerpt', 'wpautop' );
 add_filter( 'the_excerpt', 'shortcode_unautop' );
-add_filter( 'the_excerpt', 'wp_filter_content_tags' );
 add_filter( 'the_excerpt', 'wp_replace_insecure_home_url' );
+add_filter( 'the_excerpt', 'wp_filter_content_tags', 12 );
 add_filter( 'get_the_excerpt', 'wp_trim_excerpt', 10, 2 );
 
 add_filter( 'the_post_thumbnail_caption', 'wptexturize' );
@@ -230,13 +231,13 @@ add_filter( 'widget_text_content', 'wptexturize' );
 add_filter( 'widget_text_content', 'convert_smilies', 20 );
 add_filter( 'widget_text_content', 'wpautop' );
 add_filter( 'widget_text_content', 'shortcode_unautop' );
-add_filter( 'widget_text_content', 'wp_filter_content_tags' );
 add_filter( 'widget_text_content', 'wp_replace_insecure_home_url' );
 add_filter( 'widget_text_content', 'do_shortcode', 11 ); // Runs after wpautop(); note that $post global will be null when shortcodes run.
+add_filter( 'widget_text_content', 'wp_filter_content_tags', 12 ); // Runs after do_shortcode().
 
 add_filter( 'widget_block_content', 'do_blocks', 9 );
-add_filter( 'widget_block_content', 'wp_filter_content_tags' );
 add_filter( 'widget_block_content', 'do_shortcode', 11 );
+add_filter( 'widget_block_content', 'wp_filter_content_tags', 12 ); // Runs after do_shortcode().
 
 add_filter( 'block_type_metadata', 'wp_migrate_old_typography_shape' );
 
@@ -410,6 +411,7 @@ add_action( 'plugins_loaded', 'wp_maybe_load_widgets', 0 );
 add_action( 'plugins_loaded', 'wp_maybe_load_embeds', 0 );
 add_action( 'shutdown', 'wp_ob_end_flush_all', 1 );
 // Create a revision whenever a post is updated.
+add_action( 'wp_after_insert_post', 'wp_save_post_revision_on_insert', 9, 3 );
 add_action( 'post_updated', 'wp_save_post_revision', 10, 1 );
 add_action( 'publish_post', '_publish_post_hook', 5, 1 );
 add_action( 'transition_post_status', '_transition_post_status', 5, 3 );
@@ -625,9 +627,6 @@ add_action( 'change_locale', 'create_initial_taxonomies' );
 add_action( 'template_redirect', 'redirect_canonical' );
 add_action( 'template_redirect', 'wp_redirect_admin_locations', 1000 );
 
-// Shortcodes.
-add_filter( 'the_content', 'do_shortcode', 11 ); // AFTER wpautop().
-
 // Media.
 add_action( 'wp_playlist_scripts', 'wp_playlist_scripts' );
 add_action( 'customize_controls_enqueue_scripts', 'wp_plupload_default_settings' );
@@ -720,6 +719,18 @@ add_action( 'init', 'wp_register_persisted_preferences_meta' );
 
 // CPT wp_block custom postmeta field.
 add_action( 'init', 'wp_create_initial_post_meta' );
+
+// Include revisioned meta when considering whether a post revision has changed.
+add_filter( 'wp_save_post_revision_post_has_changed', 'wp_check_revisioned_meta_fields_have_changed', 10, 3 );
+
+// Save revisioned post meta immediately after a revision is saved
+add_action( '_wp_put_post_revision', 'wp_save_revisioned_meta_fields', 10, 2 );
+
+// Include revisioned meta when creating or updating an autosave revision.
+add_action( 'wp_creating_autosave', 'wp_autosave_post_revisioned_meta_fields' );
+
+// When restoring revisions, also restore revisioned meta.
+add_action( 'wp_restore_post_revision', 'wp_restore_post_revision_meta', 10, 2 );
 
 // Font management.
 add_action( 'wp_head', 'wp_print_font_faces', 50 );
