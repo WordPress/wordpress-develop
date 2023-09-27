@@ -2853,9 +2853,43 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 		);
 	}
 
-	// Ensure markup is XHTML compatible if not HTML5.
+	/*
+	 * XHTML extracts the contents of the SCRIPT element and then the XML parser
+	 * decodes character references and other syntax elements. This can lead to
+	 * misinterpretation of the script contents or invalid XHTML documents.
+	 *
+	 * Wrapping the contents in a CDATA section instructs the XML parser not to
+	 * transform the contents of the SCRIPT element before passing them to the
+	 * JavaScript engine.
+	 *
+	 * Example:
+	 *
+	 *     <script>console.log('&hellip;');</script>
+	 *
+	 *     In an HTML document this would print "&hellip;" to the console,
+	 *     but in an XHTML document it would print "…" to the console.
+	 *
+	 *     <script>console.log('An image is <img> in HTML');</script>
+	 *
+	 *     In an HTML document this would print "An image is <img> in HTML",
+	 *     but it's an invalid XHTML document because it interprets the `<img>`
+	 *     as an empty tag missing its closing `/`.
+	 *
+	 * @see https://www.w3.org/TR/xhtml1/#h-4.8
+	 */
 	if ( ! $is_html5 ) {
-		$javascript = str_replace( ']]>', ']]]]><![CDATA[>', $javascript ); // Escape any existing CDATA section.
+		/*
+		 * If the string `]]>` exists within the JavaScript it would break
+		 * out of any wrapping CDATA section added here, so to start, it's
+		 * necessary to escape that sequence which requires splitting the
+		 * content into two CDATA sections wherever it's found.
+		 *
+		 * Note: it's only necessary to escape the closing `]]>` because
+		 * an additional `<![CDATA[` leaves the contents unchanged.
+		 */
+		$javascript = str_replace( ']]>', ']]]]><![CDATA[>', $javascript );
+
+		// Wrap the entire escaped script inside a CDATA section.
 		$javascript = sprintf( "/* <![CDATA[ */\n%s\n/* ]]> */", $javascript );
 	}
 
