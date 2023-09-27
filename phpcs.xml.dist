@@ -15,11 +15,11 @@
 	<!-- Whenever possible, cache the scan results and re-use those for unchanged files on the next scan. -->
 	<arg name="cache" value=".cache/phpcs.json"/>
 
-	<!-- Set the memory limit to 256M.
+	<!-- Set the memory limit to 512M.
 		 For most standard PHP configurations, this means the memory limit will temporarily be raised.
 		 Ref: https://github.com/squizlabs/PHP_CodeSniffer/wiki/Advanced-Usage#specifying-phpini-settings
 	-->
-	<ini name="memory_limit" value="256M"/>
+	<ini name="memory_limit" value="512M"/>
 
 	<!-- Strip the filepaths down to the relevant bit. -->
 	<arg name="basepath" value="./"/>
@@ -71,7 +71,6 @@
 	<exclude-pattern>/src/wp-includes/IXR/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/js/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/PHPMailer/*</exclude-pattern>
-	<exclude-pattern>/src/wp-includes/random_compat/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/Requests/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/SimplePie/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/sodium_compat/*</exclude-pattern>
@@ -114,22 +113,6 @@
 	-->
 
 	<rule ref="WordPress-Core"/>
-	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
-
-	<!-- Enforce no parenthesis for language constructs, and only one space immediately after.
-		 Including this rule is temporary until it is moved from the WordPress-Extra ruleset to
-		 the WordPress-Core ruleset upstream.
-	-->
-	<rule ref="PEAR.Files.IncludingFile.BracketsNotRequired">
-		<type>warning</type>
-	</rule>
-	<rule ref="PEAR.Files.IncludingFile.UseRequire">
-		<type>warning</type>
-	</rule>
-	<rule ref="PEAR.Files.IncludingFile.UseRequireOnce">
-		<type>warning</type>
-	</rule>
-	<rule ref="Squiz.WhiteSpace.LanguageConstructSpacing"/>
 
 
 	<!--
@@ -139,6 +122,11 @@
 	-->
 
 	<!-- These rules are being set as warnings instead of errors, so we can error check the entire codebase. -->
+	<rule ref="Generic.Files.OneObjectStructurePerFile.MultipleFound">
+		<type>warning</type>
+		<!-- Exclude the unit tests as no warnings are allowed there. Note: these issues should be fixed and the exclude removed! -->
+		<exclude-pattern>/tests/phpunit/*</exclude-pattern>
+	</rule>
 	<rule ref="WordPress.DB.PreparedSQL.InterpolatedNotPrepared">
 		<type>warning</type>
 	</rule>
@@ -154,7 +142,7 @@
 
 	<rule ref="WordPress.NamingConventions.ValidVariableName">
 		<properties>
-			<property name="customPropertiesWhitelist" type="array">
+			<property name="allowed_custom_properties" type="array">
 				<!-- From database structure queries. -->
 				<element value="Collation"/>
 				<element value="Column_name"/>
@@ -210,7 +198,7 @@
 
 	<rule ref="WordPress.PHP.NoSilencedErrors">
 		<properties>
-			<property name="custom_whitelist" type="array">
+			<property name="customAllowedFunctionsList" type="array">
 				<element value="ssh2_connect"/>
 				<element value="ssh2_auth_password"/>
 				<element value="ssh2_auth_pubkey_file"/>
@@ -240,6 +228,11 @@
 	#############################################################################
 	-->
 
+	<!-- Assignments in while conditions are a valid method of looping over iterables. -->
+	<rule ref="Generic.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition">
+		<exclude-pattern>*</exclude-pattern>
+	</rule>
+
 	<!-- Exclude checking of line endings when reporting errors, but fix them when running phpcbf.
 		 Git and SVN manage these pretty well cross-platform as "native".
 		 Allow configuration files. -->
@@ -253,6 +246,12 @@
 		<exclude-pattern>/wp-config\.php</exclude-pattern>
 		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
 		<exclude-pattern>/wp-tests-config\.php</exclude-pattern>
+		<exclude-pattern>/wp-tests-config-sample\.php</exclude-pattern>
+	</rule>
+
+	<!-- Exclude sample config from modernization to prevent breaking CI workflows based on WP-CLI scaffold.
+		 See: https://core.trac.wordpress.org/ticket/48082#comment:16 -->
+	<rule ref="Modernize.FunctionCalls.Dirname.FileConstant">
 		<exclude-pattern>/wp-tests-config-sample\.php</exclude-pattern>
 	</rule>
 
@@ -275,9 +274,10 @@
 		<exclude-pattern>/src/wp-includes/class-wpdb\.php</exclude-pattern>
 	</rule>
 
-	<!-- Assignments in while conditions are a valid method of looping over iterables. -->
-	<rule ref="WordPress.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition">
-		<exclude-pattern>*</exclude-pattern>
+	<!-- Temporarily ignore this sniff for block files until the changes from upstream make it into core.
+		 This can be removed once the block-library package is updated for WP 6.4. -->
+	<rule ref="Squiz.Functions.MultiLineFunctionDeclaration.SpaceAfterFunction">
+		<exclude-pattern>/src/wp-includes/blocks/*</exclude-pattern>
 	</rule>
 
 	<!-- Allow the WP DB Class and related tests for usage of direct database access functions. -->

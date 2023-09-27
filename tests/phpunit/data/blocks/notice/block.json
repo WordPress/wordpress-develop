@@ -31,7 +31,10 @@
 		"root": ".wp-block-notice"
 	},
 	"blockHooks": {
-		"core/post-content": "before"
+		"tests/before": "before",
+		"tests/after": "after",
+		"tests/first-child": "firstChild",
+		"tests/last-child": "lastChild"
 	},
 	"supports": {
 		"align": true,

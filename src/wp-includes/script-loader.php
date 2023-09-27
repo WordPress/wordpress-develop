@@ -113,9 +113,9 @@ function wp_default_packages_vendor( $scripts ) {
 		'lodash'                      => '4.17.19',
 		'wp-polyfill-fetch'           => '3.6.17',
 		'wp-polyfill-formdata'        => '4.0.10',
-		'wp-polyfill-node-contains'   => '4.6.0',
+		'wp-polyfill-node-contains'   => '4.8.0',
 		'wp-polyfill-url'             => '3.6.4',
-		'wp-polyfill-dom-rect'        => '4.6.0',
+		'wp-polyfill-dom-rect'        => '4.8.0',
 		'wp-polyfill-element-closest' => '3.0.2',
 		'wp-polyfill-object-fit'      => '2.3.5',
 		'wp-polyfill-inert'           => '3.1.2',
@@ -278,6 +278,10 @@ function wp_default_packages_scripts( $scripts ) {
 	 *     'api-fetch.js' => array(...
 	 */
 	$assets = include ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
+
+	// Add the private version of the Interactivity API manually.
+	$scripts->add( 'wp-interactivity', '/wp-includes/js/dist/interactivity.min.js' );
+	did_action( 'init' ) && $scripts->add_data( 'wp-interactivity', 'strategy', 'defer' );
 
 	foreach ( $assets as $file_name => $package_data ) {
 		$basename = str_replace( $suffix . '.js', '', basename( $file_name ) );
@@ -1684,6 +1688,7 @@ function wp_default_styles( $styles ) {
 		'wp-block-library',
 		'wp-reusable-blocks',
 		'wp-block-editor-content',
+		'wp-patterns',
 	);
 
 	// Only load the default layout and margin styles for themes without theme.json file.
@@ -1726,10 +1731,12 @@ function wp_default_styles( $styles ) {
 			'wp-components',
 			'wp-block-editor',
 			'wp-reusable-blocks',
+			'wp-patterns',
 		),
 		'format-library'       => array(),
 		'list-reusable-blocks' => array( 'wp-components' ),
 		'reusable-blocks'      => array( 'wp-components' ),
+		'patterns'             => array( 'wp-components' ),
 		'nux'                  => array( 'wp-components' ),
 		'widgets'              => array(
 			'wp-components',
@@ -1740,6 +1747,7 @@ function wp_default_styles( $styles ) {
 			'wp-edit-blocks',
 			'wp-block-library',
 			'wp-reusable-blocks',
+			'wp-patterns',
 		),
 		'customize-widgets'    => array(
 			'wp-widgets',
@@ -1747,6 +1755,7 @@ function wp_default_styles( $styles ) {
 			'wp-edit-blocks',
 			'wp-block-library',
 			'wp-reusable-blocks',
+			'wp-patterns',
 		),
 		'edit-site'            => array(
 			'wp-components',
@@ -1818,6 +1827,7 @@ function wp_default_styles( $styles ) {
 		'wp-format-library',
 		'wp-list-reusable-blocks',
 		'wp-reusable-blocks',
+		'wp-patterns',
 		'wp-nux',
 		'wp-widgets',
 		// Deprecated CSS.
@@ -2787,7 +2797,11 @@ function wp_sanitize_script_attributes( $attributes ) {
  */
 function wp_get_script_tag( $attributes ) {
 	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
-		$attributes['type'] = 'text/javascript';
+		// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
+		$attributes = array_merge(
+			array( 'type' => 'text/javascript' ),
+			$attributes
+		);
 	}
 	/**
 	 * Filters attributes to be added to a script tag.
@@ -2830,9 +2844,23 @@ function wp_print_script_tag( $attributes ) {
  * @return string String containing inline JavaScript code wrapped around `<script>` tag.
  */
 function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
-	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
-		$attributes['type'] = 'text/javascript';
+	$is_html5 = current_theme_supports( 'html5', 'script' ) || is_admin();
+	if ( ! isset( $attributes['type'] ) && ! $is_html5 ) {
+		// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
+		$attributes = array_merge(
+			array( 'type' => 'text/javascript' ),
+			$attributes
+		);
 	}
+
+	// Ensure markup is XHTML compatible if not HTML5.
+	if ( ! $is_html5 ) {
+		$javascript = str_replace( ']]>', ']]]]><![CDATA[>', $javascript ); // Escape any existing CDATA section.
+		$javascript = sprintf( "/* <![CDATA[ */\n%s\n/* ]]> */", $javascript );
+	}
+
+	$javascript = "\n" . trim( $javascript, "\n\r " ) . "\n";
+
 	/**
 	 * Filters attributes to be added to a script tag.
 	 *
@@ -2844,8 +2872,6 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 	 * @param string $javascript Inline JavaScript code.
 	 */
 	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $javascript );
-
-	$javascript = "\n" . trim( $javascript, "\n\r " ) . "\n";
 
 	return sprintf( "<script%s>%s</script>\n", wp_sanitize_script_attributes( $attributes ), $javascript );
 }

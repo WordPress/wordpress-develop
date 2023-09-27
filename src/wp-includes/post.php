@@ -77,7 +77,7 @@ function create_initial_post_types() {
 				'name_admin_bar' => _x( 'Media', 'add new from admin bar' ),
 				'add_new'        => __( 'Add New Media File' ),
 				'edit_item'      => __( 'Edit Media' ),
-				'view_item'      => __( 'View Attachment Page' ),
+				'view_item'      => ( '1' === get_option( 'wp_attachment_pages_enabled' ) ) ? __( 'View Attachment Page' ) : __( 'View Media File' ),
 				'attributes'     => __( 'Attachment Attributes' ),
 			),
 			'public'                => true,
@@ -1382,7 +1382,7 @@ function register_post_status( $post_status, $args = array() ) {
 	}
 
 	if ( false === $args->label_count ) {
-		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingle,WordPress.WP.I18n.NonSingularStringLiteralPlural
+		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingular,WordPress.WP.I18n.NonSingularStringLiteralPlural
 		$args->label_count = _n_noop( $args->label, $args->label );
 	}
 
@@ -7888,7 +7888,7 @@ function get_available_post_mime_types( $type = 'attachment' ) {
 	 * @param string[]|null $mime_types An array of MIME types. Default null.
 	 * @param string        $type       The post type name. Usually 'attachment' but can be any post type.
 	 */
-	$mime_types = apply_filters( 'get_available_post_mime_types', null, $type );
+	$mime_types = apply_filters( 'pre_get_available_post_mime_types', null, $type );
 
 	if ( ! is_array( $mime_types ) ) {
 		$mime_types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );

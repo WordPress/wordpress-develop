@@ -276,6 +276,82 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58319
+	 *
+	 * @covers ::get_block_theme_folders
+	 *
+	 * @dataProvider data_get_block_theme_folders
+	 *
+	 * @param string   $theme    The theme's stylesheet.
+	 * @param string[] $expected The expected associative array of block theme folders.
+	 */
+	public function test_get_block_theme_folders( $theme, $expected ) {
+		$wp_theme = wp_get_theme( $theme );
+		$wp_theme->cache_delete(); // Clear cache.
+
+		$this->assertSame( $expected, get_block_theme_folders( $theme ), 'Incorrect block theme folders were retrieved.' );
+		$reflection = new ReflectionMethod( $wp_theme, 'cache_get' );
+		$reflection->setAccessible( true );
+		$theme_cache  = $reflection->invoke( $wp_theme, 'theme' );
+		$cached_value = $theme_cache['block_template_folders'];
+		$reflection->setAccessible( false );
+
+		$this->assertSame( $expected, $cached_value, 'The cached value is incorrect.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_block_theme_folders() {
+		return array(
+			'block-theme'                       => array(
+				'block-theme',
+				array(
+					'wp_template'      => 'templates',
+					'wp_template_part' => 'parts',
+				),
+			),
+			'block-theme-deprecated-path'       => array(
+				'block-theme-deprecated-path',
+				array(
+					'wp_template'      => 'block-templates',
+					'wp_template_part' => 'block-template-parts',
+				),
+			),
+			'block-theme-child'                 => array(
+				'block-theme-child',
+				array(
+					'wp_template'      => 'templates',
+					'wp_template_part' => 'parts',
+				),
+			),
+			'block-theme-child-deprecated-path' => array(
+				'block-theme-child-deprecated-path',
+				array(
+					'wp_template'      => 'block-templates',
+					'wp_template_part' => 'block-template-parts',
+				),
+			),
+			'this-is-an-invalid-theme'          => array(
+				'this-is-an-invalid-theme',
+				array(
+					'wp_template'      => 'templates',
+					'wp_template_part' => 'parts',
+				),
+			),
+			'null'                              => array(
+				null,
+				array(
+					'wp_template'      => 'templates',
+					'wp_template_part' => 'parts',
+				),
+			),
+		);
+	}
+
+	/**
 	 * Registers a test block to log `in_the_loop()` results.
 	 *
 	 * @param array $in_the_loop_logs Array to log function results in. Passed by reference.
