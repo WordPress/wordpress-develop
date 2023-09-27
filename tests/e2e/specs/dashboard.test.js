@@ -1,15 +1,18 @@
-import {
-	trashAllPosts,
-	visitAdminPage,
-} from '@wordpress/e2e-test-utils';
+/**
+ * WordPress dependencies
+ */
+import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
-describe( 'Quick Draft', () => {
-	beforeEach( async () => {
-		await trashAllPosts();
+test.describe( 'Quick Draft', () => {
+	test.beforeEach( async ({ requestUtils }) => {
+		await requestUtils.deleteAllPosts();
 	} );
 
-	it( 'Allows draft to be created with Title and Content', async () => {
-		await visitAdminPage( '/' );
+	test( 'Allows draft to be created with Title and Content', async ( {
+	   admin,
+	   page
+	} ) => {
+		await admin.visitAdminPage( '/' );
 
 		// Wait for Quick Draft title field to appear and focus it
 		const draftTitleField = await page.waitForSelector(
@@ -36,7 +39,7 @@ describe( 'Quick Draft', () => {
 		).toContain( 'Test Draft Title' );
 
 		// Check that new draft appears in Posts page
-		await visitAdminPage( '/edit.php' );
+		await admin.visitAdminPage( '/edit.php' );
 		const postsListDraft = await page.waitForSelector(
 			'.type-post.status-draft .title'
 		);
@@ -46,8 +49,11 @@ describe( 'Quick Draft', () => {
 		).toContain( 'Test Draft Title' );
 	} );
 
-	it( 'Allows draft to be created without Title or Content', async () => {
-		await visitAdminPage( '/' );
+	test( 'Allows draft to be created without Title or Content', async ( {
+		 admin,
+		 page
+	} ) => {
+		await admin.visitAdminPage( '/' );
 
 		// Wait for Save Draft button to appear and click it
 		const saveDraftButton = await page.waitForSelector(
@@ -63,7 +69,7 @@ describe( 'Quick Draft', () => {
 		).toContain( '(no title)' );
 
 		// Check that new draft appears in Posts page
-		await visitAdminPage( '/edit.php' );
+		await admin.visitAdminPage( '/edit.php' );
 		const postsListDraft = await page.waitForSelector(
 			'.type-post.status-draft .title a'
 		);
