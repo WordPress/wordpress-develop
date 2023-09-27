@@ -14,8 +14,8 @@ process.env.TEST_RUNS ??= '20';
 
 const config = defineConfig( {
 	reporter: process.env.CI
-		? './config/performance-reporter.ts'
-		: [ [ 'list' ], [ './config/performance-reporter.ts' ] ],
+		? './config/performance-reporter.js'
+		: [ [ 'list' ], [ './config/performance-reporter.js' ] ],
 	forbidOnly: !! process.env.CI,
 	// fullyParallel: false,
 	workers: 1,
