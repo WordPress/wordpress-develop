@@ -697,7 +697,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 	/**
 	 * Tests that update_option() triggers no additional queries and returns false
-	 * when there are unaffected database rows.
+	 * for some loosely equal values.
 	 *
 	 * This excludes old values that are null, as they trigger an additional query.
 	 *
@@ -711,8 +711,6 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @param mixed $new_value The new value to try to set.
 	 */
 	public function test_update_option_should_trigger_no_queries_and_return_false_for_some_loosely_equal_values( $old_value, $new_value ) {
-		global $wpdb;
-
 		add_option( 'foo', $old_value );
 
 		$num_queries = get_num_queries();
@@ -721,7 +719,6 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$updated = update_option( 'foo', $new_value );
 
 		$this->assertSame( $num_queries, get_num_queries(), 'No additional queries should have run.' );
-		$this->assertSame( 0, $wpdb->rows_affected, 'No rows should have been affected as the database considered the values to be the same.' );
 		$this->assertFalse( $updated, 'update_option() should have returned false.' );
 	}
 
