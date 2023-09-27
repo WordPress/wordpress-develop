@@ -653,7 +653,6 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * Tests that update_option() triggers no additional queries and returns false
 	 * for some strictly equal old and new values when the cache is refreshed.
 	 *
-	 *
 	 * @ticket 22192
 	 *
 	 * @covers ::update_option
