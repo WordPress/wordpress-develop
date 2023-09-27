@@ -540,8 +540,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 */
 	protected function get_sortable_columns() {
 		return array(
-			'author'   => 'comment_author',
-			'response' => 'comment_post_ID',
+			'author'   => array( 'comment_author', false, __( 'Author' ), __( 'Table ordered by Comment Author.' ) ),
+			'response' => array( 'comment_post_ID', false, _x( 'In Response To', 'column name' ), __( 'Table ordered by Post Replied To.' ) ),
 			'date'     => 'comment_date',
 		);
 	}
@@ -580,6 +580,17 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		?>
 <table class="wp-list-table <?php echo implode( ' ', $this->get_table_classes() ); ?>">
+		<?php
+		if ( ! isset( $_GET['orderby'] ) ) {
+			// In the initial view, Comments are ordered by comment's date but there's no column for that.
+			echo '<caption class="screen-reader-text">' .
+			/* translators: Hidden accessibility text. */
+			__( 'Ordered by Comment Date, descending.' ) .
+			'</caption>';
+		} else {
+			$this->print_table_description();
+		}
+		?>
 	<thead>
 	<tr>
 		<?php $this->print_column_headers(); ?>
@@ -674,7 +685,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 		}
 
 		// Restores the more descriptive, specific name for use within this method.
-		$comment            = $item;
+		$comment = $item;
+
 		$the_comment_status = wp_get_comment_status( $comment );
 
 		$output = '';
@@ -884,13 +896,15 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		if ( $this->user_can ) {
 			?>
-		<label class="screen-reader-text" for="cb-select-<?php echo $comment->comment_ID; ?>">
+		<input id="cb-select-<?php echo $comment->comment_ID; ?>" type="checkbox" name="delete_comments[]" value="<?php echo $comment->comment_ID; ?>" />
+		<label for="cb-select-<?php echo $comment->comment_ID; ?>">
+			<span class="screen-reader-text">
 			<?php
 			/* translators: Hidden accessibility text. */
 			_e( 'Select comment' );
 			?>
+			</span>
 		</label>
-		<input id="cb-select-<?php echo $comment->comment_ID; ?>" type="checkbox" name="delete_comments[]" value="<?php echo $comment->comment_ID; ?>" />
 			<?php
 		}
 	}
@@ -1074,6 +1088,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 * @param string     $column_name The custom column's name.
 	 */
 	public function column_default( $item, $column_name ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$comment = $item;
+
 		/**
 		 * Fires when the default column output is displayed for a single row.
 		 *
@@ -1082,6 +1099,6 @@ class WP_Comments_List_Table extends WP_List_Table {
 		 * @param string $column_name The custom column's name.
 		 * @param string $comment_id  The comment ID as a numeric string.
 		 */
-		do_action( 'manage_comments_custom_column', $column_name, $item->comment_ID );
+		do_action( 'manage_comments_custom_column', $column_name, $comment->comment_ID );
 	}
 }

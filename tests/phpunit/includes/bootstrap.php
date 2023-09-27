@@ -10,7 +10,7 @@ if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
 	if ( ! file_exists( $config_file_path . '/wp-tests-config.php' ) ) {
 		// Support the config file from the root of the develop repository.
 		if ( basename( $config_file_path ) === 'phpunit' && basename( dirname( $config_file_path ) ) === 'tests' ) {
-			$config_file_path = dirname( dirname( $config_file_path ) );
+			$config_file_path = dirname( $config_file_path, 2 );
 		}
 	}
 	$config_file_path .= '/wp-tests-config.php';
@@ -79,7 +79,7 @@ if ( version_compare( $phpunit_version, '5.7.21', '<' ) ) {
  */
 if ( ! class_exists( 'Yoast\PHPUnitPolyfills\Autoload' ) ) {
 	// Default location of the autoloader for WP core test runs.
-	$phpunit_polyfills_autoloader = dirname( dirname( dirname( __DIR__ ) ) ) . '/vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
+	$phpunit_polyfills_autoloader = dirname( __DIR__, 3 ) . '/vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
 	$phpunit_polyfills_error      = false;
 
 	// Allow for a custom installation location to be provided for plugin/theme integration tests.
@@ -139,7 +139,7 @@ unset( $phpunit_polyfills_autoloader, $phpunit_polyfills_error, $phpunit_polyfil
  * Minimum version of the PHPUnit Polyfills package as declared in `composer.json`.
  * Only needs updating when new polyfill features start being used in the test suite.
  */
-$phpunit_polyfills_minimum_version = '1.0.1';
+$phpunit_polyfills_minimum_version = '1.1.0';
 if ( class_exists( '\Yoast\PHPUnitPolyfills\Autoload' )
 	&& ( defined( '\Yoast\PHPUnitPolyfills\Autoload::VERSION' ) === false
 	|| version_compare( Yoast\PHPUnitPolyfills\Autoload::VERSION, $phpunit_polyfills_minimum_version, '<' ) )
@@ -390,6 +390,5 @@ class WP_PHPUnit_Util_Getopt {
 			echo PHP_EOL;
 		}
 	}
-
 }
 new WP_PHPUnit_Util_Getopt( $_SERVER['argv'] );

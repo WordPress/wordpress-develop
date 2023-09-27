@@ -215,12 +215,13 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			'author',
 			'date',
 			'date_gmt',
+			'id',
+			'meta',
 			'modified',
 			'modified_gmt',
-			'guid',
-			'id',
 			'parent',
 			'slug',
+			'guid',
 			'title',
 			'excerpt',
 			'content',
@@ -259,7 +260,6 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER . '/autosaves/' . self::$autosave_post_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, 404 );
-
 	}
 
 	public function test_get_item_invalid_parent_post_type() {
@@ -289,7 +289,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 13, $properties );
+		$this->assertCount( 14, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
@@ -303,6 +303,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'preview_link', $properties );
+		$this->assertArrayHasKey( 'meta', $properties );
 	}
 
 	public function test_create_item() {
@@ -688,22 +689,29 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			'post_status'  => 'publish',
 		);
 		$post_id   = wp_insert_post( $post_data );
-
 		wp_set_current_user( self::$editor_id );
 
+		// Make a small change create the initial autosave.
 		$autosave_data = array(
-			'post_content' => $post_data['post_content'],
+			'post_content' => 'Test post content changed',
 		);
-
-		// Create autosaves response.
-		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/autosaves' );
+		$request       = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/autosaves' );
 		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $autosave_data ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		// Store the first autosave ID.
+		$autosave = $response->get_data();
+
+		// Try creating an autosave using the REST endpoint with unchanged content.
 		$request->set_body( wp_json_encode( $autosave_data ) );
 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertSame( 400, $response->get_status(), 'Response status is not 400.' );
-		$this->assertSame( 'rest_autosave_no_changes', $data['code'], 'Response "code" is not "rest_autosave_no_changes"' );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $autosave['id'], $data['id'], 'Original autosave was not returned' );
 	}
 }

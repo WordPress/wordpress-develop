@@ -122,11 +122,14 @@ function wp_admin_bar_render() {
  */
 function wp_admin_bar_wp_menu( $wp_admin_bar ) {
 	if ( current_user_can( 'read' ) ) {
-		$about_url = self_admin_url( 'about.php' );
+		$about_url      = self_admin_url( 'about.php' );
+		$contribute_url = self_admin_url( 'contribute.php' );
 	} elseif ( is_multisite() ) {
-		$about_url = get_dashboard_url( get_current_user_id(), 'about.php' );
+		$about_url      = get_dashboard_url( get_current_user_id(), 'about.php' );
+		$contribute_url = get_dashboard_url( get_current_user_id(), 'contribute.php' );
 	} else {
-		$about_url = false;
+		$about_url      = false;
+		$contribute_url = false;
 	}
 
 	$wp_logo_menu_args = array(
@@ -159,6 +162,18 @@ function wp_admin_bar_wp_menu( $wp_admin_bar ) {
 		);
 	}
 
+	if ( $contribute_url ) {
+		// Add contribute link.
+		$wp_admin_bar->add_node(
+			array(
+				'parent' => 'wp-logo',
+				'id'     => 'contribute',
+				'title'  => __( 'Get Involved' ),
+				'href'   => $contribute_url,
+			)
+		);
+	}
+
 	// Add WordPress.org link.
 	$wp_admin_bar->add_node(
 		array(
@@ -176,6 +191,16 @@ function wp_admin_bar_wp_menu( $wp_admin_bar ) {
 			'id'     => 'documentation',
 			'title'  => __( 'Documentation' ),
 			'href'   => __( 'https://wordpress.org/documentation/' ),
+		)
+	);
+
+	// Add learn link.
+	$wp_admin_bar->add_node(
+		array(
+			'parent' => 'wp-logo-external',
+			'id'     => 'learn',
+			'title'  => __( 'Learn WordPress' ),
+			'href'   => 'https://learn.wordpress.org/',
 		)
 	);
 
@@ -419,9 +444,14 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
  *
  * @since 5.9.0
  *
+ * @global string $_wp_current_template_id
+ * @since 6.3.0 Added `$_wp_current_template_id` global for editing of current template directly from the admin bar.
+ *
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
 function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
+	global $_wp_current_template_id;
+
 	// Don't show if a block theme is not activated.
 	if ( ! wp_is_block_theme() ) {
 		return;
@@ -436,7 +466,13 @@ function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
 		array(
 			'id'    => 'site-editor',
 			'title' => __( 'Edit site' ),
-			'href'  => admin_url( 'site-editor.php' ),
+			'href'  => add_query_arg(
+				array(
+					'postType' => 'wp_template',
+					'postId'   => $_wp_current_template_id,
+				),
+				admin_url( 'site-editor.php' )
+			),
 		)
 	);
 }
@@ -871,7 +907,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 					)
 				);
 			}
-		} elseif ( is_a( $current_object, 'WP_User' ) && current_user_can( 'edit_user', $current_object->ID ) ) {
+		} elseif ( $current_object instanceof WP_User && current_user_can( 'edit_user', $current_object->ID ) ) {
 			$edit_user_link = get_edit_user_link( $current_object->ID );
 			if ( $edit_user_link ) {
 				$wp_admin_bar->add_node(
@@ -1052,7 +1088,7 @@ function wp_admin_bar_appearance_menu( $wp_admin_bar ) {
 			array(
 				'parent' => 'appearance',
 				'id'     => 'background',
-				'title'  => __( 'Background' ),
+				'title'  => _x( 'Background', 'custom background' ),
 				'href'   => admin_url( 'themes.php?page=custom-background' ),
 				'meta'   => array(
 					'class' => 'hide-if-customize',
@@ -1066,7 +1102,7 @@ function wp_admin_bar_appearance_menu( $wp_admin_bar ) {
 			array(
 				'parent' => 'appearance',
 				'id'     => 'header',
-				'title'  => __( 'Header' ),
+				'title'  => _x( 'Header', 'custom image header' ),
 				'href'   => admin_url( 'themes.php?page=custom-header' ),
 				'meta'   => array(
 					'class' => 'hide-if-customize',
@@ -1074,7 +1110,6 @@ function wp_admin_bar_appearance_menu( $wp_admin_bar ) {
 			)
 		);
 	}
-
 }
 
 /**
@@ -1200,32 +1235,51 @@ function wp_admin_bar_add_secondary_groups( $wp_admin_bar ) {
 }
 
 /**
- * Prints style and scripts for the admin bar.
+ * Enqueues inline style to hide the admin bar when printing.
  *
- * @since 3.1.0
+ * @since 6.4.0
  */
-function wp_admin_bar_header() {
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-	?>
-<style<?php echo $type_attr; ?> media="print">#wpadminbar { display:none; }</style>
-	<?php
+function wp_enqueue_admin_bar_header_styles() {
+	// Back-compat for plugins that disable functionality by unhooking this action.
+	$action = is_admin() ? 'admin_head' : 'wp_head';
+	if ( ! has_action( $action, 'wp_admin_bar_header' ) ) {
+		return;
+	}
+	remove_action( $action, 'wp_admin_bar_header' );
+
+	wp_add_inline_style( 'admin-bar', '@media print { #wpadminbar { display:none; } }' );
 }
 
 /**
- * Prints default admin bar callback.
+ * Enqueues inline bump styles to make room for the admin bar.
  *
- * @since 3.1.0
+ * @since 6.4.0
  */
-function _admin_bar_bump_cb() {
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-	?>
-<style<?php echo $type_attr; ?> media="screen">
-	html { margin-top: 32px !important; }
-	@media screen and ( max-width: 782px ) {
-		html { margin-top: 46px !important; }
+function wp_enqueue_admin_bar_bump_styles() {
+	if ( current_theme_supports( 'admin-bar' ) ) {
+		$admin_bar_args  = get_theme_support( 'admin-bar' );
+		$header_callback = $admin_bar_args[0]['callback'];
 	}
-</style>
-	<?php
+
+	if ( empty( $header_callback ) ) {
+		$header_callback = '_admin_bar_bump_cb';
+	}
+
+	if ( '_admin_bar_bump_cb' !== $header_callback ) {
+		return;
+	}
+
+	// Back-compat for plugins that disable functionality by unhooking this action.
+	if ( ! has_action( 'wp_head', $header_callback ) ) {
+		return;
+	}
+	remove_action( 'wp_head', $header_callback );
+
+	$css = '
+		@media screen { html { margin-top: 32px !important; } }
+		@media screen and ( max-width: 782px ) { html { margin-top: 46px !important; } }
+	';
+	wp_add_inline_style( 'admin-bar', $css );
 }
 
 /**

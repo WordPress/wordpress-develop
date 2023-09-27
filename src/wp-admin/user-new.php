@@ -34,7 +34,7 @@ if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 
 	$user_details = null;
 	$user_email   = wp_unslash( $_REQUEST['email'] );
-	if ( false !== strpos( $user_email, '@' ) ) {
+	if ( str_contains( $user_email, '@' ) ) {
 		$user_details = get_user_by( 'email', $user_email );
 	} else {
 		if ( current_user_can( 'manage_network_users' ) ) {
@@ -381,35 +381,50 @@ if ( current_user_can( 'create_users' ) ) {
 ?>
 </h1>
 
-<?php if ( isset( $errors ) && is_wp_error( $errors ) ) : ?>
-	<div class="error">
-		<ul>
-		<?php
-		foreach ( $errors->get_error_messages() as $err ) {
-			echo "<li>$err</li>\n";
-		}
-		?>
-		</ul>
-	</div>
-	<?php
+<?php
+if ( isset( $errors ) && is_wp_error( $errors ) ) :
+	$error_message = '';
+	foreach ( $errors->get_error_messages() as $err ) {
+		$error_message .= "<li>$err</li>\n";
+	}
+	wp_admin_notice(
+		'<ul>' . $error_message . '</ul>',
+		array(
+			'additional_classes' => array( 'error' ),
+			'paragraph_wrap'     => false,
+		)
+	);
 endif;
 
 if ( ! empty( $messages ) ) {
 	foreach ( $messages as $msg ) {
-		echo '<div id="message" class="updated notice is-dismissible"><p>' . $msg . '</p></div>';
+		wp_admin_notice(
+			$msg,
+			array(
+				'id'                 => 'message',
+				'additional_classes' => array( 'updated' ),
+				'dismissible'        => true,
+			)
+		);
 	}
 }
 ?>
 
-<?php if ( isset( $add_user_errors ) && is_wp_error( $add_user_errors ) ) : ?>
-	<div class="error">
-		<?php
-		foreach ( $add_user_errors->get_error_messages() as $message ) {
-			echo "<p>$message</p>";
-		}
-		?>
-	</div>
-<?php endif; ?>
+<?php
+if ( isset( $add_user_errors ) && is_wp_error( $add_user_errors ) ) :
+	$error_message = '';
+	foreach ( $add_user_errors->get_error_messages() as $message ) {
+		$error_message .= "<p>$message</p>\n";
+	}
+	wp_admin_notice(
+		$error_message,
+		array(
+			'additional_classes' => array( 'error' ),
+			'paragraph_wrap'     => false,
+		)
+	);
+endif;
+?>
 <div id="ajax-response"></div>
 
 <?php
@@ -566,18 +581,18 @@ if ( current_user_can( 'create_users' ) ) {
 			</label>
 		</th>
 		<td>
-			<input class="hidden" value=" " /><!-- #24364 workaround -->
+			<input type="hidden" value=" " /><!-- #24364 workaround -->
 			<button type="button" class="button wp-generate-pw hide-if-no-js"><?php _e( 'Generate password' ); ?></button>
 			<div class="wp-pwd">
 				<?php $initial_password = wp_generate_password( 24 ); ?>
-				<span class="password-input-wrapper">
+				<div class="password-input-wrapper">
 					<input type="password" name="pass1" id="pass1" class="regular-text" autocomplete="new-password" spellcheck="false" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result" />
-				</span>
+					<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
+				</div>
 				<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 					<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 					<span class="text"><?php _e( 'Hide' ); ?></span>
 				</button>
-				<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
 			</div>
 		</td>
 	</tr>

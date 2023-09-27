@@ -127,7 +127,7 @@ if ( isset( $_GET['download'] ) ) {
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 /**
- * Create the date options fields for exporting a given post type.
+ * Creates the date options fields for exporting a given post type.
  *
  * @global wpdb      $wpdb      WordPress database abstraction object.
  * @global WP_Locale $wp_locale WordPress date and time locale object.
@@ -160,7 +160,12 @@ function export_date_options( $post_type = 'post' ) {
 		}
 
 		$month = zeroise( $date->month, 2 );
-		echo '<option value="' . $date->year . '-' . $month . '">' . $wp_locale->get_month( $month ) . ' ' . $date->year . '</option>';
+
+		printf(
+			'<option value="%1$s">%2$s</option>',
+			esc_attr( $date->year . '-' . $month ),
+			$wp_locale->get_month( $month ) . ' ' . $date->year
+		);
 	}
 }
 ?>

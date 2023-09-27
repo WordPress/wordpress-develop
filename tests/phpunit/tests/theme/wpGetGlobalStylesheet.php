@@ -221,6 +221,29 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the function relies on the development mode for whether to use caching.
+	 *
+	 * @ticket 57487
+	 */
+	public function test_caching_is_used_when_developing_theme() {
+		global $_wp_tests_development_mode;
+
+		$this->maybe_switch_theme( 'block-theme' );
+
+		// Store CSS in cache.
+		$css = '.my-class { display: block; }';
+		wp_cache_set( 'wp_get_global_stylesheet', $css, 'theme_json' );
+
+		// By default, caching should be used, so the above value will be returned.
+		$_wp_tests_development_mode = '';
+		$this->assertSame( $css, wp_get_global_stylesheet(), 'Caching was not used despite development mode disabled' );
+
+		// When the development mode is set to 'theme', caching should not be used.
+		$_wp_tests_development_mode = 'theme';
+		$this->assertNotSame( $css, wp_get_global_stylesheet(), 'Caching was used despite theme development mode' );
+	}
+
+	/**
 	 * Adds the 'editor-font-sizes' theme support with custom font sizes.
 	 *
 	 * @param bool $add_theme_support Whether to add the theme support.

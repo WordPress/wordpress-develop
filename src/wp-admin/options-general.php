@@ -78,17 +78,23 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 </tr>
 
 <?php
-/* translators: Site tagline. */
-$sample_tagline = __( 'Just another WordPress site' );
-if ( is_multisite() ) {
+if ( ! is_multisite() ) {
+	/* translators: Site tagline. */
+	$sample_tagline = __( 'Just another WordPress site' );
+} else {
 	/* translators: %s: Network title. */
 	$sample_tagline = sprintf( __( 'Just another %s site' ), get_network()->site_name );
 }
+$tagline_description = sprintf(
+	/* translators: %s: Site tagline example. */
+	__( 'In a few words, explain what this site is about. Example: &#8220;%s.&#8221;' ),
+	$sample_tagline
+);
 ?>
 <tr>
 <th scope="row"><label for="blogdescription"><?php _e( 'Tagline' ); ?></label></th>
-<td><input name="blogdescription" type="text" id="blogdescription" aria-describedby="tagline-description" value="<?php form_option( 'blogdescription' ); ?>" class="regular-text" placeholder="<?php echo $sample_tagline; ?>" />
-<p class="description" id="tagline-description"><?php _e( 'In a few words, explain what this site is about.' ); ?></p></td>
+<td><input name="blogdescription" type="text" id="blogdescription" aria-describedby="tagline-description" value="<?php form_option( 'blogdescription' ); ?>" class="regular-text" />
+<p class="description" id="tagline-description"><?php echo $tagline_description; ?></p></td>
 </tr>
 
 <?php
@@ -133,25 +139,25 @@ if ( ! is_multisite() ) {
 <p class="description" id="new-admin-email-description"><?php _e( 'This address is used for admin purposes. If you change this, an email will be sent to your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?></p>
 <?php
 $new_admin_email = get_option( 'new_admin_email' );
-if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) :
-	?>
-	<div class="updated inline">
-	<p>
-	<?php
-		printf(
-			/* translators: %s: New admin email. */
-			__( 'There is a pending change of the admin email to %s.' ),
-			'<code>' . esc_html( $new_admin_email ) . '</code>'
-		);
-		printf(
-			' <a href="%1$s">%2$s</a>',
-			esc_url( wp_nonce_url( admin_url( 'options.php?dismiss=new_admin_email' ), 'dismiss-' . get_current_blog_id() . '-new_admin_email' ) ),
-			__( 'Cancel' )
-		);
-	?>
-	</p>
-	</div>
-<?php endif; ?>
+if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) {
+	$pending_admin_email_message = sprintf(
+		/* translators: %s: New admin email. */
+		__( 'There is a pending change of the admin email to %s.' ),
+		'<code>' . esc_html( $new_admin_email ) . '</code>'
+	);
+	$pending_admin_email_message .= sprintf(
+		' <a href="%1$s">%2$s</a>',
+		esc_url( wp_nonce_url( admin_url( 'options.php?dismiss=new_admin_email' ), 'dismiss-' . get_current_blog_id() . '-new_admin_email' ) ),
+		__( 'Cancel' )
+	);
+	wp_admin_notice(
+		$pending_admin_email_message,
+		array(
+			'additional_classes' => array( 'updated', 'inline' ),
+		)
+	);
+}
+?>
 </td>
 </tr>
 
@@ -230,7 +236,7 @@ $tzstring       = get_option( 'timezone_string' );
 $check_zone_info = true;
 
 // Remove old Etc mappings. Fallback to gmt_offset.
-if ( false !== strpos( $tzstring, 'Etc/GMT' ) ) {
+if ( str_contains( $tzstring, 'Etc/GMT' ) ) {
 	$tzstring = '';
 }
 

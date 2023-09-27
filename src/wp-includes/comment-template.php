@@ -425,7 +425,7 @@ function get_comment_author_url_link( $link_text = '', $before = '', $after = ''
 	$display = str_replace( 'http://www.', '', $display );
 	$display = str_replace( 'http://', '', $display );
 
-	if ( '/' === substr( $display, -1 ) ) {
+	if ( str_ends_with( $display, '/' ) ) {
 		$display = substr( $display, 0, -1 );
 	}
 
@@ -549,7 +549,7 @@ function get_comment_class( $css_class = '', $comment_id = null, $post = null ) 
 		$classes[] = 'even';
 	}
 
-	$comment_alt++;
+	++$comment_alt;
 
 	// Alt for top-level comments.
 	if ( 1 == $comment_depth ) {
@@ -559,7 +559,7 @@ function get_comment_class( $css_class = '', $comment_id = null, $post = null ) 
 		} else {
 			$classes[] = 'thread-even';
 		}
-		$comment_thread_alt++;
+		++$comment_thread_alt;
 	}
 
 	$classes[] = "depth-$comment_depth";
@@ -970,13 +970,13 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 				$text = trim( strip_tags( $text ), '% ' );
 
 				// Replace '% Comments' with a proper plural form.
-				if ( $text && ! preg_match( '/[0-9]+/', $text ) && false !== strpos( $more, '%' ) ) {
+				if ( $text && ! preg_match( '/[0-9]+/', $text ) && str_contains( $more, '%' ) ) {
 					/* translators: %s: Number of comments. */
 					$new_text = _n( '%s Comment', '%s Comments', $comments_number );
 					$new_text = trim( sprintf( $new_text, '' ) );
 
 					$more = str_replace( $text, $new_text, $more );
-					if ( false === strpos( $more, '%' ) ) {
+					if ( ! str_contains( $more, '%' ) ) {
 						$more = '% ' . $more;
 					}
 				}
@@ -1366,7 +1366,7 @@ function wp_comment_form_unfiltered_html_nonce() {
 
 	if ( current_user_can( 'unfiltered_html' ) ) {
 		wp_nonce_field( 'unfiltered-html-comment_' . $post_id, '_wp_unfiltered_html_comment_disabled', false );
-		echo "<script>(function(){if(window===window.parent){document.getElementById('_wp_unfiltered_html_comment_disabled').name='_wp_unfiltered_html_comment';}})();</script>\n";
+		wp_print_inline_script_tag( "(function(){if(window===window.parent){document.getElementById('_wp_unfiltered_html_comment_disabled').name='_wp_unfiltered_html_comment';}})();" );
 	}
 }
 
@@ -1381,7 +1381,7 @@ function wp_comment_form_unfiltered_html_nonce() {
  * and the post ID respectively.
  *
  * The `$file` path is passed through a filter hook called {@see 'comments_template'},
- * which includes the TEMPLATEPATH and $file combined. Tries the $filtered path
+ * which includes the template directory and $file combined. Tries the $filtered path
  * first and if it fails it will require the default comment template from the
  * default theme. If either does not exist, then the WordPress process will be
  * halted. It is advised for that reason, that the default theme is not deleted.
@@ -1600,7 +1600,10 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 		define( 'COMMENTS_TEMPLATE', true );
 	}
 
-	$theme_template = STYLESHEETPATH . $file;
+	$stylesheet_path = get_stylesheet_directory();
+	$template_path   = get_template_directory();
+
+	$theme_template = $stylesheet_path . $file;
 
 	/**
 	 * Filters the path to the theme template file used for the comments template.
@@ -1613,8 +1616,8 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 
 	if ( file_exists( $include ) ) {
 		require $include;
-	} elseif ( file_exists( TEMPLATEPATH . $file ) ) {
-		require TEMPLATEPATH . $file;
+	} elseif ( file_exists( $template_path . $file ) ) {
+		require $template_path . $file;
 	} else { // Backward compat code will be removed in a future release.
 		require ABSPATH . WPINC . '/theme-compat/comments.php';
 	}
@@ -2651,7 +2654,7 @@ function comment_form( $args = array(), $post = null ) {
 	$args = array_merge( $defaults, $args );
 
 	// Remove `aria-describedby` from the email field if there's no associated description.
-	if ( isset( $args['fields']['email'] ) && false === strpos( $args['comment_notes_before'], 'id="email-notes"' ) ) {
+	if ( isset( $args['fields']['email'] ) && ! str_contains( $args['comment_notes_before'], 'id="email-notes"' ) ) {
 		$args['fields']['email'] = str_replace(
 			' aria-describedby="email-notes"',
 			'',
