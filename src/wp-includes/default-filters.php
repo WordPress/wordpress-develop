@@ -711,7 +711,7 @@ add_action( 'wp_footer', 'the_block_template_skip_link' );
 add_action( 'setup_theme', 'wp_enable_block_templates' );
 add_action( 'wp_loaded', '_add_template_loader_filters' );
 
-// wp_navigation post type
+// wp_navigation post type.
 add_filter( 'rest_wp_navigation_item_schema', array( 'WP_Navigation_Fallback', 'update_wp_navigation_post_schema' ), 22 );
 
 // Fluid typography.
