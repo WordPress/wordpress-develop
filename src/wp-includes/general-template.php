@@ -2066,7 +2066,9 @@ function wp_get_archives( $args = '' ) {
 		if ( $results ) {
 			$after = $parsed_args['after'];
 			foreach ( (array) $results as $result ) {
-				$url = get_month_link( $result->year, $result->month );
+				// Add leading zeros when year has lower than 4 digits.
+				$year = str_pad( $result->year, 4, '0', STR_PAD_LEFT );
+				$url  = get_month_link( $year, $result->month );
 				if ( 'post' !== $parsed_args['post_type'] ) {
 					$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
 				}
