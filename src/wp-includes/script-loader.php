@@ -3340,8 +3340,9 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
  * This is a helper meant to be used for literal script tag construction
  * within `wp_get_inline_script_tag()` or `wp_print_inline_script_tag()`.
  * It removes the literal values of "<script>" and "</script>" from
- * around an inline script.
+ * around an inline script after trimming whitespace.
  *
+ * @private
  * @since 6.4.0
  *
  * @see wp_print_inline_script_tag()
@@ -3352,13 +3353,14 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
  *                original contents if both exact literals aren't present.
  */
 function wp_remove_surrounding_empty_script_tags( $contents ) {
-	$opener = '<script>';
-	$closer = '</script>';
+	$contents = trim( $contents );
+	$opener   = '<SCRIPT>';
+	$closer   = '</SCRIPT>';
 
 	$has_both_empty_tags = (
-		strlen( $opener ) + strlen( $closer ) > strlen( $contents ) ||
-		substr( $contents, 0, strlen( $opener ) ) !== $opener ||
-		substr( $contents, -strlen( $closer ) ) !== $closer
+		strlen( $contents ) > strlen( $opener ) + strlen( $closer ) &&
+		strtoupper( substr( $contents, 0, strlen( $opener ) ) ) === $opener &&
+		strtoupper( substr( $contents, -strlen( $closer ) ) ) === $closer
 	);
 
 	/*
