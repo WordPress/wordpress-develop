@@ -3333,3 +3333,51 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
 
 	return $editor_settings;
 }
+
+/**
+ * Removes leading and trailing _empty_ script tags.
+ *
+ * This is a helper meant to be used for literal script tag construction
+ * within `wp_get_inline_script_tag()` or `wp_print_inline_script_tag()`.
+ * It removes the literal values of "<script>" and "</script>" from
+ * around an inline script.
+ *
+ * @since 6.4.0
+ *
+ * @see wp_print_inline_script_tag()
+ * @see wp_get_inline_script_tag()
+ *
+ * @param string $contents Script body with manually created SCRIPT tag literals.
+ * @return string Script body without surrounding script tag literals, or
+ *                original contents if both exact literals aren't present.
+ */
+function wp_remove_surrounding_empty_script_tags( $contents ) {
+	$opener = '<script>';
+	$closer = '</script>';
+
+	$has_both_empty_tags = (
+		strlen( $opener ) + strlen( $closer ) > strlen( $contents ) ||
+		substr( $contents, 0, strlen( $opener ) ) !== $opener ||
+		substr( $contents, -strlen( $closer ) ) !== $closer
+	);
+
+	/*
+	 * What should happen if the given contents are not surrounded by
+	 * the exact literal script tags? This question opens up a can of
+	 * worms with no obvious or clear answer. Removing one of the tags
+	 * could lead to just as much trouble as leaving one in place.
+	 * This code leaves the string untouched if it can't find both the
+	 * exact tags. Maybe someone added an attribute to the opening tag
+	 * or maybe someone added a space; it's impossible to know from
+	 * here.
+	 *
+	 * It would be possible to return `null` or `false` here to indicate
+	 * the failure, but people probably wouldn't be checking the result
+	 * and that could introduce corruption. An empty string could be
+	 * another viable return and that would quickly signal that something
+	 * is wrong and needs fixing.
+	 */
+	return $has_both_empty_tags
+		? substr( $contents, strlen( $opener ), -strlen( $closer ) )
+		: $contents;
+}
