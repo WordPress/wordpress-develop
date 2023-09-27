@@ -1,26 +1,24 @@
-import {
-	activatePlugin,
-	deactivatePlugin,
-	installPlugin,
-	uninstallPlugin,
-} from '@wordpress/e2e-test-utils';
+/**
+ * WordPress dependencies
+ */
+import { test } from '@wordpress/e2e-test-utils-playwright';
 
-describe( 'Gutenberg plugin', () => {
-	beforeAll( async () => {
-		await installPlugin( 'gutenberg' );
-	} );
+test.describe( 'Gutenberg plugin', () => {
+	test( 'should activate', async ( { requestUtils }) => {
+		// Increasing timeout to 5 minutes because install could take longer.
+		test.setTimeout( 300_000 );
 
-	afterAll( async () => {
-		await uninstallPlugin( 'gutenberg' );
-	} );
+		await requestUtils.rest( {
+			method: 'POST',
+			path: 'wp/v2/plugins?slug=gutenberg&status=active',
+		} );
 
-	it( 'should activate', async () => {
-		await activatePlugin( 'gutenberg' );
-		/*
-		 * If plugin activation fails, it will time out and throw an error,
-		 * since the activatePlugin helper is looking for a `.deactivate` link
-		 * which is only there if activation succeeds.
-		 */
-		await deactivatePlugin( 'gutenberg' );
+		// This flow will only work if the activation previously succeeded.
+		await requestUtils.deactivatePlugin( 'gutenberg' );
+
+		await requestUtils.rest( {
+			method: 'DELETE',
+			path: 'wp/v2/plugins/gutenberg',
+		} );
 	} );
 } );

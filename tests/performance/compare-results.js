@@ -3,8 +3,12 @@
 /**
  * External dependencies.
  */
-const fs = require( 'fs' );
-const path = require( 'path' );
+const fs = require( 'node:fs' );
+const path = require( 'node:path' );
+
+/**
+ * Internal dependencies
+ */
 const { median } = require( './utils' );
 
 /**

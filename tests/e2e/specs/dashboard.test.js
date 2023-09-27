@@ -1,5 +1,4 @@
 import {
-	pressKeyTimes,
 	trashAllPosts,
 	visitAdminPage,
 } from '@wordpress/e2e-test-utils';
