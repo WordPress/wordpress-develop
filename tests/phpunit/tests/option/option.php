@@ -617,12 +617,11 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that update_option() triggers two additional queries and returns false
+	 * Tests that update_option() triggers one additional query and returns false
 	 * for some loosely equal old and new values when the old value is retrieved from the database.
 	 *
-	 * The additional queries are triggered to:
-	 * - retrieve the old value from the database, as the option does not exist in the cache.
-	 * - attempt to update the value
+	 * The additional query is triggered to retrieve the old value from the database,
+	 * as the option does not exist in the cache.
 	 *
 	 * @ticket 22192
 	 *
@@ -633,7 +632,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @param mixed $old_value The old value.
 	 * @param mixed $new_value The new value to try to set.
 	 */
-	public function test_update_option_should_trigger_two_queries_and_return_false_for_some_strictly_equal_values_from_db( $old_value, $new_value ) {
+	public function test_update_option_should_trigger_one_additional_query_and_return_false_for_some_strictly_equal_values_from_db( $old_value, $new_value ) {
 		global $wpdb;
 
 		add_option( 'foo', $old_value );
@@ -645,17 +644,15 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$updated = update_option( 'foo', $new_value );
 
-		$this->assertSame( 2, get_num_queries() - $num_queries, 'Two additional queries should have run to retrieve the old value from the database.' );
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run to retrieve the old value from the database.' );
 		$this->assertSame( 0, $wpdb->rows_affected, 'No rows should have been affected as the database considered the values to be the same.' );
 		$this->assertFalse( $updated, 'update_option() should have returned false.' );
 	}
 
 	/**
-	 * Tests that update_option() triggers one additional query and returns false
+	 * Tests that update_option() triggers no additional queries and returns false
 	 * for some strictly equal old and new values when the cache is refreshed.
 	 *
-	 *
-	 * The additional query is triggered to perform an UPDATE despite the values being strictly equal.
 	 *
 	 * @ticket 22192
 	 *
@@ -666,7 +663,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @param mixed $old_value The old value.
 	 * @param mixed $new_value The new value to try to set.
 	 */
-	public function test_update_option_should_trigger_one_additional_query_and_return_false_for_some_strictly_equal_values_from_refreshed_cache( $old_value, $new_value ) {
+	public function test_update_option_should_trigger_no_additional_queries_and_return_false_for_some_strictly_equal_values_from_refreshed_cache( $old_value, $new_value ) {
 		add_option( 'foo', $old_value );
 
 		// Delete and refresh cache from DB.
@@ -676,7 +673,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 		$updated     = update_option( 'foo', $new_value );
 
-		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run.' );
+		$this->assertSame( $num_queries, get_num_queries(), 'No additional queries should have run.' );
 		$this->assertFalse( $updated, 'update_option() should have returned false.' );
 	}
 
@@ -700,12 +697,10 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that update_option() triggers one additional query and returns false
+	 * Tests that update_option() triggers no additional queries and returns false
 	 * when there are unaffected database rows.
 	 *
-	 * This excludes old values that are null, as they trigger yet another additional query.
-	 *
-	 * The additional query is triggered to perform an UPDATE despite the values being loosely equal.
+	 * This excludes old values that are null, as they trigger an additional query.
 	 *
 	 * @ticket 22192
 	 *
@@ -716,7 +711,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @param mixed $old_value The old value.
 	 * @param mixed $new_value The new value to try to set.
 	 */
-	public function test_update_option_should_trigger_one_query_and_return_false_for_some_loosely_equal_values( $old_value, $new_value ) {
+	public function test_update_option_should_trigger_no_queries_and_return_false_for_some_loosely_equal_values( $old_value, $new_value ) {
 		global $wpdb;
 
 		add_option( 'foo', $old_value );
@@ -726,7 +721,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		// Comparison will happen against value cached during add_option() above.
 		$updated = update_option( 'foo', $new_value );
 
-		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run to update the value.' );
+		$this->assertSame( $num_queries, get_num_queries(), 'No additional queries should have run.' );
 		$this->assertSame( 0, $wpdb->rows_affected, 'No rows should have been affected as the database considered the values to be the same.' );
 		$this->assertFalse( $updated, 'update_option() should have returned false.' );
 	}
@@ -769,7 +764,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that update_option() triggers two additional queries and returns false
+	 * Tests that update_option() triggers one additional queries and returns false
 	 * when the old value was null and the new value is loosely equal.
 	 *
 	 * @ticket 22192
@@ -780,7 +775,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 *
 	 * @param mixed $new_value The new value to try to set.
 	 */
-	public function test_update_option_should_trigger_two_queries_and_return_false_for_a_null_old_value_and_some_loosely_equal_new_values( $new_value ) {
+	public function test_update_option_should_trigger_one_additional_query_and_return_false_for_a_null_old_value_and_some_loosely_equal_new_values( $new_value ) {
 		add_option( 'foo', null );
 
 		$num_queries = get_num_queries();
@@ -788,7 +783,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		// Comparison will happen against value cached during add_option() above.
 		$updated = update_option( 'foo', $new_value );
 
-		$this->assertSame( 2, get_num_queries() - $num_queries, 'Two additional queries should have run.' );
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run.' );
 		$this->assertFalse( $updated, 'update_option() should have returned false.' );
 	}
 
