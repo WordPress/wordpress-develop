@@ -1,52 +1,31 @@
-import {
-	visitAdminPage,
-	__experimentalRest as rest,
-} from "@wordpress/e2e-test-utils";
+/**
+ * WordPress dependencies
+ */
+import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
-async function getResponseForApplicationPassword() {
-	return await rest({
-		method: "GET",
-		path: "/wp/v2/users/me/application-passwords",
-	});
-}
+const TEST_APPLICATION_NAME = 'Test Application';
 
-async function createApplicationPassword(applicationName) {
-	await visitAdminPage("profile.php");
-	await page.waitForSelector("#new_application_password_name");
-	await page.type("#new_application_password_name", applicationName);
-	await page.click("#do_new_application_password");
-
-	await page.waitForSelector("#application-passwords-section .notice");
-}
-
-async function createApplicationPasswordWithApi(applicationName) {
-	await rest({
-		method: "POST",
-		path: "/wp/v2/users/me/application-passwords",
-		data: {
-			name: applicationName,
+test.describe( 'Manage applications passwords', () => {
+	test.use( {
+		applicationPasswords: async ( { requestUtils }, use ) => {
+			await use( new ApplicationPasswords( { requestUtils } ) );
 		},
-	});
-}
+	} );
 
-async function revokeAllApplicationPasswordsWithApi() {
-	await rest({
-		method: "DELETE",
-		path: `/wp/v2/users/me/application-passwords`,
-	});
-}
-
-describe("Manage applications passwords", () => {
-	const TEST_APPLICATION_NAME = "Test Application";
-
-	beforeEach(async () => {
-		await revokeAllApplicationPasswordsWithApi();
+	test.beforeEach(async ( { requestUtils } ) => {
+		await requestUtils.rest( {
+			method: 'DELETE',
+			path: '/wp/v2/users/me/application-passwords',
+		} );
 	});
 
-	it("should correctly create a new application password", async () => {
-		await createApplicationPassword(TEST_APPLICATION_NAME);
+	test('should correctly create a new application password', async ( {
+	   page,
+	   applicationPasswords
+	} ) => {
+		await applicationPasswords.create();
 
-		const response = await getResponseForApplicationPassword();
+		const response = await applicationPasswords.get();
 		expect(response[0]["name"]).toBe(TEST_APPLICATION_NAME);
 
 		const successMessage = await page.waitForSelector(
@@ -59,9 +38,12 @@ describe("Manage applications passwords", () => {
 		);
 	});
 
-	it("should not allow to create two applications passwords with the same name", async () => {
-		await createApplicationPassword(TEST_APPLICATION_NAME);
-		await createApplicationPassword(TEST_APPLICATION_NAME);
+	test("should not allow to create two applications passwords with the same name", async ( {
+		page,
+		applicationPasswords
+	} ) => {
+		await applicationPasswords.create();
+		await applicationPasswords.create();
 
 		const errorMessage = await page.waitForSelector(
 			"#application-passwords-section .notice-error"
@@ -72,13 +54,16 @@ describe("Manage applications passwords", () => {
 		).toContain("Each application name should be unique.");
 	});
 
-	it("should correctly revoke a single application password", async () => {
-		await createApplicationPassword(TEST_APPLICATION_NAME);
+	test("should correctly revoke a single application password", async ( {
+		page,
+		applicationPasswords
+	} ) => {
+		await applicationPasswords.create();
 
 		const revokeApplicationButton = await page.waitForSelector(
 			".application-passwords-user tr button.delete"
 		);
-		
+
 		const revocationDialogPromise = new Promise((resolve) => {
 			page.once("dialog", resolve);
 		});
@@ -95,12 +80,15 @@ describe("Manage applications passwords", () => {
 			await successMessage.evaluate((element) => element.textContent)
 		).toContain("Application password revoked.");
 
-		const response = await getResponseForApplicationPassword();
+		const response = await applicationPasswords.get();
 		expect(response).toEqual([]);
 	});
 
-	it("should correctly revoke all the application passwords", async () => {
-		await createApplicationPassword(TEST_APPLICATION_NAME);
+	test("should correctly revoke all the application passwords", async ( {
+		page,
+		applicationPasswords
+	} ) => {
+		await applicationPasswords.create();
 
 		const revokeAllApplicationPasswordsButton = await page.waitForSelector(
 			"#revoke-all-application-passwords"
@@ -132,7 +120,40 @@ describe("Manage applications passwords", () => {
 			await successMessage.evaluate((element) => element.textContent)
 		).toContain("All application passwords revoked.");
 
-		const response = await getResponseForApplicationPassword();
+		const response = await applicationPasswords.get();
 		expect(response).toEqual([]);
 	});
 });
+
+class ApplicationPasswords {
+	constructor( { requestUtils, page, admin }) {
+		this.requestUtils = requestUtils;
+		this.page = page;
+		this.admin = admin;
+	}
+
+	async createInUi(applicationName = TEST_APPLICATION_NAME) {
+		await this.admin.visitAdminPage('profile.php' );
+		await this.page.waitForSelector('#new_application_password_name' );
+		await this.page.type( '#new_application_password_name', applicationName );
+		await this.page.click( '#do_new_application_password' );
+		await this.page.waitForSelector( '#application-passwords-section .notice' );
+	}
+
+	async create( applicationName = TEST_APPLICATION_NAME ) {
+		await this.requestUtils.rest( {
+			method: 'POST',
+			path: '/wp/v2/users/me/application-passwords',
+			data: {
+				name: applicationName,
+			},
+		} );
+	}
+
+	async get() {
+		await this.requestUtils.rest( {
+			method: 'GET',
+			path: '/wp/v2/users/me/application-passwords',
+		} );
+	}
+}
