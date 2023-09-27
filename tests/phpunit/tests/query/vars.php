@@ -4,7 +4,6 @@
  * Tests to make sure query vars are as expected.
  *
  * @group query
- *
  * @covers WP_Query
  */
 class Tests_Query_Vars extends WP_UnitTestCase {

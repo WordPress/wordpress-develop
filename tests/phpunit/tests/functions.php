@@ -1324,9 +1324,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * Tests wp_generate_uuid4().
 	 *
-	 * @ticket 38164
-	 *
 	 * @covers ::wp_generate_uuid4
+	 * @ticket 38164
 	 */
 	public function test_wp_generate_uuid4() {
 		$uuids = array();
@@ -1343,9 +1342,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * Tests wp_is_uuid().
 	 *
-	 * @ticket 39778
-	 *
 	 * @covers ::wp_is_uuid
+	 * @ticket 39778
 	 */
 	public function test_wp_is_valid_uuid() {
 		$uuids_v4 = array(
@@ -1394,9 +1392,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * Tests wp_unique_id().
 	 *
-	 * @ticket 44883
-	 *
 	 * @covers ::wp_unique_id
+	 * @ticket 44883
 	 */
 	public function test_wp_unique_id() {
 
@@ -2177,7 +2174,6 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
-	 *
 	 * @covers ::wp_recursive_ksort
 	 */
 	public function test_wp_recursive_ksort() {

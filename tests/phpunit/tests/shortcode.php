@@ -548,7 +548,7 @@ EOF;
 	 * @covers ::do_shortcode
 	 */
 	public function test_shortcode_atts_filter_passes_original_arguments() {
-		add_filter( 'shortcode_atts_bartag', array( $this, '_filter_atts' ), 10, 3 );
+		add_filter( 'shortcode_atts_bartag', array( $this, 'filter_atts' ), 10, 3 );
 
 		do_shortcode( '[bartag foo="foo1" /]' );
 		$this->assertSame(
@@ -574,7 +574,7 @@ EOF;
 	 * @covers ::do_shortcode
 	 */
 	public function test_shortcode_atts_filtering() {
-		add_filter( 'shortcode_atts_bartag', array( $this, '_filter_atts2' ), 10, 3 );
+		add_filter( 'shortcode_atts_bartag', array( $this, 'filter_atts2' ), 10, 3 );
 
 		$out = do_shortcode( '[bartag foo="foo1" baz="baz1" /]' );
 		$this->assertSame( array( 'foo' => 'no foo' ), $this->filter_atts_out );

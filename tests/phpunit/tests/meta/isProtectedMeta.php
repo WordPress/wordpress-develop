@@ -2,7 +2,6 @@
 
 /**
  * @group meta
- *
  * @covers ::is_protected_meta
  */
 class Tests_Meta_isProtectedMeta extends WP_UnitTestCase {

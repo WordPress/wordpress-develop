@@ -3,7 +3,6 @@
 /**
  * @group date
  * @group datetime
- *
  * @covers ::date_i18n
  */
 class Tests_Date_DateI18n extends WP_UnitTestCase {
@@ -202,10 +201,8 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_should_handle_dst
 	 *
-	 * @param string $time Time to test in Y-m-d H:i:s format.
+	 * @param string $time     Time to test in Y-m-d H:i:s format.
 	 * @param string $timezone PHP timezone string to use.
-	 *
-	 * @throws Exception
 	 */
 	public function test_should_handle_dst( $time, $timezone ) {
 		update_option( 'timezone_string', $timezone );

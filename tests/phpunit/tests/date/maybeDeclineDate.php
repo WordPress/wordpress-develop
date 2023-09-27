@@ -4,7 +4,6 @@
  * @group functions.php
  * @group i18n
  * @group datetime
- *
  * @covers ::wp_maybe_decline_date
  */
 class Tests_Date_MaybeDeclineDate extends WP_UnitTestCase {
@@ -61,7 +60,6 @@ class Tests_Date_MaybeDeclineDate extends WP_UnitTestCase {
 
 		$this->assertSame( $output, $declined_date );
 	}
-
 
 	public function filter__enable_months_names_declension( $translation, $text, $context ) {
 		if ( 'decline months names: on or off' === $context ) {

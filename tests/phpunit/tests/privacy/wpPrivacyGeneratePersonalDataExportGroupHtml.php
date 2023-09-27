@@ -7,7 +7,6 @@
  * @since 5.2.0
  *
  * @group privacy
- *
  * @covers ::wp_privacy_generate_personal_data_export_group_html
  */
 class Tests_Privacy_wpPrivacyGeneratePersonalDataExportGroupHtml extends WP_UnitTestCase {

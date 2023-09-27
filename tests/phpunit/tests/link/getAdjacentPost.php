@@ -1,7 +1,6 @@
 <?php
 /**
  * @group link
- *
  * @covers ::get_adjacent_post
  */
 class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {

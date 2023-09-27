@@ -2,7 +2,6 @@
 
 /**
  * @group post
- *
  * @covers ::is_post_publicly_viewable
  */
 class Tests_Post_IsPostPubliclyViewable extends WP_UnitTestCase {

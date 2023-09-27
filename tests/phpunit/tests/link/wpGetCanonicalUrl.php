@@ -3,7 +3,6 @@
 /**
  * @group link
  * @group canonical
- *
  * @covers ::wp_get_canonical_url
  */
 class Tests_Link_wpGetCanonicalUrl extends WP_UnitTestCase {

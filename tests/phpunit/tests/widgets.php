@@ -526,7 +526,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @type string $expected      The expected field id to be returned.
+	 *         @type string $expected      The expected field name to be returned.
 	 *         @type string $value_to_test The value being passed to the get_field_name method.
 	 *     }
 	 * }

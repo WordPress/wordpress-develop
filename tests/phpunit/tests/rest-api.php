@@ -1985,6 +1985,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49116
+	 * @ticket 53656
 	 *
 	 * @covers ::rest_get_route_for_post
 	 */

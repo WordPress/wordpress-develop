@@ -2,7 +2,6 @@
 
 /**
  * @group post
- *
  * @covers ::get_lastpostmodified
  */
 class Tests_Post_GetLastPostModified extends WP_UnitTestCase {

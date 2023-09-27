@@ -3,7 +3,6 @@
 /**
  * @group query
  * @group taxonomy
- *
  * @covers WP_Query
  */
 class Tests_Query_TaxQuery extends WP_UnitTestCase {

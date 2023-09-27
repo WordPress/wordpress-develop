@@ -8,7 +8,6 @@
  *
  * @group privacy
  * @group user
- *
  * @covers ::_wp_privacy_send_request_confirmation_notification
  */
 class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_UnitTestCase {

@@ -1987,7 +1987,7 @@ HTML;
 	 *
 	 * @covers ::wp_kses
 	 *
-	 * @param string $html         A string of HTML to test.
+	 * @param string $content      A string of HTML to test.
 	 * @param string $expected     The expected result from KSES.
 	 * @param array  $allowed_html The allowed HTML to pass to KSES.
 	 */
@@ -2047,7 +2047,7 @@ HTML;
 	 *
 	 * @covers ::wp_kses
 	 *
-	 * @param string $html         A string of HTML to test.
+	 * @param string $content      A string of HTML to test.
 	 * @param string $expected     The expected result from KSES.
 	 * @param array  $allowed_html The allowed HTML to pass to KSES.
 	 */

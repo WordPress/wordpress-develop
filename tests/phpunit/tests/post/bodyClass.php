@@ -2,7 +2,6 @@
 
 /**
  * @group post
- *
  * @covers ::body_class
  */
 class Tests_Post_BodyClass extends WP_UnitTestCase {

@@ -25,7 +25,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 	public function test_get_comments_number() {
 		$post_id = self::$post_id;
 
-		$this->assertSame( 0, ( 0 ) );
+		$this->assertSame( 0, get_comments_number( 0 ) );
 		$this->assertSame( '0', get_comments_number( $post_id ) );
 		$this->assertSame( '0', get_comments_number( get_post( $post_id ) ) );
 

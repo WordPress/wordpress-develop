@@ -7,7 +7,6 @@
  * @since 4.9.6
  *
  * @group privacy
- *
  * @covers ::wp_privacy_send_personal_data_export_email
  */
 class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase {

@@ -9,7 +9,6 @@
  *
  * @group functions.php
  * @group post
- *
  * @covers ::do_enclose
  */
 class Tests_Functions_DoEnclose extends WP_UnitTestCase {

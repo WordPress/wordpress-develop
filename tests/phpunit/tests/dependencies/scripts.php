@@ -2938,12 +2938,12 @@ HTML
 	/**
 	 * @ticket 52534
 	 *
+	 * @covers ::wp_localize_script
+	 *
 	 * @dataProvider data_wp_localize_script_data_formats
 	 *
 	 * @param mixed  $l10n_data Localization data passed to wp_localize_script().
 	 * @param string $expected  Expected transformation of localization data.
-	 *
-	 * @covers ::wp_localize_script
 	 */
 	public function test_wp_localize_script_data_formats( $l10n_data, $expected ) {
 		if ( ! is_array( $l10n_data ) ) {

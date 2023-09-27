@@ -7,7 +7,6 @@
  * @since 4.9.6
  *
  * @group privacy
- *
  * @covers ::_wp_privacy_completed_request
  */
 class Tests_Privacy_wpPrivacyCompletedRequest extends WP_UnitTestCase {

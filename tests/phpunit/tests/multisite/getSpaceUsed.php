@@ -4,7 +4,6 @@ if ( is_multisite() ) :
 
 	/**
 	 * @group multisite
-	 *
 	 * @covers ::get_space_used
 	 */
 	class Tests_Multisite_GetSpaceUsed extends WP_UnitTestCase {

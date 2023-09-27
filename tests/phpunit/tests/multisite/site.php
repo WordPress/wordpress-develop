@@ -738,7 +738,7 @@ if ( is_multisite() ) :
 		 * @covers ::domain_exists
 		 */
 		public function test_domain_filtered_to_exist() {
-			add_filter( 'domain_exists', array( $this, '_domain_exists_cb' ), 10, 4 );
+			add_filter( 'domain_exists', array( $this, 'domain_exists_cb' ), 10, 4 );
 			$exists = domain_exists( 'foo', 'bar' );
 			remove_filter( 'domain_exists', array( $this, 'domain_exists_cb' ), 10, 4 );
 			$this->assertSame( 1234, $exists );

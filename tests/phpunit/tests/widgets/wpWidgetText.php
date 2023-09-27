@@ -74,7 +74,6 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 	 * Test register in customize preview.
 	 *
 	 * @global WP_Customize_Manager $wp_customize
-	 *
 	 * @covers WP_Widget_Text::__construct
 	 * @covers WP_Widget_Text::_register
 	 */
@@ -105,7 +104,6 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 	 *
 	 * @global WP_Scripts $wp_scripts
 	 * @global WP_Styles $wp_styles
-	 *
 	 * @covers WP_Widget_Text::enqueue_preview_scripts
 	 */
 	public function test_enqueue_preview_scripts() {

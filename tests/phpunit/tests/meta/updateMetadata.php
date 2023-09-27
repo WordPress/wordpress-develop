@@ -2,7 +2,6 @@
 
 /**
  * @group meta
- *
  * @covers ::update_metadata
  */
 class Tests_Meta_UpdateMetadata extends WP_UnitTestCase {

@@ -57,7 +57,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @group site_icon
-	 *
 	 * @covers ::get_site_icon_url
 	 * @requires function imagejpeg
 	 */
@@ -73,7 +72,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @group site_icon
-	 *
 	 * @covers ::site_icon_url
 	 * @requires function imagejpeg
 	 */
@@ -88,7 +86,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @group site_icon
-	 *
 	 * @covers ::has_site_icon
 	 * @requires function imagejpeg
 	 */
@@ -106,7 +103,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @group site_icon
 	 * @group multisite
 	 * @group ms-required
-	 *
 	 * @covers ::has_site_icon
 	 */
 	public function test_has_site_icon_returns_true_when_called_for_other_site_with_site_icon_set() {
@@ -122,7 +118,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @group site_icon
 	 * @group multisite
 	 * @group ms-required
-	 *
 	 * @covers ::has_site_icon
 	 */
 	public function test_has_site_icon_returns_false_when_called_for_other_site_without_site_icon_set() {
@@ -133,7 +128,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @group site_icon
-	 *
 	 * @covers ::wp_site_icon
 	 * @requires function imagejpeg
 	 */
@@ -157,7 +151,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @group site_icon
-	 *
 	 * @covers ::wp_site_icon
 	 * @requires function imagejpeg
 	 */
@@ -185,7 +178,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 38377
 	 * @group site_icon
-	 *
 	 * @covers ::wp_site_icon
 	 */
 	public function test_customize_preview_wp_site_icon_empty() {
@@ -204,7 +196,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 38377
 	 * @group site_icon
-	 *
 	 * @covers ::wp_site_icon
 	 */
 	public function test_customize_preview_wp_site_icon_dirty() {
@@ -306,7 +297,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @group custom_logo
 	 * @group multisite
 	 * @group ms-required
-	 *
 	 * @covers ::has_custom_logo
 	 */
 	public function test_has_custom_logo_returns_true_when_called_for_other_site_with_custom_logo_set() {
@@ -322,7 +312,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @group custom_logo
 	 * @group multisite
 	 * @group ms-required
-	 *
 	 * @covers ::has_custom_logo
 	 */
 	public function test_has_custom_logo_returns_false_when_called_for_other_site_without_custom_logo_set() {
@@ -332,11 +321,10 @@ class Tests_General_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @since 4.5.0
-	 *
 	 * @group custom_logo
-	 *
 	 * @covers ::get_custom_logo
+	 *
+	 * @since 4.5.0
 	 */
 	public function test_get_custom_logo() {
 		$this->assertEmpty( get_custom_logo(), 'Custom logo should not be set initially.' );
@@ -354,7 +342,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @group custom_logo
 	 * @group multisite
 	 * @group ms-required
-	 *
 	 * @covers ::get_custom_logo
 	 */
 	public function test_get_custom_logo_returns_logo_when_called_for_other_site_with_custom_logo_set() {
@@ -383,11 +370,10 @@ class Tests_General_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @since 4.5.0
-	 *
 	 * @group custom_logo
-	 *
 	 * @covers ::the_custom_logo
+	 *
+	 * @since 4.5.0
 	 */
 	public function test_the_custom_logo() {
 		$this->expectOutputString( '' );
@@ -415,7 +401,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 38768
 	 * @group custom_logo
-	 *
 	 * @covers ::the_custom_logo
 	 */
 	public function test_the_custom_logo_with_alt() {
@@ -480,7 +465,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 38253
 	 * @group ms-required
-	 *
 	 * @covers ::get_site_icon_url
 	 */
 	public function test_get_site_icon_url_preserves_switched_state() {
@@ -501,7 +485,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 38253
 	 * @group ms-required
-	 *
 	 * @covers ::has_custom_logo
 	 */
 	public function test_has_custom_logo_preserves_switched_state() {
@@ -522,7 +505,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 38253
 	 * @group ms-required
-	 *
 	 * @covers ::get_custom_logo
 	 */
 	public function test_get_custom_logo_preserves_switched_state() {

@@ -80,12 +80,12 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 
 	/**
 	 * Term counts are incremented when post created.
+	 *
+	 * @covers ::wp_update_term_count
 	 * @dataProvider data_term_count_changes_for_post_statuses
 	 *
 	 * @param string $post_status New post status.
 	 * @param int    $change      Expected change.
-	 *
-	 * @covers ::wp_update_term_count
 	 */
 	public function test_term_count_changes_for_post_statuses( $post_status, $change ) {
 		$term_count = get_term( get_option( 'default_category' ) )->count;
@@ -119,14 +119,14 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 
 	/**
 	 * Term counts increments correctly when post status becomes published.
+	 *
+	 * @covers ::wp_publish_post
+	 * @covers ::wp_update_term_count
 	 * @dataProvider data_term_counts_incremented_on_publish
 	 * @ticket 51292
 	 *
 	 * @param string $original_post_status Post status prior to change to publish.
 	 * @param int    $change               Expected change upon publish.
-	 *
-	 * @covers ::wp_publish_post
-	 * @covers ::wp_update_term_count
 	 */
 	public function test_term_counts_incremented_on_publish( $original_post_status, $change ) {
 		$post_id    = self::$post_ids[ $original_post_status ];
@@ -162,12 +162,12 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * Test post status transition update term counts correctly.
 	 *
+	 * @covers ::wp_update_term_count
+	 * @dataProvider data_term_count_transitions_update_term_counts
+	 *
 	 * @param string $original_post_status Post status upon create.
 	 * @param string $new_post_status      Post status after update.
 	 * @param int    $change               Expected change upon publish.
-	 * @dataProvider data_term_count_transitions_update_term_counts
-	 *
-	 * @covers ::wp_update_term_count
 	 */
 	public function test_term_count_transitions_update_term_counts( $original_post_status, $new_post_status, $change ) {
 		$post_id    = self::$post_ids[ $original_post_status ];
@@ -231,13 +231,13 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 
 	/**
 	 * Term counts incremented correctly when the `update_post_term_count_statuses` filter is used.
+	 *
+	 * @covers ::wp_update_term_count
 	 * @dataProvider data_term_count_changes_for_update_post_term_count_statuses_filter
 	 * @ticket 38843
 	 *
 	 * @param string $post_status New post status.
 	 * @param int    $change      Expected change.
-	 *
-	 * @covers ::wp_update_term_count
 	 */
 	public function test_term_count_changes_for_update_post_term_count_statuses_filter( $post_status, $change ) {
 		$term_count = get_term( self::$attachment_term )->count;
@@ -286,12 +286,12 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 
 	/**
 	 * Term counts incremented correctly for posts with attachment.
+	 *
+	 * @covers ::wp_update_term_count
 	 * @dataProvider data_term_count_changes_for_post_statuses_with_attachments
 	 *
 	 * @param string $post_status New post status.
 	 * @param int    $change      Expected change.
-	 *
-	 * @covers ::wp_update_term_count
 	 */
 	public function test_term_count_changes_for_post_statuses_with_attachments( $post_status, $change ) {
 		$term_count = get_term( self::$attachment_term )->count;
@@ -335,14 +335,13 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * Term counts increments correctly when post with attachment becomes published.
 	 *
+	 * @covers ::wp_publish_post
+	 * @covers ::wp_update_term_count
 	 * @dataProvider data_term_counts_incremented_on_publish_with_attachments
 	 * @ticket 51292
 	 *
 	 * @param string $original_post_status Post status prior to change to publish.
 	 * @param int    $change               Expected change upon publish.
-	 *
-	 * @covers ::wp_publish_post
-	 * @covers ::wp_update_term_count
 	 */
 	public function test_term_counts_incremented_on_publish_with_attachments( $original_post_status, $change ) {
 		$post_id = self::$post_ids[ $original_post_status ];
@@ -387,13 +386,12 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * Test post status transition update term counts correctly for posts with attachments.
 	 *
+	 * @covers ::wp_update_term_count
 	 * @dataProvider data_term_count_transitions_update_term_counts_with_attachments
 	 *
 	 * @param string $original_post_status Post status upon create.
 	 * @param string $new_post_status      Post status after update.
 	 * @param int    $change               Expected change upon publish.
-	 *
-	 * @covers ::wp_update_term_count
 	 */
 	public function test_term_count_transitions_update_term_counts_with_attachments( $original_post_status, $new_post_status, $change ) {
 		$post_id = self::$post_ids[ $original_post_status ];
@@ -462,14 +460,13 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * Term counts increments correctly when post with attachment becomes published.
 	 *
+	 * @covers ::wp_update_term_count
+	 * @covers ::wp_publish_post
 	 * @dataProvider data_term_counts_incremented_on_publish_with_untermed_attachments
 	 * @ticket 51292
 	 *
 	 * @param string $original_post_status Post status prior to change to publish.
 	 * @param int    $change               Expected change upon publish.
-	 *
-	 * @covers ::wp_update_term_count
-	 * @covers ::wp_publish_post
 	 */
 	public function test_term_counts_incremented_on_publish_with_untermed_attachments( $original_post_status, $change ) {
 		$post_id = self::$post_ids[ $original_post_status ];
@@ -513,13 +510,12 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * Test post status transition update term counts correctly on post with attachment.
 	 *
+	 * @covers ::wp_update_term_count
 	 * @dataProvider data_term_count_transitions_update_term_counts_with_untermed_attachments
 	 *
 	 * @param string $original_post_status Post status upon create.
 	 * @param string $new_post_status      Post status after update.
 	 * @param int    $change               Expected change upon publish.
-	 *
-	 * @covers ::wp_update_term_count
 	 */
 	public function test_term_count_transitions_update_term_counts_with_untermed_attachments( $original_post_status, $new_post_status, $change ) {
 		$post_id = self::$post_ids[ $original_post_status ];
@@ -587,9 +583,8 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * User taxonomy term counts increments when added to an account.
 	 *
-	 * @ticket 51292
-	 *
 	 * @covers ::wp_update_term_count
+	 * @ticket 51292
 	 */
 	public function test_term_counts_user_adding_term() {
 		$term_count = get_term( self::$user_term )->count;
@@ -602,9 +597,8 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * User taxonomy term counts decrement when term deleted from user.
 	 *
-	 * @ticket 51292
-	 *
 	 * @covers ::wp_update_term_count
+	 * @ticket 51292
 	 */
 	public function test_term_counts_user_removing_term() {
 		wp_add_object_terms( self::$user_id, self::$user_term, 'wp_test_user_tax_counts' );

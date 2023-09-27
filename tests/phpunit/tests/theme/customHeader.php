@@ -48,7 +48,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::remove_theme_support
 	 */
 	public function test_add_and_remove_theme_support() {
-		$this->_add_theme_support();
+		$this->add_theme_support();
 		$this->assertTrue( current_theme_supports( 'custom-header' ) );
 		remove_theme_support( 'custom-header' );
 		$this->assertFalse( current_theme_supports( 'custom-header' ) );
@@ -58,7 +58,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::get_header_image
 	 */
 	public function test_get_header_image_without_registered_default() {
-		$this->_add_theme_support();
+		$this->add_theme_support();
 		$image = get_header_image();
 		$this->assertFalse( has_header_image() );
 		$this->assertEmpty( $image );
@@ -153,7 +153,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::get_header_image_tag
 	 */
 	public function test_get_header_image_tag_without_registered_default_image() {
-		$this->_add_theme_support();
+		$this->add_theme_support();
 		$html = get_header_image_tag();
 		$this->assertEmpty( $html );
 	}
@@ -281,7 +281,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::has_custom_header
 	 */
 	public function test_get_custom_header_markup_without_registered_default_image() {
-		$this->_add_theme_support();
+		$this->add_theme_support();
 
 		$html = get_custom_header_markup();
 		$this->assertFalse( has_custom_header() );
@@ -312,7 +312,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::get_header_video_url
 	 */
 	public function test_get_header_video_url() {
-		$this->_add_theme_support( array( 'video' => true ) );
+		$this->add_theme_support( array( 'video' => true ) );
 
 		$this->assertFalse( has_header_video() );
 		set_theme_mod( 'header_video', self::$header_video_id );
@@ -372,7 +372,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::the_custom_header_markup
 	 */
 	public function test_header_script_is_not_enqueued_by_the_custom_header_markup_without_video() {
-		$this->_add_theme_support(
+		$this->add_theme_support(
 			array(
 				'video'                 => true,
 				'video-active-callback' => '__return_true',
@@ -396,7 +396,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::the_custom_header_markup
 	 */
 	public function test_header_script_is_not_enqueued_by_the_custom_header_markup_when_active_callback_is_false() {
-		$this->_add_theme_support(
+		$this->add_theme_support(
 			array(
 				'video'                 => true,
 				'video-active-callback' => '__return_false',
@@ -414,7 +414,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::the_custom_header_markup
 	 */
 	public function test_header_script_is_enqueued_by_the_custom_header_markup_without_video_when_previewing_in_customizer() {
-		$this->_add_theme_support(
+		$this->add_theme_support(
 			array(
 				'video'                 => true,
 				'video-active-callback' => '__return_true',
@@ -432,7 +432,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 * @covers ::the_custom_header_markup
 	 */
 	public function test_header_script_is_enqueued_by_the_custom_header_markup_with_video() {
-		$this->_add_theme_support(
+		$this->add_theme_support(
 			array(
 				'video'                 => true,
 				'video-active-callback' => '__return_true',

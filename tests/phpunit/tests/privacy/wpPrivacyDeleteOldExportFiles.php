@@ -7,7 +7,6 @@
  * @since 4.9.6
  *
  * @group privacy
- *
  * @covers ::wp_privacy_delete_old_export_files
  */
 class Tests_Privacy_wpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {

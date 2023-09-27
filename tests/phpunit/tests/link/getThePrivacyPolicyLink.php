@@ -8,7 +8,6 @@
  *
  * @group link
  * @group privacy
- *
  * @covers ::get_the_privacy_policy_link
  */
 class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {

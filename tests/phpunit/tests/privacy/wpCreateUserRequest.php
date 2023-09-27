@@ -7,7 +7,6 @@
  * @since 5.2.0
  *
  * @group privacy
- *
  * @covers ::wp_create_user_request
  */
 class Tests_Privacy_wpCreateUserRequest extends WP_UnitTestCase {

@@ -7,7 +7,6 @@
  * @covers ::_wp_expand_nav_menu_post_data
  */
 class Tests_Menu_WpExpandNavMenuPostData extends WP_UnitTestCase {
-
 	public function test_unnested_data_should_expand() {
 		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 

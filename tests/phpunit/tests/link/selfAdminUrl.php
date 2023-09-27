@@ -2,7 +2,6 @@
 
 /**
  * @group link
- *
  * @covers ::self_admin_url
  */
 class Tests_Link_SelfAdminUrl extends WP_UnitTestCase {

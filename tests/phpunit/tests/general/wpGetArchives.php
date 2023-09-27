@@ -3,7 +3,6 @@
 /**
  * @group general
  * @group template
- *
  * @covers ::wp_get_archives
  */
 class Tests_General_wpGetArchives extends WP_UnitTestCase {

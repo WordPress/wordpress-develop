@@ -22,11 +22,11 @@ class Tests_Feed_wpSimplePieFile extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_header_parsing
 	 *
+	 * @covers WP_SimplePie_File::__construct
+	 *
 	 * @since 5.6.1
 	 *
 	 * @ticket 51056
-	 *
-	 * @covers WP_SimplePie_File::__construct
 	 */
 	public function test_header_parsing( $callback, $header_field, $expected ) {
 		add_filter( 'pre_http_request', array( $this, $callback ) );

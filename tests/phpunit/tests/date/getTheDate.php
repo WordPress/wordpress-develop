@@ -4,13 +4,12 @@
  * @group date
  * @group datetime
  * @group post
+ * @covers ::get_the_date
  */
 class Tests_Date_GetTheDate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 13771
-	 *
-	 * @covers ::get_the_date
 	 */
 	public function test_get_the_date_returns_correct_time_with_post_id() {
 		$post_id = self::factory()->post->create( array( 'post_date' => '2014-03-01 16:35:00' ) );
@@ -20,8 +19,6 @@ class Tests_Date_GetTheDate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28310
-	 *
-	 * @covers ::get_the_date
 	 */
 	public function test_get_the_date_returns_false_with_null_or_non_existing_post() {
 		$this->assertFalse( get_the_date() );
@@ -32,8 +29,6 @@ class Tests_Date_GetTheDate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51184
-	 *
-	 * @covers ::get_the_date
 	 */
 	public function test_get_the_date_returns_correct_time_with_empty_format() {
 		$post_id = self::factory()->post->create( array( 'post_date' => '2020-08-29 01:51:00' ) );
@@ -44,8 +39,6 @@ class Tests_Date_GetTheDate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28310
-	 *
-	 * @covers ::get_the_time
 	 */
 	public function test_get_the_time_returns_correct_time_with_post_id() {
 		$post_id = self::factory()->post->create( array( 'post_date' => '2014-03-01 16:35:00' ) );
@@ -55,8 +48,6 @@ class Tests_Date_GetTheDate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28310
-	 *
-	 * @covers ::get_the_time
 	 */
 	public function test_get_the_time_returns_false_with_null_or_non_existing_post() {
 		$this->assertFalse( get_the_time() );
@@ -67,8 +58,6 @@ class Tests_Date_GetTheDate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51184
-	 *
-	 * @covers ::get_the_time
 	 */
 	public function test_get_the_time_returns_correct_time_with_empty_format() {
 		$post_id = self::factory()->post->create( array( 'post_date' => '2020-08-29 01:51:00' ) );

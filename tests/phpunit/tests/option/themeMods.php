@@ -37,7 +37,7 @@ class Tests_Option_ThemeMods extends WP_UnitTestCase {
 	public function test_theme_mod_set_with_invalid_theme_mods_option() {
 		$theme_slug = get_option( 'stylesheet' );
 		update_option( 'theme_mods_' . $theme_slug, '' );
-		$this->test_theme_mod_set();
+		self::test_theme_mod_set();
 	}
 
 	/**

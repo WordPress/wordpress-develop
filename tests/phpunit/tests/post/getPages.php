@@ -951,6 +951,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 12821
+	 *
 	 * @covers ::wp_list_pages
 	 */
 	public function test_get_pages_post_status() {
@@ -993,6 +994,8 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 12821
+	 *
 	 * @covers ::get_pages
 	 */
 	public function test_get_pages_author() {

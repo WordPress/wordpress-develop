@@ -4,7 +4,6 @@
  * Tests related to sticky functionality in WP_Query.
  *
  * @group query
- *
  * @covers WP_Query::get_posts
  */
 class Tests_Query_Stickies extends WP_UnitTestCase {

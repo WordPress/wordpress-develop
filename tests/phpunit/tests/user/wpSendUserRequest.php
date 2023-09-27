@@ -7,7 +7,6 @@
  *
  * @group privacy
  * @group user
- *
  * @covers ::wp_send_user_request
  */
 class Tests_User_wpSendUserRequest extends WP_UnitTestCase {

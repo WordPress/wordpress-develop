@@ -8,7 +8,6 @@
 
 /**
  * Test wp-includes/widgets/class-wp-widget-media.php
- *
  * @group widgets
  */
 class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {

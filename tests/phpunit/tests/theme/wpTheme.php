@@ -54,7 +54,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	/**
 	 * @covers WP_Theme::__construct
 	 */
-	function test_new_WP_Theme_top_level() {
+	public function test_new_WP_Theme_top_level() {
 		$theme = new WP_Theme( 'theme1', $this->theme_root );
 
 		// Meta.

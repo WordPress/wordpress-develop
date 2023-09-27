@@ -3,7 +3,6 @@
 /**
  * @group formatting
  * @group functions.php
- *
  * @covers ::wp_allowed_protocols
  */
 class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {

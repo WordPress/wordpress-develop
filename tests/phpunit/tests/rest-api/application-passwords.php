@@ -31,10 +31,9 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 
 
 	/**
+	 * @covers       WP_Application_Passwords::create_new_application_password
 	 * @ticket       51941
 	 * @dataProvider data_create_new_application_password_validation
-	 *
-	 * @covers       WP_Application_Passwords::create_new_application_password
 	 */
 	public function test_create_new_application_password_validation( $expected, array $args = array(), array $names = array() ) {
 		// Create the existing passwords.
@@ -90,10 +89,9 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers       WP_Application_Passwords::create_new_application_password
 	 * @ticket       51941
 	 * @dataProvider data_create_new_application_password
-	 *
-	 * @covers       WP_Application_Passwords::create_new_application_password
 	 */
 	public function test_create_new_application_password( array $args, array $names = array() ) {
 		// Create the existing passwords.
@@ -124,10 +122,9 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers       WP_Application_Passwords::application_name_exists_for_user
 	 * @ticket       51941
 	 * @dataProvider data_application_name_exists_for_user
-	 *
-	 * @covers       WP_Application_Passwords::application_name_exists_for_user
 	 */
 	public function test_application_name_exists_for_user( $expected, $name ) {
 		if ( $expected ) {
@@ -149,10 +146,9 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers       WP_Application_Passwords::update_application_password
 	 * @ticket       51941
 	 * @dataProvider data_update_application_password
-	 *
-	 * @covers       WP_Application_Passwords::update_application_password
 	 */
 	public function test_update_application_password( array $update, array $existing ) {
 		// Create the original item.
@@ -172,10 +168,9 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers       WP_Application_Passwords::update_application_password
 	 * @ticket       51941
 	 * @dataProvider data_update_application_password
-	 *
-	 * @covers       WP_Application_Passwords::update_application_password
 	 */
 	public function test_update_application_password_when_no_password_found( array $update ) {
 		$actual = WP_Application_Passwords::update_application_password( self::$user_id, '', $update );
