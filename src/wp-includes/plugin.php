@@ -818,9 +818,7 @@ function wp_register_plugin_realpath( $file ) {
 		return false;
 	}
 
-	if ( $plugin_path !== $plugin_realpath ) {
-		$wp_plugin_paths[ $plugin_path ] = $plugin_realpath;
-	}
+	$wp_plugin_paths[ $plugin_path ] = $plugin_realpath;
 
 	return true;
 }
