@@ -128,7 +128,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	/**
 	 * @covers ::_build_block_template_result_from_file
 	 */
-	function test_build_block_template_result_from_file() {
+	public function test_build_block_template_result_from_file() {
 		$template = _build_block_template_result_from_file(
 			array(
 				'slug' => 'single',
@@ -370,8 +370,11 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * @ticket 54448
 	 * @ticket 59460
 	 *
-	 * @dataProvider data_remove_theme_attribute_in_block_template_content
 	 * @covers ::_remove_theme_attribute_in_block_template_content
+	 *
+	 * @dataProvider data_remove_theme_attribute_in_block_template_content
+	 *
+	 * @expectedDeprecated _remove_theme_attribute_in_block_template_content
 	 */
 	public function test_remove_theme_attribute_in_block_template_content( $template_content, $expected ) {
 		$this->assertSame( $expected, _remove_theme_attribute_in_block_template_content( $template_content ) );
