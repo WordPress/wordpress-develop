@@ -56,8 +56,17 @@ function render_block_core_search( $attributes, $content, $block ) {
 		$label->set_attribute( 'for', $input_id );
 		$label->add_class( 'wp-block-search__label' );
 		if ( $show_label && ! empty( $attributes['label'] ) ) {
-			if ( ! empty( $typography_classes ) ) {
-				$label->add_class( $typography_classes );
+			/*
+			 * There are two oddities here:
+			 *  - the classes are joined in get_typography_classes_for_block_core_search()
+			 *    so it shouldn't be necessary here to re-explode them.
+			 *  - the class names are esc_attr()'d but then fed into the HTML API, which leads
+			 *    to double-escaping.
+			 *
+			 * @TODO: Fix these upstream to avoid double work and double escaping.
+			 */
+			foreach ( WP_CSS::class_list( $typography_classes ) as $class ) {
+				 $label->add_class( $class );
 			}
 		} else {
 			$label->add_class( 'screen-reader-text' );
@@ -73,7 +82,9 @@ function render_block_core_search( $attributes, $content, $block ) {
 		$input_classes[] = $typography_classes;
 	}
 	if ( $input->next_tag() ) {
-		$input->add_class( implode( ' ', $input_classes ) );
+		foreach ( $input_classes as $class ) {
+			$input->add_class( $class );
+		}
 		$input->set_attribute( 'id', $input_id );
 		$input->set_attribute( 'value', get_search_query() );
 		$input->set_attribute( 'placeholder', $attributes['placeholder'] );
@@ -143,7 +154,9 @@ function render_block_core_search( $attributes, $content, $block ) {
 		$button           = new WP_HTML_Tag_Processor( sprintf( '<button type="submit" %s>%s</button>', $inline_styles['button'], $button_internal_markup ) );
 
 		if ( $button->next_tag() ) {
-			$button->add_class( implode( ' ', $button_classes ) );
+			foreach ( $button_classes as $class ) {
+				$button->add_class( $class );
+			}
 			if ( 'expand-searchfield' === $attributes['buttonBehavior'] && 'button-only' === $attributes['buttonPosition'] ) {
 				$button->set_attribute( 'data-wp-bind--aria-label', 'selectors.core.search.ariaLabel' );
 				$button->set_attribute( 'data-wp-bind--aria-controls', 'selectors.core.search.ariaControls' );

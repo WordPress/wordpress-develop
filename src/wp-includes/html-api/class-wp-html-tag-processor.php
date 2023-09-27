@@ -643,48 +643,8 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.4.0
 	 */
 	public function class_list() {
-		/** @var string $class contains the string value of the class attribute, with character references decoded. */
-		$class = $this->get_attribute( 'class' );
-
-		if ( ! is_string( $class ) ) {
-			return;
-		}
-
-		$seen = array();
-
-		$at = 0;
-		while ( $at < strlen( $class ) ) {
-			// Skip past any initial boundary characters.
-			$at += strspn( $class, " \t\f\r\n", $at );
-			if ( $at >= strlen( $class ) ) {
-				return;
-			}
-
-			// Find the byte length until the next boundary.
-			$length = strcspn( $class, " \t\f\r\n", $at );
-			if ( 0 === $length ) {
-				return;
-			}
-
-			/*
-			 * CSS class names are case-insensitive in the ASCII range.
-			 *
-			 * @see https://www.w3.org/TR/CSS2/syndata.html#x1
-			 */
-			$name = strtolower( substr( $class, $at, $length ) );
-			$at  += $length;
-
-			/*
-			 * It's expected that the number of class names for a given tag is relatively small.
-			 * Given this, it is probably faster overall to scan an array for a value rather
-			 * than to use the class name as a key and check if it's a key of $seen.
-			 */
-			if ( in_array( $name, $seen, true ) ) {
-				continue;
-			}
-
-			$seen[] = $name;
-			yield $name;
+		foreach ( WP_CSS::class_list( $this->get_attribute( 'class' ) ) as $class ) {
+			yield $class;
 		}
 	}
 
