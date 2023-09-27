@@ -6809,8 +6809,29 @@ function get_file_data( $file, $default_headers, $context = '' ) {
 		$file_data = '';
 	}
 
+	return get_file_data_from_string( $file_data, $default_headers, $context );
+}
+
+/**
+ * Retrieves metadata from a file's contents.
+ *
+ * Searches for metadata in the beginning of a file's contents, such as from a
+ * plugin or theme. Each piece of metadata must be on its own line. Fields can
+ * not span multiple lines, the value will get cut at the end of the first line.
+ *
+ * @link https://codex.wordpress.org/File_Header
+ *
+ * @since 6.4.0
+ *
+ * @param string $file_contents   All or part of a file's contents. Must start at beginning of file. E.g. pass the first 8 KB of a file.
+ * @param array  $default_headers List of headers, in the format `array( 'HeaderKey' => 'Header Name' )`.
+ * @param string $context         Optional. If specified adds filter hook {@see 'extra_$context_headers'}.
+ *                                Default empty string.
+ * @return string[] Array of file header values keyed by header name.
+ */
+function get_file_data_from_string( $file_contents, $default_headers, $context = '' ) {
 	// Make sure we catch CR-only line endings.
-	$file_data = str_replace( "\r", "\n", $file_data );
+	$file_contents = str_replace( "\r", "\n", $file_contents );
 
 	/**
 	 * Filters extra file headers by context.
@@ -6831,7 +6852,7 @@ function get_file_data( $file, $default_headers, $context = '' ) {
 	}
 
 	foreach ( $all_headers as $field => $regex ) {
-		if ( preg_match( '/^(?:[ \t]*<\?php)?[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $file_data, $match ) && $match[1] ) {
+		if ( preg_match( '/^(?:[ \t]*<\?php)?[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $file_contents, $match ) && $match[1] ) {
 			$all_headers[ $field ] = _cleanup_header_comment( $match[1] );
 		} else {
 			$all_headers[ $field ] = '';
