@@ -4838,7 +4838,6 @@ class WP_Query {
 		global $wpdb;
 
 		unset(
-			$args['post_type'],
 			$args['cache_results'],
 			$args['fields'],
 			$args['lazy_load_term_meta'],
@@ -4868,6 +4867,16 @@ class WP_Query {
 
 		// Replace wpdb placeholder in the SQL statement used by the cache key.
 		$sql = $wpdb->remove_placeholder_escape( $sql );
+
+		/*
+		* We need to unset the `post_type` parameter because:
+		* 1. `post_type` from get_posts() may have values like `any` or even `null`.
+		* 2. Including `post_type` in the query arguments might generate
+		* different cache keys for identical queries, leading to unnecessary cache misses.
+		* It's essential to unset `post_type` only after using it for any necessary
+		* wpdb placeholder replacements in the statement.
+		*/
+		unset( $args['post_type'] );
 		$key = md5( serialize( $args ) . $sql );
 
 		$last_changed = wp_cache_get_last_changed( 'posts' );
