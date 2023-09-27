@@ -422,7 +422,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		wp_cache_delete( 'alloptions', 'options' );
 		$updated = update_option( 'foo', $new_value );
 
-		$this->assertSame( 2, get_num_queries() - $num_queries, 'One additional query should have run to update the value.' );
+		$this->assertSame( 2, get_num_queries() - $num_queries, 'Two additional queries should have run.' );
 		$this->assertTrue( $updated, 'update_option() should have returned true.' );
 	}
 
