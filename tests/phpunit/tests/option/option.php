@@ -676,7 +676,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 		$updated     = update_option( 'foo', $new_value );
 
-		$this->assertSame( 1, get_num_queries() - $num_queries, 'No additional queries should have run.' );
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run.' );
 		$this->assertFalse( $updated, 'update_option() should have returned false.' );
 	}
 
