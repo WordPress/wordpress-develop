@@ -1,29 +1,33 @@
-import {
-	createNewPost,
-	pressKeyTimes,
-	publishPost,
-	trashAllPosts,
-	visitAdminPage,
-} from '@wordpress/e2e-test-utils';
+/**
+ * WordPress dependencies
+ */
+import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
-describe( 'Edit Posts', () => {
-	beforeEach( async () => {
-		await trashAllPosts();
+test.describe( 'Edit Posts', () => {
+	test.beforeEach( async ( { requestUtils }) => {
+		await requestUtils.deleteAllPosts();
 	} );
 
-	it( 'displays a message in the posts table when no posts are present', async () => {
-		await visitAdminPage( '/edit.php' );
+	test( 'displays a message in the posts table when no posts are present',async ( {
+		admin,
+		page,
+	} ) => {
+		await admin.visitAdminPage( '/edit.php' );
 		const noPostsMessage = await page.$x(
 			'//td[text()="No posts found."]'
 		);
 		expect( noPostsMessage.length ).toBe( 1 );
 	} );
 
-	it( 'shows a single post after one is published with the correct title', async () => {
+	test( 'shows a single post after one is published with the correct title',async ( {
+		admin,
+		editor,
+		page,
+	} ) => {
 		const title = 'Test Title';
-		await createNewPost( { title } );
-		await publishPost();
-		await visitAdminPage( '/edit.php' );
+		await admin.createNewPost( { title } );
+		await editor.publishPost();
+		await admin.visitAdminPage( '/edit.php' );
 
 		await page.waitForSelector( '#the-list .type-post' );
 
@@ -40,11 +44,15 @@ describe( 'Edit Posts', () => {
 		expect( postTitle.length ).toBe( 1 );
 	} );
 
-	it( 'allows an existing post to be edited using the Edit button', async () => {
+	test( 'allows an existing post to be edited using the Edit button', async ( {
+		admin,
+		editor,
+		page,
+	} ) => {
 		const title = 'Test Title';
-		await createNewPost( { title } );
-		await publishPost();
-		await visitAdminPage( '/edit.php' );
+		await admin.createNewPost( { title } );
+		await editor.publishPost();
+		await admin.visitAdminPage( '/edit.php' );
 
 		await page.waitForSelector( '#the-list .type-post' );
 
@@ -69,11 +77,15 @@ describe( 'Edit Posts', () => {
 		expect( editorPostTitleInput.length ).toBe( 1 );
 	} );
 
-	it( 'allows an existing post to be quick edited using the Quick Edit button', async () => {
+	test( 'allows an existing post to be quick edited using the Quick Edit button', async ( {
+		admin,
+		editor,
+		page
+	} ) => {
 		const title = 'Test Title';
-		await createNewPost( { title } );
-		await publishPost();
-		await visitAdminPage( '/edit.php' );
+		await admin.createNewPost( { title } );
+		await editor.publishPost();
+		await admin.visitAdminPage( '/edit.php' );
 
 		await page.waitForSelector( '#the-list .type-post' );
 
@@ -84,7 +96,8 @@ describe( 'Edit Posts', () => {
 		await editLink.focus();
 
 		// Tab to the Quick Edit button and press Enter to quick edit.
-		await pressKeyTimes( 'Tab', 2 );
+		await page.keyboard.press( 'Tab' );
+		await page.keyboard.press( 'Tab' );
 		await page.keyboard.press( 'Enter' );
 
 		// Type in the currently focused (title) field to modify the title, testing that focus is moved to the input.
@@ -108,11 +121,16 @@ describe( 'Edit Posts', () => {
 		);
 		expect( postTitle.length ).toBe( 1 );
 	} );
-	it( 'allows an existing post to be deleted using the Trash button', async () => {
+
+	test( 'allows an existing post to be deleted using the Trash button', async ( {
+		admin,
+		editor,
+		page
+	} ) => {
 		const title = 'Test Title';
-		await createNewPost( { title } );
-		await publishPost();
-		await visitAdminPage( '/edit.php' );
+		await admin.createNewPost( { title } );
+		await editor.publishPost();
+		await admin.visitAdminPage( '/edit.php' );
 
 		await page.waitForSelector( '#the-list .type-post' );
 
@@ -123,7 +141,9 @@ describe( 'Edit Posts', () => {
 		await editLink.focus();
 
 		// Tab to the Trash button and press Enter to delete the post.
-		await pressKeyTimes( 'Tab', 3 );
+		await page.keyboard.press( 'Tab' );
+		await page.keyboard.press( 'Tab' );
+		await page.keyboard.press( 'Tab' );
 		await page.keyboard.press( 'Enter' );
 
 		const noPostsMessage = await page.waitForSelector(
