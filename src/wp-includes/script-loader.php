@@ -3357,29 +3357,15 @@ function wp_remove_surrounding_empty_script_tags( $contents ) {
 	$opener   = '<SCRIPT>';
 	$closer   = '</SCRIPT>';
 
-	$has_both_empty_tags = (
+	if (
 		strlen( $contents ) > strlen( $opener ) + strlen( $closer ) &&
 		strtoupper( substr( $contents, 0, strlen( $opener ) ) ) === $opener &&
 		strtoupper( substr( $contents, -strlen( $closer ) ) ) === $closer
-	);
-
-	/*
-	 * What should happen if the given contents are not surrounded by
-	 * the exact literal script tags? This question opens up a can of
-	 * worms with no obvious or clear answer. Removing one of the tags
-	 * could lead to just as much trouble as leaving one in place.
-	 * This code leaves the string untouched if it can't find both the
-	 * exact tags. Maybe someone added an attribute to the opening tag
-	 * or maybe someone added a space; it's impossible to know from
-	 * here.
-	 *
-	 * It would be possible to return `null` or `false` here to indicate
-	 * the failure, but people probably wouldn't be checking the result
-	 * and that could introduce corruption. An empty string could be
-	 * another viable return and that would quickly signal that something
-	 * is wrong and needs fixing.
-	 */
-	return $has_both_empty_tags
-		? substr( $contents, strlen( $opener ), -strlen( $closer ) )
-		: $contents;
+	) {
+		return substr( $contents, strlen( $opener ), -strlen( $closer ) );
+	} else {
+		$error_message = __( 'Expected string to start with script tag (without attributes) and end with script tag, with optional whitespace.' );
+		_doing_it_wrong( __FUNCTION__, $error_message, '6.4' );
+		return sprintf( 'console.error(%s)', wp_json_encode( __( 'Function wp_remove_surrounding_empty_script_tags() used incorrectly in PHP.' ) . ' ' . $error_message ) );
+	}
 }
