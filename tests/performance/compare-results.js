@@ -129,8 +129,8 @@ console.log( 'Performance Test Results\n' );
 console.log( 'Note: Due to the nature of how GitHub Actions work, some variance in the results is expected.\n' );
 
 for ( const key of testSuites ) {
-	const current = testResults[ key ];
-	const prev = prevResults[ key ];
+	const current = testResults[ key ] || {};
+	const prev = prevResults[ key ] || {};
 
 	const title = ( key.charAt( 0 ).toUpperCase() + key.slice( 1 ) ).replace(
 		/-+/g,
@@ -154,14 +154,18 @@ for ( const key of testSuites ) {
 		} );
 	}
 
-	summaryMarkdown += `## ${ title }\n\n`;
-	summaryMarkdown += `${ formatAsMarkdownTable( rows ) }\n`;
+	if ( rows.length > 0 ) {
+		summaryMarkdown += `## ${ title }\n\n`;
+		summaryMarkdown += `${ formatAsMarkdownTable( rows ) }\n`;
 
-	console.log( title );
-	console.table( rows );
+		console.log( title );
+		console.table( rows );
+	}
 }
 
-fs.writeFileSync(
-	summaryFile,
-	summaryMarkdown
-);
+if ( summaryFile ) {
+	fs.writeFileSync(
+		summaryFile,
+		summaryMarkdown
+	);
+}
