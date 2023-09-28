@@ -409,78 +409,27 @@ function _register_theme_block_patterns() {
 		}
 	}
 
-	$queue                 = $pattern_files;
-	/** Tune this to an optimimum value as determined by profiling and measuring. */
-	$max_concurrency       = 32;
-	$fds                   = array();
-	$pattern_file_contents = array();
-	$patterns_data         = array();
-	$METADATA_MAX_BYTES         = 8 * KB_IN_BYTES;
+	$to_register = array();
 
-	while ( count( $queue ) > 0 ) {
-		// Grab the next batch.
-		foreach ( array_splice( $queue, 0, $max_concurrency - count( $fds ) ) as $file_path ) {
-			$fd = fopen( $file_path, 'r' );
-			// If the file can't be opened, skip it.
-			if ( false === $fd ) {
-				continue;
-			}
-			stream_set_blocking( $fd, false );
+	$file_chunk_callback = function ( $file_path, $event, $chunk = null ) use ( &$to_register, $default_headers, $theme ) {
+		switch ( $event ) {
+			case 'queued':
+				return 8 * KB_IN_BYTES;
 
-			$fds[ $file_path ] = $fd;
-		}
-
-		$to_read   = $fds;
-		$to_write  = null;
-		$to_except = null;
-
-		$streams = stream_select( $to_read, $to_write, $to_except, 0, 10000 );
-
-		if ( false === $streams ) {
-			throw new Error( 'Should not have died.' );
-		}
-
-		if ( 0 === $streams ) {
-			continue;
-		}
-
-		foreach ( $to_read as $file_path => $fd ) {
-			if ( ! array_key_exists( $file_path, $pattern_file_contents ) ) {
-				$pattern_file_contents[ $file_path ] = '';
-			}
-
-			$chunk = fread( $fd, $METADATA_MAX_BYTES - strlen( $pattern_file_contents[ $file_path ] ) );
-
-			// If there was an error, remove the file from the processing chain.
-			if ( false === $chunk ) {
-				fclose( $fd );
-				unset( $fds[ $file_path ] );
-				unset( $pattern_file_contents[ $file_path ] );
-				continue;
-			}
-
-			$pattern_file_contents[ $file_path ] .= $chunk;
-
-			if (
-				 strlen( $pattern_file_contents[ $file_path ] ) >= $METADATA_MAX_BYTES ||
-				 feof( $fd )
-			) {
-				$pattern_data = get_file_data_from_string( $pattern_file_contents[ $file_path ], $default_headers );
-				unset( $pattern_file_contents[ $file_path ] );
-
+			case 'read':
+				$pattern_data = get_file_data_from_string( $chunk, $default_headers );
 				$pattern_data = _register_theme_block_patterns_process_metadata( $theme, $file_path, $pattern_data );
 				if ( false !== $pattern_data ) {
-					$patterns_data[ $file_path ] = $pattern_data;
+					$to_register[ $file_path ] = $pattern_data;
 				}
-
-				fclose( $fd );
-				unset( $fds[ $file_path ] );
-			}
+				return 'stop';
 		}
-	}
+	};
+
+	wp_concurrently_read_files_in_chunks( $pattern_files, $file_chunk_callback );
 
 	// Once all the patterns have been recognized, register them.
-	foreach ( $patterns_data as $file_path => $data ) {
+	foreach ( $to_register as $file_path => $data ) {
 		ob_start();
 		include $file_path;
 		$data['content'] = ob_get_clean();
@@ -488,7 +437,7 @@ function _register_theme_block_patterns() {
 		if ( ! empty( $data['content'] ) ) {
 			register_block_pattern( $data['slug'], $data );
 		}
-		unset( $patterns_data[ $file_path ] );
+		unset( $to_register[ $file_path ] );
 	}
 }
 add_action( 'init', '_register_theme_block_patterns' );
@@ -594,4 +543,166 @@ function _register_theme_block_patterns_process_metadata( $theme, $file_path, $d
 	}
 
 	return $data;
+}
+
+/**
+ * Performs concurrent reads on provided files and dispatches reads to state-machine callback.
+ *
+ * @TODO: Move this into a separate file.
+ *
+ * @since 6.4.0
+ *
+ * Example:
+ *
+ *     $data = array()
+ *     $file_processor = function ( $file_path, $event, $chunk = null ) use ( &$data ) {
+ *         switch ( $event ) {
+ *             case 'not-a-regular-file':
+ *             case 'cannot-open-file':
+ *             case 'cannot-read':
+ *                 report_error_for( $file_path );
+ *                 return;
+ *
+ *             case 'queued':
+ *                 // Return a spcific minimum number of bytes if there's a reason to.
+ *                 if ( is_header_kind_of_file( $file_path ) ) {
+ *                     return $minimum_file_header_size;
+ *                 }
+ *                 // Otherwise accept how every much data arrives on the first read.
+ *                 return;
+ *
+ *             case 'read':
+ *                 $data[ $file_path ] .= $chunk;
+ *
+ *                 // "stop" closes the file and stops streaming it.
+ *                 if ( has_enough( $file_path, $data[ $file_path ] ) ) {
+ *                     return 'stop';
+ *                 }
+ *
+ *                 // Can specify the next required chunk size.
+ *                 if ( needs_large_data( $file_path, $data[ $file_path ] ) ) {
+ *                      return ( 4 * MB_IN_BYTES ) - strlen( $data[ $file_path ] );
+ *                 }
+ *
+ *                 // Or accept the next one as it arrives.
+ *                 return;
+ *
+ *             case 'done':
+ *                 process_file( $file_path, $data[ $file_path ] );
+ *                 unset( $data[ $file_path ] ); // no sense keeping this in memory while the other files continue.
+ *                 return;
+ *
+ *             case 'idle':
+ *                 // This is an opportunity to spend some CPU cycles while waiting for I/O.
+ *                 // No more file reads occur while this is processing, but the OS will still
+ *                 // fill buffers, making the next read after finishing this task faster.
+ *                 process_next_task_while_waiting();
+ *                 return;
+ *         }
+ *     }
+ *     wp_concurrently_read_files_in_chunks( $files, $file_processor );
+ *
+ * @param string[] $file_paths Absolute paths of files to read.
+ * @param callable $callback   Takes ( $file_path or null, $event, $data = null ).
+ * @param array    $options    Low-level performance controls; only adjust in response to performance measurements.
+ */
+function wp_concurrently_read_files_in_chunks( $file_paths, $callback, $options = null ) {
+	$file_queue        = array();
+	$file_buffers      = array();
+	$wanted_bytes      = array();
+	$fds_being_read    = array();
+	$max_concurrency   = isset( $options['max_concurrency'] ) ? $options['max_concurrency'] : 32;
+	$max_chunk_size    = isset( $options['max_chunk_size'] ) ? $options['max_chunk_size'] : 8 * KB_IN_BYTES;
+	$stream_wait_ms    = isset( $options['stream_wait_ms'] ) ? $options['stream_wait_ms'] : 50;
+	$stream_wait_s     = floor( $stream_wait_ms / 1000 );
+	$stream_wait_us    = ( $stream_wait_ms % 1000 ) * 1000;
+
+	// Only attempt to read regular files.
+	foreach ( $file_paths as $file_path ) {
+		if ( is_file( $file_path ) ) {
+			$file_queue[]               = $file_path;
+			$chunk_size                 = call_user_func( $callback, $file_path, 'queued', null );
+			$wanted_bytes[ $file_path ] = is_int( $chunk_size ) && $chunk_size > 0 ? $chunk_size : $max_chunk_size;
+		} else {
+			call_user_func( $callback, $file_path, 'not-a-regular-file', null );
+		}
+	}
+
+	// Start streaming data.
+	while ( count( $file_queue ) > 0 ) {
+		/*
+		 * Streaming runs in rounds to fill a maximum level of concurrency. It might
+		 * be possible that by requesting every file at once too much data could be
+		 * read into memory and overload the system. Limiting the level of concurrency
+		 * allow for a balance between parallelism and overhead.
+		 */
+		$available_slots = $max_concurrency - count( $fds_being_read );
+		foreach ( array_splice( $file_queue, 0, $available_slots ) as $file_path ) {
+			$fd = fopen( $file_path, 'r' );
+			if ( false === $fd ) {
+				call_user_func( $callback, $file_path, 'cannot-open-file', null );
+			} else {
+				stream_set_blocking( $fd, false );
+				$fds_being_read[ $file_path ] = $fd;
+				$file_buffers[ $file_path ]   = '';
+			}
+		}
+
+		// Setup next call to read data. These are passed by reference so the null values are required.
+		$read_fds     = $fds_being_read;
+		$write_fds    = null;
+		$except_fds   = null;
+		$stream_count = stream_select(
+			$read_fds,
+			$write_fds,
+			$except_fds,
+			$stream_wait_s,
+			$stream_wait_us
+		);
+
+		// If something interrupted the request, try again.
+		if ( false === $stream_count ) {
+			continue;
+		}
+
+		// Provide a way to run compute while waiting for more file data.
+		if ( 0 === $stream_count ) {
+			call_user_func( $callback, null, 'idle', null );
+		}
+
+		foreach ( $read_fds as $file_path => $fd ) {
+			$chunk  = fread( $fd, $max_chunk_size );
+			$is_eof = feof( $fd );
+
+			if ( false === $chunk ) {
+				call_user_func( $callback, $file_path, 'cannot-read', null );
+				fclose( $fd );
+				unset( $fds_being_read[ $file_path ] );
+				unset( $file_buffers[ $file_path ] );
+				continue;
+			}
+
+			$file_buffers[ $file_path ] .= $chunk;
+
+			if ( $is_eof || strlen( $file_buffers[ $file_path ] ) >= $wanted_bytes[ $file_path ] ) {
+				$chunk_size = call_user_func( $callback, $file_path, 'read', $file_buffers[ $file_path ] );
+				if ( 'stop' === $chunk_size ) {
+					fclose( $fd );
+					unset( $fds_being_read[ $file_path ] );
+					unset( $file_buffers[ $file_path ] );
+					continue;
+				}
+
+				$wanted_bytes = is_int( $chunk_size ) && $chunk_size > 0 ? $chunk_size : $max_chunk_size;
+				$file_buffers[ $file_path ] = '';
+			}
+
+			if ( $is_eof ) {
+				fclose( $fd );
+				unset( $fds_being_read[ $file_path ] );
+				unset( $file_buffers[ $file_path ] );
+				call_user_func( $callback, $file_path, 'done', null );
+			}
+		}
+	}
 }
