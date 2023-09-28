@@ -377,6 +377,7 @@ function _register_theme_block_patterns() {
 
 	foreach ( $themes as $theme ) {
 		$transient_name = 'wp_theme_patterns_' . $theme->get_stylesheet();
+		$dirpath        = $theme->get_stylesheet_directory() . '/patterns/';
 
 		$can_use_cached = ! wp_is_development_mode( 'theme' );
 		$version        = $theme->get( 'Version' );
@@ -390,7 +391,7 @@ function _register_theme_block_patterns() {
 		}
 
 		if ( false === $pattern_datas ) {
-			$dirpath = $theme->get_stylesheet_directory() . '/patterns/';
+
 			if ( ! file_exists( $dirpath ) ) {
 				continue;
 			}
@@ -399,8 +400,8 @@ function _register_theme_block_patterns() {
 				continue;
 			}
 			$pattern_datas = array(
-				'version' => $theme->get( 'Version' ),
-				'patterns' => array()
+				'version'  => $theme->get( 'Version' ),
+				'patterns' => array(),
 			);
 			foreach ( $files as $file ) {
 				$pattern_data = get_file_data( $file, $default_headers );
@@ -485,7 +486,8 @@ function _register_theme_block_patterns() {
 					}
 				}
 
-				$pattern_datas['patterns'][ $file ] = $pattern_data;
+				$key                               = str_replace( $dirpath, '', $file );
+				$pattern_datas['patterns'][ $key ] = $pattern_data;
 			}
 
 			if ( $can_use_cached ) {
@@ -505,7 +507,7 @@ function _register_theme_block_patterns() {
 
 			// The actual pattern content is the output of the file.
 			ob_start();
-			include $file;
+			include $dirpath . $file;
 			$pattern_data['content'] = ob_get_clean();
 			if ( ! $pattern_data['content'] ) {
 				continue;
