@@ -51,7 +51,7 @@ const config = defineConfig( {
 		video: 'off',
 	},
 	webServer: {
-		command: 'npm run wp-env start',
+		command: 'npm run env:start',
 		port: 8889,
 		timeout: 120_000, // 120 seconds.
 		reuseExistingServer: true,
