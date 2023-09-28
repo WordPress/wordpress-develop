@@ -14,14 +14,15 @@ test.describe( 'Quick Draft', () => {
 	} ) => {
 		await admin.visitAdminPage( '/' );
 
-		// Wait for Quick Draft title field to appear and focus it
-		const draftTitleField = await page.waitForSelector(
-			'#quick-press #title'
-		);
-		await draftTitleField.focus();
+		// Wait for Quick Draft title field to appear.
+		const draftTitleField = page.locator(
+			'#quick-press'
+		).getByRole( 'textbox', { name: 'Title' } );
 
-		// Type in a title.
-		await page.keyboard.type( 'Test Draft Title' );
+		await expect( draftTitleField ).toBeVisible();
+
+		// Focus and fill in a title.
+		await draftTitleField.fill( 'Test Draft Title' );
 
 		// Navigate to content field and type in some content
 		await page.keyboard.press( 'Tab' );
@@ -32,21 +33,16 @@ test.describe( 'Quick Draft', () => {
 		await page.keyboard.press( 'Enter' );
 
 		// Check that new draft appears in Your Recent Drafts section
-		const newDraft = await page.waitForSelector( '.drafts .draft-title' );
-
-		expect(
-			await newDraft.evaluate( ( element ) => element.innerText )
-		).toContain( 'Test Draft Title' );
+		await expect(
+			page.locator( '.drafts .draft-title' ).first().getByRole( 'link' )
+		).toHaveText( 'Test Draft Title' );
 
 		// Check that new draft appears in Posts page
 		await admin.visitAdminPage( '/edit.php' );
-		const postsListDraft = await page.waitForSelector(
-			'.type-post.status-draft .title'
-		);
 
-		expect(
-			await postsListDraft.evaluate( ( element ) => element.innerText )
-		).toContain( 'Test Draft Title' );
+		await expect(
+			page.locator( '.type-post.status-draft .title' ).first()
+		).toContainText( 'Test Draft Title' );
 	} );
 
 	test( 'Allows draft to be created without Title or Content', async ( {
@@ -56,26 +52,23 @@ test.describe( 'Quick Draft', () => {
 		await admin.visitAdminPage( '/' );
 
 		// Wait for Save Draft button to appear and click it
-		const saveDraftButton = await page.waitForSelector(
-			'#quick-press #save-post'
-		);
+		const saveDraftButton = page.locator(
+			'#quick-press'
+		).getByRole( 'button', { name: 'Save Draft' } );
+
+		await expect( saveDraftButton ).toBeVisible();
 		await saveDraftButton.click();
 
 		// Check that new draft appears in Your Recent Drafts section
-		const newDraft = await page.waitForSelector( '.drafts .draft-title a' );
-
-		expect(
-			await newDraft.evaluate( ( element ) => element.innerText )
-		).toContain( '(no title)' );
+		await expect(
+			page.locator( '.drafts .draft-title' ).first().getByRole( 'link' )
+		).toHaveText( 'Untitled' );
 
 		// Check that new draft appears in Posts page
 		await admin.visitAdminPage( '/edit.php' );
-		const postsListDraft = await page.waitForSelector(
-			'.type-post.status-draft .title a'
-		);
 
-		expect(
-			await postsListDraft.evaluate( ( element ) => element.innerText )
-		).toContain( '(no title)' );
+		await expect(
+			page.locator( '.type-post.status-draft .title' ).first()
+		).toContainText( 'Untitled' );
 	} );
 } );
