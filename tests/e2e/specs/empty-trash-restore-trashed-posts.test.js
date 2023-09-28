@@ -22,7 +22,7 @@ test.describe( 'Empty Trash', () => {
 
 		// Empty trash
 		await page.getByRole( 'link', { name: 'Trash' } ).click();
-		await page.getByRole( 'button', { name: 'Empty Trash' } ).click();
+		await page.getByRole( 'button', { name: 'Empty Trash' } ).first().click();
 
 		const messageElement = await page.waitForSelector( '#message' );
 		const message = await messageElement.evaluate( ( node ) => node.innerText );

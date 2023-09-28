@@ -7,8 +7,8 @@ const TEST_APPLICATION_NAME = 'Test Application';
 
 test.describe( 'Manage applications passwords', () => {
 	test.use( {
-		applicationPasswords: async ( { requestUtils }, use ) => {
-			await use( new ApplicationPasswords( { requestUtils } ) );
+		applicationPasswords: async ( { requestUtils, admin, page }, use ) => {
+			await use( new ApplicationPasswords( { requestUtils, admin, page } ) );
 		},
 	} );
 

@@ -13,10 +13,9 @@ test.describe( 'Edit Posts', () => {
 		page,
 	} ) => {
 		await admin.visitAdminPage( '/edit.php' );
-		const noPostsMessage = await page.$x(
+		await expect( page.locator(
 			'//td[text()="No posts found."]'
-		);
-		expect( noPostsMessage.length ).toBe( 1 );
+		) ).toBeVisible();
 	} );
 
 	test( 'shows a single post after one is published with the correct title',async ( {
@@ -57,10 +56,7 @@ test.describe( 'Edit Posts', () => {
 		await page.waitForSelector( '#the-list .type-post' );
 
 		// Click the post title (edit) link
-		const [ editLink ] = await page.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
-		);
-		await editLink.click();
+		await page.locator( `//a[contains(@class, "row-title")][contains(text(), "${ title }")]` ).click();
 
 		// Wait for the editor iframe to load, and switch to it as the active content frame.
 		const editorFrame = await page.waitForSelector( 'iframe[name="editor-canvas"]' );
@@ -90,10 +86,7 @@ test.describe( 'Edit Posts', () => {
 		await page.waitForSelector( '#the-list .type-post' );
 
 		// Focus on the post title link.
-		const [ editLink ] = await page.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
-		);
-		await editLink.focus();
+		await page.locator( `//a[contains(@class, "row-title")][contains(text(), "${ title }")]` ).focus();
 
 		// Tab to the Quick Edit button and press Enter to quick edit.
 		await page.keyboard.press( 'Tab' );
@@ -135,10 +128,7 @@ test.describe( 'Edit Posts', () => {
 		await page.waitForSelector( '#the-list .type-post' );
 
 		// Focus on the post title link.
-		const [ editLink ] = await page.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
-		);
-		await editLink.focus();
+		await page.locator( `//a[contains(@class, "row-title")][contains(text(), "${ title }")]` ).focus();
 
 		// Tab to the Trash button and press Enter to delete the post.
 		await page.keyboard.press( 'Tab' );
