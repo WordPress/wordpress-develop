@@ -21,10 +21,8 @@ function median( array ) {
  * @return {string} Result file name.
  */
 function getResultsFilename( fileName ) {
-	const prefixArg = process.argv.find( ( arg ) =>
-		arg.startsWith( '--prefix' )
-	);
-	const fileNamePrefix = prefixArg ? `${ prefixArg.split( '=' )[ 1 ] }-` : '';
+	const prefix = process.env.TEST_RESULTS_PREFIX;
+	const fileNamePrefix = prefix ? `${ prefix.split( '=' )[ 1 ] }-` : '';
 	return `${fileNamePrefix + fileName}.results.json`;
 }
 

@@ -187,10 +187,14 @@ jobs:
         run: npm run build
 
       - name: Run target performance tests (base/previous commit)
-        run: npm run test:performance -- --prefix=before
+        run: npm run test:performance
+        env:
+          TEST_RESULTS_PREFIX: before
 
       - name: Print target performance tests results
-        run: node ./tests/performance/results.js --prefix=before
+        run: node ./tests/performance/results.js
+        env:
+          TEST_RESULTS_PREFIX: before
 
       - name: Reset to original commit
         run: git reset --hard $GITHUB_SHA
@@ -204,10 +208,14 @@ jobs:
           npm run env:cli -- core version --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Run baseline performance tests
-        run: npm run test:performance -- --prefix=base
+        run: npm run test:performance
+        env:
+          TEST_RESULTS_PREFIX: base
 
       - name: Print baseline performance tests results
-        run: node ./tests/performance/results.js --prefix=base
+        run: node ./tests/performance/results.js
+        env:
+          TEST_RESULTS_PREFIX: base
 
       - name: Compare results with base
         run: node ./tests/performance/compare-results.js ${{ runner.temp }}/summary.md
