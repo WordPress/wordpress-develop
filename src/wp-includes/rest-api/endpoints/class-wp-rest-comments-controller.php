@@ -1189,7 +1189,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		// Only grab one comment to verify the comment has children.
 		$comment_children = $comment->get_children(
 			array(
-				'number'  => 1,
 				'count'   => true,
 				'orderby' => 'none',
 			)

@@ -901,7 +901,6 @@ function post_comment_meta_box( $post ) {
 	$total         = get_comments(
 		array(
 			'post_id' => $post->ID,
-			'number'  => 1,
 			'count'   => true,
 			'orderby' => 'none',
 		)
