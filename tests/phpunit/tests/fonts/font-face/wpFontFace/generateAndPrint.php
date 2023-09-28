@@ -16,6 +16,8 @@ class Tests_Fonts_WPFontFace_GenerateAndPrint extends WP_UnitTestCase {
 	use WP_Font_Face_Tests_Datasets;
 
 	public function test_should_not_generate_and_print_when_no_fonts() {
+		require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
+
 		$font_face = new WP_Font_Face();
 		$fonts     = array();
 
@@ -30,6 +32,8 @@ class Tests_Fonts_WPFontFace_GenerateAndPrint extends WP_UnitTestCase {
 	 * @param string $expected Expected CSS.
 	 */
 	public function test_should_generate_and_print_given_fonts( array $fonts, $expected ) {
+		require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
+
 		$font_face       = new WP_Font_Face();
 		$style_element   = "<style id='wp-fonts-local' type='text/css'>\n%s\n</style>\n";
 		$expected_output = sprintf( $style_element, $expected );
