@@ -1655,4 +1655,30 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		touch( $file );
 	}
+
+	/**
+	 * Reflects a private or protected method and invokes it.
+	 *
+	 * The method is temporarily made accessible for invocation.
+	 *
+	 * Returns the method's return value.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param object $obj     The object instance.
+	 * @param string $method  The method's name.
+	 * @param mixed  ...$args The arguments to pass to the method.
+	 * @return mixed The method's return value.
+	 */
+	protected function reflect_and_invoke( $obj, $method, ...$args ) {
+		$reflected_method = new ReflectionMethod( $obj, $method );
+
+		$reflected_method->setAccessible( true );
+		$value = $reflected_method->invoke( $obj, ...$args );
+		$reflected_method->setAccessible( false );
+
+		unset( $reflected_method );
+
+		return $value;
+	}
 }
