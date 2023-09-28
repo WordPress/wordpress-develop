@@ -3364,7 +3364,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	 * Test post meta revisions with a custom post type and the page post type.
 	 *
 	 * @group revision
-	 * @dataProvider test_revisioned_single_post_meta_with_posts_endpoint_page_and_cpt_data_provider
+	 * @dataProvider data_revisioned_single_post_meta_with_posts_endpoint_page_and_cpt_data_provider
 	 */
 	public function test_revisioned_single_post_meta_with_posts_endpoint_page_and_cpt( $passed, $expected, $post_type ) {
 
@@ -3451,7 +3451,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	/**
 	 * Provide data for the meta revision checks.
 	 */
-	public function test_revisioned_single_post_meta_with_posts_endpoint_page_and_cpt_data_provider() {
+	public function data_revisioned_single_post_meta_with_posts_endpoint_page_and_cpt_data_provider() {
 		return array(
 			array(
 				'Test string',
