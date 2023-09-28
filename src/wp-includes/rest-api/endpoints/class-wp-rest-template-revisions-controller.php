@@ -53,7 +53,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 		$parent_controller      = $post_type_object->get_rest_controller();
 
 		if ( ! $parent_controller ) {
-			$parent_controller = new WP_REST_Posts_Controller( $parent_post_type );
+			$parent_controller = new WP_REST_Templates_Controller( $parent_post_type );
 		}
 
 		$this->parent_controller = $parent_controller;
@@ -190,7 +190,49 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		$template = _build_block_template_result_from_post( $item );
-		return $this->parent_controller->prepare_item_for_response( $template, $request );
+		$response = $this->parent_controller->prepare_item_for_response( $template, $request );
+
+		if ( $response instanceof WP_REST_Response ) {
+			$fields = $this->get_fields_for_response( $request );
+			$data   = $response->get_data();
+
+			$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+			$data    = $this->filter_response_by_context( $data, $context );
+
+			// Wrap the data in a response object.
+			$response = new WP_REST_Response( $data );
+
+			if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+				$links = $this->prepare_links( $template );
+				$response->add_links( $links );
+			}
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Prepares links for the request.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param WP_Block_Template $template Template
+	 * @return array Links for the given post.
+	 */
+	protected function prepare_links( $template ) {
+		$links = array(
+			'self'       => array(
+				'href' => rest_url( sprintf( '/%s/%s/%s/%s/%d', $this->namespace, $this->parent_base, $template->id, $this->rest_base, $template->wp_id ) ),
+			),
+			'collection' => array(
+				'href' => rest_url( rest_get_route_for_post_type_items( 'revision' ) ),
+			),
+			'about'      => array(
+				'href' => rest_url( 'wp/v2/types/revision' ),
+			),
+		);
+
+		return $links;
 	}
 
 	/**
@@ -201,7 +243,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	 * @return array Item schema data.
 	 */
 
-	public function get_item_schema(){
+	public function get_item_schema() {
 		return $this->parent_controller->get_item_schema();
 	}
 }

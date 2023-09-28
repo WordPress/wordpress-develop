@@ -16,6 +16,30 @@
  */
 class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller {
 	/**
+	 * Parent post type.
+	 *
+	 * @since 5.0.0
+	 * @var string
+	 */
+	private $parent_post_type;
+
+	/**
+	 * Parent post controller.
+	 *
+	 * @since 5.0.0
+	 * @var WP_REST_Controller
+	 */
+	private $parent_controller;
+
+	/**
+	 * Revision controller.
+	 *
+	 * @since 5.0.0
+	 * @var WP_REST_Revisions_Controller
+	 */
+	private $revisions_controller;
+
+	/**
 	 * The base of the parent controller's route.
 	 *
 	 * @since 5.0.0
@@ -40,8 +64,13 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 			$parent_controller = new WP_REST_Templates_Controller( $parent_post_type );
 		}
 
-		$this->parent_controller    = $parent_controller;
-		$this->revisions_controller = new WP_REST_Template_Revisions_Controller( $parent_post_type );
+		$this->parent_controller = $parent_controller;
+
+		$revisions_controller = $post_type_object->get_revisions_rest_controller();
+		if ( ! $revisions_controller ) {
+			$revisions_controller = new WP_REST_Revisions_Controller( $parent_post_type );
+		}
+		$this->revisions_controller = $revisions_controller;
 		$this->rest_base            = 'autosaves';
 		$this->parent_base          = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
 		$this->namespace            = ! empty( $post_type_object->rest_namespace ) ? $post_type_object->rest_namespace : 'wp/v2';
@@ -126,30 +155,6 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	}
 
 	/**
-	 * Get the parent post, if the ID is valid.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param int $parent_post_id Supplied ID.
-	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
-	 */
-	protected function get_parent( $parent_post_id ) {
-		$error = new WP_Error(
-			'rest_post_invalid_parent',
-			__( 'Invalid post parent ID!' ),
-			array( 'status' => 404 )
-		);
-
-		$template = get_block_template( $parent_post_id, $this->parent_post_type );
-
-		if ( ! $template ) {
-			return $error;
-		}
-
-		return get_post( $template->wp_id );
-	}
-
-	/**
 	 * Prepares the item for the REST response.
 	 *
 	 * @since 6.4.0
@@ -160,6 +165,60 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		$template = _build_block_template_result_from_post( $item );
-		return $this->parent_controller->prepare_item_for_response( $template, $request );
+		$response = $this->parent_controller->prepare_item_for_response( $template, $request );
+
+		if ( $response instanceof WP_REST_Response ) {
+			$fields = $this->get_fields_for_response( $request );
+			$data   = $response->get_data();
+
+			$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+			$data    = $this->filter_response_by_context( $data, $context );
+
+			// Wrap the data in a response object.
+			$response = new WP_REST_Response( $data );
+
+			if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+				$links = $this->prepare_links( $template );
+				$response->add_links( $links );
+			}
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Get the parent post.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param int $parent_id Supplied ID.
+	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
+	 */
+	protected function get_parent( $parent_id ) {
+		return $this->revisions_controller->get_parent( $parent_id );
+	}
+
+	/**
+	 * Prepares links for the request.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param WP_Block_Template $template Template
+	 * @return array Links for the given post.
+	 */
+	protected function prepare_links( $template ) {
+		$links = array(
+			'self'       => array(
+				'href' => rest_url( sprintf( '/%s/%s/%s/%s/%d', $this->namespace, $this->parent_base, $template->id, $this->rest_base, $template->wp_id ) ),
+			),
+			'collection' => array(
+				'href' => rest_url( rest_get_route_for_post_type_items( 'autosave' ) ),
+			),
+			'about'      => array(
+				'href' => rest_url( 'wp/v2/types/autosave' ),
+			),
+		);
+
+		return $links;
 	}
 }
