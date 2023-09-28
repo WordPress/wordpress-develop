@@ -474,7 +474,10 @@ function _register_theme_block_patterns() {
 					feof( $fd )
 				)
 			) {
-				$pattern_data = get_file_data_from_string( $pattern_file_contents[ $file_path ], $default_headers );
+				$file_data_chunk = substr( $pattern_file_contents[ $file_path ], 0, $initial_bytes );
+				unset( $pattern_file_contents[ $file_path ] );
+
+				$pattern_data = get_file_data_from_string( $file_data_chunk, $default_headers );
 
 				if ( empty( $pattern_data['slug'] ) ) {
 					_doing_it_wrong(
@@ -488,7 +491,6 @@ function _register_theme_block_patterns() {
 					);
 					fclose( $fd );
 					unset( $fds[ $file_path ] );
-					unset( $pattern_file_contents[ $file_path ] );
 					continue;
 				}
 
@@ -508,7 +510,6 @@ function _register_theme_block_patterns() {
 				if ( WP_Block_Patterns_Registry::get_instance()->is_registered( $pattern_data['slug'] ) ) {
 					fclose( $fd );
 					unset( $fds[ $file_path ] );
-					unset( $pattern_file_contents[ $file_path ] );
 					continue;
 				}
 
@@ -525,7 +526,6 @@ function _register_theme_block_patterns() {
 					);
 					fclose( $fd );
 					unset( $fds[ $file_path ] );
-					unset( $pattern_file_contents[ $file_path ] );
 					continue;
 				}
 
@@ -575,24 +575,21 @@ function _register_theme_block_patterns() {
 				}
 
 				$patterns_data[ $file_path ] = $pattern_data;
-			}
-
-			// If the file reached the end, remove it from the queue.
-			if ( feof( $fd ) ) {
-				if ( $is_confirmed_pattern ) {
-					$pattern_data['content'] = $pattern_file_contents[ $file_path ];
-
-					if ( $pattern_data['content'] ) {
-						register_block_pattern( $pattern_data['slug'], $pattern_data );
-					}
-				}
-
 				fclose( $fd );
 				unset( $fds[ $file_path ] );
-				unset( $pattern_file_contents[ $file_path ] );
-				unset( $patterns_data[ $file_path ] );
 			}
 		}
+	}
+
+	foreach ( $patterns_data as $file_path => $data ) {
+		ob_start();
+		include $file_path;
+		$data['content'] = ob_get_clean();
+
+		if ( ! empty( $data['content'] ) ) {
+			register_block_pattern( $data['slug'], $data );
+		}
+		unset( $patterns_data[ $file_path ] );
 	}
 }
 add_action( 'init', '_register_theme_block_patterns' );
