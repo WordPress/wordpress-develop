@@ -42,6 +42,7 @@ jobs:
   # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
   # - Installs npm dependencies.
+  # - Install Playwright browsers.
   # - Builds WordPress to run from the `build` directory.
   # - Starts the WordPress Docker container.
   # - Logs the running Docker containers.
@@ -89,6 +90,9 @@ jobs:
 
       - name: Install npm Dependencies
         run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
 
       - name: Build WordPress
         run: npm run build

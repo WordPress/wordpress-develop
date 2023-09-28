@@ -56,6 +56,7 @@ jobs:
   # - Set up Node.js.
   # - Log debug information.
   # - Install npm dependencies.
+  # - Install Playwright browsers.
   # - Build WordPress.
   # - Start Docker environment.
   # - Log running Docker containers.
@@ -118,6 +119,9 @@ jobs:
 
       - name: Install npm dependencies
         run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
 
       - name: Build WordPress
         run: npm run build
