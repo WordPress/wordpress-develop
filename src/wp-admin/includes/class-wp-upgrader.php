@@ -1130,17 +1130,29 @@ class WP_Upgrader {
 	 * Restores the plugin or theme from temporary backup.
 	 *
 	 * @since 6.3.0
+	 * @since 6.5.0 Added the `$temp_backups` parameter.
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
+	 * @param array[] $temp_backups {
+	 *      Optional. An array of temporary backups.
+	 *
+	 *      @type string $dir  The temporary backup location in the upgrade-temp-backup directory.
+	 *      @type string $slug The item's slug.
+	 *      @type string $src  The directory where the original is stored. For example, `WP_PLUGIN_DIR`.
+	 * }
 	 * @return bool|WP_Error True on success, false on early exit, otherwise WP_Error.
 	 */
-	public function restore_temp_backup() {
+	public function restore_temp_backup( array $temp_backups = array() ) {
 		global $wp_filesystem;
 
 		$errors = new WP_Error();
 
-		foreach ( $this->temp_restores as $args ) {
+		if ( empty( $temp_backups ) ) {
+			$temp_backups = $this->temp_restores;
+		}
+
+		foreach ( $temp_backups as $args ) {
 			if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dir'] ) ) {
 				return false;
 			}
