@@ -64,6 +64,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		parent::set_up_before_class();
 
+		require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
+
 		$wpdb->suppress_errors = false;
 		$wpdb->show_errors     = true;
 		$wpdb->db_connect();

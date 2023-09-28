@@ -70,8 +70,6 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
-		require_once ABSPATH . WPINC . '/class-wp-autoload.php';
-
 		self::$list_table = new WP_Media_List_Table();
 		self::$is_trash   = new ReflectionProperty( self::$list_table, 'is_trash' );
 		self::$detached   = new ReflectionProperty( self::$list_table, 'detached' );
