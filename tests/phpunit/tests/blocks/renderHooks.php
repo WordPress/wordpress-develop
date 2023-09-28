@@ -13,7 +13,7 @@ class Tests_Blocks_Render_Hooks extends WP_UnitTestCase {
 	 * @ticket 59131
 	 */
 	public function test_do_blocks_pre_render_filter() {
-		$remove_blocks_containing_wordpress = static function( $blocks ) {
+		$remove_blocks_containing_wordpress = static function ( $blocks ) {
 			foreach ( $blocks as $index => $block ) {
 				if ( str_contains( $block['innerHTML'], 'WordPress' ) ) {
 					unset( $blocks[ $index ] );
@@ -30,14 +30,14 @@ class Tests_Blocks_Render_Hooks extends WP_UnitTestCase {
 		remove_filter( 'do_blocks_pre_render', $remove_blocks_containing_wordpress );
 
 		$wanted_output = do_blocks( $hello_block );
-		$this->assertSame( $wanted_output, $filtered_output, "Did not exclude the intended blocks before rendering." );
+		$this->assertSame( $wanted_output, $filtered_output, 'Did not exclude the intended blocks before rendering.' );
 	}
 
 	/**
 	 * @ticket 59131
 	 */
 	public function test_do_blocks_post_render_filter() {
-		$remove_wordpress_paragraph = static function( $content ) {
+		$remove_wordpress_paragraph = static function ( $content ) {
 			$content = str_replace( '<p>WordPress</p>', '', $content );
 			return $content;
 		};
@@ -50,6 +50,6 @@ class Tests_Blocks_Render_Hooks extends WP_UnitTestCase {
 		remove_filter( 'do_blocks_post_render', $remove_wordpress_paragraph );
 
 		$wanted_output = do_blocks( $hello_block );
-		$this->assertSame( $wanted_output, $filtered_output, "Did not exclude the intended content before rendering." );
+		$this->assertSame( $wanted_output, $filtered_output, 'Did not exclude the intended content before rendering.' );
 	}
 }
