@@ -6830,6 +6830,14 @@ function get_file_data( $file, $default_headers, $context = '' ) {
  * @return string[] Array of file header values keyed by header name.
  */
 function get_file_data_from_string( $file_contents, $default_headers, $context = '' ) {
+	/**
+	 * Metadata MUST appear in the first 8 KB of a file. So if
+	 * this given file contents is longer it must be trimmed.
+	 */
+	if ( 8 * KB_IN_BYTES < strlen( $file_contents ) ) {
+		$file_contents = substr( $file_contents, 0, 8 + KB_IN_BYTES );
+	}
+
 	// Make sure we catch CR-only line endings.
 	$file_contents = str_replace( "\r", "\n", $file_contents );
 

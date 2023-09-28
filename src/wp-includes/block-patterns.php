@@ -410,14 +410,12 @@ function _register_theme_block_patterns() {
 	}
 
 	$queue                 = $pattern_files;
-	/** Tune this to an optimum value as determined by profiling and measuring. */
-	$flush_read_chunk_size = 16 * KB_IN_BYTES;
 	/** Tune this to an optimimum value as determined by profiling and measuring. */
 	$max_concurrency       = 32;
 	$fds                   = array();
 	$pattern_file_contents = array();
 	$patterns_data         = array();
-	$initial_bytes         = 8 * KB_IN_BYTES;
+	$METADATA_MAX_BYTES         = 8 * KB_IN_BYTES;
 
 	while ( count( $queue ) > 0 ) {
 		// Grab the next batch.
@@ -451,12 +449,7 @@ function _register_theme_block_patterns() {
 				$pattern_file_contents[ $file_path ] = '';
 			}
 
-			$is_confirmed_pattern = array_key_exists( $file_path, $patterns_data );
-			$bytes_wanted         = $is_confirmed_pattern
-				? $flush_read_chunk_size
-				: $initial_bytes - strlen( $pattern_file_contents[ $file_path ] );
-
-			$chunk = fread( $fd, $bytes_wanted );
+			$chunk = fread( $fd, $METADATA_MAX_BYTES - strlen( $pattern_file_contents[ $file_path ] ) );
 
 			// If there was an error, remove the file from the processing chain.
 			if ( false === $chunk ) {
@@ -467,120 +460,26 @@ function _register_theme_block_patterns() {
 			}
 
 			$pattern_file_contents[ $file_path ] .= $chunk;
+
 			if (
-				! $is_confirmed_pattern &&
-				(
-					strlen( $pattern_file_contents[ $file_path ] ) >= $initial_bytes ||
-					feof( $fd )
-				)
+				 strlen( $pattern_file_contents[ $file_path ] ) >= $METADATA_MAX_BYTES ||
+				 feof( $fd )
 			) {
-				$file_data_chunk = substr( $pattern_file_contents[ $file_path ], 0, $initial_bytes );
+				$pattern_data = get_file_data_from_string( $pattern_file_contents[ $file_path ], $default_headers );
 				unset( $pattern_file_contents[ $file_path ] );
 
-				$pattern_data = get_file_data_from_string( $file_data_chunk, $default_headers );
-
-				if ( empty( $pattern_data['slug'] ) ) {
-					_doing_it_wrong(
-						'_register_theme_block_patterns',
-						sprintf(
-						/* translators: %s: file name. */
-							__( 'Could not register file "%s" as a block pattern ("Slug" field missing)' ),
-							$file_path
-						),
-						'6.0.0'
-					);
-					fclose( $fd );
-					unset( $fds[ $file_path ] );
-					continue;
+				$pattern_data = _register_theme_block_patterns_process_metadata( $theme, $file_path, $pattern_data );
+				if ( false !== $pattern_data ) {
+					$patterns_data[ $file_path ] = $pattern_data;
 				}
 
-				if ( ! preg_match( '/^[A-z0-9\/_-]+$/', $pattern_data['slug'] ) ) {
-					_doing_it_wrong(
-						'_register_theme_block_patterns',
-						sprintf(
-						/* translators: %1s: file name; %2s: slug value found. */
-							__( 'Could not register file "%1$s" as a block pattern (invalid slug "%2$s")' ),
-							$file_path,
-							$pattern_data['slug']
-						),
-						'6.0.0'
-					);
-				}
-
-				if ( WP_Block_Patterns_Registry::get_instance()->is_registered( $pattern_data['slug'] ) ) {
-					fclose( $fd );
-					unset( $fds[ $file_path ] );
-					continue;
-				}
-
-				// Title is a required property.
-				if ( ! $pattern_data['title'] ) {
-					_doing_it_wrong(
-						'_register_theme_block_patterns',
-						sprintf(
-						/* translators: %1s: file name; %2s: slug value found. */
-							__( 'Could not register file "%s" as a block pattern ("Title" field missing)' ),
-							$file_path
-						),
-						'6.0.0'
-					);
-					fclose( $fd );
-					unset( $fds[ $file_path ] );
-					continue;
-				}
-
-				// For properties of type array, parse data as comma-separated.
-				foreach ( array( 'categories', 'keywords', 'blockTypes', 'postTypes', 'templateTypes' ) as $property ) {
-					if ( ! empty( $pattern_data[ $property ] ) ) {
-						$pattern_data[ $property ] = array_filter(
-							preg_split(
-								'/[\s,]+/',
-								(string) $pattern_data[ $property ]
-							)
-						);
-					} else {
-						unset( $pattern_data[ $property ] );
-					}
-				}
-
-				// Parse properties of type int.
-				foreach ( array( 'viewportWidth' ) as $property ) {
-					if ( ! empty( $pattern_data[ $property ] ) ) {
-						$pattern_data[ $property ] = (int) $pattern_data[ $property ];
-					} else {
-						unset( $pattern_data[ $property ] );
-					}
-				}
-
-				// Parse properties of type bool.
-				foreach ( array( 'inserter' ) as $property ) {
-					if ( ! empty( $pattern_data[ $property ] ) ) {
-						$pattern_data[ $property ] = in_array(
-							strtolower( $pattern_data[ $property ] ),
-							array( 'yes', 'true' ),
-							true
-						);
-					} else {
-						unset( $pattern_data[ $property ] );
-					}
-				}
-
-				// Translate the pattern metadata.
-				$text_domain = $theme->get( 'TextDomain' );
-				// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralContext,WordPress.WP.I18n.NonSingularStringLiteralDomain,WordPress.WP.I18n.LowLevelTranslationFunction
-				$pattern_data['title'] = translate_with_gettext_context( $pattern_data['title'], 'Pattern title', $text_domain );
-				if ( ! empty( $pattern_data['description'] ) ) {
-					// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralContext,WordPress.WP.I18n.NonSingularStringLiteralDomain,WordPress.WP.I18n.LowLevelTranslationFunction
-					$pattern_data['description'] = translate_with_gettext_context( $pattern_data['description'], 'Pattern description', $text_domain );
-				}
-
-				$patterns_data[ $file_path ] = $pattern_data;
 				fclose( $fd );
 				unset( $fds[ $file_path ] );
 			}
 		}
 	}
 
+	// Once all the patterns have been recognized, register them.
 	foreach ( $patterns_data as $file_path => $data ) {
 		ob_start();
 		include $file_path;
@@ -593,3 +492,106 @@ function _register_theme_block_patterns() {
 	}
 }
 add_action( 'init', '_register_theme_block_patterns' );
+
+/**
+ * Prepares metadata for pattern registration.
+ *
+ * @since 6.4.0
+ *
+ * @param WP_Theme $theme     Active theme.
+ * @param string   $file_path Absolute path from where pattern was read, for error messages.
+ * @param array    $data      Read pattern metadata from top of file.
+ * @return array|false Transformed pattern metadata, or `false` if invalid.
+ */
+function _register_theme_block_patterns_process_metadata( $theme, $file_path, $data ) {
+	if ( empty( $data['slug'] ) ) {
+		_doing_it_wrong(
+			'_register_theme_block_patterns',
+			sprintf(
+			/* translators: %s: file name. */
+				__( 'Could not register file "%s" as a block pattern ("Slug" field missing)' ),
+				$file_path
+			),
+			'6.0.0'
+		);
+		return false;
+	}
+
+	if ( ! preg_match( '/^[A-z0-9\/_-]+$/', $data['slug'] ) ) {
+		_doing_it_wrong(
+			'_register_theme_block_patterns',
+			sprintf(
+			/* translators: %1s: file name; %2s: slug value found. */
+				__( 'Could not register file "%1$s" as a block pattern (invalid slug "%2$s")' ),
+				$file_path,
+				$data['slug']
+			),
+			'6.0.0'
+		);
+	}
+
+	if ( WP_Block_Patterns_Registry::get_instance()->is_registered( $data['slug'] ) ) {
+		return false;
+	}
+
+	// Title is a required property.
+	if ( ! $data['title'] ) {
+		_doing_it_wrong(
+			'_register_theme_block_patterns',
+			sprintf(
+			/* translators: %1s: file name; %2s: slug value found. */
+				__( 'Could not register file "%s" as a block pattern ("Title" field missing)' ),
+				$file_path
+			),
+			'6.0.0'
+		);
+		return false;
+	}
+
+	// For properties of type array, parse data as comma-separated.
+	foreach ( array( 'categories', 'keywords', 'blockTypes', 'postTypes', 'templateTypes' ) as $property ) {
+		if ( ! empty( $data[ $property ] ) ) {
+			$data[ $property ] = array_filter(
+				preg_split(
+					'/[\s,]+/',
+					(string) $data[ $property ]
+				)
+			);
+		} else {
+			unset( $data[ $property ] );
+		}
+	}
+
+	// Parse properties of type int.
+	foreach ( array( 'viewportWidth' ) as $property ) {
+		if ( ! empty( $data[ $property ] ) ) {
+			$data[ $property ] = (int) $data[ $property ];
+		} else {
+			unset( $data[ $property ] );
+		}
+	}
+
+	// Parse properties of type bool.
+	foreach ( array( 'inserter' ) as $property ) {
+		if ( ! empty( $data[ $property ] ) ) {
+			$data[ $property ] = in_array(
+				strtolower( $data[ $property ] ),
+				array( 'yes', 'true' ),
+				true
+			);
+		} else {
+			unset( $data[ $property ] );
+		}
+	}
+
+	// Translate the pattern metadata.
+	$text_domain = $theme->get( 'TextDomain' );
+	// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralContext,WordPress.WP.I18n.NonSingularStringLiteralDomain,WordPress.WP.I18n.LowLevelTranslationFunction
+	$data['title'] = translate_with_gettext_context( $data['title'], 'Pattern title', $text_domain );
+	if ( ! empty( $data['description'] ) ) {
+		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralContext,WordPress.WP.I18n.NonSingularStringLiteralDomain,WordPress.WP.I18n.LowLevelTranslationFunction
+		$data['description'] = translate_with_gettext_context( $data['description'], 'Pattern description', $text_domain );
+	}
+
+	return $data;
+}
