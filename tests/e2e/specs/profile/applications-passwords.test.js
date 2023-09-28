@@ -12,11 +12,8 @@ test.describe( 'Manage applications passwords', () => {
 		},
 	} );
 
-	test.beforeEach(async ( { requestUtils } ) => {
-		await requestUtils.rest( {
-			method: 'DELETE',
-			path: '/wp/v2/users/me/application-passwords',
-		} );
+	test.beforeEach(async ( { applicationPasswords } ) => {
+		await applicationPasswords.delete();
 	} );
 
 	test('should correctly create a new application password', async ( {
@@ -60,25 +57,11 @@ test.describe( 'Manage applications passwords', () => {
 	} ) => {
 		await applicationPasswords.create();
 
-		const revokeApplicationButton = await page.waitForSelector(
-			'.application-passwords-user tr button.delete'
-		);
+		page.on('dialog', dialog => dialog.accept());
+		await page.getByRole( 'button', { name: `Revoke "${TEST_APPLICATION_NAME}"` } ).click();
 
-		const revocationDialogPromise = new Promise((resolve) => {
-			page.once( 'dialog', resolve );
-		});
-
-		await Promise.all([
-			revocationDialogPromise,
-			revokeApplicationButton.click(),
-		]);
-
-		const successMessage = await page.waitForSelector(
-			'#application-passwords-section .notice-success'
-		);
-		expect(
-			await successMessage.evaluate((element) => element.textContent)
-		).toContain( 'Application password revoked.' );
+		await expect( page.locator( '#application-passwords-section .notice-success' ) )
+			.toContainText( 'Application password revoked.' );
 
 		const response = await applicationPasswords.get();
 		expect( response ).toEqual([]);
@@ -90,35 +73,11 @@ test.describe( 'Manage applications passwords', () => {
 	} ) => {
 		await applicationPasswords.create();
 
-		const revokeAllApplicationPasswordsButton = await page.waitForSelector(
-			'#revoke-all-application-passwords'
-		);
+		page.on('dialog', dialog => dialog.accept());
+		await page.getByRole( 'button', { name: 'Revoke all application passwords' } ).click();
 
-		const revocationDialogPromise = new Promise(( resolve ) => {
-			page.once( 'dialog', resolve );
-		});
-
-		await Promise.all([
-			revocationDialogPromise,
-			revokeAllApplicationPasswordsButton.click(),
-		]);
-
-		/**
-		 * This is commented out because we're using enablePageDialogAccept
-		 * which is overly aggressive and no way to temporary disable it either.
-		 */
-		// await dialog.accept();
-
-		await page.waitForSelector(
-			"#application-passwords-section .notice-success"
-		);
-
-		const successMessage = await page.waitForSelector(
-			"#application-passwords-section .notice-success"
-		);
-		expect(
-			await successMessage.evaluate((element) => element.textContent)
-		).toContain("All application passwords revoked.");
+		await expect( page.locator( '#application-passwords-section .notice-success' ) )
+			.toContainText( 'All application passwords revoked.' );
 
 		const response = await applicationPasswords.get();
 		expect( response ).toEqual([]);
@@ -141,8 +100,15 @@ class ApplicationPasswords {
 	}
 
 	async get() {
-		await this.requestUtils.rest( {
+		return this.requestUtils.rest( {
 			method: 'GET',
+			path: '/wp/v2/users/me/application-passwords',
+		} );
+	}
+
+	async delete() {
+		await this.requestUtils.rest( {
+			method: 'DELETE',
 			path: '/wp/v2/users/me/application-passwords',
 		} );
 	}
