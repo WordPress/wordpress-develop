@@ -128,7 +128,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	/**
 	 * Get the parent post, if the ID is valid.
 	 *
-	 * @since 4.7.2
+	 * @since 6.4.0
 	 *
 	 * @param int $parent_post_id Supplied ID.
 	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
@@ -146,31 +146,20 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 			return $error;
 		}
 
-		return $template;
+		return get_post( $template->wp_id );
 	}
 
 	/**
-	 * Checks if a given request has access to get autosaves.
+	 * Prepares the item for the REST response.
 	 *
-	 * @since 5.0.0
+	 * @since 6.4.0
 	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+	 * @param mixed           $item    WordPress representation of the item.
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
-	public function get_items_permissions_check( $request ) {
-		$parent = $this->get_parent( $request['id'] );
-		if ( is_wp_error( $parent ) ) {
-			return $parent;
-		}
-
-		if ( ! current_user_can( 'edit_post', $parent->wp_id ) ) {
-			return new WP_Error(
-				'rest_cannot_read',
-				__( 'Sorry, you are not allowed to view autosaves of this post.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
-		return true;
+	public function prepare_item_for_response( $item, $request ) {
+		$template = _build_block_template_result_from_post( $item );
+		return $this->parent_controller->prepare_item_for_response( $template, $request );
 	}
 }

@@ -726,7 +726,13 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  */
 function _build_block_template_result_from_post( $post ) {
 	$default_template_types = get_default_block_template_types();
-	$terms                  = get_the_terms( $post, 'wp_theme' );
+
+	$post_id = wp_is_post_revision( $post );
+	if( ! $post_id ){
+		$post_id = $post;
+	}
+
+	$terms = get_the_terms( $post_id, 'wp_theme' );
 
 	if ( is_wp_error( $terms ) ) {
 		return $terms;
