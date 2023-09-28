@@ -1504,9 +1504,23 @@ function do_blocks( $content ) {
 	$blocks = parse_blocks( $content );
 
 	/**
-	 * Filter that allows plugins to inspect or manipulate the array of parsed
-	 * block objects. The parsed blocks form a hierarchy, rather than a flat
-	 * array, as blocks can be nested within each other during parsing.
+	 * Filters the tree of raw parsed blocks before they are rendered.
+	 *
+	 * The parsed blocks form a hierarchy, rather than a flat array, as blocks can
+	 * be nested within each other. Also, take into account that calls to
+	 * `do_blocks` could be nested if there are blocks that use `do_blocks` in
+	 * their own rendering.
+	 *
+	 * Example:
+	 *
+	 *     add_filter( 'do_blocks_pre_render', function ( $blocks ) {
+	 *       foreach ( $blocks as $index => $block ) {
+	 *         if ( str_contains( $block['innerHTML'], 'foo' ) ) {
+	 *           unset( $blocks[ $index ] );
+	 *         }
+	 *       }
+	 *       return $blocks;
+	 *     }, 10, 1 );
 	 *
 	 * @since 6.4.0
 	 *
@@ -1521,7 +1535,21 @@ function do_blocks( $content ) {
 	}
 
 	/**
-	 * Filter to allow plugins to inspect or manipulate the final HTML output.
+	 * Filters the final HTML output from block rendering.
+	 *
+	 * This hook provides a post-processing step where it's possible to perform
+	 * cleanup or finish what was started during the rendering pass. This filter
+	 * runs only after all of the blocks have been rendered and there are no more
+	 * block objects available; only HTML. Also, take into account that calls to
+	 * `do_blocks` could be nested if there are blocks that use `do_blocks` in
+	 * their own rendering.
+	 *
+	 * Example:
+	 *
+	 *     add_filter( 'do_blocks_post_render', function ( $output ) {
+	 *       $counter = sprintf( __( 'This post contains %1$s words.' ), count_words( $output ) );
+	 *       return "<p>$counter</p>$output";
+	 *     }, 10, 1 );
 	 *
 	 * @since 6.4.0
 	 *
