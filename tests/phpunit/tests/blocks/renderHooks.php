@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests for block rendering functions.
+ * Tests for the hooks of the block rendering functions.
  *
  * @package WordPress
  * @subpackage Blocks
