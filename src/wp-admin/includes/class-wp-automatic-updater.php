@@ -523,10 +523,135 @@ class WP_Automatic_Updater {
 		// Next, plugins.
 		wp_update_plugins(); // Check for plugin updates.
 		$plugin_updates = get_site_transient( 'update_plugins' );
+		$active_plugins = get_option( 'active_plugins' );
 		if ( $plugin_updates && ! empty( $plugin_updates->response ) ) {
+			$plugin_upgrader     = new Plugin_Upgrader();
+			$skin                = new Automatic_Upgrader_Skin();
+			$plugins_to_activate = array();
+
 			foreach ( $plugin_updates->response as $plugin ) {
+				// Inactive plugins don't need to be checked.
+				if ( is_plugin_inactive( $plugin->plugin ) ) {
+					$this->update( 'plugin', $plugin->plugin );
+					continue;
+				}
+
+				$plugins_to_activate[] = $plugin->plugin;
+
+				/*
+				 * Enable maintenance mode while updating active plugins.
+				 *
+				 * This prevents errors while plugin files are still being
+				 * moved between directories.
+				 */
+				$plugin_upgrader->maintenance_mode( true );
 				$this->update( 'plugin', $plugin );
+				$plugin_upgrader->maintenance_mode( false );
+
+				/*
+				 * Maintenance mode must be disabled in order to run
+				 * the fatal error check, as this performs two loopback
+				 * requests to the dashboard and frontend.
+				 */
+				if ( $this->has_fatal_error() ) {
+					$temp_backup = array(
+						array(
+							'dir'  => 'plugins',
+							'slug' => dirname( $plugin->plugin ),
+							'src'  => WP_PLUGIN_DIR,
+						)
+					);
+
+					$result = new WP_Error();
+
+					/*
+					 * Enable maintenance mode while attempting to
+					 * restore the previously installed version.
+					 *
+					 * This prevents errors while plugin files are still being
+				 	 * moved between directories.
+					 */
+					$plugin_upgrader->maintenance_mode( true );
+					if ( is_wp_error( $plugin_upgrader->restore_temp_backup( $temp_backup ) ) ) {
+						$result->add(
+							'plugin_update_fatal_error_rollback_failed',
+							sprintf(
+								/* translators: %s: The plugin filepath, relative to the plugins directory. */
+								__( 'The update for %s contained a fatal error. The previously installed version could not be restored.' ),
+								$plugin->plugin
+							)
+						);
+						$result->add(
+							'temp_backup_restore_failed',
+							sprintf(
+								$plugin_upgrader->strings['temp_backup_restore_failed'],
+								$plugin->plugin
+							)
+						);
+					} else {
+						$result->add(
+							'plugin_update_fatal_error_rollback_successful',
+							sprintf(
+								/* translators: %s: The plugin filepath, relative to the plugins directory. */
+								__( 'The update for %s contained a fatal error. The previously installed version has been restored.' ),
+								$plugin->plugin
+							)
+						);
+
+						if ( is_wp_error( $plugin_upgrader->delete_temp_backup( $temp_backup ) ) ) {
+							$result->add(
+								'temp_backup_delete_failed',
+								sprintf(
+									$plugin_upgrader->strings['temp_backup_delete_failed'],
+									$plugin->plugin
+								)
+							);
+						}
+					}
+					$plugin_upgrader->maintenance_mode( false );
+
+					$skin->feedback( $result );
+
+					$this->update_results[ 'plugin' ][] = (object) array(
+						'item'     => $plugin,
+						'result'   => $result,
+						'name'     => get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin->plugin ),
+						'messages' => $skin->get_upgrade_messages(),
+					);
+
+					/*
+					* Should emails not be working, log the message(s) so that
+					* the log file contains context for the fatal error,
+					* and whether a rollback was performed.
+					*
+					* `trigger_error()` is not used as it outputs a stack trace
+					* to this location rather than to the fatal error, which will
+					* appear above this entry in the log file.
+					*/
+					error_log( implode( "\n", $result->get_error_messages() ) );
+				}
 			}
+
+			/*
+			 * Reactivate all updated plugins that were previously active.
+			 *
+			 * This resolves an issue where browsing during an automatic update
+			 * may cause some plugins to be deactivated.
+			 *
+			 * This is called on shutdown because, due to the order of plugin updates,
+			 * a plugin that requires a newer version of another plugin may be updated
+			 * before its requirement.
+			 *
+			 * A plugin with requirements will often have built-in checks that
+			 * deactivate itself when its requirements are not met.
+			 */
+			add_action(
+				'shutdown',
+				static function () use ( $active_plugins ) {
+					update_option( 'active_plugins', $active_plugins );
+				}
+			);
+
 			// Force refresh of plugin update information.
 			wp_clean_plugins_cache();
 		}
@@ -1550,5 +1675,96 @@ Thanks! -- The WordPress Team"
 		$email = apply_filters( 'automatic_updates_debug_email', $email, $failures, $this->update_results );
 
 		wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
+	}
+
+	/**
+	 * Performs two loopback requests, one to the dashboard and one to the homepage,
+	 * to check for potential fatal errors.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @return bool Whether a fatal error was detected.
+	 */
+	protected function has_fatal_error() {
+		$scrape_key   = md5( rand() );
+		$transient    = 'scrape_key_' . $scrape_key;
+		$scrape_nonce = (string) rand();
+
+		set_transient( $transient, $scrape_nonce, 10 );
+
+		$cookies       = wp_unslash( $_COOKIE );
+		$scrape_params = array(
+			'wp_scrape_key'   => $scrape_key,
+			'wp_scrape_nonce' => $scrape_nonce,
+		);
+		$headers       = array(
+			'Cache-Control' => 'no-cache',
+		);
+
+		/** This filter is documented in wp-includes/class-wp-http-streams.php */
+		$sslverify = apply_filters( 'https_local_ssl_verify', false );
+
+		// Include Basic auth in loopback requests.
+		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
+			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
+		}
+
+		// Make sure PHP process doesn't die before loopback requests complete.
+		if ( function_exists( 'set_time_limit' ) ) {
+			set_time_limit( 5 * MINUTE_IN_SECONDS );
+		}
+
+		// Time to wait for loopback requests to finish.
+		$timeout = 100; // 100 seconds.
+
+		$needle_start           = "###### wp_scraping_result_start:$scrape_key ######";
+		$needle_end             = "###### wp_scraping_result_end:$scrape_key ######";
+		$url                    = add_query_arg( $scrape_params, admin_url() );
+		$r                      = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
+		$body                   = wp_remote_retrieve_body( $r );
+		$scrape_result_position = strpos( $body, $needle_start );
+		$result                 = null;
+
+		if ( false !== $scrape_result_position ) {
+			$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
+			$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
+			$result       = json_decode( trim( $error_output ), true );
+		}
+
+		// Try making request to homepage as well to see if visitors have been whitescreened.
+		if ( true === $result ) {
+			$homepage = home_url( '/' );
+
+			/**
+			 * Filters the frontend URL to check for fatal errors.
+			 *
+			 * Must start with the homepage URL.
+			 *
+			 * @since 6.5.0
+			 *
+			 * @param string $url The url to check. Default homepage.
+			 */
+			$url = apply_filters( 'automatic_update_frontend_fatal_check_url', $homepage );
+
+			if ( ! str_starts_with( $url, $homepage ) ) {
+				$url = home_url( '/' );
+			}
+
+			$url                    = add_query_arg( $scrape_params, $url );
+			$response               = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
+			$body                   = wp_remote_retrieve_body( $response );
+			$scrape_result_position = strpos( $body, $needle_start );
+
+			if ( false !== $scrape_result_position ) {
+				$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
+				$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
+				$result       = json_decode( trim( $error_output ), true );
+			}
+		}
+
+		delete_transient( $transient );
+
+		// Only fatal errors will result in a 'type' key.
+		return isset( $result['type'] );
 	}
 }
