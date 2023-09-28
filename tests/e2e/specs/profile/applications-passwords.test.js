@@ -94,10 +94,6 @@ test.describe( 'Manage applications passwords', () => {
 			'All application passwords revoked.'
 		);
 
-		const revocationDialogPromise = new Promise(( resolve ) => {
-			page.once( 'dialog', resolve );
-		});
-
 		const response = await applicationPasswords.get();
 		expect( response ).toEqual([]);
 	} );
