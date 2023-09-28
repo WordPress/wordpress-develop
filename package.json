@@ -27,7 +27,6 @@
 		"@lodder/grunt-postcss": "^3.1.1",
 	  	"@playwright/test": "1.38.1",
 		"@pmmmwh/react-refresh-webpack-plugin": "0.5.5",
-	  	"@types/node": "16.18.54",
 		"@wordpress/babel-preset-default": "7.26.2",
 		"@wordpress/dependency-extraction-webpack-plugin": "4.25.2",
 		"@wordpress/e2e-test-utils": "10.13.2",
