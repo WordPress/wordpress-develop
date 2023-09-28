@@ -17,20 +17,20 @@ test.describe( 'Manage applications passwords', () => {
 	} );
 
 	test('should correctly create a new application password', async ( {
-	   page,
-	   applicationPasswords
+		page,
+		applicationPasswords
 	} ) => {
 		await applicationPasswords.create();
 
-		const response = await applicationPasswords.get();
-		expect( response[0]['name']).toBe( TEST_APPLICATION_NAME );
+		const [ app ] = await applicationPasswords.get();
+		expect( app['name']).toBe( TEST_APPLICATION_NAME );
 
-		const successMessage = await page.waitForSelector(
-			'#application-passwords-section .notice-success'
-		);
-		expect(
-			await successMessage.evaluate( ( element ) => element.innerText )
-		).toContain(
+		const successMessage = page.getByRole( 'alert' );
+
+		await expect( successMessage ).toHaveClass( /notice-success/ );
+		await expect(
+			successMessage
+		).toContainText(
 			`Your new password for ${TEST_APPLICATION_NAME} is: \n\nBe sure to save this in a safe location. You will not be able to retrieve it.`
 		);
 	} );
@@ -42,13 +42,14 @@ test.describe( 'Manage applications passwords', () => {
 		await applicationPasswords.create();
 		await applicationPasswords.create();
 
-		const errorMessage = await page.waitForSelector(
-			'#application-passwords-section .notice-error'
-		);
+		const errorMessage = page.getByRole( 'alert' );
 
-		expect(
-			await errorMessage.evaluate( ( element ) => element.textContent )
-		).toContain( 'Each application name should be unique.' );
+		await expect( errorMessage ).toHaveClass( /notice-error/ );
+		await expect(
+			errorMessage
+		).toContainText(
+			'Each application name should be unique.'
+		);
 	});
 
 	test( 'should correctly revoke a single application password', async ( {
@@ -57,11 +58,18 @@ test.describe( 'Manage applications passwords', () => {
 	} ) => {
 		await applicationPasswords.create();
 
-		page.on('dialog', dialog => dialog.accept());
-		await page.getByRole( 'button', { name: `Revoke "${TEST_APPLICATION_NAME}"` } ).click();
+		const revokeButton = page.getByRole( 'button', { name: `Revoke "${ TEST_APPLICATION_NAME }"` } );
+		await expect( revokeButton ).toBeVisible();
 
-		await expect( page.locator( '#application-passwords-section .notice-success' ) )
-			.toContainText( 'Application password revoked.' );
+		// Revoke password.
+		page.on( 'dialog', ( dialog ) => dialog.accept() );
+		await revokeButton.click();
+
+		await expect(
+			page.getByRole( 'alert' )
+		).toContainText(
+			'Application password revoked.'
+		);
 
 		const response = await applicationPasswords.get();
 		expect( response ).toEqual([]);
@@ -73,11 +81,22 @@ test.describe( 'Manage applications passwords', () => {
 	} ) => {
 		await applicationPasswords.create();
 
-		page.on('dialog', dialog => dialog.accept());
-		await page.getByRole( 'button', { name: 'Revoke all application passwords' } ).click();
+		const revokeAllButton = page.getByRole( 'button', { name: 'Revoke all application passwords' } );
+		await expect( revokeAllButton ).toBeVisible();
 
-		await expect( page.locator( '#application-passwords-section .notice-success' ) )
-			.toContainText( 'All application passwords revoked.' );
+		// Confirms revoking action.
+		page.on( 'dialog', ( dialog ) => dialog.accept() );
+		await revokeAllButton.click();
+
+		await expect(
+			page.getByRole( 'alert' )
+		).toContainText(
+			'All application passwords revoked.'
+		);
+
+		const revocationDialogPromise = new Promise(( resolve ) => {
+			page.once( 'dialog', resolve );
+		});
 
 		const response = await applicationPasswords.get();
 		expect( response ).toEqual([]);
@@ -92,11 +111,14 @@ class ApplicationPasswords {
 	}
 
 	async create(applicationName = TEST_APPLICATION_NAME) {
-		await this.admin.visitAdminPage('profile.php' );
-		await this.page.waitForSelector('#new_application_password_name' );
-		await this.page.type( '#new_application_password_name', applicationName );
-		await this.page.click( '#do_new_application_password' );
-		await this.page.waitForSelector( '#application-passwords-section .notice' );
+		await this.admin.visitAdminPage( '/profile.php' );
+
+		const newPasswordField = this.page.getByRole( 'textbox', { name: 'New Application Password Name' } );
+		await expect( newPasswordField ).toBeVisible();
+		await newPasswordField.fill( applicationName );
+
+		await this.page.getByRole( 'button', { name: 'Add New Application Password' } ).click();
+		await expect( this.page.getByRole( 'alert' ) ).toBeVisible();
 	}
 
 	async get() {
