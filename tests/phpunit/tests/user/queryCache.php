@@ -813,7 +813,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		$query1 = new WP_Query(
 			array(
 				'cache_results' => true,
-				'fields'		=> 'ids',
+				'fields'        => 'ids',
 				'post_type'     => 'post',
 			)
 		);
@@ -828,7 +828,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		$query2 = new WP_Query(
 			array(
 				'cache_results' => true,
-				'fields'		=> 'ids',
+				'fields'        => 'ids',
 			)
 		);
 
@@ -837,7 +837,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		// Cache key without `post_type`.
 		$cache_key_2 = $reflection2->invoke( $query2, $query2->query_vars, $query2->request );
 		$reflection2->setAccessible( false );
-	
+
 		// Ensure SQL request formed with and without `post_type` were similar.
 		$this->assertSame( $query1->request, $query2->request, 'SQL request formed are not similar.' );
 		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs when `post_type` not passed in args.' );
