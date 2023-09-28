@@ -17,7 +17,6 @@ const config = defineConfig( {
 		? './config/performance-reporter.js'
 		: [ [ 'list' ], [ './config/performance-reporter.js' ] ],
 	forbidOnly: !! process.env.CI,
-	// fullyParallel: false,
 	workers: 1,
 	retries: 0,
 	timeout: parseInt( process.env.TIMEOUT || '', 10 ) || 600_000, // Defaults to 10 minutes.

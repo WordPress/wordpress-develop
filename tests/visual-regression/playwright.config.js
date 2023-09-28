@@ -14,7 +14,6 @@ process.env.STORAGE_STATE_PATH ??= path.join(
 const config = defineConfig( {
 	reporter: process.env.CI ? [ [ 'github' ] ] : [ [ 'list' ] ],
 	forbidOnly: !! process.env.CI,
-	// fullyParallel: false,
 	workers: 1,
 	retries: process.env.CI ? 2 : 0,
 	timeout: parseInt( process.env.TIMEOUT || '', 10 ) || 100_000, // Defaults to 100 seconds.
