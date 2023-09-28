@@ -3468,7 +3468,58 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 				false,
 				'cpt',
 			),
-
+			// Include a test case with slashed data.
+			array(
+				'Test string"',
+				'Test string"',
+				'page',
+			),
 		);
+	}
+
+	/**
+	 * Test autosaves controller works with meta, including slashed data
+	 */
+	public function test_autosaves_controller_works_with_meta() {
+		$meta = '[{\"content\":\"foot 1\",\"id\":\"fa97a10d-7401-42b9-ac54-df8f4510749a\"},{\"content\":\"fdddddoot 2\\\"\",\"id\":\"2216d0aa-34b8-42b4-b441-84dedc0406e0\"}]';
+		$this->grant_write_permission();
+
+		// Create the custom meta.
+		register_post_meta(
+			'post',
+			'foo',
+			array(
+				'show_in_rest'      => true,
+				'revisions_enabled' => true,
+				'single'            => true,
+				'type'              => 'string',
+			)
+		);
+
+		// Set up a new post.
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => 'initial content',
+				'post_type'    => 'post',
+				'meta_input'   => array(
+					'foo' => 'foo',
+				),
+			)
+		);
+
+		// Create an autosave with the test meta.
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/autosaves', $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 1',
+				'meta'  => array( 'foo' => $meta ),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		// Can json decode values.
+		$values = json_decode( wp_unslash( $data['meta']['foo'] ), true );
+		$this->assertNotNull( $values );
 	}
 }
