@@ -438,7 +438,7 @@ function _register_theme_block_patterns() {
 			throw new Error( 'Should not have died.' );
 		}
 
-		if ( 0 === count( $streams ) ) {
+		if ( 0 === $streams ) {
 			continue;
 		}
 
