@@ -72,7 +72,8 @@ test.describe( 'Edit Posts', () => {
 	test( 'allows an existing post to be quick edited using the Quick Edit button', async ( {
 		admin,
 		editor,
-		page
+		page,
+		pageUtils
 	} ) => {
 		const title = 'Test Title';
 		await admin.createNewPost( { title } );
@@ -86,8 +87,7 @@ test.describe( 'Edit Posts', () => {
 		await listTable.getByRole( 'link', { name: `“${ title }” (Edit)` } ).focus();
 
 		// Tab to the Quick Edit button and press Enter to quick edit.
-		await page.keyboard.press( 'Tab' );
-		await page.keyboard.press( 'Tab' );
+		await pageUtils.pressKeys( 'Tab', { times: 2 } )
 		await page.keyboard.press( 'Enter' );
 
 		// Type in the currently focused (title) field to modify the title, testing that focus is moved to the input.
@@ -110,7 +110,8 @@ test.describe( 'Edit Posts', () => {
 	test( 'allows an existing post to be deleted using the Trash button', async ( {
 		admin,
 		editor,
-		page
+		page,
+		pageUtils
 	} ) => {
 		const title = 'Test Title';
 		await admin.createNewPost( { title } );
@@ -124,9 +125,7 @@ test.describe( 'Edit Posts', () => {
 		await listTable.getByRole( 'link', { name: `“${ title }” (Edit)` } ).focus();
 
 		// Tab to the Trash button and press Enter to delete the post.
-		await page.keyboard.press( 'Tab' );
-		await page.keyboard.press( 'Tab' );
-		await page.keyboard.press( 'Tab' );
+		await pageUtils.pressKeys( 'Tab', { times: 3 } )
 		await page.keyboard.press( 'Enter' );
 
 		await expect(
