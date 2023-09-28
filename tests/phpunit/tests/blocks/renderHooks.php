@@ -22,9 +22,9 @@ class Tests_Blocks_Render_Hooks extends WP_UnitTestCase {
 
 		$result = do_blocks( $block_content );
 
-		$this->assertSame( '<p>Hello</p>', trim( $result ) );
-
 		remove_filter( 'do_blocks_pre_render', array( $this, 'do_blocks_pre_render_filter' ) );
+
+		$this->assertSame( '<p>Hello</p>', trim( $result ) );
 	}
 	public function do_blocks_pre_render_filter( $blocks ) {
 		foreach ( $blocks as $index => $block ) {
@@ -48,9 +48,9 @@ class Tests_Blocks_Render_Hooks extends WP_UnitTestCase {
 
 		$result = do_blocks( $block_content );
 
-		$this->assertSame( '<p>Hello</p>', trim( $result ) );
-
 		remove_filter( 'do_blocks_post_render', array( $this, 'do_blocks_post_render_filter' ) );
+
+		$this->assertSame( '<p>Hello</p>', trim( $result ) );
 	}
 	public function do_blocks_post_render_filter( $content ) {
 		$content = str_replace( '<p>WordPress!</p>', '', $content );
