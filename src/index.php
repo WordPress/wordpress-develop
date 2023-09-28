@@ -15,6 +15,8 @@ if ( ! defined( 'WPINC' ) ) {
 	define( 'WPINC', 'wp-includes' );
 }
 
+require_once ABSPATH . WPINC . '/version.php';
+require_once ABSPATH . WPINC . '/compat.php';
 require_once ABSPATH . WPINC . '/class-wp-autoload.php';
 
 /*

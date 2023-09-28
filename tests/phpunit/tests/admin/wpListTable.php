@@ -26,6 +26,15 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 
 		$hook_suffix      = '_wp_tests';
 		$this->list_table = new WP_List_Table();
+
+		static::$original_hook_suffix = $GLOBALS['hook_suffix'];
+
+		require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
+	}
+
+	public function set_up() {
+		parent::set_up();
+		global $hook_suffix;
 	}
 
 	public function clean_up_global_scope() {
