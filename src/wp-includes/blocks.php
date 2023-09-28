@@ -1504,8 +1504,9 @@ function do_blocks( $content ) {
 	$blocks = parse_blocks( $content );
 
 	/**
-	 * Filter to allow plugins to inspect or change the array of parsed block
-	 * objects.
+	 * Filter that allows plugins to inspect or manipulate the array of parsed
+	 * block objects. The parsed blocks form a hierarchy, rather than a flat
+	 * array, as blocks can be nested within each other during parsing.
 	 *
 	 * @since 6.4.0
 	 *
@@ -1520,7 +1521,7 @@ function do_blocks( $content ) {
 	}
 
 	/**
-	 * Filter to allow plugins to inspect or change the rendered HTML.
+	 * Filter to allow plugins to inspect or manipulate the final HTML output.
 	 *
 	 * @since 6.4.0
 	 *
