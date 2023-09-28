@@ -4,13 +4,13 @@
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 4.7.0
+ * @since 6.4.0
  */
 
 /**
  * Core class used to access revisions via the REST API.
  *
- * @since 4.7.0
+ * @since 6.4.0
  *
  * @see WP_REST_Controller
  */
@@ -18,7 +18,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	/**
 	 * Parent post type.
 	 *
-	 * @since 4.7.0
+	 * @since 6.4.0
 	 * @var string
 	 */
 	private $parent_post_type;
@@ -26,7 +26,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	/**
 	 * Parent controller.
 	 *
-	 * @since 4.7.0
+	 * @since 6.4.0
 	 * @var WP_REST_Controller
 	 */
 	private $parent_controller;
@@ -34,7 +34,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	/**
 	 * The base of the parent controller's route.
 	 *
-	 * @since 4.7.0
+	 * @since 6.4.0
 	 * @var string
 	 */
 	private $parent_base;
@@ -42,7 +42,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	/**
 	 * Constructor.
 	 *
-	 * @since 4.7.0
+	 * @since 6.4.0
 	 *
 	 * @param string $parent_post_type Post type of the parent.
 	 */
@@ -65,7 +65,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	/**
 	 * Registers the routes for revisions based on post types supporting revisions.
 	 *
-	 * @since 4.7.0
+	 * @since 6.4.0
 	 *
 	 * @see register_rest_route()
 	 */
@@ -121,8 +121,9 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 			array(
 				'args'   => array(
 					'parent' => array(
-						'description' => __( 'The ID for the parent of the revision.' ),
-						'type'        => 'integer',
+						'description'       => __( 'The id of a template' ),
+						'type'              => 'string',
+						'sanitize_callback' => array( $this->parent_controller, '_sanitize_template_id' ),
 					),
 					'id'     => array(
 						'description' => __( 'Unique identifier for the revision.' ),
@@ -175,32 +176,32 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 			return $error;
 		}
 
-		return $template;
+		return get_post( $template->wp_id );
 	}
 
 	/**
-	 * Checks if a given request has access to get autosaves.
+	 * Prepares the item for the REST response.
 	 *
-	 * @since 5.0.0
+	 * @since 6.4.0
 	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+	 * @param mixed           $item    WordPress representation of the item.
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
-	public function get_items_permissions_check( $request ) {
+	public function prepare_item_for_response( $item, $request ) {
+		$template = _build_block_template_result_from_post( $item );
+		return $this->parent_controller->prepare_item_for_response( $template, $request );
+	}
 
-		$parent = $this->get_parent( $request['parent'] );
-		if ( is_wp_error( $parent ) ) {
-			return $parent;
-		}
+	/**
+	 * Retrieves the item's schema, conforming to JSON Schema.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return array Item schema data.
+	 */
 
-		if ( ! current_user_can( 'edit_post', $parent->wp_id ) ) {
-			return new WP_Error(
-				'rest_cannot_read',
-				__( 'Sorry, you are not allowed to view autosaves of this post.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
-		return true;
+	public function get_item_schema(){
+		return $this->parent_controller->get_item_schema();
 	}
 }
