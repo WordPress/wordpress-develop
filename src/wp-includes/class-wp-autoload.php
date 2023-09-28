@@ -140,8 +140,8 @@ final class WP_Autoload {
 		'wpdb'                                        => 'wp-includes/class-wpdb.php', // Defines some constants.
 
 		/* Classes in the wp-includes/fonts folder. */
-		'WP_Font_Face_Resolver'                       => 'wp-includes/fonts/class-wp-font-face-resolver.php',
-		'WP_Font_Face'                                => 'wp-includes/fonts/class-wp-font-face.php',
+		'wp_font_face_resolver'                       => 'wp-includes/fonts/class-wp-font-face-resolver.php',
+		'wp_font_face'                                => 'wp-includes/fonts/class-wp-font-face.php',
 
 		/* Classes in the wp-includes/html-api/ folder. */
 		'wp_html_active_formatting_elements'          => 'wp-includes/html-api/class-wp-html-active-formatting-elements.php',
