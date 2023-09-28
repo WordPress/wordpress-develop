@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.0.0
+ * @since 6.4.0
  */
 
 /**
@@ -18,7 +18,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	/**
 	 * Parent post type.
 	 *
-	 * @since 5.0.0
+	 * @since 6.4.0
 	 * @var string
 	 */
 	private $parent_post_type;
@@ -26,7 +26,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	/**
 	 * Parent post controller.
 	 *
-	 * @since 5.0.0
+	 * @since 6.4.0
 	 * @var WP_REST_Controller
 	 */
 	private $parent_controller;
@@ -34,7 +34,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	/**
 	 * Revision controller.
 	 *
-	 * @since 5.0.0
+	 * @since 6.4.0
 	 * @var WP_REST_Revisions_Controller
 	 */
 	private $revisions_controller;
@@ -42,7 +42,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	/**
 	 * The base of the parent controller's route.
 	 *
-	 * @since 5.0.0
+	 * @since 6.4.0
 	 * @var string
 	 */
 	private $parent_base;
@@ -50,7 +50,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	/**
 	 * Constructor.
 	 *
-	 * @since 5.0.0
+	 * @since 6.4.0
 	 *
 	 * @param string $parent_post_type Post type of the parent.
 	 */
@@ -167,20 +167,22 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 		$template = _build_block_template_result_from_post( $item );
 		$response = $this->parent_controller->prepare_item_for_response( $template, $request );
 
-		if ( $response instanceof WP_REST_Response ) {
-			$fields = $this->get_fields_for_response( $request );
-			$data   = $response->get_data();
+		$fields = $this->get_fields_for_response( $request );
+		$data   = $response->get_data();
 
-			$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
-			$data    = $this->filter_response_by_context( $data, $context );
+		if ( in_array( 'parent', $fields, true ) ) {
+			$data['parent'] = (int) $item->post_parent;
+		}
 
-			// Wrap the data in a response object.
-			$response = new WP_REST_Response( $data );
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data    = $this->filter_response_by_context( $data, $context );
 
-			if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
-				$links = $this->prepare_links( $template );
-				$response->add_links( $links );
-			}
+		// Wrap the data in a response object.
+		$response = new WP_REST_Response( $data );
+
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$links = $this->prepare_links( $template );
+			$response->add_links( $links );
 		}
 
 		return $response;
@@ -208,17 +210,39 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	 */
 	protected function prepare_links( $template ) {
 		$links = array(
-			'self'       => array(
+			'self'   => array(
 				'href' => rest_url( sprintf( '/%s/%s/%s/%s/%d', $this->namespace, $this->parent_base, $template->id, $this->rest_base, $template->wp_id ) ),
 			),
-			'collection' => array(
-				'href' => rest_url( rest_get_route_for_post_type_items( 'autosave' ) ),
-			),
-			'about'      => array(
-				'href' => rest_url( 'wp/v2/types/autosave' ),
+			'parent' => array(
+				'href' => rest_url( sprintf( '/%s/%s/%s', $this->namespace, $this->parent_base, $template->id ) ),
 			),
 		);
 
 		return $links;
+	}
+
+	/**
+	 * Retrieves the autosave's schema, conforming to JSON Schema.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return array Item schema data.
+	 */
+	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
+		$schema = $this->revisions_controller->get_item_schema();
+
+		$schema['properties']['parent'] = array(
+			'description' => __( 'The ID for the parent of the revision.' ),
+			'type'        => 'integer',
+			'context'     => array( 'view', 'edit', 'embed' ),
+		);
+
+		$this->schema = $schema;
+
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 }
