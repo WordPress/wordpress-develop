@@ -15,25 +15,22 @@ class Tests_Blocks_Render_Hooks extends WP_UnitTestCase {
 	public function test_do_blocks_pre_render_filter() {
 		$remove_blocks_containing_wordpress = static function( $blocks ) {
 			foreach ( $blocks as $index => $block ) {
-				if ( strpos( $block['innerHTML'], 'WordPress' ) !== false ) {
+				if ( str_contains( $block['innerHTML'], 'WordPress' ) ) {
 					unset( $blocks[ $index ] );
 				}
 			}
 			return $blocks;
 		};
 
-		$block_content = '
-			<!-- wp:core/paragraph --><p>Hello</p><!-- /wp:core/paragraph -->
-			<!-- wp:core/paragraph --><p>WordPress</p><!-- /wp:core/paragraph -->
-		';
+		$hello_block = '<!-- wp:core/paragraph --><p>Hello</p><!-- /wp:core/paragraph -->';
+		$press_block = '<!-- wp:core/paragraph --><p>WordPress</p><!-- /wp:core/paragraph -->';
 
 		add_filter( 'do_blocks_pre_render', $remove_blocks_containing_wordpress );
-
-		$result = do_blocks( $block_content );
-
+		$filtered_output = do_blocks( $hello_block . $press_block );
 		remove_filter( 'do_blocks_pre_render', $remove_blocks_containing_wordpress );
 
-		$this->assertSame( '<p>Hello</p>', trim( $result ) );
+		$wanted_output = do_blocks( $hello_block );
+		$this->assertSame( $wanted_output, $filtered_output, "Did not exclude the intended blocks before rendering." );
 	}
 
 	/**
@@ -45,17 +42,14 @@ class Tests_Blocks_Render_Hooks extends WP_UnitTestCase {
 			return $content;
 		};
 
-		$block_content = '
-			<!-- wp:core/paragraph --><p>Hello</p><!-- /wp:core/paragraph -->
-			<!-- wp:core/paragraph --><p>WordPress</p><!-- /wp:core/paragraph -->
-		';
+		$hello_block = '<!-- wp:core/paragraph --><p>Hello</p><!-- /wp:core/paragraph -->';
+		$press_block = '<!-- wp:core/paragraph --><p>WordPress</p><!-- /wp:core/paragraph -->';
 
 		add_filter( 'do_blocks_post_render', $remove_wordpress_paragraph );
-
-		$result = do_blocks( $block_content );
-
+		$filtered_output = do_blocks( $hello_block . $press_block );
 		remove_filter( 'do_blocks_post_render', $remove_wordpress_paragraph );
 
-		$this->assertSame( '<p>Hello</p>', trim( $result ) );
+		$wanted_output = do_blocks( $hello_block );
+		$this->assertSame( $wanted_output, $filtered_output, "Did not exclude the intended content before rendering." );
 	}
 }
