@@ -12,8 +12,7 @@ process.env.STORAGE_STATE_PATH ??= path.join(
 );
 
 const config = defineConfig( {
-	// reporter: process.env.CI ? [ [ 'github' ] ] : [ [ 'list' ] ],
-	reporter: 'list', // FIXME: just for testing.
+	reporter: process.env.CI ? [ [ 'github' ] ] : [ [ 'list' ] ],
 	forbidOnly: !! process.env.CI,
 	workers: 1,
 	retries: process.env.CI ? 2 : 0,
