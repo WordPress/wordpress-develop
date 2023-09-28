@@ -27,18 +27,16 @@ const testSuites = [ 'home-block-theme', 'home-classic-theme' ];
 
 // The current commit's results.
 const testResults = Object.fromEntries(
-	testSuites.map( ( key ) => [
-		key,
-		parseFile( `${ key }.test.results.json` ),
-	] )
+	testSuites
+		.filter( ( key ) => fs.existsSync( `${ key }.test.results.json` ) )
+		.map( ( key ) => [ key, parseFile( `${ key }.test.results.json` ) ] )
 );
 
 // The previous commit's results.
 const prevResults = Object.fromEntries(
-	testSuites.map( ( key ) => [
-		key,
-		parseFile( `before-${ key }.test.results.json` ),
-	] )
+	testSuites
+		.filter( ( key ) => fs.existsSync( `before-${ key }.test.results.json` ) )
+		.map( ( key ) => [ key, parseFile( `before-${ key }.test.results.json` ) ] )
 );
 
 const args = process.argv.slice( 2 );
