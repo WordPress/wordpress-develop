@@ -980,6 +980,12 @@ class WP_Upgrader {
 	 */
 	public function maintenance_mode( $enable = false ) {
 		global $wp_filesystem;
+
+		if ( ! $wp_filesystem ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+
 		$file = $wp_filesystem->abspath() . '.maintenance';
 		if ( $enable ) {
 			$this->skin->feedback( 'maintenance_start' );
