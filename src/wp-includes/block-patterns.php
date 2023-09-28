@@ -396,15 +396,16 @@ function _register_theme_block_patterns() {
 		}
 
 		while ( false !== ( $pattern_file = readdir( $pattern_directory_handle ) ) ) {
+			$file_path = "{$pattern_directory_path}/{$pattern_file}";
 			if (
 				4 >= strlen( $pattern_file ) ||
 				'.php' !== substr( $pattern_file, -4 ) ||
-				! is_file( $pattern_file )
+				! is_file( $file_path )
 			) {
 				continue;
 			}
 
-			$pattern_files[] = $pattern_file;
+			$pattern_files[] = $file_path;
 		}
 	}
 
