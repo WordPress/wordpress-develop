@@ -13,9 +13,9 @@ test.describe( 'Edit Posts', () => {
 		page,
 	} ) => {
 		await admin.visitAdminPage( '/edit.php' );
-		await expect( page.locator(
-			'//td[text()="No posts found."]'
-		) ).toBeVisible();
+		await expect(
+			page.getByRole( 'cell', { name: 'No posts found.' } )
+		).toBeVisible();
 	} );
 
 	test( 'shows a single post after one is published with the correct title',async ( {
@@ -28,19 +28,15 @@ test.describe( 'Edit Posts', () => {
 		await editor.publishPost();
 		await admin.visitAdminPage( '/edit.php' );
 
-		await page.waitForSelector( '#the-list .type-post' );
+		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
+		await expect( listTable ).toBeVisible();
 
 		// Expect there to be one row in the post list.
-		const posts = await page.$$( '#the-list .type-post' );
-		expect( posts.length ).toBe( 1 );
-
-		const [ firstPost ] = posts;
+		const posts = listTable.locator( '.row-title' );
+		await expect( posts ).toHaveCount( 1 );
 
 		// Expect the title of the post to be correct.
-		const postTitle = await firstPost.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
-		);
-		expect( postTitle.length ).toBe( 1 );
+		expect( posts.first() ).toHaveText( title );
 	} );
 
 	test( 'allows an existing post to be edited using the Edit button', async ( {
@@ -53,24 +49,24 @@ test.describe( 'Edit Posts', () => {
 		await editor.publishPost();
 		await admin.visitAdminPage( '/edit.php' );
 
-		await page.waitForSelector( '#the-list .type-post' );
+		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
+		await expect( listTable ).toBeVisible();
 
 		// Click the post title (edit) link
-		await page.locator( `//a[contains(@class, "row-title")][contains(text(), "${ title }")]` ).click();
+		await listTable.getByRole( 'link', { name: `“${ title }” (Edit)` } ).click();
 
 		// Wait for the editor iframe to load, and switch to it as the active content frame.
-		const editorFrame = await page.waitForSelector( 'iframe[name="editor-canvas"]' );
+		await page
+				.frameLocator( '[name=editor-canvas]' )
+				.locator( 'body > *' )
+				.first()
+				.waitFor();
 
-		const innerFrame = await editorFrame.contentFrame();
+		const editorPostTitle = editor.canvas.getByRole( 'textbox', { name: 'Add title' } );
 
-		// Wait for title field to render onscreen.
-		await innerFrame.waitForSelector( '.editor-post-title__input' );
-
-		// Expect to now be in the editor with the correct post title shown.
-		const editorPostTitleInput = await innerFrame.$x(
-			`//h1[contains(@class, "editor-post-title__input")][contains(text(), "${ title }")]`
-		);
-		expect( editorPostTitleInput.length ).toBe( 1 );
+		// Expect title field to be in the editor with correct title shown.
+		await expect( editorPostTitle ).toBeVisible();
+		await expect( editorPostTitle ).toHaveText( title );
 	} );
 
 	test( 'allows an existing post to be quick edited using the Quick Edit button', async ( {
@@ -83,10 +79,11 @@ test.describe( 'Edit Posts', () => {
 		await editor.publishPost();
 		await admin.visitAdminPage( '/edit.php' );
 
-		await page.waitForSelector( '#the-list .type-post' );
+		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
+		await expect( listTable ).toBeVisible();
 
-		// Focus on the post title link.
-		await page.locator( `//a[contains(@class, "row-title")][contains(text(), "${ title }")]` ).focus();
+		// // Focus on the post title link.
+		await listTable.getByRole( 'link', { name: `“${ title }” (Edit)` } ).focus();
 
 		// Tab to the Quick Edit button and press Enter to quick edit.
 		await page.keyboard.press( 'Tab' );
@@ -97,22 +94,17 @@ test.describe( 'Edit Posts', () => {
 		await page.keyboard.type( ' Edited' );
 
 		// Update the post.
-		await page.click( '.button.save' );
+		await page.getByRole( 'button', { name: 'Update' } ).click();
 
 		// Wait for the quick edit button to reappear.
-		await page.waitForSelector( 'button.editinline', { visible: true } );
+		await expect( page.getByRole( 'button', { name: 'Quick Edit' } ) ).toBeVisible();
 
 		// Expect there to be one row in the post list.
-		const posts = await page.$$( '#the-list tr.type-post' );
-		expect( posts.length ).toBe( 1 );
-
-		const [ firstPost ] = posts;
+		const posts = listTable.locator( '.row-title' );
+		await expect( posts ).toHaveCount( 1 );
 
 		// Expect the title of the post to be correct.
-		const postTitle = await firstPost.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title } Edited")]`
-		);
-		expect( postTitle.length ).toBe( 1 );
+		expect( posts.first() ).toHaveText( `${ title } Edited` );
 	} );
 
 	test( 'allows an existing post to be deleted using the Trash button', async ( {
@@ -125,10 +117,11 @@ test.describe( 'Edit Posts', () => {
 		await editor.publishPost();
 		await admin.visitAdminPage( '/edit.php' );
 
-		await page.waitForSelector( '#the-list .type-post' );
+		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
+		await expect( listTable ).toBeVisible();
 
-		// Focus on the post title link.
-		await page.locator( `//a[contains(@class, "row-title")][contains(text(), "${ title }")]` ).focus();
+		// // Focus on the post title link.
+		await listTable.getByRole( 'link', { name: `“${ title }” (Edit)` } ).focus();
 
 		// Tab to the Trash button and press Enter to delete the post.
 		await page.keyboard.press( 'Tab' );
@@ -136,12 +129,8 @@ test.describe( 'Edit Posts', () => {
 		await page.keyboard.press( 'Tab' );
 		await page.keyboard.press( 'Enter' );
 
-		const noPostsMessage = await page.waitForSelector(
-			'#the-list .no-items td'
-		);
-
-		expect(
-			await noPostsMessage.evaluate( ( element ) => element.innerText )
-		).toBe( 'No posts found.' );
+		await expect(
+			page.getByRole( 'cell', { name: 'No posts found.' } )
+		).toBeVisible();
 	} );
 } );
