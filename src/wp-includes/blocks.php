@@ -1502,11 +1502,31 @@ function parse_blocks( $content ) {
  */
 function do_blocks( $content ) {
 	$blocks = parse_blocks( $content );
+
+	/**
+	 * Filter to allow plugins to inspect or change the array of parsed block
+	 * objects.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array[] $blocks Array of parsed block objects.
+	 */
+	$blocks = apply_filters( 'do_blocks_pre_render', $blocks );
+
 	$output = '';
 
 	foreach ( $blocks as $block ) {
 		$output .= render_block( $block );
 	}
+
+	/**
+	 * Filter to allow plugins to inspect or change the rendered HTML.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $output String of rendered HTML.
+	 */
+	$output = apply_filters( 'do_blocks_post_render', $output );
 
 	// If there are blocks in this content, we shouldn't run wpautop() on it later.
 	$priority = has_filter( 'the_content', 'wpautop' );
