@@ -1704,4 +1704,31 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		return $value;
 	}
+
+	/**
+	 * Reflects a private or protected property and sets its value.
+	 *
+	 * The property is temporarily made accessible to set the value.
+	 *
+	 * The previous value is returned.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param object $obj      The object instance.
+	 * @param string $property The property's name.
+	 * @param mixed  $value    The new value.
+	 * @return mixed The previous value.
+	 */
+	protected function reflect_and_set_value( $obj, $property, $value ) {
+		$reflected_property = new ReflectionProperty( $obj, $property );
+
+		$reflected_property->setAccessible( true );
+		$previous_value = $reflected_property->getValue( $obj );
+		$reflected_property->setValue( $obj, $value );
+		$reflected_property->setAccessible( false );
+
+		unset( $reflected_property );
+
+		return $previous_value;
+	}
 }
