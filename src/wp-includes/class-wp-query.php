@@ -2544,18 +2544,18 @@ class WP_Query {
 			}
 		} elseif ( ! empty( $post_type ) && is_array( $post_type ) ) {
 			$post_type_where = " AND {$wpdb->posts}.post_type IN ('" . implode( "', '", esc_sql( $post_type ) ) . "')";
-		} elseif ( ! empty( $post_type ) ) {
+		} else {
+			if ( empty( $post_type ) ) {
+				if ( $this->is_attachment ) {
+					$post_type = 'attachment';
+				} elseif ( $this->is_page ) {
+					$post_type = 'page';
+				} else {
+					$post_type = 'post';
+				}
+			}
 			$post_type_where  = $wpdb->prepare( " AND {$wpdb->posts}.post_type = %s", $post_type );
 			$post_type_object = get_post_type_object( $post_type );
-		} elseif ( $this->is_attachment ) {
-			$post_type_where  = " AND {$wpdb->posts}.post_type = 'attachment'";
-			$post_type_object = get_post_type_object( 'attachment' );
-		} elseif ( $this->is_page ) {
-			$post_type_where  = " AND {$wpdb->posts}.post_type = 'page'";
-			$post_type_object = get_post_type_object( 'page' );
-		} else {
-			$post_type_where  = " AND {$wpdb->posts}.post_type = 'post'";
-			$post_type_object = get_post_type_object( 'post' );
 		}
 
 		$edit_cap = 'edit_post';
@@ -3533,7 +3533,7 @@ class WP_Query {
 
 			if ( $q['cache_results'] ) {
 				if ( $is_unfiltered_query && $unfiltered_posts === $this->posts ) {
-					update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+					update_post_caches( $this->posts, 'any', $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 				} else {
 					$post_ids = wp_list_pluck( $this->posts, 'ID' );
 					_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
