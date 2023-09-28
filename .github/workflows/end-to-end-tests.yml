@@ -48,6 +48,7 @@ jobs:
   # - Logs the running Docker containers.
   # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container).
   # - Install WordPress within the Docker container.
+  # - Install Gutenberg.
   # - Run the E2E tests.
   # - Ensures version-controlled files are not modified or deleted.
   e2e-tests:
@@ -118,6 +119,9 @@ jobs:
         env:
           LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
         run: npm run env:install
+
+      - name: Install Gutenberg
+        run: npm run env:cli -- plugin install gutenberg --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Run E2E tests
         run: npm run test:e2e
