@@ -423,6 +423,10 @@ function _register_theme_block_patterns() {
 		// Grab the next batch.
 		foreach ( array_splice( $queue, 0, $max_concurrency - count( $fds ) ) as $file_path ) {
 			$fd = fopen( $file_path, 'r' );
+			// If the file can't be opened, skip it.
+			if ( false === $fd ) {
+				continue;
+			}
 			stream_set_blocking( $fd, false );
 
 			$fds[ $file_path ] = $fd;
