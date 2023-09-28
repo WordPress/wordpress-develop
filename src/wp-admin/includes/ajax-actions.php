@@ -298,16 +298,20 @@ function wp_ajax_autocomplete_user() {
 
 	$return = array();
 
-	// Check the type of request.
-	// Current allowed values are `add` and `search`.
+	/*
+	 * Check the type of request.
+	 * Current allowed values are `add` and `search`.
+	 */
 	if ( isset( $_REQUEST['autocomplete_type'] ) && 'search' === $_REQUEST['autocomplete_type'] ) {
 		$type = $_REQUEST['autocomplete_type'];
 	} else {
 		$type = 'add';
 	}
 
-	// Check the desired field for value.
-	// Current allowed values are `user_email` and `user_login`.
+	/*
+	 * Check the desired field for value.
+	 * Current allowed values are `user_email` and `user_login`.
+	 */
 	if ( isset( $_REQUEST['autocomplete_field'] ) && 'user_email' === $_REQUEST['autocomplete_field'] ) {
 		$field = $_REQUEST['autocomplete_field'];
 	} else {
@@ -1520,8 +1524,10 @@ function wp_ajax_add_menu_item() {
 
 	require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 
-	// For performance reasons, we omit some object properties from the checklist.
-	// The following is a hacky way to restore them when adding non-custom items.
+	/*
+	 * For performance reasons, we omit some object properties from the checklist.
+	 * The following is a hacky way to restore them when adding non-custom items.
+	 */
 	$menu_items_data = array();
 
 	foreach ( (array) $_POST['menu-item'] as $menu_item_data ) {
@@ -2143,7 +2149,7 @@ function wp_ajax_inline_save() {
 		while ( $parent > 0 ) {
 			$parent_post = get_post( $parent );
 			$parent      = $parent_post->post_parent;
-			$level++;
+			++$level;
 		}
 	}
 
@@ -2205,7 +2211,7 @@ function wp_ajax_inline_save_tax() {
 	while ( $parent > 0 ) {
 		$parent_tag = get_term( $parent, $taxonomy );
 		$parent     = $parent_tag->parent;
-		$level++;
+		++$level;
 	}
 
 	$wp_list_table->single_row( $tag, $level );
@@ -2512,14 +2518,18 @@ function wp_ajax_media_create_image_subsizes() {
 		}
 	}
 
-	// Set a custom header with the attachment_id.
-	// Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+	/*
+	 * Set a custom header with the attachment_id.
+	 * Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+	 */
 	if ( ! headers_sent() ) {
 		header( 'X-WP-Upload-Attachment-ID: ' . $attachment_id );
 	}
 
-	// This can still be pretty slow and cause timeout or out of memory errors.
-	// The js that handles the response would need to also handle HTTP 500 errors.
+	/*
+	 * This can still be pretty slow and cause timeout or out of memory errors.
+	 * The js that handles the response would need to also handle HTTP 500 errors.
+	 */
 	wp_update_image_subsizes( $attachment_id );
 
 	if ( ! empty( $_POST['_legacy_support'] ) ) {
@@ -2811,7 +2821,7 @@ function wp_ajax_set_attachment_thumbnail() {
 		}
 
 		if ( set_post_thumbnail( $post_id, $thumbnail_id ) ) {
-			$success++;
+			++$success;
 		}
 	}
 
@@ -3769,8 +3779,10 @@ function wp_ajax_parse_embed() {
 	}
 
 	if ( is_ssl() && str_starts_with( $url, 'http://' ) ) {
-		// Admin is ssl and the user pasted non-ssl URL.
-		// Check if the provider supports ssl embeds and use that for the preview.
+		/*
+		 * Admin is ssl and the user pasted non-ssl URL.
+		 * Check if the provider supports ssl embeds and use that for the preview.
+		 */
 		$ssl_shortcode = preg_replace( '%^(\\[embed[^\\]]*\\])http://%i', '$1https://', $shortcode );
 		$parsed        = $wp_embed->run_shortcode( $ssl_shortcode );
 
@@ -3841,7 +3853,7 @@ function wp_ajax_parse_embed() {
 		'attr' => $wp_embed->last_attr,
 	);
 
-	if ( strpos( $parsed, 'class="wp-embedded-content' ) ) {
+	if ( str_contains( $parsed, 'class="wp-embedded-content' ) ) {
 		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
 			$script_src = includes_url( 'js/wp-embed.js' );
 		} else {
@@ -4927,8 +4939,8 @@ function wp_ajax_wp_privacy_export_personal_data() {
 	 *         Array of personal data exporters.
 	 *
 	 *         @type callable $callback               Callable exporter function that accepts an
-	 *                                                email address and a page and returns an array
-	 *                                                of name => value pairs of personal data.
+	 *                                                email address and a page number and returns an
+	 *                                                array of name => value pairs of personal data.
 	 *         @type string   $exporter_friendly_name Translated user facing friendly name for the
 	 *                                                exporter.
 	 *     }
@@ -5039,10 +5051,10 @@ function wp_ajax_wp_privacy_export_personal_data() {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @param array  $response        The personal data for the given exporter and page.
+	 * @param array  $response        The personal data for the given exporter and page number.
 	 * @param int    $exporter_index  The index of the exporter that provided this data.
 	 * @param string $email_address   The email address associated with this personal data.
-	 * @param int    $page            The page for this response.
+	 * @param int    $page            The page number for this response.
 	 * @param int    $request_id      The privacy request post ID associated with this request.
 	 * @param bool   $send_as_email   Whether the final results of the export should be emailed to the user.
 	 * @param string $exporter_key    The key (slug) of the exporter that provided this data.
@@ -5116,8 +5128,8 @@ function wp_ajax_wp_privacy_erase_personal_data() {
 	 *     @type array ...$0 {
 	 *         Array of personal data exporters.
 	 *
-	 *         @type callable $callback               Callable eraser that accepts an email address and
-	 *                                                a page and returns an array with boolean values for
+	 *         @type callable $callback               Callable eraser that accepts an email address and a page
+	 *                                                number, and returns an array with boolean values for
 	 *                                                whether items were removed or retained and any messages
 	 *                                                from the eraser, as well as if additional pages are
 	 *                                                available.
@@ -5269,10 +5281,17 @@ function wp_ajax_wp_privacy_erase_personal_data() {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @param array  $response        The personal data for the given exporter and page.
+	 * @param array  $response        {
+	 *     The personal data for the given exporter and page number.
+	 *
+	 *     @type bool     $items_removed  Whether items were actually removed or not.
+	 *     @type bool     $items_retained Whether items were retained or not.
+	 *     @type string[] $messages       An array of messages to add to the personal data export file.
+	 *     @type bool     $done           Whether the eraser is finished or not.
+	 * }
 	 * @param int    $eraser_index    The index of the eraser that provided this data.
 	 * @param string $email_address   The email address associated with this personal data.
-	 * @param int    $page            The page for this response.
+	 * @param int    $page            The page number for this response.
 	 * @param int    $request_id      The privacy request post ID associated with this request.
 	 * @param string $eraser_key      The key (slug) of the eraser that provided this data.
 	 */

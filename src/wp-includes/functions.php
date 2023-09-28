@@ -846,7 +846,7 @@ function wp_extract_urls( $content ) {
 
 	$post_links = array_unique(
 		array_map(
-			static function( $link ) {
+			static function ( $link ) {
 				// Decode to replace valid entities, like &amp;.
 				$link = html_entity_decode( $link );
 				// Maintain backward compatibility by removing extraneous semi-colons (`;`).
@@ -1061,12 +1061,15 @@ function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urle
 		if ( $urlencode ) {
 			$k = urlencode( $k );
 		}
-		if ( is_int( $k ) && null != $prefix ) {
+
+		if ( is_int( $k ) && null !== $prefix ) {
 			$k = $prefix . $k;
 		}
+
 		if ( ! empty( $key ) ) {
 			$k = $key . '%5B' . $k . '%5D';
 		}
+
 		if ( null === $v ) {
 			continue;
 		} elseif ( false === $v ) {
@@ -1281,8 +1284,6 @@ function add_magic_quotes( $input_array ) {
 			$input_array[ $k ] = add_magic_quotes( $v );
 		} elseif ( is_string( $v ) ) {
 			$input_array[ $k ] = addslashes( $v );
-		} else {
-			continue;
 		}
 	}
 
@@ -1772,15 +1773,18 @@ function is_blog_installed() {
 	}
 
 	$suppress = $wpdb->suppress_errors();
+
 	if ( ! wp_installing() ) {
 		$alloptions = wp_load_alloptions();
 	}
+
 	// If siteurl is not set to autoload, check it specifically.
 	if ( ! isset( $alloptions['siteurl'] ) ) {
 		$installed = $wpdb->get_var( "SELECT option_value FROM $wpdb->options WHERE option_name = 'siteurl'" );
 	} else {
 		$installed = $alloptions['siteurl'];
 	}
+
 	$wpdb->suppress_errors( $suppress );
 
 	$installed = ! empty( $installed );
@@ -1805,10 +1809,11 @@ function is_blog_installed() {
 	$wp_tables = $wpdb->tables();
 	foreach ( $wp_tables as $table ) {
 		// The existence of custom user tables shouldn't suggest an unwise state or prevent a clean installation.
-		if ( defined( 'CUSTOM_USER_TABLE' ) && CUSTOM_USER_TABLE == $table ) {
+		if ( defined( 'CUSTOM_USER_TABLE' ) && CUSTOM_USER_TABLE === $table ) {
 			continue;
 		}
-		if ( defined( 'CUSTOM_USER_META_TABLE' ) && CUSTOM_USER_META_TABLE == $table ) {
+
+		if ( defined( 'CUSTOM_USER_META_TABLE' ) && CUSTOM_USER_META_TABLE === $table ) {
 			continue;
 		}
 
@@ -2080,7 +2085,7 @@ function wp_mkdir_p( $target ) {
 		 * If a umask is set that modifies $dir_perms, we'll have to re-set
 		 * the $dir_perms correctly with chmod()
 		 */
-		if ( ( $dir_perms & ~umask() ) != $dir_perms ) {
+		if ( ( $dir_perms & ~umask() ) !== $dir_perms ) {
 			$folder_parts = explode( '/', substr( $target, strlen( $target_parent ) + 1 ) );
 			for ( $i = 1, $c = count( $folder_parts ); $i <= $c; $i++ ) {
 				chmod( $target_parent . '/' . implode( '/', array_slice( $folder_parts, 0, $i ) ), $dir_perms );
@@ -2430,7 +2435,7 @@ function _wp_upload_dir( $time = null ) {
 
 	$url = get_option( 'upload_url_path' );
 	if ( ! $url ) {
-		if ( empty( $upload_path ) || ( 'wp-content/uploads' === $upload_path ) || ( $upload_path == $dir ) ) {
+		if ( empty( $upload_path ) || ( 'wp-content/uploads' === $upload_path ) || ( $upload_path === $dir ) ) {
 			$url = WP_CONTENT_URL . '/uploads';
 		} else {
 			$url = trailingslashit( $siteurl ) . $upload_path;
@@ -2689,7 +2694,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 					);
 
 					$number = $new_number;
-					$i++;
+					++$i;
 				}
 			}
 		}
@@ -2762,7 +2767,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 					);
 
 					$number = $new_number;
-					$i++;
+					++$i;
 				}
 			}
 		}
@@ -3095,7 +3100,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 		// Attempt to figure out what type of image it actually is.
 		$real_mime = wp_get_image_mime( $file );
 
-		if ( $real_mime && $real_mime != $type ) {
+		if ( $real_mime && $real_mime !== $type ) {
 			/**
 			 * Filters the list mapping image mime types to their respective extensions.
 			 *
@@ -3122,9 +3127,10 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 				$filename_parts[] = $mime_to_ext[ $real_mime ];
 				$new_filename     = implode( '.', $filename_parts );
 
-				if ( $new_filename != $filename ) {
+				if ( $new_filename !== $filename ) {
 					$proper_filename = $new_filename; // Mark that it changed.
 				}
+
 				// Redefine the extension / MIME.
 				$wp_filetype = wp_check_filetype( $new_filename, $mimes );
 				$ext         = $wp_filetype['ext'];
@@ -3141,6 +3147,24 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 		$finfo     = finfo_open( FILEINFO_MIME_TYPE );
 		$real_mime = finfo_file( $finfo, $file );
 		finfo_close( $finfo );
+
+		$google_docs_types = array(
+			'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+		);
+
+		foreach ( $google_docs_types as $google_docs_type ) {
+			/*
+			 * finfo_file() can return duplicate mime type for Google docs,
+			 * this conditional reduces it to a single instance.
+			 *
+			 * @see https://bugs.php.net/bug.php?id=77784
+			 * @see https://core.trac.wordpress.org/ticket/57898
+			 */
+			if ( 2 === substr_count( $real_mime, $google_docs_type ) ) {
+				$real_mime = $google_docs_type;
+			}
+		}
 
 		// fileinfo often misidentifies obscure files as one of these types.
 		$nonspecific_types = array(
@@ -3605,7 +3629,7 @@ function wp_nonce_ays( $action ) {
 
 		if ( wp_get_referer() ) {
 			$wp_http_referer = remove_query_arg( 'updated', wp_get_referer() );
-			$wp_http_referer = wp_validate_redirect( esc_url_raw( $wp_http_referer ) );
+			$wp_http_referer = wp_validate_redirect( sanitize_url( $wp_http_referer ) );
 
 			$html .= '</p><p>';
 			$html .= sprintf(
@@ -3797,8 +3821,10 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		$text_direction = $parsed_args['text_direction'];
 		$dir_attr       = "dir='$text_direction'";
 
-		// If `text_direction` was not explicitly passed,
-		// use get_language_attributes() if available.
+		/*
+		 * If `text_direction` was not explicitly passed,
+		 * use get_language_attributes() if available.
+		 */
 		if ( empty( $args['text_direction'] )
 			&& function_exists( 'language_attributes' ) && function_exists( 'is_rtl' )
 		) {
@@ -4785,21 +4811,22 @@ function smilies_init() {
 		$rest      = substr( $smiley, 1 );
 
 		// New subpattern?
-		if ( $firstchar != $subchar ) {
+		if ( $firstchar !== $subchar ) {
 			if ( '' !== $subchar ) {
 				$wp_smiliessearch .= ')(?=' . $spaces . '|$)';  // End previous "subpattern".
 				$wp_smiliessearch .= '|(?<=' . $spaces . '|^)'; // Begin another "subpattern".
 			}
+
 			$subchar           = $firstchar;
 			$wp_smiliessearch .= preg_quote( $firstchar, '/' ) . '(?:';
 		} else {
 			$wp_smiliessearch .= '|';
 		}
+
 		$wp_smiliessearch .= preg_quote( $rest, '/' );
 	}
 
 	$wp_smiliessearch .= ')(?=' . $spaces . '|$)/m';
-
 }
 
 /**
@@ -5085,9 +5112,8 @@ function _wp_array_set( &$input_array, $path, $value = null ) {
  * @return string kebab-cased-string.
  */
 function _wp_to_kebab_case( $input_string ) {
-	//phpcs:disable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
-	// ignore the camelCase names for variables so the names are the same as lodash
-	// so comparing and porting new changes is easier.
+	// Ignore the camelCase names for variables so the names are the same as lodash so comparing and porting new changes is easier.
+	// phpcs:disable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
 
 	/*
 	 * Some notable things we've removed compared to the lodash version are:
@@ -5133,7 +5159,7 @@ function _wp_to_kebab_case( $input_string ) {
 
 	preg_match_all( $regexp, str_replace( "'", '', $input_string ), $matches );
 	return strtolower( implode( '-', $matches[0] ) );
-	//phpcs:enable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
+	// phpcs:enable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
 }
 
 /**
@@ -5402,9 +5428,8 @@ function absint( $maybeint ) {
 /**
  * Marks a function as deprecated and inform when it has been used.
  *
- * There is a hook {@see 'deprecated_function_run'} that will be called that can be used
- * to get the backtrace up to what file and function called the deprecated
- * function.
+ * There is a {@see 'deprecated_function_run'} hook that will be called that can be used
+ * to get the backtrace up to what file and function called the deprecated function.
  *
  * The current behavior is to trigger a user error if `WP_DEBUG` is true.
  *
@@ -5441,49 +5466,39 @@ function _deprecated_function( $function_name, $version, $replacement = '' ) {
 	if ( WP_DEBUG && apply_filters( 'deprecated_function_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
 			if ( $replacement ) {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP function name, 2: Version number, 3: Alternative function name. */
-						__( 'Function %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-						$function_name,
-						$version,
-						$replacement
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP function name, 2: Version number, 3: Alternative function name. */
+					__( 'Function %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+					$function_name,
+					$version,
+					$replacement
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP function name, 2: Version number. */
-						__( 'Function %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-						$function_name,
-						$version
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP function name, 2: Version number. */
+					__( 'Function %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+					$function_name,
+					$version
 				);
 			}
 		} else {
 			if ( $replacement ) {
-				trigger_error(
-					sprintf(
-						'Function %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
-						$function_name,
-						$version,
-						$replacement
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'Function %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
+					$function_name,
+					$version,
+					$replacement
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						'Function %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
-						$function_name,
-						$version
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'Function %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
+					$function_name,
+					$version
 				);
 			}
 		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
 
@@ -5491,11 +5506,11 @@ function _deprecated_function( $function_name, $version, $replacement = '' ) {
  * Marks a constructor as deprecated and informs when it has been used.
  *
  * Similar to _deprecated_function(), but with different strings. Used to
- * remove PHP4 style constructors.
+ * remove PHP4-style constructors.
  *
  * The current behavior is to trigger a user error if `WP_DEBUG` is true.
  *
- * This function is to be used in every PHP4 style constructor method that is deprecated.
+ * This function is to be used in every PHP4-style constructor method that is deprecated.
  *
  * @since 4.3.0
  * @since 4.5.0 Added the `$parent_class` parameter.
@@ -5533,63 +5548,128 @@ function _deprecated_constructor( $class_name, $version, $parent_class = '' ) {
 	if ( WP_DEBUG && apply_filters( 'deprecated_constructor_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
 			if ( $parent_class ) {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP class name, 2: PHP parent class name, 3: Version number, 4: __construct() method. */
-						__( 'The called constructor method for %1$s class in %2$s is <strong>deprecated</strong> since version %3$s! Use %4$s instead.' ),
-						$class_name,
-						$parent_class,
-						$version,
-						'<code>__construct()</code>'
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP class name, 2: PHP parent class name, 3: Version number, 4: __construct() method. */
+					__( 'The called constructor method for %1$s class in %2$s is <strong>deprecated</strong> since version %3$s! Use %4$s instead.' ),
+					$class_name,
+					$parent_class,
+					$version,
+					'<code>__construct()</code>'
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP class name, 2: Version number, 3: __construct() method. */
-						__( 'The called constructor method for %1$s class is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-						$class_name,
-						$version,
-						'<code>__construct()</code>'
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP class name, 2: Version number, 3: __construct() method. */
+					__( 'The called constructor method for %1$s class is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+					$class_name,
+					$version,
+					'<code>__construct()</code>'
 				);
 			}
 		} else {
 			if ( $parent_class ) {
-				trigger_error(
-					sprintf(
-						'The called constructor method for %1$s class in %2$s is <strong>deprecated</strong> since version %3$s! Use %4$s instead.',
-						$class_name,
-						$parent_class,
-						$version,
-						'<code>__construct()</code>'
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'The called constructor method for %1$s class in %2$s is <strong>deprecated</strong> since version %3$s! Use %4$s instead.',
+					$class_name,
+					$parent_class,
+					$version,
+					'<code>__construct()</code>'
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						'The called constructor method for %1$s class is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
-						$class_name,
-						$version,
-						'<code>__construct()</code>'
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'The called constructor method for %1$s class is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
+					$class_name,
+					$version,
+					'<code>__construct()</code>'
 				);
 			}
 		}
-	}
 
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
+	}
+}
+
+/**
+ * Marks a class as deprecated and informs when it has been used.
+ *
+ * There is a {@see 'deprecated_class_run'} hook that will be called that can be used
+ * to get the backtrace up to what file and function called the deprecated class.
+ *
+ * The current behavior is to trigger a user error if `WP_DEBUG` is true.
+ *
+ * This function is to be used in the class constructor for every deprecated class.
+ * See {@see _deprecated_constructor()} for deprecating PHP4-style constructors.
+ *
+ * @since 6.4.0
+ *
+ * @param string $class_name  The name of the class being instantiated.
+ * @param string $version     The version of WordPress that deprecated the class.
+ * @param string $replacement Optional. The class or function that should have been called.
+ *                            Default empty string.
+ */
+function _deprecated_class( $class_name, $version, $replacement = '' ) {
+
+	/**
+	 * Fires when a deprecated class is called.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $class_name  The name of the class being instantiated.
+	 * @param string $replacement The class or function that should have been called.
+	 * @param string $version     The version of WordPress that deprecated the class.
+	 */
+	do_action( 'deprecated_class_run', $class_name, $replacement, $version );
+
+	/**
+	 * Filters whether to trigger an error for a deprecated class.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param bool $trigger Whether to trigger an error for a deprecated class. Default true.
+	 */
+	if ( WP_DEBUG && apply_filters( 'deprecated_class_trigger_error', true ) ) {
+		if ( function_exists( '__' ) ) {
+			if ( $replacement ) {
+				$message = sprintf(
+					/* translators: 1: PHP class name, 2: Version number, 3: Alternative class or function name. */
+					__( 'Class %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+					$class_name,
+					$version,
+					$replacement
+				);
+			} else {
+				$message = sprintf(
+					/* translators: 1: PHP class name, 2: Version number. */
+					__( 'Class %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+					$class_name,
+					$version
+				);
+			}
+		} else {
+			if ( $replacement ) {
+				$message = sprintf(
+					'Class %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
+					$class_name,
+					$version,
+					$replacement
+				);
+			} else {
+				$message = sprintf(
+					'Class %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
+					$class_name,
+					$version
+				);
+			}
+		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
+	}
 }
 
 /**
  * Marks a file as deprecated and inform when it has been used.
  *
- * There is a hook {@see 'deprecated_file_included'} that will be called that can be used
- * to get the backtrace up to what file and function included the deprecated
- * file.
+ * There is a {@see 'deprecated_file_included'} hook that will be called that can be used
+ * to get the backtrace up to what file and function included the deprecated file.
  *
  * The current behavior is to trigger a user error if `WP_DEBUG` is true.
  *
@@ -5631,49 +5711,39 @@ function _deprecated_file( $file, $version, $replacement = '', $message = '' ) {
 
 		if ( function_exists( '__' ) ) {
 			if ( $replacement ) {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP file name, 2: Version number, 3: Alternative file name. */
-						__( 'File %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-						$file,
-						$version,
-						$replacement
-					) . $message,
-					E_USER_DEPRECATED
-				);
+				$message = sprintf(
+					/* translators: 1: PHP file name, 2: Version number, 3: Alternative file name. */
+					__( 'File %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+					$file,
+					$version,
+					$replacement
+				) . $message;
 			} else {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP file name, 2: Version number. */
-						__( 'File %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-						$file,
-						$version
-					) . $message,
-					E_USER_DEPRECATED
-				);
+				$message = sprintf(
+					/* translators: 1: PHP file name, 2: Version number. */
+					__( 'File %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+					$file,
+					$version
+				) . $message;
 			}
 		} else {
 			if ( $replacement ) {
-				trigger_error(
-					sprintf(
-						'File %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
-						$file,
-						$version,
-						$replacement
-					) . $message,
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'File %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
+					$file,
+					$version,
+					$replacement
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						'File %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
-						$file,
-						$version
-					) . $message,
-					E_USER_DEPRECATED
-				);
+				$message = sprintf(
+					'File %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
+					$file,
+					$version
+				) . $message;
 			}
 		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
 /**
@@ -5682,15 +5752,15 @@ function _deprecated_file( $file, $version, $replacement = '', $message = '' ) {
  * This function is to be used whenever a deprecated function argument is used.
  * Before this function is called, the argument must be checked for whether it was
  * used by comparing it to its default value or evaluating whether it is empty.
+ *
  * For example:
  *
  *     if ( ! empty( $deprecated ) ) {
  *         _deprecated_argument( __FUNCTION__, '3.0.0' );
  *     }
  *
- * There is a hook deprecated_argument_run that will be called that can be used
- * to get the backtrace up to what file and function used the deprecated
- * argument.
+ * There is a {@see 'deprecated_argument_run'} hook that will be called that can be used
+ * to get the backtrace up to what file and function used the deprecated argument.
  *
  * The current behavior is to trigger a user error if WP_DEBUG is true.
  *
@@ -5725,49 +5795,39 @@ function _deprecated_argument( $function_name, $version, $message = '' ) {
 	if ( WP_DEBUG && apply_filters( 'deprecated_argument_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
 			if ( $message ) {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP function name, 2: Version number, 3: Optional message regarding the change. */
-						__( 'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s' ),
-						$function_name,
-						$version,
-						$message
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP function name, 2: Version number, 3: Optional message regarding the change. */
+					__( 'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s' ),
+					$function_name,
+					$version,
+					$message
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP function name, 2: Version number. */
-						__( 'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-						$function_name,
-						$version
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP function name, 2: Version number. */
+					__( 'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+					$function_name,
+					$version
 				);
 			}
 		} else {
 			if ( $message ) {
-				trigger_error(
-					sprintf(
-						'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s',
-						$function_name,
-						$version,
-						$message
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s',
+					$function_name,
+					$version,
+					$message
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.',
-						$function_name,
-						$version
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.',
+					$function_name,
+					$version
 				);
 			}
 		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
 
@@ -5816,36 +5876,31 @@ function _deprecated_hook( $hook, $version, $replacement = '', $message = '' ) {
 		$message = empty( $message ) ? '' : ' ' . $message;
 
 		if ( $replacement ) {
-			trigger_error(
-				sprintf(
-					/* translators: 1: WordPress hook name, 2: Version number, 3: Alternative hook name. */
-					__( 'Hook %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-					$hook,
-					$version,
-					$replacement
-				) . $message,
-				E_USER_DEPRECATED
-			);
+			$message = sprintf(
+				/* translators: 1: WordPress hook name, 2: Version number, 3: Alternative hook name. */
+				__( 'Hook %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+				$hook,
+				$version,
+				$replacement
+			) . $message;
 		} else {
-			trigger_error(
-				sprintf(
-					/* translators: 1: WordPress hook name, 2: Version number. */
-					__( 'Hook %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-					$hook,
-					$version
-				) . $message,
-				E_USER_DEPRECATED
-			);
+			$message = sprintf(
+				/* translators: 1: WordPress hook name, 2: Version number. */
+				__( 'Hook %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+				$hook,
+				$version
+			) . $message;
 		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
 
 /**
  * Marks something as being incorrectly called.
  *
- * There is a hook {@see 'doing_it_wrong_run'} that will be called that can be used
- * to get the backtrace up to what file and function called the deprecated
- * function.
+ * There is a {@see 'doing_it_wrong_run'} hook that will be called that can be used
+ * to get the backtrace up to what file and function called the deprecated function.
  *
  * The current behavior is to trigger a user error if `WP_DEBUG` is true.
  *
@@ -5893,15 +5948,12 @@ function _doing_it_wrong( $function_name, $message, $version ) {
 				__( 'https://wordpress.org/documentation/article/debugging-in-wordpress/' )
 			);
 
-			trigger_error(
-				sprintf(
-					/* translators: Developer debugging message. 1: PHP function name, 2: Explanatory message, 3: WordPress version number. */
-					__( 'Function %1$s was called <strong>incorrectly</strong>. %2$s %3$s' ),
-					$function_name,
-					$message,
-					$version
-				),
-				E_USER_NOTICE
+			$message = sprintf(
+				/* translators: Developer debugging message. 1: PHP function name, 2: Explanatory message, 3: WordPress version number. */
+				__( 'Function %1$s was called <strong>incorrectly</strong>. %2$s %3$s' ),
+				$function_name,
+				$message,
+				$version
 			);
 		} else {
 			if ( $version ) {
@@ -5913,17 +5965,71 @@ function _doing_it_wrong( $function_name, $message, $version ) {
 				'https://wordpress.org/documentation/article/debugging-in-wordpress/'
 			);
 
-			trigger_error(
-				sprintf(
-					'Function %1$s was called <strong>incorrectly</strong>. %2$s %3$s',
-					$function_name,
-					$message,
-					$version
-				),
-				E_USER_NOTICE
+			$message = sprintf(
+				'Function %1$s was called <strong>incorrectly</strong>. %2$s %3$s',
+				$function_name,
+				$message,
+				$version
 			);
 		}
+
+		wp_trigger_error( '', $message );
 	}
+}
+
+/**
+ * Generates a user-level error/warning/notice/deprecation message.
+ *
+ * Generates the message when `WP_DEBUG` is true.
+ *
+ * @since 6.4.0
+ *
+ * @param string $function_name The function that triggered the error.
+ * @param string $message       The message explaining the error.
+ *                              The message can contain allowed HTML 'a' (with href), 'code',
+ *                              'br', 'em', and 'strong' tags and http or https protocols.
+ *                              If it contains other HTML tags or protocols, the message should be escaped
+ *                              before passing to this function to avoid being stripped {@see wp_kses()}.
+ * @param int    $error_level   Optional. The designated error type for this error.
+ *                              Only works with E_USER family of constants. Default E_USER_NOTICE.
+ */
+function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTICE ) {
+
+	// Bail out if WP_DEBUG is not turned on.
+	if ( ! WP_DEBUG ) {
+		return;
+	}
+
+	/**
+	 * Fires when the given function triggers a user-level error/warning/notice/deprecation message.
+	 *
+	 * Can be used for debug backtracking.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $function_name The function that was called.
+	 * @param string $message       A message explaining what has been done incorrectly.
+	 * @param int    $error_level   The designated error type for this error.
+	 */
+	do_action( 'wp_trigger_error_run', $function_name, $message, $error_level );
+
+	if ( ! empty( $function_name ) ) {
+		$message = sprintf( '%s(): %s', $function_name, $message );
+	}
+
+	$message = wp_kses(
+		$message,
+		array(
+			'a' => array( 'href' ),
+			'br',
+			'code',
+			'em',
+			'strong',
+		),
+		array( 'http', 'https' )
+	);
+
+	trigger_error( $message, $error_level );
 }
 
 /**
@@ -5937,7 +6043,7 @@ function is_lighttpd_before_150() {
 	$server_parts    = explode( '/', isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : '' );
 	$server_parts[1] = isset( $server_parts[1] ) ? $server_parts[1] : '';
 
-	return ( 'lighttpd' === $server_parts[0] && -1 == version_compare( $server_parts[1], '1.5.0' ) );
+	return ( 'lighttpd' === $server_parts[0] && -1 === version_compare( $server_parts[1], '1.5.0' ) );
 }
 
 /**
@@ -6346,6 +6452,7 @@ function wp_timezone_override_offset() {
 	if ( false === $timezone_object || false === $datetime_object ) {
 		return false;
 	}
+
 	return round( timezone_offset_get( $timezone_object, $datetime_object ) / HOUR_IN_SECONDS, 2 );
 }
 
@@ -6366,33 +6473,42 @@ function _wp_timezone_choice_usort_callback( $a, $b ) {
 		if ( str_starts_with( $a['city'], 'GMT+' ) && str_starts_with( $b['city'], 'GMT+' ) ) {
 			return -1 * ( strnatcasecmp( $a['city'], $b['city'] ) );
 		}
+
 		if ( 'UTC' === $a['city'] ) {
 			if ( str_starts_with( $b['city'], 'GMT+' ) ) {
 				return 1;
 			}
+
 			return -1;
 		}
+
 		if ( 'UTC' === $b['city'] ) {
 			if ( str_starts_with( $a['city'], 'GMT+' ) ) {
 				return -1;
 			}
+
 			return 1;
 		}
+
 		return strnatcasecmp( $a['city'], $b['city'] );
 	}
-	if ( $a['t_continent'] == $b['t_continent'] ) {
-		if ( $a['t_city'] == $b['t_city'] ) {
+
+	if ( $a['t_continent'] === $b['t_continent'] ) {
+		if ( $a['t_city'] === $b['t_city'] ) {
 			return strnatcasecmp( $a['t_subcity'], $b['t_subcity'] );
 		}
+
 		return strnatcasecmp( $a['t_city'], $b['t_city'] );
 	} else {
 		// Force Etc to the bottom of the list.
 		if ( 'Etc' === $a['continent'] ) {
 			return 1;
 		}
+
 		if ( 'Etc' === $b['continent'] ) {
 			return -1;
 		}
+
 		return strnatcasecmp( $a['t_continent'], $b['t_continent'] );
 	}
 }
@@ -6897,8 +7013,7 @@ function wp_find_hierarchy_loop_tortoise_hare( $callback, $start, $override = ar
 	$evanescent_hare = $start;
 	$return          = array();
 
-	// Set evanescent_hare to one past hare.
-	// Increment hare two steps.
+	// Set evanescent_hare to one past hare. Increment hare two steps.
 	while (
 		$tortoise
 	&&
@@ -6913,7 +7028,7 @@ function wp_find_hierarchy_loop_tortoise_hare( $callback, $start, $override = ar
 		}
 
 		// Tortoise got lapped - must be a loop.
-		if ( $tortoise == $evanescent_hare || $tortoise == $hare ) {
+		if ( $tortoise === $evanescent_hare || $tortoise === $hare ) {
 			return $_return_loop ? $return : $tortoise;
 		}
 
@@ -6997,7 +7112,7 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
 	$trace       = debug_backtrace( false );
 	$caller      = array();
 	$check_class = ! is_null( $ignore_class );
-	$skip_frames++; // Skip this function.
+	++$skip_frames; // Skip this function.
 
 	if ( ! isset( $truncate_paths ) ) {
 		$truncate_paths = array(
@@ -7008,9 +7123,9 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
 
 	foreach ( $trace as $call ) {
 		if ( $skip_frames > 0 ) {
-			$skip_frames--;
+			--$skip_frames;
 		} elseif ( isset( $call['class'] ) ) {
-			if ( $check_class && $ignore_class == $call['class'] ) {
+			if ( $check_class && $ignore_class === $call['class'] ) {
 				continue; // Filter out calls.
 			}
 
@@ -7489,6 +7604,7 @@ function wp_post_preview_js() {
 	// Has to match the window name used in post_submit_meta_box().
 	$name = 'wp-preview-' . (int) $post->ID;
 
+	ob_start();
 	?>
 	<script>
 	( function() {
@@ -7504,6 +7620,7 @@ function wp_post_preview_js() {
 	}());
 	</script>
 	<?php
+	wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
 }
 
 /**
@@ -8152,15 +8269,23 @@ function wp_get_default_update_php_url() {
  *
  * @since 5.1.0
  * @since 5.2.0 Added the `$before` and `$after` parameters.
+ * @since 6.4.0 Added the `$display` parameter.
  *
- * @param string $before Markup to output before the annotation. Default `<p class="description">`.
- * @param string $after  Markup to output after the annotation. Default `</p>`.
+ * @param string $before  Markup to output before the annotation. Default `<p class="description">`.
+ * @param string $after   Markup to output after the annotation. Default `</p>`.
+ * @param bool   $display Whether to echo or return the markup. Default `true` for echo.
+ *
+ * @return string|void
  */
-function wp_update_php_annotation( $before = '<p class="description">', $after = '</p>' ) {
+function wp_update_php_annotation( $before = '<p class="description">', $after = '</p>', $display = true ) {
 	$annotation = wp_get_update_php_annotation();
 
 	if ( $annotation ) {
-		echo $before . $annotation . $after;
+		if ( $display ) {
+			echo $before . $annotation . $after;
+		} else {
+			return $before . $annotation . $after;
+		}
 	}
 }
 
@@ -8239,7 +8364,7 @@ function wp_direct_php_update_button() {
 
 	echo '<p class="button-container">';
 	printf(
-		'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+		'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 		esc_url( $direct_update_url ),
 		__( 'Update PHP' ),
 		/* translators: Hidden accessibility text. */
@@ -8349,8 +8474,10 @@ function wp_get_direct_update_https_url() {
  */
 function get_dirsize( $directory, $max_execution_time = null ) {
 
-	// Exclude individual site directories from the total when checking the main site of a network,
-	// as they are subdirectories and should not be counted.
+	/*
+	 * Exclude individual site directories from the total when checking the main site of a network,
+	 * as they are subdirectories and should not be counted.
+	 */
 	if ( is_multisite() && is_main_site() ) {
 		$size = recurse_dirsize( $directory, $directory . '/sites', $max_execution_time );
 	} else {
@@ -8476,7 +8603,8 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 
 	// Only write the transient on the top level call and not on recursive calls.
 	if ( $save_cache ) {
-		set_transient( 'dirsize_cache', $directory_cache );
+		$expiration = ( wp_using_ext_object_cache() ) ? 0 : 10 * YEAR_IN_SECONDS;
+		set_transient( 'dirsize_cache', $directory_cache, $expiration );
 	}
 
 	return $size;
@@ -8511,12 +8639,13 @@ function clean_dirsize_cache( $path ) {
 		return;
 	}
 
+	$expiration = ( wp_using_ext_object_cache() ) ? 0 : 10 * YEAR_IN_SECONDS;
 	if (
 		! str_contains( $path, '/' ) &&
 		! str_contains( $path, '\\' )
 	) {
 		unset( $directory_cache[ $path ] );
-		set_transient( 'dirsize_cache', $directory_cache );
+		set_transient( 'dirsize_cache', $directory_cache, $expiration );
 		return;
 	}
 
@@ -8535,7 +8664,7 @@ function clean_dirsize_cache( $path ) {
 		unset( $directory_cache[ $path ] );
 	}
 
-	set_transient( 'dirsize_cache', $directory_cache );
+	set_transient( 'dirsize_cache', $directory_cache, $expiration );
 }
 
 /**
@@ -8578,9 +8707,153 @@ function is_php_version_compatible( $required ) {
  *
  * @param int|float $expected  The expected value.
  * @param int|float $actual    The actual number.
- * @param int|float $precision The allowed variation.
+ * @param int|float $precision Optional. The allowed variation. Default 1.
  * @return bool Whether the numbers match within the specified precision.
  */
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
+}
+
+/**
+ * Creates and returns the markup for an admin notice.
+ *
+ * @since 6.4.0
+ *
+ * @param string $message The message.
+ * @param array  $args {
+ *     Optional. An array of arguments for the admin notice. Default empty array.
+ *
+ *     @type string   $type               Optional. The type of admin notice.
+ *                                        For example, 'error', 'success', 'warning', 'info'.
+ *                                        Default empty string.
+ *     @type bool     $dismissible        Optional. Whether the admin notice is dismissible. Default false.
+ *     @type string   $id                 Optional. The value of the admin notice's ID attribute. Default empty string.
+ *     @type string[] $additional_classes Optional. A string array of class names. Default empty array.
+ *     @type string[] $attributes         Optional. Additional attributes for the notice div. Default empty array.
+ *     @type bool     $paragraph_wrap     Optional. Whether to wrap the message in paragraph tags. Default true.
+ * }
+ * @return string The markup for an admin notice.
+ */
+function wp_get_admin_notice( $message, $args = array() ) {
+	$defaults = array(
+		'type'               => '',
+		'dismissible'        => false,
+		'id'                 => '',
+		'additional_classes' => array(),
+		'attributes'         => array(),
+		'paragraph_wrap'     => true,
+	);
+
+	$args = wp_parse_args( $args, $defaults );
+
+	/**
+	 * Filters the arguments for an admin notice.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array  $args    The arguments for the admin notice.
+	 * @param string $message The message for the admin notice.
+	 */
+	$args       = apply_filters( 'wp_admin_notice_args', $args, $message );
+	$id         = '';
+	$classes    = 'notice';
+	$attributes = '';
+
+	if ( is_string( $args['id'] ) ) {
+		$trimmed_id = trim( $args['id'] );
+
+		if ( '' !== $trimmed_id ) {
+			$id = 'id="' . $trimmed_id . '" ';
+		}
+	}
+
+	if ( is_string( $args['type'] ) ) {
+		$type = trim( $args['type'] );
+
+		if ( str_contains( $type, ' ' ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: %s: The "type" key. */
+					__( 'The %s key must be a string without spaces.' ),
+					'<code>type</code>'
+				),
+				'6.4.0'
+			);
+		}
+
+		if ( '' !== $type ) {
+			$classes .= ' notice-' . $type;
+		}
+	}
+
+	if ( true === $args['dismissible'] ) {
+		$classes .= ' is-dismissible';
+	}
+
+	if ( is_array( $args['additional_classes'] ) && ! empty( $args['additional_classes'] ) ) {
+		$classes .= ' ' . implode( ' ', $args['additional_classes'] );
+	}
+
+	if ( is_array( $args['attributes'] ) && ! empty( $args['attributes'] ) ) {
+		$attributes = '';
+		foreach ( $args['attributes'] as $attr => $val ) {
+			if ( is_bool( $val ) ) {
+				$attributes .= $val ? ' ' . $attr : '';
+			} elseif ( is_int( $attr ) ) {
+				$attributes .= ' ' . esc_attr( trim( $val ) );
+			} elseif ( $val ) {
+				$attributes .= ' ' . $attr . '="' . esc_attr( trim( $val ) ) . '"';
+			}
+		}
+	}
+
+	if ( false !== $args['paragraph_wrap'] ) {
+		$message = "<p>$message</p>";
+	}
+
+	$markup = sprintf( '<div %1$sclass="%2$s"%3$s>%4$s</div>', $id, $classes, $attributes, $message );
+
+	/**
+	 * Filters the markup for an admin notice.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $markup  The HTML markup for the admin notice.
+	 * @param string $message The message for the admin notice.
+	 * @param array  $args    The arguments for the admin notice.
+	 */
+	return apply_filters( 'wp_admin_notice_markup', $markup, $message, $args );
+}
+
+/**
+ * Outputs an admin notice.
+ *
+ * @since 6.4.0
+ *
+ * @param string $message The message to output.
+ * @param array  $args {
+ *     Optional. An array of arguments for the admin notice. Default empty array.
+ *
+ *     @type string   $type               Optional. The type of admin notice.
+ *                                        For example, 'error', 'success', 'warning', 'info'.
+ *                                        Default empty string.
+ *     @type bool     $dismissible        Optional. Whether the admin notice is dismissible. Default false.
+ *     @type string   $id                 Optional. The value of the admin notice's ID attribute. Default empty string.
+ *     @type string[] $additional_classes Optional. A string array of class names. Default empty array.
+ *     @type bool     $paragraph_wrap     Optional. Whether to wrap the message in paragraph tags. Default true.
+ * }
+ */
+function wp_admin_notice( $message, $args = array() ) {
+	/**
+	 * Fires before an admin notice is output.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $message The message for the admin notice.
+	 * @param array  $args    The arguments for the admin notice.
+	 */
+	do_action( 'wp_admin_notice', $message, $args );
+
+	echo wp_kses_post( wp_get_admin_notice( $message, $args ) );
 }

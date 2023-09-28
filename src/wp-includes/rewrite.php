@@ -210,7 +210,8 @@ function add_permastruct( $name, $struct, $args = array() ) {
 	if ( ! is_array( $args ) ) {
 		$args = array( 'with_front' => $args );
 	}
-	if ( func_num_args() == 4 ) {
+
+	if ( func_num_args() === 4 ) {
 		$args['ep_mask'] = func_get_arg( 3 );
 	}
 
@@ -598,9 +599,11 @@ function url_to_postid( $url ) {
 	$request_match = $request;
 	foreach ( (array) $rewrite as $match => $query ) {
 
-		// If the requesting file is the anchor of the match,
-		// prepend it to the path info.
-		if ( ! empty( $url ) && ( $url != $request ) && str_starts_with( $match, $url ) ) {
+		/*
+		 * If the requesting file is the anchor of the match,
+		 * prepend it to the path info.
+		 */
+		if ( ! empty( $url ) && ( $url !== $request ) && str_starts_with( $match, $url ) ) {
 			$request_match = $url . '/' . $request;
 		}
 
@@ -620,8 +623,10 @@ function url_to_postid( $url ) {
 				}
 			}
 
-			// Got a match.
-			// Trim the query of everything up to the '?'.
+			/*
+			 * Got a match.
+			 * Trim the query of everything up to the '?'.
+			 */
 			$query = preg_replace( '!^.+\?!', '', $query );
 
 			// Substitute the substring matches into the query.

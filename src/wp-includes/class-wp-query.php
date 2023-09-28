@@ -1616,8 +1616,10 @@ class WP_Query {
 				$search_orderby .= $wpdb->prepare( "WHEN {$wpdb->posts}.post_title LIKE %s THEN 1 ", $like );
 			}
 
-			// Sanity limit, sort as sentence when more than 6 terms
-			// (few searches are longer than 6 terms and most titles are not).
+			/*
+			 * Sanity limit, sort as sentence when more than 6 terms
+			 * (few searches are longer than 6 terms and most titles are not).
+			 */
 			if ( $num_terms < 7 ) {
 				// All words in title.
 				$search_orderby .= 'WHEN ' . implode( ' AND ', $q['search_orderby_title'] ) . ' THEN 2 ';
@@ -3268,8 +3270,16 @@ class WP_Query {
 			return $post_parents;
 		}
 
+		$is_unfiltered_query = $old_request == $this->request && "{$wpdb->posts}.*" === $fields;
+
 		if ( null === $this->posts ) {
-			$split_the_query = ( $old_request == $this->request && "{$wpdb->posts}.*" === $fields && ! empty( $limits ) && $q['posts_per_page'] < 500 );
+			$split_the_query = (
+				$is_unfiltered_query
+				&& (
+					wp_using_ext_object_cache()
+					|| ( ! empty( $limits ) && $q['posts_per_page'] < 500 )
+				)
+			);
 
 			/**
 			 * Filters whether to split the query.
@@ -3327,6 +3337,8 @@ class WP_Query {
 			/** @var WP_Post[] */
 			$this->posts = array_map( 'get_post', $this->posts );
 		}
+
+		$unfiltered_posts = $this->posts;
 
 		if ( $q['cache_results'] && $id_query_is_cacheable && ! $cache_found ) {
 			$post_ids = wp_list_pluck( $this->posts, 'ID' );
@@ -3461,7 +3473,7 @@ class WP_Query {
 					// Move to front, after other stickies.
 					array_splice( $this->posts, $sticky_offset, 0, array( $sticky_post ) );
 					// Increment the sticky offset. The next sticky will be placed at this offset.
-					$sticky_offset++;
+					++$sticky_offset;
 					// Remove post from sticky posts array.
 					$offset = array_search( $sticky_post->ID, $sticky_posts, true );
 					unset( $sticky_posts[ $offset ] );
@@ -3491,7 +3503,7 @@ class WP_Query {
 
 				foreach ( $stickies as $sticky_post ) {
 					array_splice( $this->posts, $sticky_offset, 0, array( $sticky_post ) );
-					$sticky_offset++;
+					++$sticky_offset;
 				}
 			}
 		}
@@ -3509,8 +3521,10 @@ class WP_Query {
 			$this->posts = apply_filters_ref_array( 'the_posts', array( $this->posts, &$this ) );
 		}
 
-		// Ensure that any posts added/modified via one of the filters above are
-		// of the type WP_Post and are filtered.
+		/*
+		 * Ensure that any posts added/modified via one of the filters above are
+		 * of the type WP_Post and are filtered.
+		 */
 		if ( $this->posts ) {
 			$this->post_count = count( $this->posts );
 
@@ -3518,7 +3532,12 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 
 			if ( $q['cache_results'] ) {
-				update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				if ( $is_unfiltered_query && $unfiltered_posts === $this->posts ) {
+					update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				} else {
+					$post_ids = wp_list_pluck( $this->posts, 'ID' );
+					_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				}
 			}
 
 			/** @var WP_Post */
@@ -3553,8 +3572,10 @@ class WP_Query {
 	private function set_found_posts( $q, $limits ) {
 		global $wpdb;
 
-		// Bail if posts is an empty array. Continue if posts is an empty string,
-		// null, or false to accommodate caching plugins that fill posts later.
+		/*
+		 * Bail if posts is an empty array. Continue if posts is an empty string,
+		 * null, or false to accommodate caching plugins that fill posts later.
+		 */
 		if ( $q['no_found_rows'] || ( is_array( $this->posts ) && ! $this->posts ) ) {
 			return;
 		}
@@ -3607,7 +3628,7 @@ class WP_Query {
 	 */
 	public function next_post() {
 
-		$this->current_post++;
+		++$this->current_post;
 
 		/** @var WP_Post */
 		$this->post = $this->posts[ $this->current_post ];
@@ -3717,7 +3738,7 @@ class WP_Query {
 	 * @return WP_Comment Comment object.
 	 */
 	public function next_comment() {
-		$this->current_comment++;
+		++$this->current_comment;
 
 		/** @var WP_Comment */
 		$this->comment = $this->comments[ $this->current_comment ];
@@ -4306,7 +4327,7 @@ class WP_Query {
 	 * If you set a static page for the front page of your site, this function will return
 	 * true when viewing that page.
 	 *
-	 * Otherwise the same as @see WP_Query::is_home()
+	 * Otherwise the same as {@see WP_Query::is_home()}.
 	 *
 	 * @since 3.1.0
 	 *

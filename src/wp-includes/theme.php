@@ -45,8 +45,10 @@ function wp_get_themes( $args = array() ) {
 	$theme_directories = search_theme_directories();
 
 	if ( is_array( $wp_theme_directories ) && count( $wp_theme_directories ) > 1 ) {
-		// Make sure the active theme wins out, in case search_theme_directories() picks the wrong
-		// one in the case of a conflict. (Normally, last registered theme root wins.)
+		/*
+		 * Make sure the active theme wins out, in case search_theme_directories() picks the wrong
+		 * one in the case of a conflict. (Normally, last registered theme root wins.)
+		 */
 		$current_theme = get_stylesheet();
 		if ( isset( $theme_directories[ $current_theme ] ) ) {
 			$root_of_current_theme = get_raw_theme_root( $current_theme );
@@ -155,7 +157,7 @@ function wp_clean_themes_cache( $clear_update_cache = true ) {
  * @return bool True if a child theme is in use, false otherwise.
  */
 function is_child_theme() {
-	return ( TEMPLATEPATH !== STYLESHEETPATH );
+	return get_template_directory() !== get_stylesheet_directory();
 }
 
 /**
@@ -185,24 +187,40 @@ function get_stylesheet() {
  * Retrieves stylesheet directory path for the active theme.
  *
  * @since 1.5.0
+ * @since 6.4.0 Memoizes filter execution so that it only runs once for the current theme.
+ *
+ * @global string $wp_stylesheet_path Current theme stylesheet directory path.
  *
  * @return string Path to active theme's stylesheet directory.
  */
 function get_stylesheet_directory() {
-	$stylesheet     = get_stylesheet();
-	$theme_root     = get_theme_root( $stylesheet );
-	$stylesheet_dir = "$theme_root/$stylesheet";
+	global $wp_stylesheet_path;
 
-	/**
-	 * Filters the stylesheet directory path for the active theme.
-	 *
-	 * @since 1.5.0
-	 *
-	 * @param string $stylesheet_dir Absolute path to the active theme.
-	 * @param string $stylesheet     Directory name of the active theme.
-	 * @param string $theme_root     Absolute path to themes directory.
-	 */
-	return apply_filters( 'stylesheet_directory', $stylesheet_dir, $stylesheet, $theme_root );
+	if ( null === $wp_stylesheet_path ) {
+		$stylesheet     = get_stylesheet();
+		$theme_root     = get_theme_root( $stylesheet );
+		$stylesheet_dir = "$theme_root/$stylesheet";
+
+		/**
+		 * Filters the stylesheet directory path for the active theme.
+		 *
+		 * @since 1.5.0
+		 *
+		 * @param string $stylesheet_dir Absolute path to the active theme.
+		 * @param string $stylesheet     Directory name of the active theme.
+		 * @param string $theme_root     Absolute path to themes directory.
+		 */
+		$stylesheet_dir = apply_filters( 'stylesheet_directory', $stylesheet_dir, $stylesheet, $theme_root );
+
+		// If there are filter callbacks, force the logic to execute on every call.
+		if ( has_filter( 'stylesheet' ) || has_filter( 'theme_root' ) || has_filter( 'stylesheet_directory' ) ) {
+			return $stylesheet_dir;
+		}
+
+		$wp_stylesheet_path = $stylesheet_dir;
+	}
+
+	return $wp_stylesheet_path;
 }
 
 /**
@@ -319,24 +337,40 @@ function get_template() {
  * Retrieves template directory path for the active theme.
  *
  * @since 1.5.0
+ * @since 6.4.0 Memoizes filter execution so that it only runs once for the current theme.
+ *
+ * @global string $wp_template_path Current theme template directory path.
  *
  * @return string Path to active theme's template directory.
  */
 function get_template_directory() {
-	$template     = get_template();
-	$theme_root   = get_theme_root( $template );
-	$template_dir = "$theme_root/$template";
+	global $wp_template_path;
 
-	/**
-	 * Filters the active theme directory path.
-	 *
-	 * @since 1.5.0
-	 *
-	 * @param string $template_dir The path of the active theme directory.
-	 * @param string $template     Directory name of the active theme.
-	 * @param string $theme_root   Absolute path to the themes directory.
-	 */
-	return apply_filters( 'template_directory', $template_dir, $template, $theme_root );
+	if ( null === $wp_template_path ) {
+		$template     = get_template();
+		$theme_root   = get_theme_root( $template );
+		$template_dir = "$theme_root/$template";
+
+		/**
+		 * Filters the active theme directory path.
+		 *
+		 * @since 1.5.0
+		 *
+		 * @param string $template_dir The path of the active theme directory.
+		 * @param string $template     Directory name of the active theme.
+		 * @param string $theme_root   Absolute path to the themes directory.
+		 */
+		$template_dir = apply_filters( 'template_directory', $template_dir, $template, $theme_root );
+
+		// If there are filter callbacks, force the logic to execute on every call.
+		if ( has_filter( 'template' ) || has_filter( 'theme_root' ) || has_filter( 'template_directory' ) ) {
+			return $template_dir;
+		}
+
+		$wp_template_path = $template_dir;
+	}
+
+	return $wp_template_path;
 }
 
 /**
@@ -510,16 +544,20 @@ function search_theme_directories( $force = false ) {
 				continue;
 			}
 			if ( file_exists( $theme_root . '/' . $dir . '/style.css' ) ) {
-				// wp-content/themes/a-single-theme
-				// wp-content/themes is $theme_root, a-single-theme is $dir.
+				/*
+				 * wp-content/themes/a-single-theme
+				 * wp-content/themes is $theme_root, a-single-theme is $dir.
+				 */
 				$found_themes[ $dir ] = array(
 					'theme_file' => $dir . '/style.css',
 					'theme_root' => $theme_root,
 				);
 			} else {
 				$found_theme = false;
-				// wp-content/themes/a-folder-of-themes/*
-				// wp-content/themes is $theme_root, a-folder-of-themes is $dir, then themes are $sub_dirs.
+				/*
+				 * wp-content/themes/a-folder-of-themes/*
+				 * wp-content/themes is $theme_root, a-folder-of-themes is $dir, then themes are $sub_dirs.
+				 */
 				$sub_dirs = @ scandir( $theme_root . '/' . $dir );
 				if ( ! $sub_dirs ) {
 					trigger_error( "$theme_root/$dir is not readable", E_USER_NOTICE );
@@ -538,8 +576,10 @@ function search_theme_directories( $force = false ) {
 					);
 					$found_theme                           = true;
 				}
-				// Never mind the above, it's just a theme missing a style.css.
-				// Return it; WP_Theme will catch the error.
+				/*
+				 * Never mind the above, it's just a theme missing a style.css.
+				 * Return it; WP_Theme will catch the error.
+				 */
 				if ( ! $found_theme ) {
 					$found_themes[ $dir ] = array(
 						'theme_file' => $dir . '/style.css',
@@ -587,8 +627,10 @@ function get_theme_root( $stylesheet_or_template = '' ) {
 	if ( $stylesheet_or_template ) {
 		$theme_root = get_raw_theme_root( $stylesheet_or_template );
 		if ( $theme_root ) {
-			// Always prepend WP_CONTENT_DIR unless the root currently registered as a theme directory.
-			// This gives relative theme roots the benefit of the doubt when things go haywire.
+			/*
+			 * Always prepend WP_CONTENT_DIR unless the root currently registered as a theme directory.
+			 * This gives relative theme roots the benefit of the doubt when things go haywire.
+			 */
 			if ( ! in_array( $theme_root, (array) $wp_theme_directories, true ) ) {
 				$theme_root = WP_CONTENT_DIR . $theme_root;
 			}
@@ -734,11 +776,13 @@ function locale_stylesheet() {
  * @global WP_Customize_Manager $wp_customize
  * @global array                $sidebars_widgets
  * @global array                $wp_registered_sidebars
+ * @global string               $wp_stylesheet_path
+ * @global string               $wp_template_path
  *
  * @param string $stylesheet Stylesheet name.
  */
 function switch_theme( $stylesheet ) {
-	global $wp_theme_directories, $wp_customize, $sidebars_widgets, $wp_registered_sidebars;
+	global $wp_theme_directories, $wp_customize, $sidebars_widgets, $wp_registered_sidebars, $wp_stylesheet_path, $wp_template_path;
 
 	$requirements = validate_theme_requirements( $stylesheet );
 	if ( is_wp_error( $requirements ) ) {
@@ -821,6 +865,13 @@ function switch_theme( $stylesheet ) {
 	}
 
 	update_option( 'theme_switched', $old_theme->get_stylesheet() );
+
+	/*
+	 * Reset globals to force refresh the next time these directories are
+	 * accessed via `get_stylesheet_directory()` / `get_template_directory()`.
+	 */
+	$wp_stylesheet_path = null;
+	$wp_template_path   = null;
 
 	/**
 	 * Fires after the theme is switched.
@@ -1237,11 +1288,10 @@ function get_header_image_tag( $attr = array() ) {
 	$attr = wp_parse_args(
 		$attr,
 		array(
-			'src'      => $header->url,
-			'width'    => $width,
-			'height'   => $height,
-			'alt'      => $alt,
-			'decoding' => 'async',
+			'src'    => $header->url,
+			'width'  => $width,
+			'height' => $height,
+			'alt'    => $alt,
 		)
 	);
 
@@ -1832,8 +1882,10 @@ function _custom_background_cb() {
 	// $background is the saved custom image, or the default image.
 	$background = set_url_scheme( get_background_image() );
 
-	// $color is the saved custom color.
-	// A default has to be specified in style.css. It will not be printed here.
+	/*
+	 * $color is the saved custom color.
+	 * A default has to be specified in style.css. It will not be printed here.
+	 */
 	$color = get_background_color();
 
 	if ( get_theme_support( 'custom-background', 'default-color' ) === $color ) {
@@ -2507,8 +2559,10 @@ function get_theme_starter_content() {
 				}
 				break;
 
-			// All that's left now are posts (besides attachments).
-			// Not a default case for the sake of clarity and future work.
+			/*
+			 * All that's left now are posts (besides attachments).
+			 * Not a default case for the sake of clarity and future work.
+			 */
 			case 'posts':
 				foreach ( $config[ $type ] as $id => $item ) {
 					if ( is_array( $item ) ) {
@@ -2735,14 +2789,18 @@ function add_theme_support( $feature, ...$args ) {
 			$jit = isset( $args[0]['__jit'] );
 			unset( $args[0]['__jit'] );
 
-			// Merge in data from previous add_theme_support() calls.
-			// The first value registered wins. (A child theme is set up first.)
+			/*
+			 * Merge in data from previous add_theme_support() calls.
+			 * The first value registered wins. (A child theme is set up first.)
+			 */
 			if ( isset( $_wp_theme_features['custom-header'] ) ) {
 				$args[0] = wp_parse_args( $_wp_theme_features['custom-header'][0], $args[0] );
 			}
 
-			// Load in the defaults at the end, as we need to insure first one wins.
-			// This will cause all constants to be defined, as each arg will then be set to the default.
+			/*
+			 * Load in the defaults at the end, as we need to insure first one wins.
+			 * This will cause all constants to be defined, as each arg will then be set to the default.
+			 */
 			if ( $jit ) {
 				$args[0] = wp_parse_args( $args[0], $defaults );
 			}
@@ -2789,8 +2847,10 @@ function add_theme_support( $feature, ...$args ) {
 				$args[0]['random-default'] = false;
 			}
 
-			// If headers are supported, and we still don't have a defined width or height,
-			// we have implicit flex sizes.
+			/*
+			 * If headers are supported, and we still don't have a defined width or height,
+			 * we have implicit flex sizes.
+			 */
 			if ( $jit ) {
 				if ( empty( $args[0]['width'] ) && empty( $args[0]['flex-width'] ) ) {
 					$args[0]['flex-width'] = true;
@@ -3487,12 +3547,16 @@ function _wp_customize_include() {
 	$autosaved         = null;
 	$messenger_channel = null;
 
-	// Value false indicates UUID should be determined after_setup_theme
-	// to either re-use existing saved changeset or else generate a new UUID if none exists.
+	/*
+	 * Value false indicates UUID should be determined after_setup_theme
+	 * to either re-use existing saved changeset or else generate a new UUID if none exists.
+	 */
 	$changeset_uuid = false;
 
-	// Set initially fo false since defaults to true for back-compat;
-	// can be overridden via the customize_changeset_branching filter.
+	/*
+	 * Set initially fo false since defaults to true for back-compat;
+	 * can be overridden via the customize_changeset_branching filter.
+	 */
 	$branching = false;
 
 	if ( $is_customize_admin_page && isset( $input_vars['changeset_uuid'] ) ) {
@@ -3718,9 +3782,9 @@ function wp_customize_support_script() {
 	$admin_origin = parse_url( admin_url() );
 	$home_origin  = parse_url( home_url() );
 	$cross_domain = ( strtolower( $admin_origin['host'] ) !== strtolower( $home_origin['host'] ) );
-	$type_attr    = current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"';
+	ob_start();
 	?>
-	<script<?php echo $type_attr; ?>>
+	<script>
 		(function() {
 			var request, b = document.body, c = 'className', cs = 'customize-support', rcs = new RegExp('(^|\\s+)(no-)?'+cs+'(\\s+|$)');
 
@@ -3736,6 +3800,7 @@ function wp_customize_support_script() {
 		}());
 	</script>
 	<?php
+	wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
 }
 
 /**
@@ -4244,7 +4309,7 @@ function create_initial_theme_features() {
  *
  * @since 5.9.0
  *
- * @return boolean Whether the active theme is a block-based theme or not.
+ * @return bool Whether the active theme is a block-based theme or not.
  */
 function wp_is_block_theme() {
 	return wp_get_theme()->is_block_theme();

@@ -701,8 +701,10 @@ class WP_REST_Server {
 		$embedded = array();
 
 		foreach ( $data['_links'] as $rel => $links ) {
-			// If a list of relations was specified, and the link relation
-			// is not in the list of allowed relations, don't process the link.
+			/*
+			 * If a list of relations was specified, and the link relation
+			 * is not in the list of allowed relations, don't process the link.
+			 */
 			if ( is_array( $embed ) && ! in_array( $rel, $embed, true ) ) {
 				continue;
 			}
@@ -1077,7 +1079,6 @@ class WP_REST_Server {
 
 			foreach ( $handlers as $handler ) {
 				$callback = $handler['callback'];
-				$response = null;
 
 				// Fallback to GET method if no HEAD method is registered.
 				$checked_method = $method;
@@ -1271,10 +1272,23 @@ class WP_REST_Server {
 		);
 
 		$response = new WP_REST_Response( $available );
-		$response->add_link( 'help', 'https://developer.wordpress.org/rest-api/' );
-		$this->add_active_theme_link_to_index( $response );
-		$this->add_site_logo_to_index( $response );
-		$this->add_site_icon_to_index( $response );
+
+		$fields = isset( $request['_fields'] ) ? $request['_fields'] : '';
+		$fields = wp_parse_list( $fields );
+		if ( empty( $fields ) ) {
+			$fields[] = '_links';
+		}
+
+		if ( $request->has_param( '_embed' ) ) {
+			$fields[] = '_embedded';
+		}
+
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_link( 'help', 'https://developer.wordpress.org/rest-api/' );
+			$this->add_active_theme_link_to_index( $response );
+			$this->add_site_logo_to_index( $response );
+			$this->add_site_icon_to_index( $response );
+		}
 
 		/**
 		 * Filters the REST API root index data.

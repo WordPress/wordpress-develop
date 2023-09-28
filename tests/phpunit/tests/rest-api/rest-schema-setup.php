@@ -186,6 +186,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp-site-health/v1/tests/authorization-header',
 			'/wp-site-health/v1/tests/page-cache',
 			'/wp-site-health/v1/directory-sizes',
+			'/wp/v2/wp_pattern_category',
+			'/wp/v2/wp_pattern_category/(?P<id>[\d]+)',
 		);
 
 		$this->assertSameSets( $expected_routes, $routes );

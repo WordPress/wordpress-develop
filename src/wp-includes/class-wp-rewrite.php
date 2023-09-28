@@ -531,7 +531,7 @@ class WP_Rewrite {
 				$front = $front . 'date/';
 				break;
 			}
-			$tok_index++;
+			++$tok_index;
 		}
 
 		$this->date_structure = $front . $date_endian;
@@ -1490,16 +1490,33 @@ class WP_Rewrite {
 	public function wp_rewrite_rules() {
 		$this->rules = get_option( 'rewrite_rules' );
 		if ( empty( $this->rules ) ) {
-			$this->matches = 'matches';
-			$this->rewrite_rules();
-			if ( ! did_action( 'wp_loaded' ) ) {
-				add_action( 'wp_loaded', array( $this, 'flush_rules' ) );
-				return $this->rules;
-			}
-			update_option( 'rewrite_rules', $this->rules );
+			$this->refresh_rewrite_rules();
 		}
 
 		return $this->rules;
+	}
+
+	/**
+	 * Refreshes the rewrite rules, saving the fresh value to the database.
+	 * If the `wp_loaded` action has not occurred yet, will postpone saving to the database.
+	 *
+	 * @since 6.4.0
+	 */
+	private function refresh_rewrite_rules() {
+		$this->rules   = '';
+		$this->matches = 'matches';
+
+		$this->rewrite_rules();
+
+		if ( ! did_action( 'wp_loaded' ) ) {
+			/*
+			 * Is not safe to save the results right now, as the rules may be partial.
+			 * Need to give all rules the chance to register.
+			 */
+			add_action( 'wp_loaded', array( $this, 'flush_rules' ) );
+		} else {
+			update_option( 'rewrite_rules', $this->rules );
+		}
 	}
 
 	/**
@@ -1668,7 +1685,7 @@ class WP_Rewrite {
 			$index = ! str_contains( $query, '?' ) ? strlen( $query ) : strpos( $query, '?' );
 			$front = substr( $query, 0, $index );
 
-			$external = $front != $this->index;
+			$external = $front !== $this->index;
 		}
 
 		// "external" = it doesn't correspond to index.php.
@@ -1799,7 +1816,8 @@ class WP_Rewrite {
 		if ( ! is_array( $args ) ) {
 			$args = array( 'with_front' => $args );
 		}
-		if ( func_num_args() == 4 ) {
+
+		if ( func_num_args() === 4 ) {
 			$args['ep_mask'] = func_get_arg( 3 );
 		}
 
@@ -1812,14 +1830,16 @@ class WP_Rewrite {
 			'walk_dirs'   => true,
 			'endpoints'   => true,
 		);
-		$args     = array_intersect_key( $args, $defaults );
-		$args     = wp_parse_args( $args, $defaults );
+
+		$args = array_intersect_key( $args, $defaults );
+		$args = wp_parse_args( $args, $defaults );
 
 		if ( $args['with_front'] ) {
 			$struct = $this->front . $struct;
 		} else {
 			$struct = $this->root . $struct;
 		}
+
 		$args['struct'] = $struct;
 
 		$this->extra_permastructs[ $name ] = $args;
@@ -1861,8 +1881,7 @@ class WP_Rewrite {
 			unset( $do_hard_later );
 		}
 
-		update_option( 'rewrite_rules', '' );
-		$this->wp_rewrite_rules();
+		$this->refresh_rewrite_rules();
 
 		/**
 		 * Filters whether a "hard" rewrite rule flush should be performed when requested.
@@ -1937,7 +1956,7 @@ class WP_Rewrite {
 	 * @param string $permalink_structure Permalink structure.
 	 */
 	public function set_permalink_structure( $permalink_structure ) {
-		if ( $permalink_structure != $this->permalink_structure ) {
+		if ( $this->permalink_structure !== $permalink_structure ) {
 			$old_permalink_structure = $this->permalink_structure;
 			update_option( 'permalink_structure', $permalink_structure );
 
