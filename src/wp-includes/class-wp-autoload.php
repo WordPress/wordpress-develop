@@ -412,6 +412,8 @@ final class WP_Autoload {
 		'wp_upgrader_skin'                            => 'wp-admin/includes/class-wp-upgrader-skin.php',
 		'wp_upgrader'                                 => 'wp-admin/includes/class-wp-upgrader.php',
 		'wp_users_list_table'                         => 'wp-admin/includes/class-wp-users-list-table.php',
+
+		/* Classes in wp-admin/includes/deprecated.php. */
 		'wp_user_search'                              => 'wp-admin/includes/deprecated.php',
 		'wp_privacy_data_export_requests_table'       => 'wp-admin/includes/deprecated.php',
 		'wp_privacy_data_removal_requests_table'      => 'wp-admin/includes/deprecated.php',
