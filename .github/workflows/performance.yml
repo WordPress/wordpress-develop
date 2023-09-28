@@ -74,6 +74,7 @@ jobs:
   # - Run performance tests (previous/target commit).
   # - Print target performance tests results.
   # - Reset to original commit.
+  # - Install npm dependencies.
   # - Set the environment to the baseline version.
   # - Run baseline performance tests.
   # - Print baseline performance tests results.
@@ -193,6 +194,9 @@ jobs:
 
       - name: Reset to original commit
         run: git reset --hard $GITHUB_SHA
+
+      - name: Install npm dependencies
+        run: npm ci
 
       - name: Set the environment to the baseline version
         run: |
