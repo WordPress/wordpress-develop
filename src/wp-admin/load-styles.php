@@ -17,7 +17,7 @@ if ( ! defined( 'WPINC' ) ) {
 }
 define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
 
-require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
+require_once ABSPATH . WPINC . '/class-wp-autoload.php';
 
 require ABSPATH . 'wp-admin/includes/noop.php';
 require ABSPATH . WPINC . '/theme.php';
