@@ -19,22 +19,22 @@ class Tests_Blocks_Render_Hooks extends WP_UnitTestCase {
 		';
 
 		add_filter( 'do_blocks_pre_render', array( $this, 'do_blocks_pre_render_filter' ) );
-		
+
 		$result = do_blocks( $block_content );
-		
+
 		$this->assertSame( '<p>Hello</p>', trim( $result ) );
-		
+
 		remove_filter( 'do_blocks_pre_render', array( $this, 'do_blocks_pre_render_filter' ) );
 	}
 	public function do_blocks_pre_render_filter( $blocks ) {
 		foreach ( $blocks as $index => $block ) {
 			if ( strpos( $block['innerHTML'], 'WordPress' ) !== false ) {
-				unset( $blocks[$index] );
+				unset( $blocks[ $index ] );
 			}
 		}
 		return $blocks;
 	}
-	
+
 	/**
 	 * @ticket 59131
 	 */
