@@ -158,7 +158,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	/**
 	 * Get the parent post, if the ID is valid.
 	 *
-	 * @since 4.7.2
+	 * @since 6.4.0
 	 *
 	 * @param int $parent_post_id Supplied ID.
 	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
@@ -166,7 +166,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	protected function get_parent( $parent_post_id ) {
 		$error = new WP_Error(
 			'rest_post_invalid_parent',
-			__( 'Invalid post parent ID!' ),
+			__( 'Invalid template parent ID.' ),
 			array( 'status' => 404 )
 		);
 
@@ -192,23 +192,63 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 		$template = _build_block_template_result_from_post( $item );
 		$response = $this->parent_controller->prepare_item_for_response( $template, $request );
 
-		if ( $response instanceof WP_REST_Response ) {
-			$fields = $this->get_fields_for_response( $request );
-			$data   = $response->get_data();
+		$fields = $this->get_fields_for_response( $request );
+		$data   = $response->get_data();
 
-			$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
-			$data    = $this->filter_response_by_context( $data, $context );
+		if ( in_array( 'parent', $fields, true ) ) {
+			$data['parent'] = (int) $item->post_parent;
+		}
 
-			// Wrap the data in a response object.
-			$response = new WP_REST_Response( $data );
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data    = $this->filter_response_by_context( $data, $context );
 
-			if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
-				$links = $this->prepare_links( $template );
-				$response->add_links( $links );
-			}
+		// Wrap the data in a response object.
+		$response = new WP_REST_Response( $data );
+
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$links = $this->prepare_links( $template );
+			$response->add_links( $links );
 		}
 
 		return $response;
+	}
+
+	/**
+	 * Checks if a given request has access to delete a revision.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
+	 */
+	public function delete_item_permissions_check( $request ) {
+		$parent = $this->get_parent( $request['parent'] );
+		if ( is_wp_error( $parent ) ) {
+			return $parent;
+		}
+
+		if ( ! current_user_can( 'delete_post', $parent->ID ) ) {
+			return new WP_Error(
+				'rest_cannot_delete',
+				__( 'Sorry, you are not allowed to delete revisions of this post.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		$revision = $this->get_revision( $request['id'] );
+		if ( is_wp_error( $revision ) ) {
+			return $revision;
+		}
+
+		if ( ! current_user_can( 'edit_theme_options' ) ) {
+			return new WP_Error(
+				'rest_cannot_delete',
+				__( 'Sorry, you are not allowed to delete this revision.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -221,14 +261,11 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	 */
 	protected function prepare_links( $template ) {
 		$links = array(
-			'self'       => array(
+			'self'   => array(
 				'href' => rest_url( sprintf( '/%s/%s/%s/%s/%d', $this->namespace, $this->parent_base, $template->id, $this->rest_base, $template->wp_id ) ),
 			),
-			'collection' => array(
-				'href' => rest_url( rest_get_route_for_post_type_items( 'revision' ) ),
-			),
-			'about'      => array(
-				'href' => rest_url( 'wp/v2/types/revision' ),
+			'parent' => array(
+				'href' => rest_url( sprintf( '/%s/%s/%s', $this->namespace, $this->parent_base, $template->id ) ),
 			),
 		);
 
@@ -244,6 +281,20 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	 */
 
 	public function get_item_schema() {
-		return $this->parent_controller->get_item_schema();
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
+		$schema = $this->parent_controller->get_item_schema();
+
+		$schema['properties']['parent'] = array(
+			'description' => __( 'The ID for the parent of the revision.' ),
+			'type'        => 'integer',
+			'context'     => array( 'view', 'edit', 'embed' ),
+		);
+
+		$this->schema = $schema;
+
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 }
