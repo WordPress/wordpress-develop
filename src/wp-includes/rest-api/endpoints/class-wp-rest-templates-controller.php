@@ -760,7 +760,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	protected function prepare_links( $id ) {
 		$links = array(
 			'self'       => array(
-				'href' => rest_url( rest_get_route_for_post( $id ) ),
+				'href' => rest_url( sprintf( '/%s/%s/%s', $this->namespace, $this->rest_base, $id ) ),
 			),
 			'collection' => array(
 				'href' => rest_url( rest_get_route_for_post_type_items( $this->post_type ) ),
