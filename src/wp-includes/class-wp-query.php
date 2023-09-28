@@ -2534,6 +2534,7 @@ class WP_Query {
 		}
 
 		$skip_post_status = false;
+		$post_type_prime  = $post_type;
 		if ( 'any' === $post_type ) {
 			$in_search_post_types = get_post_types( array( 'exclude_from_search' => false ) );
 			if ( empty( $in_search_post_types ) ) {
@@ -2546,6 +2547,7 @@ class WP_Query {
 			$post_type_where = " AND {$wpdb->posts}.post_type IN ('" . implode( "', '", esc_sql( $post_type ) ) . "')";
 		} else {
 			if ( empty( $post_type ) ) {
+				$post_type_prime = 'any';
 				if ( $this->is_attachment ) {
 					$post_type = 'attachment';
 				} elseif ( $this->is_page ) {
@@ -3533,7 +3535,7 @@ class WP_Query {
 
 			if ( $q['cache_results'] ) {
 				if ( $is_unfiltered_query && $unfiltered_posts === $this->posts ) {
-					update_post_caches( $this->posts, 'any', $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+					update_post_caches( $this->posts, $post_type_prime, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 				} else {
 					$post_ids = wp_list_pluck( $this->posts, 'ID' );
 					_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
