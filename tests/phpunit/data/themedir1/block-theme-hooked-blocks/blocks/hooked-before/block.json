@@ -1,0 +1,6 @@
+{
+	"name": "tests/hooked-before",
+	"blockHooks": {
+		"core/post-content": "before"
+	}
+}

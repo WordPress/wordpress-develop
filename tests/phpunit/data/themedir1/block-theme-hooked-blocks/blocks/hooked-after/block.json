@@ -1,0 +1,6 @@
+{
+	"name": "tests/hooked-after",
+	"blockHooks": {
+		"core/template-part": "after"
+	}
+}
