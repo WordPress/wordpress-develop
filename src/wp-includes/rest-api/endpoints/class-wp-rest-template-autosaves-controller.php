@@ -75,6 +75,14 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 		$this->parent_base          = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
 		$this->namespace            = ! empty( $post_type_object->rest_namespace ) ? $post_type_object->rest_namespace : 'wp/v2';
 	}
+
+	/**
+	 * Registers the routes for autosaves.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @see register_rest_route()
+	 */
 	public function register_routes() {
 		register_rest_route(
 			$this->namespace,
