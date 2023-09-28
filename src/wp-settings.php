@@ -211,6 +211,7 @@ require ABSPATH . WPINC . '/block-supports/spacing.php';
 require ABSPATH . WPINC . '/block-supports/typography.php';
 require ABSPATH . WPINC . '/block-supports/settings.php';
 require ABSPATH . WPINC . '/style-engine.php';
+require ABSPATH . WPINC . '/fonts.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 
