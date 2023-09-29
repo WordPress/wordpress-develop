@@ -216,7 +216,9 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		);
 	}
 
-
+	/**
+	 * @covers WP_REST_Templates_Controller::get_item
+	 */
 	public function test_get_item() {
 		wp_set_current_user( self::$admin_id );
 
@@ -247,6 +249,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	}
 
 	public function test_prepare_item() {
+
 	}
 
 	public function test_get_item_schema() {
@@ -271,6 +274,18 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		);
 	}
 
+	/**
+	 * @covers WP_REST_Templates_Controller::delete_item
+	 */
 	public function test_delete_item() {
+		wp_set_current_user( self::$admin_id );
+
+		// Choosing random revision for the test.
+		$revision_id = array_rand( wp_get_post_revisions( self::$template_post ) );
+		$request     = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
+		$request->set_param( 'force', true );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertNull( get_post( $revision_id ) );
 	}
 }
