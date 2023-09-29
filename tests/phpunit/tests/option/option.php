@@ -461,6 +461,13 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @return array
 	 */
 	public function data_update_option_type_juggling() {
+		/*
+		 * This set of use cases returns params for unit tests in the following format.
+		 *
+		 * @param any       $old_value The initial option value before an update.
+		 * @param any       $new_value The new value being passed to update_option().
+		 * @param null|bool $updated   Optional. The expected return value from update_option. Default false.
+		 */
 		return array(
 			/*
 			 * Truthy values.
