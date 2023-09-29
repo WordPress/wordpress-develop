@@ -279,6 +279,18 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 			$_POST['gmt_offset']      = $_POST['timezone_string'];
 			$_POST['gmt_offset']      = preg_replace( '/UTC\+?/', '', $_POST['gmt_offset'] );
 			$_POST['timezone_string'] = '';
+
+			$posts = $wpdb->get_results( "SELECT ID, post_date_gmt, post_title FROM $wpdb->posts WHERE post_type = 'post'" );
+			foreach ( $posts as $post ) {
+				$current_gmt = $_POST['gmt_offset'];
+				$wpdb->update(
+					$wpdb->posts,
+					array(
+						'post_date' => date( 'Y-m-d H:i:s', strtotime( $post->post_date_gmt ) + ( $current_gmt * 3600 ) ),
+					),
+					array( 'ID' => $post->ID )
+				);
+			}
 		}
 
 		// Handle translation installation.
