@@ -1015,7 +1015,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				'<input type="checkbox" name="checked[]" value="%3$s" id="%1$s" ' . $disabled . '/>',
 				$checkbox_id,
 				/* translators: Hidden accessibility text. %s: Plugin name. */
-				sprintf( __( 'Select %s' ), $plugin_data['Name'] )
+				sprintf( __( 'Select %s' ), $plugin_data['Name'] ),
+				esc_attr( $plugin_file )
 			);
 		}
 
