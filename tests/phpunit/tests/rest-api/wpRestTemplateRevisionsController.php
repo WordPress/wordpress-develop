@@ -12,6 +12,8 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	const TEST_THEME    = 'block-theme';
 	const TEMPLATE_NAME = 'my_template';
 
+	const PARENT_POST_TYPE = 'wp_template';
+
 	/**
 	 * Admin user ID.
 	 *
@@ -35,7 +37,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 
 		self::$admin_id = $factory->user->create(
 			array(
@@ -47,7 +49,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		// Set up template post.
 		self::$template_post = $factory->post->create_and_get(
 			array(
-				'post_type'    => 'wp_template',
+				'post_type'    => self::PARENT_POST_TYPE,
 				'post_name'    => self::TEMPLATE_NAME,
 				'post_title'   => 'My Template',
 				'post_content' => 'Content',
@@ -253,13 +255,17 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 */
 	public function test_prepare_item() {
 		// Choosing random revision for the test.
-		$revision_id      = array_rand( wp_get_post_revisions( self::$template_post ) );
-		$post             = get_post( $revision_id );
-		$request          = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
-		$parent_post_type = 'wp_template';
-		$controller       = new WP_REST_Template_Revisions_Controller( $parent_post_type );
-		$response         = $controller->prepare_item_for_response( $post, $request );
-		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$revision_id = array_rand( wp_get_post_revisions( self::$template_post ) );
+		$post        = get_post( $revision_id );
+		$request     = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
+		$controller  = new WP_REST_Template_Revisions_Controller( self::PARENT_POST_TYPE );
+		$response    = $controller->prepare_item_for_response( $post, $request );
+		$this->assertInstanceOf(
+			WP_REST_Response::class,
+			$response,
+			'Failed asserting that the response object is an instance of WP_REST_Response.'
+		);
+
 		$revision = $response->get_data();
 		$this->assertIsArray( $revision, 'Failed asserting that the revision is an array.' );
 		$this->assertSame(
@@ -305,6 +311,37 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 * @covers WP_REST_Template_Revisions_Controller::get_item_schema
 	 */
 	public function test_get_item_schema() {
+		$controller  = new WP_REST_Template_Revisions_Controller( self::PARENT_POST_TYPE );
+		$item_schema = $controller->get_item_schema();
+
+		$this->assertIsArray( $item_schema, 'Item schema should be an array' );
+
+		$this->assertSame( self::PARENT_POST_TYPE, $item_schema['title'], 'Title should be the same as PARENT_POST_TYPE' );
+
+		$this->assertIsArray( $item_schema['properties'], 'Properties should be an array' );
+
+		$properties = array(
+			'id',
+			'slug',
+			'theme',
+			'type',
+			'source',
+			'origin',
+			'content',
+			'title',
+			'description',
+			'status',
+			'wp_id',
+			'has_theme_file',
+			'author',
+			'modified',
+			'is_custom',
+			'parent',
+		);
+
+		foreach ( $properties as $property ) {
+			$this->assertArrayHasKey( $property, $item_schema['properties'], "{$property} key should exist in properties" );
+		}
 	}
 
 	/**
