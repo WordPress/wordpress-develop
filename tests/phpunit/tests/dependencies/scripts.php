@@ -260,8 +260,11 @@ JS;
 		wp_enqueue_script( 'main-script-a3', '/main-script-a3.js', array(), null, compact( 'strategy' ) );
 		wp_enqueue_script( 'dependent-script-a3', '/dependent-script-a3.js', array( 'main-script-a3' ), null );
 		$output   = get_echo( 'wp_print_scripts' );
-		$expected = str_replace( "'", '"', "<script type='text/javascript' src='/main-script-a3.js' id='main-script-a3-js' data-wp-strategy='{$strategy}'></script>" );
-		$this->assertStringContainsString( $expected, $output, 'Blocking dependents must force delayed dependencies to become blocking.' );
+		$expected = <<<JS
+			<script type='text/javascript' src='/main-script-a3.js' id='main-script-a3-js' data-wp-strategy='{$strategy}'></script>
+			<script id="dependent-script-a3-js" src="/dependent-script-a3.js" type="text/javascript"></script>
+JS;
+		$this->assertEqualMarkup( $expected, $output, 'Blocking dependents must force delayed dependencies to become blocking.' );
 	}
 
 	/**
@@ -2994,6 +2997,15 @@ HTML
 		foreach ( array( $body->firstChild, $body->lastChild ) as $node ) {
 			if ( $node instanceof DOMText && '' === trim( $node->data ) ) {
 				$body->removeChild( $node );
+			}
+		}
+
+		// Normalize other whitespace nodes.
+		$xpath = new DOMXPath( $dom );
+		foreach ( $xpath->query( '//text()' ) as $node ) {
+			/** @var DOMText $node */
+			if ( preg_match( '/^\s+$/', $node->nodeValue ) ) {
+				$node->nodeValue = ' ';
 			}
 		}
 
