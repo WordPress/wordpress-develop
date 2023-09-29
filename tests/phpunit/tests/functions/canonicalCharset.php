@@ -88,5 +88,4 @@ class Tests_Functions_CanonicalCharset extends WP_UnitTestCase {
 
 		update_option( 'blog_charset', $orig_blog_charset );
 	}
-
 }

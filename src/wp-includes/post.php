@@ -77,7 +77,7 @@ function create_initial_post_types() {
 				'name_admin_bar' => _x( 'Media', 'add new from admin bar' ),
 				'add_new'        => __( 'Add New Media File' ),
 				'edit_item'      => __( 'Edit Media' ),
-				'view_item'      => __( 'View Attachment Page' ),
+				'view_item'      => ( '1' === get_option( 'wp_attachment_pages_enabled' ) ) ? __( 'View Attachment Page' ) : __( 'View Media File' ),
 				'attributes'     => __( 'Attachment Attributes' ),
 			),
 			'public'                => true,
@@ -320,6 +320,8 @@ function create_initial_post_types() {
 				'edit_posts'             => 'edit_posts',
 				'edit_published_posts'   => 'edit_published_posts',
 				'delete_published_posts' => 'delete_published_posts',
+				// Enables trashing draft posts as well.
+				'delete_posts'           => 'delete_posts',
 				'edit_others_posts'      => 'edit_others_posts',
 				'delete_others_posts'    => 'delete_others_posts',
 			),
@@ -1380,7 +1382,7 @@ function register_post_status( $post_status, $args = array() ) {
 	}
 
 	if ( false === $args->label_count ) {
-		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingle,WordPress.WP.I18n.NonSingularStringLiteralPlural
+		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingular,WordPress.WP.I18n.NonSingularStringLiteralPlural
 		$args->label_count = _n_noop( $args->label, $args->label );
 	}
 
@@ -2439,7 +2441,6 @@ function get_posts( $args = null ) {
 
 	$get_posts = new WP_Query();
 	return $get_posts->query( $parsed_args );
-
 }
 
 //
@@ -3998,7 +3999,6 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 	}
 
 	return $results ? $results : false;
-
 }
 
 /**
@@ -5075,7 +5075,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 			do {
 				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_id ) );
-				$suffix++;
+				++$suffix;
 			} while ( $post_name_check );
 			$slug = $alt_post_name;
 		}
@@ -5112,7 +5112,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 			do {
 				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_type, $post_id, $post_parent ) );
-				$suffix++;
+				++$suffix;
 			} while ( $post_name_check );
 			$slug = $alt_post_name;
 		}
@@ -5168,7 +5168,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 			do {
 				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_type, $post_id ) );
-				$suffix++;
+				++$suffix;
 			} while ( $post_name_check );
 			$slug = $alt_post_name;
 		}
@@ -5760,7 +5760,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 			 * ensuring each matches the post ancestry.
 			 */
 			while ( 0 != $p->post_parent && isset( $pages[ $p->post_parent ] ) ) {
-				$count++;
+				++$count;
 				$parent = $pages[ $p->post_parent ];
 				if ( ! isset( $revparts[ $count ] ) || $parent->post_name != $revparts[ $count ] ) {
 					break;
@@ -6073,7 +6073,7 @@ function get_pages( $args = array() ) {
 	 */
 	$orderby = wp_parse_list( $parsed_args['sort_column'] );
 	$orderby = array_map(
-		static function( $orderby_field ) {
+		static function ( $orderby_field ) {
 			$orderby_field = trim( $orderby_field );
 			if ( 'post_modified_gmt' === $orderby_field || 'modified_gmt' === $orderby_field ) {
 				$orderby_field = str_replace( '_gmt', '', $orderby_field );
@@ -7888,7 +7888,7 @@ function get_available_post_mime_types( $type = 'attachment' ) {
 	 * @param string[]|null $mime_types An array of MIME types. Default null.
 	 * @param string        $type       The post type name. Usually 'attachment' but can be any post type.
 	 */
-	$mime_types = apply_filters( 'get_available_post_mime_types', null, $type );
+	$mime_types = apply_filters( 'pre_get_available_post_mime_types', null, $type );
 
 	if ( ! is_array( $mime_types ) ) {
 		$mime_types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );
