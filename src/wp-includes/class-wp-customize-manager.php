@@ -474,7 +474,7 @@ final class WP_Customize_Manager {
 			} )( wp.customize, <?php echo wp_json_encode( $settings ); ?> );
 			</script>
 			<?php
-			$message .= wp_get_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
+			$message .= wp_get_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 		}
 
 		wp_die( $message );
@@ -2100,7 +2100,7 @@ final class WP_Customize_Manager {
 		} )();
 		</script>
 		<?php
-		wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 	}
 
 	/**
@@ -2221,7 +2221,7 @@ final class WP_Customize_Manager {
 			})( _wpCustomizeSettings.values );
 		</script>
 		<?php
-		wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 	}
 
 	/**
@@ -5010,7 +5010,7 @@ final class WP_Customize_Manager {
 			?>
 		</script>
 		<?php
-		wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 	}
 
 	/**

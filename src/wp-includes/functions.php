@@ -3317,7 +3317,6 @@ function wp_get_image_mime( $file ) {
 				// Not using wp_getimagesize() here to avoid an infinite loop.
 				$imagesize = getimagesize( $file );
 			} else {
-				// phpcs:ignore WordPress.PHP.NoSilencedErrors
 				$imagesize = @getimagesize( $file );
 			}
 
@@ -7620,7 +7619,7 @@ function wp_post_preview_js() {
 	}());
 	</script>
 	<?php
-	wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
+	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 }
 
 /**
