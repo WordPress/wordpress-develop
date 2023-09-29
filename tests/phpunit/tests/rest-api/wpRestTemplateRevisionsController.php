@@ -383,5 +383,4 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$this->assertSame( 200, $response->get_status(), 'Failed asserting that the response status is 200.' );
 		$this->assertNull( get_post( $revision_id ), 'Failed asserting that the post with the given revision ID is deleted.' );
 	}
-
 }
