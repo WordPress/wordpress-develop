@@ -2093,11 +2093,8 @@ final class WP_Customize_Manager {
 				return;
 			}
 			const url = new URL( location.href );
-			const queryParams = url.searchParams;
-
-			if ( queryParams.has( 'customize_messenger_channel' ) ) {
-				queryParams.delete( 'customize_messenger_channel' );
-				url.search = queryParams;
+			if ( url.searchParams.has( 'customize_messenger_channel' ) ) {
+				url.searchParams.delete( 'customize_messenger_channel' );
 				location.replace( url );
 			}
 		} )();
