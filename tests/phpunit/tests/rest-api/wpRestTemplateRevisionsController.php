@@ -154,7 +154,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @covers WP_REST_Templates_Controller::get_items
+	 * @covers WP_REST_Template_Revisions_Controller::get_items
 	 */
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
@@ -217,7 +217,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @covers WP_REST_Templates_Controller::get_item
+	 * @covers WP_REST_Template_Revisions_Controller::get_item
 	 */
 	public function test_get_item() {
 		wp_set_current_user( self::$admin_id );
@@ -248,27 +248,84 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		);
 	}
 
+	/**
+	 * @covers WP_REST_Template_Revisions_Controller::prepare_item_for_response
+	 */
 	public function test_prepare_item() {
+		// Choosing random revision for the test.
+		$revision_id      = array_rand( wp_get_post_revisions( self::$template_post ) );
+		$post             = get_post( $revision_id );
+		$request          = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
+		$parent_post_type = 'wp_template';
+		$controller       = new WP_REST_Template_Revisions_Controller( $parent_post_type );
+		$response         = $controller->prepare_item_for_response( $post, $request );
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$revision = $response->get_data();
+		$this->assertIsArray( $revision, 'Failed asserting that the revision is an array.' );
+		$this->assertSame(
+			$revision_id,
+			$revision['wp_id'],
+			sprintf(
+				'Failed asserting that the revision id is the same as %s.',
+				$revision_id
+			)
+		);
+		$this->assertSame(
+			self::$template_post->ID,
+			$revision['parent'],
+			sprintf(
+				'Failed asserting that the parent id of the revision is the same as %s.',
+				self::$template_post->ID
+			)
+		);
 
+		$links = $response->get_links();
+		$this->assertIsArray( $links, 'Failed asserting that the links are an array.' );
+
+		$this->assertStringEndsWith(
+			self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/revisions/' . $revision_id,
+			$links['self'][0]['href'],
+			sprintf(
+				'Failed asserting that the self link ends with %s.',
+				self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/revisions/' . $revision_id
+			)
+		);
+
+		$this->assertStringEndsWith(
+			self::TEST_THEME . '//' . self::TEMPLATE_NAME,
+			$links['parent'][0]['href'],
+			sprintf(
+				'Failed asserting that the parent link ends with %s.',
+				self::TEST_THEME . '//' . self::TEMPLATE_NAME
+			)
+		);
 	}
 
+	/**
+	 * @covers WP_REST_Template_Revisions_Controller::get_item_schema
+	 */
 	public function test_get_item_schema() {
-
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	public function test_create_item() {
 		$this->markTestSkipped(
 			sprintf(
-				"The %s controller doesn't currently support the ability to create template revisions.",
+				"The '%s' controller doesn't currently support the ability to create template revisions.",
 				WP_REST_Template_Revisions_Controller::class
 			)
 		);
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	public function test_update_item() {
 		$this->markTestSkipped(
 			sprintf(
-				"The %s controller doesn't currently support the ability to update template revisions.",
+				"The '%s' controller doesn't currently support the ability to update template revisions.",
 				WP_REST_Template_Revisions_Controller::class
 			)
 		);
