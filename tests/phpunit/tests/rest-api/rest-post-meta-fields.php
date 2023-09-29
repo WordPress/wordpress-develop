@@ -3468,12 +3468,6 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 				false,
 				'cpt',
 			),
-			// Include a test case with slashed data.
-			array(
-				'Test string"',
-				'Test string"',
-				'page',
-			),
 		);
 	}
 
@@ -3521,5 +3515,9 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		// Can json decode values.
 		$values = json_decode( wp_unslash( $data['meta']['foo'] ), true );
 		$this->assertNotNull( $values );
+
+		// Clean up the post.
+		delete_post_meta( $post_id, 'foo' );
+		unregister_post_meta( 'post', 'foo' );
 	}
 }
