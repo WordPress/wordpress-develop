@@ -70,6 +70,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		);
 
 		wp_update_post( $updated_template_post, true, false );
+		wp_save_post_revision( self::$template_post->ID );
 
 		// Update post to create a new revisions.
 		$updated_template_post = array(
@@ -78,6 +79,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		);
 
 		wp_update_post( $updated_template_post, true, false );
+		wp_save_post_revision( self::$template_post->ID );
 
 		// Update post to create a new revisions.
 		$updated_template_post = array(
@@ -86,6 +88,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		);
 
 		wp_update_post( $updated_template_post, true, false );
+		wp_save_post_revision( self::$template_post->ID );
 
 		// Update post to create a new revisions.
 		$updated_template_post = array(
@@ -94,6 +97,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		);
 
 		wp_update_post( $updated_template_post, true, false );
+		wp_save_post_revision( self::$template_post->ID );
 	}
 
 	public function set_up() {
@@ -224,8 +228,8 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	public function test_get_item() {
 		wp_set_current_user( self::$admin_id );
 
-		// Choosing random revision for the test.
-		$revision_id = array_rand( wp_get_post_revisions( self::$template_post ) );
+		$revisions   = wp_get_post_revisions( self::$template_post, array( 'fields' => 'ids' ) );
+		$revision_id = array_shift( $revisions );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
 		$response = rest_get_server()->dispatch( $request );
@@ -254,8 +258,8 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 * @covers WP_REST_Template_Revisions_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		// Choosing random revision for the test.
-		$revision_id = array_rand( wp_get_post_revisions( self::$template_post ) );
+		$revisions   = wp_get_post_revisions( self::$template_post, array( 'fields' => 'ids' ) );
+		$revision_id = array_shift( $revisions );
 		$post        = get_post( $revision_id );
 		$request     = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
 		$controller  = new WP_REST_Template_Revisions_Controller( self::PARENT_POST_TYPE );
@@ -374,8 +378,8 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	public function test_delete_item() {
 		wp_set_current_user( self::$admin_id );
 
-		// Choosing random revision for the test.
-		$revision_id = array_rand( wp_get_post_revisions( self::$template_post ) );
+		$revisions   = wp_get_post_revisions( self::$template_post, array( 'fields' => 'ids' ) );
+		$revision_id = array_shift( $revisions );
 		$request     = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
 		$request->set_param( 'force', true );
 		$response = rest_get_server()->dispatch( $request );
