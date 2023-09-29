@@ -740,29 +740,30 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		$no_name_markup  = '<div class="plugin-dependency"><span class="plugin-dependency-name">%s</span></div>';
 		$has_name_markup = '<div class="plugin-dependency"><span class="plugin-dependency-name">%s</span> %s</div>';
 
-		$plugin_file       = WP_Plugin_Dependencies::get_dependent_filepath( $plugin_data['slug'] );
-		$dependencies      = WP_Plugin_Dependencies::get_dependencies( $plugin_file );
 		$dependencies_list = '';
-		foreach ( $dependencies as $dependency ) {
-			if ( false === WP_Plugin_Dependencies::get_dependency_filepath( $dependency ) ) {
-				$dependencies_list .= sprintf( $no_name_markup, esc_html( $dependency ) );
-				continue;
-			}
-
+		foreach ( $plugin_data['requires_plugins'] as $dependency ) {
 			$dependency_data = WP_Plugin_Dependencies::get_dependency_data( $dependency );
 
-			if ( false === $dependency_data ) {
-				$dependencies_list .= sprintf( $no_name_markup, esc_html( $dependency ) );
+			if (
+				false !== $dependency_data &&
+				! empty( $dependency_data['name'] ) &&
+				! empty( $dependency_data['slug'] ) &&
+				! empty( $dependency_data['version'] )
+			) {
+				$more_details_link  = $this->get_more_details_link( $dependency_data['name'], $dependency_data['slug'] );
+				$dependencies_list .= sprintf( $has_name_markup, esc_html( $dependency_data['name'] ), $more_details_link );
 				continue;
 			}
 
-			if ( empty( $dependency_data['version'] ) || empty( $dependency_data['name'] ) || empty( $dependency_data['slug'] ) ) {
-				$dependencies_list .= sprintf( $no_name_markup, esc_html( $dependency ) );
+			$result = plugins_api( 'plugin_information', array( 'slug' => $dependency ) );
+
+			if ( ! empty( $result->name ) ) {
+				$more_details_link  = $this->get_more_details_link( $result->name, $result->slug );
+				$dependencies_list .= sprintf( $has_name_markup, esc_html( $result->name ), $more_details_link );
 				continue;
 			}
 
-			$more_details_link  = $this->get_more_details_link( $dependency_data['name'], $dependency_data['slug'] );
-			$dependencies_list .= sprintf( $has_name_markup, esc_html( $dependency_data['name'] ), $more_details_link );
+			$dependencies_list .= sprintf( $no_name_markup, esc_html( $dependency ) );
 		}
 
 		$dependencies_notice = sprintf(
