@@ -613,7 +613,7 @@ class WP_Plugin_Dependencies {
 		$dependents_to_deactivate = array();
 		$circular_dependencies    = array_reduce(
 			self::get_circular_dependencies(),
-			function( $all_circular, $circular_pair ) {
+			function ( $all_circular, $circular_pair ) {
 				return array_merge( $all_circular, $circular_pair );
 			},
 			array()
