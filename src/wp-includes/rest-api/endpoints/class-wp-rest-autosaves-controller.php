@@ -214,7 +214,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			define( 'DOING_AUTOSAVE', true );
 		}
 
-		$post = get_post( $request['id'] );
+		$post = $this->get_parent( $request['id'] );
 
 		if ( is_wp_error( $post ) ) {
 			return $post;
