@@ -241,15 +241,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 			return $this->add_additional_fields_schema( $this->schema );
 		}
 
-		$schema = $this->revisions_controller->get_item_schema();
-
-		$schema['properties']['parent'] = array(
-			'description' => __( 'The ID for the parent of the revision.' ),
-			'type'        => 'integer',
-			'context'     => array( 'view', 'edit', 'embed' ),
-		);
-
-		$this->schema = $schema;
+		$this->schema = $this->revisions_controller->get_item_schema();
 
 		return $this->add_additional_fields_schema( $this->schema );
 	}
