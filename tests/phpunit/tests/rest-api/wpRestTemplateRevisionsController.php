@@ -109,12 +109,12 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$this->assertArrayHasKey(
 			'/wp/v2/templates/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/revisions',
 			$routes,
-			'Revisions route does not exist'
+			'Revisions route does not exist.'
 		);
 		$this->assertArrayHasKey(
 			'/wp/v2/templates/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/revisions/(?P<id>[\d]+)',
 			$routes,
-			'Single revision based on the given ID route does not exist'
+			'Single revision based on the given ID route does not exist.'
 		);
 	}
 
@@ -314,11 +314,11 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$controller  = new WP_REST_Template_Revisions_Controller( self::PARENT_POST_TYPE );
 		$item_schema = $controller->get_item_schema();
 
-		$this->assertIsArray( $item_schema, 'Item schema should be an array' );
+		$this->assertIsArray( $item_schema, 'Item schema should be an array.' );
 
-		$this->assertSame( self::PARENT_POST_TYPE, $item_schema['title'], 'Title should be the same as PARENT_POST_TYPE' );
+		$this->assertSame( self::PARENT_POST_TYPE, $item_schema['title'], 'Title should be the same as PARENT_POST_TYPE.' );
 
-		$this->assertIsArray( $item_schema['properties'], 'Properties should be an array' );
+		$this->assertIsArray( $item_schema['properties'], 'Properties should be an array.' );
 
 		$properties = array(
 			'id',
@@ -340,7 +340,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		);
 
 		foreach ( $properties as $property ) {
-			$this->assertArrayHasKey( $property, $item_schema['properties'], "{$property} key should exist in properties" );
+			$this->assertArrayHasKey( $property, $item_schema['properties'], "{$property} key should exist in properties." );
 		}
 	}
 
@@ -379,7 +379,9 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$request     = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
 		$request->set_param( 'force', true );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertNull( get_post( $revision_id ) );
+
+		$this->assertSame( 200, $response->get_status(), 'Failed asserting that the response status is 200.' );
+		$this->assertNull( get_post( $revision_id ), 'Failed asserting that the post with the given revision ID is deleted.' );
 	}
+
 }
