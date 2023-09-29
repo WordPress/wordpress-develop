@@ -127,9 +127,9 @@ class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 		$_POST['mm']           = get_the_date( 'm', $post->post_date );
 		$_POST['jj']           = get_the_date( 'd', $post->post_date );
 		$_POST['aa']           = get_the_date( 'Y', $post->post_date );
-		$_POST['hh']           = '00';
-		$_POST['mn']           = '00';
-		$_POST['ss']           = '00';
+		$_POST['hh']           = get_the_date( 'H', $post->post_date );
+		$_POST['mn']           = get_the_date( 'i', $post->post_date );
+		$_POST['ss']           = get_the_date( 's', $post->post_date );
 
 		// Make the request.
 		try {
