@@ -29,6 +29,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 * @var WP_post
 	 */
 	private static $template_post;
+
 	/**
 	 * Create fake data before our tests run.
 	 *
@@ -41,8 +42,8 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 				'role' => 'administrator',
 			)
 		);
-
 		wp_set_current_user( self::$admin_id );
+
 		// Set up template post.
 		self::$template_post = $factory->post->create_and_get(
 			array(
@@ -249,12 +250,25 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	}
 
 	public function test_get_item_schema() {
+
 	}
 
 	public function test_create_item() {
+		$this->markTestSkipped(
+			sprintf(
+				"The %s controller doesn't currently support the ability to create template revisions.",
+				WP_REST_Template_Revisions_Controller::class
+			)
+		);
 	}
 
 	public function test_update_item() {
+		$this->markTestSkipped(
+			sprintf(
+				"The %s controller doesn't currently support the ability to update template revisions.",
+				WP_REST_Template_Revisions_Controller::class
+			)
+		);
 	}
 
 	public function test_delete_item() {
