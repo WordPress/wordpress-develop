@@ -11782,6 +11782,9 @@ mockedApiResponse.postRevisions = [
         "excerpt": {
             "rendered": ""
         },
+        "meta": {
+            "meta_key": ""
+        },
         "_links": {
             "parent": [
                 {
@@ -11810,6 +11813,9 @@ mockedApiResponse.postRevisions = [
         },
         "excerpt": {
             "rendered": "<p>REST API Client Fixture: Post</p>\n"
+        },
+        "meta": {
+            "meta_key": ""
         },
         "_links": {
             "parent": [
@@ -11841,6 +11847,9 @@ mockedApiResponse.revision = {
     },
     "excerpt": {
         "rendered": "<p>REST API Client Fixture: Post</p>\n"
+    },
+    "meta": {
+        "meta_key": ""
     }
 };
 
@@ -11865,6 +11874,9 @@ mockedApiResponse.postAutosaves = [
         },
         "excerpt": {
             "rendered": ""
+        },
+        "meta": {
+            "meta_key": ""
         },
         "_links": {
             "parent": [
@@ -11896,6 +11908,9 @@ mockedApiResponse.autosave = {
     },
     "excerpt": {
         "rendered": ""
+    },
+    "meta": {
+        "meta_key": ""
     }
 };
 
@@ -12042,6 +12057,9 @@ mockedApiResponse.pageRevisions = [
         "excerpt": {
             "rendered": ""
         },
+        "meta": {
+            "meta_key": ""
+        },
         "_links": {
             "parent": [
                 {
@@ -12070,6 +12088,9 @@ mockedApiResponse.pageRevisions = [
         },
         "excerpt": {
             "rendered": "<p>REST API Client Fixture: Page</p>\n"
+        },
+        "meta": {
+            "meta_key": ""
         },
         "_links": {
             "parent": [
@@ -12101,6 +12122,9 @@ mockedApiResponse.pageRevision = {
     },
     "excerpt": {
         "rendered": "<p>REST API Client Fixture: Page</p>\n"
+    },
+    "meta": {
+        "meta_key": ""
     }
 };
 
@@ -12125,6 +12149,9 @@ mockedApiResponse.pageAutosaves = [
         },
         "excerpt": {
             "rendered": ""
+        },
+        "meta": {
+            "meta_key": ""
         },
         "_links": {
             "parent": [
@@ -12156,6 +12183,9 @@ mockedApiResponse.pageAutosave = {
     },
     "excerpt": {
         "rendered": ""
+    },
+    "meta": {
+        "meta_key": ""
     }
 };
 
