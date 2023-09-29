@@ -194,12 +194,8 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 		}
 
 		/*
-		 * Posts shouldn't be assigned a date unless date explicitly done by the user when needed.
-		 * Change edit_date flag based on post_date changes and if post_date changes is done by user,
-		 * Then set post_date and post_date_gmt in $post_data.
-		 *
-		 * This changes is done considering ticket #59125 issue and previously ticket task #19907 done patch,
-		 * Which create issues ( not updating date/time ) for post status - ( 'draft', 'pending', 'auto-draft' ).
+		 * Only assign a post date if the user has explicitly set a new value.
+		 * See #59125 and #19907.
 		 */
 		$previous_date = $post_id ? get_post_field( 'post_date', $post_id ) : false;
 		if ( $previous_date && $previous_date !== $post_data['post_date'] ) {
@@ -208,6 +204,7 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 		} else {
 			$post_data['edit_date'] = false;
 			unset( $post_data['post_date'] );
+			unset( $post_data['post_date_gmt'] );
 		}
 	}
 
