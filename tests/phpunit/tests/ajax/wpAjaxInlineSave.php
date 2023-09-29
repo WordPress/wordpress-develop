@@ -124,9 +124,9 @@ class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 		$_POST['screen']       = 'edit-post';
 		$_POST['post_view']    = 'list';
 		$_POST['edit_date']    = 'false';
-		$_POST['mm']           = '00';
-		$_POST['jj']           = '00';
-		$_POST['aa']           = '0000';
+		$_POST['mm']           = get_the_date( 'm', $post->post_date );
+		$_POST['jj']           = get_the_date( 'd', $post->post_date );
+		$_POST['aa']           = get_the_date( 'Y', $post->post_date );
 		$_POST['hh']           = '00';
 		$_POST['mn']           = '00';
 		$_POST['ss']           = '00';
