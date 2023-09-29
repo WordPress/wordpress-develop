@@ -178,7 +178,7 @@ class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 		$_POST['post_author']  = $user;
 		$_POST['screen']       = 'edit-post';
 		$_POST['post_view']    = 'list';
-		$_POST['edit_date']    = 'false';
+		$_POST['edit_date']    = 'true';
 		$_POST['mm']           = '09';
 		$_POST['jj']           = 11;
 		$_POST['aa']           = 2020;
@@ -194,6 +194,10 @@ class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 		}
 
 		$post = get_post( $post->ID );
+
+		$post_date = sprintf( '%04d-%02d-%02d %02d:%02d:%02d', $_POST['aa'], $_POST['mm'], $_POST['jj'], $_POST['hh'], $_POST['mn'], $_POST['ss'] );
+
+		$this->assertEquals( get_post_field( 'post_date', $post->ID ), $post_date );
 
 		$this->assertEquals( '2020-09-11 19:20:11', $post->post_date_gmt );
 	}
