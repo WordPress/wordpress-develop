@@ -233,7 +233,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param array $plugin_data Array of plugin data.
+	 * @param string $plugin_file The plugin's filepath, relative to the plugins directory.
 	 * @return array An array of dependent names.
 	 */
 	public static function get_dependent_names( $plugin_file ) {
