@@ -996,7 +996,7 @@ function _esc_attr_single_pass_utf8( $text ) {
 					}
 
 					// Leading zeros are interpreted as zero values; skip them.
-					$num_at += strspn( $text, '0', $num_at  );
+					$num_at += strspn( $text, '0', $num_at );
 
 					// No character reference may be only zeros.
 					if ( $num_at >= strlen( $text ) ) {
@@ -1097,7 +1097,7 @@ function _esc_attr_single_pass_utf8( $text ) {
 				}
 
 				$name_at += 2;
-				$group = $named_character_reference_lookup_table[ $group_key ];
+				$group    = $named_character_reference_lookup_table[ $group_key ];
 
 				$i = 0;
 				while ( $i < strlen( $group ) ) {
@@ -1149,7 +1149,7 @@ function _esc_attr_single_pass_utf8( $text ) {
 					$name_at += $name_length;
 
 					$semicolon_delta = ';' === $name[ $name_length - 1 ] ? -1 : 0;
-					$reference_name = substr( $text, $was_at + 1, $name_at + $name_length - ( $was_at + 1 ) + $semicolon_delta );
+					$reference_name  = substr( $text, $was_at + 1, $name_at + $name_length - ( $was_at + 1 ) + $semicolon_delta );
 
 					// Some names are not allowed by WordPress, even though they are permitted by HTML.
 					if ( $name_length > 0 && ! in_array( $reference_name, $allowedentitynames, true ) ) {
@@ -1181,6 +1181,7 @@ function _esc_attr_single_pass_utf8( $text ) {
 					// It's non-ambiguous, safe to leave it in.
 					if ( ! $ambiguous_follower ) {
 						$output .= substr( $text, $was_at, $name_at - $was_at );
+						$at      = $name_at;
 						break 2;
 					}
 
