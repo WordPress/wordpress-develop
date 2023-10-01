@@ -219,33 +219,31 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @ticket 56922
 	 */
 	public function test_prepare_item() {
-		$autosaves   = wp_get_post_autosave( self::$template_post );
-		$revision_id = array_shift( $autosaves );
-		$post        = get_post( $revision_id );
-		$request     = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves/' . $revision_id );
-		$controller  = new WP_REST_Template_Autosaves_Controller( self::PARENT_POST_TYPE );
-		$response    = $controller->prepare_item_for_response( $post, $request );
+		$autosave_db_post = wp_get_post_autosave( self::$template_post->ID );
+		$request          = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves/' . $autosave_db_post->ID );
+		$controller       = new WP_REST_Template_Autosaves_Controller( self::PARENT_POST_TYPE );
+		$response         = $controller->prepare_item_for_response( $autosave_db_post, $request );
 		$this->assertInstanceOf(
 			WP_REST_Response::class,
 			$response,
 			'Failed asserting that the response object is an instance of WP_REST_Response.'
 		);
 
-		$revision = $response->get_data();
-		$this->assertIsArray( $revision, 'Failed asserting that the revision is an array.' );
+		$autosave = $response->get_data();
+		$this->assertIsArray( $autosave, 'Failed asserting that the autosave is an array.' );
 		$this->assertSame(
-			$revision_id,
-			$revision['wp_id'],
+			$autosave_db_post->ID,
+			$autosave['wp_id'],
 			sprintf(
-				'Failed asserting that the revision id is the same as %s.',
-				$revision_id
+				'Failed asserting that the autosave id is the same as %s.',
+				$autosave_db_post->ID
 			)
 		);
 		$this->assertSame(
 			self::$template_post->ID,
-			$revision['parent'],
+			$autosave['parent'],
 			sprintf(
-				'Failed asserting that the parent id of the revision is the same as %s.',
+				'Failed asserting that the parent id of the autosave is the same as %s.',
 				self::$template_post->ID
 			)
 		);
@@ -254,11 +252,11 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$this->assertIsArray( $links, 'Failed asserting that the links are an array.' );
 
 		$this->assertStringEndsWith(
-			self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/autosaves/' . $revision_id,
+			self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/autosaves/' . $autosave_db_post->ID,
 			$links['self'][0]['href'],
 			sprintf(
 				'Failed asserting that the self link ends with %s.',
-				self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/autosaves/' . $revision_id
+				self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/autosaves/' . $autosave_db_post->ID
 			)
 		);
 
@@ -315,12 +313,6 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @ticket 56922
 	 */
 	public function test_create_item() {
-		$this->markTestSkipped(
-			sprintf(
-				"The '%s' controller doesn't currently support the ability to create template autosaves.",
-				WP_REST_Template_Autosaves_Controller::class
-			)
-		);
 	}
 
 	/**
