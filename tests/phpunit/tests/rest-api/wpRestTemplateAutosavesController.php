@@ -75,7 +75,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		// Create an autosave.
 		self::$autosave_post_id = wp_create_post_autosave(
 			array(
-				'post_content' => 'This content is better.',
+				'post_content' => 'Autosave content.',
 				'post_ID'      => self::$template_post->ID,
 				'post_type'    => self::PARENT_POST_TYPE,
 			)
@@ -162,53 +162,25 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$autosaves = $response->get_data();
 
 		$this->assertCount(
-			4,
+			1,
 			$autosaves,
-			'Failed asserting that the response data contains exactly 4 items.'
+			'Failed asserting that the response data contains exactly 1 item.'
 		);
 
+		$this->assertSame(
+			self::$autosave_post_id,
+			$autosaves[0]['wp_id'],
+			'Failed asserting that the ID of the autosave matches the expected autosave post ID.'
+		);
 		$this->assertSame(
 			self::$template_post->ID,
 			$autosaves[0]['parent'],
-			'Failed asserting that the parent ID of the revision matches the template post ID.'
+			'Failed asserting that the parent ID of the autosave matches the template post ID.'
 		);
 		$this->assertSame(
-			'Content revision #5',
+			'Autosave content.',
 			$autosaves[0]['content']['raw'],
-			'Failed asserting that the content of the revision is "Content revision #5".'
-		);
-
-		$this->assertSame(
-			self::$template_post->ID,
-			$autosaves[1]['parent'],
-			'Failed asserting that the parent ID of the revision matches the template post ID.'
-		);
-		$this->assertSame(
-			'Content revision #4',
-			$autosaves[1]['content']['raw'],
-			'Failed asserting that the content of the revision is "Content revision #4".'
-		);
-
-		$this->assertSame(
-			self::$template_post->ID,
-			$autosaves[2]['parent'],
-			'Failed asserting that the parent ID of the revision matches the template post ID.'
-		);
-		$this->assertSame(
-			'Content revision #3',
-			$autosaves[2]['content']['raw'],
-			'Failed asserting that the content of the revision is "Content revision #3".'
-		);
-
-		$this->assertSame(
-			self::$template_post->ID,
-			$autosaves[3]['parent'],
-			'Failed asserting that the parent ID of the revision matches the template post ID.'
-		);
-		$this->assertSame(
-			'Content revision #2',
-			$autosaves[3]['content']['raw'],
-			'Failed asserting that the content of the revision is "Content revision #2".'
+			'Failed asserting that the content of the autosave is "Autosave content.".'
 		);
 	}
 
@@ -219,27 +191,24 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	public function test_get_item() {
 		wp_set_current_user( self::$admin_id );
 
-		$autosaves   = wp_get_post_autosave( self::$template_post );
-		$revision_id = array_shift( $autosaves );
-
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves/' . $revision_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves/' . self::$template_post->ID );
 		$response = rest_get_server()->dispatch( $request );
 		$revision = $response->get_data();
 
 		$this->assertIsArray( $revision, 'Failed asserting that the revision is an array.' );
 		$this->assertSame(
-			$revision_id,
+			self::$autosave_post_id,
 			$revision['wp_id'],
 			sprintf(
-				'Failed asserting that the revision id is the same as %s.',
-				$revision_id
+				'Failed asserting that the autosave id is the same as %s.',
+				self::$autosave_post_id
 			)
 		);
 		$this->assertSame(
 			self::$template_post->ID,
 			$revision['parent'],
 			sprintf(
-				'Failed asserting that the parent id of the revision is the same as %s.',
+				'Failed asserting that the parent id of the autosave is the same as %s.',
 				self::$template_post->ID
 			)
 		);
@@ -250,7 +219,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @ticket 56922
 	 */
 	public function test_prepare_item() {
-		$autosaves   = wp_get_post_autosaves( self::$template_post, array( 'fields' => 'ids' ) );
+		$autosaves   = wp_get_post_autosave( self::$template_post );
 		$revision_id = array_shift( $autosaves );
 		$post        = get_post( $revision_id );
 		$request     = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves/' . $revision_id );
@@ -368,19 +337,15 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @covers WP_REST_Templates_Controller::delete_item
+	 * @coversNothing
 	 * @ticket 56922
 	 */
 	public function test_delete_item() {
-		wp_set_current_user( self::$admin_id );
-
-		$autosaves   = wp_get_post_autosave( self::$template_post, array( 'fields' => 'ids' ) );
-		$revision_id = array_shift( $autosaves );
-		$request     = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves/' . $revision_id );
-		$request->set_param( 'force', true );
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->assertSame( 200, $response->get_status(), 'Failed asserting that the response status is 200.' );
-		$this->assertNull( get_post( $revision_id ), 'Failed asserting that the post with the given revision ID is deleted.' );
+		$this->markTestSkipped(
+			sprintf(
+				"The '%s' controller doesn't currently support the ability to delete template autosaves.",
+				WP_REST_Template_Autosaves_Controller::class
+			)
+		);
 	}
 }
