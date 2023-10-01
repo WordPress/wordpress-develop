@@ -873,10 +873,10 @@ function switch_theme( $stylesheet ) {
 	$wp_stylesheet_path = null;
 	$wp_template_path   = null;
 
-	// Clear pattern caches.
-	delete_transient( 'wp_theme_patterns_' . $new_theme->get_stylesheet() );
-	delete_transient( 'wp_theme_patterns_' . $old_theme->get_stylesheet() );
-
+	// Clear pattern caches only on single as a this cache maybe being used on other sites.
+	if ( ! is_multisite() ) {
+		delete_site_option( 'wp_theme_patterns_' . $old_theme->get_stylesheet() );
+	}
 	/**
 	 * Fires after the theme is switched.
 	 *
