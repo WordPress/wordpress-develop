@@ -395,7 +395,7 @@ function _register_theme_block_patterns() {
 add_action( 'init', '_register_theme_block_patterns' );
 
 /**
- * Helper function to get a block pattern data for a theme.
+ * Gets block pattern data for a theme.
  *
  * @since 6.4.0
  * @access private

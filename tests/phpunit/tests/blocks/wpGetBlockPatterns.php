@@ -10,13 +10,17 @@
  *
  * @covers ::_wp_get_block_patterns
  */
-class Tests_Blocks_wpGetBlockPatterns extends WP_UnitTestCase {
+class Tests_Blocks_WpGetBlockPatterns extends WP_UnitTestCase {
 	/**
 	 * @ticket 59490
 	 *
 	 * @dataProvider data_wp_get_block_patterns
+	 *
+	 * @param string $theme    The theme's slug.
+	 * @param array  $expected The expected pattern data.
+
 	 */
-	public function test_wp_get_block_patterns( $theme, $expected ) {
+	public function test_should_return_block_patterns( $theme, $expected ) {
 		$patterns = _wp_get_block_patterns( wp_get_theme( $theme ) );
 		$this->assertSameSets( $expected, $patterns );
 	}
@@ -54,7 +58,7 @@ class Tests_Blocks_wpGetBlockPatterns extends WP_UnitTestCase {
 	/**
 	 * @ticket 59490
 	 */
-	public function test_switch_theme() {
+	public function test_should_clear_transient_after_switching_theme() {
 		switch_theme( 'block-theme' );
 		_wp_get_block_patterns( wp_get_theme() );
 		$this->assertSameSets(
@@ -89,6 +93,11 @@ class Tests_Blocks_wpGetBlockPatterns extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_wp_get_block_patterns() {
 		return array(
 			array(
