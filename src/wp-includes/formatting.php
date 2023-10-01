@@ -938,30 +938,32 @@ function _esc_attr_single_pass_utf8( $text ) {
 
 	while ( $at < strlen( $text ) ) {
 		// Jump to the next syntax element.
-		$at += strcspn( $text, "&<>\"'" );
+		$at += strcspn( $text, "&<>\"'", $at );
 		if ( $at >= strlen( $text ) ) {
 			$output .= substr( $text, $was_at );
 			break;
 		}
 
+		$output .= substr( $text, $was_at, $at - $was_at );
+
 		switch ( $text[ $at ] ) {
 			case '<':
-				$output .= substr( $text, $was_at, $at ) . '&lt;';
+				$output .= '&lt;';
 				++$at;
 				break;
 
 			case '>':
-				$output .= substr( $text, $was_at, $at ) . '&gt;';
+				$output .= '&gt;';
 				++$at;
 				break;
 
 			case '"':
-				$output .= substr( $text, $was_at, $at ) . '&quot;';
+				$output .= '&quot;';
 				++$at;
 				break;
 
 			case "'":
-				$output .= substr( $text, $was_at, $at ) . '&apos;';
+				$output .= '&#039;';
 				++$at;
 				break;
 
@@ -975,7 +977,7 @@ function _esc_attr_single_pass_utf8( $text ) {
 				// Numeric character references.
 				if ( '#' === $text[ $at + 1 ] ) {
 					// Cut off before the smallest numeric character reference could appear. e.g. `&#9;`
-					if ( $at + 4 >= strlen( $text ) ) {
+					if ( $at + 4 > strlen( $text ) ) {
 						$output .= '&amp;#';
 						$at     += 2;
 						break;
@@ -1001,7 +1003,7 @@ function _esc_attr_single_pass_utf8( $text ) {
 					// No character reference may be only zeros.
 					if ( $num_at >= strlen( $text ) ) {
 						// Replace the leading `&` and copy the remaining characters.
-						$output .= '&amp;' . substr( $text, $was_at + 1 );
+						$output .= '&amp;' . substr( $text, $at + 1 );
 						break 2;
 					}
 
@@ -1010,12 +1012,12 @@ function _esc_attr_single_pass_utf8( $text ) {
 					$digit_count = strspn( $text, $numeric_digits, $num_at );
 					if ( 0 === $digit_count || $digit_count > $max_digits ) {
 						$num_at += $digit_count;
-						$output .= '&amp;' . substr( $text, $was_at + 1, $num_at - ( $was_at + 1 ) );
+						$output .= '&amp;' . substr( $text, $at + 1, $num_at - ( $at + 1 ) );
 						$at      = $num_at;
 						break;
 					}
 
-					$digits     = substr( $text, $at, $digit_count );
+					$digits     = substr( $text, $digits_at, $digit_count );
 					$code_point = intval( $digits, $numeric_base );
 
 					/*
@@ -1051,41 +1053,48 @@ function _esc_attr_single_pass_utf8( $text ) {
 						)
 					) {
 						$num_at += $digit_count;
-						$output .= '&amp;' . substr( $text, $was_at + 1, $num_at - ( $was_at + 1 ) );
+						$output .= '&amp;' . substr( $text, $at + 1, $num_at - ( $at + 1 ) );
 						$at      = $num_at;
 						break;
 					}
 
 					$num_at += $digit_count;
 					// End of document before the semicolon.
-					if ( $num_at + 1 >= strlen( $text ) ) {
-						$output .= '&amp;' . substr( $text, $was_at + 1 );
+					if ( $num_at >= strlen( $text ) ) {
+						$output .= '&amp;' . substr( $text, $at + 1 );
 						break 2;
 					}
 
-					++$num_at;
-
 					// Missing semicolon.
 					if ( ';' !== $text[ $num_at ] ) {
-						$output .= '&amp;' . substr( $text, $was_at + 1, $num_at - ( $was_at + 1 ) );
+						$output .= '&amp;' . substr( $text, $at + 1, $num_at - ( $at + 1 ) );
 						$at      = $num_at;
 						break;
 					}
 
-					// There's an established valid numeric character reference. Trim its leading zeros.
-					$output .= '&#' . ( $numeric_base === 16 ? 'x' : '' ) . strtoupper( substr( $text, $digits_at, $digit_count ) );
-					$at      = $num_at;
+					/*
+					 * There's an established valid numeric character reference. Trim its leading zeros
+					 * unless it's a single quote, in which case there's an exception for legacy `&#039;`.
+					 */
+					$zero       = 39 === $code_point ? '0' : '';
+					$hex_prefix = 16 === $numeric_base ? 'x' : '';
+					$digits     = strtoupper( substr( $text, $digits_at, $digit_count ) );
+					$output    .= '&#' . $hex_prefix . $zero . $digits . ';';
+					$at         = $num_at + 1;
 					break;
 				}
 
 				/** Tracks inner parsing within the named character reference. */
 				$name_at = $at;
 				// Minimum named character reference is three characters. E.g. `&GT`
-				if ( $name_at + 3 >= strlen( $text ) ) {
+				if ( $name_at + 3 > strlen( $text ) ) {
 					$output .= '&amp;';
 					++$at;
 					break;
 				}
+
+				// Advance past the `&`.
+				++$name_at;
 
 				// &Aacute; -> group "Aa" (skip & since we know it's there).
 				$group_key = substr( $text, $name_at, 2 );
@@ -1138,7 +1147,6 @@ function _esc_attr_single_pass_utf8( $text ) {
 					$name        = substr( $group, $i, $name_length );
 					$i          += $name_length;
 					$sub_length  = ord( $group[ $i++ ] );
-					$sub_at      = $i;
 					$i          += $sub_length;
 
 					// The end of the document came mid-name or the name is not a match.
@@ -1149,18 +1157,18 @@ function _esc_attr_single_pass_utf8( $text ) {
 					$name_at += $name_length;
 
 					$semicolon_delta = ';' === $name[ $name_length - 1 ] ? -1 : 0;
-					$reference_name  = substr( $text, $was_at + 1, $name_at + $name_length - ( $was_at + 1 ) + $semicolon_delta );
+					$reference_name  = substr( $text, $at + 1, $name_at - ( $at + 1 ) + $semicolon_delta );
 
 					// Some names are not allowed by WordPress, even though they are permitted by HTML.
-					if ( $name_length > 0 && ! in_array( $reference_name, $allowedentitynames, true ) ) {
-						$output .= '&amp;' . substr( $text, $was_at + 1, $name_at - $was_at );
+					if ( ! in_array( $reference_name, $allowedentitynames, true ) ) {
+						$output .= '&amp;' . substr( $text, $at + 1, $name_at - ( $at + 1 ) );
 						$at      = $name_at;
 						break 2;
 					}
 
 					// If we have an un-ambiguous ampersand we can safely leave it in.
-					if ( $name_length > 0 && ';' === $name[ $name_length - 1 ] ) {
-						$output .= substr( $text, $was_at, $name_at - $was_at );
+					if ( ';' === $text[ $name_at - 1 ] ) {
+						$output .= substr( $text, $at, $name_at - $at );
 						$at      = $name_at;
 						break 2;
 					}
@@ -1180,15 +1188,20 @@ function _esc_attr_single_pass_utf8( $text ) {
 
 					// It's non-ambiguous, safe to leave it in.
 					if ( ! $ambiguous_follower ) {
-						$output .= substr( $text, $was_at, $name_at - $was_at );
+						$output .= substr( $text, $at, $name_at - $at );
 						$at      = $name_at;
 						break 2;
 					}
 
 					// Ambiguous ampersands are not allowed in an attribute, escape it.
-					$output .= '&amp;' . substr( $text, $was_at + 1, $name_at - ( $was_at + 1 ) );
+					$output .= '&amp;' . substr( $text, $at + 1, $name_at - ( $at + 1 ) );
+					$at      = $name_at;
 					break 2;
 				}
+
+				// The character wasn't found in the groups.
+				$output .= '&amp;';
+				++$at;
 		}
 
 		$was_at = $at;
