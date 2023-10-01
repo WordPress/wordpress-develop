@@ -309,10 +309,37 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @coversNothing
+	 * @covers WP_REST_Template_Autosaves_Controller::create_item
 	 * @ticket 56922
 	 */
 	public function test_create_item() {
+		wp_set_current_user( self::$admin_id );
+
+		$template_id = self::TEST_THEME . '/' . self::TEMPLATE_NAME;
+		$request     = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $template_id . '/autosaves' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
+
+		$request_parameters = array(
+			'title'   => 'Post Title',
+			'content' => 'Post content',
+			'excerpt' => 'Post excerpt',
+			'name'    => 'test',
+			'author'  => get_current_user_id(),
+			'id'      => $template_id,
+		);
+
+		$request->set_body_params( $request_parameters );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertNotWPError( $response );
+		$response = rest_ensure_response( $response );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'content', $data );
+		$this->assertSame( $request_parameters['content'], $data['content']['raw'] );
+
+		$this->assertArrayHasKey( 'title', $data );
+		$this->assertSame( $request_parameters['title'], $data['title']['raw'] );
 	}
 
 	/**
