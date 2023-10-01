@@ -28,7 +28,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @since 6.4.0
 	 *
-	 * @var WP_post
+	 * @var WP_Post
 	 */
 	private static $template_post;
 
