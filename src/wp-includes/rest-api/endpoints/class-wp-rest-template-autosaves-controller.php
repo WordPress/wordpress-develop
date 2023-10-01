@@ -197,6 +197,34 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	}
 
 	/**
+	 * Get the autosave, if the ID is valid.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_Post|WP_Error Revision post object if ID is valid, WP_Error otherwise.
+	 */
+	public function get_item( $request ) {
+		$parent = $this->get_parent( $request->get_param('parent') );
+		if ( is_wp_error( $parent ) ) {
+			return $parent;
+		}
+
+		$autosave = wp_get_post_autosave( $parent->ID );
+
+		if ( ! $autosave ) {
+			return new WP_Error(
+				'rest_post_no_autosave',
+				__( 'There is no autosave revision for this post.' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$response = $this->prepare_item_for_response( $autosave, $request );
+		return $response;
+	}
+
+	/**
 	 * Get the parent post.
 	 *
 	 * @since 6.4.0
