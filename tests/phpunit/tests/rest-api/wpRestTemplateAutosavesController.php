@@ -105,15 +105,22 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+
+		// Collection.
+		$this->assertCount(
+			2,
+			$data['endpoints'],
+			'Failed to assert that the collection autosave endpoints count is 2.'
+		);
 		$this->assertSame(
 			'view',
 			$data['endpoints'][0]['args']['context']['default'],
-			'Failed to assert that the default context for the collection endpoint is "view".'
+			'Failed to assert that the default context for the GET collection endpoint is "view".'
 		);
 		$this->assertSame(
 			array( 'view', 'embed', 'edit' ),
 			$data['endpoints'][0]['args']['context']['enum'],
-			'Failed to assert correct enum values for the collection endpoint.'
+			"Failed to assert that the enum values for the GET collection endpoint are 'view', 'embed', and 'edit'."
 		);
 
 		// Single.
@@ -121,9 +128,9 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount(
-			2,
+			1,
 			$data['endpoints'],
-			'Failed to assert that the single revision endpoint count is 2.'
+			'Failed to assert that the single autosave endpoints count is 1.'
 		);
 		$this->assertSame(
 			'view',
@@ -133,7 +140,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$this->assertSame(
 			array( 'view', 'embed', 'edit' ),
 			$data['endpoints'][0]['args']['context']['enum'],
-			'Failed to assert correct enum values for the single revision endpoint.'
+			"Failed to assert that the enum values for the single revision endpoint are 'view', 'embed', and 'edit'."
 		);
 	}
 
