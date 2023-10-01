@@ -918,9 +918,10 @@ function seems_utf8( $str ) {
 /**
  * Escapes a string value bound for rendering inside an HTML attribute.
  *
- *  - Replaces all special characters with named character references: `&`, `<`, `>`, `"`, and `'`.
- *  - Replaces invalid character references by preserving their raw text after encoding/decoding: `&garbage;` -> `&amp;arbage;`
- *  - Truncates superfluous leading zeros in numeric character references.
+ *  - Encodes special characters with named character references: `&`, `<`, `>`, `"`, and `'`. e.g. `<` becomes `&lt;`.
+ *  - Replaces invalid character references by escaping their leading `&`: e.g. `&garbage;` becomes `&amp;arbage;`.
+ *  - Truncates superfluous leading zeros in numeric character references: e.g. `&#x0003F;` becomes `&#3F;`.
+ *  - Leaves valid character references untouched: e.g. `&hellip;` remains `&hellip;`.
  *
  * @param string $text Unescaped raw string input bound for an HTML attribute.
  * @return string
@@ -1120,7 +1121,7 @@ function _esc_attr_single_pass_utf8( $text ) {
 					 * ┌─────┬────┬──────┬────┬──────────────┬────┬─────┐
 					 * │ ... │ N5 │ Name │ S5 │ Substitution │ N6 │ ... │
 					 * ├─────┼────┼──────┼────┼──────────────┼────┼─────┤
-					 * │ ... │ 04 │ ote; │ 01 │ "            │ 03 │ ... │
+					 * │ ... │ 03 │ ot;  │ 01 │ "            │ 03 │ ... │
 					 * └─────┴────┴──────┴────┴──────────────┴────┴─────┘
 					 *         ^^          ^^
 					 *          |           |
@@ -1130,10 +1131,10 @@ function _esc_attr_single_pass_utf8( $text ) {
 					 *          |             is done for the sake of avoiding
 					 *          |             quoting issues in PHP.
 					 *          |
-					 *          ╰ The "ote;" is four bytes (the finishing of &quo̱ṯe̱;̱)
+					 *          ╰ The "ot;" is three bytes (the finishing of &quo̱t;).
 					 *
 					 * The part of the group string this represents follows:
-					 * > ...\x04ote;\x01\x22\x03...
+					 * > ...\x03ot;\x01\x22\x03...
 					 *
 					 * So we can see that we read a single character and interpret
 					 * it as a byte containing the length of the bytes in the name,
