@@ -934,15 +934,15 @@ function _esc_attr_single_pass_utf8( $text ) {
 	}
 
 	$at     = 0;
-	$was_at = 0;
 	$output = '';
+	$length = strlen( $text );
 
-	while ( $at < strlen( $text ) ) {
+	while ( $at < $length ) {
+		$was_at = $at;
 		// Jump to the next syntax element.
 		$at += strcspn( $text, "&<>\"'", $at );
-		if ( $at >= strlen( $text ) ) {
-			$output .= substr( $text, $was_at );
-			break;
+		if ( $at >= $length ) {
+			return $output . substr( $text, $was_at );
 		}
 
 		$output .= substr( $text, $was_at, $at - $was_at );
@@ -970,15 +970,14 @@ function _esc_attr_single_pass_utf8( $text ) {
 
 			case '&':
 				// Cut off before starting the character reference.
-				if ( $at + 1 >= strlen( $text ) ) {
-					$output .= '&amp;';
-					break 2;
+				if ( $at + 1 >= $length ) {
+					return $output . '&amp;';
 				}
 
 				// Numeric character references.
 				if ( '#' === $text[ $at + 1 ] ) {
 					// Cut off before the smallest numeric character reference could appear. e.g. `&#9;`
-					if ( $at + 4 > strlen( $text ) ) {
+					if ( $at + 4 > $length ) {
 						$output .= '&amp;#';
 						$at     += 2;
 						break;
@@ -1002,10 +1001,9 @@ function _esc_attr_single_pass_utf8( $text ) {
 					$num_at += strspn( $text, '0', $num_at );
 
 					// No character reference may be only zeros.
-					if ( $num_at >= strlen( $text ) ) {
+					if ( $num_at >= $length ) {
 						// Replace the leading `&` and copy the remaining characters.
-						$output .= '&amp;' . substr( $text, $at + 1 );
-						break 2;
+						return $output . '&amp;' . substr( $text, $at + 1 );
 					}
 
 					// Max legitimate character reference is to U+10FFFF.
@@ -1027,6 +1025,11 @@ function _esc_attr_single_pass_utf8( $text ) {
 					 * so we can preserve the input as best we can. The browser will still
 					 * replace it eventually, but until render we don't want to inject
 					 * these replacement characters into the data stream.
+					 *
+					 * @TODO: This is a point of divergence between legacy Core behavior
+					 *        and HTML5. If we escape these with `&` we're preserving the
+					 *        raw text that was typed, e.g. `&#x3;` will render as such.
+					 *        In HTML though the entire sequence would be rendered as `�`.
 					 */
 					if (
 						// Null character.
@@ -1061,9 +1064,8 @@ function _esc_attr_single_pass_utf8( $text ) {
 
 					$num_at += $digit_count;
 					// End of document before the semicolon.
-					if ( $num_at >= strlen( $text ) ) {
-						$output .= '&amp;' . substr( $text, $at + 1 );
-						break 2;
+					if ( $num_at >= $length ) {
+						return $output . '&amp;' . substr( $text, $at + 1 );
 					}
 
 					// Missing semicolon.
@@ -1088,7 +1090,7 @@ function _esc_attr_single_pass_utf8( $text ) {
 				/** Tracks inner parsing within the named character reference. */
 				$name_at = $at;
 				// Minimum named character reference is three characters. E.g. `&GT`
-				if ( $name_at + 3 > strlen( $text ) ) {
+				if ( $name_at + 3 > $length ) {
 					$output .= '&amp;';
 					++$at;
 					break;
@@ -1151,7 +1153,7 @@ function _esc_attr_single_pass_utf8( $text ) {
 					$i          += $sub_length;
 
 					// The end of the document came mid-name or the name is not a match.
-					if ( $name_at + $name_length > strlen( $text ) || 0 !== substr_compare( $text, $name, $name_at, $name_length ) ) {
+					if ( $name_at + $name_length > $length || 0 !== substr_compare( $text, $name, $name_at, $name_length ) ) {
 						continue;
 					}
 
@@ -1180,7 +1182,7 @@ function _esc_attr_single_pass_utf8( $text ) {
 					 * We need to determine if the next letter makes it an ambiguous.
 					 */
 					$ambiguous_follower = (
-						$name_at < strlen( $text ) &&
+						$name_at < $length &&
 						(
 							ctype_alnum( $text[ $name_at ] ) ||
 							'=' === $text[ $name_at ]
@@ -1204,8 +1206,6 @@ function _esc_attr_single_pass_utf8( $text ) {
 				$output .= '&amp;';
 				++$at;
 		}
-
-		$was_at = $at;
 	}
 
 	return $output;
