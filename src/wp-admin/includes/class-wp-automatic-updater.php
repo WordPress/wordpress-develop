@@ -446,6 +446,10 @@ class WP_Automatic_Updater {
 			$allow_relaxed_file_ownership = true;
 		}
 
+		if ( 'plugin' === $type ) {
+			$upgrader->maintenance_mode( true );
+		}
+
 		// Boom, this site's about to get a whole new splash of paint!
 		$upgrade_result = $upgrader->upgrade(
 			$upgrader_item,
@@ -486,6 +490,99 @@ class WP_Automatic_Updater {
 			}
 		}
 
+		error_log( 'Checking ' . var_export( $item->slug, true ) );
+
+		if ( 'plugin' === $type && ! is_wp_error( $upgrade_result ) ) {
+			/*
+			 * The usual time limit is five minutes. However, as loopback requests
+			 * are about to be performed, increase the time limit to account for these.
+			 */
+			if ( function_exists( 'set_time_limit' ) ) {
+				set_time_limit( 10 * MINUTE_IN_SECONDS );
+			}
+
+			/*
+			 * Maintenance mode is disabled after an active plugin
+			 * has been updated during automatic updates.
+			 *
+			 * See Plugin_Upgrader::active_after().
+			 *
+			 * This means the loopback requests performed here will
+			 * be able to navigate to the site and scrape for errors.
+			 *
+			 * Even if visitors browse the site during this time and
+			 * also see the errors, this process will attempt to restore
+			 * the previously installed version within seconds of detecting
+			 * a fatal error.
+			 */
+			if ( $this->has_fatal_error() ) {
+				$upgrade_result = new WP_Error();
+				$temp_backup    = array(
+					array(
+						'dir'  => 'plugins',
+						'slug' => $item->slug,
+						'src'  => WP_PLUGIN_DIR,
+					)
+				);
+
+				/*
+				 * Enable maintenance mode while attempting to restore
+				 * the previously installed version and delete the backup.
+				 *
+				 * This avoids errors if the site is visited while files
+				 * are still being moved.
+				 */
+				$upgrader->maintenance_mode( true );
+
+				$backup_restored = $upgrader->restore_temp_backup( $temp_backup );
+				if ( is_wp_error( $backup_restored ) ) {
+					$upgrade_result->add(
+						'plugin_update_fatal_error_rollback_failed',
+						sprintf(
+							/* translators: %s: The plugin's slug. */
+							__( 'The update for %s contained a fatal error. The previously installed version could not be restored.' ),
+							$item->slug
+						)
+					);
+
+					$upgrade_result->merge_from( $backup_restored );
+				} else {
+					$upgrade_result->add(
+						'plugin_update_fatal_error_rollback_successful',
+						sprintf(
+							/* translators: %s: The plugin's slug. */
+							__( 'The update for %s contained a fatal error. The previously installed version has been restored.' ),
+							$item->slug
+						)
+					);
+
+					$backup_deleted = $upgrader->delete_temp_backup( $temp_backup );
+					if ( is_wp_error( $backup_deleted ) ) {
+						$upgrade_result->merge_from( $backup_deleted );
+					}
+				}
+
+				/*
+				 * The attempt to restore the previously installed version
+				 * and delete the backup is complete.
+				 *
+				 * Allow visitors to browse the site again.
+				 */
+				$upgrader->maintenance_mode( false );
+
+				/*
+				 * Should emails not be working, log the message(s) so that
+				 * the log file contains context for the fatal error,
+				 * and whether a rollback was performed.
+				 *
+				 * `trigger_error()` is not used as it outputs a stack trace
+				 * to this location rather than to the fatal error, which will
+				 * appear above this entry in the log file.
+				 */
+				error_log( implode( "\n", $upgrade_result->get_error_messages() ) );
+			}
+		}
+
 		$this->update_results[ $type ][] = (object) array(
 			'item'     => $item,
 			'result'   => $upgrade_result,
@@ -520,141 +617,21 @@ class WP_Automatic_Updater {
 		remove_action( 'upgrader_process_complete', 'wp_update_plugins' );
 		remove_action( 'upgrader_process_complete', 'wp_update_themes' );
 
+		error_log( 'Automatic plugin updates starting.' );
+
 		// Next, plugins.
 		wp_update_plugins(); // Check for plugin updates.
 		$plugin_updates = get_site_transient( 'update_plugins' );
-		$active_plugins = get_option( 'active_plugins' );
 		if ( $plugin_updates && ! empty( $plugin_updates->response ) ) {
-			$plugin_upgrader     = new Plugin_Upgrader();
-			$skin                = new Automatic_Upgrader_Skin();
-			$plugins_to_activate = array();
-
 			foreach ( $plugin_updates->response as $plugin ) {
-				// Inactive plugins don't need to be checked.
-				if ( is_plugin_inactive( $plugin->plugin ) ) {
-					$this->update( 'plugin', $plugin->plugin );
-					continue;
-				}
-
-				$plugins_to_activate[] = $plugin->plugin;
-
-				/*
-				 * Enable maintenance mode while updating active plugins.
-				 *
-				 * This prevents errors while plugin files are still being
-				 * moved between directories.
-				 */
-				$plugin_upgrader->maintenance_mode( true );
 				$this->update( 'plugin', $plugin );
-				$plugin_upgrader->maintenance_mode( false );
-
-				/*
-				 * Maintenance mode must be disabled in order to run
-				 * the fatal error check, as this performs two loopback
-				 * requests to the dashboard and frontend.
-				 */
-				if ( $this->has_fatal_error() ) {
-					$temp_backup = array(
-						array(
-							'dir'  => 'plugins',
-							'slug' => dirname( $plugin->plugin ),
-							'src'  => WP_PLUGIN_DIR,
-						)
-					);
-
-					$result = new WP_Error();
-
-					/*
-					 * Enable maintenance mode while attempting to
-					 * restore the previously installed version.
-					 *
-					 * This prevents errors while plugin files are still being
-				 	 * moved between directories.
-					 */
-					$plugin_upgrader->maintenance_mode( true );
-					if ( is_wp_error( $plugin_upgrader->restore_temp_backup( $temp_backup ) ) ) {
-						$result->add(
-							'plugin_update_fatal_error_rollback_failed',
-							sprintf(
-								/* translators: %s: The plugin filepath, relative to the plugins directory. */
-								__( 'The update for %s contained a fatal error. The previously installed version could not be restored.' ),
-								$plugin->plugin
-							)
-						);
-						$result->add(
-							'temp_backup_restore_failed',
-							sprintf(
-								$plugin_upgrader->strings['temp_backup_restore_failed'],
-								$plugin->plugin
-							)
-						);
-					} else {
-						$result->add(
-							'plugin_update_fatal_error_rollback_successful',
-							sprintf(
-								/* translators: %s: The plugin filepath, relative to the plugins directory. */
-								__( 'The update for %s contained a fatal error. The previously installed version has been restored.' ),
-								$plugin->plugin
-							)
-						);
-
-						if ( is_wp_error( $plugin_upgrader->delete_temp_backup( $temp_backup ) ) ) {
-							$result->add(
-								'temp_backup_delete_failed',
-								sprintf(
-									$plugin_upgrader->strings['temp_backup_delete_failed'],
-									$plugin->plugin
-								)
-							);
-						}
-					}
-					$plugin_upgrader->maintenance_mode( false );
-
-					$skin->feedback( $result );
-
-					$this->update_results[ 'plugin' ][] = (object) array(
-						'item'     => $plugin,
-						'result'   => $result,
-						'name'     => get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin->plugin ),
-						'messages' => $skin->get_upgrade_messages(),
-					);
-
-					/*
-					* Should emails not be working, log the message(s) so that
-					* the log file contains context for the fatal error,
-					* and whether a rollback was performed.
-					*
-					* `trigger_error()` is not used as it outputs a stack trace
-					* to this location rather than to the fatal error, which will
-					* appear above this entry in the log file.
-					*/
-					error_log( implode( "\n", $result->get_error_messages() ) );
-				}
 			}
-
-			/*
-			 * Reactivate all updated plugins that were previously active.
-			 *
-			 * This resolves an issue where browsing during an automatic update
-			 * may cause some plugins to be deactivated.
-			 *
-			 * This is called on shutdown because, due to the order of plugin updates,
-			 * a plugin that requires a newer version of another plugin may be updated
-			 * before its requirement.
-			 *
-			 * A plugin with requirements will often have built-in checks that
-			 * deactivate itself when its requirements are not met.
-			 */
-			add_action(
-				'shutdown',
-				static function () use ( $active_plugins ) {
-					update_option( 'active_plugins', $active_plugins );
-				}
-			);
 
 			// Force refresh of plugin update information.
 			wp_clean_plugins_cache();
 		}
+
+		error_log( 'Automatic plugin updates complete.' );
 
 		// Next, those themes we all love.
 		wp_update_themes();  // Check for theme updates.
