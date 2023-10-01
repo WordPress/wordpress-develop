@@ -1686,11 +1686,6 @@ Thanks! -- The WordPress Team"
 			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
 		}
 
-		// Make sure PHP process doesn't die before loopback requests complete.
-		if ( function_exists( 'set_time_limit' ) ) {
-			set_time_limit( 5 * MINUTE_IN_SECONDS );
-		}
-
 		// Time to wait for loopback requests to finish.
 		$timeout = 100; // 100 seconds.
 
