@@ -1720,6 +1720,7 @@ Thanks! -- The WordPress Team"
 		$needle_start           = "###### wp_scraping_result_start:$scrape_key ######";
 		$needle_end             = "###### wp_scraping_result_end:$scrape_key ######";
 		$url                    = add_query_arg( $scrape_params, admin_url() );
+		error_log( 'Scraping admin page: ' . $url );
 		$r                      = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
 		$body                   = wp_remote_retrieve_body( $r );
 		$scrape_result_position = strpos( $body, $needle_start );
@@ -1751,6 +1752,7 @@ Thanks! -- The WordPress Team"
 			}
 
 			$url                    = add_query_arg( $scrape_params, $url );
+			error_log( 'Scraping home page: ' . $url );
 			$response               = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
 			$body                   = wp_remote_retrieve_body( $response );
 			$scrape_result_position = strpos( $body, $needle_start );
