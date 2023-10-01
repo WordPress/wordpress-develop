@@ -1220,7 +1220,7 @@ class WP_Upgrader {
 		$errors = new WP_Error();
 
 		if ( empty( $temp_backups ) ) {
-			$temp_backups = $this->temp_restores;
+			$temp_backups = $this->temp_backups;
 		}
 
 		foreach ( $temp_backups as $args ) {
