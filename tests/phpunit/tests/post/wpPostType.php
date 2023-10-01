@@ -229,4 +229,47 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 
 		$this->assertSame( 3, $action->get_call_count() );
 	}
+
+	/**
+	 * @ticket 56922
+	 *
+	 * @dataProvider data_should_have_custom_controller_properties
+	 *
+	 * @covers WP_Post_Type::set_props
+	 *
+	 * @param string $property_name   Property name.
+	 * @param string $controller_name Controller class name.
+	 */
+	public function test_should_allow_to_set_custom_revisions_and_autosaves_controllers_properties( $property_name, $controller_name ) {
+		$post_type = new WP_Post_Type( 'wp_template' );
+		$post_type->set_props(
+			array(
+				$property_name => $controller_name,
+			)
+		);
+
+		$this->assertObjectHasProperty( $property_name, $post_type, $failure_message, "The WP_Post_Type object does not have the expected {$property_name} property." );
+		$this->assertSame( $controller_name, $post_type->$property_name, "Expected the property {$property_name} to have the value {$controller_name}." );
+	}
+
+	/**
+	 * Data provider for test_should_allow_to_set_custom_revisions_and_autosaves_controllers_properties.
+	 *
+	 * @return array[] Arguments {
+	 *     @type string $property_name   Property name.
+	 *     @type string $controller_name Controller class name.
+	 * }
+	 */
+	public function data_should_have_custom_controller_properties() {
+		return array(
+			'autosave_rest_controller_class property'  => array(
+				'autosave_rest_controller_class',
+				'My_Custom_Template_Autosaves_Controller',
+			),
+			'revisions_rest_controller_class property' => array(
+				'revisions_rest_controller_class',
+				'My_Custom_Template_Revisions_Controller',
+			),
+		);
+	}
 }
