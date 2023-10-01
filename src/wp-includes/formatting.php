@@ -1162,7 +1162,13 @@ function _esc_attr_single_pass_utf8( $text ) {
 					$semicolon_delta = ';' === $name[ $name_length - 1 ] ? -1 : 0;
 					$reference_name  = substr( $text, $at + 1, $name_at - ( $at + 1 ) + $semicolon_delta );
 
-					// Some names are not allowed by WordPress, even though they are permitted by HTML.
+					/*
+					 * Some names are not allowed by WordPress, even though they are permitted by HTML.
+					 *
+					 * @TODO: Is there a reason these are limited, or was it simply that not all of the
+					 *        original named character references were added? Is there a reason not to
+					 *        allow all of them? There don't seem to be plugins changing this list.
+					 */
 					if ( ! in_array( $reference_name, $allowedentitynames, true ) ) {
 						$output .= '&amp;' . substr( $text, $at + 1, $name_at - ( $at + 1 ) );
 						$at      = $name_at;
