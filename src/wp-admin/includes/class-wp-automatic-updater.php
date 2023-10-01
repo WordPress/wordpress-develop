@@ -1667,7 +1667,7 @@ Thanks! -- The WordPress Team"
 		$transient    = 'scrape_key_' . $scrape_key;
 		$scrape_nonce = (string) rand();
 
-		set_transient( $transient, $scrape_nonce, 10 );
+		set_transient( $transient, $scrape_nonce, 60 );
 
 		$cookies       = wp_unslash( $_COOKIE );
 		$scrape_params = array(
