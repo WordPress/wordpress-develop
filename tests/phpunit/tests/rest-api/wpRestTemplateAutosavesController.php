@@ -82,10 +82,6 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 	}
 
-	public function set_up() {
-		parent::set_up();
-	}
-
 	/**
 	 * @covers WP_REST_Template_Autosaves_Controller::register_routes
 	 * @ticket 56922

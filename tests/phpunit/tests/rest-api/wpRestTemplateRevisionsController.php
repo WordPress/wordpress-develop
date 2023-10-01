@@ -100,10 +100,6 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		wp_save_post_revision( self::$template_post->ID );
 	}
 
-	public function set_up() {
-		parent::set_up();
-	}
-
 	/**
 	 * @covers WP_REST_Template_Revisions_Controller::register_routes
 	 * @ticket 56922
