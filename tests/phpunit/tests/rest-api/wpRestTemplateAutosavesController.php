@@ -37,7 +37,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 *
 	 * @since 6.4.0
 	 *
-	 * @var WP_post
+	 * @var WP_Post
 	 */
 	private static $autosave_post_id;
 
@@ -139,12 +139,12 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$this->assertSame(
 			'view',
 			$data['endpoints'][0]['args']['context']['default'],
-			'Failed to assert that the default context for the single revision endpoint is "view".'
+			'Failed to assert that the default context for the single autosave endpoint is "view".'
 		);
 		$this->assertSame(
 			array( 'view', 'embed', 'edit' ),
 			$data['endpoints'][0]['args']['context']['enum'],
-			"Failed to assert that the enum values for the single revision endpoint are 'view', 'embed', and 'edit'."
+			"Failed to assert that the enum values for the single autosave endpoint are 'view', 'embed', and 'edit'."
 		);
 	}
 
@@ -191,14 +191,14 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	public function test_get_item() {
 		wp_set_current_user( self::$admin_id );
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves/' . self::$template_post->ID );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves/' . self::$autosave_post_id );
 		$response = rest_get_server()->dispatch( $request );
-		$revision = $response->get_data();
+		$autosave = $response->get_data();
 
-		$this->assertIsArray( $revision, 'Failed asserting that the revision is an array.' );
+		$this->assertIsArray( $autosave, 'Failed asserting that the autosave is an array.' );
 		$this->assertSame(
 			self::$autosave_post_id,
-			$revision['wp_id'],
+			$autosave['wp_id'],
 			sprintf(
 				'Failed asserting that the autosave id is the same as %s.',
 				self::$autosave_post_id
@@ -206,7 +206,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 		$this->assertSame(
 			self::$template_post->ID,
-			$revision['parent'],
+			$autosave['parent'],
 			sprintf(
 				'Failed asserting that the parent id of the autosave is the same as %s.',
 				self::$template_post->ID
