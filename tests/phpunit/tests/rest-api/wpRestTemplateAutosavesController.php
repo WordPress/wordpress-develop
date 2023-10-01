@@ -100,6 +100,10 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 	}
 
+	/**
+	 * @covers WP_REST_Template_Autosaves_Controller::get_context_param
+	 * @ticket 56922
+	 */
 	public function test_context_param() {
 		// Collection.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves' );
@@ -146,6 +150,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 	/**
 	 * @covers WP_REST_Template_Autosaves_Controller::get_items
+	 * @ticket 56922
 	 */
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
@@ -209,6 +214,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 	/**
 	 * @covers WP_REST_Template_Autosaves_Controller::get_item
+	 * @ticket 56922
 	 */
 	public function test_get_item() {
 		wp_set_current_user( self::$admin_id );
@@ -241,6 +247,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 	/**
 	 * @covers WP_REST_Template_Autosaves_Controller::prepare_item_for_response
+	 * @ticket 56922
 	 */
 	public function test_prepare_item() {
 		$autosaves   = wp_get_post_autosaves( self::$template_post, array( 'fields' => 'ids' ) );
@@ -298,6 +305,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 	/**
 	 * @covers WP_REST_Template_Autosaves_Controller::get_item_schema
+	 * @ticket 56922
 	 */
 	public function test_get_item_schema() {
 		$controller  = new WP_REST_Template_Autosaves_Controller( self::PARENT_POST_TYPE );
@@ -335,6 +343,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 	/**
 	 * @coversNothing
+	 * @ticket 56922
 	 */
 	public function test_create_item() {
 		$this->markTestSkipped(
@@ -347,6 +356,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 	/**
 	 * @coversNothing
+	 * @ticket 56922
 	 */
 	public function test_update_item() {
 		$this->markTestSkipped(
@@ -359,6 +369,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 	/**
 	 * @covers WP_REST_Templates_Controller::delete_item
+	 * @ticket 56922
 	 */
 	public function test_delete_item() {
 		wp_set_current_user( self::$admin_id );
