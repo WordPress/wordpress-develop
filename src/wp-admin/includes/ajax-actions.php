@@ -4196,7 +4196,7 @@ function wp_ajax_install_theme() {
 		wp_send_json_error( $status );
 	}
 
-	include_once ABSPATH . 'wp-admin/includes/theme.php';
+	require_once ABSPATH . 'wp-admin/includes/theme.php';
 
 	$api = themes_api(
 		'theme_information',
@@ -4486,7 +4486,7 @@ function wp_ajax_install_plugin() {
 		wp_send_json_error( $status );
 	}
 
-	include_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+	require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 
 	$api = plugins_api(
 		'plugin_information',
