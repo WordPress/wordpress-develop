@@ -91,6 +91,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 					'callback'            => array( $this, 'get_font_collections' ),
 					'permission_callback' => array( $this, 'update_font_library_permissions_check' ),
 				),
+				'schema' => array( $this, 'get_font_collections_schema' ),
 			)
 		);
 
@@ -335,6 +336,44 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 			);
 		}
 		return true;
+	}
+
+	/**
+	 * Retrieves the schema for the font collections item, conforming to JSON Schema.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return array Item schema data.
+	 */
+	public function get_font_collections_schema() {
+		return array(
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'font-collections',
+			'type'       => 'object',
+			'properties' => array(
+				'id'          => array(
+					'description' => __( 'Unique identifier for the font collection.' ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit', 'embed' ),
+					'readonly'    => true,
+				),
+				'name'        => array(
+					'description' => __( 'Name of the font collection.' ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit', 'embed' ),
+				),
+				'description' => array(
+					'description' => __( 'Description of the font collection.' ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit', 'embed' ),
+				),
+				'src'         => array(
+					'description' => __( 'Link to the list of font families.' ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit', 'embed' ),
+				),
+			),
+		);
 	}
 
 	/**
