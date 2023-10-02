@@ -485,7 +485,7 @@ class WP_Font_Family {
 		if ( 0 === $post_id || is_wp_error( $post_id ) ) {
 			return new WP_Error(
 				'font_post_creation_failed',
-				__( 'Font post creation failed' )
+				__( 'Font post creation failed.' )
 			);
 		}
 
