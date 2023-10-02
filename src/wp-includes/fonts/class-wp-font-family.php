@@ -171,13 +171,19 @@ class WP_Font_Family {
 	 */
 	private function get_upload_overrides( $filename ) {
 		return array(
-			// Arbitrary string to avoid the is_uploaded_file() check applied
-			// when using 'wp_handle_upload'.
+
+			/*
+			 * Arbitrary string to avoid the is_uploaded_file() check applied
+			 * when using 'wp_handle_upload'.
+			 */
 			'action'                   => 'wp_handle_font_upload',
 			// Not testing a form submission.
 			'test_form'                => false,
-			// Seems mime type for files that are not images cannot be tested.
-			// See wp_check_filetype_and_ext().
+
+			/*
+			 * Seems mime type for files that are not images cannot be tested.
+			 * See wp_check_filetype_and_ext().
+			 */
 			'test_type'                => true,
 			'mimes'                    => WP_Font_Library::get_font_mime_types(),
 			'unique_filename_callback' => static function () use ( $filename ) {
@@ -231,8 +237,10 @@ class WP_Font_Family {
 			return false;
 		}
 
-		// Returns the relative path to the downloaded font asset to be used as
-		// font face src.
+		/*
+		 * Returns the relative path to the downloaded font asset to be used as
+		 * font face 'src'.
+		 */
 		return $handled_file['url'];
 	}
 
@@ -256,12 +264,16 @@ class WP_Font_Family {
 			$file['name']
 		);
 
-		// Remove the uploaded font asset reference from the font face definition
-		// because it is no longer needed.
+		/*
+		 * Remove the uploaded font asset reference from the font face definition
+		 * because it is no longer needed.
+		 */
 		unset( $new_font_face['uploadedFile'] );
 
-		// If the filename has no font mime type, don't move the file and
-		// return the font face definition without src to be ignored later.
+		/*
+		 * If the filename has no font mime type, don't move the file and
+		 * return the font face definition without src to be ignored later.
+		 */
 		if ( ! WP_Font_Family_Utils::has_font_mime_type( $filename ) ) {
 			return $new_font_face;
 		}
@@ -276,8 +288,11 @@ class WP_Font_Family {
 		$handled_file = wp_handle_upload( $file, $overrides );
 
 		if ( isset( $handled_file['url'] ) ) {
-			// If the file was successfully moved, update the font face definition
-			// to reference the new file location.
+
+			/*
+			 * If the file was successfully moved, update the font face definition
+			 * to reference the new file location.
+			 */
 			$new_font_face['src'] = $handled_file['url'];
 		}
 
@@ -301,14 +316,18 @@ class WP_Font_Family {
 				),
 			),
 		);
-		// Creates a new WP_Theme_JSON object with the new fonts to
-		// leverage sanitization and validation.
+
+		/*
+		 * Creates a new WP_Theme_JSON object with the new fonts to
+		 * leverage sanitization and validation.
+		 */
 		$theme_json     = new WP_Theme_JSON( $fonts_json );
 		$theme_data     = $theme_json->get_data();
 		$sanitized_font = ! empty( $theme_data['settings']['typography']['fontFamilies'] )
 			? $theme_data['settings']['typography']['fontFamilies'][0]
 			: array();
 		$this->data     = $sanitized_font;
+
 		return $this->data;
 	}
 
@@ -349,8 +368,10 @@ class WP_Font_Family {
 			$new_font_face['src'] = $new_font_face['src'][0];
 		}
 
-		// Remove the download url reference from the font face definition
-		// because it is no longer needed.
+		/*
+		 * Remove the download url reference from the font face definition
+		 * because it is no longer needed.
+		 */
 		unset( $new_font_face['downloadFromUrl'] );
 
 		return $new_font_face;
@@ -373,8 +394,11 @@ class WP_Font_Family {
 
 		$new_font_faces = array();
 		foreach ( $this->data['fontFace'] as $font_face ) {
-			// If the fonts are not meant to be dowloaded or uploaded
-			// (for example to install fonts that use a remote url).
+
+			/*
+			 * If the fonts are not meant to be dowloaded or uploaded
+			 * (for example to install fonts that use a remote url).
+			 */
 			$new_font_face = $font_face;
 
 			$font_face_is_repeated = false;
@@ -396,8 +420,10 @@ class WP_Font_Family {
 				$new_font_face = $this->download_font_face_assets( $new_font_face );
 			}
 
-			// If installing local fonts, move the font face assets from
-			// the temp folder to the wp fonts directory.
+			/*
+			 * If installing local fonts, move the font face assets from
+			 * the temp folder to the wp fonts directory.
+			 */
 			if ( ! empty( $font_face['uploadedFile'] ) && ! empty( $files ) ) {
 				$new_font_face = $this->move_font_face_asset(
 					$new_font_face,

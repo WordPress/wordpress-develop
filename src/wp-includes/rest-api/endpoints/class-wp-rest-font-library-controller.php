@@ -138,6 +138,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 			$collection_with_data->add_data( array( 'status' => 500 ) );
 			return $collection_with_data;
 		}
+
 		return rest_ensure_response( $collection_with_data );
 	}
 
