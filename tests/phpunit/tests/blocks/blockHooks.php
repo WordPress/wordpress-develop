@@ -20,6 +20,13 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 	private $registered_block_names = array();
 
 	/**
+	 * Registered pattern names.
+	 *
+	 * @var string[]
+	 */
+	private $registered_pattern_names = array();
+
+	/**
 	 * Tear down after each test.
 	 *
 	 * @since 6.4.0
@@ -28,6 +35,11 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 		while ( ! empty( $this->registered_block_names ) ) {
 			$block_name = array_pop( $this->registered_block_names );
 			unregister_block_type( $block_name );
+		}
+
+		while ( ! empty( $this->registered_pattern_names ) ) {
+			$block_name = array_pop( $this->registered_pattern_names );
+			unregister_block_pattern( $block_name );
 		}
 
 		parent::tear_down();
@@ -44,7 +56,20 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 	}
 
 	private function switch_to_block_theme_hooked_blocks() {
-		switch_theme( 'block-theme-hooked-blocks' );
+		$theme_name = 'block-theme-hooked-blocks';
+		switch_theme( $theme_name );
+
+		_register_theme_block_patterns();
+		$patterns = WP_Block_Patterns_Registry::get_instance()->get_all_registered();
+		foreach ( $patterns as $pattern ) {
+			if ( empty( $pattern['slug'] ) ) {
+				continue;
+			}
+			$pattern_name = $pattern['slug'];
+			if ( str_starts_with( $pattern_name, $theme_name ) ) {
+				$this->registered_pattern_names[] = $pattern_name;
+			}
+		}
 
 		$theme_blocks_dir = wp_normalize_path( realpath( get_theme_file_path( 'blocks' ) ) );
 		$this->register_block_type( $theme_blocks_dir . '/hooked-before' );
@@ -146,12 +171,12 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 59383
+	 * @ticket 59313
 	 *
 	 * @covers ::get_hooked_blocks
 	 * @covers ::get_block_file_template
 	 */
-	public function test_template_with_hooked_blocks() {
+	public function test_loading_template_with_hooked_blocks() {
 		$this->switch_to_block_theme_hooked_blocks();
 
 		$template = get_block_file_template( get_stylesheet() . '//single' );
@@ -161,7 +186,8 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 			$template->content
 		);
 		$this->assertStringContainsString(
-			'<!-- wp:post-content {"layout":{"type":"constrained"}} /--><!-- wp:tests/hooked-after /-->',
+			'<!-- wp:post-content {"layout":{"type":"constrained"}} /-->'
+			. '<!-- wp:tests/hooked-after /-->',
 			$template->content
 		);
 		$this->assertStringNotContainsString(
@@ -175,18 +201,19 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 59383
+	 * @ticket 59313
 	 *
 	 * @covers ::get_hooked_blocks
 	 * @covers ::get_block_file_template
 	 */
-	public function test_template_part_with_hooked_blocks() {
+	public function test_loading_template_part_with_hooked_blocks() {
 		$this->switch_to_block_theme_hooked_blocks();
 
 		$template = get_block_file_template( get_stylesheet() . '//header', 'wp_template_part' );
 
 		$this->assertStringContainsString(
-			'<!-- wp:tests/hooked-before /--><!-- wp:navigation {"layout":{"type":"flex","setCascadingProperties":true,"justifyContent":"right"}} /-->',
+			'<!-- wp:tests/hooked-before /-->'
+			. '<!-- wp:navigation {"layout":{"type":"flex","setCascadingProperties":true,"justifyContent":"right"}} /-->',
 			$template->content
 		);
 		$this->assertStringNotContainsString(
@@ -200,6 +227,40 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 		$this->assertStringNotContainsString(
 			'<!-- wp:tests/hooked-last-child /-->',
 			$template->content
+		);
+	}
+
+	/**
+	 * @ticket 59313
+	 *
+	 * @covers ::get_hooked_blocks
+	 * @covers WP_Block_Patterns_Registry::get_registered
+	 */
+	public function test_loading_pattern_with_hooked_blocks() {
+		$this->switch_to_block_theme_hooked_blocks();
+
+		$pattern = WP_Block_Patterns_Registry::get_instance()->get_registered(
+			get_stylesheet() . '/hidden-comments'
+		);
+
+		$this->assertStringNotContainsString(
+			'<!-- wp:tests/hooked-before /-->',
+			$pattern['content']
+		);
+		$this->assertStringNotContainsString(
+			'<!-- wp:tests/hooked-after /-->',
+			$pattern['content']
+		);
+		$this->assertStringContainsString(
+			'<!-- wp:comments -->'
+        	. '<div class="wp-block-comments">'
+			. '<!-- wp:tests/hooked-first-child /-->',
+			str_replace( array( "\n", "\t" ), '', $pattern['content'] )
+		);
+		$this->assertStringContainsString(
+			'<!-- wp:tests/hooked-last-child /-->'
+			. '<!-- /wp:comment-template -->',
+			str_replace( array( "\n", "\t" ), '', $pattern['content'] )
 		);
 	}
 }
