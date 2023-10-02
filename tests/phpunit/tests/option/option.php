@@ -101,6 +101,62 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58277
+	 *
+	 * @covers ::get_option
+	 */
+	public function test_get_option_notoptions_cache() {
+		$notoptions = array(
+			'invalid' => true,
+		);
+		wp_cache_set( 'notoptions', $notoptions, 'options' );
+
+		$before = get_num_queries();
+		$value  = get_option( 'invalid' );
+		$after  = get_num_queries();
+
+		$this->assertSame( 0, $after - $before );
+	}
+
+	/**
+	 * @ticket 58277
+	 *
+	 * @covers ::get_option
+	 */
+	public function test_get_option_notoptions_set_cache() {
+		get_option( 'invalid' );
+
+		$before = get_num_queries();
+		$value  = get_option( 'invalid' );
+		$after  = get_num_queries();
+
+		$notoptions = wp_cache_get( 'notoptions', 'options' );
+
+		$this->assertSame( 0, $after - $before, 'The notoptions cache was not hit on the second call to `get_option()`.' );
+		$this->assertIsArray( $notoptions, 'The notoptions cache should be set.' );
+		$this->assertArrayHasKey( 'invalid', $notoptions, 'The "invalid" option should be in the notoptions cache.' );
+	}
+
+	/**
+	 * @ticket 58277
+	 *
+	 * @covers ::get_option
+	 */
+	public function test_get_option_notoptions_do_not_load_cache() {
+		add_option( 'foo', 'bar', '', 'no' );
+		wp_cache_delete( 'notoptions', 'options' );
+
+		$before = get_num_queries();
+		$value  = get_option( 'foo' );
+		$after  = get_num_queries();
+
+		$notoptions = wp_cache_get( 'notoptions', 'options' );
+
+		$this->assertSame( 0, $after - $before, 'The options cache was not hit on the second call to `get_option()`.' );
+		$this->assertFalse( $notoptions, 'The notoptions cache should not be set.' );
+	}
+
+	/**
 	 * @covers ::get_option
 	 * @covers ::add_option
 	 * @covers ::delete_option
@@ -311,5 +367,294 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( 'autoload_no', 'no', 'no' ),
 			array( 'autoload_false', false, 'no' ),
 		);
+	}
+
+	/**
+	 * Ensure the database is getting updated when type changes, but not otherwise.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 *
+	 * @dataProvider data_update_option_type_juggling
+	 */
+	public function test_update_loosey_options( $old_value, $new_value, $update = false ) {
+		add_option( 'foo', $old_value );
+
+		$num_queries = get_num_queries();
+
+		// Comparison will happen against value cached during add_option() above.
+		$updated = update_option( 'foo', $new_value );
+
+		if ( $update ) {
+			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
+			$this->assertSame( 1, get_num_queries() - $num_queries, 'There should be one additional database query to update the option.' );
+		} else {
+			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+			$this->assertSame( $num_queries, get_num_queries(), 'The number of database queries should not change.' );
+		}
+	}
+
+	/**
+	 * Ensure the database is getting updated when type changes, but not otherwise.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 *
+	 * @dataProvider data_update_option_type_juggling
+	 */
+	public function test_update_loosey_options_from_db( $old_value, $new_value, $update = false ) {
+		add_option( 'foo', $old_value );
+
+		$num_queries = get_num_queries();
+
+		// Delete cache.
+		wp_cache_delete( 'alloptions', 'options' );
+		$updated = update_option( 'foo', $new_value );
+
+		// One query will run to get the original value, when not in cache.
+		$expected_queries = $num_queries + 1;
+
+		if ( $update ) {
+			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
+			$this->assertSame( 1, get_num_queries() - $expected_queries, 'There should be one additional database query to update the option.' );
+		} else {
+			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+			$this->assertSame( $expected_queries, get_num_queries(), 'No additional queries should run.' );
+		}
+	}
+
+	/**
+	 * Ensure the database is getting updated when type changes, but not otherwise.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 *
+	 * @dataProvider data_update_option_type_juggling
+	 */
+	public function test_update_loosey_options_from_refreshed_cache( $old_value, $new_value, $update = false ) {
+		add_option( 'foo', $old_value );
+
+		// Delete and refresh cache from DB.
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_load_alloptions();
+
+		// Get the current number of queries after the cache is refreshed.
+		$num_queries = get_num_queries();
+
+		$updated = update_option( 'foo', $new_value );
+
+		if ( $update ) {
+			$this->assertTrue( $updated, 'This loosely equal option should trigger an update.' );
+			$this->assertSame( 1, get_num_queries() - $num_queries, 'There should be one additional database query to update the option.' );
+		} else {
+			$this->assertFalse( $updated, 'Loosely equal option should not trigger an update.' );
+			$this->assertSame( $num_queries, get_num_queries(), 'The number of database queries should not change.' );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_update_option_type_juggling() {
+		/*
+		 * This set of use cases returns params for unit tests in the following format.
+		 *
+		 * @param any       $old_value The initial option value before an update.
+		 * @param any       $new_value The new value being passed to update_option().
+		 * @param null|bool $updated   Optional. The expected return value from update_option. Default false.
+		 */
+		return array(
+			/*
+			 * Truthy values.
+			 * Loosely equal truthy scalar values should never result in a DB update.
+			 */
+			array( '1', '1' ),
+			array( '1', 1 ),
+			array( '1', 1.0 ),
+			array( '1', true ),
+			array( 1, '1' ),
+			array( 1, 1 ),
+			array( 1, 1.0 ),
+			array( 1, true ),
+			array( 1.0, '1' ),
+			array( 1.0, 1 ),
+			array( 1.0, 1.0 ),
+			array( 1.0, true ),
+			array( true, '1' ),
+			array( true, 1 ),
+			array( true, 1.0 ),
+			array( true, true ),
+
+			/*
+			 * Falsey values.
+			 * Loosely equal falsey scalar values only sometimes result in a DB update.
+			 */
+			array( '0', '0' ),
+			array( '0', 0 ),
+			array( '0', 0.0 ),
+			array( '0', false, true ), // Should update.
+			array( '', '' ),
+			array( '', 0, true ), // Should update.
+			array( '', 0.0, true ), // Should update.
+			array( '', false ),
+			array( 0, '0' ),
+			array( 0, '', true ), // Should update.
+			array( 0, 0 ),
+			array( 0, 0.0 ),
+			array( 0, false, true ), // Should update.
+			array( 0.0, '0' ),
+			array( 0.0, '', true ), // Should update.
+			array( 0.0, 0 ),
+			array( 0.0, 0.0 ),
+			array( 0.0, false, true ), // Should update.
+			array( false, '0', true ), // Should update.
+			array( false, '' ),
+			array( false, 0, true ), // Should update.
+			array( false, 0.0, true ), // Should update.
+			array( false, false ),
+
+			/*
+			 * Non scalar values.
+			 * Loosely equal non-scalar values should almost always result in an update.
+			 */
+			array( false, array(), true ),
+			array( 'false', array(), true ),
+			array( '', array(), true ),
+			array( 0, array(), true ),
+			array( '0', array(), true ),
+			array( false, null ), // Does not update.
+			array( 'false', null, true ),
+			array( '', null ), // Does not update.
+			array( 0, null, true ),
+			array( '0', null, true ),
+			array( array(), false, true ),
+			array( array(), 'false', true ),
+			array( array(), '', true ),
+			array( array(), 0, true ),
+			array( array(), '0', true ),
+			array( array(), null, true ),
+			array( null, false ), // Does not update.
+			array( null, 'false', true ),
+			array( null, '' ), // Does not update.
+			array( null, 0, true ),
+			array( null, '0', true ),
+			array( null, array(), true ),
+		);
+	}
+
+	/**
+	 * Tests that update_option() stores an option that uses
+	 * an unfiltered default value of (bool) false.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_should_store_option_with_default_value_false() {
+		global $wpdb;
+
+		$option = 'update_option_default_false';
+		update_option( $option, false );
+
+		$actual = $wpdb->query(
+			$wpdb->prepare(
+				"SELECT option_name FROM $wpdb->options WHERE option_name = %s LIMIT 1",
+				$option
+			)
+		);
+
+		$this->assertSame( 1, $actual );
+	}
+
+	/**
+	 * Tests that update_option() stores an option that uses
+	 * a filtered default value.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_should_store_option_with_filtered_default_value() {
+		global $wpdb;
+
+		$option        = 'update_option_custom_default';
+		$default_value = 'default-value';
+
+		add_filter(
+			"default_option_{$option}",
+			static function () use ( $default_value ) {
+				return $default_value;
+			}
+		);
+
+		update_option( $option, $default_value );
+
+		$actual = $wpdb->query(
+			$wpdb->prepare(
+				"SELECT option_name FROM $wpdb->options WHERE option_name = %s LIMIT 1",
+				$option
+			)
+		);
+
+		$this->assertSame( 1, $actual );
+	}
+
+	/**
+	 * Tests that a non-existing option is added even when its pre filter returns a value.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_with_pre_filter_adds_missing_option() {
+		// Force a return value of integer 0.
+		add_filter( 'pre_option_foo', '__return_zero' );
+
+		/*
+		 * This should succeed, since the 'foo' option does not exist in the database.
+		 * The default value is false, so it differs from 0.
+		 */
+		$this->assertTrue( update_option( 'foo', 0 ) );
+	}
+
+	/**
+	 * Tests that an existing option is updated even when its pre filter returns the same value.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_with_pre_filter_updates_option_with_different_value() {
+		// Add the option with a value of 1 to the database.
+		add_option( 'foo', 1 );
+
+		// Force a return value of integer 0.
+		add_filter( 'pre_option_foo', '__return_zero' );
+
+		/*
+		 * This should succeed, since the 'foo' option has a value of 1 in the database.
+		 * Therefore it differs from 0 and should be updated.
+		 */
+		$this->assertTrue( update_option( 'foo', 0 ) );
+	}
+
+	/**
+	 * Tests that calling update_option() does not permanently remove pre filters.
+	 *
+	 * @ticket 22192
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_maintains_pre_filters() {
+		add_filter( 'pre_option_foo', '__return_zero' );
+		update_option( 'foo', 0 );
+
+		// Assert that the filter is still present.
+		$this->assertSame( 10, has_filter( 'pre_option_foo', '__return_zero' ) );
 	}
 }
