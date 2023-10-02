@@ -202,10 +202,10 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	 * @since 6.4.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Post|WP_Error Revision post object if ID is valid, WP_Error otherwise.
+	 * @return WP_Post|WP_Error Autosave post object if ID is valid, WP_Error otherwise.
 	 */
 	public function get_item( $request ) {
-		$parent = $this->get_parent( $request->get_param('parent') );
+		$parent = $this->get_parent( $request['parent'] );
 		if ( is_wp_error( $parent ) ) {
 			return $parent;
 		}
@@ -215,7 +215,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 		if ( ! $autosave ) {
 			return new WP_Error(
 				'rest_post_no_autosave',
-				__( 'There is no autosave revision for this post.' ),
+				__( 'There is no autosave revision for this template.' ),
 				array( 'status' => 404 )
 			);
 		}
