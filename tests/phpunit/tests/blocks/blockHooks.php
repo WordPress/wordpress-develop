@@ -253,7 +253,7 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 		);
 		$this->assertStringContainsString(
 			'<!-- wp:comments -->'
-        	. '<div class="wp-block-comments">'
+			. '<div class="wp-block-comments">'
 			. '<!-- wp:tests/hooked-first-child /-->',
 			str_replace( array( "\n", "\t" ), '', $pattern['content'] )
 		);
