@@ -1418,7 +1418,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		// No additional queries expected.
 		$this->assertSame( 0, $num_queries, 'Unexpected number of queries during second query of term meta.' );
 	}
-	
+
 	/**
 	 * @ticket 59442
 	 *
@@ -1429,9 +1429,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 
 		$query1 = new WP_Query(
 			array(
-				'cache_results' => true,
-				'fields'        => 'ids',
-				'post_type'     => 'post',
+					'cache_results' => true,
+					'fields'        => 'ids',
+					'post_type'     => 'post',
 				)
 			);
 			
