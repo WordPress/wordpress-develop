@@ -59,9 +59,27 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::DELETABLE,
 					'callback'            => array( $this, 'uninstall_fonts' ),
 					'permission_callback' => array( $this, 'update_font_library_permissions_check' ),
-					'args'                => $this->uninstall_schema(),
+					'args'                => array(
+						'font_families' => array(
+							'type'        => 'array',
+							'description' => __( 'The font families to uninstall.' ),
+							'required'    => true,
+							'minItems'    => 1,
+							'items'       => array(
+								'required'   => true,
+								'type'       => 'object',
+								'properties' => array(
+									'slug' => array(
+										'type'        => 'string',
+										'description' => __( 'The font family slug.' ),
+										'required'    => true,
+									),
+								),
+							),
+						),
+					),
 				),
-			)
+			),
 		);
 
 		register_rest_route(
@@ -245,35 +263,6 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 		}
 
 		return new WP_Error( 'rest_invalid_param', implode( ', ', $error_messages ), array( 'status' => 400 ) );
-	}
-
-	/**
-	 * Gets the schema for the uninstall endpoint.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @return array Schema array.
-	 */
-	public function uninstall_schema() {
-		return array(
-			'font_families' => array(
-				'type'        => 'array',
-				'description' => __( 'The font families to install.' ),
-				'required'    => true,
-				'minItems'    => 1,
-				'items'       => array(
-					'required'   => true,
-					'type'       => 'object',
-					'properties' => array(
-						'slug' => array(
-							'type'        => 'string',
-							'description' => __( 'The font family slug.' ),
-							'required'    => true,
-						),
-					),
-				),
-			),
-		);
 	}
 
 	/**
