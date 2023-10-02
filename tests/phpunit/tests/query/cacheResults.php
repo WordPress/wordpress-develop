@@ -1424,7 +1424,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Query::generate_cache_key
 	 */
-	public function test_generate_cache_key_avoid_post_type() {
+	public function test_generate_cache_key_avoid_args() {
 		global $wpdb;
 
 		$query1 = new WP_Query(
