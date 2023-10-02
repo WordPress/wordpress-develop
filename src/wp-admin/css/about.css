@@ -780,10 +780,11 @@
 }
 
 .about__section .wp-person .web {
+	display: block;
 	font-size: 1.4em;
 	font-weight: 600;
+	padding: 10px 10px 0 10px;
 	text-decoration: none;
-	display: block;
 }
 
 .about__section .wp-person .web:hover {
