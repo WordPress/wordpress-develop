@@ -233,42 +233,57 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	/**
 	 * @ticket 56922
 	 *
-	 * @dataProvider data_should_have_custom_controller_properties
+	 * @dataProvider data_should_have_correct_custom_revisions_and_autosaves_controllers_properties
 	 *
 	 * @covers WP_Post_Type::set_props
 	 *
-	 * @param string $property_name   Property name.
-	 * @param string $controller_name Controller class name.
+	 * @param string      $property_name           Property name.
+	 * @param string      $property_value          Property value.
+	 * @param string|bool $expected_property_value Expected property value.
 	 */
-	public function test_should_allow_to_set_custom_revisions_and_autosaves_controllers_properties( $property_name, $controller_name ) {
-		$post_type = new WP_Post_Type( 'wp_template' );
-		$post_type->set_props(
-			array(
-				$property_name => $controller_name,
-			)
-		);
+	public function test_should_have_correct_custom_revisions_and_autosaves_controllers_properties( $property_name, $property_value, $expected_property_value ) {
+		$properties = null === $property_value ? array() : array( $property_name => $property_value );
 
-		$this->assertObjectHasProperty( $property_name, $post_type, $failure_message, "The WP_Post_Type object does not have the expected {$property_name} property." );
-		$this->assertSame( $controller_name, $post_type->$property_name, "Expected the property {$property_name} to have the value {$controller_name}." );
+		$post_type = new WP_Post_Type( 'wp_template', $properties );
+
+		$this->assertObjectHasProperty( $property_name, $post_type, "The WP_Post_Type object does not have the expected {$property_name} property." );
+		$this->assertSame(
+			$expected_property_value,
+			$post_type->$property_name,
+			sprintf( 'Expected the property "%s" to have the %s value.', $property_name, var_export( $expected_property_value, true ) )
+		);
 	}
 
 	/**
 	 * Data provider for test_should_allow_to_set_custom_revisions_and_autosaves_controllers_properties.
 	 *
 	 * @return array[] Arguments {
-	 *     @type string $property_name   Property name.
-	 *     @type string $controller_name Controller class name.
+	 *     @type string $property_name           Property name.
+	 *     @type string $property_value          Property value.
+	 *     @type string $expected_property_value Expected property value.
 	 * }
 	 */
-	public function data_should_have_custom_controller_properties() {
+	public function data_should_have_correct_custom_revisions_and_autosaves_controllers_properties() {
 		return array(
 			'autosave_rest_controller_class property'  => array(
 				'autosave_rest_controller_class',
 				'My_Custom_Template_Autosaves_Controller',
+				'My_Custom_Template_Autosaves_Controller',
+			),
+			'autosave_rest_controller_class property (null value)' => array(
+				'autosave_rest_controller_class',
+				null,
+				false,
 			),
 			'revisions_rest_controller_class property' => array(
 				'revisions_rest_controller_class',
 				'My_Custom_Template_Revisions_Controller',
+				'My_Custom_Template_Revisions_Controller',
+			),
+			'revisions_rest_controller_class property (null value)' => array(
+				'revisions_rest_controller_class',
+				null,
+				false,
 			),
 		);
 	}
