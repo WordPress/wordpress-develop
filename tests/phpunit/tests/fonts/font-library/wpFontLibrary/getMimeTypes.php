@@ -13,7 +13,6 @@
 class Tests_Fonts_WpFontsFamilyUtils_GetMimeTypes extends WP_UnitTestCase {
 
 	/**
-	 *
 	 * @dataProvider data_should_supply_correct_mime_type_for_php_version
 	 *
 	 * @param array $php_version_id PHP_VERSION_ID value.
