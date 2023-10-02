@@ -85,4 +85,3 @@ function wp_register_default_font_collection() {
 		)
 	);
 }
-
