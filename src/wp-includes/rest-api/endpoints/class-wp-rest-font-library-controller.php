@@ -98,6 +98,12 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 			$this->namespace,
 			'/' . $this->rest_base . '/collections' . '/(?P<id>[\/\w-]+)',
 			array(
+				'args'   => array(
+					'id' => array(
+						'description' => __( 'The id of a font collection.' ),
+						'type'        => 'string',
+					),
+				),
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_font_collection' ),
