@@ -25,7 +25,7 @@ class Tests_Fonts_WpFontFamily_GetFontPost extends WP_Font_Family_UnitTestCase {
 			'post_content' => '',
 			'post_status'  => 'publish',
 		);
-		$post_id = wp_insert_post( $post );
+		$post_id = self::factory()->post->create( $post );
 		$font    = new WP_Font_Family( $this->merriweather['font_data'] );
 
 		// Test.
