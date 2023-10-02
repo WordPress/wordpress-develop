@@ -23,7 +23,7 @@ class WP_Font_Family {
 	 *
 	 * @var array
 	 */
-	private $data;
+	private $data = array();
 
 	/**
 	 * WP_Font_Family constructor.

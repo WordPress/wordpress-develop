@@ -23,7 +23,7 @@ class WP_Font_Collection {
 	 *
 	 * @var array
 	 */
-	private $config;
+	private $config = array();
 
 	/**
 	 * WP_Font_Collection constructor.
