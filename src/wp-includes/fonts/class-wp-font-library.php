@@ -60,7 +60,7 @@ class WP_Font_Library {
 		$new_collection = new WP_Font_Collection( $config );
 
 		if ( isset( self::$collections[ $config['id'] ] ) ) {
-			return new WP_Error( 'font_collection_registration_error', 'Font collection already registered.' );
+			return new WP_Error( 'font_collection_registration_error', __( 'Font collection already registered.' ) );
 		}
 
 		self::$collections[ $config['id'] ] = $new_collection;
