@@ -246,6 +246,7 @@
 
 						// Continue connecting.
 						resume();
+						connectNow();
 					}
 				}
 			);
