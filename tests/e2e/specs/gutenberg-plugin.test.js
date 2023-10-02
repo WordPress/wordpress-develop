@@ -17,6 +17,8 @@ test.describe( 'Gutenberg plugin', () => {
 			} );
 		}
 
+		// Refetch installed plugin details. It avoids stale values when the test installs the plugin.
+		await requestUtils.getPluginsMap( /* forceRefetch */ true );
 		await requestUtils.deactivatePlugin( 'gutenberg' );
 	} );
 
