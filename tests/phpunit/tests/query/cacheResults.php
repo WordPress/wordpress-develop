@@ -1436,6 +1436,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		update_option( 'sticky_posts', $sticky_posts );
 
 		$num_queries_start = get_num_queries();
+		// without post_type argument.
 		get_posts(
 			array(
 				'post_status'    => 'publish',
@@ -1475,6 +1476,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		);
 
 		$num_queries_start = get_num_queries();
+		// without post_type argument.
 		get_posts(
 			array(
 				'post_status'    => 'publish',
