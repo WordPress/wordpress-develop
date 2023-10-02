@@ -1429,21 +1429,21 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 
 		$query1 = new WP_Query(
 			array(
-					'cache_results' => true,
-					'fields'        => 'ids',
-					'post_type'     => 'post',
-				)
-			);
-			
+				'cache_results' => true,
+				'fields'        => 'ids',
+				'post_type'     => 'post',
+			)
+		);
+
 		$reflection1 = new ReflectionMethod( $query1, 'generate_cache_key' );
 		$reflection1->setAccessible( true );
 		// Cache key with post_type
 		$cache_key_1 = $reflection1->invoke( $query1, $query1->query_vars, $query1->request );
 		$reflection1->setAccessible( false );
-
 		$num_queries_start = get_num_queries();
+
 		// Following query without `post_type` leads to exact same SQL request as query1.
-		$query2 = new WP_Query(
+		$query2      = new WP_Query(
 			array(
 				'cache_results' => true,
 				'fields'        => 'ids',
