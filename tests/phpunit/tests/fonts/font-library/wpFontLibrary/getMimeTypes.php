@@ -1,6 +1,6 @@
 <?php
 /**
- * Test WP_Font_Family_Utils::get_expected_font_mime_types_per_php_version().
+ * Test WP_Font_Family_Utils::get_font_mime_types().
  *
  * @package WordPress
  * @subpackage Font Library
@@ -8,7 +8,7 @@
  * @group fonts
  * @group font-library
  *
- * @covers WP_Font_Family_Utils::get_expected_font_mime_types_per_php_version
+ * @covers WP_Font_Family_Utils::get_font_mime_types
  */
 class Tests_Fonts_WpFontsFamilyUtils_GetMimeTypes extends WP_UnitTestCase {
 
@@ -19,7 +19,7 @@ class Tests_Fonts_WpFontsFamilyUtils_GetMimeTypes extends WP_UnitTestCase {
 	 * @param array $expected Expected mime types.
 	 */
 	public function test_should_supply_correct_mime_type_for_php_version( $php_version_id, $expected ) {
-		$mimes = WP_Font_Library::get_expected_font_mime_types_per_php_version( $php_version_id );
+		$mimes = WP_Font_Library::get_font_mime_types( $php_version_id );
 		$this->assertEquals( $mimes, $expected );
 	}
 
