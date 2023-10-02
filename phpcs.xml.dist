@@ -171,6 +171,7 @@
 				<element value="lastChild"/>
 				<element value="nodeName"/>
 				<element value="nodeType"/>
+				<element value="nodeValue"/>
 				<element value="parentNode"/>
 				<element value="preserveWhiteSpace"/>
 				<element value="textContent"/>
