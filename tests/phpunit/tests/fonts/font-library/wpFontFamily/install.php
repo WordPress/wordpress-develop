@@ -162,13 +162,13 @@ class Tests_Fonts_WpFontFamily_Install extends WP_Font_Family_UnitTestCase {
 		// Set up the temporary files.
 		foreach ( $files_data as $file ) {
 			if ( 'font/ttf' === $file['type'] ) {
-				copy( path_join( DIR_TESTDATA, 'fonts/Merriweather.ttf' ), $file['tmp_name'] );
+				copy( DIR_TESTDATA . '/fonts/Merriweather.ttf', $file['tmp_name'] );
 			} elseif ( 'font/woff' === $file['type'] ) {
-				copy( path_join( DIR_TESTDATA, 'fonts/cooper-hewitt.woff' ), $file['tmp_name'] );
+				copy( DIR_TESTDATA . '/fonts/cooper-hewitt.woff', $file['tmp_name'] );
 			} elseif ( 'font/woff2' === $file['type'] ) {
-				copy( path_join( DIR_TESTDATA, 'fonts/DMSans.woff2' ), $file['tmp_name'] );
+				copy( DIR_TESTDATA . '/fonts/DMSans.woff2', $file['tmp_name'] );
 			} elseif ( 'application/vnd.ms-opentype' === $file['type'] ) {
-				copy( path_join( DIR_TESTDATA, 'fonts/gilbert-color.otf' ), $file['tmp_name'] );
+				copy( DIR_TESTDATA . '/fonts/gilbert-color.otf', $file['tmp_name'] );
 			}
 		}
 
@@ -343,7 +343,7 @@ class Tests_Fonts_WpFontFamily_Install extends WP_Font_Family_UnitTestCase {
 	public function test_should_not_install_duplicate_fontfaces( $font_data, array $files_data, array $expected ) {
 		// Set up the temporary files.
 		foreach ( $files_data as $file ) {
-			copy( path_join( DIR_TESTDATA, 'fonts/Merriweather.ttf' ), $file['tmp_name'] );
+			copy( DIR_TESTDATA . '/fonts/Merriweather.ttf', $file['tmp_name'] );
 		}
 
 		$font = new WP_Font_Family( $font_data );
@@ -533,16 +533,16 @@ class Tests_Fonts_WpFontFamily_Install extends WP_Font_Family_UnitTestCase {
 		// Set up the temporary files.
 		foreach ( $files_data_initial as $file ) {
 			if ( 'font/ttf' === $file['type'] ) {
-				copy( path_join( DIR_TESTDATA, 'fonts/Merriweather.ttf' ), $file['tmp_name'] );
+				copy( DIR_TESTDATA . '/fonts/Merriweather.ttf', $file['tmp_name'] );
 			} elseif ( 'font/woff' === $file['type'] ) {
-				copy( path_join ( DIR_TESTDATA, 'fonts/cooper-hewitt.woff' ), $file['tmp_name'] );
+				copy( DIR_TESTDATA . '/fonts/cooper-hewitt.woff', $file['tmp_name'] );
 			}
 		}
 		foreach ( $files_data_overwrite as $file ) {
 			if ( 'font/ttf' === $file['type'] ) {
-				copy( path_join( DIR_TESTDATA, 'fonts/Merriweather.ttf' ), $file['tmp_name'] );
+				copy( DIR_TESTDATA . '/fonts/Merriweather.ttf', $file['tmp_name'] );
 			} elseif ( 'font/woff' === $file['type'] ) {
-				copy( path_join ( DIR_TESTDATA, 'fonts/cooper-hewitt.woff' ), $file['tmp_name'] );
+				copy( DIR_TESTDATA . '/fonts/cooper-hewitt.woff', $file['tmp_name'] );
 			}
 		}
 
