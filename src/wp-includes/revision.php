@@ -1144,13 +1144,18 @@ function wp_add_revisioned_meta_to_revision_ui( $fields, $post ) {
 
 	foreach ( $revisioned_meta as $meta_key ) {
 		// Construct a title for the meta field from the slug.
-		$title = ucwords( str_replace( '_', ' ', $meta_key ) );
+		$title               = ucwords( str_replace( '_', ' ', $meta_key ) );
 		$fields[ $meta_key ] = $title;
 
 		// Add a callback filter to display the meta field.
-		add_filter( '_wp_post_revision_field_{$meta_key}', function( $revision_field, $field, $revision ) use ( $meta_key ) {
-			return get_metadata( 'post', $revision->ID, $meta_key, true );
-		}, 10, 3 );
+		add_filter(
+			'_wp_post_revision_field_{$meta_key}',
+			function ( $revision_field, $field, $revision ) use ( $meta_key ) {
+				return get_metadata( 'post', $revision->ID, $meta_key, true );
+			},
+			10,
+			3
+		);
 
 		return $fields;
 	}
