@@ -1424,42 +1424,66 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Query::generate_cache_key
 	 */
-	public function test_generate_cache_key_avoid_args() {
+	public function test_duplicate_query_when_sticky_post_not_cached() {
 		global $wpdb;
 
-		$query1 = new WP_Query(
-			array(
-				'cache_results' => true,
-				'fields'        => 'ids',
-				'post_type'     => 'post',
-			)
-		);
+		// create a few post.
+		self::factory()->post->create_many( 5, array( 'post_type' => 'post' ) );
 
-		$reflection1 = new ReflectionMethod( $query1, 'generate_cache_key' );
-		$reflection1->setAccessible( true );
-		// Cache key with post_type
-		$cache_key_1 = $reflection1->invoke( $query1, $query1->query_vars, $query1->request );
-		$reflection1->setAccessible( false );
+		$sticky_post_id = self::factory()->post->create();
+		$sticky_posts   = get_option( 'sticky_posts', array() );
+		$sticky_posts[] = $sticky_post_id;
+		update_option( 'sticky_posts', $sticky_posts );
+
 		$num_queries_start = get_num_queries();
-
-		// Following query without `post_type` leads to exact same SQL request as query1.
-		$query2      = new WP_Query(
+		get_posts(
 			array(
-				'cache_results' => true,
-				'fields'        => 'ids',
+				'post_status'    => 'publish',
+				'posts_per_page' => 1,
 			)
 		);
 		$num_queries = get_num_queries() - $num_queries_start;
 
-		$reflection2 = new ReflectionMethod( $query2, 'generate_cache_key' );
-		$reflection2->setAccessible( true );
-		// Cache key without `post_type`.
-		$cache_key_2 = $reflection2->invoke( $query2, $query2->query_vars, $query2->request );
-		$reflection2->setAccessible( false );
+		// When sticky post not called the above query leads to 4 queries.
+		$this->assertSame( 4, $num_queries, 'Number of queries executed is different than expected.' );
+	}
 
-		// Ensure SQL request formed with and without `post_type` were similar.
-		$this->assertSame( $query1->request, $query2->request, 'SQL request formed are not similar.' );
-		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs when `post_type` not passed in args.' );
-		$this->assertSame( 0, $num_queries, 'Second call executed additional queries.' );
+	/**
+	 * @ticket 59442
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 */
+	public function test_duplicate_query_when_sticky_post_cached() {
+		global $wpdb;
+
+		// create a few post.
+		self::factory()->post->create_many( 5, array( 'post_type' => 'post' ) );
+
+		$sticky_post_id = self::factory()->post->create();
+		$sticky_posts   = get_option( 'sticky_posts', array() );
+		$sticky_posts[] = $sticky_post_id;
+		update_option( 'sticky_posts', $sticky_posts );
+
+		// Do a call to cache the sticky query.
+		new WP_Query(
+			array(
+				'post_type'      => 'post',
+				'post_status'    => 'publish',
+				'posts__in'      => array( $sticky_post_id ),
+				'posts_per_page' => 1,
+			)
+		);
+
+		$num_queries_start = get_num_queries();
+		get_posts(
+			array(
+				'post_status'    => 'publish',
+				'posts_per_page' => 1,
+			)
+		);
+		$num_queries = get_num_queries() - $num_queries_start;
+
+		// Only the original query should be executed as sticky posts are cached.
+		$this->assertSame( 1, $num_queries, 'Number of queries executed is different than expected.' );
 	}
 }
