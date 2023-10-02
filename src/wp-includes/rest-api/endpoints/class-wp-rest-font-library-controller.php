@@ -137,7 +137,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 	 *
 	 * @param array[] $font_families Font families to install.
 	 * @param array   $files         Files to install.
-	 * @return array $error_messages Array of error messages.
+	 * @return array Array of error messages.
 	 */
 	private function get_validation_errors( $font_families, $files ) {
 		$error_messages = array();
