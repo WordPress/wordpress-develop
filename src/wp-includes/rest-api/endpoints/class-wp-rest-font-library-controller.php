@@ -79,7 +79,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-			),
+			)
 		);
 
 		register_rest_route(
