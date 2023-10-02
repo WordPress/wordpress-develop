@@ -37,7 +37,7 @@ class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
 	 * @see register_block_type()
 	 */
 	private function register_block_type( $block_type, $args = array() ) {
-		$result = register_block_type( $block_type, $args );
+		$result                         = register_block_type( $block_type, $args );
 		$this->registered_block_names[] = $result->name;
 
 		return $result;
