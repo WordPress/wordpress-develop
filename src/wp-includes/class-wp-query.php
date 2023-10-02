@@ -2534,7 +2534,7 @@ class WP_Query {
 		}
 
 		$skip_post_status = false;
-		$post_type_prime = $post_type;
+		$post_type_prime  = $post_type;
 		if ( 'any' === $post_type ) {
 			$in_search_post_types = get_post_types( array( 'exclude_from_search' => false ) );
 			if ( empty( $in_search_post_types ) ) {
