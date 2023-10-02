@@ -96,12 +96,13 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/collections' . '/(?P<id>[\/\w-]+)',
+			'/' . $this->rest_base . '/collections/(?P<id>[\/\w-]+)',
 			array(
 				'args'   => array(
 					'id' => array(
 						'description' => __( 'The id of a font collection.' ),
 						'type'        => 'string',
+						'required'    => true,
 					),
 				),
 				array(
@@ -109,6 +110,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 					'callback'            => array( $this, 'get_font_collection' ),
 					'permission_callback' => array( $this, 'update_font_library_permissions_check' ),
 				),
+				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
 	}
@@ -333,6 +335,112 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 			);
 		}
 		return true;
+	}
+
+	/**
+	 * Retrieves the item's schema, conforming to JSON Schema.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return array Item schema data.
+	 */
+	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
+		$schema = array(
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'font-collection',
+			'type'       => 'object',
+			'properties' => array(
+				'id'          => array(
+					'description' => __( 'Unique identifier for the font collection.' ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit', 'embed' ),
+					'readonly'    => true,
+				),
+				'name'        => array(
+					'description' => __( 'Name of the font collection.' ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit', 'embed' ),
+				),
+				'description' => array(
+					'description' => __( 'Description of the font collection.' ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit', 'embed' ),
+				),
+				'data'        => array(
+					'description' => __( 'Data of the font collection.' ),
+					'type'        => 'object',
+					'context'     => array( 'view', 'edit', 'embed' ),
+					'properties'  => array(
+						'fontFamilies' => array(
+							'description' => __( 'List of font families.' ),
+							'type'        => 'array',
+							'items'       => array(
+								'type'       => 'object',
+								'properties' => array(
+									'name'       => array(
+										'description' => __( 'Name of the font family.' ),
+										'type'        => 'string',
+									),
+									'fontFamily' => array(
+										'description' => __( 'Font family string.' ),
+										'type'        => 'string',
+									),
+									'slug'       => array(
+										'description' => __( 'Slug of the font family.' ),
+										'type'        => 'string',
+									),
+									'category'   => array(
+										'description' => __( 'Category of the font family.' ),
+										'type'        => 'string',
+									),
+									'fontFace'   => array(
+										'description' => __( 'Font face details.' ),
+										'type'        => 'array',
+										'items'       => array(
+											'type'       => 'object',
+											'properties' => array(
+												'downloadFromUrl' => array(
+													'description' => __( 'URL to download the font.' ),
+													'type' => 'string',
+												),
+												'fontWeight' => array(
+													'description' => __( 'Font weight.' ),
+													'type' => 'string',
+												),
+												'fontStyle' => array(
+													'description' => __( 'Font style.' ),
+													'type' => 'string',
+												),
+												'fontFamily' => array(
+													'description' => __( 'Font family string.' ),
+													'type' => 'string',
+												),
+												'preview' => array(
+													'description' => __( 'URL for font preview.' ),
+													'type' => 'string',
+												),
+											),
+										),
+									),
+									'preview'    => array(
+										'description' => __( 'URL for font family preview.' ),
+										'type'        => 'string',
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$this->schema = $schema;
+
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 
 	/**
