@@ -26,24 +26,25 @@ class WP_Font_Library {
 	private static $collections = array();
 
 	/**
-	 * Provides the expected mime-type value for font files per-PHP release. Due to differences in the values returned these values differ between PHP versions.
+	 * Provides the expected mime-type value for font files per-PHP release.
 	 *
-	 * This is necessary until a collection of valid mime-types per-file extension can be provided to 'upload_mimes' filter.
+	 * Due to differences in the values returned these values differ between PHP versions.
+	 *
+	 * This is necessary until a collection of valid mime-types per-file extension can be
+	 * provided to 'upload_mimes' filter.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param array $php_version_id The version of PHP to provide mime types for. The default is the current PHP version.
-	 *
 	 * @return Array A collection of mime types keyed by file extension.
 	 */
-	public static function get_font_mime_types( $php_version_id = PHP_VERSION_ID ) {
-		$php_7_ttf_mime_type = $php_version_id >= 70300 ? 'application/font-sfnt' : 'application/x-font-ttf';
+	public static function get_font_mime_types() {
+		$php_7_ttf_mime_type = PHP_VERSION_ID >= 70300 ? 'application/font-sfnt' : 'application/x-font-ttf';
 
 		return array(
 			'otf'   => 'application/vnd.ms-opentype',
-			'ttf'   => $php_version_id >= 70400 ? 'font/sfnt' : $php_7_ttf_mime_type,
-			'woff'  => $php_version_id >= 80100 ? 'font/woff' : 'application/font-woff',
-			'woff2' => $php_version_id >= 80100 ? 'font/woff2' : 'application/font-woff2',
+			'ttf'   => PHP_VERSION_ID >= 70400 ? 'font/sfnt' : $php_7_ttf_mime_type,
+			'woff'  => PHP_VERSION_ID >= 80100 ? 'font/woff' : 'application/font-woff',
+			'woff2' => PHP_VERSION_ID >= 80100 ? 'font/woff2' : 'application/font-woff2',
 		);
 	}
 

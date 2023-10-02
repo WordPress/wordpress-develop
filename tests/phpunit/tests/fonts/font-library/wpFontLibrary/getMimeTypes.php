@@ -12,78 +12,54 @@
  */
 class Tests_Fonts_WpFontsFamilyUtils_GetMimeTypes extends WP_UnitTestCase {
 
-	/**
-	 * @dataProvider data_should_supply_correct_mime_type_for_php_version
-	 *
-	 * @param array $php_version_id PHP_VERSION_ID value.
-	 * @param array $expected Expected mime types.
-	 */
-	public function test_should_supply_correct_mime_type_for_php_version( $php_version_id, $expected ) {
-		$mimes = WP_Font_Library::get_font_mime_types( $php_version_id );
-		$this->assertEquals( $mimes, $expected );
+	public function test_should_supply_correct_mime_type_for_the_running_php_version() {
+		$mimes    = WP_Font_Library::get_font_mime_types();
+		$expected = $this->get_expected_mime_for_tests_php_version();
+		$this->assertSame( $mimes, $expected );
 	}
 
 	/**
-	 * Data provider.
+	 * Get the expected results for the running PHP version.
 	 *
-	 * @return array[]
+	 * @return string[]
 	 */
-	public function data_should_supply_correct_mime_type_for_php_version() {
+	private function get_expected_mime_for_tests_php_version() {
+		// When on less than PHP 7.3.
+		if ( PHP_VERSION_ID < 70300 ) {
+			return array(
+				'otf'   => 'application/vnd.ms-opentype',
+				'ttf'   => 'application/x-font-ttf',
+				'woff'  => 'application/font-woff',
+				'woff2' => 'application/font-woff2',
+			);
+		}
+
+		// When on PHP 7.3.
+		if ( PHP_VERSION_ID > 70300 && PHP_VERSION_ID < 70400 ) {
+			return array(
+				'otf'   => 'application/vnd.ms-opentype',
+				'ttf'   => 'application/font-sfnt',
+				'woff'  => 'application/font-woff',
+				'woff2' => 'application/font-woff2',
+			);
+		}
+
+		// When on PHP 7.4 or 8.0.
+		if ( PHP_VERSION_ID >= 70400 && PHP_VERSION_ID < 80100 ) {
+			return array(
+				'otf'   => 'application/vnd.ms-opentype',
+				'ttf'   => 'font/sfnt',
+				'woff'  => 'application/font-woff',
+				'woff2' => 'application/font-woff2',
+			);
+		}
+
+		// When on PHP 8.1 or newer.
 		return array(
-			'version 7.2' => array(
-				'php_version_id' => 70200,
-				'expected'       => array(
-					'otf'   => 'application/vnd.ms-opentype',
-					'ttf'   => 'application/x-font-ttf',
-					'woff'  => 'application/font-woff',
-					'woff2' => 'application/font-woff2',
-				),
-			),
-			'version 7.3' => array(
-				'php_version_id' => 70300,
-				'expected'       => array(
-					'otf'   => 'application/vnd.ms-opentype',
-					'ttf'   => 'application/font-sfnt',
-					'woff'  => 'application/font-woff',
-					'woff2' => 'application/font-woff2',
-				),
-			),
-			'version 7.4' => array(
-				'php_version_id' => 70400,
-				'expected'       => array(
-					'otf'   => 'application/vnd.ms-opentype',
-					'ttf'   => 'font/sfnt',
-					'woff'  => 'application/font-woff',
-					'woff2' => 'application/font-woff2',
-				),
-			),
-			'version 8.0' => array(
-				'php_version_id' => 80000,
-				'expected'       => array(
-					'otf'   => 'application/vnd.ms-opentype',
-					'ttf'   => 'font/sfnt',
-					'woff'  => 'application/font-woff',
-					'woff2' => 'application/font-woff2',
-				),
-			),
-			'version 8.1' => array(
-				'php_version_id' => 80100,
-				'expected'       => array(
-					'otf'   => 'application/vnd.ms-opentype',
-					'ttf'   => 'font/sfnt',
-					'woff'  => 'font/woff',
-					'woff2' => 'font/woff2',
-				),
-			),
-			'version 8.2' => array(
-				'php_version_id' => 80200,
-				'expected'       => array(
-					'otf'   => 'application/vnd.ms-opentype',
-					'ttf'   => 'font/sfnt',
-					'woff'  => 'font/woff',
-					'woff2' => 'font/woff2',
-				),
-			),
+			'otf'   => 'application/vnd.ms-opentype',
+			'ttf'   => 'font/sfnt',
+			'woff'  => 'font/woff',
+			'woff2' => 'font/woff2',
 		);
 	}
 }
