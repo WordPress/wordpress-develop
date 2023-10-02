@@ -1468,7 +1468,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	function data_duplicate_query_when_sticky_post() {
+	public function data_duplicate_query_when_sticky_post() {
 		return array(
 			'sticky_post_query_cached_prior'     => array(
 				true,
