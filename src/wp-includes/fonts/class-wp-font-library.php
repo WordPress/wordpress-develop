@@ -17,6 +17,15 @@
 class WP_Font_Library {
 
 	/**
+	 * Font collections.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @var array
+	 */
+	private static $collections = array();
+
+	/**
 	 * Provides the expected mime-type value for font files per-PHP release. Due to differences in the values returned these values differ between PHP versions.
 	 *
 	 * This is necessary until a collection of valid mime-types per-file extension can be provided to 'upload_mimes' filter.
@@ -37,15 +46,6 @@ class WP_Font_Library {
 			'woff2' => $php_version_id >= 80100 ? 'font/woff2' : 'application/font-woff2',
 		);
 	}
-
-	/**
-	 * Font collections.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @var array
-	 */
-	private static $collections = array();
 
 	/**
 	 * Registers a new font collection.
