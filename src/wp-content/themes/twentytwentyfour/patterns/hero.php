@@ -3,7 +3,7 @@
  * Title: Hero
  * Slug: twentytwentyfour/hero
  * Categories: banner, call-to-action, featured
-* Viewport width: 1400
+ * Viewport width: 1400
  */
 ?>
 
