@@ -1,6 +1,7 @@
 {
 	"name": "tests/hooked-before",
 	"blockHooks": {
-		"core/post-content": "before"
-	}
+		"core/template-part": "before"
+	},
+	"render": "file:render.php"
 }
