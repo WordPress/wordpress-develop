@@ -1079,8 +1079,8 @@ function _esc_attr_single_pass_utf8( $text ) {
 					 * There's an established valid numeric character reference. Trim its leading zeros
 					 * unless it's a single quote, in which case there's an exception for legacy `&#039;`.
 					 */
-					$zero       = 39 === $code_point ? '0' : '';
-					$hex_prefix = 16 === $numeric_base ? 'x' : '';
+					$zero       = ( 10 === $numeric_base && 39 === $code_point ) ? '0' : '';
+					$hex_prefix = 16 === $numeric_base ? $text[ $at + 2 ] : '';
 					$digits     = strtoupper( substr( $text, $digits_at, $digit_count ) );
 					$output    .= '&#' . $hex_prefix . $zero . $digits . ';';
 					$at         = $num_at + 1;
