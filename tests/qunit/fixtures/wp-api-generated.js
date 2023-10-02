@@ -12154,16 +12154,12 @@ mockedApiResponse.Schema = {
             "namespace": "wp/v2",
             "methods": [
                 "POST",
-                "PUT",
-                "PATCH",
                 "DELETE"
             ],
             "endpoints": [
                 {
                     "methods": [
-                        "POST",
-                        "PUT",
-                        "PATCH"
+                        "POST"
                     ],
                     "args": {
                         "font_families": {
@@ -12179,7 +12175,7 @@ mockedApiResponse.Schema = {
                     "args": {
                         "font_families": {
                             "type": "array",
-                            "description": "The font families to install.",
+                            "description": "The font families to uninstall.",
                             "minItems": 1,
                             "items": {
                                 "required": true,
