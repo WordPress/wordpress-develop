@@ -60,10 +60,10 @@ class Tests_Fonts_WPRESTFontLibraryController_InstallFonts extends WP_REST_Font_
 	public function data_install_fonts() {
 
 		$temp_file_path1 = wp_tempnam( 'Piazzola1-' );
-		copy( __DIR__ . '/../../../data/fonts/Merriweather.ttf', $temp_file_path1 );
+		copy( path_join( DIR_TESTDATA, 'fonts/Merriweather.ttf' ), $temp_file_path1 );
 
 		$temp_file_path2 = wp_tempnam( 'Monteserrat-' );
-		copy( __DIR__ . '/../../../data/fonts/Merriweather.ttf', $temp_file_path2 );
+		copy( path_join( DIR_TESTDATA, 'fonts/Merriweather.ttf' ), $temp_file_path2 );
 
 		return array(
 

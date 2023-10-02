@@ -12166,7 +12166,7 @@ mockedApiResponse.Schema = {
                         "PATCH"
                     ],
                     "args": {
-                        "fontFamilies": {
+                        "font_families": {
                             "type": "string",
                             "required": true
                         }
@@ -12177,7 +12177,7 @@ mockedApiResponse.Schema = {
                         "DELETE"
                     ],
                     "args": {
-                        "fontFamilies": {
+                        "font_families": {
                             "type": "array",
                             "description": "The font families to install.",
                             "minItems": 1,
