@@ -41,7 +41,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 					'callback'            => array( $this, 'install_fonts' ),
 					'permission_callback' => array( $this, 'update_font_library_permissions_check' ),
 					'args'                => array(
-						'fontFamilies' => array(
+						'font_families' => array(
 							'required'          => true,
 							'type'              => 'string',
 							'validate_callback' => array( $this, 'validate_install_font_families' ),
@@ -143,13 +143,13 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 		$error_messages = array();
 
 		if ( ! is_array( $font_families ) ) {
-			$error_messages[] = __( 'fontFamilies should be an array of font families.' );
+			$error_messages[] = __( 'font_families should be an array of font families.' );
 			return $error_messages;
 		}
 
 		// Checks if there is at least one font family.
 		if ( count( $font_families ) < 1 ) {
-			$error_messages[] = __( 'fontFamilies should have at least one font family definition.' );
+			$error_messages[] = __( 'font_families should have at least one font family definition.' );
 			return $error_messages;
 		}
 
@@ -256,7 +256,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 	 */
 	public function uninstall_schema() {
 		return array(
-			'fontFamilies' => array(
+			'font_families' => array(
 				'type'        => 'array',
 				'description' => __( 'The font families to install.' ),
 				'required'    => true,
@@ -285,7 +285,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function uninstall_fonts( $request ) {
-		$fonts_to_uninstall = $request->get_param( 'fontFamilies' );
+		$fonts_to_uninstall = $request->get_param( 'font_families' );
 
 		$errors    = array();
 		$successes = array();
@@ -393,7 +393,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 	 */
 	public function install_fonts( $request ) {
 		// Get new fonts to install.
-		$fonts_param = $request->get_param( 'fontFamilies' );
+		$fonts_param = $request->get_param( 'font_families' );
 
 		/*
 		 * As this is receiving form data, the font families are encoded as a string.
