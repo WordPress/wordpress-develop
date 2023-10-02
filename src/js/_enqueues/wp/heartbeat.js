@@ -236,17 +236,18 @@
 			$(window).on(
 				'pageshow.wp-heartbeat',
 				/**
-				 * Handles pageshow event.
+				 * Handles pageshow event, specifically when page navigation is restored from back/forward cache.
 				 *
 				 * @param {jQuery.Event} event
 				 * @param {PageTransitionEvent} event.originalEvent
 				 */
 				function ( event ) {
 					if ( event.originalEvent.persisted ) {
-
-						// Continue connecting.
-						resume();
-						connectNow();
+						/*
+						 * When page navigation is stored via bfcache (Back/Forward Cache), consider this the same as
+						 * if the user had just switched to the tab since the behavior is similar.
+						 */
+						focused();
 					}
 				}
 			);
