@@ -159,7 +159,6 @@ class WP_Font_Family {
 		return true;
 	}
 
-
 	/**
 	 * Gets the overrides for the 'wp_handle_upload' function.
 	 *
