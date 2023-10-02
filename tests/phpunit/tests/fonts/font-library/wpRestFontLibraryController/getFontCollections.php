@@ -3,14 +3,13 @@
  * Test WP_REST_Font_Library_Controller::get_font_collections().
  *
  * @package WordPress
- * @subpackage Font Library
+ * @subpackage Fonts
  *
  * @group fonts
  * @group font-library
  *
  * @covers WP_REST_Font_Library_Controller::get_font_collections
  */
-
 class Tests_Fonts_WPRESTFontLibraryController_GetFontCollections extends WP_REST_Font_Library_Controller_UnitTestCase {
 
 	public function test_get_font_collections_with_no_collection_registered() {

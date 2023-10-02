@@ -3,14 +3,13 @@
  * Test WP_REST_Font_Library_Controller::install_fonts().
  *
  * @package WordPress
- * @subpackage Font Library
+ * @subpackage Fonts
  *
  * @group fonts
  * @group font-library
  *
  * @covers WP_REST_Font_Library_Controller::install_fonts
  */
-
 class Tests_Fonts_WPRESTFontLibraryController_UninstallFonts extends WP_REST_Font_Library_Controller_UnitTestCase {
 
 	/**

@@ -5,7 +5,7 @@
  * This file contains utils fot Font Family class.
  *
  * @package    WordPress
- * @subpackage Font Library
+ * @subpackage Fonts
  * @since      6.4.0
  */
 

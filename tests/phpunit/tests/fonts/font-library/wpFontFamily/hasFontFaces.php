@@ -3,7 +3,7 @@
  * Test WP_Font_Family::has_font_faces().
  *
  * @package WordPress
- * @subpackage Font Library
+ * @subpackage Fonts
  *
  * @group fonts
  * @group font-library

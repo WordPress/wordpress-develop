@@ -3,14 +3,13 @@
  * Test WP_REST_Font_Library_Controller::register_routes().
  *
  * @package WordPress
- * @subpackage Font Library
+ * @subpackage Fonts
  *
  * @group fonts
  * @group font-library
  *
  * @covers WP_REST_Font_Library_Controller::register_routes
  */
-
 class Tests_Fonts_WPRESTFontLibraryController_RegisterRoutes extends WP_UnitTestCase {
 
 	public function test_register_routes() {

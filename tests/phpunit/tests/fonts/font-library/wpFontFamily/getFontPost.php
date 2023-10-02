@@ -3,7 +3,7 @@
  * Test WP_Font_Family::get_font_post().
  *
  * @package WordPress
- * @subpackage Font Library
+ * @subpackage Fonts
  */
 
 require_once __DIR__ . '/base.php';

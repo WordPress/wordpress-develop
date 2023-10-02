@@ -3,7 +3,7 @@
  * Test Case for WP_REST_Font_Library_Controller tests.
  *
  * @package WordPress
- * @subpackage Font Library
+ * @subpackage Fonts
  */
 abstract class WP_REST_Font_Library_Controller_UnitTestCase extends WP_UnitTestCase {
 
