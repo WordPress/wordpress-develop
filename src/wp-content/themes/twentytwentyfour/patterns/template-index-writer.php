@@ -1,18 +1,14 @@
 <?php
 /**
  * Title: Writer Index Template
- * Slug: twentytwentyfour/index-writer
+ * Slug: twentytwentyfour/template-index-writer
  * Template Types: index, home
  * Viewport width: 1400
  * Inserter: no
  */
 ?>
 
-<!-- wp:group {"style":{"position":{"type":"sticky","top":"0px"}},"layout":{"type":"default"}} -->
-<div class="wp-block-group">
-	<!-- wp:template-part {"slug":"header","theme":"twentytwentyfour"} /-->
-</div>
-<!-- /wp:group -->
+<!-- wp:template-part {"slug":"header"} /-->
 
 <!-- wp:group {"tagName":"main","style":{"spacing":{"blockGap":"0","margin":{"top":"0"}}},"layout":{"type":"default"}} -->
 <main class="wp-block-group" style="margin-top:0">
@@ -27,4 +23,4 @@
 </main>
 <!-- /wp:group -->
 
-<!-- wp:template-part {"slug":"footer","area":"footer","tagName":"footer","theme":"twentytwentyfour"} /-->
+<!-- wp:template-part {"slug":"footer","area":"footer","tagName":"footer"} /-->

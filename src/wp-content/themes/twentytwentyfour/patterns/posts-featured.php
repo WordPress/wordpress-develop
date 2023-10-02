@@ -32,7 +32,7 @@
 
 <!-- wp:post-excerpt {"excerptLength":35} /-->
 
-<!-- wp:template-part {"slug":"post-meta", "theme":"twentytwentyfour"} /-->
+<!-- wp:template-part {"slug":"post-meta"} /-->
 
 </div>
 <!-- /wp:group -->
@@ -53,7 +53,7 @@
 <div class="wp-block-group"><!-- wp:post-title {"level":3,"isLink":true,"fontSize":"large"} /-->
 
 <!-- wp:post-excerpt {"excerptLength":14,"fontSize":"small"} /-->
-<!-- wp:template-part {"slug":"post-meta", "theme":"twentytwentyfour"} /-->
+<!-- wp:template-part {"slug":"post-meta"} /-->
 
 </div>
 <!-- /wp:group -->
