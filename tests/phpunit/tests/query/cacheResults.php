@@ -1423,8 +1423,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @ticket 59442
 	 *
 	 * @covers WP_Query::generate_cache_key
+	 * @dataProvider data_duplicate_query_when_sticky_post
 	 */
-	public function test_duplicate_query_when_sticky_post_not_cached() {
+	public function test_duplicate_query_when_sticky_post( $is_cached_prior, $expected_num_queries ) {
 		global $wpdb;
 
 		// create a few post.
@@ -1435,8 +1436,21 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$sticky_posts[] = $sticky_post_id;
 		update_option( 'sticky_posts', $sticky_posts );
 
+		// This block replicates the cache state prior to the main query.
+		if ( $is_cached_prior ) {
+			// Do a call to cache the sticky query.
+			new WP_Query(
+				array(
+					'post_type'      => 'post',
+					'post_status'    => 'publish',
+					'posts__in'      => array( $sticky_post_id ),
+					'posts_per_page' => 1,
+				)
+			);
+		}
+
 		$num_queries_start = get_num_queries();
-		// without post_type argument.
+		// `get_posts()` call without `post_type` argument leads to a call to sticky post `get_posts()` query.
 		get_posts(
 			array(
 				'post_status'    => 'publish',
@@ -1445,47 +1459,25 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		);
 		$num_queries = get_num_queries() - $num_queries_start;
 
-		// When sticky post not called the above query leads to 4 queries.
-		$this->assertSame( 4, $num_queries, 'Number of queries executed is different than expected.' );
+		// Only the original post query should be executed if sticky query is set.
+		$this->assertSame( $expected_num_queries, $num_queries, 'Number of queries executed is different from expected.' );
 	}
 
 	/**
-	 * @ticket 59442
+	 * Data provider.
 	 *
-	 * @covers WP_Query::generate_cache_key
+	 * @return array[]
 	 */
-	public function test_duplicate_query_when_sticky_post_cached() {
-		global $wpdb;
-
-		// create a few post.
-		self::factory()->post->create_many( 5, array( 'post_type' => 'post' ) );
-
-		$sticky_post_id = self::factory()->post->create();
-		$sticky_posts   = get_option( 'sticky_posts', array() );
-		$sticky_posts[] = $sticky_post_id;
-		update_option( 'sticky_posts', $sticky_posts );
-
-		// Do a call to cache the sticky query.
-		new WP_Query(
-			array(
-				'post_type'      => 'post',
-				'post_status'    => 'publish',
-				'posts__in'      => array( $sticky_post_id ),
-				'posts_per_page' => 1,
-			)
+	function data_duplicate_query_when_sticky_post() {
+		return array(
+			'sticky_post_query_cached_prior'     => array(
+				true,
+				1, // only the original post query is executed if sticky query was already cached.
+			),
+			'sticky_post_query_not_cached_prior' => array(
+				false,
+				4, // currently leads to 4 sub query if sticky query was not previously cached.
+			),
 		);
-
-		$num_queries_start = get_num_queries();
-		// without post_type argument.
-		get_posts(
-			array(
-				'post_status'    => 'publish',
-				'posts_per_page' => 1,
-			)
-		);
-		$num_queries = get_num_queries() - $num_queries_start;
-
-		// Only the original query should be executed as sticky posts are cached.
-		$this->assertSame( 1, $num_queries, 'Number of queries executed is different than expected.' );
 	}
 }
