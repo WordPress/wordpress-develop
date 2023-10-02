@@ -12232,7 +12232,13 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "GET"
                     ],
-                    "args": []
+                    "args": {
+                        "id": {
+                            "description": "The id of a font collection.",
+                            "type": "string",
+                            "required": true
+                        }
+                    }
                 }
             ]
         }
