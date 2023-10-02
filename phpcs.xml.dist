@@ -171,6 +171,7 @@
 				<element value="lastChild"/>
 				<element value="nodeName"/>
 				<element value="nodeType"/>
+				<element value="nodeValue"/>
 				<element value="parentNode"/>
 				<element value="preserveWhiteSpace"/>
 				<element value="textContent"/>
@@ -272,12 +273,6 @@
 		<exclude-pattern>/src/wp-includes/class-wp-editor\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-includes/class-wp-xmlrpc-server\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-includes/class-wpdb\.php</exclude-pattern>
-	</rule>
-
-	<!-- Temporarily ignore this sniff for block files until the changes from upstream make it into core.
-		 This can be removed once the block-library package is updated for WP 6.4. -->
-	<rule ref="Squiz.Functions.MultiLineFunctionDeclaration.SpaceAfterFunction">
-		<exclude-pattern>/src/wp-includes/blocks/*</exclude-pattern>
 	</rule>
 
 	<!-- Allow the WP DB Class and related tests for usage of direct database access functions. -->
