@@ -233,7 +233,7 @@ class WP_REST_Font_Library_Controller extends WP_REST_Controller {
 	 *
 	 * @param string          $param The font families to install.
 	 * @param WP_REST_Request $request The request object.
-	 * @return true|WP_Error True if the parameter is valid, WP_Error otherwise.
+	 * @return bool|WP_Error True if the parameter is valid, WP_Error otherwise.
 	 */
 	public function validate_install_font_families( $param, $request ) {
 		$font_families  = json_decode( $param, true );
