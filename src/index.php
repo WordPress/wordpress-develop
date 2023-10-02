@@ -15,8 +15,6 @@ if ( ! defined( 'WPINC' ) ) {
 	define( 'WPINC', 'wp-includes' );
 }
 
-require_once ABSPATH . WPINC . '/version.php';
-require_once ABSPATH . WPINC . '/compat.php';
 require_once ABSPATH . WPINC . '/class-wp-autoload.php';
 
 /*
@@ -27,6 +25,8 @@ if ( file_exists( ABSPATH . WPINC . '/js/dist/edit-post.js' ) ) {
 	return;
 }
 
+require_once ABSPATH . WPINC . '/version.php';
+require_once ABSPATH . WPINC . '/compat.php';
 require_once ABSPATH . WPINC . '/load.php';
 
 // Check for the required PHP version and for the MySQL extension or a database drop-in.
