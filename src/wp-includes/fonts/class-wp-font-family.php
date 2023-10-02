@@ -89,6 +89,7 @@ class WP_Font_Family {
 				}
 			}
 		}
+
 		return true;
 	}
 
@@ -156,6 +157,7 @@ class WP_Font_Family {
 				return false;
 			}
 		}
+
 		return true;
 	}
 
@@ -512,6 +514,7 @@ class WP_Font_Family {
 				}
 			}
 		}
+
 		return $intersecting;
 	}
 

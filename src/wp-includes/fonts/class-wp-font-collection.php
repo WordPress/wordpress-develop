@@ -103,6 +103,7 @@ class WP_Font_Collection {
 		$collection_data         = $this->get_config();
 		$collection_data['data'] = $data;
 		unset( $collection_data['src'] );
+
 		return $collection_data;
 	}
 }

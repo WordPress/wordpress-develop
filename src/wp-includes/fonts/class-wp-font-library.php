@@ -64,6 +64,7 @@ class WP_Font_Library {
 		}
 
 		self::$collections[ $config['id'] ] = $new_collection;
+
 		return $new_collection;
 	}
 
@@ -90,6 +91,7 @@ class WP_Font_Library {
 		if ( array_key_exists( $id, self::$collections ) ) {
 			return self::$collections[ $id ];
 		}
+
 		return new WP_Error( 'font_collection_not_found', 'Font collection not found.' );
 	}
 
