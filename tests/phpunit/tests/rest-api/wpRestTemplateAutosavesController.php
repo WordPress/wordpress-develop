@@ -314,7 +314,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @ticket 56922
 	 */
 	public function test_create_item() {
-		$this->markTestSkipped("Skipping this test method for now as it impacts other tests.");
+		$this->markTestSkipped( 'Skipping this test method for now as it impacts other tests.' );
 		return;
 		wp_set_current_user( self::$admin_id );
 
