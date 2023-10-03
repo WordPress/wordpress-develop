@@ -421,14 +421,14 @@ function _wp_get_block_patterns( WP_Theme $theme ) {
 
 	if ( ! file_exists( $dirpath ) ) {
 		if ( $can_use_cached ) {
-			$theme->set_pattern_cache( array() );
+			$theme->set_pattern_cache( $pattern_data );
 		}
 		return $pattern_data;
 	}
 	$files = glob( $dirpath . '*.php' );
 	if ( ! $files ) {
 		if ( $can_use_cached ) {
-			$theme->set_pattern_cache( array() );
+			$theme->set_pattern_cache( $pattern_data );
 		}
 		return $pattern_data;
 	}
