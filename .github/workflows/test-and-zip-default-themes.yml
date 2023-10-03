@@ -92,7 +92,7 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Find zero-byte files
-        run: find . -size 0
+        run: find src/wp-content/themes/${{ matrix.theme }} -size 0
 
   # Tests the build script for themes that have one.
   #
