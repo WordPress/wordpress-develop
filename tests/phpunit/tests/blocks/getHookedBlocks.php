@@ -10,7 +10,7 @@
  * @group blocks
  * @group block-hooks
  */
-class Tests_Blocks_BlockHooks extends WP_UnitTestCase {
+class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 
 	/**
 	 * Registered block names.
