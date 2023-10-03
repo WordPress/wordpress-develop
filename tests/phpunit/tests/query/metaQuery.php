@@ -3,6 +3,8 @@
 /**
  * @group query
  * @group meta
+ *
+ * @covers WP_Query
  */
 class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	public function test_meta_query_no_key() {
