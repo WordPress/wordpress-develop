@@ -710,13 +710,8 @@ class WP_Plugin_Dependencies {
 					continue;
 				}
 
-				// Check the Plugin API if generic data is present.
-				if ( empty( self::$dependency_api_data[ $slug ]['last_updated'] ) ) {
-					unset( self::$dependency_api_data[ $slug ] );
-				}
-
 				// Don't hit the Plugin API if data exists.
-				if ( ! empty( self::$dependency_api_data[ $slug ] ) ) {
+				if ( ! empty( self::$dependency_api_data[ $slug ]['last_updated'] ) ) {
 					continue;
 				}
 			}
@@ -736,15 +731,10 @@ class WP_Plugin_Dependencies {
 				)
 			);
 
-			// Ensure `self::$dependency_api_data` has data, sometimes resets after `plugins_api()`.
-			self::$dependency_api_data = (array) get_site_transient( 'wp_plugin_dependencies_plugin_data' );
-
 			if ( is_wp_error( $information ) ) {
 				continue;
 			}
 
-			// Ensure `self::$dependency_api_data` has data, sometimes resets after `plugins_api()`.
-			self::$dependency_api_data          = (array) get_site_transient( 'wp_plugin_dependencies_plugin_data' );
 			self::$dependency_api_data[ $slug ] = (array) $information;
 			// plugins_api() returns 'name' not 'Name'.
 			self::$dependency_api_data[ $information->slug ]['Name'] = self::$dependency_api_data[ $information->slug ]['name'];
