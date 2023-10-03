@@ -4,6 +4,10 @@
  * @group post
  */
 class Tests_Post_Formats extends WP_UnitTestCase {
+
+	/**
+	* @covers ::get_post_format
+	*/
 	public function test_set_get_post_format_for_post() {
 		$post_id = self::factory()->post->create();
 
@@ -31,6 +35,8 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22473
+	 *
+	 * @covers ::get_post_format
 	 */
 	public function test_set_get_post_format_for_page() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
@@ -64,6 +70,9 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 		remove_post_type_support( 'page', 'post-formats' );
 	}
 
+	/**
+	 * @covers ::has_post_format
+	 */
 	public function test_has_format() {
 		$post_id = self::factory()->post->create();
 
@@ -92,6 +101,8 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23570
+	 *
+	 * @covers ::get_url_in_content
 	 */
 	public function test_get_url_in_content() {
 		$link                 = 'http://nytimes.com';

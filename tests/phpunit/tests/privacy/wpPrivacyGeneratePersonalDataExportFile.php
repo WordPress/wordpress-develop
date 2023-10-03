@@ -9,6 +9,8 @@
  * @group privacy
  * @covers ::wp_privacy_generate_personal_data_export_file
  * @requires extension zip
+ *
+ * @covers ::wp_privacy_generate_personal_data_export_file
  */
 class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestCase {
 	/**

@@ -61,6 +61,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 32464
+	 *
+	 * @covers ::wp_nav_menu
 	 */
 	public function test_wp_nav_menu_empty_container() {
 		$tag_id = self::factory()->tag->create();
@@ -87,6 +89,9 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$this->assertStringStartsWith( '<ul', $menu );
 	}
 
+	/**
+	 * @covers ::wp_get_associated_nav_menu_items
+	 */
 	public function test_wp_get_associated_nav_menu_items() {
 		$tag_id    = self::factory()->tag->create();
 		$cat_id    = self::factory()->category->create();
@@ -183,6 +188,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27113
+	 *
+	 * @covers ::wp_get_nav_menu_items
 	 */
 	public function test_orphan_nav_menu_item() {
 
@@ -216,6 +223,9 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$this->assertSame( 'WordPress.org', $custom_item->title );
 	}
 
+	/**
+	 * @covers ::wp_get_nav_menu_items
+	 */
 	public function test_wp_get_nav_menu_items_with_taxonomy_term() {
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
 		$t           = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
@@ -397,6 +407,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 13910
+	 *
+	 * @covers ::wp_get_nav_menu_name
 	 */
 	public function test_wp_get_nav_menu_name() {
 		// Register a nav menu location.
@@ -416,6 +428,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 29460
+	 *
+	 * @covers ::wp_get_nav_menus
 	 */
 	public function test_orderby_name_by_default() {
 		// We are going to create a random number of menus (min 2, max 10).
@@ -445,6 +459,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35324
+	 *
+	 * @covers ::wp_setup_nav_menu_item
 	 */
 	public function test_wp_setup_nav_menu_item_for_post_type_archive() {
 
@@ -478,6 +494,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35324
+	 *
+	 * @covers ::wp_setup_nav_menu_item
 	 */
 	public function test_wp_setup_nav_menu_item_for_post_type_archive_no_description() {
 
@@ -509,6 +527,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35324
+	 *
+	 * @covers ::wp_setup_nav_menu_item
 	 */
 	public function test_wp_setup_nav_menu_item_for_post_type_archive_custom_description() {
 
@@ -544,6 +564,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35324
+	 *
+	 * @covers ::wp_setup_nav_menu_item
 	 */
 	public function test_wp_setup_nav_menu_item_for_unknown_post_type_archive_no_description() {
 
@@ -565,6 +587,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 19038
+	 *
+	 * @covers ::wp_setup_nav_menu_item
 	 */
 	public function test_wp_setup_nav_menu_item_for_trashed_post() {
 		$post_id = self::factory()->post->create(
@@ -615,6 +639,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35206
+	 *
+	 * @covers ::wp_nav_menu
 	 */
 	public function test_wp_nav_menu_whitespace_options() {
 		$post_id1 = self::factory()->post->create();
@@ -702,6 +728,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 * backward compatibility.
 	 *
 	 * @ticket 24587
+	 *
+	 * @covers ::wp_nav_menu
 	 */
 	public function test_wp_nav_menu_filters_are_passed_args_object() {
 		$tag_id = self::factory()->tag->create();
@@ -788,6 +816,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35272
+	 *
+	 * @covers ::wp_get_nav_menu_items
 	 */
 	public function test_no_front_page_class_applied() {
 		$page_id = self::factory()->post->create(
@@ -819,6 +849,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35272
+	 *
+	 * @covers ::wp_get_nav_menu_items
 	 */
 	public function test_class_applied_to_front_page_item() {
 		$page_id = self::factory()->post->create(
@@ -852,6 +884,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35272
+	 *
+	 * @covers ::wp_get_nav_menu_items
 	 */
 	public function test_class_not_applied_to_taxonomies_with_same_id_as_front_page_item() {
 		global $wpdb;
@@ -949,6 +983,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39800
+	 *
+	 * @covers ::wp_get_nav_menu_items
 	 */
 	public function test_parent_ancestor_for_post_archive() {
 
@@ -1036,6 +1072,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * @ticket 43401
 	 * @dataProvider data_iri_current_menu_item
+	 *
+	 * @covers ::wp_get_nav_menu_items
 	 */
 	public function test_iri_current_menu_item( $custom_link, $current = true ) {
 		wp_update_nav_menu_item(
@@ -1079,6 +1117,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * @ticket 44005
 	 * @group privacy
+	 *
+	 * @covers ::wp_get_nav_menu_items
 	 */
 	public function test_no_privacy_policy_class_applied() {
 		$page_id = self::factory()->post->create(
@@ -1110,6 +1150,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * @ticket 44005
 	 * @group privacy
+	 *
+	 * @covers ::wp_get_nav_menu_items
 	 */
 	public function test_class_applied_to_privacy_policy_page_item() {
 		$page_id = self::factory()->post->create(
@@ -1144,6 +1186,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * @ticket 47723
 	 * @dataProvider data_trim_url_for_custom_item
+	 *
+	 * @covers ::wp_get_nav_menu_items
 	 */
 	public function test_trim_url_for_custom_item( $custom_url, $correct_url ) {
 		$custom_item_id = wp_update_nav_menu_item(
@@ -1178,6 +1222,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 * be empty, as the item should get the title from the category object itself.
 	 *
 	 * @ticket 48011
+	 *
+	 * @covers ::wp_update_nav_menu_item
 	 */
 	public function test_wp_update_nav_menu_item_with_special_characters_in_category_name() {
 		$category_name = 'Test Cat - \"Pre-Slashed\" Cat Name & >';
@@ -1215,6 +1261,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 * of it to ensure that this data is maintained during an import.
 	 *
 	 * @ticket 52189
+	 *
+	 * @covers ::wp_update_nav_menu_item
 	 */
 	public function test_wp_update_nav_menu_item_with_post_date() {
 		$post_date     = '2020-12-28 11:26:35';
