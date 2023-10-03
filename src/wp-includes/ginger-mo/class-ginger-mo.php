@@ -142,6 +142,8 @@ class Ginger_MO {
 		}
 
 		if ( null !== $mo ) {
+			$mo = realpath( $mo );
+
 			if ( null !== $locale ) {
 				foreach ( $this->loaded_translations[ $locale ][ $textdomain ] as $i => $moe ) {
 					if ( $mo === $moe || $mo === $moe->get_file() ) {
