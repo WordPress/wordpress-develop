@@ -923,14 +923,36 @@ function seems_utf8( $str ) {
  *  - Truncates superfluous leading zeros in numeric character references: e.g. `&#x0003F;` becomes `&#3F;`.
  *  - Leaves valid character references untouched: e.g. `&hellip;` remains `&hellip;`.
  *
- * @param string $text Unescaped raw string input bound for an HTML attribute.
+ * @param string              $text               Unescaped raw string input bound for an HTML attribute.
+ * @param string|WP_Token_Set $allowable_entities 'legacy' for legacy WordPress allowables,
+ *                                                'html5' for everything in the HTML5 spec,
+ *                                                or a WP_Token_Set for custom needs.
  * @return string
  */
-function _esc_attr_single_pass_utf8( $text ) {
-	global $allowedentitynames, $named_character_reference_lookup_table;
+function _esc_attr_single_pass_utf8( $text, $allowable_entities = 'legacy' ) {
+	global $html4_named_character_entity_set;
+	global $html5_named_character_entity_set;
 
 	if ( 0 === strlen( $text ) ) {
 		return $text;
+	}
+
+	switch ( $allowable_entities ) {
+		case 'legacy':
+			$entity_set = $html4_named_character_entity_set;
+			break;
+
+		case 'html5':
+			$entity_set = $html5_named_character_entity_set;
+			break;
+
+		default:
+			if ( $allowable_entities instanceof WP_Token_Set ) {
+				$entity_set = $allowable_entities;
+				break;
+			} else {
+				return $text;
+			}
 	}
 
 	$at     = 0;
@@ -1099,118 +1121,46 @@ function _esc_attr_single_pass_utf8( $text ) {
 				// Advance past the `&`.
 				++$name_at;
 
-				// &Aacute; -> group "Aa" (skip & since we know it's there).
-				$group_key = substr( $text, $name_at, 2 );
-				// Match cannot form a named character reference.
-				if ( ! array_key_exists( $group_key, $named_character_reference_lookup_table ) ) {
+				$name = $entity_set->read_token( $text, $name_at );
+				if ( false === $name ) {
 					$output .= '&amp;';
 					++$at;
 					break;
 				}
 
-				$name_at += 2;
-				$group    = $named_character_reference_lookup_table[ $group_key ];
+				$name_at += strlen( $name );
 
-				$i = 0;
-				while ( $i < strlen( $group ) ) {
-					/*
-					 * Extract name and substitution information from group string.
-					 *
-					 * Example:
-					 *
-					 * For group "qu", during lookup that will find "&quot;"
-					 *
-					 * ┌─────┬────┬──────┬────┬──────────────┬────┬─────┐
-					 * │ ... │ N5 │ Name │ S5 │ Substitution │ N6 │ ... │
-					 * ├─────┼────┼──────┼────┼──────────────┼────┼─────┤
-					 * │ ... │ 03 │ ot;  │ 01 │ "            │ 03 │ ... │
-					 * └─────┴────┴──────┴────┴──────────────┴────┴─────┘
-					 *         ^^          ^^
-					 *          |           |
-					 *          |           ╰ The substitution is one byte,
-					 *          |             even though it's represented in
-					 *          |             the string literal as "\x22", which
-					 *          |             is done for the sake of avoiding
-					 *          |             quoting issues in PHP.
-					 *          |
-					 *          ╰ The "ot;" is three bytes (the finishing of &quo̱t;).
-					 *
-					 * The part of the group string this represents follows:
-					 * > ...\x03ot;\x01\x22\x03...
-					 *
-					 * So we can see that we read a single character and interpret
-					 * it as a byte containing the length of the bytes in the name,
-					 * then we read the name, then the byte after that indicates how
-					 * many bytes are in the substitution string for that name, then
-					 * we start the next name pair until we reach the end of the
-					 * group string.
-					 *
-					 */
-					$name_length = ord( $group[ $i++ ] );
-					$name        = substr( $group, $i, $name_length );
-					$i          += $name_length;
-					$sub_length  = ord( $group[ $i++ ] );
-					$i          += $sub_length;
-
-					// The end of the document came mid-name or the name is not a match.
-					if ( $name_at + $name_length > $length || 0 !== substr_compare( $text, $name, $name_at, $name_length ) ) {
-						continue;
-					}
-
-					$name_at += $name_length;
-
-//					$semicolon_delta = ';' === $name[ $name_length - 1 ] ? -1 : 0;
-//					$reference_name  = substr( $text, $at + 1, $name_at - ( $at + 1 ) + $semicolon_delta );
-
-					/*
-					 * Some names are not allowed by WordPress, even though they are permitted by HTML.
-					 *
-					 * @TODO: Is there a reason these are limited, or was it simply that not all of the
-					 *        original named character references were added? Is there a reason not to
-					 *        allow all of them? There don't seem to be plugins changing this list.
-					 */
-//					if ( ! in_array( $reference_name, $allowedentitynames, true ) ) {
-//						$output .= '&amp;' . substr( $text, $at + 1, $name_at - ( $at + 1 ) );
-//						$at      = $name_at;
-//						break 2;
-//					}
-
-					// If we have an un-ambiguous ampersand we can safely leave it in.
-					if ( ';' === $text[ $name_at - 1 ] ) {
-						$output .= substr( $text, $at, $name_at - $at );
-						$at      = $name_at;
-						break 2;
-					}
-
-					/*
-					 * At this point though have matched an entry in the named
-					 * character reference table but the match doesn't end in `;`.
-					 * We need to determine if the next letter makes it an ambiguous.
-					 */
-					$ambiguous_follower = (
-						$name_at < $length &&
-						(
-							ctype_alnum( $text[ $name_at ] ) ||
-							'=' === $text[ $name_at ]
-						)
-					);
-
-					// It's non-ambiguous, safe to leave it in.
-					if ( ! $ambiguous_follower ) {
-						$output .= substr( $text, $at, $name_at - $at );
-						$at      = $name_at;
-						break 2;
-					}
-
-					// Ambiguous ampersands are not allowed in an attribute, escape it.
-					$output .= '&amp;' . substr( $text, $at + 1, $name_at - ( $at + 1 ) );
+				// If we have an un-ambiguous ampersand we can safely leave it in.
+				if ( ';' === $text[ $name_at - 1 ] ) {
+					$output .= substr( $text, $at, $name_at - $at );
 					$at      = $name_at;
-					break 2;
+					break;
 				}
 
-				// The character wasn't found in the groups.
-				$output .= '&amp;';
-				++$at;
+				/*
+				 * At this point though have matched an entry in the named
+				 * character reference table but the match doesn't end in `;`.
+				 * We need to determine if the next letter makes it an ambiguous.
+				 */
+				$ambiguous_follower = (
+					$name_at < $length &&
+					(
+						ctype_alnum( $text[ $name_at ] ) ||
+						'=' === $text[ $name_at ]
+					)
+				);
+
+				// It's non-ambiguous, safe to leave it in.
+				if ( ! $ambiguous_follower ) {
+					$output .= substr( $text, $at, $name_at - $at );
+					$at      = $name_at;
+					break;
+				}
+
+				// Ambiguous ampersands are not allowed in an attribute, escape it.
+				$output .= '&amp;' . substr( $text, $at + 1, $name_at - ( $at + 1 ) );
+				$at      = $name_at;
+				break;
 		}
 	}
 
