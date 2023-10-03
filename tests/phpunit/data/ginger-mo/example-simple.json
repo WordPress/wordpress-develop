@@ -1,0 +1,19 @@
+{
+	"domain": "unittest",
+	"locale_data": {
+		"unittest": {
+			"": {
+				"domain": "unittest",
+				"plural-forms": "nplurals=2; plural=n != 1;",
+				"lang": "de"
+			},
+			"original": "translation",
+			"context\u0004original with context": ["translation with context"],
+			"plural0\u0000plural1": ["translation0", "translation1"],
+			"context\u0004plural0 with context\u0000plural1 with context": [
+				"translation0 with context",
+				"translation1 with context"
+			]
+		}
+	}
+}

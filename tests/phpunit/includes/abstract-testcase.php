@@ -1345,9 +1345,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @since 3.5.0
 	 *
+	 * @param string $contents Optional. File contents.
 	 * @return string|bool Path on success, else false.
 	 */
-	public function temp_filename() {
+	public function temp_filename(  string $contents = null  ) {
 		$tmp_dir = '';
 		$dirs    = array( 'TMP', 'TMPDIR', 'TEMP' );
 
@@ -1364,7 +1365,17 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		$tmp_dir = realpath( $tmp_dir );
 
-		return tempnam( $tmp_dir, 'wpunit' );
+		$file = tempnam( $tmp_dir, 'wpunit' );
+
+		if ( false === $file ) {
+			return false;
+		}
+
+		if ( null !== $contents ) {
+			file_put_contents( $file, $contents );
+		}
+
+		return $file;
 	}
 
 	/**

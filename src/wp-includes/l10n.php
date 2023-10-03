@@ -954,8 +954,8 @@ function unload_textdomain( $domain, $reloadable = false ) {
 
 		unset( $l10n[ $domain ] );
 
+		// Since we support multiple locales, we don't actually need to unload reloadable text domains.
 		if ( ! $reloadable ) {
-			// Since we support multiple locales, we don't actually need to unload reloadable text domains.
 			return Ginger_MO::instance()->unload( $domain );
 		}
 
@@ -984,7 +984,7 @@ function load_default_textdomain( $locale = null ) {
 	}
 
 	// Unload previously loaded strings so we can switch translations.
-	unload_textdomain( 'default' );
+	unload_textdomain( 'default', true );
 
 	$return = load_textdomain( 'default', WP_LANG_DIR . "/$locale.mo", $locale );
 
