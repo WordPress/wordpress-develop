@@ -24,6 +24,8 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	 *
 	 * @param string $location The path or URL to redirect to.
 	 * @param int    $status   HTTP response status code to use.
+	 *
+	 * @covers ::wp_redirect
 	 */
 	public function test_wp_redirect_bad_status_code( $location, $status ) {
 		$this->expectException( 'WPDieException' );
