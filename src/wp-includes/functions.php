@@ -5079,7 +5079,7 @@ function _wp_array_set( &$input_array, $path, $value = null ) {
 		) {
 			$input_array[ $path_element ] = array();
 		}
-		$input_array = &$input_array[ $path_element ]; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.VariableRedeclaration
+		$input_array = &$input_array[ $path_element ];
 	}
 
 	$input_array[ $path[ $i ] ] = $value;
@@ -7169,7 +7169,7 @@ function _get_non_cached_ids( $object_ids, $cache_group ) {
 	$cache_values   = wp_cache_get_multiple( $object_ids, $cache_group );
 
 	foreach ( $cache_values as $id => $value ) {
-		if ( ! $value ) {
+		if ( false === $value ) {
 			$non_cached_ids[] = (int) $id;
 		}
 	}

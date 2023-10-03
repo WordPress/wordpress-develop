@@ -1,0 +1,7 @@
+{
+	"name": "tests/hooked-first-child",
+	"blockHooks": {
+		"core/comments": "firstChild"
+	},
+	"render": "file:render.php"
+}
