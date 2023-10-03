@@ -825,11 +825,11 @@ final class WP_Theme implements ArrayAccess {
 	}
 
 	/**
-	 * Get block pattern cache.
+	 * Gets block pattern cache.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return mixed Returns an array of patterns if cache is found, otherwise false.
+	 * @return array|false Returns an array of patterns if cache is found, otherwise false.
 	 */
 	public function get_pattern_cache() {
 		if ( ! $this->exists() ) {
@@ -843,11 +843,13 @@ final class WP_Theme implements ArrayAccess {
 	}
 
 	/**
-	 * Set block pattern cache.
+	 * Sets block pattern cache.
 	 *
 	 * @since 6.4.0
+	 *
+	 * @param array $patterns Block patterns data to set in cache.
 	 */
-	public function set_pattern_cache( array $patterns = array() ) {
+	public function set_pattern_cache( array $patterns ) {
 		$pattern_data = array(
 			'version'  => $this->get( 'Version' ),
 			'patterns' => $patterns,
@@ -855,9 +857,8 @@ final class WP_Theme implements ArrayAccess {
 		set_transient( 'wp_theme_patterns_' . $this->stylesheet, $pattern_data );
 	}
 
-
 	/**
-	 * Clear block pattern cache.
+	 * Clears block pattern cache.
 	 *
 	 * @since 6.4.0
 	 */
