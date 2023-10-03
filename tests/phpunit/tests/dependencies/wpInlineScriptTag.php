@@ -5,8 +5,6 @@
  *
  * @group dependencies
  * @group scripts
- * @covers ::wp_get_inline_script_tag
- * @covers ::wp_print_inline_script_tag
  */
 class Tests_Functions_wpInlineScriptTag extends WP_UnitTestCase {
 
@@ -49,6 +47,9 @@ JS;
 		);
 	}
 
+	/**
+	 * @covers ::wp_get_inline_script_tag
+	 */
 	public function test_get_inline_script_tag_type_not_set() {
 		add_theme_support( 'html5', array( 'script' ) );
 
@@ -66,6 +67,9 @@ JS;
 		remove_theme_support( 'html5' );
 	}
 
+	/**
+	 * @covers ::wp_get_inline_script_tag
+	 */
 	public function test_get_inline_script_tag_unescaped_src() {
 		add_theme_support( 'html5', array( 'script' ) );
 
@@ -77,6 +81,9 @@ JS;
 		remove_theme_support( 'html5' );
 	}
 
+	/**
+	 * @covers ::wp_print_inline_script_tag
+	 */
 	public function test_print_script_tag_prints_get_inline_script_tag() {
 		add_filter(
 			'wp_inline_script_attributes',

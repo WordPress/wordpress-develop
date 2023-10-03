@@ -52,6 +52,9 @@ class Tests_DB extends WP_UnitTestCase {
 	 * Test that WPDB will reconnect when the DB link dies
 	 *
 	 * @ticket 5932
+	 *
+	 * @covers wpdb::db_connect
+	 * @covers wpdb::get_var
 	 */
 	public function test_db_reconnect() {
 		global $wpdb;
@@ -76,6 +79,8 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @global mixed $wpdb
 	 *
 	 * @ticket 19861
+	 *
+	 * @covers wpdb::update
 	 */
 	public function test_locale_floats() {
 		global $wpdb;
@@ -122,6 +127,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10041
+	 *
+	 * @covers wpdb::esc_like
 	 */
 	public function test_esc_like() {
 		global $wpdb;
@@ -158,6 +165,9 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @param $data string The haystack, raw.
 	 * @param $like string The like phrase, raw.
 	 * @param $result string The expected comparison result; '1' = true, '0' = false
+	 *
+	 * @covers wpdb::esc_like
+	 * @covers wpdb::get_var
 	 */
 	public function test_like_query( $data, $like, $result ) {
 		global $wpdb;
@@ -221,6 +231,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 18510
+	 *
+	 * @covers wpdb
 	 */
 	public function test_wpdb_supposedly_protected_properties() {
 		global $wpdb;
@@ -237,6 +249,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
+	 *
+	 * @covers wpdb
 	 */
 	public function test_wpdb_actually_protected_properties() {
 		global $wpdb;
@@ -252,6 +266,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 18510
+	 *
+	 * @covers wpdb
 	 */
 	public function test_wpdb_nonexistent_properties() {
 		global $wpdb;
@@ -268,6 +284,9 @@ class Tests_DB extends WP_UnitTestCase {
 	 * Test that an escaped %%f is not altered
 	 *
 	 * @ticket 19861
+	 *
+	 * @covers wpdb::placeholder_escape
+	 * @covers wpdb::remove_placeholder_escape
 	 */
 	public function test_double_escaped_placeholders() {
 		global $wpdb;
@@ -283,6 +302,9 @@ class Tests_DB extends WP_UnitTestCase {
 	 * Test that SQL modes are set correctly
 	 *
 	 * @ticket 26847
+	 *
+	 * @covers wpdb::set_sql_mode
+	 * @covers wpdb::get_var
 	 */
 	public function test_set_sql_mode() {
 		global $wpdb;
@@ -303,6 +325,9 @@ class Tests_DB extends WP_UnitTestCase {
 	 * Test that incompatible SQL modes are blocked
 	 *
 	 * @ticket 26847
+	 *
+	 * @covers wpdb::set_sql_mode
+	 * @covers wpdb::get_var
 	 */
 	public function test_set_incompatible_sql_mode() {
 		global $wpdb;
@@ -321,6 +346,9 @@ class Tests_DB extends WP_UnitTestCase {
 	 * Test that incompatible SQL modes can be changed
 	 *
 	 * @ticket 26847
+	 *
+	 * @covers wpdb::set_sql_mode
+	 * @covers wpdb::get_var
 	 */
 	public function test_set_allowed_incompatible_sql_mode() {
 		global $wpdb;
@@ -354,6 +382,8 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 25604
 	 * @expectedIncorrectUsage wpdb::prepare
+	 *
+	 * @covers wpdb::prepare
 	 */
 	public function test_prepare_without_arguments() {
 		global $wpdb;
@@ -364,6 +394,9 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( "SELECT * FROM $wpdb->users WHERE id = 0", $prepared );
 	}
 
+	/**
+	 * @covers wpdb::prepare
+	 */
 	public function test_prepare_sprintf() {
 		global $wpdb;
 
@@ -373,6 +406,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @expectedIncorrectUsage wpdb::prepare
+	 *
+	 * @covers wpdb::prepare
 	 */
 	public function test_prepare_sprintf_invalid_args() {
 		global $wpdb;
@@ -386,6 +421,9 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( "SELECT * FROM $wpdb->users WHERE id = 0 AND user_login = 'admin'", $prepared );
 	}
 
+	/**
+	 * @covers wpdb::prepare
+	 */
 	public function test_prepare_vsprintf() {
 		global $wpdb;
 
@@ -395,6 +433,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @expectedIncorrectUsage wpdb::prepare
+	 *
+	 * @covers wpdb::prepare
 	 */
 	public function test_prepare_vsprintf_invalid_args() {
 		global $wpdb;
@@ -412,6 +452,8 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @ticket 42040
 	 * @dataProvider data_prepare_incorrect_arg_count
 	 * @expectedIncorrectUsage wpdb::prepare
+	 *
+	 * @covers wpdb::prepare
 	 */
 	public function test_prepare_incorrect_arg_count( $query, $args, $expected ) {
 		global $wpdb;
@@ -475,12 +517,17 @@ class Tests_DB extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers wpdb::db_version
+	 */
 	public function test_db_version() {
 		global $wpdb;
 
 		$this->assertTrue( version_compare( $wpdb->db_version(), '5.0', '>=' ) );
 	}
-
+	/**
+	 * @covers wpdb::get_caller
+	 */
 	public function test_get_caller() {
 		global $wpdb;
 		$str    = $wpdb->get_caller();
@@ -489,6 +536,9 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( $called, end( $calls ) );
 	}
 
+	/**
+	 * @covers wpdb::has_cap
+	 */
 	public function test_has_cap() {
 		global $wpdb;
 		$this->assertTrue( $wpdb->has_cap( 'collation' ) );
@@ -511,17 +561,25 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @expectedDeprecated supports_collation
+	 *
+	 * @covers wpdb::supports_collation
 	 */
 	public function test_supports_collation() {
 		global $wpdb;
 		$this->assertTrue( $wpdb->supports_collation() );
 	}
 
+	/**
+	 * @covers wpdb::check_database_version
+	 */
 	public function test_check_database_version() {
 		global $wpdb;
 		$this->assertEmpty( $wpdb->check_database_version() );
 	}
 
+	/**
+	 * @covers wpdb::bail
+	 */
 	public function test_bail() {
 		global $wpdb;
 
@@ -529,6 +587,10 @@ class Tests_DB extends WP_UnitTestCase {
 		$wpdb->bail( 'Database is dead.' );
 	}
 
+	/**
+	 * @covers wpdb::timer_start
+	 * @covers wpdb::timer_stop
+	 */
 	public function test_timers() {
 		global $wpdb;
 
@@ -540,6 +602,9 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertGreaterThan( $stop, $wpdb->time_start );
 	}
 
+	/**
+	 * @covers wpdb::get_col_info
+	 */
 	public function test_get_col_info() {
 		global $wpdb;
 
@@ -549,7 +614,10 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( array( $wpdb->users ), $wpdb->get_col_info( 'table' ) );
 		$this->assertSame( $wpdb->users, $wpdb->get_col_info( 'table', 0 ) );
 	}
-
+	/**
+	 * @covers wpdb::query
+	 * @covers wpdb::delete
+	 */
 	public function test_query_and_delete() {
 		global $wpdb;
 		$rows = $wpdb->query( "INSERT INTO $wpdb->users (display_name) VALUES ('Walter Sobchak')" );
@@ -559,6 +627,10 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( 1, $d_rows );
 	}
 
+	/**
+	 * @covers wpdb::query
+	 * @covers wpdb::get_row
+	 */
 	public function test_get_row() {
 		global $wpdb;
 		$rows = $wpdb->query( "INSERT INTO $wpdb->users (display_name) VALUES ('Walter Sobchak')" );
@@ -581,6 +653,8 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @dataProvider data_get_col
 	 *
 	 * @ticket 45299
+	 *
+	 * @covers wpdb::get_col
 	 */
 	public function test_get_col( $query, $expected, $last_result, $column ) {
 		global $wpdb;
@@ -661,6 +735,10 @@ class Tests_DB extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers wpdb::replace
+	 * @covers wpdb::get_row
+	 */
 	public function test_replace() {
 		global $wpdb;
 		$rows1 = $wpdb->insert( $wpdb->users, array( 'display_name' => 'Walter Sobchak' ) );
@@ -688,6 +766,8 @@ class Tests_DB extends WP_UnitTestCase {
 	 * wpdb::update() requires a WHERE condition.
 	 *
 	 * @ticket 26106
+	 *
+	 * @covers wpdb::update
 	 */
 	public function test_empty_where_on_update() {
 		global $wpdb;
@@ -710,6 +790,8 @@ class Tests_DB extends WP_UnitTestCase {
 	 * mysqli_ incorrect flush and further sync issues.
 	 *
 	 * @ticket 28155
+	 *
+	 * @covers wpdb::query
 	 */
 	public function test_mysqli_flush_sync() {
 		global $wpdb;
@@ -867,6 +949,8 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_get_table_from_query
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::get_table_from_query
 	 */
 	public function test_get_table_from_query( $query, $table ) {
 		$this->assertSame( $table, self::$_wpdb->get_table_from_query( $query ) );
@@ -882,6 +966,8 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_get_table_from_query_false
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::get_table_from_query
 	 */
 	public function test_get_table_from_query_false( $query ) {
 		$this->assertFalse( self::$_wpdb->get_table_from_query( $query ) );
@@ -889,6 +975,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38751
+	 *
+	 * @covers wpdb::get_table_from_query
 	 */
 	public function data_get_escaped_table_from_show_query() {
 		return array(
@@ -909,6 +997,8 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_get_escaped_table_from_show_query
 	 * @ticket 38751
+	 *
+	 * @covers wpdb::get_table_from_query
 	 */
 	public function test_get_escaped_table_from_show_query( $query, $table ) {
 		$this->assertSame( $table, self::$_wpdb->get_table_from_query( $query ) );
@@ -1024,6 +1114,8 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_process_field_formats
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::process_field_formats
 	 */
 	public function test_process_field_formats( $data, $format, $expected, $message ) {
 		$actual = self::$_wpdb->process_field_formats( $data, $format );
@@ -1032,6 +1124,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::process_fields
 	 */
 	public function test_process_fields() {
 		global $wpdb;
@@ -1062,6 +1156,8 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 * @depends test_process_fields
+	 *
+	 * @covers wpdb::process_fields
 	 */
 	public function test_process_fields_on_nonexistent_table( $data ) {
 		self::$_wpdb->suppress_errors( true );
@@ -1072,6 +1168,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::get_table_charset
 	 */
 	public function test_pre_get_table_charset_filter() {
 		add_filter( 'pre_get_table_charset', array( $this, 'filter_pre_get_table_charset' ), 10, 2 );
@@ -1086,6 +1184,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
+	 *
+	 * @covers wpdb::get_col_charset
 	 */
 	public function test_pre_get_col_charset_filter() {
 		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset' ), 10, 3 );
@@ -1248,6 +1348,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 32315
+	 *
+	 * @covers wpdb::query
 	 */
 	public function test_query_value_contains_invalid_chars() {
 		global $wpdb;
@@ -1264,6 +1366,9 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15158
+	 *
+	 * @covers wpdb::insert
+	 * @covers wpdb::get_row
 	 */
 	public function test_null_insert() {
 		global $wpdb;
@@ -1286,6 +1391,10 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15158
+	 *
+	 * @covers wpdb::insert
+	 * @covers wpdb::get_row
+	 * @covers wpdb::update
 	 */
 	public function test_null_update_value() {
 		global $wpdb;
@@ -1324,6 +1433,10 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15158
+	 *
+	 * @covers wpdb::insert
+	 * @covers wpdb::get_row
+	 * @covers wpdb::update
 	 */
 	public function test_null_update_where() {
 		global $wpdb;
@@ -1362,6 +1475,10 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15158
+	 *
+	 * @covers wpdb::insert
+	 * @covers wpdb::get_row
+	 * @covers wpdb::delete
 	 */
 	public function test_null_delete() {
 		global $wpdb;
@@ -1398,6 +1515,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34903
+	 *
+	 * @covers wpdb::close
 	 */
 	public function test_close() {
 		global $wpdb;
@@ -1417,6 +1536,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36917
+	 *
+	 * @covers wpdb::determine_charset
 	 */
 	public function test_charset_not_determined_when_disconnected() {
 		global $wpdb;
@@ -1435,6 +1556,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36917
+	 *
+	 * @covers wpdb::determine_charset
 	 */
 	public function test_charset_switched_to_utf8mb4() {
 		global $wpdb;
@@ -1454,6 +1577,8 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 32105
 	 * @ticket 36917
+	 *
+	 * @covers wpdb::determine_charset
 	 */
 	public function test_collate_switched_to_utf8mb4_520() {
 		global $wpdb;
@@ -1473,6 +1598,8 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 32405
 	 * @ticket 36917
+	 *
+	 * @covers wpdb::determine_charset
 	 */
 	public function test_non_unicode_collations() {
 		global $wpdb;
@@ -1491,6 +1618,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37982
+	 *
+	 * @covers wpdb::determine_charset
 	 */
 	public function test_charset_switched_to_utf8() {
 		global $wpdb;
@@ -1510,6 +1639,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_prepare_with_placeholders
+	 *
+	 * @covers wpdb::prepare
 	 */
 	public function test_prepare_with_placeholders_and_individual_args( $sql, $values, $incorrect_usage, $expected ) {
 		global $wpdb;
@@ -1533,6 +1664,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_prepare_with_placeholders
+	 *
+	 * @covers wpdb::prepare
 	 */
 	public function test_prepare_with_placeholders_and_array_args( $sql, $values, $incorrect_usage, $expected ) {
 		global $wpdb;
@@ -2116,6 +2249,9 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_escape_and_prepare
+	 *
+	 * @covers ::esc_sql
+	 * @covers wpdb::prepare
 	 */
 	public function test_escape_and_prepare( $escape, $sql, $values, $incorrect_usage, $expected ) {
 		global $wpdb;
@@ -2166,6 +2302,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @expectedIncorrectUsage wpdb::prepare
+	 *
+	 * @covers wpdb::prepare
 	 */
 	public function test_double_prepare() {
 		global $wpdb;
@@ -2177,6 +2315,9 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertNull( $query );
 	}
 
+	/**
+	 * @covers wpdb::prepare
+	 */
 	public function test_prepare_numeric_placeholders_float_args() {
 		global $wpdb;
 
@@ -2192,6 +2333,9 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertStringContainsString( ' second=2.2', $actual );
 	}
 
+	/**
+	 * @covers wpdb::prepare
+	 */
 	public function test_prepare_numeric_placeholders_float_array() {
 		global $wpdb;
 
@@ -2206,6 +2350,10 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertStringContainsString( ' second=2.2', $actual );
 	}
 
+	/**
+	 * @covers wpdb::prepare
+	 * @covers wpdb::get_var
+	 */
 	public function test_query_unescapes_placeholders() {
 		global $wpdb;
 
@@ -2225,6 +2373,9 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( $value, $actual );
 	}
 
+	/**
+	 * @covers wpdb::placeholder_escape
+	 */
 	public function test_esc_sql_with_unsupported_placeholder_type() {
 		global $wpdb;
 
@@ -2239,6 +2390,8 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @dataProvider data_parse_db_host
 	 * @ticket 41722
 	 * @ticket 54877
+	 *
+	 * @covers wpdb::parse_db_host
 	 */
 	public function test_parse_db_host( $host_string, $expect_bail, $host, $port, $socket, $is_ipv6 ) {
 		global $wpdb;
