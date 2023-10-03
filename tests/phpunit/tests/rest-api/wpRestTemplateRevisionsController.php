@@ -33,17 +33,6 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	private static $contributor_id;
 
 	/**
-	 * Editor user ID.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @var int
-	 */
-	private static $editor_id;
-
-
-
-	/**
 	 * Template post.
 	 *
 	 * @since 6.4.0
@@ -74,12 +63,6 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		self::$contributor_id = $factory->user->create(
 			array(
 				'role' => 'contributor',
-			)
-		);
-
-		self::$editor_id = $factory->user->create(
-			array(
-				'role' => 'editor',
 			)
 		);
 
