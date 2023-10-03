@@ -33,10 +33,18 @@ class WP_Font_Family {
 	 * @param array $font_data Font family data.
 	 * @throws Exception If the font family data is missing the slug.
 	 */
-	public function __construct( $font_data = array() ) {
-		if ( empty( $font_data['slug'] ) ) {
-			throw new Exception( 'Font family data is missing the slug.' );
-		}
+	public function __construct( $id = null ) {
+		$this->id = $id;
+	}
+
+	/**
+	 * Sets the font family data.
+	 *
+	 * @since 6.4.0
+	 * 
+	 * @param array $font_data An array in fontFamily theme.json format.
+	 */
+	public function set_data( $font_data ) {
 		$this->data = $font_data;
 	}
 
@@ -101,17 +109,15 @@ class WP_Font_Family {
 	 * @return bool|WP_Error True if the font family was uninstalled, WP_Error otherwise.
 	 */
 	public function uninstall() {
-		$post = $this->get_data_from_post();
-		if ( null === $post ) {
-			return new WP_Error(
-				'font_family_not_found',
-				__( 'The font family could not be found.' )
-			);
+		$data = $this->populate_data_from_post_content_by_id();
+
+		if ( is_wp_error( $data ) ) {
+			return $data;
 		}
 
 		if (
 			! $this->remove_font_family_assets() ||
-			! wp_delete_post( $post->ID, true )
+			! wp_delete_post( $this->id, true )
 		) {
 			return new WP_Error(
 				'font_family_not_deleted',
@@ -450,47 +456,54 @@ class WP_Font_Family {
 	}
 
 	/**
-	 * Gets the post for a font family.
+	 * Populates the data for this object from the database using a post id.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return WP_Post|null The post for this font family object or
-	 *                      null if the post does not exist.
+	 * @return bool|WP_Error True if the data was populated, WP_Error otherwise.
 	 */
-	public function get_font_post() {
+	private function populate_data_from_post_content_by_id() {
+		$post = get_post( $this->id );
+		if ( $post && !empty( $post ) ) {
+			$post_content_data = json_decode( $post->post_content, true );
+			// If the post content is not valid JSON, return null.
+			if ( is_null( $post_content_data ) ) {
+				return new WP_Error(
+					'font_family_post_content_not_valid_json',
+					__( 'The font family post content is not valid JSON.' )
+				);
+			}
+			$this->set_data( $post_content_data );
+			return true;
+		}
+		return new WP_Error(
+			'font_family_not_found',
+			__( 'The font family could not be found.' )
+		);
+	}
+
+	/**
+	 * Gets a post for a font family by its slug.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return WP_Post|null The post if the post exists, null otherwise.
+	 */
+	private function get_post_by_slug() {
 		$args = array(
 			'post_type'      => 'wp_font_family',
 			'post_name'      => $this->data['slug'],
 			'name'           => $this->data['slug'],
 			'posts_per_page' => 1,
 		);
-
+	
 		$posts_query = new WP_Query( $args );
-
-		if ( $posts_query->have_posts() ) {
-			return $posts_query->posts[0];
+		if ( ! $posts_query->have_posts() ) {
+			return null;
 		}
 
-		return null;
-	}
-
-	/**
-	 * Gets the data for this object from the database and
-	 * sets it to the data property.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @return WP_Post|null The post for this font family object or
-	 *                      null if the post does not exist.
-	 */
-	private function get_data_from_post() {
-		$post = $this->get_font_post();
-		if ( $post ) {
-			$this->data = json_decode( $post->post_content, true );
-			return $post;
-		}
-
-		return null;
+		$post = $posts_query->posts[0];
+		return $post;
 	}
 
 	/**
@@ -498,7 +511,7 @@ class WP_Font_Family {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return int|WP_Error Post ID if the post was created, WP_Error otherwise.
+	 * @return bool|WP_Error True if the post was created, WP_Error otherwise.
 	 */
 	private function create_font_post() {
 		$post = array(
@@ -516,8 +529,8 @@ class WP_Font_Family {
 				__( 'Font post creation failed.' )
 			);
 		}
-
-		return $post_id;
+		$this->id = $post_id;
+		return true;
 	}
 
 	/**
@@ -550,7 +563,7 @@ class WP_Font_Family {
 	 * @since 6.4.0
 	 *
 	 * @param WP_Post $post The post to update.
-	 * @return int|WP_Error Post ID if the update was successful, WP_Error otherwise.
+	 * @return bool|WP_Error True if the update was successful, WP_Error otherwise.
 	 */
 	private function update_font_post( $post ) {
 		$post_font_data = json_decode( $post->post_content, true );
@@ -587,7 +600,7 @@ class WP_Font_Family {
 			);
 		}
 
-		return $post_id;
+		return true;
 	}
 
 	/**
@@ -602,12 +615,15 @@ class WP_Font_Family {
 	private function create_or_update_font_post() {
 		$this->sanitize();
 
-		$post = $this->get_font_post();
-		if ( $post ) {
+		$post = $this->get_post_by_slug();
+
+		if( $post ){
+			$this->id = $post->ID;
 			return $this->update_font_post( $post );
 		}
-
+		
 		return $this->create_font_post();
+		
 	}
 
 	/**
@@ -616,7 +632,7 @@ class WP_Font_Family {
 	 * @since 6.4.0
 	 *
 	 * @param array $files Optional. An array of files to be installed. Default null.
-	 * @return array|WP_Error An array of font family data on success, WP_Error otherwise.
+	 * @return WP_Post|WP_Error The font family post if the installation was successful, WP_Error otherwise.
 	 */
 	public function install( $files = null ) {
 		add_filter( 'upload_mimes', array( 'WP_Font_Library', 'set_allowed_mime_types' ) );
@@ -632,12 +648,11 @@ class WP_Font_Family {
 			);
 		}
 
-		$post_id = $this->create_or_update_font_post();
-
-		if ( is_wp_error( $post_id ) ) {
-			return $post_id;
+		$result = $this->create_or_update_font_post();
+		if ( is_wp_error( $result ) ) {
+			return $result;
 		}
-
-		return $this->get_data();
+		$post = get_post( $this->id );
+		return rest_ensure_response( $post );
 	}
 }
