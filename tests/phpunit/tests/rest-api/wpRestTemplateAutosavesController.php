@@ -33,11 +33,11 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	private static $template_post;
 
 	/**
-	 * Autosave post.
+	 * Autosave post ID.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @var WP_Post
+	 * @var int
 	 */
 	private static $autosave_post_id;
 
