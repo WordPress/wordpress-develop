@@ -160,6 +160,9 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
+	/**
+	 * @covers ::set_current_screen
+	 */
 	public function test_set_current_screen_with_hook_suffix() {
 		global $current_screen;
 
@@ -228,6 +231,9 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::convert_to_screen
+	 */
 	public function test_post_type_as_hookname() {
 		$screen = convert_to_screen( 'page' );
 		$this->assertSame( $screen->post_type, 'page' );
@@ -236,6 +242,9 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertTrue( $screen->is_block_editor );
 	}
 
+	/**
+	 * @covers ::convert_to_screen
+	 */
 	public function test_post_type_with_special_suffix_as_hookname() {
 		register_post_type( 'value-add' );
 		$screen = convert_to_screen( 'value-add' ); // The '-add' part is key.
@@ -251,6 +260,9 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertFalse( $screen->is_block_editor ); // Post types do not support `show_in_rest` by default.
 	}
 
+	/**
+	 * @covers ::convert_to_screen
+	 */
 	public function test_taxonomy_with_special_suffix_as_hookname() {
 		register_taxonomy( 'old-or-new', 'post' );
 		$screen = convert_to_screen( 'edit-old-or-new' ); // The '-new' part is key.
@@ -260,6 +272,9 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertFalse( $screen->is_block_editor );
 	}
 
+	/**
+	 * @covers ::convert_to_screen
+	 */
 	public function test_post_type_with_edit_prefix() {
 		register_post_type( 'edit-some-thing' );
 		$screen = convert_to_screen( 'edit-some-thing' );
@@ -275,6 +290,9 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertFalse( $screen->is_block_editor ); // Post types do not support `show_in_rest` by default.
 	}
 
+	/**
+	 * @covers ::convert_to_screen
+	 */
 	public function test_post_type_edit_collisions() {
 		register_post_type( 'comments' );
 		register_post_type( 'tags' );
@@ -295,6 +313,13 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertSame( $screen->base, 'post' );
 	}
 
+	/**
+	 * @covers WP_Screen::add_help_tab
+	 * @covers WP_Screen:: get_help_tab
+	 * @covers WP_Screen:: get_help_tabs
+	 * @covers WP_Screen::remove_help_tab
+	 * @covers WP_Screen::remove_help_tabs
+	 */
 	public function test_help_tabs() {
 		$tab      = __FUNCTION__;
 		$tab_args = array(
@@ -330,6 +355,12 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 19828
+	 *
+	 * @covers WP_Screen::add_help_tab
+	 * @covers WP_Screen:: get_help_tab
+	 * @covers WP_Screen:: get_help_tabs
+	 * @covers WP_Screen::remove_help_tab
+	 * @covers WP_Screen::remove_help_tabs
 	 */
 	public function test_help_tabs_priority() {
 		$tab_1      = 'tab1';
@@ -426,6 +457,11 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25799
+	 *
+	 * @covers WP_Screen::add_option
+	 * @covers WP_Screen::get_option
+	 * @covers WP_Screen::remove_option
+	 * @covers WP_Screen::remove_options
 	 */
 	public function test_options() {
 		$option      = __FUNCTION__;
@@ -451,6 +487,9 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertSame( $screen->get_options(), array() );
 	}
 
+	/**
+	 * @covers WP_Screen::in_admin
+	 */
 	public function test_in_admin() {
 		set_current_screen( 'edit.php' );
 		$this->assertTrue( get_current_screen()->in_admin() );
@@ -598,6 +637,8 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 	 *     $function string Function name to hook to the filter.
 	 * }
 	 * @param bool   $expected The expected `is_block_editor` value.
+	 *
+	 * @covers ::set_current_screen
 	 */
 	public function test_is_block_editor( $hook, $filter, $expected ) {
 		if ( ! empty( $filter['name'] ) && ! empty( $filter['function'] ) ) {

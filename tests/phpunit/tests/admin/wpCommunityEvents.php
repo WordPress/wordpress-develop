@@ -321,6 +321,8 @@ class Tests_Admin_wpCommunityEvents extends WP_UnitTestCase {
 	/**
 	 * Test: get_events() should return the events with the WordCamp pinned in the prepared list.
 	 *
+	 * @covers WP_Community_Events::trim_events
+	 *
 	 * @since 4.9.7
 	 * @since 5.5.2 Tests `trim_events()` directly instead of indirectly via `get_events()`.
 	 *
@@ -425,6 +427,8 @@ class Tests_Admin_wpCommunityEvents extends WP_UnitTestCase {
 	/**
 	 * Test: get_events() shouldn't stick an extra WordCamp when there's already one that naturally
 	 * falls into the list.
+	 *
+	 * @covers WP_Community_Events::trim_events
 	 *
 	 * @since 4.9.7
 	 * @since 5.5.2 Tests `trim_events()` directly instead of indirectly via `get_events()`.
