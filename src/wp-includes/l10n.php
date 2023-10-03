@@ -806,7 +806,7 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 
 	$mofile_preferred = str_replace( '.mo', ".mo.$preferred_format", $mofile );
 
-	if ( 'mo' !== $preferred_format ) {
+	if ( 'mo' !== $preferred_format || str_ends_with( $mofile, $preferred_format ) ) {
 
 		/** This filter is documented in wp-includes/l10n.php */
 		$mofile_preferred = apply_filters( 'load_textdomain_mofile', $mofile_preferred, $domain );
@@ -876,7 +876,7 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		 */
 		$convert = apply_filters( 'convert_translation_files', true );
 
-		if ( 'mo' !== $preferred_format && $convert ) {
+		if ( 'mo' !== $preferred_format && $convert && str_ends_with( $mofile, '.mo' ) ) {
 			$contents = Ginger_MO_Translation_File::transform( $mofile, $preferred_format );
 
 			if ( false !== $contents ) {
