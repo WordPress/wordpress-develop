@@ -56,7 +56,7 @@ class Tests_Blocks_WpGetBlockPatterns extends WP_UnitTestCase {
 	public function test_should_clear_transient_after_switching_theme() {
 		switch_theme( 'block-theme' );
 		$theme1 = wp_get_theme();
-		_wp_get_block_patterns( wp_get_theme() );
+		_wp_get_block_patterns( $theme1 );
 		$this->assertSameSets(
 			array(),
 			$theme1->get_pattern_cache(),
