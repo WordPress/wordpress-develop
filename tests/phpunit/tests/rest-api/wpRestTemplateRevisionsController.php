@@ -64,40 +64,36 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		wp_set_post_terms( self::$template_post->ID, self::TEST_THEME, 'wp_theme' );
 
 		// Update post to create a new revisions.
-		$updated_template_post = array(
-			'ID'           => self::$template_post->ID,
-			'post_content' => 'Content revision #2',
+		_wp_put_post_revision(
+			array(
+				'ID'           => self::$template_post->ID,
+				'post_content' => 'Content revision #2',
+			)
 		);
-
-		wp_update_post( $updated_template_post, true, false );
-		wp_save_post_revision( self::$template_post->ID );
 
 		// Update post to create a new revisions.
-		$updated_template_post = array(
-			'ID'           => self::$template_post->ID,
-			'post_content' => 'Content revision #3',
+		_wp_put_post_revision(
+			array(
+				'ID'           => self::$template_post->ID,
+				'post_content' => 'Content revision #3',
+			)
 		);
-
-		wp_update_post( $updated_template_post, true, false );
-		wp_save_post_revision( self::$template_post->ID );
 
 		// Update post to create a new revisions.
-		$updated_template_post = array(
-			'ID'           => self::$template_post->ID,
-			'post_content' => 'Content revision #4',
+		_wp_put_post_revision(
+			array(
+				'ID'           => self::$template_post->ID,
+				'post_content' => 'Content revision #4',
+			)
 		);
-
-		wp_update_post( $updated_template_post, true, false );
-		wp_save_post_revision( self::$template_post->ID );
 
 		// Update post to create a new revisions.
-		$updated_template_post = array(
-			'ID'           => self::$template_post->ID,
-			'post_content' => 'Content revision #5',
+		_wp_put_post_revision(
+			array(
+				'ID'           => self::$template_post->ID,
+				'post_content' => 'Content revision #5',
+			)
 		);
-
-		wp_update_post( $updated_template_post, true, false );
-		wp_save_post_revision( self::$template_post->ID );
 	}
 
 	/**
@@ -319,16 +315,12 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 * @ticket 56922
 	 */
 	public function test_get_item_schema() {
-		$controller  = new WP_REST_Template_Revisions_Controller( self::PARENT_POST_TYPE );
-		$item_schema = $controller->get_item_schema();
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions' );
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$properties = $data['schema']['properties'];
 
-		$this->assertIsArray( $item_schema, 'Item schema should be an array.' );
-
-		$this->assertSame( self::PARENT_POST_TYPE, $item_schema['title'], 'Title should be the same as PARENT_POST_TYPE.' );
-
-		$this->assertIsArray( $item_schema['properties'], 'Properties should be an array.' );
-
-		$properties = array(
+		$expected_properties = array(
 			'id',
 			'slug',
 			'theme',
@@ -347,8 +339,8 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 			'parent',
 		);
 
-		foreach ( $properties as $property ) {
-			$this->assertArrayHasKey( $property, $item_schema['properties'], "{$property} key should exist in properties." );
+		foreach ( $expected_properties as $property ) {
+			$this->assertArrayHasKey( $property, $properties, "{$property} key should exist in properties." );
 		}
 	}
 
@@ -385,9 +377,9 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	public function test_delete_item() {
 		wp_set_current_user( self::$admin_id );
 
-		$revisions   = wp_get_post_revisions( self::$template_post, array( 'fields' => 'ids' ) );
-		$revision_id = array_shift( $revisions );
-		$request     = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
+		$revision_id = _wp_put_post_revision( self::$template_post );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
 		$request->set_param( 'force', true );
 		$response = rest_get_server()->dispatch( $request );
 

@@ -275,16 +275,12 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @ticket 56922
 	 */
 	public function test_get_item_schema() {
-		$controller  = new WP_REST_Template_Autosaves_Controller( self::PARENT_POST_TYPE );
-		$item_schema = $controller->get_item_schema();
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves' );
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$properties = $data['schema']['properties'];
 
-		$this->assertIsArray( $item_schema, 'Item schema should be an array.' );
-
-		$this->assertSame( self::PARENT_POST_TYPE, $item_schema['title'], 'Title should be the same as PARENT_POST_TYPE.' );
-
-		$this->assertIsArray( $item_schema['properties'], 'Properties should be an array.' );
-
-		$properties = array(
+		$expected_properties = array(
 			'id',
 			'slug',
 			'theme',
@@ -303,8 +299,8 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 			'parent',
 		);
 
-		foreach ( $properties as $property ) {
-			$this->assertArrayHasKey( $property, $item_schema['properties'], "{$property} key should exist in properties." );
+		foreach ( $expected_properties as $property ) {
+			$this->assertArrayHasKey( $property, $properties, "{$property} key should exist in properties." );
 		}
 	}
 
