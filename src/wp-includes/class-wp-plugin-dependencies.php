@@ -341,6 +341,22 @@ class WP_Plugin_Dependencies {
 	 * @since 6.5.0
 	 */
 	public static function display_admin_notice_for_unmet_dependencies() {
+		if ( in_array( false, self::get_dependency_filepaths(), true ) ) {
+			wp_admin_notice(
+				__( 'There are additional plugin dependencies that must be installed.' ),
+				array(
+					'type' => 'info',
+				)
+			);
+		}
+	}
+
+	/**
+	 * Displays an admin notice if dependencies have been deactivated.
+	 *
+	 * @since 6.5.0
+	 */
+	public static function display_admin_notice_for_deactivated_dependents() {
 		/*
 		 * Plugin deactivated if dependencies not met.
 		 * Transient on a 10 second timeout.
@@ -362,24 +378,15 @@ class WP_Plugin_Dependencies {
 					'dismissible' => true,
 				)
 			);
-		} else {
-			// More dependencies to install.
-			$installed_slugs = array();
-			foreach ( array_keys( self::$plugins ) as $plugin ) {
-				$installed_slugs[] = self::convert_to_slug( $plugin );
-			}
-			$intersect = array_intersect( self::$dependency_slugs, $installed_slugs );
-			asort( $intersect );
-			if ( $intersect !== self::$dependency_slugs ) {
-				wp_admin_notice(
-					__( 'There are additional plugin dependencies that must be installed.' ),
-					array(
-						'type' => 'info',
-					)
-				);
-			}
 		}
+	}
 
+	/**
+	 * Displays an admin notice if circular dependencies are installed.
+	 *
+	 * @since 6.5.0
+	 */
+	public static function display_admin_notice_for_circular_dependencies() {
 		$circular_dependencies = self::get_circular_dependencies();
 		if ( ! empty( $circular_dependencies ) && count( $circular_dependencies ) > 1 ) {
 			$circular_dependencies = array_unique( $circular_dependencies, SORT_REGULAR );
