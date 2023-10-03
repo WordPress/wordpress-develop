@@ -33,20 +33,11 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 			'core/button',
 			array(
 				'handle' => 'twentytwentyfour-button-style-outline',
-				'src'    => get_template_directory_uri() . '/assets/css/button-outline.css',
+				'src'    => get_theme_file_uri( 'assets/css/button-outline.css' ),
 				'ver'    => wp_get_theme()->get( 'Version' ),
+				'path'   => get_theme_file_path( 'assets/css/button-outline.css' ),
 			)
 		);
-
-		/**
-		 * Add the `path` data to our stylesheet.
-		 *
-		 * This will let WordPress determine the best loading strategy for the stylesheet:
-		 * Small stylesheets will get inlined, while larger stylesheets will be loaded separately.
-		 *
-		 * See https://make.wordpress.org/core/2021/07/01/block-styles-loading-enhancements-in-wordpress-5-8/#inlining-small-assets for more info.
-		 */
-		wp_style_add_data( 'twentytwentyfour-button-style-outline', 'path', get_theme_file_path( 'assets/css/button-outline.css' ) );
 
 		register_block_style(
 			'core/details',
@@ -63,11 +54,11 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 					padding-bottom: var(--wp--preset--spacing--10);
 					border-bottom: 1px solid rgba(255, 255, 255, 0.20);
 				}
-				
+
 				.is-style-arrow-icon-details summary {
 					list-style-type: "\2193\00a0\00a0\00a0";
 				}
-				
+
 				.is-style-arrow-icon-details[open]>summary {
 					list-style-type: "\2192\00a0\00a0\00a0";
 				}',
@@ -90,7 +81,7 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 					padding: 0.375rem 0.875rem;
 					border-radius: var(--wp--preset--spacing--20);
 				}
-				
+
 				.is-style-pill a:hover {
 					background-color: var(--wp--preset--color--contrast-3);
 				}',
@@ -109,7 +100,7 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 				ul.is-style-checkmark-list {
 					list-style-type: "\2713";
 				}
-				
+
 				ul.is-style-checkmark-list li {
 					padding-inline-start: 1ch;
 				}',
@@ -120,7 +111,9 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 			array(
 				'name'         => 'arrow-link',
 				'label'        => __( 'With arrow', 'twentytwentyfour' ),
-				// Styles for the custom arrow nav link block style.
+				/*
+				 * Styles for the custom arrow nav link block style
+				 */
 				'inline_style' => '
 				.is-style-arrow-link .wp-block-navigation-item__label:after {
 					content: "\2197";
@@ -150,19 +143,19 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 				.is-style-asterisk:empty:before {
 					content: none;
 				}
-				
+
 				.is-style-asterisk:-moz-only-whitespace:before {
 					content: none;
 				}
-				
+
 				.is-style-asterisk.has-text-align-center:before {
 					margin: 0 auto;
 				}
-				
+
 				.is-style-asterisk.has-text-align-right:before {
 					margin-left: auto;
 				}
-				
+
 				.rtl .is-style-asterisk.has-text-align-left:before {
 					margin-right: auto;
 				}",
