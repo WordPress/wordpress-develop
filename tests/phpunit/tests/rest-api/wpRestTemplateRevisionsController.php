@@ -24,6 +24,26 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	private static $admin_id;
 
 	/**
+	 * Contributor user ID.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @var int
+	 */
+	private static $contributor_id;
+
+	/**
+	 * Editor user ID.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @var int
+	 */
+	private static $editor_id;
+
+
+
+	/**
 	 * Template post.
 	 *
 	 * @since 6.4.0
@@ -45,6 +65,18 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 			)
 		);
 		wp_set_current_user( self::$admin_id );
+
+		self::$contributor_id = $factory->user->create(
+			array(
+				'role' => 'contributor',
+			)
+		);
+
+		self::$editor_id = $factory->user->create(
+			array(
+				'role' => 'editor',
+			)
+		);
 
 		// Set up template post.
 		self::$template_post = $factory->post->create_and_get(
@@ -217,6 +249,22 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 			$revisions[3]['content']['raw'],
 			'Failed asserting that the content of the revision is "Content revision #2".'
 		);
+	}
+
+
+	/**
+	 * @covers WP_REST_Template_Revisions_Controller::get_items_permissions_check
+	 * @ticket 56922
+	 */
+	public function test_should_not_return_items_with_no_permission() {
+		wp_set_current_user( 0 );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
+		wp_set_current_user( self::$contributor_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 	}
 
 	/**
