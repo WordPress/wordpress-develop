@@ -365,6 +365,7 @@ function _register_theme_block_patterns() {
 	foreach ( $themes as $theme ) {
 		$pattern_data = _wp_get_block_patterns( $theme );
 		$dirpath      = $theme->get_stylesheet_directory() . '/patterns/';
+		$text_domain  = $theme->get( 'TextDomain' );
 
 		foreach ( $pattern_data['patterns'] as $file => $pattern_data ) {
 			if ( $registry->is_registered( $pattern_data['slug'] ) ) {
@@ -380,7 +381,6 @@ function _register_theme_block_patterns() {
 			}
 
 			// Translate the pattern metadata.
-			$text_domain = $theme->get( 'TextDomain' );
 			// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain,WordPress.WP.I18n.LowLevelTranslationFunction
 			$pattern_data['title'] = translate_with_gettext_context( $pattern_data['title'], 'Pattern title', $text_domain );
 			if ( ! empty( $pattern_data['description'] ) ) {
