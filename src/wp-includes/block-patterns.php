@@ -469,7 +469,7 @@ function _wp_get_block_patterns( WP_Theme $theme ) {
 
 		if ( empty( $pattern['slug'] ) ) {
 			_doing_it_wrong(
-				'_register_theme_block_patterns',
+				__FUNCTION__,
 				sprintf(
 				/* translators: %s: file name. */
 					__( 'Could not register file "%s" as a block pattern ("Slug" field missing)' ),
@@ -482,7 +482,7 @@ function _wp_get_block_patterns( WP_Theme $theme ) {
 
 		if ( ! preg_match( '/^[A-z0-9\/_-]+$/', $pattern['slug'] ) ) {
 			_doing_it_wrong(
-				'_register_theme_block_patterns',
+				__FUNCTION__,
 				sprintf(
 				/* translators: %1s: file name; %2s: slug value found. */
 					__( 'Could not register file "%1$s" as a block pattern (invalid slug "%2$s")' ),
@@ -496,7 +496,7 @@ function _wp_get_block_patterns( WP_Theme $theme ) {
 		// Title is a required property.
 		if ( ! $pattern['title'] ) {
 			_doing_it_wrong(
-				'_register_theme_block_patterns',
+				__FUNCTION__,
 				sprintf(
 				/* translators: %1s: file name; %2s: slug value found. */
 					__( 'Could not register file "%s" as a block pattern ("Title" field missing)' ),
