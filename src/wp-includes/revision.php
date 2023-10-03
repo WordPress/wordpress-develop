@@ -134,7 +134,7 @@ function wp_save_post_revision( $post_id ) {
 
 	// Prevent saving post revisions if revisions should be saved on wp_after_insert_post.
 	if ( doing_action( 'post_updated' ) && has_action( 'wp_after_insert_post', 'wp_save_post_revision_on_insert' ) ) {
-		return;
+	//	return;
 	}
 
 	$post = get_post( $post_id );
