@@ -11,6 +11,8 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	 * Ensures that an entry is added even if there are no pages.
 	 *
 	 * @ticket 50571
+	 *
+	 * @covers WP_Sitemaps_Posts::get_sitemap_entries
 	 */
 	public function test_get_sitemap_entries_homepage() {
 		update_option( 'show_on_front', 'posts' );
@@ -30,6 +32,8 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 
 	/**
 	 * Tests ability to filter object subtypes.
+	 *
+	 * @covers WP_Sitemaps_Posts::get_object_subtypes
 	 */
 	public function test_filter_sitemaps_post_types() {
 		$posts_provider = new WP_Sitemaps_Posts();
@@ -43,6 +47,8 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 
 	/**
 	 * Tests `wp_sitemaps_posts_show_on_front_entry` filter.
+	 *
+	 * @covers WP_Sitemaps_Posts::get_url_list
 	 */
 	public function test_posts_show_on_front_entry() {
 		$posts_provider = new WP_Sitemaps_Posts();

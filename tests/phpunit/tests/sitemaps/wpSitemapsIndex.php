@@ -2,6 +2,8 @@
 
 /**
  * @group sitemaps
+ *
+ * @covers WP_Sitemaps_Index
  */
 class Tests_Sitemaps_wpSitemapsIndex extends WP_UnitTestCase {
 
