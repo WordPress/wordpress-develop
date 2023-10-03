@@ -319,34 +319,12 @@ function _register_remote_theme_patterns() {
 
 /**
  * Register any patterns that the active theme may provide under its
- * `./patterns/` directory. Each pattern is defined as a PHP file and defines
- * its metadata using plugin-style headers. The minimum required definition is:
- *
- *     /**
- *      * Title: My Pattern
- *      * Slug: my-theme/my-pattern
- *      *
- *
- * The output of the PHP source corresponds to the content of the pattern, e.g.:
- *
- *     <main><p><?php echo "Hello"; ?></p></main>
- *
- * If applicable, this will collect from both parent and child theme.
- *
- * Other settable fields include:
- *
- *   - Description
- *   - Viewport Width
- *   - Inserter         (yes/no)
- *   - Categories       (comma-separated values)
- *   - Keywords         (comma-separated values)
- *   - Block Types      (comma-separated values)
- *   - Post Types       (comma-separated values)
- *   - Template Types   (comma-separated values)
+ * `./patterns/` directory.
  *
  * @since 6.0.0
  * @since 6.1.0 The `postTypes` property was added.
  * @since 6.2.0 The `templateTypes` property was added.
+ * @since 6.4.0 Uses the `_wp_get_block_patterns` function.
  * @access private
  */
 function _register_theme_block_patterns() {
@@ -395,12 +373,36 @@ function _register_theme_block_patterns() {
 add_action( 'init', '_register_theme_block_patterns' );
 
 /**
- * Gets block pattern data for a theme.
+ * Gets block pattern data for a specified theme.
+ * Each pattern is defined as a PHP file and defines
+ *  its metadata using plugin-style headers. The minimum required definition is:
+ *
+ *      /**
+ *       * Title: My Pattern
+ *       * Slug: my-theme/my-pattern
+ *       *
+ *
+ *  The output of the PHP source corresponds to the content of the pattern, e.g.:
+ *
+ *      <main><p><?php echo "Hello"; ?></p></main>
+ *
+ *  If applicable, this will collect from both parent and child theme.
+ *
+ *  Other settable fields include:
+ *
+ *    - Description
+ *    - Viewport Width
+ *    - Inserter         (yes/no)
+ *    - Categories       (comma-separated values)
+ *    - Keywords         (comma-separated values)
+ *    - Block Types      (comma-separated values)
+ *    - Post Types       (comma-separated values)
+ *    - Template Types   (comma-separated values)
  *
  * @since 6.4.0
  * @access private
  *
- * @param WP_Theme $theme Theme.
+ * @param WP_Theme $theme Theme object.
  * @return array Block pattern data.
  */
 
