@@ -33,7 +33,7 @@ class Tests_XMLRPC_wp_getRevisions extends WP_XMLRPC_UnitTestCase {
 		$this->make_user_by_role( 'editor' );
 
 		$post_id = self::factory()->post->create();
-		wp_insert_post(
+		_wp_put_post_revision(
 			array(
 				'ID'           => $post_id,
 				'post_content' => 'Edit 1',
@@ -44,7 +44,7 @@ class Tests_XMLRPC_wp_getRevisions extends WP_XMLRPC_UnitTestCase {
 		$this->assertIsArray( $result );
 		$this->assertCount( 1, $result );
 
-		wp_insert_post(
+		_wp_put_post_revision(
 			array(
 				'ID'           => $post_id,
 				'post_content' => 'Edit 2',
