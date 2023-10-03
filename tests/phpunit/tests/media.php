@@ -269,6 +269,19 @@ CAP;
 		$this->assertSame( 1, substr_count( $result, 'aria-describedby="caption-myId"' ) );
 	}
 
+	/**
+	 * @ticket 45929
+	 */
+	public function test_image_caption_shortcode_with_empty_string() {
+		$errors = array();
+		try {
+			img_caption_shortcode( '', self::IMG_CONTENT . self::HTML_CONTENT );
+		} catch ( TypeError $t ) {
+			$errors[] = $t;
+		}
+		$this->assertEmpty( $errors );
+	}
+
 	public function test_add_remove_oembed_provider() {
 		wp_oembed_add_provider( 'http://foo.bar/*', 'http://foo.bar/oembed' );
 		$this->assertTrue( wp_oembed_remove_provider( 'http://foo.bar/*' ) );
