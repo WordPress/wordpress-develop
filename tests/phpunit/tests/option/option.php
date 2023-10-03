@@ -639,7 +639,6 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			'(int) 0'            => array( 0, 0 ),
 			'(float) 0.0'        => array( 0.0, 0.0 ),
 			'empty array'        => array( array(), array() ),
-			'false'              => array( false, false ),
 
 			/*
 			 * false and null are not included in these datasets
@@ -680,6 +679,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 */
 	public function data_stored_as_empty_string() {
 		return array(
+			'false'        => array( false ),
 			'empty string' => array( '' ),
 			'null'         => array( null ),
 		);
