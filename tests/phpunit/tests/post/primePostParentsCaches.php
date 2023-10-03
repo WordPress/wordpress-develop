@@ -99,7 +99,6 @@ class Tests_Post_PrimePostParentsCaches extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $num_queries, 'Unexpected number of queries on second run' );
 		$this->assertSameSets( array( self::$posts[1] ), wp_cache_get_multiple( array( $page_id ), 'post_parent' ), 'Array of parent ids with post 1 as parent' );
-
 	}
 
 	/**
