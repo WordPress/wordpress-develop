@@ -3095,7 +3095,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$q     = new WP_Comment_Query();
 		$found = $q->query(
 			array(
-				'count' => true,
+				'count'   => true,
+				'orderby' => 'none',
 			)
 		);
 
@@ -3133,6 +3134,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$found = $q->query(
 			array(
 				'count'      => true,
+				'orderby'    => 'none',
 				'meta_query' => array(
 					array(
 						'key'   => 'foo',
@@ -5005,20 +5007,20 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$query_1           = $q->query(
 			array(
-				'fields' => 'ids',
-				'number' => 3,
-				'order'  => 'ASC',
-				'count'  => true,
+				'fields'  => 'ids',
+				'number'  => 3,
+				'orderby' => 'none',
+				'count'   => true,
 			)
 		);
 		$number_of_queries = get_num_queries();
 
 		$query_2 = $q->query(
 			array(
-				'fields' => 'ids',
-				'number' => 3,
-				'order'  => 'ASC',
-				'count'  => true,
+				'fields'  => 'ids',
+				'number'  => 3,
+				'orderby' => 'none',
+				'count'   => true,
 			)
 		);
 		$this->assertSame( $number_of_queries, get_num_queries() );
