@@ -154,6 +154,7 @@ if ( ! function_exists( 'twentytwentyfour_img_tag_add_width_and_height_attr' ) )
 		$theme_dir = get_template_directory_uri();
 
 		switch ( $image_src ) {
+			// TODO: Add clauses for all other theme bundled images here.
 			case "{$theme_dir}/assets/images/business-hero.webp":
 				return array(
 					'width'  => 2560,
