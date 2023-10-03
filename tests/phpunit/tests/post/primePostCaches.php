@@ -82,6 +82,9 @@ class Tests_Post_PrimePostCaches extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $categories, 'Categories does return an empty result set.' );
 		$this->assertSame( 0, $num_queries, 'Unexpected number of queries.' );
+
+		// Test parent ID cache.
+		$this->assertSame( array(), _get_non_cached_ids( array( $post_id ), 'post_parent' ), 'Parent ID is not cached.' );
 	}
 
 	/**
