@@ -1159,8 +1159,8 @@ function _esc_attr_single_pass_utf8( $text ) {
 
 					$name_at += $name_length;
 
-					$semicolon_delta = ';' === $name[ $name_length - 1 ] ? -1 : 0;
-					$reference_name  = substr( $text, $at + 1, $name_at - ( $at + 1 ) + $semicolon_delta );
+//					$semicolon_delta = ';' === $name[ $name_length - 1 ] ? -1 : 0;
+//					$reference_name  = substr( $text, $at + 1, $name_at - ( $at + 1 ) + $semicolon_delta );
 
 					/*
 					 * Some names are not allowed by WordPress, even though they are permitted by HTML.
@@ -1169,11 +1169,11 @@ function _esc_attr_single_pass_utf8( $text ) {
 					 *        original named character references were added? Is there a reason not to
 					 *        allow all of them? There don't seem to be plugins changing this list.
 					 */
-					if ( ! in_array( $reference_name, $allowedentitynames, true ) ) {
-						$output .= '&amp;' . substr( $text, $at + 1, $name_at - ( $at + 1 ) );
-						$at      = $name_at;
-						break 2;
-					}
+//					if ( ! in_array( $reference_name, $allowedentitynames, true ) ) {
+//						$output .= '&amp;' . substr( $text, $at + 1, $name_at - ( $at + 1 ) );
+//						$at      = $name_at;
+//						break 2;
+//					}
 
 					// If we have an un-ambiguous ampersand we can safely leave it in.
 					if ( ';' === $text[ $name_at - 1 ] ) {
