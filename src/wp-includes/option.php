@@ -654,10 +654,6 @@ function wp_load_core_site_options( $network_id = null ) {
 
 	$core_options = array( 'site_name', 'siteurl', 'active_sitewide_plugins', '_site_transient_timeout_theme_roots', '_site_transient_theme_roots', 'site_admins', 'can_compress_scripts', 'global_terms_enabled', 'ms_files_rewriting' );
 
-	if ( defined( 'WP_DEFAULT_THEME' ) ) {
-		$core_options[] = 'wp_theme_patterns_' . WP_DEFAULT_THEME;
-	}
-
 	if ( wp_using_ext_object_cache() ) {
 		$cache_keys = array();
 		foreach ( $core_options as $option ) {

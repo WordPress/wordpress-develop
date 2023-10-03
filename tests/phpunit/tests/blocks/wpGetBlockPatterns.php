@@ -31,7 +31,7 @@ class Tests_Blocks_WpGetBlockPatterns extends WP_UnitTestCase {
 	public function test_delete_theme_cache() {
 		$theme = wp_get_theme( 'block-theme-patterns' );
 		_wp_get_block_patterns( $theme );
-		$transient = get_site_option( 'wp_theme_patterns_block-theme-patterns' );
+		$transient = get_transient( 'wp_theme_patterns_block-theme-patterns' );
 		$this->assertSameSets(
 			array(
 				'version'  => '1.0.0',
@@ -48,7 +48,7 @@ class Tests_Blocks_WpGetBlockPatterns extends WP_UnitTestCase {
 			'The transient for block theme patterns should be set'
 		);
 		$theme->cache_delete();
-		$transient = get_site_option( 'wp_theme_patterns_block-theme-patterns' );
+		$transient = get_transient( 'wp_theme_patterns_block-theme-patterns' );
 		$this->assertFalse(
 			$transient,
 			'The transient for block theme patterns should have been cleared'
@@ -66,16 +66,14 @@ class Tests_Blocks_WpGetBlockPatterns extends WP_UnitTestCase {
 				'version'  => '1.0.0',
 				'patterns' => array(),
 			),
-			get_site_option( 'wp_theme_patterns_block-theme' ),
+			get_transient( 'wp_theme_patterns_block-theme' ),
 			'The transient for block theme should be set'
 		);
 		switch_theme( 'block-theme-patterns' );
-		if ( ! is_multisite() ) {
-			$this->assertFalse( get_site_option( 'wp_theme_patterns_block-theme' ), 'Transient should not be set for block theme after switch theme' );
-		}
-		$this->assertFalse( get_site_option( 'wp_theme_patterns_block-theme-patterns' ), 'Transient should not be set for block theme patterns before being requested' );
+		$this->assertFalse( get_transient( 'wp_theme_patterns_block-theme' ), 'Transient should not be set for block theme after switch theme' );
+		$this->assertFalse( get_transient( 'wp_theme_patterns_block-theme-patterns' ), 'Transient should not be set for block theme patterns before being requested' );
 		_wp_get_block_patterns( wp_get_theme() );
-		$transient = get_site_option( 'wp_theme_patterns_block-theme-patterns' );
+		$transient = get_transient( 'wp_theme_patterns_block-theme-patterns' );
 		$this->assertSameSets(
 			array(
 				'version'  => '1.0.0',
@@ -126,6 +124,13 @@ class Tests_Blocks_WpGetBlockPatterns extends WP_UnitTestCase {
 							'categories'  => array( 'call-to-action' ),
 						),
 					),
+				),
+			),
+			array(
+				'theme'    => 'broken-theme',
+				'patterns' => array(
+					'version'  => false,
+					'patterns' => array(),
 				),
 			),
 			array(
