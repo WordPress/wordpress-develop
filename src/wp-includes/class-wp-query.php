@@ -777,8 +777,8 @@ class WP_Query {
 	 *     @type array           $tax_query              An associative array of WP_Tax_Query arguments.
 	 *                                                   See WP_Tax_Query::__construct().
 	 *     @type string          $title                  Post title.
-	 *     @type bool            $update_post_meta_cache Whether to update the post meta cache. Default true.
-	 *     @type bool            $update_post_term_cache Whether to update the post term cache. Default true.
+	 *     @type bool            $update_post_meta_cache Whether to update the post meta cache. Default false if $fields = ids, id=>parent otherwise true.
+	 *     @type bool            $update_post_term_cache Whether to update the post term cache. Default false if $fields = ids, id=>parent otherwise true.
 	 *     @type bool            $update_menu_item_cache Whether to update the menu item cache. Default false.
 	 *     @type bool            $lazy_load_term_meta    Whether to lazy-load term meta. Setting to false will
 	 *                                                   disable cache priming for term meta, so that each
@@ -1950,7 +1950,11 @@ class WP_Query {
 		}
 
 		if ( ! isset( $q['update_post_term_cache'] ) ) {
-			$q['update_post_term_cache'] = true;
+			if ( 'id=>parent' === $q['fields'] || 'ids' === $q['fields'] ) {
+				$q['update_post_term_cache'] = false;
+			} else {
+				$q['update_post_term_cache'] = true;
+			}
 		}
 
 		if ( ! isset( $q['update_menu_item_cache'] ) ) {
@@ -1964,7 +1968,11 @@ class WP_Query {
 		}
 
 		if ( ! isset( $q['update_post_meta_cache'] ) ) {
-			$q['update_post_meta_cache'] = true;
+			if ( 'id=>parent' === $q['fields'] || 'ids' === $q['fields'] ) {
+				$q['update_post_meta_cache'] = false;
+			} else {
+				$q['update_post_meta_cache'] = true;
+			}
 		}
 
 		if ( ! isset( $q['post_type'] ) ) {
@@ -3182,6 +3190,14 @@ class WP_Query {
 					if ( 'ids' === $q['fields'] ) {
 						/** @var int[] */
 						$this->posts = array_map( 'intval', $cached_results['posts'] );
+
+						if ( $q['update_post_term_cache'] ) {
+							$prime_post_types = 'any' === $q['post_type'] ? $in_search_post_types : $q['post_type'];
+							update_object_term_cache( $this->posts, $prime_post_types );
+						}
+						if ( $q['update_post_meta_cache'] ) {
+							update_postmeta_cache( $this->posts );
+						}
 					} else {
 						_prime_post_caches( $cached_results['posts'], $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 						/** @var WP_Post[] */
@@ -3234,6 +3250,14 @@ class WP_Query {
 				wp_cache_set( $cache_key, $cache_value, 'post-queries' );
 			}
 
+			if ( $q['update_post_term_cache'] ) {
+				$prime_post_types = 'any' === $q['post_type'] ? $in_search_post_types : $q['post_type'];
+				update_object_term_cache( $this->posts, $prime_post_types );
+			}
+			if ( $q['update_post_meta_cache'] ) {
+				update_postmeta_cache( $this->posts );
+			}
+
 			return $this->posts;
 		}
 
@@ -3265,6 +3289,14 @@ class WP_Query {
 				);
 
 				wp_cache_set( $cache_key, $cache_value, 'post-queries' );
+			}
+
+			if ( $q['update_post_term_cache'] ) {
+				$prime_post_types = 'any' === $q['post_type'] ? $in_search_post_types : $q['post_type'];
+				update_object_term_cache( $post_ids, $prime_post_types );
+			}
+			if ( $q['update_post_meta_cache'] ) {
+				update_postmeta_cache( $post_ids );
 			}
 
 			return $post_parents;
