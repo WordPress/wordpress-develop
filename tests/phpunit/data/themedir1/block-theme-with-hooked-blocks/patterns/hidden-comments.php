@@ -1,7 +1,7 @@
 <?php
 /**
  * Title: Hidden Comments
- * Slug: block-theme-hooked-blocks/hidden-comments
+ * Slug: block-theme-with-hooked-blocks/hidden-comments
  * Inserter: no
  */
 ?>
@@ -10,7 +10,7 @@
 	<!-- wp:comments -->
 	<div class="wp-block-comments">
 		<!-- wp:heading {"level":2} -->
-		<h2><?php echo esc_html_x( 'Comments', 'Title of comments section', 'block-theme-hooked-blocks' ); ?></h2>
+		<h2><?php echo esc_html_x( 'Comments', 'Title of comments section', 'block-theme-with-hooked-blocks' ); ?></h2>
 		<!-- /wp:heading -->
 
 		<!-- wp:comments-title {"level":3} /-->

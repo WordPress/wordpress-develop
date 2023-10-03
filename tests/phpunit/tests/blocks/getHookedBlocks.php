@@ -12,7 +12,7 @@
  */
 class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 
-	const TEST_THEME_NAME = 'block-theme-hooked-blocks';
+	const TEST_THEME_NAME = 'block-theme-with-hooked-blocks';
 
 	/**
 	 * Tear down after each test.

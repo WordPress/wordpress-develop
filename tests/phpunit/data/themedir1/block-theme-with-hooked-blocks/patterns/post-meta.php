@@ -1,7 +1,7 @@
 <?php
 /**
  * Title: Post Meta
- * Slug: block-theme-hooked-blocks/post-meta
+ * Slug: block-theme-with-hooked-blocks/post-meta
  * Categories: query
  * Keywords: post meta
  * Block Types: core/template-part/post-meta
@@ -25,7 +25,7 @@
 			<div class="wp-block-group">
 				<!-- wp:paragraph -->
 				<p>
-					<?php echo esc_html_x( 'Posted', 'Verb to explain the publication status of a post', 'block-theme-hooked-blocks' ); ?>
+					<?php echo esc_html_x( 'Posted', 'Verb to explain the publication status of a post', 'block-theme-with-hooked-blocks' ); ?>
 				</p>
 				<!-- /wp:paragraph -->
 
@@ -33,7 +33,7 @@
 
 				<!-- wp:paragraph -->
 				<p>
-					<?php echo esc_html_x( 'in', 'Preposition to show the relationship between the post and its categories', 'block-theme-hooked-blocks' ); ?>
+					<?php echo esc_html_x( 'in', 'Preposition to show the relationship between the post and its categories', 'block-theme-with-hooked-blocks' ); ?>
 				</p>
 				<!-- /wp:paragraph -->
 
@@ -45,7 +45,7 @@
 			<div class="wp-block-group">
 				<!-- wp:paragraph -->
 				<p>
-					<?php echo esc_html_x( 'by', 'Preposition to show the relationship between the post and its author', 'block-theme-hooked-blocks' ); ?>
+					<?php echo esc_html_x( 'by', 'Preposition to show the relationship between the post and its author', 'block-theme-with-hooked-blocks' ); ?>
 				</p>
 				<!-- /wp:paragraph -->
 
@@ -61,7 +61,7 @@
 			<div class="wp-block-group">
 				<!-- wp:paragraph -->
 				<p>
-					<?php echo esc_html_x( 'Tags:', 'Label for a list of post tags', 'block-theme-hooked-blocks' ); ?>
+					<?php echo esc_html_x( 'Tags:', 'Label for a list of post tags', 'block-theme-with-hooked-blocks' ); ?>
 				</p>
 				<!-- /wp:paragraph -->
 

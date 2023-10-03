@@ -1,7 +1,7 @@
 <?php
 /**
  * Title: Default Footer
- * Slug: block-theme-hooked-blocks/footer-default
+ * Slug: block-theme-with-hooked-blocks/footer-default
  * Categories: footer
  * Block Types: core/template-part/footer
  */
@@ -16,8 +16,8 @@
 		<?php
 		printf(
 			/* Translators: WordPress link. */
-			esc_html__( 'Proudly powered by %s', 'block-theme-hooked-blocks' ),
-			'<a href="' . esc_url( __( 'https://wordpress.org', 'block-theme-hooked-blocks' ) ) . '" rel="nofollow">WordPress</a>'
+			esc_html__( 'Proudly powered by %s', 'block-theme-with-hooked-blocks' ),
+			'<a href="' . esc_url( __( 'https://wordpress.org', 'block-theme-with-hooked-blocks' ) ) . '" rel="nofollow">WordPress</a>'
 		)
 		?>
 		</p>
