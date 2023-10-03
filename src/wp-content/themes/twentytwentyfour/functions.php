@@ -120,9 +120,7 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 			array(
 				'name'         => 'arrow-link',
 				'label'        => __( 'With arrow', 'twentytwentyfour' ),
-				/*
-				 * Styles for the custom arrow nav link block style
-				 */
+				// Styles for the custom arrow nav link block style.
 				'inline_style' => '
 				.is-style-arrow-link .wp-block-navigation-item__label:after {
 					content: "\2197";
