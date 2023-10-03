@@ -532,7 +532,7 @@ class WP_Plugin_Dependencies {
 			self::$dependency_slugs        = array_merge( self::$dependency_slugs, $dependency_slugs );
 
 			$dependent_slug                           = self::convert_to_slug( $plugin );
-			self::$dependent_slugs[ $dependent_slug ] = $plugin;
+			self::$dependent_slugs[ $plugin ] = $dependent_slug;
 		}
 		self::$dependency_slugs = array_unique( self::$dependency_slugs );
 	}
