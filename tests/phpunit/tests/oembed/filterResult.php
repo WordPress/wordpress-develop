@@ -4,6 +4,10 @@
  * @group oembed
  */
 class Tests_Filter_oEmbed_Result extends WP_UnitTestCase {
+
+	/**
+	 * @covers ::wp_filter_oembed_result
+	 */
 	public function test_filter_oembed_result_trusted_malicious_iframe() {
 		$html = '<p></p><iframe onload="alert(1)"></iframe>';
 
@@ -12,6 +16,9 @@ class Tests_Filter_oEmbed_Result extends WP_UnitTestCase {
 		$this->assertSame( $html, $actual );
 	}
 
+	/**
+	 * @covers ::wp_filter_oembed_result
+	 */
 	public function test_filter_oembed_result_with_untrusted_provider() {
 		$html   = '<p></p><iframe onload="alert(1)" src="http://example.com/sample-page/"></iframe>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), 'http://example.com/sample-page/' );
@@ -24,6 +31,9 @@ class Tests_Filter_oEmbed_Result extends WP_UnitTestCase {
 		$this->assertSame( $matches[1], $matches[2] );
 	}
 
+	/**
+	 * @covers ::wp_filter_oembed_result
+	 */
 	public function test_filter_oembed_result_only_one_iframe_is_allowed() {
 		$html   = '<div><iframe></iframe><iframe></iframe><p></p></div>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
@@ -44,6 +54,9 @@ EOD;
 		$this->assertSame( '<iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted"></iframe>', $actual );
 	}
 
+	/**
+	 * @covers ::wp_filter_oembed_result
+	 */
 	public function test_filter_oembed_result_without_iframe() {
 		$html   = '<span>Hello</span><p>World</p>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
@@ -56,6 +69,9 @@ EOD;
 		$this->assertFalse( $actual );
 	}
 
+	/**
+	 * @covers ::wp_filter_oembed_result
+	 */
 	public function test_filter_oembed_result_secret_param_available() {
 		$html   = '<iframe src="https://wordpress.org"></iframe>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
@@ -68,17 +84,26 @@ EOD;
 		$this->assertSame( $matches[1], $matches[2] );
 	}
 
+	/**
+	 * @covers ::wp_filter_oembed_result
+	 */
 	public function test_filter_oembed_result_wrong_type_provided() {
 		$actual = wp_filter_oembed_result( 'some string', (object) array( 'type' => 'link' ), '' );
 
 		$this->assertSame( 'some string', $actual );
 	}
 
+	/**
+	 * @covers ::wp_filter_oembed_result
+	 */
 	public function test_filter_oembed_result_invalid_result() {
 		$this->assertFalse( wp_filter_oembed_result( false, (object) array( 'type' => 'rich' ), '' ) );
 		$this->assertFalse( wp_filter_oembed_result( '', (object) array( 'type' => 'rich' ), '' ) );
 	}
 
+	/**
+	 * @covers ::wp_filter_oembed_result
+	 */
 	public function test_filter_oembed_result_blockquote_adds_style_to_iframe() {
 		$html   = '<blockquote></blockquote><iframe></iframe>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
@@ -86,6 +111,9 @@ EOD;
 		$this->assertSame( '<blockquote class="wp-embedded-content"></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"></iframe>', $actual );
 	}
 
+	/**
+	 * @covers ::wp_filter_oembed_result
+	 */
 	public function test_filter_oembed_result_allowed_html() {
 		$html   = '<blockquote class="foo" id="bar"><strong><a href="" target=""></a></strong></blockquote><iframe></iframe>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
@@ -116,6 +144,9 @@ EOD;
 
 	/**
 	 * @dataProvider data_wp_filter_pre_oembed_custom_result
+	 *
+	 * @covers ::_wp_oembed_get_object
+	 * @covers WP_oEmbed::data2html
 	 */
 	public function test_wp_filter_pre_oembed_custom_result( $html, $expected ) {
 		$data   = (object) array(
@@ -129,6 +160,9 @@ EOD;
 
 	/**
 	 * @group feed
+	 *
+	 * @covers ::_oembed_filter_feed_content
+	 * @covers ::wp_filter_oembed_result
 	 */
 	public function test_filter_feed_content() {
 		$html   = '<blockquote></blockquote><iframe></iframe>';
