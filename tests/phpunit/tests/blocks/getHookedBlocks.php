@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests for block hooks feature functions.
+ * Tests for the features using get_hooked_blocks function.
  *
  * @package WordPress
  * @subpackage Blocks
@@ -12,19 +12,7 @@
  */
 class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 
-	/**
-	 * Registered block names.
-	 *
-	 * @var string[]
-	 */
-	private $registered_block_names = array();
-
-	/**
-	 * Registered pattern names.
-	 *
-	 * @var string[]
-	 */
-	private $registered_pattern_names = array();
+	const TEST_THEME_NAME = 'block-theme-hooked-blocks';
 
 	/**
 	 * Tear down after each test.
@@ -32,50 +20,40 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 	 * @since 6.4.0
 	 */
 	public function tear_down() {
-		while ( ! empty( $this->registered_block_names ) ) {
-			$block_name = array_pop( $this->registered_block_names );
-			unregister_block_type( $block_name );
+		// Removes test block types registered by test cases.
+		$block_types = WP_Block_Type_Registry::get_instance()->get_all_registered();
+		foreach ( $block_types as $block_type ) {
+			$block_name = $block_type->name;
+			if ( str_starts_with( $block_name, 'tests/' ) ) {
+				unregister_block_type( $block_name );
+			}
 		}
 
-		while ( ! empty( $this->registered_pattern_names ) ) {
-			$block_name = array_pop( $this->registered_pattern_names );
-			unregister_block_pattern( $block_name );
-		}
-
-		parent::tear_down();
-	}
-
-	/**
-	 * @see register_block_type()
-	 */
-	private function register_block_type( $block_type, $args = array() ) {
-		$result                         = register_block_type( $block_type, $args );
-		$this->registered_block_names[] = $result->name;
-
-		return $result;
-	}
-
-	private function switch_to_block_theme_hooked_blocks() {
-		$theme_name = 'block-theme-hooked-blocks';
-		switch_theme( $theme_name );
-
-		_register_theme_block_patterns();
+		// Removes test block patterns registered with the test theme.
 		$patterns = WP_Block_Patterns_Registry::get_instance()->get_all_registered();
 		foreach ( $patterns as $pattern ) {
 			if ( empty( $pattern['slug'] ) ) {
 				continue;
 			}
 			$pattern_name = $pattern['slug'];
-			if ( str_starts_with( $pattern_name, $theme_name ) ) {
-				$this->registered_pattern_names[] = $pattern_name;
+			if ( str_starts_with( $pattern_name, self::TEST_THEME_NAME ) ) {
+				unregister_block_pattern( $pattern_name );
 			}
 		}
 
+		parent::tear_down();
+	}
+
+	private function switch_to_block_theme_hooked_blocks() {
+		switch_theme( self::TEST_THEME_NAME );
+
+		_register_theme_block_patterns();
+
 		$theme_blocks_dir = wp_normalize_path( realpath( get_theme_file_path( 'blocks' ) ) );
-		$this->register_block_type( $theme_blocks_dir . '/hooked-before' );
-		$this->register_block_type( $theme_blocks_dir . '/hooked-after' );
-		$this->register_block_type( $theme_blocks_dir . '/hooked-first-child' );
-		$this->register_block_type( $theme_blocks_dir . '/hooked-last-child' );
+		register_block_type( $theme_blocks_dir . '/hooked-before' );
+		register_block_type( $theme_blocks_dir . '/hooked-after' );
+		register_block_type( $theme_blocks_dir . '/hooked-first-child' );
+		register_block_type( $theme_blocks_dir . '/hooked-last-child' );
 	}
 
 	/**
@@ -95,7 +73,7 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 	 * @covers ::get_hooked_blocks
 	 */
 	public function test_get_hooked_blocks_matches_found() {
-		$this->register_block_type(
+		register_block_type(
 			'tests/injected-one',
 			array(
 				'block_hooks' => array(
@@ -105,7 +83,7 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->register_block_type(
+		register_block_type(
 			'tests/injected-two',
 			array(
 				'block_hooks' => array(
