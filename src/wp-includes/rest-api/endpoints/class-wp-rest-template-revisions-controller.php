@@ -164,16 +164,14 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
 	 */
 	protected function get_parent( $parent_post_id ) {
-		$error = new WP_Error(
-			'rest_post_invalid_parent',
-			__( 'Invalid template parent ID.' ),
-			array( 'status' => 404 )
-		);
-
 		$template = get_block_template( $parent_post_id, $this->parent_post_type );
 
 		if ( ! $template ) {
-			return $error;
+			return new WP_Error(
+				'rest_post_invalid_parent',
+				__( 'Invalid template parent ID.' ),
+				array( 'status' => 404 )
+			);
 		}
 
 		return get_post( $template->wp_id );
