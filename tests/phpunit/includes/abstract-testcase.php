@@ -1348,7 +1348,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $contents Optional. File contents.
 	 * @return string|bool Path on success, else false.
 	 */
-	public function temp_filename(  string $contents = null  ) {
+	public function temp_filename( string $contents = null ) {
 		$tmp_dir = '';
 		$dirs    = array( 'TMP', 'TMPDIR', 'TEMP' );
 

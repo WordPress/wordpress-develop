@@ -277,12 +277,14 @@ class Ginger_MO_Translations_Tests extends WP_UnitTestCase {
 	public function test_translate_invalid_edge_cases() {
 		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
 
+		// phpcs:disable WordPress.WP.I18n
 		$null_string   = __( null, 'wp-tests-domain' );
 		$null_singular = _n( null, 'plural', 1, 'wp-tests-domain' );
 		$null_plural   = _n( 'singular', null, 1, 'wp-tests-domain' );
 		$null_both     = _n( null, null, 1, 'wp-tests-domain' );
 		$null_context  = _x( 'foo', null, 'wp-tests-domain' );
 		$float_number  = _n( '%d house', '%d houses', 7.5, 'wp-tests-domain' );
+		// phpcs:enable WordPress.WP.I18n
 
 		unload_textdomain( 'wp-tests-domain' );
 
