@@ -247,7 +247,9 @@ final class WP_Post {
 			}
 
 			$_post = sanitize_post( $_post, 'raw' );
-			wp_cache_add( $_post->ID, $_post, 'posts' );
+			// Store as variable as parameter is passed by reference.
+			$_update_post_cache = array( $_post );
+			update_post_cache( $_update_post_cache );
 		} elseif ( empty( $_post->filter ) || 'raw' !== $_post->filter ) {
 			$_post = sanitize_post( $_post, 'raw' );
 		}
