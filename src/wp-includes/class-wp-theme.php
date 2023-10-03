@@ -829,7 +829,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return mixed Returns an array of patterns if cache is found, other false.
+	 * @return mixed Returns an array of patterns if cache is found, otherwise false.
 	 */
 	public function get_pattern_cache() {
 		if ( ! $this->exists() ) {
