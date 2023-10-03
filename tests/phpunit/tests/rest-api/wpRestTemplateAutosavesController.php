@@ -71,20 +71,6 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 			)
 		);
 		wp_set_post_terms( self::$template_post->ID, self::TEST_THEME, 'wp_theme' );
-
-		// Create an autosave.
-		self::$autosave_post_id = wp_create_post_autosave(
-			array(
-				'post_content' => 'Autosave content.',
-				'post_ID'      => self::$template_post->ID,
-				'post_type'    => self::PARENT_POST_TYPE,
-			)
-		);
-	}
-
-	public static function wpTearDownAfterClass() {
-		// Also deletes revision.
-		wp_delete_post( self::$autosave_post_id, true );
 	}
 
 	/**
@@ -159,6 +145,14 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 */
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
+		$autosave_post_id = wp_create_post_autosave(
+			array(
+				'post_content' => 'Autosave content.',
+				'post_ID'      => self::$template_post->ID,
+				'post_type'    => self::PARENT_POST_TYPE,
+			)
+		);
+
 		$request   = new WP_REST_Request(
 			'GET',
 			'/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves'
@@ -173,7 +167,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 
 		$this->assertSame(
-			self::$autosave_post_id,
+			$autosave_post_id,
 			$autosaves[0]['wp_id'],
 			'Failed asserting that the ID of the autosave matches the expected autosave post ID.'
 		);
@@ -196,17 +190,25 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	public function test_get_item() {
 		wp_set_current_user( self::$admin_id );
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves/' . self::$autosave_post_id );
+		$autosave_post_id = wp_create_post_autosave(
+			array(
+				'post_content' => 'Autosave content.',
+				'post_ID'      => self::$template_post->ID,
+				'post_type'    => self::PARENT_POST_TYPE,
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves/' . $autosave_post_id );
 		$response = rest_get_server()->dispatch( $request );
 		$autosave = $response->get_data();
 
 		$this->assertIsArray( $autosave, 'Failed asserting that the autosave is an array.' );
 		$this->assertSame(
-			self::$autosave_post_id,
+			$autosave_post_id,
 			$autosave['wp_id'],
 			sprintf(
 				'Failed asserting that the autosave id is the same as %s.',
-				self::$autosave_post_id
+				$autosave_post_id
 			)
 		);
 		$this->assertSame(
@@ -224,7 +226,15 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @ticket 56922
 	 */
 	public function test_prepare_item() {
-		$autosave_db_post = wp_get_post_autosave( self::$template_post->ID );
+		wp_set_current_user( self::$admin_id );
+		$autosave_post_id = wp_create_post_autosave(
+			array(
+				'post_content' => 'Autosave content.',
+				'post_ID'      => self::$template_post->ID,
+				'post_type'    => self::PARENT_POST_TYPE,
+			)
+		);
+		$autosave_db_post = get_post( $autosave_post_id );
 		$request          = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves/' . $autosave_db_post->ID );
 		$controller       = new WP_REST_Template_Autosaves_Controller( self::PARENT_POST_TYPE );
 		$response         = $controller->prepare_item_for_response( $autosave_db_post, $request );
@@ -314,8 +324,6 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @ticket 56922
 	 */
 	public function test_create_item() {
-		$this->markTestSkipped( 'Skipping this test method for now as it impacts other tests.' );
-		return;
 		wp_set_current_user( self::$admin_id );
 
 		$template_id = self::TEST_THEME . '/' . self::TEMPLATE_NAME;
