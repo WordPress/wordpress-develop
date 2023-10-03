@@ -181,7 +181,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	$script_uri       = get_block_asset_url( $script_path_norm );
 
 	$script_args = array();
-	if ( 'viewScript' === $field_name ) {
+	if ( 'viewScript' === $field_name && $script_uri ) {
 		$script_args['strategy'] = 'defer';
 	}
 
@@ -549,7 +549,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			 *
 			 * @return string Returns the block content.
 			 */
-			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) {
 				ob_start();
 				require $template_path;
 				return ob_get_clean();
@@ -1636,7 +1636,7 @@ function wp_migrate_old_typography_shape( $metadata ) {
 	);
 
 	foreach ( $typography_keys as $typography_key ) {
-		$support_for_key = _wp_array_get( $metadata['supports'], array( $typography_key ), null );
+		$support_for_key = isset( $metadata['supports'][ $typography_key ] ) ? $metadata['supports'][ $typography_key ] : null;
 
 		if ( null !== $support_for_key ) {
 			_doing_it_wrong(

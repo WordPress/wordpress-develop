@@ -1284,8 +1284,6 @@ function add_magic_quotes( $input_array ) {
 			$input_array[ $k ] = add_magic_quotes( $v );
 		} elseif ( is_string( $v ) ) {
 			$input_array[ $k ] = addslashes( $v );
-		} else {
-			continue;
 		}
 	}
 
@@ -3319,7 +3317,6 @@ function wp_get_image_mime( $file ) {
 				// Not using wp_getimagesize() here to avoid an infinite loop.
 				$imagesize = getimagesize( $file );
 			} else {
-				// phpcs:ignore WordPress.PHP.NoSilencedErrors
 				$imagesize = @getimagesize( $file );
 			}
 
@@ -5082,7 +5079,7 @@ function _wp_array_set( &$input_array, $path, $value = null ) {
 		) {
 			$input_array[ $path_element ] = array();
 		}
-		$input_array = &$input_array[ $path_element ]; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.VariableRedeclaration
+		$input_array = &$input_array[ $path_element ];
 	}
 
 	$input_array[ $path[ $i ] ] = $value;
@@ -5988,6 +5985,10 @@ function _doing_it_wrong( $function_name, $message, $version ) {
  *
  * @param string $function_name The function that triggered the error.
  * @param string $message       The message explaining the error.
+ *                              The message can contain allowed HTML 'a' (with href), 'code',
+ *                              'br', 'em', and 'strong' tags and http or https protocols.
+ *                              If it contains other HTML tags or protocols, the message should be escaped
+ *                              before passing to this function to avoid being stripped {@see wp_kses()}.
  * @param int    $error_level   Optional. The designated error type for this error.
  *                              Only works with E_USER family of constants. Default E_USER_NOTICE.
  */
@@ -6015,12 +6016,17 @@ function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTIC
 		$message = sprintf( '%s(): %s', $function_name, $message );
 	}
 
-	/*
-	 * If the message appears in the browser, then it needs to be escaped.
-	 * Note the warning in the `trigger_error()` PHP manual.
-	 * @link https://www.php.net/manual/en/function.trigger-error.php
-	 */
-	$message = esc_html( $message );
+	$message = wp_kses(
+		$message,
+		array(
+			'a' => array( 'href' ),
+			'br',
+			'code',
+			'em',
+			'strong',
+		),
+		array( 'http', 'https' )
+	);
 
 	trigger_error( $message, $error_level );
 }
@@ -7613,7 +7619,7 @@ function wp_post_preview_js() {
 	}());
 	</script>
 	<?php
-	wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
+	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 }
 
 /**
