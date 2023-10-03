@@ -1879,7 +1879,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 			$attachment_id  = $images[ $match[0] ];
 
 			// Add 'width' and 'height' attributes if applicable.
-			if ( $attachment_id > 0 && ! str_contains( $filtered_image, ' width=' ) && ! str_contains( $filtered_image, ' height=' ) ) {
+			if ( ! str_contains( $filtered_image, ' width=' ) && ! str_contains( $filtered_image, ' height=' ) ) {
 				$filtered_image = wp_img_tag_add_width_and_height_attr( $filtered_image, $context, $attachment_id );
 			}
 
@@ -2104,22 +2104,32 @@ function wp_img_tag_add_width_and_height_attr( $image, $context, $attachment_id 
 	 * Returning anything else than `true` will not add the attributes.
 	 *
 	 * @since 5.5.0
+	 * @since 6.4.0 The $value parameter can now be used to return an array with specific 'width' and 'height'.
+	 * @since 6.4.0 The $image_src parameter was added.
 	 *
-	 * @param bool   $value         The filtered value, defaults to `true`.
-	 * @param string $image         The HTML `img` tag where the attribute should be added.
-	 * @param string $context       Additional context about how the function was called or where the img tag is.
-	 * @param int    $attachment_id The image attachment ID.
+	 * @param bool|array $value         The filtered value, defaults to `true`.
+	 * @param string     $image         The HTML `img` tag where the attribute should be added.
+	 * @param string     $context       Additional context about how the function was called or where the img tag is.
+	 * @param int        $attachment_id The image attachment ID.
+	 * @param string     $image_src     The image src attribute value.
 	 */
-	$add = apply_filters( 'wp_img_tag_add_width_and_height_attr', true, $image, $context, $attachment_id );
+	$add = apply_filters( 'wp_img_tag_add_width_and_height_attr', true, $image, $context, $attachment_id, $image_src );
 
-	if ( true === $add ) {
+	$size_array = null;
+	if ( true === $add && $attachment_id > 0 ) {
 		$image_meta = wp_get_attachment_metadata( $attachment_id );
 		$size_array = wp_image_src_get_dimensions( $image_src, $image_meta, $attachment_id );
-
-		if ( $size_array ) {
-			$hw = trim( image_hwstring( $size_array[0], $size_array[1] ) );
-			return str_replace( '<img', "<img {$hw}", $image );
+	} elseif ( is_array( $add ) ) {
+		$width  = isset( $add['width'] ) ? (int) $add['width'] : 0;
+		$height = isset( $add['height'] ) ? (int) $add['height'] : 0;
+		if ( $width && $height ) {
+			$size_array = array( $width, $height );
 		}
+	}
+
+	if ( $size_array ) {
+		$hw = trim( image_hwstring( $size_array[0], $size_array[1] ) );
+		return str_replace( '<img', "<img {$hw}", $image );
 	}
 
 	return $image;
@@ -5632,10 +5642,11 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	$loading_attrs = array();
 
 	/*
-	 * Skip lazy-loading for the overall block template, as it is handled more granularly.
-	 * The skip is also applicable for `fetchpriority`.
+	 * Skip processing images for the overall block template, as it is handled more granularly.
+	 * The only exception are images that haven't been processed before, which can more or less reliably be determined
+	 * by checking presence of the `decoding="async"` attribute, since _every_ image receives that attribute.
 	 */
-	if ( 'template' === $context ) {
+	if ( 'template' === $context && ( 'img' !== $tag_name || isset( $attr['decoding'] ) && 'async' === $attr['decoding'] ) ) {
 		/** This filter is documented in wp-includes/media.php */
 		return apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $tag_name, $attr, $context );
 	}
@@ -5774,8 +5785,11 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			 * Any image before the loop, but after the header has started should not be lazy-loaded,
 			 * except when the footer has already started which can happen when the current template
 			 * does not include any loop.
+			 *
+			 * Block themes may not include a header template part, so for those the overall
+			 * 'template' context is explicitly supported.
 			 */
-			&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
+			&& ( did_action( 'get_header' ) || 'template' === $context ) && ! did_action( 'get_footer' )
 			) {
 			$maybe_in_viewport    = true;
 			$maybe_increase_count = true;
