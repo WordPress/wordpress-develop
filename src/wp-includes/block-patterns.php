@@ -471,7 +471,7 @@ function _wp_get_block_patterns( WP_Theme $theme ) {
 			_doing_it_wrong(
 				__FUNCTION__,
 				sprintf(
-				/* translators: %s: file name. */
+					/* translators: %s: file name. */
 					__( 'Could not register file "%s" as a block pattern ("Slug" field missing)' ),
 					$file
 				),
@@ -484,7 +484,7 @@ function _wp_get_block_patterns( WP_Theme $theme ) {
 			_doing_it_wrong(
 				__FUNCTION__,
 				sprintf(
-				/* translators: %1s: file name; %2s: slug value found. */
+					/* translators: %1s: file name; %2s: slug value found. */
 					__( 'Could not register file "%1$s" as a block pattern (invalid slug "%2$s")' ),
 					$file,
 					$pattern['slug']
@@ -498,7 +498,7 @@ function _wp_get_block_patterns( WP_Theme $theme ) {
 			_doing_it_wrong(
 				__FUNCTION__,
 				sprintf(
-				/* translators: %1s: file name; %2s: slug value found. */
+					/* translators: %1s: file name; %2s: slug value found. */
 					__( 'Could not register file "%s" as a block pattern ("Title" field missing)' ),
 					$file
 				),
