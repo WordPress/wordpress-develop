@@ -386,8 +386,12 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Navigation_Fallback_Controller();
 	$controller->register_routes();
 
-	// Font Library.
-	$controller = new WP_REST_Font_Library_Controller();
+	// Font Families.
+	$controller = new WP_REST_Font_Families_Controller();
+	$controller->register_routes();
+
+	// Font Collections.
+	$controller = new WP_REST_Font_Collections_Controller();
 	$controller->register_routes();
 }
 
