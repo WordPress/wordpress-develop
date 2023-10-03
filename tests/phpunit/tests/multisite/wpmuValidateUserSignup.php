@@ -4,6 +4,8 @@ if ( is_multisite() ) :
 
 	/**
 	 * @group multisite
+	 *
+	 *  @covers ::wpmu_validate_user_signup
 	 */
 	class Tests_Multisite_wpmuValidateUserSignup extends WP_UnitTestCase {
 		/**

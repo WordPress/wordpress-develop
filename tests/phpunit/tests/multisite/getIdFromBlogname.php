@@ -85,6 +85,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 34450
+		 *
+		 * @covers ::get_id_from_blogname
 		 */
 		public function test_get_id_from_blogname_no_www() {
 			global $current_site;
@@ -106,6 +108,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 34450
+		 *
+		 * @covers ::get_id_from_blogname
 		 */
 		public function test_get_id_from_blogname_www() {
 			global $current_site;
@@ -125,6 +129,9 @@ if ( is_multisite() ) :
 			$this->assertSame( $expected, $result );
 		}
 
+		/**
+		 * @covers ::get_id_from_blogname
+		 */
 		public function test_get_id_from_blogname_invalid_slug() {
 			global $current_site;
 

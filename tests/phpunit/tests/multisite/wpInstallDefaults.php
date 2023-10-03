@@ -30,6 +30,9 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 40036
+		 *
+		 * @covers ::get_page_by_path
+		 * @covers ::get_comments
 		 */
 		public function test_empty_option_should_fall_back_to_default() {
 			/*
@@ -56,6 +59,9 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 40036
+		 *
+		 * @covers ::get_page_by_path
+		 * @covers ::get_comments
 		 */
 		public function test_non_default_option_values() {
 			/*
