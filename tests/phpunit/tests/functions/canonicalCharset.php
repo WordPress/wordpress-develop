@@ -6,75 +6,46 @@
  * @since 4.8.0
  *
  * @group functions.php
+ * @covers ::_canonical_charset
  */
 class Tests_Functions_CanonicalCharset extends WP_UnitTestCase {
 
-	/**
-	 * @covers ::_canonical_charset
-	 */
 	public function test_utf_8_lower() {
 		$this->assertSame( 'UTF-8', _canonical_charset( 'utf-8' ) );
 	}
 
-	/**
-	 * @covers ::_canonical_charset
-	 */
 	public function test_utf_8_upper() {
 		$this->assertSame( 'UTF-8', _canonical_charset( 'UTF-8' ) );
 	}
 
-	/**
-	 * @covers ::_canonical_charset
-	 */
 	public function test_utf_8_mixxed() {
 		$this->assertSame( 'UTF-8', _canonical_charset( 'Utf-8' ) );
 	}
 
-	/**
-	 * @covers ::_canonical_charset
-	 */
 	public function test_utf_8() {
 		$this->assertSame( 'UTF-8', _canonical_charset( 'UTF8' ) );
 	}
 
-	/**
-	 * @covers ::_canonical_charset
-	 */
 	public function test_iso_lower() {
 		$this->assertSame( 'ISO-8859-1', _canonical_charset( 'iso-8859-1' ) );
 	}
 
-	/**
-	 * @covers ::_canonical_charset
-	 */
 	public function test_iso_upper() {
 		$this->assertSame( 'ISO-8859-1', _canonical_charset( 'ISO-8859-1' ) );
 	}
 
-	/**
-	 * @covers ::_canonical_charset
-	 */
 	public function test_iso_mixxed() {
 		$this->assertSame( 'ISO-8859-1', _canonical_charset( 'Iso8859-1' ) );
 	}
 
-	/**
-	 * @covers ::_canonical_charset
-	 */
 	public function test_iso() {
 		$this->assertSame( 'ISO-8859-1', _canonical_charset( 'ISO8859-1' ) );
 	}
 
-	/**
-	 * @covers ::_canonical_charset
-	 */
 	public function test_random() {
 		$this->assertSame( 'random', _canonical_charset( 'random' ) );
 	}
 
-	/**
-	 * @covers ::_canonical_charset
-	 */
 	public function test_empty() {
 		$this->assertSame( '', _canonical_charset( '' ) );
 	}
@@ -82,7 +53,7 @@ class Tests_Functions_CanonicalCharset extends WP_UnitTestCase {
 	/**
 	 * @ticket 23688
 	 *
-	 * @covers ::update_option
+	 * @covers ::get_option
 	 */
 	public function test_update_option_blog_charset() {
 		$orig_blog_charset = get_option( 'blog_charset' );

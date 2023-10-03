@@ -27,12 +27,6 @@ abstract class WP_Filesystem_UnitTestCase extends WP_UnitTestCase {
 		return dirname( __DIR__, 2 ) . '/includes/mock-fs.php';
 	}
 
-	/**
-	 * This test method covers a mock class. Mock classes are not supposed
-	 * to be added to the coverage report.
-	 *
-	 * @coversNothing
-	 */
 	public function test_is_MockFS_sane() {
 		global $wp_filesystem;
 		$this->assertInstanceOf( 'WP_Filesystem_MockFS', $wp_filesystem );

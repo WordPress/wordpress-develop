@@ -7,8 +7,6 @@
  * and contains the right stuff.
  *
  * @group feed
- *
- * @covers ::xml_find
  */
 class Tests_Feed_Atom extends WP_UnitTestCase {
 	public static $user_id;
