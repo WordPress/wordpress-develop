@@ -77,7 +77,7 @@ function create_initial_post_types() {
 				'name_admin_bar' => _x( 'Media', 'add new from admin bar' ),
 				'add_new'        => __( 'Add New Media File' ),
 				'edit_item'      => __( 'Edit Media' ),
-				'view_item'      => __( 'View Attachment Page' ),
+				'view_item'      => ( '1' === get_option( 'wp_attachment_pages_enabled' ) ) ? __( 'View Attachment Page' ) : __( 'View Media File' ),
 				'attributes'     => __( 'Attachment Attributes' ),
 			),
 			'public'                => true,
@@ -1382,7 +1382,7 @@ function register_post_status( $post_status, $args = array() ) {
 	}
 
 	if ( false === $args->label_count ) {
-		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingle,WordPress.WP.I18n.NonSingularStringLiteralPlural
+		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingular,WordPress.WP.I18n.NonSingularStringLiteralPlural
 		$args->label_count = _n_noop( $args->label, $args->label );
 	}
 
@@ -7262,6 +7262,7 @@ function clean_post_cache( $post ) {
 
 	wp_cache_delete( $post->ID, 'posts' );
 	wp_cache_delete( $post->ID, 'post_meta' );
+	wp_cache_delete( $post->ID, 'post_parent' );
 
 	clean_object_term_cache( $post->ID, $post->post_type );
 
@@ -7792,6 +7793,31 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 		$post_types = array_map( 'get_post_type', $ids );
 		$post_types = array_unique( $post_types );
 		update_object_term_cache( $ids, $post_types );
+	}
+}
+
+/**
+ * Prime post parent caches.
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param int[] $ids ID list.
+ */
+function _prime_post_parents_caches( array $ids ) {
+	global $wpdb;
+
+	$non_cached_ids = _get_non_cached_ids( $ids, 'post_parent' );
+	if ( ! empty( $non_cached_ids ) ) {
+		$fresh_posts = $wpdb->get_results( sprintf( "SELECT $wpdb->posts.ID, $wpdb->posts.post_parent FROM $wpdb->posts WHERE ID IN (%s)", implode( ',', $non_cached_ids ) ) );
+
+		if ( $fresh_posts ) {
+			$post_parent_data = array();
+			foreach ( $fresh_posts as $fresh_post ) {
+				$post_parent_data[ (int) $fresh_post->ID ] = (int) $fresh_post->post_parent;
+			}
+
+			wp_cache_add_multiple( $post_parent_data, 'post_parent' );
+		}
 	}
 }
 
