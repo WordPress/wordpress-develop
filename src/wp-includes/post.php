@@ -7771,11 +7771,15 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int[] $ids               ID list.
- * @param bool  $update_term_cache Optional. Whether to update the term cache. Default true.
- * @param bool  $update_meta_cache Optional. Whether to update the meta cache. Default true.
+ * @param int[] $ids                    ID list.
+ * @param bool  $update_term_cache      Optional. Whether to update the term cache. Default true.
+ * @param bool  $update_meta_cache      Optional. Whether to update the meta cache. Default true.
+ * @param bool  $update_parent_id_cache Optional. Whether to update the post parent ID cache. To avoid additional
+ *                                      queries later, the parent ID is always cached for currently unprimed post
+ *                                      objects. This parameter only affects unprimed parent caches when the post
+ *                                      object is already primed. Default true.
  */
-function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache = true ) {
+function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache = true, $update_parent_id_cache = true ) {
 	global $wpdb;
 
 	$non_cached_ids = _get_non_cached_ids( $ids, 'posts' );
@@ -7796,6 +7800,10 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 		$post_types = array_map( 'get_post_type', $ids );
 		$post_types = array_unique( $post_types );
 		update_object_term_cache( $ids, $post_types );
+	}
+
+	if ( $update_parent_id_cache ) {
+		_prime_post_parent_id_caches( $ids );
 	}
 }
 
