@@ -7222,14 +7222,17 @@ function update_post_cache( &$posts ) {
 		return;
 	}
 
-	$data = array();
+	$data       = array();
+	$parent_ids = array();
 	foreach ( $posts as $post ) {
 		if ( empty( $post->filter ) || 'raw' !== $post->filter ) {
 			$post = sanitize_post( $post, 'raw' );
 		}
 		$data[ $post->ID ] = $post;
+		$parent_ids[ (int) $post->ID ] = (int) $post->post_parent;
 	}
 	wp_cache_add_multiple( $data, 'posts' );
+	wp_cache_add_multiple( $parent_ids, 'post_parent' );
 }
 
 /**
