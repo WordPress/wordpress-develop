@@ -20,7 +20,6 @@ class Tests_XMLRPC_wp_restoreRevision extends WP_XMLRPC_UnitTestCase {
 		);
 
 		$revisions = wp_get_post_revisions( $this->post_id );
-		var_dump($revisions);
 		// First revision is empty, see https://core.trac.wordpress.org/changeset/23842
 		// $revision = array_shift( $revisions );
 		// First revision is NOT empty, see https://core.trac.wordpress.org/changeset/24650
