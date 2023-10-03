@@ -825,6 +825,38 @@ final class WP_Theme implements ArrayAccess {
 	}
 
 	/**
+	 * Get block pattern cache.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return mixed Returns an array of patterns if cache is found, other false.
+	 */
+	public function get_pattern_cache() {
+		if ( ! $this->exists() ) {
+			return false;
+		}
+		$pattern_data = get_transient( 'wp_theme_patterns_' . $this->stylesheet );
+		if ( is_array( $pattern_data ) && $pattern_data['version'] === $this->get( 'Version' ) ) {
+			return $pattern_data['patterns'];
+		}
+		return false;
+	}
+
+	/**
+	 * Set block pattern cache.
+	 *
+	 * @since 6.4.0
+	 */
+	public function set_pattern_cache( array $patterns = array() ) {
+		$pattern_data = array(
+			'version'  => $this->get( 'Version' ),
+			'patterns' => $patterns,
+		);
+		set_transient( 'wp_theme_patterns_' . $this->stylesheet, $pattern_data );
+	}
+
+
+	/**
 	 * Clear block pattern cache.
 	 *
 	 * @since 6.4.0
