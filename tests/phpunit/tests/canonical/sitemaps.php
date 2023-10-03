@@ -5,6 +5,9 @@
  * @group rewrite
  * @group query
  * @group sitemaps
+ *
+ * @covers ::redirect_canonical
+ * @covers ::home_url
  */
 class Tests_Canonical_Sitemaps extends WP_Canonical_UnitTestCase {
 
