@@ -142,7 +142,9 @@ class Ginger_MO {
 		}
 
 		if ( null !== $mo ) {
-			$mo = realpath( $mo );
+			if ( is_string( $mo ) ) {
+				$mo = realpath( $mo );
+			}
 
 			if ( null !== $locale ) {
 				foreach ( $this->loaded_translations[ $locale ][ $textdomain ] as $i => $moe ) {
