@@ -335,7 +335,6 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 			'content' => 'Post content',
 			'excerpt' => 'Post excerpt',
 			'name'    => 'test',
-			'author'  => get_current_user_id(),
 			'id'      => $template_id,
 		);
 
