@@ -1136,6 +1136,9 @@ function _wp_preview_meta_filter( $value, $object_id, $meta_key, $single ) {
  * Add any revisioned meta fields to the revisions screen.
  *
  * @since 6.4.0
+ * @param array   $revision_screen_fields  Associative array of revision screen fields (key => title).
+ * @param WP_Post $post                    The post object.
+ * @return array The filtered array of revision screen fields.
  */
 function wp_add_revisioned_meta_to_revision_ui( $fields, $post ) {
 
@@ -1150,7 +1153,7 @@ function wp_add_revisioned_meta_to_revision_ui( $fields, $post ) {
 		// Add a callback filter to display the meta field.
 		add_filter(
 			'_wp_post_revision_field_{$meta_key}',
-			function ( $revision_field, $field, $revision ) use ( $meta_key ) {
+			static function ( $revision_field, $field, $revision ) use ( $meta_key ) {
 				return get_metadata( 'post', $revision->ID, $meta_key, true );
 			},
 			10,
