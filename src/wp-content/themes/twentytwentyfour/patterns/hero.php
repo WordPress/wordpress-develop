@@ -36,7 +36,7 @@
 <div style="height:var(--wp--preset--spacing--30)" aria-hidden="true" class="wp-block-spacer"></div>
 <!-- /wp:spacer -->
 
-<!-- wp:image {"align":"wide","sizeSlug":"full","linkDestination":"none","className":"is-style-rounded"} -->
-<figure class="wp-block-image alignwide size-full is-style-rounded"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/business-hero.webp" alt="<?php esc_attr_e( 'A skyscraper building.', 'twentytwentyfour' ); ?>"/></figure>
+<!-- wp:image {"align":"wide","width":2560,"height":1200,"sizeSlug":"full","linkDestination":"none","className":"is-style-rounded"} -->
+<figure class="wp-block-image alignwide size-full is-style-rounded is-resized"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/business-hero.webp" alt="<?php esc_attr_e( 'A skyscraper building.', 'twentytwentyfour' ); ?>" width="2560" height="1200"/></figure>
 <!-- /wp:image --></div>
 <!-- /wp:group -->
