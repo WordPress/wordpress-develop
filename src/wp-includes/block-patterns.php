@@ -500,7 +500,7 @@ function _wp_get_block_patterns( WP_Theme $theme ) {
 			_doing_it_wrong(
 				__FUNCTION__,
 				sprintf(
-					/* translators: %1s: file name; %2s: slug value found. */
+					/* translators: %1s: file name. */
 					__( 'Could not register file "%s" as a block pattern ("Title" field missing)' ),
 					$file
 				),
