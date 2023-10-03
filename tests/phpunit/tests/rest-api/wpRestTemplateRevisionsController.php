@@ -268,15 +268,22 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 * @covers WP_REST_Template_Revisions_Controller::get_items_permissions_check
 	 * @ticket 56922
 	 */
-	public function test_should_not_return_items_with_no_permission() {
+	public function test_get_items_endpoint_should_return_unauthorized_https_status_code_for_unauthorized_request() {
 		wp_set_current_user( 0 );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions' );
 		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, WP_Http::UNAUTHORIZED );
+	}
 
-		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
+	/**
+	 * @covers WP_REST_Template_Revisions_Controller::get_items_permissions_check
+	 * @ticket 56922
+	 */
+	public function test_get_items_endpoint_should_return_forbidden_https_status_code_for_users_with_insufficient_permissions() {
 		wp_set_current_user( self::$contributor_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, WP_Http::FORBIDDEN );
 	}
 
 	/**
