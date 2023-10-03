@@ -82,6 +82,11 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 	}
 
+	public static function wpTearDownAfterClass() {
+		// Also deletes revision.
+		wp_delete_post( self::$autosave_post_id, true );
+	}
+
 	/**
 	 * @covers WP_REST_Template_Autosaves_Controller::register_routes
 	 * @ticket 56922
