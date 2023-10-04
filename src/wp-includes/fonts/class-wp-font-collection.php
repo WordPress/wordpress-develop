@@ -77,26 +77,26 @@ class WP_Font_Collection {
 		// If the src is a URL, fetch the data from the URL.
 		if ( str_contains( $this->config['src'], 'http' ) && str_contains( $this->config['src'], '://' ) ) {
 			if ( ! wp_http_validate_url( $this->config['src'] ) ) {
-				return new WP_Error( 'font_collection_read_error', __( 'Invalid URL for Font Collection data.' ) );
+				return new WP_Error( 'font_collection_read_error', __( 'Invalid URL for font collection data.' ) );
 			}
 
 			$response = wp_remote_get( $this->config['src'] );
 			if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-				return new WP_Error( 'font_collection_read_error', __( 'Error fetching the Font Collection data from a URL.' ) );
+				return new WP_Error( 'font_collection_read_error', __( 'Error fetching the font collection data from a URL.' ) );
 			}
 
 			$data = json_decode( wp_remote_retrieve_body( $response ), true );
 			if ( empty( $data ) ) {
-				return new WP_Error( 'font_collection_read_error', __( 'Error decoding the Font Collection data from the REST response JSON.' ) );
+				return new WP_Error( 'font_collection_read_error', __( 'Error decoding the font collection data from the REST response JSON.' ) );
 			}
 			// If the src is a file path, read the data from the file.
 		} else {
 			if ( ! file_exists( $this->config['src'] ) ) {
-				return new WP_Error( 'font_collection_read_error', __( 'Font Collection data JSON file does not exist.' ) );
+				return new WP_Error( 'font_collection_read_error', __( 'Font collection data JSON file does not exist.' ) );
 			}
 			$data = wp_json_file_decode( $this->config['src'], array( 'associative' => true ) );
 			if ( empty( $data ) ) {
-				return new WP_Error( 'font_collection_read_error', __( 'Error reading the Font Collection data JSON file contents.' ) );
+				return new WP_Error( 'font_collection_read_error', __( 'Error reading the font collection data JSON file contents.' ) );
 			}
 		}
 
