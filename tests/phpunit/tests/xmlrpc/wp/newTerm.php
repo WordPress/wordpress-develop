@@ -2,6 +2,8 @@
 
 /**
  * @group xmlrpc
+ *
+ * @covers wp_xmlrpc_server::wp_newTerm
  */
 class Tests_XMLRPC_wp_newTerm extends WP_XMLRPC_UnitTestCase {
 
