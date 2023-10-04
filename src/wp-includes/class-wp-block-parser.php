@@ -97,8 +97,117 @@ class WP_Block_Parser {
 	 * @return bool
 	 */
 	public function proceed() {
-		$next_token = $this->next_token();
-		list( $token_type, $block_name, $attrs, $start_offset, $token_length ) = $next_token;
+		$text         = $this->document;
+		$token_type   = 'no-more-tokens';
+		$block_name   = null;
+		$attrs        = null;
+		$start_offset = null;
+		$token_length = null;
+
+		$at = $this->offset;
+		while ( $at < strlen( $text ) ) {
+			$token_type = 'no-more-tokens';
+			$at         = strpos( $text, '<!--', $at );
+			if ( false === $at ) {
+				break;
+			}
+
+			$token_type   = 'block-opener';
+			$start_offset = $at;
+			$at          += 4;
+
+			$ws_length = strspn( $text, " \t\r\n\f", $at );
+			if ( 0 === $ws_length ) {
+				++$at;
+				continue;
+			}
+			$at += $ws_length;
+
+			$is_closer = '/' === $text[ $at ];
+			if ( $is_closer ) {
+				++$at;
+				$token_type = 'block-closer';
+			}
+
+			if ( 'w' !== $text[ $at ] && 'p' !== $text[ $at + 1 ] && ':' !== $text[ $at + 2 ] ) {
+				++$at;
+				continue;
+			}
+
+			// Skip past "wp:".
+			$at += 3;
+
+			$name_part_prefix = strspn( $text, 'abcdefghijklmnopqrstuvwxyz', $at );
+			if ( 0 === $name_part_prefix ) {
+				++$at;
+				continue;
+			}
+
+			$name_part_length = strspn( $text, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-', $at + $name_part_prefix );
+			if ( '/' === $text[ $at + $name_part_prefix + $name_part_length ] ) {
+				$namespace = substr( $text, $at, $name_part_prefix + $name_part_length + 1 );
+				$at       += $name_part_prefix + $name_part_length + 1;
+
+				$block_name_prefix = strspn( $text, 'abcdefghijklmnopqrstuvwxyz', $at );
+				if ( 0 === $block_name_prefix ) {
+					++$at;
+					continue;
+				}
+				$block_name_length = strspn( $text, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-', $at + $block_name_prefix );
+				$block_name        = $namespace . substr( $text, $at, $block_name_prefix + $block_name_length );
+				$at               += $block_name_prefix + $block_name_length;
+			} else {
+				$block_name = 'core/' . substr( $text, $at, $name_part_prefix + $name_part_length );
+				$at        += $name_part_prefix + $name_part_length;
+			}
+
+			$ws_length = strspn( $text, " \t\r\n\f", $at );
+			if ( 0 === $ws_length ) {
+				++$at;
+				continue;
+			}
+
+			$at += $ws_length;
+
+			$closing_at = strpos( $text, '-->', $at );
+			if ( false === $closing_at ) {
+				$token_type = 'no-more-tokens';
+				break;
+			}
+
+			$token_length = ( $closing_at + 3 ) - $start_offset;
+
+			$is_void = '/' === $text[ $closing_at - 1 ];
+			if ( ! $is_closer && $is_void ) {
+				$token_type = 'void-block';
+			}
+
+			$interspace  = substr( $text, $at, $closing_at - $at - ( $is_void ? 1 : 0 ) );
+			$leading_ws  = strspn( $interspace, " \t\r\n\f" );
+			$trimmed     = trim( $interspace, " \t\r\n\f" );
+			$trailing_ws = strlen( $interspace ) - strlen( $trimmed ) - $leading_ws;
+
+			// No attributes whatsoever.
+			if ( 0 === strlen( $trimmed ) ) {
+				$attrs = array();
+				break;
+			}
+
+			// Invalid attributes.
+			if ( '{' !== $trimmed[0] || '}' !== $trimmed[ strlen( $trimmed ) - 1 ] || 0 === $trailing_ws ) {
+				$at = $closing_at + 4;
+				continue;
+			}
+
+			try {
+				$attrs = json_decode( $interspace, true );
+			} catch ( Exception $e ) {
+				$attrs = array();
+			}
+
+			break;
+		}
+
 		$stack_depth = count( $this->stack );
 
 		// we may have some HTML soup before the next block.
@@ -144,13 +253,13 @@ class WP_Block_Parser {
 				 */
 				if ( 0 === $stack_depth ) {
 					if ( isset( $leading_html_start ) ) {
-						$this->output[] = (array) $this->freeform(
-							substr(
-								$this->document,
-								$leading_html_start,
-								$start_offset - $leading_html_start
-							)
+						$inner_html = substr(
+							$this->document,
+							$leading_html_start,
+							$start_offset - $leading_html_start
 						);
+
+						$this->output[] = (array) new WP_Block_Parser_Block( null, array(), array(), $inner_html, array( $inner_html ) );
 					}
 
 					$this->output[] = (array) new WP_Block_Parser_Block( $block_name, $attrs, array(), '', array() );
@@ -232,96 +341,6 @@ class WP_Block_Parser {
 	}
 
 	/**
-	 * Scans the document from where we last left off
-	 * and finds the next valid token to parse if it exists
-	 *
-	 * Returns the type of the find: kind of find, block information, attributes
-	 *
-	 * @internal
-	 * @since 5.0.0
-	 * @since 4.6.1 fixed a bug in attribute parsing which caused catastrophic backtracking on invalid block comments
-	 * @return array
-	 */
-	public function next_token() {
-		$matches = null;
-
-		/*
-		 * aye the magic
-		 * we're using a single RegExp to tokenize the block comment delimiters
-		 * we're also using a trick here because the only difference between a
-		 * block opener and a block closer is the leading `/` before `wp:` (and
-		 * a closer has no attributes). we can trap them both and process the
-		 * match back in PHP to see which one it was.
-		 */
-		$has_match = preg_match(
-			'/<!--\s+(?P<closer>\/)?wp:(?P<namespace>[a-z][a-z0-9_-]*\/)?(?P<name>[a-z][a-z0-9_-]*)\s+(?P<attrs>{(?:(?:[^}]+|}+(?=})|(?!}\s+\/?-->).)*+)?}\s+)?(?P<void>\/)?-->/s',
-			$this->document,
-			$matches,
-			PREG_OFFSET_CAPTURE,
-			$this->offset
-		);
-
-		// if we get here we probably have catastrophic backtracking or out-of-memory in the PCRE.
-		if ( false === $has_match ) {
-			return array( 'no-more-tokens', null, null, null, null );
-		}
-
-		// we have no more tokens.
-		if ( 0 === $has_match ) {
-			return array( 'no-more-tokens', null, null, null, null );
-		}
-
-		list( $match, $started_at ) = $matches[0];
-
-		$length    = strlen( $match );
-		$is_closer = isset( $matches['closer'] ) && -1 !== $matches['closer'][1];
-		$is_void   = isset( $matches['void'] ) && -1 !== $matches['void'][1];
-		$namespace = $matches['namespace'];
-		$namespace = ( isset( $namespace ) && -1 !== $namespace[1] ) ? $namespace[0] : 'core/';
-		$name      = $namespace . $matches['name'][0];
-		$has_attrs = isset( $matches['attrs'] ) && -1 !== $matches['attrs'][1];
-
-		/*
-		 * Fun fact! It's not trivial in PHP to create "an empty associative array" since all arrays
-		 * are associative arrays. If we use `array()` we get a JSON `[]`
-		 */
-		$attrs = $has_attrs
-			? json_decode( $matches['attrs'][0], /* as-associative */ true )
-			: $this->empty_attrs;
-
-		/*
-		 * This state isn't allowed
-		 * This is an error
-		 */
-		if ( $is_closer && ( $is_void || $has_attrs ) ) {
-			// we can ignore them since they don't hurt anything.
-		}
-
-		if ( $is_void ) {
-			return array( 'void-block', $name, $attrs, $started_at, $length );
-		}
-
-		if ( $is_closer ) {
-			return array( 'block-closer', $name, null, $started_at, $length );
-		}
-
-		return array( 'block-opener', $name, $attrs, $started_at, $length );
-	}
-
-	/**
-	 * Returns a new block object for freeform HTML
-	 *
-	 * @internal
-	 * @since 3.9.0
-	 *
-	 * @param string $inner_html HTML content of block.
-	 * @return WP_Block_Parser_Block freeform block object.
-	 */
-	public function freeform( $inner_html ) {
-		return new WP_Block_Parser_Block( null, $this->empty_attrs, array(), $inner_html, array( $inner_html ) );
-	}
-
-	/**
 	 * Pushes a length of text from the input document
 	 * to the output list as a freeform block.
 	 *
@@ -336,7 +355,8 @@ class WP_Block_Parser {
 			return;
 		}
 
-		$this->output[] = (array) $this->freeform( substr( $this->document, $this->offset, $length ) );
+		$inner_html     = substr( $this->document, $this->offset, $length );
+		$this->output[] = (array) new WP_Block_Parser_Block( null, array(), array(), $inner_html, array( $inner_html ) );
 	}
 
 	/**
@@ -385,13 +405,12 @@ class WP_Block_Parser {
 		}
 
 		if ( isset( $stack_top->leading_html_start ) ) {
-			$this->output[] = (array) $this->freeform(
-				substr(
-					$this->document,
-					$stack_top->leading_html_start,
-					$stack_top->token_start - $stack_top->leading_html_start
-				)
+			$inner_html     = substr(
+				$this->document,
+				$stack_top->leading_html_start,
+				$stack_top->token_start - $stack_top->leading_html_start
 			);
+			$this->output[] = (array) new WP_Block_Parser_Block( null, $this->empty_attrs, array(), $inner_html, array( $inner_html ) );
 		}
 
 		$this->output[] = (array) $stack_top->block;
