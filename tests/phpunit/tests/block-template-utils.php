@@ -192,9 +192,9 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	public function test_build_block_template_result_from_file_template_use_custom_properties() {
 		$template = _build_block_template_result_from_file(
 			array(
-				'slug'        => 'custom',
-				'title'       => 'Custom Title',
-				'path'        => DIR_TESTDATA . '/templates/template.html',
+				'slug'  => 'custom',
+				'title' => 'Custom Title',
+				'path'  => DIR_TESTDATA . '/templates/template.html',
 			),
 			'wp_template'
 		);
@@ -212,9 +212,9 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	public function test_build_block_template_result_from_file_template_enforce_default_properties() {
 		$template = _build_block_template_result_from_file(
 			array(
-				'slug'        => 'single',
-				'title'       => 'Custom title',
-				'path'        => DIR_TESTDATA . '/templates/template.html',
+				'slug'  => 'single',
+				'title' => 'Custom title',
+				'path'  => DIR_TESTDATA . '/templates/template.html',
 			),
 			'wp_template'
 		);
