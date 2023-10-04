@@ -89,7 +89,7 @@ function wp_render_elements_support( $block_content, $block ) {
 		return $block_content;
 	}
 
-	$element_colors_set = 0;
+	$element_colors_set = false;
 
 	$element_styles = $block['attrs']['style']['elements'];
 	foreach ( $element_color_properties as $element_config ) {
@@ -98,8 +98,14 @@ function wp_render_elements_support( $block_content, $block ) {
 		}
 
 		foreach ( $element_config['paths'] as $path ) {
+			/*
+			 * Once it's known that a class name is necessary there's no
+			 * need to continue to scan through the attributes, as all
+			 * that matters is that at least one is present.
+			 */
 			if ( null !== _wp_array_get_path( $element_styles, $path ) ) {
-				++$element_colors_set;
+				$element_colors_set = true;
+				break 2;
 			}
 		}
 	}
