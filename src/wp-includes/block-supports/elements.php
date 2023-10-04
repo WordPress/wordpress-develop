@@ -41,42 +41,42 @@ function wp_render_elements_support( $block_content, $block ) {
 		'button'  => array(
 			'skip'  => wp_should_skip_block_supports_serialization( $block_type, 'color', 'button' ),
 			'paths' => array(
-				'style.elements.button.color.text',
-				'style.elements.button.color.background',
-				'style.elements.button.color.gradient',
+				'button.color.text',
+				'button.color.background',
+				'button.color.gradient',
 			),
 		),
 		'link'    => array(
 			'skip'  => wp_should_skip_block_supports_serialization( $block_type, 'color', 'link' ),
 			'paths' => array(
-				'style.elements.link.color.text',
-				'style.elements.link.:hover.color.text',
+				'link.color.text',
+				'link.:hover.color.text',
 			),
 		),
 		'heading' => array(
 			'skip'  => wp_should_skip_block_supports_serialization( $block_type, 'color', 'heading' ),
 			'paths' => array(
-				'style.elements.heading.color.text',
-				'style.elements.heading.color.background',
-				'style.elements.heading.color.gradient',
-				'style.elements.h1.color.text',
-				'style.elements.h1.color.background',
-				'style.elements.h1.color.gradient',
-				'style.elements.h2.color.text',
-				'style.elements.h2.color.background',
-				'style.elements.h2.color.gradient',
-				'style.elements.h3.color.text',
-				'style.elements.h3.color.background',
-				'style.elements.h3.color.gradient',
-				'style.elements.h4.color.text',
-				'style.elements.h4.color.background',
-				'style.elements.h4.color.gradient',
-				'style.elements.h5.color.text',
-				'style.elements.h5.color.background',
-				'style.elements.h5.color.gradient',
-				'style.elements.h6.color.text',
-				'style.elements.h6.color.background',
-				'style.elements.h6.color.gradient',
+				'heading.color.text',
+				'heading.color.background',
+				'heading.color.gradient',
+				'h1.color.text',
+				'h1.color.background',
+				'h1.color.gradient',
+				'h2.color.text',
+				'h2.color.background',
+				'h2.color.gradient',
+				'h3.color.text',
+				'h3.color.background',
+				'h3.color.gradient',
+				'h4.color.text',
+				'h4.color.background',
+				'h4.color.gradient',
+				'h5.color.text',
+				'h5.color.background',
+				'h5.color.gradient',
+				'h6.color.text',
+				'h6.color.background',
+				'h6.color.gradient',
 			),
 		),
 	);
@@ -91,13 +91,14 @@ function wp_render_elements_support( $block_content, $block ) {
 
 	$element_colors_set = 0;
 
+	$element_styles = $block['attrs']['style']['elements'];
 	foreach ( $element_color_properties as $element_config ) {
 		if ( $element_config['skip'] ) {
 			continue;
 		}
 
 		foreach ( $element_config['paths'] as $path ) {
-			if ( null !== _wp_array_get_path( $block['attrs'], $path ) ) {
+			if ( null !== _wp_array_get_path( $element_styles, $path ) ) {
 				++$element_colors_set;
 			}
 		}
