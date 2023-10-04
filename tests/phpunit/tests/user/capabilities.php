@@ -401,6 +401,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * Test the tests.
+	 *
+	 * @coversNothing
 	 */
 	public function test_single_and_multisite_cap_tests_match() {
 		$single_primitive = array_keys( $this->_getSingleSitePrimitiveCaps() );
@@ -418,6 +420,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * Test the tests.
+	 *
+	 * @covers WP_User::exists
 	 */
 	public function test_all_caps_of_users_are_being_tested() {
 		$caps = $this->getPrimitiveCapsAndRoles();
@@ -458,6 +462,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * capabilities matches those of the administrator role.
 	 *
 	 * @group capTestTests
+	 *
+	 * @coversNothing
 	 */
 	public function testPrimitiveCapsTestsAreCorrect() {
 		$actual   = $this->getPrimitiveCapsAndRoles();
@@ -499,6 +505,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * function that handles the capability.
 	 *
 	 * @group capTestTests
+	 *
+	 * @coversNothing
 	 */
 	public function testMetaCapsTestsAreCorrect() {
 		$actual = $this->getMetaCapsAndRoles();
@@ -587,6 +595,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * Test the default capabilities of all user roles.
 	 *
 	 * @dataProvider dataAllCapsAndRoles
+	 *
+	 * @covers WP_User::has_cap
 	 */
 	public function test_default_caps_for_all_roles( $role, $cap ) {
 		$user         = self::$users[ $role ];
@@ -605,6 +615,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * Test miscellaneous capabilities of all user roles.
 	 *
 	 * @dataProvider data_single_site_roles_to_check
+	 *
+	 * @covers WP_User::has_cap
 	 */
 	public function test_other_caps_for_all_roles( $role ) {
 		$user   = self::$users[ $role ];
@@ -641,6 +653,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * Test user exists/does not exist as expected.
 	 *
 	 * @dataProvider data_single_site_roles_to_check
+	 *
+	 * @covers WP_User::exists
 	 */
 	public function test_user_exists_in_database( $role ) {
 		$user     = self::$users[ $role ];
@@ -655,6 +669,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 41059
+	 *
+	 * @covers WP_User::add_cap
+	 * @covers WP_User::has_cap
 	 */
 	public function test_do_not_allow_is_denied_for_all_roles() {
 		foreach ( self::$users as $role => $user ) {
@@ -688,6 +705,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @group ms-required
 	 * @ticket 41059
+	 *
+	 * @covers WP_User::add_cap
+	 * @covers WP_User::has_cap
 	 */
 	public function test_do_not_allow_is_denied_for_super_admins() {
 		// Test adding the cap directly to the user.
@@ -747,6 +767,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * Special case for unfiltered uploads.
+	 *
+	 * @covers WP_User::has_cap
+	 * @covers ::user_can
 	 */
 	public function test_unfiltered_upload_caps() {
 		$this->assertFalse( defined( 'ALLOW_UNFILTERED_UPLOADS' ) );
@@ -763,6 +786,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 *
 	 * @param  string $role              User role name
 	 * @param  bool   $can_edit_own_post Can users with this role edit their own posts?
+	 *
+	 * @covers ::user_can
 	 */
 	public function test_user_can_edit_comment_on_own_post( $role, $can_edit_own_post ) {
 		$owner   = self::$users[ $role ];
@@ -786,6 +811,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 *
 	 * @param  string $role                 User role name
 	 * @param  bool   $can_edit_others_post Can users with this role edit others' posts?
+	 *
+	 * @covers ::user_can
 	 */
 	public function test_user_can_edit_comment_on_others_post( $role, $can_edit_others_post ) {
 		$user    = self::$users[ $role ];
@@ -839,6 +866,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-required
+	 *
+	 * @covers ::is_super_admin
+	 * @covers WP_User::has_cap
+	 * @covers ::user_can
 	 */
 	public function test_super_admin_caps() {
 		$caps = $this->getAllCapsAndRoles();
@@ -864,6 +895,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * A role that doesn't exist.
+	 *
+	 * @covers WP_User::exists
+	 * @covers WP_User::has_cap
+	 * @covers ::user_can
 	 */
 	public function test_bogus_role() {
 		$user = self::factory()->user->create_and_get( array( 'role' => 'invalid_role' ) );
@@ -884,6 +919,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * A user with multiple roles.
+	 *
+	 * @covers WP_User::exists
+	 * @covers WP_User::has_cap
+	 * @covers ::user_can
 	 */
 	public function test_user_subscriber_contributor() {
 		$user = self::$users['subscriber'];
@@ -915,6 +954,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * Newly added empty role.
+	 *
+	 * @covers ::add_role
+	 * @covers WP_User::has_cap
+	 * @covers ::user_can
 	 */
 	public function test_add_empty_role() {
 		global $wp_roles;
@@ -948,6 +991,11 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * Newly added role.
+	 *
+	 * @covers ::add_role
+	 * @covers WP_User::has_cap
+	 * @covers ::user_can
+	 * @covers WP_User::has_cap
 	 */
 	public function test_add_role() {
 		global $wp_roles;
@@ -994,6 +1042,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	/**
 	 * Change the capabilites associated with a role and make sure the change
 	 * is reflected in has_cap().
+	 *
+	 * @covers WP_Roles::add_cap
 	 */
 	public function test_role_add_cap() {
 		global $wp_roles;
@@ -1035,6 +1085,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	/**
 	 * Change the capabilites associated with a role and make sure the change
 	 * is reflected in has_cap().
+	 *
+	 * @covers WP_Roles::remove_cap
 	 */
 	public function test_role_remove_cap() {
 		global $wp_roles;
@@ -1078,6 +1130,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * Add an extra capability to a user.
+	 *
+	 * @covers WP_Role::add_cap
 	 */
 	public function test_user_add_cap() {
 		// There are two contributors.
@@ -1116,6 +1170,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * Add an extra capability to a user then remove it.
+	 *
+	 * @covers WP_Role::remove_cap
 	 */
 	public function test_user_remove_cap() {
 		// There are two contributors.
@@ -1147,6 +1203,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * Make sure the user_level is correctly set and changed with the user's role.
+	 *
+	 * @covers WP_User::__construct
+	 * @covers WP_User::set_role
+	 * @covers WP_User::add_role
 	 */
 	public function test_user_level_update() {
 		// User starts as an author.
@@ -1171,6 +1231,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertSame( 7, $user->user_level );
 	}
 
+	/**
+	 * @covers WP_User::remove_all_caps
+	 */
 	public function test_user_remove_all_caps() {
 		// User starts as an author.
 		$id   = self::$users['author']->ID;
@@ -1210,6 +1273,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * Simple tests for some common meta capabilities.
+	 *
+	 * @covers WP_Role::has_cap
 	 */
 	public function test_post_meta_caps() {
 		// Get our author.
@@ -1305,6 +1370,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 27020
 	 * @dataProvider data_authorless_post
+	 *
+	 * @covers WP_User::has_cap
 	 */
 	public function test_authorless_post( $status ) {
 		// Make a post without an author.
@@ -1339,6 +1406,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 16714
+	 *
+	 * @covers WP_User::has_cap
 	 */
 	public function test_create_posts_caps() {
 		$admin       = self::$users['administrator'];
@@ -1405,6 +1474,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * Simple tests for some common meta capabilities.
+	 *
+	 * @covers WP_User::has_cap
 	 */
 	public function test_page_meta_caps() {
 		// Get our author.
@@ -1448,6 +1519,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @dataProvider dataTaxonomies
 	 *
 	 * @ticket 35614
+	 *
+	 * @covers ::map_meta_cap
 	 */
 	public function test_taxonomy_capabilities_are_correct( $taxonomy ) {
 		if ( ! taxonomy_exists( $taxonomy ) ) {
@@ -1481,6 +1554,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @dataProvider dataTaxonomies
 	 *
 	 * @ticket 35614
+	 *
+	 * @covers ::user_can
 	 */
 	public function test_default_taxonomy_term_cannot_be_deleted( $taxonomy ) {
 		if ( ! taxonomy_exists( $taxonomy ) ) {
@@ -1505,6 +1580,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @dataProvider dataTaxonomies
 	 *
 	 * @ticket 35614
+	 *
+	 * @covers ::user_can
 	 */
 	public function test_taxonomy_caps_map_correctly_to_their_meta_cap( $taxonomy ) {
 		if ( ! taxonomy_exists( $taxonomy ) ) {
@@ -1553,6 +1630,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35614
+	 *
+	 * @covers ::map_meta_cap
 	 */
 	public function test_taxonomy_capabilities_with_custom_caps_are_correct() {
 		$expected = array(
@@ -1587,6 +1666,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40891
+	 *
+	 * @covers ::user_can
 	 */
 	public function test_taxonomy_meta_capabilities_with_non_existent_terms() {
 		$caps = array(
@@ -1609,6 +1690,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21786
+	 *
+	 * @covers WP_User::add_cap
+	 * @covers ::user_can
 	 */
 	public function test_negative_caps() {
 		$author = self::$users['author'];
@@ -1624,6 +1708,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 18932
+	 *
+	 * @covers WP_User::set_role
 	 */
 	public function test_set_role_same_role() {
 		$user = self::$users['administrator'];
@@ -1652,6 +1738,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertSame( 2, $add_user_role->get_call_count() );
 	}
 
+	/**
+	 * @covers ::current_user_can_for_blog
+	 */
 	public function test_current_user_can_for_blog() {
 		global $wpdb;
 
@@ -1679,6 +1768,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-required
+	 *
+	 * @covers ::current_user_can_for_blog
 	 */
 	public function test_borked_current_user_can_for_blog() {
 		$orig_blog_id = get_current_blog_id();
@@ -1708,6 +1799,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28374
+	 *
+	 * @covers WP_USer::add_cap
 	 */
 	public function test_current_user_edit_caps() {
 		$user = self::$users['contributor'];
@@ -1726,6 +1819,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( $user->has_cap( 'publish_posts' ) );
 	}
 
+	/**
+	 * @covers ::current_user_can
+	 */
 	public function test_subscriber_cant_edit_posts() {
 		$user = self::$users['subscriber'];
 		wp_set_current_user( $user->ID );
@@ -1738,6 +1834,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-required
+	 *
+	 * @covers ::current_user_can
 	 */
 	public function test_multisite_administrator_can_not_edit_users() {
 		$user       = self::$users['administrator'];
@@ -1748,6 +1846,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( current_user_can( 'edit_user', $other_user->ID ) );
 	}
 
+	/**
+	 * @covers ::current_user_can
+	 */
 	public function test_user_can_edit_self() {
 		foreach ( self::$users as $role => $user ) {
 			wp_set_current_user( $user->ID );
@@ -1755,6 +1856,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::user_can
+	 */
 	public function test_only_admins_and_super_admins_can_remove_users() {
 		if ( is_multisite() ) {
 			$this->assertTrue( user_can( self::$super_admin->ID, 'remove_user', self::$users['subscriber']->ID ) );
@@ -1770,6 +1874,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-required
+	 *
+	 * @covers ::user_can
 	 */
 	public function test_only_super_admins_can_delete_users_on_multisite() {
 		$this->assertTrue( user_can( self::$super_admin->ID, 'delete_user', self::$users['subscriber']->ID ) );
@@ -1783,6 +1889,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-excluded
+	 *
+	 * @covers ::user_can
 	 */
 	public function test_only_admins_can_delete_users_on_single_site() {
 		$this->assertTrue( user_can( self::$users['administrator']->ID, 'delete_user', self::$users['subscriber']->ID ) );
@@ -1793,6 +1901,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( user_can( self::$users['subscriber']->ID, 'delete_user', self::$users['subscriber']->ID ) );
 	}
 
+	/**
+	 * @covers ::user_can
+	 */
 	public function test_only_admins_and_super_admins_can_promote_users() {
 		if ( is_multisite() ) {
 			$this->assertTrue( user_can( self::$super_admin->ID, 'promote_user', self::$users['subscriber']->ID ) );
@@ -1808,6 +1919,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 33694
+	 *
+	 * @covers ::user_can
 	 */
 	public function test_contributor_cannot_edit_scheduled_post() {
 
@@ -1841,6 +1954,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-required
+	 *
+	 * @covers ::current_user_can
 	 */
 	public function test_multisite_administrator_with_manage_network_users_can_edit_users() {
 		$user = self::$users['administrator'];
@@ -1858,6 +1973,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-required
+	 *
+	 * @covers ::current_user_can
 	 */
 	public function test_multisite_administrator_with_manage_network_users_can_not_edit_super_admin() {
 		$user = self::$users['administrator'];
@@ -1875,6 +1992,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 16956
 	 * @expectedIncorrectUsage map_meta_cap
+	 *
+	 * @covers ::current_user_can
+	 * @covers ::map_meta_cap
 	 */
 	public function test_require_edit_others_posts_if_post_type_doesnt_exist() {
 		register_post_type( 'existed' );
@@ -1898,6 +2018,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 48653
 	 * @expectedIncorrectUsage map_meta_cap
+	 *
+	 * @covers ::current_user_can
+	 * @covers ::map_meta_cap
 	 */
 	public function test_require_edit_others_posts_if_post_status_doesnt_exist() {
 		register_post_status( 'existed' );
@@ -1920,6 +2043,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17253
+	 *
+	 * @covers ::user_can
 	 */
 	public function test_cpt_with_page_capability_type() {
 		register_post_type(
@@ -1969,6 +2094,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		_unregister_post_type( 'page_capability' );
 	}
 
+	/**
+	 * @covers ::current_user_can
+	 */
 	public function test_non_logged_in_users_have_no_capabilities() {
 		$this->assertFalse( is_user_logged_in() );
 
@@ -1988,6 +2116,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35488
+	 *
+	 * @covers ::wp_logout
 	 */
 	public function test_wp_logout_should_clear_current_user() {
 		$user_id = self::$users['author']->ID;
@@ -2000,6 +2130,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23016
+	 *
+	 * @covers WP_Roles::__construct
 	 */
 	public function test_wp_roles_init_action() {
 		$this->role_test_wp_roles_init = array(
@@ -2030,6 +2162,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 23016
 	 * @expectedDeprecated WP_Roles::reinit
+	 *
+	 * @covers WP_Roles::reinit
 	 */
 	public function test_wp_roles_reinit_deprecated() {
 		$wp_roles = new WP_Roles();
@@ -2038,6 +2172,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38412
+	 *
+	 * @covers ::current_user_can
 	 */
 	public function test_no_one_can_edit_user_meta_for_non_existent_term() {
 		wp_set_current_user( self::$super_admin->ID );
@@ -2046,6 +2182,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38412
+	 *
+	 * @covers ::current_user_can
 	 */
 	public function test_user_can_edit_user_meta() {
 		wp_set_current_user( self::$users['administrator']->ID );
@@ -2057,6 +2195,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38412
+	 *
+	 * @covers ::current_user_can
 	 */
 	public function test_user_cannot_edit_user_meta() {
 		wp_set_current_user( self::$users['editor']->ID );
@@ -2065,6 +2205,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38412
+	 *
+	 * @covers ::current_user_can
 	 */
 	public function test_no_one_can_delete_user_meta_for_non_existent_term() {
 		wp_set_current_user( self::$super_admin->ID );
@@ -2073,6 +2215,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38412
+	 *
+	 * @covers ::current_user_can
 	 */
 	public function test_user_can_delete_user_meta() {
 		wp_set_current_user( self::$users['administrator']->ID );
@@ -2084,6 +2228,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38412
+	 *
+	 * @covers ::current_user_can
 	 */
 	public function test_user_cannot_delete_user_meta() {
 		wp_set_current_user( self::$users['editor']->ID );
@@ -2092,6 +2238,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38412
+	 *
+	 * @covers ::current_user_can
 	 */
 	public function test_no_one_can_add_user_meta_for_non_existent_term() {
 		wp_set_current_user( self::$super_admin->ID );
@@ -2100,6 +2248,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38412
+	 *
+	 * @covers ::current_user_can
 	 */
 	public function test_user_can_add_user_meta() {
 		wp_set_current_user( self::$users['administrator']->ID );
@@ -2111,6 +2261,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38412
+	 *
+	 * @covers ::current_user_can
 	 */
 	public function test_user_cannot_add_user_meta() {
 		wp_set_current_user( self::$users['editor']->ID );
@@ -2120,6 +2272,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 39063
 	 * @group ms-required
+	 *
+	 * @covers ::user_can
 	 */
 	public function test_only_super_admins_can_remove_themselves_on_multisite() {
 		$this->assertTrue( user_can( self::$super_admin->ID, 'remove_user', self::$super_admin->ID ) );
@@ -2134,6 +2288,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 36961
 	 * @group ms-required
+	 *
+	 * @covers WP_User::has_cap
 	 */
 	public function test_init_user_caps_for_different_site() {
 		global $wpdb;
@@ -2162,6 +2318,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 36961
 	 * @group ms-required
+	 *
+	 * @covers WP_User::has_cap
+	 * @covers WP_User::for_site
 	 */
 	public function test_init_user_caps_for_different_site_by_user_switch() {
 		global $wpdb;
@@ -2191,6 +2350,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36961
+	 *
+	 * @covers WP_User::get_caps_data
 	 */
 	public function test_get_caps_data() {
 		global $wpdb;
@@ -2209,6 +2370,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36961
+	 *
+	 * @covers WP_User::get_site_id
 	 */
 	public function test_user_get_site_id_default() {
 		$user = new WP_User( self::$users['subscriber']->ID );
@@ -2217,6 +2380,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36961
+	 *
+	 * @covers WP_User::get_site_id
 	 */
 	public function test_user_get_site_id() {
 		global $wpdb;
@@ -2233,6 +2398,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 38645
 	 * @group ms-required
+	 *
+	 * @covers ::wp_roles
 	 */
 	public function test_init_roles_for_different_site() {
 		global $wpdb;
@@ -2261,6 +2428,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38645
+	 *
+	 * @covers WP_Roles::__construct
 	 */
 	public function test_get_roles_data() {
 		global $wpdb;
@@ -2284,6 +2453,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38645
+	 *
+	 * @covers WP_Roles::get_site_id
 	 */
 	public function test_roles_get_site_id_default() {
 		$roles = new WP_Roles();
@@ -2292,6 +2463,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38645
+	 *
+	 * @covers WP_Roles::get_site_id
 	 */
 	public function test_roles_get_site_id() {
 		global $wpdb;
@@ -2307,6 +2480,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_block_caps
+	 *
+	 * @covers WP_User::has_cap
 	 */
 	public function test_block_caps( $role, $cap, $use_post, $expected ) {
 		if ( $use_post ) {

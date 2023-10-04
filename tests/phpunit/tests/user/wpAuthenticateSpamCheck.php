@@ -2,6 +2,8 @@
 
 /**
  * @group user
+ *
+ * @covers ::wp_authenticate_spam_check
  */
 class Tests_User_wpAuthenticateSpamCheck extends WP_UnitTestCase {
 

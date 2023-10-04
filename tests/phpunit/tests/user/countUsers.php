@@ -2,6 +2,8 @@
 
 /**
  * @group user
+ *
+ * @covers ::count_users
  */
 class Tests_User_CountUsers extends WP_UnitTestCase {
 
