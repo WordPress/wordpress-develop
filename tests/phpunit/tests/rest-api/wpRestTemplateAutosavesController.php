@@ -73,12 +73,22 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$this->assertArrayHasKey(
 			'/wp/v2/templates/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/autosaves',
 			$routes,
-			'Autosaves route does not exist.'
+			'Template autosaves route does not exist.'
 		);
 		$this->assertArrayHasKey(
 			'/wp/v2/templates/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/autosaves/(?P<id>[\d]+)',
 			$routes,
-			'Single autosave based on the given ID route does not exist.'
+			'Single template autosave based on the given ID route does not exist.'
+		);
+		$this->assertArrayHasKey(
+			'/wp/v2/template-parts/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/autosaves',
+			$routes,
+			'Template part autosaves route does not exist.'
+		);
+		$this->assertArrayHasKey(
+			'/wp/v2/template-parts/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/autosaves/(?P<id>[\d]+)',
+			$routes,
+			'Single template part autosave based on the given ID route does not exist.'
 		);
 	}
 
