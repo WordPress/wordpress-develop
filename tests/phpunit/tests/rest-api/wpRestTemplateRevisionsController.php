@@ -132,12 +132,22 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$this->assertArrayHasKey(
 			'/wp/v2/templates/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/revisions',
 			$routes,
-			'Revisions route does not exist.'
+			'Template revisions route does not exist.'
 		);
 		$this->assertArrayHasKey(
 			'/wp/v2/templates/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/revisions/(?P<id>[\d]+)',
 			$routes,
-			'Single revision based on the given ID route does not exist.'
+			'Single template revision based on the given ID route does not exist.'
+		);
+		$this->assertArrayHasKey(
+			'/wp/v2/template-parts/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/revisions',
+			$routes,
+			'Template part revisions route does not exist.'
+		);
+		$this->assertArrayHasKey(
+			'/wp/v2/template-parts/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/revisions/(?P<id>[\d]+)',
+			$routes,
+			'Single template part revision based on the given ID route does not exist.'
 		);
 	}
 
