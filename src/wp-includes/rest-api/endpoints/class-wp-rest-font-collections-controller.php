@@ -51,7 +51,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 			array(
 				'args'   => array(
 					'id' => array(
-						'description' => __( 'The id of a font collection.' ),
+						'description' => __( 'Unique identifier for the post.' ),
 						'type'        => 'string',
 						'required'    => true,
 					),
