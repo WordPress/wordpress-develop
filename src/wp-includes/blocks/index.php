@@ -70,7 +70,7 @@ function register_core_block_style_handles() {
 		$files = glob( wp_normalize_path( BLOCKS_PATH . '**/**.css' ) );
 		$files = array_map(
 			static function ( $file ) {
-				return str_replace( BLOCKS_PATH, '', $file );
+				return str_replace( wp_normalize_path( BLOCKS_PATH ), '', $file );
 			},
 			$files
 		);
