@@ -8,7 +8,6 @@
 
 /**
  * Test wp-includes/widgets/class-wp-widget-media-audio.php
- *
  * @group widgets
  */
 class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
@@ -280,6 +279,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 	 *
 	 * @global WP_Scripts $wp_scripts
 	 * @global WP_Styles $wp_styles
+	 *
 	 * @covers WP_Widget_Media_Audio::enqueue_preview_scripts
 	 */
 	public function test_enqueue_preview_scripts() {

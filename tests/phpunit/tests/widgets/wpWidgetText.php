@@ -1005,6 +1005,8 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 	 * Ensure that rel="noopener" is added to links with a target.
 	 *
 	 * @ticket 46421
+	 *
+	 * @covers WP_Widget_Text::widget
 	 */
 	public function test_render_links_with_target() {
 		$widget = new WP_Widget_Text();
@@ -1032,6 +1034,8 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 	 * Ensure that rel="noopener" is not added to links without a target.
 	 *
 	 * @ticket 46421
+	 *
+	 * @covers WP_Widget_Text::widget
 	 */
 	public function test_render_links_without_target() {
 		$widget = new WP_Widget_Text();

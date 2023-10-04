@@ -8,7 +8,6 @@
 
 /**
  * Test wp-includes/widgets/class-wp-widget-media.php
- *
  * @group widgets
  */
 class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
@@ -110,6 +109,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 	 * Test constructor in customize preview.
 	 *
 	 * @global WP_Customize_Manager $wp_customize
+	 *
 	 * @covers WP_Widget_Media::__construct
 	 * @covers WP_Widget_Media::_register
 	 */
