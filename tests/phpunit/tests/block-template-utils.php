@@ -86,7 +86,12 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		switch_theme( self::TEST_THEME );
 	}
 
-	public function test_build_block_template_result_from_post() {
+	/**
+	 * @ticket 54335
+	 *
+	 * @covers ::_build_block_template_result_from_post
+	 */
+	public function test_build_block_template_result_from_post_template() {
 		$template = _build_block_template_result_from_post(
 			self::$template_post,
 			'wp_template'
@@ -102,8 +107,14 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( 'Description of my template', $template->description );
 		$this->assertSame( 'wp_template', $template->type );
 		$this->assertSame( self::$template_post->post_modified, $template->modified, 'Template result properties match' );
+	}
 
-		// Test template parts.
+	/**
+	 * @ticket 54335
+	 *
+	 * @covers ::_build_block_template_result_from_post
+	 */
+	public function test_build_block_template_result_from_post_template_part() {
 		$template_part = _build_block_template_result_from_post(
 			self::$template_part_post,
 			'wp_template_part'
@@ -121,11 +132,17 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( self::$template_part_post->post_modified, $template_part->modified, 'Template part result properties match' );
 	}
 
-	public function test_build_block_template_result_from_file() {
+
+	/**
+	 * @ticket 54335
+	 *
+	 * @covers ::_build_block_template_result_from_file
+	 */
+	public function test_build_block_template_result_from_file_template() {
 		$template = _build_block_template_result_from_file(
 			array(
 				'slug' => 'single',
-				'path' => __DIR__ . '/../data/templates/template.html',
+				'path' => DIR_TESTDATA . '/templates/template.html',
 			),
 			'wp_template'
 		);
@@ -139,12 +156,18 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( 'Displays single posts on your website unless a custom template has been applied to that post or a dedicated template exists.', $template->description );
 		$this->assertSame( 'wp_template', $template->type );
 		$this->assertEmpty( $template->modified );
+	}
 
-		// Test template parts.
+	/**
+	 * @ticket 54335
+	 *
+	 * @covers ::_build_block_template_result_from_file
+	 */
+	public function test_build_block_template_result_from_file_template_part() {
 		$template_part = _build_block_template_result_from_file(
 			array(
 				'slug' => 'header',
-				'path' => __DIR__ . '/../data/templates/template.html',
+				'path' => DIR_TESTDATA . '/templates/template.html',
 				'area' => WP_TEMPLATE_PART_AREA_HEADER,
 			),
 			'wp_template_part'
@@ -159,6 +182,83 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( 'wp_template_part', $template_part->type );
 		$this->assertSame( WP_TEMPLATE_PART_AREA_HEADER, $template_part->area );
 		$this->assertEmpty( $template_part->modified );
+	}
+
+	/**
+	 * @ticket 59325
+	 *
+	 * @covers ::_build_block_template_result_from_file
+	 */
+	public function test_build_block_template_result_from_file_template_use_custom_properties() {
+		$template = _build_block_template_result_from_file(
+			array(
+				'slug'        => 'custom',
+				'title'       => 'Custom Title',
+				'path'        => DIR_TESTDATA . '/templates/template.html',
+			),
+			'wp_template'
+		);
+
+		$this->assertSame( 'custom', $template->slug );
+		$this->assertSame( 'Custom Title', $template->title );
+		$this->assertTrue( $template->is_custom );
+	}
+
+	/**
+	 * @ticket 59325
+	 *
+	 * @covers ::_build_block_template_result_from_file
+	 */
+	public function test_build_block_template_result_from_file_template_enforce_default_properties() {
+		$template = _build_block_template_result_from_file(
+			array(
+				'slug'        => 'single',
+				'title'       => 'Custom title',
+				'path'        => DIR_TESTDATA . '/templates/template.html',
+			),
+			'wp_template'
+		);
+
+		$this->assertSame( 'single', $template->slug );
+		$this->assertSame( 'Single Posts', $template->title );
+		$this->assertSame( 'Displays single posts on your website unless a custom template has been applied to that post or a dedicated template exists.', $template->description );
+		$this->assertFalse( $template->is_custom );
+	}
+
+	/**
+	 * @ticket 59325
+	 *
+	 * @covers ::_build_block_template_result_from_file
+	 */
+	public function test_build_block_template_result_from_file_template_post_types() {
+		$template = _build_block_template_result_from_file(
+			array(
+				'slug'      => 'single',
+				'postTypes' => array( 'post' ),
+				'path'      => DIR_TESTDATA . '/templates/template.html',
+			),
+			'wp_template'
+		);
+
+		$this->assertSameSets( array( 'post' ), $template->post_types );
+	}
+
+	/**
+	 * @ticket 59325
+	 *
+	 * @covers ::_build_block_template_result_from_file
+	 */
+	public function test_build_block_template_result_from_file_template_part_ignore_post_types() {
+		$template = _build_block_template_result_from_file(
+			array(
+				'slug'      => 'header',
+				'postTypes' => array( 'post' ),
+				'path'      => DIR_TESTDATA . '/templates/template.html',
+			),
+			'wp_template_part'
+		);
+
+		$this->assertEmpty( $template->post_types );
 	}
 
 	/**
