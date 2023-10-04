@@ -411,7 +411,6 @@ add_action( 'init', '_register_theme_block_patterns' );
  * @return array Block pattern data.
  */
 function _wp_get_block_patterns( WP_Theme $theme ) {
-
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
 
 	if ( $can_use_cached ) {
