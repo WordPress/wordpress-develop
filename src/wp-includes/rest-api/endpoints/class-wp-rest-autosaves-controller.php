@@ -210,7 +210,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 */
 	public function create_item( $request ) {
 
-		if ( ! defined( 'WP_RUN_CORE_TESTS') && ! defined( 'DOING_AUTOSAVE' ) ) {
+		if ( ! defined( 'WP_RUN_CORE_TESTS' ) && ! defined( 'DOING_AUTOSAVE' ) ) {
 			define( 'DOING_AUTOSAVE', true );
 		}
 
