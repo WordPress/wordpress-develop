@@ -89,6 +89,7 @@ final class WP_Block_Patterns_Registry {
 				__( 'Pattern name must be a string.' ),
 				'5.5.0'
 			);
+
 			return false;
 		}
 
@@ -98,16 +99,20 @@ final class WP_Block_Patterns_Registry {
 				__( 'Pattern title must be a string.' ),
 				'5.5.0'
 			);
+
 			return false;
 		}
 
-		if ( ! isset( $pattern_properties['content'] ) || ! is_string( $pattern_properties['content'] ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'Pattern content must be a string.' ),
-				'5.5.0'
-			);
-			return false;
+		if ( ! isset( $pattern_properties['path'], $pattern_properties['file'] ) ) {
+			if ( ! isset( $pattern_properties['content'] ) || ! is_string( $pattern_properties['content'] ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'Pattern content must be a string.' ),
+					'5.5.0'
+				);
+
+				return false;
+			}
 		}
 
 		$pattern = array_merge(
@@ -165,8 +170,18 @@ final class WP_Block_Patterns_Registry {
 			return null;
 		}
 
-		$pattern              = $this->registered_patterns[ $pattern_name ];
-		$blocks               = parse_blocks( $pattern['content'] );
+		$pattern = $this->registered_patterns[ $pattern_name ];
+
+		if ( ! $pattern['content'] && isset( $pattern['file'], $pattern['path'] ) ) {
+			ob_start();
+			include $pattern['path'] . $pattern['file'];
+			$content = ob_get_clean();
+			$this->registered_patterns[ $pattern_name ]['content'] = $content;
+		} else {
+			$content = $pattern['content'];
+		}
+
+		$blocks               = parse_blocks( $content );
 		$before_block_visitor = make_before_block_visitor( $pattern );
 		$after_block_visitor  = make_after_block_visitor( $pattern );
 		$pattern['content']   = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
@@ -191,7 +206,19 @@ final class WP_Block_Patterns_Registry {
 		);
 
 		foreach ( $patterns as $index => $pattern ) {
-			$blocks                        = parse_blocks( $pattern['content'] );
+			if ( ! $pattern['content'] && isset( $pattern['file'], $pattern['path'] ) ) {
+				ob_start();
+				include $pattern['path'] . $pattern['file'];
+				$content = ob_get_clean();
+				if ( $outside_init_only ) {
+					$this->registered_patterns_outside_init[ $index ]['content'] = $content;
+				} else {
+					$this->registered_patterns[ $index ]['content'] = $content;
+				}
+			} else {
+				$content = $pattern['content'];
+			}
+			$blocks                        = parse_blocks( $content );
 			$before_block_visitor          = make_before_block_visitor( $pattern );
 			$after_block_visitor           = make_after_block_visitor( $pattern );
 			$patterns[ $index ]['content'] = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
