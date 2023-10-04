@@ -680,7 +680,6 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 */
 	public function data_stored_as_empty_string() {
 		return array(
-			'false'        => array( '' ),
 			'empty string' => array( '' ),
 			'null'         => array( null ),
 		);
@@ -706,7 +705,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertTrue( update_option( $option, 'new value' ), 'update_option() should have returned true.' );
+		$this->assertTrue( update_option( $option, false ), 'update_option() should have returned true.' );
 
 		$actual = $wpdb->get_row(
 			$wpdb->prepare(
@@ -717,7 +716,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$this->assertIsObject( $actual, 'The option was not added to the database.' );
 		$this->assertObjectHasProperty( 'option_value', $actual, 'The "option_value" property was not included.' );
-		$this->assertSame( 'new value', $actual->option_value, 'The new value was not stored in the database.' );
+		$this->assertFalse( $actual->option_value, 'The new value was not stored in the database.' );
 	}
 
 	/**
