@@ -144,28 +144,31 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'font-collections',
-			'type'       => 'object',
-			'properties' => array(
-				'id'          => array(
-					'description' => __( 'Unique identifier for the font collection.' ),
-					'type'        => 'string',
-					'context'     => array( 'view', 'edit', 'embed' ),
-					'readonly'    => true,
-				),
-				'name'        => array(
-					'description' => __( 'Name of the font collection.' ),
-					'type'        => 'string',
-					'context'     => array( 'view', 'edit', 'embed' ),
-				),
-				'description' => array(
-					'description' => __( 'Description of the font collection.' ),
-					'type'        => 'string',
-					'context'     => array( 'view', 'edit', 'embed' ),
-				),
-				'src'         => array(
-					'description' => __( 'Link to the list of font families.' ),
-					'type'        => 'string',
-					'context'     => array( 'view', 'edit', 'embed' ),
+			'type'       => 'array',
+			'items'      => array(
+				'type'       => 'object',
+				'properties' => array(
+					'id'          => array(
+						'description' => __( 'Unique identifier for the font collection.' ),
+						'type'        => 'string',
+						'context'     => array( 'view', 'edit', 'embed' ),
+						'readonly'    => true,
+					),
+					'name'        => array(
+						'description' => __( 'Name of the font collection.' ),
+						'type'        => 'string',
+						'context'     => array( 'view', 'edit', 'embed' ),
+					),
+					'description' => array(
+						'description' => __( 'Description of the font collection.' ),
+						'type'        => 'string',
+						'context'     => array( 'view', 'edit', 'embed' ),
+					),
+					'src'         => array(
+						'description' => __( 'Source to the list of font families.' ),
+						'type'        => 'string',
+						'context'     => array( 'view', 'edit', 'embed' ),
+					),
 				),
 			),
 		);
