@@ -74,19 +74,6 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-
-		register_rest_route(
-			$this->namespace,
-			'/' . $this->rest_base . '/collections',
-			array(
-				array(
-					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'get_font_collections' ),
-					'permission_callback' => array( $this, 'update_font_library_permissions_check' ),
-				),
-				'schema' => array( $this, 'get_font_collections_schema' ),
-			)
-		);
 	}
 
 	/**
