@@ -328,6 +328,11 @@ function _register_remote_theme_patterns() {
  * @access private
  */
 function _register_theme_block_patterns() {
+	// Avoid registering patterns on the frontend.
+	if ( ! is_admin() && ! wp_is_json_request() ) {
+		return;
+	}
+
 	/*
 	 * Register patterns for the active theme. If the theme is a child theme,
 	 * let it override any patterns from the parent theme that shares the same slug.
@@ -406,10 +411,6 @@ add_action( 'init', '_register_theme_block_patterns' );
  * @return array Block pattern data.
  */
 function _wp_get_block_patterns( WP_Theme $theme ) {
-	// Avoid registering patterns on the frontend.
-	if ( ! is_admin() && ! wp_is_json_request() ) {
-		return;
-	}
 
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
 
