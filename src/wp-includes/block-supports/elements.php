@@ -31,7 +31,7 @@ function wp_get_elements_class_name( $block ) {
  * @return string Filtered block content.
  */
 function wp_render_elements_support( $block_content, $block ) {
-	if ( ! $block_content || empty( $block['attrs'] ) ) {
+	if ( ! $block_content || ! isset( $block['attrs']['style']['elements'] ) ) {
 		return $block_content;
 	}
 
