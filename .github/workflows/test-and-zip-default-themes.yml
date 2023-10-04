@@ -56,7 +56,8 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Check for zero-byte files.
+  # - Finds and deletes any empty files.
+  # - Ensures version-controlled files are not modified or deleted.
   check-for-empty-files:
     name: Check ${{ matrix.theme }} for empty files
     runs-on: ubuntu-latest
