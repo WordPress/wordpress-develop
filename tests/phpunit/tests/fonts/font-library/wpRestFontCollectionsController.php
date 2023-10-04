@@ -80,7 +80,7 @@ class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_Controlle
 	public function test_update_item() {
 	}
 
-	function test_delete_item() {
+	public function test_delete_item() {
 	}
 
 	public function test_prepare_item() {
