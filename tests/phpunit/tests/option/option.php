@@ -716,7 +716,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$this->assertIsObject( $actual, 'The option was not added to the database.' );
 		$this->assertObjectHasProperty( 'option_value', $actual, 'The "option_value" property was not included.' );
-		$this->assertFalse( $actual->option_value, 'The new value was not stored in the database.' );
+		$this->assertSame( '', $actual->option_value, 'The new value was not stored in the database.' );
 	}
 
 	/**
