@@ -718,7 +718,12 @@ class WP_Theme_JSON {
 		}
 
 		// Preserve only the top most level keys.
-		$output = array_intersect_key( $input, array_flip( static::VALID_TOP_LEVEL_KEYS ) );
+		$output = array();
+		foreach ( static::VALID_TOP_LEVEL_KEYS as $key ) {
+			if ( array_key_exists( $key, $input ) ) {
+				$output[ $key ] = $input[ $key ];
+			}
+		}
 
 		/*
 		 * Remove any rules that are annotated as "top" in VALID_STYLES constant.
@@ -963,25 +968,37 @@ class WP_Theme_JSON {
 	 * @return array The modified $tree.
 	 */
 	protected static function remove_keys_not_in_schema( $tree, $schema ) {
-		$tree = array_intersect_key( $tree, $schema );
+		if ( ! isset( $schema ) ) {
+			return array();
+		}
 
-		foreach ( $schema as $key => $data ) {
-			if ( ! isset( $tree[ $key ] ) ) {
+		$allowed = array();
+
+		foreach ( $schema as $key => $value ) {
+			if ( ! array_key_exists( $key, $tree ) ) {
 				continue;
 			}
 
-			if ( is_array( $schema[ $key ] ) && is_array( $tree[ $key ] ) ) {
-				$tree[ $key ] = static::remove_keys_not_in_schema( $tree[ $key ], $schema[ $key ] );
+			$schema_is_defined = isset( $schema[ $key ] );
 
-				if ( empty( $tree[ $key ] ) ) {
-					unset( $tree[ $key ] );
-				}
-			} elseif ( is_array( $schema[ $key ] ) && ! is_array( $tree[ $key ] ) ) {
-				unset( $tree[ $key ] );
+			if ( $schema_is_defined && ! is_array( $tree[ $key ] ) ) {
+				continue;
+			}
+
+			$allowed[ $key ] = $tree[ $key ];
+
+			if ( ! $schema_is_defined ) {
+				continue;
+			}
+
+			$value = static::remove_keys_not_in_schema( $allowed[ $key ], $schema[ $key ] );
+
+			if ( ! empty( $value ) ) {
+				$allowed[ $key ] = $value;
 			}
 		}
 
-		return $tree;
+		return $allowed;
 	}
 
 	/**

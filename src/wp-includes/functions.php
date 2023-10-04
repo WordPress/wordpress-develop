@@ -5145,6 +5145,8 @@ function _wp_to_kebab_case( $input_string ) {
 	// Ignore the camelCase names for variables so the names are the same as lodash so comparing and porting new changes is easier.
 	// phpcs:disable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
 
+	static $regexp = null;
+
 	/*
 	 * Some notable things we've removed compared to the lodash version are:
 	 *
@@ -5153,42 +5155,44 @@ function _wp_to_kebab_case( $input_string ) {
 	 *
 	 */
 
-	/** Used to compose unicode character classes. */
-	$rsLowerRange       = 'a-z\\xdf-\\xf6\\xf8-\\xff';
-	$rsNonCharRange     = '\\x00-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\xbf';
-	$rsPunctuationRange = '\\x{2000}-\\x{206f}';
-	$rsSpaceRange       = ' \\t\\x0b\\f\\xa0\\x{feff}\\n\\r\\x{2028}\\x{2029}\\x{1680}\\x{180e}\\x{2000}\\x{2001}\\x{2002}\\x{2003}\\x{2004}\\x{2005}\\x{2006}\\x{2007}\\x{2008}\\x{2009}\\x{200a}\\x{202f}\\x{205f}\\x{3000}';
-	$rsUpperRange       = 'A-Z\\xc0-\\xd6\\xd8-\\xde';
-	$rsBreakRange       = $rsNonCharRange . $rsPunctuationRange . $rsSpaceRange;
+	if ( null === $regexp ) {
+		/** Used to compose unicode character classes. */
+		$rsLowerRange       = 'a-z\\xdf-\\xf6\\xf8-\\xff';
+		$rsNonCharRange     = '\\x00-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\xbf';
+		$rsPunctuationRange = '\\x{2000}-\\x{206f}';
+		$rsSpaceRange       = ' \\t\\x0b\\f\\xa0\\x{feff}\\n\\r\\x{2028}\\x{2029}\\x{1680}\\x{180e}\\x{2000}\\x{2001}\\x{2002}\\x{2003}\\x{2004}\\x{2005}\\x{2006}\\x{2007}\\x{2008}\\x{2009}\\x{200a}\\x{202f}\\x{205f}\\x{3000}';
+		$rsUpperRange       = 'A-Z\\xc0-\\xd6\\xd8-\\xde';
+		$rsBreakRange       = $rsNonCharRange . $rsPunctuationRange . $rsSpaceRange;
 
-	/** Used to compose unicode capture groups. */
-	$rsBreak  = '[' . $rsBreakRange . ']';
-	$rsDigits = '\\d+'; // The last lodash version in GitHub uses a single digit here and expands it when in use.
-	$rsLower  = '[' . $rsLowerRange . ']';
-	$rsMisc   = '[^' . $rsBreakRange . $rsDigits . $rsLowerRange . $rsUpperRange . ']';
-	$rsUpper  = '[' . $rsUpperRange . ']';
+		/** Used to compose unicode capture groups. */
+		$rsBreak  = '[' . $rsBreakRange . ']';
+		$rsDigits = '\\d+'; // The last lodash version in GitHub uses a single digit here and expands it when in use.
+		$rsLower  = '[' . $rsLowerRange . ']';
+		$rsMisc   = '[^' . $rsBreakRange . $rsDigits . $rsLowerRange . $rsUpperRange . ']';
+		$rsUpper  = '[' . $rsUpperRange . ']';
 
-	/** Used to compose unicode regexes. */
-	$rsMiscLower = '(?:' . $rsLower . '|' . $rsMisc . ')';
-	$rsMiscUpper = '(?:' . $rsUpper . '|' . $rsMisc . ')';
-	$rsOrdLower  = '\\d*(?:1st|2nd|3rd|(?![123])\\dth)(?=\\b|[A-Z_])';
-	$rsOrdUpper  = '\\d*(?:1ST|2ND|3RD|(?![123])\\dTH)(?=\\b|[a-z_])';
+		/** Used to compose unicode regexes. */
+		$rsMiscLower = '(?:' . $rsLower . '|' . $rsMisc . ')';
+		$rsMiscUpper = '(?:' . $rsUpper . '|' . $rsMisc . ')';
+		$rsOrdLower  = '\\d*(?:1st|2nd|3rd|(?![123])\\dth)(?=\\b|[A-Z_])';
+		$rsOrdUpper  = '\\d*(?:1ST|2ND|3RD|(?![123])\\dTH)(?=\\b|[a-z_])';
 
-	$regexp = '/' . implode(
-		'|',
-		array(
-			$rsUpper . '?' . $rsLower . '+' . '(?=' . implode( '|', array( $rsBreak, $rsUpper, '$' ) ) . ')',
-			$rsMiscUpper . '+' . '(?=' . implode( '|', array( $rsBreak, $rsUpper . $rsMiscLower, '$' ) ) . ')',
-			$rsUpper . '?' . $rsMiscLower . '+',
-			$rsUpper . '+',
-			$rsOrdUpper,
-			$rsOrdLower,
-			$rsDigits,
-		)
-	) . '/u';
+		$regexp = "/{$rsUpper}?{$rsLower}+(?={$rsBreak}|{$rsUpper}$)|{$rsMiscUpper}+(?={$rsBreak}|{$rsUpper}|{$rsMiscLower}$)|{$rsUpper}?{$rsMiscLower}+|{$rsUpper}+{$rsOrdUpper}|{$rsOrdLower}|{$rsDigits}/su";
+	}
 
 	preg_match_all( $regexp, str_replace( "'", '', $input_string ), $matches );
-	return strtolower( implode( '-', $matches[0] ) );
+	$output = '';
+	$first  = true;
+	foreach ( $matches[0] as $match ) {
+		if ( $first ) {
+			$first = false;
+		} else {
+			$output .= '-';
+		}
+
+		$output .= strtolower( $match );
+	}
+	return $output;
 	// phpcs:enable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
 }
 
