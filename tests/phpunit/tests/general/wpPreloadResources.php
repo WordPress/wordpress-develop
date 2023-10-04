@@ -14,7 +14,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 	 * @ticket 42438
 	 */
 	public function test_preload_resources( $expected, $preload_resources ) {
-		$callback = function () use ( $preload_resources ) {
+		$callback = static function () use ( $preload_resources ) {
 			return $preload_resources;
 		};
 
@@ -249,5 +249,4 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

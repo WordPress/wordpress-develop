@@ -74,7 +74,9 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	$current->last_checked = time();
 	set_site_transient( 'update_core', $current );
 
-	if ( method_exists( $wpdb, 'db_version' ) ) {
+	if ( method_exists( $wpdb, 'db_server_info' ) ) {
+		$mysql_version = $wpdb->db_server_info();
+	} elseif ( method_exists( $wpdb, 'db_version' ) ) {
 		$mysql_version = preg_replace( '/[^0-9.].*/', '', $wpdb->db_version() );
 	} else {
 		$mysql_version = 'N/A';
@@ -551,7 +553,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 		}
 	}
 
-	$sanitize_plugin_update_payload = static function( &$item ) {
+	$sanitize_plugin_update_payload = static function ( &$item ) {
 		$item = (object) $item;
 
 		unset( $item->translations, $item->compatibility );
@@ -752,7 +754,7 @@ function wp_update_themes( $extra_stats = array() ) {
 			continue;
 		}
 
-		$hostname = wp_parse_url( esc_url_raw( $theme_data['UpdateURI'] ), PHP_URL_HOST );
+		$hostname = wp_parse_url( sanitize_url( $theme_data['UpdateURI'] ), PHP_URL_HOST );
 
 		/**
 		 * Filters the update response for a given theme hostname.
@@ -843,7 +845,7 @@ function wp_update_themes( $extra_stats = array() ) {
  * @since 3.7.0
  */
 function wp_maybe_auto_update() {
-	include_once ABSPATH . 'wp-admin/includes/admin.php';
+	require_once ABSPATH . 'wp-admin/includes/admin.php';
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
 	$upgrader = new WP_Automatic_Updater();
@@ -1077,6 +1079,73 @@ function wp_clean_update_cache() {
 	delete_site_transient( 'update_core' );
 }
 
+/**
+ * Schedules the removal of all contents in the temporary backup directory.
+ *
+ * @since 6.3.0
+ */
+function wp_delete_all_temp_backups() {
+	/*
+	 * Check if there is a lock, or if currently performing an Ajax request,
+	 * in which case there is a chance an update is running.
+	 * Reschedule for an hour from now and exit early.
+	 */
+	if ( get_option( 'core_updater.lock' ) || get_option( 'auto_updater.lock' ) || wp_doing_ajax() ) {
+		wp_schedule_single_event( time() + HOUR_IN_SECONDS, 'wp_delete_temp_updater_backups' );
+		return;
+	}
+
+	// This action runs on shutdown to make sure there are no plugin updates currently running.
+	add_action( 'shutdown', '_wp_delete_all_temp_backups' );
+}
+
+/**
+ * Deletes all contents in the temporary backup directory.
+ *
+ * @since 6.3.0
+ *
+ * @access private
+ *
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+ *
+ * @return void|WP_Error Void on success, or a WP_Error object on failure.
+ */
+function _wp_delete_all_temp_backups() {
+	global $wp_filesystem;
+
+	if ( ! function_exists( 'WP_Filesystem' ) ) {
+		require_once ABSPATH . '/wp-admin/includes/file.php';
+	}
+
+	ob_start();
+	$credentials = request_filesystem_credentials( '' );
+	ob_end_clean();
+
+	if ( false === $credentials || ! WP_Filesystem( $credentials ) ) {
+		return new WP_Error( 'fs_unavailable', __( 'Could not access filesystem.' ) );
+	}
+
+	if ( ! $wp_filesystem->wp_content_dir() ) {
+		return new WP_Error(
+			'fs_no_content_dir',
+			/* translators: %s: Directory name. */
+			sprintf( __( 'Unable to locate WordPress content directory (%s).' ), 'wp-content' )
+		);
+	}
+
+	$temp_backup_dir = $wp_filesystem->wp_content_dir() . 'upgrade-temp-backup/';
+	$dirlist         = $wp_filesystem->dirlist( $temp_backup_dir );
+	$dirlist         = $dirlist ? $dirlist : array();
+
+	foreach ( array_keys( $dirlist ) as $dir ) {
+		if ( '.' === $dir || '..' === $dir ) {
+			continue;
+		}
+
+		$wp_filesystem->delete( $temp_backup_dir . $dir, true );
+	}
+}
+
 if ( ( ! is_main_site() && ! is_network_admin() ) || wp_doing_ajax() ) {
 	return;
 }
@@ -1101,3 +1170,5 @@ add_action( 'update_option_WPLANG', 'wp_clean_update_cache', 10, 0 );
 add_action( 'wp_maybe_auto_update', 'wp_maybe_auto_update' );
 
 add_action( 'init', 'wp_schedule_update_checks' );
+
+add_action( 'wp_delete_temp_updater_backups', 'wp_delete_all_temp_backups' );

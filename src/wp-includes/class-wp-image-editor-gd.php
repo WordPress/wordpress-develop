@@ -163,9 +163,16 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param int|null $max_w Image width.
-	 * @param int|null $max_h Image height.
-	 * @param bool     $crop
+	 * @param int|null   $max_w Image width.
+	 * @param int|null   $max_h Image height.
+	 * @param bool|array $crop  {
+	 *     Optional. Image cropping behavior. If false, the image will be scaled (default).
+	 *     If true, image will be cropped to the specified dimensions using center positions.
+	 *     If an array, the image will be cropped using the array to specify the crop location:
+	 *
+	 *     @type string $0 The x crop position. Accepts 'left' 'center', or 'right'.
+	 *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
+	 * }
 	 * @return true|WP_Error
 	 */
 	public function resize( $max_w, $max_h, $crop = false ) {
@@ -190,7 +197,14 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	/**
 	 * @param int        $max_w
 	 * @param int        $max_h
-	 * @param bool|array $crop
+	 * @param bool|array $crop  {
+	 *     Optional. Image cropping behavior. If false, the image will be scaled (default).
+	 *     If true, image will be cropped to the specified dimensions using center positions.
+	 *     If an array, the image will be cropped using the array to specify the crop location:
+	 *
+	 *     @type string $0 The x crop position. Accepts 'left' 'center', or 'right'.
+	 *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
+	 * }
 	 * @return resource|GdImage|WP_Error
 	 */
 	protected function _resize( $max_w, $max_h, $crop = false ) {
@@ -236,9 +250,9 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *     @type array ...$0 {
 	 *         Array of height, width values, and whether to crop.
 	 *
-	 *         @type int  $width  Image width. Optional if `$height` is specified.
-	 *         @type int  $height Image height. Optional if `$width` is specified.
-	 *         @type bool $crop   Optional. Whether to crop the image. Default false.
+	 *         @type int        $width  Image width. Optional if `$height` is specified.
+	 *         @type int        $height Image height. Optional if `$width` is specified.
+	 *         @type bool|array $crop   Optional. Whether to crop the image. Default false.
 	 *     }
 	 * }
 	 * @return array An array of resized images' metadata by size.
@@ -265,9 +279,9 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param array $size_data {
 	 *     Array of size data.
 	 *
-	 *     @type int  $width  The maximum width in pixels.
-	 *     @type int  $height The maximum height in pixels.
-	 *     @type bool $crop   Whether to crop the image to exact dimensions.
+	 *     @type int        $width  The maximum width in pixels.
+	 *     @type int        $height The maximum height in pixels.
+	 *     @type bool|array $crop   Whether to crop the image to exact dimensions.
 	 * }
 	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
 	 *                        WP_Error object on error.
@@ -324,8 +338,10 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @return true|WP_Error
 	 */
 	public function crop( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false ) {
-		// If destination width/height isn't specified,
-		// use same as width/height from source.
+		/*
+		 * If destination width/height isn't specified,
+		 * use same as width/height from source.
+		 */
 		if ( ! $dst_w ) {
 			$dst_w = $src_w;
 		}

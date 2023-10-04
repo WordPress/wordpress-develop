@@ -5,15 +5,9 @@
  * @package WordPress
  * @subpackage UnitTests
  * @since 4.9.6
- */
-
-/**
- * Tests_Privacy_wpPrivacySendPersonalDataExportEmail class.
  *
  * @group privacy
  * @covers ::wp_privacy_send_personal_data_export_email
- *
- * @since 4.9.6
  */
 class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase {
 	/**

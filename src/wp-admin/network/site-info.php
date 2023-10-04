@@ -146,8 +146,14 @@ network_edit_site_nav(
 );
 
 if ( ! empty( $messages ) ) {
+	$notice_args = array(
+		'type'        => 'success',
+		'dismissible' => true,
+		'id'          => 'message',
+	);
+
 	foreach ( $messages as $msg ) {
-		echo '<div id="message" class="updated notice is-dismissible"><p>' . $msg . '</p></div>';
+		wp_admin_notice( $msg, $notice_args );
 	}
 }
 ?>
@@ -194,7 +200,12 @@ if ( ! empty( $messages ) ) {
 			<th scope="row"><?php _e( 'Attributes' ); ?></th>
 			<td>
 			<fieldset>
-			<legend class="screen-reader-text"><?php _e( 'Set site attributes' ); ?></legend>
+			<legend class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Set site attributes' );
+				?>
+			</legend>
 			<?php foreach ( $attribute_fields as $field_key => $field_label ) : ?>
 				<label><input type="checkbox" name="blog[<?php echo $field_key; ?>]" value="1" <?php checked( (bool) $details->$field_key, true ); ?> <?php disabled( ! in_array( (int) $details->$field_key, array( 0, 1 ), true ) ); ?> />
 				<?php echo $field_label; ?></label><br />

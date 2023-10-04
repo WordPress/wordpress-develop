@@ -12,7 +12,7 @@
  */
 class Tests_Functions_SizeFormat extends WP_UnitTestCase {
 
-	public function _data_size_format() {
+	public function data_size_format() {
 		return array(
 			// Invalid values.
 			array( array(), 0, false ),
@@ -72,7 +72,7 @@ class Tests_Functions_SizeFormat extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider _data_size_format
+	 * @dataProvider data_size_format
 	 *
 	 * @param $bytes
 	 * @param $decimals

@@ -1,7 +1,9 @@
 === Twenty Thirteen ===
 Contributors: wordpressdotorg
-Tested up to: 6.1
-Stable tag: 3.7
+Requires at least: 3.6
+Tested up to: 6.3
+Requires PHP: 5.2.4
+Stable tag: 3.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, one-column, two-columns, right-sidebar, custom-header, custom-menu, editor-style, featured-images, footer-widgets, microformats, post-formats, rtl-language-support, sticky-post, translation-ready, accessibility-ready, block-patterns
@@ -44,6 +46,16 @@ Genericons icon font, Copyright 2013-2017 Automattic.com
 License: GNU GPL, Version 2 (or later)
 Source: http://www.genericons.com
 
+Bitter Font
+Copyright 2011 The Bitter Project Authors (https://github.com/solmatas/BitterPro)
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://fontsource.org/fonts/bitter
+
+Source Sans Pro Font
+© 2010 - 2018 Adobe Systems Incorporated (http://www.adobe.com/), with Reserved Font Name ‘Source’.
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://fontsource.org/fonts/source-sans-pro
+
 Images
 Cylinder Interior: https://www.flickr.com/photos/nasacommons/14052998066/in/album-72157644439092941/. Rick Guidice, NASA Ames Research Center.
 Bernal Cutaway: https://www.flickr.com/photos/nasacommons/14052996976/in/album-72157644439092941/ Don Davis, NASA Ames Research Center.
@@ -51,6 +63,16 @@ Torus Interior: https://www.flickr.com/photos/nasacommons/14076102195/in/album-7
 Toroidal Colony: https://www.flickr.com/photos/nasacommons/13889485757/in/album-72157644439092941/ Rick Guidice, NASA Ames Research Center.
 
 == Changelog ==
+
+= 3.9 =
+* Released: August 8, 2023
+
+https://codex.wordpress.org/Twenty_Thirteen_Theme_Changelog#Version_3.9
+
+= 3.8 =
+* Released: March 28, 2023
+
+https://codex.wordpress.org/Twenty_Thirteen_Theme_Changelog#Version_3.8
 
 = 3.7 =
 * Released: November 1, 2022

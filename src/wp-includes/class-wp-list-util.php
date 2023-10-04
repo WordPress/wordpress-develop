@@ -117,12 +117,12 @@ class WP_List_Util {
 				if ( is_array( $obj ) ) {
 					// Treat object as an array.
 					if ( array_key_exists( $m_key, $obj ) && ( $m_value == $obj[ $m_key ] ) ) {
-						$matched++;
+						++$matched;
 					}
 				} elseif ( is_object( $obj ) ) {
 					// Treat object as an object.
 					if ( isset( $obj->{$m_key} ) && ( $m_value == $obj->{$m_key} ) ) {
-						$matched++;
+						++$matched;
 					}
 				}
 			}
@@ -166,8 +166,14 @@ class WP_List_Util {
 			foreach ( $this->output as $key => $value ) {
 				if ( is_object( $value ) ) {
 					$newlist[ $key ] = $value->$field;
-				} else {
+				} elseif ( is_array( $value ) ) {
 					$newlist[ $key ] = $value[ $field ];
+				} else {
+					_doing_it_wrong(
+						__METHOD__,
+						__( 'Values for the input array must be either objects or arrays.' ),
+						'6.2.0'
+					);
 				}
 			}
 
@@ -187,12 +193,18 @@ class WP_List_Util {
 				} else {
 					$newlist[] = $value->$field;
 				}
-			} else {
+			} elseif ( is_array( $value ) ) {
 				if ( isset( $value[ $index_key ] ) ) {
 					$newlist[ $value[ $index_key ] ] = $value[ $field ];
 				} else {
 					$newlist[] = $value[ $field ];
 				}
+			} else {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'Values for the input array must be either objects or arrays.' ),
+					'6.2.0'
+				);
 			}
 		}
 

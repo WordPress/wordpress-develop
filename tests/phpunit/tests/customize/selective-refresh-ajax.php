@@ -1,19 +1,15 @@
 <?php
 /**
- * WP_Customize_Selective_Refresh Ajax tests.
- *
- * @package    WordPress
- * @subpackage UnitTests
- */
-
-/**
  * Tests for the WP_Customize_Selective_Refresh class Ajax.
  *
  * Note that this is intentionally not extending WP_Ajax_UnitTestCase because it
  * is not admin ajax.
  *
- * @since      4.5.0
- * @group      ajax
+ * @package WordPress
+ * @subpackage UnitTests
+ * @since 4.5.0
+ *
+ * @group ajax
  */
 class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 

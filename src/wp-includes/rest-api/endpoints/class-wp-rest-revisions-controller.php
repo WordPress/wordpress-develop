@@ -25,6 +25,14 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	private $parent_post_type;
 
 	/**
+	 * Instance of a revision meta fields object.
+	 *
+	 * @since 6.4.0
+	 * @var WP_REST_Post_Meta_Fields
+	 */
+	protected $meta;
+
+	/**
 	 * Parent controller.
 	 *
 	 * @since 4.7.0
@@ -48,16 +56,19 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @param string $parent_post_type Post type of the parent.
 	 */
 	public function __construct( $parent_post_type ) {
-		$this->parent_post_type  = $parent_post_type;
+		$this->parent_post_type = $parent_post_type;
+		$post_type_object       = get_post_type_object( $parent_post_type );
+		$parent_controller      = $post_type_object->get_rest_controller();
+
+		if ( ! $parent_controller ) {
+			$parent_controller = new WP_REST_Posts_Controller( $parent_post_type );
+		}
+
+		$this->parent_controller = $parent_controller;
 		$this->rest_base         = 'revisions';
-		$post_type_object        = get_post_type_object( $parent_post_type );
 		$this->parent_base       = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
 		$this->namespace         = ! empty( $post_type_object->rest_namespace ) ? $post_type_object->rest_namespace : 'wp/v2';
-		$this->parent_controller = $post_type_object->get_rest_controller();
-
-		if ( ! $this->parent_controller ) {
-			$this->parent_controller = new WP_REST_Posts_Controller( $parent_post_type );
-		}
+		$this->meta              = new WP_REST_Post_Meta_Fields( $parent_post_type );
 	}
 
 	/**
@@ -126,7 +137,6 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
-
 	}
 
 	/**
@@ -410,8 +420,6 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			return $parent;
 		}
 
-		$parent_post_type = get_post_type_object( $parent->post_type );
-
 		if ( ! current_user_can( 'delete_post', $parent->ID ) ) {
 			return new WP_Error(
 				'rest_cannot_delete',
@@ -548,7 +556,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
-		$post            = $item;
+		$post = $item;
+
 		$GLOBALS['post'] = $post;
 
 		setup_postdata( $post );
@@ -617,6 +626,10 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 				'raw'      => $post->post_excerpt,
 				'rendered' => $this->prepare_excerpt_response( $post->post_excerpt, $post ),
 			);
+		}
+
+		if ( rest_is_field_included( 'meta', $fields ) ) {
+			$data['meta'] = $this->meta->get_value( $post->ID, $request );
 		}
 
 		$context  = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -751,6 +764,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		if ( ! empty( $parent_schema['properties']['guid'] ) ) {
 			$schema['properties']['guid'] = $parent_schema['properties']['guid'];
 		}
+
+		$schema['properties']['meta'] = $this->meta->get_field_schema();
 
 		$this->schema = $schema;
 

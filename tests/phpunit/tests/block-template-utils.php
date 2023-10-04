@@ -1,12 +1,8 @@
 <?php
 /**
- * Tests_Block_Template_Utils class
+ * Tests for the Block Templates abstraction layer.
  *
  * @package WordPress
- */
-
-/**
- * Tests for the Block Templates abstraction layer.
  *
  * @group block-templates
  */
@@ -105,6 +101,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( 'My Template', $template->title );
 		$this->assertSame( 'Description of my template', $template->description );
 		$this->assertSame( 'wp_template', $template->type );
+		$this->assertSame( self::$template_post->post_modified, $template->modified, 'Template result properties match' );
 
 		// Test template parts.
 		$template_part = _build_block_template_result_from_post(
@@ -121,25 +118,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( 'Description of my template part', $template_part->description );
 		$this->assertSame( 'wp_template_part', $template_part->type );
 		$this->assertSame( WP_TEMPLATE_PART_AREA_HEADER, $template_part->area );
-	}
-
-	/**
-	 * Tests that _build_block_template_result_from_post() returns the correct theme
-	 * for the template when a child theme is active.
-	 *
-	 * @ticket 55437
-	 *
-	 * @covers ::_build_block_template_result_from_post
-	 */
-	public function test_build_block_template_result_from_post_with_child_theme() {
-		switch_theme( 'block-theme-child' );
-
-		$template = _build_block_template_result_from_post(
-			self::$template_post,
-			'wp_template'
-		);
-
-		$this->assertSame( self::TEST_THEME, $template->theme );
+		$this->assertSame( self::$template_part_post->post_modified, $template_part->modified, 'Template part result properties match' );
 	}
 
 	public function test_build_block_template_result_from_file() {
@@ -156,9 +135,10 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( 'single', $template->slug );
 		$this->assertSame( 'publish', $template->status );
 		$this->assertSame( 'theme', $template->source );
-		$this->assertSame( 'Single', $template->title );
-		$this->assertSame( 'The default template for displaying any single post or attachment.', $template->description );
+		$this->assertSame( 'Single Posts', $template->title );
+		$this->assertSame( 'Displays single posts on your website unless a custom template has been applied to that post or a dedicated template exists.', $template->description );
 		$this->assertSame( 'wp_template', $template->type );
+		$this->assertEmpty( $template->modified );
 
 		// Test template parts.
 		$template_part = _build_block_template_result_from_file(
@@ -178,31 +158,166 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( '', $template_part->description );
 		$this->assertSame( 'wp_template_part', $template_part->type );
 		$this->assertSame( WP_TEMPLATE_PART_AREA_HEADER, $template_part->area );
+		$this->assertEmpty( $template_part->modified );
 	}
 
 	/**
-	 * Tests that _build_block_template_result_from_file() returns the correct theme
-	 * for the template when a child theme is active.
-	 *
-	 * @ticket 55437
+	 * @ticket 59325
 	 *
 	 * @covers ::_build_block_template_result_from_file
+	 *
+	 * @dataProvider data_build_block_template_result_from_file_injects_theme_attribute
+	 *
+	 * @param string $filename The template's filename.
+	 * @param string $expected The expected block markup.
 	 */
-	public function test_build_block_template_result_from_file_with_child_theme() {
-		switch_theme( 'block-theme-child' );
-
+	public function test_build_block_template_result_from_file_injects_theme_attribute( $filename, $expected ) {
 		$template = _build_block_template_result_from_file(
 			array(
-				'slug'  => 'single',
-				'path'  => __DIR__ . '/../data/templates/template.html',
-				'theme' => self::TEST_THEME,
+				'slug' => 'single',
+				'path' => DIR_TESTDATA . "/templates/$filename",
 			),
 			'wp_template'
 		);
-
-		$this->assertSame( self::TEST_THEME, $template->theme );
+		$this->assertSame( $expected, $template->content );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_build_block_template_result_from_file_injects_theme_attribute() {
+		$theme = 'block-theme';
+		return array(
+			'a template with a template part block'  => array(
+				'filename' => 'template-with-template-part.html',
+				'expected' => sprintf(
+					'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /-->',
+					$theme
+				),
+			),
+			'a template with a template part block nested inside another block' => array(
+				'filename' => 'template-with-nested-template-part.html',
+				'expected' => sprintf(
+					'<!-- wp:group -->
+<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /-->
+<!-- /wp:group -->',
+					$theme
+				),
+			),
+			'a template with a template part block with an existing theme attribute' => array(
+				'filename' => 'template-with-template-part-with-existing-theme-attribute.html',
+				'expected' => '<!-- wp:template-part {"slug":"header","theme":"fake-theme","align":"full","tagName":"header","className":"site-header"} /-->',
+			),
+			'a template with no template part block' => array(
+				'filename' => 'template.html',
+				'expected' => '<!-- wp:paragraph -->
+<p>Just a paragraph</p>
+<!-- /wp:paragraph -->',
+			),
+		);
+	}
+
+	/**
+	 * @ticket 59338
+	 *
+	 * @covers ::_inject_theme_attribute_in_template_part_block
+	 */
+	public function test_inject_theme_attribute_in_template_part_block() {
+		$template_part_block = array(
+			'blockName'    => 'core/template-part',
+			'attrs'        => array(
+				'slug'      => 'header',
+				'align'     => 'full',
+				'tagName'   => 'header',
+				'className' => 'site-header',
+			),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+
+		_inject_theme_attribute_in_template_part_block( $template_part_block );
+		$expected = array(
+			'blockName'    => 'core/template-part',
+			'attrs'        => array(
+				'slug'      => 'header',
+				'align'     => 'full',
+				'tagName'   => 'header',
+				'className' => 'site-header',
+				'theme'     => get_stylesheet(),
+			),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+		$this->assertSame(
+			$expected,
+			$template_part_block,
+			'`theme` attribute was not correctly injected in template part block.'
+		);
+	}
+
+	/**
+	 * @ticket 59338
+	 *
+	 * @covers ::_inject_theme_attribute_in_template_part_block
+	 */
+	public function test_not_inject_theme_attribute_in_template_part_block_theme_attribute_exists() {
+		$template_part_block = array(
+			'blockName'    => 'core/template-part',
+			'attrs'        => array(
+				'slug'      => 'header',
+				'align'     => 'full',
+				'tagName'   => 'header',
+				'className' => 'site-header',
+				'theme'     => 'fake-theme',
+			),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+
+		$expected = $template_part_block;
+		_inject_theme_attribute_in_template_part_block( $template_part_block );
+		$this->assertSame(
+			$expected,
+			$template_part_block,
+			'Existing `theme` attribute in template part block was not respected by attribute injection.'
+		);
+	}
+
+	/**
+	 * @ticket 59338
+	 *
+	 * @covers ::_inject_theme_attribute_in_template_part_block
+	 */
+	public function test_not_inject_theme_attribute_non_template_part_block() {
+		$non_template_part_block = array(
+			'blockName'    => 'core/post-content',
+			'attrs'        => array(),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+
+		$expected = $non_template_part_block;
+		_inject_theme_attribute_in_template_part_block( $non_template_part_block );
+		$this->assertSame(
+			$expected,
+			$non_template_part_block,
+			'`theme` attribute injection modified non-template-part block.'
+		);
+	}
+
+	/**
+	 * @ticket 59452
+	 *
+	 * @covers ::_inject_theme_attribute_in_block_template_content
+	 *
+	 * @expectedDeprecated _inject_theme_attribute_in_block_template_content
+	 */
 	public function test_inject_theme_attribute_in_block_template_content() {
 		$theme                           = get_stylesheet();
 		$content_without_theme_attribute = '<!-- wp:template-part {"slug":"header","align":"full", "tagName":"header","className":"site-header"} /-->';
@@ -246,11 +361,37 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54448
+	 * @ticket 59460
 	 *
 	 * @dataProvider data_remove_theme_attribute_in_block_template_content
+	 *
+	 * @expectedDeprecated _remove_theme_attribute_in_block_template_content
 	 */
 	public function test_remove_theme_attribute_in_block_template_content( $template_content, $expected ) {
 		$this->assertSame( $expected, _remove_theme_attribute_in_block_template_content( $template_content ) );
+	}
+
+	/**
+	 * @ticket 59460
+	 *
+	 * @covers ::_remove_theme_attribute_from_template_part_block
+	 * @covers ::traverse_and_serialize_blocks
+	 *
+	 * @dataProvider data_remove_theme_attribute_in_block_template_content
+	 *
+	 * @param string $template_content The template markup.
+	 * @param string $expected         The expected markup after removing the theme attribute from Template Part blocks.
+	 */
+	public function test_remove_theme_attribute_from_template_part_block( $template_content, $expected ) {
+		$template_content_parsed_blocks = parse_blocks( $template_content );
+
+		$this->assertSame(
+			$expected,
+			traverse_and_serialize_blocks(
+				$template_content_parsed_blocks,
+				'_remove_theme_attribute_from_template_part_block'
+			)
+		);
 	}
 
 	public function data_remove_theme_attribute_in_block_template_content() {

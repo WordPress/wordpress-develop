@@ -5,15 +5,9 @@
  * @package WordPress
  * @subpackage UnitTests
  * @since 5.2.0
- */
-
-/**
- * Tests_Privacy_wpPrivacyProcessPersonalDataExportPage class.
  *
  * @group privacy
  * @covers ::wp_privacy_process_personal_data_export_page
- *
- * @since 5.2.0
  */
 class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCase {
 	/**
