@@ -889,7 +889,7 @@ endif;
 			 * @param string $file          Path to the file.
 			 * @param int    $attachment_id Attachment ID.
 			 */
-			do_action( 'wp_create_file_in_uploads', $file, $attachment_id ); // For replication.
+			$file = apply_filters( 'wp_create_file_in_uploads', $file, $attachment_id ); // For replication.
 
 			return $this->finished();
 		} elseif ( $width > $max_width ) {
