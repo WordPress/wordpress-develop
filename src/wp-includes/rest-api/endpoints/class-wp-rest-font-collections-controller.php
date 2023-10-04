@@ -41,7 +41,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 					'callback'            => array( $this, 'get_font_collections' ),
 					'permission_callback' => array( $this, 'update_font_library_permissions_check' ),
 				),
-				'schema' => array( $this, 'get_font_collections_schema' ),
+				'schema' => array( $this, 'get_items_schema' ),
 			)
 		);
 
@@ -61,7 +61,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 					'callback'            => array( $this, 'get_font_collection' ),
 					'permission_callback' => array( $this, 'update_font_library_permissions_check' ),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'schema' => array( $this, 'get_item_schema' ),
 			)
 		);
 	}
@@ -89,7 +89,8 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 			return $collection_with_data;
 		}
 
-		return rest_ensure_response( $collection_with_data );
+		$response = $this->prepare_item_for_response( $collection_with_data, $request ); 
+		return rest_ensure_response( $response );
 	}
 
 	/**
@@ -102,7 +103,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 	public function get_font_collections() {
 		$collections = array();
 		foreach ( WP_Font_Library::get_font_collections() as $collection ) {
-			$collections[] = $collection->get_config();
+			$collections[] = $this->prepare_item_for_response( $collection->get_config(), null );
 		}
 
 		return new WP_REST_Response( $collections, 200 );
@@ -135,8 +136,12 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
-	public function get_font_collections_schema() {
-		return array(
+	public function get_items_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
+		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'font-collections',
 			'type'       => 'object',
@@ -164,6 +169,9 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 				),
 			),
 		);
+
+		$this->schema = $schema;
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 
 	/**
@@ -204,7 +212,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 					'type'        => 'object',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'properties'  => array(
-						'fontFamilies' => array(
+						'font_families' => array(
 							'description' => __( 'List of font families.' ),
 							'type'        => 'array',
 							'items'       => array(
@@ -214,7 +222,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 										'description' => __( 'Name of the font family.' ),
 										'type'        => 'string',
 									),
-									'fontFamily' => array(
+									'font_family' => array(
 										'description' => __( 'Font family string.' ),
 										'type'        => 'string',
 									),
@@ -226,25 +234,25 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 										'description' => __( 'Category of the font family.' ),
 										'type'        => 'string',
 									),
-									'fontFace'   => array(
+									'font_face'   => array(
 										'description' => __( 'Font face details.' ),
 										'type'        => 'array',
 										'items'       => array(
 											'type'       => 'object',
 											'properties' => array(
-												'downloadFromUrl' => array(
+												'download_from_url' => array(
 													'description' => __( 'URL to download the font.' ),
 													'type' => 'string',
 												),
-												'fontWeight' => array(
+												'font_weight' => array(
 													'description' => __( 'Font weight.' ),
 													'type' => 'string',
 												),
-												'fontStyle' => array(
+												'fonts_style' => array(
 													'description' => __( 'Font style.' ),
 													'type' => 'string',
 												),
-												'fontFamily' => array(
+												'font_family' => array(
 													'description' => __( 'Font family string.' ),
 													'type' => 'string',
 												),
@@ -268,8 +276,55 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 		);
 
 		$this->schema = $schema;
-
 		return $this->add_additional_fields_schema( $this->schema );
+	}
+
+	/**
+	 * Convert string from camelCase to snake_case.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $input String to convert.
+	 * @return string Converted string.
+	 */
+	private function camel_to_snake( $input ) {
+		$output = _wp_to_kebab_case( $input );
+		return str_replace( '-', '_', $output );
+	}
+	
+	/**
+	 * Convert array keys from camelCase to snake_case.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array $array Array to convert.
+	 * @return array Converted array.
+	 */
+	private function array_keys_to_snake_case( $array ) {
+		$new_array = [];
+		foreach ( $array as $key => $value ) {
+			$snake_key = $this->camel_to_snake( $key );
+			// If the value is an array, recurse.
+			if ( is_array( $value ) ) {
+				$value = $this->array_keys_to_snake_case( $value );
+			}
+			// Add to the new array
+			$new_array[ $snake_key ] = $value;
+		}
+		return $new_array;
+	}
+
+	/**
+	 * Prepares a single font collection output for response.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array $item Font collection data.
+	 * @param WP_REST_Request $request Request object.
+	 * @return array Font collection data.
+	 */
+	public function prepare_item_for_response( $item, $request ) {
+		return $this->array_keys_to_snake_case( $item );
 	}
 
 }
