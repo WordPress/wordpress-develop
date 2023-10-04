@@ -18,12 +18,18 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 	}
 
+	/**
+	 * @covers ::add_term_meta
+	 */
 	public function test_add() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 
 		$this->assertNotEmpty( add_term_meta( $t, 'foo', 'bar' ) );
 	}
 
+	/**
+	 * @covers ::add_term_meta
+	 */
 	public function test_add_unique() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 
@@ -31,6 +37,9 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$this->assertFalse( add_term_meta( $t, 'foo', 'bar', true ) );
 	}
 
+	/**
+	 * @covers ::delete_term_meta
+	 */
 	public function test_delete() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		add_term_meta( $t, 'foo', 'bar' );
@@ -38,12 +47,18 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$this->assertTrue( delete_term_meta( $t, 'foo' ) );
 	}
 
+	/**
+	 * @covers ::delete_term_meta
+	 */
 	public function test_delete_with_invalid_meta_key_should_return_false() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 
 		$this->assertFalse( delete_term_meta( $t, 'foo' ) );
 	}
 
+	/**
+	 * @covers ::delete_term_meta
+	 */
 	public function test_delete_should_respect_meta_value() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		add_term_meta( $t, 'foo', 'bar' );
@@ -55,6 +70,9 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$this->assertSame( array( 'baz' ), $metas );
 	}
 
+	/**
+	 * @covers ::get_term_meta
+	 */
 	public function test_get_with_no_key_should_fetch_all_keys() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		add_term_meta( $t, 'foo', 'bar' );
@@ -69,6 +87,9 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $found );
 	}
 
+	/**
+	 * @covers ::get_term_meta
+	 */
 	public function test_get_with_key_should_fetch_all_for_key() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		add_term_meta( $t, 'foo', 'bar' );
@@ -81,6 +102,9 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $found );
 	}
 
+	/**
+	 * @covers ::get_term_meta
+	 */
 	public function test_get_should_respect_single_true() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		add_term_meta( $t, 'foo', 'bar' );
@@ -90,6 +114,9 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$this->assertSame( 'bar', $found );
 	}
 
+	/**
+	 * @covers ::update_term_meta
+	 */
 	public function test_update_should_pass_to_add_when_no_value_exists_for_key() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 
@@ -101,6 +128,9 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$this->assertSame( 'bar', $meta );
 	}
 
+	/**
+	 * @covers ::update_term_meta
+	 */
 	public function test_update_should_return_true_when_updating_existing_value_for_key() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 
@@ -113,6 +143,9 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$this->assertSame( 'baz', $meta );
 	}
 
+	/**
+	 * @covers ::get_term_meta
+	 */
 	public function test_term_meta_should_be_lazy_loaded_for_all_terms_in_wp_query_loop() {
 		$p = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
@@ -161,6 +194,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36593
+	 *
+	 * @covers WP_Query::get
 	 */
 	public function test_lazy_load_term_meta_should_fall_back_on_update_post_term_cache() {
 		$q = new WP_Query(
@@ -182,6 +217,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36593
+	 *
+	 * @covers ::get_term_meta
 	 */
 	public function test_lazy_load_term_meta_false() {
 		$p = self::factory()->post->create( array( 'post_status' => 'publish' ) );
@@ -218,6 +255,9 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::get_terms
+	 */
 	public function test_adding_term_meta_should_bust_get_terms_cache() {
 		$terms = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax' ) );
 
@@ -259,6 +299,9 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$this->assertSameSets( array( $terms[0], $terms[1] ), $found );
 	}
 
+	/**
+	 * @covers ::get_terms
+	 */
 	public function test_updating_term_meta_should_bust_get_terms_cache() {
 		$terms = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax' ) );
 
@@ -301,6 +344,9 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$this->assertSameSets( array( $terms[0], $terms[1] ), $found );
 	}
 
+	/**
+	 * @covers ::delete_term_meta
+	 */
 	public function test_deleting_term_meta_should_bust_get_terms_cache() {
 		$terms = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax' ) );
 
@@ -345,6 +391,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34544
+	 *
+	 * @covers ::add_term_meta
 	 */
 	public function test_add_term_meta_should_return_error_when_term_id_is_shared() {
 		global $wpdb;
@@ -383,6 +431,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34544
+	 *
+	 * @covers ::update_term_meta
 	 */
 	public function test_update_term_meta_should_return_error_when_term_id_is_shared() {
 		global $wpdb;
@@ -423,6 +473,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34626
+	 *
+	 * @covers ::wp_delete_term
 	 */
 	public function test_term_meta_should_be_deleted_when_term_is_deleted() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
@@ -441,6 +493,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35991
+	 *
+	 * @covers ::has_term_meta
 	 */
 	public function test_has_term_meta() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
@@ -464,6 +518,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35991
+	 *
+	 * @covers ::has_term_meta
 	 */
 	public function test_has_term_meta_empty_results() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
@@ -476,6 +532,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 	/**
 	 * @ticket 38323
 	 * @dataProvider data_register_term_meta
+	 *
+	 * @covers ::register_term_meta
 	 */
 	public function test_register_term_meta( $taxonomy, $meta_key, $args ) {
 		add_filter( 'register_meta_args', array( $this, 'filter_register_meta_args_set_last_register_meta_call' ), 10, 4 );
@@ -511,6 +569,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 	/**
 	 * @ticket 38323
 	 * @dataProvider data_unregister_term_meta
+	 *
+	 * @covers ::unregister_term_meta
 	 */
 	public function test_unregister_term_meta( $taxonomy, $meta_key ) {
 		global $wp_meta_keys;
@@ -536,6 +596,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 44467
+	 *
+	 * @covers ::add_metadata
 	 */
 	public function test_add_metadata_sets_terms_last_changed() {
 		$term_id = self::factory()->term->create();
@@ -548,6 +610,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 44467
+	 *
+	 * @covers ::update_metadata
 	 */
 	public function test_update_metadata_sets_terms_last_changed() {
 		$term_id = self::factory()->term->create();
@@ -560,6 +624,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 44467
+	 *
+	 * @covers ::delete_metadata
 	 */
 	public function test_delete_metadata_sets_terms_last_changed() {
 		$term_id = self::factory()->term->create();
@@ -573,6 +639,15 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 44467
+	 *
+	 * @covers ::get_metadata
+	 * @covers ::add_metadata
+	 * @covers ::update_metadata
+	 * @covers ::delete_metadata
+	 * @covers ::get_metadata_by_mid
+	 * @covers ::update_metadata_by_mid
+	 * @covers ::delete_metadata_by_mid
+	 * @covers ::update_meta_cache
 	 */
 	public function test_metadata_functions_respect_term_meta_support() {
 		$term_id = self::factory()->term->create();

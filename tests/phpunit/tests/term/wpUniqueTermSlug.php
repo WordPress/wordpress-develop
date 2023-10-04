@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers ::wp_unique_term_slug
  */
 class Tests_Term_WpUniqueTermSlug extends WP_UnitTestCase {
 	public function set_up() {

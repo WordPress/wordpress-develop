@@ -126,6 +126,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @ticket 52991
 	 * @ticket 54336
 	 * @ticket 56611
+	 *
+	 * @covers WP_Theme_JSON_Resolver::get_theme_data
 	 */
 	public function test_translations_are_applied() {
 		add_filter( 'locale', array( $this, 'filter_set_locale_to_polish' ) );
@@ -267,6 +269,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @ticket 56467
 	 *
 	 * @param string $origin The origin to test.
+	 *
+	 * @covers WP_Theme_JSON_Resolver::theme_has_support
 	 */
 	public function test_has_same_registered_blocks_when_all_blocks_not_cached( $origin, array $cache = array() ) {
 		$has_same_registered_blocks = new ReflectionMethod( WP_Theme_JSON_Resolver::class, 'has_same_registered_blocks' );
