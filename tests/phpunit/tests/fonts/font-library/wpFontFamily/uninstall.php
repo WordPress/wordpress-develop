@@ -78,14 +78,14 @@ class Tests_Fonts_WpFontFamily_Uninstall extends WP_Font_Family_UnitTestCase {
 		$font->install( $files_data );
 
 		// Pre-checks to ensure the starting point is as expected.
-		$this->assertInstanceOf( WP_Post::class, $font->get_font_post(), 'Font post should exist' );
+		$this->assertInstanceOf( WP_Post::class, $font->get_post_by_slug(), 'Font post should exist' );
 		$this->assertNotEmpty( $this->files_in_dir( static::$fonts_dir ), 'Fonts should be installed' );
 
 		// Uninstall.
 		$this->assertTrue( $font->uninstall() );
 
 		// Test the post and font file(s) were uninstalled.
-		$this->assertNull( $font->get_font_post(), 'Font post should be deleted after uninstall' );
+		$this->assertNull( $font->get_post_by_slug(), 'Font post should be deleted after uninstall' );
 		$this->assertEmpty( $this->files_in_dir( static::$fonts_dir ), 'Fonts should be uninstalled' );
 	}
 

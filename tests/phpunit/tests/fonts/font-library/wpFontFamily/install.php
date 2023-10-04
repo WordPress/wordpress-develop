@@ -27,7 +27,7 @@ class Tests_Fonts_WpFontFamily_Install extends WP_Font_Family_UnitTestCase {
 		// Test.
 		$font->install();
 		$this->assertEmpty( $this->files_in_dir( static::$fonts_dir ), 'Font directory should be empty' );
-		$this->assertInstanceOf( WP_Post::class, $font->get_font_post(), 'Font post should exist after install' );
+		$this->assertInstanceOf( WP_Post::class, $font->get_post_by_slug(), 'Font post should exist after install' );
 	}
 
 	/**
@@ -97,7 +97,7 @@ class Tests_Fonts_WpFontFamily_Install extends WP_Font_Family_UnitTestCase {
 			$font_file = path_join( static::$fonts_dir, $font_file );
 			$this->assertFileExists( $font_file, "Font file [{$font_file}] should exists in the fonts/ directory after installing" );
 		}
-		$this->assertInstanceOf( WP_Post::class, $font->get_font_post(), 'Font post should exist after install' );
+		$this->assertInstanceOf( WP_Post::class, $font->get_post_by_slug(), 'Font post should exist after install' );
 	}
 
 	/**

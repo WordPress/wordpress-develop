@@ -1,6 +1,6 @@
 <?php
 /**
- * Test WP_Font_Family::get_font_post().
+ * Test WP_Font_Family::get_post_by_slug().
  *
  * @package WordPress
  * @subpackage Fonts
@@ -12,9 +12,9 @@ require_once __DIR__ . '/base.php';
  * @group fonts
  * @group font-library
  *
- * @covers WP_Font_Family::get_font_post
+ * @covers WP_Font_Family::get_post_by_slug
  */
-class Tests_Fonts_WpFontFamily_GetFontPost extends WP_Font_Family_UnitTestCase {
+class Tests_Fonts_WpFontFamily_GetPostBySlug extends WP_Font_Family_UnitTestCase {
 
 	public function test_should_return_post() {
 		// Set up the post.
@@ -29,7 +29,7 @@ class Tests_Fonts_WpFontFamily_GetFontPost extends WP_Font_Family_UnitTestCase {
 		$font    = new WP_Font_Family( $this->merriweather['font_data'] );
 
 		// Test.
-		$actual = $font->get_font_post();
+		$actual = $font->get_post_by_slug();
 		$this->assertInstanceOf( WP_Post::class, $actual, 'Font post should exist' );
 		$this->assertSame( $post_id, $actual->ID, 'Font post ID should match' );
 	}
@@ -37,6 +37,6 @@ class Tests_Fonts_WpFontFamily_GetFontPost extends WP_Font_Family_UnitTestCase {
 	public function test_should_return_null_when_post_does_not_exist() {
 		$font = new WP_Font_Family( $this->merriweather['font_data'] );
 
-		$this->assertNull( $font->get_font_post() );
+		$this->assertNull( $font->get_post_by_slug() );
 	}
 }
