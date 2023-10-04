@@ -98,24 +98,24 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 
 		$this->assertEquals(
 			array(
-				'tests/hooked-at-before' => array(
+				'tests/hooked-at-before'           => array(
 					'before' => array(
 						'tests/injected-one',
 						'tests/injected-two',
 					),
 				),
-				'tests/hooked-at-after' => array(
+				'tests/hooked-at-after'            => array(
 					'after' => array(
 						'tests/injected-one',
 						'tests/injected-two',
 					),
 				),
-				'tests/hooked-at-first-child' => array(
+				'tests/hooked-at-first-child'      => array(
 					'first_child' => array(
 						'tests/injected-two',
 					),
 				),
-				'tests/hooked-at-last-child' => array(
+				'tests/hooked-at-last-child'       => array(
 					'last_child' => array(
 						'tests/injected-two',
 					),
