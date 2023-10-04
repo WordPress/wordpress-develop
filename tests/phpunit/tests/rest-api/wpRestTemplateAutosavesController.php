@@ -33,15 +33,6 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	private static $template_post;
 
 	/**
-	 * Autosave post ID.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @var int
-	 */
-	private static $autosave_post_id;
-
-	/**
 	 * Create fake data before our tests run.
 	 *
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
