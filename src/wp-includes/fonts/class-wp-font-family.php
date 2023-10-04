@@ -33,18 +33,10 @@ class WP_Font_Family {
 	 * @param array $font_data Font family data.
 	 * @throws Exception If the font family data is missing the slug.
 	 */
-	public function __construct( $id = null ) {
-		$this->id = $id;
-	}
-
-	/**
-	 * Sets the font family data.
-	 *
-	 * @since 6.4.0
-	 * 
-	 * @param array $font_data An array in fontFamily theme.json format.
-	 */
-	public function set_data( $font_data ) {
+	public function __construct( $font_data ) {
+		if ( empty( $font_data['slug'] ) ) {
+			throw new Exception( 'Font family data is missing the slug.' );
+		}
 		$this->data = $font_data;
 	}
 
@@ -109,15 +101,21 @@ class WP_Font_Family {
 	 * @return bool|WP_Error True if the font family was uninstalled, WP_Error otherwise.
 	 */
 	public function uninstall() {
-		$data = $this->populate_data_from_post_content_by_id();
 
-		if ( is_wp_error( $data ) ) {
-			return $data;
+		$post = $this->get_post_by_slug();
+
+		if ( is_null( $post ) ) {
+			return new WP_Error(
+				'font_family_not_found',
+				__( 'The font family could not be found.' )
+			);
 		}
+
+		$this->data = json_decode( $post->post_content, true );
 
 		if (
 			! $this->remove_font_family_assets() ||
-			! wp_delete_post( $this->id, true )
+			! wp_delete_post( $post->ID, true )
 		) {
 			return new WP_Error(
 				'font_family_not_deleted',
@@ -456,47 +454,20 @@ class WP_Font_Family {
 	}
 
 	/**
-	 * Populates the data for this object from the database using a post id.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @return bool|WP_Error True if the data was populated, WP_Error otherwise.
-	 */
-	private function populate_data_from_post_content_by_id() {
-		$post = get_post( $this->id );
-		if ( $post && !empty( $post ) ) {
-			$post_content_data = json_decode( $post->post_content, true );
-			// If the post content is not valid JSON, return null.
-			if ( is_null( $post_content_data ) ) {
-				return new WP_Error(
-					'font_family_post_content_not_valid_json',
-					__( 'The font family post content is not valid JSON.' )
-				);
-			}
-			$this->set_data( $post_content_data );
-			return true;
-		}
-		return new WP_Error(
-			'font_family_not_found',
-			__( 'The font family could not be found.' )
-		);
-	}
-
-	/**
 	 * Gets a post for a font family by its slug.
 	 *
 	 * @since 6.4.0
 	 *
 	 * @return WP_Post|null The post if the post exists, null otherwise.
 	 */
-	private function get_post_by_slug() {
+	public function get_post_by_slug() {
 		$args = array(
 			'post_type'      => 'wp_font_family',
 			'post_name'      => $this->data['slug'],
 			'name'           => $this->data['slug'],
 			'posts_per_page' => 1,
 		);
-	
+
 		$posts_query = new WP_Query( $args );
 		if ( ! $posts_query->have_posts() ) {
 			return null;
@@ -511,7 +482,7 @@ class WP_Font_Family {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return bool|WP_Error True if the post was created, WP_Error otherwise.
+	 * @return int|WP_Error Post ID if the post was created, WP_Error otherwise.
 	 */
 	private function create_font_post() {
 		$post = array(
@@ -529,8 +500,7 @@ class WP_Font_Family {
 				__( 'Font post creation failed.' )
 			);
 		}
-		$this->id = $post_id;
-		return true;
+		return $post_id;
 	}
 
 	/**
@@ -563,7 +533,7 @@ class WP_Font_Family {
 	 * @since 6.4.0
 	 *
 	 * @param WP_Post $post The post to update.
-	 * @return bool|WP_Error True if the update was successful, WP_Error otherwise.
+	 * @return int|WP_Error Post ID if the update was successful, WP_Error otherwise.
 	 */
 	private function update_font_post( $post ) {
 		$post_font_data = json_decode( $post->post_content, true );
@@ -572,7 +542,7 @@ class WP_Font_Family {
 		$new_data = $post_font_data
 			? WP_Font_Family_Utils::merge_fonts_data( $post_font_data, $this->data )
 			: $this->data;
-		
+
 		if ( ! empty( $post_font_data['fontFace'] ) ) {
 			$intersecting = $this->get_intersecting_font_faces( $post_font_data['fontFace'], $new_data['fontFace'] );
 		}
@@ -605,7 +575,7 @@ class WP_Font_Family {
 			);
 		}
 
-		return true;
+		return $post_id;
 	}
 
 	/**
@@ -622,13 +592,11 @@ class WP_Font_Family {
 
 		$post = $this->get_post_by_slug();
 
-		if( $post ){
-			$this->id = $post->ID;
+		if ( $post ) {
 			return $this->update_font_post( $post );
 		}
-		
+
 		return $this->create_font_post();
-		
 	}
 
 	/**
@@ -657,7 +625,7 @@ class WP_Font_Family {
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
-		$post = get_post( $this->id );
+		$post = get_post( $result );
 		return $post;
 	}
 }

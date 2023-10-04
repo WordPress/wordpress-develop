@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Rest Font Families Controller.
  *
@@ -15,6 +16,7 @@
  * @since 6.4.0
  */
 class WP_REST_Font_Families_Controller extends WP_REST_Controller {
+
 
 	/**
 	 * Constructor.
@@ -37,37 +39,6 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 			'/' . $this->rest_base,
 			array(
 				array(
-					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'create_item' ),
-					'permission_callback' => array( $this, 'update_font_library_permissions_check' ),
-					'args'                => array (
-						'slug'       => array(
-							'required' => true,
-							'type' => 'string',
-						),
-						'name'       => array(
-							'required' => true,
-							'type' => 'string',
-						),
-						'fontFamily' => array(
-							'required' => true,
-							'type' => 'string',
-						),
-						'fontFace'   => array(
-							'required' => false,
-							'type' => 'string',
-							'validate_callback' => array( $this, 'validate_font_faces' ),
-						),
-					)
-				),
-			)
-		);
-
-		register_rest_route(
-			$this->namespace,
-			'/' . $this->rest_base,
-			array(
-				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_items' ),
 					'permission_callback' => array( $this, 'update_font_library_permissions_check' ),
@@ -77,7 +48,7 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<id>[\/\w-]+)',
+			'/' . $this->rest_base . '/(?P<slug>[\/\w-]+)',
 			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
@@ -89,7 +60,38 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<id>[\/\w-]+)',
+			'/' . $this->rest_base,
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'create_item' ),
+					'permission_callback' => array( $this, 'update_font_library_permissions_check' ),
+					'args'                => array(
+						'slug'       => array(
+							'required' => true,
+							'type'     => 'string',
+						),
+						'name'       => array(
+							'required' => true,
+							'type'     => 'string',
+						),
+						'fontFamily' => array(
+							'required' => true,
+							'type'     => 'string',
+						),
+						'fontFace'   => array(
+							'required'          => false,
+							'type'              => 'string',
+							'validate_callback' => array( $this, 'validate_font_faces' ),
+						),
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<slug>[\/\w-]+)',
 			array(
 				array(
 					'methods'             => WP_REST_Server::DELETABLE,
@@ -107,11 +109,12 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_item( $request ) {
-		$post = get_post( $request['id'] );
+		$font_family = new WP_Font_Family( array( 'slug' => $request['slug'] ) );
+		$post        = $font_family->get_post_by_slug();
 		if ( ! $post ) {
 			return new WP_Error(
-				'rest_invalid_id',
-				__( 'Invalid font family ID.' ),
+				'font_family_slug_not_found',
+				__( 'Font Family with that slug was not found.' ),
 				array(
 					'status' => 404,
 				)
@@ -130,37 +133,32 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 		return rest_ensure_response( $item );
 	}
 
-    /**
-     * Get items (font families).
-     *
-     * @param WP_REST_Request $request Full details about the request.
-     * @return WP_REST_Response|WP_Error
-     */
-    public function get_items( $request ) {
-        $args = array(
-            'post_type'      => 'wp_font_family',
-            'post_status'    => 'publish',
-            'posts_per_page' => $request['per_page'] ?? 10,
-            'paged'          => $request['page'] ?? 1,
-        );
-        $posts = get_posts( $args );
-        $response = array();
-        foreach ( $posts as $post ) {
-            $item = $this->prepare_item_for_response( $post, $request );
+	/**
+	 * Get items (font families).
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function get_items( $request ) {
+		$args     = array(
+			'post_type'      => 'wp_font_family',
+			'post_status'    => 'publish',
+			'posts_per_page' => $request['per_page'] ?? 10,
+			'paged'          => $request['page'] ?? 1,
+		);
+		$posts    = get_posts( $args );
+		$response = array();
+		foreach ( $posts as $post ) {
+			$item = $this->prepare_item_for_response( $post, $request );
 			if ( $item ) {
 				$response[] = $item;
-			} 
-        }
-        return rest_ensure_response( $response );
-    }
+			}
+		}
+		return rest_ensure_response( $response );
+	}
 
 	public function prepare_item_for_response( $post, $request ) {
-		$item = json_decode( $post->post_content, true );
-		if ( null == $item ) {
-			return $item;
-		}
-		$item['id'] = $post->ID;
-		return  $item;
+		return json_decode( $post->post_content, true );
 	}
 
 	/**
@@ -229,7 +227,7 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 	 * @return bool|WP_Error True if the parameter is valid, WP_Error otherwise.
 	 */
 	public function validate_font_faces( $param, $request ) {
-		$font_faces  = json_decode( $param, true );
+		$font_faces = json_decode( $param, true );
 		if ( null === $font_faces ) {
 			return new WP_Error(
 				'rest_invalid_param',
@@ -238,12 +236,12 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$files = $request->get_file_params();
+		$files      = $request->get_file_params();
 		$validation = $this->get_validation_errors( $font_faces, $files );
 
 		if ( $validation->has_errors() ) {
 			$validation->add_data( array( 'status' => 400 ) );
-			return $validation;			
+			return $validation;
 		}
 
 		return true;
@@ -258,9 +256,10 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function delete_item( $request ) {
-		$font_family = new WP_Font_Family( $request['id'] );
-		$result = $font_family->uninstall();
-		
+
+		$font_family = new WP_Font_Family( array( 'slug' => $request['slug'] ) );
+		$result      = $font_family->uninstall();
+
 		if ( is_wp_error( $result ) ) {
 			if ( 'font_family_not_found' === $result->get_error_code() ) {
 				$result->add_data( array( 'status' => 404 ) );
@@ -341,7 +340,7 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error The updated Font Library post content.
 	 */
 	public function create_item( $request ) {
-		$font_family_data = array (
+		$font_family_data = array(
 			'slug'       => $request->get_param( 'slug' ),
 			'name'       => $request->get_param( 'name' ),
 			'fontFamily' => $request->get_param( 'fontFamily' ),
@@ -362,11 +361,10 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 		}
 
 		// Get uploaded files (used when installing local fonts).
-		$files = $request->get_file_params();
-		$font_family = new WP_Font_Family();
-		$font_family->set_data( $font_family_data );
-		$result = $font_family->install( $files );
-		$response = $this->prepare_item_for_response( $result, $request );
+		$files       = $request->get_file_params();
+		$font_family = new WP_Font_Family( $font_family_data );
+		$result      = $font_family->install( $files );
+		$response    = $this->prepare_item_for_response( $result, $request );
 		return rest_ensure_response( $response );
 	}
 }
