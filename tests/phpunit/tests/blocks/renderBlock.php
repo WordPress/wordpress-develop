@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests for block context functions.
+ * Tests for render block functions.
  *
  * @package WordPress
  * @subpackage Blocks
@@ -8,14 +8,7 @@
  *
  * @group blocks
  */
-class Tests_Blocks_Context extends WP_UnitTestCase {
-
-	/**
-	 * Registered block names.
-	 *
-	 * @var string[]
-	 */
-	private $registered_block_names = array();
+class Tests_Blocks_RenderBlock extends WP_UnitTestCase {
 
 	/**
 	 * Sets up each test method.
@@ -38,31 +31,16 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 	 * Tear down each test method.
 	 */
 	public function tear_down() {
-		while ( ! empty( $this->registered_block_names ) ) {
-			$block_name = array_pop( $this->registered_block_names );
-			unregister_block_type( $block_name );
+		// Removes test block types registered by test cases.
+		$block_types = WP_Block_Type_Registry::get_instance()->get_all_registered();
+		foreach ( $block_types as $block_type ) {
+			$block_name = $block_type->name;
+			if ( str_starts_with( $block_name, 'tests/' ) ) {
+				unregister_block_type( $block_name );
+			}
 		}
 
 		parent::tear_down();
-	}
-
-	/**
-	 * Registers a block type.
-	 *
-	 * @param string|WP_Block_Type $name Block type name including namespace, or alternatively a
-	 *                                   complete WP_Block_Type instance. In case a WP_Block_Type
-	 *                                   is provided, the $args parameter will be ignored.
-	 * @param array                $args {
-	 *     Optional. Array of block type arguments. Any arguments may be defined, however the
-	 *     ones described below are supported by default. Default empty array.
-	 *
-	 *     @type callable $render_callback Callback used to render blocks of this block type.
-	 * }
-	 */
-	protected function register_block_type( $name, $args ) {
-		register_block_type( $name, $args );
-
-		$this->registered_block_names[] = $name;
 	}
 
 	/**
@@ -70,12 +48,15 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 	 * its inner blocks.
 	 *
 	 * @ticket 49927
+	 *
+	 * @covers ::register_block_type
+	 * @covers ::render_block
 	 */
 	public function test_provides_block_context() {
 		$provided_context = array();
 
-		$this->register_block_type(
-			'gutenberg/test-context-provider',
+		register_block_type(
+			'tests/context-provider',
 			array(
 				'attributes'       => array(
 					'contextWithAssigned'   => array(
@@ -93,21 +74,21 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 					),
 				),
 				'provides_context' => array(
-					'gutenberg/contextWithAssigned'   => 'contextWithAssigned',
-					'gutenberg/contextWithDefault'    => 'contextWithDefault',
-					'gutenberg/contextWithoutDefault' => 'contextWithoutDefault',
-					'gutenberg/contextNotRequested'   => 'contextNotRequested',
+					'tests/contextWithAssigned'   => 'contextWithAssigned',
+					'tests/contextWithDefault'    => 'contextWithDefault',
+					'tests/contextWithoutDefault' => 'contextWithoutDefault',
+					'tests/contextNotRequested'   => 'contextNotRequested',
 				),
 			)
 		);
 
-		$this->register_block_type(
-			'gutenberg/test-context-consumer',
+		register_block_type(
+			'tests/context-consumer',
 			array(
 				'uses_context'    => array(
-					'gutenberg/contextWithDefault',
-					'gutenberg/contextWithAssigned',
-					'gutenberg/contextWithoutDefault',
+					'tests/contextWithDefault',
+					'tests/contextWithAssigned',
+					'tests/contextWithoutDefault',
 				),
 				'render_callback' => static function ( $attributes, $content, $block ) use ( &$provided_context ) {
 					$provided_context[] = $block->context;
@@ -118,17 +99,17 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 		);
 
 		$parsed_blocks = parse_blocks(
-			'<!-- wp:gutenberg/test-context-provider {"contextWithAssigned":10} -->' .
-			'<!-- wp:gutenberg/test-context-consumer /-->' .
-			'<!-- /wp:gutenberg/test-context-provider -->'
+			'<!-- wp:tests/context-provider {"contextWithAssigned":10} -->' .
+			'<!-- wp:tests/context-consumer /-->' .
+			'<!-- /wp:tests/context-provider -->'
 		);
 
 		render_block( $parsed_blocks[0] );
 
 		$this->assertSame(
 			array(
-				'gutenberg/contextWithDefault'  => 0,
-				'gutenberg/contextWithAssigned' => 10,
+				'tests/contextWithDefault'  => 0,
+				'tests/contextWithAssigned' => 10,
 			),
 			$provided_context[0]
 		);
@@ -139,14 +120,17 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 	 * render_block.
 	 *
 	 * @ticket 49927
+	 *
+	 * @covers ::register_block_type
+	 * @covers ::render_block
 	 */
 	public function test_provides_default_context() {
 		global $post;
 
 		$provided_context = array();
 
-		$this->register_block_type(
-			'gutenberg/test-context-consumer',
+		register_block_type(
+			'tests/context-consumer',
 			array(
 				'uses_context'    => array( 'postId', 'postType' ),
 				'render_callback' => static function ( $attributes, $content, $block ) use ( &$provided_context ) {
@@ -157,7 +141,7 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 			)
 		);
 
-		$parsed_blocks = parse_blocks( '<!-- wp:gutenberg/test-context-consumer /-->' );
+		$parsed_blocks = parse_blocks( '<!-- wp:tests/context-consumer /-->' );
 
 		render_block( $parsed_blocks[0] );
 
@@ -174,12 +158,15 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 	 * Tests that default block context can be filtered.
 	 *
 	 * @ticket 49927
+	 *
+	 * @covers ::register_block_type
+	 * @covers ::render_block
 	 */
 	public function test_default_context_is_filterable() {
 		$provided_context = array();
 
-		$this->register_block_type(
-			'gutenberg/test-context-consumer',
+		register_block_type(
+			'tests/context-consumer',
 			array(
 				'uses_context'    => array( 'example' ),
 				'render_callback' => static function ( $attributes, $content, $block ) use ( &$provided_context ) {
@@ -195,7 +182,7 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 			return $context;
 		};
 
-		$parsed_blocks = parse_blocks( '<!-- wp:gutenberg/test-context-consumer /-->' );
+		$parsed_blocks = parse_blocks( '<!-- wp:tests/context-consumer /-->' );
 
 		add_filter( 'render_block_context', $filter_block_context );
 
