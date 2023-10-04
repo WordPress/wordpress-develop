@@ -567,7 +567,12 @@ class WP_Font_Family {
 	 */
 	private function update_font_post( $post ) {
 		$post_font_data = json_decode( $post->post_content, true );
-		$new_data       = WP_Font_Family_Utils::merge_fonts_data( $post_font_data, $this->data );
+
+		// Handles the case where the post content is not valid JSON.
+		$new_data = $post_font_data
+			? WP_Font_Family_Utils::merge_fonts_data( $post_font_data, $this->data )
+			: $this->data;
+		
 		if ( ! empty( $post_font_data['fontFace'] ) ) {
 			$intersecting = $this->get_intersecting_font_faces( $post_font_data['fontFace'], $new_data['fontFace'] );
 		}
@@ -653,6 +658,6 @@ class WP_Font_Family {
 			return $result;
 		}
 		$post = get_post( $this->id );
-		return rest_ensure_response( $post );
+		return $post;
 	}
 }
