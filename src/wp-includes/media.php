@@ -2349,7 +2349,7 @@ add_shortcode( 'caption', 'img_caption_shortcode' );
  * @return string HTML content to display the caption.
  */
 function img_caption_shortcode( $attr, $content = '' ) {
-	/**
+	/*
 	 * Validate input parameter type for compatibility with newer versions of PHP. This maintains behavior
 	 * consistent with how this function worked on PHP versions 7.0 and older.
 	 */
