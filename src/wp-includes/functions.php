@@ -4947,6 +4947,37 @@ function wp_recursive_ksort( &$input_array ) {
 	ksort( $input_array );
 }
 
+function _wp_array_get_path( $input_array, $path, $default_value = null ) {
+	if ( 0 === count( $input_array ) || empty( $path ) ) {
+		return $default_value;
+	}
+
+	$at       = 0;
+	$part     = $input_array;
+	$did_find = false;
+	while ( $at < strlen( $path ) && null !== $part ) {
+		$dot_at = strpos( $path, '.', $at );
+		if ( false === $dot_at ) {
+			$segment = substr( $path, $at );
+			$at      = strlen( $path );
+		} else {
+			$segment = substr( $path, $at, $dot_at - $at );
+			$at     += $dot_at + 1;
+		}
+
+		// Regardless if the value is null, it's not possible to descend further.
+		if ( ! isset( $part[ $segment ] ) ) {
+			$did_find = is_array( $part ) && array_key_exists( $segment, $part );
+			$part     = null;
+			break;
+		}
+
+		$part = $part[ $segment ];
+	}
+
+	return $did_find ? $part : $default_value;
+}
+
 /**
  * Accesses an array in depth based on a path of keys.
  *
