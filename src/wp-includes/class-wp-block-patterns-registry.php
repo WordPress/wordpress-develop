@@ -153,6 +153,25 @@ final class WP_Block_Patterns_Registry {
 	}
 
 	/**
+	 * Prepares the content of a block pattern.
+	 *
+	 * @param array $pattern     Registered pattern properties.
+	 * @param array $block_hooks The list of hooked blocks.
+	 * @return string The content of the block pattern.
+	 */
+	private function prepare_content( $pattern, $block_hooks ) {
+		$content = $pattern['content'];
+		if ( ! empty( $block_hooks ) || has_filter( 'hooked_block_types' ) ) {
+			$blocks               = parse_blocks( $content );
+			$before_block_visitor = make_before_block_visitor( $pattern, $block_hooks );
+			$after_block_visitor  = make_after_block_visitor( $pattern, $block_hooks );
+			$content              = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+		}
+
+		return $content;
+	}
+
+	/**
 	 * Retrieves an array containing the properties of a registered block pattern.
 	 *
 	 * @since 5.5.0
@@ -165,11 +184,8 @@ final class WP_Block_Patterns_Registry {
 			return null;
 		}
 
-		$pattern              = $this->registered_patterns[ $pattern_name ];
-		$blocks               = parse_blocks( $pattern['content'] );
-		$before_block_visitor = make_before_block_visitor( $pattern );
-		$after_block_visitor  = make_after_block_visitor( $pattern );
-		$pattern['content']   = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+		$pattern            = $this->registered_patterns[ $pattern_name ];
+		$pattern['content'] = $this->prepare_content( $pattern, get_hooked_blocks() );
 
 		return $pattern;
 	}
@@ -184,17 +200,14 @@ final class WP_Block_Patterns_Registry {
 	 *                 and per style.
 	 */
 	public function get_all_registered( $outside_init_only = false ) {
-		$patterns = array_values(
+		$patterns    = array_values(
 			$outside_init_only
 				? $this->registered_patterns_outside_init
 				: $this->registered_patterns
 		);
-
+		$block_hooks = get_hooked_blocks();
 		foreach ( $patterns as $index => $pattern ) {
-			$blocks                        = parse_blocks( $pattern['content'] );
-			$before_block_visitor          = make_before_block_visitor( $pattern );
-			$after_block_visitor           = make_after_block_visitor( $pattern );
-			$patterns[ $index ]['content'] = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+			$patterns[ $index ]['content'] = $this->prepare_content( $pattern, $block_hooks );
 		}
 		return $patterns;
 	}

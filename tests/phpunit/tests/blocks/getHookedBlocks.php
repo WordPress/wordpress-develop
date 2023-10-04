@@ -62,7 +62,7 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 	 * @covers ::get_hooked_blocks
 	 */
 	public function test_get_hooked_blocks_no_match_found() {
-		$result = get_hooked_blocks( 'tests/no-hooked-blocks' );
+		$result = get_hooked_blocks();
 
 		$this->assertSame( array(), $result );
 	}
@@ -96,55 +96,40 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame(
+		$this->assertEquals(
 			array(
-				'before' => array(
-					'tests/injected-one',
-					'tests/injected-two',
+				'tests/hooked-at-before' => array(
+					'before' => array(
+						'tests/injected-one',
+						'tests/injected-two',
+					),
+				),
+				'tests/hooked-at-after' => array(
+					'after' => array(
+						'tests/injected-one',
+						'tests/injected-two',
+					),
+				),
+				'tests/hooked-at-first-child' => array(
+					'first_child' => array(
+						'tests/injected-two',
+					),
+				),
+				'tests/hooked-at-last-child' => array(
+					'last_child' => array(
+						'tests/injected-two',
+					),
+				),
+				'tests/hooked-at-before-and-after' => array(
+					'before' => array(
+						'tests/injected-one',
+					),
+					'after'  => array(
+						'tests/injected-two',
+					),
 				),
 			),
-			get_hooked_blocks( 'tests/hooked-at-before' ),
-			'block hooked at the before position'
-		);
-		$this->assertSame(
-			array(
-				'after' => array(
-					'tests/injected-one',
-					'tests/injected-two',
-				),
-			),
-			get_hooked_blocks( 'tests/hooked-at-after' ),
-			'block hooked at the after position'
-		);
-		$this->assertSame(
-			array(
-				'first_child' => array(
-					'tests/injected-two',
-				),
-			),
-			get_hooked_blocks( 'tests/hooked-at-first-child' ),
-			'block hooked at the first child position'
-		);
-		$this->assertSame(
-			array(
-				'last_child' => array(
-					'tests/injected-two',
-				),
-			),
-			get_hooked_blocks( 'tests/hooked-at-last-child' ),
-			'block hooked at the last child position'
-		);
-		$this->assertSame(
-			array(
-				'before' => array(
-					'tests/injected-one',
-				),
-				'after'  => array(
-					'tests/injected-two',
-				),
-			),
-			get_hooked_blocks( 'tests/hooked-at-before-and-after' ),
-			'block hooked before one block and after another'
+			get_hooked_blocks()
 		);
 	}
 

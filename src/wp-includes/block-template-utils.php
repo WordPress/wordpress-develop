@@ -549,10 +549,15 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 		$template->area = $template_file['area'];
 	}
 
-	$blocks               = parse_blocks( $template_content );
-	$before_block_visitor = make_before_block_visitor( $template );
-	$after_block_visitor  = make_after_block_visitor( $template );
-	$template->content    = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+	$before_block_visitor = '_inject_theme_attribute_in_template_part_block';
+	$after_block_visitor  = null;
+	$block_hooks          = get_hooked_blocks();
+	if ( ! empty( $block_hooks ) || has_filter( 'hooked_block_types' ) ) {
+		$before_block_visitor = make_before_block_visitor( $template, $block_hooks );
+		$after_block_visitor  = make_after_block_visitor( $template, $block_hooks );
+	}
+	$blocks            = parse_blocks( $template_content );
+	$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 
 	return $template;
 }
