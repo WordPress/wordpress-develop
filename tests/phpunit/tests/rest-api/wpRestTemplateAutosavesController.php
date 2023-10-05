@@ -260,7 +260,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 			)
 		);
 		$autosave_db_post = get_post( $autosave_post_id );
-		$template_id      = self::TEST_THEME . '/' . self::TEMPLATE_NAME;
+		$template_id      = self::TEST_THEME . '//' . self::TEMPLATE_NAME;
 		$request          = new WP_REST_Request( 'GET', '/wp/v2/templates/' . $template_id . '/autosaves/' . $autosave_db_post->ID );
 		$controller       = new WP_REST_Template_Autosaves_Controller( self::PARENT_POST_TYPE );
 		$response         = $controller->prepare_item_for_response( $autosave_db_post, $request );
