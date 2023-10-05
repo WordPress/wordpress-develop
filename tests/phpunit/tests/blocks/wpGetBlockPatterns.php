@@ -31,26 +31,21 @@ class Tests_Blocks_WpGetBlockPatterns extends WP_UnitTestCase {
 	public function test_delete_theme_cache() {
 		$theme = wp_get_theme( 'block-theme-patterns' );
 		_wp_get_block_patterns( $theme );
-		$transient = get_transient( 'wp_theme_patterns_block-theme-patterns' );
 		$this->assertSameSets(
 			array(
-				'version'  => '1.0.0',
-				'patterns' => array(
-					'cta.php' => array(
-						'title'       => 'Centered Call To Action',
-						'slug'        => 'block-theme-patterns/cta',
-						'description' => '',
-						'categories'  => array( 'call-to-action' ),
-					),
+				'cta.php' => array(
+					'title'       => 'Centered Call To Action',
+					'slug'        => 'block-theme-patterns/cta',
+					'description' => '',
+					'categories'  => array( 'call-to-action' ),
 				),
 			),
-			$transient,
+			$theme->get_pattern_cache(),
 			'The transient for block theme patterns should be set'
 		);
-		$theme->cache_delete();
-		$transient = get_transient( 'wp_theme_patterns_block-theme-patterns' );
+		$theme->delete_pattern_cache();
 		$this->assertFalse(
-			$transient,
+			$theme->get_pattern_cache(),
 			'The transient for block theme patterns should have been cleared'
 		);
 	}
@@ -60,33 +55,29 @@ class Tests_Blocks_WpGetBlockPatterns extends WP_UnitTestCase {
 	 */
 	public function test_should_clear_transient_after_switching_theme() {
 		switch_theme( 'block-theme' );
-		_wp_get_block_patterns( wp_get_theme() );
+		$theme1 = wp_get_theme();
+		_wp_get_block_patterns( $theme1 );
 		$this->assertSameSets(
-			array(
-				'version'  => '1.0.0',
-				'patterns' => array(),
-			),
-			get_transient( 'wp_theme_patterns_block-theme' ),
+			array(),
+			$theme1->get_pattern_cache(),
 			'The transient for block theme should be set'
 		);
 		switch_theme( 'block-theme-patterns' );
-		$this->assertFalse( get_transient( 'wp_theme_patterns_block-theme' ), 'Transient should not be set for block theme after switch theme' );
-		$this->assertFalse( get_transient( 'wp_theme_patterns_block-theme-patterns' ), 'Transient should not be set for block theme patterns before being requested' );
-		_wp_get_block_patterns( wp_get_theme() );
-		$transient = get_transient( 'wp_theme_patterns_block-theme-patterns' );
+		$this->assertFalse( $theme1->get_pattern_cache(), 'Transient should not be set for block theme after switch theme' );
+		$theme2 = wp_get_theme();
+		$this->assertFalse( $theme2->get_pattern_cache(), 'Transient should not be set for block theme patterns before being requested' );
+		_wp_get_block_patterns( $theme2 );
 		$this->assertSameSets(
 			array(
-				'version'  => '1.0.0',
-				'patterns' => array(
-					'cta.php' => array(
-						'title'       => 'Centered Call To Action',
-						'slug'        => 'block-theme-patterns/cta',
-						'description' => '',
-						'categories'  => array( 'call-to-action' ),
-					),
+				'cta.php' => array(
+					'title'       => 'Centered Call To Action',
+					'slug'        => 'block-theme-patterns/cta',
+					'description' => '',
+					'categories'  => array( 'call-to-action' ),
 				),
+
 			),
-			$transient,
+			$theme2->get_pattern_cache(),
 			'The transient for block theme patterns should be set'
 		);
 	}
@@ -100,45 +91,30 @@ class Tests_Blocks_WpGetBlockPatterns extends WP_UnitTestCase {
 		return array(
 			array(
 				'theme'    => 'block-theme',
-				'patterns' => array(
-					'version'  => '1.0.0',
-					'patterns' => array(),
-				),
+				'patterns' => array(),
 			),
 			array(
 				'theme'    => 'block-theme-child',
-				'patterns' => array(
-					'version'  => '1.0.0',
-					'patterns' => array(),
-				),
+				'patterns' => array(),
 			),
 			array(
 				'theme'    => 'block-theme-patterns',
 				'patterns' => array(
-					'version'  => '1.0.0',
-					'patterns' => array(
-						'cta.php' => array(
-							'title'       => 'Centered Call To Action',
-							'slug'        => 'block-theme-patterns/cta',
-							'description' => '',
-							'categories'  => array( 'call-to-action' ),
-						),
+					'cta.php' => array(
+						'title'       => 'Centered Call To Action',
+						'slug'        => 'block-theme-patterns/cta',
+						'description' => '',
+						'categories'  => array( 'call-to-action' ),
 					),
 				),
 			),
 			array(
 				'theme'    => 'broken-theme',
-				'patterns' => array(
-					'version'  => false,
-					'patterns' => array(),
-				),
+				'patterns' => array(),
 			),
 			array(
 				'theme'    => 'invalid',
-				'patterns' => array(
-					'version'  => false,
-					'patterns' => array(),
-				),
+				'patterns' => array(),
 			),
 		);
 	}
