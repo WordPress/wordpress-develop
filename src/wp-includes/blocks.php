@@ -757,10 +757,10 @@ function get_hooked_blocks( $name ) {
  * Furthermore, prepend the markup for any blocks hooked `before` the given block and as its parent's
  * `first_child`, respectively, to the serialized markup for the given block.
  *
+ * Use as `$pre_callback` argument for {@see 'traverse_and_serialize_blocks()'}.
+ *
  * @since 6.4.0
  * @access private
- *
- * @see traverse_and_serialize_blocks()
  *
  * @param array                   $block        The block to inject the theme attribute into, and hooked blocks before.
  * @param array                   $parent_block The parent block of the given block.
@@ -821,10 +821,10 @@ function visit_before_block( &$block, $parent_block = null, $prev = null, $conte
  * Append the markup for any blocks hooked `after` the given block and as its parent's
  * `last_child`, respectively, to the serialized markup for the given block.
  *
+ * Use as `$post_callback` argument for {@see 'traverse_and_serialize_blocks()'}.
+ *
  * @since 6.4.0
  * @access private
- *
- * @see traverse_and_serialize_blocks()
  *
  * @param array                   $block        The block to inject the hooked blocks after.
  * @param array                   $parent_block The parent block of the given block.
