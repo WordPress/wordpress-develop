@@ -161,33 +161,6 @@ function get_option( $option, $default_value = false ) {
 	$passed_default = func_num_args() > 1;
 
 	if ( ! wp_installing() ) {
-		// Prevent non-existent options from triggering multiple queries.
-		$notoptions = wp_cache_get( 'notoptions', 'options' );
-
-		// Prevent non-existent `notoptions` key from triggering multiple key lookups.
-		if ( ! is_array( $notoptions ) ) {
-			$notoptions = array();
-			wp_cache_set( 'notoptions', $notoptions, 'options' );
-		}
-
-		if ( isset( $notoptions[ $option ] ) ) {
-			/**
-			 * Filters the default value for an option.
-			 *
-			 * The dynamic portion of the hook name, `$option`, refers to the option name.
-			 *
-			 * @since 3.4.0
-			 * @since 4.4.0 The `$option` parameter was added.
-			 * @since 4.7.0 The `$passed_default` parameter was added to distinguish between a `false` value and the default parameter value.
-			 *
-			 * @param mixed  $default_value  The default value to return if the option does not exist
-			 *                               in the database.
-			 * @param string $option         Option name.
-			 * @param bool   $passed_default Was `get_option()` passed a default value?
-			 */
-			return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default );
-		}
-
 		$alloptions = wp_load_alloptions();
 
 		if ( isset( $alloptions[ $option ] ) ) {
@@ -196,6 +169,31 @@ function get_option( $option, $default_value = false ) {
 			$value = wp_cache_get( $option, 'options' );
 
 			if ( false === $value ) {
+				// Prevent non-existent options from triggering multiple queries.
+				$notoptions = wp_cache_get( 'notoptions', 'options' );
+
+				// Prevent non-existent `notoptions` key from triggering multiple key lookups.
+				if ( ! is_array( $notoptions ) ) {
+					$notoptions = array();
+					wp_cache_set( 'notoptions', $notoptions, 'options' );
+				} elseif ( isset( $notoptions[ $option ] ) ) {
+					/**
+					 * Filters the default value for an option.
+					 *
+					 * The dynamic portion of the hook name, `$option`, refers to the option name.
+					 *
+					 * @since 3.4.0
+					 * @since 4.4.0 The `$option` parameter was added.
+					 * @since 4.7.0 The `$passed_default` parameter was added to distinguish between a `false` value and the default parameter value.
+					 *
+					 * @param mixed  $default_value  The default value to return if the option does not exist
+					 *                               in the database.
+					 * @param string $option         Option name.
+					 * @param bool   $passed_default Was `get_option()` passed a default value?
+					 */
+					return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default );
+				}
+
 				$row = $wpdb->get_row( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
 
 				// Has to be get_row() instead of get_var() because of funkiness with 0, false, null values.
@@ -203,10 +201,6 @@ function get_option( $option, $default_value = false ) {
 					$value = $row->option_value;
 					wp_cache_add( $option, $value, 'options' );
 				} else { // Option does not exist, so we must cache its non-existence.
-					if ( ! is_array( $notoptions ) ) {
-						$notoptions = array();
-					}
-
 					$notoptions[ $option ] = true;
 					wp_cache_set( 'notoptions', $notoptions, 'options' );
 
@@ -362,6 +356,172 @@ function get_options( $options ) {
 	}
 
 	return $result;
+}
+
+/**
+ * Sets the autoload values for multiple options in the database.
+ *
+ * Autoloading too many options can lead to performance problems, especially if the options are not frequently used.
+ * This function allows modifying the autoload value for multiple options without changing the actual option value.
+ * This is for example recommended for plugin activation and deactivation hooks, to ensure any options exclusively used
+ * by the plugin which are generally autoloaded can be set to not autoload when the plugin is inactive.
+ *
+ * @since 6.4.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param array $options Associative array of option names and their autoload values to set. The option names are
+ *                       expected to not be SQL-escaped. The autoload values accept 'yes'|true to enable or 'no'|false
+ *                       to disable.
+ * @return array Associative array of all provided $options as keys and boolean values for whether their autoload value
+ *               was updated.
+ */
+function wp_set_option_autoload_values( array $options ) {
+	global $wpdb;
+
+	if ( ! $options ) {
+		return array();
+	}
+
+	$grouped_options = array(
+		'yes' => array(),
+		'no'  => array(),
+	);
+	$results         = array();
+	foreach ( $options as $option => $autoload ) {
+		wp_protect_special_option( $option ); // Ensure only valid options can be passed.
+		if ( 'no' === $autoload || false === $autoload ) { // Sanitize autoload value and categorize accordingly.
+			$grouped_options['no'][] = $option;
+		} else {
+			$grouped_options['yes'][] = $option;
+		}
+		$results[ $option ] = false; // Initialize result value.
+	}
+
+	$where      = array();
+	$where_args = array();
+	foreach ( $grouped_options as $autoload => $options ) {
+		if ( ! $options ) {
+			continue;
+		}
+		$placeholders = implode( ',', array_fill( 0, count( $options ), '%s' ) );
+		$where[]      = "autoload != '%s' AND option_name IN ($placeholders)";
+		$where_args[] = $autoload;
+		foreach ( $options as $option ) {
+			$where_args[] = $option;
+		}
+	}
+	$where = 'WHERE ' . implode( ' OR ', $where );
+
+	/*
+	 * Determine the relevant options that do not already use the given autoload value.
+	 * If no options are returned, no need to update.
+	 */
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+	$options_to_update = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options $where", $where_args ) );
+	if ( ! $options_to_update ) {
+		return $results;
+	}
+
+	// Run UPDATE queries as needed (maximum 2) to update the relevant options' autoload values to 'yes' or 'no'.
+	foreach ( $grouped_options as $autoload => $options ) {
+		if ( ! $options ) {
+			continue;
+		}
+		$options                      = array_intersect( $options, $options_to_update );
+		$grouped_options[ $autoload ] = $options;
+		if ( ! $grouped_options[ $autoload ] ) {
+			continue;
+		}
+
+		// Run query to update autoload value for all the options where it is needed.
+		$success = $wpdb->query(
+			$wpdb->prepare(
+				"UPDATE $wpdb->options SET autoload = %s WHERE option_name IN (" . implode( ',', array_fill( 0, count( $grouped_options[ $autoload ] ), '%s' ) ) . ')',
+				array_merge(
+					array( $autoload ),
+					$grouped_options[ $autoload ]
+				)
+			)
+		);
+		if ( ! $success ) {
+			// Set option list to an empty array to indicate no options were updated.
+			$grouped_options[ $autoload ] = array();
+			continue;
+		}
+
+		// Assume that on success all options were updated, which should be the case given only new values are sent.
+		foreach ( $grouped_options[ $autoload ] as $option ) {
+			$results[ $option ] = true;
+		}
+	}
+
+	/*
+	 * If any options were changed to 'yes', delete their individual caches, and delete 'alloptions' cache so that it
+	 * is refreshed as needed.
+	 * If no options were changed to 'yes' but any options were changed to 'no', delete them from the 'alloptions'
+	 * cache. This is not necessary when options were changed to 'yes', since in that situation the entire cache is
+	 * deleted anyway.
+	 */
+	if ( $grouped_options['yes'] ) {
+		wp_cache_delete_multiple( $grouped_options['yes'], 'options' );
+		wp_cache_delete( 'alloptions', 'options' );
+	} elseif ( $grouped_options['no'] ) {
+		$alloptions = wp_load_alloptions( true );
+		foreach ( $grouped_options['no'] as $option ) {
+			if ( isset( $alloptions[ $option ] ) ) {
+				unset( $alloptions[ $option ] );
+			}
+		}
+		wp_cache_set( 'alloptions', $alloptions, 'options' );
+	}
+
+	return $results;
+}
+
+/**
+ * Sets the autoload value for multiple options in the database.
+ *
+ * This is a wrapper for {@see wp_set_option_autoload_values()}, which can be used to set different autoload values for
+ * each option at once.
+ *
+ * @since 6.4.0
+ *
+ * @see wp_set_option_autoload_values()
+ *
+ * @param array       $options  List of option names. Expected to not be SQL-escaped.
+ * @param string|bool $autoload Autoload value to control whether to load the options when WordPress starts up.
+ *                              Accepts 'yes'|true to enable or 'no'|false to disable.
+ * @return array Associative array of all provided $options as keys and boolean values for whether their autoload value
+ *               was updated.
+ */
+function wp_set_options_autoload( array $options, $autoload ) {
+	return wp_set_option_autoload_values(
+		array_fill_keys( $options, $autoload )
+	);
+}
+
+/**
+ * Sets the autoload value for an option in the database.
+ *
+ * This is a wrapper for {@see wp_set_option_autoload_values()}, which can be used to set the autoload value for
+ * multiple options at once.
+ *
+ * @since 6.4.0
+ *
+ * @see wp_set_option_autoload_values()
+ *
+ * @param string      $option   Name of the option. Expected to not be SQL-escaped.
+ * @param string|bool $autoload Autoload value to control whether to load the option when WordPress starts up.
+ *                              Accepts 'yes'|true to enable or 'no'|false to disable.
+ * @return bool True if the autoload value was modified, false otherwise.
+ */
+function wp_set_option_autoload( $option, $autoload ) {
+	$result = wp_set_option_autoload_values( array( $option => $autoload ) );
+	if ( isset( $result[ $option ] ) ) {
+		return $result[ $option ];
+	}
+	return false;
 }
 
 /**
@@ -617,20 +777,46 @@ function update_option( $option, $value, $autoload = null ) {
 	$value = apply_filters( 'pre_update_option', $value, $option, $old_value );
 
 	/*
-	 * If the new and old values are the same, no need to update.
-	 *
-	 * Unserialized values will be adequate in most cases. If the unserialized
-	 * data differs, the (maybe) serialized data is checked to avoid
-	 * unnecessary database calls for otherwise identical object instances.
-	 *
-	 * See https://core.trac.wordpress.org/ticket/38903
+	 * To get the actual raw old value from the database, any existing pre filters need to be temporarily disabled.
+	 * Immediately after getting the raw value, they are reinstated.
+	 * The raw value is only used to determine whether a value is present in the database. It is not used anywhere
+	 * else, and is not passed to any of the hooks either.
 	 */
-	if ( $value === $old_value || maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
-		return false;
+	if ( has_filter( "pre_option_{$option}" ) ) {
+		global $wp_filter;
+
+		$old_filters = $wp_filter[ "pre_option_{$option}" ];
+		unset( $wp_filter[ "pre_option_{$option}" ] );
+
+		$raw_old_value                       = get_option( $option );
+		$wp_filter[ "pre_option_{$option}" ] = $old_filters;
+	} else {
+		$raw_old_value = $old_value;
 	}
 
 	/** This filter is documented in wp-includes/option.php */
-	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
+	$default_value = apply_filters( "default_option_{$option}", false, $option, false );
+
+	/*
+	 * If the new and old values are the same, no need to update.
+	 *
+	 * An exception applies when no value is set in the database, i.e. the old value is the default.
+	 * In that case, the new value should always be added as it may be intentional to store it rather than relying on the default.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/38903 and https://core.trac.wordpress.org/ticket/22192.
+	 */
+	if (
+		$value === $raw_old_value ||
+		(
+			$raw_old_value !== $default_value &&
+			_is_equal_database_value( $raw_old_value, $value )
+		)
+	) {
+		return false;
+	}
+
+	if ( $raw_old_value === $default_value ) {
+
 		// Default setting for new options is 'yes'.
 		if ( null === $autoload ) {
 			$autoload = 'yes';
@@ -2726,4 +2912,41 @@ function filter_default_option( $default_value, $option, $passed_default ) {
 	}
 
 	return $registered[ $option ]['default'];
+}
+
+/**
+ * Determines whether two values will be equal when stored in the database.
+ *
+ * @since 6.4.0
+ * @access private
+ *
+ * @param mixed $old_value The old value to compare.
+ * @param mixed $new_value The new value to compare.
+ * @return bool True if the values are equal, false otherwise.
+ */
+function _is_equal_database_value( $old_value, $new_value ) {
+	$values = array(
+		'old' => $old_value,
+		'new' => $new_value,
+	);
+
+	foreach ( $values as $_key => &$_value ) {
+		// Cast scalars or null to a string so type discrepancies don't result in cache misses.
+		if ( null === $_value || is_scalar( $_value ) ) {
+			$_value = (string) $_value;
+		}
+	}
+
+	if ( $values['old'] === $values['new'] ) {
+		return true;
+	}
+
+	/*
+	 * Unserialized values will be adequate in most cases. If the unserialized
+	 * data differs, the (maybe) serialized data is checked to avoid
+	 * unnecessary database calls for otherwise identical object instances.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/38903
+	 */
+	return maybe_serialize( $old_value ) === maybe_serialize( $new_value );
 }

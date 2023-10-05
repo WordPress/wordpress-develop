@@ -700,7 +700,7 @@ function wp_exif_frac2dec( $str ) {
 	}
 
 	// The denominator must not be zero.
-	if ( 0 == $denominator ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison -- Deliberate loose comparison.
+	if ( 0 == $denominator ) { // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual -- Deliberate loose comparison.
 		return 0;
 	}
 
@@ -782,7 +782,7 @@ function wp_read_image_metadata( $file ) {
 			) {
 				$iptc = iptcparse( $info['APP13'] );
 			} else {
-				// phpcs:ignore WordPress.PHP.NoSilencedErrors -- Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
+				// Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
 				$iptc = @iptcparse( $info['APP13'] );
 			}
 
@@ -855,7 +855,7 @@ function wp_read_image_metadata( $file ) {
 		) {
 			$exif = exif_read_data( $file );
 		} else {
-			// phpcs:ignore WordPress.PHP.NoSilencedErrors -- Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
+			// Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
 			$exif = @exif_read_data( $file );
 		}
 
@@ -953,7 +953,6 @@ function wp_read_image_metadata( $file ) {
 	 * @param array  $exif       EXIF data.
 	 */
 	return apply_filters( 'wp_read_image_metadata', $meta, $file, $image_type, $iptc, $exif );
-
 }
 
 /**

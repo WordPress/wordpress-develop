@@ -75,9 +75,9 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name'           => _x( 'Media', 'post type general name' ),
 				'name_admin_bar' => _x( 'Media', 'add new from admin bar' ),
-				'add_new'        => _x( 'Add New', 'file' ),
+				'add_new'        => __( 'Add New Media File' ),
 				'edit_item'      => __( 'Edit Media' ),
-				'view_item'      => __( 'View Attachment Page' ),
+				'view_item'      => ( '1' === get_option( 'wp_attachment_pages_enabled' ) ) ? __( 'View Attachment Page' ) : __( 'View Media File' ),
 				'attributes'     => __( 'Attachment Attributes' ),
 			),
 			'public'                => true,
@@ -202,7 +202,7 @@ function create_initial_post_types() {
 			'labels'           => array(
 				'name'               => _x( 'Changesets', 'post type general name' ),
 				'singular_name'      => _x( 'Changeset', 'post type singular name' ),
-				'add_new'            => _x( 'Add New', 'Customize Changeset' ),
+				'add_new'            => __( 'Add New Changeset' ),
 				'add_new_item'       => __( 'Add New Changeset' ),
 				'new_item'           => __( 'New Changeset' ),
 				'edit_item'          => __( 'Edit Changeset' ),
@@ -284,8 +284,8 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name'                     => _x( 'Patterns', 'post type general name' ),
 				'singular_name'            => _x( 'Pattern', 'post type singular name' ),
-				'add_new'                  => _x( 'Add New', 'Pattern' ),
-				'add_new_item'             => __( 'Add new Pattern' ),
+				'add_new'                  => __( 'Add New Pattern' ),
+				'add_new_item'             => __( 'Add New Pattern' ),
 				'new_item'                 => __( 'New Pattern' ),
 				'edit_item'                => __( 'Edit Block Pattern' ),
 				'view_item'                => __( 'View Pattern' ),
@@ -320,6 +320,8 @@ function create_initial_post_types() {
 				'edit_posts'             => 'edit_posts',
 				'edit_published_posts'   => 'edit_published_posts',
 				'delete_published_posts' => 'delete_published_posts',
+				// Enables trashing draft posts as well.
+				'delete_posts'           => 'delete_posts',
 				'edit_others_posts'      => 'edit_others_posts',
 				'delete_others_posts'    => 'delete_others_posts',
 			),
@@ -347,7 +349,7 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name'                  => _x( 'Templates', 'post type general name' ),
 				'singular_name'         => _x( 'Template', 'post type singular name' ),
-				'add_new'               => _x( 'Add New', 'Template' ),
+				'add_new'               => __( 'Add New Template' ),
 				'add_new_item'          => __( 'Add New Template' ),
 				'new_item'              => __( 'New Template' ),
 				'edit_item'             => __( 'Edit Template' ),
@@ -408,7 +410,7 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name'                  => _x( 'Template Parts', 'post type general name' ),
 				'singular_name'         => _x( 'Template Part', 'post type singular name' ),
-				'add_new'               => _x( 'Add New', 'Template Part' ),
+				'add_new'               => __( 'Add New Template Part' ),
 				'add_new_item'          => __( 'Add New Template Part' ),
 				'new_item'              => __( 'New Template Part' ),
 				'edit_item'             => __( 'Edit Template Part' ),
@@ -505,7 +507,7 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name'                  => _x( 'Navigation Menus', 'post type general name' ),
 				'singular_name'         => _x( 'Navigation Menu', 'post type singular name' ),
-				'add_new'               => _x( 'Add New', 'Navigation Menu' ),
+				'add_new'               => __( 'Add New Navigation Menu' ),
 				'add_new_item'          => __( 'Add New Navigation Menu' ),
 				'new_item'              => __( 'New Navigation Menu' ),
 				'edit_item'             => __( 'Edit Navigation Menu' ),
@@ -1380,7 +1382,7 @@ function register_post_status( $post_status, $args = array() ) {
 	}
 
 	if ( false === $args->label_count ) {
-		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingle,WordPress.WP.I18n.NonSingularStringLiteralPlural
+		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingular,WordPress.WP.I18n.NonSingularStringLiteralPlural
 		$args->label_count = _n_noop( $args->label, $args->label );
 	}
 
@@ -1931,9 +1933,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * - `name` - General name for the post type, usually plural. The same and overridden
  *          by `$post_type_object->label`. Default is 'Posts' / 'Pages'.
  * - `singular_name` - Name for one object of this post type. Default is 'Post' / 'Page'.
- * - `add_new` - Default is 'Add New' for both hierarchical and non-hierarchical types.
- *             When internationalizing this string, please use a {@link https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/#disambiguation-by-context gettext context}
- *             matching your post type. Example: `_x( 'Add New', 'product', 'textdomain' );`.
+ * - `add_new` - Label for adding a new item. Default is 'Add New Post' / 'Add New Page'.
  * - `add_new_item` - Label for adding a new singular item. Default is 'Add New Post' / 'Add New Page'.
  * - `edit_item` - Label for editing a singular item. Default is 'Edit Post' / 'Edit Page'.
  * - `new_item` - Label for the new item page title. Default is 'New Post' / 'New Page'.
@@ -1992,6 +1992,8 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * @since 5.7.0 Added the `filter_by_date` label.
  * @since 5.8.0 Added the `item_link` and `item_link_description` labels.
  * @since 6.3.0 Added the `item_trashed` label.
+ * @since 6.4.0 Changed default values for the `add_new` label to include the type of content.
+ *              This matches `add_new_item` and provides more context for better accessibility.
  *
  * @access private
  *
@@ -2439,7 +2441,6 @@ function get_posts( $args = null ) {
 
 	$get_posts = new WP_Query();
 	return $get_posts->query( $parsed_args );
-
 }
 
 //
@@ -3998,7 +3999,6 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 	}
 
 	return $results ? $results : false;
-
 }
 
 /**
@@ -5075,7 +5075,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 			do {
 				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_id ) );
-				$suffix++;
+				++$suffix;
 			} while ( $post_name_check );
 			$slug = $alt_post_name;
 		}
@@ -5112,7 +5112,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 			do {
 				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_type, $post_id, $post_parent ) );
-				$suffix++;
+				++$suffix;
 			} while ( $post_name_check );
 			$slug = $alt_post_name;
 		}
@@ -5168,7 +5168,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 			do {
 				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_type, $post_id ) );
-				$suffix++;
+				++$suffix;
 			} while ( $post_name_check );
 			$slug = $alt_post_name;
 		}
@@ -5760,7 +5760,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 			 * ensuring each matches the post ancestry.
 			 */
 			while ( 0 != $p->post_parent && isset( $pages[ $p->post_parent ] ) ) {
-				$count++;
+				++$count;
 				$parent = $pages[ $p->post_parent ];
 				if ( ! isset( $revparts[ $count ] ) || $parent->post_name != $revparts[ $count ] ) {
 					break;
@@ -6066,8 +6066,22 @@ function get_pages( $args = array() ) {
 		$query_args['post_parent'] = $parent;
 	}
 
+	/*
+	 * Maintain backward compatibility for `sort_column` key.
+	 * Additionally to `WP_Query`, it has been supporting the `post_modified_gmt` field, so this logic will translate
+	 * it to `post_modified` which should result in the same order given the two dates in the fields match.
+	 */
 	$orderby = wp_parse_list( $parsed_args['sort_column'] );
-	$orderby = array_map( 'trim', $orderby );
+	$orderby = array_map(
+		static function ( $orderby_field ) {
+			$orderby_field = trim( $orderby_field );
+			if ( 'post_modified_gmt' === $orderby_field || 'modified_gmt' === $orderby_field ) {
+				$orderby_field = str_replace( '_gmt', '', $orderby_field );
+			}
+			return $orderby_field;
+		},
+		$orderby
+	);
 	if ( $orderby ) {
 		$query_args['orderby'] = array_fill_keys( $orderby, $parsed_args['sort_order'] );
 	}
@@ -6091,8 +6105,8 @@ function get_pages( $args = array() ) {
 	 */
 	$query_args = apply_filters( 'get_pages_query_args', $query_args, $parsed_args );
 
-	$query = new WP_Query( $query_args );
-	$pages = $query->get_posts();
+	$pages = new WP_Query();
+	$pages = $pages->query( $query_args );
 
 	if ( $child_of || $hierarchical ) {
 		$pages = get_page_children( $child_of, $pages );
@@ -7248,6 +7262,7 @@ function clean_post_cache( $post ) {
 
 	wp_cache_delete( $post->ID, 'posts' );
 	wp_cache_delete( $post->ID, 'post_meta' );
+	wp_cache_delete( $post->ID, 'post_parent' );
 
 	clean_object_term_cache( $post->ID, $post->post_type );
 
@@ -7782,6 +7797,33 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 }
 
 /**
+ * Prime post parent caches.
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @since 6.4.0
+ *
+ * @param int[] $ids ID list.
+ */
+function _prime_post_parents_caches( array $ids ) {
+	global $wpdb;
+
+	$non_cached_ids = _get_non_cached_ids( $ids, 'post_parent' );
+	if ( ! empty( $non_cached_ids ) ) {
+		$fresh_posts = $wpdb->get_results( sprintf( "SELECT $wpdb->posts.ID, $wpdb->posts.post_parent FROM $wpdb->posts WHERE ID IN (%s)", implode( ',', $non_cached_ids ) ) );
+
+		if ( $fresh_posts ) {
+			$post_parent_data = array();
+			foreach ( $fresh_posts as $fresh_post ) {
+				$post_parent_data[ (int) $fresh_post->ID ] = (int) $fresh_post->post_parent;
+			}
+
+			wp_cache_add_multiple( $post_parent_data, 'post_parent' );
+		}
+	}
+}
+
+/**
  * Adds a suffix if any trashed posts have a given slug.
  *
  * Store its desired (i.e. current) slug so it can try to reclaim it
@@ -7874,7 +7916,7 @@ function get_available_post_mime_types( $type = 'attachment' ) {
 	 * @param string[]|null $mime_types An array of MIME types. Default null.
 	 * @param string        $type       The post type name. Usually 'attachment' but can be any post type.
 	 */
-	$mime_types = apply_filters( 'get_available_post_mime_types', null, $type );
+	$mime_types = apply_filters( 'pre_get_available_post_mime_types', null, $type );
 
 	if ( ! is_array( $mime_types ) ) {
 		$mime_types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );

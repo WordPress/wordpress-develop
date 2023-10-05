@@ -25,6 +25,14 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	private $parent_post_type;
 
 	/**
+	 * Instance of a revision meta fields object.
+	 *
+	 * @since 6.4.0
+	 * @var WP_REST_Post_Meta_Fields
+	 */
+	protected $meta;
+
+	/**
 	 * Parent controller.
 	 *
 	 * @since 4.7.0
@@ -60,6 +68,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		$this->rest_base         = 'revisions';
 		$this->parent_base       = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
 		$this->namespace         = ! empty( $post_type_object->rest_namespace ) ? $post_type_object->rest_namespace : 'wp/v2';
+		$this->meta              = new WP_REST_Post_Meta_Fields( $parent_post_type );
 	}
 
 	/**
@@ -128,7 +137,6 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
-
 	}
 
 	/**
@@ -548,7 +556,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
-		$post            = $item;
+		$post = $item;
+
 		$GLOBALS['post'] = $post;
 
 		setup_postdata( $post );
@@ -617,6 +626,10 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 				'raw'      => $post->post_excerpt,
 				'rendered' => $this->prepare_excerpt_response( $post->post_excerpt, $post ),
 			);
+		}
+
+		if ( rest_is_field_included( 'meta', $fields ) ) {
+			$data['meta'] = $this->meta->get_value( $post->ID, $request );
 		}
 
 		$context  = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -751,6 +764,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		if ( ! empty( $parent_schema['properties']['guid'] ) ) {
 			$schema['properties']['guid'] = $parent_schema['properties']['guid'];
 		}
+
+		$schema['properties']['meta'] = $this->meta->get_field_schema();
 
 		$this->schema = $schema;
 
