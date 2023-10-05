@@ -639,10 +639,11 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			'(int) 0'            => array( 0, 0 ),
 			'(float) 0.0'        => array( 0.0, 0.0 ),
 			'empty array'        => array( array(), array() ),
+			'false'              => array( false, false ),
 
 			/*
-			 * false and null are not included in these datasets
-			 * because false is the default value, which triggers
+			 * null is not included in these datasets because
+			 * false is the default value, which triggers
 			 * a call to add_option().
 			 *
 			 * See data_stored_as_empty_string() and its related test.
@@ -679,7 +680,6 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 */
 	public function data_stored_as_empty_string() {
 		return array(
-			'false'        => array( false ),
 			'empty string' => array( '' ),
 			'null'         => array( null ),
 		);
@@ -705,7 +705,12 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertTrue( update_option( $option, $default_value ), 'update_option() should have returned true.' );
+		/*
+		 * For a non existing option with the unfiltered default of false, passing false here wouldn't work.
+		 * Because the default is different than false here though, passing false is expected to result in
+		 * a database update.
+		 */
+		$this->assertTrue( update_option( $option, false ), 'update_option() should have returned true.' );
 
 		$actual = $wpdb->get_row(
 			$wpdb->prepare(
@@ -716,7 +721,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$this->assertIsObject( $actual, 'The option was not added to the database.' );
 		$this->assertObjectHasProperty( 'option_value', $actual, 'The "option_value" property was not included.' );
-		$this->assertSame( $default_value, $actual->option_value, 'The value was not stored as an empty string.' );
+		$this->assertSame( '', $actual->option_value, 'The new value was not stored in the database.' );
 	}
 
 	/**
