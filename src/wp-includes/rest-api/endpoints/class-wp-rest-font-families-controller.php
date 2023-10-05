@@ -16,8 +16,6 @@
  * @since 6.4.0
  */
 class WP_REST_Font_Families_Controller extends WP_REST_Controller {
-
-
 	/**
 	 * Constructor.
 	 *
@@ -125,7 +123,9 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 
 	/**
 	 * Get items (font families).
-	 *
+	 * 
+	 * @since 6.4.0
+	 * 
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error
 	 */
