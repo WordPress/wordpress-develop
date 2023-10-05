@@ -14,7 +14,12 @@ class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_TestCase 
 	 *
 	 * @var string
 	 */
-	protected static $fonts_dir;
+	private static $fonts_dir;
+
+	private static $skip_setup_test_methods = array(
+		'test_get_items_with_no_collection_registered',
+		'test_get_items'
+	);
 
 	public function set_up() {
 		parent::set_up();
@@ -28,6 +33,9 @@ class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_TestCase 
 			)
 		);
 		wp_set_current_user( $admin_id );
+		if ( in_array( $this->getName(), self::$skip_setup_test_methods)) {
+			return;
+		}
 
 
 		// Mock font collection data file.
