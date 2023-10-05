@@ -844,4 +844,20 @@ class Tests_Auth extends WP_UnitTestCase {
 			'not allowed' => array( 'subscriber', false ),
 		);
 	}
+
+	/**
+	 * @ticket 46748
+	 */
+	public function test_authenticate_filter_with_low_priority_prohibits_login() {
+		$callback = static function() {
+			return new WP_Error();
+		};
+		add_filter( 'authenticate', $callback, 5 );
+
+		$actual = wp_authenticate( $this->user->user_login, 'password' );
+
+		remove_filter( 'authenticate', $callback, 5 );
+
+		$this->assertInstanceOf( 'WP_Error', $actual );
+	}
 }
