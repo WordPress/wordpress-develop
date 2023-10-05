@@ -60,6 +60,7 @@ class WP_Customize_Color_Control extends WP_Customize_Control {
 	 *
 	 * @since 3.4.0
 	 */
+	#[\Override]
 	public function enqueue() {
 		wp_enqueue_script( 'wp-color-picker' );
 		wp_enqueue_style( 'wp-color-picker' );
@@ -71,6 +72,7 @@ class WP_Customize_Color_Control extends WP_Customize_Control {
 	 * @since 3.4.0
 	 * @uses WP_Customize_Control::to_json()
 	 */
+	#[\Override]
 	public function to_json() {
 		parent::to_json();
 		$this->json['statuses']     = $this->statuses;
@@ -83,6 +85,7 @@ class WP_Customize_Color_Control extends WP_Customize_Control {
 	 *
 	 * @since 3.4.0
 	 */
+	#[\Override]
 	public function render_content() {}
 
 	/**
@@ -90,6 +93,7 @@ class WP_Customize_Color_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.1.0
 	 */
+	#[\Override]
 	public function content_template() {
 		?>
 		<# var defaultValue = '#RRGGBB', defaultValueAttr = '',
