@@ -1,8 +1,8 @@
 <?php
 /**
- * Fonts Family Utils class.
+ * Font Family Utils class.
  *
- * This file contains utils fot Font Family class.
+ * This file contains utils for Font Family class.
  *
  * @package    WordPress
  * @subpackage Fonts
