@@ -100,6 +100,7 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 	/**
 	 * @global Custom_Image_Header $custom_image_header
 	 */
+	#[\Override]
 	public function prepare_control() {
 		global $custom_image_header;
 		if ( empty( $custom_image_header ) ) {
