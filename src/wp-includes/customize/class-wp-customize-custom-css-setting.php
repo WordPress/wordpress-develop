@@ -80,6 +80,7 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	 *
 	 * @return bool False when preview short-circuits due no change needing to be previewed.
 	 */
+	#[\Override]
 	public function preview() {
 		if ( $this->is_previewed ) {
 			return false;
@@ -121,6 +122,7 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	 *
 	 * @return string
 	 */
+	#[\Override]
 	public function value() {
 		if ( $this->is_previewed ) {
 			$post_value = $this->post_value( null );
@@ -157,6 +159,7 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	 * @param string $value CSS to validate.
 	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.
 	 */
+	#[\Override]
 	public function validate( $value ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$css = $value;
@@ -182,6 +185,7 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	 * @param string $value CSS to update.
 	 * @return int|false The post ID or false if the value could not be saved.
 	 */
+	#[\Override]
 	public function update( $value ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$css = $value;
