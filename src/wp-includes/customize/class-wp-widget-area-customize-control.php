@@ -37,6 +37,7 @@ class WP_Widget_Area_Customize_Control extends WP_Customize_Control {
 	 *
 	 * @since 3.9.0
 	 */
+	#[\Override]
 	public function to_json() {
 		parent::to_json();
 		$exported_properties = array( 'sidebar_id' );
@@ -50,6 +51,7 @@ class WP_Widget_Area_Customize_Control extends WP_Customize_Control {
 	 *
 	 * @since 3.9.0
 	 */
+	#[\Override]
 	public function render_content() {
 		$id = 'reorder-widgets-desc-' . str_replace( array( '[', ']' ), array( '-', '' ), $this->id );
 		?>
