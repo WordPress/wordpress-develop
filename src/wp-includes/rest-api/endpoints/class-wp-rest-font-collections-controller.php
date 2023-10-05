@@ -38,7 +38,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'get_font_collections' ),
+					'callback'            => array( $this, 'get_items' ),
 					'permission_callback' => array( $this, 'update_font_library_permissions_check' ),
 				),
 				'schema' => array( $this, 'get_items_schema' ),
@@ -58,7 +58,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 				),
 				array(
 					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'get_font_collection' ),
+					'callback'            => array( $this, 'get_item' ),
 					'permission_callback' => array( $this, 'update_font_library_permissions_check' ),
 				),
 				'schema' => array( $this, 'get_item_schema' ),
@@ -74,7 +74,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
-	public function get_font_collection( $request ) {
+	public function get_item( $request ) {
 		$id         = $request['id'];
 		$collection = WP_Font_Library::get_font_collection( $id );
 		// If the collection doesn't exist returns a 404.
@@ -89,7 +89,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 			return $collection_with_data;
 		}
 
-		$response = $this->prepare_item_for_response( $collection_with_data, $request ); 
+		$response = $this->prepare_item_for_response( $collection_with_data, $request );
 		return rest_ensure_response( $response );
 	}
 
@@ -100,7 +100,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 	 *
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
-	public function get_font_collections() {
+	public function get_items() {
 		$collections = array();
 		foreach ( WP_Font_Library::get_font_collections() as $collection ) {
 			$collections[] = $this->prepare_item_for_response( $collection->get_config(), null );
@@ -293,7 +293,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 		$output = _wp_to_kebab_case( $input );
 		return str_replace( '-', '_', $output );
 	}
-	
+
 	/**
 	 * Convert array keys from camelCase to snake_case.
 	 *
