@@ -66,7 +66,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 		$markup = "<!-- wp:outer --><!-- wp:inner {\"key\":\"value\"} -->Example.<!-- /wp:inner -->\n\nExample.\n\n<!-- wp:void /--><!-- /wp:outer -->";
 		$blocks = parse_blocks( $markup );
 
-		$actual = traverse_and_serialize_blocks( $blocks, array( __CLASS__, 'add_attribute_to_inner_block' ) );
+		$actual = traverse_and_serialize_blocks( $blocks, array( __CLASS__, 'add_attribute_to_inner_block' ), null, 'myvalue' );
 
 		$this->assertSame(
 			"<!-- wp:outer --><!-- wp:inner {\"key\":\"value\",\"myattr\":\"myvalue\"} -->Example.<!-- /wp:inner -->\n\nExample.\n\n<!-- wp:void /--><!-- /wp:outer -->",
@@ -74,9 +74,9 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 		);
 	}
 
-	public static function add_attribute_to_inner_block( &$block ) {
+	public static function add_attribute_to_inner_block( &$block, $parent, $prev, $data ) {
 		if ( 'core/inner' === $block['blockName'] ) {
-			$block['attrs']['myattr'] = 'myvalue';
+			$block['attrs']['myattr'] = $data;
 		}
 	}
 
