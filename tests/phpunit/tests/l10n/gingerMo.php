@@ -11,14 +11,6 @@ class Ginger_MO_Translations_Tests extends WP_UnitTestCase {
 	 */
 	public function tear_down() {
 		unload_textdomain( 'wp-tests-domain' );
-
-		if ( file_exists( DIR_TESTDATA . '/pomo/simple.mo.php' ) ) {
-			$this->unlink( DIR_TESTDATA . '/pomo/simple.mo.php' );
-		}
-
-		if ( file_exists( DIR_TESTDATA . '/pomo/plural.php' ) ) {
-			$this->unlink( DIR_TESTDATA . '/pomo/plural.php' );
-		}
 	}
 
 	/**
