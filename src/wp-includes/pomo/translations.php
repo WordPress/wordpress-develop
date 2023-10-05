@@ -300,6 +300,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 * @param string $header
 		 * @param string $value
 		 */
+		#[\Override]
 		public function set_header( $header, $value ) {
 			parent::set_header( $header, $value );
 			if ( 'Plural-Forms' === $header ) {
@@ -320,6 +321,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 		public $entries = array();
 		public $headers = array();
 
+		#[\Override]
 		public function add_entry( $entry ) {
 			return true;
 		}
@@ -328,12 +330,14 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 		 * @param string $header
 		 * @param string $value
 		 */
+		#[\Override]
 		public function set_header( $header, $value ) {
 		}
 
 		/**
 		 * @param array $headers
 		 */
+		#[\Override]
 		public function set_headers( $headers ) {
 		}
 
@@ -341,6 +345,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 		 * @param string $header
 		 * @return false
 		 */
+		#[\Override]
 		public function get_header( $header ) {
 			return false;
 		}
@@ -349,6 +354,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 		 * @param Translation_Entry $entry
 		 * @return false
 		 */
+		#[\Override]
 		public function translate_entry( &$entry ) {
 			return false;
 		}
@@ -357,6 +363,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 		 * @param string $singular
 		 * @param string $context
 		 */
+		#[\Override]
 		public function translate( $singular, $context = null ) {
 			return $singular;
 		}
@@ -365,6 +372,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 		 * @param int $count
 		 * @return bool
 		 */
+		#[\Override]
 		public function select_plural_form( $count ) {
 			return 1 === (int) $count ? 0 : 1;
 		}
@@ -372,6 +380,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 		/**
 		 * @return int
 		 */
+		#[\Override]
 		public function get_plural_forms_count() {
 			return 2;
 		}
@@ -382,6 +391,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 		 * @param int    $count
 		 * @param string $context
 		 */
+		#[\Override]
 		public function translate_plural( $singular, $plural, $count, $context = null ) {
 			return 1 === (int) $count ? $singular : $plural;
 		}
@@ -389,6 +399,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 		/**
 		 * @param object $other
 		 */
+		#[\Override]
 		public function merge_with( &$other ) {
 		}
 	}
