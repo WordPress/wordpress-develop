@@ -1,7 +1,7 @@
 === Twenty Twenty ===
 Contributors: the WordPress team
 Requires at least: 4.7
-Tested up to: 6.3
+Tested up to: 6.4
 Requires PHP: 5.2.4
 Stable tag: 2.3
 License: GPLv2 or later
