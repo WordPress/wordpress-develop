@@ -760,6 +760,8 @@ function get_hooked_blocks( $name ) {
  * @since 6.4.0
  * @access private
  *
+ * @see traverse_and_serialize_blocks()
+ *
  * @param array                   $block        The block to inject the theme attribute into, and hooked blocks before.
  * @param array                   $parent_block The parent block of the given block.
  * @param array                   $prev         The previous sibling block of the given block.
@@ -821,6 +823,8 @@ function visit_before_block( &$block, $parent_block = null, $prev = null, $conte
  *
  * @since 6.4.0
  * @access private
+ *
+ * @see traverse_and_serialize_blocks()
  *
  * @param array                   $block        The block to inject the hooked blocks after.
  * @param array                   $parent_block The parent block of the given block.
