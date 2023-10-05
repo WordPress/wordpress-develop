@@ -397,43 +397,43 @@ final class WP_Post_Type {
 	public $rest_controller;
 
 	/**
-	 * The controller for this post type's REST API endpoints.
+	 * The controller for this post type's revisions REST API endpoints.
 	 *
 	 * Custom controllers must extend WP_REST_Controller.
 	 *
 	 * @since 6.4.0
-	 * @var string|bool $rest_controller_class
+	 * @var string|bool $revisions_rest_controller_class
 	 */
 	public $revisions_rest_controller_class;
 
 	/**
-	 * The controller instance for this post type's REST API endpoints.
+	 * The controller instance for this post type's revisions REST API endpoints.
 	 *
-	 * Lazily computed. Should be accessed using {@see WP_Post_Type::get_rest_controller()}.
+	 * Lazily computed. Should be accessed using {@see WP_Post_Type::get_revisions_rest_controller()}.
 	 *
 	 * @since 6.4.0
-	 * @var WP_REST_Controller $rest_controller
+	 * @var WP_REST_Controller $revisions_rest_controller
 	 */
 	public $revisions_rest_controller;
 
 
 	/**
-	 * The controller for this post type's REST API endpoints.
+	 * The controller for this post type's autosave REST API endpoints.
 	 *
 	 * Custom controllers must extend WP_REST_Controller.
 	 *
 	 * @since 6.4.0
-	 * @var string|bool $rest_controller_class
+	 * @var string|bool $autosave_rest_controller_class
 	 */
 	public $autosave_rest_controller_class;
 
 	/**
-	 * The controller instance for this post type's REST API endpoints.
+	 * The controller instance for this post type's autosave REST API endpoints.
 	 *
-	 * Lazily computed. Should be accessed using {@see WP_Post_Type::get_rest_controller()}.
+	 * Lazily computed. Should be accessed using {@see WP_Post_Type::get_autosave_rest_controller()}.
 	 *
 	 * @since 6.4.0
-	 * @var WP_REST_Controller $rest_controller
+	 * @var WP_REST_Controller $autosave_rest_controller
 	 */
 	public $autosave_rest_controller;
 
@@ -496,6 +496,7 @@ final class WP_Post_Type {
 		 *  - `register_page_post_type_args`
 		 *
 		 * @since 6.0.0
+		 * @since 6.4.0 Added `autosave_rest_controller_class` and `revisions_rest_controller_class` arguments.
 		 *
 		 * @param array  $args      Array of arguments for registering a post type.
 		 *                          See the register_post_type() function for accepted arguments.

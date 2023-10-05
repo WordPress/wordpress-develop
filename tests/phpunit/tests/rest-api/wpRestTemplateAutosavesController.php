@@ -9,9 +9,19 @@
  */
 class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controller_Testcase {
 
-	const TEST_THEME    = 'block-theme';
+	/**
+	 * @var string
+	 */
+	const TEST_THEME = 'block-theme';
+
+	/**
+	 * @var string
+	 */
 	const TEMPLATE_NAME = 'my_template';
 
+	/**
+	 * @var string
+	 */
 	const PARENT_POST_TYPE = 'wp_template';
 
 	/**
@@ -22,6 +32,15 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @var int
 	 */
 	private static $admin_id;
+
+	/**
+	 * Contributor user ID.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @var int
+	 */
+	private static $contributor_id;
 
 	/**
 	 * Template post.
@@ -38,6 +57,11 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$contributor_id = $factory->user->create(
+			array(
+				'role' => 'contributor',
+			)
+		);
 
 		self::$admin_id = $factory->user->create(
 			array(
@@ -236,7 +260,8 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 			)
 		);
 		$autosave_db_post = get_post( $autosave_post_id );
-		$request          = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves/' . $autosave_db_post->ID );
+		$template_id      = self::TEST_THEME . '/' . self::TEMPLATE_NAME;
+		$request          = new WP_REST_Request( 'GET', '/wp/v2/templates/' . $template_id . '/autosaves/' . $autosave_db_post->ID );
 		$controller       = new WP_REST_Template_Autosaves_Controller( self::PARENT_POST_TYPE );
 		$response         = $controller->prepare_item_for_response( $autosave_db_post, $request );
 		$this->assertInstanceOf(
@@ -268,20 +293,20 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$this->assertIsArray( $links, 'Failed asserting that the links are an array.' );
 
 		$this->assertStringEndsWith(
-			self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/autosaves/' . $autosave_db_post->ID,
+			$template_id . '/autosaves/' . $autosave_db_post->ID,
 			$links['self'][0]['href'],
 			sprintf(
 				'Failed asserting that the self link ends with %s.',
-				self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/autosaves/' . $autosave_db_post->ID
+				$template_id . '/autosaves/' . $autosave_db_post->ID
 			)
 		);
 
 		$this->assertStringEndsWith(
-			self::TEST_THEME . '//' . self::TEMPLATE_NAME,
+			$template_id,
 			$links['parent'][0]['href'],
 			sprintf(
 				'Failed asserting that the parent link ends with %s.',
-				self::TEST_THEME . '//' . self::TEMPLATE_NAME
+				$template_id
 			)
 		);
 	}
@@ -291,33 +316,28 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @ticket 56922
 	 */
 	public function test_get_item_schema() {
-		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves' );
-		$response   = rest_get_server()->dispatch( $request );
-		$data       = $response->get_data();
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
 		$properties = $data['schema']['properties'];
 
-		$expected_properties = array(
-			'id',
-			'slug',
-			'theme',
-			'type',
-			'source',
-			'origin',
-			'content',
-			'title',
-			'description',
-			'status',
-			'wp_id',
-			'has_theme_file',
-			'author',
-			'modified',
-			'is_custom',
-			'parent',
-		);
-
-		foreach ( $expected_properties as $property ) {
-			$this->assertArrayHasKey( $property, $properties, "{$property} key should exist in properties." );
-		}
+		$this->assertCount( 16, $properties );
+		$this->assertArrayHasKey( 'id', $properties, 'ID key should exist in properties.' );
+		$this->assertArrayHasKey( 'slug', $properties, 'Slug key should exist in properties.' );
+		$this->assertArrayHasKey( 'theme', $properties, 'Theme key should exist in properties.' );
+		$this->assertArrayHasKey( 'source', $properties, 'Source key should exist in properties.' );
+		$this->assertArrayHasKey( 'origin', $properties, 'Origin key should exist in properties.' );
+		$this->assertArrayHasKey( 'content', $properties, 'Content key should exist in properties.' );
+		$this->assertArrayHasKey( 'title', $properties, 'Title key should exist in properties.' );
+		$this->assertArrayHasKey( 'description', $properties, 'description key should exist in properties.' );
+		$this->assertArrayHasKey( 'status', $properties, 'status key should exist in properties.' );
+		$this->assertArrayHasKey( 'wp_id', $properties, 'wp_id key should exist in properties.' );
+		$this->assertArrayHasKey( 'has_theme_file', $properties, 'has_theme_file key should exist in properties.' );
+		$this->assertArrayHasKey( 'author', $properties, 'author key should exist in properties.' );
+		$this->assertArrayHasKey( 'modified', $properties, 'modified key should exist in properties.' );
+		$this->assertArrayHasKey( 'is_custom', $properties, 'is_custom key should exist in properties.' );
+		$this->assertArrayHasKey( 'parent', $properties, 'Parent key should exist in properties.' );
 	}
 
 	/**
@@ -351,6 +371,30 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 		$this->assertArrayHasKey( 'title', $data );
 		$this->assertSame( $request_parameters['title'], $data['title']['raw'] );
+	}
+
+	/**
+	 * @covers WP_REST_Template_Autosaves_Controller::delete_item
+	 * @ticket 56922
+	 */
+	public function test_create_item_incorrect_permission() {
+		wp_set_current_user( self::$contributor_id );
+		$template_id = self::TEST_THEME . '/' . self::TEMPLATE_NAME;
+		$request     = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $template_id . '/autosaves' );
+		$response    = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, WP_Http::FORBIDDEN );
+	}
+
+	/**
+	 * @covers WP_REST_Template_Autosaves_Controller::delete_item
+	 * @ticket 56922
+	 */
+	public function test_create_item_no_permission() {
+		wp_set_current_user( 0 );
+		$template_id = self::TEST_THEME . '/' . self::TEMPLATE_NAME;
+		$request     = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $template_id . '/autosaves' );
+		$response    = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, WP_Http::UNAUTHORIZED );
 	}
 
 	/**

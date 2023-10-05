@@ -9,9 +9,19 @@
  */
 class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controller_Testcase {
 
-	const TEST_THEME    = 'block-theme';
+	/**
+	 * @var string
+	 */
+	const TEST_THEME = 'block-theme';
+
+	/**
+	 * @var string
+	 */
 	const TEMPLATE_NAME = 'my_template';
 
+	/**
+	 * @var string
+	 */
 	const PARENT_POST_TYPE = 'wp_template';
 
 	/**
@@ -116,9 +126,12 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		);
 	}
 
+	/**
+	 * Remove revisions when tests are complete.
+	 */
 	public static function wpTearDownAfterClass() {
+		// Also deletes revisions.
 		foreach ( self::$revisions as $revision ) {
-			// Also deletes revisions.
 			wp_delete_post( $revision, true );
 		}
 	}
@@ -313,6 +326,21 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	}
 
 	/**
+	 * @covers WP_REST_Template_Revisions_Controller::get_item
+	 * @ticket 56922
+	 */
+	public function test_get_item_not_found() {
+		wp_set_current_user( self::$admin_id );
+
+		$revisions   = wp_get_post_revisions( self::$template_post, array( 'fields' => 'ids' ) );
+		$revision_id = array_shift( $revisions );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/invalid//parent/revisions/' . $revision_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, WP_Http::NOT_FOUND );
+	}
+
+	/**
 	 * @covers WP_REST_Template_Revisions_Controller::prepare_item_for_response
 	 * @ticket 56922
 	 */
@@ -380,28 +408,22 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 
-		$expected_properties = array(
-			'id',
-			'slug',
-			'theme',
-			'type',
-			'source',
-			'origin',
-			'content',
-			'title',
-			'description',
-			'status',
-			'wp_id',
-			'has_theme_file',
-			'author',
-			'modified',
-			'is_custom',
-			'parent',
-		);
-
-		foreach ( $expected_properties as $property ) {
-			$this->assertArrayHasKey( $property, $properties, "{$property} key should exist in properties." );
-		}
+		$this->assertCount( 16, $properties );
+		$this->assertArrayHasKey( 'id', $properties, 'ID key should exist in properties.' );
+		$this->assertArrayHasKey( 'slug', $properties, 'Slug key should exist in properties.' );
+		$this->assertArrayHasKey( 'theme', $properties, 'Theme key should exist in properties.' );
+		$this->assertArrayHasKey( 'source', $properties, 'Source key should exist in properties.' );
+		$this->assertArrayHasKey( 'origin', $properties, 'Origin key should exist in properties.' );
+		$this->assertArrayHasKey( 'content', $properties, 'Content key should exist in properties.' );
+		$this->assertArrayHasKey( 'title', $properties, 'Title key should exist in properties.' );
+		$this->assertArrayHasKey( 'description', $properties, 'description key should exist in properties.' );
+		$this->assertArrayHasKey( 'status', $properties, 'status key should exist in properties.' );
+		$this->assertArrayHasKey( 'wp_id', $properties, 'wp_id key should exist in properties.' );
+		$this->assertArrayHasKey( 'has_theme_file', $properties, 'has_theme_file key should exist in properties.' );
+		$this->assertArrayHasKey( 'author', $properties, 'author key should exist in properties.' );
+		$this->assertArrayHasKey( 'modified', $properties, 'modified key should exist in properties.' );
+		$this->assertArrayHasKey( 'is_custom', $properties, 'is_custom key should exist in properties.' );
+		$this->assertArrayHasKey( 'parent', $properties, 'Parent key should exist in properties.' );
 	}
 
 	/**
@@ -446,5 +468,51 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 
 		$this->assertSame( 200, $response->get_status(), 'Failed asserting that the response status is 200.' );
 		$this->assertNull( get_post( $revision_id ), 'Failed asserting that the post with the given revision ID is deleted.' );
+	}
+
+	/**
+	 * @covers WP_REST_Templates_Controller::delete_item
+	 * @ticket 56922
+	 */
+	public function test_delete_item_incorrect_permission() {
+		wp_set_current_user( self::$contributor_id );
+		$revision_id       = _wp_put_post_revision( self::$template_post );
+		self::$revisions[] = $revision_id;
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
+		$request->set_param( 'force', true );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_delete', $response, WP_Http::FORBIDDEN );
+	}
+
+	/**
+	 * @covers WP_REST_Templates_Controller::delete_item
+	 * @ticket 56922
+	 */
+	public function test_delete_item_no_permission() {
+		wp_set_current_user( 0 );
+		$revision_id       = _wp_put_post_revision( self::$template_post );
+		self::$revisions[] = $revision_id;
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
+		$request->set_param( 'force', true );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_delete', $response, WP_Http::UNAUTHORIZED );
+	}
+
+	/**
+	 * @covers WP_REST_Template_Revisions_Controller::get_item
+	 * @ticket 56922
+	 */
+	public function test_delete_item_not_found() {
+		wp_set_current_user( self::$admin_id );
+
+		$revision_id       = _wp_put_post_revision( self::$template_post );
+		self::$revisions[] = $revision_id;
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/templates/invalid//parent/revisions/' . $revision_id );
+		$request->set_param( 'force', true );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, WP_Http::NOT_FOUND );
 	}
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * REST API: WP_REST_Autosaves_Controller class.
+ * REST API: WP_REST_Template_Autosaves_Controller class.
  *
  * @package WordPress
  * @subpackage REST_API
