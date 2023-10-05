@@ -43,25 +43,6 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 					'callback'            => array( $this, 'get_items' ),
 					'permission_callback' => array( $this, 'update_font_library_permissions_check' ),
 				),
-			)
-		);
-
-		register_rest_route(
-			$this->namespace,
-			'/' . $this->rest_base . '/(?P<slug>[\/\w-]+)',
-			array(
-				array(
-					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'get_item' ),
-					'permission_callback' => array( $this, 'update_font_library_permissions_check' ),
-				),
-			)
-		);
-
-		register_rest_route(
-			$this->namespace,
-			'/' . $this->rest_base,
-			array(
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'create_item' ),
@@ -86,6 +67,7 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 						),
 					),
 				),
+				'schema' => array( $this, 'get_items_schema' ),
 			)
 		);
 
@@ -94,10 +76,16 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 			'/' . $this->rest_base . '/(?P<slug>[\/\w-]+)',
 			array(
 				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_item' ),
+					'permission_callback' => array( $this, 'update_font_library_permissions_check' ),
+				),
+				array(
 					'methods'             => WP_REST_Server::DELETABLE,
 					'callback'            => array( $this, 'delete_item' ),
 					'permission_callback' => array( $this, 'update_font_library_permissions_check' ),
 				),
+				'schema' => array( $this, 'get_item_schema' ),
 			)
 		);
 	}
@@ -366,5 +354,161 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 		$result      = $font_family->install( $files );
 		$response    = $this->prepare_item_for_response( $result, $request );
 		return rest_ensure_response( $response );
+	}
+
+	/**
+	 * Retrieves the font family response schema
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return array Font Family schema data.
+	 */
+	private function font_family_schema() {
+		return array(
+			'fontFace'   => array(
+				'description' => __( 'An array of font face objects.' ),
+				'type'        => 'array',
+				'items'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'fontFamily' => array(
+							'description' => __( 'Name of the font family.' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit', 'embed' ),
+						),
+						'fontStyle'  => array(
+							'description' => __( 'Style of the font.' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit', 'embed' ),
+						),
+						'fontWeight' => array(
+							'description' => __( 'Weight of the font.' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit', 'embed' ),
+						),
+						'src'        => array(
+							'description' => __( 'Source URL of the font.' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit', 'embed' ),
+						),
+					),
+				),
+			),
+			'fontFamily' => array(
+				'description' => __( 'CSS string for the font family.' ),
+				'type'        => 'string',
+				'context'     => array( 'view', 'edit', 'embed' ),
+			),
+			'name'       => array(
+				'description' => __( 'Display name of the font.' ),
+				'type'        => 'string',
+				'context'     => array( 'view', 'edit', 'embed' ),
+			),
+			'slug'       => array(
+				'description' => __( 'Slug of the font.' ),
+				'type'        => 'string',
+				'context'     => array( 'view', 'edit', 'embed' ),
+			),
+		);
+	}
+
+	/**
+	 * Retrieves item schema
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return array Font family schema data.
+	 */
+	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+		$family_schema = array (
+			'title'      => 'Font family',
+			'type'       => 'object',
+			'properties' => $this->font_family_schema(),
+		);
+		$delete_success_schema = array(
+			'title' => 'Font family delete success',
+			'type' => 'boolean',
+			'description' => 'Indicates a successful response.',
+			'enum' => array( true),
+		);
+		$schema = array(
+			'$schema' => 'http://json-schema.org/draft-04/schema#',
+			'title' => 'Font family item endpoint reponse',
+			'oneOf' => array( $family_schema, $delete_success_schema, $this->error_schema() ),
+		);
+		$this->schema = $schema;
+		return $this->add_additional_fields_schema( $this->schema );
+	}
+
+	/**
+	 * Retrieves the items schema.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return array Font families schema data.
+	 */
+	public function get_items_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+		$families_schema = array(
+			'title'      => 'Font families',
+			'type'       => 'array',
+			'items'      => (
+				array(
+					'type'       => 'object',
+					'properties' => $this->font_family_schema(),
+				)
+			)
+		);
+		$schema = array(
+			'$schema' => 'http://json-schema.org/draft-04/schema#',
+			'title' => 'Font families items endpoint reponse',
+			'oneOf' => array( $families_schema, $this->error_schema() ),
+		);
+		$this->schema = $schema;
+		return $this->add_additional_fields_schema( $this->schema );
+	}
+
+	/**
+	 * Retrieves the error response schema
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return array Error schema data.
+	 */
+	private function error_schema () {
+		return array(
+			'title' => 'Error response',
+			'type' => 'object',
+			'properties' => array(
+				'errors' => array(
+					'type' => 'object',
+					'description' => 'An associative array of error codes to error messages.',
+					'propertyNames' => array(
+						'type' => 'string',
+					),
+					'additionalProperties' => array(
+						'type' => 'array',
+						'items' => array(
+							'type' => 'string',
+						),
+					),
+				),
+				'error_data' => array(
+					'type' => 'object',
+					'description' => 'An associative array of error codes to mixed error data.',
+					'propertyNames' => array(
+						'type' => 'string',
+					),
+					'additionalProperties' => array(
+						'type' => 'string',
+					),
+				),
+			),
+		);
 	}
 }
