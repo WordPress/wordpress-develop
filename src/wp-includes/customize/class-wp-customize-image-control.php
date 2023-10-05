@@ -35,6 +35,7 @@ class WP_Customize_Image_Control extends WP_Customize_Upload_Control {
 	 * @since 3.4.2
 	 * @deprecated 4.1.0
 	 */
+	#[\Override]
 	public function prepare_control() {}
 
 	/**
