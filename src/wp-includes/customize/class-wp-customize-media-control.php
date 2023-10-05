@@ -65,6 +65,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	 * @since 3.4.0
 	 * @since 4.2.0 Moved from WP_Customize_Upload_Control.
 	 */
+	#[\Override]
 	public function enqueue() {
 		wp_enqueue_media();
 	}
@@ -77,6 +78,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	 *
 	 * @see WP_Customize_Control::to_json()
 	 */
+	#[\Override]
 	public function to_json() {
 		parent::to_json();
 		$this->json['label']         = html_entity_decode( $this->label, ENT_QUOTES, get_bloginfo( 'charset' ) );
@@ -129,6 +131,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	 *
 	 * @see WP_Customize_Media_Control::content_template()
 	 */
+	#[\Override]
 	public function render_content() {}
 
 	/**
@@ -137,6 +140,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	 * @since 4.1.0
 	 * @since 4.2.0 Moved from WP_Customize_Upload_Control.
 	 */
+	#[\Override]
 	public function content_template() {
 		?>
 		<#
