@@ -125,7 +125,6 @@
 
 .media-item .edit-attachment {
 	padding: 14px 0;
-	display: block;
 	margin-right: 10px;
 }
 
@@ -197,7 +196,7 @@
 .media-item .progress {
 	float: right;
 	height: 22px;
-	margin: 7px 6px;
+	margin: 14px 6px;
 	width: 200px;
 	line-height: 2em;
 	padding: 0;
