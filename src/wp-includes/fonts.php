@@ -60,7 +60,7 @@ function wp_print_font_faces( $fonts = array() ) {
  * @param string[] $config {
  *     Font collection associative array of configuration options.
  *
- *     @type string $id             The font collection's unique ID.
+ *     @type string $id  The font collection's unique ID.
  *     @type string $src The font collection's data JSON file.
  * }
  * @return WP_Font_Collection|WP_Error A font collection is it was registered
