@@ -16,9 +16,9 @@ class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_TestCase 
 	 */
 	private static $fonts_dir;
 
-	private static $skip_setup_test_methods = array(
+	private static $test_methods_to_skip_setup = array(
 		'test_get_items_with_no_collection_registered',
-		'test_get_items'
+		'test_get_items',
 	);
 
 	public function set_up() {
@@ -33,16 +33,16 @@ class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_TestCase 
 			)
 		);
 		wp_set_current_user( $admin_id );
-		if ( in_array( $this->getName(), self::$skip_setup_test_methods)) {
+
+		if ( in_array( $this->getName(), self::$test_methods_to_skip_setup, true ) ) {
 			return;
 		}
-
 
 		// Mock font collection data file.
 		$mock_file = wp_tempnam( 'one-collection-' );
 		file_put_contents( $mock_file, '{"this is mock data":true}' );
 		// Mock the wp_remote_request() function.
-		add_filter( 'pre_http_request', array( $this, 'mock_request' ), 10, 3 );
+		add_filter( 'pre_http_request', array( $this, 'mock_response' ), 10, 3 );
 
 		$config_with_file = array(
 			'id'          => 'one-collection',
@@ -80,13 +80,10 @@ class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_TestCase 
 		wp_register_font_collection( $config_with_non_existing_url );
 	}
 
-	/**
-	 * Tear down each test method.
-	 */
 	public function tear_down() {
 
 		// Remove the mock to not affect other tests.
-		remove_filter( 'pre_http_request', array( $this, 'mock_request' ) );
+		remove_filter( 'pre_http_request', array( $this, 'mock_response' ) );
 
 		// Reset $collections static property of WP_Font_Library class.
 		$reflection = new ReflectionClass( 'WP_Font_Library' );
@@ -102,26 +99,35 @@ class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_TestCase 
 		parent::tear_down();
 	}
 
-	public function mock_request( $preempt, $args, $url ) {
+	/**
+	 * @ticket 59166
+	 * @coversNothing
+	 *
+	 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request.
+	 * @param array                $parsed_args HTTP request arguments.
+	 * @param string               $url         The request URL.
+	 *
+	 * @return array Mocked response data.
+	 */
+	public function mock_response( $response, $parsed_args, $url ) {
 		// Check if it's the URL you want to mock.
-		if ( 'https://wordpress.org/fonts/mock-font-collection.json' === $url ) {
-
-			// Mock the response body.
-			$mock_collection_data = array(
-				'fontFamilies' => 'mock',
-				'categories'   => 'mock',
-			);
-
-			return array(
-				'body'     => json_encode( $mock_collection_data ),
-				'response' => array(
-					'code' => 200,
-				),
-			);
+		if ( 'https://wordpress.org/fonts/mock-font-collection.json' !== $url ) {
+			// For any other URL, return false which ensures the request is made as usual (or you can return other mock data).
+			return false;
 		}
 
-		// For any other URL, return false which ensures the request is made as usual (or you can return other mock data).
-		return false;
+		// Mock the response body.
+		$mock_collection_data = array(
+			'fontFamilies' => 'mock',
+			'categories'   => 'mock',
+		);
+
+		return array(
+			'body'     => json_encode( $mock_collection_data ),
+			'response' => array(
+				'code' => 200,
+			),
+		);
 	}
 
 	/**
@@ -140,6 +146,11 @@ class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_TestCase 
 		$this->assertCount( 1, $routes['/wp/v2/font-collections'], 'The REST server does not have the font collections path initialized.' );
 		$this->assertCount( 1, $routes['/wp/v2/font-collections/(?P<id>[\/\w-]+)'], 'The REST server does not have the path initialized for a specific font collection.' );
 	}
+
+	/**
+	 * @ticket 59166
+	 * @covers WP_REST_Font_Collections_Controller::get_items
+	 */
 	public function test_get_items() {
 		// Mock font collection data file.
 		$mock_file = wp_tempnam( 'my-collection-data-' );
@@ -163,15 +174,10 @@ class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_TestCase 
 		$this->assertArrayHasKey( 'name', $data[0], 'The response data does not have the key with the collection name.' );
 	}
 
-	public function test_get_font_collection_from_file() {
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/font-collections/one-collection' );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-		$this->assertSame( 200, $response->get_status(), 'The response status is not 200.' );
-		$this->assertArrayHasKey( 'data', $data, 'The response data does not have the key with the file data.' );
-		$this->assertSame( array ( 'this_is_mock_data' => true, ), $data['data'], 'The response data does not have the expected file data.' );
-	}
-
+	/**
+	 * @ticket 59166
+	 * @covers WP_REST_Font_Collections_Controller::get_items
+	 */
 	public function test_get_items_with_no_collection_registered() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/font-collections' );
 		$response = rest_get_server()->dispatch( $request );
@@ -179,7 +185,11 @@ class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_TestCase 
 		$this->assertSame( array(), $response->get_data() );
 	}
 
-	public function test_get_font_collection_from_url() {
+	/**
+	 * @ticket 59166
+	 * @covers WP_REST_Font_Collections_Controller::get_item
+	 */
+	public function test_get_item() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/font-collections/collection-with-url' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -187,40 +197,89 @@ class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_TestCase 
 		$this->assertArrayHasKey( 'data', $data, 'The response data does not have the key with the file data.' );
 	}
 
+	/**
+	 * @ticket 59166
+	 * @covers WP_REST_Font_Collections_Controller::get_item
+	 */
+	public function test_get_item_should_return_font_colllection_from_file() {
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/font-collections/one-collection' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( 200, $response->get_status(), 'The response status is not 200.' );
+		$this->assertArrayHasKey( 'data', $data, 'The response data does not have the key with the file data.' );
+		$this->assertSame( array( 'this_is_mock_data' => true ), $data['data'], 'The response data does not have the expected file data.' );
+	}
+
+	/**
+	 * @ticket 59166
+	 * @covers WP_REST_Font_Collections_Controller::get_item
+	 */
 	public function test_get_non_existing_collection_should_return_404() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/font-collections/non-existing-collection-id' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 404, $response->get_status() );
 	}
 
+	/**
+	 * @ticket 59166
+	 * @covers WP_REST_Font_Collections_Controller::get_item
+	 */
 	public function test_get_non_existing_file_should_return_500() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/font-collections/collection-with-non-existing-file' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 500, $response->get_status() );
 	}
 
+	/**
+	 * @ticket 59166
+	 * @covers WP_REST_Font_Collections_Controller::get_item
+	 */
 	public function test_get_non_existing_url_should_return_500() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/font-collections/collection-with-non-existing-url' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 500, $response->get_status() );
 	}
 
-
-
 	public function test_context_param() {
 	}
 
-	public function test_get_item() {
-	}
-
+	/**
+	 * @ticket 59166
+	 * @coversNothing
+	 */
 	public function test_create_item() {
-
+		$this->markTestSkipped(
+			sprintf(
+				"The '%s' controller doesn't currently support the ability to create font collection.",
+				WP_REST_Template_Autosaves_Controller::class
+			)
+		);
 	}
 
+	/**
+	 * @ticket 59166
+	 * @coversNothing
+	 */
 	public function test_update_item() {
+		$this->markTestSkipped(
+			sprintf(
+				"The '%s' controller doesn't currently support the ability to update font collection.",
+				WP_REST_Font_Collections_Controller::class
+			)
+		);
 	}
 
+	/**
+	 * @ticket 59166
+	 * @coversNothing
+	 */
 	public function test_delete_item() {
+		$this->markTestSkipped(
+			sprintf(
+				"The '%s' controller doesn't currently support the ability to delete font collection.",
+				WP_REST_Font_Collections_Controller::class
+			)
+		);
 	}
 
 	public function test_prepare_item() {
