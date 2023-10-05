@@ -65,6 +65,7 @@ class WP_Customize_Nav_Menus_Panel extends WP_Customize_Panel {
 	 *
 	 * @see WP_Customize_Panel::print_template()
 	 */
+	#[\Override]
 	protected function content_template() {
 		?>
 		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
