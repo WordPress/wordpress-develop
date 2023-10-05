@@ -281,7 +281,6 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 		$this->schema = $schema;
 		return $this->add_additional_fields_schema( $this->schema );
 	}
-
 	/**
 	 * Convert string from camelCase to snake_case.
 	 *
