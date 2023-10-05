@@ -707,7 +707,6 @@ function translate_nooped_plural( $nooped_plural, $count, $domain = 'default' ) 
  * @global MO[]                   $l10n                   An array of all currently loaded text domains.
  * @global MO[]                   $l10n_unloaded          An array of all text domains that have been unloaded again.
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
- * @global WP_Filesystem_Base     $wp_filesystem          WordPress filesystem subclass.
  *
  * @param string $domain Text domain. Unique identifier for retrieving translated strings.
  * @param string $mofile Path to the .mo file.
@@ -716,7 +715,7 @@ function translate_nooped_plural( $nooped_plural, $count, $domain = 'default' ) 
  */
 function load_textdomain( $domain, $mofile, $locale = null ) {
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	global $l10n, $l10n_unloaded, $wp_textdomain_registry, $wp_filesystem;
+	global $l10n, $l10n_unloaded, $wp_textdomain_registry;
 
 	$l10n_unloaded = (array) $l10n_unloaded;
 
@@ -797,10 +796,10 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $convert Preferred file format. Possible values: 'php', 'mo', 'json'. Default: 'php'.
+	 * @param string $preferred_format Preferred file format. Possible values: 'php', 'mo'. Default: 'php'.
 	 */
 	$preferred_format = apply_filters( 'translation_file_format', 'php' );
-	if ( ! in_array( $preferred_format, array( 'php', 'mo', 'json' ), true ) ) {
+	if ( ! in_array( $preferred_format, array( 'php', 'mo' ), true ) ) {
 		$preferred_format = 'php';
 	}
 
@@ -814,7 +813,7 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		/**
 		 * Filters the file path for loading translations for the given text domain.
 		 *
-		 * The file could be an MO, JSON, or PHP file.
+		 * The file could be an MO or PHP file.
 		 *
 		 * @since 6.5.0
 		 *
@@ -832,6 +831,7 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 
 			// Unset Noop_Translations reference in get_translations_for_domain.
 			unset( $l10n[ $domain ] );
+
 			$l10n[ $domain ] = new Ginger_MO_Translations( $domain );
 
 			$wp_textdomain_registry->set( $domain, $locale, dirname( $mofile ) );
@@ -862,35 +862,6 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		$l10n[ $domain ] = new Ginger_MO_Translations( $domain );
 
 		$wp_textdomain_registry->set( $domain, $locale, dirname( $mofile ) );
-
-		/**
-		 * Filters whether existing MO files should be automatically converted to the preferred format.
-		 *
-		 * Only runs when no corresponding PHP or JSON translation file exists yet.
-		 *
-		 * The preferred format is determined by the {@see 'translation_file_format'} filter
-		 *
-		 * Useful for testing/debugging.
-		 *
-		 * @param bool $convert Whether to convert MO files to PHP or JSON files. Default true.
-		 */
-		$convert = apply_filters( 'convert_translation_files', true );
-
-		if ( 'mo' !== $preferred_format && $convert && str_ends_with( $mofile, '.mo' ) ) {
-			$contents = Ginger_MO_Translation_File::transform( $mofile, $preferred_format );
-
-			if ( false !== $contents ) {
-				if ( ! function_exists( 'WP_Filesystem' ) ) {
-					require_once ABSPATH . '/wp-admin/includes/file.php';
-				}
-
-				if ( true === WP_Filesystem() ) {
-					$wp_filesystem->put_contents( $mofile_preferred, $contents, FS_CHMOD_FILE );
-				} else {
-					file_put_contents( $mofile_preferred, $contents, LOCK_EX ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_file_put_contents
-				}
-			}
-		}
 	}
 
 	return true;

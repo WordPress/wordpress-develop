@@ -288,45 +288,6 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			)
 		);
 
-		foreach ( $language_updates_results as $translation ) {
-			switch ( $translation['type'] ) {
-				case 'plugin':
-					$file = WP_LANG_DIR . '/plugins/' . $translation['slug'] . '-' . $translation['language'] . '.mo';
-					break;
-				case 'theme':
-					$file = WP_LANG_DIR . '/themes/' . $translation['slug'] . '-' . $translation['language'] . '.mo';
-					break;
-				default:
-					$file = WP_LANG_DIR . '/' . $translation['language'] . '.mo';
-					break;
-			}
-
-			if ( file_exists( $file ) ) {
-				/** This filter is documented in wp-includes/l10n.php */
-				$preferred_format = apply_filters( 'translation_file_format', 'php' );
-				if ( ! in_array( $preferred_format, array( 'php', 'mo', 'json' ), true ) ) {
-					$preferred_format = 'php';
-				}
-
-				$mofile_preferred = str_replace( '.mo', ".mo.$preferred_format", $file );
-
-				/** This filter is documented in wp-includes/l10n.php */
-				$convert = apply_filters( 'convert_translation_files', true );
-
-				if ( 'mo' !== $preferred_format && $convert ) {
-					$contents = Ginger_MO_Translation_File::transform( $file, $preferred_format );
-
-					if ( false !== $contents ) {
-						if ( true === $this->fs_connect( array( dirname( $file ) ) ) ) {
-							$wp_filesystem->put_contents( $mofile_preferred, $contents, FS_CHMOD_FILE );
-						} else {
-							file_put_contents( $mofile_preferred, $contents, LOCK_EX ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_file_put_contents
-						}
-					}
-				}
-			}
-		}
-
 		// Re-add upgrade hooks.
 		add_action( 'upgrader_process_complete', array( 'Language_Pack_Upgrader', 'async_upgrade' ), 20 );
 		add_action( 'upgrader_process_complete', 'wp_version_check', 10, 0 );

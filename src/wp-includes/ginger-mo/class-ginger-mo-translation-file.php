@@ -67,7 +67,7 @@ abstract class Ginger_MO_Translation_File {
 	 * @param string|null $filetype Optional. File type. Default inferred from file name.
 	 * @return false|Ginger_MO_Translation_File
 	 *
-	 * @phpstan-param 'mo'|'json'|'php'|null $filetype
+	 * @phpstan-param 'mo'|'php'|null $filetype
 	 */
 	public static function create( string $file, string $filetype = null ) {
 		if ( ! is_readable( $file ) ) {
@@ -86,16 +86,9 @@ abstract class Ginger_MO_Translation_File {
 				return new Ginger_MO_Translation_File_MO( $file );
 			case 'php':
 				return new Ginger_MO_Translation_File_PHP( $file );
-			case 'json':
-				if ( function_exists( 'json_decode' ) ) {
-					return new Ginger_MO_Translation_File_JSON( $file );
-				}
-				break;
 			default:
 				return false;
 		}
-
-		return false;
 	}
 
 	/**
@@ -212,11 +205,9 @@ abstract class Ginger_MO_Translation_File {
 	 * @param string $filetype Desired target file type.
 	 * @return string|false Transformed translation file contents on success, false otherwise.
 	 *
-	 * @phpstan-param 'mo'|'json'|'php' $filetype
+	 * @phpstan-param 'mo'|'php' $filetype
 	 */
 	public static function transform( string $file, string $filetype ) {
-		$destination = null;
-
 		$source = self::create( $file );
 
 		if ( false === $source ) {
@@ -230,17 +221,8 @@ abstract class Ginger_MO_Translation_File {
 			case 'php':
 				$destination = new Ginger_MO_Translation_File_PHP( '' );
 				break;
-			case 'json':
-				if ( function_exists( 'json_decode' ) ) {
-					$destination = new Ginger_MO_Translation_File_JSON( '' );
-				}
-				break;
 			default:
 				return false;
-		}
-
-		if ( null === $destination ) {
-			return false;
 		}
 
 		$success = $destination->import( $source );
@@ -250,16 +232,6 @@ abstract class Ginger_MO_Translation_File {
 		}
 
 		return $destination->export();
-	}
-
-	/**
-	 * Parses the file.
-	 *
-	 * @return void
-	 */
-	protected function parse_file() {
-		// Needs to be implemented in child classes.
-		// Not abstract because it's used in this class.
 	}
 
 	/**
@@ -279,6 +251,14 @@ abstract class Ginger_MO_Translation_File {
 
 		return false === $this->error;
 	}
+
+	/**
+	 * Parses the file.
+	 *
+	 * @return void
+	 */
+	abstract protected function parse_file();
+
 
 	/**
 	 * Exports translation contents as a string.

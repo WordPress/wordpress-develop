@@ -113,7 +113,7 @@ class Ginger_MO_Convert_Tests extends WP_UnitTestCase {
 	 * @param string|bool $expected_error
 	 * @return void
 	 *
-	 * @phpstan-param 'mo'|'json'|'php' $type
+	 * @phpstan-param 'mo'|'php' $type
 	 */
 	public function test_invalid_files( string $type, string $file_contents, $expected_error = null ) {
 		$file = $this->temp_filename( $file_contents );
@@ -138,14 +138,12 @@ class Ginger_MO_Convert_Tests extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @return array{0: array{0: 'mo'|'json'|'php', 1: string|false, 2?: string}}
+	 * @return array{0: array{0: 'mo'|'php', 1: string|false, 2?: string}}
 	 */
 	public function data_invalid_files(): array {
 		return array(
 			array( 'php', '' ),
 			array( 'php', '<?php // This is a php file without a payload' ),
-			array( 'json', '' ),
-			array( 'json', 'Random data in a file' ),
 			array( 'mo', '', 'Invalid Data.' ),
 			array( 'mo', 'Random data in a file long enough to be a real header', "Magic Marker doesn't exist" ),
 			array( 'mo', pack( 'V*', 0x950412de ), 'Invalid Data.' ),
@@ -227,7 +225,6 @@ class Ginger_MO_Convert_Tests extends WP_UnitTestCase {
 	 */
 	public function data_simple_example_files(): array {
 		return array(
-			array( 'example-simple.json' ),
 			array( 'example-simple.mo' ),
 			array( 'example-simple.php' ),
 		);
@@ -491,7 +488,7 @@ class Ginger_MO_Convert_Tests extends WP_UnitTestCase {
 	 * @param string $destination_format
 	 * @return void
 	 *
-	 * @phpstan-param 'mo'|'json'|'php' $destination_format
+	 * @phpstan-param 'mo'|'php' $destination_format
 	 */
 	public function test_convert_format( string $source_file, string $destination_format ) {
 		$destination_file = $this->temp_filename();
@@ -543,10 +540,10 @@ class Ginger_MO_Convert_Tests extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @return array<array{0:string, 1: 'mo'|'json'|'php'}>
+	 * @return array<array{0:string, 1: 'mo'|'php'}>
 	 */
 	public function data_export_matrix(): array {
-		$formats = array( 'mo', 'json', 'php' );
+		$formats = array( 'mo', 'php' );
 
 		$matrix = array();
 

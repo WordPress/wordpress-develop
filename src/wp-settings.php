@@ -118,7 +118,6 @@ require ABSPATH . WPINC . '/ginger-mo/class-ginger-mo.php';
 require ABSPATH . WPINC . '/ginger-mo/class-ginger-mo-translations.php';
 require ABSPATH . WPINC . '/ginger-mo/class-ginger-mo-translation-file.php';
 require ABSPATH . WPINC . '/ginger-mo/class-ginger-mo-translation-file-mo.php';
-require ABSPATH . WPINC . '/ginger-mo/class-ginger-mo-translation-file-json.php';
 require ABSPATH . WPINC . '/ginger-mo/class-ginger-mo-translation-file-php.php';
 
 /**
