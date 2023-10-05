@@ -70,6 +70,7 @@ class WP_Customize_Date_Time_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.9.0
 	 */
+	#[\Override]
 	public function render_content() {}
 
 	/**
@@ -78,6 +79,7 @@ class WP_Customize_Date_Time_Control extends WP_Customize_Control {
 	 * @since 4.9.0
 	 * @return array
 	 */
+	#[\Override]
 	public function json() {
 		$data = parent::json();
 
@@ -95,6 +97,7 @@ class WP_Customize_Date_Time_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.9.0
 	 */
+	#[\Override]
 	public function content_template() {
 		$data          = array_merge( $this->json(), $this->get_month_choices() );
 		$timezone_info = $this->get_timezone_info();
