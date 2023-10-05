@@ -74,7 +74,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 		);
 	}
 
-	public static function add_attribute_to_inner_block( &$block, $parent, $prev, $data ) {
+	public static function add_attribute_to_inner_block( &$block, $parent_block, $prev, $data ) {
 		if ( 'core/inner' === $block['blockName'] ) {
 			$block['attrs']['myattr'] = $data;
 		}
