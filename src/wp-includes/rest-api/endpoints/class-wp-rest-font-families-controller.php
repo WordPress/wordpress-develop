@@ -93,6 +93,8 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 	/**
 	 * Get item (font family).
 	 *
+	 * @since 6.4.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error
 	 */
