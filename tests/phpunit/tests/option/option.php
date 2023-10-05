@@ -705,6 +705,11 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			}
 		);
 
+		/*
+		 * For a non existing option with the unfiltered default of false, passing false here wouldn't work.
+		 * Because the default is different than false here though, passing false is expected to result in
+		 * a database update.
+		 */
 		$this->assertTrue( update_option( $option, false ), 'update_option() should have returned true.' );
 
 		$actual = $wpdb->get_row(
