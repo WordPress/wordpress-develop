@@ -29,6 +29,7 @@ class WP_Customize_Nav_Menu_Auto_Add_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.3.0
 	 */
+	#[\Override]
 	protected function render_content() {}
 
 	/**
@@ -36,6 +37,7 @@ class WP_Customize_Nav_Menu_Auto_Add_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.3.0
 	 */
+	#[\Override]
 	protected function content_template() {
 		?>
 		<# var elementId = _.uniqueId( 'customize-nav-menu-auto-add-control-' ); #>
