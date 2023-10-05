@@ -48,6 +48,7 @@ class WP_Customize_Background_Image_Control extends WP_Customize_Image_Control {
 	 *
 	 * @since 4.1.0
 	 */
+	#[\Override]
 	public function enqueue() {
 		parent::enqueue();
 
