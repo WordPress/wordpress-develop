@@ -133,6 +133,8 @@ class WP_REST_Font_Families_Controller extends WP_REST_Controller {
 			'post_status'    => 'publish',
 			'posts_per_page' => $request['per_page'] ?? 10,
 			'paged'          => $request['page'] ?? 1,
+			'orderby'        => $request['orderby'] ?? 'name',
+			'order'          => $request['order'] ?? 'ASC',
 		);
 		$posts    = get_posts( $args );
 		$response = array();
