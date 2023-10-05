@@ -169,7 +169,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	 *
 	 * @param mixed           $item    WordPress representation of the item.
 	 * @param WP_REST_Request $request Request object.
-	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		$template = _build_block_template_result_from_post( $item );
