@@ -31,94 +31,96 @@ function wp_get_elements_class_name( $block ) {
  * @return string Filtered block content.
  */
 function wp_render_elements_support( $block_content, $block ) {
-	if ( ! $block_content || ! isset( $block['attrs']['style']['elements'] ) ) {
+	if (
+		! $block_content ||
+		! isset( $block['attrs']['style']['elements'] ) ||
+		! wp_render_elements_support_required_for_block( $block )
+	) {
 		return $block_content;
 	}
 
-	$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
-
-	$element_color_properties = array(
-		'button'  => array(
-			'skip'  => wp_should_skip_block_supports_serialization( $block_type, 'color', 'button' ),
-			'paths' => array(
-				array( 'button', 'color', 'text' ),
-				array( 'button', 'color', 'background' ),
-				array( 'button', 'color', 'gradient' ),
-			),
-		),
-		'link'    => array(
-			'skip'  => wp_should_skip_block_supports_serialization( $block_type, 'color', 'link' ),
-			'paths' => array(
-				array( 'link', 'color', 'text' ),
-				array( 'link', ':hover', 'color', 'text' ),
-			),
-		),
-		'heading' => array(
-			'skip'  => wp_should_skip_block_supports_serialization( $block_type, 'color', 'heading' ),
-			'paths' => array(
-				array( 'heading', 'color', 'text' ),
-				array( 'heading', 'color', 'background' ),
-				array( 'heading', 'color', 'gradient' ),
-				array( 'h1', 'color', 'text' ),
-				array( 'h1', 'color', 'background' ),
-				array( 'h1', 'color', 'gradient' ),
-				array( 'h2', 'color', 'text' ),
-				array( 'h2', 'color', 'background' ),
-				array( 'h2', 'color', 'gradient' ),
-				array( 'h3', 'color', 'text' ),
-				array( 'h3', 'color', 'background' ),
-				array( 'h3', 'color', 'gradient' ),
-				array( 'h4', 'color', 'text' ),
-				array( 'h4', 'color', 'background' ),
-				array( 'h4', 'color', 'gradient' ),
-				array( 'h5', 'color', 'text' ),
-				array( 'h5', 'color', 'background' ),
-				array( 'h5', 'color', 'gradient' ),
-				array( 'h6', 'color', 'text' ),
-				array( 'h6', 'color', 'background' ),
-				array( 'h6', 'color', 'gradient' ),
-			),
-		),
-	);
-
-	$skip_all_element_color_serialization = $element_color_properties['button']['skip'] &&
-		$element_color_properties['link']['skip'] &&
-		$element_color_properties['heading']['skip'];
-
-	if ( $skip_all_element_color_serialization ) {
-		return $block_content;
+	$tags = new WP_HTML_Tag_Processor( $block_content );
+	if ( $tags->next_tag() ) {
+		$tags->add_class( wp_get_elements_class_name( $block ) );
 	}
 
-	$elements_style_attributes = $block['attrs']['style']['elements'];
+	return $tags->get_updated_html();
+}
 
-	foreach ( $element_color_properties as $element_config ) {
-		if ( $element_config['skip'] ) {
-			continue;
+/**
+ * Determines if a block needs to be flagged for elements support
+ * based on its specific attributes and general block type.
+ *
+ * @since 6.4.0
+ * @access private
+ *
+ * @param array $block Block object.
+ * @return bool
+ */
+function wp_render_elements_support_required_for_block( $block ) {
+	static $heading_elements = array( 'heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6' );
+
+	/*
+	 * Every block attribute which would require elements support is inside
+	 * this path, so if the path itself doesn't exist there's no reason to
+	 * perform any further checking.
+	 */
+	if ( ! isset( $block['attrs']['style']['elements'] ) ) {
+		return false;
+	}
+
+	$block_type       = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
+	$style_attributes = $block['attrs']['style']['elements'];
+
+	// Button element support.
+	$supports_button  = ! wp_should_skip_block_supports_serialization( $block_type, 'color', 'button' );
+	$has_button_attrs = isset( $style_attributes['button']['color'] );
+
+	if ( $supports_button && $has_button_attrs ) {
+		$button_attributes = $style_attributes['button']['color'];
+
+		if (
+			isset( $button_attributes['text'] ) ||
+			isset( $button_attributes['background'] ) ||
+			isset( $button_attributes['gradient'] )
+		) {
+			return true;
 		}
+	}
 
-		foreach ( $element_config['paths'] as $path ) {
-			if ( null !== _wp_array_get( $elements_style_attributes, $path, null ) ) {
-				/*
-				 * It only takes a single custom attribute to require that the custom
-				 * class name be added to the block, so once one is found there's no
-				 * need to continue looking for others.
-				 *
-				 * As is done with the layout hook, this code assumes that the block
-				 * contains a single wrapper and that it's the first element in the
-				 * rendered output. That first element, if it exists, gets the class.
-				 */
-				$tags = new WP_HTML_Tag_Processor( $block_content );
-				if ( $tags->next_tag() ) {
-					$tags->add_class( wp_get_elements_class_name( $block ) );
-				}
+	// Link element support.
+	$supports_link  = ! wp_should_skip_block_supports_serialization( $block_type, 'color', 'link' );
+	$has_link_attrs = isset( $style_attributes['link'] );
 
-				return $tags->get_updated_html();
+	if ( $supports_link && $has_link_attrs ) {
+		if (
+			isset( $style_attributes['link']['color']['text'] ) ||
+			isset( $style_attributes['link'][':hover']['color']['text'] )
+		) {
+			return true;
+		}
+	}
+
+	// Heading element support.
+	$supports_heading = ! wp_should_skip_block_supports_serialization( $block_type, 'color', 'heading' );
+	if ( $supports_heading ) {
+		foreach ( $heading_elements as $element_name ) {
+			if ( ! isset( $style_attributes[ $element_name ]['color'] ) ) {
+				continue;
+			}
+
+			$heading_attributes = $style_attributes[ $element_name ]['color'];
+			if (
+				isset( $heading_attributes['text'] ) ||
+				isset( $heading_attributes['background'] ) ||
+				isset( $heading_attributes['gradient'] )
+			) {
+				return true;
 			}
 		}
 	}
 
-	// If no custom attributes were found then there's nothing to modify.
-	return $block_content;
+	return false;
 }
 
 /**
