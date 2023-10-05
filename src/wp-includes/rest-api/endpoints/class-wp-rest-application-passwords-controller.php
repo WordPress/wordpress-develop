@@ -31,6 +31,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.6.0
 	 */
+	#[\Override]
 	public function register_routes() {
 		register_rest_route(
 			$this->namespace,
@@ -109,6 +110,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function get_items_permissions_check( $request ) {
 		$user = $this->get_user( $request );
 
@@ -135,6 +137,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function get_items( $request ) {
 		$user = $this->get_user( $request );
 
@@ -162,6 +165,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function get_item_permissions_check( $request ) {
 		$user = $this->get_user( $request );
 
@@ -188,6 +192,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function get_item( $request ) {
 		$password = $this->get_application_password( $request );
 
@@ -206,6 +211,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function create_item_permissions_check( $request ) {
 		$user = $this->get_user( $request );
 
@@ -232,6 +238,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function create_item( $request ) {
 		$user = $this->get_user( $request );
 
@@ -289,6 +296,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function update_item_permissions_check( $request ) {
 		$user = $this->get_user( $request );
 
@@ -315,6 +323,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function update_item( $request ) {
 		$user = $this->get_user( $request );
 
@@ -363,6 +372,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function delete_items_permissions_check( $request ) {
 		$user = $this->get_user( $request );
 
@@ -389,6 +399,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function delete_items( $request ) {
 		$user = $this->get_user( $request );
 
@@ -418,6 +429,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function delete_item_permissions_check( $request ) {
 		$user = $this->get_user( $request );
 
@@ -444,6 +456,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function delete_item( $request ) {
 		$user = $this->get_user( $request );
 
@@ -574,6 +587,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return object|WP_Error The prepared item, or WP_Error object on failure.
 	 */
+	#[\Override]
 	protected function prepare_item_for_database( $request ) {
 		$prepared = (object) array(
 			'name' => $request['name'],
@@ -603,6 +617,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function prepare_item_for_response( $item, $request ) {
 		$user = $this->get_user( $request );
 
@@ -769,6 +784,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Query parameters for the collection.
 	 */
+	#[\Override]
 	public function get_collection_params() {
 		return array(
 			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
@@ -782,6 +798,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[\Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
