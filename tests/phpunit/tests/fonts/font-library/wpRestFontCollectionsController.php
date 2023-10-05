@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_Controller_Testcase {
+class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_TestCase {
 
 	/**
 	 * Fonts directory (in uploads).
@@ -15,23 +15,6 @@ class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_Controlle
 	 * @var string
 	 */
 	protected static $fonts_dir;
-
-	/**
-	 * @ticket 59166
-	 * @covers WP_REST_Font_Collections_Controller::register_routes
-	 */
-	public function test_register_routes() {
-		$routes = rest_get_server()->get_routes();
-		$this->assertArrayHasKey(
-			'/wp/v2/font-collections/(?P<id>[\/\w-]+)',
-			$routes,
-			"Font collections route doesn't exist."
-		);
-		$this->assertArrayHasKey( 'GET', $routes['/wp/v2/font-collections'][0]['methods'], 'The REST server does not have the GET method initialized for font collections.' );
-		$this->assertArrayHasKey( 'GET', $routes['/wp/v2/font-collections/(?P<id>[\/\w-]+)'][0]['methods'], 'The REST server does not have the GET method initialized for a specific font collection.' );
-		$this->assertCount( 1, $routes['/wp/v2/font-collections'], 'The REST server does not have the font collections path initialized.' );
-		$this->assertCount( 1, $routes['/wp/v2/font-collections/(?P<id>[\/\w-]+)'], 'The REST server does not have the path initialized for a specific font collection.' );
-	}
 
 	public function set_up() {
 		parent::set_up();
@@ -63,6 +46,23 @@ class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_Controlle
 		foreach ( $this->files_in_dir( static::$fonts_dir ) as $file ) {
 			@unlink( $file );
 		}
+	}
+
+	/**
+	 * @ticket 59166
+	 * @covers WP_REST_Font_Collections_Controller::register_routes
+	 */
+	public function test_register_routes() {
+		$routes = rest_get_server()->get_routes();
+		$this->assertArrayHasKey(
+			'/wp/v2/font-collections/(?P<id>[\/\w-]+)',
+			$routes,
+			"Font collections route doesn't exist."
+		);
+		$this->assertArrayHasKey( 'GET', $routes['/wp/v2/font-collections'][0]['methods'], 'The REST server does not have the GET method initialized for font collections.' );
+		$this->assertArrayHasKey( 'GET', $routes['/wp/v2/font-collections/(?P<id>[\/\w-]+)'][0]['methods'], 'The REST server does not have the GET method initialized for a specific font collection.' );
+		$this->assertCount( 1, $routes['/wp/v2/font-collections'], 'The REST server does not have the font collections path initialized.' );
+		$this->assertCount( 1, $routes['/wp/v2/font-collections/(?P<id>[\/\w-]+)'], 'The REST server does not have the path initialized for a specific font collection.' );
 	}
 
 	public function test_context_param() {
