@@ -61,6 +61,7 @@ class WP_Customize_Cropped_Image_Control extends WP_Customize_Image_Control {
 	 *
 	 * @since 4.3.0
 	 */
+	#[\Override]
 	public function enqueue() {
 		wp_enqueue_script( 'customize-views' );
 
@@ -74,6 +75,7 @@ class WP_Customize_Cropped_Image_Control extends WP_Customize_Image_Control {
 	 *
 	 * @see WP_Customize_Control::to_json()
 	 */
+	#[\Override]
 	public function to_json() {
 		parent::to_json();
 
