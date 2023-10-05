@@ -766,7 +766,7 @@ function get_hooked_blocks( $name ) {
  * @param mixed $context      Additional information.
  * @return string The serialized markup for the given block, with the markup for any hooked blocks prepended to it.
  */
-function visit_before_block ( &$block, $parent_block = null, $prev = null, $context = null ) {
+function visit_before_block( &$block, $parent_block = null, $prev = null, $context = null ) {
 	_inject_theme_attribute_in_template_part_block( $block );
 
 	$markup = '';
@@ -828,7 +828,7 @@ function visit_before_block ( &$block, $parent_block = null, $prev = null, $cont
  * @param mixed $context      Additional information.
  * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
  */
-function visit_after_block ( &$block, $parent_block = null, $next = null, $context = null ) {
+function visit_after_block( &$block, $parent_block = null, $next = null, $context = null ) {
 	$markup = '';
 
 	$relative_position  = 'after';
