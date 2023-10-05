@@ -29,6 +29,7 @@ class WP_Customize_Nav_Menu_Locations_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.9.0
 	 */
+	#[\Override]
 	public function render_content() {}
 
 	/**
@@ -36,6 +37,7 @@ class WP_Customize_Nav_Menu_Locations_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.9.0
 	 */
+	#[\Override]
 	public function content_template() {
 		if ( current_theme_supports( 'menus' ) ) :
 			?>
