@@ -760,10 +760,10 @@ function get_hooked_blocks( $name ) {
  * @since 6.4.0
  * @access private
  *
- * @param array $block        The block to inject the theme attribute into, and hooked blocks before.
- * @param array $parent_block The parent block of the given block.
- * @param array $prev         The previous sibling block of the given block.
- * @param mixed $context      Additional information.
+ * @param array                   $block        The block to inject the theme attribute into, and hooked blocks before.
+ * @param array                   $parent_block The parent block of the given block.
+ * @param array                   $prev         The previous sibling block of the given block.
+ * @param WP_Block_Template|array $context      The block template, template part, or pattern that the anchor block belongs to.
  * @return string The serialized markup for the given block, with the markup for any hooked blocks prepended to it.
  */
 function visit_before_block( &$block, $parent_block = null, $prev = null, $context = null ) {
@@ -822,10 +822,10 @@ function visit_before_block( &$block, $parent_block = null, $prev = null, $conte
  * @since 6.4.0
  * @access private
  *
- * @param array $block        The block to inject the hooked blocks after.
- * @param array $parent_block The parent block of the given block.
- * @param array $next         The next sibling block of the given block.
- * @param mixed $context      Additional information.
+ * @param array                   $block        The block to inject the hooked blocks after.
+ * @param array                   $parent_block The parent block of the given block.
+ * @param array                   $prev         The next sibling block of the given block.
+ * @param WP_Block_Template|array $context      The block template, template part, or pattern that the anchor block belongs to.
  * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
  */
 function visit_after_block( &$block, $parent_block = null, $next = null, $context = null ) {
