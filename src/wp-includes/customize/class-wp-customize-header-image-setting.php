@@ -33,6 +33,7 @@ final class WP_Customize_Header_Image_Setting extends WP_Customize_Setting {
 	 *
 	 * @param mixed $value The value to update.
 	 */
+	#[\Override]
 	public function update( $value ) {
 		global $custom_image_header;
 
