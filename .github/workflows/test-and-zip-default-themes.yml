@@ -94,7 +94,7 @@ jobs:
 
       - name: Find zero-byte files
         run: |
-          [[ ! $(find src/wp-content/themes/${{ matrix.theme }} -empty) ]]
+          if find src/wp-content/themes/${{ matrix.theme }} -type f -empty | grep -q .; then exit 1; fi
 
   # Tests the build script for themes that have one.
   #
