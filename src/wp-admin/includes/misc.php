@@ -1400,9 +1400,9 @@ function wp_admin_canonical_url() {
 	$filtered_url = remove_query_arg( $removable_query_args, $current_url );
 
 	/**
-	 * Filters the admin canonical url value
+	 * Filters the admin canonical url value.
 	 *
-	 * @since 6.3.2
+	 * @since 6.4.0
 	 *
 	 * @param string $filtered_url The admin canonical url value.
 	 */
