@@ -241,9 +241,7 @@ function create_initial_rest_routes() {
 			continue;
 		}
 
-		$late_route_registration = 'WP_REST_Template_Autosaves_Controller' === $post_type->autosave_rest_controller_class || 'WP_REST_Template_Revisions_Controller' === $post_type->revisions_rest_controller_class;
-
-		if ( ! $late_route_registration ) {
+		if ( ! $post_type->late_route_registration ) {
 			$controller->register_routes();
 		}
 
@@ -257,7 +255,7 @@ function create_initial_rest_routes() {
 			$autosaves_controller->register_routes();
 		}
 
-		if ( $late_route_registration ) {
+		if ( $post_type->late_route_registration ) {
 			$controller->register_routes();
 		}
 	}

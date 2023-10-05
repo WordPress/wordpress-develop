@@ -438,6 +438,14 @@ final class WP_Post_Type {
 	public $autosave_rest_controller;
 
 	/**
+	 * A flag to direct the REST API controllers for autosave / revisions should be registered before/after the post type controller.
+	 *
+	 * @since 6.4.0
+	 * @var bool $late_route_registration
+	 */
+	public $late_route_registration;
+
+	/**
 	 * Constructor.
 	 *
 	 * See the register_post_type() function for accepted arguments for `$args`.
@@ -496,7 +504,7 @@ final class WP_Post_Type {
 		 *  - `register_page_post_type_args`
 		 *
 		 * @since 6.0.0
-		 * @since 6.4.0 Added `autosave_rest_controller_class` and `revisions_rest_controller_class` arguments.
+		 * @since 6.4.0 Added `late_route_registration`, `autosave_rest_controller_class` and `revisions_rest_controller_class` arguments.
 		 *
 		 * @param array  $args      Array of arguments for registering a post type.
 		 *                          See the register_post_type() function for accepted arguments.
@@ -537,6 +545,7 @@ final class WP_Post_Type {
 			'rest_controller_class'           => false,
 			'autosave_rest_controller_class'  => false,
 			'revisions_rest_controller_class' => false,
+			'late_route_registration'         => false,
 			'template'                        => array(),
 			'template_lock'                   => false,
 			'_builtin'                        => false,
