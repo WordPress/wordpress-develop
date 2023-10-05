@@ -54,6 +54,7 @@ class WP_Customize_Nav_Menu_Item_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.3.0
 	 */
+	#[\Override]
 	public function render_content() {}
 
 	/**
@@ -61,6 +62,7 @@ class WP_Customize_Nav_Menu_Item_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.3.0
 	 */
+	#[\Override]
 	public function content_template() {
 		?>
 		<div class="menu-item-bar">
@@ -172,6 +174,7 @@ class WP_Customize_Nav_Menu_Item_Control extends WP_Customize_Control {
 	 *
 	 * @return array Exported parameters.
 	 */
+	#[\Override]
 	public function json() {
 		$exported                 = parent::json();
 		$exported['menu_item_id'] = $this->setting->post_id;
