@@ -29,6 +29,7 @@ class WP_Customize_Nav_Menu_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.3.0
 	 */
+	#[\Override]
 	public function render_content() {}
 
 	/**
@@ -36,6 +37,7 @@ class WP_Customize_Nav_Menu_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.3.0
 	 */
+	#[\Override]
 	public function content_template() {
 		$add_items = __( 'Add Items' );
 		?>
@@ -73,6 +75,7 @@ class WP_Customize_Nav_Menu_Control extends WP_Customize_Control {
 	 *
 	 * @return array Exported parameters.
 	 */
+	#[\Override]
 	public function json() {
 		$exported            = parent::json();
 		$exported['menu_id'] = $this->setting->term_id;
