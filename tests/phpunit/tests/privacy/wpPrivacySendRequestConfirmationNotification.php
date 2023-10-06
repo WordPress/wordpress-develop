@@ -240,5 +240,4 @@ class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_Unit
 
 		return $headers;
 	}
-
 }

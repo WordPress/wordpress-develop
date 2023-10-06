@@ -354,7 +354,7 @@ function wp_remote_retrieve_cookie( $response, $name ) {
 function wp_remote_retrieve_cookie_value( $response, $name ) {
 	$cookie = wp_remote_retrieve_cookie( $response, $name );
 
-	if ( ! is_a( $cookie, 'WP_Http_Cookie' ) ) {
+	if ( ! ( $cookie instanceof WP_Http_Cookie ) ) {
 		return '';
 	}
 
@@ -694,10 +694,10 @@ function wp_parse_url( $url, $component = -1 ) {
 	$to_unset = array();
 	$url      = (string) $url;
 
-	if ( '//' === substr( $url, 0, 2 ) ) {
+	if ( str_starts_with( $url, '//' ) ) {
 		$to_unset[] = 'scheme';
 		$url        = 'placeholder:' . $url;
-	} elseif ( '/' === substr( $url, 0, 1 ) ) {
+	} elseif ( str_starts_with( $url, '/' ) ) {
 		$to_unset[] = 'scheme';
 		$to_unset[] = 'host';
 		$url        = 'placeholder://placeholder' . $url;

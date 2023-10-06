@@ -285,8 +285,10 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 		return '';
 	}
 
-	// Use the globals if the $post parameter was not specified,
-	// but only after they have been set up in setup_postdata().
+	/*
+	 * Use the globals if the $post parameter was not specified,
+	 * but only after they have been set up in setup_postdata().
+	 */
 	if ( null === $post && did_action( 'the_post' ) ) {
 		$elements = compact( 'page', 'more', 'preview', 'pages', 'multipage' );
 	} else {
@@ -343,7 +345,7 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 		$content = array( $content );
 	}
 
-	if ( false !== strpos( $_post->post_content, '<!--noteaser-->' ) && ( ! $elements['multipage'] || 1 == $elements['page'] ) ) {
+	if ( str_contains( $_post->post_content, '<!--noteaser-->' ) && ( ! $elements['multipage'] || 1 == $elements['page'] ) ) {
 		$strip_teaser = true;
 	}
 
@@ -668,8 +670,8 @@ function get_body_class( $css_class = '' ) {
 	}
 
 	if ( is_singular() ) {
-		$post_id   = $wp_query->get_queried_object_id();
 		$post      = $wp_query->get_queried_object();
+		$post_id   = $post->ID;
 		$post_type = $post->post_type;
 
 		if ( is_page_template() ) {
@@ -712,16 +714,11 @@ function get_body_class( $css_class = '' ) {
 			$classes[]   = 'attachment-' . str_replace( $mime_prefix, '', $mime_type );
 		} elseif ( is_page() ) {
 			$classes[] = 'page';
-
-			$page_id = $wp_query->get_queried_object_id();
-
-			$post = get_post( $page_id );
-
-			$classes[] = 'page-id-' . $page_id;
+			$classes[] = 'page-id-' . $post_id;
 
 			if ( get_pages(
 				array(
-					'parent' => $page_id,
+					'parent' => $post_id,
 					'number' => 1,
 				)
 			) ) {

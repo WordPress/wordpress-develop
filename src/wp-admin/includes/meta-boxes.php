@@ -311,25 +311,24 @@ function post_submit_meta_box( $post, $args = array() ) {
 		endif;
 
 		if ( 'draft' === $post->post_status && get_post_meta( $post_id, '_customize_changeset_uuid', true ) ) :
-			?>
-			<div class="notice notice-info notice-alt inline">
-				<p>
-					<?php
-					printf(
-						/* translators: %s: URL to the Customizer. */
-						__( 'This draft comes from your <a href="%s">unpublished customization changes</a>. You can edit, but there is no need to publish now. It will be published automatically with those changes.' ),
-						esc_url(
-							add_query_arg(
-								'changeset_uuid',
-								rawurlencode( get_post_meta( $post_id, '_customize_changeset_uuid', true ) ),
-								admin_url( 'customize.php' )
-							)
-						)
-					);
-					?>
-				</p>
-			</div>
-			<?php
+			$message = sprintf(
+				/* translators: %s: URL to the Customizer. */
+				__( 'This draft comes from your <a href="%s">unpublished customization changes</a>. You can edit, but there is no need to publish now. It will be published automatically with those changes.' ),
+				esc_url(
+					add_query_arg(
+						'changeset_uuid',
+						rawurlencode( get_post_meta( $post_id, '_customize_changeset_uuid', true ) ),
+						admin_url( 'customize.php' )
+					)
+				)
+			);
+			wp_admin_notice(
+				$message,
+				array(
+					'type'               => 'info',
+					'additional_classes' => array( 'notice-alt', 'inline' ),
+				)
+			);
 		endif;
 
 		/**
@@ -469,10 +468,20 @@ function attachment_submit_meta_box( $post ) {
 	<?php
 	if ( current_user_can( 'delete_post', $post->ID ) ) {
 		if ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) {
-			echo "<a class='submitdelete deletion' href='" . get_delete_post_link( $post->ID ) . "'>" . __( 'Move to Trash' ) . '</a>';
+			printf(
+				'<a class="submitdelete deletion" href="%1$s">%2$s</a>',
+				get_delete_post_link( $post->ID ),
+				__( 'Move to Trash' )
+			);
 		} else {
-			$delete_ays = ! MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '';
-			echo "<a class='submitdelete deletion'$delete_ays href='" . get_delete_post_link( $post->ID, '', true ) . "'>" . __( 'Delete permanently' ) . '</a>';
+			$show_confirmation = ! MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '';
+
+			printf(
+				'<a class="submitdelete deletion"%1$s href="%2$s">%3$s</a>',
+				$show_confirmation,
+				get_delete_post_link( $post->ID, '', true ),
+				__( 'Delete permanently' )
+			);
 		}
 	}
 	?>
@@ -892,8 +901,8 @@ function post_comment_meta_box( $post ) {
 	$total         = get_comments(
 		array(
 			'post_id' => $post->ID,
-			'number'  => 1,
 			'count'   => true,
+			'orderby' => 'none',
 		)
 	);
 	$wp_list_table = _get_list_table( 'WP_Post_Comments_List_Table' );
@@ -1023,7 +1032,7 @@ function page_attributes_meta_box( $post ) {
 		endif; // End empty pages check.
 	endif;  // End hierarchical check.
 
-	if ( count( get_page_templates( $post ) ) > 0 && get_option( 'page_for_posts' ) != $post->ID ) :
+	if ( count( get_page_templates( $post ) ) > 0 && (int) get_option( 'page_for_posts' ) !== $post->ID ) :
 		$template = ! empty( $post->page_template ) ? $post->page_template : false;
 		?>
 <p class="post-attributes-label-wrapper page-template-label-wrapper"><label class="post-attributes-label" for="page_template"><?php _e( 'Template' ); ?></label>
@@ -1486,7 +1495,7 @@ function link_advanced_meta_box( $link ) {
 		<?php
 		for ( $rating = 0; $rating <= 10; $rating++ ) {
 			echo '<option value="' . $rating . '"';
-			if ( isset( $link->link_rating ) && $link->link_rating == $rating ) {
+			if ( isset( $link->link_rating ) && $link->link_rating === $rating ) {
 				echo ' selected="selected"';
 			}
 			echo '>' . $rating . '</option>';
@@ -1662,8 +1671,10 @@ function register_and_do_post_meta_boxes( $post ) {
 	 */
 	do_action_deprecated( 'dbx_post_advanced', array( $post ), '3.7.0', 'add_meta_boxes' );
 
-	// Allow the Discussion meta box to show up if the post type supports comments,
-	// or if comments or pings are open.
+	/*
+	 * Allow the Discussion meta box to show up if the post type supports comments,
+	 * or if comments or pings are open.
+	 */
 	if ( comments_open( $post ) || pings_open( $post ) || post_type_supports( $post_type, 'comments' ) ) {
 		add_meta_box( 'commentstatusdiv', __( 'Discussion' ), 'post_comment_status_meta_box', null, 'normal', 'core', array( '__back_compat_meta_box' => true ) );
 	}
@@ -1675,8 +1686,10 @@ function register_and_do_post_meta_boxes( $post ) {
 	$stati[] = 'private';
 
 	if ( in_array( get_post_status( $post ), $stati, true ) ) {
-		// If the post type support comments, or the post has comments,
-		// allow the Comments meta box.
+		/*
+		 * If the post type support comments, or the post has comments,
+		 * allow the Comments meta box.
+		 */
 		if ( comments_open( $post ) || pings_open( $post ) || $post->comment_count > 0 || post_type_supports( $post_type, 'comments' ) ) {
 			add_meta_box( 'commentsdiv', __( 'Comments' ), 'post_comment_meta_box', null, 'normal', 'core', array( '__back_compat_meta_box' => true ) );
 		}

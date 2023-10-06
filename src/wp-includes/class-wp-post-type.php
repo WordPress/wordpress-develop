@@ -737,7 +737,7 @@ final class WP_Post_Type {
 			remove_rewrite_tag( "%$this->name%" );
 			remove_permastruct( $this->name );
 			foreach ( $wp_rewrite->extra_rules_top as $regex => $query ) {
-				if ( false !== strpos( $query, "index.php?post_type=$this->name" ) ) {
+				if ( str_contains( $query, "index.php?post_type=$this->name" ) ) {
 					unset( $wp_rewrite->extra_rules_top[ $regex ] );
 				}
 			}
@@ -831,7 +831,7 @@ final class WP_Post_Type {
 		self::$default_labels = array(
 			'name'                     => array( _x( 'Posts', 'post type general name' ), _x( 'Pages', 'post type general name' ) ),
 			'singular_name'            => array( _x( 'Post', 'post type singular name' ), _x( 'Page', 'post type singular name' ) ),
-			'add_new'                  => array( _x( 'Add New', 'post' ), _x( 'Add New', 'page' ) ),
+			'add_new'                  => array( __( 'Add New Post' ), __( 'Add New Page' ) ),
 			'add_new_item'             => array( __( 'Add New Post' ), __( 'Add New Page' ) ),
 			'edit_item'                => array( __( 'Edit Post' ), __( 'Edit Page' ) ),
 			'new_item'                 => array( __( 'New Post' ), __( 'New Page' ) ),
@@ -857,6 +857,7 @@ final class WP_Post_Type {
 			'item_published'           => array( __( 'Post published.' ), __( 'Page published.' ) ),
 			'item_published_privately' => array( __( 'Post published privately.' ), __( 'Page published privately.' ) ),
 			'item_reverted_to_draft'   => array( __( 'Post reverted to draft.' ), __( 'Page reverted to draft.' ) ),
+			'item_trashed'             => array( __( 'Post trashed.' ), __( 'Page trashed.' ) ),
 			'item_scheduled'           => array( __( 'Post scheduled.' ), __( 'Page scheduled.' ) ),
 			'item_updated'             => array( __( 'Post updated.' ), __( 'Page updated.' ) ),
 			'item_link'                => array(

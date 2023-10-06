@@ -326,11 +326,11 @@ class WP_Http {
 		);
 
 		// Ensure redirects follow browser behavior.
-		$options['hooks']->register( 'requests.before_redirect', array( get_class(), 'browser_redirect_compatibility' ) );
+		$options['hooks']->register( 'requests.before_redirect', array( static::class, 'browser_redirect_compatibility' ) );
 
 		// Validate redirected URLs.
 		if ( function_exists( 'wp_kses_bad_protocol' ) && $parsed_args['reject_unsafe_urls'] ) {
-			$options['hooks']->register( 'requests.before_redirect', array( get_class(), 'validate_redirects' ) );
+			$options['hooks']->register( 'requests.before_redirect', array( static::class, 'validate_redirects' ) );
 		}
 
 		if ( $parsed_args['stream'] ) {
@@ -463,7 +463,7 @@ class WP_Http {
 			if ( $value instanceof WP_Http_Cookie ) {
 				$attributes                 = array_filter(
 					$value->get_attributes(),
-					static function( $attr ) {
+					static function ( $attr ) {
 						return null !== $attr;
 					}
 				);
@@ -516,6 +516,8 @@ class WP_Http {
 	 * Tests which transports are capable of supporting the request.
 	 *
 	 * @since 3.2.0
+	 * @deprecated 6.4.0 Use WpOrg\Requests\Requests::get_transport_class()
+	 * @see WpOrg\Requests\Requests::get_transport_class()
 	 *
 	 * @param array  $args Request arguments.
 	 * @param string $url  URL to request.
@@ -529,13 +531,14 @@ class WP_Http {
 		 * Filters which HTTP transports are available and in what order.
 		 *
 		 * @since 3.7.0
+		 * @deprecated 6.4.0 Use WpOrg\Requests\Requests::get_transport_class()
 		 *
 		 * @param string[] $transports Array of HTTP transports to check. Default array contains
 		 *                             'curl' and 'streams', in that order.
 		 * @param array    $args       HTTP request arguments.
 		 * @param string   $url        The URL to request.
 		 */
-		$request_order = apply_filters( 'http_api_transports', $transports, $args, $url );
+		$request_order = apply_filters_deprecated( 'http_api_transports', array( $transports, $args, $url ), '6.4.0' );
 
 		// Loop over each transport on each HTTP request looking for one which will serve this request's needs.
 		foreach ( $request_order as $transport ) {
@@ -721,7 +724,7 @@ class WP_Http {
 		 * In this case, determine the final HTTP header and parse from there.
 		 */
 		for ( $i = count( $headers ) - 1; $i >= 0; $i-- ) {
-			if ( ! empty( $headers[ $i ] ) && false === strpos( $headers[ $i ], ':' ) ) {
+			if ( ! empty( $headers[ $i ] ) && ! str_contains( $headers[ $i ], ':' ) ) {
 				$headers = array_splice( $headers, $i );
 				break;
 			}
@@ -734,7 +737,7 @@ class WP_Http {
 				continue;
 			}
 
-			if ( false === strpos( $tempheader, ':' ) ) {
+			if ( ! str_contains( $tempheader, ':' ) ) {
 				$stack   = explode( ' ', $tempheader, 3 );
 				$stack[] = '';
 				list( , $response['code'], $response['message']) = $stack;
@@ -905,7 +908,7 @@ class WP_Http {
 		if ( null === $accessible_hosts ) {
 			$accessible_hosts = preg_split( '|,\s*|', WP_ACCESSIBLE_HOSTS );
 
-			if ( false !== strpos( WP_ACCESSIBLE_HOSTS, '*' ) ) {
+			if ( str_contains( WP_ACCESSIBLE_HOSTS, '*' ) ) {
 				$wildcard_regex = array();
 				foreach ( $accessible_hosts as $host ) {
 					$wildcard_regex[] = str_replace( '\*', '.+', preg_quote( $host, '/' ) );
@@ -919,7 +922,6 @@ class WP_Http {
 		} else {
 			return ! in_array( $check['host'], $accessible_hosts, true ); // Inverse logic, if it's in the array, then don't block it.
 		}
-
 	}
 
 	/**
@@ -1096,11 +1098,10 @@ class WP_Http {
 			return 4;
 		}
 
-		if ( false !== strpos( $maybe_ip, ':' ) && preg_match( '/^(((?=.*(::))(?!.*\3.+\3))\3?|([\dA-F]{1,4}(\3|:\b|$)|\2))(?4){5}((?4){2}|(((2[0-4]|1\d|[1-9])?\d|25[0-5])\.?\b){4})$/i', trim( $maybe_ip, ' []' ) ) ) {
+		if ( str_contains( $maybe_ip, ':' ) && preg_match( '/^(((?=.*(::))(?!.*\3.+\3))\3?|([\dA-F]{1,4}(\3|:\b|$)|\2))(?4){5}((?4){2}|(((2[0-4]|1\d|[1-9])?\d|25[0-5])\.?\b){4})$/i', trim( $maybe_ip, ' []' ) ) ) {
 			return 6;
 		}
 
 		return false;
 	}
-
 }

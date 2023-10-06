@@ -384,7 +384,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		$locale_switched_user_locale  = switch_to_locale( $user_locale ); // False.
 		$locale_switched_site_locale  = switch_to_locale( $site_locale ); // True.
 		$site_locale_after_switch     = get_locale();
-		$language_header_after_switch = isset( $l10n['default'] ); // en_US
+		$language_header_after_switch = is_textdomain_loaded( 'default' ); // en_US
 
 		restore_current_locale();
 
