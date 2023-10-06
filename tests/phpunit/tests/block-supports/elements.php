@@ -3,6 +3,7 @@
  * @group block-supports
  *
  * @covers ::wp_render_elements_support
+ * @covers ::wp_render_elements_support_styles
  */
 class Tests_Block_Supports_Elements extends WP_UnitTestCase {
 	/**
@@ -48,6 +49,8 @@ class Tests_Block_Supports_Elements extends WP_UnitTestCase {
 
 	/**
 	 * Tests that elements block support applies the correct classname.
+	 *
+	 * @ticket 59555
 	 *
 	 * @covers ::wp_render_elements_support
 	 *
@@ -169,6 +172,8 @@ class Tests_Block_Supports_Elements extends WP_UnitTestCase {
 
 	/**
 	 * Tests that elements block support generates appropriate styles.
+	 *
+	 * @ticket 59555
 	 *
 	 * @covers ::wp_render_elements_support_styles
 	 *
