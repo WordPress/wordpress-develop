@@ -236,6 +236,7 @@ $wp_list_table->prepare_items();
 
 wp_enqueue_script( 'inline-edit-post' );
 wp_enqueue_script( 'heartbeat' );
+wp_enqueue_script( 'updates' );
 
 if ( 'wp_block' === $post_type ) {
 	wp_enqueue_script( 'wp-list-reusable-blocks' );
