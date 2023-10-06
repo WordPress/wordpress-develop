@@ -31,8 +31,6 @@ function wp_get_elements_class_name( $block ) {
  * @return string Filtered block content.
  */
 function wp_render_elements_support( $block_content, $block ) {
-	static $heading_elements = array( 'heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6' );
-
 	if ( ! $block_content || ! isset( $block['attrs']['style']['elements'] ) ) {
 		return $block_content;
 	}
@@ -82,7 +80,7 @@ function wp_render_elements_support( $block_content, $block ) {
 	// Heading element support.
 	$supports_heading = ! wp_should_skip_block_supports_serialization( $block_type, 'color', 'heading' );
 	if ( $supports_heading ) {
-		foreach ( $heading_elements as $element_name ) {
+		foreach ( array( 'heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6' ) as $element_name ) {
 			if ( ! isset( $style_attributes[ $element_name ]['color'] ) ) {
 				continue;
 			}
