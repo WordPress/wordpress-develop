@@ -228,4 +228,320 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		// Check that no new database queries were performed.
 		$this->assertSame( $num_queries_pre_update, get_num_queries() );
 	}
+
+	/**
+	 * Tests that update_network_option() triggers one additional query and returns true
+	 * for some loosely equal old and new values when the old value is retrieved from the cache.
+	 *
+	 * The additional query is triggered to update the value in the database.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 *
+	 * @dataProvider data_loosely_equal_values_that_should_update
+	 *
+	 * @param mixed $old_value The old value.
+	 * @param mixed $new_value The new value to try to set.
+	 */
+	public function test_update_network_option_should_update_some_loosely_equal_values_from_cache( $old_value, $new_value ) {
+		add_network_option( null, 'foo', $old_value );
+
+		$num_queries = get_num_queries();
+
+		// Comparison will happen against value cached during add_network_option() above.
+		$updated = update_network_option( null, 'foo', $new_value );
+
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run to update the value.' );
+		$this->assertTrue( $updated, 'update_network_option() should have returned true.' );
+	}
+
+	/**
+	 * Tests that update_network_option() triggers two additional queries and returns true
+	 * for some loosely equal old and new values when the old value is retrieved from the database.
+	 *
+	 * The two additional queries are triggered to:
+	 * 1. retrieve the old value from the database, as the option does not exist in the cache.
+	 * 2. update the value in the database.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 *
+	 * @dataProvider data_loosely_equal_values_that_should_update
+	 *
+	 * @param mixed $old_value The old value.
+	 * @param mixed $new_value The new value to try to set.
+	 */
+	public function test_update_network_option_should_update_some_loosely_equal_values_from_db( $old_value, $new_value ) {
+		add_network_option( null, 'foo', $old_value );
+
+		$num_queries = get_num_queries();
+
+		// Delete cache.
+		wp_cache_delete( 'alloptions', 'options' );
+		$updated = update_network_option( null, 'foo', $new_value );
+
+		$this->assertSame( 2, get_num_queries() - $num_queries, 'Two additional queries should have run.' );
+		$this->assertTrue( $updated, 'update_network_option() should have returned true.' );
+	}
+
+	/**
+	 * Tests that update_network_option() triggers one additional query and returns true
+	 * for some loosely equal old and new values when the old value is retrieved from a refreshed cache.
+	 *
+	 * The additional query is triggered to update the value in the database.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 *
+	 * @dataProvider data_loosely_equal_values_that_should_update
+	 *
+	 * @param mixed $old_value The old value.
+	 * @param mixed $new_value The new value to try to set.
+	 */
+	public function test_update_network_option_should_update_some_loosely_equal_values_from_refreshed_cache( $old_value, $new_value ) {
+		add_network_option( null, 'foo', $old_value );
+
+		// Delete and refresh cache from DB.
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_load_alloptions();
+
+		$num_queries = get_num_queries();
+		$updated     = update_network_option( null, 'foo', $new_value );
+
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run to update the value.' );
+		$this->assertTrue( $updated, 'update_network_option() should have returned true.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_loosely_equal_values_that_should_update() {
+		return array(
+			// Falsey values.
+			'(string) "0" to false'       => array( '0', false ),
+			'empty string to (int) 0'     => array( '', 0 ),
+			'empty string to (float) 0.0' => array( '', 0.0 ),
+			'(int) 0 to empty string'     => array( 0, '' ),
+			'(int) 0 to false'            => array( 0, false ),
+			'(float) 0.0 to empty string' => array( 0.0, '' ),
+			'(float) 0.0 to false'        => array( 0.0, false ),
+			'false to (string) "0"'       => array( false, '0' ),
+			'false to (int) 0'            => array( false, 0 ),
+			'false to (float) 0.0'        => array( false, 0.0 ),
+
+			// Non-scalar values.
+			'false to array()'            => array( false, array() ),
+			'(string) "false" to array()' => array( 'false', array() ),
+			'empty string to array()'     => array( '', array() ),
+			'(int 0) to array()'          => array( 0, array() ),
+			'(string) "0" to array()'     => array( '0', array() ),
+			'(string) "false" to null'    => array( 'false', null ),
+			'(int) 0 to null'             => array( 0, null ),
+			'(string) "0" to null'        => array( '0', null ),
+			'array() to false'            => array( array(), false ),
+			'array() to (string) "false"' => array( array(), 'false' ),
+			'array() to empty string'     => array( array(), '' ),
+			'array() to (int) 0'          => array( array(), 0 ),
+			'array() to (string) "0"'     => array( array(), '0' ),
+			'array() to null'             => array( array(), null ),
+		);
+	}
+
+	/**
+	 * Tests that update_network_option() triggers no additional queries and returns false
+	 * for some values when the old value is retrieved from the cache.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 *
+	 * @dataProvider data_loosely_equal_values_that_should_not_update
+	 * @dataProvider data_strictly_equal_values
+	 *
+	 * @param mixed $old_value The old value.
+	 * @param mixed $new_value The new value to try to set.
+	 */
+	public function test_update_option_should_not_update_some_values_from_cache( $old_value, $new_value ) {
+		add_network_option( null, 'foo', $old_value );
+
+		$num_queries = get_num_queries();
+
+		// Comparison will happen against value cached during add_option() above.
+		$updated = update_network_option( null, 'foo', $new_value );
+
+		$this->assertSame( $num_queries, get_num_queries(), 'No additional queries should have run.' );
+		$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
+	}
+
+	/**
+	 * Tests that update_network_option() triggers one additional query and returns false
+	 * for some values when the old value is retrieved from the database.
+	 *
+	 * The additional query is triggered to retrieve the old value from the database.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 *
+	 * @dataProvider data_loosely_equal_values_that_should_not_update
+	 * @dataProvider data_strictly_equal_values
+	 *
+	 * @param mixed $old_value The old value.
+	 * @param mixed $new_value The new value to try to set.
+	 */
+	public function test_update_network_option_should_not_update_some_values_from_db( $old_value, $new_value ) {
+		add_network_option( null, 'foo', $old_value );
+
+		$num_queries = get_num_queries();
+
+		// Delete cache.
+		wp_cache_delete( 'alloptions', 'options' );
+		$updated = update_network_option( null, 'foo', $new_value );
+
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run.' );
+		$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
+	}
+
+	/**
+	 * Tests that update_network_option() triggers no additional queries and returns false
+	 * for some values when the old value is retrieved from a refreshed cache.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 *
+	 * @dataProvider data_loosely_equal_values_that_should_not_update
+	 * @dataProvider data_strictly_equal_values
+	 *
+	 * @param mixed $old_value The old value.
+	 * @param mixed $new_value The new value to try to set.
+	 */
+	public function test_update_network_option_should_not_update_some_values_from_refreshed_cache( $old_value, $new_value ) {
+		add_network_option( null, 'foo', $old_value );
+
+		// Delete and refresh cache from DB.
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_load_alloptions();
+
+		$num_queries = get_num_queries();
+		$updated     = update_network_option( null, 'foo', $new_value );
+
+		$this->assertSame( $num_queries, get_num_queries(), 'No additional queries should have run.' );
+		$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_loosely_equal_values_that_should_not_update() {
+		return array(
+			// Truthy values.
+			'(string) "1" to (int) 1'     => array( '1', 1 ),
+			'(string) "1" to (float) 1.0' => array( '1', 1.0 ),
+			'(string) "1" to true'        => array( '1', true ),
+			'(int) 1 to (string) "1"'     => array( 1, '1' ),
+			'1 to (float) 1.0'            => array( 1, 1.0 ),
+			'(int) 1 to true'             => array( 1, true ),
+			'(float) 1.0 to (string) "1"' => array( 1.0, '1' ),
+			'(float) 1.0 to (int) 1'      => array( 1.0, 1 ),
+			'1.0 to true'                 => array( 1.0, true ),
+			'true to (string) "1"'        => array( true, '1' ),
+			'true to 1'                   => array( true, 1 ),
+			'true to (float) 1.0'         => array( true, 1.0 ),
+
+			// Falsey values.
+			'(string) "0" to (int) 0'     => array( '0', 0 ),
+			'(string) "0" to (float) 0.0' => array( '0', 0.0 ),
+			'(int) 0 to (string) "0"'     => array( 0, '0' ),
+			'(int) 0 to (float) 0.0'      => array( 0, 0.0 ),
+			'(float) 0.0 to (string) "0"' => array( 0.0, '0' ),
+			'(float) 0.0 to (int) 0'      => array( 0.0, 0 ),
+			'empty string to false'       => array( '', false ),
+			'empty string to null'        => array( '', null ),
+
+			/*
+			 * null as an initial value behaves differently by triggering
+			 * a query, so it is not included in these datasets.
+			 *
+			 * See data_stored_as_empty_string() and its related test.
+			 */
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_strictly_equal_values() {
+		$obj = new stdClass();
+
+		return array(
+			// Truthy values.
+			'(string) "1"'       => array( '1', '1' ),
+			'(int) 1'            => array( 1, 1 ),
+			'(float) 1.0'        => array( 1.0, 1.0 ),
+			'true'               => array( true, true ),
+			'string with spaces' => array( ' ', ' ' ),
+			'non-empty array'    => array( array( 'false' ), array( 'false' ) ),
+			'object'             => array( $obj, $obj ),
+
+			// Falsey values.
+			'(string) "0"'       => array( '0', '0' ),
+			'empty string'       => array( '', '' ),
+			'(int) 0'            => array( 0, 0 ),
+			'(float) 0.0'        => array( 0.0, 0.0 ),
+			'empty array'        => array( array(), array() ),
+
+			/*
+			 * false and null are not included in these datasets
+			 * because false is the default value, which triggers
+			 * a call to add_network_option().
+			 *
+			 * See data_stored_as_empty_string() and its related test.
+			 */
+		);
+	}
+
+	/**
+	 * Tests that update_network_option() adds a non-existent option when the new value
+	 * is stored as an empty string and false is the default value for the option.
+	 *
+	 * @ticket 59360
+	 *
+	 * @dataProvider data_stored_as_empty_string
+	 *
+	 * @param mixed $new_value A value that casts to an empty string.
+	 */
+	public function test_update_network_option_should_add_network_option_when_the_new_value_is_stored_as_an_empty_string_and_matches_default_value_false( $new_value ) {
+		global $wpdb;
+
+		$this->assertTrue( update_network_option( null, 'foo', $new_value ), 'update_network_option() should have returned true.' );
+
+		$actual = $wpdb->get_row( "SELECT option_value FROM $wpdb->options WHERE option_name = 'foo' LIMIT 1" );
+
+		$this->assertIsObject( $actual, 'The option was not added to the database.' );
+		$this->assertObjectHasProperty( 'option_value', $actual, 'The "option_value" property was not included.' );
+		$this->assertSame( '', $actual->option_value, 'The value was not stored as an empty string.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_stored_as_empty_string() {
+		return array(
+			'false'        => array( false ),
+			'empty string' => array( '' ),
+			'null'         => array( null ),
+		);
+	}
 }
