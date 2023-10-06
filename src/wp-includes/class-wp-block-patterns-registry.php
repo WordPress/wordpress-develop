@@ -189,7 +189,7 @@ final class WP_Block_Patterns_Registry {
 		$patterns = $outside_init_only
 				? $this->registered_patterns_outside_init
 				: $this->registered_patterns;
-		
+
 		foreach ( $patterns as $pattern_name => $pattern ) {
 			if ( ! isset( $pattern['content_parsed'] ) ) {
 				$pattern['content_parsed'] = $this->get_parse_blocks( $pattern['content'] );
