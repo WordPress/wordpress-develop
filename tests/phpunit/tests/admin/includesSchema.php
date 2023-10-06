@@ -192,7 +192,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		// Set the "default" value for the timezone to a deprecated timezone.
 		add_filter(
 			'gettext_with_context',
-			static function( $translation, $text, $context ) {
+			static function ( $translation, $text, $context ) {
 				if ( '0' === $text && 'default GMT offset or timezone string' === $context ) {
 					return 'America/Buenos_Aires';
 				}

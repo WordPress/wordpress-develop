@@ -17,7 +17,7 @@ class Tests_Theme_Previews extends WP_UnitTestCase {
 
 	public function test_initialize_theme_preview_hooks() {
 		$_GET['wp_theme_preview'] = 'twentytwentythree';
-		do_action( 'plugins_loaded' ); // Ensure `plugins_loaded` triggers `initialize_theme_preview_hooks`.
+		do_action( 'plugins_loaded' ); // Ensure `plugins_loaded` triggers `wp_initialize_theme_preview_hooks`.
 
 		$this->assertEquals( has_filter( 'stylesheet', 'wp_get_theme_preview_path' ), 10 );
 		$this->assertEquals( has_filter( 'template', 'wp_get_theme_preview_path' ), 10 );

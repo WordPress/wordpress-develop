@@ -464,6 +464,8 @@ final class WP_Customize_Manager {
 				),
 				'error'         => $ajax_message,
 			);
+			$message .= ob_get_clean();
+			ob_start();
 			?>
 			<script>
 			( function( api, settings ) {
@@ -472,7 +474,7 @@ final class WP_Customize_Manager {
 			} )( wp.customize, <?php echo wp_json_encode( $settings ); ?> );
 			</script>
 			<?php
-			$message .= ob_get_clean();
+			$message .= wp_get_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 		}
 
 		wp_die( $message );
@@ -1077,7 +1079,7 @@ final class WP_Customize_Manager {
 				continue;
 			}
 			if ( update_post_meta( $autosave_autodraft_post->ID, '_customize_restore_dismissed', true ) ) {
-				$dismissed++;
+				++$dismissed;
 			}
 		}
 		return $dismissed;
@@ -1479,7 +1481,7 @@ final class WP_Customize_Manager {
 
 			if ( ! $nav_menu_term_id ) {
 				while ( isset( $changeset_data[ sprintf( 'nav_menu[%d]', $placeholder_id ) ] ) ) {
-					$placeholder_id--;
+					--$placeholder_id;
 				}
 				$nav_menu_term_id    = $placeholder_id;
 				$nav_menu_setting_id = sprintf( 'nav_menu[%d]', $placeholder_id );
@@ -2083,29 +2085,22 @@ final class WP_Customize_Manager {
 		if ( ! $this->messenger_channel ) {
 			return;
 		}
+		ob_start();
 		?>
 		<script>
 		( function() {
-			var urlParser, oldQueryParams, newQueryParams, i;
 			if ( parent !== window ) {
 				return;
 			}
-			urlParser = document.createElement( 'a' );
-			urlParser.href = location.href;
-			oldQueryParams = urlParser.search.substr( 1 ).split( /&/ );
-			newQueryParams = [];
-			for ( i = 0; i < oldQueryParams.length; i += 1 ) {
-				if ( ! /^customize_messenger_channel=/.test( oldQueryParams[ i ] ) ) {
-					newQueryParams.push( oldQueryParams[ i ] );
-				}
-			}
-			urlParser.search = newQueryParams.join( '&' );
-			if ( urlParser.search !== location.search ) {
-				location.replace( urlParser.href );
+			const url = new URL( location.href );
+			if ( url.searchParams.has( 'customize_messenger_channel' ) ) {
+				url.searchParams.delete( 'customize_messenger_channel' );
+				location.replace( url );
 			}
 		} )();
 		</script>
 		<?php
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 	}
 
 	/**
@@ -2201,8 +2196,9 @@ final class WP_Customize_Manager {
 			}
 		}
 
+		ob_start();
 		?>
-		<script type="text/javascript">
+		<script>
 			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
 			_wpCustomizeSettings.values = {};
 			(function( v ) {
@@ -2225,6 +2221,7 @@ final class WP_Customize_Manager {
 			})( _wpCustomizeSettings.values );
 		</script>
 		<?php
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 	}
 
 	/**
@@ -4976,8 +4973,9 @@ final class WP_Customize_Manager {
 			}
 		}
 
+		ob_start();
 		?>
-		<script type="text/javascript">
+		<script>
 			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
 			_wpCustomizeSettings.initialClientTimestamp = _.now();
 			_wpCustomizeSettings.controls = {};
@@ -5012,6 +5010,7 @@ final class WP_Customize_Manager {
 			?>
 		</script>
 		<?php
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 	}
 
 	/**

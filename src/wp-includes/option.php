@@ -161,33 +161,6 @@ function get_option( $option, $default_value = false ) {
 	$passed_default = func_num_args() > 1;
 
 	if ( ! wp_installing() ) {
-		// Prevent non-existent options from triggering multiple queries.
-		$notoptions = wp_cache_get( 'notoptions', 'options' );
-
-		// Prevent non-existent `notoptions` key from triggering multiple key lookups.
-		if ( ! is_array( $notoptions ) ) {
-			$notoptions = array();
-			wp_cache_set( 'notoptions', $notoptions, 'options' );
-		}
-
-		if ( isset( $notoptions[ $option ] ) ) {
-			/**
-			 * Filters the default value for an option.
-			 *
-			 * The dynamic portion of the hook name, `$option`, refers to the option name.
-			 *
-			 * @since 3.4.0
-			 * @since 4.4.0 The `$option` parameter was added.
-			 * @since 4.7.0 The `$passed_default` parameter was added to distinguish between a `false` value and the default parameter value.
-			 *
-			 * @param mixed  $default_value  The default value to return if the option does not exist
-			 *                               in the database.
-			 * @param string $option         Option name.
-			 * @param bool   $passed_default Was `get_option()` passed a default value?
-			 */
-			return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default );
-		}
-
 		$alloptions = wp_load_alloptions();
 
 		if ( isset( $alloptions[ $option ] ) ) {
@@ -196,6 +169,31 @@ function get_option( $option, $default_value = false ) {
 			$value = wp_cache_get( $option, 'options' );
 
 			if ( false === $value ) {
+				// Prevent non-existent options from triggering multiple queries.
+				$notoptions = wp_cache_get( 'notoptions', 'options' );
+
+				// Prevent non-existent `notoptions` key from triggering multiple key lookups.
+				if ( ! is_array( $notoptions ) ) {
+					$notoptions = array();
+					wp_cache_set( 'notoptions', $notoptions, 'options' );
+				} elseif ( isset( $notoptions[ $option ] ) ) {
+					/**
+					 * Filters the default value for an option.
+					 *
+					 * The dynamic portion of the hook name, `$option`, refers to the option name.
+					 *
+					 * @since 3.4.0
+					 * @since 4.4.0 The `$option` parameter was added.
+					 * @since 4.7.0 The `$passed_default` parameter was added to distinguish between a `false` value and the default parameter value.
+					 *
+					 * @param mixed  $default_value  The default value to return if the option does not exist
+					 *                               in the database.
+					 * @param string $option         Option name.
+					 * @param bool   $passed_default Was `get_option()` passed a default value?
+					 */
+					return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default );
+				}
+
 				$row = $wpdb->get_row( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
 
 				// Has to be get_row() instead of get_var() because of funkiness with 0, false, null values.
@@ -203,10 +201,6 @@ function get_option( $option, $default_value = false ) {
 					$value = $row->option_value;
 					wp_cache_add( $option, $value, 'options' );
 				} else { // Option does not exist, so we must cache its non-existence.
-					if ( ! is_array( $notoptions ) ) {
-						$notoptions = array();
-					}
-
 					$notoptions[ $option ] = true;
 					wp_cache_set( 'notoptions', $notoptions, 'options' );
 
@@ -783,20 +777,46 @@ function update_option( $option, $value, $autoload = null ) {
 	$value = apply_filters( 'pre_update_option', $value, $option, $old_value );
 
 	/*
-	 * If the new and old values are the same, no need to update.
-	 *
-	 * Unserialized values will be adequate in most cases. If the unserialized
-	 * data differs, the (maybe) serialized data is checked to avoid
-	 * unnecessary database calls for otherwise identical object instances.
-	 *
-	 * See https://core.trac.wordpress.org/ticket/38903
+	 * To get the actual raw old value from the database, any existing pre filters need to be temporarily disabled.
+	 * Immediately after getting the raw value, they are reinstated.
+	 * The raw value is only used to determine whether a value is present in the database. It is not used anywhere
+	 * else, and is not passed to any of the hooks either.
 	 */
-	if ( $value === $old_value || maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
-		return false;
+	if ( has_filter( "pre_option_{$option}" ) ) {
+		global $wp_filter;
+
+		$old_filters = $wp_filter[ "pre_option_{$option}" ];
+		unset( $wp_filter[ "pre_option_{$option}" ] );
+
+		$raw_old_value                       = get_option( $option );
+		$wp_filter[ "pre_option_{$option}" ] = $old_filters;
+	} else {
+		$raw_old_value = $old_value;
 	}
 
 	/** This filter is documented in wp-includes/option.php */
-	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
+	$default_value = apply_filters( "default_option_{$option}", false, $option, false );
+
+	/*
+	 * If the new and old values are the same, no need to update.
+	 *
+	 * An exception applies when no value is set in the database, i.e. the old value is the default.
+	 * In that case, the new value should always be added as it may be intentional to store it rather than relying on the default.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/38903 and https://core.trac.wordpress.org/ticket/22192.
+	 */
+	if (
+		$value === $raw_old_value ||
+		(
+			$raw_old_value !== $default_value &&
+			_is_equal_database_value( $raw_old_value, $value )
+		)
+	) {
+		return false;
+	}
+
+	if ( $raw_old_value === $default_value ) {
+
 		// Default setting for new options is 'yes'.
 		if ( null === $autoload ) {
 			$autoload = 'yes';
@@ -2892,4 +2912,41 @@ function filter_default_option( $default_value, $option, $passed_default ) {
 	}
 
 	return $registered[ $option ]['default'];
+}
+
+/**
+ * Determines whether two values will be equal when stored in the database.
+ *
+ * @since 6.4.0
+ * @access private
+ *
+ * @param mixed $old_value The old value to compare.
+ * @param mixed $new_value The new value to compare.
+ * @return bool True if the values are equal, false otherwise.
+ */
+function _is_equal_database_value( $old_value, $new_value ) {
+	$values = array(
+		'old' => $old_value,
+		'new' => $new_value,
+	);
+
+	foreach ( $values as $_key => &$_value ) {
+		// Cast scalars or null to a string so type discrepancies don't result in cache misses.
+		if ( null === $_value || is_scalar( $_value ) ) {
+			$_value = (string) $_value;
+		}
+	}
+
+	if ( $values['old'] === $values['new'] ) {
+		return true;
+	}
+
+	/*
+	 * Unserialized values will be adequate in most cases. If the unserialized
+	 * data differs, the (maybe) serialized data is checked to avoid
+	 * unnecessary database calls for otherwise identical object instances.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/38903
+	 */
+	return maybe_serialize( $old_value ) === maybe_serialize( $new_value );
 }

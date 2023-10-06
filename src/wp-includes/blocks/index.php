@@ -68,9 +68,13 @@ function register_core_block_style_handles() {
 
 	if ( ! $files ) {
 		$files = glob( wp_normalize_path( BLOCKS_PATH . '**/**.css' ) );
+
+		// Normalize BLOCKS_PATH prior to substitution for Windows environments.
+		$normalized_blocks_path = wp_normalize_path( BLOCKS_PATH );
+
 		$files = array_map(
-			static function ( $file ) {
-				return str_replace( BLOCKS_PATH, '', $file );
+			static function ( $file ) use ( $normalized_blocks_path ) {
+				return str_replace( $normalized_blocks_path, '', $file );
 			},
 			$files
 		);
@@ -87,7 +91,7 @@ function register_core_block_style_handles() {
 		}
 	}
 
-	$register_style = static function( $name, $filename, $style_handle ) use ( $blocks_url, $suffix, $wp_styles, $files ) {
+	$register_style = static function ( $name, $filename, $style_handle ) use ( $blocks_url, $suffix, $wp_styles, $files ) {
 		$style_path = "{$name}/{$filename}{$suffix}.css";
 		$path       = wp_normalize_path( BLOCKS_PATH . $style_path );
 

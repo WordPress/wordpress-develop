@@ -310,7 +310,7 @@ if ( isset( $_GET['editwidget'] ) && $_GET['editwidget'] ) {
 			} else {
 				$j = count( $sidebars_widgets[ $sbname ] );
 				if ( isset( $_GET['addnew'] ) || ! in_array( $widget_id, $sidebars_widgets[ $sbname ], true ) ) {
-					$j++;
+					++$j;
 				}
 			}
 			$selected = '';
@@ -403,14 +403,28 @@ $nonce = wp_create_nonce( 'widgets-access' );
 
 <hr class="wp-header-end">
 
-<?php if ( isset( $_GET['message'] ) && isset( $messages[ $_GET['message'] ] ) ) { ?>
-<div id="message" class="updated notice is-dismissible"><p><?php echo $messages[ $_GET['message'] ]; ?></p></div>
-<?php } ?>
-<?php if ( isset( $_GET['error'] ) && isset( $errors[ $_GET['error'] ] ) ) { ?>
-<div id="message" class="error"><p><?php echo $errors[ $_GET['error'] ]; ?></p></div>
-<?php } ?>
-
 <?php
+if ( isset( $_GET['message'] ) && isset( $messages[ $_GET['message'] ] ) ) {
+	wp_admin_notice(
+		$messages[ $_GET['message'] ],
+		array(
+			'id'                 => 'message',
+			'additional_classes' => array( 'updated' ),
+			'dismissible'        => true,
+		)
+	);
+}
+if ( isset( $_GET['error'] ) && isset( $errors[ $_GET['error'] ] ) ) {
+	wp_admin_notice(
+		$errors[ $_GET['error'] ],
+		array(
+			'id'                 => 'message',
+			'additional_classes' => array( 'error' ),
+			'dismissible'        => true,
+		)
+	);
+}
+
 /**
  * Fires before the Widgets administration page content loads.
  *
@@ -540,7 +554,7 @@ foreach ( $theme_sidebars as $sidebar => $registered_sidebar ) {
 	</div>
 	<?php
 
-	$i++;
+	++$i;
 }
 
 ?>

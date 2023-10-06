@@ -75,7 +75,6 @@ class Tests_Actions extends WP_UnitTestCase {
 		do_action( $hook_name );
 		$this->assertSame( 1, $a->get_call_count() );
 		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
-
 	}
 
 	/**
@@ -282,7 +281,6 @@ class Tests_Actions extends WP_UnitTestCase {
 		// $hook_name1's count hasn't changed, $hook_name2 should be correct.
 		$this->assertSame( 1, did_action( $hook_name1 ) );
 		$this->assertSame( $count, did_action( $hook_name2 ) );
-
 	}
 
 	/**
@@ -309,7 +307,6 @@ class Tests_Actions extends WP_UnitTestCase {
 
 		remove_action( 'all', array( &$a, 'action' ) );
 		$this->assertFalse( has_filter( 'all', array( &$a, 'action' ) ) );
-
 	}
 
 	/**
@@ -390,7 +387,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	 */
 	public function test_action_closure() {
 		$hook_name = __FUNCTION__;
-		$closure   = static function( $a, $b ) {
+		$closure   = static function ( $a, $b ) {
 			$GLOBALS[ $a ] = $b;
 		};
 		add_action( $hook_name, $closure, 10, 2 );
@@ -403,7 +400,7 @@ class Tests_Actions extends WP_UnitTestCase {
 		$this->assertSame( $GLOBALS[ $context[0] ], $context[1] );
 
 		$hook_name2 = __FUNCTION__ . '_2';
-		$closure2   = static function() {
+		$closure2   = static function () {
 			$GLOBALS['closure_no_args'] = true;
 		};
 		add_action( $hook_name2, $closure2 );
