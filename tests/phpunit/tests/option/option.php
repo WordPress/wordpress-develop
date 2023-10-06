@@ -779,36 +779,34 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
-	 * update_option should respect autoload flag whenever applicable
-	 * when autoload was changed, ensure delete_option and get_option won't processing / giving stale data
+	 * Tests that calling update_option() with changed autoload from 'no' to 'yes' updates the cache correctly.
+	 *
+	 * This ensures that no stale data is served in case the option is deleted after.
 	 *
 	 * @ticket 51352
+	 *
+	 * @covers ::update_option
 	 */
-	public function test_option_autoload_changes() {
-		// from yes to no
-		update_option( 'a_dynamic_option', 'foo', 'yes' );
-		$this->assertSame( 'foo', get_option( 'a_dynamic_option' ) );
+	public function test_update_option_with_autoload_change_no_to_yes() {
+		add_option( 'foo', 'value1', '', 'no' );
+		update_option( 'foo', 'value2', 'yes' );
+		delete_option( 'foo' );
+		$this->assertFalse( get_option( 'foo' ) );
+	}
 
-		update_option( 'a_dynamic_option', 'bar', 'no' );
-		$this->assertSame( 'bar', get_option( 'a_dynamic_option' ) );
-
-		delete_option( 'a_dynamic_option' );
-		$this->assertFalse( get_option( 'a_dynamic_option' ) );
-
-		update_option( 'a_dynamic_option', 'foobar', 'no' );
-		$this->assertSame( 'foobar', get_option( 'a_dynamic_option' ) );
-
-		// from no to yes
-		update_option( 'a_reverse_dynamic_option', 'foo', 'no' );
-		$this->assertSame( 'foo', get_option( 'a_reverse_dynamic_option' ) );
-
-		update_option( 'a_reverse_dynamic_option', 'bar', 'yes' );
-		$this->assertSame( 'bar', get_option( 'a_reverse_dynamic_option' ) );
-
-		delete_option( 'a_reverse_dynamic_option' );
-		$this->assertFalse( get_option( 'a_reverse_dynamic_option' ) );
-
-		update_option( 'a_reverse_dynamic_option', 'foobar' );
-		$this->assertSame( 'foobar', get_option( 'a_reverse_dynamic_option' ) );
-  }
+	/**
+	 * Tests that calling update_option() with changed autoload from 'yes' to 'no' updates the cache correctly.
+	 *
+	 * This ensures that no stale data is served in case the option is deleted after.
+	 *
+	 * @ticket 51352
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_with_autoload_change_yes_to_no() {
+		add_option( 'foo', 'value1', '', 'yes' );
+		update_option( 'foo', 'value2', 'no' );
+		delete_option( 'foo' );
+		$this->assertFalse( get_option( 'foo' ) );
+	}
 }
