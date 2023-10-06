@@ -93,10 +93,8 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Find zero-byte files
-        run: find src/wp-content/themes/${{ matrix.theme }} -empty -delete
-
-      - name: Ensure version-controlled files are not modified or deleted
-        run: git diff --exit-code
+        run: |
+          [[ ! $(find src/wp-content/themes/${{ matrix.theme }} -empty) ]]
 
   # Tests the build script for themes that have one.
   #
