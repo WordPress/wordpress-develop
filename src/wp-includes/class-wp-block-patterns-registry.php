@@ -112,7 +112,10 @@ final class WP_Block_Patterns_Registry {
 
 		$pattern = array_merge(
 			$pattern_properties,
-			array( 'name' => $pattern_name )
+			array(
+				'name'   => $pattern_name,
+				'parsed' => false,
+			)
 		);
 
 		$this->registered_patterns[ $pattern_name ] = $pattern;
@@ -166,12 +169,11 @@ final class WP_Block_Patterns_Registry {
 		}
 
 		$pattern = $this->registered_patterns[ $pattern_name ];
-		if ( ! isset( $pattern['content_parsed'] ) ) {
-			$pattern['content_parsed'] = $this->get_parse_blocks( $pattern['content'] );
+		if ( ! $pattern['parsed'] ) {
+			$pattern['content']                         = $this->get_parse_blocks( $pattern );
+			$pattern['parsed']                          = true;
 			$this->registered_patterns[ $pattern_name ] = $pattern;
 		}
-		$pattern['content'] = $pattern['content_parsed'];
-		unset( $pattern['content_parsed'] );
 
 		return $pattern;
 	}
@@ -191,25 +193,26 @@ final class WP_Block_Patterns_Registry {
 				: $this->registered_patterns;
 
 		foreach ( $patterns as $pattern_name => $pattern ) {
-			if ( ! isset( $pattern['content_parsed'] ) ) {
-				$pattern['content_parsed'] = $this->get_parse_blocks( $pattern['content'] );
-				if ( $outside_init_only ) {
-					$this->registered_patterns_outside_init[ $pattern_name ]['content_parsed'] = $pattern['content_parsed'];
-				} else {
-					$this->registered_patterns[ $pattern_name ]['content_parsed'] = $pattern['content_parsed'];
-				}
+			if ( ! $pattern['parsed'] ) {
+				$pattern['content']        = $this->get_parse_blocks( $pattern );
+				$pattern['parsed']         = true;
+				$patterns[ $pattern_name ] = $pattern;
 			}
-			$patterns[ $pattern_name ]['content'] = $pattern['content_parsed'];
-			unset( $pattern['content_parsed'] );
+		}
+
+		if ( $outside_init_only ) {
+			$this->registered_patterns_outside_init = $patterns;
+		} else {
+			$this->registered_patterns = $patterns;
 		}
 
 		return array_values( $patterns );
 	}
 
-	protected function get_parse_blocks( $content ){
-		$blocks                    = parse_blocks( $content );
-		$before_block_visitor      = make_before_block_visitor( $pattern );
-		$after_block_visitor       = make_after_block_visitor( $pattern );
+	protected function get_parse_blocks( $pattern ) {
+		$blocks               = parse_blocks( $pattern['content'] );
+		$before_block_visitor = make_before_block_visitor( $pattern );
+		$after_block_visitor  = make_after_block_visitor( $pattern );
 		return traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 	}
 
