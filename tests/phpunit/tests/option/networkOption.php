@@ -235,6 +235,11 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 *
 	 * The additional query is triggered to update the value in the database.
 	 *
+	 * If the old value is false, the additional queries are triggered to:
+	 * 1. get the old value from the database via get_network_option() -> get_option().
+	 * 2. (Single Site only) get the old value from the database via update_network_option() -> update_option() -> get_option().
+	 * 3. update the value in the database via update_network_options() -> update_option().
+	 *
 	 * @ticket 59360
 	 *
 	 * @covers ::update_network_option
@@ -252,7 +257,13 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		// Comparison will happen against value cached during add_network_option() above.
 		$updated = update_network_option( null, 'foo', $new_value );
 
-		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run to update the value.' );
+		$expected_queries = 1;
+
+		if ( false === $old_value ) {
+			$expected_queries = is_multisite() ? 2 : 3;
+		}
+
+		$this->assertSame( $expected_queries, get_num_queries() - $num_queries, "The number of queries should have increased by $expected_queries." );
 		$this->assertTrue( $updated, 'update_network_option() should have returned true.' );
 	}
 
@@ -263,6 +274,12 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * The two additional queries are triggered to:
 	 * 1. retrieve the old value from the database, as the option does not exist in the cache.
 	 * 2. update the value in the database.
+	 *
+	 * On Single Site, if the old value is false, the four additional queries are triggered to:
+	 * 1. get the old value from the database via get_network_option() -> get_option().
+	 * 2. get the alloptions cache via get_network_option() -> get_option().
+	 * 3. get the old value from the database via update_network_option() -> update_option() -> get_option().
+	 * 4. update the value in the database via update_network_options() -> update_option().
 	 *
 	 * @ticket 59360
 	 *
@@ -279,10 +296,15 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 
 		// Delete cache.
+		$network_cache_key = get_current_network_id() . ':foo';
+		wp_cache_delete( $network_cache_key, 'site-options' );
 		wp_cache_delete( 'alloptions', 'options' );
+
 		$updated = update_network_option( null, 'foo', $new_value );
 
-		$this->assertSame( 2, get_num_queries() - $num_queries, 'Two additional queries should have run.' );
+		$expected_queries = false === $old_value && ! is_multisite() ? 4 : 2;
+
+		$this->assertSame( $expected_queries, get_num_queries() - $num_queries, "The number of queries should have increased by $expected_queries." );
 		$this->assertTrue( $updated, 'update_network_option() should have returned true.' );
 	}
 
@@ -291,6 +313,11 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * for some loosely equal old and new values when the old value is retrieved from a refreshed cache.
 	 *
 	 * The additional query is triggered to update the value in the database.
+	 *
+	 * If the old value is false, the additional queries are triggered to:
+	 * 1. get the old value from the database via get_network_option() -> get_option().
+	 * 2. get the old value from the database via update_network_option() -> update_option() -> get_option().
+	 * 3. update the value in the database via update_network_options() -> update_option().
 	 *
 	 * @ticket 59360
 	 *
@@ -311,7 +338,13 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 		$updated     = update_network_option( null, 'foo', $new_value );
 
-		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run to update the value.' );
+		$expected_queries = 1;
+
+		if ( false === $old_value ) {
+			$expected_queries = is_multisite() ? 2 : 3;
+		}
+
+		$this->assertSame( $expected_queries, get_num_queries() - $num_queries, "The number of queries should have increased by $expected_queries." );
 		$this->assertTrue( $updated, 'update_network_option() should have returned true.' );
 	}
 
@@ -374,7 +407,9 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		// Comparison will happen against value cached during add_option() above.
 		$updated = update_network_option( null, 'foo', $new_value );
 
-		$this->assertSame( $num_queries, get_num_queries(), 'No additional queries should have run.' );
+		$expected_queries = $old_value === $new_value || ! is_multisite() ? 0 : 1;
+		$this->assertSame( $expected_queries, get_num_queries() - $num_queries, "The number of queries should have increased by $expected_queries." );
+
 		$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
 	}
 
@@ -400,10 +435,20 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 
 		// Delete cache.
+		$network_cache_key = get_current_network_id() . ':foo';
+		wp_cache_delete( $network_cache_key, 'site-options' );
 		wp_cache_delete( 'alloptions', 'options' );
+
 		$updated = update_network_option( null, 'foo', $new_value );
 
-		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run.' );
+		// Mimic the behavior of the database by casting the old value to string.
+		if ( is_scalar( $old_value ) ) {
+			$old_value = (string) $old_value;
+		}
+
+		$expected_queries = $old_value === $new_value || ! is_multisite() ? 1 : 2;
+		$this->assertSame( $expected_queries, get_num_queries() - $num_queries, "The number of queries should have increased by $expected_queries." );
+
 		$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
 	}
 
@@ -431,7 +476,13 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 		$updated     = update_network_option( null, 'foo', $new_value );
 
-		$this->assertSame( $num_queries, get_num_queries(), 'No additional queries should have run.' );
+		/*
+		 * Strictly equal old and new values will cause an early return
+		 * with no additional queries.
+		 */
+		$expected_queries = $old_value === $new_value || ! is_multisite() ? 0 : 1;
+		$this->assertSame( $expected_queries, get_num_queries() - $num_queries, "The number of queries should have increased by $expected_queries." );
+
 		$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
 	}
 
@@ -464,7 +515,6 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 			'(float) 0.0 to (string) "0"' => array( 0.0, '0' ),
 			'(float) 0.0 to (int) 0'      => array( 0.0, 0 ),
 			'empty string to false'       => array( '', false ),
-			'empty string to null'        => array( '', null ),
 
 			/*
 			 * null as an initial value behaves differently by triggering
@@ -511,6 +561,108 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that update_network_option() handles a null new value when the new value
+	 * is retrieved from the cache.
+	 *
+	 * On Single Site, this will result in no additional queries as
+	 * the option_value database field is not nullable.
+	 *
+	 * On Multisite, this will result in one additional query as
+	 * the meta_value database field is nullable.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 */
+	public function test_update_option_should_handle_a_null_new_value_from_cache() {
+		add_network_option( null, 'foo', '' );
+
+		$num_queries = get_num_queries();
+
+		// Comparison will happen against value cached during add_option() above.
+		$updated = update_network_option( null, 'foo', null );
+
+		$expected_queries = is_multisite() ? 1 : 0;
+		$this->assertSame( $expected_queries, get_num_queries() - $num_queries, "The number of queries should have increased by $expected_queries." );
+
+		if ( is_multisite() ) {
+			$this->assertTrue( $updated, 'update_network_option() should have returned true.' );
+		} else {
+			$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
+		}
+	}
+
+	/**
+	 * Tests that update_network_option() handles a null new value when the new value
+	 * is retrieved from the database.
+	 *
+	 * On Single Site, this will result in only 1 additional query as
+	 * the option_value database field is not nullable.
+	 *
+	 * On Multisite, this will result in two additional queries as
+	 * the meta_value database field is nullable.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 */
+	public function test_update_option_should_handle_a_null_new_value_from_db() {
+		add_network_option( null, 'foo', '' );
+
+		$num_queries = get_num_queries();
+
+		// Delete cache.
+		$network_cache_key = get_current_network_id() . ':foo';
+		wp_cache_delete( $network_cache_key, 'site-options' );
+		wp_cache_delete( 'alloptions', 'options' );
+
+		$updated = update_network_option( null, 'foo', null );
+
+		$expected_queries = is_multisite() ? 2 : 1;
+		$this->assertSame( $expected_queries, get_num_queries() - $num_queries, "The number of queries should have increased by $expected_queries." );
+
+		if ( is_multisite() ) {
+			$this->assertTrue( $updated, 'update_network_option() should have returned true.' );
+		} else {
+			$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
+		}
+	}
+
+	/**
+	 * Tests that update_network_option() handles a null new value when the new value
+	 * is retrieved from a refreshed cache.
+	 *
+	 * On Single Site, this will result in no additional queries as
+	 * the option_value database field is not nullable.
+	 *
+	 * On Multisite, this will result in one additional query as
+	 * the meta_value database field is nullable.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 */
+	public function test_update_option_should_handle_a_null_new_value_from_refreshed_cache() {
+		add_network_option( null, 'foo', '' );
+
+		// Delete and refresh cache from DB.
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_load_alloptions();
+
+		$num_queries = get_num_queries();
+		$updated     = update_network_option( null, 'foo', null );
+
+		$expected_queries = is_multisite() ? 1 : 0;
+		$this->assertSame( $expected_queries, get_num_queries() - $num_queries, "The number of queries should have increased by $expected_queries." );
+
+		if ( is_multisite() ) {
+			$this->assertTrue( $updated, 'update_network_option() should have returned true.' );
+		} else {
+			$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
+		}
+	}
+
+	/**
 	 * Tests that update_network_option() adds a non-existent option when the new value
 	 * is stored as an empty string and false is the default value for the option.
 	 *
@@ -522,6 +674,10 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 */
 	public function test_update_network_option_should_add_network_option_when_the_new_value_is_stored_as_an_empty_string_and_matches_default_value_false( $new_value ) {
 		global $wpdb;
+
+		if ( is_multisite() ) {
+			$this->markTestSkipped( 'This test should only run on Single Site.' );
+		}
 
 		$this->assertTrue( update_network_option( null, 'foo', $new_value ), 'update_network_option() should have returned true.' );
 
@@ -539,7 +695,6 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 */
 	public function data_stored_as_empty_string() {
 		return array(
-			'false'        => array( false ),
 			'empty string' => array( '' ),
 			'null'         => array( null ),
 		);
