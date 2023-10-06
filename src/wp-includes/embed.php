@@ -510,11 +510,13 @@ function get_post_embed_html( $width, $height, $post = null ) {
 		esc_attr( $secret )
 	);
 
-	// Note that the script must be placed after the <blockquote> and <iframe> due to a regexp parsing issue in
-	// `wp_filter_oembed_result()`. Because of the regex pattern starts with `|(<blockquote>.*?</blockquote>)?.*|`
-	// wherein the <blockquote> is marked as being optional, if it is not at the beginning of the string then the group
-	// will fail to match and everything will be matched by `.*` and not included in the group. This regex issue goes
-	// back to WordPress 4.4, so in order to not break older installs this script must come at the end.
+	/*
+	 * Note that the script must be placed after the <blockquote> and <iframe> due to a regexp parsing issue in
+	 * `wp_filter_oembed_result()`. Because of the regex pattern starts with `|(<blockquote>.*?</blockquote>)?.*|`
+	 * wherein the <blockquote> is marked as being optional, if it is not at the beginning of the string then the group
+	 * will fail to match and everything will be matched by `.*` and not included in the group. This regex issue goes
+	 * back to WordPress 4.4, so in order to not break older installs this script must come at the end.
+	 */
 	$output .= wp_get_inline_script_tag(
 		file_get_contents( ABSPATH . WPINC . '/js/wp-embed' . wp_scripts_get_suffix() . '.js' )
 	);
@@ -1057,18 +1059,22 @@ function enqueue_embed_scripts() {
 }
 
 /**
- * Prints the CSS in the embed iframe header.
+ * Enqueues the CSS in the embed iframe header.
  *
- * @since 4.4.0
+ * @since 6.4.0
  */
-function print_embed_styles() {
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-	$suffix    = SCRIPT_DEBUG ? '' : '.min';
-	?>
-	<style<?php echo $type_attr; ?>>
-		<?php echo file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ); ?>
-	</style>
-	<?php
+function wp_enqueue_embed_styles() {
+	// Back-compat for plugins that disable functionality by unhooking this action.
+	if ( ! has_action( 'embed_head', 'print_embed_styles' ) ) {
+		return;
+	}
+	remove_action( 'embed_head', 'print_embed_styles' );
+
+	$suffix = wp_scripts_get_suffix();
+	$handle = 'wp-embed-template';
+	wp_register_style( $handle, false );
+	wp_add_inline_style( $handle, file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ) );
+	wp_enqueue_style( $handle );
 }
 
 /**

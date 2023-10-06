@@ -9,7 +9,7 @@
 /**
  * Converts a Classic Menu to Block Menu blocks.
  *
- * @since 6.3.0.
+ * @since 6.3.0
  * @access public
  */
 class WP_Classic_To_Block_Menu_Converter {
@@ -17,10 +17,12 @@ class WP_Classic_To_Block_Menu_Converter {
 	/**
 	 * Converts a Classic Menu to blocks.
 	 *
-	 * @since 6.3.0.
+	 * @since 6.3.0
 	 *
 	 * @param WP_Term $menu The Menu term object of the menu to convert.
-	 * @return string the serialized and normalized parsed blocks.
+	 * @return string|WP_Error The serialized and normalized parsed blocks on success,
+	 *                         an empty string when there are no menus to convert,
+	 *                         or WP_Error on invalid menu.
 	 */
 	public static function convert( $menu ) {
 
@@ -34,7 +36,7 @@ class WP_Classic_To_Block_Menu_Converter {
 		$menu_items = wp_get_nav_menu_items( $menu->term_id, array( 'update_post_term_cache' => false ) );
 
 		if ( empty( $menu_items ) ) {
-			return array();
+			return '';
 		}
 
 		// Set up the $menu_item variables.
@@ -58,7 +60,7 @@ class WP_Classic_To_Block_Menu_Converter {
 	/**
 	 * Returns an array of menu items grouped by the id of the parent menu item.
 	 *
-	 * @since 6.3.0.
+	 * @since 6.3.0
 	 *
 	 * @param array $menu_items An array of menu items.
 	 * @return array
@@ -76,14 +78,14 @@ class WP_Classic_To_Block_Menu_Converter {
 	/**
 	 * Turns menu item data into a nested array of parsed blocks
 	 *
-	 * @since 6.3.0.
+	 * @since 6.3.0
 	 *
-	 * @param array $menu_items               An array of menu items that represent
-	 *                                        an individual level of a menu.
-	 * @param array $menu_items_by_parent_id  An array keyed by the id of the
-	 *                                        parent menu where each element is an
-	 *                                        array of menu items that belong to
-	 *                                        that parent.
+	 * @param array $menu_items              An array of menu items that represent
+	 *                                       an individual level of a menu.
+	 * @param array $menu_items_by_parent_id An array keyed by the id of the
+	 *                                       parent menu where each element is an
+	 *                                       array of menu items that belong to
+	 *                                       that parent.
 	 * @return array An array of parsed block data.
 	 */
 	private static function to_blocks( $menu_items, $menu_items_by_parent_id ) {

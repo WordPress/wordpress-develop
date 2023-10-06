@@ -97,7 +97,7 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 			'empty string' => array( '' ),
 			'array'        => array( array( 1 ) ),
 			'empty array'  => array( array() ),
-			'stdClass'     => array( new stdClass ),
+			'stdClass'     => array( new stdClass() ),
 		);
 	}
 }

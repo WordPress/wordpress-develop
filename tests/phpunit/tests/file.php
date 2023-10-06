@@ -206,6 +206,199 @@ class Tests_File extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `wp_tempnam()` limits the filename's length to 252 characters.
+	 *
+	 * @ticket 35755
+	 *
+	 * @covers ::wp_tempnam
+	 *
+	 * @dataProvider data_wp_tempnam_should_limit_filename_length_to_252_characters
+	 */
+	public function test_wp_tempnam_should_limit_filename_length_to_252_characters( $filename ) {
+		$file = wp_tempnam( $filename );
+
+		if ( file_exists( $file ) ) {
+			self::unlink( $file );
+		}
+
+		$this->assertLessThanOrEqual( 252, strlen( basename( $file ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_tempnam_should_limit_filename_length_to_252_characters() {
+		return array(
+			'the limit before adding characters for uniqueness' => array( 'filename' => str_pad( '', 241, 'filename' ) ),
+			'one more than the limit before adding characters for uniqueness' => array( 'filename' => str_pad( '', 242, 'filename' ) ),
+			'251 characters' => array( 'filename' => str_pad( '', 251, 'filename' ) ),
+			'252 characters' => array( 'filename' => str_pad( '', 252, 'filename' ) ),
+			'253 characters' => array( 'filename' => str_pad( '', 253, 'filename' ) ),
+		);
+	}
+
+	/**
+	 * Tests that `wp_tempnam()` limits the filename's length to 252 characters
+	 * when there is a name conflict.
+	 *
+	 * @ticket 35755
+	 *
+	 * @covers ::wp_tempnam
+	 */
+	public function test_wp_tempnam_should_limit_filename_length_to_252_characters_with_name_conflict() {
+		// Create a conflict by removing the randomness of the generated password.
+		add_filter(
+			'random_password',
+			static function () {
+				return '123456';
+			},
+			10,
+			0
+		);
+
+		// A filename at the limit.
+		$filename = str_pad( '', 252, 'filename' );
+
+		// Create the initial file.
+		$existing_file = wp_tempnam( $filename );
+
+		// Try creating a file with the same name.
+		$actual = wp_tempnam( basename( $existing_file ) );
+
+		self::unlink( $existing_file );
+		self::unlink( $actual );
+
+		$this->assertLessThanOrEqual( 252, strlen( basename( $actual ) ) );
+	}
+
+	/**
+	 * Tests that `wp_tempnam()` limits the filename's length to 252 characters
+	 * when a 'random_password' filter returns passwords longer than 6 characters.
+	 *
+	 * @ticket 35755
+	 *
+	 * @covers ::wp_tempnam
+	 */
+	public function test_wp_tempnam_should_limit_filename_length_to_252_characters_when_random_password_is_filtered() {
+		// Force random passwords to 12 characters.
+		add_filter(
+			'random_password',
+			static function () {
+				return '1a2b3c4d5e6f';
+			},
+			10,
+			0
+		);
+
+		// A filename at the limit.
+		$filename = str_pad( '', 252, 'filename' );
+		$actual   = wp_tempnam( $filename );
+
+		self::unlink( $actual );
+
+		$this->assertLessThanOrEqual( 252, strlen( basename( $actual ) ) );
+	}
+
+	/**
+	 * Tests that `wp_tempnam()` limits the filename's length to 252 characters
+	 * when a 'wp_unique_filename' filter returns a filename longer than 252 characters.
+	 *
+	 * @ticket 35755
+	 *
+	 * @covers ::wp_tempnam
+	 */
+	public function test_wp_tempnam_should_limit_filename_length_to_252_characters_when_wp_unique_filename_is_filtered() {
+		// Determine the number of additional characters added by `wp_tempnam()`.
+		$temp_dir                    = get_temp_dir();
+		$additional_chars_filename   = wp_unique_filename( $temp_dir, 'filename' );
+		$additional_chars_generated  = wp_tempnam( $additional_chars_filename, $temp_dir );
+		$additional_chars_difference = strlen( basename( $additional_chars_generated ) ) - strlen( $additional_chars_filename );
+
+		$filenames_over_limit = 0;
+
+		// Make the filter send the filename over the limit.
+		add_filter(
+			'wp_unique_filename',
+			static function ( $filename ) use ( &$filenames_over_limit ) {
+				if ( strlen( $filename ) === 252 ) {
+					$filename .= '1';
+					++$filenames_over_limit;
+				}
+
+				return $filename;
+			},
+			10,
+			1
+		);
+
+		// A filename that will hit the limit when `wp_tempnam()` adds characters.
+		$filename = str_pad( '', 252 - $additional_chars_difference, 'filename' );
+		$actual   = wp_tempnam( $filename );
+
+		self::unlink( $additional_chars_generated );
+		self::unlink( $actual );
+
+		$this->assertLessThanOrEqual( 252, strlen( basename( $actual ) ), 'The final filename was over the limit.' );
+		$this->assertSame( 1, $filenames_over_limit, 'One filename should have been over the limit.' );
+	}
+
+	/**
+	 * Tests that `wp_tempnam()` limits the filename's length to 252 characters
+	 * when both a 'random_password' filter and a 'wp_unique_filename' filter
+	 * cause the filename to be greater than 252 characters.
+	 *
+	 * @ticket 35755
+	 *
+	 * @covers ::wp_tempnam
+	 */
+	public function test_wp_tempnam_should_limit_filename_length_to_252_characters_when_random_password_and_wp_unique_filename_are_filtered() {
+		// Force random passwords to 12 characters.
+		add_filter(
+			'random_password',
+			static function () {
+				return '1a2b3c4d5e6f';
+			},
+			10,
+			0
+		);
+
+		// Determine the number of additional characters added by `wp_tempnam()`.
+		$temp_dir                    = get_temp_dir();
+		$additional_chars_filename   = wp_unique_filename( $temp_dir, 'filename' );
+		$additional_chars_generated  = wp_tempnam( $additional_chars_filename, $temp_dir );
+		$additional_chars_difference = strlen( basename( $additional_chars_generated ) ) - strlen( $additional_chars_filename );
+
+		$filenames_over_limit = 0;
+
+		// Make the filter send the filename over the limit.
+		add_filter(
+			'wp_unique_filename',
+			static function ( $filename ) use ( &$filenames_over_limit ) {
+				if ( strlen( $filename ) === 252 ) {
+					$filename .= '1';
+					++$filenames_over_limit;
+				}
+
+				return $filename;
+			},
+			10,
+			1
+		);
+
+		// A filename that will hit the limit when `wp_tempnam()` adds characters.
+		$filename = str_pad( '', 252 - $additional_chars_difference, 'filename' );
+		$actual   = wp_tempnam( $filename );
+
+		self::unlink( $additional_chars_generated );
+		self::unlink( $actual );
+
+		$this->assertLessThanOrEqual( 252, strlen( basename( $actual ) ), 'The final filename was over the limit.' );
+		$this->assertSame( 1, $filenames_over_limit, 'One filename should have been over the limit.' );
+	}
+
+	/**
 	 * @ticket 47186
 	 */
 	public function test_file_signature_functions_as_expected() {

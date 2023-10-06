@@ -222,6 +222,27 @@ function create_initial_taxonomies() {
 			'show_in_rest'      => false,
 		)
 	);
+
+	register_taxonomy(
+		'wp_pattern_category',
+		array( 'wp_block' ),
+		array(
+			'public'             => true,
+			'publicly_queryable' => false,
+			'hierarchical'       => false,
+			'labels'             => array(
+				'name'          => _x( 'Pattern Categories', 'taxonomy general name' ),
+				'singular_name' => _x( 'Pattern Category', 'taxonomy singular name' ),
+			),
+			'query_var'          => false,
+			'rewrite'            => false,
+			'show_ui'            => true,
+			'_builtin'           => true,
+			'show_in_nav_menus'  => false,
+			'show_in_rest'       => true,
+			'show_admin_column'  => true,
+		)
+	);
 }
 
 /**
@@ -959,6 +980,7 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 	// Ensure for filters that this is not empty.
 	$taxonomy = $_term->taxonomy;
 
+	$old_term = $_term;
 	/**
 	 * Filters a taxonomy term object.
 	 *
@@ -998,7 +1020,9 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 	}
 
 	// Sanitize term, according to the specified filter.
-	$_term->filter( $filter );
+	if ( $_term !== $old_term || $_term->filter !== $filter ) {
+		$_term->filter( $filter );
+	}
 
 	if ( ARRAY_A === $output ) {
 		return $_term->to_array();
@@ -1541,8 +1565,7 @@ function term_exists( $term, $taxonomy = '', $parent_term = null ) {
 
 	// Ensure that while importing, queries are not cached.
 	if ( ! empty( $_wp_suspend_cache_invalidation ) ) {
-		// @todo Disable caching once #52710 is merged.
-		$defaults['cache_domain'] = microtime();
+		$defaults['cache_results'] = false;
 	}
 
 	if ( ! empty( $taxonomy ) ) {
@@ -3090,7 +3113,7 @@ function wp_unique_term_slug( $slug, $term ) {
 			$num = 2;
 			do {
 				$alt_slug = $slug . "-$num";
-				$num++;
+				++$num;
 				$slug_check = $wpdb->get_var( $wpdb->prepare( "SELECT slug FROM $wpdb->terms WHERE slug = %s", $alt_slug ) );
 			} while ( $slug_check );
 			$slug = $alt_slug;
@@ -3250,8 +3273,10 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	// Check for duplicate slug.
 	$duplicate = get_term_by( 'slug', $slug, $taxonomy );
 	if ( $duplicate && $duplicate->term_id !== $term_id ) {
-		// If an empty slug was passed or the parent changed, reset the slug to something unique.
-		// Otherwise, bail.
+		/*
+		 * If an empty slug was passed or the parent changed, reset the slug to something unique.
+		 * Otherwise, bail.
+		 */
 		if ( $empty_slug || ( $parent !== (int) $term['parent'] ) ) {
 			$slug = wp_unique_term_slug( $slug, (object) $args );
 		} else {

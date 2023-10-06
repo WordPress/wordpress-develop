@@ -60,7 +60,7 @@ jobs:
     steps:
       - name: Determine the status of the previous attempt
         id: previous-attempt-result
-        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         with:
           retries: 2
           retry-exempt-status-codes: 418
@@ -70,6 +70,10 @@ jobs:
               repo: context.repo.repo,
               run_id: ${{ github.run_id }},
             });
+
+            if ( '${{ inputs.calling_status }}' == 'failure' && workflow_run.data.run_attempt == 1 ) {
+              return 'first-failure';
+            }
 
             // When a workflow has been restarted to fix a failure, check the previous run attempt.
             if ( workflow_run.data.run_attempt > 1 ) {
@@ -125,7 +129,7 @@ jobs:
 
       - name: Get the commit message
         id: current-commit-message
-        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
         with:
           retries: 2
@@ -157,11 +161,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [ prepare ]
-    if: ${{ inputs.calling_status == 'failure' || failure() }}
+    if: ${{ needs.prepare.outputs.previous_conclusion != 'first-failure' && inputs.calling_status == 'failure' || failure() }}
 
     steps:
       - name: Post failure notifications to Slack
-        uses: slackapi/slack-github-action@007b2c3c751a190b6f0f040e47ed024deaa72844 # v1.23.0
+        uses: slackapi/slack-github-action@e28cf165c92ffef168d23c5c9000cffc8a25e117 # v1.24.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:
@@ -177,7 +181,7 @@ jobs:
 
     steps:
       - name: Post failure notifications to Slack
-        uses: slackapi/slack-github-action@007b2c3c751a190b6f0f040e47ed024deaa72844 # v1.23.0
+        uses: slackapi/slack-github-action@e28cf165c92ffef168d23c5c9000cffc8a25e117 # v1.24.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:
@@ -193,7 +197,7 @@ jobs:
 
     steps:
       - name: Post success notifications to Slack
-        uses: slackapi/slack-github-action@007b2c3c751a190b6f0f040e47ed024deaa72844 # v1.23.0
+        uses: slackapi/slack-github-action@e28cf165c92ffef168d23c5c9000cffc8a25e117 # v1.24.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:
@@ -209,7 +213,7 @@ jobs:
 
     steps:
       - name: Post cancelled notifications to Slack
-        uses: slackapi/slack-github-action@007b2c3c751a190b6f0f040e47ed024deaa72844 # v1.23.0
+        uses: slackapi/slack-github-action@e28cf165c92ffef168d23c5c9000cffc8a25e117 # v1.24.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:
