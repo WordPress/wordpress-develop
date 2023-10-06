@@ -31,10 +31,42 @@ function wp_get_elements_class_name( $block ) {
  * @return string Filtered block content.
  */
 function wp_render_elements_support( $block_content, $block ) {
+	if (
+		! $block_content ||
+		! isset( $block['attrs']['style']['elements'] ) ||
+		! wp_render_elements_support_required_for_block( $block )
+	) {
+		return $block_content;
+	}
+
+	$tags = new WP_HTML_Tag_Processor( $block_content );
+	if ( $tags->next_tag() ) {
+		$tags->add_class( wp_get_elements_class_name( $block ) );
+	}
+
+	return $tags->get_updated_html();
+}
+
+/**
+ * Determines if a block needs to be flagged for elements support
+ * based on its specific attributes and general block type.
+ *
+ * @since 6.4.0
+ * @access private
+ *
+ * @param array $block Block object.
+ * @return bool
+ */
+function wp_render_elements_support_required_for_block( $block ) {
 	static $heading_elements = array( 'heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6' );
 
-	if ( ! $block_content || ! isset( $block['attrs']['style']['elements'] ) ) {
-		return $block_content;
+	/*
+	 * Every block attribute which would require elements support is inside
+	 * this path, so if the path itself doesn't exist there's no reason to
+	 * perform any further checking.
+	 */
+	if ( ! isset( $block['attrs']['style']['elements'] ) ) {
+		return false;
 	}
 
 	$block_type       = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
@@ -52,12 +84,7 @@ function wp_render_elements_support( $block_content, $block ) {
 			isset( $button_attributes['background'] ) ||
 			isset( $button_attributes['gradient'] )
 		) {
-			$tags = new WP_HTML_Tag_Processor( $block_content );
-			if ( $tags->next_tag() ) {
-				$tags->add_class( wp_get_elements_class_name( $block ) );
-			}
-
-			return $tags->get_updated_html();
+			return true;
 		}
 	}
 
@@ -70,12 +97,7 @@ function wp_render_elements_support( $block_content, $block ) {
 			isset( $style_attributes['link']['color']['text'] ) ||
 			isset( $style_attributes['link'][':hover']['color']['text'] )
 		) {
-			$tags = new WP_HTML_Tag_Processor( $block_content );
-			if ( $tags->next_tag() ) {
-				$tags->add_class( wp_get_elements_class_name( $block ) );
-			}
-
-			return $tags->get_updated_html();
+			return true;
 		}
 	}
 
@@ -93,17 +115,12 @@ function wp_render_elements_support( $block_content, $block ) {
 				isset( $heading_attributes['background'] ) ||
 				isset( $heading_attributes['gradient'] )
 			) {
-				$tags = new WP_HTML_Tag_Processor( $block_content );
-				if ( $tags->next_tag() ) {
-					$tags->add_class( wp_get_elements_class_name( $block ) );
-				}
-
-				return $tags->get_updated_html();
+				return true;
 			}
 		}
 	}
 
-	return $block_content;
+	return false;
 }
 
 /**
