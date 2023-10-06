@@ -6,168 +6,298 @@
  */
 class Tests_Block_Supports_Elements extends WP_UnitTestCase {
 	/**
-	 * Given a string containing a class prefixed by "wp-elements-" followed by a unique id,
-	 * this function returns a string where the id is one instead of being unique.
+	 * @var string|null
+	 */
+	private $test_block_name;
+
+	public function set_up() {
+		parent::set_up();
+		$this->test_block_name = null;
+	}
+
+	public function tear_down() {
+		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
+		unregister_block_type( $this->test_block_name );
+		$this->test_block_name = null;
+		parent::tear_down();
+	}
+
+	/**
+	 * Registers a test block type with the provided color block supports.
 	 *
-	 * @param string $block_content String containing unique id classes.
-	 * @return string String where the unique id classes were replaced with "wp-elements-1".
+	 * @param array $color_settings The color block support settings used for elements.
 	 */
-	private static function make_unique_id_one( $block_content ) {
-		return preg_replace( '/wp-elements-[a-zA-Z0-9]+/', 'wp-elements-1', $block_content );
-	}
+	public function register_block_with_color_settings( $color_settings ) {
+		$this->test_block_name = 'test/element-block-supports';
 
-	/**
-	 * Test wp_render_elements_support() with a simple paragraph and link color preset.
-	 * @ticket 54337
-	 */
-	public function test_simple_paragraph_link_color() {
-		$result = self::make_unique_id_one(
-			wp_render_elements_support(
-				'<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				array(
-					'blockName' => 'core/paragraph',
-					'attrs'     => array(
-						'style' => array(
-							'elements' => array(
-								'link' => array(
-									'color' => array(
-										'text' => 'var:preset|color|subtle-background',
-									),
-								),
-							),
-						),
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 3,
+				'attributes'  => array(
+					'style' => array(
+						'type' => 'object',
 					),
-				)
+				),
+				'supports'    => array(
+					'color' => $color_settings,
+				),
 			)
 		);
-		$this->assertSame(
-			$result,
-			'<p class="wp-elements-1">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>'
-		);
 	}
 
 	/**
-	 * Test wp_render_elements_support() with a paragraph containing a class.
-	 * @ticket 54337
-	 */
-	public function test_class_paragraph_link_color() {
-		$result = self::make_unique_id_one(
-			wp_render_elements_support(
-				'<p class="has-dark-gray-background-color has-background">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				array(
-					'blockName' => 'core/paragraph',
-					'attrs'     => array(
-						'style'           => array(
-							'elements' => array(
-								'link' => array(
-									'color' => array(
-										'text' => 'red',
-									),
-								),
-							),
-						),
-						'backgroundColor' => 'dark-gray',
-					),
-				)
-			)
-		);
-		$this->assertSame(
-			$result,
-			'<p class="has-dark-gray-background-color has-background wp-elements-1">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>'
-		);
-	}
-
-	/**
-	 * Test wp_render_elements_support() with a paragraph containing a anchor.
-	 * @ticket 54337
-	 */
-	public function test_anchor_paragraph_link_color() {
-		$result = self::make_unique_id_one(
-			wp_render_elements_support(
-				'<p id="anchor">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				array(
-					'blockName' => 'core/paragraph',
-					'attrs'     => array(
-						'style' => array(
-							'elements' => array(
-								'link' => array(
-									'color' => array(
-										'text' => '#fff000',
-									),
-								),
-							),
-						),
-					),
-				)
-			)
-		);
-		$this->assertSame(
-			$result,
-			'<p class="wp-elements-1" id="anchor">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>'
-		);
-	}
-
-	/**
-	 * Test wp_render_elements_support() with a group block that has a button
-	 * element color set.
+	 * Tests that elements block support applies the correct classname.
 	 *
-	 * @ticket 59309
+	 * @covers ::wp_render_elements_support
+	 *
+	 * @dataProvider data_elements_block_support_class
+	 *
+	 * @param array  $color_settings  The color block support settings used for elements support.
+	 * @param array  $elements_styles The elements styles within the block attributes.
+	 * @param string $block_markup    Original block markup.
+	 * @param string $expected_markup Resulting markup after application of elements block support.
 	 */
-	public function test_group_with_button_element_style() {
-		$result = self::make_unique_id_one(
-			wp_render_elements_support(
-				'<div class="wp-block-group"><div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex"><div class="wp-block-button"><a class="wp-block-button__link wp-element-button">Button</a></div></div></div>',
-				array(
-					'blockName' => 'core/group',
-					'attrs'     => array(
-						'style' => array(
-							'elements' => array(
-								'button' => array(
-									'color' => array(
-										'text' => 'var:preset|color|vivid-red',
-									),
-								),
-							),
-						),
-					),
-				)
-			)
+	public function test_elements_block_support_class( $color_settings, $elements_styles, $block_markup, $expected_markup ) {
+		$this->register_block_with_color_settings( $color_settings );
+
+		$block = array(
+			'blockName' => $this->test_block_name,
+			'attrs'     => array(
+				'style' => array(
+					'elements' => $elements_styles,
+				),
+			),
 		);
-		$this->assertSame(
-			$result,
-			'<div class="wp-block-group wp-elements-1"><div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex"><div class="wp-block-button"><a class="wp-block-button__link wp-element-button">Button</a></div></div></div>'
+
+		$actual = wp_render_elements_support( $block_markup, $block );
+
+		$this->assertMatchesRegularExpression(
+			$expected_markup,
+			$actual,
+			'Position block wrapper markup should be correct'
 		);
 	}
 
 	/**
-	 * Test wp_render_elements_support() with a group block that has a heading
-	 * element color set.
+	 * Data provider.
 	 *
-	 * @ticket 59309
+	 * @return array
 	 */
-	public function test_group_with_heading_element_style() {
-		$result = self::make_unique_id_one(
-			wp_render_elements_support(
-				'<div class="wp-block-group"><h2 class="wp-block-heading">Test</h2></div>',
-				array(
-					'blockName' => 'core/group',
-					'attrs'     => array(
-						'style' => array(
-							'elements' => array(
-								'heading' => array(
-									'color' => array(
-										'text' => 'var:preset|color|vivid-red',
-									),
-								),
-							),
+	public function data_elements_block_support_class() {
+		$color_styles = array(
+			'text'       => 'var:preset|color|vivid-red',
+			'background' => '#fff',
+		);
+
+		return array(
+			'button element styles with serialization skipped' => array(
+				'color_settings'  => array(
+					'button'                          => true,
+					'__experimentalSkipSerialization' => true,
+				),
+				'elements_styles' => array(
+					'button' => array( 'color' => $color_styles ),
+				),
+				'block_markup'    => '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
+				'expected_markup' => '/^<p>Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+			),
+			'link element styles with serialization skipped' => array(
+				'color_settings'  => array(
+					'link'                            => true,
+					'__experimentalSkipSerialization' => true,
+				),
+				'elements_styles' => array(
+					'link' => array( 'color' => $color_styles ),
+				),
+				'block_markup'    => '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
+				'expected_markup' => '/^<p>Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+			),
+			'heading element styles with serialization skipped' => array(
+				'color_settings'  => array(
+					'heading'                         => true,
+					'__experimentalSkipSerialization' => true,
+				),
+				'elements_styles' => array(
+					'heading' => array( 'color' => $color_styles ),
+				),
+				'block_markup'    => '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
+				'expected_markup' => '/^<p>Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+			),
+			'button element styles apply class to wrapper' => array(
+				'color_settings'  => array( 'button' => true ),
+				'elements_styles' => array(
+					'button' => array( 'color' => $color_styles ),
+				),
+				'block_markup'    => '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
+				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+			),
+			'link element styles apply class to wrapper'   => array(
+				'color_settings'  => array( 'link' => true ),
+				'elements_styles' => array(
+					'link' => array( 'color' => $color_styles ),
+				),
+				'block_markup'    => '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
+				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+			),
+			'heading element styles apply class to wrapper' => array(
+				'color_settings'  => array( 'heading' => true ),
+				'elements_styles' => array(
+					'heading' => array( 'color' => $color_styles ),
+				),
+				'block_markup'    => '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
+				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+			),
+			'element styles apply class to wrapper when it has other classes' => array(
+				'color_settings'  => array( 'link' => true ),
+				'elements_styles' => array(
+					'link' => array( 'color' => $color_styles ),
+				),
+				'block_markup'    => '<p class="has-dark-gray-background-color has-background">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
+				'expected_markup' => '/^<p class="has-dark-gray-background-color has-background wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+			),
+			'element styles apply class to wrapper when it has other attributes' => array(
+				'color_settings'  => array( 'link' => true ),
+				'elements_styles' => array(
+					'link' => array( 'color' => $color_styles ),
+				),
+				'block_markup'    => '<p id="anchor">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
+				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}" id="anchor">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+			),
+		);
+	}
+
+	/**
+	 * Tests that elements block support generates appropriate styles.
+	 *
+	 * @covers ::wp_render_elements_support_styles
+	 *
+	 * @dataProvider data_elements_block_support_styles
+	 *
+	 * @param mixed  $color_settings  The color block support settings used for elements support.
+	 * @param mixed  $elements_styles The elements styles within the block attributes.
+	 * @param string $expected_styles Expected styles enqueued by the style engine.
+	 */
+	public function test_elements_block_support_styles( $color_settings, $elements_styles, $expected_styles ) {
+		$this->register_block_with_color_settings( $color_settings );
+
+		$block = array(
+			'blockName' => $this->test_block_name,
+			'attrs'     => array(
+				'style' => array(
+					'elements' => $elements_styles,
+				),
+			),
+		);
+
+		wp_render_elements_support_styles( null, $block );
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
+
+		$this->assertMatchesRegularExpression(
+			$expected_styles,
+			$actual_stylesheet,
+			'Elements style rules output should be correct'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_elements_block_support_styles() {
+		$color_styles    = array(
+			'text'       => 'var:preset|color|vivid-red',
+			'background' => '#fff',
+		);
+		$color_css_rules = preg_quote( '{color:var(--wp--preset--color--vivid-red);background-color:#fff;}' );
+
+		return array(
+			'button element styles are not applied if serialization is skipped' => array(
+				'color_settings'  => array(
+					'button'                          => true,
+					'__experimentalSkipSerialization' => true,
+				),
+				'elements_styles' => array(
+					'button' => array( 'color' => $color_styles ),
+				),
+				'expected_styles' => '/^$/',
+			),
+			'link element styles are not applied if serialization is skipped' => array(
+				'color_settings'  => array(
+					'link'                            => true,
+					'__experimentalSkipSerialization' => true,
+				),
+				'elements_styles' => array(
+					'link' => array(
+						'color'  => $color_styles,
+						':hover' => array(
+							'color' => $color_styles,
 						),
 					),
-				)
-			)
-		);
-		$this->assertSame(
-			$result,
-			'<div class="wp-block-group wp-elements-1"><h2 class="wp-block-heading">Test</h2></div>'
+				),
+				'expected_styles' => '/^$/',
+			),
+			'heading element styles are not applied if serialization is skipped' => array(
+				'color_settings'  => array(
+					'heading'                         => true,
+					'__experimentalSkipSerialization' => true,
+				),
+				'elements_styles' => array(
+					'heading' => array( 'color' => $color_styles ),
+					'h1'      => array( 'color' => $color_styles ),
+					'h2'      => array( 'color' => $color_styles ),
+					'h3'      => array( 'color' => $color_styles ),
+					'h4'      => array( 'color' => $color_styles ),
+					'h5'      => array( 'color' => $color_styles ),
+					'h6'      => array( 'color' => $color_styles ),
+				),
+				'expected_styles' => '/^$/',
+			),
+			'button element styles are applied'          => array(
+				'color_settings'  => array( 'button' => true ),
+				'elements_styles' => array(
+					'button' => array( 'color' => $color_styles ),
+				),
+				'expected_styles' => '/^.wp-elements-[a-f0-9]{32} .wp-element-button, .wp-elements-[a-f0-9]{32} .wp-block-button__link' . $color_css_rules . '$/',
+			),
+			'link element styles are applied'            => array(
+				'color_settings'  => array( 'link' => true ),
+				'elements_styles' => array(
+					'link' => array(
+						'color'  => $color_styles,
+						':hover' => array(
+							'color' => $color_styles,
+						),
+					),
+				),
+				'expected_styles' => '/^.wp-elements-[a-f0-9]{32} a' . $color_css_rules .
+					'.wp-elements-[a-f0-9]{32} a:hover' . $color_css_rules . '$/',
+			),
+			'generic heading element styles are applied' => array(
+				'color_settings'  => array( 'heading' => true ),
+				'elements_styles' => array(
+					'heading' => array( 'color' => $color_styles ),
+				),
+				'expected_styles' => '/^.wp-elements-[a-f0-9]{32} h1, .wp-elements-[a-f0-9]{32} h2, .wp-elements-[a-f0-9]{32} h3, .wp-elements-[a-f0-9]{32} h4, .wp-elements-[a-f0-9]{32} h5, .wp-elements-[a-f0-9]{32} h6' . $color_css_rules . '$/',
+			),
+			'individual heading element styles are applied' => array(
+				'color_settings'  => array( 'heading' => true ),
+				'elements_styles' => array(
+					'h1' => array( 'color' => $color_styles ),
+					'h2' => array( 'color' => $color_styles ),
+					'h3' => array( 'color' => $color_styles ),
+					'h4' => array( 'color' => $color_styles ),
+					'h5' => array( 'color' => $color_styles ),
+					'h6' => array( 'color' => $color_styles ),
+				),
+				'expected_styles' => '/^.wp-elements-[a-f0-9]{32} h1' . $color_css_rules .
+					'.wp-elements-[a-f0-9]{32} h2' . $color_css_rules .
+					'.wp-elements-[a-f0-9]{32} h3' . $color_css_rules .
+					'.wp-elements-[a-f0-9]{32} h4' . $color_css_rules .
+					'.wp-elements-[a-f0-9]{32} h5' . $color_css_rules .
+					'.wp-elements-[a-f0-9]{32} h6' . $color_css_rules . '$/',
+			),
 		);
 	}
 }
