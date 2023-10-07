@@ -534,6 +534,13 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * @covers ::block_template_part
 	 */
 	public function test_block_template_part_should_do_shortcodes() {
+		add_shortcode(
+			self::TEST_SHORTCODE,
+			static function () {
+				return 'test_shortcode_rendered';
+			}
+		);
+
 		$generated_content = get_echo( 'block_template_part', array( 'template-part-shortcode' ) );
 		remove_shortcode( self::TEST_SHORTCODE );
 
