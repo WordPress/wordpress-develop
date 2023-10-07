@@ -1020,3 +1020,13 @@ $group-block-background__padding: $font__size_base;
 		width: 100%;
 	}
 }
+
+/* Post Author Block  */
+.editor-styles-wrapper {
+	
+	& .avatar,
+	& .wp-block-post-author__avatar img {
+		border-radius: 50%;
+	}
+
+}
