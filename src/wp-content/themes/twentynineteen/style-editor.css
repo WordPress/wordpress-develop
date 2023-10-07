@@ -1605,3 +1605,8 @@ ul.wp-block-archives li ul,
   padding-right: 0;
   width: 100%;
 }
+
+/* Post Author Block  */
+.editor-styles-wrapper .avatar, .editor-styles-wrapper .wp-block-post-author__avatar img {
+  border-radius: 50%;
+}
