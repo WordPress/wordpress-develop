@@ -534,10 +534,20 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * @covers ::block_template_part
 	 */
 	public function test_block_template_part_should_do_shortcodes() {
+		$generated_content = get_echo( 'block_template_part', array( 'template-part-shortcode' ) );
 		remove_shortcode( self::TEST_SHORTCODE );
 
-		$this->assertStringContainsString( 'test_shortcode_rendered_unautop', $generated_content, 'Should render shortcodes in paragraph tags' );
-		$this->assertStringContainsString( 'test_shortcode_rendered_shortcode_block', $generated_content, 'Should render shortcodes in shortcode blocks' );
+		$this->assertStringContainsString(
+			'test_shortcode_rendered_unautop',
+			$generated_content,
+			'Should render shortcodes in paragraph tags'
+		);
+
+		$this->assertStringContainsString(
+			'test_shortcode_rendered_shortcode_block',
+			$generated_content,
+			'Should render shortcodes in shortcode blocks'
+		);
 	}
 
 	/**
@@ -563,6 +573,10 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * @covers ::block_template_part
 	 */
 	public function test_block_template_part_should_convert_smilies() {
+		$this->assertStringContainsString(
+			'🙂',
+			get_echo( 'block_template_part', array( 'template-part-shortcode' ) )
+		);
 	}
 
 	/**
@@ -573,9 +587,19 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * @covers ::block_template_part
 	 */
 	public function test_block_template_part_should_auto_embed_videos() {
+		$generated_content = get_echo( 'block_template_part', array( 'template-part-shortcode' ) );
 
-		$this->assertStringContainsString( '<iframe', $generated_content, 'Should replace Youtube link with an iframe' );
-		$this->assertStringContainsString( 'src="https://www.youtube.com/embed/_H4vwkGvWjE', $generated_content, 'Should use the correct src for the iframe' );
+		$this->assertStringContainsString(
+			'<iframe',
+			$generated_content,
+			'Should replace Youtube link with an iframe'
+		);
+
+		$this->assertStringContainsString(
+			'src="https://www.youtube.com/embed/_H4vwkGvWjE',
+			$generated_content,
+			'Should use the correct src for the iframe'
+		);
 	}
 
 	/**
@@ -586,5 +610,9 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * @covers ::block_template_part
 	 */
 	public function test_block_template_part_should_use_formatted_entities() {
+		$this->assertStringContainsString(
+			'&#8217;cause today&#8217;s effort makes it worth tomorrow&#8217;s &#8220;holiday&#8221;&#8230;',
+			get_echo( 'block_template_part', array( 'template-part-shortcode' ) )
+		);
 	}
 }
