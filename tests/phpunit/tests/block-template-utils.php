@@ -558,7 +558,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		block_template_part( 'template-part-shortcode' );
 		$generated_content = ob_get_clean();
 
-		$this->assertStringContainsString( '<img decoding="async" loading="lazy" width="408" height="287" src="https://placekitten.com/408/287">', $generated_content );
+		$this->assertStringContainsString( '<img loading="lazy" decoding="async" width="408" height="287" src="https://placekitten.com/408/287">', $generated_content );
 	}
 
 	/**
